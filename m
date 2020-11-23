@@ -2,161 +2,126 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3059EC64E7C
-	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Nov 2020 17:07:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6984DC63697
+	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Nov 2020 17:49:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E935E208B8
-	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Nov 2020 17:07:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2639320758
+	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Nov 2020 17:49:21 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="BtEofZ03"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="yayuS5UM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387403AbgKWRGR (ORCPT
+        id S2387755AbgKWRtG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 23 Nov 2020 12:06:17 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:55307 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2388357AbgKWRGN (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 23 Nov 2020 12:06:13 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1606151171;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=ETdBmUCF01QVQJOZ+sQu9TUGQeVKu9xOEmE1E5gBvfU=;
-        b=BtEofZ03By1sp6OyH8lSI6IT4Bb/Q48OsWV2XnBXmdgQcceGh9rKSaQV86czSHO4W4CJHn
-        vUaUaH4n0l1WmtKl1NY4JjZQEtZdHR6F0okj/kLdyZp+LnqjvTzaYPmjipu9+IS6RcbTNg
-        lanzsvwsZXvmVS2IMlU/0SstZMlkjqs=
-Received: from mail-qv1-f70.google.com (mail-qv1-f70.google.com
- [209.85.219.70]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-278--AQQr-SpOymutK5wdkxFDQ-1; Mon, 23 Nov 2020 12:06:09 -0500
-X-MC-Unique: -AQQr-SpOymutK5wdkxFDQ-1
-Received: by mail-qv1-f70.google.com with SMTP id bn4so13436824qvb.9
-        for <netfilter-devel@vger.kernel.org>; Mon, 23 Nov 2020 09:06:09 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-transfer-encoding
-         :content-language;
-        bh=ETdBmUCF01QVQJOZ+sQu9TUGQeVKu9xOEmE1E5gBvfU=;
-        b=PnKj/kmiQaUP+/IMOGCUS/pRHEEeU4y9+dvTgOwwujMi1zQx1VdqOhU3498uPde1TA
-         4gQJtDTrxiOJyXLIElXic37sddJeNqAKdvmxYgOSFjZDqwwnBLu7eCeJs5vtCfEA6nlo
-         G+xMmV3UrrmdTiDURuNAn/CUCulqn/iySfxPR0ncM1QLXgwHHDeRrrn7Xfj6ul9S0z9V
-         8Bmg4pfWiFcpCaU8cvBT0rCJMWyxm0/3buXthNfGQukK+ZHopDMOOugjBiRVZQAC8328
-         R/YY3mgPrd/b75z5u5D1pEu/NrdCPXSf6MG0m35VFQINz04m3XokVdh1yKL82Bcdzzqf
-         AxQQ==
-X-Gm-Message-State: AOAM533Jwdr9ZxbHh9KUxgn1MyD8Hqt1zVWhqLoERRLZoWM9RpBpLSgt
-        Ox9ACOuOumzrKdnQIJRQ9ulgrfhcpTSOsAwMz32d/eitQ0cKwMQAlK1Hon2q4zevck3cad7OpUp
-        EDFqW8mLdqL2xtdVPpFEoRJPMfP/4
-X-Received: by 2002:ac8:5d53:: with SMTP id g19mr70881qtx.354.1606151168819;
-        Mon, 23 Nov 2020 09:06:08 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJwHR8oVpP3xv7xpCkK6lH4mawBfXgRI3GL2dEiLGp13/vfLrDKV7SBtsWnvpv2iFDtHltekRw==
-X-Received: by 2002:ac8:5d53:: with SMTP id g19mr70839qtx.354.1606151168572;
-        Mon, 23 Nov 2020 09:06:08 -0800 (PST)
-Received: from trix.remote.csb (075-142-250-213.res.spectrum.com. [75.142.250.213])
-        by smtp.gmail.com with ESMTPSA id o187sm10226153qkb.120.2020.11.23.09.06.04
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 23 Nov 2020 09:06:07 -0800 (PST)
-Subject: Re: [RFC] MAINTAINERS tag for cleanup robot
-To:     Joe Perches <joe@perches.com>, clang-built-linux@googlegroups.com
-Cc:     linux-hyperv@vger.kernel.org, linux-kernel@vger.kernel.org,
-        xen-devel@lists.xenproject.org, tboot-devel@lists.sourceforge.net,
-        kvm@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-acpi@vger.kernel.org, devel@acpica.org,
-        amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, netdev@vger.kernel.org,
-        linux-media@vger.kernel.org, MPT-FusionLinux.pdl@broadcom.com,
-        linux-scsi@vger.kernel.org, linux-wireless@vger.kernel.org,
-        ibm-acpi-devel@lists.sourceforge.net,
-        platform-driver-x86@vger.kernel.org, linux-usb@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        cluster-devel@redhat.com, linux-mtd@lists.infradead.org,
-        keyrings@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, alsa-devel@alsa-project.org,
-        bpf@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-        linux-nfs@vger.kernel.org, patches@opensource.cirrus.com
-References: <20201121165058.1644182-1-trix@redhat.com>
- <2105f0c05e9eae8bee8e17dcc5314474b3c0bc73.camel@perches.com>
- <6e8c1926-4209-8f10-d0f9-72c875a85a88@redhat.com>
- <859bae8ddae3238116824192f6ddf1c91a381913.camel@perches.com>
-From:   Tom Rix <trix@redhat.com>
-Message-ID: <88eeba27-ee36-df63-8cd9-3cccbe5e0850@redhat.com>
-Date:   Mon, 23 Nov 2020 09:06:03 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.12.0
+        Mon, 23 Nov 2020 12:49:06 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51422 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1732749AbgKWRtF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 23 Nov 2020 12:49:05 -0500
+Received: from localhost (lfbn-tou-1-1075-236.w90-76.abo.wanadoo.fr [90.76.143.236])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 999E4206B2;
+        Mon, 23 Nov 2020 17:49:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1606153745;
+        bh=lPeL2t2c7MqTkpkccwBik2GqDzxCgH1vNbtxn9P3q+U=;
+        h=From:To:Cc:Subject:Date:From;
+        b=yayuS5UMvH4Telb1mW1xpqGtK9/jW7s5fGQ1QTIMpkojan4qiibkKc/mcSUqozmi0
+         7wRgA/J8kCslzCFjkio9dJbrbK5HYk1yNbGoqNFUgF7zS8xqx08UJQS1tdFhLtexyY
+         10zKUe8sdT+FH9Zucgjpb+hXRR4+M7NFKF7ykI3w=
+From:   Antoine Tenart <atenart@kernel.org>
+To:     kuba@kernel.org, pablo@netfilter.org, kadlec@netfilter.org,
+        fw@strlen.de, roopa@nvidia.com, nikolay@nvidia.com
+Cc:     Antoine Tenart <atenart@kernel.org>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        sbrivio@redhat.com
+Subject: [PATCH net-next] netfilter: bridge: reset skb->pkt_type after NF_INET_POST_ROUTING traversal
+Date:   Mon, 23 Nov 2020 18:49:02 +0100
+Message-Id: <20201123174902.622102-1-atenart@kernel.org>
+X-Mailer: git-send-email 2.28.0
 MIME-Version: 1.0
-In-Reply-To: <859bae8ddae3238116824192f6ddf1c91a381913.camel@perches.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Netfilter changes PACKET_OTHERHOST to PACKET_HOST before invoking the
+hooks as, while it's an expected value for a bridge, routing expects
+PACKET_HOST. The change is undone later on after hook traversal. This
+can be seen with pairs of functions updating skb>pkt_type and then
+reverting it to its original value:
 
-On 11/22/20 10:22 AM, Joe Perches wrote:
-> On Sun, 2020-11-22 at 08:33 -0800, Tom Rix wrote:
->> On 11/21/20 9:10 AM, Joe Perches wrote:
->>> On Sat, 2020-11-21 at 08:50 -0800, trix@redhat.com wrote:
->>>> A difficult part of automating commits is composing the subsystem
->>>> preamble in the commit log.  For the ongoing effort of a fixer producing
->>>> one or two fixes a release the use of 'treewide:' does not seem appropriate.
->>>>
->>>> It would be better if the normal prefix was used.  Unfortunately normal is
->>>> not consistent across the tree.
->>>>
->>>> So I am looking for comments for adding a new tag to the MAINTAINERS file
->>>>
->>>> 	D: Commit subsystem prefix
->>>>
->>>> ex/ for FPGA DFL DRIVERS
->>>>
->>>> 	D: fpga: dfl:
->>> I'm all for it.  Good luck with the effort.  It's not completely trivial.
->>>
->>> From a decade ago:
->>>
->>> https://lore.kernel.org/lkml/1289919077.28741.50.camel@Joe-Laptop/
->>>
->>> (and that thread started with extra semicolon patches too)
->> Reading the history, how about this.
->>
->> get_maintainer.pl outputs a single prefix, if multiple files have the
->> same prefix it works, if they don't its an error.
->>
->> Another script 'commit_one_file.sh' does the call to get_mainainter.pl
->> to get the prefix and be called by run-clang-tools.py to get the fixer
->> specific message.
-> It's not whether the script used is get_maintainer or any other script,
-> the question is really if the MAINTAINERS file is the appropriate place
-> to store per-subsystem patch specific prefixes.
->
-> It is.
->
-> Then the question should be how are the forms described and what is the
-> inheritance priority.  My preference would be to have a default of
-> inherit the parent base and add basename(subsystem dirname).
->
-> Commit history seems to have standardized on using colons as the separator
-> between the commit prefix and the subject.
->
-> A good mechanism to explore how various subsystems have uses prefixes in
-> the past might be something like:
->
-> $ git log --no-merges --pretty='%s' -<commit_count> <subsystem_path> | \
->   perl -n -e 'print substr($_, 0, rindex($_, ":") + 1) . "\n";' | \
->   sort | uniq -c | sort -rn
+For hook NF_INET_PRE_ROUTING:
+  setup_pre_routing / br_nf_pre_routing_finish
 
-Thanks, I have shamelessly stolen this line and limited the commits to the maintainer.
+For hook NF_INET_FORWARD:
+  br_nf_forward_ip / br_nf_forward_finish
 
-I will post something once the generation of the prefixes is done.
+But the third case where netfilter does this, for hook
+NF_INET_POST_ROUTING, the packet type is changed in br_nf_post_routing
+but never reverted. A comment says:
 
-Tom
+  /* We assume any code from br_dev_queue_push_xmit onwards doesn't care
+   * about the value of skb->pkt_type. */
+
+But when having a tunnel (say vxlan) attached to a bridge we have the
+following call trace:
+
+  br_nf_pre_routing
+  br_nf_pre_routing_ipv6
+     br_nf_pre_routing_finish
+  br_nf_forward_ip
+     br_nf_forward_finish
+  br_nf_post_routing           <- pkt_type is updated to PACKET_HOST
+     br_nf_dev_queue_xmit      <- but not reverted to its original value
+  vxlan_xmit
+     vxlan_xmit_one
+        skb_tunnel_check_pmtu  <- a check on pkt_type is performed
+
+In this specific case, this creates issues such as when an ICMPv6 PTB
+should be sent back. When CONFIG_BRIDGE_NETFILTER is enabled, the PTB
+isn't sent (as skb_tunnel_check_pmtu checks if pkt_type is PACKET_HOST
+and returns early).
+
+If the comment is right and no one cares about the value of
+skb->pkt_type after br_dev_queue_push_xmit (which isn't true), resetting
+it to its original value should be safe.
+
+Signed-off-by: Antoine Tenart <atenart@kernel.org>
+---
+ net/bridge/br_netfilter_hooks.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index 04c3f9a82650..8edfb98ae1d5 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -735,6 +735,11 @@ static int br_nf_dev_queue_xmit(struct net *net, struct sock *sk, struct sk_buff
+ 	mtu_reserved = nf_bridge_mtu_reduction(skb);
+ 	mtu = skb->dev->mtu;
+ 
++	if (nf_bridge->pkt_otherhost) {
++		skb->pkt_type = PACKET_OTHERHOST;
++		nf_bridge->pkt_otherhost = false;
++	}
++
+ 	if (nf_bridge->frag_max_size && nf_bridge->frag_max_size < mtu)
+ 		mtu = nf_bridge->frag_max_size;
+ 
+@@ -835,8 +840,6 @@ static unsigned int br_nf_post_routing(void *priv,
+ 	else
+ 		return NF_ACCEPT;
+ 
+-	/* We assume any code from br_dev_queue_push_xmit onwards doesn't care
+-	 * about the value of skb->pkt_type. */
+ 	if (skb->pkt_type == PACKET_OTHERHOST) {
+ 		skb->pkt_type = PACKET_HOST;
+ 		nf_bridge->pkt_otherhost = true;
+-- 
+2.28.0
 
