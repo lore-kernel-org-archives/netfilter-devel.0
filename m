@@ -2,124 +2,133 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB801C63798
-	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Nov 2020 14:49:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D92EC63798
+	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Nov 2020 15:52:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A039B217A0
-	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Nov 2020 14:49:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 695A0221F1
+	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Nov 2020 15:52:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732051AbgKWOte (ORCPT
+        id S2389608AbgKWPwi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 23 Nov 2020 09:49:34 -0500
-Received: from szxga07-in.huawei.com ([45.249.212.35]:8388 "EHLO
-        szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731823AbgKWOte (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 23 Nov 2020 09:49:34 -0500
-Received: from DGGEMS406-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4Cfqm91XYmz711Q;
-        Mon, 23 Nov 2020 22:48:57 +0800 (CST)
-Received: from [10.174.179.81] (10.174.179.81) by
- DGGEMS406-HUB.china.huawei.com (10.3.19.206) with Microsoft SMTP Server id
- 14.3.487.0; Mon, 23 Nov 2020 22:49:11 +0800
-Subject: Re: [PATCH net v2] ipvs: fix possible memory leak in
- ip_vs_control_net_init
-To:     Julian Anastasov <ja@ssi.bg>
-CC:     Simon Horman <horms@verge.net.au>, <pablo@netfilter.org>,
-        <christian@brauner.io>, <lvs-devel@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>
-References: <20201120082610.60917-1-wanghai38@huawei.com>
- <21af4c92-8ca6-cce9-64bc-c4e88b6d1e8a@ssi.bg>
-From:   "wanghai (M)" <wanghai38@huawei.com>
-Message-ID: <66825441-bb06-3d18-0424-df355d596c5f@huawei.com>
-Date:   Mon, 23 Nov 2020 22:49:10 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.8.0
+        Mon, 23 Nov 2020 10:52:38 -0500
+Received: from mga04.intel.com ([192.55.52.120]:3310 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1732814AbgKWPwg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 23 Nov 2020 10:52:36 -0500
+IronPort-SDR: wdIVWjG4qt3kkvZFlTfNHJ1qSha0XKAk2CxPFx4fu9uvtz0EoQNlcxjxuegxxUzv7XWLNMv6N9
+ dwo6ar0lSANA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9813"; a="169224209"
+X-IronPort-AV: E=Sophos;i="5.78,363,1599548400"; 
+   d="scan'208";a="169224209"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Nov 2020 07:52:35 -0800
+IronPort-SDR: o6LRPZSLFHblJ72nLIxI7QtuEJsSPQd11jVZTPC9b01xjBsR6V5ML2IOh4GsWUUm1pKbyVJ0KQ
+ V9qBxJqg/0zw==
+X-IronPort-AV: E=Sophos;i="5.78,363,1599548400"; 
+   d="scan'208";a="546463497"
+Received: from suygunge-mobl.ger.corp.intel.com (HELO localhost) ([10.249.40.108])
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Nov 2020 07:52:23 -0800
+From:   Jani Nikula <jani.nikula@linux.intel.com>
+To:     James Bottomley <James.Bottomley@HansenPartnership.com>,
+        trix@redhat.com, joe@perches.com,
+        clang-built-linux@googlegroups.com
+Cc:     linux-hyperv@vger.kernel.org, kvm@vger.kernel.org,
+        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        platform-driver-x86@vger.kernel.org,
+        ibm-acpi-devel@lists.sourceforge.net, keyrings@vger.kernel.org,
+        linux-mtd@lists.infradead.org, linux-scsi@vger.kernel.org,
+        amd-gfx@lists.freedesktop.org, cluster-devel@redhat.com,
+        linux-acpi@vger.kernel.org, tboot-devel@lists.sourceforge.net,
+        coreteam@netfilter.org, xen-devel@lists.xenproject.org,
+        MPT-FusionLinux.pdl@broadcom.com, linux-media@vger.kernel.org,
+        alsa-devel@alsa-project.org, intel-gfx@lists.freedesktop.org,
+        ecryptfs@vger.kernel.org, linux-omap@vger.kernel.org,
+        devel@acpica.org, linux-nfs@vger.kernel.org,
+        netdev@vger.kernel.org, linux-usb@vger.kernel.org,
+        linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-bluetooth@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        linux-crypto@vger.kernel.org, patches@opensource.cirrus.com,
+        linux-fsdevel@vger.kernel.org, bpf@vger.kernel.org
+Subject: Re: [RFC] MAINTAINERS tag for cleanup robot
+In-Reply-To: <5843ef910b0e86c00d9c0143dec20f93823b016b.camel@HansenPartnership.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+References: <20201121165058.1644182-1-trix@redhat.com> <5843ef910b0e86c00d9c0143dec20f93823b016b.camel@HansenPartnership.com>
+Date:   Mon, 23 Nov 2020 17:52:20 +0200
+Message-ID: <87y2ism5or.fsf@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <21af4c92-8ca6-cce9-64bc-c4e88b6d1e8a@ssi.bg>
-Content-Type: text/plain; charset="gbk"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.174.179.81]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+On Sat, 21 Nov 2020, James Bottomley <James.Bottomley@HansenPartnership.com> wrote:
+> On Sat, 2020-11-21 at 08:50 -0800, trix@redhat.com wrote:
+>> A difficult part of automating commits is composing the subsystem
+>> preamble in the commit log.  For the ongoing effort of a fixer
+>> producing
+>> one or two fixes a release the use of 'treewide:' does not seem
+>> appropriate.
+>> 
+>> It would be better if the normal prefix was used.  Unfortunately
+>> normal is
+>> not consistent across the tree.
+>> 
+>> 
+>> 	D: Commit subsystem prefix
+>> 
+>> ex/ for FPGA DFL DRIVERS
+>> 
+>> 	D: fpga: dfl:
+>> 
+>
+> I've got to bet this is going to cause more issues than it solves.
 
-ÔÚ 2020/11/22 19:20, Julian Anastasov Ð´µÀ:
-> 	Hello,
->
-> On Fri, 20 Nov 2020, Wang Hai wrote:
->
->> kmemleak report a memory leak as follows:
->>
->> BUG: memory leak
->> unreferenced object 0xffff8880759ea000 (size 256):
->> comm "syz-executor.3", pid 6484, jiffies 4297476946 (age 48.546s)
-[...]
->>
->> Fixes: b17fc9963f83 ("IPVS: netns, ip_vs_stats and its procfs")
->> Fixes: 61b1ab4583e2 ("IPVS: netns, add basic init per netns.")
->> Reported-by: Hulk Robot <hulkci@huawei.com>
->> Signed-off-by: Wang Hai <wanghai38@huawei.com>
->> ---
-[...]
->>   
->> -	proc_create_net("ip_vs", 0, ipvs->net->proc_net, &ip_vs_info_seq_ops,
->> -			sizeof(struct ip_vs_iter));
->> -	proc_create_net_single("ip_vs_stats", 0, ipvs->net->proc_net,
->> -			ip_vs_stats_show, NULL);
->> -	proc_create_net_single("ip_vs_stats_percpu", 0, ipvs->net->proc_net,
->> -			ip_vs_stats_percpu_show, NULL);
->> +#ifdef CONFIG_PROC_FS
->> +	if (!proc_create_net("ip_vs", 0, ipvs->net->proc_net, &ip_vs_info_seq_ops,
->> +			sizeof(struct ip_vs_iter)))
->> +		goto err_vs;
->> +	if (!proc_create_net_single("ip_vs_stats", 0, ipvs->net->proc_net,
->> +			ip_vs_stats_show, NULL))
->> +		goto err_stats;
->> +	if (!proc_create_net_single("ip_vs_stats_percpu", 0, ipvs->net->proc_net,
->> +			ip_vs_stats_percpu_show, NULL))
->> +		goto err_percpu;
-> 	Make sure the parameters are properly aligned to function open
-> parenthesis without exceeding 80 columns:
->
-> linux# scripts/checkpatch.pl --strict /tmp/file.patch
-Thanks, I'll perfect it.
-> 	It was true only for first call due to some
-> renames for the others two in commit 3617d9496cd9 :(
-It does indeed rename in commit 3617d9496cd9.
-But I don't understand what's wrong with my patch here.
->> +#endif
->>   
->>   	if (ip_vs_control_net_init_sysctl(ipvs))
->>   		goto err;
->> @@ -4180,6 +4185,14 @@ int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
->>   	return 0;
->>   
->>   err:
->> +#ifdef CONFIG_PROC_FS
->> +	remove_proc_entry("ip_vs_stats_percpu", ipvs->net->proc_net);
-> 	It should look better with an empty line before
-> the 3 new labels.
-Thanks, I'll perfect it.
->> +err_percpu:
-[...]
->>   	remove_proc_entry("ip_vs_stats", ipvs->net->proc_net);
->>   	remove_proc_entry("ip_vs", ipvs->net->proc_net);
->> +#endif
->>   	free_percpu(ipvs->tot_stats.cpustats);
->>   }
->>   
-> Regards
->
-> --
-> Julian Anastasov <ja@ssi.bg>
->
-> .
->
+Agreed.
+
+> SCSI uses scsi: <driver>: for drivers but not every driver has a
+> MAINTAINERS entry.  We use either scsi: or scsi: core: for mid layer
+> things, but we're not consistent.  Block uses blk-<something>: for all
+> of it's stuff but almost no <somtehing>s have a MAINTAINERS entry.  So
+> the next thing you're going to cause is an explosion of suggested
+> MAINTAINERs entries.
+
+On the one hand, adoption of new MAINTAINERS entries has been really
+slow. Look at B, C, or P, for instance. On the other hand, if this were
+to get adopted, you'll potentially get conflicting prefixes for patches
+touching multiple files. Then what?
+
+I'm guessing a script looking at git log could come up with better
+suggestions for prefixes via popularity contest than manually maintained
+MAINTAINERS entries. It might not always get it right, but then human
+outsiders aren't going to always get it right either.
+
+Now you'll only need Someone(tm) to write the script. ;)
+
+Something quick like this:
+
+git log --since={1year} --pretty=format:%s -- <FILES> |\
+	grep -v "^\(Merge\|Revert\)" |\
+        sed 's/:[^:]*$//' |\
+        sort | uniq -c | sort -rn | head -5
+
+already gives me results that really aren't worse than some of the
+prefixes invented by drive-by contributors.
+
+> Has anyone actually complained about treewide:?
+
+As Joe said, I'd feel silly applying patches to drivers with that
+prefix. If it gets applied by someone else higher up, literally
+treewide, then no complaints.
+
+BR,
+Jani.
+
+
+-- 
+Jani Nikula, Intel Open Source Graphics Center
