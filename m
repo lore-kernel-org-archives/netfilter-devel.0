@@ -2,113 +2,144 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5AD0C64E7A
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Nov 2020 02:49:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FC0BC63798
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Nov 2020 03:34:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 83CAE20719
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Nov 2020 02:49:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E1F8120B1F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Nov 2020 03:34:47 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RlPrxL3R"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728883AbgKXCsq (ORCPT
+        id S1726528AbgKXDe1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 23 Nov 2020 21:48:46 -0500
-Received: from kvm5.telegraphics.com.au ([98.124.60.144]:53350 "EHLO
-        kvm5.telegraphics.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725907AbgKXCsl (ORCPT
+        Mon, 23 Nov 2020 22:34:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54656 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725797AbgKXDe0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 23 Nov 2020 21:48:41 -0500
-Received: from localhost (localhost.localdomain [127.0.0.1])
-        by kvm5.telegraphics.com.au (Postfix) with ESMTP id EF15F2AA0D;
-        Mon, 23 Nov 2020 21:48:35 -0500 (EST)
-Date:   Tue, 24 Nov 2020 13:48:34 +1100 (AEDT)
-From:   Finn Thain <fthain@telegraphics.com.au>
-To:     Joe Perches <joe@perches.com>
-cc:     Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>,
-        James Bottomley <James.Bottomley@hansenpartnership.com>,
-        Kees Cook <keescook@chromium.org>,
-        Jakub Kicinski <kuba@kernel.org>,
-        "Gustavo A. R. Silva" <gustavoars@kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        alsa-devel@alsa-project.org, amd-gfx@lists.freedesktop.org,
-        bridge@lists.linux-foundation.org, ceph-devel@vger.kernel.org,
-        cluster-devel@redhat.com, coreteam@netfilter.org,
-        devel@driverdev.osuosl.org, dm-devel@redhat.com,
-        drbd-dev@lists.linbit.com, dri-devel@lists.freedesktop.org,
-        GR-everest-linux-l2@marvell.com, GR-Linux-NIC-Dev@marvell.com,
-        intel-gfx@lists.freedesktop.org, intel-wired-lan@lists.osuosl.org,
-        keyrings@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-        linux-acpi@vger.kernel.org, linux-afs@lists.infradead.org,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        linux-arm-msm@vger.kernel.org,
-        linux-atm-general@lists.sourceforge.net,
-        linux-block@vger.kernel.org, linux-can@vger.kernel.org,
-        linux-cifs@vger.kernel.org,
-        Linux Crypto Mailing List <linux-crypto@vger.kernel.org>,
-        linux-decnet-user@lists.sourceforge.net,
-        Ext4 Developers List <linux-ext4@vger.kernel.org>,
-        linux-fbdev@vger.kernel.org, linux-geode@lists.infradead.org,
-        linux-gpio@vger.kernel.org, linux-hams@vger.kernel.org,
-        linux-hwmon@vger.kernel.org, linux-i3c@lists.infradead.org,
-        linux-ide@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-input <linux-input@vger.kernel.org>,
-        linux-integrity@vger.kernel.org,
-        linux-mediatek@lists.infradead.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-mmc@vger.kernel.org, Linux-MM <linux-mm@kvack.org>,
-        linux-mtd@lists.infradead.org, linux-nfs@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-scsi@vger.kernel.org, linux-sctp@vger.kernel.org,
-        linux-security-module@vger.kernel.org,
-        linux-stm32@st-md-mailman.stormreply.com,
-        linux-usb@vger.kernel.org, linux-watchdog@vger.kernel.org,
-        linux-wireless <linux-wireless@vger.kernel.org>,
+        Mon, 23 Nov 2020 22:34:26 -0500
+Received: from mail-pf1-x443.google.com (mail-pf1-x443.google.com [IPv6:2607:f8b0:4864:20::443])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE15FC0613CF;
+        Mon, 23 Nov 2020 19:34:26 -0800 (PST)
+Received: by mail-pf1-x443.google.com with SMTP id y7so17076538pfq.11;
+        Mon, 23 Nov 2020 19:34:26 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=+PMZMazjUjzA1MdZzkJCDSzfyJuVVXVirLSFDB0A7JI=;
+        b=RlPrxL3Rd+Dq33FrllMJfupdTEvl1ypBzlT6hShy0ltEmrvkQu1WLT6QtY3lUkrwK5
+         Lw9lsygzCX/cbZVRuy/Q9/WD/6PUyzjs0pM5Iw5+giSpimUyUiKkjSaQ4mjYxiTfuvrS
+         ShGm/Eg5ouYPyXisUUAc8gO1w2dSiFsPuvUngM6vnzzzfMicpt5wGmndI4lpNB6w3ONN
+         fYH4BbD89WYimOWwiG3yWYKEeU0O8HmpQAVJ4T8pVaPwoK9iOnXGyOiRhyjLWO9vssOO
+         8sMJ6hyQe7bcca/DUJ8mpbVKXdH55MxNrfpnZF3YhV/NzUABgHlSbQrM3PQgvGSsuArB
+         x+sw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=+PMZMazjUjzA1MdZzkJCDSzfyJuVVXVirLSFDB0A7JI=;
+        b=oTpYpd/geaMZbjiE56TyTzKVIG5/U63EatwbtfDcrM8+l5g+YUTTS0SMNz5gS2RWW1
+         uhxYOCBICrJ3aBLng2RmQXX/fLSBqDzhz1OnlMTL1LYGAlSncnqAX6WsZEjMR435EbNn
+         8si82RGLwwtmbZ1HKHAj6gtTwD2kvgxXoCCoKZwJUF6sxPycLUAYjliYw8o6hqq9lbeN
+         Y1lqvo5n9m406Pd0oM+W34E7iRz7zS6djinhKh8AGw6Q5JQoBZCoMfnR4iQQ1gz1Iidn
+         EaHEKMY7H/cp4wkxoIFgVtXyY+OH55p3ps1TCHzRHVWMaxMA5uSATB8IQxz9Wl36i4E9
+         kt7Q==
+X-Gm-Message-State: AOAM530k+E0TGgaGNe1yPsfB983C73KiZfo9SeeoRFTy2Cs3zEocbPTM
+        mXxxDnQMqmJSR4sxIlwSvjk=
+X-Google-Smtp-Source: ABdhPJw0N8WoGcnn2MhwgL8AEQcbABbOzvzhogJZD/YqPYOCBKJcKAGmU26LcDjzNVR3wTlU+T4qhw==
+X-Received: by 2002:a63:4605:: with SMTP id t5mr2083019pga.244.1606188866158;
+        Mon, 23 Nov 2020 19:34:26 -0800 (PST)
+Received: from ast-mbp ([2620:10d:c090:400::5:2397])
+        by smtp.gmail.com with ESMTPSA id a12sm825896pjh.48.2020.11.23.19.34.23
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 23 Nov 2020 19:34:25 -0800 (PST)
+Date:   Mon, 23 Nov 2020 19:34:22 -0800
+From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Lukas Wunner <lukas@wunner.de>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Laura =?utf-8?Q?Garc=C3=ADa_Li=C3=A9bana?= <nevola@gmail.com>,
+        John Fastabend <john.fastabend@gmail.com>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Netfilter Development Mailing list 
+        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
         Network Development <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, nouveau@lists.freedesktop.org,
-        op-tee@lists.trustedfirmware.org, oss-drivers@netronome.com,
-        patches@opensource.cirrus.com, rds-devel@oss.oracle.com,
-        reiserfs-devel@vger.kernel.org, samba-technical@lists.samba.org,
-        selinux@vger.kernel.org, target-devel@vger.kernel.org,
-        tipc-discussion@lists.sourceforge.net,
-        usb-storage@lists.one-eyed-alien.net,
-        virtualization@lists.linux-foundation.org,
-        wcn36xx@lists.infradead.org,
-        "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>,
-        xen-devel@lists.xenproject.org, linux-hardening@vger.kernel.org,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Nathan Chancellor <natechancellor@gmail.com>,
-        Miguel Ojeda <ojeda@kernel.org>
-Subject: Re: [PATCH 000/141] Fix fall-through warnings for Clang
-In-Reply-To: <e72a1aaef8673553a3ee9dfa033d6e893e00abcd.camel@perches.com>
-Message-ID: <alpine.LNX.2.23.453.2011241210310.7@nippy.intranet>
-References: <cover.1605896059.git.gustavoars@kernel.org>  <20201120105344.4345c14e@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>  <202011201129.B13FDB3C@keescook>  <20201120115142.292999b2@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>  <202011220816.8B6591A@keescook>
-  <9b57fd4914b46f38d54087d75e072d6e947cb56d.camel@HansenPartnership.com>  <CANiq72nZrHWTA4_Msg6MP9snTyenC6-eGfD27CyfNSu7QoVZbw@mail.gmail.com>  <alpine.LNX.2.23.453.2011230938390.7@nippy.intranet>  <CANiq72=z+tmuey9wj3Kk7wX5s0hTHpsQdLhAqcOVNrHon6xn5Q@mail.gmail.com>
-  <alpine.LNX.2.23.453.2011241036520.7@nippy.intranet> <e72a1aaef8673553a3ee9dfa033d6e893e00abcd.camel@perches.com>
+        Alexei Starovoitov <ast@kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Thomas Graf <tgraf@suug.ch>, David Miller <davem@davemloft.net>
+Subject: Re: [PATCH nf-next v3 3/3] netfilter: Introduce egress hook
+Message-ID: <20201124033422.gvwhvsjmwt3b3irx@ast-mbp>
+References: <20200905052403.GA10306@wunner.de>
+ <e8aecc2b-80cb-8ee5-8efe-7ae5c4eafc70@iogearbox.net>
+ <CAF90-Whc3HL9x-7TJ7m3tZp10RNmQxFD=wdQUJLCaUajL2RqXg@mail.gmail.com>
+ <8e991436-cb1c-1306-51ac-bb582bfaa8a7@iogearbox.net>
+ <CAF90-Wh=wzjNtFWRv9bzn=-Dkg-Qc9G_cnyoq0jSypxQQgg3uA@mail.gmail.com>
+ <29b888f5-5e8e-73fe-18db-6c5dd57c6b4f@iogearbox.net>
+ <20201011082657.GB15225@wunner.de>
+ <20201121185922.GA23266@salvia>
+ <CAADnVQK8qHwdZrqMzQ+4Q9Cg589xLX5zTve92ZKN_zftJg_WHw@mail.gmail.com>
+ <20201122110145.GB26512@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20201122110145.GB26512@salvia>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
-On Mon, 23 Nov 2020, Joe Perches wrote:
-
-> On Tue, 2020-11-24 at 11:58 +1100, Finn Thain wrote:
-> > it's not for me to prove that such patches don't affect code 
-> > generation. That's for the patch author and (unfortunately) for 
-> > reviewers.
+On Sun, Nov 22, 2020 at 12:01:45PM +0100, Pablo Neira Ayuso wrote:
+> Hi Alexei,
 > 
-> Ideally, that proof would be provided by the compilation system itself 
-> and not patch authors nor reviewers nor maintainers.
+> On Sat, Nov 21, 2020 at 07:24:24PM -0800, Alexei Starovoitov wrote:
+> > On Sat, Nov 21, 2020 at 10:59 AM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > >
+> > > We're lately discussing more and more usecases in the NFWS meetings
+> > > where the egress can get really useful.
+> > 
+> > We also discussed in the meeting XYZ that this hook is completely pointless.
+> > Got the hint?
 > 
-> Unfortunately gcc does not guarantee repeatability or deterministic 
-> output. To my knowledge, neither does clang.
+> No need to use irony.
 > 
+> OK, so at this point it's basically a bunch of BPF core developers
+> that is pushing back on these egress support series.
+> 
+> The BPF project is moving on and making progress. Why don't you just
+> keep convincing more users to adopt your solution? You can just
+> provide incentives for them to adopt your software, make more
+> benchmarks, more documentation and so on. That's all perfectly fine
+> and you are making a great job on that field.
+> 
+> But why you do not just let us move ahead?
+> 
+> If you, the BPF team and your users, do not want to use Netfilter,
+> that's perfectly fine. Why don't you let users choose what subsystem
+> of choice that they like for packet filtering?
+> 
+> I already made my own mistakes in the past when I pushed back for BPF
+> work, that was wrong. It's time to make peace and take this to an end.
 
-Yes, I've said the same thing myself. But having attempted it, I now think 
-this is a hard problem. YMMV.
-
-https://lore.kernel.org/linux-scsi/alpine.LNX.2.22.394.2004281017310.12@nippy.intranet/
-https://lore.kernel.org/linux-scsi/alpine.LNX.2.22.394.2005211358460.8@nippy.intranet/
+Please consider using bpf egress for what you want to accomplish.
+k8s networking is a great goal. It's challenging, since it demands more from
+the kernel than the existing set of hardcoded features provide. Clearly you
+cannot solve it with in-kernel iptables/nft and have to use out-of-tree kernel
+modules that plug into netfilter hooks. The kernel community always had and
+always will have a basic rule that the kernel does not add APIs for out-of-tree
+projects. That's why the kernel is so successful. The developers have to come
+back to the kernel community. nft egress hook is trying to cheat its way in by
+arguing its usefulness for some hypothetical case. If it was not driven by
+out-of-tree kernel module I wouldn't have any problem with it. nft egress is
+not a normal path of kernel development. It's a missing hook for out-of-tree
+module. That's why it stinks so much.
+So please consider augmenting your nft k8s solution with a tiny bit of bpf.
+bpf can add a new helper to call into nf_hook_slow(). The helper would be
+equivalent to "int nf_hook_ingress(struct sk_buff *skb)" function. With tiny
+bpf prog you'll be able to delegate skb processing to nft everywhere where bpf
+sees an skb. That's a lot more places than tc-egress.
