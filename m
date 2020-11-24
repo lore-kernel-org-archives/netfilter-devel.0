@@ -2,69 +2,41 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FC0BC63798
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Nov 2020 03:34:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EA60C2D0E4
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Nov 2020 07:39:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E1F8120B1F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Nov 2020 03:34:47 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RlPrxL3R"
+	by mail.kernel.org (Postfix) with ESMTP id E61B9206E5
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Nov 2020 07:39:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726528AbgKXDe1 (ORCPT
+        id S1730127AbgKXHjy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 23 Nov 2020 22:34:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54656 "EHLO
+        Tue, 24 Nov 2020 02:39:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35766 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725797AbgKXDe0 (ORCPT
+        with ESMTP id S1730064AbgKXHjy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 23 Nov 2020 22:34:26 -0500
-Received: from mail-pf1-x443.google.com (mail-pf1-x443.google.com [IPv6:2607:f8b0:4864:20::443])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE15FC0613CF;
-        Mon, 23 Nov 2020 19:34:26 -0800 (PST)
-Received: by mail-pf1-x443.google.com with SMTP id y7so17076538pfq.11;
-        Mon, 23 Nov 2020 19:34:26 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=+PMZMazjUjzA1MdZzkJCDSzfyJuVVXVirLSFDB0A7JI=;
-        b=RlPrxL3Rd+Dq33FrllMJfupdTEvl1ypBzlT6hShy0ltEmrvkQu1WLT6QtY3lUkrwK5
-         Lw9lsygzCX/cbZVRuy/Q9/WD/6PUyzjs0pM5Iw5+giSpimUyUiKkjSaQ4mjYxiTfuvrS
-         ShGm/Eg5ouYPyXisUUAc8gO1w2dSiFsPuvUngM6vnzzzfMicpt5wGmndI4lpNB6w3ONN
-         fYH4BbD89WYimOWwiG3yWYKEeU0O8HmpQAVJ4T8pVaPwoK9iOnXGyOiRhyjLWO9vssOO
-         8sMJ6hyQe7bcca/DUJ8mpbVKXdH55MxNrfpnZF3YhV/NzUABgHlSbQrM3PQgvGSsuArB
-         x+sw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=+PMZMazjUjzA1MdZzkJCDSzfyJuVVXVirLSFDB0A7JI=;
-        b=oTpYpd/geaMZbjiE56TyTzKVIG5/U63EatwbtfDcrM8+l5g+YUTTS0SMNz5gS2RWW1
-         uhxYOCBICrJ3aBLng2RmQXX/fLSBqDzhz1OnlMTL1LYGAlSncnqAX6WsZEjMR435EbNn
-         8si82RGLwwtmbZ1HKHAj6gtTwD2kvgxXoCCoKZwJUF6sxPycLUAYjliYw8o6hqq9lbeN
-         Y1lqvo5n9m406Pd0oM+W34E7iRz7zS6djinhKh8AGw6Q5JQoBZCoMfnR4iQQ1gz1Iidn
-         EaHEKMY7H/cp4wkxoIFgVtXyY+OH55p3ps1TCHzRHVWMaxMA5uSATB8IQxz9Wl36i4E9
-         kt7Q==
-X-Gm-Message-State: AOAM530k+E0TGgaGNe1yPsfB983C73KiZfo9SeeoRFTy2Cs3zEocbPTM
-        mXxxDnQMqmJSR4sxIlwSvjk=
-X-Google-Smtp-Source: ABdhPJw0N8WoGcnn2MhwgL8AEQcbABbOzvzhogJZD/YqPYOCBKJcKAGmU26LcDjzNVR3wTlU+T4qhw==
-X-Received: by 2002:a63:4605:: with SMTP id t5mr2083019pga.244.1606188866158;
-        Mon, 23 Nov 2020 19:34:26 -0800 (PST)
-Received: from ast-mbp ([2620:10d:c090:400::5:2397])
-        by smtp.gmail.com with ESMTPSA id a12sm825896pjh.48.2020.11.23.19.34.23
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 23 Nov 2020 19:34:25 -0800 (PST)
-Date:   Mon, 23 Nov 2020 19:34:22 -0800
-From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Lukas Wunner <lukas@wunner.de>,
+        Tue, 24 Nov 2020 02:39:54 -0500
+X-Greylist: delayed 502 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 23 Nov 2020 23:39:53 PST
+Received: from bmailout3.hostsharing.net (bmailout3.hostsharing.net [IPv6:2a01:4f8:150:2161:1:b009:f23e:0])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CFB82C0613CF;
+        Mon, 23 Nov 2020 23:39:53 -0800 (PST)
+Received: from h08.hostsharing.net (h08.hostsharing.net [83.223.95.28])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (Client CN "*.hostsharing.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (not verified))
+        by bmailout3.hostsharing.net (Postfix) with ESMTPS id A9BAD100BA619;
+        Tue, 24 Nov 2020 08:31:25 +0100 (CET)
+Received: by h08.hostsharing.net (Postfix, from userid 100393)
+        id DEDA867C55; Tue, 24 Nov 2020 08:31:26 +0100 (CET)
+Date:   Tue, 24 Nov 2020 08:31:26 +0100
+From:   Lukas Wunner <lukas@wunner.de>
+To:     Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Daniel Borkmann <daniel@iogearbox.net>,
-        Laura =?utf-8?Q?Garc=C3=ADa_Li=C3=A9bana?= <nevola@gmail.com>,
+        Laura =?iso-8859-1?Q?Garc=EDa_Li=E9bana?= <nevola@gmail.com>,
         John Fastabend <john.fastabend@gmail.com>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
@@ -75,9 +47,8 @@ Cc:     Lukas Wunner <lukas@wunner.de>,
         Eric Dumazet <edumazet@google.com>,
         Thomas Graf <tgraf@suug.ch>, David Miller <davem@davemloft.net>
 Subject: Re: [PATCH nf-next v3 3/3] netfilter: Introduce egress hook
-Message-ID: <20201124033422.gvwhvsjmwt3b3irx@ast-mbp>
-References: <20200905052403.GA10306@wunner.de>
- <e8aecc2b-80cb-8ee5-8efe-7ae5c4eafc70@iogearbox.net>
+Message-ID: <20201124073126.GA4856@wunner.de>
+References: <e8aecc2b-80cb-8ee5-8efe-7ae5c4eafc70@iogearbox.net>
  <CAF90-Whc3HL9x-7TJ7m3tZp10RNmQxFD=wdQUJLCaUajL2RqXg@mail.gmail.com>
  <8e991436-cb1c-1306-51ac-bb582bfaa8a7@iogearbox.net>
  <CAF90-Wh=wzjNtFWRv9bzn=-Dkg-Qc9G_cnyoq0jSypxQQgg3uA@mail.gmail.com>
@@ -86,60 +57,44 @@ References: <20200905052403.GA10306@wunner.de>
  <20201121185922.GA23266@salvia>
  <CAADnVQK8qHwdZrqMzQ+4Q9Cg589xLX5zTve92ZKN_zftJg_WHw@mail.gmail.com>
  <20201122110145.GB26512@salvia>
+ <20201124033422.gvwhvsjmwt3b3irx@ast-mbp>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20201122110145.GB26512@salvia>
+In-Reply-To: <20201124033422.gvwhvsjmwt3b3irx@ast-mbp>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Nov 22, 2020 at 12:01:45PM +0100, Pablo Neira Ayuso wrote:
-> Hi Alexei,
-> 
-> On Sat, Nov 21, 2020 at 07:24:24PM -0800, Alexei Starovoitov wrote:
-> > On Sat, Nov 21, 2020 at 10:59 AM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > >
-> > > We're lately discussing more and more usecases in the NFWS meetings
-> > > where the egress can get really useful.
-> > 
-> > We also discussed in the meeting XYZ that this hook is completely pointless.
-> > Got the hint?
-> 
-> No need to use irony.
-> 
-> OK, so at this point it's basically a bunch of BPF core developers
-> that is pushing back on these egress support series.
-> 
-> The BPF project is moving on and making progress. Why don't you just
-> keep convincing more users to adopt your solution? You can just
-> provide incentives for them to adopt your software, make more
-> benchmarks, more documentation and so on. That's all perfectly fine
-> and you are making a great job on that field.
-> 
-> But why you do not just let us move ahead?
-> 
-> If you, the BPF team and your users, do not want to use Netfilter,
-> that's perfectly fine. Why don't you let users choose what subsystem
-> of choice that they like for packet filtering?
-> 
-> I already made my own mistakes in the past when I pushed back for BPF
-> work, that was wrong. It's time to make peace and take this to an end.
+On Mon, Nov 23, 2020 at 07:34:22PM -0800, Alexei Starovoitov wrote:
+> It's a missing hook for out-of-tree module. That's why it stinks so much.
 
-Please consider using bpf egress for what you want to accomplish.
-k8s networking is a great goal. It's challenging, since it demands more from
-the kernel than the existing set of hardcoded features provide. Clearly you
-cannot solve it with in-kernel iptables/nft and have to use out-of-tree kernel
-modules that plug into netfilter hooks. The kernel community always had and
-always will have a basic rule that the kernel does not add APIs for out-of-tree
-projects. That's why the kernel is so successful. The developers have to come
-back to the kernel community. nft egress hook is trying to cheat its way in by
-arguing its usefulness for some hypothetical case. If it was not driven by
-out-of-tree kernel module I wouldn't have any problem with it. nft egress is
-not a normal path of kernel development. It's a missing hook for out-of-tree
-module. That's why it stinks so much.
-So please consider augmenting your nft k8s solution with a tiny bit of bpf.
-bpf can add a new helper to call into nf_hook_slow(). The helper would be
-equivalent to "int nf_hook_ingress(struct sk_buff *skb)" function. With tiny
-bpf prog you'll be able to delegate skb processing to nft everywhere where bpf
-sees an skb. That's a lot more places than tc-egress.
+As I've said before, the motivation for these patches has pivoted away
+from the original use case (which was indeed an out-of-tree module by
+a company for which I no longer work):
+
+https://lore.kernel.org/netdev/20200905052403.GA10306@wunner.de/
+
+When first submitting this series I also posted a patch to use the nft
+egress hook from userspace for filtering and mangling.  It seems Zevenet
+is actively using that:
+
+https://lore.kernel.org/netdev/CAF90-Wi4W1U4FSYqyBTqe7sANbdO6=zgr-u+YY+X-gvNmOgc6A@mail.gmail.com/
+
+
+> So please consider augmenting your nft k8s solution with a tiny bit of bpf.
+> bpf can add a new helper to call into nf_hook_slow().
+
+The out-of-tree module had nothing to do with k8s, it was for industrial
+fieldbus communication.  But again, I no longer work for that company.
+We're talking about a hook that's used by userspace, not by an out-of-tree
+module.
+
+
+> If it was not driven by
+> out-of-tree kernel module I wouldn't have any problem with it.
+
+Good!  Thank you.  Let me update and repost the patches then.
+
+Lukas
