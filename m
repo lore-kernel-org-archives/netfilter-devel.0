@@ -7,114 +7,152 @@ X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0887C2D0E4
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Nov 2020 22:56:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60CCCC56201
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Nov 2020 23:16:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 97AF92076E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Nov 2020 22:56:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2B0BE20BED
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Nov 2020 23:16:54 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="G9VRwLKb"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="l+vUmSI7"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729198AbgKXW4B (ORCPT
+        id S1732715AbgKXXQ0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 24 Nov 2020 17:56:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37250 "EHLO
+        Tue, 24 Nov 2020 18:16:26 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40360 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729123AbgKXW4B (ORCPT
+        with ESMTP id S1732568AbgKXXQG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Nov 2020 17:56:01 -0500
-Received: from mail-lj1-x243.google.com (mail-lj1-x243.google.com [IPv6:2a00:1450:4864:20::243])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9AA8EC0613D6;
-        Tue, 24 Nov 2020 14:56:00 -0800 (PST)
-Received: by mail-lj1-x243.google.com with SMTP id y10so228675ljc.7;
-        Tue, 24 Nov 2020 14:56:00 -0800 (PST)
+        Tue, 24 Nov 2020 18:16:06 -0500
+Received: from mail-qk1-x744.google.com (mail-qk1-x744.google.com [IPv6:2607:f8b0:4864:20::744])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CDA23C0613D6;
+        Tue, 24 Nov 2020 15:16:05 -0800 (PST)
+Received: by mail-qk1-x744.google.com with SMTP id d9so1044435qke.8;
+        Tue, 24 Nov 2020 15:16:05 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=IaRJyPDA5/9B1ghHQFyB4uxgHg8PkkBWXKGuQGfKgrY=;
-        b=G9VRwLKbulZFodDch1sh0/T9WnGdZ9tZwHP49t8XXsXFVdRXsKxo4UcmFIbTa231ox
-         Gt6CTHWbfFwJoSVxpvybKclkOVQ8fBNMytvtEiwj9CT2O3Hy2xVMtEg8lFaugEDL0RPu
-         YIyoXb3CZgGHyU08UWDgI0oLVyWSlEawDjO//3iE3xm8jjbc0gdAfz+dGOx8mnFQjQDp
-         YnEXFReMA7fGJIJCCA/U/PPPkRTTDdi47LV+rs/GLKSUwl2Z4EfikXf0zpYimlbDP7uo
-         j5GXXSyG8jRRHCZa2M4Vt1//KKZbae49z4kjRQfbz/VgTV16g9IEUkrC739rz3drpMl/
-         t3wA==
+        bh=Jbdr1BEjJUZERXYDOU4Gv/mlbgAbUhdHLiICpsfXV1E=;
+        b=l+vUmSI7i0l7fGuVwLPE5fOuxSSHusFrOEG0e9vJ5rcmJlRUOrCYTNMgOLszTPHVi8
+         kkm8fDq5tpugZyKejz3uk0cqdmJQS1mRaMRBkOrvbAyI5fs/P/fRtiJLDz+N02sHzTn9
+         5/inSz1Fbn+KfojwxtYTlcXPJfmsrqKqTBJHlwr9t4EjDd547DXA4VcN7evdsnVsuQ6p
+         BBfcG3FVJZcSml9If1GSG7EsdjE7zI8hFJDY7AHsK/qRYVzYo+XeozyqqdAfx+vCyNIu
+         chiyZGm6NoHt+eS3/xbHVpbDRehhnbGG6wOdrUeu9OVynRP4/UUYeZuXMpT7icG9n0vb
+         4oYg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=IaRJyPDA5/9B1ghHQFyB4uxgHg8PkkBWXKGuQGfKgrY=;
-        b=YcL9m9YSTIkKDHJy3FWHXQNbmuc0uujF4is3ZFB/srQXvLhHGk2cTcZ6TcUGZGCKbx
-         AWTR3sjzpTsMoNrm0GGcOnNKjPCDIID9V7aBOSjN35Zsno5ROzrZj0cVItVWAI87LCdL
-         no/fx60RXR/rZGaujW3/4d8Skl5/91foKfjombrEWUCpgoT49am/e1qAPXbbTNoNd8uN
-         BQHolgFBxisA5tjivRMR38wh5+ShcnPdy8KXl6sVap7KTvDC4Ab5NdaPrPQUBw5nVRio
-         GxnkHOsrc0hNgmeMICobeAWUoXxVzq+sClBnKAN/fdX8nJs2rHUAGCL+NxXigFBmhI+5
-         y3ZQ==
-X-Gm-Message-State: AOAM533teAOO6k0PBo2F0pBsNwOHkc0f3XXFS+/FmFydS+fgxP6D6fL8
-        9pooCUJFwjX2U9xdqz4cDE5Z2Yl/2WdHSk1eOoI=
-X-Google-Smtp-Source: ABdhPJyMP1IETLXeWKd5cnTTU7R11xecNPej6rum8RjXC/wDFhspXzkC1ezEIUkaBzYhIRtn3MUurtCM8P442ScifRc=
-X-Received: by 2002:a2e:9681:: with SMTP id q1mr218765lji.2.1606258558437;
- Tue, 24 Nov 2020 14:55:58 -0800 (PST)
+        bh=Jbdr1BEjJUZERXYDOU4Gv/mlbgAbUhdHLiICpsfXV1E=;
+        b=lGxD+AO9Nt5RWTiUaNZ3nVX/cc00oVL/4cRagJbcpoK2zQUtc+Uryf2wVhH/gbwTjZ
+         h0cFnOEmPgl+Wpr0jIyynL5M9LYUq89uy6uyCha+tbEO/AnIQcauCGqvegZBmcWsKqHS
+         kRxhEFIdgmRR7ePxM7GD7I02bxt4A1ua/yfjHqOgXN7a3tYxqBlqMKsSeQ12Vjpt3Tfy
+         KHvrVeZ9OsMEx/86dV5OA7hfqNdK3MmLCTeZb5lsHmNal/RsWxiFozp2WAIxqGEWMXzk
+         jzL9nqHngOC/DpGh/Zo7uhnA9jYYK6NNTrimLl8ZYIrbf3r+YMVZwq3GwM5fv8ZNI9w2
+         LsFw==
+X-Gm-Message-State: AOAM530miFMuN0ApWHzqgCYSqXOCtnUVKs6LuJ8zi2LA+UD/1kUMzlFl
+        nGvGnVrBZa1jX8BhgCkikif6yU5i4IkQbYlsmhw=
+X-Google-Smtp-Source: ABdhPJzk8nFL+kqPtl4RF6lmqD43KwMnT4A8Oapd7ArTtvgjfEhtR30+WEgNSraaEzhK8tG/u1tJxvxiaOrV9LODN+o=
+X-Received: by 2002:a25:61c5:: with SMTP id v188mr748702ybb.422.1606259765056;
+ Tue, 24 Nov 2020 15:16:05 -0800 (PST)
 MIME-Version: 1.0
-References: <e8aecc2b-80cb-8ee5-8efe-7ae5c4eafc70@iogearbox.net>
- <CAF90-Whc3HL9x-7TJ7m3tZp10RNmQxFD=wdQUJLCaUajL2RqXg@mail.gmail.com>
- <8e991436-cb1c-1306-51ac-bb582bfaa8a7@iogearbox.net> <CAF90-Wh=wzjNtFWRv9bzn=-Dkg-Qc9G_cnyoq0jSypxQQgg3uA@mail.gmail.com>
- <29b888f5-5e8e-73fe-18db-6c5dd57c6b4f@iogearbox.net> <20201011082657.GB15225@wunner.de>
- <20201121185922.GA23266@salvia> <CAADnVQK8qHwdZrqMzQ+4Q9Cg589xLX5zTve92ZKN_zftJg_WHw@mail.gmail.com>
- <20201122110145.GB26512@salvia> <20201124033422.gvwhvsjmwt3b3irx@ast-mbp> <20201124073126.GA4856@wunner.de>
-In-Reply-To: <20201124073126.GA4856@wunner.de>
-From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Date:   Tue, 24 Nov 2020 14:55:47 -0800
-Message-ID: <CAADnVQKVgReNjf2gO1EKLX=tB7YaORQPG1SDWAv_Q_4S-mVsUw@mail.gmail.com>
-Subject: Re: [PATCH nf-next v3 3/3] netfilter: Introduce egress hook
-To:     Lukas Wunner <lukas@wunner.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        =?UTF-8?Q?Laura_Garc=C3=ADa_Li=C3=A9bana?= <nevola@gmail.com>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Netfilter Development Mailing list 
-        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
+References: <202011201129.B13FDB3C@keescook> <20201120115142.292999b2@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+ <202011220816.8B6591A@keescook> <9b57fd4914b46f38d54087d75e072d6e947cb56d.camel@HansenPartnership.com>
+ <ca071decb87cc7e905411423c05a48f9fd2f58d7.camel@perches.com>
+ <0147972a72bc13f3629de8a32dee6f1f308994b5.camel@HansenPartnership.com>
+ <d8d1e9add08cdd4158405e77762d4946037208f8.camel@perches.com>
+ <dbd2cb703ed9eefa7dde9281ea26ab0f7acc8afe.camel@HansenPartnership.com>
+ <20201123130348.GA3119@embeddedor> <8f5611bb015e044fa1c0a48147293923c2d904e4.camel@HansenPartnership.com>
+ <202011241327.BB28F12F6@keescook> <alpine.LNX.2.23.453.2011250859290.15@nippy.intranet>
+In-Reply-To: <alpine.LNX.2.23.453.2011250859290.15@nippy.intranet>
+From:   Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Date:   Wed, 25 Nov 2020 00:15:54 +0100
+Message-ID: <CANiq72nUt57u5DG9rH=DB0DzQH7U6-QbG-2Ou+PyCY=p=_Ggag@mail.gmail.com>
+Subject: Re: [Intel-wired-lan] [PATCH 000/141] Fix fall-through warnings for Clang
+To:     Finn Thain <fthain@telegraphics.com.au>
+Cc:     Kees Cook <keescook@chromium.org>,
+        James Bottomley <James.Bottomley@hansenpartnership.com>,
+        "Gustavo A. R. Silva" <gustavoars@kernel.org>,
+        Joe Perches <joe@perches.com>,
+        Jakub Kicinski <kuba@kernel.org>, alsa-devel@alsa-project.org,
+        linux-atm-general@lists.sourceforge.net,
+        reiserfs-devel@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-wireless <linux-wireless@vger.kernel.org>,
+        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        Nathan Chancellor <natechancellor@gmail.com>,
+        linux-ide@vger.kernel.org, dm-devel@redhat.com,
+        keyrings@vger.kernel.org, linux-mtd@lists.infradead.org,
+        GR-everest-linux-l2@marvell.com, wcn36xx@lists.infradead.org,
+        samba-technical@lists.samba.org, linux-i3c@lists.infradead.org,
+        linux1394-devel@lists.sourceforge.net,
+        linux-afs@lists.infradead.org,
+        usb-storage@lists.one-eyed-alien.net, drbd-dev@lists.linbit.com,
+        devel@driverdev.osuosl.org, linux-cifs@vger.kernel.org,
+        rds-devel@oss.oracle.com,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org,
+        oss-drivers@netronome.com, bridge@lists.linux-foundation.org,
+        linux-security-module@vger.kernel.org,
+        amd-gfx@lists.freedesktop.org,
+        linux-stm32@st-md-mailman.stormreply.com, cluster-devel@redhat.com,
+        linux-acpi@vger.kernel.org, coreteam@netfilter.org,
+        intel-wired-lan@lists.osuosl.org,
+        linux-input <linux-input@vger.kernel.org>,
+        Miguel Ojeda <ojeda@kernel.org>,
+        tipc-discussion@lists.sourceforge.net,
+        Ext4 Developers List <linux-ext4@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-watchdog@vger.kernel.org, selinux@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, intel-gfx@lists.freedesktop.org,
+        linux-geode@lists.infradead.org, linux-can@vger.kernel.org,
+        linux-block@vger.kernel.org, linux-gpio@vger.kernel.org,
+        op-tee@lists.trustedfirmware.org,
+        linux-mediatek@lists.infradead.org, xen-devel@lists.xenproject.org,
+        nouveau@lists.freedesktop.org, linux-hams@vger.kernel.org,
+        ceph-devel@vger.kernel.org,
+        virtualization@lists.linux-foundation.org,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        linux-hwmon@vger.kernel.org,
+        "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>,
+        linux-nfs@vger.kernel.org, GR-Linux-NIC-Dev@marvell.com,
+        Linux-MM <linux-mm@kvack.org>,
         Network Development <netdev@vger.kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Thomas Graf <tgraf@suug.ch>, David Miller <davem@davemloft.net>
+        linux-decnet-user@lists.sourceforge.net, linux-mmc@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, linux-sctp@vger.kernel.org,
+        linux-usb@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Linux Crypto Mailing List <linux-crypto@vger.kernel.org>,
+        patches@opensource.cirrus.com, linux-integrity@vger.kernel.org,
+        target-devel@vger.kernel.org, linux-hardening@vger.kernel.org,
+        Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+        Greg KH <gregkh@linuxfoundation.org>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Nov 23, 2020 at 11:31 PM Lukas Wunner <lukas@wunner.de> wrote:
+On Tue, Nov 24, 2020 at 11:24 PM Finn Thain <fthain@telegraphics.com.au> wrote:
 >
-> On Mon, Nov 23, 2020 at 07:34:22PM -0800, Alexei Starovoitov wrote:
-> > It's a missing hook for out-of-tree module. That's why it stinks so much.
->
-> As I've said before, the motivation for these patches has pivoted away
-> from the original use case (which was indeed an out-of-tree module by
-> a company for which I no longer work):
->
-> https://lore.kernel.org/netdev/20200905052403.GA10306@wunner.de/
->
-> When first submitting this series I also posted a patch to use the nft
-> egress hook from userspace for filtering and mangling.  It seems Zevenet
-> is actively using that:
->
-> https://lore.kernel.org/netdev/CAF90-Wi4W1U4FSYqyBTqe7sANbdO6=zgr-u+YY+X-gvNmOgc6A@mail.gmail.com/
->
->
-> > So please consider augmenting your nft k8s solution with a tiny bit of bpf.
-> > bpf can add a new helper to call into nf_hook_slow().
->
-> The out-of-tree module had nothing to do with k8s, it was for industrial
-> fieldbus communication.  But again, I no longer work for that company.
-> We're talking about a hook that's used by userspace, not by an out-of-tree
-> module.
->
->
-> > If it was not driven by
-> > out-of-tree kernel module I wouldn't have any problem with it.
->
-> Good!  Thank you.  Let me update and repost the patches then.
+> These statements are not "missing" unless you presume that code written
+> before the latest de facto language spec was written should somehow be
+> held to that spec.
 
-That's not what I said.
+There is no "language spec" the kernel adheres to. Even if it did,
+kernel code is not frozen. If an improvement is found, it should be
+applied.
+
+> If the 'fallthrough' statement is not part of the latest draft spec then
+> we should ask why not before we embrace it. Being that the kernel still
+> prefers -std=gnu89 you might want to consider what has prevented
+> -std=gnu99 or -std=gnu2x etc.
+
+The C standard has nothing to do with this. We use compiler extensions
+of several kinds, for many years. Even discounting those extensions,
+the kernel is not even conforming to C due to e.g. strict aliasing. I
+am not sure what you are trying to argue here.
+
+But, since you insist: yes, the `fallthrough` attribute is in the
+current C2x draft.
+
+Cheers,
+Miguel
