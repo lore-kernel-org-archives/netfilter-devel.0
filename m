@@ -2,445 +2,262 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B80DC56201
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Nov 2020 18:28:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E7ADC71156
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Nov 2020 21:10:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E54CF205F4
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Nov 2020 18:28:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0FA322075A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Nov 2020 21:10:18 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=mg.codeaurora.org header.i=@mg.codeaurora.org header.b="kFp8xSv7"
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="AWR/7M4m"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731586AbgKYS2a (ORCPT
+        id S1731477AbgKYVKF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 25 Nov 2020 13:28:30 -0500
-Received: from z5.mailgun.us ([104.130.96.5]:39056 "EHLO z5.mailgun.us"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729679AbgKYS2a (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 25 Nov 2020 13:28:30 -0500
-DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=mg.codeaurora.org; q=dns/txt;
- s=smtp; t=1606328909; h=Message-Id: Date: Subject: Cc: To: From:
- Sender; bh=oZ0UZuSBL4+q47aInHtLh85SBWYE3dCgqoW6K0hHggI=; b=kFp8xSv7Us2Rd1n4ONMLNL6bAzLau8hG4/Fcj8eJj7XfMGMq9rRJpH2vwitMYEV1pmwbCQCa
- AtC/NZm4OEKDjYpqyheG7rbgkeKDgknMHZAB/BGG3qLLjmNsPmZn+7TohS2RD1PpQnomeizT
- fmFfl4sjFKhd39r54lcba+/zpro=
-X-Mailgun-Sending-Ip: 104.130.96.5
-X-Mailgun-Sid: WyJlM2NhZSIsICJuZXRmaWx0ZXItZGV2ZWxAdmdlci5rZXJuZWwub3JnIiwgImJlOWU0YSJd
-Received: from smtp.codeaurora.org
- (ec2-35-166-182-171.us-west-2.compute.amazonaws.com [35.166.182.171]) by
- smtp-out-n03.prod.us-east-1.postgun.com with SMTP id
- 5fbea249d64ea0b7033b1040 (version=TLS1.2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256); Wed, 25 Nov 2020 18:28:25
- GMT
-Sender: subashab=codeaurora.org@mg.codeaurora.org
-Received: by smtp.codeaurora.org (Postfix, from userid 1001)
-        id 69010C43463; Wed, 25 Nov 2020 18:28:24 +0000 (UTC)
-Received: from subashab-lnx.qualcomm.com (unknown [129.46.15.92])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-SHA256 (128/128 bits))
-        (No client certificate requested)
-        (Authenticated sender: subashab)
-        by smtp.codeaurora.org (Postfix) with ESMTPSA id 6A694C433C6;
-        Wed, 25 Nov 2020 18:28:21 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 smtp.codeaurora.org 6A694C433C6
-Authentication-Results: aws-us-west-2-caf-mail-1.web.codeaurora.org; dmarc=none (p=none dis=none) header.from=codeaurora.org
-Authentication-Results: aws-us-west-2-caf-mail-1.web.codeaurora.org; spf=fail smtp.mailfrom=subashab@codeaurora.org
-From:   Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-To:     fw@strlen.de, will@kernel.org, pablo@netfilter.org,
-        stranche@codeaurora.org, netfilter-devel@vger.kernel.org,
-        tglx@linutronix.de, peterz@infradead.org, lkp@intel.com
-Cc:     Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Subject: [PATCH nf v2] netfilter: x_tables: Switch synchronization to RCU
-Date:   Wed, 25 Nov 2020 11:27:22 -0700
-Message-Id: <1606328842-22747-1-git-send-email-subashab@codeaurora.org>
-X-Mailer: git-send-email 2.7.4
+        Wed, 25 Nov 2020 16:10:05 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46208 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731228AbgKYVKE (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 25 Nov 2020 16:10:04 -0500
+Received: from mail-pf1-x442.google.com (mail-pf1-x442.google.com [IPv6:2607:f8b0:4864:20::442])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12333C09424C
+        for <netfilter-devel@vger.kernel.org>; Wed, 25 Nov 2020 13:10:04 -0800 (PST)
+Received: by mail-pf1-x442.google.com with SMTP id s21so3484270pfu.13
+        for <netfilter-devel@vger.kernel.org>; Wed, 25 Nov 2020 13:10:04 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=5kDOOuMOjwqEdI4fOY8lF/zJwxoesF7EbkKd66qXZt4=;
+        b=AWR/7M4mhE4fi43nRvdimsQoF0WR0/yRvzcmpbbdNnukQZ4s3FUnDOA4HlPrcfy1KL
+         TnDV3Sp7ib0l66wO1u9Qkihqc0ymqk7uAD73hLx1Hbj+4zgGkd46Av0r6N17g4aWHL9f
+         T52peLS6H3gWn2HtVm1n8SJNqsSbmk3lehF9k=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=5kDOOuMOjwqEdI4fOY8lF/zJwxoesF7EbkKd66qXZt4=;
+        b=hu+wsIP2cTW7mhyNKbiHCx5cjfoGAnBkjNhzpd1wJ2O6xq7MPFh00lATbORD2Oso1p
+         uvKlCJ47lU6vHS2frTLp76gOBpa1hunGnL1DUsvWNLLdurDYz9DJz0OvWE4bg4uI/j8D
+         D/LY14yDQYlmYjCtSL5dzHi75V6EIyvd5E1EgLCKn+8Wmw+GbOR10ol5pSK1i2v3tcYK
+         +SP2gY+1UER3JIXHR48vDVrz1ii3odkuyR+yeX78ZUbAFCKbhMeye1/4Cf4SsDfm3reF
+         QrFSzk/+vWWPnAAzM7KLHiOGzwhWnFWN754/3mmyq2sTCJ4WX88gNvmdlM/kXjSdDUMs
+         X30w==
+X-Gm-Message-State: AOAM53265fTd5fVnQbPjYEwAGGNrdr7T1vRrD6EQdNEkeb6T8ww1XeOq
+        RxYdpWR6TX1+pWZu163CbWAT3ZXysGSeiX8R
+X-Google-Smtp-Source: ABdhPJx/eEsXFJ4LN0K87oZeE7bvP2eO9KEt7vLrempCPcmRQAJuuV8YImLC928PO4R7i7Khu5FszQ==
+X-Received: by 2002:a65:6547:: with SMTP id a7mr4391475pgw.198.1606338602870;
+        Wed, 25 Nov 2020 13:10:02 -0800 (PST)
+Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
+        by smtp.gmail.com with ESMTPSA id x30sm2796297pgc.86.2020.11.25.13.10.01
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 25 Nov 2020 13:10:01 -0800 (PST)
+Date:   Wed, 25 Nov 2020 13:10:00 -0800
+From:   Kees Cook <keescook@chromium.org>
+To:     James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc:     "Gustavo A. R. Silva" <gustavoars@kernel.org>,
+        Joe Perches <joe@perches.com>,
+        Jakub Kicinski <kuba@kernel.org>, alsa-devel@alsa-project.org,
+        linux-atm-general@lists.sourceforge.net,
+        reiserfs-devel@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-wireless@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        Nathan Chancellor <natechancellor@gmail.com>,
+        linux-ide@vger.kernel.org, dm-devel@redhat.com,
+        keyrings@vger.kernel.org, linux-mtd@lists.infradead.org,
+        GR-everest-linux-l2@marvell.com, wcn36xx@lists.infradead.org,
+        samba-technical@lists.samba.org, linux-i3c@lists.infradead.org,
+        linux1394-devel@lists.sourceforge.net,
+        linux-afs@lists.infradead.org,
+        usb-storage@lists.one-eyed-alien.net, drbd-dev@lists.linbit.com,
+        devel@driverdev.osuosl.org, linux-cifs@vger.kernel.org,
+        rds-devel@oss.oracle.com,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org,
+        oss-drivers@netronome.com, bridge@lists.linux-foundation.org,
+        linux-security-module@vger.kernel.org,
+        amd-gfx@lists.freedesktop.org,
+        linux-stm32@st-md-mailman.stormreply.com, cluster-devel@redhat.com,
+        linux-acpi@vger.kernel.org, coreteam@netfilter.org,
+        intel-wired-lan@lists.osuosl.org, linux-input@vger.kernel.org,
+        Miguel Ojeda <ojeda@kernel.org>,
+        tipc-discussion@lists.sourceforge.net, linux-ext4@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-watchdog@vger.kernel.org,
+        selinux@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, linux-geode@lists.infradead.org,
+        linux-can@vger.kernel.org, linux-block@vger.kernel.org,
+        linux-gpio@vger.kernel.org, op-tee@lists.trustedfirmware.org,
+        linux-mediatek@lists.infradead.org, xen-devel@lists.xenproject.org,
+        nouveau@lists.freedesktop.org, linux-hams@vger.kernel.org,
+        ceph-devel@vger.kernel.org,
+        virtualization@lists.linux-foundation.org,
+        linux-arm-kernel@lists.infradead.org, linux-hwmon@vger.kernel.org,
+        x86@kernel.org, linux-nfs@vger.kernel.org,
+        GR-Linux-NIC-Dev@marvell.com, linux-mm@kvack.org,
+        netdev@vger.kernel.org, linux-decnet-user@lists.sourceforge.net,
+        linux-mmc@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-sctp@vger.kernel.org, linux-usb@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        patches@opensource.cirrus.com, linux-integrity@vger.kernel.org,
+        target-devel@vger.kernel.org, linux-hardening@vger.kernel.org,
+        Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+        Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [Intel-wired-lan] [PATCH 000/141] Fix fall-through warnings for
+ Clang
+Message-ID: <202011251240.1E67BE900@keescook>
+References: <202011220816.8B6591A@keescook>
+ <9b57fd4914b46f38d54087d75e072d6e947cb56d.camel@HansenPartnership.com>
+ <ca071decb87cc7e905411423c05a48f9fd2f58d7.camel@perches.com>
+ <0147972a72bc13f3629de8a32dee6f1f308994b5.camel@HansenPartnership.com>
+ <d8d1e9add08cdd4158405e77762d4946037208f8.camel@perches.com>
+ <dbd2cb703ed9eefa7dde9281ea26ab0f7acc8afe.camel@HansenPartnership.com>
+ <20201123130348.GA3119@embeddedor>
+ <8f5611bb015e044fa1c0a48147293923c2d904e4.camel@HansenPartnership.com>
+ <202011241327.BB28F12F6@keescook>
+ <a841536fe65bb33f1c72ce2455a6eb47a0107565.camel@HansenPartnership.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <a841536fe65bb33f1c72ce2455a6eb47a0107565.camel@HansenPartnership.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When running concurrent iptables rules replacement with data, the per CPU
-sequence count is checked after the assignment of the new information.
-The sequence count is used to synchronize with the packet path without the
-use of any explicit locking. If there are any packets in the packet path using
-the table information, the sequence count is incremented to an odd value and
-is incremented to an even after the packet process completion.
+On Tue, Nov 24, 2020 at 11:05:35PM -0800, James Bottomley wrote:
+> Now, what we have seems to be about 6 cases (at least what's been shown
+> in this thread) where a missing break would cause potentially user
+> visible issues.  That means the value of this isn't zero, but it's not
+> a no-brainer massive win either.  That's why I think asking what we've
+> invested vs the return isn't a useless exercise.
 
-The new table value assignment is followed by a write memory barrier so every
-CPU should see the latest value. If the packet path has started with the old
-table information, the sequence counter will be odd and the iptables
-replacement will wait till the sequence count is even prior to freeing the
-old table info.
+The number is much higher[1]. If it were 6 in the entire history of the
+kernel, I would agree with you. :) Some were fixed _before_ Gustavo's
+effort too, which I also count towards the idea of "this is a dangerous
+weakness in C, and now we have stopped it forever."
 
-However, this assumes that the new table information assignment and the memory
-barrier is actually executed prior to the counter check in the replacement
-thread. If CPU decides to execute the assignment later as there is no user of
-the table information prior to the sequence check, the packet path in another
-CPU may use the old table information. The replacement thread would then free
-the table information under it leading to a use after free in the packet
-processing context-
+> But the broader point I'm making is just because the compiler people
+> come up with a shiny new warning doesn't necessarily mean the problem
+> it's detecting is one that causes us actual problems in the code base. 
+> I'd really be happier if we had a theory about what classes of CVE or
+> bug we could eliminate before we embrace the next new warning.
 
-Unable to handle kernel NULL pointer dereference at virtual
-address 000000000000008e
-pc : ip6t_do_table+0x5d0/0x89c
-lr : ip6t_do_table+0x5b8/0x89c
-ip6t_do_table+0x5d0/0x89c
-ip6table_filter_hook+0x24/0x30
-nf_hook_slow+0x84/0x120
-ip6_input+0x74/0xe0
-ip6_rcv_finish+0x7c/0x128
-ipv6_rcv+0xac/0xe4
-__netif_receive_skb+0x84/0x17c
-process_backlog+0x15c/0x1b8
-napi_poll+0x88/0x284
-net_rx_action+0xbc/0x23c
-__do_softirq+0x20c/0x48c
+But we did! It was long ago justified and documented[2], and even links to
+the CWE[3] for it. This wasn't random joy over discovering a new warning
+we could turn on, this was turning on a warning that the compiler folks
+finally gave us to handle an entire class of flaws. If we need to update
+the code-base to address it not a useful debate -- that was settled
+already, even if you're only discovering it now. :P. This last patch
+set is about finishing that work for Clang, which is correctly even
+more strict than GCC.
 
-This could be fixed by forcing instruction order after the new table
-information assignment or by switching to RCU for the synchronization.
+-Kees
 
-Fixes: 80055dab5de0 ("netfilter: x_tables: make xt_replace_table wait until old rules are not used anymore")
-Reported-by: Sean Tranchetti <stranche@codeaurora.org>
-Reported-by: kernel test robot <lkp@intel.com>
-Suggested-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
----
- include/linux/netfilter/x_tables.h |  5 +++-
- net/ipv4/netfilter/arp_tables.c    | 14 +++++------
- net/ipv4/netfilter/ip_tables.c     | 14 +++++------
- net/ipv6/netfilter/ip6_tables.c    | 14 +++++------
- net/netfilter/x_tables.c           | 49 ++++++++++++--------------------------
- 5 files changed, 40 insertions(+), 56 deletions(-)
+[1] https://outflux.net/slides/2019/lss/kspp.pdf calls out specific
+    numbers (about 6.5% of the patches fixed missing breaks):
+	v4.19:  3 of 129
+	v4.20:  2 of  59
+	v5.0:   3 of  56
+	v5.1:  10 of 100
+	v5.2:   6 of  71
+	v5.3:   7 of  69
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index 5deb099..8ebb641 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -227,7 +227,7 @@ struct xt_table {
- 	unsigned int valid_hooks;
- 
- 	/* Man behind the curtain... */
--	struct xt_table_info *private;
-+	struct xt_table_info __rcu *private;
- 
- 	/* Set this to THIS_MODULE if you are a module, otherwise NULL */
- 	struct module *me;
-@@ -448,6 +448,9 @@ xt_get_per_cpu_counter(struct xt_counters *cnt, unsigned int cpu)
- 
- struct nf_hook_ops *xt_hook_ops_alloc(const struct xt_table *, nf_hookfn *);
- 
-+struct xt_table_info
-+*xt_table_get_private_protected(const struct xt_table *table);
-+
- #ifdef CONFIG_COMPAT
- #include <net/compat.h>
- 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index d1e04d2..563b62b 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -203,7 +203,7 @@ unsigned int arpt_do_table(struct sk_buff *skb,
- 
- 	local_bh_disable();
- 	addend = xt_write_recseq_begin();
--	private = READ_ONCE(table->private); /* Address dependency. */
-+	private = rcu_access_pointer(table->private);
- 	cpu     = smp_processor_id();
- 	table_base = private->entries;
- 	jumpstack  = (struct arpt_entry **)private->jumpstack[cpu];
-@@ -649,7 +649,7 @@ static struct xt_counters *alloc_counters(const struct xt_table *table)
- {
- 	unsigned int countersize;
- 	struct xt_counters *counters;
--	const struct xt_table_info *private = table->private;
-+	const struct xt_table_info *private = xt_table_get_private_protected(table);
- 
- 	/* We need atomic snapshot of counters: rest doesn't change
- 	 * (other than comefrom, which userspace doesn't care
-@@ -673,7 +673,7 @@ static int copy_entries_to_user(unsigned int total_size,
- 	unsigned int off, num;
- 	const struct arpt_entry *e;
- 	struct xt_counters *counters;
--	struct xt_table_info *private = table->private;
-+	struct xt_table_info *private = xt_table_get_private_protected(table);
- 	int ret = 0;
- 	void *loc_cpu_entry;
- 
-@@ -807,7 +807,7 @@ static int get_info(struct net *net, void __user *user, const int *len)
- 	t = xt_request_find_table_lock(net, NFPROTO_ARP, name);
- 	if (!IS_ERR(t)) {
- 		struct arpt_getinfo info;
--		const struct xt_table_info *private = t->private;
-+		const struct xt_table_info *private = xt_table_get_private_protected(t);
- #ifdef CONFIG_COMPAT
- 		struct xt_table_info tmp;
- 
-@@ -860,7 +860,7 @@ static int get_entries(struct net *net, struct arpt_get_entries __user *uptr,
- 
- 	t = xt_find_table_lock(net, NFPROTO_ARP, get.name);
- 	if (!IS_ERR(t)) {
--		const struct xt_table_info *private = t->private;
-+		const struct xt_table_info *private = xt_table_get_private_protected(t);
- 
- 		if (get.size == private->size)
- 			ret = copy_entries_to_user(private->size,
-@@ -1017,7 +1017,7 @@ static int do_add_counters(struct net *net, sockptr_t arg, unsigned int len)
- 	}
- 
- 	local_bh_disable();
--	private = t->private;
-+	private = xt_table_get_private_protected(t);
- 	if (private->number != tmp.num_counters) {
- 		ret = -EINVAL;
- 		goto unlock_up_free;
-@@ -1330,7 +1330,7 @@ static int compat_copy_entries_to_user(unsigned int total_size,
- 				       void __user *userptr)
- {
- 	struct xt_counters *counters;
--	const struct xt_table_info *private = table->private;
-+	const struct xt_table_info *private = xt_table_get_private_protected(table);
- 	void __user *pos;
- 	unsigned int size;
- 	int ret = 0;
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index f15bc21..6e2851f 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -258,7 +258,7 @@ ipt_do_table(struct sk_buff *skb,
- 	WARN_ON(!(table->valid_hooks & (1 << hook)));
- 	local_bh_disable();
- 	addend = xt_write_recseq_begin();
--	private = READ_ONCE(table->private); /* Address dependency. */
-+	private = rcu_access_pointer(table->private);
- 	cpu        = smp_processor_id();
- 	table_base = private->entries;
- 	jumpstack  = (struct ipt_entry **)private->jumpstack[cpu];
-@@ -791,7 +791,7 @@ static struct xt_counters *alloc_counters(const struct xt_table *table)
- {
- 	unsigned int countersize;
- 	struct xt_counters *counters;
--	const struct xt_table_info *private = table->private;
-+	const struct xt_table_info *private = xt_table_get_private_protected(table);
- 
- 	/* We need atomic snapshot of counters: rest doesn't change
- 	   (other than comefrom, which userspace doesn't care
-@@ -815,7 +815,7 @@ copy_entries_to_user(unsigned int total_size,
- 	unsigned int off, num;
- 	const struct ipt_entry *e;
- 	struct xt_counters *counters;
--	const struct xt_table_info *private = table->private;
-+	const struct xt_table_info *private = xt_table_get_private_protected(table);
- 	int ret = 0;
- 	const void *loc_cpu_entry;
- 
-@@ -964,7 +964,7 @@ static int get_info(struct net *net, void __user *user, const int *len)
- 	t = xt_request_find_table_lock(net, AF_INET, name);
- 	if (!IS_ERR(t)) {
- 		struct ipt_getinfo info;
--		const struct xt_table_info *private = t->private;
-+		const struct xt_table_info *private = xt_table_get_private_protected(t);
- #ifdef CONFIG_COMPAT
- 		struct xt_table_info tmp;
- 
-@@ -1018,7 +1018,7 @@ get_entries(struct net *net, struct ipt_get_entries __user *uptr,
- 
- 	t = xt_find_table_lock(net, AF_INET, get.name);
- 	if (!IS_ERR(t)) {
--		const struct xt_table_info *private = t->private;
-+		const struct xt_table_info *private = xt_table_get_private_protected(t);
- 		if (get.size == private->size)
- 			ret = copy_entries_to_user(private->size,
- 						   t, uptr->entrytable);
-@@ -1173,7 +1173,7 @@ do_add_counters(struct net *net, sockptr_t arg, unsigned int len)
- 	}
- 
- 	local_bh_disable();
--	private = t->private;
-+	private = xt_table_get_private_protected(t);
- 	if (private->number != tmp.num_counters) {
- 		ret = -EINVAL;
- 		goto unlock_up_free;
-@@ -1543,7 +1543,7 @@ compat_copy_entries_to_user(unsigned int total_size, struct xt_table *table,
- 			    void __user *userptr)
- {
- 	struct xt_counters *counters;
--	const struct xt_table_info *private = table->private;
-+	const struct xt_table_info *private = xt_table_get_private_protected(table);
- 	void __user *pos;
- 	unsigned int size;
- 	int ret = 0;
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 2e2119b..c4f532f 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -280,7 +280,7 @@ ip6t_do_table(struct sk_buff *skb,
- 
- 	local_bh_disable();
- 	addend = xt_write_recseq_begin();
--	private = READ_ONCE(table->private); /* Address dependency. */
-+	private = rcu_access_pointer(table->private);
- 	cpu        = smp_processor_id();
- 	table_base = private->entries;
- 	jumpstack  = (struct ip6t_entry **)private->jumpstack[cpu];
-@@ -807,7 +807,7 @@ static struct xt_counters *alloc_counters(const struct xt_table *table)
- {
- 	unsigned int countersize;
- 	struct xt_counters *counters;
--	const struct xt_table_info *private = table->private;
-+	const struct xt_table_info *private = xt_table_get_private_protected(table);
- 
- 	/* We need atomic snapshot of counters: rest doesn't change
- 	   (other than comefrom, which userspace doesn't care
-@@ -831,7 +831,7 @@ copy_entries_to_user(unsigned int total_size,
- 	unsigned int off, num;
- 	const struct ip6t_entry *e;
- 	struct xt_counters *counters;
--	const struct xt_table_info *private = table->private;
-+	const struct xt_table_info *private = xt_table_get_private_protected(table);
- 	int ret = 0;
- 	const void *loc_cpu_entry;
- 
-@@ -980,7 +980,7 @@ static int get_info(struct net *net, void __user *user, const int *len)
- 	t = xt_request_find_table_lock(net, AF_INET6, name);
- 	if (!IS_ERR(t)) {
- 		struct ip6t_getinfo info;
--		const struct xt_table_info *private = t->private;
-+		const struct xt_table_info *private = xt_table_get_private_protected(t);
- #ifdef CONFIG_COMPAT
- 		struct xt_table_info tmp;
- 
-@@ -1035,7 +1035,7 @@ get_entries(struct net *net, struct ip6t_get_entries __user *uptr,
- 
- 	t = xt_find_table_lock(net, AF_INET6, get.name);
- 	if (!IS_ERR(t)) {
--		struct xt_table_info *private = t->private;
-+		struct xt_table_info *private = xt_table_get_private_protected(t);
- 		if (get.size == private->size)
- 			ret = copy_entries_to_user(private->size,
- 						   t, uptr->entrytable);
-@@ -1189,7 +1189,7 @@ do_add_counters(struct net *net, sockptr_t arg, unsigned int len)
- 	}
- 
- 	local_bh_disable();
--	private = t->private;
-+	private = xt_table_get_private_protected(t);
- 	if (private->number != tmp.num_counters) {
- 		ret = -EINVAL;
- 		goto unlock_up_free;
-@@ -1552,7 +1552,7 @@ compat_copy_entries_to_user(unsigned int total_size, struct xt_table *table,
- 			    void __user *userptr)
- {
- 	struct xt_counters *counters;
--	const struct xt_table_info *private = table->private;
-+	const struct xt_table_info *private = xt_table_get_private_protected(table);
- 	void __user *pos;
- 	unsigned int size;
- 	int ret = 0;
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index af22dbe..acce622 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -1349,6 +1349,14 @@ struct xt_counters *xt_counters_alloc(unsigned int counters)
- }
- EXPORT_SYMBOL(xt_counters_alloc);
- 
-+struct xt_table_info
-+*xt_table_get_private_protected(const struct xt_table *table)
-+{
-+	return rcu_dereference_protected(table->private,
-+					 mutex_is_locked(&xt[table->af].mutex));
-+}
-+EXPORT_SYMBOL(xt_table_get_private_protected);
-+
- struct xt_table_info *
- xt_replace_table(struct xt_table *table,
- 	      unsigned int num_counters,
-@@ -1356,7 +1364,6 @@ xt_replace_table(struct xt_table *table,
- 	      int *error)
- {
- 	struct xt_table_info *private;
--	unsigned int cpu;
- 	int ret;
- 
- 	ret = xt_jumpstack_alloc(newinfo);
-@@ -1366,47 +1373,20 @@ xt_replace_table(struct xt_table *table,
- 	}
- 
- 	/* Do the substitution. */
--	local_bh_disable();
--	private = table->private;
-+	private = xt_table_get_private_protected(table);
- 
- 	/* Check inside lock: is the old number correct? */
- 	if (num_counters != private->number) {
- 		pr_debug("num_counters != table->private->number (%u/%u)\n",
- 			 num_counters, private->number);
--		local_bh_enable();
- 		*error = -EAGAIN;
- 		return NULL;
- 	}
- 
- 	newinfo->initial_entries = private->initial_entries;
--	/*
--	 * Ensure contents of newinfo are visible before assigning to
--	 * private.
--	 */
--	smp_wmb();
--	table->private = newinfo;
--
--	/* make sure all cpus see new ->private value */
--	smp_wmb();
- 
--	/*
--	 * Even though table entries have now been swapped, other CPU's
--	 * may still be using the old entries...
--	 */
--	local_bh_enable();
--
--	/* ... so wait for even xt_recseq on all cpus */
--	for_each_possible_cpu(cpu) {
--		seqcount_t *s = &per_cpu(xt_recseq, cpu);
--		u32 seq = raw_read_seqcount(s);
--
--		if (seq & 1) {
--			do {
--				cond_resched();
--				cpu_relax();
--			} while (seq == raw_read_seqcount(s));
--		}
--	}
-+	rcu_assign_pointer(table->private, newinfo);
-+	synchronize_rcu();
- 
- 	audit_log_nfcfg(table->name, table->af, private->number,
- 			!private->number ? AUDIT_XT_OP_REGISTER :
-@@ -1442,12 +1422,12 @@ struct xt_table *xt_register_table(struct net *net,
- 	}
- 
- 	/* Simplifies replace_table code. */
--	table->private = bootstrap;
-+	rcu_assign_pointer(table->private, bootstrap);
- 
- 	if (!xt_replace_table(table, 0, newinfo, &ret))
- 		goto unlock;
- 
--	private = table->private;
-+	private = xt_table_get_private_protected(table);
- 	pr_debug("table->private->number = %u\n", private->number);
- 
- 	/* save number of initial entries */
-@@ -1470,7 +1450,8 @@ void *xt_unregister_table(struct xt_table *table)
- 	struct xt_table_info *private;
- 
- 	mutex_lock(&xt[table->af].mutex);
--	private = table->private;
-+	private = xt_table_get_private_protected(table);
-+	RCU_INIT_POINTER(table->private, NULL);
- 	list_del(&table->list);
- 	mutex_unlock(&xt[table->af].mutex);
- 	audit_log_nfcfg(table->name, table->af, private->number,
+    And in the history of the kernel, it's been an ongoing source of
+    flaws:
+
+    $ l --no-merges | grep -i 'missing break' | wc -l
+    185
+
+    The frequency of such errors being "naturally" found was pretty
+    steady until the static checkers started warning, and then it was
+    on the rise, but the full effort flushed the rest out, and now it's
+    dropped to almost zero:
+
+      1 v2.6.12
+      3 v2.6.16.28
+      1 v2.6.17
+      1 v2.6.19
+      2 v2.6.21
+      1 v2.6.22
+      3 v2.6.24
+      3 v2.6.29
+      1 v2.6.32
+      1 v2.6.33
+      1 v2.6.35
+      4 v2.6.36
+      3 v2.6.38
+      2 v2.6.39
+      7 v3.0
+      2 v3.1
+      2 v3.2
+      2 v3.3
+      3 v3.4
+      1 v3.5
+      8 v3.6
+      7 v3.7
+      3 v3.8
+      6 v3.9
+      3 v3.10
+      2 v3.11
+      5 v3.12
+      5 v3.13
+      2 v3.14
+      4 v3.15
+      2 v3.16
+      3 v3.17
+      2 v3.18
+      2 v3.19
+      1 v4.0
+      2 v4.1
+      5 v4.2
+      4 v4.5
+      5 v4.7
+      6 v4.8
+      1 v4.9
+      3 v4.10
+      2 v4.11
+      6 v4.12
+      3 v4.13
+      2 v4.14
+      5 v4.15
+      2 v4.16
+      7 v4.18
+      2 v4.19
+      6 v4.20
+      3 v5.0
+     12 v5.1
+      3 v5.2
+      4 v5.3
+      2 v5.4
+      1 v5.8
+
+
+    And the reason it's fully zero, is because we still have the cases we're
+    cleaning up right now. Even this last one from v5.8 is specifically of
+    the same type this series addresses:
+
+        case 4:
+                color_index = TrueCModeIndex;
++               break;
+        default:
+                return;
+        }
+
+
+[2] https://www.kernel.org/doc/html/latest/process/deprecated.html#implicit-switch-case-fall-through
+
+	All switch/case blocks must end in one of:
+
+	break;
+	fallthrough;
+	continue;
+	goto <label>;
+	return [expression];
+
+[3] https://cwe.mitre.org/data/definitions/484.html
+
 -- 
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project
-
+Kees Cook
