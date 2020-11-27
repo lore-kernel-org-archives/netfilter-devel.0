@@ -2,65 +2,67 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 915A3C83012
-	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Nov 2020 22:09:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCC11C63798
+	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Nov 2020 22:10:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7143622240
-	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Nov 2020 22:09:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A935121527
+	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Nov 2020 22:10:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730513AbgK1VuG (ORCPT
+        id S2389759AbgK1VuF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 28 Nov 2020 16:50:06 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38882 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729820AbgK1Saj (ORCPT
+        Sat, 28 Nov 2020 16:50:05 -0500
+Received: from mail-lf1-f51.google.com ([209.85.167.51]:41777 "EHLO
+        mail-lf1-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730506AbgK0TvY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 28 Nov 2020 13:30:39 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F8A0C02B8F7;
-        Sat, 28 Nov 2020 01:59:36 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1kix0r-0000Y4-87; Sat, 28 Nov 2020 10:59:29 +0100
-Date:   Sat, 28 Nov 2020 10:59:29 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Antoine Tenart <atenart@kernel.org>, pablo@netfilter.org,
-        kadlec@netfilter.org, roopa@nvidia.com, nikolay@nvidia.com,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, sbrivio@redhat.com
-Subject: Re: [PATCH net-next] netfilter: bridge: reset skb->pkt_type after
- NF_INET_POST_ROUTING traversal
-Message-ID: <20201128095929.GI2730@breakpoint.cc>
-References: <20201123174902.622102-1-atenart@kernel.org>
- <20201123183253.GA2730@breakpoint.cc>
- <20201127160650.1f36b889@kicinski-fedora-pc1c0hjn.DHCP.thefacebook.com>
+        Fri, 27 Nov 2020 14:51:24 -0500
+Received: by mail-lf1-f51.google.com with SMTP id r24so8522623lfm.8;
+        Fri, 27 Nov 2020 11:51:14 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:to:cc:from:subject:message-id:date:user-agent
+         :mime-version:content-language:content-transfer-encoding;
+        bh=pVY27RlXdSwCmziTRPPFMGA75xoNNNryw43jm/wsTCw=;
+        b=YTwju2m6t7hut/zrT4m+zjBHZFE5GFIVxAl8WNE9HVypjgAtHh1X56KM12xhQDj/m4
+         pQ2ZTbZM7dXnDE+pz36vFl/XmNtUQqiJOP8V7agCwjI0HVFDY9Zhy4EaZz25Gkhhr9QC
+         00nutvs4r0gOlozx5o/T1ChUwr8iRWawSJ2a3gdUpuTzGxg7lyJfZnOxIATSzDI81Bqq
+         49SyQLay85jxm/xxaa6lEkFWQWO31x4sx9a+cUTGJe4sRvhbL1bLMtiqrnN78beRu4Ea
+         At08KPvj+vX8R2wdp8x+I0FKlMvZ7U9u8K9NJ8hHERGNTauqkyCdHkFMi+ebwnmb69XH
+         5tDg==
+X-Gm-Message-State: AOAM530+Y5jJoSsbfqJq1fDUZkAiY9ms/0LKUDMjIfZXnzDQDrokIsBM
+        Vsi+WCzvif9ifFKvpJHSAZJdVFCrxKWbrQ==
+X-Google-Smtp-Source: ABdhPJzXxJcVAXzxcLMRIdgnyS0T79f34vFQiH1BHhhmTmVDgIILkHPxoRyVqBCYZ6CraZoPSVnREQ==
+X-Received: by 2002:adf:a551:: with SMTP id j17mr12890547wrb.217.1606505729700;
+        Fri, 27 Nov 2020 11:35:29 -0800 (PST)
+Received: from [192.168.1.173] ([213.194.141.17])
+        by smtp.gmail.com with ESMTPSA id u12sm3078525wmu.28.2020.11.27.11.35.28
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 27 Nov 2020 11:35:29 -0800 (PST)
+To:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Cc:     "netfilter@vger.kernel.org" <netfilter@vger.kernel.org>
+From:   Arturo Borrero Gonzalez <arturo@netfilter.org>
+Subject: [FYI] summary of Netfilter workshop 2020 virtual
+Message-ID: <a7d4f6d6-0576-2918-0f28-f9804d296a3e@netfilter.org>
+Date:   Fri, 27 Nov 2020 20:35:28 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.12.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201127160650.1f36b889@kicinski-fedora-pc1c0hjn.DHCP.thefacebook.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Jakub Kicinski <kuba@kernel.org> wrote:
-> On Mon, 23 Nov 2020 19:32:53 +0100 Florian Westphal wrote:
-> > That comment is 18 years old, safe bet noone thought of
-> > ipv6-in-tunnel-interface-added-as-bridge-port back then.
-> > 
-> > Reviewed-by: Florian Westphal <fw@strlen.de>
-> 
-> Sounds like a fix. Probably hard to pin point which commit to blame,
-> but this should go to net, not net-next, right?
+Hi there,
 
-The commit predates git history, so probably a good idea to add
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+I'm sharing here a link to the summary I wrote about the 2020 Netfilter
+workshop, which was held in a virtual format this year:
 
-... and apply it to net tree.
+https://ral-arturo.org/2020/11/27/netfilter-virtual-workshop.html
+
+regards.
