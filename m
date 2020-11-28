@@ -3,45 +3,52 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-11.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EB29C64E7B
-	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Nov 2020 22:09:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76825C83026
+	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Nov 2020 22:09:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3DD4721527
-	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Nov 2020 22:09:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4B64422250
+	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Nov 2020 22:09:05 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="MpKfEQps"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="f4NW6wnC"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389805AbgK1VuG (ORCPT
+        id S2389797AbgK1VuG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sat, 28 Nov 2020 16:50:06 -0500
-Received: from mail.kernel.org ([198.145.29.99]:48318 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43922 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387793AbgK1VYL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 28 Nov 2020 16:24:11 -0500
+        id S2387602AbgK1TuS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 28 Nov 2020 14:50:18 -0500
 Received: from kicinski-fedora-pc1c0hjn.DHCP.thefacebook.com (c-67-180-217-166.hsd1.ca.comcast.net [67.180.217.166])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B3652206B2;
-        Sat, 28 Nov 2020 21:23:30 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4153721D40;
+        Sat, 28 Nov 2020 19:49:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1606598610;
-        bh=1QJiLc0tqdYPdxOvFcdphZImdNr3qdJ0OXWY9i1p17c=;
+        s=default; t=1606592978;
+        bh=UvzIRuOEnhxcRWvQWY2rH7i21CBVTaYaXaK8I49Jg8A=;
         h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=MpKfEQpsCBIbWz+aVRKw/MdkmuvilmLlyzNZVhl/SwFfBkrYMHplOyBwln5Skqbw5
-         2tvMjSgOsVE/Mstqy78Gmco3XP3af3yqMSQeknoW3HRshI6ABQJMzZMNG+NGhrnSYY
-         0h8gTwqlhi7F74LNS4G+HuSPdi7XQTKoBVlIiHg0=
-Date:   Sat, 28 Nov 2020 13:23:29 -0800
+        b=f4NW6wnCPGx60/u0ox2g2WF9RO1RrPk7O5NYxxR1Cv6YchviTYw5i7bM/mj6PchjP
+         3RDUbydlc3DLIZqKwJ/CLoHN3W8UhNDCDTFTJ6jA6mST3KCP4uyD7IEtbgTDqcJdqx
+         e3cKXnb7+OJiTWmQX7pI1TryydoHjDDl8Ri2W/hs=
+Date:   Sat, 28 Nov 2020 11:49:37 -0800
 From:   Jakub Kicinski <kuba@kernel.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org
-Subject: Re: [PATCH net 0/5] Netfilter fixes for net
-Message-ID: <20201128132329.4aa38d97@kicinski-fedora-pc1c0hjn.DHCP.thefacebook.com>
-In-Reply-To: <20201127190313.24947-1-pablo@netfilter.org>
-References: <20201127190313.24947-1-pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Antoine Tenart <atenart@kernel.org>, pablo@netfilter.org,
+        kadlec@netfilter.org, roopa@nvidia.com, nikolay@nvidia.com,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, sbrivio@redhat.com
+Subject: Re: [PATCH net-next] netfilter: bridge: reset skb->pkt_type after
+ NF_INET_POST_ROUTING traversal
+Message-ID: <20201128114937.55103f65@kicinski-fedora-pc1c0hjn.DHCP.thefacebook.com>
+In-Reply-To: <20201128095929.GI2730@breakpoint.cc>
+References: <20201123174902.622102-1-atenart@kernel.org>
+        <20201123183253.GA2730@breakpoint.cc>
+        <20201127160650.1f36b889@kicinski-fedora-pc1c0hjn.DHCP.thefacebook.com>
+        <20201128095929.GI2730@breakpoint.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -49,24 +56,20 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, 27 Nov 2020 20:03:08 +0100 Pablo Neira Ayuso wrote:
-> 1) Fix insufficient validation of IPSET_ATTR_IPADDR_IPV6 reported
->    by syzbot.
+On Sat, 28 Nov 2020 10:59:29 +0100 Florian Westphal wrote:
+> Jakub Kicinski <kuba@kernel.org> wrote:
+> > On Mon, 23 Nov 2020 19:32:53 +0100 Florian Westphal wrote:  
+> > > That comment is 18 years old, safe bet noone thought of
+> > > ipv6-in-tunnel-interface-added-as-bridge-port back then.
+> > > 
+> > > Reviewed-by: Florian Westphal <fw@strlen.de>  
+> > 
+> > Sounds like a fix. Probably hard to pin point which commit to blame,
+> > but this should go to net, not net-next, right?  
 > 
-> 2) Remove spurious reports on nf_tables when lockdep gets disabled,
->    from Florian Westphal.
+> The commit predates git history, so probably a good idea to add
+> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
 > 
-> 3) Fix memleak in the error path of error path of
->    ip_vs_control_net_init(), from Wang Hai.
-> 
-> 4) Fix missing control data in flow dissector, otherwise IP address
->    matching in hardware offload infra does not work.
-> 
-> 5) Fix hardware offload match on prefix IP address when userspace
->    does not send a bitwise expression to represent the prefix.
-> 
-> Please, pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+> ... and apply it to net tree.
 
-Pulled, thanks!
+Done, thanks!
