@@ -2,74 +2,65 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76825C83026
-	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Nov 2020 22:09:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 915A3C83012
+	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Nov 2020 22:09:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4B64422250
-	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Nov 2020 22:09:05 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="f4NW6wnC"
+	by mail.kernel.org (Postfix) with ESMTP id 7143622240
+	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Nov 2020 22:09:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389797AbgK1VuG (ORCPT
+        id S1730513AbgK1VuG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sat, 28 Nov 2020 16:50:06 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43922 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387602AbgK1TuS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 28 Nov 2020 14:50:18 -0500
-Received: from kicinski-fedora-pc1c0hjn.DHCP.thefacebook.com (c-67-180-217-166.hsd1.ca.comcast.net [67.180.217.166])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4153721D40;
-        Sat, 28 Nov 2020 19:49:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1606592978;
-        bh=UvzIRuOEnhxcRWvQWY2rH7i21CBVTaYaXaK8I49Jg8A=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=f4NW6wnCPGx60/u0ox2g2WF9RO1RrPk7O5NYxxR1Cv6YchviTYw5i7bM/mj6PchjP
-         3RDUbydlc3DLIZqKwJ/CLoHN3W8UhNDCDTFTJ6jA6mST3KCP4uyD7IEtbgTDqcJdqx
-         e3cKXnb7+OJiTWmQX7pI1TryydoHjDDl8Ri2W/hs=
-Date:   Sat, 28 Nov 2020 11:49:37 -0800
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Antoine Tenart <atenart@kernel.org>, pablo@netfilter.org,
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38882 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729820AbgK1Saj (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 28 Nov 2020 13:30:39 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F8A0C02B8F7;
+        Sat, 28 Nov 2020 01:59:36 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1kix0r-0000Y4-87; Sat, 28 Nov 2020 10:59:29 +0100
+Date:   Sat, 28 Nov 2020 10:59:29 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     Jakub Kicinski <kuba@kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Antoine Tenart <atenart@kernel.org>, pablo@netfilter.org,
         kadlec@netfilter.org, roopa@nvidia.com, nikolay@nvidia.com,
         netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
         coreteam@netfilter.org, sbrivio@redhat.com
 Subject: Re: [PATCH net-next] netfilter: bridge: reset skb->pkt_type after
  NF_INET_POST_ROUTING traversal
-Message-ID: <20201128114937.55103f65@kicinski-fedora-pc1c0hjn.DHCP.thefacebook.com>
-In-Reply-To: <20201128095929.GI2730@breakpoint.cc>
+Message-ID: <20201128095929.GI2730@breakpoint.cc>
 References: <20201123174902.622102-1-atenart@kernel.org>
-        <20201123183253.GA2730@breakpoint.cc>
-        <20201127160650.1f36b889@kicinski-fedora-pc1c0hjn.DHCP.thefacebook.com>
-        <20201128095929.GI2730@breakpoint.cc>
+ <20201123183253.GA2730@breakpoint.cc>
+ <20201127160650.1f36b889@kicinski-fedora-pc1c0hjn.DHCP.thefacebook.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20201127160650.1f36b889@kicinski-fedora-pc1c0hjn.DHCP.thefacebook.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, 28 Nov 2020 10:59:29 +0100 Florian Westphal wrote:
-> Jakub Kicinski <kuba@kernel.org> wrote:
-> > On Mon, 23 Nov 2020 19:32:53 +0100 Florian Westphal wrote:  
-> > > That comment is 18 years old, safe bet noone thought of
-> > > ipv6-in-tunnel-interface-added-as-bridge-port back then.
-> > > 
-> > > Reviewed-by: Florian Westphal <fw@strlen.de>  
+Jakub Kicinski <kuba@kernel.org> wrote:
+> On Mon, 23 Nov 2020 19:32:53 +0100 Florian Westphal wrote:
+> > That comment is 18 years old, safe bet noone thought of
+> > ipv6-in-tunnel-interface-added-as-bridge-port back then.
 > > 
-> > Sounds like a fix. Probably hard to pin point which commit to blame,
-> > but this should go to net, not net-next, right?  
+> > Reviewed-by: Florian Westphal <fw@strlen.de>
 > 
-> The commit predates git history, so probably a good idea to add
-> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-> 
-> ... and apply it to net tree.
+> Sounds like a fix. Probably hard to pin point which commit to blame,
+> but this should go to net, not net-next, right?
 
-Done, thanks!
+The commit predates git history, so probably a good idea to add
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+
+... and apply it to net tree.
