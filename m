@@ -2,80 +2,124 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7FA6C64E8A
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Nov 2020 19:59:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DF55C64E7B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Nov 2020 20:53:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7A96F207F7
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Nov 2020 19:59:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CA5692067C
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Nov 2020 20:53:40 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="hKzEVDAv"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728846AbgK3T7j (ORCPT
+        id S1729338AbgK3Uxk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 30 Nov 2020 14:59:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42772 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388354AbgK3T7j (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 30 Nov 2020 14:59:39 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 57960C0613D6;
-        Mon, 30 Nov 2020 11:58:59 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1kjpK5-0003Q5-Vg; Mon, 30 Nov 2020 20:58:58 +0100
-Date:   Mon, 30 Nov 2020 20:58:57 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Yuri Lipnesh <yuri.lipnesh@gmail.com>
-Cc:     netfilter-devel@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: System crash on Ubuntu 18, in netlink code when using iptables /
- netfilter
-Message-ID: <20201130195857.GM2730@breakpoint.cc>
-References: <B37EABB8-355F-4A05-9BF3-1119D1E0470D@gmail.com>
+        Mon, 30 Nov 2020 15:53:40 -0500
+Received: from mx1.riseup.net ([198.252.153.129]:32892 "EHLO mx1.riseup.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728687AbgK3Uxk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 30 Nov 2020 15:53:40 -0500
+X-Greylist: delayed 581 seconds by postgrey-1.27 at vger.kernel.org; Mon, 30 Nov 2020 15:53:40 EST
+Received: from bell.riseup.net (bell-pn.riseup.net [10.0.1.178])
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+        (Client CN "*.riseup.net", Issuer "Sectigo RSA Domain Validation Secure Server CA" (not verified))
+        by mx1.riseup.net (Postfix) with ESMTPS id 4ClHHk43FnzFdtk;
+        Mon, 30 Nov 2020 12:43:14 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
+        t=1606768998; bh=2TrR6qhfB28okYAQiXaM6v9vTZKmiOKY9zFwfDICNkg=;
+        h=Subject:To:References:From:Cc:Date:In-Reply-To:From;
+        b=hKzEVDAvbi34/X1muXzxjhCIACJcmzIXLZpM9KAuckk5va7pc6AzxdMzhd17o81MB
+         dj1zTo0hQAlxZtL0/ZZR5ScVoRakBn56uS6OabHCNnvOgSY+WWr2bYkudggGwZ019P
+         CPB/jJTSZBSIRML+ODGMmEtnTuIOqgz+cISYHN2s=
+X-Riseup-User-ID: 3E1DFFE6E5BFEB4B38BC316D3ECAD2CA427BAF370050E515ED2D56EEF11564E8
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+         by bell.riseup.net (Postfix) with ESMTPSA id 4ClHHc2vkdzJqcY;
+        Mon, 30 Nov 2020 12:43:08 -0800 (PST)
+Subject: Re: [nft PATCH] json: echo: Speedup seqnum_to_json()
+To:     Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>
+References: <20201120191640.21243-1-phil@nwl.cc>
+ <20201121121724.GA21214@salvia> <20201122235612.GP11766@orbyte.nwl.cc>
+From:   "Jose M. Guisado" <guigom@riseup.net>
+Cc:     netfilter-devel@vger.kernel.org, Derek Dai <daiderek@gmail.com>
+Message-ID: <62770c7d-8c44-e50a-a1dd-9829e660e499@riseup.net>
+Date:   Mon, 30 Nov 2020 21:43:04 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <B37EABB8-355F-4A05-9BF3-1119D1E0470D@gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20201122235612.GP11766@orbyte.nwl.cc>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Yuri Lipnesh <yuri.lipnesh@gmail.com> wrote:
-> Linux system crashed
+On 23/11/20 0:56, Phil Sutter wrote:
+> Hi,
 > 
-> [    0.000000] Linux version 5.4.0-54-generic (buildd@lcy01-amd64-008) (gcc version 7.5.0 (Ubuntu 7.5.0-3ubuntu1~18.04)) #60~18.04.1-Ubuntu SMP Fri Nov 6 17:25:16 UTC 2020 (Ubuntu 5.4.0-54.60~18.04.1-generic 5.4.65)
-> [    0.000000] Command line: BOOT_IMAGE=/boot/vmlinuz-5.4.0-54-generic root=UUID=11885fd3-b840-4c9b-a500-532c73ac952a ro find_preseed=/preseed.cfg auto noprompt priority=critical locale=en_US quiet crashkernel=512M-:192M
+> On Sat, Nov 21, 2020 at 01:17:24PM +0100, Pablo Neira Ayuso wrote:
+>> On Fri, Nov 20, 2020 at 08:16:40PM +0100, Phil Sutter wrote:
+>>> Derek Dai reports:
+>>> "If there are a lot of command in JSON node, seqnum_to_json() will slow
+>>> down application (eg: firewalld) dramatically since it iterate whole
+>>> command list every time."
+>>>
+>>> He sent a patch implementing a lookup table, but we can do better: Speed
+>>> this up by introducing a hash table to store the struct json_cmd_assoc
+>>> objects in, taking their netlink sequence number as key.
+>>>
+>>> Quickly tested restoring a ruleset containing about 19k rules:
+>>>
+>>> | # time ./before/nft -jeaf large_ruleset.json >/dev/null
+>>> | 4.85user 0.47system 0:05.48elapsed 97%CPU (0avgtext+0avgdata 69732maxresident)k
+>>> | 0inputs+0outputs (15major+16937minor)pagefaults 0swaps
+>>>
+>>> | # time ./after/nft -jeaf large_ruleset.json >/dev/null
+>>> | 0.18user 0.44system 0:00.70elapsed 89%CPU (0avgtext+0avgdata 68484maxresident)k
+>>> | 0inputs+0outputs (15major+16645minor)pagefaults 0swaps
+>>
+>> LGTM.
+>>
+>> BTW, Jose (he's on Cc) should rewrite his patch to exercise the
+>> monitor path when --echo and --json are combined _and_ input is _not_
+>> json.
+
+IIRC v4 of the patch already takes into account this situation. 
+Specifically this piece of code inside netlink_echo_callback. Returning 
+the json_events_cb (the path leading to the seqnum_to_json call) when 
+input is json.
+
+-	if (nft_output_json(&ctx->nft->output))
+-		return json_events_cb(nlh, &echo_monh);
++	if (nft_output_json(&nft->output)) {
++		if (!nft->json_root) {
++			nft->json_echo = json_array();
++			if (!nft->json_echo)
++				memory_allocation_error();
++			echo_monh.format = NFTNL_OUTPUT_JSON;
++		} else
++			return json_events_cb(nlh, &echo_monh);
++	}
+
+  	return netlink_events_cb(nlh, &echo_monh);
+  }
+
+I also remember Eric Garver ran firewalld tests with this patch.
+
+https://patchwork.ozlabs.org/project/netfilter-devel/patch/20200804103846.58872-1-guigom@riseup.net/#2499299
+
+>> Hence, leaving --echo and --json where input is json in the way you
+>> need (using the sequence number to reuse the json input
+>> representation).
+>>
+>> OK?
 > 
-> …
-> [  156.321147] TCP: eth0: Driver has suspect GRO implementation, TCP performance may be compromised.
-> [  177.519159] general protection fault: 0000 [#1] SMP PTI
-> [  177.519737] CPU: 5 PID: 18484 Comm: worker-1 Kdump: loaded Not tainted 5.4.0-54-generic #60~18.04.1-Ubuntu
-> [  177.519742] Hardware name: VMware, Inc. VMware Virtual Platform/440BX Desktop Reference Platform, BIOS 6.00 02/27/2020
-> [  177.519814] RIP: 0010:dev_hard_start_xmit+0x38/0x200
-> [  177.519827] Code: 55 41 54 53 48 83 ec 20 48 85 ff 48 89 55 c8 48 89 4d b8 0f 84 c1 01 00 00 48 8d 86 90 00 00 00 48 89 fb 49 89 f4 48 89 45 c0 <4c> 8b 2b 48 c7 c0 d0 f2 04 8f 48 c7 03 00 00 00 00 48 8b 00 4d 85
-> [  177.519829] RSP: 0018:ffffbc6d0609b5e8 EFLAGS: 00010286
-> [  177.519833] RAX: 0000000000000000 RBX: dead000000000100 RCX: ffff95cf4bcfe800
-> [  177.519835] RDX: 0000000000000000 RSI: ffff95cf4bcfe800 RDI: 0000000000000286
-> [  177.519837] RBP: ffffbc6d0609b630 R08: ffff95cf6a190ec8 R09: ffff95cf4a2f7438
-> [  177.519839] R10: ffffbc6d0609b6d0 R11: ffff95cf49d4d180 R12: ffff95cf51a5f000
-> [  177.519841] R13: dead000000000100 R14: 000000000000009c R15: ffff95d02996b400
-> [  177.519844] FS:  00007ff394cdfb20(0000) GS:ffff95d035d40000(0000) knlGS:0000000000000000
-> [  177.519846] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> [  177.519848] CR2: 00007fb4a9c2d000 CR3: 00000001049fa004 CR4: 00000000003606e0
-> [  177.519908] Call Trace:
-> [  177.519917]  __dev_queue_xmit+0x719/0x920
-> [  177.519930]  ? ctnetlink_conntrack_event+0x8c/0x5e0 [nf_conntrack_netlink]
+> Yes, that's fine with me!
 
-Can you reproduce this on 5.7 or later, or with following patches
-backported to 5.4.y?
+It's been some time, but I think this patch was ready to be merged back 
+then and that does not interfere with the json_events_cb path. Just 
+adding echo+json capability when reading native syntax.
 
- dd3cc111f2e3220ddc9c4ab17f13dc97759b5163
- 119e52e664c57d5f7c0174dc2b3a296b1e40591d
- af370ab36fcd19f04e3408c402608e7e56e6f188
- 28f715b9e6dd7cbf07c2aea913fea7c87a56a3b5
 
-The series fixed nfqueue reference counting.
+Regards!
