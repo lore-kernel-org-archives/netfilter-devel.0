@@ -2,144 +2,102 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.2 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_IN_DEF_DKIM_WL
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AC17C6369E
-	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Dec 2020 22:27:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A119C64E7C
+	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Dec 2020 22:35:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BAE4220758
-	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Dec 2020 22:27:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E0DE3221FB
+	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Dec 2020 22:35:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727470AbgLBW1s (ORCPT
+        id S1727620AbgLBWfd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 2 Dec 2020 17:27:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60708 "EHLO
+        Wed, 2 Dec 2020 17:35:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33656 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726011AbgLBW1s (ORCPT
+        with ESMTP id S1726188AbgLBWfd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 2 Dec 2020 17:27:48 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 23480C0613D6
-        for <netfilter-devel@vger.kernel.org>; Wed,  2 Dec 2020 14:27:08 -0800 (PST)
-Received: from localhost ([::1]:47342 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.94)
-        (envelope-from <phil@nwl.cc>)
-        id 1kkaaX-0007Ik-HP; Wed, 02 Dec 2020 23:27:05 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, Derek Dai <daiderek@gmail.com>
-Subject: [nft PATCH] json: Fix seqnum_to_json() functionality
-Date:   Wed,  2 Dec 2020 23:27:01 +0100
-Message-Id: <20201202222701.459-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.28.0
+        Wed, 2 Dec 2020 17:35:33 -0500
+Received: from mail-pg1-x541.google.com (mail-pg1-x541.google.com [IPv6:2607:f8b0:4864:20::541])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 17B6FC0617A6
+        for <netfilter-devel@vger.kernel.org>; Wed,  2 Dec 2020 14:34:53 -0800 (PST)
+Received: by mail-pg1-x541.google.com with SMTP id o4so180209pgj.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 02 Dec 2020 14:34:53 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=Yj9uJKclERcz+3dgssLnxEsO561b5XP4e0V1kaqzzHU=;
+        b=DeLWj512JCeqOATOifyLs3tV6W2ShtE1ozKCsCMSU6b/dQCrePNDDDeloHg6HKDTOn
+         1tXXfhZpOM/qfpu/4uKGDZMdpt5+G1ACRIweOcs/IRUi1XkMbPofQLszlPUQOXU20LIa
+         Mx+8bJ0ThXdxQoCDmjayo7oGrdsQBjuo4jxBM5pE5LAc9xLqX+4aelFrlcETUey4cPYf
+         hmyloKX82XTEqwlYl+6VSFyn/0LCFwvTILiXeQeA3DO6PpzpRTalSglVTGDaojWaoh6w
+         +nrj9HgM0DemgHvCXLIJZAWbPpx3SFiT199P0bSAaXdge0N4Jj5mWI0x97sLV553ptbE
+         h3zw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=Yj9uJKclERcz+3dgssLnxEsO561b5XP4e0V1kaqzzHU=;
+        b=q+rPzD2136m3Fsr1pd9u4IxnSWsuiUBtLfEQrF6mcSzU0ym5eZfewOoiL2Bheip814
+         K2+Uq35xg1qcsXhccaDWnq9cB9BJ/RrllgbEyND6E2eiNvwD3uvW5jFxnUI3J5MkhnDS
+         Cul6+LhNLeoEBkxF2XZTgDCOy/36lcfIAJ2uGf8UyZKq1uG2U7vGpbU9QV0a90ccp/wy
+         8/sH8DBrnMJ6GvUDw/xqFdQqa5XKQ9ep9L7VzBBi8NC6dkjit5L9+YT7qZxS8/m4s86r
+         WsAiGSAbYP6+NbYtSdAYI+8GZGd0mwkTRTM5rN3zz0fs6rZ4PkW830knCIouCTWZCJe4
+         P3vw==
+X-Gm-Message-State: AOAM533rxoWTgF9YhejGcL1U5p/q2Msw7/QEhdSz1fh4aPlqtbwYd0HV
+        J/7ULUwA5h3wLUXgCVXkj8fB9+taxiP3kUcXn7oP1w==
+X-Google-Smtp-Source: ABdhPJwk9EgW3Fj29T0FZY+jliaMst7k9i/OfQ+jUCLl2350gsCT+2SSH1KV/nTldfxvpeHL5TQcjXv3gozBbabP5u4=
+X-Received: by 2002:a63:3247:: with SMTP id y68mr437000pgy.10.1606948492350;
+ Wed, 02 Dec 2020 14:34:52 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20201107075550.2244055-1-ndesaulniers@google.com>
+ <4910042649a4f3ab22fac93191b8c1fa0a2e17c3.camel@perches.com>
+ <CAKwvOdn50VP4h7tidMnnFeMA1M-FevykP+Y0ozieisS7Nn4yoQ@mail.gmail.com> <26052c5a0a098aa7d9c0c8a1d39cc4a8f7915dd2.camel@perches.com>
+In-Reply-To: <26052c5a0a098aa7d9c0c8a1d39cc4a8f7915dd2.camel@perches.com>
+From:   Nick Desaulniers <ndesaulniers@google.com>
+Date:   Wed, 2 Dec 2020 14:34:40 -0800
+Message-ID: <CAKwvOdkv6W_dTLVowEBu0uV6oSxwW8F+U__qAsmk7vop6U8tpw@mail.gmail.com>
+Subject: Re: [PATCH] netfilter: conntrack: fix -Wformat
+To:     Joe Perches <joe@perches.com>, Tom Rix <trix@redhat.com>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Nathan Chancellor <natechancellor@gmail.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Network Development <netdev@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        clang-built-linux <clang-built-linux@googlegroups.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Introduction of json_cmd_assoc_hash missed that by the time the hash
-table insert happens, the struct cmd object's 'seqnum' field which is
-used as key is not initialized yet. This doesn't happen until
-nft_netlink() prepares the batch object which records the lowest seqnum.
-Therefore push all json_cmd_assoc objects into a temporary list until
-the first lookup happens. At this time, all referenced cmd objects have
-their seqnum set and the list entries can be moved into the hash table
-for fast lookups.
+On Tue, Nov 10, 2020 at 2:04 PM Joe Perches <joe@perches.com> wrote:
+>
+> On Tue, 2020-11-10 at 14:00 -0800, Nick Desaulniers wrote:
+>
+> > Yeah, we could go through and remove %h and %hh to solve this, too, right?
+>
+> Yup.
+>
+> I think one of the checkpatch improvement mentees is adding
+> some suggestion and I hope an automated fix mechanism for that.
+>
+> https://lore.kernel.org/lkml/5e3265c241602bb54286fbaae9222070daa4768e.camel@perches.com/
 
-To expose such problems in the future, make json_events_cb() emit an
-error message if the passed message has a handle but no assoc entry is
-found for its seqnum.
++ Tom, who's been looking at leveraging clang-tidy to automate such
+treewide mechanical changes.
+ex. https://reviews.llvm.org/D91789
 
-Fixes: 389a0e1edc89a ("json: echo: Speedup seqnum_to_json()")
-Cc: Derek Dai <daiderek@gmail.com>
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- src/parser_json.c | 27 +++++++++++++++++++++++----
- 1 file changed, 23 insertions(+), 4 deletions(-)
-
-diff --git a/src/parser_json.c b/src/parser_json.c
-index 6ebbb408d6839..c6f511663f663 100644
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -3762,6 +3762,7 @@ static int json_verify_metainfo(struct json_ctx *ctx, json_t *root)
- }
- 
- struct json_cmd_assoc {
-+	struct json_cmd_assoc *next;
- 	struct hlist_node hnode;
- 	const struct cmd *cmd;
- 	json_t *json;
-@@ -3769,6 +3770,7 @@ struct json_cmd_assoc {
- 
- #define CMD_ASSOC_HSIZE		512
- static struct hlist_head json_cmd_assoc_hash[CMD_ASSOC_HSIZE];
-+static struct json_cmd_assoc *json_cmd_assoc_list;
- 
- static void json_cmd_assoc_free(void)
- {
-@@ -3776,6 +3778,12 @@ static void json_cmd_assoc_free(void)
- 	struct hlist_node *pos, *n;
- 	int i;
- 
-+	while (json_cmd_assoc_list) {
-+		cur = json_cmd_assoc_list->next;
-+		free(json_cmd_assoc_list);
-+		json_cmd_assoc_list = cur;
-+	}
-+
- 	for (i = 0; i < CMD_ASSOC_HSIZE; i++) {
- 		hlist_for_each_entry_safe(cur, pos, n,
- 					  &json_cmd_assoc_hash[i], hnode)
-@@ -3786,21 +3794,29 @@ static void json_cmd_assoc_free(void)
- static void json_cmd_assoc_add(json_t *json, const struct cmd *cmd)
- {
- 	struct json_cmd_assoc *new = xzalloc(sizeof *new);
--	int key = cmd->seqnum % CMD_ASSOC_HSIZE;
- 
- 	new->json	= json;
- 	new->cmd	= cmd;
-+	new->next	= json_cmd_assoc_list;
- 
--	hlist_add_head(&new->hnode, &json_cmd_assoc_hash[key]);
-+	json_cmd_assoc_list = new;
- }
- 
- static json_t *seqnum_to_json(const uint32_t seqnum)
- {
--	int key = seqnum % CMD_ASSOC_HSIZE;
- 	struct json_cmd_assoc *cur;
- 	struct hlist_node *n;
-+	int key;
- 
-+	while (json_cmd_assoc_list) {
-+		cur = json_cmd_assoc_list;
-+		json_cmd_assoc_list = cur->next;
- 
-+		key = cur->cmd->seqnum % CMD_ASSOC_HSIZE;
-+		hlist_add_head(&cur->hnode, &json_cmd_assoc_hash[key]);
-+	}
-+
-+	key = seqnum % CMD_ASSOC_HSIZE;
- 	hlist_for_each_entry(cur, n, &json_cmd_assoc_hash[key], hnode) {
- 		if (cur->cmd->seqnum == seqnum)
- 			return cur->json;
-@@ -3981,8 +3997,11 @@ int json_events_cb(const struct nlmsghdr *nlh, struct netlink_mon_handler *monh)
- 		return MNL_CB_OK;
- 
- 	json = seqnum_to_json(nlh->nlmsg_seq);
--	if (!json)
-+	if (!json) {
-+		json_echo_error(monh, "No JSON command found with seqnum %lu\n",
-+				nlh->nlmsg_seq);
- 		return MNL_CB_OK;
-+	}
- 
- 	tmp = json_object_get(json, "add");
- 	if (!tmp)
+See also commit cbacb5ab0aa0 ("docs: printk-formats: Stop encouraging
+use of unnecessary %h[xudi] and %hh[xudi]") for a concise summary of
+related context.
 -- 
-2.28.0
-
+Thanks,
+~Nick Desaulniers
