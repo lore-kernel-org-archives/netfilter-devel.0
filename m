@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 83C5FC64E7B
-	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Dec 2020 20:44:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 102DDC64E7B
+	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Dec 2020 20:58:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 368A6221FA
-	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Dec 2020 20:44:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BA10E2222E
+	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Dec 2020 20:58:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389152AbgLBUnv (ORCPT
+        id S2388589AbgLBU55 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 2 Dec 2020 15:43:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44578 "EHLO
+        Wed, 2 Dec 2020 15:57:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46798 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387856AbgLBUnv (ORCPT
+        with ESMTP id S2388561AbgLBU55 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 2 Dec 2020 15:43:51 -0500
+        Wed, 2 Dec 2020 15:57:57 -0500
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DE3DC0613D6
-        for <netfilter-devel@vger.kernel.org>; Wed,  2 Dec 2020 12:43:10 -0800 (PST)
-Received: from localhost ([::1]:47122 helo=tatos)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABC43C061A56
+        for <netfilter-devel@vger.kernel.org>; Wed,  2 Dec 2020 12:56:21 -0800 (PST)
+Received: from localhost ([::1]:47156 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.94)
         (envelope-from <phil@nwl.cc>)
-        id 1kkYxw-00064P-JR; Wed, 02 Dec 2020 21:43:08 +0100
+        id 1kkZAi-0006FQ-7A; Wed, 02 Dec 2020 21:56:20 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH v2] extensions: dccp: Fix for DCCP type 'INVALID'
-Date:   Wed,  2 Dec 2020 21:43:04 +0100
-Message-Id: <20201202204304.17088-1-phil@nwl.cc>
+Subject: [nft PATCH] doc: Document 'dccp type' match
+Date:   Wed,  2 Dec 2020 21:56:16 +0100
+Message-Id: <20201202205616.24399-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.28.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -41,175 +41,90 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Support for matching on invalid DCCP type field values was pretty
-broken: While RFC4340 declares any type value from 10 to 15 invalid, the
-extension's type name 'INVALID' mapped to type value 10 only. Fix this
-by introduction of INVALID_OTHER_TYPE_MASK which has the remaining
-invalid type's bits set and apply it if bit 10 is set after parsing the
-type list. When printing, stop searching type names after printing
-'INVALID' - unless numeric output was requested. The latter prints all
-actual type values. Since parsing types in numeric form is not
-supported, changing the output should not break existing scripts.
+Add a description of dccp_pkttype and extend DCCP header expression
+synopsis by the 'type' argument.
 
-When translating into nftables syntax, the code returned prematurely if
-'INVALID' was among the list of types - thereby emitting invalid syntax.
-Instead print a real match for invalid types by use of a range
-expression.
-
-While being at it, fix syntax of translator output: If only
-'--dccp-types' was translated, the output contained an extra 'dccp'. On
-the other hand, if '--sport' and '--dport' was present, a required
-'dccp' between the translations of both was missing.
-
-Fixes: e40b11d7ef827 ("add support for new 'dccp' protocol match")
-Fixes: c94a998724143 ("extensions: libxt_dccp: Add translation to nft")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
-Changes since v1:
-- Actually fix INVALID type match, thereby aligning behaviour of xtables
-  match and nftables translation.
----
- extensions/libxt_dccp.c      | 57 ++++++++++++++++++++++--------------
- extensions/libxt_dccp.txlate | 12 ++++++--
- 2 files changed, 44 insertions(+), 25 deletions(-)
+ doc/data-types.txt         | 44 ++++++++++++++++++++++++++++++++++++++
+ doc/payload-expression.txt |  5 ++++-
+ 2 files changed, 48 insertions(+), 1 deletion(-)
 
-diff --git a/extensions/libxt_dccp.c b/extensions/libxt_dccp.c
-index 5e67c264db2a9..92edbafe03477 100644
---- a/extensions/libxt_dccp.c
-+++ b/extensions/libxt_dccp.c
-@@ -76,6 +76,9 @@ static const char *const dccp_pkt_types[] = {
- 	[DCCP_PKT_INVALID]	= "INVALID",
- };
+diff --git a/doc/data-types.txt b/doc/data-types.txt
+index a42a55fae9534..0f049c044e9fc 100644
+--- a/doc/data-types.txt
++++ b/doc/data-types.txt
+@@ -492,3 +492,47 @@ For each of the types above, keywords are available for convenience:
+ |==================
  
-+/* Bits for type values 11-15 */
-+#define INVALID_OTHER_TYPE_MASK		0xf800
+ Possible keywords for conntrack label type (ct_label) are read at runtime from /etc/connlabel.conf.
 +
- static uint16_t
- parse_dccp_types(const char *typestring)
- {
-@@ -95,6 +98,9 @@ parse_dccp_types(const char *typestring)
- 			xtables_error(PARAMETER_PROBLEM,
- 				   "Unknown DCCP type `%s'", ptr);
- 	}
-+	if (typemask & (1 << DCCP_PKT_INVALID))
-+		typemask |= INVALID_OTHER_TYPE_MASK;
++DCCP PKTTYPE TYPE
++~~~~~~~~~~~~~~~~
++[options="header"]
++|==================
++|Name | Keyword | Size | Base type
++|DCCP packet type |
++dccp_pkttype |
++4 bit |
++integer
++|===================
 +
- 
- 	free(buffer);
- 	return typemask;
-@@ -193,8 +199,11 @@ print_types(uint16_t types, int inverted, int numeric)
- 
- 		if (numeric)
- 			printf("%u", i);
--		else
-+		else {
-+			if (i == DCCP_PKT_INVALID)
-+				break;
- 			printf("%s", dccp_pkt_types[i]);
-+		}
- 
- 		types &= ~(1 << i);
- 	}
-@@ -288,6 +297,7 @@ static const char *const dccp_pkt_types_xlate[] = {
- 	[DCCP_PKT_RESET]        = "reset",
- 	[DCCP_PKT_SYNC]         = "sync",
- 	[DCCP_PKT_SYNCACK]      = "syncack",
-+	[DCCP_PKT_INVALID]	= "10-15",
- };
- 
- static int dccp_type_xlate(const struct xt_dccp_info *einfo,
-@@ -296,10 +306,10 @@ static int dccp_type_xlate(const struct xt_dccp_info *einfo,
- 	bool have_type = false, set_need = false;
- 	uint16_t types = einfo->typemask;
- 
--	if (types & (1 << DCCP_PKT_INVALID))
--		return 0;
--
--	xt_xlate_add(xl, " dccp type%s ", einfo->invflags ? " !=" : "");
-+	if (types & INVALID_OTHER_TYPE_MASK) {
-+		types &= ~INVALID_OTHER_TYPE_MASK;
-+		types |= 1 << DCCP_PKT_INVALID;
-+	}
- 
- 	if ((types != 0) && !(types == (types & -types))) {
- 		xt_xlate_add(xl, "{");
-@@ -335,34 +345,37 @@ static int dccp_xlate(struct xt_xlate *xl,
- 	char *space = "";
- 	int ret = 1;
- 
--	xt_xlate_add(xl, "dccp ");
--
- 	if (einfo->flags & XT_DCCP_SRC_PORTS) {
-+		xt_xlate_add(xl, "dccp sport%s %u",
-+			     einfo->invflags & XT_DCCP_SRC_PORTS ? " !=" : "",
-+			     einfo->spts[0]);
++The DCCP packet type abstracts the different legal values of the respective
++four bit field in the DCCP header, as stated by RFC4340. Note that possible
++values 10-15 are considered reserved and therefore not allowed to be used. In
++iptables' *dccp* match, these values are aliased 'INVALID'. With nftables, one
++may simply match on the numeric value range, i.e. *10-15*.
 +
- 		if (einfo->spts[0] != einfo->spts[1])
--			xt_xlate_add(xl, "sport%s %u-%u",
--				     einfo->invflags & XT_DCCP_SRC_PORTS ? " !=" : "",
--				     einfo->spts[0], einfo->spts[1]);
--		else
--			xt_xlate_add(xl, "sport%s %u",
--				     einfo->invflags & XT_DCCP_SRC_PORTS ? " !=" : "",
--				     einfo->spts[0]);
-+			xt_xlate_add(xl, "-%u", einfo->spts[1]);
++.keywords may be used when specifying the DCCP packet type
++[options="header"]
++|==================
++|Keyword |Value
++|request|
++0
++|response|
++1
++|data|
++2
++|ack|
++3
++|dataack|
++4
++|closereq|
++5
++|close|
++6
++|reset|
++7
++|sync|
++8
++|syncack|
++9
++|=================
 +
- 		space = " ";
- 	}
+diff --git a/doc/payload-expression.txt b/doc/payload-expression.txt
+index ffd1b671637a9..a593e2e7b947d 100644
+--- a/doc/payload-expression.txt
++++ b/doc/payload-expression.txt
+@@ -392,7 +392,7 @@ integer (32 bit)
+ DCCP HEADER EXPRESSION
+ ~~~~~~~~~~~~~~~~~~~~~~
+ [verse]
+-*dccp* {*sport* | *dport*}
++*dccp* {*sport* | *dport* | *type*}
  
- 	if (einfo->flags & XT_DCCP_DEST_PORTS) {
-+		xt_xlate_add(xl, "%sdccp dport%s %u", space,
-+			     einfo->invflags & XT_DCCP_DEST_PORTS ? " !=" : "",
-+			     einfo->dpts[0]);
-+
- 		if (einfo->dpts[0] != einfo->dpts[1])
--			xt_xlate_add(xl, "%sdport%s %u-%u", space,
--				     einfo->invflags & XT_DCCP_DEST_PORTS ? " !=" : "",
--				     einfo->dpts[0], einfo->dpts[1]);
--		else
--			xt_xlate_add(xl, "%sdport%s %u", space,
--				     einfo->invflags & XT_DCCP_DEST_PORTS ? " !=" : "",
--				     einfo->dpts[0]);
-+			xt_xlate_add(xl, "-%u", einfo->dpts[1]);
-+
-+		space = " ";
- 	}
+ .DCCP header expression
+ [options="header"]
+@@ -404,6 +404,9 @@ inet_service
+ |dport|
+ Destination port|
+ inet_service
++|type|
++Packet type|
++dccp_pkttype
+ |========================
  
--	if (einfo->flags & XT_DCCP_TYPE)
-+	if (einfo->flags & XT_DCCP_TYPE && einfo->typemask) {
-+		xt_xlate_add(xl, "%sdccp type%s ", space,
-+			     einfo->invflags & XT_DCCP_TYPE ? " !=" : "");
- 		ret = dccp_type_xlate(einfo, xl);
- 
-+		space = " ";
-+	}
-+
-+	/* FIXME: no dccp option support in nftables yet */
- 	if (einfo->flags & XT_DCCP_OPTION)
- 		ret = 0;
- 
-diff --git a/extensions/libxt_dccp.txlate b/extensions/libxt_dccp.txlate
-index b47dc65f5bc4f..ea853f6acf627 100644
---- a/extensions/libxt_dccp.txlate
-+++ b/extensions/libxt_dccp.txlate
-@@ -7,8 +7,14 @@ nft add rule ip filter INPUT dccp dport 100-200 counter
- iptables-translate -A INPUT -p dccp -m dccp ! --dport 100
- nft add rule ip filter INPUT dccp dport != 100 counter
- 
--iptables-translate -A INPUT -p dccp -m dccp --dport 100 --dccp-types REQUEST,RESPONSE,DATA,ACK,DATAACK,CLOSEREQ,CLOSE,SYNC,SYNCACK
--nft add rule ip filter INPUT dccp dport 100 dccp type {request, response, data, ack, dataack, closereq, close, sync, syncack} counter
-+iptables-translate -A INPUT -p dccp -m dccp --dccp-types CLOSE
-+nft add rule ip filter INPUT dccp type close counter
-+
-+iptables-translate -A INPUT -p dccp -m dccp --dccp-types INVALID
-+nft add rule ip filter INPUT dccp type 10-15 counter
-+
-+iptables-translate -A INPUT -p dccp -m dccp --dport 100 --dccp-types REQUEST,RESPONSE,DATA,ACK,DATAACK,CLOSEREQ,CLOSE,SYNC,SYNCACK,INVALID
-+nft add rule ip filter INPUT dccp dport 100 dccp type {request, response, data, ack, dataack, closereq, close, sync, syncack, 10-15} counter
- 
- iptables-translate -A INPUT -p dccp -m dccp --sport 200 --dport 100
--nft add rule ip filter INPUT dccp sport 200 dport 100 counter
-+nft add rule ip filter INPUT dccp sport 200 dccp dport 100 counter
+ AUTHENTICATION HEADER EXPRESSION
 -- 
 2.28.0
 
