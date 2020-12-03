@@ -2,123 +2,101 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7ABC3C6369E
-	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Dec 2020 00:47:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C294C63777
+	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Dec 2020 12:45:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2F3B3221FB
-	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Dec 2020 00:47:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B789320671
+	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Dec 2020 12:45:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728943AbgLCArl (ORCPT
+        id S1726733AbgLCMpL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 2 Dec 2020 19:47:41 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:56115 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726689AbgLCArl (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 2 Dec 2020 19:47:41 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1606956374;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=tn3Df7eygk6Izda6RvZQkxxok8dSHVZu45DeLEEIxTY=;
-        b=JNNnsjpPRpzWMukQ02KGolgJDyiLN0Sm1FvNeHtufC8c2SR0Kbe50ML7tmXEQ0U3j4yCtn
-        n5gkTWRXa76QTzAIgRqyFku13I1UpZ/RJ3iBYTxn61RvodoSwrwu2aum7Qu6JNAAaSytjZ
-        RQhXp8hm0Q8cXEw5wCe47rvwcjqyhnQ=
-Received: from mail-qk1-f198.google.com (mail-qk1-f198.google.com
- [209.85.222.198]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-359-qi0VInFuPWCnZAgeIX434A-1; Wed, 02 Dec 2020 19:46:10 -0500
-X-MC-Unique: qi0VInFuPWCnZAgeIX434A-1
-Received: by mail-qk1-f198.google.com with SMTP id d132so565772qke.5
-        for <netfilter-devel@vger.kernel.org>; Wed, 02 Dec 2020 16:46:09 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-transfer-encoding
-         :content-language;
-        bh=tn3Df7eygk6Izda6RvZQkxxok8dSHVZu45DeLEEIxTY=;
-        b=s4cLAzxg93klrBpqNImNU9CQ3T6Mg72OsBr+ZKfdU4SgnsU42q8emwnpUQrz3Cb4L4
-         VltjgMUH1TJBcsX++7o/Qz+/Le42xNW+asz4LwURAaixwuj6oioVM9/oYBJd9iWz8gZT
-         nI/2KvannRXY3tKZA26796vlwfZfexy57C4dK85vTHbhkCN4CsLzFR7ZclAIK8flyOWh
-         X9f5usXkMz1EtCKubWA/ba66Z7a6qVm5slG2l1xf2Sj0mwJklFAH75o/wW2EO07HzktY
-         IOSTOq9iBG05K1j85HlTCrztthtoUgZblY9V2zrasiDWNmIcRusbVHFMdvdn/TBPQNEk
-         PxtA==
-X-Gm-Message-State: AOAM531OGcf9OzusVihuPK/3l/0uX/B7WF7CDhn4ap+ji0hJ1J09L0C8
-        1f9IJXkYTUDNeQvCDBoat7lLIHkpmM8mYo9IJtr759Sp9a+aj/1IPNoW2Oyn/3CU399awJg6Nqk
-        akN3akup2coamXyFNBH+ZeN8je4rT
-X-Received: by 2002:a37:7145:: with SMTP id m66mr516130qkc.396.1606956369587;
-        Wed, 02 Dec 2020 16:46:09 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJzaQv8hATwzHtFhNcgeEgzuieWjSpIuQkb2SlVf60UIlQ0qMAa0FWuaYoO5eZoFUPJPsB6hRw==
-X-Received: by 2002:a37:7145:: with SMTP id m66mr515968qkc.396.1606956367260;
-        Wed, 02 Dec 2020 16:46:07 -0800 (PST)
-Received: from trix.remote.csb (075-142-250-213.res.spectrum.com. [75.142.250.213])
-        by smtp.gmail.com with ESMTPSA id a6sm347081qkg.136.2020.12.02.16.46.04
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 02 Dec 2020 16:46:06 -0800 (PST)
-Subject: Re: [PATCH] netfilter: conntrack: fix -Wformat
-To:     Nick Desaulniers <ndesaulniers@google.com>,
-        Joe Perches <joe@perches.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Nathan Chancellor <natechancellor@gmail.com>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        Network Development <netdev@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        clang-built-linux <clang-built-linux@googlegroups.com>
-References: <20201107075550.2244055-1-ndesaulniers@google.com>
- <4910042649a4f3ab22fac93191b8c1fa0a2e17c3.camel@perches.com>
- <CAKwvOdn50VP4h7tidMnnFeMA1M-FevykP+Y0ozieisS7Nn4yoQ@mail.gmail.com>
- <26052c5a0a098aa7d9c0c8a1d39cc4a8f7915dd2.camel@perches.com>
- <CAKwvOdkv6W_dTLVowEBu0uV6oSxwW8F+U__qAsmk7vop6U8tpw@mail.gmail.com>
-From:   Tom Rix <trix@redhat.com>
-Message-ID: <7ca84085-f8e1-6792-7d1c-455815986572@redhat.com>
-Date:   Wed, 2 Dec 2020 16:46:04 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.3.1
+        Thu, 3 Dec 2020 07:45:11 -0500
+Received: from correo.us.es ([193.147.175.20]:54072 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726463AbgLCMpL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 3 Dec 2020 07:45:11 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id AAA25891985
+        for <netfilter-devel@vger.kernel.org>; Thu,  3 Dec 2020 13:44:25 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9D0A7DA791
+        for <netfilter-devel@vger.kernel.org>; Thu,  3 Dec 2020 13:44:25 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 92917DA78E; Thu,  3 Dec 2020 13:44:25 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 26509DA730
+        for <netfilter-devel@vger.kernel.org>; Thu,  3 Dec 2020 13:44:23 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 03 Dec 2020 13:44:23 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id 1018F42EF42B
+        for <netfilter-devel@vger.kernel.org>; Thu,  3 Dec 2020 13:44:23 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] src: report EPERM for non-root users
+Date:   Thu,  3 Dec 2020 13:44:23 +0100
+Message-Id: <20201203124423.14137-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-In-Reply-To: <CAKwvOdkv6W_dTLVowEBu0uV6oSxwW8F+U__qAsmk7vop6U8tpw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+$ /usr/sbin/nft list ruleset
+Operation not permitted (you must be root)
 
-On 12/2/20 2:34 PM, Nick Desaulniers wrote:
-> On Tue, Nov 10, 2020 at 2:04 PM Joe Perches <joe@perches.com> wrote:
->> On Tue, 2020-11-10 at 14:00 -0800, Nick Desaulniers wrote:
->>
->>> Yeah, we could go through and remove %h and %hh to solve this, too, right?
->> Yup.
->>
->> I think one of the checkpatch improvement mentees is adding
->> some suggestion and I hope an automated fix mechanism for that.
->>
->> https://lore.kernel.org/lkml/5e3265c241602bb54286fbaae9222070daa4768e.camel@perches.com/
-> + Tom, who's been looking at leveraging clang-tidy to automate such
-> treewide mechanical changes.
-> ex. https://reviews.llvm.org/D91789
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1372
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/libnftables.c | 7 ++++++-
+ src/netlink.c     | 2 +-
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
-This looks like a good one to automate.
-
-If you don't mind, I'll give it a try next.
-
-Need a break from semicolons ;)
-
-Tom
-
->
-> See also commit cbacb5ab0aa0 ("docs: printk-formats: Stop encouraging
-> use of unnecessary %h[xudi] and %hh[xudi]") for a concise summary of
-> related context.
+diff --git a/src/libnftables.c b/src/libnftables.c
+index a180a9a30b3d..044365914747 100644
+--- a/src/libnftables.c
++++ b/src/libnftables.c
+@@ -463,8 +463,13 @@ int nft_run_cmd_from_buffer(struct nft_ctx *nft, const char *buf)
+ 	parser_rc = rc;
+ 
+ 	rc = nft_evaluate(nft, &msgs, &cmds);
+-	if (rc < 0)
++	if (rc < 0) {
++		if (errno == EPERM) {
++			fprintf(stderr, "%s (you must be root)\n",
++				strerror(errno));
++		}
+ 		goto err;
++	}
+ 
+ 	if (parser_rc) {
+ 		rc = parser_rc;
+diff --git a/src/netlink.c b/src/netlink.c
+index f8ac2b9e3665..2ea2d4457664 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -635,7 +635,7 @@ int netlink_list_tables(struct netlink_ctx *ctx, const struct handle *h)
+ 		if (errno == EINTR)
+ 			return -1;
+ 
+-		return 0;
++		return -1;
+ 	}
+ 
+ 	ctx->data = h;
+-- 
+2.20.1
 
