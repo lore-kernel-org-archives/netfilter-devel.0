@@ -2,88 +2,80 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19F1FC433FE
-	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Dec 2020 16:48:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5863FC4361B
+	for <netfilter-devel@archiver.kernel.org>; Sun,  6 Dec 2020 10:14:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D98BB22B3B
-	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Dec 2020 16:48:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 178CE230FA
+	for <netfilter-devel@archiver.kernel.org>; Sun,  6 Dec 2020 10:14:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728382AbgLDQrx (ORCPT
+        id S1726011AbgLFKOS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 4 Dec 2020 11:47:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58894 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726330AbgLDQrx (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 4 Dec 2020 11:47:53 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3D065C0613D1
-        for <netfilter-devel@vger.kernel.org>; Fri,  4 Dec 2020 08:47:13 -0800 (PST)
-Received: from localhost ([::1]:52404 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.94)
-        (envelope-from <phil@nwl.cc>)
-        id 1klEEf-00081S-TC; Fri, 04 Dec 2020 17:47:09 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
+        Sun, 6 Dec 2020 05:14:18 -0500
+Received: from mx1.riseup.net ([198.252.153.129]:57666 "EHLO mx1.riseup.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725822AbgLFKOS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 6 Dec 2020 05:14:18 -0500
+Received: from capuchin.riseup.net (capuchin-pn.riseup.net [10.0.1.176])
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+        (Client CN "*.riseup.net", Issuer "Sectigo RSA Domain Validation Secure Server CA" (not verified))
+        by mx1.riseup.net (Postfix) with ESMTPS id 4Cpj2V1WhgzFmZm;
+        Sun,  6 Dec 2020 02:13:38 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
+        t=1607249618; bh=MPJxsd/wly6TycTKdsClWvcITRPYIiTnUNRr5TKeEpk=;
+        h=From:To:Cc:Subject:Date:From;
+        b=d/gN7lbecInXBrOa5T+RbMaAM4YbB/8OF2gbL6eIk9iV7mtoABo50QEr1FinMZ/Ti
+         TXcoPxU5Fd+B1qL7cFBYllhpFkju2OwzMsaBSc2x/mHvEOvKrtQrT4t5nfiCGVxzrF
+         DaWet+nNGO1KlxK6fbuiRcjo/yDVLZIsOHR45QfA=
+X-Riseup-User-ID: 8009B309F2A3EDC4C77FB4ECE89CB9885DF2B57CB88A6BE75E13E65DAB6093CB
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+         by capuchin.riseup.net (Postfix) with ESMTPSA id 4Cpj2T2XbHz8tKR;
+        Sun,  6 Dec 2020 02:13:35 -0800 (PST)
+From:   "Jose M. Guisado Gomez" <guigom@riseup.net>
+To:     pablo@netfilter.org
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH] tests/shell: Test for fixed extension registration
-Date:   Fri,  4 Dec 2020 17:47:05 +0100
-Message-Id: <20201204164705.11281-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.28.0
+Subject: [PATCH nftables 1/2] monitor: add assignment check for json_echo
+Date:   Sun,  6 Dec 2020 11:12:33 +0100
+Message-Id: <20201206101233.641-1-guigom@riseup.net>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Use strace to look at iptables-restore behaviour with typically
-problematic input (conntrack revision 0 is no longer supported by
-current kernels) to make sure the fix in commit a1eaaceb0460b
-("libxtables: Simplify pending extension registration") is still
-effective.
+When --echo and --json is specified and native syntax is read, only the
+last instruction is printed. This happens because the reference to the
+json_echo is reassigned each time netlink_echo_callback is executed for
+an instruction to be echoed.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Add an assignment check for json_echo to avoid reassigning it.
+
+Fixes: cb7e02f4 (src: enable json echo output when reading native
+syntax)
+Signed-off-by: Jose M. Guisado Gomez <guigom@riseup.net>
 ---
- .../0017-pointless-compat-checks_0            | 25 +++++++++++++++++++
- 1 file changed, 25 insertions(+)
- create mode 100755 iptables/tests/shell/testcases/ipt-restore/0017-pointless-compat-checks_0
+ src/monitor.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/iptables/tests/shell/testcases/ipt-restore/0017-pointless-compat-checks_0 b/iptables/tests/shell/testcases/ipt-restore/0017-pointless-compat-checks_0
-new file mode 100755
-index 0000000000000..cf73de32df409
---- /dev/null
-+++ b/iptables/tests/shell/testcases/ipt-restore/0017-pointless-compat-checks_0
-@@ -0,0 +1,25 @@
-+#!/bin/bash
-+
-+# A bug in extension registration would leave unsupported older extension
-+# revisions in pending list and get compatibility checked again for each rule
-+# using them. With SELinux enabled, the resulting socket() call per rule leads
-+# to significant slowdown (~50% performance in worst cases).
-+
-+set -e
-+
-+strace --version >/dev/null || { echo "skip for missing strace"; exit 0; }
-+
-+RULESET="$(
-+	echo "*filter"
-+	for ((i = 0; i < 100; i++)); do
-+		echo "-A FORWARD -m conntrack --ctstate NEW"
-+	done
-+	echo "COMMIT"
-+)"
-+
-+cmd="$XT_MULTI iptables-restore"
-+socketcount=$(strace -esocket $cmd <<< "$RULESET" 2>&1 | wc -l)
-+
-+# unpatched iptables-restore would open 111 sockets,
-+# patched only 12 but keep a certain margin for future changes
-+[[ $socketcount -lt 20 ]]
+diff --git a/src/monitor.c b/src/monitor.c
+index a733a9f0..2b5325ea 100644
+--- a/src/monitor.c
++++ b/src/monitor.c
+@@ -939,8 +939,8 @@ int netlink_echo_callback(const struct nlmsghdr *nlh, void *data)
+ 	if (nft_output_json(&nft->output)) {
+ 		if (nft->json_root)
+ 			return json_events_cb(nlh, &echo_monh);
+-
+-		json_alloc_echo(nft);
++		if (!nft->json_echo)
++			json_alloc_echo(nft);
+ 		echo_monh.format = NFTNL_OUTPUT_JSON;
+ 	}
+ 
 -- 
 2.28.0
 
