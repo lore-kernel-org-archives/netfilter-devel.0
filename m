@@ -2,109 +2,111 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D73B6C4361B
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Dec 2020 20:20:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3619FC2BBCA
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Dec 2020 20:21:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AAEA923A53
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Dec 2020 20:20:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0C0EC23A7B
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Dec 2020 20:21:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726715AbgLHUSI (ORCPT
+        id S1731399AbgLHUQN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Dec 2020 15:18:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37262 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725766AbgLHURx (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Dec 2020 15:17:53 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 124D9C061257;
-        Tue,  8 Dec 2020 12:16:54 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1kmi5L-0001Ot-Lr; Tue, 08 Dec 2020 19:51:39 +0100
-Date:   Tue, 8 Dec 2020 19:51:39 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Eyal Birger <eyal.birger@gmail.com>
-Cc:     Steffen Klassert <steffen.klassert@secunet.com>,
-        linux-crypto@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>,
-        Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: Re: [PATCH v2] xfrm: interface: Don't hide plain packets from
- netfilter
-Message-ID: <20201208185139.GZ4647@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Eyal Birger <eyal.birger@gmail.com>,
-        Steffen Klassert <steffen.klassert@secunet.com>,
-        linux-crypto@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>,
-        Nicolas Dichtel <nicolas.dichtel@6wind.com>
-References: <20201207134309.16762-1-phil@nwl.cc>
- <CAHsH6Gupw7o96e5hOmaLBCZtqgoV0LZ4L7h-Y+2oROtXSXvTxw@mail.gmail.com>
+        Tue, 8 Dec 2020 15:16:13 -0500
+Received: from correo.us.es ([193.147.175.20]:51924 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1731153AbgLHUPW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 8 Dec 2020 15:15:22 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 0F5851C4421
+        for <netfilter-devel@vger.kernel.org>; Tue,  8 Dec 2020 20:54:57 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0235CFC5E4
+        for <netfilter-devel@vger.kernel.org>; Tue,  8 Dec 2020 20:54:57 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id EB7B4FC5E5; Tue,  8 Dec 2020 20:54:56 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D9B6AFC5E4
+        for <netfilter-devel@vger.kernel.org>; Tue,  8 Dec 2020 20:54:54 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 08 Dec 2020 20:54:54 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id C5CF341E4800
+        for <netfilter-devel@vger.kernel.org>; Tue,  8 Dec 2020 20:54:54 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] tests: shell: timeouts later than 23 days
+Date:   Tue,  8 Dec 2020 20:55:00 +0100
+Message-Id: <20201208195500.11373-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHsH6Gupw7o96e5hOmaLBCZtqgoV0LZ4L7h-Y+2oROtXSXvTxw@mail.gmail.com>
-Sender:  <n0-1@orbyte.nwl.cc>
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Eyal,
+Test timeout later than 23 days in set definitions and dynamic set
+insertions.
 
-On Tue, Dec 08, 2020 at 04:47:02PM +0200, Eyal Birger wrote:
-> On Mon, Dec 7, 2020 at 4:07 PM Phil Sutter <phil@nwl.cc> wrote:
-> >
-> > With an IPsec tunnel without dedicated interface, netfilter sees locally
-> > generated packets twice as they exit the physical interface: Once as "the
-> > inner packet" with IPsec context attached and once as the encrypted
-> > (ESP) packet.
-> >
-> > With xfrm_interface, the inner packet did not traverse NF_INET_LOCAL_OUT
-> > hook anymore, making it impossible to match on both inner header values
-> > and associated IPsec data from that hook.
-> >
-> 
-> Why wouldn't locally generated traffic not traverse the
-> NF_INET_LOCAL_OUT hook via e.g. __ip_local_out() when xmitted on an xfrmi?
-> I would expect it to appear in netfilter, but without the IPsec
-> context, as it's not
-> there yet.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ .../testcases/sets/0058_setupdate_timeout_0     | 17 +++++++++++++++++
+ .../sets/dumps/0058_setupdate_timeout_0.nft     | 12 ++++++++++++
+ 2 files changed, 29 insertions(+)
+ create mode 100755 tests/shell/testcases/sets/0058_setupdate_timeout_0
+ create mode 100644 tests/shell/testcases/sets/dumps/0058_setupdate_timeout_0.nft
 
-Yes, that's right. Having an iptables rule with LOG target in OUTPUT
-chain, a packet sent from the local host is logged multiple times:
+diff --git a/tests/shell/testcases/sets/0058_setupdate_timeout_0 b/tests/shell/testcases/sets/0058_setupdate_timeout_0
+new file mode 100755
+index 000000000000..52a658e13794
+--- /dev/null
++++ b/tests/shell/testcases/sets/0058_setupdate_timeout_0
+@@ -0,0 +1,17 @@
++#!/bin/bash
++
++RULESET="table inet filter {
++	set ssh_meter {
++		type ipv4_addr
++		size 65535
++		flags dynamic,timeout
++		timeout 30d
++	}
++
++	chain test {
++		add @ssh_meter { ip saddr timeout 30d }
++	}
++}"
++
++set -e
++$NFT -f - <<< $RULESET
+diff --git a/tests/shell/testcases/sets/dumps/0058_setupdate_timeout_0.nft b/tests/shell/testcases/sets/dumps/0058_setupdate_timeout_0.nft
+new file mode 100644
+index 000000000000..873adc63298d
+--- /dev/null
++++ b/tests/shell/testcases/sets/dumps/0058_setupdate_timeout_0.nft
+@@ -0,0 +1,12 @@
++table inet filter {
++	set ssh_meter {
++		type ipv4_addr
++		size 65535
++		flags dynamic,timeout
++		timeout 30d
++	}
++
++	chain test {
++		add @ssh_meter { ip saddr timeout 30d }
++	}
++}
+-- 
+2.20.1
 
-| IN= OUT=xfrm SRC=192.168.111.1 DST=192.168.111.2 LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=21840 DF
-| PROTO=ICMP TYPE=8 CODE=0 ID=56857 SEQ=1
-| IN= OUT=eth0 SRC=192.168.111.1 DST=192.168.111.2 LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=21840 DF PROTO=ICMP TYPE=8 CODE=0 ID=56857 SEQ=1
-| IN= OUT=eth0 SRC=192.168.1.1 DST=192.168.1.2 LEN=140 TOS=0x00 PREC=0x00 TTL=64 ID=0 DF PROTO=ESP SPI=0x1000
-
-First when being sent to xfrm interface, then two times between xfrm and
-eth0, the second time as ESP packet. This is with my patch applied.
-Without it, the second log entry is missing. I'm arguing the above is
-consistent to IPsec without xfrm interface:
-
-| IN= OUT=eth1 SRC=192.168.112.1 DST=192.168.112.2 LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=49341 DF PROTO=ICMP TYPE=8 CODE=0 ID=44114 SEQ=1
-| IN= OUT=eth1 SRC=192.168.2.1 DST=192.168.2.2 LEN=140 TOS=0x00 PREC=0x00 TTL=64 ID=37109 DF PROTO=ESP SPI=0x1000
-
-The packet appears twice being sent to eth1, the second time as ESP
-packet. I understand xfrm interface as a collector of to-be-xfrmed
-packets, dropping those which do not match a policy.
-
-> > Fix this by looping packets transmitted from xfrm_interface through
-> > NF_INET_LOCAL_OUT before passing them on to dst_output(), which makes
-> > behaviour consistent again from netfilter's point of view.
-> 
-> When an XFRM interface is used when forwarding, why would it be correct
-> for NF_INET_LOCAL_OUT to observe the inner packet?
-
-A valid question, indeed. One could interpret packets being forwarded by
-those tunneling devices emit the packets one feeds them from the local
-host. I just checked and ip_vti behaves identical to xfrm_interface
-prior to my patch, so maybe my patch is crap and the inability to match
-on ipsec context data when using any of those devices is just by design.
-
-Thanks, Phil
