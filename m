@@ -2,143 +2,126 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-17.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AFB70C2BB9A
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Dec 2020 04:54:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97E57C433FE
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Dec 2020 09:03:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 844EE23A5E
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Dec 2020 04:54:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5DF5123A79
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Dec 2020 09:03:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727727AbgLHEyI (ORCPT
+        id S1728596AbgLHJDC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 7 Dec 2020 23:54:08 -0500
-Received: from aserp2120.oracle.com ([141.146.126.78]:58200 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727485AbgLHEyD (ORCPT
+        Tue, 8 Dec 2020 04:03:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43432 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728541AbgLHJDA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 7 Dec 2020 23:54:03 -0500
-Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
-        by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0B84nPNV064006;
-        Tue, 8 Dec 2020 04:52:35 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
- subject : date : message-id : in-reply-to : references : mime-version :
- content-type : content-transfer-encoding; s=corp-2020-01-29;
- bh=1e3cV7XKyt5cBPHNeWYhYMHu3W87CKppja6U1Jvw5F4=;
- b=V+G180Fh0lHbcmydQJqS5i+cerb42SoRrRI9QCXlQMjyWKKfj0acXqExTQUiK+7OEtft
- OuMy/8L57grCegXY4FPi2mfpdUD9NETOrjU6XyLEGnB6yCKU9e30d2WSgQTsYBxq/cMN
- 5junVfgiRpfFB5rc1EfDtZHP43anCs3FIrUtz16u4yPsKG0NCInMT5yeMTaPCX1MMJeq
- qZ1GHIcbwNatFRQ/tELhwJDJybfqjlIskC/pDoCLpTPJ2KTrod7PX9rst5aaRTC3xIQA
- veh/+mbPHLjYXfePq5oiUCHv2+7Gowf8M2KKiHFzojpZKSSSQD2meZy2nTRpI8CVh6TQ Yg== 
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-        by aserp2120.oracle.com with ESMTP id 35825m0srq-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 08 Dec 2020 04:52:35 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-        by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0B84ocw5155469;
-        Tue, 8 Dec 2020 04:52:34 GMT
-Received: from pps.reinject (localhost [127.0.0.1])
-        by userp3020.oracle.com with ESMTP id 358kys9m8s-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 08 Dec 2020 04:52:34 +0000
-Received: from userp3020.oracle.com (userp3020.oracle.com [127.0.0.1])
-        by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 0B84qX4M159553;
-        Tue, 8 Dec 2020 04:52:33 GMT
-Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
-        by userp3020.oracle.com with ESMTP id 358kys9m7s-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 08 Dec 2020 04:52:33 +0000
-Received: from abhmp0013.oracle.com (abhmp0013.oracle.com [141.146.116.19])
-        by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 0B84qDZf015901;
-        Tue, 8 Dec 2020 04:52:15 GMT
-Received: from ca-mkp.ca.oracle.com (/10.156.108.201)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Mon, 07 Dec 2020 20:52:13 -0800
-From:   "Martin K. Petersen" <martin.petersen@oracle.com>
-To:     linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <gustavoars@kernel.org>
-Cc:     "Martin K . Petersen" <martin.petersen@oracle.com>,
-        coreteam@netfilter.org, selinux@vger.kernel.org,
-        Miguel Ojeda <ojeda@kernel.org>, Joe Perches <joe@perches.com>,
-        linux-hardening@vger.kernel.org, reiserfs-devel@vger.kernel.org,
-        amd-gfx@lists.freedesktop.org, patches@opensource.cirrus.com,
-        linux-fbdev@vger.kernel.org, keyrings@vger.kernel.org,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        linux-geode@lists.infradead.org, linux-gpio@vger.kernel.org,
-        linux-hams@vger.kernel.org, linux-ext4@vger.kernel.org,
-        wcn36xx@lists.infradead.org, GR-everest-linux-l2@marvell.com,
-        x86@kernel.org, linux-watchdog@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-cifs@vger.kernel.org,
-        linux-nfs@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-usb@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-atm-general@lists.sourceforge.net,
-        linux-wireless@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-decnet-user@lists.sourceforge.net,
-        Nathan Chancellor <natechancellor@gmail.com>,
-        netfilter-devel@vger.kernel.org, target-devel@vger.kernel.org,
-        linux-integrity@vger.kernel.org,
-        virtualization@lists.linux-foundation.org,
-        linux-mediatek@lists.infradead.org,
-        Kees Cook <keescook@chromium.org>,
-        samba-technical@lists.samba.org, ceph-devel@vger.kernel.org,
-        drbd-dev@tron.linbit.com, intel-gfx@lists.freedesktop.org,
-        dm-devel@redhat.com, linux-acpi@vger.kernel.org,
-        linux-ide@vger.kernel.org, xen-devel@lists.xenproject.org,
-        op-tee@lists.trustedfirmware.org, linux-hwmon@vger.kernel.org,
-        linux-sctp@vger.kernel.org, bridge@lists.linux-foundation.org,
-        linux-mtd@lists.infradead.org, linux-input@vger.kernel.org,
-        linux-can@vger.kernel.org, rds-devel@oss.oracle.com,
-        oss-drivers@netronome.com, tipc-discussion@lists.sourceforge.net,
-        cluster-devel@redhat.com, linux-rdma@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        linux-arm-kernel@lists.infradead.org, linux-block@vger.kernel.org,
-        usb-storage@lists.one-eyed-alien.net,
-        linux1394-devel@lists.sourceforge.net, alsa-devel@alsa-project.org,
-        linux-i3c@lists.infradead.org, linux-arm-msm@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-scsi@vger.kernel.org,
-        linux-afs@lists.infradead.org, nouveau@lists.freedesktop.org,
-        GR-Linux-NIC-Dev@marvell.com, netdev@vger.kernel.org,
-        linux-security-module@vger.kernel.org,
-        linux-stm32@st-md-mailman.stormreply.com, linux-mm@kvack.org,
-        intel-wired-lan@lists.osuosl.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: (subset) [PATCH 000/141] Fix fall-through warnings for Clang
-Date:   Mon,  7 Dec 2020 23:52:01 -0500
-Message-Id: <160740299787.710.4201881220590518200.b4-ty@oracle.com>
-X-Mailer: git-send-email 2.29.2
-In-Reply-To: <cover.1605896059.git.gustavoars@kernel.org>
-References: <cover.1605896059.git.gustavoars@kernel.org>
+        Tue, 8 Dec 2020 04:03:00 -0500
+Received: from mail-ej1-x642.google.com (mail-ej1-x642.google.com [IPv6:2a00:1450:4864:20::642])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2787C061794
+        for <netfilter-devel@vger.kernel.org>; Tue,  8 Dec 2020 01:02:19 -0800 (PST)
+Received: by mail-ej1-x642.google.com with SMTP id x16so23536889ejj.7
+        for <netfilter-devel@vger.kernel.org>; Tue, 08 Dec 2020 01:02:19 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=6wind.com; s=google;
+        h=reply-to:subject:to:cc:references:from:organization:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=D292rnchnagOWW2nrkDLX5KQjbRLYsh4Pq7aFW+b4P0=;
+        b=jJJ9a1eREXY/Zp+bSKAKPZsEo+YNdU2Q+1VaskhhOMVr3iKhmEAa2t+CvOVTKWpr4f
+         YaKwUoL4AG8/gOso24uvacDF4SAI+gpEWr07kIiQBN/I/cDzFrXBALU3RKeZw1+IpIgX
+         Up3Yaj0+jQ0wzRTzrRdzI3+l0zs5bHrzk0DMniMJCg7X2IvjhVGuvsfDql/1BgOpBqMv
+         jxL+7mxpAdZN11qzIU3Eo5bOEA6VzA0VEkQv9TncL6reEqLLmbjcKZ8eonRMzmnD1oJw
+         BQaQORn0RDZCA0OGBYTsX+CDa3ZijRce2+iQ3WeRiRUP0LPLw/mtZhY2tNgSDdB75gSi
+         EDtA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:reply-to:subject:to:cc:references:from
+         :organization:message-id:date:user-agent:mime-version:in-reply-to
+         :content-language:content-transfer-encoding;
+        bh=D292rnchnagOWW2nrkDLX5KQjbRLYsh4Pq7aFW+b4P0=;
+        b=Nu0K7EM2xpGOYm9lle60rzhWbd3GAAievYspjGgVBMr3fSRiweD3lYx7mDYmHK8/S0
+         rG+gFfdfi9ENVP8Xc8EQedvPYO0HZU92ce2TRrlw430mZW++QgQ99czIh68u8KYzREye
+         ZgQtKFiyJbn+7bGLp3bvrHPQnDnLgNSr+Jbdbvnipxk7H1IdxYg8AFil6J+FYclRhcE+
+         U3ju6Nb0Ah1QZ80hSvja20fTnIn2oS1syB2TbnUe9pc//sBYpGSXu4sX0DXZpE07qAir
+         yZn5x7Cu7reSdCMsiIf3exiRSq5AVCz29YmUndbMBd4PWXyGtWdGH5ndeoFE2xval9gy
+         8naw==
+X-Gm-Message-State: AOAM531jrSxHQrZ//ILR9Gm1rDvAGaahowiJC9BNrB4wO9o2yOBVV/43
+        d7vxaC7A8R6OVtD2RrM8YVFUyKwelgRbhg==
+X-Google-Smtp-Source: ABdhPJzJSs1flUXfzucgSX7a5NileHk4PEQCXlXqFqC0mXTbOD7XWzFU4HGhEUrPl+lUL/lFySPF6Q==
+X-Received: by 2002:a17:907:3f9e:: with SMTP id hr30mr22330553ejc.258.1607418138431;
+        Tue, 08 Dec 2020 01:02:18 -0800 (PST)
+Received: from ?IPv6:2a01:e0a:410:bb00:8c20:be83:b3f:b8b9? ([2a01:e0a:410:bb00:8c20:be83:b3f:b8b9])
+        by smtp.gmail.com with ESMTPSA id n22sm16261112edr.11.2020.12.08.01.02.17
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 08 Dec 2020 01:02:17 -0800 (PST)
+Reply-To: nicolas.dichtel@6wind.com
+Subject: Re: [PATCH v2] xfrm: interface: Don't hide plain packets from
+ netfilter
+To:     Phil Sutter <phil@nwl.cc>,
+        Steffen Klassert <steffen.klassert@secunet.com>
+Cc:     linux-crypto@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        netdev@vger.kernel.org
+References: <20201207134309.16762-1-phil@nwl.cc>
+From:   Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Organization: 6WIND
+Message-ID: <9d9cb6dc-32a3-ff1a-5111-7688ce7a2897@6wind.com>
+Date:   Tue, 8 Dec 2020 10:02:16 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+In-Reply-To: <20201207134309.16762-1-phil@nwl.cc>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9828 signatures=668682
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 adultscore=0 bulkscore=0
- phishscore=0 mlxlogscore=380 clxscore=1015 priorityscore=1501 mlxscore=0
- spamscore=0 lowpriorityscore=0 malwarescore=0 impostorscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
- definitions=main-2012080029
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, 20 Nov 2020 12:21:39 -0600, Gustavo A. R. Silva wrote:
-
-> This series aims to fix almost all remaining fall-through warnings in
-> order to enable -Wimplicit-fallthrough for Clang.
+Le 07/12/2020 à 14:43, Phil Sutter a écrit :
+> With an IPsec tunnel without dedicated interface, netfilter sees locally
+> generated packets twice as they exit the physical interface: Once as "the
+> inner packet" with IPsec context attached and once as the encrypted
+> (ESP) packet.
 > 
-> In preparation to enable -Wimplicit-fallthrough for Clang, explicitly
-> add multiple break/goto/return/fallthrough statements instead of just
-> letting the code fall through to the next case.
+> With xfrm_interface, the inner packet did not traverse NF_INET_LOCAL_OUT
+> hook anymore, making it impossible to match on both inner header values
+> and associated IPsec data from that hook.
 > 
-> [...]
+> Fix this by looping packets transmitted from xfrm_interface through
+> NF_INET_LOCAL_OUT before passing them on to dst_output(), which makes
+> behaviour consistent again from netfilter's point of view.
+> 
+> Fixes: f203b76d78092 ("xfrm: Add virtual xfrm interfaces")
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> ---
+> Changes since v1:
+> - Extend recipients list, no code changes.
+> ---
+>  net/xfrm/xfrm_interface.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/xfrm/xfrm_interface.c b/net/xfrm/xfrm_interface.c
+> index aa4cdcf69d471..24af61c95b4d4 100644
+> --- a/net/xfrm/xfrm_interface.c
+> +++ b/net/xfrm/xfrm_interface.c
+> @@ -317,7 +317,8 @@ xfrmi_xmit2(struct sk_buff *skb, struct net_device *dev, struct flowi *fl)
+>  	skb_dst_set(skb, dst);
+>  	skb->dev = tdev;
+>  
+> -	err = dst_output(xi->net, skb->sk, skb);
+> +	err = NF_HOOK(skb_dst(skb)->ops->family, NF_INET_LOCAL_OUT, xi->net,
+skb->protocol must be correctly set, maybe better to use it instead of
+skb_dst(skb)->ops->family?
 
-Applied to 5.11/scsi-queue, thanks!
+> +		      skb->sk, skb, NULL, skb_dst(skb)->dev, dst_output);
+And here, tdev instead of skb_dst(skb)->dev ?
 
-[054/141] target: Fix fall-through warnings for Clang
-          https://git.kernel.org/mkp/scsi/c/492096ecfa39
-
--- 
-Martin K. Petersen	Oracle Linux Engineering
+>  	if (net_xmit_eval(err) == 0) {
+>  		struct pcpu_sw_netstats *tstats = this_cpu_ptr(dev->tstats);
+>  
+> 
