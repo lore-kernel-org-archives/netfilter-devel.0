@@ -2,132 +2,109 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C37FC1B0D8
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Dec 2020 18:14:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D73B6C4361B
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Dec 2020 20:20:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5DAC623B4B
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Dec 2020 18:14:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AAEA923A53
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Dec 2020 20:20:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730495AbgLHSOT (ORCPT
+        id S1726715AbgLHUSI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Dec 2020 13:14:19 -0500
-Received: from correo.us.es ([193.147.175.20]:42400 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730424AbgLHSOS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Dec 2020 13:14:18 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 3DDDADA709
-        for <netfilter-devel@vger.kernel.org>; Tue,  8 Dec 2020 19:13:28 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2BF35E1500
-        for <netfilter-devel@vger.kernel.org>; Tue,  8 Dec 2020 19:13:28 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 2150DDA730; Tue,  8 Dec 2020 19:13:28 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EB01EDA73D
-        for <netfilter-devel@vger.kernel.org>; Tue,  8 Dec 2020 19:13:25 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 08 Dec 2020 19:13:25 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id D63E14265A5A
-        for <netfilter-devel@vger.kernel.org>; Tue,  8 Dec 2020 19:13:25 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v3] netfilter: nft_dynset: fix timeouts later than 23 days
-Date:   Tue,  8 Dec 2020 19:13:26 +0100
-Message-Id: <20201208181326.19832-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+        Tue, 8 Dec 2020 15:18:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37262 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725766AbgLHURx (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 8 Dec 2020 15:17:53 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 124D9C061257;
+        Tue,  8 Dec 2020 12:16:54 -0800 (PST)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1kmi5L-0001Ot-Lr; Tue, 08 Dec 2020 19:51:39 +0100
+Date:   Tue, 8 Dec 2020 19:51:39 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Eyal Birger <eyal.birger@gmail.com>
+Cc:     Steffen Klassert <steffen.klassert@secunet.com>,
+        linux-crypto@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: Re: [PATCH v2] xfrm: interface: Don't hide plain packets from
+ netfilter
+Message-ID: <20201208185139.GZ4647@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Eyal Birger <eyal.birger@gmail.com>,
+        Steffen Klassert <steffen.klassert@secunet.com>,
+        linux-crypto@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        Nicolas Dichtel <nicolas.dichtel@6wind.com>
+References: <20201207134309.16762-1-phil@nwl.cc>
+ <CAHsH6Gupw7o96e5hOmaLBCZtqgoV0LZ4L7h-Y+2oROtXSXvTxw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAHsH6Gupw7o96e5hOmaLBCZtqgoV0LZ4L7h-Y+2oROtXSXvTxw@mail.gmail.com>
+Sender:  <n0-1@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Use nf_msecs_to_jiffies64 and nf_jiffies64_to_msecs as provided by
-8e1102d5a159 ("netfilter: nf_tables: support timeouts larger than 23
-days"), otherwise ruleset listing breaks.
+Hi Eyal,
 
-Fixes: a8b1e36d0d1d ("netfilter: nft_dynset: fix element timeout for HZ != 1000")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v3: fix incorrect invocation of nf_msecs_to_jiffies64()
+On Tue, Dec 08, 2020 at 04:47:02PM +0200, Eyal Birger wrote:
+> On Mon, Dec 7, 2020 at 4:07 PM Phil Sutter <phil@nwl.cc> wrote:
+> >
+> > With an IPsec tunnel without dedicated interface, netfilter sees locally
+> > generated packets twice as they exit the physical interface: Once as "the
+> > inner packet" with IPsec context attached and once as the encrypted
+> > (ESP) packet.
+> >
+> > With xfrm_interface, the inner packet did not traverse NF_INET_LOCAL_OUT
+> > hook anymore, making it impossible to match on both inner header values
+> > and associated IPsec data from that hook.
+> >
+> 
+> Why wouldn't locally generated traffic not traverse the
+> NF_INET_LOCAL_OUT hook via e.g. __ip_local_out() when xmitted on an xfrmi?
+> I would expect it to appear in netfilter, but without the IPsec
+> context, as it's not
+> there yet.
 
- include/net/netfilter/nf_tables.h | 4 ++++
- net/netfilter/nf_tables_api.c     | 4 ++--
- net/netfilter/nft_dynset.c        | 6 +++---
- 3 files changed, 9 insertions(+), 5 deletions(-)
+Yes, that's right. Having an iptables rule with LOG target in OUTPUT
+chain, a packet sent from the local host is logged multiple times:
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 55b4cadf290a..c1c0a4ff92ae 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1524,4 +1524,8 @@ void __init nft_chain_route_init(void);
- void nft_chain_route_fini(void);
- 
- void nf_tables_trans_destroy_flush_work(void);
-+
-+int nf_msecs_to_jiffies64(const struct nlattr *nla, u64 *result);
-+__be64 nf_jiffies64_to_msecs(u64 input);
-+
- #endif /* _NET_NF_TABLES_H */
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 23abf1578594..c2f59879a48d 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3719,7 +3719,7 @@ static int nf_tables_set_alloc_name(struct nft_ctx *ctx, struct nft_set *set,
- 	return 0;
- }
- 
--static int nf_msecs_to_jiffies64(const struct nlattr *nla, u64 *result)
-+int nf_msecs_to_jiffies64(const struct nlattr *nla, u64 *result)
- {
- 	u64 ms = be64_to_cpu(nla_get_be64(nla));
- 	u64 max = (u64)(~((u64)0));
-@@ -3733,7 +3733,7 @@ static int nf_msecs_to_jiffies64(const struct nlattr *nla, u64 *result)
- 	return 0;
- }
- 
--static __be64 nf_jiffies64_to_msecs(u64 input)
-+__be64 nf_jiffies64_to_msecs(u64 input)
- {
- 	return cpu_to_be64(jiffies64_to_msecs(input));
- }
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index 64ca13a1885b..36abd6fb3ec7 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -157,8 +157,8 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 	if (tb[NFTA_DYNSET_TIMEOUT] != NULL) {
- 		if (!(set->flags & NFT_SET_TIMEOUT))
- 			return -EINVAL;
--		timeout = msecs_to_jiffies(be64_to_cpu(nla_get_be64(
--						tb[NFTA_DYNSET_TIMEOUT])));
-+
-+		nf_msecs_to_jiffies64(tb[NFTA_DYNSET_TIMEOUT], &timeout);
- 	}
- 
- 	priv->sreg_key = nft_parse_register(tb[NFTA_DYNSET_SREG_KEY]);
-@@ -267,7 +267,7 @@ static int nft_dynset_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 	if (nla_put_string(skb, NFTA_DYNSET_SET_NAME, priv->set->name))
- 		goto nla_put_failure;
- 	if (nla_put_be64(skb, NFTA_DYNSET_TIMEOUT,
--			 cpu_to_be64(jiffies_to_msecs(priv->timeout)),
-+			 cpu_to_be64(nf_jiffies64_to_msecs(priv->timeout)),
- 			 NFTA_DYNSET_PAD))
- 		goto nla_put_failure;
- 	if (priv->expr && nft_expr_dump(skb, NFTA_DYNSET_EXPR, priv->expr))
--- 
-2.20.1
+| IN= OUT=xfrm SRC=192.168.111.1 DST=192.168.111.2 LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=21840 DF
+| PROTO=ICMP TYPE=8 CODE=0 ID=56857 SEQ=1
+| IN= OUT=eth0 SRC=192.168.111.1 DST=192.168.111.2 LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=21840 DF PROTO=ICMP TYPE=8 CODE=0 ID=56857 SEQ=1
+| IN= OUT=eth0 SRC=192.168.1.1 DST=192.168.1.2 LEN=140 TOS=0x00 PREC=0x00 TTL=64 ID=0 DF PROTO=ESP SPI=0x1000
 
+First when being sent to xfrm interface, then two times between xfrm and
+eth0, the second time as ESP packet. This is with my patch applied.
+Without it, the second log entry is missing. I'm arguing the above is
+consistent to IPsec without xfrm interface:
+
+| IN= OUT=eth1 SRC=192.168.112.1 DST=192.168.112.2 LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=49341 DF PROTO=ICMP TYPE=8 CODE=0 ID=44114 SEQ=1
+| IN= OUT=eth1 SRC=192.168.2.1 DST=192.168.2.2 LEN=140 TOS=0x00 PREC=0x00 TTL=64 ID=37109 DF PROTO=ESP SPI=0x1000
+
+The packet appears twice being sent to eth1, the second time as ESP
+packet. I understand xfrm interface as a collector of to-be-xfrmed
+packets, dropping those which do not match a policy.
+
+> > Fix this by looping packets transmitted from xfrm_interface through
+> > NF_INET_LOCAL_OUT before passing them on to dst_output(), which makes
+> > behaviour consistent again from netfilter's point of view.
+> 
+> When an XFRM interface is used when forwarding, why would it be correct
+> for NF_INET_LOCAL_OUT to observe the inner packet?
+
+A valid question, indeed. One could interpret packets being forwarded by
+those tunneling devices emit the packets one feeds them from the local
+host. I just checked and ip_vti behaves identical to xfrm_interface
+prior to my patch, so maybe my patch is crap and the inability to match
+on ipsec context data when using any of those devices is just by design.
+
+Thanks, Phil
