@@ -6,57 +6,57 @@ X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3160C1B0D9
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Dec 2020 12:09:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05096C1B0D9
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Dec 2020 12:09:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 91C5A23406
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Dec 2020 12:09:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AD873239D0
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Dec 2020 12:09:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729278AbgLHMJ1 (ORCPT
+        id S1729350AbgLHMJn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Dec 2020 07:09:27 -0500
-Received: from correo.us.es ([193.147.175.20]:50564 "EHLO mail.us.es"
+        Tue, 8 Dec 2020 07:09:43 -0500
+Received: from correo.us.es ([193.147.175.20]:50614 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727650AbgLHMJ1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Dec 2020 07:09:27 -0500
+        id S1729343AbgLHMJn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 8 Dec 2020 07:09:43 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id ED6F6DA722
-        for <netfilter-devel@vger.kernel.org>; Tue,  8 Dec 2020 13:08:37 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id DEBE92EFEA2
+        for <netfilter-devel@vger.kernel.org>; Tue,  8 Dec 2020 13:08:53 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DF225DA789
-        for <netfilter-devel@vger.kernel.org>; Tue,  8 Dec 2020 13:08:37 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D0F92DA78A
+        for <netfilter-devel@vger.kernel.org>; Tue,  8 Dec 2020 13:08:53 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id D4A10DA704; Tue,  8 Dec 2020 13:08:37 +0100 (CET)
+        id C5E54DA789; Tue,  8 Dec 2020 13:08:53 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AB49BDA722;
-        Tue,  8 Dec 2020 13:08:35 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id AB8A5DA730;
+        Tue,  8 Dec 2020 13:08:51 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 08 Dec 2020 13:08:35 +0100 (CET)
+ Tue, 08 Dec 2020 13:08:51 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 83E8E41E4800;
-        Tue,  8 Dec 2020 13:08:35 +0100 (CET)
-Date:   Tue, 8 Dec 2020 13:08:43 +0100
+        by entrada.int (Postfix) with ESMTPSA id 7FE064265A5A;
+        Tue,  8 Dec 2020 13:08:51 +0100 (CET)
+Date:   Tue, 8 Dec 2020 13:08:59 +0100
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Jan Engelhardt <jengelh@inai.de>
 Cc:     fw@strlen.de, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH libnetfilter_conntrack 1/2] build: use the right automake
+Subject: Re: [PATCH libnetfilter_queue 1/2] build: choose right automake
  variables
-Message-ID: <20201208120843.GA8983@salvia>
-References: <20201130132149.32227-1-jengelh@inai.de>
+Message-ID: <20201208120859.GB8983@salvia>
+References: <20201130130519.20880-1-jengelh@inai.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20201130132149.32227-1-jengelh@inai.de>
+In-Reply-To: <20201130130519.20880-1-jengelh@inai.de>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Applied, patch 1/2 and 2/2, thanks Jan.
+Applied patch 1/2 and 2/2, thanks Jan.
