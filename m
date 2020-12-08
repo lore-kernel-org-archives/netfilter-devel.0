@@ -2,51 +2,51 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3619FC2BBCA
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Dec 2020 20:21:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7087C2BBD5
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Dec 2020 20:26:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0C0EC23A7B
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Dec 2020 20:21:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8299623A79
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Dec 2020 20:26:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731399AbgLHUQN (ORCPT
+        id S1728786AbgLHU0l (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Dec 2020 15:16:13 -0500
-Received: from correo.us.es ([193.147.175.20]:51924 "EHLO mail.us.es"
+        Tue, 8 Dec 2020 15:26:41 -0500
+Received: from correo.us.es ([193.147.175.20]:55232 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731153AbgLHUPW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Dec 2020 15:15:22 -0500
+        id S1728748AbgLHU0j (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 8 Dec 2020 15:26:39 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 0F5851C4421
-        for <netfilter-devel@vger.kernel.org>; Tue,  8 Dec 2020 20:54:57 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id DCE7DDA8E8
+        for <netfilter-devel@vger.kernel.org>; Tue,  8 Dec 2020 21:25:48 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0235CFC5E4
-        for <netfilter-devel@vger.kernel.org>; Tue,  8 Dec 2020 20:54:57 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CE0DDDA704
+        for <netfilter-devel@vger.kernel.org>; Tue,  8 Dec 2020 21:25:48 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id EB7B4FC5E5; Tue,  8 Dec 2020 20:54:56 +0100 (CET)
+        id C397CDA722; Tue,  8 Dec 2020 21:25:48 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D9B6AFC5E4
-        for <netfilter-devel@vger.kernel.org>; Tue,  8 Dec 2020 20:54:54 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A294FDA704
+        for <netfilter-devel@vger.kernel.org>; Tue,  8 Dec 2020 21:25:46 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 08 Dec 2020 20:54:54 +0100 (CET)
+ Tue, 08 Dec 2020 21:25:46 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id C5CF341E4800
-        for <netfilter-devel@vger.kernel.org>; Tue,  8 Dec 2020 20:54:54 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPSA id 8D8094265A5A
+        for <netfilter-devel@vger.kernel.org>; Tue,  8 Dec 2020 21:25:46 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] tests: shell: timeouts later than 23 days
-Date:   Tue,  8 Dec 2020 20:55:00 +0100
-Message-Id: <20201208195500.11373-1-pablo@netfilter.org>
+Subject: [PATCH nf,v4] netfilter: nft_dynset: fix timeouts later than 23 days
+Date:   Tue,  8 Dec 2020 21:25:51 +0100
+Message-Id: <20201208202551.9646-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -55,58 +55,82 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Test timeout later than 23 days in set definitions and dynamic set
-insertions.
+Use nf_msecs_to_jiffies64 and nf_jiffies64_to_msecs as provided by
+8e1102d5a159 ("netfilter: nf_tables: support timeouts larger than 23
+days"), otherwise ruleset listing breaks.
 
+Fixes: a8b1e36d0d1d ("netfilter: nft_dynset: fix element timeout for HZ != 1000")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- .../testcases/sets/0058_setupdate_timeout_0     | 17 +++++++++++++++++
- .../sets/dumps/0058_setupdate_timeout_0.nft     | 12 ++++++++++++
- 2 files changed, 29 insertions(+)
- create mode 100755 tests/shell/testcases/sets/0058_setupdate_timeout_0
- create mode 100644 tests/shell/testcases/sets/dumps/0058_setupdate_timeout_0.nft
+v4: check for error in nf_msecs_to_jiffies64() call.
+    remove cpu_to_be64() in call to nf_jiffies64_to_msecs()
 
-diff --git a/tests/shell/testcases/sets/0058_setupdate_timeout_0 b/tests/shell/testcases/sets/0058_setupdate_timeout_0
-new file mode 100755
-index 000000000000..52a658e13794
---- /dev/null
-+++ b/tests/shell/testcases/sets/0058_setupdate_timeout_0
-@@ -0,0 +1,17 @@
-+#!/bin/bash
+ include/net/netfilter/nf_tables.h | 4 ++++
+ net/netfilter/nf_tables_api.c     | 4 ++--
+ net/netfilter/nft_dynset.c        | 8 +++++---
+ 3 files changed, 11 insertions(+), 5 deletions(-)
+
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 55b4cadf290a..c1c0a4ff92ae 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1524,4 +1524,8 @@ void __init nft_chain_route_init(void);
+ void nft_chain_route_fini(void);
+ 
+ void nf_tables_trans_destroy_flush_work(void);
 +
-+RULESET="table inet filter {
-+	set ssh_meter {
-+		type ipv4_addr
-+		size 65535
-+		flags dynamic,timeout
-+		timeout 30d
-+	}
++int nf_msecs_to_jiffies64(const struct nlattr *nla, u64 *result);
++__be64 nf_jiffies64_to_msecs(u64 input);
 +
-+	chain test {
-+		add @ssh_meter { ip saddr timeout 30d }
-+	}
-+}"
+ #endif /* _NET_NF_TABLES_H */
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 23abf1578594..c2f59879a48d 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3719,7 +3719,7 @@ static int nf_tables_set_alloc_name(struct nft_ctx *ctx, struct nft_set *set,
+ 	return 0;
+ }
+ 
+-static int nf_msecs_to_jiffies64(const struct nlattr *nla, u64 *result)
++int nf_msecs_to_jiffies64(const struct nlattr *nla, u64 *result)
+ {
+ 	u64 ms = be64_to_cpu(nla_get_be64(nla));
+ 	u64 max = (u64)(~((u64)0));
+@@ -3733,7 +3733,7 @@ static int nf_msecs_to_jiffies64(const struct nlattr *nla, u64 *result)
+ 	return 0;
+ }
+ 
+-static __be64 nf_jiffies64_to_msecs(u64 input)
++__be64 nf_jiffies64_to_msecs(u64 input)
+ {
+ 	return cpu_to_be64(jiffies64_to_msecs(input));
+ }
+diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
+index 64ca13a1885b..9af4f93c7f0e 100644
+--- a/net/netfilter/nft_dynset.c
++++ b/net/netfilter/nft_dynset.c
+@@ -157,8 +157,10 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 	if (tb[NFTA_DYNSET_TIMEOUT] != NULL) {
+ 		if (!(set->flags & NFT_SET_TIMEOUT))
+ 			return -EINVAL;
+-		timeout = msecs_to_jiffies(be64_to_cpu(nla_get_be64(
+-						tb[NFTA_DYNSET_TIMEOUT])));
 +
-+set -e
-+$NFT -f - <<< $RULESET
-diff --git a/tests/shell/testcases/sets/dumps/0058_setupdate_timeout_0.nft b/tests/shell/testcases/sets/dumps/0058_setupdate_timeout_0.nft
-new file mode 100644
-index 000000000000..873adc63298d
---- /dev/null
-+++ b/tests/shell/testcases/sets/dumps/0058_setupdate_timeout_0.nft
-@@ -0,0 +1,12 @@
-+table inet filter {
-+	set ssh_meter {
-+		type ipv4_addr
-+		size 65535
-+		flags dynamic,timeout
-+		timeout 30d
-+	}
-+
-+	chain test {
-+		add @ssh_meter { ip saddr timeout 30d }
-+	}
-+}
++		err = nf_msecs_to_jiffies64(tb[NFTA_DYNSET_TIMEOUT], &timeout);
++		if (err)
++			return err;
+ 	}
+ 
+ 	priv->sreg_key = nft_parse_register(tb[NFTA_DYNSET_SREG_KEY]);
+@@ -267,7 +269,7 @@ static int nft_dynset_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 	if (nla_put_string(skb, NFTA_DYNSET_SET_NAME, priv->set->name))
+ 		goto nla_put_failure;
+ 	if (nla_put_be64(skb, NFTA_DYNSET_TIMEOUT,
+-			 cpu_to_be64(jiffies_to_msecs(priv->timeout)),
++			 nf_jiffies64_to_msecs(priv->timeout),
+ 			 NFTA_DYNSET_PAD))
+ 		goto nla_put_failure;
+ 	if (priv->expr && nft_expr_dump(skb, NFTA_DYNSET_EXPR, priv->expr))
 -- 
 2.20.1
 
