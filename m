@@ -2,61 +2,88 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05096C1B0D9
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Dec 2020 12:09:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 205DBC433FE
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Dec 2020 14:01:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AD873239D0
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Dec 2020 12:09:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CE61623AC4
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Dec 2020 14:01:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729350AbgLHMJn (ORCPT
+        id S1729511AbgLHOA6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Dec 2020 07:09:43 -0500
-Received: from correo.us.es ([193.147.175.20]:50614 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729343AbgLHMJn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Dec 2020 07:09:43 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id DEBE92EFEA2
-        for <netfilter-devel@vger.kernel.org>; Tue,  8 Dec 2020 13:08:53 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D0F92DA78A
-        for <netfilter-devel@vger.kernel.org>; Tue,  8 Dec 2020 13:08:53 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id C5E54DA789; Tue,  8 Dec 2020 13:08:53 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AB8A5DA730;
-        Tue,  8 Dec 2020 13:08:51 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 08 Dec 2020 13:08:51 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 7FE064265A5A;
-        Tue,  8 Dec 2020 13:08:51 +0100 (CET)
-Date:   Tue, 8 Dec 2020 13:08:59 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jan Engelhardt <jengelh@inai.de>
-Cc:     fw@strlen.de, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH libnetfilter_queue 1/2] build: choose right automake
- variables
-Message-ID: <20201208120859.GB8983@salvia>
-References: <20201130130519.20880-1-jengelh@inai.de>
+        Tue, 8 Dec 2020 09:00:58 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33022 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728546AbgLHOA6 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 8 Dec 2020 09:00:58 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46829C061749;
+        Tue,  8 Dec 2020 06:00:18 -0800 (PST)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1kmdXJ-0006n8-82; Tue, 08 Dec 2020 15:00:13 +0100
+Date:   Tue, 8 Dec 2020 15:00:13 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Cc:     Steffen Klassert <steffen.klassert@secunet.com>,
+        linux-crypto@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        netdev@vger.kernel.org
+Subject: Re: [PATCH v2] xfrm: interface: Don't hide plain packets from
+ netfilter
+Message-ID: <20201208140013.GX4647@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Nicolas Dichtel <nicolas.dichtel@6wind.com>,
+        Steffen Klassert <steffen.klassert@secunet.com>,
+        linux-crypto@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        netdev@vger.kernel.org
+References: <20201207134309.16762-1-phil@nwl.cc>
+ <9d9cb6dc-32a3-ff1a-5111-7688ce7a2897@6wind.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20201130130519.20880-1-jengelh@inai.de>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <9d9cb6dc-32a3-ff1a-5111-7688ce7a2897@6wind.com>
+Sender:  <n0-1@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Applied patch 1/2 and 2/2, thanks Jan.
+Hi Nicolas,
+
+On Tue, Dec 08, 2020 at 10:02:16AM +0100, Nicolas Dichtel wrote:
+> Le 07/12/2020 à 14:43, Phil Sutter a écrit :
+[...]
+> > diff --git a/net/xfrm/xfrm_interface.c b/net/xfrm/xfrm_interface.c
+> > index aa4cdcf69d471..24af61c95b4d4 100644
+> > --- a/net/xfrm/xfrm_interface.c
+> > +++ b/net/xfrm/xfrm_interface.c
+> > @@ -317,7 +317,8 @@ xfrmi_xmit2(struct sk_buff *skb, struct net_device *dev, struct flowi *fl)
+> >  	skb_dst_set(skb, dst);
+> >  	skb->dev = tdev;
+> >  
+> > -	err = dst_output(xi->net, skb->sk, skb);
+> > +	err = NF_HOOK(skb_dst(skb)->ops->family, NF_INET_LOCAL_OUT, xi->net,
+> skb->protocol must be correctly set, maybe better to use it instead of
+> skb_dst(skb)->ops->family?
+
+skb->protocol holds ETH_P_* values in network byte order, NF_HOOK()
+expects an NFPROTO_* value, so this would at least not be a simple
+replacement. Actually I copied the code from xfrm_output_resume() in
+xfrm_output.c, where skb_dst(skb)->ops is dereferenced without checking
+as well. Do you think this is risky?
+
+> > +		      skb->sk, skb, NULL, skb_dst(skb)->dev, dst_output);
+> And here, tdev instead of skb_dst(skb)->dev ?
+
+Well yes, tdev was set to dst->dev earlier. Likewise I could use dst
+directly instead of skb_dst(skb) to simplify the call a bit further.
+OTOH I like how in the version above it is clear that skb's dst should
+be used, irrespective of the code above (and any later changes that may
+receive). No strong opinion though, so if your version is regarded the
+preferred one, I'm fine with that.
+
+Thanks, Phil
