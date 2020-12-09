@@ -2,37 +2,37 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E962C2BB48
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Dec 2020 17:50:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD1ACC433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Dec 2020 17:50:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3F860225AA
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Dec 2020 17:50:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B8996225AA
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Dec 2020 17:50:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728300AbgLIRu3 (ORCPT
+        id S1728375AbgLIRu4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Dec 2020 12:50:29 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39260 "EHLO
+        Wed, 9 Dec 2020 12:50:56 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39332 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726101AbgLIRu1 (ORCPT
+        with ESMTP id S1726101AbgLIRu4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Dec 2020 12:50:27 -0500
+        Wed, 9 Dec 2020 12:50:56 -0500
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2EEB1C06179C
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2020 09:49:47 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 623D8C0617A6
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2020 09:49:51 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1kn3az-0004R3-QC; Wed, 09 Dec 2020 18:49:45 +0100
+        id 1kn3b4-0004RA-06; Wed, 09 Dec 2020 18:49:50 +0100
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 04/10] tests: fix exepcted payload of icmp expressions
-Date:   Wed,  9 Dec 2020 18:49:18 +0100
-Message-Id: <20201209174924.27720-5-fw@strlen.de>
+Subject: [PATCH nft 05/10] src: add auto-dependencies for ipv6 icmp6
+Date:   Wed,  9 Dec 2020 18:49:19 +0100
+Message-Id: <20201209174924.27720-6-fw@strlen.de>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20201209174924.27720-1-fw@strlen.de>
 References: <20201209174924.27720-1-fw@strlen.de>
@@ -42,449 +42,166 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-after previous change nft will insert explicit icmp type match.
+Extend the earlier commit to also cover icmpv6.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- tests/py/ip/icmp.t.payload.ip | 131 +++++++++++++++++++++++++++++++++-
- 1 file changed, 130 insertions(+), 1 deletion(-)
+ include/proto.h |  4 ++++
+ src/evaluate.c  |  2 +-
+ src/payload.c   | 33 +++++++++++++++++++++++++++++++++
+ src/proto.c     | 26 +++++++++++++++-----------
+ 4 files changed, 53 insertions(+), 12 deletions(-)
 
-diff --git a/tests/py/ip/icmp.t.payload.ip b/tests/py/ip/icmp.t.payload.ip
-index 2185feb81021..6ed4dff86d10 100644
---- a/tests/py/ip/icmp.t.payload.ip
-+++ b/tests/py/ip/icmp.t.payload.ip
-@@ -272,148 +272,233 @@ ip test-ip4 input
-   [ immediate reg 0 accept ]
+diff --git a/include/proto.h b/include/proto.h
+index f383291b5a79..b9217588f3e3 100644
+--- a/include/proto.h
++++ b/include/proto.h
+@@ -30,6 +30,10 @@ enum icmp_hdr_field_type {
+ 	PROTO_ICMP_ECHO,	/* echo and reply */
+ 	PROTO_ICMP_MTU,		/* destination unreachable */
+ 	PROTO_ICMP_ADDRESS,	/* redirect */
++	PROTO_ICMP6_MTU,
++	PROTO_ICMP6_PPTR,
++	PROTO_ICMP6_ECHO,
++	PROTO_ICMP6_MGMQ,
+ };
  
- # icmp id 1245 log
-+__set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00000008  : 0 [end]	element 00000000  : 0 [end]
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d ]
-   [ payload load 2b @ transport header + 4 => reg 1 ]
-   [ cmp eq reg 1 0x0000dd04 ]
-   [ log ]
+ /**
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 3eb8e1bfc2c5..e776cd018051 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -729,7 +729,7 @@ static int __expr_evaluate_payload(struct eval_ctx *ctx, struct expr *expr)
  
- # icmp id 22
-+__set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00000008  : 0 [end]	element 00000000  : 0 [end]
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d ]
-   [ payload load 2b @ transport header + 4 => reg 1 ]
-   [ cmp eq reg 1 0x00001600 ]
+ 		payload->payload.offset += ctx->pctx.protocol[base].offset;
+ check_icmp:
+-		if (desc != &proto_icmp)
++		if (desc != &proto_icmp && desc != &proto_icmp6)
+ 			return 0;
  
- # icmp id != 233
-+__set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00000008  : 0 [end]	element 00000000  : 0 [end]
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d ]
-   [ payload load 2b @ transport header + 4 => reg 1 ]
-   [ cmp neq reg 1 0x0000e900 ]
+ 		tmpl = expr->payload.tmpl;
+diff --git a/src/payload.c b/src/payload.c
+index 54b08f051dc0..7cfa530c06c6 100644
+--- a/src/payload.c
++++ b/src/payload.c
+@@ -20,6 +20,7 @@
+ #include <linux/netfilter.h>
+ #include <linux/if_ether.h>
+ #include <netinet/ip_icmp.h>
++#include <netinet/icmp6.h>
  
- # icmp id 33-45
-+__set%d test-ip4 3
-+__set%d  test-ip4 input
-+	element 00000008  : 0 [end]	element 00000000  : 0 [end]
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d ]
-   [ payload load 2b @ transport header + 4 => reg 1 ]
-   [ cmp gte reg 1 0x00002100 ]
-   [ cmp lte reg 1 0x00002d00 ]
+ #include <rule.h>
+ #include <expression.h>
+@@ -677,8 +678,12 @@ static uint8_t icmp_dep_to_type(enum icmp_hdr_field_type t)
+ 	case PROTO_ICMP_ANY:
+ 		BUG("Invalid map for simple dependency");
+ 	case PROTO_ICMP_ECHO: return ICMP_ECHO;
++	case PROTO_ICMP6_ECHO: return ICMP6_ECHO_REQUEST;
+ 	case PROTO_ICMP_MTU: return ICMP_DEST_UNREACH;
+ 	case PROTO_ICMP_ADDRESS: return ICMP_REDIRECT;
++	case PROTO_ICMP6_MTU: return ICMP6_PACKET_TOO_BIG;
++	case PROTO_ICMP6_MGMQ: return MLD_LISTENER_QUERY;
++	case PROTO_ICMP6_PPTR: return ICMP6_PARAM_PROB;
+ 	}
  
- # icmp id != 33-45
-+__set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00000008  : 0 [end]	element 00000000  : 0 [end]
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d ]
-   [ payload load 2b @ transport header + 4 => reg 1 ]
-   [ range neq reg 1 0x00002100 0x00002d00 ]
+ 	BUG("Missing icmp type mapping");
+@@ -1023,6 +1028,34 @@ int payload_gen_icmp_dependency(struct eval_ctx *ctx, const struct expr *expr,
+ 							    &icmp_type_type,
+ 							    desc, type);
+ 		break;
++	case PROTO_ICMP6_ECHO:
++		if (ctx->pctx.th_dep.icmp.type == ICMP6_ECHO_REQUEST ||
++		    ctx->pctx.th_dep.icmp.type == ICMP6_ECHO_REPLY)
++			goto done;
++
++		type = ICMP6_ECHO_REQUEST;
++		if (ctx->pctx.th_dep.icmp.type)
++			goto bad_proto;
++
++		stmt = __payload_gen_icmp_echo_dependency(ctx, expr,
++							  ICMP6_ECHO_REQUEST,
++							  ICMP6_ECHO_REPLY,
++							  &icmp6_type_type,
++							  desc);
++		break;
++	case PROTO_ICMP6_MTU:
++	case PROTO_ICMP6_MGMQ:
++	case PROTO_ICMP6_PPTR:
++		type = icmp_dep_to_type(tmpl->icmp_dep);
++		if (ctx->pctx.th_dep.icmp.type == type)
++			goto done;
++		if (ctx->pctx.th_dep.icmp.type)
++			goto bad_proto;
++		stmt = __payload_gen_icmp_simple_dependency(ctx, expr,
++							    &icmp6_type_type,
++							    desc, type);
++		break;
++		break;
+ 	default:
+ 		BUG("Unhandled icmp dependency code");
+ 	}
+diff --git a/src/proto.c b/src/proto.c
+index d3371ac65975..b75626df2861 100644
+--- a/src/proto.c
++++ b/src/proto.c
+@@ -396,16 +396,19 @@ const struct datatype icmp_type_type = {
+ 	.sym_tbl	= &icmp_type_tbl,
+ };
  
- # icmp id { 33-55}
-+__set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00000008  : 0 [end]	element 00000000  : 0 [end]
- __set%d test-ip4 7
- __set%d test-ip4 0
- 	element 00000000  : 1 [end]	element 00002100  : 0 [end]	element 00003800  : 1 [end]
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d ]
-   [ payload load 2b @ transport header + 4 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
+-#define ICMPHDR_FIELD(__token, __member, __dep)					\
++#define ICMP46HDR_FIELD(__token, __struct, __member, __dep)			\
+ 	{									\
+ 		.token		= (__token),					\
+ 		.dtype		= &integer_type,				\
+ 		.byteorder	= BYTEORDER_BIG_ENDIAN,				\
+-		.offset		= offsetof(struct icmphdr, __member) * 8,	\
+-		.len		= field_sizeof(struct icmphdr, __member) * 8,	\
++		.offset		= offsetof(__struct, __member) * 8,		\
++		.len		= field_sizeof(__struct, __member) * 8,		\
+ 		.icmp_dep	= (__dep),					\
+ 	}
  
- # icmp id != { 33-55}
-+__set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00000008  : 0 [end]	element 00000000  : 0 [end]
- __set%d test-ip4 7
- __set%d test-ip4 0
- 	element 00000000  : 1 [end]	element 00002100  : 0 [end]	element 00003800  : 1 [end]
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d ]
-   [ payload load 2b @ transport header + 4 => reg 1 ]
-   [ lookup reg 1 set __set%d 0x1 ]
++#define ICMPHDR_FIELD(__token, __member, __dep) \
++	ICMP46HDR_FIELD(__token, struct icmphdr, __member, __dep)
++
+ #define ICMPHDR_TYPE(__name, __type, __member) \
+ 	HDR_TYPE(__name,  __type, struct icmphdr, __member)
  
- # icmp id { 22, 34, 333}
- __set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00000008  : 0 [end]	element 00000000  : 0 [end]
-+__set%d test-ip4 3
- __set%d test-ip4 0
- 	element 00001600  : 0 [end]	element 00002200  : 0 [end]	element 00004d01  : 0 [end]
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d ]
-   [ payload load 2b @ transport header + 4 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
+@@ -822,8 +825,8 @@ const struct datatype icmp6_type_type = {
+ 	.sym_tbl	= &icmp6_type_tbl,
+ };
  
- # icmp id != { 22, 34, 333}
- __set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00000008  : 0 [end]	element 00000000  : 0 [end]
-+__set%d test-ip4 3
- __set%d test-ip4 0
- 	element 00001600  : 0 [end]	element 00002200  : 0 [end]	element 00004d01  : 0 [end]
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d ]
-   [ payload load 2b @ transport header + 4 => reg 1 ]
-   [ lookup reg 1 set __set%d 0x1 ]
+-#define ICMP6HDR_FIELD(__name, __member) \
+-	HDR_FIELD(__name, struct icmp6_hdr, __member)
++#define ICMP6HDR_FIELD(__token, __member, __dep) \
++	ICMP46HDR_FIELD(__token, struct icmp6_hdr, __member, __dep)
+ #define ICMP6HDR_TYPE(__name, __type, __member) \
+ 	HDR_TYPE(__name, __type, struct icmp6_hdr, __member)
  
- # icmp sequence 22
--ip test-ip4 input
-+__set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00000008  : 0 [end]	element 00000000  : 0 [end]
-+ip 
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d ]
-   [ payload load 2b @ transport header + 6 => reg 1 ]
-   [ cmp eq reg 1 0x00001600 ]
- 
- # icmp sequence != 233
-+__set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00000008  : 0 [end]	element 00000000  : 0 [end]
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d ]
-   [ payload load 2b @ transport header + 6 => reg 1 ]
-   [ cmp neq reg 1 0x0000e900 ]
- 
- # icmp sequence 33-45
-+__set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00000008  : 0 [end]	element 00000000  : 0 [end]
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d ]
-   [ payload load 2b @ transport header + 6 => reg 1 ]
-   [ cmp gte reg 1 0x00002100 ]
-   [ cmp lte reg 1 0x00002d00 ]
- 
- # icmp sequence != 33-45
-+__set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00000008  : 0 [end]	element 00000000  : 0 [end]
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d ]
-   [ payload load 2b @ transport header + 6 => reg 1 ]
-   [ range neq reg 1 0x00002100 0x00002d00 ]
- 
- # icmp sequence { 33, 55, 67, 88}
- __set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00000008  : 0 [end]	element 00000000  : 0 [end]
-+__set%d test-ip4 3
- __set%d test-ip4 0
- 	element 00002100  : 0 [end]	element 00003700  : 0 [end]	element 00004300  : 0 [end]	element 00005800  : 0 [end]
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d ]
-   [ payload load 2b @ transport header + 6 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
- 
- # icmp sequence != { 33, 55, 67, 88}
- __set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00000008  : 0 [end]	element 00000000  : 0 [end]
-+__set%d test-ip4 3
- __set%d test-ip4 0
- 	element 00002100  : 0 [end]	element 00003700  : 0 [end]	element 00004300  : 0 [end]	element 00005800  : 0 [end]
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d ]
-   [ payload load 2b @ transport header + 6 => reg 1 ]
-   [ lookup reg 1 set __set%d 0x1 ]
- 
- # icmp sequence { 33-55}
-+__set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00000008  : 0 [end]	element 00000000  : 0 [end]
- __set%d test-ip4 7
- __set%d test-ip4 0
- 	element 00000000  : 1 [end]	element 00002100  : 0 [end]	element 00003800  : 1 [end]
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d ]
-   [ payload load 2b @ transport header + 6 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
- 
- # icmp sequence != { 33-55}
-+__set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00000008  : 0 [end]	element 00000000  : 0 [end]
- __set%d test-ip4 7
- __set%d test-ip4 0
- 	element 00000000  : 1 [end]	element 00002100  : 0 [end]	element 00003800  : 1 [end]
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d ]
-   [ payload load 2b @ transport header + 6 => reg 1 ]
-   [ lookup reg 1 set __set%d 0x1 ]
- 
-@@ -421,6 +506,8 @@ ip test-ip4 input
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000003 ]
-   [ payload load 2b @ transport header + 6 => reg 1 ]
-   [ cmp eq reg 1 0x00002100 ]
- 
-@@ -428,6 +515,8 @@ ip test-ip4 input
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000003 ]
-   [ payload load 2b @ transport header + 6 => reg 1 ]
-   [ cmp gte reg 1 0x00001600 ]
-   [ cmp lte reg 1 0x00002100 ]
-@@ -439,6 +528,8 @@ __set%d test-ip4 0
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000003 ]
-   [ payload load 2b @ transport header + 6 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
- 
-@@ -449,6 +540,8 @@ __set%d test-ip4 0
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000003 ]
-   [ payload load 2b @ transport header + 6 => reg 1 ]
-   [ lookup reg 1 set __set%d 0x1 ]
- 
-@@ -456,6 +549,8 @@ ip test-ip4 input
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000003 ]
-   [ payload load 2b @ transport header + 6 => reg 1 ]
-   [ cmp eq reg 1 0x00001600 ]
- 
-@@ -463,6 +558,8 @@ ip test-ip4 input
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000003 ]
-   [ payload load 2b @ transport header + 6 => reg 1 ]
-   [ cmp neq reg 1 0x0000e900 ]
- 
-@@ -470,6 +567,8 @@ ip test-ip4 input
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000003 ]
-   [ payload load 2b @ transport header + 6 => reg 1 ]
-   [ cmp gte reg 1 0x00002100 ]
-   [ cmp lte reg 1 0x00002d00 ]
-@@ -478,6 +577,8 @@ ip test-ip4 input
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000003 ]
-   [ payload load 2b @ transport header + 6 => reg 1 ]
-   [ range neq reg 1 0x00002100 0x00002d00 ]
- 
-@@ -488,6 +589,8 @@ __set%d test-ip4 0
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000003 ]
-   [ payload load 2b @ transport header + 6 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
- 
-@@ -498,6 +601,8 @@ __set%d test-ip4 0
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000003 ]
-   [ payload load 2b @ transport header + 6 => reg 1 ]
-   [ lookup reg 1 set __set%d 0x1 ]
- 
-@@ -508,6 +613,8 @@ __set%d test-ip4 0
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000003 ]
-   [ payload load 2b @ transport header + 6 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
- 
-@@ -518,6 +625,8 @@ __set%d test-ip4 0
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000003 ]
-   [ payload load 2b @ transport header + 6 => reg 1 ]
-   [ lookup reg 1 set __set%d 0x1 ]
- 
-@@ -525,6 +634,8 @@ ip test-ip4 input
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000005 ]
-   [ payload load 4b @ transport header + 4 => reg 1 ]
-   [ cmp eq reg 1 0x16000000 ]
- 
-@@ -532,6 +643,8 @@ ip test-ip4 input
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000005 ]
-   [ payload load 4b @ transport header + 4 => reg 1 ]
-   [ cmp neq reg 1 0xe9000000 ]
- 
-@@ -539,6 +652,8 @@ ip test-ip4 input
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000005 ]
-   [ payload load 4b @ transport header + 4 => reg 1 ]
-   [ cmp gte reg 1 0x21000000 ]
-   [ cmp lte reg 1 0x2d000000 ]
-@@ -547,6 +662,8 @@ ip test-ip4 input
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000005 ]
-   [ payload load 4b @ transport header + 4 => reg 1 ]
-   [ range neq reg 1 0x21000000 0x2d000000 ]
- 
-@@ -557,6 +674,8 @@ __set%d test-ip4 0
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000005 ]
-   [ payload load 4b @ transport header + 4 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
- 
-@@ -567,6 +686,8 @@ __set%d test-ip4 0
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000005 ]
-   [ payload load 4b @ transport header + 4 => reg 1 ]
-   [ lookup reg 1 set __set%d 0x1 ]
- 
-@@ -577,6 +698,8 @@ __set%d test-ip4 0
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000005 ]
-   [ payload load 4b @ transport header + 4 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
- 
-@@ -587,6 +710,8 @@ __set%d test-ip4 0
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000005 ]
-   [ payload load 4b @ transport header + 4 => reg 1 ]
-   [ lookup reg 1 set __set%d 0x1 ]
- 
-@@ -594,6 +719,8 @@ ip test-ip4 input
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000005 ]
-   [ payload load 4b @ transport header + 4 => reg 1 ]
-   [ cmp neq reg 1 0x22000000 ]
- 
-@@ -604,6 +731,8 @@ __set%d test-ip4 0
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000005 ]
-   [ payload load 4b @ transport header + 4 => reg 1 ]
-   [ lookup reg 1 set __set%d 0x1 ]
+@@ -831,17 +834,18 @@ const struct proto_desc proto_icmp6 = {
+ 	.name		= "icmpv6",
+ 	.id		= PROTO_DESC_ICMPV6,
+ 	.base		= PROTO_BASE_TRANSPORT_HDR,
++	.protocol_key	= ICMP6HDR_TYPE,
+ 	.checksum_key	= ICMP6HDR_CHECKSUM,
+ 	.checksum_type  = NFT_PAYLOAD_CSUM_INET,
+ 	.templates	= {
+ 		[ICMP6HDR_TYPE]		= ICMP6HDR_TYPE("type", &icmp6_type_type, icmp6_type),
+ 		[ICMP6HDR_CODE]		= ICMP6HDR_TYPE("code", &icmpv6_code_type, icmp6_code),
+-		[ICMP6HDR_CHECKSUM]	= ICMP6HDR_FIELD("checksum", icmp6_cksum),
+-		[ICMP6HDR_PPTR]		= ICMP6HDR_FIELD("parameter-problem", icmp6_pptr),
+-		[ICMP6HDR_MTU]		= ICMP6HDR_FIELD("mtu", icmp6_mtu),
+-		[ICMP6HDR_ID]		= ICMP6HDR_FIELD("id", icmp6_id),
+-		[ICMP6HDR_SEQ]		= ICMP6HDR_FIELD("sequence", icmp6_seq),
+-		[ICMP6HDR_MAXDELAY]	= ICMP6HDR_FIELD("max-delay", icmp6_maxdelay),
++		[ICMP6HDR_CHECKSUM]	= ICMP6HDR_FIELD("checksum", icmp6_cksum, PROTO_ICMP_ANY),
++		[ICMP6HDR_PPTR]		= ICMP6HDR_FIELD("parameter-problem", icmp6_pptr, PROTO_ICMP6_PPTR),
++		[ICMP6HDR_MTU]		= ICMP6HDR_FIELD("mtu", icmp6_mtu, PROTO_ICMP6_MTU),
++		[ICMP6HDR_ID]		= ICMP6HDR_FIELD("id", icmp6_id, PROTO_ICMP6_ECHO),
++		[ICMP6HDR_SEQ]		= ICMP6HDR_FIELD("sequence", icmp6_seq, PROTO_ICMP6_ECHO),
++		[ICMP6HDR_MAXDELAY]	= ICMP6HDR_FIELD("max-delay", icmp6_maxdelay, PROTO_ICMP6_MGMQ),
+ 	},
+ };
  
 -- 
 2.26.2
