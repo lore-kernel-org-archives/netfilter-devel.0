@@ -2,178 +2,140 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DA9CC433FE
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Dec 2020 11:25:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 341B2C4361B
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Dec 2020 14:42:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 446F723A22
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Dec 2020 11:25:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 064B42332A
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Dec 2020 14:42:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730675AbgLILZd (ORCPT
+        id S1733030AbgLIOlU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Dec 2020 06:25:33 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36250 "EHLO
+        Wed, 9 Dec 2020 09:41:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38232 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730484AbgLILZc (ORCPT
+        with ESMTP id S1730850AbgLIOlP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Dec 2020 06:25:32 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6022AC0613CF
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2020 03:24:52 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1kmxaU-0003c8-8J; Wed, 09 Dec 2020 12:24:50 +0100
-Date:   Wed, 9 Dec 2020 12:24:50 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH v2 03/10] nft: cache: Introduce
- nft_cache_add_chain()
-Message-ID: <20201209112450.GB4647@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20200923174849.5773-1-phil@nwl.cc>
- <20200923174849.5773-4-phil@nwl.cc>
- <20201012120231.GC26845@salvia>
+        Wed, 9 Dec 2020 09:41:15 -0500
+Received: from mail-il1-x143.google.com (mail-il1-x143.google.com [IPv6:2607:f8b0:4864:20::143])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E483C061793;
+        Wed,  9 Dec 2020 06:40:35 -0800 (PST)
+Received: by mail-il1-x143.google.com with SMTP id t9so1765957ilf.2;
+        Wed, 09 Dec 2020 06:40:35 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to;
+        bh=lrVKy9ubG/ETOf2frLaztz8leb/O1uo8SpRzH8S0NrM=;
+        b=H+x6Xuq3KblNHKzIOGWYPWs6L1G1DaKK0iCwMzPh83oa67KQOh04X1zP74yAStkQUg
+         x3hqlPaSpisaey+sn/ANVqchR4dY/VIi62DOXCpK46dfyCDZJLnY3LDGcembjAs9Jejc
+         3oi6Kx4S0Ph368r3xKOj0E0h1/ExCPZl7ZIWiHRutAq4jtPNeJ2HNcEKazHjRB20967R
+         25Kn7A3MlhHuLdKSBcXMX0TQZdIqQACBHqFMfTvQEkyVz1p/ie8RZycO2BMKT/S1GDyR
+         kHabgqtW2h+wQJOcFpGStHkZ0ewcD4j0sJ4pZST0cfDS9HKm+DfjNzQ9VlpGzumPH4Pl
+         ME7w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to;
+        bh=lrVKy9ubG/ETOf2frLaztz8leb/O1uo8SpRzH8S0NrM=;
+        b=lRg8ysQBmoka+kPPCpI0S0oYX5L+nhla8MWbyJUx9ZTKeTOzOzsDKNQ7KQ9xsL6Oal
+         bADtqFA3njyhbYT83lDm6Lr58pzCgV07apKf1CNlLcevaW16nfdWdq0PItWOVBfmuUGx
+         gfwxJYep8LSv1wMuMHspvXFrbdp3gDPcpthzzyrdws4GMbgXtTkYCpNfSIZkJ7ZciZ2O
+         DlwZEa9ipdMGNAQGEFVUyLlxawQQYsn9iA41gRVel37jnqoQ83CFJfrJUaK9MdZsh3Uo
+         GPtr6WnIjA4hNhqWP/tvHo9CGPi4DmH+6QZpcaE9WH5kwJJh/72KBLensQ9j+M6i1hk2
+         9fxw==
+X-Gm-Message-State: AOAM530k/C6t4ZnWKZTuxJGwY8OrhaLtNLQekQ1GYjQ0VuY3Ge2aRevV
+        0p13lRcE+Q5+B1DNGvX25ef5Va0mO/zQAmu/zJanBiwlN7uyvXerljQ=
+X-Google-Smtp-Source: ABdhPJy5RiOg7nIVTJtIQNb5lXpcVlKpPeV60+E3GUZJ9hcjHIAulWDk3miEwCBVG6CiZFYd0wC87gLOaYIlmp1c/c8=
+X-Received: by 2002:a92:d09:: with SMTP id 9mr3323278iln.54.1607524834704;
+ Wed, 09 Dec 2020 06:40:34 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201012120231.GC26845@salvia>
-Sender:  <n0-1@orbyte.nwl.cc>
+References: <20201207134309.16762-1-phil@nwl.cc> <CAHsH6Gupw7o96e5hOmaLBCZtqgoV0LZ4L7h-Y+2oROtXSXvTxw@mail.gmail.com>
+ <20201208185139.GZ4647@orbyte.nwl.cc>
+In-Reply-To: <20201208185139.GZ4647@orbyte.nwl.cc>
+From:   Eyal Birger <eyal.birger@gmail.com>
+Date:   Wed, 9 Dec 2020 16:40:23 +0200
+Message-ID: <CAHsH6GvT=Af-BAWK0z_CdrYWPn0qt+C=BRjy10MLRNhLWfH0rQ@mail.gmail.com>
+Subject: Re: [PATCH v2] xfrm: interface: Don't hide plain packets from netfilter
+To:     Phil Sutter <phil@nwl.cc>, Eyal Birger <eyal.birger@gmail.com>,
+        Steffen Klassert <steffen.klassert@secunet.com>,
+        linux-crypto@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Oct 12, 2020 at 02:02:31PM +0200, Pablo Neira Ayuso wrote:
-> On Wed, Sep 23, 2020 at 07:48:42PM +0200, Phil Sutter wrote:
-> > This is a convenience function for adding a chain to cache, for now just
-> > a simple wrapper around nftnl_chain_list_add_tail().
-> > 
-> > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> > ---
-> > Changes since v1:
-> > - Use the function in nft_chain_builtin_add() as well.
-> > ---
-> >  iptables/nft-cache.c | 12 +++++++++---
-> >  iptables/nft-cache.h |  3 +++
-> >  iptables/nft.c       | 16 +++++++---------
-> >  3 files changed, 19 insertions(+), 12 deletions(-)
-> > 
-> > diff --git a/iptables/nft-cache.c b/iptables/nft-cache.c
-> > index b94766a751db4..a22e693320451 100644
-> > --- a/iptables/nft-cache.c
-> > +++ b/iptables/nft-cache.c
-> > @@ -165,6 +165,13 @@ static int fetch_table_cache(struct nft_handle *h)
-> >  	return 1;
-> >  }
-> >  
-> > +int nft_cache_add_chain(struct nft_handle *h, const struct builtin_table *t,
-> > +			struct nftnl_chain *c)
-> > +{
-> > +	nftnl_chain_list_add_tail(c, h->cache->table[t->type].chains);
-> > +	return 0;
-> > +}
-> 
-> This wrapper LGTM.
-> 
-> >  struct nftnl_chain_list_cb_data {
-> >  	struct nft_handle *h;
-> >  	const struct builtin_table *t;
-> > @@ -174,7 +181,6 @@ static int nftnl_chain_list_cb(const struct nlmsghdr *nlh, void *data)
-> >  {
-> >  	struct nftnl_chain_list_cb_data *d = data;
-> >  	const struct builtin_table *t = d->t;
-> > -	struct nftnl_chain_list *list;
-> >  	struct nft_handle *h = d->h;
-> >  	struct nftnl_chain *c;
-> >  	const char *tname;
-> > @@ -196,8 +202,8 @@ static int nftnl_chain_list_cb(const struct nlmsghdr *nlh, void *data)
-> >  		goto out;
-> >  	}
-> >  
-> > -	list = h->cache->table[t->type].chains;
-> > -	nftnl_chain_list_add_tail(c, list);
-> > +	if (nft_cache_add_chain(h, t, c))
-> > +		goto out;
-> >  
-> >  	return MNL_CB_OK;
-> >  out:
-> > diff --git a/iptables/nft-cache.h b/iptables/nft-cache.h
-> > index 76f9fbb6c8ccc..d97f8de255f02 100644
-> > --- a/iptables/nft-cache.h
-> > +++ b/iptables/nft-cache.h
-> > @@ -3,6 +3,7 @@
-> >  
-> >  struct nft_handle;
-> >  struct nft_cmd;
-> > +struct builtin_table;
-> >  
-> >  void nft_cache_level_set(struct nft_handle *h, int level,
-> >  			 const struct nft_cmd *cmd);
-> > @@ -12,6 +13,8 @@ void flush_chain_cache(struct nft_handle *h, const char *tablename);
-> >  int flush_rule_cache(struct nft_handle *h, const char *table,
-> >  		     struct nftnl_chain *c);
-> >  void nft_cache_build(struct nft_handle *h);
-> > +int nft_cache_add_chain(struct nft_handle *h, const struct builtin_table *t,
-> > +			struct nftnl_chain *c);
-> >  
-> >  struct nftnl_chain_list *
-> >  nft_chain_list_get(struct nft_handle *h, const char *table, const char *chain);
-> > diff --git a/iptables/nft.c b/iptables/nft.c
-> > index 4f40be2e60252..8e1a33ba69bf1 100644
-> > --- a/iptables/nft.c
-> > +++ b/iptables/nft.c
-> > @@ -695,7 +695,7 @@ static void nft_chain_builtin_add(struct nft_handle *h,
-> >  		return;
-> >  
-> >  	batch_chain_add(h, NFT_COMPAT_CHAIN_ADD, c);
-> > -	nftnl_chain_list_add_tail(c, h->cache->table[table->type].chains);
-> > +	nft_cache_add_chain(h, table, c);
-> >  }
-> >  
-> >  /* find if built-in table already exists */
-> > @@ -1696,7 +1696,7 @@ int nft_rule_flush(struct nft_handle *h, const char *chain, const char *table,
-> >  
-> >  int nft_chain_user_add(struct nft_handle *h, const char *chain, const char *table)
-> >  {
-> > -	struct nftnl_chain_list *list;
-> > +	const struct builtin_table *t;
-> >  	struct nftnl_chain *c;
-> >  	int ret;
-> >  
-> > @@ -1720,9 +1720,8 @@ int nft_chain_user_add(struct nft_handle *h, const char *chain, const char *tabl
-> >  
-> >  	ret = batch_chain_add(h, NFT_COMPAT_CHAIN_USER_ADD, c);
-> >  
-> > -	list = nft_chain_list_get(h, table, chain);
-> > -	if (list)
-> > -		nftnl_chain_list_add(c, list);
-> > +	t = nft_table_builtin_find(h, table);
-> 
-> I'd add here:
-> 
->         assert(t);
-> 
-> just in case this is ever crashing here, let's make it nice.
+Hi Phil,
 
-It is not needed: In nft_chain_user_add(), there is a call to
-nft_chain_exists() earlier which implicitly checks that
-nft_table_builtin_find() succeeds with given table name.
+On Tue, Dec 8, 2020 at 8:51 PM Phil Sutter <phil@nwl.cc> wrote:
+>
+> Hi Eyal,
+>
+> On Tue, Dec 08, 2020 at 04:47:02PM +0200, Eyal Birger wrote:
+> > On Mon, Dec 7, 2020 at 4:07 PM Phil Sutter <phil@nwl.cc> wrote:
+> > >
+> > > With an IPsec tunnel without dedicated interface, netfilter sees locally
+> > > generated packets twice as they exit the physical interface: Once as "the
+> > > inner packet" with IPsec context attached and once as the encrypted
+> > > (ESP) packet.
+> > >
+> > > With xfrm_interface, the inner packet did not traverse NF_INET_LOCAL_OUT
+> > > hook anymore, making it impossible to match on both inner header values
+> > > and associated IPsec data from that hook.
+> > >
+> >
+> > Why wouldn't locally generated traffic not traverse the
+> > NF_INET_LOCAL_OUT hook via e.g. __ip_local_out() when xmitted on an xfrmi?
+> > I would expect it to appear in netfilter, but without the IPsec
+> > context, as it's not
+> > there yet.
+>
+> Yes, that's right. Having an iptables rule with LOG target in OUTPUT
+> chain, a packet sent from the local host is logged multiple times:
+>
+> | IN= OUT=xfrm SRC=192.168.111.1 DST=192.168.111.2 LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=21840 DF
+> | PROTO=ICMP TYPE=8 CODE=0 ID=56857 SEQ=1
+> | IN= OUT=eth0 SRC=192.168.111.1 DST=192.168.111.2 LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=21840 DF PROTO=ICMP TYPE=8 CODE=0 ID=56857 SEQ=1
+> | IN= OUT=eth0 SRC=192.168.1.1 DST=192.168.1.2 LEN=140 TOS=0x00 PREC=0x00 TTL=64 ID=0 DF PROTO=ESP SPI=0x1000
+>
+> First when being sent to xfrm interface, then two times between xfrm and
+> eth0, the second time as ESP packet. This is with my patch applied.
+> Without it, the second log entry is missing. I'm arguing the above is
+> consistent to IPsec without xfrm interface:
+>
+> | IN= OUT=eth1 SRC=192.168.112.1 DST=192.168.112.2 LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=49341 DF PROTO=ICMP TYPE=8 CODE=0 ID=44114 SEQ=1
+> | IN= OUT=eth1 SRC=192.168.2.1 DST=192.168.2.2 LEN=140 TOS=0x00 PREC=0x00 TTL=64 ID=37109 DF PROTO=ESP SPI=0x1000
+>
+> The packet appears twice being sent to eth1, the second time as ESP
+> packet. I understand xfrm interface as a collector of to-be-xfrmed
+> packets, dropping those which do not match a policy.
+>
+> > > Fix this by looping packets transmitted from xfrm_interface through
+> > > NF_INET_LOCAL_OUT before passing them on to dst_output(), which makes
+> > > behaviour consistent again from netfilter's point of view.
+> >
+> > When an XFRM interface is used when forwarding, why would it be correct
+> > for NF_INET_LOCAL_OUT to observe the inner packet?
+>
+> A valid question, indeed. One could interpret packets being forwarded by
+> those tunneling devices emit the packets one feeds them from the local
+> host. I just checked and ip_vti behaves identical to xfrm_interface
+> prior to my patch, so maybe my patch is crap and the inability to match
+> on ipsec context data when using any of those devices is just by design.
+>
 
-The other two places the wrapper is used are fine, too:
+I would find such interpretation and behavior to be surprising for an IPsec
+forwarder...
+I guess some functionality of policy matching is lost with these
+devices; although they do offer the ability to match ipsec traffic based on
+the destination interface it is possible to have multiple ipsec flows share
+the same device so netfilter doesn't provide the ability to distinguish
+between different flows on the outbound direction in such cases.
 
-In nft_chain_builtin_add(), the builtin_table pointer was passed via
-parameters from nft_xt_builtin_init() which itself does a NULL-pointer
-check.
-
-In nft_chain_restore(), the table's name is passed from state->curtable
-pointer in xtables_restore_parse_line() which in turn was acquired via
-nft_table_builtin_find(). (I actually plan to pass this builtin_table
-pointer around instead of the table name at some point.)
-
-Cheers, Phil
+Thanks,
+Eyal.
