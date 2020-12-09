@@ -2,86 +2,89 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32968C4167B
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Dec 2020 17:50:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA267C4361B
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Dec 2020 17:50:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E4388225AA
+	by mail.kernel.org (Postfix) with ESMTP id 8D1C023B51
 	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Dec 2020 17:50:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728289AbgLIRu2 (ORCPT
+        id S1728276AbgLIRuW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Dec 2020 12:50:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39236 "EHLO
+        Wed, 9 Dec 2020 12:50:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39212 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728269AbgLIRuT (ORCPT
+        with ESMTP id S1727894AbgLIRuK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Dec 2020 12:50:19 -0500
+        Wed, 9 Dec 2020 12:50:10 -0500
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD46CC061793
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2020 09:49:38 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7A19BC0613CF
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2020 09:49:30 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1kn3ar-0004Qj-E0; Wed, 09 Dec 2020 18:49:37 +0100
+        id 1kn3aj-0004QU-1t; Wed, 09 Dec 2020 18:49:29 +0100
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 02/10] proto: reduce size of proto_desc structure
-Date:   Wed,  9 Dec 2020 18:49:16 +0100
-Message-Id: <20201209174924.27720-3-fw@strlen.de>
+Subject: [PATCH nft 0/10] nft: add automatic icmp/icmpv6 dependencies
+Date:   Wed,  9 Dec 2020 18:49:14 +0100
+Message-Id: <20201209174924.27720-1-fw@strlen.de>
 X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20201209174924.27720-1-fw@strlen.de>
-References: <20201209174924.27720-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This will need an additional field. We can compress state
-here to avoid further size increase.
+icmp and icmpv6 protocol header are special, they have overlapping
+fields whose interpretation (or existence) depends on the icmp type.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/proto.h | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+This series allows nft to automatically add the dependency so that
+the type-dependant field is not evaluated for any type.
 
-diff --git a/include/proto.h b/include/proto.h
-index 6ef332c3966f..667650d67c97 100644
---- a/include/proto.h
-+++ b/include/proto.h
-@@ -39,8 +39,8 @@ struct proto_hdr_template {
- 	const struct datatype		*dtype;
- 	uint16_t			offset;
- 	uint16_t			len;
--	enum byteorder			byteorder;
--	enum nft_meta_keys		meta_key;
-+	enum byteorder			byteorder:8;
-+	enum nft_meta_keys		meta_key:8;
- };
- 
- #define PROTO_HDR_TEMPLATE(__token, __dtype,  __byteorder, __offset, __len)\
-@@ -101,11 +101,11 @@ enum proto_desc_id {
-  */
- struct proto_desc {
- 	const char			*name;
--	enum proto_desc_id		id;
--	enum proto_bases		base;
--	enum nft_payload_csum_types	checksum_type;
--	unsigned int			checksum_key;
--	unsigned int			protocol_key;
-+	enum proto_desc_id		id:8;
-+	enum proto_bases		base:8;
-+	enum nft_payload_csum_types	checksum_type:8;
-+	uint16_t			checksum_key;
-+	uint16_t			protocol_key;
- 	unsigned int			length;
- 	struct {
- 		unsigned int			num;
+Support for dependency removal is also added, but not for id/sequence.
+Those need to check for both echo and echo reply, we'd have to extend
+the delinearization step to also check relational expressions with
+a non-constant RHS.
+
+For now, the test cases are amended to expect the depenency, i.e.
+'icmp id 42' will expect 'icmp type {echo-reply, echo-request} icmp id 42'
+as the output.
+
+Also add test cases to cover both id/sequence in same rule (payload
+merging is used for those) and add a test with a rule that already
+contains a type match.
+
+Florian Westphal (10):
+  exthdr: remove unused proto_key member from struct
+  proto: reduce size of proto_desc structure
+  src: add auto-dependencies for ipv4 icmp
+  tests: fix exepcted payload of icmp expressions
+  src: add auto-dependencies for ipv6 icmp6
+  tests: fix exepcted payload of icmpv6 expressions
+  payload: auto-remove simple icmp/icmpv6 dependency expressions
+  tests: icmp, icmpv6: avoid remaining warnings
+  tests: ip: add one test case to cover both id and sequence
+  tests: icmp, icmpv6: check we don't add second dependency
+
+ include/exthdr.h                  |   1 -
+ include/payload.h                 |   7 +-
+ include/proto.h                   |  34 +++--
+ src/evaluate.c                    |  20 ++-
+ src/exthdr.c                      |   4 -
+ src/netlink_delinearize.c         |   3 +
+ src/parser_bison.y                |   1 -
+ src/payload.c                     | 210 +++++++++++++++++++++++++++++-
+ src/proto.c                       |  45 ++++---
+ tests/py/ip/icmp.t                |  38 +++---
+ tests/py/ip/icmp.t.payload.ip     | 155 +++++++++++++++++++++-
+ tests/py/ip6/icmpv6.t             |  42 +++---
+ tests/py/ip6/icmpv6.t.payload.ip6 | 116 +++++++++++++++--
+ 13 files changed, 588 insertions(+), 88 deletions(-)
+
 -- 
 2.26.2
 
