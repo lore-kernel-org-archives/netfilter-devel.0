@@ -2,62 +2,124 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DFDE8C433FE
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Dec 2020 23:51:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 56827C4361B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Dec 2020 02:12:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AFEF023B51
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Dec 2020 23:51:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 302E12343F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Dec 2020 02:12:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726571AbgLIXu7 (ORCPT
+        id S1727911AbgLJCMI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Dec 2020 18:50:59 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35350 "EHLO mail.kernel.org"
+        Wed, 9 Dec 2020 21:12:08 -0500
+Received: from bilbo.ozlabs.org ([203.11.71.1]:58859 "EHLO ozlabs.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730106AbgLIXut (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Dec 2020 18:50:49 -0500
-Date:   Wed, 9 Dec 2020 15:50:08 -0800
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1607557809;
-        bh=W9dAN5rI9swhy8m0JMx+pOH4eDDaaA4dd5Bc2GHP24U=;
-        h=From:To:Cc:Subject:In-Reply-To:References:From;
-        b=kwpDzHJ3GNyZxjgbhGxljZ3rz/wKR2D1OHkLqWXewdPnmLZGz/LDf6Y2V04yuni5T
-         VdjoN5lOPJwVN78S/q7mn2BUKYn+0vpULEzWOpR+YOlXKD9IgtF3cVU8u8Wi5FKFOO
-         YNrZjQ6sC+KShBrBIzVdauwAB+JgSmOHajGlBXhLtpalNYBExv6j6hNaSdWL+/oFC+
-         4aYw5x9/cXy4sy3UztSrnryGLDDdqfC11ylXI7tDfwIo5j8axpalNXrEkzGQ/gLbmr
-         ywEXJcM6/dJ6aEjgs/7WKGbFmJEcNcSq0knjp9/MDZD9TXdzSCws8qEkCInujiUY+c
-         rWaMDBNjJHd1Q==
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org
-Subject: Re: [PATCH net] net: sched: incorrect Kconfig dependencies on
- Netfilter modules
-Message-ID: <20201209155008.42b12cfa@kicinski-fedora-pc1c0hjn.DHCP.thefacebook.com>
-In-Reply-To: <20201208204707.11268-1-pablo@netfilter.org>
-References: <20201208204707.11268-1-pablo@netfilter.org>
+        id S1727779AbgLJCMI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 9 Dec 2020 21:12:08 -0500
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        (No client certificate requested)
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 4Cry855jH0z9sW9;
+        Thu, 10 Dec 2020 13:11:17 +1100 (AEDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
+        s=201702; t=1607566283;
+        bh=/IR168j0DBvyZWk4UDeVSWrS9CAyzcVRu7l7dhi/4Gk=;
+        h=Date:From:To:Cc:Subject:From;
+        b=UO9+lKAgqZRYqKnFfB0JVvtPVBf7BTDI/rYki1NvF9huxp1mbXcrIsk3Xq9TDktGN
+         L4r71anTSntJeRSsEZTJSqo5slTEuM9HWws69IiICpQJOA6hioO7D0diKBCNwJgWBz
+         Xqmk46sIeT9uQpqMM2HAf34juhd6R+znwZWWeXN9I3c8fJXM1VEWYk+hzaYuFl2J4E
+         gXplhIiyH06CPRS+BygFnyKi/h49V40FSjtFk/rT0vNu62BZPLzhvQy+NmmLfEylrd
+         EDt4CXPCeLGyQfRQYtCLkVacCjFeOyo9qE9olOiDR+46EHsFxbP7SVIo3JZQXNahrP
+         fYAnHMl1InCog==
+Date:   Thu, 10 Dec 2020 13:11:13 +1100
+From:   Stephen Rothwell <sfr@canb.auug.org.au>
+To:     David Miller <davem@davemloft.net>,
+        Networking <netdev@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>
+Cc:     Francis Laniel <laniel_francis@privacyrequired.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux Next Mailing List <linux-next@vger.kernel.org>
+Subject: linux-next: manual merge of the net-next tree with the netfilter
+ tree
+Message-ID: <20201210131113.6394fe45@canb.auug.org.au>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; boundary="Sig_/EH5MF1qJNoQbuN/x6PV0I1l";
+ protocol="application/pgp-signature"; micalg=pgp-sha256
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue,  8 Dec 2020 21:47:07 +0100 Pablo Neira Ayuso wrote:
-> - NET_ACT_CONNMARK and NET_ACT_CTINFO only require conntrack support.
-> - NET_ACT_IPT only requires NETFILTER_XTABLES symbols, not
->   IP_NF_IPTABLES. After this patch, NET_ACT_IPT becomes consistent
->   with NET_EMATCH_IPT. NET_ACT_IPT dependency on IP_NF_IPTABLES predates
->   Linux-2.6.12-rc2 (initial git repository build).
-> 
-> Fixes: 22a5dc0e5e3e ("net: sched: Introduce connmark action")
-> Fixes: 24ec483cec98 ("net: sched: Introduce act_ctinfo action")
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+--Sig_/EH5MF1qJNoQbuN/x6PV0I1l
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Doesn't seem too critical to remove unnecessary dependencies.
+Hi all,
 
-Applied to net-next, thanks!
+Today's linux-next merge of the net-next tree got a conflict in:
+
+  net/netfilter/nf_tables_api.c
+
+between commit:
+
+  42f1c2712090 ("netfilter: nftables: comment indirect serialization of com=
+mit_mutex with rtnl_mutex")
+
+from the netfilter tree and commit:
+
+  872f69034194 ("treewide: rename nla_strlcpy to nla_strscpy.")
+
+from the net-next tree.
+
+I fixed it up (see below) and can carry the fix as necessary. This
+is now fixed as far as linux-next is concerned, but any non trivial
+conflicts should be mentioned to your upstream maintainer when your tree
+is submitted for merging.  You may also want to consider cooperating
+with the maintainer of the conflicting tree to minimise any particularly
+complex conflicts.
+
+--=20
+Cheers,
+Stephen Rothwell
+
+diff --cc net/netfilter/nf_tables_api.c
+index 9a080767667b,a11bc8dcaa82..000000000000
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@@ -1722,11 -1723,7 +1723,11 @@@ static struct nft_hook *nft_netdev_hook
+  		goto err_hook_alloc;
+  	}
+ =20
+- 	nla_strlcpy(ifname, attr, IFNAMSIZ);
++ 	nla_strscpy(ifname, attr, IFNAMSIZ);
+ +	/* nf_tables_netdev_event() is called under rtnl_mutex, this is
+ +	 * indirectly serializing all the other holders of the commit_mutex with
+ +	 * the rtnl_mutex.
+ +	 */
+  	dev =3D __dev_get_by_name(net, ifname);
+  	if (!dev) {
+  		err =3D -ENOENT;
+
+--Sig_/EH5MF1qJNoQbuN/x6PV0I1l
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAl/Rg8EACgkQAVBC80lX
+0Gx+kggAlwsjzURJqJHjVvGAM6BEW74a+aX4CUivZE2IIRhnqmpN/Z3sos9L3FAD
+wiphPmOZoJKnW4vy7IV6Ezs8+06HArUGPvrLDMGXq5uaJXVMX20vpU9pE5z0yRaT
+gxmHlU4v2Ay7mf4WVuw6JCsNcILtycogQ1wTOPmLqQw25uOoowhhEfctUlhNmNje
+JxRUvDH8zvycHNCowLix3V1drhSK77skiSpzKxWgdu5BmoKYkLP2eHWSJqtveU4j
+usJUYqxXopEohJuBacm0dRhOhhpBrkOLNJlOgt/DdDZeqc8hx7eUXfp+rnzddJs0
+4iwtJrs2RG3iPxM0fG0dH1H8xu8/Aw==
+=9BrW
+-----END PGP SIGNATURE-----
+
+--Sig_/EH5MF1qJNoQbuN/x6PV0I1l--
