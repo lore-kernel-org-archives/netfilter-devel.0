@@ -2,152 +2,88 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2DB4C4361B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Dec 2020 14:17:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EED0AC4361B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Dec 2020 17:58:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9F16423CD4
-	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Dec 2020 14:17:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A28EE23D57
+	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Dec 2020 17:58:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389940AbgLJORp (ORCPT
+        id S2393013AbgLJR6a (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 10 Dec 2020 09:17:45 -0500
-Received: from correo.us.es ([193.147.175.20]:43570 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389934AbgLJORV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Dec 2020 09:17:21 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id BAE3FF2585
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Dec 2020 15:16:28 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AC179E1500
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Dec 2020 15:16:28 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id A1B53DA73D; Thu, 10 Dec 2020 15:16:28 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 62121E1505
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Dec 2020 15:16:26 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 10 Dec 2020 15:16:26 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 5281C4265A5A
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Dec 2020 15:16:26 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next,v3 2/4] netfilter: nftables: move nft_expr before nft_set
-Date:   Thu, 10 Dec 2020 15:16:31 +0100
-Message-Id: <20201210141633.20503-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20201210141633.20503-1-pablo@netfilter.org>
-References: <20201210141633.20503-1-pablo@netfilter.org>
+        Thu, 10 Dec 2020 12:58:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36842 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2393004AbgLJR6Z (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 10 Dec 2020 12:58:25 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DEBB5C0613CF;
+        Thu, 10 Dec 2020 09:57:44 -0800 (PST)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1knQCC-0004PW-Ga; Thu, 10 Dec 2020 18:57:40 +0100
+Date:   Thu, 10 Dec 2020 18:57:40 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Cc:     Eyal Birger <eyal.birger@gmail.com>,
+        Steffen Klassert <steffen.klassert@secunet.com>,
+        linux-crypto@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Linux Kernel Network Developers <netdev@vger.kernel.org>
+Subject: Re: [PATCH v2] xfrm: interface: Don't hide plain packets from
+ netfilter
+Message-ID: <20201210175740.GI4647@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Nicolas Dichtel <nicolas.dichtel@6wind.com>,
+        Eyal Birger <eyal.birger@gmail.com>,
+        Steffen Klassert <steffen.klassert@secunet.com>,
+        linux-crypto@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Linux Kernel Network Developers <netdev@vger.kernel.org>
+References: <20201207134309.16762-1-phil@nwl.cc>
+ <CAHsH6Gupw7o96e5hOmaLBCZtqgoV0LZ4L7h-Y+2oROtXSXvTxw@mail.gmail.com>
+ <20201208185139.GZ4647@orbyte.nwl.cc>
+ <CAHsH6GvT=Af-BAWK0z_CdrYWPn0qt+C=BRjy10MLRNhLWfH0rQ@mail.gmail.com>
+ <9fc5cbb8-26c7-c1c2-2018-3c0cd8c805f4@6wind.com>
+ <CAHsH6GsoavW+435MOTKy33iznMc_-JZ-kndr+G=YxuW7DWLNPA@mail.gmail.com>
+ <b5c1259b-71e8-57d2-85f2-d5971f33e977@6wind.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <b5c1259b-71e8-57d2-85f2-d5971f33e977@6wind.com>
+Sender:  <n0-1@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Move the nft_expr structure definition before nft_set. Expressions are
-used by rules and sets, remove unnecessary forward declarations. This
-comes as preparation to support for multiple expressions per set element.
+Hi Nicolas,
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v3: no changes.
+On Thu, Dec 10, 2020 at 02:18:45PM +0100, Nicolas Dichtel wrote:
+> Le 10/12/2020 à 12:48, Eyal Birger a écrit :
+> > On Thu, Dec 10, 2020 at 1:10 PM Nicolas Dichtel
+> > <nicolas.dichtel@6wind.com> wrote:
+> [snip]
+> > I also think they should be consistent. But it'd still be confusing to me
+> > to get an OUTPUT hook on the inner packet in the forwarding case.
+> I re-read the whole thread and I agree with you. There is no reason to pass the
+> inner packet through the OUTPUT hook (my comment about the consistency with ip
+> tunnels is still valid ;-)).
+> Sorry for the confusion.
+> 
+> Phil, with nftables, you can match the 'kind' of the interface, that should be
+> enough to match packets, isn't it?
 
- include/net/netfilter/nf_tables.h | 54 +++++++++++++++----------------
- 1 file changed, 26 insertions(+), 28 deletions(-)
+Yes, sure. Also, the inner packet passes POSTROUTING hook with ipsec
+context present, it's just not visible in OUTPUT. Of course the broader
+question is what do people use ipsec context matches for. If it's really
+just to ensure traffic is encrypted, xfrm_interface alone is sufficient.
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index aad7e1381200..0f4ae16a0c42 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -305,8 +305,33 @@ struct nft_set_estimate {
- 	enum nft_set_class	space;
- };
- 
-+#define NFT_EXPR_MAXATTR		16
-+#define NFT_EXPR_SIZE(size)		(sizeof(struct nft_expr) + \
-+					 ALIGN(size, __alignof__(struct nft_expr)))
-+
-+/**
-+ *	struct nft_expr - nf_tables expression
-+ *
-+ *	@ops: expression ops
-+ *	@data: expression private data
-+ */
-+struct nft_expr {
-+	const struct nft_expr_ops	*ops;
-+	unsigned char			data[]
-+		__attribute__((aligned(__alignof__(u64))));
-+};
-+
-+static inline void *nft_expr_priv(const struct nft_expr *expr)
-+{
-+	return (void *)expr->data;
-+}
-+
-+int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src);
-+void nft_expr_destroy(const struct nft_ctx *ctx, struct nft_expr *expr);
-+int nft_expr_dump(struct sk_buff *skb, unsigned int attr,
-+		  const struct nft_expr *expr);
-+
- struct nft_set_ext;
--struct nft_expr;
- 
- /**
-  *	struct nft_set_ops - nf_tables set operations
-@@ -797,7 +822,6 @@ struct nft_offload_ctx;
-  *	@validate: validate expression, called during loop detection
-  *	@data: extra data to attach to this expression operation
-  */
--struct nft_expr;
- struct nft_expr_ops {
- 	void				(*eval)(const struct nft_expr *expr,
- 						struct nft_regs *regs,
-@@ -833,32 +857,6 @@ struct nft_expr_ops {
- 	void				*data;
- };
- 
--#define NFT_EXPR_MAXATTR		16
--#define NFT_EXPR_SIZE(size)		(sizeof(struct nft_expr) + \
--					 ALIGN(size, __alignof__(struct nft_expr)))
--
--/**
-- *	struct nft_expr - nf_tables expression
-- *
-- *	@ops: expression ops
-- *	@data: expression private data
-- */
--struct nft_expr {
--	const struct nft_expr_ops	*ops;
--	unsigned char			data[]
--		__attribute__((aligned(__alignof__(u64))));
--};
--
--static inline void *nft_expr_priv(const struct nft_expr *expr)
--{
--	return (void *)expr->data;
--}
--
--int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src);
--void nft_expr_destroy(const struct nft_ctx *ctx, struct nft_expr *expr);
--int nft_expr_dump(struct sk_buff *skb, unsigned int attr,
--		  const struct nft_expr *expr);
--
- /**
-  *	struct nft_rule - nf_tables rule
-  *
--- 
-2.20.1
+Originally this was reported as "ipsec match stops working if
+xfrm_interface is used" and I suspected it's a bug in the driver.
+Knowing the behaviour is expected (and at least consistent with vti),
+the case is closed from my side. :)
 
+Thanks, Phil
