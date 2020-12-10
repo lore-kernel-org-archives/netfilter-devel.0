@@ -2,124 +2,69 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56827C4361B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Dec 2020 02:12:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EDFE0C4361B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Dec 2020 03:00:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 302E12343F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Dec 2020 02:12:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B61982332A
+	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Dec 2020 03:00:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727911AbgLJCMI (ORCPT
+        id S1726874AbgLJC7y (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Dec 2020 21:12:08 -0500
-Received: from bilbo.ozlabs.org ([203.11.71.1]:58859 "EHLO ozlabs.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727779AbgLJCMI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Dec 2020 21:12:08 -0500
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4Cry855jH0z9sW9;
-        Thu, 10 Dec 2020 13:11:17 +1100 (AEDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
-        s=201702; t=1607566283;
-        bh=/IR168j0DBvyZWk4UDeVSWrS9CAyzcVRu7l7dhi/4Gk=;
-        h=Date:From:To:Cc:Subject:From;
-        b=UO9+lKAgqZRYqKnFfB0JVvtPVBf7BTDI/rYki1NvF9huxp1mbXcrIsk3Xq9TDktGN
-         L4r71anTSntJeRSsEZTJSqo5slTEuM9HWws69IiICpQJOA6hioO7D0diKBCNwJgWBz
-         Xqmk46sIeT9uQpqMM2HAf34juhd6R+znwZWWeXN9I3c8fJXM1VEWYk+hzaYuFl2J4E
-         gXplhIiyH06CPRS+BygFnyKi/h49V40FSjtFk/rT0vNu62BZPLzhvQy+NmmLfEylrd
-         EDt4CXPCeLGyQfRQYtCLkVacCjFeOyo9qE9olOiDR+46EHsFxbP7SVIo3JZQXNahrP
-         fYAnHMl1InCog==
-Date:   Thu, 10 Dec 2020 13:11:13 +1100
-From:   Stephen Rothwell <sfr@canb.auug.org.au>
-To:     David Miller <davem@davemloft.net>,
-        Networking <netdev@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-Cc:     Francis Laniel <laniel_francis@privacyrequired.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux Next Mailing List <linux-next@vger.kernel.org>
-Subject: linux-next: manual merge of the net-next tree with the netfilter
- tree
-Message-ID: <20201210131113.6394fe45@canb.auug.org.au>
-MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/EH5MF1qJNoQbuN/x6PV0I1l";
- protocol="application/pgp-signature"; micalg=pgp-sha256
+        Wed, 9 Dec 2020 21:59:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39326 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725901AbgLJC7x (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 9 Dec 2020 21:59:53 -0500
+Received: from mail.monkeyblade.net (shards.monkeyblade.net [IPv6:2620:137:e000::1:9])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CFDE1C0613CF;
+        Wed,  9 Dec 2020 18:59:13 -0800 (PST)
+Received: from localhost (unknown [IPv6:2601:601:9f00:477:9e51:a893:b0fe:602a])
+        by mail.monkeyblade.net (Postfix) with ESMTPSA id 52F7C4D259C1A;
+        Wed,  9 Dec 2020 18:59:13 -0800 (PST)
+Date:   Wed, 09 Dec 2020 18:59:12 -0800 (PST)
+Message-Id: <20201209.185912.732747722425337247.davem@davemloft.net>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        kuba@kernel.org
+Subject: Re: [PATCH net 0/4] Netfilter fixes for net
+From:   David Miller <davem@davemloft.net>
+In-Reply-To: <20201209221810.32504-1-pablo@netfilter.org>
+References: <20201209221810.32504-1-pablo@netfilter.org>
+X-Mailer: Mew version 6.8 on Emacs 27.1
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.6.2 (mail.monkeyblade.net [0.0.0.0]); Wed, 09 Dec 2020 18:59:13 -0800 (PST)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
---Sig_/EH5MF1qJNoQbuN/x6PV0I1l
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Wed,  9 Dec 2020 23:18:06 +0100
 
-Hi all,
+> Hi Jakub, David,
+> 
+> The following patchset contains Netfilter fixes for net:
+> 
+> 1) Switch to RCU in x_tables to fix possible NULL pointer dereference,
+>    from Subash Abhinov Kasiviswanathan.
+> 
+> 2) Fix netlink dump of dynset timeouts later than 23 days.
+> 
+> 3) Add comment for the indirect serialization of the nft commit mutex
+>    with rtnl_mutex.
+> 
+> 4) Remove bogus check for confirmed conntrack when matching on the
+>    conntrack ID, from Brett Mastbergen.
+> 
+> Please, pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+> 
 
-Today's linux-next merge of the net-next tree got a conflict in:
-
-  net/netfilter/nf_tables_api.c
-
-between commit:
-
-  42f1c2712090 ("netfilter: nftables: comment indirect serialization of com=
-mit_mutex with rtnl_mutex")
-
-from the netfilter tree and commit:
-
-  872f69034194 ("treewide: rename nla_strlcpy to nla_strscpy.")
-
-from the net-next tree.
-
-I fixed it up (see below) and can carry the fix as necessary. This
-is now fixed as far as linux-next is concerned, but any non trivial
-conflicts should be mentioned to your upstream maintainer when your tree
-is submitted for merging.  You may also want to consider cooperating
-with the maintainer of the conflicting tree to minimise any particularly
-complex conflicts.
-
---=20
-Cheers,
-Stephen Rothwell
-
-diff --cc net/netfilter/nf_tables_api.c
-index 9a080767667b,a11bc8dcaa82..000000000000
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@@ -1722,11 -1723,7 +1723,11 @@@ static struct nft_hook *nft_netdev_hook
-  		goto err_hook_alloc;
-  	}
- =20
-- 	nla_strlcpy(ifname, attr, IFNAMSIZ);
-+ 	nla_strscpy(ifname, attr, IFNAMSIZ);
- +	/* nf_tables_netdev_event() is called under rtnl_mutex, this is
- +	 * indirectly serializing all the other holders of the commit_mutex with
- +	 * the rtnl_mutex.
- +	 */
-  	dev =3D __dev_get_by_name(net, ifname);
-  	if (!dev) {
-  		err =3D -ENOENT;
-
---Sig_/EH5MF1qJNoQbuN/x6PV0I1l
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAl/Rg8EACgkQAVBC80lX
-0Gx+kggAlwsjzURJqJHjVvGAM6BEW74a+aX4CUivZE2IIRhnqmpN/Z3sos9L3FAD
-wiphPmOZoJKnW4vy7IV6Ezs8+06HArUGPvrLDMGXq5uaJXVMX20vpU9pE5z0yRaT
-gxmHlU4v2Ay7mf4WVuw6JCsNcILtycogQ1wTOPmLqQw25uOoowhhEfctUlhNmNje
-JxRUvDH8zvycHNCowLix3V1drhSK77skiSpzKxWgdu5BmoKYkLP2eHWSJqtveU4j
-usJUYqxXopEohJuBacm0dRhOhhpBrkOLNJlOgt/DdDZeqc8hx7eUXfp+rnzddJs0
-4iwtJrs2RG3iPxM0fG0dH1H8xu8/Aw==
-=9BrW
------END PGP SIGNATURE-----
-
---Sig_/EH5MF1qJNoQbuN/x6PV0I1l--
+Pulled, thanks.
