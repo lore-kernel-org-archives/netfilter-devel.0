@@ -2,92 +2,300 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CF34C433FE
-	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Dec 2020 23:07:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BA87C4167B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Dec 2020 13:16:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 505A823BA7
-	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Dec 2020 23:07:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 60E0723EF5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Dec 2020 13:16:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404371AbgLJWb3 (ORCPT
+        id S2405608AbgLKNP4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 10 Dec 2020 17:31:29 -0500
-Received: from smtp-out.kfki.hu ([148.6.0.45]:37149 "EHLO smtp-out.kfki.hu"
+        Fri, 11 Dec 2020 08:15:56 -0500
+Received: from correo.us.es ([193.147.175.20]:35624 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2405142AbgLJW2Y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Dec 2020 17:28:24 -0500
-Received: from localhost (localhost [127.0.0.1])
-        by smtp0.kfki.hu (Postfix) with ESMTP id E108F67401BE;
-        Thu, 10 Dec 2020 23:19:21 +0100 (CET)
-X-Virus-Scanned: Debian amavisd-new at smtp0.kfki.hu
-Received: from smtp0.kfki.hu ([127.0.0.1])
-        by localhost (smtp0.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Thu, 10 Dec 2020 23:19:19 +0100 (CET)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-        by smtp0.kfki.hu (Postfix) with ESMTP id 9C03767401BB;
-        Thu, 10 Dec 2020 23:19:19 +0100 (CET)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id 70B21340D5D; Thu, 10 Dec 2020 23:19:19 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-        by blackhole.kfki.hu (Postfix) with ESMTP id 6C4E8340D5C;
-        Thu, 10 Dec 2020 23:19:19 +0100 (CET)
-Date:   Thu, 10 Dec 2020 23:19:19 +0100 (CET)
-From:   Jozsef Kadlecsik <kadlec@netfilter.org>
-X-X-Sender: kadlec@blackhole.kfki.hu
-To:     Ed W <lists@wildgooses.com>
-cc:     netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: ipset 7.9 compilation fix on kernel 4.14
-In-Reply-To: <701adbbb-202a-4ee4-ce2e-ecaaed6dc3b5@wildgooses.com>
-Message-ID: <alpine.DEB.2.23.453.2012102309430.14614@blackhole.kfki.hu>
-References: <alpine.DEB.2.23.453.2011192141150.19567@blackhole.kfki.hu> <c4778467-3abe-b40f-c4f7-945576fa097f@wildgooses.com> <alpine.DEB.2.23.453.2012071419590.30865@blackhole.kfki.hu> <701adbbb-202a-4ee4-ce2e-ecaaed6dc3b5@wildgooses.com>
-User-Agent: Alpine 2.23 (DEB 453 2020-06-18)
+        id S1727343AbgLKNPk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 11 Dec 2020 08:15:40 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 76F541B5D1A
+        for <netfilter-devel@vger.kernel.org>; Fri, 11 Dec 2020 14:14:42 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 67B1918FD84
+        for <netfilter-devel@vger.kernel.org>; Fri, 11 Dec 2020 14:14:42 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 66D4E18FD83; Fri, 11 Dec 2020 14:14:42 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DBA3418FD86;
+        Fri, 11 Dec 2020 14:14:39 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 11 Dec 2020 14:14:39 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id BEFCC4265A5A;
+        Fri, 11 Dec 2020 14:14:39 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     fw@strlen.de
+Subject: [PATCH nf-next,v3] netfilter: ctnetlink: add timeout and protoinfo to destroy events
+Date:   Fri, 11 Dec 2020 14:14:48 +0100
+Message-Id: <20201211131448.21832-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="110363376-271306815-1607638759=:14614"
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+From: Florian Westphal <fw@strlen.de>
 
---110363376-271306815-1607638759=:14614
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+DESTROY events do not include the remaining timeout.
 
-Hi,
+Add the timeout if the entry was removed explicitly. This can happen
+when a conntrack gets deleted prematurely, e.g. due to a tcp reset,
+module removal, netdev notifier (nat/masquerade device went down),
+ctnetlink and so on.
 
-On Thu, 10 Dec 2020, Ed W wrote:
+Add the protocol state too for the destroy message to check for abnormal
+state on connection termination.
 
-> There remains a compile warning, just wanted to bring to your attention=
-:
->=20
-> /var/tmp/portage/net-firewall/ipset-7.9/work/ipset-7.9/kernel/net/netfi=
-lter/ips
-> et/ip_set_core.c: In function 'ip_set_rename':
-> /var/tmp/portage/net-firewall/ipset-7.9/work/ipset-7.9/kernel/net/netfi=
-lter/ips
-> et/ip_set_core.c:1359:2: warning: 'strncpy' specified bound 32 equals
-> destination size [-Wstringop-truncation]
-> =C2=A01359 |=C2=A0 strncpy(set->name, name2, IPSET_MAXNAMELEN);
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 |=C2=A0 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~=
-~~~~~~~~~~~
-> =C2=A0 LD [M]=C2=A0/var/tmp/portage/net-firewall/ipset-7.9/work/ipset-7=
-.9/kernel/net/netfilter/ips
-> et/ip_set.o
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v3: include timeout in destroy events only if it's non-zero.
+    Add the protocol state too. Checking for timeout and state provides
+    a hint on the reason for the connection termination.
 
-That's a false warning: name2 comes from a netlink attribute which size=20
-is limited to IPSET_MAXNAMELEN-1, including NUL. The compiler can't figur=
-e=20
-it out though.
+ include/net/netfilter/nf_conntrack_l4proto.h |  2 +-
+ net/netfilter/nf_conntrack_netlink.c         | 31 +++++++++++++-------
+ net/netfilter/nf_conntrack_proto_dccp.c      | 13 ++++++--
+ net/netfilter/nf_conntrack_proto_sctp.c      | 13 +++++---
+ net/netfilter/nf_conntrack_proto_tcp.c       | 13 +++++---
+ 5 files changed, 49 insertions(+), 23 deletions(-)
 
-Best regards,
-Jozsef
+diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
+index 9be7320b994f..96f9cf81f46b 100644
+--- a/include/net/netfilter/nf_conntrack_l4proto.h
++++ b/include/net/netfilter/nf_conntrack_l4proto.h
+@@ -32,7 +32,7 @@ struct nf_conntrack_l4proto {
+ 
+ 	/* convert protoinfo to nfnetink attributes */
+ 	int (*to_nlattr)(struct sk_buff *skb, struct nlattr *nla,
+-			 struct nf_conn *ct);
++			 struct nf_conn *ct, bool destroy);
+ 
+ 	/* convert nfnetlink attributes to protoinfo */
+ 	int (*from_nlattr)(struct nlattr *tb[], struct nf_conn *ct);
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 3d0fd33be018..84caf3316946 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -167,10 +167,14 @@ static int ctnetlink_dump_status(struct sk_buff *skb, const struct nf_conn *ct)
+ 	return -1;
+ }
+ 
+-static int ctnetlink_dump_timeout(struct sk_buff *skb, const struct nf_conn *ct)
++static int ctnetlink_dump_timeout(struct sk_buff *skb, const struct nf_conn *ct,
++				  bool skip_zero)
+ {
+ 	long timeout = nf_ct_expires(ct) / HZ;
+ 
++	if (skip_zero && timeout == 0)
++		return 0;
++
+ 	if (nla_put_be32(skb, CTA_TIMEOUT, htonl(timeout)))
+ 		goto nla_put_failure;
+ 	return 0;
+@@ -179,7 +183,8 @@ static int ctnetlink_dump_timeout(struct sk_buff *skb, const struct nf_conn *ct)
+ 	return -1;
+ }
+ 
+-static int ctnetlink_dump_protoinfo(struct sk_buff *skb, struct nf_conn *ct)
++static int ctnetlink_dump_protoinfo(struct sk_buff *skb, struct nf_conn *ct,
++				    bool destroy)
+ {
+ 	const struct nf_conntrack_l4proto *l4proto;
+ 	struct nlattr *nest_proto;
+@@ -193,7 +198,7 @@ static int ctnetlink_dump_protoinfo(struct sk_buff *skb, struct nf_conn *ct)
+ 	if (!nest_proto)
+ 		goto nla_put_failure;
+ 
+-	ret = l4proto->to_nlattr(skb, nest_proto, ct);
++	ret = l4proto->to_nlattr(skb, nest_proto, ct, destroy);
+ 
+ 	nla_nest_end(skb, nest_proto);
+ 
+@@ -537,8 +542,8 @@ static int ctnetlink_dump_info(struct sk_buff *skb, struct nf_conn *ct)
+ 		return -1;
+ 
+ 	if (!test_bit(IPS_OFFLOAD_BIT, &ct->status) &&
+-	    (ctnetlink_dump_timeout(skb, ct) < 0 ||
+-	     ctnetlink_dump_protoinfo(skb, ct) < 0))
++	    (ctnetlink_dump_timeout(skb, ct, false) < 0 ||
++	     ctnetlink_dump_protoinfo(skb, ct, false) < 0))
+ 		return -1;
+ 
+ 	return 0;
+@@ -780,15 +785,19 @@ ctnetlink_conntrack_event(unsigned int events, struct nf_ct_event *item)
+ 		goto nla_put_failure;
+ 
+ 	if (events & (1 << IPCT_DESTROY)) {
++		if (ctnetlink_dump_timeout(skb, ct, true) < 0)
++			goto nla_put_failure;
++
+ 		if (ctnetlink_dump_acct(skb, ct, type) < 0 ||
+-		    ctnetlink_dump_timestamp(skb, ct) < 0)
++		    ctnetlink_dump_timestamp(skb, ct) < 0 ||
++		    ctnetlink_dump_protoinfo(skb, ct, true) < 0)
+ 			goto nla_put_failure;
+ 	} else {
+-		if (ctnetlink_dump_timeout(skb, ct) < 0)
++		if (ctnetlink_dump_timeout(skb, ct, false) < 0)
+ 			goto nla_put_failure;
+ 
+-		if (events & (1 << IPCT_PROTOINFO)
+-		    && ctnetlink_dump_protoinfo(skb, ct) < 0)
++		if (events & (1 << IPCT_PROTOINFO) &&
++		    ctnetlink_dump_protoinfo(skb, ct, false) < 0)
+ 			goto nla_put_failure;
+ 
+ 		if ((events & (1 << IPCT_HELPER) || nfct_help(ct))
+@@ -2720,10 +2729,10 @@ static int __ctnetlink_glue_build(struct sk_buff *skb, struct nf_conn *ct)
+ 	if (ctnetlink_dump_status(skb, ct) < 0)
+ 		goto nla_put_failure;
+ 
+-	if (ctnetlink_dump_timeout(skb, ct) < 0)
++	if (ctnetlink_dump_timeout(skb, ct, false) < 0)
+ 		goto nla_put_failure;
+ 
+-	if (ctnetlink_dump_protoinfo(skb, ct) < 0)
++	if (ctnetlink_dump_protoinfo(skb, ct, false) < 0)
+ 		goto nla_put_failure;
+ 
+ 	if (ctnetlink_dump_helpinfo(skb, ct) < 0)
+diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
+index b3f4a334f9d7..db7479db8512 100644
+--- a/net/netfilter/nf_conntrack_proto_dccp.c
++++ b/net/netfilter/nf_conntrack_proto_dccp.c
+@@ -589,7 +589,7 @@ static void dccp_print_conntrack(struct seq_file *s, struct nf_conn *ct)
+ 
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+ static int dccp_to_nlattr(struct sk_buff *skb, struct nlattr *nla,
+-			  struct nf_conn *ct)
++			  struct nf_conn *ct, bool destroy)
+ {
+ 	struct nlattr *nest_parms;
+ 
+@@ -597,15 +597,22 @@ static int dccp_to_nlattr(struct sk_buff *skb, struct nlattr *nla,
+ 	nest_parms = nla_nest_start(skb, CTA_PROTOINFO_DCCP);
+ 	if (!nest_parms)
+ 		goto nla_put_failure;
+-	if (nla_put_u8(skb, CTA_PROTOINFO_DCCP_STATE, ct->proto.dccp.state) ||
+-	    nla_put_u8(skb, CTA_PROTOINFO_DCCP_ROLE,
++	if (nla_put_u8(skb, CTA_PROTOINFO_DCCP_STATE, ct->proto.dccp.state))
++		goto nla_put_failure;
++
++	if (destroy)
++		goto skip_state;
++
++	if (nla_put_u8(skb, CTA_PROTOINFO_DCCP_ROLE,
+ 		       ct->proto.dccp.role[IP_CT_DIR_ORIGINAL]) ||
+ 	    nla_put_be64(skb, CTA_PROTOINFO_DCCP_HANDSHAKE_SEQ,
+ 			 cpu_to_be64(ct->proto.dccp.handshake_seq),
+ 			 CTA_PROTOINFO_DCCP_PAD))
+ 		goto nla_put_failure;
++skip_state:
+ 	nla_nest_end(skb, nest_parms);
+ 	spin_unlock_bh(&ct->lock);
++
+ 	return 0;
+ 
+ nla_put_failure:
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index 810cca24b399..fb8dc02e502f 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -543,7 +543,7 @@ static bool sctp_can_early_drop(const struct nf_conn *ct)
+ #include <linux/netfilter/nfnetlink_conntrack.h>
+ 
+ static int sctp_to_nlattr(struct sk_buff *skb, struct nlattr *nla,
+-			  struct nf_conn *ct)
++			  struct nf_conn *ct, bool destroy)
+ {
+ 	struct nlattr *nest_parms;
+ 
+@@ -552,15 +552,20 @@ static int sctp_to_nlattr(struct sk_buff *skb, struct nlattr *nla,
+ 	if (!nest_parms)
+ 		goto nla_put_failure;
+ 
+-	if (nla_put_u8(skb, CTA_PROTOINFO_SCTP_STATE, ct->proto.sctp.state) ||
+-	    nla_put_be32(skb, CTA_PROTOINFO_SCTP_VTAG_ORIGINAL,
++	if (nla_put_u8(skb, CTA_PROTOINFO_SCTP_STATE, ct->proto.sctp.state))
++		goto nla_put_failure;
++
++	if (destroy)
++		goto skip_state;
++
++	if (nla_put_be32(skb, CTA_PROTOINFO_SCTP_VTAG_ORIGINAL,
+ 			 ct->proto.sctp.vtag[IP_CT_DIR_ORIGINAL]) ||
+ 	    nla_put_be32(skb, CTA_PROTOINFO_SCTP_VTAG_REPLY,
+ 			 ct->proto.sctp.vtag[IP_CT_DIR_REPLY]))
+ 		goto nla_put_failure;
+ 
++skip_state:
+ 	spin_unlock_bh(&ct->lock);
 -
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics
-          H-1525 Budapest 114, POB. 49, Hungary
---110363376-271306815-1607638759=:14614--
+ 	nla_nest_end(skb, nest_parms);
+ 
+ 	return 0;
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 811c6c9b59e1..1d7e1c595546 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -1186,7 +1186,7 @@ static bool tcp_can_early_drop(const struct nf_conn *ct)
+ #include <linux/netfilter/nfnetlink_conntrack.h>
+ 
+ static int tcp_to_nlattr(struct sk_buff *skb, struct nlattr *nla,
+-			 struct nf_conn *ct)
++			 struct nf_conn *ct, bool destroy)
+ {
+ 	struct nlattr *nest_parms;
+ 	struct nf_ct_tcp_flags tmp = {};
+@@ -1196,8 +1196,13 @@ static int tcp_to_nlattr(struct sk_buff *skb, struct nlattr *nla,
+ 	if (!nest_parms)
+ 		goto nla_put_failure;
+ 
+-	if (nla_put_u8(skb, CTA_PROTOINFO_TCP_STATE, ct->proto.tcp.state) ||
+-	    nla_put_u8(skb, CTA_PROTOINFO_TCP_WSCALE_ORIGINAL,
++	if (nla_put_u8(skb, CTA_PROTOINFO_TCP_STATE, ct->proto.tcp.state))
++		goto nla_put_failure;
++
++	if (destroy)
++		goto skip_state;
++
++	if (nla_put_u8(skb, CTA_PROTOINFO_TCP_WSCALE_ORIGINAL,
+ 		       ct->proto.tcp.seen[0].td_scale) ||
+ 	    nla_put_u8(skb, CTA_PROTOINFO_TCP_WSCALE_REPLY,
+ 		       ct->proto.tcp.seen[1].td_scale))
+@@ -1212,8 +1217,8 @@ static int tcp_to_nlattr(struct sk_buff *skb, struct nlattr *nla,
+ 	if (nla_put(skb, CTA_PROTOINFO_TCP_FLAGS_REPLY,
+ 		    sizeof(struct nf_ct_tcp_flags), &tmp))
+ 		goto nla_put_failure;
++skip_state:
+ 	spin_unlock_bh(&ct->lock);
+-
+ 	nla_nest_end(skb, nest_parms);
+ 
+ 	return 0;
+-- 
+2.20.1
+
