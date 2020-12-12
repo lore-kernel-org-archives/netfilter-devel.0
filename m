@@ -4,50 +4,50 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2C2EC433FE
-	for <netfilter-devel@archiver.kernel.org>; Sat, 12 Dec 2020 23:06:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D23EC19425
+	for <netfilter-devel@archiver.kernel.org>; Sat, 12 Dec 2020 23:06:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7C0DB21BE5
+	by mail.kernel.org (Postfix) with ESMTP id BEE9B221E8
 	for <netfilter-devel@archiver.kernel.org>; Sat, 12 Dec 2020 23:06:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2408172AbgLLXGP (ORCPT
+        id S2439872AbgLLXGP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sat, 12 Dec 2020 18:06:15 -0500
-Received: from correo.us.es ([193.147.175.20]:46766 "EHLO mail.us.es"
+Received: from correo.us.es ([193.147.175.20]:46802 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2408157AbgLLXGH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 12 Dec 2020 18:06:07 -0500
+        id S2408168AbgLLXGO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 12 Dec 2020 18:06:14 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 35C5E303D18
-        for <netfilter-devel@vger.kernel.org>; Sun, 13 Dec 2020 00:05:12 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id BADD4303D12
+        for <netfilter-devel@vger.kernel.org>; Sun, 13 Dec 2020 00:05:14 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 24C79DA791
-        for <netfilter-devel@vger.kernel.org>; Sun, 13 Dec 2020 00:05:12 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A888EDA78A
+        for <netfilter-devel@vger.kernel.org>; Sun, 13 Dec 2020 00:05:14 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 199CBDA78C; Sun, 13 Dec 2020 00:05:12 +0100 (CET)
+        id 9DF29DA730; Sun, 13 Dec 2020 00:05:14 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C3F1EDA704;
-        Sun, 13 Dec 2020 00:05:09 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1D99BDA704;
+        Sun, 13 Dec 2020 00:05:12 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 13 Dec 2020 00:05:09 +0100 (CET)
+ Sun, 13 Dec 2020 00:05:12 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 9C40B4265A5A;
-        Sun, 13 Dec 2020 00:05:09 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPSA id E2D024265A5A;
+        Sun, 13 Dec 2020 00:05:11 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 04/10] netfilter: nfnl_acct: remove data from struct net
-Date:   Sun, 13 Dec 2020 00:05:07 +0100
-Message-Id: <20201212230513.3465-5-pablo@netfilter.org>
+Subject: [PATCH net-next 09/10] netfilter: nftables: generalize set extension to support for several expressions
+Date:   Sun, 13 Dec 2020 00:05:12 +0100
+Message-Id: <20201212230513.3465-10-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20201212230513.3465-1-pablo@netfilter.org>
 References: <20201212230513.3465-1-pablo@netfilter.org>
@@ -58,187 +58,493 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Wang Shanker <shankerwangmiao@gmail.com>
+This patch replaces NFT_SET_EXPR by NFT_SET_EXT_EXPRESSIONS. This new
+extension allows to attach several expressions to one set element (not
+only one single expression as NFT_SET_EXPR provides). This patch
+prepares for support for several expressions per set element in the
+netlink userspace API.
 
-This patch removes nfnl_acct_list from struct net to reduce the default
-memory footprint for the netns structure.
-
-Signed-off-by: Miao Wang <shankerwangmiao@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/net_namespace.h    |  3 ---
- net/netfilter/nfnetlink_acct.c | 38 ++++++++++++++++++++++++++--------
- 2 files changed, 29 insertions(+), 12 deletions(-)
+ include/net/netfilter/nf_tables.h |  36 ++++++++---
+ net/netfilter/nf_tables_api.c     |  85 ++++++++++++++++++------
+ net/netfilter/nft_dynset.c        | 103 ++++++++++++++++++++++++------
+ net/netfilter/nft_set_hash.c      |  27 ++++++--
+ 4 files changed, 196 insertions(+), 55 deletions(-)
 
-diff --git a/include/net/net_namespace.h b/include/net/net_namespace.h
-index 22bc07f4b043..dc20a47e3828 100644
---- a/include/net/net_namespace.h
-+++ b/include/net/net_namespace.h
-@@ -151,9 +151,6 @@ struct net {
- #endif
- 	struct sock		*nfnl;
- 	struct sock		*nfnl_stash;
--#if IS_ENABLED(CONFIG_NETFILTER_NETLINK_ACCT)
--	struct list_head        nfnl_acct_list;
--#endif
- #if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
- 	struct list_head	nfct_timeout_list;
- #endif
-diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
-index 5e511df8d709..0fa1653b5f19 100644
---- a/net/netfilter/nfnetlink_acct.c
-+++ b/net/netfilter/nfnetlink_acct.c
-@@ -16,6 +16,7 @@
- #include <linux/errno.h>
- #include <net/netlink.h>
- #include <net/sock.h>
-+#include <net/netns/generic.h>
- 
- #include <linux/netfilter.h>
- #include <linux/netfilter/nfnetlink.h>
-@@ -41,6 +42,17 @@ struct nfacct_filter {
- 	u32 mask;
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 0f4ae16a0c42..bba56f2ce60c 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -421,6 +421,20 @@ struct nft_set_type {
  };
+ #define to_set_type(o) container_of(o, struct nft_set_type, ops)
  
-+struct nfnl_acct_net {
-+	struct list_head        nfnl_acct_list;
++struct nft_set_elem_expr {
++	u8				size;
++	unsigned char			data[]
++		__attribute__((aligned(__alignof__(struct nft_expr))));
 +};
 +
-+static unsigned int nfnl_acct_net_id __read_mostly;
++#define nft_setelem_expr_at(__elem_expr, __offset)			\
++	((struct nft_expr *)&__elem_expr->data[__offset])
 +
-+static inline struct nfnl_acct_net *nfnl_acct_pernet(struct net *net)
++#define nft_setelem_expr_foreach(__expr, __elem_expr, __size)		\
++	for (__expr = nft_setelem_expr_at(__elem_expr, 0), __size = 0;	\
++	     __size < (__elem_expr)->size;				\
++	     __size += (__expr)->ops->size, __expr = ((void *)(__expr)) + (__expr)->ops->size)
++
+ #define NFT_SET_EXPR_MAX	2
+ 
+ /**
+@@ -547,7 +561,7 @@ void nf_tables_destroy_set(const struct nft_ctx *ctx, struct nft_set *set);
+  *	@NFT_SET_EXT_TIMEOUT: element timeout
+  *	@NFT_SET_EXT_EXPIRATION: element expiration time
+  *	@NFT_SET_EXT_USERDATA: user data associated with the element
+- *	@NFT_SET_EXT_EXPR: expression assiociated with the element
++ *	@NFT_SET_EXT_EXPRESSIONS: expressions assiciated with the element
+  *	@NFT_SET_EXT_OBJREF: stateful object reference associated with element
+  *	@NFT_SET_EXT_NUM: number of extension types
+  */
+@@ -559,7 +573,7 @@ enum nft_set_extensions {
+ 	NFT_SET_EXT_TIMEOUT,
+ 	NFT_SET_EXT_EXPIRATION,
+ 	NFT_SET_EXT_USERDATA,
+-	NFT_SET_EXT_EXPR,
++	NFT_SET_EXT_EXPRESSIONS,
+ 	NFT_SET_EXT_OBJREF,
+ 	NFT_SET_EXT_NUM
+ };
+@@ -677,9 +691,9 @@ static inline struct nft_userdata *nft_set_ext_userdata(const struct nft_set_ext
+ 	return nft_set_ext(ext, NFT_SET_EXT_USERDATA);
+ }
+ 
+-static inline struct nft_expr *nft_set_ext_expr(const struct nft_set_ext *ext)
++static inline struct nft_set_elem_expr *nft_set_ext_expr(const struct nft_set_ext *ext)
+ {
+-	return nft_set_ext(ext, NFT_SET_EXT_EXPR);
++	return nft_set_ext(ext, NFT_SET_EXT_EXPRESSIONS);
+ }
+ 
+ static inline bool nft_set_elem_expired(const struct nft_set_ext *ext)
+@@ -909,11 +923,17 @@ static inline void nft_set_elem_update_expr(const struct nft_set_ext *ext,
+ 					    struct nft_regs *regs,
+ 					    const struct nft_pktinfo *pkt)
+ {
++	struct nft_set_elem_expr *elem_expr;
+ 	struct nft_expr *expr;
+-
+-	if (__nft_set_ext_exists(ext, NFT_SET_EXT_EXPR)) {
+-		expr = nft_set_ext_expr(ext);
+-		expr->ops->eval(expr, regs, pkt);
++	u32 size;
++
++	if (__nft_set_ext_exists(ext, NFT_SET_EXT_EXPRESSIONS)) {
++		elem_expr = nft_set_ext_expr(ext);
++		nft_setelem_expr_foreach(expr, elem_expr, size) {
++			expr->ops->eval(expr, regs, pkt);
++			if (regs->verdict.code == NFT_BREAK)
++				return;
++		}
+ 	}
+ }
+ 
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index ade10cd23acc..a3d5014dd246 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4496,8 +4496,8 @@ const struct nft_set_ext_type nft_set_ext_types[] = {
+ 	[NFT_SET_EXT_DATA]		= {
+ 		.align	= __alignof__(u32),
+ 	},
+-	[NFT_SET_EXT_EXPR]		= {
+-		.align	= __alignof__(struct nft_expr),
++	[NFT_SET_EXT_EXPRESSIONS]	= {
++		.align	= __alignof__(struct nft_set_elem_expr),
+ 	},
+ 	[NFT_SET_EXT_OBJREF]		= {
+ 		.len	= sizeof(struct nft_object *),
+@@ -4573,6 +4573,29 @@ static int nft_ctx_init_from_elemattr(struct nft_ctx *ctx, struct net *net,
+ 	return 0;
+ }
+ 
++static int nft_set_elem_expr_dump(struct sk_buff *skb,
++				  const struct nft_set *set,
++				  const struct nft_set_ext *ext)
 +{
-+	return net_generic(net, nfnl_acct_net_id);
++	struct nft_set_elem_expr *elem_expr;
++	u32 size, num_exprs = 0;
++	struct nft_expr *expr;
++
++	elem_expr = nft_set_ext_expr(ext);
++	nft_setelem_expr_foreach(expr, elem_expr, size)
++		num_exprs++;
++
++	if (num_exprs == 1) {
++		expr = nft_setelem_expr_at(elem_expr, 0);
++		if (nft_expr_dump(skb, NFTA_SET_ELEM_EXPR, expr) < 0)
++			return -1;
++
++		return 0;
++	}
++
++	return 0;
 +}
 +
- #define NFACCT_F_QUOTA (NFACCT_F_QUOTA_PKTS | NFACCT_F_QUOTA_BYTES)
- #define NFACCT_OVERQUOTA_BIT	2	/* NFACCT_F_OVERQUOTA */
+ static int nf_tables_fill_setelem(struct sk_buff *skb,
+ 				  const struct nft_set *set,
+ 				  const struct nft_set_elem *elem)
+@@ -4600,8 +4623,8 @@ static int nf_tables_fill_setelem(struct sk_buff *skb,
+ 			  set->dlen) < 0)
+ 		goto nla_put_failure;
  
-@@ -49,6 +61,7 @@ static int nfnl_acct_new(struct net *net, struct sock *nfnl,
- 			 const struct nlattr * const tb[],
- 			 struct netlink_ext_ack *extack)
- {
-+	struct nfnl_acct_net *nfnl_acct_net = nfnl_acct_pernet(net);
- 	struct nf_acct *nfacct, *matching = NULL;
- 	char *acct_name;
- 	unsigned int size = 0;
-@@ -61,7 +74,7 @@ static int nfnl_acct_new(struct net *net, struct sock *nfnl,
- 	if (strlen(acct_name) == 0)
- 		return -EINVAL;
+-	if (nft_set_ext_exists(ext, NFT_SET_EXT_EXPR) &&
+-	    nft_expr_dump(skb, NFTA_SET_ELEM_EXPR, nft_set_ext_expr(ext)) < 0)
++	if (nft_set_ext_exists(ext, NFT_SET_EXT_EXPRESSIONS) &&
++	    nft_set_elem_expr_dump(skb, set, ext))
+ 		goto nla_put_failure;
  
--	list_for_each_entry(nfacct, &net->nfnl_acct_list, head) {
-+	list_for_each_entry(nfacct, &nfnl_acct_net->nfnl_acct_list, head) {
- 		if (strncmp(nfacct->name, acct_name, NFACCT_NAME_MAX) != 0)
- 			continue;
- 
-@@ -123,7 +136,7 @@ static int nfnl_acct_new(struct net *net, struct sock *nfnl,
- 			     be64_to_cpu(nla_get_be64(tb[NFACCT_PKTS])));
- 	}
- 	refcount_set(&nfacct->refcnt, 1);
--	list_add_tail_rcu(&nfacct->head, &net->nfnl_acct_list);
-+	list_add_tail_rcu(&nfacct->head, &nfnl_acct_net->nfnl_acct_list);
- 	return 0;
+ 	if (nft_set_ext_exists(ext, NFT_SET_EXT_OBJREF) &&
+@@ -5096,8 +5119,8 @@ void *nft_set_elem_init(const struct nft_set *set,
+ 	return elem;
  }
  
-@@ -188,6 +201,7 @@ static int
- nfnl_acct_dump(struct sk_buff *skb, struct netlink_callback *cb)
+-static void nft_set_elem_expr_destroy(const struct nft_ctx *ctx,
+-				      struct nft_expr *expr)
++static void __nft_set_elem_expr_destroy(const struct nft_ctx *ctx,
++					struct nft_expr *expr)
  {
- 	struct net *net = sock_net(skb->sk);
-+	struct nfnl_acct_net *nfnl_acct_net = nfnl_acct_pernet(net);
- 	struct nf_acct *cur, *last;
- 	const struct nfacct_filter *filter = cb->data;
- 
-@@ -199,7 +213,7 @@ nfnl_acct_dump(struct sk_buff *skb, struct netlink_callback *cb)
- 		cb->args[1] = 0;
- 
- 	rcu_read_lock();
--	list_for_each_entry_rcu(cur, &net->nfnl_acct_list, head) {
-+	list_for_each_entry_rcu(cur, &nfnl_acct_net->nfnl_acct_list, head) {
- 		if (last) {
- 			if (cur != last)
- 				continue;
-@@ -269,6 +283,7 @@ static int nfnl_acct_get(struct net *net, struct sock *nfnl,
- 			 const struct nlattr * const tb[],
- 			 struct netlink_ext_ack *extack)
- {
-+	struct nfnl_acct_net *nfnl_acct_net = nfnl_acct_pernet(net);
- 	int ret = -ENOENT;
- 	struct nf_acct *cur;
- 	char *acct_name;
-@@ -288,7 +303,7 @@ static int nfnl_acct_get(struct net *net, struct sock *nfnl,
- 		return -EINVAL;
- 	acct_name = nla_data(tb[NFACCT_NAME]);
- 
--	list_for_each_entry(cur, &net->nfnl_acct_list, head) {
-+	list_for_each_entry(cur, &nfnl_acct_net->nfnl_acct_list, head) {
- 		struct sk_buff *skb2;
- 
- 		if (strncmp(cur->name, acct_name, NFACCT_NAME_MAX)!= 0)
-@@ -342,19 +357,20 @@ static int nfnl_acct_del(struct net *net, struct sock *nfnl,
- 			 const struct nlattr * const tb[],
- 			 struct netlink_ext_ack *extack)
- {
-+	struct nfnl_acct_net *nfnl_acct_net = nfnl_acct_pernet(net);
- 	struct nf_acct *cur, *tmp;
- 	int ret = -ENOENT;
- 	char *acct_name;
- 
- 	if (!tb[NFACCT_NAME]) {
--		list_for_each_entry_safe(cur, tmp, &net->nfnl_acct_list, head)
-+		list_for_each_entry_safe(cur, tmp, &nfnl_acct_net->nfnl_acct_list, head)
- 			nfnl_acct_try_del(cur);
- 
- 		return 0;
+ 	if (expr->ops->destroy_clone) {
+ 		expr->ops->destroy_clone(ctx, expr);
+@@ -5107,6 +5130,16 @@ static void nft_set_elem_expr_destroy(const struct nft_ctx *ctx,
  	}
- 	acct_name = nla_data(tb[NFACCT_NAME]);
- 
--	list_for_each_entry(cur, &net->nfnl_acct_list, head) {
-+	list_for_each_entry(cur, &nfnl_acct_net->nfnl_acct_list, head) {
- 		if (strncmp(cur->name, acct_name, NFACCT_NAME_MAX) != 0)
- 			continue;
- 
-@@ -402,10 +418,11 @@ MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_ACCT);
- 
- struct nf_acct *nfnl_acct_find_get(struct net *net, const char *acct_name)
- {
-+	struct nfnl_acct_net *nfnl_acct_net = nfnl_acct_pernet(net);
- 	struct nf_acct *cur, *acct = NULL;
- 
- 	rcu_read_lock();
--	list_for_each_entry_rcu(cur, &net->nfnl_acct_list, head) {
-+	list_for_each_entry_rcu(cur, &nfnl_acct_net->nfnl_acct_list, head) {
- 		if (strncmp(cur->name, acct_name, NFACCT_NAME_MAX)!= 0)
- 			continue;
- 
-@@ -488,16 +505,17 @@ EXPORT_SYMBOL_GPL(nfnl_acct_overquota);
- 
- static int __net_init nfnl_acct_net_init(struct net *net)
- {
--	INIT_LIST_HEAD(&net->nfnl_acct_list);
-+	INIT_LIST_HEAD(&nfnl_acct_pernet(net)->nfnl_acct_list);
- 
- 	return 0;
  }
  
- static void __net_exit nfnl_acct_net_exit(struct net *net)
++static void nft_set_elem_expr_destroy(const struct nft_ctx *ctx,
++				      struct nft_set_elem_expr *elem_expr)
++{
++	struct nft_expr *expr;
++	u32 size;
++
++	nft_setelem_expr_foreach(expr, elem_expr, size)
++		__nft_set_elem_expr_destroy(ctx, expr);
++}
++
+ void nft_set_elem_destroy(const struct nft_set *set, void *elem,
+ 			  bool destroy_expr)
  {
-+	struct nfnl_acct_net *nfnl_acct_net = nfnl_acct_pernet(net);
- 	struct nf_acct *cur, *tmp;
+@@ -5119,7 +5152,7 @@ void nft_set_elem_destroy(const struct nft_set *set, void *elem,
+ 	nft_data_release(nft_set_ext_key(ext), NFT_DATA_VALUE);
+ 	if (nft_set_ext_exists(ext, NFT_SET_EXT_DATA))
+ 		nft_data_release(nft_set_ext_data(ext), set->dtype);
+-	if (destroy_expr && nft_set_ext_exists(ext, NFT_SET_EXT_EXPR))
++	if (destroy_expr && nft_set_ext_exists(ext, NFT_SET_EXT_EXPRESSIONS))
+ 		nft_set_elem_expr_destroy(&ctx, nft_set_ext_expr(ext));
  
--	list_for_each_entry_safe(cur, tmp, &net->nfnl_acct_list, head) {
-+	list_for_each_entry_safe(cur, tmp, &nfnl_acct_net->nfnl_acct_list, head) {
- 		list_del_rcu(&cur->head);
+ 	if (nft_set_ext_exists(ext, NFT_SET_EXT_OBJREF))
+@@ -5136,7 +5169,7 @@ static void nf_tables_set_elem_destroy(const struct nft_ctx *ctx,
+ {
+ 	struct nft_set_ext *ext = nft_set_elem_ext(set, elem);
  
- 		if (refcount_dec_and_test(&cur->refcnt))
-@@ -508,6 +526,8 @@ static void __net_exit nfnl_acct_net_exit(struct net *net)
- static struct pernet_operations nfnl_acct_ops = {
-         .init   = nfnl_acct_net_init,
-         .exit   = nfnl_acct_net_exit,
-+        .id     = &nfnl_acct_net_id,
-+        .size   = sizeof(struct nfnl_acct_net),
+-	if (nft_set_ext_exists(ext, NFT_SET_EXT_EXPR))
++	if (nft_set_ext_exists(ext, NFT_SET_EXT_EXPRESSIONS))
+ 		nft_set_elem_expr_destroy(ctx, nft_set_ext_expr(ext));
+ 
+ 	kfree(elem);
+@@ -5171,6 +5204,18 @@ static int nft_set_elem_expr_clone(const struct nft_ctx *ctx,
+ 	return -ENOMEM;
+ }
+ 
++static void nft_set_elem_expr_setup(const struct nft_set_ext *ext, int i,
++				    struct nft_expr *expr_array[])
++{
++	struct nft_set_elem_expr *elem_expr = nft_set_ext_expr(ext);
++	struct nft_expr *expr = nft_setelem_expr_at(elem_expr, elem_expr->size);
++
++	memcpy(expr, expr_array[i], expr_array[i]->ops->size);
++	elem_expr->size += expr_array[i]->ops->size;
++	kfree(expr_array[i]);
++	expr_array[i] = NULL;
++}
++
+ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 			    const struct nlattr *attr, u32 nlmsg_flags)
+ {
+@@ -5186,11 +5231,11 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 	struct nft_data_desc desc;
+ 	enum nft_registers dreg;
+ 	struct nft_trans *trans;
+-	u32 flags = 0;
++	u32 flags = 0, size = 0;
+ 	u64 timeout;
+ 	u64 expiration;
+-	u8 ulen;
+ 	int err, i;
++	u8 ulen;
+ 
+ 	err = nla_parse_nested_deprecated(nla, NFTA_SET_ELEM_MAX, attr,
+ 					  nft_set_elem_policy, NULL);
+@@ -5293,9 +5338,14 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 			nft_set_ext_add(&tmpl, NFT_SET_EXT_TIMEOUT);
+ 	}
+ 
+-	if (set->num_exprs == 1)
+-		nft_set_ext_add_length(&tmpl, NFT_SET_EXT_EXPR,
+-				       expr_array[0]->ops->size);
++	if (set->num_exprs) {
++		for (i = 0; i < set->num_exprs; i++)
++			size += expr_array[i]->ops->size;
++
++		nft_set_ext_add_length(&tmpl, NFT_SET_EXT_EXPRESSIONS,
++				       sizeof(struct nft_set_elem_expr) +
++				       size);
++	}
+ 
+ 	if (nla[NFTA_SET_ELEM_OBJREF] != NULL) {
+ 		if (!(set->flags & NFT_SET_OBJECT)) {
+@@ -5377,13 +5427,8 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 		*nft_set_ext_obj(ext) = obj;
+ 		obj->use++;
+ 	}
+-	if (set->num_exprs == 1) {
+-		struct nft_expr *expr = expr_array[0];
+-
+-		memcpy(nft_set_ext_expr(ext), expr, expr->ops->size);
+-		kfree(expr);
+-		expr_array[0] = NULL;
+-	}
++	for (i = 0; i < set->num_exprs; i++)
++		nft_set_elem_expr_setup(ext, i, expr_array);
+ 
+ 	trans = nft_trans_elem_alloc(ctx, NFT_MSG_NEWSETELEM, set);
+ 	if (trans == NULL)
+diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
+index 4353e47c30fc..d9e609b2e5d4 100644
+--- a/net/netfilter/nft_dynset.c
++++ b/net/netfilter/nft_dynset.c
+@@ -19,11 +19,30 @@ struct nft_dynset {
+ 	enum nft_registers		sreg_key:8;
+ 	enum nft_registers		sreg_data:8;
+ 	bool				invert;
++	u8				num_exprs;
+ 	u64				timeout;
+-	struct nft_expr			*expr;
++	struct nft_expr			*expr_array[NFT_SET_EXPR_MAX];
+ 	struct nft_set_binding		binding;
  };
  
- static int __init nfnl_acct_init(void)
++static int nft_dynset_expr_setup(const struct nft_dynset *priv,
++				 const struct nft_set_ext *ext)
++{
++	struct nft_set_elem_expr *elem_expr = nft_set_ext_expr(ext);
++	struct nft_expr *expr;
++	int i;
++
++	for (i = 0; i < priv->num_exprs; i++) {
++		expr = nft_setelem_expr_at(elem_expr, elem_expr->size);
++		if (nft_expr_clone(expr, priv->expr_array[i]) < 0)
++			return -1;
++
++		elem_expr->size += priv->expr_array[i]->ops->size;
++	}
++
++	return 0;
++}
++
+ static void *nft_dynset_new(struct nft_set *set, const struct nft_expr *expr,
+ 			    struct nft_regs *regs)
+ {
+@@ -44,8 +63,7 @@ static void *nft_dynset_new(struct nft_set *set, const struct nft_expr *expr,
+ 		goto err1;
+ 
+ 	ext = nft_set_elem_ext(set, elem);
+-	if (priv->expr != NULL &&
+-	    nft_expr_clone(nft_set_ext_expr(ext), priv->expr) < 0)
++	if (priv->num_exprs && nft_dynset_expr_setup(priv, ext) < 0)
+ 		goto err2;
+ 
+ 	return elem;
+@@ -90,6 +108,41 @@ void nft_dynset_eval(const struct nft_expr *expr,
+ 		regs->verdict.code = NFT_BREAK;
+ }
+ 
++static void nft_dynset_ext_add_expr(struct nft_dynset *priv)
++{
++	u8 size = 0;
++	int i;
++
++	for (i = 0; i < priv->num_exprs; i++)
++		size += priv->expr_array[i]->ops->size;
++
++	nft_set_ext_add_length(&priv->tmpl, NFT_SET_EXT_EXPRESSIONS,
++			       sizeof(struct nft_set_elem_expr) + size);
++}
++
++static struct nft_expr *
++nft_dynset_expr_alloc(const struct nft_ctx *ctx, const struct nft_set *set,
++		      const struct nlattr *attr, int pos)
++{
++	struct nft_expr *expr;
++	int err;
++
++	expr = nft_set_elem_expr_alloc(ctx, set, attr);
++	if (IS_ERR(expr))
++		return expr;
++
++	if (set->exprs[pos] && set->exprs[pos]->ops != expr->ops) {
++		err = -EOPNOTSUPP;
++		goto err_dynset_expr;
++	}
++
++	return expr;
++
++err_dynset_expr:
++	nft_expr_destroy(ctx, expr);
++	return ERR_PTR(err);
++}
++
+ static const struct nla_policy nft_dynset_policy[NFTA_DYNSET_MAX + 1] = {
+ 	[NFTA_DYNSET_SET_NAME]	= { .type = NLA_STRING,
+ 				    .len = NFT_SET_MAXNAMELEN - 1 },
+@@ -110,7 +163,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 	u8 genmask = nft_genmask_next(ctx->net);
+ 	struct nft_set *set;
+ 	u64 timeout;
+-	int err;
++	int err, i;
+ 
+ 	lockdep_assert_held(&ctx->net->nft.commit_mutex);
+ 
+@@ -179,17 +232,23 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 	} else if (set->flags & NFT_SET_MAP)
+ 		return -EINVAL;
+ 
+-	if (tb[NFTA_DYNSET_EXPR] != NULL) {
++	if (tb[NFTA_DYNSET_EXPR]) {
++		struct nft_expr *dynset_expr;
++
+ 		if (!(set->flags & NFT_SET_EVAL))
+ 			return -EINVAL;
+ 
+-		priv->expr = nft_set_elem_expr_alloc(ctx, set,
+-						     tb[NFTA_DYNSET_EXPR]);
+-		if (IS_ERR(priv->expr))
+-			return PTR_ERR(priv->expr);
++		dynset_expr = nft_dynset_expr_alloc(ctx, set,
++						    tb[NFTA_DYNSET_EXPR], 0);
++		if (IS_ERR(dynset_expr))
++			return PTR_ERR(dynset_expr);
+ 
+-		if (set->num_exprs == 1 &&
+-		    set->exprs[0]->ops != priv->expr->ops) {
++		priv->num_exprs++;
++		priv->expr_array[0] = dynset_expr;
++
++		if (set->num_exprs > 1 ||
++		    (set->num_exprs == 1 &&
++		     dynset_expr->ops != set->exprs[0]->ops)) {
+ 			err = -EOPNOTSUPP;
+ 			goto err_expr_free;
+ 		}
+@@ -199,9 +258,10 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 	nft_set_ext_add_length(&priv->tmpl, NFT_SET_EXT_KEY, set->klen);
+ 	if (set->flags & NFT_SET_MAP)
+ 		nft_set_ext_add_length(&priv->tmpl, NFT_SET_EXT_DATA, set->dlen);
+-	if (priv->expr != NULL)
+-		nft_set_ext_add_length(&priv->tmpl, NFT_SET_EXT_EXPR,
+-				       priv->expr->ops->size);
++
++	if (priv->num_exprs)
++		nft_dynset_ext_add_expr(priv);
++
+ 	if (set->flags & NFT_SET_TIMEOUT) {
+ 		if (timeout || set->timeout)
+ 			nft_set_ext_add(&priv->tmpl, NFT_SET_EXT_EXPIRATION);
+@@ -220,8 +280,8 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 	return 0;
+ 
+ err_expr_free:
+-	if (priv->expr != NULL)
+-		nft_expr_destroy(ctx, priv->expr);
++	for (i = 0; i < priv->num_exprs; i++)
++		nft_expr_destroy(ctx, priv->expr_array[i]);
+ 	return err;
+ }
+ 
+@@ -246,9 +306,10 @@ static void nft_dynset_destroy(const struct nft_ctx *ctx,
+ 			       const struct nft_expr *expr)
+ {
+ 	struct nft_dynset *priv = nft_expr_priv(expr);
++	int i;
+ 
+-	if (priv->expr != NULL)
+-		nft_expr_destroy(ctx, priv->expr);
++	for (i = 0; i < priv->num_exprs; i++)
++		nft_expr_destroy(ctx, priv->expr_array[i]);
+ 
+ 	nf_tables_destroy_set(ctx, priv->set);
+ }
+@@ -271,8 +332,10 @@ static int nft_dynset_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 			 cpu_to_be64(jiffies_to_msecs(priv->timeout)),
+ 			 NFTA_DYNSET_PAD))
+ 		goto nla_put_failure;
+-	if (priv->expr && nft_expr_dump(skb, NFTA_DYNSET_EXPR, priv->expr))
+-		goto nla_put_failure;
++	if (priv->num_exprs == 1) {
++		if (nft_expr_dump(skb, NFTA_DYNSET_EXPR, priv->expr_array[0]))
++			goto nla_put_failure;
++	}
+ 	if (nla_put_be32(skb, NFTA_DYNSET_FLAGS, htonl(flags)))
+ 		goto nla_put_failure;
+ 	return 0;
+diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
+index 4d3f147e8d8d..bf618b7ec1ae 100644
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -293,6 +293,22 @@ static void nft_rhash_walk(const struct nft_ctx *ctx, struct nft_set *set,
+ 	rhashtable_walk_exit(&hti);
+ }
+ 
++static bool nft_rhash_expr_needs_gc_run(const struct nft_set *set,
++					struct nft_set_ext *ext)
++{
++	struct nft_set_elem_expr *elem_expr = nft_set_ext_expr(ext);
++	struct nft_expr *expr;
++	u32 size;
++
++	nft_setelem_expr_foreach(expr, elem_expr, size) {
++		if (expr->ops->gc &&
++		    expr->ops->gc(read_pnet(&set->net), expr))
++			return true;
++	}
++
++	return false;
++}
++
+ static void nft_rhash_gc(struct work_struct *work)
+ {
+ 	struct nft_set *set;
+@@ -314,16 +330,13 @@ static void nft_rhash_gc(struct work_struct *work)
+ 			continue;
+ 		}
+ 
+-		if (nft_set_ext_exists(&he->ext, NFT_SET_EXT_EXPR)) {
+-			struct nft_expr *expr = nft_set_ext_expr(&he->ext);
++		if (nft_set_ext_exists(&he->ext, NFT_SET_EXT_EXPRESSIONS) &&
++		    nft_rhash_expr_needs_gc_run(set, &he->ext))
++			goto needs_gc_run;
+ 
+-			if (expr->ops->gc &&
+-			    expr->ops->gc(read_pnet(&set->net), expr))
+-				goto gc;
+-		}
+ 		if (!nft_set_elem_expired(&he->ext))
+ 			continue;
+-gc:
++needs_gc_run:
+ 		if (nft_set_elem_mark_busy(&he->ext))
+ 			continue;
+ 
 -- 
 2.20.1
 
