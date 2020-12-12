@@ -2,55 +2,53 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,INCLUDES_PULL_REQUEST,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66C25C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8259C19425
 	for <netfilter-devel@archiver.kernel.org>; Sat, 12 Dec 2020 23:08:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3D4C221BE5
+	by mail.kernel.org (Postfix) with ESMTP id 6F6CB21BE5
 	for <netfilter-devel@archiver.kernel.org>; Sat, 12 Dec 2020 23:08:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2408172AbgLLXHx (ORCPT
+        id S2439907AbgLLXIA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 12 Dec 2020 18:07:53 -0500
-Received: from correo.us.es ([193.147.175.20]:46770 "EHLO mail.us.es"
+        Sat, 12 Dec 2020 18:08:00 -0500
+Received: from correo.us.es ([193.147.175.20]:46730 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2408160AbgLLXGI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 12 Dec 2020 18:06:08 -0500
+        id S1725822AbgLLXGH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 12 Dec 2020 18:06:07 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id CCCE6303D19
-        for <netfilter-devel@vger.kernel.org>; Sun, 13 Dec 2020 00:05:12 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id A376D303D07
+        for <netfilter-devel@vger.kernel.org>; Sun, 13 Dec 2020 00:05:09 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B8116DA78C
-        for <netfilter-devel@vger.kernel.org>; Sun, 13 Dec 2020 00:05:12 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 956C9DA78C
+        for <netfilter-devel@vger.kernel.org>; Sun, 13 Dec 2020 00:05:09 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id AC28ADA73F; Sun, 13 Dec 2020 00:05:12 +0100 (CET)
+        id 8A0D6DA789; Sun, 13 Dec 2020 00:05:09 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3ABBCDA73D;
-        Sun, 13 Dec 2020 00:05:10 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 284E5DA704;
+        Sun, 13 Dec 2020 00:05:07 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 13 Dec 2020 00:05:10 +0100 (CET)
+ Sun, 13 Dec 2020 00:05:07 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 119794265A5A;
-        Sun, 13 Dec 2020 00:05:10 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPSA id F1FC74265A5A;
+        Sun, 13 Dec 2020 00:05:06 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 05/10] netfilter: use actual socket sk for REJECT action
-Date:   Sun, 13 Dec 2020 00:05:08 +0100
-Message-Id: <20201212230513.3465-6-pablo@netfilter.org>
+Subject: [PATCH net-next 00/10] Netfilter/IPVS updates for net-next
+Date:   Sun, 13 Dec 2020 00:05:03 +0100
+Message-Id: <20201212230513.3465-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20201212230513.3465-1-pablo@netfilter.org>
-References: <20201212230513.3465-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
@@ -58,185 +56,95 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Jan Engelhardt <jengelh@inai.de>
+Hi Jakub, David,
 
-True to the message of commit v5.10-rc1-105-g46d6c5ae953c, _do_
-actually make use of state->sk when possible, such as in the REJECT
-modules.
+The following patchset contains Netfilter updates for net-next:
 
-Reported-by: Minqiang Chen <ptpt52@gmail.com>
-Cc: Jason A. Donenfeld <Jason@zx2c4.com>
-Signed-off-by: Jan Engelhardt <jengelh@inai.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/ipv4/nf_reject.h | 4 ++--
- include/net/netfilter/ipv6/nf_reject.h | 5 ++---
- net/ipv4/netfilter/ipt_REJECT.c        | 3 ++-
- net/ipv4/netfilter/nf_reject_ipv4.c    | 6 +++---
- net/ipv4/netfilter/nft_reject_ipv4.c   | 3 ++-
- net/ipv6/netfilter/ip6t_REJECT.c       | 2 +-
- net/ipv6/netfilter/nf_reject_ipv6.c    | 5 +++--
- net/ipv6/netfilter/nft_reject_ipv6.c   | 3 ++-
- net/netfilter/nft_reject_inet.c        | 6 ++++--
- 9 files changed, 21 insertions(+), 16 deletions(-)
+1) Missing dependencies in NFT_BRIDGE_REJECT, from Randy Dunlap.
 
-diff --git a/include/net/netfilter/ipv4/nf_reject.h b/include/net/netfilter/ipv4/nf_reject.h
-index 0d8ff84a2588..c653fcb88354 100644
---- a/include/net/netfilter/ipv4/nf_reject.h
-+++ b/include/net/netfilter/ipv4/nf_reject.h
-@@ -8,8 +8,8 @@
- #include <net/netfilter/nf_reject.h>
- 
- void nf_send_unreach(struct sk_buff *skb_in, int code, int hook);
--void nf_send_reset(struct net *net, struct sk_buff *oldskb, int hook);
--
-+void nf_send_reset(struct net *net, struct sock *, struct sk_buff *oldskb,
-+		   int hook);
- const struct tcphdr *nf_reject_ip_tcphdr_get(struct sk_buff *oldskb,
- 					     struct tcphdr *_oth, int hook);
- struct iphdr *nf_reject_iphdr_put(struct sk_buff *nskb,
-diff --git a/include/net/netfilter/ipv6/nf_reject.h b/include/net/netfilter/ipv6/nf_reject.h
-index edcf6d1cd316..d729344ba644 100644
---- a/include/net/netfilter/ipv6/nf_reject.h
-+++ b/include/net/netfilter/ipv6/nf_reject.h
-@@ -7,9 +7,8 @@
- 
- void nf_send_unreach6(struct net *net, struct sk_buff *skb_in, unsigned char code,
- 		      unsigned int hooknum);
--
--void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook);
--
-+void nf_send_reset6(struct net *net, struct sock *sk, struct sk_buff *oldskb,
-+		    int hook);
- const struct tcphdr *nf_reject_ip6_tcphdr_get(struct sk_buff *oldskb,
- 					      struct tcphdr *otcph,
- 					      unsigned int *otcplen, int hook);
-diff --git a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
-index e16b98ee6266..4b8840734762 100644
---- a/net/ipv4/netfilter/ipt_REJECT.c
-+++ b/net/ipv4/netfilter/ipt_REJECT.c
-@@ -56,7 +56,8 @@ reject_tg(struct sk_buff *skb, const struct xt_action_param *par)
- 		nf_send_unreach(skb, ICMP_PKT_FILTERED, hook);
- 		break;
- 	case IPT_TCP_RESET:
--		nf_send_reset(xt_net(par), skb, hook);
-+		nf_send_reset(xt_net(par), par->state->sk, skb, hook);
-+		break;
- 	case IPT_ICMP_ECHOREPLY:
- 		/* Doesn't happen. */
- 		break;
-diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
-index 4109055cdea6..4eed5afca392 100644
---- a/net/ipv4/netfilter/nf_reject_ipv4.c
-+++ b/net/ipv4/netfilter/nf_reject_ipv4.c
-@@ -234,7 +234,8 @@ static int nf_reject_fill_skb_dst(struct sk_buff *skb_in)
- }
- 
- /* Send RST reply */
--void nf_send_reset(struct net *net, struct sk_buff *oldskb, int hook)
-+void nf_send_reset(struct net *net, struct sock *sk, struct sk_buff *oldskb,
-+		   int hook)
- {
- 	struct net_device *br_indev __maybe_unused;
- 	struct sk_buff *nskb;
-@@ -267,8 +268,7 @@ void nf_send_reset(struct net *net, struct sk_buff *oldskb, int hook)
- 	niph = nf_reject_iphdr_put(nskb, oldskb, IPPROTO_TCP,
- 				   ip4_dst_hoplimit(skb_dst(nskb)));
- 	nf_reject_ip_tcphdr_put(nskb, oldskb, oth);
--
--	if (ip_route_me_harder(net, nskb->sk, nskb, RTN_UNSPEC))
-+	if (ip_route_me_harder(net, sk, nskb, RTN_UNSPEC))
- 		goto free_nskb;
- 
- 	niph = ip_hdr(nskb);
-diff --git a/net/ipv4/netfilter/nft_reject_ipv4.c b/net/ipv4/netfilter/nft_reject_ipv4.c
-index e408f813f5d8..ff437e4ed6db 100644
---- a/net/ipv4/netfilter/nft_reject_ipv4.c
-+++ b/net/ipv4/netfilter/nft_reject_ipv4.c
-@@ -27,7 +27,8 @@ static void nft_reject_ipv4_eval(const struct nft_expr *expr,
- 		nf_send_unreach(pkt->skb, priv->icmp_code, nft_hook(pkt));
- 		break;
- 	case NFT_REJECT_TCP_RST:
--		nf_send_reset(nft_net(pkt), pkt->skb, nft_hook(pkt));
-+		nf_send_reset(nft_net(pkt), pkt->xt.state->sk, pkt->skb,
-+			      nft_hook(pkt));
- 		break;
- 	default:
- 		break;
-diff --git a/net/ipv6/netfilter/ip6t_REJECT.c b/net/ipv6/netfilter/ip6t_REJECT.c
-index 3ac5485049f0..a35019d2e480 100644
---- a/net/ipv6/netfilter/ip6t_REJECT.c
-+++ b/net/ipv6/netfilter/ip6t_REJECT.c
-@@ -61,7 +61,7 @@ reject_tg6(struct sk_buff *skb, const struct xt_action_param *par)
- 		/* Do nothing */
- 		break;
- 	case IP6T_TCP_RESET:
--		nf_send_reset6(net, skb, xt_hooknum(par));
-+		nf_send_reset6(net, par->state->sk, skb, xt_hooknum(par));
- 		break;
- 	case IP6T_ICMP6_POLICY_FAIL:
- 		nf_send_unreach6(net, skb, ICMPV6_POLICY_FAIL, xt_hooknum(par));
-diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
-index aa35e6e37c1f..570d1d76c44d 100644
---- a/net/ipv6/netfilter/nf_reject_ipv6.c
-+++ b/net/ipv6/netfilter/nf_reject_ipv6.c
-@@ -275,7 +275,8 @@ static int nf_reject6_fill_skb_dst(struct sk_buff *skb_in)
- 	return 0;
- }
- 
--void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook)
-+void nf_send_reset6(struct net *net, struct sock *sk, struct sk_buff *oldskb,
-+		    int hook)
- {
- 	struct net_device *br_indev __maybe_unused;
- 	struct sk_buff *nskb;
-@@ -367,7 +368,7 @@ void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook)
- 		dev_queue_xmit(nskb);
- 	} else
- #endif
--		ip6_local_out(net, nskb->sk, nskb);
-+		ip6_local_out(net, sk, nskb);
- }
- EXPORT_SYMBOL_GPL(nf_send_reset6);
- 
-diff --git a/net/ipv6/netfilter/nft_reject_ipv6.c b/net/ipv6/netfilter/nft_reject_ipv6.c
-index c1098a1968e1..7969d1f3018d 100644
---- a/net/ipv6/netfilter/nft_reject_ipv6.c
-+++ b/net/ipv6/netfilter/nft_reject_ipv6.c
-@@ -28,7 +28,8 @@ static void nft_reject_ipv6_eval(const struct nft_expr *expr,
- 				 nft_hook(pkt));
- 		break;
- 	case NFT_REJECT_TCP_RST:
--		nf_send_reset6(nft_net(pkt), pkt->skb, nft_hook(pkt));
-+		nf_send_reset6(nft_net(pkt), pkt->xt.state->sk, pkt->skb,
-+			       nft_hook(pkt));
- 		break;
- 	default:
- 		break;
-diff --git a/net/netfilter/nft_reject_inet.c b/net/netfilter/nft_reject_inet.c
-index 32f3ea398ddf..95090186ee90 100644
---- a/net/netfilter/nft_reject_inet.c
-+++ b/net/netfilter/nft_reject_inet.c
-@@ -28,7 +28,8 @@ static void nft_reject_inet_eval(const struct nft_expr *expr,
- 					nft_hook(pkt));
- 			break;
- 		case NFT_REJECT_TCP_RST:
--			nf_send_reset(nft_net(pkt), pkt->skb, nft_hook(pkt));
-+			nf_send_reset(nft_net(pkt), pkt->xt.state->sk,
-+				      pkt->skb, nft_hook(pkt));
- 			break;
- 		case NFT_REJECT_ICMPX_UNREACH:
- 			nf_send_unreach(pkt->skb,
-@@ -44,7 +45,8 @@ static void nft_reject_inet_eval(const struct nft_expr *expr,
- 					 priv->icmp_code, nft_hook(pkt));
- 			break;
- 		case NFT_REJECT_TCP_RST:
--			nf_send_reset6(nft_net(pkt), pkt->skb, nft_hook(pkt));
-+			nf_send_reset6(nft_net(pkt), pkt->xt.state->sk,
-+				       pkt->skb, nft_hook(pkt));
- 			break;
- 		case NFT_REJECT_ICMPX_UNREACH:
- 			nf_send_unreach6(nft_net(pkt), pkt->skb,
--- 
-2.20.1
+2) Use atomic_inc_return() instead of atomic_add_return() in IPVS,
+   from Yejune Deng.
 
+3) Simplify check for overquota in xt_nfacct, from Kaixu Xia.
+
+4) Move nfnl_acct_list away from struct net, from Miao Wang.
+
+5) Pass actual sk in reject actions, from Jan Engelhardt.
+
+6) Add timeout and protoinfo to ctnetlink destroy events,
+   from Florian Westphal.
+
+7) Four patches to generalize set infrastructure to support
+   for multiple expressions per set element.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit f9e425e99b0756c1479042afe761073779df2a30:
+
+  octeontx2-af: Add support for RSS hashing based on Transport protocol field (2020-11-21 16:05:22 -0800)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git HEAD
+
+for you to fetch changes up to 48b0ae046ee96eac999839f6d26c624b8c93ed66:
+
+  netfilter: nftables: netlink support for several set element expressions (2020-12-12 19:20:52 +0100)
+
+----------------------------------------------------------------
+Florian Westphal (1):
+      netfilter: ctnetlink: add timeout and protoinfo to destroy events
+
+Jan Engelhardt (1):
+      netfilter: use actual socket sk for REJECT action
+
+Kaixu Xia (1):
+      netfilter: Remove unnecessary conversion to bool
+
+Pablo Neira Ayuso (4):
+      netfilter: nftables: generalize set expressions support
+      netfilter: nftables: move nft_expr before nft_set
+      netfilter: nftables: generalize set extension to support for several expressions
+      netfilter: nftables: netlink support for several set element expressions
+
+Randy Dunlap (1):
+      netfilter: nft_reject_bridge: fix build errors due to code movement
+
+Wang Shanker (1):
+      netfilter: nfnl_acct: remove data from struct net
+
+Yejune Deng (1):
+      ipvs: replace atomic_add_return()
+
+ include/net/net_namespace.h                  |   3 -
+ include/net/netfilter/ipv4/nf_reject.h       |   4 +-
+ include/net/netfilter/ipv6/nf_reject.h       |   5 +-
+ include/net/netfilter/nf_conntrack_l4proto.h |   2 +-
+ include/net/netfilter/nf_tables.h            |  95 ++++++----
+ include/uapi/linux/netfilter/nf_tables.h     |   6 +
+ net/bridge/netfilter/Kconfig                 |   2 +
+ net/ipv4/netfilter/ipt_REJECT.c              |   3 +-
+ net/ipv4/netfilter/nf_reject_ipv4.c          |   6 +-
+ net/ipv4/netfilter/nft_reject_ipv4.c         |   3 +-
+ net/ipv6/netfilter/ip6t_REJECT.c             |   2 +-
+ net/ipv6/netfilter/nf_reject_ipv6.c          |   5 +-
+ net/ipv6/netfilter/nft_reject_ipv6.c         |   3 +-
+ net/netfilter/ipvs/ip_vs_core.c              |   2 +-
+ net/netfilter/ipvs/ip_vs_sync.c              |   4 +-
+ net/netfilter/nf_conntrack_netlink.c         |  31 ++--
+ net/netfilter/nf_conntrack_proto_dccp.c      |  13 +-
+ net/netfilter/nf_conntrack_proto_sctp.c      |  13 +-
+ net/netfilter/nf_conntrack_proto_tcp.c       |  13 +-
+ net/netfilter/nf_tables_api.c                | 250 ++++++++++++++++++++++-----
+ net/netfilter/nfnetlink_acct.c               |  38 +++-
+ net/netfilter/nft_dynset.c                   | 156 ++++++++++++++---
+ net/netfilter/nft_reject_inet.c              |   6 +-
+ net/netfilter/nft_set_hash.c                 |  27 ++-
+ net/netfilter/xt_nfacct.c                    |   2 +-
+ 25 files changed, 534 insertions(+), 160 deletions(-)
