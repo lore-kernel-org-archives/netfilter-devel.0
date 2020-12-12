@@ -2,54 +2,152 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3C03C4361B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Dec 2020 14:58:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3FE0C4361B
+	for <netfilter-devel@archiver.kernel.org>; Sat, 12 Dec 2020 10:33:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6974B20657
-	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Dec 2020 14:58:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7DCBC22D3E
+	for <netfilter-devel@archiver.kernel.org>; Sat, 12 Dec 2020 10:33:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2406270AbgLKOcq (ORCPT
+        id S2438739AbgLLKda (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 11 Dec 2020 09:32:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45002 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2406259AbgLKOcU (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 11 Dec 2020 09:32:20 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1CB00C0619D2
-        for <netfilter-devel@vger.kernel.org>; Fri, 11 Dec 2020 06:30:55 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1knjRa-0007Ub-TG; Fri, 11 Dec 2020 15:30:50 +0100
-Date:   Fri, 11 Dec 2020 15:30:50 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft 0/10] nft: add automatic icmp/icmpv6 dependencies
-Message-ID: <20201211143050.GK4647@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-References: <20201209174924.27720-1-fw@strlen.de>
+        Sat, 12 Dec 2020 05:33:30 -0500
+Received: from correo.us.es ([193.147.175.20]:58560 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2438735AbgLLKdP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 12 Dec 2020 05:33:15 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 0D4ADFB36A
+        for <netfilter-devel@vger.kernel.org>; Sat, 12 Dec 2020 11:32:09 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F230DDA78B
+        for <netfilter-devel@vger.kernel.org>; Sat, 12 Dec 2020 11:32:08 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id E7EB7DA73F; Sat, 12 Dec 2020 11:32:08 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BAA8ADA78E
+        for <netfilter-devel@vger.kernel.org>; Sat, 12 Dec 2020 11:32:06 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Sat, 12 Dec 2020 11:32:06 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id A65854265A5A
+        for <netfilter-devel@vger.kernel.org>; Sat, 12 Dec 2020 11:32:06 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next,v4 2/4] netfilter: nftables: move nft_expr before nft_set
+Date:   Sat, 12 Dec 2020 11:32:12 +0100
+Message-Id: <20201212103214.12940-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20201212103214.12940-1-pablo@netfilter.org>
+References: <20201212103214.12940-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201209174924.27720-1-fw@strlen.de>
-Sender:  <n0-1@orbyte.nwl.cc>
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Florian,
+Move the nft_expr structure definition before nft_set. Expressions are
+used by rules and sets, remove unnecessary forward declarations. This
+comes as preparation to support for multiple expressions per set element.
 
-On Wed, Dec 09, 2020 at 06:49:14PM +0100, Florian Westphal wrote:
-> This series allows nft to automatically add the dependency so that
-> the type-dependant field is not evaluated for any type.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v4: no changes
 
-Great work, thanks for taking care of this long-standing issue!
+ include/net/netfilter/nf_tables.h | 54 +++++++++++++++----------------
+ 1 file changed, 26 insertions(+), 28 deletions(-)
 
-Thanks, Phil
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index aad7e1381200..0f4ae16a0c42 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -305,8 +305,33 @@ struct nft_set_estimate {
+ 	enum nft_set_class	space;
+ };
+ 
++#define NFT_EXPR_MAXATTR		16
++#define NFT_EXPR_SIZE(size)		(sizeof(struct nft_expr) + \
++					 ALIGN(size, __alignof__(struct nft_expr)))
++
++/**
++ *	struct nft_expr - nf_tables expression
++ *
++ *	@ops: expression ops
++ *	@data: expression private data
++ */
++struct nft_expr {
++	const struct nft_expr_ops	*ops;
++	unsigned char			data[]
++		__attribute__((aligned(__alignof__(u64))));
++};
++
++static inline void *nft_expr_priv(const struct nft_expr *expr)
++{
++	return (void *)expr->data;
++}
++
++int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src);
++void nft_expr_destroy(const struct nft_ctx *ctx, struct nft_expr *expr);
++int nft_expr_dump(struct sk_buff *skb, unsigned int attr,
++		  const struct nft_expr *expr);
++
+ struct nft_set_ext;
+-struct nft_expr;
+ 
+ /**
+  *	struct nft_set_ops - nf_tables set operations
+@@ -797,7 +822,6 @@ struct nft_offload_ctx;
+  *	@validate: validate expression, called during loop detection
+  *	@data: extra data to attach to this expression operation
+  */
+-struct nft_expr;
+ struct nft_expr_ops {
+ 	void				(*eval)(const struct nft_expr *expr,
+ 						struct nft_regs *regs,
+@@ -833,32 +857,6 @@ struct nft_expr_ops {
+ 	void				*data;
+ };
+ 
+-#define NFT_EXPR_MAXATTR		16
+-#define NFT_EXPR_SIZE(size)		(sizeof(struct nft_expr) + \
+-					 ALIGN(size, __alignof__(struct nft_expr)))
+-
+-/**
+- *	struct nft_expr - nf_tables expression
+- *
+- *	@ops: expression ops
+- *	@data: expression private data
+- */
+-struct nft_expr {
+-	const struct nft_expr_ops	*ops;
+-	unsigned char			data[]
+-		__attribute__((aligned(__alignof__(u64))));
+-};
+-
+-static inline void *nft_expr_priv(const struct nft_expr *expr)
+-{
+-	return (void *)expr->data;
+-}
+-
+-int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src);
+-void nft_expr_destroy(const struct nft_ctx *ctx, struct nft_expr *expr);
+-int nft_expr_dump(struct sk_buff *skb, unsigned int attr,
+-		  const struct nft_expr *expr);
+-
+ /**
+  *	struct nft_rule - nf_tables rule
+  *
+-- 
+2.20.1
+
