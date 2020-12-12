@@ -5,49 +5,49 @@ X-Spam-Level:
 X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 815A2C4361B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66C25C433FE
 	for <netfilter-devel@archiver.kernel.org>; Sat, 12 Dec 2020 23:08:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 59755221E3
+	by mail.kernel.org (Postfix) with ESMTP id 3D4C221BE5
 	for <netfilter-devel@archiver.kernel.org>; Sat, 12 Dec 2020 23:08:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2408160AbgLLXH7 (ORCPT
+        id S2408172AbgLLXHx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 12 Dec 2020 18:07:59 -0500
-Received: from correo.us.es ([193.147.175.20]:46794 "EHLO mail.us.es"
+        Sat, 12 Dec 2020 18:07:53 -0500
+Received: from correo.us.es ([193.147.175.20]:46770 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2408165AbgLLXGI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S2408160AbgLLXGI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Sat, 12 Dec 2020 18:06:08 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id DE71C303D1F
-        for <netfilter-devel@vger.kernel.org>; Sun, 13 Dec 2020 00:05:13 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id CCCE6303D19
+        for <netfilter-devel@vger.kernel.org>; Sun, 13 Dec 2020 00:05:12 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D12D4DA72F
-        for <netfilter-devel@vger.kernel.org>; Sun, 13 Dec 2020 00:05:13 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B8116DA78C
+        for <netfilter-devel@vger.kernel.org>; Sun, 13 Dec 2020 00:05:12 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id C6C85DA78A; Sun, 13 Dec 2020 00:05:13 +0100 (CET)
+        id AC28ADA73F; Sun, 13 Dec 2020 00:05:12 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9B69CDA72F;
-        Sun, 13 Dec 2020 00:05:11 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3ABBCDA73D;
+        Sun, 13 Dec 2020 00:05:10 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 13 Dec 2020 00:05:11 +0100 (CET)
+ Sun, 13 Dec 2020 00:05:10 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 725F94265A5A;
-        Sun, 13 Dec 2020 00:05:11 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPSA id 119794265A5A;
+        Sun, 13 Dec 2020 00:05:10 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 08/10] netfilter: nftables: move nft_expr before nft_set
-Date:   Sun, 13 Dec 2020 00:05:11 +0100
-Message-Id: <20201212230513.3465-9-pablo@netfilter.org>
+Subject: [PATCH net-next 05/10] netfilter: use actual socket sk for REJECT action
+Date:   Sun, 13 Dec 2020 00:05:08 +0100
+Message-Id: <20201212230513.3465-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20201212230513.3465-1-pablo@netfilter.org>
 References: <20201212230513.3465-1-pablo@netfilter.org>
@@ -58,95 +58,185 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Move the nft_expr structure definition before nft_set. Expressions are
-used by rules and sets, remove unnecessary forward declarations. This
-comes as preparation to support for multiple expressions per set element.
+From: Jan Engelhardt <jengelh@inai.de>
 
+True to the message of commit v5.10-rc1-105-g46d6c5ae953c, _do_
+actually make use of state->sk when possible, such as in the REJECT
+modules.
+
+Reported-by: Minqiang Chen <ptpt52@gmail.com>
+Cc: Jason A. Donenfeld <Jason@zx2c4.com>
+Signed-off-by: Jan Engelhardt <jengelh@inai.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h | 54 +++++++++++++++----------------
- 1 file changed, 26 insertions(+), 28 deletions(-)
+ include/net/netfilter/ipv4/nf_reject.h | 4 ++--
+ include/net/netfilter/ipv6/nf_reject.h | 5 ++---
+ net/ipv4/netfilter/ipt_REJECT.c        | 3 ++-
+ net/ipv4/netfilter/nf_reject_ipv4.c    | 6 +++---
+ net/ipv4/netfilter/nft_reject_ipv4.c   | 3 ++-
+ net/ipv6/netfilter/ip6t_REJECT.c       | 2 +-
+ net/ipv6/netfilter/nf_reject_ipv6.c    | 5 +++--
+ net/ipv6/netfilter/nft_reject_ipv6.c   | 3 ++-
+ net/netfilter/nft_reject_inet.c        | 6 ++++--
+ 9 files changed, 21 insertions(+), 16 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index aad7e1381200..0f4ae16a0c42 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -305,8 +305,33 @@ struct nft_set_estimate {
- 	enum nft_set_class	space;
- };
+diff --git a/include/net/netfilter/ipv4/nf_reject.h b/include/net/netfilter/ipv4/nf_reject.h
+index 0d8ff84a2588..c653fcb88354 100644
+--- a/include/net/netfilter/ipv4/nf_reject.h
++++ b/include/net/netfilter/ipv4/nf_reject.h
+@@ -8,8 +8,8 @@
+ #include <net/netfilter/nf_reject.h>
  
-+#define NFT_EXPR_MAXATTR		16
-+#define NFT_EXPR_SIZE(size)		(sizeof(struct nft_expr) + \
-+					 ALIGN(size, __alignof__(struct nft_expr)))
-+
-+/**
-+ *	struct nft_expr - nf_tables expression
-+ *
-+ *	@ops: expression ops
-+ *	@data: expression private data
-+ */
-+struct nft_expr {
-+	const struct nft_expr_ops	*ops;
-+	unsigned char			data[]
-+		__attribute__((aligned(__alignof__(u64))));
-+};
-+
-+static inline void *nft_expr_priv(const struct nft_expr *expr)
-+{
-+	return (void *)expr->data;
-+}
-+
-+int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src);
-+void nft_expr_destroy(const struct nft_ctx *ctx, struct nft_expr *expr);
-+int nft_expr_dump(struct sk_buff *skb, unsigned int attr,
-+		  const struct nft_expr *expr);
-+
- struct nft_set_ext;
--struct nft_expr;
+ void nf_send_unreach(struct sk_buff *skb_in, int code, int hook);
+-void nf_send_reset(struct net *net, struct sk_buff *oldskb, int hook);
+-
++void nf_send_reset(struct net *net, struct sock *, struct sk_buff *oldskb,
++		   int hook);
+ const struct tcphdr *nf_reject_ip_tcphdr_get(struct sk_buff *oldskb,
+ 					     struct tcphdr *_oth, int hook);
+ struct iphdr *nf_reject_iphdr_put(struct sk_buff *nskb,
+diff --git a/include/net/netfilter/ipv6/nf_reject.h b/include/net/netfilter/ipv6/nf_reject.h
+index edcf6d1cd316..d729344ba644 100644
+--- a/include/net/netfilter/ipv6/nf_reject.h
++++ b/include/net/netfilter/ipv6/nf_reject.h
+@@ -7,9 +7,8 @@
  
- /**
-  *	struct nft_set_ops - nf_tables set operations
-@@ -797,7 +822,6 @@ struct nft_offload_ctx;
-  *	@validate: validate expression, called during loop detection
-  *	@data: extra data to attach to this expression operation
-  */
--struct nft_expr;
- struct nft_expr_ops {
- 	void				(*eval)(const struct nft_expr *expr,
- 						struct nft_regs *regs,
-@@ -833,32 +857,6 @@ struct nft_expr_ops {
- 	void				*data;
- };
+ void nf_send_unreach6(struct net *net, struct sk_buff *skb_in, unsigned char code,
+ 		      unsigned int hooknum);
+-
+-void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook);
+-
++void nf_send_reset6(struct net *net, struct sock *sk, struct sk_buff *oldskb,
++		    int hook);
+ const struct tcphdr *nf_reject_ip6_tcphdr_get(struct sk_buff *oldskb,
+ 					      struct tcphdr *otcph,
+ 					      unsigned int *otcplen, int hook);
+diff --git a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
+index e16b98ee6266..4b8840734762 100644
+--- a/net/ipv4/netfilter/ipt_REJECT.c
++++ b/net/ipv4/netfilter/ipt_REJECT.c
+@@ -56,7 +56,8 @@ reject_tg(struct sk_buff *skb, const struct xt_action_param *par)
+ 		nf_send_unreach(skb, ICMP_PKT_FILTERED, hook);
+ 		break;
+ 	case IPT_TCP_RESET:
+-		nf_send_reset(xt_net(par), skb, hook);
++		nf_send_reset(xt_net(par), par->state->sk, skb, hook);
++		break;
+ 	case IPT_ICMP_ECHOREPLY:
+ 		/* Doesn't happen. */
+ 		break;
+diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
+index 4109055cdea6..4eed5afca392 100644
+--- a/net/ipv4/netfilter/nf_reject_ipv4.c
++++ b/net/ipv4/netfilter/nf_reject_ipv4.c
+@@ -234,7 +234,8 @@ static int nf_reject_fill_skb_dst(struct sk_buff *skb_in)
+ }
  
--#define NFT_EXPR_MAXATTR		16
--#define NFT_EXPR_SIZE(size)		(sizeof(struct nft_expr) + \
--					 ALIGN(size, __alignof__(struct nft_expr)))
+ /* Send RST reply */
+-void nf_send_reset(struct net *net, struct sk_buff *oldskb, int hook)
++void nf_send_reset(struct net *net, struct sock *sk, struct sk_buff *oldskb,
++		   int hook)
+ {
+ 	struct net_device *br_indev __maybe_unused;
+ 	struct sk_buff *nskb;
+@@ -267,8 +268,7 @@ void nf_send_reset(struct net *net, struct sk_buff *oldskb, int hook)
+ 	niph = nf_reject_iphdr_put(nskb, oldskb, IPPROTO_TCP,
+ 				   ip4_dst_hoplimit(skb_dst(nskb)));
+ 	nf_reject_ip_tcphdr_put(nskb, oldskb, oth);
 -
--/**
-- *	struct nft_expr - nf_tables expression
-- *
-- *	@ops: expression ops
-- *	@data: expression private data
-- */
--struct nft_expr {
--	const struct nft_expr_ops	*ops;
--	unsigned char			data[]
--		__attribute__((aligned(__alignof__(u64))));
--};
--
--static inline void *nft_expr_priv(const struct nft_expr *expr)
--{
--	return (void *)expr->data;
--}
--
--int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src);
--void nft_expr_destroy(const struct nft_ctx *ctx, struct nft_expr *expr);
--int nft_expr_dump(struct sk_buff *skb, unsigned int attr,
--		  const struct nft_expr *expr);
--
- /**
-  *	struct nft_rule - nf_tables rule
-  *
+-	if (ip_route_me_harder(net, nskb->sk, nskb, RTN_UNSPEC))
++	if (ip_route_me_harder(net, sk, nskb, RTN_UNSPEC))
+ 		goto free_nskb;
+ 
+ 	niph = ip_hdr(nskb);
+diff --git a/net/ipv4/netfilter/nft_reject_ipv4.c b/net/ipv4/netfilter/nft_reject_ipv4.c
+index e408f813f5d8..ff437e4ed6db 100644
+--- a/net/ipv4/netfilter/nft_reject_ipv4.c
++++ b/net/ipv4/netfilter/nft_reject_ipv4.c
+@@ -27,7 +27,8 @@ static void nft_reject_ipv4_eval(const struct nft_expr *expr,
+ 		nf_send_unreach(pkt->skb, priv->icmp_code, nft_hook(pkt));
+ 		break;
+ 	case NFT_REJECT_TCP_RST:
+-		nf_send_reset(nft_net(pkt), pkt->skb, nft_hook(pkt));
++		nf_send_reset(nft_net(pkt), pkt->xt.state->sk, pkt->skb,
++			      nft_hook(pkt));
+ 		break;
+ 	default:
+ 		break;
+diff --git a/net/ipv6/netfilter/ip6t_REJECT.c b/net/ipv6/netfilter/ip6t_REJECT.c
+index 3ac5485049f0..a35019d2e480 100644
+--- a/net/ipv6/netfilter/ip6t_REJECT.c
++++ b/net/ipv6/netfilter/ip6t_REJECT.c
+@@ -61,7 +61,7 @@ reject_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ 		/* Do nothing */
+ 		break;
+ 	case IP6T_TCP_RESET:
+-		nf_send_reset6(net, skb, xt_hooknum(par));
++		nf_send_reset6(net, par->state->sk, skb, xt_hooknum(par));
+ 		break;
+ 	case IP6T_ICMP6_POLICY_FAIL:
+ 		nf_send_unreach6(net, skb, ICMPV6_POLICY_FAIL, xt_hooknum(par));
+diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
+index aa35e6e37c1f..570d1d76c44d 100644
+--- a/net/ipv6/netfilter/nf_reject_ipv6.c
++++ b/net/ipv6/netfilter/nf_reject_ipv6.c
+@@ -275,7 +275,8 @@ static int nf_reject6_fill_skb_dst(struct sk_buff *skb_in)
+ 	return 0;
+ }
+ 
+-void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook)
++void nf_send_reset6(struct net *net, struct sock *sk, struct sk_buff *oldskb,
++		    int hook)
+ {
+ 	struct net_device *br_indev __maybe_unused;
+ 	struct sk_buff *nskb;
+@@ -367,7 +368,7 @@ void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook)
+ 		dev_queue_xmit(nskb);
+ 	} else
+ #endif
+-		ip6_local_out(net, nskb->sk, nskb);
++		ip6_local_out(net, sk, nskb);
+ }
+ EXPORT_SYMBOL_GPL(nf_send_reset6);
+ 
+diff --git a/net/ipv6/netfilter/nft_reject_ipv6.c b/net/ipv6/netfilter/nft_reject_ipv6.c
+index c1098a1968e1..7969d1f3018d 100644
+--- a/net/ipv6/netfilter/nft_reject_ipv6.c
++++ b/net/ipv6/netfilter/nft_reject_ipv6.c
+@@ -28,7 +28,8 @@ static void nft_reject_ipv6_eval(const struct nft_expr *expr,
+ 				 nft_hook(pkt));
+ 		break;
+ 	case NFT_REJECT_TCP_RST:
+-		nf_send_reset6(nft_net(pkt), pkt->skb, nft_hook(pkt));
++		nf_send_reset6(nft_net(pkt), pkt->xt.state->sk, pkt->skb,
++			       nft_hook(pkt));
+ 		break;
+ 	default:
+ 		break;
+diff --git a/net/netfilter/nft_reject_inet.c b/net/netfilter/nft_reject_inet.c
+index 32f3ea398ddf..95090186ee90 100644
+--- a/net/netfilter/nft_reject_inet.c
++++ b/net/netfilter/nft_reject_inet.c
+@@ -28,7 +28,8 @@ static void nft_reject_inet_eval(const struct nft_expr *expr,
+ 					nft_hook(pkt));
+ 			break;
+ 		case NFT_REJECT_TCP_RST:
+-			nf_send_reset(nft_net(pkt), pkt->skb, nft_hook(pkt));
++			nf_send_reset(nft_net(pkt), pkt->xt.state->sk,
++				      pkt->skb, nft_hook(pkt));
+ 			break;
+ 		case NFT_REJECT_ICMPX_UNREACH:
+ 			nf_send_unreach(pkt->skb,
+@@ -44,7 +45,8 @@ static void nft_reject_inet_eval(const struct nft_expr *expr,
+ 					 priv->icmp_code, nft_hook(pkt));
+ 			break;
+ 		case NFT_REJECT_TCP_RST:
+-			nf_send_reset6(nft_net(pkt), pkt->skb, nft_hook(pkt));
++			nf_send_reset6(nft_net(pkt), pkt->xt.state->sk,
++				       pkt->skb, nft_hook(pkt));
+ 			break;
+ 		case NFT_REJECT_ICMPX_UNREACH:
+ 			nf_send_unreach6(nft_net(pkt), pkt->skb,
 -- 
 2.20.1
 
