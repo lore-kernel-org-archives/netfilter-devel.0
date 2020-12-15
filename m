@@ -2,82 +2,65 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97959C2BB40
-	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Dec 2020 23:42:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2812BC2BB40
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Dec 2020 02:12:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6814022510
-	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Dec 2020 23:42:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ED6B7206F4
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Dec 2020 02:12:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726919AbgLNXlE (ORCPT
+        id S1726426AbgLOCME (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 14 Dec 2020 18:41:04 -0500
-Received: from youngberry.canonical.com ([91.189.89.112]:40756 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726559AbgLNXlB (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 14 Dec 2020 18:41:01 -0500
-Received: from 1.general.cking.uk.vpn ([10.172.193.212] helo=localhost)
-        by youngberry.canonical.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        (Exim 4.86_2)
-        (envelope-from <colin.king@canonical.com>)
-        id 1koxRv-00033F-An; Mon, 14 Dec 2020 23:40:15 +0000
-From:   Colin King <colin.king@canonical.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Mon, 14 Dec 2020 21:12:04 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39716 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726209AbgLOCLx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 14 Dec 2020 21:11:53 -0500
+Date:   Mon, 14 Dec 2020 18:11:12 -0800
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1607998273;
+        bh=OdTrpSpg+tQ1M+R+8rS3NlHlNsM4q2GGZm94ZY3rEjI=;
+        h=From:To:Cc:Subject:In-Reply-To:References:From;
+        b=lV0aiDQ0vtOZR5PeQSmUde3W8ui5aXUbMdCtNYgT7vicmUr8G5cUp1Gt3HWfRRV79
+         bBI+bPzpbEPbmYsTAMz+NfGzjE0QrlkcjL5eJgRRBveUUwpyb8eRClgkwiGQ4+jtKG
+         lpN2lHqUcgwxvNnvE9lQqt7HODKoH9E7K/+XpV1l9mDf3vdCe8zzqVuXTlf0biUM9a
+         ieEjh5w5j0hQrPeTE7BUKTqr6X+mrKShzuHK8yTH2PraiIXeIriTyMtjzAwzre8z9d
+         wHQfFyUkB0OgooIj6WiiJaV0PeNg3YQ9/kh7Fji2ZQg1xjfm6UCl45gQCXnBxc3DWB
+         uJQTJRz0ZdRBA==
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
         netdev@vger.kernel.org
-Cc:     kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH][next] netfilter: nftables: fix incorrect increment of loop counter
-Date:   Mon, 14 Dec 2020 23:40:15 +0000
-Message-Id: <20201214234015.85072-1-colin.king@canonical.com>
-X-Mailer: git-send-email 2.29.2
+Subject: Re: [PATCH net-next 00/10] Netfilter/IPVS updates for net-next
+Message-ID: <20201214181112.0e87337e@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+In-Reply-To: <20201212230513.3465-1-pablo@netfilter.org>
+References: <20201212230513.3465-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+On Sun, 13 Dec 2020 00:05:03 +0100 Pablo Neira Ayuso wrote:
+> 1) Missing dependencies in NFT_BRIDGE_REJECT, from Randy Dunlap.
+> 
+> 2) Use atomic_inc_return() instead of atomic_add_return() in IPVS,
+>    from Yejune Deng.
+> 
+> 3) Simplify check for overquota in xt_nfacct, from Kaixu Xia.
+> 
+> 4) Move nfnl_acct_list away from struct net, from Miao Wang.
+> 
+> 5) Pass actual sk in reject actions, from Jan Engelhardt.
+> 
+> 6) Add timeout and protoinfo to ctnetlink destroy events,
+>    from Florian Westphal.
+> 
+> 7) Four patches to generalize set infrastructure to support
+>    for multiple expressions per set element.
 
-The intention of the err_expr cleanup path is to iterate over the
-allocated expr_array objects and free them, starting from i - 1 and
-working down to the start of the array. Currently the loop counter
-is being incremented instead of decremented and also the index i is
-being used instead of k, repeatedly destroying the same expr_array
-element.  Fix this by decrementing k and using k as the index into
-expr_array.
-
-Addresses-Coverity: ("Infinite loop")
-Fixes: 8cfd9b0f8515 ("netfilter: nftables: generalize set expressions support")
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- net/netfilter/nf_tables_api.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 8d5aa0ac45f4..4186b1e52d58 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5254,8 +5254,8 @@ static int nft_set_elem_expr_clone(const struct nft_ctx *ctx,
- 	return 0;
- 
- err_expr:
--	for (k = i - 1; k >= 0; k++)
--		nft_expr_destroy(ctx, expr_array[i]);
-+	for (k = i - 1; k >= 0; k--)
-+		nft_expr_destroy(ctx, expr_array[k]);
- 
- 	return -ENOMEM;
- }
--- 
-2.29.2
-
+Pulled, thanks!
