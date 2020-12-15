@@ -2,110 +2,117 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15B53C2BB9A
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Dec 2020 14:40:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90068C4361B
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Dec 2020 15:15:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D38E522522
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Dec 2020 14:40:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5155F2076D
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Dec 2020 15:15:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729537AbgLOOjf (ORCPT
+        id S1729960AbgLOPPA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 15 Dec 2020 09:39:35 -0500
-Received: from correo.us.es ([193.147.175.20]:46486 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729410AbgLOOjR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Dec 2020 09:39:17 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id BFF061E2C78
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Dec 2020 15:38:17 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B1B7ADA78A
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Dec 2020 15:38:17 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id A70A9DA789; Tue, 15 Dec 2020 15:38:17 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5232ADA78A;
-        Tue, 15 Dec 2020 15:38:15 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 15 Dec 2020 15:38:15 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 2A5954265A5A;
-        Tue, 15 Dec 2020 15:38:15 +0100 (CET)
-Date:   Tue, 15 Dec 2020 15:38:30 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Colin King <colin.king@canonical.com>
-Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, kernel-janitors@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH][next] netfilter: nftables: fix incorrect increment of
- loop counter
-Message-ID: <20201215143830.GA10086@salvia>
-References: <20201214234015.85072-1-colin.king@canonical.com>
+        Tue, 15 Dec 2020 10:15:00 -0500
+Received: from mail-io1-f70.google.com ([209.85.166.70]:38267 "EHLO
+        mail-io1-f70.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729822AbgLOPOw (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 15 Dec 2020 10:14:52 -0500
+Received: by mail-io1-f70.google.com with SMTP id q140so13879583iod.5
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Dec 2020 07:14:36 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
+        bh=AnGmRmfihjvN7Tg8VK6Jl1pVPSZu1VQEIxNiW/n3Hr8=;
+        b=ZtMEdjYJR6actu+kSKFXdycipO+11ydQye/PBdMFUI5KOQU9vobxGHzCv+TG2juT2W
+         i0/KEWuZ763uwz/o5hHdcYyHRPySONa/MN0gP+NDbJkz1yWg7vz8wBvOO2PKHKk4mlRw
+         7OG2cTmjrQeq0uFJua/M/7Yj+DX5hnypgGMX8VXCpj0Z7KIYGcZKCk7CdSb20b8/O+jZ
+         Ltg9HlgRb6dx+EBzAuOgJi0+lbM0l0THFlz8hy62P9UHAXQpl6SDzqjz9ou75ODAtXdX
+         kdSg9n5qKjt+2OMFIQ/d1ctjbMW/LJJDyCOFFfRQHOmi/zp/XvU45kbEzWvLjkqGl3Dz
+         fZXg==
+X-Gm-Message-State: AOAM531qxA22tIIn0RCMQ5HbTIev95r2SLEKdU/OhQLv2UUhiYEHvxCN
+        +4MU1f8U8PdU90SJKwg/KBL+Bb7/lLHb8IQnMwa8d3dgHDBM
+X-Google-Smtp-Source: ABdhPJzOlmobw/zDV5uvUSvjrXtXYrEsNL1/D1pYRSxsKz8AI6A8VTtAHNPJav364KU3p2XRADWNrsC7XrR2jbvsOMpfkHFuv3I1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20201214234015.85072-1-colin.king@canonical.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+X-Received: by 2002:a02:7650:: with SMTP id z77mr39145481jab.134.1608045250882;
+ Tue, 15 Dec 2020 07:14:10 -0800 (PST)
+Date:   Tue, 15 Dec 2020 07:14:10 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000f63a4705b6823516@google.com>
+Subject: UBSAN: shift-out-of-bounds in hash_ipmark_create
+From:   syzbot <syzbot+d81819ac03d8c36e3974@syzkaller.appspotmail.com>
+To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
+        kadlec@blackhole.kfki.hu, kadlec@netfilter.org, kuba@kernel.org,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        syzkaller-bugs@googlegroups.com, vvs@virtuozzo.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+Hello,
 
-On Mon, Dec 14, 2020 at 11:40:15PM +0000, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
-> 
-> The intention of the err_expr cleanup path is to iterate over the
-> allocated expr_array objects and free them, starting from i - 1 and
-> working down to the start of the array. Currently the loop counter
-> is being incremented instead of decremented and also the index i is
-> being used instead of k, repeatedly destroying the same expr_array
-> element.  Fix this by decrementing k and using k as the index into
-> expr_array.
-> 
-> Addresses-Coverity: ("Infinite loop")
-> Fixes: 8cfd9b0f8515 ("netfilter: nftables: generalize set expressions support")
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+syzbot found the following issue on:
 
-Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
+HEAD commit:    15ac8fdb Add linux-next specific files for 20201207
+git tree:       linux-next
+console output: https://syzkaller.appspot.com/x/log.txt?x=156c845b500000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=3696b8138207d24d
+dashboard link: https://syzkaller.appspot.com/bug?extid=d81819ac03d8c36e3974
+compiler:       gcc (GCC) 10.1.0-syz 20200507
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=14960f9b500000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=12be080f500000
 
-@Jakub: Would you please take this one into net-next? Thanks!
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+d81819ac03d8c36e3974@syzkaller.appspotmail.com
 
-> ---
->  net/netfilter/nf_tables_api.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index 8d5aa0ac45f4..4186b1e52d58 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
-> @@ -5254,8 +5254,8 @@ static int nft_set_elem_expr_clone(const struct nft_ctx *ctx,
->  	return 0;
->  
->  err_expr:
-> -	for (k = i - 1; k >= 0; k++)
-> -		nft_expr_destroy(ctx, expr_array[i]);
-> +	for (k = i - 1; k >= 0; k--)
-> +		nft_expr_destroy(ctx, expr_array[k]);
->  
->  	return -ENOMEM;
->  }
-> -- 
-> 2.29.2
-> 
+================================================================================
+UBSAN: shift-out-of-bounds in net/netfilter/ipset/ip_set_hash_gen.h:151:6
+shift exponent 32 is too large for 32-bit type 'unsigned int'
+CPU: 0 PID: 8473 Comm: syz-executor542 Not tainted 5.10.0-rc6-next-20201207-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x107/0x163 lib/dump_stack.c:120
+ ubsan_epilogue+0xb/0x5a lib/ubsan.c:148
+ __ubsan_handle_shift_out_of_bounds.cold+0xb1/0x181 lib/ubsan.c:395
+ htable_bits net/netfilter/ipset/ip_set_hash_gen.h:151 [inline]
+ hash_ipmark_create.cold+0x96/0x9b net/netfilter/ipset/ip_set_hash_gen.h:1524
+ ip_set_create+0x610/0x1380 net/netfilter/ipset/ip_set_core.c:1115
+ nfnetlink_rcv_msg+0xecc/0x1180 net/netfilter/nfnetlink.c:252
+ netlink_rcv_skb+0x153/0x420 net/netlink/af_netlink.c:2494
+ nfnetlink_rcv+0x1ac/0x420 net/netfilter/nfnetlink.c:600
+ netlink_unicast_kernel net/netlink/af_netlink.c:1304 [inline]
+ netlink_unicast+0x533/0x7d0 net/netlink/af_netlink.c:1330
+ netlink_sendmsg+0x907/0xe40 net/netlink/af_netlink.c:1919
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:672
+ ____sys_sendmsg+0x6e8/0x810 net/socket.c:2345
+ ___sys_sendmsg+0xf3/0x170 net/socket.c:2399
+ __sys_sendmsg+0xe5/0x1b0 net/socket.c:2432
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x440419
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b 13 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffdadcbeb88 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 0000000000440419
+RDX: 0000000000000000 RSI: 00000000200000c0 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 0000000000000005 R09: 00000000004002c8
+R10: 0000000000000001 R11: 0000000000000246 R12: 0000000000401c20
+R13: 0000000000401cb0 R14: 0000000000000000 R15: 0000000000000000
+================================================================================
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+syzbot can test patches for this issue, for details see:
+https://goo.gl/tpsmEJ#testing-patches
