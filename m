@@ -2,187 +2,110 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-18.2 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A15A4C2BB40
-	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Dec 2020 08:54:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FDE1C4361B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Dec 2020 11:08:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6558B2389B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Dec 2020 08:54:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0D5D22389B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Dec 2020 11:08:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726908AbgLQIyb (ORCPT
+        id S1727990AbgLQLIA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 17 Dec 2020 03:54:31 -0500
-Received: from mail-eopbgr40111.outbound.protection.outlook.com ([40.107.4.111]:60063
-        "EHLO EUR03-DB5-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725950AbgLQIyb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 17 Dec 2020 03:54:31 -0500
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=DItp6nK8RkB0i0TxyYgNP2cNSZ9S0kQMFg2AdFIZEVlQ3iumHVl+pPdf3+uM/nv/trWXnBKTpfQVYDxADcdV4gShydAHeC3pHMwUecsm9Ije4felHOUBWjLfDh5+xlDaG6GOKU8G6uIq50jYn9GeURBUTYp7Cl3ZHIrbnz1G5ltKhjf3nDugCJTCgeg1zS16odNjbMxZh3MPMfuSeg2Shdsljaywg6mqZQ5ZkIorPntf5+9ajOWYMQIr2YnHBM/dvwoFFE1szd0lPqppZS25HYy0JpziSL01udRV0toF9A5kbS5VU8dq1wxF1yU3IgF+IjGw9/uVOSWTjkggEZBYVQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=ILuQw1EPxIWecCxAntD3IeNpCVOrl3sZ+wirG0OYbJI=;
- b=lria3FHWN0x8BzgCjTDXtlD+T51XxIZ6Igx0dVzHt6HnjVTqAnZVkZYOYriQ2xsv5b1qRJNmQM6oMWsz8LMtZCcv0H1OQ5iUiW8MiCW2rGijQkxo4a22hUvkqlt1/U3h7XJdWfJrQvIUbtXUAO0onJYpfD86JYX6bgEZBPdRaWtD4r1THppuC8GlQi4SaetLy+IM5HchqVVx7fcf9Y2CGky4gPMd/qEVQxhhdxgzVHSC61G+j7hGLY3DTYIfjyTd4Na3GwDJG1zXejmQH2LPHq3FGJrLtp2xmZ/gqF9uPGeEU80T7iByal6mWvKw9t0hWFZ5z9r0urcW2l5cog3mhw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=virtuozzo.com; dmarc=pass action=none
- header.from=virtuozzo.com; dkim=pass header.d=virtuozzo.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=virtuozzo.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=ILuQw1EPxIWecCxAntD3IeNpCVOrl3sZ+wirG0OYbJI=;
- b=Pgknvy69/udpfYo+ieAjkGewx+oXFv2BcLrro3MXR7NEuQ4ek0i9tvwyNJ3qBfK9lmXNBUYW+QXi4xwi67zYhxMb5kcHWFMJeMaVIstzVqLsvDYkB/oW+TzdyCZohQuBnhnU/aW7LK1oLoBSBVm+wDjbpKoi3ILh/EnZRPGY/BE=
-Authentication-Results: netfilter.org; dkim=none (message not signed)
- header.d=none;netfilter.org; dmarc=none action=none
- header.from=virtuozzo.com;
-Received: from VI1PR0801MB1678.eurprd08.prod.outlook.com
- (2603:10a6:800:51::23) by VI1PR08MB3279.eurprd08.prod.outlook.com
- (2603:10a6:803:4e::16) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3654.21; Thu, 17 Dec
- 2020 08:53:42 +0000
-Received: from VI1PR0801MB1678.eurprd08.prod.outlook.com
- ([fe80::b18d:c047:56c0:e0d3]) by VI1PR0801MB1678.eurprd08.prod.outlook.com
- ([fe80::b18d:c047:56c0:e0d3%9]) with mapi id 15.20.3654.024; Thu, 17 Dec 2020
- 08:53:42 +0000
-From:   Vasily Averin <vvs@virtuozzo.com>
-Subject: [PATCH] netfilter: ipset: fixes possible oops in mtype_resize
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Cc:     "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Message-ID: <bfeee41d-65f0-40b2-1139-b888627e34ef@virtuozzo.com>
-Date:   Thu, 17 Dec 2020 11:53:40 +0300
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [185.231.240.5]
-X-ClientProxiedBy: AM0PR01CA0142.eurprd01.prod.exchangelabs.com
- (2603:10a6:208:168::47) To VI1PR0801MB1678.eurprd08.prod.outlook.com
- (2603:10a6:800:51::23)
+        Thu, 17 Dec 2020 06:08:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33312 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726291AbgLQLH7 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 17 Dec 2020 06:07:59 -0500
+Received: from mail-qt1-x832.google.com (mail-qt1-x832.google.com [IPv6:2607:f8b0:4864:20::832])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC7D9C0617B0
+        for <netfilter-devel@vger.kernel.org>; Thu, 17 Dec 2020 03:07:18 -0800 (PST)
+Received: by mail-qt1-x832.google.com with SMTP id z9so19778035qtn.4
+        for <netfilter-devel@vger.kernel.org>; Thu, 17 Dec 2020 03:07:18 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=WpyJG39zsZR3QTEsxdeIZ6It7enzbMRWstsw8rPRonw=;
+        b=rFasmzLx8XfOzm6Y+FxLK6NecNAgN+nus0rsYJrLuW+hpzBD/G6Aut+1epJgd3Q9Y3
+         rI4U+FdwwtB+ydXf1iKiX2YBDEoIPOXfOjoxwDsLlRC+VSAaSRks/dwUdbna9h704pS/
+         d2A8hO4XsNEFJP5gOafW/aGB3cdf1Rucz2BtuT7meDa5VftF2vj6TKqvm/XuqnJdLo2v
+         rJfj5QslNlV2FdjWijrHD1hpkaEMpURVzu25lOoF97RlseM6vDkoBhuHL0zQ2qg3FJ/4
+         rLfN4/8uFirSkdP/MspVGyDZ3L7GXufno7ZA4RNMUzeNVlOatGeiFxvigK+pXnDBpG47
+         sfKg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=WpyJG39zsZR3QTEsxdeIZ6It7enzbMRWstsw8rPRonw=;
+        b=IBUmrrjAkXDuLwuRH7WQhe+ddceMsqGKtF5lQiSDIQnKtYFyK8ed1j4ZtBCRLZGr1d
+         xgRrwJbbhXp1gQKOEYwStKehZNUy8hM0hBt1nxXZltWD/8KeMVPmdyg7CIRiIlic1/47
+         beIdKRwkAYNBZw7nW17nJ+sg88cfw4arFyzZcKJHjDFUz504ZEqc4yyauFhCgaNokRwo
+         Imv9ap0aMJHWTUmEwBb+YVSQLYVAz4pj5T8rHjP2pIb/UMdoBAaZis2HhS+59wYkJS+m
+         USga0652qrjjm/XrjnXJlRGMqnEhTJPKr196m3Xjt80UX/FXRqPpAmCPNSG2m9S5zTH4
+         lSnA==
+X-Gm-Message-State: AOAM531/fRD1oUy68OC5igHnXf0PVdc/+u8uLbFOmUZ/tqTGfKmhjO5Q
+        ivLUQ2QdJ0D8sDuIOGODaEEQIcOGBAbzIU5HQltbhA==
+X-Google-Smtp-Source: ABdhPJwsy+Mk6kAd77qSP1iHQ1KvXJLnVTRVxCZaOziunZ7175tYz6+6XvAtQVR72glNqSkBWHZ8KadI0C3bjv0widA=
+X-Received: by 2002:ac8:5ac3:: with SMTP id d3mr47345365qtd.66.1608203237853;
+ Thu, 17 Dec 2020 03:07:17 -0800 (PST)
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from [172.16.24.21] (185.231.240.5) by AM0PR01CA0142.eurprd01.prod.exchangelabs.com (2603:10a6:208:168::47) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3654.12 via Frontend Transport; Thu, 17 Dec 2020 08:53:41 +0000
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: efdb347c-eee0-41f7-83c3-08d8a2694136
-X-MS-TrafficTypeDiagnostic: VI1PR08MB3279:
-X-Microsoft-Antispam-PRVS: <VI1PR08MB3279B5A14F19CAA1D4B910DAAAC40@VI1PR08MB3279.eurprd08.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:459;
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: dE3asIW9YPVUeN7nvMmnjRJbZnf5R4hehtucqdlf+agqmIMg3NQSMbDVs1+QUx3JrCW0uLKYfb02yLGUU0jUX+KN3yPi6kNREqfgO3xSP1HnHZMAjyDv6O/P+7vIE1pZD9XwP5WHg6NAiLI4mJYZF/kEs2iYbUCQXS6Nm/bEsbsbSUHScqOM/myIRrCjUguysDsI8B917j5vpWL6MYB4DC0iDS4g+h6CxrbHSfSo0+qCZaCHOAUAyKw74VmQ6ubTYidjW4bcdN8TbDgRmg1gqnrusUCOIzIdjCmL1uym+FgwnUCTPpu1MT8krddM+TuUCDzuAB5nZxNRoW9FTj0LlfibjX0NQIb5ZkthSU2TembRwhiO3UL5TM1y4+nPrV1L
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:VI1PR0801MB1678.eurprd08.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(396003)(376002)(39840400004)(136003)(366004)(346002)(8676002)(956004)(66556008)(2906002)(66946007)(52116002)(316002)(4326008)(5660300002)(54906003)(36756003)(31686004)(16576012)(6486002)(110136005)(186003)(86362001)(26005)(66476007)(16526019)(83380400001)(8936002)(478600001)(31696002)(2616005)(43740500002);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData: =?utf-8?B?b1h4QnMyaTM3bm1sSVg5ZmVyYXJRZ2VWRFZOY0NScUpXNlZ5Y2xLWE1NY0lW?=
- =?utf-8?B?cTdhTjRtYnVQWU11bG52aVMrdHBFRkFSTjIwb0JUWC8wejI2V2RheTQyL0FX?=
- =?utf-8?B?Vi9DR2Jkbi92UUVOcEVTdjAwRXlKNFptWXhlYU9LamtmQUdkenBITW9IKzRq?=
- =?utf-8?B?bEpOMXp1R01FdVpFekUxZWNsVTUyVmFOZmN1Y05UVmdKdzJVdFJJOFgvS0xm?=
- =?utf-8?B?eG5BTkFyQ1diaEVHbDhmeUNGK2h4VlZiNDVKSWFrT1hjTWkxV3ZVVWs5aVdW?=
- =?utf-8?B?MitBalBGeXV1aDNldzcvQjNhbG13VWgwSVBMVC93SEo1OG5LNVI0WXl4VUxa?=
- =?utf-8?B?Mm1PdnVTS3V0QmJyVUtWMTlSTXQrcGs1UVNOTzBnMkhUdW1BNXV1YVNMclRi?=
- =?utf-8?B?TW9EeU1PcmkwZlQvR24rZW5lQVVERVJhbklQbDZWNmV3dzZodHJWczFpa2Vw?=
- =?utf-8?B?ZkdERERjc0w4dG1DSGYvczdDamNhVEJXWDJqM2pha24yZVpqZmQxd1E3eE9J?=
- =?utf-8?B?SzhDVlM3ckxpdWVDRjJrVmNwN3lNbWdxZmZ4M25oZE5VR245aVJIRHhzMGwz?=
- =?utf-8?B?eWxBQ3NLNnN3SGJrbzBCVndkb0pLckNaRkVXZXJoVFF1eGhnd1VNZFo3T1JM?=
- =?utf-8?B?cTViY0FlYzQrQXRZZDBTZm5CTUZMY1UxZU1vdFk3V2ExNS9YSmsvSjFHbnNX?=
- =?utf-8?B?M3hCNEN3Qk5xVVBqRk1Od1h2dHF2am9MaGpFY0VlMmRsMGxQQTA2RlhWYzli?=
- =?utf-8?B?SkVsQkI5V1h5eEtqUHJQY0xYVCt5Q1A3di9iUWY4cWt2VW9KcTJtVDhLaTc5?=
- =?utf-8?B?bzhPL01WQzRDWU5DZkFRY2hWaktQWisyNERCM0Rzc2ZHMk4yVVpmbWU4TlIw?=
- =?utf-8?B?RDRpeGYzM0Jud0d2MlRYZnJ3czh3WlVhZ2hpS1lySkxKT1JLY3FxRVhuR3ZQ?=
- =?utf-8?B?cFZPam1VR0YxVk13ZnNyKzA2TFlHWkpDai84WFVzM2l6SzlZVFpFZkhtMjIr?=
- =?utf-8?B?Wkw0ODFwWDVQMGIwL2x1K3dyLzdCQ3EzT3Q1aXIvbmxKelJjOWcrYXZVZmhw?=
- =?utf-8?B?MzlrYVcxR1R1OXpjeEYrUWhLazFmUUVOVENMRENkbVFubS91Y0xnWEpqcnNq?=
- =?utf-8?B?bFRLSysxQjN0eWVpWDJFRlhKTkYxMUdPWDFGYWNZcWVMYStLYzVJVDBEZ092?=
- =?utf-8?B?dUpRUWNkeFJYZHdPQ0lBOFMzYXhIL1RuMjJTRmgzcWlpWEJPUXJyS2pnelI3?=
- =?utf-8?B?by8yMHdJODRUS1Q0SXdWTmk4a3lmOThJeENYelU5Z3FwcDdWNmxrTURCQlVU?=
- =?utf-8?Q?4IbcwKvYsfkqPtYWpSTEy3vbmw0GowNnhN?=
-X-OriginatorOrg: virtuozzo.com
-X-MS-Exchange-CrossTenant-AuthSource: VI1PR0801MB1678.eurprd08.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Dec 2020 08:53:42.1383
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 0bc7f26d-0264-416e-a6fc-8352af79c58f
-X-MS-Exchange-CrossTenant-Network-Message-Id: efdb347c-eee0-41f7-83c3-08d8a2694136
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: I/y8cADi3pH19R0I9O0Fg1RuZfxNyLJgXlSrd8P7xswToauTTytBeAxYoithfIm8GdHgoX/pH6o2XGpJrA0eMA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR08MB3279
+References: <000000000000ab11c505abeb19f5@google.com> <0000000000004ea4fe05b68fa299@google.com>
+In-Reply-To: <0000000000004ea4fe05b68fa299@google.com>
+From:   Dmitry Vyukov <dvyukov@google.com>
+Date:   Thu, 17 Dec 2020 12:07:06 +0100
+Message-ID: <CACT4Y+ZyAD1aJtTt0q1E=AmsTwnapjitit82+o-Gn2NyxDZNgQ@mail.gmail.com>
+Subject: Re: KASAN: use-after-free Write in __sco_sock_close
+To:     syzbot <syzbot+077eca30d3cb7c02b273@syzkaller.appspotmail.com>
+Cc:     anmol.karan123@gmail.com, coreteam@netfilter.org,
+        David Miller <davem@davemloft.net>,
+        "open list:ANDROID DRIVERS" <devel@driverdev.osuosl.org>,
+        Fox Chen <foxhlchen@gmail.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Johan Hedberg <johan.hedberg@gmail.com>,
+        Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Jakub Kicinski <kuba@kernel.org>,
+        linux-bluetooth <linux-bluetooth@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
+        Marcel Holtmann <marcel@holtmann.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        mchehab@s-opensource.com, netdev <netdev@vger.kernel.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        syzkaller-bugs <syzkaller-bugs@googlegroups.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-currently mtype_resize() can cause oops
+On Wed, Dec 16, 2020 at 8:15 AM syzbot
+<syzbot+077eca30d3cb7c02b273@syzkaller.appspotmail.com> wrote:
+>
+> syzbot suspects this issue was fixed by commit:
+>
+> commit 6dfccd13db2ff2b709ef60a50163925d477549aa
+> Author: Anmol Karn <anmol.karan123@gmail.com>
+> Date:   Wed Sep 30 14:18:13 2020 +0000
+>
+>     Bluetooth: Fix null pointer dereference in hci_event_packet()
+>
+> bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=14cb845b500000
+> start commit:   47ec5303 Merge git://git.kernel.org/pub/scm/linux/kernel/g..
+> git tree:       upstream
+> kernel config:  https://syzkaller.appspot.com/x/.config?x=e0c783f658542f35
+> dashboard link: https://syzkaller.appspot.com/bug?extid=077eca30d3cb7c02b273
+> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=165a89dc900000
+> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=130a8c62900000
+>
+> If the result looks correct, please mark the issue as fixed by replying with:
+>
+> #syz fix: Bluetooth: Fix null pointer dereference in hci_event_packet()
+>
+> For information about bisection process see: https://goo.gl/tpsmEJ#bisection
 
-        t = ip_set_alloc(htable_size(htable_bits));
-        if (!t) {
-                ret = -ENOMEM;
-                goto out;
-        }
-        t->hregion = ip_set_alloc(ahash_sizeof_regions(htable_bits));
-
-Increased htable_bits can force htable_size() to return 0.
-In own turn ip_set_alloc(0) returns not 0 but ZERO_SIZE_PTR,
-so follwoing access to t->hregion should trigger an OOPS.
-
-Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
----
- net/netfilter/ipset/ip_set_hash_gen.h | 22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
-
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 7d01086..7cd1d31 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -630,7 +630,7 @@ struct mtype_resize_ad {
- 	struct htype *h = set->data;
- 	struct htable *t, *orig;
- 	u8 htable_bits;
--	size_t dsize = set->dsize;
-+	size_t hsize, dsize = set->dsize;
- #ifdef IP_SET_HASH_WITH_NETS
- 	u8 flags;
- 	struct mtype_elem *tmp;
-@@ -654,14 +654,12 @@ struct mtype_resize_ad {
- retry:
- 	ret = 0;
- 	htable_bits++;
--	if (!htable_bits) {
--		/* In case we have plenty of memory :-) */
--		pr_warn("Cannot increase the hashsize of set %s further\n",
--			set->name);
--		ret = -IPSET_ERR_HASH_FULL;
--		goto out;
--	}
--	t = ip_set_alloc(htable_size(htable_bits));
-+	if (!htable_bits)
-+		goto hbwarn;
-+	hsize = htable_size(htable_bits);
-+	if (!hsize)
-+		goto hbwarn;
-+	t = ip_set_alloc(hsize);
- 	if (!t) {
- 		ret = -ENOMEM;
- 		goto out;
-@@ -803,6 +801,12 @@ struct mtype_resize_ad {
- 	if (ret == -EAGAIN)
- 		goto retry;
- 	goto out;
-+
-+hbwarn:
-+	/* In case we have plenty of memory :-) */
-+	pr_warn("Cannot increase the hashsize of set %s further\n", set->name);
-+	ret = -IPSET_ERR_HASH_FULL;
-+	goto out;
- }
- 
- /* Get the current number of elements and ext_size in the set  */
--- 
-1.8.3.1
-
+#syz fix: Bluetooth: Fix null pointer dereference in hci_event_packet()
