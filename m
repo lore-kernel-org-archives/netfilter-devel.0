@@ -7,49 +7,47 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 918B9C2BBCA
-	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Dec 2020 16:39:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 502B4C4361B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Dec 2020 16:41:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6538B23977
-	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Dec 2020 16:39:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1A999238E8
+	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Dec 2020 16:41:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728161AbgLQQjO (ORCPT
+        id S1727660AbgLQQlU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 17 Dec 2020 11:39:14 -0500
-Received: from correo.us.es ([193.147.175.20]:58548 "EHLO mail.us.es"
+        Thu, 17 Dec 2020 11:41:20 -0500
+Received: from correo.us.es ([193.147.175.20]:59506 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728132AbgLQQjO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 17 Dec 2020 11:39:14 -0500
+        id S1727566AbgLQQlT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 17 Dec 2020 11:41:19 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 96364C1061
-        for <netfilter-devel@vger.kernel.org>; Thu, 17 Dec 2020 17:38:13 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 11BFDC0B2A
+        for <netfilter-devel@vger.kernel.org>; Thu, 17 Dec 2020 17:40:19 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 84D07DA840
-        for <netfilter-devel@vger.kernel.org>; Thu, 17 Dec 2020 17:38:13 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 02A9EDA722
+        for <netfilter-devel@vger.kernel.org>; Thu, 17 Dec 2020 17:40:19 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 7A50BDA72F; Thu, 17 Dec 2020 17:38:13 +0100 (CET)
+        id EBF1BDA855; Thu, 17 Dec 2020 17:40:18 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0EC95DA72F
-        for <netfilter-devel@vger.kernel.org>; Thu, 17 Dec 2020 17:38:11 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 84B71DA73D
+        for <netfilter-devel@vger.kernel.org>; Thu, 17 Dec 2020 17:40:16 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 17 Dec 2020 17:38:11 +0100 (CET)
+ Thu, 17 Dec 2020 17:40:16 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id EA7A4426CC85
-        for <netfilter-devel@vger.kernel.org>; Thu, 17 Dec 2020 17:38:10 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPSA id 6EA45426CC84
+        for <netfilter-devel@vger.kernel.org>; Thu, 17 Dec 2020 17:40:16 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH 3/3 libnftnl,v2] src: add NFTNL_EXPR_DYNSET_EXPRESSIONS
-Date:   Thu, 17 Dec 2020 17:38:23 +0100
-Message-Id: <20201217163823.24180-3-pablo@netfilter.org>
+Subject: [PATCH nft,v2] src: disallow burst 0 in ratelimits
+Date:   Thu, 17 Dec 2020 17:40:29 +0100
+Message-Id: <20201217164029.24304-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20201217163823.24180-1-pablo@netfilter.org>
-References: <20201217163823.24180-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
@@ -57,297 +55,247 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-NFTNL_EXPR_DYNSET_EXPR defines the stateful expression type that
-an element stores when added from the packet path.
+The ratelimiter in nftables is similar to the one in iptables, and
+iptables disallows a zero burst.
 
-This patch adds support for the set expression list, which generalizes
-NFTNL_EXPR_DYNSET_EXPR.
+Update the byte rate limiter not to print burst 5 (default value).
 
-This patch also adds nftnl_expr_add_expr() to add new expressions to
-elements and nftnl_set_expr_expr_foreach() to iterate over the list of
-expressions.
+Update tests/py to use burst 5 instead of zero.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: constify first parameter of _foreach function
+v2: update tests/py
+    do not print default burst when listing
 
- include/expr_ops.h      |   1 +
- include/libnftnl/expr.h |   7 +++
- src/expr.c              |   3 ++
- src/expr/dynset.c       | 111 +++++++++++++++++++++++++++++++++++-----
- src/libnftnl.map        |   2 +
- 5 files changed, 110 insertions(+), 14 deletions(-)
+ doc/statements.txt           |  3 ++-
+ src/parser_bison.y           | 25 ++++++++++++++++++--
+ src/statement.c              |  2 +-
+ tests/py/any/limit.t.payload | 44 ++++++++++++++++++------------------
+ 4 files changed, 48 insertions(+), 26 deletions(-)
 
-diff --git a/include/expr_ops.h b/include/expr_ops.h
-index a7f1b9a6abfd..5237ac791588 100644
---- a/include/expr_ops.h
-+++ b/include/expr_ops.h
-@@ -12,6 +12,7 @@ struct expr_ops {
- 	const char *name;
- 	uint32_t alloc_len;
- 	int	max_attr;
-+	void	(*init)(const struct nftnl_expr *e);
- 	void	(*free)(const struct nftnl_expr *e);
- 	int	(*set)(struct nftnl_expr *e, uint16_t type, const void *data, uint32_t data_len);
- 	const void *(*get)(const struct nftnl_expr *e, uint16_t type, uint32_t *data_len);
-diff --git a/include/libnftnl/expr.h b/include/libnftnl/expr.h
-index c2b2d8644bcd..13c55e70b743 100644
---- a/include/libnftnl/expr.h
-+++ b/include/libnftnl/expr.h
-@@ -38,6 +38,12 @@ const char *nftnl_expr_get_str(const struct nftnl_expr *expr, uint16_t type);
+diff --git a/doc/statements.txt b/doc/statements.txt
+index beebba1611a8..aac7c7d6b009 100644
+--- a/doc/statements.txt
++++ b/doc/statements.txt
+@@ -324,7 +324,8 @@ ____
+ A limit statement matches at a limited rate using a token bucket filter. A rule
+ using this statement will match until this limit is reached. It can be used in
+ combination with the log statement to give limited logging. The optional
+-*over* keyword makes it match over the specified rate.
++*over* keyword makes it match over the specified rate. Default *burst* is 5.
++if you specify *burst*, it must be non-zero value.
  
- void nftnl_expr_build_payload(struct nlmsghdr *nlh, struct nftnl_expr *expr);
+ .limit statement values
+ [options="header"]
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 58a5a4752002..15df215e8aa0 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -3038,6 +3038,11 @@ log_flag_tcp		:	SEQUENCE
  
-+/* For dynset expressions. */
-+void nftnl_expr_add_expr(struct nftnl_expr *expr, uint32_t type, struct nftnl_expr *e);
-+int nftnl_expr_expr_foreach(const struct nftnl_expr *e,
-+			    int (*cb)(struct nftnl_expr *e, void *data),
-+			    void *data);
-+
- int nftnl_expr_snprintf(char *buf, size_t buflen, const struct nftnl_expr *expr, uint32_t type, uint32_t flags);
- int nftnl_expr_fprintf(FILE *fp, const struct nftnl_expr *expr, uint32_t type, uint32_t flags);
+ limit_stmt		:	LIMIT	RATE	limit_mode	NUM	SLASH	time_unit	limit_burst_pkts
+ 	    		{
++				if ($7 == 0) {
++					erec_queue(error(&@7, "limit burst must be > 0"),
++						   state->msgs);
++					YYERROR;
++				}
+ 				$$ = limit_stmt_alloc(&@$);
+ 				$$->limit.rate	= $4;
+ 				$$->limit.unit	= $6;
+@@ -3050,6 +3055,12 @@ limit_stmt		:	LIMIT	RATE	limit_mode	NUM	SLASH	time_unit	limit_burst_pkts
+ 				struct error_record *erec;
+ 				uint64_t rate, unit;
  
-@@ -167,6 +173,7 @@ enum {
- 	NFTNL_EXPR_DYNSET_SET_NAME,
- 	NFTNL_EXPR_DYNSET_SET_ID,
- 	NFTNL_EXPR_DYNSET_EXPR,
-+	NFTNL_EXPR_DYNSET_EXPRESSIONS,
- };
++				if ($6 == 0) {
++					erec_queue(error(&@6, "limit burst must be > 0"),
++						   state->msgs);
++					YYERROR;
++				}
++
+ 				erec = rate_parse(&@$, $5, &rate, &unit);
+ 				xfree($5);
+ 				if (erec != NULL) {
+@@ -3126,11 +3137,11 @@ limit_mode		:	OVER				{ $$ = NFT_LIMIT_F_INV; }
+ 			|	/* empty */			{ $$ = 0; }
+ 			;
  
- enum {
-diff --git a/src/expr.c b/src/expr.c
-index ed2f60e1429f..8e0bce2643b1 100644
---- a/src/expr.c
-+++ b/src/expr.c
-@@ -42,6 +42,9 @@ struct nftnl_expr *nftnl_expr_alloc(const char *name)
- 	expr->flags |= (1 << NFTNL_EXPR_NAME);
- 	expr->ops = ops;
+-limit_burst_pkts	:	/* empty */			{ $$ = 0; }
++limit_burst_pkts	:	/* empty */			{ $$ = 5; }
+ 			|	BURST	NUM	PACKETS		{ $$ = $2; }
+ 			;
  
-+	if (ops->init)
-+		ops->init(expr);
-+
- 	return expr;
- }
+-limit_burst_bytes	:	/* empty */			{ $$ = 0; }
++limit_burst_bytes	:	/* empty */			{ $$ = 5; }
+ 			|	BURST	NUM	BYTES		{ $$ = $2; }
+ 			|	BURST	NUM	STRING
+ 			{
+@@ -4121,6 +4132,11 @@ set_elem_stmt		:	COUNTER
+ 			}
+ 			|	LIMIT   RATE    limit_mode      NUM     SLASH   time_unit       limit_burst_pkts
+ 			{
++				if ($7 == 0) {
++					erec_queue(error(&@7, "limit burst must be > 0"),
++						   state->msgs);
++					YYERROR;
++				}
+ 				$$ = limit_stmt_alloc(&@$);
+ 				$$->limit.rate  = $4;
+ 				$$->limit.unit  = $6;
+@@ -4133,6 +4149,11 @@ set_elem_stmt		:	COUNTER
+ 				struct error_record *erec;
+ 				uint64_t rate, unit;
  
-diff --git a/src/expr/dynset.c b/src/expr/dynset.c
-index 91dbea930715..f349a17a8701 100644
---- a/src/expr/dynset.c
-+++ b/src/expr/dynset.c
-@@ -26,7 +26,7 @@ struct nftnl_expr_dynset {
- 	enum nft_registers	sreg_data;
- 	enum nft_dynset_ops	op;
- 	uint64_t		timeout;
--	struct nftnl_expr	*expr;
-+	struct list_head	expr_list;
- 	char			*set_name;
- 	uint32_t		set_id;
- };
-@@ -36,6 +36,7 @@ nftnl_expr_dynset_set(struct nftnl_expr *e, uint16_t type,
- 			 const void *data, uint32_t data_len)
- {
- 	struct nftnl_expr_dynset *dynset = nftnl_expr_data(e);
-+	struct nftnl_expr *expr, *next;
++				if ($6 == 0) {
++					erec_queue(error(&@6, "limit burst must be > 0"),
++						   state->msgs);
++					YYERROR;
++				}
+ 				erec = rate_parse(&@$, $5, &rate, &unit);
+ 				xfree($5);
+ 				if (erec != NULL) {
+diff --git a/src/statement.c b/src/statement.c
+index 39020857ae9c..f7f1c0c4d553 100644
+--- a/src/statement.c
++++ b/src/statement.c
+@@ -464,7 +464,7 @@ static void limit_stmt_print(const struct stmt *stmt, struct output_ctx *octx)
+ 		nft_print(octx,	"limit rate %s%" PRIu64 " %s/%s",
+ 			  inv ? "over " : "", rate, data_unit,
+ 			  get_unit(stmt->limit.unit));
+-		if (stmt->limit.burst > 0) {
++		if (stmt->limit.burst != 5) {
+ 			uint64_t burst;
  
- 	switch (type) {
- 	case NFTNL_EXPR_DYNSET_SREG_KEY:
-@@ -59,7 +60,11 @@ nftnl_expr_dynset_set(struct nftnl_expr *e, uint16_t type,
- 		memcpy(&dynset->set_id, data, sizeof(dynset->set_id));
- 		break;
- 	case NFTNL_EXPR_DYNSET_EXPR:
--		dynset->expr = (void *)data;
-+		list_for_each_entry_safe(expr, next, &dynset->expr_list, head)
-+			nftnl_expr_free(expr);
-+
-+		expr = (void *)data;
-+		list_add(&expr->head, &dynset->expr_list);
- 		break;
- 	default:
- 		return -1;
-@@ -72,6 +77,7 @@ nftnl_expr_dynset_get(const struct nftnl_expr *e, uint16_t type,
- 			 uint32_t *data_len)
- {
- 	struct nftnl_expr_dynset *dynset = nftnl_expr_data(e);
-+	struct nftnl_expr *expr;
+ 			data_unit = get_rate(stmt->limit.burst, &burst);
+diff --git a/tests/py/any/limit.t.payload b/tests/py/any/limit.t.payload
+index b0cc84b42ff3..dc6cea9b2846 100644
+--- a/tests/py/any/limit.t.payload
++++ b/tests/py/any/limit.t.payload
+@@ -1,22 +1,22 @@
+ # limit rate 400/minute
+ ip test-ip4 output
+-  [ limit rate 400/minute burst 0 type packets flags 0x0 ]
++  [ limit rate 400/minute burst 5 type packets flags 0x0 ]
  
- 	switch (type) {
- 	case NFTNL_EXPR_DYNSET_SREG_KEY:
-@@ -93,7 +99,9 @@ nftnl_expr_dynset_get(const struct nftnl_expr *e, uint16_t type,
- 		*data_len = sizeof(dynset->set_id);
- 		return &dynset->set_id;
- 	case NFTNL_EXPR_DYNSET_EXPR:
--		return dynset->expr;
-+		list_for_each_entry(expr, &dynset->expr_list, head)
-+			break;
-+		return expr;
- 	}
- 	return NULL;
- }
-@@ -137,6 +145,7 @@ nftnl_expr_dynset_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_dynset *dynset = nftnl_expr_data(e);
- 	struct nlattr *nest;
-+	int num_exprs = 0;
+ # limit rate 20/second
+ ip test-ip4 output
+-  [ limit rate 20/second burst 0 type packets flags 0x0 ]
++  [ limit rate 20/second burst 5 type packets flags 0x0 ]
  
- 	if (e->flags & (1 << NFTNL_EXPR_DYNSET_SREG_KEY))
- 		mnl_attr_put_u32(nlh, NFTA_DYNSET_SREG_KEY, htonl(dynset->sreg_key));
-@@ -150,11 +159,55 @@ nftnl_expr_dynset_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
- 		mnl_attr_put_strz(nlh, NFTA_DYNSET_SET_NAME, dynset->set_name);
- 	if (e->flags & (1 << NFTNL_EXPR_DYNSET_SET_ID))
- 		mnl_attr_put_u32(nlh, NFTA_DYNSET_SET_ID, htonl(dynset->set_id));
--	if (e->flags & (1 << NFTNL_EXPR_DYNSET_EXPR)) {
--		nest = mnl_attr_nest_start(nlh, NFTA_DYNSET_EXPR);
--		nftnl_expr_build_payload(nlh, dynset->expr);
--		mnl_attr_nest_end(nlh, nest);
-+	if (!list_empty(&dynset->expr_list)) {
-+		struct nftnl_expr *expr;
-+
-+		list_for_each_entry(expr, &dynset->expr_list, head)
-+			num_exprs++;
-+
-+		if (num_exprs == 1) {
-+			nest = mnl_attr_nest_start(nlh, NFTA_DYNSET_EXPR);
-+			list_for_each_entry(expr, &dynset->expr_list, head)
-+				nftnl_expr_build_payload(nlh, expr);
-+			mnl_attr_nest_end(nlh, nest);
-+		} else if (num_exprs > 1) {
-+			struct nlattr *nest1, *nest2;
-+
-+			nest1 = mnl_attr_nest_start(nlh, NFTA_DYNSET_EXPRESSIONS);
-+			list_for_each_entry(expr, &dynset->expr_list, head) {
-+				nest2 = mnl_attr_nest_start(nlh, NFTA_LIST_ELEM);
-+				nftnl_expr_build_payload(nlh, expr);
-+				mnl_attr_nest_end(nlh, nest2);
-+			}
-+			mnl_attr_nest_end(nlh, nest1);
-+		}
-+	}
-+}
-+
-+EXPORT_SYMBOL(nftnl_expr_add_expr);
-+void nftnl_expr_add_expr(struct nftnl_expr *e, uint32_t type,
-+			 struct nftnl_expr *expr)
-+{
-+	struct nftnl_expr_dynset *dynset = nftnl_expr_data(e);
-+
-+	list_add_tail(&expr->head, &dynset->expr_list);
-+}
-+
-+EXPORT_SYMBOL(nftnl_expr_expr_foreach);
-+int nftnl_expr_expr_foreach(const struct nftnl_expr *e,
-+			    int (*cb)(struct nftnl_expr *e, void *data),
-+			    void *data)
-+{
-+	struct nftnl_expr_dynset *dynset = nftnl_expr_data(e);
-+	struct nftnl_expr *cur, *tmp;
-+	int ret;
-+
-+	list_for_each_entry_safe(cur, tmp, &dynset->expr_list, head) {
-+		ret = cb(cur, data);
-+		if (ret < 0)
-+			return ret;
- 	}
-+	return 0;
- }
+ # limit rate 400/hour
+ ip test-ip4 output
+-  [ limit rate 400/hour burst 0 type packets flags 0x0 ]
++  [ limit rate 400/hour burst 5 type packets flags 0x0 ]
  
- static int
-@@ -162,6 +215,7 @@ nftnl_expr_dynset_parse(struct nftnl_expr *e, struct nlattr *attr)
- {
- 	struct nftnl_expr_dynset *dynset = nftnl_expr_data(e);
- 	struct nlattr *tb[NFTA_SET_MAX+1] = {};
-+	struct nftnl_expr *expr, *next;
- 	int ret = 0;
+ # limit rate 400/week
+ ip test-ip4 output
+-  [ limit rate 400/week burst 0 type packets flags 0x0 ]
++  [ limit rate 400/week burst 5 type packets flags 0x0 ]
  
- 	if (mnl_attr_parse_nested(attr, nftnl_expr_dynset_cb, tb) < 0)
-@@ -195,13 +249,34 @@ nftnl_expr_dynset_parse(struct nftnl_expr *e, struct nlattr *attr)
- 		e->flags |= (1 << NFTNL_EXPR_DYNSET_SET_ID);
- 	}
- 	if (tb[NFTA_DYNSET_EXPR]) {
--		e->flags |= (1 << NFTNL_EXPR_DYNSET_EXPR);
--		dynset->expr = nftnl_expr_parse(tb[NFTA_DYNSET_EXPR]);
--		if (dynset->expr == NULL)
-+		expr = nftnl_expr_parse(tb[NFTA_DYNSET_EXPR]);
-+		if (expr == NULL)
- 			return -1;
-+
-+		list_add(&expr->head, &dynset->expr_list);
-+		e->flags |= (1 << NFTNL_EXPR_DYNSET_EXPR);
-+	} else if (tb[NFTA_DYNSET_EXPRESSIONS]) {
-+		struct nlattr *attr2;
-+
-+		mnl_attr_for_each_nested(attr2, tb[NFTA_DYNSET_EXPRESSIONS]) {
-+			if (mnl_attr_get_type(attr2) != NFTA_LIST_ELEM)
-+				goto out_dynset_expr;
-+
-+			expr = nftnl_expr_parse(attr2);
-+			if (!expr)
-+				goto out_dynset_expr;
-+
-+			list_add_tail(&expr->head, &dynset->expr_list);
-+		}
-+		e->flags |= (1 << NFTNL_EXPR_DYNSET_EXPRESSIONS);
- 	}
+ # limit rate 40/day
+ ip test-ip4 output
+-  [ limit rate 40/day burst 0 type packets flags 0x0 ]
++  [ limit rate 40/day burst 5 type packets flags 0x0 ]
  
- 	return ret;
-+out_dynset_expr:
-+	list_for_each_entry_safe(expr, next, &dynset->expr_list, head)
-+		nftnl_expr_free(expr);
-+
-+	return -1;
- }
+ # limit rate 1023/second burst 10 packets
+ ip test-ip4 output
+@@ -24,27 +24,27 @@ ip test-ip4 output
  
- static const char *op2str_array[] = {
-@@ -239,8 +314,7 @@ nftnl_expr_dynset_snprintf_default(char *buf, size_t size,
- 			       dynset->timeout);
- 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
- 	}
--	if (e->flags & (1 << NFTNL_EXPR_DYNSET_EXPR)) {
--		expr = dynset->expr;
-+	list_for_each_entry(expr, &dynset->expr_list, head) {
- 		ret = snprintf(buf + offset, remain, "expr [ %s ",
- 			       expr->ops->name);
- 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
-@@ -272,19 +346,28 @@ nftnl_expr_dynset_snprintf(char *buf, size_t size, uint32_t type,
- 	return -1;
- }
+ # limit rate 1 kbytes/second
+ ip test-ip4 output
+-  [ limit rate 1024/second burst 0 type bytes flags 0x0 ]
++  [ limit rate 1024/second burst 5 type bytes flags 0x0 ]
  
-+static void nftnl_expr_dynset_init(const struct nftnl_expr *e)
-+{
-+	struct nftnl_expr_dynset *dynset = nftnl_expr_data(e);
-+
-+	INIT_LIST_HEAD(&dynset->expr_list);
-+}
-+
- static void nftnl_expr_dynset_free(const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_dynset *dynset = nftnl_expr_data(e);
-+	struct nftnl_expr *expr, *next;
+ # limit rate 2 kbytes/second
+ ip test-ip4 output
+-  [ limit rate 2048/second burst 0 type bytes flags 0x0 ]
++  [ limit rate 2048/second burst 5 type bytes flags 0x0 ]
  
- 	xfree(dynset->set_name);
--	if (dynset->expr)
--		nftnl_expr_free(dynset->expr);
-+	list_for_each_entry_safe(expr, next, &dynset->expr_list, head)
-+		nftnl_expr_free(expr);
- }
+ # limit rate 1025 kbytes/second
+ ip test-ip4 output
+-  [ limit rate 1049600/second burst 0 type bytes flags 0x0 ]
++  [ limit rate 1049600/second burst 5 type bytes flags 0x0 ]
  
- struct expr_ops expr_ops_dynset = {
- 	.name		= "dynset",
- 	.alloc_len	= sizeof(struct nftnl_expr_dynset),
- 	.max_attr	= NFTA_DYNSET_MAX,
-+	.init		= nftnl_expr_dynset_init,
- 	.free		= nftnl_expr_dynset_free,
- 	.set		= nftnl_expr_dynset_set,
- 	.get		= nftnl_expr_dynset_get,
-diff --git a/src/libnftnl.map b/src/libnftnl.map
-index 7078a5d38ba8..e707b89cfdfd 100644
---- a/src/libnftnl.map
-+++ b/src/libnftnl.map
-@@ -380,4 +380,6 @@ LIBNFTNL_16 {
-   nftnl_set_expr_foreach;
-   nftnl_set_elem_add_expr;
-   nftnl_set_elem_expr_foreach;
-+  nftnl_expr_add_expr;
-+  nftnl_expr_expr_foreach;
- } LIBNFTNL_15;
+ # limit rate 1023 mbytes/second
+ ip test-ip4 output
+-  [ limit rate 1072693248/second burst 0 type bytes flags 0x0 ]
++  [ limit rate 1072693248/second burst 5 type bytes flags 0x0 ]
+ 
+ # limit rate 10230 mbytes/second
+ ip test-ip4 output
+-  [ limit rate 10726932480/second burst 0 type bytes flags 0x0 ]
++  [ limit rate 10726932480/second burst 5 type bytes flags 0x0 ]
+ 
+ # limit rate 1023000 mbytes/second
+ ip test-ip4 output
+-  [ limit rate 1072693248000/second burst 0 type bytes flags 0x0 ]
++  [ limit rate 1072693248000/second burst 5 type bytes flags 0x0 ]
+ 
+ # limit rate 1025 bytes/second burst 512 bytes
+ ip test-ip4 output
+@@ -64,23 +64,23 @@ ip test-ip4 output
+ 
+ # limit rate over 400/minute
+ ip test-ip4 output
+-  [ limit rate 400/minute burst 0 type packets flags 0x1 ]
++  [ limit rate 400/minute burst 5 type packets flags 0x1 ]
+ 
+ # limit rate over 20/second
+ ip test-ip4 output
+-  [ limit rate 20/second burst 0 type packets flags 0x1 ]
++  [ limit rate 20/second burst 5 type packets flags 0x1 ]
+ 
+ # limit rate over 400/hour
+ ip test-ip4 output
+-  [ limit rate 400/hour burst 0 type packets flags 0x1 ]
++  [ limit rate 400/hour burst 5 type packets flags 0x1 ]
+ 
+ # limit rate over 400/week
+ ip test-ip4 output
+-  [ limit rate 400/week burst 0 type packets flags 0x1 ]
++  [ limit rate 400/week burst 5 type packets flags 0x1 ]
+ 
+ # limit rate over 40/day
+ ip test-ip4 output
+-  [ limit rate 40/day burst 0 type packets flags 0x1 ]
++  [ limit rate 40/day burst 5 type packets flags 0x1 ]
+ 
+ # limit rate over 1023/second burst 10 packets
+ ip test-ip4 output
+@@ -88,27 +88,27 @@ ip test-ip4 output
+ 
+ # limit rate over 1 kbytes/second
+ ip test-ip4 output
+-  [ limit rate 1024/second burst 0 type bytes flags 0x1 ]
++  [ limit rate 1024/second burst 5 type bytes flags 0x1 ]
+ 
+ # limit rate over 2 kbytes/second
+ ip test-ip4 output
+-  [ limit rate 2048/second burst 0 type bytes flags 0x1 ]
++  [ limit rate 2048/second burst 5 type bytes flags 0x1 ]
+ 
+ # limit rate over 1025 kbytes/second
+ ip test-ip4 output
+-  [ limit rate 1049600/second burst 0 type bytes flags 0x1 ]
++  [ limit rate 1049600/second burst 5 type bytes flags 0x1 ]
+ 
+ # limit rate over 1023 mbytes/second
+ ip test-ip4 output
+-  [ limit rate 1072693248/second burst 0 type bytes flags 0x1 ]
++  [ limit rate 1072693248/second burst 5 type bytes flags 0x1 ]
+ 
+ # limit rate over 10230 mbytes/second
+ ip test-ip4 output
+-  [ limit rate 10726932480/second burst 0 type bytes flags 0x1 ]
++  [ limit rate 10726932480/second burst 5 type bytes flags 0x1 ]
+ 
+ # limit rate over 1023000 mbytes/second
+ ip test-ip4 output
+-  [ limit rate 1072693248000/second burst 0 type bytes flags 0x1 ]
++  [ limit rate 1072693248000/second burst 5 type bytes flags 0x1 ]
+ 
+ # limit rate over 1025 bytes/second burst 512 bytes
+ ip test-ip4 output
 -- 
 2.20.1
 
