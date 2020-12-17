@@ -7,35 +7,39 @@ X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AAE58C4361B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Dec 2020 17:13:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B350C2BB48
+	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Dec 2020 17:13:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7F7F62389F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Dec 2020 17:13:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6709E238E8
+	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Dec 2020 17:13:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728000AbgLQRNJ (ORCPT
+        id S1729148AbgLQRNX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 17 Dec 2020 12:13:09 -0500
-Received: from smtp-out.kfki.hu ([148.6.0.45]:44151 "EHLO smtp-out.kfki.hu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726613AbgLQRNJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 17 Dec 2020 12:13:09 -0500
+        Thu, 17 Dec 2020 12:13:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33408 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728183AbgLQRNX (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 17 Dec 2020 12:13:23 -0500
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::46])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A4FEDC0617B0
+        for <netfilter-devel@vger.kernel.org>; Thu, 17 Dec 2020 09:12:42 -0800 (PST)
 Received: from localhost (localhost [127.0.0.1])
-        by smtp0.kfki.hu (Postfix) with ESMTP id B94D567401F9;
-        Thu, 17 Dec 2020 18:12:06 +0100 (CET)
-X-Virus-Scanned: Debian amavisd-new at smtp0.kfki.hu
-Received: from smtp0.kfki.hu ([127.0.0.1])
-        by localhost (smtp0.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Thu, 17 Dec 2020 18:12:04 +0100 (CET)
-Received: from blackhole.kfki.hu (blackhole.kfki.hu [IPv6:2001:738:5001:1::240:2])
-        by smtp0.kfki.hu (Postfix) with ESMTP id 90CC067401D5;
-        Thu, 17 Dec 2020 18:12:03 +0100 (CET)
+        by smtp1.kfki.hu (Postfix) with ESMTP id F419F3C801EE;
+        Thu, 17 Dec 2020 18:12:37 +0100 (CET)
+X-Virus-Scanned: Debian amavisd-new at smtp1.kfki.hu
+Received: from smtp1.kfki.hu ([127.0.0.1])
+        by localhost (smtp1.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP; Thu, 17 Dec 2020 18:12:35 +0100 (CET)
+Received: from blackhole.kfki.hu (blackhole.kfki.hu [148.6.240.2])
+        by smtp1.kfki.hu (Postfix) with ESMTP id 979773C8015A;
+        Thu, 17 Dec 2020 18:12:35 +0100 (CET)
 Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id 47E4F340D5D; Thu, 17 Dec 2020 18:12:03 +0100 (CET)
+        id 935AF340D5D; Thu, 17 Dec 2020 18:12:35 +0100 (CET)
 Received: from localhost (localhost [127.0.0.1])
-        by blackhole.kfki.hu (Postfix) with ESMTP id 43C2F340D5C;
-        Thu, 17 Dec 2020 18:12:03 +0100 (CET)
-Date:   Thu, 17 Dec 2020 18:12:03 +0100 (CET)
+        by blackhole.kfki.hu (Postfix) with ESMTP id 91C41340D5C;
+        Thu, 17 Dec 2020 18:12:35 +0100 (CET)
+Date:   Thu, 17 Dec 2020 18:12:35 +0100 (CET)
 From:   Jozsef Kadlecsik <kadlec@netfilter.org>
 X-X-Sender: kadlec@blackhole.kfki.hu
 To:     Vasily Averin <vvs@virtuozzo.com>
@@ -43,11 +47,13 @@ cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
         "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: Re: [PATCH] netfilter: ipset: fixes possible oops in mtype_resize
-In-Reply-To: <bfeee41d-65f0-40b2-1139-b888627e34ef@virtuozzo.com>
-Message-ID: <alpine.DEB.2.23.453.2012171810580.2216@blackhole.kfki.hu>
-References: <bfeee41d-65f0-40b2-1139-b888627e34ef@virtuozzo.com>
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        syzkaller-bugs@googlegroups.com
+Subject: Re: [PATCH v2] netfilter: ipset: fix shift-out-of-bounds in
+ htable_bits()
+In-Reply-To: <e954ad22-83dc-e553-37a3-f0adb11cebb2@virtuozzo.com>
+Message-ID: <alpine.DEB.2.23.453.2012171812090.2216@blackhole.kfki.hu>
+References: <4d915d3a-6a95-7784-4057-2faa17a061@blackhole.kfki.hu> <e954ad22-83dc-e553-37a3-f0adb11cebb2@virtuozzo.com>
 User-Agent: Alpine 2.23 (DEB 453 2020-06-18)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -55,26 +61,44 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Vasily, Pablo,
-
 On Thu, 17 Dec 2020, Vasily Averin wrote:
 
-> currently mtype_resize() can cause oops
+> htable_bits() can call jhash_size(32) and trigger shift-out-of-bounds
 > 
->         t = ip_set_alloc(htable_size(htable_bits));
->         if (!t) {
->                 ret = -ENOMEM;
->                 goto out;
->         }
->         t->hregion = ip_set_alloc(ahash_sizeof_regions(htable_bits));
+> UBSAN: shift-out-of-bounds in net/netfilter/ipset/ip_set_hash_gen.h:151:6
+> shift exponent 32 is too large for 32-bit type 'unsigned int'
+> CPU: 0 PID: 8498 Comm: syz-executor519
+>  Not tainted 5.10.0-rc7-next-20201208-syzkaller #0
+> Call Trace:
+>  __dump_stack lib/dump_stack.c:79 [inline]
+>  dump_stack+0x107/0x163 lib/dump_stack.c:120
+>  ubsan_epilogue+0xb/0x5a lib/ubsan.c:148
+>  __ubsan_handle_shift_out_of_bounds.cold+0xb1/0x181 lib/ubsan.c:395
+>  htable_bits net/netfilter/ipset/ip_set_hash_gen.h:151 [inline]
+>  hash_mac_create.cold+0x58/0x9b net/netfilter/ipset/ip_set_hash_gen.h:1524
+>  ip_set_create+0x610/0x1380 net/netfilter/ipset/ip_set_core.c:1115
+>  nfnetlink_rcv_msg+0xecc/0x1180 net/netfilter/nfnetlink.c:252
+>  netlink_rcv_skb+0x153/0x420 net/netlink/af_netlink.c:2494
+>  nfnetlink_rcv+0x1ac/0x420 net/netfilter/nfnetlink.c:600
+>  netlink_unicast_kernel net/netlink/af_netlink.c:1304 [inline]
+>  netlink_unicast+0x533/0x7d0 net/netlink/af_netlink.c:1330
+>  netlink_sendmsg+0x907/0xe40 net/netlink/af_netlink.c:1919
+>  sock_sendmsg_nosec net/socket.c:652 [inline]
+>  sock_sendmsg+0xcf/0x120 net/socket.c:672
+>  ____sys_sendmsg+0x6e8/0x810 net/socket.c:2345
+>  ___sys_sendmsg+0xf3/0x170 net/socket.c:2399
+>  __sys_sendmsg+0xe5/0x1b0 net/socket.c:2432
+>  do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+>  entry_SYSCALL_64_after_hwframe+0x44/0xa9
 > 
-> Increased htable_bits can force htable_size() to return 0.
-> In own turn ip_set_alloc(0) returns not 0 but ZERO_SIZE_PTR,
-> so follwoing access to t->hregion should trigger an OOPS.
+> This patch replaces htable_bits() by simple fls(hashsize - 1) call:
+> it alone returns valid nbits both for round and non-round hashsizes.
+> It is normal to set any nbits here because it is validated inside
+> following htable_size() call which returns 0 for nbits>31.
 > 
+> Fixes: 1feab10d7e6d("netfilter: ipset: Unified hash type generation")
+> Reported-by: syzbot+d66bfadebca46cf61a2b@syzkaller.appspotmail.com
 > Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
-
-Good catch, thank you Vasily.
 
 Acked-by: Jozsef Kadlecsik <kadlec@netfilter.org>
 
@@ -82,56 +106,47 @@ Best regards,
 Jozsef
 
 > ---
->  net/netfilter/ipset/ip_set_hash_gen.h | 22 +++++++++++++---------
->  1 file changed, 13 insertions(+), 9 deletions(-)
+>  net/netfilter/ipset/ip_set_hash_gen.h | 20 +++++---------------
+>  1 file changed, 5 insertions(+), 15 deletions(-)
 > 
 > diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-> index 7d01086..7cd1d31 100644
+> index 521e970..7d01086 100644
 > --- a/net/netfilter/ipset/ip_set_hash_gen.h
 > +++ b/net/netfilter/ipset/ip_set_hash_gen.h
-> @@ -630,7 +630,7 @@ struct mtype_resize_ad {
->  	struct htype *h = set->data;
->  	struct htable *t, *orig;
->  	u8 htable_bits;
-> -	size_t dsize = set->dsize;
-> +	size_t hsize, dsize = set->dsize;
->  #ifdef IP_SET_HASH_WITH_NETS
->  	u8 flags;
->  	struct mtype_elem *tmp;
-> @@ -654,14 +654,12 @@ struct mtype_resize_ad {
->  retry:
->  	ret = 0;
->  	htable_bits++;
-> -	if (!htable_bits) {
-> -		/* In case we have plenty of memory :-) */
-> -		pr_warn("Cannot increase the hashsize of set %s further\n",
-> -			set->name);
-> -		ret = -IPSET_ERR_HASH_FULL;
-> -		goto out;
-> -	}
-> -	t = ip_set_alloc(htable_size(htable_bits));
-> +	if (!htable_bits)
-> +		goto hbwarn;
-> +	hsize = htable_size(htable_bits);
-> +	if (!hsize)
-> +		goto hbwarn;
-> +	t = ip_set_alloc(hsize);
->  	if (!t) {
->  		ret = -ENOMEM;
->  		goto out;
-> @@ -803,6 +801,12 @@ struct mtype_resize_ad {
->  	if (ret == -EAGAIN)
->  		goto retry;
->  	goto out;
-> +
-> +hbwarn:
-> +	/* In case we have plenty of memory :-) */
-> +	pr_warn("Cannot increase the hashsize of set %s further\n", set->name);
-> +	ret = -IPSET_ERR_HASH_FULL;
-> +	goto out;
+> @@ -143,20 +143,6 @@ struct net_prefixes {
+>  	return hsize * sizeof(struct hbucket *) + sizeof(struct htable);
 >  }
 >  
->  /* Get the current number of elements and ext_size in the set  */
+> -/* Compute htable_bits from the user input parameter hashsize */
+> -static u8
+> -htable_bits(u32 hashsize)
+> -{
+> -	/* Assume that hashsize == 2^htable_bits */
+> -	u8 bits = fls(hashsize - 1);
+> -
+> -	if (jhash_size(bits) != hashsize)
+> -		/* Round up to the first 2^n value */
+> -		bits = fls(hashsize);
+> -
+> -	return bits;
+> -}
+> -
+>  #ifdef IP_SET_HASH_WITH_NETS
+>  #if IPSET_NET_COUNT > 1
+>  #define __CIDR(cidr, i)		(cidr[i])
+> @@ -1520,7 +1506,11 @@ struct mtype_resize_ad {
+>  	if (!h)
+>  		return -ENOMEM;
+>  
+> -	hbits = htable_bits(hashsize);
+> +	/* Compute htable_bits from the user input parameter hashsize.
+> +	 * Assume that hashsize == 2^htable_bits,
+> +	 * otherwise round up to the first 2^n value.
+> +	 */
+> +	hbits = fls(hashsize - 1);
+>  	hsize = htable_size(hbits);
+>  	if (hsize == 0) {
+>  		kfree(h);
 > -- 
 > 1.8.3.1
 > 
