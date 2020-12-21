@@ -2,82 +2,124 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.2 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B857C2BBCD
-	for <netfilter-devel@archiver.kernel.org>; Sun, 20 Dec 2020 15:03:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78F2EC433E0
+	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Dec 2020 10:31:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CCEF22250F
-	for <netfilter-devel@archiver.kernel.org>; Sun, 20 Dec 2020 15:03:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3F65222AAB
+	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Dec 2020 10:31:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727396AbgLTPCc (ORCPT
+        id S1726065AbgLUKbX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 20 Dec 2020 10:02:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52898 "EHLO
+        Mon, 21 Dec 2020 05:31:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33584 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726943AbgLTPCc (ORCPT
+        with ESMTP id S1725796AbgLUKbX (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 20 Dec 2020 10:02:32 -0500
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::45])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E037C0617B0;
-        Sun, 20 Dec 2020 07:01:44 -0800 (PST)
-Received: from localhost (localhost [127.0.0.1])
-        by smtp0.kfki.hu (Postfix) with ESMTP id 49BC26740155;
-        Sun, 20 Dec 2020 16:01:40 +0100 (CET)
-X-Virus-Scanned: Debian amavisd-new at smtp0.kfki.hu
-Received: from smtp0.kfki.hu ([127.0.0.1])
-        by localhost (smtp0.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Sun, 20 Dec 2020 16:01:38 +0100 (CET)
-Received: from localhost.kfki.hu (host-94-248-219-210.kabelnet.hu [94.248.219.210])
-        (Authenticated sender: kadlecsik.jozsef@wigner.mta.hu)
-        by smtp0.kfki.hu (Postfix) with ESMTPSA id 02A416740156;
-        Sun, 20 Dec 2020 16:01:37 +0100 (CET)
-Received: by localhost.kfki.hu (Postfix, from userid 1000)
-        id 87B09300564; Sun, 20 Dec 2020 16:01:37 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-        by localhost.kfki.hu (Postfix) with ESMTP id 8513D30038E;
-        Sun, 20 Dec 2020 16:01:37 +0100 (CET)
-Date:   Sun, 20 Dec 2020 16:01:37 +0100 (CET)
-From:   Jozsef Kadlecsik <kadlec@netfilter.org>
-To:     netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: [ANNOUNCE] ipset 7.10 released
-Message-ID: <b56e4c5-cd49-272f-fd39-707442d86cd5@mail.kfki.hu>
+        Mon, 21 Dec 2020 05:31:23 -0500
+Received: from mail-qk1-x729.google.com (mail-qk1-x729.google.com [IPv6:2607:f8b0:4864:20::729])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C2E7C0613D3
+        for <netfilter-devel@vger.kernel.org>; Mon, 21 Dec 2020 02:30:43 -0800 (PST)
+Received: by mail-qk1-x729.google.com with SMTP id v126so3800827qkd.11
+        for <netfilter-devel@vger.kernel.org>; Mon, 21 Dec 2020 02:30:43 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=6M/YwkCYIyGlJVAYe704Xk3oPcJUgFz/KZ270jgPQzU=;
+        b=KJb2taVRBZB8INRt0J7DosLa2gmPLDQJL4D704CX7AKJTkz6hYU3Hm3HVdtNoC8BPE
+         4M5ZgBi2xvXGJq+GvOOQiZyzGT7gJ8ckWQH76Aw3BZSV+kfPK87t3oyQA6sK3xJn+7Tg
+         AEilKWBc9AfOAC9J7daFVbeH6XNHkkOaWFl3/kN+BgD2QSWc1uUtgScEe0RwtIjRJo+7
+         +38/0DDGt/x0IUuo6ek5AqWqmXVrrMoKOT51K6o5DTTbtfvW9vlPeub1gdnNClqWd+L5
+         gCAXZwQk14aW5LyRU3QLHnZf3FKNIliwpzOOjhkX9T22z/gmWjp72z9IZd/EVYfMINw+
+         KLeA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=6M/YwkCYIyGlJVAYe704Xk3oPcJUgFz/KZ270jgPQzU=;
+        b=bEpQRXNMKcbgKFUoHx5PhvKyAjVkkSQL0UdRI7A8GXbHA28rY3LLeAaXRYHa7Fn2SA
+         eTI8wldYg9fRi7pxQ28xYO2DYyeD3UmFnLQJO2nNKoQnX++Q7yicu8LyyrSJWTK1FhUn
+         JPChyxkuqjOt/j3GCg97AcwGHl4fggmJEJcVzBwQlkvX636bBJdATjIilsuZBLOilbTP
+         6nPlnrspaMygDkqKeFNAVDXSGXm/EhAA+/Af+KabPr/KQkzHNsUUCG//OKTySNuaEOJ9
+         tSGjwhGtt/1Xiz9gvBufHNq+6TITfVML01Roe5Nl155u9H419/sgSHe5cuqWnFPW1WmW
+         jefg==
+X-Gm-Message-State: AOAM5326BZ7t5MTQwitVxKTiWWTtOJV317NXI8kS+Q4m/TyyxHh34BY9
+        TkwpTjBPsyyNDBGmTcCc/hihtsFGPT4KUhSAWarQG0WpGJQ=
+X-Google-Smtp-Source: ABdhPJzy05k7aN1jFIeWNe77asiU17/4WYNEu2MvhoBXizH3PyaLmma7rEiKGjOIUOL6+owIYb4FJQnLzDT/iJVRW7w=
+X-Received: by 2002:ac8:5ac3:: with SMTP id d3mr15794400qtd.66.1608542498564;
+ Mon, 21 Dec 2020 01:21:38 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+References: <000000000000264c6305a9c74d9b@google.com> <0000000000008647f705b6e215de@google.com>
+In-Reply-To: <0000000000008647f705b6e215de@google.com>
+From:   Dmitry Vyukov <dvyukov@google.com>
+Date:   Mon, 21 Dec 2020 10:21:27 +0100
+Message-ID: <CACT4Y+YnmECGRg7yOrkCQAw6OSm6TeEzOCBnJE7F32aoL0_2RQ@mail.gmail.com>
+Subject: Re: INFO: rcu detected stall in tipc_release
+To:     syzbot <syzbot+3654c027d861c6df4b06@syzkaller.appspotmail.com>
+Cc:     Markus Elfring <Markus.Elfring@web.de>,
+        Borislav Petkov <bp@alien8.de>, coreteam@netfilter.org,
+        David Miller <davem@davemloft.net>,
+        Florian Westphal <fw@strlen.de>,
+        =?UTF-8?B?RnLDqWTDqXJpYyBXZWlzYmVja2Vy?= <fweisbec@gmail.com>,
+        Hillf Danton <hdanton@sina.com>,
+        "H. Peter Anvin" <hpa@zytor.com>, jmaloy@redhat.com,
+        Jim Mattson <jmattson@google.com>,
+        Joerg Roedel <joro@8bytes.org>, kadlec@netfilter.org,
+        Jakub Kicinski <kuba@kernel.org>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        KVM list <kvm@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Ingo Molnar <mingo@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+        netdev <netdev@vger.kernel.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Paolo Bonzini <pbonzini@redhat.com>,
+        "Christopherson, Sean J" <sean.j.christopherson@intel.com>,
+        subashab@codeaurora.org,
+        syzkaller-bugs <syzkaller-bugs@googlegroups.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        tuong.t.lien@dektech.com.au,
+        Vitaly Kuznetsov <vkuznets@redhat.com>, wanpengli@tencent.com,
+        "the arch/x86 maintainers" <x86@kernel.org>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+On Sun, Dec 20, 2020 at 10:37 AM syzbot
+<syzbot+3654c027d861c6df4b06@syzkaller.appspotmail.com> wrote:
+>
+> syzbot suspects this issue was fixed by commit:
+>
+> commit cc00bcaa589914096edef7fb87ca5cee4a166b5c
+> Author: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+> Date:   Wed Nov 25 18:27:22 2020 +0000
+>
+>     netfilter: x_tables: Switch synchronization to RCU
+>
+> bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=1445cb37500000
+> start commit:   7cc2a8ea Merge tag 'block-5.8-2020-07-01' of git://git.ker..
+> git tree:       upstream
+> kernel config:  https://syzkaller.appspot.com/x/.config?x=7be693511b29b338
+> dashboard link: https://syzkaller.appspot.com/bug?extid=3654c027d861c6df4b06
+> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=12948233100000
+> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=11344c05100000
+>
+> If the result looks correct, please mark the issue as fixed by replying with:
+>
+> #syz fix: netfilter: x_tables: Switch synchronization to RCU
+>
+> For information about bisection process see: https://goo.gl/tpsmEJ#bisection
 
-I'm happy to announce ipset 7.10. It comes with two fixes from Vasily 
-Averin and a few backward compatibility patches. Please note, the support 
-of older kernel trees was broken in 7.9 which is fixed in 7.10.
-
-Kernel part changes:
-  - Fix patch "Handle false warning from -Wstringop-overflow"
-  - Backward compatibility: handle renaming nla_strlcpy to nla_strscpy
-  - treewide: rename nla_strlcpy to nla_strscpy. (Francis Laniel)
-  - netfilter: ipset: fix shift-out-of-bounds in htable_bits()
-    (Vasily Averin)
-  - netfilter: ipset: fixes possible oops in mtype_resize (Vasily Averin)
-  - Handle false warning from -Wstringop-overflow
-  - Backward compatibility: handle missing strscpy with a wrapper of 
-    strlcpy.
-  - Move compiler specific compatibility support to separated file (broken
-    compatibility support reported by Ed W)
-
-You can download the source code of ipset from:
-        http://ipset.netfilter.org
-        ftp://ftp.netfilter.org/pub/ipset/
-        git://git.netfilter.org/ipset.git
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+It's not immediately obvious that this is indeed the fix for this, but
+also not obvious that this is not the fix for this. Bisection log
+looks plausible.
+Was this bug in tipc fixed? Is it the fix?
+If I don't hear better suggestions I will close this bug as fixed by
+this commit later.
