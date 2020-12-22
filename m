@@ -2,88 +2,79 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BFBB3C433E6
-	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Dec 2020 22:08:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A0B3C433E9
+	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Dec 2020 22:25:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 73C2422D57
-	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Dec 2020 22:08:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 33A47239A1
+	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Dec 2020 22:25:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727344AbgLVWIJ (ORCPT
+        id S1727825AbgLVWYp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 22 Dec 2020 17:08:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53758 "EHLO
+        Tue, 22 Dec 2020 17:24:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56290 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727149AbgLVWII (ORCPT
+        with ESMTP id S1726329AbgLVWYp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 22 Dec 2020 17:08:08 -0500
+        Tue, 22 Dec 2020 17:24:45 -0500
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D604C0613D3;
-        Tue, 22 Dec 2020 14:07:28 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF3A0C0613D6;
+        Tue, 22 Dec 2020 14:24:04 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1krpoN-0001oG-Lf; Tue, 22 Dec 2020 23:07:19 +0100
-Date:   Tue, 22 Dec 2020 23:07:19 +0100
+        (envelope-from <fw@breakpoint.cc>)
+        id 1krq4Z-0001tv-6e; Tue, 22 Dec 2020 23:24:03 +0100
 From:   Florian Westphal <fw@strlen.de>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     syzbot <syzbot+e86f7c428c8c50db65b4@syzkaller.appspotmail.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        coreteam@netfilter.org, David Miller <davem@davemloft.net>,
-        Florian Westphal <fw@strlen.de>,
-        Jakub Jelinek <jakub@redhat.com>,
-        Lai Jiangshan <jiangshanlai@gmail.com>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Netdev <netdev@vger.kernel.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        syzkaller-bugs <syzkaller-bugs@googlegroups.com>,
-        Tejun Heo <tj@kernel.org>
-Subject: Re: kernel BUG at lib/string.c:LINE! (6)
-Message-ID: <20201222220719.GB9639@breakpoint.cc>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     <netdev@vger.kernel.org>, torvalds@linux-foundation.org,
+        syzkaller-bugs@googlegroups.com, Florian Westphal <fw@strlen.de>,
+        syzbot+e86f7c428c8c50db65b4@syzkaller.appspotmail.com
+Subject: [PATCH nf] netfilter: xt_RATEEST: reject non-null terminated string from userspace
+Date:   Tue, 22 Dec 2020 23:23:56 +0100
+Message-Id: <20201222222356.22645-1-fw@strlen.de>
+X-Mailer: git-send-email 2.26.2
+In-Reply-To: <000000000000fcbe0705b70e9bd9@google.com>
 References: <000000000000fcbe0705b70e9bd9@google.com>
- <CAHk-=wgfRnXz0W3D37d01q3JFkr_i_uTL=V6A6G1oUZcprmknw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHk-=wgfRnXz0W3D37d01q3JFkr_i_uTL=V6A6G1oUZcprmknw@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Linus Torvalds <torvalds@linux-foundation.org> wrote:
-> On Tue, Dec 22, 2020 at 6:44 AM syzbot
-> <syzbot+e86f7c428c8c50db65b4@syzkaller.appspotmail.com> wrote:
-> >
-> > The issue was bisected to:
-> >
-> > commit 2f78788b55ba ("ilog2: improve ilog2 for constant arguments")
-> 
-> That looks unlikely, although possibly some constant folding
-> improvement might make the fortify code notice something with it.
-> 
-> > detected buffer overflow in strlen
-> > ------------[ cut here ]------------
-> > kernel BUG at lib/string.c:1149!
-> > Call Trace:
-> >  strlen include/linux/string.h:325 [inline]
-> >  strlcpy include/linux/string.h:348 [inline]
-> >  xt_rateest_tg_checkentry+0x2a5/0x6b0 net/netfilter/xt_RATEEST.c:143
-> 
-> Honestly, this just looks like the traditional bug in "strlcpy()".
+syzbot reports:
+detected buffer overflow in strlen
+[..]
+Call Trace:
+ strlen include/linux/string.h:325 [inline]
+ strlcpy include/linux/string.h:348 [inline]
+ xt_rateest_tg_checkentry+0x2a5/0x6b0 net/netfilter/xt_RATEEST.c:143
 
-Yes, thats exactly what this is, no idea why the bisection points
-at ilog2 changes.
+strlcpy assumes src is a c-string. Check info->name before its used.
 
-> That BSD function is complete garbage, exactly because it doesn't
-> limit the source length. People tend to _think_ it does ("what's that
-> size_t argument for?") but strlcpy() only limits the *destination*
-> size, and the source is always read fully.
+Reported-by: syzbot+e86f7c428c8c50db65b4@syzkaller.appspotmail.com
+Fixes: 5859034d7eb8793 ("[NETFILTER]: x_tables: add RATEEST target")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+RATEEST test in iptables.git still passes, syzbot repro setsockopt
+fails with -ENAMETOOLONG.
 
-Right, I'll send a patch shortly.
+diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
+index 37253d399c6b..0d5c422f8745 100644
+--- a/net/netfilter/xt_RATEEST.c
++++ b/net/netfilter/xt_RATEEST.c
+@@ -115,6 +115,9 @@ static int xt_rateest_tg_checkentry(const struct xt_tgchk_param *par)
+ 	} cfg;
+ 	int ret;
+ 
++	if (strnlen(info->name, sizeof(est->name)) >= sizeof(est->name))
++		return -ENAMETOOLONG;
++
+ 	net_get_random_once(&jhash_rnd, sizeof(jhash_rnd));
+ 
+ 	mutex_lock(&xn->hash_lock);
+-- 
+2.26.2
+
