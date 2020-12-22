@@ -2,160 +2,133 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CE3AC433E6
-	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Dec 2020 14:45:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E98FC433E0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Dec 2020 22:02:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E731D229C6
-	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Dec 2020 14:45:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 436F122AAE
+	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Dec 2020 22:02:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727750AbgLVOpF (ORCPT
+        id S1727008AbgLVWCV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 22 Dec 2020 09:45:05 -0500
-Received: from mail-io1-f70.google.com ([209.85.166.70]:50843 "EHLO
-        mail-io1-f70.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727691AbgLVOo7 (ORCPT
+        Tue, 22 Dec 2020 17:02:21 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52872 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726637AbgLVWCU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 22 Dec 2020 09:44:59 -0500
-Received: by mail-io1-f70.google.com with SMTP id l5so7479814ioj.17
-        for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2020 06:44:43 -0800 (PST)
+        Tue, 22 Dec 2020 17:02:20 -0500
+Received: from mail-lf1-x129.google.com (mail-lf1-x129.google.com [IPv6:2a00:1450:4864:20::129])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0FB20C0613D3
+        for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2020 14:01:40 -0800 (PST)
+Received: by mail-lf1-x129.google.com with SMTP id m25so35375530lfc.11
+        for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2020 14:01:39 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=sWeDwihFxTAhPlT/W6WCEEMXK+OSXU/rLqIMA122Kog=;
+        b=GjeV9Ro1lac75aJ1KhE1sLyHOPZXVUp/KPe4acgRmCwKMsU9DeFCk+XqwMBKtfrRVH
+         FaezK4cxCAXlid5LxjkWJT0btYkMqhexFp2DXti9Vq/0oH/3FpIXcfV9VGJLdEjS/1XP
+         BAPUt7f+o5dbn1daNL+Qkzu9xrbRHZq9ha5ZI=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
-        bh=lSpvPfHKy5MMJb/4IlgookwUdWGXdnIGkTfYTOdiS6s=;
-        b=h9RaxZB/8CIu2458RwVVeGe3nSrIM1nSMgX+uqqpt8vLpUwWd4rMTvueVIo6tymDzD
-         ofLJ8Dm83S7Xr5KL5HSL/Z5tLAPNPhXfyHxsXo5FSuB+QeuHYobKClzyyXa1NXwx+w7r
-         Vr+BY/x9aQNcnY/n/j+BSWcizftrZ0UDim2v1FrE+mbSL6l+WSEY2IUYH6eJng4na556
-         2hHWNYf093jxrjKVmqbK5Pto2vchCitN+GE7opYjsH6rKAMBxy2N/p4ZxGWMMkWmKwyU
-         qs2RrT6UQO81g15TNSAhYf6lqwpHEPypA339989D7uLq6xAUS+7YW0sJ44KipxnT2ouX
-         sUrw==
-X-Gm-Message-State: AOAM532KvPkAIt4lFDyShgtEv3T91Q0OmnNFFQBSREWtvy/WFmSlWYie
-        1ai2RBxJDOb1nTFhO1GiwakDanjcjK6vz/YKxFAztzQBsRm7
-X-Google-Smtp-Source: ABdhPJzO+Xa22wZShSH2UAxVctto7w9362EjTW8gO3kxBl/A3SQo0GbXLRlvVRAcOiX2W+A5n6C9n0E1mU/IQRkfRt8PmSs25kUX
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=sWeDwihFxTAhPlT/W6WCEEMXK+OSXU/rLqIMA122Kog=;
+        b=ALyf39pm22xy+QQ0nSvjiOX55s/+8WozgQg8y9KtgqRSb4uPVuwYrUVYTRdGTH0x/r
+         eksWR3BTVSCeJYhwbeW9mzqW/V1O/qN4mEA3Q3U84g4Rg62ewmczT3itmgkF7MwSg57S
+         p8IKLF2dTkPE2jlH1dN5ei5l8P+hhPjOzhQ05+Mb0W3dGvL06SGpeKDixTVukVuBfvcL
+         lwIFoQ6Xg2459cSUa3T3cXN8QUu5OpwdhydQ0Ojg7IWm7/aMO1Td4/ajyyyHqlE0dNwL
+         oshUXAjgpEjw930doAmKbrUigpAstLytDRThWHyptQA9+hFJxrZFcY+imtx+ruc0GOYC
+         TA+Q==
+X-Gm-Message-State: AOAM532V9Vq8vr4P3Bp8Y7478jCyoTf4CCf20r5RhQgiTKFC/sBGs8qs
+        c6PeQAAKyMvGAxYLgYTyLi0FTD1pIY7QGw==
+X-Google-Smtp-Source: ABdhPJxZbvZ9DZ/2gzXyOfUUATFnSalykAQqfjpxs8wB78ak99kUR3e1ALIZWnyxJUgVMcl/DPisAA==
+X-Received: by 2002:a2e:a403:: with SMTP id p3mr10330770ljn.174.1608674498505;
+        Tue, 22 Dec 2020 14:01:38 -0800 (PST)
+Received: from mail-lf1-f42.google.com (mail-lf1-f42.google.com. [209.85.167.42])
+        by smtp.gmail.com with ESMTPSA id a4sm3074653ljp.14.2020.12.22.14.01.38
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 22 Dec 2020 14:01:38 -0800 (PST)
+Received: by mail-lf1-f42.google.com with SMTP id h22so25935251lfu.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2020 14:01:38 -0800 (PST)
+X-Received: by 2002:a2e:3211:: with SMTP id y17mr10182715ljy.61.1608674497556;
+ Tue, 22 Dec 2020 14:01:37 -0800 (PST)
 MIME-Version: 1.0
-X-Received: by 2002:a92:1517:: with SMTP id v23mr21862018ilk.280.1608648258008;
- Tue, 22 Dec 2020 06:44:18 -0800 (PST)
-Date:   Tue, 22 Dec 2020 06:44:18 -0800
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000fcbe0705b70e9bd9@google.com>
-Subject: kernel BUG at lib/string.c:LINE! (6)
-From:   syzbot <syzbot+e86f7c428c8c50db65b4@syzkaller.appspotmail.com>
-To:     akpm@linux-foundation.org, coreteam@netfilter.org,
-        davem@davemloft.net, fw@strlen.de, jakub@redhat.com,
-        jiangshanlai@gmail.com, kadlec@netfilter.org, kuba@kernel.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        peterz@infradead.org, syzkaller-bugs@googlegroups.com,
-        tj@kernel.org, torvalds@linux-foundation.org
+References: <000000000000fcbe0705b70e9bd9@google.com>
+In-Reply-To: <000000000000fcbe0705b70e9bd9@google.com>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Tue, 22 Dec 2020 14:01:21 -0800
+X-Gmail-Original-Message-ID: <CAHk-=wgfRnXz0W3D37d01q3JFkr_i_uTL=V6A6G1oUZcprmknw@mail.gmail.com>
+Message-ID: <CAHk-=wgfRnXz0W3D37d01q3JFkr_i_uTL=V6A6G1oUZcprmknw@mail.gmail.com>
+Subject: Re: kernel BUG at lib/string.c:LINE! (6)
+To:     syzbot <syzbot+e86f7c428c8c50db65b4@syzkaller.appspotmail.com>
+Cc:     Andrew Morton <akpm@linux-foundation.org>, coreteam@netfilter.org,
+        David Miller <davem@davemloft.net>,
+        Florian Westphal <fw@strlen.de>,
+        Jakub Jelinek <jakub@redhat.com>,
+        Lai Jiangshan <jiangshanlai@gmail.com>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Netdev <netdev@vger.kernel.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        syzkaller-bugs <syzkaller-bugs@googlegroups.com>,
+        Tejun Heo <tj@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello,
+On Tue, Dec 22, 2020 at 6:44 AM syzbot
+<syzbot+e86f7c428c8c50db65b4@syzkaller.appspotmail.com> wrote:
+>
+> The issue was bisected to:
+>
+> commit 2f78788b55ba ("ilog2: improve ilog2 for constant arguments")
 
-syzbot found the following issue on:
+That looks unlikely, although possibly some constant folding
+improvement might make the fortify code notice something with it.
 
-HEAD commit:    d64c6f96 Merge tag 'net-5.11-rc1' of git://git.kernel.org/..
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=10bc5613500000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=aca0dc5c721fe9e5
-dashboard link: https://syzkaller.appspot.com/bug?extid=e86f7c428c8c50db65b4
-compiler:       gcc (GCC) 10.1.0-syz 20200507
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=169378a7500000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=144692cb500000
+> detected buffer overflow in strlen
+> ------------[ cut here ]------------
+> kernel BUG at lib/string.c:1149!
+> Call Trace:
+>  strlen include/linux/string.h:325 [inline]
+>  strlcpy include/linux/string.h:348 [inline]
+>  xt_rateest_tg_checkentry+0x2a5/0x6b0 net/netfilter/xt_RATEEST.c:143
 
-The issue was bisected to:
+Honestly, this just looks like the traditional bug in "strlcpy()".
 
-commit 2f78788b55baa3410b1ec91a576286abe1ad4d6a
-Author: Jakub Jelinek <jakub@redhat.com>
-Date:   Wed Dec 16 04:43:37 2020 +0000
+That BSD function is complete garbage, exactly because it doesn't
+limit the source length. People tend to _think_ it does ("what's that
+size_t argument for?") but strlcpy() only limits the *destination*
+size, and the source is always read fully.
 
-    ilog2: improve ilog2 for constant arguments
+So it's a completely useless function if you can't implicitly trust
+the source string - but that is almost always why people think they
+should use it!
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=1584f137500000
-final oops:     https://syzkaller.appspot.com/x/report.txt?x=1784f137500000
-console output: https://syzkaller.appspot.com/x/log.txt?x=1384f137500000
+Nobody should use it. I really would like to remove it, and let
+everybody know how incredibly broken sh*t that function is.
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+e86f7c428c8c50db65b4@syzkaller.appspotmail.com
-Fixes: 2f78788b55ba ("ilog2: improve ilog2 for constant arguments")
+Can we please have everybody stop using strlcpy(). But in this
+particular case, it's that xt_rateest_tg_checkentry() in
+net/netfilter/xt_RATEEST.c
 
-detected buffer overflow in strlen
-------------[ cut here ]------------
-kernel BUG at lib/string.c:1149!
-invalid opcode: 0000 [#1] PREEMPT SMP KASAN
-CPU: 0 PID: 8713 Comm: syz-executor731 Not tainted 5.10.0-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-RIP: 0010:fortify_panic+0xf/0x11 lib/string.c:1149
-Code: b5 78 a3 04 48 c7 c7 c0 8f c2 89 58 5b 5d 41 5c 41 5d 41 5e 41 5f e9 30 ba ee ff 48 89 fe 48 c7 c7 80 90 c2 89 e8 21 ba ee ff <0f> 0b e8 90 f9 97 f8 0f b6 f3 48 c7 c7 20 f4 10 8c e8 41 e8 fc fa
-RSP: 0018:ffffc900020af500 EFLAGS: 00010282
-RAX: 0000000000000022 RBX: ffff888011c26768 RCX: 0000000000000000
-RDX: ffff88801bad0000 RSI: ffffffff815a6925 RDI: fffff52000415e92
-RBP: ffff88801be7c220 R08: 0000000000000022 R09: 0000000000000000
-R10: ffffffff815a4d7b R11: 0000000000000000 R12: ffff88801180ec00
-R13: ffff888011c26700 R14: 1ffff92000415ea2 R15: 0000000000000010
-FS:  0000000000812880(0000) GS:ffff8880b9c00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00000000006dcf60 CR3: 00000000141ee000 CR4: 00000000001506f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
- strlen include/linux/string.h:325 [inline]
- strlcpy include/linux/string.h:348 [inline]
- xt_rateest_tg_checkentry+0x2a5/0x6b0 net/netfilter/xt_RATEEST.c:143
- xt_check_target+0x26c/0x9e0 net/netfilter/x_tables.c:1019
- check_target net/ipv6/netfilter/ip6_tables.c:529 [inline]
- find_check_entry.constprop.0+0x7f1/0x9e0 net/ipv6/netfilter/ip6_tables.c:572
- translate_table+0xc8b/0x1750 net/ipv6/netfilter/ip6_tables.c:734
- do_replace net/ipv6/netfilter/ip6_tables.c:1152 [inline]
- do_ip6t_set_ctl+0x553/0xb70 net/ipv6/netfilter/ip6_tables.c:1636
- nf_setsockopt+0x83/0xe0 net/netfilter/nf_sockopt.c:101
- ipv6_setsockopt+0x122/0x180 net/ipv6/ipv6_sockglue.c:1008
- tcp_setsockopt+0x136/0x2440 net/ipv4/tcp.c:3597
- __sys_setsockopt+0x2db/0x610 net/socket.c:2115
- __do_sys_setsockopt net/socket.c:2126 [inline]
- __se_sys_setsockopt net/socket.c:2123 [inline]
- __x64_sys_setsockopt+0xba/0x150 net/socket.c:2123
- do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
- entry_SYSCALL_64_after_hwframe+0x44/0xa9
-RIP: 0033:0x4493d9
-Code: e8 0c ca 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 9b cb fb ff c3 66 2e 0f 1f 84 00 00 00 00
-RSP: 002b:00007fff679a3898 EFLAGS: 00000246 ORIG_RAX: 0000000000000036
-RAX: ffffffffffffffda RBX: 00000000200002c0 RCX: 00000000004493d9
-RDX: 0000000000000040 RSI: 0000000000000029 RDI: 0000000000000006
-RBP: 00007fff679a38b0 R08: 0000000000000470 R09: 00000000000000c2
-R10: 0000000020000080 R11: 0000000000000246 R12: 00000000000112d5
-R13: 00000000006d7dc8 R14: 0000000000000000 R15: 0000000000000000
-Modules linked in:
----[ end trace e17a915ca7e8b666 ]---
-RIP: 0010:fortify_panic+0xf/0x11 lib/string.c:1149
-Code: b5 78 a3 04 48 c7 c7 c0 8f c2 89 58 5b 5d 41 5c 41 5d 41 5e 41 5f e9 30 ba ee ff 48 89 fe 48 c7 c7 80 90 c2 89 e8 21 ba ee ff <0f> 0b e8 90 f9 97 f8 0f b6 f3 48 c7 c7 20 f4 10 8c e8 41 e8 fc fa
-RSP: 0018:ffffc900020af500 EFLAGS: 00010282
-RAX: 0000000000000022 RBX: ffff888011c26768 RCX: 0000000000000000
-RDX: ffff88801bad0000 RSI: ffffffff815a6925 RDI: fffff52000415e92
-RBP: ffff88801be7c220 R08: 0000000000000022 R09: 0000000000000000
-R10: ffffffff815a4d7b R11: 0000000000000000 R12: ffff88801180ec00
-R13: ffff888011c26700 R14: 1ffff92000415ea2 R15: 0000000000000010
-FS:  0000000000812880(0000) GS:ffff8880b9c00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00000000006dcf60 CR3: 00000000141ee000 CR4: 00000000001506f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+That said, this may be a real FORTIFY report if that info->name is
+*supposed* to be trustworthy? The xt_RATETEST code does use
+"info->name" a few lines earlier when it does
 
+        est = __xt_rateest_lookup(xn, info->name);
 
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+or maybe the bisection is right, and this points to some problem with
+__builtin_clzll?
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
-syzbot can test patches for this issue, for details see:
-https://goo.gl/tpsmEJ#testing-patches
+                 Linus
