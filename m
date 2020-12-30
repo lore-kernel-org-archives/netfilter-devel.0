@@ -2,170 +2,116 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EDA3C433E0
-	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Dec 2020 09:48:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85983C433DB
+	for <netfilter-devel@archiver.kernel.org>; Wed, 30 Dec 2020 13:22:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D8DEE221E5
-	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Dec 2020 09:48:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2E34E217BA
+	for <netfilter-devel@archiver.kernel.org>; Wed, 30 Dec 2020 13:22:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727084AbgL1Jsy (ORCPT
+        id S1727047AbgL3NWS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 28 Dec 2020 04:48:54 -0500
-Received: from correo.us.es ([193.147.175.20]:60726 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727079AbgL1Jsy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 28 Dec 2020 04:48:54 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 921FC1F0CE4
-        for <netfilter-devel@vger.kernel.org>; Mon, 28 Dec 2020 10:47:43 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7F782DA730
-        for <netfilter-devel@vger.kernel.org>; Mon, 28 Dec 2020 10:47:43 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 75106DA704; Mon, 28 Dec 2020 10:47:43 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 31FCDDA73D
-        for <netfilter-devel@vger.kernel.org>; Mon, 28 Dec 2020 10:47:41 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 28 Dec 2020 10:47:41 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 1ABC3426CC84
-        for <netfilter-devel@vger.kernel.org>; Mon, 28 Dec 2020 10:47:41 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf 2/2] netfilter: nftables: add set expression flags
-Date:   Mon, 28 Dec 2020 10:48:04 +0100
-Message-Id: <20201228094804.16559-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20201228094804.16559-1-pablo@netfilter.org>
-References: <20201228094804.16559-1-pablo@netfilter.org>
+        Wed, 30 Dec 2020 08:22:18 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43002 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726791AbgL3NWS (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 30 Dec 2020 08:22:18 -0500
+Received: from mail-qk1-x72e.google.com (mail-qk1-x72e.google.com [IPv6:2607:f8b0:4864:20::72e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1DE58C061799
+        for <netfilter-devel@vger.kernel.org>; Wed, 30 Dec 2020 05:21:38 -0800 (PST)
+Received: by mail-qk1-x72e.google.com with SMTP id f26so13882623qka.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 30 Dec 2020 05:21:38 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=mojatatu-com.20150623.gappssmtp.com; s=20150623;
+        h=subject:references:to:from:message-id:date:user-agent:mime-version
+         :in-reply-to:content-language:content-transfer-encoding;
+        bh=DiKW6kn9xhWzj8pGVjJbHM5laaOWiHgnfOrQhi/+dEw=;
+        b=yPbNWNIujU98p8FqUMNJqpEC5Ikdh7AOH0Rug7KF4R/bQHyWPIZvXytjtYCSbnMQS1
+         L2nNfd2Ft3VLmCf1sIsGVckwbfV+DQdMc9AT1qOtETAtDndsz5Lq7f5A/w/aYA0eDRai
+         qdHlS0/htIDRjxyL0V17Jh6yHEZ742Kv0uByj/vBIGBu9H0Bm/z/VRpn8xb3Ujek0F5T
+         R+sviMzyvYanOHV5gTo/C4EVvSHgWfw8WD4yxnOq8+jUp2IyUnQXB+gnxhZezibC3goY
+         zvyufQ1+qPkMbdJnuNlNmTS0ZViS5O67Du6tjdzhwSXP2dA8C9aCRKYhZGqZkUrCLRwX
+         CwmA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:references:to:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=DiKW6kn9xhWzj8pGVjJbHM5laaOWiHgnfOrQhi/+dEw=;
+        b=Zu0DtD52vigDBMFWbJz49iFjDeePvAs17qozr9b2z3lULDLmEtVHFDnLpGCA0oObnn
+         Loiotw61saHDqv3FKRnQMw5qqhobhJ13OmQDWW5wFEboeWxIwPv7urcKJV8K0JSnVA/i
+         c1Z5EiVfIJ0RiRHQEj0eJS21M9uSRfGCNCnnL40jHug9S7eLaGcpdDOEj0I5VKzhTKnu
+         C+YMOdRWuuCnN9Xzn7kvxZir64hOprLiEkCeyxRcEmOpfqThsuRkKKnwYdTAmy0M+c5u
+         OZRqdWT3T8JxX3yHghTW4dVYZpMDGBl4WyxO5HuEU0vKamZdjZ1eVyMP+znm28TSpJOO
+         wzjQ==
+X-Gm-Message-State: AOAM531DkajuQ1L0XM/4VUL87vpc9Vy8YlDCBi0DAXfyyBmSvZmsY3tS
+        mA40Fx8nFRi1D+3YB2QVG7RrFw==
+X-Google-Smtp-Source: ABdhPJyI4saX0gdxJdnD4Bf3YFY/cQY8QsgzyJ7q0uukmiS6+O3U3JS55RVZqQebkxjPEwMhuZlJOQ==
+X-Received: by 2002:a37:6846:: with SMTP id d67mr23625271qkc.219.1609334497299;
+        Wed, 30 Dec 2020 05:21:37 -0800 (PST)
+Received: from [192.168.2.48] (bras-base-kntaon1617w-grc-10-184-147-165-106.dsl.bell.ca. [184.147.165.106])
+        by smtp.googlemail.com with ESMTPSA id c8sm27308643qkc.12.2020.12.30.05.21.36
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 30 Dec 2020 05:21:36 -0800 (PST)
+Subject: Announcing Netdev 0x15
+References: <193eea01.AUkAABw1d3IAAAAAAAAAAAKSBpUAAYCsBU0AAAAAAAwWzABf6RC7@mailjet.com>
+To:     "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, lartc@vger.kernel.org,
+        linux-wireless <linux-wireless@vger.kernel.org>, lwn@lwn.net
+From:   Jamal Hadi Salim <jhs@mojatatu.com>
+X-Forwarded-Message-Id: <193eea01.AUkAABw1d3IAAAAAAAAAAAKSBpUAAYCsBU0AAAAAAAwWzABf6RC7@mailjet.com>
+Message-ID: <2e1f6717-715c-c63c-ba60-676c986f9876@mojatatu.com>
+Date:   Wed, 30 Dec 2020 08:21:36 -0500
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.4.3
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <193eea01.AUkAABw1d3IAAAAAAAAAAAKSBpUAAYCsBU0AAAAAAAwWzABf6RC7@mailjet.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The set flag NFT_SET_EXPR provides a hint to the kernel that userspace
-supports for multiple expressions per set element. In the same
-direction, NFT_DYNSET_F_EXPR specifies that dynset expression defines
-multiple expressions per set element.
 
-This allows new userspace software with old kernels to bail out with
-EOPNOTSUPP. This update is similar to ef516e8625dd ("netfilter:
-nf_tables: reintroduce the NFT_SET_CONCAT flag"). The NFT_SET_EXPR flag
-needs to be set on when the NFTA_SET_EXPRESSIONS attribute is specified.
-The NFT_SET_EXPR flag is not set on with NFTA_SET_EXPR to retain
-backward compatibility in old userspace binaries.
+While we bid goodbye to 2020, here's some good hopeful news for 2021.
 
-Fixes: 48b0ae046ee9 ("netfilter: nftables: netlink support for several set element expressions")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/uapi/linux/netfilter/nf_tables.h | 3 +++
- net/netfilter/nf_tables_api.c            | 6 +++++-
- net/netfilter/nft_dynset.c               | 9 +++++++--
- 3 files changed, 15 insertions(+), 3 deletions(-)
+cheers,
+jamal
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 28b6ee53305f..b1633e7ba529 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -293,6 +293,7 @@ enum nft_rule_compat_attributes {
-  * @NFT_SET_EVAL: set can be updated from the evaluation path
-  * @NFT_SET_OBJECT: set contains stateful objects
-  * @NFT_SET_CONCAT: set contains a concatenation
-+ * @NFT_SET_EXPR: set contains expressions
-  */
- enum nft_set_flags {
- 	NFT_SET_ANONYMOUS		= 0x1,
-@@ -303,6 +304,7 @@ enum nft_set_flags {
- 	NFT_SET_EVAL			= 0x20,
- 	NFT_SET_OBJECT			= 0x40,
- 	NFT_SET_CONCAT			= 0x80,
-+	NFT_SET_EXPR			= 0x100,
- };
- 
- /**
-@@ -706,6 +708,7 @@ enum nft_dynset_ops {
- 
- enum nft_dynset_flags {
- 	NFT_DYNSET_F_INV	= (1 << 0),
-+	NFT_DYNSET_F_EXPR	= (1 << 1),
- };
- 
- /**
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 4186b1e52d58..15c467f1a9dd 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4162,7 +4162,7 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
- 		if (flags & ~(NFT_SET_ANONYMOUS | NFT_SET_CONSTANT |
- 			      NFT_SET_INTERVAL | NFT_SET_TIMEOUT |
- 			      NFT_SET_MAP | NFT_SET_EVAL |
--			      NFT_SET_OBJECT | NFT_SET_CONCAT))
-+			      NFT_SET_OBJECT | NFT_SET_CONCAT | NFT_SET_EXPR))
- 			return -EOPNOTSUPP;
- 		/* Only one of these operations is supported */
- 		if ((flags & (NFT_SET_MAP | NFT_SET_OBJECT)) ==
-@@ -4304,6 +4304,10 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
- 		struct nlattr *tmp;
- 		int left;
- 
-+		if (!(flags & NFT_SET_EXPR)) {
-+			err = -EINVAL;
-+			goto err_set_alloc_name;
-+		}
- 		i = 0;
- 		nla_for_each_nested(tmp, nla[NFTA_SET_EXPRESSIONS], left) {
- 			if (i == NFT_SET_EXPR_MAX) {
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index f35df221a633..0b053f75cd60 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -19,6 +19,7 @@ struct nft_dynset {
- 	enum nft_registers		sreg_key:8;
- 	enum nft_registers		sreg_data:8;
- 	bool				invert;
-+	bool				expr;
- 	u8				num_exprs;
- 	u64				timeout;
- 	struct nft_expr			*expr_array[NFT_SET_EXPR_MAX];
-@@ -175,11 +176,12 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 
- 	if (tb[NFTA_DYNSET_FLAGS]) {
- 		u32 flags = ntohl(nla_get_be32(tb[NFTA_DYNSET_FLAGS]));
--
--		if (flags & ~NFT_DYNSET_F_INV)
-+		if (flags & ~(NFT_DYNSET_F_INV | NFT_DYNSET_F_EXPR))
- 			return -EOPNOTSUPP;
- 		if (flags & NFT_DYNSET_F_INV)
- 			priv->invert = true;
-+		if (flags & NFT_DYNSET_F_EXPR)
-+			priv->expr = true;
- 	}
- 
- 	set = nft_set_lookup_global(ctx->net, ctx->table,
-@@ -261,6 +263,9 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 		struct nlattr *tmp;
- 		int left;
- 
-+		if (!priv->expr)
-+			return -EINVAL;
-+
- 		i = 0;
- 		nla_for_each_nested(tmp, tb[NFTA_DYNSET_EXPRESSIONS], left) {
- 			if (i == NFT_SET_EXPR_MAX) {
--- 
-2.20.1
 
+-------- Forwarded Message --------
+Subject: [NetDev-People] Announcing Netdev 0x15
+Date: Sun, 27 Dec 2020 15:54:31 -0700
+From: Tom Herbert via people <people@netdevconf.info>
+Reply-To: Tom Herbert <tom@herbertland.com>
+To: people@netdevconf.info
+
+Hello Netdev'ers,
+
+On behalf of Netdev Society, I am very pleased to announce the Netdev
+0x15 conference! The tentative dates are July 20-23, 2021 and the
+location will be San Francisco, California, USA.
+
+Our current plan is to hold an in person conference assuming that the
+conditions around Covid-19 have improved, however if conditions
+warrant we do have the option of holding a virtual conference again.
+We will try to make a definitive announcement about this at least six
+weeks before the conference date. Additionally, it seems likely that
+even if we do hold the conference in person there will be a hybrid
+component to accommodate remote participants that wish to opt out of
+attending in person.
+
+The call for papers and workshops will be made early next year, so stay 
+tuned!
+
+Thanks,
+Tom
+_______________________________________________
+people mailing list
+people@netdevconf.org
+https://lists.netdevconf.info/cgi-bin/mailman/listinfo/people
