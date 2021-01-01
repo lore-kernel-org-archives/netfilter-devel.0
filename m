@@ -2,124 +2,170 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07A43C433E6
-	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Jan 2021 00:50:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19CA5C433DB
+	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Jan 2021 09:03:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BEC662222D
-	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Jan 2021 00:50:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C668020780
+	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Jan 2021 09:03:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726707AbhAAAtx (ORCPT
+        id S1726707AbhAAJDW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 31 Dec 2020 19:49:53 -0500
-Received: from mail-il1-f197.google.com ([209.85.166.197]:46557 "EHLO
-        mail-il1-f197.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726314AbhAAAtx (ORCPT
+        Fri, 1 Jan 2021 04:03:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48380 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726641AbhAAJDV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 31 Dec 2020 19:49:53 -0500
-Received: by mail-il1-f197.google.com with SMTP id x14so18873488ilg.13
-        for <netfilter-devel@vger.kernel.org>; Thu, 31 Dec 2020 16:49:37 -0800 (PST)
+        Fri, 1 Jan 2021 04:03:21 -0500
+Received: from mail-wm1-x32c.google.com (mail-wm1-x32c.google.com [IPv6:2a00:1450:4864:20::32c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C4EAC061575
+        for <netfilter-devel@vger.kernel.org>; Fri,  1 Jan 2021 01:02:41 -0800 (PST)
+Received: by mail-wm1-x32c.google.com with SMTP id c124so8682391wma.5
+        for <netfilter-devel@vger.kernel.org>; Fri, 01 Jan 2021 01:02:41 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=3rTFGzMpliTK8eU+crhwZi2oWKxeWCChv9Szw1tH6ls=;
+        b=uw/mgDP0gTqKkAYbkK77txB38aXInt1rUIUOaHfUH9K2OGoO8acPgOhwtiR9o2f7Q3
+         M39rqiVjUy03PUJI60PwpPw7ghkYGUHolziH5JTO/W5fCxZyYn9pZFrMGFcJ+SiLg45O
+         yQiecJbRIjvzrqq06/LI3KgfLQ6SHCSOHcE2K69LLpag8amGHSslnIRIz7X3VAPQALo1
+         X7uC8F5nyrpFByXV5R0AgJOIjsxTSblIB3sPZQCDa/Tvi/O/8mJNsiyvyweMczwadima
+         F/BdyAsFF+J5UuvSUfqadTwLPqGUYcB397yQ6GB81n4ehUSDDp1wsRLwIBvAX7PxaCy9
+         0zwQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
-        bh=f4jpcmyenKqYfST2LyQr30I+nGdhfXpwOSlfzY/gMRg=;
-        b=D8MDje3UiP9/oZxcQosaZu4IpfDdm1ugCr6xDP3CTlcTkvcG/k6hDCRDZfQSVD9d8F
-         yqmvowcTUWg3+1UP6JSNDmTrbGpggAqAFUsOmcsTkNL2RljNmrenLTRyjc5v75XrsRy3
-         ByWqROMPa7SkD5Ig0X7b166ZodRoiq48Fc154dA+0dgvZYQlgg98TvOZABt0WVQJ5Xzz
-         j2uPOUwTfbOV5yw4JmJX77sghyipyZQofZUBe2Kwm8cwJd609AW0Z9x82zckUwfxS7oY
-         +86hwtJFJYxGyKDrocU78etQZA+FKGlYJ0om70qJRkFERKJ44MDLRE4pav/t+QuP4egs
-         rTBw==
-X-Gm-Message-State: AOAM532njyDOIMnVHgjt/D0mtabkP70rdGdEGjgx/aXbABWJI/qG2zdd
-        KfZ2vaE/ubLaiAe/Vv2d6zCGZXie+R9KpCcb+d/8iQp/APd+
-X-Google-Smtp-Source: ABdhPJz5xy4u3Ybd++5GdqLQDigch4VAvgPEqKu2JTiKDWpaq0dnJo0DnSWd61C0FPgiaKY1aFv6nXGlpQzz7SzLD8LwnGBb8WKf
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=3rTFGzMpliTK8eU+crhwZi2oWKxeWCChv9Szw1tH6ls=;
+        b=Kp1HdwLw4pYIuy6GM4rB3r3Ay6XRr7vc8BNWrm0HiF1/DBAwW/tIztFohqUDCNUAmx
+         OL7EJie4Qt+c0EDIELi1GfCCuv/Hjgd2t66H/koCMoFTZg998Fw5iIXSZYpYHJyZFTr6
+         KhwRsssESRAvsL31QsuwVVNBZNIAbFp4VO7g2MMcXUXrzdRlHVdBHNtC93vfd7lYLCA5
+         5vINIjXq7qlDZqZDzId0GYJHBn4IHFM+N3rdogYlJaJT9vSPNeFJvLB0nhXW3L8oFE3S
+         RNi3BYN1OqJr8OF9yGAznYe0H24oVLK0yotwxBnUuEwZLtXMhMU2A/yNs8lVyOBUSnWf
+         p6dQ==
+X-Gm-Message-State: AOAM531a2zsGpukTFqvDCTlND9BfDf8umrNoxFDqz5M/0q5SdLrKKl7k
+        ZTrG/4TWaWo9LPmARq/b4CquSc5glWZ1B5Fn
+X-Google-Smtp-Source: ABdhPJxvlVGFinZgIHkZLg4v6YnZo85HE9HDJgpgGkMbsEja6l9MwTYM9MRxAM5WnjqPtRUvhO2wgg==
+X-Received: by 2002:a7b:c751:: with SMTP id w17mr14644096wmk.121.1609491759671;
+        Fri, 01 Jan 2021 01:02:39 -0800 (PST)
+Received: from localhost.localdomain ([213.57.166.51])
+        by smtp.gmail.com with ESMTPSA id c81sm15627587wmd.6.2021.01.01.01.02.38
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 01 Jan 2021 01:02:39 -0800 (PST)
+From:   Eyal Birger <eyal.birger@gmail.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Eyal Birger <eyal.birger@gmail.com>
+Subject: [PATCH libnetfilter_conntrack] examples: check return value of nfct_nlmsg_build()
+Date:   Fri,  1 Jan 2021 11:02:26 +0200
+Message-Id: <20210101090226.3237589-1-eyal.birger@gmail.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-X-Received: by 2002:a92:58dc:: with SMTP id z89mr58050886ilf.11.1609462151899;
- Thu, 31 Dec 2020 16:49:11 -0800 (PST)
-Date:   Thu, 31 Dec 2020 16:49:11 -0800
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000d7f02105b7cc1b99@google.com>
-Subject: WARNING: suspicious RCU usage in xt_obj_to_user
-From:   syzbot <syzbot+00399fa030c641ffc5ae@syzkaller.appspotmail.com>
-To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        kadlec@netfilter.org, kuba@kernel.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello,
+nfct_nlmsg_build() may fail for different reasons, for example if
+insufficient parameters exist in the ct object. The resulting nlh would
+not contain any of the ct attributes.
 
-syzbot found the following issue on:
+Some conntrack operations would still operate in such case, for example
+an IPCTNL_MSG_CT_DELETE message would just delete all existing conntrack
+entries.
 
-HEAD commit:    f838f8d2 mfd: ab8500-debugfs: Remove extraneous seq_putc
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=17074c47500000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=7a43a64bad3fdb39
-dashboard link: https://syzkaller.appspot.com/bug?extid=00399fa030c641ffc5ae
-compiler:       gcc (GCC) 10.1.0-syz 20200507
+While the example as it is does supply correct parameters, it's safer
+as reference to validate the return value.
 
-Unfortunately, I don't have any reproducer for this issue yet.
-
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+00399fa030c641ffc5ae@syzkaller.appspotmail.com
-
-=============================
-WARNING: suspicious RCU usage
-5.10.0-syzkaller #0 Not tainted
------------------------------
-kernel/sched/core.c:7877 Illegal context switch in RCU-bh read-side critical section!
-
-other info that might help us debug this:
-
-
-rcu_scheduler_active = 2, debug_locks = 0
-1 lock held by syz-executor.0/9704:
- #0: ffff888013794458 (&xt[i].mutex){+.+.}-{3:3}, at: xt_find_table_lock+0x41/0x540 net/netfilter/x_tables.c:1206
-
-stack backtrace:
-CPU: 0 PID: 9704 Comm: syz-executor.0 Not tainted 5.10.0-syzkaller #0
-Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.12.0-59-gc9ba5276e321-prebuilt.qemu.org 04/01/2014
-Call Trace:
- __dump_stack lib/dump_stack.c:79 [inline]
- dump_stack+0x107/0x163 lib/dump_stack.c:120
- ___might_sleep+0x229/0x2c0 kernel/sched/core.c:7877
- __might_fault+0x6e/0x180 mm/memory.c:5014
- xt_obj_to_user+0x31/0x110 net/netfilter/x_tables.c:277
- xt_target_to_user+0xa8/0x200 net/netfilter/x_tables.c:323
- copy_entries_to_user net/ipv4/netfilter/arp_tables.c:705 [inline]
- get_entries net/ipv4/netfilter/arp_tables.c:866 [inline]
- do_arpt_get_ctl+0x733/0x8f0 net/ipv4/netfilter/arp_tables.c:1450
- nf_getsockopt+0x72/0xd0 net/netfilter/nf_sockopt.c:116
- ip_getsockopt net/ipv4/ip_sockglue.c:1777 [inline]
- ip_getsockopt+0x164/0x1c0 net/ipv4/ip_sockglue.c:1756
- tcp_getsockopt+0x86/0xd0 net/ipv4/tcp.c:4141
- __sys_getsockopt+0x219/0x4c0 net/socket.c:2156
- __do_sys_getsockopt net/socket.c:2171 [inline]
- __se_sys_getsockopt net/socket.c:2168 [inline]
- __x64_sys_getsockopt+0xba/0x150 net/socket.c:2168
- do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
- entry_SYSCALL_64_after_hwframe+0x44/0xa9
-RIP: 0033:0x45ef5a
-Code: b8 34 01 00 00 0f 05 48 3d 01 f0 ff ff 0f 83 cd 9f fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 49 89 ca b8 37 00 00 00 0f 05 <48> 3d 01 f0 ff ff 0f 83 aa 9f fb ff c3 66 0f 1f 84 00 00 00 00 00
-RSP: 002b:00007ffcf91ed728 EFLAGS: 00000212 ORIG_RAX: 0000000000000037
-RAX: ffffffffffffffda RBX: 00007ffcf91ed790 RCX: 000000000045ef5a
-RDX: 0000000000000061 RSI: 0000000000000000 RDI: 0000000000000003
-RBP: 0000000000000003 R08: 00007ffcf91ed73c R09: 000000000000000a
-R10: 00007ffcf91ed790 R11: 0000000000000212 R12: 00007ffcf91ed73c
-R13: 0000000000000000 R14: 0000000000000032 R15: 000000000003354d
-
-
+Signed-off-by: Eyal Birger <eyal.birger@gmail.com>
 ---
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+ examples/nfct-mnl-create.c    | 6 +++++-
+ examples/nfct-mnl-del.c       | 6 +++++-
+ examples/nfct-mnl-get.c       | 6 +++++-
+ examples/nfct-mnl-set-label.c | 7 ++++++-
+ 4 files changed, 21 insertions(+), 4 deletions(-)
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+diff --git a/examples/nfct-mnl-create.c b/examples/nfct-mnl-create.c
+index 64387a7..7fd224d 100644
+--- a/examples/nfct-mnl-create.c
++++ b/examples/nfct-mnl-create.c
+@@ -60,7 +60,11 @@ int main(void)
+ 	nfct_set_attr_u8(ct, ATTR_TCP_STATE, TCP_CONNTRACK_SYN_SENT);
+ 	nfct_set_attr_u32(ct, ATTR_TIMEOUT, 100);
+ 
+-	nfct_nlmsg_build(nlh, ct);
++	ret = nfct_nlmsg_build(nlh, ct);
++	if (ret == -1) {
++		perror("nfct_nlmsg_build");
++		exit(EXIT_FAILURE);
++	}
+ 
+ 	ret = mnl_socket_sendto(nl, nlh, nlh->nlmsg_len);
+ 	if (ret == -1) {
+diff --git a/examples/nfct-mnl-del.c b/examples/nfct-mnl-del.c
+index 91ad9e4..806d9f8 100644
+--- a/examples/nfct-mnl-del.c
++++ b/examples/nfct-mnl-del.c
+@@ -55,7 +55,11 @@ int main(void)
+ 	nfct_set_attr_u16(ct, ATTR_PORT_SRC, htons(20));
+ 	nfct_set_attr_u16(ct, ATTR_PORT_DST, htons(10));
+ 
+-	nfct_nlmsg_build(nlh, ct);
++	ret = nfct_nlmsg_build(nlh, ct);
++	if (ret == -1) {
++		perror("nfct_nlmsg_build");
++		exit(EXIT_FAILURE);
++	}
+ 
+ 	ret = mnl_socket_sendto(nl, nlh, nlh->nlmsg_len);
+ 	if (ret == -1) {
+diff --git a/examples/nfct-mnl-get.c b/examples/nfct-mnl-get.c
+index 4858acf..5be3331 100644
+--- a/examples/nfct-mnl-get.c
++++ b/examples/nfct-mnl-get.c
+@@ -74,7 +74,11 @@ int main(void)
+ 	nfct_set_attr_u16(ct, ATTR_PORT_SRC, htons(20));
+ 	nfct_set_attr_u16(ct, ATTR_PORT_DST, htons(10));
+ 
+-	nfct_nlmsg_build(nlh, ct);
++	ret = nfct_nlmsg_build(nlh, ct);
++	if (ret == -1) {
++		perror("nfct_nlmsg_build");
++		exit(EXIT_FAILURE);
++	}
+ 
+ 	ret = mnl_socket_sendto(nl, nlh, nlh->nlmsg_len);
+ 	if (ret == -1) {
+diff --git a/examples/nfct-mnl-set-label.c b/examples/nfct-mnl-set-label.c
+index c52b267..50bebb0 100644
+--- a/examples/nfct-mnl-set-label.c
++++ b/examples/nfct-mnl-set-label.c
+@@ -19,6 +19,7 @@ static void set_label(struct nf_conntrack *ct, struct callback_args *cbargs)
+ 	char buf[MNL_SOCKET_BUFFER_SIZE];
+ 	struct nlmsghdr *nlh;
+ 	struct nfgenmsg *nfh;
++	int ret;
+ 
+ 	if (b) {
+ 		if (bit < 0)
+@@ -55,7 +56,11 @@ static void set_label(struct nf_conntrack *ct, struct callback_args *cbargs)
+ 	nfh->version = NFNETLINK_V0;
+ 	nfh->res_id = 0;
+ 
+-	nfct_nlmsg_build(nlh, ct);
++	ret = nfct_nlmsg_build(nlh, ct);
++	if (ret == -1) {
++		perror("nfct_nlmsg_build");
++		exit(EXIT_FAILURE);
++	}
+ 
+ 	if (mnl_socket_sendto(cbargs->nl, nlh, nlh->nlmsg_len) < 0)
+ 		perror("mnl_socket_sendto");
+-- 
+2.25.1
+
