@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0998C4332B
-	for <netfilter-devel@archiver.kernel.org>; Sun,  3 Jan 2021 19:30:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0902FC4332E
+	for <netfilter-devel@archiver.kernel.org>; Sun,  3 Jan 2021 19:30:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A74152078D
+	by mail.kernel.org (Postfix) with ESMTP id D939E20786
 	for <netfilter-devel@archiver.kernel.org>; Sun,  3 Jan 2021 19:30:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727682AbhACTaP (ORCPT
+        id S1727584AbhACTaK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 3 Jan 2021 14:30:15 -0500
-Received: from correo.us.es ([193.147.175.20]:40814 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725840AbhACTaK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Sun, 3 Jan 2021 14:30:10 -0500
+Received: from correo.us.es ([193.147.175.20]:40766 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727303AbhACTaJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 3 Jan 2021 14:30:09 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 661DB11774D
-        for <netfilter-devel@vger.kernel.org>; Sun,  3 Jan 2021 20:28:53 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 87E36117726
+        for <netfilter-devel@vger.kernel.org>; Sun,  3 Jan 2021 20:28:52 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 553D4DA72F
-        for <netfilter-devel@vger.kernel.org>; Sun,  3 Jan 2021 20:28:53 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7ACADDA722
+        for <netfilter-devel@vger.kernel.org>; Sun,  3 Jan 2021 20:28:52 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 49684DA704; Sun,  3 Jan 2021 20:28:53 +0100 (CET)
+        id 7A1E2DA704; Sun,  3 Jan 2021 20:28:52 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CFDAADA73D;
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 41CE6DA72F;
         Sun,  3 Jan 2021 20:28:50 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
@@ -39,15 +39,15 @@ Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 9ED99426CC85;
+        by entrada.int (Postfix) with ESMTPSA id 0EE56426CC85;
         Sun,  3 Jan 2021 20:28:50 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 2/3] netfilter: nft_dynset: report EOPNOTSUPP on missing set feature
-Date:   Sun,  3 Jan 2021 20:29:19 +0100
-Message-Id: <20210103192920.18639-3-pablo@netfilter.org>
+Subject: [PATCH net 1/3] netfilter: xt_RATEEST: reject non-null terminated string from userspace
+Date:   Sun,  3 Jan 2021 20:29:18 +0100
+Message-Id: <20210103192920.18639-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20210103192920.18639-1-pablo@netfilter.org>
 References: <20210103192920.18639-1-pablo@netfilter.org>
@@ -58,49 +58,40 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If userspace requests a feature which is not available the original set
-definition, then bail out with EOPNOTSUPP. If userspace sends
-unsupported dynset flags (new feature not supported by this kernel),
-then report EOPNOTSUPP to userspace. EINVAL should be only used to
-report malformed netlink messages from userspace.
+From: Florian Westphal <fw@strlen.de>
 
-Fixes: 22fe54d5fefc ("netfilter: nf_tables: add support for dynamic set updates")
+syzbot reports:
+detected buffer overflow in strlen
+[..]
+Call Trace:
+ strlen include/linux/string.h:325 [inline]
+ strlcpy include/linux/string.h:348 [inline]
+ xt_rateest_tg_checkentry+0x2a5/0x6b0 net/netfilter/xt_RATEEST.c:143
+
+strlcpy assumes src is a c-string. Check info->name before its used.
+
+Reported-by: syzbot+e86f7c428c8c50db65b4@syzkaller.appspotmail.com
+Fixes: 5859034d7eb8793 ("[NETFILTER]: x_tables: add RATEEST target")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_dynset.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ net/netfilter/xt_RATEEST.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index 983a1d5ca3ab..f35df221a633 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -177,7 +177,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 		u32 flags = ntohl(nla_get_be32(tb[NFTA_DYNSET_FLAGS]));
+diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
+index 37253d399c6b..0d5c422f8745 100644
+--- a/net/netfilter/xt_RATEEST.c
++++ b/net/netfilter/xt_RATEEST.c
+@@ -115,6 +115,9 @@ static int xt_rateest_tg_checkentry(const struct xt_tgchk_param *par)
+ 	} cfg;
+ 	int ret;
  
- 		if (flags & ~NFT_DYNSET_F_INV)
--			return -EINVAL;
-+			return -EOPNOTSUPP;
- 		if (flags & NFT_DYNSET_F_INV)
- 			priv->invert = true;
- 	}
-@@ -210,7 +210,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 	timeout = 0;
- 	if (tb[NFTA_DYNSET_TIMEOUT] != NULL) {
- 		if (!(set->flags & NFT_SET_TIMEOUT))
--			return -EINVAL;
-+			return -EOPNOTSUPP;
++	if (strnlen(info->name, sizeof(est->name)) >= sizeof(est->name))
++		return -ENAMETOOLONG;
++
+ 	net_get_random_once(&jhash_rnd, sizeof(jhash_rnd));
  
- 		err = nf_msecs_to_jiffies64(tb[NFTA_DYNSET_TIMEOUT], &timeout);
- 		if (err)
-@@ -224,7 +224,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 
- 	if (tb[NFTA_DYNSET_SREG_DATA] != NULL) {
- 		if (!(set->flags & NFT_SET_MAP))
--			return -EINVAL;
-+			return -EOPNOTSUPP;
- 		if (set->dtype == NFT_DATA_VERDICT)
- 			return -EOPNOTSUPP;
- 
+ 	mutex_lock(&xn->hash_lock);
 -- 
 2.20.1
 
