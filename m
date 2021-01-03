@@ -4,50 +4,50 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0902FC4332E
-	for <netfilter-devel@archiver.kernel.org>; Sun,  3 Jan 2021 19:30:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3FB7C43381
+	for <netfilter-devel@archiver.kernel.org>; Sun,  3 Jan 2021 19:30:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D939E20786
+	by mail.kernel.org (Postfix) with ESMTP id C03DF207D1
 	for <netfilter-devel@archiver.kernel.org>; Sun,  3 Jan 2021 19:30:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727584AbhACTaK (ORCPT
+        id S1727651AbhACTaP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 3 Jan 2021 14:30:10 -0500
-Received: from correo.us.es ([193.147.175.20]:40766 "EHLO mail.us.es"
+        Sun, 3 Jan 2021 14:30:15 -0500
+Received: from correo.us.es ([193.147.175.20]:40822 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727303AbhACTaJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 3 Jan 2021 14:30:09 -0500
+        id S1727522AbhACTaL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 3 Jan 2021 14:30:11 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 87E36117726
-        for <netfilter-devel@vger.kernel.org>; Sun,  3 Jan 2021 20:28:52 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 9F73D117751
+        for <netfilter-devel@vger.kernel.org>; Sun,  3 Jan 2021 20:28:53 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7ACADDA722
-        for <netfilter-devel@vger.kernel.org>; Sun,  3 Jan 2021 20:28:52 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8FFC0DA840
+        for <netfilter-devel@vger.kernel.org>; Sun,  3 Jan 2021 20:28:53 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 7A1E2DA704; Sun,  3 Jan 2021 20:28:52 +0100 (CET)
+        id 85A8CDA72F; Sun,  3 Jan 2021 20:28:53 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 41CE6DA72F;
-        Sun,  3 Jan 2021 20:28:50 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5AFCBDA73F;
+        Sun,  3 Jan 2021 20:28:51 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 03 Jan 2021 20:28:50 +0100 (CET)
+ Sun, 03 Jan 2021 20:28:51 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 0EE56426CC85;
-        Sun,  3 Jan 2021 20:28:50 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPSA id 29720426CC84;
+        Sun,  3 Jan 2021 20:28:51 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 1/3] netfilter: xt_RATEEST: reject non-null terminated string from userspace
-Date:   Sun,  3 Jan 2021 20:29:18 +0100
-Message-Id: <20210103192920.18639-2-pablo@netfilter.org>
+Subject: [PATCH net 3/3] netfilter: nftables: add set expression flags
+Date:   Sun,  3 Jan 2021 20:29:20 +0100
+Message-Id: <20210103192920.18639-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20210103192920.18639-1-pablo@netfilter.org>
 References: <20210103192920.18639-1-pablo@netfilter.org>
@@ -58,40 +58,115 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+The set flag NFT_SET_EXPR provides a hint to the kernel that userspace
+supports for multiple expressions per set element. In the same
+direction, NFT_DYNSET_F_EXPR specifies that dynset expression defines
+multiple expressions per set element.
 
-syzbot reports:
-detected buffer overflow in strlen
-[..]
-Call Trace:
- strlen include/linux/string.h:325 [inline]
- strlcpy include/linux/string.h:348 [inline]
- xt_rateest_tg_checkentry+0x2a5/0x6b0 net/netfilter/xt_RATEEST.c:143
+This allows new userspace software with old kernels to bail out with
+EOPNOTSUPP. This update is similar to ef516e8625dd ("netfilter:
+nf_tables: reintroduce the NFT_SET_CONCAT flag"). The NFT_SET_EXPR flag
+needs to be set on when the NFTA_SET_EXPRESSIONS attribute is specified.
+The NFT_SET_EXPR flag is not set on with NFTA_SET_EXPR to retain
+backward compatibility in old userspace binaries.
 
-strlcpy assumes src is a c-string. Check info->name before its used.
-
-Reported-by: syzbot+e86f7c428c8c50db65b4@syzkaller.appspotmail.com
-Fixes: 5859034d7eb8793 ("[NETFILTER]: x_tables: add RATEEST target")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 48b0ae046ee9 ("netfilter: nftables: netlink support for several set element expressions")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_RATEEST.c | 3 +++
- 1 file changed, 3 insertions(+)
+ include/uapi/linux/netfilter/nf_tables.h | 3 +++
+ net/netfilter/nf_tables_api.c            | 6 +++++-
+ net/netfilter/nft_dynset.c               | 9 +++++++--
+ 3 files changed, 15 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
-index 37253d399c6b..0d5c422f8745 100644
---- a/net/netfilter/xt_RATEEST.c
-+++ b/net/netfilter/xt_RATEEST.c
-@@ -115,6 +115,9 @@ static int xt_rateest_tg_checkentry(const struct xt_tgchk_param *par)
- 	} cfg;
- 	int ret;
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 28b6ee53305f..b1633e7ba529 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -293,6 +293,7 @@ enum nft_rule_compat_attributes {
+  * @NFT_SET_EVAL: set can be updated from the evaluation path
+  * @NFT_SET_OBJECT: set contains stateful objects
+  * @NFT_SET_CONCAT: set contains a concatenation
++ * @NFT_SET_EXPR: set contains expressions
+  */
+ enum nft_set_flags {
+ 	NFT_SET_ANONYMOUS		= 0x1,
+@@ -303,6 +304,7 @@ enum nft_set_flags {
+ 	NFT_SET_EVAL			= 0x20,
+ 	NFT_SET_OBJECT			= 0x40,
+ 	NFT_SET_CONCAT			= 0x80,
++	NFT_SET_EXPR			= 0x100,
+ };
  
-+	if (strnlen(info->name, sizeof(est->name)) >= sizeof(est->name))
-+		return -ENAMETOOLONG;
+ /**
+@@ -706,6 +708,7 @@ enum nft_dynset_ops {
+ 
+ enum nft_dynset_flags {
+ 	NFT_DYNSET_F_INV	= (1 << 0),
++	NFT_DYNSET_F_EXPR	= (1 << 1),
+ };
+ 
+ /**
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 4186b1e52d58..15c467f1a9dd 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4162,7 +4162,7 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
+ 		if (flags & ~(NFT_SET_ANONYMOUS | NFT_SET_CONSTANT |
+ 			      NFT_SET_INTERVAL | NFT_SET_TIMEOUT |
+ 			      NFT_SET_MAP | NFT_SET_EVAL |
+-			      NFT_SET_OBJECT | NFT_SET_CONCAT))
++			      NFT_SET_OBJECT | NFT_SET_CONCAT | NFT_SET_EXPR))
+ 			return -EOPNOTSUPP;
+ 		/* Only one of these operations is supported */
+ 		if ((flags & (NFT_SET_MAP | NFT_SET_OBJECT)) ==
+@@ -4304,6 +4304,10 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
+ 		struct nlattr *tmp;
+ 		int left;
+ 
++		if (!(flags & NFT_SET_EXPR)) {
++			err = -EINVAL;
++			goto err_set_alloc_name;
++		}
+ 		i = 0;
+ 		nla_for_each_nested(tmp, nla[NFTA_SET_EXPRESSIONS], left) {
+ 			if (i == NFT_SET_EXPR_MAX) {
+diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
+index f35df221a633..0b053f75cd60 100644
+--- a/net/netfilter/nft_dynset.c
++++ b/net/netfilter/nft_dynset.c
+@@ -19,6 +19,7 @@ struct nft_dynset {
+ 	enum nft_registers		sreg_key:8;
+ 	enum nft_registers		sreg_data:8;
+ 	bool				invert;
++	bool				expr;
+ 	u8				num_exprs;
+ 	u64				timeout;
+ 	struct nft_expr			*expr_array[NFT_SET_EXPR_MAX];
+@@ -175,11 +176,12 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 
+ 	if (tb[NFTA_DYNSET_FLAGS]) {
+ 		u32 flags = ntohl(nla_get_be32(tb[NFTA_DYNSET_FLAGS]));
+-
+-		if (flags & ~NFT_DYNSET_F_INV)
++		if (flags & ~(NFT_DYNSET_F_INV | NFT_DYNSET_F_EXPR))
+ 			return -EOPNOTSUPP;
+ 		if (flags & NFT_DYNSET_F_INV)
+ 			priv->invert = true;
++		if (flags & NFT_DYNSET_F_EXPR)
++			priv->expr = true;
+ 	}
+ 
+ 	set = nft_set_lookup_global(ctx->net, ctx->table,
+@@ -261,6 +263,9 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 		struct nlattr *tmp;
+ 		int left;
+ 
++		if (!priv->expr)
++			return -EINVAL;
 +
- 	net_get_random_once(&jhash_rnd, sizeof(jhash_rnd));
- 
- 	mutex_lock(&xn->hash_lock);
+ 		i = 0;
+ 		nla_for_each_nested(tmp, tb[NFTA_DYNSET_EXPRESSIONS], left) {
+ 			if (i == NFT_SET_EXPR_MAX) {
 -- 
 2.20.1
 
