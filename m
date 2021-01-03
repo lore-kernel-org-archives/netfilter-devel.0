@@ -2,73 +2,105 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E043C433E0
-	for <netfilter-devel@archiver.kernel.org>; Sun,  3 Jan 2021 19:06:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0998C4332B
+	for <netfilter-devel@archiver.kernel.org>; Sun,  3 Jan 2021 19:30:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2BD1220786
-	for <netfilter-devel@archiver.kernel.org>; Sun,  3 Jan 2021 19:06:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A74152078D
+	for <netfilter-devel@archiver.kernel.org>; Sun,  3 Jan 2021 19:30:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727118AbhACTFn (ORCPT
+        id S1727682AbhACTaP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 3 Jan 2021 14:05:43 -0500
-Received: from correo.us.es ([193.147.175.20]:37060 "EHLO mail.us.es"
+        Sun, 3 Jan 2021 14:30:15 -0500
+Received: from correo.us.es ([193.147.175.20]:40814 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725840AbhACTFm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 3 Jan 2021 14:05:42 -0500
+        id S1725840AbhACTaK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 3 Jan 2021 14:30:10 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 9CEBB1022A0
-        for <netfilter-devel@vger.kernel.org>; Sun,  3 Jan 2021 20:04:25 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 661DB11774D
+        for <netfilter-devel@vger.kernel.org>; Sun,  3 Jan 2021 20:28:53 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 90047DA704
-        for <netfilter-devel@vger.kernel.org>; Sun,  3 Jan 2021 20:04:25 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 553D4DA72F
+        for <netfilter-devel@vger.kernel.org>; Sun,  3 Jan 2021 20:28:53 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 85BCFDA72F; Sun,  3 Jan 2021 20:04:25 +0100 (CET)
+        id 49684DA704; Sun,  3 Jan 2021 20:28:53 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 33E45DA78A;
-        Sun,  3 Jan 2021 20:04:23 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CFDAADA73D;
+        Sun,  3 Jan 2021 20:28:50 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 03 Jan 2021 20:04:23 +0100 (CET)
+ Sun, 03 Jan 2021 20:28:50 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 147E6426CC84;
-        Sun,  3 Jan 2021 20:04:23 +0100 (CET)
-Date:   Sun, 3 Jan 2021 20:04:58 +0100
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id 9ED99426CC85;
+        Sun,  3 Jan 2021 20:28:50 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Eyal Birger <eyal.birger@gmail.com>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH libnetfilter_conntrack] examples: check return value of
- nfct_nlmsg_build()
-Message-ID: <20210103190458.GA17660@salvia>
-References: <20210101090226.3237589-1-eyal.birger@gmail.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
+Subject: [PATCH net 2/3] netfilter: nft_dynset: report EOPNOTSUPP on missing set feature
+Date:   Sun,  3 Jan 2021 20:29:19 +0100
+Message-Id: <20210103192920.18639-3-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20210103192920.18639-1-pablo@netfilter.org>
+References: <20210103192920.18639-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20210101090226.3237589-1-eyal.birger@gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Jan 01, 2021 at 11:02:26AM +0200, Eyal Birger wrote:
-> nfct_nlmsg_build() may fail for different reasons, for example if
-> insufficient parameters exist in the ct object. The resulting nlh would
-> not contain any of the ct attributes.
-> 
-> Some conntrack operations would still operate in such case, for example
-> an IPCTNL_MSG_CT_DELETE message would just delete all existing conntrack
-> entries.
-> 
-> While the example as it is does supply correct parameters, it's safer
-> as reference to validate the return value.
+If userspace requests a feature which is not available the original set
+definition, then bail out with EOPNOTSUPP. If userspace sends
+unsupported dynset flags (new feature not supported by this kernel),
+then report EOPNOTSUPP to userspace. EINVAL should be only used to
+report malformed netlink messages from userspace.
 
-Applied, thanks.
+Fixes: 22fe54d5fefc ("netfilter: nf_tables: add support for dynamic set updates")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nft_dynset.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
+index 983a1d5ca3ab..f35df221a633 100644
+--- a/net/netfilter/nft_dynset.c
++++ b/net/netfilter/nft_dynset.c
+@@ -177,7 +177,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 		u32 flags = ntohl(nla_get_be32(tb[NFTA_DYNSET_FLAGS]));
+ 
+ 		if (flags & ~NFT_DYNSET_F_INV)
+-			return -EINVAL;
++			return -EOPNOTSUPP;
+ 		if (flags & NFT_DYNSET_F_INV)
+ 			priv->invert = true;
+ 	}
+@@ -210,7 +210,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 	timeout = 0;
+ 	if (tb[NFTA_DYNSET_TIMEOUT] != NULL) {
+ 		if (!(set->flags & NFT_SET_TIMEOUT))
+-			return -EINVAL;
++			return -EOPNOTSUPP;
+ 
+ 		err = nf_msecs_to_jiffies64(tb[NFTA_DYNSET_TIMEOUT], &timeout);
+ 		if (err)
+@@ -224,7 +224,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 
+ 	if (tb[NFTA_DYNSET_SREG_DATA] != NULL) {
+ 		if (!(set->flags & NFT_SET_MAP))
+-			return -EINVAL;
++			return -EOPNOTSUPP;
+ 		if (set->dtype == NFT_DATA_VERDICT)
+ 			return -EOPNOTSUPP;
+ 
+-- 
+2.20.1
+
