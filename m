@@ -2,75 +2,88 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F146C433E9
-	for <netfilter-devel@archiver.kernel.org>; Mon,  4 Jan 2021 23:05:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E78E0C433E0
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Jan 2021 23:16:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6A40F2253A
-	for <netfilter-devel@archiver.kernel.org>; Mon,  4 Jan 2021 23:05:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B062122E00
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Jan 2021 23:16:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727284AbhADXE7 (ORCPT
+        id S1725936AbhAEXQ0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 4 Jan 2021 18:04:59 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52858 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726333AbhADXE6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 4 Jan 2021 18:04:58 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3665C207BC;
-        Mon,  4 Jan 2021 23:04:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1609801458;
-        bh=R8/Mgnh4z8EC2sAL47MBrKCl6ThiI0yHEPc1AioqAZg=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=iQLRo53ClbAXtP6n7LYmibensqwT09wPSWhfVe7wYLENBzSBoZ5KXOSHGAKCOpoSc
-         KgobQagK2KTDkxK3w5tAbLvanQXo2EEQxIelrIcE1UJLbAIm313qEChQhvMDu0+5r2
-         fNs6r02QJ4waYwc42Ovks0t3aeteUrMPgoIfWkekUI641h3eFI8nN3W6vL0aO0oaXz
-         gT9erXz/EsuZSuH2u+4N0A39BtSRffniEN7/IzYTL4UuYsef8/OGgBjjwuV/Ou9T5p
-         BkHlGp/8DCIreyFRBcNZc3TCIYv62n/BcQOAyJ+cZR+IHWNIHJb4KUEun6kkEUwiJO
-         4HmaFOutX2kag==
-Date:   Mon, 4 Jan 2021 15:04:17 -0800
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org
-Subject: Re: [PATCH net 0/3] Netfilter fixes for net
-Message-ID: <20210104150417.2115a21e@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <20210103192920.18639-1-pablo@netfilter.org>
-References: <20210103192920.18639-1-pablo@netfilter.org>
+        Tue, 5 Jan 2021 18:16:26 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54968 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725710AbhAEXQ0 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 5 Jan 2021 18:16:26 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D0E37C061574;
+        Tue,  5 Jan 2021 15:15:45 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1kwvYD-0000RJ-4E; Wed, 06 Jan 2021 00:15:41 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netdev@vger.kernel.org>
+Cc:     christian.perle@secunet.com, steffen.klassert@secunet.com,
+        <netfilter-devel@vger.kernel.org>
+Subject: [PATCH net 0/3] net: fix netfilter defrag/ip tunnel pmtu blackhole
+Date:   Wed,  6 Jan 2021 00:15:20 +0100
+Message-Id: <20210105231523.622-1-fw@strlen.de>
+X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20210105121208.GA11593@cell>
+References: <20210105121208.GA11593@cell>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun,  3 Jan 2021 20:29:17 +0100 Pablo Neira Ayuso wrote:
-> Hi Jakub, David,
-> 
-> The following patchset contains Netfilter fixes for net:
-> 
-> 1) Missing sanitization of rateest userspace string, bug has been
->    triggered by syzbot, patch from Florian Westphal.
-> 
-> 2) Report EOPNOTSUPP on missing set features in nft_dynset, otherwise
->    error reporting to userspace via EINVAL is misleading since this is
->    reserved for malformed netlink requests.
-> 
-> 3) New binaries with old kernels might silently accept several set
->    element expressions. New binaries set on the NFT_SET_EXPR and
->    NFT_DYNSET_F_EXPR flags to request for several expressions per
->    element, hence old kernels which do not support for this bail out
->    with EOPNOTSUPP.
-> 
-> Please, pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+Christian Perle reported a PMTU blackhole due to unexpected interaction
+between the ip defragmentation that comes with connection tracking and
+ip tunnels.
 
-Pulled, thanks!
+Unfortunately setting 'nopmtudisc' on the tunnel breaks the test
+scenario even without netfilter.
 
-> P.S: Best wishes for 2021.
+Christinas setup looks like this:
+     +--------+       +---------+       +--------+
+     |Router A|-------|Wanrouter|-------|Router B|
+     |        |.IPIP..|         |..IPIP.|        |
+     +--------+       +---------+       +--------+
+          /             mtu 1400           \
+         /                                  \
+ +--------+                                  +--------+
+ |Client A|                                  |Client B|
+ +--------+                                  +--------+
 
-Happy 2021!
+MTU is 1500 everywhere, except on Router A to Wanrouter and
+Wanrouter to Router B.
+
+Router A and Router B use IPIP tunnel interfaces to tunnel traffic
+between Client A and Client B over WAN.
+
+Client A sends a 1400 byte UDP datagram to Client B.
+This packet gets encapsulated in the IPIP tunnel.
+
+This works, packet is received on client B.
+
+When conntrack (or anything else that forces ip defragmentation) is
+enabled on Router A, the packet gets dropped on Router A after
+encapsulation because they exceed the link MTU.
+
+Setting the 'nopmtudisc' flag on the IPIP tunnel makes things worse,
+no packets pass even in the no-netfilter scenario.
+
+Patch one is a reproducer script for selftest infra.
+
+Patch two is a fix for 'nopmtudisc' behaviour so ip_tunnel will send
+an icmp error to Client A.  This allows 'nopmtudisc' tunnel to forward
+the UDP datagrams.
+
+Patch three enables ip refragmentation for all reassembled packets, just
+like ipv6.
+
