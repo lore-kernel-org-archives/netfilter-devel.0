@@ -4,103 +4,129 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8339C433E6
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Jan 2021 23:16:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1A8AC43381
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Jan 2021 12:25:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C2C9A22E00
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Jan 2021 23:16:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DDCFD22ADF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Jan 2021 12:25:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726745AbhAEXQo (ORCPT
+        id S1726483AbhAFMZj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 5 Jan 2021 18:16:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55024 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726712AbhAEXQo (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 5 Jan 2021 18:16:44 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53B25C06179A;
-        Tue,  5 Jan 2021 15:16:02 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1kwvYT-0000Rl-Ru; Wed, 06 Jan 2021 00:15:58 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netdev@vger.kernel.org>
-Cc:     christian.perle@secunet.com, steffen.klassert@secunet.com,
-        <netfilter-devel@vger.kernel.org>, Florian Westphal <fw@strlen.de>
-Subject: [PATCH net 3/3] net: ip: always refragment ip defragmented packets
-Date:   Wed,  6 Jan 2021 00:15:23 +0100
-Message-Id: <20210105231523.622-4-fw@strlen.de>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20210105231523.622-1-fw@strlen.de>
-References: <20210105121208.GA11593@cell>
- <20210105231523.622-1-fw@strlen.de>
+        Wed, 6 Jan 2021 07:25:39 -0500
+Received: from correo.us.es ([193.147.175.20]:44044 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726477AbhAFMZj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 6 Jan 2021 07:25:39 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 3CEA9FC46D
+        for <netfilter-devel@vger.kernel.org>; Wed,  6 Jan 2021 13:24:19 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2D266DA730
+        for <netfilter-devel@vger.kernel.org>; Wed,  6 Jan 2021 13:24:19 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 22D4FDA72F; Wed,  6 Jan 2021 13:24:19 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A27F5DA73F
+        for <netfilter-devel@vger.kernel.org>; Wed,  6 Jan 2021 13:24:16 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 06 Jan 2021 13:24:16 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id 88D4D426CC84
+        for <netfilter-devel@vger.kernel.org>; Wed,  6 Jan 2021 13:24:16 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft 1/2] cli: use plain readline() interface
+Date:   Wed,  6 Jan 2021 13:24:35 +0100
+Message-Id: <20210106122436.24589-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20210106122436.24589-1-pablo@netfilter.org>
+References: <20210106122436.24589-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Conntrack reassembly records the largest fragment size seen in IPCB.
-However, when this gets forwarded/transmitted, fragmentation will only
-be forced if one of the fragmented packets had the DF bit set.
+Instead of the alternate interface [1].
 
-In that case, a flag in IPCB will force fragmentation even if the
-MTU is large enough.
+I spent a bit of time debugging an issue with libedit support
+9420423900a2 ("cli: add libedit support") that broke tests/shell.
 
-This should work fine, but this breaks with ip tunnels.
-Consider client that sends a UDP datagram of size X to another host.
+This is the reproducer:
 
-The client fragments the datagram, so two packets, of size y and z, are
-sent. DF bit is not set on any of these packets.
+ # nft -i << EOF
+ list ruleset
+ EOF
 
-Middlebox netfilter reassembles those packets back to single size-X
-packet, before routing decision.
+which makes rl_callback_read_char() loop forever on read() as shown by
+strace. The rl_line_buffer variable does not accumulate the typed
+characters as it should when redirecting the standard input for some
+reason.
 
-packet-size-vs-mtu checks in ip_forward are irrelevant, because DF bit
-isn't set.  At output time, ip refragmentation is skipped as well
-because x is still smaller than the mtu of the output device.
+Given our interactive interface is fairly simple at this stage, switch
+to use the readline() interface instead of rl_callback_read_char().
 
-If ttransmit device is an ip tunnel, the packet size increases to
-x+overhead.
+[1] https://docs.freebsd.org/info/readline/readline.info.Alternate_Interface.html
 
-Also, tunnel might be configured to force DF bit on outer header.
-
-In this case, packet will be dropped (exceeds MTU) and an ICMP error is
-generated back to sender.
-
-But sender already respects the announced MTU, all the packets that
-it sent did fit the announced mtu.
-
-Force refragmentation as per original sizes unconditionally so ip tunnel
-will encapsulate the fragments instead.
-
-The only other solution I see is to place ip refragmentation in
-the ip_tunnel code to handle this case.
-
-Fixes: d6b915e29f4ad ("ip_fragment: don't forward defragmented DF packet")
-Reported-by: Christian Perle <christian.perle@secunet.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/ip_output.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ src/cli.c | 21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
-diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
-index 89fff5f59eea..2ed0b01f72f0 100644
---- a/net/ipv4/ip_output.c
-+++ b/net/ipv4/ip_output.c
-@@ -302,7 +302,7 @@ static int __ip_finish_output(struct net *net, struct sock *sk, struct sk_buff *
- 	if (skb_is_gso(skb))
- 		return ip_finish_output_gso(net, sk, skb, mtu);
+diff --git a/src/cli.c b/src/cli.c
+index 45811595fc77..f46971b848e5 100644
+--- a/src/cli.c
++++ b/src/cli.c
+@@ -154,28 +154,29 @@ static void cli_complete(char *line)
+ 	free(line);
+ }
  
--	if (skb->len > mtu || (IPCB(skb)->flags & IPSKB_FRAG_PMTU))
-+	if (skb->len > mtu || IPCB(skb)->frag_max_size)
- 		return ip_fragment(net, sk, skb, mtu, ip_finish_output2);
+-static char **cli_completion(const char *text, int start, int end)
+-{
+-	return NULL;
+-}
+-
+ int cli_init(struct nft_ctx *nft)
+ {
++	char *line;
++
+ 	cli_nft = nft;
+ 	rl_readline_name = (char *)"nft";
+ 	rl_instream  = stdin;
+ 	rl_outstream = stdout;
  
- 	return ip_finish_output2(net, sk, skb);
+-	rl_callback_handler_install(CMDLINE_PROMPT, cli_complete);
+-	rl_attempted_completion_function = cli_completion;
+-
+ 	init_histfile();
+ 
+ 	read_history(histfile);
+ 	history_set_pos(history_length);
+ 
+-	while (true)
+-		rl_callback_read_char();
++	rl_set_prompt(CMDLINE_PROMPT);
++	while ((line = readline(rl_prompt)) != NULL) {
++		line = cli_append_multiline(line);
++		if (!line)
++			continue;
++
++		cli_complete(line);
++	}
++
+ 	return 0;
+ }
+ 
 -- 
-2.26.2
+2.20.1
 
