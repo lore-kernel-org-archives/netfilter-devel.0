@@ -2,114 +2,92 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
+X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DCD3BC4332D
-	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Jan 2021 07:54:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E12BC433E0
+	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Jan 2021 09:06:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A52DA23125
-	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Jan 2021 07:54:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2F05423142
+	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Jan 2021 09:06:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726801AbhAGHxk (ORCPT
+        id S1726522AbhAGJGO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 7 Jan 2021 02:53:40 -0500
-Received: from a.mx.secunet.com ([62.96.220.36]:54566 "EHLO a.mx.secunet.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727335AbhAGHxj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 7 Jan 2021 02:53:39 -0500
-Received: from localhost (localhost [127.0.0.1])
-        by a.mx.secunet.com (Postfix) with ESMTP id C64E320573;
-        Thu,  7 Jan 2021 08:52:56 +0100 (CET)
-X-Virus-Scanned: by secunet
-Received: from a.mx.secunet.com ([127.0.0.1])
-        by localhost (a.mx.secunet.com [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id 0StHjRa6RPI0; Thu,  7 Jan 2021 08:52:56 +0100 (CET)
-Received: from cas-essen-02.secunet.de (unknown [10.53.40.202])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by a.mx.secunet.com (Postfix) with ESMTPS id 531E620571;
-        Thu,  7 Jan 2021 08:52:56 +0100 (CET)
-Received: from mbx-essen-02.secunet.de (10.53.40.198) by
- cas-essen-02.secunet.de (10.53.40.202) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.1979.3; Thu, 7 Jan 2021 08:52:51 +0100
-Received: from cell (10.182.7.209) by mbx-essen-02.secunet.de (10.53.40.198)
- with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2044.4; Thu, 7 Jan 2021
- 08:52:50 +0100
-Received: (nullmailer pid 16045 invoked by uid 1000);
-        Thu, 07 Jan 2021 07:52:50 -0000
-Date:   Thu, 7 Jan 2021 08:52:50 +0100
-From:   Christian Perle <christian.perle@secunet.com>
-To:     Florian Westphal <fw@strlen.de>
-CC:     <netdev@vger.kernel.org>, <steffen.klassert@secunet.com>,
-        <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH net 3/3] net: ip: always refragment ip defragmented
- packets
-Message-ID: <20210107075250.GA16010@cell>
-Reply-To: <christian.perle@secunet.com>
-References: <20210105121208.GA11593@cell>
- <20210105231523.622-1-fw@strlen.de>
- <20210105231523.622-4-fw@strlen.de>
+        Thu, 7 Jan 2021 04:06:14 -0500
+Received: from smtprelay02.isp.plutex.de ([91.202.40.194]:48083 "EHLO
+        smtprelay02.isp.plutex.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726703AbhAGJGO (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 7 Jan 2021 04:06:14 -0500
+X-Greylist: delayed 526 seconds by postgrey-1.27 at vger.kernel.org; Thu, 07 Jan 2021 04:06:13 EST
+Received: from mail01.plutex.de (mail01.plutex.de [91.202.40.205])
+        by smtprelay02.isp.plutex.de (Postfix) with ESMTP id EBE9E80095;
+        Thu,  7 Jan 2021 09:56:42 +0100 (CET)
+Received: from [IPv6:2a02:16d0:0:6::6aff:a53] (unknown [IPv6:2a02:16d0:0:6::6aff:a53])
+        by mail01.plutex.de (Postfix) with ESMTPSA id D0776CC001F;
+        Thu,  7 Jan 2021 09:56:42 +0100 (CET)
+From:   Jan-Philipp Litza <jpl@plutex.de>
+Subject: [PATCH] netfilter: Reverse nft_set_lookup_byid list traversal
+To:     netfilter-devel@vger.kernel.org
+Reply-To: jpl+netfilter-devel@plutex.de
+Message-ID: <21ed8188-a202-f578-6f8b-303dec37a266@plutex.de>
+Date:   Thu, 7 Jan 2021 09:56:42 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.5.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20210105231523.622-4-fw@strlen.de>
-Organization: secunet
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-ClientProxiedBy: cas-essen-02.secunet.de (10.53.40.202) To
- mbx-essen-02.secunet.de (10.53.40.198)
-X-EXCLAIMER-MD-CONFIG: 2c86f778-e09b-4440-8b15-867914633a10
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello Florian,
+When loading a large ruleset with many anonymous sets,
+nft_set_lookup_global is called once for each added set element, which
+in turn calls nft_set_lookup_byid if the set was only added in this
+transaction.
 
-On Wed, Jan 06, 2021 at 00:15:23 +0100, Florian Westphal wrote:
+The longer this transaction's queue of unapplied netlink messages gets,
+the longer it takes to traverse it in search for the set referenced by
+ID that was probably added near the end if it is an anonymous set. This
+patch hence searches the list of unapplied netlink messages in reverse
+order, finding the just-added anonymous set faster.
 
-> Force refragmentation as per original sizes unconditionally so ip tunnel
-> will encapsulate the fragments instead.
-[...]
-> diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
-> index 89fff5f59eea..2ed0b01f72f0 100644
-> --- a/net/ipv4/ip_output.c
-> +++ b/net/ipv4/ip_output.c
-> @@ -302,7 +302,7 @@ static int __ip_finish_output(struct net *net, struct sock *sk, struct sk_buff *
->  	if (skb_is_gso(skb))
->  		return ip_finish_output_gso(net, sk, skb, mtu);
->  
-> -	if (skb->len > mtu || (IPCB(skb)->flags & IPSKB_FRAG_PMTU))
-> +	if (skb->len > mtu || IPCB(skb)->frag_max_size)
->  		return ip_fragment(net, sk, skb, mtu, ip_finish_output2);
->  
->  	return ip_finish_output2(net, sk, skb);
-> -- 
-> 2.26.2
+On some reallife ruleset of ~6000 statements and ~1000 anonymous sets,
+this patch roughly halves the system time on loading:
 
-Did some tests yesterday and I can confirm that this patch fixes the
-problem for both IPIP tunnel and XFRM tunnel interfaces.
+Before: 0,06s user 0,39s system 97% cpu 0,459 total
+After:  0,06s user 0,20s system 97% cpu 0,268 total
 
-Thanks for the fix!
-  Christian Perle
--- 
-Christian Perle
-Senior Berater / Senior Consultant
-Netzwerk- und Client-Sicherheit / Network & Client Security
-÷ffentliche Auftraggeber / Public Authorities
-secunet Security Networks AG
+The downside might be that newly added non-anonymous named sets are
+probably added at the beginning of a transaction, and looking for them
+when adding elements later on takes longer. However, I reckon that named
+sets too are more often filled right after their creation. Furthermore,
+for named sets, users can optimize their rule structure to add elements
+right after set creation, whereas it's impossible to first create all
+anonymous sets at the beginning of the transaction to optimize for the
+current approach.
 
-Tel.: +49 201 54 54-3533, Fax: +49 201 54 54-1323
-E-Mail: christian.perle@secunet.com
-Ammonstraﬂe 74, 01067 Dresden, Deutschland
-www.secunet.com
+Signed-off-by: Jan-Philipp Litza <jpl@plutex.de>
+---
+ net/netfilter/nf_tables_api.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-secunet Security Networks AG
-Sitz: Kurf¸rstenstraﬂe 58, 45138 Essen, Deutschland
-Amtsgericht Essen HRB 13615
-Vorstand: Axel Deininger (Vors.), Torsten Henn, Dr. Kai Martius, Thomas Pleines
-Aufsichtsratsvorsitzender: Ralf Wintergerst
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 8d5aa0ac4..c488b6b95 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3639,7 +3639,7 @@ static struct nft_set *nft_set_lookup_byid(const struct net *net,
+ 	struct nft_trans *trans;
+ 	u32 id = ntohl(nla_get_be32(nla));
+ 
+-	list_for_each_entry(trans, &net->nft.commit_list, list) {
++	list_for_each_entry_reverse(trans, &net->nft.commit_list, list) {
+ 		if (trans->msg_type == NFT_MSG_NEWSET) {
+ 			struct nft_set *set = nft_trans_set(trans);
+ 
+--
+2.27.0
+
