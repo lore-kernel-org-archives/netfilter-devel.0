@@ -2,103 +2,101 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F6C1C43333
-	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Jan 2021 22:46:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F1F1C433E0
+	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Jan 2021 11:46:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 15BD623600
-	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Jan 2021 22:46:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D353E239E7
+	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Jan 2021 11:46:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729243AbhAGWpz (ORCPT
+        id S1725869AbhAHLqH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 7 Jan 2021 17:45:55 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45758 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729197AbhAGWpy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 7 Jan 2021 17:45:54 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 08873235FA;
-        Thu,  7 Jan 2021 22:45:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1610059513;
-        bh=sui130tB6tVURev7G+B6CFzZaNiRnUeeeLg1sOcbXHw=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=jS3dv0b3F5+n46l0NLXwao1KSlBnxgsj8mGrbsX3RCU200BNsaUs+ZJm08O+tmhVZ
-         InV6PQ4sptQBzSnnjM1XHS7EZAvlZT/YXwVnehz1tpz1U0/+aM6e5X0Xffq2Kw5MXX
-         QUWJ+1o81Kmb/QCTJAdgQrZfKUHoRFgiWWJSnhO1PIYqwtQjSdOq7jltJxcxtntrX8
-         DKRS2ejF5RLOWHrkA7eJDXSGSjNAX4vNSGnr22FxCD2AE6xMZUjloMY7R/BsJAvr/k
-         iCc5WZNfDT2+Sn/fvbQf7uPYFTOX3ADBy2InqU/a0eL56VtYcj2wFYhUiU66wtqxFJ
-         4qCa/0NcftIhA==
-Date:   Thu, 7 Jan 2021 14:45:12 -0800
-From:   Jakub Kicinski <kuba@kernel.org>
+        Fri, 8 Jan 2021 06:46:07 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:39485 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725791AbhAHLqH (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 8 Jan 2021 06:46:07 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1610106281;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=WRY9Ky6OR198qQVcoHDcIciJXlYwY+IiDLRi+naX4Kc=;
+        b=Cxah/3p9H7fupiIN8egfHPY3ny+w95YZIke6LQcnlKicuLYjyV0fkKnLNBrsTxqKPoZIIa
+        kiOFLd73/Szd83eWpE9FRpVbA14G4rf/GVVGuHhnBHLJ/fzONUkPBJPmxisMz/uYRnVzHi
+        S2T7LvODzrh2JaXHP9OepoD+qQuwJqE=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-242-AuQJD0wXO7iR8zYFKYYtdQ-1; Fri, 08 Jan 2021 06:44:39 -0500
+X-MC-Unique: AuQJD0wXO7iR8zYFKYYtdQ-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 39FF4800D53;
+        Fri,  8 Jan 2021 11:44:38 +0000 (UTC)
+Received: from firesoul.localdomain (unknown [10.40.208.19])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 1763D5C8AA;
+        Fri,  8 Jan 2021 11:44:34 +0000 (UTC)
+Received: from [192.168.42.3] (localhost [IPv6:::1])
+        by firesoul.localdomain (Postfix) with ESMTP id AC99E32138456;
+        Fri,  8 Jan 2021 12:44:33 +0100 (CET)
+Subject: [PATCH net] netfilter: conntrack: fix reading nf_conntrack_buckets
+From:   Jesper Dangaard Brouer <brouer@redhat.com>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Cc:     netdev@vger.kernel.org, christian.perle@secunet.com,
-        steffen.klassert@secunet.com, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH net 0/3] net: fix netfilter defrag/ip tunnel pmtu
- blackhole
-Message-ID: <20210107144512.2021bd35@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <20210107221403.GA15712@salvia>
-References: <20210105121208.GA11593@cell>
-        <20210105231523.622-1-fw@strlen.de>
-        <20210107221403.GA15712@salvia>
+        netfilter-devel@vger.kernel.org
+Cc:     Jesper Dangaard Brouer <brouer@redhat.com>,
+        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org
+Date:   Fri, 08 Jan 2021 12:44:33 +0100
+Message-ID: <161010627346.3858336.14321264288771872662.stgit@firesoul>
+User-Agent: StGit/0.19
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, 7 Jan 2021 23:14:03 +0100 Pablo Neira Ayuso wrote:
-> On Wed, Jan 06, 2021 at 12:15:20AM +0100, Florian Westphal wrote:
-> > Christian Perle reported a PMTU blackhole due to unexpected interaction
-> > between the ip defragmentation that comes with connection tracking and
-> > ip tunnels.
-> > 
-> > Unfortunately setting 'nopmtudisc' on the tunnel breaks the test
-> > scenario even without netfilter.
-> > 
-> > Christinas setup looks like this:
-> >      +--------+       +---------+       +--------+
-> >      |Router A|-------|Wanrouter|-------|Router B|
-> >      |        |.IPIP..|         |..IPIP.|        |
-> >      +--------+       +---------+       +--------+
-> >           /             mtu 1400           \
-> >          /                                  \
-> >  +--------+                                  +--------+
-> >  |Client A|                                  |Client B|
-> >  +--------+                                  +--------+
-> > 
-> > MTU is 1500 everywhere, except on Router A to Wanrouter and
-> > Wanrouter to Router B.
-> > 
-> > Router A and Router B use IPIP tunnel interfaces to tunnel traffic
-> > between Client A and Client B over WAN.
-> > 
-> > Client A sends a 1400 byte UDP datagram to Client B.
-> > This packet gets encapsulated in the IPIP tunnel.
-> > 
-> > This works, packet is received on client B.
-> > 
-> > When conntrack (or anything else that forces ip defragmentation) is
-> > enabled on Router A, the packet gets dropped on Router A after
-> > encapsulation because they exceed the link MTU.
-> > 
-> > Setting the 'nopmtudisc' flag on the IPIP tunnel makes things worse,
-> > no packets pass even in the no-netfilter scenario.
-> > 
-> > Patch one is a reproducer script for selftest infra.
-> > 
-> > Patch two is a fix for 'nopmtudisc' behaviour so ip_tunnel will send
-> > an icmp error to Client A.  This allows 'nopmtudisc' tunnel to forward
-> > the UDP datagrams.
-> > 
-> > Patch three enables ip refragmentation for all reassembled packets, just
-> > like ipv6.  
-> 
-> Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+The old way of changing the conntrack hashsize runtime was through changing
+the module param via file /sys/module/nf_conntrack/parameters/hashsize. This
+was extended to sysctl change in commit 3183ab8997a4 ("netfilter: conntrack:
+allow increasing bucket size via sysctl too").
 
-Applied, thanks!
+The commit introduced second "user" variable nf_conntrack_htable_size_user
+which shadow actual variable nf_conntrack_htable_size. When hashsize is
+changed via module param this "user" variable isn't updated. This results in
+sysctl net/netfilter/nf_conntrack_buckets shows the wrong value when users
+update via the old way.
+
+This patch fix the issue by always updating "user" variable when reading the
+proc file. This will take care of changes to the actual variable without
+sysctl need to be aware.
+
+Fixes: 3183ab8997a4 ("netfilter: conntrack: allow increasing bucket size via sysctl too")
+Reported-by: Yoel Caspersen <yoel@kviknet.dk>
+Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
+---
+ net/netfilter/nf_conntrack_standalone.c |    3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 46c5557c1fec..0ee702d374b0 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -523,6 +523,9 @@ nf_conntrack_hash_sysctl(struct ctl_table *table, int write,
+ {
+ 	int ret;
+ 
++	/* module_param hashsize could have changed value */
++	nf_conntrack_htable_size_user = nf_conntrack_htable_size;
++
+ 	ret = proc_dointvec(table, write, buffer, lenp, ppos);
+ 	if (ret < 0 || !write)
+ 		return ret;
+
+
