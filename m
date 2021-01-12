@@ -2,127 +2,102 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DB2DC07D5B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Jan 2021 15:14:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 961AEC433E9
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Jan 2021 22:21:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 473D62313F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Jan 2021 15:14:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 783F12312A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Jan 2021 22:21:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404188AbhALPNA (ORCPT
+        id S2404850AbhALWVd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 Jan 2021 10:13:00 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:36739 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2403970AbhALPM7 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 Jan 2021 10:12:59 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1610464293;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:in-reply-to:in-reply-to:references:references;
-        bh=CEcMeW3r8WIQ8e8BupQyhzcepDHWsTIT5isBpREM2VE=;
-        b=C4jwxqOiniQjJ0SIN8ZiJPEaQrI4eWXwlw+54Ef/mFgPgGBQDBRnJr5G+cR7Ty5ExpUTk7
-        hTh7/MLMb1vPrrCykJfdHr1WxCTTNsnokMZwWE1Yu4n8vONeGi31EFThpLjgQTAHUKJ6Ac
-        glR7deafLGMYY14n5WrFxwa+zVn5aKY=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-593-mqIA9YfLNGisrvaAxwTllQ-1; Tue, 12 Jan 2021 10:11:32 -0500
-X-MC-Unique: mqIA9YfLNGisrvaAxwTllQ-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        Tue, 12 Jan 2021 17:21:33 -0500
+Received: from correo.us.es ([193.147.175.20]:49912 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2404795AbhALWV1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 12 Jan 2021 17:21:27 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 97E14D28CE
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 Jan 2021 23:20:00 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 86034DA78E
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 Jan 2021 23:20:00 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 7BA69DA78A; Tue, 12 Jan 2021 23:20:00 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2FA5FDA73F;
+        Tue, 12 Jan 2021 23:19:58 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 12 Jan 2021 23:19:58 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.lan (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 752B7100C600;
-        Tue, 12 Jan 2021 15:11:29 +0000 (UTC)
-Received: from madcap2.tricolour.ca (unknown [10.10.110.8])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id F36BB5D9CD;
-        Tue, 12 Jan 2021 15:11:15 +0000 (UTC)
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     Linux Containers List <containers@lists.linux-foundation.org>,
-        Linux API <linux-api@vger.kernel.org>,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        Linux FSdevel <linux-fsdevel@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linux NetDev Upstream Mailing List <netdev@vger.kernel.org>,
-        Netfilter Devel List <netfilter-devel@vger.kernel.org>
-Cc:     Neil Horman <nhorman@tuxdriver.com>,
-        David Howells <dhowells@redhat.com>,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        Simo Sorce <simo@redhat.com>,
-        Eric Paris <eparis@parisplace.org>, mpatel@redhat.com,
-        Serge Hallyn <serge@hallyn.com>,
-        Kees Cook <keescook@chromium.org>,
-        Jens Axboe <axboe@kernel.dk>,
-        Christian Brauner <christian.brauner@ubuntu.com>,
-        Richard Guy Briggs <rgb@redhat.com>
-Subject: [PATCH ghak90 v11 06/11] audit: add containerid support for user records
-Date:   Tue, 12 Jan 2021 10:09:34 -0500
-Message-Id: <4a50ebc6f10c2365a04f271160d62b869a02a816.1610399347.git.rgb@redhat.com>
-In-Reply-To: <cover.1610399347.git.rgb@redhat.com>
-References: <cover.1610399347.git.rgb@redhat.com>
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id DFFCC42EF528;
+        Tue, 12 Jan 2021 23:19:57 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
+Subject: [PATCH net 2/3] netfilter: conntrack: fix reading nf_conntrack_buckets
+Date:   Tue, 12 Jan 2021 23:20:32 +0100
+Message-Id: <20210112222033.9732-3-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20210112222033.9732-1-pablo@netfilter.org>
+References: <20210112222033.9732-1-pablo@netfilter.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add audit container identifier auxiliary record to user event standalone
-records.
+From: Jesper Dangaard Brouer <brouer@redhat.com>
 
-Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-Acked-by: Neil Horman <nhorman@tuxdriver.com>
-Reviewed-by: Ondrej Mosnacek <omosnace@redhat.com>
+The old way of changing the conntrack hashsize runtime was through changing
+the module param via file /sys/module/nf_conntrack/parameters/hashsize. This
+was extended to sysctl change in commit 3183ab8997a4 ("netfilter: conntrack:
+allow increasing bucket size via sysctl too").
+
+The commit introduced second "user" variable nf_conntrack_htable_size_user
+which shadow actual variable nf_conntrack_htable_size. When hashsize is
+changed via module param this "user" variable isn't updated. This results in
+sysctl net/netfilter/nf_conntrack_buckets shows the wrong value when users
+update via the old way.
+
+This patch fix the issue by always updating "user" variable when reading the
+proc file. This will take care of changes to the actual variable without
+sysctl need to be aware.
+
+Fixes: 3183ab8997a4 ("netfilter: conntrack: allow increasing bucket size via sysctl too")
+Reported-by: Yoel Caspersen <yoel@kviknet.dk>
+Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Acked-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- kernel/audit.c | 12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ net/netfilter/nf_conntrack_standalone.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/kernel/audit.c b/kernel/audit.c
-index 314af418bf67..946fe5862dc7 100644
---- a/kernel/audit.c
-+++ b/kernel/audit.c
-@@ -1339,12 +1339,6 @@ static void audit_log_common_recv_msg(struct audit_context *context,
- 	audit_log_task_context(*ab);
- }
- 
--static inline void audit_log_user_recv_msg(struct audit_buffer **ab,
--					   u16 msg_type)
--{
--	audit_log_common_recv_msg(NULL, ab, msg_type);
--}
--
- int is_audit_feature_set(int i)
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 46c5557c1fec..0ee702d374b0 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -523,6 +523,9 @@ nf_conntrack_hash_sysctl(struct ctl_table *table, int write,
  {
- 	return af.features & AUDIT_FEATURE_TO_MASK(i);
-@@ -1620,6 +1614,7 @@ static int audit_receive_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
- 		err = audit_filter(msg_type, AUDIT_FILTER_USER);
- 		if (err == 1) { /* match or error */
- 			char *str = data;
-+			struct audit_context *context;
+ 	int ret;
  
- 			err = 0;
- 			if (msg_type == AUDIT_USER_TTY) {
-@@ -1627,7 +1622,8 @@ static int audit_receive_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
- 				if (err)
- 					break;
- 			}
--			audit_log_user_recv_msg(&ab, msg_type);
-+			context = audit_alloc_local(GFP_KERNEL);
-+			audit_log_common_recv_msg(context, &ab, msg_type);
- 			if (msg_type != AUDIT_USER_TTY) {
- 				/* ensure NULL termination */
- 				str[data_len - 1] = '\0';
-@@ -1641,6 +1637,8 @@ static int audit_receive_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
- 				audit_log_n_untrustedstring(ab, str, data_len);
- 			}
- 			audit_log_end(ab);
-+			audit_log_container_id_ctx(context);
-+			audit_free_context(context);
- 		}
- 		break;
- 	case AUDIT_ADD_RULE:
++	/* module_param hashsize could have changed value */
++	nf_conntrack_htable_size_user = nf_conntrack_htable_size;
++
+ 	ret = proc_dointvec(table, write, buffer, lenp, ppos);
+ 	if (ret < 0 || !write)
+ 		return ret;
 -- 
-2.18.4
+2.20.1
 
