@@ -2,70 +2,130 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7027C433E9
-	for <netfilter-devel@archiver.kernel.org>; Sun, 10 Jan 2021 08:40:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6F66C433DB
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Jan 2021 13:13:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B00A0239EF
-	for <netfilter-devel@archiver.kernel.org>; Sun, 10 Jan 2021 08:40:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 68C112311D
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Jan 2021 13:13:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726671AbhAJIkm (ORCPT
+        id S1728494AbhALNMp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 10 Jan 2021 03:40:42 -0500
-Received: from correo.us.es ([193.147.175.20]:38938 "EHLO mail.us.es"
+        Tue, 12 Jan 2021 08:12:45 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54596 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726228AbhAJIkl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 10 Jan 2021 03:40:41 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id BA856D2B04
-        for <netfilter-devel@vger.kernel.org>; Sun, 10 Jan 2021 09:39:18 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AE0E6DA72F
-        for <netfilter-devel@vger.kernel.org>; Sun, 10 Jan 2021 09:39:18 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 93A2DDA78C; Sun, 10 Jan 2021 09:39:18 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 71790DA73D;
-        Sun, 10 Jan 2021 09:39:16 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 10 Jan 2021 09:39:16 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 3F65F426CC84;
-        Sun, 10 Jan 2021 09:39:16 +0100 (CET)
-Date:   Sun, 10 Jan 2021 09:39:57 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Dinghao Liu <dinghao.liu@zju.edu.cn>
-Cc:     kjlu@umn.edu, Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
+        id S2390370AbhALM54 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 12 Jan 2021 07:57:56 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 594B12376E;
+        Tue, 12 Jan 2021 12:56:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1610456212;
+        bh=4JaejSe07CGhIjjx9tNaZtF7SvHpGsjsxd1+c6gw8RU=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=hBiWgtHV6DM7F5wu8UGYf4jOJ3potz0l0JPLDMq0qnN/XUygn2EiqQmyZQ0VpG4aa
+         aOJGEnqSQtnIxQDmrRXZqGDLbb2bcqmiEtwEo98UbE7hvsVRpDoX08D0c/nvyZq0rx
+         tZN3UIyX62OFa39PctAG77XEFUi19e7wN8pooHIXZ13itAF2VcBvFa7l3TLRmo77OH
+         8KG2zhN/E9Z4eNRDFBJ/2gUj4K9a0U+9w9406FhYsF+erVoLSh3MyM0QEs4t2CxAu3
+         +EitpxqZqhPEyBy24ZtoJRSvBug9hrmtzpMPefH81ExG4ykztMbim4aUiQ5bbbD8CD
+         vigy0WtoQHyOQ==
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Vasily Averin <vvs@virtuozzo.com>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] netfilter: Fix memleak in nf_nat_init
-Message-ID: <20210110083957.GA28820@salvia>
-References: <20210109120121.15938-1-dinghao.liu@zju.edu.cn>
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.4 05/28] netfilter: ipset: fixes possible oops in mtype_resize
+Date:   Tue, 12 Jan 2021 07:56:21 -0500
+Message-Id: <20210112125645.70739-5-sashal@kernel.org>
+X-Mailer: git-send-email 2.27.0
+In-Reply-To: <20210112125645.70739-1-sashal@kernel.org>
+References: <20210112125645.70739-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20210109120121.15938-1-dinghao.liu@zju.edu.cn>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Jan 09, 2021 at 08:01:21PM +0800, Dinghao Liu wrote:
-> When register_pernet_subsys() fails, nf_nat_bysource
-> should be freed just like when nf_ct_extend_register()
-> fails.
+From: Vasily Averin <vvs@virtuozzo.com>
 
-Applied, thanks.
+[ Upstream commit 2b33d6ffa9e38f344418976b06057e2fc2aa9e2a ]
+
+currently mtype_resize() can cause oops
+
+        t = ip_set_alloc(htable_size(htable_bits));
+        if (!t) {
+                ret = -ENOMEM;
+                goto out;
+        }
+        t->hregion = ip_set_alloc(ahash_sizeof_regions(htable_bits));
+
+Increased htable_bits can force htable_size() to return 0.
+In own turn ip_set_alloc(0) returns not 0 but ZERO_SIZE_PTR,
+so follwoing access to t->hregion should trigger an OOPS.
+
+Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
+Acked-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/netfilter/ipset/ip_set_hash_gen.h | 22 +++++++++++++---------
+ 1 file changed, 13 insertions(+), 9 deletions(-)
+
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index a7a982a3e6761..8e9f6e1819014 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -644,7 +644,7 @@ mtype_resize(struct ip_set *set, bool retried)
+ 	struct htype *h = set->data;
+ 	struct htable *t, *orig;
+ 	u8 htable_bits;
+-	size_t dsize = set->dsize;
++	size_t hsize, dsize = set->dsize;
+ #ifdef IP_SET_HASH_WITH_NETS
+ 	u8 flags;
+ 	struct mtype_elem *tmp;
+@@ -668,14 +668,12 @@ mtype_resize(struct ip_set *set, bool retried)
+ retry:
+ 	ret = 0;
+ 	htable_bits++;
+-	if (!htable_bits) {
+-		/* In case we have plenty of memory :-) */
+-		pr_warn("Cannot increase the hashsize of set %s further\n",
+-			set->name);
+-		ret = -IPSET_ERR_HASH_FULL;
+-		goto out;
+-	}
+-	t = ip_set_alloc(htable_size(htable_bits));
++	if (!htable_bits)
++		goto hbwarn;
++	hsize = htable_size(htable_bits);
++	if (!hsize)
++		goto hbwarn;
++	t = ip_set_alloc(hsize);
+ 	if (!t) {
+ 		ret = -ENOMEM;
+ 		goto out;
+@@ -817,6 +815,12 @@ mtype_resize(struct ip_set *set, bool retried)
+ 	if (ret == -EAGAIN)
+ 		goto retry;
+ 	goto out;
++
++hbwarn:
++	/* In case we have plenty of memory :-) */
++	pr_warn("Cannot increase the hashsize of set %s further\n", set->name);
++	ret = -IPSET_ERR_HASH_FULL;
++	goto out;
+ }
+ 
+ /* Get the current number of elements and ext_size in the set  */
+-- 
+2.27.0
+
