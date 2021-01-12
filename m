@@ -2,46 +2,45 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35A89C4160E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Jan 2021 15:13:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1103AC4332B
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Jan 2021 15:14:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 05EDF23130
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Jan 2021 15:13:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CBF7C23133
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Jan 2021 15:14:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389409AbhALPNH (ORCPT
+        id S2404809AbhALPNX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 Jan 2021 10:13:07 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:59443 "EHLO
+        Tue, 12 Jan 2021 10:13:23 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:53523 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2404271AbhALPNG (ORCPT
+        by vger.kernel.org with ESMTP id S2404668AbhALPNV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 Jan 2021 10:13:06 -0500
+        Tue, 12 Jan 2021 10:13:21 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1610464299;
+        s=mimecast20190719; t=1610464315;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:in-reply-to:in-reply-to:references:references;
-        bh=kOwZr9/+JkNCar1Y9mTZLW5ViGaLSnxnpro4O3w8RZE=;
-        b=Zxd/bgLzQkOu5klPUSkyk++kV8au+ffFeSyvstMzUpegDHCE+yWaM9NyW1/d7btMgfIZ7O
-        2vHZ0Cvimjc+Llj2H9+sAkAQ+ddcSqhafIiteBOc5owWFQR/2CGjFKK4Yiq8M+b2VFgyjM
-        9Je34CU1IJQ1DCc2LJjt1X2Mh4Ezcis=
+        bh=JMNDxOpcSJpy1boyDiRFGw1VU2TRGbjXVre/O5w1TLo=;
+        b=WXKL7fix78CqLKio9qN/MC3/dTmWc48LukUEWeh3ztvSM1Z0nYJ3wIBUhtIFTaxRtMCkbZ
+        88JhR/XT4XoDVrW2ybAxSFTeBgj0RVJnVvBUgO3ZDJ4rxJkNLjTvVLBbb6juSuXE1xaENP
+        WrY9aIhobrexxYdU3o5ZukySJ4DvoDs=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-211-7JNuFYDYMoGEa_M-jV9v7w-1; Tue, 12 Jan 2021 10:11:37 -0500
-X-MC-Unique: 7JNuFYDYMoGEa_M-jV9v7w-1
+ us-mta-158-5ZMed7MhNqO0gmxicNO--Q-1; Tue, 12 Jan 2021 10:11:53 -0500
+X-MC-Unique: 5ZMed7MhNqO0gmxicNO--Q-1
 Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 86CEB801B18;
-        Tue, 12 Jan 2021 15:11:35 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 8A9D4EC1A7;
+        Tue, 12 Jan 2021 15:11:51 +0000 (UTC)
 Received: from madcap2.tricolour.ca (unknown [10.10.110.8])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 9660C5D9CD;
-        Tue, 12 Jan 2021 15:11:29 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 8E9B75D9CD;
+        Tue, 12 Jan 2021 15:11:42 +0000 (UTC)
 From:   Richard Guy Briggs <rgb@redhat.com>
 To:     Linux Containers List <containers@lists.linux-foundation.org>,
         Linux API <linux-api@vger.kernel.org>,
@@ -60,9 +59,9 @@ Cc:     Neil Horman <nhorman@tuxdriver.com>,
         Jens Axboe <axboe@kernel.dk>,
         Christian Brauner <christian.brauner@ubuntu.com>,
         Richard Guy Briggs <rgb@redhat.com>
-Subject: [PATCH ghak90 v11 07/11] audit: add containerid filtering
-Date:   Tue, 12 Jan 2021 10:09:35 -0500
-Message-Id: <1da812001a8366654e66bdeedfd4a41365908c45.1610399347.git.rgb@redhat.com>
+Subject: [PATCH ghak90 v11 09/11] audit: contid check descendancy and nesting
+Date:   Tue, 12 Jan 2021 10:09:37 -0500
+Message-Id: <33d06da75cd65fa88c92968e35b6eb4346e98ffc.1610399347.git.rgb@redhat.com>
 In-Reply-To: <cover.1610399347.git.rgb@redhat.com>
 References: <cover.1610399347.git.rgb@redhat.com>
 X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
@@ -70,220 +69,182 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Implement audit container identifier filtering using the AUDIT_CONTID
-field name to send an 8-character string representing a u64 since the
-value field is only u32.
+Require the target task to be a descendant of the container
+orchestrator/engine.
 
-Sending it as two u32 was considered, but gathering and comparing two
-fields was more complex.
+You would only change the audit container ID from one set or inherited
+value to another if you were nesting containers.
 
-The feature indicator is AUDIT_FEATURE_BITMAP_CONTAINERID.
+If changing the contid, the container orchestrator/engine must be a
+descendant and not same orchestrator as the one that set it so it is not
+possible to change the contid of another orchestrator's container.
 
-Please see the github audit kernel issue for the contid filter feature:
-  https://github.com/linux-audit/audit-kernel/issues/91
-Please see the github audit userspace issue for filter additions:
-  https://github.com/linux-audit/audit-userspace/issues/40
-Please see the github audit testsuiite issue for the test case:
-  https://github.com/linux-audit/audit-testsuite/issues/64
-Please see the github audit wiki for the feature overview:
-  https://github.com/linux-audit/audit-kernel/wiki/RFE-Audit-Container-ID
+Since the task_is_descendant() function is used in YAMA and in audit,
+remove the duplication and pull the function into kernel/core/sched.c
+
 Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-Acked-by: Serge Hallyn <serge@hallyn.com>
-Acked-by: Neil Horman <nhorman@tuxdriver.com>
-Reviewed-by: Ondrej Mosnacek <omosnace@redhat.com>
 ---
- include/linux/audit.h      |  1 +
- include/uapi/linux/audit.h |  5 ++++-
- kernel/audit.c             |  5 +++++
- kernel/audit.h             |  3 +++
- kernel/auditfilter.c       | 46 ++++++++++++++++++++++++++++++++++++++
- kernel/auditsc.c           |  3 +++
- 6 files changed, 62 insertions(+), 1 deletion(-)
+ include/linux/sched.h    |  3 +++
+ kernel/audit.c           | 26 +++++++++++++++++++++++---
+ kernel/sched/core.c      | 33 +++++++++++++++++++++++++++++++++
+ security/yama/yama_lsm.c | 33 ---------------------------------
+ 4 files changed, 59 insertions(+), 36 deletions(-)
 
-diff --git a/include/linux/audit.h b/include/linux/audit.h
-index 9f0238f7960f..056a7c9a12a2 100644
---- a/include/linux/audit.h
-+++ b/include/linux/audit.h
-@@ -69,6 +69,7 @@ struct audit_field {
- 	u32				type;
- 	union {
- 		u32			val;
-+		u64			val64;
- 		kuid_t			uid;
- 		kgid_t			gid;
- 		struct {
-diff --git a/include/uapi/linux/audit.h b/include/uapi/linux/audit.h
-index 94dcf3085658..66350e572e41 100644
---- a/include/uapi/linux/audit.h
-+++ b/include/uapi/linux/audit.h
-@@ -271,6 +271,7 @@
- #define AUDIT_LOGINUID_SET	24
- #define AUDIT_SESSIONID	25	/* Session ID */
- #define AUDIT_FSTYPE	26	/* FileSystem Type */
-+#define AUDIT_CONTID	27	/* Container ID */
+diff --git a/include/linux/sched.h b/include/linux/sched.h
+index 1d10d81b8fd5..b30bbfec31ab 100644
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -2097,4 +2097,7 @@ int sched_trace_rq_nr_running(struct rq *rq);
  
- 				/* These are ONLY useful when checking
- 				 * at syscall exit time (AUDIT_AT_EXIT). */
-@@ -353,6 +354,7 @@ enum {
- #define AUDIT_FEATURE_BITMAP_SESSIONID_FILTER	0x00000010
- #define AUDIT_FEATURE_BITMAP_LOST_RESET		0x00000020
- #define AUDIT_FEATURE_BITMAP_FILTER_FS		0x00000040
-+#define AUDIT_FEATURE_BITMAP_CONTAINERID	0x00000080
+ const struct cpumask *sched_trace_rd_span(struct root_domain *rd);
  
- #define AUDIT_FEATURE_BITMAP_ALL (AUDIT_FEATURE_BITMAP_BACKLOG_LIMIT | \
- 				  AUDIT_FEATURE_BITMAP_BACKLOG_WAIT_TIME | \
-@@ -360,7 +362,8 @@ enum {
- 				  AUDIT_FEATURE_BITMAP_EXCLUDE_EXTEND | \
- 				  AUDIT_FEATURE_BITMAP_SESSIONID_FILTER | \
- 				  AUDIT_FEATURE_BITMAP_LOST_RESET | \
--				  AUDIT_FEATURE_BITMAP_FILTER_FS)
-+				  AUDIT_FEATURE_BITMAP_FILTER_FS | \
-+				  AUDIT_FEATURE_BITMAP_CONTAINERID)
- 
- /* deprecated: AUDIT_VERSION_* */
- #define AUDIT_VERSION_LATEST 		AUDIT_FEATURE_BITMAP_ALL
++extern int task_is_descendant(struct task_struct *parent,
++			      struct task_struct *child);
++
+ #endif
 diff --git a/kernel/audit.c b/kernel/audit.c
-index 946fe5862dc7..533254167abf 100644
+index c30bcd525dad..fcb78a6d8e4a 100644
 --- a/kernel/audit.c
 +++ b/kernel/audit.c
-@@ -2489,6 +2489,11 @@ int audit_log_container_id_ctx(struct audit_context *context)
- 	return record;
- }
- 
-+int audit_contid_comparator(struct task_struct *tsk, u32 op, u64 right)
-+{
-+	return audit_comparator64(audit_get_contid(tsk), op, right);
-+}
-+
- void audit_log_key(struct audit_buffer *ab, char *key)
- {
- 	audit_log_format(ab, " key=");
-diff --git a/kernel/audit.h b/kernel/audit.h
-index 40e609787a0c..48c429c2d544 100644
---- a/kernel/audit.h
-+++ b/kernel/audit.h
-@@ -218,12 +218,15 @@ extern void *audit_contobj_get_bytask(struct task_struct *tsk);
- extern void audit_contobj_put(void **cont, int count);
- extern int audit_log_container_id(struct audit_context *context, void *cont);
- extern int audit_log_container_id_ctx(struct audit_context *context);
-+extern int audit_contid_comparator(struct task_struct *tsk, const u32 op,
-+				   const u64 right);
- 
- /* Indicates that audit should log the full pathname. */
- #define AUDIT_NAME_FULL -1
- 
- extern int audit_match_class(int class, unsigned syscall);
- extern int audit_comparator(const u32 left, const u32 op, const u32 right);
-+extern int audit_comparator64(const u64 left, const u32 op, const u64 right);
- extern int audit_uid_comparator(kuid_t left, u32 op, kuid_t right);
- extern int audit_gid_comparator(kgid_t left, u32 op, kgid_t right);
- extern int parent_len(const char *path);
-diff --git a/kernel/auditfilter.c b/kernel/auditfilter.c
-index 333b3bcfc545..9362ee9cc414 100644
---- a/kernel/auditfilter.c
-+++ b/kernel/auditfilter.c
-@@ -399,6 +399,7 @@ static int audit_field_valid(struct audit_entry *entry, struct audit_field *f)
- 	case AUDIT_FILETYPE:
- 	case AUDIT_FIELD_COMPARE:
- 	case AUDIT_EXE:
-+	case AUDIT_CONTID:
- 		/* only equal and not equal valid ops */
- 		if (f->op != Audit_not_equal && f->op != Audit_equal)
- 			return -EINVAL;
-@@ -590,6 +591,14 @@ static struct audit_entry *audit_data_to_entry(struct audit_rule_data *data,
- 			entry->rule.buflen += f_val;
- 			entry->rule.exe = audit_mark;
- 			break;
-+		case AUDIT_CONTID:
-+			if (f_val != sizeof(u64))
-+				goto exit_free;
-+			str = audit_unpack_string(&bufp, &remain, f_val);
-+			if (IS_ERR(str))
-+				goto exit_free;
-+			f->val64 = ((u64 *)str)[0];
-+			break;
- 		default:
- 			f->val = f_val;
- 			break;
-@@ -675,6 +684,11 @@ static struct audit_rule_data *audit_krule_to_data(struct audit_krule *krule)
- 			data->buflen += data->values[i] =
- 				audit_pack_string(&bufp, audit_mark_path(krule->exe));
- 			break;
-+		case AUDIT_CONTID:
-+			data->buflen += data->values[i] = sizeof(u64);
-+			memcpy(bufp, &f->val64, sizeof(u64));
-+			bufp += sizeof(u64);
-+			break;
- 		case AUDIT_LOGINUID_SET:
- 			if (krule->pflags & AUDIT_LOGINUID_LEGACY && !f->val) {
- 				data->fields[i] = AUDIT_LOGINUID;
-@@ -761,6 +775,10 @@ static int audit_compare_rule(struct audit_krule *a, struct audit_krule *b)
- 			if (!gid_eq(a->fields[i].gid, b->fields[i].gid))
- 				return 1;
- 			break;
-+		case AUDIT_CONTID:
-+			if (a->fields[i].val64 != b->fields[i].val64)
-+				return 1;
-+			break;
- 		default:
- 			if (a->fields[i].val != b->fields[i].val)
- 				return 1;
-@@ -1216,6 +1234,30 @@ int audit_comparator(u32 left, u32 op, u32 right)
+@@ -476,11 +476,13 @@ void audit_free(struct task_struct *tsk)
+ 	rcu_read_lock();
+ 	cont = _audit_contobj_get_bytask(tsk);
+ 	rcu_read_unlock();
+-	spin_lock_irqsave(&_audit_contobj_list_lock, flags);
+ 	if (ns) {
+ 		audit_netns_contid_del(ns->net_ns, cont);
++		spin_lock_irqsave(&_audit_contobj_list_lock, flags);
+ 		_audit_contobj_put(cont);
++		spin_unlock_irqrestore(&_audit_contobj_list_lock, flags);
  	}
++	spin_lock_irqsave(&_audit_contobj_list_lock, flags);
+ 	_audit_contobj_put(cont);
+ 	spin_unlock_irqrestore(&_audit_contobj_list_lock, flags);
+ 	audit_free_syscall(tsk);
+@@ -2924,6 +2926,21 @@ int audit_signal_info(int sig, struct task_struct *t)
+ 	return audit_signal_info_syscall(t);
  }
  
-+int audit_comparator64(u64 left, u32 op, u64 right)
++static bool audit_contid_isnesting(struct task_struct *tsk)
 +{
-+	switch (op) {
-+	case Audit_equal:
-+		return (left == right);
-+	case Audit_not_equal:
-+		return (left != right);
-+	case Audit_lt:
-+		return (left < right);
-+	case Audit_le:
-+		return (left <= right);
-+	case Audit_gt:
-+		return (left > right);
-+	case Audit_ge:
-+		return (left >= right);
-+	case Audit_bitmask:
-+		return (left & right);
-+	case Audit_bittest:
-+		return ((left & right) == right);
-+	default:
-+		return 0;
++	bool isowner = false;
++	bool ownerisparent = false;
++	struct audit_task_info *info = tsk->audit;
++
++	rcu_read_lock();
++	if (info && info->cont) {
++		isowner = current == info->cont->owner;
++		ownerisparent = task_is_descendant(info->cont->owner, current);
 +	}
++	rcu_read_unlock();
++	return !isowner && ownerisparent;
 +}
 +
- int audit_uid_comparator(kuid_t left, u32 op, kuid_t right)
- {
- 	switch (op) {
-@@ -1350,6 +1392,10 @@ int audit_filter(int msgtype, unsigned int listtype)
- 				result = audit_comparator(audit_loginuid_set(current),
- 							  f->op, f->val);
- 				break;
-+			case AUDIT_CONTID:
-+				result = audit_contid_comparator(current, f->op,
-+								 f->val64);
-+				break;
- 			case AUDIT_MSGTYPE:
- 				result = audit_comparator(msgtype, f->op, f->val);
- 				break;
-diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-index fc781ab5af2c..2b8cc4bea84f 100644
---- a/kernel/auditsc.c
-+++ b/kernel/auditsc.c
-@@ -656,6 +656,9 @@ static int audit_filter_rules(struct task_struct *tsk,
- 				result = audit_comparator(ctx->sockaddr->ss_family,
- 							  f->op, f->val);
- 			break;
-+		case AUDIT_CONTID:
-+			result = audit_contid_comparator(tsk, f->op, f->val64);
+ /*
+  * audit_set_contid - set current task's audit contid
+  * @tsk: target task
+@@ -2964,8 +2981,11 @@ int audit_set_contid(struct task_struct *tsk, u64 contid)
+ 		   !(thread_group_leader(tsk) && thread_group_empty(tsk))) {
+ 		/* if task has children or is not single-threaded, deny */
+ 		rc = -EBUSY;
+-	} else if (info->cont) {
+-		/* if contid is already set, deny */
++	} else if (tsk == current || !task_is_descendant(current, tsk)) {
++		/* if task is not descendant, block */
++		rc = -EXDEV;
++	} else if (info->cont && !audit_contid_isnesting(tsk)) {
++		/* only allow contid setting again if nesting */
+ 		rc = -EEXIST;
+ 	}
+ 	rcu_read_lock();
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index 15d2562118d1..f769bcba4ee8 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -9072,6 +9072,39 @@ void dump_cpu_task(int cpu)
+ 	sched_show_task(cpu_curr(cpu));
+ }
+ 
++/*
++ * task_is_descendant - walk up a process family tree looking for a match
++ * @parent: the process to compare against while walking up from child
++ * @child: the process to start from while looking upwards for parent
++ *
++ * Returns 1 if child is a descendant of parent, 0 if not.
++ */
++int task_is_descendant(struct task_struct *parent,
++			      struct task_struct *child)
++{
++	int rc = 0;
++	struct task_struct *walker = child;
++
++	if (!parent || !child)
++		return 0;
++
++	rcu_read_lock();
++	if (!thread_group_leader(parent))
++		parent = rcu_dereference(parent->group_leader);
++	while (walker->pid > 0) {
++		if (!thread_group_leader(walker))
++			walker = rcu_dereference(walker->group_leader);
++		if (walker == parent) {
++			rc = 1;
 +			break;
- 		case AUDIT_SUBJ_USER:
- 		case AUDIT_SUBJ_ROLE:
- 		case AUDIT_SUBJ_TYPE:
++		}
++		walker = rcu_dereference(walker->real_parent);
++	}
++	rcu_read_unlock();
++
++	return rc;
++}
++
+ /*
+  * Nice levels are multiplicative, with a gentle 10% change for every
+  * nice level changed. I.e. when a CPU-bound task goes from nice 0 to
+diff --git a/security/yama/yama_lsm.c b/security/yama/yama_lsm.c
+index 06e226166aab..2930e42eafc2 100644
+--- a/security/yama/yama_lsm.c
++++ b/security/yama/yama_lsm.c
+@@ -262,39 +262,6 @@ static int yama_task_prctl(int option, unsigned long arg2, unsigned long arg3,
+ 	return rc;
+ }
+ 
+-/**
+- * task_is_descendant - walk up a process family tree looking for a match
+- * @parent: the process to compare against while walking up from child
+- * @child: the process to start from while looking upwards for parent
+- *
+- * Returns 1 if child is a descendant of parent, 0 if not.
+- */
+-static int task_is_descendant(struct task_struct *parent,
+-			      struct task_struct *child)
+-{
+-	int rc = 0;
+-	struct task_struct *walker = child;
+-
+-	if (!parent || !child)
+-		return 0;
+-
+-	rcu_read_lock();
+-	if (!thread_group_leader(parent))
+-		parent = rcu_dereference(parent->group_leader);
+-	while (walker->pid > 0) {
+-		if (!thread_group_leader(walker))
+-			walker = rcu_dereference(walker->group_leader);
+-		if (walker == parent) {
+-			rc = 1;
+-			break;
+-		}
+-		walker = rcu_dereference(walker->real_parent);
+-	}
+-	rcu_read_unlock();
+-
+-	return rc;
+-}
+-
+ /**
+  * ptracer_exception_found - tracer registered as exception for this tracee
+  * @tracer: the task_struct of the process attempting ptrace
 -- 
 2.18.4
 
