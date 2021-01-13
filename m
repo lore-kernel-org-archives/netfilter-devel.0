@@ -2,127 +2,60 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	LOTS_OF_MONEY,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 474B9C43381
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Jan 2021 22:22:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22528C433E0
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Jan 2021 04:27:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1B8372312A
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Jan 2021 22:22:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C3DE923131
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Jan 2021 04:27:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391619AbhALWWa (ORCPT
+        id S1725917AbhAME1P (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 Jan 2021 17:22:30 -0500
-Received: from correo.us.es ([193.147.175.20]:49902 "EHLO mail.us.es"
+        Tue, 12 Jan 2021 23:27:15 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54226 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2404790AbhALWV1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 Jan 2021 17:21:27 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id CFD7AD28CA
-        for <netfilter-devel@vger.kernel.org>; Tue, 12 Jan 2021 23:19:59 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C11D5DA78D
-        for <netfilter-devel@vger.kernel.org>; Tue, 12 Jan 2021 23:19:59 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id B6C5EDA78B; Tue, 12 Jan 2021 23:19:59 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7C5BDDA722;
-        Tue, 12 Jan 2021 23:19:57 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 12 Jan 2021 23:19:57 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.lan (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 3D71442EF528;
-        Tue, 12 Jan 2021 23:19:57 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 1/3] selftests: netfilter: Pass family parameter "-f" to conntrack tool
-Date:   Tue, 12 Jan 2021 23:20:31 +0100
-Message-Id: <20210112222033.9732-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+        id S1725681AbhAME1O (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 12 Jan 2021 23:27:14 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D4C3C2312E;
+        Wed, 13 Jan 2021 04:26:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1610511994;
+        bh=ebWVBNgjIS95zbpspVZ4MTQupc/TKqWi3PdJD+H0BkQ=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=cq6PZu6/bbI0/Z8ZxBqURoT2oxNksJ1tKYuGg4Gbxwh4PkELdLbT9IIGmbKYFex2m
+         66p5UhknPIzBuH6yvyJgJxaa9WCCtcqiig85j6WqbWPGOBC1qOGViugjRJJXDS7p6w
+         8g/BfOYO2k/Rf6KFLFuNTDLTGmf+dOntFh30sXu8OVU3KiJYVdTNlG3BdSbkU5f+uK
+         0gl6/dW/2/dNtvT8kmswK3w/Ug+DKPMlgCQKqqp0kl6Jt8/3xdTzHo07oElfUtrkC0
+         dmUCMuZ3SAsb6p2OSf/kYSYXrmW9CUhTxphRi4eFC+SlBIC6DMquw09G8zCyuRhz7L
+         4Rk2Dn9w8CqmA==
+Date:   Tue, 12 Jan 2021 20:26:32 -0800
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org
+Subject: Re: [PATCH net 0/3] Netfilter fixes for net
+Message-ID: <20210112202632.7286b8a2@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
 In-Reply-To: <20210112222033.9732-1-pablo@netfilter.org>
 References: <20210112222033.9732-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Chen Yi <yiche@redhat.com>
+On Tue, 12 Jan 2021 23:20:30 +0100 Pablo Neira Ayuso wrote:
+> The following patchset contains Netfilter fixes for net:
+> 
+> 1) Pass conntrack -f to specify family in netfilter conntrack helper
+>    selftests, from Chen Yi.
+> 
+> 2) Honor hashsize modparam from nf_conntrack_buckets sysctl,
+>    from Jesper D. Brouer.
+> 
+> 3) Fix memleak in nf_nat_init() error path, from Dinghao Liu.
 
-Fix nft_conntrack_helper.sh false fail report:
-
-1) Conntrack tool need "-f ipv6" parameter to show out ipv6 traffic items.
-
-2) Sleep 1 second after background nc send packet, to make sure check
-is after this statement executed.
-
-False report:
-FAIL: ns1-lkjUemYw did not show attached helper ip set via ruleset
-PASS: ns1-lkjUemYw connection on port 2121 has ftp helper attached
-...
-
-After fix:
-PASS: ns1-2hUniwU2 connection on port 2121 has ftp helper attached
-PASS: ns2-2hUniwU2 connection on port 2121 has ftp helper attached
-...
-
-Fixes: 619ae8e0697a6 ("selftests: netfilter: add test case for conntrack helper assignment")
-Signed-off-by: Chen Yi <yiche@redhat.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- .../selftests/netfilter/nft_conntrack_helper.sh      | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
-
-diff --git a/tools/testing/selftests/netfilter/nft_conntrack_helper.sh b/tools/testing/selftests/netfilter/nft_conntrack_helper.sh
-index edf0a48da6bf..bf6b9626c7dd 100755
---- a/tools/testing/selftests/netfilter/nft_conntrack_helper.sh
-+++ b/tools/testing/selftests/netfilter/nft_conntrack_helper.sh
-@@ -94,7 +94,13 @@ check_for_helper()
- 	local message=$2
- 	local port=$3
- 
--	ip netns exec ${netns} conntrack -L -p tcp --dport $port 2> /dev/null |grep -q 'helper=ftp'
-+	if echo $message |grep -q 'ipv6';then
-+		local family="ipv6"
-+	else
-+		local family="ipv4"
-+	fi
-+
-+	ip netns exec ${netns} conntrack -L -f $family -p tcp --dport $port 2> /dev/null |grep -q 'helper=ftp'
- 	if [ $? -ne 0 ] ; then
- 		echo "FAIL: ${netns} did not show attached helper $message" 1>&2
- 		ret=1
-@@ -111,8 +117,8 @@ test_helper()
- 
- 	sleep 3 | ip netns exec ${ns2} nc -w 2 -l -p $port > /dev/null &
- 
--	sleep 1
- 	sleep 1 | ip netns exec ${ns1} nc -w 2 10.0.1.2 $port > /dev/null &
-+	sleep 1
- 
- 	check_for_helper "$ns1" "ip $msg" $port
- 	check_for_helper "$ns2" "ip $msg" $port
-@@ -128,8 +134,8 @@ test_helper()
- 
- 	sleep 3 | ip netns exec ${ns2} nc -w 2 -6 -l -p $port > /dev/null &
- 
--	sleep 1
- 	sleep 1 | ip netns exec ${ns1} nc -w 2 -6 dead:1::2 $port > /dev/null &
-+	sleep 1
- 
- 	check_for_helper "$ns1" "ipv6 $msg" $port
- 	check_for_helper "$ns2" "ipv6 $msg" $port
--- 
-2.20.1
-
+Pulled, thanks!
