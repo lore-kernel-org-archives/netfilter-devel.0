@@ -2,123 +2,212 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5582C433E0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Jan 2021 13:29:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5301C433DB
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Jan 2021 16:17:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8034923A58
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Jan 2021 13:29:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 98043239EB
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Jan 2021 16:17:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729068AbhANN3C (ORCPT
+        id S1726076AbhANQRA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 14 Jan 2021 08:29:02 -0500
-Received: from ma1-aaemail-dr-lapp02.apple.com ([17.171.2.68]:33210 "EHLO
-        ma1-aaemail-dr-lapp02.apple.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728497AbhANN3B (ORCPT
+        Thu, 14 Jan 2021 11:17:00 -0500
+Received: from mail-io1-f69.google.com ([209.85.166.69]:38826 "EHLO
+        mail-io1-f69.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725950AbhANQQ7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 14 Jan 2021 08:29:01 -0500
-X-Greylist: delayed 99642 seconds by postgrey-1.27 at vger.kernel.org; Thu, 14 Jan 2021 08:29:00 EST
-Received: from pps.filterd (ma1-aaemail-dr-lapp02.apple.com [127.0.0.1])
-        by ma1-aaemail-dr-lapp02.apple.com (8.16.0.42/8.16.0.42) with SMTP id 10D9TG59011556;
-        Wed, 13 Jan 2021 01:47:34 -0800
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=apple.com; h=date : subject : from
- : to : cc : message-id : mime-version : content-type :
- content-transfer-encoding; s=20180706;
- bh=lCOlYmel5FvTrCWgxZQ4O3mmcNj9IvJj2Oqy/e1Ss2o=;
- b=sGdkBQEkSnqsU3RcB6e36v71WCF0NDsSIGzxhBs98ZdM5p0QNA/t6a/oKfcSO3yNI+xV
- WimmXAwvAu/Mw4Ta2rQ4UbHipQsyiRDt5TxdqZNVVKzlqVJJTkWgLvkL/SK1g1ZAN4md
- Ivt4AA8sbkna+ml8v3aSo/8YMBqZ6RTjYc8WbsoRYOvqxq1lu2SKraXnk0k0cKB+GJF5
- bEaOuXqIDh4ufxWBcPfoX7JsPpLyFzDd+cUaj2+qffS/e5r31XXvZcFbPgrX74ce97HN
- Cu5NQn8UBJtKIcIHF0YLAHvZzNaimu8WXyX9XaroGh7BkVl+PW42JN+97uFjhHnGYJs+ xw== 
-Received: from crk-mailsvcp-mta-lapp02.euro.apple.com (crk-mailsvcp-mta-lapp02.euro.apple.com [17.66.55.14])
-        by ma1-aaemail-dr-lapp02.apple.com with ESMTP id 35ya1x33w9-2
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NO);
-        Wed, 13 Jan 2021 01:47:34 -0800
-Received: from crk-mailsvcp-mmp-lapp03.euro.apple.com
- (crk-mailsvcp-mmp-lapp03.euro.apple.com [17.72.136.17])
- by crk-mailsvcp-mta-lapp02.euro.apple.com
- (Oracle Communications Messaging Server 8.1.0.7.20201203 64bit (built Dec  3
- 2020))
- with ESMTPS id <0QMV004DT9V97L00@crk-mailsvcp-mta-lapp02.euro.apple.com>; Wed,
- 13 Jan 2021 09:47:33 +0000 (GMT)
-Received: from process_milters-daemon.crk-mailsvcp-mmp-lapp03.euro.apple.com by
- crk-mailsvcp-mmp-lapp03.euro.apple.com
- (Oracle Communications Messaging Server 8.1.0.6.20200729 64bit (built Jul 29
- 2020)) id <0QMV00C009N4WJ00@crk-mailsvcp-mmp-lapp03.euro.apple.com>; Wed,
- 13 Jan 2021 09:47:33 +0000 (GMT)
-X-Va-A: 
-X-Va-T-CD: ee775fe296fae01696e403bd65ae1163
-X-Va-E-CD: 785a83b2b63a5a352022c3616ae5f6e3
-X-Va-R-CD: 1f2f1a1e678e5861357bfe6b87eec27b
-X-Va-CD: 0
-X-Va-ID: d249e9d9-413f-408a-bd6f-df10256698dc
-X-V-A:  
-X-V-T-CD: ee775fe296fae01696e403bd65ae1163
-X-V-E-CD: 785a83b2b63a5a352022c3616ae5f6e3
-X-V-R-CD: 1f2f1a1e678e5861357bfe6b87eec27b
-X-V-CD: 0
-X-V-ID: 5c56899e-3e21-4aa2-a0b4-490606914006
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.343,18.0.737
- definitions=2021-01-13_03:2021-01-13,2021-01-13 signatures=0
-Received: from [192.168.1.127] (unknown [17.235.214.236])
- by crk-mailsvcp-mmp-lapp03.euro.apple.com
- (Oracle Communications Messaging Server 8.1.0.6.20200729 64bit (built Jul 29
- 2020))
- with ESMTPSA id <0QMV00A9B9V8BA00@crk-mailsvcp-mmp-lapp03.euro.apple.com>;
- Wed, 13 Jan 2021 09:47:33 +0000 (GMT)
-User-Agent: Microsoft-MacOutlook/16.44.20121301
-Date:   Wed, 13 Jan 2021 10:47:31 +0100
-Subject: [PATCH libnetfilter_queue] src: fix IPv6 header handling
-From:   Etan Kissling <etan_kissling@apple.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     laforge@netfilter.org
-Message-id: <EA975B90-266F-4DED-A655-8DB522DDF586@apple.com>
-Thread-topic: [PATCH libnetfilter_queue] src: fix IPv6 header handling
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7bit
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.343,18.0.737
- definitions=2021-01-13_03:2021-01-13,2021-01-13 signatures=0
+        Thu, 14 Jan 2021 11:16:59 -0500
+Received: by mail-io1-f69.google.com with SMTP id q140so9239849iod.5
+        for <netfilter-devel@vger.kernel.org>; Thu, 14 Jan 2021 08:16:43 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
+        bh=aAzDGgnw82km7tFkTHNpceySUwV+QRWaKQm/V+YoTp8=;
+        b=jEOuH11zNCreQ6ug/E+RM+vGF5sLNYrI23Q1ZnTTNO0CZe+vpF+LgsyvVbRqvuH4W2
+         DZ5Zl0i8yuaTtuR5SCBiKOXZ9d/IFt8MB/+zKcV/HrpSk8a1iG38NEI6gI9U9GMsMHxJ
+         /hl5PGS459WfsP1d0x3ay2COnJNA4Eu2I6WSwQNrupfNP4eglCHIhat83OCZX5/gJmz4
+         rEDRZT4fl/bojkI5chfpTZM+VyK4WybsAVJ/nNSMtMAANy3kzjlV2pjO8dVliY57q8et
+         js9aoZjViTPYFYewyqfTnKc8Mbk0RDUEDyfiZv/BAh7JBUtp6ryYiZrEgMp1U+jTk4CE
+         Bkbw==
+X-Gm-Message-State: AOAM532KiYyd1e+TjZZmKuvwLE0mMXEe6s6hDbcMM8hu7hnFLtvP6CB+
+        vslVumPoX4oQFoiuaOzLW3ackFf3UhLNEMuOk4fXp7WJJA4U
+X-Google-Smtp-Source: ABdhPJyVxHQB+PMGONU+BKbygYzx/3LLO/BG3GBIqaxYxNKHAQQECoohNXpR1VwHv7evsbJlna5XnUO9REpseqcaFlibFKehyUUG
+MIME-Version: 1.0
+X-Received: by 2002:a02:aa83:: with SMTP id u3mr7006293jai.38.1610640978128;
+ Thu, 14 Jan 2021 08:16:18 -0800 (PST)
+Date:   Thu, 14 Jan 2021 08:16:18 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <0000000000005cb43b05b8de9356@google.com>
+Subject: KMSAN: uninit-value in nf_conntrack_udplite_packet (2)
+From:   syzbot <syzbot+e5b49f0d1e69d0c0fcb4@syzkaller.appspotmail.com>
+To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
+        glider@google.com, kadlec@netfilter.org, kuba@kernel.org,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This corrects issues in IPv6 header handling that sometimes resulted in an endless loop.
+Hello,
 
-Signed-off-by: Etan Kissling <etan_kissling@apple.com>
+syzbot found the following issue on:
+
+HEAD commit:    73d62e81 kmsan: random: prevent boot-time reports in _mix_..
+git tree:       https://github.com/google/kmsan.git master
+console output: https://syzkaller.appspot.com/x/log.txt?x=11eb6ce7500000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=2cdf4151c9653e32
+dashboard link: https://syzkaller.appspot.com/bug?extid=e5b49f0d1e69d0c0fcb4
+compiler:       clang version 11.0.0 (https://github.com/llvm/llvm-project.git ca2dcbd030eadbf0aa9b660efe864ff08af6e18b)
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=13922a3f500000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=11c6c2f7500000
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+e5b49f0d1e69d0c0fcb4@syzkaller.appspotmail.com
+
+=====================================================
+BUG: KMSAN: uninit-value in udplite_error net/netfilter/nf_conntrack_proto_udp.c:162 [inline]
+BUG: KMSAN: uninit-value in nf_conntrack_udplite_packet+0x7b2/0x12d0 net/netfilter/nf_conntrack_proto_udp.c:188
+CPU: 1 PID: 8615 Comm: syz-executor710 Not tainted 5.10.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x21c/0x280 lib/dump_stack.c:118
+ kmsan_report+0xf7/0x1e0 mm/kmsan/kmsan_report.c:118
+ __msan_warning+0x5f/0xa0 mm/kmsan/kmsan_instr.c:197
+ udplite_error net/netfilter/nf_conntrack_proto_udp.c:162 [inline]
+ nf_conntrack_udplite_packet+0x7b2/0x12d0 net/netfilter/nf_conntrack_proto_udp.c:188
+ nf_conntrack_handle_packet net/netfilter/nf_conntrack_core.c:1768 [inline]
+ nf_conntrack_in+0x10fb/0x298f net/netfilter/nf_conntrack_core.c:1846
+ ipv4_conntrack_local+0x225/0x3b0 net/netfilter/nf_conntrack_proto.c:200
+ nf_hook_entry_hookfn include/linux/netfilter.h:136 [inline]
+ nf_hook_slow+0x17b/0x460 net/netfilter/core.c:589
+ nf_hook include/linux/netfilter.h:256 [inline]
+ __ip_local_out+0x7a6/0x860 net/ipv4/ip_output.c:115
+ ip_local_out net/ipv4/ip_output.c:124 [inline]
+ ip_send_skb+0xb3/0x340 net/ipv4/ip_output.c:1568
+ udp_send_skb+0x1568/0x1be0 net/ipv4/udp.c:948
+ udp_push_pending_frames net/ipv4/udp.c:976 [inline]
+ udp_sendpage+0x805/0xb90 net/ipv4/udp.c:1347
+ inet_sendpage+0x1da/0x2f0 net/ipv4/af_inet.c:831
+ kernel_sendpage+0x47a/0x590 net/socket.c:3646
+ sock_sendpage+0x15e/0x1a0 net/socket.c:944
+ pipe_to_sendpage+0x3f4/0x530 fs/splice.c:364
+ splice_from_pipe_feed fs/splice.c:418 [inline]
+ __splice_from_pipe+0x5e3/0xff0 fs/splice.c:562
+ splice_from_pipe fs/splice.c:597 [inline]
+ generic_splice_sendpage+0x1d5/0x2d0 fs/splice.c:743
+ do_splice_from fs/splice.c:764 [inline]
+ do_splice+0x2365/0x3550 fs/splice.c:1059
+ __do_splice fs/splice.c:1137 [inline]
+ __do_sys_splice fs/splice.c:1343 [inline]
+ __se_sys_splice+0x8f8/0xb40 fs/splice.c:1325
+ __x64_sys_splice+0x6e/0x90 fs/splice.c:1325
+ do_syscall_64+0x9f/0x140 arch/x86/entry/common.c:48
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x444059
+Code: e8 6c 05 03 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 9b 07 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffd20373dd8 EFLAGS: 00000246 ORIG_RAX: 0000000000000113
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000444059
+RDX: 0000000000000005 RSI: 0000000000000000 RDI: 0000000000000004
+RBP: 00007ffd20373df0 R08: 0000000080000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000024bb2
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+
+Uninit was stored to memory at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:121 [inline]
+ kmsan_internal_chain_origin+0xad/0x130 mm/kmsan/kmsan.c:289
+ __msan_chain_origin+0x57/0xa0 mm/kmsan/kmsan_instr.c:147
+ udp_send_skb+0x17aa/0x1be0 net/ipv4/udp.c:943
+ udp_push_pending_frames net/ipv4/udp.c:976 [inline]
+ udp_sendpage+0x805/0xb90 net/ipv4/udp.c:1347
+ inet_sendpage+0x1da/0x2f0 net/ipv4/af_inet.c:831
+ kernel_sendpage+0x47a/0x590 net/socket.c:3646
+ sock_sendpage+0x15e/0x1a0 net/socket.c:944
+ pipe_to_sendpage+0x3f4/0x530 fs/splice.c:364
+ splice_from_pipe_feed fs/splice.c:418 [inline]
+ __splice_from_pipe+0x5e3/0xff0 fs/splice.c:562
+ splice_from_pipe fs/splice.c:597 [inline]
+ generic_splice_sendpage+0x1d5/0x2d0 fs/splice.c:743
+ do_splice_from fs/splice.c:764 [inline]
+ do_splice+0x2365/0x3550 fs/splice.c:1059
+ __do_splice fs/splice.c:1137 [inline]
+ __do_sys_splice fs/splice.c:1343 [inline]
+ __se_sys_splice+0x8f8/0xb40 fs/splice.c:1325
+ __x64_sys_splice+0x6e/0x90 fs/splice.c:1325
+ do_syscall_64+0x9f/0x140 arch/x86/entry/common.c:48
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Uninit was stored to memory at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:121 [inline]
+ kmsan_internal_chain_origin+0xad/0x130 mm/kmsan/kmsan.c:289
+ kmsan_memcpy_memmove_metadata+0x25e/0x2d0 mm/kmsan/kmsan.c:226
+ kmsan_memcpy_metadata+0xb/0x10 mm/kmsan/kmsan.c:246
+ __msan_memcpy+0x46/0x60 mm/kmsan/kmsan_instr.c:110
+ skb_copy_from_linear_data_offset include/linux/skbuff.h:3660 [inline]
+ skb_copy_bits+0x2a6/0x1050 net/core/skbuff.c:2195
+ tpacket_rcv+0x5591/0x7f90 net/packet/af_packet.c:2324
+ __netif_receive_skb_one_core net/core/dev.c:5315 [inline]
+ __netif_receive_skb+0x1ec/0x640 net/core/dev.c:5429
+ process_backlog+0x523/0xc10 net/core/dev.c:6319
+ napi_poll+0x420/0x1010 net/core/dev.c:6763
+ net_rx_action+0x35c/0xd40 net/core/dev.c:6833
+ __do_softirq+0x1a9/0x6fa kernel/softirq.c:298
+
+Uninit was stored to memory at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:121 [inline]
+ kmsan_internal_chain_origin+0xad/0x130 mm/kmsan/kmsan.c:289
+ kmsan_memcpy_memmove_metadata+0x25e/0x2d0 mm/kmsan/kmsan.c:226
+ kmsan_memcpy_metadata+0xb/0x10 mm/kmsan/kmsan.c:246
+ __msan_memcpy+0x46/0x60 mm/kmsan/kmsan_instr.c:110
+ pskb_expand_head+0x3eb/0x1df0 net/core/skbuff.c:1631
+ __skb_cow include/linux/skbuff.h:3165 [inline]
+ skb_cow_head include/linux/skbuff.h:3199 [inline]
+ batadv_skb_head_push+0x2ce/0x410 net/batman-adv/soft-interface.c:75
+ batadv_send_skb_packet+0x1ed/0x970 net/batman-adv/send.c:86
+ batadv_send_broadcast_skb+0x76/0x90 net/batman-adv/send.c:127
+ batadv_iv_ogm_send_to_if net/batman-adv/bat_iv_ogm.c:394 [inline]
+ batadv_iv_ogm_emit net/batman-adv/bat_iv_ogm.c:420 [inline]
+ batadv_iv_send_outstanding_bat_ogm_packet+0xb3a/0xf00 net/batman-adv/bat_iv_ogm.c:1712
+ process_one_work+0x121c/0x1fc0 kernel/workqueue.c:2272
+ worker_thread+0x10cc/0x2740 kernel/workqueue.c:2418
+ kthread+0x51c/0x560 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+
+Uninit was created at:
+ kmsan_save_stack_with_flags+0x3c/0x90 mm/kmsan/kmsan.c:121
+ kmsan_alloc_page+0xd3/0x1f0 mm/kmsan/kmsan_shadow.c:274
+ __alloc_pages_nodemask+0x84e/0xfb0 mm/page_alloc.c:4989
+ __alloc_pages include/linux/gfp.h:511 [inline]
+ __alloc_pages_node include/linux/gfp.h:524 [inline]
+ alloc_pages_node include/linux/gfp.h:538 [inline]
+ __page_frag_cache_refill mm/page_alloc.c:5065 [inline]
+ page_frag_alloc+0x35b/0x890 mm/page_alloc.c:5095
+ __napi_alloc_skb+0x1c0/0xab0 net/core/skbuff.c:519
+ napi_alloc_skb include/linux/skbuff.h:2870 [inline]
+ page_to_skb+0x142/0x1640 drivers/net/virtio_net.c:389
+ receive_mergeable+0xee6/0x5be0 drivers/net/virtio_net.c:949
+ receive_buf+0x2db/0x2ba0 drivers/net/virtio_net.c:1059
+ virtnet_receive drivers/net/virtio_net.c:1351 [inline]
+ virtnet_poll+0xa51/0x1d10 drivers/net/virtio_net.c:1456
+ napi_poll+0x420/0x1010 net/core/dev.c:6763
+ net_rx_action+0x35c/0xd40 net/core/dev.c:6833
+ __do_softirq+0x1a9/0x6fa kernel/softirq.c:298
+=====================================================
+
+
 ---
- src/extra/ipv6.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-diff --git a/src/extra/ipv6.c b/src/extra/ipv6.c
-index 42c5e25..1eb822f 100644
---- a/src/extra/ipv6.c
-+++ b/src/extra/ipv6.c
-@@ -72,7 +72,8 @@ int nfq_ip6_set_transport_header(struct pkt_buff *pktb, struct ip6_hdr *ip6h,
- 		uint32_t hdrlen;
- 
- 		/* No more extensions, we're done. */
--		if (nexthdr == IPPROTO_NONE) {
-+		if (nexthdr == IPPROTO_TCP || nexthdr == IPPROTO_UDP || nexthdr == IPPROTO_ESP ||
-+		        nexthdr == IPPROTO_ICMPV6 || nexthdr == IPPROTO_NONE) {
- 			cur = NULL;
- 			break;
- 		}
-@@ -107,7 +108,7 @@ int nfq_ip6_set_transport_header(struct pkt_buff *pktb, struct ip6_hdr *ip6h,
- 		} else if (nexthdr == IPPROTO_AH)
- 			hdrlen = (ip6_ext->ip6e_len + 2) << 2;
- 		else
--			hdrlen = ip6_ext->ip6e_len;
-+			hdrlen = (ip6_ext->ip6e_len + 1) << 3;
- 
- 		nexthdr = ip6_ext->ip6e_nxt;
- 		cur += hdrlen;
--- 
-2.21.1 (Apple Git-122.3)
-
-
-
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+syzbot can test patches for this issue, for details see:
+https://goo.gl/tpsmEJ#testing-patches
