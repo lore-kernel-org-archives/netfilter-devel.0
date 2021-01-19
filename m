@@ -2,103 +2,109 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C59A9C433DB
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Jan 2021 08:02:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0A31C433E0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Jan 2021 14:38:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6E6AC20773
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Jan 2021 08:02:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 68255206E5
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Jan 2021 14:38:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731361AbhASICT (ORCPT
+        id S1729178AbhASOiB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 19 Jan 2021 03:02:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54074 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731510AbhASICH (ORCPT
+        Tue, 19 Jan 2021 09:38:01 -0500
+Received: from smtprelay02.isp.plutex.de ([91.202.40.194]:34263 "EHLO
+        smtprelay02.isp.plutex.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2389854AbhASOW6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 19 Jan 2021 03:02:07 -0500
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::45])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 26B97C061575
-        for <netfilter-devel@vger.kernel.org>; Tue, 19 Jan 2021 00:01:27 -0800 (PST)
-Received: from localhost (localhost [127.0.0.1])
-        by smtp0.kfki.hu (Postfix) with ESMTP id 4D9286740186;
-        Tue, 19 Jan 2021 09:01:24 +0100 (CET)
-X-Virus-Scanned: Debian amavisd-new at smtp0.kfki.hu
-Received: from smtp0.kfki.hu ([127.0.0.1])
-        by localhost (smtp0.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Tue, 19 Jan 2021 09:01:22 +0100 (CET)
-Received: from localhost.kfki.hu (mentat.szhk.kfki.hu [148.6.240.32])
-        (Authenticated sender: kadlecsik.jozsef@wigner.mta.hu)
-        by smtp0.kfki.hu (Postfix) with ESMTPSA id 0145E674016D;
-        Tue, 19 Jan 2021 09:01:21 +0100 (CET)
-Received: by localhost.kfki.hu (Postfix, from userid 1000)
-        id E2B7130024A; Tue, 19 Jan 2021 09:01:21 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-        by localhost.kfki.hu (Postfix) with ESMTP id DFE5D3001B5;
-        Tue, 19 Jan 2021 09:01:21 +0100 (CET)
-Date:   Tue, 19 Jan 2021 09:01:21 +0100 (CET)
-From:   Jozsef Kadlecsik <kadlec@netfilter.org>
-To:     Neutron Soutmun <neo.neutron@gmail.com>
-cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] ipset: fix print format warning
-In-Reply-To: <YAUVdnEg6OMPsUet@hydrogen>
-Message-ID: <78385ce0-e237-4281-476e-b21e33a6169@netfilter.org>
-References: <YAUVdnEg6OMPsUet@hydrogen>
+        Tue, 19 Jan 2021 09:22:58 -0500
+Received: from mail01.plutex.de (mail01.plutex.de [91.202.40.205])
+        by smtprelay02.isp.plutex.de (Postfix) with ESMTP id 355C580100;
+        Tue, 19 Jan 2021 15:22:06 +0100 (CET)
+Received: from [IPv6:2a02:16d0:0:6:1:0:6aff:a53] (unknown [IPv6:2a02:16d0:0:6:1:0:6aff:a53])
+        by mail01.plutex.de (Postfix) with ESMTPSA id 15D65CC0806;
+        Tue, 19 Jan 2021 15:22:06 +0100 (CET)
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+References: <21ed8188-a202-f578-6f8b-303dec37a266@plutex.de>
+ <20210114224057.GA5392@salvia>
+Reply-To: jpl+netfilter-devel@plutex.de
+From:   Jan-Philipp Litza <jpl@plutex.de>
+Subject: Re: [PATCH] netfilter: Reverse nft_set_lookup_byid list traversal
+Message-ID: <00ff9577-21d5-177b-33ed-f8de85a11929@plutex.de>
+Date:   Tue, 19 Jan 2021 15:22:05 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.5.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20210114224057.GA5392@salvia>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+Hi Pablo,
 
-On Mon, 18 Jan 2021, Neutron Soutmun wrote:
-
-> * Use PRIx64 for portablility over various architectures.
-> * The format string for the 64bit number printing is incorrect,
->   the `%` sign is missing.
-> * The force types casting over the uint32_t and uint64_t are unnecessary
->   which warned by the compiler on different architecture.
+> If the .nft file contains lots of (linear syntax):
 > 
-> Signed-off-by: Neutron Soutmun <neo.neutron@gmail.com>
+> add rule x y ... { ... }
+> ...
+> add rule x y ... { ... }
+> 
+> then, this patch is a real gain. In this case, nft currently places
+> the new anonymous set right before the rule, so your patch makes it
+> perform nicely.
+> 
+> I hesitate with the nested syntax, ie.
+> 
+> table x {
+>        chain y {
+>                 ... { ... }
+>                 ...
+>                 ... { ... }
+>        }
+> }
+> 
+> In this case, nft adds all the anonymous sets at the beginning of the
+> netlink message, then rules don't find it right at the end.
 
-Thanks, patch is applied in the ipset git tree.
+Maybe I don't quite understand "at the beginning of the netlink message"
+the way you meant it, but we are actually using nested syntax - just
+with hundreds of (short) chains - and the performance gains I cited were
+from this ruleset, which basically looks like
+
+table filter {
+	chain if1 {
+		tcp dport 22 ip saddr { x, y, z } accept
+	}
+}
+table filter {
+	chain if2 {
+		ip saddr { a, b, c } accept
+		tcp dport 80 accept
+	}
+}
+...
+
+(Yes, the "table filter" is repeated every time, because the ruleset is
+generated. Don't know if that matters.)
+
+So I suspect that nft adds the anonymous sets maybe not immediately
+before the elements, but maybe at the beginning of the chain (or the
+beginning of the table block, which we repeat).
+
+But maybe, if I have one chain with hundreds of rules, then this patch
+degrades loading performance.
+
+> Probably it's better to convert this code to use a rhashtable for fast
+> lookups on the transaction so we don't mind about what userspace does
+> in the future.
+
+I totally agree. As a non-kernel-hacker, however, this was out of reach
+for me. ;-)
 
 Best regards,
-Jozsef
-
-> ---
->  lib/print.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/lib/print.c b/lib/print.c
-> index 0d86a98..a7ffd81 100644
-> --- a/lib/print.c
-> +++ b/lib/print.c
-> @@ -431,10 +431,10 @@ ipset_print_hexnumber(char *buf, unsigned int len,
->  				*(const uint16_t *) number);
->  	else if (maxsize == sizeof(uint32_t))
->  		return snprintf(buf, len, "0x%08"PRIx32,
-> -				(long unsigned) *(const uint32_t *) number);
-> +				*(const uint32_t *) number);
->  	else if (maxsize == sizeof(uint64_t))
-> -		return snprintf(buf, len, "0x016lx",
-> -				(long long unsigned) *(const uint64_t *) number);
-> +		return snprintf(buf, len, "0x%016"PRIx64,
-> +				*(const uint64_t *) number);
->  	else
->  		assert(0);
->  	return 0;
-> --
-> 2.30.0
-> 
-
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Jan-Philipp Litza
