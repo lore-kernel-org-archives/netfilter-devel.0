@@ -7,147 +7,379 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3477FC433DB
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Jan 2021 16:53:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB4F8C433DB
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Jan 2021 17:02:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E97D323A57
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Jan 2021 16:53:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8720D23A54
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Jan 2021 17:02:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729365AbhAUPzl (ORCPT
+        id S1730613AbhAURBx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 21 Jan 2021 10:55:41 -0500
-Received: from correo.us.es ([193.147.175.20]:34716 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729326AbhAUPzM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 21 Jan 2021 10:55:12 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 76927396268
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Jan 2021 16:53:25 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 668F6DA722
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Jan 2021 16:53:25 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 5C242DA84A; Thu, 21 Jan 2021 16:53:25 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A3F92DA722
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Jan 2021 16:53:22 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 21 Jan 2021 16:53:22 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 91FC042EF9E1
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Jan 2021 16:53:22 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] evaluate: disallow ct original {s,d}ddr from concatenations
-Date:   Thu, 21 Jan 2021 16:54:13 +0100
-Message-Id: <20210121155413.8251-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+        Thu, 21 Jan 2021 12:01:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41638 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387463AbhAUPtV (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 21 Jan 2021 10:49:21 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BCDE0C061756
+        for <netfilter-devel@vger.kernel.org>; Thu, 21 Jan 2021 07:48:40 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1l2cCN-0004nx-CG; Thu, 21 Jan 2021 16:48:39 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] json: icmp: move expected parts to json.output
+Date:   Thu, 21 Jan 2021 16:48:30 +0100
+Message-Id: <20210121154830.22530-1-fw@strlen.de>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Extend 8b043938e77b ("evaluate: disallow ct original {s,d}ddr from
-maps") to cover concatenations too.
+Phil Sutter says:
+In general, *.t.json files should contain JSON equivalents for rules as
+they are *input* into nft. So we want them to be as close to the
+introductory standard syntax comment as possible.
 
-Error: specify either ip or ip6 for address matching
-add rule x y meta mark set ct original saddr . meta mark map { 1.1.1.1 . 20 : 30 }
-                           ^^^^^^^^^^^^^^^^^
+Undo earlier change and place the expected dependency added by
+nft internals to json.output rather than icmp.t.json.
 
-The old syntax for ct original saddr without either ip or ip6 results
-in unknown key size, which breaks the listing. The old syntax is only
-allowed in simple rules for backward compatibility.
-
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1489
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/evaluate.c           | 17 +++++++++++++++++
- tests/py/ip/ct.t         |  4 ++++
- tests/py/ip/ct.t.payload | 19 +++++++++++++++++++
- 3 files changed, 40 insertions(+)
+ tests/py/ip/icmp.t.json        |  73 +-----------------
+ tests/py/ip/icmp.t.json.output | 134 +++++++++++++++++++++++----------
+ 2 files changed, 98 insertions(+), 109 deletions(-)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index c830dcdbd965..53f636b7ebe7 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1266,6 +1266,12 @@ static int expr_evaluate_concat(struct eval_ctx *ctx, struct expr **expr,
- 	list_for_each_entry_safe(i, next, &(*expr)->expressions, list) {
- 		unsigned dsize_bytes;
+diff --git a/tests/py/ip/icmp.t.json b/tests/py/ip/icmp.t.json
+index 480740afb525..9691f0727f5e 100644
+--- a/tests/py/ip/icmp.t.json
++++ b/tests/py/ip/icmp.t.json
+@@ -485,8 +485,8 @@
+             "op": "==",
+             "right": {
+                 "set": [
+-                    "prot-unreachable",
+-                    "frag-needed",
++                    2,
++                    4,
+                     33,
+                     54,
+                     56
+@@ -714,23 +714,6 @@
  
-+		if (i->etype == EXPR_CT &&
-+		    (i->ct.key == NFT_CT_SRC ||
-+		     i->ct.key == NFT_CT_DST))
-+			return expr_error(ctx->msgs, i,
-+					  "specify either ip or ip6 for address matching");
-+
- 		if (expr_is_constant(*expr) && dtype && off == 0)
- 			return expr_binary_error(ctx->msgs, i, *expr,
- 						 "unexpected concat component, "
-@@ -1477,6 +1483,17 @@ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
- 	     map->map->ct.key == NFT_CT_DST))
- 		return expr_error(ctx->msgs, map->map,
- 				  "specify either ip or ip6 for address matching");
-+	else if (map->map->etype == EXPR_CONCAT) {
-+		struct expr *i;
-+
-+		list_for_each_entry(i, &map->map->expressions, list) {
-+			if (i->etype == EXPR_CT &&
-+			    (i->ct.key == NFT_CT_SRC ||
-+			     i->ct.key == NFT_CT_DST))
-+				return expr_error(ctx->msgs, i,
-+					  "specify either ip or ip6 for address matching");
-+		}
-+	}
+ # icmp id 1245 log
+ [
+-    {
+-        "match": {
+-            "left": {
+-                "payload": {
+-                    "field": "type",
+-                    "protocol": "icmp"
+-                }
+-            },
+-            "op": "==",
+-            "right": {
+-                "set": [
+-                    "echo-reply",
+-                    "echo-request"
+-                ]
+-            }
+-        }
+-    },
+     {
+         "match": {
+             "left": {
+@@ -750,23 +733,6 @@
  
- 	expr_set_context(&ctx->ectx, NULL, 0);
- 	if (expr_evaluate(ctx, &map->map) < 0)
-diff --git a/tests/py/ip/ct.t b/tests/py/ip/ct.t
-index c5ce12747d42..a387863e0d8e 100644
---- a/tests/py/ip/ct.t
-+++ b/tests/py/ip/ct.t
-@@ -24,3 +24,7 @@ ct reply ip daddr dead::beef;fail
+ # icmp id 22
+ [
+-    {
+-        "match": {
+-            "left": {
+-                "payload": {
+-                    "field": "type",
+-                    "protocol": "icmp"
+-                }
+-            },
+-            "op": "==",
+-            "right": {
+-                "set": [
+-                    "echo-reply",
+-                    "echo-request"
+-                ]
+-            }
+-        }
+-    },
+     {
+         "match": {
+             "left": {
+@@ -783,23 +749,6 @@
  
- meta mark set ct original daddr map { 1.1.1.1 : 0x00000011 };fail
- meta mark set ct original ip daddr map { 1.1.1.1 : 0x00000011 };ok
-+meta mark set ct original saddr . meta mark map { 1.1.1.1 . 0x00000014 : 0x0000001e };fail
-+meta mark set ct original ip saddr . meta mark map { 1.1.1.1 . 0x00000014 : 0x0000001e };ok
-+ct original saddr . meta mark { 1.1.1.1 . 0x00000014 };fail
-+ct original ip saddr . meta mark { 1.1.1.1 . 0x00000014 };ok
-diff --git a/tests/py/ip/ct.t.payload b/tests/py/ip/ct.t.payload
-index 3348d16ddc72..49f06a8401f5 100644
---- a/tests/py/ip/ct.t.payload
-+++ b/tests/py/ip/ct.t.payload
-@@ -65,3 +65,22 @@ ip
-   [ ct load dst_ip => reg 1 , dir original ]
-   [ lookup reg 1 set __map%d dreg 1 ]
-   [ meta set mark with reg 1 ]
+ # icmp id != 233
+ [
+-    {
+-        "match": {
+-            "left": {
+-                "payload": {
+-                    "field": "type",
+-                    "protocol": "icmp"
+-                }
+-            },
+-            "op": "==",
+-            "right": {
+-                "set": [
+-                    "echo-reply",
+-                    "echo-request"
+-                ]
+-            }
+-        }
+-    },
+     {
+         "match": {
+             "left": {
+@@ -892,23 +841,6 @@
+ 
+ # icmp id { 33-55}
+ [
+-    {
+-        "match": {
+-            "left": {
+-                "payload": {
+-                    "field": "type",
+-                    "protocol": "icmp"
+-                }
+-            },
+-            "op": "==",
+-            "right": {
+-                "set": [
+-                    "echo-reply",
+-                    "echo-request"
+-                ]
+-            }
+-        }
+-    },
+     {
+         "match": {
+             "left": {
+@@ -1911,4 +1843,3 @@
+         }
+     }
+ ]
+-
+diff --git a/tests/py/ip/icmp.t.json.output b/tests/py/ip/icmp.t.json.output
+index 2391983ab826..5a075858e8fa 100644
+--- a/tests/py/ip/icmp.t.json.output
++++ b/tests/py/ip/icmp.t.json.output
+@@ -1,4 +1,28 @@
+-# icmp type {echo-reply, destination-unreachable, source-quench, redirect, echo-request, time-exceeded, parameter-problem, timestamp-request, timestamp-reply, info-request, info-reply, address-mask-request, address-mask-reply, router-advertisement, router-solicitation} accept
++# icmp code { 2, 4, 54, 33, 56}
++[
++    {
++        "match": {
++            "left": {
++                "payload": {
++                    "field": "code",
++                    "protocol": "icmp"
++                }
++            },
++            "op": "==",
++            "right": {
++                "set": [
++                    "prot-unreachable",
++                    "frag-needed",
++                    33,
++                    54,
++                    56
++                ]
++            }
++        }
++    }
++]
 +
-+# meta mark set ct original ip saddr . meta mark map { 1.1.1.1 . 0x00000014 : 0x0000001e }
-+__map%d test-ip4 b
-+__map%d test-ip4 0
-+        element 01010101 00000014  : 0000001e 0 [end]
-+ip
-+  [ ct load src_ip => reg 1 , dir original ]
-+  [ meta load mark => reg 9 ]
-+  [ lookup reg 1 set __map%d dreg 1 ]
-+  [ meta set mark with reg 1 ]
++# icmp id 1245 log
+ [
+     {
+         "match": {
+@@ -8,104 +32,138 @@
+                     "protocol": "icmp"
+                 }
+             },
+-	    "op": "==",
++            "op": "==",
+             "right": {
+                 "set": [
+                     "echo-reply",
+-                    "destination-unreachable",
+-                    "source-quench",
+-                    "redirect",
+-                    "echo-request",
+-                    "router-advertisement",
+-                    "router-solicitation",
+-                    "time-exceeded",
+-                    "parameter-problem",
+-                    "timestamp-request",
+-                    "timestamp-reply",
+-                    "info-request",
+-                    "info-reply",
+-                    "address-mask-request",
+-                    "address-mask-reply"
++                    "echo-request"
+                 ]
+             }
+         }
+     },
+     {
+-        "accept": null
++        "match": {
++            "left": {
++                "payload": {
++                    "field": "id",
++                    "protocol": "icmp"
++                }
++            },
++            "op": "==",
++            "right": 1245
++        }
++    },
++    {
++        "log": null
+     }
+ ]
+ 
+-# icmp code { 2, 4, 54, 33, 56}
++# icmp id 22
+ [
+     {
+         "match": {
+             "left": {
+                 "payload": {
+-                    "field": "code",
++                    "field": "type",
+                     "protocol": "icmp"
+                 }
+             },
+             "op": "==",
+             "right": {
+                 "set": [
+-                    "prot-unreachable",
+-                    "frag-needed",
+-                    33,
+-                    54,
+-                    56
++                    "echo-reply",
++                    "echo-request"
+                 ]
+             }
+         }
++    },
++    {
++        "match": {
++            "left": {
++                "payload": {
++                    "field": "id",
++                    "protocol": "icmp"
++                }
++            },
++            "op": "==",
++            "right": 22
++        }
+     }
+ ]
+ 
+-# icmp checksum { 1111, 222, 343} accept
++# icmp id != 233
+ [
+     {
+         "match": {
+             "left": {
+                 "payload": {
+-                    "field": "checksum",
++                    "field": "type",
+                     "protocol": "icmp"
+                 }
+             },
+-	    "op": "==",
++            "op": "==",
+             "right": {
+                 "set": [
+-                    222,
+-                    343,
+-                    1111
++                    "echo-reply",
++                    "echo-request"
+                 ]
+             }
+         }
+     },
+     {
+-        "accept": null
++        "match": {
++            "left": {
++                "payload": {
++                    "field": "id",
++                    "protocol": "icmp"
++                }
++            },
++            "op": "!=",
++            "right": 233
++        }
+     }
+ ]
+ 
+-# icmp checksum != { 1111, 222, 343} accept
++# icmp id { 33-55}
+ [
+     {
+         "match": {
+             "left": {
+                 "payload": {
+-                    "field": "checksum",
++                    "field": "type",
+                     "protocol": "icmp"
+                 }
+             },
+-            "op": "!=",
++            "op": "==",
+             "right": {
+                 "set": [
+-                    222,
+-                    343,
+-                    1111
++                    "echo-reply",
++                    "echo-request"
+                 ]
+             }
+         }
+     },
+     {
+-        "accept": null
++        "match": {
++            "left": {
++                "payload": {
++                    "field": "id",
++                    "protocol": "icmp"
++                }
++            },
++            "op": "==",
++            "right": {
++                "set": [
++                    {
++                        "range": [
++                            33,
++                            55
++                        ]
++                    }
++                ]
++            }
++        }
+     }
+ ]
+ 
 +
-+# ct original ip saddr . meta mark { 1.1.1.1 . 0x00000014 }
-+__set%d test-ip4 3
-+__set%d test-ip4 0
-+        element 01010101 00000014  : 0 [end]
-+ip
-+  [ ct load src_ip => reg 1 , dir original ]
-+  [ meta load mark => reg 9 ]
-+  [ lookup reg 1 set __set%d ]
 -- 
-2.20.1
+2.26.2
 
