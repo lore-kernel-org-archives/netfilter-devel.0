@@ -7,49 +7,51 @@ X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B33EC433DB
-	for <netfilter-devel@archiver.kernel.org>; Sun, 24 Jan 2021 00:23:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0E55C433E0
+	for <netfilter-devel@archiver.kernel.org>; Sun, 24 Jan 2021 00:26:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DE3A2225AC
-	for <netfilter-devel@archiver.kernel.org>; Sun, 24 Jan 2021 00:23:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7D989225AC
+	for <netfilter-devel@archiver.kernel.org>; Sun, 24 Jan 2021 00:26:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726470AbhAXAXX (ORCPT
+        id S1726427AbhAXA0B (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 23 Jan 2021 19:23:23 -0500
-Received: from mail-wm1-f44.google.com ([209.85.128.44]:40391 "EHLO
-        mail-wm1-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726434AbhAXAXW (ORCPT
+        Sat, 23 Jan 2021 19:26:01 -0500
+Received: from mail-wm1-f50.google.com ([209.85.128.50]:38442 "EHLO
+        mail-wm1-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726386AbhAXA0A (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 23 Jan 2021 19:23:22 -0500
-Received: by mail-wm1-f44.google.com with SMTP id c127so7587045wmf.5
-        for <netfilter-devel@vger.kernel.org>; Sat, 23 Jan 2021 16:23:04 -0800 (PST)
+        Sat, 23 Jan 2021 19:26:00 -0500
+Received: by mail-wm1-f50.google.com with SMTP id y187so7600871wmd.3
+        for <netfilter-devel@vger.kernel.org>; Sat, 23 Jan 2021 16:25:43 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:from:to:date:message-id:user-agent
-         :mime-version:content-transfer-encoding;
-        bh=fUm7jXpVlmnxyMxnKOepRJhYPSZoUXaQZaKnpez9mVM=;
-        b=DyXg27O0/o7/41HDSRMVvWCgg1xaVFLQTBblj18r04rwQ30+YkMQ2U3Hp5Fz31GOUS
-         NHPHXwIapoYGmAoS0dSPlvFQ7redJQHhCbHJS7VGNZbDWm4MkWIqY784BF/kGjLczKbh
-         bNCj1q2EN5MeW2VejmQZ+i+ukYfVIUisgcluWLoJzFalAh+k1oYTokgVM6i0W0/2vja2
-         BqNU9p8HxkI4A94D8d/FHYICxA9ge4JH+8yV6gnMntjQprYSLj6kvk3SQa3+Wt025SIG
-         BqfnjmLGhREP80vb9n35AuT17yUaqLUYCfObCuw4GdPywA+ksWVyBaIw56vG2NHO+Cxz
-         8Nsw==
-X-Gm-Message-State: AOAM532IQSOUVFusWXBB6KtVLySXreFsmlqFZIjGucwB5+5BuMcef6Cm
-        i9B12HPuUPYRJYNu/v2w7NUrmM0scYQcQw==
-X-Google-Smtp-Source: ABdhPJz1NJcO/DIgNVXv70iEF131W8OmD3wLobFT5qL0im2sXQXAi2ueBysqzbcifH248y6tRHHISQ==
-X-Received: by 2002:a1c:2b05:: with SMTP id r5mr9770462wmr.179.1611447758651;
-        Sat, 23 Jan 2021 16:22:38 -0800 (PST)
+        h=x-gm-message-state:subject:from:to:date:message-id:in-reply-to
+         :references:user-agent:mime-version:content-transfer-encoding;
+        bh=fiD6ShV9WdvwE35tCTVDktM9FR0Pg/bbWfKOAmX7OVI=;
+        b=Ch+YHEHGi9srAzat8CvaTYwQ20IrEo5fVc9/MGzA2gtDMu2HDA9hk+j+me5KV0Yz2E
+         YPIxNrWAAqvX+LMC/d6J+8ZHqRyF+FcVERMHMqGYDKwweoj8Q+znQBwITII1xlce/Oyq
+         JiXT/Fm8nfoGMQ7txASSL4ld3kjv5eclqPNv9mCbDTdkKaK/G6Vjv1uHEBcsUbkUKt+C
+         AvMIbrtvcSlPpFf4ZLrM8SFJ8qkC1/gRBiv04s31WupFD63oXijff8TMmJU+yNPo3jKY
+         +wRj9AG8Xi6TXsToKtmbwn+MgFbbS5tJyMRZbdrHkVNP2ENcAcnw30G4VTWKRHzpFdGo
+         02OA==
+X-Gm-Message-State: AOAM530oF62JtN8HuPa1kuw8b/dPLHrliJlIBcvKjnHG2ExFpvvWt1U7
+        9GWBuoQ1HdLZ6B/Forkx3II7ttDhp8gNyw==
+X-Google-Smtp-Source: ABdhPJzjh59EC1rzgTO8sSc2ceFZ+5DZY6p0cP81hTLgwFALZSrs3MT+z2YfzmHQ+4pfcMgOU9uPug==
+X-Received: by 2002:a05:600c:4e92:: with SMTP id f18mr670612wmq.126.1611447917954;
+        Sat, 23 Jan 2021 16:25:17 -0800 (PST)
 Received: from localhost ([213.194.141.17])
-        by smtp.gmail.com with ESMTPSA id d5sm15296389wrs.21.2021.01.23.16.22.37
+        by smtp.gmail.com with ESMTPSA id a6sm15786883wmj.27.2021.01.23.16.25.17
         for <netfilter-devel@vger.kernel.org>
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 23 Jan 2021 16:22:38 -0800 (PST)
-Subject: [conntrack-tools PATCH 1/3] tests: introduce new python-based
- framework for running tests
+        Sat, 23 Jan 2021 16:25:17 -0800 (PST)
+Subject: [conntrack-tools PATCH 2/3] tests: introduce some basic testcases for
+ the new conntrack-tools testing framework
 From:   Arturo Borrero Gonzalez <arturo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Date:   Sun, 24 Jan 2021 01:22:37 +0100
-Message-ID: <161144773322.52227.18304556638755743629.stgit@endurance>
+Date:   Sun, 24 Jan 2021 01:25:16 +0100
+Message-ID: <161144776375.52227.12269218816564941347.stgit@endurance>
+In-Reply-To: <161144773322.52227.18304556638755743629.stgit@endurance>
+References: <161144773322.52227.18304556638755743629.stgit@endurance>
 User-Agent: StGit/0.19
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -58,332 +60,125 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This test suite should help us develop better tests for conntrack-tools in general and conntrackd
-in particular.
+Introduce some initial basic testcases for configuration parsing and standard daemon startup and
+shutdown routines.
 
-The framework is composed of a runner script, written in python3, and 3 yaml files for
-configuration and testcase definition:
+This should give an example of how the framework works.
 
- - scenarios.yaml: contains information on network scenarios for tests to use
- - tests.yaml: contains testcase definition
- - env.yaml: contains default values for environment variables
-
-The test cases can be anything, from a simple command to an external script call to perform more
-complex operations. See follow-up patches to know more on how this works.
-
-The plan is to replace or call from this framework the other testsuites in this tree.
-
-The runner script is rather simple, and it should be more or less straight forward to use it.
-It requires the python3-yaml package to be installed.
-
-For reference, here are the script options:
-
-=== 8< ===
-$ tests/cttools-testing-framework.py --help
-usage: cttools-testing-framework.py [-h] [--tests-file TESTS_FILE]
-				[--scenarios-file SCENARIOS_FILE]
-				[--env-file ENV_FILE]
-				[--single SINGLE]
-				[--start-scenario START_SCENARIO]
-				[--stop-scenario STOP_SCENARIO]
-				[--debug]
-
-Utility to run tests for conntrack-tools
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --tests-file TESTS_FILE
-                        File with testcase definitions. Defaults to 'tests.yaml'
-  --scenarios-file SCENARIOS_FILE
-                        File with configuration scenarios for tests. Defaults to 'scenarios.yaml'
-  --env-file ENV_FILE   File with environment variables for scenarios/tests. Defaults to 'env.yaml'
-  --single SINGLE       Execute a single testcase and exit. Use this for developing testcases
-  --start-scenario START_SCENARIO
-                        Execute scenario start commands and exit. Use this for developing testcases
-  --stop-scenario STOP_SCENARIO
-                        Execute scenario stop commands and exit. Use this for cleanup
-  --debug               debug mode
-=== 8< ===
-
-To run it, simply use:
+Here is an example of running this:
 
 === 8< ===
 $ cd tests/ ; sudo ./cttools-testing-framework.py
-[..]
+[cttools-testing-framework.py] INFO: --- running test: stats_general
+[cttools-testing-framework.py] INFO: --- passed test: stats_general
+[cttools-testing-framework.py] INFO: --- running test: stats_network
+[cttools-testing-framework.py] INFO: --- passed test: stats_network
+[cttools-testing-framework.py] INFO: --- running test: stats_runtime
+[cttools-testing-framework.py] INFO: --- passed test: stats_runtime
+[cttools-testing-framework.py] INFO: --- running test: stats_process
+[cttools-testing-framework.py] INFO: --- passed test: stats_process
+[cttools-testing-framework.py] INFO: --- running test: stats_queue
+[cttools-testing-framework.py] INFO: --- passed test: stats_queue
+[cttools-testing-framework.py] INFO: --- running test: stats_ct
+[cttools-testing-framework.py] INFO: --- passed test: stats_ct
+[cttools-testing-framework.py] INFO: --- running test: stats_expect
+[cttools-testing-framework.py] INFO: --- passed test: stats_expect
+[cttools-testing-framework.py] INFO: ---
+[cttools-testing-framework.py] INFO: --- finished
+[cttools-testing-framework.py] INFO: --- passed tests: 7
+[cttools-testing-framework.py] INFO: --- failed tests: 0
+[cttools-testing-framework.py] INFO: --- scenario failure: 0
+[cttools-testing-framework.py] INFO: --- total tests: 7
 === 8< ===
 
 Signed-off-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
 ---
- cttools-testing-framework.py |  263 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 263 insertions(+)
+HINT: if you fuzz a bit the conntrackd.conf file in this scenario these simple tests fails with
+several segfaults.
 
-diff --git a/tests/cttools-testing-framework.py b/tests/cttools-testing-framework.py
-new file mode 100755
-index 0000000..f760351
+ env.yaml       |    2 ++
+ scenarios.yaml |   19 +++++++++++++++++++
+ tests.yaml     |   41 +++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 62 insertions(+)
+
+diff --git a/tests/env.yaml b/tests/env.yaml
+new file mode 100644
+index 0000000..8a7514b
 --- /dev/null
-+++ b/tests/cttools-testing-framework.py
-@@ -0,0 +1,263 @@
-+#!/usr/bin/env python3
++++ b/tests/env.yaml
+@@ -0,0 +1,2 @@
++- CONNTRACKD: ../src/conntrackd
++- CONNTRACK: ../src/conntrack
+diff --git a/tests/scenarios.yaml b/tests/scenarios.yaml
+new file mode 100644
+index 0000000..a47e1a1
+--- /dev/null
++++ b/tests/scenarios.yaml
+@@ -0,0 +1,19 @@
++- name: simple_stats
++  start:
++    - rm -f /var/lock/conntrack.lock
++    - |
++      cat << EOF > /tmp/conntrackd_test_simple_stats
++      General {
++        HashSize 8192
++        LockFile /var/lock/conntrack.lock
++        UNIX { Path /var/run/conntrackd.ctl }
++      }
++      Stats {
++        LogFile on
++      }
++      EOF
++    - $CONNTRACKD -C /tmp/conntrackd_test_simple_stats -d
++  stop:
++    - $CONNTRACKD -C /tmp/conntrackd_test_simple_stats -k
++    - rm -f /var/lock/conntrack.lock
++    - rm -f /tmp/conntrackd_test_simple_stats
+diff --git a/tests/tests.yaml b/tests/tests.yaml
+new file mode 100644
+index 0000000..8324dbe
+--- /dev/null
++++ b/tests/tests.yaml
+@@ -0,0 +1,41 @@
++- name: stats_general
++  scenario: simple_stats
++  # check that we can obtain stats via unix socket: general
++  test:
++    - $CONNTRACKD -C /tmp/conntrackd_test_simple_stats -s | grep -q "cache stats"
 +
-+# (C) 2021 by Arturo Borrero Gonzalez <arturo@netfilter.org>
++- name: stats_network
++  scenario: simple_stats
++  # check that we can obtain stats via unix socket: network (no output)
++  test:
++    - $CONNTRACKD -C /tmp/conntrackd_test_simple_stats -s network
 +
-+#
-+# This program is free software; you can redistribute it and/or modify
-+# it under the terms of the GNU General Public License as published by
-+# the Free Software Foundation; either version 3 of the License, or
-+# (at your option) any later version.
-+#
++- name: stats_runtime
++  scenario: simple_stats
++  # check that we can obtain stats via unix socket: runtime
++  test:
++    - $CONNTRACKD -C /tmp/conntrackd_test_simple_stats -s runtime | grep -q uptime
 +
-+# tests.yaml file format:
-+#  - name: "test 1"
-+#    scenario: scenario1
-+#    test:
-+#      - test1 cmd1
-+#      - test1 cmd2
++- name: stats_process
++  scenario: simple_stats
++  # check that we can obtain stats via unix socket: process (no output)
++  test:
++    - $CONNTRACKD -C /tmp/conntrackd_test_simple_stats -s process
 +
-+# scenarios.yaml file format:
-+# - name: scenario1
-+#   start:
-+#     - cmd1
-+#     - cmd2
-+#   stop:
-+#     - cmd1
-+#     - cmd2
++- name: stats_queue
++  scenario: simple_stats
++  # check that we can obtain stats via unix socket: queue (no output)
++  test:
++    - $CONNTRACKD -C /tmp/conntrackd_test_simple_stats -s queue
 +
-+# env.yaml file format:
-+# - VAR1: value1
-+# - VAR2: value2
++- name: stats_ct
++  scenario: simple_stats
++  # check that we can obtain stats via unix socket: ct
++  test:
++    - $CONNTRACKD -C /tmp/conntrackd_test_simple_stats -s ct | grep -q traffic
 +
-+import os
-+import sys
-+import argparse
-+import subprocess
-+import yaml
-+import logging
-+
-+
-+def read_yaml_file(file):
-+    try:
-+        with open(file, "r") as stream:
-+            try:
-+                return yaml.safe_load(stream)
-+            except yaml.YAMLError as e:
-+                logging.error(e)
-+                exit(2)
-+    except FileNotFoundError as e:
-+        logging.error(e)
-+        exit(2)
-+
-+
-+def validate_dictionary(dictionary, keys):
-+    if not isinstance(dictionary, dict):
-+        logging.error("not a dictionary:\n{}".format(dictionary))
-+        return False
-+    for key in keys:
-+        if dictionary.get(key) is None:
-+            logging.error("missing key {} in dictionary:\n{}".format(key, dictionary))
-+            return False
-+    return True
-+
-+
-+def stage_validate_config(args):
-+    scenarios_dict = read_yaml_file(args.scenarios_file)
-+    for definition in scenarios_dict:
-+        if not validate_dictionary(definition, ["name", "start", "stop"]):
-+            logging.error("couldn't validate file {}".format(args.scenarios_file))
-+            return False
-+
-+    logging.debug("{} seems valid".format(args.scenarios_file))
-+    ctx.scenarios_dict = scenarios_dict
-+
-+    tests_dict = read_yaml_file(args.tests_file)
-+    for definition in tests_dict:
-+        if not validate_dictionary(definition, ["name", "scenario", "test"]):
-+            logging.error("couldn't validate file {}".format(args.tests_file))
-+            return False
-+
-+    logging.debug("{} seems valid".format(args.tests_file))
-+    ctx.tests_dict = tests_dict
-+
-+    env_list = read_yaml_file(args.env_file)
-+    if not isinstance(env_list, list):
-+        logging.error("couldn't validate file {}".format(args.env_file))
-+        return False
-+
-+    # set env to default values if not overridden when calling this very script
-+    for entry in env_list:
-+        for key in entry:
-+            os.environ[key] = os.getenv(key, entry[key])
-+
-+
-+def cmd_run(cmd):
-+    logging.debug("running command: {}".format(cmd))
-+    r = subprocess.run(cmd, shell=True)
-+    if r.returncode != 0:
-+        logging.warning("failed command: {}".format(cmd))
-+    return r.returncode
-+
-+
-+def scenario_get(name):
-+    for n in ctx.scenarios_dict:
-+        if n["name"] == name:
-+            return n
-+
-+    logging.error("couldn't find a definition for scenario '{}'".format(name))
-+    exit(1)
-+
-+
-+def scenario_start(scenario):
-+    for cmd in scenario["start"]:
-+        if cmd_run(cmd) == 0:
-+            continue
-+
-+        logging.warning("--- failed scenario: {}".format(scenario["name"]))
-+        ctx.counter_scenario_failed += 1
-+        ctx.skip_current_test = True
-+        return
-+
-+
-+def scenario_stop(scenario):
-+    for cmd in scenario["stop"]:
-+        cmd_run(cmd)
-+
-+
-+def test_get(name):
-+    for n in ctx.tests_dict:
-+        if n["name"] == name:
-+            return n
-+
-+    logging.error("couldn't find a definition for test '{}'".format(name))
-+    exit(1)
-+
-+
-+def _test_run(test_definition):
-+    if ctx.skip_current_test:
-+        return
-+
-+    for cmd in test_definition["test"]:
-+        if cmd_run(cmd) == 0:
-+            continue
-+
-+        logging.warning("--- failed test: {}".format(test_definition["name"]))
-+        ctx.counter_test_failed += 1
-+        return
-+
-+    logging.info("--- passed test: {}".format(test_definition["name"]))
-+    ctx.counter_test_ok += 1
-+
-+
-+def test_run(test_definition):
-+    scenario = scenario_get(test_definition["scenario"])
-+
-+    logging.info("--- running test: {}".format(test_definition["name"]))
-+
-+    scenario_start(scenario)
-+    _test_run(test_definition)
-+    scenario_stop(scenario)
-+
-+
-+def stage_run_tests(args):
-+    if args.start_scenario:
-+        scenario_start(scenario_get(args.start_scenario))
-+        return
-+
-+    if args.stop_scenario:
-+        scenario_stop(scenario_get(args.stop_scenario))
-+        return
-+
-+    if args.single:
-+        test_run(test_get(args.single))
-+        return
-+
-+    for test_definition in ctx.tests_dict:
-+        ctx.skip_current_test = False
-+        test_run(test_definition)
-+
-+
-+def stage_report():
-+    logging.info("---")
-+    logging.info("--- finished")
-+    total = ctx.counter_test_ok + ctx.counter_test_failed + ctx.counter_scenario_failed
-+    logging.info("--- passed tests: {}".format(ctx.counter_test_ok))
-+    logging.info("--- failed tests: {}".format(ctx.counter_test_failed))
-+    logging.info("--- scenario failure: {}".format(ctx.counter_scenario_failed))
-+    logging.info("--- total tests: {}".format(total))
-+
-+
-+def parse_args():
-+    description = "Utility to run tests for conntrack-tools"
-+    parser = argparse.ArgumentParser(description=description)
-+    parser.add_argument(
-+        "--tests-file",
-+        default="tests.yaml",
-+        help="File with testcase definitions. Defaults to '%(default)s'",
-+    )
-+    parser.add_argument(
-+        "--scenarios-file",
-+        default="scenarios.yaml",
-+        help="File with configuration scenarios for tests. Defaults to '%(default)s'",
-+    )
-+    parser.add_argument(
-+        "--env-file",
-+        default="env.yaml",
-+        help="File with environment variables for scenarios/tests. Defaults to '%(default)s'",
-+    )
-+    parser.add_argument(
-+        "--single",
-+        help="Execute a single testcase and exit. Use this for developing testcases",
-+    )
-+    parser.add_argument(
-+        "--start-scenario",
-+        help="Execute scenario start commands and exit. Use this for developing testcases",
-+    )
-+    parser.add_argument(
-+        "--stop-scenario",
-+        help="Execute scenario stop commands and exit. Use this for cleanup",
-+    )
-+    parser.add_argument(
-+        "--debug",
-+        action="store_true",
-+        help="debug mode",
-+    )
-+
-+    return parser.parse_args()
-+
-+
-+class Context:
-+    def __init__(self):
-+        self.scenarios_dict = None
-+        self.tests_dict = None
-+        self.counter_test_failed = 0
-+        self.counter_test_ok = 0
-+        self.counter_scenario_failed = 0
-+        self.skip_current_test = False
-+
-+
-+# global data
-+ctx = Context()
-+
-+
-+def main():
-+    args = parse_args()
-+
-+    logging_format = "[%(filename)s] %(levelname)s: %(message)s"
-+    if args.debug:
-+        logging_level = logging.DEBUG
-+    else:
-+        logging_level = logging.INFO
-+    logging.basicConfig(format=logging_format, level=logging_level, stream=sys.stdout)
-+
-+    if os.geteuid() != 0:
-+        logging.error("root required")
-+        exit(1)
-+
-+    stage_validate_config(args)
-+    stage_run_tests(args)
-+    stage_report()
-+
-+
-+if __name__ == "__main__":
-+    main()
++- name: stats_expect
++  scenario: simple_stats
++  # check that we can obtain stats via unix socket: expect (no output)
++  test:
++    - $CONNTRACKD -C /tmp/conntrackd_test_simple_stats -s expect
 
