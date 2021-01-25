@@ -7,47 +7,49 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D8E1C433E6
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Jan 2021 22:25:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 247C7C433DB
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Jan 2021 23:52:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 055D420756
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Jan 2021 22:25:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DDFD622AAC
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Jan 2021 23:52:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732230AbhAYWZ1 (ORCPT
+        id S1732537AbhAYXvq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 25 Jan 2021 17:25:27 -0500
-Received: from correo.us.es ([193.147.175.20]:41826 "EHLO mail.us.es"
+        Mon, 25 Jan 2021 18:51:46 -0500
+Received: from correo.us.es ([193.147.175.20]:60384 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732259AbhAYWZP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 25 Jan 2021 17:25:15 -0500
+        id S1732202AbhAYXvi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 25 Jan 2021 18:51:38 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 90345396267
-        for <netfilter-devel@vger.kernel.org>; Mon, 25 Jan 2021 23:23:31 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 2E5F3508CC4
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Jan 2021 00:49:57 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 82AF9DA73F
-        for <netfilter-devel@vger.kernel.org>; Mon, 25 Jan 2021 23:23:31 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 20058DA789
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Jan 2021 00:49:57 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 7835DDA789; Mon, 25 Jan 2021 23:23:31 +0100 (CET)
+        id 159C5DA704; Tue, 26 Jan 2021 00:49:57 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 43CAEDA73F
-        for <netfilter-devel@vger.kernel.org>; Mon, 25 Jan 2021 23:23:29 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CF5CBDA722
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Jan 2021 00:49:54 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 25 Jan 2021 23:23:29 +0100 (CET)
+ Tue, 26 Jan 2021 00:49:54 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 2D844426CC86
-        for <netfilter-devel@vger.kernel.org>; Mon, 25 Jan 2021 23:23:29 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPSA id B3309426CC84
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Jan 2021 00:49:54 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next 3/2] netfilter: nftables: statify nft_parse_register()
-Date:   Mon, 25 Jan 2021 23:24:21 +0100
-Message-Id: <20210125222421.19701-1-pablo@netfilter.org>
+Subject: [PATCH nf-next,v4 3/3] netfilter: nftables: statify nft_parse_register()
+Date:   Tue, 26 Jan 2021 00:50:47 +0100
+Message-Id: <20210125235047.28774-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20210125235047.28774-1-pablo@netfilter.org>
+References: <20210125235047.28774-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
@@ -59,8 +61,6 @@ This function is not used anymore by any extension, statify it.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-Statify this function after conversion to nft_parse_register_{load,store}().
-
  include/net/netfilter/nf_tables.h | 1 -
  net/netfilter/nf_tables_api.c     | 3 +--
  2 files changed, 1 insertion(+), 3 deletions(-)
