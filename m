@@ -2,139 +2,112 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF34AC433DB
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Jan 2021 01:48:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F093C433E6
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Jan 2021 02:43:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5F962207B3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Jan 2021 01:48:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CFF7D22D58
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Jan 2021 02:43:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729758AbhAZBZW (ORCPT
+        id S1729136AbhAYP4l (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 25 Jan 2021 20:25:22 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56274 "EHLO mail.kernel.org"
+        Mon, 25 Jan 2021 10:56:41 -0500
+Received: from correo.us.es ([193.147.175.20]:47384 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731664AbhAYTju (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 25 Jan 2021 14:39:50 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9AF172251F;
-        Mon, 25 Jan 2021 19:39:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1611603550;
-        bh=NM6QezuvkVdnUg4w/1OOnz91QkvhZvtCsXq2cTkF6Co=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=k047Z27m7kB/pfGJMY+O3oGHI+rudCwRLXNtfCAz0Iho28S+wsj5a/8Hegkv3pj4B
-         VOSvXq2n4Qr/mhI8pirGnFlwhow4JtSP/Y6QrD5on4/zoJmTE89WYOU9of/iRKxz8c
-         7nn8Qh2EuT5LkbtazpsNX9yt5feYx1axkiAK4JITyHtHuloNd6O36gdh2wOQCx3r+S
-         60hl1+UYEXGku96s/rHP2u47Jrcgf6JlzdHe0sl9Vp1E3bBWoSmZUUzrq2K7er9C1G
-         P+wwXjtlq2+EUUwuIUmg5k+S8F9iRquQC3+fHZ9dkQTdi6AVjXxzNB5L2qI2kn4W75
-         2IicHmTVTKtQA==
-Date:   Mon, 25 Jan 2021 11:39:08 -0800
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Lukas Wunner <lukas@wunner.de>
-Cc:     Eric Dumazet <edumazet@google.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
+        id S1730617AbhAYPxt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 25 Jan 2021 10:53:49 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 603A981413
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 Jan 2021 16:52:09 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 500FEDA78C
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 Jan 2021 16:52:09 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 4F190DA78B; Mon, 25 Jan 2021 16:52:09 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1FE2EDA793;
+        Mon, 25 Jan 2021 16:52:07 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 25 Jan 2021 16:52:07 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id DD52D426CC84;
+        Mon, 25 Jan 2021 16:52:06 +0100 (CET)
+Date:   Mon, 25 Jan 2021 16:53:04 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+        Lukas Wunner <lukas@wunner.de>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev <netdev@vger.kernel.org>,
         Daniel Borkmann <daniel@iogearbox.net>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Thomas Graf <tgraf@suug.ch>,
         Laura Garcia Liebana <nevola@gmail.com>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: [PATCH nf-next v4 1/5] net: sched: Micro-optimize egress
- handling
-Message-ID: <20210125113908.6951b6f8@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <20210124103301.GA1056@wunner.de>
-References: <cover.1611304190.git.lukas@wunner.de>
-        <a2a8af1622dff2bfd51d446aa8da2c1d2f6f543c.1611304190.git.lukas@wunner.de>
-        <CANn89iK3CC3fapmQpwwbVkGs4-+fmJF+nj0pmBHJ9fy6poWseg@mail.gmail.com>
-        <20210124103301.GA1056@wunner.de>
+        Alexei Starovoitov <ast@kernel.org>, coreteam@netfilter.org,
+        netfilter-devel@vger.kernel.org, Thomas Graf <tgraf@suug.ch>
+Subject: Re: [netfilter-core] [PATCH nft v4] src: Support netdev egress hook
+Message-ID: <20210125155303.GA27304@salvia>
+References: <4b3c95a0449591c97f68be15d8d17bda298a7b5e.1611498014.git.lukas@wunner.de>
+ <20210125132238.GG3158@orbyte.nwl.cc>
+ <20210125133405.GR19605@breakpoint.cc>
+ <20210125134432.GH3158@orbyte.nwl.cc>
+ <20210125143157.GA11062@salvia>
+ <20210125150250.GK3158@orbyte.nwl.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20210125150250.GK3158@orbyte.nwl.cc>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, 24 Jan 2021 11:33:01 +0100 Lukas Wunner wrote:
-> On Fri, Jan 22, 2021 at 10:40:05AM +0100, Eric Dumazet wrote:
-> > On Fri, Jan 22, 2021 at 9:55 AM Lukas Wunner <lukas@wunner.de> wrote:  
-> > > sch_handle_egress() returns either the skb or NULL to signal to its
-> > > caller __dev_queue_xmit() whether a packet should continue to be
-> > > processed.
-> > >
-> > > The skb is always non-NULL, otherwise __dev_queue_xmit() would hit a
-> > > NULL pointer deref right at its top.
-> > >
-> > > But the compiler doesn't know that.  So if sch_handle_egress() signals
-> > > success by returning the skb, the "if (!skb) goto out;" statement
-> > > results in a gratuitous NULL pointer check in the Assembler output.
-> > >
-> > > Avoid by telling the compiler that __dev_queue_xmit() is never passed a
-> > > NULL skb.  
-> [...]
-> > > we're about to add a netfilter egress hook to __dev_queue_xmit()
-> > > and without the micro-optimization, it will result in a performance
-> > > degradation which is indeed measurable:  
-> [...]
-> > > --- a/net/core/dev.c
-> > > +++ b/net/core/dev.c
-> > > +__attribute__((nonnull(1)))
-> > >  static int __dev_queue_xmit(struct sk_buff *skb, struct net_device *sb_dev)
-> > >  {
-> > >         struct net_device *dev = skb->dev;  
+On Mon, Jan 25, 2021 at 04:02:50PM +0100, Phil Sutter wrote:
+> Hi,
+> 
+> On Mon, Jan 25, 2021 at 03:31:57PM +0100, Pablo Neira Ayuso wrote:
+> > On Mon, Jan 25, 2021 at 02:44:32PM +0100, Phil Sutter wrote:
+> > > On Mon, Jan 25, 2021 at 02:34:05PM +0100, Florian Westphal wrote:
+> > > > Phil Sutter <phil@nwl.cc> wrote:
+> > > > > > diff --git a/tests/py/inet/ip.t.payload.netdev b/tests/py/inet/ip.t.payload.netdev
+> > > > > > index 95be919..38ed0ad 100644
+> > > > > > --- a/tests/py/inet/ip.t.payload.netdev
+> > > > > > +++ b/tests/py/inet/ip.t.payload.netdev
+> > > > > > @@ -12,3 +12,17 @@ netdev test-netdev ingress
+> > > > > >    [ payload load 6b @ link header + 6 => reg 10 ]
+> > > > > >    [ lookup reg 1 set __set%d ]
+> > > > > >  
+> > > > > > +# meta protocol ip ip saddr . ip daddr . ether saddr { 1.1.1.1 . 2.2.2.2 . ca:fe:ca:fe:ca:fe }
+> > > > > > +__set%d test-netdev 3
+> > > > > > +__set%d test-netdev 0
+> > > > > > +	element 01010101 02020202 fecafeca 0000feca  : 0 [end]
+> > > > > > +netdev test-netdev egress 
+> > > > > > +  [ meta load protocol => reg 1 ]
+> > > > > > +  [ cmp eq reg 1 0x00000008 ]
+> > > > > > +  [ meta load iiftype => reg 1 ]
+> > > >                    ~~~~~~~
+> > > > 
+> > > > shouldn't nft add oiftype for egress?
+> > > 
+> > > Oh, you're right. So I "take everything back and claim the opposite". ;)
+> > > To cover for the different dependency expressions, we need to introduce
+> > > hook-specific payload files. :/
 > > 
-> > It is a bit sad the compilers do not automatically get this knowledge
-> > from the very first instruction :
-> > 
-> >  struct net_device *dev = skb->dev;  
+> > I'm planning to generalize iftype to check for iiftype from the
+> > ingress path and oiftype from the egress path. This check is there to
+> > make sure this is an ethernet device. This can be done once this hook
+> > hits net-next.
 > 
-> The compiler (gcc) is capable of doing that, but the feature was disabled by:
-> 
->     commit a3ca86aea507904148870946d599e07a340b39bf
->     Author: Eugene Teo <eteo@redhat.com>
->     Date:   Wed Jul 15 14:59:10 2009 +0800
->     
->     Add '-fno-delete-null-pointer-checks' to gcc CFLAGS
-> 
-> If -fno-delete-null-pointer-checks is dropped from the top-level Makefile
-> then the gratuitous NULL pointer checks disappear from the Assembler output,
-> obviating the need to litter hot paths with __attribute__((nonnull(1)))
-> annotations.
-> 
-> Taking a closer look at that commit, its rationale appears questionable:
-> It says that broken code such as ...
-> 
-> 	struct agnx_priv *priv = dev->priv;
-> 
-> 	if (!dev)
-> 		return;
-> 
-> ... would result in the NULL pointer check being optimized away.
-> The commit message claims that keeping the NULL pointer check in
-> "makes it harder to abuse" the broken code.
-> 
-> I don't see how that's the case:  If dev is NULL, the NULL pointer
-> dereference at the function's top causes termination of the task
-> in kernel/exit.c:do_exit().  So the NULL pointer check is never
-> reached by the task.  If on the other hand dev is non-NULL,
-> the task isn't terminated but then the NULL pointer check is
-> unnecessary as well.
-> 
-> So the point of the commit remains elusive to me.  I could submit
-> an RFC patch which drops -fno-delete-null-pointer-checks and see
-> if any security folks cry foul.  Thoughts?
+> Maybe a dumb question, but doesn't the meta protocol match suffice? If
+> not, can it pass while the following iftype check then fails?
 
-I wonder if modern compilers can't simply warn about this particular
-case. Not to mention our static checkers..
-
-
-Dan, do you think the concern from the above-quoted commit is still
-valid? Is this something that smatch flags these days? We're apparently
-paying a real performance price in networking for tying compiler's hands
-with -fno-delete-null-pointer-checks
+I think so, yes, it should be possible to generate more efficient
+bytecode if the rule pulls in the meta protocol. This dependency
+should cancel the iftype match dependency.
