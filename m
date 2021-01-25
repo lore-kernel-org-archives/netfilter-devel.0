@@ -7,49 +7,47 @@ X-Spam-Status: No, score=-13.9 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA288C4332D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Jan 2021 23:53:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93A19C433E0
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Jan 2021 23:54:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7958E2223D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Jan 2021 23:53:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 38F7E2223D
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Jan 2021 23:54:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732579AbhAYXxt (ORCPT
+        id S1732520AbhAYXxo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 25 Jan 2021 18:53:49 -0500
-Received: from correo.us.es ([193.147.175.20]:60386 "EHLO mail.us.es"
+        Mon, 25 Jan 2021 18:53:44 -0500
+Received: from correo.us.es ([193.147.175.20]:51128 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732430AbhAYXvl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 25 Jan 2021 18:51:41 -0500
+        id S1732518AbhAYVGO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 25 Jan 2021 16:06:14 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 32E51508CC5
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 Jan 2021 00:49:57 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 373141E2C64
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 Jan 2021 22:03:50 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1DCB5DA722
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 Jan 2021 00:49:57 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 261EEDA722
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 Jan 2021 22:03:50 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 13131DA73F; Tue, 26 Jan 2021 00:49:57 +0100 (CET)
+        id 1AEAEDA704; Mon, 25 Jan 2021 22:03:50 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 30716DA704
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 Jan 2021 00:49:54 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 18A10DA72F
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 Jan 2021 22:03:47 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 26 Jan 2021 00:49:54 +0100 (CET)
+ Mon, 25 Jan 2021 22:03:47 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 0C2C9426CC84
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 Jan 2021 00:49:54 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPSA id E77D3426CC84
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 Jan 2021 22:03:46 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next,v4 2/3] netfilter: nftables: add nft_parse_register_store() and use it
-Date:   Tue, 26 Jan 2021 00:50:46 +0100
-Message-Id: <20210125235047.28774-2-pablo@netfilter.org>
+Subject: [PATCH nf-next 2/2,v2] netfilter: nftables: add nft_parse_register_store()
+Date:   Mon, 25 Jan 2021 22:04:41 +0100
+Message-Id: <20210125210441.31373-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20210125235047.28774-1-pablo@netfilter.org>
-References: <20210125235047.28774-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -74,6 +72,8 @@ when passing the register field as reference.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
+v2: missing nft_meta_bridge.c conversion.
+
  include/net/netfilter/nf_tables.h      |  8 +++---
  include/net/netfilter/nf_tables_core.h |  6 ++---
  include/net/netfilter/nft_fib.h        |  2 +-
@@ -85,7 +85,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
  net/netfilter/nft_ct.c                 |  7 +++---
  net/netfilter/nft_exthdr.c             |  8 +++---
  net/netfilter/nft_fib.c                |  5 ++--
- net/netfilter/nft_hash.c               | 17 ++++++-------
+ net/netfilter/nft_hash.c               | 15 ++++++------
  net/netfilter/nft_immediate.c          |  6 ++---
  net/netfilter/nft_lookup.c             |  8 +++---
  net/netfilter/nft_meta.c               |  5 ++--
@@ -96,7 +96,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
  net/netfilter/nft_socket.c             |  7 +++---
  net/netfilter/nft_tunnel.c             |  8 +++---
  net/netfilter/nft_xfrm.c               |  7 +++---
- 22 files changed, 100 insertions(+), 92 deletions(-)
+ 22 files changed, 100 insertions(+), 90 deletions(-)
 
 diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
 index 033b31aa38cc..78d174517749 100644
@@ -191,7 +191,7 @@ index 8e8ffac037cd..97805ec424c1 100644
  
  static struct nft_expr_type nft_meta_bridge_type;
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 1e82ebba230d..c23163ffb5a1 100644
+index 1e82ebba230d..b87a9c887352 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
 @@ -4438,6 +4438,12 @@ static int nf_tables_delset(struct net *net, struct sock *nlsk,
@@ -238,7 +238,7 @@ index 1e82ebba230d..c23163ffb5a1 100644
 +	u32 reg;
 +
 +	reg = nft_parse_register(attr);
-+	err = nft_validate_register_store(ctx, reg, data, type, len);
++	err = nft_validate_register_store(ctx, *dreg, data, type, len);
 +	if (err < 0)
 +		return err;
 +
@@ -391,7 +391,7 @@ index 4dfdaeaf09a5..b10ce732b337 100644
  		return err;
  
 diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
-index 7ee6c6da50ae..f829f5289e16 100644
+index 7ee6c6da50ae..598fe92f09c1 100644
 --- a/net/netfilter/nft_hash.c
 +++ b/net/netfilter/nft_hash.c
 @@ -15,7 +15,7 @@
@@ -432,22 +432,13 @@ index 7ee6c6da50ae..f829f5289e16 100644
  }
  
  static int nft_symhash_init(const struct nft_ctx *ctx,
-@@ -128,8 +126,6 @@ static int nft_symhash_init(const struct nft_ctx *ctx,
- 	if (tb[NFTA_HASH_OFFSET])
- 		priv->offset = ntohl(nla_get_be32(tb[NFTA_HASH_OFFSET]));
- 
--	priv->dreg = nft_parse_register(tb[NFTA_HASH_DREG]);
--
- 	priv->modulus = ntohl(nla_get_be32(tb[NFTA_HASH_MODULUS]));
- 	if (priv->modulus < 1)
- 		return -ERANGE;
-@@ -137,8 +133,9 @@ static int nft_symhash_init(const struct nft_ctx *ctx,
+@@ -137,8 +135,9 @@ static int nft_symhash_init(const struct nft_ctx *ctx,
  	if (priv->offset + priv->modulus - 1 < priv->offset)
  		return -EOVERFLOW;
  
 -	return nft_validate_register_store(ctx, priv->dreg, NULL,
 -					   NFT_DATA_VALUE, sizeof(u32));
-+	return nft_parse_register_store(ctx, tb[NFTA_HASH_DREG],
++	return nft_parse_register_store(ctx, tb[NFTA_HASH_OFFSET],
 +					&priv->dreg, NULL, NFT_DATA_VALUE,
 +					sizeof(u32));
  }
