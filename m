@@ -2,110 +2,88 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_IN_DEF_DKIM_WL
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB521C433DB
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Jan 2021 03:13:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 061B9C433E0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Jan 2021 05:58:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 837E622D58
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Jan 2021 03:13:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C03A8221EA
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Jan 2021 05:58:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726491AbhAYJrT (ORCPT
+        id S1727104AbhAZF6Z (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 25 Jan 2021 04:47:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40066 "EHLO
+        Tue, 26 Jan 2021 00:58:25 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35296 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727128AbhAYJq0 (ORCPT
+        with ESMTP id S1729025AbhAYNp3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 25 Jan 2021 04:46:26 -0500
-Received: from mail-qt1-x836.google.com (mail-qt1-x836.google.com [IPv6:2607:f8b0:4864:20::836])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 18BFDC061797
-        for <netfilter-devel@vger.kernel.org>; Mon, 25 Jan 2021 01:35:40 -0800 (PST)
-Received: by mail-qt1-x836.google.com with SMTP id l23so6720048qtq.13
-        for <netfilter-devel@vger.kernel.org>; Mon, 25 Jan 2021 01:35:40 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=+6jCwIJstX1wZgb0EPoSQk8h054Be3opSl0qtm83Ox0=;
-        b=BxupoS51tg1ooQ4CZqTzxm87f0+6VMrCIqfhHyZ32g3ila8nohM1yTaE4xtv3GBXml
-         NSMW8CPeVRG1CKoPHsaq7ojInKH1w5glVfKSPI+8GaTAcbkILcP+e3jkltXY15vvRdOn
-         tnrJePGlQEezxdlDDXVmgzkxBkpdTHroQIXJP6SDHZO9gRh/KVfEapyIWfoeYrTFit1D
-         iM9J7yC60x34Yw7/TB8KA41SI0m9qnZ00hnoIjBywoETqrWqjpHb5qZOFeLc8DUNhtnA
-         DXzYTvH4FHgbkLwDxYxa/f6WaB5vrUQRLrjmiRM63nM+JpOpVulpPqF6Yg+oGkx4hgzr
-         ucRQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=+6jCwIJstX1wZgb0EPoSQk8h054Be3opSl0qtm83Ox0=;
-        b=fG4Dy3YjP8WHbsurcu7K+oJ6ltWhKauGLnCnlX1LDRkdo7+LQyPnRk50WYc2nAhZZS
-         YyK7YQk3p91XE4n74d+scpBnMRwK447ESx40UsECKnhT/F/Ok2887cSnfcnztCO0VA6F
-         uzs+kkUwj5Ygz9oPMu4bK7ifa/3D5Dw+TOp/HpYfmHeBM5vIszJdnLPgtx7gvFiMUFqp
-         Uq+fkejpGbQ2isKi3/bvLtYLVloyD/KxGe6MIUzaqNPrUPlXDFWPmr7472uXcJL6wXLi
-         e99NFftSTLxqu+SX3vPaOpcRYoA2n3oMoxc8uiwWRyNzfMFfoL+MQbQdmjzAMZGIeqg2
-         XA9A==
-X-Gm-Message-State: AOAM533oRwr4VDY9ucd9qMgYfTyOL8hiCj0ppfUY53DcIecGLqyPw+Qs
-        aAX42/07nmT7zuS73Ol8yeAyiIIaTT9sD2WpFNAK5A==
-X-Google-Smtp-Source: ABdhPJz7Hq5jJ1Zd4FMLaGFJFeb7Wi/gXQqRhHLh8T53KlQwPZM8j5FOfVPb4odNELSnoHsrBvDsQXkJfNnezb8gI5Q=
-X-Received: by 2002:ac8:7551:: with SMTP id b17mr93603qtr.43.1611567339141;
- Mon, 25 Jan 2021 01:35:39 -0800 (PST)
-MIME-Version: 1.0
-References: <000000000000a358f905ae6b5dc6@google.com> <000000000000dd897e05b9806982@google.com>
-In-Reply-To: <000000000000dd897e05b9806982@google.com>
-From:   Dmitry Vyukov <dvyukov@google.com>
-Date:   Mon, 25 Jan 2021 10:35:27 +0100
-Message-ID: <CACT4Y+ZC=_Nr1QdE48MLZe1YxhtB4FyR4LwUg-uvD4-ktwE0Rg@mail.gmail.com>
-Subject: Re: KASAN: use-after-free Read in dump_schedule
-To:     syzbot <syzbot+621fd33c0b53d15ee8de@syzkaller.appspotmail.com>
-Cc:     Anant Thazhemadam <anant.thazhemadam@gmail.com>,
-        anmol.karan123@gmail.com, coreteam@netfilter.org,
-        David Miller <davem@davemloft.net>,
-        Florian Westphal <fw@strlen.de>,
-        Jamal Hadi Salim <jhs@mojatatu.com>,
-        =?UTF-8?B?SmnFmcOtIFDDrXJrbw==?= <jiri@resnulli.us>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Jakub Kicinski <kuba@kernel.org>,
-        leandro.maciel.dorileo@intel.com,
-        LKML <linux-kernel@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
+        Mon, 25 Jan 2021 08:45:29 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D9855C061574
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 Jan 2021 05:44:40 -0800 (PST)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1l42AS-0002We-Ty; Mon, 25 Jan 2021 14:44:33 +0100
+Date:   Mon, 25 Jan 2021 14:44:32 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Lukas Wunner <lukas@wunner.de>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        subashab@codeaurora.org,
-        syzkaller-bugs <syzkaller-bugs@googlegroups.com>,
-        vedang.patel@intel.com, Cong Wang <xiyou.wangcong@gmail.com>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
-Content-Type: text/plain; charset="UTF-8"
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Laura Garcia Liebana <nevola@gmail.com>,
+        Alexei Starovoitov <ast@kernel.org>, coreteam@netfilter.org,
+        netfilter-devel@vger.kernel.org, Thomas Graf <tgraf@suug.ch>
+Subject: Re: [netfilter-core] [PATCH nft v4] src: Support netdev egress hook
+Message-ID: <20210125134432.GH3158@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Florian Westphal <fw@strlen.de>, Lukas Wunner <lukas@wunner.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Laura Garcia Liebana <nevola@gmail.com>,
+        Alexei Starovoitov <ast@kernel.org>, coreteam@netfilter.org,
+        netfilter-devel@vger.kernel.org, Thomas Graf <tgraf@suug.ch>
+References: <4b3c95a0449591c97f68be15d8d17bda298a7b5e.1611498014.git.lukas@wunner.de>
+ <20210125132238.GG3158@orbyte.nwl.cc>
+ <20210125133405.GR19605@breakpoint.cc>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210125133405.GR19605@breakpoint.cc>
+Sender:  <n0-1@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Jan 22, 2021 at 6:21 PM syzbot
-<syzbot+621fd33c0b53d15ee8de@syzkaller.appspotmail.com> wrote:
->
-> syzbot suspects this issue was fixed by commit:
->
-> commit cc00bcaa589914096edef7fb87ca5cee4a166b5c
-> Author: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-> Date:   Wed Nov 25 18:27:22 2020 +0000
->
->     netfilter: x_tables: Switch synchronization to RCU
->
-> bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=10879d68d00000
-> start commit:   59126901 Merge tag 'perf-tools-fixes-for-v5.9-2020-09-03' ..
-> git tree:       upstream
-> kernel config:  https://syzkaller.appspot.com/x/.config?x=3c5f6ce8d5b68299
-> dashboard link: https://syzkaller.appspot.com/bug?extid=621fd33c0b53d15ee8de
-> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=152c3af9900000
-> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=12213b71900000
->
-> If the result looks correct, please mark the issue as fixed by replying with:
->
-> #syz fix: netfilter: x_tables: Switch synchronization to RCU
->
-> For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+Hi,
 
-#syz fix: netfilter: x_tables: Switch synchronization to RCU
+On Mon, Jan 25, 2021 at 02:34:05PM +0100, Florian Westphal wrote:
+> Phil Sutter <phil@nwl.cc> wrote:
+> > > diff --git a/tests/py/inet/ip.t.payload.netdev b/tests/py/inet/ip.t.payload.netdev
+> > > index 95be919..38ed0ad 100644
+> > > --- a/tests/py/inet/ip.t.payload.netdev
+> > > +++ b/tests/py/inet/ip.t.payload.netdev
+> > > @@ -12,3 +12,17 @@ netdev test-netdev ingress
+> > >    [ payload load 6b @ link header + 6 => reg 10 ]
+> > >    [ lookup reg 1 set __set%d ]
+> > >  
+> > > +# meta protocol ip ip saddr . ip daddr . ether saddr { 1.1.1.1 . 2.2.2.2 . ca:fe:ca:fe:ca:fe }
+> > > +__set%d test-netdev 3
+> > > +__set%d test-netdev 0
+> > > +	element 01010101 02020202 fecafeca 0000feca  : 0 [end]
+> > > +netdev test-netdev egress 
+> > > +  [ meta load protocol => reg 1 ]
+> > > +  [ cmp eq reg 1 0x00000008 ]
+> > > +  [ meta load iiftype => reg 1 ]
+>                    ~~~~~~~
+> 
+> shouldn't nft add oiftype for egress?
+
+Oh, you're right. So I "take everything back and claim the opposite". ;)
+To cover for the different dependency expressions, we need to introduce
+hook-specific payload files. :/
+
+Cheers, Phil
