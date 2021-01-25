@@ -2,106 +2,92 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26E80C433E0
-	for <netfilter-devel@archiver.kernel.org>; Sun, 24 Jan 2021 16:19:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7956C433DB
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Jan 2021 13:24:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E93AA22A84
-	for <netfilter-devel@archiver.kernel.org>; Sun, 24 Jan 2021 16:19:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 72A3622EBD
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Jan 2021 13:24:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726496AbhAXQT3 (ORCPT
+        id S1728801AbhAYNYY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 24 Jan 2021 11:19:29 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42532 "EHLO
+        Mon, 25 Jan 2021 08:24:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58840 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726344AbhAXQTT (ORCPT
+        with ESMTP id S1728776AbhAYNXf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 24 Jan 2021 11:19:19 -0500
-Received: from mail-ed1-x535.google.com (mail-ed1-x535.google.com [IPv6:2a00:1450:4864:20::535])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F975C06174A;
-        Sun, 24 Jan 2021 08:18:39 -0800 (PST)
-Received: by mail-ed1-x535.google.com with SMTP id j13so12343590edp.2;
-        Sun, 24 Jan 2021 08:18:39 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=zb7AHSDTF7LHXpiz7qIXIzHJsP6596iVekrvyL2shdw=;
-        b=rGDW+Ljkl9+zWfpWsNO2e5UbHj1bGiF3rqSNb15Sc8Fm3PUyQbhcLseDLRlWaCKhkG
-         ky46GfcF1ynouUdcts9uxIiUtE/ytR87mtjYeu/WecU3Z+aqcXK10+LG7UVp2tUTpPSI
-         RCXduciokuOqOrBLotaKTom3Sj1xWiQqf2APfvtC9suFkcU8qb1uHw2Uq/Kpq4rEsh+5
-         9czuzCX5lEukFx6v3r/SzIqBBt83/ULzjlQPZ26WvqMP8HkCxrhKpA4svBsGzpZG4cJv
-         5WaWzyl+oZnXOVMqd812U6mka+jL9fTLLRqXu/WERk2vbI15KgvCE0WN/KVHGmRz/U6W
-         FIQQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=zb7AHSDTF7LHXpiz7qIXIzHJsP6596iVekrvyL2shdw=;
-        b=qKSph+2oFNc4Ot2KNbPfEhBZciBeAgR65H88lCSRj3yAj+SJ7RMAyQENLRz1XLA5MQ
-         nXjHWyHZheKZNKBhoT7z49JJkWTbZs5wzOiHuo1ERF9lgu+QGwSahDc8+W5jd3iQdqJv
-         9p3+5rRPc3js7ou+SUoOWObHFPRYQT/fL7fdKZtUG/UGRNSnnvKmhkAuxF+f069SkXIX
-         IQ4XbgZDJBT0r5FBvkQVG/Ublvq7k0Loi59Hd7Dco/tq7GuPp/15L+TdoSQcJWYIAdGe
-         Vk8PDWkpjlYsQB7RTPNU99BtsR6LKezQNNxl7ro+EiA/kvG8qxeVEhyZQHg3GyrwZS0v
-         G8cA==
-X-Gm-Message-State: AOAM532jMyQsWxCvElFcJ8VyYPpTp+uRr9MLpcT7QdkQT8fIcikSMCpF
-        Z0kLkVo0LI2AHCvyDmAZo4WsrWpu0726yMjyq5U=
-X-Google-Smtp-Source: ABdhPJyqOhhtmCwn50qEES+kiwL+UDu11uBR76NW5BCmliggDWbn5T31wd981/uxNgqQ+tvE6mlL0z4AODX5xgdM2a4=
-X-Received: by 2002:a50:eb81:: with SMTP id y1mr444071edr.176.1611505118175;
- Sun, 24 Jan 2021 08:18:38 -0800 (PST)
-MIME-Version: 1.0
-References: <cover.1611304190.git.lukas@wunner.de> <012e6863d0103d8dda1932d56427d1b5ba2b9619.1611304190.git.lukas@wunner.de>
- <CA+FuTSfuLfh3H45HnvtJPocxj+E7maGwzkgYsfktna2+cJi9zQ@mail.gmail.com> <20210124111432.GC1056@wunner.de>
-In-Reply-To: <20210124111432.GC1056@wunner.de>
-From:   Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Date:   Sun, 24 Jan 2021 11:18:00 -0500
-Message-ID: <CAF=yD-+BXKynYaYgg8n_R1gEtEbkRWm-8WdtrXOjdjyOj-unfg@mail.gmail.com>
-Subject: Re: [PATCH nf-next v4 5/5] af_packet: Introduce egress hook
+        Mon, 25 Jan 2021 08:23:35 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0575C061574
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 Jan 2021 05:22:54 -0800 (PST)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1l41pG-0002Ed-60; Mon, 25 Jan 2021 14:22:38 +0100
+Date:   Mon, 25 Jan 2021 14:22:38 +0100
+From:   Phil Sutter <phil@nwl.cc>
 To:     Lukas Wunner <lukas@wunner.de>
 Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>,
-        coreteam@netfilter.org,
-        Network Development <netdev@vger.kernel.org>,
         Daniel Borkmann <daniel@iogearbox.net>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Thomas Graf <tgraf@suug.ch>,
         Laura Garcia Liebana <nevola@gmail.com>,
-        John Fastabend <john.fastabend@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+        Alexei Starovoitov <ast@kernel.org>, coreteam@netfilter.org,
+        netfilter-devel@vger.kernel.org, Thomas Graf <tgraf@suug.ch>
+Subject: Re: [netfilter-core] [PATCH nft v4] src: Support netdev egress hook
+Message-ID: <20210125132238.GG3158@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>, Lukas Wunner <lukas@wunner.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Laura Garcia Liebana <nevola@gmail.com>,
+        Alexei Starovoitov <ast@kernel.org>, coreteam@netfilter.org,
+        netfilter-devel@vger.kernel.org, Thomas Graf <tgraf@suug.ch>
+References: <4b3c95a0449591c97f68be15d8d17bda298a7b5e.1611498014.git.lukas@wunner.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4b3c95a0449591c97f68be15d8d17bda298a7b5e.1611498014.git.lukas@wunner.de>
+Sender:  <n0-1@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Jan 24, 2021 at 6:14 AM Lukas Wunner <lukas@wunner.de> wrote:
->
-> On Fri, Jan 22, 2021 at 11:13:19AM -0500, Willem de Bruijn wrote:
-> > On Fri, Jan 22, 2021 at 4:44 AM Lukas Wunner <lukas@wunner.de> wrote:
-> > > Add egress hook for AF_PACKET sockets that have the PACKET_QDISC_BYPASS
-> > > socket option set to on, which allows packets to escape without being
-> > > filtered in the egress path.
-> > >
-> > > This patch only updates the AF_PACKET path, it does not update
-> > > dev_direct_xmit() so the XDP infrastructure has a chance to bypass
-> > > Netfilter.
-> >
-> > Isn't the point of PACKET_QDISC_BYPASS to skip steps like this?
->
-> I suppose PACKET_QDISC_BYPASS "was introduced to bypass qdisc,
-> not to bypass everything."
->
-> (The quote is taken from this message by Eric Dumazet:
-> https://lore.kernel.org/netfilter-devel/a9006cf7-f4ba-81b1-fca1-fd2e97939fdc@gmail.com/
-> )
+Hi Lukas,
 
-I see. I don't understand the value of a short-cut fast path if we
-start chipping away at its characteristic feature.
+On Sun, Jan 24, 2021 at 03:25:06PM +0100, Lukas Wunner wrote:
+[...]
+> diff --git a/tests/py/inet/ip.t.payload.netdev b/tests/py/inet/ip.t.payload.netdev
+> index 95be919..38ed0ad 100644
+> --- a/tests/py/inet/ip.t.payload.netdev
+> +++ b/tests/py/inet/ip.t.payload.netdev
+> @@ -12,3 +12,17 @@ netdev test-netdev ingress
+>    [ payload load 6b @ link header + 6 => reg 10 ]
+>    [ lookup reg 1 set __set%d ]
+>  
+> +# meta protocol ip ip saddr . ip daddr . ether saddr { 1.1.1.1 . 2.2.2.2 . ca:fe:ca:fe:ca:fe }
+> +__set%d test-netdev 3
+> +__set%d test-netdev 0
+> +	element 01010101 02020202 fecafeca 0000feca  : 0 [end]
+> +netdev test-netdev egress 
+> +  [ meta load protocol => reg 1 ]
+> +  [ cmp eq reg 1 0x00000008 ]
+> +  [ meta load iiftype => reg 1 ]
+> +  [ cmp eq reg 1 0x00000001 ]
+> +  [ payload load 4b @ network header + 12 => reg 1 ]
+> +  [ payload load 4b @ network header + 16 => reg 9 ]
+> +  [ payload load 6b @ link header + 6 => reg 10 ]
+> +  [ lookup reg 1 set __set%d ]
+> +
 
-It also bypasses sch_handle_egress and packet sockets. This new
-feature seems broadly similar to the first?
+This payload dump is identical to the one which exists in that file
+already with the exception of the chain name. AFAIR, nft-test.py checks
+only element list and VM code when verifying, deliberately ignoring the
+chain name (so a single payload dump serves all tested chains). From my
+perspective, you should not need to add any payload dump at all. Could
+you please try without them?
+
+Thanks, Phil
