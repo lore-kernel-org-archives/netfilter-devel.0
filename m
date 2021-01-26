@@ -2,190 +2,110 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28F70C433E0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Jan 2021 09:00:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09C9AC433E0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Jan 2021 15:46:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E59DB230FC
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Jan 2021 09:00:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B7DA02100A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Jan 2021 15:46:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389211AbhAZJA3 (ORCPT
+        id S2392214AbhAZPps (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 26 Jan 2021 04:00:29 -0500
-Received: from aserp2120.oracle.com ([141.146.126.78]:42198 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2390751AbhAZI7w (ORCPT
+        Tue, 26 Jan 2021 10:45:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33844 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2391958AbhAZPpm (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 26 Jan 2021 03:59:52 -0500
-Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
-        by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 10Q8wWqM064843;
-        Tue, 26 Jan 2021 08:58:41 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : references : mime-version : content-type :
- in-reply-to; s=corp-2020-01-29;
- bh=y+vlMWgBzha371Xqd7D/swYIZVBD7UgF7PbQwNkgrWk=;
- b=YRIeIQmDahpwILNB168clKoy2+7LKqoUPaOIXva0X6mYRR968+Rx+uHzaFE3v59oq8Yz
- nKbvfldk0M38+Wzkty5qe8X8T9rC9vU5pkClP0Plj9n1aXAf3X+WlL04Ko93ADNSNAlA
- R+3GJGol60I3KxX/fQMOQv2MuVCMmQWyMGKpoUjhhUWzcCMyGKhhCIewY2bHluOHBqvG
- 48aioL9D60Aizz9afEUH1ws4i+RFjhV+tQx/wkTkxdVfWae6HENk2VW9UbFkuhhR7fPJ
- SC3pFDQf40NpAk8teMckMAz0R/97rY7t1d7U2ZOVAZobDultHNSWEWldJEzskAZ9GxSv bw== 
-Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
-        by aserp2120.oracle.com with ESMTP id 368brkgy9j-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 26 Jan 2021 08:58:41 +0000
-Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
-        by userp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 10Q8o6qB072668;
-        Tue, 26 Jan 2021 08:58:39 GMT
-Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
-        by userp3030.oracle.com with ESMTP id 368wqw5hqr-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 26 Jan 2021 08:58:39 +0000
-Received: from abhmp0019.oracle.com (abhmp0019.oracle.com [141.146.116.25])
-        by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 10Q8wReA011138;
-        Tue, 26 Jan 2021 08:58:29 GMT
-Received: from kadam (/102.36.221.92)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Tue, 26 Jan 2021 00:58:26 -0800
-Date:   Tue, 26 Jan 2021 11:58:17 +0300
-From:   Dan Carpenter <dan.carpenter@oracle.com>
-To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     Lukas Wunner <lukas@wunner.de>, Eric Dumazet <edumazet@google.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev <netdev@vger.kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Thomas Graf <tgraf@suug.ch>,
-        Laura Garcia Liebana <nevola@gmail.com>,
-        John Fastabend <john.fastabend@gmail.com>
-Subject: Re: [PATCH nf-next v4 1/5] net: sched: Micro-optimize egress handling
-Message-ID: <20210126085817.GO20820@kadam>
-References: <cover.1611304190.git.lukas@wunner.de>
- <a2a8af1622dff2bfd51d446aa8da2c1d2f6f543c.1611304190.git.lukas@wunner.de>
- <CANn89iK3CC3fapmQpwwbVkGs4-+fmJF+nj0pmBHJ9fy6poWseg@mail.gmail.com>
- <20210124103301.GA1056@wunner.de>
- <20210125113908.6951b6f8@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+        Tue, 26 Jan 2021 10:45:42 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A6A1C061D73
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Jan 2021 07:45:00 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1l4QWZ-0008V0-7y; Tue, 26 Jan 2021 16:44:59 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] src: evaluate: reset context maxlen value before prio evaluation
+Date:   Tue, 26 Jan 2021 16:44:53 +0100
+Message-Id: <20210126154453.16149-1-fw@strlen.de>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210125113908.6951b6f8@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
-X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=9875 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxscore=0 spamscore=0 phishscore=0
- adultscore=0 mlxlogscore=999 malwarescore=0 suspectscore=0 bulkscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
- definitions=main-2101260047
-X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=9875 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 impostorscore=0
- phishscore=0 bulkscore=0 priorityscore=1501 mlxlogscore=999
- lowpriorityscore=0 spamscore=0 mlxscore=0 suspectscore=0 malwarescore=0
- clxscore=1011 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2009150000 definitions=main-2101260048
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jan 25, 2021 at 11:39:08AM -0800, Jakub Kicinski wrote:
-> On Sun, 24 Jan 2021 11:33:01 +0100 Lukas Wunner wrote:
-> > On Fri, Jan 22, 2021 at 10:40:05AM +0100, Eric Dumazet wrote:
-> > > On Fri, Jan 22, 2021 at 9:55 AM Lukas Wunner <lukas@wunner.de> wrote:  
-> > > > sch_handle_egress() returns either the skb or NULL to signal to its
-> > > > caller __dev_queue_xmit() whether a packet should continue to be
-> > > > processed.
-> > > >
-> > > > The skb is always non-NULL, otherwise __dev_queue_xmit() would hit a
-> > > > NULL pointer deref right at its top.
-> > > >
-> > > > But the compiler doesn't know that.  So if sch_handle_egress() signals
-> > > > success by returning the skb, the "if (!skb) goto out;" statement
-> > > > results in a gratuitous NULL pointer check in the Assembler output.
-> > > >
-> > > > Avoid by telling the compiler that __dev_queue_xmit() is never passed a
-> > > > NULL skb.  
-> > [...]
-> > > > we're about to add a netfilter egress hook to __dev_queue_xmit()
-> > > > and without the micro-optimization, it will result in a performance
-> > > > degradation which is indeed measurable:  
-> > [...]
-> > > > --- a/net/core/dev.c
-> > > > +++ b/net/core/dev.c
-> > > > +__attribute__((nonnull(1)))
-> > > >  static int __dev_queue_xmit(struct sk_buff *skb, struct net_device *sb_dev)
-> > > >  {
-> > > >         struct net_device *dev = skb->dev;  
-> > > 
-> > > It is a bit sad the compilers do not automatically get this knowledge
-> > > from the very first instruction :
-> > > 
-> > >  struct net_device *dev = skb->dev;  
-> > 
-> > The compiler (gcc) is capable of doing that, but the feature was disabled by:
-> > 
-> >     commit a3ca86aea507904148870946d599e07a340b39bf
-> >     Author: Eugene Teo <eteo@redhat.com>
-> >     Date:   Wed Jul 15 14:59:10 2009 +0800
-> >     
-> >     Add '-fno-delete-null-pointer-checks' to gcc CFLAGS
-> > 
-> > If -fno-delete-null-pointer-checks is dropped from the top-level Makefile
-> > then the gratuitous NULL pointer checks disappear from the Assembler output,
-> > obviating the need to litter hot paths with __attribute__((nonnull(1)))
-> > annotations.
-> > 
-> > Taking a closer look at that commit, its rationale appears questionable:
-> > It says that broken code such as ...
-> > 
-> > 	struct agnx_priv *priv = dev->priv;
-> > 
-> > 	if (!dev)
-> > 		return;
-> > 
-> > ... would result in the NULL pointer check being optimized away.
-> > The commit message claims that keeping the NULL pointer check in
-> > "makes it harder to abuse" the broken code.
-> > 
-> > I don't see how that's the case:  If dev is NULL, the NULL pointer
-> > dereference at the function's top causes termination of the task
-> > in kernel/exit.c:do_exit().  So the NULL pointer check is never
-> > reached by the task.  If on the other hand dev is non-NULL,
-> > the task isn't terminated but then the NULL pointer check is
-> > unnecessary as well.
-> > 
-> > So the point of the commit remains elusive to me.  I could submit
-> > an RFC patch which drops -fno-delete-null-pointer-checks and see
-> > if any security folks cry foul.  Thoughts?
-> 
+unshare -n tests/shell/run-tests.sh tests/shell/testcases/nft-f/0024priority_0
+W: [FAILED]     tests/shell/testcases/nft-f/0024priority_0: got 1
+/dev/stdin:8:47-49: Error: Value 100 exceeds valid range 0-15
+        type filter hook postrouting priority 100
 
-This was a famous tun.c bug back in the day.  In those days we weren't
-careful to disallow remapping NULL to a different pointer.  See
-/proc/sys/vm/mmap_min_addr.  The exploit was to remap NULL to be a valid
-user controlled pointer.  It should have been impossible to exploit
-because the code had a check for NULL, but the compiler optimized it
-away.
+Reported-by: Andreas Schultz <andreas.schultz@travelping.com
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/evaluate.c                                     |  4 ++--
+ tests/shell/testcases/nft-f/0024priority_0         | 14 ++++++++++++++
+ .../shell/testcases/nft-f/dumps/0024priority_0.nft | 10 ++++++++++
+ 3 files changed, 26 insertions(+), 2 deletions(-)
+ create mode 100755 tests/shell/testcases/nft-f/0024priority_0
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0024priority_0.nft
 
-https://lwn.net/Articles/342330/
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 7d6f55fe0872..3a91e9ea42ed 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -3789,8 +3789,8 @@ static bool evaluate_priority(struct eval_ctx *ctx, struct prio_spec *prio,
+ 	int prio_snd;
+ 	char op;
+ 
+-	ctx->ectx.dtype = &priority_type;
+-	ctx->ectx.len = NFT_NAME_MAXLEN * BITS_PER_BYTE;
++	expr_set_context(&ctx->ectx, &priority_type, NFT_NAME_MAXLEN * BITS_PER_BYTE);
++
+ 	if (expr_evaluate(ctx, &prio->expr) < 0)
+ 		return false;
+ 	if (prio->expr->etype != EXPR_VALUE) {
+diff --git a/tests/shell/testcases/nft-f/0024priority_0 b/tests/shell/testcases/nft-f/0024priority_0
+new file mode 100755
+index 000000000000..586f5c3f2723
+--- /dev/null
++++ b/tests/shell/testcases/nft-f/0024priority_0
+@@ -0,0 +1,14 @@
++#!/bin/bash
++
++RULESET="
++table inet statelessnat {
++    chain prerouting {
++        type filter hook prerouting priority -100;
++        ip daddr set numgen inc mod 16 map { 0-7 : 10.0.1.1, 8- 15 : 10.0.1.2 }
++    }
++    chain postrouting {
++        type filter hook postrouting priority 100
++    }
++}"
++
++exec $NFT -f - <<< "$RULESET"
+diff --git a/tests/shell/testcases/nft-f/dumps/0024priority_0.nft b/tests/shell/testcases/nft-f/dumps/0024priority_0.nft
+new file mode 100644
+index 000000000000..cd7fc5040c35
+--- /dev/null
++++ b/tests/shell/testcases/nft-f/dumps/0024priority_0.nft
+@@ -0,0 +1,10 @@
++table inet statelessnat {
++	chain prerouting {
++		type filter hook prerouting priority dstnat; policy accept;
++		ip daddr set numgen inc mod 16 map { 0-7 : 10.0.1.1, 8-15 : 10.0.1.2 }
++	}
++
++	chain postrouting {
++		type filter hook postrouting priority srcnat; policy accept;
++	}
++}
+-- 
+2.26.2
 
-> I wonder if modern compilers can't simply warn about this particular
-> case. Not to mention our static checkers..
-> 
-> 
-> Dan, do you think the concern from the above-quoted commit is still
-> valid? Is this something that smatch flags these days? We're apparently
-> paying a real performance price in networking for tying compiler's hands
-> with -fno-delete-null-pointer-checks
-
-If I had to guess why GCC doesn't warn about this I would say that
-probably it's because a lot of macros have NULL checks built in.  Most
-static analysis tools have a warning about inconsistent NULL checks but
-Smatch won't warn about it unless it can lead to a NULL dereference.
-The fact that pointless NULL checks slow down the code has never
-bothered anyone up to now.
-
-regards,
-dan carpenter
