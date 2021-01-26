@@ -2,133 +2,727 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3E47C433E0
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Jan 2021 08:46:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EA5CC433E6
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Jan 2021 10:02:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AAD5E20727
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Jan 2021 08:46:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 223102076E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Jan 2021 10:02:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S316821AbhAZXKn (ORCPT
+        id S316816AbhAZXKl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 26 Jan 2021 18:10:43 -0500
-Received: from www62.your-server.de ([213.133.104.62]:46814 "EHLO
-        www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2395264AbhAZTOI (ORCPT
+        Tue, 26 Jan 2021 18:10:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34346 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2392161AbhAZR67 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 26 Jan 2021 14:14:08 -0500
-Received: from sslproxy03.your-server.de ([88.198.220.132])
-        by www62.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
-        (Exim 4.92.3)
-        (envelope-from <daniel@iogearbox.net>)
-        id 1l4TmC-0009PS-56; Tue, 26 Jan 2021 20:13:20 +0100
-Received: from [85.7.101.30] (helo=pc-9.home)
-        by sslproxy03.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <daniel@iogearbox.net>)
-        id 1l4TmB-0004TM-T0; Tue, 26 Jan 2021 20:13:19 +0100
-Subject: Re: [PATCH nf-next v4 4/5] netfilter: Introduce egress hook
-To:     Lukas Wunner <lukas@wunner.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Thomas Graf <tgraf@suug.ch>,
-        Laura Garcia Liebana <nevola@gmail.com>,
-        John Fastabend <john.fastabend@gmail.com>
-References: <cover.1611304190.git.lukas@wunner.de>
- <979835dc887d3affc4e76464aa21da0e298fd638.1611304190.git.lukas@wunner.de>
-From:   Daniel Borkmann <daniel@iogearbox.net>
-Message-ID: <4b36df57-ee60-78da-cc6a-fb443226c978@iogearbox.net>
-Date:   Tue, 26 Jan 2021 20:13:19 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.2
+        Tue, 26 Jan 2021 12:58:59 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19756C0613ED
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Jan 2021 09:55:51 -0800 (PST)
+Received: from localhost ([::1]:44164 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.94)
+        (envelope-from <phil@nwl.cc>)
+        id 1l4SZA-0004pX-Vl; Tue, 26 Jan 2021 18:55:49 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org,
+        "Jose M . Guisado Gomez" <guigom@riseup.net>
+Subject: [nft PATCH 2/2] reject: Unify inet, netdev and bridge delinearization
+Date:   Tue, 26 Jan 2021 18:55:40 +0100
+Message-Id: <20210126175540.9557-2-phil@nwl.cc>
+X-Mailer: git-send-email 2.28.0
+In-Reply-To: <20210126175540.9557-1-phil@nwl.cc>
+References: <20210126175540.9557-1-phil@nwl.cc>
 MIME-Version: 1.0
-In-Reply-To: <979835dc887d3affc4e76464aa21da0e298fd638.1611304190.git.lukas@wunner.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Authenticated-Sender: daniel@iogearbox.net
-X-Virus-Scanned: Clear (ClamAV 0.102.4/26061/Tue Jan 26 13:29:51 2021)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 1/22/21 9:47 AM, Lukas Wunner wrote:
-> Commit e687ad60af09 ("netfilter: add netfilter ingress hook after
-> handle_ing() under unique static key") introduced the ability to
-> classify packets with netfilter on ingress.
-> 
-> Support the same on egress to satisfy user requirements such as:
-> * outbound security policies for containers (Laura)
-> * filtering and mangling intra-node Direct Server Return (DSR) traffic
->    on a load balancer (Laura)
-> * filtering locally generated traffic coming in through AF_PACKET,
->    such as local ARP traffic generated for clustering purposes or DHCP
->    (Laura; the AF_PACKET plumbing is contained in a separate commit)
-> * L2 filtering from ingress and egress for AVB (Audio Video Bridging)
->    and gPTP with nftables (Pablo)
-> * in the future: in-kernel NAT64/NAT46 (Pablo)
-> 
-> A patch for nftables to hook up egress rules from user space has been
-> submitted separately, so users may immediately take advantage of the
-> feature.
-> 
-> The hook is positioned after packet handling by traffic control.
-> Thus, if packets are redirected into and out of containers with tc,
-> the data path is:
-> ingress: host tc -> container tc -> container nft
-> egress:  container tc -> host tc -> host nft
-> 
-> This was done to address an objection from Daniel Borkmann:  If desired,
-> nft does not get into tc's way performance-wise.  The host is able to
-> firewall malicious packets coming out of a container, but only after tc
-> has done its duty.  An implication is that tc may set skb->mark on
-> egress for nft to act on it, but not the other way round.
-> 
-> If egress netfilter handling is not enabled on any interface, it is
-> patched out of the data path by way of a static_key and doesn't make a
-> performance difference that is discernible from noise:
-> 
-[...]
-> @@ -4096,13 +4098,18 @@ static int __dev_queue_xmit(struct sk_buff *skb, struct net_device *sb_dev)
->   	qdisc_pkt_len_init(skb);
->   #ifdef CONFIG_NET_CLS_ACT
->   	skb->tc_at_ingress = 0;
-> -# ifdef CONFIG_NET_EGRESS
-> +#endif
-> +#ifdef CONFIG_NET_EGRESS
->   	if (static_branch_unlikely(&egress_needed_key)) {
->   		skb = sch_handle_egress(skb, &rc, dev);
->   		if (!skb)
->   			goto out;
-> +		if (nf_hook_egress_active()) {
-> +			skb = nf_hook_egress(skb, &rc, dev);
-> +			if (!skb)
-> +				goto out;
-> +		}
+Postprocessing for inet family did not attempt to kill any existing
+payload dependency, although it is perfectly fine to do so. The mere
+culprit is to not abbreviate default code rejects as that would drop
+needed protocol info as a side-effect. Since postprocessing is then
+almost identical to that of bridge and netdev families, merge them.
 
-This won't work unfortunately, the issue is that this now creates an asymmetric path, for
-example: [tc ingress] -> [nf ingress] -> [host] -> [tc egress] -> [nf egress]. So any NAT
-translation done on tc ingress + tc egress will break on the nf hooks given nf is not able to
-correlate inbound with outbound traffic. Likewise for container-based traffic that is in its
-own netns, one of the existing paths is: [tc ingress (phys,hostns)] -> [tc ingress (veth,podns)] ->
-[reply] -> [tc egress (veth,podns)] -> [tc ingress (veth,hostns)] -> [nf egress (phys,hostns)*] ->
-[tc egress (phys,hostns)]. As can be seen the [nf ingress] hook is not an issue at all given
-everything operates in tc layer but the [nf egress*] one is in this case, as it touches in tc
-layer where existing data planes will start to break upon rule injection. Wrt above objection,
-what needs to be done for the minimum case is to i) fix the asymmetry problem from here, and
-ii) add a flag for tc layer-redirected skbs to skip the nf egress hook *; with that in place
-this concern should be resolved. Thanks!
+While being at it, extend tests/py/netdev/reject.t by a few more tests
+taken from inet/reject.t so this covers icmpx rejects as well.
 
->   	}
-> -# endif
->   #endif
->   	/* If device/qdisc don't need skb->dst, release it right now while
->   	 * its hot in this cpu cache.
+Cc: Jose M. Guisado Gomez <guigom@riseup.net>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ src/netlink_delinearize.c          |  24 +---
+ tests/py/inet/reject.t             |  33 +++--
+ tests/py/inet/reject.t.json.output | 195 +++--------------------------
+ tests/py/netdev/reject.t           |  20 +++
+ tests/py/netdev/reject.t.json      | 180 ++++++++++++++++++++++++++
+ tests/py/netdev/reject.t.payload   |  60 +++++++++
+ 6 files changed, 296 insertions(+), 216 deletions(-)
+
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index ca4d723dea0ec..04560b9769746 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -2473,23 +2473,6 @@ static void stmt_reject_postprocess(struct rule_pp_ctx *rctx)
+ 			payload_dependency_release(&rctx->pdctx);
+ 		break;
+ 	case NFPROTO_INET:
+-		if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH) {
+-			datatype_set(stmt->reject.expr, &icmpx_code_type);
+-			break;
+-		}
+-		base = rctx->pctx.protocol[PROTO_BASE_LL_HDR].desc;
+-		desc = rctx->pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
+-		protocol = proto_find_num(base, desc);
+-		switch (protocol) {
+-		case NFPROTO_IPV4:
+-			datatype_set(stmt->reject.expr, &icmp_code_type);
+-			break;
+-		case NFPROTO_IPV6:
+-			datatype_set(stmt->reject.expr, &icmpv6_code_type);
+-			break;
+-		}
+-		stmt->reject.family = protocol;
+-		break;
+ 	case NFPROTO_BRIDGE:
+ 	case NFPROTO_NETDEV:
+ 		if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH) {
+@@ -2506,11 +2489,13 @@ static void stmt_reject_postprocess(struct rule_pp_ctx *rctx)
+ 		desc = rctx->pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
+ 		protocol = proto_find_num(base, desc);
+ 		switch (protocol) {
+-		case __constant_htons(ETH_P_IP):
++		case NFPROTO_IPV4:			/* INET */
++		case __constant_htons(ETH_P_IP):	/* BRIDGE, NETDEV */
+ 			stmt->reject.family = NFPROTO_IPV4;
+ 			datatype_set(stmt->reject.expr, &icmp_code_type);
+ 			break;
+-		case __constant_htons(ETH_P_IPV6):
++		case NFPROTO_IPV6:			/* INET */
++		case __constant_htons(ETH_P_IPV6):	/* BRIDGE, NETDEV */
+ 			stmt->reject.family = NFPROTO_IPV6;
+ 			datatype_set(stmt->reject.expr, &icmpv6_code_type);
+ 			break;
+@@ -2520,7 +2505,6 @@ static void stmt_reject_postprocess(struct rule_pp_ctx *rctx)
+ 
+ 		if (payload_dependency_exists(&rctx->pdctx, PROTO_BASE_NETWORK_HDR))
+ 			payload_dependency_release(&rctx->pdctx);
+-
+ 		break;
+ 	default:
+ 		break;
+diff --git a/tests/py/inet/reject.t b/tests/py/inet/reject.t
+index 0e8966c9a389c..a9ecd2ea03088 100644
+--- a/tests/py/inet/reject.t
++++ b/tests/py/inet/reject.t
+@@ -2,33 +2,32 @@
+ 
+ *inet;test-inet;input
+ 
+-# The output is specific for inet family
+-reject with icmp type host-unreachable;ok;meta nfproto ipv4 reject with icmp type host-unreachable
+-reject with icmp type net-unreachable;ok;meta nfproto ipv4 reject with icmp type net-unreachable
+-reject with icmp type prot-unreachable;ok;meta nfproto ipv4 reject with icmp type prot-unreachable
+-reject with icmp type port-unreachable;ok;meta nfproto ipv4 reject
+-reject with icmp type net-prohibited;ok;meta nfproto ipv4 reject with icmp type net-prohibited
+-reject with icmp type host-prohibited;ok;meta nfproto ipv4 reject with icmp type host-prohibited
+-reject with icmp type admin-prohibited;ok;meta nfproto ipv4 reject with icmp type admin-prohibited
+-
+-reject with icmpv6 type no-route;ok;meta nfproto ipv6 reject with icmpv6 type no-route
+-reject with icmpv6 type admin-prohibited;ok;meta nfproto ipv6 reject with icmpv6 type admin-prohibited
+-reject with icmpv6 type addr-unreachable;ok;meta nfproto ipv6 reject with icmpv6 type addr-unreachable
+-reject with icmpv6 type port-unreachable;ok;meta nfproto ipv6 reject
++reject with icmp type host-unreachable;ok
++reject with icmp type net-unreachable;ok
++reject with icmp type prot-unreachable;ok
++reject with icmp type port-unreachable;ok
++reject with icmp type net-prohibited;ok
++reject with icmp type host-prohibited;ok
++reject with icmp type admin-prohibited;ok
++
++reject with icmpv6 type no-route;ok
++reject with icmpv6 type admin-prohibited;ok
++reject with icmpv6 type addr-unreachable;ok
++reject with icmpv6 type port-unreachable;ok
+ 
+ mark 12345 reject with tcp reset;ok;meta l4proto 6 meta mark 0x00003039 reject with tcp reset
+ 
+ reject;ok
+-meta nfproto ipv4 reject;ok
+-meta nfproto ipv6 reject;ok
++meta nfproto ipv4 reject;ok;reject with icmp type port-unreachable
++meta nfproto ipv6 reject;ok;reject with icmpv6 type port-unreachable
+ 
+ reject with icmpx type host-unreachable;ok
+ reject with icmpx type no-route;ok
+ reject with icmpx type admin-prohibited;ok
+ reject with icmpx type port-unreachable;ok;reject
+ 
+-meta nfproto ipv4 reject with icmp type host-unreachable;ok
+-meta nfproto ipv6 reject with icmpv6 type no-route;ok
++meta nfproto ipv4 reject with icmp type host-unreachable;ok;reject with icmp type host-unreachable
++meta nfproto ipv6 reject with icmpv6 type no-route;ok;reject with icmpv6 type no-route
+ 
+ meta nfproto ipv6 reject with icmp type host-unreachable;fail
+ meta nfproto ipv4 ip protocol icmp reject with icmpv6 type no-route;fail
+diff --git a/tests/py/inet/reject.t.json.output b/tests/py/inet/reject.t.json.output
+index 73846fb0725e1..6e18b96bd807d 100644
+--- a/tests/py/inet/reject.t.json.output
++++ b/tests/py/inet/reject.t.json.output
+@@ -1,144 +1,69 @@
+-# reject with icmp type host-unreachable
++# mark 12345 reject with tcp reset
+ [
+     {
+         "match": {
+             "left": {
+-                "meta": { "key": "nfproto" }
++                "meta": { "key": "l4proto" }
+             },
+ 	    "op": "==",
+-            "right": "ipv4"
++            "right": 6
+         }
+     },
+-    {
+-        "reject": {
+-            "expr": "host-unreachable",
+-            "type": "icmp"
+-        }
+-    }
+-]
+-
+-# reject with icmp type net-unreachable
+-[
+     {
+         "match": {
+             "left": {
+-                "meta": { "key": "nfproto" }
++                "meta": { "key": "mark" }
+             },
+ 	    "op": "==",
+-            "right": "ipv4"
++            "right": 12345
+         }
+     },
+     {
+         "reject": {
+-            "expr": "net-unreachable",
+-            "type": "icmp"
++            "type": "tcp reset"
+         }
+     }
+ ]
+ 
+-# reject with icmp type prot-unreachable
++# meta nfproto ipv4 reject
+ [
+-    {
+-        "match": {
+-            "left": {
+-                "meta": { "key": "nfproto" }
+-            },
+-	    "op": "==",
+-            "right": "ipv4"
+-        }
+-    },
+     {
+         "reject": {
+-            "expr": "prot-unreachable",
++            "expr": "port-unreachable",
+             "type": "icmp"
+         }
+     }
+ ]
+ 
+-# reject with icmp type port-unreachable
++# meta nfproto ipv6 reject
+ [
+-    {
+-        "match": {
+-            "left": {
+-                "meta": { "key": "nfproto" }
+-            },
+-	    "op": "==",
+-            "right": "ipv4"
+-        }
+-    },
+-    {
+-        "reject": null
+-    }
+-]
+-
+-# reject with icmp type net-prohibited
+-[
+-    {
+-        "match": {
+-            "left": {
+-                "meta": { "key": "nfproto" }
+-            },
+-	    "op": "==",
+-            "right": "ipv4"
+-        }
+-    },
+     {
+         "reject": {
+-            "expr": "net-prohibited",
+-            "type": "icmp"
++            "expr": "port-unreachable",
++            "type": "icmpv6"
+         }
+     }
+ ]
+ 
+-# reject with icmp type host-prohibited
++# reject with icmpx type port-unreachable
+ [
+     {
+-        "match": {
+-            "left": {
+-                "meta": { "key": "nfproto" }
+-            },
+-	    "op": "==",
+-            "right": "ipv4"
+-        }
+-    },
+-    {
+-        "reject": {
+-            "expr": "host-prohibited",
+-            "type": "icmp"
+-        }
++        "reject": null
+     }
+ ]
+ 
+-# reject with icmp type admin-prohibited
++# meta nfproto ipv4 reject with icmp type host-unreachable
+ [
+-    {
+-        "match": {
+-            "left": {
+-                "meta": { "key": "nfproto" }
+-            },
+-	    "op": "==",
+-            "right": "ipv4"
+-        }
+-    },
+     {
+         "reject": {
+-            "expr": "admin-prohibited",
++            "expr": "host-unreachable",
+             "type": "icmp"
+         }
+     }
+ ]
+ 
+-# reject with icmpv6 type no-route
++# meta nfproto ipv6 reject with icmpv6 type no-route
+ [
+-    {
+-        "match": {
+-            "left": {
+-                "meta": { "key": "nfproto" }
+-            },
+-	    "op": "==",
+-            "right": "ipv6"
+-        }
+-    },
+     {
+         "reject": {
+             "expr": "no-route",
+@@ -147,91 +72,3 @@
+     }
+ ]
+ 
+-# reject with icmpv6 type admin-prohibited
+-[
+-    {
+-        "match": {
+-            "left": {
+-                "meta": { "key": "nfproto" }
+-            },
+-	    "op": "==",
+-            "right": "ipv6"
+-        }
+-    },
+-    {
+-        "reject": {
+-            "expr": "admin-prohibited",
+-            "type": "icmpv6"
+-        }
+-    }
+-]
+-
+-# reject with icmpv6 type addr-unreachable
+-[
+-    {
+-        "match": {
+-            "left": {
+-                "meta": { "key": "nfproto" }
+-            },
+-	    "op": "==",
+-            "right": "ipv6"
+-        }
+-    },
+-    {
+-        "reject": {
+-            "expr": "addr-unreachable",
+-            "type": "icmpv6"
+-        }
+-    }
+-]
+-
+-# reject with icmpv6 type port-unreachable
+-[
+-    {
+-        "match": {
+-            "left": {
+-                "meta": { "key": "nfproto" }
+-            },
+-	    "op": "==",
+-            "right": "ipv6"
+-        }
+-    },
+-    {
+-        "reject": null
+-    }
+-]
+-
+-# mark 12345 reject with tcp reset
+-[
+-    {
+-        "match": {
+-            "left": {
+-                "meta": { "key": "l4proto" }
+-            },
+-	    "op": "==",
+-            "right": 6
+-        }
+-    },
+-    {
+-        "match": {
+-            "left": {
+-                "meta": { "key": "mark" }
+-            },
+-	    "op": "==",
+-            "right": 12345
+-        }
+-    },
+-    {
+-        "reject": {
+-            "type": "tcp reset"
+-        }
+-    }
+-]
+-
+-# reject with icmpx type port-unreachable
+-[
+-    {
+-        "reject": null
+-    }
+-]
+-
+diff --git a/tests/py/netdev/reject.t b/tests/py/netdev/reject.t
+index 8f8c4e0375977..af1090860fd58 100644
+--- a/tests/py/netdev/reject.t
++++ b/tests/py/netdev/reject.t
+@@ -17,4 +17,24 @@ reject with icmpv6 type port-unreachable;ok
+ reject with icmpv6 type policy-fail;ok
+ reject with icmpv6 type reject-route;ok
+ 
++mark 12345 reject with tcp reset;ok;meta l4proto 6 meta mark 0x00003039 reject with tcp reset
++
+ reject;ok
++meta protocol ip reject;ok;reject with icmp type port-unreachable
++meta protocol ip6 reject;ok;reject with icmpv6 type port-unreachable
++
++reject with icmpx type host-unreachable;ok
++reject with icmpx type no-route;ok
++reject with icmpx type admin-prohibited;ok
++reject with icmpx type port-unreachable;ok;reject
++
++meta protocol ip reject with icmp type host-unreachable;ok;reject with icmp type host-unreachable
++meta protocol ip6 reject with icmpv6 type no-route;ok;reject with icmpv6 type no-route
++
++meta protocol ip6 reject with icmp type host-unreachable;fail
++meta protocol ip ip protocol icmp reject with icmpv6 type no-route;fail
++meta protocol ip6 ip protocol icmp reject with icmp type host-unreachable;fail
++meta l4proto udp reject with tcp reset;fail
++
++meta protocol ip reject with icmpx type admin-prohibited;ok
++meta protocol ip6 reject with icmpx type admin-prohibited;ok
+diff --git a/tests/py/netdev/reject.t.json b/tests/py/netdev/reject.t.json
+index ffc72794ac611..21e6ebb5117b7 100644
+--- a/tests/py/netdev/reject.t.json
++++ b/tests/py/netdev/reject.t.json
+@@ -128,6 +128,26 @@
+     }
+ ]
+ 
++# mark 12345 reject with tcp reset
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "mark"
++                }
++            },
++            "op": "==",
++            "right": 12345
++        }
++    },
++    {
++        "reject": {
++            "type": "tcp reset"
++        }
++    }
++]
++
+ # reject
+ [
+     {
+@@ -135,3 +155,163 @@
+     }
+ ]
+ 
++# meta protocol ip reject
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "protocol"
++                }
++            },
++            "op": "==",
++            "right": "ip"
++        }
++    },
++    {
++        "reject": null
++    }
++]
++
++# meta protocol ip6 reject
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "protocol"
++                }
++            },
++            "op": "==",
++            "right": "ip6"
++        }
++    },
++    {
++        "reject": null
++    }
++]
++
++# reject with icmpx type host-unreachable
++[
++    {
++        "reject": {
++            "expr": "host-unreachable",
++            "type": "icmpx"
++        }
++    }
++]
++
++# reject with icmpx type no-route
++[
++    {
++        "reject": {
++            "expr": "no-route",
++            "type": "icmpx"
++        }
++    }
++]
++
++# reject with icmpx type admin-prohibited
++[
++    {
++        "reject": {
++            "expr": "admin-prohibited",
++            "type": "icmpx"
++        }
++    }
++]
++
++# reject with icmpx type port-unreachable
++[
++    {
++        "reject": {
++            "expr": "port-unreachable",
++            "type": "icmpx"
++        }
++    }
++]
++
++# meta protocol ip reject with icmp type host-unreachable
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "protocol"
++                }
++            },
++            "op": "==",
++            "right": "ip"
++        }
++    },
++    {
++        "reject": {
++            "expr": "host-unreachable",
++            "type": "icmp"
++        }
++    }
++]
++
++# meta protocol ip6 reject with icmpv6 type no-route
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "protocol"
++                }
++            },
++            "op": "==",
++            "right": "ip6"
++        }
++    },
++    {
++        "reject": {
++            "expr": "no-route",
++            "type": "icmpv6"
++        }
++    }
++]
++
++# meta protocol ip reject with icmpx type admin-prohibited
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "protocol"
++                }
++            },
++            "op": "==",
++            "right": "ip"
++        }
++    },
++    {
++        "reject": {
++            "expr": "admin-prohibited",
++            "type": "icmpx"
++        }
++    }
++]
++
++# meta protocol ip6 reject with icmpx type admin-prohibited
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "protocol"
++                }
++            },
++            "op": "==",
++            "right": "ip6"
++        }
++    },
++    {
++        "reject": {
++            "expr": "admin-prohibited",
++            "type": "icmpx"
++        }
++    }
++]
++
+diff --git a/tests/py/netdev/reject.t.payload b/tests/py/netdev/reject.t.payload
+index aead412772c0d..5f76b0915d5cd 100644
+--- a/tests/py/netdev/reject.t.payload
++++ b/tests/py/netdev/reject.t.payload
+@@ -76,7 +76,67 @@ netdev
+   [ cmp eq reg 1 0x0000dd86 ]
+   [ reject type 0 code 6 ]
+ 
++# mark 12345 reject with tcp reset
++netdev 
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ meta load mark => reg 1 ]
++  [ cmp eq reg 1 0x00003039 ]
++  [ reject type 1 code 0 ]
++
+ # reject
+ netdev 
+   [ reject type 2 code 1 ]
+ 
++# meta protocol ip reject
++netdev 
++  [ meta load protocol => reg 1 ]
++  [ cmp eq reg 1 0x00000008 ]
++  [ reject type 0 code 3 ]
++
++# meta protocol ip6 reject
++netdev 
++  [ meta load protocol => reg 1 ]
++  [ cmp eq reg 1 0x0000dd86 ]
++  [ reject type 0 code 4 ]
++
++# reject with icmpx type host-unreachable
++netdev 
++  [ reject type 2 code 2 ]
++
++# reject with icmpx type no-route
++netdev 
++  [ reject type 2 code 0 ]
++
++# reject with icmpx type admin-prohibited
++netdev 
++  [ reject type 2 code 3 ]
++
++# reject with icmpx type port-unreachable
++netdev 
++  [ reject type 2 code 1 ]
++
++# meta protocol ip reject with icmp type host-unreachable
++netdev 
++  [ meta load protocol => reg 1 ]
++  [ cmp eq reg 1 0x00000008 ]
++  [ reject type 0 code 1 ]
++
++# meta protocol ip6 reject with icmpv6 type no-route
++netdev 
++  [ meta load protocol => reg 1 ]
++  [ cmp eq reg 1 0x0000dd86 ]
++  [ reject type 0 code 0 ]
++
++# meta protocol ip reject with icmpx type admin-prohibited
++netdev 
++  [ meta load protocol => reg 1 ]
++  [ cmp eq reg 1 0x00000008 ]
++  [ reject type 2 code 3 ]
++
++# meta protocol ip6 reject with icmpx type admin-prohibited
++netdev 
++  [ meta load protocol => reg 1 ]
++  [ cmp eq reg 1 0x0000dd86 ]
++  [ reject type 2 code 3 ]
++
+-- 
+2.28.0
+
