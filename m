@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A77D6C433E0
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Jan 2021 05:02:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A3CAC433DB
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Jan 2021 06:12:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 63D102070A
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Jan 2021 05:02:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1FCBA2064B
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Jan 2021 06:12:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229810AbhA0FCo (ORCPT
+        id S234911AbhA0GDQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Jan 2021 00:02:44 -0500
-Received: from correo.us.es ([193.147.175.20]:55538 "EHLO mail.us.es"
+        Wed, 27 Jan 2021 01:03:16 -0500
+Received: from correo.us.es ([193.147.175.20]:41776 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S316537AbhA0Bxe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 26 Jan 2021 20:53:34 -0500
+        id S236882AbhA0Dn6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 26 Jan 2021 22:43:58 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id F1F9FD28CD
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Jan 2021 02:51:07 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id E080EDA718
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Jan 2021 03:18:35 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E0DCDDA730
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Jan 2021 02:51:07 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D1B52DA704
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Jan 2021 03:18:35 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id D6644DA73D; Wed, 27 Jan 2021 02:51:07 +0100 (CET)
+        id C6F3FDA73D; Wed, 27 Jan 2021 03:18:35 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EB46BDA730
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Jan 2021 02:51:04 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 011A8DA704
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Jan 2021 03:18:32 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 27 Jan 2021 02:51:04 +0100 (CET)
+ Wed, 27 Jan 2021 03:18:32 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id CAFD1426CC84
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Jan 2021 02:51:04 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPSA id D34FA426CC84
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Jan 2021 03:18:32 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Subject: [PATCH nf-next] netfilter: nftables: introduce table ownership
-Date:   Wed, 27 Jan 2021 02:52:00 +0100
-Message-Id: <20210127015200.2026-1-pablo@netfilter.org>
+Date:   Wed, 27 Jan 2021 03:19:28 +0100
+Message-Id: <20210127021928.2444-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
