@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F553C433E0
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Jan 2021 13:28:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00485C433E0
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Jan 2021 13:29:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 44A4C207D2
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Jan 2021 13:28:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B037A207B0
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Jan 2021 13:29:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238332AbhA0N15 (ORCPT
+        id S233269AbhA0N3E (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Jan 2021 08:27:57 -0500
-Received: from correo.us.es ([193.147.175.20]:40280 "EHLO mail.us.es"
+        Wed, 27 Jan 2021 08:29:04 -0500
+Received: from correo.us.es ([193.147.175.20]:40300 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238382AbhA0N0G (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S238392AbhA0N0G (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Wed, 27 Jan 2021 08:26:06 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 027212A2BAB
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Jan 2021 14:24:21 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 3B1FB2A2BB5
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Jan 2021 14:24:23 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E7A7FDA793
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Jan 2021 14:24:21 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2D2CBDA792
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Jan 2021 14:24:23 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id DD5DEDA78C; Wed, 27 Jan 2021 14:24:21 +0100 (CET)
+        id 22D8EDA78E; Wed, 27 Jan 2021 14:24:23 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B4524DA792;
-        Wed, 27 Jan 2021 14:24:19 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 01574DA78A;
+        Wed, 27 Jan 2021 14:24:21 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 27 Jan 2021 14:24:19 +0100 (CET)
+ Wed, 27 Jan 2021 14:24:21 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 87D2E426CC84;
-        Wed, 27 Jan 2021 14:24:19 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPSA id C9E97426CC85;
+        Wed, 27 Jan 2021 14:24:20 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 1/3] netfilter: nft_dynset: honor stateful expressions in set definition
-Date:   Wed, 27 Jan 2021 14:25:10 +0100
-Message-Id: <20210127132512.5472-2-pablo@netfilter.org>
+Subject: [PATCH net 3/3] netfilter: nft_dynset: dump expressions when set definition contains no expressions
+Date:   Wed, 27 Jan 2021 14:25:12 +0100
+Message-Id: <20210127132512.5472-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20210127132512.5472-1-pablo@netfilter.org>
 References: <20210127132512.5472-1-pablo@netfilter.org>
@@ -58,63 +58,61 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If the set definition contains stateful expressions, allocate them for
-the newly added entries from the packet path.
+If the set definition provides no stateful expressions, then include the
+stateful expression in the ruleset listing. Without this fix, the dynset
+rule listing shows the stateful expressions provided by the set
+definition.
 
 Fixes: 65038428b2c6 ("netfilter: nf_tables: allow to specify stateful expression in set definition")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h | 2 ++
- net/netfilter/nf_tables_api.c     | 5 ++---
- net/netfilter/nft_dynset.c        | 6 ++++++
- 3 files changed, 10 insertions(+), 3 deletions(-)
+ net/netfilter/nft_dynset.c | 31 +++++++++++++++++--------------
+ 1 file changed, 17 insertions(+), 14 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index f4af8362d234..4b6ecf532623 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -721,6 +721,8 @@ void *nft_set_elem_init(const struct nft_set *set,
- 			const struct nft_set_ext_tmpl *tmpl,
- 			const u32 *key, const u32 *key_end, const u32 *data,
- 			u64 timeout, u64 expiration, gfp_t gfp);
-+int nft_set_elem_expr_clone(const struct nft_ctx *ctx, struct nft_set *set,
-+			    struct nft_expr *expr_array[]);
- void nft_set_elem_destroy(const struct nft_set *set, void *elem,
- 			  bool destroy_expr);
- 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 15c467f1a9dd..8d3aa97b52e7 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5235,9 +5235,8 @@ static void nf_tables_set_elem_destroy(const struct nft_ctx *ctx,
- 	kfree(elem);
- }
- 
--static int nft_set_elem_expr_clone(const struct nft_ctx *ctx,
--				   struct nft_set *set,
--				   struct nft_expr *expr_array[])
-+int nft_set_elem_expr_clone(const struct nft_ctx *ctx, struct nft_set *set,
-+			    struct nft_expr *expr_array[])
- {
- 	struct nft_expr *expr;
- 	int err, i, k;
 diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index 0b053f75cd60..86204740f6c7 100644
+index 218c09e4fddd..d164ef9e6843 100644
 --- a/net/netfilter/nft_dynset.c
 +++ b/net/netfilter/nft_dynset.c
-@@ -295,6 +295,12 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 			err = -EOPNOTSUPP;
- 			goto err_expr_free;
- 		}
-+	} else if (set->num_exprs > 0) {
-+		err = nft_set_elem_expr_clone(ctx, set, priv->expr_array);
-+		if (err < 0)
-+			return err;
+@@ -384,22 +384,25 @@ static int nft_dynset_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 			 nf_jiffies64_to_msecs(priv->timeout),
+ 			 NFTA_DYNSET_PAD))
+ 		goto nla_put_failure;
+-	if (priv->num_exprs == 1) {
+-		if (nft_expr_dump(skb, NFTA_DYNSET_EXPR, priv->expr_array[0]))
+-			goto nla_put_failure;
+-	} else if (priv->num_exprs > 1) {
+-		struct nlattr *nest;
+-
+-		nest = nla_nest_start_noflag(skb, NFTA_DYNSET_EXPRESSIONS);
+-		if (!nest)
+-			goto nla_put_failure;
+-
+-		for (i = 0; i < priv->num_exprs; i++) {
+-			if (nft_expr_dump(skb, NFTA_LIST_ELEM,
+-					  priv->expr_array[i]))
++	if (priv->set->num_exprs == 0) {
++		if (priv->num_exprs == 1) {
++			if (nft_expr_dump(skb, NFTA_DYNSET_EXPR,
++					  priv->expr_array[0]))
+ 				goto nla_put_failure;
++		} else if (priv->num_exprs > 1) {
++			struct nlattr *nest;
 +
-+		priv->num_exprs = set->num_exprs;
++			nest = nla_nest_start_noflag(skb, NFTA_DYNSET_EXPRESSIONS);
++			if (!nest)
++				goto nla_put_failure;
++
++			for (i = 0; i < priv->num_exprs; i++) {
++				if (nft_expr_dump(skb, NFTA_LIST_ELEM,
++						  priv->expr_array[i]))
++					goto nla_put_failure;
++			}
++			nla_nest_end(skb, nest);
+ 		}
+-		nla_nest_end(skb, nest);
  	}
- 
- 	nft_set_ext_prepare(&priv->tmpl);
+ 	if (nla_put_be32(skb, NFTA_DYNSET_FLAGS, htonl(flags)))
+ 		goto nla_put_failure;
 -- 
 2.20.1
 
