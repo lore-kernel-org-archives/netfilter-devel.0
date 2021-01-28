@@ -2,93 +2,78 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 221A9C433E0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Jan 2021 07:35:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2079AC433DB
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Jan 2021 18:01:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D2AC96024A
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Jan 2021 07:35:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DFA9C64E18
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Jan 2021 18:01:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231658AbhA1Hel (ORCPT
+        id S231347AbhA1SBV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 28 Jan 2021 02:34:41 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:56237 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S231615AbhA1HcN (ORCPT
+        Thu, 28 Jan 2021 13:01:21 -0500
+Received: from youngberry.canonical.com ([91.189.89.112]:47992 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231420AbhA1SAK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 Jan 2021 02:32:13 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1611819047;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=KmFwH+NTWnm+HaRi53zxgWEDYYKpNRwcitotzbjxLYM=;
-        b=JxmrN0k0T+DzjrAnA7iPRLDHP3qbo5wsRIv8sI4Cp+8TuanloOhiIXn6f8/XBYuRL9iU4Z
-        0jHN2lDjTvSPEqNZgLwBksCmOxZZP6Gl1elhfww+VEnm/IHV9grQLx3HOEF7J7IYlB/YbE
-        zN3ABm+VEOzMIaUBpu4jUOGDfBJ5Orw=
-Received: from mail-ed1-f71.google.com (mail-ed1-f71.google.com
- [209.85.208.71]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-352--mCpE1T8NsOP2AUhWmNP_w-1; Thu, 28 Jan 2021 02:30:45 -0500
-X-MC-Unique: -mCpE1T8NsOP2AUhWmNP_w-1
-Received: by mail-ed1-f71.google.com with SMTP id dg17so2762417edb.11
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Jan 2021 23:30:45 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:in-reply-to:references
-         :user-agent:date:message-id:mime-version:content-transfer-encoding;
-        bh=KmFwH+NTWnm+HaRi53zxgWEDYYKpNRwcitotzbjxLYM=;
-        b=ehzjIqJo/cT9XNt2Bsph7x49InB7v2XJmNuokV7Kj0aXQNZ99V90torrP8WLgoZnlV
-         fIkb14N5czJ+GbRv20vG+xC11+AYzoicwlbiidxXt1fbX82rpemsZyINtVXMCJ1IunML
-         Bw1I0WZKoz97BotTPGoEPvOaF2wKudl3r1F3wVDvN5hs2TXgDGQpB2rZbLAv8EKVDQiT
-         LZt7Upyec/3qHl3CTIGBahxCh25MHIKPtb6GoIGh+H2sHmfpJWeMsPxX9/VwtX3H4ZHJ
-         u0+X2vxeLVgI10zp68ZMHDDV6nynrpdAMaa+sd/SkirXfB8EBJ0vfC819+Sxhz31+7Aw
-         DNXw==
-X-Gm-Message-State: AOAM5336KbPiH3d77ozfRHc5STEOKDxUfC55KLdeaaVKVEQ6R6Iq2p5i
-        QrIdnGVB1uys7l+velXYVn4EwgL8vPwjrClgRkSFlBv3gB2IDIWZs4CcVcsoRQ9FNre/afiJs2i
-        y0E7FQwLz7jrmrwuHObEzSZZv4pDU
-X-Received: by 2002:a17:906:8046:: with SMTP id x6mr9957072ejw.351.1611819044177;
-        Wed, 27 Jan 2021 23:30:44 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJzyHPC2nZ+vqIWlKaHL1+SVOihaQA3UThbDNe9fwlc50NNAlC+cTPoIYMnUeifDdRSLgyfZLA==
-X-Received: by 2002:a17:906:8046:: with SMTP id x6mr9957065ejw.351.1611819044084;
-        Wed, 27 Jan 2021 23:30:44 -0800 (PST)
-Received: from localhost ([185.112.167.35])
-        by smtp.gmail.com with ESMTPSA id k27sm1852810eje.67.2021.01.27.23.30.43
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 27 Jan 2021 23:30:43 -0800 (PST)
-From:   =?utf-8?B?xaB0xJtww6FuIE7Em21lYw==?= <snemec@redhat.com>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        =?utf-8?B?VG9tw6HFoSBEb2xlxb5hbA==?= <todoleza@redhat.com>
-Subject: Re: [PATCH] tests: monitor: use correct $nft value in EXIT trap
-In-Reply-To: <20210127225134.GU3158@orbyte.nwl.cc>
-References: <20210127140203.2099010-1-snemec@redhat.com>
- <20210127225134.GU3158@orbyte.nwl.cc>
-User-Agent: Notmuch/0.31.3 (https://notmuchmail.org) Emacs/28.0.50
- (x86_64-pc-linux-gnu)
-Date:   Thu, 28 Jan 2021 08:30:42 +0100
-Message-ID: <87o8h91pst.fsf@gmail.com>
+        Thu, 28 Jan 2021 13:00:10 -0500
+Received: from 1.general.cking.uk.vpn ([10.172.193.212] helo=localhost)
+        by youngberry.canonical.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
+        (Exim 4.86_2)
+        (envelope-from <colin.king@canonical.com>)
+        id 1l5BZj-0000Zw-LC; Thu, 28 Jan 2021 17:59:23 +0000
+From:   Colin King <colin.king@canonical.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S . Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Cc:     kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] netfilter: nf_tables: remove redundant assignment of variable err
+Date:   Thu, 28 Jan 2021 17:59:23 +0000
+Message-Id: <20210128175923.645865-1-colin.king@canonical.com>
+X-Mailer: git-send-email 2.29.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, 27 Jan 2021 23:51:34 +0100
-Phil Sutter wrote:
+From: Colin Ian King <colin.king@canonical.com>
 
-> Applied, thanks!
+The variable err is being assigned a value that is never read,
+the same error number is being returned at the error return
+path via label err1.  Clean up the code by removing the assignment.
 
-Thank you, and I apologize to everyone involved for the lack of proper
-tag prefix in the Subject; I only realized too late I should have added
-the "nft".
+Addresses-Coverity: ("Unused value")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ net/netfilter/nft_cmp.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---=20
-=C5=A0t=C4=9Bp=C3=A1n
+diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
+index 00e563a72d3d..acbabffefebb 100644
+--- a/net/netfilter/nft_cmp.c
++++ b/net/netfilter/nft_cmp.c
+@@ -268,10 +268,8 @@ nft_cmp_select_ops(const struct nft_ctx *ctx, const struct nlattr * const tb[])
+ 	if (err < 0)
+ 		return ERR_PTR(err);
+ 
+-	if (desc.type != NFT_DATA_VALUE) {
+-		err = -EINVAL;
++	if (desc.type != NFT_DATA_VALUE)
+ 		goto err1;
+-	}
+ 
+ 	if (desc.len <= sizeof(u32) && (op == NFT_CMP_EQ || op == NFT_CMP_NEQ))
+ 		return &nft_cmp_fast_ops;
+-- 
+2.29.2
 
