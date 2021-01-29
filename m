@@ -2,127 +2,105 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A3BBC433E0
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Jan 2021 20:12:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A8D5C433E0
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Jan 2021 21:26:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AD78D64E04
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Jan 2021 20:12:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D170564E00
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Jan 2021 21:26:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233130AbhA2ULy (ORCPT
+        id S233455AbhA2V0B (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 29 Jan 2021 15:11:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57404 "EHLO
+        Fri, 29 Jan 2021 16:26:01 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45528 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233290AbhA2UJn (ORCPT
+        with ESMTP id S232776AbhA2VZ4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 29 Jan 2021 15:09:43 -0500
-X-Greylist: delayed 559 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 29 Jan 2021 12:08:52 PST
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::45])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6B8CC061574
-        for <netfilter-devel@vger.kernel.org>; Fri, 29 Jan 2021 12:08:52 -0800 (PST)
-Received: from localhost (localhost [127.0.0.1])
-        by smtp0.kfki.hu (Postfix) with ESMTP id 2687367401CA;
-        Fri, 29 Jan 2021 20:57:46 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mail.kfki.hu; h=
-        mime-version:message-id:from:from:date:date:received:received
-        :received:received; s=20151130; t=1611950264; x=1613764665; bh=9
-        bfQBoS20Ayh4lgOFpAYmOU1UtN8w4WzsWM/Ng1QMx0=; b=AoHyuCHzm2ah1GTP9
-        L/TOQb5ssr5SnIxLkSko52YC347svbWlhc7HeLrKt/CTaDsMDr5Q0FW2FLhzWv/1
-        SCsJDgRF8NRZEhJY7ixtGQVUzlExIgab0mlSYKlpk2nGg2qLD7Z+0XHDnPAkLjAz
-        EaVJ1wn1m8X5DBaEHejNnoqEC4=
-X-Virus-Scanned: Debian amavisd-new at smtp0.kfki.hu
-Received: from smtp0.kfki.hu ([127.0.0.1])
-        by localhost (smtp0.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Fri, 29 Jan 2021 20:57:44 +0100 (CET)
-Received: from localhost.kfki.hu (host-94-248-219-210.kabelnet.hu [94.248.219.210])
-        (Authenticated sender: kadlecsik.jozsef@wigner.mta.hu)
-        by smtp0.kfki.hu (Postfix) with ESMTPSA id C8B6E67401C8;
-        Fri, 29 Jan 2021 20:57:43 +0100 (CET)
-Received: by localhost.kfki.hu (Postfix, from userid 1000)
-        id 5BE32300364; Fri, 29 Jan 2021 20:57:43 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-        by localhost.kfki.hu (Postfix) with ESMTP id 57D903001FB;
-        Fri, 29 Jan 2021 20:57:43 +0100 (CET)
-Date:   Fri, 29 Jan 2021 20:57:43 +0100 (CET)
-From:   Jozsef Kadlecsik <kadlec@mail.kfki.hu>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH] netfilter: Fix attempt to update deleted entry in
- xt_recent
-Message-ID: <4347729e-9cf2-bda9-19d7-ad3338f6baaa@mail.kfki.hu>
+        Fri, 29 Jan 2021 16:25:56 -0500
+Received: from mail-ed1-x531.google.com (mail-ed1-x531.google.com [IPv6:2a00:1450:4864:20::531])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF180C061573
+        for <netfilter-devel@vger.kernel.org>; Fri, 29 Jan 2021 13:25:15 -0800 (PST)
+Received: by mail-ed1-x531.google.com with SMTP id s11so12223662edd.5
+        for <netfilter-devel@vger.kernel.org>; Fri, 29 Jan 2021 13:25:15 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=cloud.ionos.com; s=google;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=UAdoWOf77mnW3Iq874RnfyiJVSUPTZpUF/gBGPdNGpg=;
+        b=DQspw62ui6PcU733DERAA5C8nHnAyXPAEn2E9yYm21pZ8zxzxBM1ruDXHllVXY7ae8
+         SdelhnBpWGhpHPGUDzsxq7MhX/aTF6JXU//VfX46XCvMtYpx68Vs1qoHJpD1zj0ZOtbT
+         MjPWBYO6zrmRhXu02ZwIQA1uQ5kH/Q1Qj+u5/WPyoQT6k60/Ab7m8e6DXI9eB4Fb/cnG
+         K4CxQtdD0RpK/rRkxO3LmQn8NTTZqG2TixgQ1TMbhZOabEiW+YaeJPMXJB3Er6a8NUxT
+         xFbD5bvDCPBRjGczuyfauXbD1l5MHMsI/9MXs6tK4YPCdSa1dikOOGUJh5vMvfeuFoqp
+         XsIg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=UAdoWOf77mnW3Iq874RnfyiJVSUPTZpUF/gBGPdNGpg=;
+        b=ay5TvsBNeyvOKtcxbJLzIUoi3lkilh6zrIBGzwQYw0sAhHwTHK7mdtUHxMzUqRHEzV
+         4vGaMV9NNMPwbiNIK9MlCT0V6dUXySWvlB+7LUrVLksXw0lKZrdx9zqfseBtIEB2vPoq
+         62oWkCah8nUTuqRnv3OTW75JhDrobeGp9TBNAQzdsbpSyv3mb7y9OohcgrBpNpd87eYK
+         JCyxBR6NdisB4DBVV8Sr0YZnPk2xwiADIOztoXfSld29Xxegcg8V57eK55+spPzifawZ
+         ka1tW6CfNwf5vBz1fod32492PCms51rve6t4XcmjS2JqgMZ/OWWQBozs5kUFCyTYl6Et
+         MDFg==
+X-Gm-Message-State: AOAM531OtsHnQE/+j1CoHZzXeNMGfuaECv0oFlphljH5utJd8GwCU1V9
+        /7XHzY+URXfTcgQkq0Im8kDN0SfEVYqrYg==
+X-Google-Smtp-Source: ABdhPJxfMRaoRJAHthIx01+4c7LUtTQGohvRTx3e6r1ysD1E3jjsvrpmYIIT/o1qnuulxDAHvKxaQw==
+X-Received: by 2002:a05:6402:34d2:: with SMTP id w18mr7733762edc.102.1611955514340;
+        Fri, 29 Jan 2021 13:25:14 -0800 (PST)
+Received: from msennikovskii4.fkb.profitbricks.net (ip5f5bd4ff.dynamic.kabel-deutschland.de. [95.91.212.255])
+        by smtp.gmail.com with ESMTPSA id q2sm5143218edv.93.2021.01.29.13.25.13
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 29 Jan 2021 13:25:13 -0800 (PST)
+From:   Mikhail Sennikovsky <mikhail.sennikovskii@cloud.ionos.com>
+To:     netfilter-devel@vger.kernel.org, pablo@netfilter.org
+Cc:     Mikhail Sennikovsky <mikhail.sennikovskii@cloud.ionos.com>
+Subject: [PATCH v3 0/8] conntrack: save output format
+Date:   Fri, 29 Jan 2021 22:24:44 +0100
+Message-Id: <20210129212452.45352-1-mikhail.sennikovskii@cloud.ionos.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
+Hi Pablo & all,
 
-Please review the next patch and consider applying it in the nf branch:
+As discussed, here is the updated version of the "save output format"
+patches.
+The main changes since the last series:
+1. Adopting upon the latest master changes from Pablo
+2. Line parsing logic is taken from the xtables as Pablo suggested
+3. The changes made more granular.
 
-When both --reap and --update flag are specified, there's a code
-path at which the entry to be updated is reaped beforehand,
-which then leads to kernel crash. Reap only entries which won't be
-updated.
+Thanks & regards,
+Mikhail
 
-Fixes kernel bugzilla #207773.
+Mikhail Sennikovsky (8):
+  conntrack: reset optind in do_parse
+  conntrack: move global options to struct ct_cmd
+  conntrack: per-command entries counters
+  conntrack: introduce ct_cmd_list
+  conntrack: accept commands from file
+  conntrack.8: man update for --load-file support
+  tests: saving and loading ct entries, save format
+  tests: conntrack -L/-D ip family filtering
 
-Reported by Reindl Harald.
+ conntrack.8                         |   8 +
+ src/conntrack.c                     | 546 +++++++++++++++++++++-------
+ tests/conntrack/test-conntrack.c    |  84 ++++-
+ tests/conntrack/testsuite/08stdin   |  80 ++++
+ tests/conntrack/testsuite/09dumpopt | 147 ++++++++
+ 5 files changed, 726 insertions(+), 139 deletions(-)
+ create mode 100644 tests/conntrack/testsuite/08stdin
+ create mode 100644 tests/conntrack/testsuite/09dumpopt
 
-Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
----
- net/netfilter/xt_recent.c | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index 606411869698..0446307516cd 100644
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -152,7 +152,8 @@ static void recent_entry_remove(struct recent_table *t, struct recent_entry *e)
- /*
-  * Drop entries with timestamps older then 'time'.
-  */
--static void recent_entry_reap(struct recent_table *t, unsigned long time)
-+static void recent_entry_reap(struct recent_table *t, unsigned long time,
-+			      struct recent_entry *working, bool update)
- {
- 	struct recent_entry *e;
- 
-@@ -161,6 +162,12 @@ static void recent_entry_reap(struct recent_table *t, unsigned long time)
- 	 */
- 	e = list_entry(t->lru_list.next, struct recent_entry, lru_list);
- 
-+	/*
-+	 * Do not reap the entry which are going to be updated.
-+	 */
-+	if (e == working && update)
-+		return;
-+
- 	/*
- 	 * The last time stamp is the most recent.
- 	 */
-@@ -303,7 +310,8 @@ recent_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 
- 		/* info->seconds must be non-zero */
- 		if (info->check_set & XT_RECENT_REAP)
--			recent_entry_reap(t, time);
-+			recent_entry_reap(t, time, e,
-+				info->check_set & XT_RECENT_UPDATE && ret);
- 	}
- 
- 	if (info->check_set & XT_RECENT_SET ||
 -- 
-2.20.1
+2.25.1
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics
-          H-1525 Budapest 114, POB. 49, Hungary
