@@ -7,62 +7,62 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D0F2C433E0
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Jan 2021 21:26:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A24FC433DB
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Jan 2021 21:26:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2AF2964E00
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Jan 2021 21:26:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CCFCD64E0B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Jan 2021 21:26:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233454AbhA2V0R (ORCPT
+        id S233466AbhA2V0l (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 29 Jan 2021 16:26:17 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45540 "EHLO
+        Fri, 29 Jan 2021 16:26:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45680 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233452AbhA2VZ6 (ORCPT
+        with ESMTP id S233369AbhA2V0h (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 29 Jan 2021 16:25:58 -0500
-Received: from mail-ej1-x62e.google.com (mail-ej1-x62e.google.com [IPv6:2a00:1450:4864:20::62e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6EC01C061756
-        for <netfilter-devel@vger.kernel.org>; Fri, 29 Jan 2021 13:25:18 -0800 (PST)
-Received: by mail-ej1-x62e.google.com with SMTP id kg20so15018580ejc.4
-        for <netfilter-devel@vger.kernel.org>; Fri, 29 Jan 2021 13:25:18 -0800 (PST)
+        Fri, 29 Jan 2021 16:26:37 -0500
+Received: from mail-ej1-x635.google.com (mail-ej1-x635.google.com [IPv6:2a00:1450:4864:20::635])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FD81C0613ED
+        for <netfilter-devel@vger.kernel.org>; Fri, 29 Jan 2021 13:25:20 -0800 (PST)
+Received: by mail-ej1-x635.google.com with SMTP id w1so14956480ejf.11
+        for <netfilter-devel@vger.kernel.org>; Fri, 29 Jan 2021 13:25:20 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=cloud.ionos.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=WdX61FgOUJrG/Flj3VHA/kEi/PjPOXhB4irw9aagjSc=;
-        b=XJjRpEy1Ed5V+ck4B6wlmLVn1ix4RfwGTGpOu5MaaS9TfTpHOtvnI9MfR3ywg6DZOd
-         ccN38XAfp56XxU5VhANaDvZ5FNakv81Ti9utmBJV7G17qxOp7H4H2IoczwB6l91Jpt2e
-         PKXocqWTi0gKEpQZcgoadPg8y9Xo54CK+Ux+X/J3vN11nC3Gf+6eb/sabdaCJ8V2we7E
-         c8Ff/TYqRH+10drrxBbt2i83/JRwQd9v8cQXVmmMCKGINTsrgHRdh27KcDgLy8DdhAA9
-         wQPSb+XszkEfNfrlYu018CEPTcOrQzMrV7bnt/Krl96ZOfG+7TbtwT0PhhfaLoMc4rcP
-         UJEQ==
+        bh=Pev26Wl8npqOnE2zS5Mqns+dc9VfXdgx8YoOnh20kfQ=;
+        b=E1zF+eS5ZENzAN8uUepEkG1zq/Ru8cFcLiI1pPrZDMAaMYKsy8PKy47+4rUMaODvH2
+         +NRNIMB+gWhZIRbF38GdV47Qk6Vv7jCMLpyvupzUB8gCGtF7UokFUT3uCxg5833KF0Rz
+         +GlStEzBDH0UbJ/Opot/bJDgIQJIDFQUWqAni7jJT7D9dkXo1bUQy/XMuKsblCy/hdPM
+         hmBcyOY/Ufi2tdtQFtcMjdBX8Lgdo9A45vYfGtai9qcGgI4Yc3bv0k8A5XcsJh4tvNYr
+         CKXLzp3EM/8R2fOvvjh7NanOl8B1rgVZaewBOa+HPYiFHtfjeEaEuGgA7a6JIjRuRxWG
+         DoSQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=WdX61FgOUJrG/Flj3VHA/kEi/PjPOXhB4irw9aagjSc=;
-        b=Me9haaqxEO7+mWrYd5myQ2YlNHRLWrMy1aBoeeHYNa6BOWUYnJsyxPSP+e0+Nt8SpT
-         WqiFqFakfwy9FwzVeK+5vdk0cpN/bph9P6hcnKQrEy++zfqaye5TEX15uts8mc8tuO5O
-         X3E9YfXJCfAfHDNjhweS1fmB7rq/qtqtWJBou2ZFB+zwBaZjkVHO1xzWX/PyKRmisKF6
-         zzI8WjNewz2tNw6swuvIwKWNW9vvUR9Llmqs50FjNr9DVOZ+6FnJ07a5+JN39eertaz4
-         w4PEEGgHSphIgRpEbl9HvHUKSGkXCTwc648BBOUVgEToexJWH8jOQn+29IyH+hqKoMxE
-         c0mg==
-X-Gm-Message-State: AOAM532i3g1S0PCb6U49ffaA/UEkU3JMDQRqYNQg5GrHlDYXpwcFKgM+
-        pw1moZEVQ1udCoaVcKADrRkaOZvnjbNUFQ==
-X-Google-Smtp-Source: ABdhPJzmCk+2aTJGr/uF2UTvdplfx3x0Oi5+FAGqAK8ZyinRuOAJEl0RYfFOSFaquY27lGkF6ldydg==
-X-Received: by 2002:a17:906:c0cd:: with SMTP id bn13mr6270483ejb.368.1611955516882;
-        Fri, 29 Jan 2021 13:25:16 -0800 (PST)
+        bh=Pev26Wl8npqOnE2zS5Mqns+dc9VfXdgx8YoOnh20kfQ=;
+        b=G12dbX4VjFunkEpCdu8laQTYguk2CDymo59lKbxjZ4Jp4MlI320Nuk/uTqrtQOc6j2
+         UUk/qw+CYi9tnh1z//jXh6Ve3hPgohItL39vfsYWJmItuZZKzM3A8gT+fxPcMjesJMBo
+         AHcff1giFTqRZkPZ+oSsdKrx45dNufLwM5XJkkvt/Sp/EcMU8wVQ8smR+OBP8RPweb+q
+         Ray7TufFjo4pG7t4dwRPVMZY9BScH4XrvnW4R+QEUBjNGT52FUql2vJUb6x9Ls3iBK5G
+         hNAAABiDYgvP+DonxU/ZXQPpT9mL00DIsdc9BLBRm/+UaID7XCmG/A1ad2bvB2lsFpx8
+         DGLg==
+X-Gm-Message-State: AOAM530ht6r7xgcttT60d6B24L9ACD9mNpPbnrLQpALHEg1k5Wx40sRy
+        MturDCPUe88kaLbvZV7HeNNhwzkpoi8L2w==
+X-Google-Smtp-Source: ABdhPJw2BU37JAWS82NjEWpfqedC7t3rYeCegmIQ2agxfz0a04wcEKZp4Qd+PusqPlu1Bno0GdgfRw==
+X-Received: by 2002:a17:906:52c1:: with SMTP id w1mr6675019ejn.214.1611955518690;
+        Fri, 29 Jan 2021 13:25:18 -0800 (PST)
 Received: from msennikovskii4.fkb.profitbricks.net (ip5f5bd4ff.dynamic.kabel-deutschland.de. [95.91.212.255])
-        by smtp.gmail.com with ESMTPSA id q2sm5143218edv.93.2021.01.29.13.25.16
+        by smtp.gmail.com with ESMTPSA id q2sm5143218edv.93.2021.01.29.13.25.17
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 29 Jan 2021 13:25:16 -0800 (PST)
+        Fri, 29 Jan 2021 13:25:18 -0800 (PST)
 From:   Mikhail Sennikovsky <mikhail.sennikovskii@cloud.ionos.com>
 To:     netfilter-devel@vger.kernel.org, pablo@netfilter.org
 Cc:     Mikhail Sennikovsky <mikhail.sennikovskii@cloud.ionos.com>
-Subject: [PATCH v3 3/8] conntrack: per-command entries counters
-Date:   Fri, 29 Jan 2021 22:24:47 +0100
-Message-Id: <20210129212452.45352-4-mikhail.sennikovskii@cloud.ionos.com>
+Subject: [PATCH v3 5/8] conntrack: accept commands from file
+Date:   Fri, 29 Jan 2021 22:24:49 +0100
+Message-Id: <20210129212452.45352-6-mikhail.sennikovskii@cloud.ionos.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210129212452.45352-1-mikhail.sennikovskii@cloud.ionos.com>
 References: <20210129212452.45352-1-mikhail.sennikovskii@cloud.ionos.com>
@@ -72,345 +72,212 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-As a multicommand support preparation entry counters need
-to be made per-command as well, e.g. for the case -D and -I
-can be executed in a single batch, and we want to have separate
-counters for them.
+This commit implements the --load-file option which
+allows processing conntrack commands stored in file.
+Most often this would be used as a counter-part for the
+-o save option, which outputs conntrack entries
+in the format of the conntrack tool options.
+This could be useful when one needs to add/update/delete a large
+set of ct entries with a single conntrack tool invocation.
+
+Expected syntax is "conntrack --load-file file".
+If "-" is given as a file name, stdin is used.
+No other commands or options are allowed to be specified
+in conjunction with the --load-file command.
+It is however possible to specify multiple --load-file file pairs.
+
+Example:
+Copy all entries from ct zone 11 to ct zone 12:
+
+conntrack -L -w 11 -o save | sed "s/-w 11/-w 12/g" | \
+        conntrack --load-file -
 
 Signed-off-by: Mikhail Sennikovsky <mikhail.sennikovskii@cloud.ionos.com>
 ---
- src/conntrack.c | 117 +++++++++++++++++++++++++++++++++---------------
- 1 file changed, 81 insertions(+), 36 deletions(-)
+ src/conntrack.c | 163 +++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 162 insertions(+), 1 deletion(-)
 
 diff --git a/src/conntrack.c b/src/conntrack.c
-index a090542..4783825 100644
+index 1719ca9..97357b0 100644
 --- a/src/conntrack.c
 +++ b/src/conntrack.c
-@@ -1663,8 +1663,48 @@ nfct_filter(const struct ct_cmd *cmd,
- 	return 0;
+@@ -3648,6 +3648,167 @@ static void ct_cmd_list_parse_argv(struct ct_cmd_list *list,
+ 	ct_cmd_list_add(list, ct_cmd_create(argc, argv));
  }
  
--static int counter;
- static int dump_xml_header_done = 1;
-+static unsigned int cmd_executed = 0;
-+static const unsigned int cmd_no_entries_ok = 0
-+						| CT_LIST
-+						| EXP_LIST
-+						;
-+static unsigned int cmd_counters[NUMBER_OF_CMD];
++#define MAX_ARGC	255
++struct argv_store {
++	int argc;
++	char *argv[MAX_ARGC];
++	int argvattr[MAX_ARGC];
++};
 +
-+static int
-+print_cmd_counters(void)
++/* function adding one argument to store, updating argc
++ * returns if argument added, does not return otherwise */
++static void add_argv(struct argv_store *store, const char *what, int quoted)
 +{
-+	int i, ret = EXIT_FAILURE;
++	if (store->argc + 1 >= MAX_ARGC)
++		exit_error(PARAMETER_PROBLEM,
++			      "Parser cannot handle more arguments\n");
++	if (!what)
++		exit_error(PARAMETER_PROBLEM,
++			      "Trying to store NULL argument\n");
 +
-+	if (!cmd_executed)
-+		return EXIT_SUCCESS;
-+
-+	for (i = 0;
-+		i < (int)(sizeof(cmd_counters) / sizeof(cmd_counters[0]));
-+		++i) {
-+		if (cmd_executed & 1 << i) {
-+			if (exit_msg[i][0]) {
-+				fprintf(stderr, "%s v%s (conntrack-tools): ",
-+							PROGNAME, VERSION);
-+				fprintf(stderr, exit_msg[i], cmd_counters[i]);
-+			}
-+			/*
-+			 * If there is at least one command which is supposed
-+			 * to return success, EXIT_SUCCESS is returned.
-+			 * I.e. for the --load-file case this would ensure that
-+			 * e.g. -D followed by a series of -I's
-+			 * would return success in case there are no entries
-+			 * to be deleted with the -D command preceding the -I's
-+			 */
-+			if (!exit_msg[i][0]
-+					|| cmd_counters[i] != 0
-+					|| cmd_no_entries_ok & 1 << i)
-+				ret &= EXIT_SUCCESS;
-+		}
-+	}
-+	return ret;
++	store->argv[store->argc] = strdup(what);
++	store->argvattr[store->argc] = quoted;
++	store->argv[++store->argc] = NULL;
 +}
 +
- 
- static void __attribute__((noreturn))
- event_sighandler(int s)
-@@ -1674,8 +1714,7 @@ event_sighandler(int s)
- 		fflush(stdout);
- 	}
- 
--	fprintf(stderr, "%s v%s (conntrack-tools): ", PROGNAME, VERSION);
--	fprintf(stderr, "%d flow events have been shown.\n", counter);
-+	print_cmd_counters();
- 	mnl_socket_close(sock.mnl);
- 	exit(0);
- }
-@@ -1688,8 +1727,7 @@ exp_event_sighandler(int s)
- 		fflush(stdout);
- 	}
- 
--	fprintf(stderr, "%s v%s (conntrack-tools): ", PROGNAME, VERSION);
--	fprintf(stderr, "%d expectation events have been shown.\n", counter);
-+	print_cmd_counters();
- 	nfct_close(cth);
- 	exit(0);
- }
-@@ -1938,7 +1976,7 @@ done:
- 	}
- 	fflush(stdout);
- 
--	counter++;
-+	cmd_counters[cmd->cmd]++;
- out:
- 	nfct_destroy(ct);
- 	return MNL_CB_OK;
-@@ -1981,7 +2019,7 @@ static int dump_cb(enum nf_conntrack_msg_type type,
- done:
- 	printf("%s\n", buf);
- 
--	counter++;
-+	cmd_counters[cmd->cmd]++;
- 
- 	return NFCT_CB_CONTINUE;
- }
-@@ -2022,7 +2060,7 @@ static int delete_cb(enum nf_conntrack_msg_type type,
- done:
- 	printf("%s\n", buf);
- 
--	counter++;
-+	cmd_counters[cmd->cmd]++;
- 
- 	return NFCT_CB_CONTINUE;
- }
-@@ -2207,7 +2245,7 @@ static int update_cb(enum nf_conntrack_msg_type type,
- 	nfct_destroy(tmp);
- 	nfct_callback_unregister(ith);
- 
--	counter++;
-+	cmd_counters[cmd->cmd]++;
- 
- 	return NFCT_CB_CONTINUE;
- }
-@@ -2217,6 +2255,7 @@ static int dump_exp_cb(enum nf_conntrack_msg_type type,
- 		      void *data)
- {
- 	char buf[1024];
-+	struct ct_cmd *cmd = data;
- 	unsigned int op_type = NFCT_O_DEFAULT;
- 	unsigned int op_flags = 0;
- 
-@@ -2239,7 +2278,7 @@ static int dump_exp_cb(enum nf_conntrack_msg_type type,
- 
- 	nfexp_snprintf(buf,sizeof(buf), exp, NFCT_T_UNKNOWN, op_type, op_flags);
- 	printf("%s\n", buf);
--	counter++;
-+	cmd_counters[cmd->cmd]++;
- 
- 	return NFCT_CB_CONTINUE;
- }
-@@ -2248,6 +2287,7 @@ static int event_exp_cb(enum nf_conntrack_msg_type type,
- 			struct nf_expect *exp, void *data)
- {
- 	char buf[1024];
-+	struct ct_cmd *cmd = data;
- 	unsigned int op_type = NFCT_O_DEFAULT;
- 	unsigned int op_flags = 0;
- 
-@@ -2271,7 +2311,7 @@ static int event_exp_cb(enum nf_conntrack_msg_type type,
- 	nfexp_snprintf(buf,sizeof(buf), exp, type, op_type, op_flags);
- 	printf("%s\n", buf);
- 	fflush(stdout);
--	counter++;
-+	cmd_counters[cmd->cmd]++;
- 
- 	return NFCT_CB_CONTINUE;
- }
-@@ -2280,7 +2320,9 @@ static int count_exp_cb(enum nf_conntrack_msg_type type,
- 			struct nf_expect *exp,
- 			void *data)
- {
--	counter++;
-+	struct ct_cmd *cmd = data;
++static void free_argv(struct argv_store *store)
++{
++	while (store->argc) {
++		store->argc--;
++		free(store->argv[store->argc]);
++		store->argvattr[store->argc] = 0;
++	}
++}
 +
-+	cmd_counters[cmd->cmd]++;
- 	return NFCT_CB_CONTINUE;
- }
- 
-@@ -2396,7 +2438,9 @@ static void nfct_mnl_socket_close(void)
- }
- 
- static int
--nfct_mnl_dump(uint16_t subsys, uint16_t type, mnl_cb_t cb, uint8_t family)
-+nfct_mnl_dump(uint16_t subsys, uint16_t type,
-+		      mnl_cb_t cb, void *data,
-+		      uint8_t family)
- {
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
- 	struct nlmsghdr *nlh;
-@@ -2411,7 +2455,7 @@ nfct_mnl_dump(uint16_t subsys, uint16_t type, mnl_cb_t cb, uint8_t family)
- 	res = mnl_socket_recvfrom(sock.mnl, buf, sizeof(buf));
- 	while (res > 0) {
- 		res = mnl_cb_run(buf, res, nlh->nlmsg_seq, sock.portid,
--					 cb, NULL);
-+					 cb, data);
- 		if (res <= MNL_CB_STOP)
- 			break;
- 
-@@ -2581,6 +2625,7 @@ static int mnl_nfct_dump_cb(const struct nlmsghdr *nlh, void *data)
- {
- 	struct nf_conntrack *ct;
- 	char buf[4096];
-+	struct ct_cmd *cmd = data;
- 
- 	ct = nfct_new();
- 	if (ct == NULL)
-@@ -2593,7 +2638,7 @@ static int mnl_nfct_dump_cb(const struct nlmsghdr *nlh, void *data)
- 
- 	nfct_destroy(ct);
- 
--	counter++;
-+	cmd_counters[cmd->cmd]++;
- 
- 	return MNL_CB_OK;
- }
-@@ -3051,6 +3096,10 @@ static void do_parse(struct ct_cmd *ct_cmd, int argc, char *argv[])
- 		}
- 	}
- 
-+	if (!command)
-+		/* invalid args */
-+		exit_error(PARAMETER_PROBLEM, "invalid cmd line syntax");
++struct ct_param_buf {
++	char	buffer[1024];
++	int 	len;
++};
 +
- 	/* default family only for the following commands */
- 	if (family == AF_UNSPEC) {
- 		switch (command) {
-@@ -3106,11 +3155,14 @@ static void do_parse(struct ct_cmd *ct_cmd, int argc, char *argv[])
- 	ct_cmd->socketbuffersize = socketbuffersize;
- }
- 
--static int do_command_ct(const char *progname, struct ct_cmd *cmd)
-+static void do_command_ct(const char *progname, struct ct_cmd *cmd)
- {
- 	struct nfct_filter_dump *filter_dump;
- 	int res = 0;
- 
-+	assert(cmd->cmd < sizeof(cmd_counters) / sizeof(cmd_counters[0]));
-+	cmd_executed |= cmd->command;
++static void add_param(struct ct_param_buf *param, const char *curchar)
++{
++	param->buffer[param->len++] = *curchar;
++	if (param->len >= (int)sizeof(param->buffer))
++		exit_error(PARAMETER_PROBLEM, "Parameter too long!");
++}
 +
- 	switch(cmd->command) {
- 	case CT_LIST:
- 		if (cmd->type == CT_TABLE_DYING) {
-@@ -3119,7 +3171,7 @@ static int do_command_ct(const char *progname, struct ct_cmd *cmd)
- 
- 			res = nfct_mnl_dump(NFNL_SUBSYS_CTNETLINK,
- 					    IPCTNL_MSG_CT_GET_DYING,
--					    mnl_nfct_dump_cb, cmd->family);
-+					    mnl_nfct_dump_cb, cmd, cmd->family);
- 
- 			nfct_mnl_socket_close();
- 			break;
-@@ -3129,7 +3181,7 @@ static int do_command_ct(const char *progname, struct ct_cmd *cmd)
- 
- 			res = nfct_mnl_dump(NFNL_SUBSYS_CTNETLINK,
- 					    IPCTNL_MSG_CT_GET_UNCONFIRMED,
--					    mnl_nfct_dump_cb, cmd->family);
-+					    mnl_nfct_dump_cb, cmd, cmd->family);
- 
- 			nfct_mnl_socket_close();
- 			break;
-@@ -3182,7 +3234,7 @@ static int do_command_ct(const char *progname, struct ct_cmd *cmd)
- 		if (!cth)
- 			exit_error(OTHER_PROBLEM, "Can't open handler");
- 
--		nfexp_callback_register(cth, NFCT_T_ALL, dump_exp_cb, NULL);
-+		nfexp_callback_register(cth, NFCT_T_ALL, dump_exp_cb, cmd);
- 		res = nfexp_query(cth, NFCT_Q_DUMP, &cmd->family);
- 		nfct_close(cth);
- 
-@@ -3211,7 +3263,7 @@ static int do_command_ct(const char *progname, struct ct_cmd *cmd)
- 
- 		res = nfct_query(cth, NFCT_Q_CREATE, cmd->tmpl.ct);
- 		if (res != -1)
--			counter++;
-+			cmd_counters[cmd->cmd]++;
- 		nfct_close(cth);
- 		break;
- 
-@@ -3303,7 +3355,7 @@ static int do_command_ct(const char *progname, struct ct_cmd *cmd)
- 		if (!cth)
- 			exit_error(OTHER_PROBLEM, "Can't open handler");
- 
--		nfexp_callback_register(cth, NFCT_T_ALL, dump_exp_cb, NULL);
-+		nfexp_callback_register(cth, NFCT_T_ALL, dump_exp_cb, cmd);
- 		res = nfexp_query(cth, NFCT_Q_GET, cmd->tmpl.exp);
- 		nfct_close(cth);
- 		break;
-@@ -3424,7 +3476,7 @@ static int do_command_ct(const char *progname, struct ct_cmd *cmd)
- 			exit_error(OTHER_PROBLEM, "Can't open handler");
- 		signal(SIGINT, exp_event_sighandler);
- 		signal(SIGTERM, exp_event_sighandler);
--		nfexp_callback_register(cth, NFCT_T_ALL, event_exp_cb, NULL);
-+		nfexp_callback_register(cth, NFCT_T_ALL, event_exp_cb, cmd);
- 		res = nfexp_catch(cth);
- 		nfct_close(cth);
- 		break;
-@@ -3468,10 +3520,10 @@ try_proc_count:
- 		if (!cth)
- 			exit_error(OTHER_PROBLEM, "Can't open handler");
- 
--		nfexp_callback_register(cth, NFCT_T_ALL, count_exp_cb, NULL);
-+		nfexp_callback_register(cth, NFCT_T_ALL, count_exp_cb, cmd);
- 		res = nfexp_query(cth, NFCT_Q_DUMP, &cmd->family);
- 		nfct_close(cth);
--		printf("%d\n", counter);
-+		printf("%d\n", cmd_counters[cmd->cmd]);
- 		break;
- 	case CT_STATS:
- 		/* If we fail with netlink, fall back to /proc to ensure
-@@ -3482,7 +3534,7 @@ try_proc_count:
- 
- 		res = nfct_mnl_dump(NFNL_SUBSYS_CTNETLINK,
- 				    IPCTNL_MSG_CT_GET_STATS_CPU,
--				    nfct_stats_cb, AF_UNSPEC);
-+				    nfct_stats_cb, NULL, AF_UNSPEC);
- 
- 		nfct_mnl_socket_close();
- 
-@@ -3501,7 +3553,7 @@ try_proc_count:
- 
- 		res = nfct_mnl_dump(NFNL_SUBSYS_CTNETLINK_EXP,
- 				    IPCTNL_MSG_EXP_GET_STATS_CPU,
--				    nfexp_stats_cb, AF_UNSPEC);
-+				    nfexp_stats_cb, NULL, AF_UNSPEC);
- 
- 		nfct_mnl_socket_close();
- 
-@@ -3533,15 +3585,6 @@ try_proc:
- 	free_options();
- 	if (labelmap)
- 		nfct_labelmap_destroy(labelmap);
--
--	if (cmd->command && exit_msg[cmd->cmd][0]) {
--		fprintf(stderr, "%s v%s (conntrack-tools): ",PROGNAME,VERSION);
--		fprintf(stderr, exit_msg[cmd->cmd], counter);
--		if (counter == 0 && !(cmd->command & (CT_LIST | EXP_LIST)))
--			return EXIT_FAILURE;
--	}
--
--	return EXIT_SUCCESS;
- }
- 
++static void add_param_to_argv(struct argv_store *store, char *parsestart)
++{
++	int quote_open = 0, escaped = 0, quoted = 0;
++	struct ct_param_buf param = {};
++	char *curchar;
++
++	/* After fighting with strtok enough, here's now
++	 * a 'real' parser. According to Rusty I'm now no
++	 * longer a real hacker, but I can live with that */
++
++	for (curchar = parsestart; *curchar; curchar++) {
++		if (quote_open) {
++			if (escaped) {
++				add_param(&param, curchar);
++				escaped = 0;
++				continue;
++			} else if (*curchar == '\\') {
++				escaped = 1;
++				continue;
++			} else if (*curchar == '"') {
++				quote_open = 0;
++			} else {
++				add_param(&param, curchar);
++				continue;
++			}
++		} else {
++			if (*curchar == '"') {
++				quote_open = 1;
++				quoted = 1;
++				continue;
++			}
++		}
++
++		switch (*curchar) {
++		case '"':
++			break;
++		case ' ':
++		case '\t':
++		case '\n':
++			if (!param.len) {
++				/* two spaces? */
++				continue;
++			}
++			break;
++		default:
++			/* regular character, copy to buffer */
++			add_param(&param, curchar);
++			continue;
++		}
++
++		param.buffer[param.len] = '\0';
++		add_argv(store, param.buffer, quoted);
++		param.len = 0;
++		quoted = 0;
++	}
++	if (param.len) {
++		param.buffer[param.len] = '\0';
++		add_argv(store, param.buffer, 0);
++	}
++}
++
++static void ct_cmd_list_parse_line(struct ct_cmd_list *list,
++		const char *progname, char *buffer)
++{
++	struct argv_store store = {};
++
++	/* skip prepended tabs and spaces */
++	for (; *buffer == ' ' || *buffer == '\t'; buffer++);
++
++	if (buffer[0] == '\n'
++			|| buffer[0] == '#')
++		return;
++
++	add_argv(&store, progname, false);
++
++	add_param_to_argv(&store, buffer);
++
++	ct_cmd_list_parse_argv(list, store.argc, store.argv);
++
++	free_argv(&store);
++}
++
++static void ct_cmd_list_parse_file(struct ct_cmd_list *list,
++			   const char *progname,
++			   const char *file_name)
++{
++	char buffer[10240] = {};
++	FILE *file;
++
++	if (!strcmp(file_name, "-"))
++		file_name = "/dev/stdin";
++
++	file = fopen(file_name, "r");
++	if (!file)
++		exit_error(PARAMETER_PROBLEM, NULL,
++					   "Failed to open file %s for reading", file_name);
++
++	while (fgets(buffer, sizeof(buffer), file))
++		ct_cmd_list_parse_line(list, progname, buffer);
++}
++
++static void ct_cmd_list_parse(struct ct_cmd_list *list, int argc, char *argv[])
++{
++	if (argc > 2
++			&& (!strcmp(argv[1], "-R")
++			|| !strcmp(argv[1], "--load-file"))) {
++		int i;
++
++		cmd_allowed = CT_COMMANDS_LOAD_FILE_ALLOWED;
++
++		for (i = 2; i < argc; ++i)
++			ct_cmd_list_parse_file(list, argv[0], argv[i]);
++		return;
++	}
++	ct_cmd_list_parse_argv(list, argc, argv);
++}
++
  int main(int argc, char *argv[])
-@@ -3560,5 +3603,7 @@ int main(int argc, char *argv[])
+ {
+ 	struct ct_cmd_list list;
+@@ -3664,7 +3825,7 @@ int main(int argc, char *argv[])
  
- 	do_parse(cmd, argc, argv);
+ 	ct_cmd_list_init(&list);
  
--	return do_command_ct(argv[0], cmd);
-+	do_command_ct(argv[0], cmd);
-+
-+	return print_cmd_counters();
- }
+-	ct_cmd_list_parse_argv(&list, argc, argv);
++	ct_cmd_list_parse(&list, argc, argv);
+ 
+ 	ct_cmd_list_apply(&list, argv[0]);
+ 
 -- 
 2.25.1
 
