@@ -7,62 +7,62 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A24FC433DB
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Jan 2021 21:26:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4D4EC433E6
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Jan 2021 21:26:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CCFCD64E0B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Jan 2021 21:26:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 37B1364E06
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Jan 2021 21:26:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233466AbhA2V0l (ORCPT
+        id S233467AbhA2V0n (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 29 Jan 2021 16:26:41 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45680 "EHLO
+        Fri, 29 Jan 2021 16:26:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45682 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233369AbhA2V0h (ORCPT
+        with ESMTP id S233380AbhA2V0h (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 29 Jan 2021 16:26:37 -0500
-Received: from mail-ej1-x635.google.com (mail-ej1-x635.google.com [IPv6:2a00:1450:4864:20::635])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FD81C0613ED
+Received: from mail-ed1-x530.google.com (mail-ed1-x530.google.com [IPv6:2a00:1450:4864:20::530])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF0A4C061786
         for <netfilter-devel@vger.kernel.org>; Fri, 29 Jan 2021 13:25:20 -0800 (PST)
-Received: by mail-ej1-x635.google.com with SMTP id w1so14956480ejf.11
+Received: by mail-ed1-x530.google.com with SMTP id c6so12249998ede.0
         for <netfilter-devel@vger.kernel.org>; Fri, 29 Jan 2021 13:25:20 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=cloud.ionos.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=Pev26Wl8npqOnE2zS5Mqns+dc9VfXdgx8YoOnh20kfQ=;
-        b=E1zF+eS5ZENzAN8uUepEkG1zq/Ru8cFcLiI1pPrZDMAaMYKsy8PKy47+4rUMaODvH2
-         +NRNIMB+gWhZIRbF38GdV47Qk6Vv7jCMLpyvupzUB8gCGtF7UokFUT3uCxg5833KF0Rz
-         +GlStEzBDH0UbJ/Opot/bJDgIQJIDFQUWqAni7jJT7D9dkXo1bUQy/XMuKsblCy/hdPM
-         hmBcyOY/Ufi2tdtQFtcMjdBX8Lgdo9A45vYfGtai9qcGgI4Yc3bv0k8A5XcsJh4tvNYr
-         CKXLzp3EM/8R2fOvvjh7NanOl8B1rgVZaewBOa+HPYiFHtfjeEaEuGgA7a6JIjRuRxWG
-         DoSQ==
+        bh=JrJr3kAp1AOA2MAWe4av0IDZUY9ujH+yzKZciZ9I8K8=;
+        b=h0h0O+ULUWibdZrldDpnXWbqlKKvHayO543aIFQb8WXe6N2648tRl/gKf9VCurgOlk
+         90EuxGEeh2ivOqV95xiFzZtPZ4Fy9J7otluQClDzytZZD5cl0NVUBR44ucbdKojrshVO
+         5upu/YHJR5XBwvG4AS7aQPJdS1/UzWI/I9dRqhbW2Wx6q+WgiCJCKEwaXDfoRw4Xruoo
+         9EGDcnv2qyW0Sp18RJbsy7maHTwa1xqsIicfh0z6IlWuI9yosF8+gJY8+oybQwSTnUWs
+         ZlXzYV5qGmJcePuZJiHOuSDdXX2cf60/OOLOZ2r3WD5JCMGPSkas1ggtjE+5EjXg2iEp
+         4feA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=Pev26Wl8npqOnE2zS5Mqns+dc9VfXdgx8YoOnh20kfQ=;
-        b=G12dbX4VjFunkEpCdu8laQTYguk2CDymo59lKbxjZ4Jp4MlI320Nuk/uTqrtQOc6j2
-         UUk/qw+CYi9tnh1z//jXh6Ve3hPgohItL39vfsYWJmItuZZKzM3A8gT+fxPcMjesJMBo
-         AHcff1giFTqRZkPZ+oSsdKrx45dNufLwM5XJkkvt/Sp/EcMU8wVQ8smR+OBP8RPweb+q
-         Ray7TufFjo4pG7t4dwRPVMZY9BScH4XrvnW4R+QEUBjNGT52FUql2vJUb6x9Ls3iBK5G
-         hNAAABiDYgvP+DonxU/ZXQPpT9mL00DIsdc9BLBRm/+UaID7XCmG/A1ad2bvB2lsFpx8
-         DGLg==
-X-Gm-Message-State: AOAM530ht6r7xgcttT60d6B24L9ACD9mNpPbnrLQpALHEg1k5Wx40sRy
-        MturDCPUe88kaLbvZV7HeNNhwzkpoi8L2w==
-X-Google-Smtp-Source: ABdhPJw2BU37JAWS82NjEWpfqedC7t3rYeCegmIQ2agxfz0a04wcEKZp4Qd+PusqPlu1Bno0GdgfRw==
-X-Received: by 2002:a17:906:52c1:: with SMTP id w1mr6675019ejn.214.1611955518690;
-        Fri, 29 Jan 2021 13:25:18 -0800 (PST)
+        bh=JrJr3kAp1AOA2MAWe4av0IDZUY9ujH+yzKZciZ9I8K8=;
+        b=FonHOf5G+A0MicVVuMa1N+BaG4RL4+hmlmzTFONlStR2WY0qm0hd847dKTVktb3R5o
+         fcnS78/fb5ITRswL5OaeyVtEcaXIOVGe9wR+SvRkN6Ylvt7S3ghgTvimELROk39ksOBy
+         db8Fk+fnRaN8rB2rKvIYMQBQRrxrpTUT+FiZuzG9AMm0E+RO/Cni1rfFqd+k42/PV3A8
+         7bn7Hii6WAgM8bN142vaTTLQQfytTOmoIEvGfe9ZK/3ycmW+ejTKseXznhKdW23T3q8w
+         A+Dw8L1DuReAJ503k76S0ofKT5pT/KStQkMHXzmwMktJChjxPwWU5cJMK33F8OuUMk0f
+         IwgQ==
+X-Gm-Message-State: AOAM531EsAdZMPoc6MPfMbArd5r5G1UpOFZXHckSB6YPUTj7Fkid1Y8s
+        E0tqzc73FXvWKKFiogatW1lACubl3aUZEw==
+X-Google-Smtp-Source: ABdhPJz2XflXIgEVLi7H3CpYrv6h/fxBdDwdbLdlusaWrIJ6foWBGPKutyHhjjrB7BuwDPw2HRJJ/w==
+X-Received: by 2002:a05:6402:160f:: with SMTP id f15mr7434488edv.348.1611955519368;
+        Fri, 29 Jan 2021 13:25:19 -0800 (PST)
 Received: from msennikovskii4.fkb.profitbricks.net (ip5f5bd4ff.dynamic.kabel-deutschland.de. [95.91.212.255])
-        by smtp.gmail.com with ESMTPSA id q2sm5143218edv.93.2021.01.29.13.25.17
+        by smtp.gmail.com with ESMTPSA id q2sm5143218edv.93.2021.01.29.13.25.18
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
         Fri, 29 Jan 2021 13:25:18 -0800 (PST)
 From:   Mikhail Sennikovsky <mikhail.sennikovskii@cloud.ionos.com>
 To:     netfilter-devel@vger.kernel.org, pablo@netfilter.org
 Cc:     Mikhail Sennikovsky <mikhail.sennikovskii@cloud.ionos.com>
-Subject: [PATCH v3 5/8] conntrack: accept commands from file
-Date:   Fri, 29 Jan 2021 22:24:49 +0100
-Message-Id: <20210129212452.45352-6-mikhail.sennikovskii@cloud.ionos.com>
+Subject: [PATCH v3 6/8] conntrack.8: man update for --load-file support
+Date:   Fri, 29 Jan 2021 22:24:50 +0100
+Message-Id: <20210129212452.45352-7-mikhail.sennikovskii@cloud.ionos.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210129212452.45352-1-mikhail.sennikovskii@cloud.ionos.com>
 References: <20210129212452.45352-1-mikhail.sennikovskii@cloud.ionos.com>
@@ -72,212 +72,44 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This commit implements the --load-file option which
-allows processing conntrack commands stored in file.
-Most often this would be used as a counter-part for the
--o save option, which outputs conntrack entries
-in the format of the conntrack tool options.
-This could be useful when one needs to add/update/delete a large
-set of ct entries with a single conntrack tool invocation.
-
-Expected syntax is "conntrack --load-file file".
-If "-" is given as a file name, stdin is used.
-No other commands or options are allowed to be specified
-in conjunction with the --load-file command.
-It is however possible to specify multiple --load-file file pairs.
-
-Example:
-Copy all entries from ct zone 11 to ct zone 12:
-
-conntrack -L -w 11 -o save | sed "s/-w 11/-w 12/g" | \
-        conntrack --load-file -
-
 Signed-off-by: Mikhail Sennikovsky <mikhail.sennikovskii@cloud.ionos.com>
 ---
- src/conntrack.c | 163 +++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 162 insertions(+), 1 deletion(-)
+ conntrack.8 | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/src/conntrack.c b/src/conntrack.c
-index 1719ca9..97357b0 100644
---- a/src/conntrack.c
-+++ b/src/conntrack.c
-@@ -3648,6 +3648,167 @@ static void ct_cmd_list_parse_argv(struct ct_cmd_list *list,
- 	ct_cmd_list_add(list, ct_cmd_create(argc, argv));
- }
+diff --git a/conntrack.8 b/conntrack.8
+index 898daae..a14cca6 100644
+--- a/conntrack.8
++++ b/conntrack.8
+@@ -23,6 +23,8 @@ conntrack \- command line interface for netfilter connection tracking
+ .BR "conntrack -C [table]"
+ .br
+ .BR "conntrack -S "
++.br
++.BR "conntrack -R file"
+ .SH DESCRIPTION
+ The \fBconntrack\fP utilty provides a full featured userspace interface to the
+ Netfilter connection tracking system that is intended to replace the old
+@@ -102,6 +104,9 @@ Show the table counter.
+ .TP
+ .BI "-S, --stats "
+ Show the in-kernel connection tracking system statistics.
++.TP
++.BI "-R, --load-file "
++Load entries from a given file. To read from stdin, "\-" should be specified.
  
-+#define MAX_ARGC	255
-+struct argv_store {
-+	int argc;
-+	char *argv[MAX_ARGC];
-+	int argvattr[MAX_ARGC];
-+};
-+
-+/* function adding one argument to store, updating argc
-+ * returns if argument added, does not return otherwise */
-+static void add_argv(struct argv_store *store, const char *what, int quoted)
-+{
-+	if (store->argc + 1 >= MAX_ARGC)
-+		exit_error(PARAMETER_PROBLEM,
-+			      "Parser cannot handle more arguments\n");
-+	if (!what)
-+		exit_error(PARAMETER_PROBLEM,
-+			      "Trying to store NULL argument\n");
-+
-+	store->argv[store->argc] = strdup(what);
-+	store->argvattr[store->argc] = quoted;
-+	store->argv[++store->argc] = NULL;
-+}
-+
-+static void free_argv(struct argv_store *store)
-+{
-+	while (store->argc) {
-+		store->argc--;
-+		free(store->argv[store->argc]);
-+		store->argvattr[store->argc] = 0;
-+	}
-+}
-+
-+struct ct_param_buf {
-+	char	buffer[1024];
-+	int 	len;
-+};
-+
-+static void add_param(struct ct_param_buf *param, const char *curchar)
-+{
-+	param->buffer[param->len++] = *curchar;
-+	if (param->len >= (int)sizeof(param->buffer))
-+		exit_error(PARAMETER_PROBLEM, "Parameter too long!");
-+}
-+
-+static void add_param_to_argv(struct argv_store *store, char *parsestart)
-+{
-+	int quote_open = 0, escaped = 0, quoted = 0;
-+	struct ct_param_buf param = {};
-+	char *curchar;
-+
-+	/* After fighting with strtok enough, here's now
-+	 * a 'real' parser. According to Rusty I'm now no
-+	 * longer a real hacker, but I can live with that */
-+
-+	for (curchar = parsestart; *curchar; curchar++) {
-+		if (quote_open) {
-+			if (escaped) {
-+				add_param(&param, curchar);
-+				escaped = 0;
-+				continue;
-+			} else if (*curchar == '\\') {
-+				escaped = 1;
-+				continue;
-+			} else if (*curchar == '"') {
-+				quote_open = 0;
-+			} else {
-+				add_param(&param, curchar);
-+				continue;
-+			}
-+		} else {
-+			if (*curchar == '"') {
-+				quote_open = 1;
-+				quoted = 1;
-+				continue;
-+			}
-+		}
-+
-+		switch (*curchar) {
-+		case '"':
-+			break;
-+		case ' ':
-+		case '\t':
-+		case '\n':
-+			if (!param.len) {
-+				/* two spaces? */
-+				continue;
-+			}
-+			break;
-+		default:
-+			/* regular character, copy to buffer */
-+			add_param(&param, curchar);
-+			continue;
-+		}
-+
-+		param.buffer[param.len] = '\0';
-+		add_argv(store, param.buffer, quoted);
-+		param.len = 0;
-+		quoted = 0;
-+	}
-+	if (param.len) {
-+		param.buffer[param.len] = '\0';
-+		add_argv(store, param.buffer, 0);
-+	}
-+}
-+
-+static void ct_cmd_list_parse_line(struct ct_cmd_list *list,
-+		const char *progname, char *buffer)
-+{
-+	struct argv_store store = {};
-+
-+	/* skip prepended tabs and spaces */
-+	for (; *buffer == ' ' || *buffer == '\t'; buffer++);
-+
-+	if (buffer[0] == '\n'
-+			|| buffer[0] == '#')
-+		return;
-+
-+	add_argv(&store, progname, false);
-+
-+	add_param_to_argv(&store, buffer);
-+
-+	ct_cmd_list_parse_argv(list, store.argc, store.argv);
-+
-+	free_argv(&store);
-+}
-+
-+static void ct_cmd_list_parse_file(struct ct_cmd_list *list,
-+			   const char *progname,
-+			   const char *file_name)
-+{
-+	char buffer[10240] = {};
-+	FILE *file;
-+
-+	if (!strcmp(file_name, "-"))
-+		file_name = "/dev/stdin";
-+
-+	file = fopen(file_name, "r");
-+	if (!file)
-+		exit_error(PARAMETER_PROBLEM, NULL,
-+					   "Failed to open file %s for reading", file_name);
-+
-+	while (fgets(buffer, sizeof(buffer), file))
-+		ct_cmd_list_parse_line(list, progname, buffer);
-+}
-+
-+static void ct_cmd_list_parse(struct ct_cmd_list *list, int argc, char *argv[])
-+{
-+	if (argc > 2
-+			&& (!strcmp(argv[1], "-R")
-+			|| !strcmp(argv[1], "--load-file"))) {
-+		int i;
-+
-+		cmd_allowed = CT_COMMANDS_LOAD_FILE_ALLOWED;
-+
-+		for (i = 2; i < argc; ++i)
-+			ct_cmd_list_parse_file(list, argv[0], argv[i]);
-+		return;
-+	}
-+	ct_cmd_list_parse_argv(list, argc, argv);
-+}
-+
- int main(int argc, char *argv[])
- {
- 	struct ct_cmd_list list;
-@@ -3664,7 +3825,7 @@ int main(int argc, char *argv[])
+ .SS PARAMETERS
+ .TP
+@@ -394,6 +399,9 @@ Delete all flow whose source address is 1.2.3.4
+ .TP
+ .B conntrack \-U \-s 1.2.3.4 \-m 1
+ Set connmark to 1 of all the flows whose source address is 1.2.3.4
++.TP
++.B conntrack -L -w 11 -o save | sed "s/-w 11/-w 12/g" | conntrack --load-file -
++Copy all entries from ct zone 11 to ct zone 12
  
- 	ct_cmd_list_init(&list);
- 
--	ct_cmd_list_parse_argv(&list, argc, argv);
-+	ct_cmd_list_parse(&list, argc, argv);
- 
- 	ct_cmd_list_apply(&list, argv[0]);
- 
+ .SH BUGS
+ Please, report them to netfilter-devel@vger.kernel.org or file a bug in
 -- 
 2.25.1
 
