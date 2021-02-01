@@ -3,130 +3,105 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B825BC433E0
-	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Feb 2021 10:49:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5881FC433DB
+	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Feb 2021 12:25:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6089464E94
-	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Feb 2021 10:49:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EE53D64E96
+	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Feb 2021 12:25:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232951AbhBAKts (ORCPT
+        id S229983AbhBAMZl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 1 Feb 2021 05:49:48 -0500
-Received: from mail-wr1-f48.google.com ([209.85.221.48]:39746 "EHLO
-        mail-wr1-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232714AbhBAKtq (ORCPT
+        Mon, 1 Feb 2021 07:25:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58470 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231192AbhBAMZh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 1 Feb 2021 05:49:46 -0500
-Received: by mail-wr1-f48.google.com with SMTP id a1so16052416wrq.6
-        for <netfilter-devel@vger.kernel.org>; Mon, 01 Feb 2021 02:49:29 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=P28sGIC6/IGQ1WtgSCh2q8jWo7HSM8OsU8a8un06ISE=;
-        b=YFajan8+1OZ5rPTs1pwZG4Jv1gjqJU/Zz9BRX/yIJ5gjDiOpnqIk1wrg7hXo6sdOlK
-         qz8gcY73YhYgf+j1YLyy80rCKjYQRXqDTN8w5GrHLBFbs2iMexyMfHQ4GEDJp8n24Ok0
-         fKhCL3HEAwOE4RNMp00712uxF1TZJkpmdjToTqtL0QLzDB1lIZ33RHpLc1g1r5tlreBV
-         nEyxC9J8q0czTnfCoWR6ql+OWHKyAhJkS0Lu6y7OEg9S8dcV0Iiw/BY+V8pGI4/VevtI
-         h6RzOazHpU5xnZFq0HbEowEyTuW7IRZwl2ZjlLzjYfq6eNYp7449nHU8wImBn+cao//o
-         QyBg==
-X-Gm-Message-State: AOAM530ByfwtewAoNG70gTv8iholvEmHYFPXq9kmmKMQwkpn1Is4URxm
-        x2uJ/UdHm691zzrmPY2l+73xDNZLVeM=
-X-Google-Smtp-Source: ABdhPJwH5hy1B6+R1DhPn4DpCCu22rcZEKHyn9SK7PalVvB8s2dL0svtw3gdlluHpB/2OL5VEjEivw==
-X-Received: by 2002:adf:f28b:: with SMTP id k11mr17373439wro.418.1612176543940;
-        Mon, 01 Feb 2021 02:49:03 -0800 (PST)
-Received: from [10.239.43.214] (79.red-80-24-233.staticip.rima-tde.net. [80.24.233.79])
-        by smtp.gmail.com with ESMTPSA id e16sm26583692wrp.24.2021.02.01.02.49.02
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 01 Feb 2021 02:49:03 -0800 (PST)
-Subject: Re: [conntrack-tools PATCH 1/3] tests: introduce new python-based
- framework for running tests
+        Mon, 1 Feb 2021 07:25:37 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80568C061573
+        for <netfilter-devel@vger.kernel.org>; Mon,  1 Feb 2021 04:24:56 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1l6YGF-0001T7-7b; Mon, 01 Feb 2021 13:24:55 +0100
+Date:   Mon, 1 Feb 2021 13:24:55 +0100
+From:   Florian Westphal <fw@strlen.de>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-References: <161144773322.52227.18304556638755743629.stgit@endurance>
- <20210201033147.GA20941@salvia>
-From:   Arturo Borrero Gonzalez <arturo@netfilter.org>
-Message-ID: <949b08b1-d7c7-c040-7218-9df63562c032@netfilter.org>
-Date:   Mon, 1 Feb 2021 11:49:02 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.6.1
+Subject: Re: [PATCH nf-next] netfilter: nftables: introduce table ownership
+Message-ID: <20210201122455.GE12443@breakpoint.cc>
+References: <20210127021928.2444-1-pablo@netfilter.org>
 MIME-Version: 1.0
-In-Reply-To: <20210201033147.GA20941@salvia>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210127021928.2444-1-pablo@netfilter.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2/1/21 4:31 AM, Pablo Neira Ayuso wrote:
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> A userspace daemon like firewalld might need to monitor for netlink
+> updates to detect its ruleset removal by the (global) flush ruleset
+> command to ensure ruleset persistence. This adds extra complexity from
+> userspace and, for some little time, the firewall policy is not in
+> place.
 > 
-> A few nitpick requests and one suggestion:
+> This patch adds the NFT_MSG_SETOWNER netlink command which allows a
+> userspace program to own the table that creates in exclusivity.
 > 
-> * Rename cttools-testing-framework.py to conntrackd-tests.py
-
-Done.
-
-> * Move it to the tests/conntrackd/ folder
-
-Done.
-
-
-> * Missing yaml dependency in python in my test machine
+> Tables that are owned...
 > 
-> Traceback (most recent call last):
->    File "cttools-testing-framework.py", line 36, in <module>
->      import yaml
-> ModuleNotFoundError: No module named 'yaml'
+> - can only be updated and removed by the owner, non-owners hit EPERM if
+>   they try to update it or remove it.
+> - are destroyed when the owner send the NFT_MSG_UNSETOWNER command,
+>   or the netlink socket is closed or the process is gone (implicit
+>   netlink socket closure).
+> - are skipped by the global flush ruleset command.
+> - are listed in the global ruleset.
 > 
-> this is installed from pip, right? Just a note in the commit message
-> is fine.
-
-It was already present in the commit message.
-
-I made it more clear:
-
-=== 8< ===
-On Debian machines, it requires the *python3-yaml* package to be installed as a 
-dependency
-=== 8< ===
-
+> The userspace process that sends the new NFT_MSG_SETOWNER command need
+> to leave open the netlink socket.
 > 
-> * Would it be possible to define the scenario in shell script files?
->    For example, to define the "simple_stats" scenario, the YAML file
->    looks like this:
-> 
-> - name: simple_stats
-> - script: shell/simple_stats.sh
-> 
-> The shell script takes "start" or "stop" as $1 to set up the scenario.
-> For developing more test, having the separated shell script might be
-> convenient.
-> 
+> The NFTA_TABLE_OWNER netlink attribute specifies the netlink port ID to
+> identify the owner.
 
-This is already supported:
+At least for systemd use case, there would be a need to allow
+add/removal of set elements from other user.
 
-=== 8< ===
-- name: myscenario
-   start:
-     - ./script.sh start
-   stop:
-     - ./script.sh stop
-=== 8< ===
+At the moment, table is created by systemd-networkd which will update
+the masquerade set.
 
-> Thanks !
-> 
+In case systemd-nspawn is used and configured to expose container
+services via dnat that will need to add the translation map:
 
-Thanks for the review. I made the changes you requested and pushed it to the 
-repository.
+add table ip io.systemd.nat
+add chain ip io.systemd.nat prerouting { type nat hook prerouting priority dstnat + 1; policy accept; }
+[..]
+# new generation 2 by process 1378 (systemd-network)
+add element ip io.systemd.nat masq_saddr { 192.168.159.192/28 }
+# new generation 3 by process 1378 (systemd-network)
+add element ip io.systemd.nat map_port_ipport { tcp . 2222 : 192.168.159.201 . 22 }
+# new generation 4 by process 1512 (systemd-nspawn)
 
-I plan to follow up soon with more tests.
+> +struct nft_owner {
+> +	struct list_head	list;
+> +	possible_net_t		net;
+> +	u32			nlpid;
+> +};
 
-Question: I have a few testcases that trigger bugs, segfaults etc. Would it be 
-OK to create something like 'failingtestcases.yaml' and register all those bugs 
-there until the get fixed? That way we have reproducible bugs until we can fix them.
+I don't see why this is needed.
+Isn't it enough to record the nlpid in the table and set a flag that the table is
+owned by that pid?
+
+> +		    nft_active_genmask(table, genmask)) {
+> +			if (nlpid && table->nlpid && table->nlpid != nlpid)
+> +				return ERR_PTR(-EPERM);
+> +
+
+i.e., (table->flags & OWNED) && table->nlpid != nlpid)?
+
+On netlink sk destruction the owner flag could be cleared or table
+could be auto-zapped.
