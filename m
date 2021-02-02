@@ -2,87 +2,121 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+X-Spam-Status: No, score=-19.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21B42C433E0
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Feb 2021 13:22:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67691C433E0
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Feb 2021 14:37:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DD06364F5D
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Feb 2021 13:22:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2BA9C64EAC
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Feb 2021 14:37:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231670AbhBBNWg (ORCPT
+        id S234499AbhBBOht (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 2 Feb 2021 08:22:36 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:49940 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S231290AbhBBNWd (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 2 Feb 2021 08:22:33 -0500
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-505-lKDvItlsNBqHhC4wCE1skg-1; Tue, 02 Feb 2021 08:21:04 -0500
-X-MC-Unique: lKDvItlsNBqHhC4wCE1skg-1
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 04FB3107ACF6;
-        Tue,  2 Feb 2021 13:21:03 +0000 (UTC)
-Received: from localhost (ovpn-113-65.rdu2.redhat.com [10.10.113.65])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id BDF685C1CF;
-        Tue,  2 Feb 2021 13:21:02 +0000 (UTC)
-Date:   Tue, 2 Feb 2021 08:21:02 -0500
-From:   Eric Garver <eric@garver.life>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, Michael Biebl <biebl@debian.org>
-Subject: Re: [PATCH nft 2/2] payload: check icmp dependency before removing
- previous icmp expression
-Message-ID: <20210202132102.GY3286651@egarver.remote.csb>
-Mail-Followup-To: Eric Garver <eric@garver.life>,
-        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-        Michael Biebl <biebl@debian.org>
-References: <20210201215005.26612-1-fw@strlen.de>
- <20210201215005.26612-2-fw@strlen.de>
+        Tue, 2 Feb 2021 09:37:49 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51384 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S231499AbhBBORr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 2 Feb 2021 09:17:47 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0966264FCD;
+        Tue,  2 Feb 2021 13:55:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1612274159;
+        bh=uqEQxgxP/Gh6jkafzcZMwsNruCxCCpY2QrRHAchjz/o=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=AJZKCAkxo4iNw6GvoaohZFZ6alAc19sFBqoWDRu0qkz7f0ZiSqji/3BwP2DQizckW
+         fRCRjI2NTiTh4HFtW09AF6rjvmTdGcbbCFqEdIZ0kAJYrmdiCtMrPEuD4IN5B0NoHN
+         WQ7J+ebZG6SJdlu1w8kHoaIB0H2kINRmq+k14SML6PRIIMoJCf/mwHEc8g6Sn6uuPB
+         9ztrCNZy9RseBE9g48WJ1yyI4PSypSHvbw6W7/XfdLfgT+1RiaEuTyEzr1DmCXFzvR
+         +67DFBd9dAd0Yd7JEfyZgxSstDlupg0aeJVm+Fad5uyt/lyxFU43SDI3UNHASfsRej
+         9xDdTDpTFlGOA==
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Jakub Kicinski <kuba@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Leon Romanovsky <leonro@nvidia.com>, coreteam@netfilter.org,
+        Eric Dumazet <edumazet@google.com>,
+        Florian Westphal <fw@strlen.de>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Julian Anastasov <ja@ssi.bg>, linux-kernel@vger.kernel.org,
+        lvs-devel@vger.kernel.org, Matteo Croce <mcroce@redhat.com>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Simon Horman <horms@verge.net.au>
+Subject: [PATCH net 4/4] netfilter: move handlers to net/ip_vs.h
+Date:   Tue,  2 Feb 2021 15:55:44 +0200
+Message-Id: <20210202135544.3262383-5-leon@kernel.org>
+X-Mailer: git-send-email 2.29.2
+In-Reply-To: <20210202135544.3262383-1-leon@kernel.org>
+References: <20210202135544.3262383-1-leon@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210201215005.26612-2-fw@strlen.de>
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Feb 01, 2021 at 10:50:04PM +0100, Florian Westphal wrote:
-> nft is too greedy when removing icmp dependencies.
-> 'icmp code 1 type 2' did remove the type when printing.
-> 
-> Be more careful and check that the icmp type dependency of the
-> candidate expression (earlier icmp payload expression) has the same
-> type dependency as the new expression.
-> 
-> Reported-by: Eric Garver <eric@garver.life>
-> Reported-by: Michael Biebl <biebl@debian.org>
-> Fixes: d0f3b9eaab8d77e ("payload: auto-remove simple icmp/icmpv6 dependency expressions")
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
+From: Leon Romanovsky <leonro@nvidia.com>
 
-Tested-by: Eric Garver <eric@garver.life>
+Fix the following compilation warnings:
+net/netfilter/ipvs/ip_vs_proto_tcp.c:147:1: warning: no previous prototype for 'tcp_snat_handler' [-Wmissing-prototypes]
+  147 | tcp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+      | ^~~~~~~~~~~~~~~~
+net/netfilter/ipvs/ip_vs_proto_udp.c:136:1: warning: no previous prototype for 'udp_snat_handler' [-Wmissing-prototypes]
+  136 | udp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+      | ^~~~~~~~~~~~~~~~
 
-Thanks Florian. This fixes the issue [1] reported against firewalld.
+Fixes: 6ecd754883da ("ipvs: use indirect call wrappers")
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ include/net/ip_vs.h             | 11 +++++++++++
+ net/netfilter/ipvs/ip_vs_core.c | 12 ------------
+ 2 files changed, 11 insertions(+), 12 deletions(-)
 
-[1]: https://github.com/firewalld/firewalld/issues/752
-
---->8---
-
---- -	2021-02-01 16:02:58.854101473 +0000
-+++ /tmp/autopkgtest.PRXtPH/build.yiS/src/src/tests/testsuite.dir/at-groups/97/stdout	2021-02-01 16:02:58.846718150 +0000
-@@ -1,6 +1,6 @@
- table inet firewalld {
- chain filter_IN_public_deny {
--icmp type destination-unreachable icmp code host-prohibited reject with icmpx type admin-prohibited
-+icmp code host-prohibited reject with icmpx type admin-prohibited
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index d609e957a3ec..7cb5a1aace40 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -1712,4 +1712,15 @@ ip_vs_dest_conn_overhead(struct ip_vs_dest *dest)
+ 		atomic_read(&dest->inactconns);
  }
- }
+
++#ifdef CONFIG_IP_VS_PROTO_TCP
++INDIRECT_CALLABLE_DECLARE(int
++	tcp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
++			 struct ip_vs_conn *cp, struct ip_vs_iphdr *iph));
++#endif
++
++#ifdef CONFIG_IP_VS_PROTO_UDP
++INDIRECT_CALLABLE_DECLARE(int
++	udp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
++			 struct ip_vs_conn *cp, struct ip_vs_iphdr *iph));
++#endif
+ #endif	/* _NET_IP_VS_H */
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index 54e086c65721..0c132ff9b446 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -68,18 +68,6 @@ EXPORT_SYMBOL(ip_vs_get_debug_level);
+ #endif
+ EXPORT_SYMBOL(ip_vs_new_conn_out);
+
+-#ifdef CONFIG_IP_VS_PROTO_TCP
+-INDIRECT_CALLABLE_DECLARE(int
+-	tcp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+-			 struct ip_vs_conn *cp, struct ip_vs_iphdr *iph));
+-#endif
+-
+-#ifdef CONFIG_IP_VS_PROTO_UDP
+-INDIRECT_CALLABLE_DECLARE(int
+-	udp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+-			 struct ip_vs_conn *cp, struct ip_vs_iphdr *iph));
+-#endif
+-
+ #if defined(CONFIG_IP_VS_PROTO_TCP) && defined(CONFIG_IP_VS_PROTO_UDP)
+ #define SNAT_CALL(f, ...) \
+ 	INDIRECT_CALL_2(f, tcp_snat_handler, udp_snat_handler, __VA_ARGS__)
+--
+2.29.2
 
