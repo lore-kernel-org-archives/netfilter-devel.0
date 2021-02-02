@@ -7,31 +7,31 @@ X-Spam-Status: No, score=-19.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5E07C433E0
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Feb 2021 14:38:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 505BAC433DB
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Feb 2021 14:38:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8A94364F4D
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Feb 2021 14:38:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 110D964ED7
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Feb 2021 14:38:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234515AbhBBOh7 (ORCPT
+        id S234561AbhBBOiF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 2 Feb 2021 09:37:59 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51352 "EHLO mail.kernel.org"
+        Tue, 2 Feb 2021 09:38:05 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51486 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231262AbhBBORr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 2 Feb 2021 09:17:47 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2DECB64FC7;
-        Tue,  2 Feb 2021 13:55:51 +0000 (UTC)
+        id S231600AbhBBORu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 2 Feb 2021 09:17:50 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 77DB264FCE;
+        Tue,  2 Feb 2021 13:56:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1612274152;
-        bh=mfmlJHMI6yFr64wRzHKtS4W4P42yrVgDCbbvPMoKAGY=;
+        s=k20201202; t=1612274163;
+        bh=zu3Gt86SXPGyJWhY6nCI9luwiVCzfhk0z+r+Ls5Rfsc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=NoxQLkdyV4FP7VWWxxoG8/TpmyzxT3yA3k6n03uZ+AzksrQbhchiBrL0NhXvDFzxX
-         J/BnHcIiixqzcPJO7TacexxGvlXOdn00VtjHzki3C3raoE4xhGBL86KpbCu7aXaeJL
-         jLkaVvgKWAuW20Vwh2Y8OR8KgxpN+ytCs5eaCwF+RZfhB2RM4xQrDN8xIqJqE7Qv86
-         Ppmb4ReBz9zdnjA3O1akQqkydM7SMnhyBMuNCtugT7gbn3F5AwXY1Psr1Z8wEUesqe
-         0NEpzOHWKs0rCYV9WDdyX1pAdrMm41aVkB8RjJSHkiun5AMUjYscnP0VDpU9TIKQxw
-         KvUD2zgyqsnHQ==
+        b=eBcIfldF414TuIyses6UVoMzupyh9IaC8jGkXzEkvrIw6yjqvDx9iLphF60SKQIRm
+         lKKxzJkgwuvIPZGq5oNzAPHmF9r87EVhenxbMmUE5SnQMujkPrdL71l6KZDJ7/hFSg
+         SW8oDI8/Y4ck4lGfXsx6r2pEW9ZKdXmTLk8FdMIdj8mC4E17RunuRENEACZiDd5LXo
+         i2b6MqkLDeBUw3SmWi1lYiCHpJaUY4Df6c/uFYWfTRFhR6oE+MGoYR/+Jpqh7FO6IK
+         B1aVroWkbFqbzQi89Kf94TxN1Lq2CdgNFNOAF7IvipR5XlYH8iNvSoXTN2TKgR23m+
+         BcNc+r+KE5Z4w==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Jakub Kicinski <kuba@kernel.org>,
         "David S. Miller" <davem@davemloft.net>,
@@ -45,13 +45,14 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>, coreteam@netfilter.org,
         lvs-devel@vger.kernel.org, Matteo Croce <mcroce@redhat.com>,
         netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
         Simon Horman <horms@verge.net.au>
-Subject: [PATCH net 1/4] ipv6: silence compilation warning for non-IPV6 builds
-Date:   Tue,  2 Feb 2021 15:55:41 +0200
-Message-Id: <20210202135544.3262383-2-leon@kernel.org>
+Subject: [PATCH net 3/4] net/core: move ipv6 gro function declarations to net/ipv6
+Date:   Tue,  2 Feb 2021 15:55:43 +0200
+Message-Id: <20210202135544.3262383-4-leon@kernel.org>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20210202135544.3262383-1-leon@kernel.org>
 References: <20210202135544.3262383-1-leon@kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -59,46 +60,69 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-The W=1 compilation of allmodconfig generates the following warning:
+Fir the following compilation warnings:
+ 1031 | INDIRECT_CALLABLE_SCOPE void udp_v6_early_demux(struct sk_buff *skb)
 
-net/ipv6/icmp.c:448:6: warning: no previous prototype for 'icmp6_send' [-Wmissing-prototypes]
-  448 | void icmp6_send(struct sk_buff *skb, u8 type, u8 code, __u32 info,
-      |      ^~~~~~~~~~
+net/ipv6/ip6_offload.c:182:41: warning: no previous prototype for ‘ipv6_gro_receive’ [-Wmissing-prototypes]
+  182 | INDIRECT_CALLABLE_SCOPE struct sk_buff *ipv6_gro_receive(struct list_head *head,
+      |                                         ^~~~~~~~~~~~~~~~
+net/ipv6/ip6_offload.c:320:29: warning: no previous prototype for ‘ipv6_gro_complete’ [-Wmissing-prototypes]
+  320 | INDIRECT_CALLABLE_SCOPE int ipv6_gro_complete(struct sk_buff *skb, int nhoff)
+      |                             ^~~~~~~~~~~~~~~~~
+net/ipv6/ip6_offload.c:182:41: warning: no previous prototype for ‘ipv6_gro_receive’ [-Wmissing-prototypes]
+  182 | INDIRECT_CALLABLE_SCOPE struct sk_buff *ipv6_gro_receive(struct list_head *head,
+      |                                         ^~~~~~~~~~~~~~~~
+net/ipv6/ip6_offload.c:320:29: warning: no previous prototype for ‘ipv6_gro_complete’ [-Wmissing-prototypes]
+  320 | INDIRECT_CALLABLE_SCOPE int ipv6_gro_complete(struct sk_buff *skb, int nhoff)
 
-In such configuration, the icmp6_send() is not used outside of icmp.c, so close
-its EXPORT_SYMBOL and add "static" word to limit the scope.
-
-Fixes: cc7a21b6fbd9 ("ipv6: icmp6: avoid indirect call for icmpv6_send()")
+Fixes: aaa5d90b395a ("net: use indirect call wrappers at GRO network layer")
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- net/ipv6/icmp.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ include/net/ipv6.h | 3 +++
+ net/core/dev.c     | 4 +---
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/net/ipv6/icmp.c b/net/ipv6/icmp.c
-index f3d05866692e..5d4232b492dc 100644
---- a/net/ipv6/icmp.c
-+++ b/net/ipv6/icmp.c
-@@ -445,6 +445,9 @@ static int icmp6_iif(const struct sk_buff *skb)
- /*
-  *	Send an ICMP message in response to a packet in error
-  */
-+#if !IS_BUILTIN(CONFIG_IPV6)
-+static
-+#endif
- void icmp6_send(struct sk_buff *skb, u8 type, u8 code, __u32 info,
- 		const struct in6_addr *force_saddr)
- {
-@@ -634,7 +637,10 @@ void icmp6_send(struct sk_buff *skb, u8 type, u8 code, __u32 info,
- out_bh_enable:
- 	local_bh_enable();
+diff --git a/include/net/ipv6.h b/include/net/ipv6.h
+index bd1f396cc9c7..68676e6bd4b1 100644
+--- a/include/net/ipv6.h
++++ b/include/net/ipv6.h
+@@ -1265,4 +1265,7 @@ static inline void ip6_sock_set_recvpktinfo(struct sock *sk)
+ 	release_sock(sk);
  }
-+
-+#if IS_BUILTIN(CONFIG_IPV6)
- EXPORT_SYMBOL(icmp6_send);
-+#endif
 
- /* Slightly more convenient version of icmp6_send.
-  */
++INDIRECT_CALLABLE_DECLARE(struct sk_buff *ipv6_gro_receive(struct list_head *,
++							   struct sk_buff *));
++INDIRECT_CALLABLE_DECLARE(int ipv6_gro_complete(struct sk_buff *, int));
+ #endif /* _NET_IPV6_H */
+diff --git a/net/core/dev.c b/net/core/dev.c
+index c360bb5367e2..9a3d8768524b 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -101,6 +101,7 @@
+ #include <net/dsa.h>
+ #include <net/dst.h>
+ #include <net/dst_metadata.h>
++#include <net/ipv6.h>
+ #include <net/pkt_sched.h>
+ #include <net/pkt_cls.h>
+ #include <net/checksum.h>
+@@ -5743,7 +5744,6 @@ static void gro_normal_one(struct napi_struct *napi, struct sk_buff *skb)
+ }
+
+ INDIRECT_CALLABLE_DECLARE(int inet_gro_complete(struct sk_buff *, int));
+-INDIRECT_CALLABLE_DECLARE(int ipv6_gro_complete(struct sk_buff *, int));
+ static int napi_gro_complete(struct napi_struct *napi, struct sk_buff *skb)
+ {
+ 	struct packet_offload *ptype;
+@@ -5914,8 +5914,6 @@ static void gro_flush_oldest(struct napi_struct *napi, struct list_head *head)
+
+ INDIRECT_CALLABLE_DECLARE(struct sk_buff *inet_gro_receive(struct list_head *,
+ 							   struct sk_buff *));
+-INDIRECT_CALLABLE_DECLARE(struct sk_buff *ipv6_gro_receive(struct list_head *,
+-							   struct sk_buff *));
+ static enum gro_result dev_gro_receive(struct napi_struct *napi, struct sk_buff *skb)
+ {
+ 	u32 hash = skb_get_hash_raw(skb) & (GRO_HASH_BUCKETS - 1);
 --
 2.29.2
 
