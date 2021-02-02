@@ -2,93 +2,317 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 411F5C433E9
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Feb 2021 21:56:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A033BC433DB
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Feb 2021 22:19:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ED3F364E4A
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Feb 2021 21:56:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6555164F53
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Feb 2021 22:19:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233881AbhBBV4P (ORCPT
+        id S234928AbhBBWSa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 2 Feb 2021 16:56:15 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56500 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232865AbhBBV4O (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 2 Feb 2021 16:56:14 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F34B660295;
-        Tue,  2 Feb 2021 21:55:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1612302933;
-        bh=b2g6aK56icJbbaoYzrVicAD1k5eiCUfcw7T7FlJlGEs=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=q0Uwy77AqXBwy9C/hru+aYHDsFvylsB3yrfAQQwsW0BtZkCu5wRU5ePZ3QxiC4AaE
-         JUSG1VHzCUVine/ot8zy9MKjg5Q+xPRtx4nRRjOmQzhx68oZuliOaYcLvYKkc23VZ/
-         QvcOhFAcjdOy1I7iWjout02+koYFj87CDgsrW4uQ0yRhOcentejhbmzxa+awhrjbRF
-         rJMPbxD23+hwRcW8ANaXWiQkShulcqbLB08i+E2i05rnwkgsuGq3b8VJwAvZ5jCGRC
-         tmzZU70IaXn1U0UOrhp8uyU2IKgrEht6jpku6k8SOo57l9gZIn9a+e/jHsWu+BODoy
-         YFigy9+bxqBmw==
-Date:   Tue, 2 Feb 2021 13:55:31 -0800
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     "David S. Miller" <davem@davemloft.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        coreteam@netfilter.org, Eric Dumazet <edumazet@google.com>,
-        Florian Westphal <fw@strlen.de>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Julian Anastasov <ja@ssi.bg>, linux-kernel@vger.kernel.org,
-        lvs-devel@vger.kernel.org, Matteo Croce <mcroce@redhat.com>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH net 1/4] ipv6: silence compilation warning for non-IPV6
- builds
-Message-ID: <20210202135531.043ed176@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <20210202185528.GE3264866@unreal>
-References: <20210202135544.3262383-1-leon@kernel.org>
-        <20210202135544.3262383-2-leon@kernel.org>
-        <20210202082909.7d8f479f@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-        <20210202185528.GE3264866@unreal>
+        Tue, 2 Feb 2021 17:18:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43940 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234865AbhBBWSQ (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 2 Feb 2021 17:18:16 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F58DC06174A
+        for <netfilter-devel@vger.kernel.org>; Tue,  2 Feb 2021 14:17:35 -0800 (PST)
+Received: from localhost ([::1]:37048 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.94)
+        (envelope-from <phil@nwl.cc>)
+        id 1l73zJ-0003fv-HP; Tue, 02 Feb 2021 23:17:33 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [nft PATCH] json: Do not abbreviate reject statement object
+Date:   Tue,  2 Feb 2021 23:17:24 +0100
+Message-Id: <20210202221724.17264-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.28.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, 2 Feb 2021 20:55:28 +0200 Leon Romanovsky wrote:
-> On Tue, Feb 02, 2021 at 08:29:09AM -0800, Jakub Kicinski wrote:
-> > On Tue,  2 Feb 2021 15:55:41 +0200 Leon Romanovsky wrote:  
-> > > From: Leon Romanovsky <leonro@nvidia.com>
-> > >
-> > > The W=1 compilation of allmodconfig generates the following warning:
-> > >
-> > > net/ipv6/icmp.c:448:6: warning: no previous prototype for 'icmp6_send' [-Wmissing-prototypes]
-> > >   448 | void icmp6_send(struct sk_buff *skb, u8 type, u8 code, __u32 info,
-> > >       |      ^~~~~~~~~~
-> > >
-> > > In such configuration, the icmp6_send() is not used outside of icmp.c, so close
-> > > its EXPORT_SYMBOL and add "static" word to limit the scope.
-> > >
-> > > Fixes: cc7a21b6fbd9 ("ipv6: icmp6: avoid indirect call for icmpv6_send()")
-> > > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>  
-> >
-> > That's a little much ifdefinery, why not move the declaration from
-> > under the ifdef in the header instead?  
-> 
-> We will find ourselves with exported but not used function, it will
-> increase symbol file, not big deal but not nice, either.
+No need to reduce output size, also this way output is more predictable.
 
-For those all so common builds where IPv6 is a module :)
-But I don't feel strongly, up to you.
+While being at it, drop some pointless chunks from
+tests/py/bridge/reject.t.json.output.
 
-> > If you repost please target net-next, admittedly these fixes are pretty
-> > "obviously correct" but they are not urgent either.  
-> 
-> I'll do.
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ src/json.c                           |   8 --
+ tests/py/bridge/reject.t.json.output | 130 ++++++---------------------
+ tests/py/inet/reject.t.json.output   |  15 ++--
+ tests/py/ip/reject.t.json.output     |   7 +-
+ tests/py/ip6/reject.t.json.output    |   7 +-
+ 5 files changed, 47 insertions(+), 120 deletions(-)
 
-Thanks!
+diff --git a/src/json.c b/src/json.c
+index 8371714147de8..0ccbbe8a75d2d 100644
+--- a/src/json.c
++++ b/src/json.c
+@@ -1380,24 +1380,16 @@ json_t *reject_stmt_json(const struct stmt *stmt, struct output_ctx *octx)
+ 		type = "tcp reset";
+ 		break;
+ 	case NFT_REJECT_ICMPX_UNREACH:
+-		if (stmt->reject.icmp_code == NFT_REJECT_ICMPX_PORT_UNREACH)
+-			break;
+ 		type = "icmpx";
+ 		jexpr = expr_print_json(stmt->reject.expr, octx);
+ 		break;
+ 	case NFT_REJECT_ICMP_UNREACH:
+ 		switch (stmt->reject.family) {
+ 		case NFPROTO_IPV4:
+-			if (!stmt->reject.verbose_print &&
+-			    stmt->reject.icmp_code == ICMP_PORT_UNREACH)
+-				break;
+ 			type = "icmp";
+ 			jexpr = expr_print_json(stmt->reject.expr, octx);
+ 			break;
+ 		case NFPROTO_IPV6:
+-			if (!stmt->reject.verbose_print &&
+-			    stmt->reject.icmp_code == ICMP6_DST_UNREACH_NOPORT)
+-				break;
+ 			type = "icmpv6";
+ 			jexpr = expr_print_json(stmt->reject.expr, octx);
+ 			break;
+diff --git a/tests/py/bridge/reject.t.json.output b/tests/py/bridge/reject.t.json.output
+index 4f83f80374b9a..e01a63af5a354 100644
+--- a/tests/py/bridge/reject.t.json.output
++++ b/tests/py/bridge/reject.t.json.output
+@@ -1,103 +1,3 @@
+-# reject with icmp type host-unreachable
+-[
+-    {
+-        "reject": {
+-            "expr": "host-unreachable",
+-            "type": "icmp"
+-        }
+-    }
+-]
+-
+-# reject with icmp type net-unreachable
+-[
+-    {
+-        "reject": {
+-            "expr": "net-unreachable",
+-            "type": "icmp"
+-        }
+-    }
+-]
+-
+-# reject with icmp type prot-unreachable
+-[
+-    {
+-        "reject": {
+-            "expr": "prot-unreachable",
+-            "type": "icmp"
+-        }
+-    }
+-]
+-
+-# reject with icmp type net-prohibited
+-[
+-    {
+-        "reject": {
+-            "expr": "net-prohibited",
+-            "type": "icmp"
+-        }
+-    }
+-]
+-
+-# reject with icmp type host-prohibited
+-[
+-    {
+-        "reject": {
+-            "expr": "host-prohibited",
+-            "type": "icmp"
+-        }
+-    }
+-]
+-
+-# reject with icmp type admin-prohibited
+-[
+-    {
+-        "reject": {
+-            "expr": "admin-prohibited",
+-            "type": "icmp"
+-        }
+-    }
+-]
+-
+-# reject with icmpv6 type no-route
+-[
+-    {
+-        "reject": {
+-            "expr": "no-route",
+-            "type": "icmpv6"
+-        }
+-    }
+-]
+-
+-# reject with icmpv6 type admin-prohibited
+-[
+-    {
+-        "reject": {
+-            "expr": "admin-prohibited",
+-            "type": "icmpv6"
+-        }
+-    }
+-]
+-
+-# reject with icmpv6 type addr-unreachable
+-[
+-    {
+-        "reject": {
+-            "expr": "addr-unreachable",
+-            "type": "icmpv6"
+-        }
+-    }
+-]
+-
+-# reject with icmpv6 type port-unreachable
+-[
+-    {
+-         "reject": {
+-            "expr": "port-unreachable",
+-            "type": "icmpv6"
+-        }
+-    }
+-]
+-
+ # mark 12345 ip protocol tcp reject with tcp reset
+ [
+     {
+@@ -130,10 +30,13 @@
+     }
+ ]
+ 
+-# reject with icmpx type port-unreachable
++# reject
+ [
+     {
+-        "reject": null
++        "reject": {
++            "expr": "port-unreachable",
++            "type": "icmpx"
++        }
+     }
+ ]
+ 
+@@ -156,3 +59,26 @@
+         }
+     }
+ ]
++
++# ether type vlan reject
++[
++    {
++        "match": {
++            "left": {
++                "payload": {
++                    "field": "type",
++                    "protocol": "ether"
++                }
++            },
++            "op": "==",
++            "right": "vlan"
++        }
++    },
++    {
++        "reject": {
++            "expr": "port-unreachable",
++            "type": "icmpx"
++        }
++    }
++]
++
+diff --git a/tests/py/inet/reject.t.json.output b/tests/py/inet/reject.t.json.output
+index 6e18b96bd807d..043617a721ea4 100644
+--- a/tests/py/inet/reject.t.json.output
++++ b/tests/py/inet/reject.t.json.output
+@@ -25,30 +25,33 @@
+     }
+ ]
+ 
+-# meta nfproto ipv4 reject
++# reject
+ [
+     {
+         "reject": {
+             "expr": "port-unreachable",
+-            "type": "icmp"
++            "type": "icmpx"
+         }
+     }
+ ]
+ 
+-# meta nfproto ipv6 reject
++# meta nfproto ipv4 reject
+ [
+     {
+         "reject": {
+             "expr": "port-unreachable",
+-            "type": "icmpv6"
++            "type": "icmp"
+         }
+     }
+ ]
+ 
+-# reject with icmpx type port-unreachable
++# meta nfproto ipv6 reject
+ [
+     {
+-        "reject": null
++        "reject": {
++            "expr": "port-unreachable",
++            "type": "icmpv6"
++        }
+     }
+ ]
+ 
+diff --git a/tests/py/ip/reject.t.json.output b/tests/py/ip/reject.t.json.output
+index b2529dd75fb51..3917413dcfbe4 100644
+--- a/tests/py/ip/reject.t.json.output
++++ b/tests/py/ip/reject.t.json.output
+@@ -1,7 +1,10 @@
+-# reject with icmp type port-unreachable
++# reject
+ [
+     {
+-        "reject": null
++        "reject": {
++            "expr": "port-unreachable",
++            "type": "icmp"
++        }
+     }
+ ]
+ 
+diff --git a/tests/py/ip6/reject.t.json.output b/tests/py/ip6/reject.t.json.output
+index 4e2058feceed6..04f12f56e9765 100644
+--- a/tests/py/ip6/reject.t.json.output
++++ b/tests/py/ip6/reject.t.json.output
+@@ -1,7 +1,10 @@
+-# reject with icmpv6 type port-unreachable
++# reject
+ [
+     {
+-        "reject": null
++        "reject": {
++            "expr": "port-unreachable",
++            "type": "icmpv6"
++        }
+     }
+ ]
+ 
+-- 
+2.28.0
+
