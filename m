@@ -2,73 +2,87 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BD6BC433E0
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Feb 2021 10:24:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21B42C433E0
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Feb 2021 13:22:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D74E464F54
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Feb 2021 10:24:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DD06364F5D
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Feb 2021 13:22:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229590AbhBBKY0 (ORCPT
+        id S231670AbhBBNWg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 2 Feb 2021 05:24:26 -0500
-Received: from mail-wr1-f53.google.com ([209.85.221.53]:35122 "EHLO
-        mail-wr1-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229537AbhBBKYW (ORCPT
+        Tue, 2 Feb 2021 08:22:36 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:49940 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S231290AbhBBNWd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 2 Feb 2021 05:24:22 -0500
-Received: by mail-wr1-f53.google.com with SMTP id l12so19840810wry.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 02 Feb 2021 02:24:06 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=D7LrCkjf3ns46bNBMA2HunrWHARBvTTu1pgtsf6UDA4=;
-        b=gtVtHhYBzxHnck9qqGmclfpSufcT/U84X+n2lJvwxAZbfPd2bdLU5sP1/vnS5GRYzE
-         MujUEBA2eZLgp25TLOSQe1u9Tf6lhUp1Y9A+ixckbbIQoS9GMxV5tMoGA8uZlY9D1DNM
-         rbEfJIGnpcxYfvvjd4w0TVcF6jbfAVqrNA0ViEQCLOS9g+SqM+00UrI73blj11MHNjzV
-         Xo7Hg9sRrEkgvGmbu3BgT6VUz9HCeMy/sOgStTpuK5C5BGdp83IP7gyZauWkVP0QKxCe
-         g7B9fJy7pPnfZ4ciJ6BtWf/Toa3gsd+rR52pgOr83SjpxdN49dAjJkLE2aqehTjzw76U
-         pmzQ==
-X-Gm-Message-State: AOAM530WXL/ytepS2dlIAfN6KKK9/XxpNZ3nHlkOGC7TCdzLVdp/EFCj
-        38T6NKDu6nVV+pLFeynXHKYnGa6ESEM=
-X-Google-Smtp-Source: ABdhPJzEyZGJVps6VvRGokAPCRTMUY+mB7QmiasdWrwGZBOHMWHQNhDra/ajT2TblWvyJ81mtN01og==
-X-Received: by 2002:a5d:6541:: with SMTP id z1mr22536424wrv.128.1612261420874;
-        Tue, 02 Feb 2021 02:23:40 -0800 (PST)
-Received: from [10.239.43.214] (79.red-80-24-233.staticip.rima-tde.net. [80.24.233.79])
-        by smtp.gmail.com with ESMTPSA id q7sm31698580wrx.18.2021.02.02.02.23.39
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 02 Feb 2021 02:23:40 -0800 (PST)
-Subject: Re: [conntrack-tools PATCH 1/3] tests: introduce new python-based
- framework for running tests
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-References: <161144773322.52227.18304556638755743629.stgit@endurance>
- <20210201033147.GA20941@salvia>
- <949b08b1-d7c7-c040-7218-9df63562c032@netfilter.org>
- <20210201170551.GA28275@salvia>
-From:   Arturo Borrero Gonzalez <arturo@netfilter.org>
-Message-ID: <d1e44dac-8240-b7c6-4a7a-4220d00feef3@netfilter.org>
-Date:   Tue, 2 Feb 2021 11:23:39 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.6.1
+        Tue, 2 Feb 2021 08:22:33 -0500
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-505-lKDvItlsNBqHhC4wCE1skg-1; Tue, 02 Feb 2021 08:21:04 -0500
+X-MC-Unique: lKDvItlsNBqHhC4wCE1skg-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 04FB3107ACF6;
+        Tue,  2 Feb 2021 13:21:03 +0000 (UTC)
+Received: from localhost (ovpn-113-65.rdu2.redhat.com [10.10.113.65])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id BDF685C1CF;
+        Tue,  2 Feb 2021 13:21:02 +0000 (UTC)
+Date:   Tue, 2 Feb 2021 08:21:02 -0500
+From:   Eric Garver <eric@garver.life>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org, Michael Biebl <biebl@debian.org>
+Subject: Re: [PATCH nft 2/2] payload: check icmp dependency before removing
+ previous icmp expression
+Message-ID: <20210202132102.GY3286651@egarver.remote.csb>
+Mail-Followup-To: Eric Garver <eric@garver.life>,
+        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+        Michael Biebl <biebl@debian.org>
+References: <20210201215005.26612-1-fw@strlen.de>
+ <20210201215005.26612-2-fw@strlen.de>
 MIME-Version: 1.0
-In-Reply-To: <20210201170551.GA28275@salvia>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210201215005.26612-2-fw@strlen.de>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2/1/21 6:05 PM, Pablo Neira Ayuso wrote:
-> That's fine, but before we add more tests, please let's where to move
-> more inlined configurations in the yaml files to independent files
-> that can be reused by new tests.
+On Mon, Feb 01, 2021 at 10:50:04PM +0100, Florian Westphal wrote:
+> nft is too greedy when removing icmp dependencies.
+> 'icmp code 1 type 2' did remove the type when printing.
 > 
+> Be more careful and check that the icmp type dependency of the
+> candidate expression (earlier icmp payload expression) has the same
+> type dependency as the new expression.
+> 
+> Reported-by: Eric Garver <eric@garver.life>
+> Reported-by: Michael Biebl <biebl@debian.org>
+> Fixes: d0f3b9eaab8d77e ("payload: auto-remove simple icmp/icmpv6 dependency expressions")
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
 
-ok!
+Tested-by: Eric Garver <eric@garver.life>
+
+Thanks Florian. This fixes the issue [1] reported against firewalld.
+
+[1]: https://github.com/firewalld/firewalld/issues/752
+
+--->8---
+
+--- -	2021-02-01 16:02:58.854101473 +0000
++++ /tmp/autopkgtest.PRXtPH/build.yiS/src/src/tests/testsuite.dir/at-groups/97/stdout	2021-02-01 16:02:58.846718150 +0000
+@@ -1,6 +1,6 @@
+ table inet firewalld {
+ chain filter_IN_public_deny {
+-icmp type destination-unreachable icmp code host-prohibited reject with icmpx type admin-prohibited
++icmp code host-prohibited reject with icmpx type admin-prohibited
+ }
+ }
+
