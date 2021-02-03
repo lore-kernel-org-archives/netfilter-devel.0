@@ -7,32 +7,32 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06F18C433DB
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Feb 2021 18:43:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BCA9C433DB
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Feb 2021 18:43:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AC4BC64DA1
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Feb 2021 18:43:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DFAB764DA1
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Feb 2021 18:43:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232929AbhBCSnT (ORCPT
+        id S233015AbhBCSnY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 3 Feb 2021 13:43:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53702 "EHLO
+        Wed, 3 Feb 2021 13:43:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53724 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232131AbhBCSnS (ORCPT
+        with ESMTP id S232927AbhBCSnW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 3 Feb 2021 13:43:18 -0500
+        Wed, 3 Feb 2021 13:43:22 -0500
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 815B6C0613ED
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 Feb 2021 10:42:38 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B1222C061786
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 Feb 2021 10:42:42 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1l7N6r-0005wc-5X; Wed, 03 Feb 2021 19:42:37 +0100
+        id 1l7N6v-0005wj-B0; Wed, 03 Feb 2021 19:42:41 +0100
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 2/3] tests: add empty dynamic set
-Date:   Wed,  3 Feb 2021 19:42:26 +0100
-Message-Id: <20210203184227.32208-2-fw@strlen.de>
+Subject: [PATCH nft 3/3] evaluate: do not crash if dynamic set has no statements
+Date:   Wed,  3 Feb 2021 19:42:27 +0100
+Message-Id: <20210203184227.32208-3-fw@strlen.de>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20210203184227.32208-1-fw@strlen.de>
 References: <20210203184150.32145-1-fw@strlen.de>
@@ -43,56 +43,36 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-nft crashes on restore.
+list_first_entry() returns garbage when the list is empty.
+There is no need to run the following loop if we have no statements,
+so just return 0.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- tests/shell/testcases/nft-f/0025empty_dynset_0   | 16 ++++++++++++++++
- .../testcases/nft-f/dumps/0025empty_dynset_0.nft | 12 ++++++++++++
- 2 files changed, 28 insertions(+)
- create mode 100755 tests/shell/testcases/nft-f/0025empty_dynset_0
- create mode 100644 tests/shell/testcases/nft-f/dumps/0025empty_dynset_0.nft
+ src/evaluate.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/tests/shell/testcases/nft-f/0025empty_dynset_0 b/tests/shell/testcases/nft-f/0025empty_dynset_0
-new file mode 100755
-index 000000000000..796628a7c69a
---- /dev/null
-+++ b/tests/shell/testcases/nft-f/0025empty_dynset_0
-@@ -0,0 +1,16 @@
-+#!/bin/sh
-+
-+RULESET="table ip foo {
-+	        set inflows {
-+                type ipv4_addr . inet_service . ifname . ipv4_addr . inet_service
-+                flags dynamic
-+                elements = { 10.1.0.3 . 39466 . \"veth1\" . 10.3.0.99 . 5201 counter packets 0 bytes 0 }
-+        }
-+
-+        set inflows6 {
-+                type ipv6_addr . inet_service . ifname . ipv6_addr . inet_service
-+                flags dynamic
-+        }
-+}"
-+
-+$NFT -f - <<< "$RULESET"
-diff --git a/tests/shell/testcases/nft-f/dumps/0025empty_dynset_0.nft b/tests/shell/testcases/nft-f/dumps/0025empty_dynset_0.nft
-new file mode 100644
-index 000000000000..559eb49fc2e1
---- /dev/null
-+++ b/tests/shell/testcases/nft-f/dumps/0025empty_dynset_0.nft
-@@ -0,0 +1,12 @@
-+table ip foo {
-+	set inflows {
-+		type ipv4_addr . inet_service . ifname . ipv4_addr . inet_service
-+		flags dynamic
-+		elements = { 10.1.0.3 . 39466 . "veth1" . 10.3.0.99 . 5201 counter packets 0 bytes 0 }
-+	}
-+
-+	set inflows6 {
-+		type ipv6_addr . inet_service . ifname . ipv6_addr . inet_service
-+		flags dynamic
-+	}
-+}
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 0b251ab5554c..2ddbde0a370f 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1363,10 +1363,12 @@ static int __expr_evaluate_set_elem(struct eval_ctx *ctx, struct expr *elem)
+ 					  "number of statements mismatch, set expects %d "
+ 					  "but element has %d", num_set_exprs,
+ 					  num_elem_exprs);
+-		} else if (num_set_exprs == 0 && !(set->flags & NFT_SET_EVAL)) {
+-			return expr_error(ctx->msgs, elem,
+-					  "missing statements in %s definition",
+-					  set_is_map(set->flags) ? "map" : "set");
++		} else if (num_set_exprs == 0) {
++			if (!(set->flags & NFT_SET_EVAL))
++				return expr_error(ctx->msgs, elem,
++						  "missing statements in %s definition",
++						  set_is_map(set->flags) ? "map" : "set");
++			return 0;
+ 		}
+ 
+ 		set_stmt = list_first_entry(&set->stmt_list, struct stmt, list);
 -- 
 2.26.2
 
