@@ -2,119 +2,82 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79CEEC433E6
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Feb 2021 10:17:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2089C433DB
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Feb 2021 10:46:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 371BC64E3E
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Feb 2021 10:17:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9434164F50
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Feb 2021 10:46:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233822AbhBCKRg (ORCPT
+        id S233970AbhBCKpx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 3 Feb 2021 05:17:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:37958 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233767AbhBCKRH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 3 Feb 2021 05:17:07 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4C33B64F5C;
-        Wed,  3 Feb 2021 10:16:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1612347387;
-        bh=FQkt9aarahMgC6DuLc3kolHgyqYqseLmc7XedkDhE+A=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=d6Sn4X7cewF/eS9NAtgAs7efPGsy7c2cbJZKzUmamVl7sgWqkNjfUwvX46E3Tssyw
-         IErEfGs6Gc+PZpYVENaIggWZHWoScqgnqh6dAO6Juz5c41WJha+C4P1MiStmpWelZt
-         ebKtmU/TLy+yEUxRHfIbx+QWjYhGQUDcEDMrBAv50zILe0MbSjqbReDa+fRNM0R+RU
-         vuIA/cQ6mV2OpUZY0eNNbPDaYHkRlISL5rBxokA4fo8NhOvRZx9EaDQACUW5ch6Bkb
-         FB61R4V9cNF71c6CgpvwluVad+K4GAJrk2Cp611opTwFl4+QVHx3Rdw/ZtyDr1oaaA
-         iJ3YyUlmsLJOg==
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Jakub Kicinski <kuba@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
+        Wed, 3 Feb 2021 05:45:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34990 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233932AbhBCKpu (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 3 Feb 2021 05:45:50 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DABBCC061573
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 Feb 2021 02:45:09 -0800 (PST)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1l7Fel-0003KG-N8; Wed, 03 Feb 2021 11:45:07 +0100
+Date:   Wed, 3 Feb 2021 11:45:07 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH] erec: Sanitize erec location indesc
+Message-ID: <20210203104507.GO3158@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        Eric Dumazet <edumazet@google.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>, coreteam@netfilter.org,
-        Florian Westphal <fw@strlen.de>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Julian Anastasov <ja@ssi.bg>, lvs-devel@vger.kernel.org,
-        Matteo Croce <mcroce@redhat.com>, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, Simon Horman <horms@verge.net.au>
-Subject: [PATCH net-next v1 2/4] ipv6: move udp declarations to net/udp.h
-Date:   Wed,  3 Feb 2021 12:16:10 +0200
-Message-Id: <20210203101612.4004322-3-leon@kernel.org>
-X-Mailer: git-send-email 2.29.2
-In-Reply-To: <20210203101612.4004322-1-leon@kernel.org>
-References: <20210203101612.4004322-1-leon@kernel.org>
+        netfilter-devel@vger.kernel.org
+References: <20210126175502.9171-1-phil@nwl.cc>
+ <20210203003832.GA30866@salvia>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210203003832.GA30866@salvia>
+Sender:  <n0-1@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+Hi Pablo,
 
-Fix the following compilation warning:
+On Wed, Feb 03, 2021 at 01:38:32AM +0100, Pablo Neira Ayuso wrote:
+> On Tue, Jan 26, 2021 at 06:55:02PM +0100, Phil Sutter wrote:
+> > erec_print() unconditionally dereferences erec->locations->indesc, so
+> > make sure it is valid when either creating an erec or adding a location.
+> 
+> I guess your're trigger a bug where erec is indesc is NULL, thing is
+> that indesc should be always set on. Is there a reproducer for this bug?
 
-net/ipv6/udp.c:1031:30: warning: no previous prototype for 'udp_v6_early_demux' [-Wmissing-prototypes]
- 1031 | INDIRECT_CALLABLE_SCOPE void udp_v6_early_demux(struct sk_buff *skb)
-      |                              ^~~~~~~~~~~~~~~~~~
-net/ipv6/udp.c:1072:29: warning: no previous prototype for 'udpv6_rcv' [-Wmissing-prototypes]
- 1072 | INDIRECT_CALLABLE_SCOPE int udpv6_rcv(struct sk_buff *skb)
-      |                             ^~~~~~~~~
+Yes, exactly. I hit it when trying to clean up the netdev family reject
+support, while just "hacking around". You can trigger it with the
+following change:
 
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- include/net/udp.h    | 3 +++
- net/ipv6/ip6_input.c | 3 +--
- 2 files changed, 4 insertions(+), 2 deletions(-)
+| --- a/src/evaluate.c
+| +++ b/src/evaluate.c
+| @@ -2718,7 +2718,7 @@ static int stmt_evaluate_reject_bridge(struct eval_ctx *ctx, struct stmt *stmt,
+|         const struct proto_desc *desc;
+|  
+|         desc = ctx->pctx.protocol[PROTO_BASE_LL_HDR].desc;
+| -       if (desc != &proto_eth && desc != &proto_vlan && desc != &proto_netdev)
+| +       if (desc != &proto_eth && desc != &proto_vlan)
+|                 return stmt_binary_error(ctx,
+|                                          &ctx->pctx.protocol[PROTO_BASE_LL_HDR],
+|                                          stmt, "unsupported link layer protocol");
 
-diff --git a/include/net/udp.h b/include/net/udp.h
-index 877832bed471..ff2de866bca4 100644
---- a/include/net/udp.h
-+++ b/include/net/udp.h
-@@ -173,6 +173,9 @@ INDIRECT_CALLABLE_DECLARE(int udp4_gro_complete(struct sk_buff *, int));
- INDIRECT_CALLABLE_DECLARE(struct sk_buff *udp6_gro_receive(struct list_head *,
- 							   struct sk_buff *));
- INDIRECT_CALLABLE_DECLARE(int udp6_gro_complete(struct sk_buff *, int));
-+INDIRECT_CALLABLE_DECLARE(void udp_v6_early_demux(struct sk_buff *));
-+INDIRECT_CALLABLE_DECLARE(int udpv6_rcv(struct sk_buff *));
-+
- struct sk_buff *udp_gro_receive(struct list_head *head, struct sk_buff *skb,
- 				struct udphdr *uh, struct sock *sk);
- int udp_gro_complete(struct sk_buff *skb, int nhoff, udp_lookup_t lookup);
-diff --git a/net/ipv6/ip6_input.c b/net/ipv6/ip6_input.c
-index e96304d8a4a7..e9d2a4a409aa 100644
---- a/net/ipv6/ip6_input.c
-+++ b/net/ipv6/ip6_input.c
-@@ -32,6 +32,7 @@
+and this ruleset:
 
- #include <net/sock.h>
- #include <net/snmp.h>
-+#include <net/udp.h>
+| table netdev t {
+| 	chain c {
+| 		reject
+| 	}
+| }
 
- #include <net/ipv6.h>
- #include <net/protocol.h>
-@@ -44,7 +45,6 @@
- #include <net/inet_ecn.h>
- #include <net/dst_metadata.h>
-
--INDIRECT_CALLABLE_DECLARE(void udp_v6_early_demux(struct sk_buff *));
- INDIRECT_CALLABLE_DECLARE(void tcp_v6_early_demux(struct sk_buff *));
- static void ip6_rcv_finish_core(struct net *net, struct sock *sk,
- 				struct sk_buff *skb)
-@@ -352,7 +352,6 @@ void ipv6_list_rcv(struct list_head *head, struct packet_type *pt,
- 		ip6_sublist_rcv(&sublist, curr_dev, curr_net);
- }
-
--INDIRECT_CALLABLE_DECLARE(int udpv6_rcv(struct sk_buff *));
- INDIRECT_CALLABLE_DECLARE(int tcp_v6_rcv(struct sk_buff *));
-
- /*
---
-2.29.2
-
+Cheers, Phil
