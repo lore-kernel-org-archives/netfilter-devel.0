@@ -2,108 +2,119 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D496C433E9
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Feb 2021 13:23:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 116C8C433E0
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Feb 2021 13:52:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3E4FE64E38
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Feb 2021 13:23:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A8C9264DDA
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Feb 2021 13:52:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231700AbhBCNX3 (ORCPT
+        id S232477AbhBCNwM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 3 Feb 2021 08:23:29 -0500
-Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:7814 "EHLO
-        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230027AbhBCNX2 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 3 Feb 2021 08:23:28 -0500
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B601aa3a70002>; Wed, 03 Feb 2021 05:22:47 -0800
-Received: from localhost (172.20.145.6) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 3 Feb
- 2021 13:22:46 +0000
-Date:   Wed, 3 Feb 2021 15:22:43 +0200
-From:   Leon Romanovsky <leonro@nvidia.com>
+        Wed, 3 Feb 2021 08:52:12 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50588 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S232432AbhBCNwH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 3 Feb 2021 08:52:07 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E209E64E40;
+        Wed,  3 Feb 2021 13:51:25 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1612360286;
+        bh=FQkt9aarahMgC6DuLc3kolHgyqYqseLmc7XedkDhE+A=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=lcadbC9XwM0j8Xw5R/erHfZEqQOYLLn2X4PUsopvrS3Wx8BfiOrJYlVwwRrXaKCHr
+         0G9yIknl+2yuqHp4q8h1lHaQggqzVHxTlu5SOMWshH8fjNsEQ7R/F9JX0P9lk9QgfD
+         M1VRdN2B1w0GGh7zw63RCmqQnyQyI2kD4+Qk8JgCzTXT35HkPb7RZeclzVGqPDFQJ+
+         kG4d5pOilgE8UrKG8EwFhM4apWQcSrw0kHaiJPtiC3veQsh53jjD47v4XA67WeD4xB
+         8Kze5X7Kk43ctuL3OpKXjNJb2JedlzuX/69vHhLZe0YCFZrSsiTElKDIczbSi4BZJ3
+         hrv5JcMxTi1lw==
+From:   Leon Romanovsky <leon@kernel.org>
 To:     Jakub Kicinski <kuba@kernel.org>,
         "David S. Miller" <davem@davemloft.net>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Eric Dumazet <edumazet@google.com>
-CC:     <coreteam@netfilter.org>, Florian Westphal <fw@strlen.de>,
+Cc:     Leon Romanovsky <leonro@nvidia.com>, coreteam@netfilter.org,
+        Florian Westphal <fw@strlen.de>,
         Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Julian Anastasov <ja@ssi.bg>, <lvs-devel@vger.kernel.org>,
-        Matteo Croce <mcroce@redhat.com>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>,
-        Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH net-next v1 3/4] net/core: move gro function declarations
- to separate header
-Message-ID: <20210203132243.GM3264866@unreal>
-References: <20210203101612.4004322-1-leon@kernel.org>
- <20210203101612.4004322-4-leon@kernel.org>
+        Julian Anastasov <ja@ssi.bg>, lvs-devel@vger.kernel.org,
+        Matteo Croce <mcroce@redhat.com>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, Simon Horman <horms@verge.net.au>
+Subject: [PATCH net-next v2 2/4] ipv6: move udp declarations to net/udp.h
+Date:   Wed,  3 Feb 2021 15:51:10 +0200
+Message-Id: <20210203135112.4083711-3-leon@kernel.org>
+X-Mailer: git-send-email 2.29.2
+In-Reply-To: <20210203135112.4083711-1-leon@kernel.org>
+References: <20210203135112.4083711-1-leon@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <20210203101612.4004322-4-leon@kernel.org>
-X-Originating-IP: [172.20.145.6]
-X-ClientProxiedBy: HQMAIL107.nvidia.com (172.20.187.13) To
- HQMAIL107.nvidia.com (172.20.187.13)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1612358567; bh=W9V+E7YJOYX62ra3dha0U221aVuh7TmZXSzu1IxejSE=;
-        h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
-         Content-Type:Content-Disposition:Content-Transfer-Encoding:
-         In-Reply-To:X-Originating-IP:X-ClientProxiedBy;
-        b=ZAsNQ2TPIO7zk65P7mhskDy04d8hISs21+u3TdG/8sFxXefPoTbO8AhWVXAyYlVJY
-         kjGfHzCojzRJwtUSs02zbZgEAOFHvbPjUr1VMnA5/0YAFljLTT+URxloJW5c6m1xfC
-         +jltOxmb20pg10rnIIODIp35dF6NbfRW1z03Yq1/tvkpA6BS8XLQPjkTR2wQuF36NA
-         KLFOOxosng9e7mcrI6EaPAXf8KybSnKzzmL5AVnOBvX3Hkmuz0xMoDjp02Ggm4Er8i
-         dc4GXCLORnqN3ncuvYkgd8IRzZEYsXeT+tqVZdv2VfT28sQjUvfA2GwDVskaGUFhEb
-         2dbD5/BS1arvA==
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Feb 03, 2021 at 12:16:11PM +0200, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@nvidia.com>
->
-> Fir the following compilation warnings:
->  1031 | INDIRECT_CALLABLE_SCOPE void udp_v6_early_demux(struct sk_buff *s=
-kb)
->
-> net/ipv6/ip6_offload.c:182:41: warning: no previous prototype for =E2=80=
-=98ipv6_gro_receive=E2=80=99 [-Wmissing-prototypes]
->   182 | INDIRECT_CALLABLE_SCOPE struct sk_buff *ipv6_gro_receive(struct l=
-ist_head *head,
->       |                                         ^~~~~~~~~~~~~~~~
-> net/ipv6/ip6_offload.c:320:29: warning: no previous prototype for =E2=80=
-=98ipv6_gro_complete=E2=80=99 [-Wmissing-prototypes]
->   320 | INDIRECT_CALLABLE_SCOPE int ipv6_gro_complete(struct sk_buff *skb=
-, int nhoff)
->       |                             ^~~~~~~~~~~~~~~~~
-> net/ipv6/ip6_offload.c:182:41: warning: no previous prototype for =E2=80=
-=98ipv6_gro_receive=E2=80=99 [-Wmissing-prototypes]
->   182 | INDIRECT_CALLABLE_SCOPE struct sk_buff *ipv6_gro_receive(struct l=
-ist_head *head,
->       |                                         ^~~~~~~~~~~~~~~~
-> net/ipv6/ip6_offload.c:320:29: warning: no previous prototype for =E2=80=
-=98ipv6_gro_complete=E2=80=99 [-Wmissing-prototypes]
->   320 | INDIRECT_CALLABLE_SCOPE int ipv6_gro_complete(struct sk_buff *skb=
-, int nhoff)
->
-> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
-> ---
->  include/net/gro.h | 12 ++++++++++++
->  net/core/dev.c    |  7 +------
->  2 files changed, 13 insertions(+), 6 deletions(-)
->  create mode 100644 include/net/gro.h
+From: Leon Romanovsky <leonro@nvidia.com>
 
-I sent it too fast, sorry for that.
-There is a need to add #include <net/gro.h> to the ip6_offload.c.
+Fix the following compilation warning:
 
-I will resend.
+net/ipv6/udp.c:1031:30: warning: no previous prototype for 'udp_v6_early_demux' [-Wmissing-prototypes]
+ 1031 | INDIRECT_CALLABLE_SCOPE void udp_v6_early_demux(struct sk_buff *skb)
+      |                              ^~~~~~~~~~~~~~~~~~
+net/ipv6/udp.c:1072:29: warning: no previous prototype for 'udpv6_rcv' [-Wmissing-prototypes]
+ 1072 | INDIRECT_CALLABLE_SCOPE int udpv6_rcv(struct sk_buff *skb)
+      |                             ^~~~~~~~~
 
-Thanks
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ include/net/udp.h    | 3 +++
+ net/ipv6/ip6_input.c | 3 +--
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/include/net/udp.h b/include/net/udp.h
+index 877832bed471..ff2de866bca4 100644
+--- a/include/net/udp.h
++++ b/include/net/udp.h
+@@ -173,6 +173,9 @@ INDIRECT_CALLABLE_DECLARE(int udp4_gro_complete(struct sk_buff *, int));
+ INDIRECT_CALLABLE_DECLARE(struct sk_buff *udp6_gro_receive(struct list_head *,
+ 							   struct sk_buff *));
+ INDIRECT_CALLABLE_DECLARE(int udp6_gro_complete(struct sk_buff *, int));
++INDIRECT_CALLABLE_DECLARE(void udp_v6_early_demux(struct sk_buff *));
++INDIRECT_CALLABLE_DECLARE(int udpv6_rcv(struct sk_buff *));
++
+ struct sk_buff *udp_gro_receive(struct list_head *head, struct sk_buff *skb,
+ 				struct udphdr *uh, struct sock *sk);
+ int udp_gro_complete(struct sk_buff *skb, int nhoff, udp_lookup_t lookup);
+diff --git a/net/ipv6/ip6_input.c b/net/ipv6/ip6_input.c
+index e96304d8a4a7..e9d2a4a409aa 100644
+--- a/net/ipv6/ip6_input.c
++++ b/net/ipv6/ip6_input.c
+@@ -32,6 +32,7 @@
+
+ #include <net/sock.h>
+ #include <net/snmp.h>
++#include <net/udp.h>
+
+ #include <net/ipv6.h>
+ #include <net/protocol.h>
+@@ -44,7 +45,6 @@
+ #include <net/inet_ecn.h>
+ #include <net/dst_metadata.h>
+
+-INDIRECT_CALLABLE_DECLARE(void udp_v6_early_demux(struct sk_buff *));
+ INDIRECT_CALLABLE_DECLARE(void tcp_v6_early_demux(struct sk_buff *));
+ static void ip6_rcv_finish_core(struct net *net, struct sock *sk,
+ 				struct sk_buff *skb)
+@@ -352,7 +352,6 @@ void ipv6_list_rcv(struct list_head *head, struct packet_type *pt,
+ 		ip6_sublist_rcv(&sublist, curr_dev, curr_net);
+ }
+
+-INDIRECT_CALLABLE_DECLARE(int udpv6_rcv(struct sk_buff *));
+ INDIRECT_CALLABLE_DECLARE(int tcp_v6_rcv(struct sk_buff *));
+
+ /*
+--
+2.29.2
+
