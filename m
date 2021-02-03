@@ -7,60 +7,92 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B67EDC433DB
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Feb 2021 18:43:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06F18C433DB
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Feb 2021 18:43:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5DC8164F7C
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Feb 2021 18:43:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AC4BC64DA1
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Feb 2021 18:43:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232728AbhBCSnP (ORCPT
+        id S232929AbhBCSnT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 3 Feb 2021 13:43:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53686 "EHLO
+        Wed, 3 Feb 2021 13:43:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53702 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232131AbhBCSnO (ORCPT
+        with ESMTP id S232131AbhBCSnS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 3 Feb 2021 13:43:14 -0500
+        Wed, 3 Feb 2021 13:43:18 -0500
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 64800C0613D6
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 Feb 2021 10:42:34 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 815B6C0613ED
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 Feb 2021 10:42:38 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1l7N6m-0005wU-Uq; Wed, 03 Feb 2021 19:42:33 +0100
+        id 1l7N6r-0005wc-5X; Wed, 03 Feb 2021 19:42:37 +0100
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 1/3] testcases: move two dump files to correct location
-Date:   Wed,  3 Feb 2021 19:42:25 +0100
-Message-Id: <20210203184227.32208-1-fw@strlen.de>
+Subject: [PATCH nft 2/3] tests: add empty dynamic set
+Date:   Wed,  3 Feb 2021 19:42:26 +0100
+Message-Id: <20210203184227.32208-2-fw@strlen.de>
 X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20210203184150.32145-1-fw@strlen.de>
+In-Reply-To: <20210203184227.32208-1-fw@strlen.de>
 References: <20210203184150.32145-1-fw@strlen.de>
+ <20210203184227.32208-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The test cases were moved but the dumps remained in the old location.
+nft crashes on restore.
 
-Fixes: eb14363d44cea5 ("tests: shell: move chain priority and policy to chain folder")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- .../dumps/0031priority_variable_0.nft}                            | 0
- .../dumps/0035policy_variable_0.nft}                              | 0
- 2 files changed, 0 insertions(+), 0 deletions(-)
- rename tests/shell/testcases/{nft-f/dumps/0021priority_variable_0.nft => chains/dumps/0031priority_variable_0.nft} (100%)
- rename tests/shell/testcases/{nft-f/dumps/0025policy_variable_0.nft => chains/dumps/0035policy_variable_0.nft} (100%)
+ tests/shell/testcases/nft-f/0025empty_dynset_0   | 16 ++++++++++++++++
+ .../testcases/nft-f/dumps/0025empty_dynset_0.nft | 12 ++++++++++++
+ 2 files changed, 28 insertions(+)
+ create mode 100755 tests/shell/testcases/nft-f/0025empty_dynset_0
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0025empty_dynset_0.nft
 
-diff --git a/tests/shell/testcases/nft-f/dumps/0021priority_variable_0.nft b/tests/shell/testcases/chains/dumps/0031priority_variable_0.nft
-similarity index 100%
-rename from tests/shell/testcases/nft-f/dumps/0021priority_variable_0.nft
-rename to tests/shell/testcases/chains/dumps/0031priority_variable_0.nft
-diff --git a/tests/shell/testcases/nft-f/dumps/0025policy_variable_0.nft b/tests/shell/testcases/chains/dumps/0035policy_variable_0.nft
-similarity index 100%
-rename from tests/shell/testcases/nft-f/dumps/0025policy_variable_0.nft
-rename to tests/shell/testcases/chains/dumps/0035policy_variable_0.nft
+diff --git a/tests/shell/testcases/nft-f/0025empty_dynset_0 b/tests/shell/testcases/nft-f/0025empty_dynset_0
+new file mode 100755
+index 000000000000..796628a7c69a
+--- /dev/null
++++ b/tests/shell/testcases/nft-f/0025empty_dynset_0
+@@ -0,0 +1,16 @@
++#!/bin/sh
++
++RULESET="table ip foo {
++	        set inflows {
++                type ipv4_addr . inet_service . ifname . ipv4_addr . inet_service
++                flags dynamic
++                elements = { 10.1.0.3 . 39466 . \"veth1\" . 10.3.0.99 . 5201 counter packets 0 bytes 0 }
++        }
++
++        set inflows6 {
++                type ipv6_addr . inet_service . ifname . ipv6_addr . inet_service
++                flags dynamic
++        }
++}"
++
++$NFT -f - <<< "$RULESET"
+diff --git a/tests/shell/testcases/nft-f/dumps/0025empty_dynset_0.nft b/tests/shell/testcases/nft-f/dumps/0025empty_dynset_0.nft
+new file mode 100644
+index 000000000000..559eb49fc2e1
+--- /dev/null
++++ b/tests/shell/testcases/nft-f/dumps/0025empty_dynset_0.nft
+@@ -0,0 +1,12 @@
++table ip foo {
++	set inflows {
++		type ipv4_addr . inet_service . ifname . ipv4_addr . inet_service
++		flags dynamic
++		elements = { 10.1.0.3 . 39466 . "veth1" . 10.3.0.99 . 5201 counter packets 0 bytes 0 }
++	}
++
++	set inflows6 {
++		type ipv6_addr . inet_service . ifname . ipv6_addr . inet_service
++		flags dynamic
++	}
++}
 -- 
 2.26.2
 
