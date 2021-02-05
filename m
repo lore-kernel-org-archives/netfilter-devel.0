@@ -2,73 +2,80 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5B0BC433E0
-	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Feb 2021 05:08:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E24FC433E0
+	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Feb 2021 05:51:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9319F64FB4
-	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Feb 2021 05:08:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CD43B64FA0
+	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Feb 2021 05:51:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230033AbhBEFIl (ORCPT
+        id S230394AbhBEFut (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 5 Feb 2021 00:08:41 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47816 "EHLO mail.kernel.org"
+        Fri, 5 Feb 2021 00:50:49 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51508 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229587AbhBEFIk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 5 Feb 2021 00:08:40 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8889164E24;
-        Fri,  5 Feb 2021 05:07:58 +0000 (UTC)
+        id S229586AbhBEFus (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 5 Feb 2021 00:50:48 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPS id DE2D764FA0;
+        Fri,  5 Feb 2021 05:50:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1612501679;
-        bh=ulBEqcu3uB/xXFXJGBCw5AtPU0BmN4KWSiBM/1b2+F4=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=e++b4k9sV6hSevPgZIJ/JhKzd5knmr9mIJmFhKbl//RPLsK7MBJGluO9Z54NTWIJg
-         3PkPBROBlhX8eFVj1fAxlhMqjV6V9wyNuGDhcqtT9hF4qkV+AWPH1s3re6AK7QDJwq
-         mp4Cej7dWdn1Xf8pHyti76LS5XdRyBmmneQJZ2BC6E9OkWhyxzqvyrtRS+l3+5O2XS
-         MGhpShgamjgGhSOtf5Yr3/4L0b6l3qTG0t+izkzSnbQWd4grjQATGEIkDHrYldNlBL
-         J6VRcocMTF5T+3qy3X3tbmHCHJieyZqrS+2/CmUfZy0acxECVUAer7DNk4Leg1BROU
-         Oco+/q6wBJ8Fw==
-Date:   Thu, 4 Feb 2021 21:07:57 -0800
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     "David S. Miller" <davem@davemloft.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Leon Romanovsky <leonro@nvidia.com>, coreteam@netfilter.org,
-        Florian Westphal <fw@strlen.de>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Julian Anastasov <ja@ssi.bg>, linux-kernel@vger.kernel.org,
-        lvs-devel@vger.kernel.org, Matteo Croce <mcroce@redhat.com>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH net-next v2 0/4] Fix W=1 compilation warnings in net/*
- folder
-Message-ID: <20210204210757.5f3f4f5a@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <20210203135112.4083711-1-leon@kernel.org>
-References: <20210203135112.4083711-1-leon@kernel.org>
+        s=k20201202; t=1612504207;
+        bh=qzTqGev1hBUdwU64Jik155APlHGdFqTFwNx27Ifl0PA=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=Wn82XKYDLUplpHSrRiQjWeL8irYUuO1zGO9K4FlSjtjuM/tcd+pic5pWX2LoO33lG
+         FN5mVkCvWKzXBK3MsEeCb+E4JXB2PNW+Vx2o2bQXr6jHhU9aHyOjVdER46sKRpWDSn
+         HFO/ejiGMY0ZtP7MPblh0opzmat8GhD3tTBLNqKVNTbw8vbP0AQZwBXrPhZful+5xo
+         cHM4rQRsj4kloNN6jaFGx+FBDX5qkSIveB2x1ozCd7Mf4upck9+NC7WzHPm8dZxDzi
+         0h9M9usjA6c5cxJJOEwvVqRqcxDan5SWDzA5R4Yq1HgtxmXDz5QgPKVDRhEAsqPRQR
+         8rUq0cjj22CiA==
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/4] netfilter: xt_recent: Fix attempt to update deleted
+ entry
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <161250420785.25728.14599762510510974298.git-patchwork-notify@kernel.org>
+Date:   Fri, 05 Feb 2021 05:50:07 +0000
+References: <20210205001727.2125-2-pablo@netfilter.org>
+In-Reply-To: <20210205001727.2125-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed,  3 Feb 2021 15:51:08 +0200 Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@nvidia.com>
-> 
-> Changelog:
-> v2:
->  * Patch 3: Added missing include file.
-> v1: https://lore.kernel.org/lkml/20210203101612.4004322-1-leon@kernel.org
->  * Removed Fixes lines.
->  * Changed target from net to be net-next.
->  * Patch 1: Moved function declaration to be outside config instead
->    games with if/endif.
->  * Patch 3: Moved declarations to new header file.
-> v0: https://lore.kernel.org/lkml/20210202135544.3262383-1-leon@kernel.org
+Hello:
 
-Applied, thanks!
+This series was applied to netdev/net.git (refs/heads/master):
+
+On Fri,  5 Feb 2021 01:17:24 +0100 you wrote:
+> From: Jozsef Kadlecsik <kadlec@mail.kfki.hu>
+> 
+> When both --reap and --update flag are specified, there's a code
+> path at which the entry to be updated is reaped beforehand,
+> which then leads to kernel crash. Reap only entries which won't be
+> updated.
+> 
+> [...]
+
+Here is the summary with links:
+  - [net,1/4] netfilter: xt_recent: Fix attempt to update deleted entry
+    https://git.kernel.org/netdev/net/c/b1bdde33b723
+  - [net,2/4] selftests: netfilter: fix current year
+    https://git.kernel.org/netdev/net/c/a3005b0f83f2
+  - [net,3/4] netfilter: nftables: fix possible UAF over chains from packet path in netns
+    https://git.kernel.org/netdev/net/c/767d1216bff8
+  - [net,4/4] netfilter: flowtable: fix tcp and udp header checksum update
+    https://git.kernel.org/netdev/net/c/8d6bca156e47
+
+You are awesome, thank you!
+--
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
