@@ -2,92 +2,109 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.6 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,FORGED_MUA_MOZILLA,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E87EC433DB
-	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Feb 2021 18:46:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0F19C4332B
+	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Feb 2021 03:03:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CBB5564F09
-	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Feb 2021 18:46:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8021764F95
+	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Feb 2021 03:03:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233699AbhBERDU (ORCPT
+        id S229815AbhBFDCs (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 5 Feb 2021 12:03:20 -0500
-Received: from mail.thelounge.net ([91.118.73.15]:34701 "EHLO
-        mail.thelounge.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233462AbhBERBN (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 5 Feb 2021 12:01:13 -0500
-Received: from srv-rhsoft.rhsoft.net (rh.vpn.thelounge.net [10.10.10.2])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-256) server-digest SHA256)
+        Fri, 5 Feb 2021 22:02:48 -0500
+Received: from correo.us.es ([193.147.175.20]:48938 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S231708AbhBFCxC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 5 Feb 2021 21:53:02 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 249CA191906
+        for <netfilter-devel@vger.kernel.org>; Sat,  6 Feb 2021 02:57:06 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 10129DA789
+        for <netfilter-devel@vger.kernel.org>; Sat,  6 Feb 2021 02:57:06 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 05249DA73F; Sat,  6 Feb 2021 02:57:06 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BB69DDA73D;
+        Sat,  6 Feb 2021 02:57:03 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Sat, 06 Feb 2021 02:57:03 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: h.reindl@thelounge.net)
-        by mail.thelounge.net (THELOUNGE MTA) with ESMTPSA id 4DXJ714tklzXRM;
-        Fri,  5 Feb 2021 15:42:53 +0100 (CET)
-To:     Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org
-References: <20210205001727.2125-1-pablo@netfilter.org>
- <20210205001727.2125-2-pablo@netfilter.org>
- <69957353-7fe0-9faa-4ddd-1ac44d5386a5@thelounge.net>
- <alpine.DEB.2.23.453.2102051448220.10405@blackhole.kfki.hu>
-From:   Reindl Harald <h.reindl@thelounge.net>
-Organization: the lounge interactive design
-Subject: Re: [PATCH net 1/4] netfilter: xt_recent: Fix attempt to update
- deleted entry
-Message-ID: <a51d867a-3ca9-fd36-528a-353aa6c42f42@thelounge.net>
-Date:   Fri, 5 Feb 2021 15:42:53 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.7.0
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 96AA542E0F80;
+        Sat,  6 Feb 2021 02:57:03 +0100 (CET)
+Date:   Sat, 6 Feb 2021 02:57:03 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Arturo Borrero Gonzalez <arturo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [RFC conntrack-tools PATCH] conntrack-tools: introduce
+ conntrackdctl
+Message-ID: <20210206015703.GA23084@salvia>
+References: <161243463641.9380.7754148010781645692.stgit@endurance>
+ <20210205122824.GA16269@salvia>
 MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.23.453.2102051448220.10405@blackhole.kfki.hu>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20210205122824.GA16269@salvia>
+User-Agent: Mozilla/5.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
-
-Am 05.02.21 um 14:54 schrieb Jozsef Kadlecsik:
-> Hi Harald,
+On Fri, Feb 05, 2021 at 01:28:24PM +0100, Pablo Neira Ayuso wrote:
+> On Thu, Feb 04, 2021 at 11:32:06AM +0100, Arturo Borrero Gonzalez wrote:
+> > Separate conntrackd command line client functionalities into a different
+> > binary.
+> > 
+> > This should help with several things:
+> >  * avoid reading and parsing the config file, which can fail in some enviroments, for example if
+> >    conntrackd is running inside a netns and the referenced interfaces/addresses doesn't exist in
+> >    the namespace conntrackd client command is running from.
+> >  * easily update conntrakdctl with more functionalities without polluting the daemon binary
+> >  * easier code maintenance
+> [...]
+> > @@ -333,15 +151,6 @@ int main(int argc, char *argv[])
+> >  		exit(EXIT_FAILURE);
+> >  	}
+> >  
+> > -	if (type == REQUEST) {
+> > -		if (do_local_request(action, &conf.local, local_step) == -1) {
+> > -			dlog(LOG_ERR, "can't connect: is conntrackd "
+> > -			     "running? appropriate permissions?");
+> > -			exit(EXIT_FAILURE);
+> > -		}
+> > -		exit(EXIT_SUCCESS);
+> > -	}
 > 
-> On Fri, 5 Feb 2021, Reindl Harald wrote:
+> The existing interface needs to be in place to be backward compatible.
 > 
->> "Reap only entries which won't be updated" sounds for me like the could
->> be some optimization: i mean when you first update and then check what
->> can be reaped the recently updated entry would not match to begin with
-> 
-> When the entry is new and the given recent table is full we cannot update
-> (add) it, unless old entries are deleted (reaped) first. So it'd require
-> more additional checkings to be introduced to reverse the order of the two
-> operations.
-well, the most important thing is that the firewall-vm stops to 
-kernel-panic, built that beast in autumn 2018 and until april 2019 i 
-went trough hell with random crashes all the time (connlimit regression, 
-driver issues, vmware issues and that one where i removed --reap on the 
-most called one with some other changes when it crashed 5 or 10 times a 
-day and then 3 days not at all so never figured out what was the gamechanger
+> I'm fine for you to add this, but we'll have to leave the existing
+> interface for quite a bit of time, it might take years before we can
+> deprecate the old way.
 
-on the other hand if you can't reap old entries because everything is 
-fresh (real DDOS) you can't update / add it anyways
+You could probably update conntrackd to invoke conntrackdctl when you
+detect options that represent queries to the daemon. That would allow
+you to retain backward compatibility. Hence, old scripts still work
+while new ones might start using the new conntrackdctl command.
 
-what makes me thinking about the ones without --reap - how is it 
-handeled in that case, i mean there must be some LRU logic present 
-anyways given that --reap is not enabled by default (otherwise that bug 
-would not have hitted me so long randomly)
+If the problem is that you would like to skip the config parsing
+(which is what has triggered the errors when running things from the
+netns environment IIRC), then, you could update the code to skip the
+parsing:
 
-my first xt_recent-rule on top don't have --reap by intention because 
-it's the DDOS stuff with total connections to any machine per two 
-seconds, my guess what that --reap don't come for free and the 
-roudnabout 200 MB RAM overhead is OK, for the other 12 not hitting that 
-much the VM would consume 1.5 GB RAM after a few days instead 240 MB - 
-but they where obviosuly the trigger for random crashes
+- the user does not specify a configuration file
 
-how does that one work after "it's full" to track recent attackers 
-instead just consume memory and no longer work properly?
+AND
+
+- the options refer to a query to the daemon via UNIX socket.
+
+That's another possibility to consider.
