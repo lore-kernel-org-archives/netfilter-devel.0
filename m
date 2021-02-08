@@ -7,176 +7,75 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3400FC433E6
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Feb 2021 13:54:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60C0DC433DB
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Feb 2021 15:10:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E648764E54
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Feb 2021 13:54:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 22C2C64E50
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Feb 2021 15:10:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231426AbhBHNy2 (ORCPT
+        id S233081AbhBHPK0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Feb 2021 08:54:28 -0500
-Received: from correo.us.es ([193.147.175.20]:49112 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231671AbhBHNyH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Feb 2021 08:54:07 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6F061DA72F
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Feb 2021 14:53:17 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5B8D5DA73F
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Feb 2021 14:53:17 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 50959DA730; Mon,  8 Feb 2021 14:53:17 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E1A66DA789
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Feb 2021 14:53:14 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 08 Feb 2021 14:53:14 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id CDE8142DF562
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Feb 2021 14:53:14 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf] netfilter: nftables: relax check for stateful expressions in set definition
-Date:   Mon,  8 Feb 2021 14:53:11 +0100
-Message-Id: <20210208135311.11465-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+        Mon, 8 Feb 2021 10:10:26 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50864 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231722AbhBHPIc (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 Feb 2021 10:08:32 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD782C061786;
+        Mon,  8 Feb 2021 07:08:17 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1l9898-0004VT-Um; Mon, 08 Feb 2021 16:08:14 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     netfilter@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+        Martin Gignac <martin.gignac@gmail.com>
+Subject: [PATCH nft] trace: do not remove icmp type from packet dump
+Date:   Mon,  8 Feb 2021 16:08:09 +0100
+Message-Id: <20210208150809.1601-1-fw@strlen.de>
+X-Mailer: git-send-email 2.26.2
+In-Reply-To: <CANf9dFNK+APd2Pn0twresoZic60q+cFJ+yxc77fggYZKsf-11A@mail.gmail.com>
+References: <CANf9dFNK+APd2Pn0twresoZic60q+cFJ+yxc77fggYZKsf-11A@mail.gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch fixes a regression when adding an element with a stateful
-expression, eg. counter, but the set definition specifies no stateful
-expressions.
+As of 0.9.8 the icmp type is marked as a protocol field, so its
+elided in 'nft monitor trace' output:
 
-Remove defensive checks otherwise this breaks backward compatibility.
+   icmp code 0 icmp id 44380 ..
 
-Fixes: 8cfd9b0f8515 ("netfilter: nftables: generalize set expressions support")
-Fixes: 48b0ae046ee9 ("netfilter: nftables: netlink support for several set element expressions")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Restore it.  Unlike tcp, where 'tcp sport' et. al in the dump
+will make the 'ip protocol tcp' redundant this case isn't obvious
+in the icmp case:
+
+  icmp type 8 code 0 id ...
+
+Reported-by: Martin Gignac <martin.gignac@gmail.com>
+Fixes: 98b871512c4677 ("src: add auto-dependencies for ipv4 icmp")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_tables_api.c | 28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ src/netlink.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 43fe80f10313..361f88873195 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5281,6 +5281,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	struct nft_expr *expr_array[NFT_SET_EXPR_MAX] = {};
- 	struct nlattr *nla[NFTA_SET_ELEM_MAX + 1];
- 	u8 genmask = nft_genmask_next(ctx->net);
-+	u32 flags = 0, size = 0, num_exprs = 0;
- 	struct nft_set_ext_tmpl tmpl;
- 	struct nft_set_ext *ext, *ext2;
- 	struct nft_set_elem elem;
-@@ -5290,7 +5291,6 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	struct nft_data_desc desc;
- 	enum nft_registers dreg;
- 	struct nft_trans *trans;
--	u32 flags = 0, size = 0;
- 	u64 timeout;
- 	u64 expiration;
- 	int err, i;
-@@ -5356,28 +5356,24 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	if (nla[NFTA_SET_ELEM_EXPR]) {
- 		struct nft_expr *expr;
- 
--		if (set->num_exprs != 1)
--			return -EOPNOTSUPP;
--
- 		expr = nft_set_elem_expr_alloc(ctx, set,
- 					       nla[NFTA_SET_ELEM_EXPR]);
- 		if (IS_ERR(expr))
- 			return PTR_ERR(expr);
- 
- 		expr_array[0] = expr;
-+		num_exprs = 1;
- 
--		if (set->exprs[0] && set->exprs[0]->ops != expr->ops) {
-+		if (set->num_exprs && set->exprs[0]->ops != expr->ops) {
- 			err = -EOPNOTSUPP;
- 			goto err_set_elem_expr;
+diff --git a/src/netlink.c b/src/netlink.c
+index ec2dad29ace1..c3887d5b6662 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -1859,7 +1859,9 @@ next:
+ 		    pctx->pbase == PROTO_BASE_INVALID) {
+ 			payload_dependency_store(pctx, stmt, base - stacked);
+ 		} else {
+-			payload_dependency_kill(pctx, lhs, ctx->family);
++			/* Don't strip 'icmp type' from payload dump. */
++			if (pctx->icmp_type == 0)
++				payload_dependency_kill(pctx, lhs, ctx->family);
+ 			if (lhs->flags & EXPR_F_PROTOCOL)
+ 				payload_dependency_store(pctx, stmt, base - stacked);
  		}
-+
- 	} else if (nla[NFTA_SET_ELEM_EXPRESSIONS]) {
- 		struct nft_expr *expr;
- 		struct nlattr *tmp;
- 		int left;
- 
--		if (set->num_exprs == 0)
--			return -EOPNOTSUPP;
--
- 		i = 0;
- 		nla_for_each_nested(tmp, nla[NFTA_SET_ELEM_EXPRESSIONS], left) {
- 			if (i == set->num_exprs) {
-@@ -5394,21 +5390,25 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 				goto err_set_elem_expr;
- 			}
- 			expr_array[i] = expr;
-+			num_exprs++;
- 
--			if (expr->ops != set->exprs[i]->ops) {
-+			if (set->num_exprs && expr->ops != set->exprs[i]->ops) {
- 				err = -EOPNOTSUPP;
- 				goto err_set_elem_expr;
- 			}
- 			i++;
- 		}
--		if (set->num_exprs != i) {
-+		if (set->num_exprs && set->num_exprs != i) {
- 			err = -EOPNOTSUPP;
- 			goto err_set_elem_expr;
- 		}
-+
- 	} else if (set->num_exprs > 0) {
- 		err = nft_set_elem_expr_clone(ctx, set, expr_array);
- 		if (err < 0)
- 			goto err_set_elem_expr_clone;
-+
-+		num_exprs = set->num_exprs;
- 	}
- 
- 	err = nft_setelem_parse_key(ctx, set, &elem.key.val,
-@@ -5433,8 +5433,8 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 			nft_set_ext_add(&tmpl, NFT_SET_EXT_TIMEOUT);
- 	}
- 
--	if (set->num_exprs) {
--		for (i = 0; i < set->num_exprs; i++)
-+	if (num_exprs) {
-+		for (i = 0; i < num_exprs; i++)
- 			size += expr_array[i]->ops->size;
- 
- 		nft_set_ext_add_length(&tmpl, NFT_SET_EXT_EXPRESSIONS,
-@@ -5522,7 +5522,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 		*nft_set_ext_obj(ext) = obj;
- 		obj->use++;
- 	}
--	for (i = 0; i < set->num_exprs; i++)
-+	for (i = 0; i < num_exprs; i++)
- 		nft_set_elem_expr_setup(ext, i, expr_array);
- 
- 	trans = nft_trans_elem_alloc(ctx, NFT_MSG_NEWSETELEM, set);
-@@ -5584,7 +5584,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- err_parse_key:
- 	nft_data_release(&elem.key.val, NFT_DATA_VALUE);
- err_set_elem_expr:
--	for (i = 0; i < set->num_exprs && expr_array[i]; i++)
-+	for (i = 0; i < num_exprs && expr_array[i]; i++)
- 		nft_expr_destroy(ctx, expr_array[i]);
- err_set_elem_expr_clone:
- 	return err;
 -- 
-2.29.2
+2.26.2
 
