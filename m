@@ -2,80 +2,116 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60C0DC433DB
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Feb 2021 15:10:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CDE1C433DB
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Feb 2021 15:50:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 22C2C64E50
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Feb 2021 15:10:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 35F6264E60
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Feb 2021 15:50:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233081AbhBHPK0 (ORCPT
+        id S234176AbhBHPuS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Feb 2021 10:10:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50864 "EHLO
+        Mon, 8 Feb 2021 10:50:18 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60054 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231722AbhBHPIc (ORCPT
+        with ESMTP id S234141AbhBHPuA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Feb 2021 10:08:32 -0500
+        Mon, 8 Feb 2021 10:50:00 -0500
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD782C061786;
-        Mon,  8 Feb 2021 07:08:17 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA600C061786;
+        Mon,  8 Feb 2021 07:49:16 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1l9898-0004VT-Um; Mon, 08 Feb 2021 16:08:14 +0100
+        (envelope-from <fw@strlen.de>)
+        id 1l98mp-0004nh-I8; Mon, 08 Feb 2021 16:49:15 +0100
+Date:   Mon, 8 Feb 2021 16:49:15 +0100
 From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     netfilter@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-        Martin Gignac <martin.gignac@gmail.com>
-Subject: [PATCH nft] trace: do not remove icmp type from packet dump
-Date:   Mon,  8 Feb 2021 16:08:09 +0100
-Message-Id: <20210208150809.1601-1-fw@strlen.de>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <CANf9dFNK+APd2Pn0twresoZic60q+cFJ+yxc77fggYZKsf-11A@mail.gmail.com>
-References: <CANf9dFNK+APd2Pn0twresoZic60q+cFJ+yxc77fggYZKsf-11A@mail.gmail.com>
+To:     Martin Gignac <martin.gignac@gmail.com>
+Cc:     netfilter@vger.kernel.org,
+        netfilter-devel <netfilter-devel@vger.kernel.org>
+Subject: Re: Unable to create a chain called "trace"
+Message-ID: <20210208154915.GF16570@breakpoint.cc>
+References: <CANf9dFMJN5ZsihtygUnEWB_9T=WLbEHrZY1a5mTqLgN7J39D5w@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CANf9dFMJN5ZsihtygUnEWB_9T=WLbEHrZY1a5mTqLgN7J39D5w@mail.gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-As of 0.9.8 the icmp type is marked as a protocol field, so its
-elided in 'nft monitor trace' output:
+Martin Gignac <martin.gignac@gmail.com> wrote:
 
-   icmp code 0 icmp id 44380 ..
+[ cc devel ]
 
-Restore it.  Unlike tcp, where 'tcp sport' et. al in the dump
-will make the 'ip protocol tcp' redundant this case isn't obvious
-in the icmp case:
+> Out of curiosity, is there a reason why calling a chain "trace"
+> results in an error?
+> 
+> This configuration:
+> 
+>   chain trace {
+>     type filter hook prerouting priority -301;
+>     ip daddr 24.153.88.9 ip protocol icmp meta nftrace set 1
+>   }
+> 
+> Results in the following error when I try loading the ruleset:
+> 
+>   /etc/firewall/rules.nft:40:9-13: Error: syntax error, unexpected
+> trace, expecting string
+>   chain trace {
+>         ^^^^^
 
-  icmp type 8 code 0 id ...
+grammar bug.
 
-Reported-by: Martin Gignac <martin.gignac@gmail.com>
-Fixes: 98b871512c4677 ("src: add auto-dependencies for ipv4 icmp")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- src/netlink.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+Pablo, Phil, others, can you remind me why we never did:
 
-diff --git a/src/netlink.c b/src/netlink.c
-index ec2dad29ace1..c3887d5b6662 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -1859,7 +1859,9 @@ next:
- 		    pctx->pbase == PROTO_BASE_INVALID) {
- 			payload_dependency_store(pctx, stmt, base - stacked);
- 		} else {
--			payload_dependency_kill(pctx, lhs, ctx->family);
-+			/* Don't strip 'icmp type' from payload dump. */
-+			if (pctx->icmp_type == 0)
-+				payload_dependency_kill(pctx, lhs, ctx->family);
- 			if (lhs->flags & EXPR_F_PROTOCOL)
- 				payload_dependency_store(pctx, stmt, base - stacked);
- 		}
--- 
-2.26.2
+diff --git a/src/monitor.c b/src/monitor.c
+--- a/src/monitor.c
++++ b/src/monitor.c
+@@ -254,7 +254,7 @@ static int netlink_events_chain_cb(const struct nlmsghdr *nlh, int type,
+ 			chain_print_plain(c, &monh->ctx->nft->output);
+ 			break;
+ 		case NFT_MSG_DELCHAIN:
+-			nft_mon_print(monh, "chain %s %s %s",
++			nft_mon_print(monh, "chain %s \"%s\" \"%s\"",
+ 				      family2str(c->handle.family),
+ 				      c->handle.table.name,
+ 				      c->handle.chain.name);
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -2395,6 +2395,7 @@ chain_policy		:	ACCEPT		{ $$ = NF_ACCEPT; }
+ 			;
+ 
+ identifier		:	STRING
++			|	QUOTED_STRING
+ 			;
+ 
+ string			:	STRING
+diff --git a/src/rule.c b/src/rule.c
+index e4bb6bae276a..77477e535f2e 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1236,7 +1236,7 @@ static void chain_print_declaration(const struct chain *chain,
+ 	if (chain->flags & CHAIN_F_BINDING)
+ 		return;
+ 
+-	nft_print(octx, "\tchain %s {", chain->handle.chain.name);
++	nft_print(octx, "\tchain \"%s\" {", chain->handle.chain.name);
+ 	if (nft_output_handle(octx))
+ 		nft_print(octx, " # handle %" PRIu64, chain->handle.handle.id);
+ 	if (chain->comment)
+@@ -1297,7 +1297,7 @@ void chain_print_plain(const struct chain *chain, struct output_ctx *octx)
+ 	char priobuf[STD_PRIO_BUFSIZE];
+ 	int policy;
+ 
+-	nft_print(octx, "chain %s %s %s", family2str(chain->handle.family),
++	nft_print(octx, "chain %s \"%s\" \"%s\"", family2str(chain->handle.family),
+ 		  chain->handle.table.name, chain->handle.chain.name);
+ 
+ 	if (chain->flags & CHAIN_F_BASECHAIN) {
 
+?
