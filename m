@@ -2,136 +2,94 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BA4DC433DB
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Feb 2021 19:42:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 466C8C433E6
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Feb 2021 22:15:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 029DD64EDD
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Feb 2021 19:42:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0DE2464E6F
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Feb 2021 22:15:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233443AbhBITkp (ORCPT
+        id S234031AbhBIWMf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 9 Feb 2021 14:40:45 -0500
-Received: from nwk-aaemail-lapp02.apple.com ([17.151.62.67]:56698 "EHLO
-        nwk-aaemail-lapp02.apple.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S233676AbhBIT0C (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 9 Feb 2021 14:26:02 -0500
-Received: from pps.filterd (nwk-aaemail-lapp02.apple.com [127.0.0.1])
-        by nwk-aaemail-lapp02.apple.com (8.16.0.43/8.16.0.42) with SMTP id 119JJOl6050470;
-        Tue, 9 Feb 2021 11:24:24 -0800
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=apple.com; h=date : subject : from
- : to : cc : message-id : mime-version : content-type :
- content-transfer-encoding; s=20180706;
- bh=K6KuLU8qJx6OWF6vf4hF+med+RPNeMJPnVZlH8JCSKY=;
- b=Bv0erVpFA2qp2AJLsEb4ckn7GB6aTd6ws6Mxd1oaWhp2VLhrybGgXltd26zD7Y/ebzQU
- T6DDEvQQ654oRkcPKd9QC1eoirXtOaOHEUqmKopYOWMjqOSfVQxGf6jeV+y3JoPUYZr4
- 3/+vf2G/69hiFFeX69zCjB3JCTZE/0aSncCeM/4tONeii0BdWSh8FEbnXnXmLQ3zb0/o
- kZA4B+DR0rf1sWHx7IXx68GbHZCHX2xXb0yfnw/jikN/oSh8M8RQHe8ZCQAR8eXbKnlR
- g2qJ1GiCbpFpPpeI53ZuNtrWV8b3k+k3hjMYgWZ6pht9VLUXCwSXUgUhHNwG75LpQxe3 gA== 
-Received: from crk-mailsvcp-mta-lapp03.euro.apple.com (crk-mailsvcp-mta-lapp03.euro.apple.com [17.66.55.16])
-        by nwk-aaemail-lapp02.apple.com with ESMTP id 36hrjms24a-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NO);
-        Tue, 09 Feb 2021 11:24:23 -0800
-Received: from crk-mailsvcp-mmp-lapp02.euro.apple.com
- (crk-mailsvcp-mmp-lapp02.euro.apple.com [17.72.136.16])
- by crk-mailsvcp-mta-lapp03.euro.apple.com
- (Oracle Communications Messaging Server 8.1.0.7.20201203 64bit (built Dec  3
- 2020))
- with ESMTPS id <0QOA00VMO0KMQB00@crk-mailsvcp-mta-lapp03.euro.apple.com>; Tue,
- 09 Feb 2021 19:24:22 +0000 (GMT)
-Received: from process_milters-daemon.crk-mailsvcp-mmp-lapp02.euro.apple.com by
- crk-mailsvcp-mmp-lapp02.euro.apple.com
- (Oracle Communications Messaging Server 8.1.0.7.20201203 64bit (built Dec  3
- 2020)) id <0QOA00Z000D41X00@crk-mailsvcp-mmp-lapp02.euro.apple.com>; Tue,
- 09 Feb 2021 19:24:22 +0000 (GMT)
-X-Va-A: 
-X-Va-T-CD: b733bd983304443b63a993f2477c8539
-X-Va-E-CD: ae55c2cbabce46db1fee1813278865b3
-X-Va-R-CD: ea8436ad7cdf8c0bb84499addee28544
-X-Va-CD: 0
-X-Va-ID: 106b11f0-328c-4b88-a508-beb2cfd401ed
-X-V-A:  
-X-V-T-CD: b733bd983304443b63a993f2477c8539
-X-V-E-CD: ae55c2cbabce46db1fee1813278865b3
-X-V-R-CD: ea8436ad7cdf8c0bb84499addee28544
-X-V-CD: 0
-X-V-ID: 8401b314-caa8-4f85-834f-47f64e235f8f
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.369,18.0.737
- definitions=2021-02-09_06:2021-02-09,2021-02-09 signatures=0
-Received: from [192.168.1.127] (unknown [17.235.208.127])
- by crk-mailsvcp-mmp-lapp02.euro.apple.com
- (Oracle Communications Messaging Server 8.1.0.7.20201203 64bit (built Dec  3
- 2020))
- with ESMTPSA id <0QOA00W7H0KKDR00@crk-mailsvcp-mmp-lapp02.euro.apple.com>;
- Tue, 09 Feb 2021 19:24:22 +0000 (GMT)
-User-Agent: Microsoft-MacOutlook/16.45.21011103
-Date:   Tue, 09 Feb 2021 20:24:18 +0100
-Subject: [PATCH libnetfilter_queue v2] src: fix IPv6 header handling
-From:   Etan Kissling <etan_kissling@apple.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Message-id: <E541C42D-FD3B-4B5B-8806-8F96799BD6D6@apple.com>
-Thread-topic: [PATCH libnetfilter_queue v2] src: fix IPv6 header handling
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7bit
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.369,18.0.737
- definitions=2021-02-09_06:2021-02-09,2021-02-09 signatures=0
+        Tue, 9 Feb 2021 17:12:35 -0500
+Received: from correo.us.es ([193.147.175.20]:40676 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S233784AbhBIWH4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 9 Feb 2021 17:07:56 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 61005B6337
+        for <netfilter-devel@vger.kernel.org>; Tue,  9 Feb 2021 22:35:19 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4BC51DA730
+        for <netfilter-devel@vger.kernel.org>; Tue,  9 Feb 2021 22:35:19 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 40E42DA722; Tue,  9 Feb 2021 22:35:19 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 109A5DA789;
+        Tue,  9 Feb 2021 22:35:17 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 09 Feb 2021 22:35:17 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id CA67142DC6DD;
+        Tue,  9 Feb 2021 22:35:16 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
+Subject: [PATCH net 1/2] netfilter: conntrack: skip identical origin tuple in same zone only
+Date:   Tue,  9 Feb 2021 22:35:10 +0100
+Message-Id: <20210209213511.23298-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20210209213511.23298-1-pablo@netfilter.org>
+References: <20210209213511.23298-1-pablo@netfilter.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This corrects issues in IPv6 header handling that sometimes resulted
-in an endless loop.
+From: Florian Westphal <fw@strlen.de>
 
-Signed-off-by: Etan Kissling <etan_kissling@apple.com>
+The origin skip check needs to re-test the zone. Else, we might skip
+a colliding tuple in the reply direction.
+
+This only occurs when using 'directional zones' where origin tuples
+reside in different zones but the reply tuples share the same zone.
+
+This causes the new conntrack entry to be dropped at confirmation time
+because NAT clash resolution was elided.
+
+Fixes: 4e35c1cb9460240 ("netfilter: nf_nat: skip nat clash resolution for same-origin entries")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: Updated loop condition to be consistent with the implementation
-    ipv6_skip_exthdr() in the Linux kernel.
+ net/netfilter/nf_conntrack_core.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
- src/extra/ipv6.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
-
-diff --git a/src/extra/ipv6.c b/src/extra/ipv6.c
-index 42c5e25..0ec8fbf 100644
---- a/src/extra/ipv6.c
-+++ b/src/extra/ipv6.c
-@@ -67,7 +67,12 @@ int nfq_ip6_set_transport_header(struct pkt_buff *pktb, struct ip6_hdr *ip6h,
- 	uint8_t nexthdr = ip6h->ip6_nxt;
- 	uint8_t *cur = (uint8_t *)ip6h + sizeof(struct ip6_hdr);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 234b7cab37c3..ff0168736f6e 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1229,7 +1229,8 @@ nf_conntrack_tuple_taken(const struct nf_conntrack_tuple *tuple,
+ 			 * Let nf_ct_resolve_clash() deal with this later.
+ 			 */
+ 			if (nf_ct_tuple_equal(&ignored_conntrack->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
+-					      &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple))
++					      &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple) &&
++					      nf_ct_zone_equal(ct, zone, IP_CT_DIR_ORIGINAL))
+ 				continue;
  
--	while (nexthdr != target) {
-+	while (nexthdr == IPPROTO_HOPOPTS ||
-+			nexthdr == IPPROTO_ROUTING ||
-+			nexthdr == IPPROTO_FRAGMENT ||
-+			nexthdr == IPPROTO_AH ||
-+			nexthdr == IPPROTO_NONE ||
-+			nexthdr == IPPROTO_DSTOPTS) {
- 		struct ip6_ext *ip6_ext;
- 		uint32_t hdrlen;
- 
-@@ -107,11 +112,13 @@ int nfq_ip6_set_transport_header(struct pkt_buff *pktb, struct ip6_hdr *ip6h,
- 		} else if (nexthdr == IPPROTO_AH)
- 			hdrlen = (ip6_ext->ip6e_len + 2) << 2;
- 		else
--			hdrlen = ip6_ext->ip6e_len;
-+			hdrlen = (ip6_ext->ip6e_len + 1) << 3;
- 
- 		nexthdr = ip6_ext->ip6e_nxt;
- 		cur += hdrlen;
- 	}
-+	if (nexthdr != target)
-+		cur = NULL;
- 	pktb->transport_header = cur;
- 	return cur ? 1 : 0;
- }
+ 			NF_CT_STAT_INC_ATOMIC(net, found);
 -- 
-2.21.1 (Apple Git-122.3)
-
-
+2.20.1
 
