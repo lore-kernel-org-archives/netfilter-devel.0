@@ -2,91 +2,109 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE6A9C433E0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Feb 2021 22:10:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBA1AC433E0
+	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Feb 2021 00:05:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 82C1B64E38
-	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Feb 2021 22:10:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B4C6064E4D
+	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Feb 2021 00:05:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229521AbhBKWKP (ORCPT
+        id S230005AbhBLAFw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 11 Feb 2021 17:10:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54250 "EHLO
+        Thu, 11 Feb 2021 19:05:52 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50802 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229469AbhBKWKO (ORCPT
+        with ESMTP id S229895AbhBLAFv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 11 Feb 2021 17:10:14 -0500
+        Thu, 11 Feb 2021 19:05:51 -0500
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC17BC061574;
-        Thu, 11 Feb 2021 14:09:34 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9DD26C061574;
+        Thu, 11 Feb 2021 16:05:11 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@strlen.de>)
-        id 1lAK9S-0005k6-N8; Thu, 11 Feb 2021 23:09:30 +0100
-Date:   Thu, 11 Feb 2021 23:09:30 +0100
+        id 1lALxL-0006O5-JI; Fri, 12 Feb 2021 01:05:08 +0100
+Date:   Fri, 12 Feb 2021 01:05:07 +0100
 From:   Florian Westphal <fw@strlen.de>
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     Paul Moore <paul@paul-moore.com>, Phil Sutter <phil@nwl.cc>,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, sgrubb@redhat.com,
-        Ondrej Mosnacek <omosnace@redhat.com>, fw@strlen.de,
-        twoerner@redhat.com, Eric Paris <eparis@parisplace.org>,
-        tgraf@infradead.org
-Subject: Re: [PATCH ghak124 v3] audit: log nftables configuration change
- events
-Message-ID: <20210211220930.GC2766@breakpoint.cc>
-References: <f9da8b5dbf2396b621c77c17b5b1123be5aa484e.1591275439.git.rgb@redhat.com>
- <20210211151606.GX3158@orbyte.nwl.cc>
- <CAHC9VhTNQW9d=8GCW-70vAEMh8-LXviP+JHFC2-YkuitokLLMQ@mail.gmail.com>
- <20210211202628.GP2015948@madcap2.tricolour.ca>
+To:     Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+        Martin Gignac <martin.gignac@gmail.com>,
+        netfilter@vger.kernel.org,
+        netfilter-devel <netfilter-devel@vger.kernel.org>
+Subject: Re: Unable to create a chain called "trace"
+Message-ID: <20210212000507.GD2766@breakpoint.cc>
+References: <CANf9dFMJN5ZsihtygUnEWB_9T=WLbEHrZY1a5mTqLgN7J39D5w@mail.gmail.com>
+ <20210208154915.GF16570@breakpoint.cc>
+ <20210208164750.GM3158@orbyte.nwl.cc>
+ <20210208171444.GH16570@breakpoint.cc>
+ <20210209135625.GN3158@orbyte.nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210211202628.GP2015948@madcap2.tricolour.ca>
+In-Reply-To: <20210209135625.GN3158@orbyte.nwl.cc>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > I personally would notify once per transaction. This is easy and quick.
+Phil Sutter <phil@nwl.cc> wrote:
+> On Mon, Feb 08, 2021 at 06:14:44PM +0100, Florian Westphal wrote:
+> > Phil Sutter <phil@nwl.cc> wrote:
+> > > In general, shells eating the quotes is problematic and users may not be
+> > > aware of it. This includes scripts that mangle ruleset dumps by
+> > > accident, etc. (Not sure if it is really a problem as we quote some
+> > > strings already).
+> > > 
+> > > Using JSON, there are no such limits, BTW. I really wonder if there's
+> > > really no fix for bison parser to make it "context aware".
+> > 
+> > Right.  We can probably make lots of keywords available for table/chain names
+> > by only recognizing them while parsing rules, i.e. via 'start conditions'
+> > in flex.  But I don't think there is anyone with the time to do the
+> > needed scanner changes.
 > 
-> This was the goal.  iptables was atomic.  nftables appears to no longer
-> be so.  If I have this wrong, please show how that works.
+> Oh, I wasn't aware of start conditions at all, thanks for the pointer.
+> Instead of reducing most keyword's scope to rule context, I tried a less
+> intrusive approach, namely recognizing "only strings plus some extra" in
+> certain conditions. See attached patch for reference. With it in place,
+> I was at least able to:
+> 
+> # nft add table inet table
+> # nft add chain inet table chain
+> # nft add rule inet table chain iifname rule
 
-nftables transactions are atomic, either the entire batch takes effect or not
-at all.
+Thanks.  Another bug report about this problem arrived moments ago,
+this time 'add rule filter dynamic'
 
-The audit_log_nfcfg() calls got added to the the nft monitor infra which
-is designed to allow userspace to follow the entire content of the
-transaction log.
+Whats worse is that 3rd party tool created a chain with that name.
 
-So, if its just a 'something was changed' event that is needed all of
-them can be removed. ATM the audit_log_nfcfg() looks like this:
+So I fear we can't really release a new nft version without a new
+scanner that passes 'string' outside of rule context.
 
-        /* step 3. Start new generation, rules_gen_X now in use. */
-        net->nft.gencursor = nft_gencursor_next(net);
+Phils patch makes this work but breaks the test suite.
 
-        list_for_each_entry_safe(trans, next, &net->nft.commit_list, list) {
-                switch (trans->msg_type) {
-                case NFT_MSG_NEWTABLE:
-			audit_log_nfcfg();
-			...
-		case NFT_MSG_...
-			audit_log_nfcfg();
-	..
-	       	}
+>  "=="			{ return EQ; }
+>  
+> -{numberstring}		{
+> +<*>{numberstring}	{
+> +				if (nspec && !--nspec)
+> +					BEGIN(0);
+>  				errno = 0;
+>  				yylval->val = strtoull(yytext, NULL, 0);
+>  				if (errno != 0) {
+> @@ -639,7 +645,9 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+>  				return ASTERISK_STRING;
+>  			}
+>  
+> -{string}		{
+> +<*>{string}		{
+> +				if (nspec && !--nspec)
+> +					BEGIN(0);
 
-which gives an audit_log for every single change in the batch.
+Not sure this is a good way to go, it looks rather fragile.
 
-So, if just a summary is needed a single audit_log_nfcfg()
-after 'step 3' and outside of the list_for_each_entry_safe() is all
-that is needed.
-
-If a summary is wanted as well one could fe. count the number of
-transaction types in the batch, e.g. table adds, chain adds, rule
-adds etc. and then log a summary count instead.
+Seems we need allow "{" for "*" and then count the {} nests so
+we can pop off a scanner state stack once we make it back to the
+same } level that we had at the last state switch.
