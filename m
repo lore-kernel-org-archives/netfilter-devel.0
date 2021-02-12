@@ -2,144 +2,152 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE719C433E0
-	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Feb 2021 18:03:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B771AC433E0
+	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Feb 2021 20:50:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8BFDA64DBA
-	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Feb 2021 18:03:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8288964DEC
+	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Feb 2021 20:50:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231717AbhBLSDH (ORCPT
+        id S230477AbhBLUuT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 12 Feb 2021 13:03:07 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55414 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231663AbhBLSDE (ORCPT
+        Fri, 12 Feb 2021 15:50:19 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:32150 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S229798AbhBLUuR (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 12 Feb 2021 13:03:04 -0500
-Received: from mail-ej1-x62e.google.com (mail-ej1-x62e.google.com [IPv6:2a00:1450:4864:20::62e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79322C061756;
-        Fri, 12 Feb 2021 10:02:25 -0800 (PST)
-Received: by mail-ej1-x62e.google.com with SMTP id b9so510676ejy.12;
-        Fri, 12 Feb 2021 10:02:25 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=GQgEcIkoxwTqPRvy9e36k1BAwElKdvgBPKpg2hQjyqE=;
-        b=o7vlo6QFlFqsHxUV+hZED5V6DNYDvCzdGZU+E0OaoIwWSWWuutrDkEBb+q0wBPMMAL
-         prkJi9bs1JPCG9GYJrdlcDXxkiBZc3Uwe7/NdpvwvJFao3UXCYdq4i26q2QbFcqB129m
-         1kxeU2LOW4o10DtRk7iIW7bqOBLpZWKWZZRIBZgvh8O+Sek2+zIFFMmLFjENHp3tTHKL
-         r9Oh2IrE5X3IKxlqKo6Jsjc9wfyNSCRIbM+ihbCRBQYaCurPo+XVHC+NPsvhHNKdy30T
-         ja7IgkonjRZlxLnaqY5M0mrvJNnmAe3pR7woVdJR8JFr4K8dIkSwH4VPRGsu1qEpxHbb
-         fipg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=GQgEcIkoxwTqPRvy9e36k1BAwElKdvgBPKpg2hQjyqE=;
-        b=ubOvP3uhF5NzoymRvucWM0c8MhPoUvVOwDDZYMAueOC6qluebg4W6uFODdbmo1JpbV
-         qI5UqO6bcTzeFLb0xwgPp1yScwG86mXEz/lqWxPlrwCt0mNMgQfTZW8JVKLWGm61ePv5
-         N3QYx+N0wGH/CroK11VcGc9cSO5VfFushGSr2O11rRIVC5K3gw0XZNXtfccGuEyFzifW
-         FOxUsGAyvprKuegi7r6p5lNca6pNEtSmTwBIOXDVAwJn2BqSmBR9jRe60yvYkTZcSrLQ
-         z+O4n6IYzKLKxWYqAfpk+XgaEj2nXw9fZveIOGpZ+QkpdUOP64Nc7i1l5xMgeb0UtHNb
-         LNcg==
-X-Gm-Message-State: AOAM532RgfrYoavBLBvwZTfxnmgorXX4PbT8J8f0P+YekBy/w8g7cF68
-        72EusFu0YZWmiCLSvznUTYo=
-X-Google-Smtp-Source: ABdhPJwTV1ItIEgObBXppG0B/JbsnbIfCZ5vrrPZK4nJHx91TrN7LF4TLe/6NmoDgYbi9hRKidhUTw==
-X-Received: by 2002:a17:907:9810:: with SMTP id ji16mr3995370ejc.394.1613152944075;
-        Fri, 12 Feb 2021 10:02:24 -0800 (PST)
-Received: from bzorp (BC248012.dsl.pool.telekom.hu. [188.36.128.18])
-        by smtp.gmail.com with ESMTPSA id i4sm6628483eje.90.2021.02.12.10.02.22
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 12 Feb 2021 10:02:23 -0800 (PST)
-Date:   Fri, 12 Feb 2021 19:02:21 +0100
-From:   Balazs Scheidler <bazsi77@gmail.com>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Phil Sutter <phil@nwl.cc>, Martin Gignac <martin.gignac@gmail.com>,
-        netfilter@vger.kernel.org,
-        netfilter-devel <netfilter-devel@vger.kernel.org>
-Subject: Re: Unable to create a chain called "trace"
-Message-ID: <20210212180221.GA3914830@bzorp>
-References: <CANf9dFMJN5ZsihtygUnEWB_9T=WLbEHrZY1a5mTqLgN7J39D5w@mail.gmail.com>
- <20210208154915.GF16570@breakpoint.cc>
- <20210208164750.GM3158@orbyte.nwl.cc>
- <20210208171444.GH16570@breakpoint.cc>
- <20210209135625.GN3158@orbyte.nwl.cc>
- <20210212000507.GD2766@breakpoint.cc>
- <20210212114042.GZ3158@orbyte.nwl.cc>
- <20210212122007.GE2766@breakpoint.cc>
+        Fri, 12 Feb 2021 15:50:17 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1613162930;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=2GTLBCiO9sWR+YwrKUUijDRwp4nWHKBHE9zqt66FKTk=;
+        b=agKmoOoFc1DmPLt5LNt1anoST/XO3zG3PJnfIFdD8RxNEBgRfUFQuv2+JWMEVBrdz5st5Y
+        1eRyW9P65CnE0w7o5Ko6CaLhUKieb4z63dbd2uPABiBOoq/v7vAfLRVvelG4Vrbz3aaugv
+        uruXWhB18BwzaXbuC71x929dN5jV2wA=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-573-pNF8CLBtOba6hMGRHWAmwQ-1; Fri, 12 Feb 2021 15:48:47 -0500
+X-MC-Unique: pNF8CLBtOba6hMGRHWAmwQ-1
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id E231C8030C1;
+        Fri, 12 Feb 2021 20:48:45 +0000 (UTC)
+Received: from madcap2.tricolour.ca (unknown [10.10.110.8])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 6079D5D9FC;
+        Fri, 12 Feb 2021 20:48:31 +0000 (UTC)
+Date:   Fri, 12 Feb 2021 15:48:28 -0500
+From:   Richard Guy Briggs <rgb@redhat.com>
+To:     Paul Moore <paul@paul-moore.com>
+Cc:     Phil Sutter <phil@nwl.cc>,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, sgrubb@redhat.com,
+        Ondrej Mosnacek <omosnace@redhat.com>, fw@strlen.de,
+        twoerner@redhat.com, Eric Paris <eparis@parisplace.org>,
+        tgraf@infradead.org
+Subject: Re: [PATCH ghak124 v3] audit: log nftables configuration change
+ events
+Message-ID: <20210212204828.GL3141668@madcap2.tricolour.ca>
+References: <f9da8b5dbf2396b621c77c17b5b1123be5aa484e.1591275439.git.rgb@redhat.com>
+ <20210211151606.GX3158@orbyte.nwl.cc>
+ <CAHC9VhTNQW9d=8GCW-70vAEMh8-LXviP+JHFC2-YkuitokLLMQ@mail.gmail.com>
+ <20210211202628.GP2015948@madcap2.tricolour.ca>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210212122007.GE2766@breakpoint.cc>
+In-Reply-To: <20210211202628.GP2015948@madcap2.tricolour.ca>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Feb 12, 2021 at 01:20:07PM +0100, Florian Westphal wrote:
-> Phil Sutter <phil@nwl.cc> wrote:
-> > I didn't find a better way to conditionally parse two following args as
-> > strings instead of just a single one. Basically I miss an explicit end
-> > condition from which to call BEGIN(0).
-> 
-> Yes, thats part of the problem.
-> 
-> > > Seems we need allow "{" for "*" and then count the {} nests so
-> > > we can pop off a scanner state stack once we make it back to the
-> > > same } level that we had at the last state switch.
+On 2021-02-11 15:26, Richard Guy Briggs wrote:
+> On 2021-02-11 11:29, Paul Moore wrote:
+> > On Thu, Feb 11, 2021 at 10:16 AM Phil Sutter <phil@nwl.cc> wrote:
+> > > Hi,
+> > >
+> > > On Thu, Jun 04, 2020 at 09:20:49AM -0400, Richard Guy Briggs wrote:
+> > > > iptables, ip6tables, arptables and ebtables table registration,
+> > > > replacement and unregistration configuration events are logged for the
+> > > > native (legacy) iptables setsockopt api, but not for the
+> > > > nftables netlink api which is used by the nft-variant of iptables in
+> > > > addition to nftables itself.
+> > > >
+> > > > Add calls to log the configuration actions in the nftables netlink api.
+> > >
+> > > As discussed offline already, these audit notifications are pretty hefty
+> > > performance-wise. In an internal report, 300% restore time of a ruleset
+> > > containing 70k set elements is measured.
 > > 
-> > What is the problem?
+> > If you're going to reference offline/off-list discussions in a post to
+> > a public list, perhaps the original discussion shouldn't have been
+> > off-list ;)  If you don't involve us in the discussion, we have to
+> > waste a lot of time getting caught up.
 > 
-> Detect when we need to exit the current start condition.
-> 
-> We may not even be able to do BEGIN(0) if we have multiple, nested
-> start conditionals. flex supports start condition stacks, but that
-> still leaves the exit/closure issue.
-> 
-> Example:
-> 
-> table chain {
->  chain bla {  /* should start to recognize rules, but
-> 		 we did not see 'rule' keyword */
-> 	ip saddr { ... } /* can't exit rule start condition on } ... */
-> 	ip daddr { ... }
->  }  /* should disable rule keywords again */
-> 
->  chain dynamic { /* so 'dynamic' is a string here ... */
->  }
-> }
-> 
-> I don't see a solution, perhaps add dummy bison rule(s)
-> to explicitly signal closure of e.g. a rule context?
+> Here's part of that discussion:
+> 	https://bugzilla.redhat.com/show_bug.cgi?id=1918013
 
-You can always push/pop the flexer state from bison code blocks, maybe
-that's what you mean on "dummy bison rules".
+Here's the rest:
+	 https://bugzilla.redhat.com/show_bug.cgi?id=1921624
 
-Trigger the state from bison and make sure it ends.
+> > > If I'm not mistaken, iptables emits a single audit log per table, ipset
+> > > doesn't support audit at all. So I wonder how much audit logging is
+> > > required at all (for certification or whatever reason). How much
+> > > granularity is desired?
+> > 
+> > That's a question for the people who track these certification
+> > requirements, which is thankfully not me at the moment.  Unless
+> > somebody else wants to speak up, Steve Grubb is probably the only
+> > person who tracks that sort of stuff and comments here.
+> > 
+> > I believe the netfilter auditing was mostly a nice-to-have bit of
+> > functionality to help add to the completeness of the audit logs, but I
+> > could very easily be mistaken.  Richard put together those patches, he
+> > can probably provide the background/motivation for the effort.
+> 
+> It was added because an audit test that normally produced records from
+> iptables on one distro stopped producing any records on another.
+> Investigation led to the fact that on the first it was using
+> iptables-legacy API and on the other it was using iptables-nft API.
+> 
+> > > I personally would notify once per transaction. This is easy and quick.
+> 
+> This was the goal.  iptables was atomic.  nftables appears to no longer
+> be so.  If I have this wrong, please show how that works.
+> 
+> > > Once per table or chain should be acceptable, as well. At the very
+> > > least, we should not have to notify once per each element. This is the
+> > > last resort of fast ruleset adjustments. If we lose it, people are
+> > > better off with ipset IMHO.
+> > >
+> > > Unlike nft monitor, auditd is not designed to be disabled "at will". So
+> > > turning it off for performance-critical workloads is no option.
+> 
+> If it were to be disabled "at will" it would defeat the purpose of
+> audit.  Those records can already be filtered, or audit can be disabled,
+> but let us look at rationalizing the current nftables records first.
+> 
+> > Patches are always welcome, but it might be wise to get to the bottom
+> > of the certification requirements first.
+> > 
+> > paul moore
+> 
+> - RGB
 
-Something like this:
+- RGB
 
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 11e899ff..d8107181 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -2397,7 +2397,10 @@ chain_policy             :       ACCEPT          { $$ = NF_ACCEPT; }
- identifier             :       STRING
-                        ;
- 
--string                 :       STRING
-+string                 :       { yy_push_state(scanner, STRING); } __string { yy_pop_state(scanner); }
-+                       ;
-+
-+__string               :       STRING
-                        |       QUOTED_STRING
-                        |       ASTERISK_STRING
-                        ;
+--
+Richard Guy Briggs <rgb@redhat.com>
+Sr. S/W Engineer, Kernel Security, Base Operating Systems
+Remote, Ottawa, Red Hat Canada
+IRC: rgb, SunRaycer
+Voice: +1.647.777.2635, Internal: (81) 32635
 
--- 
-Bazsi
