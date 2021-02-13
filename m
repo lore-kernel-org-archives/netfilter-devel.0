@@ -2,172 +2,95 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=0.2 required=3.0 tests=BAYES_20,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38240C433E0
-	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Feb 2021 21:08:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D828C433DB
+	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Feb 2021 09:55:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 06B4864DEC
-	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Feb 2021 21:08:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EB80264DE3
+	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Feb 2021 09:55:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231899AbhBLVIB (ORCPT
+        id S229512AbhBMJzi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 12 Feb 2021 16:08:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38538 "EHLO
+        Sat, 13 Feb 2021 04:55:38 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60928 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229718AbhBLVH4 (ORCPT
+        with ESMTP id S229475AbhBMJzh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 12 Feb 2021 16:07:56 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 64108C061756;
-        Fri, 12 Feb 2021 13:07:16 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1lAfei-00073z-9B; Fri, 12 Feb 2021 22:07:12 +0100
-Date:   Fri, 12 Feb 2021 22:07:12 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Martin Gignac <martin.gignac@gmail.com>,
-        netfilter@vger.kernel.org,
-        netfilter-devel <netfilter-devel@vger.kernel.org>
-Subject: Re: Unable to create a chain called "trace"
-Message-ID: <20210212210712.GE3158@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Martin Gignac <martin.gignac@gmail.com>, netfilter@vger.kernel.org,
-        netfilter-devel <netfilter-devel@vger.kernel.org>
-References: <20210208154915.GF16570@breakpoint.cc>
- <20210208164750.GM3158@orbyte.nwl.cc>
- <20210208171444.GH16570@breakpoint.cc>
- <20210209135625.GN3158@orbyte.nwl.cc>
- <20210212000507.GD2766@breakpoint.cc>
- <20210212114042.GZ3158@orbyte.nwl.cc>
- <20210212122007.GE2766@breakpoint.cc>
- <20210212170921.GA1119@salvia>
- <20210212173201.GD3158@orbyte.nwl.cc>
- <20210212175423.GA3033@salvia>
+        Sat, 13 Feb 2021 04:55:37 -0500
+Received: from mail-pl1-x636.google.com (mail-pl1-x636.google.com [IPv6:2607:f8b0:4864:20::636])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12EB0C061756
+        for <netfilter-devel@vger.kernel.org>; Sat, 13 Feb 2021 01:54:57 -0800 (PST)
+Received: by mail-pl1-x636.google.com with SMTP id g20so1128750plo.2
+        for <netfilter-devel@vger.kernel.org>; Sat, 13 Feb 2021 01:54:57 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:subject:date:message-id:mime-version
+         :content-transfer-encoding:thread-index:content-language;
+        bh=zFfduRurD8LOBio9pgNgbF9wtXIM++0hciUpCxBLtN0=;
+        b=LM1NzTbYyzP3amnmnhCUSYPZ6JwQ7E53ZEtuvuSpJAviLrmgegP8KG2avBwAviyDOu
+         ev34mPpAtGyJlg3IrGRk2IW89tmpRFszqXIGxNvZNxQdWovHMQ7orE4SsS9E0VKt2q7W
+         g1daLKhfNC/qngLgh2x2/vuBMYFP/My9nVB6RFh7utKIm7D+6yIGziNurH4NvdLILDsk
+         xUqcfuim8ZXoIxp8HEfxI9tPsWwiJpO0IaBdkdl5023iZ+T73ZL6vcwnEjMz9XQGVy14
+         cZWmPYsj7b1rviz2j15a4rN4ARwH9OQOD2JYiYn1eryxRDF6DiuB0YoK0bxPoOYY7g4j
+         Lhcw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:subject:date:message-id:mime-version
+         :content-transfer-encoding:thread-index:content-language;
+        bh=zFfduRurD8LOBio9pgNgbF9wtXIM++0hciUpCxBLtN0=;
+        b=GAVaucDek45bEA1EuNOam5oNZa8jq549U+Il9rT9G3ZtjZ8yr39me2gH/l0kIpQ41d
+         x+QdRa1CH848ewjY0n2IMZ0w37DHwizDRuOMk6cO2Ruo6dzdJVae3if9xoZ0a1EbRf5w
+         RoQjq8ZEoBw7IycJm7H/5en/EQP/XpCgrcfEz5o1Yo19zDGe2m5C8zk+PjZWL2zr4kxK
+         CHFRsG0EaMqSIhK3cvT+MMF8XduSLTbm5uh7SxmuEO/Fae2gdl4MJdo7byhO11hw8F7a
+         V2R5BkxrmQrM1yhUo0pZDOCuykcte8IdohQCiBTyoDoIgCGtz36T5YJ3wDcLBBDLupfu
+         dZJw==
+X-Gm-Message-State: AOAM530nr+GA0cdoqlUow1VoznapQWPxXuPVUAPINlZvvBoIBV8c3FQ6
+        VMb4a7FvFb1jfVqOM59JPjeXxmDoTdc=
+X-Google-Smtp-Source: ABdhPJzTdeMc9zJFaspjo8DSwE2yqChH1O23X7f/nj8vPKxd77U4b+YG2lzspxeISACSbTS+lCt75A==
+X-Received: by 2002:a17:903:20d1:b029:e2:bc1c:2840 with SMTP id i17-20020a17090320d1b02900e2bc1c2840mr6415441plb.43.1613210096378;
+        Sat, 13 Feb 2021 01:54:56 -0800 (PST)
+Received: from DESKTOP ([124.170.54.239])
+        by smtp.gmail.com with ESMTPSA id k11sm10664166pfc.22.2021.02.13.01.54.55
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Sat, 13 Feb 2021 01:54:56 -0800 (PST)
+From:   "Bob @ gmail" <bob.zscharnagk@gmail.com>
+To:     <netfilter-devel@vger.kernel.org>
+Subject: Question about using NFT_GOTO in kernel module
+Date:   Sat, 13 Feb 2021 17:54:53 +0800
+Message-ID: <008001d701ee$486aec10$d940c430$@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210212175423.GA3033@salvia>
-Sender:  <n0-1@orbyte.nwl.cc>
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+X-Mailer: Microsoft Outlook 16.0
+Thread-Index: AdcB7kaZeBxajHeiShWcuwMvcksaHA==
+Content-Language: en-au
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Feb 12, 2021 at 06:54:23PM +0100, Pablo Neira Ayuso wrote:
-> On Fri, Feb 12, 2021 at 06:32:01PM +0100, Phil Sutter wrote:
-> > On Fri, Feb 12, 2021 at 06:09:21PM +0100, Pablo Neira Ayuso wrote:
-> > > On Fri, Feb 12, 2021 at 01:20:07PM +0100, Florian Westphal wrote:
-> > > > Phil Sutter <phil@nwl.cc> wrote:
-> > > > > I didn't find a better way to conditionally parse two following args as
-> > > > > strings instead of just a single one. Basically I miss an explicit end
-> > > > > condition from which to call BEGIN(0).
-> > > > 
-> > > > Yes, thats part of the problem.
-> > > > 
-> > > > > > Seems we need allow "{" for "*" and then count the {} nests so
-> > > > > > we can pop off a scanner state stack once we make it back to the
-> > > > > > same } level that we had at the last state switch.
-> > > > > 
-> > > > > What is the problem?
-> > > > 
-> > > > Detect when we need to exit the current start condition.
-> > > > 
-> > > > We may not even be able to do BEGIN(0) if we have multiple, nested
-> > > > start conditionals. flex supports start condition stacks, but that
-> > > > still leaves the exit/closure issue.
-> > > > 
-> > > > Example:
-> > > > 
-> > > > table chain {
-> > > >  chain bla {  /* should start to recognize rules, but
-> > > > 		 we did not see 'rule' keyword */
-> > > > 	ip saddr { ... } /* can't exit rule start condition on } ... */
-> > > > 	ip daddr { ... }
-> > > >  }  /* should disable rule keywords again */
-> > > > 
-> > > >  chain dynamic { /* so 'dynamic' is a string here ... */
-> > > >  }
-> > > > }
-> > > > 
-> > > > I don't see a solution, perhaps add dummy bison rule(s)
-> > > > to explicitly signal closure of e.g. a rule context?
-> > > 
-> > > It should also be possible to add an explicit rule to allow for
-> > > keywords to be used as table/chain/... identifier.
-> > 
-> > Which means we have to collect and maintain a list of all known keywords
-> > which is at least error-prone.
-> 
-> You mean, someone might forget to update the list of keywords.
+Hi,
 
-Yes, every time a new keyword is introduced that list has to be updated.
-Right now each introduced keyword may break someone's ruleset. This is
-only avoided if that keyword list you propose is constantly kept up to
-date.
+I'm hoping this is the correct place to ask questions about nftables. I'm
+developing an extension module using "Tutorial Extending nftables by Xiang
+Gao" in your external links.
 
-This is the reason why I prefer to have a more intelligent parser which
-just knows where something user-defined is supposed to be and not even
-tries to parse it as something it knows.
+I find I would like to return a NFT_GOTO result in my "static void
+nft_extension_eval(const struct nft_expr *expr, struct nft_regs *regs, const
+struct nft_pktinfo *pkt)" finction.
 
-> That's right.
-> 
-> > > It should be possible to add a test script in the infrastructure to
-> > > create table/chain/... using keywords, to make sure this does not
-> > > break.
-> > 
-> > You mean something that auto-generates the list of keywords to try?
-> 
-> Autogenerating this list would be good, I didn't good that far in
-> exploring this.
+I was previously setting "regs->verdict.code = NFT_CONTINUE" and
+"regs->verdict.code = NF_DROP" successfully and getting the desired results.
 
-Ah, I thought that's implied by your mention of a script. If it is
-possible, it would at least help keep that list from above up to date.
+I'd like to set NFT_GOTO and I can see that "nft_regs->verdict' has a chain
+entry.
 
-> Or just making a shell script that extracts the %token lines to try to
-> create table with a keyword as a name.
-> 
-> The shell script would just have a "list of unallowed keyword" to
-> filter out the %tokens that are not allowed, for those tokens that are
-> really reserved keywords.
+My question is how do I populate that?
 
-sed -n 's/^"\([^"]*\)".*/\1/p' src/scanner.l | exclude_unwanted
+Thanks.  
 
-> > > It's not nice, but it's simple and we don't mingle with flex.
-> > > 
-> > > I have attached an example patchset (see patch 2/2), it's incomplete.
-> > > I could also have a look at adding such regression test.
-> > 
-> > Ah, I tried that path but always ended with shift/reduce conflicts. They
-> > appear when replacing DYNAMIC with e.g. TABLE, CHAIN or RULE in your
-> > patch.
-> 
-> Probably we have to set some explicit restrictions, like table, chain,
-> rule, set, map and flowtable are reserved keywords. For example, not
-> allowing to call a table '>'. That was not possible since the
-> beginning anyway.
-
-This topic constantly reminds me of C objects named like their type
-'struct foo foo'. That's my personal proof that it must be possible! :)
-
-> The concern is to add a new token and break backward as it happened
-> with 'dynamic' as Florian reported I think.
-> 
-> > Of course we may declare that none of those is a sane name for a
-> > table, but I wonder if we'll discover less obvious cases later.
-> 
-> BTW, Florian mentioned your patch makes unhappy the tests infra?
-> What's the issue?
-
-I didn't check. But I guess the nested syntax (chain within table) is a
-problem with my simple "parse two strings now" approach. I would like to
-play a bit more with that start condition approach. IMO teaching flex
-how to interpret tokens based on earlier ones is a smart way of fixing
-it.
-
-Cheers, Phil
