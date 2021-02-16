@@ -2,67 +2,99 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.4 required=3.0 tests=BAYES_00,FORGED_MUA_MOZILLA,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB631C433DB
-	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Feb 2021 13:36:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8AE8C433E0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Feb 2021 22:25:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8F3CC64DFF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Feb 2021 13:36:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 67CBA64E79
+	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Feb 2021 22:25:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229864AbhBPNgY (ORCPT
+        id S230436AbhBPWZq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 16 Feb 2021 08:36:24 -0500
-Received: from correo.us.es ([193.147.175.20]:53158 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229812AbhBPNgX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 16 Feb 2021 08:36:23 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 39FA32EFEB2
-        for <netfilter-devel@vger.kernel.org>; Tue, 16 Feb 2021 14:35:41 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 27777DA73D
-        for <netfilter-devel@vger.kernel.org>; Tue, 16 Feb 2021 14:35:41 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 1C79DDA704; Tue, 16 Feb 2021 14:35:41 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0A8A8DA78A;
-        Tue, 16 Feb 2021 14:35:39 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 16 Feb 2021 14:35:39 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id D973B42DF562;
-        Tue, 16 Feb 2021 14:35:38 +0100 (CET)
-Date:   Tue, 16 Feb 2021 14:35:38 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
+        Tue, 16 Feb 2021 17:25:46 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40730 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229655AbhBPWZp (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 16 Feb 2021 17:25:45 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B145C061574
+        for <netfilter-devel@vger.kernel.org>; Tue, 16 Feb 2021 14:25:05 -0800 (PST)
+Received: from localhost ([::1]:53292 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.94)
+        (envelope-from <phil@nwl.cc>)
+        id 1lC8mE-0004Sx-K7; Tue, 16 Feb 2021 23:25:02 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft 0/3] nft: fix ct zone handling in sets and maps
-Message-ID: <20210216133538.GA9919@salvia>
-References: <20210203165707.21781-1-fw@strlen.de>
+Subject: [iptables PATCH] include: Drop libipulog.h
+Date:   Tue, 16 Feb 2021 23:24:53 +0100
+Message-Id: <20210216222453.2519-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.28.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20210203165707.21781-1-fw@strlen.de>
-User-Agent: Mozilla/5.0
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Feb 03, 2021 at 05:57:03PM +0100, Florian Westphal wrote:
-> 'ct zone' (and other expressions w. host byte order and integer dtype)
-> are not handled correctly on little endian platforms.
-> 
-> First patch adds a test case that demonstrates the problem,
-> patch 2 and 3 resolve this for the mapping and set key cases.
+The file is not included anywhere, also it seems outdated compared to
+the one in libnetfilter_log (which also holds the implementation).
 
-Series LGTM, thanks Florian.
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ include/libipulog/libipulog.h | 39 -----------------------------------
+ 1 file changed, 39 deletions(-)
+ delete mode 100644 include/libipulog/libipulog.h
+
+diff --git a/include/libipulog/libipulog.h b/include/libipulog/libipulog.h
+deleted file mode 100644
+index 3f4cc2c7a3119..0000000000000
+--- a/include/libipulog/libipulog.h
++++ /dev/null
+@@ -1,39 +0,0 @@
+-#ifndef _LIBIPULOG_H
+-#define _LIBIPULOG_H
+-
+-/* libipulog.h,v 1.3 2001/05/21 19:15:16 laforge Exp */
+-
+-#include <errno.h>
+-#include <unistd.h>
+-#include <fcntl.h>
+-#include <sys/types.h>
+-#include <sys/socket.h>
+-#include <sys/uio.h>
+-#include <asm/types.h>
+-#include <linux/netlink.h>
+-#include <net/if.h>
+-#include <linux/netfilter_ipv4/ipt_ULOG.h>
+-
+-/* FIXME: glibc sucks */
+-#ifndef MSG_TRUNC 
+-#define MSG_TRUNC	0x20
+-#endif
+-
+-struct ipulog_handle;
+-
+-u_int32_t ipulog_group2gmask(u_int32_t group);
+-
+-struct ipulog_handle *ipulog_create_handle(u_int32_t gmask);
+-
+-void ipulog_destroy_handle(struct ipulog_handle *h);
+-
+-ssize_t ipulog_read(struct ipulog_handle *h,
+-		    unsigned char *buf, size_t len, int timeout);
+-
+-ulog_packet_msg_t *ipulog_get_packet(struct ipulog_handle *h,
+-				     const unsigned char *buf,
+-				     size_t len);
+-
+-void ipulog_perror(const char *s);
+-
+-#endif /* _LIBULOG_H */
+-- 
+2.28.0
+
