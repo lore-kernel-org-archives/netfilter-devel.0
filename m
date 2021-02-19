@@ -2,106 +2,87 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4496FC433E0
-	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Feb 2021 19:26:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54830C433DB
+	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Feb 2021 20:42:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0AA2764E77
-	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Feb 2021 19:26:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 140AE601FC
+	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Feb 2021 20:42:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229876AbhBST0x (ORCPT
+        id S229577AbhBSUmf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 19 Feb 2021 14:26:53 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:29234 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S229649AbhBST0x (ORCPT
+        Fri, 19 Feb 2021 15:42:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38396 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229527AbhBSUme (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 Feb 2021 14:26:53 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1613762727;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=W0XtyFoYPd45tbMHV7KimVZYYJ5vrSX8aHkAnlZNZqc=;
-        b=UdoOLbGYfzbLYdS/ziLp1ItHjw6iTSTiQRx223rHD93rfifh6hvrhE0+rLAQzr237875jn
-        Ps1vbH1eOWYTT+3GWB60jSmtizMLHp6XXNPGTDRVKI5SFTMKPwYYxOZJZtX/+AwYQw+dGz
-        n65MNBxzTV/g6qA5mPXt9Jw0pUVwzfg=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-567-nWc5juIFPaOU-fRjooDamw-1; Fri, 19 Feb 2021 14:25:25 -0500
-X-MC-Unique: nWc5juIFPaOU-fRjooDamw-1
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 846F28799EB;
-        Fri, 19 Feb 2021 19:25:22 +0000 (UTC)
-Received: from madcap2.tricolour.ca (unknown [10.10.110.8])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 096186A035;
-        Fri, 19 Feb 2021 19:25:14 +0000 (UTC)
-Date:   Fri, 19 Feb 2021 14:25:12 -0500
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Phil Sutter <phil@nwl.cc>, LKML <linux-kernel@vger.kernel.org>,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        netfilter-devel@vger.kernel.org, twoerner@redhat.com,
-        Eric Paris <eparis@parisplace.org>, tgraf@infradead.org
-Subject: Re: [PATCH ghak124 v3] audit: log nftables configuration change
- events
-Message-ID: <20210219192512.GR3141668@madcap2.tricolour.ca>
-References: <CAHC9VhTNQW9d=8GCW-70vAEMh8-LXviP+JHFC2-YkuitokLLMQ@mail.gmail.com>
- <20210211202628.GP2015948@madcap2.tricolour.ca>
- <20210211220930.GC2766@breakpoint.cc>
- <20210217234131.GN3141668@madcap2.tricolour.ca>
- <20210218082207.GJ2766@breakpoint.cc>
- <20210218124211.GO3141668@madcap2.tricolour.ca>
- <20210218125248.GB22944@breakpoint.cc>
- <20210218212001.GQ3141668@madcap2.tricolour.ca>
- <20210218224200.GF22944@breakpoint.cc>
- <20210219062651.GR2015948@madcap2.tricolour.ca>
+        Fri, 19 Feb 2021 15:42:34 -0500
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::45])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C75A9C061574
+        for <netfilter-devel@vger.kernel.org>; Fri, 19 Feb 2021 12:41:43 -0800 (PST)
+Received: from localhost (localhost [127.0.0.1])
+        by smtp0.kfki.hu (Postfix) with ESMTP id 12ADA67401E0;
+        Fri, 19 Feb 2021 21:41:39 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mail.kfki.hu; h=
+        mime-version:message-id:from:from:date:date:received:received
+        :received:received; s=20151130; t=1613767296; x=1615581697; bh=L
+        UM5fSxBk+IUYZuD8kykew4utX+YwXtCtjDkqAFzzi0=; b=WtB5aFALQPmlFCRt+
+        ZLd146Gv2Pm/srtRLJmxVHXFq67bAkWT9/geTMfyn2nttK+k0NTq5uLXCIrGggj/
+        u5NSihzarS09+twlcm+PwG+qADZgFKgWTn37nVsLpWpr3Yww+toRu+HEsTjCM7QB
+        9VeZ7tpBheflnfSb1Bd9K1uKGo=
+X-Virus-Scanned: Debian amavisd-new at smtp0.kfki.hu
+Received: from smtp0.kfki.hu ([127.0.0.1])
+        by localhost (smtp0.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP; Fri, 19 Feb 2021 21:41:36 +0100 (CET)
+Received: from localhost.kfki.hu (host-94-248-219-210.kabelnet.hu [94.248.219.210])
+        (Authenticated sender: kadlecsik.jozsef@wigner.mta.hu)
+        by smtp0.kfki.hu (Postfix) with ESMTPSA id BAD2067401DF;
+        Fri, 19 Feb 2021 21:41:36 +0100 (CET)
+Received: by localhost.kfki.hu (Postfix, from userid 1000)
+        id 6116A3009EF; Fri, 19 Feb 2021 21:41:36 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+        by localhost.kfki.hu (Postfix) with ESMTP id 5DE77300278;
+        Fri, 19 Feb 2021 21:41:36 +0100 (CET)
+Date:   Fri, 19 Feb 2021 21:41:36 +0100 (CET)
+From:   Jozsef Kadlecsik <kadlec@mail.kfki.hu>
+To:     netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: [ANNOUNCE] ipset 7.11 released
+Message-ID: <28d6aaed-79eb-dd80-ab29-624138969de4@mail.kfki.hu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210219062651.GR2015948@madcap2.tricolour.ca>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2021-02-19 01:26, Richard Guy Briggs wrote:
-> On 2021-02-18 23:42, Florian Westphal wrote:
-> > Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > > If they appear in a batch tehy will be ignored, if the batch consists of
-> > > > such non-modifying ops only then nf_tables_commit() returns early
-> > > > because the transaction list is empty (nothing to do/change).
-> > > 
-> > > Ok, one little inconvenient question: what about GETOBJ_RESET?  That
-> > > looks like a hybrid that modifies kernel table counters and reports
-> > > synchronously.  That could be a special case call in
-> > > nf_tables_dump_obj() and nf_tables_getobj().  Will that cause a storm
-> > > per commit?
-> > 
-> > No, since they can't be part of a commit (they don't implement the
-> > 'call_batch' function).
-> 
-> Ok, good, so they should be safe (but still needs the gfp param to
-> audit_log_nfcfg() for atomic alloc in that obj reset callback).
+Hi,
 
-I just noticed that nft_quota_obj_eval() misses logging NFT_MSG_NEWOBJ
-in nf_tables_commit(), so that looks like it should be added.
+I'm happy to announce ipset 7.11. The most important thing is that there 
+was an argument parsin buffer overflow in the ipset userspace utility 
+which is fixed in this release.
 
-> - RGB
+Userspace changes:
+  - Parse port before trying by service name (Haw Loeung)
+  - Silence unused-but-set-variable warnings (reported by
+    Serhey Popovych)
+  - Handle -Werror=implicit-fallthrough= in debug mode compiling
+  - ipset: fix print format warning (Neutron Soutmun)
+  - Updated utilities
+  - Argument parsing buffer overflow in ipset_parse_argv fixed
+    (reported by Marshall Whittaker)
 
-- RGB
+You can download the source code of ipset from:
+        http://ipset.netfilter.org
+        ftp://ftp.netfilter.org/pub/ipset/
+        git://git.netfilter.org/ipset.git
 
---
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
-
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics
+          H-1525 Budapest 114, POB. 49, Hungary
