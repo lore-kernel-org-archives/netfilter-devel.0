@@ -2,104 +2,117 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E387C433E0
-	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Feb 2021 09:30:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03A72C433E0
+	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Feb 2021 14:51:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5A70464ED7
-	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Feb 2021 09:30:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CBC3664E76
+	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Feb 2021 14:51:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229614AbhBTJai (ORCPT
+        id S229923AbhBUOvf convert rfc822-to-8bit (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 20 Feb 2021 04:30:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60518 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229542AbhBTJah (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 20 Feb 2021 04:30:37 -0500
-Received: from mail-pf1-x436.google.com (mail-pf1-x436.google.com [IPv6:2607:f8b0:4864:20::436])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 98D63C061574
-        for <netfilter-devel@vger.kernel.org>; Sat, 20 Feb 2021 01:29:57 -0800 (PST)
-Received: by mail-pf1-x436.google.com with SMTP id t29so3464152pfg.11
-        for <netfilter-devel@vger.kernel.org>; Sat, 20 Feb 2021 01:29:57 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=kream.io; s=google;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=QrF77SJL0SciPjDS7THtTNTjxzmIs/aldoyMtF7aQ8A=;
-        b=mbw4ImDxzdhE3NR7J945EXz/ju/PToqVsiL9TiNQHPRFMo4vAB/+imkaVVUrPPNhmV
-         gcugwLZrl5na73eKJHQHjMLNbpf8QXO8bfhMOag+wTReyTZ98UyByRTGrtSTfUeZ9uME
-         hGH5GgVAdCRhnxFhE31p6opNJuzDegKlbQFOn/4OBVzG79Zb0FbEfNoK8uRIdshGUtQg
-         FewgYV74LqB4RLn7hgMEW+cffO+MOoXn9kSXWoQYaaP8XHxgdaupERgPrcojssOMsuKC
-         /6pgdAiNTzkc6Fwq4GIJz3FJNMEXz+JqROthSfrBvZ/HhAvkqRnymkuhhXNDS/ALC0Sv
-         J0NQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=QrF77SJL0SciPjDS7THtTNTjxzmIs/aldoyMtF7aQ8A=;
-        b=LezbKC52LMmhF7yz5PSfR2Gebgtb9+MvcILTtzpe/8TvjwbzbJJI77EzFGoxi9gC78
-         ODN5qwcyFjwR0imI9HHdYFS8P3hwWqj8pQKGlCZ2kBty8cSkAwV6EICSu9kF5Rfn6Xqe
-         Zw3trsaoCEhSB3HJhZQZK3BXX8Flx5pDDSOmd++8EYwKjTKtW2Bco7x+1YFK8l0j4ElA
-         uDjldxV1Ecq91bJxG3d9+kxT3VjTuh0gX9CLFImJMucYBgGQ3jISRgrl391XgBoB7y62
-         qFvzYp6UPGZylAOouW83eXgOd8BscPRfoArrh3K1YW2AZSneeQZYvMoxkfL9T6vr9oBv
-         p5Zg==
-X-Gm-Message-State: AOAM531qbFb6XF4iBC+BEG4UV632usgjStpXyIvz4TNht523tAggo5qx
-        KuVEnTOdpRs/QtCAcloRCoBsZu+L8L8+8UhG
-X-Google-Smtp-Source: ABdhPJx5T09U+cTraXCO7zRGIPBK7/SP6xKfqhSU1cYmEH5DIq3Y+ddaNpNMKhW5qS63cTRDpnwp9g==
-X-Received: by 2002:a05:6a00:1507:b029:1e4:d81:5586 with SMTP id q7-20020a056a001507b02901e40d815586mr13436042pfu.53.1613813396735;
-        Sat, 20 Feb 2021 01:29:56 -0800 (PST)
-Received: from nNa-Laptop.usen.ad.jp (122x213x216x48.ap122.ftth.ucom.ne.jp. [122.213.216.48])
-        by smtp.gmail.com with ESMTPSA id f23sm4773936pfa.5.2021.02.20.01.29.55
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 20 Feb 2021 01:29:56 -0800 (PST)
-From:   =?UTF-8?q?Klemen=20Ko=C5=A1ir?= <klemen.kosir@kream.io>
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org,
-        =?UTF-8?q?Klemen=20Ko=C5=A1ir?= <klemen.kosir@kream.io>
-Subject: [PATCH] netfilter: Remove a double space in a log message
-Date:   Sat, 20 Feb 2021 18:29:26 +0900
-Message-Id: <20210220092926.12025-1-klemen.kosir@kream.io>
-X-Mailer: git-send-email 2.29.2
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Sun, 21 Feb 2021 09:51:35 -0500
+Received: from p3plsmtp05-02-2.prod.phx3.secureserver.net ([97.74.135.47]:51241
+        "EHLO p3plwbeout05-02.prod.phx3.secureserver.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229826AbhBUOvd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 21 Feb 2021 09:51:33 -0500
+Received: from p3plgemwbe05-04.prod.phx3.secureserver.net ([97.74.135.4])
+        by :WBEOUT: with SMTP
+        id Dq4RlDv8RjAUIDq4Rlqmb4; Sun, 21 Feb 2021 07:50:51 -0700
+X-CMAE-Analysis: v=2.4 cv=FJXee8ks c=1 sm=1 tr=0 ts=6032734b
+ a=glJzh28+BKpTlJ+heJPmag==:117 a=Tb-8IF_VHAgA:10 a=gOoLzYk5U4MA:10
+ a=IkcTkHD0fZMA:10 a=qa6Q16uM49sA:10 a=dZvGHyHn3zHPZ22dbOYA:9 a=QEXdDO2ut3YA:10
+X-SECURESERVER-ACCT: andy@asjohnson.com
+X-SID:  Dq4RlDv8RjAUI
+Received: (qmail 6294 invoked by uid 99); 21 Feb 2021 14:50:51 -0000
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+X-Originating-IP: 66.72.221.161
+User-Agent: Workspace Webmail 6.12.1
+Message-Id: <20210221075050.fcdaf64278890662106b299d41e0899d.756e4ddcc3.wbe@email05.godaddy.com>
+From:   <andy@asjohnson.com>
+To:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Subject: [PATCH] xtables-addons 3.15 doesn't compile on 32-bit x86
+Date:   Sun, 21 Feb 2021 07:50:50 -0700
+Mime-Version: 1.0
+X-CMAE-Envelope: MS4xfNwRb7fS/dnvL5vTQ7+C51Ap2+53922j6r0h7tudLinQNATLGGogF+jxz20kIp2c9n6YR078xmEVeY+FmWhcMrqZHY8TD64bmZU+TqO6a/c08ULmYIp9
+ O0T1alRPmDQD2zrALUP/CnXuk7ezIe+tn7PhEbDoCG5QHMsJSq+3BnGr92u9WcQ3QB0bw/vShsX9pF/KBPsJOmugwqHXy9z80qZ76+9AuuiG1Ivtp8wqGoN7
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Removed an extra space in a log message and an extra blank line in code.
+Xtables-addons 3.15 doesn't compile with 32-bit x86 kernel:
 
-Signed-off-by: Klemen Košir <klemen.kosir@kream.io>
----
- net/netfilter/nf_conntrack_helper.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 118f415928ae..b055187235f8 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -219,7 +219,7 @@ nf_ct_lookup_helper(struct nf_conn *ct, struct net *net)
- 			return NULL;
- 		pr_info("nf_conntrack: default automatic helper assignment "
- 			"has been turned off for security reasons and CT-based "
--			" firewall rule not found. Use the iptables CT target "
-+			"firewall rule not found. Use the iptables CT target "
- 			"to attach helpers instead.\n");
- 		net->ct.auto_assign_helper_warned = 1;
- 		return NULL;
-@@ -228,7 +228,6 @@ nf_ct_lookup_helper(struct nf_conn *ct, struct net *net)
- 	return __nf_ct_helper_find(&ct->tuplehash[IP_CT_DIR_REPLY].tuple);
- }
+ERROR: "__divdi3"
+[/mnt/sdb1/lamp32-11/build/xtables-addons-3.15/extensions/pknock/xt_pknock.ko]
+undefined!
  
--
- int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
- 			      gfp_t flags)
- {
--- 
-2.29.2
+Replace long integer division with do_div().
 
+This patch fixes it:
+
+--- extensions/pknock/xt_pknock.c-orig                                  
+                                                 
++++ extensions/pknock/xt_pknock.c                                       
+                                                 
+@@ -335,7 +335,9 @@                                                     
+                                                 
+ static inline bool                                                     
+                                                 
+ has_logged_during_this_minute(const struct peer *peer)                 
+                                                 
+ {                                                                      
+                                                 
+-       return peer != NULL && peer->login_sec / 60 ==
+ktime_get_seconds() / 60;                                          
++       unsigned long x = ktime_get_seconds();                          
+                                                 
++       unsigned long y = peer->login_sec;                              
+                                                 
++       return peer != NULL && do_div(y, 60) == do_div(x, 60);          
+                                                 
+ }                                                                      
+                                                 
+                                                                        
+                                                 
+ /**                                                                    
+                                                 
+@@ -709,6 +711,7 @@                                                     
+                                                 
+        unsigned int hexa_size;                                         
+                                                 
+        int ret;                                                        
+                                                 
+        bool fret = false;                                              
+                                                 
++       unsigned long x = ktime_get_seconds();                          
+                                                 
+        unsigned int epoch_min;                                         
+                                                 
+                                                                        
+                                                 
+        if (payload_len == 0)                                           
+                                                 
+@@ -727,7 +730,8 @@                                                     
+                                                 
+        hexresult = kzalloc(hexa_size, GFP_ATOMIC);                     
+                                                 
+        if (hexresult == NULL)                                          
+                                                 
+                return false;                                           
+                                                 
+-       epoch_min = ktime_get_seconds() / 60;                           
+                                                 
++                                                                       
+                                                 
++       epoch_min = do_div(x, 60);                                      
+                                                 
+                                                                        
+                                                 
+        ret = crypto_shash_setkey(crypto.tfm, secret, secret_len);      
+                                                 
+        if (ret != 0) {
