@@ -2,73 +2,75 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4280C433E9
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Feb 2021 12:05:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF49EC433DB
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Feb 2021 12:06:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9856C64E2E
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Feb 2021 12:05:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7333A64E2E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Feb 2021 12:06:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230174AbhBVMF1 (ORCPT
+        id S230101AbhBVMFd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 22 Feb 2021 07:05:27 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:47048 "EHLO
+        Mon, 22 Feb 2021 07:05:33 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:50093 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S230101AbhBVMFM (ORCPT
+        by vger.kernel.org with ESMTP id S230147AbhBVMFP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Feb 2021 07:05:12 -0500
+        Mon, 22 Feb 2021 07:05:15 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1613995426;
+        s=mimecast20190719; t=1613995427;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=1kCYTU4Qob6VFTxzKGPhMkp3D7qwdfp+7wSyzOOuSLg=;
-        b=Pepdk2UpyfbjyNcCroXtEnb8CdzftTMrRcR2LFw2fUfRIwozzbExq4Cy/BnzhXMtsEJpsE
-        uVe7GBV6bHsRRe/YPoVSt38BMc7HVNZKHfv/ZSqgElf6Y4bwqIvCMogb0PjDyYCyxTlEcP
-        e+FyegOLigb/GB0pVUicS6vXe9rLer4=
-Received: from mail-ed1-f72.google.com (mail-ed1-f72.google.com
- [209.85.208.72]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-460-DGmCLWVIPF-ZlHVgrzhaGg-1; Mon, 22 Feb 2021 07:03:44 -0500
-X-MC-Unique: DGmCLWVIPF-ZlHVgrzhaGg-1
-Received: by mail-ed1-f72.google.com with SMTP id q2so6820420edt.16
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Feb 2021 04:03:44 -0800 (PST)
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=ms6y8yb/F+MbNzES5cuimnkGfN4sf4e7TLlkcm39OgU=;
+        b=A2c0QXKOnwulU5/qUZ15EoWQw5Z3P+f/9VyULdTke0QIjsvCw8MDkAZBZixoMv8Iasrqwo
+        utYSW9WruVL26S7OlHa8faKWrcD0iBWuXXwPHy/CsoN5WaAxVN7WI57kex9uTfEDV/Bgtq
+        ZxhXT/YNO2tUrwHFKRPpDpATuXEhhA4=
+Received: from mail-ed1-f70.google.com (mail-ed1-f70.google.com
+ [209.85.208.70]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-450-XNixf3TeMg2eIRgJ_3vDVA-1; Mon, 22 Feb 2021 07:03:46 -0500
+X-MC-Unique: XNixf3TeMg2eIRgJ_3vDVA-1
+Received: by mail-ed1-f70.google.com with SMTP id i21so6853246edq.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Feb 2021 04:03:46 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=1kCYTU4Qob6VFTxzKGPhMkp3D7qwdfp+7wSyzOOuSLg=;
-        b=pe0PmJ/CACpjK2Zxzm4fRR+1x0VOcJRD9wtmzSVYravDVPe4kyYmCadzBnt6ugfQqX
-         KE0FxfD2QQ8zNswEM/wiBQ6nsFKm4JUtmksulgwZxfCcliCIX19OHN1pBzyaTfDvo7kz
-         HWP1lHnLSPZF2gUyILO5/7fFqXH2twwDlpSnbZ3ywgoOv+zR/Ag1uZP4oZpopsP2/Kqf
-         eWVwj4kDmsPyLJJX6Odsv6o1k0vaWFHRL4IjObTBoeuRzKKN1DhZYeFrP7gRus24yYDi
-         GH0K5mSRynRmOPYcIu1s3pj6A5G6hmWiRhvGMqPOjCYY8em0WhofbzRKQwJDVTzM+ndF
-         u+Fg==
-X-Gm-Message-State: AOAM530Tmxrul/vpakr4Nvqys8DPL+yl1Ztvf0gCnMSl4O9U/euS9ZvR
-        /CiamJvdlDwuxJdvSIwlunReCcXAyIcvSHKtXZDI2FUEZ3PulN15keZ9FbznhwNLYQDimNinsxb
-        ayvQAZg6gyBtTKCWAJusqfvdsW4nv5w4Vw6ESnP91yI7hP7h+mcW1ub2x4O25moom+0uFGjNYuQ
-        7Mdg==
-X-Received: by 2002:a05:6402:22f7:: with SMTP id dn23mr6590010edb.297.1613995423402;
-        Mon, 22 Feb 2021 04:03:43 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJxyOR8ECop703CbcuV2r3YEDe4jni85CLj/zZuBx69DUTx/nEdUbNRR1X9raqsMqRN0fod2qQ==
-X-Received: by 2002:a05:6402:22f7:: with SMTP id dn23mr6589983edb.297.1613995423182;
-        Mon, 22 Feb 2021 04:03:43 -0800 (PST)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=ms6y8yb/F+MbNzES5cuimnkGfN4sf4e7TLlkcm39OgU=;
+        b=BNhjWqbaMvfgyWiibyCjoI8E0GpVCQpkOmerlBJdyAeZ/YF2ZCMFGAQXNwSV2KRRdS
+         MwZyuU5DiunlSNOadTStaNG8+vWchOiunHtgnIUNhGnt4BZLsONdharuT0W9EBJwaKfs
+         qNGmrjXNIJiIjHV2DBHR5xS7jmqbNP8VF42Of2VV5d6XPq3EO8IBlFOHcy1tM3RcbBbl
+         zEfZLY4NtP4RmIqWPNM5uIg0L6Y3OMSHWS0TlzBlttJZjh13i3yAISyU4KiqqA2mlNfB
+         DEM/9bEvfLheNm7BuIVDn1Smj/OZ1ljvCVc8Dh7Q+KT8crL9EjCHK5RuTXNrfdVeW38I
+         pyEQ==
+X-Gm-Message-State: AOAM533/5iJIy64y8tKdXbZByzdLda6FGUZStRilE+U/Gv+Yst75Rfkz
+        qfpt4RD1HhknHKjuQ72HHWNkgU7nKwBUnnmdE81UQPcZqPUQcWArM0Kw25xK7NhzAIy7nbnUR5l
+        PXBB93RB3BJdk2cE4TtGm6q8Lu8EzETziF1XuTFZGMBx7nQxKfV46Hwj7tY/aTFvo53ttY9HI6V
+        8QXw==
+X-Received: by 2002:a17:906:7485:: with SMTP id e5mr5215326ejl.86.1613995424813;
+        Mon, 22 Feb 2021 04:03:44 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJwhVQWJ69mW8XHYszBZKI4v8G0VQlllZd+jV2Yqpf8VF5rUjl8jNoWw5cA39wEnISWpMG5kwA==
+X-Received: by 2002:a17:906:7485:: with SMTP id e5mr5215303ejl.86.1613995424607;
+        Mon, 22 Feb 2021 04:03:44 -0800 (PST)
 Received: from localhost ([185.112.167.35])
-        by smtp.gmail.com with ESMTPSA id o1sm2805298eds.26.2021.02.22.04.03.42
+        by smtp.gmail.com with ESMTPSA id k6sm10071245ejb.84.2021.02.22.04.03.43
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 22 Feb 2021 04:03:42 -0800 (PST)
+        Mon, 22 Feb 2021 04:03:44 -0800 (PST)
 From:   =?UTF-8?q?=C5=A0t=C4=9Bp=C3=A1n=20N=C4=9Bmec?= <snemec@redhat.com>
 To:     netfilter-devel@vger.kernel.org,
         Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Phil Sutter <phil@nwl.cc>, Jeremy Sowden <jeremy@azazel.net>
-Subject: [nft PATCH 1/2] main: fix nft --help output fallout from 719e4427
-Date:   Mon, 22 Feb 2021 13:03:19 +0100
-Message-Id: <20210222120320.2252514-1-snemec@redhat.com>
+Cc:     Phil Sutter <phil@nwl.cc>
+Subject: [nft PATCH 2/2] doc: nft: fix some typos and formatting issues
+Date:   Mon, 22 Feb 2021 13:03:20 +0100
+Message-Id: <20210222120320.2252514-2-snemec@redhat.com>
 X-Mailer: git-send-email 2.29.2
+In-Reply-To: <20210222120320.2252514-1-snemec@redhat.com>
+References: <20210222120320.2252514-1-snemec@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -76,40 +78,111 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Long options were missing the double dash.
+Trying to escape asciidoc (9.1.0) * with \ preserves the backslash in
+the formatted man page. Bare * works as expected.
 
-Fixes: 719e44277f8e ("main: use one data-structure to initialize getopt_long(3) arguments and help.")
-Cc: Jeremy Sowden <jeremy@azazel.net>
 Signed-off-by: Štěpán Němec <snemec@redhat.com>
 ---
- src/main.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ doc/nft.txt | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff --git a/src/main.c b/src/main.c
-index 80cf1acf0f7f..8c47064459ec 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -175,16 +175,17 @@ static const struct option *get_options(void)
+diff --git a/doc/nft.txt b/doc/nft.txt
+index 2642d8903787..32261e266aa6 100644
+--- a/doc/nft.txt
++++ b/doc/nft.txt
+@@ -130,7 +130,7 @@ semicolon (;). +
+ A hash sign (#) begins a comment. All following characters on the same line are
+ ignored. +
  
- static void print_option(const struct nft_opt *opt)
- {
--	char optbuf[33] = "";
-+	char optbuf[35] = "";
- 	int i;
+-Identifiers begin with an alphabetic character (a-z,A-Z), followed zero or more
++Identifiers begin with an alphabetic character (a-z,A-Z), followed by zero or more
+ alphanumeric characters (a-z,A-Z,0-9) and the characters slash (/), backslash
+ (\), underscore (_) and dot (.). Identifiers using different characters or
+ clashing with a keyword need to be enclosed in double quotes (").
+@@ -148,9 +148,9 @@ relative path) or / for file location expressed as an absolute path. +
  
- 	i = snprintf(optbuf, sizeof(optbuf), "  -%c", opt->val);
- 	if (opt->name)
--		i += snprintf(optbuf + i, sizeof(optbuf) - i, ", %s", opt->name);
-+		i += snprintf(optbuf + i, sizeof(optbuf) - i, ", --%s",
-+			      opt->name);
- 	if (opt->arg)
- 		i += snprintf(optbuf + i, sizeof(optbuf) - i, " %s", opt->arg);
+ If *-I*/*--includepath* is not specified, then nft relies on the default
+ directory that is specified at compile time. You can retrieve this default
+-directory via *-h*/*--help* option. +
++directory via the *-h*/*--help* option. +
  
--	printf("%-32s%s\n", optbuf, opt->help);
-+	printf("%-34s%s\n", optbuf, opt->help);
- }
+-Include statements support the usual shell wildcard symbols (\*,?,[]). Having no
++Include statements support the usual shell wildcard symbols (*,?,[]). Having no
+ matches for an include statement is not an error, if wildcard symbols are used
+ in the include statement. This allows having potentially empty include
+ directories for statements like **include "/etc/firewall/rules/"**. The wildcard
+@@ -164,7 +164,7 @@ SYMBOLIC VARIABLES
+ *$variable*
  
- static void show_help(const char *name)
+ Symbolic variables can be defined using the *define* statement. Variable
+-references are expressions and can be used initialize other variables. The scope
++references are expressions and can be used to initialize other variables. The scope
+ of a definition is the current block and all blocks contained within.
+ 
+ .Using symbolic variables
+@@ -396,7 +396,7 @@ further quirks worth noticing:
+   hook.
+ 
+ The *priority* parameter accepts a signed integer value or a standard priority
+-name which specifies the order in which chains with same *hook* value are
++name which specifies the order in which chains with the same *hook* value are
+ traversed. The ordering is ascending, i.e. lower priority values have precedence
+ over higher ones.
+ 
+@@ -435,7 +435,7 @@ the others. See the following tables that describe the values and compatibility.
+ Basic arithmetic expressions (addition and subtraction) can also be achieved
+ with these standard names to ease relative prioritizing, e.g. *mangle - 5* stands
+ for *-155*.  Values will also be printed like this until the value is not
+-further than 10 form the standard value.
++further than 10 from the standard value.
+ 
+ Base chains also allow to set the chain's *policy*, i.e.  what happens to
+ packets not explicitly accepted or refused in contained rules. Supported policy
+@@ -492,7 +492,7 @@ table inet filter {
+ 		ip saddr 10.1.1.1 tcp dport ssh accept # handle 5
+ 	  ...
+ # delete the rule with handle 5
+-# nft delete rule inet filter input handle 5
++nft delete rule inet filter input handle 5
+ -------------------------
+ 
+ SETS
+@@ -534,7 +534,7 @@ identified by a user-defined name and attached to tables. Their behaviour can
+ be tuned with the flags that can be specified at set creation time.
+ 
+ [horizontal]
+-*add*:: Add a new set in the specified table. See the Set specification table below for more information about how to specify a sets properties.
++*add*:: Add a new set in the specified table. See the Set specification table below for more information about how to specify properties of a set.
+ *delete*:: Delete the specified set.
+ *list*:: Display the elements in the specified set.
+ *flush*:: Remove all elements from the specified set.
+@@ -553,7 +553,7 @@ expression to derive the data type from
+ set flags |
+ string: constant, dynamic, interval, timeout
+ |timeout |
+-time an element stays in the set, mandatory if set is added to from the packet path (ruleset).|
++time an element stays in the set, mandatory if set is added to from the packet path (ruleset)|
+ string, decimal followed by unit. Units are: d, h, m, s
+ |gc-interval |
+ garbage collection interval, only available when timeout or flag timeout are
+@@ -563,7 +563,7 @@ string, decimal followed by unit. Units are: d, h, m, s
+ elements contained by the set |
+ set data type
+ |size |
+-maximum number of elements in the set, mandatory if set is added to from the packet path (ruleset).|
++maximum number of elements in the set, mandatory if set is added to from the packet path (ruleset)|
+ unsigned integer (64 bit)
+ |policy |
+ set policy |
+@@ -628,7 +628,7 @@ ____
+ Element-related commands allow to change contents of named sets and maps.
+ 'key_expression' is typically a value matching the set type.
+ 'value_expression' is not allowed in sets but mandatory when adding to maps, where it
+-matches the data part in it's type definition. When deleting from maps, it may
++matches the data part in its type definition. When deleting from maps, it may
+ be specified but is optional as 'key_expression' uniquely identifies the
+ element.
+ 
 -- 
 2.29.2
 
