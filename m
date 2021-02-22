@@ -2,86 +2,161 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA668C433E0
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Feb 2021 20:31:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D76D6C433E0
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Feb 2021 20:54:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9387564E05
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Feb 2021 20:31:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9A6A764E25
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Feb 2021 20:54:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231867AbhBVUbf (ORCPT
+        id S229908AbhBVUyQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 22 Feb 2021 15:31:35 -0500
-Received: from mout.gmx.net ([212.227.17.22]:48201 "EHLO mout.gmx.net"
+        Mon, 22 Feb 2021 15:54:16 -0500
+Received: from correo.us.es ([193.147.175.20]:44796 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230194AbhBVUbe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Feb 2021 15:31:34 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gmx.net;
-        s=badeba3b8450; t=1614025802;
-        bh=GeO0Zy3VRNNH8CtaIziybUr3k8BkwS4BGfoexmMBh9M=;
-        h=X-UI-Sender-Class:To:From:Subject:Date;
-        b=adCqwKwxz+pbJFIA2CbwE+btDeaP7WLGScqxiYS/uM3i69fM4nBoyV7OYrr0kKriy
-         rL+NgQoOEg0/Xyy+MdfJg/K0na4YQe7mElCJA7sbyE3ugIpfO/d0ro0W1qS2YzoHcs
-         7dT7aUACjx5swmwqyflf+xBBmICksnAA82ChPxcA=
-X-UI-Sender-Class: 01bb95c1-4bf8-414a-932a-4f6e2808ef9c
-Received: from [192.168.178.23] ([95.112.83.240]) by mail.gmx.net (mrgmx105
- [212.227.17.168]) with ESMTPSA (Nemesis) id 1N0Fxf-1m0b4n2ksR-00xMo4 for
- <netfilter-devel@vger.kernel.org>; Mon, 22 Feb 2021 21:30:02 +0100
+        id S229934AbhBVUyP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 22 Feb 2021 15:54:15 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 14E97B4977
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Feb 2021 21:53:29 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 01C41DA72F
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Feb 2021 21:53:29 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id EA9DBDA722; Mon, 22 Feb 2021 21:53:28 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 766D1DA730
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Feb 2021 21:53:26 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 22 Feb 2021 21:53:26 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id 61A2B42DF560
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Feb 2021 21:53:26 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-From:   =?UTF-8?Q?Toralf_F=c3=b6rster?= <toralf.foerster@gmx.de>
-Subject: increasing ip_list_tot in net/netfilter/xt_recent.c for a non-modular
- kernel
-Message-ID: <df5eb9af-568a-ef0e-bc4f-33b0fbe1307f@gmx.de>
-Date:   Mon, 22 Feb 2021 21:30:02 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.7.1
+Subject: [PATCH nft] table: rework flags printing
+Date:   Mon, 22 Feb 2021 21:53:23 +0100
+Message-Id: <20210222205323.22189-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:+I/4xMs/ecDLssNEarWh3ktD4Uyez4nSrazZs4ILf4ByDQ4z+/A
- EqGtQtt1XHsyYFJVEBq5yxvkv7VACsOiXo5pGOgKiLm+ltLH4Ng5Sk4loxhQ4ZRiFKWYwT4
- xaXIDRFCn+4TzGDa2KPo1lwgWCwCudlqFwqabjeMZa9f4Bjex/lFvaZFiYf6muMedIxTpcn
- hf7sXy4wu5muNf1vJFLxA==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:AcS7LmzHxD8=:QDgpf+8mbmuFBh09Q6pT2C
- VzkX3pTe9HOTueoguqZjdMP6VHI/QPvPOfYCfyD6gCHz1vymdwRg3eyauihuVkdaZA03ZjMso
- p1ntABHpBZa76sH8pdqQHYFbLKZCKpwNI0bkUjEvVAE1o2lTz916e/w+2M5jVxcdmzzpvA1H/
- q1Pii6XMTyXBSsfguMsHRd5GomDL3beGdBGXhupNi06RPx05i5IFr2SU1GDDM/1YlaeWJGyeu
- awReOY/U8MNi62u6Yc1GzTXwTJc1EnG1iJECshzpCQYtJMAwuzYG0bWyEbEv89/uL83RFIm2m
- QwxRYR2aTdyZfN91kJYsHUhgaDULOe346SvyxsyQz46Wtlja2d6YGKkRu3YIraEpzWI7f7H+5
- Ogl3PdSZFNpCKPAI2yC/vAhBwcjK4XLpN/4cilkppLjc2Lh4cEA3H9Yv93CDuPZT/kuadX8Pb
- 90e8rqG0DrrfvA6fgXKS7fIBS8zu+BNUL16xtlqKcZku6WZ7ZDqORF3VnVNqTvR8v4ZxcupkL
- psq/MHF8rCXDfWq/Zg8FgyhQ/IJovJ+psqm/XqSziigf3CVtylUeg/XLvyY4sZev2cGPf83p7
- iiM0kE73GqqVqdWDehTY6IZHhxUw2yJan+wiBObwDyGxxlZvrfSxDlIdfwRj+OQs9SboKHJhY
- 7/kJ5zQ93vr4demr8dmEu0CO/j3/DBvwE6O+ZI5XDeBHt8cZ4qFVAuJHQ3n953kMMc0wqVqm5
- GV5T4zCe6WxehN+JpGP+6EevtU6isNSfw5RMlTagdnr22ENYvLl1OTK/uGRrG4X0P3At0TShO
- 1pF+MxROmzFeBuXErt9pImc3gN1dXFJJh4vT1KSJoc8CxsWLpFU3EAiHE1R4u0n2V/NxOkjA4
- 2nhwh2ucjrUZ9cKZICUg==
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-I'm curious if there's a better solution than local patching like:
+Simplify routine to print the table flags. Add table_flag_name() and use
+it from json too.
 
-diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index 0446307516cd..e482d4a3fadf 100644
-=2D-- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -40,7 +40,7 @@ MODULE_LICENSE("GPL");
-  MODULE_ALIAS("ipt_recent");
-  MODULE_ALIAS("ip6t_recent");
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/rule.h |  2 +-
+ src/json.c     |  2 +-
+ src/rule.c     | 37 ++++++++++++++++++++++++-------------
+ 3 files changed, 26 insertions(+), 15 deletions(-)
 
--static unsigned int ip_list_tot __read_mostly =3D 100;
-+static unsigned int ip_list_tot __read_mostly =3D 10000;
-  static unsigned int ip_list_hash_size __read_mostly;
-  static unsigned int ip_list_perms __read_mostly =3D 0644;
-  static unsigned int ip_list_uid __read_mostly;
+diff --git a/include/rule.h b/include/rule.h
+index 330a09aa77fa..87b6828edca4 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -134,7 +134,7 @@ enum table_flags {
+ };
+ #define TABLE_FLAGS_MAX 1
+ 
+-extern const char *table_flags_name[TABLE_FLAGS_MAX];
++const char *table_flag_name(uint32_t flag);
+ 
+ /**
+  * struct table - nftables table
+diff --git a/src/json.c b/src/json.c
+index 0ccbbe8a75d2..defbc8fb44df 100644
+--- a/src/json.c
++++ b/src/json.c
+@@ -444,7 +444,7 @@ static json_t *table_flags_json(const struct table *table)
+ 
+ 	while (flags) {
+ 		if (flags & 0x1) {
+-			tmp = json_string(table_flags_name[i]);
++			tmp = json_string(table_flag_name(i));
+ 			json_array_append_new(root, tmp);
+ 		}
+ 		flags >>= 1;
+diff --git a/src/rule.c b/src/rule.c
+index e4bb6bae276a..d22ab5009790 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1405,29 +1405,40 @@ struct table *table_lookup_fuzzy(const struct handle *h,
+ 	return st.obj;
+ }
+ 
+-const char *table_flags_name[TABLE_FLAGS_MAX] = {
++static const char *table_flags_name[TABLE_FLAGS_MAX] = {
+ 	"dormant",
+ };
+ 
+-static void table_print_options(const struct table *table, const char **delim,
+-				struct output_ctx *octx)
++const char *table_flag_name(uint32_t flag)
++{
++	if (flag >= TABLE_FLAGS_MAX)
++		return "unknown";
++
++	return table_flags_name[flag];
++}
++
++static void table_print_flags(const struct table *table, const char **delim,
++			      struct output_ctx *octx)
+ {
+ 	uint32_t flags = table->flags;
++	bool comma = false;
+ 	int i;
+ 
+-	if (flags) {
+-		nft_print(octx, "\tflags ");
++	if (!table->flags)
++		return;
+ 
+-		for (i = 0; i < TABLE_FLAGS_MAX; i++) {
+-			if (flags & 0x1)
+-				nft_print(octx, "%s", table_flags_name[i]);
+-			flags >>= 1;
+-			if (flags)
++	nft_print(octx, "\tflags ");
++	for (i = 0; i < TABLE_FLAGS_MAX; i++) {
++		if (flags & (1 << i)) {
++			if (comma)
+ 				nft_print(octx, ",");
++
++			nft_print(octx, "%s", table_flag_name(i));
++			comma = true;
+ 		}
+-		nft_print(octx, "\n");
+-		*delim = "\n";
+ 	}
++	nft_print(octx, "\n");
++	*delim = "\n";
+ }
+ 
+ static void table_print(const struct table *table, struct output_ctx *octx)
+@@ -1443,7 +1454,7 @@ static void table_print(const struct table *table, struct output_ctx *octx)
+ 	if (nft_output_handle(octx))
+ 		nft_print(octx, " # handle %" PRIu64, table->handle.handle.id);
+ 	nft_print(octx, "\n");
+-	table_print_options(table, &delim, octx);
++	table_print_flags(table, &delim, octx);
+ 
+ 	if (table->comment)
+ 		nft_print(octx, "\tcomment \"%s\"\n", table->comment);
+-- 
+2.20.1
 
-here under a hardened Gentoo Linux using iptables ?
-
-=2D-
-Toralf
