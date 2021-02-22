@@ -2,161 +2,75 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D76D6C433E0
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Feb 2021 20:54:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BF87C433DB
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Feb 2021 21:45:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9A6A764E25
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Feb 2021 20:54:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CAF4764DD3
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Feb 2021 21:45:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229908AbhBVUyQ (ORCPT
+        id S231250AbhBVVpO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 22 Feb 2021 15:54:16 -0500
-Received: from correo.us.es ([193.147.175.20]:44796 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229934AbhBVUyP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Feb 2021 15:54:15 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 14E97B4977
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Feb 2021 21:53:29 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 01C41DA72F
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Feb 2021 21:53:29 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id EA9DBDA722; Mon, 22 Feb 2021 21:53:28 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 766D1DA730
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Feb 2021 21:53:26 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 22 Feb 2021 21:53:26 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 61A2B42DF560
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Feb 2021 21:53:26 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] table: rework flags printing
-Date:   Mon, 22 Feb 2021 21:53:23 +0100
-Message-Id: <20210222205323.22189-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+        Mon, 22 Feb 2021 16:45:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40008 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230106AbhBVVpH (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 22 Feb 2021 16:45:07 -0500
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::48])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A054C061574
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Feb 2021 13:44:27 -0800 (PST)
+Received: from localhost (localhost [127.0.0.1])
+        by smtp2.kfki.hu (Postfix) with ESMTP id 9F8F0CC0187;
+        Mon, 22 Feb 2021 22:44:24 +0100 (CET)
+X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP; Mon, 22 Feb 2021 22:44:22 +0100 (CET)
+Received: from blackhole.kfki.hu (blackhole.kfki.hu [148.6.240.2])
+        by smtp2.kfki.hu (Postfix) with ESMTP id 6912BCC0186;
+        Mon, 22 Feb 2021 22:44:21 +0100 (CET)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+        id 4A09F340D5D; Mon, 22 Feb 2021 22:44:21 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+        by blackhole.kfki.hu (Postfix) with ESMTP id 4594A340D5C;
+        Mon, 22 Feb 2021 22:44:21 +0100 (CET)
+Date:   Mon, 22 Feb 2021 22:44:21 +0100 (CET)
+From:   Jozsef Kadlecsik <kadlec@netfilter.org>
+To:     =?UTF-8?Q?Toralf_F=C3=B6rster?= <toralf.foerster@gmx.de>
+cc:     netfilter-devel@vger.kernel.org
+Subject: Re: increasing ip_list_tot in net/netfilter/xt_recent.c for a
+ non-modular kernel
+In-Reply-To: <df5eb9af-568a-ef0e-bc4f-33b0fbe1307f@gmx.de>
+Message-ID: <2981762-4fc1-38be-d658-31413e36e4cd@netfilter.org>
+References: <df5eb9af-568a-ef0e-bc4f-33b0fbe1307f@gmx.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: multipart/mixed; boundary="110363376-1535550823-1614030261=:362"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Simplify routine to print the table flags. Add table_flag_name() and use
-it from json too.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/rule.h |  2 +-
- src/json.c     |  2 +-
- src/rule.c     | 37 ++++++++++++++++++++++++-------------
- 3 files changed, 26 insertions(+), 15 deletions(-)
+--110363376-1535550823-1614030261=:362
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/include/rule.h b/include/rule.h
-index 330a09aa77fa..87b6828edca4 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -134,7 +134,7 @@ enum table_flags {
- };
- #define TABLE_FLAGS_MAX 1
- 
--extern const char *table_flags_name[TABLE_FLAGS_MAX];
-+const char *table_flag_name(uint32_t flag);
- 
- /**
-  * struct table - nftables table
-diff --git a/src/json.c b/src/json.c
-index 0ccbbe8a75d2..defbc8fb44df 100644
---- a/src/json.c
-+++ b/src/json.c
-@@ -444,7 +444,7 @@ static json_t *table_flags_json(const struct table *table)
- 
- 	while (flags) {
- 		if (flags & 0x1) {
--			tmp = json_string(table_flags_name[i]);
-+			tmp = json_string(table_flag_name(i));
- 			json_array_append_new(root, tmp);
- 		}
- 		flags >>= 1;
-diff --git a/src/rule.c b/src/rule.c
-index e4bb6bae276a..d22ab5009790 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -1405,29 +1405,40 @@ struct table *table_lookup_fuzzy(const struct handle *h,
- 	return st.obj;
- }
- 
--const char *table_flags_name[TABLE_FLAGS_MAX] = {
-+static const char *table_flags_name[TABLE_FLAGS_MAX] = {
- 	"dormant",
- };
- 
--static void table_print_options(const struct table *table, const char **delim,
--				struct output_ctx *octx)
-+const char *table_flag_name(uint32_t flag)
-+{
-+	if (flag >= TABLE_FLAGS_MAX)
-+		return "unknown";
-+
-+	return table_flags_name[flag];
-+}
-+
-+static void table_print_flags(const struct table *table, const char **delim,
-+			      struct output_ctx *octx)
- {
- 	uint32_t flags = table->flags;
-+	bool comma = false;
- 	int i;
- 
--	if (flags) {
--		nft_print(octx, "\tflags ");
-+	if (!table->flags)
-+		return;
- 
--		for (i = 0; i < TABLE_FLAGS_MAX; i++) {
--			if (flags & 0x1)
--				nft_print(octx, "%s", table_flags_name[i]);
--			flags >>= 1;
--			if (flags)
-+	nft_print(octx, "\tflags ");
-+	for (i = 0; i < TABLE_FLAGS_MAX; i++) {
-+		if (flags & (1 << i)) {
-+			if (comma)
- 				nft_print(octx, ",");
-+
-+			nft_print(octx, "%s", table_flag_name(i));
-+			comma = true;
- 		}
--		nft_print(octx, "\n");
--		*delim = "\n";
- 	}
-+	nft_print(octx, "\n");
-+	*delim = "\n";
- }
- 
- static void table_print(const struct table *table, struct output_ctx *octx)
-@@ -1443,7 +1454,7 @@ static void table_print(const struct table *table, struct output_ctx *octx)
- 	if (nft_output_handle(octx))
- 		nft_print(octx, " # handle %" PRIu64, table->handle.handle.id);
- 	nft_print(octx, "\n");
--	table_print_options(table, &delim, octx);
-+	table_print_flags(table, &delim, octx);
- 
- 	if (table->comment)
- 		nft_print(octx, "\tcomment \"%s\"\n", table->comment);
--- 
-2.20.1
+On Mon, 22 Feb 2021, Toralf F=C3=B6rster wrote:
 
+> I'm curious if there's a better solution than local patching like:
+
+See "modinfo xt_recent": you can tune it via a module parameter.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics
+          H-1525 Budapest 114, POB. 49, Hungary
+--110363376-1535550823-1614030261=:362--
