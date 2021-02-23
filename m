@@ -2,69 +2,84 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DATE_IN_PAST_12_24,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 186CBC433DB
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Feb 2021 22:45:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AA56C433E0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Feb 2021 08:19:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DDEFB64E20
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Feb 2021 22:45:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 41D2364E4B
+	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Feb 2021 08:19:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231899AbhBVWpI (ORCPT
+        id S231969AbhBWITw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 22 Feb 2021 17:45:08 -0500
-Received: from vmicros1.altlinux.org ([194.107.17.57]:33950 "EHLO
-        vmicros1.altlinux.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231895AbhBVWoy (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Feb 2021 17:44:54 -0500
-Received: from mua.local.altlinux.org (mua.local.altlinux.org [192.168.1.14])
-        by vmicros1.altlinux.org (Postfix) with ESMTP id 433F272C8B3;
-        Tue, 23 Feb 2021 01:44:10 +0300 (MSK)
-Received: by mua.local.altlinux.org (Postfix, from userid 508)
-        id 364F67CC89C; Tue, 23 Feb 2021 01:44:10 +0300 (MSK)
-Date:   Mon, 22 Feb 2021 08:00:00 +0000
-From:   "Dmitry V. Levin" <ldv@altlinux.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] uapi: nfnetlink_cthelper.h: fix userspace compilation error
-Message-ID: <20210222080000.GA5900@altlinux.org>
+        Tue, 23 Feb 2021 03:19:52 -0500
+Received: from mout.gmx.net ([212.227.15.18]:48407 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S232008AbhBWITm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 23 Feb 2021 03:19:42 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gmx.net;
+        s=badeba3b8450; t=1614068288;
+        bh=JpH1pH1HkVPJ/d2pRGlugpPWIuCY40Zib/EytDXptI4=;
+        h=X-UI-Sender-Class:Subject:To:Cc:References:From:Date:In-Reply-To;
+        b=PwQQfK1jXWgsIq5+CdUjo2pO3kcjXAN4FtJh1ihrWD1+UHg8qZXDJa2GCANNWuG+g
+         aMaBzenBH5GHaKdTvwVREeGpcABLnkow9lgTtzpncxVTvAXDMSQIyoaM0EY6QomJD5
+         5bmiwZPAaZqhO+nqmEf6QWXhjGA0LC5RLs2yQkhA=
+X-UI-Sender-Class: 01bb95c1-4bf8-414a-932a-4f6e2808ef9c
+Received: from [192.168.178.23] ([77.3.203.224]) by mail.gmx.net (mrgmx005
+ [212.227.17.190]) with ESMTPSA (Nemesis) id 1N7iCW-1lsUTK0Ppq-014j2B; Tue, 23
+ Feb 2021 09:18:08 +0100
+Subject: Re: increasing ip_list_tot in net/netfilter/xt_recent.c for a
+ non-modular kernel
+To:     Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+References: <df5eb9af-568a-ef0e-bc4f-33b0fbe1307f@gmx.de>
+ <2981762-4fc1-38be-d658-31413e36e4cd@netfilter.org>
+From:   =?UTF-8?Q?Toralf_F=c3=b6rster?= <toralf.foerster@gmx.de>
+Message-ID: <4ee34303-8954-108d-5fdb-28c47033a2b5@gmx.de>
+Date:   Tue, 23 Feb 2021 09:18:06 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.7.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <2981762-4fc1-38be-d658-31413e36e4cd@netfilter.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:7YKsj0bTOO90VQRds8jWkvgvcMy2NZBI5R4K1QQBjKESZ/ac7OA
+ 1ok1lY1JOCc41/YMiJ558nvvMtjX2se5LnsvwALWjcWv7h4Mv0NZ3r4/uCWnwgUQVzaDDjp
+ pivPkHVCYl0wOtdYQf3kh7UGwTdiB1LM3qdONjNLm5KpGj5NZr8nK1P9SS7AsEGynh6vAM0
+ LNr9DCzaFK81oMc7klpDQ==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:ylrdM4Fcbqo=:1SXv0tIZfEhHDJpkktaOi+
+ fkdN4gL3JvuyfHYdBsoVUZsbruwk08O/1jfgOs6IyXIZ3qYHku0TnZ3ZeCm0cSEQCouKNuLzT
+ OdlWkyNQE9b5lWI78H5NmdYKgZ+jUlVAArxgUUOwOnumQKxucsgM1v3Cw1ozCRXRYxvJgtfBP
+ EPfznjtCpzeVVyya5nujSuE0oYthzqPQRy6KjqVyO9RCl8k5jnHVvJMslKwd7M84RCvV0dbmO
+ gG4WRqQn/PfdBQeD8YeLyWRLkQEfnIkyWnY6Lum6gPL+qbpGF/ikUol9MaOwakDKW9nNI/WEE
+ LLl53/9+874mh1ktWcTP5GiEjAuCCC1l7GlkvPNYIJCoF0pF/n6/liB12AgKC366nRkHbLmsF
+ LSmJ6LnnNHxePtWd7VN/9YUqrsv/cEu5C6rBEQs4LvH3iq5mJKnFkO91ekDe+qcey5WVKEOHL
+ u7pmb4sTbWWcmBmSSg89Ymo+RUhZrL50r3yiHjHWY5J2iTezU8E4NZHx9gJfAGiPWTTXEkju9
+ T3VavYqbe6Cn6HNKZA31tx/JaUC/AIBm55vVc65dhB91FW31+GVwEC2EGykxnvPH00KoLezCC
+ ck3tx8nWvkk2c7NgGeF8sTuNA72fBNxbXh79+JY+6jh7Az8YqZ3GpBO2gz/EUiJxI5JfMZRbG
+ IWcaWLPEcPt1deLRadsyGHqy9HEgr33LHzJr/t77aO+kkWVSggAzwhaQ9HLeYOsabu2z6qwCr
+ FCS0QV8j5tbHrqBwO+uf4u6SyPC8FnklzY528S9uERdSa8ylZWm31NMEIH8AynhA+aueDPzIL
+ LX+D4SFDswHBUKTSARHylB0xD1D2UaWPwrVy+joxJp9CuYOHIBUoS4qhN+A85I6NnmOqfUJKs
+ 0SAIEcGdC/gg907FLVng==
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Apparently, <linux/netfilter/nfnetlink_cthelper.h> and
-<linux/netfilter/nfnetlink_acct.h> could not be included into the same
-compilation unit because of a cut-and-paste typo in the former header.
+On 2/22/21 10:44 PM, Jozsef Kadlecsik wrote:
+> On Mon, 22 Feb 2021, Toralf F=C3=B6rster wrote:
+>
+>> I'm curious if there's a better solution than local patching like:
+>
+> See "modinfo xt_recent": you can tune it via a module parameter.
+>
+> Best regards,
+> Jozsef
 
-Fixes: 12f7a505331e6 ("netfilter: add user-space connection tracking helper infrastructure")
-Cc: <stable@vger.kernel.org> # v3.6
-Signed-off-by: Dmitry V. Levin <ldv@altlinux.org>
----
- include/uapi/linux/netfilter/nfnetlink_cthelper.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+It is a non-modular kernel.
 
-diff --git a/include/uapi/linux/netfilter/nfnetlink_cthelper.h b/include/uapi/linux/netfilter/nfnetlink_cthelper.h
-index a13137afc429..70af02092d16 100644
---- a/include/uapi/linux/netfilter/nfnetlink_cthelper.h
-+++ b/include/uapi/linux/netfilter/nfnetlink_cthelper.h
-@@ -5,7 +5,7 @@
- #define NFCT_HELPER_STATUS_DISABLED	0
- #define NFCT_HELPER_STATUS_ENABLED	1
- 
--enum nfnl_acct_msg_types {
-+enum nfnl_cthelper_msg_types {
- 	NFNL_MSG_CTHELPER_NEW,
- 	NFNL_MSG_CTHELPER_GET,
- 	NFNL_MSG_CTHELPER_DEL,
--- 
-ldv
+=2D-
+Toralf
