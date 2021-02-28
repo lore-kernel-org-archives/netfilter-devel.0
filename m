@@ -2,64 +2,100 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.8 required=3.0 tests=BAYES_00,FORGED_MUA_MOZILLA,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D0EBC433DB
-	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Feb 2021 21:36:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40C24C433DB
+	for <netfilter-devel@archiver.kernel.org>; Sun, 28 Feb 2021 00:57:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D1C5364D73
-	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Feb 2021 21:36:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F06D664E29
+	for <netfilter-devel@archiver.kernel.org>; Sun, 28 Feb 2021 00:57:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230079AbhB0Vgb (ORCPT
+        id S230063AbhB1A5I (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 27 Feb 2021 16:36:31 -0500
-Received: from correo.us.es ([193.147.175.20]:52256 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230060AbhB0Vg2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 27 Feb 2021 16:36:28 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D35D715C102
-        for <netfilter-devel@vger.kernel.org>; Sat, 27 Feb 2021 22:35:42 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C027DDA73F
-        for <netfilter-devel@vger.kernel.org>; Sat, 27 Feb 2021 22:35:42 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id B568EDA73D; Sat, 27 Feb 2021 22:35:42 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9D0DADA704;
-        Sat, 27 Feb 2021 22:35:40 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 27 Feb 2021 22:35:40 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        Sat, 27 Feb 2021 19:57:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39764 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230008AbhB1A5H (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 27 Feb 2021 19:57:07 -0500
+Received: from ozlabs.org (ozlabs.org [IPv6:2401:3900:2:1::2])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 31511C06174A;
+        Sat, 27 Feb 2021 16:56:26 -0800 (PST)
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 7637542DC6E3;
-        Sat, 27 Feb 2021 22:35:40 +0100 (CET)
-Date:   Sat, 27 Feb 2021 22:35:40 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Klemen =?utf-8?B?S2/FoWly?= <klemen.kosir@kream.io>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] netfilter: Remove a double space in a log message
-Message-ID: <20210227213540.GA16088@salvia>
-References: <20210220092926.12025-1-klemen.kosir@kream.io>
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 4Dp4hj1kTmz9sCD;
+        Sun, 28 Feb 2021 11:56:21 +1100 (AEDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
+        s=201702; t=1614473782;
+        bh=daldXCOG6n+ja1M6CZ7O/xC0XSRKtxIXPGPZruF4h6M=;
+        h=Date:From:To:Cc:Subject:From;
+        b=kzg8aLM3ROnLSOQSkPKpOcmf4nZDPNpPpKlC53ipUJxcYO65CiQ128funCCiESiAv
+         pDcgl1+JKAfVKR2J2if7zYVNsvgvYYXtrUVkNo8xfzNni5kahJ0ppXiuH1FmDqtZ+9
+         bA3yOfexNRUd5zgmbMEjbiuqC4bLkThrTLtv/S0jtLUhlwnjELFXoFIDDV8/UrjZQS
+         grcRf9rrDsFV5P8OozPXzxMn/37udtAByEE8Bj+B3JXIz/1pvsoYaN9wkjIIwNH/zm
+         +DdZO1yP9o3gQHFGh74cl+zWK+WEMdDA/vaSVlMxpy5Kmn3vM/R0zZ8mmuT0PlYATw
+         s9zC6aqj9kXOA==
+Date:   Sun, 28 Feb 2021 11:56:20 +1100
+From:   Stephen Rothwell <sfr@canb.auug.org.au>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>
+Cc:     Vasily Averin <vvs@virtuozzo.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux Next Mailing List <linux-next@vger.kernel.org>
+Subject: linux-next: Fixes tag needs some work in the netfilter tree
+Message-ID: <20210228115620.0d137d4a@canb.auug.org.au>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20210220092926.12025-1-klemen.kosir@kream.io>
-User-Agent: Mozilla/5.0
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: multipart/signed; boundary="Sig_/Q_Zai7JISNQygs6xc+JOI7a";
+ protocol="application/pgp-signature"; micalg=pgp-sha256
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Feb 20, 2021 at 06:29:26PM +0900, Klemen Košir wrote:
-> Removed an extra space in a log message and an extra blank line in code.
+--Sig_/Q_Zai7JISNQygs6xc+JOI7a
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Applied, thanks.
+Hi all,
+
+In commit
+
+  8e24edddad15 ("netfilter: x_tables: gpf inside xt_find_revision()")
+
+Fixes tag
+
+  Fixes: 656caff20e1 ("netfilter 04/09: x_tables: fix match/target revision=
+ lookup")
+
+has these problem(s):
+
+  - SHA1 should be at least 12 digits long
+
+I don't think it is worth rebasing to fix this, but it can be fixed for
+future commits by setting core.abbrev to 12 (or more) or (for git v2.11
+or later) just making sure it is not set (or set to "auto").
+
+--=20
+Cheers,
+Stephen Rothwell
+
+--Sig_/Q_Zai7JISNQygs6xc+JOI7a
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmA66jQACgkQAVBC80lX
+0Gx2UAf+LRxwNwFXk/idziZMEFejswlcDmyiCYNvY5+AY36aCk+KdFBAe5SaECcM
+2wv3yefGsd12UAO4QVd5CNsdAs299CZrmzgxEYrmIsBG6BE0AxdsLVmaIUwwixli
+x09mQz2jvJKTsmTw6IOn/v0evgnTCJu8LuR0Zh55GD5aqjFauSjoXob1xDT21P26
+VNFSML9zgbms0f3gLcqvGRE4GM29sasEWSDiaGNmY01w0FZqB2matxhSKSrsXoTx
+mgO164MEdA+i0gwsMdFSGtrWkdr5q3oTi6w7NXslFwGF8SlrfVFsZoMrJBjx2CKv
+1npHxabadacahoCeG1DHO/WL+W6veg==
+=/YrI
+-----END PGP SIGNATURE-----
+
+--Sig_/Q_Zai7JISNQygs6xc+JOI7a--
