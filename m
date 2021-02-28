@@ -2,100 +2,86 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40C24C433DB
-	for <netfilter-devel@archiver.kernel.org>; Sun, 28 Feb 2021 00:57:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6FB4C433E0
+	for <netfilter-devel@archiver.kernel.org>; Sun, 28 Feb 2021 14:56:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F06D664E29
-	for <netfilter-devel@archiver.kernel.org>; Sun, 28 Feb 2021 00:57:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 947F064EAF
+	for <netfilter-devel@archiver.kernel.org>; Sun, 28 Feb 2021 14:56:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230063AbhB1A5I (ORCPT
+        id S230212AbhB1Ozt convert rfc822-to-8bit (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 27 Feb 2021 19:57:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39764 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230008AbhB1A5H (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 27 Feb 2021 19:57:07 -0500
-Received: from ozlabs.org (ozlabs.org [IPv6:2401:3900:2:1::2])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 31511C06174A;
-        Sat, 27 Feb 2021 16:56:26 -0800 (PST)
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4Dp4hj1kTmz9sCD;
-        Sun, 28 Feb 2021 11:56:21 +1100 (AEDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
-        s=201702; t=1614473782;
-        bh=daldXCOG6n+ja1M6CZ7O/xC0XSRKtxIXPGPZruF4h6M=;
-        h=Date:From:To:Cc:Subject:From;
-        b=kzg8aLM3ROnLSOQSkPKpOcmf4nZDPNpPpKlC53ipUJxcYO65CiQ128funCCiESiAv
-         pDcgl1+JKAfVKR2J2if7zYVNsvgvYYXtrUVkNo8xfzNni5kahJ0ppXiuH1FmDqtZ+9
-         bA3yOfexNRUd5zgmbMEjbiuqC4bLkThrTLtv/S0jtLUhlwnjELFXoFIDDV8/UrjZQS
-         grcRf9rrDsFV5P8OozPXzxMn/37udtAByEE8Bj+B3JXIz/1pvsoYaN9wkjIIwNH/zm
-         +DdZO1yP9o3gQHFGh74cl+zWK+WEMdDA/vaSVlMxpy5Kmn3vM/R0zZ8mmuT0PlYATw
-         s9zC6aqj9kXOA==
-Date:   Sun, 28 Feb 2021 11:56:20 +1100
-From:   Stephen Rothwell <sfr@canb.auug.org.au>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-Cc:     Vasily Averin <vvs@virtuozzo.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux Next Mailing List <linux-next@vger.kernel.org>
-Subject: linux-next: Fixes tag needs some work in the netfilter tree
-Message-ID: <20210228115620.0d137d4a@canb.auug.org.au>
-MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/Q_Zai7JISNQygs6xc+JOI7a";
- protocol="application/pgp-signature"; micalg=pgp-sha256
+        Sun, 28 Feb 2021 09:55:49 -0500
+Received: from p3plsmtp05-06-02.prod.phx3.secureserver.net ([97.74.135.51]:55755
+        "EHLO p3plwbeout05-06.prod.phx3.secureserver.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229715AbhB1Ozt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 28 Feb 2021 09:55:49 -0500
+Received: from p3plgemwbe05-06.prod.phx3.secureserver.net ([97.74.135.6])
+        by :WBEOUT: with SMTP
+        id GNTFl7QaLOIbeGNTFltnHH; Sun, 28 Feb 2021 07:54:57 -0700
+X-CMAE-Analysis: v=2.4 cv=W7f96Tak c=1 sm=1 tr=0 ts=603baec1
+ a=4PocnuTK4F0hwI5R9ZIbCA==:117 a=Tb-8IF_VHAgA:10 a=gOoLzYk5U4MA:10
+ a=IkcTkHD0fZMA:10 a=qa6Q16uM49sA:10 a=inyria9KPeIrDzR3zkwA:9 a=QEXdDO2ut3YA:10
+X-SECURESERVER-ACCT: andy@asjohnson.com
+X-SID:  GNTFl7QaLOIbe
+Received: (qmail 12034 invoked by uid 99); 28 Feb 2021 14:54:57 -0000
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+X-Originating-IP: 66.72.221.161
+User-Agent: Workspace Webmail 6.12.1
+Message-Id: <20210228075456.fcdaf64278890662106b299d41e0899d.6d7dc7cab7.wbe@email05.godaddy.com>
+From:   <andy@asjohnson.com>
+To:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Subject: RE: [PATCH] xtables-addons 3.15 doesn't compile on 32-bit x86
+Date:   Sun, 28 Feb 2021 07:54:56 -0700
+Mime-Version: 1.0
+X-CMAE-Envelope: MS4xfBB7eQ754cntJwGSGzDmUXl7JXugPMlSii7wC/3Ohh7o7ZHTOWFlN16FE8fZ4s0GCUKxm5sekpaqo6nSxlNp/Rb6HSTmGhgUo5XGJqKTD2B9X2VgChsx
+ 3YTjjtGLcafcCsmtPbQg0OChU0IpQKT7F+zfARe2EuHkHfgPeMiAlh5/QIYtoqxdlXzha2gSqtE7x3UlQpSwp8dEaM2xWoFzZchEeEu1V4NxkQz2TmANNWX/
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
---Sig_/Q_Zai7JISNQygs6xc+JOI7a
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+The original patch for long division on x86 didn't take into account
+the use of short circuit logic for checking if peer is NULL before
+testing it. Here is a revised patch to v3.16:
 
-Hi all,
+--- xtables-addons-3.16-orig/extensions/pknock/xt_pknock.c
++++ xtables-addons-3.16-patched/extensions/pknock/xt_pknock.c
+@@ -311,9 +311,13 @@
+ static inline bool
+ autoclose_time_passed(const struct peer *peer, unsigned int
+autoclose_time)
+ {
+-	unsigned long x = ktime_get_seconds();
+-	unsigned long y = peer->login_sec + autoclose_time * 60;
+-	return peer != NULL && autoclose_time != 0 && time_after(x, y);
++	if (peer != NULL) {
++		unsigned long x = ktime_get_seconds();
++		unsigned long y = peer->login_sec + autoclose_time * 60;
++		return autoclose_time != 0 && time_after(x, y);
++	} else {
++		return 0;
++	}
+ }
+ 
+ /**
+@@ -335,8 +339,12 @@
+ static inline bool
+ has_logged_during_this_minute(const struct peer *peer)
+ {
+-	unsigned long x = ktime_get_seconds(), y = peer->login_sec;
+-	return peer != NULL && do_div(y, 60) == do_div(x, 60);
++	if (peer != NULL) {
++		unsigned long x = ktime_get_seconds(), y = peer->login_sec;
++		return do_div(y, 60) == do_div(x, 60);
++	} else {
++		return 0;
++	}
+ }
+ 
+ /**
 
-In commit
-
-  8e24edddad15 ("netfilter: x_tables: gpf inside xt_find_revision()")
-
-Fixes tag
-
-  Fixes: 656caff20e1 ("netfilter 04/09: x_tables: fix match/target revision=
- lookup")
-
-has these problem(s):
-
-  - SHA1 should be at least 12 digits long
-
-I don't think it is worth rebasing to fix this, but it can be fixed for
-future commits by setting core.abbrev to 12 (or more) or (for git v2.11
-or later) just making sure it is not set (or set to "auto").
-
---=20
-Cheers,
-Stephen Rothwell
-
---Sig_/Q_Zai7JISNQygs6xc+JOI7a
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmA66jQACgkQAVBC80lX
-0Gx2UAf+LRxwNwFXk/idziZMEFejswlcDmyiCYNvY5+AY36aCk+KdFBAe5SaECcM
-2wv3yefGsd12UAO4QVd5CNsdAs299CZrmzgxEYrmIsBG6BE0AxdsLVmaIUwwixli
-x09mQz2jvJKTsmTw6IOn/v0evgnTCJu8LuR0Zh55GD5aqjFauSjoXob1xDT21P26
-VNFSML9zgbms0f3gLcqvGRE4GM29sasEWSDiaGNmY01w0FZqB2matxhSKSrsXoTx
-mgO164MEdA+i0gwsMdFSGtrWkdr5q3oTi6w7NXslFwGF8SlrfVFsZoMrJBjx2CKv
-1npHxabadacahoCeG1DHO/WL+W6veg==
-=/YrI
------END PGP SIGNATURE-----
-
---Sig_/Q_Zai7JISNQygs6xc+JOI7a--
