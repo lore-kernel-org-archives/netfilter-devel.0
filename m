@@ -2,99 +2,59 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6B8EC433E0
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Mar 2021 03:06:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88183C433E6
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Mar 2021 07:45:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 53BCB601FA
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Mar 2021 03:06:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5E13F64EFC
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Mar 2021 07:45:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232122AbhCDDFe (ORCPT
+        id S233872AbhCDHoa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 3 Mar 2021 22:05:34 -0500
-Received: from correo.us.es ([193.147.175.20]:37338 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232240AbhCDDFc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 3 Mar 2021 22:05:32 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 08F09DA70F
-        for <netfilter-devel@vger.kernel.org>; Thu,  4 Mar 2021 04:04:51 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EB0FADA722
-        for <netfilter-devel@vger.kernel.org>; Thu,  4 Mar 2021 04:04:50 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id E0057DA704; Thu,  4 Mar 2021 04:04:50 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BEA3BDA73D
-        for <netfilter-devel@vger.kernel.org>; Thu,  4 Mar 2021 04:04:48 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 04 Mar 2021 04:04:48 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id A80D342DC6E3
-        for <netfilter-devel@vger.kernel.org>; Thu,  4 Mar 2021 04:04:48 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf 2/2] netfilter: nftables: bogus check for netlink portID with table owner
-Date:   Thu,  4 Mar 2021 04:04:44 +0100
-Message-Id: <20210304030444.4312-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20210304030444.4312-1-pablo@netfilter.org>
-References: <20210304030444.4312-1-pablo@netfilter.org>
+        Thu, 4 Mar 2021 02:44:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60102 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234401AbhCDHoW (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 4 Mar 2021 02:44:22 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 28904C061574;
+        Wed,  3 Mar 2021 23:43:42 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1lHie1-0007Sy-JD; Thu, 04 Mar 2021 08:43:37 +0100
+Date:   Thu, 4 Mar 2021 08:43:37 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     Mark Tomlinson <mark.tomlinson@alliedtelesis.co.nz>
+Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/3] Revert "netfilter: x_tables: Update remaining
+ dereference to RCU"
+Message-ID: <20210304074337.GH17911@breakpoint.cc>
+References: <20210304013116.8420-1-mark.tomlinson@alliedtelesis.co.nz>
+ <20210304013116.8420-2-mark.tomlinson@alliedtelesis.co.nz>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210304013116.8420-2-mark.tomlinson@alliedtelesis.co.nz>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The existing branch checks for 0 != table->nlpid which always evaluates
-true for tables that have an owner.
+Mark Tomlinson <mark.tomlinson@alliedtelesis.co.nz> wrote:
+> This reverts commit 443d6e86f821a165fae3fc3fc13086d27ac140b1.
+> 
+> This (and the following) patch basically re-implemented the RCU
+> mechanisms of patch 784544739a25. That patch was replaced because of the
+> performance problems that it created when replacing tables. Now, we have
+> the same issue: the call to synchronize_rcu() makes replacing tables
+> slower by as much as an order of magnitude.
+> 
+> See https://lore.kernel.org/patchwork/patch/151796/ for why using RCU is
+> not a good idea.
 
-Fixes: 6001a930ce03 ("netfilter: nftables: introduce table ownership")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 796ce86ef7eb..224c8e537cb3 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -9083,13 +9083,12 @@ static void __nft_release_table(struct net *net, struct nft_table *table)
- 	nf_tables_table_destroy(&ctx);
- }
- 
--static void __nft_release_tables(struct net *net, u32 nlpid)
-+static void __nft_release_tables(struct net *net)
- {
- 	struct nft_table *table, *nt;
- 
- 	list_for_each_entry_safe(table, nt, &net->nft.tables, list) {
--		if (nft_table_has_owner(table) &&
--		    nlpid != table->nlpid)
-+		if (nft_table_has_owner(table))
- 			continue;
- 
- 		__nft_release_table(net, table);
-@@ -9155,7 +9154,7 @@ static void __net_exit nf_tables_exit_net(struct net *net)
- 	mutex_lock(&net->nft.commit_mutex);
- 	if (!list_empty(&net->nft.commit_list))
- 		__nf_tables_abort(net, NFNL_ABORT_NONE);
--	__nft_release_tables(net, 0);
-+	__nft_release_tables(net);
- 	mutex_unlock(&net->nft.commit_mutex);
- 	WARN_ON_ONCE(!list_empty(&net->nft.tables));
- 	WARN_ON_ONCE(!list_empty(&net->nft.module_list));
--- 
-2.20.1
-
+Please don't add links for the rationale.
