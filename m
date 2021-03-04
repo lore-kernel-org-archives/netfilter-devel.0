@@ -2,60 +2,119 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49681C4332D
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Mar 2021 01:16:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF005C43381
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Mar 2021 01:16:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2501E64FE8
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Mar 2021 01:16:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C6A3F64FEC
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Mar 2021 01:16:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240522AbhCDBPZ (ORCPT
+        id S240205AbhCDBPX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 3 Mar 2021 20:15:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60020 "EHLO
+        Wed, 3 Mar 2021 20:15:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59150 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346444AbhCDBNf (ORCPT
+        with ESMTP id S1454277AbhCDBIb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 3 Mar 2021 20:13:35 -0500
+        Wed, 3 Mar 2021 20:08:31 -0500
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 296B7C0613DD
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 Mar 2021 17:11:54 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A4627C061760
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 Mar 2021 17:07:50 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1lHcWu-0005RW-Pj; Thu, 04 Mar 2021 02:11:52 +0100
-Date:   Thu, 4 Mar 2021 02:11:52 +0100
+        (envelope-from <fw@breakpoint.cc>)
+        id 1lHcSz-0005NG-B3; Thu, 04 Mar 2021 02:07:49 +0100
 From:   Florian Westphal <fw@strlen.de>
-To:     Ludovic =?iso-8859-15?Q?S=E9n=E9caux?= <linuxludo@free.fr>
-Cc:     'Florian Westphal' <fw@strlen.de>,
-        'Pablo Neira Ayuso' <pablo@netfilter.org>,
-        kadlec@netfilter.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-Subject: Re: [PATCH] netfilter: Fix GRE over IPv6 with conntrack module
-Message-ID: <20210304011152.GG17911@breakpoint.cc>
-References: <20210303163322.GA17445@salvia>
- <1709326502.137229418.1614790585426.JavaMail.root@zimbra63-e11.priv.proxad.net>
- <20210303171206.GE17911@breakpoint.cc>
- <00a901d71057$2171bc20$64553460$@free.fr>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft 2/3] parser: compact map RHS type
+Date:   Thu,  4 Mar 2021 02:07:34 +0100
+Message-Id: <20210304010735.28683-2-fw@strlen.de>
+X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20210304010735.28683-1-fw@strlen.de>
+References: <20210304010735.28683-1-fw@strlen.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <00a901d71057$2171bc20$64553460$@free.fr>
-User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Ludovic Sénécaux <linuxludo@free.fr> wrote:
-> Thanks for your feedback.
-> 
-> So, in this case, can you consider this request ?
-> Or do I have to make a new one ?
+Similar to previous patch, we can avoid duplication.
 
-We won't apply this patch as-is.  Please send a v2
-following the guidelines & with the feedback addressed.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/parser_bison.y | 38 +++++++++-----------------------------
+ 1 file changed, 9 insertions(+), 29 deletions(-)
 
-Alternatively, I will fix this bug myself sometime next week.
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 363569ffacb6..c4f3e341333d 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -627,6 +627,7 @@ int nft_lex(void *, void *, void *);
+ 
+ %type <set>			map_block_alloc map_block
+ %destructor { set_free($$); }	map_block_alloc
++%type <val>			map_block_obj_type
+ 
+ %type <flowtable>		flowtable_block_alloc flowtable_block
+ %destructor { flowtable_free($$); }	flowtable_block_alloc
+@@ -1877,6 +1878,12 @@ map_block_alloc		:	/* empty */
+ 			}
+ 			;
+ 
++map_block_obj_type	:	COUNTER	{ $$ = NFT_OBJECT_COUNTER; }
++			|	QUOTA { $$ = NFT_OBJECT_QUOTA; }
++			|	LIMIT { $$ = NFT_OBJECT_LIMIT; }
++			|	SECMARK { $$ = NFT_OBJECT_SECMARK; }
++			;
++
+ map_block		:	/* empty */	{ $$ = $<set>-1; }
+ 			|	map_block	common_block
+ 			|	map_block	stmt_separator
+@@ -1930,38 +1937,11 @@ map_block		:	/* empty */	{ $$ = $<set>-1; }
+ 				$$ = $1;
+ 			}
+ 			|	map_block	TYPE
+-						data_type_expr	COLON	COUNTER
+-						stmt_separator
+-			{
+-				$1->key = $3;
+-				$1->objtype = NFT_OBJECT_COUNTER;
+-				$1->flags  |= NFT_SET_OBJECT;
+-				$$ = $1;
+-			}
+-			|	map_block	TYPE
+-						data_type_expr	COLON	QUOTA
+-						stmt_separator
+-			{
+-				$1->key = $3;
+-				$1->objtype = NFT_OBJECT_QUOTA;
+-				$1->flags  |= NFT_SET_OBJECT;
+-				$$ = $1;
+-			}
+-			|	map_block	TYPE
+-						data_type_expr	COLON	LIMIT
+-						stmt_separator
+-			{
+-				$1->key = $3;
+-				$1->objtype = NFT_OBJECT_LIMIT;
+-				$1->flags  |= NFT_SET_OBJECT;
+-				$$ = $1;
+-			}
+-			|	map_block	TYPE
+-						data_type_expr	COLON	SECMARK
++						data_type_expr	COLON	map_block_obj_type
+ 						stmt_separator
+ 			{
+ 				$1->key = $3;
+-				$1->objtype = NFT_OBJECT_SECMARK;
++				$1->objtype = $5;
+ 				$1->flags  |= NFT_SET_OBJECT;
+ 				$$ = $1;
+ 			}
+-- 
+2.26.2
+
