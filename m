@@ -2,106 +2,80 @@ Return-Path: <SRS0=VHt6=ID=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6AA1C4332D
-	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Mar 2021 16:21:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DB27C433E0
+	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Mar 2021 19:38:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 74E0965094
-	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Mar 2021 16:21:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5E54465074
+	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Mar 2021 19:38:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230523AbhCEQUv (ORCPT
+        id S229446AbhCETiD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 5 Mar 2021 11:20:51 -0500
-Received: from rs2.larkmoor.net ([162.211.66.16]:45378 "EHLO rs2.larkmoor.net"
+        Fri, 5 Mar 2021 14:38:03 -0500
+Received: from correo.us.es ([193.147.175.20]:33150 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230023AbhCEQU2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 5 Mar 2021 11:20:28 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=larkmoor.net; s=larkmoor20140928;
-        h=Content-Transfer-Encoding:Content-Type:In-Reply-To:MIME-Version:Date:Message-ID:From:References:To:Subject; bh=7qD2MEr3r8Ogs1AmU9192ZI3KSDAiTn/AGq9GdBj2do=;
-        b=SGzq2bFAolQMA+yGbnUziq5dsMMAF8cWArZXFR6CCHmw/Tlh+z23yU1jMQwKThSNQnpTD1yecZjuwAh2yECDUP15YU43p27XFgsVFnj4CKGfjjUDGEVFdV0WP7mvM9zZiHi3o02/AbGTMkMn0MZSVZRi1s9+eUBTL753nAufAjs=;
-Received: from [10.0.0.31]
-        by gw.larkmoor.net with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
-        (Exim 4.76)
-        (envelope-from <fmyhr@fhmtech.com>)
-        id 1lIDBh-0007qK-Gk; Fri, 05 Mar 2021 11:20:25 -0500
-Subject: Re: Kernel Error FLOW OFFLOAD on nftables
-To:     =?UTF-8?B?0JzQsNC60YHQuNC8?= <maxbur89@gmail.com>,
-        netfilter-devel@vger.kernel.org
-References: <CA+GUAtOnjr-bG41Ryf6YJsH66oBRBeBnTp9+8_1Zn--0OOiQ9g@mail.gmail.com>
-From:   Frank Myhr <fmyhr@fhmtech.com>
-Message-ID: <2f251cf4-e69e-f202-a061-6fd5b8b9df38@fhmtech.com>
-Date:   Fri, 5 Mar 2021 11:20:25 -0500
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
+        id S229642AbhCETh5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 5 Mar 2021 14:37:57 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 9A753D28C1
+        for <netfilter-devel@vger.kernel.org>; Fri,  5 Mar 2021 20:37:46 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8583BDA730
+        for <netfilter-devel@vger.kernel.org>; Fri,  5 Mar 2021 20:37:46 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 7A741DA789; Fri,  5 Mar 2021 20:37:46 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 296F0DA730
+        for <netfilter-devel@vger.kernel.org>; Fri,  5 Mar 2021 20:37:44 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 05 Mar 2021 20:37:44 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id 1671542DC703
+        for <netfilter-devel@vger.kernel.org>; Fri,  5 Mar 2021 20:37:44 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] expression: memleak in verdict_expr_parse_udata()
+Date:   Fri,  5 Mar 2021 20:37:31 +0100
+Message-Id: <20210305193731.1754-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-In-Reply-To: <CA+GUAtOnjr-bG41Ryf6YJsH66oBRBeBnTp9+8_1Zn--0OOiQ9g@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+Remove unnecessary verdict_expr_alloc() invocation.
 
-I can't help with your kernel error, but have a couple of comments about 
-your ruleset:
+Fixes: 4ab1e5e60779 ("src: allow use of 'verdict' in typeof definitions")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/expression.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> Configuration nftables (nft list ruleset):
-> table ip nat {
-> chain postrouting {
-> type nat hook postrouting priority 100; policy accept;
-> counter packets 0 bytes 0
-> oif "ens1f1" ip saddr 10.0.0.0/8 snat to 31.43.223.160-31.43.223.176 persistent
-> oif "ens1f1" ip saddr 192.168.0.0/16 snat to
-> 31.43.223.160-31.43.223.176 persistent
-> oif "ens1f1" ip saddr 172.16.0.0/12 snat to
-> 31.43.223.160-31.43.223.176 persistent
-> counter packets 0 bytes 0
-> }
-> }
-> table inet filter {
-> flowtable fastnat {
-> hook ingress priority 0
-> devices = { ens1f0, ens1f1 }
-> }
-> 
-> chain forward {
-> type filter hook forward priority 0; policy accept;
-> ip protocol { tcp, udp } flow offload @fastnat counter packets 3 bytes 323
-> counter packets 3 bytes 323
-> }
-> }
-> table ip raw {
-> ct helper pptp-gre {
-> type "pptp" protocol tcp
-> l3proto ip
-> }
-> 
-> chain prerouting {
-> type filter hook prerouting priority -300; policy accept;
-> tcp dport 1723 ct helper set "pptp-gre"
-> counter packets 84 bytes 5147
-> }
+diff --git a/src/expression.c b/src/expression.c
+index 8c6beef9a5e5..0c5276d1118d 100644
+--- a/src/expression.c
++++ b/src/expression.c
+@@ -260,7 +260,7 @@ static int verdict_expr_build_udata(struct nftnl_udata_buf *udbuf,
+ 
+ static struct expr *verdict_expr_parse_udata(const struct nftnl_udata *attr)
+ {
+-	struct expr *e = verdict_expr_alloc(&internal_location, 0, NULL);
++	struct expr *e;
+ 
+ 	e = symbol_expr_alloc(&internal_location, SYMBOL_VALUE, NULL, "verdict");
+ 	e->len = NFT_REG_SIZE * BITS_PER_BYTE;
+-- 
+2.20.1
 
-from nft man page:
-"Unlike iptables, helper assignment needs to be performed after the 
-conntrack lookup has completed, for example with the default 0 hook 
-priority."
-
-So I think you want priority > -200 for your prerouting chain.
-
-https://wiki.nftables.org/wiki-nftables/index.php/Configuring_chains#Base_chain_priority
-
-> }
-
-
-I also wonder if using a single inet table rather than your 3 separate 
-tables above would make any difference...?
-
-Best Wishes,
-Frank
