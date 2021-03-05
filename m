@@ -2,92 +2,105 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_2 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-21.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1499AC433DB
-	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Mar 2021 03:31:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8F3DC433DB
+	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Mar 2021 08:43:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C1CBD64E90
-	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Mar 2021 03:31:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8465164F11
+	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Mar 2021 08:43:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229528AbhCEDbK (ORCPT
+        id S229575AbhCEImd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 4 Mar 2021 22:31:10 -0500
-Received: from gate2.alliedtelesis.co.nz ([202.36.163.20]:43902 "EHLO
-        gate2.alliedtelesis.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229526AbhCEDbK (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 4 Mar 2021 22:31:10 -0500
-Received: from svr-chch-seg1.atlnz.lc (mmarshal3.atlnz.lc [10.32.18.43])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (Client did not present a certificate)
-        by gate2.alliedtelesis.co.nz (Postfix) with ESMTPS id 54835891AE;
-        Fri,  5 Mar 2021 16:31:08 +1300 (NZDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alliedtelesis.co.nz;
-        s=mail181024; t=1614915068;
-        bh=KD1juPyXNCgiool63yGexf0dRtNlatc2uFIxPsMc+Xk=;
-        h=From:To:CC:Subject:Date:References:In-Reply-To;
-        b=v1Vam4TOnkrX079zzIV8KehQMJy0kMy2wJpRjdG5hX7yWu28s77ZDfdzcmdKxFdEA
-         AQF8Au8N4klze+h1a5pAGubiMBGrmfSxYH7qaUya2rD+KK6jW+zbYt5FqEcoOcxbtu
-         kB57vQW9VTmZO6DNP1QVhOysiPag6h5r9vCIkABGPGLslsZOG8l0uZoWjpEIweDLQS
-         s9GpLchVWvECXwat6SQpDcpVQ7phrUAGRZQ/BSCtCoOwas9YubGl8boBBQHEWUsX/l
-         7L8bEvzXy47myorTaj4vAmU9dyX86tAemshBFAFJps2dxluQmgpSdkg9qIcaIq52iI
-         AIuXDOk55VORQ==
-Received: from svr-chch-ex1.atlnz.lc (Not Verified[2001:df5:b000:bc8::77]) by svr-chch-seg1.atlnz.lc with Trustwave SEG (v8,2,6,11305)
-        id <B6041a5d90000>; Fri, 05 Mar 2021 16:30:33 +1300
-Received: from svr-chch-ex1.atlnz.lc (2001:df5:b000:bc8::77) by
- svr-chch-ex1.atlnz.lc (2001:df5:b000:bc8::77) with Microsoft SMTP Server
- (TLS) id 15.0.1497.2; Fri, 5 Mar 2021 16:30:31 +1300
-Received: from svr-chch-ex1.atlnz.lc ([fe80::409d:36f5:8899:92e8]) by
- svr-chch-ex1.atlnz.lc ([fe80::409d:36f5:8899:92e8%12]) with mapi id
- 15.00.1497.012; Fri, 5 Mar 2021 16:30:31 +1300
-From:   Mark Tomlinson <Mark.Tomlinson@alliedtelesis.co.nz>
-To:     "fw@strlen.de" <fw@strlen.de>
-CC:     "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "pablo@netfilter.org" <pablo@netfilter.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "kadlec@netfilter.org" <kadlec@netfilter.org>
-Subject: Re: [PATCH 3/3] netfilter: x_tables: Use correct memory barriers.
-Thread-Topic: [PATCH 3/3] netfilter: x_tables: Use correct memory barriers.
-Thread-Index: AQHXEJYqSIGupJItGUut6XOWJvc4xKpymfUAgAFKuQA=
-Date:   Fri, 5 Mar 2021 03:30:30 +0000
-Message-ID: <631d774f41a564b28d40a5639a58f1ab0d7f6e03.camel@alliedtelesis.co.nz>
-References: <20210304013116.8420-1-mark.tomlinson@alliedtelesis.co.nz>
-         <20210304013116.8420-4-mark.tomlinson@alliedtelesis.co.nz>
-         <20210304074648.GJ17911@breakpoint.cc>
-In-Reply-To: <20210304074648.GJ17911@breakpoint.cc>
-Accept-Language: en-NZ, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-mailer: Evolution 3.28.5-0ubuntu0.18.04.2 
-x-ms-exchange-messagesentrepresentingtype: 1
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [2001:df5:b000:23:2d77:907a:1462:3c65]
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <4016757BD182D84D86CB42E80B012C05@atlnz.lc>
-Content-Transfer-Encoding: base64
+        Fri, 5 Mar 2021 03:42:33 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52116 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229493AbhCEImN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 5 Mar 2021 03:42:13 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DE2AE64F11;
+        Fri,  5 Mar 2021 08:42:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1614933733;
+        bh=mgxBLmLXHhIZquaeQklM8mANN4oNT1voBTTYJbZRqF4=;
+        h=Date:From:To:Cc:Subject:From;
+        b=Nsuz6zi9ZRmhDY6rbc7gE+6wo2JedEJwMFUpoBAmNFDgAxra49iHRWTky1ss2Z9mI
+         5CP3Rq/dbQbU6wXSLflPlwIhR+zq9s10j3tgnxbMbZ0IXhKlM9OqhaDvIytsM31Gtr
+         Me+NCGj8JvwREpWAWL75JAxBdEbYY18JEGKMl0JxmOUSVb2+Ow5+phytN0/E0RhP08
+         J8BLaCKwMTYVqnfUypGx43tV6GKZZyk8nHrvaoI1RNXFPcsmifmG1+HtTw+qSpkxrM
+         6eo8YVZW1kGX0WOpUSkioxumzAaE5SS4WndADMViejYN8v11NZuXSnqI6zmvFyF6R7
+         LYyIbc/4xJAGQ==
+Date:   Fri, 5 Mar 2021 02:42:09 -0600
+From:   "Gustavo A. R. Silva" <gustavoars@kernel.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <gustavoars@kernel.org>,
+        linux-hardening@vger.kernel.org
+Subject: [PATCH RESEND][next] netfilter: Fix fall-through warnings for Clang
+Message-ID: <20210305084209.GA138063@embeddedor>
 MIME-Version: 1.0
-X-SEG-SpamProfiler-Analysis: v=2.3 cv=C7uXNjH+ c=1 sm=1 tr=0 a=Xf/6aR1Nyvzi7BryhOrcLQ==:117 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10 a=dESyimp9J3IA:10 a=j5wOGto6lCVxjVACX6YA:9 a=QEXdDO2ut3YA:10
-X-SEG-SpamProfiler-Score: 0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-T24gVGh1LCAyMDIxLTAzLTA0IGF0IDA4OjQ2ICswMTAwLCBGbG9yaWFuIFdlc3RwaGFsIHdyb3Rl
-Og0KPiBNYXJrIFRvbWxpbnNvbiA8bWFyay50b21saW5zb25AYWxsaWVkdGVsZXNpcy5jby5uej4g
-d3JvdGU6DQo+ID4gQ2hhbmdpbmcgdG8gdXNpbmcgc21wX21iKCkgaW5zdGVhZCBvZiBzbXBfd21i
-KCkgZml4ZXMgdGhlIGtlcm5lbCBwYW5pYw0KPiA+IHJlcG9ydGVkIGluIGNjMDBiY2FhNTg5OSwN
-Cj4gDQo+IENhbiB5b3UgcmVwcm9kdWNlIHRoZSBjcmFzaGVzIHdpdGhvdXQgdGhpcyBjaGFuZ2U/
-DQoNClllcy4gSW4gb3VyIHRlc3QgZW52aXJvbm1lbnQgd2Ugd2VyZSBzZWVpbmcgYSBrZXJuZWwg
-cGFuaWMgYXBwcm94LiB0d2ljZQ0KYSBkYXksIHdpdGggYSBzaW1pbGFyIG91dHB1dCB0byB0aGF0
-IHNob3duIGluIFN1YmFzaCdzIHBhdGNoIChjYzAwYmNhYTU4OTkpLg0KV2l0aCB0aGlzIHBhdGNo
-IHdlIGFyZSBub3Qgc2VlaW5nIGFueSBpc3N1ZS4gVGhlIENQVSBpcyBhIGR1YWwtY29yZSBBUk0N
-CkNvcnRleC1BOS4NCg0KPiA+IEhvdyBtdWNoIG9mIGFuIGltcGFjdCBpcyB0aGUgTUIgY2hhbmdl
-IG9uIHRoZSBwYWNrZXQgcGF0aD8NCg0KSSB3aWxsIHJ1biBvdXIgdGhyb3VnaHB1dCB0ZXN0cyBh
-bmQgZ2V0IHRoZXNlIHJlc3VsdHMuDQoNCkkgaGF2ZSBhIHNjcmlwdCB3aGljaCBtYWtlcyBhcm91
-bmQgMjAwIGNhbGxzIHRvIGlwdGFibGVzLiBUaGlzIHdhcyB0YWtpbmcNCjExLjU5cyBhbmQgbm93
-IGlzIGJhY2sgdG8gMS4xNnMuDQoNCg==
+In preparation to enable -Wimplicit-fallthrough for Clang, fix multiple
+warnings by explicitly adding multiple break statements instead of just
+letting the code fall through to the next case.
+
+Link: https://github.com/KSPP/linux/issues/115
+Acked-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+---
+ net/netfilter/nf_conntrack_proto_dccp.c | 1 +
+ net/netfilter/nf_tables_api.c           | 1 +
+ net/netfilter/nft_ct.c                  | 1 +
+ 3 files changed, 3 insertions(+)
+
+diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
+index db7479db8512..4f33307fa3cf 100644
+--- a/net/netfilter/nf_conntrack_proto_dccp.c
++++ b/net/netfilter/nf_conntrack_proto_dccp.c
+@@ -397,6 +397,7 @@ dccp_new(struct nf_conn *ct, const struct sk_buff *skb,
+ 			msg = "not picking up existing connection ";
+ 			goto out_invalid;
+ 		}
++		break;
+ 	case CT_DCCP_REQUEST:
+ 		break;
+ 	case CT_DCCP_INVALID:
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index b07703e19108..1f53459e30e9 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -8557,6 +8557,7 @@ static int nf_tables_check_loops(const struct nft_ctx *ctx,
+ 							data->verdict.chain);
+ 				if (err < 0)
+ 					return err;
++				break;
+ 			default:
+ 				break;
+ 			}
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index 882fe8648653..0592a9456084 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -527,6 +527,7 @@ static void __nft_ct_set_destroy(const struct nft_ctx *ctx, struct nft_ct *priv)
+ 	case NFT_CT_ZONE:
+ 		if (--nft_ct_pcpu_template_refcnt == 0)
+ 			nft_ct_tmpl_put_pcpu();
++		break;
+ #endif
+ 	default:
+ 		break;
+-- 
+2.27.0
+
