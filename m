@@ -1,65 +1,90 @@
-Return-Path: <SRS0=VHt6=ID=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=HMuw=IE=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.4 required=3.0 tests=BAYES_00,FORGED_MUA_MOZILLA,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57D72C433DB
-	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Mar 2021 20:16:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D0EBC433E0
+	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Mar 2021 12:13:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F14866509F
-	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Mar 2021 20:16:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DD8B764FE8
+	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Mar 2021 12:13:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229465AbhCEUQO (ORCPT
+        id S230242AbhCFMMu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 5 Mar 2021 15:16:14 -0500
-Received: from correo.us.es ([193.147.175.20]:41538 "EHLO mail.us.es"
+        Sat, 6 Mar 2021 07:12:50 -0500
+Received: from correo.us.es ([193.147.175.20]:45978 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229488AbhCEUQG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 5 Mar 2021 15:16:06 -0500
+        id S230413AbhCFMMk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 6 Mar 2021 07:12:40 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6A424E8E85
-        for <netfilter-devel@vger.kernel.org>; Fri,  5 Mar 2021 21:16:05 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 63924C516E
+        for <netfilter-devel@vger.kernel.org>; Sat,  6 Mar 2021 13:12:30 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 572F9DA73D
-        for <netfilter-devel@vger.kernel.org>; Fri,  5 Mar 2021 21:16:05 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4F7DEDA78F
+        for <netfilter-devel@vger.kernel.org>; Sat,  6 Mar 2021 13:12:30 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 4AF21DA722; Fri,  5 Mar 2021 21:16:05 +0100 (CET)
+        id 44841DA78A; Sat,  6 Mar 2021 13:12:30 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 25978DA73D;
-        Fri,  5 Mar 2021 21:16:03 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E48E9DA704;
+        Sat,  6 Mar 2021 13:12:27 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 05 Mar 2021 21:16:03 +0100 (CET)
+ Sat, 06 Mar 2021 13:12:27 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id F09D942DC700;
-        Fri,  5 Mar 2021 21:16:02 +0100 (CET)
-Date:   Fri, 5 Mar 2021 21:16:02 +0100
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id BB16D42DC6E3;
+        Sat,  6 Mar 2021 13:12:27 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft 2/3] parser: compact map RHS type
-Message-ID: <20210305201602.GB9635@salvia>
-References: <20210304010735.28683-1-fw@strlen.de>
- <20210304010735.28683-2-fw@strlen.de>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
+Subject: [PATCH net 1/9] uapi: nfnetlink_cthelper.h: fix userspace compilation error
+Date:   Sat,  6 Mar 2021 13:12:15 +0100
+Message-Id: <20210306121223.28711-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20210306121223.28711-1-pablo@netfilter.org>
+References: <20210306121223.28711-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20210304010735.28683-2-fw@strlen.de>
-User-Agent: Mozilla/5.0
+Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Mar 04, 2021 at 02:07:34AM +0100, Florian Westphal wrote:
-> Similar to previous patch, we can avoid duplication.
+From: "Dmitry V. Levin" <ldv@altlinux.org>
 
-LGTM
+Apparently, <linux/netfilter/nfnetlink_cthelper.h> and
+<linux/netfilter/nfnetlink_acct.h> could not be included into the same
+compilation unit because of a cut-and-paste typo in the former header.
+
+Fixes: 12f7a505331e6 ("netfilter: add user-space connection tracking helper infrastructure")
+Cc: <stable@vger.kernel.org> # v3.6
+Signed-off-by: Dmitry V. Levin <ldv@altlinux.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/uapi/linux/netfilter/nfnetlink_cthelper.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/uapi/linux/netfilter/nfnetlink_cthelper.h b/include/uapi/linux/netfilter/nfnetlink_cthelper.h
+index a13137afc429..70af02092d16 100644
+--- a/include/uapi/linux/netfilter/nfnetlink_cthelper.h
++++ b/include/uapi/linux/netfilter/nfnetlink_cthelper.h
+@@ -5,7 +5,7 @@
+ #define NFCT_HELPER_STATUS_DISABLED	0
+ #define NFCT_HELPER_STATUS_ENABLED	1
+ 
+-enum nfnl_acct_msg_types {
++enum nfnl_cthelper_msg_types {
+ 	NFNL_MSG_CTHELPER_NEW,
+ 	NFNL_MSG_CTHELPER_GET,
+ 	NFNL_MSG_CTHELPER_DEL,
+-- 
+2.20.1
+
