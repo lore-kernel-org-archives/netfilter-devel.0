@@ -2,454 +2,170 @@ Return-Path: <SRS0=mmGa=IG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0546C43381
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F257AC4332E
 	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Mar 2021 01:25:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6D6F06514A
+	by mail.kernel.org (Postfix) with ESMTP id C377B65142
 	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Mar 2021 01:25:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233464AbhCHBZM (ORCPT
+        id S233519AbhCHBZN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 7 Mar 2021 20:25:12 -0500
-Received: from gate2.alliedtelesis.co.nz ([202.36.163.20]:45545 "EHLO
-        gate2.alliedtelesis.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233483AbhCHBYk (ORCPT
+        Sun, 7 Mar 2021 20:25:13 -0500
+Received: from smtp-out-so.shaw.ca ([64.59.136.138]:39301 "EHLO
+        smtp-out-so.shaw.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233488AbhCHBYm (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 7 Mar 2021 20:24:40 -0500
-Received: from svr-chch-seg1.atlnz.lc (mmarshal3.atlnz.lc [10.32.18.43])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (Client did not present a certificate)
-        by gate2.alliedtelesis.co.nz (Postfix) with ESMTPS id D5D06891AF;
-        Mon,  8 Mar 2021 14:24:34 +1300 (NZDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alliedtelesis.co.nz;
-        s=mail181024; t=1615166674;
-        bh=h5zjiaPi53htwfieg4zJHY8IMyXSCI5OhfPmaJ6RZdQ=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References;
-        b=AapleeujZQy8kyVloduDQXnOEN5g2SZLkHp27teYWxJkc0l6h+VvkbwF1+0OcTZR5
-         ggQsaCH21fGOUsgvQBfgTctrtKXj/lGiiyvZyM7jIAnzAeFLtqfVVfYztEedrzBBBv
-         IeUJCbGp+NBeYyS5IlgSFIYalk35HmHl2fjYBZYsq5prlVnWUgbAv+lrYlcIP7canc
-         03JlVyvf7NK5ANvfNvXurva5MbhfB52JYCfd8Enbnm6RfTbhRYRYbrJ7vrmK1aLYYN
-         QxmkBQ3wK4BxL3V3tUChZsmR0suDiQBlIuGdeAHZPGVDDBLzC2p6S77RZ2sTwjkD/J
-         MSpFkQ1BEVhXA==
-Received: from smtp (Not Verified[10.32.16.33]) by svr-chch-seg1.atlnz.lc with Trustwave SEG (v8,2,6,11305)
-        id <B60457cd20002>; Mon, 08 Mar 2021 14:24:34 +1300
-Received: from markto-dl.ws.atlnz.lc (markto-dl.ws.atlnz.lc [10.33.23.25])
-        by smtp (Postfix) with ESMTP id 91E9B13EF9C;
-        Mon,  8 Mar 2021 14:24:46 +1300 (NZDT)
-Received: by markto-dl.ws.atlnz.lc (Postfix, from userid 1155)
-        id 9C186340FAE; Mon,  8 Mar 2021 14:24:34 +1300 (NZDT)
-From:   Mark Tomlinson <mark.tomlinson@alliedtelesis.co.nz>
-To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de
-Cc:     subashab@codeaurora.org, netfilter-devel@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Mark Tomlinson <mark.tomlinson@alliedtelesis.co.nz>
-Subject: [PATCH v2 2/3] Revert "netfilter: x_tables: Switch synchronization to RCU"
-Date:   Mon,  8 Mar 2021 14:24:12 +1300
-Message-Id: <20210308012413.14383-3-mark.tomlinson@alliedtelesis.co.nz>
-X-Mailer: git-send-email 2.30.1
-In-Reply-To: <20210308012413.14383-1-mark.tomlinson@alliedtelesis.co.nz>
-References: <20210308012413.14383-1-mark.tomlinson@alliedtelesis.co.nz>
+        Sun, 7 Mar 2021 20:24:42 -0500
+Received: from fanir.tuyoix.net ([68.150.218.192])
+        by shaw.ca with ESMTP
+        id J4VelVweWnRGtJ4VflAVZ6; Sun, 07 Mar 2021 18:16:35 -0700
+X-Authority-Analysis: v=2.4 cv=cagXElPM c=1 sm=1 tr=0 ts=60457af3
+ a=LfNn7serMq+1bQZBlMsSfQ==:117 a=LfNn7serMq+1bQZBlMsSfQ==:17
+ a=dESyimp9J3IA:10 a=M51BFTxLslgA:10 a=3I1X_3ewAAAA:8 a=bS_0ojvJHiWYQsesOFsA:9
+ a=QEXdDO2ut3YA:10 a=VG9N9RgkD3hcbI6YpJ1l:22
+Received: from tuyoix.net (fanir.tuyoix.net [192.168.144.16])
+        (authenticated bits=0)
+        by fanir.tuyoix.net (8.15.2/8.15.2) with ESMTPSA id 1281GYuE021021
+        (version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=NO)
+        for <netfilter-devel@vger.kernel.org>; Sun, 7 Mar 2021 18:16:34 -0700
+Date:   Sun, 7 Mar 2021 18:16:34 -0700 (MST)
+From:   =?UTF-8?Q?Marc_Aur=C3=A8le_La_France?= <tsi@tuyoix.net>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf] netfilter REJECT: Fix destination MAC in RST packets
+Message-ID: <alpine.LNX.2.20.2103071736460.15162@fanir.tuyoix.net>
+User-Agent: Alpine 2.20 (LNX 67 2015-01-07)
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-X-SEG-SpamProfiler-Analysis: v=2.3 cv=C7uXNjH+ c=1 sm=1 tr=0 a=KLBiSEs5mFS1a/PbTCJxuA==:117 a=dESyimp9J3IA:10 a=xwK3dqCpR-QJmR0bAu4A:9 a=ac-FA1p4njwWedJd:21 a=emDAxxbydI8RoRrh:21
-X-SEG-SpamProfiler-Score: 0
-x-atlnz-ls: pat
+Content-Type: multipart/mixed; BOUNDARY="-1463807856-1355267220-1615164351=:15162"
+Content-ID: <alpine.LNX.2.20.2103071816160.20147@fanir.tuyoix.net>
+X-CMAE-Envelope: MS4xfAlUggXO+Vkw6iYMWfVimnrGBXXeYqEC1JZiwG9m/m7oShSaDosDVpHf0gCKg9tZDvyF+WvcadtBF3hE9Mmwm1Qu6cCu4iAp5WER0tADOq4BT+3ZX2Q1
+ iGX0RAo1F9YMxg7jT8DJN3LYtnlTazsjfeA0uFn5J/BLho8aBkBUFU2yiF+HEYf14YcIg3SuI7MlOYHRkq63+wHOWQQHyLj8zAE=
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This reverts commit cc00bcaa589914096edef7fb87ca5cee4a166b5c.
+---1463807856-1355267220-1615164351=:15162
+Content-Type: text/plain; CHARSET=UTF-8
+Content-Transfer-Encoding: 8BIT
+Content-ID: <alpine.LNX.2.20.2103071750301.15181@fanir.tuyoix.net>
 
-This (and the preceding) patch basically re-implemented the RCU
-mechanisms of patch 784544739a25. That patch was replaced because of the
-performance problems that it created when replacing tables. Now, we have
-the same issue: the call to synchronize_rcu() makes replacing tables
-slower by as much as an order of magnitude.
+In the non-bridge case, the REJECT target code assumes the REJECTed
+packets were originally emitted by the local host, but that's not
+necessarily true when the local host is the default route of a subnet
+it is on, resulting in RST packets being sent out with an incorrect
+destination MAC.  Address this by refactoring the handling of bridged
+packets which deals with a similar issue.  Modulo patch fuzz, the
+following applies to v5 and later kernels.
 
-Prior to using RCU a script calling "iptables" approx. 200 times was
-taking 1.16s. With RCU this increased to 11.59s.
+Please Reply-To-All.
 
-Revert these patches and fix the issue in a different way.
+Thanks.
 
-Signed-off-by: Mark Tomlinson <mark.tomlinson@alliedtelesis.co.nz>
----
- include/linux/netfilter/x_tables.h |  5 +--
- net/ipv4/netfilter/arp_tables.c    | 14 ++++-----
- net/ipv4/netfilter/ip_tables.c     | 14 ++++-----
- net/ipv6/netfilter/ip6_tables.c    | 14 ++++-----
- net/netfilter/x_tables.c           | 49 +++++++++++++++++++++---------
- 5 files changed, 56 insertions(+), 40 deletions(-)
+Marc.
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter=
-/x_tables.h
-index 8ebb64193757..5deb099d156d 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -227,7 +227,7 @@ struct xt_table {
- 	unsigned int valid_hooks;
-=20
- 	/* Man behind the curtain... */
--	struct xt_table_info __rcu *private;
-+	struct xt_table_info *private;
-=20
- 	/* Set this to THIS_MODULE if you are a module, otherwise NULL */
- 	struct module *me;
-@@ -448,9 +448,6 @@ xt_get_per_cpu_counter(struct xt_counters *cnt, unsig=
-ned int cpu)
-=20
- struct nf_hook_ops *xt_hook_ops_alloc(const struct xt_table *, nf_hookfn=
- *);
-=20
--struct xt_table_info
--*xt_table_get_private_protected(const struct xt_table *table);
--
- #ifdef CONFIG_COMPAT
- #include <net/compat.h>
-=20
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tab=
-les.c
-index 563b62b76a5f..d1e04d2b5170 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -203,7 +203,7 @@ unsigned int arpt_do_table(struct sk_buff *skb,
-=20
- 	local_bh_disable();
- 	addend =3D xt_write_recseq_begin();
--	private =3D rcu_access_pointer(table->private);
-+	private =3D READ_ONCE(table->private); /* Address dependency. */
- 	cpu     =3D smp_processor_id();
- 	table_base =3D private->entries;
- 	jumpstack  =3D (struct arpt_entry **)private->jumpstack[cpu];
-@@ -649,7 +649,7 @@ static struct xt_counters *alloc_counters(const struc=
-t xt_table *table)
+Signed-off-by: Marc Aurèle La France <tsi@tuyoix.net>
+Tested-by: Marc Aurèle La France <tsi@tuyoix.net>
+
+--- a/net/ipv4/netfilter/nf_reject_ipv4.c
++++ b/net/ipv4/netfilter/nf_reject_ipv4.c
+@@ -237,7 +237,7 @@ static int nf_reject_fill_skb_dst(struct sk_buff *skb_in)
+ void nf_send_reset(struct net *net, struct sock *sk, struct sk_buff *oldskb,
+ 		   int hook)
  {
- 	unsigned int countersize;
- 	struct xt_counters *counters;
--	const struct xt_table_info *private =3D xt_table_get_private_protected(=
-table);
-+	const struct xt_table_info *private =3D table->private;
-=20
- 	/* We need atomic snapshot of counters: rest doesn't change
- 	 * (other than comefrom, which userspace doesn't care
-@@ -673,7 +673,7 @@ static int copy_entries_to_user(unsigned int total_si=
-ze,
- 	unsigned int off, num;
- 	const struct arpt_entry *e;
- 	struct xt_counters *counters;
--	struct xt_table_info *private =3D xt_table_get_private_protected(table)=
-;
-+	struct xt_table_info *private =3D table->private;
- 	int ret =3D 0;
- 	void *loc_cpu_entry;
-=20
-@@ -807,7 +807,7 @@ static int get_info(struct net *net, void __user *use=
-r, const int *len)
- 	t =3D xt_request_find_table_lock(net, NFPROTO_ARP, name);
- 	if (!IS_ERR(t)) {
- 		struct arpt_getinfo info;
--		const struct xt_table_info *private =3D xt_table_get_private_protected=
-(t);
-+		const struct xt_table_info *private =3D t->private;
- #ifdef CONFIG_COMPAT
- 		struct xt_table_info tmp;
-=20
-@@ -860,7 +860,7 @@ static int get_entries(struct net *net, struct arpt_g=
-et_entries __user *uptr,
-=20
- 	t =3D xt_find_table_lock(net, NFPROTO_ARP, get.name);
- 	if (!IS_ERR(t)) {
--		const struct xt_table_info *private =3D xt_table_get_private_protected=
-(t);
-+		const struct xt_table_info *private =3D t->private;
-=20
- 		if (get.size =3D=3D private->size)
- 			ret =3D copy_entries_to_user(private->size,
-@@ -1017,7 +1017,7 @@ static int do_add_counters(struct net *net, sockptr=
-_t arg, unsigned int len)
- 	}
-=20
- 	local_bh_disable();
--	private =3D xt_table_get_private_protected(t);
-+	private =3D t->private;
- 	if (private->number !=3D tmp.num_counters) {
- 		ret =3D -EINVAL;
- 		goto unlock_up_free;
-@@ -1330,7 +1330,7 @@ static int compat_copy_entries_to_user(unsigned int=
- total_size,
- 				       void __user *userptr)
+-	struct net_device *br_indev __maybe_unused;
++	struct net_device *indev;
+ 	struct sk_buff *nskb;
+ 	struct iphdr *niph;
+ 	const struct tcphdr *oth;
+@@ -279,18 +279,20 @@ void nf_send_reset(struct net *net, struct sock *sk, struct sk_buff *oldskb,
+
+ 	nf_ct_attach(nskb, oldskb);
+
+-#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+-	/* If we use ip_local_out for bridged traffic, the MAC source on
+-	 * the RST will be ours, instead of the destination's.  This confuses
+-	 * some routers/firewalls, and they drop the packet.  So we need to
+-	 * build the eth header using the original destination's MAC as the
+-	 * source, and send the RST packet directly.
++	/* Swap the source and destination MACs of the RST packet from that
++	 * of the REJECTed packet's, if available from it.  Otherwise, let
++	 * ip_local_out decide.
+ 	 */
+-	br_indev = nf_bridge_get_physindev(oldskb);
+-	if (br_indev) {
++#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
++	indev = nf_bridge_get_physindev(oldskb);
++	if (!indev)
++#endif
++		indev = oldskb->dev;
++
++	if (indev) {
+ 		struct ethhdr *oeth = eth_hdr(oldskb);
+
+-		nskb->dev = br_indev;
++		nskb->dev = indev;
+ 		niph->tot_len = htons(nskb->len);
+ 		ip_send_check(niph);
+ 		if (dev_hard_header(nskb, nskb->dev, ntohs(nskb->protocol),
+@@ -298,7 +300,6 @@ void nf_send_reset(struct net *net, struct sock *sk, struct sk_buff *oldskb,
+ 			goto free_nskb;
+ 		dev_queue_xmit(nskb);
+ 	} else
+-#endif
+ 		ip_local_out(net, nskb->sk, nskb);
+
+ 	return;
+--- a/net/ipv6/netfilter/nf_reject_ipv6.c
++++ b/net/ipv6/netfilter/nf_reject_ipv6.c
+@@ -278,7 +278,7 @@ static int nf_reject6_fill_skb_dst(struct sk_buff *skb_in)
+ void nf_send_reset6(struct net *net, struct sock *sk, struct sk_buff *oldskb,
+ 		    int hook)
  {
- 	struct xt_counters *counters;
--	const struct xt_table_info *private =3D xt_table_get_private_protected(=
-table);
-+	const struct xt_table_info *private =3D table->private;
- 	void __user *pos;
- 	unsigned int size;
- 	int ret =3D 0;
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_table=
-s.c
-index 6e2851f8d3a3..f15bc21d7301 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -258,7 +258,7 @@ ipt_do_table(struct sk_buff *skb,
- 	WARN_ON(!(table->valid_hooks & (1 << hook)));
- 	local_bh_disable();
- 	addend =3D xt_write_recseq_begin();
--	private =3D rcu_access_pointer(table->private);
-+	private =3D READ_ONCE(table->private); /* Address dependency. */
- 	cpu        =3D smp_processor_id();
- 	table_base =3D private->entries;
- 	jumpstack  =3D (struct ipt_entry **)private->jumpstack[cpu];
-@@ -791,7 +791,7 @@ static struct xt_counters *alloc_counters(const struc=
-t xt_table *table)
- {
- 	unsigned int countersize;
- 	struct xt_counters *counters;
--	const struct xt_table_info *private =3D xt_table_get_private_protected(=
-table);
-+	const struct xt_table_info *private =3D table->private;
-=20
- 	/* We need atomic snapshot of counters: rest doesn't change
- 	   (other than comefrom, which userspace doesn't care
-@@ -815,7 +815,7 @@ copy_entries_to_user(unsigned int total_size,
- 	unsigned int off, num;
- 	const struct ipt_entry *e;
- 	struct xt_counters *counters;
--	const struct xt_table_info *private =3D xt_table_get_private_protected(=
-table);
-+	const struct xt_table_info *private =3D table->private;
- 	int ret =3D 0;
- 	const void *loc_cpu_entry;
-=20
-@@ -964,7 +964,7 @@ static int get_info(struct net *net, void __user *use=
-r, const int *len)
- 	t =3D xt_request_find_table_lock(net, AF_INET, name);
- 	if (!IS_ERR(t)) {
- 		struct ipt_getinfo info;
--		const struct xt_table_info *private =3D xt_table_get_private_protected=
-(t);
-+		const struct xt_table_info *private =3D t->private;
- #ifdef CONFIG_COMPAT
- 		struct xt_table_info tmp;
-=20
-@@ -1018,7 +1018,7 @@ get_entries(struct net *net, struct ipt_get_entries=
- __user *uptr,
-=20
- 	t =3D xt_find_table_lock(net, AF_INET, get.name);
- 	if (!IS_ERR(t)) {
--		const struct xt_table_info *private =3D xt_table_get_private_protected=
-(t);
-+		const struct xt_table_info *private =3D t->private;
- 		if (get.size =3D=3D private->size)
- 			ret =3D copy_entries_to_user(private->size,
- 						   t, uptr->entrytable);
-@@ -1173,7 +1173,7 @@ do_add_counters(struct net *net, sockptr_t arg, uns=
-igned int len)
- 	}
-=20
- 	local_bh_disable();
--	private =3D xt_table_get_private_protected(t);
-+	private =3D t->private;
- 	if (private->number !=3D tmp.num_counters) {
- 		ret =3D -EINVAL;
- 		goto unlock_up_free;
-@@ -1543,7 +1543,7 @@ compat_copy_entries_to_user(unsigned int total_size=
-, struct xt_table *table,
- 			    void __user *userptr)
- {
- 	struct xt_counters *counters;
--	const struct xt_table_info *private =3D xt_table_get_private_protected(=
-table);
-+	const struct xt_table_info *private =3D table->private;
- 	void __user *pos;
- 	unsigned int size;
- 	int ret =3D 0;
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tab=
-les.c
-index c4f532f4d311..2e2119bfcf13 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -280,7 +280,7 @@ ip6t_do_table(struct sk_buff *skb,
-=20
- 	local_bh_disable();
- 	addend =3D xt_write_recseq_begin();
--	private =3D rcu_access_pointer(table->private);
-+	private =3D READ_ONCE(table->private); /* Address dependency. */
- 	cpu        =3D smp_processor_id();
- 	table_base =3D private->entries;
- 	jumpstack  =3D (struct ip6t_entry **)private->jumpstack[cpu];
-@@ -807,7 +807,7 @@ static struct xt_counters *alloc_counters(const struc=
-t xt_table *table)
- {
- 	unsigned int countersize;
- 	struct xt_counters *counters;
--	const struct xt_table_info *private =3D xt_table_get_private_protected(=
-table);
-+	const struct xt_table_info *private =3D table->private;
-=20
- 	/* We need atomic snapshot of counters: rest doesn't change
- 	   (other than comefrom, which userspace doesn't care
-@@ -831,7 +831,7 @@ copy_entries_to_user(unsigned int total_size,
- 	unsigned int off, num;
- 	const struct ip6t_entry *e;
- 	struct xt_counters *counters;
--	const struct xt_table_info *private =3D xt_table_get_private_protected(=
-table);
-+	const struct xt_table_info *private =3D table->private;
- 	int ret =3D 0;
- 	const void *loc_cpu_entry;
-=20
-@@ -980,7 +980,7 @@ static int get_info(struct net *net, void __user *use=
-r, const int *len)
- 	t =3D xt_request_find_table_lock(net, AF_INET6, name);
- 	if (!IS_ERR(t)) {
- 		struct ip6t_getinfo info;
--		const struct xt_table_info *private =3D xt_table_get_private_protected=
-(t);
-+		const struct xt_table_info *private =3D t->private;
- #ifdef CONFIG_COMPAT
- 		struct xt_table_info tmp;
-=20
-@@ -1035,7 +1035,7 @@ get_entries(struct net *net, struct ip6t_get_entrie=
-s __user *uptr,
-=20
- 	t =3D xt_find_table_lock(net, AF_INET6, get.name);
- 	if (!IS_ERR(t)) {
--		struct xt_table_info *private =3D xt_table_get_private_protected(t);
-+		struct xt_table_info *private =3D t->private;
- 		if (get.size =3D=3D private->size)
- 			ret =3D copy_entries_to_user(private->size,
- 						   t, uptr->entrytable);
-@@ -1189,7 +1189,7 @@ do_add_counters(struct net *net, sockptr_t arg, uns=
-igned int len)
- 	}
-=20
- 	local_bh_disable();
--	private =3D xt_table_get_private_protected(t);
-+	private =3D t->private;
- 	if (private->number !=3D tmp.num_counters) {
- 		ret =3D -EINVAL;
- 		goto unlock_up_free;
-@@ -1552,7 +1552,7 @@ compat_copy_entries_to_user(unsigned int total_size=
-, struct xt_table *table,
- 			    void __user *userptr)
- {
- 	struct xt_counters *counters;
--	const struct xt_table_info *private =3D xt_table_get_private_protected(=
-table);
-+	const struct xt_table_info *private =3D table->private;
- 	void __user *pos;
- 	unsigned int size;
- 	int ret =3D 0;
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index acce622582e3..af22dbe85e2c 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -1349,14 +1349,6 @@ struct xt_counters *xt_counters_alloc(unsigned int=
- counters)
+-	struct net_device *br_indev __maybe_unused;
++	struct net_device *indev;
+ 	struct sk_buff *nskb;
+ 	struct tcphdr _otcph;
+ 	const struct tcphdr *otcph;
+@@ -346,18 +346,20 @@ void nf_send_reset6(struct net *net, struct sock *sk, struct sk_buff *oldskb,
+
+ 	nf_ct_attach(nskb, oldskb);
+
+-#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+-	/* If we use ip6_local_out for bridged traffic, the MAC source on
+-	 * the RST will be ours, instead of the destination's.  This confuses
+-	 * some routers/firewalls, and they drop the packet.  So we need to
+-	 * build the eth header using the original destination's MAC as the
+-	 * source, and send the RST packet directly.
++	/* Swap the source and destination MACs of the RST packet from that
++	 * of the REJECTed packet's, if available from it.  Otherwise, let
++	 * ip6_local_out decide.
+ 	 */
+-	br_indev = nf_bridge_get_physindev(oldskb);
+-	if (br_indev) {
++#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
++	indev = nf_bridge_get_physindev(oldskb);
++	if (!indev)
++#endif
++		indev = oldskb->dev;
++
++	if (indev) {
+ 		struct ethhdr *oeth = eth_hdr(oldskb);
+
+-		nskb->dev = br_indev;
++		nskb->dev = indev;
+ 		nskb->protocol = htons(ETH_P_IPV6);
+ 		ip6h->payload_len = htons(sizeof(struct tcphdr));
+ 		if (dev_hard_header(nskb, nskb->dev, ntohs(nskb->protocol),
+@@ -367,7 +369,6 @@ void nf_send_reset6(struct net *net, struct sock *sk, struct sk_buff *oldskb,
+ 		}
+ 		dev_queue_xmit(nskb);
+ 	} else
+-#endif
+ 		ip6_local_out(net, sk, nskb);
  }
- EXPORT_SYMBOL(xt_counters_alloc);
-=20
--struct xt_table_info
--*xt_table_get_private_protected(const struct xt_table *table)
--{
--	return rcu_dereference_protected(table->private,
--					 mutex_is_locked(&xt[table->af].mutex));
--}
--EXPORT_SYMBOL(xt_table_get_private_protected);
--
- struct xt_table_info *
- xt_replace_table(struct xt_table *table,
- 	      unsigned int num_counters,
-@@ -1364,6 +1356,7 @@ xt_replace_table(struct xt_table *table,
- 	      int *error)
- {
- 	struct xt_table_info *private;
-+	unsigned int cpu;
- 	int ret;
-=20
- 	ret =3D xt_jumpstack_alloc(newinfo);
-@@ -1373,20 +1366,47 @@ xt_replace_table(struct xt_table *table,
- 	}
-=20
- 	/* Do the substitution. */
--	private =3D xt_table_get_private_protected(table);
-+	local_bh_disable();
-+	private =3D table->private;
-=20
- 	/* Check inside lock: is the old number correct? */
- 	if (num_counters !=3D private->number) {
- 		pr_debug("num_counters !=3D table->private->number (%u/%u)\n",
- 			 num_counters, private->number);
-+		local_bh_enable();
- 		*error =3D -EAGAIN;
- 		return NULL;
- 	}
-=20
- 	newinfo->initial_entries =3D private->initial_entries;
-+	/*
-+	 * Ensure contents of newinfo are visible before assigning to
-+	 * private.
-+	 */
-+	smp_wmb();
-+	table->private =3D newinfo;
-+
-+	/* make sure all cpus see new ->private value */
-+	smp_wmb();
-=20
--	rcu_assign_pointer(table->private, newinfo);
--	synchronize_rcu();
-+	/*
-+	 * Even though table entries have now been swapped, other CPU's
-+	 * may still be using the old entries...
-+	 */
-+	local_bh_enable();
-+
-+	/* ... so wait for even xt_recseq on all cpus */
-+	for_each_possible_cpu(cpu) {
-+		seqcount_t *s =3D &per_cpu(xt_recseq, cpu);
-+		u32 seq =3D raw_read_seqcount(s);
-+
-+		if (seq & 1) {
-+			do {
-+				cond_resched();
-+				cpu_relax();
-+			} while (seq =3D=3D raw_read_seqcount(s));
-+		}
-+	}
-=20
- 	audit_log_nfcfg(table->name, table->af, private->number,
- 			!private->number ? AUDIT_XT_OP_REGISTER :
-@@ -1422,12 +1442,12 @@ struct xt_table *xt_register_table(struct net *ne=
-t,
- 	}
-=20
- 	/* Simplifies replace_table code. */
--	rcu_assign_pointer(table->private, bootstrap);
-+	table->private =3D bootstrap;
-=20
- 	if (!xt_replace_table(table, 0, newinfo, &ret))
- 		goto unlock;
-=20
--	private =3D xt_table_get_private_protected(table);
-+	private =3D table->private;
- 	pr_debug("table->private->number =3D %u\n", private->number);
-=20
- 	/* save number of initial entries */
-@@ -1450,8 +1470,7 @@ void *xt_unregister_table(struct xt_table *table)
- 	struct xt_table_info *private;
-=20
- 	mutex_lock(&xt[table->af].mutex);
--	private =3D xt_table_get_private_protected(table);
--	RCU_INIT_POINTER(table->private, NULL);
-+	private =3D table->private;
- 	list_del(&table->list);
- 	mutex_unlock(&xt[table->af].mutex);
- 	audit_log_nfcfg(table->name, table->af, private->number,
---=20
-2.30.1
-
+ EXPORT_SYMBOL_GPL(nf_send_reset6);
+---1463807856-1355267220-1615164351=:15162--
