@@ -1,87 +1,93 @@
-Return-Path: <SRS0=fhTi=IF=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=mmGa=IG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5E5BC433E0
-	for <netfilter-devel@archiver.kernel.org>; Sun,  7 Mar 2021 15:03:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3EB1C433E0
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Mar 2021 01:25:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BE6BE64FF0
-	for <netfilter-devel@archiver.kernel.org>; Sun,  7 Mar 2021 15:03:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8E8D265142
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Mar 2021 01:25:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229730AbhCGPDA (ORCPT
+        id S232328AbhCHBYb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 7 Mar 2021 10:03:00 -0500
-Received: from rs2.larkmoor.net ([162.211.66.16]:44138 "EHLO rs2.larkmoor.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232221AbhCGPCx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 7 Mar 2021 10:02:53 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=larkmoor.net; s=larkmoor20140928;
-        h=Content-Transfer-Encoding:Content-Type:In-Reply-To:MIME-Version:Date:Message-ID:From:References:To:Subject; bh=su/q5fZeI/wN8czVsBKz39XBbdFvQx75Bb9U0MSq6Gs=;
-        b=f/SU5oa6VrCZudyrnR44xM3+tBcp2cr1SCnNCf3TyTomJu2Z2eOhbliEDyGrND0w7oM65QkWiQu/GrAjzglw64QxhxbQYE4GCRY6Czd4mgQUPy96qoNyRtmAlWS/lVQ7+hIDkturqC20xcxx/sjbierC+1h5N9lJCiRkQus0S7U=;
-Received: from [10.0.0.31]
-        by gw.larkmoor.net with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
-        (Exim 4.76)
-        (envelope-from <fmyhr@fhmtech.com>)
-        id 1lIuvl-00003j-2c; Sun, 07 Mar 2021 10:02:53 -0500
-Subject: Re: [RFC PATCH] doc: use symbolic names for chain priorities
-To:     Simon Ruderich <simon@ruderich.org>,
+        Sun, 7 Mar 2021 20:24:31 -0500
+Received: from smtp-out-so.shaw.ca ([64.59.136.139]:36996 "EHLO
+        smtp-out-so.shaw.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232273AbhCHBY2 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 7 Mar 2021 20:24:28 -0500
+X-Greylist: delayed 487 seconds by postgrey-1.27 at vger.kernel.org; Sun, 07 Mar 2021 20:24:28 EST
+Received: from fanir.tuyoix.net ([68.150.218.192])
+        by shaw.ca with ESMTP
+        id J4VGlVwWwnRGtJ4VHlAVVW; Sun, 07 Mar 2021 18:16:11 -0700
+X-Authority-Analysis: v=2.4 cv=cagXElPM c=1 sm=1 tr=0 ts=60457adb
+ a=LfNn7serMq+1bQZBlMsSfQ==:117 a=LfNn7serMq+1bQZBlMsSfQ==:17
+ a=dESyimp9J3IA:10 a=M51BFTxLslgA:10 a=3I1X_3ewAAAA:8 a=ljtVHcs82eP08VpLTIoA:9
+ a=QEXdDO2ut3YA:10 a=VG9N9RgkD3hcbI6YpJ1l:22
+Received: from tuyoix.net (fanir.tuyoix.net [192.168.144.16])
+        (authenticated bits=0)
+        by fanir.tuyoix.net (8.15.2/8.15.2) with ESMTPSA id 1281GAQa020152
+        (version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=NO);
+        Sun, 7 Mar 2021 18:16:10 -0700
+Date:   Sun, 7 Mar 2021 18:16:10 -0700 (MST)
+From:   =?UTF-8?Q?Marc_Aur=C3=A8le_La_France?= <tsi@tuyoix.net>
+To:     Laura Garcia Liebana <nevola@gmail.com>,
         netfilter-devel@vger.kernel.org
-References: <b1320180e5617ae9910848b7fc17daf9c3edca04.1615109258.git.simon@ruderich.org>
-From:   Frank Myhr <fmyhr@fhmtech.com>
-Message-ID: <0a7f088c-f813-0425-8bec-d693d95a97a0@fhmtech.com>
-Date:   Sun, 7 Mar 2021 10:02:52 -0500
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
+Subject: {PATCH nf] x_tables: Allow REJECT targets in PREROUTING chains
+Message-ID: <alpine.LNX.2.20.2103071733480.15162@fanir.tuyoix.net>
+User-Agent: Alpine 2.20 (LNX 67 2015-01-07)
 MIME-Version: 1.0
-In-Reply-To: <b1320180e5617ae9910848b7fc17daf9c3edca04.1615109258.git.simon@ruderich.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; BOUNDARY="-1463807856-687965147-1615163781=:15162"
+Content-ID: <alpine.LNX.2.20.2103071815490.20147@fanir.tuyoix.net>
+X-CMAE-Envelope: MS4xfGgClr2WH1WuigY+YUeuC9a4akfbsDDnHKjbke2tOh0IAAoy6RwWAiWdQIiLojc+TY37TI7chc775KtTznU418dHhtthH1X6kMwesDuU7az2Ogl+EuW5
+ 6M4J33vI/1u9R7MWitfjJ0jAHvoR5AOatQJIgDof/IAV9c4o0oX//px1epnTTPGjJCfE7P8ITFxXZevSwmToNziGXxIn9NWFlV+eGqMn9RrsMVOCZ+zKDRpy
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2021/03/07 09:43, Simon Ruderich wrote:
+---1463807856-687965147-1615163781=:15162
+Content-Type: text/plain; CHARSET=UTF-8
+Content-Transfer-Encoding: 8BIT
+Content-ID: <alpine.LNX.2.20.2103071749511.15181@fanir.tuyoix.net>
 
-> I don't understand how the priority option actually works. The
-> documentation states that it "specifies the order in which chains
-> with the same *hook* value are traversed". However, from what I
-> understand it's not only relevant for the order of multiple
-> custom hooks but it also maps to the priority used for the
-> netfilter hooks inside the kernel (e.g. -300 which happens before
-> conntrack handling in the kernel). Please correct me if this is
-> wrong.
-> 
-> Assuming the above is more or less correct, I don't understand
-> why the old rules worked:
-> 
->      add chain nat prerouting { type nat hook prerouting priority 0; }
->      add chain nat postrouting { type nat hook postrouting priority 100; }
-> 
-> Isn't priority 0 "too late" as 0 is also used for filter? Or are
-> nat and filter types completely separate and the order is only
-> relevant for hooks of the same type? If so, why does postrouting
-> require priority 100 (shouldn't the kernel put prerouting before
-> postrouting automatically)? Or would any value greater than 0
-> also work as long as it's after postrouting? And why are dstnat
-> and srcnat set to -100 and 100?
+Extend commit f53b9b0bdc59c0823679f2e3214e0d538f5951b9 "netfilter:
+introduce support for reject at prerouting stage", which appeared in
+5.9, by making the corresponding changes to x_tables REJECT targets.
 
-Hi Simon,
+Please Reply-To-All.
 
-Priority is only relevant _within a given hook_. So comparing priorities 
-of base chains hooked to prerouting and postrouting (as in your example 
-above) does not make sense. Please see:
+Thanks.
 
-https://wiki.nftables.org/wiki-nftables/index.php/Configuring_chains#Base_chain_priority
+Marc.
 
-https://wiki.nftables.org/wiki-nftables/index.php/Netfilter_hooks
+Signed-off-by: Marc Aurèle La France <tsi@tuyoix.net>
+Tested-by: Marc Aurèle La France <tsi@tuyoix.net>
 
-Hope that clears things up for you.
-
-Best Wishes,
-Frank
+--- a/net/ipv4/netfilter/ipt_REJECT.c
++++ b/net/ipv4/netfilter/ipt_REJECT.c
+@@ -92,7 +92,7 @@ static struct xt_target reject_tg_reg __read_mostly = {
+ 	.targetsize	= sizeof(struct ipt_reject_info),
+ 	.table		= "filter",
+ 	.hooks		= (1 << NF_INET_LOCAL_IN) | (1 << NF_INET_FORWARD) |
+-			  (1 << NF_INET_LOCAL_OUT),
++			  (1 << NF_INET_LOCAL_OUT) | (1 << NF_INET_PRE_ROUTING),
+ 	.checkentry	= reject_tg_check,
+ 	.me		= THIS_MODULE,
+ };
+--- a/net/ipv6/netfilter/ip6t_REJECT.c
++++ b/net/ipv6/netfilter/ip6t_REJECT.c
+@@ -102,7 +102,7 @@ static struct xt_target reject_tg6_reg __read_mostly = {
+ 	.targetsize	= sizeof(struct ip6t_reject_info),
+ 	.table		= "filter",
+ 	.hooks		= (1 << NF_INET_LOCAL_IN) | (1 << NF_INET_FORWARD) |
+-			  (1 << NF_INET_LOCAL_OUT),
++			  (1 << NF_INET_LOCAL_OUT) | (1 << NF_INET_PRE_ROUTING),
+ 	.checkentry	= reject_tg6_check,
+ 	.me		= THIS_MODULE
+ };
+---1463807856-687965147-1615163781=:15162--
