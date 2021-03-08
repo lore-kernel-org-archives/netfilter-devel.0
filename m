@@ -2,101 +2,123 @@ Return-Path: <SRS0=mmGa=IG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.4 required=3.0 tests=BAYES_00,FORGED_MUA_MOZILLA,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A096C433DB
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Mar 2021 10:35:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D64D0C433E9
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Mar 2021 14:12:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B41DC651C5
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Mar 2021 10:35:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A2F09651DD
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Mar 2021 14:12:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230271AbhCHKer (ORCPT
+        id S230521AbhCHOLv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Mar 2021 05:34:47 -0500
-Received: from correo.us.es ([193.147.175.20]:53234 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230488AbhCHKem (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Mar 2021 05:34:42 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 23F26B56F1
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Mar 2021 11:34:41 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 14473DA55C
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Mar 2021 11:34:41 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 085F8DA844; Mon,  8 Mar 2021 11:34:41 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A620ADA78C;
-        Mon,  8 Mar 2021 11:34:38 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 08 Mar 2021 11:34:38 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 88BD442DF563;
-        Mon,  8 Mar 2021 11:34:38 +0100 (CET)
-Date:   Mon, 8 Mar 2021 11:34:38 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Marc =?utf-8?Q?Aur=C3=A8le?= La France <tsi@tuyoix.net>
-Cc:     Laura Garcia Liebana <nevola@gmail.com>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: {PATCH nf] x_tables: Allow REJECT targets in PREROUTING chains
-Message-ID: <20210308103438.GA23953@salvia>
-References: <alpine.LNX.2.20.2103071733480.15162@fanir.tuyoix.net>
+        Mon, 8 Mar 2021 09:11:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53012 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230411AbhCHOLf (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 Mar 2021 09:11:35 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 120BAC06174A
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Mar 2021 06:11:35 -0800 (PST)
+Received: from localhost ([::1]:53486 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.94)
+        (envelope-from <phil@nwl.cc>)
+        id 1lJGbd-0003Ri-LY; Mon, 08 Mar 2021 15:11:33 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [libnftnl PATCH 4/5] rule: Avoid printing trailing spaces
+Date:   Mon,  8 Mar 2021 15:11:18 +0100
+Message-Id: <20210308141119.17809-5-phil@nwl.cc>
+X-Mailer: git-send-email 2.30.1
+In-Reply-To: <20210308141119.17809-1-phil@nwl.cc>
+References: <20210308141119.17809-1-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <alpine.LNX.2.20.2103071733480.15162@fanir.tuyoix.net>
-User-Agent: Mozilla/5.0
-X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Mar 07, 2021 at 06:16:10PM -0700, Marc Aurèle La France wrote:
-> Extend commit f53b9b0bdc59c0823679f2e3214e0d538f5951b9 "netfilter:
-> introduce support for reject at prerouting stage", which appeared in
-> 5.9, by making the corresponding changes to x_tables REJECT targets.
-> 
-> Please Reply-To-All.
+Introduce 'sep' variable to track whether something was printed already.
+While being at it, introduce PRIu64 for 'handle' and 'position'
+attributes.
 
-This patch LGTM.
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ src/rule.c | 27 ++++++++++++++++++---------
+ 1 file changed, 18 insertions(+), 9 deletions(-)
 
-> Thanks.
-> 
-> Marc.
-> 
-> Signed-off-by: Marc Aurèle La France <tsi@tuyoix.net>
-> Tested-by: Marc Aurèle La France <tsi@tuyoix.net>
-> 
-> --- a/net/ipv4/netfilter/ipt_REJECT.c
-> +++ b/net/ipv4/netfilter/ipt_REJECT.c
-> @@ -92,7 +92,7 @@ static struct xt_target reject_tg_reg __read_mostly = {
->  	.targetsize	= sizeof(struct ipt_reject_info),
->  	.table		= "filter",
->  	.hooks		= (1 << NF_INET_LOCAL_IN) | (1 << NF_INET_FORWARD) |
-> -			  (1 << NF_INET_LOCAL_OUT),
-> +			  (1 << NF_INET_LOCAL_OUT) | (1 << NF_INET_PRE_ROUTING),
->  	.checkentry	= reject_tg_check,
->  	.me		= THIS_MODULE,
->  };
-> --- a/net/ipv6/netfilter/ip6t_REJECT.c
-> +++ b/net/ipv6/netfilter/ip6t_REJECT.c
-> @@ -102,7 +102,7 @@ static struct xt_target reject_tg6_reg __read_mostly = {
->  	.targetsize	= sizeof(struct ip6t_reject_info),
->  	.table		= "filter",
->  	.hooks		= (1 << NF_INET_LOCAL_IN) | (1 << NF_INET_FORWARD) |
-> -			  (1 << NF_INET_LOCAL_OUT),
-> +			  (1 << NF_INET_LOCAL_OUT) | (1 << NF_INET_PRE_ROUTING),
->  	.checkentry	= reject_tg6_check,
->  	.me		= THIS_MODULE
->  };
+diff --git a/src/rule.c b/src/rule.c
+index 480afc8ffc1b8..e82cf73e9bbe5 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -551,44 +551,53 @@ static int nftnl_rule_snprintf_default(char *buf, size_t size,
+ {
+ 	struct nftnl_expr *expr;
+ 	int ret, remain = size, offset = 0, i;
++	const char *sep = "";
+ 
+ 	if (r->flags & (1 << NFTNL_RULE_FAMILY)) {
+-		ret = snprintf(buf + offset, remain, "%s ",
++		ret = snprintf(buf + offset, remain, "%s%s", sep,
+ 			       nftnl_family2str(r->family));
+ 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
++		sep = " ";
+ 	}
+ 
+ 	if (r->flags & (1 << NFTNL_RULE_TABLE)) {
+-		ret = snprintf(buf + offset, remain, "%s ",
++		ret = snprintf(buf + offset, remain, "%s%s", sep,
+ 			       r->table);
+ 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
++		sep = " ";
+ 	}
+ 
+ 	if (r->flags & (1 << NFTNL_RULE_CHAIN)) {
+-		ret = snprintf(buf + offset, remain, "%s ",
++		ret = snprintf(buf + offset, remain, "%s%s", sep,
+ 			       r->chain);
+ 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
++		sep = " ";
+ 	}
+ 	if (r->flags & (1 << NFTNL_RULE_HANDLE)) {
+-		ret = snprintf(buf + offset, remain, "%llu ",
+-			       (unsigned long long)r->handle);
++		ret = snprintf(buf + offset, remain, "%s%" PRIu64, sep,
++			       r->handle);
+ 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
++		sep = " ";
+ 	}
+ 
+ 	if (r->flags & (1 << NFTNL_RULE_POSITION)) {
+-		ret = snprintf(buf + offset, remain, "%llu ",
+-			       (unsigned long long)r->position);
++		ret = snprintf(buf + offset, remain, "%s%" PRIu64, sep,
++			       r->position);
+ 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
++		sep = " ";
+ 	}
+ 
+ 	if (r->flags & (1 << NFTNL_RULE_ID)) {
+-		ret = snprintf(buf + offset, remain, "%u ", r->id);
++		ret = snprintf(buf + offset, remain, "%s%u", sep, r->id);
+ 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
++		sep = " ";
+ 	}
+ 
+ 	if (r->flags & (1 << NFTNL_RULE_POSITION_ID)) {
+-		ret = snprintf(buf + offset, remain, "%u ", r->position_id);
++		ret = snprintf(buf + offset, remain, "%s%u", sep,
++			       r->position_id);
+ 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
++		sep = " ";
+ 	}
+ 
+ 	ret = snprintf(buf + offset, remain, "\n");
+-- 
+2.30.1
 
