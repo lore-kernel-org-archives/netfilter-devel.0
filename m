@@ -2,87 +2,80 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB87FC433DB
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Mar 2021 15:35:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E055C433DB
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Mar 2021 16:15:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 67DF36521D
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Mar 2021 15:35:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 158A76523D
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Mar 2021 16:15:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229742AbhCHPeh (ORCPT
+        id S229775AbhCHQPA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Mar 2021 10:34:37 -0500
-Received: from correo.us.es ([193.147.175.20]:33036 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230440AbhCHPeK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Mar 2021 10:34:10 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6DF8BDA7B3
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Mar 2021 16:34:05 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1637E1D5D2D
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Mar 2021 16:34:05 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 822FEFEFDA; Mon,  8 Mar 2021 16:32:59 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 06F09EB0A2
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Mar 2021 16:32:57 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 08 Mar 2021 16:32:45 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 20EE642DC6E6
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Mar 2021 16:32:57 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH conntrack-tools] conntrackd: set default hashtable buckets and max entries if not specified
-Date:   Mon,  8 Mar 2021 16:32:54 +0100
-Message-Id: <20210308153254.15678-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+        Mon, 8 Mar 2021 11:15:00 -0500
+Received: from smtp-out-no.shaw.ca ([64.59.134.13]:34606 "EHLO
+        smtp-out-no.shaw.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229463AbhCHQOs (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 Mar 2021 11:14:48 -0500
+X-Greylist: delayed 487 seconds by postgrey-1.27 at vger.kernel.org; Mon, 08 Mar 2021 11:14:48 EST
+Received: from fanir.tuyoix.net ([68.150.218.192])
+        by shaw.ca with ESMTP
+        id JIP0lwjvgeHr9JIP1lqYm0; Mon, 08 Mar 2021 09:06:40 -0700
+X-Authority-Analysis: v=2.4 cv=Yq/K+6UX c=1 sm=1 tr=0 ts=60464b90
+ a=LfNn7serMq+1bQZBlMsSfQ==:117 a=LfNn7serMq+1bQZBlMsSfQ==:17
+ a=dESyimp9J3IA:10 a=M51BFTxLslgA:10 a=nlC_4_pT8q9DhB4Ho9EA:9
+ a=Ru1keEEOs_GpVbV6HLkA:9 a=QEXdDO2ut3YA:10
+Received: from CLUIJ (cluij.tuyoix.net [192.168.144.15])
+        (authenticated bits=0)
+        by fanir.tuyoix.net (8.15.2/8.15.2) with ESMTPSA id 128G6bj1010941
+        (version=TLSv1 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO);
+        Mon, 8 Mar 2021 09:06:38 -0700
+Date:   Mon, 8 Mar 2021 09:06:24 -0700 (Mountain Standard Time)
+From:   =?UTF-8?Q?Marc_Aur=C3=A8le_La_France?= <tsi@tuyoix.net>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+cc:     Laura Garcia Liebana <nevola@gmail.com>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: {PATCH nf] x_tables: Allow REJECT targets in PREROUTING chains
+In-Reply-To: <20210308103438.GA23953@salvia>
+Message-ID: <alpine.WNT.2.20.2103080902070.2772@CLUIJ>
+References: <alpine.LNX.2.20.2103071733480.15162@fanir.tuyoix.net> <20210308103438.GA23953@salvia>
+User-Agent: Alpine 2.20 (WNT 67 2015-01-07)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: multipart/mixed; BOUNDARY="3155773-9547-1615219584=:2772"
+X-CMAE-Envelope: MS4xfKHWr4wD5D1q+FewWHyzFId3c9RF4SzUeh8ir/1mg7sI/Of5qCAFPXpdHVjImEfBkbkqUI/bFRH4A1uanL3IAQN4r2nf1FTBLqqg746TCEtoxNgR+wRM
+ V1pqitkLqhjdMNG9C204JL8o2S3oxTRK/5GY5hWmLvgYhqAaZx/tFxQapgnMuUfm6YLqp2za8JnHXMbSD1RnJZ1PDXJuV8hTDBtoA+iD+XLFDUpYLe4yR8CA
+ wbhumKyIi/K6zxYvTVePXKtSyxhViHbZZ5bZM1RC6iM=
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Fall back to 65536 buckets and 262144 entries.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-It would be probably good to add code to autoadjust by reading
-/proc/sys/net/netfilter/nf_conntrack_buckets and
-/proc/sys/net/nf_conntrack_max.
+--3155773-9547-1615219584=:2772
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8BIT
 
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1491
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/read_config_yy.y | 6 ++++++
- 1 file changed, 6 insertions(+)
+On Mon, 8 Mar 2021, Pablo Neira Ayuso wrote:
+> On Sun, Mar 07, 2021 at 06:16:10PM -0700, Marc Aurèle La France wrote:
+>> Extend commit f53b9b0bdc59c0823679f2e3214e0d538f5951b9 "netfilter:
+>> introduce support for reject at prerouting stage", which appeared in
+>> 5.9, by making the corresponding changes to x_tables REJECT targets.
 
-diff --git a/src/read_config_yy.y b/src/read_config_yy.y
-index 31109c4de042..b215a729b716 100644
---- a/src/read_config_yy.y
-+++ b/src/read_config_yy.y
-@@ -1780,5 +1780,11 @@ init_config(char *filename)
- 					 NF_NETLINK_CONNTRACK_DESTROY;
- 	}
- 
-+	/* default hashtable buckets and maximum number of entries */
-+	if (!CONFIG(hashsize))
-+		CONFIG(hashsize) = 65536;
-+	if (!CONFIG(limit))
-+		CONFIG(limit) = 262144;
-+
- 	return 0;
- }
--- 
-2.20.1
+>> Please Reply-To-All.
 
+> This patch LGTM.
+
+... except that I have since realised it relies on another change I'm 
+carrying that allows REJECT targets in all tables, not just filter, 
+something I doubt you are open to.
+
+Withdrawn.
+
+Thanks for youur time.
+
+Marc.
+--3155773-9547-1615219584=:2772--
