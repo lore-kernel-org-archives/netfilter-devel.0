@@ -7,74 +7,82 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 784EEC433DB
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Mar 2021 14:46:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB87FC433DB
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Mar 2021 15:35:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 43D1F61581
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Mar 2021 14:46:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 67DF36521D
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Mar 2021 15:35:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229814AbhCHOqQ (ORCPT
+        id S229742AbhCHPeh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Mar 2021 09:46:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60594 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229690AbhCHOp4 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Mar 2021 09:45:56 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A376C06174A
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Mar 2021 06:45:56 -0800 (PST)
-Received: from localhost ([::1]:53592 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.94)
-        (envelope-from <phil@nwl.cc>)
-        id 1lJH8s-0003qr-KN; Mon, 08 Mar 2021 15:45:54 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH] tests/py: Fix for missing JSON equivalent in any/ct.t.json
-Date:   Mon,  8 Mar 2021 15:45:46 +0100
-Message-Id: <20210308144546.15311-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.30.1
+        Mon, 8 Mar 2021 10:34:37 -0500
+Received: from correo.us.es ([193.147.175.20]:33036 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230440AbhCHPeK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 Mar 2021 10:34:10 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 6DF8BDA7B3
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Mar 2021 16:34:05 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1637E1D5D2D
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Mar 2021 16:34:05 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 822FEFEFDA; Mon,  8 Mar 2021 16:32:59 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 06F09EB0A2
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Mar 2021 16:32:57 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 08 Mar 2021 16:32:45 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id 20EE642DC6E6
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Mar 2021 16:32:57 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH conntrack-tools] conntrackd: set default hashtable buckets and max entries if not specified
+Date:   Mon,  8 Mar 2021 16:32:54 +0100
+Message-Id: <20210308153254.15678-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-JSON equivalent for recently added test of the '!' shortcut was missing.
+Fall back to 65536 buckets and 262144 entries.
 
-Fixes: e6c32b2fa0b82 ("src: add negation match on singleton bitmask value")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+It would be probably good to add code to autoadjust by reading
+/proc/sys/net/netfilter/nf_conntrack_buckets and
+/proc/sys/net/nf_conntrack_max.
+
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1491
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- tests/py/any/ct.t.json | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ src/read_config_yy.y | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/tests/py/any/ct.t.json b/tests/py/any/ct.t.json
-index d429ae73ea5cc..6684963b6609c 100644
---- a/tests/py/any/ct.t.json
-+++ b/tests/py/any/ct.t.json
-@@ -387,6 +387,21 @@
-     }
- ]
+diff --git a/src/read_config_yy.y b/src/read_config_yy.y
+index 31109c4de042..b215a729b716 100644
+--- a/src/read_config_yy.y
++++ b/src/read_config_yy.y
+@@ -1780,5 +1780,11 @@ init_config(char *filename)
+ 					 NF_NETLINK_CONNTRACK_DESTROY;
+ 	}
  
-+# ct status ! dnat
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "ct": {
-+                    "key": "status"
-+                }
-+            },
-+            "op": "!",
-+            "right": "dnat"
-+        }
-+    }
-+]
++	/* default hashtable buckets and maximum number of entries */
++	if (!CONFIG(hashsize))
++		CONFIG(hashsize) = 65536;
++	if (!CONFIG(limit))
++		CONFIG(limit) = 262144;
 +
- # ct mark 0
- [
-     {
+ 	return 0;
+ }
 -- 
-2.30.1
+2.20.1
 
