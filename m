@@ -6,56 +6,60 @@ X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABEDAC433E6
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Mar 2021 11:02:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D121C433E0
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Mar 2021 11:34:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 75A5764FB8
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Mar 2021 11:02:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 32C3E65253
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Mar 2021 11:34:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229992AbhCILB7 (ORCPT
+        id S229764AbhCILeP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 9 Mar 2021 06:01:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41682 "EHLO
+        Tue, 9 Mar 2021 06:34:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48630 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229904AbhCILBp (ORCPT
+        with ESMTP id S229980AbhCILeD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 9 Mar 2021 06:01:45 -0500
+        Tue, 9 Mar 2021 06:34:03 -0500
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C8176C06174A;
-        Tue,  9 Mar 2021 03:01:44 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15E80C06174A;
+        Tue,  9 Mar 2021 03:34:03 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@strlen.de>)
-        id 1lJa77-0005Oy-1Q; Tue, 09 Mar 2021 12:01:21 +0100
-Date:   Tue, 9 Mar 2021 12:01:21 +0100
+        id 1lJacW-0005aP-OH; Tue, 09 Mar 2021 12:33:48 +0100
+Date:   Tue, 9 Mar 2021 12:33:48 +0100
 From:   Florian Westphal <fw@strlen.de>
-To:     Jia-Ju Bai <baijiaju1990@gmail.com>
+To:     Mark Tomlinson <mark.tomlinson@alliedtelesis.co.nz>
 Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
-        roopa@nvidia.com, nikolay@nvidia.com, davem@davemloft.net,
-        kuba@kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, bridge@lists.linux-foundation.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] net: bridge: fix error return code of
- do_update_counters()
-Message-ID: <20210309110121.GD10808@breakpoint.cc>
-References: <20210309022854.17904-1-baijiaju1990@gmail.com>
+        subashab@codeaurora.org, netfilter-devel@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 3/3] netfilter: x_tables: Use correct memory barriers.
+Message-ID: <20210309113348.GE10808@breakpoint.cc>
+References: <20210308012413.14383-1-mark.tomlinson@alliedtelesis.co.nz>
+ <20210308012413.14383-4-mark.tomlinson@alliedtelesis.co.nz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210309022854.17904-1-baijiaju1990@gmail.com>
+In-Reply-To: <20210308012413.14383-4-mark.tomlinson@alliedtelesis.co.nz>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Jia-Ju Bai <baijiaju1990@gmail.com> wrote:
-> When find_table_lock() returns NULL to t, no error return code of
-> do_update_counters() is assigned.
+Mark Tomlinson <mark.tomlinson@alliedtelesis.co.nz> wrote:
+> When a new table value was assigned, it was followed by a write memory
+> barrier. This ensured that all writes before this point would complete
+> before any writes after this point. However, to determine whether the
+> rules are unused, the sequence counter is read. To ensure that all
+> writes have been done before these reads, a full memory barrier is
+> needed, not just a write memory barrier. The same argument applies when
+> incrementing the counter, before the rules are read.
+> 
+> Changing to using smp_mb() instead of smp_wmb() fixes the kernel panic
+> reported in cc00bcaa5899 (which is still present), while still
+> maintaining the same speed of replacing tables.
+> 
+> The smb_mb() barriers potentially slow the packet path, however testing
+> has shown no measurable change in performance on a 4-core MIPS64
+> platform.
 
-Its -ENOENT.
-
->  	t = find_table_lock(net, name, &ret, &ebt_mutex);
-                                       ^^^^^
-
-ret is passed to find_table_lock, which passes it to
-find_inlist_lock_noload() which will set *ret = -ENOENT
-for NULL case.
+Okay, thanks for testing.  I have no further feedback.
