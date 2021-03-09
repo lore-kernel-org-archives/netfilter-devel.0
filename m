@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07E6EC433E6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7FEBC43331
 	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Mar 2021 15:46:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A08916525F
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Mar 2021 15:46:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 866C96523F
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Mar 2021 15:46:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231829AbhCIPqC (ORCPT
+        id S231837AbhCIPqC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Tue, 9 Mar 2021 10:46:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46994 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47016 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231846AbhCIPpi (ORCPT
+        with ESMTP id S231853AbhCIPpn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 9 Mar 2021 10:45:38 -0500
+        Tue, 9 Mar 2021 10:45:43 -0500
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C3ABEC06175F
-        for <netfilter-devel@vger.kernel.org>; Tue,  9 Mar 2021 07:45:37 -0800 (PST)
-Received: from localhost ([::1]:56650 helo=tatos)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A756C06174A
+        for <netfilter-devel@vger.kernel.org>; Tue,  9 Mar 2021 07:45:43 -0800 (PST)
+Received: from localhost ([::1]:56656 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.94)
         (envelope-from <phil@nwl.cc>)
-        id 1lJeYC-00016d-6I; Tue, 09 Mar 2021 16:45:36 +0100
+        id 1lJeYH-00016k-Kx; Tue, 09 Mar 2021 16:45:41 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [libnftnl PATCH 05/10] expr: Check output type once and for all
-Date:   Tue,  9 Mar 2021 16:45:11 +0100
-Message-Id: <20210309154516.4987-6-phil@nwl.cc>
+Subject: [libnftnl PATCH 08/10] Drop pointless local variable in snprintf callbacks
+Date:   Tue,  9 Mar 2021 16:45:14 +0100
+Message-Id: <20210309154516.4987-9-phil@nwl.cc>
 X-Mailer: git-send-email 2.30.1
 In-Reply-To: <20210309154516.4987-1-phil@nwl.cc>
 References: <20210309154516.4987-1-phil@nwl.cc>
@@ -43,1456 +43,909 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-There is but a single supported output type left, so check it in expr.c
-and drop all the single option switch statements in individual
-expressions.
-
-Since the parameter is now unused (and to ensure code correctness), drop
-'type' parameter from struct expr_ops' snprintf callback.
+A common idiom among snprintf callbacks was to copy the unsigned
+parameter 'size' (or 'len') into a signed variable for further use.
+Though since snprintf() itself casts it to unsigned and
+SNPRINTF_BUFFER_SIZE() does not allow it to become negative, this is not
+needed. Drop the local variable and rename the parameter accordingly.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- include/expr_ops.h      |  2 +-
- src/expr.c              |  4 ++--
- src/expr/bitwise.c      | 18 +++---------------
- src/expr/byteorder.c    | 20 +++-----------------
- src/expr/cmp.c          | 20 +++-----------------
- src/expr/connlimit.c    | 20 +++-----------------
- src/expr/counter.c      | 20 +++-----------------
- src/expr/ct.c           | 19 ++-----------------
- src/expr/dup.c          | 19 ++-----------------
- src/expr/dynset.c       | 19 ++-----------------
- src/expr/exthdr.c       | 20 +++-----------------
- src/expr/fib.c          | 19 ++-----------------
- src/expr/flow_offload.c | 18 ++----------------
- src/expr/fwd.c          | 19 ++-----------------
- src/expr/hash.c         | 19 ++-----------------
- src/expr/immediate.c    | 20 ++------------------
- src/expr/limit.c        | 20 +++-----------------
- src/expr/log.c          | 20 +++-----------------
- src/expr/lookup.c       | 19 ++-----------------
- src/expr/masq.c         | 18 ++----------------
- src/expr/match.c        | 13 ++-----------
- src/expr/meta.c         | 19 ++-----------------
- src/expr/nat.c          | 19 ++-----------------
- src/expr/numgen.c       | 19 ++-----------------
- src/expr/objref.c       | 20 +++-----------------
- src/expr/osf.c          | 20 +++-----------------
- src/expr/payload.c      | 32 ++++++++++++--------------------
- src/expr/queue.c        | 20 +++-----------------
- src/expr/quota.c        | 20 +++-----------------
- src/expr/range.c        | 18 ++----------------
- src/expr/redir.c        | 20 +++-----------------
- src/expr/reject.c       | 20 +++-----------------
- src/expr/rt.c           | 19 ++-----------------
- src/expr/socket.c       | 19 ++-----------------
- src/expr/synproxy.c     | 20 +++-----------------
- src/expr/target.c       | 13 ++-----------
- src/expr/tproxy.c       | 17 ++---------------
- src/expr/tunnel.c       | 19 ++-----------------
- src/expr/xfrm.c         | 19 ++-----------------
- 39 files changed, 102 insertions(+), 617 deletions(-)
+ src/chain.c             |  8 ++++----
+ src/expr.c              |  6 +++---
+ src/expr/bitwise.c      |  8 ++++----
+ src/expr/byteorder.c    |  4 ++--
+ src/expr/cmp.c          |  4 ++--
+ src/expr/ct.c           |  4 ++--
+ src/expr/data_reg.c     |  4 ++--
+ src/expr/dup.c          |  4 ++--
+ src/expr/dynset.c       |  4 ++--
+ src/expr/fib.c          |  4 ++--
+ src/expr/flow_offload.c |  4 ++--
+ src/expr/fwd.c          |  4 ++--
+ src/expr/hash.c         |  4 ++--
+ src/expr/immediate.c    |  4 ++--
+ src/expr/log.c          |  4 ++--
+ src/expr/lookup.c       |  4 ++--
+ src/expr/masq.c         |  4 ++--
+ src/expr/nat.c          |  4 ++--
+ src/expr/numgen.c       |  4 ++--
+ src/expr/osf.c          |  4 ++--
+ src/expr/queue.c        |  4 ++--
+ src/expr/range.c        |  4 ++--
+ src/expr/redir.c        |  4 ++--
+ src/expr/synproxy.c     |  4 ++--
+ src/expr/tproxy.c       |  4 ++--
+ src/expr/xfrm.c         |  4 ++--
+ src/flowtable.c         |  8 ++++----
+ src/gen.c               |  6 +++---
+ src/obj/ct_expect.c     |  5 ++---
+ src/obj/ct_timeout.c    |  5 ++---
+ src/obj/synproxy.c      |  4 ++--
+ src/object.c            | 10 +++++-----
+ src/rule.c              |  8 ++++----
+ src/ruleset.c           | 25 +++++++++++++------------
+ src/set.c               |  9 ++++-----
+ src/set_elem.c          |  9 ++++-----
+ src/table.c             |  4 ++--
+ 37 files changed, 102 insertions(+), 105 deletions(-)
 
-diff --git a/include/expr_ops.h b/include/expr_ops.h
-index 5237ac791588b..7a6aa23f9bd1d 100644
---- a/include/expr_ops.h
-+++ b/include/expr_ops.h
-@@ -18,7 +18,7 @@ struct expr_ops {
- 	const void *(*get)(const struct nftnl_expr *e, uint16_t type, uint32_t *data_len);
- 	int 	(*parse)(struct nftnl_expr *e, struct nlattr *attr);
- 	void	(*build)(struct nlmsghdr *nlh, const struct nftnl_expr *e);
--	int	(*snprintf)(char *buf, size_t len, uint32_t type, uint32_t flags, const struct nftnl_expr *e);
-+	int	(*snprintf)(char *buf, size_t len, uint32_t flags, const struct nftnl_expr *e);
- };
- 
- struct expr_ops *nftnl_expr_ops_lookup(const char *name);
-diff --git a/src/expr.c b/src/expr.c
-index 8e0bce2643b17..01c55cf2e880b 100644
---- a/src/expr.c
-+++ b/src/expr.c
-@@ -279,10 +279,10 @@ int nftnl_expr_snprintf(char *buf, size_t size, const struct nftnl_expr *expr,
- 	if (size)
- 		buf[0] = '\0';
- 
--	if (!expr->ops->snprintf)
-+	if (!expr->ops->snprintf || type != NFTNL_OUTPUT_DEFAULT)
- 		return 0;
- 
--	ret = expr->ops->snprintf(buf + offset, remain, type, flags, expr);
-+	ret = expr->ops->snprintf(buf + offset, remain, flags, expr);
- 	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
- 
- 	return offset;
-diff --git a/src/expr/bitwise.c b/src/expr/bitwise.c
-index ba379a84485e4..139f25f86b802 100644
---- a/src/expr/bitwise.c
-+++ b/src/expr/bitwise.c
-@@ -252,8 +252,9 @@ nftnl_expr_bitwise_snprintf_shift(char *buf, size_t size, const char *op,
- 	return offset;
- }
- 
--static int nftnl_expr_bitwise_snprintf_default(char *buf, size_t size,
--					       const struct nftnl_expr *e)
-+static int
-+nftnl_expr_bitwise_snprintf(char *buf, size_t size,
-+			    uint32_t flags, const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_bitwise *bitwise = nftnl_expr_data(e);
- 	int err = -1;
-@@ -273,19 +274,6 @@ static int nftnl_expr_bitwise_snprintf_default(char *buf, size_t size,
- 	return err;
- }
- 
--static int
--nftnl_expr_bitwise_snprintf(char *buf, size_t size, uint32_t type,
--			    uint32_t flags, const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_bitwise_snprintf_default(buf, size, e);
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_bitwise = {
- 	.name		= "bitwise",
- 	.alloc_len	= sizeof(struct nftnl_expr_bitwise),
-diff --git a/src/expr/byteorder.c b/src/expr/byteorder.c
-index efdfa2b5eca4c..9718b8fe2506c 100644
---- a/src/expr/byteorder.c
-+++ b/src/expr/byteorder.c
-@@ -197,8 +197,9 @@ static inline int nftnl_str2ntoh(const char *op)
- 	}
- }
- 
--static int nftnl_expr_byteorder_snprintf_default(char *buf, size_t size,
--						 const struct nftnl_expr *e)
-+static int
-+nftnl_expr_byteorder_snprintf(char *buf, size_t size,
-+			      uint32_t flags, const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_byteorder *byteorder = nftnl_expr_data(e);
- 	int remain = size, offset = 0, ret;
-@@ -211,21 +212,6 @@ static int nftnl_expr_byteorder_snprintf_default(char *buf, size_t size,
- 	return offset;
- }
- 
--static int
--nftnl_expr_byteorder_snprintf(char *buf, size_t size, uint32_t type,
--			      uint32_t flags, const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_byteorder_snprintf_default(buf, size, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_byteorder = {
- 	.name		= "byteorder",
- 	.alloc_len	= sizeof(struct nftnl_expr_byteorder),
-diff --git a/src/expr/cmp.c b/src/expr/cmp.c
-index 86d7842d0813e..6b1c0fa3ac97f 100644
---- a/src/expr/cmp.c
-+++ b/src/expr/cmp.c
-@@ -176,8 +176,9 @@ static inline int nftnl_str2cmp(const char *op)
- 	}
- }
- 
--static int nftnl_expr_cmp_snprintf_default(char *buf, size_t size,
--					   const struct nftnl_expr *e)
-+static int
-+nftnl_expr_cmp_snprintf(char *buf, size_t size,
-+			uint32_t flags, const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_cmp *cmp = nftnl_expr_data(e);
- 	int remain = size, offset = 0, ret;
-@@ -193,21 +194,6 @@ static int nftnl_expr_cmp_snprintf_default(char *buf, size_t size,
- 	return offset;
- }
- 
--static int
--nftnl_expr_cmp_snprintf(char *buf, size_t size, uint32_t type,
--			uint32_t flags, const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_cmp_snprintf_default(buf, size, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_cmp = {
- 	.name		= "cmp",
- 	.alloc_len	= sizeof(struct nftnl_expr_cmp),
-diff --git a/src/expr/connlimit.c b/src/expr/connlimit.c
-index 53af93bd8db94..3b37587e7e4ec 100644
---- a/src/expr/connlimit.c
-+++ b/src/expr/connlimit.c
-@@ -117,8 +117,9 @@ nftnl_expr_connlimit_parse(struct nftnl_expr *e, struct nlattr *attr)
- 	return 0;
- }
- 
--static int nftnl_expr_connlimit_snprintf_default(char *buf, size_t len,
--					       const struct nftnl_expr *e)
-+static int nftnl_expr_connlimit_snprintf(char *buf, size_t len,
-+				       uint32_t flags,
-+				       const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_connlimit *connlimit = nftnl_expr_data(e);
- 
-@@ -126,21 +127,6 @@ static int nftnl_expr_connlimit_snprintf_default(char *buf, size_t len,
- 			connlimit->count, connlimit->flags);
- }
- 
--static int nftnl_expr_connlimit_snprintf(char *buf, size_t len, uint32_t type,
--				       uint32_t flags,
--				       const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_connlimit_snprintf_default(buf, len, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_connlimit = {
- 	.name		= "connlimit",
- 	.alloc_len	= sizeof(struct nftnl_expr_connlimit),
-diff --git a/src/expr/counter.c b/src/expr/counter.c
-index 89a602e0dcb6e..1676d70a46bda 100644
---- a/src/expr/counter.c
-+++ b/src/expr/counter.c
-@@ -115,8 +115,9 @@ nftnl_expr_counter_parse(struct nftnl_expr *e, struct nlattr *attr)
- 	return 0;
- }
- 
--static int nftnl_expr_counter_snprintf_default(char *buf, size_t len,
--					       const struct nftnl_expr *e)
-+static int nftnl_expr_counter_snprintf(char *buf, size_t len,
-+				       uint32_t flags,
-+				       const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_counter *ctr = nftnl_expr_data(e);
- 
-@@ -124,21 +125,6 @@ static int nftnl_expr_counter_snprintf_default(char *buf, size_t len,
- 			ctr->pkts, ctr->bytes);
- }
- 
--static int nftnl_expr_counter_snprintf(char *buf, size_t len, uint32_t type,
--				       uint32_t flags,
--				       const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_counter_snprintf_default(buf, len, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_counter = {
- 	.name		= "counter",
- 	.alloc_len	= sizeof(struct nftnl_expr_counter),
-diff --git a/src/expr/ct.c b/src/expr/ct.c
-index 1a21c953c9be2..f4a7dc6932cb0 100644
---- a/src/expr/ct.c
-+++ b/src/expr/ct.c
-@@ -223,8 +223,8 @@ static inline int str2ctdir(const char *str, uint8_t *ctdir)
- }
- 
- static int
--nftnl_expr_ct_snprintf_default(char *buf, size_t size,
--			       const struct nftnl_expr *e)
-+nftnl_expr_ct_snprintf(char *buf, size_t size,
-+		       uint32_t flags, const struct nftnl_expr *e)
- {
- 	int ret, remain = size, offset = 0;
- 	struct nftnl_expr_ct *ct = nftnl_expr_data(e);
-@@ -250,21 +250,6 @@ nftnl_expr_ct_snprintf_default(char *buf, size_t size,
- 	return offset;
- }
- 
--static int
--nftnl_expr_ct_snprintf(char *buf, size_t len, uint32_t type,
--		       uint32_t flags, const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_ct_snprintf_default(buf, len, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_ct = {
- 	.name		= "ct",
- 	.alloc_len	= sizeof(struct nftnl_expr_ct),
-diff --git a/src/expr/dup.c b/src/expr/dup.c
-index 7a3ee96361644..3eb560a21077f 100644
---- a/src/expr/dup.c
-+++ b/src/expr/dup.c
-@@ -111,9 +111,8 @@ static int nftnl_expr_dup_parse(struct nftnl_expr *e, struct nlattr *attr)
- 	return ret;
- }
- 
--static int nftnl_expr_dup_snprintf_default(char *buf, size_t len,
--					   const struct nftnl_expr *e,
--					   uint32_t flags)
-+static int nftnl_expr_dup_snprintf(char *buf, size_t len,
-+				   uint32_t flags, const struct nftnl_expr *e)
- {
- 	int remain = len, offset = 0, ret;
- 	struct nftnl_expr_dup *dup = nftnl_expr_data(e);
-@@ -131,20 +130,6 @@ static int nftnl_expr_dup_snprintf_default(char *buf, size_t len,
- 	return offset;
- }
- 
--static int nftnl_expr_dup_snprintf(char *buf, size_t len, uint32_t type,
--				   uint32_t flags, const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_dup_snprintf_default(buf, len, e, flags);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_dup = {
- 	.name		= "dup",
- 	.alloc_len	= sizeof(struct nftnl_expr_dup),
-diff --git a/src/expr/dynset.c b/src/expr/dynset.c
-index a9b11f27e819b..2ddf69a02b9de 100644
---- a/src/expr/dynset.c
-+++ b/src/expr/dynset.c
-@@ -308,8 +308,8 @@ static const char *op2str(enum nft_dynset_ops op)
- }
- 
- static int
--nftnl_expr_dynset_snprintf_default(char *buf, size_t size,
--				   const struct nftnl_expr *e)
-+nftnl_expr_dynset_snprintf(char *buf, size_t size,
-+			   uint32_t flags, const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_dynset *dynset = nftnl_expr_data(e);
- 	struct nftnl_expr *expr;
-@@ -346,21 +346,6 @@ nftnl_expr_dynset_snprintf_default(char *buf, size_t size,
- 	return offset;
- }
- 
--static int
--nftnl_expr_dynset_snprintf(char *buf, size_t size, uint32_t type,
--			   uint32_t flags, const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_dynset_snprintf_default(buf, size, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- static void nftnl_expr_dynset_init(const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_dynset *dynset = nftnl_expr_data(e);
-diff --git a/src/expr/exthdr.c b/src/expr/exthdr.c
-index e5f714b07366f..1b813b1e47c4d 100644
---- a/src/expr/exthdr.c
-+++ b/src/expr/exthdr.c
-@@ -235,8 +235,9 @@ static inline int str2exthdr_type(const char *str)
+diff --git a/src/chain.c b/src/chain.c
+index aac9da6319556..7906bf44ff72d 100644
+--- a/src/chain.c
++++ b/src/chain.c
+@@ -826,10 +826,10 @@ static inline int nftnl_str2hooknum(int family, const char *hook)
  	return -1;
  }
  
--static int nftnl_expr_exthdr_snprintf_default(char *buf, size_t len,
--					      const struct nftnl_expr *e)
-+static int
-+nftnl_expr_exthdr_snprintf(char *buf, size_t len,
-+			   uint32_t flags, const struct nftnl_expr *e)
+-static int nftnl_chain_snprintf_default(char *buf, size_t size,
++static int nftnl_chain_snprintf_default(char *buf, size_t remain,
+ 					const struct nftnl_chain *c)
  {
- 	struct nftnl_expr_exthdr *exthdr = nftnl_expr_data(e);
+-	int ret, remain = size, offset = 0, i;
++	int ret, offset = 0, i;
  
-@@ -253,21 +254,6 @@ static int nftnl_expr_exthdr_snprintf_default(char *buf, size_t len,
- 
- }
- 
--static int
--nftnl_expr_exthdr_snprintf(char *buf, size_t len, uint32_t type,
--			   uint32_t flags, const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_exthdr_snprintf_default(buf, len, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_exthdr = {
- 	.name		= "exthdr",
- 	.alloc_len	= sizeof(struct nftnl_expr_exthdr),
-diff --git a/src/expr/fib.c b/src/expr/fib.c
-index 9475af4047381..b0cbb3b752153 100644
---- a/src/expr/fib.c
-+++ b/src/expr/fib.c
-@@ -143,8 +143,8 @@ static const char *fib_type_str(enum nft_fib_result r)
- }
- 
- static int
--nftnl_expr_fib_snprintf_default(char *buf, size_t size,
--				const struct nftnl_expr *e)
-+nftnl_expr_fib_snprintf(char *buf, size_t size,
-+			 uint32_t printflags, const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_fib *fib = nftnl_expr_data(e);
- 	int remain = size, offset = 0, ret, i;
-@@ -190,21 +190,6 @@ nftnl_expr_fib_snprintf_default(char *buf, size_t size,
+ 	ret = snprintf(buf, remain, "%s %s %s use %u",
+ 		       nftnl_family2str(c->family), c->table, c->name, c->use);
+@@ -884,11 +884,11 @@ static int nftnl_chain_snprintf_default(char *buf, size_t size,
  	return offset;
  }
  
--static int
--nftnl_expr_fib_snprintf(char *buf, size_t len, uint32_t type,
--			 uint32_t flags, const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_fib_snprintf_default(buf, len, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_fib = {
- 	.name		= "fib",
- 	.alloc_len	= sizeof(struct nftnl_expr_fib),
-diff --git a/src/expr/flow_offload.c b/src/expr/flow_offload.c
-index 6ccec9a133963..188269113ee8a 100644
---- a/src/expr/flow_offload.c
-+++ b/src/expr/flow_offload.c
-@@ -92,8 +92,8 @@ static int nftnl_expr_flow_parse(struct nftnl_expr *e, struct nlattr *attr)
+-static int nftnl_chain_cmd_snprintf(char *buf, size_t size,
++static int nftnl_chain_cmd_snprintf(char *buf, size_t remain,
+ 				    const struct nftnl_chain *c, uint32_t cmd,
+ 				    uint32_t type, uint32_t flags)
+ {
+-	int ret, remain = size, offset = 0;
++	int ret, offset = 0;
+ 
+ 	switch (type) {
+ 	case NFTNL_OUTPUT_DEFAULT:
+diff --git a/src/expr.c b/src/expr.c
+index 01c55cf2e880b..277bbdeeb5d02 100644
+--- a/src/expr.c
++++ b/src/expr.c
+@@ -270,13 +270,13 @@ err1:
+ }
+ 
+ EXPORT_SYMBOL(nftnl_expr_snprintf);
+-int nftnl_expr_snprintf(char *buf, size_t size, const struct nftnl_expr *expr,
++int nftnl_expr_snprintf(char *buf, size_t remain, const struct nftnl_expr *expr,
+ 			uint32_t type, uint32_t flags)
+ {
+ 	int ret;
+-	unsigned int offset = 0, remain = size;
++	unsigned int offset = 0;
+ 
+-	if (size)
++	if (remain)
+ 		buf[0] = '\0';
+ 
+ 	if (!expr->ops->snprintf || type != NFTNL_OUTPUT_DEFAULT)
+diff --git a/src/expr/bitwise.c b/src/expr/bitwise.c
+index 1d46a97757dfd..d0c7827eacec9 100644
+--- a/src/expr/bitwise.c
++++ b/src/expr/bitwise.c
+@@ -210,10 +210,10 @@ nftnl_expr_bitwise_parse(struct nftnl_expr *e, struct nlattr *attr)
+ }
+ 
+ static int
+-nftnl_expr_bitwise_snprintf_bool(char *buf, size_t size,
++nftnl_expr_bitwise_snprintf_bool(char *buf, size_t remain,
+ 				 const struct nftnl_expr_bitwise *bitwise)
+ {
+-	int remain = size, offset = 0, ret;
++	int offset = 0, ret;
+ 
+ 	ret = snprintf(buf, remain, "reg %u = ( reg %u & ",
+ 		       bitwise->dreg, bitwise->sreg);
+@@ -234,9 +234,9 @@ nftnl_expr_bitwise_snprintf_bool(char *buf, size_t size,
+ }
+ 
+ static int
+-nftnl_expr_bitwise_snprintf_shift(char *buf, size_t size, const char *op,
++nftnl_expr_bitwise_snprintf_shift(char *buf, size_t remain, const char *op,
+ 				  const struct nftnl_expr_bitwise *bitwise)
+-{	int remain = size, offset = 0, ret;
++{	int offset = 0, ret;
+ 
+ 	ret = snprintf(buf, remain, "reg %u = ( reg %u %s ",
+ 		       bitwise->dreg, bitwise->sreg, op);
+diff --git a/src/expr/byteorder.c b/src/expr/byteorder.c
+index 9718b8fe2506c..d299745fc57b4 100644
+--- a/src/expr/byteorder.c
++++ b/src/expr/byteorder.c
+@@ -198,11 +198,11 @@ static inline int nftnl_str2ntoh(const char *op)
+ }
+ 
+ static int
+-nftnl_expr_byteorder_snprintf(char *buf, size_t size,
++nftnl_expr_byteorder_snprintf(char *buf, size_t remain,
+ 			      uint32_t flags, const struct nftnl_expr *e)
+ {
+ 	struct nftnl_expr_byteorder *byteorder = nftnl_expr_data(e);
+-	int remain = size, offset = 0, ret;
++	int offset = 0, ret;
+ 
+ 	ret = snprintf(buf, remain, "reg %u = %s(reg %u, %u, %u) ",
+ 		       byteorder->dreg, bo2str(byteorder->op),
+diff --git a/src/expr/cmp.c b/src/expr/cmp.c
+index 04b9f25806725..6030693f15d86 100644
+--- a/src/expr/cmp.c
++++ b/src/expr/cmp.c
+@@ -177,11 +177,11 @@ static inline int nftnl_str2cmp(const char *op)
+ }
+ 
+ static int
+-nftnl_expr_cmp_snprintf(char *buf, size_t size,
++nftnl_expr_cmp_snprintf(char *buf, size_t remain,
+ 			uint32_t flags, const struct nftnl_expr *e)
+ {
+ 	struct nftnl_expr_cmp *cmp = nftnl_expr_data(e);
+-	int remain = size, offset = 0, ret;
++	int offset = 0, ret;
+ 
+ 	ret = snprintf(buf, remain, "%s reg %u ",
+ 		       cmp2str(cmp->op), cmp->sreg);
+diff --git a/src/expr/ct.c b/src/expr/ct.c
+index f4a7dc6932cb0..d5dfc81cfe0d1 100644
+--- a/src/expr/ct.c
++++ b/src/expr/ct.c
+@@ -223,11 +223,11 @@ static inline int str2ctdir(const char *str, uint8_t *ctdir)
+ }
+ 
+ static int
+-nftnl_expr_ct_snprintf(char *buf, size_t size,
++nftnl_expr_ct_snprintf(char *buf, size_t remain,
+ 		       uint32_t flags, const struct nftnl_expr *e)
+ {
+-	int ret, remain = size, offset = 0;
+ 	struct nftnl_expr_ct *ct = nftnl_expr_data(e);
++	int ret, offset = 0;
+ 
+ 	if (e->flags & (1 << NFTNL_EXPR_CT_SREG)) {
+ 		ret = snprintf(buf, remain, "set %s with reg %u ",
+diff --git a/src/expr/data_reg.c b/src/expr/data_reg.c
+index bafdc6f3dadd3..2633a775c90cc 100644
+--- a/src/expr/data_reg.c
++++ b/src/expr/data_reg.c
+@@ -25,12 +25,12 @@
+ #include "internal.h"
+ 
+ static int
+-nftnl_data_reg_value_snprintf_default(char *buf, size_t size,
++nftnl_data_reg_value_snprintf_default(char *buf, size_t remain,
+ 				      const union nftnl_data_reg *reg,
+ 				      uint32_t flags)
+ {
+ 	const char *pfx = flags & DATA_F_NOPFX ? "" : "0x";
+-	int remain = size, offset = 0, ret, i;
++	int offset = 0, ret, i;
+ 
+ 
+ 
+diff --git a/src/expr/dup.c b/src/expr/dup.c
+index 3eb560a21077f..f041b551a7e78 100644
+--- a/src/expr/dup.c
++++ b/src/expr/dup.c
+@@ -111,11 +111,11 @@ static int nftnl_expr_dup_parse(struct nftnl_expr *e, struct nlattr *attr)
  	return ret;
  }
  
--static int nftnl_expr_flow_snprintf_default(char *buf, size_t size,
--					    const struct nftnl_expr *e)
-+static int nftnl_expr_flow_snprintf(char *buf, size_t size,
-+				    uint32_t flags, const struct nftnl_expr *e)
+-static int nftnl_expr_dup_snprintf(char *buf, size_t len,
++static int nftnl_expr_dup_snprintf(char *buf, size_t remain,
+ 				   uint32_t flags, const struct nftnl_expr *e)
  {
- 	int remain = size, offset = 0, ret;
- 	struct nftnl_expr_flow *l = nftnl_expr_data(e);
-@@ -104,20 +104,6 @@ static int nftnl_expr_flow_snprintf_default(char *buf, size_t size,
- 	return offset;
- }
+-	int remain = len, offset = 0, ret;
+ 	struct nftnl_expr_dup *dup = nftnl_expr_data(e);
++	int offset = 0, ret;
  
--static int nftnl_expr_flow_snprintf(char *buf, size_t size, uint32_t type,
--				    uint32_t flags, const struct nftnl_expr *e)
--{
--	switch(type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_flow_snprintf_default(buf, size, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- static void nftnl_expr_flow_free(const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_flow *flow = nftnl_expr_data(e);
-diff --git a/src/expr/fwd.c b/src/expr/fwd.c
-index 2ec63c16dfe6e..0322be8f4aa4b 100644
---- a/src/expr/fwd.c
-+++ b/src/expr/fwd.c
-@@ -125,9 +125,8 @@ static int nftnl_expr_fwd_parse(struct nftnl_expr *e, struct nlattr *attr)
- 	return ret;
- }
- 
--static int nftnl_expr_fwd_snprintf_default(char *buf, size_t len,
--					   const struct nftnl_expr *e,
--					   uint32_t flags)
-+static int nftnl_expr_fwd_snprintf(char *buf, size_t len,
-+				   uint32_t flags, const struct nftnl_expr *e)
- {
- 	int remain = len, offset = 0, ret;
- 	struct nftnl_expr_fwd *fwd = nftnl_expr_data(e);
-@@ -151,20 +150,6 @@ static int nftnl_expr_fwd_snprintf_default(char *buf, size_t len,
- 	return offset;
- }
- 
--static int nftnl_expr_fwd_snprintf(char *buf, size_t len, uint32_t type,
--				   uint32_t flags, const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_fwd_snprintf_default(buf, len, e, flags);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_fwd = {
- 	.name		= "fwd",
- 	.alloc_len	= sizeof(struct nftnl_expr_fwd),
-diff --git a/src/expr/hash.c b/src/expr/hash.c
-index 2c801d28661f7..86b5ca6f0dfd0 100644
---- a/src/expr/hash.c
-+++ b/src/expr/hash.c
-@@ -184,8 +184,8 @@ nftnl_expr_hash_parse(struct nftnl_expr *e, struct nlattr *attr)
+ 	if (e->flags & (1 << NFTNL_EXPR_DUP_SREG_ADDR)) {
+ 		ret = snprintf(buf + offset, remain, "sreg_addr %u ", dup->sreg_addr);
+diff --git a/src/expr/dynset.c b/src/expr/dynset.c
+index 2ddf69a02b9de..85d64bb58d5af 100644
+--- a/src/expr/dynset.c
++++ b/src/expr/dynset.c
+@@ -308,12 +308,12 @@ static const char *op2str(enum nft_dynset_ops op)
  }
  
  static int
--nftnl_expr_hash_snprintf_default(char *buf, size_t size,
--				 const struct nftnl_expr *e)
-+nftnl_expr_hash_snprintf(char *buf, size_t size,
-+			 uint32_t flags, const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_hash *hash = nftnl_expr_data(e);
- 	int remain = size, offset = 0, ret;
-@@ -218,21 +218,6 @@ nftnl_expr_hash_snprintf_default(char *buf, size_t size,
- 	return offset;
- }
- 
--static int
--nftnl_expr_hash_snprintf(char *buf, size_t len, uint32_t type,
--			 uint32_t flags, const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_hash_snprintf_default(buf, len, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_hash = {
- 	.name		= "hash",
- 	.alloc_len	= sizeof(struct nftnl_expr_hash),
-diff --git a/src/expr/immediate.c b/src/expr/immediate.c
-index 7f34772bd0013..08ddd22a54c5f 100644
---- a/src/expr/immediate.c
-+++ b/src/expr/immediate.c
-@@ -184,9 +184,8 @@ nftnl_expr_immediate_parse(struct nftnl_expr *e, struct nlattr *attr)
- }
- 
- static int
--nftnl_expr_immediate_snprintf_default(char *buf, size_t len,
--				      const struct nftnl_expr *e,
--				      uint32_t flags)
-+nftnl_expr_immediate_snprintf(char *buf, size_t len,
-+			      uint32_t flags, const struct nftnl_expr *e)
- {
- 	int remain = len, offset = 0, ret;
- 	struct nftnl_expr_immediate *imm = nftnl_expr_data(e);
-@@ -213,21 +212,6 @@ nftnl_expr_immediate_snprintf_default(char *buf, size_t len,
- 	return offset;
- }
- 
--static int
--nftnl_expr_immediate_snprintf(char *buf, size_t len, uint32_t type,
--			      uint32_t flags, const struct nftnl_expr *e)
--{
--	switch(type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_immediate_snprintf_default(buf, len, e, flags);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- static void nftnl_expr_immediate_free(const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_immediate *imm = nftnl_expr_data(e);
-diff --git a/src/expr/limit.c b/src/expr/limit.c
-index 5872e276dbb80..3dfd54a8dd112 100644
---- a/src/expr/limit.c
-+++ b/src/expr/limit.c
-@@ -183,8 +183,9 @@ static const char *limit_to_type(enum nft_limit_type type)
- 	}
- }
- 
--static int nftnl_expr_limit_snprintf_default(char *buf, size_t len,
--					     const struct nftnl_expr *e)
-+static int
-+nftnl_expr_limit_snprintf(char *buf, size_t len,
-+			  uint32_t flags, const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_limit *limit = nftnl_expr_data(e);
- 
-@@ -193,21 +194,6 @@ static int nftnl_expr_limit_snprintf_default(char *buf, size_t len,
- 			limit_to_type(limit->type), limit->flags);
- }
- 
--static int
--nftnl_expr_limit_snprintf(char *buf, size_t len, uint32_t type,
--			  uint32_t flags, const struct nftnl_expr *e)
--{
--	switch(type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_limit_snprintf_default(buf, len, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_limit = {
- 	.name		= "limit",
- 	.alloc_len	= sizeof(struct nftnl_expr_limit),
-diff --git a/src/expr/log.c b/src/expr/log.c
-index bbe43d2dc6bcc..d56fad56d27cd 100644
---- a/src/expr/log.c
-+++ b/src/expr/log.c
-@@ -186,8 +186,9 @@ nftnl_expr_log_parse(struct nftnl_expr *e, struct nlattr *attr)
- 	return 0;
- }
- 
--static int nftnl_expr_log_snprintf_default(char *buf, size_t size,
--					   const struct nftnl_expr *e)
-+static int
-+nftnl_expr_log_snprintf(char *buf, size_t size,
-+			uint32_t flags, const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_log *log = nftnl_expr_data(e);
- 	int ret, offset = 0, remain = size;
-@@ -236,21 +237,6 @@ static int nftnl_expr_log_snprintf_default(char *buf, size_t size,
- 	return offset;
- }
- 
--static int
--nftnl_expr_log_snprintf(char *buf, size_t len, uint32_t type,
--			uint32_t flags, const struct nftnl_expr *e)
--{
--	switch(type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_log_snprintf_default(buf, len, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- static void nftnl_expr_log_free(const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_log *log = nftnl_expr_data(e);
-diff --git a/src/expr/lookup.c b/src/expr/lookup.c
-index a495ac0fdcfc8..ec7f6fb99e066 100644
---- a/src/expr/lookup.c
-+++ b/src/expr/lookup.c
-@@ -168,8 +168,8 @@ nftnl_expr_lookup_parse(struct nftnl_expr *e, struct nlattr *attr)
- }
- 
- static int
--nftnl_expr_lookup_snprintf_default(char *buf, size_t size,
--				   const struct nftnl_expr *e)
-+nftnl_expr_lookup_snprintf(char *buf, size_t size,
-+			   uint32_t flags, const struct nftnl_expr *e)
- {
- 	int remain = size, offset = 0, ret;
- 	struct nftnl_expr_lookup *l = nftnl_expr_data(e);
-@@ -190,21 +190,6 @@ nftnl_expr_lookup_snprintf_default(char *buf, size_t size,
- 	return offset;
- }
- 
--static int
--nftnl_expr_lookup_snprintf(char *buf, size_t size, uint32_t type,
--			   uint32_t flags, const struct nftnl_expr *e)
--{
--	switch(type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_lookup_snprintf_default(buf, size, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- static void nftnl_expr_lookup_free(const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_lookup *lookup = nftnl_expr_data(e);
-diff --git a/src/expr/masq.c b/src/expr/masq.c
-index ea66fecdf2a72..1f6dbdb9cc33d 100644
---- a/src/expr/masq.c
-+++ b/src/expr/masq.c
-@@ -131,8 +131,8 @@ nftnl_expr_masq_parse(struct nftnl_expr *e, struct nlattr *attr)
- 	return 0;
- }
- 
--static int nftnl_expr_masq_snprintf_default(char *buf, size_t len,
--					    const struct nftnl_expr *e)
-+static int nftnl_expr_masq_snprintf(char *buf, size_t len,
-+				    uint32_t flags, const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_masq *masq = nftnl_expr_data(e);
- 	int remain = len, offset = 0, ret = 0;
-@@ -155,20 +155,6 @@ static int nftnl_expr_masq_snprintf_default(char *buf, size_t len,
- 	return offset;
- }
- 
--static int nftnl_expr_masq_snprintf(char *buf, size_t len, uint32_t type,
--				    uint32_t flags, const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_masq_snprintf_default(buf, len, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_masq = {
- 	.name		= "masq",
- 	.alloc_len	= sizeof(struct nftnl_expr_masq),
-diff --git a/src/expr/match.c b/src/expr/match.c
-index 4fa74b2da893c..533fdf5c7ac3b 100644
---- a/src/expr/match.c
-+++ b/src/expr/match.c
-@@ -165,21 +165,12 @@ static int nftnl_expr_match_parse(struct nftnl_expr *e, struct nlattr *attr)
- }
- 
- static int
--nftnl_expr_match_snprintf(char *buf, size_t len, uint32_t type,
-+nftnl_expr_match_snprintf(char *buf, size_t len,
- 			  uint32_t flags, const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_match *match = nftnl_expr_data(e);
- 
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return snprintf(buf, len, "name %s rev %u ",
--				match->name, match->rev);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
-+	return snprintf(buf, len, "name %s rev %u ", match->name, match->rev);
- }
- 
- static void nftnl_expr_match_free(const struct nftnl_expr *e)
-diff --git a/src/expr/meta.c b/src/expr/meta.c
-index 6ed8ee5645c4b..34fbb9bb63c03 100644
---- a/src/expr/meta.c
-+++ b/src/expr/meta.c
-@@ -192,8 +192,8 @@ static inline int str2meta_key(const char *str)
- }
- 
- static int
--nftnl_expr_meta_snprintf_default(char *buf, size_t len,
--				 const struct nftnl_expr *e)
-+nftnl_expr_meta_snprintf(char *buf, size_t len,
-+			 uint32_t flags, const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_meta *meta = nftnl_expr_data(e);
- 
-@@ -208,21 +208,6 @@ nftnl_expr_meta_snprintf_default(char *buf, size_t len,
- 	return 0;
- }
- 
--static int
--nftnl_expr_meta_snprintf(char *buf, size_t len, uint32_t type,
--			 uint32_t flags, const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_meta_snprintf_default(buf, len, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_meta = {
- 	.name		= "meta",
- 	.alloc_len	= sizeof(struct nftnl_expr_meta),
-diff --git a/src/expr/nat.c b/src/expr/nat.c
-index 91a1ae6c99a43..25d4e9206da79 100644
---- a/src/expr/nat.c
-+++ b/src/expr/nat.c
-@@ -221,8 +221,8 @@ static inline int nftnl_str2nat(const char *nat)
- }
- 
- static int
--nftnl_expr_nat_snprintf_default(char *buf, size_t size,
--				const struct nftnl_expr *e)
-+nftnl_expr_nat_snprintf(char *buf, size_t size,
-+			uint32_t flags, const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_nat *nat = nftnl_expr_data(e);
- 	int remain = size, offset = 0, ret = 0;
-@@ -266,21 +266,6 @@ nftnl_expr_nat_snprintf_default(char *buf, size_t size,
- 	return offset;
- }
- 
--static int
--nftnl_expr_nat_snprintf(char *buf, size_t size, uint32_t type,
--			uint32_t flags, const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_nat_snprintf_default(buf, size, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_nat = {
- 	.name		= "nat",
- 	.alloc_len	= sizeof(struct nftnl_expr_nat),
-diff --git a/src/expr/numgen.c b/src/expr/numgen.c
-index 4e0d54158646c..602e4c0f77426 100644
---- a/src/expr/numgen.c
-+++ b/src/expr/numgen.c
-@@ -143,8 +143,8 @@ nftnl_expr_ng_parse(struct nftnl_expr *e, struct nlattr *attr)
- }
- 
- static int
--nftnl_expr_ng_snprintf_default(char *buf, size_t size,
--			       const struct nftnl_expr *e)
-+nftnl_expr_ng_snprintf(char *buf, size_t size,
-+		       uint32_t flags, const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_ng *ng = nftnl_expr_data(e);
- 	int remain = size, offset = 0, ret;
-@@ -172,21 +172,6 @@ nftnl_expr_ng_snprintf_default(char *buf, size_t size,
- 	return offset;
- }
- 
--static int
--nftnl_expr_ng_snprintf(char *buf, size_t len, uint32_t type,
--		       uint32_t flags, const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_ng_snprintf_default(buf, len, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_ng = {
- 	.name		= "numgen",
- 	.alloc_len	= sizeof(struct nftnl_expr_ng),
-diff --git a/src/expr/objref.c b/src/expr/objref.c
-index 2eb5c47f8e562..a4b6470bc25e2 100644
---- a/src/expr/objref.c
-+++ b/src/expr/objref.c
-@@ -174,8 +174,9 @@ static int nftnl_expr_objref_parse(struct nftnl_expr *e, struct nlattr *attr)
- 	return 0;
- }
- 
--static int nftnl_expr_objref_snprintf_default(char *buf, size_t len,
--					      const struct nftnl_expr *e)
-+static int nftnl_expr_objref_snprintf(char *buf, size_t len,
-+				      uint32_t flags,
-+				      const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_objref *objref = nftnl_expr_data(e);
- 
-@@ -195,21 +196,6 @@ static void nftnl_expr_objref_free(const struct nftnl_expr *e)
- 	xfree(objref->set.name);
- }
- 
--static int nftnl_expr_objref_snprintf(char *buf, size_t len, uint32_t type,
--				      uint32_t flags,
--				      const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_objref_snprintf_default(buf, len, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_objref = {
- 	.name		= "objref",
- 	.alloc_len	= sizeof(struct nftnl_expr_objref),
-diff --git a/src/expr/osf.c b/src/expr/osf.c
-index 98d0df96aa06e..56fc4e053a7b7 100644
---- a/src/expr/osf.c
-+++ b/src/expr/osf.c
-@@ -124,8 +124,9 @@ nftnl_expr_osf_parse(struct nftnl_expr *e, struct nlattr *attr)
- 	return 0;
- }
- 
--static int nftnl_expr_osf_snprintf_default(char *buf, size_t size,
--					   const struct nftnl_expr *e)
-+static int
-+nftnl_expr_osf_snprintf(char *buf, size_t size,
-+			uint32_t flags, const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_osf *osf = nftnl_expr_data(e);
- 	int ret, offset = 0, len = size;
-@@ -138,21 +139,6 @@ static int nftnl_expr_osf_snprintf_default(char *buf, size_t size,
- 	return offset;
- }
- 
--static int
--nftnl_expr_osf_snprintf(char *buf, size_t len, uint32_t type,
--			uint32_t flags, const struct nftnl_expr *e)
--{
--	switch(type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_osf_snprintf_default(buf, len, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_osf = {
- 	.name		= "osf",
- 	.alloc_len	= sizeof(struct nftnl_expr_osf),
-diff --git a/src/expr/payload.c b/src/expr/payload.c
-index 2192dad5f15dd..9ccb78e6b5352 100644
---- a/src/expr/payload.c
-+++ b/src/expr/payload.c
-@@ -232,30 +232,22 @@ static inline int nftnl_str2base(const char *base)
- }
- 
- static int
--nftnl_expr_payload_snprintf(char *buf, size_t len, uint32_t type,
-+nftnl_expr_payload_snprintf(char *buf, size_t len,
- 			    uint32_t flags, const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_payload *payload = nftnl_expr_data(e);
- 
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		if (payload->sreg)
--			return snprintf(buf, len, "write reg %u => %ub @ %s header + %u csum_type %u csum_off %u csum_flags 0x%x ",
--					payload->sreg,
--					payload->len, base2str(payload->base),
--					payload->offset, payload->csum_type,
--					payload->csum_offset,
--					payload->csum_flags);
--		else
--			return snprintf(buf, len, "load %ub @ %s header + %u => reg %u ",
--					payload->len, base2str(payload->base),
--					payload->offset, payload->dreg);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
-+	if (payload->sreg)
-+		return snprintf(buf, len, "write reg %u => %ub @ %s header + %u csum_type %u csum_off %u csum_flags 0x%x ",
-+				payload->sreg,
-+				payload->len, base2str(payload->base),
-+				payload->offset, payload->csum_type,
-+				payload->csum_offset,
-+				payload->csum_flags);
-+	else
-+		return snprintf(buf, len, "load %ub @ %s header + %u => reg %u ",
-+				payload->len, base2str(payload->base),
-+				payload->offset, payload->dreg);
- }
- 
- struct expr_ops expr_ops_payload = {
-diff --git a/src/expr/queue.c b/src/expr/queue.c
-index b892b57bc4897..0bab2837ad584 100644
---- a/src/expr/queue.c
-+++ b/src/expr/queue.c
-@@ -143,8 +143,9 @@ nftnl_expr_queue_parse(struct nftnl_expr *e, struct nlattr *attr)
- 	return 0;
- }
- 
--static int nftnl_expr_queue_snprintf_default(char *buf, size_t len,
--					     const struct nftnl_expr *e)
-+static int
-+nftnl_expr_queue_snprintf(char *buf, size_t len,
-+			  uint32_t flags, const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_queue *queue = nftnl_expr_data(e);
- 	int ret, remain = len, offset = 0;
-@@ -184,21 +185,6 @@ static int nftnl_expr_queue_snprintf_default(char *buf, size_t len,
- 	return offset;
- }
- 
--static int
--nftnl_expr_queue_snprintf(char *buf, size_t len, uint32_t type,
--			  uint32_t flags, const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_queue_snprintf_default(buf, len, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_queue = {
- 	.name		= "queue",
- 	.alloc_len	= sizeof(struct nftnl_expr_queue),
-diff --git a/src/expr/quota.c b/src/expr/quota.c
-index 39a92e6ed6969..8c841d8006eb6 100644
---- a/src/expr/quota.c
-+++ b/src/expr/quota.c
-@@ -128,8 +128,9 @@ nftnl_expr_quota_parse(struct nftnl_expr *e, struct nlattr *attr)
- 	return 0;
- }
- 
--static int nftnl_expr_quota_snprintf_default(char *buf, size_t len,
--					       const struct nftnl_expr *e)
-+static int nftnl_expr_quota_snprintf(char *buf, size_t len,
-+				       uint32_t flags,
-+				       const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_quota *quota = nftnl_expr_data(e);
- 
-@@ -138,21 +139,6 @@ static int nftnl_expr_quota_snprintf_default(char *buf, size_t len,
- 			quota->bytes, quota->consumed, quota->flags);
- }
- 
--static int nftnl_expr_quota_snprintf(char *buf, size_t len, uint32_t type,
--				       uint32_t flags,
--				       const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_quota_snprintf_default(buf, len, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_quota = {
- 	.name		= "quota",
- 	.alloc_len	= sizeof(struct nftnl_expr_quota),
-diff --git a/src/expr/range.c b/src/expr/range.c
-index d1d50832a4503..a93b2ea74d6d4 100644
---- a/src/expr/range.c
-+++ b/src/expr/range.c
-@@ -184,8 +184,8 @@ static inline int nftnl_str2range(const char *op)
- 	}
- }
- 
--static int nftnl_expr_range_snprintf_default(char *buf, size_t size,
--					   const struct nftnl_expr *e)
-+static int nftnl_expr_range_snprintf(char *buf, size_t size,
-+				     uint32_t flags, const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_range *range = nftnl_expr_data(e);
- 	int remain = size, offset = 0, ret;
-@@ -205,20 +205,6 @@ static int nftnl_expr_range_snprintf_default(char *buf, size_t size,
- 	return offset;
- }
- 
--static int nftnl_expr_range_snprintf(char *buf, size_t size, uint32_t type,
--				     uint32_t flags, const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_range_snprintf_default(buf, size, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_range = {
- 	.name		= "range",
- 	.alloc_len	= sizeof(struct nftnl_expr_range),
-diff --git a/src/expr/redir.c b/src/expr/redir.c
-index c00c2a6ddf3cf..8de4c60556dac 100644
---- a/src/expr/redir.c
-+++ b/src/expr/redir.c
-@@ -131,8 +131,9 @@ nftnl_expr_redir_parse(struct nftnl_expr *e, struct nlattr *attr)
- 	return 0;
- }
- 
--static int nftnl_expr_redir_snprintf_default(char *buf, size_t len,
--					     const struct nftnl_expr *e)
-+static int
-+nftnl_expr_redir_snprintf(char *buf, size_t len,
-+			  uint32_t flags, const struct nftnl_expr *e)
- {
- 	int ret, remain = len, offset = 0;
- 	struct nftnl_expr_redir *redir = nftnl_expr_data(e);
-@@ -158,21 +159,6 @@ static int nftnl_expr_redir_snprintf_default(char *buf, size_t len,
- 	return offset;
- }
- 
--static int
--nftnl_expr_redir_snprintf(char *buf, size_t len, uint32_t type,
--			  uint32_t flags, const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_redir_snprintf_default(buf, len, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_redir = {
- 	.name		= "redir",
- 	.alloc_len	= sizeof(struct nftnl_expr_redir),
-diff --git a/src/expr/reject.c b/src/expr/reject.c
-index 141942e6941f3..716d25c77f7e5 100644
---- a/src/expr/reject.c
-+++ b/src/expr/reject.c
-@@ -116,8 +116,9 @@ nftnl_expr_reject_parse(struct nftnl_expr *e, struct nlattr *attr)
- 	return 0;
- }
- 
--static int nftnl_expr_reject_snprintf_default(char *buf, size_t len,
--					      const struct nftnl_expr *e)
-+static int
-+nftnl_expr_reject_snprintf(char *buf, size_t len,
-+			   uint32_t flags, const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_reject *reject = nftnl_expr_data(e);
- 
-@@ -125,21 +126,6 @@ static int nftnl_expr_reject_snprintf_default(char *buf, size_t len,
- 			reject->type, reject->icmp_code);
- }
- 
--static int
--nftnl_expr_reject_snprintf(char *buf, size_t len, uint32_t type,
--			   uint32_t flags, const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_reject_snprintf_default(buf, len, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_reject = {
- 	.name		= "reject",
- 	.alloc_len	= sizeof(struct nftnl_expr_reject),
-diff --git a/src/expr/rt.c b/src/expr/rt.c
-index 0fce72d9a845b..1ad9b2ad4043f 100644
---- a/src/expr/rt.c
-+++ b/src/expr/rt.c
-@@ -142,8 +142,8 @@ static inline int str2rt_key(const char *str)
- }
- 
- static int
--nftnl_expr_rt_snprintf_default(char *buf, size_t len,
--			       const struct nftnl_expr *e)
-+nftnl_expr_rt_snprintf(char *buf, size_t len,
-+		       uint32_t flags, const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_rt *rt = nftnl_expr_data(e);
- 
-@@ -154,21 +154,6 @@ nftnl_expr_rt_snprintf_default(char *buf, size_t len,
- 	return 0;
- }
- 
--static int
--nftnl_expr_rt_snprintf(char *buf, size_t len, uint32_t type,
--		       uint32_t flags, const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_rt_snprintf_default(buf, len, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_rt = {
- 	.name		= "rt",
- 	.alloc_len	= sizeof(struct nftnl_expr_rt),
-diff --git a/src/expr/socket.c b/src/expr/socket.c
-index 76fc90346141e..c7337cf75378d 100644
---- a/src/expr/socket.c
-+++ b/src/expr/socket.c
-@@ -127,8 +127,8 @@ static const char *socket_key2str(uint8_t key)
- }
- 
- static int
--nftnl_expr_socket_snprintf_default(char *buf, size_t len,
--			       const struct nftnl_expr *e)
-+nftnl_expr_socket_snprintf(char *buf, size_t len,
-+		       uint32_t flags, const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_socket *socket = nftnl_expr_data(e);
- 
-@@ -139,21 +139,6 @@ nftnl_expr_socket_snprintf_default(char *buf, size_t len,
- 	return 0;
- }
- 
--static int
--nftnl_expr_socket_snprintf(char *buf, size_t len, uint32_t type,
--		       uint32_t flags, const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_socket_snprintf_default(buf, len, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_socket = {
- 	.name		= "socket",
- 	.alloc_len	= sizeof(struct nftnl_expr_socket),
-diff --git a/src/expr/synproxy.c b/src/expr/synproxy.c
-index 245f4fb5a41be..dc68b9d14db3a 100644
---- a/src/expr/synproxy.c
-+++ b/src/expr/synproxy.c
-@@ -127,8 +127,9 @@ nftnl_expr_synproxy_parse(struct nftnl_expr *e, struct nlattr *attr)
- 	return 0;
- }
- 
--static int nftnl_expr_synproxy_snprintf_default(char *buf, size_t size,
--						const struct nftnl_expr *e)
-+static int
-+nftnl_expr_synproxy_snprintf(char *buf, size_t size,
-+			     uint32_t flags, const struct nftnl_expr *e)
- {
- 	struct nftnl_expr_synproxy *synproxy = nftnl_expr_data(e);
- 	int ret, offset = 0, len = size;
-@@ -143,21 +144,6 @@ static int nftnl_expr_synproxy_snprintf_default(char *buf, size_t size,
- 	return offset;
- }
- 
--static int
--nftnl_expr_synproxy_snprintf(char *buf, size_t len, uint32_t type,
--			     uint32_t flags, const struct nftnl_expr *e)
--{
--	switch(type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_synproxy_snprintf_default(buf, len, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_synproxy = {
- 	.name		= "synproxy",
- 	.alloc_len	= sizeof(struct nftnl_expr_synproxy),
-diff --git a/src/expr/target.c b/src/expr/target.c
-index 91000386704aa..b7c595a7de989 100644
---- a/src/expr/target.c
-+++ b/src/expr/target.c
-@@ -165,21 +165,12 @@ static int nftnl_expr_target_parse(struct nftnl_expr *e, struct nlattr *attr)
- }
- 
- static int
--nftnl_expr_target_snprintf(char *buf, size_t len, uint32_t type,
-+nftnl_expr_target_snprintf(char *buf, size_t len,
+-nftnl_expr_dynset_snprintf(char *buf, size_t size,
++nftnl_expr_dynset_snprintf(char *buf, size_t remain,
  			   uint32_t flags, const struct nftnl_expr *e)
  {
- 	struct nftnl_expr_target *target = nftnl_expr_data(e);
+ 	struct nftnl_expr_dynset *dynset = nftnl_expr_data(e);
+ 	struct nftnl_expr *expr;
+-	int remain = size, offset = 0, ret;
++	int offset = 0, ret;
  
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return snprintf(buf, len, "name %s rev %u ",
--				target->name, target->rev);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
-+	return snprintf(buf, len, "name %s rev %u ", target->name, target->rev);
- }
- 
- static void nftnl_expr_target_free(const struct nftnl_expr *e)
-diff --git a/src/expr/tproxy.c b/src/expr/tproxy.c
-index 3827b75ed2215..eeb1beee48ebe 100644
---- a/src/expr/tproxy.c
-+++ b/src/expr/tproxy.c
-@@ -135,8 +135,8 @@ nftnl_expr_tproxy_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
+ 	ret = snprintf(buf, remain, "%s reg_key %u set %s ",
+ 		       op2str(dynset->op), dynset->sreg_key, dynset->set_name);
+diff --git a/src/expr/fib.c b/src/expr/fib.c
+index b0cbb3b752153..aaff52acabdbd 100644
+--- a/src/expr/fib.c
++++ b/src/expr/fib.c
+@@ -143,13 +143,13 @@ static const char *fib_type_str(enum nft_fib_result r)
  }
  
  static int
--nftnl_expr_tproxy_snprintf_default(char *buf, size_t size,
--				const struct nftnl_expr *e)
-+nftnl_expr_tproxy_snprintf(char *buf, size_t size,
-+			uint32_t flags, const struct nftnl_expr *e)
+-nftnl_expr_fib_snprintf(char *buf, size_t size,
++nftnl_expr_fib_snprintf(char *buf, size_t remain,
+ 			 uint32_t printflags, const struct nftnl_expr *e)
  {
- 	struct nftnl_expr_tproxy *tproxy = nftnl_expr_data(e);
- 	int remain = size, offset = 0, ret = 0;
-@@ -162,19 +162,6 @@ nftnl_expr_tproxy_snprintf_default(char *buf, size_t size,
- 	return offset;
+ 	struct nftnl_expr_fib *fib = nftnl_expr_data(e);
+-	int remain = size, offset = 0, ret, i;
+ 	uint32_t flags = fib->flags & ~NFTA_FIB_F_PRESENT;
+ 	uint32_t present_flag = fib->flags & NFTA_FIB_F_PRESENT;
++	int offset = 0, ret, i;
+ 	static const struct {
+ 		int bit;
+ 		const char *name;
+diff --git a/src/expr/flow_offload.c b/src/expr/flow_offload.c
+index 188269113ee8a..a826202eb69b9 100644
+--- a/src/expr/flow_offload.c
++++ b/src/expr/flow_offload.c
+@@ -92,11 +92,11 @@ static int nftnl_expr_flow_parse(struct nftnl_expr *e, struct nlattr *attr)
+ 	return ret;
  }
  
--static int
--nftnl_expr_tproxy_snprintf(char *buf, size_t size, uint32_t type,
--			uint32_t flags, const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_tproxy_snprintf_default(buf, size, e);
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_tproxy = {
- 	.name		= "tproxy",
- 	.alloc_len	= sizeof(struct nftnl_expr_tproxy),
-diff --git a/src/expr/tunnel.c b/src/expr/tunnel.c
-index 62e164805fee6..1460fd26b0fbc 100644
---- a/src/expr/tunnel.c
-+++ b/src/expr/tunnel.c
-@@ -125,8 +125,8 @@ static const char *tunnel_key2str(uint8_t key)
+-static int nftnl_expr_flow_snprintf(char *buf, size_t size,
++static int nftnl_expr_flow_snprintf(char *buf, size_t remain,
+ 				    uint32_t flags, const struct nftnl_expr *e)
+ {
+-	int remain = size, offset = 0, ret;
+ 	struct nftnl_expr_flow *l = nftnl_expr_data(e);
++	int offset = 0, ret;
+ 
+ 	ret = snprintf(buf, remain, "flowtable %s ", l->table_name);
+ 	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+diff --git a/src/expr/fwd.c b/src/expr/fwd.c
+index 0322be8f4aa4b..82e5a418bfae5 100644
+--- a/src/expr/fwd.c
++++ b/src/expr/fwd.c
+@@ -125,11 +125,11 @@ static int nftnl_expr_fwd_parse(struct nftnl_expr *e, struct nlattr *attr)
+ 	return ret;
+ }
+ 
+-static int nftnl_expr_fwd_snprintf(char *buf, size_t len,
++static int nftnl_expr_fwd_snprintf(char *buf, size_t remain,
+ 				   uint32_t flags, const struct nftnl_expr *e)
+ {
+-	int remain = len, offset = 0, ret;
+ 	struct nftnl_expr_fwd *fwd = nftnl_expr_data(e);
++	int offset = 0, ret;
+ 
+ 	if (e->flags & (1 << NFTNL_EXPR_FWD_SREG_DEV)) {
+ 		ret = snprintf(buf + offset, remain, "sreg_dev %u ",
+diff --git a/src/expr/hash.c b/src/expr/hash.c
+index 86b5ca6f0dfd0..10b4a72d30b0d 100644
+--- a/src/expr/hash.c
++++ b/src/expr/hash.c
+@@ -184,11 +184,11 @@ nftnl_expr_hash_parse(struct nftnl_expr *e, struct nlattr *attr)
  }
  
  static int
--nftnl_expr_tunnel_snprintf_default(char *buf, size_t len,
--				 const struct nftnl_expr *e)
-+nftnl_expr_tunnel_snprintf(char *buf, size_t len,
-+			 uint32_t flags, const struct nftnl_expr *e)
+-nftnl_expr_hash_snprintf(char *buf, size_t size,
++nftnl_expr_hash_snprintf(char *buf, size_t remain,
+ 			 uint32_t flags, const struct nftnl_expr *e)
  {
- 	struct nftnl_expr_tunnel *tunnel = nftnl_expr_data(e);
+ 	struct nftnl_expr_hash *hash = nftnl_expr_data(e);
+-	int remain = size, offset = 0, ret;
++	int offset = 0, ret;
  
-@@ -137,21 +137,6 @@ nftnl_expr_tunnel_snprintf_default(char *buf, size_t len,
+ 	switch (hash->type) {
+ 	case NFT_HASH_SYM:
+diff --git a/src/expr/immediate.c b/src/expr/immediate.c
+index 241aad3b5507c..94b043c0fc8ab 100644
+--- a/src/expr/immediate.c
++++ b/src/expr/immediate.c
+@@ -184,11 +184,11 @@ nftnl_expr_immediate_parse(struct nftnl_expr *e, struct nlattr *attr)
+ }
+ 
+ static int
+-nftnl_expr_immediate_snprintf(char *buf, size_t len,
++nftnl_expr_immediate_snprintf(char *buf, size_t remain,
+ 			      uint32_t flags, const struct nftnl_expr *e)
+ {
+-	int remain = len, offset = 0, ret;
+ 	struct nftnl_expr_immediate *imm = nftnl_expr_data(e);
++	int offset = 0, ret;
+ 
+ 	ret = snprintf(buf, remain, "reg %u ", imm->dreg);
+ 	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+diff --git a/src/expr/log.c b/src/expr/log.c
+index d56fad56d27cd..86db5484d2173 100644
+--- a/src/expr/log.c
++++ b/src/expr/log.c
+@@ -187,11 +187,11 @@ nftnl_expr_log_parse(struct nftnl_expr *e, struct nlattr *attr)
+ }
+ 
+ static int
+-nftnl_expr_log_snprintf(char *buf, size_t size,
++nftnl_expr_log_snprintf(char *buf, size_t remain,
+ 			uint32_t flags, const struct nftnl_expr *e)
+ {
+ 	struct nftnl_expr_log *log = nftnl_expr_data(e);
+-	int ret, offset = 0, remain = size;
++	int ret, offset = 0;
+ 
+ 	if (e->flags & (1 << NFTNL_EXPR_LOG_PREFIX)) {
+ 		ret = snprintf(buf, remain, "prefix %s ", log->prefix);
+diff --git a/src/expr/lookup.c b/src/expr/lookup.c
+index ec7f6fb99e066..83adce97c98b0 100644
+--- a/src/expr/lookup.c
++++ b/src/expr/lookup.c
+@@ -168,11 +168,11 @@ nftnl_expr_lookup_parse(struct nftnl_expr *e, struct nlattr *attr)
+ }
+ 
+ static int
+-nftnl_expr_lookup_snprintf(char *buf, size_t size,
++nftnl_expr_lookup_snprintf(char *buf, size_t remain,
+ 			   uint32_t flags, const struct nftnl_expr *e)
+ {
+-	int remain = size, offset = 0, ret;
+ 	struct nftnl_expr_lookup *l = nftnl_expr_data(e);
++	int offset = 0, ret;
+ 
+ 	ret = snprintf(buf, remain, "reg %u set %s ", l->sreg, l->set_name);
+ 	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+diff --git a/src/expr/masq.c b/src/expr/masq.c
+index 1f6dbdb9cc33d..684708c758390 100644
+--- a/src/expr/masq.c
++++ b/src/expr/masq.c
+@@ -131,11 +131,11 @@ nftnl_expr_masq_parse(struct nftnl_expr *e, struct nlattr *attr)
  	return 0;
  }
  
--static int
--nftnl_expr_tunnel_snprintf(char *buf, size_t len, uint32_t type,
--			 uint32_t flags, const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_tunnel_snprintf_default(buf, len, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
--
- struct expr_ops expr_ops_tunnel = {
- 	.name		= "tunnel",
- 	.alloc_len	= sizeof(struct nftnl_expr_tunnel),
-diff --git a/src/expr/xfrm.c b/src/expr/xfrm.c
-index 0502b53bb7edc..d7586ce689c0d 100644
---- a/src/expr/xfrm.c
-+++ b/src/expr/xfrm.c
-@@ -172,8 +172,8 @@ static const char *xfrmdir2str(uint8_t dir)
+-static int nftnl_expr_masq_snprintf(char *buf, size_t len,
++static int nftnl_expr_masq_snprintf(char *buf, size_t remain,
+ 				    uint32_t flags, const struct nftnl_expr *e)
+ {
+ 	struct nftnl_expr_masq *masq = nftnl_expr_data(e);
+-	int remain = len, offset = 0, ret = 0;
++	int offset = 0, ret = 0;
+ 
+ 	if (e->flags & (1 << NFTNL_EXPR_MASQ_REG_PROTO_MIN)) {
+ 		ret = snprintf(buf + offset, remain, "proto_min reg %u ",
+diff --git a/src/expr/nat.c b/src/expr/nat.c
+index 25d4e9206da79..0a9cdd7f65f8f 100644
+--- a/src/expr/nat.c
++++ b/src/expr/nat.c
+@@ -221,11 +221,11 @@ static inline int nftnl_str2nat(const char *nat)
  }
  
  static int
--nftnl_expr_xfrm_snprintf_default(char *buf, size_t size,
--			       const struct nftnl_expr *e)
-+nftnl_expr_xfrm_snprintf(char *buf, size_t size,
-+			 uint32_t flags, const struct nftnl_expr *e)
+-nftnl_expr_nat_snprintf(char *buf, size_t size,
++nftnl_expr_nat_snprintf(char *buf, size_t remain,
+ 			uint32_t flags, const struct nftnl_expr *e)
+ {
+ 	struct nftnl_expr_nat *nat = nftnl_expr_data(e);
+-	int remain = size, offset = 0, ret = 0;
++	int offset = 0, ret = 0;
+ 
+ 	ret = snprintf(buf, remain, "%s ", nat2str(nat->type));
+ 	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+diff --git a/src/expr/numgen.c b/src/expr/numgen.c
+index 602e4c0f77426..159dfeca3618b 100644
+--- a/src/expr/numgen.c
++++ b/src/expr/numgen.c
+@@ -143,11 +143,11 @@ nftnl_expr_ng_parse(struct nftnl_expr *e, struct nlattr *attr)
+ }
+ 
+ static int
+-nftnl_expr_ng_snprintf(char *buf, size_t size,
++nftnl_expr_ng_snprintf(char *buf, size_t remain,
+ 		       uint32_t flags, const struct nftnl_expr *e)
+ {
+ 	struct nftnl_expr_ng *ng = nftnl_expr_data(e);
+-	int remain = size, offset = 0, ret;
++	int offset = 0, ret;
+ 
+ 	switch (ng->type) {
+ 	case NFT_NG_INCREMENTAL:
+diff --git a/src/expr/osf.c b/src/expr/osf.c
+index 56fc4e053a7b7..215a681a97aae 100644
+--- a/src/expr/osf.c
++++ b/src/expr/osf.c
+@@ -125,11 +125,11 @@ nftnl_expr_osf_parse(struct nftnl_expr *e, struct nlattr *attr)
+ }
+ 
+ static int
+-nftnl_expr_osf_snprintf(char *buf, size_t size,
++nftnl_expr_osf_snprintf(char *buf, size_t len,
+ 			uint32_t flags, const struct nftnl_expr *e)
+ {
+ 	struct nftnl_expr_osf *osf = nftnl_expr_data(e);
+-	int ret, offset = 0, len = size;
++	int ret, offset = 0;
+ 
+ 	if (e->flags & (1 << NFTNL_EXPR_OSF_DREG)) {
+ 		ret = snprintf(buf, len, "dreg %u ", osf->dreg);
+diff --git a/src/expr/queue.c b/src/expr/queue.c
+index 0bab2837ad584..8f70977f7de85 100644
+--- a/src/expr/queue.c
++++ b/src/expr/queue.c
+@@ -144,12 +144,12 @@ nftnl_expr_queue_parse(struct nftnl_expr *e, struct nlattr *attr)
+ }
+ 
+ static int
+-nftnl_expr_queue_snprintf(char *buf, size_t len,
++nftnl_expr_queue_snprintf(char *buf, size_t remain,
+ 			  uint32_t flags, const struct nftnl_expr *e)
+ {
+ 	struct nftnl_expr_queue *queue = nftnl_expr_data(e);
+-	int ret, remain = len, offset = 0;
+ 	uint16_t total_queues;
++	int ret, offset = 0;
+ 
+ 	if (e->flags & (1 << NFTNL_EXPR_QUEUE_NUM)) {
+ 		total_queues = queue->queuenum + queue->queues_total - 1;
+diff --git a/src/expr/range.c b/src/expr/range.c
+index eed48829a246d..f76843a8afd0c 100644
+--- a/src/expr/range.c
++++ b/src/expr/range.c
+@@ -184,11 +184,11 @@ static inline int nftnl_str2range(const char *op)
+ 	}
+ }
+ 
+-static int nftnl_expr_range_snprintf(char *buf, size_t size,
++static int nftnl_expr_range_snprintf(char *buf, size_t remain,
+ 				     uint32_t flags, const struct nftnl_expr *e)
+ {
+ 	struct nftnl_expr_range *range = nftnl_expr_data(e);
+-	int remain = size, offset = 0, ret;
++	int offset = 0, ret;
+ 
+ 	ret = snprintf(buf, remain, "%s reg %u ",
+ 		       range2str(range->op), range->sreg);
+diff --git a/src/expr/redir.c b/src/expr/redir.c
+index 8de4c60556dac..4f56cb4302b30 100644
+--- a/src/expr/redir.c
++++ b/src/expr/redir.c
+@@ -132,10 +132,10 @@ nftnl_expr_redir_parse(struct nftnl_expr *e, struct nlattr *attr)
+ }
+ 
+ static int
+-nftnl_expr_redir_snprintf(char *buf, size_t len,
++nftnl_expr_redir_snprintf(char *buf, size_t remain,
+ 			  uint32_t flags, const struct nftnl_expr *e)
+ {
+-	int ret, remain = len, offset = 0;
++	int ret, offset = 0;
+ 	struct nftnl_expr_redir *redir = nftnl_expr_data(e);
+ 
+ 	if (nftnl_expr_is_set(e, NFTNL_EXPR_REDIR_REG_PROTO_MIN)) {
+diff --git a/src/expr/synproxy.c b/src/expr/synproxy.c
+index dc68b9d14db3a..630f3f4c60927 100644
+--- a/src/expr/synproxy.c
++++ b/src/expr/synproxy.c
+@@ -128,11 +128,11 @@ nftnl_expr_synproxy_parse(struct nftnl_expr *e, struct nlattr *attr)
+ }
+ 
+ static int
+-nftnl_expr_synproxy_snprintf(char *buf, size_t size,
++nftnl_expr_synproxy_snprintf(char *buf, size_t len,
+ 			     uint32_t flags, const struct nftnl_expr *e)
+ {
+ 	struct nftnl_expr_synproxy *synproxy = nftnl_expr_data(e);
+-	int ret, offset = 0, len = size;
++	int ret, offset = 0;
+ 
+ 	if (e->flags & (1 << NFTNL_EXPR_SYNPROXY_MSS) &&
+ 	    e->flags & (1 << NFTNL_EXPR_SYNPROXY_WSCALE)) {
+diff --git a/src/expr/tproxy.c b/src/expr/tproxy.c
+index eeb1beee48ebe..d3ee8f89b6db3 100644
+--- a/src/expr/tproxy.c
++++ b/src/expr/tproxy.c
+@@ -135,11 +135,11 @@ nftnl_expr_tproxy_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
+ }
+ 
+ static int
+-nftnl_expr_tproxy_snprintf(char *buf, size_t size,
++nftnl_expr_tproxy_snprintf(char *buf, size_t remain,
+ 			uint32_t flags, const struct nftnl_expr *e)
+ {
+ 	struct nftnl_expr_tproxy *tproxy = nftnl_expr_data(e);
+-	int remain = size, offset = 0, ret = 0;
++	int offset = 0, ret = 0;
+ 
+ 	if (tproxy->family != NFTA_TPROXY_UNSPEC) {
+ 		ret = snprintf(buf + offset, remain, "%s ",
+diff --git a/src/expr/xfrm.c b/src/expr/xfrm.c
+index d7586ce689c0d..c81d14d638dcd 100644
+--- a/src/expr/xfrm.c
++++ b/src/expr/xfrm.c
+@@ -172,11 +172,11 @@ static const char *xfrmdir2str(uint8_t dir)
+ }
+ 
+ static int
+-nftnl_expr_xfrm_snprintf(char *buf, size_t size,
++nftnl_expr_xfrm_snprintf(char *buf, size_t remain,
+ 			 uint32_t flags, const struct nftnl_expr *e)
  {
  	struct nftnl_expr_xfrm *x = nftnl_expr_data(e);
- 	int ret, remain = size, offset = 0;
-@@ -188,21 +188,6 @@ nftnl_expr_xfrm_snprintf_default(char *buf, size_t size,
+-	int ret, remain = size, offset = 0;
++	int ret, offset = 0;
+ 
+ 	if (e->flags & (1 << NFTNL_EXPR_XFRM_DREG)) {
+ 		ret = snprintf(buf, remain, "load %s %u %s => reg %u ",
+diff --git a/src/flowtable.c b/src/flowtable.c
+index 658115dd24766..d651066273460 100644
+--- a/src/flowtable.c
++++ b/src/flowtable.c
+@@ -591,10 +591,10 @@ int nftnl_flowtable_parse_file(struct nftnl_flowtable *c,
+ 	return -1;
+ }
+ 
+-static int nftnl_flowtable_snprintf_default(char *buf, size_t size,
++static int nftnl_flowtable_snprintf_default(char *buf, size_t remain,
+ 					    const struct nftnl_flowtable *c)
+ {
+-	int ret, remain = size, offset = 0, i;
++	int ret, offset = 0, i;
+ 
+ 	ret = snprintf(buf, remain, "flow table %s %s use %u size %u flags %x",
+ 		       c->table, c->name, c->use, c->size, c->ft_flags);
+@@ -623,12 +623,12 @@ static int nftnl_flowtable_snprintf_default(char *buf, size_t size,
  	return offset;
  }
  
--static int
--nftnl_expr_xfrm_snprintf(char *buf, size_t len, uint32_t type,
--			 uint32_t flags, const struct nftnl_expr *e)
--{
--	switch (type) {
--	case NFTNL_OUTPUT_DEFAULT:
--		return nftnl_expr_xfrm_snprintf_default(buf, len, e);
--	case NFTNL_OUTPUT_XML:
--	case NFTNL_OUTPUT_JSON:
--	default:
--		break;
--	}
--	return -1;
--}
+-static int nftnl_flowtable_cmd_snprintf(char *buf, size_t size,
++static int nftnl_flowtable_cmd_snprintf(char *buf, size_t remain,
+ 					const struct nftnl_flowtable *c,
+ 					uint32_t cmd, uint32_t type,
+ 					uint32_t flags)
+ {
+-	int ret, remain = size, offset = 0;
++	int ret, offset = 0;
+ 
+ 	switch (type) {
+ 	case NFTNL_OUTPUT_DEFAULT:
+diff --git a/src/gen.c b/src/gen.c
+index f2ac2ba03b9a4..362132eb2766f 100644
+--- a/src/gen.c
++++ b/src/gen.c
+@@ -156,15 +156,15 @@ int nftnl_gen_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_gen *gen)
+ 	return 0;
+ }
+ 
+-static int nftnl_gen_cmd_snprintf(char *buf, size_t size,
++static int nftnl_gen_cmd_snprintf(char *buf, size_t remain,
+ 				  const struct nftnl_gen *gen, uint32_t cmd,
+ 				  uint32_t type, uint32_t flags)
+ {
+-	int ret, remain = size, offset = 0;
++	int ret, offset = 0;
+ 
+ 	switch(type) {
+ 	case NFTNL_OUTPUT_DEFAULT:
+-		ret = snprintf(buf, size, "ruleset generation ID %u", gen->id);
++		ret = snprintf(buf, remain, "ruleset generation ID %u", gen->id);
+ 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+ 		break;
+ 	default:
+diff --git a/src/obj/ct_expect.c b/src/obj/ct_expect.c
+index c29f99c419dcb..8136ad9c21602 100644
+--- a/src/obj/ct_expect.c
++++ b/src/obj/ct_expect.c
+@@ -151,13 +151,12 @@ nftnl_obj_ct_expect_parse(struct nftnl_obj *e, struct nlattr *attr)
+ 	return 0;
+ }
+ 
+-static int nftnl_obj_ct_expect_snprintf(char *buf, size_t len,
++static int nftnl_obj_ct_expect_snprintf(char *buf, size_t remain,
+ 					uint32_t flags,
+ 					const struct nftnl_obj *e)
+ {
+-	int ret = 0;
+-	int offset = 0, remain = len;
+ 	struct nftnl_obj_ct_expect *exp = nftnl_obj_data(e);
++	int ret = 0, offset = 0;
+ 
+ 	if (e->flags & (1 << NFTNL_OBJ_CT_EXPECT_L3PROTO)) {
+ 		ret = snprintf(buf + offset, remain,
+diff --git a/src/obj/ct_timeout.c b/src/obj/ct_timeout.c
+index a2e5b4fe6de99..1d4f8fb75ea3a 100644
+--- a/src/obj/ct_timeout.c
++++ b/src/obj/ct_timeout.c
+@@ -257,12 +257,11 @@ nftnl_obj_ct_timeout_parse(struct nftnl_obj *e, struct nlattr *attr)
+ 	return 0;
+ }
+ 
+-static int nftnl_obj_ct_timeout_snprintf(char *buf, size_t len,
++static int nftnl_obj_ct_timeout_snprintf(char *buf, size_t remain,
+ 				       uint32_t flags,
+ 				       const struct nftnl_obj *e)
+ {
+-	int ret = 0;
+-	int offset = 0, remain = len;
++	int ret = 0, offset = 0;
+ 
+ 	struct nftnl_obj_ct_timeout *timeout = nftnl_obj_data(e);
+ 
+diff --git a/src/obj/synproxy.c b/src/obj/synproxy.c
+index e3a991bc6e023..d689fee3757c2 100644
+--- a/src/obj/synproxy.c
++++ b/src/obj/synproxy.c
+@@ -117,12 +117,12 @@ static int nftnl_obj_synproxy_parse(struct nftnl_obj *e, struct nlattr *attr)
+ 	return 0;
+ }
+ 
+-static int nftnl_obj_synproxy_snprintf(char *buf, size_t size,
++static int nftnl_obj_synproxy_snprintf(char *buf, size_t len,
+ 				    uint32_t flags,
+ 				    const struct nftnl_obj *e)
+ {
+ 	struct nftnl_obj_synproxy *synproxy = nftnl_obj_data(e);
+-        int ret, offset = 0, len = size;
++        int ret, offset = 0;
+ 
+         if (e->flags & (1 << NFTNL_OBJ_SYNPROXY_MSS) &&
+             e->flags & (1 << NFTNL_OBJ_SYNPROXY_WSCALE)) {
+diff --git a/src/object.c b/src/object.c
+index 2d15629eb0f95..4eb4d35d874c9 100644
+--- a/src/object.c
++++ b/src/object.c
+@@ -384,14 +384,14 @@ int nftnl_obj_parse_file(struct nftnl_obj *obj, enum nftnl_parse_type type,
+ 	return nftnl_obj_do_parse(obj, type, fp, err, NFTNL_PARSE_FILE);
+ }
+ 
+-static int nftnl_obj_snprintf_dflt(char *buf, size_t size,
++static int nftnl_obj_snprintf_dflt(char *buf, size_t remain,
+ 				   const struct nftnl_obj *obj,
+ 				   uint32_t type, uint32_t flags)
+ {
+ 	const char *name = obj->ops ? obj->ops->name : "(unknown)";
+-	int ret, remain = size, offset = 0;
++	int ret, offset = 0;
+ 
+-	ret = snprintf(buf, size, "table %s name %s use %u [ %s ",
++	ret = snprintf(buf, remain, "table %s name %s use %u [ %s ",
+ 		       obj->table, obj->name, obj->use, name);
+ 	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+ 
+@@ -405,11 +405,11 @@ static int nftnl_obj_snprintf_dflt(char *buf, size_t size,
+ 	return offset;
+ }
+ 
+-static int nftnl_obj_cmd_snprintf(char *buf, size_t size,
++static int nftnl_obj_cmd_snprintf(char *buf, size_t remain,
+ 				    const struct nftnl_obj *obj, uint32_t cmd,
+ 				    uint32_t type, uint32_t flags)
+ {
+-	int ret, remain = size, offset = 0;
++	int ret, offset = 0;
+ 
+ 	switch (type) {
+ 	case NFTNL_OUTPUT_DEFAULT:
+diff --git a/src/rule.c b/src/rule.c
+index e82cf73e9bbe5..439e451330233 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -545,12 +545,12 @@ int nftnl_rule_parse_file(struct nftnl_rule *r, enum nftnl_parse_type type,
+ 	return nftnl_rule_do_parse(r, type, fp, err, NFTNL_PARSE_FILE);
+ }
+ 
+-static int nftnl_rule_snprintf_default(char *buf, size_t size,
++static int nftnl_rule_snprintf_default(char *buf, size_t remain,
+ 				       const struct nftnl_rule *r,
+ 				       uint32_t type, uint32_t flags)
+ {
+ 	struct nftnl_expr *expr;
+-	int ret, remain = size, offset = 0, i;
++	int ret, offset = 0, i;
+ 	const char *sep = "";
+ 
+ 	if (r->flags & (1 << NFTNL_RULE_FAMILY)) {
+@@ -635,12 +635,12 @@ static int nftnl_rule_snprintf_default(char *buf, size_t size,
+ 	return offset;
+ }
+ 
+-static int nftnl_rule_cmd_snprintf(char *buf, size_t size,
++static int nftnl_rule_cmd_snprintf(char *buf, size_t remain,
+ 				   const struct nftnl_rule *r, uint32_t cmd,
+ 				   uint32_t type, uint32_t flags)
+ {
+-	int ret, remain = size, offset = 0;
+ 	uint32_t inner_flags = flags;
++	int ret, offset = 0;
+ 
+ 	inner_flags &= ~NFTNL_OF_EVENT_ANY;
+ 
+diff --git a/src/ruleset.c b/src/ruleset.c
+index 2468bd46cd5d0..f904aa4ca94a7 100644
+--- a/src/ruleset.c
++++ b/src/ruleset.c
+@@ -343,13 +343,13 @@ static const char *nftnl_ruleset_o_closetag(uint32_t type)
+ }
+ 
+ static int
+-nftnl_ruleset_snprintf_table(char *buf, size_t size,
++nftnl_ruleset_snprintf_table(char *buf, size_t remain,
+ 			   const struct nftnl_ruleset *rs, uint32_t type,
+ 			   uint32_t flags)
+ {
+ 	struct nftnl_table *t;
+ 	struct nftnl_table_list_iter *ti;
+-	int ret, remain = size, offset = 0;
++	int ret, offset = 0;
+ 
+ 	ti = nftnl_table_list_iter_create(rs->table_list);
+ 	if (ti == NULL)
+@@ -372,13 +372,13 @@ nftnl_ruleset_snprintf_table(char *buf, size_t size,
+ }
+ 
+ static int
+-nftnl_ruleset_snprintf_chain(char *buf, size_t size,
++nftnl_ruleset_snprintf_chain(char *buf, size_t remain,
+ 			   const struct nftnl_ruleset *rs, uint32_t type,
+ 			   uint32_t flags)
+ {
+ 	struct nftnl_chain *c;
+ 	struct nftnl_chain_list_iter *ci;
+-	int ret, remain = size, offset = 0;
++	int ret, offset = 0;
+ 
+ 	ci = nftnl_chain_list_iter_create(rs->chain_list);
+ 	if (ci == NULL)
+@@ -401,13 +401,13 @@ nftnl_ruleset_snprintf_chain(char *buf, size_t size,
+ }
+ 
+ static int
+-nftnl_ruleset_snprintf_set(char *buf, size_t size,
++nftnl_ruleset_snprintf_set(char *buf, size_t remain,
+ 			 const struct nftnl_ruleset *rs, uint32_t type,
+ 			 uint32_t flags)
+ {
+ 	struct nftnl_set *s;
+ 	struct nftnl_set_list_iter *si;
+-	int ret, remain = size, offset = 0;
++	int ret, offset = 0;
+ 
+ 	si = nftnl_set_list_iter_create(rs->set_list);
+ 	if (si == NULL)
+@@ -430,13 +430,13 @@ nftnl_ruleset_snprintf_set(char *buf, size_t size,
+ }
+ 
+ static int
+-nftnl_ruleset_snprintf_rule(char *buf, size_t size,
++nftnl_ruleset_snprintf_rule(char *buf, size_t remain,
+ 			  const struct nftnl_ruleset *rs, uint32_t type,
+ 			  uint32_t flags)
+ {
+ 	struct nftnl_rule *r;
+ 	struct nftnl_rule_list_iter *ri;
+-	int ret, remain = size, offset = 0;
++	int ret, offset = 0;
+ 
+ 	ri = nftnl_rule_list_iter_create(rs->rule_list);
+ 	if (ri == NULL)
+@@ -459,12 +459,13 @@ nftnl_ruleset_snprintf_rule(char *buf, size_t size,
+ }
+ 
+ static int
+-nftnl_ruleset_do_snprintf(char *buf, size_t size, const struct nftnl_ruleset *rs,
+-			uint32_t cmd, uint32_t type, uint32_t flags)
++nftnl_ruleset_do_snprintf(char *buf, size_t remain,
++			  const struct nftnl_ruleset *rs,
++			  uint32_t cmd, uint32_t type, uint32_t flags)
+ {
+-	int ret, remain = size, offset = 0;
+-	void *prev = NULL;
+ 	uint32_t inner_flags = flags;
++	int ret, offset = 0;
++	void *prev = NULL;
+ 
+ 	/* dont pass events flags to child calls of _snprintf() */
+ 	inner_flags &= ~NFTNL_OF_EVENT_ANY;
+diff --git a/src/set.c b/src/set.c
+index a21df1fa50f41..021543e8b7752 100644
+--- a/src/set.c
++++ b/src/set.c
+@@ -784,13 +784,12 @@ int nftnl_set_parse_file(struct nftnl_set *s, enum nftnl_parse_type type,
+ 	return nftnl_set_do_parse(s, type, fp, err, NFTNL_PARSE_FILE);
+ }
+ 
+-static int nftnl_set_snprintf_default(char *buf, size_t size,
++static int nftnl_set_snprintf_default(char *buf, size_t remain,
+ 				      const struct nftnl_set *s,
+ 				      uint32_t type, uint32_t flags)
+ {
+-	int ret;
+-	int remain = size, offset = 0;
+ 	struct nftnl_set_elem *elem;
++	int ret, offset = 0;
+ 
+ 	ret = snprintf(buf, remain, "%s %s %x",
+ 			s->name, s->table, s->set_flags);
+@@ -837,12 +836,12 @@ static int nftnl_set_snprintf_default(char *buf, size_t size,
+ 	return offset;
+ }
+ 
+-static int nftnl_set_cmd_snprintf(char *buf, size_t size,
++static int nftnl_set_cmd_snprintf(char *buf, size_t remain,
+ 				  const struct nftnl_set *s, uint32_t cmd,
+ 				  uint32_t type, uint32_t flags)
+ {
+-	int ret, remain = size, offset = 0;
+ 	uint32_t inner_flags = flags;
++	int ret, offset = 0;
+ 
+ 	if (type == NFTNL_OUTPUT_XML)
+ 		return 0;
+diff --git a/src/set_elem.c b/src/set_elem.c
+index 061469a74789c..a1764e232d335 100644
+--- a/src/set_elem.c
++++ b/src/set_elem.c
+@@ -698,13 +698,12 @@ int nftnl_set_elem_parse_file(struct nftnl_set_elem *e, enum nftnl_parse_type ty
+ 	return -1;
+ }
+ 
+-int nftnl_set_elem_snprintf_default(char *buf, size_t size,
++int nftnl_set_elem_snprintf_default(char *buf, size_t remain,
+ 				    const struct nftnl_set_elem *e,
+ 				    enum nft_data_types dtype)
+ {
+ 	int dregtype = (dtype == NFT_DATA_VERDICT) ? DATA_VERDICT : DATA_VALUE;
 -
- struct expr_ops expr_ops_xfrm = {
- 	.name		= "xfrm",
- 	.alloc_len	= sizeof(struct nftnl_expr_xfrm),
+-	int ret, remain = size, offset = 0, i;
++	int ret, offset = 0, i;
+ 
+ 	ret = snprintf(buf, remain, "element ");
+ 	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+@@ -751,12 +750,12 @@ int nftnl_set_elem_snprintf_default(char *buf, size_t size,
+ 	return offset;
+ }
+ 
+-static int nftnl_set_elem_cmd_snprintf(char *buf, size_t size,
++static int nftnl_set_elem_cmd_snprintf(char *buf, size_t remain,
+ 				       const struct nftnl_set_elem *e,
+ 				       uint32_t cmd, uint32_t type,
+ 				       uint32_t flags)
+ {
+-	int ret, remain = size, offset = 0;
++	int ret, offset = 0;
+ 
+ 	switch(type) {
+ 	case NFTNL_OUTPUT_DEFAULT:
+diff --git a/src/table.c b/src/table.c
+index 32f1bf705f9ff..5835788dce2e2 100644
+--- a/src/table.c
++++ b/src/table.c
+@@ -367,11 +367,11 @@ static int nftnl_table_snprintf_default(char *buf, size_t size,
+ 			t->table_flags, t->use, (unsigned long long)t->handle);
+ }
+ 
+-static int nftnl_table_cmd_snprintf(char *buf, size_t size,
++static int nftnl_table_cmd_snprintf(char *buf, size_t remain,
+ 				    const struct nftnl_table *t, uint32_t cmd,
+ 				    uint32_t type, uint32_t flags)
+ {
+-	int ret, remain = size, offset = 0;
++	int ret, offset = 0;
+ 
+ 	switch (type) {
+ 	case NFTNL_OUTPUT_DEFAULT:
 -- 
 2.30.1
 
