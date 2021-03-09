@@ -2,66 +2,102 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.4 required=3.0 tests=BAYES_00,FORGED_MUA_MOZILLA,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DEA69C433E0
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Mar 2021 01:44:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6C9EC433DB
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Mar 2021 02:29:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9E1B465279
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Mar 2021 01:44:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A11F26528A
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Mar 2021 02:29:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229589AbhCIBn4 (ORCPT
+        id S229951AbhCIC3Y (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Mar 2021 20:43:56 -0500
-Received: from correo.us.es ([193.147.175.20]:35402 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230421AbhCIBnv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Mar 2021 20:43:51 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B01511C4383
-        for <netfilter-devel@vger.kernel.org>; Tue,  9 Mar 2021 02:43:50 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A0065DA704
-        for <netfilter-devel@vger.kernel.org>; Tue,  9 Mar 2021 02:43:50 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 95328DA78B; Tue,  9 Mar 2021 02:43:50 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 68F45DA704;
-        Tue,  9 Mar 2021 02:43:48 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 09 Mar 2021 02:43:48 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 41C8142DC700;
-        Tue,  9 Mar 2021 02:43:48 +0100 (CET)
-Date:   Tue, 9 Mar 2021 02:43:47 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Simon Ruderich <simon@ruderich.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH 0/3] Minor documentation improvements
-Message-ID: <20210309014347.GA27565@salvia>
-References: <cover.1615108958.git.simon@ruderich.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <cover.1615108958.git.simon@ruderich.org>
-User-Agent: Mozilla/5.0
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Mon, 8 Mar 2021 21:29:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44082 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230371AbhCIC3D (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 Mar 2021 21:29:03 -0500
+Received: from mail-pj1-x1033.google.com (mail-pj1-x1033.google.com [IPv6:2607:f8b0:4864:20::1033])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3233CC06174A;
+        Mon,  8 Mar 2021 18:29:03 -0800 (PST)
+Received: by mail-pj1-x1033.google.com with SMTP id kr3-20020a17090b4903b02900c096fc01deso4304753pjb.4;
+        Mon, 08 Mar 2021 18:29:03 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=TFmmV9TVaaNUuaMbsO9KBOUJCI3DKPpFnOVgzqi7U6w=;
+        b=apZSNVUIOKcBJTA2nDNXj8M/+Sm/J1CDcmtn4dh+G1TtfBQLVB1fCOy/VOwWVfJJrx
+         tj1oL1/oE1PiHygPm2ldmo2IsMxeMsAG8V/NzrxRlUoyv3vPYKPr1tb9GcYsHYaaOMW5
+         kvYBaAioNG8NEV+jhuDPtTLY7V134eJXP3WxpoD4bLvWgTf4XK0c4ozJakbj4ep0eOKX
+         /saUXnACQ+gITn188nVyPqs0DkKYA5jQ9BN+Mn7hiOt3ilzyxNrFYGGP7w78PtFEDxRz
+         n/bIng9BhhBr1aVYWUP2oWXotxybmvmNjN5JPPRI+4ouq3/h9wujb/+3xfKEeGEO4CPK
+         nUGg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=TFmmV9TVaaNUuaMbsO9KBOUJCI3DKPpFnOVgzqi7U6w=;
+        b=VPJCUExpO3l2zIZDBMpy8YkGdJ2ThV0FanvBWJfkfMnqfCtKrHuuaQOYnb62W1eI0W
+         sIwzeSYa4vAOF+Q8fiR4E+0TzbT3Bfk7/AzdUmM2V8+VD4kRKBrjJrA9J3a+2W/eVt+0
+         4Di56CAdrP5CtxYuik2BDU1zm3DSaiojtGxZsHJenFNSk513lR1vK1dw+VBRL+nUkf9p
+         CHWvkUu+qBiWCk9Nfeg4oOj/8WooFdGQHF+SoQmKfRVOkGqoUtHiexQLFF6DJ++cyflZ
+         tFTR23j2G/4p+IanbBFM6ZtvSisa7S/QbSBOl8QhWmuJJKVnI6Kng76Q+kH3v9drwAvh
+         nv+Q==
+X-Gm-Message-State: AOAM532tAxky0rptgpLl0YZyYKRt31+JGOrQ9k6gW0p1GMZ0okhQfP2R
+        VzfSLOmS9LK99Qa3WesFUjY=
+X-Google-Smtp-Source: ABdhPJxHdg8O1Qf3n6xTDOTyz8jan40qc0uZIfiNe7WhMW9NneFjE2BcgAn+r1LEfAAjcWzN5WYdrw==
+X-Received: by 2002:a17:90b:514:: with SMTP id r20mr2113884pjz.145.1615256942855;
+        Mon, 08 Mar 2021 18:29:02 -0800 (PST)
+Received: from localhost.localdomain ([45.135.186.97])
+        by smtp.gmail.com with ESMTPSA id k9sm662852pji.8.2021.03.08.18.28.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 08 Mar 2021 18:29:02 -0800 (PST)
+From:   Jia-Ju Bai <baijiaju1990@gmail.com>
+To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        roopa@nvidia.com, nikolay@nvidia.com, davem@davemloft.net,
+        kuba@kernel.org
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Jia-Ju Bai <baijiaju1990@gmail.com>
+Subject: [PATCH] net: bridge: fix error return code of do_update_counters()
+Date:   Mon,  8 Mar 2021 18:28:54 -0800
+Message-Id: <20210309022854.17904-1-baijiaju1990@gmail.com>
+X-Mailer: git-send-email 2.17.1
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Mar 07, 2021 at 10:51:33AM +0100, Simon Ruderich wrote:
-> Hello,
-> 
-> while reading the nft man page I noticed a few minor things which
-> should be improved by the following patches.
+When find_table_lock() returns NULL to t, no error return code of
+do_update_counters() is assigned.
+To fix this bug, ret is assigned with -ENOENT in this case.
 
-Applied, thanks.
+Fixes: 49facff9f925 ("netfilter: ebtables: split update_counters into two functions")
+Reported-by: TOTE Robot <oslab@tsinghua.edu.cn>
+Signed-off-by: Jia-Ju Bai <baijiaju1990@gmail.com>
+---
+ net/bridge/netfilter/ebtables.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index ebe33b60efd6..66c9e4077985 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -1256,8 +1256,10 @@ static int do_update_counters(struct net *net, const char *name,
+ 		return -ENOMEM;
+ 
+ 	t = find_table_lock(net, name, &ret, &ebt_mutex);
+-	if (!t)
++	if (!t) {
++		ret = -ENOENT;
+ 		goto free_tmp;
++	}
+ 
+ 	if (num_counters != t->private->nentries) {
+ 		ret = -EINVAL;
+-- 
+2.17.1
+
