@@ -2,64 +2,71 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.4 required=3.0 tests=BAYES_00,FORGED_MUA_MOZILLA,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D121C433E0
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Mar 2021 11:34:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB357C433E6
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Mar 2021 13:04:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 32C3E65253
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Mar 2021 11:34:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 807996527C
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Mar 2021 13:04:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229764AbhCILeP (ORCPT
+        id S230476AbhCINEF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 9 Mar 2021 06:34:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48630 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229980AbhCILeD (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 9 Mar 2021 06:34:03 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15E80C06174A;
-        Tue,  9 Mar 2021 03:34:03 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1lJacW-0005aP-OH; Tue, 09 Mar 2021 12:33:48 +0100
-Date:   Tue, 9 Mar 2021 12:33:48 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Mark Tomlinson <mark.tomlinson@alliedtelesis.co.nz>
-Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
-        subashab@codeaurora.org, netfilter-devel@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 3/3] netfilter: x_tables: Use correct memory barriers.
-Message-ID: <20210309113348.GE10808@breakpoint.cc>
-References: <20210308012413.14383-1-mark.tomlinson@alliedtelesis.co.nz>
- <20210308012413.14383-4-mark.tomlinson@alliedtelesis.co.nz>
+        Tue, 9 Mar 2021 08:04:05 -0500
+Received: from correo.us.es ([193.147.175.20]:51784 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230086AbhCINDo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 9 Mar 2021 08:03:44 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id E159B18CE7F
+        for <netfilter-devel@vger.kernel.org>; Tue,  9 Mar 2021 14:03:42 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CCB65DA844
+        for <netfilter-devel@vger.kernel.org>; Tue,  9 Mar 2021 14:03:42 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id C150ADA7E4; Tue,  9 Mar 2021 14:03:42 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8A12ADA78C
+        for <netfilter-devel@vger.kernel.org>; Tue,  9 Mar 2021 14:03:40 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 09 Mar 2021 14:03:40 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 6D92342DC703
+        for <netfilter-devel@vger.kernel.org>; Tue,  9 Mar 2021 14:03:40 +0100 (CET)
+Date:   Tue, 9 Mar 2021 14:03:40 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: Re: [HEADS UP] bugzilla.netfilter.org is under maintainance
+Message-ID: <20210309130340.GA1624@salvia>
+References: <20210308232606.GA24377@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20210308012413.14383-4-mark.tomlinson@alliedtelesis.co.nz>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20210308232606.GA24377@salvia>
+User-Agent: Mozilla/5.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Mark Tomlinson <mark.tomlinson@alliedtelesis.co.nz> wrote:
-> When a new table value was assigned, it was followed by a write memory
-> barrier. This ensured that all writes before this point would complete
-> before any writes after this point. However, to determine whether the
-> rules are unused, the sequence counter is read. To ensure that all
-> writes have been done before these reads, a full memory barrier is
-> needed, not just a write memory barrier. The same argument applies when
-> incrementing the counter, before the rules are read.
+On Tue, Mar 09, 2021 at 12:26:06AM +0100, Pablo Neira Ayuso wrote:
+> Hi!
 > 
-> Changing to using smp_mb() instead of smp_wmb() fixes the kernel panic
-> reported in cc00bcaa5899 (which is still present), while still
-> maintaining the same speed of replacing tables.
+> Short notice:
 > 
-> The smb_mb() barriers potentially slow the packet path, however testing
-> has shown no measurable change in performance on a 4-core MIPS64
-> platform.
+> bugzilla.netfilter.org is currently down / under maintainance, we're
+> expecting to bring it back soon.
+> 
+> I will keep you all posted with updates.
 
-Okay, thanks for testing.  I have no further feedback.
+Netfilter's bugzilla is back to operation.
+
+Thanks for your patience.
