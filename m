@@ -2,150 +2,204 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF4C2C433E0
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Mar 2021 10:48:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19548C433DB
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Mar 2021 10:54:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A14B065266
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Mar 2021 10:48:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C81DC6525D
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Mar 2021 10:54:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229793AbhCIKr5 (ORCPT
+        id S229515AbhCIKx7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 9 Mar 2021 05:47:57 -0500
-Received: from zucker.schokokeks.org ([178.63.68.96]:58217 "EHLO
+        Tue, 9 Mar 2021 05:53:59 -0500
+Received: from zucker.schokokeks.org ([178.63.68.96]:50921 "EHLO
         zucker.schokokeks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229815AbhCIKrk (ORCPT
+        with ESMTP id S229656AbhCIKxm (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 9 Mar 2021 05:47:40 -0500
-Received: from localhost (localhost [::1])
+        Tue, 9 Mar 2021 05:53:42 -0500
+Received: from blood-stain-child.wan.ruderich.org (localhost [::1])
   (AUTH: PLAIN simon@ruderich.org, TLS: TLSv1.3,256bits,TLS_AES_256_GCM_SHA384)
   by zucker.schokokeks.org with ESMTPSA
-  id 00000000000000EE.000000006047524B.0000754B; Tue, 09 Mar 2021 11:47:39 +0100
-Date:   Tue, 9 Mar 2021 11:47:39 +0100
+  id 00000000000000A9.00000000604753B5.000009A5; Tue, 09 Mar 2021 11:53:41 +0100
 From:   Simon Ruderich <simon@ruderich.org>
-To:     Frank Myhr <fmyhr@fhmtech.com>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [RFC PATCH] doc: use symbolic names for chain priorities
-Message-ID: <YEdSS3PRMF7WURDl@ruderich.org>
-References: <b1320180e5617ae9910848b7fc17daf9c3edca04.1615109258.git.simon@ruderich.org>
- <0a7f088c-f813-0425-8bec-d693d95a97a0@fhmtech.com>
- <YEW34W5oCspFnSt+@ruderich.org>
- <ced3e003-45c4-a39a-62a6-0e2f4e2abc47@fhmtech.com>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH] doc: use symbolic names for chain priorities
+Date:   Tue,  9 Mar 2021 11:53:30 +0100
+Message-Id: <568a5508e53d6e710c06f5a726fac0357e35a9bb.1615287064.git.simon@ruderich.org>
+X-Mailer: git-send-email 2.30.1
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512; protocol="application/pgp-signature"; boundary="=_zucker.schokokeks.org-30027-1615286859-0001-2"
-Content-Disposition: inline
-In-Reply-To: <ced3e003-45c4-a39a-62a6-0e2f4e2abc47@fhmtech.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+X-Mime-Autoconverted: from 8bit to 7bit by courier 1.0
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This is a MIME-formatted message.  If you see this text it means that your
-E-mail software does not support MIME-formatted messages.
+This replaces the numbers with the matching symbolic names with one
+exception: The NAT example used "priority 0" for the prerouting
+priority. This is replaced by "dstnat" which has priority -100 which is
+the new recommended priority.
 
---=_zucker.schokokeks.org-30027-1615286859-0001-2
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Also use spaces instead of tabs for consistency in lines which require
+updates.
 
-On Mon, Mar 08, 2021 at 04:46:34AM -0500, Frank Myhr wrote:
-> I'm glad. If you have suggestions for how to make the wiki clearer I'd lo=
-ve
-> to hear them. (Probably better to use the regular netfilter list, where
-> developers are also present, rather than this netfilter-devel list.)
+Signed-off-by: Simon Ruderich <simon@ruderich.org>
+---
 
-Hello Frank,
+Hello,
 
-I'm not sure what exactly tripped me up (or is still confusing
-me). I think it's mainly that the concepts of hooks (prerouting,
-postrouting, etc.), chain types (filter, nat, etc.) and netfilter
-hook priority was never really spelled out in a way that all the
-pieces fit together (for me). The fact that the order of
-priorities is not directly related to hooks made it worse (I
-didn't realize that the priorities only order entries for a
-single hook).
+this is mostly similar to my RFC patch with a slightly updated
+commit message and additional whitespace changes.
 
->> Wouldn't it also work to set for example
->> NF_IP_PRI_NAT_SRC to -400 because it only applies in postrouting
->> anyway?
->
-> Just to be clear, NF_IP_PRI_NAT_SRC is a named constant in the netfilter
-> codebase. So not something you can change unless you edit the source code
-> and compile it yourself. But you could create a base chain using "hook
-> postrouting priority -400" and add rules with "snat to" statements to said
-> chain, and this will happily snat your packets as you specify. Whether th=
-is
-> overall config does what you want, depends on what else is hooked to
-> postrouting, and their relative priorities. For example:
->
-> * Conntrack is almost always used. Using -400 for snat doesn't change its
-> relative order to NF_IP_PRI_CONNTRACK_HELPER and NF_IP_PRI_CONNTRACK_CONF=
-IRM
-> (both of which are also at postrouting hook).
->
-> * If you are also mangling packets (in ways other than snat) at postrouti=
-ng,
-> NF_IP_PRI_MANGLE =3D -150. By moving your snat from usual 100 to -400, yo=
-u've
-> re-ordered the mangle and snat processes -- unless you also use a
-> nonstandard priority for your base chain that does mangling.
->
-> * There's also NF_IP_PRI_SECURITY, maybe important if you're using SELINU=
-X.
-
-Thank you. That made it clearer for me.
-
-> General point: you should have a good reason for using priorities other t=
-han
-> the traditional ones.
-
-Of course.
-
->> What exactly is the difference between the chain types? Is it
->> relevant for netfilter or is it only for nftables so it knows
->> which rules to expect in the given chain?
->
-> I think you mean?:
-> https://wiki.nftables.org/wiki-nftables/index.php/Nftables_families
-
-No. I was talking about the chain types:
-https://wiki.nftables.org/wiki-nftables/index.php/Configuring_chains#Base_c=
-hain_types
-
-And I'm curious what's the difference in regard to netfilter
-between these types. They are all added to the same netfilter
-hook (e.g. prerouting can use filter, nat, etc. chains). Does
-netfilter see any difference or is this just relevant to
-nftables?
+Now that my confusion is mostly lifted this change looks fine to
+me.
 
 Regards
 Simon
---=20
-+ privacy is necessary
-+ using gnupg http://gnupg.org
-+ public key id: 0x92FEFDB7E44C32F9
 
---=_zucker.schokokeks.org-30027-1615286859-0001-2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Transfer-Encoding: 7bit
+ doc/nft.txt                |  4 ++--
+ doc/primary-expression.txt |  8 ++++----
+ doc/statements.txt         | 18 +++++++++---------
+ 3 files changed, 15 insertions(+), 15 deletions(-)
 
------BEGIN PGP SIGNATURE-----
+diff --git a/doc/nft.txt b/doc/nft.txt
+index e4f32179..55747036 100644
+--- a/doc/nft.txt
++++ b/doc/nft.txt
+@@ -319,7 +319,7 @@ nft --interactive
+ create table inet mytable
+ 
+ # add a new base chain: get input packets
+-add chain inet mytable myin { type filter hook input priority 0; }
++add chain inet mytable myin { type filter hook input priority filter; }
+ 
+ # add a single counter to the chain
+ add rule inet mytable myin counter
+@@ -487,7 +487,7 @@ nft add rule ip filter output ip daddr 192.168.0.0/24 accept
+ # nft -a list ruleset
+ table inet filter {
+ 	chain input {
+-		type filter hook input priority 0; policy accept;
++		type filter hook input priority filter; policy accept;
+ 		ct state established,related accept # handle 4
+ 		ip saddr 10.1.1.1 tcp dport ssh accept # handle 5
+ 	  ...
+diff --git a/doc/primary-expression.txt b/doc/primary-expression.txt
+index e87e8cc2..c24e2636 100644
+--- a/doc/primary-expression.txt
++++ b/doc/primary-expression.txt
+@@ -221,7 +221,7 @@ boolean (1 bit)
+ # exactly what you want).
+ table inet x {
+     chain y {
+-	type filter hook prerouting priority -150; policy accept;
++        type filter hook prerouting priority mangle; policy accept;
+         socket transparent 1 socket wildcard 0 mark set 0x00000001 accept
+     }
+ }
+@@ -229,7 +229,7 @@ table inet x {
+ # Trace packets that corresponds to a socket with a mark value of 15
+ table inet x {
+     chain y {
+-        type filter hook prerouting priority -150; policy accept;
++        type filter hook prerouting priority mangle; policy accept;
+         socket mark 0x0000000f nftrace set 1
+     }
+ }
+@@ -237,7 +237,7 @@ table inet x {
+ # Set packet mark to socket mark
+ table inet x {
+     chain y {
+-        type filter hook prerouting priority -150; policy accept;
++        type filter hook prerouting priority mangle; policy accept;
+         tcp dport 8080 mark set socket mark
+     }
+ }
+@@ -280,7 +280,7 @@ If no TTL attribute is passed, make a true IP header and fingerprint TTL true co
+ # Accept packets that match the "Linux" OS genre signature without comparing TTL.
+ table inet x {
+     chain y {
+-	type filter hook input priority 0; policy accept;
++        type filter hook input priority filter; policy accept;
+         osf ttl skip name "Linux"
+     }
+ }
+diff --git a/doc/statements.txt b/doc/statements.txt
+index 0973e5ef..c1fd5e55 100644
+--- a/doc/statements.txt
++++ b/doc/statements.txt
+@@ -216,7 +216,7 @@ The conntrack statement can be used to set the conntrack mark and conntrack labe
+ The ct statement sets meta data associated with a connection. The zone id
+ has to be assigned before a conntrack lookup takes place, i.e. this has to be
+ done in prerouting and possibly output (if locally generated packets need to be
+-placed in a distinct zone), with a hook priority of -300.
++placed in a distinct zone), with a hook priority of *raw* (-300).
+ 
+ Unlike iptables, where the helper assignment happens in the raw table,
+ the helper needs to be assigned after a conntrack entry has been
+@@ -253,11 +253,11 @@ ct mark set meta mark
+ ------------------------------
+ table inet raw {
+   chain prerouting {
+-      type filter hook prerouting priority -300;
++      type filter hook prerouting priority raw;
+       ct zone set iif map { "eth1" : 1, "veth1" : 2 }
+   }
+   chain output {
+-      type filter hook output priority -300;
++      type filter hook output priority raw;
+       ct zone set oif map { "eth1" : 1, "veth1" : 2 }
+   }
+ }
+@@ -278,7 +278,7 @@ packets.
+ 
+ Note that for this statement to be effective, it has to be applied to packets
+ before a conntrack lookup happens. Therefore, it needs to sit in a chain with
+-either prerouting or output hook and a hook priority of -300 or less.
++either prerouting or output hook and a hook priority of -300 (*raw*) or less.
+ 
+ See SYNPROXY STATEMENT for an example usage.
+ 
+@@ -420,8 +420,8 @@ If used then port mapping is generated based on a 32-bit pseudo-random algorithm
+ ---------------------
+ # create a suitable table/chain setup for all further examples
+ add table nat
+-add chain nat prerouting { type nat hook prerouting priority 0; }
+-add chain nat postrouting { type nat hook postrouting priority 100; }
++add chain nat prerouting { type nat hook prerouting priority dstnat; }
++add chain nat postrouting { type nat hook postrouting priority srcnat; }
+ 
+ # translate source addresses of all packets leaving via eth0 to address 1.2.3.4
+ add rule nat postrouting oif eth0 snat to 1.2.3.4
+@@ -482,21 +482,21 @@ this case the rule will match for both families.
+ -------------------------------------
+ table ip x {
+     chain y {
+-        type filter hook prerouting priority -150; policy accept;
++        type filter hook prerouting priority mangle; policy accept;
+         tcp dport ntp tproxy to 1.1.1.1
+         udp dport ssh tproxy to :2222
+     }
+ }
+ table ip6 x {
+     chain y {
+-       type filter hook prerouting priority -150; policy accept;
++       type filter hook prerouting priority mangle; policy accept;
+        tcp dport ntp tproxy to [dead::beef]
+        udp dport ssh tproxy to :2222
+     }
+ }
+ table inet x {
+     chain y {
+-        type filter hook prerouting priority -150; policy accept;
++        type filter hook prerouting priority mangle; policy accept;
+         tcp dport 321 tproxy to :ssh
+         tcp dport 99 tproxy ip to 1.1.1.1:999
+         udp dport 155 tproxy ip6 to [dead::beef]:smux
+-- 
+2.30.1
 
-iQIzBAEBCgAdFiEEO7rfWMMObpFkF3n0kv79t+RMMvkFAmBHUj0ACgkQkv79t+RM
-MvmQ7w//QeNyYInwbOSNxUc9wOfblpKQiFzxZokWI8kQxRimKqQ6Wte4QtrtyvfY
-754HQGHOjUPDqY2CbjpWqADDg+Eao0zEyGzFQrr006khcXXzVrt7ydPbBR1/HaCb
-y3XppWAn/Z9ZOJ2sUNssZ5ETp8HzCG50+X9JiMZrMB+vl9cL8Exf9Z3grRJ8ASiZ
-QZd62Ff03ZjViDULexxbNv8bf2j8P6P2dsWvKRBVmim6umR5jL1VtRm/SCQeOCoM
-wVlSa8wbBadX2c8jyPaX3/eR8OBugP8qCoElfJfLKKFJVvHm4It9502vK4XkBtBn
-7BOWncc/w3vSRprEvI44xq6OvKq+VQpP9ht4Hx2ZaymQ/ToLu5Ub9pQ6qu8OHDSF
-PLNEE6MtgT9f2k6xA/67G8tO+6hzaXsBjL5kX3jZQjkgGn+cfdhY1Sx7NkfRGumc
-cvOoxoncOuUyJUgaofhWaE5eCRtKWXONAb4D4zAmdhjB8fhVon4xEGk/LyyPjp6Y
-SpQ1K+uUxx8Vf/QVgTspk3bQySf005wSpHgH5nHpb0IENkdGtpOHltAsI5OMDd2H
-n5uqI47Sak5KJEc3EZZWpnJnUqkzuyeJjVemmUB/zrc40bVkp6J7lIc9D2G61xqK
-c8dnU4I0G01sB8pEb7TzAG43joyxerJs/Z6ZIUgT70hLt3irhCg=
-=m6Pa
------END PGP SIGNATURE-----
-
---=_zucker.schokokeks.org-30027-1615286859-0001-2--
