@@ -2,213 +2,180 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99869C4332B
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Mar 2021 15:03:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E2B4C433E0
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Mar 2021 15:10:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6AD5F6528A
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Mar 2021 15:03:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E0EB565272
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Mar 2021 15:10:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231857AbhCIPDX (ORCPT
+        id S231271AbhCIPKU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 9 Mar 2021 10:03:23 -0500
-Received: from sonic309-26.consmr.mail.ne1.yahoo.com ([66.163.184.152]:42141
-        "EHLO sonic309-26.consmr.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S231859AbhCIPCy (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 9 Mar 2021 10:02:54 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1615302173; bh=q3I4/eiRbkYu2f0b01JDmqntb1ptAUIyC93pJ+71rvk=; h=From:To:Cc:Subject:Date:In-Reply-To:References:From:Subject:Reply-To; b=fgUAcYfSFGqEAR/K4chnb0vzS7/Fib0OKjDBEvRPPLcyBGV+d3ZMpCtEHi7jiPeOt/kY+SSBAuLMX3Tn9DTx4jLwmSH+nTLKJDLKhglz0e7fBOm8mRgU7CX2YuHWMvAEjGJQrKZKYAvr+JiVGKAH56+suJnGlY2OFVR016AwtEfP+6qToLTbB9V4YEVLOb5bGGO7DEpoti54frCu9Z6vE0WpT9Yz8Chvlr0SA0QyhIKO6PWGBj9K8xWqGN8L7+XslCkkoO2aOQVUN3JF9T3ctOHXB4GNIMibH9mOAo0MQ3gWRBYh7/Pfeb1FxDnk7oWO1pOFWZCRYZnfCqHiJP+rNg==
-X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1615302173; bh=n4B2aMXEhl/rANrFIR28Yve3FPmx9aqcjy28vhfBYk3=; h=X-Sonic-MF:From:To:Subject:Date:From:Subject; b=m8r0fnjlXdejOMYfsf7nCKuLY3SNRiuLKEZK/fIKVeOLKAUzQ0hhnSr1MnQw7Akulhrr+hqBH5nm4OKtsarLLQFsZjJvLQNYc3q+TGcGsc0uJa+QFlMxtNSMNRFSvaN9/8B0eILkUlN0MSOPvyX0L6xNdtc2mLXlIJLBSQHAy3gfiKj3zmUGDalY16pQ7TkvnMlt/b51SDdP9QLLF6fm4Y/dF7tYNdVdZKx6f6ubLmqfNSd4GAp5ydddekYUTR9OkyhG5YfPVC5eLpPnBqVgxnxgUN1SnNeuwP8svWvXBwQvW/KT/gvTJFqA4uqCsbxKZNv6WMibe4jPWCuGThhdJA==
-X-YMail-OSG: MN8umH4VM1lX59sSB1DZsLSTWprG5qUFk4SCRa3raXs8gmFff5UkkQFG7uJYcvV
- U1mNgbGVXcFOnGrssTfUNtonVuMsfdagHsMN3EVHHBkqniJo0mtXqozqr4Rx1i.BJQSUc27uNpwr
- 8qfmTJtFmvlJvqwDGYWcXK18kR20kgwUP1TNnSWPUAcpbyooVh_VtD7YLmAxzHj.pd.uPZz9laRI
- fy_x1KndKJwVasKfYn3uXVCKZr59xTj1wRkN1onwzp3v3.D9Nso9t11ARg.TTNOyaB1T5kWQO6Vm
- pL0duI_qSyyqsEyEvYMBlwomjV188m90aj.X5AAa.KpTTJ3lATQTx3PGQC.zPg908AP_6xJbcwS2
- Sy8hnWctbobxo8hbm1dl0YHsVOZCa3gFqvPxV0S01Jp6W6n.mZkHYaXYfBZtsSoFMHybO_uRTH7I
- 7hg0WGgnrU9NHlDYupoXkhijnutgDLwo6aT_0xg2jBQs.8Xjta9LjaBqNzDc3901NViJ7d4wsX1K
- yg8TOlxHjYdPYSI4zw8qTBokD46tlPVqhCxIiu64WIkeU5dUgbURcbfcaEjCpVRbUmYcY5XgFuNj
- OCYxGoo5b1xMRfqE434EoDUrb1JqIFoK3AAnTDD.eE8dcqv9._x.XGusXJHujC8Mxip6zqUfrsCu
- D8RbJtDEGjdQnOOXLwk_lfj2yMWJjWkKO5P7MjdujM3b7KsCo2tPTZS6geGUABm_4lhl_xmv7s3O
- dHjirccc7d0HQ82LgnBQTAJU57ABS6CmkwiopG7UwMNa5CRB6PZLN29K4LNbfAF.Ckqzj3yKiF18
- Pu4.AdgKICUk_wedq52MHvAcnhzJgFy0s9KX3Kx68NLeJ4wnpQvj2oxHzlPVDB8m0wUymcZ3Dpad
- 9nKqWXF7MEukI.bc_zbXcQIrKKBqjrbUjdj.845aoVwHbuS7Qu761LEo1j0bt13._Af4xEL7RedW
- G9KnI2kDxFI0SmKtotXzBG9qay1eliZDlVfeROZnhJvY3AGbXDUYXcBeKwiUlui03hR11XjuLlgz
- g_G0UYnCCYBFiMO7J9fKYWZB28FrUtReKCwUezFtk6KgKFEM6Rf02jiO0DsBUHThF7Vc9VRQScpO
- oGqaCEsYEd14Xdb74lKarSJsh5m1v1j9jd5LDKo2nkl.6EHdOqQZnq8i3smG.3HcC1alIKWmEodh
- 103bpYGpo.Y2sr1zFenTQjJ60IKX6wig2D0BR1cMlH3U0dIvHbawVnj.IchKcn7pUBXkTdyQNW8E
- qcFH1TvZ7o_IME67.ooR3UtI91QMEvLyrCcEWRhBjsmGyhmpY2Juv3eDjeCnJG2zzXPzz4lBUaDp
- BqLgRJTSWIO8K3cu1gGHFI4bWD3ONg4pZCQoCn8YuJO.Gl4a3bfmwWheJv53m97wuWQ8FlIUIkx2
- 9ptudzTQPXo0RSeK1NkVfpRU3r.nDzgyW6x6H7ULqcI_8XuJ8zP.IeLBg72A..drUh_GuroXGbyS
- _RKHiZ5_ooG9x9EuGbsMOJMXhu5WM4HwTaXg35bYb5opdKVtZX.jNIe2OmWiNEQeP64BlMy5MciN
- SBsGIQ3.NZjoQbAnyddSo8GfQXKUbY7Gyt9VCWgM7.jDBuhIuSCNi_WeQercIcmmUMqMT3BRDg7I
- tXouJH8PXIOq4eDVI3L934JiU0Y7QX0axmzYi7RvQX3o1zVenquVv5zK3SD3OgUA.JpVwJvpFPBc
- E1zH1om9Dxy399cwLrxZQXENgt.AUHKXtOHcpjs_6wu6rZtFa70dUg7UQsmsCKNlVlQ4bVh4FxbD
- 3OHFFwt9wJHbcBSWVNiND5QQPwGxF6B5STkthxqkm9X8P72o6AinSwKebfmUscvE_MGwlaEJ0bhs
- C6A0hqSVKDpXW17f0edNSz7LcepUxZoy7nwo6pw6z0ykS9hM49CIO8jdnmia5nOhooswu1BLTx57
- fBIauhdukx5ZgkLURlRNiB09Vc8r8Lnyljkj5prYjAb.bcT.6ZoUYf7mTI2c3Wdf7TDufEhKghw7
- tezx5XecIuZVI4esWK_bvBwG3aJ9DDR1IeObDD91ZFeuf4pCbZMdGtt0bEGwCJK5Zaq96aYMM5k7
- kWxYXRL260IRDEQ8a8ItisCnjqt6mo8I1MOizQXUeVt0sODniG9AgGvy67BZMwaU6l2g2Nk.tQW3
- pu1QfTT8lxAS7r1CgNjiTBtGnRaj.a2N1Ao5Yahmrb_ILWgNANEIAW4_CMqQBw34QYnVDl3wMjN9
- k_WuzY_VWYzZvpU_BOA8UtLUWG2_0IYwGMC2nUFegx3tt3rdywLqr3dOtjQt_kKlTigCPUOf8NGK
- 7uPGMw1GapsL5apyU1rzzr3RWXhI0iWtua12mllm8Tu1CQy9xPBi6G2Krw5.rbIjcMGZNPvINWDB
- Ruc8OczugfpD7Jqoqq2tWLs_a0id3_AS1fIyECzH5Ca3jX5MKQwzAVxHVM3s4BGP60pXW1d3F92i
- y8gEsvFZnMr8lv_sijfJhRFMfhMlQXKLH_vR3GfOyqKOMhn5A0Rm9DyhXzc50eV4RBy.5dTh1H2V
- lc0BuB4Au8ZTnU17JioYGLeZIPD.2aUB5Lg3Px.sAPC.RQxQzrYvOKk4YQyHIImUM43Q5z1xr2GK
- 5aLPYTtut5uIFeduGSXUzXWpiz1YSQGmR5q6FSJCV_BgdyUr1JgTdzQS0ilb_b0qNGzJb2j9cnPM
- l2V8KjKXd95C0ZwZYBS9VfNHQWU9mHk8ly4oUDLMtM2ueBFWpa_AYWSponI_2vU_JfdPOHe48h1x
- V_PTZAkwc53yrEUizgbZXG69ZKfq_KX2hVho_6.uoPzQfvAD2qsqGOa0L4RMjsz1KCkklCPniPXu
- aagXoAquTmzwIhc0GX8tHmgCb5qzp.TALy6lsZ0qqGWUv3eYycUdR23rD9ghSI.knmkM1YhFWRwq
- awnuNgoBJoNxeR84ZtT1dYlVfyMVC_KcJohY9lNulo60aB6hWwG6zTkBfI.uaw4IPPSJxKl9MRt0
- R3DKVRCXbKyf8Cij8LSEpxZKj6ZaOPqI4dk.k_gunXOojNDKejSwDY42hZZmqN3kXjcO5dSmljRG
- tyoKc6yfuBByr7y1F42ju.OtrTT6JTXr4M8haz6lFyluY62zrr_Lx.CRrbmsb8EDqjYe2XNMft1g
- m3QntwndazmROZUxX1TRJQ4iA_k3rYVg6isLPx.Mcw3A8ZWggCiCo9JUtCQOLrfTt01kuv.uPuUP
- uLkeQMGmLdE28jso7.wuRdq5CRQAd8dCE8qDLeSHJlswpsYHxGg9RkXvdjRCh8VC4Tzijsuus2gu
- w4fKpXwS6yp2pHOZSlAY7BtaWSZz86.7WfZifH3C_GgcrSSKh6aoRkXN2dX76QmxwG.zhZQ--
-X-Sonic-MF: <casey@schaufler-ca.com>
-Received: from sonic.gate.mail.ne1.yahoo.com by sonic309.consmr.mail.ne1.yahoo.com with HTTP; Tue, 9 Mar 2021 15:02:53 +0000
-Received: by smtp412.mail.ne1.yahoo.com (VZM Hermes SMTP Server) with ESMTPA ID 0b0b60e1a865012f293c98f03ce575b1;
-          Tue, 09 Mar 2021 15:02:48 +0000 (UTC)
-From:   Casey Schaufler <casey@schaufler-ca.com>
-To:     casey.schaufler@intel.com, jmorris@namei.org,
-        linux-security-module@vger.kernel.org, selinux@vger.kernel.org
-Cc:     casey@schaufler-ca.com, linux-audit@redhat.com,
-        keescook@chromium.org, john.johansen@canonical.com,
-        penguin-kernel@i-love.sakura.ne.jp, paul@paul-moore.com,
-        sds@tycho.nsa.gov, linux-kernel@vger.kernel.org,
+        Tue, 9 Mar 2021 10:10:20 -0500
+Received: from mail-eopbgr80129.outbound.protection.outlook.com ([40.107.8.129]:52223
+        "EHLO EUR04-VI1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S231785AbhCIPJu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 9 Mar 2021 10:09:50 -0500
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=TePCaO1Q+ukwA0ljfDjyEub1y0UuR4C/dRT2KL2JXVHEOGaIPWXYHnfR5QkreoWV7bYdwKto1v9f24QRKTeZ4BSIGtNs/Td7P0nRlVkxRfU35l0vvAvNIwg1C8E2Po/QBTWJZd5KXHGTdJF7BXHgx3ACLNrU+In7kp0xMfqHE3rWAXTLCONc60qNZ3UwXwLz+C/+E21DCLDRdCDiQDwKMAENTAzO7Wl8jbbayzm+dQ9ztCkDi0gEGnXJCpFurd2+d7ZJcALKZ+/+23Lbdetwt8Aw2+xKkZblJaPbMF82jxQod+x9JLHrxAkYU0glz+uFDkD7vlnvdYGhTRlJtMMKyg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=ZBNmX0TBMQkN+Iw4nQ0/aIxFIRN8Mzf0iWrqCP6cp44=;
+ b=UeRsPOIbHVmvXONZiJZZolNccuqYXnEvvt2+H23YwW2HcjeVvNbhXZ3X2v+Io+LMtBUzFrvBlJ2ddFwWwiJwSTToravUMwZYX6JxUKOjJIeKPz4N7IBGRhOkUaeiuxTNcd026x7DLCHsFon7phiqa6e4knErgdv6x/kveAuDWeDumRpS707QaFkNRH1hpau49bLvo8+/H6EYz34DjWDalwVyq5l2EH0wAWPAjRvHbJNLeAoEl3w9t5/E6Zi8K57jXoQ7wmjofykGXAmzH/hZdo7+65nCofR3UYAcB1GbsoqwUtEgBUUg4UsZ3LldQEq1aqj07pLghBegJhawAX9z9A==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=virtuozzo.com; dmarc=pass action=none
+ header.from=virtuozzo.com; dkim=pass header.d=virtuozzo.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=virtuozzo.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=ZBNmX0TBMQkN+Iw4nQ0/aIxFIRN8Mzf0iWrqCP6cp44=;
+ b=euV1s9RLsrK73Ro/7EpOwTVOj2/3wFrT0P3LKqjEiiNt08RbgGP00I389rhaioFoEXQtpzZv6MH9cmeWMg3GS0OtGpxffri47MMVfCoA8PFhCcFK81vpjZ+tTPgQmBLexlSLwHDXyORRZ9B+C1cNfu7g70fgBgYAiwao+ZlBAhk=
+Authentication-Results: vger.kernel.org; dkim=none (message not signed)
+ header.d=none;vger.kernel.org; dmarc=none action=none
+ header.from=virtuozzo.com;
+Received: from VE1PR08MB4989.eurprd08.prod.outlook.com (2603:10a6:803:114::19)
+ by VI1PR0801MB1631.eurprd08.prod.outlook.com (2603:10a6:800:5c::16) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3890.20; Tue, 9 Mar
+ 2021 15:09:47 +0000
+Received: from VE1PR08MB4989.eurprd08.prod.outlook.com
+ ([fe80::d1ec:aee1:885c:ad1a]) by VE1PR08MB4989.eurprd08.prod.outlook.com
+ ([fe80::d1ec:aee1:885c:ad1a%5]) with mapi id 15.20.3912.027; Tue, 9 Mar 2021
+ 15:09:47 +0000
+From:   Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     "Signed-off-by : Florian Westphal" <fw@strlen.de>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: [PATCH v25 18/25] LSM: security_secid_to_secctx in netlink netfilter
-Date:   Tue,  9 Mar 2021 06:42:36 -0800
-Message-Id: <20210309144243.12519-19-casey@schaufler-ca.com>
+        Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+Subject: [PATCH nft] nftables: xt: fix misprint in nft_xt_compatible_revision
+Date:   Tue,  9 Mar 2021 18:09:15 +0300
+Message-Id: <20210309150915.8575-1-ptikhomirov@virtuozzo.com>
 X-Mailer: git-send-email 2.29.2
-In-Reply-To: <20210309144243.12519-1-casey@schaufler-ca.com>
-References: <20210309144243.12519-1-casey@schaufler-ca.com>
-MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [81.200.17.122]
+X-ClientProxiedBy: AM0PR02CA0202.eurprd02.prod.outlook.com
+ (2603:10a6:20b:28f::9) To VE1PR08MB4989.eurprd08.prod.outlook.com
+ (2603:10a6:803:114::19)
+MIME-Version: 1.0
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from localhost.localdomain (81.200.17.122) by AM0PR02CA0202.eurprd02.prod.outlook.com (2603:10a6:20b:28f::9) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3912.17 via Frontend Transport; Tue, 9 Mar 2021 15:09:45 +0000
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 36e7d1ab-10dd-42ec-6af4-08d8e30d6059
+X-MS-TrafficTypeDiagnostic: VI1PR0801MB1631:
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS: <VI1PR0801MB1631512321814C26D3620E48B7929@VI1PR0801MB1631.eurprd08.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:8273;
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: GrYf2f5/USGpKnYN1yc0MdlQpquCFPs0nsDhSyM0rE4MD1qUcHnlYDJhle1X3K0sOmQjC207NPYsixeTnQHUo8+rZtLA90oo4oo/HpVaqk6YASpQI7ANDqtyAfUuQtsKWJSWp4R5elmI6UIv7MvID6eA4eMWwL+YxU9OGaIBXW2kPaDWwpdJnCdff7Jq1LnVAUA/1DrP0XMF3DG3LcF2Ci64RRkExr2+WtuaMOmne+euRYKCIu8PvHNLGNREJpsZOotnXUvK7wzvRxZISZS/7akNC8UusvfybkVt0iMlhj24F8TQc635YTVMpiLxnLAHb9y1zfsRa5wOAg0ZrMwrC9cFOMZWNJlZLefcrXZuLlJsrwsSMwpiHVGLZsfbOJiYfuVyYbgaLW+4V2H85VjwwpqsRrF25iQnpMXuvWZSoz1zSe0V0dvU5yal4dehZTJghfw4E3+2OSRik3Jrm/NKF9EmUlCxZyWd+GvwhZASFp2alDFvYrjp9Yj9WB++12tvEaaU+N6CLeTUqafJVzAJTq3NEwkzJXJLekVj5DS/RAREEnh5Bkoyg+W2ZluLtRZogPr78D6NR1vSk/j373BGFEWOeUJtUjLEs3EinTTzCODZ2hlUF1yj2al3xR7FS0bBGDAwyJTyvWlxQnFKqXA4fw==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:VE1PR08MB4989.eurprd08.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(376002)(366004)(396003)(136003)(346002)(39850400004)(186003)(69590400012)(6486002)(2906002)(26005)(2616005)(956004)(16526019)(52116002)(966005)(107886003)(36756003)(478600001)(6506007)(54906003)(6916009)(4326008)(6666004)(66556008)(66476007)(66946007)(5660300002)(1076003)(83380400001)(6512007)(8936002)(86362001)(8676002)(316002);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?eRXQg1bi37yRWfAAMtrTatszRkBMo9xi0ccYLKiLlnfa96U98nwk1JJaWRpd?=
+ =?us-ascii?Q?5PJxdTL4gzP4DPPBpsOf/rZQbJ4HyBGgSAOFAVt2SMXdYNIa+5fmawmVZO6z?=
+ =?us-ascii?Q?LnWya5peQKhfZQReanMnYBFSI7T+9stG+xNkTx9W0MAkTqzgF78A4mtkFVVC?=
+ =?us-ascii?Q?wwhNsc+N9ojYS4NpFH7Q6ODK+HXQ0yK3B/miFi1uIkah/xI2hXUR24aJ9iHq?=
+ =?us-ascii?Q?9ofzIQRnc+eKVMQMi3i6hdXb/9ulc3QaA9Marf/Y32l/eUn9WxK9hb0dSa8P?=
+ =?us-ascii?Q?A+XpgdexoIdbulp98eEZ9MZAZ2qWzmWq6kjitX10MGzjSBdMSJfFZvbF806t?=
+ =?us-ascii?Q?GEdJVuTd9/XS6UzUjRY5jZobyn8wM7PD3BOgnCVml6mPc9+uCDwXZE+XoPgv?=
+ =?us-ascii?Q?ltot2s59J/IIPrcW6AoOLpIlhO/b4vm3+1y9/HDbfyTSDL4l8mGyTWqtqAMr?=
+ =?us-ascii?Q?B96+LxIO0kjKOm/7+acVkzeYQOj4hGJC63H/NFM5i74bm1CZBypyqFTpd3ZD?=
+ =?us-ascii?Q?7ASilxQNqY4r6pylKq+tbUQx+Da3/PypxZxJRJfdI6qRnEg2jQG4z/YaBwoS?=
+ =?us-ascii?Q?E8jMSu5sCMXhOcXTgIVBKyf60s/sS+8iJIB16f/6vnhl/OGRyqSLx8Vk9C27?=
+ =?us-ascii?Q?taoh/erh8WeC2t2HlI8Uaj+VGT31lBeLPj1XDatxWmmSH7s9HEIw+GATvL0b?=
+ =?us-ascii?Q?1lE/eFp9YJ6+P6TMVoxgmHPMqCpJNyGODDbZOCQbYSkhq9+fmnkNntrySde1?=
+ =?us-ascii?Q?pPduYg2w75z0GbFR49rd10CRV83bsaF8GFSvd2Alo+seM1Rxuwe+rFAN+hFk?=
+ =?us-ascii?Q?kF/kjH9fIrc4HixwtCGrsFZgmSrvfD8PQYO6MdANGPgTbDbljUJkMUMU6X2S?=
+ =?us-ascii?Q?GIkkStF3a6PjwQZ440dTJAEqipkHr9bceZBaworQQmN4mmMFZZw9Kw1byiJK?=
+ =?us-ascii?Q?OX0yIxolr7WwYJ1lmcox2Ur/XLutC91pwGPdUlyjjZQMsJZUPtI63A5A267f?=
+ =?us-ascii?Q?BzZq+sMZJTaf0R3/tLVZo4IeCT5YIBWSoaYvLgVZof2si5R03eVBR0VlOdoy?=
+ =?us-ascii?Q?YM5UhA9d5aNUNp89ZzRMCC1MT35lqZLcvwgPDq9IN/aaRnwZP7CDPEYkYK6q?=
+ =?us-ascii?Q?R6Vyhj1iiYZr3Ix7FBDKhZNPDb8LGD3Xr9lhQV7n3m0UUaknWHBQUDWkzZ8p?=
+ =?us-ascii?Q?pNRAvnWjrY8FxYMqewxxeLA1QgET15vYkkV8APEtdr19Jo7uEEDeaDbA1PPA?=
+ =?us-ascii?Q?fWmeefGP8iWZJHcl7zzi3303vhDbDsNTdUnIxI/AOrjpYgvomBhpzzIJ/rYX?=
+ =?us-ascii?Q?dYflqmX9vgDfdsRozfptwai8?=
+X-OriginatorOrg: virtuozzo.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 36e7d1ab-10dd-42ec-6af4-08d8e30d6059
+X-MS-Exchange-CrossTenant-AuthSource: VE1PR08MB4989.eurprd08.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Mar 2021 15:09:47.3502
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 0bc7f26d-0264-416e-a6fc-8352af79c58f
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 5Mwf27niPXDh+Wp4SgIhpeWF/Qfq4MPzSH4DEiX8ebRXZ0BVc6P7g+X4EvlmoAaA00eJuRncYIRSsmlCPVLVQJKVNWtu/U7grEl9wrgXJIw=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR0801MB1631
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Change netlink netfilter interfaces to use lsmcontext
-pointers, and remove scaffolding.
+The rev variable is used here instead of opt obviously by mistake.
+Please see iptables:nft_compatible_revision() for an example how it
+should be.
 
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: John Johansen <john.johansen@canonical.com>
-Acked-by: Stephen Smalley <sds@tycho.nsa.gov>
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
-Cc: netdev@vger.kernel.org
-Cc: netfilter-devel@vger.kernel.org
+This breaks revision compatibility checks completely when reading
+compat-target rules from nft utility. That's why nftables can't work on
+"old" kernels which don't support new revisons. That's a problem for
+containers.
+
+E.g.: 0 and 1 is supported but not 2:
+https://git.sw.ru/projects/VZS/repos/vzkernel/browse/net/netfilter/xt_nat.c#111
+
+Reproduce of the problem on Virtuozzo 7 kernel
+3.10.0-1160.11.1.vz7.172.18 in centos 8 container:
+
+  iptables-nft -t nat -N TEST
+  iptables-nft -t nat -A TEST -j DNAT --to-destination 172.19.0.2
+  nft list ruleset > nft.ruleset
+  nft -f - < nft.ruleset
+  #/dev/stdin:19:67-81: Error: Range has zero or negative size
+  #		meta l4proto tcp tcp dport 81 counter packets 0 bytes 0 dnat to 3.0.0.0-0.0.0.0
+  #		                                                                ^^^^^^^^^^^^^^^
+
+  nft -v
+  #nftables v0.9.3 (Topsy)
+  iptables-nft -v
+  #iptables v1.8.7 (nf_tables)
+
+Kernel returns ip range in rev 0 format:
+
+  crash> p *((struct nf_nat_ipv4_multi_range_compat *) 0xffff8ca2fabb3068)
+  $5 = {
+    rangesize = 1,
+    range = {{
+        flags = 3,
+        min_ip = 33559468,
+        max_ip = 33559468,
+
+But nft reads this as rev 2 format (nf_nat_range2) which does not have
+rangesize, and thus flugs 3 is treated as ip 3.0.0.0, which is wrong and
+can't be restored later.
+
+(Should probably be the same on Centos 7 kernel 3.10.0-1160.11.1)
+
+Signed-off-by: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
 ---
- net/netfilter/nfnetlink_queue.c | 37 +++++++++++++--------------------
- 1 file changed, 14 insertions(+), 23 deletions(-)
+ src/xt.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 449c2c7c7b27..56784592c820 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -301,15 +301,13 @@ static int nfqnl_put_sk_uidgid(struct sk_buff *skb, struct sock *sk)
- 	return -1;
- }
+diff --git a/src/xt.c b/src/xt.c
+index f39acf30..789de992 100644
+--- a/src/xt.c
++++ b/src/xt.c
+@@ -321,7 +321,7 @@ static int nft_xt_compatible_revision(const char *name, uint8_t rev, int opt)
+ 	struct nfgenmsg *nfg;
+ 	int ret = 0;
  
--static u32 nfqnl_get_sk_secctx(struct sk_buff *skb, char **secdata)
-+static void nfqnl_get_sk_secctx(struct sk_buff *skb, struct lsmcontext *context)
- {
--	u32 seclen = 0;
- #if IS_ENABLED(CONFIG_NETWORK_SECMARK)
- 	struct lsmblob blob;
--	struct lsmcontext context = { };
- 
- 	if (!skb || !sk_fullsock(skb->sk))
--		return 0;
-+		return;
- 
- 	read_lock_bh(&skb->sk->sk_callback_lock);
- 
-@@ -318,14 +316,12 @@ static u32 nfqnl_get_sk_secctx(struct sk_buff *skb, char **secdata)
- 		 * blob. security_secid_to_secctx() will know which security
- 		 * module to use to create the secctx.  */
- 		lsmblob_init(&blob, skb->secmark);
--		security_secid_to_secctx(&blob, &context);
--		*secdata = context.context;
-+		security_secid_to_secctx(&blob, context);
- 	}
- 
- 	read_unlock_bh(&skb->sk->sk_callback_lock);
--	seclen = context.len;
- #endif
--	return seclen;
-+	return;
- }
- 
- static u32 nfqnl_get_bridge_size(struct nf_queue_entry *entry)
-@@ -398,12 +394,10 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	struct net_device *indev;
- 	struct net_device *outdev;
- 	struct nf_conn *ct = NULL;
-+	struct lsmcontext context = { };
- 	enum ip_conntrack_info ctinfo;
- 	struct nfnl_ct_hook *nfnl_ct;
- 	bool csum_verify;
--	struct lsmcontext scaff; /* scaffolding */
--	char *secdata = NULL;
--	u32 seclen = 0;
- 
- 	size = nlmsg_total_size(sizeof(struct nfgenmsg))
- 		+ nla_total_size(sizeof(struct nfqnl_msg_packet_hdr))
-@@ -471,9 +465,9 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	}
- 
- 	if ((queue->flags & NFQA_CFG_F_SECCTX) && entskb->sk) {
--		seclen = nfqnl_get_sk_secctx(entskb, &secdata);
--		if (seclen)
--			size += nla_total_size(seclen);
-+		nfqnl_get_sk_secctx(entskb, &context);
-+		if (context.len)
-+			size += nla_total_size(context.len);
- 	}
- 
- 	skb = alloc_skb(size, GFP_ATOMIC);
-@@ -606,7 +600,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	    nfqnl_put_sk_uidgid(skb, entskb->sk) < 0)
- 		goto nla_put_failure;
- 
--	if (seclen && nla_put(skb, NFQA_SECCTX, seclen, secdata))
-+	if (context.len &&
-+	    nla_put(skb, NFQA_SECCTX, context.len, context.context))
- 		goto nla_put_failure;
- 
- 	if (ct && nfnl_ct->build(skb, ct, ctinfo, NFQA_CT, NFQA_CT_INFO) < 0)
-@@ -634,10 +629,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	}
- 
- 	nlh->nlmsg_len = skb->len;
--	if (seclen) {
--		lsmcontext_init(&scaff, secdata, seclen, 0);
--		security_release_secctx(&scaff);
--	}
-+	if (context.len)
-+		security_release_secctx(&context);
- 	return skb;
- 
- nla_put_failure:
-@@ -645,10 +638,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	kfree_skb(skb);
- 	net_err_ratelimited("nf_queue: error creating packet message\n");
- nlmsg_failure:
--	if (seclen) {
--		lsmcontext_init(&scaff, secdata, seclen, 0);
--		security_release_secctx(&scaff);
--	}
-+	if (context.len)
-+		security_release_secctx(&context);
- 	return NULL;
- }
- 
+-	switch (rev) {
++	switch (opt) {
+ 	case IPT_SO_GET_REVISION_MATCH:
+ 		family = NFPROTO_IPV4;
+ 		type = 0;
 -- 
 2.29.2
 
