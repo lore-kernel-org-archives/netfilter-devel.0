@@ -7,48 +7,48 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49E3AC28D15
-	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Mar 2021 00:37:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90404C433DB
+	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Mar 2021 00:37:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1B15364FC0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Mar 2021 00:37:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5F1F064FD7
+	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Mar 2021 00:37:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230035AbhCKAgt (ORCPT
+        id S229675AbhCKAgo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 10 Mar 2021 19:36:49 -0500
-Received: from correo.us.es ([193.147.175.20]:50146 "EHLO mail.us.es"
+        Wed, 10 Mar 2021 19:36:44 -0500
+Received: from correo.us.es ([193.147.175.20]:50056 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230063AbhCKAg1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 10 Mar 2021 19:36:27 -0500
+        id S229791AbhCKAgS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 10 Mar 2021 19:36:18 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B403612E832
-        for <netfilter-devel@vger.kernel.org>; Thu, 11 Mar 2021 01:36:26 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 9C59612E82D
+        for <netfilter-devel@vger.kernel.org>; Thu, 11 Mar 2021 01:36:17 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A5DC2DA791
-        for <netfilter-devel@vger.kernel.org>; Thu, 11 Mar 2021 01:36:26 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8CEEFDA704
+        for <netfilter-devel@vger.kernel.org>; Thu, 11 Mar 2021 01:36:17 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 98249DA78E; Thu, 11 Mar 2021 01:36:26 +0100 (CET)
+        id 81D42DA78A; Thu, 11 Mar 2021 01:36:17 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3C723DA722;
-        Thu, 11 Mar 2021 01:36:24 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2CFB6DA704;
+        Thu, 11 Mar 2021 01:36:15 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 11 Mar 2021 01:36:24 +0100 (CET)
+ Thu, 11 Mar 2021 01:36:15 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 06B4442DC6E2;
-        Thu, 11 Mar 2021 01:36:23 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPSA id EE4CB42DC6E2;
+        Thu, 11 Mar 2021 01:36:14 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         Felix Fietkau <nbd@nbd.name>
-Subject: [PATCH net-next 17/23] netfilter: flowtable: bridge vlan hardware offload and switchdev
-Date:   Thu, 11 Mar 2021 01:35:58 +0100
-Message-Id: <20210311003604.22199-18-pablo@netfilter.org>
+Subject: [PATCH net-next 05/23] net: ppp: resolve forwarding path for bridge pppoe devices
+Date:   Thu, 11 Mar 2021 01:35:46 +0100
+Message-Id: <20210311003604.22199-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20210311003604.22199-1-pablo@netfilter.org>
 References: <20210311003604.22199-1-pablo@netfilter.org>
@@ -61,145 +61,127 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Felix Fietkau <nbd@nbd.name>
 
-The switch might have already added the VLAN tag through PVID hardware
-offload. Keep this extra VLAN in the flowtable but skip it on egress.
+Pass on the PPPoE session ID, destination hardware address and the real
+device.
 
 Signed-off-by: Felix Fietkau <nbd@nbd.name>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netdevice.h             | 1 +
- include/net/netfilter/nf_flow_table.h | 8 +++++---
- net/bridge/br_device.c                | 1 +
- net/bridge/br_vlan.c                  | 2 ++
- net/netfilter/nf_flow_table_core.c    | 2 ++
- net/netfilter/nf_flow_table_offload.c | 6 +++++-
- net/netfilter/nft_flow_offload.c      | 5 +++++
- 7 files changed, 21 insertions(+), 4 deletions(-)
+ drivers/net/ppp/ppp_generic.c | 22 ++++++++++++++++++++++
+ drivers/net/ppp/pppoe.c       | 23 +++++++++++++++++++++++
+ include/linux/netdevice.h     |  2 ++
+ include/linux/ppp_channel.h   |  3 +++
+ 4 files changed, 50 insertions(+)
 
+diff --git a/drivers/net/ppp/ppp_generic.c b/drivers/net/ppp/ppp_generic.c
+index d445ecb1d0c7..930e49ef15f6 100644
+--- a/drivers/net/ppp/ppp_generic.c
++++ b/drivers/net/ppp/ppp_generic.c
+@@ -1560,12 +1560,34 @@ static void ppp_dev_priv_destructor(struct net_device *dev)
+ 		ppp_destroy_interface(ppp);
+ }
+ 
++static int ppp_fill_forward_path(struct net_device_path_ctx *ctx,
++				 struct net_device_path *path)
++{
++	struct ppp *ppp = netdev_priv(ctx->dev);
++	struct ppp_channel *chan;
++	struct channel *pch;
++
++	if (ppp->flags & SC_MULTILINK)
++		return -EOPNOTSUPP;
++
++	if (list_empty(&ppp->channels))
++		return -ENODEV;
++
++	pch = list_first_entry(&ppp->channels, struct channel, clist);
++	chan = pch->chan;
++	if (!chan->ops->fill_forward_path)
++		return -EOPNOTSUPP;
++
++	return chan->ops->fill_forward_path(ctx, path, chan);
++}
++
+ static const struct net_device_ops ppp_netdev_ops = {
+ 	.ndo_init	 = ppp_dev_init,
+ 	.ndo_uninit      = ppp_dev_uninit,
+ 	.ndo_start_xmit  = ppp_start_xmit,
+ 	.ndo_do_ioctl    = ppp_net_ioctl,
+ 	.ndo_get_stats64 = ppp_get_stats64,
++	.ndo_fill_forward_path = ppp_fill_forward_path,
+ };
+ 
+ static struct device_type ppp_type = {
+diff --git a/drivers/net/ppp/pppoe.c b/drivers/net/ppp/pppoe.c
+index d7f50b835050..6c72d74827b2 100644
+--- a/drivers/net/ppp/pppoe.c
++++ b/drivers/net/ppp/pppoe.c
+@@ -972,8 +972,31 @@ static int pppoe_xmit(struct ppp_channel *chan, struct sk_buff *skb)
+ 	return __pppoe_xmit(sk, skb);
+ }
+ 
++static int pppoe_fill_forward_path(struct net_device_path_ctx *ctx,
++				   struct net_device_path *path,
++				   const struct ppp_channel *chan)
++{
++	struct sock *sk = (struct sock *)chan->private;
++	struct pppox_sock *po = pppox_sk(sk);
++	struct net_device *dev = po->pppoe_dev;
++
++	if (sock_flag(sk, SOCK_DEAD) ||
++	    !(sk->sk_state & PPPOX_CONNECTED) || !dev)
++		return -1;
++
++	path->type = DEV_PATH_PPPOE;
++	path->encap.proto = htons(ETH_P_PPP_SES);
++	path->encap.id = be16_to_cpu(po->num);
++	memcpy(path->encap.h_dest, po->pppoe_pa.remote, ETH_ALEN);
++	path->dev = ctx->dev;
++	ctx->dev = dev;
++
++	return 0;
++}
++
+ static const struct ppp_channel_ops pppoe_chan_ops = {
+ 	.start_xmit = pppoe_xmit,
++	.fill_forward_path = pppoe_fill_forward_path,
+ };
+ 
+ static int pppoe_recvmsg(struct socket *sock, struct msghdr *m,
 diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index d9c88962fa13..4c5d2d51ae82 100644
+index 8159be6c9aa7..c8917eb1adac 100644
 --- a/include/linux/netdevice.h
 +++ b/include/linux/netdevice.h
-@@ -853,6 +853,7 @@ struct net_device_path {
- 				DEV_PATH_BR_VLAN_KEEP,
- 				DEV_PATH_BR_VLAN_TAG,
- 				DEV_PATH_BR_VLAN_UNTAG,
-+				DEV_PATH_BR_VLAN_UNTAG_HW,
- 			}		vlan_mode;
- 			u16		vlan_id;
- 			__be16		vlan_proto;
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index 0f6115d90867..01b256b7fd98 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -123,9 +123,10 @@ struct flow_offload_tuple {
- 	/* All members above are keys for lookups, see flow_offload_hash(). */
- 	struct { }			__hash;
+@@ -835,6 +835,7 @@ enum net_device_path_type {
+ 	DEV_PATH_ETHERNET = 0,
+ 	DEV_PATH_VLAN,
+ 	DEV_PATH_BRIDGE,
++	DEV_PATH_PPPOE,
+ };
  
--	u8				dir:4,
-+	u8				dir:2,
- 					xmit_type:2,
--					encap_num:2;
-+					encap_num:2,
-+					in_vlan_ingress:2;
- 	u16				mtu;
- 	union {
- 		struct dst_entry	*dst_cache;
-@@ -185,7 +186,8 @@ struct nf_flow_route {
- 				u16		id;
- 				__be16		proto;
- 			} encap[NF_FLOW_TABLE_ENCAP_MAX];
--			u8			num_encaps;
-+			u8			num_encaps:2,
-+						ingress_vlans:2;
- 		} in;
+ struct net_device_path {
+@@ -844,6 +845,7 @@ struct net_device_path {
  		struct {
- 			u32			ifindex;
-diff --git a/net/bridge/br_device.c b/net/bridge/br_device.c
-index 0c72503e0d39..e8b626cc6bfd 100644
---- a/net/bridge/br_device.c
-+++ b/net/bridge/br_device.c
-@@ -422,6 +422,7 @@ static int br_fill_forward_path(struct net_device_path_ctx *ctx,
- 		ctx->vlan[ctx->num_vlans].proto = path->bridge.vlan_proto;
- 		ctx->num_vlans++;
- 		break;
-+	case DEV_PATH_BR_VLAN_UNTAG_HW:
- 	case DEV_PATH_BR_VLAN_UNTAG:
- 		ctx->num_vlans--;
- 		break;
-diff --git a/net/bridge/br_vlan.c b/net/bridge/br_vlan.c
-index 0d09d3745e52..8e92ee5bef67 100644
---- a/net/bridge/br_vlan.c
-+++ b/net/bridge/br_vlan.c
-@@ -1386,6 +1386,8 @@ int br_vlan_fill_forward_path_mode(struct net_bridge *br,
+ 			u16		id;
+ 			__be16		proto;
++			u8		h_dest[ETH_ALEN];
+ 		} encap;
+ 		struct {
+ 			enum {
+diff --git a/include/linux/ppp_channel.h b/include/linux/ppp_channel.h
+index 98966064ee68..91f9a928344e 100644
+--- a/include/linux/ppp_channel.h
++++ b/include/linux/ppp_channel.h
+@@ -28,6 +28,9 @@ struct ppp_channel_ops {
+ 	int	(*start_xmit)(struct ppp_channel *, struct sk_buff *);
+ 	/* Handle an ioctl call that has come in via /dev/ppp. */
+ 	int	(*ioctl)(struct ppp_channel *, unsigned int, unsigned long);
++	int	(*fill_forward_path)(struct net_device_path_ctx *,
++				     struct net_device_path *,
++				     const struct ppp_channel *);
+ };
  
- 	if (path->bridge.vlan_mode == DEV_PATH_BR_VLAN_TAG)
- 		path->bridge.vlan_mode = DEV_PATH_BR_VLAN_KEEP;
-+	else if (v->priv_flags & BR_VLFLAG_ADDED_BY_SWITCHDEV)
-+		path->bridge.vlan_mode = DEV_PATH_BR_VLAN_UNTAG_HW;
- 	else
- 		path->bridge.vlan_mode = DEV_PATH_BR_VLAN_UNTAG;
- 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index f85f3d6e56d1..2195b1c56853 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -95,6 +95,8 @@ static int flow_offload_fill_route(struct flow_offload *flow,
- 	for (i = route->tuple[dir].in.num_encaps - 1; i >= 0; i--) {
- 		flow_tuple->encap[j].id = route->tuple[dir].in.encap[i].id;
- 		flow_tuple->encap[j].proto = route->tuple[dir].in.encap[i].proto;
-+		if (route->tuple[dir].in.ingress_vlans & BIT(i))
-+			flow_tuple->in_vlan_ingress |= BIT(j);
- 		j++;
- 	}
- 	flow_tuple->encap_num = route->tuple[dir].in.num_encaps;
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index 00b35689815f..796f46463457 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -592,8 +592,12 @@ nf_flow_rule_route_common(struct net *net, const struct flow_offload *flow,
- 	other_tuple = &flow->tuplehash[!dir].tuple;
- 
- 	for (i = 0; i < other_tuple->encap_num; i++) {
--		struct flow_action_entry *entry = flow_action_entry_next(flow_rule);
-+		struct flow_action_entry *entry;
- 
-+		if (other_tuple->in_vlan_ingress & BIT(i))
-+			continue;
-+
-+		entry = flow_action_entry_next(flow_rule);
- 		entry->id = FLOW_ACTION_VLAN_PUSH;
- 		entry->vlan.vid = other_tuple->encap[i].id;
- 		entry->vlan.proto = other_tuple->encap[i].proto;
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index d25b4b109e25..4843dd2b410c 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -72,6 +72,7 @@ struct nft_forward_info {
- 		__be16	proto;
- 	} encap[NF_FLOW_TABLE_ENCAP_MAX];
- 	u8 num_encaps;
-+	u8 ingress_vlans;
- 	u8 h_source[ETH_ALEN];
- 	u8 h_dest[ETH_ALEN];
- 	enum flow_offload_xmit_type xmit_type;
-@@ -130,6 +131,9 @@ static void nft_dev_path_info(const struct net_device_path_stack *stack,
- 				memcpy(info->h_source, path->dev->dev_addr, ETH_ALEN);
- 
- 			switch (path->bridge.vlan_mode) {
-+			case DEV_PATH_BR_VLAN_UNTAG_HW:
-+				info->ingress_vlans |= BIT(info->num_encaps - 1);
-+				break;
- 			case DEV_PATH_BR_VLAN_TAG:
- 				info->encap[info->num_encaps].id = path->bridge.vlan_id;
- 				info->encap[info->num_encaps].proto = path->bridge.vlan_proto;
-@@ -198,6 +202,7 @@ static void nft_dev_forward_path(struct nf_flow_route *route,
- 		route->tuple[!dir].in.encap[i].proto = info.encap[i].proto;
- 	}
- 	route->tuple[!dir].in.num_encaps = info.num_encaps;
-+	route->tuple[!dir].in.ingress_vlans = info.ingress_vlans;
- 
- 	if (info.xmit_type == FLOW_OFFLOAD_XMIT_DIRECT) {
- 		memcpy(route->tuple[dir].out.h_source, info.h_source, ETH_ALEN);
+ struct ppp_channel {
 -- 
 2.20.1
 
