@@ -7,48 +7,48 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31791C433E6
-	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Mar 2021 00:37:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AC52C4161F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Mar 2021 00:37:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0DE1164FCE
-	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Mar 2021 00:37:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 54CCB64FD4
+	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Mar 2021 00:37:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230143AbhCKAgx (ORCPT
+        id S230465AbhCKAgs (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 10 Mar 2021 19:36:53 -0500
-Received: from correo.us.es ([193.147.175.20]:50202 "EHLO mail.us.es"
+        Wed, 10 Mar 2021 19:36:48 -0500
+Received: from correo.us.es ([193.147.175.20]:50146 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230139AbhCKAgb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 10 Mar 2021 19:36:31 -0500
+        id S230035AbhCKAg0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 10 Mar 2021 19:36:26 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 927C612E82E
-        for <netfilter-devel@vger.kernel.org>; Thu, 11 Mar 2021 01:36:30 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 589E712E830
+        for <netfilter-devel@vger.kernel.org>; Thu, 11 Mar 2021 01:36:25 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 844ADDA793
-        for <netfilter-devel@vger.kernel.org>; Thu, 11 Mar 2021 01:36:30 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 440C7DA78F
+        for <netfilter-devel@vger.kernel.org>; Thu, 11 Mar 2021 01:36:25 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 79649DA78D; Thu, 11 Mar 2021 01:36:30 +0100 (CET)
+        id 397ACDA78B; Thu, 11 Mar 2021 01:36:25 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B4C60DA78A;
-        Thu, 11 Mar 2021 01:36:27 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BC943DA704;
+        Thu, 11 Mar 2021 01:36:22 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 11 Mar 2021 01:36:27 +0100 (CET)
+ Thu, 11 Mar 2021 01:36:22 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 7B0C842DC6E2;
-        Thu, 11 Mar 2021 01:36:27 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPSA id 83C3E42DC6E2;
+        Thu, 11 Mar 2021 01:36:22 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         Felix Fietkau <nbd@nbd.name>
-Subject: [PATCH net-next 22/23] net: ethernet: mtk_eth_soc: add flow offloading support
-Date:   Thu, 11 Mar 2021 01:36:03 +0100
-Message-Id: <20210311003604.22199-23-pablo@netfilter.org>
+Subject: [PATCH net-next 15/23] netfilter: flowtable: add offload support for xmit path types
+Date:   Thu, 11 Mar 2021 01:35:56 +0100
+Message-Id: <20210311003604.22199-16-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20210311003604.22199-1-pablo@netfilter.org>
 References: <20210311003604.22199-1-pablo@netfilter.org>
@@ -59,586 +59,315 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Felix Fietkau <nbd@nbd.name>
+When the flow tuple xmit_type is set to FLOW_OFFLOAD_XMIT_DIRECT, the
+dst_cache pointer is not valid, and the h_source/h_dest/ifidx out fields
+need to be used.
 
-This adds support for offloading IPv4 routed flows, including SNAT/DNAT,
-one VLAN, PPPoE and DSA.
+This patch also adds the FLOW_ACTION_VLAN_PUSH action to pass the VLAN
+tag to the driver.
 
-Signed-off-by: Felix Fietkau <nbd@nbd.name>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- drivers/net/ethernet/mediatek/Makefile        |   2 +-
- drivers/net/ethernet/mediatek/mtk_eth_soc.c   |   5 +
- drivers/net/ethernet/mediatek/mtk_eth_soc.h   |  10 +-
- .../net/ethernet/mediatek/mtk_ppe_offload.c   | 485 ++++++++++++++++++
- 4 files changed, 500 insertions(+), 2 deletions(-)
- create mode 100644 drivers/net/ethernet/mediatek/mtk_ppe_offload.c
+ net/netfilter/nf_flow_table_offload.c | 166 +++++++++++++++++++-------
+ 1 file changed, 124 insertions(+), 42 deletions(-)
 
-diff --git a/drivers/net/ethernet/mediatek/Makefile b/drivers/net/ethernet/mediatek/Makefile
-index 871dc3e113e2..79d4cdbbcbf5 100644
---- a/drivers/net/ethernet/mediatek/Makefile
-+++ b/drivers/net/ethernet/mediatek/Makefile
-@@ -4,5 +4,5 @@
- #
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index 2a6993fa40d7..aa2a0919a4a2 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -175,28 +175,45 @@ static int flow_offload_eth_src(struct net *net,
+ 				enum flow_offload_tuple_dir dir,
+ 				struct nf_flow_rule *flow_rule)
+ {
+-	const struct flow_offload_tuple *tuple = &flow->tuplehash[!dir].tuple;
+ 	struct flow_action_entry *entry0 = flow_action_entry_next(flow_rule);
+ 	struct flow_action_entry *entry1 = flow_action_entry_next(flow_rule);
+-	struct net_device *dev;
++	const struct flow_offload_tuple *other_tuple, *this_tuple;
++	struct net_device *dev = NULL;
++	const unsigned char *addr;
+ 	u32 mask, val;
+ 	u16 val16;
  
- obj-$(CONFIG_NET_MEDIATEK_SOC) += mtk_eth.o
--mtk_eth-y := mtk_eth_soc.o mtk_sgmii.o mtk_eth_path.o mtk_ppe.o mtk_ppe_debugfs.o
-+mtk_eth-y := mtk_eth_soc.o mtk_sgmii.o mtk_eth_path.o mtk_ppe.o mtk_ppe_debugfs.o mtk_ppe_offload.o
- obj-$(CONFIG_NET_MEDIATEK_STAR_EMAC) += mtk_star_emac.o
-diff --git a/drivers/net/ethernet/mediatek/mtk_eth_soc.c b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
-index b16b0ab7c7d0..2e6d79b2ff24 100644
---- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
-+++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
-@@ -2840,6 +2840,7 @@ static const struct net_device_ops mtk_netdev_ops = {
- #ifdef CONFIG_NET_POLL_CONTROLLER
- 	.ndo_poll_controller	= mtk_poll_controller,
- #endif
-+	.ndo_setup_tc		= mtk_eth_setup_tc,
- };
- 
- static int mtk_add_mac(struct mtk_eth *eth, struct device_node *np)
-@@ -3101,6 +3102,10 @@ static int mtk_probe(struct platform_device *pdev)
- 				   eth->base + MTK_ETH_PPE_BASE, 2);
- 		if (err)
- 			goto err_free_dev;
+-	dev = dev_get_by_index(net, tuple->iifidx);
+-	if (!dev)
+-		return -ENOENT;
++	this_tuple = &flow->tuplehash[dir].tuple;
 +
-+		err = mtk_eth_offload_init(eth);
-+		if (err)
-+			goto err_free_dev;
- 	}
- 
- 	for (i = 0; i < MTK_MAX_DEVS; i++) {
-diff --git a/drivers/net/ethernet/mediatek/mtk_eth_soc.h b/drivers/net/ethernet/mediatek/mtk_eth_soc.h
-index 1db6c52ef256..72757977ccfb 100644
---- a/drivers/net/ethernet/mediatek/mtk_eth_soc.h
-+++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.h
-@@ -15,6 +15,7 @@
- #include <linux/u64_stats_sync.h>
- #include <linux/refcount.h>
- #include <linux/phylink.h>
-+#include <linux/rhashtable.h>
- #include "mtk_ppe.h"
- 
- #define MTK_QDMA_PAGE_SIZE	2048
-@@ -41,7 +42,8 @@
- 				 NETIF_F_HW_VLAN_CTAG_RX | \
- 				 NETIF_F_SG | NETIF_F_TSO | \
- 				 NETIF_F_TSO6 | \
--				 NETIF_F_IPV6_CSUM)
-+				 NETIF_F_IPV6_CSUM |\
-+				 NETIF_F_HW_TC)
- #define MTK_HW_FEATURES_MT7628	(NETIF_F_SG | NETIF_F_RXCSUM)
- #define NEXT_DESP_IDX(X, Y)	(((X) + 1) & ((Y) - 1))
- 
-@@ -912,6 +914,7 @@ struct mtk_eth {
- 	int				ip_align;
- 
- 	struct mtk_ppe			ppe;
-+	struct rhashtable		flow_table;
- };
- 
- /* struct mtk_mac -	the structure that holds the info about the MACs of the
-@@ -956,4 +959,9 @@ int mtk_gmac_sgmii_path_setup(struct mtk_eth *eth, int mac_id);
- int mtk_gmac_gephy_path_setup(struct mtk_eth *eth, int mac_id);
- int mtk_gmac_rgmii_path_setup(struct mtk_eth *eth, int mac_id);
- 
-+int mtk_eth_offload_init(struct mtk_eth *eth);
-+int mtk_eth_setup_tc(struct net_device *dev, enum tc_setup_type type,
-+		     void *type_data);
-+
-+
- #endif /* MTK_ETH_H */
-diff --git a/drivers/net/ethernet/mediatek/mtk_ppe_offload.c b/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
-new file mode 100644
-index 000000000000..d0c46786571f
---- /dev/null
-+++ b/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
-@@ -0,0 +1,485 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ *  Copyright (C) 2020 Felix Fietkau <nbd@nbd.name>
-+ */
-+
-+#include <linux/if_ether.h>
-+#include <linux/rhashtable.h>
-+#include <linux/if_ether.h>
-+#include <linux/ip.h>
-+#include <net/flow_offload.h>
-+#include <net/pkt_cls.h>
-+#include <net/dsa.h>
-+#include "mtk_eth_soc.h"
-+
-+struct mtk_flow_data {
-+	struct ethhdr eth;
-+
-+	union {
-+		struct {
-+			__be32 src_addr;
-+			__be32 dst_addr;
-+		} v4;
-+	};
-+
-+	__be16 src_port;
-+	__be16 dst_port;
-+
-+	struct {
-+		u16 id;
-+		__be16 proto;
-+		u8 num;
-+	} vlan;
-+	struct {
-+		u16 sid;
-+		u8 num;
-+	} pppoe;
-+};
-+
-+struct mtk_flow_entry {
-+	struct rhash_head node;
-+	unsigned long cookie;
-+	u16 hash;
-+};
-+
-+static const struct rhashtable_params mtk_flow_ht_params = {
-+	.head_offset = offsetof(struct mtk_flow_entry, node),
-+	.head_offset = offsetof(struct mtk_flow_entry, cookie),
-+	.key_len = sizeof(unsigned long),
-+	.automatic_shrinking = true,
-+};
-+
-+static u32
-+mtk_eth_timestamp(struct mtk_eth *eth)
-+{
-+	return mtk_r32(eth, 0x0010) & MTK_FOE_IB1_BIND_TIMESTAMP;
-+}
-+
-+static int
-+mtk_flow_set_ipv4_addr(struct mtk_foe_entry *foe, struct mtk_flow_data *data,
-+		       bool egress)
-+{
-+	return mtk_foe_entry_set_ipv4_tuple(foe, egress,
-+					    data->v4.src_addr, data->src_port,
-+					    data->v4.dst_addr, data->dst_port);
-+}
-+
-+static void
-+mtk_flow_offload_mangle_eth(const struct flow_action_entry *act, void *eth)
-+{
-+	void *dest = eth + act->mangle.offset;
-+	const void *src = &act->mangle.val;
-+
-+	if (act->mangle.offset > 8)
-+		return;
-+
-+	if (act->mangle.mask == 0xffff) {
-+		src += 2;
-+		dest += 2;
-+	}
-+
-+	memcpy(dest, src, act->mangle.mask ? 2 : 4);
-+}
-+
-+
-+static int
-+mtk_flow_mangle_ports(const struct flow_action_entry *act,
-+		      struct mtk_flow_data *data)
-+{
-+	u32 val = ntohl(act->mangle.val);
-+
-+	switch (act->mangle.offset) {
-+	case 0:
-+		if (act->mangle.mask == ~htonl(0xffff))
-+			data->dst_port = cpu_to_be16(val);
-+		else
-+			data->src_port = cpu_to_be16(val >> 16);
++	switch (this_tuple->xmit_type) {
++	case FLOW_OFFLOAD_XMIT_DIRECT:
++		addr = this_tuple->out.h_source;
 +		break;
-+	case 2:
-+		data->dst_port = cpu_to_be16(val);
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int
-+mtk_flow_mangle_ipv4(const struct flow_action_entry *act,
-+		     struct mtk_flow_data *data)
-+{
-+	__be32 *dest;
-+
-+	switch (act->mangle.offset) {
-+	case offsetof(struct iphdr, saddr):
-+		dest = &data->v4.src_addr;
-+		break;
-+	case offsetof(struct iphdr, daddr):
-+		dest = &data->v4.dst_addr;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	memcpy(dest, &act->mangle.val, sizeof(u32));
-+
-+	return 0;
-+}
-+
-+static int
-+mtk_flow_get_dsa_port(struct net_device **dev)
-+{
-+#if IS_ENABLED(CONFIG_NET_DSA)
-+	struct dsa_port *dp;
-+
-+	dp = dsa_port_from_netdev(*dev);
-+	if (IS_ERR(dp))
-+		return -ENODEV;
-+
-+	if (dp->cpu_dp->tag_ops->proto != DSA_TAG_PROTO_MTK)
-+		return -ENODEV;
-+
-+	*dev = dp->cpu_dp->master;
-+
-+	return dp->index;
-+#else
-+	return -ENODEV;
-+#endif
-+}
-+
-+static int
-+mtk_flow_set_output_device(struct mtk_eth *eth, struct mtk_foe_entry *foe,
-+			   struct net_device *dev)
-+{
-+	int pse_port, dsa_port;
-+
-+	dsa_port = mtk_flow_get_dsa_port(&dev);
-+	if (dsa_port >= 0)
-+		mtk_foe_entry_set_dsa(foe, dsa_port);
-+
-+	if (dev == eth->netdev[0])
-+		pse_port = 1;
-+	else if (dev == eth->netdev[1])
-+		pse_port = 2;
-+	else
-+		return -EOPNOTSUPP;
-+
-+	mtk_foe_entry_set_pse_port(foe, pse_port);
-+
-+	return 0;
-+}
-+
-+static int
-+mtk_flow_offload_replace(struct mtk_eth *eth, struct flow_cls_offload *f)
-+{
-+	struct flow_rule *rule = flow_cls_offload_flow_rule(f);
-+	struct flow_action_entry *act;
-+	struct mtk_flow_data data = {};
-+	struct mtk_foe_entry foe;
-+	struct net_device *odev = NULL;
-+	struct mtk_flow_entry *entry;
-+	int offload_type = 0;
-+	u16 addr_type = 0;
-+	u32 timestamp;
-+	u8 l4proto = 0;
-+	int err = 0;
-+	int hash;
-+	int i;
-+
-+	if (flow_rule_match_key(rule, FLOW_DISSECTOR_KEY_META)) {
-+		struct flow_match_meta match;
-+
-+		flow_rule_match_meta(rule, &match);
-+	} else {
-+		return -EOPNOTSUPP;
-+	}
-+
-+	if (flow_rule_match_key(rule, FLOW_DISSECTOR_KEY_CONTROL)) {
-+		struct flow_match_control match;
-+
-+		flow_rule_match_control(rule, &match);
-+		addr_type = match.key->addr_type;
-+	} else {
-+		return -EOPNOTSUPP;
-+	}
-+
-+	if (flow_rule_match_key(rule, FLOW_DISSECTOR_KEY_BASIC)) {
-+		struct flow_match_basic match;
-+
-+		flow_rule_match_basic(rule, &match);
-+		l4proto = match.key->ip_proto;
-+	} else {
-+		return -EOPNOTSUPP;
-+	}
-+
-+	flow_action_for_each(i, act, &rule->action) {
-+		switch (act->id) {
-+		case FLOW_ACTION_MANGLE:
-+			if (act->mangle.htype == FLOW_ACT_MANGLE_HDR_TYPE_ETH)
-+				mtk_flow_offload_mangle_eth(act, &data.eth);
-+			break;
-+		case FLOW_ACTION_REDIRECT:
-+			odev = act->dev;
-+			break;
-+		case FLOW_ACTION_CSUM:
-+			break;
-+		case FLOW_ACTION_VLAN_PUSH:
-+			if (data.vlan.num == 1 ||
-+			    act->vlan.proto != htons(ETH_P_8021Q))
-+				return -EOPNOTSUPP;
-+
-+			data.vlan.id = act->vlan.vid;
-+			data.vlan.proto = act->vlan.proto;
-+			data.vlan.num++;
-+			break;
-+		case FLOW_ACTION_PPPOE_PUSH:
-+			if (data.pppoe.num == 1)
-+				return -EOPNOTSUPP;
-+
-+			data.pppoe.sid = act->pppoe.sid;
-+			data.pppoe.num++;
-+			break;
-+		default:
-+			return -EOPNOTSUPP;
-+		}
-+	}
-+
-+	switch (addr_type) {
-+	case FLOW_DISSECTOR_KEY_IPV4_ADDRS:
-+		offload_type = MTK_PPE_PKT_TYPE_IPV4_HNAPT;
-+		break;
-+	default:
-+		return -EOPNOTSUPP;
-+	}
-+
-+	if (!is_valid_ether_addr(data.eth.h_source) ||
-+	    !is_valid_ether_addr(data.eth.h_dest))
-+		return -EINVAL;
-+
-+	err = mtk_foe_entry_prepare(&foe, offload_type, l4proto, 0,
-+				    data.eth.h_source,
-+				    data.eth.h_dest);
-+	if (err)
-+		return err;
-+
-+	if (flow_rule_match_key(rule, FLOW_DISSECTOR_KEY_PORTS)) {
-+		struct flow_match_ports ports;
-+
-+		flow_rule_match_ports(rule, &ports);
-+		data.src_port = ports.key->src;
-+		data.dst_port = ports.key->dst;
-+	} else {
-+		return -EOPNOTSUPP;
-+	}
-+
-+	if (addr_type == FLOW_DISSECTOR_KEY_IPV4_ADDRS) {
-+		struct flow_match_ipv4_addrs addrs;
-+
-+		flow_rule_match_ipv4_addrs(rule, &addrs);
-+
-+		data.v4.src_addr = addrs.key->src;
-+		data.v4.dst_addr = addrs.key->dst;
-+
-+		mtk_flow_set_ipv4_addr(&foe, &data, false);
-+	}
-+
-+	flow_action_for_each(i, act, &rule->action) {
-+		if (act->id != FLOW_ACTION_MANGLE)
-+			continue;
-+
-+		switch (act->mangle.htype) {
-+		case FLOW_ACT_MANGLE_HDR_TYPE_TCP:
-+		case FLOW_ACT_MANGLE_HDR_TYPE_UDP:
-+			err = mtk_flow_mangle_ports(act, &data);
-+			break;
-+		case FLOW_ACT_MANGLE_HDR_TYPE_IP4:
-+			err = mtk_flow_mangle_ipv4(act, &data);
-+			break;
-+		case FLOW_ACT_MANGLE_HDR_TYPE_ETH:
-+			/* handled earlier */
-+			break;
-+		default:
-+			return -EOPNOTSUPP;
-+		}
-+
-+		if (err)
-+			return err;
-+	}
-+
-+	if (addr_type == FLOW_DISSECTOR_KEY_IPV4_ADDRS) {
-+		err = mtk_flow_set_ipv4_addr(&foe, &data, true);
-+		if (err)
-+			return err;
-+	}
-+
-+	if (data.vlan.num == 1) {
-+		if (data.vlan.proto != htons(ETH_P_8021Q))
-+			return -EOPNOTSUPP;
-+
-+		mtk_foe_entry_set_vlan(&foe, data.vlan.id);
-+	}
-+	if (data.pppoe.num == 1)
-+		mtk_foe_entry_set_pppoe(&foe, data.pppoe.sid);
-+
-+	err = mtk_flow_set_output_device(eth, &foe, odev);
-+	if (err)
-+		return err;
-+
-+	entry = kzalloc(sizeof(*entry), GFP_KERNEL);
-+	if (!entry)
-+		return -ENOMEM;
-+
-+	entry->cookie = f->cookie;
-+	timestamp = mtk_eth_timestamp(eth);
-+	hash = mtk_foe_entry_commit(&eth->ppe, &foe, timestamp);
-+	if (hash < 0) {
-+		err = hash;
-+		goto free;
-+	}
-+
-+	entry->hash = hash;
-+	err = rhashtable_insert_fast(&eth->flow_table, &entry->node,
-+				     mtk_flow_ht_params);
-+	if (err < 0)
-+		goto clear_flow;
-+
-+	return 0;
-+clear_flow:
-+	mtk_foe_entry_clear(&eth->ppe, hash);
-+free:
-+	kfree(entry);
-+	return err;
-+}
-+
-+static int
-+mtk_flow_offload_destroy(struct mtk_eth *eth, struct flow_cls_offload *f)
-+{
-+	struct mtk_flow_entry *entry;
-+
-+	entry = rhashtable_lookup(&eth->flow_table, &f->cookie,
-+				  mtk_flow_ht_params);
-+	if (!entry)
-+		return -ENOENT;
-+
-+	mtk_foe_entry_clear(&eth->ppe, entry->hash);
-+	rhashtable_remove_fast(&eth->flow_table, &entry->node,
-+			       mtk_flow_ht_params);
-+	kfree(entry);
-+
-+	return 0;
-+}
-+
-+static int
-+mtk_flow_offload_stats(struct mtk_eth *eth, struct flow_cls_offload *f)
-+{
-+	struct mtk_flow_entry *entry;
-+	int timestamp;
-+	u32 idle;
-+
-+	entry = rhashtable_lookup(&eth->flow_table, &f->cookie,
-+				  mtk_flow_ht_params);
-+	if (!entry)
-+		return -ENOENT;
-+
-+	timestamp = mtk_foe_entry_timestamp(&eth->ppe, entry->hash);
-+	if (timestamp < 0)
-+		return -ETIMEDOUT;
-+
-+	idle = mtk_eth_timestamp(eth) - timestamp;
-+	f->stats.lastused = jiffies - idle * HZ;
-+
-+	return 0;
-+}
-+
-+static int
-+mtk_eth_setup_tc_block_cb(enum tc_setup_type type, void *type_data, void *cb_priv)
-+{
-+	struct flow_cls_offload *cls = type_data;
-+	struct net_device *dev = cb_priv;
-+	struct mtk_mac *mac = netdev_priv(dev);
-+	struct mtk_eth *eth = mac->hw;
-+
-+	if (!tc_can_offload(dev))
-+		return -EOPNOTSUPP;
-+
-+	if (type != TC_SETUP_CLSFLOWER)
-+		return -EOPNOTSUPP;
-+
-+	switch (cls->command) {
-+	case FLOW_CLS_REPLACE:
-+		return mtk_flow_offload_replace(eth, cls);
-+	case FLOW_CLS_DESTROY:
-+		return mtk_flow_offload_destroy(eth, cls);
-+	case FLOW_CLS_STATS:
-+		return mtk_flow_offload_stats(eth, cls);
-+	default:
-+		return -EOPNOTSUPP;
-+	}
-+
-+	return 0;
-+}
-+
-+static int
-+mtk_eth_setup_tc_block(struct net_device *dev, struct flow_block_offload *f)
-+{
-+	struct mtk_mac *mac = netdev_priv(dev);
-+	struct mtk_eth *eth = mac->hw;
-+	static LIST_HEAD(block_cb_list);
-+	struct flow_block_cb *block_cb;
-+	flow_setup_cb_t *cb;
-+
-+	if (!eth->ppe.foe_table)
-+		return -EOPNOTSUPP;
-+
-+	if (f->binder_type != FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS)
-+		return -EOPNOTSUPP;
-+
-+	cb = mtk_eth_setup_tc_block_cb;
-+	f->driver_block_list = &block_cb_list;
-+
-+	switch (f->command) {
-+	case FLOW_BLOCK_BIND:
-+		block_cb = flow_block_cb_lookup(f->block, cb, dev);
-+		if (block_cb) {
-+			flow_block_cb_incref(block_cb);
-+			return 0;
-+		}
-+		block_cb = flow_block_cb_alloc(cb, dev, dev, NULL);
-+		if (IS_ERR(block_cb))
-+			return PTR_ERR(block_cb);
-+
-+		flow_block_cb_add(block_cb, f);
-+		list_add_tail(&block_cb->driver_list, &block_cb_list);
-+		return 0;
-+	case FLOW_BLOCK_UNBIND:
-+		block_cb = flow_block_cb_lookup(f->block, cb, dev);
-+		if (!block_cb)
++	case FLOW_OFFLOAD_XMIT_NEIGH:
++		other_tuple = &flow->tuplehash[!dir].tuple;
++		dev = dev_get_by_index(net, other_tuple->iifidx);
++		if (!dev)
 +			return -ENOENT;
 +
-+		if (flow_block_cb_decref(block_cb)) {
-+			flow_block_cb_remove(block_cb, f);
-+			list_del(&block_cb->driver_list);
-+		}
-+		return 0;
++		addr = dev->dev_addr;
++		break;
 +	default:
 +		return -EOPNOTSUPP;
 +	}
+ 
+ 	mask = ~0xffff0000;
+-	memcpy(&val16, dev->dev_addr, 2);
++	memcpy(&val16, addr, 2);
+ 	val = val16 << 16;
+ 	flow_offload_mangle(entry0, FLOW_ACT_MANGLE_HDR_TYPE_ETH, 4,
+ 			    &val, &mask);
+ 
+ 	mask = ~0xffffffff;
+-	memcpy(&val, dev->dev_addr + 2, 4);
++	memcpy(&val, addr + 2, 4);
+ 	flow_offload_mangle(entry1, FLOW_ACT_MANGLE_HDR_TYPE_ETH, 8,
+ 			    &val, &mask);
+-	dev_put(dev);
++
++	if (dev)
++		dev_put(dev);
+ 
+ 	return 0;
+ }
+@@ -208,27 +225,40 @@ static int flow_offload_eth_dst(struct net *net,
+ {
+ 	struct flow_action_entry *entry0 = flow_action_entry_next(flow_rule);
+ 	struct flow_action_entry *entry1 = flow_action_entry_next(flow_rule);
+-	const void *daddr = &flow->tuplehash[!dir].tuple.src_v4;
++	const struct flow_offload_tuple *other_tuple, *this_tuple;
+ 	const struct dst_entry *dst_cache;
+ 	unsigned char ha[ETH_ALEN];
+ 	struct neighbour *n;
++	const void *daddr;
+ 	u32 mask, val;
+ 	u8 nud_state;
+ 	u16 val16;
+ 
+-	dst_cache = flow->tuplehash[dir].tuple.dst_cache;
+-	n = dst_neigh_lookup(dst_cache, daddr);
+-	if (!n)
+-		return -ENOENT;
++	this_tuple = &flow->tuplehash[dir].tuple;
+ 
+-	read_lock_bh(&n->lock);
+-	nud_state = n->nud_state;
+-	ether_addr_copy(ha, n->ha);
+-	read_unlock_bh(&n->lock);
+-
+-	if (!(nud_state & NUD_VALID)) {
++	switch (this_tuple->xmit_type) {
++	case FLOW_OFFLOAD_XMIT_DIRECT:
++		ether_addr_copy(ha, this_tuple->out.h_dest);
++		break;
++	case FLOW_OFFLOAD_XMIT_NEIGH:
++		other_tuple = &flow->tuplehash[!dir].tuple;
++		daddr = &other_tuple->src_v4;
++		dst_cache = this_tuple->dst_cache;
++		n = dst_neigh_lookup(dst_cache, daddr);
++		if (!n)
++			return -ENOENT;
++
++		read_lock_bh(&n->lock);
++		nud_state = n->nud_state;
++		ether_addr_copy(ha, n->ha);
++		read_unlock_bh(&n->lock);
+ 		neigh_release(n);
+-		return -ENOENT;
++
++		if (!(nud_state & NUD_VALID))
++			return -ENOENT;
++		break;
++	default:
++		return -EOPNOTSUPP;
+ 	}
+ 
+ 	mask = ~0xffffffff;
+@@ -241,7 +271,6 @@ static int flow_offload_eth_dst(struct net *net,
+ 	val = val16;
+ 	flow_offload_mangle(entry1, FLOW_ACT_MANGLE_HDR_TYPE_ETH, 4,
+ 			    &val, &mask);
+-	neigh_release(n);
+ 
+ 	return 0;
+ }
+@@ -463,27 +492,52 @@ static void flow_offload_ipv4_checksum(struct net *net,
+ 	}
+ }
+ 
+-static void flow_offload_redirect(const struct flow_offload *flow,
++static void flow_offload_redirect(struct net *net,
++				  const struct flow_offload *flow,
+ 				  enum flow_offload_tuple_dir dir,
+ 				  struct nf_flow_rule *flow_rule)
+ {
+-	struct flow_action_entry *entry = flow_action_entry_next(flow_rule);
+-	struct rtable *rt;
++	const struct flow_offload_tuple *this_tuple, *other_tuple;
++	struct flow_action_entry *entry;
++	struct net_device *dev;
++	int ifindex;
+ 
+-	rt = (struct rtable *)flow->tuplehash[dir].tuple.dst_cache;
++	this_tuple = &flow->tuplehash[dir].tuple;
++	switch (this_tuple->xmit_type) {
++	case FLOW_OFFLOAD_XMIT_DIRECT:
++		this_tuple = &flow->tuplehash[dir].tuple;
++		ifindex = this_tuple->out.ifidx;
++		break;
++	case FLOW_OFFLOAD_XMIT_NEIGH:
++		other_tuple = &flow->tuplehash[!dir].tuple;
++		ifindex = other_tuple->iifidx;
++		break;
++	default:
++		return;
++	}
++
++	dev = dev_get_by_index(net, ifindex);
++	if (!dev)
++		return;
++
++	entry = flow_action_entry_next(flow_rule);
+ 	entry->id = FLOW_ACTION_REDIRECT;
+-	entry->dev = rt->dst.dev;
+-	dev_hold(rt->dst.dev);
++	entry->dev = dev;
+ }
+ 
+ static void flow_offload_encap_tunnel(const struct flow_offload *flow,
+ 				      enum flow_offload_tuple_dir dir,
+ 				      struct nf_flow_rule *flow_rule)
+ {
++	const struct flow_offload_tuple *this_tuple;
+ 	struct flow_action_entry *entry;
+ 	struct dst_entry *dst;
+ 
+-	dst = flow->tuplehash[dir].tuple.dst_cache;
++	this_tuple = &flow->tuplehash[dir].tuple;
++	if (this_tuple->xmit_type == FLOW_OFFLOAD_XMIT_DIRECT)
++		return;
++
++	dst = this_tuple->dst_cache;
+ 	if (dst && dst->lwtstate) {
+ 		struct ip_tunnel_info *tun_info;
+ 
+@@ -500,10 +554,15 @@ static void flow_offload_decap_tunnel(const struct flow_offload *flow,
+ 				      enum flow_offload_tuple_dir dir,
+ 				      struct nf_flow_rule *flow_rule)
+ {
++	const struct flow_offload_tuple *other_tuple;
+ 	struct flow_action_entry *entry;
+ 	struct dst_entry *dst;
+ 
+-	dst = flow->tuplehash[!dir].tuple.dst_cache;
++	other_tuple = &flow->tuplehash[!dir].tuple;
++	if (other_tuple->xmit_type == FLOW_OFFLOAD_XMIT_DIRECT)
++		return;
++
++	dst = other_tuple->dst_cache;
+ 	if (dst && dst->lwtstate) {
+ 		struct ip_tunnel_info *tun_info;
+ 
+@@ -515,10 +574,14 @@ static void flow_offload_decap_tunnel(const struct flow_offload *flow,
+ 	}
+ }
+ 
+-int nf_flow_rule_route_ipv4(struct net *net, const struct flow_offload *flow,
+-			    enum flow_offload_tuple_dir dir,
+-			    struct nf_flow_rule *flow_rule)
++static int
++nf_flow_rule_route_common(struct net *net, const struct flow_offload *flow,
++			  enum flow_offload_tuple_dir dir,
++			  struct nf_flow_rule *flow_rule)
+ {
++	const struct flow_offload_tuple *other_tuple;
++	int i;
++
+ 	flow_offload_decap_tunnel(flow, dir, flow_rule);
+ 	flow_offload_encap_tunnel(flow, dir, flow_rule);
+ 
+@@ -526,6 +589,26 @@ int nf_flow_rule_route_ipv4(struct net *net, const struct flow_offload *flow,
+ 	    flow_offload_eth_dst(net, flow, dir, flow_rule) < 0)
+ 		return -1;
+ 
++	other_tuple = &flow->tuplehash[!dir].tuple;
++
++	for (i = 0; i < other_tuple->encap_num; i++) {
++		struct flow_action_entry *entry = flow_action_entry_next(flow_rule);
++
++		entry->id = FLOW_ACTION_VLAN_PUSH;
++		entry->vlan.vid = other_tuple->encap[i].id;
++		entry->vlan.proto = other_tuple->encap[i].proto;
++	}
++
++	return 0;
 +}
 +
-+int mtk_eth_setup_tc(struct net_device *dev, enum tc_setup_type type,
-+		     void *type_data)
++int nf_flow_rule_route_ipv4(struct net *net, const struct flow_offload *flow,
++			    enum flow_offload_tuple_dir dir,
++			    struct nf_flow_rule *flow_rule)
 +{
-+	if (type == TC_SETUP_FT)
-+		return mtk_eth_setup_tc_block(dev, type_data);
++	if (nf_flow_rule_route_common(net, flow, dir, flow_rule) < 0)
++		return -1;
 +
-+	return -EOPNOTSUPP;
-+}
+ 	if (test_bit(NF_FLOW_SNAT, &flow->flags)) {
+ 		flow_offload_ipv4_snat(net, flow, dir, flow_rule);
+ 		flow_offload_port_snat(net, flow, dir, flow_rule);
+@@ -538,7 +621,7 @@ int nf_flow_rule_route_ipv4(struct net *net, const struct flow_offload *flow,
+ 	    test_bit(NF_FLOW_DNAT, &flow->flags))
+ 		flow_offload_ipv4_checksum(net, flow, flow_rule);
+ 
+-	flow_offload_redirect(flow, dir, flow_rule);
++	flow_offload_redirect(net, flow, dir, flow_rule);
+ 
+ 	return 0;
+ }
+@@ -548,11 +631,7 @@ int nf_flow_rule_route_ipv6(struct net *net, const struct flow_offload *flow,
+ 			    enum flow_offload_tuple_dir dir,
+ 			    struct nf_flow_rule *flow_rule)
+ {
+-	flow_offload_decap_tunnel(flow, dir, flow_rule);
+-	flow_offload_encap_tunnel(flow, dir, flow_rule);
+-
+-	if (flow_offload_eth_src(net, flow, dir, flow_rule) < 0 ||
+-	    flow_offload_eth_dst(net, flow, dir, flow_rule) < 0)
++	if (nf_flow_rule_route_common(net, flow, dir, flow_rule) < 0)
+ 		return -1;
+ 
+ 	if (test_bit(NF_FLOW_SNAT, &flow->flags)) {
+@@ -564,7 +643,7 @@ int nf_flow_rule_route_ipv6(struct net *net, const struct flow_offload *flow,
+ 		flow_offload_port_dnat(net, flow, dir, flow_rule);
+ 	}
+ 
+-	flow_offload_redirect(flow, dir, flow_rule);
++	flow_offload_redirect(net, flow, dir, flow_rule);
+ 
+ 	return 0;
+ }
+@@ -578,10 +657,10 @@ nf_flow_offload_rule_alloc(struct net *net,
+ 			   enum flow_offload_tuple_dir dir)
+ {
+ 	const struct nf_flowtable *flowtable = offload->flowtable;
++	const struct flow_offload_tuple *tuple, *other_tuple;
+ 	const struct flow_offload *flow = offload->flow;
+-	const struct flow_offload_tuple *tuple;
++	struct dst_entry *other_dst = NULL;
+ 	struct nf_flow_rule *flow_rule;
+-	struct dst_entry *other_dst;
+ 	int err = -ENOMEM;
+ 
+ 	flow_rule = kzalloc(sizeof(*flow_rule), GFP_KERNEL);
+@@ -597,7 +676,10 @@ nf_flow_offload_rule_alloc(struct net *net,
+ 	flow_rule->rule->match.key = &flow_rule->match.key;
+ 
+ 	tuple = &flow->tuplehash[dir].tuple;
+-	other_dst = flow->tuplehash[!dir].tuple.dst_cache;
++	other_tuple = &flow->tuplehash[!dir].tuple;
++	if (other_tuple->xmit_type == FLOW_OFFLOAD_XMIT_NEIGH)
++		other_dst = other_tuple->dst_cache;
 +
-+int mtk_eth_offload_init(struct mtk_eth *eth)
-+{
-+	if (!eth->ppe.foe_table)
-+		return 0;
-+
-+	return rhashtable_init(&eth->flow_table, &mtk_flow_ht_params);
-+}
+ 	err = nf_flow_rule_match(&flow_rule->match, tuple, other_dst);
+ 	if (err < 0)
+ 		goto err_flow_match;
 -- 
 2.20.1
 
