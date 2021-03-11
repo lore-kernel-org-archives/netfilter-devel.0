@@ -2,140 +2,223 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.4 required=3.0 tests=BAYES_00,FORGED_MUA_MOZILLA,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5082DC433DB
-	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Mar 2021 00:03:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E478BC433DB
+	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Mar 2021 00:37:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2289264FC5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Mar 2021 00:03:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 92F2761585
+	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Mar 2021 00:37:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229485AbhCKACn (ORCPT
+        id S230161AbhCKAgm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 10 Mar 2021 19:02:43 -0500
-Received: from correo.us.es ([193.147.175.20]:46722 "EHLO mail.us.es"
+        Wed, 10 Mar 2021 19:36:42 -0500
+Received: from correo.us.es ([193.147.175.20]:49992 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229815AbhCKACX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 10 Mar 2021 19:02:23 -0500
+        id S229459AbhCKAgM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 10 Mar 2021 19:36:12 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 87C2912E82B
-        for <netfilter-devel@vger.kernel.org>; Thu, 11 Mar 2021 01:02:15 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id E8ACD12E82B
+        for <netfilter-devel@vger.kernel.org>; Thu, 11 Mar 2021 01:36:10 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 70338DA72F
-        for <netfilter-devel@vger.kernel.org>; Thu, 11 Mar 2021 01:02:15 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D3564DA704
+        for <netfilter-devel@vger.kernel.org>; Thu, 11 Mar 2021 01:36:10 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 64C74DA730; Thu, 11 Mar 2021 01:02:15 +0100 (CET)
+        id C8868DA78B; Thu, 11 Mar 2021 01:36:10 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D5698DA72F;
-        Thu, 11 Mar 2021 01:02:12 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5409DDA704;
+        Thu, 11 Mar 2021 01:36:08 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 11 Mar 2021 01:02:12 +0100 (CET)
+ Thu, 11 Mar 2021 01:36:08 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id B6D8F42DC6E2;
-        Thu, 11 Mar 2021 01:02:12 +0100 (CET)
-Date:   Thu, 11 Mar 2021 01:02:12 +0100
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id 1F9EC42DC6E2;
+        Thu, 11 Mar 2021 01:36:08 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Marc =?utf-8?Q?Aur=C3=A8le?= La France <tsi@tuyoix.net>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter REJECT: Fix destination MAC in RST packets
-Message-ID: <20210311000212.GA21480@salvia>
-References: <alpine.LNX.2.20.2103071736460.15162@fanir.tuyoix.net>
- <20210308102510.GA23497@salvia>
- <alpine.WNT.2.20.2103080908550.2772@CLUIJ>
- <20210309013621.GA27206@salvia>
- <alpine.WNT.2.20.2103082114130.1604@CLUIJ>
- <20210309102740.GA30899@salvia>
- <alpine.WNT.2.20.2103101640090.3708@CLUIJ>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        Felix Fietkau <nbd@nbd.name>
+Subject: [PATCH net-next 00/23] netfilter: flowtable enhancements
+Date:   Thu, 11 Mar 2021 01:35:41 +0100
+Message-Id: <20210311003604.22199-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <alpine.WNT.2.20.2103101640090.3708@CLUIJ>
-User-Agent: Mozilla/5.0
 X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Mar 10, 2021 at 04:51:26PM -0700, Marc Aurèle La France wrote:
-> On Tue, 9 Mar 2021, Pablo Neira Ayuso wrote:
-> > On Mon, Mar 08, 2021 at 09:25:28PM -0700, Marc Aurèle La France wrote:
-> > > On Tue, 9 Mar 2021, Pablo Neira Ayuso wrote:
-> > > > On Mon, Mar 08, 2021 at 09:21:20AM -0700, Marc Aurèle La France wrote:
-> > > > > On Mon, 8 Mar 2021, Pablo Neira Ayuso wrote:
-> > > > > > On Sun, Mar 07, 2021 at 06:16:34PM -0700, Marc Aurèle La France wrote:
-> 
-> > > > > > > In the non-bridge case, the REJECT target code assumes the REJECTed
-> > > > > > > packets were originally emitted by the local host, but that's not
-> > > > > > > necessarily true when the local host is the default route of a subnet
-> > > > > > > it is on, resulting in RST packets being sent out with an incorrect
-> > > > > > > destination MAC.  Address this by refactoring the handling of bridged
-> > > > > > > packets which deals with a similar issue.  Modulo patch fuzz, the
-> > > > > > > following applies to v5 and later kernels.
-> 
-> > > > > > The code this patch updates is related to BRIDGE_NETFILTER. Your patch
-> > > > > > description refers to the non-bridge case. What are you trying to
-> > > > > > achieve?
-> 
-> > > > > Via DHCP, my subnet's default route is a Linux system so that it can monitor
-> > > > > all outbound traffic.  By doing so, for example, I have determined that my
-> > > > > Android phone connects to Facebook despite the fact that I have no such app
-> > > > > installed.  I want to know, and control, what other behind-the-scenes
-> > > > > (under-handed) traffic devices on my subnet generate.
-> 
-> > > > > > dev_queue_xmit() path should not be exercised from the prerouting
-> > > > > > chain, packets generated from the IP later must follow the
-> > > > > > ip_local_out() path.
-> 
-> > > > > Well, I can tell you dev_queue_xmit() does in fact work in prerouting
-> > > > > chains, as it must for the bridging case.  The only potential problem I've
-> > > > > found so far is that the RST packet doesn't go through any netfilter hooks.
-> 
-> > > > That's the issue, Netfilter rejects code from the IP layer, so the
-> > > > packets follows the ip_local_out() path.
-> 
-> > > ... which sets an incorrect destination MAC.  Also, in this case, netfilter
-> > > doesn't reject any such thing.  It doesn't even "see" the RST packet
-> > > dev_queue_xmit() sends out.  That's OK as there is no further need to
-> > > process such a packet.
-> 
-> > dev_queue_xmit() skips the policy in the local out path for the
-> > generated RST packet. If you want to plain reject using
-> > dev_queue_xmit() then you have to use the ingress hook.
-> 
-> > > At least, the device whose connection request is being denied
-> > > doesn't hang anymore...
-> 
-> > The neighbour cache selects the destination MAC from the destination
-> > IP address of the RST packet.
-> 
-> > Your patch also refers to non-bridge scenario (no br_netfilter in
-> > place).
-> 
-> > Could you describe what you're trying to achieve in plain layman terms?
-> 
-> I will (re-)do no such thing because you are refusing to make sense.
-> 
-> It's OK that the bridge code uses dev_queue_xmit() to send out an RST packet
-> that has correct MACs, but that doesn't make another trip through netfilter.
+Hi,
 
-It's not OK that the bridge uses dev_queue_xmit().
+The following patchset augments the Netfilter flowtable fastpath to
+support for network topologies that combine IP forwarding, bridge,
+classic VLAN devices, bridge VLAN filtering, DSA and PPPoE. This
+includes support for the flowtable software and hardware datapaths.
 
-That was an ugly solution to make the REJECT target work from
-br_netfilter, because there was absolutely no other better way at that
-time to make it work.
+The following pictures provides an example scenario:
 
-There has been now native support to reject traffic from the bridge
-from many years on through br_forward(), which is the way to go.
+                        fast path!
+                .------------------------.
+               /                          \
+               |           IP forwarding  |
+               |          /             \ \/
+               |       br0               wan ..... eth0
+               .       / \                         host C
+               -> veth1  veth2
+                   .           switch/router
+                   .
+                   .
+                 eth0
+		host A
 
-If you want to reject from a non-bridge setup, there is also ingress
-support where you can reject exactly in the way you want, way earlier
-than from prerouting.
+The bridge master device 'br0' has an IP address and a DHCP server is
+also assumed to be running to provide connectivity to host A which
+reaches the Internet through 'br0' as default gateway. Then, packet
+enters the IP forwarding path and Netfilter is used to NAT the packets
+before they leave through the wan device.
+
+The general idea is to accelerate forwarding by building a fast path
+that takes packets from the ingress path of the bridge port and place
+them in the egress path of the wan device (and vice versa). Hence,
+skipping the classic bridge and IP stack paths.
+
+** Patch from #1 to #6 add the infrastructure which describes the list of
+   netdevice hops to reach a given destination MAC address in the local
+   network topology.
+
+Patch #1 adds dev_fill_forward_path() and .ndo_fill_forward_path() to
+         netdev_ops.
+
+Patch #2 adds .ndo_fill_forward_path for vlan devices, which provides
+	 the next device hop via vlan->real_dev, the vlan ID and the
+         protocol.
+
+Patch #3 adds .ndo_fill_forward_path for bridge devices, which allows to make
+         lookups to the FDB to locate the next device hop (bridge port) in the
+         forwarding path.
+
+Patch #4 extends bridge .ndo_fill_forward_path to support for bridge VLAN
+	 filtering.
+
+Patch #5 adds .ndo_fill_forward_path for PPPoE devices.
+
+Patch #6 adds .ndo_fill_forward_path for DSA.
+
+Patches from #7 to #14 update the flowtable software datapath:
+
+Patch #7 adds the transmit path type field to the flow tuple. Two transmit
+         paths are supported so far: the neighbour and the xfrm transmit
+         paths.
+
+Patch #8 and #9 update the flowtable datapath to use dev_fill_forward_path()
+         to obtain the real ingress/egress device for the flowtable datapath.
+	 This adds the new ethernet xmit direct path to the flowtable.
+
+Patch #10 adds native flowtable VLAN support (up to 2 VLAN tags) through
+          dev_fill_forward_path(). The flowtable stores the VLAN id and
+          protocol in the flow tuple.
+
+Patch #11 adds native flowtable bridge VLAN filter support through
+          dev_fill_forward_path().
+
+Patch #12 adds native flowtable bridge PPPoE through dev_fill_forward_path().
+
+Patch #13 adds DSA support through dev_fill_forward_path().
+
+Patch #14 extends flowtable selftests to cover for flowtable software
+	  datapath enhancements.
+
+** Patches from #15 to #20 update the flowtable hardware offload datapath:
+
+Patch #15 extends the flowtable hardware offload to support for the
+          direct ethernet xmit path. This also includes VLAN support.
+
+Patch #16 stores the egress real device in the flow tuple. The software
+          flowtable datapath uses dev_hard_header() to transmit packets,
+          hence it might refer to VLAN/DSA/PPPoE software device, not
+          the real ethernet device.
+
+Patch #17 deals with switchdev PVID hardware offload to skip it on
+	  egress.
+
+Patch #18 adds FLOW_ACTION_PPPOE_PUSH to the flow_offload action API.
+
+Patch #19 extends the flowtable hardware offload to support for PPPoE
+
+Patch #20 adds TC_SETUP_FT support for DSA.
+
+** Patches from #20 to #23: Felix Fietkau adds a new driver which support
+   hardware offload for the mtk PPE engine through the existing flow
+   offload API which supports for the flowtable enhancements coming in
+   this batch.
+
+Felix Fietkau (7):
+  net: bridge: resolve forwarding path for VLAN tag actions in bridge devices
+  net: ppp: resolve forwarding path for bridge pppoe devices
+  net: dsa: resolve forwarding path for dsa slave ports
+  netfilter: flowtable: bridge vlan hardware offload and switchdev
+  net: ethernet: mtk_eth_soc: add support for initializing the PPE
+  net: ethernet: mtk_eth_soc: add flow offloading support
+  net: ethernet: mtk_eth_soc: fix parsing packets in GDM
+
+Pablo Neira Ayuso (16):
+  net: resolve forwarding path from virtual netdevice and HW destination address
+  net: 8021q: resolve forwarding path for vlan devices
+  net: bridge: resolve forwarding path for bridge devices
+  netfilter: flowtable: add xmit path types
+  netfilter: flowtable: use dev_fill_forward_path() to obtain ingress device
+  netfilter: flowtable: use dev_fill_forward_path() to obtain egress device
+  netfilter: flowtable: add vlan support
+  netfilter: flowtable: add bridge vlan filtering support
+  netfilter: flowtable: add pppoe support
+  netfilter: flowtable: add dsa support
+  selftests: netfilter: flowtable bridge and vlan support
+  netfilter: flowtable: add offload support for xmit path types
+  netfilter: nft_flow_offload: use direct xmit if hardware offload is enabled
+  net: flow_offload: add FLOW_ACTION_PPPOE_PUSH
+  netfilter: flowtable: support for FLOW_ACTION_PPPOE_PUSH
+  dsa: slave: add support for TC_SETUP_FT
+
+ drivers/net/ethernet/mediatek/Makefile        |   2 +-
+ drivers/net/ethernet/mediatek/mtk_eth_soc.c   |  41 +-
+ drivers/net/ethernet/mediatek/mtk_eth_soc.h   |  23 +-
+ drivers/net/ethernet/mediatek/mtk_ppe.c       | 511 ++++++++++++++++++
+ drivers/net/ethernet/mediatek/mtk_ppe.h       | 287 ++++++++++
+ .../net/ethernet/mediatek/mtk_ppe_debugfs.c   | 217 ++++++++
+ .../net/ethernet/mediatek/mtk_ppe_offload.c   | 485 +++++++++++++++++
+ drivers/net/ethernet/mediatek/mtk_ppe_regs.h  | 144 +++++
+ drivers/net/ppp/ppp_generic.c                 |  22 +
+ drivers/net/ppp/pppoe.c                       |  23 +
+ include/linux/netdevice.h                     |  59 ++
+ include/linux/ppp_channel.h                   |   3 +
+ include/net/flow_offload.h                    |   4 +
+ include/net/netfilter/nf_flow_table.h         |  47 +-
+ net/8021q/vlan_dev.c                          |  21 +
+ net/bridge/br_device.c                        |  49 ++
+ net/bridge/br_private.h                       |  20 +
+ net/bridge/br_vlan.c                          |  55 ++
+ net/core/dev.c                                |  46 ++
+ net/dsa/slave.c                               |  36 +-
+ net/netfilter/nf_flow_table_core.c            |  49 +-
+ net/netfilter/nf_flow_table_ip.c              | 270 +++++++--
+ net/netfilter/nf_flow_table_offload.c         | 179 ++++--
+ net/netfilter/nft_flow_offload.c              | 211 +++++++-
+ .../selftests/netfilter/nft_flowtable.sh      |  82 +++
+ 25 files changed, 2768 insertions(+), 118 deletions(-)
+ create mode 100644 drivers/net/ethernet/mediatek/mtk_ppe.c
+ create mode 100644 drivers/net/ethernet/mediatek/mtk_ppe.h
+ create mode 100644 drivers/net/ethernet/mediatek/mtk_ppe_debugfs.c
+ create mode 100644 drivers/net/ethernet/mediatek/mtk_ppe_offload.c
+ create mode 100644 drivers/net/ethernet/mediatek/mtk_ppe_regs.h
+
+-- 
+2.20.1
+
