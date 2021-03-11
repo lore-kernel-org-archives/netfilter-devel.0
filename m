@@ -7,48 +7,48 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90404C433DB
-	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Mar 2021 00:37:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76919C28E88
+	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Mar 2021 00:37:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5F1F064FD7
-	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Mar 2021 00:37:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4E51D64FBF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Mar 2021 00:37:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229675AbhCKAgo (ORCPT
+        id S230140AbhCKAgw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 10 Mar 2021 19:36:44 -0500
-Received: from correo.us.es ([193.147.175.20]:50056 "EHLO mail.us.es"
+        Wed, 10 Mar 2021 19:36:52 -0500
+Received: from correo.us.es ([193.147.175.20]:50216 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229791AbhCKAgS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 10 Mar 2021 19:36:18 -0500
+        id S230143AbhCKAgb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 10 Mar 2021 19:36:31 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 9C59612E82D
-        for <netfilter-devel@vger.kernel.org>; Thu, 11 Mar 2021 01:36:17 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id B05DD12E837
+        for <netfilter-devel@vger.kernel.org>; Thu, 11 Mar 2021 01:36:30 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8CEEFDA704
-        for <netfilter-devel@vger.kernel.org>; Thu, 11 Mar 2021 01:36:17 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9C5BDDA78D
+        for <netfilter-devel@vger.kernel.org>; Thu, 11 Mar 2021 01:36:30 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 81D42DA78A; Thu, 11 Mar 2021 01:36:17 +0100 (CET)
+        id 91AABDA72F; Thu, 11 Mar 2021 01:36:30 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2CFB6DA704;
-        Thu, 11 Mar 2021 01:36:15 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 69138DA73D;
+        Thu, 11 Mar 2021 01:36:28 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 11 Mar 2021 01:36:15 +0100 (CET)
+ Thu, 11 Mar 2021 01:36:28 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id EE4CB42DC6E2;
-        Thu, 11 Mar 2021 01:36:14 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPSA id 336CB42DC6E2;
+        Thu, 11 Mar 2021 01:36:28 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         Felix Fietkau <nbd@nbd.name>
-Subject: [PATCH net-next 05/23] net: ppp: resolve forwarding path for bridge pppoe devices
-Date:   Thu, 11 Mar 2021 01:35:46 +0100
-Message-Id: <20210311003604.22199-6-pablo@netfilter.org>
+Subject: [PATCH net-next 23/23] net: ethernet: mtk_eth_soc: fix parsing packets in GDM
+Date:   Thu, 11 Mar 2021 01:36:04 +0100
+Message-Id: <20210311003604.22199-24-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20210311003604.22199-1-pablo@netfilter.org>
 References: <20210311003604.22199-1-pablo@netfilter.org>
@@ -61,127 +61,77 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Felix Fietkau <nbd@nbd.name>
 
-Pass on the PPPoE session ID, destination hardware address and the real
-device.
+When using DSA, set the special tag in GDM ingress control to allow the MAC
+to parse packets properly earlier. This affects rx DMA source port reporting.
 
 Signed-off-by: Felix Fietkau <nbd@nbd.name>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- drivers/net/ppp/ppp_generic.c | 22 ++++++++++++++++++++++
- drivers/net/ppp/pppoe.c       | 23 +++++++++++++++++++++++
- include/linux/netdevice.h     |  2 ++
- include/linux/ppp_channel.h   |  3 +++
- 4 files changed, 50 insertions(+)
+ drivers/net/ethernet/mediatek/mtk_eth_soc.c | 15 +++++++++------
+ drivers/net/ethernet/mediatek/mtk_eth_soc.h |  2 ++
+ 2 files changed, 11 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/net/ppp/ppp_generic.c b/drivers/net/ppp/ppp_generic.c
-index d445ecb1d0c7..930e49ef15f6 100644
---- a/drivers/net/ppp/ppp_generic.c
-+++ b/drivers/net/ppp/ppp_generic.c
-@@ -1560,12 +1560,34 @@ static void ppp_dev_priv_destructor(struct net_device *dev)
- 		ppp_destroy_interface(ppp);
- }
+diff --git a/drivers/net/ethernet/mediatek/mtk_eth_soc.c b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+index 2e6d79b2ff24..0396f0db855f 100644
+--- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
++++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+@@ -19,6 +19,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/pinctrl/devinfo.h>
+ #include <linux/phylink.h>
++#include <net/dsa.h>
  
-+static int ppp_fill_forward_path(struct net_device_path_ctx *ctx,
-+				 struct net_device_path *path)
-+{
-+	struct ppp *ppp = netdev_priv(ctx->dev);
-+	struct ppp_channel *chan;
-+	struct channel *pch;
-+
-+	if (ppp->flags & SC_MULTILINK)
-+		return -EOPNOTSUPP;
-+
-+	if (list_empty(&ppp->channels))
-+		return -ENODEV;
-+
-+	pch = list_first_entry(&ppp->channels, struct channel, clist);
-+	chan = pch->chan;
-+	if (!chan->ops->fill_forward_path)
-+		return -EOPNOTSUPP;
-+
-+	return chan->ops->fill_forward_path(ctx, path, chan);
-+}
-+
- static const struct net_device_ops ppp_netdev_ops = {
- 	.ndo_init	 = ppp_dev_init,
- 	.ndo_uninit      = ppp_dev_uninit,
- 	.ndo_start_xmit  = ppp_start_xmit,
- 	.ndo_do_ioctl    = ppp_net_ioctl,
- 	.ndo_get_stats64 = ppp_get_stats64,
-+	.ndo_fill_forward_path = ppp_fill_forward_path,
- };
+ #include "mtk_eth_soc.h"
  
- static struct device_type ppp_type = {
-diff --git a/drivers/net/ppp/pppoe.c b/drivers/net/ppp/pppoe.c
-index d7f50b835050..6c72d74827b2 100644
---- a/drivers/net/ppp/pppoe.c
-+++ b/drivers/net/ppp/pppoe.c
-@@ -972,8 +972,31 @@ static int pppoe_xmit(struct ppp_channel *chan, struct sk_buff *skb)
- 	return __pppoe_xmit(sk, skb);
- }
+@@ -1264,13 +1265,12 @@ static int mtk_poll_rx(struct napi_struct *napi, int budget,
+ 			break;
  
-+static int pppoe_fill_forward_path(struct net_device_path_ctx *ctx,
-+				   struct net_device_path *path,
-+				   const struct ppp_channel *chan)
-+{
-+	struct sock *sk = (struct sock *)chan->private;
-+	struct pppox_sock *po = pppox_sk(sk);
-+	struct net_device *dev = po->pppoe_dev;
-+
-+	if (sock_flag(sk, SOCK_DEAD) ||
-+	    !(sk->sk_state & PPPOX_CONNECTED) || !dev)
-+		return -1;
-+
-+	path->type = DEV_PATH_PPPOE;
-+	path->encap.proto = htons(ETH_P_PPP_SES);
-+	path->encap.id = be16_to_cpu(po->num);
-+	memcpy(path->encap.h_dest, po->pppoe_pa.remote, ETH_ALEN);
-+	path->dev = ctx->dev;
-+	ctx->dev = dev;
-+
-+	return 0;
-+}
-+
- static const struct ppp_channel_ops pppoe_chan_ops = {
- 	.start_xmit = pppoe_xmit,
-+	.fill_forward_path = pppoe_fill_forward_path,
- };
+ 		/* find out which mac the packet come from. values start at 1 */
+-		if (MTK_HAS_CAPS(eth->soc->caps, MTK_SOC_MT7628)) {
++		if (MTK_HAS_CAPS(eth->soc->caps, MTK_SOC_MT7628) ||
++		    (trxd.rxd4 & RX_DMA_SPECIAL_TAG))
+ 			mac = 0;
+-		} else {
+-			mac = (trxd.rxd4 >> RX_DMA_FPORT_SHIFT) &
+-				RX_DMA_FPORT_MASK;
+-			mac--;
+-		}
++		else
++			mac = ((trxd.rxd4 >> RX_DMA_FPORT_SHIFT) &
++			       RX_DMA_FPORT_MASK) - 1;
  
- static int pppoe_recvmsg(struct socket *sock, struct msghdr *m,
-diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index 8159be6c9aa7..c8917eb1adac 100644
---- a/include/linux/netdevice.h
-+++ b/include/linux/netdevice.h
-@@ -835,6 +835,7 @@ enum net_device_path_type {
- 	DEV_PATH_ETHERNET = 0,
- 	DEV_PATH_VLAN,
- 	DEV_PATH_BRIDGE,
-+	DEV_PATH_PPPOE,
- };
+ 		if (unlikely(mac < 0 || mac >= MTK_MAC_COUNT ||
+ 			     !eth->netdev[mac]))
+@@ -2233,6 +2233,9 @@ static void mtk_gdm_config(struct mtk_eth *eth, u32 config)
  
- struct net_device_path {
-@@ -844,6 +845,7 @@ struct net_device_path {
- 		struct {
- 			u16		id;
- 			__be16		proto;
-+			u8		h_dest[ETH_ALEN];
- 		} encap;
- 		struct {
- 			enum {
-diff --git a/include/linux/ppp_channel.h b/include/linux/ppp_channel.h
-index 98966064ee68..91f9a928344e 100644
---- a/include/linux/ppp_channel.h
-+++ b/include/linux/ppp_channel.h
-@@ -28,6 +28,9 @@ struct ppp_channel_ops {
- 	int	(*start_xmit)(struct ppp_channel *, struct sk_buff *);
- 	/* Handle an ioctl call that has come in via /dev/ppp. */
- 	int	(*ioctl)(struct ppp_channel *, unsigned int, unsigned long);
-+	int	(*fill_forward_path)(struct net_device_path_ctx *,
-+				     struct net_device_path *,
-+				     const struct ppp_channel *);
- };
+ 		val |= config;
  
- struct ppp_channel {
++		if (!i && eth->netdev[0] && netdev_uses_dsa(eth->netdev[0]))
++			val |= MTK_GDMA_SPECIAL_TAG;
++
+ 		mtk_w32(eth, val, MTK_GDMA_FWD_CFG(i));
+ 	}
+ 	/* Reset and enable PSE */
+diff --git a/drivers/net/ethernet/mediatek/mtk_eth_soc.h b/drivers/net/ethernet/mediatek/mtk_eth_soc.h
+index 72757977ccfb..1a6750c08bb9 100644
+--- a/drivers/net/ethernet/mediatek/mtk_eth_soc.h
++++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.h
+@@ -85,6 +85,7 @@
+ 
+ /* GDM Exgress Control Register */
+ #define MTK_GDMA_FWD_CFG(x)	(0x500 + (x * 0x1000))
++#define MTK_GDMA_SPECIAL_TAG	BIT(24)
+ #define MTK_GDMA_ICS_EN		BIT(22)
+ #define MTK_GDMA_TCS_EN		BIT(21)
+ #define MTK_GDMA_UCS_EN		BIT(20)
+@@ -315,6 +316,7 @@
+ #define RX_DMA_L4_VALID_PDMA	BIT(30)		/* when PDMA is used */
+ #define RX_DMA_FPORT_SHIFT	19
+ #define RX_DMA_FPORT_MASK	0x7
++#define RX_DMA_SPECIAL_TAG	BIT(22)
+ 
+ /* PHY Indirect Access Control registers */
+ #define MTK_PHY_IAC		0x10004
 -- 
 2.20.1
 
