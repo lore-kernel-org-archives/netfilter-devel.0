@@ -7,48 +7,48 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6233AC433E6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFBB1C4332D
 	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Mar 2021 00:37:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 24F4864FBF
+	by mail.kernel.org (Postfix) with ESMTP id B7BC064FBA
 	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Mar 2021 00:37:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229658AbhCKAgm (ORCPT
+        id S230198AbhCKAgn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 10 Mar 2021 19:36:42 -0500
-Received: from correo.us.es ([193.147.175.20]:50002 "EHLO mail.us.es"
+        Wed, 10 Mar 2021 19:36:43 -0500
+Received: from correo.us.es ([193.147.175.20]:50036 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229578AbhCKAgM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 10 Mar 2021 19:36:12 -0500
+        id S229712AbhCKAgP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 10 Mar 2021 19:36:15 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D3F8612E831
-        for <netfilter-devel@vger.kernel.org>; Thu, 11 Mar 2021 01:36:11 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id E3A6112E82F
+        for <netfilter-devel@vger.kernel.org>; Thu, 11 Mar 2021 01:36:14 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C5704DA722
-        for <netfilter-devel@vger.kernel.org>; Thu, 11 Mar 2021 01:36:11 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D6319DA789
+        for <netfilter-devel@vger.kernel.org>; Thu, 11 Mar 2021 01:36:14 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id BA402DA78A; Thu, 11 Mar 2021 01:36:11 +0100 (CET)
+        id CB49FDA704; Thu, 11 Mar 2021 01:36:14 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6B299DA722;
-        Thu, 11 Mar 2021 01:36:09 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8C578DA722;
+        Thu, 11 Mar 2021 01:36:12 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 11 Mar 2021 01:36:09 +0100 (CET)
+ Thu, 11 Mar 2021 01:36:12 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 37BD642DC6E2;
-        Thu, 11 Mar 2021 01:36:09 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPSA id 5447F42DC6E2;
+        Thu, 11 Mar 2021 01:36:12 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         Felix Fietkau <nbd@nbd.name>
-Subject: [PATCH net-next 01/23] net: resolve forwarding path from virtual netdevice and HW destination address
-Date:   Thu, 11 Mar 2021 01:35:42 +0100
-Message-Id: <20210311003604.22199-2-pablo@netfilter.org>
+Subject: [PATCH net-next 03/23] net: bridge: resolve forwarding path for bridge devices
+Date:   Thu, 11 Mar 2021 01:35:44 +0100
+Message-Id: <20210311003604.22199-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20210311003604.22199-1-pablo@netfilter.org>
 References: <20210311003604.22199-1-pablo@netfilter.org>
@@ -59,178 +59,71 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch adds dev_fill_forward_path() which resolves the path to reach
-the real netdevice from the IP forwarding side. This function takes as
-input the netdevice and the destination hardware address and it walks
-down the devices calling .ndo_fill_forward_path() for each device until
-the real device is found.
-
-For instance, assuming the following topology:
-
-               IP forwarding
-              /             \
-           br0              eth0
-           / \
-       eth1  eth2
-        .
-        .
-        .
-       ethX
- ab:cd:ef:ab:cd:ef
-
-where eth1 and eth2 are bridge ports and eth0 provides WAN connectivity.
-ethX is the interface in another box which is connected to the eth1
-bridge port.
-
-For packets going through IP forwarding to br0 whose destination MAC
-address is ab:cd:ef:ab:cd:ef, dev_fill_forward_path() provides the
-following path:
-
-	br0 -> eth1
-
-.ndo_fill_forward_path for br0 looks up at the FDB for the bridge port
-from the destination MAC address to get the bridge port eth1.
-
-This information allows to create a fast path that bypasses the classic
-bridge and IP forwarding paths, so packets go directly from the bridge
-port eth1 to eth0 (wan interface) and vice versa.
-
-             fast path
-      .------------------------.
-     /                          \
-    |           IP forwarding   |
-    |          /             \  \/
-    |       br0               eth0
-    .       / \
-     -> eth1  eth2
-        .
-        .
-        .
-       ethX
- ab:cd:ef:ab:cd:ef
+Add .ndo_fill_forward_path for bridge devices.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netdevice.h | 27 +++++++++++++++++++++++
- net/core/dev.c            | 46 +++++++++++++++++++++++++++++++++++++++
- 2 files changed, 73 insertions(+)
+ include/linux/netdevice.h |  1 +
+ net/bridge/br_device.c    | 27 +++++++++++++++++++++++++++
+ 2 files changed, 28 insertions(+)
 
 diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index 5b67ea89d5f2..70eb88a4adbb 100644
+index d78155aba3fa..4d8b8dc20018 100644
 --- a/include/linux/netdevice.h
 +++ b/include/linux/netdevice.h
-@@ -831,6 +831,27 @@ typedef u16 (*select_queue_fallback_t)(struct net_device *dev,
- 				       struct sk_buff *skb,
- 				       struct net_device *sb_dev);
- 
-+enum net_device_path_type {
-+	DEV_PATH_ETHERNET = 0,
-+};
-+
-+struct net_device_path {
-+	enum net_device_path_type	type;
-+	const struct net_device		*dev;
-+};
-+
-+#define NET_DEVICE_PATH_STACK_MAX	5
-+
-+struct net_device_path_stack {
-+	int			num_paths;
-+	struct net_device_path	path[NET_DEVICE_PATH_STACK_MAX];
-+};
-+
-+struct net_device_path_ctx {
-+	const struct net_device *dev;
-+	const u8		*daddr;
-+};
-+
- enum tc_setup_type {
- 	TC_SETUP_QDISC_MQPRIO,
- 	TC_SETUP_CLSU32,
-@@ -1265,6 +1286,8 @@ struct netdev_net_notifier {
-  * struct net_device *(*ndo_get_peer_dev)(struct net_device *dev);
-  *	If a device is paired with a peer device, return the peer instance.
-  *	The caller must be under RCU read context.
-+ * int (*ndo_fill_forward_path)(struct net_device_path_ctx *ctx, struct net_device_path *path);
-+ *     Get the forwarding path to reach the real device from the HW destination address
-  */
- struct net_device_ops {
- 	int			(*ndo_init)(struct net_device *dev);
-@@ -1471,6 +1494,8 @@ struct net_device_ops {
- 	int			(*ndo_tunnel_ctl)(struct net_device *dev,
- 						  struct ip_tunnel_parm *p, int cmd);
- 	struct net_device *	(*ndo_get_peer_dev)(struct net_device *dev);
-+	int                     (*ndo_fill_forward_path)(struct net_device_path_ctx *ctx,
-+                                                         struct net_device_path *path);
+@@ -834,6 +834,7 @@ typedef u16 (*select_queue_fallback_t)(struct net_device *dev,
+ enum net_device_path_type {
+ 	DEV_PATH_ETHERNET = 0,
+ 	DEV_PATH_VLAN,
++	DEV_PATH_BRIDGE,
  };
  
- /**
-@@ -2844,6 +2869,8 @@ void dev_remove_offload(struct packet_offload *po);
- 
- int dev_get_iflink(const struct net_device *dev);
- int dev_fill_metadata_dst(struct net_device *dev, struct sk_buff *skb);
-+int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
-+			  struct net_device_path_stack *stack);
- struct net_device *__dev_get_by_flags(struct net *net, unsigned short flags,
- 				      unsigned short mask);
- struct net_device *dev_get_by_name(struct net *net, const char *name);
-diff --git a/net/core/dev.c b/net/core/dev.c
-index 6c5967e80132..e9a00a00afee 100644
---- a/net/core/dev.c
-+++ b/net/core/dev.c
-@@ -848,6 +848,52 @@ int dev_fill_metadata_dst(struct net_device *dev, struct sk_buff *skb)
+ struct net_device_path {
+diff --git a/net/bridge/br_device.c b/net/bridge/br_device.c
+index 3f2f06b4dd27..c241719013f4 100644
+--- a/net/bridge/br_device.c
++++ b/net/bridge/br_device.c
+@@ -385,6 +385,32 @@ static int br_del_slave(struct net_device *dev, struct net_device *slave_dev)
+ 	return br_del_if(br, slave_dev);
  }
- EXPORT_SYMBOL_GPL(dev_fill_metadata_dst);
  
-+static struct net_device_path *dev_fwd_path(struct net_device_path_stack *stack)
++static int br_fill_forward_path(struct net_device_path_ctx *ctx,
++				struct net_device_path *path)
 +{
-+	int k = stack->num_paths++;
++	struct net_bridge_fdb_entry *f;
++	struct net_bridge_port *dst;
++	struct net_bridge *br;
 +
-+	if (WARN_ON_ONCE(k >= NET_DEVICE_PATH_STACK_MAX))
-+		return NULL;
-+
-+	return &stack->path[k];
-+}
-+
-+int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
-+			  struct net_device_path_stack *stack)
-+{
-+	const struct net_device *last_dev;
-+	struct net_device_path_ctx ctx = {
-+		.dev	= dev,
-+		.daddr	= daddr,
-+	};
-+	struct net_device_path *path;
-+	int ret = 0;
-+
-+	stack->num_paths = 0;
-+	while (ctx.dev && ctx.dev->netdev_ops->ndo_fill_forward_path) {
-+		last_dev = ctx.dev;
-+		path = dev_fwd_path(stack);
-+		if (!path)
-+			return -1;
-+
-+		memset(path, 0, sizeof(struct net_device_path));
-+		ret = ctx.dev->netdev_ops->ndo_fill_forward_path(&ctx, path);
-+		if (ret < 0)
-+			return -1;
-+
-+		if (WARN_ON_ONCE(last_dev == ctx.dev))
-+			return -1;
-+	}
-+	path = dev_fwd_path(stack);
-+	if (!path)
++	if (netif_is_bridge_port(ctx->dev))
 +		return -1;
-+	path->type = DEV_PATH_ETHERNET;
-+	path->dev = ctx.dev;
 +
-+	return ret;
++	br = netdev_priv(ctx->dev);
++	f = br_fdb_find_rcu(br, ctx->daddr, 0);
++	if (!f || !f->dst)
++		return -1;
++
++	dst = READ_ONCE(f->dst);
++	if (!dst)
++		return -1;
++
++	path->type = DEV_PATH_BRIDGE;
++	path->dev = dst->br->dev;
++	ctx->dev = dst->dev;
++
++	return 0;
 +}
-+EXPORT_SYMBOL_GPL(dev_fill_forward_path);
 +
- /**
-  *	__dev_get_by_name	- find a device by its name
-  *	@net: the applicable net namespace
+ static const struct ethtool_ops br_ethtool_ops = {
+ 	.get_drvinfo		 = br_getinfo,
+ 	.get_link		 = ethtool_op_get_link,
+@@ -419,6 +445,7 @@ static const struct net_device_ops br_netdev_ops = {
+ 	.ndo_bridge_setlink	 = br_setlink,
+ 	.ndo_bridge_dellink	 = br_dellink,
+ 	.ndo_features_check	 = passthru_features_check,
++	.ndo_fill_forward_path	 = br_fill_forward_path,
+ };
+ 
+ static struct device_type br_type = {
 -- 
 2.20.1
 
