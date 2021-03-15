@@ -7,66 +7,97 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B03B7C433DB
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Mar 2021 10:31:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 914EDC433E6
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Mar 2021 16:56:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 607DF60295
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Mar 2021 10:31:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6595F64F35
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Mar 2021 16:56:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229810AbhCOKbW (ORCPT
+        id S229914AbhCOQza (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Mar 2021 06:31:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56106 "EHLO
+        Mon, 15 Mar 2021 12:55:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54782 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229872AbhCOKbT (ORCPT
+        with ESMTP id S232996AbhCOQzC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Mar 2021 06:31:19 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F6C0C061574
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Mar 2021 03:31:19 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1lLkVG-0000fH-U1; Mon, 15 Mar 2021 11:31:14 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: ctnetlink: fix dump of the expect mask attribute
-Date:   Mon, 15 Mar 2021 11:31:09 +0100
-Message-Id: <20210315103109.12004-1-fw@strlen.de>
-X-Mailer: git-send-email 2.26.2
+        Mon, 15 Mar 2021 12:55:02 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [IPv6:2001:4b98:dc0:41:216:3eff:fe8c:2bda])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C7464C06175F
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Mar 2021 09:55:01 -0700 (PDT)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id D53506353D;
+        Mon, 15 Mar 2021 17:49:39 +0100 (CET)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     mikhail.sennikovskii@cloud.ionos.com
+Subject: [PATCH conntrack 6/6] conntrack: add function to print command stats
+Date:   Mon, 15 Mar 2021 17:49:29 +0100
+Message-Id: <20210315164929.23608-6-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20210315164929.23608-1-pablo@netfilter.org>
+References: <20210315164929.23608-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Before this change, the mask is never included in the netlink message, so
-"conntrack -E expect" always prints 0.0.0.0.
+Wrap code to display command stats in a function.
 
-In older kernels the l3num callback struct was passed as argument, based
-on tuple->src.l3num. After the l3num indirection got removed, the call
-chain is based on m.src.l3num, but this value is 0xffff.
-
-Init l3num to the correct value.
-
-Fixes: f957be9d349a3 ("netfilter: conntrack: remove ctnetlink callbacks from l3 protocol trackers")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_netlink.c | 1 +
- 1 file changed, 1 insertion(+)
+ src/conntrack.c | 25 +++++++++++++++++--------
+ 1 file changed, 17 insertions(+), 8 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 1469365bac7e..1d519b0e51a5 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -2962,6 +2962,7 @@ static int ctnetlink_exp_dump_mask(struct sk_buff *skb,
- 	memset(&m, 0xFF, sizeof(m));
- 	memcpy(&m.src.u3, &mask->src.u3, sizeof(m.src.u3));
- 	m.src.u.all = mask->src.u.all;
-+	m.src.l3num = tuple->src.l3num;
- 	m.dst.protonum = tuple->dst.protonum;
+diff --git a/src/conntrack.c b/src/conntrack.c
+index b9b0e31c8269..4bc340f69cfc 100644
+--- a/src/conntrack.c
++++ b/src/conntrack.c
+@@ -2791,6 +2791,18 @@ nfct_set_nat_details(const int opt, struct nf_conntrack *ct,
  
- 	nest_parms = nla_nest_start(skb, CTA_EXPECT_MASK);
+ }
+ 
++static int print_stats(const struct ct_cmd *cmd)
++{
++	if (cmd->command && exit_msg[cmd->cmd][0]) {
++		fprintf(stderr, "%s v%s (conntrack-tools): ",PROGNAME,VERSION);
++		fprintf(stderr, exit_msg[cmd->cmd], counter);
++		if (counter == 0 && !(cmd->command & (CT_LIST | EXP_LIST)))
++			return -1;
++	}
++
++	return 0;
++}
++
+ static void do_parse(struct ct_cmd *ct_cmd, int argc, char *argv[])
+ {
+ 	unsigned int type = 0, event_mask = 0, l4flags = 0, status = 0;
+@@ -3528,13 +3540,6 @@ try_proc:
+ 	if (labelmap)
+ 		nfct_labelmap_destroy(labelmap);
+ 
+-	if (cmd->command && exit_msg[cmd->cmd][0]) {
+-		fprintf(stderr, "%s v%s (conntrack-tools): ",PROGNAME,VERSION);
+-		fprintf(stderr, exit_msg[cmd->cmd], counter);
+-		if (counter == 0 && !(cmd->command & (CT_LIST | EXP_LIST)))
+-			return EXIT_FAILURE;
+-	}
+-
+ 	return EXIT_SUCCESS;
+ }
+ 
+@@ -3553,6 +3558,10 @@ int main(int argc, char *argv[])
+ 	register_unknown();
+ 
+ 	do_parse(cmd, argc, argv);
++	do_command_ct(argv[0], cmd);
+ 
+-	return do_command_ct(argv[0], cmd);
++	if (print_stats(cmd) < 0)
++		return EXIT_FAILURE;
++
++	return EXIT_SUCCESS;
+ }
 -- 
-2.29.2
+2.20.1
 
