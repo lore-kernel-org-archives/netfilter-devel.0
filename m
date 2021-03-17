@@ -2,128 +2,57 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D321C433DB
-	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Mar 2021 20:37:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27D3EC433E0
+	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Mar 2021 23:37:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E40D864F41
-	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Mar 2021 20:37:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EA3BE64F20
+	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Mar 2021 23:37:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233407AbhCQUg7 (ORCPT
+        id S229506AbhCQXgw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 17 Mar 2021 16:36:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49872 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233406AbhCQUgo (ORCPT
+        Wed, 17 Mar 2021 19:36:52 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:49572 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229472AbhCQXgd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 17 Mar 2021 16:36:44 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [IPv6:2001:4b98:dc0:41:216:3eff:fe8c:2bda])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 49AFEC06174A
-        for <netfilter-devel@vger.kernel.org>; Wed, 17 Mar 2021 13:36:43 -0700 (PDT)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 0B8EA6352C
-        for <netfilter-devel@vger.kernel.org>; Wed, 17 Mar 2021 21:36:39 +0100 (CET)
+        Wed, 17 Mar 2021 19:36:33 -0400
+Received: from us.es (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 91A0B62BA4;
+        Thu, 18 Mar 2021 00:36:29 +0100 (CET)
+Date:   Thu, 18 Mar 2021 00:36:30 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] tests: shell: flowtable add after delete in batch
-Date:   Wed, 17 Mar 2021 21:36:36 +0100
-Message-Id: <20210317203636.14869-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+To:     Oz Shlomo <ozsh@nvidia.com>
+Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Saeed Mahameed <saeedm@nvidia.com>,
+        Paul Blakey <paulb@nvidia.com>
+Subject: Re: [PATCH nf-next] netfilter: flowtable: separate replace, destroy
+ and stats to different workqueues
+Message-ID: <20210317233630.GA2480@salvia>
+References: <20210303125953.11911-1-ozsh@nvidia.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20210303125953.11911-1-ozsh@nvidia.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Check for bogus EEXIST and EBUSY errors.
+On Wed, Mar 03, 2021 at 02:59:53PM +0200, Oz Shlomo wrote:
+> Currently the flow table offload replace, destroy and stats work items are
+> executed on a single workqueue. As such, DESTROY and STATS commands may
+> be backloged after a burst of REPLACE work items. This scenario can bloat
+> up memory and may cause active connections to age.
+> 
+> Instatiate add, del and stats workqueues to avoid backlogs of non-dependent
+> actions. Provide sysfs control over the workqueue attributes, allowing
+> userspace applications to control the workqueue cpumask.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- .../testcases/flowtable/0013addafterdelete_0  | 27 ++++++++++++++
- .../testcases/flowtable/0014addafterdelete_0  | 36 +++++++++++++++++++
- 2 files changed, 63 insertions(+)
- create mode 100755 tests/shell/testcases/flowtable/0013addafterdelete_0
- create mode 100755 tests/shell/testcases/flowtable/0014addafterdelete_0
+I'm going to apply this to nf-next, it should be possible to revisit
+this problem incrementally.
 
-diff --git a/tests/shell/testcases/flowtable/0013addafterdelete_0 b/tests/shell/testcases/flowtable/0013addafterdelete_0
-new file mode 100755
-index 000000000000..b23ab9782909
---- /dev/null
-+++ b/tests/shell/testcases/flowtable/0013addafterdelete_0
-@@ -0,0 +1,27 @@
-+#!/bin/bash
-+
-+set -e
-+
-+RULESET='table inet filter {
-+
-+    flowtable f {
-+	hook ingress priority filter - 1
-+	devices = { lo }
-+	counter
-+    }
-+}'
-+
-+$NFT -f - <<< "$RULESET"
-+
-+RULESET='delete flowtable inet filter f
-+
-+table inet filter {
-+
-+    flowtable f {
-+	hook ingress priority filter - 1
-+	devices = { lo }
-+	counter
-+    }
-+}'
-+
-+$NFT -f - <<< "$RULESET"
-diff --git a/tests/shell/testcases/flowtable/0014addafterdelete_0 b/tests/shell/testcases/flowtable/0014addafterdelete_0
-new file mode 100755
-index 000000000000..6a24c4b9a140
---- /dev/null
-+++ b/tests/shell/testcases/flowtable/0014addafterdelete_0
-@@ -0,0 +1,36 @@
-+#!/bin/bash
-+
-+set -e
-+
-+RULESET='table inet filter {
-+
-+    flowtable f {
-+        hook ingress priority filter - 1
-+        devices = { lo }
-+    }
-+
-+    chain y {
-+        type filter hook forward priority 0;
-+        flow add @f counter
-+    }
-+}'
-+
-+$NFT -f - <<< "$RULESET"
-+
-+RULESET='delete rule inet filter y handle 3
-+delete flowtable inet filter f
-+
-+table inet filter {
-+    flowtable f {
-+        hook ingress priority filter - 1
-+        devices = { lo }
-+        counter
-+    }
-+
-+    chain y {
-+        type filter hook forward priority 0;
-+        flow add @f counter
-+    }
-+}'
-+
-+$NFT -f - <<< "$RULESET"
--- 
-2.20.1
-
+Applied, thanks for your patience.
