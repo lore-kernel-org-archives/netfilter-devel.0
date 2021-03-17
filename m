@@ -6,41 +6,51 @@ X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06D01C433DB
-	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Mar 2021 23:40:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90465C433DB
+	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Mar 2021 23:42:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BC29764F20
-	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Mar 2021 23:40:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 435EB64E41
+	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Mar 2021 23:42:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229930AbhCQXjk (ORCPT
+        id S229508AbhCQXlw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 17 Mar 2021 19:39:40 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:49708 "EHLO
+        Wed, 17 Mar 2021 19:41:52 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:49752 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229601AbhCQXjR (ORCPT
+        with ESMTP id S229472AbhCQXlX (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 17 Mar 2021 19:39:17 -0400
+        Wed, 17 Mar 2021 19:41:23 -0400
 Received: from us.es (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id D755962BAB;
-        Thu, 18 Mar 2021 00:39:13 +0100 (CET)
-Date:   Thu, 18 Mar 2021 00:39:13 +0100
+        by mail.netfilter.org (Postfix) with ESMTPSA id 7B6B762BB1;
+        Thu, 18 Mar 2021 00:41:19 +0100 (CET)
+Date:   Thu, 18 Mar 2021 00:41:20 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Ludovic Senecaux <linuxludo@free.fr>
-Cc:     kadlec@netfilter.org, fw@strlen.de,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: Re: [PATCH][nft,v2] conntrack: Fix gre tunneling over ipv6
-Message-ID: <20210317233913.GA12128@salvia>
-References: <20210304090959.GA301692@r1.mshome.net>
+To:     Simon Horman <simon.horman@netronome.com>
+Cc:     netfilter-devel@vger.kernel.org, oss-drivers@netronome.com,
+        Yinjun Zhang <yinjun.zhang@corigine.com>,
+        Louis Peens <louis.peens@corigine.com>
+Subject: Re: [PATCH nf] netfilter: flowtable: Make sure GC works periodically
+ in idle system
+Message-ID: <20210317234120.GA14924@salvia>
+References: <20210317124224.16665-1-simon.horman@netronome.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20210304090959.GA301692@r1.mshome.net>
+In-Reply-To: <20210317124224.16665-1-simon.horman@netronome.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Mar 04, 2021 at 04:10:50AM -0500, Ludovic Senecaux wrote:
-> This fix permits gre connections to be tracked within ip6tables rules
+On Wed, Mar 17, 2021 at 01:42:24PM +0100, Simon Horman wrote:
+> From: Yinjun Zhang <yinjun.zhang@corigine.com>
+> 
+> Currently flowtable's GC work is initialized as deferrable, which
+> means GC cannot work on time when system is idle. So the hardware
+> offloaded flow may be deleted for timeout, since its used time is
+> not timely updated.
+> 
+> Resolve it by initializing the GC work as delayed work instead of
+> deferrable.
 
 Applied, thanks.
