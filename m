@@ -7,31 +7,31 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3652C433DB
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Mar 2021 00:31:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89BC7C433E6
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Mar 2021 00:38:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8842D64E74
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Mar 2021 00:31:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2F36164F30
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Mar 2021 00:38:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229613AbhCRAa4 (ORCPT
+        id S229846AbhCRAhS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 17 Mar 2021 20:30:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43646 "EHLO
+        Wed, 17 Mar 2021 20:37:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45006 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229472AbhCRAa0 (ORCPT
+        with ESMTP id S229720AbhCRAgs (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 17 Mar 2021 20:30:26 -0400
+        Wed, 17 Mar 2021 20:36:48 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [IPv6:2001:4b98:dc0:41:216:3eff:fe8c:2bda])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1F7D7C06174A
-        for <netfilter-devel@vger.kernel.org>; Wed, 17 Mar 2021 17:30:25 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 5C59FC06174A
+        for <netfilter-devel@vger.kernel.org>; Wed, 17 Mar 2021 17:36:48 -0700 (PDT)
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 2C68462BA4
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Mar 2021 01:30:22 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id DC45762BA4
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Mar 2021 01:36:44 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next] netfilter: nftables: update table flags from the commit phase
-Date:   Thu, 18 Mar 2021 01:30:17 +0100
-Message-Id: <20210318003017.8268-1-pablo@netfilter.org>
+Subject: [nf-next,v2] netfilter: nftables: update table flags from the commit phase
+Date:   Thu, 18 Mar 2021 01:36:40 +0100
+Message-Id: <20210318003640.27468-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -45,9 +45,11 @@ phase.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
+v2: do not update from the flags from the abort path.
+
  include/net/netfilter/nf_tables.h |  9 ++++++---
- net/netfilter/nf_tables_api.c     | 32 ++++++++++++++++---------------
- 2 files changed, 23 insertions(+), 18 deletions(-)
+ net/netfilter/nf_tables_api.c     | 31 ++++++++++++++++---------------
+ 2 files changed, 22 insertions(+), 18 deletions(-)
 
 diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
 index fdec57d862b7..67bc36f7f4fb 100644
@@ -74,7 +76,7 @@ index fdec57d862b7..67bc36f7f4fb 100644
  struct nft_trans_elem {
  	struct nft_set			*set;
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 083c112bee0b..6d2a44d33469 100644
+index 083c112bee0b..bd5e8122ea5e 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
 @@ -900,6 +900,12 @@ static void nf_tables_table_disable(struct net *net, struct nft_table *table)
@@ -129,7 +131,7 @@ index 083c112bee0b..6d2a44d33469 100644
  			} else {
  				nft_clear(net, trans->ctx.table);
  			}
-@@ -8283,11 +8286,10 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+@@ -8283,11 +8286,9 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
  		switch (trans->msg_type) {
  		case NFT_MSG_NEWTABLE:
  			if (nft_trans_table_update(trans)) {
@@ -141,7 +143,6 @@ index 083c112bee0b..6d2a44d33469 100644
 +				if (nft_trans_table_state(trans) == NFT_TABLE_STATE_WAKEUP)
 +					nf_tables_table_disable(net, trans->ctx.table);
 +
-+				trans->ctx.table->flags = nft_trans_table_flags(trans);
  				nft_trans_destroy(trans);
  			} else {
  				list_del_rcu(&trans->ctx.table->list);
