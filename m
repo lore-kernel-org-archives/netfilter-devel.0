@@ -5,34 +5,34 @@ X-Spam-Level:
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C79C0C433E2
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Mar 2021 23:57:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C4BEC433E8
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Mar 2021 23:57:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8AFBA619A9
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Mar 2021 23:57:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0690F619AE
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Mar 2021 23:57:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229658AbhCVX5G (ORCPT
+        id S230478AbhCVX5J (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 22 Mar 2021 19:57:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58594 "EHLO
+        Mon, 22 Mar 2021 19:57:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58602 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230401AbhCVX4i (ORCPT
+        with ESMTP id S230438AbhCVX4s (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Mar 2021 19:56:38 -0400
+        Mon, 22 Mar 2021 19:56:48 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [IPv6:2001:4b98:dc0:41:216:3eff:fe8c:2bda])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0588CC061574;
-        Mon, 22 Mar 2021 16:56:37 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7BB46C061756;
+        Mon, 22 Mar 2021 16:56:40 -0700 (PDT)
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 24506630CA;
-        Tue, 23 Mar 2021 00:56:30 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id BAAAD6312B;
+        Tue, 23 Mar 2021 00:56:32 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 01/10] netfilter: flowtable: separate replace, destroy and stats to different workqueues
-Date:   Tue, 23 Mar 2021 00:56:19 +0100
-Message-Id: <20210322235628.2204-2-pablo@netfilter.org>
+Subject: [PATCH net-next 03/10] netfilter: conntrack: Remove unused variable declaration
+Date:   Tue, 23 Mar 2021 00:56:21 +0100
+Message-Id: <20210322235628.2204-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20210322235628.2204-1-pablo@netfilter.org>
 References: <20210322235628.2204-1-pablo@netfilter.org>
@@ -42,105 +42,29 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Oz Shlomo <ozsh@nvidia.com>
+From: YueHaibing <yuehaibing@huawei.com>
 
-Currently the flow table offload replace, destroy and stats work items are
-executed on a single workqueue. As such, DESTROY and STATS commands may
-be backloged after a burst of REPLACE work items. This scenario can bloat
-up memory and may cause active connections to age.
+commit e97c3e278e95 ("tproxy: split off ipv6 defragmentation to a separate
+module") left behind this.
 
-Instatiate add, del and stats workqueues to avoid backlogs of non-dependent
-actions. Provide sysfs control over the workqueue attributes, allowing
-userspace applications to control the workqueue cpumask.
-
-Signed-off-by: Oz Shlomo <ozsh@nvidia.com>
-Reviewed-by: Paul Blakey <paulb@nvidia.com>
+Signed-off-by: YueHaibing <yuehaibing@huawei.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_offload.c | 44 ++++++++++++++++++++++-----
- 1 file changed, 36 insertions(+), 8 deletions(-)
+ include/net/netfilter/ipv6/nf_conntrack_ipv6.h | 3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index 2a6993fa40d7..1b979c8b3ba0 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -13,7 +13,9 @@
- #include <net/netfilter/nf_conntrack_core.h>
- #include <net/netfilter/nf_conntrack_tuple.h>
+diff --git a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h b/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
+index 7b3c873f8839..e95483192d1b 100644
+--- a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
++++ b/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
+@@ -4,7 +4,4 @@
  
--static struct workqueue_struct *nf_flow_offload_wq;
-+static struct workqueue_struct *nf_flow_offload_add_wq;
-+static struct workqueue_struct *nf_flow_offload_del_wq;
-+static struct workqueue_struct *nf_flow_offload_stats_wq;
+ extern const struct nf_conntrack_l4proto nf_conntrack_l4proto_icmpv6;
  
- struct flow_offload_work {
- 	struct list_head	list;
-@@ -826,7 +828,12 @@ static void flow_offload_work_handler(struct work_struct *work)
- 
- static void flow_offload_queue_work(struct flow_offload_work *offload)
- {
--	queue_work(nf_flow_offload_wq, &offload->work);
-+	if (offload->cmd == FLOW_CLS_REPLACE)
-+		queue_work(nf_flow_offload_add_wq, &offload->work);
-+	else if (offload->cmd == FLOW_CLS_DESTROY)
-+		queue_work(nf_flow_offload_del_wq, &offload->work);
-+	else
-+		queue_work(nf_flow_offload_stats_wq, &offload->work);
- }
- 
- static struct flow_offload_work *
-@@ -898,8 +905,11 @@ void nf_flow_offload_stats(struct nf_flowtable *flowtable,
- 
- void nf_flow_table_offload_flush(struct nf_flowtable *flowtable)
- {
--	if (nf_flowtable_hw_offload(flowtable))
--		flush_workqueue(nf_flow_offload_wq);
-+	if (nf_flowtable_hw_offload(flowtable)) {
-+		flush_workqueue(nf_flow_offload_add_wq);
-+		flush_workqueue(nf_flow_offload_del_wq);
-+		flush_workqueue(nf_flow_offload_stats_wq);
-+	}
- }
- 
- static int nf_flow_table_block_setup(struct nf_flowtable *flowtable,
-@@ -1011,15 +1021,33 @@ EXPORT_SYMBOL_GPL(nf_flow_table_offload_setup);
- 
- int nf_flow_table_offload_init(void)
- {
--	nf_flow_offload_wq  = alloc_workqueue("nf_flow_table_offload",
--					      WQ_UNBOUND, 0);
--	if (!nf_flow_offload_wq)
-+	nf_flow_offload_add_wq  = alloc_workqueue("nf_ft_offload_add",
-+						  WQ_UNBOUND | WQ_SYSFS, 0);
-+	if (!nf_flow_offload_add_wq)
- 		return -ENOMEM;
- 
-+	nf_flow_offload_del_wq  = alloc_workqueue("nf_ft_offload_del",
-+						  WQ_UNBOUND | WQ_SYSFS, 0);
-+	if (!nf_flow_offload_del_wq)
-+		goto err_del_wq;
-+
-+	nf_flow_offload_stats_wq  = alloc_workqueue("nf_ft_offload_stats",
-+						    WQ_UNBOUND | WQ_SYSFS, 0);
-+	if (!nf_flow_offload_stats_wq)
-+		goto err_stats_wq;
-+
- 	return 0;
-+
-+err_stats_wq:
-+	destroy_workqueue(nf_flow_offload_del_wq);
-+err_del_wq:
-+	destroy_workqueue(nf_flow_offload_add_wq);
-+	return -ENOMEM;
- }
- 
- void nf_flow_table_offload_exit(void)
- {
--	destroy_workqueue(nf_flow_offload_wq);
-+	destroy_workqueue(nf_flow_offload_add_wq);
-+	destroy_workqueue(nf_flow_offload_del_wq);
-+	destroy_workqueue(nf_flow_offload_stats_wq);
- }
+-#include <linux/sysctl.h>
+-extern struct ctl_table nf_ct_ipv6_sysctl_table[];
+-
+ #endif /* _NF_CONNTRACK_IPV6_H*/
 -- 
 2.20.1
 
