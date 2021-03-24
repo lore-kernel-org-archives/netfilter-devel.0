@@ -2,79 +2,59 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25046C433C1
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Mar 2021 10:58:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53D20C433DB
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Mar 2021 11:23:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EA88861A08
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Mar 2021 10:58:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1393061A06
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Mar 2021 11:23:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234976AbhCXK6V (ORCPT
+        id S232548AbhCXLWw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 24 Mar 2021 06:58:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60328 "EHLO
+        Wed, 24 Mar 2021 07:22:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37398 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234439AbhCXK6D (ORCPT
+        with ESMTP id S232369AbhCXLWg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Mar 2021 06:58:03 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D62D1C061763
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 Mar 2021 03:58:02 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1lP1D6-00034c-H2; Wed, 24 Mar 2021 11:58:00 +0100
-Date:   Wed, 24 Mar 2021 11:58:00 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Florian Westphal <fw@strlen.de>
+        Wed, 24 Mar 2021 07:22:36 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [IPv6:2001:4b98:dc0:41:216:3eff:fe8c:2bda])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8A8CBC061763
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 Mar 2021 04:22:36 -0700 (PDT)
+Received: from us.es (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 26CFE62BDE;
+        Wed, 24 Mar 2021 12:22:25 +0100 (CET)
+Date:   Wed, 24 Mar 2021 12:22:30 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Mikhail Sennikovsky <mikhail.sennikovskii@cloud.ionos.com>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft 6/6] src: allow arbitary chain name in implicit rule
- add case
-Message-ID: <20210324105800.GJ22603@breakpoint.cc>
-References: <20210316234039.15677-1-fw@strlen.de>
- <20210316234039.15677-7-fw@strlen.de>
- <20210318132026.GD22603@breakpoint.cc>
+Subject: Re: [PATCH v3 1/8] conntrack: reset optind in do_parse
+Message-ID: <20210324112230.GA7694@salvia>
+References: <20210129212452.45352-1-mikhail.sennikovskii@cloud.ionos.com>
+ <20210129212452.45352-2-mikhail.sennikovskii@cloud.ionos.com>
+ <20210315171819.GA25083@salvia>
+ <CALHVEJbqbPLMUJN5H6Q-8sUFxTWtmCN+qWNCBETPEjBhtZc_Jw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20210318132026.GD22603@breakpoint.cc>
+In-Reply-To: <CALHVEJbqbPLMUJN5H6Q-8sUFxTWtmCN+qWNCBETPEjBhtZc_Jw@mail.gmail.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Florian Westphal <fw@strlen.de> wrote:
-> Florian Westphal <fw@strlen.de> wrote:
-> > Allow switch of the flex state from bison parser.
-> > Note that this switch will happen too late to cover all cases:
-> > 
-> > nft add ip dup fwd ip saddr ...  # adds a rule to chain fwd in table dup
-> > nft add dup fwd ... # syntax error  (flex parses dup as expression keyword)
-> > 
-> > to solve this, bison must carry a list of keywords that are allowed to
-> > be used as table names.
-> > 
-> > This adds FWD as an example.  When new keywords are added, this can
-> > then be extended as needed.
-> > 
-> > Another alternative is to deprecate implicit rule add altogether
-> > so users would have to move to 'nft add rule ...'.
+On Wed, Mar 17, 2021 at 07:31:18PM +0100, Mikhail Sennikovsky wrote:
+> Hi Pablo,
 > 
-> ... and another alternative is to not allow arbitrary table/chain/set
-> names after all.
-> 
-> We could just say that all future tokens that could break existing
-> table/chain/set name need to be added to the 'identifier' in
-> parser_bison.y.
-> 
-> Provided new expressions with args use start conditionals the list
-> of tokens would probably stay short.
-> 
-> Given the 'set' complication Phil mentioned that might be the best
-> way forward.
+> Sure, so taking into account your comments to 3/8 and 4/8 I collapse
+> 1-5/8 in a single commit, correct?
 
-I've pushed the first 3 patches and marked the last 3 as deferred --
-lets first try conservative approach first before attempting to support
-arbitrary names.
+Yes please. My understanding is that they belong to the same logical
+changes, that is, add batch support.
+
+So this new "batch support" for conntrack is all new code that can be
+added at once IMO.
+
+Thanks.
