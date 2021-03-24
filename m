@@ -2,107 +2,79 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0370C433C1
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Mar 2021 10:04:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25046C433C1
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Mar 2021 10:58:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8598B619FD
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Mar 2021 10:04:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EA88861A08
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Mar 2021 10:58:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233059AbhCXKE1 (ORCPT
+        id S234976AbhCXK6V (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 24 Mar 2021 06:04:27 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:33336 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233339AbhCXKD6 (ORCPT
+        Wed, 24 Mar 2021 06:58:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60328 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234439AbhCXK6D (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Mar 2021 06:03:58 -0400
-Received: from us.es (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 74D8862BEA;
-        Wed, 24 Mar 2021 11:03:49 +0100 (CET)
-Date:   Wed, 24 Mar 2021 11:03:54 +0100
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     DENG Qingfang <dqfext@gmail.com>
-Cc:     netfilter-devel@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-        Jakub Kicinski <kuba@kernel.org>, Andrew Lunn <andrew@lunn.ch>,
-        Vladimir Oltean <olteanv@gmail.com>,
-        Tobias Waldekranz <tobias@waldekranz.com>,
-        Felix Fietkau <nbd@nbd.name>
-Subject: Re: [PATCH net-next,v2 01/24] net: resolve forwarding path from
- virtual netdevice and HW destination address
-Message-ID: <20210324100354.GA8040@salvia>
-References: <20210324013055.5619-1-pablo@netfilter.org>
- <20210324013055.5619-2-pablo@netfilter.org>
- <20210324072711.2835969-1-dqfext@gmail.com>
+        Wed, 24 Mar 2021 06:58:03 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D62D1C061763
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 Mar 2021 03:58:02 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1lP1D6-00034c-H2; Wed, 24 Mar 2021 11:58:00 +0100
+Date:   Wed, 24 Mar 2021 11:58:00 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft 6/6] src: allow arbitary chain name in implicit rule
+ add case
+Message-ID: <20210324105800.GJ22603@breakpoint.cc>
+References: <20210316234039.15677-1-fw@strlen.de>
+ <20210316234039.15677-7-fw@strlen.de>
+ <20210318132026.GD22603@breakpoint.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210324072711.2835969-1-dqfext@gmail.com>
+In-Reply-To: <20210318132026.GD22603@breakpoint.cc>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Mar 24, 2021 at 03:27:11PM +0800, DENG Qingfang wrote:
-> On Wed, Mar 24, 2021 at 02:30:32AM +0100, Pablo Neira Ayuso wrote:
-> > This patch adds dev_fill_forward_path() which resolves the path to reach
-> > the real netdevice from the IP forwarding side. This function takes as
-> > input the netdevice and the destination hardware address and it walks
-> > down the devices calling .ndo_fill_forward_path() for each device until
-> > the real device is found.
+Florian Westphal <fw@strlen.de> wrote:
+> Florian Westphal <fw@strlen.de> wrote:
+> > Allow switch of the flex state from bison parser.
+> > Note that this switch will happen too late to cover all cases:
 > > 
-> > For instance, assuming the following topology:
+> > nft add ip dup fwd ip saddr ...  # adds a rule to chain fwd in table dup
+> > nft add dup fwd ... # syntax error  (flex parses dup as expression keyword)
 > > 
-> >                IP forwarding
-> >               /             \
-> >            br0              eth0
-> >            / \
-> >        eth1  eth2
-> >         .
-> >         .
-> >         .
-> >        ethX
-> >  ab:cd:ef:ab:cd:ef
+> > to solve this, bison must carry a list of keywords that are allowed to
+> > be used as table names.
 > > 
-> > where eth1 and eth2 are bridge ports and eth0 provides WAN connectivity.
-> > ethX is the interface in another box which is connected to the eth1
-> > bridge port.
+> > This adds FWD as an example.  When new keywords are added, this can
+> > then be extended as needed.
 > > 
-> > For packets going through IP forwarding to br0 whose destination MAC
-> > address is ab:cd:ef:ab:cd:ef, dev_fill_forward_path() provides the
-> > following path:
-> > 
-> > 	br0 -> eth1
-> > 
-> > .ndo_fill_forward_path for br0 looks up at the FDB for the bridge port
-> > from the destination MAC address to get the bridge port eth1.
-> > 
-> > This information allows to create a fast path that bypasses the classic
-> > bridge and IP forwarding paths, so packets go directly from the bridge
-> > port eth1 to eth0 (wan interface) and vice versa.
-> > 
-> >              fast path
-> >       .------------------------.
-> >      /                          \
-> >     |           IP forwarding   |
-> >     |          /             \  \/
-> >     |       br0               eth0
-> >     .       / \
-> >      -> eth1  eth2
-> >         .
-> >         .
-> >         .
-> >        ethX
-> >  ab:cd:ef:ab:cd:ef
+> > Another alternative is to deprecate implicit rule add altogether
+> > so users would have to move to 'nft add rule ...'.
 > 
-> Have you tested if roaming breaks existing TCP/UDP connections?
-> For example, eth1 and eth2 are connected to 2 WiFi APs, and the
-> client ab:cd:ef:ab:cd:ef roams between these APs.
+> ... and another alternative is to not allow arbitrary table/chain/set
+> names after all.
+> 
+> We could just say that all future tokens that could break existing
+> table/chain/set name need to be added to the 'identifier' in
+> parser_bison.y.
+> 
+> Provided new expressions with args use start conditionals the list
+> of tokens would probably stay short.
+> 
+> Given the 'set' complication Phil mentioned that might be the best
+> way forward.
 
-For this scenario specifically, it should be possible extend the
-existing flowtable netlink API to allow hostapd to flush entries in
-the flowtable for the client changing AP.
+I've pushed the first 3 patches and marked the last 3 as deferred --
+lets first try conservative approach first before attempting to support
+arbitrary names.
