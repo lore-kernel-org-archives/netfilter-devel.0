@@ -2,121 +2,162 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 317A0C433E2
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Mar 2021 20:01:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3DC9C433DB
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Mar 2021 21:21:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EB17D61A1F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Mar 2021 20:01:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BB35361A19
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Mar 2021 21:21:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237892AbhCXUAb (ORCPT
+        id S233428AbhCXVVI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 24 Mar 2021 16:00:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47354 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237814AbhCXUAN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Mar 2021 16:00:13 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPS id 3B2DD61A26;
-        Wed, 24 Mar 2021 20:00:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1616616013;
-        bh=bSkvm8Ve0KphA6K4me8AvjnmQuXSHRfwKYHssvoYzfE=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=fj5jzMU2MyH0n2EYMVzTVGiJ3BdN5hqhUNuDv5qhJjAWkCRImiJLisWQbRkx/kpGn
-         cspQjvNa/PJ1ed72gAnFQHqS+5H8WvEtePw7x1O8H+faDvQXX/qq6e3Ax9VLTqFRfw
-         AwCfnQqETFlnIhtbzlKbS1hILyC19udf0WWQ6TwkWbuCn9/Vne2aV//XHkZpKVX6vC
-         wktpPKDZJO2KlQnWKo9WQwpljrcJMIzL2m2pLUXm95QqRZLXja2dXEBQOjC9MZgZd2
-         JtQ8H1yICnTa6Z5+eY1bd1fX7BEV21FCWptLegZpE7j4Xu0W8Tvg4azrWSVK/thMsq
-         nsPYPDXUaQ6sQ==
-Content-Type: text/plain; charset="utf-8"
+        Wed, 24 Mar 2021 17:21:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54852 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233209AbhCXVUr (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 24 Mar 2021 17:20:47 -0400
+Received: from mail-qv1-xf2a.google.com (mail-qv1-xf2a.google.com [IPv6:2607:f8b0:4864:20::f2a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 105FCC06174A;
+        Wed, 24 Mar 2021 14:20:47 -0700 (PDT)
+Received: by mail-qv1-xf2a.google.com with SMTP id dc12so130954qvb.4;
+        Wed, 24 Mar 2021 14:20:47 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=dOmdT6ipboTSZZCZryyZVzFwMznCKbrrIEej1XKASws=;
+        b=f4h+ronCdtBAJxdbXGkzZnGPitTp0XMNhYw/afJ7oNvPzZmgX906r9hghpNtwkqY2C
+         SrXG2uvS8v4OjqgX7MU8dUKFjQNWQHKv9eIDGL9RmGVOf42l1cGHKTcB3FU0yhKnaGZH
+         C7Zkmktx3+bEnVgU/5k2NU4ibcxOzw9il5lMfUcxslk9U0rZEN1dT0RwxZszSUxsN6YG
+         DzCifxH6yaL+QeMFL1+DI4OrZLoO3Ad6TCFZlq9Q8cmxhylG1CadHtdr+mC8ylpn9la8
+         AwvA8ZeCAtoGEipg4nGB+MEsMCpTArAlOMVAjBy/T8JveVNumgjW6AMn9oz77BsLZXQh
+         8Aeg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=dOmdT6ipboTSZZCZryyZVzFwMznCKbrrIEej1XKASws=;
+        b=dIKGlUHcZh6aQBosWOuHCM2wCVZk+FMwlJ8p6spHoz4U4wpc9eBUjS0N7EFz2yvxNg
+         ffkdoAydg6o5pIO6EdpkB3GF6v/SDsgfxgzjDKeFtAlXve5lDxcazc3YUUrdMkJslyie
+         zqPHXrb+pvWYpEQulMrRPda52dWs3m1MQhwAW5ZfO0yeemBFWLY6k9ejikJL7P/5F4HW
+         2rkkMgCvGSHDrJ2uoJXr4LwswRsE6eyu0F4GYn7fzr0Qnk/tYvDZE98H1CP/Dn9wRXtj
+         gb+J+c2u4P7HuclwJunS1NUB12tfS1PzGt+ngOM66T8fHQEANPsM9aK4XHWBsvbr/5/f
+         073A==
+X-Gm-Message-State: AOAM5321BH+1o4+ej3xBeGP0383YSA7o5vXzgPvOLogOuIH2LcsksAHJ
+        uMXxSIbsLfmajn1xroBOMC8=
+X-Google-Smtp-Source: ABdhPJx6WupHON7mVcH1JHkCfrN2B3xlj8zDjgZ3h0B0qLpNqYjjav6hiFur/b5Dr9Rkd+kpblETCw==
+X-Received: by 2002:ad4:5887:: with SMTP id dz7mr5426798qvb.12.1616620846253;
+        Wed, 24 Mar 2021 14:20:46 -0700 (PDT)
+Received: from horizon.localdomain ([2001:1284:f013:162c:584e:5081:a7ea:f835])
+        by smtp.gmail.com with ESMTPSA id i6sm2602324qkf.96.2021.03.24.14.20.45
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 24 Mar 2021 14:20:45 -0700 (PDT)
+Received: by horizon.localdomain (Postfix, from userid 1000)
+        id 3BB49C0784; Wed, 24 Mar 2021 18:20:43 -0300 (-03)
+Date:   Wed, 24 Mar 2021 18:20:43 -0300
+From:   Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+To:     Oz Shlomo <ozsh@nvidia.com>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org,
+        Saeed Mahameed <saeedm@nvidia.com>,
+        Paul Blakey <paulb@nvidia.com>
+Subject: Re: [PATCH nf-next] netfilter: flowtable: separate replace, destroy
+ and stats to different workqueues
+Message-ID: <YFutK3Mn+h5OWNXe@horizon.localdomain>
+References: <20210303125953.11911-1-ozsh@nvidia.com>
+ <20210303161147.GA17082@salvia>
+ <YFjdb7DveNOolSTr@horizon.localdomain>
+ <20210324013810.GA5861@salvia>
+ <6173dd63-7769-e4a1-f796-889802b0a898@nvidia.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next,v2 00/24] netfilter: flowtable enhancements
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <161661601316.29307.18315396957441017075.git-patchwork-notify@kernel.org>
-Date:   Wed, 24 Mar 2021 20:00:13 +0000
-References: <20210324013055.5619-1-pablo@netfilter.org>
-In-Reply-To: <20210324013055.5619-1-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6173dd63-7769-e4a1-f796-889802b0a898@nvidia.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
-
-This series was applied to netdev/net-next.git (refs/heads/master):
-
-On Wed, 24 Mar 2021 02:30:31 +0100 you wrote:
+On Wed, Mar 24, 2021 at 01:24:53PM +0200, Oz Shlomo wrote:
 > Hi,
+
+Hi,
+
 > 
-> [ This is v2 that includes documentation enhancements, including
->   existing limitations. This is a rebase on top on net-next. ]
+> On 3/24/2021 3:38 AM, Pablo Neira Ayuso wrote:
+> > Hi Marcelo,
+> > 
+> > On Mon, Mar 22, 2021 at 03:09:51PM -0300, Marcelo Ricardo Leitner wrote:
+> > > On Wed, Mar 03, 2021 at 05:11:47PM +0100, Pablo Neira Ayuso wrote:
+> > [...]
+> > > > Or probably make the cookie unique is sufficient? The cookie refers to
+> > > > the memory address but memory can be recycled very quickly. If the
+> > > > cookie helps to catch the reorder scenario, then the conntrack id
+> > > > could be used instead of the memory address as cookie.
+> > > 
+> > > Something like this, if I got the idea right, would be even better. If
+> > > the entry actually expired before it had a chance of being offloaded,
+> > > there is no point in offloading it to then just remove it.
+> > 
+> > It would be interesting to explore this idea you describe. Maybe a
+> > flag can be set on stale objects, or simply remove the stale object
+> > from the offload queue. So I guess it should be possible to recover
+> > control on the list of pending requests as a batch that is passed
+> > through one single queue_work call.
+> > 
 > 
-> The following patchset augments the Netfilter flowtable fastpath to
-> support for network topologies that combine IP forwarding, bridge,
-> classic VLAN devices, bridge VLAN filtering, DSA and PPPoE. This
-> includes support for the flowtable software and hardware datapaths.
+> Removing stale objects is a good optimization for cases when the rate of
+> established connections is greater than the hardware offload insertion rate.
+> However, with a single workqueue design, a burst of del commands may postpone connection offload tasks.
+> Postponed offloads may cause additional packets to go through software, thus
+> creating a chain effect which may diminish the system's connection rate.
+
+Right. I didn't intend to object to multiqueues. I'm sorry if it
+sounded that way.
+
 > 
-> [...]
+> Marcelo, AFAIU add/del are synchronized by design since the del is triggered by the gc thread.
+> A del workqueue item will be instantiated only after a connection is in hardware.
 
-Here is the summary with links:
-  - [net-next,v2,01/24] net: resolve forwarding path from virtual netdevice and HW destination address
-    https://git.kernel.org/netdev/net-next/c/ddb94eafab8b
-  - [net-next,v2,02/24] net: 8021q: resolve forwarding path for vlan devices
-    https://git.kernel.org/netdev/net-next/c/e4417d6950b0
-  - [net-next,v2,03/24] net: bridge: resolve forwarding path for bridge devices
-    https://git.kernel.org/netdev/net-next/c/ec9d16bab615
-  - [net-next,v2,04/24] net: bridge: resolve forwarding path for VLAN tag actions in bridge devices
-    https://git.kernel.org/netdev/net-next/c/bcf2766b1377
-  - [net-next,v2,05/24] net: ppp: resolve forwarding path for bridge pppoe devices
-    https://git.kernel.org/netdev/net-next/c/f6efc675c9dd
-  - [net-next,v2,06/24] net: dsa: resolve forwarding path for dsa slave ports
-    https://git.kernel.org/netdev/net-next/c/0994d492a1b7
-  - [net-next,v2,07/24] netfilter: flowtable: add xmit path types
-    https://git.kernel.org/netdev/net-next/c/5139c0c00725
-  - [net-next,v2,08/24] netfilter: flowtable: use dev_fill_forward_path() to obtain ingress device
-    https://git.kernel.org/netdev/net-next/c/c63a7cc4d795
-  - [net-next,v2,09/24] netfilter: flowtable: use dev_fill_forward_path() to obtain egress device
-    https://git.kernel.org/netdev/net-next/c/7a27f6ab4135
-  - [net-next,v2,10/24] netfilter: flowtable: add vlan support
-    https://git.kernel.org/netdev/net-next/c/4cd91f7c290f
-  - [net-next,v2,11/24] netfilter: flowtable: add bridge vlan filtering support
-    https://git.kernel.org/netdev/net-next/c/e990cef6516d
-  - [net-next,v2,12/24] netfilter: flowtable: add pppoe support
-    https://git.kernel.org/netdev/net-next/c/72efd585f714
-  - [net-next,v2,13/24] netfilter: flowtable: add dsa support
-    https://git.kernel.org/netdev/net-next/c/a11e7973cf91
-  - [net-next,v2,14/24] selftests: netfilter: flowtable bridge and vlan support
-    https://git.kernel.org/netdev/net-next/c/79d4071ea4c4
-  - [net-next,v2,15/24] netfilter: flowtable: add offload support for xmit path types
-    https://git.kernel.org/netdev/net-next/c/eeff3000f240
-  - [net-next,v2,16/24] netfilter: nft_flow_offload: use direct xmit if hardware offload is enabled
-    https://git.kernel.org/netdev/net-next/c/73f97025a972
-  - [net-next,v2,17/24] netfilter: flowtable: bridge vlan hardware offload and switchdev
-    https://git.kernel.org/netdev/net-next/c/26267bf9bb57
-  - [net-next,v2,18/24] net: flow_offload: add FLOW_ACTION_PPPOE_PUSH
-    https://git.kernel.org/netdev/net-next/c/563ae557dd4e
-  - [net-next,v2,19/24] netfilter: flowtable: support for FLOW_ACTION_PPPOE_PUSH
-    https://git.kernel.org/netdev/net-next/c/17e52c0aaad7
-  - [net-next,v2,20/24] dsa: slave: add support for TC_SETUP_FT
-    https://git.kernel.org/netdev/net-next/c/3fb24a43c975
-  - [net-next,v2,21/24] net: ethernet: mtk_eth_soc: fix parsing packets in GDM
-    https://git.kernel.org/netdev/net-next/c/d5c53da2b4a5
-  - [net-next,v2,22/24] net: ethernet: mtk_eth_soc: add support for initializing the PPE
-    https://git.kernel.org/netdev/net-next/c/ba37b7caf1ed
-  - [net-next,v2,23/24] net: ethernet: mtk_eth_soc: add flow offloading support
-    https://git.kernel.org/netdev/net-next/c/502e84e2382d
-  - [net-next,v2,24/24] docs: nf_flowtable: update documentation with enhancements
-    https://git.kernel.org/netdev/net-next/c/143490cde566
+They were synchronized, but after this patch, not anymore AFAICT:
 
-You are awesome, thank you!
---
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+tcf_ct_flow_table_add()
+  flow_offload_add()
+              if (nf_flowtable_hw_offload(flow_table)) {
+                  __set_bit(NF_FLOW_HW, &flow->flags);    [A]
+                  nf_flow_offload_add(flow_table, flow);
+                           ^--- schedules on _add workqueue
 
+then the gc thread:
+nf_flow_offload_gc_step()
+          if (nf_flow_has_expired(flow) || nf_ct_is_dying(flow->ct))
+                  set_bit(NF_FLOW_TEARDOWN, &flow->flags);
 
+          if (test_bit(NF_FLOW_TEARDOWN, &flow->flags)) {
+	                   ^-- can also set by tcf_ct_flow_table_lookup()
+			       on fin's, by calling flow_offload_teardown()
+                  if (test_bit(NF_FLOW_HW, &flow->flags)) {
+                                    ^--- this is set in [A], even if the _add is still queued
+                          if (!test_bit(NF_FLOW_HW_DYING, &flow->flags))
+                                  nf_flow_offload_del(flow_table, flow);
+
+nf_flow_offload_del()
+          offload = nf_flow_offload_work_alloc(flowtable, flow, FLOW_CLS_DESTROY);
+          if (!offload)
+                  return;
+
+          set_bit(NF_FLOW_HW_DYING, &flow->flags);
+          flow_offload_queue_work(offload);
+
+NF_FLOW_HW_DYING only avoids a double _del here.
+
+Maybe I'm just missing it but I'm not seeing how removals would only
+happen after the entry is actually offloaded. As in, if the add queue
+is very long, and the datapath see a FIN, seems the next gc iteration
+could try to remove it before it's actually offloaded. I think this is
+what Pablo meant on his original reply here too, then his idea on
+having add/del to work with the same queue.
