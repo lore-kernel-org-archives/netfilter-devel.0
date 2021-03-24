@@ -2,91 +2,113 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B02EC433DB
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Mar 2021 16:08:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4176C433C1
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Mar 2021 16:20:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 238C861A15
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Mar 2021 16:08:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8EEAB61A09
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Mar 2021 16:20:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236908AbhCXQHf (ORCPT
+        id S231944AbhCXQUA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 24 Mar 2021 12:07:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43006 "EHLO
+        Wed, 24 Mar 2021 12:20:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45736 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236945AbhCXQHJ (ORCPT
+        with ESMTP id S234916AbhCXQTl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Mar 2021 12:07:09 -0400
-Received: from mail-pl1-x636.google.com (mail-pl1-x636.google.com [IPv6:2607:f8b0:4864:20::636])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A59DAC061763;
-        Wed, 24 Mar 2021 09:07:09 -0700 (PDT)
-Received: by mail-pl1-x636.google.com with SMTP id q11so8186165pld.11;
-        Wed, 24 Mar 2021 09:07:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=2DGuhHo+Cb6MXVnc++dT+O9N+4yMJ/uTwtOV806nVZc=;
-        b=aZCvdWSe8eBrklJYTBHPKA2791MdJnsa72WyCHU0zyW8niq5HqlO3Y4b+R008MSPDr
-         0dSouNhxPCtSgyhbtEikIN/wNC4kReZ8nSYNZRVA/RRhjnRhJJ/nuJ8XKI/MhgO2vzuI
-         N9hM9YfoMUU0qvcPWQstW8uA0Aukqni4zA+MpvIqRJEKaIOcwWuu8LIHw0iFC31vLEYV
-         5B2bQ5QLoZjDiCbtNhiz3QBK7zmqIJgwkBgEpz+NUKHeNw+fgU8QZubYLJ+Sun+6Phzs
-         m0/SakNmrHU5jNITXrG7Tc1ezkb/+FlSHoDPlEA1WRywVmxaBQlzLPz6XgsR9inck77X
-         EvGA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=2DGuhHo+Cb6MXVnc++dT+O9N+4yMJ/uTwtOV806nVZc=;
-        b=jPhr2Gmd4aZUzKbqwmdmaCWRPRrXYOX0D+XsJU35et+vwLY5gwNlOwDEBxNAD3Y6WM
-         pp0vCxHD+O659W0SSpZzmgJXpE266K4jxN56u1ErZXZY7EEViTEa8HtPTqjmA6YyftKx
-         nt9kL7HrvJQ379ka0ZPZtJBVIBNZgOASM+W9nrr7ocBq2eNROIxZueiK42I/GK93JOyS
-         L8sssh3OabolkmpjKDEmvMiA6jFTJPoIeENRIz7HgYJ2vTc+dy11Doxg9nLVSKe9sJLK
-         FAQqqHCl80Fmf04yxSRgJyCGKyQgRDpXwjcGb67TKkpoaQ1d63Sll87PrmVnJfgPtJw6
-         WTeA==
-X-Gm-Message-State: AOAM533xwJ0zqpdd/nnGkyPK+d9LAHvRbuNZn2yDO+uMaempuQrxYI8p
-        OWt+jO4kT2exIlIQqZEhfgE=
-X-Google-Smtp-Source: ABdhPJwqoQS8s/i4ScXWFBBj+kIldHD276mDS8J1l3BXlV2zYWT+AZhAofSbPb8/8sr0sskkqxkWxw==
-X-Received: by 2002:a17:90a:9b18:: with SMTP id f24mr4061602pjp.96.1616602029216;
-        Wed, 24 Mar 2021 09:07:09 -0700 (PDT)
-Received: from localhost.localdomain ([138.197.212.246])
-        by smtp.gmail.com with ESMTPSA id b9sm2952708pgn.42.2021.03.24.09.07.05
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 24 Mar 2021 09:07:08 -0700 (PDT)
-From:   DENG Qingfang <dqfext@gmail.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-        Jakub Kicinski <kuba@kernel.org>, Andrew Lunn <andrew@lunn.ch>,
-        Vladimir Oltean <olteanv@gmail.com>,
-        Tobias Waldekranz <tobias@waldekranz.com>,
-        Felix Fietkau <nbd@nbd.name>
-Subject: Re: [PATCH net-next,v2 01/24] net: resolve forwarding path from virtual netdevice and HW destination address
-Date:   Thu, 25 Mar 2021 00:07:02 +0800
-Message-Id: <20210324160702.3056-1-dqfext@gmail.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20210324100354.GA8040@salvia>
-References: <20210324013055.5619-1-pablo@netfilter.org> <20210324013055.5619-2-pablo@netfilter.org> <20210324072711.2835969-1-dqfext@gmail.com> <20210324100354.GA8040@salvia>
+        Wed, 24 Mar 2021 12:19:41 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [IPv6:2001:4b98:dc0:41:216:3eff:fe8c:2bda])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C46C6C061763
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 Mar 2021 09:19:40 -0700 (PDT)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 2D136630BB
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 Mar 2021 17:19:30 +0100 (CET)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH] src: add datatype->describe()
+Date:   Wed, 24 Mar 2021 17:19:32 +0100
+Message-Id: <20210324161932.16387-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Mar 24, 2021 at 11:03:54AM +0100, Pablo Neira Ayuso wrote:
-> 
-> For this scenario specifically, it should be possible extend the
-> existing flowtable netlink API to allow hostapd to flush entries in
-> the flowtable for the client changing AP.
+As an alternative to print the datatype values when no symbol table is
+available. Use it to print protocols available via getprotobynumber()
+which actually refers to /etc/protocols.
 
-The APs are external, are we going to install hostapd to them, and
-let them inform the gateway? They may not even run Linux.
-Roaming can happen in a wired LAN too, see Vladimir's commit message
-90dc8fd36078 ("net: bridge: notify switchdev of disappearance of old FDB entry upon migration").
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1503
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/datatype.h |  1 +
+ src/datatype.c     | 15 +++++++++++++++
+ src/expression.c   |  2 ++
+ 3 files changed, 18 insertions(+)
 
-I think the fastpath should monitor roaming (called "FDB migration" in
-that commit) events, and update/flush the flowtable accordingly. 
+diff --git a/include/datatype.h b/include/datatype.h
+index 1061a389b0f0..a16f8f2bf5c4 100644
+--- a/include/datatype.h
++++ b/include/datatype.h
+@@ -164,6 +164,7 @@ struct datatype {
+ 	struct error_record		*(*parse)(struct parse_ctx *ctx,
+ 						  const struct expr *sym,
+ 						  struct expr **res);
++	void				(*describe)(struct output_ctx *octx);
+ 	const struct symbol_table	*sym_tbl;
+ 	unsigned int			refcnt;
+ };
+diff --git a/src/datatype.c b/src/datatype.c
+index 7382307e9909..461ee33754b8 100644
+--- a/src/datatype.c
++++ b/src/datatype.c
+@@ -619,6 +619,20 @@ static void inet_protocol_type_print(const struct expr *expr,
+ 	integer_type_print(expr, octx);
+ }
+ 
++static void inet_protocol_type_describe(struct output_ctx *octx)
++{
++	struct protoent *p;
++	uint8_t protonum;
++
++	for (protonum = 0; protonum < 255; protonum++) {
++		p = getprotobynumber(protonum);
++		if (!p)
++			continue;
++
++		nft_print(octx, "\t%-30s\t%u\n", p->p_name, protonum);
++	}
++}
++
+ static struct error_record *inet_protocol_type_parse(struct parse_ctx *ctx,
+ 						     const struct expr *sym,
+ 						     struct expr **res)
+@@ -658,6 +672,7 @@ const struct datatype inet_protocol_type = {
+ 	.print		= inet_protocol_type_print,
+ 	.json		= inet_protocol_type_json,
+ 	.parse		= inet_protocol_type_parse,
++	.describe	= inet_protocol_type_describe,
+ };
+ 
+ static void inet_service_print(const struct expr *expr, struct output_ctx *octx)
+diff --git a/src/expression.c b/src/expression.c
+index 0c5276d1118d..9fdf23d98446 100644
+--- a/src/expression.c
++++ b/src/expression.c
+@@ -172,6 +172,8 @@ void expr_describe(const struct expr *expr, struct output_ctx *octx)
+ 			nft_print(octx, "(in hexadecimal):\n");
+ 		symbol_table_print(edtype->sym_tbl, edtype,
+ 				   expr->byteorder, octx);
++	} else if (edtype->describe) {
++		edtype->describe(octx);
+ 	}
+ }
+ 
+-- 
+2.30.2
+
