@@ -2,82 +2,121 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A8DDC433EA
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Mar 2021 19:16:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 317A0C433E2
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Mar 2021 20:01:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2CDD161A02
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Mar 2021 19:16:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EB17D61A1F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Mar 2021 20:01:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238070AbhCXTQ0 (ORCPT
+        id S237892AbhCXUAb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 24 Mar 2021 15:16:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56064 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238099AbhCXTQA (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Mar 2021 15:16:00 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [IPv6:2001:4b98:dc0:41:216:3eff:fe8c:2bda])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 2D208C0613E2;
-        Wed, 24 Mar 2021 12:15:57 -0700 (PDT)
-Received: from us.es (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id CD90F630B3;
-        Wed, 24 Mar 2021 20:15:45 +0100 (CET)
-Date:   Wed, 24 Mar 2021 20:15:52 +0100
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     DENG Qingfang <dqfext@gmail.com>
-Cc:     netfilter-devel@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-        Jakub Kicinski <kuba@kernel.org>, Andrew Lunn <andrew@lunn.ch>,
-        Vladimir Oltean <olteanv@gmail.com>,
-        Tobias Waldekranz <tobias@waldekranz.com>,
-        Felix Fietkau <nbd@nbd.name>
-Subject: Re: [PATCH net-next,v2 01/24] net: resolve forwarding path from
- virtual netdevice and HW destination address
-Message-ID: <20210324191552.GA17651@salvia>
-References: <20210324013055.5619-1-pablo@netfilter.org>
- <20210324013055.5619-2-pablo@netfilter.org>
- <20210324072711.2835969-1-dqfext@gmail.com>
- <20210324100354.GA8040@salvia>
- <20210324160702.3056-1-dqfext@gmail.com>
+        Wed, 24 Mar 2021 16:00:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47354 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S237814AbhCXUAN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 24 Mar 2021 16:00:13 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPS id 3B2DD61A26;
+        Wed, 24 Mar 2021 20:00:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1616616013;
+        bh=bSkvm8Ve0KphA6K4me8AvjnmQuXSHRfwKYHssvoYzfE=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=fj5jzMU2MyH0n2EYMVzTVGiJ3BdN5hqhUNuDv5qhJjAWkCRImiJLisWQbRkx/kpGn
+         cspQjvNa/PJ1ed72gAnFQHqS+5H8WvEtePw7x1O8H+faDvQXX/qq6e3Ax9VLTqFRfw
+         AwCfnQqETFlnIhtbzlKbS1hILyC19udf0WWQ6TwkWbuCn9/Vne2aV//XHkZpKVX6vC
+         wktpPKDZJO2KlQnWKo9WQwpljrcJMIzL2m2pLUXm95QqRZLXja2dXEBQOjC9MZgZd2
+         JtQ8H1yICnTa6Z5+eY1bd1fX7BEV21FCWptLegZpE7j4Xu0W8Tvg4azrWSVK/thMsq
+         nsPYPDXUaQ6sQ==
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20210324160702.3056-1-dqfext@gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next,v2 00/24] netfilter: flowtable enhancements
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <161661601316.29307.18315396957441017075.git-patchwork-notify@kernel.org>
+Date:   Wed, 24 Mar 2021 20:00:13 +0000
+References: <20210324013055.5619-1-pablo@netfilter.org>
+In-Reply-To: <20210324013055.5619-1-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+Hello:
 
-On Thu, Mar 25, 2021 at 12:07:02AM +0800, DENG Qingfang wrote:
-> On Wed, Mar 24, 2021 at 11:03:54AM +0100, Pablo Neira Ayuso wrote:
-> > 
-> > For this scenario specifically, it should be possible extend the
-> > existing flowtable netlink API to allow hostapd to flush entries in
-> > the flowtable for the client changing AP.
+This series was applied to netdev/net-next.git (refs/heads/master):
+
+On Wed, 24 Mar 2021 02:30:31 +0100 you wrote:
+> Hi,
 > 
-> The APs are external, are we going to install hostapd to them, and
-> let them inform the gateway? They may not even run Linux.
+> [ This is v2 that includes documentation enhancements, including
+>   existing limitations. This is a rebase on top on net-next. ]
+> 
+> The following patchset augments the Netfilter flowtable fastpath to
+> support for network topologies that combine IP forwarding, bridge,
+> classic VLAN devices, bridge VLAN filtering, DSA and PPPoE. This
+> includes support for the flowtable software and hardware datapaths.
+> 
+> [...]
 
-This falls within the scenario that Jakub described already. These
-limitations are described in patch 24/24.
+Here is the summary with links:
+  - [net-next,v2,01/24] net: resolve forwarding path from virtual netdevice and HW destination address
+    https://git.kernel.org/netdev/net-next/c/ddb94eafab8b
+  - [net-next,v2,02/24] net: 8021q: resolve forwarding path for vlan devices
+    https://git.kernel.org/netdev/net-next/c/e4417d6950b0
+  - [net-next,v2,03/24] net: bridge: resolve forwarding path for bridge devices
+    https://git.kernel.org/netdev/net-next/c/ec9d16bab615
+  - [net-next,v2,04/24] net: bridge: resolve forwarding path for VLAN tag actions in bridge devices
+    https://git.kernel.org/netdev/net-next/c/bcf2766b1377
+  - [net-next,v2,05/24] net: ppp: resolve forwarding path for bridge pppoe devices
+    https://git.kernel.org/netdev/net-next/c/f6efc675c9dd
+  - [net-next,v2,06/24] net: dsa: resolve forwarding path for dsa slave ports
+    https://git.kernel.org/netdev/net-next/c/0994d492a1b7
+  - [net-next,v2,07/24] netfilter: flowtable: add xmit path types
+    https://git.kernel.org/netdev/net-next/c/5139c0c00725
+  - [net-next,v2,08/24] netfilter: flowtable: use dev_fill_forward_path() to obtain ingress device
+    https://git.kernel.org/netdev/net-next/c/c63a7cc4d795
+  - [net-next,v2,09/24] netfilter: flowtable: use dev_fill_forward_path() to obtain egress device
+    https://git.kernel.org/netdev/net-next/c/7a27f6ab4135
+  - [net-next,v2,10/24] netfilter: flowtable: add vlan support
+    https://git.kernel.org/netdev/net-next/c/4cd91f7c290f
+  - [net-next,v2,11/24] netfilter: flowtable: add bridge vlan filtering support
+    https://git.kernel.org/netdev/net-next/c/e990cef6516d
+  - [net-next,v2,12/24] netfilter: flowtable: add pppoe support
+    https://git.kernel.org/netdev/net-next/c/72efd585f714
+  - [net-next,v2,13/24] netfilter: flowtable: add dsa support
+    https://git.kernel.org/netdev/net-next/c/a11e7973cf91
+  - [net-next,v2,14/24] selftests: netfilter: flowtable bridge and vlan support
+    https://git.kernel.org/netdev/net-next/c/79d4071ea4c4
+  - [net-next,v2,15/24] netfilter: flowtable: add offload support for xmit path types
+    https://git.kernel.org/netdev/net-next/c/eeff3000f240
+  - [net-next,v2,16/24] netfilter: nft_flow_offload: use direct xmit if hardware offload is enabled
+    https://git.kernel.org/netdev/net-next/c/73f97025a972
+  - [net-next,v2,17/24] netfilter: flowtable: bridge vlan hardware offload and switchdev
+    https://git.kernel.org/netdev/net-next/c/26267bf9bb57
+  - [net-next,v2,18/24] net: flow_offload: add FLOW_ACTION_PPPOE_PUSH
+    https://git.kernel.org/netdev/net-next/c/563ae557dd4e
+  - [net-next,v2,19/24] netfilter: flowtable: support for FLOW_ACTION_PPPOE_PUSH
+    https://git.kernel.org/netdev/net-next/c/17e52c0aaad7
+  - [net-next,v2,20/24] dsa: slave: add support for TC_SETUP_FT
+    https://git.kernel.org/netdev/net-next/c/3fb24a43c975
+  - [net-next,v2,21/24] net: ethernet: mtk_eth_soc: fix parsing packets in GDM
+    https://git.kernel.org/netdev/net-next/c/d5c53da2b4a5
+  - [net-next,v2,22/24] net: ethernet: mtk_eth_soc: add support for initializing the PPE
+    https://git.kernel.org/netdev/net-next/c/ba37b7caf1ed
+  - [net-next,v2,23/24] net: ethernet: mtk_eth_soc: add flow offloading support
+    https://git.kernel.org/netdev/net-next/c/502e84e2382d
+  - [net-next,v2,24/24] docs: nf_flowtable: update documentation with enhancements
+    https://git.kernel.org/netdev/net-next/c/143490cde566
 
-> Roaming can happen in a wired LAN too, see Vladimir's commit message
-> 90dc8fd36078 ("net: bridge: notify switchdev of disappearance of old FDB entry upon migration").
-> I think the fastpath should monitor roaming (called "FDB migration" in
-> that commit) events, and update/flush the flowtable accordingly.
+You are awesome, thank you!
+--
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-Why does this need to happen in this batch? Is there anything that
-makes you think dealing with roaming cannot be done incrementally on
-top of this series?
 
-This patchset is already useful for a good number of use-cases
-regardless the roaming scenario you describe.
-
-FDB hardware offload was added years ago and the roaming mitigation
-that you refer to was added just a few months ago.
