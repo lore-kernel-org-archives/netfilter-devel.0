@@ -2,162 +2,168 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-22.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3DC9C433DB
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Mar 2021 21:21:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82D72C433DB
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Mar 2021 03:16:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BB35361A19
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Mar 2021 21:21:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 56BBA61A18
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Mar 2021 03:16:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233428AbhCXVVI (ORCPT
+        id S231814AbhCYDQV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 24 Mar 2021 17:21:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54852 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233209AbhCXVUr (ORCPT
+        Wed, 24 Mar 2021 23:16:21 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:48229 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S231693AbhCYDPv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Mar 2021 17:20:47 -0400
-Received: from mail-qv1-xf2a.google.com (mail-qv1-xf2a.google.com [IPv6:2607:f8b0:4864:20::f2a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 105FCC06174A;
-        Wed, 24 Mar 2021 14:20:47 -0700 (PDT)
-Received: by mail-qv1-xf2a.google.com with SMTP id dc12so130954qvb.4;
-        Wed, 24 Mar 2021 14:20:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=dOmdT6ipboTSZZCZryyZVzFwMznCKbrrIEej1XKASws=;
-        b=f4h+ronCdtBAJxdbXGkzZnGPitTp0XMNhYw/afJ7oNvPzZmgX906r9hghpNtwkqY2C
-         SrXG2uvS8v4OjqgX7MU8dUKFjQNWQHKv9eIDGL9RmGVOf42l1cGHKTcB3FU0yhKnaGZH
-         C7Zkmktx3+bEnVgU/5k2NU4ibcxOzw9il5lMfUcxslk9U0rZEN1dT0RwxZszSUxsN6YG
-         DzCifxH6yaL+QeMFL1+DI4OrZLoO3Ad6TCFZlq9Q8cmxhylG1CadHtdr+mC8ylpn9la8
-         AwvA8ZeCAtoGEipg4nGB+MEsMCpTArAlOMVAjBy/T8JveVNumgjW6AMn9oz77BsLZXQh
-         8Aeg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=dOmdT6ipboTSZZCZryyZVzFwMznCKbrrIEej1XKASws=;
-        b=dIKGlUHcZh6aQBosWOuHCM2wCVZk+FMwlJ8p6spHoz4U4wpc9eBUjS0N7EFz2yvxNg
-         ffkdoAydg6o5pIO6EdpkB3GF6v/SDsgfxgzjDKeFtAlXve5lDxcazc3YUUrdMkJslyie
-         zqPHXrb+pvWYpEQulMrRPda52dWs3m1MQhwAW5ZfO0yeemBFWLY6k9ejikJL7P/5F4HW
-         2rkkMgCvGSHDrJ2uoJXr4LwswRsE6eyu0F4GYn7fzr0Qnk/tYvDZE98H1CP/Dn9wRXtj
-         gb+J+c2u4P7HuclwJunS1NUB12tfS1PzGt+ngOM66T8fHQEANPsM9aK4XHWBsvbr/5/f
-         073A==
-X-Gm-Message-State: AOAM5321BH+1o4+ej3xBeGP0383YSA7o5vXzgPvOLogOuIH2LcsksAHJ
-        uMXxSIbsLfmajn1xroBOMC8=
-X-Google-Smtp-Source: ABdhPJx6WupHON7mVcH1JHkCfrN2B3xlj8zDjgZ3h0B0qLpNqYjjav6hiFur/b5Dr9Rkd+kpblETCw==
-X-Received: by 2002:ad4:5887:: with SMTP id dz7mr5426798qvb.12.1616620846253;
-        Wed, 24 Mar 2021 14:20:46 -0700 (PDT)
-Received: from horizon.localdomain ([2001:1284:f013:162c:584e:5081:a7ea:f835])
-        by smtp.gmail.com with ESMTPSA id i6sm2602324qkf.96.2021.03.24.14.20.45
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 24 Mar 2021 14:20:45 -0700 (PDT)
-Received: by horizon.localdomain (Postfix, from userid 1000)
-        id 3BB49C0784; Wed, 24 Mar 2021 18:20:43 -0300 (-03)
-Date:   Wed, 24 Mar 2021 18:20:43 -0300
-From:   Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-To:     Oz Shlomo <ozsh@nvidia.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>, netdev@vger.kernel.org,
+        Wed, 24 Mar 2021 23:15:51 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1616642150;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=HUMRt/wsR7njAnroDYg1kIdMlW4yIA+1xmu98fOBeas=;
+        b=KtFJMsg3jyAQN+Np5qomOrS2nMqOez2qEA2pPn1BYci753BtdJAHc2we7HgpS1DAIHHPn5
+        9KJYr2rSZoUejKu4ibdf7z/yKsDRYVSld9WwUIOTRbtKX2XzQU6yyFvdH6hLFfZw+DHQfm
+        uJBqZ8N5vsT6jEdDf9r/Z2EpLTmlQuc=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-443-yaGMiU1jP-65lELx1Rzgeg-1; Wed, 24 Mar 2021 23:15:46 -0400
+X-MC-Unique: yaGMiU1jP-65lELx1Rzgeg-1
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 18C048189CD;
+        Thu, 25 Mar 2021 03:15:44 +0000 (UTC)
+Received: from madcap2.tricolour.ca (unknown [10.10.110.27])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 172DA19C93;
+        Thu, 25 Mar 2021 03:15:34 +0000 (UTC)
+Date:   Wed, 24 Mar 2021 23:15:32 -0400
+From:   Richard Guy Briggs <rgb@redhat.com>
+To:     Paul Moore <paul@paul-moore.com>
+Cc:     Linux-Audit Mailing List <linux-audit@redhat.com>,
+        LKML <linux-kernel@vger.kernel.org>,
         netfilter-devel@vger.kernel.org,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Paul Blakey <paulb@nvidia.com>
-Subject: Re: [PATCH nf-next] netfilter: flowtable: separate replace, destroy
- and stats to different workqueues
-Message-ID: <YFutK3Mn+h5OWNXe@horizon.localdomain>
-References: <20210303125953.11911-1-ozsh@nvidia.com>
- <20210303161147.GA17082@salvia>
- <YFjdb7DveNOolSTr@horizon.localdomain>
- <20210324013810.GA5861@salvia>
- <6173dd63-7769-e4a1-f796-889802b0a898@nvidia.com>
+        Eric Paris <eparis@parisplace.org>,
+        Steve Grubb <sgrubb@redhat.com>,
+        Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+        twoerner@redhat.com, tgraf@infradead.org, dan.carpenter@oracle.com,
+        Jones Desougi <jones.desougi+netfilter@gmail.com>
+Subject: Re: [PATCH v3] audit: log nftables configuration change events once
+ per table
+Message-ID: <20210325031532.GU3141668@madcap2.tricolour.ca>
+References: <3d15fa1f0c54335f9258d90ea0d11050e780ba70.1616529248.git.rgb@redhat.com>
+ <CAHC9VhTtkar8zt9JP2o0EX5R5bpHaX45=tNtCLuaDNcwtV8baQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <6173dd63-7769-e4a1-f796-889802b0a898@nvidia.com>
+In-Reply-To: <CAHC9VhTtkar8zt9JP2o0EX5R5bpHaX45=tNtCLuaDNcwtV8baQ@mail.gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Mar 24, 2021 at 01:24:53PM +0200, Oz Shlomo wrote:
-> Hi,
-
-Hi,
-
+On 2021-03-24 12:32, Paul Moore wrote:
+> On Tue, Mar 23, 2021 at 4:05 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> >
+> > Reduce logging of nftables events to a level similar to iptables.
+> > Restore the table field to list the table, adding the generation.
+> >
+> > Indicate the op as the most significant operation in the event.
+> >
+> > A couple of sample events:
+> >
+> > type=PROCTITLE msg=audit(2021-03-18 09:30:49.801:143) : proctitle=/usr/bin/python3 -s /usr/sbin/firewalld --nofork --nopid
+> > type=SYSCALL msg=audit(2021-03-18 09:30:49.801:143) : arch=x86_64 syscall=sendmsg success=yes exit=172 a0=0x6 a1=0x7ffdcfcbe650 a2=0x0 a3=0x7ffdcfcbd52c items=0 ppid=1 pid=367 auid=unset uid=root gid=root euid=root suid=root fsuid=root egid=roo
+> > t sgid=root fsgid=root tty=(none) ses=unset comm=firewalld exe=/usr/bin/python3.9 subj=system_u:system_r:firewalld_t:s0 key=(null)
+> > type=NETFILTER_CFG msg=audit(2021-03-18 09:30:49.801:143) : table=firewalld:2 family=ipv6 entries=1 op=nft_register_table pid=367 subj=system_u:system_r:firewalld_t:s0 comm=firewalld
+> > type=NETFILTER_CFG msg=audit(2021-03-18 09:30:49.801:143) : table=firewalld:2 family=ipv4 entries=1 op=nft_register_table pid=367 subj=system_u:system_r:firewalld_t:s0 comm=firewalld
+> > type=NETFILTER_CFG msg=audit(2021-03-18 09:30:49.801:143) : table=firewalld:2 family=inet entries=1 op=nft_register_table pid=367 subj=system_u:system_r:firewalld_t:s0 comm=firewalld
+> >
+> > type=PROCTITLE msg=audit(2021-03-18 09:30:49.839:144) : proctitle=/usr/bin/python3 -s /usr/sbin/firewalld --nofork --nopid
+> > type=SYSCALL msg=audit(2021-03-18 09:30:49.839:144) : arch=x86_64 syscall=sendmsg success=yes exit=22792 a0=0x6 a1=0x7ffdcfcbe650 a2=0x0 a3=0x7ffdcfcbd52c items=0 ppid=1 pid=367 auid=unset uid=root gid=root euid=root suid=root fsuid=root egid=r
+> > oot sgid=root fsgid=root tty=(none) ses=unset comm=firewalld exe=/usr/bin/python3.9 subj=system_u:system_r:firewalld_t:s0 key=(null)
+> > type=NETFILTER_CFG msg=audit(2021-03-18 09:30:49.839:144) : table=firewalld:3 family=ipv6 entries=30 op=nft_register_chain pid=367 subj=system_u:system_r:firewalld_t:s0 comm=firewalld
+> > type=NETFILTER_CFG msg=audit(2021-03-18 09:30:49.839:144) : table=firewalld:3 family=ipv4 entries=30 op=nft_register_chain pid=367 subj=system_u:system_r:firewalld_t:s0 comm=firewalld
+> > type=NETFILTER_CFG msg=audit(2021-03-18 09:30:49.839:144) : table=firewalld:3 family=inet entries=165 op=nft_register_chain pid=367 subj=system_u:system_r:firewalld_t:s0 comm=firewalld
+> >
+> > The issue was originally documented in
+> > https://github.com/linux-audit/audit-kernel/issues/124
+> >
+> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> > ---
+> > Changelog:
+> > v3:
+> > - fix function braces, reduce parameter scope
+> > - pre-allocate nft_audit_data per table in step 1, bail on ENOMEM
+> >
+> > v2:
+> > - convert NFT ops to array indicies in nft2audit_op[]
+> > - use linux lists
+> > - use functions for each of collection and logging of audit data
+> > ---
+> >  include/linux/audit.h         |  28 ++++++
+> >  net/netfilter/nf_tables_api.c | 160 ++++++++++++++++------------------
+> >  2 files changed, 105 insertions(+), 83 deletions(-)
 > 
-> On 3/24/2021 3:38 AM, Pablo Neira Ayuso wrote:
-> > Hi Marcelo,
-> > 
-> > On Mon, Mar 22, 2021 at 03:09:51PM -0300, Marcelo Ricardo Leitner wrote:
-> > > On Wed, Mar 03, 2021 at 05:11:47PM +0100, Pablo Neira Ayuso wrote:
-> > [...]
-> > > > Or probably make the cookie unique is sufficient? The cookie refers to
-> > > > the memory address but memory can be recycled very quickly. If the
-> > > > cookie helps to catch the reorder scenario, then the conntrack id
-> > > > could be used instead of the memory address as cookie.
-> > > 
-> > > Something like this, if I got the idea right, would be even better. If
-> > > the entry actually expired before it had a chance of being offloaded,
-> > > there is no point in offloading it to then just remove it.
-> > 
-> > It would be interesting to explore this idea you describe. Maybe a
-> > flag can be set on stale objects, or simply remove the stale object
-> > from the offload queue. So I guess it should be possible to recover
-> > control on the list of pending requests as a batch that is passed
-> > through one single queue_work call.
-> > 
+> ...
 > 
-> Removing stale objects is a good optimization for cases when the rate of
-> established connections is greater than the hardware offload insertion rate.
-> However, with a single workqueue design, a burst of del commands may postpone connection offload tasks.
-> Postponed offloads may cause additional packets to go through software, thus
-> creating a chain effect which may diminish the system's connection rate.
-
-Right. I didn't intend to object to multiqueues. I'm sorry if it
-sounded that way.
-
+> > diff --git a/include/linux/audit.h b/include/linux/audit.h
+> > index 82b7c1116a85..5fafcf4c13de 100644
+> > --- a/include/linux/audit.h
+> > +++ b/include/linux/audit.h
+> > @@ -118,6 +118,34 @@ enum audit_nfcfgop {
+> >         AUDIT_NFT_OP_INVALID,
+> >  };
+> >
+> > +static const u8 nft2audit_op[NFT_MSG_MAX] = { // enum nf_tables_msg_types
+> > +       [NFT_MSG_NEWTABLE]      = AUDIT_NFT_OP_TABLE_REGISTER,
+> > +       [NFT_MSG_GETTABLE]      = AUDIT_NFT_OP_INVALID,
+> > +       [NFT_MSG_DELTABLE]      = AUDIT_NFT_OP_TABLE_UNREGISTER,
+> > +       [NFT_MSG_NEWCHAIN]      = AUDIT_NFT_OP_CHAIN_REGISTER,
+> > +       [NFT_MSG_GETCHAIN]      = AUDIT_NFT_OP_INVALID,
+> > +       [NFT_MSG_DELCHAIN]      = AUDIT_NFT_OP_CHAIN_UNREGISTER,
+> > +       [NFT_MSG_NEWRULE]       = AUDIT_NFT_OP_RULE_REGISTER,
+> > +       [NFT_MSG_GETRULE]       = AUDIT_NFT_OP_INVALID,
+> > +       [NFT_MSG_DELRULE]       = AUDIT_NFT_OP_RULE_UNREGISTER,
+> > +       [NFT_MSG_NEWSET]        = AUDIT_NFT_OP_SET_REGISTER,
+> > +       [NFT_MSG_GETSET]        = AUDIT_NFT_OP_INVALID,
+> > +       [NFT_MSG_DELSET]        = AUDIT_NFT_OP_SET_UNREGISTER,
+> > +       [NFT_MSG_NEWSETELEM]    = AUDIT_NFT_OP_SETELEM_REGISTER,
+> > +       [NFT_MSG_GETSETELEM]    = AUDIT_NFT_OP_INVALID,
+> > +       [NFT_MSG_DELSETELEM]    = AUDIT_NFT_OP_SETELEM_UNREGISTER,
+> > +       [NFT_MSG_NEWGEN]        = AUDIT_NFT_OP_GEN_REGISTER,
+> > +       [NFT_MSG_GETGEN]        = AUDIT_NFT_OP_INVALID,
+> > +       [NFT_MSG_TRACE]         = AUDIT_NFT_OP_INVALID,
+> > +       [NFT_MSG_NEWOBJ]        = AUDIT_NFT_OP_OBJ_REGISTER,
+> > +       [NFT_MSG_GETOBJ]        = AUDIT_NFT_OP_INVALID,
+> > +       [NFT_MSG_DELOBJ]        = AUDIT_NFT_OP_OBJ_UNREGISTER,
+> > +       [NFT_MSG_GETOBJ_RESET]  = AUDIT_NFT_OP_OBJ_RESET,
+> > +       [NFT_MSG_NEWFLOWTABLE]  = AUDIT_NFT_OP_FLOWTABLE_REGISTER,
+> > +       [NFT_MSG_GETFLOWTABLE]  = AUDIT_NFT_OP_INVALID,
+> > +       [NFT_MSG_DELFLOWTABLE]  = AUDIT_NFT_OP_FLOWTABLE_UNREGISTER,
+> > +};
 > 
-> Marcelo, AFAIU add/del are synchronized by design since the del is triggered by the gc thread.
-> A del workqueue item will be instantiated only after a connection is in hardware.
+> The previously reported problem with this as a static still exists,
+> correct?  It does seem like this should live in nf_tables_api.c
+> doesn't it?
 
-They were synchronized, but after this patch, not anymore AFAICT:
+Yes.  Thank you.
 
-tcf_ct_flow_table_add()
-  flow_offload_add()
-              if (nf_flowtable_hw_offload(flow_table)) {
-                  __set_bit(NF_FLOW_HW, &flow->flags);    [A]
-                  nf_flow_offload_add(flow_table, flow);
-                           ^--- schedules on _add workqueue
+> paul moore
 
-then the gc thread:
-nf_flow_offload_gc_step()
-          if (nf_flow_has_expired(flow) || nf_ct_is_dying(flow->ct))
-                  set_bit(NF_FLOW_TEARDOWN, &flow->flags);
+- RGB
 
-          if (test_bit(NF_FLOW_TEARDOWN, &flow->flags)) {
-	                   ^-- can also set by tcf_ct_flow_table_lookup()
-			       on fin's, by calling flow_offload_teardown()
-                  if (test_bit(NF_FLOW_HW, &flow->flags)) {
-                                    ^--- this is set in [A], even if the _add is still queued
-                          if (!test_bit(NF_FLOW_HW_DYING, &flow->flags))
-                                  nf_flow_offload_del(flow_table, flow);
+--
+Richard Guy Briggs <rgb@redhat.com>
+Sr. S/W Engineer, Kernel Security, Base Operating Systems
+Remote, Ottawa, Red Hat Canada
+IRC: rgb, SunRaycer
+Voice: +1.647.777.2635, Internal: (81) 32635
 
-nf_flow_offload_del()
-          offload = nf_flow_offload_work_alloc(flowtable, flow, FLOW_CLS_DESTROY);
-          if (!offload)
-                  return;
-
-          set_bit(NF_FLOW_HW_DYING, &flow->flags);
-          flow_offload_queue_work(offload);
-
-NF_FLOW_HW_DYING only avoids a double _del here.
-
-Maybe I'm just missing it but I'm not seeing how removals would only
-happen after the entry is actually offloaded. As in, if the add queue
-is very long, and the datapath see a FIN, seems the next gc iteration
-could try to remove it before it's actually offloaded. I think this is
-what Pablo meant on his original reply here too, then his idea on
-having add/del to work with the same queue.
