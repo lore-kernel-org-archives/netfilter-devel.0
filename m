@@ -2,111 +2,63 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1ABCC433DB
-	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Mar 2021 13:52:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB59EC433EB
+	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Mar 2021 14:36:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 83D6A61971
-	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Mar 2021 13:52:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D3D7461A2B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Mar 2021 14:36:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230153AbhCZNwJ (ORCPT
+        id S230374AbhCZOfu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 26 Mar 2021 09:52:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43340 "EHLO
+        Fri, 26 Mar 2021 10:35:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52778 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229951AbhCZNvx (ORCPT
+        with ESMTP id S230174AbhCZOf2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 26 Mar 2021 09:51:53 -0400
-Received: from mail-qv1-xf29.google.com (mail-qv1-xf29.google.com [IPv6:2607:f8b0:4864:20::f29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0582C0613AA;
-        Fri, 26 Mar 2021 06:51:52 -0700 (PDT)
-Received: by mail-qv1-xf29.google.com with SMTP id g8so2943311qvx.1;
-        Fri, 26 Mar 2021 06:51:52 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:content-transfer-encoding:in-reply-to;
-        bh=b0CiRMY941uzWEOm2V2nllzUFX6+uutSdpEYBUThiQc=;
-        b=sxB47fBq2T9tGROGzMHdyYDLFNgGQHvy44Vpctkki/CZoKl6WtF/m1I8h/MSkHEntJ
-         AO0Ug3UtrsNPyqGoW45wM3VmZYhJ6UENb3MiSFYfKyQoHh1hR5KZGwC0zhYUlY8E/ugJ
-         qIzJ+z7M6TD0N96C966yAJla9V7UExxzAl40XMbov4eEpXatRtVjgO63M4lZp6CWJA1W
-         iHLCvX0YL/IJRfCO5lcnbeG5YrBlOmFPwfrPZR+m2FcWHVHXbhnMwoElUH4NmRgZ4zyl
-         HKuKHwpabL8r2Sxc3P0GxM6tiI4BWUopoEqpbC9Z5GFiTaYPOdWiMJ1sv4A6O2UOLezi
-         q+tw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:content-transfer-encoding
-         :in-reply-to;
-        bh=b0CiRMY941uzWEOm2V2nllzUFX6+uutSdpEYBUThiQc=;
-        b=nsWSXFykhUBGp9ZsWUvohFU9rRL8uz37e15UsBl4xRYHL6k3ABSz7l2YE/ERSP7PXQ
-         1h4zfxxFgS4ZXKpIYf+El3bKCsjkb2urynaMrZY3nYttraayQ+1K+nrA7D7gNP2CHuPJ
-         mdsKkfx18GIDBJUF4FqwMFnLOWId7UJWvvfa4rf4+UZ/I9cG85CcHl923TwyaUCalvZm
-         ZsvJXizqUjKwNUy4VxcbN9M8o/5gpPVdq1HdKHTLeuYNQsv1tpYoq0DyHhY/KFCYF9Oe
-         fi7GBcnlkRYzjvYHwlAwNsXL+zuPL1QnkFJETfP7oDLahpurE+bIBkjGLX5RCpQCqzhs
-         lJRA==
-X-Gm-Message-State: AOAM533ZfJ7AQw4qxFqW+K1ueY5mUBX2v+JmhteIGyojb9tVqA97QBFT
-        9JHCh26iskLklfwpnbh98A0XYjvPfJ3Qmg==
-X-Google-Smtp-Source: ABdhPJya1ke0n9ds5ZXa6D/drabtX8zLi0K9jdprfrRXP48PCPkSBt/4veZ6iggIawl9/oAMaAvFQg==
-X-Received: by 2002:ad4:50c7:: with SMTP id e7mr13218420qvq.58.1616766712041;
-        Fri, 26 Mar 2021 06:51:52 -0700 (PDT)
-Received: from horizon.localdomain ([177.220.174.136])
-        by smtp.gmail.com with ESMTPSA id i17sm5942930qtr.33.2021.03.26.06.51.51
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 26 Mar 2021 06:51:51 -0700 (PDT)
-Received: by horizon.localdomain (Postfix, from userid 1000)
-        id 284C5C07AE; Fri, 26 Mar 2021 10:51:49 -0300 (-03)
-Date:   Fri, 26 Mar 2021 10:51:49 -0300
-From:   Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-To:     Oz Shlomo <ozsh@nvidia.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Paul Blakey <paulb@nvidia.com>
-Subject: Re: [PATCH nf-next] netfilter: flowtable: separate replace, destroy
- and stats to different workqueues
-Message-ID: <YF3m9Xt3DosPr36e@horizon.localdomain>
-References: <20210303125953.11911-1-ozsh@nvidia.com>
- <20210303161147.GA17082@salvia>
- <YFjdb7DveNOolSTr@horizon.localdomain>
- <20210324013810.GA5861@salvia>
- <6173dd63-7769-e4a1-f796-889802b0a898@nvidia.com>
- <YFutK3Mn+h5OWNXe@horizon.localdomain>
- <b89d8340-ca1c-1424-bbaa-0e85d37a84bb@nvidia.com>
+        Fri, 26 Mar 2021 10:35:28 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A115C0613AA
+        for <netfilter-devel@vger.kernel.org>; Fri, 26 Mar 2021 07:35:28 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1lPnYb-0000C3-06; Fri, 26 Mar 2021 15:35:25 +0100
+Date:   Fri, 26 Mar 2021 15:35:24 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH 0/8] netfilter: merge nf_log_proto modules
+Message-ID: <20210326143524.GB26422@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+References: <20210325172512.17729-1-fw@strlen.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <b89d8340-ca1c-1424-bbaa-0e85d37a84bb@nvidia.com>
+In-Reply-To: <20210325172512.17729-1-fw@strlen.de>
+Sender:  <n0-1@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Mar 25, 2021 at 10:46:12AM +0200, Oz Shlomo wrote:
-> Hi Marcelo,
-> 
-> On 3/24/2021 11:20 PM, Marcelo Ricardo Leitner wrote:
-> > Maybe I'm just missing it but I'm not seeing how removals would only
-> > happen after the entry is actually offloaded. As in, if the add queue
-> > is very long, and the datapath see a FIN, seems the next gc iteration
-> > could try to remove it before it's actually offloaded. I think this is
-> > what Pablo meant on his original reply here too, then his idea on
-> > having add/del to work with the same queue.
-> > 
-> 
-> The work item will not be allocated if the hw offload is pending.
-> 
-> nf_flow_offload_work_alloc()
-> 	if (test_and_set_bit(NF_FLOW_HW_PENDING, &flow->flags))
-> 		return NULL;
+Hi,
 
-Ahá! Right, and with that there can only be 1 flow_offload_work for a
-flow at a time, so it can't fetch stats for a flow that is still to be
-offloaded too. Got it.
+On Thu, Mar 25, 2021 at 06:25:04PM +0100, Florian Westphal wrote:
+[...]
+> Last patch allows to move log backend module load
+> to nft_log to avoid a deadlock that can occur when request_module()
+> is called with the nft transaction mutex held.
 
-Thanks,
-Marcelo
+With this series applied, my reproducer doesn't lock up anymore. In
+addition to that, neither iptables nor nftables testsuites seem unhappy
+with the change. Hence:
+
+Tested-by: Phil Sutter <phil@nwl.cc>
+
+Thanks a lot,
+
+Phil
