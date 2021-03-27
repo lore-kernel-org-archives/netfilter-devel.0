@@ -2,76 +2,74 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41462C433DB
-	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Mar 2021 21:51:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 812F2C433DB
+	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Mar 2021 02:55:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3CAFD61976
-	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Mar 2021 21:51:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2B97061A0D
+	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Mar 2021 02:55:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230249AbhCZVun (ORCPT
+        id S230106AbhC0CzV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 26 Mar 2021 17:50:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42756 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230043AbhCZVuL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 26 Mar 2021 17:50:11 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPS id 3BA7A61A27;
-        Fri, 26 Mar 2021 21:50:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1616795411;
-        bh=8KfFO4xLxph24i2E9MikvFUHDdoNvPlr0M2rAy8ftwc=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=K1yQTXF3DSoK/OV/VkD5dv6kiCnQMAAXCf5KPGq7TAtjUS45e6jQ9Mt0kp+A3LE6U
-         KM2oXli4LwSL888cdMGS9b9IsDvsJdqlq9AXvFoyoYQMzOxgprM6czYgiKb9b73kZW
-         O1KtTrjrKFHnZxxgyL6gcoEaF5xDZy6ZaZj/kCaQeuICzn1D+ROQSh5dHTG3NDyQMa
-         TLWJ5xQB6a8c5uGDjNXb4g3p68ogGyMhDbwDewun5ZvVtXXzoglG8RXMHweGk0SXM9
-         y/klQPPVe2tEJyYbVMn+kok6HHvOr2s6rbtHBkTFSGOKWapjM+O5IlknWrgnZ81jYr
-         Q5LgW53jNBaQw==
-Content-Type: text/plain; charset="utf-8"
+        Fri, 26 Mar 2021 22:55:21 -0400
+Received: from mail-m17637.qiye.163.com ([59.111.176.37]:52426 "EHLO
+        mail-m17637.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229880AbhC0CzP (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 26 Mar 2021 22:55:15 -0400
+Received: from wanjb-virtual-machine.localdomain (unknown [36.152.145.182])
+        by mail-m17637.qiye.163.com (Hmail) with ESMTPA id D48809801F9;
+        Sat, 27 Mar 2021 10:55:08 +0800 (CST)
+From:   Wan Jiabing <wanjiabing@vivo.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Wan Jiabing <wanjiabing@vivo.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org
+Cc:     kael_w@yeah.net
+Subject: [PATCH] netfilter: ipset: Remove duplicate declaration
+Date:   Sat, 27 Mar 2021 10:54:47 +0800
+Message-Id: <20210327025454.917202-1-wanjiabing@vivo.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next] docs: nf_flowtable: fix compilation and warnings
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <161679541104.17455.10378416343031812056.git-patchwork-notify@kernel.org>
-Date:   Fri, 26 Mar 2021 21:50:11 +0000
-References: <20210325211018.5548-1-pablo@netfilter.org>
-In-Reply-To: <20210325211018.5548-1-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org, sfr@canb.auug.org.au
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZS1VLWVdZKFlBSE83V1ktWUFJV1kPCR
+        oVCBIfWUFZSxkaSEhLSkxPQkJNVkpNSk1DSkhMS0JKTkNVEwETFhoSFyQUDg9ZV1kWGg8SFR0UWU
+        FZT0tIVUpKS0hKTFVLWQY+
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6OCI6Lgw6Iz8cLDMaLRI0LQ9R
+        MTVPCzxVSlVKTUpNQ0pITEtCTktJVTMWGhIXVQwaFRESGhkSFRw7DRINFFUYFBZFWVdZEgtZQVlI
+        TVVKTklVSk9OVUpDSVlXWQgBWUFKTUJNNwY+
+X-HM-Tid: 0a78719b5705d992kuwsd48809801f9
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+struct ip_set is declared twice. One is declared at 79th line,
+so remove the duplicate.
 
-This patch was applied to netdev/net-next.git (refs/heads/master):
+Signed-off-by: Wan Jiabing <wanjiabing@vivo.com>
+---
+ include/linux/netfilter/ipset/ip_set.h | 2 --
+ 1 file changed, 2 deletions(-)
 
-On Thu, 25 Mar 2021 22:10:16 +0100 you wrote:
-> ... cannot be used in block quote, it breaks compilation, remove it.
-> 
-> Fix warnings due to missing blank line such as:
-> 
-> net-next/Documentation/networking/nf_flowtable.rst:142: WARNING: Block quote ends without a blank line; unexpected unindent.
-> 
-> Fixes: 143490cde566 ("docs: nf_flowtable: update documentation with enhancements")
-> Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> 
-> [...]
-
-Here is the summary with links:
-  - [net-next] docs: nf_flowtable: fix compilation and warnings
-    https://git.kernel.org/netdev/net-next/c/794d9b25817a
-
-You are awesome, thank you!
---
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
+index 46d9a0c26c67..10279c4830ac 100644
+--- a/include/linux/netfilter/ipset/ip_set.h
++++ b/include/linux/netfilter/ipset/ip_set.h
+@@ -124,8 +124,6 @@ struct ip_set_ext {
+ 	bool target;
+ };
+ 
+-struct ip_set;
+-
+ #define ext_timeout(e, s)	\
+ ((unsigned long *)(((void *)(e)) + (s)->offset[IPSET_EXT_ID_TIMEOUT]))
+ #define ext_counter(e, s)	\
+-- 
+2.25.1
 
