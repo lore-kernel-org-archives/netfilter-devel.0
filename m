@@ -7,43 +7,45 @@ X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7AB9C433C1
-	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Mar 2021 22:23:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51F46C4345B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Mar 2021 22:23:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 828B761976
-	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Mar 2021 22:23:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 409D0619FC
+	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Mar 2021 22:23:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232108AbhC2WWa (ORCPT
+        id S231969AbhC2WXa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 29 Mar 2021 18:22:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45998 "EHLO mail.kernel.org"
+        Mon, 29 Mar 2021 18:23:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46652 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231938AbhC2WV7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 29 Mar 2021 18:21:59 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 47C6061989;
-        Mon, 29 Mar 2021 22:21:58 +0000 (UTC)
+        id S232201AbhC2WWm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 29 Mar 2021 18:22:42 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 25A1261985;
+        Mon, 29 Mar 2021 22:22:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1617056518;
-        bh=PRaURuqiqrFk5Bglodz4syjHt/uqpDu7BKqVxMG4Kdg=;
+        s=k20201202; t=1617056562;
+        bh=VBA9o2EIdCUut3Sn5HLHtWT4SJ8aHzBGbxbctElJdEk=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ugtAGZUYDsvL0mQpp86/5/PUklpJJV0ciW1pqZc2kP8Y8UzYFR+oQOWu1zXCNgMG4
-         rE1HZsns/Nz4k8ydiXAC5YhZXP6nGuox7CjRn2knXtUe62RjBtvsMRuQX+9MlEOr5z
-         oSo9gg2iXnqmuyeB/xsaFkiKpkAfvzpCPqYwPsSsg1PYezS21D8zDdub9zQMgfcpsM
-         tYv1W4aDcoF5Pl75hnmL2OZgpel7nXs++OM/Jr6ZkrsMkWKqU8EdNqmoYYGtCFbnqt
-         epwL5halMQG5Y2kpoWEsqdagcJkABk/BtTjEt/FFWlwUo1adIEDGMXe9nJ1GbqfevM
-         dr53I4tU3hjPw==
+        b=bTI4fILIcwgpn0BzwxYSt0w7coUCjufpA+5dkhJNuACQIQEiY7LF4GWTmBOE13R0X
+         3jF/ka2tm7tyLZhmywXVt9SC/nYU7zxgWNi48WKtwZYGle4yYGr8Bik4iIPLgsHvo/
+         pODMqq1++6cya/bCHyBTiMvKVHUmPJF4vSmcgH6eI+eHpNR7GumWP/RhWVN7LgusUI
+         Xk+7S5qHJXMXj73ajd/WJygY5FNV0ANHgpOjxSgo5nHan8dxGj9pVgcChQQfd0HNUU
+         d2LS8p62iOndB0juor3YN+23RKx6/erFrKOOAGLnMDV36bRJP9VEtntKKAWSmUwYKC
+         YjMYNKuXnOl1w==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc:     Ludovic Senecaux <linuxludo@free.fr>,
+        Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.11 20/38] netfilter: nftables: skip hook overlap logic if flowtable is stale
-Date:   Mon, 29 Mar 2021 18:21:15 -0400
-Message-Id: <20210329222133.2382393-20-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.10 16/33] netfilter: conntrack: Fix gre tunneling over ipv6
+Date:   Mon, 29 Mar 2021 18:22:04 -0400
+Message-Id: <20210329222222.2382987-16-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.1
-In-Reply-To: <20210329222133.2382393-1-sashal@kernel.org>
-References: <20210329222133.2382393-1-sashal@kernel.org>
+In-Reply-To: <20210329222222.2382987-1-sashal@kernel.org>
+References: <20210329222222.2382987-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -52,34 +54,34 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Ludovic Senecaux <linuxludo@free.fr>
 
-[ Upstream commit 86fe2c19eec4728fd9a42ba18f3b47f0d5f9fd7c ]
+[ Upstream commit 8b2030b4305951f44afef80225f1475618e25a73 ]
 
-If the flowtable has been previously removed in this batch, skip the
-hook overlap checks. This fixes spurious EEXIST errors when removing and
-adding the flowtable in the same batch.
+This fix permits gre connections to be tracked within ip6tables rules
 
+Signed-off-by: Ludovic Senecaux <linuxludo@free.fr>
+Acked-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_tables_api.c | 3 +++
- 1 file changed, 3 insertions(+)
+ net/netfilter/nf_conntrack_proto_gre.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 8ee9f40cc0ea..f18e54d3ca51 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -6749,6 +6749,9 @@ static int nft_register_flowtable_net_hooks(struct net *net,
+diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
+index 5b05487a60d2..db11e403d818 100644
+--- a/net/netfilter/nf_conntrack_proto_gre.c
++++ b/net/netfilter/nf_conntrack_proto_gre.c
+@@ -218,9 +218,6 @@ int nf_conntrack_gre_packet(struct nf_conn *ct,
+ 			    enum ip_conntrack_info ctinfo,
+ 			    const struct nf_hook_state *state)
+ {
+-	if (state->pf != NFPROTO_IPV4)
+-		return -NF_ACCEPT;
+-
+ 	if (!nf_ct_is_confirmed(ct)) {
+ 		unsigned int *timeouts = nf_ct_timeout_lookup(ct);
  
- 	list_for_each_entry(hook, hook_list, list) {
- 		list_for_each_entry(ft, &table->flowtables, list) {
-+			if (!nft_is_active_next(net, ft))
-+				continue;
-+
- 			list_for_each_entry(hook2, &ft->hook_list, list) {
- 				if (hook->ops.dev == hook2->ops.dev &&
- 				    hook->ops.pf == hook2->ops.pf) {
 -- 
 2.30.1
 
