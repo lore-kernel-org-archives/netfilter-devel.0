@@ -2,65 +2,92 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16093C433DB
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Mar 2021 06:43:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9984BC433C1
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Mar 2021 12:47:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C5EB761989
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Mar 2021 06:43:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6F166619B9
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Mar 2021 12:47:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230316AbhC3Gmy (ORCPT
+        id S232019AbhC3Mq2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 30 Mar 2021 02:42:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57136 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230501AbhC3Gmp (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Mar 2021 02:42:45 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27704C061762;
-        Mon, 29 Mar 2021 23:42:45 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1lR85J-0002FN-F0; Tue, 30 Mar 2021 08:42:41 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     lvs-devel@vger.kernel.org, ja@ssi.bg, horms@verge.net.au,
-        Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: ipvs: do not printk on netns creation
-Date:   Tue, 30 Mar 2021 08:42:32 +0200
-Message-Id: <20210330064232.11960-1-fw@strlen.de>
-X-Mailer: git-send-email 2.26.3
+        Tue, 30 Mar 2021 08:46:28 -0400
+Received: from relay.sw.ru ([185.231.240.75]:39352 "EHLO relay.sw.ru"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S232057AbhC3MqJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 30 Mar 2021 08:46:09 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=virtuozzo.com; s=relay; h=MIME-Version:Message-Id:Date:Subject:From:
+        Content-Type; bh=B01gtK4hc27EAxDiCu5ErZVoq48yA2WC8mqECLCTgLQ=; b=AJR8U8xy68IM
+        CZNIuK7ralZXlGuT5FJFYxR2gLhY3NSL8wqCL7ghDa2R7TynBbUcgHj+PaW/C28H0eDVuY6plB4V4
+        MPgkhTe2objznT/xITdCZ8XqkMJmxtapAEjHwzr2ZJFm/QJuiHbeZbJQZD76YUvr9NpWYI5xyEFqP
+        UsCXU=;
+Received: from [10.93.0.33] (helo=dhcp-172-16-24-175.sw.ru)
+        by relay.sw.ru with esmtp (Exim 4.94)
+        (envelope-from <alexander.mikhalitsyn@virtuozzo.com>)
+        id 1lRDl0-000AnC-Iv; Tue, 30 Mar 2021 15:46:06 +0300
+From:   Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     pablo@netfilter.org, fw@strlen.de
+Subject: [iptables PATCH 2/2] extensions: libxt_conntrack: print xlate status as set
+Date:   Tue, 30 Mar 2021 15:45:48 +0300
+Message-Id: <20210330124548.739796-2-alexander.mikhalitsyn@virtuozzo.com>
+X-Mailer: git-send-email 2.28.0
+In-Reply-To: <20210330124548.739796-1-alexander.mikhalitsyn@virtuozzo.com>
+References: <20210330124548.739796-1-alexander.mikhalitsyn@virtuozzo.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This causes dmesg spew during normal operation, so remove this.
+status_xlate_print function prints statusmask
+without { ... } around. But if ctstatus condition is
+negative, then we have to use { ... } after "!=" operator in nft
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Reproducer:
+$ iptables -A INPUT -d 127.0.0.1/32 -p tcp -m conntrack ! --ctstatus expected,assured -j DROP
+$ nft list ruleset
+...
+meta l4proto tcp ip daddr 127.0.0.1 ct status != expected,assured counter packets 0 bytes 0 drop
+...
+
+it will fail if we try to load this rule:
+$ nft -f nft_test
+../nft_test:6:97-97: Error: syntax error, unexpected comma, expecting newline or semicolon
+
+Signed-off-by: Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
+
 ---
- net/netfilter/ipvs/ip_vs_ftp.c | 2 --
- 1 file changed, 2 deletions(-)
+ extensions/libxt_conntrack.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
-index cf925906f59b..ef1f45e43b63 100644
---- a/net/netfilter/ipvs/ip_vs_ftp.c
-+++ b/net/netfilter/ipvs/ip_vs_ftp.c
-@@ -591,8 +591,6 @@ static int __net_init __ip_vs_ftp_init(struct net *net)
- 		ret = register_ip_vs_app_inc(ipvs, app, app->protocol, ports[i]);
- 		if (ret)
- 			goto err_unreg;
--		pr_info("%s: loaded support on port[%d] = %u\n",
--			app->name, i, ports[i]);
- 	}
- 	return 0;
+diff --git a/extensions/libxt_conntrack.c b/extensions/libxt_conntrack.c
+index b3a2b2d..132d512 100644
+--- a/extensions/libxt_conntrack.c
++++ b/extensions/libxt_conntrack.c
+@@ -1195,6 +1195,8 @@ static void status_xlate_print(struct xt_xlate *xl, unsigned int statusmask)
+ {
+ 	const char *sep = "";
  
++	xt_xlate_add(xl, "{ ");
++
+ 	if (statusmask & IPS_EXPECTED) {
+ 		xt_xlate_add(xl, "%s%s", sep, "expected");
+ 		sep = ",";
+@@ -1211,6 +1213,8 @@ static void status_xlate_print(struct xt_xlate *xl, unsigned int statusmask)
+ 		xt_xlate_add(xl, "%s%s", sep, "confirmed");
+ 		sep = ",";
+ 	}
++
++	xt_xlate_add(xl, " }");
+ }
+ 
+ static void addr_xlate_print(struct xt_xlate *xl,
 -- 
-2.26.3
+1.8.3.1
 
