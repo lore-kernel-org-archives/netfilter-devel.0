@@ -6,43 +6,48 @@ X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF8C3C433C1
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Mar 2021 22:55:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A18BBC433C1
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Mar 2021 22:57:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B5EAE619D1
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Mar 2021 22:55:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 67C4A619CD
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Mar 2021 22:57:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233049AbhC3WzF (ORCPT
+        id S233083AbhC3W4l (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 30 Mar 2021 18:55:05 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:46520 "EHLO
+        Tue, 30 Mar 2021 18:56:41 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:46542 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232607AbhC3WzA (ORCPT
+        with ESMTP id S233133AbhC3W4f (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Mar 2021 18:55:00 -0400
+        Tue, 30 Mar 2021 18:56:35 -0400
 Received: from us.es (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 9238C63E55;
-        Wed, 31 Mar 2021 00:54:45 +0200 (CEST)
-Date:   Wed, 31 Mar 2021 00:54:56 +0200
+        by mail.netfilter.org (Postfix) with ESMTPSA id 796E063E55;
+        Wed, 31 Mar 2021 00:56:18 +0200 (CEST)
+Date:   Wed, 31 Mar 2021 00:56:30 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Yang Yingliang <yangyingliang@huawei.com>
-Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        kadlec@netfilter.org
-Subject: Re: [PATCH -next] netfilter: nftables: remove unnecessary
- spin_lock_init()
-Message-ID: <20210330225456.GA14489@salvia>
-References: <20210329135541.3304940-1-yangyingliang@huawei.com>
+To:     Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc:     Wan Jiabing <wanjiabing@vivo.com>, Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org, kael_w@yeah.net
+Subject: Re: [PATCH] netfilter: ipset: Remove duplicate declaration
+Message-ID: <20210330225630.GA14620@salvia>
+References: <20210327025454.917202-1-wanjiabing@vivo.com>
+ <508fa09b-b2a2-b88f-35b1-d6d3d2a24254@netfilter.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20210329135541.3304940-1-yangyingliang@huawei.com>
+In-Reply-To: <508fa09b-b2a2-b88f-35b1-d6d3d2a24254@netfilter.org>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Mar 29, 2021 at 09:55:41PM +0800, Yang Yingliang wrote:
-> The spinlock nf_tables_destroy_list_lock is initialized statically.
-> It is unnecessary to initialize by spin_lock_init().
+On Sun, Mar 28, 2021 at 09:30:49PM +0200, Jozsef Kadlecsik wrote:
+> On Sat, 27 Mar 2021, Wan Jiabing wrote:
+> 
+> > struct ip_set is declared twice. One is declared at 79th line,
+> > so remove the duplicate.
+> 
+> Yes, it's a duplicate. Pablo, could you apply it?
 
-Applied, thanks.
+Applied, thanks Jozsef.
