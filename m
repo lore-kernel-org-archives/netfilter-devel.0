@@ -2,93 +2,81 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2DC4C433E0
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 08:59:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D107C433E3
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 09:14:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6D53E619AB
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 08:59:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E7776619DE
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 09:14:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231278AbhCaI7R (ORCPT
+        id S234519AbhCaJN5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 31 Mar 2021 04:59:17 -0400
-Received: from m97179.mail.qiye.163.com ([220.181.97.179]:37238 "EHLO
-        m97179.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230385AbhCaI6v (ORCPT
+        Wed, 31 Mar 2021 05:13:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33750 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230527AbhCaJNg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 Mar 2021 04:58:51 -0400
-X-Greylist: delayed 304 seconds by postgrey-1.27 at vger.kernel.org; Wed, 31 Mar 2021 04:58:51 EDT
-Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m97179.mail.qiye.163.com (Hmail) with ESMTPA id 1528FE02B9E;
-        Wed, 31 Mar 2021 16:53:43 +0800 (CST)
-From:   wenxu@ucloud.cn
-To:     pablo@netfilter.org
+        Wed, 31 Mar 2021 05:13:36 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D6603C061574
+        for <netfilter-devel@vger.kernel.org>; Wed, 31 Mar 2021 02:13:35 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1lRWup-0008Gs-As; Wed, 31 Mar 2021 11:13:31 +0200
+Date:   Wed, 31 Mar 2021 11:13:31 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next] netfilter: flowtable: fix set software outdev on top of the net_device_path_stack
-Date:   Wed, 31 Mar 2021 16:53:43 +0800
-Message-Id: <1617180823-21881-1-git-send-email-wenxu@ucloud.cn>
-X-Mailer: git-send-email 1.8.3.1
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZS1VLWVdZKFlBSUI3V1ktWUFJV1kPCR
-        oVCBIfWUFZShpLGkIYHksYSh9LVkpNSkxKQ0tDSU9ITEpVGRETFhoSFyQUDg9ZV1kWGg8SFR0UWU
-        FZT0tIVUpKS0hKQ1VLWQY+
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6PyI6KQw5Iz0*NQpLCAEJDh8o
-        KS8KCxNVSlVKTUpMSkNLQ0lPTU9KVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUlIQk83Bg++
-X-HM-Tid: 0a78877d124b20bdkuqy1528fe02b9e
+Subject: iptables-nft fails to restore huge rulesets
+Message-ID: <20210331091331.GE7863@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Sender:  <n0-1@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
+Hi,
 
-The outdev of nft_forward_info should be set on the top of stack device.
-Such the following case:
-br0 is a bridge with pvid 100 and veth is in the vlan 100 without untagged
+I'm currently trying to fix for an issue in Kubernetes realm[1]:
+Baseline is they are trying to restore a ruleset with ~700k lines and it
+fails. Needless to say, legacy iptables handles it just fine.
 
-ip l add dev br0 type bridge vlan_filtering 1
-brctl addif br0 veth
-bridge vlan add dev veth vid 100
-bridge vlan add dev br0 vid 100 pvid untagged self
+Meanwhile I found out there's a limit of 1024 iovecs when submitting the
+batch to kernel, and this is what they're hitting.
 
-The net device path should be br0-->veth
-The software offload doesn't encap the vlan tag and the outdev should
-be the top device in the stack(route device).
-So thehe outdev for softeware offload should set on br0 but not veth.
-Or the vlan didn't tagged outgoing through veth
+I can work around that limit by increasing each iovec (via
+BATCH_PAGE_SIZE) but keeping pace with legacy seems ridiculous:
 
-Fixes: 4cd91f7c290f ("netfilter: flowtable: add vlan support")
-Signed-off-by: wenxu <wenxu@ucloud.cn>
----
- net/netfilter/nft_flow_offload.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+With a scripted binary-search I checked the maximum working number of
+restore items of:
 
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index 4843dd2..53f641b 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -119,7 +119,8 @@ static void nft_dev_path_info(const struct net_device_path_stack *stack,
- 				info->indev = NULL;
- 				break;
- 			}
--			info->outdev = path->dev;
-+			if (!info->outdev)
-+				info->outdev = path->dev;
- 			info->encap[info->num_encaps].id = path->encap.id;
- 			info->encap[info->num_encaps].proto = path->encap.proto;
- 			info->num_encaps++;
-@@ -129,6 +130,8 @@ static void nft_dev_path_info(const struct net_device_path_stack *stack,
- 		case DEV_PATH_BRIDGE:
- 			if (is_zero_ether_addr(info->h_source))
- 				memcpy(info->h_source, path->dev->dev_addr, ETH_ALEN);
-+			if (!info->outdev)
-+				info->outdev = path->dev;
- 
- 			switch (path->bridge.vlan_mode) {
- 			case DEV_PATH_BR_VLAN_UNTAG_HW:
--- 
-1.8.3.1
+(1) User-defined chains
+(2) rules with merely comment match present
+(3) rules matching on saddr, daddr, iniface and outiface
 
+Here's legacy compared to nft with different factors in BATCH_PAGE_SIZE:
+
+legacy		32 (stock)	  64		   128          256
+----------------------------------------------------------------------
+1'636'799	1'602'202	- NC -		  - NC -       - NC -
+1'220'159	  302'079	604'160		1'208'320      - NC -
+3'532'040	  242'688	485'376		  971'776    1'944'576
+
+At this point I stopped as the VM's 20GB RAM became the limit
+(iptables-nft-restore being OOM-killed instead of just failing).
+
+What would you suggest? Should I just change BATCH_PAGE_SIZE to make it
+"large enough" or is there a better approach?
+
+Cheers, Phil
+
+[1] https://github.com/kubernetes/kubernetes/issues/96018
