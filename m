@@ -2,80 +2,168 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0163C433ED
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 13:06:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 412F6C433B4
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 13:21:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9AF9F61989
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 13:06:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F3D6561968
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 13:21:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235140AbhCaNGE (ORCPT
+        id S235635AbhCaNUp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 31 Mar 2021 09:06:04 -0400
-Received: from relay.sw.ru ([185.231.240.75]:47900 "EHLO relay.sw.ru"
+        Wed, 31 Mar 2021 09:20:45 -0400
+Received: from relay.sw.ru ([185.231.240.75]:52528 "EHLO relay.sw.ru"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235600AbhCaNFs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 Mar 2021 09:05:48 -0400
+        id S235461AbhCaNUT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 31 Mar 2021 09:20:19 -0400
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=virtuozzo.com; s=relay; h=Content-Type:Mime-Version:Message-Id:Subject:From
-        :Date; bh=NErNNdtPdDk2GYCxJ+c6Y+iZbjWDTzrHZQ+QLz2ILUI=; b=tuyPiXcrGGiCbcURLQ7
-        5GYokMEhBJuqWvju6ZrCP+4TnBpDbNgSNTtB7ZavMd06i1xnyVrJKhv447gih7BrfL0DY8duKssPO
-        UJtWl/lTKhOj9QH0BNqNkPj3C4ru43UB9wq3IYCKj1tvYVcmZGVvIsK6xfNLUyJK3qbsRRDhIBs=
-Received: from [192.168.15.221] (helo=alexm-laptop.lan)
-        by relay.sw.ru with smtp (Exim 4.94)
+        d=virtuozzo.com; s=relay; h=MIME-Version:Message-Id:Date:Subject:From:
+        Content-Type; bh=e3tk5xDoSfyxLRwLIuKieQIuqPzaVP3KgPrwUqMojyM=; b=Pdx7rtAZ7O8d
+        zw5bq2xvpZe5ovbqbrDMPNmPh0SAhJUtWxw5eUz8ROF1q2lg+vlp8CNbD++aTQAmnf6N1PaGCDJ+C
+        xRfKDR5pvVHZmjJFhYzNygDr3ICGQg5iGKq8xmTQyzY3NV6f5hIN90yEm9ruu/PubCIy4Hi6CGzlU
+        leqJc=;
+Received: from [10.93.0.33] (helo=dhcp-172-16-24-175.sw.ru)
+        by relay.sw.ru with esmtp (Exim 4.94)
         (envelope-from <alexander.mikhalitsyn@virtuozzo.com>)
-        id 1lRaXb-000Cdh-H7; Wed, 31 Mar 2021 16:05:47 +0300
-Date:   Wed, 31 Mar 2021 16:05:47 +0300
+        id 1lRald-000Cev-Py; Wed, 31 Mar 2021 16:20:17 +0300
 From:   Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, pablo@netfilter.org
-Subject: Re: [iptables PATCH v3 2/2] extensions: libxt_conntrack: print
- xlate status as set
-Message-Id: <20210331160547.e2c73160420c79554a903be0@virtuozzo.com>
-In-Reply-To: <20210331105852.GD17285@breakpoint.cc>
-References: <20210331102934.848126-1-alexander.mikhalitsyn@virtuozzo.com>
-        <20210331102934.848126-2-alexander.mikhalitsyn@virtuozzo.com>
-        <20210331105852.GD17285@breakpoint.cc>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To:     netfilter-devel@vger.kernel.org
+Cc:     pablo@netfilter.org, fw@strlen.de
+Subject: [iptables PATCH v5 PATCH 1/2] extensions: libxt_conntrack: print xlate state as set
+Date:   Wed, 31 Mar 2021 16:20:15 +0300
+Message-Id: <20210331132015.862199-1-alexander.mikhalitsyn@virtuozzo.com>
+X-Mailer: git-send-email 2.28.0
+In-Reply-To: <20210331130237.860728-1-alexander.mikhalitsyn@virtuozzo.com>
+References: <20210331130237.860728-1-alexander.mikhalitsyn@virtuozzo.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, 31 Mar 2021 12:58:52 +0200
-Florian Westphal <fw@strlen.de> wrote:
+Currently, state_xlate_print function prints statemask as comma-separated sequence of enabled
+statemask flags. But if we have inverted conntrack ctstate condition then we have to use more
+complex expression because nft not supports syntax like "ct state != related,established".
 
-> Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com> wrote:
-> > At the moment, status_xlate_print function prints statusmask as comma-separated
-> > sequence of enabled statusmask flags. But if we have inverted conntrack ctstatus
-> > condition then we have to use more complex expression (if more than one flag enabled)
-> > because nft not supports syntax like "ct status != expected,assured".
-> > 
-> > Examples:
-> > ! --ctstatus CONFIRMED,ASSURED
-> > should be translated as
-> > ct status & (assured|confirmed) == 0
-> > 
-> > ! --ctstatus CONFIRMED
-> > can be translated as
-> > ct status != confirmed
-> 
-> "! --ctstatus CONFIRMED" means 'true if CONFIRMED bit is not set'
-> But "ct status != confirmed" means 'true if ct status contains any value
-> except confirmed.
-> 
-> Example: ct->status has confirmed and assured bits set.
-> Then:
-> "! --ctstatus CONFIRMED" won't match (the bit is set).
-> ct status != confirmed returns true (3 != 1)
-> ct (status & confirmed) == 0 won't match (the bit is set).
-> 
+Reproducer:
+$ iptables -A INPUT -d 127.0.0.1/32 -p tcp -m conntrack ! --ctstate RELATED,ESTABLISHED -j DROP
+$ nft list ruleset
+...
+meta l4proto tcp ip daddr 127.0.0.1 ct state != related,established counter packets 0 bytes 0 drop
+...
 
-Ah, sure. Fixed ;)
+it will fail if we try to load this rule:
+$ nft -f nft_test
+../nft_test:6:97-97: Error: syntax error, unexpected comma, expecting newline or semicolon
 
-Alex.
+Cc: Florian Westphal <fw@strlen.de>
+Signed-off-by: Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
+---
+ extensions/libxt_conntrack.c      | 38 +++++++++++++++++++++++++-------------
+ extensions/libxt_conntrack.txlate |  5 ++++-
+ 2 files changed, 29 insertions(+), 14 deletions(-)
+
+diff --git a/extensions/libxt_conntrack.c b/extensions/libxt_conntrack.c
+index 7734509..91f9e4a 100644
+--- a/extensions/libxt_conntrack.c
++++ b/extensions/libxt_conntrack.c
+@@ -1148,30 +1148,43 @@ static void state_save(const void *ip, const struct xt_entry_match *match)
+ 	state_print_state(sinfo->statemask);
+ }
+ 
+-static void state_xlate_print(struct xt_xlate *xl, unsigned int statemask)
++static void state_xlate_print(struct xt_xlate *xl, unsigned int statemask, int inverted)
+ {
+ 	const char *sep = "";
++	int one_flag_set;
++
++	one_flag_set = !(statemask & (statemask - 1));
++
++	if (inverted && !one_flag_set)
++		xt_xlate_add(xl, "& (");
++	else if (inverted)
++		xt_xlate_add(xl, "& ");
+ 
+ 	if (statemask & XT_CONNTRACK_STATE_INVALID) {
+ 		xt_xlate_add(xl, "%s%s", sep, "invalid");
+-		sep = ",";
++		sep = inverted && !one_flag_set ? "|" : ",";
+ 	}
+ 	if (statemask & XT_CONNTRACK_STATE_BIT(IP_CT_NEW)) {
+ 		xt_xlate_add(xl, "%s%s", sep, "new");
+-		sep = ",";
++		sep = inverted && !one_flag_set ? "|" : ",";
+ 	}
+ 	if (statemask & XT_CONNTRACK_STATE_BIT(IP_CT_RELATED)) {
+ 		xt_xlate_add(xl, "%s%s", sep, "related");
+-		sep = ",";
++		sep = inverted && !one_flag_set ? "|" : ",";
+ 	}
+ 	if (statemask & XT_CONNTRACK_STATE_BIT(IP_CT_ESTABLISHED)) {
+ 		xt_xlate_add(xl, "%s%s", sep, "established");
+-		sep = ",";
++		sep = inverted && !one_flag_set ? "|" : ",";
+ 	}
+ 	if (statemask & XT_CONNTRACK_STATE_UNTRACKED) {
+ 		xt_xlate_add(xl, "%s%s", sep, "untracked");
+-		sep = ",";
++		sep = inverted && !one_flag_set ? "|" : ",";
+ 	}
++
++	if (inverted && !one_flag_set)
++		xt_xlate_add(xl, ") == 0");
++	else if (inverted)
++		xt_xlate_add(xl, " == 0");
+ }
+ 
+ static int state_xlate(struct xt_xlate *xl,
+@@ -1180,9 +1193,9 @@ static int state_xlate(struct xt_xlate *xl,
+ 	const struct xt_conntrack_mtinfo3 *sinfo =
+ 		(const void *)params->match->data;
+ 
+-	xt_xlate_add(xl, "ct state %s", sinfo->invert_flags & XT_CONNTRACK_STATE ?
+-					"!= " : "");
+-	state_xlate_print(xl, sinfo->state_mask);
++	xt_xlate_add(xl, "ct state ");
++	state_xlate_print(xl, sinfo->state_mask,
++			  sinfo->invert_flags & XT_CONNTRACK_STATE);
+ 	xt_xlate_add(xl, " ");
+ 	return 1;
+ }
+@@ -1256,10 +1269,9 @@ static int _conntrack3_mt_xlate(struct xt_xlate *xl,
+ 				     sinfo->state_mask & XT_CONNTRACK_STATE_SNAT ? "snat" : "dnat");
+ 			space = " ";
+ 		} else {
+-			xt_xlate_add(xl, "%sct state %s", space,
+-				     sinfo->invert_flags & XT_CONNTRACK_STATE ?
+-				     "!= " : "");
+-			state_xlate_print(xl, sinfo->state_mask);
++			xt_xlate_add(xl, "%sct state ", space);
++			state_xlate_print(xl, sinfo->state_mask,
++					  sinfo->invert_flags & XT_CONNTRACK_STATE);
+ 			space = " ";
+ 		}
+ 	}
+diff --git a/extensions/libxt_conntrack.txlate b/extensions/libxt_conntrack.txlate
+index d374f8a..5ab85b1 100644
+--- a/extensions/libxt_conntrack.txlate
++++ b/extensions/libxt_conntrack.txlate
+@@ -2,7 +2,10 @@ iptables-translate -t filter -A INPUT -m conntrack --ctstate NEW,RELATED -j ACCE
+ nft add rule ip filter INPUT ct state new,related counter accept
+ 
+ ip6tables-translate -t filter -A INPUT -m conntrack ! --ctstate NEW,RELATED -j ACCEPT
+-nft add rule ip6 filter INPUT ct state != new,related counter accept
++nft add rule ip6 filter INPUT ct state & (new|related) == 0 counter accept
++
++ip6tables-translate -t filter -A INPUT -m conntrack ! --ctstate NEW -j ACCEPT
++nft add rule ip6 filter INPUT ct state & new == 0 counter accept
+ 
+ iptables-translate -t filter -A INPUT -m conntrack --ctproto UDP -j ACCEPT
+ nft add rule ip filter INPUT ct original protocol 17 counter accept
+-- 
+1.8.3.1
+
