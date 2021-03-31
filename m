@@ -7,60 +7,71 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED1D1C433B4
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 14:16:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED2B7C433B4
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 14:26:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B0A1760FDC
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 14:16:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B422B60FEF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 14:26:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235771AbhCaOQI (ORCPT
+        id S236056AbhCaO01 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 31 Mar 2021 10:16:08 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:48042 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235865AbhCaOPh (ORCPT
+        Wed, 31 Mar 2021 10:26:27 -0400
+Received: from youngberry.canonical.com ([91.189.89.112]:55598 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235890AbhCaO0K (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 Mar 2021 10:15:37 -0400
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 289BC630C2
-        for <netfilter-devel@vger.kernel.org>; Wed, 31 Mar 2021 16:15:22 +0200 (CEST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 1/2] mnl: do not set flowtable flags twice
-Date:   Wed, 31 Mar 2021 16:15:32 +0200
-Message-Id: <20210331141533.25158-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+        Wed, 31 Mar 2021 10:26:10 -0400
+Received: from 1.general.cking.uk.vpn ([10.172.193.212] helo=localhost)
+        by youngberry.canonical.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
+        (Exim 4.86_2)
+        (envelope-from <colin.king@canonical.com>)
+        id 1lRbnK-0008UR-IX; Wed, 31 Mar 2021 14:26:06 +0000
+From:   Colin King <colin.king@canonical.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S . Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Cc:     kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH][next] netfilter: nf_log_bridge: Fix missing assignment of ret on a call to nf_log_register
+Date:   Wed, 31 Mar 2021 15:26:06 +0100
+Message-Id: <20210331142606.1422498-1-colin.king@canonical.com>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Flags are already set on from mnl_nft_flowtable_add(), remove duplicated
-code.
+From: Colin Ian King <colin.king@canonical.com>
 
-Fixes: e6cc9f37385 ("nftables: add flags offload to flowtable")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Currently the call to nf_log_register is returning an error code that
+is not being assigned to ret and yet ret is being checked. Fix this by
+adding in the missing assignment.
+
+Addresses-Coverity: ("Logically dead code")
+Fixes: 8d02e7da87a0 ("netfilter: nf_log_bridge: merge with nf_log_syslog")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 ---
- src/mnl.c | 5 -----
- 1 file changed, 5 deletions(-)
+ net/netfilter/nf_log_syslog.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/mnl.c b/src/mnl.c
-index ffbfe48158de..deea586f9b00 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -1779,11 +1779,6 @@ int mnl_nft_flowtable_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 		nftnl_flowtable_set_u32(flo, NFTNL_FLOWTABLE_PRIO, 0);
- 	}
+diff --git a/net/netfilter/nf_log_syslog.c b/net/netfilter/nf_log_syslog.c
+index 025ab9c66d13..2518818ed479 100644
+--- a/net/netfilter/nf_log_syslog.c
++++ b/net/netfilter/nf_log_syslog.c
+@@ -1042,7 +1042,7 @@ static int __init nf_log_syslog_init(void)
+ 	if (ret < 0)
+ 		goto err4;
  
--	if (cmd->flowtable->flags & FLOWTABLE_F_HW_OFFLOAD) {
--		nftnl_flowtable_set_u32(flo, NFTNL_FLOWTABLE_FLAGS,
--				    NFT_FLOWTABLE_HW_OFFLOAD);
--	}
--
- 	if (cmd->flowtable->dev_expr) {
- 		dev_array = nft_flowtable_dev_array(cmd);
- 		nftnl_flowtable_set_data(flo, NFTNL_FLOWTABLE_DEVICES,
+-	nf_log_register(NFPROTO_BRIDGE, &nf_bridge_logger);
++	ret = nf_log_register(NFPROTO_BRIDGE, &nf_bridge_logger);
+ 	if (ret < 0)
+ 		goto err5;
+ 
 -- 
-2.20.1
+2.30.2
 
