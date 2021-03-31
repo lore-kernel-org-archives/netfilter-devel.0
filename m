@@ -2,73 +2,85 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1A08C433ED
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 13:36:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03E16C43460
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 14:16:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 843246196C
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 13:36:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C8B4660FF1
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 14:16:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235635AbhCaNfh (ORCPT
+        id S235865AbhCaOQJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 31 Mar 2021 09:35:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34038 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235314AbhCaNfN (ORCPT
+        Wed, 31 Mar 2021 10:16:09 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:48044 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235787AbhCaOPi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 Mar 2021 09:35:13 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B379CC061574
-        for <netfilter-devel@vger.kernel.org>; Wed, 31 Mar 2021 06:35:12 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1lRb02-0003Bh-4u; Wed, 31 Mar 2021 15:35:10 +0200
-Date:   Wed, 31 Mar 2021 15:35:10 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: iptables-nft fails to restore huge rulesets
-Message-ID: <20210331133510.GF17285@breakpoint.cc>
-References: <20210331091331.GE7863@orbyte.nwl.cc>
+        Wed, 31 Mar 2021 10:15:38 -0400
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 1045F63E4A
+        for <netfilter-devel@vger.kernel.org>; Wed, 31 Mar 2021 16:15:23 +0200 (CEST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft 2/2] parser_bison: simplify flowtable offload flag parser
+Date:   Wed, 31 Mar 2021 16:15:33 +0200
+Message-Id: <20210331141533.25158-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20210331141533.25158-1-pablo@netfilter.org>
+References: <20210331141533.25158-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210331091331.GE7863@orbyte.nwl.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Phil Sutter <phil@nwl.cc> wrote:
-> Hi,
-> 
-> I'm currently trying to fix for an issue in Kubernetes realm[1]:
-> Baseline is they are trying to restore a ruleset with ~700k lines and it
-> fails. Needless to say, legacy iptables handles it just fine.
-> 
-> Meanwhile I found out there's a limit of 1024 iovecs when submitting the
-> batch to kernel, and this is what they're hitting.
-> 
-> I can work around that limit by increasing each iovec (via
-> BATCH_PAGE_SIZE) but keeping pace with legacy seems ridiculous:
-> 
-> With a scripted binary-search I checked the maximum working number of
-> restore items of:
-> 
-> (1) User-defined chains
-> (2) rules with merely comment match present
-> (3) rules matching on saddr, daddr, iniface and outiface
-> 
-> Here's legacy compared to nft with different factors in BATCH_PAGE_SIZE:
-> 
-> legacy		32 (stock)	  64		   128          256
-> ----------------------------------------------------------------------
-> 1'636'799	1'602'202	- NC -		  - NC -       - NC -
-> 1'220'159	  302'079	604'160		1'208'320      - NC -
-> 3'532'040	  242'688	485'376		  971'776    1'944'576
+Remove ft_flags_spec rule.
 
-Can you explain that table? What does 1'636'799 mean? NC?
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/parser_bison.y | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
+
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index abe117814db0..cc477e65672a 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -1996,7 +1996,6 @@ flowtable_block_alloc	:	/* empty */
+ flowtable_block		:	/* empty */	{ $$ = $<flowtable>-1; }
+ 			|	flowtable_block	common_block
+ 			|	flowtable_block	stmt_separator
+-			|	flowtable_block	ft_flags_spec	stmt_separator
+ 			|	flowtable_block	HOOK		STRING	prio_spec	stmt_separator
+ 			{
+ 				$$->hook.loc = @3;
+@@ -2019,6 +2018,10 @@ flowtable_block		:	/* empty */	{ $$ = $<flowtable>-1; }
+ 			{
+ 				$$->flags |= NFT_FLOWTABLE_COUNTER;
+ 			}
++			|	flowtable_block	FLAGS	OFFLOAD	stmt_separator
++			{
++				$$->flags |= FLOWTABLE_F_HW_OFFLOAD;
++			}
+ 			;
+ 
+ flowtable_expr		:	'{'	flowtable_list_expr	'}'
+@@ -2379,12 +2382,6 @@ flags_spec		:	FLAGS		OFFLOAD
+ 			}
+ 			;
+ 
+-ft_flags_spec		:	FLAGS		OFFLOAD
+-			{
+-				$<flowtable>0->flags |= FLOWTABLE_F_HW_OFFLOAD;
+-			}
+-			;
+-
+ policy_spec		:	POLICY		policy_expr
+ 			{
+ 				if ($<chain>0->policy) {
+-- 
+2.20.1
+
