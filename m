@@ -7,32 +7,32 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11725C43462
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A0B1C43600
 	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 20:11:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CF9586108C
+	by mail.kernel.org (Postfix) with ESMTP id E96686109E
 	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 20:11:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236429AbhCaUK5 (ORCPT
+        id S236469AbhCaUK4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 31 Mar 2021 16:10:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35014 "EHLO
+        Wed, 31 Mar 2021 16:10:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34998 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236556AbhCaUKu (ORCPT
+        with ESMTP id S236429AbhCaUKq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 Mar 2021 16:10:50 -0400
+        Wed, 31 Mar 2021 16:10:46 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84AF5C061574
-        for <netfilter-devel@vger.kernel.org>; Wed, 31 Mar 2021 13:10:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52EA8C061574
+        for <netfilter-devel@vger.kernel.org>; Wed, 31 Mar 2021 13:10:46 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1lRhAv-0005AW-57; Wed, 31 Mar 2021 22:10:49 +0200
+        id 1lRhAq-0005AP-VB; Wed, 31 Mar 2021 22:10:45 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 06/11] netfilter: ebtables: use net_generic infra
-Date:   Wed, 31 Mar 2021 22:10:09 +0200
-Message-Id: <20210331201014.23293-7-fw@strlen.de>
+Subject: [PATCH nf-next 05/11] netfilter: nf_defrag_ipv4: use net_generic infra
+Date:   Wed, 31 Mar 2021 22:10:08 +0200
+Message-Id: <20210331201014.23293-6-fw@strlen.de>
 X-Mailer: git-send-email 2.26.3
 In-Reply-To: <20210331201014.23293-1-fw@strlen.de>
 References: <20210331201014.23293-1-fw@strlen.de>
@@ -42,123 +42,81 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-ebtables currently uses net->xt.tables[BRIDGE], but upcoming
-patch will move net->xt.tables away from struct net.
-
-To avoid exposing x_tables internals to ebtables, use a private list
-instead.
+This allows followup patch to remove the defrag_ipv4 member from struct
+net.  It also allows to auto-remove the hooks later on by adding a
+_disable() function.  This will be done later in a follow patch series.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/bridge/netfilter/ebtables.c | 39 ++++++++++++++++++++++++++++-----
- 1 file changed, 34 insertions(+), 5 deletions(-)
+ net/ipv4/netfilter/nf_defrag_ipv4.c | 20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index ebe33b60efd6..11625d05bbbc 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -24,6 +24,7 @@
- #include <linux/cpumask.h>
- #include <linux/audit.h>
- #include <net/sock.h>
-+#include <net/netns/generic.h>
- /* needed for logical [in,out]-dev filtering */
- #include "../br_private.h"
+diff --git a/net/ipv4/netfilter/nf_defrag_ipv4.c b/net/ipv4/netfilter/nf_defrag_ipv4.c
+index 8115611aa47d..ffdcc2b9360f 100644
+--- a/net/ipv4/netfilter/nf_defrag_ipv4.c
++++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
+@@ -20,8 +20,13 @@
+ #endif
+ #include <net/netfilter/nf_conntrack_zones.h>
  
-@@ -39,8 +40,11 @@
- #define COUNTER_BASE(c, n, cpu) ((struct ebt_counter *)(((char *)c) + \
- 				 COUNTER_OFFSET(n) * cpu))
++static unsigned int defrag4_pernet_id __read_mostly;
+ static DEFINE_MUTEX(defrag4_mutex);
  
-+struct ebt_pernet {
-+	struct list_head tables;
++struct defrag4_pernet {
++	unsigned int users;
 +};
- 
--
-+static unsigned int ebt_pernet_id __read_mostly;
- static DEFINE_MUTEX(ebt_mutex);
- 
- #ifdef CONFIG_COMPAT
-@@ -336,7 +340,9 @@ static inline struct ebt_table *
- find_table_lock(struct net *net, const char *name, int *error,
- 		struct mutex *mutex)
- {
--	return find_inlist_lock(&net->xt.tables[NFPROTO_BRIDGE], name,
-+	struct ebt_pernet *ebt_net = net_generic(net, ebt_pernet_id);
 +
-+	return find_inlist_lock(&ebt_net->tables, name,
- 				"ebtable_", error, mutex);
+ static int nf_ct_ipv4_gather_frags(struct net *net, struct sk_buff *skb,
+ 				   u_int32_t user)
+ {
+@@ -106,15 +111,19 @@ static const struct nf_hook_ops ipv4_defrag_ops[] = {
+ 
+ static void __net_exit defrag4_net_exit(struct net *net)
+ {
+-	if (net->nf.defrag_ipv4) {
++	struct defrag4_pernet *nf_defrag = net_generic(net, defrag4_pernet_id);
++
++	if (nf_defrag->users) {
+ 		nf_unregister_net_hooks(net, ipv4_defrag_ops,
+ 					ARRAY_SIZE(ipv4_defrag_ops));
+-		net->nf.defrag_ipv4 = false;
++		nf_defrag->users = 0;
+ 	}
  }
  
-@@ -1136,6 +1142,7 @@ static void __ebt_unregister_table(struct net *net, struct ebt_table *table)
- int ebt_register_table(struct net *net, const struct ebt_table *input_table,
- 		       const struct nf_hook_ops *ops, struct ebt_table **res)
- {
-+	struct ebt_pernet *ebt_net = net_generic(net, ebt_pernet_id);
- 	struct ebt_table_info *newinfo;
- 	struct ebt_table *t, *table;
- 	struct ebt_replace_kernel *repl;
-@@ -1194,7 +1201,7 @@ int ebt_register_table(struct net *net, const struct ebt_table *input_table,
- 	table->private = newinfo;
- 	rwlock_init(&table->lock);
- 	mutex_lock(&ebt_mutex);
--	list_for_each_entry(t, &net->xt.tables[NFPROTO_BRIDGE], list) {
-+	list_for_each_entry(t, &ebt_net->tables, list) {
- 		if (strcmp(t->name, table->name) == 0) {
- 			ret = -EEXIST;
- 			goto free_unlock;
-@@ -1206,7 +1213,7 @@ int ebt_register_table(struct net *net, const struct ebt_table *input_table,
- 		ret = -ENOENT;
- 		goto free_unlock;
- 	}
--	list_add(&table->list, &net->xt.tables[NFPROTO_BRIDGE]);
-+	list_add(&table->list, &ebt_net->tables);
- 	mutex_unlock(&ebt_mutex);
- 
- 	WRITE_ONCE(*res, table);
-@@ -2412,6 +2419,20 @@ static struct nf_sockopt_ops ebt_sockopts = {
- 	.owner		= THIS_MODULE,
+ static struct pernet_operations defrag4_net_ops = {
+ 	.exit = defrag4_net_exit,
++	.id   = &defrag4_pernet_id,
++	.size = sizeof(struct defrag4_pernet),
  };
  
-+static int __net_init ebt_pernet_init(struct net *net)
-+{
-+	struct ebt_pernet *ebt_net = net_generic(net, ebt_pernet_id);
-+
-+	INIT_LIST_HEAD(&ebt_net->tables);
-+	return 0;
-+}
-+
-+static struct pernet_operations ebt_net_ops = {
-+	.init = ebt_pernet_init,
-+	.id   = &ebt_pernet_id,
-+	.size = sizeof(struct ebt_pernet),
-+};
-+
- static int __init ebtables_init(void)
+ static int __init nf_defrag_init(void)
+@@ -129,21 +138,22 @@ static void __exit nf_defrag_fini(void)
+ 
+ int nf_defrag_ipv4_enable(struct net *net)
  {
- 	int ret;
-@@ -2425,13 +2446,21 @@ static int __init ebtables_init(void)
- 		return ret;
- 	}
++	struct defrag4_pernet *nf_defrag = net_generic(net, defrag4_pernet_id);
+ 	int err = 0;
  
-+	ret = register_pernet_subsys(&ebt_net_ops);
-+	if (ret < 0) {
-+		nf_unregister_sockopt(&ebt_sockopts);
-+		xt_unregister_target(&ebt_standard_target);
-+		return ret;
-+	}
-+
- 	return 0;
- }
+ 	might_sleep();
  
--static void __exit ebtables_fini(void)
-+static void ebtables_fini(void)
- {
- 	nf_unregister_sockopt(&ebt_sockopts);
- 	xt_unregister_target(&ebt_standard_target);
-+	unregister_pernet_subsys(&ebt_net_ops);
- }
+-	if (net->nf.defrag_ipv4)
++	if (nf_defrag->users)
+ 		return 0;
  
- EXPORT_SYMBOL(ebt_register_table);
+ 	mutex_lock(&defrag4_mutex);
+-	if (net->nf.defrag_ipv4)
++	if (nf_defrag->users)
+ 		goto out_unlock;
+ 
+ 	err = nf_register_net_hooks(net, ipv4_defrag_ops,
+ 				    ARRAY_SIZE(ipv4_defrag_ops));
+ 	if (err == 0)
+-		net->nf.defrag_ipv4 = true;
++		nf_defrag->users = 1;
+ 
+  out_unlock:
+ 	mutex_unlock(&defrag4_mutex);
 -- 
 2.26.3
 
