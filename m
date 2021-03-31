@@ -7,32 +7,32 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF2AFC43461
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 20:11:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF7BAC433B4
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 20:11:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 94B1B610A4
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 20:11:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8FA4D6109E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 20:11:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236418AbhCaUKz (ORCPT
+        id S236400AbhCaUL2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 31 Mar 2021 16:10:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34962 "EHLO
+        Wed, 31 Mar 2021 16:11:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35054 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236529AbhCaUKi (ORCPT
+        with ESMTP id S236369AbhCaUK7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 Mar 2021 16:10:38 -0400
+        Wed, 31 Mar 2021 16:10:59 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED8F5C06174A
-        for <netfilter-devel@vger.kernel.org>; Wed, 31 Mar 2021 13:10:37 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E10DDC061574
+        for <netfilter-devel@vger.kernel.org>; Wed, 31 Mar 2021 13:10:58 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1lRhAi-0005A4-LB; Wed, 31 Mar 2021 22:10:36 +0200
+        id 1lRhB3-0005Ak-HH; Wed, 31 Mar 2021 22:10:57 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 03/11] netfilter: cttimeout: use net_generic infra
-Date:   Wed, 31 Mar 2021 22:10:06 +0200
-Message-Id: <20210331201014.23293-4-fw@strlen.de>
+Subject: [PATCH nf-next 08/11] netfilter: x_tables: move known table lists to net_generic infra
+Date:   Wed, 31 Mar 2021 22:10:11 +0200
+Message-Id: <20210331201014.23293-9-fw@strlen.de>
 X-Mailer: git-send-email 2.26.3
 In-Reply-To: <20210331201014.23293-1-fw@strlen.de>
 References: <20210331201014.23293-1-fw@strlen.de>
@@ -42,183 +42,171 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-reduce size of struct net and make this self-contained.
-The member in struct net is kept to minimize changes to struct net
-layout, it will be removed in a separate patch.
+Will reduce struct net size by 208 bytes.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nfnetlink_cttimeout.c | 41 ++++++++++++++++++++++-------
- 1 file changed, 32 insertions(+), 9 deletions(-)
+ net/netfilter/x_tables.c | 46 ++++++++++++++++++++++++++++------------
+ 1 file changed, 33 insertions(+), 13 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-index de831a257512..46da5548d0b3 100644
---- a/net/netfilter/nfnetlink_cttimeout.c
-+++ b/net/netfilter/nfnetlink_cttimeout.c
-@@ -20,6 +20,7 @@
- 
- #include <linux/netfilter.h>
- #include <net/netlink.h>
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 6bd31a7a27fc..8e23ef2673e4 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -24,6 +24,7 @@
+ #include <linux/audit.h>
+ #include <linux/user_namespace.h>
+ #include <net/net_namespace.h>
 +#include <net/netns/generic.h>
- #include <net/sock.h>
- #include <net/netfilter/nf_conntrack.h>
- #include <net/netfilter/nf_conntrack_core.h>
-@@ -30,6 +31,12 @@
- #include <linux/netfilter/nfnetlink.h>
- #include <linux/netfilter/nfnetlink_cttimeout.h>
  
-+static unsigned int nfct_timeout_id __read_mostly;
-+
-+struct nfct_timeout_pernet {
-+	struct list_head	nfct_timeout_list;
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_arp.h>
+@@ -38,6 +39,10 @@ MODULE_DESCRIPTION("{ip,ip6,arp,eb}_tables backend module");
+ #define XT_PCPU_BLOCK_SIZE 4096
+ #define XT_MAX_TABLE_SIZE	(512 * 1024 * 1024)
+ 
++struct xt_pernet {
++	struct list_head tables[NFPROTO_NUMPROTO];
 +};
 +
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
- MODULE_DESCRIPTION("cttimeout: Extended Netfilter Connection Tracking timeout tuning");
-@@ -42,6 +49,11 @@ static const struct nla_policy cttimeout_nla_policy[CTA_TIMEOUT_MAX+1] = {
- 	[CTA_TIMEOUT_DATA]	= { .type = NLA_NESTED },
+ struct compat_delta {
+ 	unsigned int offset; /* offset in kernel */
+ 	int delta; /* delta in 32bit user land */
+@@ -55,7 +60,8 @@ struct xt_af {
+ #endif
  };
  
-+static struct nfct_timeout_pernet *nfct_timeout_pernet(struct net *net)
-+{
-+	return net_generic(net, nfct_timeout_id);
-+}
+-static struct xt_af *xt;
++static unsigned int xt_pernet_id __read_mostly;
++static struct xt_af *xt __read_mostly;
+ 
+ static const char *const xt_prefix[NFPROTO_NUMPROTO] = {
+ 	[NFPROTO_UNSPEC] = "x",
+@@ -1203,10 +1209,11 @@ EXPORT_SYMBOL(xt_free_table_info);
+ struct xt_table *xt_find_table_lock(struct net *net, u_int8_t af,
+ 				    const char *name)
+ {
++	struct xt_pernet *xt_net = net_generic(net, xt_pernet_id);
+ 	struct xt_table *t, *found = NULL;
+ 
+ 	mutex_lock(&xt[af].mutex);
+-	list_for_each_entry(t, &net->xt.tables[af], list)
++	list_for_each_entry(t, &xt_net->tables[af], list)
+ 		if (strcmp(t->name, name) == 0 && try_module_get(t->me))
+ 			return t;
+ 
+@@ -1214,7 +1221,8 @@ struct xt_table *xt_find_table_lock(struct net *net, u_int8_t af,
+ 		goto out;
+ 
+ 	/* Table doesn't exist in this netns, re-try init */
+-	list_for_each_entry(t, &init_net.xt.tables[af], list) {
++	xt_net = net_generic(&init_net, xt_pernet_id);
++	list_for_each_entry(t, &xt_net->tables[af], list) {
+ 		int err;
+ 
+ 		if (strcmp(t->name, name))
+@@ -1237,8 +1245,9 @@ struct xt_table *xt_find_table_lock(struct net *net, u_int8_t af,
+ 	if (!found)
+ 		goto out;
+ 
++	xt_net = net_generic(net, xt_pernet_id);
+ 	/* and once again: */
+-	list_for_each_entry(t, &net->xt.tables[af], list)
++	list_for_each_entry(t, &xt_net->tables[af], list)
+ 		if (strcmp(t->name, name) == 0)
+ 			return t;
+ 
+@@ -1423,9 +1432,10 @@ struct xt_table *xt_register_table(struct net *net,
+ 				   struct xt_table_info *bootstrap,
+ 				   struct xt_table_info *newinfo)
+ {
+-	int ret;
++	struct xt_pernet *xt_net = net_generic(net, xt_pernet_id);
+ 	struct xt_table_info *private;
+ 	struct xt_table *t, *table;
++	int ret;
+ 
+ 	/* Don't add one object to multiple lists. */
+ 	table = kmemdup(input_table, sizeof(struct xt_table), GFP_KERNEL);
+@@ -1436,7 +1446,7 @@ struct xt_table *xt_register_table(struct net *net,
+ 
+ 	mutex_lock(&xt[table->af].mutex);
+ 	/* Don't autoload: we'd eat our tail... */
+-	list_for_each_entry(t, &net->xt.tables[table->af], list) {
++	list_for_each_entry(t, &xt_net->tables[table->af], list) {
+ 		if (strcmp(t->name, table->name) == 0) {
+ 			ret = -EEXIST;
+ 			goto unlock;
+@@ -1455,7 +1465,7 @@ struct xt_table *xt_register_table(struct net *net,
+ 	/* save number of initial entries */
+ 	private->initial_entries = private->number;
+ 
+-	list_add(&table->list, &net->xt.tables[table->af]);
++	list_add(&table->list, &xt_net->tables[table->af]);
+ 	mutex_unlock(&xt[table->af].mutex);
+ 	return table;
+ 
+@@ -1486,19 +1496,25 @@ EXPORT_SYMBOL_GPL(xt_unregister_table);
+ #ifdef CONFIG_PROC_FS
+ static void *xt_table_seq_start(struct seq_file *seq, loff_t *pos)
+ {
++	u8 af = (unsigned long)PDE_DATA(file_inode(seq->file));
+ 	struct net *net = seq_file_net(seq);
+-	u_int8_t af = (unsigned long)PDE_DATA(file_inode(seq->file));
++	struct xt_pernet *xt_net;
 +
- static int
- ctnl_timeout_parse_policy(void *timeout,
- 			  const struct nf_conntrack_l4proto *l4proto,
-@@ -77,6 +89,7 @@ static int cttimeout_new_timeout(struct net *net, struct sock *ctnl,
- 				 const struct nlattr * const cda[],
- 				 struct netlink_ext_ack *extack)
++	xt_net = net_generic(net, xt_pernet_id);
+ 
+ 	mutex_lock(&xt[af].mutex);
+-	return seq_list_start(&net->xt.tables[af], *pos);
++	return seq_list_start(&xt_net->tables[af], *pos);
+ }
+ 
+ static void *xt_table_seq_next(struct seq_file *seq, void *v, loff_t *pos)
  {
-+	struct nfct_timeout_pernet *pernet = nfct_timeout_pernet(net);
- 	__u16 l3num;
- 	__u8 l4num;
- 	const struct nf_conntrack_l4proto *l4proto;
-@@ -94,7 +107,7 @@ static int cttimeout_new_timeout(struct net *net, struct sock *ctnl,
- 	l3num = ntohs(nla_get_be16(cda[CTA_TIMEOUT_L3PROTO]));
- 	l4num = nla_get_u8(cda[CTA_TIMEOUT_L4PROTO]);
- 
--	list_for_each_entry(timeout, &net->nfct_timeout_list, head) {
-+	list_for_each_entry(timeout, &pernet->nfct_timeout_list, head) {
- 		if (strncmp(timeout->name, name, CTNL_TIMEOUT_NAME_MAX) != 0)
- 			continue;
- 
-@@ -146,7 +159,7 @@ static int cttimeout_new_timeout(struct net *net, struct sock *ctnl,
- 	timeout->timeout.l3num = l3num;
- 	timeout->timeout.l4proto = l4proto;
- 	refcount_set(&timeout->refcnt, 1);
--	list_add_tail_rcu(&timeout->head, &net->nfct_timeout_list);
-+	list_add_tail_rcu(&timeout->head, &pernet->nfct_timeout_list);
- 
- 	return 0;
- err:
-@@ -201,6 +214,7 @@ ctnl_timeout_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
- static int
- ctnl_timeout_dump(struct sk_buff *skb, struct netlink_callback *cb)
- {
-+	struct nfct_timeout_pernet *pernet;
- 	struct net *net = sock_net(skb->sk);
- 	struct ctnl_timeout *cur, *last;
- 
-@@ -212,7 +226,8 @@ ctnl_timeout_dump(struct sk_buff *skb, struct netlink_callback *cb)
- 		cb->args[1] = 0;
- 
- 	rcu_read_lock();
--	list_for_each_entry_rcu(cur, &net->nfct_timeout_list, head) {
-+	pernet = nfct_timeout_pernet(net);
-+	list_for_each_entry_rcu(cur, &pernet->nfct_timeout_list, head) {
- 		if (last) {
- 			if (cur != last)
- 				continue;
-@@ -239,6 +254,7 @@ static int cttimeout_get_timeout(struct net *net, struct sock *ctnl,
- 				 const struct nlattr * const cda[],
- 				 struct netlink_ext_ack *extack)
- {
-+	struct nfct_timeout_pernet *pernet = nfct_timeout_pernet(net);
- 	int ret = -ENOENT;
- 	char *name;
- 	struct ctnl_timeout *cur;
-@@ -254,7 +270,7 @@ static int cttimeout_get_timeout(struct net *net, struct sock *ctnl,
- 		return -EINVAL;
- 	name = nla_data(cda[CTA_TIMEOUT_NAME]);
- 
--	list_for_each_entry(cur, &net->nfct_timeout_list, head) {
-+	list_for_each_entry(cur, &pernet->nfct_timeout_list, head) {
- 		struct sk_buff *skb2;
- 
- 		if (strncmp(cur->name, name, CTNL_TIMEOUT_NAME_MAX) != 0)
-@@ -310,12 +326,13 @@ static int cttimeout_del_timeout(struct net *net, struct sock *ctnl,
- 				 const struct nlattr * const cda[],
- 				 struct netlink_ext_ack *extack)
- {
-+	struct nfct_timeout_pernet *pernet = nfct_timeout_pernet(net);
- 	struct ctnl_timeout *cur, *tmp;
- 	int ret = -ENOENT;
- 	char *name;
- 
- 	if (!cda[CTA_TIMEOUT_NAME]) {
--		list_for_each_entry_safe(cur, tmp, &net->nfct_timeout_list,
-+		list_for_each_entry_safe(cur, tmp, &pernet->nfct_timeout_list,
- 					 head)
- 			ctnl_timeout_try_del(net, cur);
- 
-@@ -323,7 +340,7 @@ static int cttimeout_del_timeout(struct net *net, struct sock *ctnl,
- 	}
- 	name = nla_data(cda[CTA_TIMEOUT_NAME]);
- 
--	list_for_each_entry(cur, &net->nfct_timeout_list, head) {
-+	list_for_each_entry(cur, &pernet->nfct_timeout_list, head) {
- 		if (strncmp(cur->name, name, CTNL_TIMEOUT_NAME_MAX) != 0)
- 			continue;
- 
-@@ -503,9 +520,10 @@ static int cttimeout_default_get(struct net *net, struct sock *ctnl,
- static struct nf_ct_timeout *ctnl_timeout_find_get(struct net *net,
- 						   const char *name)
- {
-+	struct nfct_timeout_pernet *pernet = nfct_timeout_pernet(net);
- 	struct ctnl_timeout *timeout, *matching = NULL;
- 
--	list_for_each_entry_rcu(timeout, &net->nfct_timeout_list, head) {
-+	list_for_each_entry_rcu(timeout, &pernet->nfct_timeout_list, head) {
- 		if (strncmp(timeout->name, name, CTNL_TIMEOUT_NAME_MAX) != 0)
- 			continue;
- 
-@@ -563,19 +581,22 @@ MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_CTNETLINK_TIMEOUT);
- 
- static int __net_init cttimeout_net_init(struct net *net)
- {
--	INIT_LIST_HEAD(&net->nfct_timeout_list);
-+	struct nfct_timeout_pernet *pernet = nfct_timeout_pernet(net);
++	u8 af = (unsigned long)PDE_DATA(file_inode(seq->file));
+ 	struct net *net = seq_file_net(seq);
+-	u_int8_t af = (unsigned long)PDE_DATA(file_inode(seq->file));
++	struct xt_pernet *xt_net;
 +
-+	INIT_LIST_HEAD(&pernet->nfct_timeout_list);
++	xt_net = net_generic(net, xt_pernet_id);
  
+-	return seq_list_next(v, &net->xt.tables[af], pos);
++	return seq_list_next(v, &xt_net->tables[af], pos);
+ }
+ 
+ static void xt_table_seq_stop(struct seq_file *seq, void *v)
+@@ -1864,24 +1880,28 @@ EXPORT_SYMBOL_GPL(xt_percpu_counter_free);
+ 
+ static int __net_init xt_net_init(struct net *net)
+ {
++	struct xt_pernet *xt_net = net_generic(net, xt_pernet_id);
+ 	int i;
+ 
+ 	for (i = 0; i < NFPROTO_NUMPROTO; i++)
+-		INIT_LIST_HEAD(&net->xt.tables[i]);
++		INIT_LIST_HEAD(&xt_net->tables[i]);
  	return 0;
  }
  
- static void __net_exit cttimeout_net_exit(struct net *net)
+ static void __net_exit xt_net_exit(struct net *net)
  {
-+	struct nfct_timeout_pernet *pernet = nfct_timeout_pernet(net);
- 	struct ctnl_timeout *cur, *tmp;
++	struct xt_pernet *xt_net = net_generic(net, xt_pernet_id);
+ 	int i;
  
- 	nf_ct_unconfirmed_destroy(net);
- 	nf_ct_untimeout(net, NULL);
+ 	for (i = 0; i < NFPROTO_NUMPROTO; i++)
+-		WARN_ON_ONCE(!list_empty(&net->xt.tables[i]));
++		WARN_ON_ONCE(!list_empty(&xt_net->tables[i]));
+ }
  
--	list_for_each_entry_safe(cur, tmp, &net->nfct_timeout_list, head) {
-+	list_for_each_entry_safe(cur, tmp, &pernet->nfct_timeout_list, head) {
- 		list_del_rcu(&cur->head);
- 
- 		if (refcount_dec_and_test(&cur->refcnt))
-@@ -586,6 +607,8 @@ static void __net_exit cttimeout_net_exit(struct net *net)
- static struct pernet_operations cttimeout_ops = {
- 	.init	= cttimeout_net_init,
- 	.exit	= cttimeout_net_exit,
-+	.id     = &nfct_timeout_id,
-+	.size   = sizeof(struct nfct_timeout_pernet),
+ static struct pernet_operations xt_net_ops = {
+ 	.init = xt_net_init,
+ 	.exit = xt_net_exit,
++	.id   = &xt_pernet_id,
++	.size = sizeof(struct xt_pernet),
  };
  
- static int __init cttimeout_init(void)
+ static int __init xt_init(void)
 -- 
 2.26.3
 
