@@ -2,80 +2,70 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06751C433DB
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 10:32:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C066C433C1
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 10:59:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A60A96198A
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 10:32:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AAE526198F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 10:59:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234957AbhCaKcU (ORCPT
+        id S235130AbhCaK7C (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 31 Mar 2021 06:32:20 -0400
-Received: from relay.sw.ru ([185.231.240.75]:50584 "EHLO relay.sw.ru"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234701AbhCaKb5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 Mar 2021 06:31:57 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=virtuozzo.com; s=relay; h=Content-Type:Mime-Version:Message-Id:Subject:From
-        :Date; bh=PgCrVx2Eg9b7GYK4+2M8Vs3zXciEnazErd4A6A8oCoM=; b=b7ukb3Ow8jxi7Wo7dUw
-        E6bU1A0PBEOLpL9K2YkwZwMeebAf0uo171ZjOAsMC6b2tRz/4GS0LWyspZcb3As3mu9Dr3XAvQd9Z
-        nABveyN4GEtYIbRfFmpKeTPQceFqxXlI0xJvmZ8aEXj1IcWQUYJfDprQT8DEfuzNE9MZekQOclM=
-Received: from [192.168.15.221] (helo=alexm-laptop.lan)
-        by relay.sw.ru with smtp (Exim 4.94)
-        (envelope-from <alexander.mikhalitsyn@virtuozzo.com>)
-        id 1lRY8h-000CSK-SP; Wed, 31 Mar 2021 13:31:55 +0300
-Date:   Wed, 31 Mar 2021 13:31:55 +0300
-From:   Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "pablo@netfilter.org" <pablo@netfilter.org>
-Subject: Re: [iptables PATCH v2 2/2] extensions: libxt_conntrack: print
- xlate status as set
-Message-Id: <20210331133155.24a1ef3872e4e1873c66338c@virtuozzo.com>
-In-Reply-To: <20210330182136.GC17285@breakpoint.cc>
-References: <20210330141524.747259-1-alexander.mikhalitsyn@virtuozzo.com>
-        <20210330141524.747259-2-alexander.mikhalitsyn@virtuozzo.com>
-        <20210330173900.GB17285@breakpoint.cc>
-        <DB7PR08MB357940C3E31AFB983408FFE7E87D9@DB7PR08MB3579.eurprd08.prod.outlook.com>
-        <20210330182136.GC17285@breakpoint.cc>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Wed, 31 Mar 2021 06:59:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56856 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235078AbhCaK6z (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 31 Mar 2021 06:58:55 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B91EC061574
+        for <netfilter-devel@vger.kernel.org>; Wed, 31 Mar 2021 03:58:55 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1lRYYn-0002Q2-08; Wed, 31 Mar 2021 12:58:53 +0200
+Date:   Wed, 31 Mar 2021 12:58:52 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
+Cc:     netfilter-devel@vger.kernel.org, pablo@netfilter.org, fw@strlen.de
+Subject: Re: [iptables PATCH v3 2/2] extensions: libxt_conntrack: print xlate
+ status as set
+Message-ID: <20210331105852.GD17285@breakpoint.cc>
+References: <20210331102934.848126-1-alexander.mikhalitsyn@virtuozzo.com>
+ <20210331102934.848126-2-alexander.mikhalitsyn@virtuozzo.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210331102934.848126-2-alexander.mikhalitsyn@virtuozzo.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi, Florian,
-
-On Tue, 30 Mar 2021 20:21:36 +0200
-Florian Westphal <fw@strlen.de> wrote:
-
-> Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com> wrote:
-> > Hi Florian,
-> > 
-> > Thank you!
-> > So, I need to fix nft and support that syntax?
+Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com> wrote:
+> At the moment, status_xlate_print function prints statusmask as comma-separated
+> sequence of enabled statusmask flags. But if we have inverted conntrack ctstatus
+> condition then we have to use more complex expression (if more than one flag enabled)
+> because nft not supports syntax like "ct status != expected,assured".
 > 
-> That would be one way.  The other is to fix the != translation
-> to use binary logic (the example i gave).
-
-I've prepared 3rd version of patchset.
-
+> Examples:
+> ! --ctstatus CONFIRMED,ASSURED
+> should be translated as
+> ct status & (assured|confirmed) == 0
 > 
-> > Do I understand correctly, that the same issue for state flags like
-> > "established, related, ..."?
-> 
-> Yes and no.  A connection can't be both established and related at the
-> same time, so anonymous set will work in that case.
+> ! --ctstatus CONFIRMED
+> can be translated as
+> ct status != confirmed
 
-Got it.
+"! --ctstatus CONFIRMED" means 'true if CONFIRMED bit is not set'
+But "ct status != confirmed" means 'true if ct status contains any value
+except confirmed.
 
-Thank you very much!
+Example: ct->status has confirmed and assured bits set.
+Then:
+"! --ctstatus CONFIRMED" won't match (the bit is set).
+ct status != confirmed returns true (3 != 1)
+ct (status & confirmed) == 0 won't match (the bit is set).
 
-Regards,
-Alex
