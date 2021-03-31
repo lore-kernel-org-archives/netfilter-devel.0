@@ -2,76 +2,94 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED2B7C433B4
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 14:26:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08EABC43461
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 14:42:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B422B60FEF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 14:26:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CD9B16100B
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 14:42:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236056AbhCaO01 (ORCPT
+        id S236152AbhCaOmI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 31 Mar 2021 10:26:27 -0400
-Received: from youngberry.canonical.com ([91.189.89.112]:55598 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235890AbhCaO0K (ORCPT
+        Wed, 31 Mar 2021 10:42:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48374 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235957AbhCaOln (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 Mar 2021 10:26:10 -0400
-Received: from 1.general.cking.uk.vpn ([10.172.193.212] helo=localhost)
-        by youngberry.canonical.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        (Exim 4.86_2)
-        (envelope-from <colin.king@canonical.com>)
-        id 1lRbnK-0008UR-IX; Wed, 31 Mar 2021 14:26:06 +0000
-From:   Colin King <colin.king@canonical.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Wed, 31 Mar 2021 10:41:43 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 09818C061574
+        for <netfilter-devel@vger.kernel.org>; Wed, 31 Mar 2021 07:41:42 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1lRc2O-0003rc-AI; Wed, 31 Mar 2021 16:41:40 +0200
+Date:   Wed, 31 Mar 2021 16:41:40 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: iptables-nft fails to restore huge rulesets
+Message-ID: <20210331144140.GV3158@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
         Florian Westphal <fw@strlen.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Cc:     kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH][next] netfilter: nf_log_bridge: Fix missing assignment of ret on a call to nf_log_register
-Date:   Wed, 31 Mar 2021 15:26:06 +0100
-Message-Id: <20210331142606.1422498-1-colin.king@canonical.com>
-X-Mailer: git-send-email 2.30.2
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20210331091331.GE7863@orbyte.nwl.cc>
+ <20210331133510.GF17285@breakpoint.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210331133510.GF17285@breakpoint.cc>
+Sender:  <n0-1@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+On Wed, Mar 31, 2021 at 03:35:10PM +0200, Florian Westphal wrote:
+> Phil Sutter <phil@nwl.cc> wrote:
+> > I'm currently trying to fix for an issue in Kubernetes realm[1]:
+> > Baseline is they are trying to restore a ruleset with ~700k lines and it
+> > fails. Needless to say, legacy iptables handles it just fine.
+> > 
+> > Meanwhile I found out there's a limit of 1024 iovecs when submitting the
+> > batch to kernel, and this is what they're hitting.
+> > 
+> > I can work around that limit by increasing each iovec (via
+> > BATCH_PAGE_SIZE) but keeping pace with legacy seems ridiculous:
+> > 
+> > With a scripted binary-search I checked the maximum working number of
+> > restore items of:
+> > 
+> > (1) User-defined chains
+> > (2) rules with merely comment match present
+> > (3) rules matching on saddr, daddr, iniface and outiface
+> > 
+> > Here's legacy compared to nft with different factors in BATCH_PAGE_SIZE:
+> > 
+> > legacy		32 (stock)	  64		   128          256
+> > ----------------------------------------------------------------------
+> > 1'636'799	1'602'202	- NC -		  - NC -       - NC -
+> > 1'220'159	  302'079	604'160		1'208'320      - NC -
+> > 3'532'040	  242'688	485'376		  971'776    1'944'576
+> 
+> Can you explain that table? What does 1'636'799 mean? NC?
 
-Currently the call to nf_log_register is returning an error code that
-is not being assigned to ret and yet ret is being checked. Fix this by
-adding in the missing assignment.
+Ah, sorry: NC is "not care", I didn't consider those numbers relevant
+given that iptables-nft has caught up to legacy previously already.
 
-Addresses-Coverity: ("Logically dead code")
-Fixes: 8d02e7da87a0 ("netfilter: nf_log_bridge: merge with nf_log_syslog")
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- net/netfilter/nf_log_syslog.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+1'636'799 is the max number of user-defined chains I can successfully
+restore using iptables-legacy-restore. Looks like I dropped the rows'
+description while reformatting by accident: the first row of that table
+corresponds with test (1), second with test (2) and third with test (3).
 
-diff --git a/net/netfilter/nf_log_syslog.c b/net/netfilter/nf_log_syslog.c
-index 025ab9c66d13..2518818ed479 100644
---- a/net/netfilter/nf_log_syslog.c
-+++ b/net/netfilter/nf_log_syslog.c
-@@ -1042,7 +1042,7 @@ static int __init nf_log_syslog_init(void)
- 	if (ret < 0)
- 		goto err4;
- 
--	nf_log_register(NFPROTO_BRIDGE, &nf_bridge_logger);
-+	ret = nf_log_register(NFPROTO_BRIDGE, &nf_bridge_logger);
- 	if (ret < 0)
- 		goto err5;
- 
--- 
-2.30.2
+So legacy may restore at once ~1.6M chains or ~1.2M comment rules or
+~3.5M rules with {s,d}{addr,iface} matches.
 
+The following columns are for iptables-nft with varying BATCH_PAGE_SIZE
+values. Each of the (max 1024) iovecs passed to kernel via sendmsg() is
+'N * getpagesize()' large.
+
+Cheers, Phil
