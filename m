@@ -2,81 +2,161 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D107C433E3
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 09:14:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CED5C433C1
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 10:30:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E7776619DE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 09:14:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0864A6198A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Mar 2021 10:30:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234519AbhCaJN5 (ORCPT
+        id S234855AbhCaKaK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 31 Mar 2021 05:13:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33750 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230527AbhCaJNg (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 Mar 2021 05:13:36 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D6603C061574
-        for <netfilter-devel@vger.kernel.org>; Wed, 31 Mar 2021 02:13:35 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1lRWup-0008Gs-As; Wed, 31 Mar 2021 11:13:31 +0200
-Date:   Wed, 31 Mar 2021 11:13:31 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: iptables-nft fails to restore huge rulesets
-Message-ID: <20210331091331.GE7863@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+        Wed, 31 Mar 2021 06:30:10 -0400
+Received: from relay.sw.ru ([185.231.240.75]:49906 "EHLO relay.sw.ru"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S234858AbhCaK34 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 31 Mar 2021 06:29:56 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=virtuozzo.com; s=relay; h=MIME-Version:Message-Id:Date:Subject:From:
+        Content-Type; bh=uwsKxRVshRX6yy7MGdZKI09/DGY1wvP1M0lUTuJ9axI=; b=EeB9LBl3yz1Z
+        O0TxqIrXqhIAKiYjnO2yOWBOEDPSsBp34Ekd/je7vXXq1hgH4AkCxNtlfq0AC98+k0ph809UHdcWq
+        pxS3akE18e+PEWx2aZLU9j1+6e0XGm1LnBvlHy0KN2NXSNSpmlvX4CZEzo1WZ2xZef9Wx6DeUWPhV
+        njcHk=;
+Received: from [10.93.0.33] (helo=dhcp-172-16-24-175.sw.ru)
+        by relay.sw.ru with esmtp (Exim 4.94)
+        (envelope-from <alexander.mikhalitsyn@virtuozzo.com>)
+        id 1lRY6k-000CRd-QV; Wed, 31 Mar 2021 13:29:54 +0300
+From:   Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     pablo@netfilter.org, fw@strlen.de
+Subject: [iptables PATCH v3 2/2] extensions: libxt_conntrack: print xlate status as set
+Date:   Wed, 31 Mar 2021 13:29:34 +0300
+Message-Id: <20210331102934.848126-2-alexander.mikhalitsyn@virtuozzo.com>
+X-Mailer: git-send-email 2.28.0
+In-Reply-To: <20210331102934.848126-1-alexander.mikhalitsyn@virtuozzo.com>
+References: <20210331102934.848126-1-alexander.mikhalitsyn@virtuozzo.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Sender:  <n0-1@orbyte.nwl.cc>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+At the moment, status_xlate_print function prints statusmask as comma-separated
+sequence of enabled statusmask flags. But if we have inverted conntrack ctstatus
+condition then we have to use more complex expression (if more than one flag enabled)
+because nft not supports syntax like "ct status != expected,assured".
 
-I'm currently trying to fix for an issue in Kubernetes realm[1]:
-Baseline is they are trying to restore a ruleset with ~700k lines and it
-fails. Needless to say, legacy iptables handles it just fine.
+Examples:
+! --ctstatus CONFIRMED,ASSURED
+should be translated as
+ct status & (assured|confirmed) == 0
 
-Meanwhile I found out there's a limit of 1024 iovecs when submitting the
-batch to kernel, and this is what they're hitting.
+! --ctstatus CONFIRMED
+can be translated as
+ct status != confirmed
 
-I can work around that limit by increasing each iovec (via
-BATCH_PAGE_SIZE) but keeping pace with legacy seems ridiculous:
+See also netfilter/xt_conntrack.c (conntrack_mt() function as a reference).
 
-With a scripted binary-search I checked the maximum working number of
-restore items of:
+Reproducer:
+$ iptables -A INPUT -d 127.0.0.1/32 -p tcp -m conntrack ! --ctstatus expected,assured -j DROP
+$ nft list ruleset
+...
+meta l4proto tcp ip daddr 127.0.0.1 ct status != expected,assured counter packets 0 bytes 0 drop
+...
 
-(1) User-defined chains
-(2) rules with merely comment match present
-(3) rules matching on saddr, daddr, iniface and outiface
+it will fail if we try to load this rule:
+$ nft -f nft_test
+../nft_test:6:97-97: Error: syntax error, unexpected comma, expecting newline or semicolon
 
-Here's legacy compared to nft with different factors in BATCH_PAGE_SIZE:
+Cc: Florian Westphal <fw@strlen.de>
+Signed-off-by: Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
+---
+ extensions/libxt_conntrack.c      | 28 +++++++++++++++++++---------
+ extensions/libxt_conntrack.txlate |  6 ++++++
+ 2 files changed, 25 insertions(+), 9 deletions(-)
 
-legacy		32 (stock)	  64		   128          256
-----------------------------------------------------------------------
-1'636'799	1'602'202	- NC -		  - NC -       - NC -
-1'220'159	  302'079	604'160		1'208'320      - NC -
-3'532'040	  242'688	485'376		  971'776    1'944'576
+diff --git a/extensions/libxt_conntrack.c b/extensions/libxt_conntrack.c
+index fe964aa..48e7415 100644
+--- a/extensions/libxt_conntrack.c
++++ b/extensions/libxt_conntrack.c
+@@ -1198,26 +1198,37 @@ static int state_xlate(struct xt_xlate *xl,
+ 	return 1;
+ }
+ 
+-static void status_xlate_print(struct xt_xlate *xl, unsigned int statusmask)
++static void status_xlate_print(struct xt_xlate *xl, unsigned int statusmask, int inverted)
+ {
+ 	const char *sep = "";
++	int one_flag_set;
++
++	one_flag_set = !(statusmask & (statusmask - 1));
++
++	if (inverted && !one_flag_set)
++		xt_xlate_add(xl, "& (");
++	else if (inverted)
++		xt_xlate_add(xl, "!= ");
+ 
+ 	if (statusmask & IPS_EXPECTED) {
+ 		xt_xlate_add(xl, "%s%s", sep, "expected");
+-		sep = ",";
++		sep = inverted && !one_flag_set ? "|" : ",";
+ 	}
+ 	if (statusmask & IPS_SEEN_REPLY) {
+ 		xt_xlate_add(xl, "%s%s", sep, "seen-reply");
+-		sep = ",";
++		sep = inverted && !one_flag_set ? "|" : ",";
+ 	}
+ 	if (statusmask & IPS_ASSURED) {
+ 		xt_xlate_add(xl, "%s%s", sep, "assured");
+-		sep = ",";
++		sep = inverted && !one_flag_set ? "|" : ",";
+ 	}
+ 	if (statusmask & IPS_CONFIRMED) {
+ 		xt_xlate_add(xl, "%s%s", sep, "confirmed");
+-		sep = ",";
++		sep = inverted && !one_flag_set ? "|" : ",";
+ 	}
++
++	if (inverted && !one_flag_set)
++		xt_xlate_add(xl, ") == 0");
+ }
+ 
+ static void addr_xlate_print(struct xt_xlate *xl,
+@@ -1277,10 +1288,9 @@ static int _conntrack3_mt_xlate(struct xt_xlate *xl,
+ 	}
+ 
+ 	if (sinfo->match_flags & XT_CONNTRACK_STATUS) {
+-		xt_xlate_add(xl, "%sct status %s", space,
+-			     sinfo->invert_flags & XT_CONNTRACK_STATUS ?
+-			     "!= " : "");
+-		status_xlate_print(xl, sinfo->status_mask);
++		xt_xlate_add(xl, "%sct status ", space);
++		status_xlate_print(xl, sinfo->status_mask,
++				   sinfo->invert_flags & XT_CONNTRACK_STATUS);
+ 		space = " ";
+ 	}
+ 
+diff --git a/extensions/libxt_conntrack.txlate b/extensions/libxt_conntrack.txlate
+index 75b3daa..3939d00 100644
+--- a/extensions/libxt_conntrack.txlate
++++ b/extensions/libxt_conntrack.txlate
+@@ -37,6 +37,12 @@ nft add rule ip filter INPUT ct status expected counter accept
+ iptables-translate -t filter -A INPUT -m conntrack ! --ctstatus CONFIRMED -j ACCEPT
+ nft add rule ip filter INPUT ct status != confirmed counter accept
+ 
++iptables-translate -t filter -A INPUT -m conntrack ! --ctstatus CONFIRMED,ASSURED -j ACCEPT
++nft add rule ip filter INPUT ct status & (assured|confirmed) == 0 counter accept
++
++iptables-translate -t filter -A INPUT -m conntrack --ctstatus CONFIRMED,ASSURED -j ACCEPT
++nft add rule ip filter INPUT ct status assured,confirmed counter accept
++
+ iptables-translate -t filter -A INPUT -m conntrack --ctexpire 3 -j ACCEPT
+ nft add rule ip filter INPUT ct expiration 3 counter accept
+ 
+-- 
+1.8.3.1
 
-At this point I stopped as the VM's 20GB RAM became the limit
-(iptables-nft-restore being OOM-killed instead of just failing).
-
-What would you suggest? Should I just change BATCH_PAGE_SIZE to make it
-"large enough" or is there a better approach?
-
-Cheers, Phil
-
-[1] https://github.com/kubernetes/kubernetes/issues/96018
