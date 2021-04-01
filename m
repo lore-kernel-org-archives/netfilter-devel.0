@@ -7,118 +7,218 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A700C433B4
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 18:46:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2EC8C433B4
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 20:29:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E932360FED
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 18:46:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8C795610D0
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 20:29:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237652AbhDASq5 (ORCPT
+        id S234201AbhDAU3f (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 1 Apr 2021 14:46:57 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:53482 "EHLO
+        Thu, 1 Apr 2021 16:29:35 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:53702 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238383AbhDASoz (ORCPT
+        with ESMTP id S234496AbhDAU3f (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Apr 2021 14:44:55 -0400
+        Thu, 1 Apr 2021 16:29:35 -0400
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id C959F63E3D
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Apr 2021 13:40:01 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id AF2D563E3E
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Apr 2021 22:29:17 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] evaluate: use chain hashtable for lookups
-Date:   Thu,  1 Apr 2021 13:40:13 +0200
-Message-Id: <20210401114013.5047-1-pablo@netfilter.org>
+Subject: [PATCH nft 2/4,v2] src: split chain list in table
+Date:   Thu,  1 Apr 2021 22:29:26 +0200
+Message-Id: <20210401202928.5222-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20210401202928.5222-1-pablo@netfilter.org>
+References: <20210401202928.5222-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Instead of the linear list lookup.
+This patch splits table->lists in two:
 
-Before this patch:
+- Chains that reside in the cache are stored in the new
+  tables->cache_chain and tables->cache_chain_ht. The hashtable chain
+  cache allows for fast chain lookups.
 
-real    0m21,735s
-user    0m20,329s
-sys     0m1,384s
+- Chains that defined via command line / ruleset file reside in
+  tables->chains.
 
-After:
+Note that chains in the cache (already in the kernel) are not placed in
+the table->chains.
 
-real    0m10,910s
-user    0m9,448s
-sys     0m1,434s
-
-This patch requires a small adjust: Allocate a clone of the existing
-chain in the cache, instead of recycling the object to avoid a list
-corruption.
+By keeping separated lists, chains defined via command line / ruleset
+file can be added to cache.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/evaluate.c | 15 ++++++++++-----
- src/rule.c     |  2 +-
- 2 files changed, 11 insertions(+), 6 deletions(-)
+v2: instead of cloning the chain, reuse the existing chain coming
+    from the command/ruleset and add it to the cache.
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index cebf7cb8ef2c..5f64979453ad 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -4106,15 +4106,20 @@ static int chain_evaluate(struct eval_ctx *ctx, struct chain *chain)
- 		return table_not_found(ctx);
+ include/rule.h |  2 ++
+ src/cache.c    |  6 +++---
+ src/json.c     |  6 +++---
+ src/rule.c     | 18 +++++++++++-------
+ 4 files changed, 19 insertions(+), 13 deletions(-)
+
+diff --git a/include/rule.h b/include/rule.h
+index f8e615121113..6c6ada6b5537 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -156,6 +156,7 @@ struct table {
+ 	struct location		location;
+ 	struct scope		scope;
+ 	struct list_head	*cache_chain_ht;
++	struct list_head	cache_chain;
+ 	struct list_head	chains;
+ 	struct list_head	sets;
+ 	struct list_head	objs;
+@@ -231,6 +232,7 @@ struct hook_spec {
+ struct chain {
+ 	struct list_head	list;
+ 	struct list_head	cache_hlist;
++	struct list_head	cache_list;
+ 	struct handle		handle;
+ 	struct location		location;
+ 	unsigned int		refcnt;
+diff --git a/src/cache.c b/src/cache.c
+index 400128906b03..c9e1f22a3291 100644
+--- a/src/cache.c
++++ b/src/cache.c
+@@ -193,10 +193,10 @@ static int chain_cache_cb(struct nftnl_chain *nlc, void *arg)
+ 	chain = netlink_delinearize_chain(ctx->nlctx, nlc);
  
- 	if (chain == NULL) {
--		if (chain_lookup(table, &ctx->cmd->handle) == NULL) {
-+		if (chain_cache_find(table, &ctx->cmd->handle) == NULL) {
- 			chain = chain_alloc(NULL);
- 			handle_merge(&chain->handle, &ctx->cmd->handle);
- 			chain_cache_add(chain, table);
- 		}
- 		return 0;
- 	} else if (!(chain->flags & CHAIN_F_BINDING)) {
--		if (chain_lookup(table, &chain->handle) == NULL)
--			chain_cache_add(chain_get(chain), table);
-+		if (chain_cache_find(table, &chain->handle) == NULL) {
-+			struct chain *newchain;
-+
-+			newchain = chain_alloc(NULL);
-+			handle_merge(&newchain->handle, &chain->handle);
-+			chain_cache_add(newchain, table);
-+		}
+ 	if (chain->flags & CHAIN_F_BINDING) {
+-		list_add_tail(&chain->list, &ctx->table->chain_bindings);
++		list_add_tail(&chain->cache_list, &ctx->table->chain_bindings);
+ 	} else {
+ 		list_add_tail(&chain->cache_hlist, &ctx->table->cache_chain_ht[hash]);
+-		list_add_tail(&chain->list, &ctx->table->chains);
++		list_add_tail(&chain->cache_list, &ctx->table->cache_chain);
  	}
  
- 	if (chain->flags & CHAIN_F_BASECHAIN) {
-@@ -4440,7 +4445,7 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
- 		if (table == NULL)
- 			return table_not_found(ctx);
+ 	nftnl_chain_list_del(nlc);
+@@ -240,7 +240,7 @@ void chain_cache_add(struct chain *chain, struct table *table)
  
--		if (chain_lookup(table, &cmd->handle) == NULL)
-+		if (chain_cache_find(table, &cmd->handle) == NULL)
- 			return chain_not_found(ctx);
+ 	hash = djb_hash(chain->handle.chain.name) % NFT_CACHE_HSIZE;
+ 	list_add_tail(&chain->cache_hlist, &table->cache_chain_ht[hash]);
+-	list_add_tail(&chain->list, &table->chains);
++	list_add_tail(&chain->cache_list, &table->cache_chain);
+ }
  
- 		return 0;
-@@ -4600,7 +4605,7 @@ static int cmd_evaluate_rename(struct eval_ctx *ctx, struct cmd *cmd)
- 		if (table == NULL)
- 			return table_not_found(ctx);
+ struct chain *chain_cache_find(const struct table *table,
+diff --git a/src/json.c b/src/json.c
+index defbc8fb44df..14e403fe1130 100644
+--- a/src/json.c
++++ b/src/json.c
+@@ -1584,7 +1584,7 @@ static json_t *table_print_json_full(struct netlink_ctx *ctx,
+ 		tmp = flowtable_print_json(flowtable);
+ 		json_array_append_new(root, tmp);
+ 	}
+-	list_for_each_entry(chain, &table->chains, list) {
++	list_for_each_entry(chain, &table->cache_chain, cache_list) {
+ 		tmp = chain_print_json(chain);
+ 		json_array_append_new(root, tmp);
  
--		if (chain_lookup(table, &ctx->cmd->handle) == NULL)
-+		if (chain_cache_find(table, &ctx->cmd->handle) == NULL)
- 			return chain_not_found(ctx);
+@@ -1646,7 +1646,7 @@ static json_t *do_list_chain_json(struct netlink_ctx *ctx,
+ 	struct chain *chain;
+ 	struct rule *rule;
  
- 		break;
+-	list_for_each_entry(chain, &table->chains, list) {
++	list_for_each_entry(chain, &table->cache_chain, cache_list) {
+ 		if (chain->handle.family != cmd->handle.family ||
+ 		    strcmp(cmd->handle.chain.name, chain->handle.chain.name))
+ 			continue;
+@@ -1674,7 +1674,7 @@ static json_t *do_list_chains_json(struct netlink_ctx *ctx, struct cmd *cmd)
+ 		    cmd->handle.family != table->handle.family)
+ 			continue;
+ 
+-		list_for_each_entry(chain, &table->chains, list) {
++		list_for_each_entry(chain, &table->cache_chain, cache_list) {
+ 			json_t *tmp = chain_print_json(chain);
+ 
+ 			json_array_append_new(root, tmp);
 diff --git a/src/rule.c b/src/rule.c
-index 969318008933..4f1ca22ec9e7 100644
+index 79706ab7b60a..5be9c0c82444 100644
 --- a/src/rule.c
 +++ b/src/rule.c
-@@ -2621,7 +2621,7 @@ static int do_command_rename(struct netlink_ctx *ctx, struct cmd *cmd)
+@@ -765,7 +765,7 @@ struct chain *chain_lookup(const struct table *table, const struct handle *h)
+ {
+ 	struct chain *chain;
  
- 	switch (cmd->obj) {
- 	case CMD_OBJ_CHAIN:
--		chain = chain_lookup(table, &cmd->handle);
-+		chain = chain_cache_find(table, &cmd->handle);
+-	list_for_each_entry(chain, &table->chains, list) {
++	list_for_each_entry(chain, &table->cache_chain, cache_list) {
+ 		if (!strcmp(chain->handle.chain.name, h->chain.name))
+ 			return chain;
+ 	}
+@@ -777,7 +777,7 @@ struct chain *chain_binding_lookup(const struct table *table,
+ {
+ 	struct chain *chain;
  
- 		return mnl_nft_chain_rename(ctx, cmd, chain);
- 	default:
+-	list_for_each_entry(chain, &table->chain_bindings, list) {
++	list_for_each_entry(chain, &table->chain_bindings, cache_list) {
+ 		if (!strcmp(chain->handle.chain.name, chain_name))
+ 			return chain;
+ 	}
+@@ -795,7 +795,7 @@ struct chain *chain_lookup_fuzzy(const struct handle *h,
+ 	string_misspell_init(&st);
+ 
+ 	list_for_each_entry(table, &cache->list, list) {
+-		list_for_each_entry(chain, &table->chains, list) {
++		list_for_each_entry(chain, &table->cache_chain, cache_list) {
+ 			if (!strcmp(chain->handle.chain.name, h->chain.name)) {
+ 				*t = table;
+ 				return chain;
+@@ -1133,6 +1133,7 @@ struct table *table_alloc(void)
+ 
+ 	table = xzalloc(sizeof(*table));
+ 	init_list_head(&table->chains);
++	init_list_head(&table->cache_chain);
+ 	init_list_head(&table->sets);
+ 	init_list_head(&table->objs);
+ 	init_list_head(&table->flowtables);
+@@ -1161,7 +1162,10 @@ void table_free(struct table *table)
+ 		xfree(table->comment);
+ 	list_for_each_entry_safe(chain, next, &table->chains, list)
+ 		chain_free(chain);
+-	list_for_each_entry_safe(chain, next, &table->chain_bindings, list)
++	list_for_each_entry_safe(chain, next, &table->chain_bindings, cache_list)
++		chain_free(chain);
++	/* this is implicitly releasing chains in the hashtable cache */
++	list_for_each_entry_safe(chain, next, &table->cache_chain, cache_list)
+ 		chain_free(chain);
+ 	list_for_each_entry_safe(set, nset, &table->sets, list)
+ 		set_free(set);
+@@ -1294,7 +1298,7 @@ static void table_print(const struct table *table, struct output_ctx *octx)
+ 		flowtable_print(flowtable, octx);
+ 		delim = "\n";
+ 	}
+-	list_for_each_entry(chain, &table->chains, list) {
++	list_for_each_entry(chain, &table->cache_chain, cache_list) {
+ 		nft_print(octx, "%s", delim);
+ 		chain_print(chain, octx);
+ 		delim = "\n";
+@@ -2388,7 +2392,7 @@ static int do_list_chain(struct netlink_ctx *ctx, struct cmd *cmd,
+ 
+ 	table_print_declaration(table, &ctx->nft->output);
+ 
+-	list_for_each_entry(chain, &table->chains, list) {
++	list_for_each_entry(chain, &table->cache_chain, cache_list) {
+ 		if (chain->handle.family != cmd->handle.family ||
+ 		    strcmp(cmd->handle.chain.name, chain->handle.chain.name) != 0)
+ 			continue;
+@@ -2413,7 +2417,7 @@ static int do_list_chains(struct netlink_ctx *ctx, struct cmd *cmd)
+ 
+ 		table_print_declaration(table, &ctx->nft->output);
+ 
+-		list_for_each_entry(chain, &table->chains, list) {
++		list_for_each_entry(chain, &table->cache_chain, cache_list) {
+ 			chain_print_declaration(chain, &ctx->nft->output);
+ 			nft_print(&ctx->nft->output, "\t}\n");
+ 		}
 -- 
 2.20.1
 
