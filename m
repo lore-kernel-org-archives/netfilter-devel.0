@@ -2,91 +2,166 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3C89C433ED
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 18:18:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74960C433B4
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 18:18:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8D44760FE6
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 18:18:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4D82260FF1
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 18:18:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236885AbhDASSi (ORCPT
+        id S236939AbhDASSk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 1 Apr 2021 14:18:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36690 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239227AbhDASPr (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Apr 2021 14:15:47 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1F3E4C0D9425
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Apr 2021 07:53:18 -0700 (PDT)
-Received: from localhost ([::1]:40454 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.94)
-        (envelope-from <phil@nwl.cc>)
-        id 1lRyhA-0003N7-2C; Thu, 01 Apr 2021 16:53:16 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH] nft: Increase BATCH_PAGE_SIZE to support huge rulesets
-Date:   Thu,  1 Apr 2021 16:53:07 +0200
-Message-Id: <20210401145307.29927-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.31.0
+        Thu, 1 Apr 2021 14:18:40 -0400
+Received: from relay.sw.ru ([185.231.240.75]:40410 "EHLO relay.sw.ru"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S239281AbhDASP4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 1 Apr 2021 14:15:56 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=virtuozzo.com; s=relay; h=MIME-Version:Message-Id:Date:Subject:From:
+        Content-Type; bh=e3tk5xDoSfyxLRwLIuKieQIuqPzaVP3KgPrwUqMojyM=; b=A0Hymgv+DLbx
+        hQ/pbClVhwSd1a/gM7B2pCNYxanyWEPJOZ61e4GiKpXFKPoVdLxr3nwDdmrdhNh22LvgF3Eao8E/C
+        1S4H/u0+Ahkr8q0NfZEMvJw6JoA7HoUftyTSP1OoxqJB3alG4cYu8TdzvyOzsj8AiXPMDYJmywQ39
+        klCg4=;
+Received: from [10.94.6.52] (helo=dhcp-172-16-24-175.sw.ru)
+        by relay.sw.ru with esmtp (Exim 4.94)
+        (envelope-from <alexander.mikhalitsyn@virtuozzo.com>)
+        id 1lRwnc-000EBL-Hj; Thu, 01 Apr 2021 15:51:48 +0300
+From:   Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     pablo@netfilter.org, fw@strlen.de
+Subject: [iptables PATCH v5 PATCH 1/2] extensions: libxt_conntrack: print xlate state as set
+Date:   Thu,  1 Apr 2021 15:51:43 +0300
+Message-Id: <20210401125144.30306-1-alexander.mikhalitsyn@virtuozzo.com>
+X-Mailer: git-send-email 2.28.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-In order to support the same ruleset sizes as legacy iptables, the
-kernel's limit of 1024 iovecs has to be overcome. Therefore increase
-each iovec's size from 256KB to 4MB.
+Currently, state_xlate_print function prints statemask as comma-separated sequence of enabled
+statemask flags. But if we have inverted conntrack ctstate condition then we have to use more
+complex expression because nft not supports syntax like "ct state != related,established".
 
-While being at it, add a log message for failing sendmsg() call. This is
-not supposed to happen, even if the transaction fails. Yet if it does,
-users are left with only a "line XXX failed" message (with line number
-being the COMMIT line).
+Reproducer:
+$ iptables -A INPUT -d 127.0.0.1/32 -p tcp -m conntrack ! --ctstate RELATED,ESTABLISHED -j DROP
+$ nft list ruleset
+...
+meta l4proto tcp ip daddr 127.0.0.1 ct state != related,established counter packets 0 bytes 0 drop
+...
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+it will fail if we try to load this rule:
+$ nft -f nft_test
+../nft_test:6:97-97: Error: syntax error, unexpected comma, expecting newline or semicolon
+
+Cc: Florian Westphal <fw@strlen.de>
+Signed-off-by: Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
 ---
- iptables/nft.c | 12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ extensions/libxt_conntrack.c      | 38 +++++++++++++++++++++++++-------------
+ extensions/libxt_conntrack.txlate |  5 ++++-
+ 2 files changed, 29 insertions(+), 14 deletions(-)
 
-diff --git a/iptables/nft.c b/iptables/nft.c
-index bd840e75f83f4..e19c88ece6c2a 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -88,11 +88,11 @@ int mnl_talk(struct nft_handle *h, struct nlmsghdr *nlh,
+diff --git a/extensions/libxt_conntrack.c b/extensions/libxt_conntrack.c
+index 7734509..91f9e4a 100644
+--- a/extensions/libxt_conntrack.c
++++ b/extensions/libxt_conntrack.c
+@@ -1148,30 +1148,43 @@ static void state_save(const void *ip, const struct xt_entry_match *match)
+ 	state_print_state(sinfo->statemask);
+ }
  
- #define NFT_NLMSG_MAXSIZE (UINT16_MAX + getpagesize())
- 
--/* selected batch page is 256 Kbytes long to load ruleset of
-- * half a million rules without hitting -EMSGSIZE due to large
-- * iovec.
-+/* Selected batch page is 4 Mbytes long to support loading a ruleset of 3.5M
-+ * rules matching on source and destination address as well as input and output
-+ * interfaces. This is what legacy iptables supports.
-  */
--#define BATCH_PAGE_SIZE getpagesize() * 32
-+#define BATCH_PAGE_SIZE getpagesize() * 512
- 
- static struct nftnl_batch *mnl_batch_init(void)
+-static void state_xlate_print(struct xt_xlate *xl, unsigned int statemask)
++static void state_xlate_print(struct xt_xlate *xl, unsigned int statemask, int inverted)
  {
-@@ -220,8 +220,10 @@ static int mnl_batch_talk(struct nft_handle *h, int numcmds)
- 	int err = 0;
+ 	const char *sep = "";
++	int one_flag_set;
++
++	one_flag_set = !(statemask & (statemask - 1));
++
++	if (inverted && !one_flag_set)
++		xt_xlate_add(xl, "& (");
++	else if (inverted)
++		xt_xlate_add(xl, "& ");
  
- 	ret = mnl_nft_socket_sendmsg(h, numcmds);
--	if (ret == -1)
-+	if (ret == -1) {
-+		fprintf(stderr, "sendmsg() failed: %s\n", strerror(errno));
- 		return -1;
-+	}
+ 	if (statemask & XT_CONNTRACK_STATE_INVALID) {
+ 		xt_xlate_add(xl, "%s%s", sep, "invalid");
+-		sep = ",";
++		sep = inverted && !one_flag_set ? "|" : ",";
+ 	}
+ 	if (statemask & XT_CONNTRACK_STATE_BIT(IP_CT_NEW)) {
+ 		xt_xlate_add(xl, "%s%s", sep, "new");
+-		sep = ",";
++		sep = inverted && !one_flag_set ? "|" : ",";
+ 	}
+ 	if (statemask & XT_CONNTRACK_STATE_BIT(IP_CT_RELATED)) {
+ 		xt_xlate_add(xl, "%s%s", sep, "related");
+-		sep = ",";
++		sep = inverted && !one_flag_set ? "|" : ",";
+ 	}
+ 	if (statemask & XT_CONNTRACK_STATE_BIT(IP_CT_ESTABLISHED)) {
+ 		xt_xlate_add(xl, "%s%s", sep, "established");
+-		sep = ",";
++		sep = inverted && !one_flag_set ? "|" : ",";
+ 	}
+ 	if (statemask & XT_CONNTRACK_STATE_UNTRACKED) {
+ 		xt_xlate_add(xl, "%s%s", sep, "untracked");
+-		sep = ",";
++		sep = inverted && !one_flag_set ? "|" : ",";
+ 	}
++
++	if (inverted && !one_flag_set)
++		xt_xlate_add(xl, ") == 0");
++	else if (inverted)
++		xt_xlate_add(xl, " == 0");
+ }
  
- 	FD_ZERO(&readfds);
- 	FD_SET(fd, &readfds);
+ static int state_xlate(struct xt_xlate *xl,
+@@ -1180,9 +1193,9 @@ static int state_xlate(struct xt_xlate *xl,
+ 	const struct xt_conntrack_mtinfo3 *sinfo =
+ 		(const void *)params->match->data;
+ 
+-	xt_xlate_add(xl, "ct state %s", sinfo->invert_flags & XT_CONNTRACK_STATE ?
+-					"!= " : "");
+-	state_xlate_print(xl, sinfo->state_mask);
++	xt_xlate_add(xl, "ct state ");
++	state_xlate_print(xl, sinfo->state_mask,
++			  sinfo->invert_flags & XT_CONNTRACK_STATE);
+ 	xt_xlate_add(xl, " ");
+ 	return 1;
+ }
+@@ -1256,10 +1269,9 @@ static int _conntrack3_mt_xlate(struct xt_xlate *xl,
+ 				     sinfo->state_mask & XT_CONNTRACK_STATE_SNAT ? "snat" : "dnat");
+ 			space = " ";
+ 		} else {
+-			xt_xlate_add(xl, "%sct state %s", space,
+-				     sinfo->invert_flags & XT_CONNTRACK_STATE ?
+-				     "!= " : "");
+-			state_xlate_print(xl, sinfo->state_mask);
++			xt_xlate_add(xl, "%sct state ", space);
++			state_xlate_print(xl, sinfo->state_mask,
++					  sinfo->invert_flags & XT_CONNTRACK_STATE);
+ 			space = " ";
+ 		}
+ 	}
+diff --git a/extensions/libxt_conntrack.txlate b/extensions/libxt_conntrack.txlate
+index d374f8a..5ab85b1 100644
+--- a/extensions/libxt_conntrack.txlate
++++ b/extensions/libxt_conntrack.txlate
+@@ -2,7 +2,10 @@ iptables-translate -t filter -A INPUT -m conntrack --ctstate NEW,RELATED -j ACCE
+ nft add rule ip filter INPUT ct state new,related counter accept
+ 
+ ip6tables-translate -t filter -A INPUT -m conntrack ! --ctstate NEW,RELATED -j ACCEPT
+-nft add rule ip6 filter INPUT ct state != new,related counter accept
++nft add rule ip6 filter INPUT ct state & (new|related) == 0 counter accept
++
++ip6tables-translate -t filter -A INPUT -m conntrack ! --ctstate NEW -j ACCEPT
++nft add rule ip6 filter INPUT ct state & new == 0 counter accept
+ 
+ iptables-translate -t filter -A INPUT -m conntrack --ctproto UDP -j ACCEPT
+ nft add rule ip filter INPUT ct original protocol 17 counter accept
 -- 
-2.31.0
+1.8.3.1
 
