@@ -2,121 +2,295 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8C4EC43603
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 17:41:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D20CC4360C
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 17:41:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C4BA061165
+	by mail.kernel.org (Postfix) with ESMTP id E9310611ED
 	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 17:41:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234957AbhDARlq (ORCPT
+        id S234632AbhDARlq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Thu, 1 Apr 2021 13:41:46 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:36739 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S234000AbhDARgR (ORCPT
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57230 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234674AbhDARjG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Apr 2021 13:36:17 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1617298570;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=bW7B9w+Q68Urxu39Qi9brljMKrW7wGi7AN397dg60A4=;
-        b=HJPGA4D/4ZElSFsMy9EJthu535fi3KOz8bgwr9a/ksjtUu8VDjWciCkVVfgBrVomt6BpPC
-        nq1X8Uqd8ApFYhfVcrPR5X3mug9T05nRQTj3YuYM5ww9xBjPP18cfH5k0uRg3Ll7zK1KaP
-        YN+3zCEDCVvHgQUGYlo64fyA3YND6z0=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-340-99AJc0sRM-C4SBQXrwmKUw-1; Thu, 01 Apr 2021 09:35:04 -0400
-X-MC-Unique: 99AJc0sRM-C4SBQXrwmKUw-1
-Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id B70716B9D7;
-        Thu,  1 Apr 2021 13:35:02 +0000 (UTC)
-Received: from madcap2.tricolour.ca (unknown [10.10.110.27])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 84C395D76F;
-        Thu,  1 Apr 2021 13:34:50 +0000 (UTC)
-Date:   Thu, 1 Apr 2021 09:34:47 -0400
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     Phil Sutter <phil@nwl.cc>,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, Paul Moore <paul@paul-moore.com>,
-        Eric Paris <eparis@parisplace.org>,
-        Steve Grubb <sgrubb@redhat.com>,
-        Florian Westphal <fw@strlen.de>, twoerner@redhat.com,
-        tgraf@infradead.org, dan.carpenter@oracle.com,
-        Jones Desougi <jones.desougi+netfilter@gmail.com>
-Subject: Re: [PATCH v5] audit: log nftables configuration change events once
- per table
-Message-ID: <20210401133447.GB3141668@madcap2.tricolour.ca>
-References: <28de34275f58b45fd4626a92ccae96b6d2b4e287.1616702731.git.rgb@redhat.com>
- <20210401132444.GX3158@orbyte.nwl.cc>
+        Thu, 1 Apr 2021 13:39:06 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 99CB6C0A88B7
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Apr 2021 07:11:40 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1lRy2t-0001c1-11; Thu, 01 Apr 2021 16:11:39 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next v2 04/11] netfilter: nf_defrag_ipv6: use net_generic infra
+Date:   Thu,  1 Apr 2021 16:11:07 +0200
+Message-Id: <20210401141114.24712-5-fw@strlen.de>
+X-Mailer: git-send-email 2.26.3
+In-Reply-To: <20210401141114.24712-1-fw@strlen.de>
+References: <20210401141114.24712-1-fw@strlen.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210401132444.GX3158@orbyte.nwl.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2021-04-01 15:24, Phil Sutter wrote:
-> On Fri, Mar 26, 2021 at 01:38:59PM -0400, Richard Guy Briggs wrote:
-> > Reduce logging of nftables events to a level similar to iptables.
-> > Restore the table field to list the table, adding the generation.
-> > 
-> > Indicate the op as the most significant operation in the event.
-> > 
-> > A couple of sample events:
-> > 
-> > type=PROCTITLE msg=audit(2021-03-18 09:30:49.801:143) : proctitle=/usr/bin/python3 -s /usr/sbin/firewalld --nofork --nopid
-> > type=SYSCALL msg=audit(2021-03-18 09:30:49.801:143) : arch=x86_64 syscall=sendmsg success=yes exit=172 a0=0x6 a1=0x7ffdcfcbe650 a2=0x0 a3=0x7ffdcfcbd52c items=0 ppid=1 pid=367 auid=unset uid=root gid=root euid=root suid=root fsuid=root egid=roo
-> > t sgid=root fsgid=root tty=(none) ses=unset comm=firewalld exe=/usr/bin/python3.9 subj=system_u:system_r:firewalld_t:s0 key=(null)
-> > type=NETFILTER_CFG msg=audit(2021-03-18 09:30:49.801:143) : table=firewalld:2 family=ipv6 entries=1 op=nft_register_table pid=367 subj=system_u:system_r:firewalld_t:s0 comm=firewalld
-> > type=NETFILTER_CFG msg=audit(2021-03-18 09:30:49.801:143) : table=firewalld:2 family=ipv4 entries=1 op=nft_register_table pid=367 subj=system_u:system_r:firewalld_t:s0 comm=firewalld
-> > type=NETFILTER_CFG msg=audit(2021-03-18 09:30:49.801:143) : table=firewalld:2 family=inet entries=1 op=nft_register_table pid=367 subj=system_u:system_r:firewalld_t:s0 comm=firewalld
-> > 
-> > type=PROCTITLE msg=audit(2021-03-18 09:30:49.839:144) : proctitle=/usr/bin/python3 -s /usr/sbin/firewalld --nofork --nopid
-> > type=SYSCALL msg=audit(2021-03-18 09:30:49.839:144) : arch=x86_64 syscall=sendmsg success=yes exit=22792 a0=0x6 a1=0x7ffdcfcbe650 a2=0x0 a3=0x7ffdcfcbd52c items=0 ppid=1 pid=367 auid=unset uid=root gid=root euid=root suid=root fsuid=root egid=r
-> > oot sgid=root fsgid=root tty=(none) ses=unset comm=firewalld exe=/usr/bin/python3.9 subj=system_u:system_r:firewalld_t:s0 key=(null)
-> > type=NETFILTER_CFG msg=audit(2021-03-18 09:30:49.839:144) : table=firewalld:3 family=ipv6 entries=30 op=nft_register_chain pid=367 subj=system_u:system_r:firewalld_t:s0 comm=firewalld
-> > type=NETFILTER_CFG msg=audit(2021-03-18 09:30:49.839:144) : table=firewalld:3 family=ipv4 entries=30 op=nft_register_chain pid=367 subj=system_u:system_r:firewalld_t:s0 comm=firewalld
-> > type=NETFILTER_CFG msg=audit(2021-03-18 09:30:49.839:144) : table=firewalld:3 family=inet entries=165 op=nft_register_chain pid=367 subj=system_u:system_r:firewalld_t:s0 comm=firewalld
-> > 
-> > The issue was originally documented in
-> > https://github.com/linux-audit/audit-kernel/issues/124
-> > 
-> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> 
-> Tested this patch to make sure it eliminates the slowdown of
-> iptables-nft when auditd is running. With this applied, neither
-> iptables-nft-restore nor 'iptables-nft -F' show a significant
-> difference in run-time between running or stopped auditd, at least for
-> large rulesets. Individual calls suffer from added audit logging, but
-> that's expected of course.
-> 
-> Tested-by: Phil Sutter <phil@nwl.cc>
+This allows followup patch to remove these members from struct net.
 
-Excellent, thanks Phil for helping nail this one down and confirming the
-fix.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ include/net/netfilter/ipv6/nf_defrag_ipv6.h |  6 ++
+ net/ipv6/netfilter/nf_conntrack_reasm.c     | 68 +++++++++++----------
+ net/ipv6/netfilter/nf_defrag_ipv6_hooks.c   | 15 +++--
+ 3 files changed, 52 insertions(+), 37 deletions(-)
 
-> Thanks, Phil
-
-- RGB
-
---
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
+diff --git a/include/net/netfilter/ipv6/nf_defrag_ipv6.h b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
+index 6d31cd041143..ece923e2035b 100644
+--- a/include/net/netfilter/ipv6/nf_defrag_ipv6.h
++++ b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
+@@ -13,4 +13,10 @@ int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user);
+ 
+ struct inet_frags_ctl;
+ 
++struct nft_ct_frag6_pernet {
++	struct ctl_table_header *nf_frag_frags_hdr;
++	struct fqdir	*fqdir;
++	unsigned int users;
++};
++
+ #endif /* _NF_DEFRAG_IPV6_H */
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index c129ad334eb3..a0108415275f 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -15,28 +15,13 @@
+ #include <linux/errno.h>
+ #include <linux/types.h>
+ #include <linux/string.h>
+-#include <linux/socket.h>
+-#include <linux/sockios.h>
+-#include <linux/jiffies.h>
+ #include <linux/net.h>
+-#include <linux/list.h>
+ #include <linux/netdevice.h>
+-#include <linux/in6.h>
+ #include <linux/ipv6.h>
+-#include <linux/icmpv6.h>
+-#include <linux/random.h>
+ #include <linux/slab.h>
+ 
+-#include <net/sock.h>
+-#include <net/snmp.h>
+ #include <net/ipv6_frag.h>
+ 
+-#include <net/protocol.h>
+-#include <net/transp_v6.h>
+-#include <net/rawv6.h>
+-#include <net/ndisc.h>
+-#include <net/addrconf.h>
+-#include <net/inet_ecn.h>
+ #include <net/netfilter/ipv6/nf_conntrack_ipv6.h>
+ #include <linux/sysctl.h>
+ #include <linux/netfilter.h>
+@@ -44,11 +29,18 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <net/netfilter/ipv6/nf_defrag_ipv6.h>
++#include <net/netns/generic.h>
+ 
+ static const char nf_frags_cache_name[] = "nf-frags";
+ 
++unsigned int nf_frag_pernet_id __read_mostly;
+ static struct inet_frags nf_frags;
+ 
++static struct nft_ct_frag6_pernet *nf_frag_pernet(struct net *net)
++{
++	return net_generic(net, nf_frag_pernet_id);
++}
++
+ #ifdef CONFIG_SYSCTL
+ 
+ static struct ctl_table nf_ct_frag6_sysctl_table[] = {
+@@ -75,6 +67,7 @@ static struct ctl_table nf_ct_frag6_sysctl_table[] = {
+ 
+ static int nf_ct_frag6_sysctl_register(struct net *net)
+ {
++	struct nft_ct_frag6_pernet *nf_frag;
+ 	struct ctl_table *table;
+ 	struct ctl_table_header *hdr;
+ 
+@@ -86,18 +79,20 @@ static int nf_ct_frag6_sysctl_register(struct net *net)
+ 			goto err_alloc;
+ 	}
+ 
+-	table[0].data	= &net->nf_frag.fqdir->timeout;
+-	table[1].data	= &net->nf_frag.fqdir->low_thresh;
+-	table[1].extra2	= &net->nf_frag.fqdir->high_thresh;
+-	table[2].data	= &net->nf_frag.fqdir->high_thresh;
+-	table[2].extra1	= &net->nf_frag.fqdir->low_thresh;
+-	table[2].extra2	= &init_net.nf_frag.fqdir->high_thresh;
++	nf_frag = nf_frag_pernet(net);
++
++	table[0].data	= &nf_frag->fqdir->timeout;
++	table[1].data	= &nf_frag->fqdir->low_thresh;
++	table[1].extra2	= &nf_frag->fqdir->high_thresh;
++	table[2].data	= &nf_frag->fqdir->high_thresh;
++	table[2].extra1	= &nf_frag->fqdir->low_thresh;
++	table[2].extra2	= &nf_frag->fqdir->high_thresh;
+ 
+ 	hdr = register_net_sysctl(net, "net/netfilter", table);
+ 	if (hdr == NULL)
+ 		goto err_reg;
+ 
+-	net->nf_frag_frags_hdr = hdr;
++	nf_frag->nf_frag_frags_hdr = hdr;
+ 	return 0;
+ 
+ err_reg:
+@@ -109,10 +104,11 @@ static int nf_ct_frag6_sysctl_register(struct net *net)
+ 
+ static void __net_exit nf_ct_frags6_sysctl_unregister(struct net *net)
+ {
++	struct nft_ct_frag6_pernet *nf_frag = nf_frag_pernet(net);
+ 	struct ctl_table *table;
+ 
+-	table = net->nf_frag_frags_hdr->ctl_table_arg;
+-	unregister_net_sysctl_table(net->nf_frag_frags_hdr);
++	table = nf_frag->nf_frag_frags_hdr->ctl_table_arg;
++	unregister_net_sysctl_table(nf_frag->nf_frag_frags_hdr);
+ 	if (!net_eq(net, &init_net))
+ 		kfree(table);
+ }
+@@ -149,6 +145,7 @@ static void nf_ct_frag6_expire(struct timer_list *t)
+ static struct frag_queue *fq_find(struct net *net, __be32 id, u32 user,
+ 				  const struct ipv6hdr *hdr, int iif)
+ {
++	struct nft_ct_frag6_pernet *nf_frag = nf_frag_pernet(net);
+ 	struct frag_v6_compare_key key = {
+ 		.id = id,
+ 		.saddr = hdr->saddr,
+@@ -158,7 +155,7 @@ static struct frag_queue *fq_find(struct net *net, __be32 id, u32 user,
+ 	};
+ 	struct inet_frag_queue *q;
+ 
+-	q = inet_frag_find(net->nf_frag.fqdir, &key);
++	q = inet_frag_find(nf_frag->fqdir, &key);
+ 	if (!q)
+ 		return NULL;
+ 
+@@ -495,37 +492,44 @@ EXPORT_SYMBOL_GPL(nf_ct_frag6_gather);
+ 
+ static int nf_ct_net_init(struct net *net)
+ {
++	struct nft_ct_frag6_pernet *nf_frag  = nf_frag_pernet(net);
+ 	int res;
+ 
+-	res = fqdir_init(&net->nf_frag.fqdir, &nf_frags, net);
++	res = fqdir_init(&nf_frag->fqdir, &nf_frags, net);
+ 	if (res < 0)
+ 		return res;
+ 
+-	net->nf_frag.fqdir->high_thresh = IPV6_FRAG_HIGH_THRESH;
+-	net->nf_frag.fqdir->low_thresh = IPV6_FRAG_LOW_THRESH;
+-	net->nf_frag.fqdir->timeout = IPV6_FRAG_TIMEOUT;
++	nf_frag->fqdir->high_thresh = IPV6_FRAG_HIGH_THRESH;
++	nf_frag->fqdir->low_thresh = IPV6_FRAG_LOW_THRESH;
++	nf_frag->fqdir->timeout = IPV6_FRAG_TIMEOUT;
+ 
+ 	res = nf_ct_frag6_sysctl_register(net);
+ 	if (res < 0)
+-		fqdir_exit(net->nf_frag.fqdir);
++		fqdir_exit(nf_frag->fqdir);
+ 	return res;
+ }
+ 
+ static void nf_ct_net_pre_exit(struct net *net)
+ {
+-	fqdir_pre_exit(net->nf_frag.fqdir);
++	struct nft_ct_frag6_pernet *nf_frag  = nf_frag_pernet(net);
++
++	fqdir_pre_exit(nf_frag->fqdir);
+ }
+ 
+ static void nf_ct_net_exit(struct net *net)
+ {
++	struct nft_ct_frag6_pernet *nf_frag  = nf_frag_pernet(net);
++
+ 	nf_ct_frags6_sysctl_unregister(net);
+-	fqdir_exit(net->nf_frag.fqdir);
++	fqdir_exit(nf_frag->fqdir);
+ }
+ 
+ static struct pernet_operations nf_ct_net_ops = {
+ 	.init		= nf_ct_net_init,
+ 	.pre_exit	= nf_ct_net_pre_exit,
+ 	.exit		= nf_ct_net_exit,
++	.id		= &nf_frag_pernet_id,
++	.size		= sizeof(struct nft_ct_frag6_pernet),
+ };
+ 
+ static const struct rhashtable_params nfct_rhash_params = {
+diff --git a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
+index 6646a87fb5dc..402dc4ca9504 100644
+--- a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
++++ b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
+@@ -25,6 +25,8 @@
+ #include <net/netfilter/nf_conntrack_zones.h>
+ #include <net/netfilter/ipv6/nf_defrag_ipv6.h>
+ 
++extern unsigned int nf_frag_pernet_id;
++
+ static DEFINE_MUTEX(defrag6_mutex);
+ 
+ static enum ip6_defrag_users nf_ct6_defrag_user(unsigned int hooknum,
+@@ -89,10 +91,12 @@ static const struct nf_hook_ops ipv6_defrag_ops[] = {
+ 
+ static void __net_exit defrag6_net_exit(struct net *net)
+ {
+-	if (net->nf.defrag_ipv6) {
++	struct nft_ct_frag6_pernet *nf_frag = net_generic(net, nf_frag_pernet_id);
++
++	if (nf_frag->users) {
+ 		nf_unregister_net_hooks(net, ipv6_defrag_ops,
+ 					ARRAY_SIZE(ipv6_defrag_ops));
+-		net->nf.defrag_ipv6 = false;
++		nf_frag->users = 0;
+ 	}
+ }
+ 
+@@ -130,21 +134,22 @@ static void __exit nf_defrag_fini(void)
+ 
+ int nf_defrag_ipv6_enable(struct net *net)
+ {
++	struct nft_ct_frag6_pernet *nf_frag = net_generic(net, nf_frag_pernet_id);
+ 	int err = 0;
+ 
+ 	might_sleep();
+ 
+-	if (net->nf.defrag_ipv6)
++	if (nf_frag->users)
+ 		return 0;
+ 
+ 	mutex_lock(&defrag6_mutex);
+-	if (net->nf.defrag_ipv6)
++	if (nf_frag->users)
+ 		goto out_unlock;
+ 
+ 	err = nf_register_net_hooks(net, ipv6_defrag_ops,
+ 				    ARRAY_SIZE(ipv6_defrag_ops));
+ 	if (err == 0)
+-		net->nf.defrag_ipv6 = true;
++		nf_frag->users = 1;
+ 
+  out_unlock:
+ 	mutex_unlock(&defrag6_mutex);
+-- 
+2.26.3
 
