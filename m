@@ -2,163 +2,98 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F098C433B4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CDE7C43461
 	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 17:47:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 32C866112E
+	by mail.kernel.org (Postfix) with ESMTP id 70AD361277
 	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 17:47:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234644AbhDARrn (ORCPT
+        id S235067AbhDARrs (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 1 Apr 2021 13:47:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58298 "EHLO
+        Thu, 1 Apr 2021 13:47:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58370 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234735AbhDARmJ (ORCPT
+        with ESMTP id S234474AbhDARmQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Apr 2021 13:42:09 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9072C0A88C0
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Apr 2021 07:11:48 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1lRy31-0001cF-GS; Thu, 01 Apr 2021 16:11:47 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v2 06/11] netfilter: ebtables: use net_generic infra
-Date:   Thu,  1 Apr 2021 16:11:09 +0200
-Message-Id: <20210401141114.24712-7-fw@strlen.de>
-X-Mailer: git-send-email 2.26.3
-In-Reply-To: <20210401141114.24712-1-fw@strlen.de>
-References: <20210401141114.24712-1-fw@strlen.de>
+        Thu, 1 Apr 2021 13:42:16 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C4186C08EA3C;
+        Thu,  1 Apr 2021 06:24:49 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1lRxJU-0001yJ-EH; Thu, 01 Apr 2021 15:24:44 +0200
+Date:   Thu, 1 Apr 2021 15:24:44 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Richard Guy Briggs <rgb@redhat.com>
+Cc:     Linux-Audit Mailing List <linux-audit@redhat.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, Paul Moore <paul@paul-moore.com>,
+        Eric Paris <eparis@parisplace.org>,
+        Steve Grubb <sgrubb@redhat.com>,
+        Florian Westphal <fw@strlen.de>, twoerner@redhat.com,
+        tgraf@infradead.org, dan.carpenter@oracle.com,
+        Jones Desougi <jones.desougi+netfilter@gmail.com>
+Subject: Re: [PATCH v5] audit: log nftables configuration change events once
+ per table
+Message-ID: <20210401132444.GX3158@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Richard Guy Briggs <rgb@redhat.com>,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, Paul Moore <paul@paul-moore.com>,
+        Eric Paris <eparis@parisplace.org>, Steve Grubb <sgrubb@redhat.com>,
+        Florian Westphal <fw@strlen.de>, twoerner@redhat.com,
+        tgraf@infradead.org, dan.carpenter@oracle.com,
+        Jones Desougi <jones.desougi+netfilter@gmail.com>
+References: <28de34275f58b45fd4626a92ccae96b6d2b4e287.1616702731.git.rgb@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <28de34275f58b45fd4626a92ccae96b6d2b4e287.1616702731.git.rgb@redhat.com>
+Sender:  <n0-1@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-ebtables currently uses net->xt.tables[BRIDGE], but upcoming
-patch will move net->xt.tables away from struct net.
+On Fri, Mar 26, 2021 at 01:38:59PM -0400, Richard Guy Briggs wrote:
+> Reduce logging of nftables events to a level similar to iptables.
+> Restore the table field to list the table, adding the generation.
+> 
+> Indicate the op as the most significant operation in the event.
+> 
+> A couple of sample events:
+> 
+> type=PROCTITLE msg=audit(2021-03-18 09:30:49.801:143) : proctitle=/usr/bin/python3 -s /usr/sbin/firewalld --nofork --nopid
+> type=SYSCALL msg=audit(2021-03-18 09:30:49.801:143) : arch=x86_64 syscall=sendmsg success=yes exit=172 a0=0x6 a1=0x7ffdcfcbe650 a2=0x0 a3=0x7ffdcfcbd52c items=0 ppid=1 pid=367 auid=unset uid=root gid=root euid=root suid=root fsuid=root egid=roo
+> t sgid=root fsgid=root tty=(none) ses=unset comm=firewalld exe=/usr/bin/python3.9 subj=system_u:system_r:firewalld_t:s0 key=(null)
+> type=NETFILTER_CFG msg=audit(2021-03-18 09:30:49.801:143) : table=firewalld:2 family=ipv6 entries=1 op=nft_register_table pid=367 subj=system_u:system_r:firewalld_t:s0 comm=firewalld
+> type=NETFILTER_CFG msg=audit(2021-03-18 09:30:49.801:143) : table=firewalld:2 family=ipv4 entries=1 op=nft_register_table pid=367 subj=system_u:system_r:firewalld_t:s0 comm=firewalld
+> type=NETFILTER_CFG msg=audit(2021-03-18 09:30:49.801:143) : table=firewalld:2 family=inet entries=1 op=nft_register_table pid=367 subj=system_u:system_r:firewalld_t:s0 comm=firewalld
+> 
+> type=PROCTITLE msg=audit(2021-03-18 09:30:49.839:144) : proctitle=/usr/bin/python3 -s /usr/sbin/firewalld --nofork --nopid
+> type=SYSCALL msg=audit(2021-03-18 09:30:49.839:144) : arch=x86_64 syscall=sendmsg success=yes exit=22792 a0=0x6 a1=0x7ffdcfcbe650 a2=0x0 a3=0x7ffdcfcbd52c items=0 ppid=1 pid=367 auid=unset uid=root gid=root euid=root suid=root fsuid=root egid=r
+> oot sgid=root fsgid=root tty=(none) ses=unset comm=firewalld exe=/usr/bin/python3.9 subj=system_u:system_r:firewalld_t:s0 key=(null)
+> type=NETFILTER_CFG msg=audit(2021-03-18 09:30:49.839:144) : table=firewalld:3 family=ipv6 entries=30 op=nft_register_chain pid=367 subj=system_u:system_r:firewalld_t:s0 comm=firewalld
+> type=NETFILTER_CFG msg=audit(2021-03-18 09:30:49.839:144) : table=firewalld:3 family=ipv4 entries=30 op=nft_register_chain pid=367 subj=system_u:system_r:firewalld_t:s0 comm=firewalld
+> type=NETFILTER_CFG msg=audit(2021-03-18 09:30:49.839:144) : table=firewalld:3 family=inet entries=165 op=nft_register_chain pid=367 subj=system_u:system_r:firewalld_t:s0 comm=firewalld
+> 
+> The issue was originally documented in
+> https://github.com/linux-audit/audit-kernel/issues/124
+> 
+> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
 
-To avoid exposing x_tables internals to ebtables, use a private list
-instead.
+Tested this patch to make sure it eliminates the slowdown of
+iptables-nft when auditd is running. With this applied, neither
+iptables-nft-restore nor 'iptables-nft -F' show a significant
+difference in run-time between running or stopped auditd, at least for
+large rulesets. Individual calls suffer from added audit logging, but
+that's expected of course.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/bridge/netfilter/ebtables.c | 39 ++++++++++++++++++++++++++++-----
- 1 file changed, 34 insertions(+), 5 deletions(-)
+Tested-by: Phil Sutter <phil@nwl.cc>
 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index ebe33b60efd6..11625d05bbbc 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -24,6 +24,7 @@
- #include <linux/cpumask.h>
- #include <linux/audit.h>
- #include <net/sock.h>
-+#include <net/netns/generic.h>
- /* needed for logical [in,out]-dev filtering */
- #include "../br_private.h"
- 
-@@ -39,8 +40,11 @@
- #define COUNTER_BASE(c, n, cpu) ((struct ebt_counter *)(((char *)c) + \
- 				 COUNTER_OFFSET(n) * cpu))
- 
-+struct ebt_pernet {
-+	struct list_head tables;
-+};
- 
--
-+static unsigned int ebt_pernet_id __read_mostly;
- static DEFINE_MUTEX(ebt_mutex);
- 
- #ifdef CONFIG_COMPAT
-@@ -336,7 +340,9 @@ static inline struct ebt_table *
- find_table_lock(struct net *net, const char *name, int *error,
- 		struct mutex *mutex)
- {
--	return find_inlist_lock(&net->xt.tables[NFPROTO_BRIDGE], name,
-+	struct ebt_pernet *ebt_net = net_generic(net, ebt_pernet_id);
-+
-+	return find_inlist_lock(&ebt_net->tables, name,
- 				"ebtable_", error, mutex);
- }
- 
-@@ -1136,6 +1142,7 @@ static void __ebt_unregister_table(struct net *net, struct ebt_table *table)
- int ebt_register_table(struct net *net, const struct ebt_table *input_table,
- 		       const struct nf_hook_ops *ops, struct ebt_table **res)
- {
-+	struct ebt_pernet *ebt_net = net_generic(net, ebt_pernet_id);
- 	struct ebt_table_info *newinfo;
- 	struct ebt_table *t, *table;
- 	struct ebt_replace_kernel *repl;
-@@ -1194,7 +1201,7 @@ int ebt_register_table(struct net *net, const struct ebt_table *input_table,
- 	table->private = newinfo;
- 	rwlock_init(&table->lock);
- 	mutex_lock(&ebt_mutex);
--	list_for_each_entry(t, &net->xt.tables[NFPROTO_BRIDGE], list) {
-+	list_for_each_entry(t, &ebt_net->tables, list) {
- 		if (strcmp(t->name, table->name) == 0) {
- 			ret = -EEXIST;
- 			goto free_unlock;
-@@ -1206,7 +1213,7 @@ int ebt_register_table(struct net *net, const struct ebt_table *input_table,
- 		ret = -ENOENT;
- 		goto free_unlock;
- 	}
--	list_add(&table->list, &net->xt.tables[NFPROTO_BRIDGE]);
-+	list_add(&table->list, &ebt_net->tables);
- 	mutex_unlock(&ebt_mutex);
- 
- 	WRITE_ONCE(*res, table);
-@@ -2412,6 +2419,20 @@ static struct nf_sockopt_ops ebt_sockopts = {
- 	.owner		= THIS_MODULE,
- };
- 
-+static int __net_init ebt_pernet_init(struct net *net)
-+{
-+	struct ebt_pernet *ebt_net = net_generic(net, ebt_pernet_id);
-+
-+	INIT_LIST_HEAD(&ebt_net->tables);
-+	return 0;
-+}
-+
-+static struct pernet_operations ebt_net_ops = {
-+	.init = ebt_pernet_init,
-+	.id   = &ebt_pernet_id,
-+	.size = sizeof(struct ebt_pernet),
-+};
-+
- static int __init ebtables_init(void)
- {
- 	int ret;
-@@ -2425,13 +2446,21 @@ static int __init ebtables_init(void)
- 		return ret;
- 	}
- 
-+	ret = register_pernet_subsys(&ebt_net_ops);
-+	if (ret < 0) {
-+		nf_unregister_sockopt(&ebt_sockopts);
-+		xt_unregister_target(&ebt_standard_target);
-+		return ret;
-+	}
-+
- 	return 0;
- }
- 
--static void __exit ebtables_fini(void)
-+static void ebtables_fini(void)
- {
- 	nf_unregister_sockopt(&ebt_sockopts);
- 	xt_unregister_target(&ebt_standard_target);
-+	unregister_pernet_subsys(&ebt_net_ops);
- }
- 
- EXPORT_SYMBOL(ebt_register_table);
--- 
-2.26.3
-
+Thanks, Phil
