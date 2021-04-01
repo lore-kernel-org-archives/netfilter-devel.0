@@ -7,32 +7,32 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E27CC4363E
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 17:47:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F098C433B4
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 17:47:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C588A61284
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 17:47:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 32C866112E
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 17:47:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234276AbhDARrk (ORCPT
+        id S234644AbhDARrn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 1 Apr 2021 13:47:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57248 "EHLO
+        Thu, 1 Apr 2021 13:47:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58298 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234000AbhDARls (ORCPT
+        with ESMTP id S234735AbhDARmJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Apr 2021 13:41:48 -0400
+        Thu, 1 Apr 2021 13:42:09 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C32DAC0A88A9
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Apr 2021 07:11:27 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9072C0A88C0
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Apr 2021 07:11:48 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1lRy2g-0001be-EH; Thu, 01 Apr 2021 16:11:26 +0200
+        id 1lRy31-0001cF-GS; Thu, 01 Apr 2021 16:11:47 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v2 01/11] netfilter: nfnetlink: add and use nfnetlink_broadcast
-Date:   Thu,  1 Apr 2021 16:11:04 +0200
-Message-Id: <20210401141114.24712-2-fw@strlen.de>
+Subject: [PATCH nf-next v2 06/11] netfilter: ebtables: use net_generic infra
+Date:   Thu,  1 Apr 2021 16:11:09 +0200
+Message-Id: <20210401141114.24712-7-fw@strlen.de>
 X-Mailer: git-send-email 2.26.3
 In-Reply-To: <20210401141114.24712-1-fw@strlen.de>
 References: <20210401141114.24712-1-fw@strlen.de>
@@ -42,61 +42,123 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This removes the only reference of net->nfnl outside of the nfnetlink
-module.  This allows to move net->nfnl to net_generic infra.
+ebtables currently uses net->xt.tables[BRIDGE], but upcoming
+patch will move net->xt.tables away from struct net.
+
+To avoid exposing x_tables internals to ebtables, use a private list
+instead.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/linux/netfilter/nfnetlink.h | 2 ++
- net/netfilter/nfnetlink.c           | 7 +++++++
- net/netfilter/nfnetlink_acct.c      | 3 +--
- 3 files changed, 10 insertions(+), 2 deletions(-)
+ net/bridge/netfilter/ebtables.c | 39 ++++++++++++++++++++++++++++-----
+ 1 file changed, 34 insertions(+), 5 deletions(-)
 
-diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
-index 791d516e1e88..d4c14257db5d 100644
---- a/include/linux/netfilter/nfnetlink.h
-+++ b/include/linux/netfilter/nfnetlink.h
-@@ -51,6 +51,8 @@ int nfnetlink_send(struct sk_buff *skb, struct net *net, u32 portid,
- 		   unsigned int group, int echo, gfp_t flags);
- int nfnetlink_set_err(struct net *net, u32 portid, u32 group, int error);
- int nfnetlink_unicast(struct sk_buff *skb, struct net *net, u32 portid);
-+void nfnetlink_broadcast(struct net *net, struct sk_buff *skb, __u32 portid,
-+			 __u32 group, gfp_t allocation);
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index ebe33b60efd6..11625d05bbbc 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -24,6 +24,7 @@
+ #include <linux/cpumask.h>
+ #include <linux/audit.h>
+ #include <net/sock.h>
++#include <net/netns/generic.h>
+ /* needed for logical [in,out]-dev filtering */
+ #include "../br_private.h"
  
- static inline u16 nfnl_msg_type(u8 subsys, u8 msg_type)
+@@ -39,8 +40,11 @@
+ #define COUNTER_BASE(c, n, cpu) ((struct ebt_counter *)(((char *)c) + \
+ 				 COUNTER_OFFSET(n) * cpu))
+ 
++struct ebt_pernet {
++	struct list_head tables;
++};
+ 
+-
++static unsigned int ebt_pernet_id __read_mostly;
+ static DEFINE_MUTEX(ebt_mutex);
+ 
+ #ifdef CONFIG_COMPAT
+@@ -336,7 +340,9 @@ static inline struct ebt_table *
+ find_table_lock(struct net *net, const char *name, int *error,
+ 		struct mutex *mutex)
  {
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index d3df66a39b5e..06e106b3ed85 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -178,6 +178,13 @@ int nfnetlink_unicast(struct sk_buff *skb, struct net *net, u32 portid)
- }
- EXPORT_SYMBOL_GPL(nfnetlink_unicast);
- 
-+void nfnetlink_broadcast(struct net *net, struct sk_buff *skb, __u32 portid,
-+			 __u32 group, gfp_t allocation)
-+{
-+	netlink_broadcast(net->nfnl, skb, portid, group, allocation);
-+}
-+EXPORT_SYMBOL_GPL(nfnetlink_broadcast);
+-	return find_inlist_lock(&net->xt.tables[NFPROTO_BRIDGE], name,
++	struct ebt_pernet *ebt_net = net_generic(net, ebt_pernet_id);
 +
- /* Process one complete nfnetlink message. */
- static int nfnetlink_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
- 			     struct netlink_ext_ack *extack)
-diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
-index bb930f3b06c7..6895f31c5fbb 100644
---- a/net/netfilter/nfnetlink_acct.c
-+++ b/net/netfilter/nfnetlink_acct.c
-@@ -469,8 +469,7 @@ static void nfnl_overquota_report(struct net *net, struct nf_acct *nfacct)
- 		kfree_skb(skb);
- 		return;
- 	}
--	netlink_broadcast(net->nfnl, skb, 0, NFNLGRP_ACCT_QUOTA,
--			  GFP_ATOMIC);
-+	nfnetlink_broadcast(net, skb, 0, NFNLGRP_ACCT_QUOTA, GFP_ATOMIC);
++	return find_inlist_lock(&ebt_net->tables, name,
+ 				"ebtable_", error, mutex);
  }
  
- int nfnl_acct_overquota(struct net *net, struct nf_acct *nfacct)
+@@ -1136,6 +1142,7 @@ static void __ebt_unregister_table(struct net *net, struct ebt_table *table)
+ int ebt_register_table(struct net *net, const struct ebt_table *input_table,
+ 		       const struct nf_hook_ops *ops, struct ebt_table **res)
+ {
++	struct ebt_pernet *ebt_net = net_generic(net, ebt_pernet_id);
+ 	struct ebt_table_info *newinfo;
+ 	struct ebt_table *t, *table;
+ 	struct ebt_replace_kernel *repl;
+@@ -1194,7 +1201,7 @@ int ebt_register_table(struct net *net, const struct ebt_table *input_table,
+ 	table->private = newinfo;
+ 	rwlock_init(&table->lock);
+ 	mutex_lock(&ebt_mutex);
+-	list_for_each_entry(t, &net->xt.tables[NFPROTO_BRIDGE], list) {
++	list_for_each_entry(t, &ebt_net->tables, list) {
+ 		if (strcmp(t->name, table->name) == 0) {
+ 			ret = -EEXIST;
+ 			goto free_unlock;
+@@ -1206,7 +1213,7 @@ int ebt_register_table(struct net *net, const struct ebt_table *input_table,
+ 		ret = -ENOENT;
+ 		goto free_unlock;
+ 	}
+-	list_add(&table->list, &net->xt.tables[NFPROTO_BRIDGE]);
++	list_add(&table->list, &ebt_net->tables);
+ 	mutex_unlock(&ebt_mutex);
+ 
+ 	WRITE_ONCE(*res, table);
+@@ -2412,6 +2419,20 @@ static struct nf_sockopt_ops ebt_sockopts = {
+ 	.owner		= THIS_MODULE,
+ };
+ 
++static int __net_init ebt_pernet_init(struct net *net)
++{
++	struct ebt_pernet *ebt_net = net_generic(net, ebt_pernet_id);
++
++	INIT_LIST_HEAD(&ebt_net->tables);
++	return 0;
++}
++
++static struct pernet_operations ebt_net_ops = {
++	.init = ebt_pernet_init,
++	.id   = &ebt_pernet_id,
++	.size = sizeof(struct ebt_pernet),
++};
++
+ static int __init ebtables_init(void)
+ {
+ 	int ret;
+@@ -2425,13 +2446,21 @@ static int __init ebtables_init(void)
+ 		return ret;
+ 	}
+ 
++	ret = register_pernet_subsys(&ebt_net_ops);
++	if (ret < 0) {
++		nf_unregister_sockopt(&ebt_sockopts);
++		xt_unregister_target(&ebt_standard_target);
++		return ret;
++	}
++
+ 	return 0;
+ }
+ 
+-static void __exit ebtables_fini(void)
++static void ebtables_fini(void)
+ {
+ 	nf_unregister_sockopt(&ebt_sockopts);
+ 	xt_unregister_target(&ebt_standard_target);
++	unregister_pernet_subsys(&ebt_net_ops);
+ }
+ 
+ EXPORT_SYMBOL(ebt_register_table);
 -- 
 2.26.3
 
