@@ -2,106 +2,109 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96471C43603
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 17:55:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6BF7C433B4
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 17:58:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 66933611EE
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 17:55:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8A22461001
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 17:58:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236293AbhDARyL (ORCPT
+        id S234363AbhDAR6T (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 1 Apr 2021 13:54:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59768 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235674AbhDARs1 (ORCPT
+        Thu, 1 Apr 2021 13:58:19 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:53110 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S236600AbhDARyy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Apr 2021 13:48:27 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43FDEC0085A5
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Apr 2021 07:12:01 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1lRy3D-0001cb-Uv; Thu, 01 Apr 2021 16:12:00 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v2 09/11] netfilter: conntrack: move sysctl pointer to net_generic infra
-Date:   Thu,  1 Apr 2021 16:11:12 +0200
-Message-Id: <20210401141114.24712-10-fw@strlen.de>
-X-Mailer: git-send-email 2.26.3
-In-Reply-To: <20210401141114.24712-1-fw@strlen.de>
-References: <20210401141114.24712-1-fw@strlen.de>
+        Thu, 1 Apr 2021 13:54:54 -0400
+Received: from us.es (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id D355263E43;
+        Thu,  1 Apr 2021 13:44:39 +0200 (CEST)
+Date:   Thu, 1 Apr 2021 13:44:52 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: iptables-nft fails to restore huge rulesets
+Message-ID: <20210401114452.GA5950@salvia>
+References: <20210331091331.GE7863@orbyte.nwl.cc>
+ <20210331133510.GF17285@breakpoint.cc>
+ <20210331144140.GV3158@orbyte.nwl.cc>
+ <20210331205151.GA4773@salvia>
+ <20210401103055.GW3158@orbyte.nwl.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20210401103055.GW3158@orbyte.nwl.cc>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-No need to keep this in struct net, place it in the net_generic data.
-The sysctl pointer is removed from struct net in a followup patch.
+On Thu, Apr 01, 2021 at 12:30:55PM +0200, Phil Sutter wrote:
+> Hi,
+> 
+> On Wed, Mar 31, 2021 at 10:51:51PM +0200, Pablo Neira Ayuso wrote:
+> > On Wed, Mar 31, 2021 at 04:41:40PM +0200, Phil Sutter wrote:
+> > > On Wed, Mar 31, 2021 at 03:35:10PM +0200, Florian Westphal wrote:
+> > > > Phil Sutter <phil@nwl.cc> wrote:
+> > > > > I'm currently trying to fix for an issue in Kubernetes realm[1]:
+> > > > > Baseline is they are trying to restore a ruleset with ~700k lines and it
+> > > > > fails. Needless to say, legacy iptables handles it just fine.
+> > > > > 
+> > > > > Meanwhile I found out there's a limit of 1024 iovecs when submitting the
+> > > > > batch to kernel, and this is what they're hitting.
+> > > > > 
+> > > > > I can work around that limit by increasing each iovec (via
+> > > > > BATCH_PAGE_SIZE) but keeping pace with legacy seems ridiculous:
+> > > > > 
+> > > > > With a scripted binary-search I checked the maximum working number of
+> > > > > restore items of:
+> > > > > 
+> > > > > (1) User-defined chains
+> > > > > (2) rules with merely comment match present
+> > > > > (3) rules matching on saddr, daddr, iniface and outiface
+> > > > > 
+> > > > > Here's legacy compared to nft with different factors in BATCH_PAGE_SIZE:
+> > > > > 
+> > > > > legacy		32 (stock)	  64		   128          256
+> > > > > ----------------------------------------------------------------------
+> > > > > 1'636'799	1'602'202	- NC -		  - NC -       - NC -
+> > > > > 1'220'159	  302'079	604'160		1'208'320      - NC -
+> > > > > 3'532'040	  242'688	485'376		  971'776    1'944'576
+> > > > 
+> > > > Can you explain that table? What does 1'636'799 mean? NC?
+> > > 
+> > > Ah, sorry: NC is "not care", I didn't consider those numbers relevant
+> > > given that iptables-nft has caught up to legacy previously already.
+> > > 
+> > > 1'636'799 is the max number of user-defined chains I can successfully
+> > > restore using iptables-legacy-restore. Looks like I dropped the rows'
+> > > description while reformatting by accident: the first row of that table
+> > > corresponds with test (1), second with test (2) and third with test (3).
+> > > 
+> > > So legacy may restore at once ~1.6M chains or ~1.2M comment rules or
+> > > ~3.5M rules with {s,d}{addr,iface} matches.
+> > > 
+> > > The following columns are for iptables-nft with varying BATCH_PAGE_SIZE
+> > > values. Each of the (max 1024) iovecs passed to kernel via sendmsg() is
+> > > 'N * getpagesize()' large.
+> > 
+> > Did you measure any slow down in the ruleset load time after selecting
+> > a larger batch chunk size?
+> 
+> Restoring 100k rules shows no significant difference in between stock
+> (32 * 8k) and 512 * 8k chunk sizes. So if you think it's acceptable to
+> allocate 4MB of buffer at once, I'd just send a patch.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/net/netfilter/nf_conntrack.h    |  3 +++
- net/netfilter/nf_conntrack_standalone.c | 10 ++++++----
- 2 files changed, 9 insertions(+), 4 deletions(-)
+That's fine.
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 439379ca9ffa..ef405a134307 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -47,6 +47,9 @@ struct nf_conntrack_net {
- 	unsigned int users4;
- 	unsigned int users6;
- 	unsigned int users_bridge;
-+#ifdef CONFIG_SYSCTL
-+	struct ctl_table_header	*sysctl_header;
-+#endif
- };
- 
- #include <linux/types.h>
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index 0ee702d374b0..3f2cc7b04b20 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -1027,6 +1027,7 @@ static void nf_conntrack_standalone_init_gre_sysctl(struct net *net,
- 
- static int nf_conntrack_standalone_init_sysctl(struct net *net)
- {
-+	struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
- 	struct nf_udp_net *un = nf_udp_pernet(net);
- 	struct ctl_table *table;
- 
-@@ -1072,8 +1073,8 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
- 		table[NF_SYSCTL_CT_BUCKETS].mode = 0444;
- 	}
- 
--	net->ct.sysctl_header = register_net_sysctl(net, "net/netfilter", table);
--	if (!net->ct.sysctl_header)
-+	cnet->sysctl_header = register_net_sysctl(net, "net/netfilter", table);
-+	if (!cnet->sysctl_header)
- 		goto out_unregister_netfilter;
- 
- 	return 0;
-@@ -1085,10 +1086,11 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
- 
- static void nf_conntrack_standalone_fini_sysctl(struct net *net)
- {
-+	struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
- 	struct ctl_table *table;
- 
--	table = net->ct.sysctl_header->ctl_table_arg;
--	unregister_net_sysctl_table(net->ct.sysctl_header);
-+	table = cnet->sysctl_header->ctl_table_arg;
-+	unregister_net_sysctl_table(cnet->sysctl_header);
- 	kfree(table);
- }
- #else
--- 
-2.26.3
+> Lifting that 1024 chunk count limit might be an alternative, but I guess
+> that sits in kernel space?
 
+That sits in the kernel, in the generic socket layer IIRC.
+
+P.S: Would you mind to send a patch for nftables too to keep it in
+sync? Thanks.
