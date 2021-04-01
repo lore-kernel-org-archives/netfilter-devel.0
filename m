@@ -7,118 +7,101 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B84BC433B4
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 17:55:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96471C43603
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 17:55:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5527A60BD3
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 17:55:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 66933611EE
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 17:55:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235516AbhDARyJ (ORCPT
+        id S236293AbhDARyL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 1 Apr 2021 13:54:09 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:53002 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236435AbhDARoy (ORCPT
+        Thu, 1 Apr 2021 13:54:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59768 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235674AbhDARs1 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Apr 2021 13:44:54 -0400
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 9074163E34
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Apr 2021 13:37:20 +0200 (CEST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] evaluate: use chain hashtable for lookups
-Date:   Thu,  1 Apr 2021 13:37:32 +0200
-Message-Id: <20210401113732.8328-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+        Thu, 1 Apr 2021 13:48:27 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43FDEC0085A5
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Apr 2021 07:12:01 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1lRy3D-0001cb-Uv; Thu, 01 Apr 2021 16:12:00 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next v2 09/11] netfilter: conntrack: move sysctl pointer to net_generic infra
+Date:   Thu,  1 Apr 2021 16:11:12 +0200
+Message-Id: <20210401141114.24712-10-fw@strlen.de>
+X-Mailer: git-send-email 2.26.3
+In-Reply-To: <20210401141114.24712-1-fw@strlen.de>
+References: <20210401141114.24712-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Instead of the linear list.
+No need to keep this in struct net, place it in the net_generic data.
+The sysctl pointer is removed from struct net in a followup patch.
 
-Before this patch:
-
-real    0m21,735s
-user    0m20,329s
-sys     0m1,384s
-
-After:
-
-real    0m10,910s
-user    0m9,448s
-sys     0m1,434s
-
-This patch requires a small adjust: Allocate a clone of the existing
-chain in the cache, instead of recycling the object to avoid a list
-corruption.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/evaluate.c | 15 ++++++++++-----
- src/rule.c     |  2 +-
- 2 files changed, 11 insertions(+), 6 deletions(-)
+ include/net/netfilter/nf_conntrack.h    |  3 +++
+ net/netfilter/nf_conntrack_standalone.c | 10 ++++++----
+ 2 files changed, 9 insertions(+), 4 deletions(-)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index cebf7cb8ef2c..5f64979453ad 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -4106,15 +4106,20 @@ static int chain_evaluate(struct eval_ctx *ctx, struct chain *chain)
- 		return table_not_found(ctx);
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index 439379ca9ffa..ef405a134307 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -47,6 +47,9 @@ struct nf_conntrack_net {
+ 	unsigned int users4;
+ 	unsigned int users6;
+ 	unsigned int users_bridge;
++#ifdef CONFIG_SYSCTL
++	struct ctl_table_header	*sysctl_header;
++#endif
+ };
  
- 	if (chain == NULL) {
--		if (chain_lookup(table, &ctx->cmd->handle) == NULL) {
-+		if (chain_cache_find(table, &ctx->cmd->handle) == NULL) {
- 			chain = chain_alloc(NULL);
- 			handle_merge(&chain->handle, &ctx->cmd->handle);
- 			chain_cache_add(chain, table);
- 		}
- 		return 0;
- 	} else if (!(chain->flags & CHAIN_F_BINDING)) {
--		if (chain_lookup(table, &chain->handle) == NULL)
--			chain_cache_add(chain_get(chain), table);
-+		if (chain_cache_find(table, &chain->handle) == NULL) {
-+			struct chain *newchain;
-+
-+			newchain = chain_alloc(NULL);
-+			handle_merge(&newchain->handle, &chain->handle);
-+			chain_cache_add(newchain, table);
-+		}
+ #include <linux/types.h>
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 0ee702d374b0..3f2cc7b04b20 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -1027,6 +1027,7 @@ static void nf_conntrack_standalone_init_gre_sysctl(struct net *net,
+ 
+ static int nf_conntrack_standalone_init_sysctl(struct net *net)
+ {
++	struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
+ 	struct nf_udp_net *un = nf_udp_pernet(net);
+ 	struct ctl_table *table;
+ 
+@@ -1072,8 +1073,8 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
+ 		table[NF_SYSCTL_CT_BUCKETS].mode = 0444;
  	}
  
- 	if (chain->flags & CHAIN_F_BASECHAIN) {
-@@ -4440,7 +4445,7 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
- 		if (table == NULL)
- 			return table_not_found(ctx);
+-	net->ct.sysctl_header = register_net_sysctl(net, "net/netfilter", table);
+-	if (!net->ct.sysctl_header)
++	cnet->sysctl_header = register_net_sysctl(net, "net/netfilter", table);
++	if (!cnet->sysctl_header)
+ 		goto out_unregister_netfilter;
  
--		if (chain_lookup(table, &cmd->handle) == NULL)
-+		if (chain_cache_find(table, &cmd->handle) == NULL)
- 			return chain_not_found(ctx);
+ 	return 0;
+@@ -1085,10 +1086,11 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
  
- 		return 0;
-@@ -4600,7 +4605,7 @@ static int cmd_evaluate_rename(struct eval_ctx *ctx, struct cmd *cmd)
- 		if (table == NULL)
- 			return table_not_found(ctx);
+ static void nf_conntrack_standalone_fini_sysctl(struct net *net)
+ {
++	struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
+ 	struct ctl_table *table;
  
--		if (chain_lookup(table, &ctx->cmd->handle) == NULL)
-+		if (chain_cache_find(table, &ctx->cmd->handle) == NULL)
- 			return chain_not_found(ctx);
- 
- 		break;
-diff --git a/src/rule.c b/src/rule.c
-index 969318008933..4f1ca22ec9e7 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -2621,7 +2621,7 @@ static int do_command_rename(struct netlink_ctx *ctx, struct cmd *cmd)
- 
- 	switch (cmd->obj) {
- 	case CMD_OBJ_CHAIN:
--		chain = chain_lookup(table, &cmd->handle);
-+		chain = chain_cache_find(table, &cmd->handle);
- 
- 		return mnl_nft_chain_rename(ctx, cmd, chain);
- 	default:
+-	table = net->ct.sysctl_header->ctl_table_arg;
+-	unregister_net_sysctl_table(net->ct.sysctl_header);
++	table = cnet->sysctl_header->ctl_table_arg;
++	unregister_net_sysctl_table(cnet->sysctl_header);
+ 	kfree(table);
+ }
+ #else
 -- 
-2.20.1
+2.26.3
 
