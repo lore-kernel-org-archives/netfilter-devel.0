@@ -7,32 +7,32 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34EB4C433ED
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 18:18:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A51FFC433B4
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 18:18:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F3C44610E5
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 18:18:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7246260240
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 18:18:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235543AbhDASSb (ORCPT
+        id S236501AbhDASSe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 1 Apr 2021 14:18:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35694 "EHLO
+        Thu, 1 Apr 2021 14:18:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37130 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237935AbhDASJL (ORCPT
+        with ESMTP id S237038AbhDASNl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Apr 2021 14:09:11 -0400
+        Thu, 1 Apr 2021 14:13:41 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5894CC02C3F3
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Apr 2021 07:09:11 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D75AC08EE13
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Apr 2021 07:09:06 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1lRy0S-0001aL-Uw; Thu, 01 Apr 2021 16:09:09 +0200
+        id 1lRy0O-0001ZD-QU; Thu, 01 Apr 2021 16:09:04 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 4/4] tests: add 8021.AD vlan test cases
-Date:   Thu,  1 Apr 2021 16:08:46 +0200
-Message-Id: <20210401140846.24452-5-fw@strlen.de>
+Subject: [PATCH nft 3/4] payload: be careful on vlan dependency removal
+Date:   Thu,  1 Apr 2021 16:08:45 +0200
+Message-Id: <20210401140846.24452-4-fw@strlen.de>
 X-Mailer: git-send-email 2.26.3
 In-Reply-To: <20210401140846.24452-1-fw@strlen.de>
 References: <20210401140846.24452-1-fw@strlen.de>
@@ -42,511 +42,61 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Check nft doesn't remove the explicit '8021ad' type check and that
-the expected dependency chains are generated.
+'vlan ...' implies 8021Q frame.  In case the expression tests something else
+(802.1AD for example) its not an implictly added one, so keep it.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- tests/py/bridge/vlan.t                |   5 +
- tests/py/bridge/vlan.t.json           | 176 ++++++++++++++++++++++++++
- tests/py/bridge/vlan.t.json.output    | 173 +++++++++++++++++++++++++
- tests/py/bridge/vlan.t.payload        |  45 +++++++
- tests/py/bridge/vlan.t.payload.netdev |  51 ++++++++
- 5 files changed, 450 insertions(+)
+ src/payload.c | 29 ++++++++++++++++++++++++++---
+ 1 file changed, 26 insertions(+), 3 deletions(-)
 
-diff --git a/tests/py/bridge/vlan.t b/tests/py/bridge/vlan.t
-index 7a52a5020efa..8553ba56351d 100644
---- a/tests/py/bridge/vlan.t
-+++ b/tests/py/bridge/vlan.t
-@@ -34,6 +34,11 @@ vlan id { 1, 2, 4, 100, 4096 };fail
+diff --git a/src/payload.c b/src/payload.c
+index a77ca5500550..cfa952248a15 100644
+--- a/src/payload.c
++++ b/src/payload.c
+@@ -661,6 +661,24 @@ static bool payload_may_dependency_kill_icmp(struct payload_dep_ctx *ctx, struct
+ 	return ctx->icmp_type == icmp_type;
+ }
  
- ether type vlan ip protocol 1 accept;ok
++static bool payload_may_dependency_kill_ll(struct payload_dep_ctx *ctx, struct expr *expr)
++{
++	const struct expr *dep = ctx->pdep->expr;
++
++	/* Never remove a 'vlan type 0x...' expression, they are never added implicitly */
++	if (dep->left->payload.desc == &proto_vlan)
++		return false;
++
++	/* 'vlan id 2' implies 'ether type 8021Q'. If a different protocol is
++	 * tested, this is not a redundant expression.
++	 */
++	if (dep->left->payload.desc == &proto_eth &&
++	    dep->right->etype == EXPR_VALUE && dep->right->len == 16)
++		return mpz_get_uint16(dep->right->value) == ETH_P_8021Q;
++
++	return true;
++}
++
+ static bool payload_may_dependency_kill(struct payload_dep_ctx *ctx,
+ 					unsigned int family, struct expr *expr)
+ {
+@@ -689,9 +707,14 @@ static bool payload_may_dependency_kill(struct payload_dep_ctx *ctx,
+ 		 * for stacked protocols if we only have protcol type matches.
+ 		 */
+ 		if (dep->left->etype == EXPR_PAYLOAD && dep->op == OP_EQ &&
+-		    expr->flags & EXPR_F_PROTOCOL &&
+-		    expr->payload.base == dep->left->payload.base)
+-			return false;
++		    expr->payload.base == dep->left->payload.base) {
++			if (expr->flags & EXPR_F_PROTOCOL)
++				return false;
++
++			if (expr->payload.base == PROTO_BASE_LL_HDR)
++				return payload_may_dependency_kill_ll(ctx, expr);
++		}
++
+ 		break;
+ 	}
  
-+# IEEE 802.1AD
-+ether type 8021ad vlan id 1 ip protocol 6 accept;ok
-+ether type 8021ad vlan id 1 vlan type vlan vlan id 2 vlan type ip counter;ok
-+ether type 8021ad vlan id 1 vlan type vlan vlan id 2 vlan type ip ip protocol 6;ok;ether type 8021ad vlan id 1 vlan type vlan vlan id 2 ip protocol 6
-+
- # illegal dependencies
- ether type ip vlan id 1;fail
- ether type ip vlan id 1 ip saddr 10.0.0.1;fail
-diff --git a/tests/py/bridge/vlan.t.json b/tests/py/bridge/vlan.t.json
-index 3fb2e4f71c75..8eab271d790b 100644
---- a/tests/py/bridge/vlan.t.json
-+++ b/tests/py/bridge/vlan.t.json
-@@ -530,3 +530,179 @@
-     }
- ]
- 
-+# ether type 8021ad vlan id 1 ip protocol 6 accept
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "type",
-+                    "protocol": "ether"
-+                }
-+            },
-+            "op": "==",
-+            "right": "8021ad"
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "id",
-+                    "protocol": "vlan"
-+                }
-+            },
-+            "op": "==",
-+            "right": 1
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "protocol",
-+                    "protocol": "ip"
-+                }
-+            },
-+            "op": "==",
-+            "right": "tcp"
-+        }
-+    },
-+    {
-+        "accept": null
-+    }
-+]
-+
-+# ether type 8021ad vlan id 1 vlan type vlan vlan id 2 vlan type ip counter
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "type",
-+                    "protocol": "ether"
-+                }
-+            },
-+            "op": "==",
-+            "right": "8021ad"
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "id",
-+                    "protocol": "vlan"
-+                }
-+            },
-+            "op": "==",
-+            "right": 1
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "type",
-+                    "protocol": "vlan"
-+                }
-+            },
-+            "op": "==",
-+            "right": "vlan"
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "id",
-+                    "protocol": "vlan"
-+                }
-+            },
-+            "op": "==",
-+            "right": 2
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "type",
-+                    "protocol": "vlan"
-+                }
-+            },
-+            "op": "==",
-+            "right": "ip"
-+        }
-+    },
-+    {
-+        "counter": {
-+            "bytes": 0,
-+            "packets": 0
-+        }
-+    }
-+]
-+
-+# ether type 8021ad vlan id 1 vlan type vlan vlan id 2 vlan type ip ip protocol 6
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "type",
-+                    "protocol": "ether"
-+                }
-+            },
-+            "op": "==",
-+            "right": "8021ad"
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "id",
-+                    "protocol": "vlan"
-+                }
-+            },
-+            "op": "==",
-+            "right": 1
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "type",
-+                    "protocol": "vlan"
-+                }
-+            },
-+            "op": "==",
-+            "right": "vlan"
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "id",
-+                    "protocol": "vlan"
-+                }
-+            },
-+            "op": "==",
-+            "right": 2
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "protocol",
-+                    "protocol": "ip"
-+                }
-+            },
-+            "op": "==",
-+            "right": "tcp"
-+        }
-+    }
-+]
-diff --git a/tests/py/bridge/vlan.t.json.output b/tests/py/bridge/vlan.t.json.output
-index 8f27ec0e7aad..a2cc212ea314 100644
---- a/tests/py/bridge/vlan.t.json.output
-+++ b/tests/py/bridge/vlan.t.json.output
-@@ -29,3 +29,176 @@
-     }
- ]
- 
-+# ether type 8021ad vlan id 1 ip protocol 6 accept
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "type",
-+                    "protocol": "ether"
-+                }
-+            },
-+            "op": "==",
-+            "right": "8021ad"
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "id",
-+                    "protocol": "vlan"
-+                }
-+            },
-+            "op": "==",
-+            "right": 1
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "protocol",
-+                    "protocol": "ip"
-+                }
-+            },
-+            "op": "==",
-+            "right": 6
-+        }
-+    },
-+    {
-+        "accept": null
-+    }
-+]
-+
-+# ether type 8021ad vlan id 1 vlan type vlan vlan id 2 vlan type ip counter
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "type",
-+                    "protocol": "ether"
-+                }
-+            },
-+            "op": "==",
-+            "right": "8021ad"
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "id",
-+                    "protocol": "vlan"
-+                }
-+            },
-+            "op": "==",
-+            "right": 1
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "type",
-+                    "protocol": "vlan"
-+                }
-+            },
-+            "op": "==",
-+            "right": "vlan"
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "id",
-+                    "protocol": "vlan"
-+                }
-+            },
-+            "op": "==",
-+            "right": 2
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "type",
-+                    "protocol": "vlan"
-+                }
-+            },
-+            "op": "==",
-+            "right": "ip"
-+        }
-+    },
-+    {
-+        "counter": null
-+    }
-+]
-+
-+# ether type 8021ad vlan id 1 vlan type vlan vlan id 2 vlan type ip ip protocol 6
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "type",
-+                    "protocol": "ether"
-+                }
-+            },
-+            "op": "==",
-+            "right": "8021ad"
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "id",
-+                    "protocol": "vlan"
-+                }
-+            },
-+            "op": "==",
-+            "right": 1
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "type",
-+                    "protocol": "vlan"
-+                }
-+            },
-+            "op": "==",
-+            "right": "vlan"
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "id",
-+                    "protocol": "vlan"
-+                }
-+            },
-+            "op": "==",
-+            "right": 2
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "protocol",
-+                    "protocol": "ip"
-+                }
-+            },
-+            "op": "==",
-+            "right": 6
-+        }
-+    }
-+]
-diff --git a/tests/py/bridge/vlan.t.payload b/tests/py/bridge/vlan.t.payload
-index 2f045d18e564..f60c752de401 100644
---- a/tests/py/bridge/vlan.t.payload
-+++ b/tests/py/bridge/vlan.t.payload
-@@ -209,3 +209,48 @@ bridge test-bridge input
-   [ cmp eq reg 1 0x00000001 ]
-   [ immediate reg 0 accept ]
- 
-+# ether type 8021ad vlan id 1 ip protocol 6 accept
-+bridge
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x0000a888 ]
-+  [ payload load 2b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = ( reg 1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000100 ]
-+  [ payload load 2b @ link header + 16 => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ immediate reg 0 accept ]
-+
-+# ether type 8021ad vlan id 1 vlan type vlan vlan id 2 vlan type ip counter
-+bridge
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x0000a888 ]
-+  [ payload load 2b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = ( reg 1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000100 ]
-+  [ payload load 2b @ link header + 16 => reg 1 ]
-+  [ cmp eq reg 1 0x00000081 ]
-+  [ payload load 2b @ link header + 18 => reg 1 ]
-+  [ bitwise reg 1 = ( reg 1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000200 ]
-+  [ payload load 2b @ link header + 20 => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+  [ counter pkts 0 bytes 0 ]
-+
-+# ether type 8021ad vlan id 1 vlan type vlan vlan id 2 vlan type ip ip protocol 6
-+bridge
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x0000a888 ]
-+  [ payload load 2b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = ( reg 1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000100 ]
-+  [ payload load 2b @ link header + 16 => reg 1 ]
-+  [ cmp eq reg 1 0x00000081 ]
-+  [ payload load 2b @ link header + 18 => reg 1 ]
-+  [ bitwise reg 1 = ( reg 1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000200 ]
-+  [ payload load 2b @ link header + 20 => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-diff --git a/tests/py/bridge/vlan.t.payload.netdev b/tests/py/bridge/vlan.t.payload.netdev
-index 9d1fe557c7ac..94ca6867c271 100644
---- a/tests/py/bridge/vlan.t.payload.netdev
-+++ b/tests/py/bridge/vlan.t.payload.netdev
-@@ -245,3 +245,54 @@ netdev test-netdev ingress
-   [ cmp eq reg 1 0x00000001 ]
-   [ immediate reg 0 accept ]
- 
-+# ether type 8021ad vlan id 1 ip protocol 6 accept
-+netdev
-+  [ meta load iiftype => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x0000a888 ]
-+  [ payload load 2b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = ( reg 1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000100 ]
-+  [ payload load 2b @ link header + 16 => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ immediate reg 0 accept ]
-+
-+# ether type 8021ad vlan id 1 vlan type vlan vlan id 2 vlan type ip counter
-+netdev
-+  [ meta load iiftype => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x0000a888 ]
-+  [ payload load 2b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = ( reg 1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000100 ]
-+  [ payload load 2b @ link header + 16 => reg 1 ]
-+  [ cmp eq reg 1 0x00000081 ]
-+  [ payload load 2b @ link header + 18 => reg 1 ]
-+  [ bitwise reg 1 = ( reg 1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000200 ]
-+  [ payload load 2b @ link header + 20 => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+  [ counter pkts 0 bytes 0 ]
-+
-+# ether type 8021ad vlan id 1 vlan type vlan vlan id 2 vlan type ip ip protocol 6
-+netdev
-+  [ meta load iiftype => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x0000a888 ]
-+  [ payload load 2b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = ( reg 1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000100 ]
-+  [ payload load 2b @ link header + 16 => reg 1 ]
-+  [ cmp eq reg 1 0x00000081 ]
-+  [ payload load 2b @ link header + 18 => reg 1 ]
-+  [ bitwise reg 1 = ( reg 1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000200 ]
-+  [ payload load 2b @ link header + 20 => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
 -- 
 2.26.3
 
