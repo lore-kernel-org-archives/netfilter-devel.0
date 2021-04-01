@@ -7,158 +7,63 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 27923C43461
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 20:29:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E001C433B4
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 21:21:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EA6DC610CF
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 20:29:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 14F6C610FA
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 21:21:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234496AbhDAU3f (ORCPT
+        id S234548AbhDAVVe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 1 Apr 2021 16:29:35 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:53704 "EHLO
+        Thu, 1 Apr 2021 17:21:34 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:53796 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234543AbhDAU3f (ORCPT
+        with ESMTP id S233926AbhDAVVc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Apr 2021 16:29:35 -0400
+        Thu, 1 Apr 2021 17:21:32 -0400
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 0249E63E43
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Apr 2021 22:29:18 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 31E5363E34
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Apr 2021 23:21:16 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 3/4] evaluate: use chain hashtable for lookups
-Date:   Thu,  1 Apr 2021 22:29:27 +0200
-Message-Id: <20210401202928.5222-3-pablo@netfilter.org>
+Subject: [PATCH nft] cache: check for NULL chain in cache_init()
+Date:   Thu,  1 Apr 2021 23:21:28 +0200
+Message-Id: <20210401212128.31768-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20210401202928.5222-1-pablo@netfilter.org>
-References: <20210401202928.5222-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Instead of the linear list lookup.
+Another process might race to add chains after chain_cache_init().
+The generation check does not help since it comes after cache_init().
+NLM_F_DUMP_INTR only guarantees consistency within one single netlink
+dump operation, so it does not help either (cache population requires
+several netlink dump commands).
 
-Before this patch:
-
-real    0m21,735s
-user    0m20,329s
-sys     0m1,384s
-
-After:
-
-real    0m10,910s
-user    0m9,448s
-sys     0m1,434s
-
-chain_lookup() is removed since linear list lookups are only used by the
-fuzzy chain name matching for error reporting.
+Let's be safe and do not assume the chain exists in the cache when
+populating the rule cache.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/rule.h |  2 --
- src/evaluate.c |  8 ++++----
- src/netlink.c  |  2 +-
- src/rule.c     | 13 +------------
- 4 files changed, 6 insertions(+), 19 deletions(-)
+ src/cache.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/include/rule.h b/include/rule.h
-index 6c6ada6b5537..ad9cca90570d 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -259,8 +259,6 @@ extern const char *chain_hookname_lookup(const char *name);
- extern struct chain *chain_alloc(const char *name);
- extern struct chain *chain_get(struct chain *chain);
- extern void chain_free(struct chain *chain);
--extern struct chain *chain_lookup(const struct table *table,
--				  const struct handle *h);
- extern struct chain *chain_lookup_fuzzy(const struct handle *h,
- 					const struct nft_cache *cache,
- 					const struct table **table);
-diff --git a/src/evaluate.c b/src/evaluate.c
-index cebf7cb8ef2c..691920b04093 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -4106,14 +4106,14 @@ static int chain_evaluate(struct eval_ctx *ctx, struct chain *chain)
- 		return table_not_found(ctx);
- 
- 	if (chain == NULL) {
--		if (chain_lookup(table, &ctx->cmd->handle) == NULL) {
-+		if (chain_cache_find(table, &ctx->cmd->handle) == NULL) {
- 			chain = chain_alloc(NULL);
- 			handle_merge(&chain->handle, &ctx->cmd->handle);
- 			chain_cache_add(chain, table);
- 		}
- 		return 0;
- 	} else if (!(chain->flags & CHAIN_F_BINDING)) {
--		if (chain_lookup(table, &chain->handle) == NULL)
-+		if (chain_cache_find(table, &chain->handle) == NULL)
- 			chain_cache_add(chain_get(chain), table);
- 	}
- 
-@@ -4440,7 +4440,7 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
- 		if (table == NULL)
- 			return table_not_found(ctx);
- 
--		if (chain_lookup(table, &cmd->handle) == NULL)
-+		if (chain_cache_find(table, &cmd->handle) == NULL)
- 			return chain_not_found(ctx);
- 
- 		return 0;
-@@ -4600,7 +4600,7 @@ static int cmd_evaluate_rename(struct eval_ctx *ctx, struct cmd *cmd)
- 		if (table == NULL)
- 			return table_not_found(ctx);
- 
--		if (chain_lookup(table, &ctx->cmd->handle) == NULL)
-+		if (chain_cache_find(table, &ctx->cmd->handle) == NULL)
- 			return chain_not_found(ctx);
- 
- 		break;
-diff --git a/src/netlink.c b/src/netlink.c
-index 103fdbd10690..50318f95e690 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -1746,7 +1746,7 @@ static struct rule *trace_lookup_rule(const struct nftnl_trace *nlt,
- 	if (!table)
- 		return NULL;
- 
--	chain = chain_lookup(table, &h);
-+	chain = chain_cache_find(table, &h);
- 	if (!chain)
- 		return NULL;
- 
-diff --git a/src/rule.c b/src/rule.c
-index 5be9c0c82444..9c9fd7fdac6d 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -761,17 +761,6 @@ void chain_free(struct chain *chain)
- 	xfree(chain);
- }
- 
--struct chain *chain_lookup(const struct table *table, const struct handle *h)
--{
--	struct chain *chain;
--
--	list_for_each_entry(chain, &table->cache_chain, cache_list) {
--		if (!strcmp(chain->handle.chain.name, h->chain.name))
--			return chain;
--	}
--	return NULL;
--}
--
- struct chain *chain_binding_lookup(const struct table *table,
- 				   const char *chain_name)
- {
-@@ -2625,7 +2614,7 @@ static int do_command_rename(struct netlink_ctx *ctx, struct cmd *cmd)
- 
- 	switch (cmd->obj) {
- 	case CMD_OBJ_CHAIN:
--		chain = chain_lookup(table, &cmd->handle);
-+		chain = chain_cache_find(table, &cmd->handle);
- 
- 		return mnl_nft_chain_rename(ctx, cmd, chain);
- 	default:
+diff --git a/src/cache.c b/src/cache.c
+index f7187ee7237f..5c21b8958a28 100644
+--- a/src/cache.c
++++ b/src/cache.c
+@@ -338,6 +338,9 @@ static int cache_init_objects(struct netlink_ctx *ctx, unsigned int flags)
+ 				if (!chain)
+ 					chain = chain_binding_lookup(table,
+ 							rule->handle.chain.name);
++				if (!chain)
++					goto cache_fails;
++
+ 				list_move_tail(&rule->list, &chain->rules);
+ 			}
+ 			if (ret < 0) {
 -- 
 2.20.1
 
