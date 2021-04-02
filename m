@@ -2,60 +2,89 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF2BBC433ED
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Apr 2021 02:37:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7E7AC433ED
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Apr 2021 03:15:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9DD88610EA
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Apr 2021 02:37:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AEFB260FDC
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Apr 2021 03:15:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233786AbhDBChQ (ORCPT
+        id S234211AbhDBDP6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 1 Apr 2021 22:37:16 -0400
-Received: from m97179.mail.qiye.163.com ([220.181.97.179]:19585 "EHLO
-        m97179.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233665AbhDBChQ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Apr 2021 22:37:16 -0400
-Received: from [192.168.188.110] (unknown [106.75.220.2])
-        by m97179.mail.qiye.163.com (Hmail) with ESMTPA id A020CE024A3;
-        Fri,  2 Apr 2021 10:37:11 +0800 (CST)
-Subject: Re: [PATCH nf-next 1/2] netfilter: flowtable: add vlan match offload
- support
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-References: <1617263411-3244-1-git-send-email-wenxu@ucloud.cn>
- <20210401081808.GA7908@salvia>
-From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <1386b6b2-edfe-04cb-0c3d-624dbbb0ada9@ucloud.cn>
-Date:   Fri, 2 Apr 2021 10:37:09 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.9.0
+        Thu, 1 Apr 2021 23:15:58 -0400
+Received: from mg.ssi.bg ([178.16.128.9]:40896 "EHLO mg.ssi.bg"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S233786AbhDBDP6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 1 Apr 2021 23:15:58 -0400
+X-Greylist: delayed 508 seconds by postgrey-1.27 at vger.kernel.org; Thu, 01 Apr 2021 23:15:57 EDT
+Received: from mg.ssi.bg (localhost [127.0.0.1])
+        by mg.ssi.bg (Proxmox) with ESMTP id E1252BBDC;
+        Fri,  2 Apr 2021 06:07:28 +0300 (EEST)
+Received: from ink.ssi.bg (ink.ssi.bg [178.16.128.7])
+        by mg.ssi.bg (Proxmox) with ESMTP id 2EE80BBD1;
+        Fri,  2 Apr 2021 06:07:28 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [178.16.129.10])
+        by ink.ssi.bg (Postfix) with ESMTPS id 587A33C0332;
+        Fri,  2 Apr 2021 06:07:27 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id 13237NKG006950;
+        Fri, 2 Apr 2021 06:07:23 +0300
+Date:   Fri, 2 Apr 2021 06:07:23 +0300 (EEST)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     Florian Westphal <fw@strlen.de>
+cc:     netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
+        Simon Horman <horms@verge.net.au>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next] netfilter: ipvs: do not printk on netns
+ creation
+In-Reply-To: <20210330064232.11960-1-fw@strlen.de>
+Message-ID: <33419d34-c96-4eb5-b633-c73d5bcf4ee@ssi.bg>
+References: <20210330064232.11960-1-fw@strlen.de>
 MIME-Version: 1.0
-In-Reply-To: <20210401081808.GA7908@salvia>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZS1VLWVdZKFlBSUI3V1ktWUFJV1kPCR
-        oVCBIfWUFZT0pKTUlPSUhKShgfVkpNSkxISEpLSEpMQ0JVGRETFhoSFyQUDg9ZV1kWGg8SFR0UWU
-        FZT0tIVUpKS0hKQ1VLWQY+
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Oj46NDo*Az06Dw4*E0wLSUww
-        EBYKCgpVSlVKTUpMSEhKS0hKQ0NNVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpLTVVM
-        TlVJSUtVSVlXWQgBWUFKT0JDNwY+
-X-HM-Tid: 0a7890710ea020bdkuqya020ce024a3
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
-On 4/1/2021 4:18 PM, Pablo Neira Ayuso wrote:
-> On Thu, Apr 01, 2021 at 03:50:10PM +0800, wenxu@ucloud.cn wrote:
->> From: wenxu <wenxu@ucloud.cn>
->>
->> This patch support vlan_id, vlan_priority and vlan_proto match
->> for flowtable offload
-> No driver in tree is using this code.
-I think mlx5_core driver can support match this code in FT offload
+	Hello,
+
+On Tue, 30 Mar 2021, Florian Westphal wrote:
+
+> This causes dmesg spew during normal operation, so remove this.
+> 
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+
+	Looks good to me, thanks!
+
+Acked-by: Julian Anastasov <ja@ssi.bg>
+
+> ---
+>  net/netfilter/ipvs/ip_vs_ftp.c | 2 --
+>  1 file changed, 2 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
+> index cf925906f59b..ef1f45e43b63 100644
+> --- a/net/netfilter/ipvs/ip_vs_ftp.c
+> +++ b/net/netfilter/ipvs/ip_vs_ftp.c
+> @@ -591,8 +591,6 @@ static int __net_init __ip_vs_ftp_init(struct net *net)
+>  		ret = register_ip_vs_app_inc(ipvs, app, app->protocol, ports[i]);
+>  		if (ret)
+>  			goto err_unreg;
+> -		pr_info("%s: loaded support on port[%d] = %u\n",
+> -			app->name, i, ports[i]);
+>  	}
+>  	return 0;
+>  
+> -- 
+> 2.26.3
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
+
