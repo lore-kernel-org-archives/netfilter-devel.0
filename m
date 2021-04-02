@@ -8,68 +8,66 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A945C433ED
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Apr 2021 20:12:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E0F0C433ED
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Apr 2021 20:26:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 450E461168
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Apr 2021 20:12:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6C2616113E
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Apr 2021 20:26:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231443AbhDBUMJ (ORCPT
+        id S231443AbhDBU0m (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 2 Apr 2021 16:12:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35780 "EHLO
+        Fri, 2 Apr 2021 16:26:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38914 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229647AbhDBUMJ (ORCPT
+        with ESMTP id S231406AbhDBU0m (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 2 Apr 2021 16:12:09 -0400
-Received: from mail-pj1-x1032.google.com (mail-pj1-x1032.google.com [IPv6:2607:f8b0:4864:20::1032])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E8E5AC0613E6;
-        Fri,  2 Apr 2021 13:12:07 -0700 (PDT)
-Received: by mail-pj1-x1032.google.com with SMTP id x21-20020a17090a5315b029012c4a622e4aso3027400pjh.2;
-        Fri, 02 Apr 2021 13:12:07 -0700 (PDT)
+        Fri, 2 Apr 2021 16:26:42 -0400
+Received: from mail-pl1-x635.google.com (mail-pl1-x635.google.com [IPv6:2607:f8b0:4864:20::635])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B451C0613E6;
+        Fri,  2 Apr 2021 13:26:41 -0700 (PDT)
+Received: by mail-pl1-x635.google.com with SMTP id t20so2942671plr.13;
+        Fri, 02 Apr 2021 13:26:41 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
-        bh=y1RHCSC+V11qd9eqh8bG77F8uwj+77oBzm4p8tM50sA=;
-        b=XeC/pJBkpIbRf6GgSFJGe85Yd4CZILNbPufOyxgb8LXPhhHX2LHH4F+tmcdS9O44DB
-         cWK16sobfxN6t/lkJreCdHtyGnytdM8A/Bl9N0rVKhIiDfWfy6Finmqse10A3qN54nIJ
-         7dB8uCp86pkRLql8PCm0od4h0ahAg5lDvdwXsrp8GzCUBStsv9cFiOwuY8SrjwZyU/MS
-         JXM/P72IHGzT6liKrlSobLMQ4esS1IExs9hcXUHFBjnVcmVGxVlI7I5jpyZaReJGdCcJ
-         J/ZYbODpegxP2Qqtb/tzJFVv8EF3SbDXinRi8QhCUzQoTjfK3im3sOl8l0xA8BlRRi5H
-         QEpA==
+        bh=2iEnItltnm0jnmhsLT70bA1klLSw3FluLsNppsZ+Zd8=;
+        b=COFellU8AeVgYaXrAvcyN29Yxa5wJmHlPp4xkJsie4HlrU5JnQyTIZLPEgMkuCXrXi
+         91vMgY3a7R/82o9DUzhECjagoQwEOmiK7JrmvIFdBhxAb2GZA4usU5W/gpDMGq5cA/t5
+         ctHmm5FYZ2O8DG/GXiUKaa79/9mNU7zr0lvGRh9OvEDaSyM1o7JH1H7QH8vQExPg3P9u
+         xErWZHKheACeZbZ9mgauMP+8SfU5rOopSDmqCnNvvh3qlkr1aAhv13Q9u5VnLE2ki9oM
+         tLO/ILyOjMuXvKH8X5jic/sw2qqNIuacpd7PernNcKt6jxc2pLw7EgCOqdl+HqhmxynQ
+         wwIQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
-        bh=y1RHCSC+V11qd9eqh8bG77F8uwj+77oBzm4p8tM50sA=;
-        b=FKCxvrHHlbuJxA27xjJz7LHzk3JKvRU2hOw8FaqyS5RENjSXzpq8RjpPwtVQIlO+bE
-         VXGAGZy+eT6VhA4O9jEWTxtYVsKD2Br01UbB5kgGgA8Wfx8gV1AKtymJ9LAQQk1Uezux
-         NzrP2LMTZQ5D3py8hg9Eg7ZdzML3Rv0SglSqbL8Viav7S87GDzy6sISv6WRfoqVEdKJj
-         F7X1bfqz/J7XnTgMmCdw+tlHvD0TlvDmzGCtr6dpKYHmYUpLu9CzhDQwiSnGPErm3fO1
-         0LHwBIIBwEbbzufmOicX4WC57Nvl2gXXq13eA2Kq9bXYCQx/TpfKCvz5+9MjZrTgPyRl
-         XSsw==
-X-Gm-Message-State: AOAM5322ceQsLAPN68Ba7tq6p8xqqFju6/e8BNzSLiHqtQRuEBRMle5I
-        4TmIAI6JMqcCgIXeqLXibJc=
-X-Google-Smtp-Source: ABdhPJyeHnx3PhROsSay6Qhc5/rhXrmHJTSBl2GIY8CnL3ORSt1GC+9SGXsO6+s8MgqhLCZwcuKbCg==
-X-Received: by 2002:a17:90a:fc5:: with SMTP id 63mr15560949pjz.233.1617394327238;
-        Fri, 02 Apr 2021 13:12:07 -0700 (PDT)
+        bh=2iEnItltnm0jnmhsLT70bA1klLSw3FluLsNppsZ+Zd8=;
+        b=BcwqcMrr/0dZzwHyVnRlfi1PzbRl0MTbfO+1Imq7HHX88+FR+BfqWiJca6dD+3RHXL
+         ON4KsFOCSVX8jvLfcq7a+49yCFmuhJHUVwYeZBWNjB5+zfkE4W5Ws9VZafwjS79qyuGQ
+         bL7jm5zoBTVhQRvhSTUL0sH28NK6R2h3sHyrbwsAnWKHLMBZHk7E/L8Ez957kfTXnN8u
+         +WoSetREosNvp7u4Zeii9u+5iK912Y8trX3XIKYTud8XxD8V5HfS+KiEVlad9UVXsHsL
+         ZLLDd0/dTqXr12xcTbRo2VcSCRZYQbvAt2uNTY3YL+mdNFSumsl39t4xZRLhe6uXkJY4
+         UCQg==
+X-Gm-Message-State: AOAM532XsNs/VWQoecqioJ01J6RsrHuwp4ykLJkOy8czP9SP1M14DjPm
+        gQtrrHbRYfDKfXA+mbZYUUo=
+X-Google-Smtp-Source: ABdhPJwYSAZCPd6alaK5AZo+0PB7LK6CP6WjgNsmPF4K+xUg08KXRrp9yv63kjqVH5j98vbwbGr4Eg==
+X-Received: by 2002:a17:90a:c257:: with SMTP id d23mr15433979pjx.102.1617395200734;
+        Fri, 02 Apr 2021 13:26:40 -0700 (PDT)
 Received: from athina.mtv.corp.google.com ([2620:15c:211:0:e15f:835a:6bcd:3410])
-        by smtp.gmail.com with ESMTPSA id h15sm8864994pfo.20.2021.04.02.13.12.06
+        by smtp.gmail.com with ESMTPSA id e6sm8558364pgh.17.2021.04.02.13.26.39
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 02 Apr 2021 13:12:06 -0700 (PDT)
+        Fri, 02 Apr 2021 13:26:40 -0700 (PDT)
 From:   =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <zenczykowski@gmail.com>
 To:     =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <maze@google.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Florian Westphal <fw@strlen.de>
 Cc:     Linux Network Development Mailing List <netdev@vger.kernel.org>,
         Netfilter Development Mailing List 
-        <netfilter-devel@vger.kernel.org>,
-        Manoj Basapathi <manojbm@codeaurora.org>,
-        Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Subject: [PATCH netfilter] netfilter: xt_IDLETIMER: fix idletimer_tg_helper non-kosher casts
-Date:   Fri,  2 Apr 2021 13:11:56 -0700
-Message-Id: <20210402201156.2789453-1-zenczykowski@gmail.com>
+        <netfilter-devel@vger.kernel.org>
+Subject: [PATCH iptables] fix build for missing ETH_ALEN definition
+Date:   Fri,  2 Apr 2021 13:26:28 -0700
+Message-Id: <20210402202628.2793741-1-zenczykowski@gmail.com>
 X-Mailer: git-send-email 2.31.0.208.g409f899ff0-goog
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -80,77 +78,25 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Maciej Żenczykowski <maze@google.com>
 
-The code is relying on the identical layout of the beginning
-of the v0 and v1 structs, but this can easily lead to code bugs
-if one were to try to extend this further...
+(this is needed at least with bionic)
 
-I use:
-  char (*plabel)[MAX_IDLETIMER_LABEL_SIZE]
-instead of:
-  char label[MAX_IDLETIMER_LABEL_SIZE]
-as the helper's argument to get better type safety
-(the former checks array size, the latter does not).
-
-Cc: Manoj Basapathi <manojbm@codeaurora.org>
-Cc: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
 Signed-off-by: Maciej Żenczykowski <maze@google.com>
 ---
- net/netfilter/xt_IDLETIMER.c | 21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
+ libxtables/xtables.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
-index 7b2f359bfce4..2b5e81f6e0bd 100644
---- a/net/netfilter/xt_IDLETIMER.c
-+++ b/net/netfilter/xt_IDLETIMER.c
-@@ -283,18 +283,19 @@ static unsigned int idletimer_tg_target_v1(struct sk_buff *skb,
- 	return XT_CONTINUE;
- }
+diff --git a/libxtables/xtables.c b/libxtables/xtables.c
+index bc42ba82..77bc18f6 100644
+--- a/libxtables/xtables.c
++++ b/libxtables/xtables.c
+@@ -45,6 +45,7 @@
  
--static int idletimer_tg_helper(struct idletimer_tg_info *info)
-+static int idletimer_tg_helper(__u32 timeout,
-+			       char (*plabel)[MAX_IDLETIMER_LABEL_SIZE])
- {
--	if (info->timeout == 0) {
-+	if (timeout == 0) {
- 		pr_debug("timeout value is zero\n");
- 		return -EINVAL;
- 	}
--	if (info->timeout >= INT_MAX / 1000) {
-+	if (timeout >= INT_MAX / 1000) {
- 		pr_debug("timeout value is too big\n");
- 		return -EINVAL;
- 	}
--	if (info->label[0] == '\0' ||
--	    strnlen(info->label,
-+	if ((*plabel)[0] == '\0' ||
-+	    strnlen(*plabel,
- 		    MAX_IDLETIMER_LABEL_SIZE) == MAX_IDLETIMER_LABEL_SIZE) {
- 		pr_debug("label is empty or not nul-terminated\n");
- 		return -EINVAL;
-@@ -310,9 +311,8 @@ static int idletimer_tg_checkentry(const struct xt_tgchk_param *par)
- 
- 	pr_debug("checkentry targinfo%s\n", info->label);
- 
--	ret = idletimer_tg_helper(info);
--	if(ret < 0)
--	{
-+	ret = idletimer_tg_helper(info->timeout, &info->label);
-+	if (ret < 0) {
- 		pr_debug("checkentry helper return invalid\n");
- 		return -EINVAL;
- 	}
-@@ -349,9 +349,8 @@ static int idletimer_tg_checkentry_v1(const struct xt_tgchk_param *par)
- 	if (info->send_nl_msg)
- 		return -EOPNOTSUPP;
- 
--	ret = idletimer_tg_helper((struct idletimer_tg_info *)info);
--	if(ret < 0)
--	{
-+	ret = idletimer_tg_helper(info->timeout, &info->label);
-+	if (ret < 0) {
- 		pr_debug("checkentry helper return invalid\n");
- 		return -EINVAL;
- 	}
+ #include <xtables.h>
+ #include <limits.h> /* INT_MAX in ip_tables.h/ip6_tables.h */
++#include <linux/if_ether.h> /* ETH_ALEN */
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ #include <linux/netfilter_ipv6/ip6_tables.h>
+ #include <libiptc/libxtc.h>
 -- 
 2.31.0.208.g409f899ff0-goog
 
