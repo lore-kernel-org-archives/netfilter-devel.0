@@ -2,68 +2,60 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E001C433B4
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 21:21:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF2BBC433ED
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Apr 2021 02:37:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 14F6C610FA
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Apr 2021 21:21:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9DD88610EA
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Apr 2021 02:37:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234548AbhDAVVe (ORCPT
+        id S233786AbhDBChQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 1 Apr 2021 17:21:34 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:53796 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233926AbhDAVVc (ORCPT
+        Thu, 1 Apr 2021 22:37:16 -0400
+Received: from m97179.mail.qiye.163.com ([220.181.97.179]:19585 "EHLO
+        m97179.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233665AbhDBChQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Apr 2021 17:21:32 -0400
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 31E5363E34
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Apr 2021 23:21:16 +0200 (CEST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] cache: check for NULL chain in cache_init()
-Date:   Thu,  1 Apr 2021 23:21:28 +0200
-Message-Id: <20210401212128.31768-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+        Thu, 1 Apr 2021 22:37:16 -0400
+Received: from [192.168.188.110] (unknown [106.75.220.2])
+        by m97179.mail.qiye.163.com (Hmail) with ESMTPA id A020CE024A3;
+        Fri,  2 Apr 2021 10:37:11 +0800 (CST)
+Subject: Re: [PATCH nf-next 1/2] netfilter: flowtable: add vlan match offload
+ support
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+References: <1617263411-3244-1-git-send-email-wenxu@ucloud.cn>
+ <20210401081808.GA7908@salvia>
+From:   wenxu <wenxu@ucloud.cn>
+Message-ID: <1386b6b2-edfe-04cb-0c3d-624dbbb0ada9@ucloud.cn>
+Date:   Fri, 2 Apr 2021 10:37:09 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.9.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20210401081808.GA7908@salvia>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZS1VLWVdZKFlBSUI3V1ktWUFJV1kPCR
+        oVCBIfWUFZT0pKTUlPSUhKShgfVkpNSkxISEpLSEpMQ0JVGRETFhoSFyQUDg9ZV1kWGg8SFR0UWU
+        FZT0tIVUpKS0hKQ1VLWQY+
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Oj46NDo*Az06Dw4*E0wLSUww
+        EBYKCgpVSlVKTUpMSEhKS0hKQ0NNVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpLTVVM
+        TlVJSUtVSVlXWQgBWUFKT0JDNwY+
+X-HM-Tid: 0a7890710ea020bdkuqya020ce024a3
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Another process might race to add chains after chain_cache_init().
-The generation check does not help since it comes after cache_init().
-NLM_F_DUMP_INTR only guarantees consistency within one single netlink
-dump operation, so it does not help either (cache population requires
-several netlink dump commands).
 
-Let's be safe and do not assume the chain exists in the cache when
-populating the rule cache.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/cache.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/src/cache.c b/src/cache.c
-index f7187ee7237f..5c21b8958a28 100644
---- a/src/cache.c
-+++ b/src/cache.c
-@@ -338,6 +338,9 @@ static int cache_init_objects(struct netlink_ctx *ctx, unsigned int flags)
- 				if (!chain)
- 					chain = chain_binding_lookup(table,
- 							rule->handle.chain.name);
-+				if (!chain)
-+					goto cache_fails;
-+
- 				list_move_tail(&rule->list, &chain->rules);
- 			}
- 			if (ret < 0) {
--- 
-2.20.1
-
+On 4/1/2021 4:18 PM, Pablo Neira Ayuso wrote:
+> On Thu, Apr 01, 2021 at 03:50:10PM +0800, wenxu@ucloud.cn wrote:
+>> From: wenxu <wenxu@ucloud.cn>
+>>
+>> This patch support vlan_id, vlan_priority and vlan_proto match
+>> for flowtable offload
+> No driver in tree is using this code.
+I think mlx5_core driver can support match this code in FT offload
