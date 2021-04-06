@@ -2,85 +2,128 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E616C43462
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Apr 2021 15:27:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A58F2C433ED
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Apr 2021 16:34:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ED526613CF
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Apr 2021 15:27:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 720E9613C0
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Apr 2021 16:34:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345657AbhDFP2D (ORCPT
+        id S244107AbhDFQeg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 6 Apr 2021 11:28:03 -0400
-Received: from www62.your-server.de ([213.133.104.62]:55622 "EHLO
-        www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230366AbhDFP2C (ORCPT
+        Tue, 6 Apr 2021 12:34:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42814 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232913AbhDFQef (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Apr 2021 11:28:02 -0400
-Received: from sslproxy03.your-server.de ([88.198.220.132])
-        by www62.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
-        (Exim 4.92.3)
-        (envelope-from <daniel@iogearbox.net>)
-        id 1lTncN-0003uh-8U; Tue, 06 Apr 2021 17:27:51 +0200
-Received: from [85.7.101.30] (helo=pc-6.home)
-        by sslproxy03.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <daniel@iogearbox.net>)
-        id 1lTncN-00050d-1N; Tue, 06 Apr 2021 17:27:51 +0200
-To:     netdev@vger.kernel.org, bpf@vger.kernel.org
-From:   Daniel Borkmann <daniel@iogearbox.net>
-Subject: LPC 2021 Networking and BPF Track CFP
-Cc:     xdp-newbies@vger.kernel.org, iovisor-dev@lists.iovisor.org,
-        linux-wireless@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        lwn@lwn.net
-Message-ID: <6d225920-9ecc-ef24-2bf8-848ca86c7fb0@iogearbox.net>
-Date:   Tue, 6 Apr 2021 17:27:50 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.2
+        Tue, 6 Apr 2021 12:34:35 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1AA89C06174A;
+        Tue,  6 Apr 2021 09:34:27 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1lToen-0001WT-5j; Tue, 06 Apr 2021 18:34:25 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     netfilter@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+        Henning Reich <henning.reich@gmail.com>
+Subject: [PATCH nft] evaluate: check if nat statement map specifies a transport header expr
+Date:   Tue,  6 Apr 2021 18:34:19 +0200
+Message-Id: <20210406163419.13267-1-fw@strlen.de>
+X-Mailer: git-send-email 2.26.3
+In-Reply-To: <20210406153338.GO13699@breakpoint.cc>
+References: <20210406153338.GO13699@breakpoint.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Authenticated-Sender: daniel@iogearbox.net
-X-Virus-Scanned: Clear (ClamAV 0.102.4/26132/Tue Apr  6 13:06:05 2021)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-We are pleased to announce the Call for Proposals (CFP) for the Networking and
-BPF track at the 2021 edition of the Linux Plumbers Conference (LPC), which is
-planned to be held in Dublin, Ireland, on September 27th - 29th, 2021.
+Importing the systemd nat table fails:
 
-Note that if an in-person conference should prove to be impossible due to the
-circumstances at that time, Linux Plumbers will switch to a virtual-only
-conference. CFP submitters should ideally be able to give their presentation
-in person, if circumstances permit, although presenting remotely will always
-be possible.
+table ip io.systemd.nat {
+ map map_port_ipport {
+   type inet_proto . inet_service : ipv4_addr . inet_service
+   elements = { tcp . 8088 : 192.168.162.117 . 80 }
+ }
+ chain prerouting {
+   type nat hook prerouting priority dstnat + 1; policy accept;
+    fib daddr type local dnat ip addr . port to meta l4proto . th dport map @map_port_ipport
+ }
+}
+ruleset:9:48-59: Error: transport protocol mapping is only valid after transport protocol match
 
-This year's Networking and BPF track technical committee is comprised of:
+To resolve this (no transport header base specified), check if the
+map itself contains a network base protocol expression.
 
-   David S. Miller <davem@davemloft.net>
-   Jakub Kicinski <kuba@kernel.org>
-   Eric Dumazet <edumazet@google.com>
-   Alexei Starovoitov <ast@kernel.org>
-   Daniel Borkmann <daniel@iogearbox.net>
-   Andrii Nakryiko <andrii@kernel.org>
+This allows nft to import the ruleset.
+Import still fails with same error if 'inet_service' is removed
+from the map, as it should.
 
-We are seeking proposals of 40 minutes in length (including Q&A discussion),
-optionally accompanied by papers of 2 to 10 pages in length.
+Reported-by: Henning Reich <henning.reich@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/evaluate.c | 38 +++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 37 insertions(+), 1 deletion(-)
 
-Any kind of advanced Linux networking and/or BPF related topic will be considered.
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 85cf9e05b641..a6bb1792c58a 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -2971,12 +2971,48 @@ static int evaluate_addr(struct eval_ctx *ctx, struct stmt *stmt,
+ 				 expr);
+ }
+ 
++static bool nat_evaluate_addr_has_th_expr(const struct expr *map)
++{
++	const struct expr *i, *concat;
++
++	if (!map || map->etype != EXPR_MAP)
++		return false;
++
++	concat = map->map;
++	if (concat ->etype != EXPR_CONCAT)
++		return false;
++
++	list_for_each_entry(i, &concat->expressions, list) {
++		enum proto_bases base;
++
++		if ((i->flags & EXPR_F_PROTOCOL) == 0)
++			continue;
++
++		switch (i->etype) {
++		case EXPR_META:
++			base = i->meta.base;
++			break;
++		case EXPR_PAYLOAD:
++			base = i->payload.base;
++			break;
++		default:
++			return false;
++		}
++
++		if (base == PROTO_BASE_NETWORK_HDR)
++			return true;
++	}
++
++	return false;
++}
++
+ static int nat_evaluate_transport(struct eval_ctx *ctx, struct stmt *stmt,
+ 				  struct expr **expr)
+ {
+ 	struct proto_ctx *pctx = &ctx->pctx;
+ 
+-	if (pctx->protocol[PROTO_BASE_TRANSPORT_HDR].desc == NULL)
++	if (pctx->protocol[PROTO_BASE_TRANSPORT_HDR].desc == NULL &&
++	    !nat_evaluate_addr_has_th_expr(stmt->nat.addr))
+ 		return stmt_binary_error(ctx, *expr, stmt,
+ 					 "transport protocol mapping is only "
+ 					 "valid after transport protocol match");
+-- 
+2.26.3
 
-Please submit your proposals through the official LPC website at:
-
-   https://linuxplumbersconf.org/event/11/abstracts/
-
-Make sure to select "Networking & BPF Summit" in the Track pull-down menu.
-
-Proposals must be submitted by August 13th, and submitters will be notified of
-acceptance by August 16th.
-
-Final slides and papers (as PDF) are due on the first day of the conference.
