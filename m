@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8732AC433B4
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Apr 2021 12:22:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AF8AC433B4
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Apr 2021 12:22:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 64BC5613C2
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Apr 2021 12:22:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DCFC86139E
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Apr 2021 12:22:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241705AbhDFMWe (ORCPT
+        id S1344149AbhDFMWi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 6 Apr 2021 08:22:34 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:34470 "EHLO
+        Tue, 6 Apr 2021 08:22:38 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:34440 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343986AbhDFMWF (ORCPT
+        with ESMTP id S1343995AbhDFMWG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Apr 2021 08:22:05 -0400
+        Tue, 6 Apr 2021 08:22:06 -0400
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 2C58163E5D;
-        Tue,  6 Apr 2021 14:21:36 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 393F663E62;
+        Tue,  6 Apr 2021 14:21:38 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 21/28] netfilter: nf_defrag_ipv6: use net_generic infra
-Date:   Tue,  6 Apr 2021 14:21:26 +0200
-Message-Id: <20210406122133.1644-22-pablo@netfilter.org>
+Subject: [PATCH net-next 25/28] netfilter: x_tables: move known table lists to net_generic infra
+Date:   Tue,  6 Apr 2021 14:21:30 +0200
+Message-Id: <20210406122133.1644-26-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210406122133.1644-1-pablo@netfilter.org>
 References: <20210406122133.1644-1-pablo@netfilter.org>
@@ -41,256 +41,172 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-This allows followup patch to remove these members from struct net.
+Will reduce struct net size by 208 bytes.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/ipv6/nf_defrag_ipv6.h |  6 ++
- net/ipv6/netfilter/nf_conntrack_reasm.c     | 68 +++++++++++----------
- net/ipv6/netfilter/nf_defrag_ipv6_hooks.c   | 15 +++--
- 3 files changed, 52 insertions(+), 37 deletions(-)
+ net/netfilter/x_tables.c | 46 ++++++++++++++++++++++++++++------------
+ 1 file changed, 33 insertions(+), 13 deletions(-)
 
-diff --git a/include/net/netfilter/ipv6/nf_defrag_ipv6.h b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
-index 6d31cd041143..ece923e2035b 100644
---- a/include/net/netfilter/ipv6/nf_defrag_ipv6.h
-+++ b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
-@@ -13,4 +13,10 @@ int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user);
- 
- struct inet_frags_ctl;
- 
-+struct nft_ct_frag6_pernet {
-+	struct ctl_table_header *nf_frag_frags_hdr;
-+	struct fqdir	*fqdir;
-+	unsigned int users;
-+};
-+
- #endif /* _NF_DEFRAG_IPV6_H */
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index c129ad334eb3..a0108415275f 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -15,28 +15,13 @@
- #include <linux/errno.h>
- #include <linux/types.h>
- #include <linux/string.h>
--#include <linux/socket.h>
--#include <linux/sockios.h>
--#include <linux/jiffies.h>
- #include <linux/net.h>
--#include <linux/list.h>
- #include <linux/netdevice.h>
--#include <linux/in6.h>
- #include <linux/ipv6.h>
--#include <linux/icmpv6.h>
--#include <linux/random.h>
- #include <linux/slab.h>
- 
--#include <net/sock.h>
--#include <net/snmp.h>
- #include <net/ipv6_frag.h>
- 
--#include <net/protocol.h>
--#include <net/transp_v6.h>
--#include <net/rawv6.h>
--#include <net/ndisc.h>
--#include <net/addrconf.h>
--#include <net/inet_ecn.h>
- #include <net/netfilter/ipv6/nf_conntrack_ipv6.h>
- #include <linux/sysctl.h>
- #include <linux/netfilter.h>
-@@ -44,11 +29,18 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <net/netfilter/ipv6/nf_defrag_ipv6.h>
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 6bd31a7a27fc..8e23ef2673e4 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -24,6 +24,7 @@
+ #include <linux/audit.h>
+ #include <linux/user_namespace.h>
+ #include <net/net_namespace.h>
 +#include <net/netns/generic.h>
  
- static const char nf_frags_cache_name[] = "nf-frags";
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_arp.h>
+@@ -38,6 +39,10 @@ MODULE_DESCRIPTION("{ip,ip6,arp,eb}_tables backend module");
+ #define XT_PCPU_BLOCK_SIZE 4096
+ #define XT_MAX_TABLE_SIZE	(512 * 1024 * 1024)
  
-+unsigned int nf_frag_pernet_id __read_mostly;
- static struct inet_frags nf_frags;
- 
-+static struct nft_ct_frag6_pernet *nf_frag_pernet(struct net *net)
-+{
-+	return net_generic(net, nf_frag_pernet_id);
-+}
++struct xt_pernet {
++	struct list_head tables[NFPROTO_NUMPROTO];
++};
 +
- #ifdef CONFIG_SYSCTL
- 
- static struct ctl_table nf_ct_frag6_sysctl_table[] = {
-@@ -75,6 +67,7 @@ static struct ctl_table nf_ct_frag6_sysctl_table[] = {
- 
- static int nf_ct_frag6_sysctl_register(struct net *net)
- {
-+	struct nft_ct_frag6_pernet *nf_frag;
- 	struct ctl_table *table;
- 	struct ctl_table_header *hdr;
- 
-@@ -86,18 +79,20 @@ static int nf_ct_frag6_sysctl_register(struct net *net)
- 			goto err_alloc;
- 	}
- 
--	table[0].data	= &net->nf_frag.fqdir->timeout;
--	table[1].data	= &net->nf_frag.fqdir->low_thresh;
--	table[1].extra2	= &net->nf_frag.fqdir->high_thresh;
--	table[2].data	= &net->nf_frag.fqdir->high_thresh;
--	table[2].extra1	= &net->nf_frag.fqdir->low_thresh;
--	table[2].extra2	= &init_net.nf_frag.fqdir->high_thresh;
-+	nf_frag = nf_frag_pernet(net);
-+
-+	table[0].data	= &nf_frag->fqdir->timeout;
-+	table[1].data	= &nf_frag->fqdir->low_thresh;
-+	table[1].extra2	= &nf_frag->fqdir->high_thresh;
-+	table[2].data	= &nf_frag->fqdir->high_thresh;
-+	table[2].extra1	= &nf_frag->fqdir->low_thresh;
-+	table[2].extra2	= &nf_frag->fqdir->high_thresh;
- 
- 	hdr = register_net_sysctl(net, "net/netfilter", table);
- 	if (hdr == NULL)
- 		goto err_reg;
- 
--	net->nf_frag_frags_hdr = hdr;
-+	nf_frag->nf_frag_frags_hdr = hdr;
- 	return 0;
- 
- err_reg:
-@@ -109,10 +104,11 @@ static int nf_ct_frag6_sysctl_register(struct net *net)
- 
- static void __net_exit nf_ct_frags6_sysctl_unregister(struct net *net)
- {
-+	struct nft_ct_frag6_pernet *nf_frag = nf_frag_pernet(net);
- 	struct ctl_table *table;
- 
--	table = net->nf_frag_frags_hdr->ctl_table_arg;
--	unregister_net_sysctl_table(net->nf_frag_frags_hdr);
-+	table = nf_frag->nf_frag_frags_hdr->ctl_table_arg;
-+	unregister_net_sysctl_table(nf_frag->nf_frag_frags_hdr);
- 	if (!net_eq(net, &init_net))
- 		kfree(table);
- }
-@@ -149,6 +145,7 @@ static void nf_ct_frag6_expire(struct timer_list *t)
- static struct frag_queue *fq_find(struct net *net, __be32 id, u32 user,
- 				  const struct ipv6hdr *hdr, int iif)
- {
-+	struct nft_ct_frag6_pernet *nf_frag = nf_frag_pernet(net);
- 	struct frag_v6_compare_key key = {
- 		.id = id,
- 		.saddr = hdr->saddr,
-@@ -158,7 +155,7 @@ static struct frag_queue *fq_find(struct net *net, __be32 id, u32 user,
- 	};
- 	struct inet_frag_queue *q;
- 
--	q = inet_frag_find(net->nf_frag.fqdir, &key);
-+	q = inet_frag_find(nf_frag->fqdir, &key);
- 	if (!q)
- 		return NULL;
- 
-@@ -495,37 +492,44 @@ EXPORT_SYMBOL_GPL(nf_ct_frag6_gather);
- 
- static int nf_ct_net_init(struct net *net)
- {
-+	struct nft_ct_frag6_pernet *nf_frag  = nf_frag_pernet(net);
- 	int res;
- 
--	res = fqdir_init(&net->nf_frag.fqdir, &nf_frags, net);
-+	res = fqdir_init(&nf_frag->fqdir, &nf_frags, net);
- 	if (res < 0)
- 		return res;
- 
--	net->nf_frag.fqdir->high_thresh = IPV6_FRAG_HIGH_THRESH;
--	net->nf_frag.fqdir->low_thresh = IPV6_FRAG_LOW_THRESH;
--	net->nf_frag.fqdir->timeout = IPV6_FRAG_TIMEOUT;
-+	nf_frag->fqdir->high_thresh = IPV6_FRAG_HIGH_THRESH;
-+	nf_frag->fqdir->low_thresh = IPV6_FRAG_LOW_THRESH;
-+	nf_frag->fqdir->timeout = IPV6_FRAG_TIMEOUT;
- 
- 	res = nf_ct_frag6_sysctl_register(net);
- 	if (res < 0)
--		fqdir_exit(net->nf_frag.fqdir);
-+		fqdir_exit(nf_frag->fqdir);
- 	return res;
- }
- 
- static void nf_ct_net_pre_exit(struct net *net)
- {
--	fqdir_pre_exit(net->nf_frag.fqdir);
-+	struct nft_ct_frag6_pernet *nf_frag  = nf_frag_pernet(net);
-+
-+	fqdir_pre_exit(nf_frag->fqdir);
- }
- 
- static void nf_ct_net_exit(struct net *net)
- {
-+	struct nft_ct_frag6_pernet *nf_frag  = nf_frag_pernet(net);
-+
- 	nf_ct_frags6_sysctl_unregister(net);
--	fqdir_exit(net->nf_frag.fqdir);
-+	fqdir_exit(nf_frag->fqdir);
- }
- 
- static struct pernet_operations nf_ct_net_ops = {
- 	.init		= nf_ct_net_init,
- 	.pre_exit	= nf_ct_net_pre_exit,
- 	.exit		= nf_ct_net_exit,
-+	.id		= &nf_frag_pernet_id,
-+	.size		= sizeof(struct nft_ct_frag6_pernet),
+ struct compat_delta {
+ 	unsigned int offset; /* offset in kernel */
+ 	int delta; /* delta in 32bit user land */
+@@ -55,7 +60,8 @@ struct xt_af {
+ #endif
  };
  
- static const struct rhashtable_params nfct_rhash_params = {
-diff --git a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-index 6646a87fb5dc..402dc4ca9504 100644
---- a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-+++ b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-@@ -25,6 +25,8 @@
- #include <net/netfilter/nf_conntrack_zones.h>
- #include <net/netfilter/ipv6/nf_defrag_ipv6.h>
+-static struct xt_af *xt;
++static unsigned int xt_pernet_id __read_mostly;
++static struct xt_af *xt __read_mostly;
  
-+extern unsigned int nf_frag_pernet_id;
-+
- static DEFINE_MUTEX(defrag6_mutex);
- 
- static enum ip6_defrag_users nf_ct6_defrag_user(unsigned int hooknum,
-@@ -89,10 +91,12 @@ static const struct nf_hook_ops ipv6_defrag_ops[] = {
- 
- static void __net_exit defrag6_net_exit(struct net *net)
+ static const char *const xt_prefix[NFPROTO_NUMPROTO] = {
+ 	[NFPROTO_UNSPEC] = "x",
+@@ -1203,10 +1209,11 @@ EXPORT_SYMBOL(xt_free_table_info);
+ struct xt_table *xt_find_table_lock(struct net *net, u_int8_t af,
+ 				    const char *name)
  {
--	if (net->nf.defrag_ipv6) {
-+	struct nft_ct_frag6_pernet *nf_frag = net_generic(net, nf_frag_pernet_id);
++	struct xt_pernet *xt_net = net_generic(net, xt_pernet_id);
+ 	struct xt_table *t, *found = NULL;
+ 
+ 	mutex_lock(&xt[af].mutex);
+-	list_for_each_entry(t, &net->xt.tables[af], list)
++	list_for_each_entry(t, &xt_net->tables[af], list)
+ 		if (strcmp(t->name, name) == 0 && try_module_get(t->me))
+ 			return t;
+ 
+@@ -1214,7 +1221,8 @@ struct xt_table *xt_find_table_lock(struct net *net, u_int8_t af,
+ 		goto out;
+ 
+ 	/* Table doesn't exist in this netns, re-try init */
+-	list_for_each_entry(t, &init_net.xt.tables[af], list) {
++	xt_net = net_generic(&init_net, xt_pernet_id);
++	list_for_each_entry(t, &xt_net->tables[af], list) {
+ 		int err;
+ 
+ 		if (strcmp(t->name, name))
+@@ -1237,8 +1245,9 @@ struct xt_table *xt_find_table_lock(struct net *net, u_int8_t af,
+ 	if (!found)
+ 		goto out;
+ 
++	xt_net = net_generic(net, xt_pernet_id);
+ 	/* and once again: */
+-	list_for_each_entry(t, &net->xt.tables[af], list)
++	list_for_each_entry(t, &xt_net->tables[af], list)
+ 		if (strcmp(t->name, name) == 0)
+ 			return t;
+ 
+@@ -1423,9 +1432,10 @@ struct xt_table *xt_register_table(struct net *net,
+ 				   struct xt_table_info *bootstrap,
+ 				   struct xt_table_info *newinfo)
+ {
+-	int ret;
++	struct xt_pernet *xt_net = net_generic(net, xt_pernet_id);
+ 	struct xt_table_info *private;
+ 	struct xt_table *t, *table;
++	int ret;
+ 
+ 	/* Don't add one object to multiple lists. */
+ 	table = kmemdup(input_table, sizeof(struct xt_table), GFP_KERNEL);
+@@ -1436,7 +1446,7 @@ struct xt_table *xt_register_table(struct net *net,
+ 
+ 	mutex_lock(&xt[table->af].mutex);
+ 	/* Don't autoload: we'd eat our tail... */
+-	list_for_each_entry(t, &net->xt.tables[table->af], list) {
++	list_for_each_entry(t, &xt_net->tables[table->af], list) {
+ 		if (strcmp(t->name, table->name) == 0) {
+ 			ret = -EEXIST;
+ 			goto unlock;
+@@ -1455,7 +1465,7 @@ struct xt_table *xt_register_table(struct net *net,
+ 	/* save number of initial entries */
+ 	private->initial_entries = private->number;
+ 
+-	list_add(&table->list, &net->xt.tables[table->af]);
++	list_add(&table->list, &xt_net->tables[table->af]);
+ 	mutex_unlock(&xt[table->af].mutex);
+ 	return table;
+ 
+@@ -1486,19 +1496,25 @@ EXPORT_SYMBOL_GPL(xt_unregister_table);
+ #ifdef CONFIG_PROC_FS
+ static void *xt_table_seq_start(struct seq_file *seq, loff_t *pos)
+ {
++	u8 af = (unsigned long)PDE_DATA(file_inode(seq->file));
+ 	struct net *net = seq_file_net(seq);
+-	u_int8_t af = (unsigned long)PDE_DATA(file_inode(seq->file));
++	struct xt_pernet *xt_net;
 +
-+	if (nf_frag->users) {
- 		nf_unregister_net_hooks(net, ipv6_defrag_ops,
- 					ARRAY_SIZE(ipv6_defrag_ops));
--		net->nf.defrag_ipv6 = false;
-+		nf_frag->users = 0;
- 	}
++	xt_net = net_generic(net, xt_pernet_id);
+ 
+ 	mutex_lock(&xt[af].mutex);
+-	return seq_list_start(&net->xt.tables[af], *pos);
++	return seq_list_start(&xt_net->tables[af], *pos);
  }
  
-@@ -130,21 +134,22 @@ static void __exit nf_defrag_fini(void)
- 
- int nf_defrag_ipv6_enable(struct net *net)
+ static void *xt_table_seq_next(struct seq_file *seq, void *v, loff_t *pos)
  {
-+	struct nft_ct_frag6_pernet *nf_frag = net_generic(net, nf_frag_pernet_id);
- 	int err = 0;
++	u8 af = (unsigned long)PDE_DATA(file_inode(seq->file));
+ 	struct net *net = seq_file_net(seq);
+-	u_int8_t af = (unsigned long)PDE_DATA(file_inode(seq->file));
++	struct xt_pernet *xt_net;
++
++	xt_net = net_generic(net, xt_pernet_id);
  
- 	might_sleep();
+-	return seq_list_next(v, &net->xt.tables[af], pos);
++	return seq_list_next(v, &xt_net->tables[af], pos);
+ }
  
--	if (net->nf.defrag_ipv6)
-+	if (nf_frag->users)
- 		return 0;
+ static void xt_table_seq_stop(struct seq_file *seq, void *v)
+@@ -1864,24 +1880,28 @@ EXPORT_SYMBOL_GPL(xt_percpu_counter_free);
  
- 	mutex_lock(&defrag6_mutex);
--	if (net->nf.defrag_ipv6)
-+	if (nf_frag->users)
- 		goto out_unlock;
+ static int __net_init xt_net_init(struct net *net)
+ {
++	struct xt_pernet *xt_net = net_generic(net, xt_pernet_id);
+ 	int i;
  
- 	err = nf_register_net_hooks(net, ipv6_defrag_ops,
- 				    ARRAY_SIZE(ipv6_defrag_ops));
- 	if (err == 0)
--		net->nf.defrag_ipv6 = true;
-+		nf_frag->users = 1;
+ 	for (i = 0; i < NFPROTO_NUMPROTO; i++)
+-		INIT_LIST_HEAD(&net->xt.tables[i]);
++		INIT_LIST_HEAD(&xt_net->tables[i]);
+ 	return 0;
+ }
  
-  out_unlock:
- 	mutex_unlock(&defrag6_mutex);
+ static void __net_exit xt_net_exit(struct net *net)
+ {
++	struct xt_pernet *xt_net = net_generic(net, xt_pernet_id);
+ 	int i;
+ 
+ 	for (i = 0; i < NFPROTO_NUMPROTO; i++)
+-		WARN_ON_ONCE(!list_empty(&net->xt.tables[i]));
++		WARN_ON_ONCE(!list_empty(&xt_net->tables[i]));
+ }
+ 
+ static struct pernet_operations xt_net_ops = {
+ 	.init = xt_net_init,
+ 	.exit = xt_net_exit,
++	.id   = &xt_pernet_id,
++	.size = sizeof(struct xt_pernet),
+ };
+ 
+ static int __init xt_init(void)
 -- 
 2.30.2
 
