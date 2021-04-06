@@ -2,143 +2,85 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC503C433B4
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Apr 2021 12:22:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E616C43462
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Apr 2021 15:27:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 88869613C9
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Apr 2021 12:22:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ED526613CF
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Apr 2021 15:27:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344162AbhDFMWs (ORCPT
+        id S1345657AbhDFP2D (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 6 Apr 2021 08:22:48 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:34432 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344004AbhDFMWH (ORCPT
+        Tue, 6 Apr 2021 11:28:03 -0400
+Received: from www62.your-server.de ([213.133.104.62]:55622 "EHLO
+        www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230366AbhDFP2C (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Apr 2021 08:22:07 -0400
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id BA70B63E66;
-        Tue,  6 Apr 2021 14:21:39 +0200 (CEST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 28/28] net: remove obsolete members from struct net
-Date:   Tue,  6 Apr 2021 14:21:33 +0200
-Message-Id: <20210406122133.1644-29-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210406122133.1644-1-pablo@netfilter.org>
-References: <20210406122133.1644-1-pablo@netfilter.org>
+        Tue, 6 Apr 2021 11:28:02 -0400
+Received: from sslproxy03.your-server.de ([88.198.220.132])
+        by www62.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
+        (Exim 4.92.3)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1lTncN-0003uh-8U; Tue, 06 Apr 2021 17:27:51 +0200
+Received: from [85.7.101.30] (helo=pc-6.home)
+        by sslproxy03.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1lTncN-00050d-1N; Tue, 06 Apr 2021 17:27:51 +0200
+To:     netdev@vger.kernel.org, bpf@vger.kernel.org
+From:   Daniel Borkmann <daniel@iogearbox.net>
+Subject: LPC 2021 Networking and BPF Track CFP
+Cc:     xdp-newbies@vger.kernel.org, iovisor-dev@lists.iovisor.org,
+        linux-wireless@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        lwn@lwn.net
+Message-ID: <6d225920-9ecc-ef24-2bf8-848ca86c7fb0@iogearbox.net>
+Date:   Tue, 6 Apr 2021 17:27:50 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.2
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Authenticated-Sender: daniel@iogearbox.net
+X-Virus-Scanned: Clear (ClamAV 0.102.4/26132/Tue Apr  6 13:06:05 2021)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+We are pleased to announce the Call for Proposals (CFP) for the Networking and
+BPF track at the 2021 edition of the Linux Plumbers Conference (LPC), which is
+planned to be held in Dublin, Ireland, on September 27th - 29th, 2021.
 
-all have been moved to generic_net infra. On x86_64, this reduces
-struct net size from 70 to 63 cache lines (4480 to 4032 byte).
+Note that if an in-person conference should prove to be impossible due to the
+circumstances at that time, Linux Plumbers will switch to a virtual-only
+conference. CFP submitters should ideally be able to give their presentation
+in person, if circumstances permit, although presenting remotely will always
+be possible.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/net_namespace.h   | 9 ---------
- include/net/netns/conntrack.h | 4 ----
- include/net/netns/netfilter.h | 6 ------
- include/net/netns/nftables.h  | 7 -------
- include/net/netns/x_tables.h  | 1 -
- 5 files changed, 27 deletions(-)
+This year's Networking and BPF track technical committee is comprised of:
 
-diff --git a/include/net/net_namespace.h b/include/net/net_namespace.h
-index dcaee24a4d87..fdb16dc33703 100644
---- a/include/net/net_namespace.h
-+++ b/include/net/net_namespace.h
-@@ -142,15 +142,6 @@ struct net {
- #if defined(CONFIG_NF_TABLES) || defined(CONFIG_NF_TABLES_MODULE)
- 	struct netns_nftables	nft;
- #endif
--#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
--	struct netns_nf_frag	nf_frag;
--	struct ctl_table_header *nf_frag_frags_hdr;
--#endif
--	struct sock		*nfnl;
--	struct sock		*nfnl_stash;
--#if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
--	struct list_head	nfct_timeout_list;
--#endif
- #endif
- #ifdef CONFIG_WEXT_CORE
- 	struct sk_buff_head	wext_nlevents;
-diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
-index 806454e767bf..e5f664d69ead 100644
---- a/include/net/netns/conntrack.h
-+++ b/include/net/netns/conntrack.h
-@@ -96,13 +96,9 @@ struct netns_ct {
- 	atomic_t		count;
- 	unsigned int		expect_count;
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
--	struct delayed_work ecache_dwork;
- 	bool ecache_dwork_pending;
- #endif
- 	bool			auto_assign_helper_warned;
--#ifdef CONFIG_SYSCTL
--	struct ctl_table_header	*sysctl_header;
--#endif
- 	unsigned int		sysctl_log_invalid; /* Log invalid packets */
- 	int			sysctl_events;
- 	int			sysctl_acct;
-diff --git a/include/net/netns/netfilter.h b/include/net/netns/netfilter.h
-index ca043342c0eb..15e2b13fb0c0 100644
---- a/include/net/netns/netfilter.h
-+++ b/include/net/netns/netfilter.h
-@@ -28,11 +28,5 @@ struct netns_nf {
- #if IS_ENABLED(CONFIG_DECNET)
- 	struct nf_hook_entries __rcu *hooks_decnet[NF_DN_NUMHOOKS];
- #endif
--#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
--	bool			defrag_ipv4;
--#endif
--#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
--	bool			defrag_ipv6;
--#endif
- };
- #endif
-diff --git a/include/net/netns/nftables.h b/include/net/netns/nftables.h
-index 6c0806bd8d1e..8c77832d0240 100644
---- a/include/net/netns/nftables.h
-+++ b/include/net/netns/nftables.h
-@@ -5,14 +5,7 @@
- #include <linux/list.h>
- 
- struct netns_nftables {
--	struct list_head	tables;
--	struct list_head	commit_list;
--	struct list_head	module_list;
--	struct list_head	notify_list;
--	struct mutex		commit_mutex;
--	unsigned int		base_seq;
- 	u8			gencursor;
--	u8			validate_state;
- };
- 
- #endif
-diff --git a/include/net/netns/x_tables.h b/include/net/netns/x_tables.h
-index 9bc5a12fdbb0..83c8ea2e87a6 100644
---- a/include/net/netns/x_tables.h
-+++ b/include/net/netns/x_tables.h
-@@ -8,7 +8,6 @@
- struct ebt_table;
- 
- struct netns_xt {
--	struct list_head tables[NFPROTO_NUMPROTO];
- 	bool notrack_deprecated_warning;
- 	bool clusterip_deprecated_warning;
- #if defined(CONFIG_BRIDGE_NF_EBTABLES) || \
--- 
-2.30.2
+   David S. Miller <davem@davemloft.net>
+   Jakub Kicinski <kuba@kernel.org>
+   Eric Dumazet <edumazet@google.com>
+   Alexei Starovoitov <ast@kernel.org>
+   Daniel Borkmann <daniel@iogearbox.net>
+   Andrii Nakryiko <andrii@kernel.org>
 
+We are seeking proposals of 40 minutes in length (including Q&A discussion),
+optionally accompanied by papers of 2 to 10 pages in length.
+
+Any kind of advanced Linux networking and/or BPF related topic will be considered.
+
+Please submit your proposals through the official LPC website at:
+
+   https://linuxplumbersconf.org/event/11/abstracts/
+
+Make sure to select "Networking & BPF Summit" in the Track pull-down menu.
+
+Proposals must be submitted by August 13th, and submitters will be notified of
+acceptance by August 16th.
+
+Final slides and papers (as PDF) are due on the first day of the conference.
