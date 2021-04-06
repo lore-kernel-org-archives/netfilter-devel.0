@@ -7,63 +7,63 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38825C43461
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Apr 2021 10:10:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 842C3C43462
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Apr 2021 10:10:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 13F4F613CA
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Apr 2021 10:10:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C698613CA
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Apr 2021 10:10:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237305AbhDFKKO (ORCPT
+        id S242401AbhDFKKN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 6 Apr 2021 06:10:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42506 "EHLO
+        Tue, 6 Apr 2021 06:10:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42496 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242659AbhDFKKO (ORCPT
+        with ESMTP id S241269AbhDFKKM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Apr 2021 06:10:14 -0400
-Received: from mail-lf1-x131.google.com (mail-lf1-x131.google.com [IPv6:2a00:1450:4864:20::131])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4BA8BC06174A
-        for <netfilter-devel@vger.kernel.org>; Tue,  6 Apr 2021 03:10:06 -0700 (PDT)
-Received: by mail-lf1-x131.google.com with SMTP id d12so21783558lfv.11
-        for <netfilter-devel@vger.kernel.org>; Tue, 06 Apr 2021 03:10:06 -0700 (PDT)
+        Tue, 6 Apr 2021 06:10:12 -0400
+Received: from mail-lj1-x22a.google.com (mail-lj1-x22a.google.com [IPv6:2a00:1450:4864:20::22a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EDFB7C06174A
+        for <netfilter-devel@vger.kernel.org>; Tue,  6 Apr 2021 03:10:04 -0700 (PDT)
+Received: by mail-lj1-x22a.google.com with SMTP id s17so15822178ljc.5
+        for <netfilter-devel@vger.kernel.org>; Tue, 06 Apr 2021 03:10:04 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ionos.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=Ootrj0MHPzZ7u8gCpBFAcFoQ8aKA6G+ziCd0m3Nz7FQ=;
-        b=B1IGAmemC4rRUa4tNqzW+gy0X4CWictAIvoXusWLVG7T08NnpbjooV/nLO9pB5DMsB
-         Ug5rNF7yXc8jbs5bflj4X95W0EcsYDN74G5fAnoZoh4rG5BxJnGSevbfhJdNRWP5XscT
-         fRdtY7i5XdynfJjNZ9lqs9S2Id6fDuGF5pzG1mcRTZx/qQ0weHotqlvOlvYQSUroV6VY
-         bX9k9R5ny4ANWy7o6Pj1TnkDMSNWzhAR4YDnIqdlVXS5T4Mx3Mz2QFiUd5KGtIaBftvW
-         VKafPSWgk5rU/2Lv1n/i5PO+2RBTCcBl6DByCocoDFTUNQmstCp/UOy7vd/OWHBD5WFW
-         J5iw==
+        bh=PCB26rrOlphv5YOqz3aj40dVTqGVJwE8/1BHqA/jZF8=;
+        b=fzy60xajqVHT4wb6omrZ3wBG1nCZ5/uPf4DS49Q0QUCES3IYhncvsJphuJELjWBF5c
+         ffj3n4TTOsq/jIYWfEum4Eg5x/LLUqHlUdgC/SkV+C/uVwi+tlpPj9n1DnpkJ8ICoQYU
+         1HYxCZL8x0dP3tCCmxYhHwT6qaYyU60a/rUrNNyrcxJMx8aa+HMX+OdGgi7a+TtdKu4t
+         b7xZWfMUDtXKHkUrKSeeyvy4vCISrCQbqzGFcjnANWiXGgDYuSqp0X4BO8VBMZ8hG19P
+         7N564J/Mq9TXZ/IXzThpnb/46f0a+JtmIDUSdT9jHgA59EK4kMWWF3j8msZWtzG82I3N
+         TOMQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=Ootrj0MHPzZ7u8gCpBFAcFoQ8aKA6G+ziCd0m3Nz7FQ=;
-        b=io9VPcYPRfg1i0/cvvff0hrzaWB6unw5YFhg4y5z39HqktbwE1BjTfbfggbDBck3gN
-         FIdr4lYoPaz8LRjacsUyDgLAZ94NmvCV2MldrH0W7GNwgfYpvOjPrXLRfz0npNns5xfu
-         U4M9em3C1l3bfjiDS8UMcOcj4MYMs4UatPSSyti8PUQP/Qty5MLjV/Fb9YYRpfY5HKFD
-         sxHeC5KKzB8nOzBM7oSyz+e2FSdE0rtOanYLFW/LmBZS+ZnrCKnKJ/htH1OKr9fE15zX
-         lM2izR1ng7aKoQ63OD157BLNx8Hc0G/zGrRv7AE8xA8G2x9Yrdbjx6LrvoBfgrmfK9U5
-         7W/A==
-X-Gm-Message-State: AOAM530l2tOGx+iT0nHnHYfwZKZaJVXBBU14cs3EFbVof0Gz3775hcOl
-        nP0IsbzOqrnZ7EyeOS3OTGPTjDcZes//1Dfx
-X-Google-Smtp-Source: ABdhPJx2K50ltn8sAKvZMu24rcxkwqqMIDTdxmbdqNO85lc6ywlXWPBp31alxPQrXK5cjtE9EFqr0Q==
-X-Received: by 2002:a05:6512:a95:: with SMTP id m21mr20569545lfu.59.1617703804560;
-        Tue, 06 Apr 2021 03:10:04 -0700 (PDT)
+        bh=PCB26rrOlphv5YOqz3aj40dVTqGVJwE8/1BHqA/jZF8=;
+        b=A7NVfWWDQn9SlWbX3dvO5skW+jMpe53lczbj/KgSlpL3AKpu/nBYOLV89p8JlqfRmC
+         OQ+8s4ZNma4noOMXA4ltb9o4ZgoRDS1qu4yF/i9qXBaOjIqeScz5cbvSSqZo9gb/EmiY
+         5diPnV2i+YOBuSzJdu014RctkL8NSkBWzO6u/PuV7cq6emJpL/Jvj50JHAVTGDAq9ILa
+         lVMGLoN4YKBxBNbBSqWBRS7AzK35sw9+K9/H7dx2Toh90ALB/KWWQHr1XyKYcHgZF52+
+         4NJWLYFVNA0hEJranSookRJJe/+lSRDUS6UuBAKNmbJIJrUcnDuH0kr9+a5UB27Wr4kP
+         EubA==
+X-Gm-Message-State: AOAM531sBLOvzukhbypPTdW1xUUyPMZf5EKFV9SMhRpTtPieLQBhu2zc
+        8q7dINaZ4p3aTcuxy3b9rAzyeSv3j+0D9nT5
+X-Google-Smtp-Source: ABdhPJxvbtFGzALxIKu2yLoK+L28PnCKxH49c0kVc3Lgd1zuHyLk0oqJTeU4B3nl0Nj0Y0Ydfii7Yw==
+X-Received: by 2002:a2e:9d4:: with SMTP id 203mr18774003ljj.211.1617703803124;
+        Tue, 06 Apr 2021 03:10:03 -0700 (PDT)
 Received: from msennikovskii4.fkb.profitbricks.net ([2a00:1fa1:c4fc:25fe:f165:934d:dfbd:8cd3])
-        by smtp.gmail.com with ESMTPSA id l7sm2170070lje.30.2021.04.06.03.10.03
+        by smtp.gmail.com with ESMTPSA id l7sm2170070lje.30.2021.04.06.03.10.02
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 06 Apr 2021 03:10:04 -0700 (PDT)
+        Tue, 06 Apr 2021 03:10:02 -0700 (PDT)
 From:   Mikhail Sennikovsky <mikhail.sennikovskii@ionos.com>
 To:     netfilter-devel@vger.kernel.org, pablo@netfilter.org,
         mikhail.sennikovskii@ionos.com
 Cc:     Mikhail Sennikovsky <mikhail.sennikovskii@cloud.ionos.com>
-Subject: [PATCH v4 5/5] tests: conntrack -L/-D ip family filtering
-Date:   Tue,  6 Apr 2021 12:09:47 +0200
-Message-Id: <20210406100947.57579-6-mikhail.sennikovskii@ionos.com>
+Subject: [PATCH v4 4/5] tests: saving and loading ct entries, save format
+Date:   Tue,  6 Apr 2021 12:09:46 +0200
+Message-Id: <20210406100947.57579-5-mikhail.sennikovskii@ionos.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210406100947.57579-1-mikhail.sennikovskii@ionos.com>
 References: <20210406100947.57579-1-mikhail.sennikovskii@ionos.com>
@@ -75,100 +75,307 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Mikhail Sennikovsky <mikhail.sennikovskii@cloud.ionos.com>
 
-Tests to cover conntrack -L and conntrack -D with and w/o
-family (-f) specfied.
-
-conntrack -L and contnrack -D shold list/delete
-both IPv4 and IPv6 entries if no family is specified,
-and should ony display the corresponding entries if
-the family is given.
-
 Signed-off-by: Mikhail Sennikovsky <mikhail.sennikovskii@cloud.ionos.com>
 ---
- tests/conntrack/testsuite/09dumpopt | 72 ++++++++++++++++++++++++++++-
- 1 file changed, 71 insertions(+), 1 deletion(-)
+ tests/conntrack/test-conntrack.c    | 84 ++++++++++++++++++++++++-----
+ tests/conntrack/testsuite/08stdin   | 80 +++++++++++++++++++++++++++
+ tests/conntrack/testsuite/09dumpopt | 77 ++++++++++++++++++++++++++
+ 3 files changed, 229 insertions(+), 12 deletions(-)
+ create mode 100644 tests/conntrack/testsuite/08stdin
+ create mode 100644 tests/conntrack/testsuite/09dumpopt
 
-diff --git a/tests/conntrack/testsuite/09dumpopt b/tests/conntrack/testsuite/09dumpopt
-index 0d5d9d4..447590b 100644
---- a/tests/conntrack/testsuite/09dumpopt
-+++ b/tests/conntrack/testsuite/09dumpopt
-@@ -74,4 +74,74 @@
- # delete v6 conntrack
- -D -w 10-s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 ; BAD
- # delete icmp ping request entry
---D -w 10 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ; BAD
+diff --git a/tests/conntrack/test-conntrack.c b/tests/conntrack/test-conntrack.c
+index 76ab051..372e025 100644
+--- a/tests/conntrack/test-conntrack.c
++++ b/tests/conntrack/test-conntrack.c
+@@ -28,6 +28,23 @@ int main()
+ 	struct dirent *dent;
+ 	char file[1024];
+ 	int i,n;
++	char cmd_buf[1024 * 8];
++	int i_cmd_buf = 0;
++	char cmd, cur_cmd = 0;
++	char *cmd_opt;
++
++#define cmd_strappend(_s) do { \
++	char * pos = stpncpy(cmd_buf + i_cmd_buf, _s, sizeof(cmd_buf) - i_cmd_buf); \
++	i_cmd_buf = pos - cmd_buf; \
++	if (i_cmd_buf == sizeof(cmd_buf)) { \
++		printf("buffer full!\n"); \
++		exit(EXIT_FAILURE); \
++	} \
++} while (0)
++
++#define cmd_reset() do { \
++		i_cmd_buf = 0; \
++} while (0)
+ 
+ 	n = scandir("testsuite", &dents, NULL, alphasort);
+ 
+@@ -48,9 +65,7 @@ int main()
+ 		}
+ 
+ 		while (fgets(buf, sizeof(buf), fp)) {
+-			char tmp[1024] = CT_PROG, *res;
+-			tmp[strlen(CT_PROG)] = ' ';
+-
++			char *res;
+ 			line++;
+ 
+ 			if (buf[0] == '#' || buf[0] == ' ')
+@@ -63,27 +78,72 @@ int main()
+ 				exit(EXIT_FAILURE);
+ 			}
+ 			*res = '\0';
+-			res+=2;
++			res++;
++			for (; *res == ' ' || *res == '\t'; res++);
++			cmd = res[0];
++			cmd_opt = &res[1];
++			for (; *cmd_opt == ' ' || *cmd_opt == '\t'; cmd_opt++);
++			res = strchr(cmd_opt, '\n');
++			if (res)
++				*res = '\0';
++
++			if (cur_cmd && cmd != cur_cmd) {
++				/* complete current multi-line command */
++				switch (cur_cmd) {
++				case '\n':
++					cmd_strappend("\" | ");
++					break;
++				default:
++					printf("Internal Error: unexpected multiline command %c",
++							cur_cmd);
++					exit(EXIT_FAILURE);
++					break;
++				}
++
++				cur_cmd = 0;
++			}
++
++			switch (cmd) {
++			case '\n':
++				if (!cur_cmd) {
++					cmd_strappend("echo \"");
++					cur_cmd = cmd;
++				} else
++					cmd_strappend("\n");
++				cmd_strappend(buf);
++				continue;
++			default:
++				cmd_strappend(CT_PROG);
++				cmd_strappend(" ");
++				cmd_strappend(buf);
++				if (cmd == '|') {
++					cmd_strappend(" | ");
++					if (cmd_opt[0]) {
++						cmd_strappend("sed \"");
++						cmd_strappend(cmd_opt);
++						cmd_strappend("\" | ");
++					}
++					continue;
++				}
++				cmd_reset();
++				break;
++			}
+ 
+-			strcpy(tmp + strlen(CT_PROG) + 1, buf);
+-			printf("(%d) Executing: %s\n", line, tmp);
++			printf("(%d) Executing: %s\n", line, cmd_buf);
+ 
+ 			fflush(stdout);
+-			ret = system(tmp);
++			ret = system(cmd_buf);
+ 
+ 			if (WIFEXITED(ret) &&
+ 			    WEXITSTATUS(ret) == EXIT_SUCCESS) {
+-			    	if (res[0] == 'O' &&
+-				    res[1] == 'K')
++				if (cmd == 'O')
+ 					ok++;
+ 				else {
+ 					bad++;
+ 					printf("^----- BAD\n");
+ 				}
+ 			} else {
+-				if (res[0] == 'B' &&
+-				    res[1] == 'A' &&
+-				    res[2] == 'D')
++				if (cmd == 'B')
+ 					ok++;
+ 				else {
+ 					bad++;
+diff --git a/tests/conntrack/testsuite/08stdin b/tests/conntrack/testsuite/08stdin
+new file mode 100644
+index 0000000..1d31176
+--- /dev/null
++++ b/tests/conntrack/testsuite/08stdin
+@@ -0,0 +1,80 @@
++# create
++# create a conntrack
++-I -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ;
++# create from reply
++-I -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 --state LISTEN -u SEEN_REPLY -t 50 ;
++# create a v6 conntrack
++-I -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ;
++# creae icmp ping request entry
++-I -t 29 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ;
++-R - ; OK
++# create again
++-I -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; BAD
++-I -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 --state LISTEN -u SEEN_REPLY -t 50 ; BAD
++-I -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; BAD
++-I -t 29 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ; BAD
++# make sure create again with stdio mode fails as well
++-I -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ;
++-R - ; BAD
++-I -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 --state LISTEN -u SEEN_REPLY -t 50 ;
++-R - ; BAD
++# empty lines are ignored
++;
++-I -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ;
++-R - ; BAD
++# spaces or tabs are ignored as well
++  ;
++		;
++-I -t 29 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ;
++-R - ; BAD
++# delete
++-D -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 ;
++# empty lines should be just ignored
++;
++;
++# delete reverse
++-D -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 ;
++# empty lines with spaces or tabs should be ignored as well
++ ;
++	;
++		;
++  ;
++	    ;
++	    	    	;
++# delete v6 conntrack
++-D -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 ;
++# delete icmp ping request entry
++-D -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ;
++;
++;
++-R - ; OK
++# create again - should succeed now
++-I -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; OK
++-I -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 --state LISTEN -u SEEN_REPLY -t 50 ; OK
++-I -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; OK
++-I -t 29 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ; OK
++# delete again (for cleanup)
++-D -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 ;
++-D -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 ;
++-D -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 ;
++-D -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ;
++;
++-R - ; OK
++# delete no entries - should return err
++-D -w 123 ; BAD
++# delete no entries via stdin - should succeed since we do not count entries in stdin mode atm
++-D -w 123 ;
++-R - ; OK
++# delete no entries in parallel with adding entries via stdin - should succeed
++# -D and -I should work in parallel
++-D -w 123 ;
++-I -w 123 -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ;
++-R - ; OK
++# now deleting entries should return success
++-D -w 123 ;
++-R - ; OK
++# delete no entries via stdin - should succeed since we do not count entries in stdin mode atm
++-D -w 123 ;
++-R - ; OK
++# validate it via standard command line way
++-D -w 123 ; BAD
 \ No newline at end of file
-+-D -w 10 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ; BAD
+diff --git a/tests/conntrack/testsuite/09dumpopt b/tests/conntrack/testsuite/09dumpopt
+new file mode 100644
+index 0000000..0d5d9d4
+--- /dev/null
++++ b/tests/conntrack/testsuite/09dumpopt
+@@ -0,0 +1,77 @@
++# test opts output for -L
++# create
++# create a conntrack
++-I -w 10 -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ;
++# create from reply
++-I -w 10 -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 --state LISTEN -u SEEN_REPLY -t 50 ;
++# create a v6 conntrack
++-I -w 10 -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ;
++# creae icmp ping request entry
++-I -w 10 -t 29 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ;
++-R - ; OK
++# copy ipv4 bits to zone 11
++-L -w 10 -o save -f ipv4 ; |s/-w 10/-w 11/g
++-R - ; OK
++# copy ipv6 bits to zone 11
++-L -w 10 -o save -f ipv6 ; |s/-w 10/-w 11/g
++-R - ; OK
++# create again in zone 11
++-I -w 11 -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; BAD
++-I -w 11 -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 --state LISTEN -u SEEN_REPLY -t 50 ; BAD
++-I -w 11 -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; BAD
++-I -w 11 -t 29 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ; BAD
++# delete new entries
++-D -w 11 -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 ; OK
++# delete reverse
++-D -w 11 -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 ; OK
++# delete v6 conntrack
++-D -w 11-s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 ; OK
++# delete icmp ping request entry
++-D -w 11 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ; OK
++# delete old entries
++-D -w 10 -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 ; OK
++# delete reverse
++-D -w 10 -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 ; OK
++# delete v6 conntrack
++-D -w 10-s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 ; OK
++# delete icmp ping request entry
++-D -w 10 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ; OK
 +#
-+# Additional tests to check that family attribute is treated properly
-+# for -L and -D commands
-+# namely:
-+# - if family (-f) is given - only entries of the given family are dumped/deleted
-+# - if no family is given - entries of both ipv4 and ipv6 families are dumped/deleted
-+# First create some ipv4 and ipv6 entries
-+-I -w 10 -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; OK
-+-I -w 10 -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 --state LISTEN -u SEEN_REPLY -t 50 ; OK
-+-I -w 10 -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; OK
-+-I -w 10 -t 29 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ; OK
-+# dump all entries to zone 11
-+-L -w 10 -o save; |s/-w 10/-w 11/g
++# now test opts output for -D
++# create entries again
++# create a conntrack
++-I -w 10 -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ;
++# create from reply
++-I -w 10 -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 --state LISTEN -u SEEN_REPLY -t 50 ;
++# create a v6 conntrack
++-I -w 10 -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ;
++# creae icmp ping request entry
++-I -w 10 -t 29 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ;
 +-R - ; OK
-+# ensure that both ipv4 and ipv6 entries get copied (delete for each of them should succeed)
-+-D -w 11 -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY ; OK
-+-D -w 11 -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 --state LISTEN -u SEEN_REPLY ; OK
-+-D -w 11 -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY; OK
++# move ipv4 bits to zone 11
++-D -w 10 -o save -f ipv4 ; |s/-w 10/-w 11/g; s/-D /-I /g
++-R - ; OK
++# move ipv6 bits to zone 11
++-D -w 10 -o save -f ipv6 ; |s/-w 10/-w 11/g; s/-D /-I /g
++-R - ; OK
++# create again in zone 11
++-I -w 11 -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; BAD
++-I -w 11 -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 --state LISTEN -u SEEN_REPLY -t 50 ; BAD
++-I -w 11 -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; BAD
++-I -w 11 -t 29 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ; BAD
++# delete new entries
++-D -w 11 -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 ; OK
++# delete reverse
++-D -w 11 -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 ; OK
++# delete v6 conntrack
++-D -w 11-s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 ; OK
++# delete icmp ping request entry
 +-D -w 11 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ; OK
-+# dump only ipv4 entries to zone 11
-+-L -w 10 -o save -f ipv4; |s/-w 10/-w 11/g
-+-R - ; OK
-+# ensure that only ipv4 entries get copied (delete only for ipv4 entries should succeed)
-+-D -w 11 -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY; OK
-+-D -w 11 -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 --state LISTEN -u SEEN_REPLY; OK
-+-D -w 11 -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY; BAD
-+-D -w 11 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ; OK
-+# dump only ipv6 entries to zone 11
-+-L -w 10 -o save -f ipv6; |s/-w 10/-w 11/g
-+-R - ; OK
-+# ensure that only ipv6 entries get copied (delete only for ipv6 entries should succeed)
-+-D -w 11 -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY; BAD
-+-D -w 11 -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 --state LISTEN -u SEEN_REPLY; BAD
-+-D -w 11 -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY; OK
-+-D -w 11 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ; BAD
-+# now test deleting w/ and /o family specified
-+# for simplicity do it by re-creating entries in zone 11
-+# by copying ezisting entries from zone 10 into it
-+# re-create entries in ct zone 11
-+-L -w 10 -o save; |s/-w 10/-w 11/g
-+-R - ; OK
-+# delete all entries in zone 11
-+-D -w 11 ; OK
-+# both ipv4 and ipv6 should be deleted
-+-D -w 11 -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY; BAD
-+-D -w 11 -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 --state LISTEN -u SEEN_REPLY; BAD
-+-D -w 11 -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY; BAD
-+-D -w 11 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ; BAD
-+# re-create entries in ct zone 11
-+-L -w 10 -o save; |s/-w 10/-w 11/g
-+-R - ; OK
-+# delete only ipv4 entries in zone 11
-+-D -w 11 -f ipv4 ; OK
-+# ipv6 should remain
-+-D -w 11 -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY; BAD
-+-D -w 11 -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 --state LISTEN -u SEEN_REPLY; BAD
-+-D -w 11 -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY; OK
-+-D -w 11 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ; BAD
-+ # re-create entries in ct zone 11
-+-L -w 10 -o save; |s/-w 10/-w 11/g
-+-R - ; OK
-+# delete only ipv6 entries in zone 11
-+-D -w 11 -f ipv6 ; OK
-+# ipv4 should remain
-+-D -w 11 -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY; OK
-+-D -w 11 -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 --state LISTEN -u SEEN_REPLY; OK
-+-D -w 11 -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY; BAD
-+-D -w 11 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ; OK
-+# clean up after yourself
-+-D -w 10 ; OK
++# delete old entries
++-D -w 10 -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 ; BAD
++# delete reverse
++-D -w 10 -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 ; BAD
++# delete v6 conntrack
++-D -w 10-s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 ; BAD
++# delete icmp ping request entry
++-D -w 10 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ; BAD
+\ No newline at end of file
 -- 
 2.25.1
 
