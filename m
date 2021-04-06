@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F591C433B4
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Apr 2021 12:22:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA7DAC433ED
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Apr 2021 12:22:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F020E6139E
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Apr 2021 12:22:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 932DD613C9
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Apr 2021 12:22:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344059AbhDFMWQ (ORCPT
+        id S1344075AbhDFMWT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 6 Apr 2021 08:22:16 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:34442 "EHLO
+        Tue, 6 Apr 2021 08:22:19 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:34446 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343984AbhDFMWE (ORCPT
+        with ESMTP id S1343948AbhDFMWE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 6 Apr 2021 08:22:04 -0400
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id AD76F63E5C;
-        Tue,  6 Apr 2021 14:21:36 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 9161063E40;
+        Tue,  6 Apr 2021 14:21:34 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 22/28] netfilter: nf_defrag_ipv4: use net_generic infra
-Date:   Tue,  6 Apr 2021 14:21:27 +0200
-Message-Id: <20210406122133.1644-23-pablo@netfilter.org>
+Subject: [PATCH net-next 18/28] netfilter: nfnetlink: add and use nfnetlink_broadcast
+Date:   Tue,  6 Apr 2021 14:21:23 +0200
+Message-Id: <20210406122133.1644-19-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210406122133.1644-1-pablo@netfilter.org>
 References: <20210406122133.1644-1-pablo@netfilter.org>
@@ -41,82 +41,62 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-This allows followup patch to remove the defrag_ipv4 member from struct
-net.  It also allows to auto-remove the hooks later on by adding a
-_disable() function.  This will be done later in a follow patch series.
+This removes the only reference of net->nfnl outside of the nfnetlink
+module.  This allows to move net->nfnl to net_generic infra.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/nf_defrag_ipv4.c | 20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+ include/linux/netfilter/nfnetlink.h | 2 ++
+ net/netfilter/nfnetlink.c           | 7 +++++++
+ net/netfilter/nfnetlink_acct.c      | 3 +--
+ 3 files changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/net/ipv4/netfilter/nf_defrag_ipv4.c b/net/ipv4/netfilter/nf_defrag_ipv4.c
-index 8115611aa47d..ffdcc2b9360f 100644
---- a/net/ipv4/netfilter/nf_defrag_ipv4.c
-+++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
-@@ -20,8 +20,13 @@
- #endif
- #include <net/netfilter/nf_conntrack_zones.h>
+diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
+index 791d516e1e88..d4c14257db5d 100644
+--- a/include/linux/netfilter/nfnetlink.h
++++ b/include/linux/netfilter/nfnetlink.h
+@@ -51,6 +51,8 @@ int nfnetlink_send(struct sk_buff *skb, struct net *net, u32 portid,
+ 		   unsigned int group, int echo, gfp_t flags);
+ int nfnetlink_set_err(struct net *net, u32 portid, u32 group, int error);
+ int nfnetlink_unicast(struct sk_buff *skb, struct net *net, u32 portid);
++void nfnetlink_broadcast(struct net *net, struct sk_buff *skb, __u32 portid,
++			 __u32 group, gfp_t allocation);
  
-+static unsigned int defrag4_pernet_id __read_mostly;
- static DEFINE_MUTEX(defrag4_mutex);
- 
-+struct defrag4_pernet {
-+	unsigned int users;
-+};
-+
- static int nf_ct_ipv4_gather_frags(struct net *net, struct sk_buff *skb,
- 				   u_int32_t user)
+ static inline u16 nfnl_msg_type(u8 subsys, u8 msg_type)
  {
-@@ -106,15 +111,19 @@ static const struct nf_hook_ops ipv4_defrag_ops[] = {
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index d3df66a39b5e..06e106b3ed85 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -178,6 +178,13 @@ int nfnetlink_unicast(struct sk_buff *skb, struct net *net, u32 portid)
+ }
+ EXPORT_SYMBOL_GPL(nfnetlink_unicast);
  
- static void __net_exit defrag4_net_exit(struct net *net)
- {
--	if (net->nf.defrag_ipv4) {
-+	struct defrag4_pernet *nf_defrag = net_generic(net, defrag4_pernet_id);
++void nfnetlink_broadcast(struct net *net, struct sk_buff *skb, __u32 portid,
++			 __u32 group, gfp_t allocation)
++{
++	netlink_broadcast(net->nfnl, skb, portid, group, allocation);
++}
++EXPORT_SYMBOL_GPL(nfnetlink_broadcast);
 +
-+	if (nf_defrag->users) {
- 		nf_unregister_net_hooks(net, ipv4_defrag_ops,
- 					ARRAY_SIZE(ipv4_defrag_ops));
--		net->nf.defrag_ipv4 = false;
-+		nf_defrag->users = 0;
+ /* Process one complete nfnetlink message. */
+ static int nfnetlink_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			     struct netlink_ext_ack *extack)
+diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
+index bb930f3b06c7..6895f31c5fbb 100644
+--- a/net/netfilter/nfnetlink_acct.c
++++ b/net/netfilter/nfnetlink_acct.c
+@@ -469,8 +469,7 @@ static void nfnl_overquota_report(struct net *net, struct nf_acct *nfacct)
+ 		kfree_skb(skb);
+ 		return;
  	}
+-	netlink_broadcast(net->nfnl, skb, 0, NFNLGRP_ACCT_QUOTA,
+-			  GFP_ATOMIC);
++	nfnetlink_broadcast(net, skb, 0, NFNLGRP_ACCT_QUOTA, GFP_ATOMIC);
  }
  
- static struct pernet_operations defrag4_net_ops = {
- 	.exit = defrag4_net_exit,
-+	.id   = &defrag4_pernet_id,
-+	.size = sizeof(struct defrag4_pernet),
- };
- 
- static int __init nf_defrag_init(void)
-@@ -129,21 +138,22 @@ static void __exit nf_defrag_fini(void)
- 
- int nf_defrag_ipv4_enable(struct net *net)
- {
-+	struct defrag4_pernet *nf_defrag = net_generic(net, defrag4_pernet_id);
- 	int err = 0;
- 
- 	might_sleep();
- 
--	if (net->nf.defrag_ipv4)
-+	if (nf_defrag->users)
- 		return 0;
- 
- 	mutex_lock(&defrag4_mutex);
--	if (net->nf.defrag_ipv4)
-+	if (nf_defrag->users)
- 		goto out_unlock;
- 
- 	err = nf_register_net_hooks(net, ipv4_defrag_ops,
- 				    ARRAY_SIZE(ipv4_defrag_ops));
- 	if (err == 0)
--		net->nf.defrag_ipv4 = true;
-+		nf_defrag->users = 1;
- 
-  out_unlock:
- 	mutex_unlock(&defrag4_mutex);
+ int nfnl_acct_overquota(struct net *net, struct nf_acct *nfacct)
 -- 
 2.30.2
 
