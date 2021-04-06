@@ -2,95 +2,87 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BF62C433B4
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Apr 2021 08:51:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2633BC433ED
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Apr 2021 09:50:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3736161241
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Apr 2021 08:51:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ED815613BC
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Apr 2021 09:50:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240554AbhDFIvk (ORCPT
+        id S237550AbhDFJun (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 6 Apr 2021 04:51:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53548 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232593AbhDFIvi (ORCPT
+        Tue, 6 Apr 2021 05:50:43 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:33782 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S237467AbhDFJun (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Apr 2021 04:51:38 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F558C06174A
-        for <netfilter-devel@vger.kernel.org>; Tue,  6 Apr 2021 01:51:31 -0700 (PDT)
-Received: from localhost ([::1]:54242 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.94)
-        (envelope-from <phil@nwl.cc>)
-        id 1lThQn-0003ro-5b; Tue, 06 Apr 2021 10:51:29 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-Subject: [iptables PATCH v2] nft: Increase BATCH_PAGE_SIZE to support huge rulesets
-Date:   Tue,  6 Apr 2021 10:51:20 +0200
-Message-Id: <20210406085120.10310-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.31.0
+        Tue, 6 Apr 2021 05:50:43 -0400
+Received: from us.es (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 3ECDA63E3F;
+        Tue,  6 Apr 2021 11:50:15 +0200 (CEST)
+Date:   Tue, 6 Apr 2021 11:50:31 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Firo Yang <firo.yang@suse.com>
+Cc:     netfilter-devel@vger.kernel.org, simonf.lees@suse.com
+Subject: Re: [PATCH 1/2] ebtables: processing '--concurrent' beofore other
+ arguments
+Message-ID: <20210406095031.GA15256@salvia>
+References: <20210401040741.15672-1-firo.yang@suse.com>
+ <20210401040741.15672-2-firo.yang@suse.com>
+ <20210403181517.GA4624@salvia>
+ <20210403182204.GA5182@salvia>
+ <20210406025737.2jws5uuqz6ozncun@suse.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20210406025737.2jws5uuqz6ozncun@suse.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-In order to support the same ruleset sizes as legacy iptables, the
-kernel's limit of 1024 iovecs has to be overcome. Therefore increase
-each iovec's size from 128KB to 2MB.
+On Tue, Apr 06, 2021 at 10:57:37AM +0800, Firo Yang wrote:
+> The 04/03/2021 20:22, Pablo Neira Ayuso wrote:
+> > On Sat, Apr 03, 2021 at 08:15:17PM +0200, Pablo Neira Ayuso wrote:
+> > > Hi,
+> > >
+> > > On Thu, Apr 01, 2021 at 12:07:40PM +0800, Firo Yang wrote:
+> > > > Our customer reported a following issue:
+> > > > If '--concurrent' was passed to ebtables command behind other arguments,
+> > > > '--concurrent' will not take effect sometimes; for a simple example,
+> > > > ebtables -L --concurrent. This is becuase the handling of '--concurrent'
+> > > > is implemented in a passing-order-dependent way.
+> > > >
+> > > > So we can fix this problem by processing it before other arguments.
+> > >
+> > > Would you instead make a patch to spew an error if --concurrent is the
+> > > first argument?
+> >
+> > Wrong wording:
+> >
+> > Would you instead make a patch to spew an error if --concurrent is
+> > _not_ the first argument?
+>
+> Hi Pablo, I think it would make more sense if we don't introduce this
+> inconvenice to users. If you insist, I would go create the patch as you
+> intended.
 
-While being at it, add a log message for failing sendmsg() call. This is
-not supposed to happen, even if the transaction fails. Yet if it does,
-users are left with only a "line XXX failed" message (with line number
-being the COMMIT line).
+See ebtables.c line 579.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
-Changes since v1:
-- Drop getpagesize() call, no real use for that.
-- Adjust comment and description to account for the actual page size.
----
- iptables/nft.c | 12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+        /* The scenario induced by this loop makes that:
+         * '-t'  ,'-M' and --atomic (if specified) have to come
+         * before '-A' and the like */
 
-diff --git a/iptables/nft.c b/iptables/nft.c
-index bd840e75f83f4..4e80e5b7e7972 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -88,11 +88,11 @@ int mnl_talk(struct nft_handle *h, struct nlmsghdr *nlh,
- 
- #define NFT_NLMSG_MAXSIZE (UINT16_MAX + getpagesize())
- 
--/* selected batch page is 256 Kbytes long to load ruleset of
-- * half a million rules without hitting -EMSGSIZE due to large
-- * iovec.
-+/* Selected batch page is 2 Mbytes long to support loading a ruleset of 3.5M
-+ * rules matching on source and destination address as well as input and output
-+ * interfaces. This is what legacy iptables supports.
-  */
--#define BATCH_PAGE_SIZE getpagesize() * 32
-+#define BATCH_PAGE_SIZE 2 * 1024 * 1024
- 
- static struct nftnl_batch *mnl_batch_init(void)
- {
-@@ -220,8 +220,10 @@ static int mnl_batch_talk(struct nft_handle *h, int numcmds)
- 	int err = 0;
- 
- 	ret = mnl_nft_socket_sendmsg(h, numcmds);
--	if (ret == -1)
-+	if (ret == -1) {
-+		fprintf(stderr, "sendmsg() failed: %s\n", strerror(errno));
- 		return -1;
-+	}
- 
- 	FD_ZERO(&readfds);
- 	FD_SET(fd, &readfds);
--- 
-2.31.0
+There are other options following this approach, please align
+--concurrent with those.
 
+Have a look at 'M' and 't' for the error that is reported.
+
+                case 'M': /* Modprobe */
+                        if (OPT_COMMANDS)
+                                ebt_print_error2("Please put the -M option earlier");
+
+Thanks.
