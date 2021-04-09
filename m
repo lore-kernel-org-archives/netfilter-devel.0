@@ -2,146 +2,154 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F321AC433ED
-	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Apr 2021 14:28:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC7AAC433B4
+	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Apr 2021 15:49:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C52C461185
-	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Apr 2021 14:28:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 911CC61042
+	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Apr 2021 15:49:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233009AbhDIO24 (ORCPT
+        id S233332AbhDIPt6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 9 Apr 2021 10:28:56 -0400
-Received: from m97179.mail.qiye.163.com ([220.181.97.179]:59270 "EHLO
-        m97179.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233019AbhDIO24 (ORCPT
+        Fri, 9 Apr 2021 11:49:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46044 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229665AbhDIPt6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 9 Apr 2021 10:28:56 -0400
-Received: from [192.168.1.10] (unknown [180.157.172.243])
-        by m97179.mail.qiye.163.com (Hmail) with ESMTPA id 2FC90E02918;
-        Fri,  9 Apr 2021 22:28:30 +0800 (CST)
-Subject: Re: [PATCH nf v2] netfilter: nft_payload: fix the
- h_vlan_encapsulated_proto flow_dissector vlaue
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-References: <1617944629-10338-1-git-send-email-wenxu@ucloud.cn>
- <20210409082717.GA9793@salvia> <20210409093106.GA10639@salvia>
-From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <80137d78-801e-77b3-7a32-f1ff326dcd26@ucloud.cn>
-Date:   Fri, 9 Apr 2021 22:28:33 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.4.3
+        Fri, 9 Apr 2021 11:49:58 -0400
+Received: from mail-pf1-x433.google.com (mail-pf1-x433.google.com [IPv6:2607:f8b0:4864:20::433])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 90A54C061760;
+        Fri,  9 Apr 2021 08:49:43 -0700 (PDT)
+Received: by mail-pf1-x433.google.com with SMTP id m11so4495903pfc.11;
+        Fri, 09 Apr 2021 08:49:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=xHH7am/lvrcMVvHS3IG65IXeZaw+G+lRCAfJKJXQ5Ak=;
+        b=iiiz8bhasod5v22D/048u4jpaHuVPSmWzqBdvUCb6HvjRMfVs0mMHd2isZ/RRmNllr
+         op4xqTAhA4H3z6JhcwcPNTA3zgdBd2eEEr58C0dXXiYEyY39D0SweR/eWUyD0g5/BW7J
+         AMszpliwby/yFBTGA/jSqR879jtfIJnMnXxXKL6BBHrRNxHhEuyWGBsiuKXunrvI1dhj
+         C8hXJ3W8/KoGVmdKHYDCWGJDHP7O+fdIFt3w1MzR1hqoFPOjSIaTcjWqQUE2TAdGLc5J
+         jTqZjVnV+IWhMaHLQoU1ps6S3PV/Pni0rHgiK+W/B+bOA5ut1DhZjHQpN6ihBEDboEaF
+         wmWQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=xHH7am/lvrcMVvHS3IG65IXeZaw+G+lRCAfJKJXQ5Ak=;
+        b=SMH03y4+hib0WO2CmzcwzEx7fGn5hk5KaTJS5cxxwUIOz+1GODgi72WtHd3yXJrl/f
+         JocjR5E/vdlJnYAHn0TYtDfwUqpcwjpmgEno6yrTn9phR+Wu9UQZeWehJVCM0V8H4oGk
+         59/+AmoA3KI4frrDV2fInI5MM1as7ftaNbEuaCiBDVutXiavxHKU2DiDYbobTENLViHs
+         lbmN+qYtI+i0dtBDuzHgRFxBfAU88U5FEH4ErvPhmj16SyvFns2TBdctyptedHFIyY7k
+         UX6omyTM3tQmI4MpCdvFSOqUI8gSNm7PjfbTyODTy/F08/NGFBHY9H9J5gxhGlVft2K3
+         ofzg==
+X-Gm-Message-State: AOAM5313C/VFK5b8QB8oWNctHHFyw1K5lPPUbs0KSN6kEt7dv+0J9oVF
+        wzFGJGNsBwMRwWq85qniMSHj4nmLJ5s=
+X-Google-Smtp-Source: ABdhPJwx1E72+Q2aGbOcTkfSWo4lgw2AR5wBsnu+q6h0A60nbwnI9kCzBNzUZZeEaQx+O8dvffYtyA==
+X-Received: by 2002:aa7:96d6:0:b029:23f:5b6b:3072 with SMTP id h22-20020aa796d60000b029023f5b6b3072mr13228722pfq.81.1617983383142;
+        Fri, 09 Apr 2021 08:49:43 -0700 (PDT)
+Received: from edumazet1.svl.corp.google.com ([2620:15c:2c4:201:dbf:152b:ea58:1a81])
+        by smtp.gmail.com with ESMTPSA id y2sm2912016pgp.2.2021.04.09.08.49.42
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 09 Apr 2021 08:49:42 -0700 (PDT)
+From:   Eric Dumazet <eric.dumazet@gmail.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Eric Dumazet <eric.dumazet@gmail.com>,
+        Luigi Rizzo <lrizzo@google.com>,
+        syzbot <syzkaller@googlegroups.com>
+Subject: [PATCH net] netfilter: nft_limit: avoid possible divide error in nft_limit_init
+Date:   Fri,  9 Apr 2021 08:49:39 -0700
+Message-Id: <20210409154939.43020-1-eric.dumazet@gmail.com>
+X-Mailer: git-send-email 2.31.1.295.g9ea45b61b8-goog
 MIME-Version: 1.0
-In-Reply-To: <20210409093106.GA10639@salvia>
-Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZS1VLWVdZKFlBSUI3V1ktWUFJV1kPCR
-        oVCBIfWUFZHktDQkpNHUNNHR4dVkpNSkxCTENOSktITk9VGRETFhoSFyQUDg9ZV1kWGg8SFR0UWU
-        FZT0tIVUpKS0hKQ1VLWQY+
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6PUk6KRw4HT04F0g*Niw1LjMf
-        NikKCTZVSlVKTUpMQkxDTkpLTkpJVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpDS1VK
-        TkxVSkxJVUlPSFlXWQgBWUFNT01LNwY+
-X-HM-Tid: 0a78b708cbbc20bdkuqy2fc90e02918
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+From: Eric Dumazet <edumazet@google.com>
 
-在 2021/4/9 17:31, Pablo Neira Ayuso 写道:
-> On Fri, Apr 09, 2021 at 10:27:17AM +0200, Pablo Neira Ayuso wrote:
->> On Fri, Apr 09, 2021 at 01:03:49PM +0800, wenxu@ucloud.cn wrote:
->>> From: wenxu <wenxu@ucloud.cn>
->>>
->>> For the vlan packet the h_vlan_encapsulated_proto should be set
->>> on the flow_dissector_key_basic->n_porto flow_dissector.
->>>
->>> Fixes: a82055af5959 ("netfilter: nft_payload: add VLAN offload support")
->>> Fixes: 89d8fd44abfb ("netfilter: nft_payload: add C-VLAN offload support")
->>> Signed-off-by: wenxu <wenxu@ucloud.cn>
->>> ---
->>>  net/netfilter/nft_payload.c | 8 ++++----
->>>  1 file changed, 4 insertions(+), 4 deletions(-)
->>>
->>> diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
->>> index cb1c8c2..84c5ecc 100644
->>> --- a/net/netfilter/nft_payload.c
->>> +++ b/net/netfilter/nft_payload.c
->>> @@ -233,8 +233,8 @@ static int nft_payload_offload_ll(struct nft_offload_ctx *ctx,
->>>  		if (!nft_payload_offload_mask(reg, priv->len, sizeof(__be16)))
->>>  			return -EOPNOTSUPP;
->>>  
->>> -		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_VLAN, vlan,
->>> -				  vlan_tpid, sizeof(__be16), reg);
->>> +		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_BASIC, basic,
->>> +				  n_proto, sizeof(__be16), reg);
->> nftables already sets KEY_BASIC accordingly to 0x8100.
->>
->> # nft --debug=netlink add rule netdev x y vlan id 100
->> netdev
->>   [ meta load iiftype => reg 1 ]
->>   [ cmp eq reg 1 0x00000001 ]
->>   [ payload load 2b @ link header + 12 => reg 1 ]
->>   [ cmp eq reg 1 0x00000081 ] <----------------------------- HERE
->>   [ payload load 2b @ link header + 14 => reg 1 ]
->>   [ bitwise reg 1 = ( reg 1 & 0x0000ff0f ) ^ 0x00000000 ]
->>   [ cmp eq reg 1 0x00006400 ]
->>
->> What are you trying to fix?
+div_u64() divides u64 by u32.
 
-First the vlan_tpid of KEY_VLAN is not the representation h_vlan_encapsulated_proto, So this
+nft_limit_init() wants to divide u64 by u64, use the appropriate
+math function (div64_u64)
 
-need be fixed. Just see the fl_set_key in the cls_flower.c
+divide error: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 8390 Comm: syz-executor188 Not tainted 5.12.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:div_u64_rem include/linux/math64.h:28 [inline]
+RIP: 0010:div_u64 include/linux/math64.h:127 [inline]
+RIP: 0010:nft_limit_init+0x2a2/0x5e0 net/netfilter/nft_limit.c:85
+Code: ef 4c 01 eb 41 0f 92 c7 48 89 de e8 38 a5 22 fa 4d 85 ff 0f 85 97 02 00 00 e8 ea 9e 22 fa 4c 0f af f3 45 89 ed 31 d2 4c 89 f0 <49> f7 f5 49 89 c6 e8 d3 9e 22 fa 48 8d 7d 48 48 b8 00 00 00 00 00
+RSP: 0018:ffffc90009447198 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: 0000200000000000 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff875152e6 RDI: 0000000000000003
+RBP: ffff888020f80908 R08: 0000200000000000 R09: 0000000000000000
+R10: ffffffff875152d8 R11: 0000000000000000 R12: ffffc90009447270
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+FS:  000000000097a300(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00000000200001c4 CR3: 0000000026a52000 CR4: 00000000001506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ nf_tables_newexpr net/netfilter/nf_tables_api.c:2675 [inline]
+ nft_expr_init+0x145/0x2d0 net/netfilter/nf_tables_api.c:2713
+ nft_set_elem_expr_alloc+0x27/0x280 net/netfilter/nf_tables_api.c:5160
+ nf_tables_newset+0x1997/0x3150 net/netfilter/nf_tables_api.c:4321
+ nfnetlink_rcv_batch+0x85a/0x21b0 net/netfilter/nfnetlink.c:456
+ nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:580 [inline]
+ nfnetlink_rcv+0x3af/0x420 net/netfilter/nfnetlink.c:598
+ netlink_unicast_kernel net/netlink/af_netlink.c:1312 [inline]
+ netlink_unicast+0x533/0x7d0 net/netlink/af_netlink.c:1338
+ netlink_sendmsg+0x856/0xd90 net/netlink/af_netlink.c:1927
+ sock_sendmsg_nosec net/socket.c:654 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:674
+ ____sys_sendmsg+0x6e8/0x810 net/socket.c:2350
+ ___sys_sendmsg+0xf3/0x170 net/socket.c:2404
+ __sys_sendmsg+0xe5/0x1b0 net/socket.c:2433
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
 
-fl_set_key-->fl_set_key_vlan(pass the ethernet type of vlan to the vlan_tpid which normal is 0x8100)
+Fixes: c26844eda9d4 ("netfilter: nf_tables: Fix nft limit burst handling")
+Fixes: 3e0f64b7dd31 ("netfilter: nft_limit: fix packet ratelimiting")
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Diagnosed-by: Luigi Rizzo <lrizzo@google.com>
+Reported-by: syzbot <syzkaller@googlegroups.com>
+---
+ net/netfilter/nft_limit.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/net/netfilter/nft_limit.c b/net/netfilter/nft_limit.c
+index 0e2c315c3b5ed5503b93ea0972d06a111ca6a4ab..82ec27bdf94120f89c8c475f02e56d0d64f9e385 100644
+--- a/net/netfilter/nft_limit.c
++++ b/net/netfilter/nft_limit.c
+@@ -76,13 +76,13 @@ static int nft_limit_init(struct nft_limit *limit,
+ 		return -EOVERFLOW;
+ 
+ 	if (pkts) {
+-		tokens = div_u64(limit->nsecs, limit->rate) * limit->burst;
++		tokens = div64_u64(limit->nsecs, limit->rate) * limit->burst;
+ 	} else {
+ 		/* The token bucket size limits the number of tokens can be
+ 		 * accumulated. tokens_max specifies the bucket size.
+ 		 * tokens_max = unit * (rate + burst) / rate.
+ 		 */
+-		tokens = div_u64(limit->nsecs * (limit->rate + limit->burst),
++		tokens = div64_u64(limit->nsecs * (limit->rate + limit->burst),
+ 				 limit->rate);
+ 	}
+ 
+-- 
+2.31.1.295.g9ea45b61b8-goog
 
-Then if the rule match the h_vlan_encapsulated_proto(normally ipv4/6), The h_vlan_encapsulated_proto
-
-will be set to the n_proto of BASIC_KEY. Also see the fl_set_key in the cls_flower.c
-
-
-     if (tb[TCA_FLOWER_KEY_ETH_TYPE]) {
-                ethertype = nla_get_be16(tb[TCA_FLOWER_KEY_ETH_TYPE]);
-
-                if (eth_type_vlan(ethertype)) {
-                        fl_set_key_vlan(tb, ethertype, TCA_FLOWER_KEY_VLAN_ID,
-                                        TCA_FLOWER_KEY_VLAN_PRIO, &key->vlan,
-                                        &mask->vlan);
-
-                        if (tb[TCA_FLOWER_KEY_VLAN_ETH_TYPE]) {  <----------------------------- HERE
-
-                                ethertype = nla_get_be16(tb[TCA_FLOWER_KEY_VLAN_ETH_TYPE]);
-                                if (eth_type_vlan(ethertype)) {
-                                        fl_set_key_vlan(tb, ethertype,
-                                                        TCA_FLOWER_KEY_CVLAN_ID,
-                                                        TCA_FLOWER_KEY_CVLAN_PRIO,
-                                                        &key->cvlan, &mask->cvlan);
-                                        fl_set_key_val(tb, &key->basic.n_proto,
-                                                       TCA_FLOWER_KEY_CVLAN_ETH_TYPE, <----------------------------- HERE
-                                                       &mask->basic.n_proto,
-                                                       TCA_FLOWER_UNSPEC,
-                                                       sizeof(key->basic.n_proto));
-                                } else {
-                                        key->basic.n_proto = ethertype;  <----------------------------- HERE
-
-                                        mask->basic.n_proto = cpu_to_be16(~0);
-                                }   
-                        }   
-                } else {
-                        key->basic.n_proto = ethertype;
-                        mask->basic.n_proto = cpu_to_be16(~0);
-                }   
-        }   
-
-
-BR
-
-wenxu
-
-> Could you provide a rule that works for tc offload with vlan? I'd like
-> to check what internal representation is triggering in the kernel.
->
