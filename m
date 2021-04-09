@@ -5,80 +5,70 @@ X-Spam-Level:
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B2F5C433ED
-	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Apr 2021 05:03:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AEB97C433ED
+	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Apr 2021 05:33:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6842361181
-	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Apr 2021 05:03:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 80B1861181
+	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Apr 2021 05:33:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229715AbhDIFEG (ORCPT
+        id S233273AbhDIFeD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 9 Apr 2021 01:04:06 -0400
-Received: from m97179.mail.qiye.163.com ([220.181.97.179]:24152 "EHLO
+        Fri, 9 Apr 2021 01:34:03 -0400
+Received: from m97179.mail.qiye.163.com ([220.181.97.179]:50694 "EHLO
         m97179.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229498AbhDIFEG (ORCPT
+        with ESMTP id S229498AbhDIFeD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 9 Apr 2021 01:04:06 -0400
+        Fri, 9 Apr 2021 01:34:03 -0400
 Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m97179.mail.qiye.163.com (Hmail) with ESMTPA id EC664E02A8A;
-        Fri,  9 Apr 2021 13:03:49 +0800 (CST)
+        by m97179.mail.qiye.163.com (Hmail) with ESMTPA id 91D18E02AE0;
+        Fri,  9 Apr 2021 13:33:48 +0800 (CST)
 From:   wenxu@ucloud.cn
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf v2] netfilter: nft_payload: fix the h_vlan_encapsulated_proto flow_dissector vlaue
-Date:   Fri,  9 Apr 2021 13:03:49 +0800
-Message-Id: <1617944629-10338-1-git-send-email-wenxu@ucloud.cn>
+To:     saeed@kernel.org
+Cc:     davem@davemloft.net, kuba@kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+Subject: [PATCH] net/mlx5e: fix ingress_ifindex check in mlx5e_flower_parse_meta
+Date:   Fri,  9 Apr 2021 13:33:48 +0800
+Message-Id: <1617946428-10944-1-git-send-email-wenxu@ucloud.cn>
 X-Mailer: git-send-email 1.8.3.1
 X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZS1VLWVdZKFlBSUI3V1ktWUFJV1kPCR
-        oVCBIfWUFZThlLSklKS0lDTUMdVkpNSkxCT09NSUJCQkhVGRETFhoSFyQUDg9ZV1kWGg8SFR0UWU
+        oVCBIfWUFZTkpCHktLGhpMQx8YVkpNSkxCT01PSUNNQ05VGRETFhoSFyQUDg9ZV1kWGg8SFR0UWU
         FZT0tIVUpKS0hKQ1VLWQY+
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6PRA6GBw4FT0xMUkWNh4IPjUw
-        LxpPFDFVSlVKTUpMQk9PTUhLSklLVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUlKTkw3Bg++
-X-HM-Tid: 0a78b503d2da20bdkuqyec664e02a8a
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6OjY6FTo5Oj09C0kRDzwOPhAZ
+        SzIKCQpVSlVKTUpMQk9NT0lDQ01NVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUpMTko3Bg++
+X-HM-Tid: 0a78b51f44d420bdkuqy91d18e02ae0
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: wenxu <wenxu@ucloud.cn>
 
-For the vlan packet the h_vlan_encapsulated_proto should be set
-on the flow_dissector_key_basic->n_porto flow_dissector.
+In the nft_offload there is the mate flow_dissector with no
+ingress_ifindex but with ingress_iftype that only be used
+in the software. So if the mask of ingress_ifindex in meta is
+0, this meta check should be bypass.
 
-Fixes: a82055af5959 ("netfilter: nft_payload: add VLAN offload support")
-Fixes: 89d8fd44abfb ("netfilter: nft_payload: add C-VLAN offload support")
+Fixes: 6d65bc64e232 ("net/mlx5e: Add mlx5e_flower_parse_meta support")
 Signed-off-by: wenxu <wenxu@ucloud.cn>
 ---
- net/netfilter/nft_payload.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index cb1c8c2..84c5ecc 100644
---- a/net/netfilter/nft_payload.c
-+++ b/net/netfilter/nft_payload.c
-@@ -233,8 +233,8 @@ static int nft_payload_offload_ll(struct nft_offload_ctx *ctx,
- 		if (!nft_payload_offload_mask(reg, priv->len, sizeof(__be16)))
- 			return -EOPNOTSUPP;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+index df2a0af..d675107d 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+@@ -1895,6 +1895,9 @@ static int mlx5e_flower_parse_meta(struct net_device *filter_dev,
+ 		return 0;
  
--		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_VLAN, vlan,
--				  vlan_tpid, sizeof(__be16), reg);
-+		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_BASIC, basic,
-+				  n_proto, sizeof(__be16), reg);
- 		nft_offload_set_dependency(ctx, NFT_OFFLOAD_DEP_NETWORK);
- 		break;
- 	case offsetof(struct vlan_ethhdr, h_vlan_TCI) + sizeof(struct vlan_hdr):
-@@ -249,8 +249,8 @@ static int nft_payload_offload_ll(struct nft_offload_ctx *ctx,
- 		if (!nft_payload_offload_mask(reg, priv->len, sizeof(__be16)))
- 			return -EOPNOTSUPP;
- 
--		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_CVLAN, vlan,
--				  vlan_tpid, sizeof(__be16), reg);
-+		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_BASIC, basic,
-+				  n_proto, sizeof(__be16), reg);
- 		break;
- 	default:
+ 	flow_rule_match_meta(rule, &match);
++	if (!match.mask->ingress_ifindex)
++		return 0;
++
+ 	if (match.mask->ingress_ifindex != 0xFFFFFFFF) {
+ 		NL_SET_ERR_MSG_MOD(extack, "Unsupported ingress ifindex mask");
  		return -EOPNOTSUPP;
 -- 
 1.8.3.1
