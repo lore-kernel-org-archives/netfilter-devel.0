@@ -2,112 +2,97 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC7AAC433B4
-	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Apr 2021 15:49:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7851AC433ED
+	for <netfilter-devel@archiver.kernel.org>; Sat, 10 Apr 2021 14:49:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 911CC61042
-	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Apr 2021 15:49:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3A9A8610A2
+	for <netfilter-devel@archiver.kernel.org>; Sat, 10 Apr 2021 14:49:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233332AbhDIPt6 (ORCPT
+        id S234813AbhDJOtd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 9 Apr 2021 11:49:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46044 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229665AbhDIPt6 (ORCPT
+        Sat, 10 Apr 2021 10:49:33 -0400
+Received: from mail-io1-f71.google.com ([209.85.166.71]:37750 "EHLO
+        mail-io1-f71.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234820AbhDJOtc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 9 Apr 2021 11:49:58 -0400
-Received: from mail-pf1-x433.google.com (mail-pf1-x433.google.com [IPv6:2607:f8b0:4864:20::433])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 90A54C061760;
-        Fri,  9 Apr 2021 08:49:43 -0700 (PDT)
-Received: by mail-pf1-x433.google.com with SMTP id m11so4495903pfc.11;
-        Fri, 09 Apr 2021 08:49:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=xHH7am/lvrcMVvHS3IG65IXeZaw+G+lRCAfJKJXQ5Ak=;
-        b=iiiz8bhasod5v22D/048u4jpaHuVPSmWzqBdvUCb6HvjRMfVs0mMHd2isZ/RRmNllr
-         op4xqTAhA4H3z6JhcwcPNTA3zgdBd2eEEr58C0dXXiYEyY39D0SweR/eWUyD0g5/BW7J
-         AMszpliwby/yFBTGA/jSqR879jtfIJnMnXxXKL6BBHrRNxHhEuyWGBsiuKXunrvI1dhj
-         C8hXJ3W8/KoGVmdKHYDCWGJDHP7O+fdIFt3w1MzR1hqoFPOjSIaTcjWqQUE2TAdGLc5J
-         jTqZjVnV+IWhMaHLQoU1ps6S3PV/Pni0rHgiK+W/B+bOA5ut1DhZjHQpN6ihBEDboEaF
-         wmWQ==
+        Sat, 10 Apr 2021 10:49:32 -0400
+Received: by mail-io1-f71.google.com with SMTP id u23so5843947ioc.4
+        for <netfilter-devel@vger.kernel.org>; Sat, 10 Apr 2021 07:49:18 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=xHH7am/lvrcMVvHS3IG65IXeZaw+G+lRCAfJKJXQ5Ak=;
-        b=SMH03y4+hib0WO2CmzcwzEx7fGn5hk5KaTJS5cxxwUIOz+1GODgi72WtHd3yXJrl/f
-         JocjR5E/vdlJnYAHn0TYtDfwUqpcwjpmgEno6yrTn9phR+Wu9UQZeWehJVCM0V8H4oGk
-         59/+AmoA3KI4frrDV2fInI5MM1as7ftaNbEuaCiBDVutXiavxHKU2DiDYbobTENLViHs
-         lbmN+qYtI+i0dtBDuzHgRFxBfAU88U5FEH4ErvPhmj16SyvFns2TBdctyptedHFIyY7k
-         UX6omyTM3tQmI4MpCdvFSOqUI8gSNm7PjfbTyODTy/F08/NGFBHY9H9J5gxhGlVft2K3
-         ofzg==
-X-Gm-Message-State: AOAM5313C/VFK5b8QB8oWNctHHFyw1K5lPPUbs0KSN6kEt7dv+0J9oVF
-        wzFGJGNsBwMRwWq85qniMSHj4nmLJ5s=
-X-Google-Smtp-Source: ABdhPJwx1E72+Q2aGbOcTkfSWo4lgw2AR5wBsnu+q6h0A60nbwnI9kCzBNzUZZeEaQx+O8dvffYtyA==
-X-Received: by 2002:aa7:96d6:0:b029:23f:5b6b:3072 with SMTP id h22-20020aa796d60000b029023f5b6b3072mr13228722pfq.81.1617983383142;
-        Fri, 09 Apr 2021 08:49:43 -0700 (PDT)
-Received: from edumazet1.svl.corp.google.com ([2620:15c:2c4:201:dbf:152b:ea58:1a81])
-        by smtp.gmail.com with ESMTPSA id y2sm2912016pgp.2.2021.04.09.08.49.42
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 09 Apr 2021 08:49:42 -0700 (PDT)
-From:   Eric Dumazet <eric.dumazet@gmail.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Eric Dumazet <eric.dumazet@gmail.com>,
-        Luigi Rizzo <lrizzo@google.com>,
-        syzbot <syzkaller@googlegroups.com>
-Subject: [PATCH net] netfilter: nft_limit: avoid possible divide error in nft_limit_init
-Date:   Fri,  9 Apr 2021 08:49:39 -0700
-Message-Id: <20210409154939.43020-1-eric.dumazet@gmail.com>
-X-Mailer: git-send-email 2.31.1.295.g9ea45b61b8-goog
+        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
+        bh=opHa0na1CTuYC9MsrnRbiN8M/7f6oGgvd1rRpihSqxk=;
+        b=QmdDlbRDxU9Zsong5qZzV7apuGnVKpcuHsD2v3igVZM8shb6XINSOqex98Zj/RPUDU
+         eNT+9WNJ1ziqvKmU7dE91RGgg9Auiz5muh6lvQ205Gfe/mR94gMvkPd06Omh0YcDJq21
+         +yA76VKWWdOOSTxRVMCzmI5oBLCh8oFaE5pTro327wSNYwZS5WJRqdIRZ6Q6VTlOmoLq
+         TjkFNLnmV7CZiNA8sTxCIxIK5ARytFmct8gwM1c+/2cOibEce7+8VXtiyIztk6zU42e0
+         M6BgiPPJ5ljrogBxSk9WSQYcGM4+PhUTunjq/WJ5pW/+U9eDd18zdcVswlAlvywNyk4J
+         Y+HA==
+X-Gm-Message-State: AOAM532nzv8H5WYs33JQ34VjMH/XVFOB7uj/3wPPOOL4YLdBva4HCEDB
+        foQlNfHwq/eBeerRCThSIivbZQ5c8mpT1uZ4VuHQEzjS2qch
+X-Google-Smtp-Source: ABdhPJzmuxOdgQKaxS7S9qWO0NPoMt6qdJ6W4pNfEE/zt863VeL0o1dCb3hHd8Xpac2ijJbI27cozeq1zHyDFtzuGY07GEEFumJz
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-Received: by 2002:a6b:5002:: with SMTP id e2mr15370368iob.43.1618066157659;
+ Sat, 10 Apr 2021 07:49:17 -0700 (PDT)
+Date:   Sat, 10 Apr 2021 07:49:17 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <0000000000008ce91e05bf9f62bc@google.com>
+Subject: [syzbot] WARNING in __nf_unregister_net_hook (4)
+From:   syzbot <syzbot+154bd5be532a63aa778b@syzkaller.appspotmail.com>
+To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
+        kadlec@netfilter.org, kuba@kernel.org,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Eric Dumazet <edumazet@google.com>
+Hello,
 
-div_u64() divides u64 by u32.
+syzbot found the following issue on:
 
-nft_limit_init() wants to divide u64 by u64, use the appropriate
-math function (div64_u64)
+HEAD commit:    cc0626c2 net: smsc911x: skip acpi_device_id table when !CO..
+git tree:       net-next
+console output: https://syzkaller.appspot.com/x/log.txt?x=110a3096d00000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=7eff0f22b8563a5f
+dashboard link: https://syzkaller.appspot.com/bug?extid=154bd5be532a63aa778b
 
-divide error: 0000 [#1] PREEMPT SMP KASAN
-CPU: 1 PID: 8390 Comm: syz-executor188 Not tainted 5.12.0-rc4-syzkaller #0
+Unfortunately, I don't have any reproducer for this issue yet.
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+154bd5be532a63aa778b@syzkaller.appspotmail.com
+
+hook not found, pf 2 num 0
+WARNING: CPU: 1 PID: 8144 at net/netfilter/core.c:480 __nf_unregister_net_hook+0x1eb/0x610 net/netfilter/core.c:480
+Modules linked in:
+CPU: 1 PID: 8144 Comm: syz-executor.0 Not tainted 5.12.0-rc4-syzkaller #0
 Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-RIP: 0010:div_u64_rem include/linux/math64.h:28 [inline]
-RIP: 0010:div_u64 include/linux/math64.h:127 [inline]
-RIP: 0010:nft_limit_init+0x2a2/0x5e0 net/netfilter/nft_limit.c:85
-Code: ef 4c 01 eb 41 0f 92 c7 48 89 de e8 38 a5 22 fa 4d 85 ff 0f 85 97 02 00 00 e8 ea 9e 22 fa 4c 0f af f3 45 89 ed 31 d2 4c 89 f0 <49> f7 f5 49 89 c6 e8 d3 9e 22 fa 48 8d 7d 48 48 b8 00 00 00 00 00
-RSP: 0018:ffffc90009447198 EFLAGS: 00010246
-RAX: 0000000000000000 RBX: 0000200000000000 RCX: 0000000000000000
-RDX: 0000000000000000 RSI: ffffffff875152e6 RDI: 0000000000000003
-RBP: ffff888020f80908 R08: 0000200000000000 R09: 0000000000000000
-R10: ffffffff875152d8 R11: 0000000000000000 R12: ffffc90009447270
-R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
-FS:  000000000097a300(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+RIP: 0010:__nf_unregister_net_hook+0x1eb/0x610 net/netfilter/core.c:480
+Code: 0f b6 14 02 48 89 c8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 11 04 00 00 8b 53 1c 89 ee 48 c7 c7 e0 26 6c 8a e8 72 df 87 01 <0f> 0b e9 e5 00 00 00 e8 09 1d 37 fa 44 8b 3c 24 4c 89 f8 48 c1 e0
+RSP: 0018:ffffc9001534f418 EFLAGS: 00010282
+RAX: 0000000000000000 RBX: ffff88802f867a00 RCX: 0000000000000000
+RDX: 0000000000040000 RSI: ffffffff815c5205 RDI: fffff52002a69e75
+RBP: 0000000000000002 R08: 0000000000000000 R09: 0000000000000000
+R10: ffffffff815bdf9e R11: 0000000000000000 R12: ffff8880272c8f20
+R13: 0000000000000000 R14: ffff88802fa34c00 R15: 0000000000000006
+FS:  00007feaf7d10700(0000) GS:ffff8880b9c00000(0000) knlGS:0000000000000000
 CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00000000200001c4 CR3: 0000000026a52000 CR4: 00000000001506e0
+CR2: 00007fb651f70ca0 CR3: 0000000069f31000 CR4: 00000000001506f0
 DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
 DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
 Call Trace:
- nf_tables_newexpr net/netfilter/nf_tables_api.c:2675 [inline]
- nft_expr_init+0x145/0x2d0 net/netfilter/nf_tables_api.c:2713
- nft_set_elem_expr_alloc+0x27/0x280 net/netfilter/nf_tables_api.c:5160
- nf_tables_newset+0x1997/0x3150 net/netfilter/nf_tables_api.c:4321
- nfnetlink_rcv_batch+0x85a/0x21b0 net/netfilter/nfnetlink.c:456
+ nf_unregister_net_hook+0xd5/0x110 net/netfilter/core.c:502
+ nf_tables_unregister_hook.part.0+0x131/0x200 net/netfilter/nf_tables_api.c:234
+ nf_tables_unregister_hook net/netfilter/nf_tables_api.c:8122 [inline]
+ nf_tables_commit+0x1d9b/0x4710 net/netfilter/nf_tables_api.c:8122
+ nfnetlink_rcv_batch+0x975/0x21b0 net/netfilter/nfnetlink.c:508
  nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:580 [inline]
  nfnetlink_rcv+0x3af/0x420 net/netfilter/nfnetlink.c:598
  netlink_unicast_kernel net/netlink/af_netlink.c:1312 [inline]
@@ -120,36 +105,20 @@ Call Trace:
  __sys_sendmsg+0xe5/0x1b0 net/socket.c:2433
  do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
  entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x466459
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007feaf7d10188 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 000000000056bf60 RCX: 0000000000466459
+RDX: 0000000000000000 RSI: 000000002000c2c0 RDI: 0000000000000003
+RBP: 00000000004bf9fb R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 000000000056bf60
+R13: 00007ffe0fcaf04f R14: 00007feaf7d10300 R15: 0000000000022000
 
-Fixes: c26844eda9d4 ("netfilter: nf_tables: Fix nft limit burst handling")
-Fixes: 3e0f64b7dd31 ("netfilter: nft_limit: fix packet ratelimiting")
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Diagnosed-by: Luigi Rizzo <lrizzo@google.com>
-Reported-by: syzbot <syzkaller@googlegroups.com>
+
 ---
- net/netfilter/nft_limit.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-diff --git a/net/netfilter/nft_limit.c b/net/netfilter/nft_limit.c
-index 0e2c315c3b5ed5503b93ea0972d06a111ca6a4ab..82ec27bdf94120f89c8c475f02e56d0d64f9e385 100644
---- a/net/netfilter/nft_limit.c
-+++ b/net/netfilter/nft_limit.c
-@@ -76,13 +76,13 @@ static int nft_limit_init(struct nft_limit *limit,
- 		return -EOVERFLOW;
- 
- 	if (pkts) {
--		tokens = div_u64(limit->nsecs, limit->rate) * limit->burst;
-+		tokens = div64_u64(limit->nsecs, limit->rate) * limit->burst;
- 	} else {
- 		/* The token bucket size limits the number of tokens can be
- 		 * accumulated. tokens_max specifies the bucket size.
- 		 * tokens_max = unit * (rate + burst) / rate.
- 		 */
--		tokens = div_u64(limit->nsecs * (limit->rate + limit->burst),
-+		tokens = div64_u64(limit->nsecs * (limit->rate + limit->burst),
- 				 limit->rate);
- 	}
- 
--- 
-2.31.1.295.g9ea45b61b8-goog
-
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
