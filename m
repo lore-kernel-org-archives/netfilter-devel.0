@@ -2,146 +2,136 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23922C433ED
-	for <netfilter-devel@archiver.kernel.org>; Sat, 10 Apr 2021 19:33:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2774C433ED
+	for <netfilter-devel@archiver.kernel.org>; Sun, 11 Apr 2021 19:33:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E810560FE8
-	for <netfilter-devel@archiver.kernel.org>; Sat, 10 Apr 2021 19:33:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9B6686108B
+	for <netfilter-devel@archiver.kernel.org>; Sun, 11 Apr 2021 19:33:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234548AbhDJTdg (ORCPT
+        id S236373AbhDKTdn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 10 Apr 2021 15:33:36 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:45012 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234439AbhDJTdg (ORCPT
+        Sun, 11 Apr 2021 15:33:43 -0400
+Received: from new4-smtp.messagingengine.com ([66.111.4.230]:47981 "EHLO
+        new4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S235391AbhDKTdn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 10 Apr 2021 15:33:36 -0400
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id A210D62C17;
-        Sat, 10 Apr 2021 21:32:57 +0200 (CEST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     nevola@gmail.com
-Subject: [PATCH nf,v4] netfilter: nftables: clone set element expression template
-Date:   Sat, 10 Apr 2021 21:33:17 +0200
-Message-Id: <20210410193317.18854-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+        Sun, 11 Apr 2021 15:33:43 -0400
+Received: from compute3.internal (compute3.nyi.internal [10.202.2.43])
+        by mailnew.nyi.internal (Postfix) with ESMTP id 14095580655;
+        Sun, 11 Apr 2021 15:33:26 -0400 (EDT)
+Received: from mailfrontend1 ([10.202.2.162])
+  by compute3.internal (MEProxy); Sun, 11 Apr 2021 15:33:26 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:content-transfer-encoding:date:from
+        :message-id:mime-version:subject:to:x-me-proxy:x-me-proxy
+        :x-me-sender:x-me-sender:x-sasl-enc; s=fm2; bh=KFOWlITIZvMI0cVY3
+        yMUuA5YDP6FhJz2hsfwRPVriEc=; b=C3wW8WNi/fYcOaCx5ZbDjcSSZlCiOKC19
+        ZOvS/s9r+A3HD2Af9v8sXsS9gcaIFgu3f8n+VORIjk6HfHu5f0zIzYgoFZqVjT4t
+        TbB2sE9X4iyTlzxjtVwSJTVZbQ2pqm4QTUgioi95PTy0ZIY5JxQXgRKu/iEOpZ27
+        xDzg2yhGE9Gvhak0bbZAD+dzbReB9i+Ts4vkXvBk6sizpmfZb/MuBji0RCFiFZsU
+        MB7DsO/cBNiRsxQaFAkgNyaW5aRlRVDWBWkrcxthUhDSEFB+m1Gn4S2ZpFXkpFp1
+        u4gQQkUUMgY639qotleA+rE41aZ+s7UUXI9FLXuXaaCo52SuJA2wA==
+X-ME-Sender: <xms:BE9zYLXOgiUI9Pe7Y4RyNT3xeezl77qWsxWyI4KfiztQChj-fX0aRw>
+    <xme:BE9zYDm9OktwDEXHCWoy6LG_TzivZPL2PcV8LJlmMV7VrKzu0sbFveXVEwnEmuyv0
+    glfB0zDSm-v53k>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeduledrudekhedgieekucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucenucfjughrpefhvffufffkofgggfestdekredtre
+    dttdenucfhrhhomhepkfguohcuufgthhhimhhmvghluceoihguohhstghhsehiughoshgt
+    hhdrohhrgheqnecuggftrfgrthhtvghrnhepteevgefhvefggfffkeeuffeuvdfhueehhe
+    etffeikeegheevfedvgeelvdffudfhnecukfhppeekgedrvddvledrudehfedrudekjeen
+    ucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehiughosh
+    gthhesihguohhstghhrdhorhhg
+X-ME-Proxy: <xmx:BE9zYHYf8KPVSMu-nd_i_P_efDsO-BYyL5JnDooiua-7weU4goCXiQ>
+    <xmx:BE9zYGXVLCMLBVuU3d84DVJtDOIZoMjRdDiHUYYbE7bR0PPdz7mRqQ>
+    <xmx:BE9zYFleL82s3Y5_9RlZJLdE6bKmfuV4aizjmkLf7y9xN-FwcTpPzw>
+    <xmx:Bk9zYLUHop-gH-yePDzRJeT6i2nfits7lBKXihD_nmtSBF48QzAlzg>
+Received: from shredder.lan (igld-84-229-153-187.inter.net.il [84.229.153.187])
+        by mail.messagingengine.com (Postfix) with ESMTPA id 35EAD240054;
+        Sun, 11 Apr 2021 15:33:22 -0400 (EDT)
+From:   Ido Schimmel <idosch@idosch.org>
+To:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        dsahern@kernel.org, roopa@nvidia.com, nikolay@nvidia.com,
+        msoltyspl@yandex.pl, mlxsw@nvidia.com,
+        Ido Schimmel <idosch@nvidia.com>
+Subject: [PATCH nf-next] netfilter: Dissect flow after packet mangling
+Date:   Sun, 11 Apr 2021 22:32:51 +0300
+Message-Id: <20210411193251.1220655-1-idosch@idosch.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-memcpy() breaks when using connlimit in set elements. Use
-nft_expr_clone() to initialize the connlimit expression list, otherwise
-connlimit garbage collector crashes when walking on the list head copy.
+From: Ido Schimmel <idosch@nvidia.com>
 
-[  493.064656] Workqueue: events_power_efficient nft_rhash_gc [nf_tables]
-[  493.064685] RIP: 0010:find_or_evict+0x5a/0x90 [nf_conncount]
-[  493.064694] Code: 2b 43 40 83 f8 01 77 0d 48 c7 c0 f5 ff ff ff 44 39 63 3c 75 df 83 6d 18 01 48 8b 43 08 48 89 de 48 8b 13 48 8b 3d ee 2f 00 00 <48> 89 42 08 48 89 10 48 b8 00 01 00 00 00 00 ad de 48 89 03 48 83
-[  493.064699] RSP: 0018:ffffc90000417dc0 EFLAGS: 00010297
-[  493.064704] RAX: 0000000000000000 RBX: ffff888134f38410 RCX: 0000000000000000
-[  493.064708] RDX: 0000000000000000 RSI: ffff888134f38410 RDI: ffff888100060cc0
-[  493.064711] RBP: ffff88812ce594a8 R08: ffff888134f38438 R09: 00000000ebb9025c
-[  493.064714] R10: ffffffff8219f838 R11: 0000000000000017 R12: 0000000000000001
-[  493.064718] R13: ffffffff82146740 R14: ffff888134f38410 R15: 0000000000000000
-[  493.064721] FS:  0000000000000000(0000) GS:ffff88840e440000(0000) knlGS:0000000000000000
-[  493.064725] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  493.064729] CR2: 0000000000000008 CR3: 00000001330aa002 CR4: 00000000001706e0
-[  493.064733] Call Trace:
-[  493.064737]  nf_conncount_gc_list+0x8f/0x150 [nf_conncount]
-[  493.064746]  nft_rhash_gc+0x106/0x390 [nf_tables]
+Netfilter tries to reroute mangled packets as a different route might
+need to be used following the mangling. When this happens, netfilter
+does not populate the IP protocol, the source port and the destination
+port in the flow key. Therefore, FIB rules that match on these fields
+are ignored and packets can be misrouted.
 
-Reported-by: Laura Garcia Liebana <nevola@gmail.com>
-Fixes: 409444522976 ("netfilter: nf_tables: add elements with stateful expressions")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Solve this by dissecting the outer flow and populating the flow key
+before rerouting the packet. Note that flow dissection only happens when
+FIB rules that match on these fields are installed, so in the common
+case there should not be a penalty.
+
+Reported-by: Michal Soltys <msoltyspl@yandex.pl>
+Signed-off-by: Ido Schimmel <idosch@nvidia.com>
 ---
-v4: set err to -ENOMEM when transaction allocation fails.
+Targeting at nf-next since this use case never worked.
+---
+ net/ipv4/netfilter.c | 2 ++
+ net/ipv6/netfilter.c | 2 ++
+ 2 files changed, 4 insertions(+)
 
- net/netfilter/nf_tables_api.c | 46 ++++++++++++++++++++++++++---------
- 1 file changed, 34 insertions(+), 12 deletions(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index f57f1a6ba96f..589d2f6978d3 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5295,16 +5295,35 @@ int nft_set_elem_expr_clone(const struct nft_ctx *ctx, struct nft_set *set,
- 	return -ENOMEM;
- }
+diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
+index 7c841037c533..aff707988e23 100644
+--- a/net/ipv4/netfilter.c
++++ b/net/ipv4/netfilter.c
+@@ -25,6 +25,7 @@ int ip_route_me_harder(struct net *net, struct sock *sk, struct sk_buff *skb, un
+ 	__be32 saddr = iph->saddr;
+ 	__u8 flags;
+ 	struct net_device *dev = skb_dst(skb)->dev;
++	struct flow_keys flkeys;
+ 	unsigned int hh_len;
  
--static void nft_set_elem_expr_setup(const struct nft_set_ext *ext, int i,
--				    struct nft_expr *expr_array[])
-+static int nft_set_elem_expr_setup(struct nft_ctx *ctx,
-+				   const struct nft_set_ext *ext,
-+				   struct nft_expr *expr_array[],
-+				   u32 num_exprs)
+ 	sk = sk_to_full_sk(sk);
+@@ -48,6 +49,7 @@ int ip_route_me_harder(struct net *net, struct sock *sk, struct sk_buff *skb, un
+ 		fl4.flowi4_oif = l3mdev_master_ifindex(dev);
+ 	fl4.flowi4_mark = skb->mark;
+ 	fl4.flowi4_flags = flags;
++	fib4_rules_early_flow_dissect(net, skb, &fl4, &flkeys);
+ 	rt = ip_route_output_key(net, &fl4);
+ 	if (IS_ERR(rt))
+ 		return PTR_ERR(rt);
+diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
+index ab9a279dd6d4..6ab710b5a1a8 100644
+--- a/net/ipv6/netfilter.c
++++ b/net/ipv6/netfilter.c
+@@ -24,6 +24,7 @@ int ip6_route_me_harder(struct net *net, struct sock *sk_partial, struct sk_buff
  {
- 	struct nft_set_elem_expr *elem_expr = nft_set_ext_expr(ext);
--	struct nft_expr *expr = nft_setelem_expr_at(elem_expr, elem_expr->size);
-+	struct nft_expr *expr;
-+	int i, err;
-+
-+	for (i = 0; i < num_exprs; i++) {
-+		expr = nft_setelem_expr_at(elem_expr, elem_expr->size);
-+		err = nft_expr_clone(expr, expr_array[i]);
-+		if (err < 0)
-+			goto err_elem_expr_setup;
-+
-+		elem_expr->size += expr_array[i]->ops->size;
-+		nft_expr_destroy(ctx, expr_array[i]);
-+		expr_array[i] = NULL;
-+	}
-+
-+	return 0;
-+
-+err_elem_expr_setup:
-+	for (; i < num_exprs; i++) {
-+		nft_expr_destroy(ctx, expr_array[i]);
-+		expr_array[i] = NULL;
-+	}
+ 	const struct ipv6hdr *iph = ipv6_hdr(skb);
+ 	struct sock *sk = sk_to_full_sk(sk_partial);
++	struct flow_keys flkeys;
+ 	unsigned int hh_len;
+ 	struct dst_entry *dst;
+ 	int strict = (ipv6_addr_type(&iph->daddr) &
+@@ -38,6 +39,7 @@ int ip6_route_me_harder(struct net *net, struct sock *sk_partial, struct sk_buff
+ 	};
+ 	int err;
  
--	memcpy(expr, expr_array[i], expr_array[i]->ops->size);
--	elem_expr->size += expr_array[i]->ops->size;
--	kfree(expr_array[i]);
--	expr_array[i] = NULL;
-+	return -ENOMEM;
- }
- 
- static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
-@@ -5556,12 +5575,15 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 		*nft_set_ext_obj(ext) = obj;
- 		obj->use++;
- 	}
--	for (i = 0; i < num_exprs; i++)
--		nft_set_elem_expr_setup(ext, i, expr_array);
-+	err = nft_set_elem_expr_setup(ctx, ext, expr_array, num_exprs);
-+	if (err < 0)
-+		goto err_elem_expr;
- 
- 	trans = nft_trans_elem_alloc(ctx, NFT_MSG_NEWSETELEM, set);
--	if (trans == NULL)
--		goto err_trans;
-+	if (trans == NULL) {
-+		err = -ENOMEM;
-+		goto err_elem_expr;
-+	}
- 
- 	ext->genmask = nft_genmask_cur(ctx->net) | NFT_SET_ELEM_BUSY_MASK;
- 	err = set->ops->insert(ctx->net, set, &elem, &ext2);
-@@ -5605,7 +5627,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	set->ops->remove(ctx->net, set, &elem);
- err_element_clash:
- 	kfree(trans);
--err_trans:
-+err_elem_expr:
- 	if (obj)
- 		obj->use--;
- 
++	fib6_rules_early_flow_dissect(net, skb, &fl6, &flkeys);
+ 	dst = ip6_route_output(net, sk, &fl6);
+ 	err = dst->error;
+ 	if (err) {
 -- 
-2.20.1
+2.30.2
 
