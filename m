@@ -7,32 +7,32 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73B05C433ED
-	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Apr 2021 19:56:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A21B9C433B4
+	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Apr 2021 19:56:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 521EF610FC
-	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Apr 2021 19:56:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 81174610FC
+	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Apr 2021 19:56:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242657AbhDLT4T (ORCPT
+        id S245360AbhDLT4Y (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 12 Apr 2021 15:56:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42114 "EHLO
+        Mon, 12 Apr 2021 15:56:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42134 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242025AbhDLT4T (ORCPT
+        with ESMTP id S242025AbhDLT4X (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 12 Apr 2021 15:56:19 -0400
+        Mon, 12 Apr 2021 15:56:23 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B6C2C061574
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Apr 2021 12:56:01 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C310C061574
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Apr 2021 12:56:05 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1lW2f9-0000s4-O6; Mon, 12 Apr 2021 21:55:59 +0200
+        id 1lW2fD-0000sB-TV; Mon, 12 Apr 2021 21:56:03 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v2 2/5] netfilter: conntrack: move autoassign_helper sysctl to net_generic data
-Date:   Mon, 12 Apr 2021 21:55:41 +0200
-Message-Id: <20210412195544.417-3-fw@strlen.de>
+Subject: [PATCH nf-next v2 3/5] netfilter: conntrack: move expect counter to net_generic data
+Date:   Mon, 12 Apr 2021 21:55:42 +0200
+Message-Id: <20210412195544.417-4-fw@strlen.de>
 X-Mailer: git-send-email 2.26.3
 In-Reply-To: <20210412195544.417-1-fw@strlen.de>
 References: <20210412195544.417-1-fw@strlen.de>
@@ -42,77 +42,164 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-While at it, make it an u8, no need to use an integer for a boolean.
+Creation of a new conntrack entry isn't a frequent operation (compared
+to 'ct entry already exists').  Creation of a new entry that is also an
+expected (related) connection even less so.
+
+Place this counter in net_generic data.
+
+A followup patch will also move the conntrack count -- this will make
+netns_ct a read-mostly structure.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_conntrack.h    | 1 +
- net/netfilter/nf_conntrack_helper.c     | 6 ++++--
- net/netfilter/nf_conntrack_standalone.c | 7 +++----
- 3 files changed, 8 insertions(+), 6 deletions(-)
+ include/net/netfilter/nf_conntrack.h |  1 +
+ net/netfilter/nf_conntrack_core.c    |  6 +++++-
+ net/netfilter/nf_conntrack_expect.c  | 22 ++++++++++++++++------
+ 3 files changed, 22 insertions(+), 7 deletions(-)
 
 diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index c532b629db7b..db8f047eb75f 100644
+index db8f047eb75f..0578a905b1df 100644
 --- a/include/net/netfilter/nf_conntrack.h
 +++ b/include/net/netfilter/nf_conntrack.h
 @@ -45,6 +45,7 @@ union nf_conntrack_expect_proto {
  
  struct nf_conntrack_net {
  	/* only used when new connection is allocated: */
-+	u8 sysctl_auto_assign_helper;
++	unsigned int expect_count;
+ 	u8 sysctl_auto_assign_helper;
  	bool auto_assign_helper_warned;
  
- 	/* only used from work queues, configuration plane, and so on: */
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index ad91964eaa92..ac396cc8bfae 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -216,7 +216,7 @@ nf_ct_lookup_helper(struct nf_conn *ct, struct net *net)
- {
- 	struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index ace3e8265e0a..5fa68f94ec65 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -55,6 +55,8 @@
  
--	if (!net->ct.sysctl_auto_assign_helper) {
-+	if (!cnet->sysctl_auto_assign_helper) {
- 		if (cnet->auto_assign_helper_warned)
- 			return NULL;
- 		if (!__nf_ct_helper_find(&ct->tuplehash[IP_CT_DIR_REPLY].tuple))
-@@ -560,7 +560,9 @@ static const struct nf_ct_ext_type helper_extend = {
+ #include "nf_internals.h"
  
- void nf_conntrack_helper_pernet_init(struct net *net)
- {
--	net->ct.sysctl_auto_assign_helper = nf_ct_auto_assign_helper;
-+	struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
++extern unsigned int nf_conntrack_net_id;
 +
-+	cnet->sysctl_auto_assign_helper = nf_ct_auto_assign_helper;
+ __cacheline_aligned_in_smp spinlock_t nf_conntrack_locks[CONNTRACK_LOCKS];
+ EXPORT_SYMBOL_GPL(nf_conntrack_locks);
+ 
+@@ -1570,6 +1572,7 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+ 	const struct nf_conntrack_zone *zone;
+ 	struct nf_conn_timeout *timeout_ext;
+ 	struct nf_conntrack_zone tmp;
++	struct nf_conntrack_net *cnet;
+ 
+ 	if (!nf_ct_invert_tuple(&repl_tuple, tuple)) {
+ 		pr_debug("Can't invert tuple.\n");
+@@ -1603,7 +1606,8 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+ 			     GFP_ATOMIC);
+ 
+ 	local_bh_disable();
+-	if (net->ct.expect_count) {
++	cnet = net_generic(net, nf_conntrack_net_id);
++	if (cnet->expect_count) {
+ 		spin_lock(&nf_conntrack_expect_lock);
+ 		exp = nf_ct_find_expectation(net, zone, tuple);
+ 		if (exp) {
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index 42557d2b6a90..efdd391b3f72 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -43,18 +43,23 @@ unsigned int nf_ct_expect_max __read_mostly;
+ static struct kmem_cache *nf_ct_expect_cachep __read_mostly;
+ static unsigned int nf_ct_expect_hashrnd __read_mostly;
+ 
++extern unsigned int nf_conntrack_net_id;
++
+ /* nf_conntrack_expect helper functions */
+ void nf_ct_unlink_expect_report(struct nf_conntrack_expect *exp,
+ 				u32 portid, int report)
+ {
+ 	struct nf_conn_help *master_help = nfct_help(exp->master);
+ 	struct net *net = nf_ct_exp_net(exp);
++	struct nf_conntrack_net *cnet;
+ 
+ 	WARN_ON(!master_help);
+ 	WARN_ON(timer_pending(&exp->timeout));
+ 
+ 	hlist_del_rcu(&exp->hnode);
+-	net->ct.expect_count--;
++
++	cnet = net_generic(net, nf_conntrack_net_id);
++	cnet->expect_count--;
+ 
+ 	hlist_del_rcu(&exp->lnode);
+ 	master_help->expecting[exp->class]--;
+@@ -118,10 +123,11 @@ __nf_ct_expect_find(struct net *net,
+ 		    const struct nf_conntrack_zone *zone,
+ 		    const struct nf_conntrack_tuple *tuple)
+ {
++	struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
+ 	struct nf_conntrack_expect *i;
+ 	unsigned int h;
+ 
+-	if (!net->ct.expect_count)
++	if (!cnet->expect_count)
+ 		return NULL;
+ 
+ 	h = nf_ct_expect_dst_hash(net, tuple);
+@@ -158,10 +164,11 @@ nf_ct_find_expectation(struct net *net,
+ 		       const struct nf_conntrack_zone *zone,
+ 		       const struct nf_conntrack_tuple *tuple)
+ {
++	struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
+ 	struct nf_conntrack_expect *i, *exp = NULL;
+ 	unsigned int h;
+ 
+-	if (!net->ct.expect_count)
++	if (!cnet->expect_count)
+ 		return NULL;
+ 
+ 	h = nf_ct_expect_dst_hash(net, tuple);
+@@ -368,6 +375,7 @@ EXPORT_SYMBOL_GPL(nf_ct_expect_put);
+ 
+ static void nf_ct_expect_insert(struct nf_conntrack_expect *exp)
+ {
++	struct nf_conntrack_net *cnet;
+ 	struct nf_conn_help *master_help = nfct_help(exp->master);
+ 	struct nf_conntrack_helper *helper;
+ 	struct net *net = nf_ct_exp_net(exp);
+@@ -389,7 +397,8 @@ static void nf_ct_expect_insert(struct nf_conntrack_expect *exp)
+ 	master_help->expecting[exp->class]++;
+ 
+ 	hlist_add_head_rcu(&exp->hnode, &nf_ct_expect_hash[h]);
+-	net->ct.expect_count++;
++	cnet = net_generic(net, nf_conntrack_net_id);
++	cnet->expect_count++;
+ 
+ 	NF_CT_STAT_INC(net, expect_create);
+ }
+@@ -415,6 +424,7 @@ static inline int __nf_ct_expect_check(struct nf_conntrack_expect *expect,
+ {
+ 	const struct nf_conntrack_expect_policy *p;
+ 	struct nf_conntrack_expect *i;
++	struct nf_conntrack_net *cnet;
+ 	struct nf_conn *master = expect->master;
+ 	struct nf_conn_help *master_help = nfct_help(master);
+ 	struct nf_conntrack_helper *helper;
+@@ -458,7 +468,8 @@ static inline int __nf_ct_expect_check(struct nf_conntrack_expect *expect,
+ 		}
+ 	}
+ 
+-	if (net->ct.expect_count >= nf_ct_expect_max) {
++	cnet = net_generic(net, nf_conntrack_net_id);
++	if (cnet->expect_count >= nf_ct_expect_max) {
+ 		net_warn_ratelimited("nf_conntrack: expectation table full\n");
+ 		ret = -EMFILE;
+ 	}
+@@ -686,7 +697,6 @@ module_param_named(expect_hashsize, nf_ct_expect_hsize, uint, 0400);
+ 
+ int nf_conntrack_expect_pernet_init(struct net *net)
+ {
+-	net->ct.expect_count = 0;
+ 	return exp_proc_init(net);
  }
  
- int nf_conntrack_helper_init(void)
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index 3f2cc7b04b20..da85bb6ddbb4 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -662,10 +662,9 @@ static struct ctl_table nf_ct_sysctl_table[] = {
- 	},
- 	[NF_SYSCTL_CT_HELPER] = {
- 		.procname	= "nf_conntrack_helper",
--		.data		= &init_net.ct.sysctl_auto_assign_helper,
--		.maxlen		= sizeof(int),
-+		.maxlen		= sizeof(u8),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec_minmax,
-+		.proc_handler	= proc_dou8vec_minmax,
- 		.extra1 	= SYSCTL_ZERO,
- 		.extra2 	= SYSCTL_ONE,
- 	},
-@@ -1042,7 +1041,7 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
- 	table[NF_SYSCTL_CT_CHECKSUM].data = &net->ct.sysctl_checksum;
- 	table[NF_SYSCTL_CT_LOG_INVALID].data = &net->ct.sysctl_log_invalid;
- 	table[NF_SYSCTL_CT_ACCT].data = &net->ct.sysctl_acct;
--	table[NF_SYSCTL_CT_HELPER].data = &net->ct.sysctl_auto_assign_helper;
-+	table[NF_SYSCTL_CT_HELPER].data = &cnet->sysctl_auto_assign_helper;
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
- 	table[NF_SYSCTL_CT_EVENTS].data = &net->ct.sysctl_events;
- #endif
 -- 
 2.26.3
 
