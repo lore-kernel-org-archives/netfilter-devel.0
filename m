@@ -2,69 +2,87 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0795C4361B
-	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Apr 2021 09:12:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05110C433ED
+	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Apr 2021 13:12:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B9F8A6135A
-	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Apr 2021 09:12:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C01F16134F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Apr 2021 13:12:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239020AbhDLJMW (ORCPT
+        id S241402AbhDLNNG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 12 Apr 2021 05:12:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39492 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239294AbhDLJHH (ORCPT
+        Mon, 12 Apr 2021 09:13:06 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:48236 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S241705AbhDLNNG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 12 Apr 2021 05:07:07 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 776C3C06137A;
-        Mon, 12 Apr 2021 02:02:36 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1lVsSf-0004hh-JE; Mon, 12 Apr 2021 11:02:25 +0200
-Date:   Mon, 12 Apr 2021 11:02:25 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Stephen Rothwell <sfr@canb.auug.org.au>
-Cc:     David Miller <davem@davemloft.net>,
-        Networking <netdev@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        Florian Westphal <fw@strlen.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux Next Mailing List <linux-next@vger.kernel.org>
-Subject: Re: linux-next: build failure after merge of the net-next tree
-Message-ID: <20210412090225.GB14932@breakpoint.cc>
-References: <20210412150416.4465b518@canb.auug.org.au>
+        Mon, 12 Apr 2021 09:13:06 -0400
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 1544062C0E;
+        Mon, 12 Apr 2021 15:12:23 +0200 (CEST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     wenxu@ucloud.cn
+Subject: [PATCH nf-next 1/3] netfilter: nft_payload: fix C-VLAN offload support
+Date:   Mon, 12 Apr 2021 15:12:40 +0200
+Message-Id: <20210412131242.2907-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210412150416.4465b518@canb.auug.org.au>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-> net/bridge/netfilter/ebtables.c:1248:33: error: 'struct netns_xt' has no member named 'tables'
->  1248 |  list_for_each_entry(t, &net->xt.tables[NFPROTO_BRIDGE], list) {
->       |                                 ^
-> include/linux/list.h:619:20: note: in definition of macro 'list_entry_is_head'
->   619 |  (&pos->member == (head))
->       |                    ^~~~
-> net/bridge/netfilter/ebtables.c:1248:2: note: in expansion of macro 'list_for_each_entry'
->  1248 |  list_for_each_entry(t, &net->xt.tables[NFPROTO_BRIDGE], list) {
->       |  ^~~~~~~~~~~~~~~~~~~
-> 
-> Caused by commit
-> 
->   5b53951cfc85 ("netfilter: ebtables: use net_generic infra")
-> 
-> interacting with commit
-> 
->   7ee3c61dcd28 ("netfilter: bridge: add pre_exit hooks for ebtable unregistration")
+- add another struct flow_dissector_key_vlan for C-VLAN
+- update layer 3 dependency to allow to match on IPv4/IPv6
 
-Right, the fixup is correct.
+Fixes: 89d8fd44abfb ("netfilter: nft_payload: add C-VLAN offload support")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_tables_offload.h | 1 +
+ net/netfilter/nft_payload.c               | 5 +++--
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
+index 1d34fe154fe0..b4d080061399 100644
+--- a/include/net/netfilter/nf_tables_offload.h
++++ b/include/net/netfilter/nf_tables_offload.h
+@@ -45,6 +45,7 @@ struct nft_flow_key {
+ 	struct flow_dissector_key_ports			tp;
+ 	struct flow_dissector_key_ip			ip;
+ 	struct flow_dissector_key_vlan			vlan;
++	struct flow_dissector_key_vlan			cvlan;
+ 	struct flow_dissector_key_eth_addrs		eth_addrs;
+ 	struct flow_dissector_key_meta			meta;
+ } __aligned(BITS_PER_LONG / 8); /* Ensure that we can do comparisons as longs. */
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index cb1c8c231880..a990f37e0a60 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -241,7 +241,7 @@ static int nft_payload_offload_ll(struct nft_offload_ctx *ctx,
+ 		if (!nft_payload_offload_mask(reg, priv->len, sizeof(__be16)))
+ 			return -EOPNOTSUPP;
+ 
+-		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_CVLAN, vlan,
++		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_CVLAN, cvlan,
+ 				  vlan_tci, sizeof(__be16), reg);
+ 		break;
+ 	case offsetof(struct vlan_ethhdr, h_vlan_encapsulated_proto) +
+@@ -249,8 +249,9 @@ static int nft_payload_offload_ll(struct nft_offload_ctx *ctx,
+ 		if (!nft_payload_offload_mask(reg, priv->len, sizeof(__be16)))
+ 			return -EOPNOTSUPP;
+ 
+-		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_CVLAN, vlan,
++		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_CVLAN, cvlan,
+ 				  vlan_tpid, sizeof(__be16), reg);
++		nft_offload_set_dependency(ctx, NFT_OFFLOAD_DEP_NETWORK);
+ 		break;
+ 	default:
+ 		return -EOPNOTSUPP;
+-- 
+2.30.2
+
