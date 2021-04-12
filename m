@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73330C433B4
-	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Apr 2021 13:12:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CF85C43460
+	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Apr 2021 13:12:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4CDDF61350
-	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Apr 2021 13:12:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 797956134F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Apr 2021 13:12:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238958AbhDLNNI (ORCPT
+        id S241867AbhDLNNK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 12 Apr 2021 09:13:08 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:48240 "EHLO
+        Mon, 12 Apr 2021 09:13:10 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:48260 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241705AbhDLNNH (ORCPT
+        with ESMTP id S241705AbhDLNNJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 12 Apr 2021 09:13:07 -0400
+        Mon, 12 Apr 2021 09:13:09 -0400
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 8894663E3D;
-        Mon, 12 Apr 2021 15:12:24 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 67D4963E56;
+        Mon, 12 Apr 2021 15:12:26 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     wenxu@ucloud.cn
-Subject: [PATCH nf-next 2/3] netfilter: nftables_offload: VLAN id needs host byteorder in flow dissector
-Date:   Mon, 12 Apr 2021 15:12:41 +0200
-Message-Id: <20210412131242.2907-2-pablo@netfilter.org>
+Subject: [PATCH nf-next 3/3] netfilter: nftables_offload: special ethertype handling for VLAN
+Date:   Mon, 12 Apr 2021 15:12:42 +0200
+Message-Id: <20210412131242.2907-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210412131242.2907-1-pablo@netfilter.org>
 References: <20210412131242.2907-1-pablo@netfilter.org>
@@ -39,148 +39,90 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The flow dissector representation expects the VLAN id in host byteorder.
-Add the NFT_OFFLOAD_F_NETWORK2HOST flag to swap the bytes from nft_cmp.
+The nftables offload parser sets FLOW_DISSECTOR_KEY_BASIC .n_proto to the
+ethertype field in in the ethertype frame. However:
+
+- FLOW_DISSECTOR_KEY_BASIC .n_proto field always stores either IPv4 or IPv6
+  ethertypes.
+- FLOW_DISSECTOR_KEY_VLAN .vlan_tpid stores either the 802.1q and 802.1ad
+  ethertypes. Same as for C-VLAN.
+
+This function adjusts the flow dissector to handle three scenarios:
+
+1) FLOW_DISSECTOR_KEY_VLAN and FLOW_DISSECTOR_KEY_CVLAN are set. Then,
+   transfer the .n_proto field to FLOW_DISSECTOR_KEY_VLAN .tpid, and
+   FLOW_DISSECTOR_KEY_VLAN .tpid to FLOW_DISSECTOR_KEY_CVLAN .tpid.
+   Finally set .n_proto to FLOW_DISSECTOR_KEY_CVLAN .tpid.
+2) FLOW_DISSECTOR_KEY_VLAN is set. Swap the .n_proto and the
+   FLOW_DISSECTOR_KEY_VLAN .tpid fields.
+3) ethertype is set to 802.1q or 802.1ad, in this case, transfer the .n_proto
+   field to FLOW_DISSECTOR_KEY_VLAN .vlan_tpid.
 
 Fixes: a82055af5959 ("netfilter: nft_payload: add VLAN offload support")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables_offload.h | 11 +++++-
- net/netfilter/nft_cmp.c                   | 41 +++++++++++++++++++++--
- net/netfilter/nft_payload.c               | 10 +++---
- 3 files changed, 55 insertions(+), 7 deletions(-)
+ net/netfilter/nf_tables_offload.c | 41 +++++++++++++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
 
-diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
-index b4d080061399..434a6158852f 100644
---- a/include/net/netfilter/nf_tables_offload.h
-+++ b/include/net/netfilter/nf_tables_offload.h
-@@ -4,11 +4,16 @@
- #include <net/flow_offload.h>
- #include <net/netfilter/nf_tables.h>
- 
-+enum nft_offload_reg_flags {
-+	NFT_OFFLOAD_F_NETWORK2HOST	= (1 << 0),
-+};
-+
- struct nft_offload_reg {
- 	u32		key;
- 	u32		len;
- 	u32		base_offset;
- 	u32		offset;
-+	u32		flags;
- 	struct nft_data data;
- 	struct nft_data	mask;
- };
-@@ -72,13 +77,17 @@ struct nft_flow_rule *nft_flow_rule_create(struct net *net, const struct nft_rul
- void nft_flow_rule_destroy(struct nft_flow_rule *flow);
- int nft_flow_rule_offload_commit(struct net *net);
- 
--#define NFT_OFFLOAD_MATCH(__key, __base, __field, __len, __reg)		\
-+#define NFT_OFFLOAD_MATCH_FLAGS(__key, __base, __field, __len, __reg, __flags)	\
- 	(__reg)->base_offset	=					\
- 		offsetof(struct nft_flow_key, __base);			\
- 	(__reg)->offset		=					\
- 		offsetof(struct nft_flow_key, __base.__field);		\
- 	(__reg)->len		= __len;				\
- 	(__reg)->key		= __key;				\
-+	(__reg)->flags		= __flags;
-+
-+#define NFT_OFFLOAD_MATCH(__key, __base, __field, __len, __reg)		\
-+	NFT_OFFLOAD_MATCH_FLAGS(__key, __base, __field, __len, __reg, 0)
- 
- #define NFT_OFFLOAD_MATCH_EXACT(__key, __base, __field, __len, __reg)	\
- 	NFT_OFFLOAD_MATCH(__key, __base, __field, __len, __reg)		\
-diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
-index eb6a43a180bb..47b6d05f1ae6 100644
---- a/net/netfilter/nft_cmp.c
-+++ b/net/netfilter/nft_cmp.c
-@@ -114,19 +114,56 @@ static int nft_cmp_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 	return -1;
+diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+index 43b56eff3b04..41bd6b67f92c 100644
+--- a/net/netfilter/nf_tables_offload.c
++++ b/net/netfilter/nf_tables_offload.c
+@@ -47,6 +47,45 @@ void nft_flow_rule_set_addr_type(struct nft_flow_rule *flow,
+ 		offsetof(struct nft_flow_key, control);
  }
  
-+union nft_cmp_offload_data {
-+	u16	val16;
-+	u32	val32;
-+	u64	val64;
++struct nft_offload_ethertype {
++	__be16 value;
++	__be16 mask;
 +};
 +
-+static void nft_payload_n2h(union nft_cmp_offload_data *data,
-+			    const u8 *val, u32 len)
++void nft_flow_rule_transfer_vlan(struct nft_offload_ctx *ctx,
++				 struct nft_flow_rule *flow)
 +{
-+	switch (len) {
-+	case 2:
-+		data->val16 = ntohs(*((u16 *)val));
-+		break;
-+	case 4:
-+		data->val32 = ntohl(*((u32 *)val));
-+		break;
-+	case 8:
-+		data->val64 = be64_to_cpu(*((u64 *)val));
-+		break;
-+	default:
-+		WARN_ON_ONCE(1);
-+		break;
++	struct nft_flow_match *match = &flow->match;
++	struct nft_offload_ethertype ethertype = {
++		.value	= match->key.basic.n_proto,
++		.mask	= match->mask.basic.n_proto,
++	};
++
++	if ((flow->match.dissector.used_keys &
++	     (BIT(FLOW_DISSECTOR_KEY_VLAN) | BIT(FLOW_DISSECTOR_KEY_CVLAN))) ==
++	    (BIT(FLOW_DISSECTOR_KEY_VLAN) | BIT(FLOW_DISSECTOR_KEY_CVLAN))) {
++		match->key.basic.n_proto = match->key.cvlan.vlan_tpid;
++		match->mask.basic.n_proto = match->mask.cvlan.vlan_tpid;
++		match->key.cvlan.vlan_tpid = match->key.vlan.vlan_tpid;
++		match->mask.cvlan.vlan_tpid = match->mask.vlan.vlan_tpid;
++		match->key.vlan.vlan_tpid = ethertype.value;
++		match->mask.vlan.vlan_tpid = ethertype.mask;
++	} else if (flow->match.dissector.used_keys & (BIT(FLOW_DISSECTOR_KEY_VLAN))) {
++		match->key.basic.n_proto = match->key.vlan.vlan_tpid;
++		match->mask.basic.n_proto = match->mask.vlan.vlan_tpid;
++		match->key.vlan.vlan_tpid = ethertype.value;
++		match->mask.vlan.vlan_tpid = ethertype.mask;
++	} else if (match->key.basic.n_proto == htons(ETH_P_8021Q) ||
++		   match->key.basic.n_proto == htons(ETH_P_8021AD)) {
++		match->key.vlan.vlan_tpid = ethertype.value;
++		match->mask.vlan.vlan_tpid = ethertype.mask;
++		match->dissector.used_keys |= BIT(FLOW_DISSECTOR_KEY_VLAN);
++		match->key.basic.n_proto = 0;
++		match->mask.basic.n_proto = 0;
++		match->dissector.used_keys &= ~BIT(FLOW_DISSECTOR_KEY_BASIC);
 +	}
 +}
 +
- static int __nft_cmp_offload(struct nft_offload_ctx *ctx,
- 			     struct nft_flow_rule *flow,
- 			     const struct nft_cmp_expr *priv)
+ struct nft_flow_rule *nft_flow_rule_create(struct net *net,
+ 					   const struct nft_rule *rule)
  {
- 	struct nft_offload_reg *reg = &ctx->regs[priv->sreg];
-+	union nft_cmp_offload_data _data, _datamask;
- 	u8 *mask = (u8 *)&flow->match.mask;
- 	u8 *key = (u8 *)&flow->match.key;
-+	u8 *data, *datamask;
+@@ -91,6 +130,8 @@ struct nft_flow_rule *nft_flow_rule_create(struct net *net,
  
- 	if (priv->op != NFT_CMP_EQ || priv->len > reg->len)
- 		return -EOPNOTSUPP;
- 
--	memcpy(key + reg->offset, &priv->data, reg->len);
--	memcpy(mask + reg->offset, &reg->mask, reg->len);
-+	if (reg->flags & NFT_OFFLOAD_F_NETWORK2HOST) {
-+		nft_payload_n2h(&_data, (u8 *)&priv->data, reg->len);
-+		nft_payload_n2h(&_datamask, (u8 *)&reg->mask, reg->len);
-+		data = (u8 *)&_data;
-+		datamask = (u8 *)&_datamask;
-+	} else {
-+		data = (u8 *)&priv->data;
-+		datamask = (u8 *)&reg->mask;
-+	}
+ 		expr = nft_expr_next(expr);
+ 	}
++	nft_flow_rule_transfer_vlan(ctx, flow);
 +
-+	memcpy(key + reg->offset, data, reg->len);
-+	memcpy(mask + reg->offset, datamask, reg->len);
+ 	flow->proto = ctx->dep.l3num;
+ 	kfree(ctx);
  
- 	flow->match.dissector.used_keys |= BIT(reg->key);
- 	flow->match.dissector.offset[reg->key] = reg->base_offset;
-diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index a990f37e0a60..501c5b24cc39 100644
---- a/net/netfilter/nft_payload.c
-+++ b/net/netfilter/nft_payload.c
-@@ -226,8 +226,9 @@ static int nft_payload_offload_ll(struct nft_offload_ctx *ctx,
- 		if (!nft_payload_offload_mask(reg, priv->len, sizeof(__be16)))
- 			return -EOPNOTSUPP;
- 
--		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_VLAN, vlan,
--				  vlan_tci, sizeof(__be16), reg);
-+		NFT_OFFLOAD_MATCH_FLAGS(FLOW_DISSECTOR_KEY_VLAN, vlan,
-+					vlan_tci, sizeof(__be16), reg,
-+					NFT_OFFLOAD_F_NETWORK2HOST);
- 		break;
- 	case offsetof(struct vlan_ethhdr, h_vlan_encapsulated_proto):
- 		if (!nft_payload_offload_mask(reg, priv->len, sizeof(__be16)))
-@@ -241,8 +242,9 @@ static int nft_payload_offload_ll(struct nft_offload_ctx *ctx,
- 		if (!nft_payload_offload_mask(reg, priv->len, sizeof(__be16)))
- 			return -EOPNOTSUPP;
- 
--		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_CVLAN, cvlan,
--				  vlan_tci, sizeof(__be16), reg);
-+		NFT_OFFLOAD_MATCH_FLAGS(FLOW_DISSECTOR_KEY_CVLAN, cvlan,
-+					vlan_tci, sizeof(__be16), reg,
-+					NFT_OFFLOAD_F_NETWORK2HOST);
- 		break;
- 	case offsetof(struct vlan_ethhdr, h_vlan_encapsulated_proto) +
- 							sizeof(struct vlan_hdr):
 -- 
 2.30.2
 
