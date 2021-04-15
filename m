@@ -2,90 +2,217 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=BAYES_00,
-	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F251C433B4
-	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Apr 2021 14:58:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 047D6C433B4
+	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Apr 2021 19:48:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 86E1D613FA
-	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Apr 2021 14:58:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C47FC60FF0
+	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Apr 2021 19:48:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234211AbhDOO66 (ORCPT
+        id S234958AbhDOTs1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 15 Apr 2021 10:58:58 -0400
-Received: from forward101j.mail.yandex.net ([5.45.198.241]:54346 "EHLO
-        forward101j.mail.yandex.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S234238AbhDOO44 (ORCPT
+        Thu, 15 Apr 2021 15:48:27 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:58736 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234735AbhDOTs0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 15 Apr 2021 10:56:56 -0400
-Received: from iva6-6aa4ee7025da.qloud-c.yandex.net (iva6-6aa4ee7025da.qloud-c.yandex.net [IPv6:2a02:6b8:c0c:6106:0:640:6aa4:ee70])
-        by forward101j.mail.yandex.net (Yandex) with ESMTP id 636B41BE0F93;
-        Thu, 15 Apr 2021 17:56:31 +0300 (MSK)
-Received: from iva6-2d18925256a6.qloud-c.yandex.net (iva6-2d18925256a6.qloud-c.yandex.net [2a02:6b8:c0c:7594:0:640:2d18:9252])
-        by iva6-6aa4ee7025da.qloud-c.yandex.net (mxback/Yandex) with ESMTP id 05tJ1gQzvs-uVJ4C634;
-        Thu, 15 Apr 2021 17:56:31 +0300
-Authentication-Results: iva6-6aa4ee7025da.qloud-c.yandex.net; dkim=pass
-Received: by iva6-2d18925256a6.qloud-c.yandex.net (smtp/Yandex) with ESMTPSA id FgieCsGGCy-uTKSNC7W;
-        Thu, 15 Apr 2021 17:56:30 +0300
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
-        (Client certificate not present)
-From:   Michal Soltys <msoltyspl@yandex.pl>
-Subject: Re: [PATCH nf-next] netfilter: Dissect flow after packet mangling
-To:     Ido Schimmel <idosch@idosch.org>
-Cc:     David Ahern <dsahern@gmail.com>, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, pablo@netfilter.org, kadlec@netfilter.org,
-        fw@strlen.de, dsahern@kernel.org, roopa@nvidia.com,
-        nikolay@nvidia.com, mlxsw@nvidia.com,
-        Ido Schimmel <idosch@nvidia.com>
-References: <20210411193251.1220655-1-idosch@idosch.org>
- <be90fae7-f634-1f54-992e-226c442fb894@gmail.com>
- <YHPt5nyML4I51COy@shredder.lan>
- <c1c83fb7-d074-a0a8-0766-f8844c1e7e23@yandex.pl>
- <YHSO+ieteZ6XHnjT@shredder.lan>
-Message-ID: <cecee118-0c1b-c36d-cb0b-f130c3d94b7f@yandex.pl>
-Date:   Thu, 15 Apr 2021 16:56:27 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.9.0
+        Thu, 15 Apr 2021 15:48:26 -0400
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 2B5FE63E45;
+        Thu, 15 Apr 2021 21:47:35 +0200 (CEST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     wenxu@cloud.cn
+Subject: [PATCH nf-next] netfilter: nftables: counter hardware offload support
+Date:   Thu, 15 Apr 2021 21:47:57 +0200
+Message-Id: <20210415194757.1991-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-In-Reply-To: <YHSO+ieteZ6XHnjT@shredder.lan>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US-large
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 4/12/21 8:18 PM, Ido Schimmel wrote:
-> On Mon, Apr 12, 2021 at 03:28:21PM +0200, Michal Soltys wrote:
->> On 4/12/21 8:51 AM, Ido Schimmel wrote:
->>> On Sun, Apr 11, 2021 at 06:18:05PM -0700, David Ahern wrote:
->>>> On 4/11/21 1:32 PM, Ido Schimmel wrote:
->>>>> From: Ido Schimmel <idosch@nvidia.com>
->>>>> <cut>
->>>>>
->>>>
->>>> Once this goes in, can you add tests to one of the selftest scripts
->>>> (e.g., fib_rule_tests.sh)?
->>>
->>> Yes. I used Michal's scripts from here [1] to test. Will try to simplify
->>> it for a test case.
->>>
->>> [1] https://lore.kernel.org/netdev/6b707dde-c6f0-ca3e-e817-a09c1e6b3f00@yandex.pl/
->>>
->>
->> Regarding those scripts:
->>
->> - the commented out `-j TOS --set-tos 0x02` falls into ECN bits, so it's
->> somewhat incorrect/obsolete
->> - the uidrange selector (that was also ignored) is missing in the sequence
->> of ip rules
-> 
-> I verified that with the patch, after adding mangling rules with
-> ip{,6}tables, packets continue to flow via right2. Can you test the
-> patch and verify it works as you expect?
-> 
+This patch adds the .offload_stats operation to synchronize hardware
+stats with the expression data. Update the counter expression to use
+this new interface. The hardware stats are retrieved from the netlink
+dump path via FLOW_CLS_STATS command to the driver.
 
-Tested today - all recently added selectors are working correctly. Thanks.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_tables.h         |  2 ++
+ include/net/netfilter/nf_tables_offload.h |  1 +
+ net/netfilter/nf_tables_api.c             |  3 ++
+ net/netfilter/nf_tables_offload.c         | 44 +++++++++++++++++++----
+ net/netfilter/nft_counter.c               | 30 ++++++++++++++++
+ 5 files changed, 73 insertions(+), 7 deletions(-)
+
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 5aaced6bf13e..9619052fb80f 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -867,6 +867,8 @@ struct nft_expr_ops {
+ 	int				(*offload)(struct nft_offload_ctx *ctx,
+ 						   struct nft_flow_rule *flow,
+ 						   const struct nft_expr *expr);
++	void				(*offload_stats)(struct nft_expr *expr,
++							 const struct flow_stats *stats);
+ 	u32				offload_flags;
+ 	const struct nft_expr_type	*type;
+ 	void				*data;
+diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
+index 1d34fe154fe0..b8c2d5f0b328 100644
+--- a/include/net/netfilter/nf_tables_offload.h
++++ b/include/net/netfilter/nf_tables_offload.h
+@@ -68,6 +68,7 @@ void nft_flow_rule_set_addr_type(struct nft_flow_rule *flow,
+ 
+ struct nft_rule;
+ struct nft_flow_rule *nft_flow_rule_create(struct net *net, const struct nft_rule *rule);
++int nft_flow_rule_stats(const struct nft_chain *chain, const struct nft_rule *rule);
+ void nft_flow_rule_destroy(struct nft_flow_rule *flow);
+ int nft_flow_rule_offload_commit(struct net *net);
+ 
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 589d2f6978d3..4504904bfe35 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2832,6 +2832,9 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, struct net *net,
+ 			goto nla_put_failure;
+ 	}
+ 
++	if (chain->flags & NFT_CHAIN_HW_OFFLOAD)
++		nft_flow_rule_stats(chain, rule);
++
+ 	list = nla_nest_start_noflag(skb, NFTA_RULE_EXPRESSIONS);
+ 	if (list == NULL)
+ 		goto nla_put_failure;
+diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+index 9ae14270c543..640bc52117bc 100644
+--- a/net/netfilter/nf_tables_offload.c
++++ b/net/netfilter/nf_tables_offload.c
+@@ -197,26 +197,56 @@ static void nft_flow_cls_offload_setup(struct flow_cls_offload *cls_flow,
+ 		cls_flow->rule = flow->rule;
+ }
+ 
+-static int nft_flow_offload_rule(struct nft_chain *chain,
+-				 struct nft_rule *rule,
+-				 struct nft_flow_rule *flow,
+-				 enum flow_cls_command command)
++static int nft_flow_offload_cmd(const struct nft_chain *chain,
++				const struct nft_rule *rule,
++				struct nft_flow_rule *flow,
++				enum flow_cls_command command,
++				struct flow_cls_offload *cls_flow)
+ {
+ 	struct netlink_ext_ack extack = {};
+-	struct flow_cls_offload cls_flow;
+ 	struct nft_base_chain *basechain;
+ 
+ 	if (!nft_is_base_chain(chain))
+ 		return -EOPNOTSUPP;
+ 
+ 	basechain = nft_base_chain(chain);
+-	nft_flow_cls_offload_setup(&cls_flow, basechain, rule, flow, &extack,
++	nft_flow_cls_offload_setup(cls_flow, basechain, rule, flow, &extack,
+ 				   command);
+ 
+-	return nft_setup_cb_call(TC_SETUP_CLSFLOWER, &cls_flow,
++	return nft_setup_cb_call(TC_SETUP_CLSFLOWER, cls_flow,
+ 				 &basechain->flow_block.cb_list);
+ }
+ 
++static int nft_flow_offload_rule(const struct nft_chain *chain,
++				 struct nft_rule *rule,
++				 struct nft_flow_rule *flow,
++				 enum flow_cls_command command)
++{
++	struct flow_cls_offload cls_flow;
++
++	return nft_flow_offload_cmd(chain, rule, flow, command, &cls_flow);
++}
++
++int nft_flow_rule_stats(const struct nft_chain *chain,
++			const struct nft_rule *rule)
++{
++	struct flow_cls_offload cls_flow = {};
++	struct nft_expr *expr, *next;
++	int err;
++
++	err = nft_flow_offload_cmd(chain, rule, NULL, FLOW_CLS_STATS,
++				   &cls_flow);
++	if (err < 0)
++		return err;
++
++	nft_rule_for_each_expr(expr, next, rule) {
++		if (expr->ops->offload_stats)
++			expr->ops->offload_stats(expr, &cls_flow.stats);
++	}
++
++	return 0;
++}
++
+ static int nft_flow_offload_bind(struct flow_block_offload *bo,
+ 				 struct nft_base_chain *basechain)
+ {
+diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
+index 85ed461ec24e..9e1c09ada6eb 100644
+--- a/net/netfilter/nft_counter.c
++++ b/net/netfilter/nft_counter.c
+@@ -13,6 +13,7 @@
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables_offload.h>
+ 
+ struct nft_counter {
+ 	s64		bytes;
+@@ -248,6 +249,33 @@ static int nft_counter_clone(struct nft_expr *dst, const struct nft_expr *src)
+ 	return 0;
+ }
+ 
++static int nft_counter_offload(struct nft_offload_ctx *ctx,
++			       struct nft_flow_rule *flow,
++			       const struct nft_expr *expr)
++{
++	/* No specific offload action is needed, but report success. */
++	return 0;
++}
++
++static void nft_counter_offload_stats(struct nft_expr *expr,
++				      const struct flow_stats *stats)
++{
++	struct nft_counter_percpu_priv *priv = nft_expr_priv(expr);
++	struct nft_counter *this_cpu;
++	seqcount_t *myseq;
++
++	preempt_disable();
++	this_cpu = this_cpu_ptr(priv->counter);
++	myseq = this_cpu_ptr(&nft_counter_seq);
++
++	write_seqcount_begin(myseq);
++	this_cpu->packets += stats->pkts;
++	this_cpu->bytes += stats->bytes;
++	write_seqcount_end(myseq);
++
++	preempt_enable();
++}
++
+ static struct nft_expr_type nft_counter_type;
+ static const struct nft_expr_ops nft_counter_ops = {
+ 	.type		= &nft_counter_type,
+@@ -258,6 +286,8 @@ static const struct nft_expr_ops nft_counter_ops = {
+ 	.destroy_clone	= nft_counter_destroy,
+ 	.dump		= nft_counter_dump,
+ 	.clone		= nft_counter_clone,
++	.offload	= nft_counter_offload,
++	.offload_stats	= nft_counter_offload_stats,
+ };
+ 
+ static struct nft_expr_type nft_counter_type __read_mostly = {
+-- 
+2.30.2
+
