@@ -2,65 +2,81 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72FBBC433B4
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Apr 2021 23:09:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC8F0C433ED
+	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Apr 2021 13:13:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 47BFD61090
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Apr 2021 23:09:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C5E4A611F1
+	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Apr 2021 13:13:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233083AbhDNXJ1 (ORCPT
+        id S232332AbhDONN5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 14 Apr 2021 19:09:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48022 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237058AbhDNXIp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Apr 2021 19:08:45 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1787061090;
-        Wed, 14 Apr 2021 23:08:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1618441703;
-        bh=loRDmNqig6rzWmy/dyXWo3LyLZ/2cShQxMRBRYxhBNI=;
-        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
-        b=A/fbl1/onE0mMUa1xuJ2FqgzdIVohZcYAssQQgKf1E2iM3FSa4Wqyr/hDLlhzGBK2
-         xxcMmXy7dYuKP8ltlxSW7kEcIiVCe2CBcAmj9QidFVfuqct0bcsV1M+RrOUJgugf0c
-         biZIcov+5kSVLjnhlsHNS0WLERsSqMrWstliqt8jUcwr2PNjx3CFGrM6/6SUTQU4Hi
-         X0obwlNTxN62ug9UwTH1p9ld00ebhJw7O6cxLGmEEsqYeN/iB/dtkmgi6afyGWvH9d
-         N36dNzCAHObPV3vWe1TXne64UzrLdJ3Jn7i14r3cdkwlpYZzwPtfjvevbCzTpcvwpr
-         0CvAvXWZBdk3Q==
-Message-ID: <c8754f7c390bb3887cd751f5422af538fbb79a5d.camel@kernel.org>
-Subject: Re: [PATCH] net/mlx5e: fix ingress_ifindex check in
- mlx5e_flower_parse_meta
-From:   Saeed Mahameed <saeed@kernel.org>
-To:     wenxu@ucloud.cn
-Cc:     davem@davemloft.net, kuba@kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-Date:   Wed, 14 Apr 2021 16:08:22 -0700
-In-Reply-To: <1617946428-10944-1-git-send-email-wenxu@ucloud.cn>
-References: <1617946428-10944-1-git-send-email-wenxu@ucloud.cn>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.38.4 (3.38.4-1.fc33) 
+        Thu, 15 Apr 2021 09:13:57 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:57866 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230487AbhDONN5 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 15 Apr 2021 09:13:57 -0400
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 64F1B62C0E
+        for <netfilter-devel@vger.kernel.org>; Thu, 15 Apr 2021 15:13:06 +0200 (CEST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft 0/10] cache updates
+Date:   Thu, 15 Apr 2021 15:13:20 +0200
+Message-Id: <20210415131330.6692-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, 2021-04-09 at 13:33 +0800, wenxu@ucloud.cn wrote:
-> From: wenxu <wenxu@ucloud.cn>
-> 
-> In the nft_offload there is the mate flow_dissector with no
-> ingress_ifindex but with ingress_iftype that only be used
-> in the software. So if the mask of ingress_ifindex in meta is
-> 0, this meta check should be bypass.
-> 
-> Fixes: 6d65bc64e232 ("net/mlx5e: Add mlx5e_flower_parse_meta
-> support")
-> Signed-off-by: wenxu <wenxu@ucloud.cn>
+Hi,
 
-applied to net-mlx5,
-Thanks!
+The following patchset contains cache updates for nft:
+
+#1 adds a object hashtable for lookups by name.
+#2 adds a flowtable hashtable for lookups by name.
+#3 adds set_cache_del() and use it from the monitor path.
+#4 adds ruleset-defined sets to the cache.
+#5 adds ruleset-defined flowtables to the cache.
+#6 populates the table cache for several objects.
+#7 adds ruleset-define policy objects to the cache.
+#8 move struct nft_cache declaration to include/cache.h
+#9 adds a table hashtable for lookups by name.
+#10 removes table_lookup_global() which is not required
+    anymore after the previous updates.
+
+Pablo Neira Ayuso (10):
+  cache: add hashtable cache for object
+  cache: add hashtable cache for flowtable
+  cache: add set_cache_del() and use it
+  evaluate: add set to the cache
+  evaluate: add flowtable to the cache
+  cache: missing table cache for several policy objects
+  evaluate: add object to the cache
+  cache: move struct nft_cache declaration to cache.h
+  cache: add hashtable cache for table
+  evaluate: remove table_lookup_global()
+
+ include/cache.h           |  25 ++++
+ include/netlink.h         |   2 +
+ include/nftables.h        |   8 +-
+ include/rule.h            |  18 +--
+ src/cache.c               | 244 ++++++++++++++++++++++++++++++++++++--
+ src/evaluate.c            |  83 ++++++-------
+ src/json.c                |  24 ++--
+ src/libnftables.c         |   8 ++
+ src/monitor.c             |  20 ++--
+ src/netlink.c             |  23 +---
+ src/netlink_delinearize.c |   4 +-
+ src/rule.c                | 125 ++++++++-----------
+ 12 files changed, 399 insertions(+), 185 deletions(-)
+
+-- 
+2.20.1
 
