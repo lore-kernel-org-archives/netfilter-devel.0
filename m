@@ -2,217 +2,98 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 047D6C433B4
-	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Apr 2021 19:48:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA8DBC433ED
+	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Apr 2021 20:23:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C47FC60FF0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Apr 2021 19:48:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A851661153
+	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Apr 2021 20:23:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234958AbhDOTs1 (ORCPT
+        id S234701AbhDOUYU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 15 Apr 2021 15:48:27 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:58736 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234735AbhDOTs0 (ORCPT
+        Thu, 15 Apr 2021 16:24:20 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:54345 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S234536AbhDOUYU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 15 Apr 2021 15:48:26 -0400
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 2B5FE63E45;
-        Thu, 15 Apr 2021 21:47:35 +0200 (CEST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     wenxu@cloud.cn
-Subject: [PATCH nf-next] netfilter: nftables: counter hardware offload support
-Date:   Thu, 15 Apr 2021 21:47:57 +0200
-Message-Id: <20210415194757.1991-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Thu, 15 Apr 2021 16:24:20 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1618518236;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=dJSt+R0xYlbKn2NDeMbvCLCunZLRZGk+vRMb3bJfoV0=;
+        b=cC3N6ga/+wVIenmLfP4jntTS8AcYHv0neCy9ln8+n6w5D1gDwV8YaS6E8Nk93vEMdp9NFM
+        r6d1/AqLccO+NuJdIv+AegjfYTua8JJ+eYgt/rhPlO1wAvIInLbuuZnByHHYfL+7B7V0EJ
+        cCdbD7GKq4hFgyRqRw5UzngTy+o7H9A=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-527-2PyZnEO0O_GQc3g_-fTaBA-1; Thu, 15 Apr 2021 16:23:54 -0400
+X-MC-Unique: 2PyZnEO0O_GQc3g_-fTaBA-1
+Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 30F4D881278;
+        Thu, 15 Apr 2021 20:23:53 +0000 (UTC)
+Received: from madcap2.tricolour.ca (unknown [10.10.110.27])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 499F8610A8;
+        Thu, 15 Apr 2021 20:23:46 +0000 (UTC)
+Date:   Thu, 15 Apr 2021 16:23:44 -0400
+From:   Richard Guy Briggs <rgb@redhat.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Paul Moore <paul@paul-moore.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH] netfilter: nftables: fix a warning message in
+ nf_tables_commit_audit_collect()
+Message-ID: <20210415202344.GI3141668@madcap2.tricolour.ca>
+References: <YGcD6HO8tiX7G4OJ@mwanda>
+ <CAHC9VhQ4D25kvzjXyvk8eJFXCOAaxuzUkSyNTePSrBHONxXZwQ@mail.gmail.com>
+ <20210403181850.GA4976@salvia>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210403181850.GA4976@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch adds the .offload_stats operation to synchronize hardware
-stats with the expression data. Update the counter expression to use
-this new interface. The hardware stats are retrieved from the netlink
-dump path via FLOW_CLS_STATS command to the driver.
+On 2021-04-03 20:18, Pablo Neira Ayuso wrote:
+> On Fri, Apr 02, 2021 at 11:57:20AM -0400, Paul Moore wrote:
+> > On Fri, Apr 2, 2021 at 7:46 AM Dan Carpenter <dan.carpenter@oracle.com> wrote:
+> > > The first argument of a WARN_ONCE() is a condition.  This WARN_ONCE()
+> > > will only print the table name, and is potentially problematic if the
+> > > table name has a %s in it.
+> > >
+> > > Fixes: bb4052e57b5b ("audit: log nftables configuration change events once per table")
+> > > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> > > ---
+> > >  net/netfilter/nf_tables_api.c | 2 +-
+> > >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > Thanks Dan.
+> > 
+> > Reviewed-by: Paul Moore <paul@paul-moore.com>
+> 
+> Applied, thanks.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_tables.h         |  2 ++
- include/net/netfilter/nf_tables_offload.h |  1 +
- net/netfilter/nf_tables_api.c             |  3 ++
- net/netfilter/nf_tables_offload.c         | 44 +++++++++++++++++++----
- net/netfilter/nft_counter.c               | 30 ++++++++++++++++
- 5 files changed, 73 insertions(+), 7 deletions(-)
+Thanks Dan, Paul, Pablo.
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 5aaced6bf13e..9619052fb80f 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -867,6 +867,8 @@ struct nft_expr_ops {
- 	int				(*offload)(struct nft_offload_ctx *ctx,
- 						   struct nft_flow_rule *flow,
- 						   const struct nft_expr *expr);
-+	void				(*offload_stats)(struct nft_expr *expr,
-+							 const struct flow_stats *stats);
- 	u32				offload_flags;
- 	const struct nft_expr_type	*type;
- 	void				*data;
-diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
-index 1d34fe154fe0..b8c2d5f0b328 100644
---- a/include/net/netfilter/nf_tables_offload.h
-+++ b/include/net/netfilter/nf_tables_offload.h
-@@ -68,6 +68,7 @@ void nft_flow_rule_set_addr_type(struct nft_flow_rule *flow,
- 
- struct nft_rule;
- struct nft_flow_rule *nft_flow_rule_create(struct net *net, const struct nft_rule *rule);
-+int nft_flow_rule_stats(const struct nft_chain *chain, const struct nft_rule *rule);
- void nft_flow_rule_destroy(struct nft_flow_rule *flow);
- int nft_flow_rule_offload_commit(struct net *net);
- 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 589d2f6978d3..4504904bfe35 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2832,6 +2832,9 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, struct net *net,
- 			goto nla_put_failure;
- 	}
- 
-+	if (chain->flags & NFT_CHAIN_HW_OFFLOAD)
-+		nft_flow_rule_stats(chain, rule);
-+
- 	list = nla_nest_start_noflag(skb, NFTA_RULE_EXPRESSIONS);
- 	if (list == NULL)
- 		goto nla_put_failure;
-diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-index 9ae14270c543..640bc52117bc 100644
---- a/net/netfilter/nf_tables_offload.c
-+++ b/net/netfilter/nf_tables_offload.c
-@@ -197,26 +197,56 @@ static void nft_flow_cls_offload_setup(struct flow_cls_offload *cls_flow,
- 		cls_flow->rule = flow->rule;
- }
- 
--static int nft_flow_offload_rule(struct nft_chain *chain,
--				 struct nft_rule *rule,
--				 struct nft_flow_rule *flow,
--				 enum flow_cls_command command)
-+static int nft_flow_offload_cmd(const struct nft_chain *chain,
-+				const struct nft_rule *rule,
-+				struct nft_flow_rule *flow,
-+				enum flow_cls_command command,
-+				struct flow_cls_offload *cls_flow)
- {
- 	struct netlink_ext_ack extack = {};
--	struct flow_cls_offload cls_flow;
- 	struct nft_base_chain *basechain;
- 
- 	if (!nft_is_base_chain(chain))
- 		return -EOPNOTSUPP;
- 
- 	basechain = nft_base_chain(chain);
--	nft_flow_cls_offload_setup(&cls_flow, basechain, rule, flow, &extack,
-+	nft_flow_cls_offload_setup(cls_flow, basechain, rule, flow, &extack,
- 				   command);
- 
--	return nft_setup_cb_call(TC_SETUP_CLSFLOWER, &cls_flow,
-+	return nft_setup_cb_call(TC_SETUP_CLSFLOWER, cls_flow,
- 				 &basechain->flow_block.cb_list);
- }
- 
-+static int nft_flow_offload_rule(const struct nft_chain *chain,
-+				 struct nft_rule *rule,
-+				 struct nft_flow_rule *flow,
-+				 enum flow_cls_command command)
-+{
-+	struct flow_cls_offload cls_flow;
-+
-+	return nft_flow_offload_cmd(chain, rule, flow, command, &cls_flow);
-+}
-+
-+int nft_flow_rule_stats(const struct nft_chain *chain,
-+			const struct nft_rule *rule)
-+{
-+	struct flow_cls_offload cls_flow = {};
-+	struct nft_expr *expr, *next;
-+	int err;
-+
-+	err = nft_flow_offload_cmd(chain, rule, NULL, FLOW_CLS_STATS,
-+				   &cls_flow);
-+	if (err < 0)
-+		return err;
-+
-+	nft_rule_for_each_expr(expr, next, rule) {
-+		if (expr->ops->offload_stats)
-+			expr->ops->offload_stats(expr, &cls_flow.stats);
-+	}
-+
-+	return 0;
-+}
-+
- static int nft_flow_offload_bind(struct flow_block_offload *bo,
- 				 struct nft_base_chain *basechain)
- {
-diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
-index 85ed461ec24e..9e1c09ada6eb 100644
---- a/net/netfilter/nft_counter.c
-+++ b/net/netfilter/nft_counter.c
-@@ -13,6 +13,7 @@
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables_offload.h>
- 
- struct nft_counter {
- 	s64		bytes;
-@@ -248,6 +249,33 @@ static int nft_counter_clone(struct nft_expr *dst, const struct nft_expr *src)
- 	return 0;
- }
- 
-+static int nft_counter_offload(struct nft_offload_ctx *ctx,
-+			       struct nft_flow_rule *flow,
-+			       const struct nft_expr *expr)
-+{
-+	/* No specific offload action is needed, but report success. */
-+	return 0;
-+}
-+
-+static void nft_counter_offload_stats(struct nft_expr *expr,
-+				      const struct flow_stats *stats)
-+{
-+	struct nft_counter_percpu_priv *priv = nft_expr_priv(expr);
-+	struct nft_counter *this_cpu;
-+	seqcount_t *myseq;
-+
-+	preempt_disable();
-+	this_cpu = this_cpu_ptr(priv->counter);
-+	myseq = this_cpu_ptr(&nft_counter_seq);
-+
-+	write_seqcount_begin(myseq);
-+	this_cpu->packets += stats->pkts;
-+	this_cpu->bytes += stats->bytes;
-+	write_seqcount_end(myseq);
-+
-+	preempt_enable();
-+}
-+
- static struct nft_expr_type nft_counter_type;
- static const struct nft_expr_ops nft_counter_ops = {
- 	.type		= &nft_counter_type,
-@@ -258,6 +286,8 @@ static const struct nft_expr_ops nft_counter_ops = {
- 	.destroy_clone	= nft_counter_destroy,
- 	.dump		= nft_counter_dump,
- 	.clone		= nft_counter_clone,
-+	.offload	= nft_counter_offload,
-+	.offload_stats	= nft_counter_offload_stats,
- };
- 
- static struct nft_expr_type nft_counter_type __read_mostly = {
--- 
-2.30.2
+- RGB
+
+--
+Richard Guy Briggs <rgb@redhat.com>
+Sr. S/W Engineer, Kernel Security, Base Operating Systems
+Remote, Ottawa, Red Hat Canada
+IRC: rgb, SunRaycer
+Voice: +1.647.777.2635, Internal: (81) 32635
 
