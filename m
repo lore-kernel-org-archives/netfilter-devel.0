@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9905C43460
-	for <netfilter-devel@archiver.kernel.org>; Sun, 18 Apr 2021 21:04:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 368A6C43470
+	for <netfilter-devel@archiver.kernel.org>; Sun, 18 Apr 2021 21:04:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 95BFA610CA
-	for <netfilter-devel@archiver.kernel.org>; Sun, 18 Apr 2021 21:04:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1FE69610CB
+	for <netfilter-devel@archiver.kernel.org>; Sun, 18 Apr 2021 21:04:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235778AbhDRVFA (ORCPT
+        id S236024AbhDRVFC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 18 Apr 2021 17:05:00 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:35002 "EHLO
+        Sun, 18 Apr 2021 17:05:02 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:34980 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232874AbhDRVE5 (ORCPT
+        with ESMTP id S235607AbhDRVE7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 18 Apr 2021 17:04:57 -0400
+        Sun, 18 Apr 2021 17:04:59 -0400
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 58CF163E87;
-        Sun, 18 Apr 2021 23:03:58 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id BFC9C63E92;
+        Sun, 18 Apr 2021 23:03:59 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 09/14] netfilter: nft_payload: fix C-VLAN offload support
-Date:   Sun, 18 Apr 2021 23:04:10 +0200
-Message-Id: <20210418210415.4719-10-pablo@netfilter.org>
+Subject: [PATCH net-next 12/14] netfilter: Dissect flow after packet mangling
+Date:   Sun, 18 Apr 2021 23:04:13 +0200
+Message-Id: <20210418210415.4719-13-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210418210415.4719-1-pablo@netfilter.org>
 References: <20210418210415.4719-1-pablo@netfilter.org>
@@ -39,52 +39,67 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-- add another struct flow_dissector_key_vlan for C-VLAN
-- update layer 3 dependency to allow to match on IPv4/IPv6
+From: Ido Schimmel <idosch@nvidia.com>
 
-Fixes: 89d8fd44abfb ("netfilter: nft_payload: add C-VLAN offload support")
+Netfilter tries to reroute mangled packets as a different route might
+need to be used following the mangling. When this happens, netfilter
+does not populate the IP protocol, the source port and the destination
+port in the flow key. Therefore, FIB rules that match on these fields
+are ignored and packets can be misrouted.
+
+Solve this by dissecting the outer flow and populating the flow key
+before rerouting the packet. Note that flow dissection only happens when
+FIB rules that match on these fields are installed, so in the common
+case there should not be a penalty.
+
+Reported-by: Michal Soltys <msoltyspl@yandex.pl>
+Signed-off-by: Ido Schimmel <idosch@nvidia.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables_offload.h | 1 +
- net/netfilter/nft_payload.c               | 5 +++--
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ net/ipv4/netfilter.c | 2 ++
+ net/ipv6/netfilter.c | 2 ++
+ 2 files changed, 4 insertions(+)
 
-diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
-index 1d34fe154fe0..b4d080061399 100644
---- a/include/net/netfilter/nf_tables_offload.h
-+++ b/include/net/netfilter/nf_tables_offload.h
-@@ -45,6 +45,7 @@ struct nft_flow_key {
- 	struct flow_dissector_key_ports			tp;
- 	struct flow_dissector_key_ip			ip;
- 	struct flow_dissector_key_vlan			vlan;
-+	struct flow_dissector_key_vlan			cvlan;
- 	struct flow_dissector_key_eth_addrs		eth_addrs;
- 	struct flow_dissector_key_meta			meta;
- } __aligned(BITS_PER_LONG / 8); /* Ensure that we can do comparisons as longs. */
-diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index cb1c8c231880..a990f37e0a60 100644
---- a/net/netfilter/nft_payload.c
-+++ b/net/netfilter/nft_payload.c
-@@ -241,7 +241,7 @@ static int nft_payload_offload_ll(struct nft_offload_ctx *ctx,
- 		if (!nft_payload_offload_mask(reg, priv->len, sizeof(__be16)))
- 			return -EOPNOTSUPP;
+diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
+index 7c841037c533..aff707988e23 100644
+--- a/net/ipv4/netfilter.c
++++ b/net/ipv4/netfilter.c
+@@ -25,6 +25,7 @@ int ip_route_me_harder(struct net *net, struct sock *sk, struct sk_buff *skb, un
+ 	__be32 saddr = iph->saddr;
+ 	__u8 flags;
+ 	struct net_device *dev = skb_dst(skb)->dev;
++	struct flow_keys flkeys;
+ 	unsigned int hh_len;
  
--		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_CVLAN, vlan,
-+		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_CVLAN, cvlan,
- 				  vlan_tci, sizeof(__be16), reg);
- 		break;
- 	case offsetof(struct vlan_ethhdr, h_vlan_encapsulated_proto) +
-@@ -249,8 +249,9 @@ static int nft_payload_offload_ll(struct nft_offload_ctx *ctx,
- 		if (!nft_payload_offload_mask(reg, priv->len, sizeof(__be16)))
- 			return -EOPNOTSUPP;
+ 	sk = sk_to_full_sk(sk);
+@@ -48,6 +49,7 @@ int ip_route_me_harder(struct net *net, struct sock *sk, struct sk_buff *skb, un
+ 		fl4.flowi4_oif = l3mdev_master_ifindex(dev);
+ 	fl4.flowi4_mark = skb->mark;
+ 	fl4.flowi4_flags = flags;
++	fib4_rules_early_flow_dissect(net, skb, &fl4, &flkeys);
+ 	rt = ip_route_output_key(net, &fl4);
+ 	if (IS_ERR(rt))
+ 		return PTR_ERR(rt);
+diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
+index ab9a279dd6d4..6ab710b5a1a8 100644
+--- a/net/ipv6/netfilter.c
++++ b/net/ipv6/netfilter.c
+@@ -24,6 +24,7 @@ int ip6_route_me_harder(struct net *net, struct sock *sk_partial, struct sk_buff
+ {
+ 	const struct ipv6hdr *iph = ipv6_hdr(skb);
+ 	struct sock *sk = sk_to_full_sk(sk_partial);
++	struct flow_keys flkeys;
+ 	unsigned int hh_len;
+ 	struct dst_entry *dst;
+ 	int strict = (ipv6_addr_type(&iph->daddr) &
+@@ -38,6 +39,7 @@ int ip6_route_me_harder(struct net *net, struct sock *sk_partial, struct sk_buff
+ 	};
+ 	int err;
  
--		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_CVLAN, vlan,
-+		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_CVLAN, cvlan,
- 				  vlan_tpid, sizeof(__be16), reg);
-+		nft_offload_set_dependency(ctx, NFT_OFFLOAD_DEP_NETWORK);
- 		break;
- 	default:
- 		return -EOPNOTSUPP;
++	fib6_rules_early_flow_dissect(net, skb, &fl6, &flkeys);
+ 	dst = ip6_route_output(net, sk, &fl6);
+ 	err = dst->error;
+ 	if (err) {
 -- 
 2.30.2
 
