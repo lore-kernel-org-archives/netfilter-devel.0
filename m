@@ -2,133 +2,130 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,INCLUDES_PULL_REQUEST,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42848C433B4
-	for <netfilter-devel@archiver.kernel.org>; Sun, 18 Apr 2021 20:00:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D710BC433ED
+	for <netfilter-devel@archiver.kernel.org>; Sun, 18 Apr 2021 21:04:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 11437610CD
-	for <netfilter-devel@archiver.kernel.org>; Sun, 18 Apr 2021 20:00:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A2876610CE
+	for <netfilter-devel@archiver.kernel.org>; Sun, 18 Apr 2021 21:04:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230038AbhDRUAm (ORCPT
+        id S229488AbhDRVEv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 18 Apr 2021 16:00:42 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:34898 "EHLO
+        Sun, 18 Apr 2021 17:04:51 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:34968 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229488AbhDRUAk (ORCPT
+        with ESMTP id S229470AbhDRVEv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 18 Apr 2021 16:00:40 -0400
+        Sun, 18 Apr 2021 17:04:51 -0400
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 3A6ED63E84;
-        Sun, 18 Apr 2021 21:59:41 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id B710263E34;
+        Sun, 18 Apr 2021 23:03:51 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Cc:     wenxu@cloud.cn
-Subject: [PATCH 3/3,v4] netfilter: nftables_offload: special ethertype handling for VLAN
-Date:   Sun, 18 Apr 2021 22:00:06 +0200
-Message-Id: <20210418200006.20797-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
+Subject: [PATCH net-next 00/14] Netfilter updates for net-next
+Date:   Sun, 18 Apr 2021 23:04:01 +0200
+Message-Id: <20210418210415.4719-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The nftables offload parser sets FLOW_DISSECTOR_KEY_BASIC .n_proto to the
-ethertype field in the ethertype frame. However:
+Hi,
 
-- FLOW_DISSECTOR_KEY_BASIC .n_proto field always stores either IPv4 or IPv6
-  ethertypes.
-- FLOW_DISSECTOR_KEY_VLAN .vlan_tpid stores either the 802.1q and 802.1ad
-  ethertypes. Same as for FLOW_DISSECTOR_KEY_CVLAN.
+The following patchset contains Netfilter updates for net-next:
 
-This function adjusts the flow dissector to handle two scenarios:
+1) Add vlan match and pop actions to the flowtable offload,
+   patches from wenxu.
 
-1) FLOW_DISSECTOR_KEY_VLAN .vlan_tpid is set to 802.1q or 802.1ad.
-   Then, transfer:
-   - the .n_proto field to FLOW_DISSECTOR_KEY_VLAN .tpid.
-   - the original FLOW_DISSECTOR_KEY_VLAN .tpid to the
-     FLOW_DISSECTOR_KEY_CVLAN .tpid
-   - the original FLOW_DISSECTOR_KEY_CVLAN .tpid to the .n_proto field.
+2) Reduce size of the netns_ct structure, which itself is
+   embedded in struct net Make netns_ct a read-mostly structure.
+   Patches from Florian Westphal.
 
-2) .n_proto is set to 802.1q or 802.1ad. Then, transfer:
-   - the .n_proto field to FLOW_DISSECTOR_KEY_VLAN .tpid.
-   - the original FLOW_DISSECTOR_KEY_VLAN .tpid to the .n_proto field.
+3) Add FLOW_OFFLOAD_XMIT_UNSPEC to skip dst check from garbage
+   collector path, as required by the tc CT action. From Roi Dayan.
 
-Fixes: a82055af5959 ("netfilter: nft_payload: add VLAN offload support")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v3: missing check for .used_keys flags.
+4) VLAN offload fixes for nftables: Allow for matching on both s-vlan
+   and c-vlan selectors. Fix match of VLAN id due to incorrect
+   byteorder. Add a new routine to properly populate flow dissector
+   ethertypes.
 
- net/netfilter/nf_tables_offload.c | 45 +++++++++++++++++++++++++++++++
- 1 file changed, 45 insertions(+)
+5) Missing keys in ip{6}_route_me_harder() results in incorrect
+   routes. This includes an update for selftest infra. Patches
+   from Ido Schimmel.
 
-diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-index 43b56eff3b04..0ae2fbf3d97b 100644
---- a/net/netfilter/nf_tables_offload.c
-+++ b/net/netfilter/nf_tables_offload.c
-@@ -47,6 +47,49 @@ void nft_flow_rule_set_addr_type(struct nft_flow_rule *flow,
- 		offsetof(struct nft_flow_key, control);
- }
- 
-+struct nft_offload_ethertype {
-+	__be16 value;
-+	__be16 mask;
-+};
-+
-+static void nft_flow_rule_transfer_vlan(struct nft_offload_ctx *ctx,
-+					struct nft_flow_rule *flow)
-+{
-+	struct nft_flow_match *match = &flow->match;
-+	struct nft_offload_ethertype ethertype;
-+
-+	if (match->key.basic.n_proto != htons(ETH_P_8021Q) &&
-+	    match->key.basic.n_proto != htons(ETH_P_8021AD))
-+		return;
-+
-+	ethertype.value = match->key.basic.n_proto;
-+	ethertype.mask = match->mask.basic.n_proto;
-+
-+	if (match->key.vlan.vlan_tpid == htons(ETH_P_8021Q) ||
-+	    match->key.vlan.vlan_tpid == htons(ETH_P_8021AD)) {
-+		match->key.basic.n_proto = match->key.cvlan.vlan_tpid;
-+		match->mask.basic.n_proto = match->mask.cvlan.vlan_tpid;
-+		match->key.cvlan.vlan_tpid = match->key.vlan.vlan_tpid;
-+		match->mask.cvlan.vlan_tpid = match->mask.vlan.vlan_tpid;
-+		match->key.vlan.vlan_tpid = ethertype.value;
-+		match->mask.vlan.vlan_tpid = ethertype.mask;
-+		match->dissector.offset[FLOW_DISSECTOR_KEY_VLAN] =
-+			offsetof(struct nft_flow_key, vlan);
-+		match->dissector.offset[FLOW_DISSECTOR_KEY_CVLAN] =
-+			offsetof(struct nft_flow_key, cvlan);
-+		match->dissector.used_keys |= BIT(FLOW_DISSECTOR_KEY_VLAN) |
-+					      BIT(FLOW_DISSECTOR_KEY_CVLAN);
-+	} else {
-+		match->key.basic.n_proto = match->key.vlan.vlan_tpid;
-+		match->mask.basic.n_proto = match->mask.vlan.vlan_tpid;
-+		match->key.vlan.vlan_tpid = ethertype.value;
-+		match->mask.vlan.vlan_tpid = ethertype.mask;
-+		match->dissector.offset[FLOW_DISSECTOR_KEY_VLAN] =
-+			offsetof(struct nft_flow_key, vlan);
-+		match->dissector.used_keys |= BIT(FLOW_DISSECTOR_KEY_VLAN);
-+	}
-+}
-+
- struct nft_flow_rule *nft_flow_rule_create(struct net *net,
- 					   const struct nft_rule *rule)
- {
-@@ -91,6 +134,8 @@ struct nft_flow_rule *nft_flow_rule_create(struct net *net,
- 
- 		expr = nft_expr_next(expr);
- 	}
-+	nft_flow_rule_transfer_vlan(ctx, flow);
-+
- 	flow->proto = ctx->dep.l3num;
- 	kfree(ctx);
- 
--- 
-2.20.1
+6) Add counter hardware offload support through FLOW_CLS_STATS.
 
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit 8ef7adc6beb2ef0bce83513dc9e4505e7b21e8c2:
+
+  net: ethernet: ravb: Enable optional refclk (2021-04-12 14:09:59 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git HEAD
+
+for you to fetch changes up to b72920f6e4a9d6607b723d69b7f412c829769c75:
+
+  netfilter: nftables: counter hardware offload support (2021-04-18 22:04:49 +0200)
+
+----------------------------------------------------------------
+Florian Westphal (5):
+      netfilter: conntrack: move autoassign warning member to net_generic data
+      netfilter: conntrack: move autoassign_helper sysctl to net_generic data
+      netfilter: conntrack: move expect counter to net_generic data
+      netfilter: conntrack: move ct counter to net_generic data
+      netfilter: conntrack: convert sysctls to u8
+
+Ido Schimmel (2):
+      netfilter: Dissect flow after packet mangling
+      selftests: fib_tests: Add test cases for interaction with mangling
+
+Pablo Neira Ayuso (4):
+      netfilter: nft_payload: fix C-VLAN offload support
+      netfilter: nftables_offload: VLAN id needs host byteorder in flow dissector
+      netfilter: nftables_offload: special ethertype handling for VLAN
+      netfilter: nftables: counter hardware offload support
+
+Roi Dayan (1):
+      netfilter: flowtable: Add FLOW_OFFLOAD_XMIT_UNSPEC xmit type
+
+wenxu (2):
+      netfilter: flowtable: add vlan match offload support
+      netfilter: flowtable: add vlan pop action offload support
+
+ include/net/netfilter/nf_conntrack.h      |   8 ++
+ include/net/netfilter/nf_flow_table.h     |   5 +-
+ include/net/netfilter/nf_tables.h         |   2 +
+ include/net/netfilter/nf_tables_offload.h |  13 ++-
+ include/net/netns/conntrack.h             |  23 ++---
+ net/ipv4/netfilter.c                      |   2 +
+ net/ipv6/netfilter.c                      |   2 +
+ net/netfilter/nf_conntrack_core.c         |  46 ++++++---
+ net/netfilter/nf_conntrack_expect.c       |  22 +++--
+ net/netfilter/nf_conntrack_helper.c       |  15 ++-
+ net/netfilter/nf_conntrack_netlink.c      |   5 +-
+ net/netfilter/nf_conntrack_proto_tcp.c    |  34 +++----
+ net/netfilter/nf_conntrack_standalone.c   |  66 +++++++------
+ net/netfilter/nf_flow_table_core.c        |   3 +
+ net/netfilter/nf_flow_table_offload.c     |  52 ++++++++++
+ net/netfilter/nf_tables_api.c             |   3 +
+ net/netfilter/nf_tables_offload.c         |  88 +++++++++++++++--
+ net/netfilter/nft_cmp.c                   |  41 +++++++-
+ net/netfilter/nft_counter.c               |  29 ++++++
+ net/netfilter/nft_payload.c               |  13 ++-
+ tools/testing/selftests/net/fib_tests.sh  | 152 +++++++++++++++++++++++++++++-
+ 21 files changed, 520 insertions(+), 104 deletions(-)
