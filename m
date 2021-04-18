@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE5CDC43617
-	for <netfilter-devel@archiver.kernel.org>; Sun, 18 Apr 2021 21:04:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A07E5C43603
+	for <netfilter-devel@archiver.kernel.org>; Sun, 18 Apr 2021 21:04:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BD024610C8
-	for <netfilter-devel@archiver.kernel.org>; Sun, 18 Apr 2021 21:04:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 85F9C6100B
+	for <netfilter-devel@archiver.kernel.org>; Sun, 18 Apr 2021 21:04:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235662AbhDRVFB (ORCPT
+        id S236451AbhDRVFE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 18 Apr 2021 17:05:01 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:35010 "EHLO
+        Sun, 18 Apr 2021 17:05:04 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:35002 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235114AbhDRVE6 (ORCPT
+        with ESMTP id S235636AbhDRVE7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 18 Apr 2021 17:04:58 -0400
+        Sun, 18 Apr 2021 17:04:59 -0400
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id D222E63E89;
-        Sun, 18 Apr 2021 23:03:58 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 3A7CB63E8F;
+        Sun, 18 Apr 2021 23:04:00 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 10/14] netfilter: nftables_offload: VLAN id needs host byteorder in flow dissector
-Date:   Sun, 18 Apr 2021 23:04:11 +0200
-Message-Id: <20210418210415.4719-11-pablo@netfilter.org>
+Subject: [PATCH net-next 13/14] selftests: fib_tests: Add test cases for interaction with mangling
+Date:   Sun, 18 Apr 2021 23:04:14 +0200
+Message-Id: <20210418210415.4719-14-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210418210415.4719-1-pablo@netfilter.org>
 References: <20210418210415.4719-1-pablo@netfilter.org>
@@ -39,148 +39,247 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The flow dissector representation expects the VLAN id in host byteorder.
-Add the NFT_OFFLOAD_F_NETWORK2HOST flag to swap the bytes from nft_cmp.
+From: Ido Schimmel <idosch@nvidia.com>
 
-Fixes: a82055af5959 ("netfilter: nft_payload: add VLAN offload support")
+Test that packets are correctly routed when netfilter mangling rules are
+present.
+
+Without previous patch:
+
+ # ./fib_tests.sh -t ipv4_mangle
+
+ IPv4 mangling tests
+     TEST:     Connection with correct parameters                        [ OK ]
+     TEST:     Connection with incorrect parameters                      [ OK ]
+     TEST:     Connection with correct parameters - mangling             [FAIL]
+     TEST:     Connection with correct parameters - no mangling          [ OK ]
+     TEST:     Connection check - server side                            [FAIL]
+
+ Tests passed:   3
+ Tests failed:   2
+
+ # ./fib_tests.sh -t ipv6_mangle
+
+ IPv6 mangling tests
+     TEST:     Connection with correct parameters                        [ OK ]
+     TEST:     Connection with incorrect parameters                      [ OK ]
+     TEST:     Connection with correct parameters - mangling             [FAIL]
+     TEST:     Connection with correct parameters - no mangling          [ OK ]
+     TEST:     Connection check - server side                            [FAIL]
+
+ Tests passed:   3
+ Tests failed:   2
+
+With previous patch:
+
+ # ./fib_tests.sh -t ipv4_mangle
+
+ IPv4 mangling tests
+     TEST:     Connection with correct parameters                        [ OK ]
+     TEST:     Connection with incorrect parameters                      [ OK ]
+     TEST:     Connection with correct parameters - mangling             [ OK ]
+     TEST:     Connection with correct parameters - no mangling          [ OK ]
+     TEST:     Connection check - server side                            [ OK ]
+
+ Tests passed:   5
+ Tests failed:   0
+
+ # ./fib_tests.sh -t ipv6_mangle
+
+ IPv6 mangling tests
+     TEST:     Connection with correct parameters                        [ OK ]
+     TEST:     Connection with incorrect parameters                      [ OK ]
+     TEST:     Connection with correct parameters - mangling             [ OK ]
+     TEST:     Connection with correct parameters - no mangling          [ OK ]
+     TEST:     Connection check - server side                            [ OK ]
+
+ Tests passed:   5
+ Tests failed:   0
+
+Signed-off-by: Ido Schimmel <idosch@nvidia.com>
+Reviewed-by: David Ahern <dsahern@kernel.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables_offload.h | 11 +++++-
- net/netfilter/nft_cmp.c                   | 41 +++++++++++++++++++++--
- net/netfilter/nft_payload.c               | 10 +++---
- 3 files changed, 55 insertions(+), 7 deletions(-)
+ tools/testing/selftests/net/fib_tests.sh | 152 ++++++++++++++++++++++-
+ 1 file changed, 151 insertions(+), 1 deletion(-)
 
-diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
-index b4d080061399..434a6158852f 100644
---- a/include/net/netfilter/nf_tables_offload.h
-+++ b/include/net/netfilter/nf_tables_offload.h
-@@ -4,11 +4,16 @@
- #include <net/flow_offload.h>
- #include <net/netfilter/nf_tables.h>
+diff --git a/tools/testing/selftests/net/fib_tests.sh b/tools/testing/selftests/net/fib_tests.sh
+index 2b5707738609..76d9487fb03c 100755
+--- a/tools/testing/selftests/net/fib_tests.sh
++++ b/tools/testing/selftests/net/fib_tests.sh
+@@ -9,7 +9,7 @@ ret=0
+ ksft_skip=4
  
-+enum nft_offload_reg_flags {
-+	NFT_OFFLOAD_F_NETWORK2HOST	= (1 << 0),
-+};
-+
- struct nft_offload_reg {
- 	u32		key;
- 	u32		len;
- 	u32		base_offset;
- 	u32		offset;
-+	u32		flags;
- 	struct nft_data data;
- 	struct nft_data	mask;
- };
-@@ -72,13 +77,17 @@ struct nft_flow_rule *nft_flow_rule_create(struct net *net, const struct nft_rul
- void nft_flow_rule_destroy(struct nft_flow_rule *flow);
- int nft_flow_rule_offload_commit(struct net *net);
+ # all tests in this script. Can be overridden with -t option
+-TESTS="unregister down carrier nexthop suppress ipv6_rt ipv4_rt ipv6_addr_metric ipv4_addr_metric ipv6_route_metrics ipv4_route_metrics ipv4_route_v6_gw rp_filter ipv4_del_addr"
++TESTS="unregister down carrier nexthop suppress ipv6_rt ipv4_rt ipv6_addr_metric ipv4_addr_metric ipv6_route_metrics ipv4_route_metrics ipv4_route_v6_gw rp_filter ipv4_del_addr ipv4_mangle ipv6_mangle"
  
--#define NFT_OFFLOAD_MATCH(__key, __base, __field, __len, __reg)		\
-+#define NFT_OFFLOAD_MATCH_FLAGS(__key, __base, __field, __len, __reg, __flags)	\
- 	(__reg)->base_offset	=					\
- 		offsetof(struct nft_flow_key, __base);			\
- 	(__reg)->offset		=					\
- 		offsetof(struct nft_flow_key, __base.__field);		\
- 	(__reg)->len		= __len;				\
- 	(__reg)->key		= __key;				\
-+	(__reg)->flags		= __flags;
-+
-+#define NFT_OFFLOAD_MATCH(__key, __base, __field, __len, __reg)		\
-+	NFT_OFFLOAD_MATCH_FLAGS(__key, __base, __field, __len, __reg, 0)
- 
- #define NFT_OFFLOAD_MATCH_EXACT(__key, __base, __field, __len, __reg)	\
- 	NFT_OFFLOAD_MATCH(__key, __base, __field, __len, __reg)		\
-diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
-index eb6a43a180bb..47b6d05f1ae6 100644
---- a/net/netfilter/nft_cmp.c
-+++ b/net/netfilter/nft_cmp.c
-@@ -114,19 +114,56 @@ static int nft_cmp_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 	return -1;
+ VERBOSE=0
+ PAUSE_ON_FAIL=no
+@@ -1653,6 +1653,154 @@ ipv4_route_v6_gw_test()
+ 	route_cleanup
  }
  
-+union nft_cmp_offload_data {
-+	u16	val16;
-+	u32	val32;
-+	u64	val64;
-+};
-+
-+static void nft_payload_n2h(union nft_cmp_offload_data *data,
-+			    const u8 *val, u32 len)
++socat_check()
 +{
-+	switch (len) {
-+	case 2:
-+		data->val16 = ntohs(*((u16 *)val));
-+		break;
-+	case 4:
-+		data->val32 = ntohl(*((u32 *)val));
-+		break;
-+	case 8:
-+		data->val64 = be64_to_cpu(*((u64 *)val));
-+		break;
-+	default:
-+		WARN_ON_ONCE(1);
-+		break;
-+	}
++	if [ ! -x "$(command -v socat)" ]; then
++		echo "socat command not found. Skipping test"
++		return 1
++	fi
++
++	return 0
 +}
 +
- static int __nft_cmp_offload(struct nft_offload_ctx *ctx,
- 			     struct nft_flow_rule *flow,
- 			     const struct nft_cmp_expr *priv)
- {
- 	struct nft_offload_reg *reg = &ctx->regs[priv->sreg];
-+	union nft_cmp_offload_data _data, _datamask;
- 	u8 *mask = (u8 *)&flow->match.mask;
- 	u8 *key = (u8 *)&flow->match.key;
-+	u8 *data, *datamask;
- 
- 	if (priv->op != NFT_CMP_EQ || priv->len > reg->len)
- 		return -EOPNOTSUPP;
- 
--	memcpy(key + reg->offset, &priv->data, reg->len);
--	memcpy(mask + reg->offset, &reg->mask, reg->len);
-+	if (reg->flags & NFT_OFFLOAD_F_NETWORK2HOST) {
-+		nft_payload_n2h(&_data, (u8 *)&priv->data, reg->len);
-+		nft_payload_n2h(&_datamask, (u8 *)&reg->mask, reg->len);
-+		data = (u8 *)&_data;
-+		datamask = (u8 *)&_datamask;
-+	} else {
-+		data = (u8 *)&priv->data;
-+		datamask = (u8 *)&reg->mask;
-+	}
++iptables_check()
++{
++	iptables -t mangle -L OUTPUT &> /dev/null
++	if [ $? -ne 0 ]; then
++		echo "iptables configuration not supported. Skipping test"
++		return 1
++	fi
 +
-+	memcpy(key + reg->offset, data, reg->len);
-+	memcpy(mask + reg->offset, datamask, reg->len);
++	return 0
++}
++
++ip6tables_check()
++{
++	ip6tables -t mangle -L OUTPUT &> /dev/null
++	if [ $? -ne 0 ]; then
++		echo "ip6tables configuration not supported. Skipping test"
++		return 1
++	fi
++
++	return 0
++}
++
++ipv4_mangle_test()
++{
++	local rc
++
++	echo
++	echo "IPv4 mangling tests"
++
++	socat_check || return 1
++	iptables_check || return 1
++
++	route_setup
++	sleep 2
++
++	local tmp_file=$(mktemp)
++	ip netns exec ns2 socat UDP4-LISTEN:54321,fork $tmp_file &
++
++	# Add a FIB rule and a route that will direct our connection to the
++	# listening server.
++	$IP rule add pref 100 ipproto udp sport 12345 dport 54321 table 123
++	$IP route add table 123 172.16.101.0/24 dev veth1
++
++	# Add an unreachable route to the main table that will block our
++	# connection in case the FIB rule is not hit.
++	$IP route add unreachable 172.16.101.2/32
++
++	run_cmd "echo a | $NS_EXEC socat STDIN UDP4:172.16.101.2:54321,sourceport=12345"
++	log_test $? 0 "    Connection with correct parameters"
++
++	run_cmd "echo a | $NS_EXEC socat STDIN UDP4:172.16.101.2:54321,sourceport=11111"
++	log_test $? 1 "    Connection with incorrect parameters"
++
++	# Add a mangling rule and make sure connection is still successful.
++	$NS_EXEC iptables -t mangle -A OUTPUT -j MARK --set-mark 1
++
++	run_cmd "echo a | $NS_EXEC socat STDIN UDP4:172.16.101.2:54321,sourceport=12345"
++	log_test $? 0 "    Connection with correct parameters - mangling"
++
++	# Delete the mangling rule and make sure connection is still
++	# successful.
++	$NS_EXEC iptables -t mangle -D OUTPUT -j MARK --set-mark 1
++
++	run_cmd "echo a | $NS_EXEC socat STDIN UDP4:172.16.101.2:54321,sourceport=12345"
++	log_test $? 0 "    Connection with correct parameters - no mangling"
++
++	# Verify connections were indeed successful on server side.
++	[[ $(cat $tmp_file | wc -l) -eq 3 ]]
++	log_test $? 0 "    Connection check - server side"
++
++	$IP route del unreachable 172.16.101.2/32
++	$IP route del table 123 172.16.101.0/24 dev veth1
++	$IP rule del pref 100
++
++	{ kill %% && wait %%; } 2>/dev/null
++	rm $tmp_file
++
++	route_cleanup
++}
++
++ipv6_mangle_test()
++{
++	local rc
++
++	echo
++	echo "IPv6 mangling tests"
++
++	socat_check || return 1
++	ip6tables_check || return 1
++
++	route_setup
++	sleep 2
++
++	local tmp_file=$(mktemp)
++	ip netns exec ns2 socat UDP6-LISTEN:54321,fork $tmp_file &
++
++	# Add a FIB rule and a route that will direct our connection to the
++	# listening server.
++	$IP -6 rule add pref 100 ipproto udp sport 12345 dport 54321 table 123
++	$IP -6 route add table 123 2001:db8:101::/64 dev veth1
++
++	# Add an unreachable route to the main table that will block our
++	# connection in case the FIB rule is not hit.
++	$IP -6 route add unreachable 2001:db8:101::2/128
++
++	run_cmd "echo a | $NS_EXEC socat STDIN UDP6:[2001:db8:101::2]:54321,sourceport=12345"
++	log_test $? 0 "    Connection with correct parameters"
++
++	run_cmd "echo a | $NS_EXEC socat STDIN UDP6:[2001:db8:101::2]:54321,sourceport=11111"
++	log_test $? 1 "    Connection with incorrect parameters"
++
++	# Add a mangling rule and make sure connection is still successful.
++	$NS_EXEC ip6tables -t mangle -A OUTPUT -j MARK --set-mark 1
++
++	run_cmd "echo a | $NS_EXEC socat STDIN UDP6:[2001:db8:101::2]:54321,sourceport=12345"
++	log_test $? 0 "    Connection with correct parameters - mangling"
++
++	# Delete the mangling rule and make sure connection is still
++	# successful.
++	$NS_EXEC ip6tables -t mangle -D OUTPUT -j MARK --set-mark 1
++
++	run_cmd "echo a | $NS_EXEC socat STDIN UDP6:[2001:db8:101::2]:54321,sourceport=12345"
++	log_test $? 0 "    Connection with correct parameters - no mangling"
++
++	# Verify connections were indeed successful on server side.
++	[[ $(cat $tmp_file | wc -l) -eq 3 ]]
++	log_test $? 0 "    Connection check - server side"
++
++	$IP -6 route del unreachable 2001:db8:101::2/128
++	$IP -6 route del table 123 2001:db8:101::/64 dev veth1
++	$IP -6 rule del pref 100
++
++	{ kill %% && wait %%; } 2>/dev/null
++	rm $tmp_file
++
++	route_cleanup
++}
++
+ ################################################################################
+ # usage
  
- 	flow->match.dissector.used_keys |= BIT(reg->key);
- 	flow->match.dissector.offset[reg->key] = reg->base_offset;
-diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index a990f37e0a60..501c5b24cc39 100644
---- a/net/netfilter/nft_payload.c
-+++ b/net/netfilter/nft_payload.c
-@@ -226,8 +226,9 @@ static int nft_payload_offload_ll(struct nft_offload_ctx *ctx,
- 		if (!nft_payload_offload_mask(reg, priv->len, sizeof(__be16)))
- 			return -EOPNOTSUPP;
+@@ -1725,6 +1873,8 @@ do
+ 	ipv6_route_metrics)		ipv6_route_metrics_test;;
+ 	ipv4_route_metrics)		ipv4_route_metrics_test;;
+ 	ipv4_route_v6_gw)		ipv4_route_v6_gw_test;;
++	ipv4_mangle)			ipv4_mangle_test;;
++	ipv6_mangle)			ipv6_mangle_test;;
  
--		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_VLAN, vlan,
--				  vlan_tci, sizeof(__be16), reg);
-+		NFT_OFFLOAD_MATCH_FLAGS(FLOW_DISSECTOR_KEY_VLAN, vlan,
-+					vlan_tci, sizeof(__be16), reg,
-+					NFT_OFFLOAD_F_NETWORK2HOST);
- 		break;
- 	case offsetof(struct vlan_ethhdr, h_vlan_encapsulated_proto):
- 		if (!nft_payload_offload_mask(reg, priv->len, sizeof(__be16)))
-@@ -241,8 +242,9 @@ static int nft_payload_offload_ll(struct nft_offload_ctx *ctx,
- 		if (!nft_payload_offload_mask(reg, priv->len, sizeof(__be16)))
- 			return -EOPNOTSUPP;
- 
--		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_CVLAN, cvlan,
--				  vlan_tci, sizeof(__be16), reg);
-+		NFT_OFFLOAD_MATCH_FLAGS(FLOW_DISSECTOR_KEY_CVLAN, cvlan,
-+					vlan_tci, sizeof(__be16), reg,
-+					NFT_OFFLOAD_F_NETWORK2HOST);
- 		break;
- 	case offsetof(struct vlan_ethhdr, h_vlan_encapsulated_proto) +
- 							sizeof(struct vlan_hdr):
+ 	help) echo "Test names: $TESTS"; exit 0;;
+ 	esac
 -- 
 2.30.2
 
