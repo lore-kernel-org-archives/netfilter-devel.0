@@ -6,54 +6,55 @@ X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8482FC433B4
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Apr 2021 09:56:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A4BFC433ED
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Apr 2021 11:45:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3C7366109E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Apr 2021 09:56:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B686E613AB
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Apr 2021 11:45:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231200AbhDTJ5L (ORCPT
+        id S231769AbhDTLpq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 20 Apr 2021 05:57:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47400 "EHLO
+        Tue, 20 Apr 2021 07:45:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43232 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230264AbhDTJ5L (ORCPT
+        with ESMTP id S231639AbhDTLpp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Apr 2021 05:57:11 -0400
-Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F4ECC06174A
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Apr 2021 02:56:40 -0700 (PDT)
-Received: by a3.inai.de (Postfix, from userid 25121)
-        id 9C59D58634DAA; Tue, 20 Apr 2021 11:56:38 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by a3.inai.de (Postfix) with ESMTP id 9815060D220CA;
-        Tue, 20 Apr 2021 11:56:38 +0200 (CEST)
-Date:   Tue, 20 Apr 2021 11:56:38 +0200 (CEST)
-From:   Jan Engelhardt <jengelh@inai.de>
-To:     Mohan Das <rajarammohandas@gmail.com>
-cc:     netfilter-devel@vger.kernel.org
-Subject: Re: Error when using clone option in iptables
-In-Reply-To: <CAJmxYnuVhnpUam4CTNihE4jvuUZ6eMfpmrQssTr6G=T1XwPOOw@mail.gmail.com>
-Message-ID: <39783p73-83s4-7342-61o7-57n38r93ss3@vanv.qr>
-References: <CAJmxYnuVhnpUam4CTNihE4jvuUZ6eMfpmrQssTr6G=T1XwPOOw@mail.gmail.com>
-User-Agent: Alpine 2.24 (LSU 510 2020-10-10)
+        Tue, 20 Apr 2021 07:45:45 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 95D16C06174A
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Apr 2021 04:45:14 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1lYooZ-00081s-Mu; Tue, 20 Apr 2021 13:45:11 +0200
+Date:   Tue, 20 Apr 2021 13:45:11 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Ali Abdallah <ali.abdallah@suse.com>
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] conntrack_tcp: Reset the max ACK flag on SYN in ignore
+ state
+Message-ID: <20210420114511.GB4841@breakpoint.cc>
+References: <20210408061203.35kbl44elgz4resh@Fryzen495>
+ <20210408090459.GQ13699@breakpoint.cc>
+ <20210413122436.aejo4pwaafwrlzsh@Fryzen495>
+ <20210413134517.GC14932@breakpoint.cc>
+ <20210413135810.pquz7skzqso6gden@Fryzen495>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210413135810.pquz7skzqso6gden@Fryzen495>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tuesday 2021-04-20 08:07, Mohan Das wrote:
+Ali Abdallah <ali.abdallah@suse.com> wrote:
 
->Dear Team,
->
->We are receiving below error when trying to clone traffic and send to
->another system, please check and suggest for help.
->
->
->[root@ossfce01 ~]# ip6tables -t mangle -A POSTROUTING -i eth3 --jump
->TEE -gateway 10.175.220.68
->ip6tables v1.8.7 (legacy): multiple -j flags not allowed
+[..]
 
--j cannot be combined with -g.
-(GIGO - check the options you actually used and how you specified them.)
+Can you resend your patch as a new submission, so patchwork can pick
+it up properly?
+
+The v2 was not, patchwork treated it as a comment to version 1.
+
+Please also run your patch through scripts/checkpatch.pl before
+doing so, the patch lacks at least a 'Signed-off-by' line.
