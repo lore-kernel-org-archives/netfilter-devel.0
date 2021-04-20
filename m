@@ -2,499 +2,1294 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97AEBC433B4
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Apr 2021 19:29:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E22A2C433B4
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Apr 2021 22:35:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 48410613E0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Apr 2021 19:29:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A59D761405
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Apr 2021 22:35:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233544AbhDTT3j (ORCPT
+        id S234276AbhDTWgN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 20 Apr 2021 15:29:39 -0400
-Received: from mga05.intel.com ([192.55.52.43]:60124 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233541AbhDTT3j (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Apr 2021 15:29:39 -0400
-IronPort-SDR: Km/XO5P8GmN8oVQx+0lJlc4k6E8KxC1OHo5AQbzkmqyBoBi+wsnozLY9GvI3cY0yXeo+ZiLjpe
- 92WTWYH58/ag==
-X-IronPort-AV: E=McAfee;i="6200,9189,9960"; a="280905220"
-X-IronPort-AV: E=Sophos;i="5.82,237,1613462400"; 
-   d="gz'50?scan'50,208,50";a="280905220"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Apr 2021 12:29:03 -0700
-IronPort-SDR: PDz8VWDvAqDaHcNyLIUA3hWshcYM+YqT3XG9rFXVP2UaOZhfLu9kNd++AuXaPKvM38C7vbnZ3W
- dqAXP8kVySuA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.82,237,1613462400"; 
-   d="gz'50?scan'50,208,50";a="401174498"
-Received: from lkp-server01.sh.intel.com (HELO a48ff7ddd223) ([10.239.97.150])
-  by orsmga002.jf.intel.com with ESMTP; 20 Apr 2021 12:29:01 -0700
-Received: from kbuild by a48ff7ddd223 with local (Exim 4.92)
-        (envelope-from <lkp@intel.com>)
-        id 1lYw3Q-0002sV-Bv; Tue, 20 Apr 2021 19:29:00 +0000
-Date:   Wed, 21 Apr 2021 03:28:09 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Cc:     kbuild-all@lists.01.org, Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next] netfilter: disable defrag once its no longer
- needed
-Message-ID: <202104210325.kL2CHE8h-lkp@intel.com>
-References: <20210420141125.28523-1-fw@strlen.de>
+        Tue, 20 Apr 2021 18:36:13 -0400
+Received: from gate2.alliedtelesis.co.nz ([202.36.163.20]:50214 "EHLO
+        gate2.alliedtelesis.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233964AbhDTWgM (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 20 Apr 2021 18:36:12 -0400
+Received: from svr-chch-seg1.atlnz.lc (mmarshal3.atlnz.lc [10.32.18.43])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (Client did not present a certificate)
+        by gate2.alliedtelesis.co.nz (Postfix) with ESMTPS id CD193891AF;
+        Wed, 21 Apr 2021 10:35:34 +1200 (NZST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alliedtelesis.co.nz;
+        s=mail181024; t=1618958134;
+        bh=Nac5D54a3tXWq61DtQmDaf8njXoCW4AbJshwHb0ztGo=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References;
+        b=A+WsXn9PMGCS+a+FYFJ+sKcSkZCpUiCqFLPp/FUjXLWDi939GyqF+bmskBhp5Ory7
+         AqvVBO9mShMLRnKix8zSk1D9ZOIsnUSHUSUUptpEQ3u9gMxcS23bqtH8U8gyIdSwlt
+         UkU+sR+eBtKX+LdFk08LvcEtQrEK81u1wejnOUEAmnPTjPwIUjPzKVPKsjQjCj1C2z
+         xUcgvkiIXpM6oHnqNorSjQo70M9ojxpg/UpN84dQFkq/RZ7mLzs3FaYhr909UqBGQS
+         ZmszAnPIiPFNj0CG+6thSXkaatZhmxcLw3JoKsXd6LKL2FJwhkFmUN+Q7I8E9lZh6h
+         u3zJzLme7WT5Q==
+Received: from smtp (Not Verified[10.32.16.33]) by svr-chch-seg1.atlnz.lc with Trustwave SEG (v8,2,6,11305)
+        id <B607f57360000>; Wed, 21 Apr 2021 10:35:34 +1200
+Received: from coled-dl.ws.atlnz.lc (coled-dl.ws.atlnz.lc [10.33.25.26])
+        by smtp (Postfix) with ESMTP id 521AD13EED2;
+        Wed, 21 Apr 2021 10:35:56 +1200 (NZST)
+Received: by coled-dl.ws.atlnz.lc (Postfix, from userid 1801)
+        id 5A1F024294A; Wed, 21 Apr 2021 10:35:34 +1200 (NZST)
+From:   Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
+To:     fw@strlen.de
+Cc:     pablo@netfilter.org, kadlec@netfilter.org, davem@davemloft.net,
+        kuba@kernel.org, Cole.Dishington@alliedtelesis.co.nz,
+        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org
+Subject: [PATCH] netfilter: nf_conntrack: Add conntrack helper for ESP/IPsec
+Date:   Wed, 21 Apr 2021 10:35:13 +1200
+Message-Id: <20210420223514.10827-1-Cole.Dishington@alliedtelesis.co.nz>
+X-Mailer: git-send-email 2.31.1
+In-Reply-To: <20210414154021.GE14932@breakpoint.cc>
+References: <20210414154021.GE14932@breakpoint.cc>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="45Z9DzgjV8m4Oswq"
-Content-Disposition: inline
-In-Reply-To: <20210420141125.28523-1-fw@strlen.de>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: quoted-printable
+X-SEG-SpamProfiler-Analysis: v=2.3 cv=B+jHL9lM c=1 sm=1 tr=0 a=KLBiSEs5mFS1a/PbTCJxuA==:117 a=3YhXtTcJ-WEA:10 a=0hR8lASslYw_v_cNunYA:9
+X-SEG-SpamProfiler-Score: 0
+x-atlnz-ls: pat
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Introduce changes to add ESP connection tracking helper to netfilter
+conntrack. The connection tracking of ESP is based on IPsec SPIs. The
+underlying motivation for this patch was to allow multiple VPN ESP
+clients to be distinguished when using NAT.
 
---45Z9DzgjV8m4Oswq
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Added config flag CONFIG_NF_CT_PROTO_ESP to enable the ESP/IPsec
+conntrack helper.
 
-Hi Florian,
-
-I love your patch! Yet something to improve:
-
-[auto build test ERROR on nf-next/master]
-
-url:    https://github.com/0day-ci/linux/commits/Florian-Westphal/netfilter-disable-defrag-once-its-no-longer-needed/20210420-221253
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
-config: mips-malta_defconfig (attached as .config)
-compiler: mipsel-linux-gcc (GCC) 9.3.0
-reproduce (this is a W=1 build):
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # https://github.com/0day-ci/linux/commit/ca9d65d5dcd9df977e75304aa896814e60965484
-        git remote add linux-review https://github.com/0day-ci/linux
-        git fetch --no-tags linux-review Florian-Westphal/netfilter-disable-defrag-once-its-no-longer-needed/20210420-221253
-        git checkout ca9d65d5dcd9df977e75304aa896814e60965484
-        # save the attached .config to linux build tree
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-9.3.0 make.cross W=1 ARCH=mips 
-
-If you fix the issue, kindly add following tag as appropriate
-Reported-by: kernel test robot <lkp@intel.com>
-
-All errors (new ones prefixed by >>):
-
-   net/netfilter/xt_TPROXY.c: In function 'tproxy_tg6_destroy':
->> net/netfilter/xt_TPROXY.c:229:2: error: implicit declaration of function 'nf_defrag_ipv6_disable'; did you mean 'nf_defrag_ipv4_disable'? [-Werror=implicit-function-declaration]
-     229 |  nf_defrag_ipv6_disable(par->net);
-         |  ^~~~~~~~~~~~~~~~~~~~~~
-         |  nf_defrag_ipv4_disable
-   At top level:
-   net/netfilter/xt_TPROXY.c:227:13: warning: 'tproxy_tg6_destroy' defined but not used [-Wunused-function]
-     227 | static void tproxy_tg6_destroy(const struct xt_tgdtor_param *par)
-         |             ^~~~~~~~~~~~~~~~~~
-   cc1: some warnings being treated as errors
-
-
-vim +229 net/netfilter/xt_TPROXY.c
-
-   226	
-   227	static void tproxy_tg6_destroy(const struct xt_tgdtor_param *par)
-   228	{
- > 229		nf_defrag_ipv6_disable(par->net);
-   230	}
-   231	
-
+Signed-off-by: Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
 ---
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
 
---45Z9DzgjV8m4Oswq
-Content-Type: application/gzip
-Content-Disposition: attachment; filename=".config.gz"
-Content-Transfer-Encoding: base64
+Notes:
+    changes in v2:
+    - Move from homegrown hashtables to rhashtables and rhltable.
+    - Add net_hash_mix to hashtable key to share hashtables over netns.
+    - Move the _esp_table and hashtables from per net nf_esp_net structur=
+e to
+      static within nf_conntrack_proto_esp.c.
+    - Move from rwlock_t for _esp_table to spinlock, as no read locks wer=
+e taken.
+    - Add IPv6 support.
+    - Print the local and remote SPIs (as seen on the wire) for proc in e=
+sp_print_conntrack().
+    - Removed ct->proto.esp.{timeout,stream_timeout} as it was only used =
+by esp_print_conntrack().
+      It looks like it may have been copied from gre but gre's is used by=
+ pptp.
+    - Use 32-bit jiffies and fix counter wrap in search_esp_entry_init_re=
+mote().
+    - Add NULL check on alloc_esp_entry() kmalloc().
+    - Replace custom DEBUGP macro with pr_debug().
+    - Rename spi on tuple and tspi to esp.id and esp_id, respectively.
+    - Remove __KERNEL__ ifdef from header as it is not in include/uapi/
 
-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
-4T+9tJwT81ABAA==
+ .../linux/netfilter/nf_conntrack_proto_esp.h  |  21 +
+ .../net/netfilter/ipv4/nf_conntrack_ipv4.h    |   3 +
+ include/net/netfilter/nf_conntrack.h          |   2 +
+ include/net/netfilter/nf_conntrack_l4proto.h  |  16 +
+ include/net/netfilter/nf_conntrack_tuple.h    |   3 +
+ include/net/netns/conntrack.h                 |  15 +
+ .../netfilter/nf_conntrack_tuple_common.h     |   3 +
+ .../linux/netfilter/nfnetlink_conntrack.h     |   2 +
+ net/netfilter/Kconfig                         |  10 +
+ net/netfilter/Makefile                        |   1 +
+ net/netfilter/nf_conntrack_core.c             |  23 +
+ net/netfilter/nf_conntrack_netlink.c          |   4 +-
+ net/netfilter/nf_conntrack_proto.c            |  12 +
+ net/netfilter/nf_conntrack_proto_esp.c        | 736 ++++++++++++++++++
+ net/netfilter/nf_conntrack_standalone.c       |   8 +
+ net/netfilter/nf_internals.h                  |   4 +-
+ 16 files changed, 861 insertions(+), 2 deletions(-)
+ create mode 100644 include/linux/netfilter/nf_conntrack_proto_esp.h
+ create mode 100644 net/netfilter/nf_conntrack_proto_esp.c
 
---45Z9DzgjV8m4Oswq--
+diff --git a/include/linux/netfilter/nf_conntrack_proto_esp.h b/include/l=
+inux/netfilter/nf_conntrack_proto_esp.h
+new file mode 100644
+index 000000000000..2e8aa99c5fcc
+--- /dev/null
++++ b/include/linux/netfilter/nf_conntrack_proto_esp.h
+@@ -0,0 +1,21 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _CONNTRACK_PROTO_ESP_H
++#define _CONNTRACK_PROTO_ESP_H
++#include <asm/byteorder.h>
++#include <net/netfilter/nf_conntrack_tuple.h>
++
++/* ESP PROTOCOL HEADER */
++
++struct esphdr {
++	__u32 spi;
++};
++
++struct nf_ct_esp {
++	__u32 l_spi, r_spi;
++};
++
++void destroy_esp_conntrack_entry(struct nf_conn *ct);
++
++bool esp_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
++		      struct net *net, struct nf_conntrack_tuple *tuple);
++#endif /* _CONNTRACK_PROTO_ESP_H */
+diff --git a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h b/include/net=
+/netfilter/ipv4/nf_conntrack_ipv4.h
+index 2c8c2b023848..1aee91592639 100644
+--- a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
++++ b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
+@@ -25,5 +25,8 @@ extern const struct nf_conntrack_l4proto nf_conntrack_l=
+4proto_udplite;
+ #ifdef CONFIG_NF_CT_PROTO_GRE
+ extern const struct nf_conntrack_l4proto nf_conntrack_l4proto_gre;
+ #endif
++#ifdef CONFIG_NF_CT_PROTO_ESP
++extern const struct nf_conntrack_l4proto nf_conntrack_l4proto_esp;
++#endif
+=20
+ #endif /*_NF_CONNTRACK_IPV4_H*/
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter=
+/nf_conntrack.h
+index 439379ca9ffa..2bd1d94de138 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -21,6 +21,7 @@
+ #include <linux/netfilter/nf_conntrack_dccp.h>
+ #include <linux/netfilter/nf_conntrack_sctp.h>
+ #include <linux/netfilter/nf_conntrack_proto_gre.h>
++#include <linux/netfilter/nf_conntrack_proto_esp.h>
+=20
+ #include <net/netfilter/nf_conntrack_tuple.h>
+=20
+@@ -36,6 +37,7 @@ union nf_conntrack_proto {
+ 	struct ip_ct_tcp tcp;
+ 	struct nf_ct_udp udp;
+ 	struct nf_ct_gre gre;
++	struct nf_ct_esp esp;
+ 	unsigned int tmpl_padto;
+ };
+=20
+diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/n=
+etfilter/nf_conntrack_l4proto.h
+index 96f9cf81f46b..f700de0b9059 100644
+--- a/include/net/netfilter/nf_conntrack_l4proto.h
++++ b/include/net/netfilter/nf_conntrack_l4proto.h
+@@ -75,6 +75,8 @@ bool nf_conntrack_invert_icmp_tuple(struct nf_conntrack=
+_tuple *tuple,
+ 				    const struct nf_conntrack_tuple *orig);
+ bool nf_conntrack_invert_icmpv6_tuple(struct nf_conntrack_tuple *tuple,
+ 				      const struct nf_conntrack_tuple *orig);
++bool nf_conntrack_invert_esp_tuple(struct nf_conntrack_tuple *tuple,
++				   const struct nf_conntrack_tuple *orig);
+=20
+ int nf_conntrack_inet_error(struct nf_conn *tmpl, struct sk_buff *skb,
+ 			    unsigned int dataoff,
+@@ -132,6 +134,11 @@ int nf_conntrack_gre_packet(struct nf_conn *ct,
+ 			    unsigned int dataoff,
+ 			    enum ip_conntrack_info ctinfo,
+ 			    const struct nf_hook_state *state);
++int nf_conntrack_esp_packet(struct nf_conn *ct,
++			    struct sk_buff *skb,
++			    unsigned int dataoff,
++			    enum ip_conntrack_info ctinfo,
++			    const struct nf_hook_state *state);
+=20
+ void nf_conntrack_generic_init_net(struct net *net);
+ void nf_conntrack_tcp_init_net(struct net *net);
+@@ -141,6 +148,8 @@ void nf_conntrack_dccp_init_net(struct net *net);
+ void nf_conntrack_sctp_init_net(struct net *net);
+ void nf_conntrack_icmp_init_net(struct net *net);
+ void nf_conntrack_icmpv6_init_net(struct net *net);
++int nf_conntrack_esp_init(void);
++void nf_conntrack_esp_init_net(struct net *net);
+=20
+ /* Existing built-in generic protocol */
+ extern const struct nf_conntrack_l4proto nf_conntrack_l4proto_generic;
+@@ -240,4 +249,11 @@ static inline struct nf_gre_net *nf_gre_pernet(struc=
+t net *net)
+ }
+ #endif
+=20
++#ifdef CONFIG_NF_CT_PROTO_ESP
++static inline struct nf_esp_net *nf_esp_pernet(struct net *net)
++{
++	return &net->ct.nf_ct_proto.esp;
++}
++#endif
++
+ #endif /*_NF_CONNTRACK_PROTOCOL_H*/
+diff --git a/include/net/netfilter/nf_conntrack_tuple.h b/include/net/net=
+filter/nf_conntrack_tuple.h
+index 9334371c94e2..60279ffabe36 100644
+--- a/include/net/netfilter/nf_conntrack_tuple.h
++++ b/include/net/netfilter/nf_conntrack_tuple.h
+@@ -62,6 +62,9 @@ struct nf_conntrack_tuple {
+ 			struct {
+ 				__be16 key;
+ 			} gre;
++			struct {
++				__be16 id;
++			} esp;
+ 		} u;
+=20
+ 		/* The protocol. */
+diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.=
+h
+index 806454e767bf..29f7e779265a 100644
+--- a/include/net/netns/conntrack.h
++++ b/include/net/netns/conntrack.h
+@@ -69,6 +69,18 @@ struct nf_gre_net {
+ };
+ #endif
+=20
++#ifdef CONFIG_NF_CT_PROTO_ESP
++enum esp_conntrack {
++	ESP_CT_UNREPLIED,
++	ESP_CT_REPLIED,
++	ESP_CT_MAX
++};
++
++struct nf_esp_net {
++	unsigned int esp_timeouts[ESP_CT_MAX];
++};
++#endif
++
+ struct nf_ip_net {
+ 	struct nf_generic_net   generic;
+ 	struct nf_tcp_net	tcp;
+@@ -84,6 +96,9 @@ struct nf_ip_net {
+ #ifdef CONFIG_NF_CT_PROTO_GRE
+ 	struct nf_gre_net	gre;
+ #endif
++#ifdef CONFIG_NF_CT_PROTO_ESP
++	struct nf_esp_net	esp;
++#endif
+ };
+=20
+ struct ct_pcpu {
+diff --git a/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h b/i=
+nclude/uapi/linux/netfilter/nf_conntrack_tuple_common.h
+index 64390fac6f7e..78600cb4bfff 100644
+--- a/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
++++ b/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
+@@ -39,6 +39,9 @@ union nf_conntrack_man_proto {
+ 	struct {
+ 		__be16 key;	/* GRE key is 32bit, PPtP only uses 16bit */
+ 	} gre;
++	struct {
++		__be16 id;
++	} esp;
+ };
+=20
+ #define CTINFO2DIR(ctinfo) ((ctinfo) >=3D IP_CT_IS_REPLY ? IP_CT_DIR_REP=
+LY : IP_CT_DIR_ORIGINAL)
+diff --git a/include/uapi/linux/netfilter/nfnetlink_conntrack.h b/include=
+/uapi/linux/netfilter/nfnetlink_conntrack.h
+index d8484be72fdc..744d8931adeb 100644
+--- a/include/uapi/linux/netfilter/nfnetlink_conntrack.h
++++ b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
+@@ -90,6 +90,8 @@ enum ctattr_l4proto {
+ 	CTA_PROTO_ICMPV6_ID,
+ 	CTA_PROTO_ICMPV6_TYPE,
+ 	CTA_PROTO_ICMPV6_CODE,
++	CTA_PROTO_SRC_ESP_ID,
++	CTA_PROTO_DST_ESP_ID,
+ 	__CTA_PROTO_MAX
+ };
+ #define CTA_PROTO_MAX (__CTA_PROTO_MAX - 1)
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 1a92063c73a4..7269312d322e 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -199,6 +199,16 @@ config NF_CT_PROTO_UDPLITE
+=20
+ 	  If unsure, say Y.
+=20
++config NF_CT_PROTO_ESP
++	bool "ESP protocol support"
++	depends on NETFILTER_ADVANCED
++	help
++	  ESP connection tracking helper. Provides connection tracking for IPse=
+c
++	  clients behind this device based on SPI, especially useful for
++	  distinguishing multiple clients when using NAT.
++
++	  If unsure, say N.
++
+ config NF_CONNTRACK_AMANDA
+ 	tristate "Amanda backup protocol support"
+ 	depends on NETFILTER_ADVANCED
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 33da7bf1b68e..0942f2c48ddb 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -14,6 +14,7 @@ nf_conntrack-$(CONFIG_NF_CONNTRACK_LABELS) +=3D nf_conn=
+track_labels.o
+ nf_conntrack-$(CONFIG_NF_CT_PROTO_DCCP) +=3D nf_conntrack_proto_dccp.o
+ nf_conntrack-$(CONFIG_NF_CT_PROTO_SCTP) +=3D nf_conntrack_proto_sctp.o
+ nf_conntrack-$(CONFIG_NF_CT_PROTO_GRE) +=3D nf_conntrack_proto_gre.o
++nf_conntrack-$(CONFIG_NF_CT_PROTO_ESP) +=3D nf_conntrack_proto_esp.o
+=20
+ obj-$(CONFIG_NETFILTER) =3D netfilter.o
+=20
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntra=
+ck_core.c
+index ff0168736f6e..3bef361d19ce 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -295,6 +295,10 @@ nf_ct_get_tuple(const struct sk_buff *skb,
+ #ifdef CONFIG_NF_CT_PROTO_GRE
+ 	case IPPROTO_GRE:
+ 		return gre_pkt_to_tuple(skb, dataoff, net, tuple);
++#endif
++#ifdef CONFIG_NF_CT_PROTO_ESP
++	case IPPROTO_ESP:
++		return esp_pkt_to_tuple(skb, dataoff, net, tuple);
+ #endif
+ 	case IPPROTO_TCP:
+ 	case IPPROTO_UDP: /* fallthrough */
+@@ -439,6 +443,10 @@ nf_ct_invert_tuple(struct nf_conntrack_tuple *invers=
+e,
+ #if IS_ENABLED(CONFIG_IPV6)
+ 	case IPPROTO_ICMPV6:
+ 		return nf_conntrack_invert_icmpv6_tuple(inverse, orig);
++#endif
++#ifdef CONFIG_NF_CT_PROTO_ESP
++	case IPPROTO_ESP:
++		return nf_conntrack_invert_esp_tuple(inverse, orig);
+ #endif
+ 	}
+=20
+@@ -593,6 +601,13 @@ static void destroy_gre_conntrack(struct nf_conn *ct=
+)
+ #endif
+ }
+=20
++static void destroy_esp_conntrack(struct nf_conn *ct)
++{
++#ifdef CONFIG_NF_CT_PROTO_ESP
++	destroy_esp_conntrack_entry(ct);
++#endif
++}
++
+ static void
+ destroy_conntrack(struct nf_conntrack *nfct)
+ {
+@@ -609,6 +624,9 @@ destroy_conntrack(struct nf_conntrack *nfct)
+ 	if (unlikely(nf_ct_protonum(ct) =3D=3D IPPROTO_GRE))
+ 		destroy_gre_conntrack(ct);
+=20
++	if (unlikely(nf_ct_protonum(ct) =3D=3D IPPROTO_ESP))
++		destroy_esp_conntrack(ct);
++
+ 	local_bh_disable();
+ 	/* Expectations will have been removed in clean_from_lists,
+ 	 * except TFTP can create an expectation on the first packet,
+@@ -1783,6 +1801,11 @@ static int nf_conntrack_handle_packet(struct nf_co=
+nn *ct,
+ 	case IPPROTO_GRE:
+ 		return nf_conntrack_gre_packet(ct, skb, dataoff,
+ 					       ctinfo, state);
++#endif
++#ifdef CONFIG_NF_CT_PROTO_ESP
++	case IPPROTO_ESP:
++		return nf_conntrack_esp_packet(ct, skb, dataoff,
++					       ctinfo, state);
+ #endif
+ 	}
+=20
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conn=
+track_netlink.c
+index 1d519b0e51a5..8df33dbbf5a3 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -1382,7 +1382,9 @@ static const struct nla_policy tuple_nla_policy[CTA=
+_TUPLE_MAX+1] =3D {
+    CTA_FILTER_F_CTA_PROTO_ICMP_ID | \
+    CTA_FILTER_F_CTA_PROTO_ICMPV6_TYPE | \
+    CTA_FILTER_F_CTA_PROTO_ICMPV6_CODE | \
+-   CTA_FILTER_F_CTA_PROTO_ICMPV6_ID)
++   CTA_FILTER_F_CTA_PROTO_ICMPV6_ID | \
++   CTA_FILTER_F_CTA_PROTO_SRC_ESP_ID | \
++   CTA_FILTER_F_CTA_PROTO_DST_ESP_ID)
+=20
+ static int
+ ctnetlink_parse_tuple_filter(const struct nlattr * const cda[],
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntr=
+ack_proto.c
+index 47e9319d2cf3..abba94f782c1 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -112,6 +112,9 @@ const struct nf_conntrack_l4proto *nf_ct_l4proto_find=
+(u8 l4proto)
+ #ifdef CONFIG_NF_CT_PROTO_GRE
+ 	case IPPROTO_GRE: return &nf_conntrack_l4proto_gre;
+ #endif
++#ifdef CONFIG_NF_CT_PROTO_ESP
++	case IPPROTO_ESP: return &nf_conntrack_l4proto_esp;
++#endif
+ #if IS_ENABLED(CONFIG_IPV6)
+ 	case IPPROTO_ICMPV6: return &nf_conntrack_l4proto_icmpv6;
+ #endif /* CONFIG_IPV6 */
+@@ -656,6 +659,12 @@ int nf_conntrack_proto_init(void)
+ 		goto cleanup_sockopt;
+ #endif
+=20
++#ifdef CONFIG_NF_CT_PROTO_ESP
++	ret =3D nf_conntrack_esp_init();
++	if (ret < 0)
++		goto cleanup_sockopt;
++#endif
++
+ 	return ret;
+=20
+ #if IS_ENABLED(CONFIG_IPV6)
+@@ -691,6 +700,9 @@ void nf_conntrack_proto_pernet_init(struct net *net)
+ #ifdef CONFIG_NF_CT_PROTO_GRE
+ 	nf_conntrack_gre_init_net(net);
+ #endif
++#ifdef CONFIG_NF_CT_PROTO_ESP
++	nf_conntrack_esp_init_net(net);
++#endif
+ }
+=20
+ void nf_conntrack_proto_pernet_fini(struct net *net)
+diff --git a/net/netfilter/nf_conntrack_proto_esp.c b/net/netfilter/nf_co=
+nntrack_proto_esp.c
+new file mode 100644
+index 000000000000..f17ce8a9439f
+--- /dev/null
++++ b/net/netfilter/nf_conntrack_proto_esp.c
+@@ -0,0 +1,736 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * <:copyright-gpl
++ * Copyright 2008 Broadcom Corp. All Rights Reserved.
++ * Copyright (C) 2021 Allied Telesis Labs NZ
++ *
++ * This program is free software; you can distribute it and/or modify it
++ * under the terms of the GNU General Public License (Version 2) as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOU=
+T
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++ * for more details.
++ *
++ * You should have received a copy of the GNU General Public License alo=
+ng
++ * with this program.
++ * :>
++ */
++/***********************************************************************=
+*******
++ * Filename:       nf_conntrack_proto_esp.c
++ * Author:         Pavan Kumar
++ * Creation Date:  05/27/04
++ *
++ * Description:
++ * Implements the ESP ALG connectiontracking via soft-splicing two ESP
++ * connections together using each connections SPI. The connection is
++ * then identified with a generated esp id.
++ *
++ * Migrated to kernel 2.6.21.5 on April 16, 2008 by Dan-Han Tsai.
++ * Migrated to kernel 5.11.0-rc2+ on March 3, 2021 by Allied Telesis Lab=
+s NZ (Cole Dishington).
++ *
++ * Updates to ESP conntracking on October,2010,by Manamohan,Lantiq Deuts=
+chland GmbH:
++ *	- Added the support for sessions with two or more different remote se=
+rvers
++ *    from single or multiple lan clients with same lan and remote SPI I=
+ds
++ *	- Support for associating the multiple LAN side sessions waiting
++ *    for the reply from same remote server with the one which is create=
+d first
++ * Updates to ESP conntracking on August,2015,by Allied Telesis Labs NZ:
++ *	- Improve ESP entry lookup performance by adding hashtable. (Anthony =
+Lineham)
++ *	- Add locking around ESP connection table. (Anthony Lineham)
++ *	- Fixups including adding destroy function, endian-safe SPIs and IPs,
++ *	  replace prinks with DEBUGPs. (Anthony Lineham)
++ *	- Extend ESP connection tracking to allow conntrack ESP entry matchin=
+g
++ *	  of tuple values. (Matt Bennett)
++ * Updates to ESP conntracking on March 3,2021 by Allied Telesis Labs NZ=
+ (Cole Dishington):
++ *	- Migrate from homegrown hashtables per netns to rhashtable and
++ *	  rhltables shared between all netns.
++ *	- Move esp_table and hashtables to be shared over netns, rather than =
+one per netns.
++ *	- Added IPv6 support.
++ *	- Added fixups for upstream including comments, DEBUGP -> pr_debug,
++ *	  64b -> 32 bit jiffies, and l_spi/r_spi exposed to procfs.
++ ***********************************************************************=
+*****/
++
++#include <linux/module.h>
++#include <linux/types.h>
++#include <linux/timer.h>
++#include <linux/list.h>
++#include <linux/seq_file.h>
++#include <linux/in.h>
++#include <linux/netdevice.h>
++#include <linux/skbuff.h>
++#include <linux/ip.h>
++#include <net/dst.h>
++#include <net/netfilter/nf_conntrack.h>
++#include <net/netfilter/nf_conntrack_l4proto.h>
++#include <net/netfilter/nf_conntrack_helper.h>
++#include <net/netfilter/nf_conntrack_core.h>
++#include <net/netfilter/nf_conntrack_timeout.h>
++#include <linux/netfilter/nf_conntrack_proto_esp.h>
++#include <net/netns/hash.h>
++#include <linux/rhashtable.h>
++#include <net/ipv6.h>
++
++#include "nf_internals.h"
++
++#define ESP_MAX_CONNECTIONS      1000
++#define HASH_TAB_MAX_SIZE  ESP_MAX_CONNECTIONS
++/* esp_id of 0 is left for unassigned values */
++#define TEMP_SPI_START 1
++#define TEMP_SPI_MAX   (TEMP_SPI_START + ESP_MAX_CONNECTIONS - 1)
++
++struct _esp_table {
++       /* Hash table nodes for each required lookup
++	* lnode: net->hash_mix, l_spi, l_ip, r_ip
++	* rnode: net->hash_mix, r_spi, r_ip
++	* incmpl_rlist: net->hash_mix, r_ip
++	*/
++	struct rhash_head lnode;
++	struct rhash_head rnode;
++	struct rhlist_head incmpl_rlist;
++
++	u16 esp_id;
++
++	u32 l_spi;
++	u32 r_spi;
++
++	u16 l3num;
++	union nf_inet_addr l_ip;
++	union nf_inet_addr r_ip;
++
++	u32 alloc_time_jiffies;
++	struct net *net;
++};
++
++struct _esp_hkey {
++	u16 l3num;
++	union nf_inet_addr src_ip;
++	union nf_inet_addr dst_ip;
++	u32 net_hmix;
++	u32 spi;
++};
++
++static DEFINE_SPINLOCK(esp_table_lock);
++static struct _esp_table *esp_table[ESP_MAX_CONNECTIONS];
++static struct rhashtable ltable;
++static struct rhashtable rtable;
++static struct rhltable incmpl_rtable;
++static unsigned int esp_timeouts[ESP_CT_MAX] =3D {
++	[ESP_CT_UNREPLIED] =3D 60 * HZ,
++	[ESP_CT_REPLIED] =3D 3600 * HZ,
++};
++
++static inline void esp_ip_addr_set_any(int af, union nf_inet_addr *a)
++{
++	if (af =3D=3D AF_INET6)
++		ipv6_addr_set(&a->in6, 0, 0, 0, 0);
++	else
++		a->ip =3D 0;
++}
++
++static inline void esp_ip_addr_copy(int af, union nf_inet_addr *dst,
++				    const union nf_inet_addr *src)
++{
++	if (af =3D=3D AF_INET6)
++		ipv6_addr_prefix_copy(&dst->in6, &src->in6, 128);
++	else
++		dst->ip =3D src->ip;
++}
++
++static inline int esp_ip_addr_equal(int af, const union nf_inet_addr *a,
++				    const union nf_inet_addr *b)
++{
++	if (af =3D=3D AF_INET6)
++		return ipv6_addr_equal(&a->in6, &b->in6);
++	return a->ip =3D=3D b->ip;
++}
++
++static inline struct nf_esp_net *esp_pernet(struct net *net)
++{
++	return &net->ct.nf_ct_proto.esp;
++}
++
++static inline void calculate_key(const u32 net_hmix, const u32 spi,
++				 const u16 l3num,
++				 const union nf_inet_addr *src_ip,
++				 const union nf_inet_addr *dst_ip,
++				 struct _esp_hkey *key)
++{
++	key->net_hmix =3D net_hmix;
++	key->spi =3D spi;
++	key->l3num =3D l3num;
++	esp_ip_addr_copy(l3num, &key->src_ip, src_ip);
++	esp_ip_addr_copy(l3num, &key->dst_ip, dst_ip);
++}
++
++static inline u32 calculate_hash(const void *data, u32 len, u32 seed)
++{
++	return jhash(data, len, seed);
++}
++
++static int ltable_obj_cmpfn(struct rhashtable_compare_arg *arg, const vo=
+id *obj)
++{
++	struct _esp_hkey obj_key =3D {};
++	const struct _esp_hkey *key =3D (const struct _esp_hkey *)arg->key;
++	const struct _esp_table *eobj =3D (const struct _esp_table *)obj;
++	u32 net_hmix =3D net_hash_mix(eobj->net);
++
++	calculate_key(net_hmix, eobj->l_spi, eobj->l3num, &eobj->l_ip,
++		      &eobj->r_ip, &obj_key);
++	return memcmp(key, &obj_key, sizeof(struct _esp_hkey));
++}
++
++static int rtable_obj_cmpfn(struct rhashtable_compare_arg *arg, const vo=
+id *obj)
++{
++	union nf_inet_addr any;
++	struct _esp_hkey obj_key =3D {};
++	const struct _esp_hkey *key =3D (const struct _esp_hkey *)arg->key;
++	const struct _esp_table *eobj =3D (const struct _esp_table *)obj;
++	u32 net_hmix =3D net_hash_mix(eobj->net);
++
++	esp_ip_addr_set_any(eobj->l3num, &any);
++	calculate_key(net_hmix, eobj->r_spi, eobj->l3num, &any, &eobj->r_ip,
++		      &obj_key);
++	return memcmp(key, &obj_key, sizeof(struct _esp_hkey));
++}
++
++static int incmpl_table_obj_cmpfn(struct rhashtable_compare_arg *arg, co=
+nst void *obj)
++{
++	union nf_inet_addr any;
++	struct _esp_hkey obj_key =3D {};
++	const struct _esp_hkey *key =3D (const struct _esp_hkey *)arg->key;
++	const struct _esp_table *eobj =3D (const struct _esp_table *)obj;
++	u32 net_hmix =3D net_hash_mix(eobj->net);
++
++	esp_ip_addr_set_any(eobj->l3num, &any);
++	calculate_key(net_hmix, 0, eobj->l3num, &any, &eobj->r_ip, &obj_key);
++	return memcmp(key, &obj_key, sizeof(struct _esp_hkey));
++}
++
++static u32 ltable_obj_hashfn(const void *data, u32 len, u32 seed)
++{
++	struct _esp_hkey key =3D {};
++	const struct _esp_table *eobj =3D (const struct _esp_table *)data;
++	u32 net_hmix =3D net_hash_mix(eobj->net);
++
++	calculate_key(net_hmix, eobj->l_spi, eobj->l3num, &eobj->l_ip,
++		      &eobj->r_ip, &key);
++	return calculate_hash(&key, len, seed);
++}
++
++static u32 rtable_obj_hashfn(const void *data, u32 len, u32 seed)
++{
++	union nf_inet_addr any;
++	struct _esp_hkey key =3D {};
++	const struct _esp_table *eobj =3D (const struct _esp_table *)data;
++	u32 net_hmix =3D net_hash_mix(eobj->net);
++
++	esp_ip_addr_set_any(eobj->l3num, &any);
++	calculate_key(net_hmix, eobj->r_spi, eobj->l3num, &any, &eobj->r_ip, &k=
+ey);
++	return calculate_hash(&key, len, seed);
++}
++
++static u32 incmpl_table_obj_hashfn(const void *data, u32 len, u32 seed)
++{
++	union nf_inet_addr any;
++	struct _esp_hkey key =3D {};
++	const struct _esp_table *eobj =3D (const struct _esp_table *)data;
++	u32 net_hmix =3D net_hash_mix(eobj->net);
++
++	esp_ip_addr_set_any(eobj->l3num, &any);
++	calculate_key(net_hmix, 0, eobj->l3num, &any, &eobj->r_ip, &key);
++	return calculate_hash(&key, len, seed);
++}
++
++static const struct rhashtable_params ltable_params =3D {
++	.key_len     =3D sizeof(struct _esp_hkey),
++	.head_offset =3D offsetof(struct _esp_table, lnode),
++	.max_size =3D HASH_TAB_MAX_SIZE,
++	.hashfn      =3D calculate_hash,
++	.obj_hashfn =3D ltable_obj_hashfn,
++	.obj_cmpfn   =3D ltable_obj_cmpfn,
++};
++
++static const struct rhashtable_params rtable_params =3D {
++	.key_len     =3D sizeof(struct _esp_hkey),
++	.head_offset =3D offsetof(struct _esp_table, rnode),
++	.max_size =3D HASH_TAB_MAX_SIZE,
++	.hashfn      =3D calculate_hash,
++	.obj_hashfn =3D rtable_obj_hashfn,
++	.obj_cmpfn   =3D rtable_obj_cmpfn,
++};
++
++static const struct rhashtable_params incmpl_rtable_params =3D {
++	.key_len     =3D sizeof(struct _esp_hkey),
++	.head_offset =3D offsetof(struct _esp_table, incmpl_rlist),
++	.max_size =3D HASH_TAB_MAX_SIZE,
++	.hashfn      =3D calculate_hash,
++	.obj_hashfn =3D incmpl_table_obj_hashfn,
++	.obj_cmpfn   =3D incmpl_table_obj_cmpfn,
++};
++
++int nf_conntrack_esp_init(void)
++{
++	int i;
++	int ret =3D 0;
++
++	spin_lock_bh(&esp_table_lock);
++
++	for (i =3D 0; i < ESP_MAX_CONNECTIONS; i++)
++		memset(&esp_table[i], 0, sizeof(struct _esp_table *));
++
++	ret =3D rhashtable_init(&ltable, &ltable_params);
++	if (ret)
++		return ret;
++
++	ret =3D rhashtable_init(&rtable, &rtable_params);
++	if (ret)
++		goto err_free_ltable;
++
++	ret =3D rhltable_init(&incmpl_rtable, &incmpl_rtable_params);
++	if (ret)
++		goto err_free_rtable;
++
++	spin_unlock_bh(&esp_table_lock);
++
++	return ret;
++
++err_free_rtable:
++	rhashtable_destroy(&rtable);
++err_free_ltable:
++	rhashtable_destroy(&ltable);
++
++	spin_unlock_bh(&esp_table_lock);
++	return ret;
++}
++
++void nf_conntrack_esp_init_net(struct net *net)
++{
++	int i;
++	struct nf_esp_net *net_esp =3D esp_pernet(net);
++
++	for (i =3D 0; i < ESP_CT_MAX; i++)
++		net_esp->esp_timeouts[i] =3D esp_timeouts[i];
++}
++
++/* Free an entry referred to by esp_id.
++ *
++ * NOTE:
++ * Entry table locking and unlocking is the responsibility of the callin=
+g function.
++ * Range checking is the responsibility of the calling function.
++ */
++static void esp_table_free_entry_by_esp_id(struct net *net, u16 esp_id)
++{
++	struct _esp_table *esp_entry;
++
++	esp_entry =3D esp_table[esp_id - TEMP_SPI_START];
++	if (esp_entry) {
++		/* Remove from all the hash tables.
++		 */
++		pr_debug("Removing entry %x from all tables", esp_entry->esp_id);
++		rhashtable_remove_fast(&ltable, &esp_entry->lnode, ltable_params);
++		rhashtable_remove_fast(&rtable, &esp_entry->rnode, rtable_params);
++		rhltable_remove(&incmpl_rtable, &esp_entry->incmpl_rlist, incmpl_rtabl=
+e_params);
++		esp_table[esp_id - TEMP_SPI_START] =3D NULL;
++		kfree(esp_entry);
++	}
++}
++
++/* Allocate the first available IPSEC table entry.
++ * NOTE: The ESP entry table must be locked prior to calling this functi=
+on.
++ */
++struct _esp_table *alloc_esp_entry(struct net *net)
++{
++	int idx;
++	struct _esp_table *esp_entry =3D NULL;
++
++	/* Find the first unused slot */
++	for (idx =3D 0; idx < ESP_MAX_CONNECTIONS; idx++) {
++		if (esp_table[idx])
++			continue;
++
++		esp_table[idx] =3D kmalloc(sizeof(*esp_entry), GFP_ATOMIC);
++		if (!esp_table[idx])
++			return NULL;
++		memset(esp_table[idx], 0, sizeof(struct _esp_table));
++		esp_table[idx]->esp_id =3D idx + TEMP_SPI_START;
++		esp_table[idx]->alloc_time_jiffies =3D nfct_time_stamp;
++		esp_table[idx]->net =3D net;
++		esp_entry =3D esp_table[idx];
++		break;
++	}
++	return esp_entry;
++}
++
++/* Search for an ESP entry in the initial state based on the IP address =
+of
++ * the remote peer.
++ * NOTE: The ESP entry table must be locked prior to calling this functi=
+on.
++ */
++static struct _esp_table *search_esp_entry_init_remote(struct net *net,
++						       u16 l3num,
++						       const union nf_inet_addr *src_ip)
++{
++	union nf_inet_addr any;
++	u32 net_hmix =3D net_hash_mix(net);
++	struct _esp_table *esp_entry =3D NULL;
++	struct _esp_hkey key =3D {};
++	int first_entry =3D -1;
++	struct rhlist_head *pos, *list;
++
++	esp_ip_addr_set_any(l3num, &any);
++
++	calculate_key(net_hmix, 0, l3num, &any, src_ip, &key);
++	list =3D rhltable_lookup(&incmpl_rtable, (const void *)&key, incmpl_rta=
+ble_params);
++	rhl_for_each_entry_rcu(esp_entry, pos, list, incmpl_rlist) {
++		if (net_eq(net, esp_entry->net) &&
++		    l3num =3D=3D esp_entry->l3num &&
++		    esp_ip_addr_equal(l3num, src_ip, &esp_entry->r_ip) &&
++		    esp_entry->r_spi =3D=3D 0) {
++			if (first_entry =3D=3D -1) {
++				first_entry =3D esp_entry->esp_id - TEMP_SPI_START;
++			} else if (esp_table[first_entry]->alloc_time_jiffies - esp_entry->al=
+loc_time_jiffies <=3D 0) {
++				/* This entry is older than the last one found so treat this
++				 * as a better match.
++				 */
++				first_entry =3D esp_entry->esp_id - TEMP_SPI_START;
++			}
++		}
++	}
++
++	if (first_entry !=3D -1) {
++		if (esp_entry->l3num =3D=3D AF_INET) {
++			pr_debug("Matches incmpl_rtable entry %x with l_spi %x r_spi %x r_ip =
+%pI4\n",
++				 esp_entry->esp_id, esp_entry->l_spi, esp_entry->r_spi,
++				 &esp_entry->r_ip.in);
++		} else {
++			pr_debug("Matches incmpl_rtable entry %x with l_spi %x r_spi %x r_ip =
+%pI6\n",
++				 esp_entry->esp_id, esp_entry->l_spi, esp_entry->r_spi,
++				 &esp_entry->r_ip.in6);
++		}
++		esp_entry =3D esp_table[first_entry];
++		return esp_entry;
++	}
++
++	return NULL;
++}
++
++/* Search for an ESP entry by SPI, source and destination IP addresses.
++ * NOTE: The ESP entry table must be locked prior to calling this functi=
+on.
++ */
++static struct _esp_table *search_esp_entry_by_spi(struct net *net, const=
+ __u32 spi,
++						  u16 l3num,
++						  const union nf_inet_addr *src_ip,
++						  const union nf_inet_addr *dst_ip)
++{
++	union nf_inet_addr any;
++	u32 net_hmix =3D net_hash_mix(net);
++	struct _esp_table *esp_entry;
++	struct _esp_hkey key =3D {};
++
++	esp_ip_addr_set_any(l3num, &any);
++
++	/* Check for matching established session or repeated initial LAN side =
+*/
++	/* LAN side first */
++	calculate_key(net_hmix, spi, l3num, src_ip, dst_ip, &key);
++	esp_entry =3D rhashtable_lookup_fast(&ltable, (const void *)&key, ltabl=
+e_params);
++	if (esp_entry) {
++		/* When r_spi is set this is an established session. When not set it's
++		 * a repeated initial packet from LAN side. But both cases are treated
++		 * the same.
++		 */
++		if (esp_entry->l3num =3D=3D AF_INET) {
++			pr_debug("Matches ltable entry %x with l_spi %x l_ip %pI4 r_ip %pI4\n=
+",
++				 esp_entry->esp_id, esp_entry->l_spi,
++				 &esp_entry->l_ip.in, &esp_entry->r_ip.in);
++		} else {
++			pr_debug("Matches ltable entry %x with l_spi %x l_ip %pI6 r_ip %pI6\n=
+",
++				 esp_entry->esp_id, esp_entry->l_spi,
++				 &esp_entry->l_ip.in6, &esp_entry->r_ip.in6);
++		}
++		return esp_entry;
++	}
++
++	/* Established remote side */
++	calculate_key(net_hmix, spi, l3num, &any, src_ip, &key);
++	esp_entry =3D rhashtable_lookup_fast(&rtable, (const void *)&key, rtabl=
+e_params);
++	if (esp_entry) {
++		if (esp_entry->l3num =3D=3D AF_INET) {
++			pr_debug("Matches rtable entry %x with l_spi %x r_spi %x l_ip %pI4 r_=
+ip %pI4\n",
++				 esp_entry->esp_id, esp_entry->l_spi, esp_entry->r_spi,
++				 &esp_entry->l_ip.in, &esp_entry->r_ip.in);
++		} else {
++			pr_debug("Matches rtable entry %x with l_spi %x r_spi %x l_ip %pI6 r_=
+ip %pI6\n",
++				 esp_entry->esp_id, esp_entry->l_spi, esp_entry->r_spi,
++				 &esp_entry->l_ip.in6, &esp_entry->r_ip.in6);
++		}
++		return esp_entry;
++	}
++
++	/* Incomplete remote side, check if packet has a missing r_spi */
++	esp_entry =3D search_esp_entry_init_remote(net, l3num, src_ip);
++	if (esp_entry) {
++		int err;
++
++		esp_entry->r_spi =3D spi;
++		/* Remove entry from incmpl_rtable and add to rtable */
++		rhltable_remove(&incmpl_rtable, &esp_entry->incmpl_rlist, incmpl_rtabl=
+e_params);
++		/* Error will not be due to duplicate as established remote side looku=
+p
++		 * above would have found it. Delete entry.
++		 */
++		err =3D rhashtable_insert_fast(&rtable, &esp_entry->rnode, rtable_para=
+ms);
++		if (err) {
++			esp_table_free_entry_by_esp_id(net, esp_entry->esp_id);
++			return NULL;
++		}
++		return esp_entry;
++	}
++
++	if (l3num =3D=3D AF_INET) {
++		pr_debug("No entry matches for spi %x src_ip %pI4 dst_ip %pI4\n",
++			 spi, &src_ip->in, &dst_ip->in);
++	} else {
++		pr_debug("No entry matches for spi %x src_ip %pI6 dst_ip %pI6\n",
++			 spi, &src_ip->in6, &dst_ip->in6);
++	}
++	return NULL;
++}
++
++/* invert esp part of tuple */
++bool nf_conntrack_invert_esp_tuple(struct nf_conntrack_tuple *tuple,
++				   const struct nf_conntrack_tuple *orig)
++{
++	tuple->dst.u.esp.id =3D orig->dst.u.esp.id;
++	tuple->src.u.esp.id =3D orig->src.u.esp.id;
++	return true;
++}
++
++/* esp hdr info to tuple */
++bool esp_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
++		      struct net *net, struct nf_conntrack_tuple *tuple)
++{
++	struct esphdr _esphdr, *esphdr;
++	struct _esp_table *esp_entry =3D NULL;
++	u32 spi =3D 0;
++
++	esphdr =3D skb_header_pointer(skb, dataoff, sizeof(_esphdr), &_esphdr);
++	if (!esphdr) {
++		/* try to behave like "nf_conntrack_proto_generic" */
++		tuple->src.u.all =3D 0;
++		tuple->dst.u.all =3D 0;
++		return true;
++	}
++	spi =3D ntohl(esphdr->spi);
++
++	/* Check if esphdr already associated with a pre-existing connection:
++	 *   if no, create a new connection, missing the r_spi;
++	 *   if yes, check if we have seen the source IP:
++	 *             if no, fill in r_spi in the pre-existing connection.
++	 */
++	spin_lock_bh(&esp_table_lock);
++	esp_entry =3D search_esp_entry_by_spi(net, spi, tuple->src.l3num,
++					    &tuple->src.u3, &tuple->dst.u3);
++	if (!esp_entry) {
++		struct _esp_hkey key =3D {};
++		union nf_inet_addr any;
++		u32 net_hmix =3D net_hash_mix(net);
++		int err;
++
++		esp_entry =3D alloc_esp_entry(net);
++		if (!esp_entry) {
++			pr_debug("All esp connection slots in use\n");
++			spin_unlock_bh(&esp_table_lock);
++			return false;
++		}
++		esp_entry->l_spi =3D spi;
++		esp_entry->l3num =3D tuple->src.l3num;
++		esp_ip_addr_copy(esp_entry->l3num, &esp_entry->l_ip, &tuple->src.u3);
++		esp_ip_addr_copy(esp_entry->l3num, &esp_entry->r_ip, &tuple->dst.u3);
++
++		/* Add entries to the hash tables */
++
++		err =3D rhashtable_insert_fast(&ltable, &esp_entry->lnode, ltable_para=
+ms);
++		if (err) {
++			esp_table_free_entry_by_esp_id(net, esp_entry->esp_id);
++			return false;
++		}
++
++		esp_ip_addr_set_any(esp_entry->l3num, &any);
++		calculate_key(net_hmix, 0, esp_entry->l3num, &any, &esp_entry->r_ip, &=
+key);
++		err =3D rhltable_insert_key(&incmpl_rtable, (const void *)&key,
++					  &esp_entry->incmpl_rlist, incmpl_rtable_params);
++		if (err) {
++			esp_table_free_entry_by_esp_id(net, esp_entry->esp_id);
++			return false;
++		}
++
++		if (esp_entry->l3num =3D=3D AF_INET) {
++			pr_debug("New entry %x with l_spi %x l_ip %pI4 r_ip %pI4\n",
++				 esp_entry->esp_id, esp_entry->l_spi,
++				 &esp_entry->l_ip.in, &esp_entry->r_ip.in);
++		} else {
++			pr_debug("New entry %x with l_spi %x l_ip %pI6 r_ip %pI6\n",
++				 esp_entry->esp_id, esp_entry->l_spi,
++				 &esp_entry->l_ip.in6, &esp_entry->r_ip.in6);
++		}
++	}
++
++	tuple->dst.u.esp.id =3D esp_entry->esp_id;
++	tuple->src.u.esp.id =3D esp_entry->esp_id;
++	spin_unlock_bh(&esp_table_lock);
++	return true;
++}
++
++#ifdef CONFIG_NF_CONNTRACK_PROCFS
++/* print private data for conntrack */
++static void esp_print_conntrack(struct seq_file *s, struct nf_conn *ct)
++{
++	seq_printf(s, "l_spi=3D%x, r_spi=3D%x ", ct->proto.esp.l_spi, ct->proto=
+.esp.r_spi);
++}
++#endif
++
++/* Returns verdict for packet, and may modify conntrack */
++int nf_conntrack_esp_packet(struct nf_conn *ct, struct sk_buff *skb,
++			    unsigned int dataoff,
++			    enum ip_conntrack_info ctinfo,
++			    const struct nf_hook_state *state)
++{
++	u16 esp_id;
++	struct nf_conntrack_tuple *tuple;
++	struct _esp_table *esp_entry;
++	unsigned int *timeouts =3D nf_ct_timeout_lookup(ct);
++
++	if (!timeouts)
++		timeouts =3D esp_pernet(nf_ct_net(ct))->esp_timeouts;
++
++	/* If we've seen traffic both ways, this is some kind of ESP
++	 * stream.  Extend timeout.
++	 */
++	if (test_bit(IPS_SEEN_REPLY_BIT, &ct->status)) {
++		nf_ct_refresh_acct(ct, ctinfo, skb, timeouts[ESP_CT_REPLIED]);
++		/* Also, more likely to be important, and not a probe */
++		if (!test_and_set_bit(IPS_ASSURED_BIT, &ct->status)) {
++			/* Was originally IPCT_STATUS but this is no longer an option.
++			 * GRE uses assured for same purpose
++			 */
++			nf_conntrack_event_cache(IPCT_ASSURED, ct);
++
++			/* Retrieve SPIs of original and reply from esp_entry.
++			 * Both directions should contain the same esp_entry,
++			 * so just check the first one.
++			 */
++			tuple =3D nf_ct_tuple(ct, IP_CT_DIR_ORIGINAL);
++			esp_id =3D tuple->src.u.esp.id;
++			if (esp_id >=3D TEMP_SPI_START && esp_id <=3D TEMP_SPI_MAX) {
++				spin_lock_bh(&esp_table_lock);
++				esp_entry =3D esp_table[esp_id - TEMP_SPI_START];
++				if (esp_entry) {
++					ct->proto.esp.l_spi =3D esp_entry->l_spi;
++					ct->proto.esp.r_spi =3D esp_entry->r_spi;
++				}
++				spin_unlock_bh(&esp_table_lock);
++			}
++		}
++	} else {
++		nf_ct_refresh_acct(ct, ctinfo, skb, timeouts[ESP_CT_UNREPLIED]);
++	}
++
++	return NF_ACCEPT;
++}
++
++/* Called when a conntrack entry has already been removed from the hashe=
+s
++ * and is about to be deleted from memory
++ */
++void destroy_esp_conntrack_entry(struct nf_conn *ct)
++{
++	struct nf_conntrack_tuple *tuple =3D NULL;
++	enum ip_conntrack_dir dir;
++	u16 esp_id =3D 0;
++	struct net *net =3D nf_ct_net(ct);
++
++	spin_lock_bh(&esp_table_lock);
++
++	/* Probably all the ESP entries referenced in this connection are the s=
+ame,
++	 * but the free function handles repeated frees, so best to do them all=
+.
++	 */
++	for (dir =3D IP_CT_DIR_ORIGINAL; dir < IP_CT_DIR_MAX; dir++) {
++		tuple =3D nf_ct_tuple(ct, dir);
++
++		esp_id =3D tuple->src.u.esp.id;
++		if (esp_id >=3D TEMP_SPI_START && esp_id <=3D TEMP_SPI_MAX) {
++			pr_debug("Deleting src esp_id %x (dir %i)\n", esp_id, dir);
++			esp_table_free_entry_by_esp_id(net, esp_id);
++		}
++		tuple->src.u.esp.id =3D 0;
++		esp_id =3D tuple->dst.u.esp.id;
++		if (esp_id >=3D TEMP_SPI_START && esp_id <=3D TEMP_SPI_MAX) {
++			pr_debug("Deleting dst esp_id %x (dir %i)\n", esp_id, dir);
++			esp_table_free_entry_by_esp_id(net, esp_id);
++		}
++		tuple->dst.u.esp.id =3D 0;
++	}
++
++	spin_unlock_bh(&esp_table_lock);
++}
++
++#if IS_ENABLED(CONFIG_NF_CT_NETLINK)
++
++#include <linux/netfilter/nfnetlink.h>
++#include <linux/netfilter/nfnetlink_conntrack.h>
++
++static int esp_tuple_to_nlattr(struct sk_buff *skb,
++			       const struct nf_conntrack_tuple *t)
++{
++	if (nla_put_be16(skb, CTA_PROTO_SRC_ESP_ID, t->src.u.esp.id) ||
++	    nla_put_be16(skb, CTA_PROTO_DST_ESP_ID, t->dst.u.esp.id))
++		goto nla_put_failure;
++	return 0;
++
++nla_put_failure:
++	return -1;
++}
++
++static const struct nla_policy esp_nla_policy[CTA_PROTO_MAX + 1] =3D {
++	[CTA_PROTO_SRC_ESP_ID] =3D { .type =3D NLA_U16 },
++	[CTA_PROTO_DST_ESP_ID] =3D { .type =3D NLA_U16 },
++};
++
++static int esp_nlattr_to_tuple(struct nlattr *tb[],
++			       struct nf_conntrack_tuple *t,
++			       u32 flags)
++{
++	if (flags & CTA_FILTER_FLAG(CTA_PROTO_SRC_ESP_ID)) {
++		if (!tb[CTA_PROTO_SRC_ESP_ID])
++			return -EINVAL;
++
++		t->src.u.esp.id =3D nla_get_be16(tb[CTA_PROTO_SRC_ESP_ID]);
++	}
++
++	if (flags & CTA_FILTER_FLAG(CTA_PROTO_DST_ESP_ID)) {
++		if (!tb[CTA_PROTO_DST_ESP_ID])
++			return -EINVAL;
++
++		t->dst.u.esp.id =3D nla_get_be16(tb[CTA_PROTO_DST_ESP_ID]);
++	}
++
++	return 0;
++}
++
++static unsigned int esp_nlattr_tuple_size(void)
++{
++	return nla_policy_len(esp_nla_policy, CTA_PROTO_MAX + 1);
++}
++#endif
++
++/* protocol helper struct */
++const struct nf_conntrack_l4proto nf_conntrack_l4proto_esp =3D {
++	.l4proto =3D IPPROTO_ESP,
++#ifdef CONFIG_NF_CONNTRACK_PROCFS
++	.print_conntrack =3D esp_print_conntrack,
++#endif
++#if IS_ENABLED(CONFIG_NF_CT_NETLINK)
++	.tuple_to_nlattr =3D esp_tuple_to_nlattr,
++	.nlattr_tuple_size =3D esp_nlattr_tuple_size,
++	.nlattr_to_tuple =3D esp_nlattr_to_tuple,
++	.nla_policy =3D esp_nla_policy,
++#endif
++};
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_c=
+onntrack_standalone.c
+index c6c0cb465664..7922ff6cf5a4 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -88,6 +88,14 @@ print_tuple(struct seq_file *s, const struct nf_conntr=
+ack_tuple *tuple,
+ 			   ntohs(tuple->src.u.gre.key),
+ 			   ntohs(tuple->dst.u.gre.key));
+ 		break;
++	case IPPROTO_ESP:
++		/* Both src and dest esp.id should be equal but showing both
++		 * will help find errors.
++		 */
++		seq_printf(s, "srcid=3D0x%x dstid=3D0x%x ",
++			   ntohs(tuple->src.u.esp.id),
++			   ntohs(tuple->dst.u.esp.id));
++		break;
+ 	default:
+ 		break;
+ 	}
+diff --git a/net/netfilter/nf_internals.h b/net/netfilter/nf_internals.h
+index 832ae64179f0..4fd8956aec65 100644
+--- a/net/netfilter/nf_internals.h
++++ b/net/netfilter/nf_internals.h
+@@ -19,7 +19,9 @@
+ #define CTA_FILTER_F_CTA_PROTO_ICMPV6_TYPE	(1 << 9)
+ #define CTA_FILTER_F_CTA_PROTO_ICMPV6_CODE	(1 << 10)
+ #define CTA_FILTER_F_CTA_PROTO_ICMPV6_ID	(1 << 11)
+-#define CTA_FILTER_F_MAX			(1 << 12)
++#define CTA_FILTER_F_CTA_PROTO_SRC_ESP_ID	(1 << 12)
++#define CTA_FILTER_F_CTA_PROTO_DST_ESP_ID	(1 << 13)
++#define CTA_FILTER_F_MAX			(1 << 14)
+ #define CTA_FILTER_F_ALL			(CTA_FILTER_F_MAX-1)
+ #define CTA_FILTER_FLAG(ctattr) CTA_FILTER_F_ ## ctattr
+=20
+--=20
+2.31.1
+
