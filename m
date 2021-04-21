@@ -7,32 +7,32 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABD2FC43470
-	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Apr 2021 07:51:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7029DC433B4
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Apr 2021 07:51:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8136D6142C
-	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Apr 2021 07:51:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3ADEB613CD
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Apr 2021 07:51:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237464AbhDUHwM (ORCPT
+        id S237425AbhDUHwN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 21 Apr 2021 03:52:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53800 "EHLO
+        Wed, 21 Apr 2021 03:52:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53814 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237425AbhDUHwI (ORCPT
+        with ESMTP id S237449AbhDUHwJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 21 Apr 2021 03:52:08 -0400
+        Wed, 21 Apr 2021 03:52:09 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 357A3C06138D
-        for <netfilter-devel@vger.kernel.org>; Wed, 21 Apr 2021 00:51:31 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F0ADC061342
+        for <netfilter-devel@vger.kernel.org>; Wed, 21 Apr 2021 00:51:34 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1lZ7dx-0004si-Rg; Wed, 21 Apr 2021 09:51:29 +0200
+        id 1lZ7e1-0004t3-BM; Wed, 21 Apr 2021 09:51:33 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v2 07/12] netfilter: x_tables: remove paranoia tests
-Date:   Wed, 21 Apr 2021 09:51:05 +0200
-Message-Id: <20210421075110.19334-8-fw@strlen.de>
+Subject: [PATCH nf-next v2 10/12] netfilter: arp_tables: pass table pointer via nf_hook_ops
+Date:   Wed, 21 Apr 2021 09:51:08 +0200
+Message-Id: <20210421075110.19334-11-fw@strlen.de>
 X-Mailer: git-send-email 2.26.3
 In-Reply-To: <20210421075110.19334-1-fw@strlen.de>
 References: <20210421075110.19334-1-fw@strlen.de>
@@ -42,182 +42,136 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-No need for these.
-There is only one caller, the xtables core, when the table is registered
-for the first time with a particular network namespace.
+Same change as previous patch.  Only difference:
+no need to handle NULL template_ops parameter, the only caller
+(arptable_filter) always passes non-NULL argument.
 
-After ->table_init() call, the table is linked into the tables[af] list,
-so next call to that function will skip the ->table_init().
+This removes all remaining accesses to net->ipv4.arptable_filter.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/ipv4/netfilter/arptable_filter.c   | 3 ---
- net/ipv4/netfilter/iptable_filter.c    | 3 ---
- net/ipv4/netfilter/iptable_mangle.c    | 3 ---
- net/ipv4/netfilter/iptable_nat.c       | 3 ---
- net/ipv4/netfilter/iptable_raw.c       | 3 ---
- net/ipv4/netfilter/iptable_security.c  | 3 ---
- net/ipv6/netfilter/ip6table_filter.c   | 3 ---
- net/ipv6/netfilter/ip6table_mangle.c   | 3 ---
- net/ipv6/netfilter/ip6table_nat.c      | 3 ---
- net/ipv6/netfilter/ip6table_raw.c      | 3 ---
- net/ipv6/netfilter/ip6table_security.c | 3 ---
- 11 files changed, 33 deletions(-)
+ include/linux/netfilter_arp/arp_tables.h |  2 +-
+ net/ipv4/netfilter/arp_tables.c          | 43 ++++++++++++++++--------
+ net/ipv4/netfilter/arptable_filter.c     |  6 ++--
+ 3 files changed, 32 insertions(+), 19 deletions(-)
 
+diff --git a/include/linux/netfilter_arp/arp_tables.h b/include/linux/netfilter_arp/arp_tables.h
+index 9ec73dcc8fd6..a0474b4e7782 100644
+--- a/include/linux/netfilter_arp/arp_tables.h
++++ b/include/linux/netfilter_arp/arp_tables.h
+@@ -51,7 +51,7 @@ struct arpt_error {
+ extern void *arpt_alloc_initial_table(const struct xt_table *);
+ int arpt_register_table(struct net *net, const struct xt_table *table,
+ 			const struct arpt_replace *repl,
+-			const struct nf_hook_ops *ops, struct xt_table **res);
++			const struct nf_hook_ops *ops);
+ void arpt_unregister_table(struct net *net, const char *name);
+ void arpt_unregister_table_pre_exit(struct net *net, const char *name,
+ 				    const struct nf_hook_ops *ops);
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 8a16b0dc5271..b1bb6a7e2dd7 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -1499,10 +1499,11 @@ static void __arpt_unregister_table(struct net *net, struct xt_table *table)
+ int arpt_register_table(struct net *net,
+ 			const struct xt_table *table,
+ 			const struct arpt_replace *repl,
+-			const struct nf_hook_ops *ops,
+-			struct xt_table **res)
++			const struct nf_hook_ops *template_ops)
+ {
+-	int ret;
++	struct nf_hook_ops *ops;
++	unsigned int num_ops;
++	int ret, i;
+ 	struct xt_table_info *newinfo;
+ 	struct xt_table_info bootstrap = {0};
+ 	void *loc_cpu_entry;
+@@ -1516,28 +1517,42 @@ int arpt_register_table(struct net *net,
+ 	memcpy(loc_cpu_entry, repl->entries, repl->size);
+ 
+ 	ret = translate_table(net, newinfo, loc_cpu_entry, repl);
+-	if (ret != 0)
+-		goto out_free;
++	if (ret != 0) {
++		xt_free_table_info(newinfo);
++		return ret;
++	}
+ 
+ 	new_table = xt_register_table(net, table, &bootstrap, newinfo);
+ 	if (IS_ERR(new_table)) {
+-		ret = PTR_ERR(new_table);
+-		goto out_free;
++		xt_free_table_info(newinfo);
++		return PTR_ERR(new_table);
+ 	}
+ 
+-	/* set res now, will see skbs right after nf_register_net_hooks */
+-	WRITE_ONCE(*res, new_table);
++	num_ops = hweight32(table->valid_hooks);
++	if (num_ops == 0) {
++		ret = -EINVAL;
++		goto out_free;
++	}
+ 
+-	ret = nf_register_net_hooks(net, ops, hweight32(table->valid_hooks));
+-	if (ret != 0) {
+-		__arpt_unregister_table(net, new_table);
+-		*res = NULL;
++	ops = kmemdup(template_ops, sizeof(*ops) * num_ops, GFP_KERNEL);
++	if (!ops) {
++		ret = -ENOMEM;
++		goto out_free;
+ 	}
+ 
++	for (i = 0; i < num_ops; i++)
++		ops[i].priv = new_table;
++
++	new_table->ops = ops;
++
++	ret = nf_register_net_hooks(net, ops, num_ops);
++	if (ret != 0)
++		goto out_free;
++
+ 	return ret;
+ 
+ out_free:
+-	xt_free_table_info(newinfo);
++	__arpt_unregister_table(net, new_table);
+ 	return ret;
+ }
+ 
 diff --git a/net/ipv4/netfilter/arptable_filter.c b/net/ipv4/netfilter/arptable_filter.c
-index c121e13dc78c..924f096a6d89 100644
+index 924f096a6d89..b8f45e9bbec8 100644
 --- a/net/ipv4/netfilter/arptable_filter.c
 +++ b/net/ipv4/netfilter/arptable_filter.c
-@@ -44,9 +44,6 @@ static int __net_init arptable_filter_table_init(struct net *net)
- 	struct arpt_replace *repl;
- 	int err;
+@@ -34,7 +34,7 @@ static unsigned int
+ arptable_filter_hook(void *priv, struct sk_buff *skb,
+ 		     const struct nf_hook_state *state)
+ {
+-	return arpt_do_table(skb, state, state->net->ipv4.arptable_filter);
++	return arpt_do_table(skb, state, priv);
+ }
  
--	if (net->ipv4.arptable_filter)
--		return 0;
--
+ static struct nf_hook_ops *arpfilter_ops __read_mostly;
+@@ -47,8 +47,7 @@ static int __net_init arptable_filter_table_init(struct net *net)
  	repl = arpt_alloc_initial_table(&packet_filter);
  	if (repl == NULL)
  		return -ENOMEM;
-diff --git a/net/ipv4/netfilter/iptable_filter.c b/net/ipv4/netfilter/iptable_filter.c
-index a39998c7977f..84573fa78d1e 100644
---- a/net/ipv4/netfilter/iptable_filter.c
-+++ b/net/ipv4/netfilter/iptable_filter.c
-@@ -48,9 +48,6 @@ static int __net_init iptable_filter_table_init(struct net *net)
- 	struct ipt_replace *repl;
- 	int err;
+-	err = arpt_register_table(net, &packet_filter, repl, arpfilter_ops,
+-				  &net->ipv4.arptable_filter);
++	err = arpt_register_table(net, &packet_filter, repl, arpfilter_ops);
+ 	kfree(repl);
+ 	return err;
+ }
+@@ -61,7 +60,6 @@ static void __net_exit arptable_filter_net_pre_exit(struct net *net)
+ static void __net_exit arptable_filter_net_exit(struct net *net)
+ {
+ 	arpt_unregister_table(net, "filter");
+-	net->ipv4.arptable_filter = NULL;
+ }
  
--	if (net->ipv4.iptable_filter)
--		return 0;
--
- 	repl = ipt_alloc_initial_table(&packet_filter);
- 	if (repl == NULL)
- 		return -ENOMEM;
-diff --git a/net/ipv4/netfilter/iptable_mangle.c b/net/ipv4/netfilter/iptable_mangle.c
-index 7d1713e22553..98e9e9053d85 100644
---- a/net/ipv4/netfilter/iptable_mangle.c
-+++ b/net/ipv4/netfilter/iptable_mangle.c
-@@ -88,9 +88,6 @@ static int __net_init iptable_mangle_table_init(struct net *net)
- 	struct ipt_replace *repl;
- 	int ret;
- 
--	if (net->ipv4.iptable_mangle)
--		return 0;
--
- 	repl = ipt_alloc_initial_table(&packet_mangler);
- 	if (repl == NULL)
- 		return -ENOMEM;
-diff --git a/net/ipv4/netfilter/iptable_nat.c b/net/ipv4/netfilter/iptable_nat.c
-index 16bf3009642e..f4afd28ccc06 100644
---- a/net/ipv4/netfilter/iptable_nat.c
-+++ b/net/ipv4/netfilter/iptable_nat.c
-@@ -90,9 +90,6 @@ static int __net_init iptable_nat_table_init(struct net *net)
- 	struct ipt_replace *repl;
- 	int ret;
- 
--	if (net->ipv4.nat_table)
--		return 0;
--
- 	repl = ipt_alloc_initial_table(&nf_nat_ipv4_table);
- 	if (repl == NULL)
- 		return -ENOMEM;
-diff --git a/net/ipv4/netfilter/iptable_raw.c b/net/ipv4/netfilter/iptable_raw.c
-index a1f556464b93..18776f5a4055 100644
---- a/net/ipv4/netfilter/iptable_raw.c
-+++ b/net/ipv4/netfilter/iptable_raw.c
-@@ -55,9 +55,6 @@ static int __net_init iptable_raw_table_init(struct net *net)
- 	if (raw_before_defrag)
- 		table = &packet_raw_before_defrag;
- 
--	if (net->ipv4.iptable_raw)
--		return 0;
--
- 	repl = ipt_alloc_initial_table(table);
- 	if (repl == NULL)
- 		return -ENOMEM;
-diff --git a/net/ipv4/netfilter/iptable_security.c b/net/ipv4/netfilter/iptable_security.c
-index 33eded4f9080..3df92fb394c5 100644
---- a/net/ipv4/netfilter/iptable_security.c
-+++ b/net/ipv4/netfilter/iptable_security.c
-@@ -50,9 +50,6 @@ static int __net_init iptable_security_table_init(struct net *net)
- 	struct ipt_replace *repl;
- 	int ret;
- 
--	if (net->ipv4.iptable_security)
--		return 0;
--
- 	repl = ipt_alloc_initial_table(&security_table);
- 	if (repl == NULL)
- 		return -ENOMEM;
-diff --git a/net/ipv6/netfilter/ip6table_filter.c b/net/ipv6/netfilter/ip6table_filter.c
-index 0c9f75e23ca0..2bcafa3e2d35 100644
---- a/net/ipv6/netfilter/ip6table_filter.c
-+++ b/net/ipv6/netfilter/ip6table_filter.c
-@@ -49,9 +49,6 @@ static int __net_init ip6table_filter_table_init(struct net *net)
- 	struct ip6t_replace *repl;
- 	int err;
- 
--	if (net->ipv6.ip6table_filter)
--		return 0;
--
- 	repl = ip6t_alloc_initial_table(&packet_filter);
- 	if (repl == NULL)
- 		return -ENOMEM;
-diff --git a/net/ipv6/netfilter/ip6table_mangle.c b/net/ipv6/netfilter/ip6table_mangle.c
-index 9a2266662508..14e22022bf41 100644
---- a/net/ipv6/netfilter/ip6table_mangle.c
-+++ b/net/ipv6/netfilter/ip6table_mangle.c
-@@ -81,9 +81,6 @@ static int __net_init ip6table_mangle_table_init(struct net *net)
- 	struct ip6t_replace *repl;
- 	int ret;
- 
--	if (net->ipv6.ip6table_mangle)
--		return 0;
--
- 	repl = ip6t_alloc_initial_table(&packet_mangler);
- 	if (repl == NULL)
- 		return -ENOMEM;
-diff --git a/net/ipv6/netfilter/ip6table_nat.c b/net/ipv6/netfilter/ip6table_nat.c
-index 7eb61e6b1e52..c7f98755191b 100644
---- a/net/ipv6/netfilter/ip6table_nat.c
-+++ b/net/ipv6/netfilter/ip6table_nat.c
-@@ -92,9 +92,6 @@ static int __net_init ip6table_nat_table_init(struct net *net)
- 	struct ip6t_replace *repl;
- 	int ret;
- 
--	if (net->ipv6.ip6table_nat)
--		return 0;
--
- 	repl = ip6t_alloc_initial_table(&nf_nat_ipv6_table);
- 	if (repl == NULL)
- 		return -ENOMEM;
-diff --git a/net/ipv6/netfilter/ip6table_raw.c b/net/ipv6/netfilter/ip6table_raw.c
-index c9a4aada40ba..ae3df59f0350 100644
---- a/net/ipv6/netfilter/ip6table_raw.c
-+++ b/net/ipv6/netfilter/ip6table_raw.c
-@@ -54,9 +54,6 @@ static int __net_init ip6table_raw_table_init(struct net *net)
- 	if (raw_before_defrag)
- 		table = &packet_raw_before_defrag;
- 
--	if (net->ipv6.ip6table_raw)
--		return 0;
--
- 	repl = ip6t_alloc_initial_table(table);
- 	if (repl == NULL)
- 		return -ENOMEM;
-diff --git a/net/ipv6/netfilter/ip6table_security.c b/net/ipv6/netfilter/ip6table_security.c
-index 73067e08662f..83ca632cbf88 100644
---- a/net/ipv6/netfilter/ip6table_security.c
-+++ b/net/ipv6/netfilter/ip6table_security.c
-@@ -49,9 +49,6 @@ static int __net_init ip6table_security_table_init(struct net *net)
- 	struct ip6t_replace *repl;
- 	int ret;
- 
--	if (net->ipv6.ip6table_security)
--		return 0;
--
- 	repl = ip6t_alloc_initial_table(&security_table);
- 	if (repl == NULL)
- 		return -ENOMEM;
+ static struct pernet_operations arptable_filter_net_ops = {
 -- 
 2.26.3
 
