@@ -2,386 +2,302 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A00CC433ED
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Apr 2021 02:35:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 952E2C433ED
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Apr 2021 09:36:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 198AB6103E
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Apr 2021 02:35:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 61D0761422
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Apr 2021 09:36:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232796AbhDVCf7 (ORCPT
+        id S235528AbhDVJgf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 21 Apr 2021 22:35:59 -0400
-Received: from gate2.alliedtelesis.co.nz ([202.36.163.20]:52803 "EHLO
-        gate2.alliedtelesis.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230338AbhDVCf6 (ORCPT
+        Thu, 22 Apr 2021 05:36:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56336 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235551AbhDVJgf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 21 Apr 2021 22:35:58 -0400
-Received: from svr-chch-seg1.atlnz.lc (mmarshal3.atlnz.lc [10.32.18.43])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (Client did not present a certificate)
-        by gate2.alliedtelesis.co.nz (Postfix) with ESMTPS id 7D7F8806CB;
-        Thu, 22 Apr 2021 14:35:22 +1200 (NZST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alliedtelesis.co.nz;
-        s=mail181024; t=1619058922;
-        bh=DL/UBWOxAtSCtMbPw60emaKmBVxBvcAtepOpozBePfI=;
-        h=From:To:Cc:Subject:Date;
-        b=N9IZQY7iksPVeErXXoO/q1/pXOjzjDrQoztZbt+ZURcQPg2yxIpO6rzkhdql4ZVin
-         9w0woXeZx4jr7laMJt2wRPEZ/WEFl/gPO4gXk7wnxKXeVNFoPSs9pLNHcF5arFmXms
-         D3vjC8094b6k2AukucWu6pvzd+J6U/nTUZXEsiD1+o5B9PmeDCDy5B80E/nyR2mkmA
-         kJvfBjmPxOcIgDQbRUJPtwhAewKqJLg62cGgBmab1nUF7WNkQdtGbqvh0l8Llnrm/p
-         Flb3jraiYvqVPPzcyjRWQcPC6Ebq0eSV67AqH2azBWK5KsEw7l/IsTgLktxmOGxje8
-         5zHVunDmA1QJQ==
-Received: from smtp (Not Verified[10.32.16.33]) by svr-chch-seg1.atlnz.lc with Trustwave SEG (v8,2,6,11305)
-        id <B6080e0ea0000>; Thu, 22 Apr 2021 14:35:22 +1200
-Received: from coled-dl.ws.atlnz.lc (coled-dl.ws.atlnz.lc [10.33.25.26])
-        by smtp (Postfix) with ESMTP id 41B3113EED4;
-        Thu, 22 Apr 2021 14:35:44 +1200 (NZST)
-Received: by coled-dl.ws.atlnz.lc (Postfix, from userid 1801)
-        id 0DAA3242946; Thu, 22 Apr 2021 14:35:22 +1200 (NZST)
-From:   Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
+        Thu, 22 Apr 2021 05:36:35 -0400
+Received: from mail-pl1-x642.google.com (mail-pl1-x642.google.com [IPv6:2607:f8b0:4864:20::642])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A2D1C06174A
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Apr 2021 02:36:01 -0700 (PDT)
+Received: by mail-pl1-x642.google.com with SMTP id u15so14681934plf.10
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Apr 2021 02:36:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=dnExj6ZFO8zhUtV03mpPSoUb37zI2zCqsyluG57ndR4=;
+        b=mvMjsya/9E1ErjUfyIJMlo6Z/y05ruW0Kk8Iff5uMu1GAGrXrqM7a6+jIeX6/mH+mY
+         QQ92YiHihccQFRRk1Rvf0K+XfnDggChFlWTdZvHh6HfSB6Cb6k67NVGQVaFoP6mD2HVj
+         FYe5g0GwqRyh4Zcg7DDSCQeYzAcHymneIUBOfl9ruHyl2VWke3Zh9WOqJMM5FEiUcqDn
+         OeI9RGaiePxNjnTieK8pfrQlWnQKnOPs3b+UbIQXd9AxYpPODslInixPowODMg0MthYf
+         ED0L9jgXcPBKbA1gVOx1RBujsDW6fb/3Ot5g6xolF+Vpw/jnnTpLTbrbQFK5R682vBcW
+         0sMQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=dnExj6ZFO8zhUtV03mpPSoUb37zI2zCqsyluG57ndR4=;
+        b=ogwh6A9YZ3vmPXs2G5g04hFBqj2nGeAqJe2nhSnjw+l201q95kP4g8XeUqBM/Og7Zz
+         ck8WkDevy6C0kHRypnDB57LgMAluE6WW7lkbCMkO3Jl9y/0jT5nByz5v+oYeVQR78Gu0
+         PeSzrC+JGe4bU9CNJFKL7GkafuzvrMssVwRk5MVsrCrLmtBYtDbvdxiJrX8AqSRhtBJq
+         hJcbULeAr4kgjEaNXToqQpRy/eg0+dugC5nPNm7IVa0h9yDin/RXiDPqkyP2nbeYSrhY
+         N5DhcqvA5diMwFLjQmKOt6UxI3HduSW154iFBwyGs4mg603sWPGbVWguQ/m1hQqZsQfR
+         SFeQ==
+X-Gm-Message-State: AOAM5323XnOVeFhJ63RjV7JliEEPtG75rV/9kXXl9hHj11GoRLlFTpsN
+        +P+Dpx+LrurNxHxnv0Fe1Vnlp4eXVMbe3w==
+X-Google-Smtp-Source: ABdhPJz3/IQeSauIb538cGOkc8ohlQe7UyR+GAf3GArMuznMW6hosCXiO2uRrYvQ3OtCeIDIhgP+aw==
+X-Received: by 2002:a17:90a:f2d7:: with SMTP id gt23mr16321529pjb.199.1619084160562;
+        Thu, 22 Apr 2021 02:36:00 -0700 (PDT)
+Received: from slk1.local.net (n49-192-36-100.sun3.vic.optusnet.com.au. [49.192.36.100])
+        by smtp.gmail.com with ESMTPSA id c11sm1743324pgk.83.2021.04.22.02.35.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 22 Apr 2021 02:35:59 -0700 (PDT)
+From:   Duncan Roe <duncan.roe2@gmail.com>
+X-Google-Original-From: Duncan Roe <duncan_roe@optusnet.com.au>
 To:     pablo@netfilter.org
-Cc:     Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>,
-        Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>,
-        Scott Parlane <scott.parlane@alliedtelesis.co.nz>,
-        Blair Steven <blair.steven@alliedtelesis.co.nz>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        netfilter-devel@vger.kernel.org (open list:NETFILTER),
-        coreteam@netfilter.org (open list:NETFILTER),
-        netdev@vger.kernel.org (open list:NETWORKING [GENERAL]),
-        linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH] net: netfilter: Add RFC-7597 Section 5.1 PSID support
-Date:   Thu, 22 Apr 2021 14:35:05 +1200
-Message-Id: <20210422023506.4651-1-Cole.Dishington@alliedtelesis.co.nz>
-X-Mailer: git-send-email 2.31.1
+Cc:     netfilter-devel@vger.kernel.org, jengelh@inai.de,
+        duncan_roe@optusnet.com.au
+Subject: [PATCH libnetfilter_queue v2] build: doc: `make distcheck` passes with doxygen enabled
+Date:   Thu, 22 Apr 2021 19:35:44 +1000
+Message-Id: <20210422093544.5460-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.30.1
+In-Reply-To: <s6o3s8n-8486-r468-728s-4384736oqq@vanv.qr>
+References: <s6o3s8n-8486-r468-728s-4384736oqq@vanv.qr>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-X-SEG-SpamProfiler-Analysis: v=2.3 cv=B+jHL9lM c=1 sm=1 tr=0 a=KLBiSEs5mFS1a/PbTCJxuA==:117 a=3YhXtTcJ-WEA:10 a=hliHO8vvrjb_GgMcktUA:9 a=vbNtKFaLgyoh1_7v:21 a=9_ocApIY7FPKfsiY:21
-X-SEG-SpamProfiler-Score: 0
-x-atlnz-ls: pat
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This adds support for masquerading into a smaller subset of ports -
-defined by the PSID values from RFC-7597 Section 5.1. This is part of
-the support for MAP-E and Lightweight 4over6, which allows multiple
-devices to share an IPv4 address by splitting the L4 port / id into
-ranges.
+The main fix is to move fixmanpages.sh to inside doxygen/Makefile.am.
 
-Co-developed-by: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
-Signed-off-by: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
-Co-developed-by: Scott Parlane <scott.parlane@alliedtelesis.co.nz>
-Signed-off-by: Scott Parlane <scott.parlane@alliedtelesis.co.nz>
-Signed-off-by: Blair Steven <blair.steven@alliedtelesis.co.nz>
-Signed-off-by: Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
+This means that in future, developers need to update doxygen/Makefile.am
+when they add new functions and source files, since fixmanpages.sh is deleted.
+
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
 ---
- include/net/netfilter/nf_conntrack.h          |   2 +
- .../netfilter/nf_conntrack_tuple_common.h     |   5 +
- include/uapi/linux/netfilter/nf_nat.h         |   3 +-
- net/netfilter/nf_nat_core.c                   | 101 ++++++++++++++++--
- net/netfilter/nf_nat_ftp.c                    |  23 ++--
- net/netfilter/nf_nat_helper.c                 |  15 ++-
- 6 files changed, 120 insertions(+), 29 deletions(-)
+v2: Implement suggestions from Jan Engelhardt <jengelh@inai.de>
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter=
-/nf_conntrack.h
-index 439379ca9ffa..d63d38aa7188 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -92,6 +92,8 @@ struct nf_conn {
- 	/* If we were expected by an expectation, this will be it */
- 	struct nf_conn *master;
-=20
-+	struct nf_nat_range2 *range;
+ Makefile.am         |  1 -
+ configure.ac        | 11 +++++--
+ doxygen/Makefile.am | 76 +++++++++++++++++++++++++++++++++++++++++++--
+ fixmanpages.sh      | 66 ---------------------------------------
+ 4 files changed, 82 insertions(+), 72 deletions(-)
+ delete mode 100755 fixmanpages.sh
+
+diff --git a/Makefile.am b/Makefile.am
+index 796f0d0..a5b347b 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -10,4 +10,3 @@ pkgconfigdir = $(libdir)/pkgconfig
+ pkgconfig_DATA = libnetfilter_queue.pc
+ 
+ EXTRA_DIST += Make_global.am
+-EXTRA_DIST += fixmanpages.sh
+diff --git a/configure.ac b/configure.ac
+index 32e4990..bdbee98 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -37,9 +37,10 @@ AC_CONFIG_FILES([Makefile src/Makefile utils/Makefile examples/Makefile
+ 	include/linux/Makefile include/linux/netfilter/Makefile])
+ 
+ AC_ARG_WITH([doxygen], [AS_HELP_STRING([--with-doxygen],
+-	    [create doxygen documentation [default=no]])],
+-	    [], [with_doxygen=no])
+-AS_IF([test "x$with_doxygen" = xyes], [
++	    [create doxygen documentation])],
++	    [with_doxygen="$withval"], [with_doxygen=yes])
 +
- #if defined(CONFIG_NF_CONNTRACK_MARK)
- 	u_int32_t mark;
- #endif
-diff --git a/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h b/i=
-nclude/uapi/linux/netfilter/nf_conntrack_tuple_common.h
-index 64390fac6f7e..36d16d47c2b0 100644
---- a/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
-+++ b/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
-@@ -39,6 +39,11 @@ union nf_conntrack_man_proto {
- 	struct {
- 		__be16 key;	/* GRE key is 32bit, PPtP only uses 16bit */
- 	} gre;
-+	struct {
-+		unsigned char psid_length;
-+		unsigned char offset;
-+		__be16 psid;
-+	} psid;
- };
-=20
- #define CTINFO2DIR(ctinfo) ((ctinfo) >=3D IP_CT_IS_REPLY ? IP_CT_DIR_REP=
-LY : IP_CT_DIR_ORIGINAL)
-diff --git a/include/uapi/linux/netfilter/nf_nat.h b/include/uapi/linux/n=
-etfilter/nf_nat.h
-index a64586e77b24..660e53ffdb57 100644
---- a/include/uapi/linux/netfilter/nf_nat.h
-+++ b/include/uapi/linux/netfilter/nf_nat.h
-@@ -12,6 +12,7 @@
- #define NF_NAT_RANGE_PROTO_RANDOM_FULLY		(1 << 4)
- #define NF_NAT_RANGE_PROTO_OFFSET		(1 << 5)
- #define NF_NAT_RANGE_NETMAP			(1 << 6)
-+#define NF_NAT_RANGE_PSID			(1 << 7)
-=20
- #define NF_NAT_RANGE_PROTO_RANDOM_ALL		\
- 	(NF_NAT_RANGE_PROTO_RANDOM | NF_NAT_RANGE_PROTO_RANDOM_FULLY)
-@@ -20,7 +21,7 @@
- 	(NF_NAT_RANGE_MAP_IPS | NF_NAT_RANGE_PROTO_SPECIFIED |	\
- 	 NF_NAT_RANGE_PROTO_RANDOM | NF_NAT_RANGE_PERSISTENT |	\
- 	 NF_NAT_RANGE_PROTO_RANDOM_FULLY | NF_NAT_RANGE_PROTO_OFFSET | \
--	 NF_NAT_RANGE_NETMAP)
-+	 NF_NAT_RANGE_NETMAP | NF_NAT_RANGE_PSID)
-=20
- struct nf_nat_ipv4_range {
- 	unsigned int			flags;
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index b7c3c902290f..7730ce4ca9a9 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -232,13 +232,33 @@ static bool nf_nat_inet_in_range(const struct nf_co=
-nntrack_tuple *t,
- static bool l4proto_in_range(const struct nf_conntrack_tuple *tuple,
- 			     enum nf_nat_manip_type maniptype,
- 			     const union nf_conntrack_man_proto *min,
--			     const union nf_conntrack_man_proto *max)
-+			     const union nf_conntrack_man_proto *max,
-+			     bool is_psid)
- {
- 	__be16 port;
-=20
-+	int m =3D 0;
-+	u16 offset_mask =3D 0;
-+	u16 psid_mask =3D 0;
++AS_IF([test "x$with_doxygen" != xno], [
+ 	AC_CHECK_PROGS([DOXYGEN], [doxygen])
+ 	AC_CHECK_PROGS([DOT], [dot], [""])
+ 	AS_IF([test "x$DOT" != "x"],
+@@ -48,6 +49,10 @@ AS_IF([test "x$with_doxygen" = xyes], [
+ ])
+ 
+ AM_CONDITIONAL([HAVE_DOXYGEN], [test -n "$DOXYGEN"])
++AS_IF([test "x$DOXYGEN" = x], [
++	dnl Only run doxygen Makefile if doxygen installed
++	AC_MSG_WARN([Doxygen not found - continuing without Doxygen support])
++])
+ AC_OUTPUT
+ 
+ echo "
+diff --git a/doxygen/Makefile.am b/doxygen/Makefile.am
+index 0f99feb..b4268a5 100644
+--- a/doxygen/Makefile.am
++++ b/doxygen/Makefile.am
+@@ -1,4 +1,6 @@
+ if HAVE_DOXYGEN
 +
-+	/* In this case we are in PSID mode and the rules are all different */
-+	if (is_psid) {
-+		/* m =3D number of bits in each valid range */
-+		m =3D 16 - min->psid.psid_length - min->psid.offset;
-+		offset_mask =3D ((1 << min->psid.offset) - 1) <<
-+				(16 - min->psid.offset);
-+		psid_mask =3D ((1 << min->psid.psid_length) - 1) << m;
-+	}
++# Be sure to add new source files to this table
+ doc_srcs = $(top_srcdir)/src/libnetfilter_queue.c  \
+            $(top_srcdir)/src/nlmsg.c               \
+            $(top_srcdir)/src/extra/checksum.c      \
+@@ -9,8 +11,74 @@ doc_srcs = $(top_srcdir)/src/libnetfilter_queue.c  \
+            $(top_srcdir)/src/extra/icmp.c          \
+            $(top_srcdir)/src/extra/pktbuff.c
+ 
+-doxyfile.stamp: $(doc_srcs) $(top_srcdir)/fixmanpages.sh
+-	rm -rf html man && cd .. && doxygen doxygen.cfg >/dev/null && ./fixmanpages.sh
++doxyfile.stamp: $(doc_srcs) Makefile.am
++	rm -rf html man
 +
- 	switch (tuple->dst.protonum) {
- 	case IPPROTO_ICMP:
- 	case IPPROTO_ICMPV6:
-+		if (is_psid) {
-+			return ((ntohs(tuple->src.u.icmp.id) & offset_mask) !=3D
-+				0) &&
-+				((ntohs(tuple->src.u.icmp.id) & psid_mask) =3D=3D
-+				min->psid.psid);
-+		}
- 		return ntohs(tuple->src.u.icmp.id) >=3D ntohs(min->icmp.id) &&
- 		       ntohs(tuple->src.u.icmp.id) <=3D ntohs(max->icmp.id);
- 	case IPPROTO_GRE: /* all fall though */
-@@ -252,6 +272,11 @@ static bool l4proto_in_range(const struct nf_conntra=
-ck_tuple *tuple,
- 		else
- 			port =3D tuple->dst.u.all;
-=20
-+		if (is_psid) {
-+			return ((ntohs(port) & offset_mask) !=3D 0) &&
-+				(((ntohs(port) & psid_mask) >> m) =3D=3D
-+				  min->psid.psid);
-+		}
- 		return ntohs(port) >=3D ntohs(min->all) &&
- 		       ntohs(port) <=3D ntohs(max->all);
- 	default:
-@@ -274,9 +299,9 @@ static int in_range(const struct nf_conntrack_tuple *=
-tuple,
-=20
- 	if (!(range->flags & NF_NAT_RANGE_PROTO_SPECIFIED))
- 		return 1;
--
- 	return l4proto_in_range(tuple, NF_NAT_MANIP_SRC,
--				&range->min_proto, &range->max_proto);
-+				&range->min_proto, &range->max_proto,
-+				range->flags & NF_NAT_RANGE_PSID);
- }
-=20
- static inline int
-@@ -397,10 +422,10 @@ find_best_ips_proto(const struct nf_conntrack_zone =
-*zone,
-  *
-  * Per-protocol part of tuple is initialized to the incoming packet.
-  */
--static void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple=
-,
--					const struct nf_nat_range2 *range,
--					enum nf_nat_manip_type maniptype,
--					const struct nf_conn *ct)
-+void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
-+				 const struct nf_nat_range2 *range,
-+				 enum nf_nat_manip_type maniptype,
-+				 const struct nf_conn *ct)
- {
- 	unsigned int range_size, min, max, i, attempts;
- 	__be16 *keyptr;
-@@ -457,6 +482,50 @@ static void nf_nat_l4proto_unique_tuple(struct nf_co=
-nntrack_tuple *tuple,
- 		return;
- 	}
-=20
-+	if (range->flags & NF_NAT_RANGE_PSID) {
-+		/* Find the non-PSID parts of the port.
-+		 * To do this we look for an unused port that is
-+		 * comprised of [t_chunk|PSID|b_chunk]. The size of
-+		 * these pieces is defined by the psid_length and
-+		 * offset.
-+		 */
-+		int m =3D 16 - range->min_proto.psid.psid_length -
-+		    range->min_proto.psid.offset;
-+		int available;
-+		int range_count =3D ((1 << range->min_proto.psid.offset) - 1);
++# Test for running under make distcheck.
++# If so, sibling src directory will be empty:
++# move it out of the way and symlink the real one while we run doxygen.
++	[ -f ../src/Makefile.in ] || \
++{ set -x; cd ..; mv src src.distcheck; ln -s $(top_srcdir)/src; }
 +
-+		/* Calculate the size of the bottom block */
-+		range_size =3D (1 << m);
++	cd ..; doxygen doxygen.cfg >/dev/null
 +
-+		/* Calculate the total IDs to check */
-+		available =3D range_size * range_count;
-+		if (!available)
-+			available =3D range_size;
++	[ ! -d ../src.distcheck ] || \
++{ set -x; cd ..; rm src; mv src.distcheck src; }
 +
-+		off =3D ntohs(*keyptr);
-+		for (i =3D 0;; ++off) {
-+			int b_chunk =3D off % range_size;
-+			int t_chunk =3D 0;
++# Keep this command up to date after adding new functions and source files.
++# The command has to be a single line so the functions work
++# (hence ";\" at the end of every line but the last).
++	main() { set -e; cd man/man3; rm -f _*;\
++setgroup LibrarySetup nfq_open;\
++  add2group nfq_close nfq_bind_pf nfq_unbind_pf;\
++setgroup Parsing nfq_get_msg_packet_hdr;\
++  add2group nfq_get_nfmark nfq_get_timestamp nfq_get_indev nfq_get_physindev;\
++  add2group nfq_get_outdev nfq_get_physoutdev nfq_get_indev_name;\
++  add2group nfq_get_physindev_name nfq_get_outdev_name;\
++  add2group nfq_get_physoutdev_name nfq_get_packet_hw;\
++  add2group nfq_get_skbinfo;\
++  add2group nfq_get_uid nfq_get_gid;\
++  add2group nfq_get_secctx nfq_get_payload;\
++setgroup Queue nfq_fd;\
++  add2group nfq_create_queue nfq_destroy_queue nfq_handle_packet nfq_set_mode;\
++  add2group nfq_set_queue_flags nfq_set_queue_maxlen nfq_set_verdict;\
++  add2group nfq_set_verdict2 nfq_set_verdict_batch;\
++  add2group nfq_set_verdict_batch2 nfq_set_verdict_mark;\
++setgroup ipv4 nfq_ip_get_hdr;\
++  add2group nfq_ip_set_transport_header nfq_ip_mangle nfq_ip_snprintf;\
++  setgroup ip_internals nfq_ip_set_checksum;\
++setgroup ipv6 nfq_ip6_get_hdr;\
++  add2group nfq_ip6_set_transport_header nfq_ip6_mangle nfq_ip6_snprintf;\
++setgroup nfq_cfg nfq_nlmsg_cfg_put_cmd;\
++  add2group nfq_nlmsg_cfg_put_params nfq_nlmsg_cfg_put_qmaxlen;\
++setgroup nfq_verd nfq_nlmsg_verdict_put;\
++  add2group nfq_nlmsg_verdict_put_mark nfq_nlmsg_verdict_put_pkt;\
++setgroup nlmsg nfq_nlmsg_parse;\
++  add2group nfq_nlmsg_put;\
++setgroup pktbuff pktb_alloc;\
++  add2group pktb_data pktb_len pktb_mangle pktb_mangled;\
++  add2group pktb_free;\
++  setgroup otherfns pktb_tailroom;\
++    add2group pktb_mac_header pktb_network_header pktb_transport_header;\
++    setgroup uselessfns pktb_push;\
++      add2group pktb_pull pktb_put pktb_trim;\
++setgroup tcp nfq_tcp_get_hdr;\
++  add2group nfq_tcp_get_payload nfq_tcp_get_payload_len;\
++  add2group nfq_tcp_snprintf nfq_tcp_mangle_ipv4 nfq_tcp_mangle_ipv6;\
++  setgroup tcp_internals nfq_tcp_compute_checksum_ipv4;\
++    add2group nfq_tcp_compute_checksum_ipv6;\
++setgroup udp nfq_udp_get_hdr;\
++  add2group nfq_udp_get_payload nfq_udp_get_payload_len;\
++  add2group nfq_udp_mangle_ipv4 nfq_udp_mangle_ipv6 nfq_udp_snprintf;\
++  setgroup udp_internals nfq_udp_compute_checksum_ipv4;\
++    add2group nfq_udp_compute_checksum_ipv6;\
++setgroup Printing nfq_snprintf_xml;\
++setgroup icmp nfq_icmp_get_hdr;\
++};\
++setgroup() { mv $$1.3 $$2.3; BASE=$$2; };\
++add2group() { for i in $$@; do ln -sf $$BASE.3 $$i.3; done; };\
++main
 +
-+			/* Move up to avoid the all-zeroes reserved chunk
-+			 * (if there is one).
-+			 */
-+			if (range->min_proto.psid.offset > 0) {
-+				t_chunk =3D (off >> m) % range_count;
-+				++t_chunk;
-+				t_chunk <<=3D (m +
-+					     range->min_proto.psid.psid_length);
-+			}
+ 	touch doxyfile.stamp
+ 
+ CLEANFILES = doxyfile.stamp
+@@ -21,4 +89,8 @@ clean-local:
+ install-data-local:
+ 	mkdir -p $(DESTDIR)$(mandir)/man3
+ 	cp --no-dereference --preserve=links,mode,timestamps man/man3/*.3 $(DESTDIR)$(mandir)/man3/
 +
-+			*keyptr =3D htons(t_chunk |
-+					 (range->min_proto.psid.psid << m)
-+					 | b_chunk);
-+
-+			if (++i >=3D available || !nf_nat_used_tuple(tuple, ct))
-+				return;
-+		}
-+	}
-+
- 	/* If no range specified... */
- 	if (!(range->flags & NF_NAT_RANGE_PROTO_SPECIFIED)) {
- 		/* If it's dst rewrite, can't change port */
-@@ -566,11 +635,18 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
-=20
- 	/* Only bother mapping if it's not already in range and unique */
- 	if (!(range->flags & NF_NAT_RANGE_PROTO_RANDOM_ALL)) {
--		if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
-+		/* Now that the PSID mode is present we always need to check
-+		 * to see if the source ports are in range.
-+		 */
-+		if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED ||
-+		    (range->flags & NF_NAT_RANGE_PSID &&
-+		    !in_range(orig_tuple, range))) {
- 			if (!(range->flags & NF_NAT_RANGE_PROTO_OFFSET) &&
- 			    l4proto_in_range(tuple, maniptype,
--			          &range->min_proto,
--			          &range->max_proto) &&
-+					     &range->min_proto,
-+					     &range->max_proto,
-+					     range->flags &
-+					     NF_NAT_RANGE_PSID) &&
- 			    (range->min_proto.all =3D=3D range->max_proto.all ||
- 			     !nf_nat_used_tuple(tuple, ct)))
- 				return;
-@@ -623,6 +699,11 @@ nf_nat_setup_info(struct nf_conn *ct,
- 			   &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
-=20
- 	get_unique_tuple(&new_tuple, &curr_tuple, range, ct, maniptype);
-+	if (range) {
-+		if (!ct->range)
-+			ct->range =3D kmalloc(sizeof(*ct->range), 0);
-+		memcpy(ct->range, range, sizeof(*ct->range));
-+	}
-=20
- 	if (!nf_ct_tuple_equal(&new_tuple, &curr_tuple)) {
- 		struct nf_conntrack_tuple reply;
-diff --git a/net/netfilter/nf_nat_ftp.c b/net/netfilter/nf_nat_ftp.c
-index aace6768a64e..006b7e1836ff 100644
---- a/net/netfilter/nf_nat_ftp.c
-+++ b/net/netfilter/nf_nat_ftp.c
-@@ -17,6 +17,10 @@
- #include <net/netfilter/nf_conntrack_helper.h>
- #include <net/netfilter/nf_conntrack_expect.h>
- #include <linux/netfilter/nf_conntrack_ftp.h>
-+void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
-+				 const struct nf_nat_range2 *range,
-+				 enum nf_nat_manip_type maniptype,
-+				 const struct nf_conn *ct);
-=20
- #define NAT_HELPER_NAME "ftp"
-=20
-@@ -86,19 +90,12 @@ static unsigned int nf_nat_ftp(struct sk_buff *skb,
- 	 * this one. */
- 	exp->expectfn =3D nf_nat_follow_master;
-=20
--	/* Try to get same port: if not, try to change it. */
--	for (port =3D ntohs(exp->saved_proto.tcp.port); port !=3D 0; port++) {
--		int ret;
--
--		exp->tuple.dst.u.tcp.port =3D htons(port);
--		ret =3D nf_ct_expect_related(exp, 0);
--		if (ret =3D=3D 0)
--			break;
--		else if (ret !=3D -EBUSY) {
--			port =3D 0;
--			break;
--		}
--	}
-+	/* Find a port that matches the MASQ rule. */
-+	nf_nat_l4proto_unique_tuple(&exp->tuple, ct->range,
-+				    dir ? NF_NAT_MANIP_SRC : NF_NAT_MANIP_DST,
-+				    ct);
-+	port =3D ntohs(exp->tuple.dst.u.tcp.port);
-+	nf_ct_expect_related(exp, 0);
-=20
- 	if (port =3D=3D 0) {
- 		nf_ct_helper_log(skb, ct, "all ports in use");
-diff --git a/net/netfilter/nf_nat_helper.c b/net/netfilter/nf_nat_helper.=
-c
-index a263505455fc..090153475d4d 100644
---- a/net/netfilter/nf_nat_helper.c
-+++ b/net/netfilter/nf_nat_helper.c
-@@ -184,11 +184,16 @@ void nf_nat_follow_master(struct nf_conn *ct,
- 	/* This must be a fresh one. */
- 	BUG_ON(ct->status & IPS_NAT_DONE_MASK);
-=20
--	/* Change src to where master sends to */
--	range.flags =3D NF_NAT_RANGE_MAP_IPS;
--	range.min_addr =3D range.max_addr
--		=3D ct->master->tuplehash[!exp->dir].tuple.dst.u3;
--	nf_nat_setup_info(ct, &range, NF_NAT_MANIP_SRC);
-+	if (exp->master && exp->master->range && !exp->dir) {
-+		range =3D *exp->master->range;
-+		nf_nat_setup_info(ct, &range, NF_NAT_MANIP_SRC);
-+	} else {
-+		/* Change src to where master sends to */
-+		range.flags =3D NF_NAT_RANGE_MAP_IPS;
-+		range.min_addr =3D ct->master->tuplehash[!exp->dir].tuple.dst.u3;
-+		range.max_addr =3D ct->master->tuplehash[!exp->dir].tuple.dst.u3;
-+		nf_nat_setup_info(ct, &range, NF_NAT_MANIP_SRC);
-+	}
-=20
- 	/* For DST manip, map port here to where it's expected. */
- 	range.flags =3D (NF_NAT_RANGE_MAP_IPS | NF_NAT_RANGE_PROTO_SPECIFIED);
---=20
-2.31.1
++# make distcheck needs uninstall-local
++uninstall-local:
++	rm -r $(DESTDIR)$(mandir) man html doxyfile.stamp
+ endif
+diff --git a/fixmanpages.sh b/fixmanpages.sh
+deleted file mode 100755
+index 02064ab..0000000
+--- a/fixmanpages.sh
++++ /dev/null
+@@ -1,66 +0,0 @@
+-#!/bin/bash -p
+-#set -x
+-function main
+-{
+-  set -e
+-  cd doxygen/man/man3
+-  rm -f _*
+-  setgroup LibrarySetup nfq_open
+-    add2group nfq_close nfq_bind_pf nfq_unbind_pf
+-  setgroup Parsing nfq_get_msg_packet_hdr
+-    add2group nfq_get_nfmark nfq_get_timestamp nfq_get_indev nfq_get_physindev
+-    add2group nfq_get_outdev nfq_get_physoutdev nfq_get_indev_name
+-    add2group nfq_get_physindev_name nfq_get_outdev_name
+-    add2group nfq_get_physoutdev_name nfq_get_packet_hw
+-    add2group nfq_get_skbinfo
+-    add2group nfq_get_uid nfq_get_gid
+-    add2group nfq_get_secctx nfq_get_payload
+-  setgroup Queue nfq_fd
+-    add2group nfq_create_queue nfq_destroy_queue nfq_handle_packet nfq_set_mode
+-    add2group nfq_set_queue_flags nfq_set_queue_maxlen nfq_set_verdict
+-    add2group nfq_set_verdict2 nfq_set_verdict_batch
+-    add2group nfq_set_verdict_batch2 nfq_set_verdict_mark
+-  setgroup ipv4 nfq_ip_get_hdr
+-    add2group nfq_ip_set_transport_header nfq_ip_mangle nfq_ip_snprintf
+-    setgroup ip_internals nfq_ip_set_checksum
+-  setgroup ipv6 nfq_ip6_get_hdr
+-    add2group nfq_ip6_set_transport_header nfq_ip6_mangle nfq_ip6_snprintf
+-  setgroup nfq_cfg nfq_nlmsg_cfg_put_cmd
+-    add2group nfq_nlmsg_cfg_put_params nfq_nlmsg_cfg_put_qmaxlen
+-  setgroup nfq_verd nfq_nlmsg_verdict_put
+-    add2group nfq_nlmsg_verdict_put_mark nfq_nlmsg_verdict_put_pkt
+-  setgroup nlmsg nfq_nlmsg_parse
+-    add2group nfq_nlmsg_put
+-  setgroup pktbuff pktb_alloc
+-    add2group pktb_data pktb_len pktb_mangle pktb_mangled
+-    add2group pktb_free
+-    setgroup otherfns pktb_tailroom
+-      add2group pktb_mac_header pktb_network_header pktb_transport_header
+-      setgroup uselessfns pktb_push
+-        add2group pktb_pull pktb_put pktb_trim
+-  setgroup tcp nfq_tcp_get_hdr
+-    add2group nfq_tcp_get_payload nfq_tcp_get_payload_len
+-    add2group nfq_tcp_snprintf nfq_tcp_mangle_ipv4 nfq_tcp_mangle_ipv6
+-    setgroup tcp_internals nfq_tcp_compute_checksum_ipv4
+-      add2group nfq_tcp_compute_checksum_ipv6
+-  setgroup udp nfq_udp_get_hdr
+-    add2group nfq_udp_get_payload nfq_udp_get_payload_len
+-    add2group nfq_udp_mangle_ipv4 nfq_udp_mangle_ipv6 nfq_udp_snprintf
+-    setgroup udp_internals nfq_udp_compute_checksum_ipv4
+-      add2group nfq_udp_compute_checksum_ipv6
+-  setgroup Printing nfq_snprintf_xml
+-  setgroup icmp nfq_icmp_get_hdr
+-}
+-function setgroup
+-{
+-  mv $1.3 $2.3
+-  BASE=$2
+-}
+-function add2group
+-{
+-  for i in $@
+-  do
+-    ln -sf $BASE.3 $i.3
+-  done
+-}
+-main
+-- 
+2.17.5
 
