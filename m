@@ -2,58 +2,681 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6E04C433B4
-	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Apr 2021 10:11:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC8CFC433ED
+	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Apr 2021 10:14:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8074861004
-	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Apr 2021 10:11:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9BC4B61004
+	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Apr 2021 10:14:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232860AbhDZKMZ (ORCPT
+        id S232173AbhDZKP3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 26 Apr 2021 06:12:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45964 "EHLO
+        Mon, 26 Apr 2021 06:15:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46660 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232878AbhDZKMZ (ORCPT
+        with ESMTP id S232103AbhDZKP3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 26 Apr 2021 06:12:25 -0400
+        Mon, 26 Apr 2021 06:15:29 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51410C061574
-        for <netfilter-devel@vger.kernel.org>; Mon, 26 Apr 2021 03:11:44 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 29B9CC061574
+        for <netfilter-devel@vger.kernel.org>; Mon, 26 Apr 2021 03:14:48 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1layDO-0008IB-4E; Mon, 26 Apr 2021 12:11:42 +0200
-Date:   Mon, 26 Apr 2021 12:11:42 +0200
+        (envelope-from <fw@breakpoint.cc>)
+        id 1layGM-0008J6-C0; Mon, 26 Apr 2021 12:14:46 +0200
 From:   Florian Westphal <fw@strlen.de>
-To:     Ali Abdallah <ali.abdallah@suse.com>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: RSTs being marked as invalid because of wrong td_maxack value
-Message-ID: <20210426101142.GA19277@breakpoint.cc>
-References: <20210423155443.fmlbssgi6pq7nfp4@Fryzen495>
- <20210423162628.GB18119@breakpoint.cc>
- <20210426075747.isyjkpoim5e7bgnb@Fryzen495>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: allow to turn off xtables compat layer
+Date:   Mon, 26 Apr 2021 12:14:40 +0200
+Message-Id: <20210426101440.25335-1-fw@strlen.de>
+X-Mailer: git-send-email 2.26.3
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20210426075747.isyjkpoim5e7bgnb@Fryzen495>
-User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Ali Abdallah <ali.abdallah@suse.com> wrote:
-> Yes, they do support timestamps, but I'm not sure if that will solve
-> the problem, as the problematic out of order frame #5 has more recent
-> timestamps.
-> 
-> 1: 703 → 2049 [ACK] Seq=1132947682 Ack=1202969688 Win=2661 Len = 0
-> TSval=3506781692 TSecr=1717385629
-> 
-> 2: 2049 → 703 [RST, ACK] Seq=1202969688 Ack=1132949130 Win=69120 Len=0
-> TSval=1717385630 TSecr=3506781692
+The compat layer needs to parse untrusted input (the ruleset)
+to translate it to a 64bit compatible format.
 
-Ok, right, I forgot we may have different clients behind NAT.
+We had a number of bugs in this department in the past, so allow users
+to turn this feature off.
+
+Add CONFIG_NETFILTER_XTABLES_COMPAT kconfig knob and make it default to y
+to keep existing behaviour.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ include/linux/netfilter/x_tables.h        | 12 ++++++------
+ include/linux/netfilter_arp/arp_tables.h  |  2 +-
+ include/linux/netfilter_ipv4/ip_tables.h  |  2 +-
+ include/linux/netfilter_ipv6/ip6_tables.h |  2 +-
+ net/bridge/netfilter/ebt_limit.c          |  4 ++--
+ net/bridge/netfilter/ebt_mark.c           |  4 ++--
+ net/bridge/netfilter/ebt_mark_m.c         |  4 ++--
+ net/bridge/netfilter/ebtables.c           | 12 ++++++------
+ net/ipv4/netfilter/arp_tables.c           | 16 ++++++++--------
+ net/ipv4/netfilter/ip_tables.c            | 16 ++++++++--------
+ net/ipv4/netfilter/ipt_CLUSTERIP.c        |  8 ++++----
+ net/ipv6/netfilter/ip6_tables.c           | 16 ++++++++--------
+ net/netfilter/Kconfig                     | 10 ++++++++++
+ net/netfilter/x_tables.c                  | 16 ++++++++--------
+ net/netfilter/xt_limit.c                  |  6 +++---
+ 15 files changed, 70 insertions(+), 60 deletions(-)
+
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index 8ec48466410a..3dbed5b431f6 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -158,7 +158,7 @@ struct xt_match {
+ 
+ 	/* Called when entry of this type deleted. */
+ 	void (*destroy)(const struct xt_mtdtor_param *);
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 	/* Called when userspace align differs from kernel space one */
+ 	void (*compat_from_user)(void *dst, const void *src);
+ 	int (*compat_to_user)(void __user *dst, const void *src);
+@@ -169,7 +169,7 @@ struct xt_match {
+ 	const char *table;
+ 	unsigned int matchsize;
+ 	unsigned int usersize;
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 	unsigned int compatsize;
+ #endif
+ 	unsigned int hooks;
+@@ -199,7 +199,7 @@ struct xt_target {
+ 
+ 	/* Called when entry of this type deleted. */
+ 	void (*destroy)(const struct xt_tgdtor_param *);
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 	/* Called when userspace align differs from kernel space one */
+ 	void (*compat_from_user)(void *dst, const void *src);
+ 	int (*compat_to_user)(void __user *dst, const void *src);
+@@ -210,7 +210,7 @@ struct xt_target {
+ 	const char *table;
+ 	unsigned int targetsize;
+ 	unsigned int usersize;
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 	unsigned int compatsize;
+ #endif
+ 	unsigned int hooks;
+@@ -448,7 +448,7 @@ xt_get_per_cpu_counter(struct xt_counters *cnt, unsigned int cpu)
+ 
+ struct nf_hook_ops *xt_hook_ops_alloc(const struct xt_table *, nf_hookfn *);
+ 
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ #include <net/compat.h>
+ 
+ struct compat_xt_entry_match {
+@@ -529,5 +529,5 @@ int xt_compat_check_entry_offsets(const void *base, const char *elems,
+ 				  unsigned int target_offset,
+ 				  unsigned int next_offset);
+ 
+-#endif /* CONFIG_COMPAT */
++#endif /* CONFIG_NETFILTER_XTABLES_COMPAT */
+ #endif /* _X_TABLES_H */
+diff --git a/include/linux/netfilter_arp/arp_tables.h b/include/linux/netfilter_arp/arp_tables.h
+index 26a13294318c..50f3ac24572b 100644
+--- a/include/linux/netfilter_arp/arp_tables.h
++++ b/include/linux/netfilter_arp/arp_tables.h
+@@ -59,7 +59,7 @@ extern unsigned int arpt_do_table(struct sk_buff *skb,
+ 				  const struct nf_hook_state *state,
+ 				  struct xt_table *table);
+ 
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ #include <net/compat.h>
+ 
+ struct compat_arpt_entry {
+diff --git a/include/linux/netfilter_ipv4/ip_tables.h b/include/linux/netfilter_ipv4/ip_tables.h
+index c4676d6feeff..8f2db39956f4 100644
+--- a/include/linux/netfilter_ipv4/ip_tables.h
++++ b/include/linux/netfilter_ipv4/ip_tables.h
+@@ -72,7 +72,7 @@ extern unsigned int ipt_do_table(struct sk_buff *skb,
+ 				 const struct nf_hook_state *state,
+ 				 struct xt_table *table);
+ 
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ #include <net/compat.h>
+ 
+ struct compat_ipt_entry {
+diff --git a/include/linux/netfilter_ipv6/ip6_tables.h b/include/linux/netfilter_ipv6/ip6_tables.h
+index 1547d5f9ae06..35eeb6221188 100644
+--- a/include/linux/netfilter_ipv6/ip6_tables.h
++++ b/include/linux/netfilter_ipv6/ip6_tables.h
+@@ -36,7 +36,7 @@ extern unsigned int ip6t_do_table(struct sk_buff *skb,
+ 				  const struct nf_hook_state *state,
+ 				  struct xt_table *table);
+ 
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ #include <net/compat.h>
+ 
+ struct compat_ip6t_entry {
+diff --git a/net/bridge/netfilter/ebt_limit.c b/net/bridge/netfilter/ebt_limit.c
+index fa199556e122..e16183bd1bb8 100644
+--- a/net/bridge/netfilter/ebt_limit.c
++++ b/net/bridge/netfilter/ebt_limit.c
+@@ -87,7 +87,7 @@ static int ebt_limit_mt_check(const struct xt_mtchk_param *par)
+ }
+ 
+ 
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ /*
+  * no conversion function needed --
+  * only avg/burst have meaningful values in userspace.
+@@ -107,7 +107,7 @@ static struct xt_match ebt_limit_mt_reg __read_mostly = {
+ 	.checkentry	= ebt_limit_mt_check,
+ 	.matchsize	= sizeof(struct ebt_limit_info),
+ 	.usersize	= offsetof(struct ebt_limit_info, prev),
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 	.compatsize	= sizeof(struct ebt_compat_limit_info),
+ #endif
+ 	.me		= THIS_MODULE,
+diff --git a/net/bridge/netfilter/ebt_mark.c b/net/bridge/netfilter/ebt_mark.c
+index 21fd3d3d77f6..8cf653c72fd8 100644
+--- a/net/bridge/netfilter/ebt_mark.c
++++ b/net/bridge/netfilter/ebt_mark.c
+@@ -53,7 +53,7 @@ static int ebt_mark_tg_check(const struct xt_tgchk_param *par)
+ 		return -EINVAL;
+ 	return 0;
+ }
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ struct compat_ebt_mark_t_info {
+ 	compat_ulong_t mark;
+ 	compat_uint_t target;
+@@ -87,7 +87,7 @@ static struct xt_target ebt_mark_tg_reg __read_mostly = {
+ 	.target		= ebt_mark_tg,
+ 	.checkentry	= ebt_mark_tg_check,
+ 	.targetsize	= sizeof(struct ebt_mark_t_info),
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 	.compatsize	= sizeof(struct compat_ebt_mark_t_info),
+ 	.compat_from_user = mark_tg_compat_from_user,
+ 	.compat_to_user	= mark_tg_compat_to_user,
+diff --git a/net/bridge/netfilter/ebt_mark_m.c b/net/bridge/netfilter/ebt_mark_m.c
+index 81fb59dec499..5872e73c741e 100644
+--- a/net/bridge/netfilter/ebt_mark_m.c
++++ b/net/bridge/netfilter/ebt_mark_m.c
+@@ -37,7 +37,7 @@ static int ebt_mark_mt_check(const struct xt_mtchk_param *par)
+ }
+ 
+ 
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ struct compat_ebt_mark_m_info {
+ 	compat_ulong_t mark, mask;
+ 	uint8_t invert, bitmask;
+@@ -75,7 +75,7 @@ static struct xt_match ebt_mark_mt_reg __read_mostly = {
+ 	.match		= ebt_mark_mt,
+ 	.checkentry	= ebt_mark_mt_check,
+ 	.matchsize	= sizeof(struct ebt_mark_m_info),
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 	.compatsize	= sizeof(struct compat_ebt_mark_m_info),
+ 	.compat_from_user = mark_mt_compat_from_user,
+ 	.compat_to_user	= mark_mt_compat_to_user,
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 96d789c8d1c7..c14fc3095055 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -47,7 +47,7 @@ struct ebt_pernet {
+ static unsigned int ebt_pernet_id __read_mostly;
+ static DEFINE_MUTEX(ebt_mutex);
+ 
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ static void ebt_standard_compat_from_user(void *dst, const void *src)
+ {
+ 	int v = *(compat_int_t *)src;
+@@ -73,7 +73,7 @@ static struct xt_target ebt_standard_target = {
+ 	.revision   = 0,
+ 	.family     = NFPROTO_BRIDGE,
+ 	.targetsize = sizeof(int),
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 	.compatsize = sizeof(compat_int_t),
+ 	.compat_from_user = ebt_standard_compat_from_user,
+ 	.compat_to_user =  ebt_standard_compat_to_user,
+@@ -1480,7 +1480,7 @@ static int copy_everything_to_user(struct ebt_table *t, void __user *user,
+ 	   ebt_entry_to_user, entries, tmp.entries);
+ }
+ 
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ /* 32 bit-userspace compatibility definitions. */
+ struct compat_ebt_replace {
+ 	char name[EBT_TABLE_MAXNAMELEN];
+@@ -2345,7 +2345,7 @@ static int do_ebt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
+ 	if (!ns_capable(net->user_ns, CAP_NET_ADMIN))
+ 		return -EPERM;
+ 
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 	/* try real handler in case userland supplied needed padding */
+ 	if (in_compat_syscall() &&
+ 	    ((cmd != EBT_SO_GET_INFO && cmd != EBT_SO_GET_INIT_INFO) ||
+@@ -2412,7 +2412,7 @@ static int do_ebt_set_ctl(struct sock *sk, int cmd, sockptr_t arg,
+ 
+ 	switch (cmd) {
+ 	case EBT_SO_SET_ENTRIES:
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 		if (in_compat_syscall())
+ 			ret = compat_do_replace(net, arg, len);
+ 		else
+@@ -2420,7 +2420,7 @@ static int do_ebt_set_ctl(struct sock *sk, int cmd, sockptr_t arg,
+ 			ret = do_replace(net, arg, len);
+ 		break;
+ 	case EBT_SO_SET_COUNTERS:
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 		if (in_compat_syscall())
+ 			ret = compat_update_counters(net, arg, len);
+ 		else
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index d6d45d820d79..872ce0fecb1a 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -713,7 +713,7 @@ static int copy_entries_to_user(unsigned int total_size,
+ 	return ret;
+ }
+ 
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ static void compat_standard_from_user(void *dst, const void *src)
+ {
+ 	int v = *(compat_int_t *)src;
+@@ -800,7 +800,7 @@ static int get_info(struct net *net, void __user *user, const int *len)
+ 		return -EFAULT;
+ 
+ 	name[XT_TABLE_MAXNAMELEN-1] = '\0';
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 	if (in_compat_syscall())
+ 		xt_compat_lock(NFPROTO_ARP);
+ #endif
+@@ -808,7 +808,7 @@ static int get_info(struct net *net, void __user *user, const int *len)
+ 	if (!IS_ERR(t)) {
+ 		struct arpt_getinfo info;
+ 		const struct xt_table_info *private = t->private;
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 		struct xt_table_info tmp;
+ 
+ 		if (in_compat_syscall()) {
+@@ -835,7 +835,7 @@ static int get_info(struct net *net, void __user *user, const int *len)
+ 		module_put(t->me);
+ 	} else
+ 		ret = PTR_ERR(t);
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 	if (in_compat_syscall())
+ 		xt_compat_unlock(NFPROTO_ARP);
+ #endif
+@@ -1044,7 +1044,7 @@ static int do_add_counters(struct net *net, sockptr_t arg, unsigned int len)
+ 	return ret;
+ }
+ 
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ struct compat_arpt_replace {
+ 	char				name[XT_TABLE_MAXNAMELEN];
+ 	u32				valid_hooks;
+@@ -1412,7 +1412,7 @@ static int do_arpt_set_ctl(struct sock *sk, int cmd, sockptr_t arg,
+ 
+ 	switch (cmd) {
+ 	case ARPT_SO_SET_REPLACE:
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 		if (in_compat_syscall())
+ 			ret = compat_do_replace(sock_net(sk), arg, len);
+ 		else
+@@ -1444,7 +1444,7 @@ static int do_arpt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len
+ 		break;
+ 
+ 	case ARPT_SO_GET_ENTRIES:
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 		if (in_compat_syscall())
+ 			ret = compat_get_entries(sock_net(sk), user, len);
+ 		else
+@@ -1559,7 +1559,7 @@ static struct xt_target arpt_builtin_tg[] __read_mostly = {
+ 		.name             = XT_STANDARD_TARGET,
+ 		.targetsize       = sizeof(int),
+ 		.family           = NFPROTO_ARP,
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 		.compatsize       = sizeof(compat_int_t),
+ 		.compat_from_user = compat_standard_from_user,
+ 		.compat_to_user   = compat_standard_to_user,
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index f77ea0dbe656..0aa438ac2726 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -868,7 +868,7 @@ copy_entries_to_user(unsigned int total_size,
+ 	return ret;
+ }
+ 
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ static void compat_standard_from_user(void *dst, const void *src)
+ {
+ 	int v = *(compat_int_t *)src;
+@@ -957,7 +957,7 @@ static int get_info(struct net *net, void __user *user, const int *len)
+ 		return -EFAULT;
+ 
+ 	name[XT_TABLE_MAXNAMELEN-1] = '\0';
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 	if (in_compat_syscall())
+ 		xt_compat_lock(AF_INET);
+ #endif
+@@ -965,7 +965,7 @@ static int get_info(struct net *net, void __user *user, const int *len)
+ 	if (!IS_ERR(t)) {
+ 		struct ipt_getinfo info;
+ 		const struct xt_table_info *private = t->private;
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 		struct xt_table_info tmp;
+ 
+ 		if (in_compat_syscall()) {
+@@ -993,7 +993,7 @@ static int get_info(struct net *net, void __user *user, const int *len)
+ 		module_put(t->me);
+ 	} else
+ 		ret = PTR_ERR(t);
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 	if (in_compat_syscall())
+ 		xt_compat_unlock(AF_INET);
+ #endif
+@@ -1199,7 +1199,7 @@ do_add_counters(struct net *net, sockptr_t arg, unsigned int len)
+ 	return ret;
+ }
+ 
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ struct compat_ipt_replace {
+ 	char			name[XT_TABLE_MAXNAMELEN];
+ 	u32			valid_hooks;
+@@ -1621,7 +1621,7 @@ do_ipt_set_ctl(struct sock *sk, int cmd, sockptr_t arg, unsigned int len)
+ 
+ 	switch (cmd) {
+ 	case IPT_SO_SET_REPLACE:
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 		if (in_compat_syscall())
+ 			ret = compat_do_replace(sock_net(sk), arg, len);
+ 		else
+@@ -1654,7 +1654,7 @@ do_ipt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
+ 		break;
+ 
+ 	case IPT_SO_GET_ENTRIES:
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 		if (in_compat_syscall())
+ 			ret = compat_get_entries(sock_net(sk), user, len);
+ 		else
+@@ -1829,7 +1829,7 @@ static struct xt_target ipt_builtin_tg[] __read_mostly = {
+ 		.name             = XT_STANDARD_TARGET,
+ 		.targetsize       = sizeof(int),
+ 		.family           = NFPROTO_IPV4,
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 		.compatsize       = sizeof(compat_int_t),
+ 		.compat_from_user = compat_standard_from_user,
+ 		.compat_to_user   = compat_standard_to_user,
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index a8b980ad11d4..8f7ca67475b7 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -541,7 +541,7 @@ static void clusterip_tg_destroy(const struct xt_tgdtor_param *par)
+ 	nf_ct_netns_put(par->net, par->family);
+ }
+ 
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ struct compat_ipt_clusterip_tgt_info
+ {
+ 	u_int32_t	flags;
+@@ -553,7 +553,7 @@ struct compat_ipt_clusterip_tgt_info
+ 	u_int32_t	hash_initval;
+ 	compat_uptr_t	config;
+ };
+-#endif /* CONFIG_COMPAT */
++#endif /* CONFIG_NETFILTER_XTABLES_COMPAT */
+ 
+ static struct xt_target clusterip_tg_reg __read_mostly = {
+ 	.name		= "CLUSTERIP",
+@@ -563,9 +563,9 @@ static struct xt_target clusterip_tg_reg __read_mostly = {
+ 	.destroy	= clusterip_tg_destroy,
+ 	.targetsize	= sizeof(struct ipt_clusterip_tgt_info),
+ 	.usersize	= offsetof(struct ipt_clusterip_tgt_info, config),
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 	.compatsize	= sizeof(struct compat_ipt_clusterip_tgt_info),
+-#endif /* CONFIG_COMPAT */
++#endif /* CONFIG_NETFILTER_XTABLES_COMPAT */
+ 	.me		= THIS_MODULE
+ };
+ 
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index eb2b5404806c..d05f6ba981dd 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -884,7 +884,7 @@ copy_entries_to_user(unsigned int total_size,
+ 	return ret;
+ }
+ 
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ static void compat_standard_from_user(void *dst, const void *src)
+ {
+ 	int v = *(compat_int_t *)src;
+@@ -973,7 +973,7 @@ static int get_info(struct net *net, void __user *user, const int *len)
+ 		return -EFAULT;
+ 
+ 	name[XT_TABLE_MAXNAMELEN-1] = '\0';
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 	if (in_compat_syscall())
+ 		xt_compat_lock(AF_INET6);
+ #endif
+@@ -981,7 +981,7 @@ static int get_info(struct net *net, void __user *user, const int *len)
+ 	if (!IS_ERR(t)) {
+ 		struct ip6t_getinfo info;
+ 		const struct xt_table_info *private = t->private;
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 		struct xt_table_info tmp;
+ 
+ 		if (in_compat_syscall()) {
+@@ -1009,7 +1009,7 @@ static int get_info(struct net *net, void __user *user, const int *len)
+ 		module_put(t->me);
+ 	} else
+ 		ret = PTR_ERR(t);
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 	if (in_compat_syscall())
+ 		xt_compat_unlock(AF_INET6);
+ #endif
+@@ -1215,7 +1215,7 @@ do_add_counters(struct net *net, sockptr_t arg, unsigned int len)
+ 	return ret;
+ }
+ 
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ struct compat_ip6t_replace {
+ 	char			name[XT_TABLE_MAXNAMELEN];
+ 	u32			valid_hooks;
+@@ -1630,7 +1630,7 @@ do_ip6t_set_ctl(struct sock *sk, int cmd, sockptr_t arg, unsigned int len)
+ 
+ 	switch (cmd) {
+ 	case IP6T_SO_SET_REPLACE:
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 		if (in_compat_syscall())
+ 			ret = compat_do_replace(sock_net(sk), arg, len);
+ 		else
+@@ -1663,7 +1663,7 @@ do_ip6t_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
+ 		break;
+ 
+ 	case IP6T_SO_GET_ENTRIES:
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 		if (in_compat_syscall())
+ 			ret = compat_get_entries(sock_net(sk), user, len);
+ 		else
+@@ -1840,7 +1840,7 @@ static struct xt_target ip6t_builtin_tg[] __read_mostly = {
+ 		.name             = XT_STANDARD_TARGET,
+ 		.targetsize       = sizeof(int),
+ 		.family           = NFPROTO_IPV6,
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 		.compatsize       = sizeof(compat_int_t),
+ 		.compat_from_user = compat_standard_from_user,
+ 		.compat_to_user   = compat_standard_to_user,
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index fcd8682704c4..56a2531a3402 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -728,6 +728,16 @@ config NETFILTER_XTABLES
+ 
+ if NETFILTER_XTABLES
+ 
++config NETFILTER_XTABLES_COMPAT
++	bool "Netfilter Xtables 32bit support"
++	depends on COMPAT
++	default y
++	help
++	   This option provides a translation layer to run 32bit arp,ip(6),ebtables
++	   binaries on 64bit kernels.
++
++	   If unsure, say N.
++
+ comment "Xtables combined modules"
+ 
+ config NETFILTER_XT_MARK
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index b7f8d2ed3cc2..97aaf4f80437 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -52,7 +52,7 @@ struct xt_af {
+ 	struct mutex mutex;
+ 	struct list_head match;
+ 	struct list_head target;
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 	struct mutex compat_mutex;
+ 	struct compat_delta *compat_tab;
+ 	unsigned int number; /* number of slots in compat_tab[] */
+@@ -647,7 +647,7 @@ static bool error_tg_ok(unsigned int usersize, unsigned int kernsize,
+ 	return usersize == kernsize && strnlen(msg, msglen) < msglen;
+ }
+ 
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ int xt_compat_add_offset(u_int8_t af, unsigned int offset, int delta)
+ {
+ 	struct xt_af *xp = &xt[af];
+@@ -850,7 +850,7 @@ int xt_compat_check_entry_offsets(const void *base, const char *elems,
+ 				    __alignof__(struct compat_xt_entry_match));
+ }
+ EXPORT_SYMBOL(xt_compat_check_entry_offsets);
+-#endif /* CONFIG_COMPAT */
++#endif /* CONFIG_NETFILTER_XTABLES_COMPAT */
+ 
+ /**
+  * xt_check_entry_offsets - validate arp/ip/ip6t_entry
+@@ -868,7 +868,7 @@ EXPORT_SYMBOL(xt_compat_check_entry_offsets);
+  * match structures are aligned, and that the last structure ends where
+  * the target structure begins.
+  *
+- * Also see xt_compat_check_entry_offsets for CONFIG_COMPAT version.
++ * Also see xt_compat_check_entry_offsets for CONFIG_NETFILTER_XTABLES_COMPAT version.
+  *
+  * The arp/ip/ip6t_entry structure @base must have passed following tests:
+  * - it must point to a valid memory location
+@@ -1059,7 +1059,7 @@ void *xt_copy_counters(sockptr_t arg, unsigned int len,
+ 	void *mem;
+ 	u64 size;
+ 
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 	if (in_compat_syscall()) {
+ 		/* structures only differ in size due to alignment */
+ 		struct compat_xt_counters_info compat_tmp;
+@@ -1106,7 +1106,7 @@ void *xt_copy_counters(sockptr_t arg, unsigned int len,
+ }
+ EXPORT_SYMBOL_GPL(xt_copy_counters);
+ 
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ int xt_compat_target_offset(const struct xt_target *target)
+ {
+ 	u_int16_t csize = target->compatsize ? : target->targetsize;
+@@ -1276,7 +1276,7 @@ void xt_table_unlock(struct xt_table *table)
+ }
+ EXPORT_SYMBOL_GPL(xt_table_unlock);
+ 
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ void xt_compat_lock(u_int8_t af)
+ {
+ 	mutex_lock(&xt[af].compat_mutex);
+@@ -1913,7 +1913,7 @@ static int __init xt_init(void)
+ 
+ 	for (i = 0; i < NFPROTO_NUMPROTO; i++) {
+ 		mutex_init(&xt[i].mutex);
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 		mutex_init(&xt[i].compat_mutex);
+ 		xt[i].compat_tab = NULL;
+ #endif
+diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
+index bd1dea9c7b88..24d4afb9988d 100644
+--- a/net/netfilter/xt_limit.c
++++ b/net/netfilter/xt_limit.c
+@@ -134,7 +134,7 @@ static void limit_mt_destroy(const struct xt_mtdtor_param *par)
+ 	kfree(info->master);
+ }
+ 
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ struct compat_xt_rateinfo {
+ 	u_int32_t avg;
+ 	u_int32_t burst;
+@@ -176,7 +176,7 @@ static int limit_mt_compat_to_user(void __user *dst, const void *src)
+ 	};
+ 	return copy_to_user(dst, &cm, sizeof(cm)) ? -EFAULT : 0;
+ }
+-#endif /* CONFIG_COMPAT */
++#endif /* CONFIG_NETFILTER_XTABLES_COMPAT */
+ 
+ static struct xt_match limit_mt_reg __read_mostly = {
+ 	.name             = "limit",
+@@ -186,7 +186,7 @@ static struct xt_match limit_mt_reg __read_mostly = {
+ 	.checkentry       = limit_mt_check,
+ 	.destroy          = limit_mt_destroy,
+ 	.matchsize        = sizeof(struct xt_rateinfo),
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 	.compatsize       = sizeof(struct compat_xt_rateinfo),
+ 	.compat_from_user = limit_mt_compat_from_user,
+ 	.compat_to_user   = limit_mt_compat_to_user,
+-- 
+2.26.3
+
