@@ -2,92 +2,171 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FD66C433ED
-	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Apr 2021 12:06:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12ECCC433ED
+	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Apr 2021 12:23:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2DE9161042
-	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Apr 2021 12:06:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C655160233
+	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Apr 2021 12:23:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233210AbhDZMH0 (ORCPT
+        id S233376AbhDZMYP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 26 Apr 2021 08:07:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43062 "EHLO
+        Mon, 26 Apr 2021 08:24:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46782 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233175AbhDZMHZ (ORCPT
+        with ESMTP id S233360AbhDZMYO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 26 Apr 2021 08:07:25 -0400
+        Mon, 26 Apr 2021 08:24:14 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B5DDC061574
-        for <netfilter-devel@vger.kernel.org>; Mon, 26 Apr 2021 05:06:44 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB2A4C061574;
+        Mon, 26 Apr 2021 05:23:32 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@strlen.de>)
-        id 1lb00g-0000FS-Hp; Mon, 26 Apr 2021 14:06:42 +0200
-Date:   Mon, 26 Apr 2021 14:06:42 +0200
+        id 1lb0Gq-0000LU-Iv; Mon, 26 Apr 2021 14:23:24 +0200
+Date:   Mon, 26 Apr 2021 14:23:24 +0200
 From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Jan Engelhardt <jengelh@inai.de>, Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next] netfilter: allow to turn off xtables compat layer
-Message-ID: <20210426120642.GC19277@breakpoint.cc>
-References: <20210426101440.25335-1-fw@strlen.de>
- <25p6qsnp-r7p1-ps60-s7np-nsq1899446n2@vanv.qr>
- <20210426105714.GA300@salvia>
+To:     Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
+Cc:     pablo@netfilter.org,
+        Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>,
+        Scott Parlane <scott.parlane@alliedtelesis.co.nz>,
+        Blair Steven <blair.steven@alliedtelesis.co.nz>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        "open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
+        "open list:NETFILTER" <coreteam@netfilter.org>,
+        "open list:NETWORKING [GENERAL]" <netdev@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] net: netfilter: Add RFC-7597 Section 5.1 PSID support
+Message-ID: <20210426122324.GA975@breakpoint.cc>
+References: <20210422023506.4651-1-Cole.Dishington@alliedtelesis.co.nz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210426105714.GA300@salvia>
+In-Reply-To: <20210422023506.4651-1-Cole.Dishington@alliedtelesis.co.nz>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Mon, Apr 26, 2021 at 12:47:12PM +0200, Jan Engelhardt wrote:
-> > 
-> > On Monday 2021-04-26 12:14, Florian Westphal wrote:
-> > 
-> > >The compat layer needs to parse untrusted input (the ruleset)
-> > >to translate it to a 64bit compatible format.
-> > >
-> > >We had a number of bugs in this department in the past, so allow users
-> > >to turn this feature off.
-> > >
-> > >+++ b/include/linux/netfilter/x_tables.h
-> > >@@ -158,7 +158,7 @@ struct xt_match {
-> > > 
-> > > 	/* Called when entry of this type deleted. */
-> > > 	void (*destroy)(const struct xt_mtdtor_param *);
-> > >-#ifdef CONFIG_COMPAT
-> > >+#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
-> > > 	/* Called when userspace align differs from kernel space one */
-> > > 	void (*compat_from_user)(void *dst, const void *src);
-> > > 	int (*compat_to_user)(void __user *dst, const void *src);
-> > 
-> > There are not a lot of '\.compat_to_user' instaces anymore. It would appear we
-> > managed to throw out most of the flexing structs over the past 15 years.
-> > 
-> > Perhaps the remaining one (struct xt_rateinfo) could be respecified
-> > as a v1, with the plan to ditch the v0.
-> > 
-> > Then the entire xtables_compat code could go as well.
+Cole Dishington <Cole.Dishington@alliedtelesis.co.nz> wrote:
+> This adds support for masquerading into a smaller subset of ports -
+> defined by the PSID values from RFC-7597 Section 5.1. This is part of
+> the support for MAP-E and Lightweight 4over6, which allows multiple
+> devices to share an IPv4 address by splitting the L4 port / id into
+> ranges.
 > 
-> If the remaining matches and targets that rely on this get a new
-> revision to fix their structure layout issues, then this entire layer
-> could be peeled off.
+> Co-developed-by: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
+> Signed-off-by: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
+> Co-developed-by: Scott Parlane <scott.parlane@alliedtelesis.co.nz>
+> Signed-off-by: Scott Parlane <scott.parlane@alliedtelesis.co.nz>
+> Signed-off-by: Blair Steven <blair.steven@alliedtelesis.co.nz>
+> Signed-off-by: Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
+> ---
+>  include/net/netfilter/nf_conntrack.h          |   2 +
+>  .../netfilter/nf_conntrack_tuple_common.h     |   5 +
+>  include/uapi/linux/netfilter/nf_nat.h         |   3 +-
+>  net/netfilter/nf_nat_core.c                   | 101 ++++++++++++++++--
+>  net/netfilter/nf_nat_ftp.c                    |  23 ++--
+>  net/netfilter/nf_nat_helper.c                 |  15 ++-
+>  6 files changed, 120 insertions(+), 29 deletions(-)
+> 
+> diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+> index 439379ca9ffa..d63d38aa7188 100644
+> --- a/include/net/netfilter/nf_conntrack.h
+> +++ b/include/net/netfilter/nf_conntrack.h
+> @@ -92,6 +92,8 @@ struct nf_conn {
+>  	/* If we were expected by an expectation, this will be it */
+>  	struct nf_conn *master;
+>  
+> +	struct nf_nat_range2 *range;
 
-Hmm, no, because the blob format itself (match, target structures,
-ip(6)t_entry have different alignment requirements.
+Increasing nf_conn size should be avoided unless
+absolutely neccessary.
 
-Also, ipt_get_entries has padding on x86_64 in the middle of the
-structure that is not there in on i686.
+> --- a/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
+> +++ b/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
+> @@ -39,6 +39,11 @@ union nf_conntrack_man_proto {
+>  	struct {
+>  		__be16 key;	/* GRE key is 32bit, PPtP only uses 16bit */
+>  	} gre;
+> +	struct {
+> +		unsigned char psid_length;
+> +		unsigned char offset;
+> +		__be16 psid;
+> +	} psid;
 
-Even the 'compat_to_user' helpers can't be removed because they
-are needed by the standard target, see compat_standard_to_user()).
+This breaks the ABI, you cannot change these structures.
 
-We could simplify things a bit though, if we only consider the matches,
-then ebt mark and xt_limit are the only users; at least the xt_match
-compat callback could be removed.
+This is the reason there is a 'struct nf_nat_range2', it wasn't
+possible to add to the existing 'struct nf_nat_range'.
+
+> diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+> index b7c3c902290f..7730ce4ca9a9 100644
+> --- a/net/netfilter/nf_nat_core.c
+> +++ b/net/netfilter/nf_nat_core.c
+> @@ -232,13 +232,33 @@ static bool nf_nat_inet_in_range(const struct nf_conntrack_tuple *t,
+>  static bool l4proto_in_range(const struct nf_conntrack_tuple *tuple,
+>  			     enum nf_nat_manip_type maniptype,
+>  			     const union nf_conntrack_man_proto *min,
+> -			     const union nf_conntrack_man_proto *max)
+> +			     const union nf_conntrack_man_proto *max,
+> +			     bool is_psid)
+>  {
+
+...
+>  	__be16 port;
+>  
+> +	int m = 0;
+> +	u16 offset_mask = 0;
+> +	u16 psid_mask = 0;
+> +
+> +	/* In this case we are in PSID mode and the rules are all different */
+> +	if (is_psid) {
+> +		/* m = number of bits in each valid range */
+> +		m = 16 - min->psid.psid_length - min->psid.offset;
+> +		offset_mask = ((1 << min->psid.offset) - 1) <<
+> +				(16 - min->psid.offset);
+> +		psid_mask = ((1 << min->psid.psid_length) - 1) << m;
+> +	}
+
+...
+
+Is it really needed to place all of this in the nat core?
+
+The only thing that has to be done in the NAT core, afaics, is to
+suppress port reallocation attmepts when NF_NAT_RANGE_PSID is set.
+
+Is there a reason why nf_nat_masquerade_ipv4/6 can't be changed instead
+to do what you want?
+
+AFAICS its enough to set NF_NAT_RANGE_PROTO_SPECIFIED and init the
+upper/lower boundaries, i.e. change input given to nf_nat_setup_info().
+
+>  	get_unique_tuple(&new_tuple, &curr_tuple, range, ct, maniptype);
+> +	if (range) {
+> +		if (!ct->range)
+> +			ct->range = kmalloc(sizeof(*ct->range), 0);
+
+If you absolutely have to store extra data in nf_conn, please extend
+struct nf_conn_nat, masquerade already stores the interface index, so
+you could place the psid len/offset there as well.
+
+> +	/* Find a port that matches the MASQ rule. */
+> +	nf_nat_l4proto_unique_tuple(&exp->tuple, ct->range,
+> +				    dir ? NF_NAT_MANIP_SRC : NF_NAT_MANIP_DST,
+> +				    ct);
+> +	port = ntohs(exp->tuple.dst.u.tcp.port);
+> +	nf_ct_expect_related(exp, 0);
+
+This removes there error check for nf_ct_expect_related(), why?
+
+Also, how is this going to be used?
+
+I see no changes to any of the nftables or iptables modules that would
+be needed for userspace to enable this feature.
