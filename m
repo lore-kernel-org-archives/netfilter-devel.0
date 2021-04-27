@@ -7,103 +7,118 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB429C433ED
-	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Apr 2021 16:15:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B796C433B4
+	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Apr 2021 16:16:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B2BBC600CC
-	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Apr 2021 16:15:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 45F22613E9
+	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Apr 2021 16:16:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237481AbhD0QQZ (ORCPT
+        id S237470AbhD0QQj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 27 Apr 2021 12:16:25 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:53598 "EHLO
+        Tue, 27 Apr 2021 12:16:39 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:53594 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237470AbhD0QMC (ORCPT
+        with ESMTP id S237403AbhD0QMC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 27 Apr 2021 12:12:02 -0400
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 7CA5064138
-        for <netfilter-devel@vger.kernel.org>; Tue, 27 Apr 2021 18:10:11 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id B4FAB64135
+        for <netfilter-devel@vger.kernel.org>; Tue, 27 Apr 2021 18:10:09 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next 3/5,v2] netfilter: nftables: add helper function to flush set elements
-Date:   Tue, 27 Apr 2021 18:10:41 +0200
-Message-Id: <20210427161043.57022-3-pablo@netfilter.org>
+Subject: [PATCH nf-next 1/5, v2] netfilter: nftables: rename set element data activation/deactivation functions
+Date:   Tue, 27 Apr 2021 18:10:39 +0200
+Message-Id: <20210427161043.57022-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210427161043.57022-1-pablo@netfilter.org>
-References: <20210427161043.57022-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch adds nft_set_flush() which prepares for the catch-all
-element support.
+Rename:
+
+- nft_set_elem_activate() to nft_set_elem_data_activate().
+- nft_set_elem_deactivate() to nft_set_elem_data_deactivate().
+
+To prepare for updates in the set element infrastructure to add support
+for the special catch-all element.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: fix crash due to incorrect nft_set_flush() check in nf_tables_delsetelem().
+v2: no changes.
 
- net/netfilter/nf_tables_api.c | 31 ++++++++++++++++++-------------
- 1 file changed, 18 insertions(+), 13 deletions(-)
+ net/netfilter/nf_tables_api.c | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 502240fbb087..3342f260d534 100644
+index 1050f23c0d29..d66be7d8f3e5 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -5839,10 +5839,10 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
- 	return err;
+@@ -5263,8 +5263,8 @@ void nft_set_elem_destroy(const struct nft_set *set, void *elem,
+ }
+ EXPORT_SYMBOL_GPL(nft_set_elem_destroy);
+ 
+-/* Only called from commit path, nft_set_elem_deactivate() already deals with
+- * the refcounting from the preparation phase.
++/* Only called from commit path, nft_setelem_data_deactivate() already deals
++ * with the refcounting from the preparation phase.
+  */
+ static void nf_tables_set_elem_destroy(const struct nft_ctx *ctx,
+ 				       const struct nft_set *set, void *elem)
+@@ -5733,9 +5733,9 @@ void nft_data_hold(const struct nft_data *data, enum nft_data_types type)
+ 	}
  }
  
--static int nft_flush_set(const struct nft_ctx *ctx,
--			 struct nft_set *set,
--			 const struct nft_set_iter *iter,
--			 struct nft_set_elem *elem)
-+static int nft_setelem_flush(const struct nft_ctx *ctx,
-+			     struct nft_set *set,
-+			     const struct nft_set_iter *iter,
-+			     struct nft_set_elem *elem)
+-static void nft_set_elem_activate(const struct net *net,
+-				  const struct nft_set *set,
+-				  struct nft_set_elem *elem)
++static void nft_setelem_data_activate(const struct net *net,
++				      const struct nft_set *set,
++				      struct nft_set_elem *elem)
  {
- 	struct nft_trans *trans;
- 	int err;
-@@ -5869,6 +5869,18 @@ static int nft_flush_set(const struct nft_ctx *ctx,
- 	return err;
+ 	const struct nft_set_ext *ext = nft_set_elem_ext(set, elem->priv);
+ 
+@@ -5745,9 +5745,9 @@ static void nft_set_elem_activate(const struct net *net,
+ 		(*nft_set_ext_obj(ext))->use++;
  }
  
-+static int nft_set_flush(struct nft_ctx *ctx, struct nft_set *set, u8 genmask)
-+{
-+	struct nft_set_iter iter = {
-+		.genmask	= genmask,
-+		.fn		= nft_setelem_flush,
-+	};
-+
-+	set->ops->walk(ctx, set, &iter);
-+
-+	return iter.err;
-+}
-+
- static int nf_tables_delsetelem(struct sk_buff *skb,
- 				const struct nfnl_info *info,
- 				const struct nlattr * const nla[])
-@@ -5892,15 +5904,8 @@ static int nf_tables_delsetelem(struct sk_buff *skb,
- 	if (!list_empty(&set->bindings) && set->flags & NFT_SET_CONSTANT)
- 		return -EBUSY;
+-static void nft_set_elem_deactivate(const struct net *net,
+-				    const struct nft_set *set,
+-				    struct nft_set_elem *elem)
++static void nft_setelem_data_deactivate(const struct net *net,
++					const struct nft_set *set,
++					struct nft_set_elem *elem)
+ {
+ 	const struct nft_set_ext *ext = nft_set_elem_ext(set, elem->priv);
  
--	if (nla[NFTA_SET_ELEM_LIST_ELEMENTS] == NULL) {
--		struct nft_set_iter iter = {
--			.genmask	= genmask,
--			.fn		= nft_flush_set,
--		};
--		set->ops->walk(&ctx, set, &iter);
--
--		return iter.err;
--	}
-+	if (!nla[NFTA_SET_ELEM_LIST_ELEMENTS])
-+		return nft_set_flush(&ctx, set, genmask);
+@@ -5824,7 +5824,7 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
+ 	kfree(elem.priv);
+ 	elem.priv = priv;
  
- 	nla_for_each_nested(attr, nla[NFTA_SET_ELEM_LIST_ELEMENTS], rem) {
- 		err = nft_del_setelem(&ctx, set, attr);
+-	nft_set_elem_deactivate(ctx->net, set, &elem);
++	nft_setelem_data_deactivate(ctx->net, set, &elem);
+ 
+ 	nft_trans_elem(trans) = elem;
+ 	nft_trans_commit_list_add_tail(ctx->net, trans);
+@@ -5858,7 +5858,7 @@ static int nft_flush_set(const struct nft_ctx *ctx,
+ 	}
+ 	set->ndeact++;
+ 
+-	nft_set_elem_deactivate(ctx->net, set, elem);
++	nft_setelem_data_deactivate(ctx->net, set, elem);
+ 	nft_trans_elem_set(trans) = set;
+ 	nft_trans_elem(trans) = *elem;
+ 	nft_trans_commit_list_add_tail(ctx->net, trans);
+@@ -8479,7 +8479,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 		case NFT_MSG_DELSETELEM:
+ 			te = (struct nft_trans_elem *)trans->data;
+ 
+-			nft_set_elem_activate(net, te->set, &te->elem);
++			nft_setelem_data_activate(net, te->set, &te->elem);
+ 			te->set->ops->activate(net, te->set, &te->elem);
+ 			te->set->ndeact--;
+ 
 -- 
 2.30.2
 
