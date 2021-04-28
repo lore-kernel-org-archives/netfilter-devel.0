@@ -2,86 +2,83 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E805C433B4
-	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Apr 2021 22:40:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9D90C433B4
+	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Apr 2021 13:09:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 342A961401
-	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Apr 2021 22:40:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7E2926140C
+	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Apr 2021 13:09:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239321AbhD0Wk5 (ORCPT
+        id S239634AbhD1NJ6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 27 Apr 2021 18:40:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56398 "EHLO mail.kernel.org"
+        Wed, 28 Apr 2021 09:09:58 -0400
+Received: from mx2.suse.de ([195.135.220.15]:42902 "EHLO mx2.suse.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235420AbhD0Wky (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 27 Apr 2021 18:40:54 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPS id 6DE13611F2;
-        Tue, 27 Apr 2021 22:40:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1619563210;
-        bh=WpoBdws40s0ptUiWd2wf5ZMreUQMpAaFhxEbKG9nC9Q=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=haI2X0aXC9v7KLVXP3PaHWjZq5gsqATM921KbWk63fVdEUBk+Li+NHVdGlhwQALC2
-         y5f9iKtf1v7YLsE1x8IupFiLDy5uXpPyWRnZkpEvds1D7W3D8lKVVuvMD9j38eCigS
-         XLCCCYbXlW7nG9oswkPzDbA5SJRl5psLmwm8YqyNS4hVOrXG1+OnILwxYZ4t0i2NHH
-         /1l/jZvW2Ft6Vz1Or9NFY7vmu7azuO33NHoEIyw7BD2KiGDY7vEJfzH7EYHvT5q5eb
-         mThRv7IuJeZT2QbaEFLWEz7aY/iGH2Quwt//U+eaYflL8WriMqm09EcMAE6DVpLT3K
-         p8Uef66V7OMMg==
-Content-Type: text/plain; charset="utf-8"
+        id S239604AbhD1NJ6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 28 Apr 2021 09:09:58 -0400
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
+        t=1619615352; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+         mime-version:mime-version:content-type:content-type;
+        bh=7yVQstr37qnEZRgLtoMYqcdOGiO+b7d1YaJTr50ElwI=;
+        b=SwhOWSCv7DDUO4A/+wqai6nwSAjcEcP8/Yje1MM01K9QPctnoJmNKqSqKVln6P4btqTdya
+        vkH7mwFHue68xPAut5JWvDE5NfFU3LXKravyxjnr7cRcJbEhWXmmxH/ha/AY/dvGdNvHHx
+        RazqZD32S03b2pk6Z5bGKFHiBCHNwkk=
+Received: from relay2.suse.de (unknown [195.135.221.27])
+        by mx2.suse.de (Postfix) with ESMTP id 7BA40B170
+        for <netfilter-devel@vger.kernel.org>; Wed, 28 Apr 2021 13:09:12 +0000 (UTC)
+Date:   Wed, 28 Apr 2021 15:09:11 +0200
+From:   Ali Abdallah <ali.abdallah@suse.com>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH] Don't drop out of segments RST if tcp_be_liberal is set
+Message-ID: <20210428130911.cteglt52r5if7ynp@Fryzen495>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next 1/7] netfilter: nftables: rename set element data
- activation/deactivation functions
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <161956321039.28898.12248117195922527285.git-patchwork-notify@kernel.org>
-Date:   Tue, 27 Apr 2021 22:40:10 +0000
-References: <20210427204345.22043-2-pablo@netfilter.org>
-In-Reply-To: <20210427204345.22043-2-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+When tcp_be_liberal is set, don't be conservative on out of segments RSTs.
 
-This series was applied to netdev/net-next.git (refs/heads/master):
+Signed-off-by: Ali Abdallah <aabdallah@suse.de>
+---
+ Documentation/networking/nf_conntrack-sysctl.rst | 2 +-
+ net/netfilter/nf_conntrack_proto_tcp.c           | 3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-On Tue, 27 Apr 2021 22:43:39 +0200 you wrote:
-> Rename:
-> 
-> - nft_set_elem_activate() to nft_set_elem_data_activate().
-> - nft_set_elem_deactivate() to nft_set_elem_data_deactivate().
-> 
-> To prepare for updates in the set element infrastructure to add support
-> for the special catch-all element.
-> 
-> [...]
-
-Here is the summary with links:
-  - [net-next,1/7] netfilter: nftables: rename set element data activation/deactivation functions
-    https://git.kernel.org/netdev/net-next/c/f8bb7889af58
-  - [net-next,2/7] netfilter: nftables: add loop check helper function
-    https://git.kernel.org/netdev/net-next/c/6387aa6e59be
-  - [net-next,3/7] netfilter: nftables: add helper function to flush set elements
-    https://git.kernel.org/netdev/net-next/c/e6ba7cb63b8a
-  - [net-next,4/7] netfilter: nftables: add helper function to validate set element data
-    https://git.kernel.org/netdev/net-next/c/97c976d662fb
-  - [net-next,5/7] netfilter: nftables: add catch-all set element support
-    https://git.kernel.org/netdev/net-next/c/aaa31047a6d2
-  - [net-next,6/7] netfilter: nft_socket: fix an unused variable warning
-    https://git.kernel.org/netdev/net-next/c/8a7363f84979
-  - [net-next,7/7] netfilter: nft_socket: fix build with CONFIG_SOCK_CGROUP_DATA=n
-    https://git.kernel.org/netdev/net-next/c/7acc0bb490c8
-
-You are awesome, thank you!
---
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+diff --git a/Documentation/networking/nf_conntrack-sysctl.rst b/Documentation/networking/nf_conntrack-sysctl.rst
+index 11a9b76786cb..4278fad31a43 100644
+--- a/Documentation/networking/nf_conntrack-sysctl.rst
++++ b/Documentation/networking/nf_conntrack-sysctl.rst
+@@ -108,7 +108,7 @@ nf_conntrack_tcp_be_liberal - BOOLEAN
+ 	- not 0 - enabled
+ 
+ 	Be conservative in what you do, be liberal in what you accept from others.
+-	If it's non-zero, we mark only out of window RST segments as INVALID.
++	If it's non-zero, we don't mark out of window segments as INVALID.
+ 
+ nf_conntrack_tcp_loose - BOOLEAN
+ 	- 0 - disabled
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 02fab7a8ec92..83890a700ef8 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -1048,7 +1048,8 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
+ 		if (ct->proto.tcp.seen[!dir].flags & IP_CT_TCP_FLAG_MAXACK_SET) {
+ 			u32 seq = ntohl(th->seq);
+ 
+-			if (before(seq, ct->proto.tcp.seen[!dir].td_maxack)) {
++			if (before(seq, ct->proto.tcp.seen[!dir].td_maxack) &&
++			    !tn->tcp_be_liberal) {
+ 				/* Invalid RST  */
+ 				spin_unlock_bh(&ct->lock);
+ 				nf_ct_l4proto_log_invalid(skb, ct, "invalid rst");
+-- 
+2.26.2
 
 
