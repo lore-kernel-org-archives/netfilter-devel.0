@@ -2,169 +2,96 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17404C433ED
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Apr 2021 16:29:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32828C433ED
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Apr 2021 23:43:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E904D61407
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Apr 2021 16:29:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0C85C6147E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Apr 2021 23:43:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233099AbhD2QaV (ORCPT
+        id S229609AbhD2Xns (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 29 Apr 2021 12:30:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39028 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232004AbhD2QaU (ORCPT
+        Thu, 29 Apr 2021 19:43:48 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:59520 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229599AbhD2Xnr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 29 Apr 2021 12:30:20 -0400
-Received: from mx0b-00190b01.pphosted.com (mx0b-00190b01.pphosted.com [IPv6:2620:100:9005:57f::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4565FC06138B;
-        Thu, 29 Apr 2021 09:29:31 -0700 (PDT)
-Received: from pps.filterd (m0122331.ppops.net [127.0.0.1])
-        by mx0b-00190b01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 13TGJgPG010488;
-        Thu, 29 Apr 2021 17:29:19 +0100
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=akamai.com; h=from : to : cc :
- subject : date : message-id; s=jan2016.eng;
- bh=q1qlMUPUsRC6h1GU/B7aEimtmIRSDfg00PYdYuWupl0=;
- b=T5MVIIuLx8mWbQf7intABVl3jZpmlWIDDvV2vkap2UZ4d24aLSqjemT7i8je5d4dWNa8
- MI/4GHPNcay0Qb/9GSLH/kT1e+S9RFCocZRjCBGXnj374p/aIfcA0QWrpjn68WA1iv2y
- x8rZ2cvDyZ0JPIUlCBpBHoU+QoAb8RY9ci3PIrnJeTH+n3KTH6or4RIC9OHfAv+oqLbO
- pPAAxz7usddP99Ohd0NFvbEu0BR3SirEW7UJgZxc6C63a2cSnrkuccQTpVBuot1A9q8I
- h5NPpSfGZHHFXyNWa3Py1CgXjBXn1l2PJuxmvmT6xvJBHWGHM6FM3b1yGiVJXuLcUd12 Zg== 
-Received: from prod-mail-ppoint3 (a72-247-45-31.deploy.static.akamaitechnologies.com [72.247.45.31] (may be forged))
-        by mx0b-00190b01.pphosted.com with ESMTP id 387r9gf070-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Thu, 29 Apr 2021 17:29:19 +0100
-Received: from pps.filterd (prod-mail-ppoint3.akamai.com [127.0.0.1])
-        by prod-mail-ppoint3.akamai.com (8.16.1.2/8.16.1.2) with SMTP id 13TGKHkG025364;
-        Thu, 29 Apr 2021 12:29:07 -0400
-Received: from prod-mail-relay18.dfw02.corp.akamai.com ([172.27.165.172])
-        by prod-mail-ppoint3.akamai.com with ESMTP id 3877g6a8e6-1;
-        Thu, 29 Apr 2021 12:29:07 -0400
-Received: from bos-lpjec.145bw.corp.akamai.com (unknown [172.28.3.71])
-        by prod-mail-relay18.dfw02.corp.akamai.com (Postfix) with ESMTP id 98E92494;
-        Thu, 29 Apr 2021 16:29:06 +0000 (GMT)
-From:   Jason Baron <jbaron@akamai.com>
-To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
-        davem@davemloft.net, kuba@kernel.org
-Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH net-next] netfilter: x_tables: improve limit_mt scalability
-Date:   Thu, 29 Apr 2021 12:26:13 -0400
-Message-Id: <1619713573-32073-1-git-send-email-jbaron@akamai.com>
-X-Mailer: git-send-email 2.7.4
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.761
- definitions=2021-04-29_08:2021-04-28,2021-04-29 signatures=0
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 mlxscore=0
- suspectscore=0 adultscore=0 bulkscore=0 spamscore=0 phishscore=0
- malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2104060000 definitions=main-2104290102
-X-Proofpoint-ORIG-GUID: b47GY1V4ZYRDkep61DicW24inoLgTuTO
-X-Proofpoint-GUID: b47GY1V4ZYRDkep61DicW24inoLgTuTO
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.761
- definitions=2021-04-29_08:2021-04-28,2021-04-29 signatures=0
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0 bulkscore=0 adultscore=0
- spamscore=0 clxscore=1011 mlxscore=0 mlxlogscore=999 impostorscore=0
- suspectscore=0 lowpriorityscore=0 priorityscore=1501 malwarescore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2104060000
- definitions=main-2104290102
-X-Agari-Authentication-Results: mx.akamai.com; spf=${SPFResult} (sender IP is 72.247.45.31)
- smtp.mailfrom=jbaron@akamai.com smtp.helo=prod-mail-ppoint3
+        Thu, 29 Apr 2021 19:43:47 -0400
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id E5E8A64133
+        for <netfilter-devel@vger.kernel.org>; Fri, 30 Apr 2021 01:42:20 +0200 (CEST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft 00/18] cache updates,v2
+Date:   Fri, 30 Apr 2021 01:42:37 +0200
+Message-Id: <20210429234255.16840-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-We've seen this spin_lock show up high in profiles. Let's introduce a
-lockless version. I've tested this using pktgen_sample01_simple.sh.
+Hi,
 
-Signed-off-by: Jason Baron <jbaron@akamai.com>
----
- net/netfilter/xt_limit.c | 46 ++++++++++++++++++++++++++--------------------
- 1 file changed, 26 insertions(+), 20 deletions(-)
+This is another round of patches to update the cache infrastructure
+in nftables:
 
-diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
-index 24d4afb9988d..8b4fd27857f2 100644
---- a/net/netfilter/xt_limit.c
-+++ b/net/netfilter/xt_limit.c
-@@ -8,16 +8,14 @@
- #include <linux/slab.h>
- #include <linux/module.h>
- #include <linux/skbuff.h>
--#include <linux/spinlock.h>
- #include <linux/interrupt.h>
- 
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_limit.h>
- 
- struct xt_limit_priv {
--	spinlock_t lock;
- 	unsigned long prev;
--	uint32_t credit;
-+	u32 credit;
- };
- 
- MODULE_LICENSE("GPL");
-@@ -66,22 +64,31 @@ limit_mt(const struct sk_buff *skb, struct xt_action_param *par)
- {
- 	const struct xt_rateinfo *r = par->matchinfo;
- 	struct xt_limit_priv *priv = r->master;
--	unsigned long now = jiffies;
--
--	spin_lock_bh(&priv->lock);
--	priv->credit += (now - xchg(&priv->prev, now)) * CREDITS_PER_JIFFY;
--	if (priv->credit > r->credit_cap)
--		priv->credit = r->credit_cap;
--
--	if (priv->credit >= r->cost) {
--		/* We're not limited. */
--		priv->credit -= r->cost;
--		spin_unlock_bh(&priv->lock);
--		return true;
--	}
--
--	spin_unlock_bh(&priv->lock);
--	return false;
-+	unsigned long now;
-+	u32 old_credit, new_credit, credit_increase = 0;
-+	bool ret;
-+
-+	/* fastpath if there is nothing to update */
-+	if ((READ_ONCE(priv->credit) < r->cost) && (READ_ONCE(priv->prev) == jiffies))
-+		return false;
-+
-+	do {
-+		now = jiffies;
-+		credit_increase += (now - xchg(&priv->prev, now)) * CREDITS_PER_JIFFY;
-+		old_credit = READ_ONCE(priv->credit);
-+		new_credit = old_credit;
-+		new_credit += credit_increase;
-+		if (new_credit > r->credit_cap)
-+			new_credit = r->credit_cap;
-+		if (new_credit >= r->cost) {
-+			ret = true;
-+			new_credit -= r->cost;
-+		} else {
-+			ret = false;
-+		}
-+	} while (cmpxchg(&priv->credit, old_credit, new_credit) != old_credit);
-+
-+	return ret;
- }
- 
- /* Precision saver. */
-@@ -122,7 +129,6 @@ static int limit_mt_check(const struct xt_mtchk_param *par)
- 		r->credit_cap = priv->credit; /* Credits full. */
- 		r->cost = user2credits(r->avg);
- 	}
--	spin_lock_init(&priv->lock);
- 
- 	return 0;
- }
+1) Remove all nftables modules after running tests/shell.
+
+2) Restore removal by 64-bit unique handle.
+
+3) Consolidate cache infrastructure.
+
+4) Add hashtable cache for remaining objects.
+
+5) Track deletions on the cache.
+
+Pablo Neira Ayuso (18):
+  tests: shell: remove missing modules
+  src: unbreak deletion by table handle
+  rule: skip fuzzy lookup for unexisting 64-bit handle
+  src: pass chain name to chain_cache_find()
+  src: consolidate nft_cache infrastructure
+  src: consolidate object cache infrastructure
+  cache: add hashtable cache for object
+  cache: add hashtable cache for flowtable
+  cache: add set_cache_del() and use it
+  evaluate: add set to the cache
+  evaluate: add flowtable to the cache
+  cache: missing table cache for several policy objects
+  evaluate: add object to the cache
+  cache: add hashtable cache for table
+  evaluate: remove chain from cache on delete chain command
+  evaluate: remove set from cache on delete set command
+  evaluate: remove flowtable from cache on delete flowtable command
+  evaluate: remove object from cache on delete object command
+
+ include/cache.h                               |  60 ++-
+ include/netlink.h                             |   2 +
+ include/nftables.h                            |   8 +-
+ include/rule.h                                |  31 +-
+ src/cache.c                                   | 341 +++++++++++++++---
+ src/cmd.c                                     |  17 +-
+ src/evaluate.c                                | 275 +++++++++++---
+ src/json.c                                    |  38 +-
+ src/libnftables.c                             |  13 +-
+ src/mnl.c                                     |   2 +-
+ src/monitor.c                                 |  26 +-
+ src/netlink.c                                 |  25 +-
+ src/netlink_delinearize.c                     |   7 +-
+ src/rule.c                                    | 170 ++++-----
+ tests/shell/run-tests.sh                      |   5 +-
+ .../testcases/cache/0008_delete_by_handle_0   |  20 +
+ .../cache/0009_delete_by_handle_incorrect_0   |   8 +
+ 17 files changed, 738 insertions(+), 310 deletions(-)
+ create mode 100755 tests/shell/testcases/cache/0008_delete_by_handle_0
+ create mode 100755 tests/shell/testcases/cache/0009_delete_by_handle_incorrect_0
+
 -- 
-2.7.4
+2.20.1
 
