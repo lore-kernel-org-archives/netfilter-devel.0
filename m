@@ -2,93 +2,76 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2D1BC433B4
-	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Apr 2021 09:36:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69B0BC433ED
+	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Apr 2021 10:22:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ACC4C61468
-	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Apr 2021 09:36:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3B2F5613FA
+	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Apr 2021 10:22:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229606AbhD3Jgv (ORCPT
+        id S229598AbhD3KXR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 30 Apr 2021 05:36:51 -0400
-Received: from mx2.suse.de ([195.135.220.15]:50264 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229543AbhD3Jgu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 30 Apr 2021 05:36:50 -0400
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1619775362; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-         mime-version:mime-version:content-type:content-type;
-        bh=rY3ucUB+Ef5QRCb1XaU5iLuu5nDwql3erR5hYkg6s04=;
-        b=g6oOYwzr1roesFaaVWB+OXGLle7gkHKRfRCXLXWgoMVHpzdK1UTOCxWj1UmAeLBiZHCrVp
-        RM9kywNhMn/62cKf8IgiL3njZ67M54qyaYjnGFavDbZR1YGP6ZzX8jXsgjN1PEYVG7bAH0
-        OKyu8ov1fNsN/oPCLSxBiGtUAn1CGNw=
-Received: from relay2.suse.de (unknown [195.135.221.27])
-        by mx2.suse.de (Postfix) with ESMTP id 0F64AAE56
-        for <netfilter-devel@vger.kernel.org>; Fri, 30 Apr 2021 09:36:02 +0000 (UTC)
-Date:   Fri, 30 Apr 2021 11:36:01 +0200
-From:   Ali Abdallah <ali.abdallah@suse.com>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH] Avoid potentially erroneos RST drop.
-Message-ID: <20210430093601.zibczc4cjnwx3qwn@Fryzen495>
+        Fri, 30 Apr 2021 06:23:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48574 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229543AbhD3KXR (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 30 Apr 2021 06:23:17 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 10685C06174A
+        for <netfilter-devel@vger.kernel.org>; Fri, 30 Apr 2021 03:22:29 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1lcQHx-0002Cp-6q; Fri, 30 Apr 2021 12:22:25 +0200
+Date:   Fri, 30 Apr 2021 12:22:25 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Jan Engelhardt <jengelh@inai.de>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [net-next PATCH] netfilter: xt_SECMARK: add new revision to fix
+ structure layout
+Message-ID: <20210430102225.GV3158@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Jan Engelhardt <jengelh@inai.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20210429133929.20161-1-phil@nwl.cc>
+ <4q6r71np-5085-177o-15p6-r3ss3s601rp@vanv.qr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <4q6r71np-5085-177o-15p6-r3ss3s601rp@vanv.qr>
+Sender:  <n0-1@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-In ignore state, we let SYN goes in original, the server might respond
-with RST/ACK, and that RST packet is erroneously dropped because of the
-flag IP_CT_TCP_FLAG_MAXACK_SET being already set. So we reset the flag
-in this case.
+Hi Jan,
 
-Unfortunately that might not be enough, an out of order ACK in origin
-might reset it back, and we might end up again dropping a valid RST when
-the server responds with RST SEQ=0.
+On Thu, Apr 29, 2021 at 05:11:49PM +0200, Jan Engelhardt wrote:
+[...]
+> >+struct xt_secmark_tginfo {
+> >+	__u8 mode;
+> >+	char secctx[SECMARK_SECCTX_MAX];
+> >+	__u32 secid;
+> >+};
+> 
+> that should be struct xt_secmark_tginfo_v1.
 
-The patch disables also the RST check when we are not in established
-state and we receive an RST with SEQ=0 that is most likely a response to
-a SYN we had let it go through.
+The v0 struct is called xt_secmark_target_info, I guess Pablo tried to
+shorten the name a bit. In conforming to "the standard", I'd then go
+with xt_secmark_target_info_v1 instead. Fine with you?
 
-Signed-off-by: Ali Abdallah <aabdallah@suse.de>
----
- net/netfilter/nf_conntrack_proto_tcp.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+> >+		.name		= "SECMARK",
+> >+		.revision	= 1,
+> >+		.family		= NFPROTO_UNSPEC,
+> >+		.checkentry	= secmark_tg_check_v2,
+> 
+> Can't have revision=1 and then call it _v2. That's just confusing.
 
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 318b8f723349..e958fde8cf9b 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -949,6 +949,10 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
- 
- 			ct->proto.tcp.last_flags =
- 			ct->proto.tcp.last_wscale = 0;
-+			/* Reset the max ack flag so in case the server replies
-+			 * with RST/ACK it will not be marked as an invalid rst.
-+			 */
-+			ct->proto.tcp.seen[dir].flags &= ~IP_CT_TCP_FLAG_MAXACK_SET;
- 			tcp_options(skb, dataoff, th, &seen);
- 			if (seen.flags & IP_CT_TCP_FLAG_WINDOW_SCALE) {
- 				ct->proto.tcp.last_flags |=
-@@ -1030,6 +1034,13 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
- 		if (ct->proto.tcp.seen[!dir].flags & IP_CT_TCP_FLAG_MAXACK_SET) {
- 			u32 seq = ntohl(th->seq);
- 
-+			/* If we are not in established state, and an RST is
-+			 * observed with SEQ=0, this is most likely an answer
-+			 * to a SYN we had let go through above.
-+			 */
-+			if (seq == 0 && !nf_conntrack_tcp_established(ct))
-+				break;
-+
- 			if (before(seq, ct->proto.tcp.seen[!dir].td_maxack)) {
- 				/* Invalid RST  */
- 				spin_unlock_bh(&ct->lock);
--- 
-2.26.2
+ACK, I missed that.
+
+Thanks, Phil
