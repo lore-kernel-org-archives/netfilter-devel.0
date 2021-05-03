@@ -4,47 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,FROM_LOCAL_HEX,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D7EDC433B4
-	for <netfilter-devel@archiver.kernel.org>; Mon,  3 May 2021 17:20:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DBA3C433B4
+	for <netfilter-devel@archiver.kernel.org>; Mon,  3 May 2021 17:20:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5403661026
-	for <netfilter-devel@archiver.kernel.org>; Mon,  3 May 2021 17:20:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 27A8561075
+	for <netfilter-devel@archiver.kernel.org>; Mon,  3 May 2021 17:20:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232281AbhECRVP (ORCPT
+        id S232348AbhECRVW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 3 May 2021 13:21:15 -0400
-Received: from mail-io1-f72.google.com ([209.85.166.72]:52084 "EHLO
-        mail-io1-f72.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232091AbhECRVO (ORCPT
+        Mon, 3 May 2021 13:21:22 -0400
+Received: from mail-io1-f69.google.com ([209.85.166.69]:34319 "EHLO
+        mail-io1-f69.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232239AbhECRVP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 3 May 2021 13:21:14 -0400
-Received: by mail-io1-f72.google.com with SMTP id h7-20020a5d9e070000b029041a1f6bccc8so3781839ioh.18
+        Mon, 3 May 2021 13:21:15 -0400
+Received: by mail-io1-f69.google.com with SMTP id v25-20020a0566020159b02904017f565b33so3804410iot.1
         for <netfilter-devel@vger.kernel.org>; Mon, 03 May 2021 10:20:21 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
-        bh=SsW4WGApkthaeG/yN0Sh2zDtXgNB7YUudWMFW51IJwk=;
-        b=MzT+rL6j0wqjrC5NkME4VPmzWDn8v9FoonNgDRjpG63SkRKxdbpqcCtLhPcWJU2JZt
-         yNN7NnEFArqAqXQLNZPj6JaP4NWeZ8Ib96y5TLkwJHQsNy/KjWU6mmndw8JgNBTt6c5H
-         QiKvcRA5bFbBzCeoXEdVhRpBWyhc5PYi4Pb/2nmX4SsaZU+swPPnoWO1TWeMgAItuoCr
-         xSTiKQAoCaUIln1dKViXtp6yEdZD+cdA8CTquUldauutIZc7HpXFB5p1szNZFdsoqjoB
-         rl80hZ+dt2bq1Hay0esnPtmCQNY2gOteBqAFx7cdYOb5/v2C2WkjFA+/qLFYNQ3s0uQ9
-         k/8g==
-X-Gm-Message-State: AOAM532sDv+W62DqU215qGg50kC7CpodS7/NE6lJky7ywf1jLYHlzSnz
-        68A9+/qMD4lu1xtWieXrYH0Temr7GslO4rhP1On4Vh7zhsKX
-X-Google-Smtp-Source: ABdhPJyt0vvFF+YFkGZh1hStsZ1HJyTL9uTFPJzka9gUtjT7vrUzG58a5Y5uPLQo8wLUfqm2+v60eWC5ekB5R+ERdt9TXZYXwj/1
+        bh=IaLwSAlCAkwIV8aH0MiazbmbvKJrXYiGrbTABtoSizM=;
+        b=VWa26sCmoBogTBm1OKJY5VECmdyQPDYpiWIFSzxXJpTO7z9juOS3IUUkO+mrLCvyHJ
+         WU4hSehGq9rO61Jy7YkXP2X4I2ImUuGvIyLwbLyENgQZA9ov3vNDS+xey5Lc2MB3CcRI
+         hhbNSEj2oLjzSt15T3OwsrhAtE6Pd54tBGOdQ+BCT4f5zdYnhQ/3Gb5Q/r2a13o9IXJr
+         mxGFt+jk27eQg+qvly0xOKaT77HPNu+OtYpqqs8Mb1vMlCUFrcCvviEPZ5GkG2AVRcV4
+         0+fHf5oeZRtZIVW+eQsteE4T7nMjQjB1mOtG3kPSIpsOT0rJZCcLIKMN4humT7HlW5Zc
+         JPmg==
+X-Gm-Message-State: AOAM530mAJE9JlEflL31jYvngnCKkojEPS6msmKhivesVnQ9asHBd2rU
+        S7E8Od63ik1gj0oS5+YIjHyjvx3z4CBwtk2z+6bTDnbihKb+
+X-Google-Smtp-Source: ABdhPJycz2XLkjHbhliGqjnXWzI80M9F9/U/yrCPQrUHd/RWsJNFOEtVW6fNfObLWwqF1WZmXG5iTwuW758ynXb4g6INmQQNSaCo
 MIME-Version: 1.0
-X-Received: by 2002:a6b:ea10:: with SMTP id m16mr15356144ioc.124.1620062421212;
- Mon, 03 May 2021 10:20:21 -0700 (PDT)
-Date:   Mon, 03 May 2021 10:20:21 -0700
+X-Received: by 2002:a92:c005:: with SMTP id q5mr16225105ild.202.1620062420942;
+ Mon, 03 May 2021 10:20:20 -0700 (PDT)
+Date:   Mon, 03 May 2021 10:20:20 -0700
 X-Google-Appengine-App-Id: s~syzkaller
 X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <00000000000021665f05c1702dd1@google.com>
-Subject: [syzbot] upstream test error: WARNING in __nf_unregister_net_hook
-From:   syzbot <syzbot+7ad5cd1615f2d89c6e7e@syzkaller.appspotmail.com>
+Message-ID: <0000000000001d488205c1702d78@google.com>
+Subject: [syzbot] memory leak in nf_hook_entries_grow (2)
+From:   syzbot <syzbot+050de9f900eb45b94ef9@syzkaller.appspotmail.com>
 To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
         kadlec@netfilter.org, kuba@kernel.org,
         linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
@@ -61,43 +61,98 @@ syzbot found the following issue on:
 
 HEAD commit:    9ccce092 Merge tag 'for-linus-5.13-ofs-1' of git://git.ker..
 git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=15303b33d00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=27df24136354948b
-dashboard link: https://syzkaller.appspot.com/bug?extid=7ad5cd1615f2d89c6e7e
+console output: https://syzkaller.appspot.com/x/log.txt?x=141aec93d00000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=5ab124e5617a0cfa
+dashboard link: https://syzkaller.appspot.com/bug?extid=050de9f900eb45b94ef9
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=14bd921ed00000
 
 IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+7ad5cd1615f2d89c6e7e@syzkaller.appspotmail.com
+Reported-by: syzbot+050de9f900eb45b94ef9@syzkaller.appspotmail.com
 
-wlan1: Created IBSS using preconfigured BSSID 50:50:50:50:50:50
-wlan1: Creating new IBSS network, BSSID 50:50:50:50:50:50
-------------[ cut here ]------------
-hook not found, pf 3 num 0
-WARNING: CPU: 0 PID: 334 at net/netfilter/core.c:480 __nf_unregister_net_hook+0x1eb/0x610 net/netfilter/core.c:480
-Modules linked in:
-CPU: 0 PID: 334 Comm: kworker/u4:5 Not tainted 5.12.0-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-Workqueue: netns cleanup_net
-RIP: 0010:__nf_unregister_net_hook+0x1eb/0x610 net/netfilter/core.c:480
-Code: 0f b6 14 02 48 89 c8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 11 04 00 00 8b 53 1c 89 ee 48 c7 c7 c0 15 6e 8a e8 f6 3c 8a 01 <0f> 0b e9 e5 00 00 00 e8 59 3e 2e fa 44 8b 3c 24 4c 89 f8 48 c1 e0
-RSP: 0018:ffffc90001fcfbc0 EFLAGS: 00010286
-RAX: 0000000000000000 RBX: ffff88814459f300 RCX: 0000000000000000
-RDX: ffff888013648000 RSI: ffffffff815caa75 RDI: fffff520003f9f6a
-RBP: 0000000000000003 R08: 0000000000000000 R09: 0000000000000000
-R10: ffffffff815c48de R11: 0000000000000000 R12: ffff888033e98f20
-R13: 0000000000000000 R14: ffff888012825c00 R15: 0000000000000001
-FS:  0000000000000000(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 000000c000a00000 CR3: 00000000159c4000 CR4: 0000000000350ee0
-Call Trace:
- nf_unregister_net_hook net/netfilter/core.c:502 [inline]
- nf_unregister_net_hooks+0x117/0x160 net/netfilter/core.c:576
- arpt_unregister_table_pre_exit+0x67/0x80 net/ipv4/netfilter/arp_tables.c:1565
- ops_pre_exit_list net/core/net_namespace.c:165 [inline]
- cleanup_net+0x451/0xb10 net/core/net_namespace.c:583
- process_one_work+0x98d/0x1600 kernel/workqueue.c:2275
- worker_thread+0x64c/0x1120 kernel/workqueue.c:2421
- kthread+0x3b1/0x4a0 kernel/kthread.c:313
- ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+BUG: memory leak
+unreferenced object 0xffff888128e8efc0 (size 64):
+  comm "syz-executor.1", pid 8445, jiffies 4294969756 (age 19.530s)
+  hex dump (first 32 bytes):
+    01 00 00 00 00 00 00 00 10 8a a5 83 ff ff ff ff  ................
+    00 f6 f4 27 81 88 ff ff 00 40 5a 28 81 88 ff ff  ...'.....@Z(....
+  backtrace:
+    [<ffffffff8146e301>] kmalloc_node include/linux/slab.h:579 [inline]
+    [<ffffffff8146e301>] kvmalloc_node+0x61/0xf0 mm/util.c:587
+    [<ffffffff8381be3b>] kvmalloc include/linux/mm.h:797 [inline]
+    [<ffffffff8381be3b>] kvzalloc include/linux/mm.h:805 [inline]
+    [<ffffffff8381be3b>] allocate_hook_entries_size net/netfilter/core.c:61 [inline]
+    [<ffffffff8381be3b>] nf_hook_entries_grow+0x31b/0x370 net/netfilter/core.c:128
+    [<ffffffff8381c19d>] __nf_register_net_hook+0x8d/0x290 net/netfilter/core.c:407
+    [<ffffffff8381c45f>] nf_register_net_hook+0xbf/0x100 net/netfilter/core.c:541
+    [<ffffffff8381c4f9>] nf_register_net_hooks+0x59/0xc0 net/netfilter/core.c:557
+    [<ffffffff83a56452>] arpt_register_table+0x152/0x1e0 net/ipv4/netfilter/arp_tables.c:1548
+    [<ffffffff83a58a7d>] arptable_filter_table_init+0x3d/0x60 net/ipv4/netfilter/arptable_filter.c:50
+    [<ffffffff838b85a9>] xt_find_table_lock+0x189/0x290 net/netfilter/x_tables.c:1244
+    [<ffffffff838b86d7>] xt_request_find_table_lock+0x27/0xb0 net/netfilter/x_tables.c:1275
+    [<ffffffff83a575b2>] get_info+0xd2/0x430 net/ipv4/netfilter/arp_tables.c:807
+    [<ffffffff83a57b34>] do_arpt_get_ctl+0x224/0x520 net/ipv4/netfilter/arp_tables.c:1443
+    [<ffffffff8381e3b7>] nf_getsockopt+0x57/0x80 net/netfilter/nf_sockopt.c:116
+    [<ffffffff83986b9a>] ip_getsockopt net/ipv4/ip_sockglue.c:1777 [inline]
+    [<ffffffff83986b9a>] ip_getsockopt+0xfa/0x140 net/ipv4/ip_sockglue.c:1756
+    [<ffffffff8399b06b>] tcp_getsockopt+0x4b/0x80 net/ipv4/tcp.c:4251
+    [<ffffffff8366dc23>] __sys_getsockopt+0x133/0x2f0 net/socket.c:2161
+    [<ffffffff8366de02>] __do_sys_getsockopt net/socket.c:2176 [inline]
+    [<ffffffff8366de02>] __se_sys_getsockopt net/socket.c:2173 [inline]
+    [<ffffffff8366de02>] __x64_sys_getsockopt+0x22/0x30 net/socket.c:2173
+
+BUG: memory leak
+unreferenced object 0xffff888128f2fb80 (size 64):
+  comm "syz-executor.1", pid 8445, jiffies 4294969756 (age 19.530s)
+  hex dump (first 32 bytes):
+    01 00 00 00 00 00 00 00 10 8a a5 83 ff ff ff ff  ................
+    00 f6 f4 27 81 88 ff ff 50 40 5a 28 81 88 ff ff  ...'....P@Z(....
+  backtrace:
+    [<ffffffff8146e301>] kmalloc_node include/linux/slab.h:579 [inline]
+    [<ffffffff8146e301>] kvmalloc_node+0x61/0xf0 mm/util.c:587
+    [<ffffffff8381be3b>] kvmalloc include/linux/mm.h:797 [inline]
+    [<ffffffff8381be3b>] kvzalloc include/linux/mm.h:805 [inline]
+    [<ffffffff8381be3b>] allocate_hook_entries_size net/netfilter/core.c:61 [inline]
+    [<ffffffff8381be3b>] nf_hook_entries_grow+0x31b/0x370 net/netfilter/core.c:128
+    [<ffffffff8381c19d>] __nf_register_net_hook+0x8d/0x290 net/netfilter/core.c:407
+    [<ffffffff8381c45f>] nf_register_net_hook+0xbf/0x100 net/netfilter/core.c:541
+    [<ffffffff8381c4f9>] nf_register_net_hooks+0x59/0xc0 net/netfilter/core.c:557
+    [<ffffffff83a56452>] arpt_register_table+0x152/0x1e0 net/ipv4/netfilter/arp_tables.c:1548
+    [<ffffffff83a58a7d>] arptable_filter_table_init+0x3d/0x60 net/ipv4/netfilter/arptable_filter.c:50
+    [<ffffffff838b85a9>] xt_find_table_lock+0x189/0x290 net/netfilter/x_tables.c:1244
+    [<ffffffff838b86d7>] xt_request_find_table_lock+0x27/0xb0 net/netfilter/x_tables.c:1275
+    [<ffffffff83a575b2>] get_info+0xd2/0x430 net/ipv4/netfilter/arp_tables.c:807
+    [<ffffffff83a57b34>] do_arpt_get_ctl+0x224/0x520 net/ipv4/netfilter/arp_tables.c:1443
+    [<ffffffff8381e3b7>] nf_getsockopt+0x57/0x80 net/netfilter/nf_sockopt.c:116
+    [<ffffffff83986b9a>] ip_getsockopt net/ipv4/ip_sockglue.c:1777 [inline]
+    [<ffffffff83986b9a>] ip_getsockopt+0xfa/0x140 net/ipv4/ip_sockglue.c:1756
+    [<ffffffff8399b06b>] tcp_getsockopt+0x4b/0x80 net/ipv4/tcp.c:4251
+    [<ffffffff8366dc23>] __sys_getsockopt+0x133/0x2f0 net/socket.c:2161
+    [<ffffffff8366de02>] __do_sys_getsockopt net/socket.c:2176 [inline]
+    [<ffffffff8366de02>] __se_sys_getsockopt net/socket.c:2173 [inline]
+    [<ffffffff8366de02>] __x64_sys_getsockopt+0x22/0x30 net/socket.c:2173
+
+BUG: memory leak
+unreferenced object 0xffff88812249b100 (size 64):
+  comm "kworker/u4:1", pid 24, jiffies 4294970575 (age 11.350s)
+  hex dump (first 32 bytes):
+    01 00 00 00 00 00 00 00 10 8a a5 83 ff ff ff ff  ................
+    00 f6 f4 27 81 88 ff ff 28 40 5a 28 81 88 ff ff  ...'....(@Z(....
+  backtrace:
+    [<ffffffff8146e301>] kmalloc_node include/linux/slab.h:579 [inline]
+    [<ffffffff8146e301>] kvmalloc_node+0x61/0xf0 mm/util.c:587
+    [<ffffffff8381b1ad>] kvmalloc include/linux/mm.h:797 [inline]
+    [<ffffffff8381b1ad>] kvzalloc include/linux/mm.h:805 [inline]
+    [<ffffffff8381b1ad>] allocate_hook_entries_size net/netfilter/core.c:61 [inline]
+    [<ffffffff8381b1ad>] __nf_hook_entries_try_shrink+0xfd/0x210 net/netfilter/core.c:248
+    [<ffffffff8381b96b>] __nf_unregister_net_hook+0x17b/0x280 net/netfilter/core.c:483
+    [<ffffffff8381baf2>] nf_unregister_net_hook+0x82/0xb0 net/netfilter/core.c:502
+    [<ffffffff8368fca1>] ops_exit_list+0x41/0x80 net/core/net_namespace.c:175
+    [<ffffffff83690861>] cleanup_net+0x2c1/0x4d0 net/core/net_namespace.c:595
+    [<ffffffff8125e109>] process_one_work+0x2c9/0x600 kernel/workqueue.c:2275
+    [<ffffffff8125e9f9>] worker_thread+0x59/0x5d0 kernel/workqueue.c:2421
+    [<ffffffff81266268>] kthread+0x178/0x1b0 kernel/kthread.c:313
+    [<ffffffff8100227f>] ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+
 
 
 ---
@@ -107,3 +162,5 @@ syzbot engineers can be reached at syzkaller@googlegroups.com.
 
 syzbot will keep track of this issue. See:
 https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+syzbot can test patches for this issue, for details see:
+https://goo.gl/tpsmEJ#testing-patches
