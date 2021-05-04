@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C52BC433B4
-	for <netfilter-devel@archiver.kernel.org>; Tue,  4 May 2021 15:54:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78B7EC433ED
+	for <netfilter-devel@archiver.kernel.org>; Tue,  4 May 2021 17:02:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1036661176
-	for <netfilter-devel@archiver.kernel.org>; Tue,  4 May 2021 15:54:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 61A7A613C1
+	for <netfilter-devel@archiver.kernel.org>; Tue,  4 May 2021 17:02:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231274AbhEDPzN (ORCPT
+        id S231366AbhEDRCz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 4 May 2021 11:55:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48898 "EHLO
+        Tue, 4 May 2021 13:02:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35986 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230525AbhEDPzN (ORCPT
+        with ESMTP id S231849AbhEDRCy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 4 May 2021 11:55:13 -0400
+        Tue, 4 May 2021 13:02:54 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F2FCC061574
-        for <netfilter-devel@vger.kernel.org>; Tue,  4 May 2021 08:54:18 -0700 (PDT)
-Received: from localhost ([::1]:34112 helo=tatos)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9863C061574
+        for <netfilter-devel@vger.kernel.org>; Tue,  4 May 2021 10:01:59 -0700 (PDT)
+Received: from localhost ([::1]:42760 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.94)
         (envelope-from <phil@nwl.cc>)
-        id 1ldxNG-0007go-RS; Tue, 04 May 2021 17:54:14 +0200
+        id 1ldyQn-0008Co-Gg; Tue, 04 May 2021 19:01:57 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [net-next PATCH] net: netfilter: nft_exthdr: Support SCTP chunks
-Date:   Tue,  4 May 2021 17:54:06 +0200
-Message-Id: <20210504155406.17150-1-phil@nwl.cc>
+Subject: [nft PATCH 1/3] scanner: sctp: Move to own scope
+Date:   Tue,  4 May 2021 19:01:46 +0200
+Message-Id: <20210504170148.25226-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.31.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -41,124 +41,83 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Chunks are SCTP header extensions similar in implementation to IPv6
-extension headers or TCP options. Reusing exthdr expression to find and
-extract field values from them is therefore pretty straightforward.
-
-For now, this supports extracting data from chunks at a fixed offset
-(and length) only - chunks themselves are an extensible data structure;
-in order to make all fields available, a nested extension search is
-needed.
+This isolates only "vtag" token for now.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- include/uapi/linux/netfilter/nf_tables.h |  2 +
- net/netfilter/nft_exthdr.c               | 51 ++++++++++++++++++++++++
- 2 files changed, 53 insertions(+)
+ include/parser.h   | 1 +
+ src/parser_bison.y | 5 +++--
+ src/scanner.l      | 8 ++++++--
+ 3 files changed, 10 insertions(+), 4 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 1fb4ca18ffbbf..19715e2679d19 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -813,11 +813,13 @@ enum nft_exthdr_flags {
-  * @NFT_EXTHDR_OP_IPV6: match against ipv6 extension headers
-  * @NFT_EXTHDR_OP_TCP: match against tcp options
-  * @NFT_EXTHDR_OP_IPV4: match against ipv4 options
-+ * @NFT_EXTHDR_OP_SCTP: match against sctp chunks
-  */
- enum nft_exthdr_op {
- 	NFT_EXTHDR_OP_IPV6,
- 	NFT_EXTHDR_OP_TCPOPT,
- 	NFT_EXTHDR_OP_IPV4,
-+	NFT_EXTHDR_OP_SCTP,
- 	__NFT_EXTHDR_OP_MAX
- };
- #define NFT_EXTHDR_OP_MAX	(__NFT_EXTHDR_OP_MAX - 1)
-diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-index f64f0017e9a53..4d0b8e1c40c02 100644
---- a/net/netfilter/nft_exthdr.c
-+++ b/net/netfilter/nft_exthdr.c
-@@ -10,8 +10,10 @@
- #include <linux/netlink.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
-+#include <linux/sctp.h>
- #include <net/netfilter/nf_tables_core.h>
- #include <net/netfilter/nf_tables.h>
-+#include <net/sctp/sctp.h>
- #include <net/tcp.h>
+diff --git a/include/parser.h b/include/parser.h
+index d890ab223c524..e3f48078385bb 100644
+--- a/include/parser.h
++++ b/include/parser.h
+@@ -38,6 +38,7 @@ enum startcond_type {
+ 	PARSER_SC_IP6,
+ 	PARSER_SC_LIMIT,
+ 	PARSER_SC_QUOTA,
++	PARSER_SC_SCTP,
+ 	PARSER_SC_SECMARK,
+ 	PARSER_SC_VLAN,
+ 	PARSER_SC_EXPR_FIB,
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index cc477e65672a7..411c788c0fc25 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -876,6 +876,7 @@ close_scope_numgen	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_NUMGE
+ close_scope_quota	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_QUOTA); };
+ close_scope_queue	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_QUEUE); };
+ close_scope_rt		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_RT); };
++close_scope_sctp	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_SCTP); };
+ close_scope_secmark	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_SECMARK); };
+ close_scope_socket	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_SOCKET); }
  
- struct nft_exthdr {
-@@ -300,6 +302,43 @@ static void nft_exthdr_tcp_set_eval(const struct nft_expr *expr,
- 	}
- }
+@@ -4640,7 +4641,7 @@ primary_rhs_expr	:	symbol_expr		{ $$ = $1; }
+ 							 BYTEORDER_HOST_ENDIAN,
+ 							 sizeof(data) * BITS_PER_BYTE, &data);
+ 			}
+-			|	SCTP
++			|	SCTP	close_scope_sctp
+ 			{
+ 				uint8_t data = IPPROTO_SCTP;
+ 				$$ = constant_expr_alloc(&@$, &inet_protocol_type,
+@@ -5366,7 +5367,7 @@ dccp_hdr_field		:	SPORT		{ $$ = DCCPHDR_SPORT; }
+ 			|	TYPE		{ $$ = DCCPHDR_TYPE; }
+ 			;
  
-+static void nft_exthdr_sctp_eval(const struct nft_expr *expr,
-+				 struct nft_regs *regs,
-+				 const struct nft_pktinfo *pkt)
-+{
-+	unsigned int offset = pkt->xt.thoff + sizeof(struct sctphdr);
-+	struct nft_exthdr *priv = nft_expr_priv(expr);
-+	u32 *dest = &regs->data[priv->dreg];
-+	const struct sctp_chunkhdr *sch;
-+	struct sctp_chunkhdr _sch;
+-sctp_hdr_expr		:	SCTP	sctp_hdr_field
++sctp_hdr_expr		:	SCTP	sctp_hdr_field	close_scope_sctp
+ 			{
+ 				$$ = payload_expr_alloc(&@$, &proto_sctp, $2);
+ 			}
+diff --git a/src/scanner.l b/src/scanner.l
+index a9232db8978e7..35603e5e9c884 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -204,6 +204,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ %s SCANSTATE_IP6
+ %s SCANSTATE_LIMIT
+ %s SCANSTATE_QUOTA
++%s SCANSTATE_SCTP
+ %s SCANSTATE_SECMARK
+ %s SCANSTATE_VLAN
+ %s SCANSTATE_EXPR_FIB
+@@ -524,8 +525,11 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ 
+ "dccp"			{ return DCCP; }
+ 
+-"sctp"			{ return SCTP; }
+-"vtag"			{ return VTAG; }
++"sctp"			{ scanner_push_start_cond(yyscanner, SCANSTATE_SCTP); return SCTP; }
 +
-+	do {
-+		sch = skb_header_pointer(pkt->skb, offset, sizeof(_sch), &_sch);
-+		if (!sch || !sch->length)
-+			break;
-+
-+		if (sch->type == priv->type) {
-+			if (priv->flags & NFT_EXTHDR_F_PRESENT) {
-+				nft_reg_store8(dest, true);
-+				return;
-+			}
-+			if (priv->offset + priv->len > ntohs(sch->length) ||
-+			    offset + ntohs(sch->length) > pkt->skb->len)
-+				break;
-+
-+			dest[priv->len / NFT_REG32_SIZE] = 0;
-+			memcpy(dest, (char *)sch + priv->offset, priv->len);
-+			return;
-+		}
-+		offset += SCTP_PAD4(ntohs(sch->length));
-+	} while (offset < pkt->skb->len);
-+
-+	if (priv->flags & NFT_EXTHDR_F_PRESENT)
-+		nft_reg_store8(dest, false);
-+	else
-+		regs->verdict.code = NFT_BREAK;
++<SCANSTATE_SCTP>{
++	"vtag"			{ return VTAG; }
 +}
-+
- static const struct nla_policy nft_exthdr_policy[NFTA_EXTHDR_MAX + 1] = {
- 	[NFTA_EXTHDR_DREG]		= { .type = NLA_U32 },
- 	[NFTA_EXTHDR_TYPE]		= { .type = NLA_U8 },
-@@ -499,6 +538,14 @@ static const struct nft_expr_ops nft_exthdr_tcp_set_ops = {
- 	.dump		= nft_exthdr_dump_set,
- };
  
-+static const struct nft_expr_ops nft_exthdr_sctp_ops = {
-+	.type		= &nft_exthdr_type,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_exthdr)),
-+	.eval		= nft_exthdr_sctp_eval,
-+	.init		= nft_exthdr_init,
-+	.dump		= nft_exthdr_dump,
-+};
-+
- static const struct nft_expr_ops *
- nft_exthdr_select_ops(const struct nft_ctx *ctx,
- 		      const struct nlattr * const tb[])
-@@ -529,6 +576,10 @@ nft_exthdr_select_ops(const struct nft_ctx *ctx,
- 				return &nft_exthdr_ipv4_ops;
- 		}
- 		break;
-+	case NFT_EXTHDR_OP_SCTP:
-+		if (tb[NFTA_EXTHDR_DREG])
-+			return &nft_exthdr_sctp_ops;
-+		break;
- 	}
- 
- 	return ERR_PTR(-EOPNOTSUPP);
+ "rt"			{ scanner_push_start_cond(yyscanner, SCANSTATE_EXPR_RT); return RT; }
+ "rt0"			{ return RT0; }
 -- 
 2.31.0
 
