@@ -2,505 +2,180 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E9ABC433ED
-	for <netfilter-devel@archiver.kernel.org>; Tue,  4 May 2021 19:22:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E487C43461
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 May 2021 07:33:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 38CAA613C0
-	for <netfilter-devel@archiver.kernel.org>; Tue,  4 May 2021 19:22:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D4E28613BA
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 May 2021 07:33:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232373AbhEDTXI (ORCPT
+        id S231279AbhEEHe1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 4 May 2021 15:23:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39532 "EHLO
+        Wed, 5 May 2021 03:34:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58278 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232102AbhEDTXI (ORCPT
+        with ESMTP id S230490AbhEEHe1 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 4 May 2021 15:23:08 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4802C06174A;
-        Tue,  4 May 2021 12:22:12 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1le0cN-0006Tn-3N; Tue, 04 May 2021 21:22:03 +0200
-Date:   Tue, 4 May 2021 21:22:03 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
-Cc:     fw@strlen.de, Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Shuah Khan <shuah@kernel.org>,
-        open list <linux-kernel@vger.kernel.org>,
-        "open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
-        "open list:NETFILTER" <coreteam@netfilter.org>,
-        "open list:NETWORKING [GENERAL]" <netdev@vger.kernel.org>,
-        "open list:KERNEL SELFTEST FRAMEWORK" 
-        <linux-kselftest@vger.kernel.org>
-Subject: Re: [PATCH v3] netfilter: nf_conntrack: Add conntrack helper for
- ESP/IPsec
-Message-ID: <20210504192203.GA12364@breakpoint.cc>
-References: <20210426123743.GB975@breakpoint.cc>
- <20210503010646.11111-1-Cole.Dishington@alliedtelesis.co.nz>
+        Wed, 5 May 2021 03:34:27 -0400
+Received: from mail-pj1-x102d.google.com (mail-pj1-x102d.google.com [IPv6:2607:f8b0:4864:20::102d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33977C061574;
+        Wed,  5 May 2021 00:33:30 -0700 (PDT)
+Received: by mail-pj1-x102d.google.com with SMTP id t2-20020a17090ae502b029015b0fbfbc50so362803pjy.3;
+        Wed, 05 May 2021 00:33:30 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=BUAPIm3iMwQwqfPMRN4i1+zE77O5pOfChKH66VkGfDQ=;
+        b=X6iJm4caK45zSkCB2gggbLhoLyOSqpO8rHWLIIeInanGflnr+kFjAs9aPsUoLn98//
+         7IpQrcXnJbXQQhAvOUQlj5dh6lfQPUYYwXv+9nwmeXz+XSMDPAPa9kqT8rilOaYRqWaq
+         dnkrdiitxMsyQL90rv4Zn/fvMCT4I5twS9hlt6B1rB6FAUulizW2lJNl8sAPTFj+VIle
+         S7PugNCz4lg135XAQf+JMLHsXi+h4aPFuAuVIRBWbDdtT7nia0RssiKT6kWQbuG3M15a
+         p4qcP3pxYhQnRmBCF/EZ0GJ5UZkThA/X312M1JUf60iK4V34W5YJB/KD3mG3HA8GKHiR
+         1nAw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=BUAPIm3iMwQwqfPMRN4i1+zE77O5pOfChKH66VkGfDQ=;
+        b=OZz/3WKplbOFcUg3SZhaf2bgN1AdVaEJQtTsdS/IRJ4SPtBDP4MsZULUN81aPGDE+B
+         Xzt5VGvt37wibgvbwOBwWqzCuCIGU3sH7a6cxcuoTSZig4oe2HfaCIZii8qe/TBcdvAy
+         Z4Sa4p1zRK+27jSXE5KLAZ61dJZYmC141bYKQ5cN6cCE87EEeetIQrcqgJKAsryz1Q+R
+         l4o1dgLcOJlLQJPu82HXnNNixa5DZN700OqCSUtBJe2SAaWkjRoga160AKMZnTGIrsdP
+         qBHvpiinBXAfzA4ufxW87mJoLpBBSFyPH3L7rw0qxNwF23c7+Nz2grTzJtvqTvP/v8+5
+         zbEw==
+X-Gm-Message-State: AOAM532YPzVCxxmWW8zijQbM7tzVJI0rvoXEBMyG1/iW9gpE79gSAExD
+        pS630dH5IlYuGNBkJ0J91xU=
+X-Google-Smtp-Source: ABdhPJwbIYGzwJWIyFRWmHnr6CcLzKGuX5QhmS2n/xsVtiDUDoFnFYkrdqDisYJUhoFa5YGQnVB4gw==
+X-Received: by 2002:a17:90a:1b0b:: with SMTP id q11mr33576413pjq.181.1620200009686;
+        Wed, 05 May 2021 00:33:29 -0700 (PDT)
+Received: from edumazet1.svl.corp.google.com ([2620:15c:2c4:201:3f07:f342:703:2279])
+        by smtp.gmail.com with ESMTPSA id r32sm5488839pgm.49.2021.05.05.00.33.28
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 05 May 2021 00:33:28 -0700 (PDT)
+From:   Eric Dumazet <eric.dumazet@gmail.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Eric Dumazet <eric.dumazet@gmail.com>,
+        syzbot <syzkaller@googlegroups.com>
+Subject: [PATCH net] netfilter: nfnetlink: add a missing rcu_read_unlock()
+Date:   Wed,  5 May 2021 00:33:24 -0700
+Message-Id: <20210505073324.1985884-1-eric.dumazet@gmail.com>
+X-Mailer: git-send-email 2.31.1.527.g47e6f16901-goog
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210503010646.11111-1-Cole.Dishington@alliedtelesis.co.nz>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Cole Dishington <Cole.Dishington@alliedtelesis.co.nz> wrote:
-> Introduce changes to add ESP connection tracking helper to netfilter
-> conntrack. The connection tracking of ESP is based on IPsec SPIs. The
-> underlying motivation for this patch was to allow multiple VPN ESP
-> clients to be distinguished when using NAT.
-> 
-> Added config flag CONFIG_NF_CT_PROTO_ESP to enable the ESP/IPsec
-> conntrack helper.
-> 
-> Signed-off-by: Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
-> ---
-> 
-> Notes:
->     Thanks for your time reviewing!
->
->     Q.
->     > +static int esp_tuple_to_nlattr(struct sk_buff *skb,
->     > +                            const struct nf_conntrack_tuple *t)
->     > +{
->     > +     if (nla_put_be16(skb, CTA_PROTO_SRC_ESP_ID, t->src.u.esp.id) ||
->     > +         nla_put_be16(skb, CTA_PROTO_DST_ESP_ID, t->dst.u.esp.id))
->     > +             goto nla_put_failure;
->     
->     This exposes the 16 bit kernel-generated IDs, right?
->     Should this dump the real on-wire SPIs instead?
->     
->     Or is there are reason why the internal IDs need exposure?
->     
->     A.
->     I think I need to expose the internal esp ids here due to esp_nlattr_to_tuple().
->     If esp id was changed to real SPIs here I would be unable to lookup the correct
->     tuple (without IP addresses too).
+From: Eric Dumazet <edumazet@google.com>
+
+Reported by syzbot :
+BUG: sleeping function called from invalid context at include/linux/sched/mm.h:201
+in_atomic(): 0, irqs_disabled(): 0, non_block: 0, pid: 26899, name: syz-executor.5
+1 lock held by syz-executor.5/26899:
+ #0: ffffffff8bf797a0 (rcu_read_lock){....}-{1:2}, at: nfnetlink_get_subsys net/netfilter/nfnetlink.c:148 [inline]
+ #0: ffffffff8bf797a0 (rcu_read_lock){....}-{1:2}, at: nfnetlink_rcv_msg+0x1da/0x1300 net/netfilter/nfnetlink.c:226
+Preemption disabled at:
+[<ffffffff8917799e>] preempt_schedule_irq+0x3e/0x90 kernel/sched/core.c:5533
+CPU: 1 PID: 26899 Comm: syz-executor.5 Not tainted 5.12.0-next-20210504-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ ___might_sleep.cold+0x1f1/0x237 kernel/sched/core.c:8338
+ might_alloc include/linux/sched/mm.h:201 [inline]
+ slab_pre_alloc_hook mm/slab.h:500 [inline]
+ slab_alloc_node mm/slub.c:2845 [inline]
+ kmem_cache_alloc_node+0x33d/0x3e0 mm/slub.c:2960
+ __alloc_skb+0x20b/0x340 net/core/skbuff.c:413
+ alloc_skb include/linux/skbuff.h:1107 [inline]
+ nlmsg_new include/net/netlink.h:953 [inline]
+ netlink_ack+0x1ed/0xaa0 net/netlink/af_netlink.c:2437
+ netlink_rcv_skb+0x33d/0x420 net/netlink/af_netlink.c:2508
+ nfnetlink_rcv+0x1ac/0x420 net/netfilter/nfnetlink.c:650
+ netlink_unicast_kernel net/netlink/af_netlink.c:1312 [inline]
+ netlink_unicast+0x533/0x7d0 net/netlink/af_netlink.c:1338
+ netlink_sendmsg+0x856/0xd90 net/netlink/af_netlink.c:1927
+ sock_sendmsg_nosec net/socket.c:654 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:674
+ ____sys_sendmsg+0x6e8/0x810 net/socket.c:2350
+ ___sys_sendmsg+0xf3/0x170 net/socket.c:2404
+ __sys_sendmsg+0xe5/0x1b0 net/socket.c:2433
+ do_syscall_64+0x3a/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x4665f9
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fa8a03ee188 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 000000000056bf60 RCX: 00000000004665f9
+RDX: 0000000000000000 RSI: 0000000020000480 RDI: 0000000000000004
+RBP: 00000000004bfce1 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 000000000056bf60
+R13: 00007fffe864480f R14: 00007fa8a03ee300 R15: 0000000000022000
+
+================================================
+WARNING: lock held when returning to user space!
+5.12.0-next-20210504-syzkaller #0 Tainted: G        W
+------------------------------------------------
+syz-executor.5/26899 is leaving the kernel with locks still held!
+1 lock held by syz-executor.5/26899:
+ #0: ffffffff8bf797a0 (rcu_read_lock){....}-{1:2}, at: nfnetlink_get_subsys net/netfilter/nfnetlink.c:148 [inline]
+ #0: ffffffff8bf797a0 (rcu_read_lock){....}-{1:2}, at: nfnetlink_rcv_msg+0x1da/0x1300 net/netfilter/nfnetlink.c:226
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 26899 at kernel/rcu/tree_plugin.h:359 rcu_note_context_switch+0xfd/0x16e0 kernel/rcu/tree_plugin.h:359
+Modules linked in:
+CPU: 0 PID: 26899 Comm: syz-executor.5 Tainted: G        W         5.12.0-next-20210504-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:rcu_note_context_switch+0xfd/0x16e0 kernel/rcu/tree_plugin.h:359
+Code: 48 89 fa 48 c1 ea 03 0f b6 14 02 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 2e 0d 00 00 8b bd cc 03 00 00 85 ff 7e 02 <0f> 0b 65 48 8b 2c 25 00 f0 01 00 48 8d bd cc 03 00 00 48 b8 00 00
+RSP: 0000:ffffc90002fffdb0 EFLAGS: 00010002
+RAX: 0000000000000007 RBX: ffff8880b9c36080 RCX: ffffffff8dc99bac
+RDX: 0000000000000000 RSI: 0000000000000008 RDI: 0000000000000001
+RBP: ffff88808b9d1c80 R08: 0000000000000000 R09: ffffffff8dc96917
+R10: fffffbfff1b92d22 R11: 0000000000000000 R12: 0000000000000000
+R13: ffff88808b9d1c80 R14: ffff88808b9d1c80 R15: ffffc90002ff8000
+FS:  00007fa8a03ee700(0000) GS:ffff8880b9c00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f09896ed000 CR3: 0000000032070000 CR4: 00000000001526f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ __schedule+0x214/0x23e0 kernel/sched/core.c:5044
+ schedule+0xcf/0x270 kernel/sched/core.c:5226
+ exit_to_user_mode_loop kernel/entry/common.c:162 [inline]
+ exit_to_user_mode_prepare+0x13e/0x280 kernel/entry/common.c:208
+ irqentry_exit_to_user_mode+0x5/0x40 kernel/entry/common.c:314
+ asm_sysvec_reschedule_ipi+0x12/0x20 arch/x86/include/asm/idtentry.h:637
+RIP: 0033:0x4665f9
+
+Fixes: 50f2db9e368f ("netfilter: nfnetlink: consolidate callback types")
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Reported-by: syzbot <syzkaller@googlegroups.com>
+---
+ net/netfilter/nfnetlink.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index d7a9628b6cee50783dc033f17bc6492abe0d176d..e8dbd8379027e32cf3440624e8bb8622df1328a9 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -295,6 +295,7 @@ static int nfnetlink_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			nfnl_unlock(subsys_id);
+ 			break;
+ 		default:
++			rcu_read_unlock();
+ 			err = -EINVAL;
+ 			break;
+ 		}
+-- 
+2.31.1.527.g47e6f16901-goog
 
-Oh, right. I keep forgetting the ESP tracker hooks into the tuple
-creation function.  In that case I think it would be good to include the
-raw/on-wire ESP IDs as well when dumping so conntrack -L can print them.
-
-The internal numbers are seemingly pointless, except that you need them
-to populate the tuple, and can't obtain the internal numbers based on
-the on-wire ESP ID.
-
-The only other solution I see is to check presence of
-CTA_IP_DST|CTA_IP_SRC in 'flags', then take the ip addresses from the
-provided tuple, and do a lookup in the rhashtable with the addresses
-and the raw esp values.
-
-Obvious downside: This will force users to provide the ip address as
-well, search based on ESP value alone won't work anymore.
-
-[ Unless a full table walk is done, but that might be ambiguous
-  without the ip addresses, as on-wire ESP may not be unique ].
-
->    changes in v3:
->     - Flush all esp entries for a given netns on nf_conntrack_proto_pernet_fini
->     - Replace _esp_table (and its spinlock) shared over netns with per netns linked lists and bitmap (for esp ids)
->     - Init IPv6 any address with IN6ADDR_ANY_INIT rather than ipv6_addr_set()
->     - Change l3num on hash key from u16 to u8
->     - Add selftests file for testing tracker with ipv4 and ipv6
-
-Thanks for this.  Can you place the selftest in a 2/2 patch in v4?
-
-checkpatch doesn't like some whitespace, but I did not see any critical
-warnings.
-
-> diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-> index 439379ca9ffa..4011be8c5e39 100644
-> --- a/include/net/netfilter/nf_conntrack.h
-> @@ -47,6 +49,10 @@ struct nf_conntrack_net {
->  	unsigned int users4;
->  	unsigned int users6;
->  	unsigned int users_bridge;
-> +
-> +#ifdef CONFIG_NF_CT_PROTO_ESP
-> +	DECLARE_BITMAP(esp_id_map, 1024);
-
-Can we avoid the magic number?
-
-Either make this 1024 and then have the esp.c file use a define
-based on ARRAY_SIZE + BITS_PER_TYPE to 'recompute' the 1024 (or whatever
-the exact size give is), or add a #define and use that for the bitmap
-declaration, then use that consistently in the esp.c file.
-
-Or come up with an alternative solution.
-
->  #include <linux/types.h>
-> diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
-> diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
-> index 806454e767bf..43cd1e78f790 100644
-> --- a/include/net/netns/conntrack.h
-> +++ b/include/net/netns/conntrack.h
-> @@ -69,6 +69,20 @@ struct nf_gre_net {
->  };
->  #endif
->  
-> +#ifdef CONFIG_NF_CT_PROTO_ESP
-> +enum esp_conntrack {
-> +	ESP_CT_UNREPLIED,
-> +	ESP_CT_REPLIED,
-> +	ESP_CT_MAX
-> +};
-> +
-> +struct nf_esp_net {
-> +	spinlock_t id_list_lock;
-> +	struct list_head id_list;
-
-Can you place the list_id/_lock in nf_conntrack_net structure?
-
-The nf_esp_net is placed in 'struct net', the other one is allocated
-only when the conntrack module is loaded.
-
-> +	unsigned int esp_timeouts[ESP_CT_MAX];
-
-This is fine.
-
->  	CTA_PROTO_ICMPV6_TYPE,
->  	CTA_PROTO_ICMPV6_CODE,
-> +	CTA_PROTO_SRC_ESP_ID,
-> +	CTA_PROTO_DST_ESP_ID,
-
-See above, if the internal IDs have to be exposed,
-this should be something like:
-
-> +	CTA_PROTO_SRC_ESP_ID,
-> +	CTA_PROTO_DST_ESP_ID,
-> +	CTA_PROTO_SRC_ESP_SPI,
-> +	CTA_PROTO_DST_ESP_SPI,
-
-... with the latter two exposing the __be32 of the ESP tunnel.
-You could also just re-use existing CTA_SRC_PORT/DST_PORT for the
-internal esp ids given that ESP has no ports.
-
-I will leave that up to you though, we don't have to avoid new
-enums here.
-
-> +#ifdef CONFIG_NF_CT_PROTO_ESP
-> +	ret = nf_conntrack_esp_init();
-> +	if (ret < 0)
-> +		goto cleanup_sockopt;
-
-Ouch, thats a bug in the existing code, I will send a patch.
-
-> diff --git a/net/netfilter/nf_conntrack_proto_esp.c b/net/netfilter/nf_conntrack_proto_esp.c
-> new file mode 100644
-> index 000000000000..1bc0cb879bfd
-> --- /dev/null
-> +++ b/net/netfilter/nf_conntrack_proto_esp.c
-> @@ -0,0 +1,741 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * <:copyright-gpl
-> + * Copyright 2008 Broadcom Corp. All Rights Reserved.
-> + * Copyright (C) 2021 Allied Telesis Labs NZ
-> + *
-> + * This program is free software; you can distribute it and/or modify it
-> + * under the terms of the GNU General Public License (Version 2) as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope it will be useful, but WITHOUT
-> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-> + * for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License along
-> + * with this program.
-> + * :>
-
-The SPDX tag is enough, the GPL boilerplate can be removed.
-
-> +static void free_esp_entry(struct nf_conntrack_net *cnet, struct _esp_entry *esp_entry)
-> +{
-> +	if (esp_entry) {
-> +		/* Remove from all the hash tables */
-> +		pr_debug("Removing entry %x from all tables", esp_entry->esp_id);
-> +		list_del(&esp_entry->net_node);
-> +		rhashtable_remove_fast(&ltable, &esp_entry->lnode, ltable_params);
-> +		rhashtable_remove_fast(&rtable, &esp_entry->rnode, rtable_params);
-> +		rhltable_remove(&incmpl_rtable, &esp_entry->incmpl_rlist, incmpl_rtable_params);
-> +		clear_bit(esp_entry->esp_id - TEMP_SPI_START, cnet->esp_id_map);
-> +		kfree(esp_entry);
-> +	}
-> +}
-> +
-> +/* Free an entry referred to by esp_id.
-> + *
-> + * NOTE:
-> + * Per net linked list locking and unlocking is the responsibility of the calling function.
-
-Why? I think it makes more sense to lock/unlock in free_esp_entry, when
-the 'list_del(->net_node)' is done.
-
-> + * NOTE: This function may block on per net list lock.
-
-Is that important?  Its a spinlock, so noone should hold it for
-long period. search_esp_entry_by_spi() has same comment and in that
-case its not used in most cases.
-
-> +	spin_lock(&esp_net->id_list_lock);
-> +	list_add(&esp_entry->net_node, &esp_net->id_list);
-
-spin_lock_bh() ?
-
-> +		err = rhashtable_insert_fast(&rtable, &esp_entry->rnode, rtable_params);
-> +		if (err) {
-> +			struct nf_esp_net *esp_net = esp_pernet(net);
-> +
-> +			spin_lock(&esp_net->id_list_lock);
-
-spin_lock_bh?  And why does the entire free_esp_entry_by_id() need this
-lock?
-
-> +		}
-> +		esp_entry->l_spi = spi;
-> +		esp_entry->l3num = tuple->src.l3num;
-> +		esp_ip_addr_copy(esp_entry->l3num, &esp_entry->l_ip, &tuple->src.u3);
-> +		esp_ip_addr_copy(esp_entry->l3num, &esp_entry->r_ip, &tuple->dst.u3);
-> +
-> +		/* Add entries to the hash tables */
-> +
-> +		calculate_key(net_hmix, esp_entry->l_spi, esp_entry->l3num, &esp_entry->l_ip,
-> +			      &esp_entry->r_ip, &key);
-> +		esp_entry_old = rhashtable_lookup_get_insert_key(&ltable, &key, &esp_entry->lnode,
-> +								 ltable_params);
-> +		if (esp_entry_old) {
-> +			spin_lock(&esp_net->id_list_lock);
-> +
-> +			if (IS_ERR(esp_entry_old)) {
-> +				free_esp_entry_by_id(net, esp_entry->esp_id);
-> +				spin_unlock(&esp_net->id_list_lock);
-> +				return false;
-> +			}
-> +
-> +			free_esp_entry_by_id(net, esp_entry->esp_id);
-
-This looks weird.  Both branches contain the same free_esp_entry_by_id() call.
-
-I suspect this should be something like this:
-
-	if (esp_entry_old) {
-		free_esp_entry(net, esp_entry);
-
-		if (IS_ERR(esp_entry_old))
-			return false;
-
-		esp_entry = esp_entry_old;
-
-... because we want to remove the entry we allocated right before in the
-same function, so why would be have to search by id?
-
-> +		}
-> +		/* esp_entry_old == NULL -- insertion successful */
-
-Probably better to avoid this comment, and, if needed, add a 'insertion
-raced, other CPU added same entry' or similar, in the if (esp_entry_old)
-case.
-
-Up to you.
-
-> +/* Returns verdict for packet, and may modify conntrack */
-> +int nf_conntrack_esp_packet(struct nf_conn *ct, struct sk_buff *skb,
-> +			    unsigned int dataoff,
-> +			    enum ip_conntrack_info ctinfo,
-> +			    const struct nf_hook_state *state)
-> +{
-> +	int esp_id;
-> +	struct nf_conntrack_tuple *tuple;
-> +	unsigned int *timeouts = nf_ct_timeout_lookup(ct);
-> +	struct nf_esp_net *esp_net = esp_pernet(nf_ct_net(ct));
-> +
-> +	if (!timeouts)
-> +		timeouts = esp_net->esp_timeouts;
-> +
-> +	/* If we've seen traffic both ways, this is some kind of ESP
-> +	 * stream.  Extend timeout.
-> +	 */
-> +	if (test_bit(IPS_SEEN_REPLY_BIT, &ct->status)) {
-> +		nf_ct_refresh_acct(ct, ctinfo, skb, timeouts[ESP_CT_REPLIED]);
-> +		/* Also, more likely to be important, and not a probe */
-> +		if (!test_and_set_bit(IPS_ASSURED_BIT, &ct->status)) {
-> +			/* Was originally IPCT_STATUS but this is no longer an option.
-> +			 * GRE uses assured for same purpose
-> +			 */
-
-Please remove the above comment, almost noone remembers what
-IPCT_STATUS was 8-)
-
-> +			esp_id = tuple->src.u.esp.id;
-> +			if (esp_id >= TEMP_SPI_START && esp_id <= TEMP_SPI_MAX) {
-> +				struct _esp_entry *esp_entry;
-> +
-> +				spin_lock(&esp_net->id_list_lock);
-> +				esp_entry = find_esp_entry_by_id(esp_net, esp_id);
-
-There should be no list walk from packet path.  I would suggest to add
-another rhashtable for this, or switch entire id allocation to IDR.
-
-If you go for idr, you can place the idr root in nf_esp_net since its
-going to be used in lookup path too.  idr can be used with rcu (for
-read accesses).
-
-This is my mistake, I did not realize the need for per-id lookup via
-this list, I thought the existing rhashtables already covered this.
-
-I thought the only need for this list was to quickly remove all the
-allocated entries on netns teardown.
-
-[ walking a (shared across all netns) rhashtable on netns destruction
-  can be expensive ]
-
-> +void nf_ct_esp_pernet_flush(struct net *net)
-> +{
-> +	struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
-> +	struct nf_esp_net *esp_net = esp_pernet(net);
-> +	struct list_head *pos, *tmp, *head = &esp_net->id_list;
-> +	struct _esp_entry *esp_entry;
-> +
-> +	spin_lock(&esp_net->id_list_lock);
-> +	list_for_each_safe(pos, tmp, head) {
-
-list_for_each_entry_safe()?
-
-> +		esp_entry = list_entry(pos, struct _esp_entry, net_node);
-> +		free_esp_entry(cnet, esp_entry);
-> +	}
-> +	spin_unlock(&esp_net->id_list_lock);
-
-I think it would be better to move the list lock/unlock to only cover
-the single list_del operation to make it clear that this lock only
-guards the list and nothing else.
-
-> +/* Called when a conntrack entry has already been removed from the hashes
-> + * and is about to be deleted from memory
-> + */
-> +void destroy_esp_conntrack_entry(struct nf_conn *ct)
-> +{
-> +	struct nf_conntrack_tuple *tuple;
-> +	enum ip_conntrack_dir dir;
-> +	int esp_id;
-> +	struct net *net = nf_ct_net(ct);
-> +	struct nf_esp_net *esp_net = esp_pernet(net);
-
-Nit: some people (not me) are very obsessed with reverse xmas tree
-ordering, i.e.
-
-	struct nf_esp_net *esp_net = esp_pernet(net);
-	struct net *net = nf_ct_net(ct);
-	struct nf_conntrack_tuple *tuple;
-	enum ip_conntrack_dir dir;
-	int esp_id;
-
-In addition, could you please use 'unsigned' except when you need to
-store numbers < 0?
-
-> +	 * but the free function handles repeated frees, so best to do them all.
-> +	 */
-> +	for (dir = IP_CT_DIR_ORIGINAL; dir < IP_CT_DIR_MAX; dir++) {
-> +		tuple = nf_ct_tuple(ct, dir);
-> +
-> +		spin_lock(&esp_net->id_list_lock);
-> +
-> +		esp_id = tuple->src.u.esp.id;
-> +		if (esp_id >= TEMP_SPI_START && esp_id <= TEMP_SPI_MAX)
-> +			free_esp_entry_by_id(net, esp_id);
-
-I find this repeated use of esp_id >= && <= ... confusing. Why is this
-needed?
-
-Could you move this down to where you need to protect illegal memory
-accesses or similar, so this is just
-
-   free_esp_entry_by_id(net, esp_id) ?
-
-Also, I think it might be better to instead do this:
-
-esp_id_src = tuple->src.u.esp.id;
-tuple = nf_ct_tuple(ct, IP_CT_DIR_REPLY);
-esp_id_repl = tuple->src.u.esp.id;
-
-free_esp_entry_by_id(net, esp_id_orig);
-if (esp_id_orig != esp_id_repl)
-  free_esp_entry_by_id(net, esp_id_repl);
-
-This avoids race with esp_id reallocation after the first
-clear_bit().
-
-I wonder if it would be possible to change how the assocation of the
-reverse direction works.
-
-1. Only use on-wire SPI value (no internal 'esp id' allocation anymore)
-
-2. Use expectation infrastructure to associate the 'reverse' direction
-   with the existing/orignal conntrack entry instead.
-
-For ORIGINAL, the ESP Id gets split in two 16 bit halves, stored in the tuple
-(so instead of tcp sport x dport y), it would be spi & 0xffff  && spi << 16.
-
-This avoids size increase of the tuple, and we don't change the way tuples work,
-i.e. all contents of the tuple are derived from packet header fields.
-
-1. esp_pkt_to_tuple extracts the 32bit SPI, fills the tuple
-   with the two 16bit halves.
-
-2. esp_pkt_to_tuple does SPI lookup (just like now).
-   found full match -> done
-
-3. no match?
-   Basically do what search_esp_entry_init_remote() does, i.e.
-   check if its a 'reverse direction'.
-
-Otherwise, assume the new connection is the reverse tunnel of an existing
-connection.
-
-Add an expectation for this connection, so it will be picked up as RELATED
-rather than new. 
-
-As far as I can see, all that is needed for the expectations can be
-found using info stored in the rhashtable(s).
-
-nf_conntrack_find_get() finds us the existing conntrack entry
-that we need to pass to nf_ct_expect_alloc().
-
-The needed tuple could just be stored in the rhltable that gets
-searched in search_esp_entry_init_remote().
-
-Everything else we need for nf_ct_expect_init() is already present
-in the tuple.
-
-This creates a related conntrack entry that is linked to the existing
-connection.
-
-Do you see anything that prevents this from working or has other,
-undesireable properties vs. the existing proposal?
-
-This would also be easier to review, since it could be layered:
-
-First patch would just add a really simple ESP tracker that just
-extracts the SPI, without any rhashtable usage.
-
-Just enough code to make it so 'conntrack -L' or the older /proc file show each
-address/spi as independent connection, rather than just the single
-'generic' entry.
-
-Then, add the rhashtable code and the hooks you already have to clear
-out entries on netns removal and when a conntrack gets destroyed.
-
-Then, in a 3rd patch, add the expectation code, so that a 'new'
-connection turns into a related one if the rhtable/rhlist finds
-something relevant.
-
-What do you think?
