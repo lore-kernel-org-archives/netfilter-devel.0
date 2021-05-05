@@ -2,96 +2,149 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7979FC433ED
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 May 2021 19:20:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C61B0C433B4
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 May 2021 19:54:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2C85961166
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 May 2021 19:20:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 87839613C9
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 May 2021 19:54:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234600AbhEETVL (ORCPT
+        id S234050AbhEETy5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 5 May 2021 15:21:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47098 "EHLO
+        Wed, 5 May 2021 15:54:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54588 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234247AbhEETVL (ORCPT
+        with ESMTP id S230437AbhEETy5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 5 May 2021 15:21:11 -0400
-Received: from mail-pg1-x532.google.com (mail-pg1-x532.google.com [IPv6:2607:f8b0:4864:20::532])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB1FBC061574;
-        Wed,  5 May 2021 12:20:14 -0700 (PDT)
-Received: by mail-pg1-x532.google.com with SMTP id t22so2556816pgu.0;
-        Wed, 05 May 2021 12:20:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:subject:message-id:mime-version:content-disposition;
-        bh=xG4CkhP31fGArm2BMLtxriorMyFvjtjk47bw7VlRKzQ=;
-        b=UBuxliqgU/jcTAw8Kbd9hcrNymLe6XxzAsEDP+YUNx/iyLGwiZTYwSUtji6qySa0dP
-         u5/02El2GJPArH/QIurSjD6FouToTFfNJtwLBvDQ2THi+pqwr4ThDXYBY8IxVYqdUWWE
-         NzRKWM0xerpQeT63F3zhyi2MBXq+dyytCG/+LRdyjTQ2sjJo6xPrOLDACYVm9fzQtgUw
-         6jD+XexWDjTqgoVT+5qQT/w+PfkIA49O9gQhi1qfipONMprQmcQjndtxkI8b01Ribhy1
-         /PHkromTS+OOQ+0iiqYRstpDG+E26Eq9OAMlAKkuwUO7UbkxUUdqOgv5rhb+N8Yn+cP5
-         y+tw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:subject:message-id:mime-version
-         :content-disposition;
-        bh=xG4CkhP31fGArm2BMLtxriorMyFvjtjk47bw7VlRKzQ=;
-        b=Q/eRKgJuxFpnbvF41faGDwN5g0prYlMolIwZIjc9Xg2BzQrmaCLIFO3Wo9Fly3/jMc
-         zdnGyAbIM82Uac59dm/hgJ40J6hUSA/DkDcbsRJYWwQ1/eXqLlO2efJwn7+Mgd1Zwpv0
-         Uzu4HELyzWBHoK5SiZ9QSLVLX6XZaEODlc1Bw/HVQS63nuR3vzE81WGhLzdXNBcFP1Md
-         qmj3cGHZw9P6vIAMMft8OJvAKEx0Bd/tyZY1o7MWE36lcd+Y7Ki2ubzgwGnShixstHSd
-         OO3wwAw0tc0QgoQxOq6WNXQSQuqhV9cOVZaZXRdHmN8wnO2P5rkQlWuGkZrP44K7KO4Y
-         nZBQ==
-X-Gm-Message-State: AOAM533ZaM4pZnvTXIC/XOpubc7j4Gn7X3tbOvpu5QZfY35L8qlIt7Vj
-        YZG9BevZcSrDiT8l/SD+36SE+hFyd/II4epvuT0=
-X-Google-Smtp-Source: ABdhPJy39W09PsKtkxJu5IB4oPqjNz+pvbDgZJtRPBmayBoiMDJtBcUkUXuL7y4B/ZmXZRp4Y4rj+g==
-X-Received: by 2002:a65:4286:: with SMTP id j6mr439992pgp.261.1620242414301;
-        Wed, 05 May 2021 12:20:14 -0700 (PDT)
-Received: from pallavi ([106.206.111.61])
-        by smtp.gmail.com with ESMTPSA id b6sm73468pjk.13.2021.05.05.12.20.10
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 05 May 2021 12:20:13 -0700 (PDT)
-Date:   Thu, 6 May 2021 00:50:07 +0530
-From:   Pallavi Prabhu <rpallaviprabhu@gmail.com>
-To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
-        davem@davemloft.net, yoshfuji@linux-ipv6.org, dsahern@kernel.org,
-        kuba@kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] ipv6: netfilter.c: fix missing line after declaration
-Message-ID: <20210505192007.GA12080@pallavi>
+        Wed, 5 May 2021 15:54:57 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D0C9C061574
+        for <netfilter-devel@vger.kernel.org>; Wed,  5 May 2021 12:53:59 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1leNal-000668-18; Wed, 05 May 2021 21:53:55 +0200
+Date:   Wed, 5 May 2021 21:53:54 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Ali Abdallah <ali.abdallah@suse.com>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] Avoid potentially erroneos RST drop.
+Message-ID: <YJL30q7mCUezag48@strlen.de>
+References: <20210430093601.zibczc4cjnwx3qwn@Fryzen495>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <20210430093601.zibczc4cjnwx3qwn@Fryzen495>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Fixed a missing line after a declaration for proper coding style.
+Ali Abdallah <ali.abdallah@suse.com> wrote:
+> In ignore state, we let SYN goes in original, the server might respond
+> with RST/ACK, and that RST packet is erroneously dropped because of the
+> flag IP_CT_TCP_FLAG_MAXACK_SET being already set. So we reset the flag
+> in this case.
+> 
+> Unfortunately that might not be enough, an out of order ACK in origin
+> might reset it back, and we might end up again dropping a valid RST when
+> the server responds with RST SEQ=0.
+> 
+> The patch disables also the RST check when we are not in established
+> state and we receive an RST with SEQ=0 that is most likely a response to
+> a SYN we had let it go through.
 
-Signed-off-by: Pallavi Prabhu <rpallaviprabhu@gmail.com>
----
- net/ipv6/netfilter.c | 1 +
- 1 file changed, 1 insertion(+)
+Ali, sorry for coming back to this again and again.
 
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index ab9a279dd6d4..7b1671f48593 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -81,6 +81,7 @@ static int nf_ip6_reroute(struct sk_buff *skb,
+What do you think of this change?
+
+Its an incremental change on top of your patch.
+
+The only real change is that this will skip window check if
+conntrack thinks connection is closing already.
+
+In addition, tcp window check is skipped in that case.
+
+This is supposed to expedite conntrack eviction in case of tuple reuse
+by some nat/pat middlebox, or a peer that has lower timeouts than
+conntrack before a port is re-used.
+
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -834,6 +834,22 @@ static noinline bool tcp_new(struct nf_conn *ct, const struct sk_buff *skb,
+ 	return true;
+ }
  
- 	if (entry->state.hook == NF_INET_LOCAL_OUT) {
- 		const struct ipv6hdr *iph = ipv6_hdr(skb);
++static bool tcp_can_early_drop(const struct nf_conn *ct)
++{
++	switch (ct->proto.tcp.state) {
++	case TCP_CONNTRACK_FIN_WAIT:
++	case TCP_CONNTRACK_LAST_ACK:
++	case TCP_CONNTRACK_TIME_WAIT:
++	case TCP_CONNTRACK_CLOSE:
++	case TCP_CONNTRACK_CLOSE_WAIT:
++		return true;
++	default:
++		break;
++	}
 +
- 		if (!ipv6_addr_equal(&iph->daddr, &rt_info->daddr) ||
- 		    !ipv6_addr_equal(&iph->saddr, &rt_info->saddr) ||
- 		    skb->mark != rt_info->mark)
--- 
-2.25.1
-
++	return false;
++}
++
+ /* Returns verdict for packet, or -1 for invalid. */
+ int nf_conntrack_tcp_packet(struct nf_conn *ct,
+ 			    struct sk_buff *skb,
+@@ -1053,8 +1069,16 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
+ 			/* If we are not in established state, and an RST is
+ 			 * observed with SEQ=0, this is most likely an answer
+ 			 * to a SYN we had let go through above.
++			 *
++			 * Also expedite conntrack destruction: If we were already
++			 * closing, peer or NAT/PAT might already have reused tuple.
+ 			 */
+-			if (seq == 0 && !nf_conntrack_tcp_established(ct))
++			if (!nf_conntrack_tcp_established(ct)) {
++				if (seq == 0 || tcp_can_early_drop(ct))
++					goto in_window;
++			}
++
++			if (seq == ct->proto.tcp.seen[!dir].td_maxack)
+ 				break;
+ 
+ 			if (before(seq, ct->proto.tcp.seen[!dir].td_maxack)) {
+@@ -1066,10 +1090,6 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
+ 				return -NF_ACCEPT;
+ 			}
+ 
+-			if (!nf_conntrack_tcp_established(ct) ||
+-			    seq == ct->proto.tcp.seen[!dir].td_maxack)
+-				break;
+-
+ 			/* Check if rst is part of train, such as
+ 			 *   foo:80 > bar:4379: P, 235946583:235946602(19) ack 42
+ 			 *   foo:80 > bar:4379: R, 235946602:235946602(0)  ack 42
+@@ -1181,22 +1201,6 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
+ 	return NF_ACCEPT;
+ }
+ 
+-static bool tcp_can_early_drop(const struct nf_conn *ct)
+-{
+-	switch (ct->proto.tcp.state) {
+-	case TCP_CONNTRACK_FIN_WAIT:
+-	case TCP_CONNTRACK_LAST_ACK:
+-	case TCP_CONNTRACK_TIME_WAIT:
+-	case TCP_CONNTRACK_CLOSE:
+-	case TCP_CONNTRACK_CLOSE_WAIT:
+-		return true;
+-	default:
+-		break;
+-	}
+-
+-	return false;
+-}
+-
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+ 
+ #include <linux/netfilter/nfnetlink.h>
