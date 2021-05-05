@@ -2,56 +2,49 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3164C433ED
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 May 2021 15:25:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9600BC433B4
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 May 2021 16:18:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9DB306112D
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 May 2021 15:25:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7550160FD9
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 May 2021 16:18:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232262AbhEEP0p (ORCPT
+        id S233847AbhEEQTG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 5 May 2021 11:26:45 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:44274 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229775AbhEEP0o (ORCPT
+        Wed, 5 May 2021 12:19:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34494 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233830AbhEEQTF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 5 May 2021 11:26:44 -0400
-Received: from us.es (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 6D6216412D;
-        Wed,  5 May 2021 17:25:03 +0200 (CEST)
-Date:   Wed, 5 May 2021 17:25:44 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Eric Dumazet <eric.dumazet@gmail.com>
-Cc:     Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        syzbot <syzkaller@googlegroups.com>
-Subject: Re: [PATCH net] netfilter: nfnetlink: add a missing rcu_read_unlock()
-Message-ID: <20210505152544.GA18093@salvia>
-References: <20210505073324.1985884-1-eric.dumazet@gmail.com>
+        Wed, 5 May 2021 12:19:05 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4AD30C061574
+        for <netfilter-devel@vger.kernel.org>; Wed,  5 May 2021 09:18:09 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1leKDu-00047m-8G; Wed, 05 May 2021 18:18:06 +0200
+Date:   Wed, 5 May 2021 18:18:06 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH 1/3] scanner: sctp: Move to own scope
+Message-ID: <20210505161806.GA23673@breakpoint.cc>
+References: <20210504170148.25226-1-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210505073324.1985884-1-eric.dumazet@gmail.com>
+In-Reply-To: <20210504170148.25226-1-phil@nwl.cc>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, May 05, 2021 at 12:33:24AM -0700, Eric Dumazet wrote:
-> From: Eric Dumazet <edumazet@google.com>
-> 
-> Reported by syzbot :
-> BUG: sleeping function called from invalid context at include/linux/sched/mm.h:201
-> in_atomic(): 0, irqs_disabled(): 0, non_block: 0, pid: 26899, name: syz-executor.5
-> 1 lock held by syz-executor.5/26899:
->  #0: ffffffff8bf797a0 (rcu_read_lock){....}-{1:2}, at: nfnetlink_get_subsys net/netfilter/nfnetlink.c:148 [inline]
->  #0: ffffffff8bf797a0 (rcu_read_lock){....}-{1:2}, at: nfnetlink_rcv_msg+0x1da/0x1300 net/netfilter/nfnetlink.c:226
-[...]
+Phil Sutter <phil@nwl.cc> wrote:
+> This isolates only "vtag" token for now.
 
-Applied, thanks.
+Reviewed-by: Florian Westphal <fw@strlen.de>
