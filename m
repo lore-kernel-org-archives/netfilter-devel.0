@@ -2,52 +2,62 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57682C433B4
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 May 2021 20:30:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF46FC433B4
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 May 2021 20:45:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2DD26613DD
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 May 2021 20:30:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 92F74613E9
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 May 2021 20:45:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233831AbhEEUbV (ORCPT
+        id S229889AbhEEUqX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 5 May 2021 16:31:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34500 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233965AbhEEUbU (ORCPT
+        Wed, 5 May 2021 16:46:23 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:45798 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229879AbhEEUqX (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 5 May 2021 16:31:20 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A3D2C061574
-        for <netfilter-devel@vger.kernel.org>; Wed,  5 May 2021 13:30:23 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1leO9z-0006IF-Tz; Wed, 05 May 2021 22:30:19 +0200
-Date:   Wed, 5 May 2021 22:30:19 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH 3/3] exthdr: Implement SCTP Chunk matching
-Message-ID: <20210505203019.GC12364@breakpoint.cc>
-References: <20210504170148.25226-1-phil@nwl.cc>
- <20210504170148.25226-3-phil@nwl.cc>
+        Wed, 5 May 2021 16:46:23 -0400
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id D7E52605AA
+        for <netfilter-devel@vger.kernel.org>; Wed,  5 May 2021 22:44:41 +0200 (CEST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf] netfilter: nfnetlink_osf: Fix a missing skb_header_pointer() NULL check
+Date:   Wed,  5 May 2021 22:45:21 +0200
+Message-Id: <20210505204521.2514-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210504170148.25226-3-phil@nwl.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Phil Sutter <phil@nwl.cc> wrote:
-> Extend exthdr expression to support scanning through SCTP packet chunks
-> and matching on fixed fields' values.
+Do not assume that the tcph->doff field is correct when parsing for TCP
+options, skb_header_pointer() might fail to fetch these bits.
 
-LGTM,
-Acked-by: Florian Westphal <fw@strlen.de>
+Fixes: 11eeef41d5f6 ("netfilter: passive OS fingerprint xtables match")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nfnetlink_osf.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/net/netfilter/nfnetlink_osf.c b/net/netfilter/nfnetlink_osf.c
+index e8f8875c6884..0fa2e2030427 100644
+--- a/net/netfilter/nfnetlink_osf.c
++++ b/net/netfilter/nfnetlink_osf.c
+@@ -186,6 +186,8 @@ static const struct tcphdr *nf_osf_hdr_ctx_init(struct nf_osf_hdr_ctx *ctx,
+ 
+ 		ctx->optp = skb_header_pointer(skb, ip_hdrlen(skb) +
+ 				sizeof(struct tcphdr), ctx->optsize, opts);
++		if (!ctx->optp)
++			return NULL;
+ 	}
+ 
+ 	return tcp;
+-- 
+2.30.2
+
