@@ -2,49 +2,96 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9600BC433B4
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 May 2021 16:18:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7979FC433ED
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 May 2021 19:20:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7550160FD9
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 May 2021 16:18:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2C85961166
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 May 2021 19:20:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233847AbhEEQTG (ORCPT
+        id S234600AbhEETVL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 5 May 2021 12:19:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34494 "EHLO
+        Wed, 5 May 2021 15:21:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47098 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233830AbhEEQTF (ORCPT
+        with ESMTP id S234247AbhEETVL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 5 May 2021 12:19:05 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4AD30C061574
-        for <netfilter-devel@vger.kernel.org>; Wed,  5 May 2021 09:18:09 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1leKDu-00047m-8G; Wed, 05 May 2021 18:18:06 +0200
-Date:   Wed, 5 May 2021 18:18:06 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH 1/3] scanner: sctp: Move to own scope
-Message-ID: <20210505161806.GA23673@breakpoint.cc>
-References: <20210504170148.25226-1-phil@nwl.cc>
+        Wed, 5 May 2021 15:21:11 -0400
+Received: from mail-pg1-x532.google.com (mail-pg1-x532.google.com [IPv6:2607:f8b0:4864:20::532])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB1FBC061574;
+        Wed,  5 May 2021 12:20:14 -0700 (PDT)
+Received: by mail-pg1-x532.google.com with SMTP id t22so2556816pgu.0;
+        Wed, 05 May 2021 12:20:14 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:subject:message-id:mime-version:content-disposition;
+        bh=xG4CkhP31fGArm2BMLtxriorMyFvjtjk47bw7VlRKzQ=;
+        b=UBuxliqgU/jcTAw8Kbd9hcrNymLe6XxzAsEDP+YUNx/iyLGwiZTYwSUtji6qySa0dP
+         u5/02El2GJPArH/QIurSjD6FouToTFfNJtwLBvDQ2THi+pqwr4ThDXYBY8IxVYqdUWWE
+         NzRKWM0xerpQeT63F3zhyi2MBXq+dyytCG/+LRdyjTQ2sjJo6xPrOLDACYVm9fzQtgUw
+         6jD+XexWDjTqgoVT+5qQT/w+PfkIA49O9gQhi1qfipONMprQmcQjndtxkI8b01Ribhy1
+         /PHkromTS+OOQ+0iiqYRstpDG+E26Eq9OAMlAKkuwUO7UbkxUUdqOgv5rhb+N8Yn+cP5
+         y+tw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:subject:message-id:mime-version
+         :content-disposition;
+        bh=xG4CkhP31fGArm2BMLtxriorMyFvjtjk47bw7VlRKzQ=;
+        b=Q/eRKgJuxFpnbvF41faGDwN5g0prYlMolIwZIjc9Xg2BzQrmaCLIFO3Wo9Fly3/jMc
+         zdnGyAbIM82Uac59dm/hgJ40J6hUSA/DkDcbsRJYWwQ1/eXqLlO2efJwn7+Mgd1Zwpv0
+         Uzu4HELyzWBHoK5SiZ9QSLVLX6XZaEODlc1Bw/HVQS63nuR3vzE81WGhLzdXNBcFP1Md
+         qmj3cGHZw9P6vIAMMft8OJvAKEx0Bd/tyZY1o7MWE36lcd+Y7Ki2ubzgwGnShixstHSd
+         OO3wwAw0tc0QgoQxOq6WNXQSQuqhV9cOVZaZXRdHmN8wnO2P5rkQlWuGkZrP44K7KO4Y
+         nZBQ==
+X-Gm-Message-State: AOAM533ZaM4pZnvTXIC/XOpubc7j4Gn7X3tbOvpu5QZfY35L8qlIt7Vj
+        YZG9BevZcSrDiT8l/SD+36SE+hFyd/II4epvuT0=
+X-Google-Smtp-Source: ABdhPJy39W09PsKtkxJu5IB4oPqjNz+pvbDgZJtRPBmayBoiMDJtBcUkUXuL7y4B/ZmXZRp4Y4rj+g==
+X-Received: by 2002:a65:4286:: with SMTP id j6mr439992pgp.261.1620242414301;
+        Wed, 05 May 2021 12:20:14 -0700 (PDT)
+Received: from pallavi ([106.206.111.61])
+        by smtp.gmail.com with ESMTPSA id b6sm73468pjk.13.2021.05.05.12.20.10
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 05 May 2021 12:20:13 -0700 (PDT)
+Date:   Thu, 6 May 2021 00:50:07 +0530
+From:   Pallavi Prabhu <rpallaviprabhu@gmail.com>
+To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net, yoshfuji@linux-ipv6.org, dsahern@kernel.org,
+        kuba@kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] ipv6: netfilter.c: fix missing line after declaration
+Message-ID: <20210505192007.GA12080@pallavi>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210504170148.25226-1-phil@nwl.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Phil Sutter <phil@nwl.cc> wrote:
-> This isolates only "vtag" token for now.
+Fixed a missing line after a declaration for proper coding style.
 
-Reviewed-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pallavi Prabhu <rpallaviprabhu@gmail.com>
+---
+ net/ipv6/netfilter.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
+index ab9a279dd6d4..7b1671f48593 100644
+--- a/net/ipv6/netfilter.c
++++ b/net/ipv6/netfilter.c
+@@ -81,6 +81,7 @@ static int nf_ip6_reroute(struct sk_buff *skb,
+ 
+ 	if (entry->state.hook == NF_INET_LOCAL_OUT) {
+ 		const struct ipv6hdr *iph = ipv6_hdr(skb);
++
+ 		if (!ipv6_addr_equal(&iph->daddr, &rt_info->daddr) ||
+ 		    !ipv6_addr_equal(&iph->saddr, &rt_info->saddr) ||
+ 		    skb->mark != rt_info->mark)
+-- 
+2.25.1
+
