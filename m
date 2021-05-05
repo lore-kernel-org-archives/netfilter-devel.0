@@ -2,158 +2,73 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.9 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CEAE4C433ED
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 May 2021 21:50:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 213C5C433B4
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 May 2021 22:23:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AAA4F61042
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 May 2021 21:50:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F15D0613D6
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 May 2021 22:23:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229488AbhEEVvZ (ORCPT
+        id S233847AbhEEWY0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 5 May 2021 17:51:25 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:45866 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229687AbhEEVvY (ORCPT
+        Wed, 5 May 2021 18:24:26 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:57067 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S229997AbhEEWYZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 5 May 2021 17:51:24 -0400
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 68DB263087
-        for <netfilter-devel@vger.kernel.org>; Wed,  5 May 2021 23:49:42 +0200 (CEST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v2] netfilter: remove BUG_ON() after skb_header_pointer()
-Date:   Wed,  5 May 2021 23:50:23 +0200
-Message-Id: <20210505215023.12473-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Wed, 5 May 2021 18:24:25 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1620253405;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=omSKo88GY/N5o6PcoB6p3bgJjXIAoPidF3hkjwbKxfk=;
+        b=HkEuX9Qfzms+zlpNL/ljiZulLk5phv8Wyf+Ag2yzwh5XDMAermy4rwM/bpyLo90MOWXda8
+        q073V7zSAyMv5TLxxsuaj644HSfSZclwimvPsTYB5tGeoItNPniyo4qVHv7GePC46zPlId
+        yqSSA/3npx312UHB5avtvkvHFCzJLow=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-191-kV1peOcDNjOTaoJ0NE-ttg-1; Wed, 05 May 2021 18:23:23 -0400
+X-MC-Unique: kV1peOcDNjOTaoJ0NE-ttg-1
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id C843E18397A3;
+        Wed,  5 May 2021 22:23:22 +0000 (UTC)
+Received: from epycfail.redhat.com (unknown [10.36.110.24])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id BBA596062C;
+        Wed,  5 May 2021 22:23:21 +0000 (UTC)
+From:   Stefano Brivio <sbrivio@redhat.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     PetrB <petr.boltik@gmail.com>, netfilter-devel@vger.kernel.org
+Subject: [PATCH nft 0/2] Fix display of < 64 bits IPv6 masks in concatenated elements
+Date:   Thu,  6 May 2021 00:23:12 +0200
+Message-Id: <cover.1620252768.git.sbrivio@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Several conntrack helpers and the TCP tracker assume that
-skb_header_pointer() never fails based on upfront header validation.
-Even if this should not ever happen, BUG_ON() is a too drastic measure,
-remove them.
+Patch 1/2 fixes the issue reported by PetrB, and patch 2/2 introduces a
+test case for IPv4 and IPv6 ranges of different lengths in concatenated
+set elements.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: missing spin unlock in ftp, irc and sane (Florian)
+Stefano Brivio (2):
+  segtree: Fix range_mask_len() for subnet ranges exceeding unsigned int
+  tests: Introduce 0043_concatenated_ranges_1 for subnets of different
+    sizes
 
- net/netfilter/nf_conntrack_ftp.c       | 5 ++++-
- net/netfilter/nf_conntrack_h323_main.c | 3 ++-
- net/netfilter/nf_conntrack_irc.c       | 5 ++++-
- net/netfilter/nf_conntrack_pptp.c      | 4 +++-
- net/netfilter/nf_conntrack_proto_tcp.c | 6 ++++--
- net/netfilter/nf_conntrack_sane.c      | 5 ++++-
- 6 files changed, 21 insertions(+), 7 deletions(-)
+ src/segtree.c                                 |  4 ++--
+ .../testcases/sets/0043concatenated_ranges_1  | 23 +++++++++++++++++++
+ 2 files changed, 25 insertions(+), 2 deletions(-)
+ create mode 100755 tests/shell/testcases/sets/0043concatenated_ranges_1
 
-diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-index b22801f97bce..a414274338cf 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -413,7 +413,10 @@ static int help(struct sk_buff *skb,
- 
- 	spin_lock_bh(&nf_ftp_lock);
- 	fb_ptr = skb_header_pointer(skb, dataoff, datalen, ftp_buffer);
--	BUG_ON(fb_ptr == NULL);
-+	if (!fb_ptr) {
-+		spin_unlock_bh(&nf_ftp_lock);
-+		return NF_ACCEPT;
-+	}
- 
- 	ends_in_nl = (fb_ptr[datalen - 1] == '\n');
- 	seq = ntohl(th->seq) + datalen;
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-index 8ba037b76ad3..aafaff00baf1 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -146,7 +146,8 @@ static int get_tpkt_data(struct sk_buff *skb, unsigned int protoff,
- 		/* Get first TPKT pointer */
- 		tpkt = skb_header_pointer(skb, tcpdataoff, tcpdatalen,
- 					  h323_buffer);
--		BUG_ON(tpkt == NULL);
-+		if (!tpkt)
-+			goto clear_out;
- 
- 		/* Validate TPKT identifier */
- 		if (tcpdatalen < 4 || tpkt[0] != 0x03 || tpkt[1] != 0) {
-diff --git a/net/netfilter/nf_conntrack_irc.c b/net/netfilter/nf_conntrack_irc.c
-index e40988a2f22f..08ee4e760a3d 100644
---- a/net/netfilter/nf_conntrack_irc.c
-+++ b/net/netfilter/nf_conntrack_irc.c
-@@ -143,7 +143,10 @@ static int help(struct sk_buff *skb, unsigned int protoff,
- 	spin_lock_bh(&irc_buffer_lock);
- 	ib_ptr = skb_header_pointer(skb, dataoff, skb->len - dataoff,
- 				    irc_buffer);
--	BUG_ON(ib_ptr == NULL);
-+	if (!ib_ptr) {
-+		spin_unlock_bh(&irc_buffer_lock);
-+		return NF_ACCEPT;
-+	}
- 
- 	data = ib_ptr;
- 	data_limit = ib_ptr + skb->len - dataoff;
-diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_conntrack_pptp.c
-index 5105d4250012..7d5708b92138 100644
---- a/net/netfilter/nf_conntrack_pptp.c
-+++ b/net/netfilter/nf_conntrack_pptp.c
-@@ -544,7 +544,9 @@ conntrack_pptp_help(struct sk_buff *skb, unsigned int protoff,
- 
- 	nexthdr_off = protoff;
- 	tcph = skb_header_pointer(skb, nexthdr_off, sizeof(_tcph), &_tcph);
--	BUG_ON(!tcph);
-+	if (!tcph)
-+		return NF_ACCEPT;
-+
- 	nexthdr_off += tcph->doff * 4;
- 	datalen = tcplen - tcph->doff * 4;
- 
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 318b8f723349..34e22416a721 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -338,7 +338,8 @@ static void tcp_options(const struct sk_buff *skb,
- 
- 	ptr = skb_header_pointer(skb, dataoff + sizeof(struct tcphdr),
- 				 length, buff);
--	BUG_ON(ptr == NULL);
-+	if (!ptr)
-+		return;
- 
- 	state->td_scale =
- 	state->flags = 0;
-@@ -394,7 +395,8 @@ static void tcp_sack(const struct sk_buff *skb, unsigned int dataoff,
- 
- 	ptr = skb_header_pointer(skb, dataoff + sizeof(struct tcphdr),
- 				 length, buff);
--	BUG_ON(ptr == NULL);
-+	if (!ptr)
-+		return;
- 
- 	/* Fast path for timestamp-only option */
- 	if (length == TCPOLEN_TSTAMP_ALIGNED
-diff --git a/net/netfilter/nf_conntrack_sane.c b/net/netfilter/nf_conntrack_sane.c
-index 1aebd6569d4e..fcb33b1d5456 100644
---- a/net/netfilter/nf_conntrack_sane.c
-+++ b/net/netfilter/nf_conntrack_sane.c
-@@ -95,7 +95,10 @@ static int help(struct sk_buff *skb,
- 
- 	spin_lock_bh(&nf_sane_lock);
- 	sb_ptr = skb_header_pointer(skb, dataoff, datalen, sane_buffer);
--	BUG_ON(sb_ptr == NULL);
-+	if (!sb_ptr) {
-+		spin_unlock_bh(&nf_sane_lock);
-+		return NF_ACCEPT;
-+	}
- 
- 	if (dir == IP_CT_DIR_ORIGINAL) {
- 		if (datalen != sizeof(struct sane_request))
 -- 
 2.30.2
 
