@@ -2,71 +2,91 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E12A5C433ED
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 May 2021 07:33:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9731CC433B4
+	for <netfilter-devel@archiver.kernel.org>; Thu,  6 May 2021 08:44:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A76FE60FF3
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 May 2021 07:33:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 583CF61176
+	for <netfilter-devel@archiver.kernel.org>; Thu,  6 May 2021 08:44:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233340AbhEFHej (ORCPT
+        id S233484AbhEFIpK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 6 May 2021 03:34:39 -0400
-Received: from mx2.suse.de ([195.135.220.15]:37364 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233240AbhEFHei (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 May 2021 03:34:38 -0400
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1620286420; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=khtSrVfB3QthcMXttruXhmO5ZQAFs/KmHKeGy3OjcbU=;
-        b=MOIlUyLljuOfsWvIiuQ4CIyqX0eWSdkN17bPx/i5N60w4lBFkYzph3q2dnepap+3Sh0lZo
-        e3QLJdFQohclh6A3/1V2flo9ABaTuFpbPNfjzkqsjgmeWwcFoP8Ajeg3itJbBFxCpj0LWV
-        F/roTrMJB6A94ck+40wMOdjb2DW1k6w=
-Received: from relay2.suse.de (unknown [195.135.221.27])
-        by mx2.suse.de (Postfix) with ESMTP id 1ABEAAE03;
-        Thu,  6 May 2021 07:33:40 +0000 (UTC)
-Date:   Thu, 6 May 2021 09:33:39 +0200
-From:   Ali Abdallah <ali.abdallah@suse.com>
-To:     Florian Westphal <fw@strlen.de>
+        Thu, 6 May 2021 04:45:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54556 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233374AbhEFIpK (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 6 May 2021 04:45:10 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56754C061574
+        for <netfilter-devel@vger.kernel.org>; Thu,  6 May 2021 01:44:12 -0700 (PDT)
+Received: from localhost ([::1]:46906 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1leZc9-00029F-IO; Thu, 06 May 2021 10:44:09 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] Avoid potentially erroneos RST drop.
-Message-ID: <20210506073339.5ah5dyzqdhwxyovh@Fryzen495>
-References: <20210430093601.zibczc4cjnwx3qwn@Fryzen495>
- <YJL30q7mCUezag48@strlen.de>
+Subject: [nft PATCH] doc: Reduce size of NAT statement synopsis
+Date:   Thu,  6 May 2021 10:44:01 +0200
+Message-Id: <20210506084401.1353-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.31.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <YJL30q7mCUezag48@strlen.de>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 05.05.2021 21:53, Florian Westphal wrote:
-> Ali, sorry for coming back to this again and again.
-> 
-> What do you think of this change?
-> 
-> Its an incremental change on top of your patch.
-> 
-> The only real change is that this will skip window check if
-> conntrack thinks connection is closing already.
-> 
-> In addition, tcp window check is skipped in that case.
-> 
-> This is supposed to expedite conntrack eviction in case of tuple reuse
-> by some nat/pat middlebox, or a peer that has lower timeouts than
-> conntrack before a port is re-used.
+Introduce non-terminals representing address and port which may
+represent ranges as well. Combined with dropping the distinction between
+PR_FLAGS and PRF_FLAGS, all the lines for each nat statement type can be
+combined.
 
-Thanks Florian, this looks sane for me, I will give a try and report
-back here.
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ doc/statements.txt | 25 ++++++++++---------------
+ 1 file changed, 10 insertions(+), 15 deletions(-)
 
+diff --git a/doc/statements.txt b/doc/statements.txt
+index 6fc0bda0a19fd..7c7240c82fabc 100644
+--- a/doc/statements.txt
++++ b/doc/statements.txt
+@@ -343,21 +343,16 @@ NAT STATEMENTS
+ ~~~~~~~~~~~~~~
+ [verse]
+ ____
+-*snat to* 'address' [*:*'port'] ['PRF_FLAGS']
+-*snat to* 'address' *-* 'address' [*:*'port' *-* 'port'] ['PRF_FLAGS']
+-*snat* { *ip* | *ip6* } *to* 'address' *-* 'address' [*:*'port' *-* 'port'] ['PR_FLAGS']
+-*dnat to* 'address' [*:*'port'] ['PRF_FLAGS']
+-*dnat to* 'address' [*:*'port' *-* 'port'] ['PR_FLAGS']
+-*dnat* { *ip* | *ip6* } *to* 'address' [*:*'port' *-* 'port'] ['PR_FLAGS']
+-*masquerade to* [*:*'port'] ['PRF_FLAGS']
+-*masquerade to* [*:*'port' *-* 'port'] ['PRF_FLAGS']
+-*redirect to* [*:*'port'] ['PRF_FLAGS']
+-*redirect to* [*:*'port' *-* 'port'] ['PRF_FLAGS']
+-
+-'PRF_FLAGS' := 'PRF_FLAG' [*,* 'PRF_FLAGS']
+-'PR_FLAGS'  := 'PR_FLAG' [*,* 'PR_FLAGS']
+-'PRF_FLAG'  := 'PR_FLAG' | *fully-random*
+-'PR_FLAG'   := *persistent* | *random*
++*snat* [[*ip* | *ip6*] *to*] 'ADDR_SPEC' [*:*'PORT_SPEC'] ['FLAGS']
++*dnat* [[*ip* | *ip6*] *to*] 'ADDR_SPEC' [*:*'PORT_SPEC'] ['FLAGS']
++*masquerade* [*to :*'PORT_SPEC'] ['FLAGS']
++*redirect* [*to :*'PORT_SPEC'] ['FLAGS']
++
++'ADDR_SPEC' := 'address' | 'address' *-* 'address'
++'PORT_SPEC' := 'port' | 'port' *-* 'port'
++
++'FLAGS'  := 'FLAG' [*,* 'FLAGS']
++'FLAG'  := *persistent* | *random* | *fully-random*
+ ____
+ 
+ The nat statements are only valid from nat chain types. +
 -- 
-Ali Abdallah | SUSE Linux L3 Engineer
-GPG fingerprint: 51A0 F4A0 C8CF C98F 842E  A9A8 B945 56F8 1C85 D0D5
+2.31.0
 
