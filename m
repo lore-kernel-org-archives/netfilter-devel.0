@@ -2,156 +2,81 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1929AC433B4
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 May 2021 12:53:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FCE2C433B4
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 May 2021 07:59:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D0468610E9
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 May 2021 12:53:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4636A60C40
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 May 2021 07:59:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232375AbhEFMyw (ORCPT
+        id S233948AbhEGIAc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 6 May 2021 08:54:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53808 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229622AbhEFMyw (ORCPT
+        Fri, 7 May 2021 04:00:32 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:48312 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233730AbhEGIAb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 May 2021 08:54:52 -0400
-Received: from mail-pj1-x1032.google.com (mail-pj1-x1032.google.com [IPv6:2607:f8b0:4864:20::1032])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A809FC061574;
-        Thu,  6 May 2021 05:53:54 -0700 (PDT)
-Received: by mail-pj1-x1032.google.com with SMTP id b14-20020a17090a6e0eb0290155c7f6a356so2792810pjk.0;
-        Thu, 06 May 2021 05:53:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=isiRHE6erzH3OqFs7FYZrU6UPnUfyE+MT5i6BPHKk6E=;
-        b=c9xoFIb5KW84B5V2Peaf6JP1bPGGpxk9cKyTkQlgx7LPVw3RbOX4JgMPl9n4Fv4Qcb
-         DMaQQUvseA9qJ7yhf1zHroRYGDKEJBsJU6GC4cPBvAZs6yVOV3WvTj1iCQ1reP0NAfF8
-         +sX7yrEH20NL4EqYiixg7wxx7UbB1es1Z4LdaDV5bRnNjwmcwaC9ug2WopsmyWuVfjx+
-         qYSSfVbFzRAMDPIsWQoL0GkltlYb7lQyNVFwfEiWVfRsc4dsLrsx/wWAMOQUtfH47ijZ
-         3haIrqHqfmjspJVRcn7Ke9ySX0Pb9Atum6FBjF8Y9ixAZsZLOidJ+056SbeeCRVMUe/6
-         MU7A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=isiRHE6erzH3OqFs7FYZrU6UPnUfyE+MT5i6BPHKk6E=;
-        b=Cn/YEvp+nGPme8/jD+e0rkZgrYQUAQWnl1xv3OBUpFHioMmGlWRC8C1ommqKDoIb9G
-         IxVRThbQlwvA9gNO9DZl4+zq1pfnkpmT1wk/1ODSVpsiIu0UPC/7tRv3IP8JzGz/mFFg
-         3vDv/Vja0XRvCIBy4qtfoXpqAbfRbZK88lWm6mv3+NrrDPYP3BzcNdsXRIZ3zvTar39L
-         yIWdWsuJ2NNmMbk7xybl5UR7q7W3ERqxkZgLF3x6s8q/UNVh2lNQo89n+HsROKwD/CGK
-         uBW8UV8HgrhyxVaozpcrsKrfhkjIdmXPuuAvcv7OMnoVFruq28T9BMWU51vxdDpID2xl
-         F64g==
-X-Gm-Message-State: AOAM531reGPFNxJPvkzd5vaL/w9zhj8jGpK4NsxurS7UoL9Ptu9Shcn+
-        wJew/S1WOiQ3BV1OZ7H96Rm/OSWRheM=
-X-Google-Smtp-Source: ABdhPJyTNoyWh1KofZmp//XjKBaGBa7VMyDSXXlsoPSkW6LbnN6piHMEb7TvzgWmdjXjIRVxz55eXQ==
-X-Received: by 2002:a17:90a:a613:: with SMTP id c19mr17740276pjq.117.1620305634259;
-        Thu, 06 May 2021 05:53:54 -0700 (PDT)
-Received: from edumazet1.svl.corp.google.com ([2620:15c:2c4:201:4970:7438:9f62:403a])
-        by smtp.gmail.com with ESMTPSA id s3sm2306900pgs.62.2021.05.06.05.53.52
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 06 May 2021 05:53:53 -0700 (PDT)
-From:   Eric Dumazet <eric.dumazet@gmail.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
+        Fri, 7 May 2021 04:00:31 -0400
+Received: from us.es (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 0DA646414B;
+        Fri,  7 May 2021 09:58:46 +0200 (CEST)
+Date:   Fri, 7 May 2021 09:59:28 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Eric Dumazet <eric.dumazet@gmail.com>
+Cc:     Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
         Eric Dumazet <edumazet@google.com>,
-        Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [PATCH net 2/2] netfilter: nf_tables: avoid potential overflows on 32bit arches
-Date:   Thu,  6 May 2021 05:53:50 -0700
-Message-Id: <20210506125350.3887306-1-eric.dumazet@gmail.com>
-X-Mailer: git-send-email 2.31.1.527.g47e6f16901-goog
+        syzbot <syzkaller@googlegroups.com>
+Subject: Re: [PATCH net 1/2] netfilter: nf_tables: avoid overflows in
+ nft_hash_buckets()
+Message-ID: <20210507075928.GA4320@salvia>
+References: <20210506125323.3887186-1-eric.dumazet@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20210506125323.3887186-1-eric.dumazet@gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Eric Dumazet <edumazet@google.com>
+On Thu, May 06, 2021 at 05:53:23AM -0700, Eric Dumazet wrote:
+> From: Eric Dumazet <edumazet@google.com>
+> 
+> Number of buckets being stored in 32bit variables, we have to
+> ensure that no overflows occur in nft_hash_buckets()
+> 
+> syzbot injected a size == 0x40000000 and reported:
+> 
+> UBSAN: shift-out-of-bounds in ./include/linux/log2.h:57:13
+> shift exponent 64 is too large for 64-bit type 'long unsigned int'
+> CPU: 1 PID: 29539 Comm: syz-executor.4 Not tainted 5.12.0-rc7-syzkaller #0
+> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+> Call Trace:
+>  __dump_stack lib/dump_stack.c:79 [inline]
+>  dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+>  ubsan_epilogue+0xb/0x5a lib/ubsan.c:148
+>  __ubsan_handle_shift_out_of_bounds.cold+0xb1/0x181 lib/ubsan.c:327
+>  __roundup_pow_of_two include/linux/log2.h:57 [inline]
+>  nft_hash_buckets net/netfilter/nft_set_hash.c:411 [inline]
+>  nft_hash_estimate.cold+0x19/0x1e net/netfilter/nft_set_hash.c:652
+>  nft_select_set_ops net/netfilter/nf_tables_api.c:3586 [inline]
+>  nf_tables_newset+0xe62/0x3110 net/netfilter/nf_tables_api.c:4322
+>  nfnetlink_rcv_batch+0xa09/0x24b0 net/netfilter/nfnetlink.c:488
+>  nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:612 [inline]
+>  nfnetlink_rcv+0x3af/0x420 net/netfilter/nfnetlink.c:630
+>  netlink_unicast_kernel net/netlink/af_netlink.c:1312 [inline]
+>  netlink_unicast+0x533/0x7d0 net/netlink/af_netlink.c:1338
+>  netlink_sendmsg+0x856/0xd90 net/netlink/af_netlink.c:1927
+>  sock_sendmsg_nosec net/socket.c:654 [inline]
+>  sock_sendmsg+0xcf/0x120 net/socket.c:674
+>  ____sys_sendmsg+0x6e8/0x810 net/socket.c:2350
+>  ___sys_sendmsg+0xf3/0x170 net/socket.c:2404
+>  __sys_sendmsg+0xe5/0x1b0 net/socket.c:2433
+>  do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
 
-User space could ask for very large hash tables, we need to make sure
-our size computations wont overflow.
-
-nf_tables_newset() needs to double check the u64 size
-will fit into size_t field.
-
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Fixes: 0ed6389c483d ("netfilter: nf_tables: rename set implementations")
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c |  7 +++++--
- net/netfilter/nft_set_hash.c  | 10 +++++-----
- 2 files changed, 10 insertions(+), 7 deletions(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 0b7fe0a902ff56c162741e6715ad62d928381ea7..c14213bc714b1a54a4287ae898d3a096b21e00ac 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4184,6 +4184,7 @@ static int nf_tables_newset(struct sk_buff *skb, const struct nfnl_info *info,
- 	unsigned char *udata;
- 	struct nft_set *set;
- 	struct nft_ctx ctx;
-+	size_t alloc_size;
- 	u64 timeout;
- 	char *name;
- 	int err, i;
-@@ -4329,8 +4330,10 @@ static int nf_tables_newset(struct sk_buff *skb, const struct nfnl_info *info,
- 	size = 0;
- 	if (ops->privsize != NULL)
- 		size = ops->privsize(nla, &desc);
--
--	set = kvzalloc(sizeof(*set) + size + udlen, GFP_KERNEL);
-+	alloc_size = sizeof(*set) + size + udlen;
-+	if (alloc_size < size)
-+		return -ENOMEM;
-+	set = kvzalloc(alloc_size, GFP_KERNEL);
- 	if (!set)
- 		return -ENOMEM;
- 
-diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index 328f2ce32e4cbd772afe03a10f6d13a7ed6b93d5..7b3d0a78c5696747a2e71b1a58303fa141de6c2b 100644
---- a/net/netfilter/nft_set_hash.c
-+++ b/net/netfilter/nft_set_hash.c
-@@ -623,7 +623,7 @@ static u64 nft_hash_privsize(const struct nlattr * const nla[],
- 			     const struct nft_set_desc *desc)
- {
- 	return sizeof(struct nft_hash) +
--	       nft_hash_buckets(desc->size) * sizeof(struct hlist_head);
-+	       (u64)nft_hash_buckets(desc->size) * sizeof(struct hlist_head);
- }
- 
- static int nft_hash_init(const struct nft_set *set,
-@@ -663,8 +663,8 @@ static bool nft_hash_estimate(const struct nft_set_desc *desc, u32 features,
- 		return false;
- 
- 	est->size   = sizeof(struct nft_hash) +
--		      nft_hash_buckets(desc->size) * sizeof(struct hlist_head) +
--		      desc->size * sizeof(struct nft_hash_elem);
-+		      (u64)nft_hash_buckets(desc->size) * sizeof(struct hlist_head) +
-+		      (u64)desc->size * sizeof(struct nft_hash_elem);
- 	est->lookup = NFT_SET_CLASS_O_1;
- 	est->space  = NFT_SET_CLASS_O_N;
- 
-@@ -681,8 +681,8 @@ static bool nft_hash_fast_estimate(const struct nft_set_desc *desc, u32 features
- 		return false;
- 
- 	est->size   = sizeof(struct nft_hash) +
--		      nft_hash_buckets(desc->size) * sizeof(struct hlist_head) +
--		      desc->size * sizeof(struct nft_hash_elem);
-+		      (u64)nft_hash_buckets(desc->size) * sizeof(struct hlist_head) +
-+		      (u64)desc->size * sizeof(struct nft_hash_elem);
- 	est->lookup = NFT_SET_CLASS_O_1;
- 	est->space  = NFT_SET_CLASS_O_N;
- 
--- 
-2.31.1.527.g47e6f16901-goog
-
+Applied, thanks.
