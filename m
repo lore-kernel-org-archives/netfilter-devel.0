@@ -2,105 +2,105 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26C67C433B4
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 May 2021 14:11:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B7C6C433ED
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 May 2021 17:08:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0A9776142C
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 May 2021 14:11:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 752776141B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 May 2021 17:08:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234365AbhEMOM3 (ORCPT
+        id S230168AbhEMRJn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 13 May 2021 10:12:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39218 "EHLO
+        Thu, 13 May 2021 13:09:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50756 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234381AbhEMOMT (ORCPT
+        with ESMTP id S230151AbhEMRJk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 May 2021 10:12:19 -0400
-Received: from mail-wm1-x329.google.com (mail-wm1-x329.google.com [IPv6:2a00:1450:4864:20::329])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFE29C061574
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 May 2021 07:11:08 -0700 (PDT)
-Received: by mail-wm1-x329.google.com with SMTP id o26-20020a1c4d1a0000b0290146e1feccdaso1022620wmh.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 May 2021 07:11:08 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=tanaza-com.20150623.gappssmtp.com; s=20150623;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=QhmB5tujCIE8+xe35BVQRQgoq5LgaJWfiYBvUENWTcc=;
-        b=Ft2l+649GtG29zHW/mZJqh7+tDNY04Bnh6i9u+wqJ0xsItj8j72p3EqhpNcY4QPuwa
-         TdfunsuYE2+kSPYB0tV1iccZNMEWzuoRX5J6PAz1SWE2wjHbTRX+goO1PDih70yukoa4
-         9njCrzD47/wkRZM6FWpbmJRXCtRS32sPzpjQhgq/2/IdZot93SeJyWiqPnZ7c2BYRnNF
-         QyBJEWlXpzEgkU+MrTFJHqOCL51LElZbz1AWv+k7RaOQusVSNlmIblbIKfgGypiTpC8d
-         Z8aABN2ZX8P7WiSnd70a/rqV+/9Y2pVdzDPlBRQtgYNw0ywqENf5CNdvElA9WiKn3hu6
-         NEyw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=QhmB5tujCIE8+xe35BVQRQgoq5LgaJWfiYBvUENWTcc=;
-        b=mXsXRWU2Hi2njFtCq5L+D22mkR0mxJJpsaFLVXdByB1BAI/KFpYopNWsZ72uyeFzmF
-         1oUdu9rEhj9zZDRFChdt0QzyX58rslY1lIFcwYjC7zYzTL3RF/7TrSEalsTeI/uGL4QC
-         dsbeK+m6Y6cls9C6vBj7wJrOkUzWB/mG7jB1p/20fjJSR/y/Gn8jQxUT2QDNM/FKQhBb
-         +xwph6FDYH9UqyBrSuCHlymNZhou93xeHcRe+w0EDhMuPGLX8N/h5Ni1VID9GxgruVnn
-         U7UiO6wJ2YjvvW19f6HrLdLaplqPKgjlKUYJzb15nTm7y9TB7bYAGyNG7wt3iLRUwU9I
-         u0gQ==
-X-Gm-Message-State: AOAM5317Tn59bvk2UBtRXk0lYPYNtt0utnmzii9mT9wD7WGrpMkp1Z6f
-        c1LzC0bXdhwJ/2cs1NfxpIO42xUoK/IoxA==
-X-Google-Smtp-Source: ABdhPJzwuqchwTvKLKk+Tftmi8mHk19VBj1V1FtHpLddVvmJi/h69gZqRcBNuWjLTuReI1EMrCxLEg==
-X-Received: by 2002:a1c:7e45:: with SMTP id z66mr43886559wmc.126.1620915067685;
-        Thu, 13 May 2021 07:11:07 -0700 (PDT)
-Received: from sancho.localdomain ([37.160.154.27])
-        by smtp.gmail.com with ESMTPSA id g131sm2877044wme.31.2021.05.13.07.11.06
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 13 May 2021 07:11:07 -0700 (PDT)
-From:   Marco Oliverio <marco.oliverio@tanaza.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Marco Oliverio <marco.oliverio@tanaza.com>
-Subject: [nftables PATCH] cache: check errno before invoking cache_release()
-Date:   Thu, 13 May 2021 16:10:32 +0200
-Message-Id: <20210513141031.213490-1-marco.oliverio@tanaza.com>
-X-Mailer: git-send-email 2.31.1
+        Thu, 13 May 2021 13:09:40 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 74BC9C06175F;
+        Thu, 13 May 2021 10:08:27 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1lhEow-00029d-BN; Thu, 13 May 2021 19:08:22 +0200
+Date:   Thu, 13 May 2021 19:08:22 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Dexuan Cui <decui@microsoft.com>,
+        "'netfilter-devel@vger.kernel.org'" <netfilter-devel@vger.kernel.org>,
+        "'netdev@vger.kernel.org'" <netdev@vger.kernel.org>,
+        Stephen Hemminger <sthemmin@microsoft.com>,
+        Haiyang Zhang <haiyangz@microsoft.com>,
+        "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>
+Subject: Re: netfilter: iptables-restore: setsockopt(3, SOL_IP,
+ IPT_SO_SET_REPLACE, "security...", ...) return -EAGAIN
+Message-ID: <20210513170822.GA3673@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Dexuan Cui <decui@microsoft.com>,
+        "'netfilter-devel@vger.kernel.org'" <netfilter-devel@vger.kernel.org>,
+        "'netdev@vger.kernel.org'" <netdev@vger.kernel.org>,
+        Stephen Hemminger <sthemmin@microsoft.com>,
+        Haiyang Zhang <haiyangz@microsoft.com>,
+        "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>
+References: <MW2PR2101MB0892FC0F67BD25661CDCE149BF529@MW2PR2101MB0892.namprd21.prod.outlook.com>
+ <MW2PR2101MB0892864684CFDB096E0DBF02BF519@MW2PR2101MB0892.namprd21.prod.outlook.com>
+ <MW2PR2101MB08925E481FFFF8AB7A3ACDAFBF519@MW2PR2101MB0892.namprd21.prod.outlook.com>
+ <MW2PR2101MB089257F49E8FAA00CDA63A61BF519@MW2PR2101MB0892.namprd21.prod.outlook.com>
+ <20210513094047.GA24842@salvia>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210513094047.GA24842@salvia>
+Sender:  <n0-1@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-if genid changes during cache_init(), check_genid() sets errno to EINTR to force
-a re-init of the cache.
+Hi,
 
-cache_release() may inadvertly change errno by calling free().  Indeed free()
-may invoke madvise() that changes errno to ENOSYS on system where kernel is
-configured without support for this syscall.
+On Thu, May 13, 2021 at 11:40:47AM +0200, Pablo Neira Ayuso wrote:
+> On Thu, May 13, 2021 at 06:19:38AM +0000, Dexuan Cui wrote:
+> > > From: Dexuan Cui
+> > > Sent: Wednesday, May 12, 2021 11:02 PM
+> > 
+> > BTW, I found a similar report in 2019:
+> > 
+> > "
+> > https://serverfault.com/questions/101022/error-applying-iptables-rules-using-iptables-restore
+> > I stumbled upon this issue on Ubuntu 18.04. The netfilter-persistent
+> > service failed randomly on boot while working ok when launched manually.
+> > Turned out it was conflicting with sshguard service due to systemd trying
+> > to load everything in parallel. What helped is to setting
+> > ENABLE_FIREWALL=0 in /etc/default/sshguard and then adding sshguard chain
+> > and rule manually to /etc/iptables/rules.v4 and /etc/iptables/rules.v6.
+> > "
+> > 
+> > The above report provided a workaround.
+> 
+> There's -w and -W to serialize ruleset updates. You could follow a
+> similar approach from userspace if you don't use iptables userspace
+> binary.
 
-Signed-off-by: Marco Oliverio <marco.oliverio@tanaza.com>
----
- src/cache.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+My guess is the xtables lock is not effective here, so waiting for it
+probably won't help.
 
-diff --git a/src/cache.c b/src/cache.c
-index f59bba03..ff63e59e 100644
---- a/src/cache.c
-+++ b/src/cache.c
-@@ -747,10 +747,12 @@ replay:
- 
- 	ret = nft_cache_init(&ctx, flags);
- 	if (ret < 0) {
--		nft_cache_release(cache);
--		if (errno == EINTR)
-+		if (errno == EINTR) {
-+			nft_cache_release(cache);
- 			goto replay;
-+		}
- 
-+		nft_cache_release(cache);
- 		return -1;
- 	}
- 
--- 
-2.31.1
+Dexuan, concurrent access is avoided in user space using a file-based
+lock. So if multiple iptables(-restore) processes run in different
+mount-namespaces, they might miss the other's /run/xtables.lock. Another
+option would be if libiptc is used instead of calling iptables, but
+that's more a shot in the dark - I don't know if libiptc doesn't support
+obtaining the xtables lock.
 
+> > I think we need a real fix.
+> 
+> iptables-nft already fixes this.
+
+nftables (and therefore iptables-nft) implement transactional logic in
+kernel, user space automatically retries if a transaction's commit
+fails.
+
+Cheers, Phil
