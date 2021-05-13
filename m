@@ -5,46 +5,46 @@ X-Spam-Level:
 X-Spam-Status: No, score=-11.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91AF3C433ED
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 May 2021 04:19:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6E18C433B4
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 May 2021 06:02:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5658461417
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 May 2021 04:19:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 756D861422
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 May 2021 06:02:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229516AbhEMEUU (ORCPT
+        id S230499AbhEMGDS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 13 May 2021 00:20:20 -0400
-Received: from mail-mw2nam12on2121.outbound.protection.outlook.com ([40.107.244.121]:12449
-        "EHLO NAM12-MW2-obe.outbound.protection.outlook.com"
+        Thu, 13 May 2021 02:03:18 -0400
+Received: from mail-mw2nam10on2115.outbound.protection.outlook.com ([40.107.94.115]:31073
+        "EHLO NAM10-MW2-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S229471AbhEMEUS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 May 2021 00:20:18 -0400
+        id S229748AbhEMGDR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 13 May 2021 02:03:17 -0400
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=WukBPkcLruETHLPwA4gXmcWAKMJx8VwyNmxRl2SN3gsV+LhBZUvk2M/Yg4MfMbvXgw4uizR0et73ZiRan3rXfr5jW+aZPuuJpW1uVnkvaWwGRhlmnmPAraZFz8M1QAejeFN7/5sUDpq8QlBkqTHGeD59hco2PtZiPsq6NwGHFowCjDvrdFFXucBHYTayfWZc9Zybl00q+QE0BGPhto05QllLOMjQcEkVTMcNaGFVb5IHqbkDMlda4fv+UFx04ttK6qjs+r3dHOBM1k3bz2s6ams4SaWmSna2VbFdv2GXc79Ra5NnshR5M/rcG5BVMx4k9J/pDbforgbrewFR1oG2vA==
+ b=AMHRsKgg+STYjEy+IAoY82czpm6MRKl1yzPvOlmWLrpv2szaUXRENiB4fVhMhQM8I3XegKCV60uE/LGUWDMVaaTRPjlfKNBdM3dT8RoZBYrgiJtrVKqgii/b2mGfxYKIa6Q28mfhpY3PHRPJg7sWpDU5OdA18wAgzPTvXol78VM3LHRJu5J+xDBtPumF+feA3jFpKWJNPiDVDpgemn+EDwTP3ouN5uWYDZpEYfIFTjH7Yd83EztPN6N5bgb0WCgCiRnzdlQFRcMXcaL4K8CSe7eGSfVQ+j53XOAhIPFH4o6ThBmMtlYkQ2Nm8ClEBbKozRpN2PmqS66NADNyG0b+7g==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=qhNcq++sUm/e7q30tV1vQSynQKhWdsK5pR6opyv5vcI=;
- b=KFJkZDVYABSQOAkXK8nk+fEOa+7qX2XQ9F+gbpxnbjoHsB9ZpLuUCBUlJvJFnGQ/hPyymyVU6yoS7lTdqRuL1zkG+EjIGyjO4tclk9C+iWLGw/fqzjRuptGelfQ6eUALrVWjwsSHekh6S57rRbwLgxvhAw90kX4en1UBlC2R/fOuZW5eb5aMO7ed+fvMbLeZho8UYYGVdqGTfYKnumK7e+HqF8OVVf3r5PhTLL9Nv7rgjxsg4BxnGaU07EyeEoWz5eYSTEr92P9SykusxRx+gZuHeYjiFJXnhZkCLFdSrvD4ckavEQa+MTCr+HC46QTw8wpN73ciy6ezL8K4rqWk5A==
+ bh=9408YTzEEtLE4VrhzpN2/a5tyuy+2yuUedmaEuwqz9U=;
+ b=Y+3qIYR6BpoOiLyi0XmA5K9T5pYwOcyNr+GhoIrPUmsNI5DwsRYtgyhk/4MupC7XySbvwpkOyEllU3W2oCuV0Q60Ns2J7FGjv2plwk8FMfu1t89WKI001/dT3zS0yZFOPRaV6aP0QyRWFyOYE+DuAEAWtkjL0mcVSKo8hb/siHZ7skq1X+QMNrzDVMcBInWf+9KmEem1gF3xH/dp5rTlURktrr6Mdi0XM5g1sv620R9vo9BQtve7XO48brUdNVt8g+VYap5VxbSDeuDbD8F6dR+F+RKd/nJSVuZ/ufaMMcj/X5gUhvusOde5aSDTeh0ZGRQel1Fp9M72jjbmZ16ulQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=microsoft.com; dmarc=pass action=none
  header.from=microsoft.com; dkim=pass header.d=microsoft.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=qhNcq++sUm/e7q30tV1vQSynQKhWdsK5pR6opyv5vcI=;
- b=NkYs6H988cnS4i81GhuUT5MFkz4R/4TNMWPfLSY+u+3bLyS7VVZcjmuSXh0mSJqOixw8UHCcBm1bsWVUHyDceHurJmTBwZlelDcm2661vG0YmOohOR9a3204r0bVdzjjKV22xrxrx0dnTi00vtQiu3GKinLY3ocdsWnSLmc9HgQ=
+ bh=9408YTzEEtLE4VrhzpN2/a5tyuy+2yuUedmaEuwqz9U=;
+ b=ZOUsKTSnPddqafx9Gk3rmJxqmffKb8E9svBgOIqtpdH2zU5aPdySmQtqcxJBWtGzGF5Ggzp7DW+zrKZDAURIScC3SVGuz76VgVjtDiSWwEE1UAvjYK8VtknRCd82WC2P9HCxi+m8w1zJc3Eh3FJ8aA6ZUAaBD52+Kxau37kD3NY=
 Received: from MW2PR2101MB0892.namprd21.prod.outlook.com
- (2603:10b6:302:10::24) by MWHPR21MB0751.namprd21.prod.outlook.com
- (2603:10b6:300:76::13) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4150.7; Thu, 13 May
- 2021 04:19:07 +0000
+ (2603:10b6:302:10::24) by MW4PR21MB1939.namprd21.prod.outlook.com
+ (2603:10b6:303:76::8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4150.5; Thu, 13 May
+ 2021 06:02:07 +0000
 Received: from MW2PR2101MB0892.namprd21.prod.outlook.com
  ([fe80::5548:cbd8:43cd:aa3d]) by MW2PR2101MB0892.namprd21.prod.outlook.com
  ([fe80::5548:cbd8:43cd:aa3d%5]) with mapi id 15.20.4150.012; Thu, 13 May 2021
- 04:19:07 +0000
+ 06:02:07 +0000
 From:   Dexuan Cui <decui@microsoft.com>
 To:     "'netfilter-devel@vger.kernel.org'" <netfilter-devel@vger.kernel.org>,
         "'netdev@vger.kernel.org'" <netdev@vger.kernel.org>
@@ -55,11 +55,12 @@ Subject: RE: netfilter: iptables-restore: setsockopt(3, SOL_IP,
  IPT_SO_SET_REPLACE, "security...", ...) return -EAGAIN 
 Thread-Topic: netfilter: iptables-restore: setsockopt(3, SOL_IP,
  IPT_SO_SET_REPLACE, "security...", ...) return -EAGAIN 
-Thread-Index: AddHdN+snMbFwQLHQSmZ6J2vO7HZjQAM7kqQ
-Date:   Thu, 13 May 2021 04:19:06 +0000
-Message-ID: <MW2PR2101MB0892864684CFDB096E0DBF02BF519@MW2PR2101MB0892.namprd21.prod.outlook.com>
+Thread-Index: AddHdN+snMbFwQLHQSmZ6J2vO7HZjQAM7kqQAAUT/wA=
+Date:   Thu, 13 May 2021 06:02:07 +0000
+Message-ID: <MW2PR2101MB08925E481FFFF8AB7A3ACDAFBF519@MW2PR2101MB0892.namprd21.prod.outlook.com>
 References: <MW2PR2101MB0892FC0F67BD25661CDCE149BF529@MW2PR2101MB0892.namprd21.prod.outlook.com>
-In-Reply-To: <MW2PR2101MB0892FC0F67BD25661CDCE149BF529@MW2PR2101MB0892.namprd21.prod.outlook.com>
+ <MW2PR2101MB0892864684CFDB096E0DBF02BF519@MW2PR2101MB0892.namprd21.prod.outlook.com>
+In-Reply-To: <MW2PR2101MB0892864684CFDB096E0DBF02BF519@MW2PR2101MB0892.namprd21.prod.outlook.com>
 Accept-Language: en-US
 Content-Language: en-US
 X-MS-Has-Attach: 
@@ -70,115 +71,70 @@ authentication-results: vger.kernel.org; dkim=none (message not signed)
  header.from=microsoft.com;
 x-originating-ip: [2601:600:8b00:6b90:9d16:8ec9:e190:4c0c]
 x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: ec44c5fb-2226-4053-c3ea-08d915c63ff1
-x-ms-traffictypediagnostic: MWHPR21MB0751:
+x-ms-office365-filtering-correlation-id: efe575fa-4412-4a1d-de32-08d915d4a3cf
+x-ms-traffictypediagnostic: MW4PR21MB1939:
 x-ms-exchange-transport-forked: True
-x-microsoft-antispam-prvs: <MWHPR21MB0751045392E9CEB3F238D9CFBF519@MWHPR21MB0751.namprd21.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:3631;
+x-microsoft-antispam-prvs: <MW4PR21MB193924F34F18A92E50615B21BF519@MW4PR21MB1939.namprd21.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:989;
 x-ms-exchange-senderadcheck: 1
 x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: c1g1stuDx3rajWyqLq4yDp1sXB1Ru2Yg+kfTO2yC6pH23D+Tc8lR5L9cxeOdmUD5AntnttP+SB19IozuMbFzDl/fewGgvtSdEk3HttFO73RToBV2nGllqlW8eOgUpaKDFaE4SN8+7930/vtoLNvoOecEHRnGTdjsgvN75hjlLX5CjDlGDCssW/abvWzoNpiMTBgzLY6gxy/+2ptKP/7X5UTfCdkS+ItCNxsGjCjUGb59fCwyqqZTOZTVcI6++rzMMYZ1UaKB1ec5de48CoFbEZJRweqfVfhABpySZbPb777mPG/6ObLB0+VH+jxiFHkzhvaUjb9bb9NlLNw/C0MMsi/Sg5J6ACLJXRbFjCCegVLZ9QTjrg0i5nlAR7X1D/etacLEmAfi8202mvabO8EmClj31bMmrWh6kbIcvuDHmojnOkXfeRTJA1WdL925D3+CIhdCouE0Awuw9c9GWcCdGYUzjmM04lKphhG25d3P++Io+xJ6IySmU2mq0aw38DXaHNs0vbvR/TtaUmneU1DqPJV1eNUFkQ7Qo0FLqg4+Ld1oiWsa/gcYw518zzV9dEg0BWCqOvAT83fvjxfyh7sbRczQJpxCA2xQuJhD1ulH1JehDn/P3ukUwD8R+GU1lLP882xC7imH9mxdpv8Uv7U38+5QvqYbl4LzB8W/G1ngDkTqcOca+IxoJkZCctP4BoNPPyApePynEuqDHxmLKLaBfETkqQyAipqW9j6z96IIThNnI/Np8kJ4vZxzDtxBmVd0RaypAH6K+7xhl58RTBBDCg==
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MW2PR2101MB0892.namprd21.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(64756008)(66556008)(66476007)(66946007)(83380400001)(8676002)(6506007)(76116006)(66446008)(7696005)(38100700002)(122000001)(10290500003)(33656002)(8936002)(4743002)(2906002)(86362001)(186003)(54906003)(52536014)(8990500004)(110136005)(82950400001)(15650500001)(55016002)(478600001)(316002)(82960400001)(450100002)(4326008)(5660300002)(71200400001)(9686003)(491001);DIR:OUT;SFP:1102;
+x-microsoft-antispam-message-info: m3ewiVkPZVv54rpxWS8CvM+KyZd6KCPx1vMoPg6CO61nFnpg/CRIp64odDVEIcYozILtbQNOzA4RZ0vfA9XkHZFP8qN+rWbLgD7F4Lv/8QZBxB77Y1rJ5A8XPAJzekic/DliMv5sst/aWTtcwjC7yZ+tImky1S9DCb3Z17R6EdKzSLJ9ER+qmsjVXwYdgwkr6gwAE+a3MkjvGcIXQJhyqbjYfE79InsRsezo3q/QxazHZ7sayobrctErV4+GqHfKHdkdEhTV8ekKJFQlH82KtGZhvY3Xm0yMkAFfOcLX+EXelwzi9ihpsjlIbnJ93K8AEolhGpsY4cdo7stajDczBvVrIPu0FeQpghRnd6HtpX8BUkyqhY7R6+4w9qZiR4LEMrlNMFDIHNPH8g4D6fTUFR/mEpXcoRec9mENmfgvQGVDU9KrzFl4vF3bMh2zTpHS3iPN639Kp72A2NCi1VRvECzZUsUk5LeIjUPmzwshy5xXpOUSCFIjdlI9pd8qINlMH4PQldAwYWKzrOp2m+VAACx+VL6P5zS9oiu+rMElPKnjSEcJuxdpBogUG+D9NHFfO2Q4d49RAVx4p6yKsstNSFA6hnhdcnBnws4s32KIs/h6Al5Xle1BzJhRirC7KIVjNmwbdA+Sq8VR8FiIMVjr6chzVSxMRW9vcX7MrFItmAQq5ONtIEIfQpLJXVCX9f1Ufg8HACpq3AaObd92WTUtRu8SjWjLM2fAZ1MB6CXu9R+ynEM0Dp3n3R3cSBpifXBH2ecJ1PR8Jag9mWz6i9BmCg==
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MW2PR2101MB0892.namprd21.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(82950400001)(82960400001)(86362001)(5660300002)(8936002)(52536014)(66476007)(4743002)(478600001)(33656002)(110136005)(54906003)(8676002)(10290500003)(186003)(55016002)(4744005)(9686003)(8990500004)(2940100002)(71200400001)(7696005)(38100700002)(122000001)(450100002)(4326008)(76116006)(316002)(6506007)(2906002)(66556008)(64756008)(66446008)(66946007)(491001);DIR:OUT;SFP:1102;
 x-ms-exchange-antispam-messagedata-chunkcount: 2
-x-ms-exchange-antispam-messagedata-0: =?us-ascii?Q?2GCmt2jdqwpGPdkQLdVL9jYi3tQMxPDrrr6/t90YiN9sUfhvI/avFDMw4+Zg?=
- =?us-ascii?Q?DUxbNYeFP/13By5E+lTuKLSKPjTXGkOyp0yAxEMqMs3rT1Cq/WcRefpTe6yL?=
- =?us-ascii?Q?ufIh4wnBaO5PmsYIDx2ICpr3PmAGp3OlzDa6SgDTg4bJOZVZ/582tFN/0+hp?=
- =?us-ascii?Q?4aQF0h1U5gHOjIktgRweZwPP3vNd2ypBaV0kAsucODyAGpfnPAOc36kq3kMH?=
- =?us-ascii?Q?QVE1xc6UcJrxLpAdpobq9k33m+mB5STcGoXWSJd+B6rNgtQV++0KR2rgVtNm?=
- =?us-ascii?Q?MXh+bWxn2akxCpQiAe2dLjdTZDuXJEKOaTzWCqWnaPFeFi3jVSn5B2nY9Hl/?=
- =?us-ascii?Q?OHP2oFXFqQTQyKbKSxod3tIncHVsuAwFhJRY7lmI4uKdKAFEpb4J1gOhqYNO?=
- =?us-ascii?Q?KBr6lOtfjLHW8XBbeskgiDZ04wj7Z/d0hEcWS5WJl6EFTrK5tAjNEd2qKO6G?=
- =?us-ascii?Q?kJDxGCyEtZhqDbMxgErV/BQhv1E5K+lh6JRafhPb7ZpYstvd65351yO06d6e?=
- =?us-ascii?Q?wFNahflxXXbFfHUQPRKTEMs69lEPXEhNs3KbwpyuPPLRQkbbEchOu7aqSvgt?=
- =?us-ascii?Q?guqnN2lzY5XTU57PY8PZ1nChcMqDbmvO9+EayGlrk1up9azcDRI4y9sz74jX?=
- =?us-ascii?Q?LOc1DE6ReBBBidbJerAPf29qDn2rHcesB2ZaKdGtYGDDGj7CbRcwK2/KSqYl?=
- =?us-ascii?Q?Q/EJQLWQU2gDOlpBBFFndILzJpEVaKA509HxdavbeCmm4KUWXwk/hHa1/Adw?=
- =?us-ascii?Q?mbADxFWDgO7vaQLtWK/XQiGDyHlZQ5XDG5+f6yTwWyPpgfdz6nueUOHI8R+z?=
- =?us-ascii?Q?5FFUwFkDLjgEspeGx8JdvHhTe/lEDM/W49D85npxZq7Bzh5bGUPTexLGMdLw?=
- =?us-ascii?Q?s1iQ/pI0XQlUBHdlVW+AHjDLo9N7K3Yw+s71gpOovg0vKWOFOfahgyOCxgg0?=
- =?us-ascii?Q?bUpS1COmQvI5zBZUWMx1q9MU0jG2Zvvz+/QJ8M7M?=
-x-ms-exchange-antispam-messagedata-1: r9wNn/FgVmrhSSNS4KVcjasV49qGpbWdajF96VndQORxzj9bUu4KDC+zyfaWW8pd/ULKAC9BoEfHcVEXuVJsDt4ozuKApHgaMzK8TE6khmBI4h0aB3+zeBDp7NwnNFRI/vqpt0bW7NsOaD5fsSPOAcqH/Gm0gyhZLeZWaMp4UU7uS0A61dYIbBI+YPrHFk5Vx43kwcL2TVqic0K4pBx4GCQgdQyAAx9i9hG3dTCafpCr4oEACzhitm/fSatd7Mu0NclxajrRmWkEOhqxA9QDdEQIN2j9aMWb6e0kSEQZtI8vLfRVoU3NBKngJrwVVRxUA0G1gL6DkvCrkFY/orPr7viOKZmmqJDYdPGLBmaABCNB/IcT+QfQT0TP3LVhT2Jkh0F79AgPBbGuGdKcif2pwhz7
+x-ms-exchange-antispam-messagedata-0: =?us-ascii?Q?dZFJEIL6AAmlX4yzZHTXDw7CGmwN8TrxJ9bmtp+espqQnvtPkuXx564R7Mdj?=
+ =?us-ascii?Q?JoXuYwKvpejzB1VGNJDIemHnHD4zDkAppfZfTbWL9XydKDkgrn0UyQdrPAms?=
+ =?us-ascii?Q?a9/XcDTm9nC0lAwj3kRN7XxH4RsQzlTByzVMzlkQQMUl1fxnbSXHl8j2L559?=
+ =?us-ascii?Q?t/783T3C5kNRlTA5pXPvudrFY88YpztFAWo55jECFL1VksFju6TktbdAYfxV?=
+ =?us-ascii?Q?5E48QAPI+UgrQYnfFgdxnALneADjmckM5fBW2TndLwbgxG+LvVuyef7sK3tQ?=
+ =?us-ascii?Q?kokRtmeqWI0vnzdh5QJoR3lzyU/NiUyqO2Sh3W4OyZ6K2PZJrMSxr6dJHqYC?=
+ =?us-ascii?Q?3fiRh5pEPJ3RnmTLDyFQLXX1EpJDa2Bm8HuhIFgUaH+P4BWrqbYzjs239yHc?=
+ =?us-ascii?Q?o6nh1KRLBTK5nN/e8Twr/0MWZMoZDmdXTH9LQBw/XebVztz4Y2pzhU+nNqIp?=
+ =?us-ascii?Q?pWRsx2EV6EvCP1J62D29feEKE0WNz5htbcrKA5TWvbfFDInz2Eq1mpv4lxGz?=
+ =?us-ascii?Q?4xr/noIksWyDU4vP23rNwHROm5BX97CWLnQIwgtB7m1GQHaIebhXfCsEIXme?=
+ =?us-ascii?Q?cojtHp7t949PtJncLTGSAArqxiD6DcUseBetzFOKo2/0+FsWbfUT9vYxKHdk?=
+ =?us-ascii?Q?VIIgORpBltAS++R6BxCihC/LgNKjHgci4ZsiX1NJya1bYUabadpMv8M8Ywm6?=
+ =?us-ascii?Q?dkZgwZrtuJDWl6oePnSTVQ30pn2DBW0T5x/erGWzeRjOP124f2LghCBCMDlw?=
+ =?us-ascii?Q?k1KNXw6fhW6KRPwPzYkr0luh9i0F3XhTYOqSNtI4evJYRDdjWEXK5YimOfhw?=
+ =?us-ascii?Q?tvAOCSqNaxiJDtoDaQ56gW+Jw03qpS0wmPxEmi4S0aFHRDE0WsDdF17M3VUZ?=
+ =?us-ascii?Q?wlqaIyiqlpA2cjdzivzMLo8dmreDCDas5nZEFFYZsqUnGvU9SHOsjzf9gwyQ?=
+ =?us-ascii?Q?wv+aBz04z2pGDh2bLl8CfeulJH4d0F/jP/cXWHlA?=
+x-ms-exchange-antispam-messagedata-1: aWKuH5LMf20VMINsuVGNfvCQoJ9NjWKu0SaYoxX64kokkXHwW8pElxM+d1rUPQoQX1LM8qAU7rADUrrSNnFhL4iyHDvYaxoG5MrbaD9UGU6HkVh/8PNyln5uLkCRpweW+dkC99HjNKCht/WCraEWma3JOlZLWEKPhMhe4uLjq/cOIsDZRWMBIFPXVDX8e8JpIw6Z2Q7l98uEa/cIUuBFD3qGI336ftzLN130ZNoJTZJ+yODNOZjB7YivOI4C+RC0QSSZnCMXoxO7DZ8LnF6qclPnUrFZeSe1qoNo5g1Ilk6yXdgwprpv1p9XGv+GzYNYvoIDQ0uUYZ21hD4acu5tLbbXpKmYWXtCWakhumQLRa9Mz2xpCNx2kRNGhgfhE0aBksFSfkM6fSH0hJOjrYsYG/g+
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 X-OriginatorOrg: microsoft.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
 X-MS-Exchange-CrossTenant-AuthSource: MW2PR2101MB0892.namprd21.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: ec44c5fb-2226-4053-c3ea-08d915c63ff1
-X-MS-Exchange-CrossTenant-originalarrivaltime: 13 May 2021 04:19:06.7983
+X-MS-Exchange-CrossTenant-Network-Message-Id: efe575fa-4412-4a1d-de32-08d915d4a3cf
+X-MS-Exchange-CrossTenant-originalarrivaltime: 13 May 2021 06:02:07.3755
  (UTC)
 X-MS-Exchange-CrossTenant-fromentityheader: Hosted
 X-MS-Exchange-CrossTenant-id: 72f988bf-86f1-41af-91ab-2d7cd011db47
 X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: PPvxCE/Bopi29eOjd187sQz7xTfEQdUonU9iAuOe/alRJMFerll0I9j8VYbS2BHKj3LG03iOt8ehtajeibrUJg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MWHPR21MB0751
+X-MS-Exchange-CrossTenant-userprincipalname: xyyoVi/8cvv7taYHWK8I/358Pis0AdlqK6JrUy4DE1aUJb0YtfDpvOFa/w50Gl1zT7JzSDTYI+d3duz+2rNKeQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR21MB1939
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 > From: Dexuan Cui
-> Sent: Wednesday, May 12, 2021 3:17 PM
+> Sent: Wednesday, May 12, 2021 9:19 PM
 > ...
-> It looks like there is a race condition between iptables-restore calls
-> getsockopt() to get the number of table entries and iptables call
-> setsockopt() to replace the entries? Looks like some other program is
-> concurrently calling getsockopt()/setsockopt() -- but it looks like this =
-is
-> not the case according to the messages I print via trace_printk() around
-> do_replace() in do_ipt_set_ctl(): when the -EAGAIN error happens, there i=
-s
-> no other program calling do_replace(); the table entry number was changed
-> to 5 by another program 'iptables' about 1.3 milliseconds ago, and then
-> this program 'iptables-restore' calls setsockopt() and the kernel sees
-> 'num_counters' being 5 and the 'private->number' being 6 (how can this
-> happen??); the next setsockopt() call for the same 'security' table
-> happens in about 1 minute with both the numbers being 6.
+> I think the latest mainline kernel should also have the same race.
+> It looks like this by-design race exists since day one?
 
-Well, after tracing the code more closely, it turns out that the program
-'iptables' indeed concurrently changes the number from 5 to 6, and this
-causes the 'iptable-restores' program to get EAGAIN:
+I indeed reproduced the issue with the latest stable tree (v5.12.3) as well=
+.
 
-1. iptables-906 (906 is the process ID) calls IPT_SO_GET_ENTRIES and the
-current num_entries is 4; the process calls IPT_SO_SET_REPLACE and the
-private->number becomes 5.
-
-2. iptables-restor-895 calls IPT_SO_GET_ENTRIES, and gets num_entries=3D=3D=
-5.
-
-3. iptables-906 calls IPT_SO_GET_ENTRIES again, and also gets num_entries=
-=3D=3D5;
-the process calls IPT_SO_SET_REPLACE and the private->number becomes 6.
-
-4. iptables-restor-895 calls IPT_SO_SET_REPLACE and the kernel function
-xt_replace_table() returns -EAGAIN due to num_counters =3D=3D 5 and
-private->number =3D=3D 6.
-
-I think the latest mainline kernel should also have the same race.
-It looks like this by-design race exists since day one?
-
-> BTW, iptables does have a retry mechanism for getsockopt():
-> 2f93205b375e ("Retry ruleset dump when kernel returns EAGAIN.")
+> > BTW, iptables does have a retry mechanism for getsockopt():
+> > 2f93205b375e ("Retry ruleset dump when kernel returns EAGAIN.")
+> >
 > (https://git.netfilter.org/iptables/commit/libiptc?id=3D2f93205b375e&cont=
 ext=3D10
-> &ignorews=3D0&dt=3D0)
->=20
-> But it looks like this is enough? e.g. here getsockopt() returns 0, but
-> setsockopt() returns -EAGAIN.
-
-It looks like we need to add a retry mechanism to the iptables-restore
-program: iptables/iptables-restore.c: ip46tables_restore_main():
-
-if cb->ops->commit(handle) -> ... -> setsockopt(...,IPT_SO_SET_REPLACE, ...=
-)
-fails due to EAGAIN, it should start over from the very begining, i.e. call
-create_handle() -> handle =3D cb->ops->init(tablename) again to get the new
-num_entries, and retry the commit op. But I'm not sure how to easily
-re-create the context associated with the old handle (should/can it re-pars=
-e
-the rules?), as I'm not really familiar with iptables.
-
-Or, is it possible to fix the race condition from the netfilter module?
+> > &ignorews=3D0&dt=3D0)
+> >
+> > But it looks like this is enough?=20
+I missed a "not". IMO 2f93205b375e is not enough.
 
 Thanks,
 -- Dexuan
-
