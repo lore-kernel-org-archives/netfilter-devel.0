@@ -2,33 +2,33 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66679C433B4
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 May 2021 23:57:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 599A0C433ED
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 May 2021 00:45:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2B81161288
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 May 2021 23:57:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3E87A613F7
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 May 2021 00:45:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231678AbhELX6Y (ORCPT
+        id S234050AbhEMArD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 12 May 2021 19:58:24 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:59910 "EHLO
+        Wed, 12 May 2021 20:47:03 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:59988 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232349AbhELXzW (ORCPT
+        with ESMTP id S241841AbhEMApE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 May 2021 19:55:22 -0400
+        Wed, 12 May 2021 20:45:04 -0400
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 7646C6413E
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 May 2021 01:53:11 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id DE25F64143
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 May 2021 02:43:02 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nftables] netlink_delinearize: fix binary operation postprocessing with sets
-Date:   Thu, 13 May 2021 01:53:57 +0200
-Message-Id: <20210512235357.22960-1-pablo@netfilter.org>
+Subject: [PATCH nftables] parser_bison: add shortcut syntax for matching flags without binary operations
+Date:   Thu, 13 May 2021 02:43:48 +0200
+Message-Id: <20210513004348.23640-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -36,33 +36,81 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If the right-hand side expression of the binary expression is a set,
-then, skip the postprocessing step otherwise the tests/py report the
-following warning:
+This patch adds the following shortcut syntax:
 
- # ./nft-test.py inet/tcp.t
- inet/tcp.t: WARNING: line 80: 'add rule ip test-ip4 input tcp flags & (syn|fin) == (syn|fin)': 'tcp flags & (fin | syn) == fin | syn' mismatches 'tcp flags ! fin,syn'
- inet/tcp.t: WARNING: line 83: 'add rule ip test-ip4 input tcp flags & (fin | syn | rst | psh | ack | urg) == { fin, ack, psh | ack, fin | psh | ack }': 'tcp flags & (fin | syn | rst | psh | ack | urg) == { fin, ack, psh | ack, fin | psh | ack }' mismatches 'tcp flags ! fin,syn,rst,psh,ack,urg'
+	expression flags / flags
 
-This listing is not correct.
+instead of:
+
+	expression and flags == flags
+
+For example:
+
+	tcp flags syn,ack / syn,ack,fin,rst
+                  ^^^^^^^   ^^^^^^^^^^^^^^^
+                   value         mask
+
+instead of:
+
+	tcp flags and (syn|ack|fin|rst) == syn|ack
+
+The second list of comma-separated flags represents the mask which are
+examined and the first list of comma-separated flags must be set.
+
+You can also use the != operator with this syntax:
+
+	tcp flags != fin,rst / syn,ack,fin,rst
+
+This short is based on the prefix notation, but it is also similar to
+the iptables tcp matching syntax.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/netlink_delinearize.c | 1 +
- 1 file changed, 1 insertion(+)
+netlink delinearize code update to list this new syntax is missing in
+this patch.
 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 4dd5bdc0787f..81fe4c166499 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -2173,6 +2173,7 @@ static void relational_binop_postprocess(struct rule_pp_ctx *ctx, struct expr *e
- 	if (binop->op == OP_AND && (expr->op == OP_NEQ || expr->op == OP_EQ) &&
- 	    value->dtype->basetype &&
- 	    value->dtype->basetype->type == TYPE_BITMASK &&
-+	    value->etype == EXPR_VALUE &&
- 	    !mpz_cmp_ui(value->value, 0)) {
- 		/* Flag comparison: data & flags != 0
- 		 *
+ src/parser_bison.y | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
+
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index b50b60649d2e..0747601e551d 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -4469,6 +4469,34 @@ relational_expr		:	expr	/* implicit */	rhs_expr
+ 			{
+ 				$$ = relational_expr_alloc(&@$, OP_IMPLICIT, $1, $2);
+ 			}
++			|	expr	/* implicit */	basic_rhs_expr	SLASH	list_rhs_expr
++			{
++				struct expr *expr;
++
++				expr = binop_expr_alloc(&@$, OP_AND, $1, $4);
++				$$ = relational_expr_alloc(&@$, OP_EQ, expr, $2);
++			}
++			|	expr	/* implicit */	list_rhs_expr	SLASH	list_rhs_expr
++			{
++				struct expr *expr;
++
++				expr = binop_expr_alloc(&@$, OP_AND, $1, $4);
++				$$ = relational_expr_alloc(&@$, OP_EQ, expr, $2);
++			}
++			|	expr	relational_op	basic_rhs_expr	SLASH	list_rhs_expr
++			{
++				struct expr *expr;
++
++				expr = binop_expr_alloc(&@$, OP_AND, $1, $5);
++				$$ = relational_expr_alloc(&@$, $2, expr, $3);
++			}
++			|	expr	relational_op	list_rhs_expr	SLASH	list_rhs_expr
++			{
++				struct expr *expr;
++
++				expr = binop_expr_alloc(&@$, OP_AND, $1, $5);
++				$$ = relational_expr_alloc(&@$, $2, expr, $3);
++			}
+ 			|	expr	relational_op	rhs_expr
+ 			{
+ 				$$ = relational_expr_alloc(&@2, $2, $1, $3);
 -- 
 2.20.1
 
