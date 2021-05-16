@@ -2,416 +2,429 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33654C433ED
-	for <netfilter-devel@archiver.kernel.org>; Sat, 15 May 2021 23:05:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72E4BC43461
+	for <netfilter-devel@archiver.kernel.org>; Sun, 16 May 2021 13:22:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0FBE661353
-	for <netfilter-devel@archiver.kernel.org>; Sat, 15 May 2021 23:05:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 55BF56113E
+	for <netfilter-devel@archiver.kernel.org>; Sun, 16 May 2021 13:22:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229969AbhEOXHB (ORCPT
+        id S233845AbhEPNXx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 15 May 2021 19:07:01 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:37946 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231314AbhEOXGm (ORCPT
+        Sun, 16 May 2021 09:23:53 -0400
+Received: from youngberry.canonical.com ([91.189.89.112]:39110 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233784AbhEPNXw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 15 May 2021 19:06:42 -0400
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 5A0776413E
-        for <netfilter-devel@vger.kernel.org>; Sun, 16 May 2021 01:04:34 +0200 (CEST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nftables,v3] parser_bison: add shortcut syntax for matching flags without binary operations
-Date:   Sun, 16 May 2021 01:02:56 +0200
-Message-Id: <20210515230256.9078-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+        Sun, 16 May 2021 09:23:52 -0400
+Received: from mail-lj1-f197.google.com ([209.85.208.197])
+        by youngberry.canonical.com with esmtps  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        (Exim 4.93)
+        (envelope-from <juerg.haefliger@canonical.com>)
+        id 1liGj7-0001IK-0p
+        for netfilter-devel@vger.kernel.org; Sun, 16 May 2021 13:22:37 +0000
+Received: by mail-lj1-f197.google.com with SMTP id c16-20020a2ea7900000b02900ef529209ccso2018254ljf.11
+        for <netfilter-devel@vger.kernel.org>; Sun, 16 May 2021 06:22:37 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=TUZHq1LlIrTbAZVDobXbN76FSlqGTNui2ct6NU02wJo=;
+        b=adnb3s6TcalUmAb3jlA3GG2kLo+FDdzR167A25m3Yy1C0XhWk3OwzTG5y/Pyy0wmfg
+         mMC7au0cdByq74aEOlmgNkQioU/Ez89Hgcy8UIWKqJeFMn6xDZ6MkvhQ4u0h/8fO2nFc
+         Kmznjs9JYYS3lkTN+oOcijF9vgIdR4XL2+kQHVofCtu25ELwGw+itiU0rBEjjp/tql4j
+         3iVRnIf2ptRDAa/GILCmTGZkLIK5rH4nYo6a07eWE7ovEX5SDoHueQ8kwmKEwdW3Yfir
+         Hb1iGtKG6OVFMKn2hDhIbKvPglt10MfEkATCxDrQ5S7jXATBR4zeX3tRPwdnT3wwlmDx
+         0L+g==
+X-Gm-Message-State: AOAM532cBs+knnvBXcXtpb1KR1NjpywBsQd18xg5dpZ5W+OjRPTXswDK
+        JUJ6WG1yEk6BMOsZRh1q4LaAimZ0EIKst/pJAvn+7JI328RRUZxFdPnDz2V5aJ298BMP8nABQzK
+        ntuIeL073muDshFzefNJGW00RVmTORLRlByXDl8w2Pbu6Ng==
+X-Received: by 2002:a17:906:b2c1:: with SMTP id cf1mr47188628ejb.544.1621171345475;
+        Sun, 16 May 2021 06:22:25 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJwemSH08vKN86fYRji/0gf7FGjjmYQFhv1Tge7BtiRE3+6x/Y5AKDM4p5D+miAtvUmM3VDZVQ==
+X-Received: by 2002:a17:906:b2c1:: with SMTP id cf1mr47188589ejb.544.1621171345102;
+        Sun, 16 May 2021 06:22:25 -0700 (PDT)
+Received: from gollum.fritz.box ([194.191.244.86])
+        by smtp.gmail.com with ESMTPSA id n15sm7126596eje.118.2021.05.16.06.22.23
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 16 May 2021 06:22:24 -0700 (PDT)
+From:   Juerg Haefliger <juerg.haefliger@canonical.com>
+X-Google-Original-From: Juerg Haefliger <juergh@canonical.com>
+To:     aaro.koskinen@iki.fi, tony@atomide.com, linux@prisktech.co.nz,
+        davem@davemloft.net, kuba@kernel.org, jejb@linux.ibm.com,
+        martin.petersen@oracle.com, gregkh@linuxfoundation.org,
+        lee.jones@linaro.org, daniel.thompson@linaro.org,
+        jingoohan1@gmail.com, mst@redhat.com, jasowang@redhat.com,
+        zbr@ioremap.net, pablo@netfilter.org, kadlec@netfilter.org,
+        fw@strlen.de, horms@verge.net.au, ja@ssi.bg,
+        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-crypto@vger.kernel.org, linux-usb@vger.kernel.org,
+        netdev@vger.kernel.org, linux-scsi@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
+        virtualization@lists.linux-foundation.org,
+        linux-fsdevel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, lvs-devel@vger.kernel.org
+Cc:     linux-kernel@vger.kernel.org,
+        Juerg Haefliger <juergh@canonical.com>
+Subject: [PATCH] treewide: Remove leading spaces in Kconfig files
+Date:   Sun, 16 May 2021 15:22:09 +0200
+Message-Id: <20210516132209.59229-1-juergh@canonical.com>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch adds the following shortcut syntax:
+There are a few occurences of leading spaces before tabs in a couple of
+Kconfig files. Remove them by running the following command:
 
-	expression flags / flags
+  $ find . -name 'Kconfig*' | xargs sed -r -i 's/^[ ]+\t/\t/'
 
-instead of:
-
-	expression and flags == flags
-
-For example:
-
-	tcp flags syn,ack / syn,ack,fin,rst
-                  ^^^^^^^   ^^^^^^^^^^^^^^^
-                   value         mask
-
-instead of:
-
-	tcp flags and (syn|ack|fin|rst) == syn|ack
-
-The second list of comma-separated flags represents the mask which are
-examined and the first list of comma-separated flags must be set.
-
-You can also use the != operator with this syntax:
-
-	tcp flags != fin,rst / syn,ack,fin,rst
-
-This shortcut is based on the prefix notation, but it is also similar to
-the iptables tcp matching syntax.
-
-This patch introduces the flagcmp expression to print the tcp flags in
-this new notation. The delinearize path transforms the binary expression
-to this new flagcmp expression whenever possible.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Juerg Haefliger <juergh@canonical.com>
 ---
-v3: fix reverse mask and value in the delinearize path.
-    add json print function, display as binary operation for compatibility.
+ arch/arm/mach-omap1/Kconfig     | 12 ++++++------
+ arch/arm/mach-vt8500/Kconfig    |  6 +++---
+ arch/arm/mm/Kconfig             | 10 +++++-----
+ drivers/char/hw_random/Kconfig  |  8 ++++----
+ drivers/net/usb/Kconfig         | 10 +++++-----
+ drivers/net/wan/Kconfig         |  4 ++--
+ drivers/scsi/Kconfig            |  2 +-
+ drivers/uio/Kconfig             |  2 +-
+ drivers/video/backlight/Kconfig | 10 +++++-----
+ drivers/virtio/Kconfig          |  2 +-
+ drivers/w1/masters/Kconfig      |  6 +++---
+ fs/proc/Kconfig                 |  4 ++--
+ init/Kconfig                    |  2 +-
+ net/netfilter/Kconfig           |  2 +-
+ net/netfilter/ipvs/Kconfig      |  2 +-
+ 15 files changed, 41 insertions(+), 41 deletions(-)
 
- include/expression.h        | 11 +++++++
- include/json.h              |  2 ++
- src/evaluate.c              | 17 ++++++++++
- src/expression.c            | 51 +++++++++++++++++++++++++++++
- src/json.c                  | 14 ++++++++
- src/netlink_delinearize.c   | 64 ++++++++++++++++++++++++-------------
- src/parser_bison.y          | 16 ++++++++++
- tests/py/inet/tcp.t         |  2 +-
- tests/py/inet/tcp.t.payload |  2 +-
- 9 files changed, 155 insertions(+), 24 deletions(-)
-
-diff --git a/include/expression.h b/include/expression.h
-index be703d755b6e..742fcdd7bf75 100644
---- a/include/expression.h
-+++ b/include/expression.h
-@@ -72,6 +72,7 @@ enum expr_types {
- 	EXPR_FIB,
- 	EXPR_XFRM,
- 	EXPR_SET_ELEM_CATCHALL,
-+	EXPR_FLAGCMP,
- };
- #define EXPR_MAX EXPR_XFRM
+diff --git a/arch/arm/mach-omap1/Kconfig b/arch/arm/mach-omap1/Kconfig
+index 9536b8f3c07d..208c700c2455 100644
+--- a/arch/arm/mach-omap1/Kconfig
++++ b/arch/arm/mach-omap1/Kconfig
+@@ -65,14 +65,14 @@ config MACH_OMAP_INNOVATOR
+ config MACH_OMAP_H2
+ 	bool "TI H2 Support"
+ 	depends on ARCH_OMAP16XX
+-    	help
++	help
+ 	  TI OMAP 1610/1611B H2 board support. Say Y here if you have such
+ 	  a board.
  
-@@ -370,6 +371,12 @@ struct expr {
- 			uint8_t			ttl;
- 			uint32_t		flags;
- 		} osf;
-+		struct {
-+			/* EXPR_FLAGCMP */
-+			struct expr		*expr;
-+			struct expr		*mask;
-+			struct expr		*value;
-+		} flagcmp;
- 	};
- };
+ config MACH_OMAP_H3
+ 	bool "TI H3 Support"
+ 	depends on ARCH_OMAP16XX
+-    	help
++	help
+ 	  TI OMAP 1710 H3 board support. Say Y here if you have such
+ 	  a board.
  
-@@ -500,6 +507,10 @@ extern struct expr *set_elem_expr_alloc(const struct location *loc,
+@@ -85,14 +85,14 @@ config MACH_HERALD
+ config MACH_OMAP_OSK
+ 	bool "TI OSK Support"
+ 	depends on ARCH_OMAP16XX
+-    	help
++	help
+ 	  TI OMAP 5912 OSK (OMAP Starter Kit) board support. Say Y here
+           if you have such a board.
  
- struct expr *set_elem_catchall_expr_alloc(const struct location *loc);
+ config OMAP_OSK_MISTRAL
+ 	bool "Mistral QVGA board Support"
+ 	depends on MACH_OMAP_OSK
+-    	help
++	help
+ 	  The OSK supports an optional add-on board with a Quarter-VGA
+ 	  touchscreen, PDA-ish buttons, a resume button, bicolor LED,
+ 	  and camera connector.  Say Y here if you have this board.
+@@ -100,14 +100,14 @@ config OMAP_OSK_MISTRAL
+ config MACH_OMAP_PERSEUS2
+ 	bool "TI Perseus2"
+ 	depends on ARCH_OMAP730
+-    	help
++	help
+ 	  Support for TI OMAP 730 Perseus2 board. Say Y here if you have such
+ 	  a board.
  
-+struct expr *flagcmp_expr_alloc(const struct location *loc, enum ops op,
-+				struct expr *expr, struct expr *mask,
-+				struct expr *value);
-+
- extern void range_expr_value_low(mpz_t rop, const struct expr *expr);
- extern void range_expr_value_high(mpz_t rop, const struct expr *expr);
+ config MACH_OMAP_FSAMPLE
+ 	bool "TI F-Sample"
+ 	depends on ARCH_OMAP730
+-    	help
++	help
+ 	  Support for TI OMAP 850 F-Sample board. Say Y here if you have such
+ 	  a board.
  
-diff --git a/include/json.h b/include/json.h
-index 411422082dc8..dd594bd03e1c 100644
---- a/include/json.h
-+++ b/include/json.h
-@@ -28,6 +28,7 @@ struct list_head;
+diff --git a/arch/arm/mach-vt8500/Kconfig b/arch/arm/mach-vt8500/Kconfig
+index d01cdd9ad9c7..408e405ae568 100644
+--- a/arch/arm/mach-vt8500/Kconfig
++++ b/arch/arm/mach-vt8500/Kconfig
+@@ -9,9 +9,9 @@ config ARCH_VT8500
  
- json_t *binop_expr_json(const struct expr *expr, struct output_ctx *octx);
- json_t *relational_expr_json(const struct expr *expr, struct output_ctx *octx);
-+json_t *flagcmp_expr_json(const struct expr *expr, struct output_ctx *octx);
- json_t *range_expr_json(const struct expr *expr, struct output_ctx *octx);
- json_t *meta_expr_json(const struct expr *expr, struct output_ctx *octx);
- json_t *payload_expr_json(const struct expr *expr, struct output_ctx *octx);
-@@ -127,6 +128,7 @@ static inline json_t *name##_json(arg1_t arg1, arg2_t arg2) { return NULL; }
- 	JSON_PRINT_STUB(name##_stmt, const struct stmt *, struct output_ctx *)
+ config ARCH_WM8505
+ 	bool "VIA/Wondermedia 85xx and WM8650"
+- 	depends on ARCH_MULTI_V5
+- 	select ARCH_VT8500
+- 	select CPU_ARM926T
++	depends on ARCH_MULTI_V5
++	select ARCH_VT8500
++	select CPU_ARM926T
  
- EXPR_PRINT_STUB(binop_expr)
-+EXPR_PRINT_STUB(flagcmp_expr)
- EXPR_PRINT_STUB(relational_expr)
- EXPR_PRINT_STUB(range_expr)
- EXPR_PRINT_STUB(meta_expr)
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 2e31ed10ccb7..a3a1d1c026a7 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -2134,6 +2134,21 @@ static int expr_evaluate_xfrm(struct eval_ctx *ctx, struct expr **exprp)
- 	return expr_evaluate_primary(ctx, exprp);
- }
+ config ARCH_WM8750
+ 	bool "WonderMedia WM8750"
+diff --git a/arch/arm/mm/Kconfig b/arch/arm/mm/Kconfig
+index 35f43d0aa056..7a4a04bafa92 100644
+--- a/arch/arm/mm/Kconfig
++++ b/arch/arm/mm/Kconfig
+@@ -123,13 +123,13 @@ config CPU_ARM925T
+ 	select CPU_PABRT_LEGACY
+ 	select CPU_THUMB_CAPABLE
+ 	select CPU_TLB_V4WBI if MMU
+- 	help
+- 	  The ARM925T is a mix between the ARM920T and ARM926T, but with
++	help
++	  The ARM925T is a mix between the ARM920T and ARM926T, but with
+ 	  different instruction and data caches. It is used in TI's OMAP
+- 	  device family.
++	  device family.
  
-+static int expr_evaluate_flagcmp(struct eval_ctx *ctx, struct expr **exprp)
-+{
-+	struct expr *expr = *exprp, *binop, *rel;
-+
-+	binop = binop_expr_alloc(&expr->location, OP_AND,
-+				 expr_get(expr->flagcmp.expr),
-+				 expr_get(expr->flagcmp.mask));
-+	rel = relational_expr_alloc(&expr->location, expr->op, binop,
-+				    expr_get(expr->flagcmp.value));
-+	expr_free(expr);
-+	*exprp = rel;
-+
-+	return expr_evaluate(ctx, exprp);
-+}
-+
- static int expr_evaluate(struct eval_ctx *ctx, struct expr **expr)
- {
- 	if (ctx->nft->debug_mask & NFT_DEBUG_EVALUATION) {
-@@ -2203,6 +2218,8 @@ static int expr_evaluate(struct eval_ctx *ctx, struct expr **expr)
- 		return expr_evaluate_xfrm(ctx, expr);
- 	case EXPR_SET_ELEM_CATCHALL:
- 		return 0;
-+	case EXPR_FLAGCMP:
-+		return expr_evaluate_flagcmp(ctx, expr);
- 	default:
- 		BUG("unknown expression type %s\n", expr_name(*expr));
- 	}
-diff --git a/src/expression.c b/src/expression.c
-index b3400751f312..7ae075d23ee3 100644
---- a/src/expression.c
-+++ b/src/expression.c
-@@ -1351,6 +1351,56 @@ struct expr *set_elem_catchall_expr_alloc(const struct location *loc)
- 	return expr;
- }
+- 	  Say Y if you want support for the ARM925T processor.
+- 	  Otherwise, say N.
++	  Say Y if you want support for the ARM925T processor.
++	  Otherwise, say N.
  
-+static void flagcmp_expr_print(const struct expr *expr, struct output_ctx *octx)
-+{
-+	expr_print(expr->flagcmp.expr, octx);
-+	nft_print(octx, " ");
-+	expr_print(expr->flagcmp.value, octx);
-+	nft_print(octx, " / ");
-+	expr_print(expr->flagcmp.mask, octx);
-+}
-+
-+static void flagcmp_expr_clone(struct expr *new, const struct expr *expr)
-+{
-+	new->flagcmp.expr = expr_clone(expr->flagcmp.expr);
-+	new->flagcmp.mask = expr_clone(expr->flagcmp.mask);
-+	new->flagcmp.value = expr_clone(expr->flagcmp.value);
-+}
-+
-+static void flagcmp_expr_destroy(struct expr *expr)
-+{
-+	expr_free(expr->flagcmp.expr);
-+	expr_free(expr->flagcmp.mask);
-+	expr_free(expr->flagcmp.value);
-+}
-+
-+static const struct expr_ops flagcmp_expr_ops = {
-+	.type		= EXPR_FLAGCMP,
-+	.name		= "flags comparison",
-+	.print		= flagcmp_expr_print,
-+	.json		= flagcmp_expr_json,
-+	.clone		= flagcmp_expr_clone,
-+	.destroy	= flagcmp_expr_destroy,
-+};
-+
-+struct expr *flagcmp_expr_alloc(const struct location *loc, enum ops op,
-+				struct expr *match, struct expr *mask,
-+				struct expr *value)
-+{
-+	struct expr *expr;
-+
-+	expr = expr_alloc(loc, EXPR_FLAGCMP, match->dtype, match->byteorder,
-+			  match->len);
-+	expr->op = op;
-+	expr->flagcmp.expr = match;
-+	expr->flagcmp.mask = mask;
-+	/* json output needs this operation for compatibility */
-+	expr->flagcmp.mask->op = OP_OR;
-+	expr->flagcmp.value = value;
-+
-+	return expr;
-+}
-+
- void range_expr_value_low(mpz_t rop, const struct expr *expr)
- {
- 	switch (expr->etype) {
-@@ -1427,6 +1477,7 @@ static const struct expr_ops *__expr_ops_by_type(enum expr_types etype)
- 	case EXPR_FIB: return &fib_expr_ops;
- 	case EXPR_XFRM: return &xfrm_expr_ops;
- 	case EXPR_SET_ELEM_CATCHALL: return &set_elem_catchall_expr_ops;
-+	case EXPR_FLAGCMP: return &flagcmp_expr_ops;
- 	}
+ # ARM926T
+ config CPU_ARM926T
+diff --git a/drivers/char/hw_random/Kconfig b/drivers/char/hw_random/Kconfig
+index 1fe006f3f12f..0e1e97680f08 100644
+--- a/drivers/char/hw_random/Kconfig
++++ b/drivers/char/hw_random/Kconfig
+@@ -168,14 +168,14 @@ config HW_RANDOM_OMAP
+ 	depends on ARCH_OMAP16XX || ARCH_OMAP2PLUS || ARCH_MVEBU
+ 	default HW_RANDOM
+ 	help
+- 	  This driver provides kernel-side support for the Random Number
++	  This driver provides kernel-side support for the Random Number
+ 	  Generator hardware found on OMAP16xx, OMAP2/3/4/5, AM33xx/AM43xx
+ 	  multimedia processors, and Marvell Armada 7k/8k SoCs.
  
- 	BUG("Unknown expression type %d\n", etype);
-diff --git a/src/json.c b/src/json.c
-index b4197b2fef0c..69ca9697d97d 100644
---- a/src/json.c
-+++ b/src/json.c
-@@ -479,6 +479,20 @@ static json_t *table_print_json(const struct table *table)
- 	return json_pack("{s:o}", "table", root);
- }
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called omap-rng.
  
-+json_t *flagcmp_expr_json(const struct expr *expr, struct output_ctx *octx)
-+{
-+	json_t *left;
-+
-+	left = json_pack("{s:[o, o]}", expr_op_symbols[OP_AND],
-+			 expr_print_json(expr->flagcmp.expr, octx),
-+			 expr_print_json(expr->flagcmp.mask, octx));
-+
-+	return json_pack("{s:{s:s, s:o, s:o}}", "match",
-+			 "op", expr_op_symbols[expr->op] ? : "in",
-+			 "left", left,
-+			 "right", expr_print_json(expr->flagcmp.value, octx));
-+}
-+
- json_t *binop_expr_json(const struct expr *expr, struct output_ctx *octx)
- {
- 	return json_pack("{s:[o, o]}", expr_op_symbols[expr->op],
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 81fe4c166499..75869d330ef4 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -2166,35 +2166,55 @@ static void map_binop_postprocess(struct rule_pp_ctx *ctx, struct expr *expr)
- 		binop_postprocess(ctx, expr);
- }
+- 	  If unsure, say Y.
++	  If unsure, say Y.
  
--static void relational_binop_postprocess(struct rule_pp_ctx *ctx, struct expr *expr)
-+static void relational_binop_postprocess(struct rule_pp_ctx *ctx,
-+					 struct expr **exprp)
- {
--	struct expr *binop = expr->left, *value = expr->right;
-+	struct expr *expr = *exprp, *binop = expr->left, *value = expr->right;
+ config HW_RANDOM_OMAP3_ROM
+ 	tristate "OMAP3 ROM Random Number Generator support"
+@@ -485,13 +485,13 @@ config HW_RANDOM_NPCM
+ 	depends on ARCH_NPCM || COMPILE_TEST
+ 	default HW_RANDOM
+ 	help
+- 	  This driver provides support for the Random Number
++	  This driver provides support for the Random Number
+ 	  Generator hardware available in Nuvoton NPCM SoCs.
  
- 	if (binop->op == OP_AND && (expr->op == OP_NEQ || expr->op == OP_EQ) &&
- 	    value->dtype->basetype &&
--	    value->dtype->basetype->type == TYPE_BITMASK &&
--	    value->etype == EXPR_VALUE &&
--	    !mpz_cmp_ui(value->value, 0)) {
--		/* Flag comparison: data & flags != 0
--		 *
--		 * Split the flags into a list of flag values and convert the
--		 * op to OP_EQ.
--		 */
--		expr_free(value);
--
--		expr->left  = expr_get(binop->left);
--		expr->right = binop_tree_to_list(NULL, binop->right);
--		switch (expr->op) {
--		case OP_NEQ:
--			expr->op = OP_IMPLICIT;
-+	    value->dtype->basetype->type == TYPE_BITMASK) {
-+		switch (value->etype) {
-+		case EXPR_VALUE:
-+			if (!mpz_cmp_ui(value->value, 0)) {
-+				/* Flag comparison: data & flags != 0
-+				 *
-+				 * Split the flags into a list of flag values and convert the
-+				 * op to OP_EQ.
-+				 */
-+				expr_free(value);
-+
-+				expr->left  = expr_get(binop->left);
-+				expr->right = binop_tree_to_list(NULL, binop->right);
-+				switch (expr->op) {
-+				case OP_NEQ:
-+					expr->op = OP_IMPLICIT;
-+					break;
-+				case OP_EQ:
-+					expr->op = OP_NEG;
-+					break;
-+				default:
-+					BUG("unknown operation type %d\n", expr->op);
-+				}
-+				expr_free(binop);
-+			} else {
-+				*exprp = flagcmp_expr_alloc(&expr->location, expr->op,
-+							    expr_get(binop->left),
-+							    binop_tree_to_list(NULL, binop->right),
-+							    expr_get(value));
-+				expr_free(expr);
-+			}
- 			break;
--		case OP_EQ:
--			expr->op = OP_NEG;
-+		case EXPR_BINOP:
-+			*exprp = flagcmp_expr_alloc(&expr->location, expr->op,
-+						    expr_get(binop->left),
-+						    binop_tree_to_list(NULL, binop->right),
-+						    binop_tree_to_list(NULL, value));
-+			expr_free(expr);
- 			break;
- 		default:
--			BUG("unknown operation type %d\n", expr->op);
-+			break;
- 		}
--		expr_free(binop);
- 	} else if (binop->left->dtype->flags & DTYPE_F_PREFIX &&
- 		   binop->op == OP_AND && expr->right->etype == EXPR_VALUE &&
- 		   expr_mask_is_prefix(binop->right)) {
-@@ -2403,7 +2423,7 @@ static void expr_postprocess(struct rule_pp_ctx *ctx, struct expr **exprp)
- 			meta_match_postprocess(ctx, expr);
- 			break;
- 		case EXPR_BINOP:
--			relational_binop_postprocess(ctx, expr);
-+			relational_binop_postprocess(ctx, exprp);
- 			break;
- 		default:
- 			break;
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 000eb40a20a4..cdb04fa8d19b 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -4463,6 +4463,22 @@ relational_expr		:	expr	/* implicit */	rhs_expr
- 			{
- 				$$ = relational_expr_alloc(&@$, OP_IMPLICIT, $1, $2);
- 			}
-+			|	expr	/* implicit */	basic_rhs_expr	SLASH	list_rhs_expr
-+			{
-+				$$ = flagcmp_expr_alloc(&@$, OP_EQ, $1, $4, $2);
-+			}
-+			|	expr	/* implicit */	list_rhs_expr	SLASH	list_rhs_expr
-+			{
-+				$$ = flagcmp_expr_alloc(&@$, OP_EQ, $1, $4, $2);
-+			}
-+			|	expr	relational_op	basic_rhs_expr	SLASH	list_rhs_expr
-+			{
-+				$$ = flagcmp_expr_alloc(&@$, $2, $1, $5, $3);
-+			}
-+			|	expr	relational_op	list_rhs_expr	SLASH	list_rhs_expr
-+			{
-+				$$ = flagcmp_expr_alloc(&@$, $2, $1, $5, $3);
-+			}
- 			|	expr	relational_op	rhs_expr
- 			{
- 				$$ = relational_expr_alloc(&@2, $2, $1, $3);
-diff --git a/tests/py/inet/tcp.t b/tests/py/inet/tcp.t
-index 5f2caea98759..a8d46831213a 100644
---- a/tests/py/inet/tcp.t
-+++ b/tests/py/inet/tcp.t
-@@ -77,7 +77,7 @@ tcp flags != { fin, urg, ecn, cwr} drop;ok
- tcp flags cwr;ok
- tcp flags != cwr;ok
- tcp flags == syn;ok
--tcp flags & (syn|fin) == (syn|fin);ok;tcp flags & (fin | syn) == fin | syn
-+tcp flags fin,syn / fin,syn;ok
- tcp flags & (fin | syn | rst | psh | ack | urg | ecn | cwr) == fin | syn | rst | psh | ack | urg | ecn | cwr;ok;tcp flags == 0xff
- tcp flags { syn, syn | ack };ok
- tcp flags & (fin | syn | rst | psh | ack | urg) == { fin, ack, psh | ack, fin | psh | ack };ok
-diff --git a/tests/py/inet/tcp.t.payload b/tests/py/inet/tcp.t.payload
-index da932b6d8c12..07ac151c2d27 100644
---- a/tests/py/inet/tcp.t.payload
-+++ b/tests/py/inet/tcp.t.payload
-@@ -434,7 +434,7 @@ inet test-inet input
-   [ payload load 1b @ transport header + 13 => reg 1 ]
-   [ cmp eq reg 1 0x00000002 ]
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called npcm-rng.
  
--# tcp flags & (syn|fin) == (syn|fin)
-+# tcp flags fin,syn / fin,syn
- inet test-inet input
-   [ meta load l4proto => reg 1 ]
-   [ cmp eq reg 1 0x00000006 ]
+- 	  If unsure, say Y.
++	  If unsure, say Y.
+ 
+ config HW_RANDOM_KEYSTONE
+ 	depends on ARCH_KEYSTONE || COMPILE_TEST
+diff --git a/drivers/net/usb/Kconfig b/drivers/net/usb/Kconfig
+index fbbe78643631..179308782888 100644
+--- a/drivers/net/usb/Kconfig
++++ b/drivers/net/usb/Kconfig
+@@ -169,7 +169,7 @@ config USB_NET_AX8817X
+ 	  This option adds support for ASIX AX88xxx based USB 2.0
+ 	  10/100 Ethernet adapters.
+ 
+- 	  This driver should work with at least the following devices:
++	  This driver should work with at least the following devices:
+ 	    * Aten UC210T
+ 	    * ASIX AX88172
+ 	    * Billionton Systems, USB2AR
+@@ -220,13 +220,13 @@ config USB_NET_CDCETHER
+ 	  CDC Ethernet is an implementation option for DOCSIS cable modems
+ 	  that support USB connectivity, used for non-Microsoft USB hosts.
+ 	  The Linux-USB CDC Ethernet Gadget driver is an open implementation.
+- 	  This driver should work with at least the following devices:
++	  This driver should work with at least the following devices:
+ 
+ 	    * Dell Wireless 5530 HSPA
+- 	    * Ericsson PipeRider (all variants)
++	    * Ericsson PipeRider (all variants)
+ 	    * Ericsson Mobile Broadband Module (all variants)
+- 	    * Motorola (DM100 and SB4100)
+- 	    * Broadcom Cable Modem (reference design)
++	    * Motorola (DM100 and SB4100)
++	    * Broadcom Cable Modem (reference design)
+ 	    * Toshiba (PCX1100U and F3507g/F3607gw)
+ 	    * ...
+ 
+diff --git a/drivers/net/wan/Kconfig b/drivers/net/wan/Kconfig
+index 83c9481995dd..473df2505c8e 100644
+--- a/drivers/net/wan/Kconfig
++++ b/drivers/net/wan/Kconfig
+@@ -49,7 +49,7 @@ config COSA
+ 	  network device.
+ 
+ 	  You will need user-space utilities COSA or SRP boards for downloading
+- 	  the firmware to the cards and to set them up. Look at the
++	  the firmware to the cards and to set them up. Look at the
+ 	  <http://www.fi.muni.cz/~kas/cosa/> for more information. You can also
+ 	  read the comment at the top of the <file:drivers/net/wan/cosa.c> for
+ 	  details about the cards and the driver itself.
+@@ -108,7 +108,7 @@ config HDLC
+ 	  Generic HDLC driver currently supports raw HDLC, Cisco HDLC, Frame
+ 	  Relay, synchronous Point-to-Point Protocol (PPP) and X.25.
+ 
+- 	  To compile this driver as a module, choose M here: the
++	  To compile this driver as a module, choose M here: the
+ 	  module will be called hdlc.
+ 
+ 	  If unsure, say N.
+diff --git a/drivers/scsi/Kconfig b/drivers/scsi/Kconfig
+index 3d114be5b662..c5612896cdb9 100644
+--- a/drivers/scsi/Kconfig
++++ b/drivers/scsi/Kconfig
+@@ -311,7 +311,7 @@ source "drivers/scsi/cxlflash/Kconfig"
+ config SGIWD93_SCSI
+ 	tristate "SGI WD93C93 SCSI Driver"
+ 	depends on SGI_HAS_WD93 && SCSI
+-  	help
++	help
+ 	  If you have a Western Digital WD93 SCSI controller on
+ 	  an SGI MIPS system, say Y.  Otherwise, say N.
+ 
+diff --git a/drivers/uio/Kconfig b/drivers/uio/Kconfig
+index 5531f3afeb21..2e16c5338e5b 100644
+--- a/drivers/uio/Kconfig
++++ b/drivers/uio/Kconfig
+@@ -18,7 +18,7 @@ config UIO_CIF
+ 	depends on PCI
+ 	help
+ 	  Driver for Hilscher CIF DeviceNet and Profibus cards.  This
+-  	  driver requires a userspace component called cif that handles
++	  driver requires a userspace component called cif that handles
+ 	  all of the heavy lifting and can be found at:
+ 	        <http://www.osadl.org/projects/downloads/UIO/user/>
+ 
+diff --git a/drivers/video/backlight/Kconfig b/drivers/video/backlight/Kconfig
+index d83c87b902c1..a967974f6cd6 100644
+--- a/drivers/video/backlight/Kconfig
++++ b/drivers/video/backlight/Kconfig
+@@ -129,11 +129,11 @@ config LCD_HX8357
+ 	  driver.
+ 
+   config LCD_OTM3225A
+-  	tristate "ORISE Technology OTM3225A support"
+-  	depends on SPI
+-  	help
+-  	  If you have a panel based on the OTM3225A controller
+-  	  chip then say y to include a driver for it.
++	tristate "ORISE Technology OTM3225A support"
++	depends on SPI
++	help
++	  If you have a panel based on the OTM3225A controller
++	  chip then say y to include a driver for it.
+ 
+ endif # LCD_CLASS_DEVICE
+ 
+diff --git a/drivers/virtio/Kconfig b/drivers/virtio/Kconfig
+index ce1b3f6ec325..3b3644d60d11 100644
+--- a/drivers/virtio/Kconfig
++++ b/drivers/virtio/Kconfig
+@@ -128,7 +128,7 @@ config VIRTIO_MMIO
+ 	 This drivers provides support for memory mapped virtio
+ 	 platform device driver.
+ 
+- 	 If unsure, say N.
++	 If unsure, say N.
+ 
+ config VIRTIO_MMIO_CMDLINE_DEVICES
+ 	bool "Memory mapped virtio devices parameter parsing"
+diff --git a/drivers/w1/masters/Kconfig b/drivers/w1/masters/Kconfig
+index 24b9a8e05f64..32e993ea6f96 100644
+--- a/drivers/w1/masters/Kconfig
++++ b/drivers/w1/masters/Kconfig
+@@ -17,12 +17,12 @@ config W1_MASTER_MATROX
+ 
+ config W1_MASTER_DS2490
+ 	tristate "DS2490 USB <-> W1 transport layer for 1-wire"
+-  	depends on USB
+-  	help
++	depends on USB
++	help
+ 	  Say Y here if you want to have a driver for DS2490 based USB <-> W1 bridges,
+ 	  for example DS9490*.
+ 
+-  	  This support is also available as a module.  If so, the module
++	  This support is also available as a module.  If so, the module
+ 	  will be called ds2490.
+ 
+ config W1_MASTER_DS2482
+diff --git a/fs/proc/Kconfig b/fs/proc/Kconfig
+index c930001056f9..e8410a99a0ca 100644
+--- a/fs/proc/Kconfig
++++ b/fs/proc/Kconfig
+@@ -81,10 +81,10 @@ config PROC_SYSCTL
+ 	  limited in memory.
+ 
+ config PROC_PAGE_MONITOR
+- 	default y
++	default y
+ 	depends on PROC_FS && MMU
+ 	bool "Enable /proc page monitoring" if EXPERT
+- 	help
++	help
+ 	  Various /proc files exist to monitor process memory utilization:
+ 	  /proc/pid/smaps, /proc/pid/clear_refs, /proc/pid/pagemap,
+ 	  /proc/kpagecount, and /proc/kpageflags. Disabling these
+diff --git a/init/Kconfig b/init/Kconfig
+index 1ea12c64e4c9..9f1cde503739 100644
+--- a/init/Kconfig
++++ b/init/Kconfig
+@@ -2149,7 +2149,7 @@ config MODULE_SRCVERSION_ALL
+ 	help
+ 	  Modules which contain a MODULE_VERSION get an extra "srcversion"
+ 	  field inserted into their modinfo section, which contains a
+-    	  sum of the source files which made it.  This helps maintainers
++	  sum of the source files which made it.  This helps maintainers
+ 	  see exactly which source was used to build a module (since
+ 	  others sometimes change the module source without updating
+ 	  the version).  With this option, such a "srcversion" field
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 56a2531a3402..172d74560632 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -816,7 +816,7 @@ config NETFILTER_XT_TARGET_CLASSIFY
+ 	  the priority of a packet. Some qdiscs can use this value for
+ 	  classification, among these are:
+ 
+-  	  atm, cbq, dsmark, pfifo_fast, htb, prio
++	  atm, cbq, dsmark, pfifo_fast, htb, prio
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+diff --git a/net/netfilter/ipvs/Kconfig b/net/netfilter/ipvs/Kconfig
+index d61886874940..271da8447b29 100644
+--- a/net/netfilter/ipvs/Kconfig
++++ b/net/netfilter/ipvs/Kconfig
+@@ -318,7 +318,7 @@ config IP_VS_MH_TAB_INDEX
+ comment 'IPVS application helper'
+ 
+ config	IP_VS_FTP
+-  	tristate "FTP protocol helper"
++	tristate "FTP protocol helper"
+ 	depends on IP_VS_PROTO_TCP && NF_CONNTRACK && NF_NAT && \
+ 		NF_CONNTRACK_FTP
+ 	select IP_VS_NFCT
 -- 
-2.20.1
+2.27.0
 
