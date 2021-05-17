@@ -2,296 +2,121 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B768C433ED
-	for <netfilter-devel@archiver.kernel.org>; Mon, 17 May 2021 12:43:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86107C43461
+	for <netfilter-devel@archiver.kernel.org>; Mon, 17 May 2021 14:11:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2F2626100C
-	for <netfilter-devel@archiver.kernel.org>; Mon, 17 May 2021 12:43:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 64FE6610CB
+	for <netfilter-devel@archiver.kernel.org>; Mon, 17 May 2021 14:11:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237107AbhEQMoa (ORCPT
+        id S238209AbhEQONA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 17 May 2021 08:44:30 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:40400 "EHLO
+        Mon, 17 May 2021 10:13:00 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:40508 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237103AbhEQMoa (ORCPT
+        with ESMTP id S238596AbhEQOLW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 May 2021 08:44:30 -0400
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 228696413B;
-        Mon, 17 May 2021 14:42:19 +0200 (CEST)
+        Mon, 17 May 2021 10:11:22 -0400
+Received: from us.es (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 9134B64147;
+        Mon, 17 May 2021 16:09:10 +0200 (CEST)
+Date:   Mon, 17 May 2021 16:10:01 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     kadlec@netfilter.org
-Subject: [PATCH nf-next] netfilter: use nfnetlink_unicast()
-Date:   Mon, 17 May 2021 14:43:08 +0200
-Message-Id: <20210517124308.14375-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+To:     Dmitry Vyukov <dvyukov@google.com>
+Cc:     Florian Westphal <fw@strlen.de>,
+        syzbot <syzbot+154bd5be532a63aa778b@syzkaller.appspotmail.com>,
+        coreteam@netfilter.org, David Miller <davem@davemloft.net>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Jakub Kicinski <kuba@kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        netdev <netdev@vger.kernel.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        syzkaller-bugs <syzkaller-bugs@googlegroups.com>
+Subject: Re: [syzbot] WARNING in __nf_unregister_net_hook (4)
+Message-ID: <20210517141001.GA23573@salvia>
+References: <0000000000008ce91e05bf9f62bc@google.com>
+ <CACT4Y+a6L_x22XNJVX+VYY-XKmLQ0GaYndCVYnaFmoxk58GPgw@mail.gmail.com>
+ <20210508144657.GC4038@breakpoint.cc>
+ <20210513005608.GA23780@salvia>
+ <CACT4Y+YhQQtHBErLYRDqHyw16Bxu9FCMQymviMBR-ywiKf3VQw@mail.gmail.com>
+ <20210517105745.GA19031@salvia>
+ <CACT4Y+Y1M7ewJmipTB=B4fbYR2DMn_kX69Vks93yo=g2g-iXKw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <CACT4Y+Y1M7ewJmipTB=B4fbYR2DMn_kX69Vks93yo=g2g-iXKw@mail.gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Replace netlink_unicast() calls by nfnetlink_unicast() which already
-deals with translating EAGAIN to ENOBUFS as the nfnetlink core expects.
+On Mon, May 17, 2021 at 02:42:41PM +0200, Dmitry Vyukov wrote:
+> On Mon, May 17, 2021 at 12:57 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > > On Sat, May 08, 2021 at 04:46:57PM +0200, Florian Westphal wrote:
+> > > > > Dmitry Vyukov <dvyukov@google.com> wrote:
+> > > > > > > IMPORTANT: if you fix the issue, please add the following tag to the commit:
+> > > > > > > Reported-by: syzbot+154bd5be532a63aa778b@syzkaller.appspotmail.com
+> > > > > >
+> > > > > > Is this also fixed by "netfilter: arptables: use pernet ops struct
+> > > > > > during unregister"?
+> > > > > > The warning is the same, but the stack is different...
+> > > > >
+> > > > > No, this is a different bug.
+> > > > >
+> > > > > In both cases the caller attempts to unregister a hook that the core
+> > > > > can't find, but in this case the caller is nftables, not arptables.
+> > > >
+> > > > I see no reproducer for this bug. Maybe I broke the dormant flag handling?
+> > > >
+> > > > Or maybe syzbot got here after the arptables bug has been hitted?
+> > >
+> > > syzbot always stops after the first bug to give you perfect "Not
+> > > tainted" oopses.
+> >
+> > Looking at the log file:
+> >
+> > https://syzkaller.appspot.com/text?tag=CrashLog&x=110a3096d00000
+> >
+> > This is mixing calls to nftables:
+> >
+> > 14:43:16 executing program 0:
+> > r0 = socket$nl_netfilter(0x10, 0x3, 0xc)
+> > sendmsg$NFT_BATCH(r0, &(0x7f000000c2c0)={0x0, 0x0, &(0x7f0000000000)={&(0x7f00000001c0)={{0x9}, [@NFT_MSG_NEWTABLE={0x28, 0x0, 0xa, 0x3, 0x0, 0x0, {0x2}, [@NFTA_TABLE_NAME={0x9, 0x1, 'syz0\x00'}, @NFTA_TABLE_FLAGS={0x8}]}], {0x14}}, 0x50}}, 0x0)
+> >
+> > with arptables:
+> >
+> > 14:43:16 executing program 1:
+> > r0 = socket$inet_udp(0x2, 0x2, 0x0)
+> > setsockopt$ARPT_SO_SET_REPLACE(r0, 0x0, 0x60, &(0x7f0000000000)={'filter\x00', 0x4, 0x4, 0x3f8, 0x310, 0x200, 0x200, 0x310, 0x310, 0x310, 0x4, 0x0, {[{{@arp={@broadcast, @rand_addr, 0x87010000, 0x0, 0x0, 0x0, {@mac=@link_local}, {@mac}, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 'bridge0\x00', 'erspan0\x00'}, 0xc0, 0x100}, @unspec=@RATEEST={0x40, 'RATEEST\x00', 0x0, {'syz1\x00', 0x0, 0x4}}}, {{@arp={@initdev={0xac, 0x1e, 0x0, 0x0}, @local, 0x0, 0x0, 0x0, 0x0, {@mac=@remote}, {}, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 'veth0_to_bridge\x00', 'geneve1\x00'}, 0xc0, 0x100}, @unspec=@RATEEST={0x40, 'RATEEST\x00', 0x0, {'syz0\x00', 0x0, 0x2}}}, {{@arp={@local, @multicast1, 0x0, 0x0, 0x0, 0x0, {}, {@mac=@broadcast}, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 'veth0_to_batadv\x00', 'veth0_to_hsr\x00'}, 0xc0, 0x110}, @mangle={0x50, 'mangle\x00', 0x0, {@mac=@remote, @mac=@local, @multicast2, @initdev={0xac, 0x1e, 0x0, 0x0}}}}], {{[], 0xc0, 0xe8}, {0x28}}}}, 0x448)
+> >
+> > arptables was buggy at the time this bug has been reported.
+> >
+> > Am I understanding correctly the syzbot log?
+> >
+> > I wonder if the (buggy) arptables removed the incorrect hook from
+> > nftables, then nftables crashed on the same location when removing the
+> > hook. I don't see a clear sequence for this to happen though.
+> >
+> > Would it be possible to make syzbot exercise the NFT_MSG_NEWTABLE
+> > codepath (with NFTA_TABLE_FLAGS) to check if the problem still
+> > persists?
+> 
+> 
+> This happened only once so far 40 days ago. So if you consider it
+> possible that it actually happened due to the arptables issue, I would
+> mark it as invalid (with "#syz invalid") and move on. If it ever
+> happens again, syzbot will notify, but then we know it happened with
+> the aprtables issue fixed.
+> 
+> This bug does not have a reproducer, so it's not possible to test this
+> exact scenario. It's possible to replay the whole log, but somehow
+> syzkaller wasn't able to retrigger it by replaying the log. I don't
+> think it's worth our time at this point.
 
-nfnetlink_unicast() calls nlmsg_unicast() which also sets the return
-value to zero in case of success, otherwise the netlink core function
-netlink_rcv_skb() turns err > 0 into an acknowlegment.
+Thanks.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-@Jozsef: I skipped ipset conversion to nfnetlink_unicast(),
-ip_set_header(), ip_set_type() and ip_set_protocol() use  netlink_unicast()
-which returns > 0 in case of success. I think this triggers an acknowlegment
-message when netlink_rcv_skb() is called.
-
-I can see lib/mnl.c in ipset userspace do not set NLM_F_ACK.
-
-static const uint16_t cmdflags[] = {
-        [IPSET_CMD_CREATE-1]    = NLM_F_REQUEST|NLM_F_ACK|
-                                        NLM_F_CREATE|NLM_F_EXCL,
-        [IPSET_CMD_DESTROY-1]   = NLM_F_REQUEST|NLM_F_ACK|NLM_F_EXCL,
-        [IPSET_CMD_FLUSH-1]     = NLM_F_REQUEST|NLM_F_ACK,
-        [IPSET_CMD_RENAME-1]    = NLM_F_REQUEST|NLM_F_ACK,
-        [IPSET_CMD_SWAP-1]      = NLM_F_REQUEST|NLM_F_ACK,
-        [IPSET_CMD_LIST-1]      = NLM_F_REQUEST|NLM_F_ACK|NLM_F_DUMP,
-        [IPSET_CMD_SAVE-1]      = NLM_F_REQUEST|NLM_F_ACK|NLM_F_DUMP,
-        [IPSET_CMD_ADD-1]       = NLM_F_REQUEST|NLM_F_ACK|NLM_F_EXCL,
-        [IPSET_CMD_DEL-1]       = NLM_F_REQUEST|NLM_F_ACK|NLM_F_EXCL,
-        [IPSET_CMD_TEST-1]      = NLM_F_REQUEST|NLM_F_ACK,
-        [IPSET_CMD_HEADER-1]    = NLM_F_REQUEST,
-        [IPSET_CMD_TYPE-1]      = NLM_F_REQUEST,
-        [IPSET_CMD_PROTOCOL-1]  = NLM_F_REQUEST,
-
-I did not test but maybe userspace is expecting the NLM_F_ACK message
-as reply to the IPSET_CMD_HEADER, IPSET_CMD_TYPE and IPSET_CMD_PROTOCOL
-commands.
-
- net/netfilter/nf_conntrack_netlink.c | 41 ++++++++++------------------
- net/netfilter/nfnetlink_acct.c       |  9 ++----
- net/netfilter/nfnetlink_cthelper.c   | 10 ++-----
- net/netfilter/nfnetlink_cttimeout.c  | 34 +++++++----------------
- 4 files changed, 31 insertions(+), 63 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 8690fc07030f..3b2aacaa75d4 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1643,18 +1643,15 @@ static int ctnetlink_get_conntrack(struct sk_buff *skb,
- 	if (err <= 0)
- 		goto free;
-
--	err = netlink_unicast(info->sk, skb2, NETLINK_CB(skb).portid,
--			      MSG_DONTWAIT);
-+	err = nfnetlink_unicast(skb2, info->net, NETLINK_CB(skb).portid);
- 	if (err < 0)
--		goto out;
-+		return err;
-
- 	return 0;
--
- free:
- 	kfree_skb(skb2);
--out:
--	/* this avoids a loop in nfnetlink. */
--	return err == -EAGAIN ? -ENOBUFS : err;
-+
-+	return -ENOMEM;
- }
-
- static int ctnetlink_done_list(struct netlink_callback *cb)
-@@ -2593,18 +2590,15 @@ static int ctnetlink_stat_ct(struct sk_buff *skb, const struct nfnl_info *info,
- 	if (err <= 0)
- 		goto free;
-
--	err = netlink_unicast(info->sk, skb2, NETLINK_CB(skb).portid,
--			      MSG_DONTWAIT);
-+	err = nfnetlink_unicast(skb2, info->net, NETLINK_CB(skb).portid);
- 	if (err < 0)
--		goto out;
-+		return err;
-
- 	return 0;
--
- free:
- 	kfree_skb(skb2);
--out:
--	/* this avoids a loop in nfnetlink. */
--	return err == -EAGAIN ? -ENOBUFS : err;
-+
-+	return -ENOMEM;
- }
-
- static const struct nla_policy exp_nla_policy[CTA_EXPECT_MAX+1] = {
-@@ -3333,7 +3327,7 @@ static int ctnetlink_get_expect(struct sk_buff *skb,
- 	skb2 = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
- 	if (skb2 == NULL) {
- 		nf_ct_expect_put(exp);
--		goto out;
-+		return -ENOMEM;
- 	}
-
- 	rcu_read_lock();
-@@ -3342,21 +3336,16 @@ static int ctnetlink_get_expect(struct sk_buff *skb,
- 				      exp);
- 	rcu_read_unlock();
- 	nf_ct_expect_put(exp);
--	if (err <= 0)
--		goto free;
-+	if (err <= 0) {
-+		kfree_skb(skb2);
-+		return -ENOMEM;
-+	}
-
--	err = netlink_unicast(info->sk, skb2, NETLINK_CB(skb).portid,
--			      MSG_DONTWAIT);
-+	err = nfnetlink_unicast(skb2, info->net, NETLINK_CB(skb).portid);
- 	if (err < 0)
--		goto out;
-+		return err;
-
- 	return 0;
--
--free:
--	kfree_skb(skb2);
--out:
--	/* this avoids a loop in nfnetlink. */
--	return err == -EAGAIN ? -ENOBUFS : err;
- }
-
- static bool expect_iter_name(struct nf_conntrack_expect *exp, void *data)
-diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
-index 3c8cf8748cfb..505f46a32173 100644
---- a/net/netfilter/nfnetlink_acct.c
-+++ b/net/netfilter/nfnetlink_acct.c
-@@ -314,14 +314,11 @@ static int nfnl_acct_get(struct sk_buff *skb, const struct nfnl_info *info,
- 			kfree_skb(skb2);
- 			break;
- 		}
--		ret = netlink_unicast(info->sk, skb2, NETLINK_CB(skb).portid,
--				      MSG_DONTWAIT);
--		if (ret > 0)
--			ret = 0;
-
--		/* this avoids a loop in nfnetlink. */
--		return ret == -EAGAIN ? -ENOBUFS : ret;
-+		ret = nfnetlink_unicast(skb2, info->net, NETLINK_CB(skb).portid);
-+		break;
- 	}
-+
- 	return ret;
- }
-
-diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
-index 322ac5dd5402..df58cd534ff5 100644
---- a/net/netfilter/nfnetlink_cthelper.c
-+++ b/net/netfilter/nfnetlink_cthelper.c
-@@ -663,14 +663,10 @@ static int nfnl_cthelper_get(struct sk_buff *skb, const struct nfnl_info *info,
- 			break;
- 		}
-
--		ret = netlink_unicast(info->sk, skb2, NETLINK_CB(skb).portid,
--				      MSG_DONTWAIT);
--		if (ret > 0)
--			ret = 0;
--
--		/* this avoids a loop in nfnetlink. */
--		return ret == -EAGAIN ? -ENOBUFS : ret;
-+		ret = nfnetlink_unicast(skb2, info->net, NETLINK_CB(skb).portid);
-+		break;
- 	}
-+
- 	return ret;
- }
-
-diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-index 38848ad68899..5d72b3055378 100644
---- a/net/netfilter/nfnetlink_cttimeout.c
-+++ b/net/netfilter/nfnetlink_cttimeout.c
-@@ -287,14 +287,11 @@ static int cttimeout_get_timeout(struct sk_buff *skb,
- 			kfree_skb(skb2);
- 			break;
- 		}
--		ret = netlink_unicast(info->sk, skb2, NETLINK_CB(skb).portid,
--				      MSG_DONTWAIT);
--		if (ret > 0)
--			ret = 0;
-
--		/* this avoids a loop in nfnetlink. */
--		return ret == -EAGAIN ? -ENOBUFS : ret;
-+		ret = nfnetlink_unicast(skb2, info->net, NETLINK_CB(skb).portid);
-+		break;
- 	}
-+
- 	return ret;
- }
-
-@@ -427,9 +424,9 @@ static int cttimeout_default_get(struct sk_buff *skb,
- 	const struct nf_conntrack_l4proto *l4proto;
- 	unsigned int *timeouts = NULL;
- 	struct sk_buff *skb2;
--	int ret, err;
- 	__u16 l3num;
- 	__u8 l4num;
-+	int ret;
-
- 	if (!cda[CTA_TIMEOUT_L3PROTO] || !cda[CTA_TIMEOUT_L4PROTO])
- 		return -EINVAL;
-@@ -438,9 +435,8 @@ static int cttimeout_default_get(struct sk_buff *skb,
- 	l4num = nla_get_u8(cda[CTA_TIMEOUT_L4PROTO]);
- 	l4proto = nf_ct_l4proto_find(l4num);
-
--	err = -EOPNOTSUPP;
- 	if (l4proto->l4proto != l4num)
--		goto err;
-+		return -EOPNOTSUPP;
-
- 	switch (l4proto->l4proto) {
- 	case IPPROTO_ICMP:
-@@ -480,13 +476,11 @@ static int cttimeout_default_get(struct sk_buff *skb,
- 	}
-
- 	if (!timeouts)
--		goto err;
-+		return -EOPNOTSUPP;
-
- 	skb2 = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
--	if (skb2 == NULL) {
--		err = -ENOMEM;
--		goto err;
--	}
-+	if (skb2 == NULL)
-+		return -ENOMEM;
-
- 	ret = cttimeout_default_fill_info(info->net, skb2,
- 					  NETLINK_CB(skb).portid,
-@@ -496,18 +490,10 @@ static int cttimeout_default_get(struct sk_buff *skb,
- 					  l3num, l4proto, timeouts);
- 	if (ret <= 0) {
- 		kfree_skb(skb2);
--		err = -ENOMEM;
--		goto err;
-+		return -ENOMEM;
- 	}
--	ret = netlink_unicast(info->sk, skb2, NETLINK_CB(skb).portid,
--			      MSG_DONTWAIT);
--	if (ret > 0)
--		ret = 0;
-
--	/* this avoids a loop in nfnetlink. */
--	return ret == -EAGAIN ? -ENOBUFS : ret;
--err:
--	return err;
-+	return nfnetlink_unicast(skb2, info->net, NETLINK_CB(skb).portid);
- }
-
- static struct nf_ct_timeout *ctnl_timeout_find_get(struct net *net,
---
-2.20.1
-
+I found the root cause, I was getting confused by the arptables
+report. I'll post a patch.
