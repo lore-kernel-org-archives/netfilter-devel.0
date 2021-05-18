@@ -2,77 +2,106 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8AB8C433ED
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 May 2021 23:18:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D28EC433ED
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 May 2021 23:56:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CC0C061059
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 May 2021 23:18:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3898E61360
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 May 2021 23:56:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238027AbhERXTq (ORCPT
+        id S232316AbhERX5v (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 18 May 2021 19:19:46 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:44032 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237928AbhERXTq (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 May 2021 19:19:46 -0400
-Received: from us.es (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id D41356414A;
-        Wed, 19 May 2021 01:17:31 +0200 (CEST)
-Date:   Wed, 19 May 2021 01:18:24 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, dvyukov@google.com
-Subject: Re: [PATCH nf] netfilter: nftables: accept all dummy chain when
- table is dormant
-Message-ID: <20210518231824.GA27217@salvia>
-References: <20210518224730.317215-1-pablo@netfilter.org>
- <20210518225619.GA8317@breakpoint.cc>
+        Tue, 18 May 2021 19:57:51 -0400
+Received: from ozlabs.org ([203.11.71.1]:44615 "EHLO ozlabs.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S232153AbhERX5v (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 18 May 2021 19:57:51 -0400
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        (No client certificate requested)
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 4FlCZh3Vy2z9sW1;
+        Wed, 19 May 2021 09:56:27 +1000 (AEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
+        s=201702; t=1621382191;
+        bh=3rf0qZX3Nn/RoMbAO+/jBG2pUP8lT0uHr4bYKwv2jf4=;
+        h=Date:From:To:Cc:Subject:From;
+        b=OwsTSRG7C+EyXepEsl4piz6IURvAsj+yqlbVFqF5zeT9GnSiD7yDWdQIHzltiLd8r
+         i6j2zIv12rgRsoPy+PRw3y2bs60WqRNsJlY2G+qmkn/P5ksg31pnVrJ1uxtUXhsgvu
+         NlwM8+byFiWJC9HThrLWUsThl+aW95/fpBw6ZsJt5gnB4XGIkJNX6lgt6egDFpM3GL
+         hwUDV3OLeadHybkvzE8frks7mdmL4M3FnGDp22OeezbdS1ZP9yot0h2UQYaGfnFixm
+         6ti8vH3/U/5/0GSkU1lo2G2675dVlDoLqRFWakfYHORE90n761Dy3b6Ak39ON8DsoK
+         FAabl87NDY34Q==
+Date:   Wed, 19 May 2021 09:56:27 +1000
+From:   Stephen Rothwell <sfr@canb.auug.org.au>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        David Miller <davem@davemloft.net>,
+        Networking <netdev@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux Next Mailing List <linux-next@vger.kernel.org>,
+        Stefano Brivio <sbrivio@redhat.com>
+Subject: linux-next: manual merge of the netfilter-next tree with the net
+ tree
+Message-ID: <20210519095627.7697ff12@canb.auug.org.au>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20210518225619.GA8317@breakpoint.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: multipart/signed; boundary="Sig_/ZrdEgz5d6.3D2BnwYH.gAdq";
+ protocol="application/pgp-signature"; micalg=pgp-sha256
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, May 19, 2021 at 12:56:19AM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > The dormant flag need to be updated from the preparation phase,
-> > otherwise, two consecutive requests to dorm a table in the same batch
-> > might try to remove the same hooks twice, resulting in the following
-> > warning:
-> > 
-> >  hook not found, pf 3 num 0
-> >  WARNING: CPU: 0 PID: 334 at net/netfilter/core.c:480 __nf_unregister_net_hook+0x1eb/0x610 net/netfilter/core.c:480
-> >  Modules linked in:
-> >  CPU: 0 PID: 334 Comm: kworker/u4:5 Not tainted 5.12.0-syzkaller #0
-> >  Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-> >  Workqueue: netns cleanup_net
-> >  RIP: 0010:__nf_unregister_net_hook+0x1eb/0x610 net/netfilter/core.c:480
-> 
-> Would it be possible to reject such a batch instead of having to add
-> rely on dummy hooking instead?
+--Sig_/ZrdEgz5d6.3D2BnwYH.gAdq
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-That's a simple way to fix it, yes, ie. hit EBUSY.
+Hi all,
 
-> I don't think we should try to be clever with nonsensical yes-no-yes-yes-no
-> type commits.
+Today's linux-next merge of the netfilter-next tree got a conflict in:
 
-Note that no such EBUSY limitation exists so far in the transaction
-semantics that I know [*]. We already discussed that robots might do
-non-sensical stuff when creating a batches, and reporting EBUSY for
-this add-del-add case might just break them.
+  net/netfilter/nft_set_pipapo.c
 
-This also removes the conditional hook registration, so hooks are
-registered once at chain creation. This simplifies interaction with
-the netfilter core at the cost of adding complexity to
-nf_tables_commit_chain_prepare() path.
+between commit:
 
-[*] Well, you might still hit EBUSY from a batch, but that happens if
-the object is really in use, not because of the add-del-add sequence.
+  f0b3d338064e ("netfilter: nft_set_pipapo_avx2: Add irq_fpu_usable() check=
+, fallback to non-AVX2 version")
+
+from the net tree and commit:
+
+  b1bc08f6474f ("netfilter: nf_tables: prefer direct calls for set lookups")
+
+from the netfilter-next tree.
+
+I fixed it up (I just used the latter) and can carry the fix as necessary. =
+This
+is now fixed as far as linux-next is concerned, but any non trivial
+conflicts should be mentioned to your upstream maintainer when your tree
+is submitted for merging.  You may also want to consider cooperating
+with the maintainer of the conflicting tree to minimise any particularly
+complex conflicts.
+
+--=20
+Cheers,
+Stephen Rothwell
+
+--Sig_/ZrdEgz5d6.3D2BnwYH.gAdq
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmCkVCsACgkQAVBC80lX
+0GzTswf+JZ2W8O9XQDa4xYLwQF5eBjb5aIHl2P9t0iQIbVgoa/20FqujmP3Za6vk
+S2uSKOu6EjOelZt/Jf5dSTXjGfK2/h7iZ5fgk6t/SoOPwHMwVhPU6Qnw29G7PWtB
+7/IMBpCC/4njlGaDA5YTCzkmxBdia8PTwhGWlTlFNswyIdPl0jcdfp3ft6ML68ps
+ygIcNOgsEq87Quk3HuqvQniaz+SDrX/jm+eRH2aksVi7jKEU1v1FqJ/4aDUz0LJJ
+KYEv7eZS1FXJnTWu1HZkoRlspo+WjRMM17HbeyP3ekugh9x2u7+FEWo7jSybhuXk
+qevBkpNmQFamK8EBRASkEqe/YY0ulg==
+=9c6I
+-----END PGP SIGNATURE-----
+
+--Sig_/ZrdEgz5d6.3D2BnwYH.gAdq--
