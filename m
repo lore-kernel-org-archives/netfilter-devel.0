@@ -2,109 +2,377 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B75DC433B4
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 May 2021 18:27:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71333C433B4
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 May 2021 22:47:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E390460FF2
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 May 2021 18:27:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4069B611BF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 May 2021 22:47:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351545AbhERS2r (ORCPT
+        id S235186AbhERWtA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 18 May 2021 14:28:47 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:34801 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1344958AbhERS2k (ORCPT
+        Tue, 18 May 2021 18:49:00 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:43994 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234950AbhERWtA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 May 2021 14:28:40 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1621362441;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=xfWrRv08sjMDxsdU1knud/BrnpvBC6DZVyq3jbSAYe8=;
-        b=ZMmqHEUpYoBPpo7/S8GqCqu0x42MlakL4REo7IR+1mHCyRBAF6n3na9xtECAFZNG1XgVyI
-        OJHrAj/d0jR3jNw1GQOj5zBu/vz8b3aFJ2iIWYBiXJiXTbnz20Qz60UQScOtvfJumx5m7j
-        HpTNess9bin0lSbXpG4HJ5hz9cL0YnY=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-599-vFXzcN3qPnOQdvlGGGbLIw-1; Tue, 18 May 2021 14:27:19 -0400
-X-MC-Unique: vFXzcN3qPnOQdvlGGGbLIw-1
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id B0447107ACE6;
-        Tue, 18 May 2021 18:27:18 +0000 (UTC)
-Received: from maya.cloud.tilaa.com (unknown [10.36.110.6])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 7C7FA163FE;
-        Tue, 18 May 2021 18:27:18 +0000 (UTC)
-Date:   Tue, 18 May 2021 20:27:15 +0200
-From:   Stefano Brivio <sbrivio@redhat.com>
-To:     Andy Lutomirski <luto@kernel.org>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next] nft_set_pipapo_avx2: Skip LDMXCSR, we don't
- need a valid MXCSR state
-Message-ID: <20210518202715.4c38278b@elisabeth>
-In-Reply-To: <61461a47-acc3-877e-e5ec-5d4de1c7db45@kernel.org>
-References: <1c53a6ec42c6ee933231eeeca27285f405cb0bf4.1620613229.git.sbrivio@redhat.com>
-        <20210518160159.GA24307@salvia>
-        <61461a47-acc3-877e-e5ec-5d4de1c7db45@kernel.org>
-Organization: Red Hat
+        Tue, 18 May 2021 18:49:00 -0400
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 7C23763087;
+        Wed, 19 May 2021 00:46:45 +0200 (CEST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     dvyukov@google.com, fw@strlen.de
+Subject: [PATCH nf] netfilter: nftables: accept all dummy chain when table is dormant
+Date:   Wed, 19 May 2021 00:47:30 +0200
+Message-Id: <20210518224730.317215-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Andy,
+The dormant flag need to be updated from the preparation phase,
+otherwise, two consecutive requests to dorm a table in the same batch
+might try to remove the same hooks twice, resulting in the following
+warning:
 
-On Tue, 18 May 2021 09:48:41 -0700
-Andy Lutomirski <luto@kernel.org> wrote:
+ hook not found, pf 3 num 0
+ WARNING: CPU: 0 PID: 334 at net/netfilter/core.c:480 __nf_unregister_net_hook+0x1eb/0x610 net/netfilter/core.c:480
+ Modules linked in:
+ CPU: 0 PID: 334 Comm: kworker/u4:5 Not tainted 5.12.0-syzkaller #0
+ Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+ Workqueue: netns cleanup_net
+ RIP: 0010:__nf_unregister_net_hook+0x1eb/0x610 net/netfilter/core.c:480
 
-> On 5/18/21 9:01 AM, Pablo Neira Ayuso wrote:
-> > On Mon, May 10, 2021 at 07:58:52AM +0200, Stefano Brivio wrote:  
-> >> We don't need a valid MXCSR state for the lookup routines, none of
-> >> the instructions we use rely on or affect any bit in the MXCSR
-> >> register.
-> >>
-> >> Instead of calling kernel_fpu_begin(), we can pass 0 as mask to
-> >> kernel_fpu_begin_mask() and spare one LDMXCSR instruction.
-> >>
-> >> Commit 49200d17d27d ("x86/fpu/64: Don't FNINIT in kernel_fpu_begin()")
-> >> already speeds up lookups considerably, and by dropping the MCXSR
-> >> initialisation we can now get a much smaller, but measurable, increase
-> >> in matching rates.
-> >>
-> >> The table below reports matching rates and a wild approximation of
-> >> clock cycles needed for a match in a "port,net" test with 10 entries
-> >> from selftests/netfilter/nft_concat_range.sh, limited to the first
-> >> field, i.e. the port (with nft_set_rbtree initialisation skipped), run
-> >> on a single AMD Epyc 7351 thread (2.9GHz, 512 KiB L1D$, 8 MiB   
-> 
-> Please consider reverting this patch.  You have papered over the actual
-> problem, which is that the kernel does not get the AVX pipeline stalls
-> right.  LDMXCSR merely exacerbates the problem, but your patch won't
-> really fix it.
+This patch is a partial revert of 0ce7cf4127f1 ("netfilter: nftables:
+update table flags from the commit phase") to restore the previous
+behaviour, which updates the dormant flag from the preparation phase
+to address this issue.
 
-I didn't get your comment: all this patch does is to skip the initial
-LDMXCSR in kernel_fpu_begin(), because the instructions we use in the
-lookup functions don't touch or rely on MCXSR, so a valid initial state
-doesn't look relevant to me.
+However, there is still another problem: A batch containing a series of
+dorm-wakeup-dorm table and vice-versa also trigger the warning above
+since hook unregistration happens from the preparation phase, while hook
+registration occurs from the commit phase.
 
-Later on, in the lookup functions, I ordered AVX instructions manually
-anyway to minimise stalls.
+To fix this problem, this patch adds a dummy accept-all-rule that is
+used in case the table enters dormant state. This patch removes
+nf_tables_table_enable() and nf_tables_table_disable() since chain hooks
+are always registered, therefore, they are not needed anymore.
 
-What am I missing? Do you mean that LDMXCSR would come at a lower or no
-cost if ordered differently?
+The new __NFT_TABLE_F_UPDATE internal flag is used to signal the commit
+phase that the dormant flag has been updated.
 
+Reported-by: syzbot+7ad5cd1615f2d89c6e7e@syzkaller.appspotmail.com
+Fixes: 0ce7cf4127f1 ("netfilter: nftables: update table flags from the commit phase")
+Fixes: 9ddf63235749 ("netfilter: nf_tables: add support for dormant tables")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_tables.h |   3 -
+ net/netfilter/nf_tables_api.c     | 147 +++++++++++++++---------------
+ 2 files changed, 74 insertions(+), 76 deletions(-)
+
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 27eeb613bb4e..8ad2839c4dd2 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1507,15 +1507,12 @@ struct nft_trans_chain {
+ struct nft_trans_table {
+ 	bool				update;
+ 	u8				state;
+-	u32				flags;
+ };
+ 
+ #define nft_trans_table_update(trans)	\
+ 	(((struct nft_trans_table *)trans->data)->update)
+ #define nft_trans_table_state(trans)	\
+ 	(((struct nft_trans_table *)trans->data)->state)
+-#define nft_trans_table_flags(trans)	\
+-	(((struct nft_trans_table *)trans->data)->flags)
+ 
+ struct nft_trans_elem {
+ 	struct nft_set			*set;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index d63d2d8f769c..c65f1dd3d148 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -32,6 +32,7 @@ static LIST_HEAD(nf_tables_objects);
+ static LIST_HEAD(nf_tables_flowtables);
+ static LIST_HEAD(nf_tables_destroy_list);
+ static DEFINE_SPINLOCK(nf_tables_destroy_list_lock);
++static struct nft_rule *nft_accept_all_rule;
+ static u64 table_handle;
+ 
+ enum {
+@@ -237,8 +238,7 @@ static int nf_tables_register_hook(struct net *net,
+ 	struct nft_base_chain *basechain;
+ 	const struct nf_hook_ops *ops;
+ 
+-	if (table->flags & NFT_TABLE_F_DORMANT ||
+-	    !nft_is_base_chain(chain))
++	if (!nft_is_base_chain(chain))
+ 		return 0;
+ 
+ 	basechain = nft_base_chain(chain);
+@@ -260,8 +260,7 @@ static void nf_tables_unregister_hook(struct net *net,
+ 	struct nft_base_chain *basechain;
+ 	const struct nf_hook_ops *ops;
+ 
+-	if (table->flags & NFT_TABLE_F_DORMANT ||
+-	    !nft_is_base_chain(chain))
++	if (!nft_is_base_chain(chain))
+ 		return;
+ 	basechain = nft_base_chain(chain);
+ 	ops = &basechain->ops;
+@@ -736,7 +735,8 @@ static int nf_tables_fill_table_info(struct sk_buff *skb, struct net *net,
+ 		goto nla_put_failure;
+ 
+ 	if (nla_put_string(skb, NFTA_TABLE_NAME, table->name) ||
+-	    nla_put_be32(skb, NFTA_TABLE_FLAGS, htonl(table->flags)) ||
++	    nla_put_be32(skb, NFTA_TABLE_FLAGS,
++			 htonl(table->flags & NFT_TABLE_F_MASK)) ||
+ 	    nla_put_be32(skb, NFTA_TABLE_USE, htonl(table->use)) ||
+ 	    nla_put_be64(skb, NFTA_TABLE_HANDLE, cpu_to_be64(table->handle),
+ 			 NFTA_TABLE_PAD))
+@@ -902,65 +902,18 @@ static int nf_tables_gettable(struct sk_buff *skb, const struct nfnl_info *info,
+ 	return err;
+ }
+ 
+-static void nft_table_disable(struct net *net, struct nft_table *table, u32 cnt)
+-{
+-	struct nft_chain *chain;
+-	u32 i = 0;
+-
+-	list_for_each_entry(chain, &table->chains, list) {
+-		if (!nft_is_active_next(net, chain))
+-			continue;
+-		if (!nft_is_base_chain(chain))
+-			continue;
+-
+-		if (cnt && i++ == cnt)
+-			break;
+-
+-		nf_tables_unregister_hook(net, table, chain);
+-	}
+-}
+-
+-static int nf_tables_table_enable(struct net *net, struct nft_table *table)
+-{
+-	struct nft_chain *chain;
+-	int err, i = 0;
+-
+-	list_for_each_entry(chain, &table->chains, list) {
+-		if (!nft_is_active_next(net, chain))
+-			continue;
+-		if (!nft_is_base_chain(chain))
+-			continue;
+-
+-		err = nf_tables_register_hook(net, table, chain);
+-		if (err < 0)
+-			goto err_register_hooks;
+-
+-		i++;
+-	}
+-	return 0;
+-
+-err_register_hooks:
+-	if (i)
+-		nft_table_disable(net, table, i);
+-	return err;
+-}
+-
+-static void nf_tables_table_disable(struct net *net, struct nft_table *table)
+-{
+-	nft_table_disable(net, table, 0);
+-}
+-
+ enum {
+ 	NFT_TABLE_STATE_UNCHANGED	= 0,
+ 	NFT_TABLE_STATE_DORMANT,
+ 	NFT_TABLE_STATE_WAKEUP
+ };
+ 
++#define __NFT_TABLE_F_UPDATE	(NFT_TABLE_F_MASK + 1)
++
+ static int nf_tables_updtable(struct nft_ctx *ctx)
+ {
+ 	struct nft_trans *trans;
+ 	u32 flags;
+-	int ret = 0;
+ 
+ 	if (!ctx->nla[NFTA_TABLE_FLAGS])
+ 		return 0;
+@@ -985,23 +938,19 @@ static int nf_tables_updtable(struct nft_ctx *ctx)
+ 
+ 	if ((flags & NFT_TABLE_F_DORMANT) &&
+ 	    !(ctx->table->flags & NFT_TABLE_F_DORMANT)) {
++		ctx->table->flags |= NFT_TABLE_F_DORMANT | __NFT_TABLE_F_UPDATE;
+ 		nft_trans_table_state(trans) = NFT_TABLE_STATE_DORMANT;
+ 	} else if (!(flags & NFT_TABLE_F_DORMANT) &&
+ 		   ctx->table->flags & NFT_TABLE_F_DORMANT) {
+-		ret = nf_tables_table_enable(ctx->net, ctx->table);
+-		if (ret >= 0)
+-			nft_trans_table_state(trans) = NFT_TABLE_STATE_WAKEUP;
++		ctx->table->flags &= ~NFT_TABLE_F_DORMANT;
++		ctx->table->flags |= __NFT_TABLE_F_UPDATE;
++		nft_trans_table_state(trans) = NFT_TABLE_STATE_WAKEUP;
+ 	}
+-	if (ret < 0)
+-		goto err;
+ 
+-	nft_trans_table_flags(trans) = flags;
+ 	nft_trans_table_update(trans) = true;
+ 	nft_trans_commit_list_add_tail(ctx->net, trans);
++
+ 	return 0;
+-err:
+-	nft_trans_destroy(trans);
+-	return ret;
+ }
+ 
+ static u32 nft_chain_hash(const void *data, u32 len, u32 seed)
+@@ -8214,6 +8163,17 @@ static int nf_tables_commit_chain_prepare(struct net *net, struct nft_chain *cha
+ 	if (chain->rules_next || !nft_is_active_next(net, chain))
+ 		return 0;
+ 
++	if (chain->table->flags & NFT_TABLE_F_DORMANT) {
++		chain->rules_next = nf_tables_chain_alloc_rules(chain, 1);
++		if (!chain->rules_next)
++			return -ENOMEM;
++
++		chain->rules_next[0] = nft_accept_all_rule;
++		chain->rules_next[1] = NULL;
++
++		return 0;
++	}
++
+ 	rule = list_entry(&chain->rules, struct nft_rule, list);
+ 	i = 0;
+ 
+@@ -8513,8 +8473,22 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 			nf_tables_commit_chain_prepare_cancel(net);
+ 			return ret;
+ 		}
+-		if (trans->msg_type == NFT_MSG_NEWRULE ||
+-		    trans->msg_type == NFT_MSG_DELRULE) {
++		switch (trans->msg_type) {
++		case NFT_MSG_NEWTABLE:
++			if (!(trans->ctx.table->flags & __NFT_TABLE_F_UPDATE))
++				break;
++
++			list_for_each_entry(chain, &trans->ctx.table->chains, list) {
++				ret = nf_tables_commit_chain_prepare(net, chain);
++				if (ret < 0) {
++					nf_tables_commit_chain_prepare_cancel(net);
++					return ret;
++				}
++			}
++			trans->ctx.table->flags &= ~__NFT_TABLE_F_UPDATE;
++			break;
++		case NFT_MSG_NEWRULE:
++		case NFT_MSG_DELRULE:
+ 			chain = trans->ctx.chain;
+ 
+ 			ret = nf_tables_commit_chain_prepare(net, chain);
+@@ -8522,6 +8496,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 				nf_tables_commit_chain_prepare_cancel(net);
+ 				return ret;
+ 			}
++			break;
+ 		}
+ 	}
+ 
+@@ -8546,14 +8521,9 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 					       trans->msg_type);
+ 		switch (trans->msg_type) {
+ 		case NFT_MSG_NEWTABLE:
+-			if (nft_trans_table_update(trans)) {
+-				if (nft_trans_table_state(trans) == NFT_TABLE_STATE_DORMANT)
+-					nf_tables_table_disable(net, trans->ctx.table);
+-
+-				trans->ctx.table->flags = nft_trans_table_flags(trans);
+-			} else {
++			if (!nft_trans_table_update(trans))
+ 				nft_clear(net, trans->ctx.table);
+-			}
++
+ 			nf_tables_table_notify(&trans->ctx, NFT_MSG_NEWTABLE);
+ 			nft_trans_destroy(trans);
+ 			break;
+@@ -8769,8 +8739,11 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 		case NFT_MSG_NEWTABLE:
+ 			if (nft_trans_table_update(trans)) {
+ 				if (nft_trans_table_state(trans) == NFT_TABLE_STATE_WAKEUP)
+-					nf_tables_table_disable(net, trans->ctx.table);
++					trans->ctx.table->flags |= NFT_TABLE_F_DORMANT;
++				else if (nft_trans_table_state(trans) == NFT_TABLE_STATE_DORMANT)
++					trans->ctx.table->flags &= ~NFT_TABLE_F_DORMANT;
+ 
++				trans->ctx.table->flags &= ~__NFT_TABLE_F_UPDATE;
+ 				nft_trans_destroy(trans);
+ 			} else {
+ 				list_del_rcu(&trans->ctx.table->list);
+@@ -9669,6 +9642,27 @@ static struct pernet_operations nf_tables_net_ops = {
+ 	.size		= sizeof(struct nftables_pernet),
+ };
+ 
++static int nft_rule_accept_all_init(void)
++{
++	struct nft_immediate_expr *priv;
++	struct nft_rule *rule;
++	struct nft_expr *expr;
++
++	rule = kzalloc(sizeof(*rule) +
++		       NFT_EXPR_SIZE(sizeof(struct nft_immediate_expr)),
++		       GFP_KERNEL);
++	if (!rule)
++		return -ENOMEM;
++
++	expr = nft_expr_first(rule);
++	priv = nft_expr_priv(expr);
++	priv->dreg = NFT_REG_VERDICT;
++	priv->data.verdict.code = NF_ACCEPT;
++	nft_accept_all_rule = rule;
++
++	return 0;
++}
++
+ static int __init nf_tables_module_init(void)
+ {
+ 	int err;
+@@ -9697,6 +9691,10 @@ static int __init nf_tables_module_init(void)
+ 	if (err < 0)
+ 		goto err_offload;
+ 
++	err = nft_rule_accept_all_init();
++	if (err < 0)
++		goto err_accept_all_rule;
++
+ 	err = netlink_register_notifier(&nft_nl_notifier);
+ 	if (err < 0)
+ 		goto err_netlink_notifier;
+@@ -9713,6 +9711,8 @@ static int __init nf_tables_module_init(void)
+ err_nfnl_subsys:
+ 	netlink_unregister_notifier(&nft_nl_notifier);
+ err_netlink_notifier:
++	kfree(nft_accept_all_rule);
++err_accept_all_rule:
+ 	nft_offload_exit();
+ err_offload:
+ 	rhltable_destroy(&nft_objname_ht);
+@@ -9731,6 +9731,7 @@ static void __exit nf_tables_module_exit(void)
+ {
+ 	nfnetlink_subsys_unregister(&nf_tables_subsys);
+ 	netlink_unregister_notifier(&nft_nl_notifier);
++	kfree(nft_accept_all_rule);
+ 	nft_offload_exit();
+ 	unregister_netdevice_notifier(&nf_tables_flowtable_notifier);
+ 	nft_chain_filter_fini();
 -- 
-Stefano
+2.30.2
 
