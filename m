@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9412C433ED
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 May 2021 21:08:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F323FC433B4
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 May 2021 21:13:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9490C611C2
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 May 2021 21:08:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CE96861006
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 May 2021 21:13:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230000AbhESVJY (ORCPT
+        id S229748AbhESVPM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 May 2021 17:09:24 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:46800 "EHLO
+        Wed, 19 May 2021 17:15:12 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:46818 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229437AbhESVJX (ORCPT
+        with ESMTP id S229507AbhESVPL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 May 2021 17:09:23 -0400
+        Wed, 19 May 2021 17:15:11 -0400
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 2325D6417E
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 May 2021 23:07:07 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 059C26417E
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 May 2021 23:12:54 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nftables] rule: skip exact matches on fuzzy lookup
-Date:   Wed, 19 May 2021 23:07:59 +0200
-Message-Id: <20210519210759.264858-1-pablo@netfilter.org>
+Subject: [PATCH nf] netfilter: nf_tables: extended netlink error reporting for chain type
+Date:   Wed, 19 May 2021 23:13:47 +0200
+Message-Id: <20210519211347.265265-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -36,73 +36,99 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The fuzzy lookup is exercised from the error path, when no object is
-found. Remove branch that checks for exact matching since that should
-not ever happen.
+Users that forget to select the NAT chain type in netfilter's Kconfig
+hit ENOENT when adding the basechain.
+
+This report is however sparse since it might be the table, the chain
+or the kernel module that is missing/does not exist.
+
+This patch provides extended netlink error reporting for the
+NFTA_CHAIN_TYPE netlink attribute, which conveys the basechain type.
+If the user selects a basechain that his custom kernel does not support,
+the netlink extended error provides a more accurate hint on the
+described issue.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/rule.c | 19 -------------------
- 1 file changed, 19 deletions(-)
+ net/netfilter/nf_tables_api.c | 21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
-diff --git a/src/rule.c b/src/rule.c
-index dda1718d69ef..dcf1646a9c7c 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -215,10 +215,6 @@ struct set *set_lookup_fuzzy(const char *set_name,
- 		list_for_each_entry(set, &table->set_cache.list, cache.list) {
- 			if (set_is_anonymous(set->flags))
- 				continue;
--			if (!strcmp(set->handle.set.name, set_name)) {
--				*t = table;
--				return set;
--			}
- 			if (string_misspell_update(set->handle.set.name,
- 						   set_name, set, &st))
- 				*t = table;
-@@ -765,10 +761,6 @@ struct chain *chain_lookup_fuzzy(const struct handle *h,
- 
- 	list_for_each_entry(table, &cache->table_cache.list, cache.list) {
- 		list_for_each_entry(chain, &table->chain_cache.list, cache.list) {
--			if (!strcmp(chain->handle.chain.name, h->chain.name)) {
--				*t = table;
--				return chain;
--			}
- 			if (string_misspell_update(chain->handle.chain.name,
- 						   h->chain.name, chain, &st))
- 				*t = table;
-@@ -1174,9 +1166,6 @@ struct table *table_lookup_fuzzy(const struct handle *h,
- 	string_misspell_init(&st);
- 
- 	list_for_each_entry(table, &cache->table_cache.list, cache.list) {
--		if (!strcmp(table->handle.table.name, h->table.name))
--			return table;
--
- 		string_misspell_update(table->handle.table.name,
- 				       h->table.name, table, &st);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 11e7edc1e9e4..aea571e924a8 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1854,7 +1854,7 @@ static int nft_chain_parse_netdev(struct net *net,
+ static int nft_chain_parse_hook(struct net *net,
+ 				const struct nlattr * const nla[],
+ 				struct nft_chain_hook *hook, u8 family,
+-				bool autoload)
++				struct netlink_ext_ack *extack, bool autoload)
+ {
+ 	struct nftables_pernet *nft_net = nft_pernet(net);
+ 	struct nlattr *ha[NFTA_HOOK_MAX + 1];
+@@ -1884,8 +1884,10 @@ static int nft_chain_parse_hook(struct net *net,
+ 	if (nla[NFTA_CHAIN_TYPE]) {
+ 		type = nf_tables_chain_type_lookup(net, nla[NFTA_CHAIN_TYPE],
+ 						   family, autoload);
+-		if (IS_ERR(type))
++		if (IS_ERR(type)) {
++			NL_SET_BAD_ATTR(extack, nla[NFTA_CHAIN_TYPE]);
+ 			return PTR_ERR(type);
++		}
  	}
-@@ -1728,10 +1717,6 @@ struct obj *obj_lookup_fuzzy(const char *obj_name,
+ 	if (hook->num >= NFT_MAX_HOOKS || !(type->hook_mask & (1 << hook->num)))
+ 		return -EOPNOTSUPP;
+@@ -1894,8 +1896,11 @@ static int nft_chain_parse_hook(struct net *net,
+ 	    hook->priority <= NF_IP_PRI_CONNTRACK)
+ 		return -EOPNOTSUPP;
  
- 	list_for_each_entry(table, &cache->table_cache.list, cache.list) {
- 		list_for_each_entry(obj, &table->obj_cache.list, cache.list) {
--			if (!strcmp(obj->handle.obj.name, obj_name)) {
--				*t = table;
--				return obj;
--			}
- 			if (string_misspell_update(obj->handle.obj.name,
- 						   obj_name, obj, &st))
- 				*t = table;
-@@ -2206,10 +2191,6 @@ struct flowtable *flowtable_lookup_fuzzy(const char *ft_name,
+-	if (!try_module_get(type->owner))
++	if (!try_module_get(type->owner)) {
++		if (nla[NFTA_CHAIN_TYPE])
++			NL_SET_BAD_ATTR(extack, nla[NFTA_CHAIN_TYPE]);
+ 		return -ENOENT;
++	}
  
- 	list_for_each_entry(table, &cache->table_cache.list, cache.list) {
- 		list_for_each_entry(ft, &table->ft_cache.list, cache.list) {
--			if (!strcmp(ft->handle.flowtable.name, ft_name)) {
--				*t = table;
--				return ft;
--			}
- 			if (string_misspell_update(ft->handle.flowtable.name,
- 						   ft_name, ft, &st))
- 				*t = table;
+ 	hook->type = type;
+ 
+@@ -2006,7 +2011,8 @@ static int nft_chain_add(struct nft_table *table, struct nft_chain *chain)
+ static u64 chain_id;
+ 
+ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+-			      u8 policy, u32 flags)
++			      u8 policy, u32 flags,
++			      struct netlink_ext_ack *extack)
+ {
+ 	const struct nlattr * const *nla = ctx->nla;
+ 	struct nft_table *table = ctx->table;
+@@ -2028,7 +2034,8 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 		if (flags & NFT_CHAIN_BINDING)
+ 			return -EOPNOTSUPP;
+ 
+-		err = nft_chain_parse_hook(net, nla, &hook, family, true);
++		err = nft_chain_parse_hook(net, nla, &hook, family, extack,
++					   true);
+ 		if (err < 0)
+ 			return err;
+ 
+@@ -2183,7 +2190,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 			return -EEXIST;
+ 		}
+ 		err = nft_chain_parse_hook(ctx->net, nla, &hook, ctx->family,
+-					   false);
++					   extack, false);
+ 		if (err < 0)
+ 			return err;
+ 
+@@ -2396,7 +2403,7 @@ static int nf_tables_newchain(struct sk_buff *skb, const struct nfnl_info *info,
+ 					  extack);
+ 	}
+ 
+-	return nf_tables_addchain(&ctx, family, genmask, policy, flags);
++	return nf_tables_addchain(&ctx, family, genmask, policy, flags, extack);
+ }
+ 
+ static int nf_tables_delchain(struct sk_buff *skb, const struct nfnl_info *info,
 -- 
 2.30.2
 
