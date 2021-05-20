@@ -2,150 +2,186 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_2
+X-Spam-Status: No, score=-16.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0792BC433B4
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 May 2021 23:14:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFD67C433ED
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 May 2021 23:41:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D20D9613D7
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 May 2021 23:14:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C68CC613AC
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 May 2021 23:41:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233000AbhETXPe (ORCPT
+        id S234416AbhETXmb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 20 May 2021 19:15:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33758 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231723AbhETXPd (ORCPT
+        Thu, 20 May 2021 19:42:31 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:52122 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S234275AbhETXmb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 May 2021 19:15:33 -0400
-X-Greylist: delayed 366 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 20 May 2021 16:14:09 PDT
-Received: from gimli.rothwell.id.au (gimli.rothwell.id.au [IPv6:2404:9400:2:0:216:3eff:fee1:997a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DEBE2C061574;
-        Thu, 20 May 2021 16:14:09 -0700 (PDT)
-Received: from authenticated.rothwell.id.au (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        Thu, 20 May 2021 19:42:31 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1621554068;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=jvjP3xmaPvbueW2T2LLDyRBRYPus5uAQpfJvGW5jPfA=;
+        b=Yt7QBegdsp3QE6XIUpwqLzZufED8bKG9kdrzsgjN9dAVPCu23ZXK46uo4G1Xx02HJ4vFob
+        er7xTfgx5s2ZjpwY+v7WVDjnlpkqfC1vovz/WigC6h9Jvz7ur2ZArzRUz0L3p8CjtZLoEj
+        m4PouCZjvBtQtkyEDMw025zc8wviqWk=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-375-I8SP1Xy4NvCfJFrlUwO-_w-1; Thu, 20 May 2021 19:41:04 -0400
+X-MC-Unique: I8SP1Xy4NvCfJFrlUwO-_w-1
+Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mail.rothwell.id.au (Postfix) with ESMTPSA id 4FmQPj2vLxzyNq;
-        Fri, 21 May 2021 09:07:52 +1000 (AEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=rothwell.id.au;
-        s=201702; t=1621552075;
-        bh=Unlt47Kkfklu/HTssSugfEykbEe17Uyd/D0Lfbbb2+k=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=rte9g4vDv1SIhAY2TXQqiAjvNCXngdEjTSX/iqRQM8GKscZUv5oB6kK0BpJddFLXj
-         YnVuBZT2gpViUYToYFFRsTyAiYlTy0fsCkho7MBa4fN10ZbTLMIGKfeV58IiQOkTGJ
-         LE+lgByzbIzCjFa0DLaRLCTiOA/Lz2POWzYc/UC9IIRZwnWY9kk07vk3+R9hMDWm+w
-         4q3DooAxbEDLUboyx/whjOq1qFpZIFU4autj221iQ4a8pypd5WqczDTfshJsvg19Tk
-         qYkEpBjAcSlXC8ZQlMqDLMXk38CkvGXxJPT0HsyyzEqBZjTRdsNUupAASizK/4RUxm
-         MUHmCAoLgLbAg==
-Date:   Fri, 21 May 2021 09:07:51 +1000
-From:   Stephen Rothwell <sfr@rothwell.id.au>
-To:     Randy Dunlap <rdunlap@infradead.org>
-Cc:     akpm@linux-foundation.org, broonie@kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-mm@kvack.org, linux-next@vger.kernel.org, mhocko@suse.cz,
-        mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        Stefano Brivio <sbrivio@redhat.com>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: Re: mmotm 2021-05-19-23-58 uploaded
- (net/netfilter/nft_set_pipapo_avx2.c)
-Message-ID: <20210521090751.51afa10f@elm.ozlabs.ibm.com>
-In-Reply-To: <3d718861-28bd-dd51-82d4-96b040aa1ab4@infradead.org>
-References: <20210520065918.KsmugQp47%akpm@linux-foundation.org>
-        <3d718861-28bd-dd51-82d4-96b040aa1ab4@infradead.org>
-X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 56D5B180FD65;
+        Thu, 20 May 2021 23:41:02 +0000 (UTC)
+Received: from maya.cloud.tilaa.com (unknown [10.36.110.6])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 665ED10023AF;
+        Thu, 20 May 2021 23:41:01 +0000 (UTC)
+Date:   Fri, 21 May 2021 01:40:58 +0200
+From:   Stefano Brivio <sbrivio@redhat.com>
+To:     Stephen Rothwell <sfr@canb.auug.org.au>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        David Miller <davem@davemloft.net>,
+        Networking <netdev@vger.kernel.org>,
+        Florian Westphal <fw@strlen.de>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux Next Mailing List <linux-next@vger.kernel.org>
+Subject: Re: linux-next: manual merge of the netfilter-next tree with the
+ net tree
+Message-ID: <20210521014058.5c84301d@elisabeth>
+In-Reply-To: <20210521091222.3112f371@canb.auug.org.au>
+References: <20210519095627.7697ff12@canb.auug.org.au>
+        <20210519140532.677d1bb6@canb.auug.org.au>
+        <20210521091222.3112f371@canb.auug.org.au>
+Organization: Red Hat
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/54qkpJW_btyh87AxEnT6H5P";
- protocol="application/pgp-signature"; micalg=pgp-sha256
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
---Sig_/54qkpJW_btyh87AxEnT6H5P
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-Hi Randy,
+On Fri, 21 May 2021 09:12:22 +1000
+Stephen Rothwell <sfr@canb.auug.org.au> wrote:
 
-On Thu, 20 May 2021 15:40:54 -0700 Randy Dunlap <rdunlap@infradead.org> wro=
-te:
->
-> on x86_64:
-> (from linux-next, not mmotm)
+> Hi all,
+> 
+> On Wed, 19 May 2021 14:05:32 +1000 Stephen Rothwell <sfr@canb.auug.org.au> wrote:
+> >
+> > On Wed, 19 May 2021 09:56:27 +1000 Stephen Rothwell <sfr@canb.auug.org.au> wrote:  
+> > >
+> > > Today's linux-next merge of the netfilter-next tree got a conflict in:
+> > > 
+> > >   net/netfilter/nft_set_pipapo.c
+> > > 
+> > > between commit:
+> > > 
+> > >   f0b3d338064e ("netfilter: nft_set_pipapo_avx2: Add irq_fpu_usable() check, fallback to non-AVX2 version")
+> > > 
+> > > from the net tree and commit:
+> > > 
+> > >   b1bc08f6474f ("netfilter: nf_tables: prefer direct calls for set lookups")
+> > > 
+> > > from the netfilter-next tree.
+> > > 
+> > > I fixed it up (I just used the latter) and can carry the fix as necessary. This
+> > > is now fixed as far as linux-next is concerned, but any non trivial
+> > > conflicts should be mentioned to your upstream maintainer when your tree
+> > > is submitted for merging.  You may also want to consider cooperating
+> > > with the maintainer of the conflicting tree to minimise any particularly
+> > > complex conflicts.    
+> > 
+> > This merge also needs the following merge resolution patch:
+> > 
+> > From: Stephen Rothwell <sfr@canb.auug.org.au>
+> > Date: Wed, 19 May 2021 13:48:22 +1000
+> > Subject: [PATCH] fix up for merge involving nft_pipapo_lookup()
+> > 
+> > Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+> > ---
+> >  net/netfilter/nft_set_pipapo.h | 2 --
+> >  1 file changed, 2 deletions(-)
+> > 
+> > diff --git a/net/netfilter/nft_set_pipapo.h b/net/netfilter/nft_set_pipapo.h
+> > index d84afb8fa79a..25a75591583e 100644
+> > --- a/net/netfilter/nft_set_pipapo.h
+> > +++ b/net/netfilter/nft_set_pipapo.h
+> > @@ -178,8 +178,6 @@ struct nft_pipapo_elem {
+> >  
+> >  int pipapo_refill(unsigned long *map, int len, int rules, unsigned long *dst,
+> >  		  union nft_pipapo_map_bucket *mt, bool match_only);
+> > -bool nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
+> > -		       const u32 *key, const struct nft_set_ext **ext);
+> >  
+> >  /**
+> >   * pipapo_and_field_buckets_4bit() - Intersect 4-bit buckets
+> > -- 
+> > 2.30.2  
+> 
+> Actually it appears to also need this:
 
-Yeah, this is caused by a bad merge resolution by me.
+Thanks for the fix, and sorry for the mess. To retain the effect of
+b1bc08f6474f ("netfilter: nf_tables: prefer direct calls for set lookups")
+from nf-next, though,
 
-> ../net/netfilter/nft_set_pipapo_avx2.c: In function =E2=80=98nft_pipapo_a=
-vx2_lookup=E2=80=99:
-> ../net/netfilter/nft_set_pipapo_avx2.c:1135:10: error: implicit declarati=
-on of function =E2=80=98nft_pipapo_lookup=E2=80=99; did you mean =E2=80=98n=
-ft_pipapo_avx2_lookup=E2=80=99? [-Werror=3Dimplicit-function-declaration]
->    return nft_pipapo_lookup(net, set, key, ext);
->           ^~~~~~~~~~~~~~~~~
+> diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
+> index 789e9eadd76d..8652b2514e57 100644
+> --- a/include/net/netfilter/nf_tables_core.h
+> +++ b/include/net/netfilter/nf_tables_core.h
+> @@ -89,6 +89,8 @@ extern const struct nft_set_type nft_set_bitmap_type;
+>  extern const struct nft_set_type nft_set_pipapo_type;
+>  extern const struct nft_set_type nft_set_pipapo_avx2_type;
+>  
+> +bool nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
+> +			    const u32 *key, const struct nft_set_ext **ext);
 
-I have added this to the merge resolution today:
+while this looks correct to me (b1bc08f6474f adds the prototype
+conditionally for CONFIG_RETPOLINE, f0b3d338064e adds it
+unconditionally),
 
-diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter=
-/nf_tables_core.h
-index 789e9eadd76d..8652b2514e57 100644
---- a/include/net/netfilter/nf_tables_core.h
-+++ b/include/net/netfilter/nf_tables_core.h
-@@ -89,6 +89,8 @@ extern const struct nft_set_type nft_set_bitmap_type;
- extern const struct nft_set_type nft_set_pipapo_type;
- extern const struct nft_set_type nft_set_pipapo_avx2_type;
-=20
-+bool nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
-+			    const u32 *key, const struct nft_set_ext **ext);
- #ifdef CONFIG_RETPOLINE
- bool nft_rhash_lookup(const struct net *net, const struct nft_set *set,
- 		      const u32 *key, const struct nft_set_ext **ext);
-@@ -101,8 +103,6 @@ bool nft_hash_lookup_fast(const struct net *net,
- 			  const u32 *key, const struct nft_set_ext **ext);
- bool nft_hash_lookup(const struct net *net, const struct nft_set *set,
- 		     const u32 *key, const struct nft_set_ext **ext);
--bool nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
--			    const u32 *key, const struct nft_set_ext **ext);
- bool nft_set_do_lookup(const struct net *net, const struct nft_set *set,
- 		       const u32 *key, const struct nft_set_ext **ext);
- #else
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index 9addc0b447f7..dce866d93fee 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -408,7 +408,6 @@ int pipapo_refill(unsigned long *map, int len, int rule=
-s, unsigned long *dst,
-  *
-  * Return: true on match, false otherwise.
-  */
--INDIRECT_CALLABLE_SCOPE
- bool nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
- 		       const u32 *key, const struct nft_set_ext **ext)
- {
+>  #ifdef CONFIG_RETPOLINE
+>  bool nft_rhash_lookup(const struct net *net, const struct nft_set *set,
+>  		      const u32 *key, const struct nft_set_ext **ext);
+> @@ -101,8 +103,6 @@ bool nft_hash_lookup_fast(const struct net *net,
+>  			  const u32 *key, const struct nft_set_ext **ext);
+>  bool nft_hash_lookup(const struct net *net, const struct nft_set *set,
+>  		     const u32 *key, const struct nft_set_ext **ext);
+> -bool nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
+> -			    const u32 *key, const struct nft_set_ext **ext);
+>  bool nft_set_do_lookup(const struct net *net, const struct nft_set *set,
+>  		       const u32 *key, const struct nft_set_ext **ext);
+>  #else
+> diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+> index 9addc0b447f7..dce866d93fee 100644
+> --- a/net/netfilter/nft_set_pipapo.c
+> +++ b/net/netfilter/nft_set_pipapo.c
+> @@ -408,7 +408,6 @@ int pipapo_refill(unsigned long *map, int len, int rules, unsigned long *dst,
+>   *
+>   * Return: true on match, false otherwise.
+>   */
+> -INDIRECT_CALLABLE_SCOPE
 
-It should apply on top of next-20210520 if you want to test it (I
-haven't tested it yet, but will later today).
---=20
-Cheers,
-Stephen Rothwell
+this shouldn't be removed.
 
---Sig_/54qkpJW_btyh87AxEnT6H5P
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+>  bool nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
+>  		       const u32 *key, const struct nft_set_ext **ext)
+>  {
+> 
+> 
 
------BEGIN PGP SIGNATURE-----
+Let me know if I should rather send a patch for linux-next (but it
+might take me a bit).
 
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmCm68cACgkQAVBC80lX
-0GwTEQf+I/lcXs8xFLj2V8fskUhUh0ml6V76sP1fAmL1MKzIL6W60YTCmIAFNLsj
-Ix6HLfIQTuEZz7JTqmJ3SCkrng4MBad0ml6zka+ZLs7VSvLgb1h2kK2WSjbMY/8k
-G9v3TG67ZZ30tV3IrItwQ13Z94TQnY7s4P1ZMqhGIuWjDah5XVXT3DOFCqwALGjq
-JhljLSOAyoynEfZyEzfaBVEN0Ktwao2ltV7o5igFHtGVsOPy8SiB1E5HV52gSLtk
-2HQjHKqjseNCtPW6ys56iSxAJFODxf8L+/zyxqFzLC7fGqZzZa5AvRqEDo5ppvSg
-PmRNA60ZvTkE4+D3sbyafNO4TgvzMg==
-=B2VX
------END PGP SIGNATURE-----
+-- 
+Stefano
 
---Sig_/54qkpJW_btyh87AxEnT6H5P--
