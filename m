@@ -2,138 +2,85 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFD67C433ED
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 May 2021 23:41:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DADDBC43461
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 May 2021 01:04:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C68CC613AC
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 May 2021 23:41:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C2E7E611AB
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 May 2021 01:04:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234416AbhETXmb (ORCPT
+        id S236025AbhEUBFq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 20 May 2021 19:42:31 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:52122 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S234275AbhETXmb (ORCPT
+        Thu, 20 May 2021 21:05:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58060 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235984AbhEUBFl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 May 2021 19:42:31 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1621554068;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=jvjP3xmaPvbueW2T2LLDyRBRYPus5uAQpfJvGW5jPfA=;
-        b=Yt7QBegdsp3QE6XIUpwqLzZufED8bKG9kdrzsgjN9dAVPCu23ZXK46uo4G1Xx02HJ4vFob
-        er7xTfgx5s2ZjpwY+v7WVDjnlpkqfC1vovz/WigC6h9Jvz7ur2ZArzRUz0L3p8CjtZLoEj
-        m4PouCZjvBtQtkyEDMw025zc8wviqWk=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-375-I8SP1Xy4NvCfJFrlUwO-_w-1; Thu, 20 May 2021 19:41:04 -0400
-X-MC-Unique: I8SP1Xy4NvCfJFrlUwO-_w-1
-Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 56D5B180FD65;
-        Thu, 20 May 2021 23:41:02 +0000 (UTC)
-Received: from maya.cloud.tilaa.com (unknown [10.36.110.6])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 665ED10023AF;
-        Thu, 20 May 2021 23:41:01 +0000 (UTC)
-Date:   Fri, 21 May 2021 01:40:58 +0200
-From:   Stefano Brivio <sbrivio@redhat.com>
-To:     Stephen Rothwell <sfr@canb.auug.org.au>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        David Miller <davem@davemloft.net>,
-        Networking <netdev@vger.kernel.org>,
-        Florian Westphal <fw@strlen.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux Next Mailing List <linux-next@vger.kernel.org>
-Subject: Re: linux-next: manual merge of the netfilter-next tree with the
- net tree
-Message-ID: <20210521014058.5c84301d@elisabeth>
-In-Reply-To: <20210521091222.3112f371@canb.auug.org.au>
-References: <20210519095627.7697ff12@canb.auug.org.au>
-        <20210519140532.677d1bb6@canb.auug.org.au>
-        <20210521091222.3112f371@canb.auug.org.au>
-Organization: Red Hat
+        Thu, 20 May 2021 21:05:41 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01C53C0613ED;
+        Thu, 20 May 2021 18:04:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+        Content-Type:In-Reply-To:MIME-Version:Date:Message-ID:From:References:Cc:To:
+        Subject:Sender:Reply-To:Content-ID:Content-Description;
+        bh=sni9ETK0HEg7xDqRTRD+07GslmzE5y7OWzA5WJKcjKU=; b=u70b07TD062bdzcBCW7Xa9uMDu
+        Zvi3dzeWq3DXDEzDH3xRDl6oaTR5xq5coFv6GaME2vz1KEbDa3zSXlvSB4J2oR+UjWoxvBfKQyBS7
+        BBTv8m0jL9zS/zbF1qxxGoIDV9mujDnXmmc8ui/vlS3tA8T/Ewp5/aXKrIk0oOYxN1uPnfKtgTC2E
+        OpLrinbzCPhKfYv/UcSNjCiHOFVaAy+K9mbZxx+RxWFwgeLV64yAOLbyjpfzjLLrQhl6jK4/xEMCk
+        D+GPPpxqsYdARBIBjmbe6cSpPIzaZEKIYPcEPTqfKVZy5YMTXt6pMsw78MMxnaYxEM3JbaltbQyIc
+        Xdde8GPQ==;
+Received: from [2601:1c0:6280:3f0::7376]
+        by bombadil.infradead.org with esmtpsa (Exim 4.94 #2 (Red Hat Linux))
+        id 1ljtaL-00Gjxw-1l; Fri, 21 May 2021 01:04:17 +0000
+Subject: Re: mmotm 2021-05-19-23-58 uploaded
+ (net/netfilter/nft_set_pipapo_avx2.c)
+To:     Stephen Rothwell <sfr@rothwell.id.au>
+Cc:     akpm@linux-foundation.org, broonie@kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-mm@kvack.org, linux-next@vger.kernel.org, mhocko@suse.cz,
+        mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        Stefano Brivio <sbrivio@redhat.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+References: <20210520065918.KsmugQp47%akpm@linux-foundation.org>
+ <3d718861-28bd-dd51-82d4-96b040aa1ab4@infradead.org>
+ <20210521090751.51afa10f@elm.ozlabs.ibm.com>
+From:   Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <6eb826b6-4279-8cf8-1c27-01aab0f83843@infradead.org>
+Date:   Thu, 20 May 2021 18:04:15 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.10.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
+In-Reply-To: <20210521090751.51afa10f@elm.ozlabs.ibm.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
-
-On Fri, 21 May 2021 09:12:22 +1000
-Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-
-> Hi all,
+On 5/20/21 4:07 PM, Stephen Rothwell wrote:
+> Hi Randy,
 > 
-> On Wed, 19 May 2021 14:05:32 +1000 Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-> >
-> > On Wed, 19 May 2021 09:56:27 +1000 Stephen Rothwell <sfr@canb.auug.org.au> wrote:  
-> > >
-> > > Today's linux-next merge of the netfilter-next tree got a conflict in:
-> > > 
-> > >   net/netfilter/nft_set_pipapo.c
-> > > 
-> > > between commit:
-> > > 
-> > >   f0b3d338064e ("netfilter: nft_set_pipapo_avx2: Add irq_fpu_usable() check, fallback to non-AVX2 version")
-> > > 
-> > > from the net tree and commit:
-> > > 
-> > >   b1bc08f6474f ("netfilter: nf_tables: prefer direct calls for set lookups")
-> > > 
-> > > from the netfilter-next tree.
-> > > 
-> > > I fixed it up (I just used the latter) and can carry the fix as necessary. This
-> > > is now fixed as far as linux-next is concerned, but any non trivial
-> > > conflicts should be mentioned to your upstream maintainer when your tree
-> > > is submitted for merging.  You may also want to consider cooperating
-> > > with the maintainer of the conflicting tree to minimise any particularly
-> > > complex conflicts.    
-> > 
-> > This merge also needs the following merge resolution patch:
-> > 
-> > From: Stephen Rothwell <sfr@canb.auug.org.au>
-> > Date: Wed, 19 May 2021 13:48:22 +1000
-> > Subject: [PATCH] fix up for merge involving nft_pipapo_lookup()
-> > 
-> > Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-> > ---
-> >  net/netfilter/nft_set_pipapo.h | 2 --
-> >  1 file changed, 2 deletions(-)
-> > 
-> > diff --git a/net/netfilter/nft_set_pipapo.h b/net/netfilter/nft_set_pipapo.h
-> > index d84afb8fa79a..25a75591583e 100644
-> > --- a/net/netfilter/nft_set_pipapo.h
-> > +++ b/net/netfilter/nft_set_pipapo.h
-> > @@ -178,8 +178,6 @@ struct nft_pipapo_elem {
-> >  
-> >  int pipapo_refill(unsigned long *map, int len, int rules, unsigned long *dst,
-> >  		  union nft_pipapo_map_bucket *mt, bool match_only);
-> > -bool nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
-> > -		       const u32 *key, const struct nft_set_ext **ext);
-> >  
-> >  /**
-> >   * pipapo_and_field_buckets_4bit() - Intersect 4-bit buckets
-> > -- 
-> > 2.30.2  
+> On Thu, 20 May 2021 15:40:54 -0700 Randy Dunlap <rdunlap@infradead.org> wrote:
+>>
+>> on x86_64:
+>> (from linux-next, not mmotm)
 > 
-> Actually it appears to also need this:
-
-Thanks for the fix, and sorry for the mess. To retain the effect of
-b1bc08f6474f ("netfilter: nf_tables: prefer direct calls for set lookups")
-from nf-next, though,
-
+> Yeah, this is caused by a bad merge resolution by me.
+> 
+>> ../net/netfilter/nft_set_pipapo_avx2.c: In function ‘nft_pipapo_avx2_lookup’:
+>> ../net/netfilter/nft_set_pipapo_avx2.c:1135:10: error: implicit declaration of function ‘nft_pipapo_lookup’; did you mean ‘nft_pipapo_avx2_lookup’? [-Werror=implicit-function-declaration]
+>>    return nft_pipapo_lookup(net, set, key, ext);
+>>           ^~~~~~~~~~~~~~~~~
+> 
+> I have added this to the merge resolution today:
+> 
 > diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
 > index 789e9eadd76d..8652b2514e57 100644
 > --- a/include/net/netfilter/nf_tables_core.h
@@ -144,11 +91,6 @@ from nf-next, though,
 >  
 > +bool nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
 > +			    const u32 *key, const struct nft_set_ext **ext);
-
-while this looks correct to me (b1bc08f6474f adds the prototype
-conditionally for CONFIG_RETPOLINE, f0b3d338064e adds it
-unconditionally),
-
 >  #ifdef CONFIG_RETPOLINE
 >  bool nft_rhash_lookup(const struct net *net, const struct nft_set *set,
 >  		      const u32 *key, const struct nft_set_ext **ext);
@@ -170,18 +112,16 @@ unconditionally),
 >   * Return: true on match, false otherwise.
 >   */
 > -INDIRECT_CALLABLE_SCOPE
-
-this shouldn't be removed.
-
 >  bool nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
 >  		       const u32 *key, const struct nft_set_ext **ext)
 >  {
 > 
-> 
+> It should apply on top of next-20210520 if you want to test it (I
+> haven't tested it yet, but will later today).
 
-Let me know if I should rather send a patch for linux-next (but it
-might take me a bit).
+Yes, that builds. Thanks.
 
 -- 
-Stefano
-
+~Randy
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+https://people.kernel.org/tglx/notes-about-netiquette
