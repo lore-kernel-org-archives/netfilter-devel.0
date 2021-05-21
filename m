@@ -2,76 +2,77 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55C12C433B4
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 May 2021 09:28:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 581B5C433ED
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 May 2021 11:39:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3B522613BB
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 May 2021 09:28:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 37372613DD
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 May 2021 11:39:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233543AbhEUJ3g (ORCPT
+        id S233371AbhEULlB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 21 May 2021 05:29:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58194 "EHLO
+        Fri, 21 May 2021 07:41:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59512 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236410AbhEUJ3e (ORCPT
+        with ESMTP id S233128AbhEULkz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 21 May 2021 05:29:34 -0400
+        Fri, 21 May 2021 07:40:55 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46668C0613ED
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 May 2021 02:28:11 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 272E9C061574
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 May 2021 04:39:31 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1lk1Rx-0004ed-CI; Fri, 21 May 2021 11:28:09 +0200
-Date:   Fri, 21 May 2021 11:28:09 +0200
+        (envelope-from <fw@breakpoint.cc>)
+        id 1lk3V2-0005Vz-OU; Fri, 21 May 2021 13:39:28 +0200
 From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-        dvyukov@google.com
-Subject: Re: [PATCH nf,v2] netfilter: nftables: accept all dummy chain when
- table is dormant
-Message-ID: <20210521092809.GC3559@breakpoint.cc>
-References: <20210519101402.45141-1-pablo@netfilter.org>
- <20210519121533.GC8317@breakpoint.cc>
- <20210519155633.GA3182@salvia>
- <20210519183404.GG8317@breakpoint.cc>
- <20210520225054.GA31069@salvia>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next 0/4] netfilter: add hook dump feature
+Date:   Fri, 21 May 2021 13:39:18 +0200
+Message-Id: <20210521113922.20798-1-fw@strlen.de>
+X-Mailer: git-send-email 2.26.3
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210520225054.GA31069@salvia>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Wed, May 19, 2021 at 08:34:04PM +0200, Florian Westphal wrote:
-> > ... but that is doable in the sense that unregister can't fail.
-> 
-> Right, but adding "unregister hooks" to the abort path breaks a
-> different scenario. This might unregister a hook that, because of a later
-> wake-up action, needs to stay there, because you cannot call register
-> a hook from the abort path, it's a bit of a whac-a-mole game.
+Enable dump of the registered netfilter hooks to userspace.
+This allows userspace to peek at the active hooks for each family/hook
+point.
 
-Argh, indeed.  We'd have to re-scan the transaction log during
-preparation phase for each dormant on/off and chain add/delete to
-see if the action un-does an earlier pending one, then remove both
-if they cancel each other.
+Example:
+    $ nft list hook ip type input
+    family ip hook input {
+            +0000000000 nft_do_chain_inet [nf_tables]       # nft table ip filter chain input
+            +0000000010 nft_do_chain_inet [nf_tables]       # nft table ip firewalld chain filter_INPUT
+            +0000000100 nf_nat_ipv4_local_in [nf_nat]
+            +2147483647 ipv4_confirm [nf_conntrack]
+    }
 
-> > I guess dormat tables are an exception and not the norm, so maybe
-> > unfounded concern.
-> 
-> You are right that this approach incurs in the hook evaluation penalty
-> from the packet path. But I don't think there's a need to optimize
-> this feature at this stage
+Implementation is done in nf_tables.
+Alternative would be to add this as a separate/new nfnetlink family.
 
-Ok, I dislike optimizing too early as well.
+Let me know if thats the preferred route and I will respin.
+I did this in nf_tables because it allows re-use of the existing
+nft_hook_attributes and it seemed strange to add a new kernel module
+for this.
 
-> So I'm just inclined to keep it simple while making sure that any
-> possible (silly) robot-generated sequence with this toggle works fine.
+Florian Westphal (4):
+  netfilter: nf_tables: allow to dump all registered base hooks
+  netfilter: nf_tables: include function and module name in hook dumps
+  netfilter: annotate nf_tables base hook ops
+  netfilter: nf_tables: include table and chain name when dumping hooks
 
-Ok, lets use your approach then.
+ include/linux/netfilter.h                |  12 +-
+ include/uapi/linux/netfilter/nf_tables.h |   7 +
+ net/netfilter/core.c                     |   6 +
+ net/netfilter/nf_queue.c                 |   4 +-
+ net/netfilter/nf_tables_api.c            | 275 ++++++++++++++++++++++-
+ 5 files changed, 300 insertions(+), 4 deletions(-)
+
+-- 
+2.26.3
+
