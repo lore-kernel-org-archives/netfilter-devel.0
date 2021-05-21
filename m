@@ -2,75 +2,95 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BA51C433B4
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 May 2021 08:02:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0093EC433B4
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 May 2021 09:03:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 576836135B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 May 2021 08:02:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BA414613BD
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 May 2021 09:03:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229708AbhEUIDw (ORCPT
+        id S234881AbhEUJFH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 21 May 2021 04:03:52 -0400
-Received: from mx2.suse.de ([195.135.220.15]:51876 "EHLO mx2.suse.de"
+        Fri, 21 May 2021 05:05:07 -0400
+Received: from mx2.suse.de ([195.135.220.15]:47420 "EHLO mx2.suse.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233517AbhEUICe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 21 May 2021 04:02:34 -0400
+        id S232533AbhEUJFG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 21 May 2021 05:05:06 -0400
 X-Virus-Scanned: by amavisd-new at test-mx.suse.de
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1621584060; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=Bwcz9Nqr8X25ySpTdVKajdrwsi73OCWjpPXard/wqOA=;
-        b=bGHNWqMb2hjN0ify4qbhUxo+6K9/yNt8GLaJYTIGAYanLWGbaAxfWwvwoRRqjU3CgeNzgJ
-        SamfdH/sO+j+7oNKHSmdWzLyLPc11aobsz8XO4Q7U8lqHHJlCtilUOQYc4w4eHR7xAzhT6
-        gh/m7k7JF3xM2bdNKLawdSUrUzTamSM=
+        t=1621587823; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+         mime-version:mime-version:content-type:content-type;
+        bh=6IOycYvFyMfDJ+VKrjavqlm8a0HQ+hu1rNgjg0zaJvw=;
+        b=YP21PavL4P6Fz1i64jY/hYRFG0K5YegaWulyiy12MLvbFxGtMcnB2ri8ccdT63DWvzMxiB
+        85Jw2fpHufgQiY5eIcOvH5NiTTfWn5lCT60ATbN04n9Tub6eGb0UOE5mhET3oe4ZwZuXCz
+        nJf+PRcSFTcSLdc9KUqJUqHlG3h6Wic=
 Received: from relay2.suse.de (unknown [195.135.221.27])
-        by mx2.suse.de (Postfix) with ESMTP id 58FDAAB64;
-        Fri, 21 May 2021 08:01:00 +0000 (UTC)
-Date:   Fri, 21 May 2021 10:00:59 +0200
+        by mx2.suse.de (Postfix) with ESMTP id 554E4AACA
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 May 2021 09:03:43 +0000 (UTC)
+Date:   Fri, 21 May 2021 11:03:42 +0200
 From:   Ali Abdallah <ali.abdallah@suse.com>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] Avoid potentially erroneos RST drop.
-Message-ID: <20210521080059.bxck6smka7yehjbm@Fryzen495>
-References: <20210430093601.zibczc4cjnwx3qwn@Fryzen495>
- <YJL30q7mCUezag48@strlen.de>
- <20210519120749.gd32rnaaz6q2kggr@Fryzen495>
- <20210519122332.GD8317@breakpoint.cc>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH] Disable RST seq number check when tcp_be_liberal is greater 1
+Message-ID: <20210521090342.vcuwd7nupytqjwt3@Fryzen495>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20210519122332.GD8317@breakpoint.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 19.05.2021 14:23, Florian Westphal wrote:
-> > Hi Florian, I tested your patch and it solved the issue, no more NFS
-> > hangs due to dropped RSTs. Please include it, together with the
-> > following two patches I previously sent:
-> > 
-> > https://patchwork.ozlabs.org/project/netfilter-devel/patch/20210428130911.cteglt52r5if7ynp@Fryzen495/
-> 
-> Do we still need this one after this revised patch?
-> If we do, the help text has to be fixed, after your patch, be-liberal
-> turns off all sequence number/window checks.  The revised text implies
-> it only has to do with RSTs.
-> 
-> Alternative would be to add another sysctl, or turn the existing sysctl
-> into integer (0, off, 1 current behaviour (sequence check on for rst
-> only, 2 off for everything).
+This patch adds the possibility to disable RST seq number check by
+setting tcp_be_liberal to a value greater than 1. The default old
+behaviour is kept unchanged.
 
-I would still like to make the RST sequence number check optional.  I
-think it is a good idea to use 0, 1 and > 1 off for everything, keeping
-this way the current behaviour when tcp_be_liberal is set to 1.
+Signed-off-by: Ali Abdallah <aabdallah@suse.de>
+---
+ Documentation/networking/nf_conntrack-sysctl.rst | 10 ++++++----
+ net/netfilter/nf_conntrack_proto_tcp.c           |  3 ++-
+ 2 files changed, 8 insertions(+), 5 deletions(-)
 
-I will send another patch with also revised text.
+diff --git a/Documentation/networking/nf_conntrack-sysctl.rst b/Documentation/networking/nf_conntrack-sysctl.rst
+index 11a9b76786cb..cfcc3bbd5dda 100644
+--- a/Documentation/networking/nf_conntrack-sysctl.rst
++++ b/Documentation/networking/nf_conntrack-sysctl.rst
+@@ -103,12 +103,14 @@ nf_conntrack_max - INTEGER
+ 	Size of connection tracking table.  Default value is
+ 	nf_conntrack_buckets value * 4.
+ 
+-nf_conntrack_tcp_be_liberal - BOOLEAN
++nf_conntrack_tcp_be_liberal - INTEGER
+ 	- 0 - disabled (default)
+-	- not 0 - enabled
++        - 1 - RST sequence number check only
++	- greater than 1 - turns off all sequence number/window checks
+ 
+-	Be conservative in what you do, be liberal in what you accept from others.
+-	If it's non-zero, we mark only out of window RST segments as INVALID.
++	Be conservative in what you do, be liberal in what you accept from
++	others. If it is set to 1, we mark only out of window RST segments as
++	INVALID. Values greater than 1 disables also RST sequence numbers check.
+ 
+ nf_conntrack_tcp_loose - BOOLEAN
+ 	- 0 - disabled
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 34e22416a721..bf4ba89eea6c 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -1032,7 +1032,8 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
+ 		if (ct->proto.tcp.seen[!dir].flags & IP_CT_TCP_FLAG_MAXACK_SET) {
+ 			u32 seq = ntohl(th->seq);
+ 
+-			if (before(seq, ct->proto.tcp.seen[!dir].td_maxack)) {
++			if (before(seq, ct->proto.tcp.seen[!dir].td_maxack) &&
++			    tn->tcp_be_liberal <= 1) {
+ 				/* Invalid RST  */
+ 				spin_unlock_bh(&ct->lock);
+ 				nf_ct_l4proto_log_invalid(skb, ct, "invalid rst");
+-- 
+2.26.2
 
-Many thanks.
-Ali
+
