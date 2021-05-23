@@ -2,96 +2,75 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84260C4707F
-	for <netfilter-devel@archiver.kernel.org>; Sun, 23 May 2021 02:38:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 805A3C4707A
+	for <netfilter-devel@archiver.kernel.org>; Sun, 23 May 2021 08:52:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 634AF6101B
-	for <netfilter-devel@archiver.kernel.org>; Sun, 23 May 2021 02:38:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4E57E610C8
+	for <netfilter-devel@archiver.kernel.org>; Sun, 23 May 2021 08:52:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231597AbhEWCkN (ORCPT
+        id S231648AbhEWIx6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 22 May 2021 22:40:13 -0400
-Received: from bilbo.ozlabs.org ([203.11.71.1]:60637 "EHLO ozlabs.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231516AbhEWCkM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 22 May 2021 22:40:12 -0400
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4Fnl014z4Wz9sSn;
-        Sun, 23 May 2021 12:38:40 +1000 (AEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
-        s=201702; t=1621737523;
-        bh=lH9AwdckluTJpRQiVDB7RMXCjnC/3+oXvLjYv6y4e8E=;
-        h=Date:From:To:Cc:Subject:From;
-        b=bSzDzM0UFtSLPnHea68W0ws0+TgrwnRgisMYUnd6wY7HF30ZquDNJP1fb0wt8MvW/
-         cWOh48A0cSXmDae8cL8QaJPvTMRtv8/1b/d4ZTFDCn0/U9My+bu7GcgFQ5xfJssNwq
-         Tc/6+3jFaNhGP5Z2X7c8RXzd7yqTebnmLeiuwQSi7t0VA5gqVY/PJOKJYnEVgNZhWU
-         qeGyF0yhSNkAwA40YSoH7set2SiSNLlbFtkzxfZShBdM5OD49r5X8bvnsypVYpJ17p
-         e0c7H44lCy+Ry0Jv/MevYI+chhVLVbcA7InhxOtvDpohfJ5m7firDe6FRt0h761FRy
-         U7RUne+BMTeFA==
-Date:   Sun, 23 May 2021 12:38:40 +1000
-From:   Stephen Rothwell <sfr@canb.auug.org.au>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux Next Mailing List <linux-next@vger.kernel.org>
-Subject: linux-next: Fixes tag needs some work in the netfilter tree
-Message-ID: <20210523123840.101ddea5@canb.auug.org.au>
+        Sun, 23 May 2021 04:53:58 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:55264 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231628AbhEWIx6 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 23 May 2021 04:53:58 -0400
+Received: from us.es (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 384AB64160;
+        Sun, 23 May 2021 10:51:33 +0200 (CEST)
+Date:   Sun, 23 May 2021 10:52:28 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next 4/4] netfilter: nf_tables: include table and
+ chain name when dumping hooks
+Message-ID: <20210523085228.GA11701@salvia>
+References: <20210521113922.20798-1-fw@strlen.de>
+ <20210521113922.20798-5-fw@strlen.de>
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/FbsIMk5veJMUKTjyQFK=9Dq";
- protocol="application/pgp-signature"; micalg=pgp-sha256
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20210521113922.20798-5-fw@strlen.de>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
---Sig_/FbsIMk5veJMUKTjyQFK=9Dq
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+On Fri, May 21, 2021 at 01:39:22PM +0200, Florian Westphal wrote:
+> For ip(6)tables, the function names will show 'raw', 'mangle',
+> and so on, but for nf_tables the interpreter name is identical for all
+> base chains in the same family, so its not easy to line up the defined
+> chains with the hook function name.
+> 
+> To make it easier to see how the ruleset lines up with the defined
+> hooks, extend the hook dump to include the chain+table name.
+> 
+> Example list:
+> family ip hook input {
+>   -0000000150 iptable_mangle_hook [iptable_mangle]
+>   +0000000000 nft_do_chain_inet [nf_tables]  # nft table filter chain input
+>  [..]                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> 
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  include/uapi/linux/netfilter/nf_tables.h |  2 ++
+>  net/netfilter/nf_tables_api.c            | 42 ++++++++++++++++++++++++
+>  2 files changed, 44 insertions(+)
+> 
+> diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+> index ba6545a32e34..4822a837250d 100644
+> --- a/include/uapi/linux/netfilter/nf_tables.h
+> +++ b/include/uapi/linux/netfilter/nf_tables.h
+> @@ -149,6 +149,7 @@ enum nft_list_attributes {
+>   * @NFTA_HOOK_DEVS: list of netdevices (NLA_NESTED)
+>   * @NFTA_HOOK_FUNCTION_NAME: hook function name (NLA_STRING)
+>   * @NFTA_HOOK_MODULE_NAME: kernel module that registered this hook (NLA_STRING)
+> + * @NFTA_HOOK_NFT_CHAIN_INFO: nft chain and table name (NLA_NESTED)
 
-Hi all,
-
-In commit
-
-  22cbdbcfb61a ("netfilter: conntrack: unregister ipv4 sockopts on error un=
-wind")
-
-Fixes tag
-
-  Fixes: a0ae2562c6c ("netfilter: conntrack: remove l3proto abstraction")
-
-has these problem(s):
-
-  - SHA1 should be at least 12 digits long
-
-This is probably not worth rebasing for, but can be avoided in the
-future by setting core.abbrev to 12 (or more) or (for git v2.11 or later)
-just making sure it is not set (or set to "auto").
-
---=20
-Cheers,
-Stephen Rothwell
-
---Sig_/FbsIMk5veJMUKTjyQFK=9Dq
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmCpwDAACgkQAVBC80lX
-0GxMSwgAnDSz7sMT/9vItSvg3gP3XFRbR5MIOrpR+F1o8HUrTVw8Rz6rFgOC7Eq+
-SL+jiiHhB8AW8kJLJzu5knUttr6SsW7N/sS+y4jRGhEsKANBjbZmfaDBtCGoUroT
-5jqSoQ6EP/8wjWneXxl/OzWCw0KjOCLUeP+ZcFKM3eM7Sj1jauyGRxgigkWkaAR0
-+4kuomfEdYEhT/SZ/NhhXmXJFhbMNETaW6Wbd56yS4RNWqHqfUjETNyztTOM+ERw
-E+Q40I8TWNk7QHDkJe9bYChWpnZDUaGlOzKEofHQUHEcCA7KlWIEcQSWbYYcFWwt
-OxXkMiT9J7pUP/FE0d4ZJFx9/iS0dw==
-=0yE/
------END PGP SIGNATURE-----
-
---Sig_/FbsIMk5veJMUKTjyQFK=9Dq--
+Probably NFTA_HOOK_CHAIN_INFO ?
