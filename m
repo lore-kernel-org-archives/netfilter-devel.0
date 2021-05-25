@@ -2,184 +2,340 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74E57C47086
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 May 2021 20:52:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65590C47086
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 May 2021 21:19:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 52AFC610A0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 May 2021 20:52:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4778461429
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 May 2021 21:19:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232577AbhEYUxw (ORCPT
+        id S232605AbhEYVVI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 25 May 2021 16:53:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49484 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232381AbhEYUxv (ORCPT
+        Tue, 25 May 2021 17:21:08 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:46932 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232348AbhEYVVI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 May 2021 16:53:51 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F2B3C061574
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 May 2021 13:52:21 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1lle2F-0007Ut-VB; Tue, 25 May 2021 22:52:19 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 4/4] netfilter: nf_tables: include table and chain name when dumping hooks
-Date:   Tue, 25 May 2021 22:51:33 +0200
-Message-Id: <20210525205133.5718-5-fw@strlen.de>
-X-Mailer: git-send-email 2.26.3
-In-Reply-To: <20210525205133.5718-1-fw@strlen.de>
-References: <20210525205133.5718-1-fw@strlen.de>
+        Tue, 25 May 2021 17:21:08 -0400
+Received: from us.es (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id C8FA46433F;
+        Tue, 25 May 2021 23:18:35 +0200 (CEST)
+Date:   Tue, 25 May 2021 23:19:34 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter <netfilter@vger.kernel.org>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>
+Cc:     netdev@vger.kernel.org, netfilter-announce@lists.netfilter.org,
+        lwn@lwn.net
+Subject: [ANNOUNCE] nftables 0.9.9 release
+Message-ID: <20210525211934.GA23501@salvia>
 MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="mP3DRpeJDSE+ciuQ"
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-For ip(6)tables, the function names will show 'raw', 'mangle',
-and so on, but for nf_tables the interpreter name is identical for all
-base chains in the same family, so its not easy to line up the defined
-chains with the hook function name.
 
-To make it easier to see how the ruleset lines up with the defined
-hooks, extend the hook dump to include the chain+table name.
+--mP3DRpeJDSE+ciuQ
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-Example list:
-family ip hook input {
-  -0000000150 iptable_mangle_hook [iptable_mangle]
-  +0000000000 nft_do_chain_inet [nf_tables]  # nft table filter chain input
- [..]                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Hi!
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/uapi/linux/netfilter/nf_tables.h | 25 +++++++++++
- net/netfilter/nf_tables_api.c            | 53 ++++++++++++++++++++++++
- 2 files changed, 78 insertions(+)
+The Netfilter project proudly presents:
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index ba6545a32e34..099fad689311 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -149,6 +149,7 @@ enum nft_list_attributes {
-  * @NFTA_HOOK_DEVS: list of netdevices (NLA_NESTED)
-  * @NFTA_HOOK_FUNCTION_NAME: hook function name (NLA_STRING)
-  * @NFTA_HOOK_MODULE_NAME: kernel module that registered this hook (NLA_STRING)
-+ * @NFTA_HOOK_CHAIN_INFO: basechain hook metadata (NLA_NESTED)
-  */
- enum nft_hook_attributes {
- 	NFTA_HOOK_UNSPEC,
-@@ -158,10 +159,34 @@ enum nft_hook_attributes {
- 	NFTA_HOOK_DEVS,
- 	NFTA_HOOK_FUNCTION_NAME,
- 	NFTA_HOOK_MODULE_NAME,
-+	NFTA_HOOK_CHAIN_INFO,
- 	__NFTA_HOOK_MAX
- };
- #define NFTA_HOOK_MAX		(__NFTA_HOOK_MAX - 1)
- 
-+/**
-+ * enum nft_chain_info_attributes - chain description
-+ *
-+ * NFTA_CHAIN_INFO_DESC: chain and table name (enum nft_table_attributes) (NLA_NESTED)
-+ * NFTA_CHAIN_INFO_TYPE: chain type (enum nf_chain_type) (NLA_U32)
-+ */
-+enum nft_chain_info_attributes {
-+	NFTA_CHAIN_INFO_UNSPEC,
-+	NFTA_CHAIN_INFO_DESC,
-+	NFTA_CHAIN_INFO_TYPE,
-+	__NFTA_CHAIN_INFO_MAX,
-+};
-+#define NFTA_CHAIN_INFO_MAX (__NFTA_CHAIN_INFO_MAX - 1)
-+
-+/**
-+ * enum nft_chain_info_attributes - chain description
-+ *
-+ * @NF_CHAININFO_TYPE_NF_TABLES nf_tables base chain
-+ */
-+enum nf_chaininfo_type {
-+	NF_CHAININFO_TYPE_NF_TABLES = 0x1,
-+};
-+
- /**
-  * enum nft_table_flags - nf_tables table flags
-  *
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index e7e80c8ee123..d58e4b39efe1 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -7979,6 +7979,55 @@ struct nft_dump_hooks_data {
- 	u8 hook;
- };
- 
-+static int nla_put_chain_hook_info(struct sk_buff *nlskb, const struct nft_dump_hooks_data *ctx,
-+				   const struct nf_hook_ops *ops)
-+{
-+	struct net *net = sock_net(nlskb->sk);
-+	struct nlattr *nest, *nest2;
-+	struct nft_chain *chain;
-+	int ret = 0;
-+
-+	if (ops->hook_ops_type != NF_HOOK_OP_NF_TABLES)
-+		return 0;
-+
-+	chain = ops->priv;
-+
-+	if (WARN_ON_ONCE(!chain))
-+		return 0;
-+
-+	if (!nft_is_active(net, chain))
-+		return 0;
-+
-+	nest = nla_nest_start(nlskb, NFTA_HOOK_CHAIN_INFO);
-+	if (!nest)
-+		return -EMSGSIZE;
-+
-+	ret = nla_put_be32(nlskb, NFTA_CHAIN_INFO_TYPE,
-+			   htonl(NF_CHAININFO_TYPE_NF_TABLES));
-+	if (ret)
-+		goto cancel_nest;
-+
-+	nest2 = nla_nest_start(nlskb, NFTA_CHAIN_INFO_DESC);
-+	if (!nest2)
-+		goto cancel_nest;
-+
-+	ret = nla_put_string(nlskb, NFTA_CHAIN_TABLE, chain->table->name);
-+	if (ret)
-+		goto cancel_nest;
-+
-+	ret = nla_put_string(nlskb, NFTA_CHAIN_NAME, chain->name);
-+	if (ret)
-+		goto cancel_nest;
-+
-+	nla_nest_end(nlskb, nest2);
-+	nla_nest_end(nlskb, nest);
-+	return ret;
-+
-+cancel_nest:
-+	nla_nest_cancel(nlskb, nest);
-+	return -EMSGSIZE;
-+}
-+
- static int nf_tables_dump_one_hook(struct sk_buff *nlskb,
- 				   const struct nft_dump_hooks_data *ctx,
- 				   const struct nf_hook_ops *ops)
-@@ -8014,6 +8063,10 @@ static int nf_tables_dump_one_hook(struct sk_buff *nlskb,
- 	if (ret)
- 		goto nla_put_failure;
- 
-+	ret = nla_put_chain_hook_info(nlskb, ctx, ops);
-+	if (ret)
-+		goto nla_put_failure;
-+
- 	nlmsg_end(nlskb, nlh);
- 	return 0;
- nla_put_failure:
--- 
-2.26.3
+        nftables 0.9.9
 
+This release contains fixes, documentation updates and new features
+available up to the Linux kernel 5.13-rc1 release. Highlights:
+
+* Flowtable hardware offload support [1]: add a new 'offload' flag that
+  turns on the flowtable hardware fastpath.
+
+    table ip global {
+            flowtable f {
+                    hook ingress priority filter + 1
+                    devices = { lan3, lan0, wan }
+                    flags offload
+            }
+
+            chain forward {
+                    type filter hook forward priority filter; policy accept;
+                    ip protocol { tcp, udp } flow add @f
+            }
+
+            chain post {
+                    type nat hook postrouting priority filter; policy accept;
+                    oifname "wan" masquerade
+            }
+    }
+
+  [1] https://www.kernel.org/doc/html/latest/networking/nf_flowtable.html
+
+* Support for the table owner flag. This new flag allows a process to
+  own a table in exclusivity. The owner process name is show as a
+  comment. The table can be either removed by the owner process
+  (explicit removal) or when the owner process is terminated.
+
+    table ip x { # progname nft
+            flags owner
+
+            chain y {
+                    type filter hook input priority filter; policy accept;
+                    counter packets 1 bytes 309
+            }
+    }
+
+  The example above shows a ruleset that is owned by nft which is
+  running in interactive mode, ie. nft -i
+
+* 802.1ad (QinQ) support:
+
+  - Check that outer ethertype is 8021ad and outer vlan id is 321
+  ... ether type 802.1ad vlan id 342
+
+  - Check that outer ethertype is 8021ad and vlan id is 1 and inner
+    ethertype is 802.1q and vlan id is 2, finally check that this
+    QinQ frame encapsulates an IP packet.
+
+  ... ether type 8021ad vlan id 1 vlan type 8021q vlan id 2 vlan type ip counter
+
+* cgroupsv2 support.
+
+  - Check for that socket cgroupv2 ancestor level 1 is matching "system.slice"
+  ... socket cgroupv2 level 1 "system.slice"
+
+* match on SCTP packet chunks (available since the upcoming 5.14 release)
+
+  - match if chunk type 'data' exists
+  ... sctp chunk data exists
+  - match on chunk type 'data' field 'type'
+  ... sctp chunk data type 0
+
+* x2 speed up time to load ruleset (via -f).
+* Speed up time to print ruleset listing.
+
+* Shortcut to check for set/unset bits in flags.
+
+  - Check that snat and dnat ct status bits are unset.
+  ... ct status ! snat,dnat
+
+  - Check that the syn bit is set in the syn,ack bitmask
+  ... tcp flags syn / syn,ack
+
+  - Check that the fin and rst bits are not set in the syn,ack,fin,rst bitmask
+  ... tcp flags != fin,rst / syn,ack,fin,rst
+
+* Allow to use verdict in set/map typeof definitions
+
+  add map x m { typeof iifname . ip protocol . th dport : verdict ;}
+
+You can download this new release from:
+
+https://www.netfilter.org/projects/nftables/downloads.html#nftables-0.9.9
+
+To build the code, libnftnl >= 1.2.0 and libmnl >= 1.0.4 are required:
+
+* https://netfilter.org/projects/libnftnl/index.html
+* https://netfilter.org/projects/libmnl/index.html
+
+Visit our wikipage for user documentation at:
+
+* https://wiki.nftables.org
+
+For the manpage reference, check man(8) nft.
+
+In case of bugs and feature request, file them via:
+
+* https://bugzilla.netfilter.org
+
+Happy firewalling.
+
+--mP3DRpeJDSE+ciuQ
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: attachment; filename="changes-nftables-0.9.9.txt"
+Content-Transfer-Encoding: 8bit
+
+Dominick Grift (1):
+      files: improve secmark.nft example
+
+Eric Garver (1):
+      json: init parser state for every new buffer/file
+
+Florian Westphal (54):
+      json: fix icmpv6.t test cases
+      json: limit: set default burst to 5
+      json: ct: add missing rule
+      json: icmp: refresh json output
+      json: icmp: move expected parts to json.output
+      json: ct: add missing test input
+      exthdr: remove tcp dependency for tcp option matching
+      src: evaluate: reset context maxlen value before prio evaluation
+      tests: add icmp/6 test where dependency should be left alone
+      payload: check icmp dependency before removing previous icmp expression
+      testcases: move two dump files to correct location
+      tests: add empty dynamic set
+      evaluate: do not crash if dynamic set has no statements
+      trace: do not remove icmp type from packet dump
+      tests: extend dtype test case to cover expression with integer type
+      evaluate: pick data element byte order, not dtype one
+      evaluate: set evaluation context for set elements
+      src: allow use of 'verdict' in typeof definitions
+      parser: re-enable support for concatentation on map RHS
+      parser: squash duplicated spec/specid rules
+      parser: compact map RHS type
+      parser: compact ct obj list types
+      scanner: remove unused tokens
+      scanner: introduce start condition stack
+      scanner: queue: move to own scope
+      scanner: ipsec: move to own scope
+      scanner: rt: move to own scope
+      scanner: socket: move to own scope
+      scanner: ct: move to own scope
+      scanner: ip: move to own scope
+      scanner: ip6: move to own scope
+      scanner: add fib scope
+      scanner: add ether scope
+      scanner: arp: move to own scope
+      scanner: remove saddr/daddr from initial state
+      scanner: vlan: move to own scope
+      scanner: limit: move to own scope
+      scanner: quota: move to own scope
+      scanner: move until,over,used keywords away from init state
+      scanner: secmark: move to own scope
+      scanner: avoid -fasan heap overflow warnings
+      scanner: add support for scope nesting
+      scanner: counter: move to own scope
+      scanner: log: move to own scope
+      parser: add missing scope_close annotation for RT keyword
+      parser: fix scope closure of COUNTER token
+      netlink: don't crash when set elements are not evaluated as expected
+      src: vlan: allow matching vlan id insider 802.1ad frame
+      proto: add 8021ad as mnemonic for IEEE 802.1AD (0x88a8) ether type
+      payload: be careful on vlan dependency removal
+      tests: add 8021.AD vlan test cases
+      proto: replace vlan ether type with 8021q
+      evaluate: check if nat statement map specifies a transport header expr
+      doc: tiny spelling fix in stateful object section s/an/a
+
+Frank Wunderlich (1):
+      nftables: add flags offload to flowtable
+
+Jan Engelhardt (1):
+      files: move example files away from /etc
+
+Laura Garcia Liebana (1):
+      parser: allow to load stateful ct connlimit elements in sets
+
+Marco Oliverio (1):
+      cache: check errno before invoking cache_release()
+
+Pablo Neira Ayuso (62):
+      evaluate: disallow ct original {s,d}ddr from concatenations
+      src: add negation match on singleton bitmask value
+      tests: shell: extend 0025empty_dynset_0 to cover multi-statement support
+      evaluate: incorrect usage of stmt_binary_error() in reject
+      table: rework flags printing
+      table: support for the table owner flag
+      mnl: remove nft_mnl_socket_reopen()
+      cache: memleak list of chain
+      expression: memleak in verdict_expr_parse_udata()
+      src: move remaining cache functions in rule.c to cache.c
+      segtree: release single element already contained in an interval
+      tests: shell: flowtable add after delete in batch
+      tests: shell: fix 0025empty_dynset_0
+      doc: no need to define a set in ct state
+      src: add datatype->describe()
+      rule: remove semicolon in flowtable offload
+      mnl: do not set flowtable flags twice
+      parser_bison: simplify flowtable offload flag parser
+      cache: rename chain_htable to cache_chain_ht
+      src: split chain list in table
+      evaluate: use chain hashtable for lookups
+      cache: statify chain_cache_dump()
+      cache: check for NULL chain in cache_init()
+      cache: add hashtable cache for sets
+      cache: bail out if chain list cannot be fetched from kernel
+      Makefile: missing owner.h file
+      parser_bison: missing relational operation on flag list
+      tests: shell: remove missing modules
+      src: unbreak deletion by table handle
+      rule: skip fuzzy lookup for unexisting 64-bit handle
+      src: pass chain name to chain_cache_find()
+      src: consolidate nft_cache infrastructure
+      src: consolidate object cache infrastructure
+      cache: add hashtable cache for object
+      cache: add hashtable cache for flowtable
+      cache: add set_cache_del() and use it
+      evaluate: add set to the cache
+      evaluate: add flowtable to the cache
+      cache: missing table cache for several policy objects
+      evaluate: add object to the cache
+      cache: add hashtable cache for table
+      evaluate: remove chain from cache on delete chain command
+      evaluate: remove set from cache on delete set command
+      evaluate: remove flowtable from cache on delete flowtable command
+      evaluate: remove object from cache on delete object command
+      src: add cgroupsv2 support
+      parser_bison: add set_elem_key_expr rule
+      src: add set element catch-all support
+      evaluate: don't crash on set definition with incorrect datatype
+      tests: shell: don't assume fixed handle value in cache/0008_delete_by_handle_0
+      netlink_delinearize: fix binary operation postprocessing with sets
+      parser_bison: add shortcut syntax for matching flags without binary operations
+      src: use PRIu64 format
+      datatype: skip cgroupv2 rootfs in listing
+      doc: document cgroupv2
+      libnftables: location-based error reporting for chain type
+      cmd: typo in chain fuzzy lookup
+      rule: skip exact matches on fuzzy lookup
+      evaluate: allow == and != in the new shortcut syntax to match for flags
+      expression: display an error on unknown datatype
+      include: missing sctp_chunk.h in Makefile.am
+      build: Bump version to v0.9.9
+
+Pavel Tikhomirov (1):
+      nftables: xt: fix misprint in nft_xt_compatible_revision
+
+Phil Sutter (18):
+      reject: Fix for missing dependencies in netdev family
+      reject: Unify inet, netdev and bridge delinearization
+      json: limit: Always include burst value
+      json: Do not abbreviate reject statement object
+      tests/py: Write dissenting payload into the right file
+      tests/py: Add a test sanitizer and fix its findings
+      erec: Sanitize erec location indesc
+      monitor: Don't print newgen message with JSON output
+      tests/py: Adjust payloads for fixed nat statement dumps
+      mnl: Set NFTNL_SET_DATA_TYPE before dumping set elements
+      tests/py: Fix for missing JSON equivalent in any/ct.t.json
+      mnl: Increase BATCH_PAGE_SIZE to support huge rulesets
+      doc: Reduce size of NAT statement synopsis
+      scanner: sctp: Move to own scope
+      json: Simplify non-tcpopt exthdr printing a bit
+      exthdr: Implement SCTP Chunk matching
+      doc: nft.8: Extend monitor description by trace
+      expr_postprocess: Avoid an unintended fall through
+
+Simon Ruderich (4):
+      doc: add * to include example to actually include files
+      doc: remove duplicate tables in synproxy example
+      doc: move drop rule on a separate line in blackhole example
+      doc: use symbolic names for chain priorities
+
+Stefano Brivio (2):
+      segtree: Fix range_mask_len() for subnet ranges exceeding unsigned int
+      tests: Introduce 0043_concatenated_ranges_1 for subnets of different sizes
+
+Štěpán Němec (3):
+      tests: monitor: use correct $nft value in EXIT trap
+      main: fix nft --help output fallout from 719e4427
+      doc: nft: fix some typos and formatting issues
+
+
+--mP3DRpeJDSE+ciuQ--
