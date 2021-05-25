@@ -2,80 +2,125 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0614AC47084
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 May 2021 10:30:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80836C2B9F8
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 May 2021 11:52:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DC4B3613F4
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 May 2021 10:30:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 64A5661260
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 May 2021 11:52:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231868AbhEYKcK (ORCPT
+        id S231717AbhEYLyJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 25 May 2021 06:32:10 -0400
-Received: from kirsty.vergenet.net ([202.4.237.240]:54950 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231859AbhEYKbe (ORCPT
+        Tue, 25 May 2021 07:54:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39720 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231996AbhEYLyI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 May 2021 06:31:34 -0400
-Received: from madeliefje.horms.nl (tulip.horms.nl [83.161.246.101])
-        by kirsty.vergenet.net (Postfix) with ESMTPA id D3E8025AD66;
-        Tue, 25 May 2021 20:30:03 +1000 (AEST)
-Received: by madeliefje.horms.nl (Postfix, from userid 7100)
-        id F28493850; Tue, 25 May 2021 12:30:01 +0200 (CEST)
-Date:   Tue, 25 May 2021 12:30:01 +0200
-From:   Simon Horman <horms@verge.net.au>
-To:     Julian Anastasov <ja@ssi.bg>
-Cc:     lvs-devel@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH net] ipvs: ignore IP_VS_SVC_F_HASHED flag when adding
- service
-Message-ID: <20210525103001.GA3365@vergenet.net>
-References: <20210524195457.125514-1-ja@ssi.bg>
+        Tue, 25 May 2021 07:54:08 -0400
+Received: from mail-io1-xd2b.google.com (mail-io1-xd2b.google.com [IPv6:2607:f8b0:4864:20::d2b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79255C061574
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 May 2021 04:52:39 -0700 (PDT)
+Received: by mail-io1-xd2b.google.com with SMTP id v9so4739474ion.11
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 May 2021 04:52:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=LQidLYelJ4Qj7JrUfOhDqD59Re7OdQcgGrvmzk7jv6g=;
+        b=iZ5bNLouicYbGmOH1QXjzj7nKUtcJjOm+T0a+UsH7bSnbBtZDfbo55115sODMaQ4+I
+         OnGDfbaxBGGP/W87Sshbt1PStkoaPDBbjyuMzNX9ipUSG3wDCiIhyZw//AyL3DpXzdBN
+         TytLmho0H9RbZxuuvASNfCV8o7No8klIRLwpm08EekvgEn9cBocIaxuRzFCFCrx+pw5Q
+         SNl1l46L2ZMHFPVpcpb9e5g3nilIEk8r1efFJ8hXXyPg0uaCkRNzd8LAMGGqsUIO7d/g
+         BcKDPkRnctE7QwZzGORJ7yUYxWzkGKL1VMYuWDc3Ohvk8yANnwnf8DkwbfHFo/OAGOJQ
+         ZHyw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=LQidLYelJ4Qj7JrUfOhDqD59Re7OdQcgGrvmzk7jv6g=;
+        b=i3y8sb+N4JeFRN0ChlNdeHdOEUvgmy7eU6ksnaenGd5IMFGZY5u55+neFIxMR3GKX+
+         SrjUpmPOx+RatRoeGlJglO60rkDIiL2+wbvF0rUCMk2s9GYZVXMpUr7Jc8Ik4C/UF7dT
+         3GlIjwf8rS95L9Ktxa5rOTGsMXWvTKir4U1vxa5FMd1HdRWwvfE8sC31OfRVeIvK+Jdk
+         pJrnHg24u8Lvz+hdQPIUup54NKyzmMEOhhfu+0Lu6lwxCaidtBHGuVohhu49i2o2y5eA
+         dsXLLX5LghXmnzVY8LiGQcw5tonmicuY6vuRhwRZAdfU33vruFU/EBvqscqCwkmd2Quw
+         3t/w==
+X-Gm-Message-State: AOAM5311Ka9aoAZrN4Vao2ujSp0ZOc0XP2kj7/siezhAr/K9zzTCenMJ
+        4MyHFL44jOg3/XaIhQ5BFEC6T7qqTX8u7t1yQBLiiMmN+sJu7Q==
+X-Google-Smtp-Source: ABdhPJyokAUxXtjCCaFSQQl+a9Jvpac8bvpcXhwRCJ8Z6kA6oVSEv/p5h4tkN3CpwvbpS/cg+PC7+8wLbKbB3vkUN+8=
+X-Received: by 2002:a02:aa97:: with SMTP id u23mr29755866jai.13.1621943558781;
+ Tue, 25 May 2021 04:52:38 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210524195457.125514-1-ja@ssi.bg>
-Organisation: Horms Solutions BV
-User-Agent: Mutt/1.10.1 (2018-07-13)
+References: <20210518181730.13436-1-patrickdepinguin@gmail.com>
+ <20210518181730.13436-2-patrickdepinguin@gmail.com> <20210524152621.GA21404@salvia>
+In-Reply-To: <20210524152621.GA21404@salvia>
+From:   Thomas De Schampheleire <patrickdepinguin@gmail.com>
+Date:   Tue, 25 May 2021 13:52:27 +0200
+Message-ID: <CAAXf6LUhuPYksianL75_7n_OrkAhKXGojd2NGg8zNWnJrtEQJQ@mail.gmail.com>
+Subject: Re: [ebtables PATCH 2/2] configure.ac: add option --enable-kernel-64-userland-32
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, thomas.de_schampheleire@nokia.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, May 24, 2021 at 10:54:57PM +0300, Julian Anastasov wrote:
-> syzbot reported memory leak [1] when adding service with
-> HASHED flag. We should ignore this flag both from sockopt
-> and netlink provided data, otherwise the service is not
-> hashed and not visible while releasing resources.
-> 
-> [1]
-> BUG: memory leak
-> unreferenced object 0xffff888115227800 (size 512):
->   comm "syz-executor263", pid 8658, jiffies 4294951882 (age 12.560s)
->   hex dump (first 32 bytes):
->     00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
->     00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
->   backtrace:
->     [<ffffffff83977188>] kmalloc include/linux/slab.h:556 [inline]
->     [<ffffffff83977188>] kzalloc include/linux/slab.h:686 [inline]
->     [<ffffffff83977188>] ip_vs_add_service+0x598/0x7c0 net/netfilter/ipvs/ip_vs_ctl.c:1343
->     [<ffffffff8397d770>] do_ip_vs_set_ctl+0x810/0xa40 net/netfilter/ipvs/ip_vs_ctl.c:2570
->     [<ffffffff838449a8>] nf_setsockopt+0x68/0xa0 net/netfilter/nf_sockopt.c:101
->     [<ffffffff839ae4e9>] ip_setsockopt+0x259/0x1ff0 net/ipv4/ip_sockglue.c:1435
->     [<ffffffff839fa03c>] raw_setsockopt+0x18c/0x1b0 net/ipv4/raw.c:857
->     [<ffffffff83691f20>] __sys_setsockopt+0x1b0/0x360 net/socket.c:2117
->     [<ffffffff836920f2>] __do_sys_setsockopt net/socket.c:2128 [inline]
->     [<ffffffff836920f2>] __se_sys_setsockopt net/socket.c:2125 [inline]
->     [<ffffffff836920f2>] __x64_sys_setsockopt+0x22/0x30 net/socket.c:2125
->     [<ffffffff84350efa>] do_syscall_64+0x3a/0xb0 arch/x86/entry/common.c:47
->     [<ffffffff84400068>] entry_SYSCALL_64_after_hwframe+0x44/0xae
-> 
-> Reported-and-tested-by: syzbot+e562383183e4b1766930@syzkaller.appspotmail.com
-> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-> Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Hello,
 
-Reviewed-by: Simon Horman <horms@verge.net.au>
+El lun, 24 may 2021 a las 17:26, Pablo Neira Ayuso
+(<pablo@netfilter.org>) escribi=C3=B3:
+>
+> On Tue, May 18, 2021 at 08:17:30PM +0200, Thomas De Schampheleire wrote:
+> > From: Thomas De Schampheleire <thomas.de_schampheleire@nokia.com>
+> >
+> > The ebtables build system seems to assume that 'sparc64' is the
+> > only case where KERNEL_64_USERSPACE_32 is relevant, but this is not tru=
+e.
+> > This situation can happen on many architectures, especially in embedded
+> > systems. For example, an Aarch64 processor with kernel in 64-bit but
+> > userland built for 32-bit Arm. Or a 64-bit MIPS Octeon III processor, w=
+ith
+> > userland running in the 'n32' ABI.
+> >
+> > While it is possible to set CFLAGS in the environment when calling the
+> > configure script, the caller would need to know to not only specify
+> > KERNEL_64_USERSPACE_32 but also the EBT_MIN_ALIGN value.
+> >
+> > Instead, add a configure option. All internal details can then be handl=
+ed by
+> > the configure script.
+>
+> Are you enabling
+>
+> CONFIG_NETFILTER_XTABLES_COMPAT
+>
+> in your kernel build?
+>
+> KERNEL_64_USERSPACE_32 was deprecated long time ago in favour of
+> CONFIG_NETFILTER_XTABLES_COMPAT.
 
+The option you refer to (CONFIG_NETFILTER_XTABLES_COMPAT) was
+introduced with commit 47a6959fa331fe892a4fc3b48ca08e92045c6bda
+(5.13-rc1). Before that point, it seems CONFIG_COMPAT was the relevant
+flag. The checks on CONFIG_COMPAT were already introduced with commit
+81e675c227ec60a0bdcbb547dc530ebee23ff931 in 2.6.34.x.
+
+I have seen this problem on Linux 4.1 and 4.9, on an Aarch64 CPU with
+64-bit kernel and userspace compiled as 32-bit ARM. In both kernels,
+CONFIG_COMPAT was set.
+
+So I am a bit surprised that I bump into this issue after upgrading
+ebtables from 2.0.10-4 to 2.0.11 where the padding was removed.
+According to your mail and the commits mentioned, it is supposed to
+work without ebtables making specific provisions for the 32/64 bit
+type difference.
+
+When I apply the patches I submitted to this list, I get correct
+behavior. Without them, the kernel complains and ebtables fails.
+
+Best regards,
+Thomas
