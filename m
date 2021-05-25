@@ -7,32 +7,32 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B01D2C4707F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 May 2021 20:52:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4CA1C47086
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 May 2021 20:52:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 925A7610A0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 May 2021 20:52:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B63EC610A0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 May 2021 20:52:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232321AbhEYUxi (ORCPT
+        id S232331AbhEYUxn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 25 May 2021 16:53:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49428 "EHLO
+        Tue, 25 May 2021 16:53:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49444 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232229AbhEYUxi (ORCPT
+        with ESMTP id S232229AbhEYUxm (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 May 2021 16:53:38 -0400
+        Tue, 25 May 2021 16:53:42 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50DB7C061574
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 May 2021 13:52:08 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 88F2EC061574
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 May 2021 13:52:12 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1lle22-0007Tk-S6; Tue, 25 May 2021 22:52:06 +0200
+        id 1lle27-0007U2-1Z; Tue, 25 May 2021 22:52:11 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 1/4] netfilter: nf_tables: allow to dump all registered base hooks
-Date:   Tue, 25 May 2021 22:51:30 +0200
-Message-Id: <20210525205133.5718-2-fw@strlen.de>
+Subject: [PATCH nf-next 2/4] netfilter: nf_tables: include function and module name in hook dumps
+Date:   Tue, 25 May 2021 22:51:31 +0200
+Message-Id: <20210525205133.5718-3-fw@strlen.de>
 X-Mailer: git-send-email 2.26.3
 In-Reply-To: <20210525205133.5718-1-fw@strlen.de>
 References: <20210525205133.5718-1-fw@strlen.de>
@@ -42,303 +42,111 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This dumps the active hook pipeline to userspace.
+If KALLSYMS are available, include the hook function name and the
+module name that registered the hook.
 
-Userspace needs to pass the address family and the hook point.
+This avoids need to manually annotate all existing hooks.
 
-For the netdev family/ingress hook, a device name must be
-provided as well.
-
-This allows 'nft' to display the priority of each hook.
-
-Example:
+Example output:
 family ip hook prerouting {
-        -0000000300
-        -0000000150
-        -0000000100
+        -0000000300 iptable_raw_hook [iptable_raw]
+        -0000000150 iptable_mangle_hook [iptable_mangle]
+        -0000000100 nf_nat_ipv4_pre_routing [nf_nat]
 }
-
-... so this shows 3 active hooks with -300/-150/-100.
-
-With manual work this is enough to figure out which hooks these are.
-
-Followup patch will include the hook and module name (if any).
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/uapi/linux/netfilter/nf_tables.h |   1 +
- net/netfilter/nf_queue.c                 |   4 +-
- net/netfilter/nf_tables_api.c            | 216 +++++++++++++++++++++++
- 3 files changed, 219 insertions(+), 2 deletions(-)
+ include/linux/netfilter.h                |  4 ++++
+ include/uapi/linux/netfilter/nf_tables.h |  4 ++++
+ net/netfilter/core.c                     |  6 ++++++
+ net/netfilter/nf_tables_api.c            | 13 +++++++++++++
+ 4 files changed, 27 insertions(+)
 
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index f0f3a8354c3c..63f77794f5ed 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -195,6 +195,10 @@ int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state,
+ 
+ void nf_hook_slow_list(struct list_head *head, struct nf_hook_state *state,
+ 		       const struct nf_hook_entries *e);
++
++bool nf_get_hook_info(const struct nf_hook_ops *ops,
++		      char fn[KSYM_NAME_LEN], char **module_name);
++
+ /**
+  *	nf_hook - call a netfilter hook
+  *
 diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 19715e2679d1..5810e41eff33 100644
+index 5810e41eff33..ba6545a32e34 100644
 --- a/include/uapi/linux/netfilter/nf_tables.h
 +++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -124,6 +124,7 @@ enum nf_tables_msg_types {
- 	NFT_MSG_NEWFLOWTABLE,
- 	NFT_MSG_GETFLOWTABLE,
- 	NFT_MSG_DELFLOWTABLE,
-+	NFT_MSG_GETNFHOOKS,
- 	NFT_MSG_MAX,
+@@ -147,6 +147,8 @@ enum nft_list_attributes {
+  * @NFTA_HOOK_PRIORITY: netfilter hook priority (NLA_U32)
+  * @NFTA_HOOK_DEV: netdevice name (NLA_STRING)
+  * @NFTA_HOOK_DEVS: list of netdevices (NLA_NESTED)
++ * @NFTA_HOOK_FUNCTION_NAME: hook function name (NLA_STRING)
++ * @NFTA_HOOK_MODULE_NAME: kernel module that registered this hook (NLA_STRING)
+  */
+ enum nft_hook_attributes {
+ 	NFTA_HOOK_UNSPEC,
+@@ -154,6 +156,8 @@ enum nft_hook_attributes {
+ 	NFTA_HOOK_PRIORITY,
+ 	NFTA_HOOK_DEV,
+ 	NFTA_HOOK_DEVS,
++	NFTA_HOOK_FUNCTION_NAME,
++	NFTA_HOOK_MODULE_NAME,
+ 	__NFTA_HOOK_MAX
+ };
+ #define NFTA_HOOK_MAX		(__NFTA_HOOK_MAX - 1)
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 63d032191e62..d14715c568c8 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -749,6 +749,12 @@ static struct pernet_operations netfilter_net_ops = {
+ 	.exit = netfilter_net_exit,
  };
  
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index bbd1209694b8..224238b20825 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -259,7 +259,7 @@ static unsigned int nf_iterate(struct sk_buff *skb,
- 	return NF_ACCEPT;
- }
- 
--static struct nf_hook_entries *nf_hook_entries_head(const struct net *net, u8 pf, u8 hooknum)
-+static struct nf_hook_entries *nf_queue_hook_entries_head(const struct net *net, u8 pf, u8 hooknum)
++bool nf_get_hook_info(const struct nf_hook_ops *ops, char fn[KSYM_NAME_LEN], char **modname)
++{
++	return kallsyms_lookup((unsigned long)ops->hook, NULL, NULL, modname, fn);
++}
++EXPORT_SYMBOL_GPL(nf_get_hook_info);
++
+ int __init netfilter_init(void)
  {
- 	switch (pf) {
- #ifdef CONFIG_NETFILTER_FAMILY_BRIDGE
-@@ -292,7 +292,7 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 	net = entry->state.net;
- 	pf = entry->state.pf;
- 
--	hooks = nf_hook_entries_head(net, pf, entry->state.hook);
-+	hooks = nf_queue_hook_entries_head(net, pf, entry->state.hook);
- 
- 	i = entry->hook_index;
- 	if (WARN_ON_ONCE(!hooks || i >= hooks->num_hook_entries)) {
+ 	int ret;
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index d63d2d8f769c..5c9e372e3814 100644
+index 5c9e372e3814..899a38615f46 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -7911,6 +7911,216 @@ static int nf_tables_getgen(struct sk_buff *skb, const struct nfnl_info *info,
- 	return err;
- }
+@@ -7983,6 +7983,7 @@ static int nf_tables_dump_one_hook(struct sk_buff *nlskb,
+ {
+ 	unsigned int portid = NETLINK_CB(nlskb).portid;
+ 	struct net *net = sock_net(nlskb->sk);
++	char *module_name, fn[KSYM_NAME_LEN];
+ 	struct nlmsghdr *nlh;
+ 	int ret = -EMSGSIZE;
  
-+static const struct nf_hook_entries *
-+nf_hook_entries_head(u8 pf, unsigned int hook, struct net *net, const char *dev)
-+{
-+	const struct nf_hook_entries *hook_head = NULL;
-+	struct net_device *netdev;
-+
-+	switch (pf) {
-+	case NFPROTO_IPV4:
-+		if (hook >= ARRAY_SIZE(net->nf.hooks_ipv4))
-+			return ERR_PTR(-EINVAL);
-+		hook_head = rcu_dereference(net->nf.hooks_ipv4[hook]);
-+		break;
-+	case NFPROTO_IPV6:
-+		hook_head = rcu_dereference(net->nf.hooks_ipv6[hook]);
-+		if (hook >= ARRAY_SIZE(net->nf.hooks_ipv6))
-+			return ERR_PTR(-EINVAL);
-+		break;
-+	case NFPROTO_ARP:
-+#ifdef CONFIG_NETFILTER_FAMILY_ARP
-+		if (hook >= ARRAY_SIZE(net->nf.hooks_arp))
-+			return ERR_PTR(-EINVAL);
-+		hook_head = rcu_dereference(net->nf.hooks_arp[hook]);
-+#endif
-+		break;
-+	case NFPROTO_BRIDGE:
-+#ifdef CONFIG_NETFILTER_FAMILY_BRIDGE
-+		if (hook >= ARRAY_SIZE(net->nf.hooks_bridge))
-+			return ERR_PTR(-EINVAL);
-+		hook_head = rcu_dereference(net->nf.hooks_bridge[hook]);
-+#endif
-+		break;
-+#if IS_ENABLED(CONFIG_DECNET)
-+	case NFPROTO_DECNET:
-+		if (hook >= ARRAY_SIZE(net->nf.hooks_decnet))
-+			return ERR_PTR(-EINVAL);
-+		hook_head = rcu_dereference(net->nf.hooks_decnet[hook]);
-+		break;
-+#endif
-+#ifdef CONFIG_NETFILTER_INGRESS
-+	case NFPROTO_NETDEV:
-+		if (hook != NF_NETDEV_INGRESS)
-+			return ERR_PTR(-EOPNOTSUPP);
-+
-+		if (!dev)
-+			return ERR_PTR(-ENODEV);
-+
-+		netdev = dev_get_by_name_rcu(net, dev);
-+		if (!netdev)
-+			return ERR_PTR(-ENODEV);
-+
-+		return rcu_dereference(netdev->nf_hooks_ingress);
-+#endif
-+	default:
-+		return ERR_PTR(-EPROTONOSUPPORT);
-+	}
-+
-+	return hook_head;
-+}
-+
-+struct nft_dump_hooks_data {
-+	char devname[IFNAMSIZ];
-+	unsigned long headv;
-+	unsigned int seq;
-+	u8 hook;
-+};
-+
-+static int nf_tables_dump_one_hook(struct sk_buff *nlskb,
-+				   const struct nft_dump_hooks_data *ctx,
-+				   const struct nf_hook_ops *ops)
-+{
-+	unsigned int portid = NETLINK_CB(nlskb).portid;
-+	struct net *net = sock_net(nlskb->sk);
-+	struct nlmsghdr *nlh;
-+	int ret = -EMSGSIZE;
-+
-+	nlh = nfnl_msg_put(nlskb, portid, ctx->seq, NFT_MSG_GETNFHOOKS,
-+			   NLM_F_MULTI, ops->pf, NFNETLINK_V0, nft_base_seq(net));
-+	if (!nlh)
-+		goto nla_put_failure;
-+
-+	ret = nla_put_be32(nlskb, NFTA_HOOK_HOOKNUM, htonl(ops->hooknum));
-+	if (ret)
-+		goto nla_put_failure;
-+
-+	ret = nla_put_be32(nlskb, NFTA_HOOK_PRIORITY, htonl(ops->priority));
-+	if (ret)
-+		goto nla_put_failure;
-+
-+	nlmsg_end(nlskb, nlh);
-+	return 0;
-+nla_put_failure:
-+	nlmsg_trim(nlskb, nlh);
-+	return ret;
-+}
-+
-+static int nf_tables_dump_basehooks(struct sk_buff *nlskb,
-+				    struct netlink_callback *cb)
-+{
-+	struct nfgenmsg *nfmsg = nlmsg_data(cb->nlh);
-+	struct nft_dump_hooks_data *ctx = cb->data;
-+	int err, family = nfmsg->nfgen_family;
-+	struct net *net = sock_net(nlskb->sk);
-+	struct nf_hook_ops * const *ops;
-+	const struct nf_hook_entries *e;
-+	unsigned int i = cb->args[0];
-+
-+	rcu_read_lock();
-+	cb->seq = ctx->seq;
-+
-+	e = nf_hook_entries_head(family, ctx->hook, net, ctx->devname);
-+	if (!e)
-+		goto done;
-+
-+	if (IS_ERR(e)) {
-+		ctx->seq++;
-+		goto done;
-+	}
-+
-+	if ((unsigned long)e != ctx->headv || i >= e->num_hook_entries)
-+		ctx->seq++;
-+
-+	ops = nf_hook_entries_get_hook_ops(e);
-+
-+	for (; i < e->num_hook_entries; i++) {
-+		err = nf_tables_dump_one_hook(nlskb, ctx, ops[i]);
-+		if (err)
-+			break;
-+	}
-+
-+done:
-+	nl_dump_check_consistent(cb, nlmsg_hdr(nlskb));
-+	rcu_read_unlock();
-+	cb->args[0] = i;
-+	return nlskb->len;
-+}
-+
-+static int nf_tables_dump_basehooks_start(struct netlink_callback *cb)
-+{
-+	const struct nfgenmsg *nfmsg = nlmsg_data(cb->nlh);
-+	const struct nlattr * const *nla = cb->data;
-+	struct nft_dump_hooks_data *ctx = NULL;
-+	struct net *net = sock_net(cb->skb->sk);
-+	u8 family = nfmsg->nfgen_family;
-+	char name[IFNAMSIZ] = "";
-+	const void *head;
-+	u32 hooknum;
-+
-+	hooknum = ntohl(nla_get_be32(nla[NFTA_HOOK_HOOKNUM]));
-+	if (hooknum > 255)
-+		return -EINVAL;
-+
-+	if (family == NFPROTO_NETDEV) {
-+		if (!nla[NFTA_HOOK_DEV])
-+			return -EINVAL;
-+
-+		nla_strscpy(name, nla[NFTA_HOOK_DEV], sizeof(name));
-+	}
-+
-+	rcu_read_lock();
-+	/* Not dereferenced; for consistency check only */
-+	head = nf_hook_entries_head(family, hooknum, net, name);
-+	rcu_read_unlock();
-+
-+	if (head && IS_ERR(head))
-+		return PTR_ERR(head);
-+
-+	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
-+	if (!ctx)
-+		return -ENOMEM;
-+
-+	ctx->headv = (unsigned long)head;
-+
-+	ctx->hook = hooknum;
-+	strscpy(ctx->devname, name, sizeof(ctx->devname));
-+	cb->data = ctx;
-+	cb->seq = 1;
-+	return 0;
-+}
-+
-+static int nf_tables_dump_basehooks_stop(struct netlink_callback *cb)
-+{
-+	kfree(cb->data);
-+	return 0;
-+}
-+
-+static int nft_get_basehooks(struct sk_buff *skb,
-+			     const struct nfnl_info *info,
-+			     const struct nlattr * const nla[])
-+{
-+	if (!nla[NFTA_HOOK_HOOKNUM])
-+		return -EINVAL;
-+
-+	if (ntohl(nla_get_be32(nla[NFTA_HOOK_HOOKNUM])) > 255)
-+		return -EINVAL;
-+
-+	if (info->nlh->nlmsg_flags & NLM_F_DUMP) {
-+		struct netlink_dump_control c = {
-+			.start = nf_tables_dump_basehooks_start,
-+			.done = nf_tables_dump_basehooks_stop,
-+			.dump = nf_tables_dump_basehooks,
-+			.module = THIS_MODULE,
-+			.data = (void *)nla,
-+		};
-+
-+		return nft_netlink_dump_start_rcu(info->sk, skb, info->nlh, &c);
-+	}
-+
-+	return -EOPNOTSUPP;
-+}
-+
- static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
- 	[NFT_MSG_NEWTABLE] = {
- 		.call		= nf_tables_newtable,
-@@ -8048,6 +8258,12 @@ static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
- 		.attr_count	= NFTA_FLOWTABLE_MAX,
- 		.policy		= nft_flowtable_policy,
- 	},
-+	[NFT_MSG_GETNFHOOKS] = {
-+		.call		= nft_get_basehooks,
-+		.type		= NFNL_CB_RCU,
-+		.attr_count	= NFTA_HOOK_MAX,
-+		.policy		= nft_hook_policy,
-+	},
- };
+@@ -7991,6 +7992,18 @@ static int nf_tables_dump_one_hook(struct sk_buff *nlskb,
+ 	if (!nlh)
+ 		goto nla_put_failure;
  
- static int nf_tables_validate(struct net *net)
++	if (nf_get_hook_info(ops, fn, &module_name)) {
++		ret = nla_put_string(nlskb, NFTA_HOOK_FUNCTION_NAME, fn);
++		if (ret)
++			goto nla_put_failure;
++
++		if (module_name) {
++			ret = nla_put_string(nlskb, NFTA_HOOK_MODULE_NAME, module_name);
++			if (ret)
++				goto nla_put_failure;
++		}
++	}
++
+ 	ret = nla_put_be32(nlskb, NFTA_HOOK_HOOKNUM, htonl(ops->hooknum));
+ 	if (ret)
+ 		goto nla_put_failure;
 -- 
 2.26.3
 
