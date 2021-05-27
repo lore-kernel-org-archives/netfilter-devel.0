@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CBF24C47089
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 May 2021 19:01:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7F5FC4708D
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 May 2021 19:01:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ADB8F6103E
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 May 2021 19:01:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C0F5F613DD
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 May 2021 19:01:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236340AbhE0TDF (ORCPT
+        id S236118AbhE0TDG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 27 May 2021 15:03:05 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:38832 "EHLO
+        Thu, 27 May 2021 15:03:06 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:38850 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236118AbhE0TC6 (ORCPT
+        with ESMTP id S234169AbhE0TDA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 May 2021 15:02:58 -0400
+        Thu, 27 May 2021 15:03:00 -0400
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 7E08864505;
-        Thu, 27 May 2021 21:00:21 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id ED20D6450A;
+        Thu, 27 May 2021 21:00:22 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 3/5] netfilter: nf_tables: extended netlink error reporting for chain type
-Date:   Thu, 27 May 2021 21:01:13 +0200
-Message-Id: <20210527190115.98503-4-pablo@netfilter.org>
+Subject: [PATCH net 5/5] ipvs: ignore IP_VS_SVC_F_HASHED flag when adding service
+Date:   Thu, 27 May 2021 21:01:15 +0200
+Message-Id: <20210527190115.98503-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210527190115.98503-1-pablo@netfilter.org>
 References: <20210527190115.98503-1-pablo@netfilter.org>
@@ -39,99 +39,57 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Users that forget to select the NAT chain type in netfilter's Kconfig
-hit ENOENT when adding the basechain.
+From: Julian Anastasov <ja@ssi.bg>
 
-This report is however sparse since it might be the table, the chain
-or the kernel module that is missing/does not exist.
+syzbot reported memory leak [1] when adding service with
+HASHED flag. We should ignore this flag both from sockopt
+and netlink provided data, otherwise the service is not
+hashed and not visible while releasing resources.
 
-This patch provides extended netlink error reporting for the
-NFTA_CHAIN_TYPE netlink attribute, which conveys the basechain type.
-If the user selects a basechain that his custom kernel does not support,
-the netlink extended error provides a more accurate hint on the
-described issue.
+[1]
+BUG: memory leak
+unreferenced object 0xffff888115227800 (size 512):
+  comm "syz-executor263", pid 8658, jiffies 4294951882 (age 12.560s)
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff83977188>] kmalloc include/linux/slab.h:556 [inline]
+    [<ffffffff83977188>] kzalloc include/linux/slab.h:686 [inline]
+    [<ffffffff83977188>] ip_vs_add_service+0x598/0x7c0 net/netfilter/ipvs/ip_vs_ctl.c:1343
+    [<ffffffff8397d770>] do_ip_vs_set_ctl+0x810/0xa40 net/netfilter/ipvs/ip_vs_ctl.c:2570
+    [<ffffffff838449a8>] nf_setsockopt+0x68/0xa0 net/netfilter/nf_sockopt.c:101
+    [<ffffffff839ae4e9>] ip_setsockopt+0x259/0x1ff0 net/ipv4/ip_sockglue.c:1435
+    [<ffffffff839fa03c>] raw_setsockopt+0x18c/0x1b0 net/ipv4/raw.c:857
+    [<ffffffff83691f20>] __sys_setsockopt+0x1b0/0x360 net/socket.c:2117
+    [<ffffffff836920f2>] __do_sys_setsockopt net/socket.c:2128 [inline]
+    [<ffffffff836920f2>] __se_sys_setsockopt net/socket.c:2125 [inline]
+    [<ffffffff836920f2>] __x64_sys_setsockopt+0x22/0x30 net/socket.c:2125
+    [<ffffffff84350efa>] do_syscall_64+0x3a/0xb0 arch/x86/entry/common.c:47
+    [<ffffffff84400068>] entry_SYSCALL_64_after_hwframe+0x44/0xae
 
+Reported-and-tested-by: syzbot+e562383183e4b1766930@syzkaller.appspotmail.com
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Reviewed-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 21 ++++++++++++++-------
- 1 file changed, 14 insertions(+), 7 deletions(-)
+ net/netfilter/ipvs/ip_vs_ctl.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 5a02b48af7fb..c34a3c0a0d9c 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1905,7 +1905,7 @@ static int nft_chain_parse_netdev(struct net *net,
- static int nft_chain_parse_hook(struct net *net,
- 				const struct nlattr * const nla[],
- 				struct nft_chain_hook *hook, u8 family,
--				bool autoload)
-+				struct netlink_ext_ack *extack, bool autoload)
- {
- 	struct nftables_pernet *nft_net = nft_pernet(net);
- 	struct nlattr *ha[NFTA_HOOK_MAX + 1];
-@@ -1935,8 +1935,10 @@ static int nft_chain_parse_hook(struct net *net,
- 	if (nla[NFTA_CHAIN_TYPE]) {
- 		type = nf_tables_chain_type_lookup(net, nla[NFTA_CHAIN_TYPE],
- 						   family, autoload);
--		if (IS_ERR(type))
-+		if (IS_ERR(type)) {
-+			NL_SET_BAD_ATTR(extack, nla[NFTA_CHAIN_TYPE]);
- 			return PTR_ERR(type);
-+		}
- 	}
- 	if (hook->num >= NFT_MAX_HOOKS || !(type->hook_mask & (1 << hook->num)))
- 		return -EOPNOTSUPP;
-@@ -1945,8 +1947,11 @@ static int nft_chain_parse_hook(struct net *net,
- 	    hook->priority <= NF_IP_PRI_CONNTRACK)
- 		return -EOPNOTSUPP;
- 
--	if (!try_module_get(type->owner))
-+	if (!try_module_get(type->owner)) {
-+		if (nla[NFTA_CHAIN_TYPE])
-+			NL_SET_BAD_ATTR(extack, nla[NFTA_CHAIN_TYPE]);
- 		return -ENOENT;
-+	}
- 
- 	hook->type = type;
- 
-@@ -2057,7 +2062,8 @@ static int nft_chain_add(struct nft_table *table, struct nft_chain *chain)
- static u64 chain_id;
- 
- static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
--			      u8 policy, u32 flags)
-+			      u8 policy, u32 flags,
-+			      struct netlink_ext_ack *extack)
- {
- 	const struct nlattr * const *nla = ctx->nla;
- 	struct nft_table *table = ctx->table;
-@@ -2079,7 +2085,8 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
- 		if (flags & NFT_CHAIN_BINDING)
- 			return -EOPNOTSUPP;
- 
--		err = nft_chain_parse_hook(net, nla, &hook, family, true);
-+		err = nft_chain_parse_hook(net, nla, &hook, family, extack,
-+					   true);
- 		if (err < 0)
- 			return err;
- 
-@@ -2234,7 +2241,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
- 			return -EEXIST;
- 		}
- 		err = nft_chain_parse_hook(ctx->net, nla, &hook, ctx->family,
--					   false);
-+					   extack, false);
- 		if (err < 0)
- 			return err;
- 
-@@ -2447,7 +2454,7 @@ static int nf_tables_newchain(struct sk_buff *skb, const struct nfnl_info *info,
- 					  extack);
- 	}
- 
--	return nf_tables_addchain(&ctx, family, genmask, policy, flags);
-+	return nf_tables_addchain(&ctx, family, genmask, policy, flags, extack);
- }
- 
- static int nf_tables_delchain(struct sk_buff *skb, const struct nfnl_info *info,
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index d45dbcba8b49..c25097092a06 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -1367,7 +1367,7 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
+ 	ip_vs_addr_copy(svc->af, &svc->addr, &u->addr);
+ 	svc->port = u->port;
+ 	svc->fwmark = u->fwmark;
+-	svc->flags = u->flags;
++	svc->flags = u->flags & ~IP_VS_SVC_F_HASHED;
+ 	svc->timeout = u->timeout * HZ;
+ 	svc->netmask = u->netmask;
+ 	svc->ipvs = ipvs;
 -- 
 2.30.2
 
