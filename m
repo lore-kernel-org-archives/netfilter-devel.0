@@ -2,114 +2,63 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34019C47089
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 May 2021 22:34:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C50F2C4707F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 May 2021 23:01:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 10A5E611C9
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 May 2021 22:34:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 94DAB613B4
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 May 2021 23:01:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235474AbhE0Wfc (ORCPT
+        id S235702AbhE0XCf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 27 May 2021 18:35:32 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:42032 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233203AbhE0Wfc (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 May 2021 18:35:32 -0400
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id DA9B9643DF
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 May 2021 00:32:55 +0200 (CEST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH conntrackd] doc: manual: Document userspace helper configuration at daemon startup
-Date:   Fri, 28 May 2021 00:33:41 +0200
-Message-Id: <20210527223341.28274-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210527223341.28274-1-pablo@netfilter.org>
-References: <20210527223341.28274-1-pablo@netfilter.org>
+        Thu, 27 May 2021 19:02:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34424 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S233203AbhE0XCe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 27 May 2021 19:02:34 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 855C36139A;
+        Thu, 27 May 2021 23:01:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1622156460;
+        bh=4OLpMF0M592A6ak/M6gWl9OdBVY54xQnLAXmGcPk2QY=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=EWjF6duyj7OQg7THlRc+ewlf9VrUGQjg7sTCR4yU7xtKr8gCxmdzWrx2IHNv4qWBq
+         gJ+T8VYN8XjPGx2VswLPyx+Ire3nyoeBiWeJD8Pre80ggGXe2aei0sXeYPWdKf+NVw
+         4+q4bofUr4WGSUDnWXzg4zWhrnzlKu6i61bV5WAc+kVWufGO1juCbJ4tD7dfFw5ceV
+         TB61MrPKaOxQxfemy6vyBNQZZo+Dj8N9CIGu2I+/B8WbpURlq7RgY/GRNd6bkhWmq8
+         XNaTTWDjgqSi99tQLk7NHI0omZzLBpZkYMoci9vLFiBwDCDMwyoB2XM91u+V943s+N
+         5LbnACsF0FEeA==
+Date:   Thu, 27 May 2021 16:00:59 -0700
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org
+Subject: Re: [PATCH net 0/5] Netfilter/IPVS fixes for net
+Message-ID: <20210527160059.6d86c6a0@kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net>
+In-Reply-To: <20210527190115.98503-1-pablo@netfilter.org>
+References: <20210527190115.98503-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Describe how to configure conntrackd using the new simple setup approach.
+On Thu, 27 May 2021 21:01:10 +0200 Pablo Neira Ayuso wrote:
+> The following patchset contains Netfilter/IPVS fixes for net:
+> 
+> 1) Fix incorrect sockopts unregistration from error path,
+>    from Florian Westphal.
+> 
+> 2) A few patches to provide better error reporting when missing kernel
+>    netfilter options are missing in .config.
+> 
+> 3) Fix dormant table flag updates.
+> 
+> 4) Memleak in IPVS  when adding service with IP_VS_SVC_F_HASHED flag.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- doc/manual/conntrack-tools.tmpl | 42 ++++++++++++++++-----------------
- 1 file changed, 21 insertions(+), 21 deletions(-)
-
-diff --git a/doc/manual/conntrack-tools.tmpl b/doc/manual/conntrack-tools.tmpl
-index 64ac5dd54690..822dd496747a 100644
---- a/doc/manual/conntrack-tools.tmpl
-+++ b/doc/manual/conntrack-tools.tmpl
-@@ -905,32 +905,13 @@ maintainance.</para></listitem>
- <para>The following steps describe how to enable the RPC portmapper helper for NFSv3 (this is similar for other helpers):</para>
- 
- <orderedlist>
--<listitem><para>Register user-space helper:
--
--<programlisting>
--nfct add helper rpc inet udp
--nfct add helper rpc inet tcp
--</programlisting>
--
--This registers the portmapper helper for both UDP and TCP (NFSv3 traffic goes both over TCP and UDP).
--</para></listitem>
--
--<listitem><para>Add iptables rule using the CT target:
--
--<programlisting>
--# iptables -I OUTPUT -t raw -p udp --dport 111 -j CT --helper rpc
--# iptables -I OUTPUT -t raw -p tcp --dport 111 -j CT --helper rpc
--</programlisting>
--
--With this, packets matching port TCP/UDP/111 are passed to user-space for
--inspection. If there is no instance of conntrackd configured to support
--user-space helpers, no inspection happens and packets are not sent to
--user-space.</para></listitem>
- 
- <listitem><para>Add configuration to conntrackd.conf:
- 
- <programlisting>
- Helper {
-+        Setup yes
-+
-         Type rpc inet udp {
-                 QueueNum 1
- 		QueueLen 10240
-@@ -962,6 +943,25 @@ for inspection to user-space</para>
- 
- </listitem>
- 
-+<listitem><para>Run conntrackd:
-+<programlisting>
-+# conntrackd -d -C /path/to/conntrackd.conf
-+</programlisting>
-+</para>
-+</listitem>
-+
-+<listitem><para>Add iptables rule using the CT target:
-+
-+<programlisting>
-+# iptables -I OUTPUT -t raw -p udp --dport 111 -j CT --helper rpc
-+# iptables -I OUTPUT -t raw -p tcp --dport 111 -j CT --helper rpc
-+</programlisting>
-+
-+With this, packets matching port TCP/UDP/111 are passed to user-space for
-+inspection. If there is no instance of conntrackd configured to support
-+user-space helpers, no inspection happens and packets are not sent to
-+user-space.</para></listitem>
-+
- </orderedlist>
- 
- <para>Now you can test this (assuming you have some working NFSv3 setup) with:
--- 
-2.30.2
-
+Pulled, thanks. Please double check fixes tags in the future, the hash
+on patch 1 is too short.
