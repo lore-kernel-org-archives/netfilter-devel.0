@@ -7,32 +7,32 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4505C4707F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 May 2021 15:43:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8092EC47089
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 May 2021 15:43:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 885F8613BF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 May 2021 15:43:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 63215613BF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 May 2021 15:43:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235524AbhE0Pp2 (ORCPT
+        id S235382AbhE0Pp3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 27 May 2021 11:45:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37670 "EHLO
+        Thu, 27 May 2021 11:45:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37682 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235397AbhE0PpQ (ORCPT
+        with ESMTP id S235285AbhE0PpT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 May 2021 11:45:16 -0400
+        Thu, 27 May 2021 11:45:19 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DBDFDC061761
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 May 2021 08:43:41 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15434C061760
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 May 2021 08:43:46 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1lmIAe-0003OY-Bp; Thu, 27 May 2021 17:43:40 +0200
+        id 1lmIAi-0003Oi-Gb; Thu, 27 May 2021 17:43:44 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 3/6] main: add -O help to dump list of supported optimzation flags
-Date:   Thu, 27 May 2021 17:43:20 +0200
-Message-Id: <20210527154323.4003-4-fw@strlen.de>
+Subject: [PATCH nft 4/6] evaluate: optionally kill anon sets with one element
+Date:   Thu, 27 May 2021 17:43:21 +0200
+Message-Id: <20210527154323.4003-5-fw@strlen.de>
 X-Mailer: git-send-email 2.26.3
 In-Reply-To: <20210527154323.4003-1-fw@strlen.de>
 References: <20210527154323.4003-1-fw@strlen.de>
@@ -42,74 +42,165 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Print list of supported options.
+Add a new optimization option, disabled by default, that auto-replaces
+lookups in single-element anon sets with a standard compare.
+
+'add rule foo bar meta iif { "lo" }' gets replaced with
+'add rule foo bar meta iif "lo"'.
+
+The former is a set lookup, the latter is a comparision.
+Comparisions is slightly faster in this special case.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/main.c | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ include/nftables.h |  3 +++
+ include/rule.h     |  6 ++++++
+ src/evaluate.c     | 22 ++++++++++++++++++++--
+ src/libnftables.c  |  9 +++++++++
+ src/main.c         |  8 ++++++++
+ 5 files changed, 46 insertions(+), 2 deletions(-)
 
-diff --git a/src/main.c b/src/main.c
-index 6e14a7f26b0f..cf00f27f06de 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -86,6 +86,7 @@ enum opt_vals {
+diff --git a/include/nftables.h b/include/nftables.h
+index bbf287e68a4c..23b7fea53f42 100644
+--- a/include/nftables.h
++++ b/include/nftables.h
+@@ -216,9 +216,12 @@ int nft_gmp_print(struct output_ctx *octx, const char *fmt, ...)
  
- enum optimization_feature {
- 	OPTIMIZE_UNDEFINED,
-+	OPTIMIZE_HELP,
- 	OPTIMIZE_REMOVE_DEPENDENCIES,
+ /* XXX: exposing this in libnftables limits public API
+  * to 32 optimization flags.
++ *
++ * For now this is internal to nft.
+  */
+ enum nft_optimization_flags {
+ 	NFT_OPTIMIZATION_F_REMOVE_DEPS = 1 << 0,
++	NFT_OPTIMIZATION_F_REPLACE_SINGLE_ELEM_ANON_SETS = 1 << 1,
+ };
+ #define DEFAULT_OPTIMIZATION_FLAGS NFT_OPTIMIZATION_F_REMOVE_DEPS
+ 
+diff --git a/include/rule.h b/include/rule.h
+index f469db55bf60..ae23467187ff 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -735,6 +735,10 @@ void cmd_add_loc(struct cmd *cmd, uint16_t offset, const struct location *loc);
+ #include <payload.h>
+ #include <expression.h>
+ 
++enum eval_ctx_flags {
++	EVAL_F_REPLACE_SINGLE_ELEM_ANON_SETS = 1 << 0,
++};
++
+ /**
+  * struct eval_ctx - evaluation context
+  *
+@@ -749,6 +753,7 @@ void cmd_add_loc(struct cmd *cmd, uint16_t offset, const struct location *loc);
+  * @debug_mask: debugging bitmask
+  * @ectx:	expression context
+  * @pctx:	payload context
++ * @eval_flags: enum eval_ctx_flags
+  */
+ struct eval_ctx {
+ 	struct nft_ctx		*nft;
+@@ -760,6 +765,7 @@ struct eval_ctx {
+ 	struct stmt		*stmt;
+ 	struct expr_ctx		ectx;
+ 	struct proto_ctx	pctx;
++	unsigned int		eval_flags;
  };
  
-@@ -315,11 +316,18 @@ static const struct {
+ extern int cmd_evaluate(struct eval_ctx *ctx, struct cmd *cmd);
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 6bfc464e677a..088742bfe6b4 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1455,8 +1455,26 @@ static int expr_evaluate_set(struct eval_ctx *ctx, struct expr **expr)
+ 		}
+ 	}
  
- static const struct {
- 	const char		*name;
-+	const char		*help;
- 	enum optimization_feature level;
- 	enum nft_optimization_flags flag;
- } optimization_param[] = {
-+	{
-+		.name	= "help",
-+		.help	= "",
-+		.level	= OPTIMIZE_HELP,
-+	},
- 	{
- 		.name	= "remove-dependencies",
-+		.help	= "ruleset listing with redundant expressions removed",
+-	if (ctx->set && (ctx->set->flags & NFT_SET_CONCAT))
+-		set->set_flags |= NFT_SET_CONCAT;
++	if (ctx->set) {
++		if (ctx->set->flags & NFT_SET_CONCAT)
++			set->set_flags |= NFT_SET_CONCAT;
++	} else if ((ctx->eval_flags & EVAL_F_REPLACE_SINGLE_ELEM_ANON_SETS) &&
++		   set->size == 1) {
++		i = list_first_entry(&set->expressions, struct expr, list);
++		if (i->etype == EXPR_SET_ELEM) {
++			switch (i->key->etype) {
++			case EXPR_PREFIX:
++			case EXPR_RANGE:
++			case EXPR_VALUE:
++				*expr = i->key;
++				i->key = NULL;
++				expr_free(set);
++				return 0;
++			default:
++				break;
++			}
++		}
++	}
+ 
+ 	set->set_flags |= NFT_SET_CONSTANT;
+ 
+diff --git a/src/libnftables.c b/src/libnftables.c
+index a1f822cbe2e6..0c17007bac4e 100644
+--- a/src/libnftables.c
++++ b/src/libnftables.c
+@@ -412,6 +412,12 @@ static int nft_parse_bison_filename(struct nft_ctx *nft, const char *filename,
+ 	return 0;
+ }
+ 
++static void eval_ctx_set_flags(struct eval_ctx *ectx, const struct nft_ctx *nft)
++{
++	if (nft->optimization_flags & NFT_OPTIMIZATION_F_REPLACE_SINGLE_ELEM_ANON_SETS)
++		ectx->eval_flags |= EVAL_F_REPLACE_SINGLE_ELEM_ANON_SETS;
++}
++
+ static int nft_evaluate(struct nft_ctx *nft, struct list_head *msgs,
+ 			struct list_head *cmds)
+ {
+@@ -427,6 +433,9 @@ static int nft_evaluate(struct nft_ctx *nft, struct list_head *msgs,
+ 			.nft	= nft,
+ 			.msgs	= msgs,
+ 		};
++
++		eval_ctx_set_flags(&ectx, nft);
++
+ 		if (cmd_evaluate(&ectx, cmd) < 0 &&
+ 		    ++nft->state->nerrs == nft->parser_max_errors)
+ 			return -1;
+diff --git a/src/main.c b/src/main.c
+index cf00f27f06de..858218c79989 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -88,6 +88,7 @@ enum optimization_feature {
+ 	OPTIMIZE_UNDEFINED,
+ 	OPTIMIZE_HELP,
+ 	OPTIMIZE_REMOVE_DEPENDENCIES,
++	OPTIMIZE_REMOVE_SINGLE_ELEM_ANON_SET,
+ };
+ 
+ struct nft_opt {
+@@ -331,6 +332,12 @@ static const struct {
  		.level	= OPTIMIZE_REMOVE_DEPENDENCIES,
  		.flag	= NFT_OPTIMIZATION_F_REMOVE_DEPS,
  	},
-@@ -372,6 +380,7 @@ static bool nft_options_check(int argc, char * const argv[])
++	{
++		.name	= "replace-single-anon-sets",
++		.help	= "replace anonymous sets with one element with single compare",
++		.level	= OPTIMIZE_REMOVE_SINGLE_ELEM_ANON_SET,
++		.flag	= NFT_OPTIMIZATION_F_REPLACE_SINGLE_ELEM_ANON_SETS,
++	},
+ };
  
- static void optimize_settings_set_custom(struct nft_ctx *ctx, char *options)
- {
-+	unsigned int default_flags = ctx->optimization_flags;
- 	unsigned int i;
- 	char *end;
- 
-@@ -401,7 +410,21 @@ static void optimize_settings_set_custom(struct nft_ctx *ctx, char *options)
- 		switch (level) {
- 		case OPTIMIZE_UNDEFINED:
- 			fprintf(stderr, "invalid optimization option `%s'\n", options);
-+			fprintf(stderr, "Try \"-O help\" for list of options.\n");
- 			exit(EXIT_FAILURE);
-+		case OPTIMIZE_HELP:
-+			for (i = 0; i < array_size(optimization_param); i++) {
-+				if (level == optimization_param[i].level)
-+					continue;
-+
-+				flag = optimization_param[i].flag;
-+				printf("%s: %s (default %s)\n",
-+					optimization_param[i].name, optimization_param[i].help,
-+					default_flags & flag ? "on" : "off");
-+			}
-+
-+			printf("\nPrepend \"no-\" to disable options that are enabled by default.\n");
-+			exit(EXIT_SUCCESS);
+ static void nft_options_error(int argc, char * const argv[], int pos)
+@@ -426,6 +433,7 @@ static void optimize_settings_set_custom(struct nft_ctx *ctx, char *options)
+ 			printf("\nPrepend \"no-\" to disable options that are enabled by default.\n");
+ 			exit(EXIT_SUCCESS);
  		case OPTIMIZE_REMOVE_DEPENDENCIES:
++		case OPTIMIZE_REMOVE_SINGLE_ELEM_ANON_SET:
  			break;
  		}
+ 		if (enable)
 -- 
 2.26.3
 
