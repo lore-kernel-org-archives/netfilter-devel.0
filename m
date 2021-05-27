@@ -2,152 +2,71 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A295C4707F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 May 2021 07:19:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA72CC4708D
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 May 2021 11:07:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 037FC61378
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 May 2021 07:19:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9F22761028
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 May 2021 11:07:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229774AbhE0HUn (ORCPT
+        id S233845AbhE0LJM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 27 May 2021 03:20:43 -0400
-Received: from smtp-out2.suse.de ([195.135.220.29]:53936 "EHLO
-        smtp-out2.suse.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229579AbhE0HUk (ORCPT
+        Thu, 27 May 2021 07:09:12 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:60654 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232381AbhE0LJL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 May 2021 03:20:40 -0400
-Received: from imap.suse.de (imap-alt.suse-dmz.suse.de [192.168.254.47])
-        (using TLSv1.2 with cipher ECDHE-ECDSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id 7EE0D1FD2A
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 May 2021 07:19:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1622099947; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-         mime-version:mime-version:content-type:content-type;
-        bh=LA5yTYFGpWVELAI3sXdcI0HelCMhLgy+1BmcDdQibqw=;
-        b=G0vC+6pTkfPxDIVDUhko6N7uDFacMxIS1yWFCDUQcsqP2GvfuegqXFe5A4/f2w9U5Lx/7O
-        E1riWGmK/XkrgL76XdrBXsS6nWUS4rQKSULtNX6fTc2yDkWmvJt85kuMRxWQwd2VBDdf1Q
-        jkYnBXqxZdgsp3IsHF6por8mgKy10YM=
-Received: from director2.suse.de (director2.suse-dmz.suse.de [192.168.254.72])
-        by imap.suse.de (Postfix) with ESMTPSA id 641ED11A98
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 May 2021 07:19:07 +0000 (UTC)
-Date:   Thu, 27 May 2021 09:19:06 +0200
-From:   Ali Abdallah <ali.abdallah@suse.com>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH-v2] netfilter: conntrack: add new sysctl to disable RST check
-Message-ID: <20210527071906.s7z72s7wsene5lib@Fryzen495>
+        Thu, 27 May 2021 07:09:11 -0400
+Received: from netfilter.org (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 3162364416;
+        Thu, 27 May 2021 13:06:36 +0200 (CEST)
+Date:   Thu, 27 May 2021 13:07:35 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Julian Anastasov <ja@ssi.bg>
+Cc:     Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH net] ipvs: ignore IP_VS_SVC_F_HASHED flag when adding
+ service
+Message-ID: <20210527110735.GA6710@salvia>
+References: <20210524195457.125514-1-ja@ssi.bg>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
+In-Reply-To: <20210524195457.125514-1-ja@ssi.bg>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch adds a new sysctl tcp_ignore_invalid_rst to disable marking
-out of segments RSTs as INVALID.
+On Mon, May 24, 2021 at 10:54:57PM +0300, Julian Anastasov wrote:
+> syzbot reported memory leak [1] when adding service with
+> HASHED flag. We should ignore this flag both from sockopt
+> and netlink provided data, otherwise the service is not
+> hashed and not visible while releasing resources.
+> 
+> [1]
+> BUG: memory leak
+> unreferenced object 0xffff888115227800 (size 512):
+>   comm "syz-executor263", pid 8658, jiffies 4294951882 (age 12.560s)
+>   hex dump (first 32 bytes):
+>     00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+>     00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+>   backtrace:
+>     [<ffffffff83977188>] kmalloc include/linux/slab.h:556 [inline]
+>     [<ffffffff83977188>] kzalloc include/linux/slab.h:686 [inline]
+>     [<ffffffff83977188>] ip_vs_add_service+0x598/0x7c0 net/netfilter/ipvs/ip_vs_ctl.c:1343
+>     [<ffffffff8397d770>] do_ip_vs_set_ctl+0x810/0xa40 net/netfilter/ipvs/ip_vs_ctl.c:2570
+>     [<ffffffff838449a8>] nf_setsockopt+0x68/0xa0 net/netfilter/nf_sockopt.c:101
+>     [<ffffffff839ae4e9>] ip_setsockopt+0x259/0x1ff0 net/ipv4/ip_sockglue.c:1435
+>     [<ffffffff839fa03c>] raw_setsockopt+0x18c/0x1b0 net/ipv4/raw.c:857
+>     [<ffffffff83691f20>] __sys_setsockopt+0x1b0/0x360 net/socket.c:2117
+>     [<ffffffff836920f2>] __do_sys_setsockopt net/socket.c:2128 [inline]
+>     [<ffffffff836920f2>] __se_sys_setsockopt net/socket.c:2125 [inline]
+>     [<ffffffff836920f2>] __x64_sys_setsockopt+0x22/0x30 net/socket.c:2125
+>     [<ffffffff84350efa>] do_syscall_64+0x3a/0xb0 arch/x86/entry/common.c:47
+>     [<ffffffff84400068>] entry_SYSCALL_64_after_hwframe+0x44/0xae
 
-Signed-off-by: Ali Abdallah <aabdallah@suse.de>
----
- Documentation/networking/nf_conntrack-sysctl.rst |  6 ++++++
- include/net/netns/conntrack.h                    |  1 +
- net/netfilter/nf_conntrack_proto_tcp.c           |  6 +++++-
- net/netfilter/nf_conntrack_standalone.c          | 10 ++++++++++
- 4 files changed, 22 insertions(+), 1 deletion(-)
-
-diff --git a/Documentation/networking/nf_conntrack-sysctl.rst b/Documentation/networking/nf_conntrack-sysctl.rst
-index 11a9b76786cb..45f5a9690172 100644
---- a/Documentation/networking/nf_conntrack-sysctl.rst
-+++ b/Documentation/networking/nf_conntrack-sysctl.rst
-@@ -110,6 +110,12 @@ nf_conntrack_tcp_be_liberal - BOOLEAN
- 	Be conservative in what you do, be liberal in what you accept from others.
- 	If it's non-zero, we mark only out of window RST segments as INVALID.
- 
-+nf_conntrack_tcp_ignore_invalid_rst - BOOLEAN
-+	- 0 - disabled (default)
-+	- 1 - enabled
-+
-+	If it's 1, we don't mark out of window RST segments as INVALID.
-+
- nf_conntrack_tcp_loose - BOOLEAN
- 	- 0 - disabled
- 	- not 0 - enabled (default)
-diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
-index ad0a95c2335e..473acd7cce9c 100644
---- a/include/net/netns/conntrack.h
-+++ b/include/net/netns/conntrack.h
-@@ -27,6 +27,7 @@ struct nf_tcp_net {
- 	u8 tcp_loose;
- 	u8 tcp_be_liberal;
- 	u8 tcp_max_retrans;
-+	u8 tcp_ignore_invalid_rst;
- };
- 
- enum udp_conntrack {
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 34e22416a721..1a5e77b05514 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -1032,7 +1032,8 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
- 		if (ct->proto.tcp.seen[!dir].flags & IP_CT_TCP_FLAG_MAXACK_SET) {
- 			u32 seq = ntohl(th->seq);
- 
--			if (before(seq, ct->proto.tcp.seen[!dir].td_maxack)) {
-+			if (before(seq, ct->proto.tcp.seen[!dir].td_maxack) &&
-+			    !tn->tcp_ignore_invalid_rst) {
- 				/* Invalid RST  */
- 				spin_unlock_bh(&ct->lock);
- 				nf_ct_l4proto_log_invalid(skb, ct, "invalid rst");
-@@ -1436,6 +1437,9 @@ void nf_conntrack_tcp_init_net(struct net *net)
- 	 */
- 	tn->tcp_be_liberal = 0;
- 
-+	/* If it's non-zero, we turn off RST sequence number check */
-+	tn->tcp_ignore_invalid_rst = 0;
-+
- 	/* Max number of the retransmitted packets without receiving an (acceptable)
- 	 * ACK from the destination. If this number is reached, a shorter timer
- 	 * will be started.
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index aaa55246d0ca..9341be6b142f 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -577,6 +577,7 @@ enum nf_ct_sysctl_index {
- 	NF_SYSCTL_CT_PROTO_TIMEOUT_TCP_UNACK,
- 	NF_SYSCTL_CT_PROTO_TCP_LOOSE,
- 	NF_SYSCTL_CT_PROTO_TCP_LIBERAL,
-+	NF_SYSCTL_CT_PROTO_TCP_IGNORE_INVALID_RST,
- 	NF_SYSCTL_CT_PROTO_TCP_MAX_RETRANS,
- 	NF_SYSCTL_CT_PROTO_TIMEOUT_UDP,
- 	NF_SYSCTL_CT_PROTO_TIMEOUT_UDP_STREAM,
-@@ -778,6 +779,14 @@ static struct ctl_table nf_ct_sysctl_table[] = {
- 		.extra1 	= SYSCTL_ZERO,
- 		.extra2 	= SYSCTL_ONE,
- 	},
-+	[NF_SYSCTL_CT_PROTO_TCP_IGNORE_INVALID_RST] = {
-+		.procname	= "nf_conntrack_tcp_ignore_invalid_rst",
-+		.maxlen		= sizeof(u8),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dou8vec_minmax,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= SYSCTL_ONE,
-+	},
- 	[NF_SYSCTL_CT_PROTO_TCP_MAX_RETRANS] = {
- 		.procname	= "nf_conntrack_tcp_max_retrans",
- 		.maxlen		= sizeof(u8),
-@@ -970,6 +979,7 @@ static void nf_conntrack_standalone_init_tcp_sysctl(struct net *net,
- 	XASSIGN(LOOSE, &tn->tcp_loose);
- 	XASSIGN(LIBERAL, &tn->tcp_be_liberal);
- 	XASSIGN(MAX_RETRANS, &tn->tcp_max_retrans);
-+	XASSIGN(IGNORE_INVALID_RST, &tn->tcp_ignore_invalid_rst);
- #undef XASSIGN
- }
- 
--- 
-2.26.2
-
-
+Applied, thanks.
