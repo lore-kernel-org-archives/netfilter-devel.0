@@ -2,37 +2,37 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.9 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B83ECC4708C
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 May 2021 10:30:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88699C4708C
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 May 2021 10:30:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9E80F6139A
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 May 2021 10:30:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6588B61248
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 May 2021 10:30:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236445AbhE1KcB (ORCPT
+        id S236485AbhE1KcN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 28 May 2021 06:32:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36062 "EHLO
+        Fri, 28 May 2021 06:32:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36078 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236492AbhE1KcA (ORCPT
+        with ESMTP id S236523AbhE1KcE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 28 May 2021 06:32:00 -0400
+        Fri, 28 May 2021 06:32:04 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16B30C061574
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 May 2021 03:30:26 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2AAEDC061574
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 May 2021 03:30:30 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1lmZl2-00007Y-Ib; Fri, 28 May 2021 12:30:24 +0200
+        id 1lmZl6-00007t-NK; Fri, 28 May 2021 12:30:28 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 3/6] netfilter: nf_tables: add and use nft_sk helper
-Date:   Fri, 28 May 2021 12:30:05 +0200
-Message-Id: <20210528103008.17425-4-fw@strlen.de>
+Subject: [PATCH nf-next 4/6] netfilter: nf_tables: add and use nft_thoff helper
+Date:   Fri, 28 May 2021 12:30:06 +0200
+Message-Id: <20210528103008.17425-5-fw@strlen.de>
 X-Mailer: git-send-email 2.26.3
 In-Reply-To: <20210528103008.17425-1-fw@strlen.de>
 References: <20210528103008.17425-1-fw@strlen.de>
@@ -46,76 +46,210 @@ This allows to change storage placement later on without changing readers.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_tables.h    | 5 +++++
- net/ipv4/netfilter/nft_reject_ipv4.c | 2 +-
- net/ipv6/netfilter/nft_reject_ipv6.c | 2 +-
- net/netfilter/nft_reject_inet.c      | 4 ++--
- 4 files changed, 9 insertions(+), 4 deletions(-)
+ include/net/netfilter/nf_tables.h |  5 +++++
+ net/netfilter/nf_tables_core.c    |  2 +-
+ net/netfilter/nf_tables_trace.c   |  6 +++---
+ net/netfilter/nft_exthdr.c        |  8 ++++----
+ net/netfilter/nft_flow_offload.c  |  2 +-
+ net/netfilter/nft_payload.c       | 10 +++++-----
+ net/netfilter/nft_synproxy.c      |  4 ++--
+ net/netfilter/nft_tproxy.c        |  4 ++--
+ 8 files changed, 23 insertions(+), 18 deletions(-)
 
 diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 27eeb613bb4e..af1228f58e5a 100644
+index af1228f58e5a..10c1b8759990 100644
 --- a/include/net/netfilter/nf_tables.h
 +++ b/include/net/netfilter/nf_tables.h
-@@ -29,6 +29,11 @@ struct nft_pktinfo {
- 	struct xt_action_param		xt;
- };
+@@ -34,6 +34,11 @@ static inline struct sock *nft_sk(const struct nft_pktinfo *pkt)
+ 	return pkt->xt.state->sk;
+ }
  
-+static inline struct sock *nft_sk(const struct nft_pktinfo *pkt)
++static inline unsigned int nft_thoff(const struct nft_pktinfo *pkt)
 +{
-+	return pkt->xt.state->sk;
++	return pkt->xt.thoff;
 +}
 +
  static inline struct net *nft_net(const struct nft_pktinfo *pkt)
  {
  	return pkt->xt.state->net;
-diff --git a/net/ipv4/netfilter/nft_reject_ipv4.c b/net/ipv4/netfilter/nft_reject_ipv4.c
-index ff437e4ed6db..55fc23a8f7a7 100644
---- a/net/ipv4/netfilter/nft_reject_ipv4.c
-+++ b/net/ipv4/netfilter/nft_reject_ipv4.c
-@@ -27,7 +27,7 @@ static void nft_reject_ipv4_eval(const struct nft_expr *expr,
- 		nf_send_unreach(pkt->skb, priv->icmp_code, nft_hook(pkt));
- 		break;
- 	case NFT_REJECT_TCP_RST:
--		nf_send_reset(nft_net(pkt), pkt->xt.state->sk, pkt->skb,
-+		nf_send_reset(nft_net(pkt), nft_sk(pkt), pkt->skb,
- 			      nft_hook(pkt));
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index dbc2e945c98e..7780342e2f2d 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -81,7 +81,7 @@ static bool nft_payload_fast_eval(const struct nft_expr *expr,
+ 	else {
+ 		if (!pkt->tprot_set)
+ 			return false;
+-		ptr = skb_network_header(skb) + pkt->xt.thoff;
++		ptr = skb_network_header(skb) + nft_thoff(pkt);
+ 	}
+ 
+ 	ptr += priv->offset;
+diff --git a/net/netfilter/nf_tables_trace.c b/net/netfilter/nf_tables_trace.c
+index 0cf3278007ba..e4fe2f0780eb 100644
+--- a/net/netfilter/nf_tables_trace.c
++++ b/net/netfilter/nf_tables_trace.c
+@@ -113,17 +113,17 @@ static int nf_trace_fill_pkt_info(struct sk_buff *nlskb,
+ 	int off = skb_network_offset(skb);
+ 	unsigned int len, nh_end;
+ 
+-	nh_end = pkt->tprot_set ? pkt->xt.thoff : skb->len;
++	nh_end = pkt->tprot_set ? nft_thoff(pkt) : skb->len;
+ 	len = min_t(unsigned int, nh_end - skb_network_offset(skb),
+ 		    NFT_TRACETYPE_NETWORK_HSIZE);
+ 	if (trace_fill_header(nlskb, NFTA_TRACE_NETWORK_HEADER, skb, off, len))
+ 		return -1;
+ 
+ 	if (pkt->tprot_set) {
+-		len = min_t(unsigned int, skb->len - pkt->xt.thoff,
++		len = min_t(unsigned int, skb->len - nft_thoff(pkt),
+ 			    NFT_TRACETYPE_TRANSPORT_HSIZE);
+ 		if (trace_fill_header(nlskb, NFTA_TRACE_TRANSPORT_HEADER, skb,
+-				      pkt->xt.thoff, len))
++				      nft_thoff(pkt), len))
+ 			return -1;
+ 	}
+ 
+diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
+index 4d0b8e1c40c0..1b0579cb62d0 100644
+--- a/net/netfilter/nft_exthdr.c
++++ b/net/netfilter/nft_exthdr.c
+@@ -167,7 +167,7 @@ nft_tcp_header_pointer(const struct nft_pktinfo *pkt,
+ 	if (!pkt->tprot_set || pkt->tprot != IPPROTO_TCP)
+ 		return NULL;
+ 
+-	tcph = skb_header_pointer(pkt->skb, pkt->xt.thoff, sizeof(*tcph), buffer);
++	tcph = skb_header_pointer(pkt->skb, nft_thoff(pkt), sizeof(*tcph), buffer);
+ 	if (!tcph)
+ 		return NULL;
+ 
+@@ -175,7 +175,7 @@ nft_tcp_header_pointer(const struct nft_pktinfo *pkt,
+ 	if (*tcphdr_len < sizeof(*tcph) || *tcphdr_len > len)
+ 		return NULL;
+ 
+-	return skb_header_pointer(pkt->skb, pkt->xt.thoff, *tcphdr_len, buffer);
++	return skb_header_pointer(pkt->skb, nft_thoff(pkt), *tcphdr_len, buffer);
+ }
+ 
+ static void nft_exthdr_tcp_eval(const struct nft_expr *expr,
+@@ -251,7 +251,7 @@ static void nft_exthdr_tcp_set_eval(const struct nft_expr *expr,
+ 			return;
+ 
+ 		if (skb_ensure_writable(pkt->skb,
+-					pkt->xt.thoff + i + priv->len))
++					nft_thoff(pkt) + i + priv->len))
+ 			return;
+ 
+ 		tcph = nft_tcp_header_pointer(pkt, sizeof(buff), buff,
+@@ -306,7 +306,7 @@ static void nft_exthdr_sctp_eval(const struct nft_expr *expr,
+ 				 struct nft_regs *regs,
+ 				 const struct nft_pktinfo *pkt)
+ {
+-	unsigned int offset = pkt->xt.thoff + sizeof(struct sctphdr);
++	unsigned int offset = nft_thoff(pkt) + sizeof(struct sctphdr);
+ 	struct nft_exthdr *priv = nft_expr_priv(expr);
+ 	u32 *dest = &regs->data[priv->dreg];
+ 	const struct sctp_chunkhdr *sch;
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+index 4843dd2b410c..0af34ad41479 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -291,7 +291,7 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 
+ 	switch (ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum) {
+ 	case IPPROTO_TCP:
+-		tcph = skb_header_pointer(pkt->skb, pkt->xt.thoff,
++		tcph = skb_header_pointer(pkt->skb, nft_thoff(pkt),
+ 					  sizeof(_tcph), &_tcph);
+ 		if (unlikely(!tcph || tcph->fin || tcph->rst))
+ 			goto out;
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index 501c5b24cc39..a44b14f6c0dc 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -110,7 +110,7 @@ void nft_payload_eval(const struct nft_expr *expr,
+ 	case NFT_PAYLOAD_TRANSPORT_HEADER:
+ 		if (!pkt->tprot_set)
+ 			goto err;
+-		offset = pkt->xt.thoff;
++		offset = nft_thoff(pkt);
  		break;
  	default:
-diff --git a/net/ipv6/netfilter/nft_reject_ipv6.c b/net/ipv6/netfilter/nft_reject_ipv6.c
-index 7969d1f3018d..ed69c768797e 100644
---- a/net/ipv6/netfilter/nft_reject_ipv6.c
-+++ b/net/ipv6/netfilter/nft_reject_ipv6.c
-@@ -28,7 +28,7 @@ static void nft_reject_ipv6_eval(const struct nft_expr *expr,
- 				 nft_hook(pkt));
+ 		BUG();
+@@ -507,7 +507,7 @@ static int nft_payload_l4csum_offset(const struct nft_pktinfo *pkt,
+ 		*l4csum_offset = offsetof(struct tcphdr, check);
  		break;
- 	case NFT_REJECT_TCP_RST:
--		nf_send_reset6(nft_net(pkt), pkt->xt.state->sk, pkt->skb,
-+		nf_send_reset6(nft_net(pkt), nft_sk(pkt), pkt->skb,
- 			       nft_hook(pkt));
+ 	case IPPROTO_UDP:
+-		if (!nft_payload_udp_checksum(skb, pkt->xt.thoff))
++		if (!nft_payload_udp_checksum(skb, nft_thoff(pkt)))
+ 			return -1;
+ 		fallthrough;
+ 	case IPPROTO_UDPLITE:
+@@ -520,7 +520,7 @@ static int nft_payload_l4csum_offset(const struct nft_pktinfo *pkt,
+ 		return -1;
+ 	}
+ 
+-	*l4csum_offset += pkt->xt.thoff;
++	*l4csum_offset += nft_thoff(pkt);
+ 	return 0;
+ }
+ 
+@@ -612,7 +612,7 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
+ 	case NFT_PAYLOAD_TRANSPORT_HEADER:
+ 		if (!pkt->tprot_set)
+ 			goto err;
+-		offset = pkt->xt.thoff;
++		offset = nft_thoff(pkt);
  		break;
  	default:
-diff --git a/net/netfilter/nft_reject_inet.c b/net/netfilter/nft_reject_inet.c
-index 95090186ee90..554caf967baa 100644
---- a/net/netfilter/nft_reject_inet.c
-+++ b/net/netfilter/nft_reject_inet.c
-@@ -28,7 +28,7 @@ static void nft_reject_inet_eval(const struct nft_expr *expr,
- 					nft_hook(pkt));
- 			break;
- 		case NFT_REJECT_TCP_RST:
--			nf_send_reset(nft_net(pkt), pkt->xt.state->sk,
-+			nf_send_reset(nft_net(pkt), nft_sk(pkt),
- 				      pkt->skb, nft_hook(pkt));
- 			break;
- 		case NFT_REJECT_ICMPX_UNREACH:
-@@ -45,7 +45,7 @@ static void nft_reject_inet_eval(const struct nft_expr *expr,
- 					 priv->icmp_code, nft_hook(pkt));
- 			break;
- 		case NFT_REJECT_TCP_RST:
--			nf_send_reset6(nft_net(pkt), pkt->xt.state->sk,
-+			nf_send_reset6(nft_net(pkt), nft_sk(pkt),
- 				       pkt->skb, nft_hook(pkt));
- 			break;
- 		case NFT_REJECT_ICMPX_UNREACH:
+ 		BUG();
+@@ -643,7 +643,7 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
+ 	if (priv->csum_type == NFT_PAYLOAD_CSUM_SCTP &&
+ 	    pkt->tprot == IPPROTO_SCTP &&
+ 	    skb->ip_summed != CHECKSUM_PARTIAL) {
+-		if (nft_payload_csum_sctp(skb, pkt->xt.thoff))
++		if (nft_payload_csum_sctp(skb, nft_thoff(pkt)))
+ 			goto err;
+ 	}
+ 
+diff --git a/net/netfilter/nft_synproxy.c b/net/netfilter/nft_synproxy.c
+index 4fda8b3f1762..a0109fa1e92d 100644
+--- a/net/netfilter/nft_synproxy.c
++++ b/net/netfilter/nft_synproxy.c
+@@ -109,7 +109,7 @@ static void nft_synproxy_do_eval(const struct nft_synproxy *priv,
+ {
+ 	struct synproxy_options opts = {};
+ 	struct sk_buff *skb = pkt->skb;
+-	int thoff = pkt->xt.thoff;
++	int thoff = nft_thoff(pkt);
+ 	const struct tcphdr *tcp;
+ 	struct tcphdr _tcph;
+ 
+@@ -123,7 +123,7 @@ static void nft_synproxy_do_eval(const struct nft_synproxy *priv,
+ 		return;
+ 	}
+ 
+-	tcp = skb_header_pointer(skb, pkt->xt.thoff,
++	tcp = skb_header_pointer(skb, thoff,
+ 				 sizeof(struct tcphdr),
+ 				 &_tcph);
+ 	if (!tcp) {
+diff --git a/net/netfilter/nft_tproxy.c b/net/netfilter/nft_tproxy.c
+index accef672088c..18e79c0fd3cf 100644
+--- a/net/netfilter/nft_tproxy.c
++++ b/net/netfilter/nft_tproxy.c
+@@ -82,9 +82,9 @@ static void nft_tproxy_eval_v6(const struct nft_expr *expr,
+ 	const struct nft_tproxy *priv = nft_expr_priv(expr);
+ 	struct sk_buff *skb = pkt->skb;
+ 	const struct ipv6hdr *iph = ipv6_hdr(skb);
+-	struct in6_addr taddr;
+-	int thoff = pkt->xt.thoff;
++	int thoff = nft_thoff(pkt);
+ 	struct udphdr _hdr, *hp;
++	struct in6_addr taddr;
+ 	__be16 tport = 0;
+ 	struct sock *sk;
+ 	int l4proto;
 -- 
 2.26.3
 
