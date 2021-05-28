@@ -7,111 +7,66 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78657C4708C
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 May 2021 11:44:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12D6AC4708C
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 May 2021 11:45:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5E254613E3
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 May 2021 11:44:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E3A5E6113D
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 May 2021 11:45:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230080AbhE1Lpd (ORCPT
+        id S232981AbhE1LrJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 28 May 2021 07:45:33 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:52234 "EHLO
+        Fri, 28 May 2021 07:47:09 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:52256 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235732AbhE1Lpd (ORCPT
+        with ESMTP id S236061AbhE1Lq6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 28 May 2021 07:45:33 -0400
+        Fri, 28 May 2021 07:46:58 -0400
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 3AD1A644FB
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 May 2021 13:42:55 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 23279644F9
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 May 2021 13:44:20 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH conntrackd,v2 2/2] doc: manual: Document userspace helper configuration at daemon startup
-Date:   Fri, 28 May 2021 13:43:50 +0200
-Message-Id: <20210528114350.48066-2-pablo@netfilter.org>
+Subject: [PATCH nf] netfilter: nfnetlink_cthelper: hit EBUSY on updates if size mismatches
+Date:   Fri, 28 May 2021 13:45:16 +0200
+Message-Id: <20210528114516.48266-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210528114350.48066-1-pablo@netfilter.org>
-References: <20210528114350.48066-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Describe how to configure conntrackd using the new simple setup approach.
+The private helper data size cannot be updated. However, updates that
+contain NFCTH_PRIV_DATA_LEN might bogusly hit EBUSY even if the size is
+the same.
 
+Fixes: 12f7a505331e ("netfilter: add user-space connection tracking helper infrastructure")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: no changes.
+ net/netfilter/nfnetlink_cthelper.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
- doc/manual/conntrack-tools.tmpl | 42 ++++++++++++++++-----------------
- 1 file changed, 21 insertions(+), 21 deletions(-)
-
-diff --git a/doc/manual/conntrack-tools.tmpl b/doc/manual/conntrack-tools.tmpl
-index 64ac5dd54690..822dd496747a 100644
---- a/doc/manual/conntrack-tools.tmpl
-+++ b/doc/manual/conntrack-tools.tmpl
-@@ -905,32 +905,13 @@ maintainance.</para></listitem>
- <para>The following steps describe how to enable the RPC portmapper helper for NFSv3 (this is similar for other helpers):</para>
+diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
+index df58cd534ff5..5c622f55c9d6 100644
+--- a/net/netfilter/nfnetlink_cthelper.c
++++ b/net/netfilter/nfnetlink_cthelper.c
+@@ -380,10 +380,14 @@ static int
+ nfnl_cthelper_update(const struct nlattr * const tb[],
+ 		     struct nf_conntrack_helper *helper)
+ {
++	u32 size;
+ 	int ret;
  
- <orderedlist>
--<listitem><para>Register user-space helper:
--
--<programlisting>
--nfct add helper rpc inet udp
--nfct add helper rpc inet tcp
--</programlisting>
--
--This registers the portmapper helper for both UDP and TCP (NFSv3 traffic goes both over TCP and UDP).
--</para></listitem>
--
--<listitem><para>Add iptables rule using the CT target:
--
--<programlisting>
--# iptables -I OUTPUT -t raw -p udp --dport 111 -j CT --helper rpc
--# iptables -I OUTPUT -t raw -p tcp --dport 111 -j CT --helper rpc
--</programlisting>
--
--With this, packets matching port TCP/UDP/111 are passed to user-space for
--inspection. If there is no instance of conntrackd configured to support
--user-space helpers, no inspection happens and packets are not sent to
--user-space.</para></listitem>
+-	if (tb[NFCTH_PRIV_DATA_LEN])
+-		return -EBUSY;
++	if (tb[NFCTH_PRIV_DATA_LEN]) {
++		size = ntohl(nla_get_be32(tb[NFCTH_PRIV_DATA_LEN]));
++		if (size != helper->data_len)
++			return -EBUSY;
++	}
  
- <listitem><para>Add configuration to conntrackd.conf:
- 
- <programlisting>
- Helper {
-+        Setup yes
-+
-         Type rpc inet udp {
-                 QueueNum 1
- 		QueueLen 10240
-@@ -962,6 +943,25 @@ for inspection to user-space</para>
- 
- </listitem>
- 
-+<listitem><para>Run conntrackd:
-+<programlisting>
-+# conntrackd -d -C /path/to/conntrackd.conf
-+</programlisting>
-+</para>
-+</listitem>
-+
-+<listitem><para>Add iptables rule using the CT target:
-+
-+<programlisting>
-+# iptables -I OUTPUT -t raw -p udp --dport 111 -j CT --helper rpc
-+# iptables -I OUTPUT -t raw -p tcp --dport 111 -j CT --helper rpc
-+</programlisting>
-+
-+With this, packets matching port TCP/UDP/111 are passed to user-space for
-+inspection. If there is no instance of conntrackd configured to support
-+user-space helpers, no inspection happens and packets are not sent to
-+user-space.</para></listitem>
-+
- </orderedlist>
- 
- <para>Now you can test this (assuming you have some working NFSv3 setup) with:
+ 	if (tb[NFCTH_POLICY]) {
+ 		ret = nfnl_cthelper_update_policy(helper, tb[NFCTH_POLICY]);
 -- 
 2.30.2
 
