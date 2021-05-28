@@ -2,59 +2,80 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A2CAC4708C
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 May 2021 09:15:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3ADCEC47087
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 May 2021 10:30:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E1B496128D
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 May 2021 09:15:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 125B5613DA
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 May 2021 10:30:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235889AbhE1JRa (ORCPT
+        id S236344AbhE1Kby (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 28 May 2021 05:17:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47386 "EHLO
+        Fri, 28 May 2021 06:31:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36032 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235842AbhE1JR3 (ORCPT
+        with ESMTP id S236200AbhE1Kbx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 28 May 2021 05:17:29 -0400
+        Fri, 28 May 2021 06:31:53 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06CF3C061574
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 May 2021 02:15:55 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 40FCAC061574
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 May 2021 03:30:17 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1lmYat-0008AL-6K; Fri, 28 May 2021 11:15:51 +0200
-Date:   Fri, 28 May 2021 11:15:51 +0200
+        (envelope-from <fw@breakpoint.cc>)
+        id 1lmZkt-000073-3W; Fri, 28 May 2021 12:30:15 +0200
 From:   Florian Westphal <fw@strlen.de>
-To:     Ali Abdallah <ali.abdallah@suse.com>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] netfilter: conntrack: add new sysctl to disable RST check
-Message-ID: <20210528091551.GA30879@breakpoint.cc>
-References: <20210526092444.lca726ghsrli5fpx@Fryzen495>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next 0/6] netfilter: reduce size of core data structures
+Date:   Fri, 28 May 2021 12:30:02 +0200
+Message-Id: <20210528103008.17425-1-fw@strlen.de>
+X-Mailer: git-send-email 2.26.3
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210526092444.lca726ghsrli5fpx@Fryzen495>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Ali Abdallah <ali.abdallah@suse.com> wrote:
-> This patch adds a new sysctl tcp_ignore_invalid_rst to disable marking
-> out of segments RSTs as INVALID.
+This series reduces a few data structures by moving
+members around or switching to a smaller type.
 
-Just for archives:
-I am not sure this is still needed after the recent change, but I can
-see why its desirable to keep NAT working even when RST is invalid.
+Also, this removes xt_action_param from nft_pktinfo,
+the former can be inited on-stack when needed in the nft_compat
+expression.
 
-I think that the more fundamental problem is the inability to permit
-setting a conntrack as INVALID while allowing NAT to work, i.e. move
-drop decision to ruleset.
+Florian Westphal (6):
+  netfilter: x_tables: reduce xt_action_param by 8 byte
+  netfilter: reduce size of nf_hook_state on 32bit platforms
+  netfilter: nf_tables: add and use nft_sk helper
+  netfilter: nf_tables: add and use nft_thoff helper
+  netfilter: nft_set_pktinfo_unspec: remove unused arg
+  netfilter: nf_tables: remove xt_action_param from nft_pktinfo
 
-However, I see that this isn't easy to change.  Therefore,
+ include/linux/netfilter.h              |  4 +--
+ include/linux/netfilter/x_tables.h     |  2 +-
+ include/net/netfilter/nf_tables.h      | 34 +++++++++++++--------
+ include/net/netfilter/nf_tables_ipv4.h | 40 +++++++++++-------------
+ include/net/netfilter/nf_tables_ipv6.h | 42 ++++++++++++--------------
+ net/ipv4/netfilter/nft_reject_ipv4.c   |  2 +-
+ net/ipv6/netfilter/ip6_tables.c        |  2 +-
+ net/ipv6/netfilter/nft_reject_ipv6.c   |  2 +-
+ net/netfilter/nf_tables_core.c         |  2 +-
+ net/netfilter/nf_tables_trace.c        |  6 ++--
+ net/netfilter/nft_chain_filter.c       | 26 ++++++++--------
+ net/netfilter/nft_chain_nat.c          |  4 +--
+ net/netfilter/nft_chain_route.c        |  4 +--
+ net/netfilter/nft_compat.c             | 28 +++++++++++------
+ net/netfilter/nft_exthdr.c             |  8 ++---
+ net/netfilter/nft_flow_offload.c       |  2 +-
+ net/netfilter/nft_payload.c            | 10 +++---
+ net/netfilter/nft_reject_inet.c        |  4 +--
+ net/netfilter/nft_synproxy.c           |  4 +--
+ net/netfilter/nft_tproxy.c             |  4 +--
+ 20 files changed, 120 insertions(+), 110 deletions(-)
 
-Reviewed-by: Florian Westphal <fw@strlen.de>
+-- 
+2.26.3
+
