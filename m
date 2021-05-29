@@ -2,80 +2,52 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 778D6C47082
-	for <netfilter-devel@archiver.kernel.org>; Sat, 29 May 2021 06:49:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FD45C4708F
+	for <netfilter-devel@archiver.kernel.org>; Sat, 29 May 2021 14:12:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3D0506108E
-	for <netfilter-devel@archiver.kernel.org>; Sat, 29 May 2021 06:49:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E9B2161155
+	for <netfilter-devel@archiver.kernel.org>; Sat, 29 May 2021 14:12:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229549AbhE2GvO (ORCPT
+        id S229698AbhE2ONl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 29 May 2021 02:51:14 -0400
-Received: from szxga02-in.huawei.com ([45.249.212.188]:2526 "EHLO
-        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229547AbhE2GvO (ORCPT
+        Sat, 29 May 2021 10:13:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60680 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229681AbhE2ONk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 29 May 2021 02:51:14 -0400
-Received: from dggemv703-chm.china.huawei.com (unknown [172.30.72.56])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4FsXCf6kFfzYqHR;
-        Sat, 29 May 2021 14:46:54 +0800 (CST)
-Received: from dggpeml500023.china.huawei.com (7.185.36.114) by
- dggemv703-chm.china.huawei.com (10.3.19.46) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Sat, 29 May 2021 14:49:36 +0800
-Received: from localhost.localdomain (10.69.192.56) by
- dggpeml500023.china.huawei.com (7.185.36.114) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Sat, 29 May 2021 14:49:36 +0800
-From:   Shaokun Zhang <zhangshaokun@hisilicon.com>
-To:     <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>
-CC:     Shaokun Zhang <zhangshaokun@hisilicon.com>,
+        Sat, 29 May 2021 10:13:40 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8545CC061574
+        for <netfilter-devel@vger.kernel.org>; Sat, 29 May 2021 07:12:04 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1lmzh2-0000Ks-Es; Sat, 29 May 2021 16:12:00 +0200
+Date:   Sat, 29 May 2021 16:12:00 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Shaokun Zhang <zhangshaokun@hisilicon.com>
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
-        "Florian Westphal" <fw@strlen.de>
-Subject: [PATCH] netfilter: conntrack: remove the repeated declaration
-Date:   Sat, 29 May 2021 14:49:26 +0800
-Message-ID: <1622270966-36196-1-git-send-email-zhangshaokun@hisilicon.com>
-X-Mailer: git-send-email 2.7.4
+        Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH] netfilter: conntrack: remove the repeated declaration
+Message-ID: <20210529141200.GB10732@breakpoint.cc>
+References: <1622270966-36196-1-git-send-email-zhangshaokun@hisilicon.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.69.192.56]
-X-ClientProxiedBy: dggems706-chm.china.huawei.com (10.3.19.183) To
- dggpeml500023.china.huawei.com (7.185.36.114)
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1622270966-36196-1-git-send-email-zhangshaokun@hisilicon.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Variable 'nf_conntrack_net_id' is declared twice, so remove the
-repeated declaration.
+Shaokun Zhang <zhangshaokun@hisilicon.com> wrote:
+> Variable 'nf_conntrack_net_id' is declared twice, so remove the
+> repeated declaration.
 
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>
-Signed-off-by: Shaokun Zhang <zhangshaokun@hisilicon.com>
----
- net/netfilter/nf_conntrack_core.c | 2 --
- 1 file changed, 2 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index e0befcf8113a..757520725cd4 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -87,8 +87,6 @@ static __read_mostly bool nf_conntrack_locks_all;
- 
- static struct conntrack_gc_work conntrack_gc_work;
- 
--extern unsigned int nf_conntrack_net_id;
--
- void nf_conntrack_lock(spinlock_t *lock) __acquires(lock)
- {
- 	/* 1) Acquire the lock */
--- 
-2.7.4
-
+Reviewed-by: Florian Westphal <fw@strlen.de>
