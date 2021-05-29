@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D937C4708F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8576CC47090
 	for <netfilter-devel@archiver.kernel.org>; Sat, 29 May 2021 22:28:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 36AD660249
+	by mail.kernel.org (Postfix) with ESMTP id 4929C610FA
 	for <netfilter-devel@archiver.kernel.org>; Sat, 29 May 2021 22:28:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229514AbhE2W3x (ORCPT
+        id S229522AbhE2W3x (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sat, 29 May 2021 18:29:53 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:50352 "EHLO
+Received: from mail.netfilter.org ([217.70.188.207]:50354 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229522AbhE2W3w (ORCPT
+        with ESMTP id S229503AbhE2W3x (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 29 May 2021 18:29:52 -0400
+        Sat, 29 May 2021 18:29:53 -0400
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id E2D9764427
-        for <netfilter-devel@vger.kernel.org>; Sun, 30 May 2021 00:27:10 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 799C96441F
+        for <netfilter-devel@vger.kernel.org>; Sun, 30 May 2021 00:27:11 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next 2/3] netfilter: nf_tables: remove nft_ctx_init_from_elemattr()
-Date:   Sun, 30 May 2021 00:28:06 +0200
-Message-Id: <20210529222807.8415-2-pablo@netfilter.org>
+Subject: [PATCH nf-next 3/3] netfilter: nf_tables: remove nft_ctx_init_from_setattr()
+Date:   Sun, 30 May 2021 00:28:07 +0200
+Message-Id: <20210529222807.8415-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210529222807.8415-1-pablo@netfilter.org>
 References: <20210529222807.8415-1-pablo@netfilter.org>
@@ -38,128 +38,97 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Replace nft_ctx_init_from_elemattr() by nft_table_lookup() and set up
-the context structure right before it is really needed.
+Replace nft_ctx_init_from_setattr() by nft_table_lookup().
 
-Moreover, nft_ctx_init_from_elemattr() is setting up the context
-structure for codepaths where this is not really needed at all.
+This patch also disentangles nf_tables_delset() where NFTA_SET_TABLE is
+required while nft_ctx_init_from_setattr() allows it to be optional.
 
-This helper function is also not helping to consolidate code, removing
-it saves us 4 LoC.
+From the nf_tables_delset() path, this also allows to set up the context
+structure when it is needed.
+
+Removing this helper function saves us 14 LoC, so it is not helping to
+consolidate code.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 68 +++++++++++++++++------------------
- 1 file changed, 32 insertions(+), 36 deletions(-)
+ net/netfilter/nf_tables_api.c | 64 ++++++++++++++---------------------
+ 1 file changed, 25 insertions(+), 39 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 689f892e9028..33a9222471c6 100644
+index 33a9222471c6..3e37bec54eb7 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -4702,28 +4702,6 @@ static const struct nla_policy nft_set_elem_list_policy[NFTA_SET_ELEM_LIST_MAX +
- 	[NFTA_SET_ELEM_LIST_SET_ID]	= { .type = NLA_U32 },
+@@ -3638,30 +3638,6 @@ static const struct nla_policy nft_set_desc_policy[NFTA_SET_DESC_MAX + 1] = {
+ 	[NFTA_SET_DESC_CONCAT]		= { .type = NLA_NESTED },
  };
  
--static int nft_ctx_init_from_elemattr(struct nft_ctx *ctx, struct net *net,
--				      const struct sk_buff *skb,
--				      const struct nlmsghdr *nlh,
--				      const struct nlattr * const nla[],
--				      struct netlink_ext_ack *extack,
--				      u8 genmask, u32 nlpid)
+-static int nft_ctx_init_from_setattr(struct nft_ctx *ctx, struct net *net,
+-				     const struct sk_buff *skb,
+-				     const struct nlmsghdr *nlh,
+-				     const struct nlattr * const nla[],
+-				     struct netlink_ext_ack *extack,
+-				     u8 genmask, u32 nlpid)
 -{
 -	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
 -	int family = nfmsg->nfgen_family;
--	struct nft_table *table;
+-	struct nft_table *table = NULL;
 -
--	table = nft_table_lookup(net, nla[NFTA_SET_ELEM_LIST_TABLE], family,
--				 genmask, nlpid);
--	if (IS_ERR(table)) {
--		NL_SET_BAD_ATTR(extack, nla[NFTA_SET_ELEM_LIST_TABLE]);
--		return PTR_ERR(table);
+-	if (nla[NFTA_SET_TABLE] != NULL) {
+-		table = nft_table_lookup(net, nla[NFTA_SET_TABLE], family,
+-					 genmask, nlpid);
+-		if (IS_ERR(table)) {
+-			NL_SET_BAD_ATTR(extack, nla[NFTA_SET_TABLE]);
+-			return PTR_ERR(table);
+-		}
 -	}
 -
 -	nft_ctx_init(ctx, net, skb, nlh, family, table, NULL, nla);
 -	return 0;
 -}
 -
- static int nft_set_elem_expr_dump(struct sk_buff *skb,
- 				  const struct nft_set *set,
- 				  const struct nft_set_ext *ext)
-@@ -5181,16 +5159,20 @@ static int nf_tables_getsetelem(struct sk_buff *skb,
+ static struct nft_set *nft_set_lookup(const struct nft_table *table,
+ 				      const struct nlattr *nla, u8 genmask)
+ {
+@@ -4043,17 +4019,24 @@ static int nf_tables_getset(struct sk_buff *skb, const struct nfnl_info *info,
  {
  	struct netlink_ext_ack *extack = info->extack;
  	u8 genmask = nft_genmask_cur(info->net);
 +	int family = info->nfmsg->nfgen_family;
++	struct nft_table *table = NULL;
  	struct net *net = info->net;
-+	struct nft_table *table;
- 	struct nft_set *set;
- 	struct nlattr *attr;
+ 	const struct nft_set *set;
+ 	struct sk_buff *skb2;
  	struct nft_ctx ctx;
- 	int rem, err = 0;
+ 	int err;
  
--	err = nft_ctx_init_from_elemattr(&ctx, net, skb, info->nlh, nla, extack,
--					 genmask, NETLINK_CB(skb).portid);
+-	/* Verify existence before starting dump */
+-	err = nft_ctx_init_from_setattr(&ctx, net, skb, info->nlh, nla, extack,
+-					genmask, 0);
 -	if (err < 0)
 -		return err;
-+	table = nft_table_lookup(net, nla[NFTA_SET_ELEM_LIST_TABLE], family,
-+				 genmask, NETLINK_CB(skb).portid);
-+	if (IS_ERR(table)) {
-+		NL_SET_BAD_ATTR(extack, nla[NFTA_SET_ELEM_LIST_TABLE]);
-+		return PTR_ERR(table);
++	if (nla[NFTA_SET_TABLE]) {
++		table = nft_table_lookup(net, nla[NFTA_SET_TABLE], family,
++					 genmask, 0);
++		if (IS_ERR(table)) {
++			NL_SET_BAD_ATTR(extack, nla[NFTA_SET_TABLE]);
++			return PTR_ERR(table);
++		}
 +	}
- 
- 	set = nft_set_lookup(ctx.table, nla[NFTA_SET_ELEM_LIST_SET], genmask);
- 	if (IS_ERR(set))
-@@ -5215,6 +5197,8 @@ static int nf_tables_getsetelem(struct sk_buff *skb,
- 	if (!nla[NFTA_SET_ELEM_LIST_ELEMENTS])
- 		return -EINVAL;
- 
-+	nft_ctx_init(&ctx, net, skb, info->nlh, family, table, NULL, nla);
 +
- 	nla_for_each_nested(attr, nla[NFTA_SET_ELEM_LIST_ELEMENTS], rem) {
- 		err = nft_get_set_elem(&ctx, set, attr);
- 		if (err < 0)
-@@ -5964,8 +5948,10 @@ static int nf_tables_newsetelem(struct sk_buff *skb,
- 	struct nftables_pernet *nft_net = nft_pernet(info->net);
- 	struct netlink_ext_ack *extack = info->extack;
- 	u8 genmask = nft_genmask_next(info->net);
-+	int family = info->nfmsg->nfgen_family;
- 	struct net *net = info->net;
- 	const struct nlattr *attr;
-+	struct nft_table *table;
- 	struct nft_set *set;
- 	struct nft_ctx ctx;
- 	int rem, err;
-@@ -5973,12 +5959,14 @@ static int nf_tables_newsetelem(struct sk_buff *skb,
- 	if (nla[NFTA_SET_ELEM_LIST_ELEMENTS] == NULL)
++	nft_ctx_init(&ctx, net, skb, info->nlh, family, table, NULL, nla);
+ 
+ 	if (info->nlh->nlmsg_flags & NLM_F_DUMP) {
+ 		struct netlink_dump_control c = {
+@@ -4073,7 +4056,7 @@ static int nf_tables_getset(struct sk_buff *skb, const struct nfnl_info *info,
+ 	if (!nla[NFTA_SET_TABLE])
  		return -EINVAL;
  
--	err = nft_ctx_init_from_elemattr(&ctx, net, skb, info->nlh, nla, extack,
--					 genmask, NETLINK_CB(skb).portid);
--	if (err < 0)
--		return err;
-+	table = nft_table_lookup(net, nla[NFTA_SET_ELEM_LIST_TABLE], family,
-+				 genmask, NETLINK_CB(skb).portid);
-+	if (IS_ERR(table)) {
-+		NL_SET_BAD_ATTR(extack, nla[NFTA_SET_ELEM_LIST_TABLE]);
-+		return PTR_ERR(table);
-+	}
- 
--	set = nft_set_lookup_global(net, ctx.table, nla[NFTA_SET_ELEM_LIST_SET],
-+	set = nft_set_lookup_global(net, table, nla[NFTA_SET_ELEM_LIST_SET],
- 				    nla[NFTA_SET_ELEM_LIST_SET_ID], genmask);
+-	set = nft_set_lookup(ctx.table, nla[NFTA_SET_NAME], genmask);
++	set = nft_set_lookup(table, nla[NFTA_SET_NAME], genmask);
  	if (IS_ERR(set))
  		return PTR_ERR(set);
-@@ -5986,6 +5974,8 @@ static int nf_tables_newsetelem(struct sk_buff *skb,
- 	if (!list_empty(&set->bindings) && set->flags & NFT_SET_CONSTANT)
- 		return -EBUSY;
  
-+	nft_ctx_init(&ctx, net, skb, info->nlh, family, table, NULL, nla);
-+
- 	nla_for_each_nested(attr, nla[NFTA_SET_ELEM_LIST_ELEMENTS], rem) {
- 		err = nft_add_set_elem(&ctx, set, attr, info->nlh->nlmsg_flags);
- 		if (err < 0)
-@@ -6231,23 +6221,29 @@ static int nf_tables_delsetelem(struct sk_buff *skb,
+@@ -4466,28 +4449,29 @@ static int nf_tables_delset(struct sk_buff *skb, const struct nfnl_info *info,
  {
  	struct netlink_ext_ack *extack = info->extack;
  	u8 genmask = nft_genmask_next(info->net);
@@ -169,30 +138,43 @@ index 689f892e9028..33a9222471c6 100644
 +	struct nft_table *table;
  	struct nft_set *set;
  	struct nft_ctx ctx;
- 	int rem, err = 0;
+-	int err;
  
--	err = nft_ctx_init_from_elemattr(&ctx, net, skb, info->nlh, nla, extack,
--					 genmask, NETLINK_CB(skb).portid);
+ 	if (info->nfmsg->nfgen_family == NFPROTO_UNSPEC)
+ 		return -EAFNOSUPPORT;
+-	if (nla[NFTA_SET_TABLE] == NULL)
+-		return -EINVAL;
+ 
+-	err = nft_ctx_init_from_setattr(&ctx, net, skb, info->nlh, nla, extack,
+-					genmask, NETLINK_CB(skb).portid);
 -	if (err < 0)
 -		return err;
-+	table = nft_table_lookup(net, nla[NFTA_SET_ELEM_LIST_TABLE], family,
++	table = nft_table_lookup(net, nla[NFTA_SET_TABLE], family,
 +				 genmask, NETLINK_CB(skb).portid);
 +	if (IS_ERR(table)) {
-+		NL_SET_BAD_ATTR(extack, nla[NFTA_SET_ELEM_LIST_TABLE]);
++		NL_SET_BAD_ATTR(extack, nla[NFTA_SET_TABLE]);
 +		return PTR_ERR(table);
 +	}
  
--	set = nft_set_lookup(ctx.table, nla[NFTA_SET_ELEM_LIST_SET], genmask);
-+	set = nft_set_lookup(table, nla[NFTA_SET_ELEM_LIST_SET], genmask);
- 	if (IS_ERR(set))
- 		return PTR_ERR(set);
- 	if (!list_empty(&set->bindings) && set->flags & NFT_SET_CONSTANT)
+ 	if (nla[NFTA_SET_HANDLE]) {
+ 		attr = nla[NFTA_SET_HANDLE];
+-		set = nft_set_lookup_byhandle(ctx.table, attr, genmask);
++		set = nft_set_lookup_byhandle(table, attr, genmask);
+ 	} else {
+ 		attr = nla[NFTA_SET_NAME];
+-		set = nft_set_lookup(ctx.table, attr, genmask);
++		set = nft_set_lookup(table, attr, genmask);
+ 	}
+ 
+ 	if (IS_ERR(set)) {
+@@ -4501,6 +4485,8 @@ static int nf_tables_delset(struct sk_buff *skb, const struct nfnl_info *info,
  		return -EBUSY;
+ 	}
  
 +	nft_ctx_init(&ctx, net, skb, info->nlh, family, table, NULL, nla);
 +
- 	if (!nla[NFTA_SET_ELEM_LIST_ELEMENTS])
- 		return nft_set_flush(&ctx, set, genmask);
+ 	return nft_delset(&ctx, set);
+ }
  
 -- 
 2.30.2
