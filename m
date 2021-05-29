@@ -2,53 +2,529 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_NONE,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE35AC47082
-	for <netfilter-devel@archiver.kernel.org>; Sat, 29 May 2021 20:16:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A00BC47082
+	for <netfilter-devel@archiver.kernel.org>; Sat, 29 May 2021 22:28:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8C57461131
-	for <netfilter-devel@archiver.kernel.org>; Sat, 29 May 2021 20:16:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 585E361074
+	for <netfilter-devel@archiver.kernel.org>; Sat, 29 May 2021 22:28:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229814AbhE2URs (ORCPT
+        id S229483AbhE2W3w (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 29 May 2021 16:17:48 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:48716 "EHLO
+        Sat, 29 May 2021 18:29:52 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:50350 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229801AbhE2URs (ORCPT
+        with ESMTP id S229503AbhE2W3v (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 29 May 2021 16:17:48 -0400
-Received: from netfilter.org (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 6FA57644D0;
-        Sat, 29 May 2021 22:15:06 +0200 (CEST)
-Date:   Sat, 29 May 2021 22:16:07 +0200
+        Sat, 29 May 2021 18:29:51 -0400
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id C57886441F
+        for <netfilter-devel@vger.kernel.org>; Sun, 30 May 2021 00:27:09 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, kernel test robot <lkp@intel.com>
-Subject: Re: [PATCH nf-next] netfilter: nft_compat: fix bridge family target
- evaluation
-Message-ID: <20210529201607.GA31934@salvia>
-References: <20210529165025.146435-1-fw@strlen.de>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next 1/3] netfilter: nfnetlink: add struct nfgenmsg to struct nfnl_info and use it
+Date:   Sun, 30 May 2021 00:28:05 +0200
+Message-Id: <20210529222807.8415-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20210529165025.146435-1-fw@strlen.de>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, May 29, 2021 at 06:50:25PM +0200, Florian Westphal wrote:
-> This always evals to true, so all packets get dropped in the ebtables
-> compat layer. ip(6)tables is fine.
-> 
-> Reported-by: kernel test robot <lkp@intel.com>
-> Fixes: 6d6dbfe7fe1e6e1 ("netfilter: nf_tables: remove xt_action_param from nft_pktinfo")
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  Pablo, feel free to squash if you prefer that.
+Update the nfnl_info structure to add a pointer to the nfnetlink header.
+This simplifies the existing codebase since this header is usually
+accessed. Update existing clients to use this new field.
 
-Squashed, thanks.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/linux/netfilter/nfnetlink.h  |  1 +
+ net/netfilter/nf_conntrack_netlink.c | 23 +++++------
+ net/netfilter/nf_tables_api.c        | 58 ++++++++++------------------
+ net/netfilter/nfnetlink.c            |  2 +
+ net/netfilter/nfnetlink_log.c        |  5 +--
+ net/netfilter/nfnetlink_queue.c      |  9 ++---
+ net/netfilter/nft_compat.c           | 17 +++-----
+ 7 files changed, 43 insertions(+), 72 deletions(-)
+
+diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
+index 515ce53aa20d..241e005f290a 100644
+--- a/include/linux/netfilter/nfnetlink.h
++++ b/include/linux/netfilter/nfnetlink.h
+@@ -11,6 +11,7 @@ struct nfnl_info {
+ 	struct net		*net;
+ 	struct sock		*sk;
+ 	const struct nlmsghdr	*nlh;
++	const struct nfgenmsg	*nfmsg;
+ 	struct netlink_ext_ack	*extack;
+ };
+ 
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 220f51f055ab..4e1a9dba7077 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -1528,7 +1528,7 @@ static int ctnetlink_del_conntrack(struct sk_buff *skb,
+ 				   const struct nfnl_info *info,
+ 				   const struct nlattr * const cda[])
+ {
+-	struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
++	u8 family = info->nfmsg->nfgen_family;
+ 	struct nf_conntrack_tuple_hash *h;
+ 	struct nf_conntrack_tuple tuple;
+ 	struct nf_conntrack_zone zone;
+@@ -1541,12 +1541,12 @@ static int ctnetlink_del_conntrack(struct sk_buff *skb,
+ 
+ 	if (cda[CTA_TUPLE_ORIG])
+ 		err = ctnetlink_parse_tuple(cda, &tuple, CTA_TUPLE_ORIG,
+-					    nfmsg->nfgen_family, &zone);
++					    family, &zone);
+ 	else if (cda[CTA_TUPLE_REPLY])
+ 		err = ctnetlink_parse_tuple(cda, &tuple, CTA_TUPLE_REPLY,
+-					    nfmsg->nfgen_family, &zone);
++					    family, &zone);
+ 	else {
+-		u_int8_t u3 = nfmsg->version ? nfmsg->nfgen_family : AF_UNSPEC;
++		u_int8_t u3 = info->nfmsg->version ? family : AF_UNSPEC;
+ 
+ 		return ctnetlink_flush_conntrack(info->net, cda,
+ 						 NETLINK_CB(skb).portid,
+@@ -1586,8 +1586,7 @@ static int ctnetlink_get_conntrack(struct sk_buff *skb,
+ 				   const struct nfnl_info *info,
+ 				   const struct nlattr * const cda[])
+ {
+-	struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
+-	u_int8_t u3 = nfmsg->nfgen_family;
++	u_int8_t u3 = info->nfmsg->nfgen_family;
+ 	struct nf_conntrack_tuple_hash *h;
+ 	struct nf_conntrack_tuple tuple;
+ 	struct nf_conntrack_zone zone;
+@@ -2363,10 +2362,9 @@ static int ctnetlink_new_conntrack(struct sk_buff *skb,
+ 				   const struct nfnl_info *info,
+ 				   const struct nlattr * const cda[])
+ {
+-	struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
+ 	struct nf_conntrack_tuple otuple, rtuple;
+ 	struct nf_conntrack_tuple_hash *h = NULL;
+-	u_int8_t u3 = nfmsg->nfgen_family;
++	u_int8_t u3 = info->nfmsg->nfgen_family;
+ 	struct nf_conntrack_zone zone;
+ 	struct nf_conn *ct;
+ 	int err;
+@@ -3259,8 +3257,7 @@ static int ctnetlink_get_expect(struct sk_buff *skb,
+ 				const struct nfnl_info *info,
+ 				const struct nlattr * const cda[])
+ {
+-	struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
+-	u_int8_t u3 = nfmsg->nfgen_family;
++	u_int8_t u3 = info->nfmsg->nfgen_family;
+ 	struct nf_conntrack_tuple tuple;
+ 	struct nf_conntrack_expect *exp;
+ 	struct nf_conntrack_zone zone;
+@@ -3349,8 +3346,7 @@ static int ctnetlink_del_expect(struct sk_buff *skb,
+ 				const struct nfnl_info *info,
+ 				const struct nlattr * const cda[])
+ {
+-	struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
+-	u_int8_t u3 = nfmsg->nfgen_family;
++	u_int8_t u3 = info->nfmsg->nfgen_family;
+ 	struct nf_conntrack_expect *exp;
+ 	struct nf_conntrack_tuple tuple;
+ 	struct nf_conntrack_zone zone;
+@@ -3601,8 +3597,7 @@ static int ctnetlink_new_expect(struct sk_buff *skb,
+ 				const struct nfnl_info *info,
+ 				const struct nlattr * const cda[])
+ {
+-	struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
+-	u_int8_t u3 = nfmsg->nfgen_family;
++	u_int8_t u3 = info->nfmsg->nfgen_family;
+ 	struct nf_conntrack_tuple tuple;
+ 	struct nf_conntrack_expect *exp;
+ 	struct nf_conntrack_zone zone;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index d63d2d8f769c..689f892e9028 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -802,11 +802,11 @@ static int nf_tables_dump_tables(struct sk_buff *skb,
+ 				 struct netlink_callback *cb)
+ {
+ 	const struct nfgenmsg *nfmsg = nlmsg_data(cb->nlh);
+-	struct nftables_pernet *nft_net;
+-	const struct nft_table *table;
+ 	unsigned int idx = 0, s_idx = cb->args[0];
+ 	struct net *net = sock_net(skb->sk);
+ 	int family = nfmsg->nfgen_family;
++	struct nftables_pernet *nft_net;
++	const struct nft_table *table;
+ 
+ 	rcu_read_lock();
+ 	nft_net = nft_pernet(net);
+@@ -861,10 +861,9 @@ static int nft_netlink_dump_start_rcu(struct sock *nlsk, struct sk_buff *skb,
+ static int nf_tables_gettable(struct sk_buff *skb, const struct nfnl_info *info,
+ 			      const struct nlattr * const nla[])
+ {
+-	const struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
+ 	struct netlink_ext_ack *extack = info->extack;
+ 	u8 genmask = nft_genmask_cur(info->net);
+-	int family = nfmsg->nfgen_family;
++	int family = info->nfmsg->nfgen_family;
+ 	const struct nft_table *table;
+ 	struct net *net = info->net;
+ 	struct sk_buff *skb2;
+@@ -1059,10 +1058,9 @@ static int nf_tables_newtable(struct sk_buff *skb, const struct nfnl_info *info,
+ 			      const struct nlattr * const nla[])
+ {
+ 	struct nftables_pernet *nft_net = nft_pernet(info->net);
+-	const struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
+ 	struct netlink_ext_ack *extack = info->extack;
+ 	u8 genmask = nft_genmask_next(info->net);
+-	int family = nfmsg->nfgen_family;
++	int family = info->nfmsg->nfgen_family;
+ 	struct net *net = info->net;
+ 	const struct nlattr *attr;
+ 	struct nft_table *table;
+@@ -1254,10 +1252,9 @@ static int nft_flush(struct nft_ctx *ctx, int family)
+ static int nf_tables_deltable(struct sk_buff *skb, const struct nfnl_info *info,
+ 			      const struct nlattr * const nla[])
+ {
+-	const struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
+ 	struct netlink_ext_ack *extack = info->extack;
+ 	u8 genmask = nft_genmask_next(info->net);
+-	int family = nfmsg->nfgen_family;
++	int family = info->nfmsg->nfgen_family;
+ 	struct net *net = info->net;
+ 	const struct nlattr *attr;
+ 	struct nft_table *table;
+@@ -1627,10 +1624,9 @@ static int nf_tables_dump_chains(struct sk_buff *skb,
+ static int nf_tables_getchain(struct sk_buff *skb, const struct nfnl_info *info,
+ 			      const struct nlattr * const nla[])
+ {
+-	const struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
+ 	struct netlink_ext_ack *extack = info->extack;
+ 	u8 genmask = nft_genmask_cur(info->net);
+-	int family = nfmsg->nfgen_family;
++	int family = info->nfmsg->nfgen_family;
+ 	const struct nft_chain *chain;
+ 	struct net *net = info->net;
+ 	struct nft_table *table;
+@@ -2355,10 +2351,9 @@ static int nf_tables_newchain(struct sk_buff *skb, const struct nfnl_info *info,
+ 			      const struct nlattr * const nla[])
+ {
+ 	struct nftables_pernet *nft_net = nft_pernet(info->net);
+-	const struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
+ 	struct netlink_ext_ack *extack = info->extack;
+ 	u8 genmask = nft_genmask_next(info->net);
+-	int family = nfmsg->nfgen_family;
++	int family = info->nfmsg->nfgen_family;
+ 	struct nft_chain *chain = NULL;
+ 	struct net *net = info->net;
+ 	const struct nlattr *attr;
+@@ -2453,10 +2448,9 @@ static int nf_tables_newchain(struct sk_buff *skb, const struct nfnl_info *info,
+ static int nf_tables_delchain(struct sk_buff *skb, const struct nfnl_info *info,
+ 			      const struct nlattr * const nla[])
+ {
+-	const struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
+ 	struct netlink_ext_ack *extack = info->extack;
+ 	u8 genmask = nft_genmask_next(info->net);
+-	int family = nfmsg->nfgen_family;
++	int family = info->nfmsg->nfgen_family;
+ 	struct net *net = info->net;
+ 	const struct nlattr *attr;
+ 	struct nft_table *table;
+@@ -3080,10 +3074,9 @@ static int nf_tables_dump_rules_done(struct netlink_callback *cb)
+ static int nf_tables_getrule(struct sk_buff *skb, const struct nfnl_info *info,
+ 			     const struct nlattr * const nla[])
+ {
+-	const struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
+ 	struct netlink_ext_ack *extack = info->extack;
+ 	u8 genmask = nft_genmask_cur(info->net);
+-	int family = nfmsg->nfgen_family;
++	int family = info->nfmsg->nfgen_family;
+ 	const struct nft_chain *chain;
+ 	const struct nft_rule *rule;
+ 	struct net *net = info->net;
+@@ -3221,13 +3214,12 @@ static int nf_tables_newrule(struct sk_buff *skb, const struct nfnl_info *info,
+ 			     const struct nlattr * const nla[])
+ {
+ 	struct nftables_pernet *nft_net = nft_pernet(info->net);
+-	const struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
+ 	struct netlink_ext_ack *extack = info->extack;
+ 	unsigned int size, i, n, ulen = 0, usize = 0;
+ 	u8 genmask = nft_genmask_next(info->net);
+ 	struct nft_rule *rule, *old_rule = NULL;
+ 	struct nft_expr_info *expr_info = NULL;
+-	int family = nfmsg->nfgen_family;
++	int family = info->nfmsg->nfgen_family;
+ 	struct net *net = info->net;
+ 	struct nft_flow_rule *flow;
+ 	struct nft_userdata *udata;
+@@ -3459,9 +3451,8 @@ static struct nft_rule *nft_rule_lookup_byid(const struct net *net,
+ static int nf_tables_delrule(struct sk_buff *skb, const struct nfnl_info *info,
+ 			     const struct nlattr * const nla[])
+ {
+-	const struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
++	int family = info->nfmsg->nfgen_family, err = 0;
+ 	struct netlink_ext_ack *extack = info->extack;
+-	int family = nfmsg->nfgen_family, err = 0;
+ 	u8 genmask = nft_genmask_next(info->net);
+ 	struct nft_chain *chain = NULL;
+ 	struct net *net = info->net;
+@@ -4050,7 +4041,6 @@ static int nf_tables_dump_sets_done(struct netlink_callback *cb)
+ static int nf_tables_getset(struct sk_buff *skb, const struct nfnl_info *info,
+ 			    const struct nlattr * const nla[])
+ {
+-	const struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
+ 	struct netlink_ext_ack *extack = info->extack;
+ 	u8 genmask = nft_genmask_cur(info->net);
+ 	struct net *net = info->net;
+@@ -4078,7 +4068,7 @@ static int nf_tables_getset(struct sk_buff *skb, const struct nfnl_info *info,
+ 	}
+ 
+ 	/* Only accept unspec with dump */
+-	if (nfmsg->nfgen_family == NFPROTO_UNSPEC)
++	if (info->nfmsg->nfgen_family == NFPROTO_UNSPEC)
+ 		return -EAFNOSUPPORT;
+ 	if (!nla[NFTA_SET_TABLE])
+ 		return -EINVAL;
+@@ -4171,11 +4161,10 @@ static int nf_tables_set_desc_parse(struct nft_set_desc *desc,
+ static int nf_tables_newset(struct sk_buff *skb, const struct nfnl_info *info,
+ 			    const struct nlattr * const nla[])
+ {
+-	const struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
+ 	u32 ktype, dtype, flags, policy, gc_int, objtype;
+ 	struct netlink_ext_ack *extack = info->extack;
+ 	u8 genmask = nft_genmask_next(info->net);
+-	int family = nfmsg->nfgen_family;
++	int family = info->nfmsg->nfgen_family;
+ 	const struct nft_set_ops *ops;
+ 	struct nft_expr *expr = NULL;
+ 	struct net *net = info->net;
+@@ -4475,7 +4464,6 @@ static void nft_set_destroy(const struct nft_ctx *ctx, struct nft_set *set)
+ static int nf_tables_delset(struct sk_buff *skb, const struct nfnl_info *info,
+ 			    const struct nlattr * const nla[])
+ {
+-	const struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
+ 	struct netlink_ext_ack *extack = info->extack;
+ 	u8 genmask = nft_genmask_next(info->net);
+ 	struct net *net = info->net;
+@@ -4484,7 +4472,7 @@ static int nf_tables_delset(struct sk_buff *skb, const struct nfnl_info *info,
+ 	struct nft_ctx ctx;
+ 	int err;
+ 
+-	if (nfmsg->nfgen_family == NFPROTO_UNSPEC)
++	if (info->nfmsg->nfgen_family == NFPROTO_UNSPEC)
+ 		return -EAFNOSUPPORT;
+ 	if (nla[NFTA_SET_TABLE] == NULL)
+ 		return -EINVAL;
+@@ -6527,11 +6515,10 @@ static int nf_tables_updobj(const struct nft_ctx *ctx,
+ static int nf_tables_newobj(struct sk_buff *skb, const struct nfnl_info *info,
+ 			    const struct nlattr * const nla[])
+ {
+-	const struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
+ 	struct netlink_ext_ack *extack = info->extack;
+ 	u8 genmask = nft_genmask_next(info->net);
++	int family = info->nfmsg->nfgen_family;
+ 	const struct nft_object_type *type;
+-	int family = nfmsg->nfgen_family;
+ 	struct net *net = info->net;
+ 	struct nft_table *table;
+ 	struct nft_object *obj;
+@@ -6783,10 +6770,9 @@ static int nf_tables_dump_obj_done(struct netlink_callback *cb)
+ static int nf_tables_getobj(struct sk_buff *skb, const struct nfnl_info *info,
+ 			    const struct nlattr * const nla[])
+ {
+-	const struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
+ 	struct netlink_ext_ack *extack = info->extack;
+ 	u8 genmask = nft_genmask_cur(info->net);
+-	int family = nfmsg->nfgen_family;
++	int family = info->nfmsg->nfgen_family;
+ 	const struct nft_table *table;
+ 	struct net *net = info->net;
+ 	struct nft_object *obj;
+@@ -6873,10 +6859,9 @@ static void nft_obj_destroy(const struct nft_ctx *ctx, struct nft_object *obj)
+ static int nf_tables_delobj(struct sk_buff *skb, const struct nfnl_info *info,
+ 			    const struct nlattr * const nla[])
+ {
+-	const struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
+ 	struct netlink_ext_ack *extack = info->extack;
+ 	u8 genmask = nft_genmask_next(info->net);
+-	int family = nfmsg->nfgen_family;
++	int family = info->nfmsg->nfgen_family;
+ 	struct net *net = info->net;
+ 	const struct nlattr *attr;
+ 	struct nft_table *table;
+@@ -7304,12 +7289,11 @@ static int nf_tables_newflowtable(struct sk_buff *skb,
+ 				  const struct nfnl_info *info,
+ 				  const struct nlattr * const nla[])
+ {
+-	const struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
+ 	struct netlink_ext_ack *extack = info->extack;
+ 	struct nft_flowtable_hook flowtable_hook;
+ 	u8 genmask = nft_genmask_next(info->net);
++	int family = info->nfmsg->nfgen_family;
+ 	const struct nf_flowtable_type *type;
+-	int family = nfmsg->nfgen_family;
+ 	struct nft_flowtable *flowtable;
+ 	struct nft_hook *hook, *next;
+ 	struct net *net = info->net;
+@@ -7493,10 +7477,9 @@ static int nf_tables_delflowtable(struct sk_buff *skb,
+ 				  const struct nfnl_info *info,
+ 				  const struct nlattr * const nla[])
+ {
+-	const struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
+ 	struct netlink_ext_ack *extack = info->extack;
+ 	u8 genmask = nft_genmask_next(info->net);
+-	int family = nfmsg->nfgen_family;
++	int family = info->nfmsg->nfgen_family;
+ 	struct nft_flowtable *flowtable;
+ 	struct net *net = info->net;
+ 	const struct nlattr *attr;
+@@ -7688,9 +7671,8 @@ static int nf_tables_getflowtable(struct sk_buff *skb,
+ 				  const struct nfnl_info *info,
+ 				  const struct nlattr * const nla[])
+ {
+-	const struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
+ 	u8 genmask = nft_genmask_cur(info->net);
+-	int family = nfmsg->nfgen_family;
++	int family = info->nfmsg->nfgen_family;
+ 	struct nft_flowtable *flowtable;
+ 	const struct nft_table *table;
+ 	struct net *net = info->net;
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index e8dbd8379027..028a1f39318b 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -256,6 +256,7 @@ static int nfnetlink_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			.net	= net,
+ 			.sk	= nfnlnet->nfnl,
+ 			.nlh	= nlh,
++			.nfmsg	= nlmsg_data(nlh),
+ 			.extack	= extack,
+ 		};
+ 
+@@ -491,6 +492,7 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 				.net	= net,
+ 				.sk	= nfnlnet->nfnl,
+ 				.nlh	= nlh,
++				.nfmsg	= nlmsg_data(nlh),
+ 				.extack	= &extack,
+ 			};
+ 
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index 587086b18c36..691ef4cffdd9 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -871,15 +871,14 @@ static int nfulnl_recv_config(struct sk_buff *skb, const struct nfnl_info *info,
+ 			      const struct nlattr * const nfula[])
+ {
+ 	struct nfnl_log_net *log = nfnl_log_pernet(info->net);
+-	struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
+-	u_int16_t group_num = ntohs(nfmsg->res_id);
++	u_int16_t group_num = ntohs(info->nfmsg->res_id);
+ 	struct nfulnl_msg_config_cmd *cmd = NULL;
+ 	struct nfulnl_instance *inst;
+ 	u16 flags = 0;
+ 	int ret = 0;
+ 
+ 	if (nfula[NFULA_CFG_CMD]) {
+-		u_int8_t pf = nfmsg->nfgen_family;
++		u_int8_t pf = info->nfmsg->nfgen_family;
+ 		cmd = nla_data(nfula[NFULA_CFG_CMD]);
+ 
+ 		/* Commands without queue context */
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index f37a575ebd7f..f774de0fc24f 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -1051,8 +1051,7 @@ static int nfqnl_recv_verdict_batch(struct sk_buff *skb,
+ 				    const struct nlattr * const nfqa[])
+ {
+ 	struct nfnl_queue_net *q = nfnl_queue_pernet(info->net);
+-	struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
+-	u16 queue_num = ntohs(nfmsg->res_id);
++	u16 queue_num = ntohs(info->nfmsg->res_id);
+ 	struct nf_queue_entry *entry, *tmp;
+ 	struct nfqnl_msg_verdict_hdr *vhdr;
+ 	struct nfqnl_instance *queue;
+@@ -1160,8 +1159,7 @@ static int nfqnl_recv_verdict(struct sk_buff *skb, const struct nfnl_info *info,
+ 			      const struct nlattr * const nfqa[])
+ {
+ 	struct nfnl_queue_net *q = nfnl_queue_pernet(info->net);
+-	struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
+-	u_int16_t queue_num = ntohs(nfmsg->res_id);
++	u_int16_t queue_num = ntohs(info->nfmsg->res_id);
+ 	struct nfqnl_msg_verdict_hdr *vhdr;
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nfqnl_instance *queue;
+@@ -1243,8 +1241,7 @@ static int nfqnl_recv_config(struct sk_buff *skb, const struct nfnl_info *info,
+ 			     const struct nlattr * const nfqa[])
+ {
+ 	struct nfnl_queue_net *q = nfnl_queue_pernet(info->net);
+-	struct nfgenmsg *nfmsg = nlmsg_data(info->nlh);
+-	u_int16_t queue_num = ntohs(nfmsg->res_id);
++	u_int16_t queue_num = ntohs(info->nfmsg->res_id);
+ 	struct nfqnl_msg_config_cmd *cmd = NULL;
+ 	struct nfqnl_instance *queue;
+ 	__u32 flags = 0, mask = 0;
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index 3144a9ad2f6a..639c337c885b 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -625,7 +625,7 @@ static int nfnl_compat_get_rcu(struct sk_buff *skb,
+ 			       const struct nfnl_info *info,
+ 			       const struct nlattr * const tb[])
+ {
+-	struct nfgenmsg *nfmsg;
++	u8 family = info->nfmsg->nfgen_family;
+ 	const char *name, *fmt;
+ 	struct sk_buff *skb2;
+ 	int ret = 0, target;
+@@ -640,9 +640,7 @@ static int nfnl_compat_get_rcu(struct sk_buff *skb,
+ 	rev = ntohl(nla_get_be32(tb[NFTA_COMPAT_REV]));
+ 	target = ntohl(nla_get_be32(tb[NFTA_COMPAT_TYPE]));
+ 
+-	nfmsg = nlmsg_data(info->nlh);
+-
+-	switch(nfmsg->nfgen_family) {
++	switch(family) {
+ 	case AF_INET:
+ 		fmt = "ipt_%s";
+ 		break;
+@@ -656,8 +654,7 @@ static int nfnl_compat_get_rcu(struct sk_buff *skb,
+ 		fmt = "arpt_%s";
+ 		break;
+ 	default:
+-		pr_err("nft_compat: unsupported protocol %d\n",
+-			nfmsg->nfgen_family);
++		pr_err("nft_compat: unsupported protocol %d\n", family);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -665,9 +662,8 @@ static int nfnl_compat_get_rcu(struct sk_buff *skb,
+ 		return -EINVAL;
+ 
+ 	rcu_read_unlock();
+-	try_then_request_module(xt_find_revision(nfmsg->nfgen_family, name,
+-						 rev, target, &ret),
+-						 fmt, name);
++	try_then_request_module(xt_find_revision(family, name, rev, target, &ret),
++				fmt, name);
+ 	if (ret < 0)
+ 		goto out_put;
+ 
+@@ -682,8 +678,7 @@ static int nfnl_compat_get_rcu(struct sk_buff *skb,
+ 				  info->nlh->nlmsg_seq,
+ 				  NFNL_MSG_TYPE(info->nlh->nlmsg_type),
+ 				  NFNL_MSG_COMPAT_GET,
+-				  nfmsg->nfgen_family,
+-				  name, ret, target) <= 0) {
++				  family, name, ret, target) <= 0) {
+ 		kfree_skb(skb2);
+ 		goto out_put;
+ 	}
+-- 
+2.30.2
+
