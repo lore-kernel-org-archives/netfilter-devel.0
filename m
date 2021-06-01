@@ -4,32 +4,32 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5378C47097
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E176AC47096
 	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Jun 2021 22:06:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B2CCB613BD
+	by mail.kernel.org (Postfix) with ESMTP id C999E613C0
 	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Jun 2021 22:06:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234934AbhFAWIU (ORCPT
+        id S234957AbhFAWIV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 1 Jun 2021 18:08:20 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:39552 "EHLO
+        Tue, 1 Jun 2021 18:08:21 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:39546 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234898AbhFAWIT (ORCPT
+        with ESMTP id S234911AbhFAWIT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 1 Jun 2021 18:08:19 -0400
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 72AF6641A1;
-        Wed,  2 Jun 2021 00:05:29 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id C18A4641CC;
+        Wed,  2 Jun 2021 00:05:30 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 02/16] netfilter: nft_set_pipapo_avx2: Skip LDMXCSR, we don't need a valid MXCSR state
-Date:   Wed,  2 Jun 2021 00:06:15 +0200
-Message-Id: <20210601220629.18307-3-pablo@netfilter.org>
+Subject: [PATCH net-next 05/16] netfilter: Remove leading spaces in Kconfig
+Date:   Wed,  2 Jun 2021 00:06:18 +0200
+Message-Id: <20210601220629.18307-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210601220629.18307-1-pablo@netfilter.org>
 References: <20210601220629.18307-1-pablo@netfilter.org>
@@ -39,83 +39,46 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Stefano Brivio <sbrivio@redhat.com>
+From: Juerg Haefliger <juerg.haefliger@canonical.com>
 
-We don't need a valid MXCSR state for the lookup routines, none of
-the instructions we use rely on or affect any bit in the MXCSR
-register.
+Remove leading spaces before tabs in Kconfig file(s) by running the
+following command:
 
-Instead of calling kernel_fpu_begin(), we can pass 0 as mask to
-kernel_fpu_begin_mask() and spare one LDMXCSR instruction.
+  $ find net/netfilter -name 'Kconfig*' | xargs sed -r -i 's/^[ ]+\t/\t/'
 
-Commit 49200d17d27d ("x86/fpu/64: Don't FNINIT in kernel_fpu_begin()")
-already speeds up lookups considerably, and by dropping the MCXSR
-initialisation we can now get a much smaller, but measurable, increase
-in matching rates.
-
-The table below reports matching rates and a wild approximation of
-clock cycles needed for a match in a "port,net" test with 10 entries
-from selftests/netfilter/nft_concat_range.sh, limited to the first
-field, i.e. the port (with nft_set_rbtree initialisation skipped), run
-on a single AMD Epyc 7351 thread (2.9GHz, 512 KiB L1D$, 8 MiB L2$).
-
-The (very rough) estimation of clock cycles is obtained by simply
-dividing frequency by matching rate. The "cycles spared" column refers
-to the difference in cycles compared to the previous row, and the rate
-increase also refers to the previous row. Results are averages of six
-runs.
-
-Merely for context, I'm also reporting packet rates obtained by
-skipping kernel_fpu_begin() and kernel_fpu_end() altogether (which
-shows a very limited impact now), as well as skipping the whole lookup
-function, compared to simply counting and dropping all packets using
-the netdev hook drop (see nft_concat_range.sh for details). This
-workload also includes packet generation with pktgen and the receive
-path of veth.
-
-                                      |matching|  est.  | cycles |  rate  |
-                                      |  rate  | cycles | spared |increase|
-                                      | (Mpps) |        |        |        |
---------------------------------------|--------|--------|--------|--------|
-FNINIT, LDMXCSR (before 49200d17d27d) |  5.245 |    553 |      - |      - |
-LDMXCSR only (with 49200d17d27d)      |  6.347 |    457 |     96 |  21.0% |
-Without LDMXCSR (this patch)          |  6.461 |    449 |      8 |   1.8% |
--------- for reference only: ---------|--------|--------|--------|--------|
-Without kernel_fpu_begin()            |  6.513 |    445 |      4 |   0.8% |
-Without actual matching (return true) |  7.649 |    379 |     66 |  17.4% |
-Without lookup operation (netdev drop)| 10.320 |    281 |     98 |  34.9% |
-
-The clock cycles spared by avoiding LDMXCSR appear to be in line with CPI
-and latency indicated in the manuals of comparable architectures: Intel
-Skylake (CPI: 1, latency: 7) and AMD 12h (latency: 12) -- I couldn't find
-this information for AMD 17h.
-
-Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
+Signed-off-by: Juerg Haefliger <juergh@canonical.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_set_pipapo_avx2.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ net/netfilter/Kconfig      | 2 +-
+ net/netfilter/ipvs/Kconfig | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nft_set_pipapo_avx2.c b/net/netfilter/nft_set_pipapo_avx2.c
-index eabdb8d552ee..1c2620923a61 100644
---- a/net/netfilter/nft_set_pipapo_avx2.c
-+++ b/net/netfilter/nft_set_pipapo_avx2.c
-@@ -1136,8 +1136,13 @@ bool nft_pipapo_avx2_lookup(const struct net *net, const struct nft_set *set,
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 56a2531a3402..172d74560632 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -816,7 +816,7 @@ config NETFILTER_XT_TARGET_CLASSIFY
+ 	  the priority of a packet. Some qdiscs can use this value for
+ 	  classification, among these are:
  
- 	m = rcu_dereference(priv->match);
+-  	  atm, cbq, dsmark, pfifo_fast, htb, prio
++	  atm, cbq, dsmark, pfifo_fast, htb, prio
  
--	/* This also protects access to all data related to scratch maps */
--	kernel_fpu_begin();
-+	/* This also protects access to all data related to scratch maps.
-+	 *
-+	 * Note that we don't need a valid MXCSR state for any of the
-+	 * operations we use here, so pass 0 as mask and spare a LDMXCSR
-+	 * instruction.
-+	 */
-+	kernel_fpu_begin_mask(0);
+ 	  To compile it as a module, choose M here.  If unsure, say N.
  
- 	scratch = *raw_cpu_ptr(m->scratch_aligned);
- 	if (unlikely(!scratch)) {
+diff --git a/net/netfilter/ipvs/Kconfig b/net/netfilter/ipvs/Kconfig
+index d61886874940..271da8447b29 100644
+--- a/net/netfilter/ipvs/Kconfig
++++ b/net/netfilter/ipvs/Kconfig
+@@ -318,7 +318,7 @@ config IP_VS_MH_TAB_INDEX
+ comment 'IPVS application helper'
+ 
+ config	IP_VS_FTP
+-  	tristate "FTP protocol helper"
++	tristate "FTP protocol helper"
+ 	depends on IP_VS_PROTO_TCP && NF_CONNTRACK && NF_NAT && \
+ 		NF_CONNTRACK_FTP
+ 	select IP_VS_NFCT
 -- 
 2.30.2
 
