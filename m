@@ -4,35 +4,33 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41F7DC47082
-	for <netfilter-devel@archiver.kernel.org>; Mon, 31 May 2021 22:18:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BFC2C47080
+	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Jun 2021 11:31:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2400D6135A
-	for <netfilter-devel@archiver.kernel.org>; Mon, 31 May 2021 22:18:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3E4BD60E09
+	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Jun 2021 11:31:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232268AbhEaWUF (ORCPT
+        id S230308AbhFALdi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 31 May 2021 18:20:05 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:37722 "EHLO
+        Tue, 1 Jun 2021 07:33:38 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:38764 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232340AbhEaWUF (ORCPT
+        with ESMTP id S231219AbhFALdh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 31 May 2021 18:20:05 -0400
+        Tue, 1 Jun 2021 07:33:37 -0400
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 6943D64175;
-        Tue,  1 Jun 2021 00:17:18 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 9C51164182;
+        Tue,  1 Jun 2021 13:30:49 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     kadlec@netfilter.org
-Subject: [PATCH ipset 3/3] add ipset to nftables translation infrastructure
-Date:   Tue,  1 Jun 2021 00:18:18 +0200
-Message-Id: <20210531221818.24867-3-pablo@netfilter.org>
+Subject: [PATCH ipset,v2] add ipset to nftables translation infrastructure
+Date:   Tue,  1 Jun 2021 13:31:52 +0200
+Message-Id: <20210601113152.20761-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20210531221818.24867-1-pablo@netfilter.org>
-References: <20210531221818.24867-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -57,14 +55,22 @@ created set to fetch the type without interactions with the kernel.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
+v2: - add netmask support: use netmask specified at set creation and append
+      it after the IP address of the ADT commands.
+    - support for timeout, comment and counters in ADT commands.
+    - nomatch, skbinfo, skbprio, skbqueue, ifacewildcard are not support,
+      don't ignore them.
+    - print "add table inet global" at the beginning of the translation
+      to provide a self-contained translation that is loadable via nft -f.
+
  configure.ac                 |   1 +
  include/libipset/Makefile.am |   3 +-
  include/libipset/xlate.h     |   6 +
- lib/ipset.c                  | 443 ++++++++++++++++++++++++++++++++++-
+ lib/ipset.c                  | 518 ++++++++++++++++++++++++++++++++++-
  src/Makefile.am              |   8 +-
- src/ipset-translate.8        |  86 +++++++
+ src/ipset-translate.8        |  86 ++++++
  src/ipset.c                  |   8 +-
- 7 files changed, 551 insertions(+), 4 deletions(-)
+ 7 files changed, 626 insertions(+), 4 deletions(-)
  create mode 100644 include/libipset/xlate.h
  create mode 100644 src/ipset-translate.8
 
@@ -106,10 +112,18 @@ index 000000000000..65697682f722
 +
 +#endif
 diff --git a/lib/ipset.c b/lib/ipset.c
-index 5232d8b76c46..1c5a65f54961 100644
+index 5232d8b76c46..d0f2a12feb3c 100644
 --- a/lib/ipset.c
 +++ b/lib/ipset.c
-@@ -28,6 +28,7 @@
+@@ -13,6 +13,7 @@
+ #include <stdio.h>				/* printf */
+ #include <stdlib.h>				/* exit */
+ #include <string.h>				/* str* */
++#include <inttypes.h>				/* PRIu64 */
+ 
+ #include <config.h>
+ 
+@@ -28,6 +29,7 @@
  #include <libipset/utils.h>			/* STREQ */
  #include <libipset/ipset.h>			/* prototypes */
  #include <libipset/ip_set_compiler.h>		/* compiler attributes */
@@ -117,7 +131,7 @@ index 5232d8b76c46..1c5a65f54961 100644
  
  static char program_name[] = PACKAGE;
  static char program_version[] = PACKAGE_VERSION;
-@@ -50,6 +51,14 @@ struct ipset {
+@@ -50,6 +52,17 @@ struct ipset {
  	char *newargv[MAX_ARGS];
  	int newargc;
  	const char *filename;			/* Input/output filename */
@@ -128,31 +142,46 @@ index 5232d8b76c46..1c5a65f54961 100644
 +struct ipset_xlate_set {
 +	struct list_head list;
 +	char name[IPSET_MAXNAMELEN];
++	uint8_t netmask;
++	uint8_t family;
++	bool interval;
 +	const struct ipset_type *type;
  };
  
  /* Commands and environment options */
-@@ -923,6 +932,19 @@ static const char *cmd_prefix[] = {
+@@ -923,6 +936,31 @@ static const char *cmd_prefix[] = {
  	[IPSET_TEST]   = "test   SETNAME",
  };
  
-+static const struct ipset_type *ipset_xlate_type_get(struct ipset *ipset,
-+						     const char *name)
++static const struct ipset_xlate_set *
++ipset_xlate_set_get(struct ipset *ipset, const char *name)
 +{
-+	struct ipset_xlate_set *set;
++	const struct ipset_xlate_set *set;
 +
 +	list_for_each_entry(set, &ipset->xlate_sets, list) {
 +		if (!strcmp(set->name, name))
-+			return set->type;
++			return set;
 +	}
 +
 +	return NULL;
 +}
 +
++static const struct ipset_type *ipset_xlate_type_get(struct ipset *ipset,
++						     const char *name)
++{
++	const struct ipset_xlate_set *set;
++
++	set = ipset_xlate_set_get(ipset, name);
++	if (!set)
++		return NULL;
++
++	return set->type;
++}
++
  static int
  ipset_parser(struct ipset *ipset, int oargc, char *oargv[])
  {
-@@ -1241,7 +1263,11 @@ ipset_parser(struct ipset *ipset, int oargc, char *oargv[])
+@@ -1241,7 +1279,11 @@ ipset_parser(struct ipset *ipset, int oargc, char *oargv[])
  		if (ret < 0)
  			return ipset->standard_error(ipset, p);
  
@@ -165,7 +194,7 @@ index 5232d8b76c46..1c5a65f54961 100644
  		if (type == NULL)
  			return ipset->standard_error(ipset, p);
  
-@@ -1474,6 +1500,12 @@ ipset_init(void)
+@@ -1474,6 +1516,12 @@ ipset_init(void)
  		return NULL;
  	}
  	ipset_custom_printf(ipset, NULL, NULL, NULL, NULL);
@@ -178,7 +207,7 @@ index 5232d8b76c46..1c5a65f54961 100644
  	return ipset;
  }
  
-@@ -1488,6 +1520,8 @@ ipset_init(void)
+@@ -1488,6 +1536,8 @@ ipset_init(void)
  int
  ipset_fini(struct ipset *ipset)
  {
@@ -187,7 +216,7 @@ index 5232d8b76c46..1c5a65f54961 100644
  	assert(ipset);
  
  	if (ipset->session)
-@@ -1496,6 +1530,413 @@ ipset_fini(struct ipset *ipset)
+@@ -1496,6 +1546,472 @@ ipset_fini(struct ipset *ipset)
  	if (ipset->newargv[0])
  		free(ipset->newargv[0]);
  
@@ -373,6 +402,8 @@ index 5232d8b76c46..1c5a65f54961 100644
 +	const uint32_t *timeout;
 +	const uint32_t *maxelem;
 +	struct ipset_data *data;
++	const uint8_t *netmask;
++	const char *comment;
 +	uint32_t flags = 0;
 +	uint8_t family;
 +	bool concat;
@@ -387,8 +418,7 @@ index 5232d8b76c46..1c5a65f54961 100644
 +	switch (cmd) {
 +	case IPSET_CMD_CREATE:
 +		/* Not supported. */
-+		if (ipset_data_get(data, IPSET_OPT_MARKMASK) ||
-+		    ipset_data_get(data, IPSET_OPT_NETMASK)) {
++		if (ipset_data_test(data, IPSET_OPT_MARKMASK)) {
 +			printf("# %s", ipset->cmdline);
 +			break;
 +		}
@@ -424,6 +454,13 @@ index 5232d8b76c46..1c5a65f54961 100644
 +		maxelem = ipset_data_get(data, IPSET_OPT_MAXELEM);
 +		if (maxelem)
 +			printf("size %u; ", *maxelem);
++
++		netmask = ipset_data_get(data, IPSET_OPT_NETMASK);
++		if (netmask &&
++		    ((family == AF_INET && *netmask < 32) ||
++		     (family == AF_INET6 && *netmask < 128)))
++			flags |= NFT_SET_INTERVAL;
++
 +		if (flags & NFT_SET_INTERVAL)
 +			printf("flags interval; ");
 +
@@ -434,6 +471,12 @@ index 5232d8b76c46..1c5a65f54961 100644
 +		 * - IPSET_OPT_RESIZE
 +		 * - IPSET_OPT_SIZE
 +		 * - IPSET_OPT_FORCEADD
++		 *
++		 * Ranges and CIDR are safe to be ignored too:
++		 * - IPSET_OPT_IP_FROM
++		 * - IPSET_OPT_IP_TO
++		 * - IPSET_OPT_PORT_FROM
++		 * - IPSET_OPT_PORT_TO
 +		 */
 +
 +		printf("}\n");
@@ -450,7 +493,12 @@ index 5232d8b76c46..1c5a65f54961 100644
 +			ipset_type = ipset_type->next;
 +		}
 +
++		xlate_set->family = family;
 +		xlate_set->type = ipset_type;
++		if (netmask) {
++			xlate_set->netmask = *netmask;
++			xlate_set->interval = true;
++		}
 +		list_add_tail(&xlate_set->list, &ipset->xlate_sets);
 +		break;
 +	case IPSET_CMD_DESTROY:
@@ -484,22 +532,35 @@ index 5232d8b76c46..1c5a65f54961 100644
 +		printf("# %s", ipset->cmdline);
 +		return -1;
 +	case IPSET_CMD_ADD:
-+		printf("add element %s %s %s { ",
-+		       ipset_xlate_family(family), table, set);
-+		goto next;
 +	case IPSET_CMD_DEL:
-+		printf("delete element %s %s %s { ",
-+		       ipset_xlate_family(family), table, set);
-+		goto next;
 +	case IPSET_CMD_TEST:
-+		printf("get element %s %s %s { ",
++		/* Not supported. */
++		if (ipset_data_test(data, IPSET_OPT_NOMATCH) ||
++		    ipset_data_test(data, IPSET_OPT_SKBINFO) ||
++		    ipset_data_test(data, IPSET_OPT_SKBMARK) ||
++		    ipset_data_test(data, IPSET_OPT_SKBPRIO) ||
++		    ipset_data_test(data, IPSET_OPT_SKBQUEUE) ||
++		    ipset_data_test(data, IPSET_OPT_IFACE_WILDCARD)) {
++			printf("# %s", ipset->cmdline);
++			break;
++		}
++		printf("%s element %s %s %s { ",
++		       cmd == IPSET_CMD_ADD ? "add" :
++				cmd == IPSET_CMD_DEL ? "delete" : "get",
 +		       ipset_xlate_family(family), table, set);
-+next:
++
 +		typename = ipset_data_get(data, IPSET_OPT_TYPENAME);
 +		type = ipset_xlate_set_type(typename);
 +
++		xlate_set = (struct ipset_xlate_set *)
++				ipset_xlate_set_get(ipset, set);
++		if (xlate_set && xlate_set->interval)
++			netmask = &xlate_set->netmask;
++		else
++			netmask = NULL;
++
 +		concat = false;
-+		for (i = IPSET_OPT_IP; i <= IPSET_OPT_TIMEOUT; i++) {
++		for (i = IPSET_OPT_IP; i < IPSET_OPT_TIMEOUT; i++) {
 +			if (ipset_data_test(data, i)) {
 +				char buf[64];
 +				char *term;
@@ -512,10 +573,34 @@ index 5232d8b76c46..1c5a65f54961 100644
 +					printf("%s%s ", concat ? ". " : "", buf);
 +				}
 +				ipset_print_data(buf, sizeof(buf), data, i, 0);
-+				printf("%s%s ", concat ? ". " : "", buf);
++				printf("%s%s", concat ? ". " : "", buf);
++
++				if (i == IPSET_OPT_IP && netmask)
++					printf("/%u ", *netmask);
++				else
++					printf(" ");
++
 +				concat = true;
 +			}
 +		}
++		if (ipset_data_test(data, IPSET_OPT_PACKETS) &&
++		    ipset_data_test(data, IPSET_OPT_BYTES)) {
++			const uint64_t *pkts, *bytes;
++
++			pkts = ipset_data_get(data, IPSET_OPT_PACKETS);
++			bytes = ipset_data_get(data, IPSET_OPT_BYTES);
++
++			printf("counter packets %" PRIu64 " bytes %" PRIu64 " ",
++			       *pkts, *bytes);
++		}
++		timeout = ipset_data_get(data, IPSET_OPT_TIMEOUT);
++		if (timeout)
++			printf("timeout %us ", *timeout);
++
++		comment = ipset_data_get(data, IPSET_OPT_ADT_COMMENT);
++		if (comment)
++			printf("comment \"%s\" ", comment);
++
 +		printf("}\n");
 +		break;
 +	case IPSET_CMD_GET_BYNAME:
@@ -549,6 +634,9 @@ index 5232d8b76c46..1c5a65f54961 100644
 +			return -1;
 +		}
 +	}
++
++	/* TODO: Allow to specify the table name other than 'global'. */
++	printf("add table inet global\n");
 +
 +	while (fgets(ipset->cmdline, sizeof(ipset->cmdline), f)) {
 +		ipset->restore_line++;
