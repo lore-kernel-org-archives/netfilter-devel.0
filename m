@@ -2,85 +2,369 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73830C47083
-	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Jun 2021 10:30:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACB6EC4708F
+	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Jun 2021 10:39:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 533F8613BA
-	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Jun 2021 10:30:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 95E096138C
+	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Jun 2021 10:39:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231860AbhFBKbv (ORCPT
+        id S231909AbhFBKk6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 2 Jun 2021 06:31:51 -0400
-Received: from mail-io1-f70.google.com ([209.85.166.70]:54017 "EHLO
-        mail-io1-f70.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231287AbhFBKbt (ORCPT
+        Wed, 2 Jun 2021 06:40:58 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:40920 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229541AbhFBKk4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 2 Jun 2021 06:31:49 -0400
-Received: by mail-io1-f70.google.com with SMTP id u15-20020a6b490f0000b0290447d9583f14so1156055iob.20
-        for <netfilter-devel@vger.kernel.org>; Wed, 02 Jun 2021 03:30:07 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
-         :from:to;
-        bh=/5Yxeay+76HnzJp/CqXkJ+ggXqViaQWyqCEQjK6m184=;
-        b=KzEQotVj3SywezL1e74kKDomSwS2kjHSnzFYR/Y2UjDHM1eEJTZUQd9bV/qNS76XbN
-         nkMb2f66AQssUnCo4HEF/ya1q9pBEKr2/h7b7xHGe4TUqDXWicTy2tQJ8tfGGsxgZNk/
-         qDyNjwHwIHTZUmMAFGEDYxz/fUbUGoNn5DXUDvx1YFrse456X37JOIGa1c7ESYuT0uHx
-         VK6lTHqgbLydqpLg3wsyO6znq/U2daVPpds7kHZkkvgVJM93QZxIkHXcCwAAi2/BbnwP
-         JpCeuwJZxmjjCKmEUtrQlSX2zbkO3FBPp5jqFyk24rEfFOtGi5Iyq4R1GoYoCmLtd4t8
-         eT2w==
-X-Gm-Message-State: AOAM533FO+nkPQCSNhYPlEaGAOcIcSMhXV0E5qtONIoMgpaZ71o36aKz
-        g7/IleyCRZuG2EDhdpD+pbBdL81ojWF1UT87Ia6lomTnxa2r
-X-Google-Smtp-Source: ABdhPJx4g6XX+uFaQ6ef+gub/km+nZfMcKw0yEZ80kxD960AgE53q9Q4me2ar2pMKzoHdIlLr3xuAqcMTYpF4PDEjYk9rMPzqPr8
+        Wed, 2 Jun 2021 06:40:56 -0400
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id A022F64194;
+        Wed,  2 Jun 2021 12:38:04 +0200 (CEST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     fw@strlen.de
+Subject: [PATCH nf-next] netfilter: nftables: add nf_ct_pernet() helper function
+Date:   Wed,  2 Jun 2021 12:39:07 +0200
+Message-Id: <20210602103907.8082-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:1a4c:: with SMTP id u12mr25215033ilv.221.1622629806914;
- Wed, 02 Jun 2021 03:30:06 -0700 (PDT)
-Date:   Wed, 02 Jun 2021 03:30:06 -0700
-In-Reply-To: <000000000000c98d7205ae300144@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000003e409f05c3c5f190@google.com>
-Subject: Re: [syzbot] WARNING in idr_get_next
-From:   syzbot <syzbot+f7204dcf3df4bb4ce42c@syzkaller.appspotmail.com>
-To:     anmol.karan123@gmail.com, bjorn.andersson@linaro.org,
-        coreteam@netfilter.org, davem@davemloft.net, dsahern@kernel.org,
-        ebiggers@google.com, ebiggers@kernel.org, eric.dumazet@gmail.com,
-        fw@strlen.de, kadlec@netfilter.org, kuba@kernel.org,
-        linux-fsdevel@vger.kernel.org,
-        linux-kernel-mentees@lists.linuxfoundation.org,
-        linux-kernel@vger.kernel.org, manivannan.sadhasivam@linaro.org,
-        necip@google.com, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        syzkaller-bugs@googlegroups.com, willy@infradead.org,
-        yoshfuji@linux-ipv6.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot suspects this issue was fixed by commit:
+Consolidate call to net_generic(net, nf_conntrack_net_id) in this
+wrapper function.
 
-commit 43016d02cf6e46edfc4696452251d34bba0c0435
-Author: Florian Westphal <fw@strlen.de>
-Date:   Mon May 3 11:51:15 2021 +0000
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_conntrack.h    |  7 +++++++
+ net/netfilter/nf_conntrack_core.c       | 22 +++++++++-------------
+ net/netfilter/nf_conntrack_ecache.c     |  8 +++-----
+ net/netfilter/nf_conntrack_expect.c     | 12 +++++-------
+ net/netfilter/nf_conntrack_helper.c     |  6 ++----
+ net/netfilter/nf_conntrack_proto.c      |  6 ++----
+ net/netfilter/nf_conntrack_standalone.c |  8 +++-----
+ 7 files changed, 31 insertions(+), 38 deletions(-)
 
-    netfilter: arptables: use pernet ops struct during unregister
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index 06dc6db70d18..cc663c68ddc4 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -346,6 +346,13 @@ nf_ct_set(struct sk_buff *skb, struct nf_conn *ct, enum ip_conntrack_info info)
+ 	skb_set_nfct(skb, (unsigned long)ct | info);
+ }
+ 
++extern unsigned int nf_conntrack_net_id;
++
++static inline struct nf_conntrack_net *nf_ct_pernet(const struct net *net)
++{
++	return net_generic(net, nf_conntrack_net_id);
++}
++
+ #define NF_CT_STAT_INC(net, count)	  __this_cpu_inc((net)->ct.stat->count)
+ #define NF_CT_STAT_INC_ATOMIC(net, count) this_cpu_inc((net)->ct.stat->count)
+ #define NF_CT_STAT_ADD_ATOMIC(net, count, v) this_cpu_add((net)->ct.stat->count, (v))
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index e0befcf8113a..96ba19fc8155 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -55,8 +55,6 @@
+ 
+ #include "nf_internals.h"
+ 
+-extern unsigned int nf_conntrack_net_id;
+-
+ __cacheline_aligned_in_smp spinlock_t nf_conntrack_locks[CONNTRACK_LOCKS];
+ EXPORT_SYMBOL_GPL(nf_conntrack_locks);
+ 
+@@ -87,8 +85,6 @@ static __read_mostly bool nf_conntrack_locks_all;
+ 
+ static struct conntrack_gc_work conntrack_gc_work;
+ 
+-extern unsigned int nf_conntrack_net_id;
+-
+ void nf_conntrack_lock(spinlock_t *lock) __acquires(lock)
+ {
+ 	/* 1) Acquire the lock */
+@@ -1404,7 +1400,7 @@ static void gc_worker(struct work_struct *work)
+ 				continue;
+ 
+ 			net = nf_ct_net(tmp);
+-			cnet = net_generic(net, nf_conntrack_net_id);
++			cnet = nf_ct_pernet(net);
+ 			if (atomic_read(&cnet->count) < nf_conntrack_max95)
+ 				continue;
+ 
+@@ -1484,7 +1480,7 @@ __nf_conntrack_alloc(struct net *net,
+ 		     const struct nf_conntrack_tuple *repl,
+ 		     gfp_t gfp, u32 hash)
+ {
+-	struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
++	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
+ 	unsigned int ct_count;
+ 	struct nf_conn *ct;
+ 
+@@ -1556,7 +1552,7 @@ void nf_conntrack_free(struct nf_conn *ct)
+ 
+ 	nf_ct_ext_destroy(ct);
+ 	kmem_cache_free(nf_conntrack_cachep, ct);
+-	cnet = net_generic(net, nf_conntrack_net_id);
++	cnet = nf_ct_pernet(net);
+ 
+ 	smp_mb__before_atomic();
+ 	atomic_dec(&cnet->count);
+@@ -1614,7 +1610,7 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+ 			     GFP_ATOMIC);
+ 
+ 	local_bh_disable();
+-	cnet = net_generic(net, nf_conntrack_net_id);
++	cnet = nf_ct_pernet(net);
+ 	if (cnet->expect_count) {
+ 		spin_lock(&nf_conntrack_expect_lock);
+ 		exp = nf_ct_find_expectation(net, zone, tuple);
+@@ -2317,7 +2313,7 @@ __nf_ct_unconfirmed_destroy(struct net *net)
+ 
+ void nf_ct_unconfirmed_destroy(struct net *net)
+ {
+-	struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
++	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
+ 
+ 	might_sleep();
+ 
+@@ -2333,7 +2329,7 @@ void nf_ct_iterate_cleanup_net(struct net *net,
+ 			       int (*iter)(struct nf_conn *i, void *data),
+ 			       void *data, u32 portid, int report)
+ {
+-	struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
++	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
+ 	struct iter_data d;
+ 
+ 	might_sleep();
+@@ -2367,7 +2363,7 @@ nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data), void *data)
+ 
+ 	down_read(&net_rwsem);
+ 	for_each_net(net) {
+-		struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
++		struct nf_conntrack_net *cnet = nf_ct_pernet(net);
+ 
+ 		if (atomic_read(&cnet->count) == 0)
+ 			continue;
+@@ -2449,7 +2445,7 @@ void nf_conntrack_cleanup_net_list(struct list_head *net_exit_list)
+ i_see_dead_people:
+ 	busy = 0;
+ 	list_for_each_entry(net, net_exit_list, exit_list) {
+-		struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
++		struct nf_conntrack_net *cnet = nf_ct_pernet(net);
+ 
+ 		nf_ct_iterate_cleanup(kill_all, net, 0, 0);
+ 		if (atomic_read(&cnet->count) != 0)
+@@ -2733,7 +2729,7 @@ void nf_conntrack_init_end(void)
+ 
+ int nf_conntrack_init_net(struct net *net)
+ {
+-	struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
++	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
+ 	int ret = -ENOMEM;
+ 	int cpu;
+ 
+diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
+index 759d87aef95f..296e4a171bd1 100644
+--- a/net/netfilter/nf_conntrack_ecache.c
++++ b/net/netfilter/nf_conntrack_ecache.c
+@@ -27,8 +27,6 @@
+ #include <net/netfilter/nf_conntrack_ecache.h>
+ #include <net/netfilter/nf_conntrack_extend.h>
+ 
+-extern unsigned int nf_conntrack_net_id;
+-
+ static DEFINE_MUTEX(nf_ct_ecache_mutex);
+ 
+ #define ECACHE_RETRY_WAIT (HZ/10)
+@@ -348,7 +346,7 @@ EXPORT_SYMBOL_GPL(nf_ct_expect_unregister_notifier);
+ 
+ void nf_conntrack_ecache_work(struct net *net, enum nf_ct_ecache_state state)
+ {
+-	struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
++	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
+ 
+ 	if (state == NFCT_ECACHE_DESTROY_FAIL &&
+ 	    !delayed_work_pending(&cnet->ecache_dwork)) {
+@@ -371,7 +369,7 @@ static const struct nf_ct_ext_type event_extend = {
+ 
+ void nf_conntrack_ecache_pernet_init(struct net *net)
+ {
+-	struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
++	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
+ 
+ 	net->ct.sysctl_events = nf_ct_events;
+ 	cnet->ct_net = &net->ct;
+@@ -380,7 +378,7 @@ void nf_conntrack_ecache_pernet_init(struct net *net)
+ 
+ void nf_conntrack_ecache_pernet_fini(struct net *net)
+ {
+-	struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
++	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
+ 
+ 	cancel_delayed_work_sync(&cnet->ecache_dwork);
+ }
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index efdd391b3f72..1e851bc2e61a 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -43,8 +43,6 @@ unsigned int nf_ct_expect_max __read_mostly;
+ static struct kmem_cache *nf_ct_expect_cachep __read_mostly;
+ static unsigned int nf_ct_expect_hashrnd __read_mostly;
+ 
+-extern unsigned int nf_conntrack_net_id;
+-
+ /* nf_conntrack_expect helper functions */
+ void nf_ct_unlink_expect_report(struct nf_conntrack_expect *exp,
+ 				u32 portid, int report)
+@@ -58,7 +56,7 @@ void nf_ct_unlink_expect_report(struct nf_conntrack_expect *exp,
+ 
+ 	hlist_del_rcu(&exp->hnode);
+ 
+-	cnet = net_generic(net, nf_conntrack_net_id);
++	cnet = nf_ct_pernet(net);
+ 	cnet->expect_count--;
+ 
+ 	hlist_del_rcu(&exp->lnode);
+@@ -123,7 +121,7 @@ __nf_ct_expect_find(struct net *net,
+ 		    const struct nf_conntrack_zone *zone,
+ 		    const struct nf_conntrack_tuple *tuple)
+ {
+-	struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
++	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
+ 	struct nf_conntrack_expect *i;
+ 	unsigned int h;
+ 
+@@ -164,7 +162,7 @@ nf_ct_find_expectation(struct net *net,
+ 		       const struct nf_conntrack_zone *zone,
+ 		       const struct nf_conntrack_tuple *tuple)
+ {
+-	struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
++	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
+ 	struct nf_conntrack_expect *i, *exp = NULL;
+ 	unsigned int h;
+ 
+@@ -397,7 +395,7 @@ static void nf_ct_expect_insert(struct nf_conntrack_expect *exp)
+ 	master_help->expecting[exp->class]++;
+ 
+ 	hlist_add_head_rcu(&exp->hnode, &nf_ct_expect_hash[h]);
+-	cnet = net_generic(net, nf_conntrack_net_id);
++	cnet = nf_ct_pernet(net);
+ 	cnet->expect_count++;
+ 
+ 	NF_CT_STAT_INC(net, expect_create);
+@@ -468,7 +466,7 @@ static inline int __nf_ct_expect_check(struct nf_conntrack_expect *expect,
+ 		}
+ 	}
+ 
+-	cnet = net_generic(net, nf_conntrack_net_id);
++	cnet = nf_ct_pernet(net);
+ 	if (cnet->expect_count >= nf_ct_expect_max) {
+ 		net_warn_ratelimited("nf_conntrack: expectation table full\n");
+ 		ret = -EMFILE;
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index ac396cc8bfae..ae4488a13c70 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -43,8 +43,6 @@ MODULE_PARM_DESC(nf_conntrack_helper,
+ static DEFINE_MUTEX(nf_ct_nat_helpers_mutex);
+ static struct list_head nf_ct_nat_helpers __read_mostly;
+ 
+-extern unsigned int nf_conntrack_net_id;
+-
+ /* Stupid hash, but collision free for the default registrations of the
+  * helpers currently in the kernel. */
+ static unsigned int helper_hash(const struct nf_conntrack_tuple *tuple)
+@@ -214,7 +212,7 @@ EXPORT_SYMBOL_GPL(nf_ct_helper_ext_add);
+ static struct nf_conntrack_helper *
+ nf_ct_lookup_helper(struct nf_conn *ct, struct net *net)
+ {
+-	struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
++	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
+ 
+ 	if (!cnet->sysctl_auto_assign_helper) {
+ 		if (cnet->auto_assign_helper_warned)
+@@ -560,7 +558,7 @@ static const struct nf_ct_ext_type helper_extend = {
+ 
+ void nf_conntrack_helper_pernet_init(struct net *net)
+ {
+-	struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
++	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
+ 
+ 	cnet->sysctl_auto_assign_helper = nf_ct_auto_assign_helper;
+ }
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+index 89e5bac384d7..fbc1fa36d2c2 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -42,8 +42,6 @@
+ #include <net/ipv6.h>
+ #include <net/inet_frag.h>
+ 
+-extern unsigned int nf_conntrack_net_id;
+-
+ static DEFINE_MUTEX(nf_ct_proto_mutex);
+ 
+ #ifdef CONFIG_SYSCTL
+@@ -446,7 +444,7 @@ static struct nf_ct_bridge_info *nf_ct_bridge_info;
+ 
+ static int nf_ct_netns_do_get(struct net *net, u8 nfproto)
+ {
+-	struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
++	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
+ 	bool fixup_needed = false, retry = true;
+ 	int err = 0;
+ retry:
+@@ -531,7 +529,7 @@ static int nf_ct_netns_do_get(struct net *net, u8 nfproto)
+ 
+ static void nf_ct_netns_do_put(struct net *net, u8 nfproto)
+ {
+-	struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
++	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
+ 
+ 	mutex_lock(&nf_ct_proto_mutex);
+ 	switch (nfproto) {
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index aaa55246d0ca..bce93656fad9 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -512,9 +512,7 @@ static void nf_conntrack_standalone_fini_proc(struct net *net)
+ 
+ u32 nf_conntrack_count(const struct net *net)
+ {
+-	const struct nf_conntrack_net *cnet;
+-
+-	cnet = net_generic(net, nf_conntrack_net_id);
++	const struct nf_conntrack_net *cnet = nf_ct_pernet(net);
+ 
+ 	return atomic_read(&cnet->count);
+ }
+@@ -1032,7 +1030,7 @@ static void nf_conntrack_standalone_init_gre_sysctl(struct net *net,
+ 
+ static int nf_conntrack_standalone_init_sysctl(struct net *net)
+ {
+-	struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
++	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
+ 	struct nf_udp_net *un = nf_udp_pernet(net);
+ 	struct ctl_table *table;
+ 
+@@ -1085,7 +1083,7 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
+ 
+ static void nf_conntrack_standalone_fini_sysctl(struct net *net)
+ {
+-	struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
++	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
+ 	struct ctl_table *table;
+ 
+ 	table = cnet->sysctl_header->ctl_table_arg;
+-- 
+2.20.1
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=11518847d00000
-start commit:   4d41ead6 Merge tag 'block-5.9-2020-08-28' of git://git.ker..
-git tree:       upstream
-kernel config:  https://syzkaller.appspot.com/x/.config?x=891ca5711a9f1650
-dashboard link: https://syzkaller.appspot.com/bug?extid=f7204dcf3df4bb4ce42c
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=17a1352e900000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=11fdaf41900000
-
-If the result looks correct, please mark the issue as fixed by replying with:
-
-#syz fix: netfilter: arptables: use pernet ops struct during unregister
-
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
