@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BA49C47099
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1E86C4709A
 	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Jun 2021 22:58:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 31C0A6140C
+	by mail.kernel.org (Postfix) with ESMTP id 95F496140C
 	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Jun 2021 22:58:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229576AbhFCW77 (ORCPT
+        id S229761AbhFCW77 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Thu, 3 Jun 2021 18:59:59 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:45830 "EHLO
+Received: from mail.netfilter.org ([217.70.188.207]:45826 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229810AbhFCW77 (ORCPT
+        with ESMTP id S229812AbhFCW77 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Thu, 3 Jun 2021 18:59:59 -0400
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 0E98A64207
+        by mail.netfilter.org (Postfix) with ESMTPSA id 5B4506420B
         for <netfilter-devel@vger.kernel.org>; Fri,  4 Jun 2021 00:57:05 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH iptables,v2 4/5] extensions: libxt_tcp: rework translation to use flags match representation
-Date:   Fri,  4 Jun 2021 00:58:05 +0200
-Message-Id: <20210603225806.13625-5-pablo@netfilter.org>
+Subject: [PATCH iptables,v2 5/5] extensions: libxt_conntrack: simplify translation using negation
+Date:   Fri,  4 Jun 2021 00:58:06 +0200
+Message-Id: <20210603225806.13625-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20210603225806.13625-1-pablo@netfilter.org>
 References: <20210603225806.13625-1-pablo@netfilter.org>
@@ -38,78 +38,142 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Use the new flags match representation available since nftables 0.9.9
-to simplify the translation.
+Available since nftables 0.9.9. For example:
+
+ # iptables-translate -I INPUT -m state ! --state NEW,INVALID
+ nft insert rule ip filter INPUT ct state ! invalid,new  counter
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- extensions/libxt_TCPMSS.txlate |  4 ++--
- extensions/libxt_tcp.c         | 10 +++++-----
- extensions/libxt_tcp.txlate    |  6 +++---
- 3 files changed, 10 insertions(+), 10 deletions(-)
+ extensions/libxt_conntrack.c      | 46 +++++++++----------------------
+ extensions/libxt_conntrack.txlate |  8 +++---
+ 2 files changed, 17 insertions(+), 37 deletions(-)
 
-diff --git a/extensions/libxt_TCPMSS.txlate b/extensions/libxt_TCPMSS.txlate
-index 6a64d2ce9bfd..3dbbad66c560 100644
---- a/extensions/libxt_TCPMSS.txlate
-+++ b/extensions/libxt_TCPMSS.txlate
-@@ -1,5 +1,5 @@
- iptables-translate -A FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
--nft add rule ip filter FORWARD tcp flags & (syn|rst) == syn counter tcp option maxseg size set rt mtu
-+nft add rule ip filter FORWARD tcp flags syn / syn,rst counter tcp option maxseg size set rt mtu
+diff --git a/extensions/libxt_conntrack.c b/extensions/libxt_conntrack.c
+index 7f7b45ee1f82..64018ce152b7 100644
+--- a/extensions/libxt_conntrack.c
++++ b/extensions/libxt_conntrack.c
+@@ -1151,40 +1151,30 @@ static void state_save(const void *ip, const struct xt_entry_match *match)
+ static void state_xlate_print(struct xt_xlate *xl, unsigned int statemask, int inverted)
+ {
+ 	const char *sep = "";
+-	int one_flag_set;
  
- iptables-translate -A FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 90
--nft add rule ip filter FORWARD tcp flags & (syn|rst) == syn counter tcp option maxseg size set 90
-+nft add rule ip filter FORWARD tcp flags syn / syn,rst counter tcp option maxseg size set 90
-diff --git a/extensions/libxt_tcp.c b/extensions/libxt_tcp.c
-index 58f3c0a0c3c2..4bcd94630111 100644
---- a/extensions/libxt_tcp.c
-+++ b/extensions/libxt_tcp.c
-@@ -381,7 +381,7 @@ static void print_tcp_xlate(struct xt_xlate *xl, uint8_t flags)
- 		for (i = 0; (flags & tcp_flag_names_xlate[i].flag) == 0; i++);
+-	one_flag_set = !(statemask & (statemask - 1));
+-
+-	if (inverted && !one_flag_set)
+-		xt_xlate_add(xl, "& (");
+-	else if (inverted)
+-		xt_xlate_add(xl, "& ");
++	if (inverted)
++		xt_xlate_add(xl, "! ");
  
- 		if (have_flag)
--			xt_xlate_add(xl, "|");
-+			xt_xlate_add(xl, ",");
- 
- 		xt_xlate_add(xl, "%s", tcp_flag_names_xlate[i].name);
- 		have_flag = 1;
-@@ -435,11 +435,11 @@ static int tcp_xlate(struct xt_xlate *xl,
- 		return 0;
- 
- 	if (tcpinfo->flg_mask || (tcpinfo->invflags & XT_TCP_INV_FLAGS)) {
--		xt_xlate_add(xl, "%stcp flags & (", space);
--		print_tcp_xlate(xl, tcpinfo->flg_mask);
--		xt_xlate_add(xl, ") %s ",
--			   tcpinfo->invflags & XT_TCP_INV_FLAGS ? "!=": "==");
-+		xt_xlate_add(xl, "%stcp flags %s", space,
-+			     tcpinfo->invflags & XT_TCP_INV_FLAGS ? "!= ": "");
- 		print_tcp_xlate(xl, tcpinfo->flg_cmp);
-+		xt_xlate_add(xl, " / ");
-+		print_tcp_xlate(xl, tcpinfo->flg_mask);
+ 	if (statemask & XT_CONNTRACK_STATE_INVALID) {
+ 		xt_xlate_add(xl, "%s%s", sep, "invalid");
+-		sep = inverted && !one_flag_set ? "|" : ",";
++		sep = ",";
  	}
+ 	if (statemask & XT_CONNTRACK_STATE_BIT(IP_CT_NEW)) {
+ 		xt_xlate_add(xl, "%s%s", sep, "new");
+-		sep = inverted && !one_flag_set ? "|" : ",";
++		sep = ",";
+ 	}
+ 	if (statemask & XT_CONNTRACK_STATE_BIT(IP_CT_RELATED)) {
+ 		xt_xlate_add(xl, "%s%s", sep, "related");
+-		sep = inverted && !one_flag_set ? "|" : ",";
++		sep = ",";
+ 	}
+ 	if (statemask & XT_CONNTRACK_STATE_BIT(IP_CT_ESTABLISHED)) {
+ 		xt_xlate_add(xl, "%s%s", sep, "established");
+-		sep = inverted && !one_flag_set ? "|" : ",";
++		sep = ",";
+ 	}
+ 	if (statemask & XT_CONNTRACK_STATE_UNTRACKED) {
+ 		xt_xlate_add(xl, "%s%s", sep, "untracked");
+-		sep = inverted && !one_flag_set ? "|" : ",";
++		sep = ",";
+ 	}
+-
+-	if (inverted && !one_flag_set)
+-		xt_xlate_add(xl, ") == 0");
+-	else if (inverted)
+-		xt_xlate_add(xl, " == 0");
+ }
  
- 	return 1;
-diff --git a/extensions/libxt_tcp.txlate b/extensions/libxt_tcp.txlate
-index bba63324df2b..921d4af024d3 100644
---- a/extensions/libxt_tcp.txlate
-+++ b/extensions/libxt_tcp.txlate
-@@ -11,13 +11,13 @@ iptables-translate -I OUTPUT -p tcp --dport 1020:1023 --sport 53 -j ACCEPT
- nft insert rule ip filter OUTPUT tcp sport 53 tcp dport 1020-1023 counter accept
+ static int state_xlate(struct xt_xlate *xl,
+@@ -1203,36 +1193,26 @@ static int state_xlate(struct xt_xlate *xl,
+ static void status_xlate_print(struct xt_xlate *xl, unsigned int statusmask, int inverted)
+ {
+ 	const char *sep = "";
+-	int one_flag_set;
  
- iptables -A INPUT -p tcp --tcp-flags ACK,FIN FIN -j DROP
--nft add rule ip filter INPUT tcp flags & fin|ack == fin counter drop
-+nft add rule ip filter INPUT tcp flags fin / fin,ack counter drop
+-	one_flag_set = !(statusmask & (statusmask - 1));
+-
+-	if (inverted && !one_flag_set)
+-		xt_xlate_add(xl, "& (");
+-	else if (inverted)
+-		xt_xlate_add(xl, "& ");
++	if (inverted)
++		xt_xlate_add(xl, "! ");
  
- iptables-translate -A INPUT -p tcp --syn -j ACCEPT
--nft add rule ip filter INPUT tcp flags & (fin|syn|rst|ack) == syn counter accept
-+nft add rule ip filter INPUT tcp flags syn / fin,syn,rst,ack counter accept
+ 	if (statusmask & IPS_EXPECTED) {
+ 		xt_xlate_add(xl, "%s%s", sep, "expected");
+-		sep = inverted && !one_flag_set ? "|" : ",";
++		sep = ",";
+ 	}
+ 	if (statusmask & IPS_SEEN_REPLY) {
+ 		xt_xlate_add(xl, "%s%s", sep, "seen-reply");
+-		sep = inverted && !one_flag_set ? "|" : ",";
++		sep = ",";
+ 	}
+ 	if (statusmask & IPS_ASSURED) {
+ 		xt_xlate_add(xl, "%s%s", sep, "assured");
+-		sep = inverted && !one_flag_set ? "|" : ",";
++		sep = ",";
+ 	}
+ 	if (statusmask & IPS_CONFIRMED) {
+ 		xt_xlate_add(xl, "%s%s", sep, "confirmed");
+-		sep = inverted && !one_flag_set ? "|" : ",";
++		sep = ",";
+ 	}
+-
+-	if (inverted && !one_flag_set)
+-		xt_xlate_add(xl, ") == 0");
+-	else if (inverted)
+-		xt_xlate_add(xl, " == 0");
+ }
  
- iptables-translate -A INPUT -p tcp --syn --dport 80 -j ACCEPT
--nft add rule ip filter INPUT tcp dport 80 tcp flags & (fin|syn|rst|ack) == syn counter accept
-+nft add rule ip filter INPUT tcp dport 80 tcp flags syn / fin,syn,rst,ack counter accept
+ static void addr_xlate_print(struct xt_xlate *xl,
+diff --git a/extensions/libxt_conntrack.txlate b/extensions/libxt_conntrack.txlate
+index 8cc7c504ab4b..45fba984ba96 100644
+--- a/extensions/libxt_conntrack.txlate
++++ b/extensions/libxt_conntrack.txlate
+@@ -2,10 +2,10 @@ iptables-translate -t filter -A INPUT -m conntrack --ctstate NEW,RELATED -j ACCE
+ nft add rule ip filter INPUT ct state new,related counter accept
  
- iptables-translate -A INPUT -f -p tcp
- nft add rule ip filter INPUT ip frag-off & 0x1fff != 0 ip protocol tcp counter
+ ip6tables-translate -t filter -A INPUT -m conntrack ! --ctstate NEW,RELATED -j ACCEPT
+-nft add rule ip6 filter INPUT ct state & (new|related) == 0 counter accept
++nft add rule ip6 filter INPUT ct state ! new,related counter accept
+ 
+ ip6tables-translate -t filter -A INPUT -m conntrack ! --ctstate NEW -j ACCEPT
+-nft add rule ip6 filter INPUT ct state & new == 0 counter accept
++nft add rule ip6 filter INPUT ct state ! new counter accept
+ 
+ iptables-translate -t filter -A INPUT -m conntrack --ctproto UDP -j ACCEPT
+ nft add rule ip filter INPUT ct original protocol 17 counter accept
+@@ -35,10 +35,10 @@ iptables-translate -t filter -A INPUT -m conntrack --ctstatus EXPECTED -j ACCEPT
+ nft add rule ip filter INPUT ct status expected counter accept
+ 
+ iptables-translate -t filter -A INPUT -m conntrack ! --ctstatus CONFIRMED -j ACCEPT
+-nft add rule ip filter INPUT ct status & confirmed == 0 counter accept
++nft add rule ip filter INPUT ct status ! confirmed counter accept
+ 
+ iptables-translate -t filter -A INPUT -m conntrack ! --ctstatus CONFIRMED,ASSURED -j ACCEPT
+-nft add rule ip filter INPUT ct status & (assured|confirmed) == 0 counter accept
++nft add rule ip filter INPUT ct status ! assured,confirmed counter accept
+ 
+ iptables-translate -t filter -A INPUT -m conntrack --ctstatus CONFIRMED,ASSURED -j ACCEPT
+ nft add rule ip filter INPUT ct status assured,confirmed counter accept
 -- 
 2.20.1
 
