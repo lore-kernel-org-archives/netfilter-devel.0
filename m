@@ -2,137 +2,89 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46C18C47082
-	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Jun 2021 17:37:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9279C47082
+	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Jun 2021 21:00:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3090661359
-	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Jun 2021 17:37:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C39F7613F1
+	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Jun 2021 21:00:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229982AbhFCRir (ORCPT
+        id S229925AbhFCVBu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 3 Jun 2021 13:38:47 -0400
-Received: from mail-wm1-f47.google.com ([209.85.128.47]:51849 "EHLO
-        mail-wm1-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229845AbhFCRir (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 3 Jun 2021 13:38:47 -0400
-Received: by mail-wm1-f47.google.com with SMTP id r13so3908848wmq.1;
-        Thu, 03 Jun 2021 10:36:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=9ZEWHSSOb74rLWBdPbbD8Bw6Cd9qJ07nhLoANozAowA=;
-        b=s1rHc9mCAalfAD9jNYasuCBfe7xeQ6PErUmHUjpRlAfZctPlDyJzoyZDFz0S644oTL
-         tuIcnViK0JYmqG7TOGcuVnIJfHLnVBhGEcYJEwyipCvInodMovVIiqZD9clCGUA3A7JG
-         UH8rHj9LeQa8Xia46PTscM8jQTd+tHoNgoXaq0JyCKCiTBzD4uUYU3bt8LiyZotOB5Tf
-         OPqA1rYk6mrXkIR/VU1MIO5EaEXW/QEBfxaCiw00pHPAccx0FNvw/Ix9lf3T//EmHchm
-         wckQ4m0buQR+jKtPUXW2psRKoSODGxOFdKrewizUUtNQAF2pOKO04u2voygJ3Qp9wrBw
-         xPrw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=9ZEWHSSOb74rLWBdPbbD8Bw6Cd9qJ07nhLoANozAowA=;
-        b=t1pyXNZL9MOYj5XqD4dahA/ZCVhs8sLnEf2lCocXZGKzjAzI4neelHdehvKoc9ZyVc
-         +QCokHwbZZ76NJnsJ4wNf0ylQuOzTtkJsOtj+KVtap0P0loGc0hl0MKVP+70MBw//jD7
-         uROKhhPFevc+vaWyeKqQ3bWT7hETFi9tYAQhon/8ntx5viLgTp5YUmOCbgoy1bLqDvYZ
-         dVyK32e2smHSaNcjKd9CBCc7PVajkea/6L8p0Gac8IVfZni0Vqdsxg4tqXgnpy8bvVO9
-         9a28EiOEhMZJGDugpoLGEPTtmcgkxUxoU7o+aiKfMiwsY/3jV7Whn4bJJvn/vtS+6GYF
-         aLbQ==
-X-Gm-Message-State: AOAM531kSCyTJG3yfmFcAdPk+FrggZNACDSsGxVoQI+pktuzxniDbNSp
-        AmZYe6Ue+b9qRzon92zK4NGLq01nSSOfDUuwHWg=
-X-Google-Smtp-Source: ABdhPJzjtaHxvcA/Ycqn31cacCGPcInD2eYWcgqY43Km/VJSWBFnIj1HKH5+2lD0Fjr5vJ1aN4xcP//XCewEozbqTOg=
-X-Received: by 2002:a05:600c:c9:: with SMTP id u9mr205699wmm.156.1622741746374;
- Thu, 03 Jun 2021 10:35:46 -0700 (PDT)
+        Thu, 3 Jun 2021 17:01:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46040 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229803AbhFCVBt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 3 Jun 2021 17:01:49 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPS id 9B6D5613E4;
+        Thu,  3 Jun 2021 21:00:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1622754004;
+        bh=2lE0Sc5EJ/jVT8FN9y3qThe0QydcNInYrfUlen1Kufs=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=S0j9skKJjyLPitCzxxHh5/MMe0/dnr3kwhqHjMenbiZIs2/+zgIFcZvc6b7jx66Th
+         Mvc1x88WSuuedqc4SXFj6xHakl/DNe+Ae5BFldSReqvwVFwXvN16HlNt5XdSioIr5Q
+         HwdUAhEyc3S2kkpZ83cgsU8NeKuCbfYsUvs3k8dYUstBztQ/bi/hIbJL27Msw6JSxy
+         OxS3TCVbHY1d4Nyeb0+sV/hrab/zk48A8APac4aSm/F+zWKH3CcA/Qe0NDuKBq/iyI
+         we6RpA21roruV4cxLnIx1RUMyNXfmjlFmFZCXbSwUa1Rpp0dLmlHvslAe1E9ljjfn9
+         oPjlDYnDs2uiQ==
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-References: <000000000000c91e6f05c3144acc@google.com> <CADvbK_duDeZidW1mgSyNo+f1Hj4L0V6=L-Upfgp+5DEu5P-8Ag@mail.gmail.com>
- <b216d7a4-c3dd-3714-3897-3124769c88f2@ssi.bg>
-In-Reply-To: <b216d7a4-c3dd-3714-3897-3124769c88f2@ssi.bg>
-From:   Xin Long <lucien.xin@gmail.com>
-Date:   Thu, 3 Jun 2021 13:35:35 -0400
-Message-ID: <CADvbK_cUe=T5-zBcgUm4uA7rjqsomoB+DZYs9tQSWbqP3Q77Pw@mail.gmail.com>
-Subject: Re: [syzbot] memory leak in ip_vs_add_service
-To:     Julian Anastasov <ja@ssi.bg>
-Cc:     syzbot <syzbot+e562383183e4b1766930@syzkaller.appspotmail.com>,
-        coreteam@netfilter.org, Simon Horman <horms@verge.net.au>,
-        LKML <linux-kernel@vger.kernel.org>, lvs-devel@vger.kernel.org,
-        network dev <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org,
-        syzkaller-bugs <syzkaller-bugs@googlegroups.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/2] netfilter: nft_ct: skip expectations for confirmed
+ conntrack
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <162275400455.32659.4499816404978112391.git-patchwork-notify@kernel.org>
+Date:   Thu, 03 Jun 2021 21:00:04 +0000
+References: <20210602124430.10863-2-pablo@netfilter.org>
+In-Reply-To: <20210602124430.10863-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Jun 3, 2021 at 1:32 PM Julian Anastasov <ja@ssi.bg> wrote:
->
->
->         Hello,
->
-> On Wed, 2 Jun 2021, Xin Long wrote:
->
-> > On Mon, May 24, 2021 at 10:33 AM syzbot
-> > <syzbot+e562383183e4b1766930@syzkaller.appspotmail.com> wrote:
-> > >
-> > > Hello,
-> > >
-> > > syzbot found the following issue on:
-> > >
-> > > HEAD commit:    c3d0e3fd Merge tag 'fs.idmapped.mount_setattr.v5.13-rc3' o..
-> > > git tree:       upstream
-> > > console output: https://syzkaller.appspot.com/x/log.txt?x=148d0bd7d00000
-> > > kernel config:  https://syzkaller.appspot.com/x/.config?x=ae7b129a135ab06b
-> > > dashboard link: https://syzkaller.appspot.com/bug?extid=e562383183e4b1766930
-> > > syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=15585a4bd00000
-> > > C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=13900753d00000
-> > >
-> > > IMPORTANT: if you fix the issue, please add the following tag to the commit:
-> > > Reported-by: syzbot+e562383183e4b1766930@syzkaller.appspotmail.com
-> > >
-> > > BUG: memory leak
-> > > unreferenced object 0xffff888115227800 (size 512):
-> > >   comm "syz-executor263", pid 8658, jiffies 4294951882 (age 12.560s)
-> > >   hex dump (first 32 bytes):
-> > >     00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-> > >     00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-> > >   backtrace:
-> > >     [<ffffffff83977188>] kmalloc include/linux/slab.h:556 [inline]
-> > >     [<ffffffff83977188>] kzalloc include/linux/slab.h:686 [inline]
-> > >     [<ffffffff83977188>] ip_vs_add_service+0x598/0x7c0 net/netfilter/ipvs/ip_vs_ctl.c:1343
-> > >     [<ffffffff8397d770>] do_ip_vs_set_ctl+0x810/0xa40 net/netfilter/ipvs/ip_vs_ctl.c:2570
-> > >     [<ffffffff838449a8>] nf_setsockopt+0x68/0xa0 net/netfilter/nf_sockopt.c:101
-> > >     [<ffffffff839ae4e9>] ip_setsockopt+0x259/0x1ff0 net/ipv4/ip_sockglue.c:1435
-> > >     [<ffffffff839fa03c>] raw_setsockopt+0x18c/0x1b0 net/ipv4/raw.c:857
-> > >     [<ffffffff83691f20>] __sys_setsockopt+0x1b0/0x360 net/socket.c:2117
-> > >     [<ffffffff836920f2>] __do_sys_setsockopt net/socket.c:2128 [inline]
-> > >     [<ffffffff836920f2>] __se_sys_setsockopt net/socket.c:2125 [inline]
-> > >     [<ffffffff836920f2>] __x64_sys_setsockopt+0x22/0x30 net/socket.c:2125
-> > >     [<ffffffff84350efa>] do_syscall_64+0x3a/0xb0 arch/x86/entry/common.c:47
-> > >     [<ffffffff84400068>] entry_SYSCALL_64_after_hwframe+0x44/0xae
-> > do_ip_vs_set_ctl() allows users to add svc with the flags field set.
-> > when IP_VS_SVC_F_HASHED is used, and in ip_vs_svc_hash()
-> > called ip_vs_add_service() will trigger the err msg:
-> >
-> > IPVS: ip_vs_svc_hash(): request for already hashed, called from
-> > do_ip_vs_set_ctl+0x810/0xa40
-> >
-> > and the svc allocated will leak.
-> >
-> > so fix it by mask the flags with ~IP_VS_SVC_F_HASHED in
-> > ip_vs_copy_usvc_compat(), while at it also remove the unnecessary
-> > flag IP_VS_SVC_F_HASHED set in ip_vs_edit_service().
->
->         The net tree already contains fix for this problem.
->
-> Regards
->
-> --
-> Julian Anastasov <ja@ssi.bg>
->
-good, thanks for the info, :-)
+Hello:
+
+This series was applied to netdev/net.git (refs/heads/master):
+
+On Wed,  2 Jun 2021 14:44:29 +0200 you wrote:
+> nft_ct_expect_obj_eval() calls nf_ct_ext_add() for a confirmed
+> conntrack entry. However, nf_ct_ext_add() can only be called for
+> !nf_ct_is_confirmed().
+> 
+> [ 1825.349056] WARNING: CPU: 0 PID: 1279 at net/netfilter/nf_conntrack_extend.c:48 nf_ct_xt_add+0x18e/0x1a0 [nf_conntrack]
+> [ 1825.351391] RIP: 0010:nf_ct_ext_add+0x18e/0x1a0 [nf_conntrack]
+> [ 1825.351493] Code: 41 5c 41 5d 41 5e 41 5f c3 41 bc 0a 00 00 00 e9 15 ff ff ff ba 09 00 00 00 31 f6 4c 89 ff e8 69 6c 3d e9 eb 96 45 31 ed eb cd <0f> 0b e9 b1 fe ff ff e8 86 79 14 e9 eb bf 0f 1f 40 00 0f 1f 44 00
+> [ 1825.351721] RSP: 0018:ffffc90002e1f1e8 EFLAGS: 00010202
+> [ 1825.351790] RAX: 000000000000000e RBX: ffff88814f5783c0 RCX: ffffffffc0e4f887
+> [ 1825.351881] RDX: dffffc0000000000 RSI: 0000000000000008 RDI: ffff88814f578440
+> [ 1825.351971] RBP: 0000000000000000 R08: 0000000000000000 R09: ffff88814f578447
+> [ 1825.352060] R10: ffffed1029eaf088 R11: 0000000000000001 R12: ffff88814f578440
+> [ 1825.352150] R13: ffff8882053f3a00 R14: 0000000000000000 R15: 0000000000000a20
+> [ 1825.352240] FS:  00007f992261c900(0000) GS:ffff889faec00000(0000) knlGS:0000000000000000
+> [ 1825.352343] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [ 1825.352417] CR2: 000056070a4d1158 CR3: 000000015efe0000 CR4: 0000000000350ee0
+> [ 1825.352508] Call Trace:
+> [ 1825.352544]  nf_ct_helper_ext_add+0x10/0x60 [nf_conntrack]
+> [ 1825.352641]  nft_ct_expect_obj_eval+0x1b8/0x1e0 [nft_ct]
+> [ 1825.352716]  nft_do_chain+0x232/0x850 [nf_tables]
+> 
+> [...]
+
+Here is the summary with links:
+  - [net,1/2] netfilter: nft_ct: skip expectations for confirmed conntrack
+    https://git.kernel.org/netdev/net/c/1710eb913bdc
+  - [net,2/2] netfilter: nfnetlink_cthelper: hit EBUSY on updates if size mismatches
+    https://git.kernel.org/netdev/net/c/8971ee8b0877
+
+You are awesome, thank you!
+--
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
