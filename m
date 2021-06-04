@@ -2,574 +2,140 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6453C07E94
-	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Jun 2021 10:27:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86B1CC07E94
+	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Jun 2021 11:40:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AAEAA61406
-	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Jun 2021 10:27:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 63A2561423
+	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Jun 2021 11:40:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230075AbhFDK3J (ORCPT
+        id S229958AbhFDLmg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 4 Jun 2021 06:29:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51124 "EHLO
+        Fri, 4 Jun 2021 07:42:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38886 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229958AbhFDK3J (ORCPT
+        with ESMTP id S229682AbhFDLmg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 4 Jun 2021 06:29:09 -0400
+        Fri, 4 Jun 2021 07:42:36 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5E22C06174A
-        for <netfilter-devel@vger.kernel.org>; Fri,  4 Jun 2021 03:27:22 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 62367C06174A
+        for <netfilter-devel@vger.kernel.org>; Fri,  4 Jun 2021 04:40:50 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1lp72v-0004aL-FO; Fri, 04 Jun 2021 12:27:21 +0200
+        id 1lp8C0-0004v2-Fh; Fri, 04 Jun 2021 13:40:48 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v2 2/2] netfilter: add new hook nfnl subsystem
-Date:   Fri,  4 Jun 2021 12:27:07 +0200
-Message-Id: <20210604102707.799-3-fw@strlen.de>
+Subject: [PATCH nft 0/4] nftables: convert single-elem anon sets to compare operation
+Date:   Fri,  4 Jun 2021 13:40:39 +0200
+Message-Id: <20210604114043.4153-1-fw@strlen.de>
 X-Mailer: git-send-email 2.26.3
-In-Reply-To: <20210604102707.799-1-fw@strlen.de>
-References: <20210604102707.799-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This nfnl subsystem allows to dump the list of all active netfiler hooks,
-e.g. defrag, conntrack, nf/ip/arp/ip6tables and so on.
+Auto-translate 'match { bar }' to 'match bar'.  Doing this causes tons
+of failures in the python test suite, so first remove all test cases
+that use this pattern.
 
-This helps to see what kind of features are currently enabled in
-the network stack.
+This is fine because all of these tests are redundant.
+A new test is added to cover the auto-removal.
 
-Sample output from nft tool using this infra:
+This also includes cases where the set must not be auto-converted.
 
- $ nft list hook ip input
- family ip hook input {
-   +0000000010 nft_do_chain_inet [nf_tables] # nft table firewalld INPUT
-   +0000000100 nf_nat_ipv4_local_in [nf_nat]
-   +2147483647 ipv4_confirm [nf_conntrack]
- }
+Florian Westphal (4):
+  tests: ct: prefer normal cmp
+  tests: remove redundant test cases
+  evaluate: remove anon sets with exactly one element
+  tests: add test case for removal of anon sets with only a single element
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- v2: also update subsys name table in nfnetlink.c.
+ src/evaluate.c                                |  21 +-
+ tests/py/any/meta.t                           |   4 -
+ tests/py/any/meta.t.json                      |  40 --
+ tests/py/any/meta.t.payload                   |  38 --
+ tests/py/arp/arp.t                            |   6 -
+ tests/py/arp/arp.t.json                       | 120 ------
+ tests/py/arp/arp.t.payload                    |  48 ---
+ tests/py/arp/arp.t.payload.netdev             |  60 ---
+ tests/py/inet/ah.t                            |   8 -
+ tests/py/inet/ah.t.json                       | 160 -------
+ tests/py/inet/ah.t.payload                    |  80 ----
+ tests/py/inet/comp.t                          |   4 -
+ tests/py/inet/comp.t.json                     |  80 ----
+ tests/py/inet/comp.t.payload                  |  40 --
+ tests/py/inet/ct.t                            |   2 +-
+ tests/py/inet/ct.t.json                       |   8 +-
+ tests/py/inet/ct.t.payload                    |   7 +-
+ tests/py/inet/dccp.t                          |   5 -
+ tests/py/inet/dccp.t.json                     | 100 -----
+ tests/py/inet/dccp.t.payload                  |  50 ---
+ tests/py/inet/esp.t                           |   5 -
+ tests/py/inet/esp.t.json                      |  80 ----
+ tests/py/inet/esp.t.payload                   |  40 --
+ tests/py/inet/sctp.t                          |   8 -
+ tests/py/inet/sctp.t.json                     | 160 -------
+ tests/py/inet/sctp.t.payload                  |  80 ----
+ tests/py/inet/tcp.t                           |  16 -
+ tests/py/inet/tcp.t.json                      | 280 ------------
+ tests/py/inet/tcp.t.payload                   | 140 ------
+ tests/py/inet/udp.t                           |   8 -
+ tests/py/inet/udp.t.json                      | 166 -------
+ tests/py/inet/udp.t.payload                   |  82 ----
+ tests/py/inet/udplite.t                       |   8 -
+ tests/py/inet/udplite.t.json                  | 126 ------
+ tests/py/inet/udplite.t.payload               |  62 ---
+ tests/py/ip/icmp.t                            |  14 -
+ tests/py/ip/icmp.t.json                       | 407 ------------------
+ tests/py/ip/icmp.t.payload.ip                 | 174 --------
+ tests/py/ip/igmp.t                            |   2 -
+ tests/py/ip/igmp.t.json                       |  50 ---
+ tests/py/ip/igmp.t.payload                    |  20 -
+ tests/py/ip/ip.t                              |  12 -
+ tests/py/ip/ip.t.json                         | 240 -----------
+ tests/py/ip/ip.t.payload                      |  96 -----
+ tests/py/ip/ip.t.payload.bridge               | 120 ------
+ tests/py/ip/ip.t.payload.inet                 | 120 ------
+ tests/py/ip/ip.t.payload.netdev               | 120 ------
+ tests/py/ip6/dst.t                            |   5 -
+ tests/py/ip6/dst.t.json                       |  81 ----
+ tests/py/ip6/dst.t.payload.inet               |  41 --
+ tests/py/ip6/dst.t.payload.ip6                |  34 --
+ tests/py/ip6/frag.t                           |   6 -
+ tests/py/ip6/frag.t.payload.inet              |  62 ---
+ tests/py/ip6/frag.t.payload.ip6               |  50 ---
+ tests/py/ip6/hbh.t                            |   4 -
+ tests/py/ip6/hbh.t.json                       |  80 ----
+ tests/py/ip6/hbh.t.payload.inet               |  40 --
+ tests/py/ip6/hbh.t.payload.ip6                |  32 --
+ tests/py/ip6/icmpv6.t                         |  12 -
+ tests/py/ip6/icmpv6.t.json                    | 240 -----------
+ tests/py/ip6/icmpv6.t.payload.ip6             | 148 -------
+ tests/py/ip6/ip6.t                            |   8 -
+ tests/py/ip6/ip6.t.json                       | 122 ------
+ tests/py/ip6/ip6.t.payload.inet               |  82 ----
+ tests/py/ip6/ip6.t.payload.ip6                |  66 ---
+ tests/py/ip6/mh.t                             |   8 -
+ tests/py/ip6/mh.t.json                        | 162 -------
+ tests/py/ip6/mh.t.payload.inet                |  81 ----
+ tests/py/ip6/mh.t.payload.ip6                 |  65 ---
+ tests/py/ip6/rt.t                             |   8 -
+ tests/py/ip6/rt.t.json                        | 160 -------
+ tests/py/ip6/rt.t.payload.inet                |  80 ----
+ tests/py/ip6/rt.t.payload.ip6                 |  64 ---
+ .../optimizations/dumps/single_anon_set.nft   |  15 +
+ .../dumps/single_anon_set.nft.input           |  35 ++
+ .../testcases/optimizations/single_anon_set   |  13 +
+ .../shell/testcases/sets/dumps/0053echo_0.nft |   2 +-
+ 77 files changed, 88 insertions(+), 5235 deletions(-)
+ create mode 100644 tests/shell/testcases/optimizations/dumps/single_anon_set.nft
+ create mode 100644 tests/shell/testcases/optimizations/dumps/single_anon_set.nft.input
+ create mode 100755 tests/shell/testcases/optimizations/single_anon_set
 
- include/uapi/linux/netfilter/nfnetlink.h      |   3 +-
- include/uapi/linux/netfilter/nfnetlink_hook.h |  54 +++
- net/netfilter/Kconfig                         |   9 +
- net/netfilter/Makefile                        |   1 +
- net/netfilter/nfnetlink.c                     |   1 +
- net/netfilter/nfnetlink_hook.c                | 375 ++++++++++++++++++
- 6 files changed, 442 insertions(+), 1 deletion(-)
- create mode 100644 include/uapi/linux/netfilter/nfnetlink_hook.h
- create mode 100644 net/netfilter/nfnetlink_hook.c
-
-diff --git a/include/uapi/linux/netfilter/nfnetlink.h b/include/uapi/linux/netfilter/nfnetlink.h
-index 5bc960f220b3..6cd58cd2a6f0 100644
---- a/include/uapi/linux/netfilter/nfnetlink.h
-+++ b/include/uapi/linux/netfilter/nfnetlink.h
-@@ -60,7 +60,8 @@ struct nfgenmsg {
- #define NFNL_SUBSYS_CTHELPER		9
- #define NFNL_SUBSYS_NFTABLES		10
- #define NFNL_SUBSYS_NFT_COMPAT		11
--#define NFNL_SUBSYS_COUNT		12
-+#define NFNL_SUBSYS_HOOK		12
-+#define NFNL_SUBSYS_COUNT		13
- 
- /* Reserved control nfnetlink messages */
- #define NFNL_MSG_BATCH_BEGIN		NLMSG_MIN_TYPE
-diff --git a/include/uapi/linux/netfilter/nfnetlink_hook.h b/include/uapi/linux/netfilter/nfnetlink_hook.h
-new file mode 100644
-index 000000000000..d8ac8278571b
---- /dev/null
-+++ b/include/uapi/linux/netfilter/nfnetlink_hook.h
-@@ -0,0 +1,54 @@
-+/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
-+#ifndef _NFNL_HOOK_H_
-+#define _NFNL_HOOK_H_
-+
-+enum nfnl_hook_msg_types {
-+	NFNL_MSG_HOOK_GET,
-+	NFNL_MSG_HOOK_MAX,
-+};
-+
-+/**
-+ * enum nfnl_hook_attributes - nf_tables netfilter hook netlink attributes
-+ *
-+ * @NFNLA_HOOK_HOOKNUM: netfilter hook number (NLA_U32)
-+ * @NFNLAA_HOOK_PRIORITY: netfilter hook priority (NLA_U32)
-+ * @NFNLA_HOOK_DEV: netdevice name (NLA_STRING)
-+ * @NFNLA_HOOK_FUNCTION_NAME: hook function name (NLA_STRING)
-+ * @NFNLA_HOOK_MODULE_NAME: kernel module that registered this hook (NLA_STRING)
-+ * @NFNLA_HOOK_CHAIN_INFO: basechain hook metadata (NLA_NESTED)
-+ */
-+enum nfnl_hook_attributes {
-+	NFNLA_HOOK_UNSPEC,
-+	NFNLA_HOOK_HOOKNUM,
-+	NFNLA_HOOK_PRIORITY,
-+	NFNLA_HOOK_DEV,
-+	NFNLA_HOOK_FUNCTION_NAME,
-+	NFNLA_HOOK_MODULE_NAME,
-+	NFNLA_HOOK_CHAIN_INFO,
-+	__NFNLA_HOOK_MAX
-+};
-+#define NFNLA_HOOK_MAX		(__NFNLA_HOOK_MAX - 1)
-+
-+/**
-+ * enum nfnl_hook_chain_info_attributes - chain description
-+ *
-+ * NFNLA_HOOK_INFO_DESC: nft chain and table name (enum nft_table_attributes) (NLA_NESTED)
-+ * NFNLA_HOOK_INFO_TYPE: chain type (enum nfnl_hook_chaintype) (NLA_U32)
-+ */
-+enum nfnl_hook_chain_info_attributes {
-+	NFNLA_HOOK_INFO_UNSPEC,
-+	NFNLA_HOOK_INFO_DESC,
-+	NFNLA_HOOK_INFO_TYPE,
-+	__NFNLA_HOOK_INFO_MAX,
-+};
-+#define NFNLA_HOOK_INFO_MAX (__NFNLA_HOOK_INFO_MAX - 1)
-+
-+/**
-+ * enum nfnl_hook_chaintype - chain type
-+ *
-+ * @NFNL_HOOK_TYPE_NFTABLES nf_tables base chain
-+ */
-+enum nfnl_hook_chaintype {
-+	NFNL_HOOK_TYPE_NFTABLES = 0x1,
-+};
-+#endif /* _NFNL_HOOK_H */
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 172d74560632..c81321372198 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -19,6 +19,15 @@ config NETFILTER_FAMILY_BRIDGE
- config NETFILTER_FAMILY_ARP
- 	bool
- 
-+config NETFILTER_NETLINK_HOOK
-+	tristate "Netfilter base hook dump support"
-+	depends on NETFILTER_ADVANCED
-+	select NETFILTER_NETLINK
-+	help
-+	  If this option is enabled, the kernel will include support
-+	  to list the base netfilter hooks via NFNETLINK.
-+	  This is helpful for debugging.
-+
- config NETFILTER_NETLINK_ACCT
- 	tristate "Netfilter NFACCT over NFNETLINK interface"
- 	depends on NETFILTER_ADVANCED
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index e80e010354b1..87112dad1fd4 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -22,6 +22,7 @@ obj-$(CONFIG_NETFILTER_NETLINK_ACCT) += nfnetlink_acct.o
- obj-$(CONFIG_NETFILTER_NETLINK_QUEUE) += nfnetlink_queue.o
- obj-$(CONFIG_NETFILTER_NETLINK_LOG) += nfnetlink_log.o
- obj-$(CONFIG_NETFILTER_NETLINK_OSF) += nfnetlink_osf.o
-+obj-$(CONFIG_NETFILTER_NETLINK_HOOK) += nfnetlink_hook.o
- 
- # connection tracking
- obj-$(CONFIG_NF_CONNTRACK) += nf_conntrack.o
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index e8dbd8379027..cc41ab213e9a 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -68,6 +68,7 @@ static const char *const nfnl_lockdep_names[NFNL_SUBSYS_COUNT] = {
- 	[NFNL_SUBSYS_CTHELPER] = "nfnl_subsys_cthelper",
- 	[NFNL_SUBSYS_NFTABLES] = "nfnl_subsys_nftables",
- 	[NFNL_SUBSYS_NFT_COMPAT] = "nfnl_subsys_nftcompat",
-+	[NFNL_SUBSYS_HOOK] = "nfnl_subsys_hook",
- };
- 
- static const int nfnl_group2type[NFNLGRP_MAX+1] = {
-diff --git a/net/netfilter/nfnetlink_hook.c b/net/netfilter/nfnetlink_hook.c
-new file mode 100644
-index 000000000000..04586dfa2acd
---- /dev/null
-+++ b/net/netfilter/nfnetlink_hook.c
-@@ -0,0 +1,375 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+/*
-+ * Copyright (c) 2021 Red Hat GmbH
-+ *
-+ * Author: Florian Westphal <fw@strlen.de>
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/types.h>
-+#include <linux/skbuff.h>
-+#include <linux/errno.h>
-+#include <linux/netlink.h>
-+#include <linux/slab.h>
-+
-+#include <linux/netfilter.h>
-+
-+#include <linux/netfilter/nfnetlink.h>
-+#include <linux/netfilter/nfnetlink_hook.h>
-+
-+#include <net/netfilter/nf_tables.h>
-+#include <net/sock.h>
-+
-+static const struct nla_policy nfnl_hook_nla_policy[NFNLA_HOOK_MAX + 1] = {
-+	[NFNLA_HOOK_HOOKNUM]	= { .type = NLA_U32 },
-+	[NFNLA_HOOK_PRIORITY]	= { .type = NLA_U32 },
-+	[NFNLA_HOOK_DEV]	= { .type = NLA_STRING,
-+				    .len = IFNAMSIZ - 1 },
-+	[NFNLA_HOOK_FUNCTION_NAME] = { .type = NLA_NUL_STRING,
-+				       .len = KSYM_NAME_LEN, },
-+	[NFNLA_HOOK_MODULE_NAME] = { .type = NLA_NUL_STRING,
-+				     .len = MODULE_NAME_LEN, },
-+	[NFNLA_HOOK_CHAIN_INFO] = { .type = NLA_NESTED, },
-+};
-+
-+static int nf_netlink_dump_start_rcu(struct sock *nlsk, struct sk_buff *skb,
-+				     const struct nlmsghdr *nlh,
-+				     struct netlink_dump_control *c)
-+{
-+	int err;
-+
-+	if (!try_module_get(THIS_MODULE))
-+		return -EINVAL;
-+
-+	rcu_read_unlock();
-+	err = netlink_dump_start(nlsk, skb, nlh, c);
-+	rcu_read_lock();
-+	module_put(THIS_MODULE);
-+
-+	return err;
-+}
-+
-+struct nfnl_dump_hook_data {
-+	char devname[IFNAMSIZ];
-+	unsigned long headv;
-+	u8 hook;
-+};
-+
-+static int nfnl_hook_put_nft_chain_info(struct sk_buff *nlskb,
-+					const struct nfnl_dump_hook_data *ctx,
-+					unsigned int seq,
-+					const struct nf_hook_ops *ops)
-+{
-+	struct net *net = sock_net(nlskb->sk);
-+	struct nlattr *nest, *nest2;
-+	struct nft_chain *chain;
-+	int ret = 0;
-+
-+	if (ops->hook_ops_type != NF_HOOK_OP_NF_TABLES)
-+		return 0;
-+
-+	chain = ops->priv;
-+	if (WARN_ON_ONCE(!chain))
-+		return 0;
-+
-+	if (!nft_is_active(net, chain))
-+		return 0;
-+
-+	nest = nla_nest_start(nlskb, NFNLA_HOOK_CHAIN_INFO);
-+	if (!nest)
-+		return -EMSGSIZE;
-+
-+	ret = nla_put_be32(nlskb, NFNLA_HOOK_INFO_TYPE,
-+			   htonl(NFNL_HOOK_TYPE_NFTABLES));
-+	if (ret)
-+		goto cancel_nest;
-+
-+	nest2 = nla_nest_start(nlskb, NFNLA_HOOK_INFO_DESC);
-+	if (!nest2)
-+		goto cancel_nest;
-+
-+	ret = nla_put_string(nlskb, NFTA_CHAIN_TABLE, chain->table->name);
-+	if (ret)
-+		goto cancel_nest;
-+
-+	ret = nla_put_string(nlskb, NFTA_CHAIN_NAME, chain->name);
-+	if (ret)
-+		goto cancel_nest;
-+
-+	nla_nest_end(nlskb, nest2);
-+	nla_nest_end(nlskb, nest);
-+	return ret;
-+
-+cancel_nest:
-+	nla_nest_cancel(nlskb, nest);
-+	return -EMSGSIZE;
-+}
-+
-+static int nfnl_hook_dump_one(struct sk_buff *nlskb,
-+			      const struct nfnl_dump_hook_data *ctx,
-+			      const struct nf_hook_ops *ops,
-+			      unsigned int seq)
-+{
-+	u16 event = nfnl_msg_type(NFNL_SUBSYS_HOOK, NFNL_MSG_HOOK_GET);
-+	unsigned int portid = NETLINK_CB(nlskb).portid;
-+	struct nlmsghdr *nlh;
-+	int ret = -EMSGSIZE;
-+#ifdef CONFIG_KALLSYMS
-+	char sym[KSYM_SYMBOL_LEN];
-+	char *module_name;
-+#endif
-+	nlh = nfnl_msg_put(nlskb, portid, seq, event,
-+			   NLM_F_MULTI, ops->pf, NFNETLINK_V0, 0);
-+	if (!nlh)
-+		goto nla_put_failure;
-+
-+#ifdef CONFIG_KALLSYMS
-+	ret = snprintf(sym, sizeof(sym), "%ps", ops->hook);
-+	if (ret < 0 || ret > (int)sizeof(sym))
-+		goto nla_put_failure;
-+
-+	module_name = strstr(sym, " [");
-+	if (module_name) {
-+		char *end;
-+
-+		module_name += 2;
-+		end = strchr(module_name, ']');
-+		if (end) {
-+			*end = 0;
-+
-+			ret = nla_put_string(nlskb, NFNLA_HOOK_MODULE_NAME, module_name);
-+			if (ret)
-+				goto nla_put_failure;
-+		}
-+	}
-+
-+	ret = nla_put_string(nlskb, NFNLA_HOOK_FUNCTION_NAME, sym);
-+	if (ret)
-+		goto nla_put_failure;
-+#endif
-+
-+	ret = nla_put_be32(nlskb, NFNLA_HOOK_HOOKNUM, htonl(ops->hooknum));
-+	if (ret)
-+		goto nla_put_failure;
-+
-+	ret = nla_put_be32(nlskb, NFNLA_HOOK_PRIORITY, htonl(ops->priority));
-+	if (ret)
-+		goto nla_put_failure;
-+
-+	ret = nfnl_hook_put_nft_chain_info(nlskb, ctx, seq, ops);
-+	if (ret)
-+		goto nla_put_failure;
-+
-+	nlmsg_end(nlskb, nlh);
-+	return 0;
-+nla_put_failure:
-+	nlmsg_trim(nlskb, nlh);
-+	return ret;
-+}
-+
-+static const struct nf_hook_entries *
-+nfnl_hook_entries_head(u8 pf, unsigned int hook, struct net *net, const char *dev)
-+{
-+	const struct nf_hook_entries *hook_head = NULL;
-+	struct net_device *netdev;
-+
-+	switch (pf) {
-+	case NFPROTO_IPV4:
-+		if (hook >= ARRAY_SIZE(net->nf.hooks_ipv4))
-+			return ERR_PTR(-EINVAL);
-+		hook_head = rcu_dereference(net->nf.hooks_ipv4[hook]);
-+		break;
-+	case NFPROTO_IPV6:
-+		hook_head = rcu_dereference(net->nf.hooks_ipv6[hook]);
-+		if (hook >= ARRAY_SIZE(net->nf.hooks_ipv6))
-+			return ERR_PTR(-EINVAL);
-+		break;
-+	case NFPROTO_ARP:
-+#ifdef CONFIG_NETFILTER_FAMILY_ARP
-+		if (hook >= ARRAY_SIZE(net->nf.hooks_arp))
-+			return ERR_PTR(-EINVAL);
-+		hook_head = rcu_dereference(net->nf.hooks_arp[hook]);
-+#endif
-+		break;
-+	case NFPROTO_BRIDGE:
-+#ifdef CONFIG_NETFILTER_FAMILY_BRIDGE
-+		if (hook >= ARRAY_SIZE(net->nf.hooks_bridge))
-+			return ERR_PTR(-EINVAL);
-+		hook_head = rcu_dereference(net->nf.hooks_bridge[hook]);
-+#endif
-+		break;
-+#if IS_ENABLED(CONFIG_DECNET)
-+	case NFPROTO_DECNET:
-+		if (hook >= ARRAY_SIZE(net->nf.hooks_decnet))
-+			return ERR_PTR(-EINVAL);
-+		hook_head = rcu_dereference(net->nf.hooks_decnet[hook]);
-+		break;
-+#endif
-+#ifdef CONFIG_NETFILTER_INGRESS
-+	case NFPROTO_NETDEV:
-+		if (hook != NF_NETDEV_INGRESS)
-+			return ERR_PTR(-EOPNOTSUPP);
-+
-+		if (!dev)
-+			return ERR_PTR(-ENODEV);
-+
-+		netdev = dev_get_by_name_rcu(net, dev);
-+		if (!netdev)
-+			return ERR_PTR(-ENODEV);
-+
-+		return rcu_dereference(netdev->nf_hooks_ingress);
-+#endif
-+	default:
-+		return ERR_PTR(-EPROTONOSUPPORT);
-+	}
-+
-+	return hook_head;
-+}
-+
-+static int nfnl_hook_dump(struct sk_buff *nlskb,
-+			  struct netlink_callback *cb)
-+{
-+	struct nfgenmsg *nfmsg = nlmsg_data(cb->nlh);
-+	struct nfnl_dump_hook_data *ctx = cb->data;
-+	int err, family = nfmsg->nfgen_family;
-+	struct net *net = sock_net(nlskb->sk);
-+	struct nf_hook_ops * const *ops;
-+	const struct nf_hook_entries *e;
-+	unsigned int i = cb->args[0];
-+
-+	rcu_read_lock();
-+
-+	e = nfnl_hook_entries_head(family, ctx->hook, net, ctx->devname);
-+	if (!e)
-+		goto done;
-+
-+	if (IS_ERR(e)) {
-+		cb->seq++;
-+		goto done;
-+	}
-+
-+	if ((unsigned long)e != ctx->headv || i >= e->num_hook_entries)
-+		cb->seq++;
-+
-+	ops = nf_hook_entries_get_hook_ops(e);
-+
-+	for (; i < e->num_hook_entries; i++) {
-+		err = nfnl_hook_dump_one(nlskb, ctx, ops[i], cb->seq);
-+		if (err)
-+			break;
-+	}
-+
-+done:
-+	nl_dump_check_consistent(cb, nlmsg_hdr(nlskb));
-+	rcu_read_unlock();
-+	cb->args[0] = i;
-+	return nlskb->len;
-+}
-+
-+static int nfnl_hook_dump_start(struct netlink_callback *cb)
-+{
-+	const struct nfgenmsg *nfmsg = nlmsg_data(cb->nlh);
-+	const struct nlattr * const *nla = cb->data;
-+	struct nfnl_dump_hook_data *ctx = NULL;
-+	struct net *net = sock_net(cb->skb->sk);
-+	u8 family = nfmsg->nfgen_family;
-+	char name[IFNAMSIZ] = "";
-+	const void *head;
-+	u32 hooknum;
-+
-+	hooknum = ntohl(nla_get_be32(nla[NFNLA_HOOK_HOOKNUM]));
-+	if (hooknum > 255)
-+		return -EINVAL;
-+
-+	if (family == NFPROTO_NETDEV) {
-+		if (!nla[NFNLA_HOOK_DEV])
-+			return -EINVAL;
-+
-+		nla_strscpy(name, nla[NFNLA_HOOK_DEV], sizeof(name));
-+	}
-+
-+	rcu_read_lock();
-+	/* Not dereferenced; for consistency check only */
-+	head = nfnl_hook_entries_head(family, hooknum, net, name);
-+	rcu_read_unlock();
-+
-+	if (head && IS_ERR(head))
-+		return PTR_ERR(head);
-+
-+	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
-+	if (!ctx)
-+		return -ENOMEM;
-+
-+	strscpy(ctx->devname, name, sizeof(ctx->devname));
-+	ctx->headv = (unsigned long)head;
-+	ctx->hook = hooknum;
-+
-+	cb->seq = 1;
-+	cb->data = ctx;
-+
-+	return 0;
-+}
-+
-+static int nfnl_hook_dump_stop(struct netlink_callback *cb)
-+{
-+	kfree(cb->data);
-+	return 0;
-+}
-+
-+static int nfnl_hook_get(struct sk_buff *skb,
-+			 const struct nfnl_info *info,
-+			 const struct nlattr * const nla[])
-+{
-+	if (!nla[NFNLA_HOOK_HOOKNUM])
-+		return -EINVAL;
-+
-+	if (info->nlh->nlmsg_flags & NLM_F_DUMP) {
-+		struct netlink_dump_control c = {
-+			.start = nfnl_hook_dump_start,
-+			.done = nfnl_hook_dump_stop,
-+			.dump = nfnl_hook_dump,
-+			.module = THIS_MODULE,
-+			.data = (void *)nla,
-+		};
-+
-+		return nf_netlink_dump_start_rcu(info->sk, skb, info->nlh, &c);
-+	}
-+
-+	return -EOPNOTSUPP;
-+}
-+
-+static const struct nfnl_callback nfnl_hook_cb[NFNL_MSG_HOOK_MAX] = {
-+	[NFNL_MSG_HOOK_GET] = {
-+		.call		= nfnl_hook_get,
-+		.type		= NFNL_CB_RCU,
-+		.attr_count	= NFNLA_HOOK_MAX,
-+		.policy		= nfnl_hook_nla_policy
-+	},
-+};
-+
-+static const struct nfnetlink_subsystem nfhook_subsys = {
-+	.name				= "nfhook",
-+	.subsys_id			= NFNL_SUBSYS_HOOK,
-+	.cb_count			= NFNL_MSG_HOOK_MAX,
-+	.cb				= nfnl_hook_cb,
-+};
-+
-+MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_HOOK);
-+
-+static int __init nfnetlink_hook_init(void)
-+{
-+	return nfnetlink_subsys_register(&nfhook_subsys);
-+}
-+
-+static void __exit nfnetlink_hook_exit(void)
-+{
-+	nfnetlink_subsys_unregister(&nfhook_subsys);
-+}
-+
-+module_init(nfnetlink_hook_init);
-+module_exit(nfnetlink_hook_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Florian Westphal <fw@strlen.de>");
-+MODULE_DESCRIPTION("nfnetlink_hook: list registered netfilter hooks");
 -- 
 2.26.3
 
