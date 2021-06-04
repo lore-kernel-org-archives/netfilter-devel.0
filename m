@@ -7,32 +7,32 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CF52C4708F
-	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Jun 2021 11:40:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65BE9C47098
+	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Jun 2021 11:41:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5AE0F6141C
-	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Jun 2021 11:40:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 431476141C
+	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Jun 2021 11:41:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230033AbhFDLmk (ORCPT
+        id S230187AbhFDLmt (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 4 Jun 2021 07:42:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38902 "EHLO
+        Fri, 4 Jun 2021 07:42:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38934 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229682AbhFDLmk (ORCPT
+        with ESMTP id S230075AbhFDLms (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 4 Jun 2021 07:42:40 -0400
+        Fri, 4 Jun 2021 07:42:48 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 31286C06174A
-        for <netfilter-devel@vger.kernel.org>; Fri,  4 Jun 2021 04:40:54 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C159CC06174A
+        for <netfilter-devel@vger.kernel.org>; Fri,  4 Jun 2021 04:41:02 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1lp8C4-0004vB-Ms; Fri, 04 Jun 2021 13:40:52 +0200
+        id 1lp8CD-0004vg-7G; Fri, 04 Jun 2021 13:41:01 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 1/4] tests: ct: prefer normal cmp
-Date:   Fri,  4 Jun 2021 13:40:40 +0200
-Message-Id: <20210604114043.4153-2-fw@strlen.de>
+Subject: [PATCH nft 3/4] evaluate: remove anon sets with exactly one element
+Date:   Fri,  4 Jun 2021 13:40:42 +0200
+Message-Id: <20210604114043.4153-4-fw@strlen.de>
 X-Mailer: git-send-email 2.26.3
 In-Reply-To: <20210604114043.4153-1-fw@strlen.de>
 References: <20210604114043.4153-1-fw@strlen.de>
@@ -42,74 +42,59 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Followup patch will replace the { 1.2.3.4 } with single
-cmp, so this will cause an error when the netlink dump gets
-compared.
+Auto-replace lookups in single-element anon sets with a standard compare.
+
+'add rule foo bar meta iif { "lo" }' gets replaced with
+'add rule foo bar meta iif "lo"'.
+
+The former is a set lookup, the latter is a comparision.
+Comparisions are faster for the one-element case.
+
+Only prefixes, ranges and values are handled at this time.
+
+Anonymous maps are left alone, same for concatenations.
+
+Concatenations could be handled, but it would require more work:
+the concatenation would have to be replaced with a singleton value.
+Evaluation step rejects concat RHS on a relational expression.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- tests/py/inet/ct.t         | 2 +-
- tests/py/inet/ct.t.json    | 8 ++------
- tests/py/inet/ct.t.payload | 7 ++-----
- 3 files changed, 5 insertions(+), 12 deletions(-)
+ src/evaluate.c | 21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
 
-diff --git a/tests/py/inet/ct.t b/tests/py/inet/ct.t
-index 3d0dffad2819..5312b328aa91 100644
---- a/tests/py/inet/ct.t
-+++ b/tests/py/inet/ct.t
-@@ -6,7 +6,7 @@
- meta nfproto ipv4 ct original saddr 1.2.3.4;ok;ct original ip saddr 1.2.3.4
- ct original ip6 saddr ::1;ok
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 384e2fa786e0..2ed68aad0392 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1455,8 +1455,25 @@ static int expr_evaluate_set(struct eval_ctx *ctx, struct expr **expr)
+ 		}
+ 	}
  
--ct original ip daddr {1.2.3.4} accept;ok
-+ct original ip daddr 1.2.3.4 accept;ok
+-	if (ctx->set && (ctx->set->flags & NFT_SET_CONCAT))
+-		set->set_flags |= NFT_SET_CONCAT;
++	if (ctx->set) {
++		if (ctx->set->flags & NFT_SET_CONCAT)
++			set->set_flags |= NFT_SET_CONCAT;
++	} else if (set->size == 1) {
++		i = list_first_entry(&set->expressions, struct expr, list);
++		if (i->etype == EXPR_SET_ELEM) {
++			switch (i->key->etype) {
++			case EXPR_PREFIX:
++			case EXPR_RANGE:
++			case EXPR_VALUE:
++				*expr = i->key;
++				i->key = NULL;
++				expr_free(set);
++				return 0;
++			default:
++				break;
++			}
++		}
++	}
  
- # missing protocol context
- ct original saddr ::1;fail
-diff --git a/tests/py/inet/ct.t.json b/tests/py/inet/ct.t.json
-index e7f928ca10e4..223ac9e7575f 100644
---- a/tests/py/inet/ct.t.json
-+++ b/tests/py/inet/ct.t.json
-@@ -39,7 +39,7 @@
-     }
- ]
+ 	set->set_flags |= NFT_SET_CONSTANT;
  
--# ct original ip daddr {1.2.3.4} accept
-+# ct original ip daddr 1.2.3.4 accept
- [
-     {
-         "match": {
-@@ -50,11 +50,7 @@
-                 }
-             },
-             "op": "==",
--            "right": {
--                "set": [
--                    "1.2.3.4"
--                ]
--            }
-+            "right": "1.2.3.4"
-         }
-     },
-     {
-diff --git a/tests/py/inet/ct.t.payload b/tests/py/inet/ct.t.payload
-index 3b274f8c64c4..f7a2ef27274a 100644
---- a/tests/py/inet/ct.t.payload
-+++ b/tests/py/inet/ct.t.payload
-@@ -10,11 +10,8 @@ inet test-inet input
-   [ ct load src_ip6 => reg 1 , dir original ]
-   [ cmp eq reg 1 0x00000000 0x00000000 0x00000000 0x01000000 ]
- 
--# ct original ip daddr {1.2.3.4} accept
--__set%d test-inet 3 size 1
--__set%d test-inet 0
--	element 04030201  : 0 [end]
-+# ct original ip daddr 1.2.3.4 accept
- inet test-inet input
-   [ ct load dst_ip => reg 1 , dir original ]
--  [ lookup reg 1 set __set%d ]
-+  [ cmp eq reg 1 0x04030201 ]
-   [ immediate reg 0 accept ]
 -- 
 2.26.3
 
