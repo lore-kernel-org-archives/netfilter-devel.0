@@ -4,157 +4,171 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 511CFC4708F
-	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Jun 2021 11:41:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73F5AC47082
+	for <netfilter-devel@archiver.kernel.org>; Sat,  5 Jun 2021 23:27:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3643B61423
-	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Jun 2021 11:41:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4ACBF6124C
+	for <netfilter-devel@archiver.kernel.org>; Sat,  5 Jun 2021 23:27:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230205AbhFDLmx (ORCPT
+        id S230034AbhFEX3j (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 4 Jun 2021 07:42:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38954 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230080AbhFDLmx (ORCPT
+        Sat, 5 Jun 2021 19:29:39 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:50654 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230025AbhFEX3i (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 4 Jun 2021 07:42:53 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E72F5C06174A
-        for <netfilter-devel@vger.kernel.org>; Fri,  4 Jun 2021 04:41:06 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1lp8CH-0004vp-F7; Fri, 04 Jun 2021 13:41:05 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 4/4] tests: add test case for removal of anon sets with only a single element
-Date:   Fri,  4 Jun 2021 13:40:43 +0200
-Message-Id: <20210604114043.4153-5-fw@strlen.de>
-X-Mailer: git-send-email 2.26.3
-In-Reply-To: <20210604114043.4153-1-fw@strlen.de>
-References: <20210604114043.4153-1-fw@strlen.de>
+        Sat, 5 Jun 2021 19:29:38 -0400
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 84B8163E3D
+        for <netfilter-devel@vger.kernel.org>; Sun,  6 Jun 2021 01:26:39 +0200 (CEST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nftables] rule: rework CMD_OBJ_SETELEMS logic
+Date:   Sun,  6 Jun 2021 01:27:45 +0200
+Message-Id: <20210605232745.8395-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Also add a few examples that should not be changed:
-- anon set with 2 elements
-- anon map with 1 element
-- anon set with a concatenation
+Do not clone the set and zap the elements during the set and map
+expansion to the CMD_OBJ_SETELEMS command.
 
-The latter could be done with cmp but this currently triggers
-'Error: Use concatenations with sets and maps, not singleton values'
-after removing the anon set.
+Instead, update the CMD_OBJ_SET command to add the set to the kernel
+(without elements) and let CMD_OBJ_SETELEMS add the elements. The
+CMD_OBJ_SET command calls set_to_intervals() to update set->init->size
+(NFTNL_SET_DESC_SIZE) before adding the set to the kernel. Updating the
+set size from do_add_setelems() comes too late, it might result in
+spurious ENFILE errors for interval sets.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Moreover, skip CMD_OBJ_SETELEMS if the set definition specifies no
+elements.
+
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1500
+Fixes: c9eae091983a ("src: add CMD_OBJ_SETELEMS")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- .../optimizations/dumps/single_anon_set.nft   | 15 ++++++++
- .../dumps/single_anon_set.nft.input           | 35 +++++++++++++++++++
- .../testcases/optimizations/single_anon_set   | 13 +++++++
- .../shell/testcases/sets/dumps/0053echo_0.nft |  2 +-
- 4 files changed, 64 insertions(+), 1 deletion(-)
- create mode 100644 tests/shell/testcases/optimizations/dumps/single_anon_set.nft
- create mode 100644 tests/shell/testcases/optimizations/dumps/single_anon_set.nft.input
- create mode 100755 tests/shell/testcases/optimizations/single_anon_set
+ src/rule.c | 45 ++++++++++++++++++++++++++-------------------
+ 1 file changed, 26 insertions(+), 19 deletions(-)
 
-diff --git a/tests/shell/testcases/optimizations/dumps/single_anon_set.nft b/tests/shell/testcases/optimizations/dumps/single_anon_set.nft
-new file mode 100644
-index 000000000000..35e3f36e1a54
---- /dev/null
-+++ b/tests/shell/testcases/optimizations/dumps/single_anon_set.nft
-@@ -0,0 +1,15 @@
-+table ip test {
-+	chain test {
-+		ip saddr 127.0.0.1 accept
-+		iif "lo" accept
-+		tcp dport != 22 drop
-+		ip saddr 127.0.0.0/8 accept
-+		ip saddr 127.0.0.1-192.168.7.3 accept
-+		tcp sport 1-1023 drop
-+		ip daddr { 192.168.7.1, 192.168.7.5 } accept
-+		tcp dport { 80, 443 } accept
-+		ip daddr . tcp dport { 192.168.0.1 . 22 } accept
-+		meta mark set ip daddr map { 192.168.0.1 : 0x00000001 }
-+		ct state { established, related } accept
-+	}
-+}
-diff --git a/tests/shell/testcases/optimizations/dumps/single_anon_set.nft.input b/tests/shell/testcases/optimizations/dumps/single_anon_set.nft.input
-new file mode 100644
-index 000000000000..35b93832420f
---- /dev/null
-+++ b/tests/shell/testcases/optimizations/dumps/single_anon_set.nft.input
-@@ -0,0 +1,35 @@
-+table ip test {
-+	chain test {
-+		# Test cases where anon set can be removed:
-+		ip saddr { 127.0.0.1 } accept
-+		iif { "lo" } accept
+diff --git a/src/rule.c b/src/rule.c
+index dcf1646a9c7c..8e426c5f2fdd 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1286,11 +1286,11 @@ void cmd_add_loc(struct cmd *cmd, uint16_t offset, const struct location *loc)
+ void nft_cmd_expand(struct cmd *cmd)
+ {
+ 	struct list_head new_cmds;
+-	struct set *set, *newset;
+ 	struct flowtable *ft;
+ 	struct table *table;
+ 	struct chain *chain;
+ 	struct rule *rule;
++	struct set *set;
+ 	struct obj *obj;
+ 	struct cmd *new;
+ 	struct handle h;
+@@ -1356,14 +1356,13 @@ void nft_cmd_expand(struct cmd *cmd)
+ 	case CMD_OBJ_SET:
+ 	case CMD_OBJ_MAP:
+ 		set = cmd->set;
++		if (!set->init)
++			break;
 +
-+		# negation, can change to != 22.
-+		tcp dport != { 22 } drop
-+
-+		# single prefix, can remove anon set.
-+		ip saddr { 127.0.0.0/8 } accept
-+
-+		# range, can remove anon set.
-+		ip saddr { 127.0.0.1-192.168.7.3 } accept
-+		tcp sport { 1-1023 } drop
-+
-+		# Test cases where anon set must be kept.
-+
-+		# 2 elements, cannot remove the anon set.
-+		ip daddr { 192.168.7.1, 192.168.7.5 } accept
-+		tcp dport { 80, 443 } accept
-+
-+		# single element, but concatenation which is not
-+		# supported outside of set/map context at this time.
-+		ip daddr . tcp dport { 192.168.0.1 . 22 } accept
-+
-+		# single element, but a map.
-+		meta mark set ip daddr map { 192.168.0.1 : 1 }
-+
-+		# 2 elements.  This could be converted because
-+		# ct state cannot be both established and related
-+		# at the same time, but this needs extra work.
-+		ct state { established, related } accept
-+	}
-+}
-diff --git a/tests/shell/testcases/optimizations/single_anon_set b/tests/shell/testcases/optimizations/single_anon_set
-new file mode 100755
-index 000000000000..7275e3606900
---- /dev/null
-+++ b/tests/shell/testcases/optimizations/single_anon_set
-@@ -0,0 +1,13 @@
-+#!/bin/bash
-+
-+set -e
-+
-+# Input file contains rules with anon sets that contain
-+# one element, plus extra rule with two elements (that should be
-+# left alone).
-+
-+# Dump file has the simplified rules where anon sets have been
-+# replaced by equality tests where possible.
-+dumpfile=$(dirname $0)/dumps/$(basename $0).nft
-+
-+$NFT -f "$dumpfile".input
-diff --git a/tests/shell/testcases/sets/dumps/0053echo_0.nft b/tests/shell/testcases/sets/dumps/0053echo_0.nft
-index 6a8166360ceb..bb7c55136619 100644
---- a/tests/shell/testcases/sets/dumps/0053echo_0.nft
-+++ b/tests/shell/testcases/sets/dumps/0053echo_0.nft
-@@ -1,6 +1,6 @@
- table inet filter {
- 	chain input {
- 		type filter hook input priority filter; policy drop;
--		iifname { "lo" } ip saddr { 10.0.0.0/8 } ip daddr { 192.168.100.62 } tcp dport { 2001 } counter packets 0 bytes 0 accept
-+		iifname "lo" ip saddr 10.0.0.0/8 ip daddr 192.168.100.62 tcp dport 2001 counter packets 0 bytes 0 accept
- 	}
+ 		memset(&h, 0, sizeof(h));
+ 		handle_merge(&h, &set->handle);
+-		newset = set_clone(set);
+-		newset->handle.set_id = set->handle.set_id;
+-		newset->init = set->init;
+-		set->init = NULL;
+ 		new = cmd_alloc(CMD_ADD, CMD_OBJ_SETELEMS, &h,
+-				&set->location, newset);
++				&set->location, set_get(set));
+ 		list_add(&new->list, &cmd->list);
+ 		break;
+ 	default:
+@@ -1461,7 +1460,7 @@ void cmd_free(struct cmd *cmd)
+ #include <netlink.h>
+ #include <mnl.h>
+ 
+-static int __do_add_setelems(struct netlink_ctx *ctx, struct set *set,
++static int __do_add_elements(struct netlink_ctx *ctx, struct set *set,
+ 			     struct expr *expr, uint32_t flags)
+ {
+ 	expr->set_flags |= set->flags;
+@@ -1481,7 +1480,7 @@ static int __do_add_setelems(struct netlink_ctx *ctx, struct set *set,
+ 	return 0;
  }
+ 
+-static int do_add_setelems(struct netlink_ctx *ctx, struct cmd *cmd,
++static int do_add_elements(struct netlink_ctx *ctx, struct cmd *cmd,
+ 			   uint32_t flags)
+ {
+ 	struct expr *init = cmd->expr;
+@@ -1493,27 +1492,35 @@ static int do_add_setelems(struct netlink_ctx *ctx, struct cmd *cmd,
+ 			     &ctx->nft->output) < 0)
+ 		return -1;
+ 
+-	return __do_add_setelems(ctx, set, init, flags);
++	return __do_add_elements(ctx, set, init, flags);
++}
++
++static int do_add_setelems(struct netlink_ctx *ctx, struct cmd *cmd,
++			   uint32_t flags)
++{
++	struct set *set = cmd->set;
++
++	return __do_add_elements(ctx, set, set->init, flags);
+ }
+ 
+ static int do_add_set(struct netlink_ctx *ctx, struct cmd *cmd,
+-		      uint32_t flags, bool add)
++		      uint32_t flags)
+ {
+ 	struct set *set = cmd->set;
+ 
+ 	if (set->init != NULL) {
++		/* Update set->init->size (NFTNL_SET_DESC_SIZE) before adding
++		 * the set to the kernel. Calling this from do_add_setelems()
++		 * comes too late which might result in spurious ENFILE errors.
++		 */
+ 		if (set_is_non_concat_range(set) &&
+ 		    set_to_intervals(ctx->msgs, set, set->init, true,
+ 				     ctx->nft->debug_mask, set->automerge,
+ 				     &ctx->nft->output) < 0)
+ 			return -1;
+ 	}
+-	if (add && mnl_nft_set_add(ctx, cmd, flags) < 0)
+-		return -1;
+-	if (set->init != NULL) {
+-		return __do_add_setelems(ctx, set, set->init, flags);
+-	}
+-	return 0;
++
++	return mnl_nft_set_add(ctx, cmd, flags);
+ }
+ 
+ static int do_command_add(struct netlink_ctx *ctx, struct cmd *cmd, bool excl)
+@@ -1531,11 +1538,11 @@ static int do_command_add(struct netlink_ctx *ctx, struct cmd *cmd, bool excl)
+ 	case CMD_OBJ_RULE:
+ 		return mnl_nft_rule_add(ctx, cmd, flags | NLM_F_APPEND);
+ 	case CMD_OBJ_SET:
+-		return do_add_set(ctx, cmd, flags, true);
++		return do_add_set(ctx, cmd, flags);
+ 	case CMD_OBJ_SETELEMS:
+-		return do_add_set(ctx, cmd, flags, false);
+-	case CMD_OBJ_ELEMENTS:
+ 		return do_add_setelems(ctx, cmd, flags);
++	case CMD_OBJ_ELEMENTS:
++		return do_add_elements(ctx, cmd, flags);
+ 	case CMD_OBJ_COUNTER:
+ 	case CMD_OBJ_QUOTA:
+ 	case CMD_OBJ_CT_HELPER:
 -- 
-2.26.3
+2.20.1
 
