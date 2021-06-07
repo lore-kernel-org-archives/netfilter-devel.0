@@ -2,72 +2,117 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_2 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C7DFC47082
-	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Jun 2021 16:59:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2E69C4743F
+	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Jun 2021 17:46:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 50FFC61003
-	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Jun 2021 16:59:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8C03D610A1
+	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Jun 2021 17:46:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230333AbhFGRBN (ORCPT
+        id S230409AbhFGRsi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 7 Jun 2021 13:01:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58508 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230382AbhFGRBN (ORCPT
+        Mon, 7 Jun 2021 13:48:38 -0400
+Received: from mail-lj1-f181.google.com ([209.85.208.181]:46795 "EHLO
+        mail-lj1-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230197AbhFGRsi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 7 Jun 2021 13:01:13 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A708AC061766;
-        Mon,  7 Jun 2021 09:59:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=/0ZaIOrjyCTF72vAgL3TDsvmLAoA/lD5LRh6UMqpICs=; b=XW4JCqV4XZvf/afuJZZ+sk5LGp
-        zsghvaie1WTGsc2wubVPPN/CZ2c12b2tkuYofmYyyby0NHF33iNOoSqnMCG3m9YOVgHl6j7TEUm5D
-        lvEFH/iS58Gw9gG6gyb0xFND3O6ZcaKQqCzpFAeyCc4Q2xjzcJdJxBmSCkc5bjwtUGsre8eI1Wpu+
-        rG0vgqz3yIEYKiqZxOWgNX+fcOWEGB56+P9IHWr36NuYR9bBALeRkZuQTCrSJUvGCEI04JB/G1Vn8
-        sJksvP9w2hwcXo7WT+uAP9OqAB4ponJyGSZUF+Qagn0qAfohAS8o9Q5hVbDVQDS+JZ6pzCq+5MGOt
-        e/ny9mbQ==;
-Received: from willy by casper.infradead.org with local (Exim 4.94 #2 (Red Hat Linux))
-        id 1lqIaG-00G2f8-Jj; Mon, 07 Jun 2021 16:58:42 +0000
-Date:   Mon, 7 Jun 2021 17:58:40 +0100
-From:   Matthew Wilcox <willy@infradead.org>
-To:     syzbot <syzbot+3eec59e770685e3dc879@syzkaller.appspotmail.com>
-Cc:     bjorn.andersson@linaro.org, brookebasile@gmail.com,
-        coreteam@netfilter.org, davem@davemloft.net, dsahern@kernel.org,
-        ducheng2@gmail.com, ebiggers@kernel.org, fw@strlen.de,
-        gregkh@linuxfoundation.org, kadlec@netfilter.org, kuba@kernel.org,
-        linux-kernel@vger.kernel.org, manivannan.sadhasivam@linaro.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, skhan@linuxfoundation.org,
-        syzkaller-bugs@googlegroups.com, yoshfuji@linux-ipv6.org
-Subject: Re: [syzbot] BUG: using smp_processor_id() in preemptible code in
- radix_tree_node_alloc
-Message-ID: <YL5QQE2GnJFWI4rB@casper.infradead.org>
-References: <000000000000a363b205a74ca6a2@google.com>
- <000000000000b9c68205c42fcacb@google.com>
+        Mon, 7 Jun 2021 13:48:38 -0400
+Received: by mail-lj1-f181.google.com with SMTP id e11so23321794ljn.13;
+        Mon, 07 Jun 2021 10:46:46 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=xcejzj+YKCRY4WWuFJkzpsXTL8zoFh/y/Gxu0KunwGY=;
+        b=BD0Sy4xO4H2zwT5TYjrhUUPywmTKCGM5YrFg1ccipSS3OfqaBZ3gl3YhsoIBPviEsM
+         VmPYmaBP25cx0UsWT/ApQw5EAX4XUaysHUNK9zXOns95YPyaU8clEZTzDDy/LIrQXJj4
+         StGE4Z0Wprts1sY2GOk9KPRf+CaYSxapaZnWjrQZl8Pd8fAnQjjSm+Ap/V9VOsZD9R4E
+         7TuS1gVfa79cOLW9VM0yncWKGTf8g0Y8cO4Waj9ac9wsSRYSiRECYryjI8jnxyyUqT/t
+         ti/kZlHRyM6+Kh9LHooRnn2OGj+EutQE4UxK5R/BayAh2048X/1PV3EmdAbnQkxZBTOR
+         FtPw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=xcejzj+YKCRY4WWuFJkzpsXTL8zoFh/y/Gxu0KunwGY=;
+        b=cmf1sgb3HZ2N1XpBmKgb+N6W8pAQ11nY47ccnotiQ7wP4eiaEFjs+GWs3PO1dyqxnq
+         iqGKv3jo0IzfCEx4O+sQSBTQI2i6AGEOjLMBNhG3M06qGFk7dMJeNZBboa3B3P2L7Eab
+         sx5sYTaW1c7hhIQTQoZAECnz4bRoJFQaHsL2aYptcNVc8Dz6k5jJfOHmdPD41bV1fxgX
+         DGFkCq3A/THvVMRyKsUYOTEc22pcANsz/1nwOt3DmyB+d9l+N3sF4ru5jrj4eUbhNuz1
+         rvvZPQJJamVou9I26P4R1znb3eXuqcuDS+PohJZ4EbohSwDRxraLv4LJu2zIap+l5u5T
+         q4eQ==
+X-Gm-Message-State: AOAM530oU7s9RPYa3AiqLVDkokgd/FJcIgNB044cl9jex8CO7Oc3QzMu
+        XDjyG85AhCOS66W8N/XnbQU=
+X-Google-Smtp-Source: ABdhPJx8tZlIvp5fV59VWUsQzJhqZdEODeudvhf5bmmqzPkbMapfJnHsD4MnIvEL71LD+pDbiZx53w==
+X-Received: by 2002:a2e:91c8:: with SMTP id u8mr15030387ljg.309.1623087945375;
+        Mon, 07 Jun 2021 10:45:45 -0700 (PDT)
+Received: from localhost.localdomain ([94.103.224.40])
+        by smtp.gmail.com with ESMTPSA id q16sm1574059lfu.103.2021.06.07.10.45.44
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 07 Jun 2021 10:45:45 -0700 (PDT)
+Date:   Mon, 7 Jun 2021 20:45:42 +0300
+From:   Pavel Skripkin <paskripkin@gmail.com>
+To:     syzbot <syzbot+65badd5e74ec62cb67dc@syzkaller.appspotmail.com>
+Cc:     andrii@kernel.org, ast@kernel.org, bpf@vger.kernel.org,
+        coreteam@netfilter.org, daniel@iogearbox.net, davem@davemloft.net,
+        dsahern@kernel.org, fw@strlen.de, john.fastabend@gmail.com,
+        jonathan.lemon@gmail.com, kadlec@netfilter.org, kafai@fb.com,
+        kpsingh@kernel.org, kuba@kernel.org, linux-kernel@vger.kernel.org,
+        matthieu.baerts@tessares.net, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        songliubraving@fb.com, syzkaller-bugs@googlegroups.com,
+        unixbhaskar@gmail.com, yhs@fb.com, yoshfuji@linux-ipv6.org,
+        zhengyongjun3@huawei.com
+Subject: Re: [syzbot] general protection fault in kcm_sendmsg
+Message-ID: <20210607204542.4ad0b33e@gmail.com>
+In-Reply-To: <000000000000b3f96105c42ef146@google.com>
+References: <000000000000b3f96105c42ef146@google.com>
+X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; x86_64-suse-linux-gnu)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <000000000000b9c68205c42fcacb@google.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jun 07, 2021 at 09:47:07AM -0700, syzbot wrote:
-> syzbot suspects this issue was fixed by commit:
+On Mon, 07 Jun 2021 08:46:26 -0700
+syzbot <syzbot+65badd5e74ec62cb67dc@syzkaller.appspotmail.com> wrote:
+
+> Hello,
 > 
-> commit 43016d02cf6e46edfc4696452251d34bba0c0435
+> syzbot found the following issue on:
+> 
+> HEAD commit:    1a802423 virtio-net: fix for skb_over_panic inside
+> big mode git tree:       bpf
+> console output:
+> https://syzkaller.appspot.com/x/log.txt?x=159b08afd00000 kernel
+> config:  https://syzkaller.appspot.com/x/.config?x=770708ea7cfd4916
+> dashboard link:
+> https://syzkaller.appspot.com/bug?extid=65badd5e74ec62cb67dc syz
+> repro:
+> https://syzkaller.appspot.com/x/repro.syz?x=104624afd00000 C
+> reproducer:   https://syzkaller.appspot.com/x/repro.c?x=16e36197d00000
+> 
+> The issue was bisected to:
+> 
+> commit f9006acc8dfe59e25aa75729728ac57a8d84fc32
 > Author: Florian Westphal <fw@strlen.de>
-> Date:   Mon May 3 11:51:15 2021 +0000
+> Date:   Wed Apr 21 07:51:08 2021 +0000
 > 
->     netfilter: arptables: use pernet ops struct during unregister
+>     netfilter: arp_tables: pass table pointer via nf_hook_ops
+> 
 
-Same wrong bisection.
+It's c47cc304990a ("net: kcm: fix memory leak in kcm_sendmsg") where
+the bug was introduced by me :(
 
-#syz fix: qrtr: Convert qrtr_ports from IDR to XArray
+I've already sent a revert
+
+
+
+
+With regards,
+Pavel Skripkin
