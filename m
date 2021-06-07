@@ -7,168 +7,186 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73F5AC47082
-	for <netfilter-devel@archiver.kernel.org>; Sat,  5 Jun 2021 23:27:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 796B1C47094
+	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Jun 2021 10:07:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4ACBF6124C
-	for <netfilter-devel@archiver.kernel.org>; Sat,  5 Jun 2021 23:27:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C91C610C7
+	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Jun 2021 10:07:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230034AbhFEX3j (ORCPT
+        id S230211AbhFGKJV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 5 Jun 2021 19:29:39 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:50654 "EHLO
+        Mon, 7 Jun 2021 06:09:21 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:53284 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230025AbhFEX3i (ORCPT
+        with ESMTP id S230193AbhFGKJV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 5 Jun 2021 19:29:38 -0400
+        Mon, 7 Jun 2021 06:09:21 -0400
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 84B8163E3D
-        for <netfilter-devel@vger.kernel.org>; Sun,  6 Jun 2021 01:26:39 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 9C5E764133
+        for <netfilter-devel@vger.kernel.org>; Mon,  7 Jun 2021 12:06:18 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nftables] rule: rework CMD_OBJ_SETELEMS logic
-Date:   Sun,  6 Jun 2021 01:27:45 +0200
-Message-Id: <20210605232745.8395-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+Subject: [PATCH nf-next,v2] netfilter: nf_tables: add last expression
+Date:   Mon,  7 Jun 2021 12:07:26 +0200
+Message-Id: <20210607100726.4999-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Do not clone the set and zap the elements during the set and map
-expansion to the CMD_OBJ_SETELEMS command.
+Add a new optional expression that allows you to know when last match on
+a given rule / set element.
 
-Instead, update the CMD_OBJ_SET command to add the set to the kernel
-(without elements) and let CMD_OBJ_SETELEMS add the elements. The
-CMD_OBJ_SET command calls set_to_intervals() to update set->init->size
-(NFTNL_SET_DESC_SIZE) before adding the set to the kernel. Updating the
-set size from do_add_setelems() comes too late, it might result in
-spurious ENFILE errors for interval sets.
-
-Moreover, skip CMD_OBJ_SETELEMS if the set definition specifies no
-elements.
-
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1500
-Fixes: c9eae091983a ("src: add CMD_OBJ_SETELEMS")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/rule.c | 45 ++++++++++++++++++++++++++-------------------
- 1 file changed, 26 insertions(+), 19 deletions(-)
+v2: no Kconfig, make it built-in per Florian.
+    fix incorrect documentation
+    remove #include seqlock.h
 
-diff --git a/src/rule.c b/src/rule.c
-index dcf1646a9c7c..8e426c5f2fdd 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -1286,11 +1286,11 @@ void cmd_add_loc(struct cmd *cmd, uint16_t offset, const struct location *loc)
- void nft_cmd_expand(struct cmd *cmd)
- {
- 	struct list_head new_cmds;
--	struct set *set, *newset;
- 	struct flowtable *ft;
- 	struct table *table;
- 	struct chain *chain;
- 	struct rule *rule;
-+	struct set *set;
- 	struct obj *obj;
- 	struct cmd *new;
- 	struct handle h;
-@@ -1356,14 +1356,13 @@ void nft_cmd_expand(struct cmd *cmd)
- 	case CMD_OBJ_SET:
- 	case CMD_OBJ_MAP:
- 		set = cmd->set;
-+		if (!set->init)
-+			break;
+ include/uapi/linux/netfilter/nf_tables.h | 13 ++++
+ net/netfilter/Makefile                   |  2 +-
+ net/netfilter/nft_last.c                 | 93 ++++++++++++++++++++++++
+ 3 files changed, 107 insertions(+), 1 deletion(-)
+ create mode 100644 net/netfilter/nft_last.c
+
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 19715e2679d1..5beb5a807687 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -1195,6 +1195,19 @@ enum nft_counter_attributes {
+ };
+ #define NFTA_COUNTER_MAX	(__NFTA_COUNTER_MAX - 1)
+ 
++/**
++ * enum nft_last_attributes - nf_tables last expression netlink attributes
++ *
++ * @NFTA_LAST_MSECS: milliseconds since last update (NLA_U64)
++ */
++enum nft_last_attributes {
++	NFTA_LAST_UNSPEC,
++	NFTA_LAST_MSECS,
++	NFTA_LAST_PAD,
++	__NFTA_LAST_MAX
++};
++#define NFTA_LAST_MAX	(__NFTA_LAST_MAX - 1)
 +
- 		memset(&h, 0, sizeof(h));
- 		handle_merge(&h, &set->handle);
--		newset = set_clone(set);
--		newset->handle.set_id = set->handle.set_id;
--		newset->init = set->init;
--		set->init = NULL;
- 		new = cmd_alloc(CMD_ADD, CMD_OBJ_SETELEMS, &h,
--				&set->location, newset);
-+				&set->location, set_get(set));
- 		list_add(&new->list, &cmd->list);
- 		break;
- 	default:
-@@ -1461,7 +1460,7 @@ void cmd_free(struct cmd *cmd)
- #include <netlink.h>
- #include <mnl.h>
- 
--static int __do_add_setelems(struct netlink_ctx *ctx, struct set *set,
-+static int __do_add_elements(struct netlink_ctx *ctx, struct set *set,
- 			     struct expr *expr, uint32_t flags)
- {
- 	expr->set_flags |= set->flags;
-@@ -1481,7 +1480,7 @@ static int __do_add_setelems(struct netlink_ctx *ctx, struct set *set,
- 	return 0;
- }
- 
--static int do_add_setelems(struct netlink_ctx *ctx, struct cmd *cmd,
-+static int do_add_elements(struct netlink_ctx *ctx, struct cmd *cmd,
- 			   uint32_t flags)
- {
- 	struct expr *init = cmd->expr;
-@@ -1493,27 +1492,35 @@ static int do_add_setelems(struct netlink_ctx *ctx, struct cmd *cmd,
- 			     &ctx->nft->output) < 0)
- 		return -1;
- 
--	return __do_add_setelems(ctx, set, init, flags);
-+	return __do_add_elements(ctx, set, init, flags);
+ /**
+  * enum nft_log_attributes - nf_tables log expression netlink attributes
+  *
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index e80e010354b1..f321ee469ca4 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -73,7 +73,7 @@ obj-$(CONFIG_NF_DUP_NETDEV)	+= nf_dup_netdev.o
+ nf_tables-objs := nf_tables_core.o nf_tables_api.o nft_chain_filter.o \
+ 		  nf_tables_trace.o nft_immediate.o nft_cmp.o nft_range.o \
+ 		  nft_bitwise.o nft_byteorder.o nft_payload.o nft_lookup.o \
+-		  nft_dynset.o nft_meta.o nft_rt.o nft_exthdr.o \
++		  nft_dynset.o nft_meta.o nft_rt.o nft_exthdr.o nft_last.o \
+ 		  nft_chain_route.o nf_tables_offload.o \
+ 		  nft_set_hash.o nft_set_bitmap.o nft_set_rbtree.o \
+ 		  nft_set_pipapo.o
+diff --git a/net/netfilter/nft_last.c b/net/netfilter/nft_last.c
+new file mode 100644
+index 000000000000..2ab4b030dcf9
+--- /dev/null
++++ b/net/netfilter/nft_last.c
+@@ -0,0 +1,93 @@
++// SPDX-License-Identifier: GPL-2.0-only
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/netlink.h>
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables.h>
++
++struct nft_last_priv {
++	unsigned long last_jiffies;
++};
++
++static const struct nla_policy nft_last_policy[NFTA_LAST_MAX + 1] = {
++	[NFTA_LAST_MSECS] = { .type = NLA_U64 },
++};
++
++static int nft_last_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
++			 const struct nlattr * const tb[])
++{
++	struct nft_last_priv *priv = nft_expr_priv(expr);
++	u64 last;
++	int err;
++
++	if (tb[NFTA_LAST_MSECS]) {
++		err = nf_msecs_to_jiffies64(tb[NFTA_LAST_MSECS], &last);
++		if (err < 0)
++			return err;
++
++		priv->last_jiffies = (unsigned long)last;
++	}
++
++	return 0;
 +}
 +
-+static int do_add_setelems(struct netlink_ctx *ctx, struct cmd *cmd,
-+			   uint32_t flags)
++static void nft_last_eval(const struct nft_expr *expr,
++			  struct nft_regs *regs, const struct nft_pktinfo *pkt)
 +{
-+	struct set *set = cmd->set;
++	struct nft_last_priv *priv = nft_expr_priv(expr);
 +
-+	return __do_add_elements(ctx, set, set->init, flags);
- }
- 
- static int do_add_set(struct netlink_ctx *ctx, struct cmd *cmd,
--		      uint32_t flags, bool add)
-+		      uint32_t flags)
- {
- 	struct set *set = cmd->set;
- 
- 	if (set->init != NULL) {
-+		/* Update set->init->size (NFTNL_SET_DESC_SIZE) before adding
-+		 * the set to the kernel. Calling this from do_add_setelems()
-+		 * comes too late which might result in spurious ENFILE errors.
-+		 */
- 		if (set_is_non_concat_range(set) &&
- 		    set_to_intervals(ctx->msgs, set, set->init, true,
- 				     ctx->nft->debug_mask, set->automerge,
- 				     &ctx->nft->output) < 0)
- 			return -1;
- 	}
--	if (add && mnl_nft_set_add(ctx, cmd, flags) < 0)
--		return -1;
--	if (set->init != NULL) {
--		return __do_add_setelems(ctx, set, set->init, flags);
--	}
--	return 0;
++	priv->last_jiffies = jiffies;
++}
 +
-+	return mnl_nft_set_add(ctx, cmd, flags);
- }
- 
- static int do_command_add(struct netlink_ctx *ctx, struct cmd *cmd, bool excl)
-@@ -1531,11 +1538,11 @@ static int do_command_add(struct netlink_ctx *ctx, struct cmd *cmd, bool excl)
- 	case CMD_OBJ_RULE:
- 		return mnl_nft_rule_add(ctx, cmd, flags | NLM_F_APPEND);
- 	case CMD_OBJ_SET:
--		return do_add_set(ctx, cmd, flags, true);
-+		return do_add_set(ctx, cmd, flags);
- 	case CMD_OBJ_SETELEMS:
--		return do_add_set(ctx, cmd, flags, false);
--	case CMD_OBJ_ELEMENTS:
- 		return do_add_setelems(ctx, cmd, flags);
-+	case CMD_OBJ_ELEMENTS:
-+		return do_add_elements(ctx, cmd, flags);
- 	case CMD_OBJ_COUNTER:
- 	case CMD_OBJ_QUOTA:
- 	case CMD_OBJ_CT_HELPER:
++static int nft_last_dump(struct sk_buff *skb, const struct nft_expr *expr)
++{
++	struct nft_last_priv *priv = nft_expr_priv(expr);
++
++	if (nla_put_be64(skb, NFTA_LAST_MSECS,
++			 nf_jiffies64_to_msecs(priv->last_jiffies),
++			 NFTA_LAST_PAD))
++		goto nla_put_failure;
++
++	return 0;
++
++nla_put_failure:
++	return -1;
++}
++
++static struct nft_expr_type nft_last_type;
++static const struct nft_expr_ops nft_last_ops = {
++	.type		= &nft_last_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_last_priv)),
++	.eval		= nft_last_eval,
++	.init		= nft_last_init,
++	.dump		= nft_last_dump,
++};
++
++static struct nft_expr_type nft_last_type __read_mostly = {
++	.name		= "last",
++	.ops		= &nft_last_ops,
++	.policy		= nft_last_policy,
++	.maxattr	= NFTA_LAST_MAX,
++	.flags		= NFT_EXPR_STATEFUL,
++	.owner		= THIS_MODULE,
++};
++
++static int __init nft_last_module_init(void)
++{
++	return nft_register_expr(&nft_last_type);
++}
++
++static void __exit nft_last_module_exit(void)
++{
++	nft_unregister_expr(&nft_last_type);
++}
++
++module_init(nft_last_module_init);
++module_exit(nft_last_module_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
++MODULE_ALIAS_NFT_EXPR("last");
++MODULE_DESCRIPTION("nftables last expression support");
 -- 
-2.20.1
+2.30.2
 
