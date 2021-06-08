@@ -5,78 +5,75 @@ X-Spam-Level:
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71563C47082
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Jun 2021 14:42:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E61D0C4743D
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Jun 2021 15:34:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 50E376100B
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Jun 2021 14:42:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CF1DD6128E
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Jun 2021 15:34:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233522AbhFHOok (ORCPT
+        id S232161AbhFHPgK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Jun 2021 10:44:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34220 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233492AbhFHOok (ORCPT
+        Tue, 8 Jun 2021 11:36:10 -0400
+Received: from youngberry.canonical.com ([91.189.89.112]:38698 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231308AbhFHPgJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Jun 2021 10:44:40 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A8081C061574
-        for <netfilter-devel@vger.kernel.org>; Tue,  8 Jun 2021 07:42:47 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1lqcwH-0001sR-EC; Tue, 08 Jun 2021 16:42:45 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>, kernel test robot <lkp@intel.com>
-Subject: [PATCH nf-next] nfilter: nf_hooks: fix build failure with NF_TABLES=n
-Date:   Tue,  8 Jun 2021 16:42:37 +0200
-Message-Id: <20210608144237.5813-1-fw@strlen.de>
+        Tue, 8 Jun 2021 11:36:09 -0400
+Received: from 1.general.cking.uk.vpn ([10.172.193.212] helo=localhost)
+        by youngberry.canonical.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        (Exim 4.93)
+        (envelope-from <colin.king@canonical.com>)
+        id 1lqdk0-0006NO-AB; Tue, 08 Jun 2021 15:34:08 +0000
+From:   Colin King <colin.king@canonical.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S . Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Cc:     kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH][next] etfilter: fix array index out-of-bounds error
+Date:   Tue,  8 Jun 2021 16:34:08 +0100
+Message-Id: <20210608153408.160652-1-colin.king@canonical.com>
 X-Mailer: git-send-email 2.31.1
-In-Reply-To: <202106082146.9TmnLWJk-lkp@intel.com>
-References: <202106082146.9TmnLWJk-lkp@intel.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-nfnetlink_hook.c: In function 'nfnl_hook_put_nft_chain_info':
-nfnetlink_hook.c:76:7: error: implicit declaration of 'nft_is_active'
+From: Colin Ian King <colin.king@canonical.com>
 
-This macro is only defined when NF_TABLES is enabled.
-Add IS_ENABLED guards for this.
+Currently the array net->nf.hooks_ipv6 is accessed by index hook
+before hook is sanity checked. Fix this by moving the sanity check
+to before the array access.
 
-Reported-by: kernel test robot <lkp@intel.com>
-Fixes: 252956528caa ("netfilter: add new hook nfnl subsystem")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Addresses-Coverity: ("Out-of-bounds access")
+Fixes: e2cf17d3774c ("netfilter: add new hook nfnl subsystem")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 ---
- net/netfilter/nfnetlink_hook.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ net/netfilter/nfnetlink_hook.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/net/netfilter/nfnetlink_hook.c b/net/netfilter/nfnetlink_hook.c
-index 04586dfa2acd..d624805e977c 100644
+index 04586dfa2acd..58fda6ac663b 100644
 --- a/net/netfilter/nfnetlink_hook.c
 +++ b/net/netfilter/nfnetlink_hook.c
-@@ -61,6 +61,7 @@ static int nfnl_hook_put_nft_chain_info(struct sk_buff *nlskb,
- 					unsigned int seq,
- 					const struct nf_hook_ops *ops)
- {
-+#if IS_ENABLED(CONFIG_NF_TABLES)
- 	struct net *net = sock_net(nlskb->sk);
- 	struct nlattr *nest, *nest2;
- 	struct nft_chain *chain;
-@@ -104,6 +105,9 @@ static int nfnl_hook_put_nft_chain_info(struct sk_buff *nlskb,
- cancel_nest:
- 	nla_nest_cancel(nlskb, nest);
- 	return -EMSGSIZE;
-+#else
-+	return 0;
-+#endif
- }
- 
- static int nfnl_hook_dump_one(struct sk_buff *nlskb,
+@@ -181,9 +181,9 @@ nfnl_hook_entries_head(u8 pf, unsigned int hook, struct net *net, const char *de
+ 		hook_head = rcu_dereference(net->nf.hooks_ipv4[hook]);
+ 		break;
+ 	case NFPROTO_IPV6:
+-		hook_head = rcu_dereference(net->nf.hooks_ipv6[hook]);
+ 		if (hook >= ARRAY_SIZE(net->nf.hooks_ipv6))
+ 			return ERR_PTR(-EINVAL);
++		hook_head = rcu_dereference(net->nf.hooks_ipv6[hook]);
+ 		break;
+ 	case NFPROTO_ARP:
+ #ifdef CONFIG_NETFILTER_FAMILY_ARP
 -- 
 2.31.1
 
