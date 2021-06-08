@@ -7,95 +7,208 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D58BC47082
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Jun 2021 11:48:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD814C47082
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Jun 2021 13:00:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 73FBE61377
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Jun 2021 11:48:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8A79960241
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Jun 2021 13:00:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232134AbhFHLu1 (ORCPT
+        id S230248AbhFHNCi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Jun 2021 07:50:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52088 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232126AbhFHLu0 (ORCPT
+        Tue, 8 Jun 2021 09:02:38 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:56428 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230009AbhFHNCh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Jun 2021 07:50:26 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 23FE5C061574
-        for <netfilter-devel@vger.kernel.org>; Tue,  8 Jun 2021 04:48:34 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1lqaDg-0000oi-NP; Tue, 08 Jun 2021 13:48:32 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf 2/2] netfilter: ipv6: skip ipv6 packets from any to link-local
-Date:   Tue,  8 Jun 2021 13:48:18 +0200
-Message-Id: <20210608114818.23397-3-fw@strlen.de>
-X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20210608114818.23397-1-fw@strlen.de>
-References: <20210608114818.23397-1-fw@strlen.de>
+        Tue, 8 Jun 2021 09:02:37 -0400
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id BFF6463E3D
+        for <netfilter-devel@vger.kernel.org>; Tue,  8 Jun 2021 14:59:31 +0200 (CEST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] cmd: check for table mismatch first in error reporting
+Date:   Tue,  8 Jun 2021 15:00:38 +0200
+Message-Id: <20210608130039.361-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The ip6tables rpfilter match has an extra check to skip packets with
-"::" source address.
+If the fuzzy lookup provides a table, check if it is an inexact
+matching, in that case, report that the table does not exist and provide
+a mispelling suggestion for the non-existing table.
 
-Extend this to ipv6 fib expression.  Else ipv6 duplicate address detection
-packets will fail rpf route check -- lookup returns -ENETUNREACH.
+Initialize table to NULL since the fuzzy lookup might return no table
+at all.
 
-While at it, extend the prerouting check to also cover the ingress hook.
+This patch fixes misleading error reporting:
 
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1543
-Signed-off-by: Florian Westphal <fw@strlen.de>
+ # nft delete chain xxx yyy
+ Error: No such file or directory; did you mean chain ‘B’ in table ip ‘A’?
+ delete chain xxx yyy
+              ^^^
+
+This refers to table 'xxx' but the suggestion refers to the chain instead.
+
+Therefore, if the fuzzy lookup provides an exact matching table, then do
+the fuzzy lookup for the next non-existing object (either chain, set,
+...).
+
+Fixes: 3a0e07106f66 ("src: combine extended netlink error reporting with mispelling support")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv6/netfilter/nft_fib_ipv6.c | 22 ++++++++++++++++++----
- 1 file changed, 18 insertions(+), 4 deletions(-)
+ src/cmd.c | 71 ++++++++++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 57 insertions(+), 14 deletions(-)
 
-diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
-index e204163c7036..92f3235fa287 100644
---- a/net/ipv6/netfilter/nft_fib_ipv6.c
-+++ b/net/ipv6/netfilter/nft_fib_ipv6.c
-@@ -135,6 +135,17 @@ void nft_fib6_eval_type(const struct nft_expr *expr, struct nft_regs *regs,
+diff --git a/src/cmd.c b/src/cmd.c
+index a647130ec8b4..a69767c551fe 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -27,16 +27,38 @@ static int nft_cmd_enoent_table(struct netlink_ctx *ctx, const struct cmd *cmd,
+ 	return 1;
  }
- EXPORT_SYMBOL_GPL(nft_fib6_eval_type);
  
-+static bool nft_fib_v6_skip_icmpv6(const struct sk_buff *skb, u8 next, const struct ipv6hdr *iph)
++static int table_fuzzy_check(struct netlink_ctx *ctx, const struct cmd *cmd,
++			     const struct table *table,
++			     const struct location *loc)
 +{
-+	if (likely(next != IPPROTO_ICMPV6))
-+		return false;
++	if (strcmp(cmd->handle.table.name, table->handle.table.name) ||
++	    cmd->handle.family != table->handle.family) {
++		netlink_io_error(ctx, loc, "%s; did you mean table ‘%s’ in family %s?",
++				 strerror(ENOENT), table->handle.table.name,
++				 family2str(table->handle.family));
++		return 1;
++	}
 +
-+	if (ipv6_addr_type(&iph->saddr) != IPV6_ADDR_ANY)
-+		return false;
-+
-+	return ipv6_addr_type(&iph->daddr) & IPV6_ADDR_LINKLOCAL;
++	return 0;
 +}
 +
- void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
- 		   const struct nft_pktinfo *pkt)
+ static int nft_cmd_enoent_chain(struct netlink_ctx *ctx, const struct cmd *cmd,
+ 				const struct location *loc)
  {
-@@ -163,10 +174,13 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
+-	const struct table *table;
++	const struct table *table = NULL;
+ 	struct chain *chain;
  
- 	lookup_flags = nft_fib6_flowi_init(&fl6, priv, pkt, oif, iph);
+ 	if (!cmd->handle.chain.name)
+ 		return 0;
  
--	if (nft_hook(pkt) == NF_INET_PRE_ROUTING &&
--	    nft_fib_is_loopback(pkt->skb, nft_in(pkt))) {
--		nft_fib_store_result(dest, priv, nft_in(pkt));
--		return;
-+	if (nft_hook(pkt) == NF_INET_PRE_ROUTING ||
-+	    nft_hook(pkt) == NF_INET_INGRESS) {
-+		if (nft_fib_is_loopback(pkt->skb, nft_in(pkt)) ||
-+		    nft_fib_v6_skip_icmpv6(pkt->skb, pkt->tprot, iph)) {
-+			nft_fib_store_result(dest, priv, nft_in(pkt));
-+			return;
-+		}
- 	}
+ 	chain = chain_lookup_fuzzy(&cmd->handle, &ctx->nft->cache, &table);
++	/* check table first. */
++	if (!table)
++		return 0;
++
++	if (table_fuzzy_check(ctx, cmd, table, loc))
++		return 1;
++
+ 	if (!chain)
+ 		return 0;
  
- 	*dest = 0;
+@@ -52,24 +74,24 @@ static int nft_cmd_enoent_rule(struct netlink_ctx *ctx, const struct cmd *cmd,
+ {
+ 	unsigned int flags = NFT_CACHE_TABLE |
+ 			     NFT_CACHE_CHAIN;
+-	const struct table *table;
++	const struct table *table = NULL;
+ 	struct chain *chain;
+ 
+ 	if (nft_cache_update(ctx->nft, flags, ctx->msgs) < 0)
+ 		return 0;
+ 
+-	table = table_lookup_fuzzy(&cmd->handle, &ctx->nft->cache);
+-	if (table && strcmp(cmd->handle.table.name, table->handle.table.name)) {
+-		netlink_io_error(ctx, loc, "%s; did you mean table ‘%s’ in family %s?",
+-				 strerror(ENOENT), table->handle.table.name,
+-				 family2str(table->handle.family));
++	chain = chain_lookup_fuzzy(&cmd->handle, &ctx->nft->cache, &table);
++	/* check table first. */
++	if (!table)
++		return 0;
++
++	if (table_fuzzy_check(ctx, cmd, table, loc))
+ 		return 1;
+-	} else if (!table) {
++
++	if (!chain)
+ 		return 0;
+-	}
+ 
+-	chain = chain_lookup_fuzzy(&cmd->handle, &ctx->nft->cache, &table);
+-	if (chain && strcmp(cmd->handle.chain.name, chain->handle.chain.name)) {
++	if (strcmp(cmd->handle.chain.name, chain->handle.chain.name)) {
+ 		netlink_io_error(ctx, loc, "%s; did you mean chain ‘%s’ in table %s ‘%s’?",
+ 				 strerror(ENOENT),
+ 				 chain->handle.chain.name,
+@@ -84,13 +106,20 @@ static int nft_cmd_enoent_rule(struct netlink_ctx *ctx, const struct cmd *cmd,
+ static int nft_cmd_enoent_set(struct netlink_ctx *ctx, const struct cmd *cmd,
+ 			      const struct location *loc)
+ {
+-	const struct table *table;
++	const struct table *table = NULL;
+ 	struct set *set;
+ 
+ 	if (!cmd->handle.set.name)
+ 		return 0;
+ 
+ 	set = set_lookup_fuzzy(cmd->handle.set.name, &ctx->nft->cache, &table);
++	/* check table first. */
++	if (!table)
++		return 0;
++
++	if (table_fuzzy_check(ctx, cmd, table, loc))
++		return 1;
++
+ 	if (!set)
+ 		return 0;
+ 
+@@ -106,13 +135,20 @@ static int nft_cmd_enoent_set(struct netlink_ctx *ctx, const struct cmd *cmd,
+ static int nft_cmd_enoent_obj(struct netlink_ctx *ctx, const struct cmd *cmd,
+ 			      const struct location *loc)
+ {
+-	const struct table *table;
++	const struct table *table = NULL;
+ 	struct obj *obj;
+ 
+ 	if (!cmd->handle.obj.name)
+ 		return 0;
+ 
+ 	obj = obj_lookup_fuzzy(cmd->handle.obj.name, &ctx->nft->cache, &table);
++	/* check table first. */
++	if (!table)
++		return 0;
++
++	if (table_fuzzy_check(ctx, cmd, table, loc))
++		return 1;
++
+ 	if (!obj)
+ 		return 0;
+ 
+@@ -127,7 +163,7 @@ static int nft_cmd_enoent_flowtable(struct netlink_ctx *ctx,
+ 				    const struct cmd *cmd,
+ 				    const struct location *loc)
+ {
+-	const struct table *table;
++	const struct table *table = NULL;
+ 	struct flowtable *ft;
+ 
+ 	if (!cmd->handle.flowtable.name)
+@@ -135,6 +171,13 @@ static int nft_cmd_enoent_flowtable(struct netlink_ctx *ctx,
+ 
+ 	ft = flowtable_lookup_fuzzy(cmd->handle.flowtable.name,
+ 				    &ctx->nft->cache, &table);
++	/* check table first. */
++	if (!table)
++		return 0;
++
++	if (table_fuzzy_check(ctx, cmd, table, loc))
++		return 1;
++
+ 	if (!ft)
+ 		return 0;
+ 
 -- 
-2.31.1
+2.20.1
 
