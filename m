@@ -7,92 +7,205 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E42B4C48BCD
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Jun 2021 14:02:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4CA8C48BCD
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Jun 2021 18:47:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CDA52613C3
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Jun 2021 14:02:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CDF2E613E6
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Jun 2021 18:47:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237286AbhFIOEZ (ORCPT
+        id S230230AbhFIStW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Jun 2021 10:04:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60810 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237223AbhFIOEV (ORCPT
+        Wed, 9 Jun 2021 14:49:22 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:59960 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229757AbhFIStW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Jun 2021 10:04:21 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A5B8C061574
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Jun 2021 07:02:23 -0700 (PDT)
-Received: from localhost ([::1]:35102 helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1lqymi-0004kE-5W; Wed, 09 Jun 2021 16:02:20 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH] segtree: Fix segfault when restoring a huge interval set
-Date:   Wed,  9 Jun 2021 16:02:33 +0200
-Message-Id: <20210609140233.8085-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.31.1
+        Wed, 9 Jun 2021 14:49:22 -0400
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id B540C6422A
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Jun 2021 20:46:12 +0200 (CEST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next,v4] netfilter: nf_tables: add last expression
+Date:   Wed,  9 Jun 2021 20:47:21 +0200
+Message-Id: <20210609184721.91820-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Restoring a set of IPv4 prefixes with about 1.1M elements crashes nft as
-set_to_segtree() exhausts the stack. Prevent this by allocating the
-pointer array on heap and make sure it is freed before returning to
-caller.
+Add a new optional expression that tells you when last matching on a
+given rule / set element element has happened.
 
-With this patch in place, restoring said set succeeds with allocation of
-about 3GB of memory, according to valgrind.
-
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/segtree.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+- add NFTA_LAST_SET that specifies if the timestamp has been updated
+- provide delta between jiffies and last timestamp to userspace
+- allow to restore last timestamp
 
-diff --git a/src/segtree.c b/src/segtree.c
-index a4e047e79fc4f..9de5422c7d7f6 100644
---- a/src/segtree.c
-+++ b/src/segtree.c
-@@ -435,10 +435,10 @@ static int set_to_segtree(struct list_head *msgs, struct set *set,
- 			  struct expr *init, struct seg_tree *tree,
- 			  bool add, bool merge)
- {
--	struct elementary_interval *intervals[init->size];
-+	struct elementary_interval **intervals;
- 	struct expr *i, *next;
- 	unsigned int n;
--	int err;
-+	int err = 0;
+ include/net/netfilter/nf_tables_core.h   |  1 +
+ include/uapi/linux/netfilter/nf_tables.h | 15 +++++
+ net/netfilter/Makefile                   |  2 +-
+ net/netfilter/nf_tables_core.c           |  1 +
+ net/netfilter/nft_last.c                 | 84 ++++++++++++++++++++++++
+ 5 files changed, 102 insertions(+), 1 deletion(-)
+ create mode 100644 net/netfilter/nft_last.c
+
+diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
+index 46c8d5bb5d8d..0fa5a6d98a00 100644
+--- a/include/net/netfilter/nf_tables_core.h
++++ b/include/net/netfilter/nf_tables_core.h
+@@ -16,6 +16,7 @@ extern struct nft_expr_type nft_range_type;
+ extern struct nft_expr_type nft_meta_type;
+ extern struct nft_expr_type nft_rt_type;
+ extern struct nft_expr_type nft_exthdr_type;
++extern struct nft_expr_type nft_last_type;
  
- 	/* We are updating an existing set with new elements, check if the new
- 	 * interval overlaps with any of the existing ones.
-@@ -449,6 +449,7 @@ static int set_to_segtree(struct list_head *msgs, struct set *set,
- 			return err;
- 	}
+ #ifdef CONFIG_NETWORK_SECMARK
+ extern struct nft_object_type nft_secmark_obj_type;
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 19715e2679d1..e94d1fa554cb 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -1195,6 +1195,21 @@ enum nft_counter_attributes {
+ };
+ #define NFTA_COUNTER_MAX	(__NFTA_COUNTER_MAX - 1)
  
-+	intervals = xmalloc_array(init->size, sizeof(intervals[0]));
- 	n = expr_to_intervals(init, tree->keylen, intervals);
++/**
++ * enum nft_last_attributes - nf_tables last expression netlink attributes
++ *
++ * @NFTA_LAST_SET: last update has been set, zero means never updated (NLA_U32)
++ * @NFTA_LAST_MSECS: milliseconds since last update (NLA_U64)
++ */
++enum nft_last_attributes {
++	NFTA_LAST_UNSPEC,
++	NFTA_LAST_SET,
++	NFTA_LAST_MSECS,
++	NFTA_LAST_PAD,
++	__NFTA_LAST_MAX
++};
++#define NFTA_LAST_MAX	(__NFTA_LAST_MAX - 1)
++
+ /**
+  * enum nft_log_attributes - nf_tables log expression netlink attributes
+  *
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 87112dad1fd4..049890e00a3d 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -74,7 +74,7 @@ obj-$(CONFIG_NF_DUP_NETDEV)	+= nf_dup_netdev.o
+ nf_tables-objs := nf_tables_core.o nf_tables_api.o nft_chain_filter.o \
+ 		  nf_tables_trace.o nft_immediate.o nft_cmp.o nft_range.o \
+ 		  nft_bitwise.o nft_byteorder.o nft_payload.o nft_lookup.o \
+-		  nft_dynset.o nft_meta.o nft_rt.o nft_exthdr.o \
++		  nft_dynset.o nft_meta.o nft_rt.o nft_exthdr.o nft_last.o \
+ 		  nft_chain_route.o nf_tables_offload.o \
+ 		  nft_set_hash.o nft_set_bitmap.o nft_set_rbtree.o \
+ 		  nft_set_pipapo.o
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index 7780342e2f2d..866cfba04d6c 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -268,6 +268,7 @@ static struct nft_expr_type *nft_basic_types[] = {
+ 	&nft_meta_type,
+ 	&nft_rt_type,
+ 	&nft_exthdr_type,
++	&nft_last_type,
+ };
  
- 	list_for_each_entry_safe(i, next, &init->expressions, list) {
-@@ -467,10 +468,11 @@ static int set_to_segtree(struct list_head *msgs, struct set *set,
- 	for (n = 0; n < init->size; n++) {
- 		err = ei_insert(msgs, tree, intervals[n], merge);
- 		if (err < 0)
--			return err;
-+			break;
- 	}
- 
--	return 0;
-+	xfree(intervals);
-+	return err;
- }
- 
- static bool segtree_needs_first_segment(const struct set *set,
+ static struct nft_object_type *nft_basic_objects[] = {
+diff --git a/net/netfilter/nft_last.c b/net/netfilter/nft_last.c
+new file mode 100644
+index 000000000000..249c3f3ed1c3
+--- /dev/null
++++ b/net/netfilter/nft_last.c
+@@ -0,0 +1,84 @@
++// SPDX-License-Identifier: GPL-2.0-only
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/netlink.h>
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables_core.h>
++#include <net/netfilter/nf_tables.h>
++
++struct nft_last_priv {
++	unsigned long	last_jiffies;
++	unsigned int	last_set;
++};
++
++static const struct nla_policy nft_last_policy[NFTA_LAST_MAX + 1] = {
++	[NFTA_LAST_SET] = { .type = NLA_U32 },
++	[NFTA_LAST_MSECS] = { .type = NLA_U64 },
++};
++
++static int nft_last_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
++			 const struct nlattr * const tb[])
++{
++	struct nft_last_priv *priv = nft_expr_priv(expr);
++	u64 last_jiffies;
++	int err;
++
++	if (tb[NFTA_LAST_MSECS]) {
++		err = nf_msecs_to_jiffies64(tb[NFTA_LAST_MSECS], &last_jiffies);
++		if (err < 0)
++			return err;
++
++		priv->last_jiffies = jiffies + (unsigned long)last_jiffies;
++		priv->last_set = 1;
++	}
++
++	return 0;
++}
++
++static void nft_last_eval(const struct nft_expr *expr,
++			  struct nft_regs *regs, const struct nft_pktinfo *pkt)
++{
++	struct nft_last_priv *priv = nft_expr_priv(expr);
++
++	priv->last_jiffies = jiffies;
++	priv->last_set = 1;
++}
++
++static int nft_last_dump(struct sk_buff *skb, const struct nft_expr *expr)
++{
++	struct nft_last_priv *priv = nft_expr_priv(expr);
++	__be64 msecs;
++
++	if (priv->last_set)
++		msecs = nf_jiffies64_to_msecs(jiffies - priv->last_jiffies);
++	else
++		msecs = 0;
++
++	if (nla_put_be32(skb, NFTA_LAST_SET, htons(priv->last_set)) ||
++	    nla_put_be64(skb, NFTA_LAST_MSECS, msecs, NFTA_LAST_PAD))
++		goto nla_put_failure;
++
++	return 0;
++
++nla_put_failure:
++	return -1;
++}
++
++static const struct nft_expr_ops nft_last_ops = {
++	.type		= &nft_last_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_last_priv)),
++	.eval		= nft_last_eval,
++	.init		= nft_last_init,
++	.dump		= nft_last_dump,
++};
++
++struct nft_expr_type nft_last_type __read_mostly = {
++	.name		= "last",
++	.ops		= &nft_last_ops,
++	.policy		= nft_last_policy,
++	.maxattr	= NFTA_LAST_MAX,
++	.flags		= NFT_EXPR_STATEFUL,
++	.owner		= THIS_MODULE,
++};
 -- 
-2.31.1
+2.30.2
 
