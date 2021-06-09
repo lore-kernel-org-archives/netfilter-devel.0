@@ -4,83 +4,95 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E187C47095
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Jun 2021 09:56:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E42B4C48BCD
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Jun 2021 14:02:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1269C61073
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Jun 2021 09:56:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CDA52613C3
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Jun 2021 14:02:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238497AbhFIJ6l (ORCPT
+        id S237286AbhFIOEZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Jun 2021 05:58:41 -0400
-Received: from szxga03-in.huawei.com ([45.249.212.189]:5354 "EHLO
-        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235816AbhFIJ6l (ORCPT
+        Wed, 9 Jun 2021 10:04:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60810 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S237223AbhFIOEV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Jun 2021 05:58:41 -0400
-Received: from dggeme758-chm.china.huawei.com (unknown [172.30.72.57])
-        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4G0Mq90lYGz6tqL;
-        Wed,  9 Jun 2021 17:52:53 +0800 (CST)
-Received: from huawei.com (10.67.174.47) by dggeme758-chm.china.huawei.com
- (10.3.19.104) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2176.2; Wed, 9 Jun
- 2021 17:56:44 +0800
-From:   He Ying <heying24@huawei.com>
-To:     <pablo@netfilter.org>, <kadlec@netfilter.org>, <fw@strlen.de>,
-        <davem@davemloft.net>, <kuba@kernel.org>
-CC:     <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
-        <netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <heying24@huawei.com>
-Subject: [PATCH -next] netfilter: Make NETFILTER_NETLINK_HOOK depends on NF_TABLES
-Date:   Wed, 9 Jun 2021 05:57:30 -0400
-Message-ID: <20210609095730.185982-1-heying24@huawei.com>
-X-Mailer: git-send-email 2.17.1
+        Wed, 9 Jun 2021 10:04:21 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A5B8C061574
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Jun 2021 07:02:23 -0700 (PDT)
+Received: from localhost ([::1]:35102 helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1lqymi-0004kE-5W; Wed, 09 Jun 2021 16:02:20 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [nft PATCH] segtree: Fix segfault when restoring a huge interval set
+Date:   Wed,  9 Jun 2021 16:02:33 +0200
+Message-Id: <20210609140233.8085-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.31.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.67.174.47]
-X-ClientProxiedBy: dggems706-chm.china.huawei.com (10.3.19.183) To
- dggeme758-chm.china.huawei.com (10.3.19.104)
-X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Compiling errors happen when CONFIG_NETFILTER_NETLINK_HOOK = y
-while CONFIG_NF_TABLES is not set:
+Restoring a set of IPv4 prefixes with about 1.1M elements crashes nft as
+set_to_segtree() exhausts the stack. Prevent this by allocating the
+pointer array on heap and make sure it is freed before returning to
+caller.
 
-net/netfilter/nfnetlink_hook.c: In function ‘nfnl_hook_put_nft_chain_info’:
-net/netfilter/nfnetlink_hook.c:76:7: error: implicit declaration of function
-‘nft_is_active’ [-Werror=implicit-function-declaration]
-   76 |  if (!nft_is_active(net, chain))
-      |       ^~~~~~~~~~~~~
+With this patch in place, restoring said set succeeds with allocation of
+about 3GB of memory, according to valgrind.
 
-Notice that nft_is_active macro is only defined when CONFIG_NF_TABLES
-is enabled, so add dependency on NF_TABLES in NETFILTER_NETLINK_HOOK
-configurations.
-
-Fixes: e2cf17d3774c ("netfilter: add new hook nfnl subsystem")
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Signed-off-by: He Ying <heying24@huawei.com>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- net/netfilter/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+ src/segtree.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index c81321372198..54395266339d 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -22,6 +22,7 @@ config NETFILTER_FAMILY_ARP
- config NETFILTER_NETLINK_HOOK
- 	tristate "Netfilter base hook dump support"
- 	depends on NETFILTER_ADVANCED
-+	depends on NF_TABLES
- 	select NETFILTER_NETLINK
- 	help
- 	  If this option is enabled, the kernel will include support
+diff --git a/src/segtree.c b/src/segtree.c
+index a4e047e79fc4f..9de5422c7d7f6 100644
+--- a/src/segtree.c
++++ b/src/segtree.c
+@@ -435,10 +435,10 @@ static int set_to_segtree(struct list_head *msgs, struct set *set,
+ 			  struct expr *init, struct seg_tree *tree,
+ 			  bool add, bool merge)
+ {
+-	struct elementary_interval *intervals[init->size];
++	struct elementary_interval **intervals;
+ 	struct expr *i, *next;
+ 	unsigned int n;
+-	int err;
++	int err = 0;
+ 
+ 	/* We are updating an existing set with new elements, check if the new
+ 	 * interval overlaps with any of the existing ones.
+@@ -449,6 +449,7 @@ static int set_to_segtree(struct list_head *msgs, struct set *set,
+ 			return err;
+ 	}
+ 
++	intervals = xmalloc_array(init->size, sizeof(intervals[0]));
+ 	n = expr_to_intervals(init, tree->keylen, intervals);
+ 
+ 	list_for_each_entry_safe(i, next, &init->expressions, list) {
+@@ -467,10 +468,11 @@ static int set_to_segtree(struct list_head *msgs, struct set *set,
+ 	for (n = 0; n < init->size; n++) {
+ 		err = ei_insert(msgs, tree, intervals[n], merge);
+ 		if (err < 0)
+-			return err;
++			break;
+ 	}
+ 
+-	return 0;
++	xfree(intervals);
++	return err;
+ }
+ 
+ static bool segtree_needs_first_segment(const struct set *set,
 -- 
-2.17.1
+2.31.1
 
