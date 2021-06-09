@@ -2,210 +2,67 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4CA8C48BCD
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Jun 2021 18:47:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DEE6C48BCF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Jun 2021 19:08:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CDF2E613E6
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Jun 2021 18:47:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5EDB9613D4
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Jun 2021 19:08:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230230AbhFIStW (ORCPT
+        id S229499AbhFITKe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Jun 2021 14:49:22 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:59960 "EHLO
+        Wed, 9 Jun 2021 15:10:34 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:59988 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229757AbhFIStW (ORCPT
+        with ESMTP id S229472AbhFITKd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Jun 2021 14:49:22 -0400
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id B540C6422A
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Jun 2021 20:46:12 +0200 (CEST)
+        Wed, 9 Jun 2021 15:10:33 -0400
+Received: from netfilter.org (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 9B08B6422C;
+        Wed,  9 Jun 2021 21:07:24 +0200 (CEST)
+Date:   Wed, 9 Jun 2021 21:08:35 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next,v4] netfilter: nf_tables: add last expression
-Date:   Wed,  9 Jun 2021 20:47:21 +0200
-Message-Id: <20210609184721.91820-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf 0/2] netfilter: nft_fib: ignore icmpv6 packets from ::
+Message-ID: <20210609190835.GA4231@salvia>
+References: <20210608114818.23397-1-fw@strlen.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20210608114818.23397-1-fw@strlen.de>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add a new optional expression that tells you when last matching on a
-given rule / set element element has happened.
+On Tue, Jun 08, 2021 at 01:48:16PM +0200, Florian Westphal wrote:
+> Quoting nf bugzilla:
+> --------
+> Using the following for
+> reverse path filtering breaks IPv6 duplicate address detection:
+> 
+> table inet ip46_firewall {
+>     chain ip46_rpfilter {
+>         type filter hook prerouting priority raw;
+>         fib saddr . iif oif missing log prefix "RPFILTER: " drop
+>     }
+> }
+> 
+> This is because packets from :: to ff02::1:ff00/104 will be dropped and thus
+> other hosts on the network cannot detect that this host already has the same
+> address assigned. The problem can be worked around in nft rules by handling
+> such packets specially but I guess it should work as is.
+> 
+> In the kernel in ip6t_rpfilter.c the function rpfilter_mt() checks for
+> saddrtype == IPV6_ADDR_ANY. nft_fib_ipv6.c doesn't seem to have an equivalent
+> check for this special case.
+> --------
+> 
+> First patch adds a test case for this, second patch makes icmpv6 from
+> any to link-local bypass the fib lookup, just like loopback packets.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-- add NFTA_LAST_SET that specifies if the timestamp has been updated
-- provide delta between jiffies and last timestamp to userspace
-- allow to restore last timestamp
-
- include/net/netfilter/nf_tables_core.h   |  1 +
- include/uapi/linux/netfilter/nf_tables.h | 15 +++++
- net/netfilter/Makefile                   |  2 +-
- net/netfilter/nf_tables_core.c           |  1 +
- net/netfilter/nft_last.c                 | 84 ++++++++++++++++++++++++
- 5 files changed, 102 insertions(+), 1 deletion(-)
- create mode 100644 net/netfilter/nft_last.c
-
-diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
-index 46c8d5bb5d8d..0fa5a6d98a00 100644
---- a/include/net/netfilter/nf_tables_core.h
-+++ b/include/net/netfilter/nf_tables_core.h
-@@ -16,6 +16,7 @@ extern struct nft_expr_type nft_range_type;
- extern struct nft_expr_type nft_meta_type;
- extern struct nft_expr_type nft_rt_type;
- extern struct nft_expr_type nft_exthdr_type;
-+extern struct nft_expr_type nft_last_type;
- 
- #ifdef CONFIG_NETWORK_SECMARK
- extern struct nft_object_type nft_secmark_obj_type;
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 19715e2679d1..e94d1fa554cb 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -1195,6 +1195,21 @@ enum nft_counter_attributes {
- };
- #define NFTA_COUNTER_MAX	(__NFTA_COUNTER_MAX - 1)
- 
-+/**
-+ * enum nft_last_attributes - nf_tables last expression netlink attributes
-+ *
-+ * @NFTA_LAST_SET: last update has been set, zero means never updated (NLA_U32)
-+ * @NFTA_LAST_MSECS: milliseconds since last update (NLA_U64)
-+ */
-+enum nft_last_attributes {
-+	NFTA_LAST_UNSPEC,
-+	NFTA_LAST_SET,
-+	NFTA_LAST_MSECS,
-+	NFTA_LAST_PAD,
-+	__NFTA_LAST_MAX
-+};
-+#define NFTA_LAST_MAX	(__NFTA_LAST_MAX - 1)
-+
- /**
-  * enum nft_log_attributes - nf_tables log expression netlink attributes
-  *
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 87112dad1fd4..049890e00a3d 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -74,7 +74,7 @@ obj-$(CONFIG_NF_DUP_NETDEV)	+= nf_dup_netdev.o
- nf_tables-objs := nf_tables_core.o nf_tables_api.o nft_chain_filter.o \
- 		  nf_tables_trace.o nft_immediate.o nft_cmp.o nft_range.o \
- 		  nft_bitwise.o nft_byteorder.o nft_payload.o nft_lookup.o \
--		  nft_dynset.o nft_meta.o nft_rt.o nft_exthdr.o \
-+		  nft_dynset.o nft_meta.o nft_rt.o nft_exthdr.o nft_last.o \
- 		  nft_chain_route.o nf_tables_offload.o \
- 		  nft_set_hash.o nft_set_bitmap.o nft_set_rbtree.o \
- 		  nft_set_pipapo.o
-diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index 7780342e2f2d..866cfba04d6c 100644
---- a/net/netfilter/nf_tables_core.c
-+++ b/net/netfilter/nf_tables_core.c
-@@ -268,6 +268,7 @@ static struct nft_expr_type *nft_basic_types[] = {
- 	&nft_meta_type,
- 	&nft_rt_type,
- 	&nft_exthdr_type,
-+	&nft_last_type,
- };
- 
- static struct nft_object_type *nft_basic_objects[] = {
-diff --git a/net/netfilter/nft_last.c b/net/netfilter/nft_last.c
-new file mode 100644
-index 000000000000..249c3f3ed1c3
---- /dev/null
-+++ b/net/netfilter/nft_last.c
-@@ -0,0 +1,84 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/netlink.h>
-+#include <linux/netfilter.h>
-+#include <linux/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables_core.h>
-+#include <net/netfilter/nf_tables.h>
-+
-+struct nft_last_priv {
-+	unsigned long	last_jiffies;
-+	unsigned int	last_set;
-+};
-+
-+static const struct nla_policy nft_last_policy[NFTA_LAST_MAX + 1] = {
-+	[NFTA_LAST_SET] = { .type = NLA_U32 },
-+	[NFTA_LAST_MSECS] = { .type = NLA_U64 },
-+};
-+
-+static int nft_last_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
-+			 const struct nlattr * const tb[])
-+{
-+	struct nft_last_priv *priv = nft_expr_priv(expr);
-+	u64 last_jiffies;
-+	int err;
-+
-+	if (tb[NFTA_LAST_MSECS]) {
-+		err = nf_msecs_to_jiffies64(tb[NFTA_LAST_MSECS], &last_jiffies);
-+		if (err < 0)
-+			return err;
-+
-+		priv->last_jiffies = jiffies + (unsigned long)last_jiffies;
-+		priv->last_set = 1;
-+	}
-+
-+	return 0;
-+}
-+
-+static void nft_last_eval(const struct nft_expr *expr,
-+			  struct nft_regs *regs, const struct nft_pktinfo *pkt)
-+{
-+	struct nft_last_priv *priv = nft_expr_priv(expr);
-+
-+	priv->last_jiffies = jiffies;
-+	priv->last_set = 1;
-+}
-+
-+static int nft_last_dump(struct sk_buff *skb, const struct nft_expr *expr)
-+{
-+	struct nft_last_priv *priv = nft_expr_priv(expr);
-+	__be64 msecs;
-+
-+	if (priv->last_set)
-+		msecs = nf_jiffies64_to_msecs(jiffies - priv->last_jiffies);
-+	else
-+		msecs = 0;
-+
-+	if (nla_put_be32(skb, NFTA_LAST_SET, htons(priv->last_set)) ||
-+	    nla_put_be64(skb, NFTA_LAST_MSECS, msecs, NFTA_LAST_PAD))
-+		goto nla_put_failure;
-+
-+	return 0;
-+
-+nla_put_failure:
-+	return -1;
-+}
-+
-+static const struct nft_expr_ops nft_last_ops = {
-+	.type		= &nft_last_type,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_last_priv)),
-+	.eval		= nft_last_eval,
-+	.init		= nft_last_init,
-+	.dump		= nft_last_dump,
-+};
-+
-+struct nft_expr_type nft_last_type __read_mostly = {
-+	.name		= "last",
-+	.ops		= &nft_last_ops,
-+	.policy		= nft_last_policy,
-+	.maxattr	= NFTA_LAST_MAX,
-+	.flags		= NFT_EXPR_STATEFUL,
-+	.owner		= THIS_MODULE,
-+};
--- 
-2.30.2
-
+Applied, thanks.
