@@ -6,46 +6,52 @@ X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 201D5C48BCD
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Jun 2021 19:34:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AD6FC48BCF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Jun 2021 19:35:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EE26F613D4
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Jun 2021 19:34:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 03F8161287
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Jun 2021 19:35:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229689AbhFITgj (ORCPT
+        id S229634AbhFIThQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Jun 2021 15:36:39 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:60074 "EHLO
+        Wed, 9 Jun 2021 15:37:16 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:60090 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229504AbhFITgj (ORCPT
+        with ESMTP id S229504AbhFIThQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Jun 2021 15:36:39 -0400
+        Wed, 9 Jun 2021 15:37:16 -0400
 Received: from netfilter.org (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 2FDA36422C;
-        Wed,  9 Jun 2021 21:33:30 +0200 (CEST)
-Date:   Wed, 9 Jun 2021 21:34:40 +0200
+        by mail.netfilter.org (Postfix) with ESMTPSA id 667836422C;
+        Wed,  9 Jun 2021 21:34:07 +0200 (CEST)
+Date:   Wed, 9 Jun 2021 21:35:17 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, kernel test robot <lkp@intel.com>
-Subject: Re: [PATCH v2 nf-next] netfilter: nfnetlink_hook: add depends-on
- nftables
-Message-ID: <20210609193440.GA4665@salvia>
-References: <20210608205322.8748-1-fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org,
+        coverity-bot <keescook+coverity-bot@chromium.org>
+Subject: Re: [PATCH nf-next] netfilter: move nf_tables base hook annotation
+ to init helper
+Message-ID: <20210609193517.GA4711@salvia>
+References: <20210608210607.13325-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20210608205322.8748-1-fw@strlen.de>
+In-Reply-To: <20210608210607.13325-1-fw@strlen.de>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jun 08, 2021 at 10:53:22PM +0200, Florian Westphal wrote:
-> nfnetlink_hook.c: In function 'nfnl_hook_put_nft_chain_info':
-> nfnetlink_hook.c:76:7: error: implicit declaration of 'nft_is_active'
+On Tue, Jun 08, 2021 at 11:06:07PM +0200, Florian Westphal wrote:
+> coverity scanner says:
+> 2187  if (nft_is_base_chain(chain)) {
+> vvv   CID 1505166:  Memory - corruptions  (UNINIT)
+> vvv   Using uninitialized value "basechain".
+> 2188  basechain->ops.hook_ops_type = NF_HOOK_OP_NF_TABLES;
 > 
-> This macro is only defined when NF_TABLES is enabled.
-> While its possible to also add an ifdef-guard, the infrastructure
-> is currently not useful without nf_tables.
+> ... I don't see how nft_is_base_chain() can evaluate to true
+> while basechain pointer is garbage.
+> 
+> However, it seems better to place the NF_HOOK_OP_NF_TABLES annotation
+> in nft_basechain_hook_init() instead.
 
 Applied, thanks.
