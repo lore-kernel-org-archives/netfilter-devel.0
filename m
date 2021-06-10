@@ -2,78 +2,82 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,INCLUDES_PULL_REQUEST,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DAE17C47094
-	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Jun 2021 14:23:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1079C47094
+	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Jun 2021 16:55:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BC9A3613F8
-	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Jun 2021 14:23:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B1501613E9
+	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Jun 2021 16:55:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231317AbhFJOZA (ORCPT
+        id S231489AbhFJQ5B (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 10 Jun 2021 10:25:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44428 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231132AbhFJOZA (ORCPT
+        Thu, 10 Jun 2021 12:57:01 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:34618 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230242AbhFJQ5A (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Jun 2021 10:25:00 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E4F1C061574
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Jun 2021 07:23:04 -0700 (PDT)
-Received: from localhost ([::1]:38098 helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1lrLaH-00006I-CP; Thu, 10 Jun 2021 16:23:01 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-Subject: [nf-next PATCH] netfilter: nft_exthdr: Search chunks in SCTP packets only
-Date:   Thu, 10 Jun 2021 16:23:16 +0200
-Message-Id: <20210610142316.24354-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.31.1
+        Thu, 10 Jun 2021 12:57:00 -0400
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id A14096423A;
+        Thu, 10 Jun 2021 18:53:48 +0200 (CEST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
+Subject: [PATCH net 0/3] Netfilter fixes for net
+Date:   Thu, 10 Jun 2021 18:54:55 +0200
+Message-Id: <20210610165458.23071-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Since user space does not generate a payload dependency, plain sctp
-chunk matches cause searching in non-SCTP packets, too. Avoid this
-potential mis-interpretation of packet data by checking pkt->tprot.
+Hi,
 
-Fixes: 133dc203d77df ("netfilter: nft_exthdr: Support SCTP chunks")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- net/netfilter/nft_exthdr.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+The following patchset contains Netfilter fixes for net:
 
-diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-index 7f705b5c09de8..1093bb83f8aeb 100644
---- a/net/netfilter/nft_exthdr.c
-+++ b/net/netfilter/nft_exthdr.c
-@@ -312,6 +312,9 @@ static void nft_exthdr_sctp_eval(const struct nft_expr *expr,
- 	const struct sctp_chunkhdr *sch;
- 	struct sctp_chunkhdr _sch;
- 
-+	if (!pkt->tprot_set || pkt->tprot != IPPROTO_SCTP)
-+		goto err;
-+
- 	do {
- 		sch = skb_header_pointer(pkt->skb, offset, sizeof(_sch), &_sch);
- 		if (!sch || !sch->length)
-@@ -334,7 +337,7 @@ static void nft_exthdr_sctp_eval(const struct nft_expr *expr,
- 		}
- 		offset += SCTP_PAD4(ntohs(sch->length));
- 	} while (offset < pkt->skb->len);
--
-+err:
- 	if (priv->flags & NFT_EXTHDR_F_PRESENT)
- 		nft_reg_store8(dest, false);
- 	else
--- 
-2.31.1
+1) Fix a crash when stateful expression with its own gc callback
+   is used in a set definition.
 
+2) Skip IPv6 packets from any link-local address in IPv6 fib expression.
+   Add a selftest for this scenario, from Florian Westphal.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thank you!
+
+----------------------------------------------------------------
+
+The following changes since commit f2386cf7c5f4ff5d7b584f5d92014edd7df6c676:
+
+  net: lantiq: disable interrupt before sheduling NAPI (2021-06-08 19:16:32 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
+
+for you to fetch changes up to 12f36e9bf678a81d030ca1b693dcda62b55af7c5:
+
+  netfilter: nft_fib_ipv6: skip ipv6 packets from any to link-local (2021-06-09 21:11:03 +0200)
+
+----------------------------------------------------------------
+Florian Westphal (2):
+      selftests: netfilter: add fib test case
+      netfilter: nft_fib_ipv6: skip ipv6 packets from any to link-local
+
+Pablo Neira Ayuso (1):
+      netfilter: nf_tables: initialize set before expression setup
+
+ net/ipv6/netfilter/nft_fib_ipv6.c            |  22 ++-
+ net/netfilter/nf_tables_api.c                |  85 ++++++-----
+ tools/testing/selftests/netfilter/Makefile   |   2 +-
+ tools/testing/selftests/netfilter/nft_fib.sh | 221 +++++++++++++++++++++++++++
+ 4 files changed, 283 insertions(+), 47 deletions(-)
+ create mode 100755 tools/testing/selftests/netfilter/nft_fib.sh
