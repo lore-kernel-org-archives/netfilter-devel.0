@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 052FDC48BD1
-	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Jun 2021 16:41:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BDA7C48BE5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Jun 2021 16:41:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D958B613BC
-	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Jun 2021 16:41:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3DCDE611AE
+	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Jun 2021 16:41:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230212AbhFKQnU (ORCPT
+        id S230332AbhFKQn3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 11 Jun 2021 12:43:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55516 "EHLO
+        Fri, 11 Jun 2021 12:43:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55566 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229935AbhFKQnT (ORCPT
+        with ESMTP id S230344AbhFKQn1 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 11 Jun 2021 12:43:19 -0400
+        Fri, 11 Jun 2021 12:43:27 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 973F7C061574
-        for <netfilter-devel@vger.kernel.org>; Fri, 11 Jun 2021 09:41:21 -0700 (PDT)
-Received: from localhost ([::1]:41336 helo=xic)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD328C061574
+        for <netfilter-devel@vger.kernel.org>; Fri, 11 Jun 2021 09:41:26 -0700 (PDT)
+Received: from localhost ([::1]:41342 helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1lrkDg-0005de-2L; Fri, 11 Jun 2021 18:41:20 +0200
+        id 1lrkDl-0005e8-C0; Fri, 11 Jun 2021 18:41:25 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 02/10] parser_json: Fix for memleak in tcp option error path
-Date:   Fri, 11 Jun 2021 18:40:56 +0200
-Message-Id: <20210611164104.8121-3-phil@nwl.cc>
+Subject: [nft PATCH 05/10] netlink: Avoid memleak in error path of netlink_delinearize_set()
+Date:   Fri, 11 Jun 2021 18:40:59 +0200
+Message-Id: <20210611164104.8121-6-phil@nwl.cc>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20210611164104.8121-1-phil@nwl.cc>
 References: <20210611164104.8121-1-phil@nwl.cc>
@@ -43,34 +43,36 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If 'kind' value is invalid, the function returned without freeing 'expr'
-first. Fix this by performing the check before allocation.
+Duplicate string 'comment' later when the function does not fail
+anymore.
 
-Fixes: cb21869649208 ("json: tcp: add raw tcp option match support")
+Fixes: 0864c2d49ee8a ("src: add comment support for set declarations")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/parser_json.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ src/netlink.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/src/parser_json.c b/src/parser_json.c
-index e6a0233ab6ce3..bb0e4169b477d 100644
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -603,12 +603,12 @@ static struct expr *json_parse_tcp_option_expr(struct json_ctx *ctx,
- 			"base", &kind, "offset", &offset, "len", &len)) {
- 		uint32_t flag = 0;
+diff --git a/src/netlink.c b/src/netlink.c
+index e91b06e3ea971..41cce3379ca50 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -867,7 +867,7 @@ struct set *netlink_delinearize_set(struct netlink_ctx *ctx,
+ 		if (ud[NFTNL_UDATA_SET_DATA_TYPEOF])
+ 			typeof_expr_data = set_make_key(ud[NFTNL_UDATA_SET_DATA_TYPEOF]);
+ 		if (ud[NFTNL_UDATA_SET_COMMENT])
+-			comment = xstrdup(nftnl_udata_get(ud[NFTNL_UDATA_SET_COMMENT]));
++			comment = nftnl_udata_get(ud[NFTNL_UDATA_SET_COMMENT]);
+ 	}
  
--		expr = tcpopt_expr_alloc(int_loc, kind,
--					 TCPOPT_COMMON_KIND);
--
- 		if (kind < 0 || kind > 255)
- 			return NULL;
+ 	key = nftnl_set_get_u32(nls, NFTNL_SET_KEY_TYPE);
+@@ -905,7 +905,7 @@ struct set *netlink_delinearize_set(struct netlink_ctx *ctx,
+ 	set->handle.set.name = xstrdup(nftnl_set_get_str(nls, NFTNL_SET_NAME));
+ 	set->automerge	   = automerge;
+ 	if (comment)
+-		set->comment = comment;
++		set->comment = xstrdup(comment);
  
-+		expr = tcpopt_expr_alloc(int_loc, kind,
-+					 TCPOPT_COMMON_KIND);
-+
- 		if (offset == TCPOPT_COMMON_KIND && len == 8)
- 			flag = NFT_EXTHDR_F_PRESENT;
+ 	init_list_head(&set_parse_ctx.stmt_list);
  
 -- 
 2.31.1
