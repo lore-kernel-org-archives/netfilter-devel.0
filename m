@@ -2,67 +2,68 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FA59C48BE0
-	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Jun 2021 16:41:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9C9DC48BE5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Jun 2021 16:41:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3C7FA6101B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Jun 2021 16:41:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 88703613D2
+	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Jun 2021 16:41:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229548AbhFKQmu (ORCPT
+        id S229753AbhFKQnA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 11 Jun 2021 12:42:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55392 "EHLO
+        Fri, 11 Jun 2021 12:43:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55412 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229517AbhFKQmt (ORCPT
+        with ESMTP id S229517AbhFKQm7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 11 Jun 2021 12:42:49 -0400
+        Fri, 11 Jun 2021 12:42:59 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC45BC061574
-        for <netfilter-devel@vger.kernel.org>; Fri, 11 Jun 2021 09:40:50 -0700 (PDT)
-Received: from localhost ([::1]:41300 helo=xic)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 305BDC061574
+        for <netfilter-devel@vger.kernel.org>; Fri, 11 Jun 2021 09:40:55 -0700 (PDT)
+Received: from localhost ([::1]:41306 helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1lrkDA-0005bj-9x; Fri, 11 Jun 2021 18:40:48 +0200
+        id 1lrkDF-0005bp-Jk; Fri, 11 Jun 2021 18:40:53 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 00/10] Some covscan fixes
-Date:   Fri, 11 Jun 2021 18:40:54 +0200
-Message-Id: <20210611164104.8121-1-phil@nwl.cc>
+Subject: [nft PATCH 08/10] netlink: Avoid memleak in error path of netlink_delinearize_obj()
+Date:   Fri, 11 Jun 2021 18:41:02 +0200
+Message-Id: <20210611164104.8121-9-phil@nwl.cc>
 X-Mailer: git-send-email 2.31.1
+In-Reply-To: <20210611164104.8121-1-phil@nwl.cc>
+References: <20210611164104.8121-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This series fixes a bunch of minor issues identified by Coverity tool.
+If parsing udata fails, 'obj' has to be freed before returning to
+caller.
 
-Phil Sutter (10):
-  parser_bison: Fix for implicit declaration of isalnum
-  parser_json: Fix for memleak in tcp option error path
-  evaluate: Mark fall through case in str2hooknum()
-  json: Drop pointless assignment in exthdr_expr_json()
-  netlink: Avoid memleak in error path of netlink_delinearize_set()
-  netlink: Avoid memleak in error path of netlink_delinearize_chain()
-  netlink: Avoid memleak in error path of netlink_delinearize_table()
-  netlink: Avoid memleak in error path of netlink_delinearize_obj()
-  netlink_delinearize: Fix suspicious calloc() call
-  rule: Fix for potential off-by-one in cmd_add_loc()
+Fixes: 293c9b114faef ("src: add comment support for objects")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ src/netlink.c | 1 +
+ 1 file changed, 1 insertion(+)
 
- src/evaluate.c            | 1 +
- src/json.c                | 1 -
- src/netlink.c             | 7 +++++--
- src/netlink_delinearize.c | 5 ++---
- src/parser_bison.y        | 1 +
- src/parser_json.c         | 6 +++---
- src/rule.c                | 2 +-
- 7 files changed, 13 insertions(+), 10 deletions(-)
-
+diff --git a/src/netlink.c b/src/netlink.c
+index be98bfb7f5c12..f2c1a4a15dee8 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -1450,6 +1450,7 @@ struct obj *netlink_delinearize_obj(struct netlink_ctx *ctx,
+ 		udata = nftnl_obj_get_data(nlo, NFTNL_OBJ_USERDATA, &ulen);
+ 		if (nftnl_udata_parse(udata, ulen, obj_parse_udata_cb, ud) < 0) {
+ 			netlink_io_error(ctx, NULL, "Cannot parse userdata");
++			obj_free(obj);
+ 			return NULL;
+ 		}
+ 		if (ud[NFTNL_UDATA_OBJ_COMMENT])
 -- 
 2.31.1
 
