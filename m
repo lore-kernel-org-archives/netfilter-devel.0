@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2BAAC48BD1
-	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Jun 2021 16:41:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3456BC48BD1
+	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Jun 2021 16:41:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D8D44613BA
-	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Jun 2021 16:41:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1CAE36100A
+	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Jun 2021 16:41:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230465AbhFKQnh (ORCPT
+        id S230344AbhFKQnm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 11 Jun 2021 12:43:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55606 "EHLO
+        Fri, 11 Jun 2021 12:43:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55630 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230344AbhFKQng (ORCPT
+        with ESMTP id S229935AbhFKQnl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 11 Jun 2021 12:43:36 -0400
+        Fri, 11 Jun 2021 12:43:41 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9020FC061574
-        for <netfilter-devel@vger.kernel.org>; Fri, 11 Jun 2021 09:41:37 -0700 (PDT)
-Received: from localhost ([::1]:41354 helo=xic)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D6D7CC061574
+        for <netfilter-devel@vger.kernel.org>; Fri, 11 Jun 2021 09:41:42 -0700 (PDT)
+Received: from localhost ([::1]:41360 helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1lrkDv-0005ef-Vs; Fri, 11 Jun 2021 18:41:36 +0200
+        id 1lrkE1-0005f5-9U; Fri, 11 Jun 2021 18:41:41 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 07/10] netlink: Avoid memleak in error path of netlink_delinearize_table()
-Date:   Fri, 11 Jun 2021 18:41:01 +0200
-Message-Id: <20210611164104.8121-8-phil@nwl.cc>
+Subject: [nft PATCH 10/10] rule: Fix for potential off-by-one in cmd_add_loc()
+Date:   Fri, 11 Jun 2021 18:41:04 +0200
+Message-Id: <20210611164104.8121-11-phil@nwl.cc>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20210611164104.8121-1-phil@nwl.cc>
 References: <20210611164104.8121-1-phil@nwl.cc>
@@ -43,27 +43,28 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If parsing udata fails, 'table' has to be freed before returning to
-caller.
+Using num_attrs as index means it must be at max one less than the
+array's size at function start.
 
-Fixes: c156232a530b3 ("src: add comment support when adding tables")
+Fixes: 27362a5bfa433 ("rule: larger number of error locations")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/netlink.c | 1 +
- 1 file changed, 1 insertion(+)
+ src/rule.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/netlink.c b/src/netlink.c
-index 1bbdf98bd2ee2..be98bfb7f5c12 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -647,6 +647,7 @@ struct table *netlink_delinearize_table(struct netlink_ctx *ctx,
- 		udata = nftnl_table_get_data(nlt, NFTNL_TABLE_USERDATA, &ulen);
- 		if (nftnl_udata_parse(udata, ulen, table_parse_udata_cb, ud) < 0) {
- 			netlink_io_error(ctx, NULL, "Cannot parse userdata");
-+			table_free(table);
- 			return NULL;
- 		}
- 		if (ud[NFTNL_UDATA_TABLE_COMMENT])
+diff --git a/src/rule.c b/src/rule.c
+index dbbe744eee0d8..92daf2f33b76b 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1275,7 +1275,7 @@ struct cmd *cmd_alloc(enum cmd_ops op, enum cmd_obj obj,
+ 
+ void cmd_add_loc(struct cmd *cmd, uint16_t offset, const struct location *loc)
+ {
+-	if (cmd->num_attrs > NFT_NLATTR_LOC_MAX)
++	if (cmd->num_attrs >= NFT_NLATTR_LOC_MAX)
+ 		return;
+ 
+ 	cmd->attr[cmd->num_attrs].offset = offset;
 -- 
 2.31.1
 
