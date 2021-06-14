@@ -2,259 +2,111 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-22.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52B4CC4743C
-	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Jun 2021 13:10:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48BD1C2B9F4
+	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Jun 2021 13:19:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 380CF61283
-	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Jun 2021 13:10:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2896061245
+	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Jun 2021 13:19:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233450AbhFNNMa (ORCPT
+        id S232938AbhFNNVF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 14 Jun 2021 09:12:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38778 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233218AbhFNNM3 (ORCPT
+        Mon, 14 Jun 2021 09:21:05 -0400
+Received: from mail-wm1-f44.google.com ([209.85.128.44]:47080 "EHLO
+        mail-wm1-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232894AbhFNNVF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 14 Jun 2021 09:12:29 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE201C061574
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Jun 2021 06:10:26 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1lsmMD-0000MA-5U; Mon, 14 Jun 2021 15:10:25 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 3/3] tests: add a icmp-reply only and icmpv6 id test cases
-Date:   Mon, 14 Jun 2021 15:10:06 +0200
-Message-Id: <20210614131006.26490-4-fw@strlen.de>
-X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20210614131006.26490-1-fw@strlen.de>
-References: <20210614131006.26490-1-fw@strlen.de>
+        Mon, 14 Jun 2021 09:21:05 -0400
+Received: by mail-wm1-f44.google.com with SMTP id h22-20020a05600c3516b02901a826f84095so12763763wmq.5
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Jun 2021 06:19:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=6wind.com; s=google;
+        h=reply-to:subject:to:cc:references:from:organization:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=ZTA57oOz8Cdz7Ap0zeagZ1NVaajdzSi2IzO+/mv1lRI=;
+        b=FarIWjuocwFevFTICawiUlOPLBkN2IDCx6tamjQ4Uvo82pD/sTH1drfgDw5Ih7tNu9
+         PifDWuz4jhapKG+nwMQI/byFbG1qKJrHhzsg5p2R8SSO3huy9fwZowADDIQ8X3thBXBH
+         keCY+l87rrat6v4mfdoFQ9N0Lvw1XvOxRrXh5+2p8OKQ1RawRAfAj56zPBbIl2wC7DVm
+         0Cz6OcZ0MMUxzn2diYQANRXndxzk5tIxQwNkFDg6TMM/T+sw6lgS5a6B7zSab7uOQJYT
+         rfvhQ5dLjv5ZDrFqbWHbJw4E2MeKb0etToK/FbesgqlwgZzIlHn7SJjG4HDlcRWjIXfh
+         2J1w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:reply-to:subject:to:cc:references:from
+         :organization:message-id:date:user-agent:mime-version:in-reply-to
+         :content-language:content-transfer-encoding;
+        bh=ZTA57oOz8Cdz7Ap0zeagZ1NVaajdzSi2IzO+/mv1lRI=;
+        b=Ykt3Trf59R0Su11aPfJ2ftmH5eFLB1kQPmtSssWOGHsHpSWirEAsmNLljpuQums84z
+         HKNT0/3Nhs6karkyXTCTf2lbp73ouwpFaf9bigohxI7ND7FpcjprQXtOzNEq7GjDEHiK
+         m8tyLgjyV35ZAsyKJi02WQ0Bxy5myV1Pr68Gx4TXRqlPdT9+/o4Dr0QThUWsXHYTWv7Q
+         5YlGUPLtqqA5s2CVMry+iN/hPYeZdeepkIj3az6UI4VTy3ueBVqqYSmk3JO+4q4idFtj
+         pPs/Beui4zPTchdsi892LYz8FjiO7tMhRKTo9lpQ+E0OYV0TE/le886rhpYUKIbVdLYZ
+         bbsQ==
+X-Gm-Message-State: AOAM532Rx88Gdcnl6ADmNY60l3aK/1PkweW4RAXToLa2dGa4D4Polxhz
+        G/DR+2RvxBqZf5w56guiLr3Idg==
+X-Google-Smtp-Source: ABdhPJzI5raTilhic38b/8STLJOYFtdiUsvq4un3+YbZDUVNkkFAx43hiKBHx78KUY8Dj9/Jk1ZuMA==
+X-Received: by 2002:a7b:cb01:: with SMTP id u1mr33141372wmj.188.1623676682254;
+        Mon, 14 Jun 2021 06:18:02 -0700 (PDT)
+Received: from ?IPv6:2a01:e0a:410:bb00:ddd2:2038:ae02:164a? ([2a01:e0a:410:bb00:ddd2:2038:ae02:164a])
+        by smtp.gmail.com with ESMTPSA id n10sm16570348wre.95.2021.06.14.06.18.01
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 14 Jun 2021 06:18:01 -0700 (PDT)
+Reply-To: nicolas.dichtel@6wind.com
+Subject: Re: [PATCH nf] MAINTAINERS: netfilter: add irc channel
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org,
+        Arturo Borrero Gonzalez <arturo@netfilter.org>,
+        netdev <netdev@vger.kernel.org>
+References: <20210528084849.19058-1-nicolas.dichtel@6wind.com>
+From:   Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Organization: 6WIND
+Message-ID: <9b60107e-dcd4-3ca0-f83d-0e51ccf5d67c@6wind.com>
+Date:   Mon, 14 Jun 2021 15:18:00 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.8.1
 MIME-Version: 1.0
+In-Reply-To: <20210528084849.19058-1-nicolas.dichtel@6wind.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Check that nft doesn't remove the dependency in these cases:
-icmp type echo-reply icmp id 1
-("icmp id" matches both echo request and reply).
+Le 28/05/2021 à 10:48, Nicolas Dichtel a écrit :
+> The community #netfilter IRC channel is now live on the libera.chat network
+> (https://libera.chat/).
+> 
+> CC: Arturo Borrero Gonzalez <arturo@netfilter.org>
+> Link: https://marc.info/?l=netfilter&m=162210948632717
+> Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+I have no feedback on this. Is there a problem to add the irc channel in the
+MAINTAINERS file?
 
-Add icmpv6 test cases.  These fail without the previous patches:
 
-add rule ip6 test-ip6 input icmpv6 id 1:
- 'icmpv6 id 1' mismatches
- 'icmpv6 type { echo-request, echo-reply} icmpv6 parameter-problem 65536/16'
+Regards,
+Nicolas
 
-add rule ip6 test-ip6 input icmpv6 type echo-reply icmpv6 id 65534':
-  'icmpv6 type echo-reply icmpv6 id 65534' mismatches
-  'icmpv6 type echo-reply @th,32,16 65534'
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- tests/py/ip/icmp.t                |  1 +
- tests/py/ip/icmp.t.json           | 28 ++++++++++++++
- tests/py/ip/icmp.t.payload.ip     |  9 +++++
- tests/py/ip6/icmpv6.t             |  3 ++
- tests/py/ip6/icmpv6.t.json        | 61 +++++++++++++++++++++++++++++++
- tests/py/ip6/icmpv6.t.payload.ip6 | 21 +++++++++++
- 6 files changed, 123 insertions(+)
-
-diff --git a/tests/py/ip/icmp.t b/tests/py/ip/icmp.t
-index fd89af0dff20..7ddf8b38a538 100644
---- a/tests/py/ip/icmp.t
-+++ b/tests/py/ip/icmp.t
-@@ -53,6 +53,7 @@ icmp sequence { 33, 55, 67, 88};ok;icmp type { echo-request, echo-reply} icmp se
- icmp sequence != { 33, 55, 67, 88};ok;icmp type { echo-request, echo-reply} icmp sequence != { 33, 55, 67, 88}
- icmp id 1 icmp sequence 2;ok;icmp type { echo-reply, echo-request} icmp id 1 icmp sequence 2
- icmp type { echo-reply, echo-request} icmp id 1 icmp sequence 2;ok
-+icmp type echo-reply icmp id 1;ok
- 
- icmp mtu 33;ok
- icmp mtu 22-33;ok
-diff --git a/tests/py/ip/icmp.t.json b/tests/py/ip/icmp.t.json
-index 576335cc63d2..4f0525094cf0 100644
---- a/tests/py/ip/icmp.t.json
-+++ b/tests/py/ip/icmp.t.json
-@@ -1123,6 +1123,34 @@
-     }
- ]
- 
-+# icmp type echo-reply icmp id 1
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "type",
-+                    "protocol": "icmp"
-+                }
-+            },
-+            "op": "==",
-+            "right": "echo-reply"
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "id",
-+                    "protocol": "icmp"
-+                }
-+            },
-+            "op": "==",
-+            "right": 1
-+        }
-+    }
-+]
-+
- # icmp mtu 33
- [
-     {
-diff --git a/tests/py/ip/icmp.t.payload.ip b/tests/py/ip/icmp.t.payload.ip
-index 024739c0c3cc..3bc6de3cf717 100644
---- a/tests/py/ip/icmp.t.payload.ip
-+++ b/tests/py/ip/icmp.t.payload.ip
-@@ -413,6 +413,15 @@ ip
-   [ payload load 4b @ transport header + 4 => reg 1 ]
-   [ cmp eq reg 1 0x02000100 ]
- 
-+# icmp type echo-reply icmp id 1
-+ip
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000000 ]
-+  [ payload load 2b @ transport header + 4 => reg 1 ]
-+  [ cmp eq reg 1 0x00000100 ]
-+
- # icmp mtu 33
- ip test-ip4 input
-   [ meta load l4proto => reg 1 ]
-diff --git a/tests/py/ip6/icmpv6.t b/tests/py/ip6/icmpv6.t
-index c8d4cffcd9d7..4de6ee2377dd 100644
---- a/tests/py/ip6/icmpv6.t
-+++ b/tests/py/ip6/icmpv6.t
-@@ -67,6 +67,9 @@ icmpv6 id != 33-45;ok;icmpv6 type { echo-request, echo-reply} icmpv6 id != 33-45
- icmpv6 id {33, 55, 67, 88};ok;icmpv6 type { echo-request, echo-reply} icmpv6 id { 33, 55, 67, 88}
- icmpv6 id != {33, 55, 67, 88};ok;icmpv6 type { echo-request, echo-reply} icmpv6 id != { 33, 55, 67, 88}
- 
-+icmpv6 id 1;ok;icmpv6 type { echo-request, echo-reply} icmpv6 id 1
-+icmpv6 type echo-reply icmpv6 id 65534;ok
-+
- icmpv6 sequence 2;ok;icmpv6 type { echo-request, echo-reply} icmpv6 sequence 2
- icmpv6 sequence {3, 4, 5, 6, 7} accept;ok;icmpv6 type { echo-request, echo-reply} icmpv6 sequence { 3, 4, 5, 6, 7} accept
- 
-diff --git a/tests/py/ip6/icmpv6.t.json b/tests/py/ip6/icmpv6.t.json
-index 30d2ad988185..2251be82a39e 100644
---- a/tests/py/ip6/icmpv6.t.json
-+++ b/tests/py/ip6/icmpv6.t.json
-@@ -856,6 +856,67 @@
-     }
- ]
- 
-+# icmpv6 id 1
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "type",
-+                    "protocol": "icmpv6"
-+                }
-+            },
-+            "op": "==",
-+            "right": {
-+                "set": [
-+                    "echo-request",
-+                    "echo-reply"
-+                ]
-+            }
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "id",
-+                    "protocol": "icmpv6"
-+                }
-+            },
-+            "op": "==",
-+            "right": 1
-+        }
-+    }
-+]
-+
-+# icmpv6 type echo-reply icmpv6 id 65534
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "type",
-+                    "protocol": "icmpv6"
-+                }
-+            },
-+            "op": "==",
-+            "right": "echo-reply"
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "id",
-+                    "protocol": "icmpv6"
-+                }
-+            },
-+            "op": "==",
-+            "right": 65534
-+        }
-+    }
-+]
-+
- # icmpv6 sequence 2
- [
-     {
-diff --git a/tests/py/ip6/icmpv6.t.payload.ip6 b/tests/py/ip6/icmpv6.t.payload.ip6
-index 76df184cd0d0..0e96be2d0788 100644
---- a/tests/py/ip6/icmpv6.t.payload.ip6
-+++ b/tests/py/ip6/icmpv6.t.payload.ip6
-@@ -407,6 +407,27 @@ ip6 test-ip6 input
-   [ payload load 2b @ transport header + 4 => reg 1 ]
-   [ lookup reg 1 set __set%d 0x1 ]
- 
-+# icmpv6 id 1
-+__set%d test-ip6 3 size 2
-+__set%d test-ip6 0
-+	element 00000080  : 0 [end]	element 00000081  : 0 [end]
-+ip6
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x0000003a ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d ]
-+  [ payload load 2b @ transport header + 4 => reg 1 ]
-+  [ cmp eq reg 1 0x00000100 ]
-+
-+# icmpv6 type echo-reply icmpv6 id 65534
-+ip6
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x0000003a ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000081 ]
-+  [ payload load 2b @ transport header + 4 => reg 1 ]
-+  [ cmp eq reg 1 0x0000feff ]
-+
- # icmpv6 sequence 2
- __set%d test-ip6 3
- __set%d test-ip6 0
--- 
-2.31.1
-
+> ---
+>  MAINTAINERS | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 1d834bebf469..d9c7f8b5cae2 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -12649,6 +12649,7 @@ W:	http://www.netfilter.org/
+>  W:	http://www.iptables.org/
+>  W:	http://www.nftables.org/
+>  Q:	http://patchwork.ozlabs.org/project/netfilter-devel/list/
+> +C:	irc://irc.libera.chat/netfilter
+>  T:	git git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+>  T:	git git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+>  F:	include/linux/netfilter*
+> 
