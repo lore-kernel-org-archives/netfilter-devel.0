@@ -2,62 +2,105 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15098C2B9F4
-	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Jun 2021 12:53:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10E4CC2B9F4
+	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Jun 2021 12:59:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E4845613EF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Jun 2021 12:53:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D6EC061283
+	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Jun 2021 12:59:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232969AbhFNMzw (ORCPT
+        id S232745AbhFNNB0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 14 Jun 2021 08:55:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34902 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232967AbhFNMzn (ORCPT
+        Mon, 14 Jun 2021 09:01:26 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:41468 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232685AbhFNNB0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 14 Jun 2021 08:55:43 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A369C061574
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Jun 2021 05:53:39 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1lsm5y-0004q0-17; Mon, 14 Jun 2021 14:53:38 +0200
-Date:   Mon, 14 Jun 2021 14:53:38 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nftables] src: add xzalloc_array() and use it to allocate
- the expression hashtable
-Message-ID: <20210614125338.GR22614@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20210614125056.11913-1-pablo@netfilter.org>
+        Mon, 14 Jun 2021 09:01:26 -0400
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id BBBCA64133;
+        Mon, 14 Jun 2021 14:58:05 +0200 (CEST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     phil@nwl.cc
+Subject: [PATCH nftables] src: use opencoded NFT_SET_ANONYMOUS set flag check by set_is_anonymous()
+Date:   Mon, 14 Jun 2021 14:59:19 +0200
+Message-Id: <20210614125919.47217-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210614125056.11913-1-pablo@netfilter.org>
-Sender:  <n0-1@orbyte.nwl.cc>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jun 14, 2021 at 02:50:56PM +0200, Pablo Neira Ayuso wrote:
-> Otherwise, assertion to ensure that no colission occur is hit due to
-> uninitialized hashtable memory area:
-> 
-> nft: netlink_delinearize.c:1741: expr_handler_init: Assertion `expr_handle_ht[hash] == NULL' failed.
+Use set_is_anonymous() to check for the NFT_SET_ANONYMOUS set flag
+instead.
 
-Oh, stupid mistake. Thanks for the fix!
+Reported-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/evaluate.c            | 2 +-
+ src/mnl.c                 | 2 +-
+ src/netlink_delinearize.c | 2 +-
+ src/segtree.c             | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-> Fixes: c4058f96c6a5 ("netlink_delinearize: Fix suspicious calloc() call")
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 4397bacf662b..aa7ec9bee4ae 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -3781,7 +3781,7 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
+ 	struct stmt *stmt;
+ 	const char *type;
+ 
+-	if (!(set->flags & NFT_SET_ANONYMOUS)) {
++	if (!set_is_anonymous(set->flags)) {
+ 		table = table_cache_find(&ctx->nft->cache.table_cache,
+ 					 set->handle.table.name,
+ 					 set->handle.family);
+diff --git a/src/mnl.c b/src/mnl.c
+index ce58ae7219ec..f28d6605835f 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -1045,7 +1045,7 @@ static void set_key_expression(struct netlink_ctx *ctx,
+ 	struct nftnl_udata *nest1, *nest2;
+ 
+ 	if (expr->flags & EXPR_F_CONSTANT ||
+-	    set_flags & NFT_SET_ANONYMOUS ||
++	    set_is_anonymous(set_flags) ||
+ 	    !expr_ops(expr)->build_udata)
+ 		return;
+ 
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 57af71a75609..5c80397db26c 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -1591,7 +1591,7 @@ static void netlink_parse_dynset(struct netlink_parse_ctx *ctx,
+ 				 &stmt->map.stmt_list);
+ 	} else {
+ 		if (!list_empty(&dynset_parse_ctx.stmt_list) &&
+-		    set->flags & NFT_SET_ANONYMOUS) {
++		    set_is_anonymous(set->flags)) {
+ 			stmt = meter_stmt_alloc(loc);
+ 			stmt->meter.set  = set_ref_expr_alloc(loc, set);
+ 			stmt->meter.key  = expr;
+diff --git a/src/segtree.c b/src/segtree.c
+index 9de5422c7d7f..5eaf684578bf 100644
+--- a/src/segtree.c
++++ b/src/segtree.c
+@@ -537,7 +537,7 @@ static void segtree_linearize(struct list_head *list, const struct set *set,
+ 			 */
+ 			mpz_add_ui(p, prev->right, 1);
+ 			if (mpz_cmp(p, ei->left) < 0 ||
+-			    (!(set->flags & NFT_SET_ANONYMOUS) && !merge)) {
++			    (!set_is_anonymous(set->flags) && !merge)) {
+ 				mpz_sub_ui(q, ei->left, 1);
+ 				nei = ei_alloc(p, q, NULL, EI_F_INTERVAL_END);
+ 				list_add_tail(&nei->list, list);
+-- 
+2.30.2
 
-Acked-by: Phil Sutter <phil@nwl.cc>
-
-Cheers, Phil
