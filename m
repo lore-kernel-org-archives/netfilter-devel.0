@@ -2,38 +2,40 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.9 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D46CCC48BE8
-	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Jun 2021 13:10:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7A2DC2B9F4
+	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Jun 2021 13:10:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B6B2F6128A
-	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Jun 2021 13:10:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CD0EB61352
+	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Jun 2021 13:10:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232761AbhFNNMT (ORCPT
+        id S233571AbhFNNMV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 14 Jun 2021 09:12:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38730 "EHLO
+        Mon, 14 Jun 2021 09:12:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38738 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232818AbhFNNMS (ORCPT
+        with ESMTP id S233218AbhFNNMU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 14 Jun 2021 09:12:18 -0400
+        Mon, 14 Jun 2021 09:12:20 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1ECB1C061574
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Jun 2021 06:10:16 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3FC84C061574
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Jun 2021 06:10:18 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1lsmM0-0000LV-Eo; Mon, 14 Jun 2021 15:10:12 +0200
+        id 1lsmM4-0000Le-OC; Mon, 14 Jun 2021 15:10:16 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 0/3] fix icmpv6 id dependeny handling
-Date:   Mon, 14 Jun 2021 15:10:03 +0200
-Message-Id: <20210614131006.26490-1-fw@strlen.de>
+Subject: [PATCH nft 1/3] netlink_delinearize: add missing icmp id/sequence support
+Date:   Mon, 14 Jun 2021 15:10:04 +0200
+Message-Id: <20210614131006.26490-2-fw@strlen.de>
 X-Mailer: git-send-email 2.31.1
+In-Reply-To: <20210614131006.26490-1-fw@strlen.de>
+References: <20210614131006.26490-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -44,9 +46,19 @@ Pablo reports following input and output:
 in: icmpv6 id 1
 out: icmpv6 type { echo-request, echo-reply } icmpv6 parameter-problem 65536/16
 
-First patch fixes delinearization to handle this correctly.
-Second patch fixes a bug related to dependency removal.
-Third patch adds test cases for this bug.
+Reason is that icmp fields overlap, decoding of the correct name requires
+check of the icmpv6 type.  This only works for equality tests, for
+instance
+
+in: icmpv6 type echo-request icmpv6 id 1
+will be listed as "icmpv6 id 1" (which is not correct either, since the
+input only matches on echo-request).
+
+with this patch, output of 'icmpv6 id 1' is
+icmpv6 type { echo-request, echo-reply } icmpv6 id 1
+
+The second problem, the removal of a single check (request OR reply),
+is resolved in the followup patch.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
@@ -146,6 +158,4 @@ index 9a1cf3c4f7d9..94f68c956018 100644
  	default:
 -- 
 2.31.1
-
-
 
