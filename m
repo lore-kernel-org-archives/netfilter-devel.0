@@ -2,81 +2,60 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EABCC49361
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Jun 2021 13:06:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1ACB3C48BE5
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Jun 2021 16:02:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 526696148E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Jun 2021 13:06:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0246A61465
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Jun 2021 16:02:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229943AbhFONIi (ORCPT
+        id S231586AbhFOQEF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 15 Jun 2021 09:08:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48986 "EHLO
+        Tue, 15 Jun 2021 12:04:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33032 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230187AbhFONIi (ORCPT
+        with ESMTP id S231307AbhFOQEE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Jun 2021 09:08:38 -0400
+        Tue, 15 Jun 2021 12:04:04 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E585C0A88FE
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Jun 2021 06:06:33 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ECF13C061574
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Jun 2021 09:01:59 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1lt8lz-0008Ki-GC; Tue, 15 Jun 2021 15:06:31 +0200
-Date:   Tue, 15 Jun 2021 15:06:31 +0200
+        (envelope-from <fw@breakpoint.cc>)
+        id 1ltBVl-0001Jk-EQ; Tue, 15 Jun 2021 18:01:57 +0200
 From:   Florian Westphal <fw@strlen.de>
-To:     Jake Owen <jake.owen@superloop.com>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: nfqueue hashing on TCP/UDP port
-Message-ID: <20210615130631.GC1425@breakpoint.cc>
-References: <CAD353mmiYns6u5tb3XQz3Rfh_23EMES-4FX1d4pJrQwBd3NvGQ@mail.gmail.com>
+To:     <netfilter-devel@vger.kernel.org>
+Subject: [PATCH nft v2 0/3] fix icmpv6 id dependeny handling
+Date:   Tue, 15 Jun 2021 18:01:48 +0200
+Message-Id: <20210615160151.10594-1-fw@strlen.de>
+X-Mailer: git-send-email 2.31.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAD353mmiYns6u5tb3XQz3Rfh_23EMES-4FX1d4pJrQwBd3NvGQ@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Jake Owen <jake.owen@superloop.com> wrote:
-> Hello!
-> 
-> tl;dr Is there a technical reason why nfqueue balance as implemented
-> does not use TCP/UDP ports as well as source/destination IP addresses?
+v2: in patch 1, make sure set has elements and is anonymous.
 
-To keep host-to-host comunication on the same queue, for ftp, sip and
-other highlevel protocols where a logical connection consists of
-multiple tcp/udp flows.
+Pablo reported following bug:
 
-> We've been having trouble with the queue hashing algorithm used by
-> iptable's `--queue-balance` for traffic generated on-box (e.g. by a
-> squid proxy) where a large percentage of traffic would be TCP, source
-> IP of the proxy, and one google/microsoft/apple destination IP. This
-> is made worse if the random seed causes two or more of these high
-> traffic services to hash to the same queue. We are working on
-> preserving the original client IP as the source IP to provide
-> sufficient randomness to balance accurately, but in the meantime have
-> wondered if balancing by port was not implemented because it was
-> deemed unnecessary, or because of some technical reason which escapes
-> me.
+input: icmpv6 id 1
+output: icmpv6 type { echo-request, echo-reply } icmpv6 parameter-problem 65536/16
 
-The latter.  I will add arbitrary hash keying to nft, its currently
-only missing from the frontend.
+First patch fixes delinearization to handle this correctly.
+Second patch fixes a bug related to dependency removal.
+Third patch adds test cases for this bug.
 
-Will put you in CC when its done.
+ src/netlink_delinearize.c         |   68 ++++++++++++++++++++++++++++++++++++--
+ src/payload.c                     |   61 ++++++++++++++++++++--------------
+ tests/py/ip/icmp.t                |    1 
+ tests/py/ip/icmp.t.json           |   28 +++++++++++++++
+ tests/py/ip/icmp.t.payload.ip     |    9 +++++
+ tests/py/ip6/icmpv6.t             |    3 +
+ tests/py/ip6/icmpv6.t.json        |   61 ++++++++++++++++++++++++++++++++++
+ tests/py/ip6/icmpv6.t.payload.ip6 |   21 +++++++++++
+ 8 files changed, 225 insertions(+), 27 deletions(-)
 
-> I'm willing to propose a solution for
-> the latest 5.x kernel if other people think that this is a valid
-> solution/use case.
-
-With nft this will soon be possible:
-
-queue num jhash ip daddr . tcp sport . tcp dport mod 16
-
-... which will queue to 0-15.
-
-I don't think we need code changes to the xtables backend.
