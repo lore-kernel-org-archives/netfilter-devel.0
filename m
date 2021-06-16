@@ -2,109 +2,92 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CBCDC48BE6
-	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Jun 2021 21:17:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CFA8FC48BE6
+	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Jun 2021 21:17:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3C868613E4
-	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Jun 2021 21:17:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BAA2F613DF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Jun 2021 21:17:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233961AbhFPVT2 (ORCPT
+        id S233965AbhFPVTc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 16 Jun 2021 17:19:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60400 "EHLO
+        Wed, 16 Jun 2021 17:19:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60416 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233836AbhFPVT2 (ORCPT
+        with ESMTP id S233836AbhFPVTc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 16 Jun 2021 17:19:28 -0400
+        Wed, 16 Jun 2021 17:19:32 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E9ABEC061574
-        for <netfilter-devel@vger.kernel.org>; Wed, 16 Jun 2021 14:17:21 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABC0BC061574
+        for <netfilter-devel@vger.kernel.org>; Wed, 16 Jun 2021 14:17:25 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1ltcuW-0002St-0q; Wed, 16 Jun 2021 23:17:20 +0200
+        id 1ltcua-0002T6-65; Wed, 16 Jun 2021 23:17:24 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     jake.owen@superloop.com, Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 0/8] Enableruntime queue selection via jhash, numgen and map statement 
-Date:   Wed, 16 Jun 2021 23:16:44 +0200
-Message-Id: <20210616211652.11765-1-fw@strlen.de>
+Subject: [PATCH nft 1/8] evaluate: fix hash expression maxval
+Date:   Wed, 16 Jun 2021 23:16:45 +0200
+Message-Id: <20210616211652.11765-2-fw@strlen.de>
 X-Mailer: git-send-email 2.31.1
+In-Reply-To: <20210616211652.11765-1-fw@strlen.de>
+References: <20210616211652.11765-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Back in 2016 Liping Zhang added support to kernel and libnftnl to
-specify a source register containing the queue number to use.
+It needs to account for the offset too.
 
-This was never added to nft itself, so allow this.
+Fixes: 9bee0c86f179 ("src: add offset attribute for hash expression")
+Fixes: d4f9a8fb9e9a ("src: add offset attribute for numgen expression")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/evaluate.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-On linearization side, check if attached expression is a range.
-If its not, allocate a new register and set NFTNL_EXPR_QUEUE_SREG_QNUM
-attribute after generating the lowlevel expressions for the kernel.
-
-On delinarization we need to check for presence of
-NFTNL_EXPR_QUEUE_SREG_QNUM and decode the expression(s) when present.
-
-Also need to do postprocessing for STMT_QUEUE so that the protocol
-context is set correctly, without this only raw payload expressions
-will be shown (@nh,32,...) instead of 'ip ...'.
-
-Unfortunately, it turned out that just removing the eval checks
-to allow arbitrary statements as 'num' argument results in parser
-problems.
-
-One example is this:
-   queue num jhash ip saddr mod 4 bypass
-
-This fails because scanner is still in 'ip' state, not 'queue', when
-"bypass" is read, so this will not be recognized as belonging to the
-queue statement.
-
-This series solves this in the following way:
-1. On output, nft will now always prepend the flags, i.e.
-  queue flags bypass num 42
-
-2. On input, 'queue num' is restricted to numbers and ranges.
-This is backwards compatible because range and value were the
-only permitted inputs (eval step rejects non-constant expressions).
-
-3. To use numgen or jhash, new grammar is added:
- queue flags bypass to jhash ip saddr mod 4
-
-I've restricted the 'to' expressions to numgen, (sym)hash and map
-for now.
-
-This can be relaxed later on if other usecases become available.
-
-Florian Westphal (8):
-  evaluate: fix hash expression maxval
-  parser: restrict queue num expressiveness
-  src: add queue expr and flags to queue_stmt_alloc
-  parser: add queue_stmt_compat
-  parser: new queue flag input format
-  src: queue: allow use of arbitrary queue expressions
-  tests: extend queue testcases for new sreg support
-  src: queue: allow use of MAP statement for queue number retrieval
-
- doc/statements.txt           | 10 +++-
- include/statement.h          |  3 +-
- src/evaluate.c               | 21 +++++----
- src/netlink_delinearize.c    | 56 +++++++++++++++-------
- src/netlink_linearize.c      | 28 +++++++++--
- src/parser_bison.y           | 38 ++++++++++++---
- src/parser_json.c            | 22 ++++-----
- src/statement.c              | 30 +++++++++---
- tests/py/any/queue.t         | 18 ++++++--
- tests/py/any/queue.t.json    | 90 ++++++++++++++++++++++++++++++++++++
- tests/py/any/queue.t.payload | 25 ++++++++++
- 11 files changed, 281 insertions(+), 60 deletions(-)
-
+diff --git a/src/evaluate.c b/src/evaluate.c
+index aa7ec9bee4ae..bebdb3f827e9 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1657,17 +1657,20 @@ static void expr_dtype_integer_compatible(struct eval_ctx *ctx,
+ static int expr_evaluate_numgen(struct eval_ctx *ctx, struct expr **exprp)
+ {
+ 	struct expr *expr = *exprp;
++	unsigned int maxval;
+ 
+ 	expr_dtype_integer_compatible(ctx, expr);
+ 
++	maxval = expr->numgen.mod + expr->numgen.offset - 1;
+ 	__expr_set_context(&ctx->ectx, expr->dtype, expr->byteorder, expr->len,
+-			   expr->numgen.mod - 1);
++			   maxval);
+ 	return 0;
+ }
+ 
+ static int expr_evaluate_hash(struct eval_ctx *ctx, struct expr **exprp)
+ {
+ 	struct expr *expr = *exprp;
++	unsigned int maxval;
+ 
+ 	expr_dtype_integer_compatible(ctx, expr);
+ 
+@@ -1680,8 +1683,9 @@ static int expr_evaluate_hash(struct eval_ctx *ctx, struct expr **exprp)
+          * expression to be hashed. Since this input is transformed to a 4 bytes
+ 	 * integer, restore context to the datatype that results from hashing.
+ 	 */
++	maxval = expr->hash.mod + expr->hash.offset - 1;
+ 	__expr_set_context(&ctx->ectx, expr->dtype, expr->byteorder, expr->len,
+-			   expr->hash.mod - 1);
++			   maxval);
+ 
+ 	return 0;
+ }
 -- 
 2.31.1
 
