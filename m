@@ -7,370 +7,207 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B369C48BE6
-	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Jun 2021 20:06:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6841BC48BE5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Jun 2021 21:06:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0E92D610CD
-	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Jun 2021 20:06:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4CB7860720
+	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Jun 2021 21:06:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232339AbhFPUIj (ORCPT
+        id S233874AbhFPVJE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 16 Jun 2021 16:08:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44686 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230381AbhFPUIi (ORCPT
+        Wed, 16 Jun 2021 17:09:04 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:46916 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233836AbhFPVJE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 16 Jun 2021 16:08:38 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F32EFC061574
-        for <netfilter-devel@vger.kernel.org>; Wed, 16 Jun 2021 13:06:31 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1ltbnv-00028z-Td; Wed, 16 Jun 2021 22:06:27 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: conntrack: pass hook state to log functions
-Date:   Wed, 16 Jun 2021 22:06:19 +0200
-Message-Id: <20210616200619.1506-1-fw@strlen.de>
-X-Mailer: git-send-email 2.31.1
+        Wed, 16 Jun 2021 17:09:04 -0400
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id DAA9964223
+        for <netfilter-devel@vger.kernel.org>; Wed, 16 Jun 2021 23:05:37 +0200 (CEST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next,v5] netfilter: nf_tables: add last expression
+Date:   Wed, 16 Jun 2021 23:06:53 +0200
+Message-Id: <20210616210653.1953-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The packet logger backend is unable to provide the incoming (or
-outgoing) interface name because that information isn't available.
+Add a new optional expression that tells you when last matching on a
+given rule / set element element has happened.
 
-Pass the hook state, it contains the network namespace, the protocol
-family, the network interfaces and other things.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack_l4proto.h | 20 ++++++++++-------
- net/netfilter/nf_conntrack_proto.c           | 16 ++++++++------
- net/netfilter/nf_conntrack_proto_dccp.c      | 14 ++++++------
- net/netfilter/nf_conntrack_proto_icmp.c      |  7 +++---
- net/netfilter/nf_conntrack_proto_icmpv6.c    |  3 +--
- net/netfilter/nf_conntrack_proto_sctp.c      |  2 +-
- net/netfilter/nf_conntrack_proto_tcp.c       | 23 ++++++++++----------
- net/netfilter/nf_conntrack_proto_udp.c       |  6 ++---
- 8 files changed, 47 insertions(+), 44 deletions(-)
+v5: mitigate jiffies wraparound by clearing up last update from netlink
+    dump path.
 
-diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
-index 96f9cf81f46b..1f47bef51722 100644
---- a/include/net/netfilter/nf_conntrack_l4proto.h
-+++ b/include/net/netfilter/nf_conntrack_l4proto.h
-@@ -159,22 +159,26 @@ unsigned int nf_ct_port_nlattr_tuple_size(void);
- extern const struct nla_policy nf_ct_port_nla_policy[];
+ include/net/netfilter/nf_tables_core.h   |  1 +
+ include/uapi/linux/netfilter/nf_tables.h | 15 ++++
+ net/netfilter/Makefile                   |  2 +-
+ net/netfilter/nf_tables_core.c           |  1 +
+ net/netfilter/nft_last.c                 | 87 ++++++++++++++++++++++++
+ 5 files changed, 105 insertions(+), 1 deletion(-)
+ create mode 100644 net/netfilter/nft_last.c
+
+diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
+index 46c8d5bb5d8d..0fa5a6d98a00 100644
+--- a/include/net/netfilter/nf_tables_core.h
++++ b/include/net/netfilter/nf_tables_core.h
+@@ -16,6 +16,7 @@ extern struct nft_expr_type nft_range_type;
+ extern struct nft_expr_type nft_meta_type;
+ extern struct nft_expr_type nft_rt_type;
+ extern struct nft_expr_type nft_exthdr_type;
++extern struct nft_expr_type nft_last_type;
  
- #ifdef CONFIG_SYSCTL
--__printf(3, 4) __cold
-+__printf(4, 5) __cold
- void nf_ct_l4proto_log_invalid(const struct sk_buff *skb,
- 			       const struct nf_conn *ct,
-+			       const struct nf_hook_state *state,
- 			       const char *fmt, ...);
--__printf(5, 6) __cold
-+__printf(4, 5) __cold
- void nf_l4proto_log_invalid(const struct sk_buff *skb,
--			    struct net *net,
--			    u16 pf, u8 protonum,
-+			    const struct nf_hook_state *state,
-+			    u8 protonum,
- 			    const char *fmt, ...);
- #else
--static inline __printf(5, 6) __cold
--void nf_l4proto_log_invalid(const struct sk_buff *skb, struct net *net,
--			    u16 pf, u8 protonum, const char *fmt, ...) {}
--static inline __printf(3, 4) __cold
-+static inline __printf(4, 5) __cold
-+void nf_l4proto_log_invalid(const struct sk_buff *skb,
-+			    const struct nf_hook_state *state,
-+			    u8 protonum,
-+			    const char *fmt, ...) {}
-+static inline __printf(4, 5) __cold
- void nf_ct_l4proto_log_invalid(const struct sk_buff *skb,
- 			       const struct nf_conn *ct,
-+			       const struct nf_hook_state *state,
- 			       const char *fmt, ...) { }
- #endif /* CONFIG_SYSCTL */
+ #ifdef CONFIG_NETWORK_SECMARK
+ extern struct nft_object_type nft_secmark_obj_type;
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 19715e2679d1..e94d1fa554cb 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -1195,6 +1195,21 @@ enum nft_counter_attributes {
+ };
+ #define NFTA_COUNTER_MAX	(__NFTA_COUNTER_MAX - 1)
  
-diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-index be14e0bea4c8..55647409a9be 100644
---- a/net/netfilter/nf_conntrack_proto.c
-+++ b/net/netfilter/nf_conntrack_proto.c
-@@ -45,12 +45,13 @@
- static DEFINE_MUTEX(nf_ct_proto_mutex);
++/**
++ * enum nft_last_attributes - nf_tables last expression netlink attributes
++ *
++ * @NFTA_LAST_SET: last update has been set, zero means never updated (NLA_U32)
++ * @NFTA_LAST_MSECS: milliseconds since last update (NLA_U64)
++ */
++enum nft_last_attributes {
++	NFTA_LAST_UNSPEC,
++	NFTA_LAST_SET,
++	NFTA_LAST_MSECS,
++	NFTA_LAST_PAD,
++	__NFTA_LAST_MAX
++};
++#define NFTA_LAST_MAX	(__NFTA_LAST_MAX - 1)
++
+ /**
+  * enum nft_log_attributes - nf_tables log expression netlink attributes
+  *
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 87112dad1fd4..049890e00a3d 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -74,7 +74,7 @@ obj-$(CONFIG_NF_DUP_NETDEV)	+= nf_dup_netdev.o
+ nf_tables-objs := nf_tables_core.o nf_tables_api.o nft_chain_filter.o \
+ 		  nf_tables_trace.o nft_immediate.o nft_cmp.o nft_range.o \
+ 		  nft_bitwise.o nft_byteorder.o nft_payload.o nft_lookup.o \
+-		  nft_dynset.o nft_meta.o nft_rt.o nft_exthdr.o \
++		  nft_dynset.o nft_meta.o nft_rt.o nft_exthdr.o nft_last.o \
+ 		  nft_chain_route.o nf_tables_offload.o \
+ 		  nft_set_hash.o nft_set_bitmap.o nft_set_rbtree.o \
+ 		  nft_set_pipapo.o
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index 7780342e2f2d..866cfba04d6c 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -268,6 +268,7 @@ static struct nft_expr_type *nft_basic_types[] = {
+ 	&nft_meta_type,
+ 	&nft_rt_type,
+ 	&nft_exthdr_type,
++	&nft_last_type,
+ };
  
- #ifdef CONFIG_SYSCTL
--__printf(5, 6)
-+__printf(4, 5)
- void nf_l4proto_log_invalid(const struct sk_buff *skb,
--			    struct net *net,
--			    u16 pf, u8 protonum,
-+			    const struct nf_hook_state *state,
-+			    u8 protonum,
- 			    const char *fmt, ...)
- {
-+	struct net *net = state->net;
- 	struct va_format vaf;
- 	va_list args;
- 
-@@ -62,15 +63,16 @@ void nf_l4proto_log_invalid(const struct sk_buff *skb,
- 	vaf.fmt = fmt;
- 	vaf.va = &args;
- 
--	nf_log_packet(net, pf, 0, skb, NULL, NULL, NULL,
--		      "nf_ct_proto_%d: %pV ", protonum, &vaf);
-+	nf_log_packet(net, state->pf, 0, skb, state->in, state->out,
-+		      NULL, "nf_ct_proto_%d: %pV ", protonum, &vaf);
- 	va_end(args);
- }
- EXPORT_SYMBOL_GPL(nf_l4proto_log_invalid);
- 
--__printf(3, 4)
-+__printf(4, 5)
- void nf_ct_l4proto_log_invalid(const struct sk_buff *skb,
- 			       const struct nf_conn *ct,
-+			       const struct nf_hook_state *state,
- 			       const char *fmt, ...)
- {
- 	struct va_format vaf;
-@@ -85,7 +87,7 @@ void nf_ct_l4proto_log_invalid(const struct sk_buff *skb,
- 	vaf.fmt = fmt;
- 	vaf.va = &args;
- 
--	nf_l4proto_log_invalid(skb, net, nf_ct_l3num(ct),
-+	nf_l4proto_log_invalid(skb, state,
- 			       nf_ct_protonum(ct), "%pV", &vaf);
- 	va_end(args);
- }
-diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
-index 4f33307fa3cf..c1557d47ccd1 100644
---- a/net/netfilter/nf_conntrack_proto_dccp.c
-+++ b/net/netfilter/nf_conntrack_proto_dccp.c
-@@ -382,7 +382,8 @@ dccp_state_table[CT_DCCP_ROLE_MAX + 1][DCCP_PKT_SYNCACK + 1][CT_DCCP_MAX + 1] =
- 
- static noinline bool
- dccp_new(struct nf_conn *ct, const struct sk_buff *skb,
--	 const struct dccp_hdr *dh)
-+	 const struct dccp_hdr *dh,
-+	 const struct nf_hook_state *hook_state)
- {
- 	struct net *net = nf_ct_net(ct);
- 	struct nf_dccp_net *dn;
-@@ -414,7 +415,7 @@ dccp_new(struct nf_conn *ct, const struct sk_buff *skb,
- 	return true;
- 
- out_invalid:
--	nf_ct_l4proto_log_invalid(skb, ct, "%s", msg);
-+	nf_ct_l4proto_log_invalid(skb, ct, hook_state, "%s", msg);
- 	return false;
- }
- 
-@@ -464,8 +465,7 @@ static bool dccp_error(const struct dccp_hdr *dh,
- 	}
- 	return false;
- out_invalid:
--	nf_l4proto_log_invalid(skb, state->net, state->pf,
--			       IPPROTO_DCCP, "%s", msg);
-+	nf_l4proto_log_invalid(skb, state, IPPROTO_DCCP, "%s", msg);
- 	return true;
- }
- 
-@@ -488,7 +488,7 @@ int nf_conntrack_dccp_packet(struct nf_conn *ct, struct sk_buff *skb,
- 		return -NF_ACCEPT;
- 
- 	type = dh->dccph_type;
--	if (!nf_ct_is_confirmed(ct) && !dccp_new(ct, skb, dh))
-+	if (!nf_ct_is_confirmed(ct) && !dccp_new(ct, skb, dh, state))
- 		return -NF_ACCEPT;
- 
- 	if (type == DCCP_PKT_RESET &&
-@@ -543,11 +543,11 @@ int nf_conntrack_dccp_packet(struct nf_conn *ct, struct sk_buff *skb,
- 		ct->proto.dccp.last_pkt = type;
- 
- 		spin_unlock_bh(&ct->lock);
--		nf_ct_l4proto_log_invalid(skb, ct, "%s", "invalid packet");
-+		nf_ct_l4proto_log_invalid(skb, ct, state, "%s", "invalid packet");
- 		return NF_ACCEPT;
- 	case CT_DCCP_INVALID:
- 		spin_unlock_bh(&ct->lock);
--		nf_ct_l4proto_log_invalid(skb, ct, "%s", "invalid state transition");
-+		nf_ct_l4proto_log_invalid(skb, ct, state, "%s", "invalid state transition");
- 		return -NF_ACCEPT;
- 	}
- 
-diff --git a/net/netfilter/nf_conntrack_proto_icmp.c b/net/netfilter/nf_conntrack_proto_icmp.c
-index 4efd8741c105..b38b7164acd5 100644
---- a/net/netfilter/nf_conntrack_proto_icmp.c
-+++ b/net/netfilter/nf_conntrack_proto_icmp.c
-@@ -170,12 +170,12 @@ int nf_conntrack_inet_error(struct nf_conn *tmpl, struct sk_buff *skb,
- 	ct_daddr = &ct->tuplehash[dir].tuple.dst.u3;
- 	if (!nf_inet_addr_cmp(outer_daddr, ct_daddr)) {
- 		if (state->pf == AF_INET) {
--			nf_l4proto_log_invalid(skb, state->net, state->pf,
-+			nf_l4proto_log_invalid(skb, state,
- 					       l4proto,
- 					       "outer daddr %pI4 != inner %pI4",
- 					       &outer_daddr->ip, &ct_daddr->ip);
- 		} else if (state->pf == AF_INET6) {
--			nf_l4proto_log_invalid(skb, state->net, state->pf,
-+			nf_l4proto_log_invalid(skb, state,
- 					       l4proto,
- 					       "outer daddr %pI6 != inner %pI6",
- 					       &outer_daddr->ip6, &ct_daddr->ip6);
-@@ -197,8 +197,7 @@ static void icmp_error_log(const struct sk_buff *skb,
- 			   const struct nf_hook_state *state,
- 			   const char *msg)
- {
--	nf_l4proto_log_invalid(skb, state->net, state->pf,
--			       IPPROTO_ICMP, "%s", msg);
-+	nf_l4proto_log_invalid(skb, state, IPPROTO_ICMP, "%s", msg);
- }
- 
- /* Small and modified version of icmp_rcv */
-diff --git a/net/netfilter/nf_conntrack_proto_icmpv6.c b/net/netfilter/nf_conntrack_proto_icmpv6.c
-index facd8c64ec4e..61e3b05cf02c 100644
---- a/net/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -126,8 +126,7 @@ static void icmpv6_error_log(const struct sk_buff *skb,
- 			     const struct nf_hook_state *state,
- 			     const char *msg)
- {
--	nf_l4proto_log_invalid(skb, state->net, state->pf,
--			       IPPROTO_ICMPV6, "%s", msg);
-+	nf_l4proto_log_invalid(skb, state, IPPROTO_ICMPV6, "%s", msg);
- }
- 
- int nf_conntrack_icmpv6_error(struct nf_conn *tmpl,
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index fb8dc02e502f..2394238d01c9 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -351,7 +351,7 @@ static bool sctp_error(struct sk_buff *skb,
- 	}
- 	return false;
- out_invalid:
--	nf_l4proto_log_invalid(skb, state->net, state->pf, IPPROTO_SCTP, "%s", logmsg);
-+	nf_l4proto_log_invalid(skb, state, IPPROTO_SCTP, "%s", logmsg);
- 	return true;
- }
- 
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index de840fc41a2e..f7e8baf59b51 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -446,14 +446,15 @@ static void tcp_sack(const struct sk_buff *skb, unsigned int dataoff,
- 	}
- }
- 
--static bool tcp_in_window(const struct nf_conn *ct,
--			  struct ip_ct_tcp *state,
-+static bool tcp_in_window(struct nf_conn *ct,
- 			  enum ip_conntrack_dir dir,
- 			  unsigned int index,
- 			  const struct sk_buff *skb,
- 			  unsigned int dataoff,
--			  const struct tcphdr *tcph)
-+			  const struct tcphdr *tcph,
-+			  const struct nf_hook_state *hook_state)
- {
-+	struct ip_ct_tcp *state = &ct->proto.tcp;
- 	struct net *net = nf_ct_net(ct);
- 	struct nf_tcp_net *tn = nf_tcp_pernet(net);
- 	struct ip_ct_tcp_state *sender = &state->seen[dir];
-@@ -670,7 +671,7 @@ static bool tcp_in_window(const struct nf_conn *ct,
- 		    tn->tcp_be_liberal)
- 			res = true;
- 		if (!res) {
--			nf_ct_l4proto_log_invalid(skb, ct,
-+			nf_ct_l4proto_log_invalid(skb, ct, hook_state,
- 			"%s",
- 			before(seq, sender->td_maxend + 1) ?
- 			in_recv_win ?
-@@ -710,7 +711,7 @@ static void tcp_error_log(const struct sk_buff *skb,
- 			  const struct nf_hook_state *state,
- 			  const char *msg)
- {
--	nf_l4proto_log_invalid(skb, state->net, state->pf, IPPROTO_TCP, "%s", msg);
-+	nf_l4proto_log_invalid(skb, state, IPPROTO_TCP, "%s", msg);
- }
- 
- /* Protect conntrack agaist broken packets. Code taken from ipt_unclean.c.  */
-@@ -970,7 +971,7 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
- 					IP_CT_EXP_CHALLENGE_ACK;
- 		}
- 		spin_unlock_bh(&ct->lock);
--		nf_ct_l4proto_log_invalid(skb, ct,
-+		nf_ct_l4proto_log_invalid(skb, ct, state,
- 					  "packet (index %d) in dir %d ignored, state %s",
- 					  index, dir,
- 					  tcp_conntrack_names[old_state]);
-@@ -995,7 +996,7 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
- 		pr_debug("nf_ct_tcp: Invalid dir=%i index=%u ostate=%u\n",
- 			 dir, get_conntrack_index(th), old_state);
- 		spin_unlock_bh(&ct->lock);
--		nf_ct_l4proto_log_invalid(skb, ct, "invalid state");
-+		nf_ct_l4proto_log_invalid(skb, ct, state, "invalid state");
- 		return -NF_ACCEPT;
- 	case TCP_CONNTRACK_TIME_WAIT:
- 		/* RFC5961 compliance cause stack to send "challenge-ACK"
-@@ -1010,7 +1011,7 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
- 			/* Detected RFC5961 challenge ACK */
- 			ct->proto.tcp.last_flags &= ~IP_CT_EXP_CHALLENGE_ACK;
- 			spin_unlock_bh(&ct->lock);
--			nf_ct_l4proto_log_invalid(skb, ct, "challenge-ack ignored");
-+			nf_ct_l4proto_log_invalid(skb, ct, state, "challenge-ack ignored");
- 			return NF_ACCEPT; /* Don't change state */
- 		}
- 		break;
-@@ -1035,7 +1036,7 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
- 			if (before(seq, ct->proto.tcp.seen[!dir].td_maxack)) {
- 				/* Invalid RST  */
- 				spin_unlock_bh(&ct->lock);
--				nf_ct_l4proto_log_invalid(skb, ct, "invalid rst");
-+				nf_ct_l4proto_log_invalid(skb, ct, state, "invalid rst");
- 				return -NF_ACCEPT;
- 			}
- 
-@@ -1079,8 +1080,8 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
- 		break;
- 	}
- 
--	if (!tcp_in_window(ct, &ct->proto.tcp, dir, index,
--			   skb, dataoff, th)) {
-+	if (!tcp_in_window(ct, dir, index,
-+			   skb, dataoff, th, state)) {
- 		spin_unlock_bh(&ct->lock);
- 		return -NF_ACCEPT;
- 	}
-diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
-index 68911fcaa0f1..698fee49e732 100644
---- a/net/netfilter/nf_conntrack_proto_udp.c
-+++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -38,8 +38,7 @@ static void udp_error_log(const struct sk_buff *skb,
- 			  const struct nf_hook_state *state,
- 			  const char *msg)
- {
--	nf_l4proto_log_invalid(skb, state->net, state->pf,
--			       IPPROTO_UDP, "%s", msg);
-+	nf_l4proto_log_invalid(skb, state, IPPROTO_UDP, "%s", msg);
- }
- 
- static bool udp_error(struct sk_buff *skb,
-@@ -130,8 +129,7 @@ static void udplite_error_log(const struct sk_buff *skb,
- 			      const struct nf_hook_state *state,
- 			      const char *msg)
- {
--	nf_l4proto_log_invalid(skb, state->net, state->pf,
--			       IPPROTO_UDPLITE, "%s", msg);
-+	nf_l4proto_log_invalid(skb, state, IPPROTO_UDPLITE, "%s", msg);
- }
- 
- static bool udplite_error(struct sk_buff *skb,
+ static struct nft_object_type *nft_basic_objects[] = {
+diff --git a/net/netfilter/nft_last.c b/net/netfilter/nft_last.c
+new file mode 100644
+index 000000000000..767e2839ffce
+--- /dev/null
++++ b/net/netfilter/nft_last.c
+@@ -0,0 +1,87 @@
++// SPDX-License-Identifier: GPL-2.0-only
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/netlink.h>
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables_core.h>
++#include <net/netfilter/nf_tables.h>
++
++struct nft_last_priv {
++	unsigned long	last_jiffies;
++	unsigned int	last_set;
++};
++
++static const struct nla_policy nft_last_policy[NFTA_LAST_MAX + 1] = {
++	[NFTA_LAST_SET] = { .type = NLA_U32 },
++	[NFTA_LAST_MSECS] = { .type = NLA_U64 },
++};
++
++static int nft_last_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
++			 const struct nlattr * const tb[])
++{
++	struct nft_last_priv *priv = nft_expr_priv(expr);
++	u64 last_jiffies;
++	int err;
++
++	if (tb[NFTA_LAST_MSECS]) {
++		err = nf_msecs_to_jiffies64(tb[NFTA_LAST_MSECS], &last_jiffies);
++		if (err < 0)
++			return err;
++
++		priv->last_jiffies = jiffies + (unsigned long)last_jiffies;
++		priv->last_set = 1;
++	}
++
++	return 0;
++}
++
++static void nft_last_eval(const struct nft_expr *expr,
++			  struct nft_regs *regs, const struct nft_pktinfo *pkt)
++{
++	struct nft_last_priv *priv = nft_expr_priv(expr);
++
++	priv->last_jiffies = jiffies;
++	priv->last_set = 1;
++}
++
++static int nft_last_dump(struct sk_buff *skb, const struct nft_expr *expr)
++{
++	struct nft_last_priv *priv = nft_expr_priv(expr);
++	__be64 msecs;
++
++	if (time_before(jiffies, priv->last_jiffies))
++		priv->last_set = 0;
++
++	if (priv->last_set)
++		msecs = nf_jiffies64_to_msecs(jiffies - priv->last_jiffies);
++	else
++		msecs = 0;
++
++	if (nla_put_be32(skb, NFTA_LAST_SET, htons(priv->last_set)) ||
++	    nla_put_be64(skb, NFTA_LAST_MSECS, msecs, NFTA_LAST_PAD))
++		goto nla_put_failure;
++
++	return 0;
++
++nla_put_failure:
++	return -1;
++}
++
++static const struct nft_expr_ops nft_last_ops = {
++	.type		= &nft_last_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_last_priv)),
++	.eval		= nft_last_eval,
++	.init		= nft_last_init,
++	.dump		= nft_last_dump,
++};
++
++struct nft_expr_type nft_last_type __read_mostly = {
++	.name		= "last",
++	.ops		= &nft_last_ops,
++	.policy		= nft_last_policy,
++	.maxattr	= NFTA_LAST_MAX,
++	.flags		= NFT_EXPR_STATEFUL,
++	.owner		= THIS_MODULE,
++};
 -- 
-2.31.1
+2.30.2
 
