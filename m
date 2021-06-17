@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02527C2B9F4
-	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Jun 2021 15:49:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38F80C2B9F4
+	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Jun 2021 21:08:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D450860FF1
-	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Jun 2021 15:49:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1153361164
+	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Jun 2021 21:08:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233501AbhFQPvd (ORCPT
+        id S231241AbhFQVKX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 17 Jun 2021 11:51:33 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:48480 "EHLO
+        Thu, 17 Jun 2021 17:10:23 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:48958 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233371AbhFQPv0 (ORCPT
+        with ESMTP id S232853AbhFQVKW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 17 Jun 2021 11:51:26 -0400
+        Thu, 17 Jun 2021 17:10:22 -0400
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id E309D6424D
-        for <netfilter-devel@vger.kernel.org>; Thu, 17 Jun 2021 17:47:57 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 5A4BA6424D
+        for <netfilter-devel@vger.kernel.org>; Thu, 17 Jun 2021 23:06:53 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] rule: memleak of list of timeout policies
-Date:   Thu, 17 Jun 2021 17:49:15 +0200
-Message-Id: <20210617154915.3828-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+Subject: [PATCH nft,v2] rule: memleak of list of timeout policies
+Date:   Thu, 17 Jun 2021 23:08:10 +0200
+Message-Id: <20210617210810.26671-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -46,13 +46,13 @@ Direct leak of 160 byte(s) in 2 object(s) allocated from:
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-After this update tests/py shows only memleaks in Python and there is still
-one small string memleak in the parser that I didn't find yet.
+v2: skip init_list_head() from parser path, list is already initialized
+    (actually it results in a memleak of the timeout policies that are
+     obtained from the ruleset file).
 
- src/netlink.c      | 1 +
- src/parser_bison.y | 1 +
- src/rule.c         | 8 ++++++++
- 3 files changed, 10 insertions(+)
+ src/netlink.c | 1 +
+ src/rule.c    | 8 ++++++++
+ 2 files changed, 9 insertions(+)
 
 diff --git a/src/netlink.c b/src/netlink.c
 index f2c1a4a15dee..c5fd38044b41 100644
@@ -66,18 +66,6 @@ index f2c1a4a15dee..c5fd38044b41 100644
  		obj->ct_timeout.l3proto = nftnl_obj_get_u16(nlo, NFTNL_OBJ_CT_TIMEOUT_L3PROTO);
  		obj->ct_timeout.l4proto = nftnl_obj_get_u8(nlo, NFTNL_OBJ_CT_TIMEOUT_L4PROTO);
  		memcpy(obj->ct_timeout.timeout,
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 5e702a054f44..d0bbb6dedc82 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -1748,6 +1748,7 @@ table_block		:	/* empty */	{ $$ = $<table>-1; }
- 			{
- 				$5->location = @4;
- 				$5->type = NFT_OBJECT_CT_TIMEOUT;
-+				init_list_head(&$5->ct_timeout.timeout_list);
- 				handle_merge(&$5->handle, &$4);
- 				handle_free(&$4);
- 				list_add_tail(&$5->list, &$1->objs);
 diff --git a/src/rule.c b/src/rule.c
 index 92daf2f33b76..10569aa7875a 100644
 --- a/src/rule.c
@@ -98,5 +86,5 @@ index 92daf2f33b76..10569aa7875a 100644
  }
  
 -- 
-2.20.1
+2.30.2
 
