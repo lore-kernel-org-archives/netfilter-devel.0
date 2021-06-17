@@ -2,79 +2,211 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98ADCC48BE8
-	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Jun 2021 01:12:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BD61C48BE5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Jun 2021 01:27:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 689306101B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Jun 2021 01:12:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2FB2C613DF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Jun 2021 01:27:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231339AbhFQBOb (ORCPT
+        id S231949AbhFQBaD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 16 Jun 2021 21:14:31 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:47340 "EHLO
+        Wed, 16 Jun 2021 21:30:03 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:47368 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230267AbhFQBOb (ORCPT
+        with ESMTP id S231942AbhFQBaC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 16 Jun 2021 21:14:31 -0400
+        Wed, 16 Jun 2021 21:30:02 -0400
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 2CC4F6422B
-        for <netfilter-devel@vger.kernel.org>; Thu, 17 Jun 2021 03:11:04 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id A7D5D6423C
+        for <netfilter-devel@vger.kernel.org>; Thu, 17 Jun 2021 03:26:35 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] netlink_delinearize: memleak in string netlink postprocessing
-Date:   Thu, 17 Jun 2021 03:12:15 +0200
-Message-Id: <20210617011215.4808-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+Subject: [PATCH nf-next,v6] netfilter: nf_tables: add last expression
+Date:   Thu, 17 Jun 2021 03:27:51 +0200
+Message-Id: <20210617012751.5047-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Listing a matching wilcard string results in a memleak: ifname "dummy*"
-
-Direct leak of 136 byte(s) in 1 object(s) allocated from:
-    #0 0x7f27ba52e330 in __interceptor_malloc (/usr/lib/x86_64-linux-gnu/libasan.so.5+0xe9330)
-    #1 0x7f27b9e1d434 in xmalloc /home/pablo/devel/scm/git-netfilter/nftables/src/utils.c:36
-    #2 0x7f27b9e1d5f3 in xzalloc /home/pablo/devel/scm/git-netfilter/nftables/src/utils.c:75
-    #3 0x7f27b9d2e8c6 in expr_alloc /home/pablo/devel/scm/git-netfilter/nftables/src/expression.c:45
-    #4 0x7f27b9d326e9 in constant_expr_alloc /home/pablo/devel/scm/git-netfilter/nftables/src/expression.c:419
-    #5 0x7f27b9db9318 in netlink_alloc_value /home/pablo/devel/scm/git-netfilter/nftables/src/netlink.c:390
-    #6 0x7f27b9de0433 in netlink_parse_cmp /home/pablo/devel/scm/git-netfilter/nftables/src/netlink_delinearize.c:321
-    #7 0x7f27b9deb025 in netlink_parse_expr /home/pablo/devel/scm/git-netfilter/nftables/src/netlink_delinearize.c:1764
-    #8 0x7f27b9deb0de in netlink_parse_rule_expr /home/pablo/devel/scm/git-netfilter/nftables/src/netlink_delinearize.c:1776
-    #9 0x7f27b860af7b in nftnl_expr_foreach /home/pablo/devel/scm/git-netfilter/libnftnl/src/rule.c:690
-
-Direct leak of 8 byte(s) in 1 object(s) allocated from:
-    #0 0x7f27ba52e330 in __interceptor_malloc (/usr/lib/x86_64-linux-gnu/libasan.so.5+0xe9330)
-    #1 0x7f27b9e1d434 in xmalloc /home/pablo/devel/scm/git-netfilter/nftables/src/utils.c:36
-    #2 0x7f27b96975c5 in __gmpz_init2 (/usr/lib/x86_64-linux-gnu/libgmp.so.10+0x1c5c5)
+Add a new optional expression that tells you when last matching on a
+given rule / set element element has happened.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/netlink_delinearize.c | 2 ++
- 1 file changed, 2 insertions(+)
+v6: fix sparse warning.
 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 5c80397db26c..bf4712e65d2c 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -2332,8 +2332,10 @@ static struct expr *expr_postprocess_string(struct expr *expr)
- 	mask = constant_expr_alloc(&expr->location, &integer_type,
- 				   BYTEORDER_HOST_ENDIAN,
- 				   expr->len + BITS_PER_BYTE, NULL);
-+	mpz_clear(mask->value);
- 	mpz_init_bitmask(mask->value, expr->len);
- 	out = string_wildcard_expr_alloc(&expr->location, mask, expr);
-+	expr_free(expr);
- 	expr_free(mask);
- 	return out;
- }
+ include/net/netfilter/nf_tables_core.h   |  1 +
+ include/uapi/linux/netfilter/nf_tables.h | 15 ++++
+ net/netfilter/Makefile                   |  2 +-
+ net/netfilter/nf_tables_core.c           |  1 +
+ net/netfilter/nft_last.c                 | 87 ++++++++++++++++++++++++
+ 5 files changed, 105 insertions(+), 1 deletion(-)
+ create mode 100644 net/netfilter/nft_last.c
+
+diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
+index 46c8d5bb5d8d..0fa5a6d98a00 100644
+--- a/include/net/netfilter/nf_tables_core.h
++++ b/include/net/netfilter/nf_tables_core.h
+@@ -16,6 +16,7 @@ extern struct nft_expr_type nft_range_type;
+ extern struct nft_expr_type nft_meta_type;
+ extern struct nft_expr_type nft_rt_type;
+ extern struct nft_expr_type nft_exthdr_type;
++extern struct nft_expr_type nft_last_type;
+ 
+ #ifdef CONFIG_NETWORK_SECMARK
+ extern struct nft_object_type nft_secmark_obj_type;
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 19715e2679d1..e94d1fa554cb 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -1195,6 +1195,21 @@ enum nft_counter_attributes {
+ };
+ #define NFTA_COUNTER_MAX	(__NFTA_COUNTER_MAX - 1)
+ 
++/**
++ * enum nft_last_attributes - nf_tables last expression netlink attributes
++ *
++ * @NFTA_LAST_SET: last update has been set, zero means never updated (NLA_U32)
++ * @NFTA_LAST_MSECS: milliseconds since last update (NLA_U64)
++ */
++enum nft_last_attributes {
++	NFTA_LAST_UNSPEC,
++	NFTA_LAST_SET,
++	NFTA_LAST_MSECS,
++	NFTA_LAST_PAD,
++	__NFTA_LAST_MAX
++};
++#define NFTA_LAST_MAX	(__NFTA_LAST_MAX - 1)
++
+ /**
+  * enum nft_log_attributes - nf_tables log expression netlink attributes
+  *
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 87112dad1fd4..049890e00a3d 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -74,7 +74,7 @@ obj-$(CONFIG_NF_DUP_NETDEV)	+= nf_dup_netdev.o
+ nf_tables-objs := nf_tables_core.o nf_tables_api.o nft_chain_filter.o \
+ 		  nf_tables_trace.o nft_immediate.o nft_cmp.o nft_range.o \
+ 		  nft_bitwise.o nft_byteorder.o nft_payload.o nft_lookup.o \
+-		  nft_dynset.o nft_meta.o nft_rt.o nft_exthdr.o \
++		  nft_dynset.o nft_meta.o nft_rt.o nft_exthdr.o nft_last.o \
+ 		  nft_chain_route.o nf_tables_offload.o \
+ 		  nft_set_hash.o nft_set_bitmap.o nft_set_rbtree.o \
+ 		  nft_set_pipapo.o
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index 7780342e2f2d..866cfba04d6c 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -268,6 +268,7 @@ static struct nft_expr_type *nft_basic_types[] = {
+ 	&nft_meta_type,
+ 	&nft_rt_type,
+ 	&nft_exthdr_type,
++	&nft_last_type,
+ };
+ 
+ static struct nft_object_type *nft_basic_objects[] = {
+diff --git a/net/netfilter/nft_last.c b/net/netfilter/nft_last.c
+new file mode 100644
+index 000000000000..913ac45167f2
+--- /dev/null
++++ b/net/netfilter/nft_last.c
+@@ -0,0 +1,87 @@
++// SPDX-License-Identifier: GPL-2.0-only
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/netlink.h>
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables_core.h>
++#include <net/netfilter/nf_tables.h>
++
++struct nft_last_priv {
++	unsigned long	last_jiffies;
++	unsigned int	last_set;
++};
++
++static const struct nla_policy nft_last_policy[NFTA_LAST_MAX + 1] = {
++	[NFTA_LAST_SET] = { .type = NLA_U32 },
++	[NFTA_LAST_MSECS] = { .type = NLA_U64 },
++};
++
++static int nft_last_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
++			 const struct nlattr * const tb[])
++{
++	struct nft_last_priv *priv = nft_expr_priv(expr);
++	u64 last_jiffies;
++	int err;
++
++	if (tb[NFTA_LAST_MSECS]) {
++		err = nf_msecs_to_jiffies64(tb[NFTA_LAST_MSECS], &last_jiffies);
++		if (err < 0)
++			return err;
++
++		priv->last_jiffies = jiffies + (unsigned long)last_jiffies;
++		priv->last_set = 1;
++	}
++
++	return 0;
++}
++
++static void nft_last_eval(const struct nft_expr *expr,
++			  struct nft_regs *regs, const struct nft_pktinfo *pkt)
++{
++	struct nft_last_priv *priv = nft_expr_priv(expr);
++
++	priv->last_jiffies = jiffies;
++	priv->last_set = 1;
++}
++
++static int nft_last_dump(struct sk_buff *skb, const struct nft_expr *expr)
++{
++	struct nft_last_priv *priv = nft_expr_priv(expr);
++	__be64 msecs;
++
++	if (time_before(jiffies, priv->last_jiffies))
++		priv->last_set = 0;
++
++	if (priv->last_set)
++		msecs = nf_jiffies64_to_msecs(jiffies - priv->last_jiffies);
++	else
++		msecs = 0;
++
++	if (nla_put_be32(skb, NFTA_LAST_SET, htonl(priv->last_set)) ||
++	    nla_put_be64(skb, NFTA_LAST_MSECS, msecs, NFTA_LAST_PAD))
++		goto nla_put_failure;
++
++	return 0;
++
++nla_put_failure:
++	return -1;
++}
++
++static const struct nft_expr_ops nft_last_ops = {
++	.type		= &nft_last_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_last_priv)),
++	.eval		= nft_last_eval,
++	.init		= nft_last_init,
++	.dump		= nft_last_dump,
++};
++
++struct nft_expr_type nft_last_type __read_mostly = {
++	.name		= "last",
++	.ops		= &nft_last_ops,
++	.policy		= nft_last_policy,
++	.maxattr	= NFTA_LAST_MAX,
++	.flags		= NFT_EXPR_STATEFUL,
++	.owner		= THIS_MODULE,
++};
 -- 
-2.20.1
+2.30.2
 
