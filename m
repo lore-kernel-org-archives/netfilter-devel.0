@@ -2,90 +2,108 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A25FFC48BE8
-	for <netfilter-devel@archiver.kernel.org>; Sat, 19 Jun 2021 00:11:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57FBEC49361
+	for <netfilter-devel@archiver.kernel.org>; Sat, 19 Jun 2021 13:56:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 788C86102A
-	for <netfilter-devel@archiver.kernel.org>; Sat, 19 Jun 2021 00:11:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3D92B6120F
+	for <netfilter-devel@archiver.kernel.org>; Sat, 19 Jun 2021 13:56:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231680AbhFSANM (ORCPT
+        id S234391AbhFSN6W (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 18 Jun 2021 20:13:12 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:51474 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229730AbhFSANM (ORCPT
+        Sat, 19 Jun 2021 09:58:22 -0400
+Received: from mx0a-00069f02.pphosted.com ([205.220.165.32]:26150 "EHLO
+        mx0a-00069f02.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S233286AbhFSN6V (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 18 Jun 2021 20:13:12 -0400
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 6800D6426B
-        for <netfilter-devel@vger.kernel.org>; Sat, 19 Jun 2021 02:09:40 +0200 (CEST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH] netfilter: nf_tables: memleak in hw offload abort path
-Date:   Sat, 19 Jun 2021 02:10:57 +0200
-Message-Id: <20210619001057.2200-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Sat, 19 Jun 2021 09:58:21 -0400
+Received: from pps.filterd (m0246629.ppops.net [127.0.0.1])
+        by mx0b-00069f02.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 15JDqGr7013084;
+        Sat, 19 Jun 2021 13:56:02 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
+ : subject : message-id : mime-version : content-type; s=corp-2020-01-29;
+ bh=CfcMWbyIReYH5b6bYFX2Dq+/nXa57kbLDh0RJX7M4FI=;
+ b=h/t/0+AHvrJygbHM3csmnsRXFym6+rd5Bx30abGd7lbWrRIzahl+trqz/Q5iIWw+w8RF
+ KyoSK1FKcb3ljVs+s7rS8lmIpo8rlrgYphJllmVj/LNCMjeK7QZ4KmGBVcnAKRmfr/8E
+ 89dwzjyDhIiVXksmOQZcmpHvJbWmX7X7fvUi6+ou2dMrO6l9+VP0tcprBeA4l7VpDiTE
+ /Ji+FivuwfmX4bLpDi3SoK/Z5wLO3qLF68tS1n+yeOoHQGTChA1tmENhhd3s6boT4k31
+ HQwLmIRmbyAvY4LR3Zv7VhkmDbcat2j2jDmsVWp6wFvQkHhx07tJkvNkTuQA5w6kWPg6 hw== 
+Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
+        by mx0b-00069f02.pphosted.com with ESMTP id 3998f88ecj-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Sat, 19 Jun 2021 13:56:02 +0000
+Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
+        by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 15JDtF7M033757;
+        Sat, 19 Jun 2021 13:56:01 GMT
+Received: from pps.reinject (localhost [127.0.0.1])
+        by aserp3020.oracle.com with ESMTP id 3998d2v7qm-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Sat, 19 Jun 2021 13:56:01 +0000
+Received: from aserp3020.oracle.com (aserp3020.oracle.com [127.0.0.1])
+        by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 15JDu0R1034876;
+        Sat, 19 Jun 2021 13:56:00 GMT
+Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
+        by aserp3020.oracle.com with ESMTP id 3998d2v7q2-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Sat, 19 Jun 2021 13:56:00 +0000
+Received: from abhmp0014.oracle.com (abhmp0014.oracle.com [141.146.116.20])
+        by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 15JDtucT017968;
+        Sat, 19 Jun 2021 13:55:56 GMT
+Received: from mwanda (/102.222.70.252)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Sat, 19 Jun 2021 06:55:55 -0700
+Date:   Sat, 19 Jun 2021 16:55:46 +0300
+From:   Dan Carpenter <dan.carpenter@oracle.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [PATCH net-next] netfilter: nfnetlink_hook: fix check for snprintf()
+ overflow
+Message-ID: <YM33YmacZTH820Cv@mwanda>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+X-Mailer: git-send-email haha only kidding
+X-Proofpoint-GUID: 59xZomSJ1zK34HQRUqnV_sZvjO8W55VC
+X-Proofpoint-ORIG-GUID: 59xZomSJ1zK34HQRUqnV_sZvjO8W55VC
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Release flow from the abort path, this is easy to reproduce since
-b72920f6e4a9 ("netfilter: nftables: counter hardware offload support").
+The kernel version of snprintf() can't return negatives.  The
+"ret > (int)sizeof(sym)" check is off by one because and it should be
+>=.  Finally, we need to set a negative error code.
 
-unreferenced object 0xffff8881f0fa7700 (size 128):
-  comm "nft", pid 1335, jiffies 4294931120 (age 4163.740s)
-  hex dump (first 32 bytes):
-    08 e4 de 13 82 88 ff ff 98 e4 de 13 82 88 ff ff  ................
-    48 e4 de 13 82 88 ff ff 01 00 00 00 00 00 00 00  H...............
-  backtrace:
-    [<00000000634547e7>] flow_rule_alloc+0x26/0x80
-    [<00000000c8426156>] nft_flow_rule_create+0xc9/0x3f0 [nf_tables]
-    [<0000000075ff8e46>] nf_tables_newrule+0xc79/0x10a0 [nf_tables]
-    [<00000000ba65e40e>] nfnetlink_rcv_batch+0xaac/0xf90 [nfnetlink]
-    [<00000000505c614a>] nfnetlink_rcv+0x1bb/0x1f0 [nfnetlink]
-    [<00000000eb78e1fe>] netlink_unicast+0x34b/0x480
-    [<00000000a8f72c94>] netlink_sendmsg+0x3af/0x690
-    [<000000009cb1ddf4>] sock_sendmsg+0x96/0xa0
-    [<0000000039d06e44>] ____sys_sendmsg+0x3fe/0x440
-    [<00000000137e82ca>] ___sys_sendmsg+0xd8/0x140
-    [<000000000c6bf6a6>] __sys_sendmsg+0xb3/0x130
-    [<0000000043bd6268>] do_syscall_64+0x40/0xb0
-    [<00000000afdebc2d>] entry_SYSCALL_64_after_hwframe+0x44/0xae
-
-Fixes: 63b48c73ff56 ("netfilter: nf_tables_offload: undo updates if transaction fails")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes: e2cf17d3774c ("netfilter: add new hook nfnl subsystem")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 ---
- net/netfilter/nf_tables_api.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ net/netfilter/nfnetlink_hook.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index f20f6ae0e215..aa2c99e99ba6 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -8804,11 +8804,16 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 			nft_rule_expr_deactivate(&trans->ctx,
- 						 nft_trans_rule(trans),
- 						 NFT_TRANS_ABORT);
-+			if (trans->ctx.chain->flags & NFT_CHAIN_HW_OFFLOAD)
-+				nft_flow_rule_destroy(nft_trans_flow_rule(trans));
- 			break;
- 		case NFT_MSG_DELRULE:
- 			trans->ctx.chain->use++;
- 			nft_clear(trans->ctx.net, nft_trans_rule(trans));
- 			nft_rule_expr_activate(&trans->ctx, nft_trans_rule(trans));
-+			if (trans->ctx.chain->flags & NFT_CHAIN_HW_OFFLOAD)
-+				nft_flow_rule_destroy(nft_trans_flow_rule(trans));
-+
- 			nft_trans_destroy(trans);
- 			break;
- 		case NFT_MSG_NEWSET:
+diff --git a/net/netfilter/nfnetlink_hook.c b/net/netfilter/nfnetlink_hook.c
+index 58fda6ac663b..50b4e3c9347a 100644
+--- a/net/netfilter/nfnetlink_hook.c
++++ b/net/netfilter/nfnetlink_hook.c
+@@ -126,8 +126,10 @@ static int nfnl_hook_dump_one(struct sk_buff *nlskb,
+ 
+ #ifdef CONFIG_KALLSYMS
+ 	ret = snprintf(sym, sizeof(sym), "%ps", ops->hook);
+-	if (ret < 0 || ret > (int)sizeof(sym))
++	if (ret >= sizeof(sym)) {
++		ret = -EINVAL;
+ 		goto nla_put_failure;
++	}
+ 
+ 	module_name = strstr(sym, " [");
+ 	if (module_name) {
 -- 
 2.30.2
 
