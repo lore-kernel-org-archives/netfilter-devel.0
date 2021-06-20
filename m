@@ -2,87 +2,103 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,FROM_LOCAL_DIGITS,
-	FROM_LOCAL_HEX,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AFFFC2B9F4
-	for <netfilter-devel@archiver.kernel.org>; Sat, 19 Jun 2021 16:54:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC243C48BDF
+	for <netfilter-devel@archiver.kernel.org>; Sun, 20 Jun 2021 12:22:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5822D610A2
-	for <netfilter-devel@archiver.kernel.org>; Sat, 19 Jun 2021 16:54:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A017A610CD
+	for <netfilter-devel@archiver.kernel.org>; Sun, 20 Jun 2021 12:22:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234826AbhFSQ4S (ORCPT
+        id S229593AbhFTMY5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 19 Jun 2021 12:56:18 -0400
-Received: from mail-io1-f71.google.com ([209.85.166.71]:36682 "EHLO
-        mail-io1-f71.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234756AbhFSQ4R (ORCPT
+        Sun, 20 Jun 2021 08:24:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52682 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229591AbhFTMY5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 19 Jun 2021 12:56:17 -0400
-Received: by mail-io1-f71.google.com with SMTP id z11-20020a05660229cbb029043af67da217so6631209ioq.3
-        for <netfilter-devel@vger.kernel.org>; Sat, 19 Jun 2021 09:54:06 -0700 (PDT)
+        Sun, 20 Jun 2021 08:24:57 -0400
+Received: from mail-lj1-x233.google.com (mail-lj1-x233.google.com [IPv6:2a00:1450:4864:20::233])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9AEC1C061574
+        for <netfilter-devel@vger.kernel.org>; Sun, 20 Jun 2021 05:22:44 -0700 (PDT)
+Received: by mail-lj1-x233.google.com with SMTP id a21so16022087ljj.1
+        for <netfilter-devel@vger.kernel.org>; Sun, 20 Jun 2021 05:22:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:from:date:message-id:subject:to;
+        bh=8J2fW15A5DViXf1jLAsw6iBiwaWd/jZj6otzgwLqcz0=;
+        b=AOUd8QPFBKd+Mjy3prXwaV/Z/YMIdlCaaWWRYC/on88n6IY3aGQwfdCy2++ePK08UP
+         bgVBMuuKg22AJa86yGQ+W2IKruoVcn2SrO3UwyNHbVCzUZUXilDojlv7QyQIVF8+L6J1
+         wIh+cfWhm8ZYnR7IFagCWhTv1YmHo2zKoZwuYewD4HRwaijQ8NjEIOsC66cacH/rmNe5
+         CnL2G7+/ENP/Gq2u6J2ZnTkBkCmrodH4FIj4psxAtXhH6sfyYPai/XmzjD+/DswHN8mf
+         ZeWTUzeMXPHawn8b9BjjhuvI5Nv24OZK/UdYjMDfe+KIaDN3/njYbqZMLdNtJ79Kgpvo
+         ANlg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
-         :from:to;
-        bh=QqIncrQU8u3oTCnB+Mpzxl6+UwwC6+HMM9p8ltzPHS8=;
-        b=BhE0fqrINn23Tji3lihoV25q/+vvUK4q2Y7TqPvEHN5tJwaM9USsdlhEWq91Bhby3L
-         k2SRuKtI6oNP43vXq+Cb823kt67XIpPzDxQI893oZtQ5ygo5Vku4hsAhgYR+sBDEDwQk
-         xR4tjDaTX5Zbl02hRka4fBcWA5Fv8v150R6LH6t0185BlZe056QsE4h9908kTnu1y+QB
-         62rlxCUk4SO8QZqRlfTTBh5c7Sdoy85AivUhZAa7ETkL19ZtyLCTcjPYbrP9rwLjkWcs
-         TrR1RXJVieBiRLDrCX6VRVZ1FZ/WXs8X6ALyiSJroMhVbXlGU4LY2JAj5C7UXIrzN++y
-         Xk+A==
-X-Gm-Message-State: AOAM533bfL7ZTmnrM9PRHUqFVg5CRonZoTCQs1ReYniQgXF6yjVoxq7V
-        6cE8308DiJOrJoX8qE2nNblwLzCZxFnadahuzF0lcF9mMEqH
-X-Google-Smtp-Source: ABdhPJx/AfnH2IlS/TiDpgCKO8HJ1dF/+Qf9wLPerlasfa7aKwjtTw6wDoV8Sg0G1dCQZ9I9Y1q/4o9tQB4bG00bf9WeDJQtc5Ow
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
+        bh=8J2fW15A5DViXf1jLAsw6iBiwaWd/jZj6otzgwLqcz0=;
+        b=Dy3r3QRaELiVAkDzPRczwGvu4geSlvt+SOpmKNChXH6jmIxatJh2OZBKnifJowj5km
+         wMVBjouwrT0ldkZhmzOMKDT2mm9sK2oqxBuZmFvHoPAyaM+NQ9GFvHnqoQdH63gSx4wX
+         gEKhK94N+UgSZz1PlzjwOsKabpOx+8EexBpgn8uSvw06VbCYQH1WoBkbBdJR/bIjcy/o
+         6CGxer9JwG/TxXpt0JJ2RARXm4rBYS6aHthNI6Pls6Ti5DnexhHuMF4uOcMz9xJTxvos
+         M226NRVAa/YzRg8ce27xRKZDx+mQEfnJU24s8jT5T5nvLR+xJG81zSizAy4t6pYCPMuK
+         KtnQ==
+X-Gm-Message-State: AOAM533HqyT+FI4t2rzIcqgCpoN5E4CVioe037J+bMLUUNDswYMP0mOB
+        vk8dXiN/IgKHWeS1nbtdhgWI7YI/bN+Z1O0lOsrlOWsmZSo=
+X-Google-Smtp-Source: ABdhPJzk6oKVQRdHqxaaKM1gtzd1ZSZtpGt70fhU2KAwrq1tV9/em70gevIDq9K8AMTHGPj0PLqlMRmFisIX7Z466do=
+X-Received: by 2002:a2e:a317:: with SMTP id l23mr17307415lje.117.1624191762933;
+ Sun, 20 Jun 2021 05:22:42 -0700 (PDT)
 MIME-Version: 1.0
-X-Received: by 2002:a02:94af:: with SMTP id x44mr8962347jah.79.1624121646170;
- Sat, 19 Jun 2021 09:54:06 -0700 (PDT)
-Date:   Sat, 19 Jun 2021 09:54:06 -0700
-In-Reply-To: <000000000000f034fc05c2da6617@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000cac82d05c5214992@google.com>
-Subject: Re: [syzbot] KASAN: use-after-free Read in check_all_holdout_tasks_trace
-From:   syzbot <syzbot+7b2b13f4943374609532@syzkaller.appspotmail.com>
-To:     akpm@linux-foundation.org, andrii@kernel.org, ast@kernel.org,
-        axboe@kernel.dk, bpf@vger.kernel.org, christian@brauner.io,
-        coreteam@netfilter.org, daniel@iogearbox.net, davem@davemloft.net,
-        dsahern@kernel.org, dvyukov@google.com, fw@strlen.de,
-        jiangshanlai@gmail.com, joel@joelfernandes.org,
-        john.fastabend@gmail.com, josh@joshtriplett.org,
-        kadlec@netfilter.org, kafai@fb.com, kpsingh@kernel.org,
-        kuba@kernel.org, linux-kernel@vger.kernel.org,
-        mathieu.desnoyers@efficios.com, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        paulmck@kernel.org, peterz@infradead.org, rcu@vger.kernel.org,
-        rostedt@goodmis.org, shakeelb@google.com, songliubraving@fb.com,
-        syzkaller-bugs@googlegroups.com, yanfei.xu@windriver.com,
-        yhs@fb.com, yoshfuji@linux-ipv6.org
+From:   Pascal Dupuis <cdemills@gmail.com>
+Date:   Sun, 20 Jun 2021 14:22:32 +0200
+Message-ID: <CAPo1VG=UuHtCpLZnQ=-kbeTuXz2Xv_-WZ-xfPGB7qjpaFeia1g@mail.gmail.com>
+Subject: can't compile with CLANG + ThinLTO
+To:     netfilter-devel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot has bisected this issue to:
+Hello,
+since kernel 5.12, I compile kernel and xtables-addons-kmod with CLANG using:
 
-commit f9006acc8dfe59e25aa75729728ac57a8d84fc32
-Author: Florian Westphal <fw@strlen.de>
-Date:   Wed Apr 21 07:51:08 2021 +0000
+1) extract the kernel source, and get the config included in
+https://elrepo.org/linux/kernel/el8/SRPMS/kernel-ml-5.12.12-1.el8.elrepo.nosrc.rpm
+2) inside the kernel source, execute
+env LC_ALL=C TMPDIR=/var/tmp MAKEFLAGS="LLVM=1 " make oldconfig
+explanation: this uses CLANG as compiler, but LTO is not enabled.
+3) substitute the new .config to the one from elrepo
+4) compile the kernel with
+ env LC_ALL=C TMPDIR=/var/tmp MAKEFLAGS="LLVM=1" nice -n 20 rpmbuild
+--noclean --nocheck --nodebuginfo --without bpftool --without perf
+--without tools -ba SPECS/kernel-ml-5.12.spec
+5) install and boot the new kernel
+6) generate the xtables-addons-kmod with
+env LC_ALL=C TMPDIR=/var/tmp MAKEFLAGS="LLVM=1" akmods --kernels
+5.12.12-1.el8.clang.nolto.x86_64
 
-    netfilter: arp_tables: pass table pointer via nf_hook_ops
+I also tried using  MAKEFLAGS="LLVM=1 LLVM_IAS=1" and selecting
+"thinlto" at step 2). It either failed either produced unbootable
+kernels. At kernel 5.12.12, this step succeeds and produces a working
+kernel.
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=10dceae8300000
-start commit:   0c38740c selftests/bpf: Fix ringbuf test fetching map FD
-git tree:       bpf-next
-final oops:     https://syzkaller.appspot.com/x/report.txt?x=12dceae8300000
-console output: https://syzkaller.appspot.com/x/log.txt?x=14dceae8300000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=a6380da8984033f1
-dashboard link: https://syzkaller.appspot.com/bug?extid=7b2b13f4943374609532
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1264c2d7d00000
+But step 6, now becoming
+env LC_ALL=C TMPDIR=/var/tmp MAKEFLAGS="LLVM=1 LLVM_IAS=1" akmods
+--kernels 5.12.12-1.el8.clang.thinlto.x86_64
+fails during the compilation. I tried to narrow down the problem by
+calling the script generated by akmods a few times. It fails after
+invoking ld.ldd with "error: permission denied". Restarting  manually
+the last failed line succeeds, but relaunching the script fails at
+another ld.ldd invocation.
 
-Reported-by: syzbot+7b2b13f4943374609532@syzkaller.appspotmail.com
-Fixes: f9006acc8dfe ("netfilter: arp_tables: pass table pointer via nf_hook_ops")
+The platform is x86_64 with CentOS 8 Stream, clang is 11.0
 
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+Could you please try to compile this module under a kernel with
+CLANG+ThinLTO enabled ?
+
+Thanks in advance
+
+Pascal Dupuis
