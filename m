@@ -2,95 +2,97 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EEC50C48BE5
-	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Jun 2021 22:41:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63A78C2B9F4
+	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Jun 2021 04:19:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C31D16128C
-	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Jun 2021 22:41:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 414C5610C7
+	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Jun 2021 04:19:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232312AbhFUWnf (ORCPT
+        id S229574AbhFVEVz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 21 Jun 2021 18:43:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55176 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231817AbhFUWne (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 21 Jun 2021 18:43:34 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B2ECA6124B;
-        Mon, 21 Jun 2021 22:41:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1624315279;
-        bh=UXd0EyfCTFXC5zHmXZWHGRM8gwslzKUqjbDHNEzxVfo=;
-        h=Date:From:To:Cc:Subject:Reply-To:References:In-Reply-To:From;
-        b=kDb6cwsQ+u/G1qukOtXSytwcTsshNyCF6ilM3FqjLc0THc4lnd88yV49yrN2GYoWC
-         JgyHuVSBi6nyyVXA/fhZ5ofYCR+9DnEN7wsDJzUIMkgzEAqOl8hZsMf++wSAg6BtCk
-         +eVbTT0Cj4W34NQafsPcqiwauPeBsr/U2ATWtZcK8MVY326DsRrOdy2EYyCceSzwxZ
-         fC9p5Axvo1whYj+xAM7SLsOlyUs66TwM2wZSK6ZPuNSe0KRlW4YD83jNgvqVLOlaOl
-         5OJW+orEIzGGwXISlZFZTDYYC4kZdCsvj2l4KBTsy9SGIMJl5Jr5lt1C2/DsCj3Jj9
-         tB1i16c1lj+IQ==
-Received: by paulmck-ThinkPad-P17-Gen-1.home (Postfix, from userid 1000)
-        id 6F0265C052D; Mon, 21 Jun 2021 15:41:19 -0700 (PDT)
-Date:   Mon, 21 Jun 2021 15:41:19 -0700
-From:   "Paul E. McKenney" <paulmck@kernel.org>
-To:     syzbot <syzbot+7b2b13f4943374609532@syzkaller.appspotmail.com>
-Cc:     akpm@linux-foundation.org, andrii@kernel.org, ast@kernel.org,
-        axboe@kernel.dk, bpf@vger.kernel.org, christian@brauner.io,
-        coreteam@netfilter.org, daniel@iogearbox.net, davem@davemloft.net,
-        dsahern@kernel.org, dvyukov@google.com, fw@strlen.de,
-        jiangshanlai@gmail.com, joel@joelfernandes.org,
-        john.fastabend@gmail.com, josh@joshtriplett.org,
-        kadlec@netfilter.org, kafai@fb.com, kpsingh@kernel.org,
-        kuba@kernel.org, linux-kernel@vger.kernel.org,
-        mathieu.desnoyers@efficios.com, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        peterz@infradead.org, rcu@vger.kernel.org, rostedt@goodmis.org,
-        shakeelb@google.com, songliubraving@fb.com,
-        syzkaller-bugs@googlegroups.com, yanfei.xu@windriver.com,
-        yhs@fb.com, yoshfuji@linux-ipv6.org
-Subject: Re: [syzbot] KASAN: use-after-free Read in
- check_all_holdout_tasks_trace
-Message-ID: <20210621224119.GW4397@paulmck-ThinkPad-P17-Gen-1>
-Reply-To: paulmck@kernel.org
-References: <000000000000f034fc05c2da6617@google.com>
- <000000000000cac82d05c5214992@google.com>
+        Tue, 22 Jun 2021 00:21:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47492 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229452AbhFVEVz (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 22 Jun 2021 00:21:55 -0400
+Received: from mail-pf1-x42c.google.com (mail-pf1-x42c.google.com [IPv6:2607:f8b0:4864:20::42c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 89893C061574
+        for <netfilter-devel@vger.kernel.org>; Mon, 21 Jun 2021 21:19:39 -0700 (PDT)
+Received: by mail-pf1-x42c.google.com with SMTP id w71so5388023pfd.4
+        for <netfilter-devel@vger.kernel.org>; Mon, 21 Jun 2021 21:19:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=sender:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=iMVokX2Z00IfQRWoRydk4SrKS9rLfZcY8k50duvud0Q=;
+        b=fY36i4CUHVJVwc9MyvTfPPNX3tvyxcABU0XeiIpcX/RA2NpwlkxKv39qJFbingKJEY
+         t9cbrj7wsOCVxjvU8IHCikj4e9NUcyxE0L7b0iLqT8reNql0uUzm9RvQQtkCs5qEOzHA
+         WtfdRm+jRPWPeW9bcjHd2g8AHxElx/D5HXOiRhn+twu8r7oyfl9S9izvEnitGRAoFU1O
+         0EQ9ZuvwYHJdA5D6Amza+g9n1okBTiJ3e5cKI/71B0TlTLFnZjluycV2ovEegvU4EfY5
+         pUFkyP7OAuWQpNPsD04wqZAo+zfA7g3iJ+dn9JrWgeMEMkAdhkZT2f8JUe2yFO2jqzYM
+         qnzg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
+         :mime-version:content-transfer-encoding;
+        bh=iMVokX2Z00IfQRWoRydk4SrKS9rLfZcY8k50duvud0Q=;
+        b=gKtJEB8DK9j3maX+OBPFDQTcozHT4V5wz13ESXYTym/Lu13LRYgq4sNEER9P2Bo9j+
+         5A1RXV13HMk1dBtulB1OGSTgQD4QVDyME9W68TUDCVtSTG6c2iZtP0ZcaWDdtZkDnq8D
+         CUblRyDI6qGrMMEtBXNgSc5X2UrH41qpe+8Mjwme+2Dv1v3Qj2HTBvOsvgV40NlGrPGX
+         mmGui9E08Rn8f20rSQ9jQjHV30yy1sREzecXwM17N5prh/3SuowwWCiYmzLOEKabxAAo
+         LG5uHlMKqdsvBj8Bmy7lOVRELjF11n+KySsY5K4tCtN8K9pNv/TWvmdVdziAlX2i3/PJ
+         6byQ==
+X-Gm-Message-State: AOAM530micTtH5cluwI4gpVA36dFpQl2X6iHV+8sH0Tc6synKiCVDKFb
+        ZE3EF7LoCxKusZ1WlAHShr4=
+X-Google-Smtp-Source: ABdhPJyCjZww1OA7LXqrccNZbM436ImIHdHfCrck2pcNG8zW0IZofe0fFUZNkEuLMdKB48GQvtIlSA==
+X-Received: by 2002:a63:50b:: with SMTP id 11mr1809730pgf.411.1624335579162;
+        Mon, 21 Jun 2021 21:19:39 -0700 (PDT)
+Received: from slk1.local.net (n49-192-52-33.sun3.vic.optusnet.com.au. [49.192.52.33])
+        by smtp.gmail.com with ESMTPSA id c6sm8734940pfb.39.2021.06.21.21.19.36
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 21 Jun 2021 21:19:38 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org, duncan_roe@optusnet.com.au
+Subject: [PATCH libmnl 0/1] build: doc: "make" builds & installs a full set of man pages
+Date:   Tue, 22 Jun 2021 14:19:32 +1000
+Message-Id: <20210622041933.25654-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.30.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <000000000000cac82d05c5214992@google.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Jun 19, 2021 at 09:54:06AM -0700, syzbot wrote:
-> syzbot has bisected this issue to:
-> 
-> commit f9006acc8dfe59e25aa75729728ac57a8d84fc32
-> Author: Florian Westphal <fw@strlen.de>
-> Date:   Wed Apr 21 07:51:08 2021 +0000
-> 
->     netfilter: arp_tables: pass table pointer via nf_hook_ops
-> 
-> bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=10dceae8300000
-> start commit:   0c38740c selftests/bpf: Fix ringbuf test fetching map FD
-> git tree:       bpf-next
-> final oops:     https://syzkaller.appspot.com/x/report.txt?x=12dceae8300000
-> console output: https://syzkaller.appspot.com/x/log.txt?x=14dceae8300000
-> kernel config:  https://syzkaller.appspot.com/x/.config?x=a6380da8984033f1
-> dashboard link: https://syzkaller.appspot.com/bug?extid=7b2b13f4943374609532
-> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1264c2d7d00000
-> 
-> Reported-by: syzbot+7b2b13f4943374609532@syzkaller.appspotmail.com
-> Fixes: f9006acc8dfe ("netfilter: arp_tables: pass table pointer via nf_hook_ops")
-> 
-> For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+This patch gets us out of the unfortunate situation where there are man pages
+for all functions in (old, libnfnetlink-based) sample program
+libnetfilter_queue/utils/nfqnl_test.c but not for the libmnl-based
+libnetfilter_queue/examples/nf-queue.c.
 
-I am not seeing any mention of check_all_holdout_tasks_trace() in
-the console output, but I again suggest the following two patches:
+From libnetfilter_queue we know how to generate a full set of man pages during
+`make` so let's do it for libmnl.
 
-6a04a59eacbd ("rcu-tasks: Don't delete holdouts within trc_inspect_reader()"
-dd5da0a9140e ("rcu-tasks: Don't delete holdouts within trc_wait_for_one_reader()")
+This patch sets up the framework: in future patches I plan to update the
+doxygen comments to be more man-page-friendly, e.g. by using \returns and \sa
+where appropriate.
 
-							Thanx, Paul
+Duncan Roe (1):
+  build: doc: "make" builds & installs a full set of man pages
+
+ Makefile.am         |   4 +-
+ configure.ac        |  24 +++++-
+ doxygen.cfg.in      | 176 ++------------------------------------------
+ doxygen/Makefile.am |  75 +++++++++++++++++++
+ 4 files changed, 107 insertions(+), 172 deletions(-)
+ create mode 100644 doxygen/Makefile.am
+
+-- 
+2.17.5
+
