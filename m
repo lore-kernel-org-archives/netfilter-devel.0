@@ -2,33 +2,34 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,INCLUDES_PULL_REQUEST,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FEBFC49EA5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Jun 2021 19:42:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9800AC2B9F4
+	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Jun 2021 22:00:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 60D946137D
-	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Jun 2021 19:42:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7C1D161360
+	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Jun 2021 22:00:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232692AbhFVToN (ORCPT
+        id S230018AbhFVWCy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 22 Jun 2021 15:44:13 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:59002 "EHLO
+        Tue, 22 Jun 2021 18:02:54 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:59230 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232376AbhFVToN (ORCPT
+        with ESMTP id S229612AbhFVWCy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 22 Jun 2021 15:44:13 -0400
+        Tue, 22 Jun 2021 18:02:54 -0400
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 42C916423C
-        for <netfilter-devel@vger.kernel.org>; Tue, 22 Jun 2021 21:36:58 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id B55A764252;
+        Tue, 22 Jun 2021 23:59:12 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] evaluate: fix maps with key and data concatenations
-Date:   Tue, 22 Jun 2021 21:38:18 +0200
-Message-Id: <20210622193818.138030-1-pablo@netfilter.org>
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
+Subject: [PATCH net 0/8] Netfilter fixes for net
+Date:   Tue, 22 Jun 2021 23:59:53 +0200
+Message-Id: <20210622220001.198508-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -36,179 +37,68 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-expr_evaluate_concat() is overloaded, it deals with two cases:
+Hi,
 
- #1 set key and data definitions, this case uses the special
-    dynamically created concatenation datatype which is taken
-    from the context.
- #2 set elements, this case iterates over the set key and data
-    expressions that are components of the concatenation tuple,
-    to fetch the corresponding datatype.
+The following patchset contains Netfilter fixes for net:
 
-Add a new function to deal with case #1 specifically.
+1) Nicolas Dichtel updates MAINTAINERS file to add Netfilter IRC channel.
 
-This patch is implicitly fixing up map that include arbitrary
-concatenations. This is failing with a spurious error report such as:
+2) Skip non-IPv6 packets in nft_exthdr.
 
- # cat bug.nft
- table x {
-        map test {
-                type ipv4_addr . inet_proto . inet_service : ipv4_addr . inet_service
-        }
- }
+3) Skip non-TCP packets in nft_osf.
 
- # nft -f bug.nft
- bug.nft:3:48-71: Error: datatype mismatch, expected concatenation of (IPv4 address, Internet protocol, internet network service), expression has type concatenation of (IPv4 address, internet network service)
-                type ipv4_addr . inet_proto . inet_service : ipv4_addr . inet_service
-                                                             ^^^^^^^^^^^^^^^^^^^^^^^^
+4) Skip non-TCP/UDP packets in nft_tproxy.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/evaluate.c                                | 50 ++++++++++++++++---
- tests/shell/testcases/maps/0010concat_map_0   | 19 +++++++
- .../testcases/maps/dumps/0010concat_map_0.nft | 11 ++++
- 3 files changed, 74 insertions(+), 6 deletions(-)
- create mode 100755 tests/shell/testcases/maps/0010concat_map_0
- create mode 100644 tests/shell/testcases/maps/dumps/0010concat_map_0.nft
+5) Memleak in hardware offload infrastructure when counters are used
+   for first time in a rule.
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 35ef8a376170..ffb6b3a6af1a 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1241,8 +1241,7 @@ static int list_member_evaluate(struct eval_ctx *ctx, struct expr **expr)
- 	return err;
- }
- 
--static int expr_evaluate_concat(struct eval_ctx *ctx, struct expr **expr,
--				bool eval)
-+static int expr_evaluate_concat(struct eval_ctx *ctx, struct expr **expr)
- {
- 	const struct datatype *dtype = ctx->ectx.dtype, *tmp;
- 	uint32_t type = dtype ? dtype->type : 0, ntype = 0;
-@@ -1271,7 +1270,7 @@ static int expr_evaluate_concat(struct eval_ctx *ctx, struct expr **expr,
- 			tmp = concat_subtype_lookup(type, --off);
- 		expr_set_context(&ctx->ectx, tmp, tmp->size);
- 
--		if (eval && list_member_evaluate(ctx, &i) < 0)
-+		if (list_member_evaluate(ctx, &i) < 0)
- 			return -1;
- 		flags &= i->flags;
- 
-@@ -2237,7 +2236,7 @@ static int expr_evaluate(struct eval_ctx *ctx, struct expr **expr)
- 	case EXPR_BINOP:
- 		return expr_evaluate_binop(ctx, expr);
- 	case EXPR_CONCAT:
--		return expr_evaluate_concat(ctx, expr, true);
-+		return expr_evaluate_concat(ctx, expr);
- 	case EXPR_LIST:
- 		return expr_evaluate_list(ctx, expr);
- 	case EXPR_SET:
-@@ -3792,6 +3791,45 @@ static int set_key_data_error(struct eval_ctx *ctx, const struct set *set,
- 			 dtype->name, name, hint);
- }
- 
-+static int set_expr_evaluate_concat(struct eval_ctx *ctx, struct expr **expr)
-+{
-+	unsigned int flags = EXPR_F_CONSTANT | EXPR_F_SINGLETON;
-+	struct expr *i, *next;
-+	uint32_t ntype = 0;
-+
-+	list_for_each_entry_safe(i, next, &(*expr)->expressions, list) {
-+		unsigned dsize_bytes;
-+
-+		if (i->etype == EXPR_CT &&
-+		    (i->ct.key == NFT_CT_SRC ||
-+		     i->ct.key == NFT_CT_DST))
-+			return expr_error(ctx->msgs, i,
-+					  "specify either ip or ip6 for address matching");
-+
-+		if (i->dtype->size == 0)
-+			return expr_binary_error(ctx->msgs, i, *expr,
-+						 "can not use variable sized "
-+						 "data types (%s) in concat "
-+						 "expressions",
-+						 i->dtype->name);
-+
-+		flags &= i->flags;
-+
-+		ntype = concat_subtype_add(ntype, i->dtype->type);
-+
-+		dsize_bytes = div_round_up(i->dtype->size, BITS_PER_BYTE);
-+		(*expr)->field_len[(*expr)->field_count++] = dsize_bytes;
-+	}
-+
-+	(*expr)->flags |= flags;
-+	datatype_set(*expr, concat_type_alloc(ntype));
-+	(*expr)->len   = (*expr)->dtype->size;
-+
-+	expr_set_context(&ctx->ectx, (*expr)->dtype, (*expr)->len);
-+
-+	return 0;
-+}
-+
- static int set_evaluate(struct eval_ctx *ctx, struct set *set)
- {
- 	unsigned int num_stmts = 0;
-@@ -3821,7 +3859,7 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
- 
- 	if (set->key->len == 0) {
- 		if (set->key->etype == EXPR_CONCAT &&
--		    expr_evaluate_concat(ctx, &set->key, false) < 0)
-+		    set_expr_evaluate_concat(ctx, &set->key) < 0)
- 			return -1;
- 
- 		if (set->key->len == 0)
-@@ -3845,7 +3883,7 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
- 			set->data->len *= 2;
- 
- 		if (set->data->etype == EXPR_CONCAT &&
--		    expr_evaluate_concat(ctx, &set->data, false) < 0)
-+		    set_expr_evaluate_concat(ctx, &set->data) < 0)
- 			return -1;
- 
- 		if (set->data->len == 0 && set->data->dtype->type != TYPE_VERDICT)
-diff --git a/tests/shell/testcases/maps/0010concat_map_0 b/tests/shell/testcases/maps/0010concat_map_0
-new file mode 100755
-index 000000000000..4848d97212fd
---- /dev/null
-+++ b/tests/shell/testcases/maps/0010concat_map_0
-@@ -0,0 +1,19 @@
-+#!/bin/bash
-+
-+set -e
-+
-+EXPECTED="table inet x {
-+	map z {
-+		type ipv4_addr . inet_proto . inet_service : ipv4_addr . inet_service
-+		elements = {
-+			1.1.1.1 . tcp . 20 : 2.2.2.2 . 30
-+		}
-+	}
-+
-+	chain y {
-+		type nat hook prerouting priority dstnat;
-+		dnat ip addr . port to ip saddr . ip protocol . tcp dport map @z
-+	}
-+}"
-+
-+$NFT -f - <<< "$EXPECTED"
-diff --git a/tests/shell/testcases/maps/dumps/0010concat_map_0.nft b/tests/shell/testcases/maps/dumps/0010concat_map_0.nft
-new file mode 100644
-index 000000000000..328c653c9913
---- /dev/null
-+++ b/tests/shell/testcases/maps/dumps/0010concat_map_0.nft
-@@ -0,0 +1,11 @@
-+table inet x {
-+	map z {
-+		type ipv4_addr . inet_proto . inet_service : ipv4_addr . inet_service
-+		elements = { 1.1.1.1 . tcp . 20 : 2.2.2.2 . 30 }
-+	}
-+
-+	chain y {
-+		type nat hook prerouting priority dstnat; policy accept;
-+		meta nfproto ipv4 dnat ip addr . port to ip saddr . ip protocol . tcp dport map @z
-+	}
-+}
--- 
-2.30.2
+6) The VLAN transfer routine must use FLOW_DISSECTOR_KEY_BASIC instead
+   of FLOW_DISSECTOR_KEY_CONTROL. Moreover, make a more robust check
+   for 802.1q and 802.1ad to restore simple matching on transport
+   protocols.
 
+7) Fix bogus EPERM when listing a ruleset when table ownership flag
+   is set on.
+
+8) Honor table ownership flag when table is referenced by handle.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thank you!
+
+----------------------------------------------------------------
+
+The following changes since commit a4f0377db1254373513b992ff31a351a7111f0fd:
+
+  Merge git://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf (2021-06-15 15:26:07 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
+
+for you to fetch changes up to e31f072ffab0397a328b31a9589dcf9733dc9c72:
+
+  netfilter: nf_tables: do not allow to delete table with owner by handle (2021-06-22 12:15:05 +0200)
+
+----------------------------------------------------------------
+Nicolas Dichtel (1):
+      MAINTAINERS: netfilter: add irc channel
+
+Pablo Neira Ayuso (7):
+      netfilter: nft_exthdr: check for IPv6 packet before further processing
+      netfilter: nft_osf: check for TCP packet before further processing
+      netfilter: nft_tproxy: restrict support to TCP and UDP transport protocols
+      netfilter: nf_tables: memleak in hw offload abort path
+      netfilter: nf_tables_offload: check FLOW_DISSECTOR_KEY_BASIC in VLAN transfer logic
+      netfilter: nf_tables: skip netlink portID validation if zero
+      netfilter: nf_tables: do not allow to delete table with owner by handle
+
+ MAINTAINERS                       |  1 +
+ net/netfilter/nf_tables_api.c     | 65 ++++++++++++++++++++++++---------------
+ net/netfilter/nf_tables_offload.c | 34 +++++---------------
+ net/netfilter/nft_exthdr.c        |  3 ++
+ net/netfilter/nft_osf.c           |  5 +++
+ net/netfilter/nft_tproxy.c        |  9 +++++-
+ 6 files changed, 65 insertions(+), 52 deletions(-)
