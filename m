@@ -2,98 +2,87 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29040C48BC2
-	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Jun 2021 17:26:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 217DAC49EA4
+	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Jun 2021 19:40:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0C515611AC
-	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Jun 2021 17:26:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 05D1461185
+	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Jun 2021 19:40:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229794AbhFWR2m (ORCPT
+        id S229758AbhFWTmY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 23 Jun 2021 13:28:42 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:33682 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229523AbhFWR2m (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 23 Jun 2021 13:28:42 -0400
-Received: from netfilter.org (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id D6A5064252;
-        Wed, 23 Jun 2021 19:24:58 +0200 (CEST)
-Date:   Wed, 23 Jun 2021 19:26:21 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Duncan Roe <duncan_roe@optusnet.com.au>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH libmnl 1/1] build: doc: "make" builds & installs a full
- set of man pages
-Message-ID: <20210623172621.GA25266@salvia>
-References: <20210622041933.25654-1-duncan_roe@optusnet.com.au>
- <20210622041933.25654-2-duncan_roe@optusnet.com.au>
+        Wed, 23 Jun 2021 15:42:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43936 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229759AbhFWTmX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 23 Jun 2021 15:42:23 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPS id 14E9561185;
+        Wed, 23 Jun 2021 19:40:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1624477205;
+        bh=qG8Dz7xCYCRaCEx8smnmPiLHy47Tu04o245/KfjoHCM=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=PeHS3PIBlimzoxtUkiQD9NTzvuy1aWGKqZGFOvQ0I3Fa/BWA8DLFisH2/3QMAiHoo
+         WTbMbuSfVjJ/Jjq9kVWFtn3XglwZc8AvbLh1zdor5FCC76vxTOl0FKN1sGXyZO+I5l
+         fiVz9Ccr220pCfxJmbxYfTY2FqN0UJCe4hRfj/v3nG56GorZGZeZv8Q+QmSLBxaRHS
+         9rKwNNna/UT8wHCAG90Zqumvs5dK6iqp0CeDTISRZqNJa5XMXkoayt5ZkOYCGZ8puu
+         oI9fqhgMGUFWoqOz2ZYHlccRVIuUt8VOA8iimuua23SUWyYw4t6Q6s960C2cEzUIuY
+         XeBztIsZ3l+hw==
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20210622041933.25654-2-duncan_roe@optusnet.com.au>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next 1/6] netfilter: nft_exthdr: Search chunks in SCTP
+ packets only
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <162447720500.16324.8020996383683688261.git-patchwork-notify@kernel.org>
+Date:   Wed, 23 Jun 2021 19:40:05 +0000
+References: <20210623170301.59973-2-pablo@netfilter.org>
+In-Reply-To: <20210623170301.59973-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jun 22, 2021 at 02:19:33PM +1000, Duncan Roe wrote:
-> Repeat what we did for libnetfilter_queue:
->  - New makefile in doxygen directory. Rebuilds documentation if any sources
->    change that contain doxygen comments:
->    - Renames each group man page to the first function listed therein
->    - Creates symlinks for subsequently listed functions
->    - Deletes _* temp files and moves sctruct-describing man pages to man7
->  - Update top-level makefile to visit new subdir doxygen
->  - Update top-level configure to only build documentation if doxygen installed
->  - Add --with/without-doxygen switch
->  - Check whether dot is available when configuring doxygen
->  - Reduce size of doxygen.cfg and doxygen build o/p
->  - `make distcheck` passes with doxygen enabled
-> Aditionally, exclude opaque structs mnl_nlmsg_batch & mnl_socket
+Hello:
 
-Applied, thanks.
+This series was applied to netdev/net-next.git (refs/heads/master):
 
-One thing that needs a fix (both libnetfilter_queue and libmnl).
+On Wed, 23 Jun 2021 19:02:56 +0200 you wrote:
+> From: Phil Sutter <phil@nwl.cc>
+> 
+> Since user space does not generate a payload dependency, plain sctp
+> chunk matches cause searching in non-SCTP packets, too. Avoid this
+> potential mis-interpretation of packet data by checking pkt->tprot.
+> 
+> Fixes: 133dc203d77df ("netfilter: nft_exthdr: Support SCTP chunks")
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> 
+> [...]
 
-If doxygen is not installed...
+Here is the summary with links:
+  - [net-next,1/6] netfilter: nft_exthdr: Search chunks in SCTP packets only
+    https://git.kernel.org/netdev/net-next/c/5acc44f39458
+  - [net-next,2/6] netfilter: nft_extdhr: Drop pointless check of tprot_set
+    https://git.kernel.org/netdev/net-next/c/06e95f0a2aa2
+  - [net-next,3/6] netfilter: nf_tables: add last expression
+    https://git.kernel.org/netdev/net-next/c/836382dc2471
+  - [net-next,4/6] netfilter: conntrack: pass hook state to log functions
+    https://git.kernel.org/netdev/net-next/c/62eec0d73393
+  - [net-next,5/6] docs: networking: Update connection tracking offload sysctl parameters
+    https://git.kernel.org/netdev/net-next/c/3078d964c0fe
+  - [net-next,6/6] netfilter: nfnetlink_hook: fix check for snprintf() overflow
+    https://git.kernel.org/netdev/net-next/c/24610ed80df6
 
-configure: WARNING: Doxygen not found - continuing without Doxygen support
+You are awesome, thank you!
+--
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-it warns that it is missing...
 
-checking that generated files are newer than configure... done
-configure: creating ./config.status
-config.status: creating Makefile
-config.status: creating src/Makefile
-config.status: creating include/Makefile
-config.status: creating include/libmnl/Makefile
-config.status: creating include/linux/Makefile
-config.status: creating include/linux/netfilter/Makefile
-config.status: creating examples/Makefile
-config.status: creating examples/genl/Makefile
-config.status: creating examples/kobject/Makefile
-config.status: creating examples/netfilter/Makefile
-config.status: creating examples/rtnl/Makefile
-config.status: creating libmnl.pc
-config.status: creating doxygen.cfg
-config.status: creating doxygen/Makefile
-config.status: creating config.h
-config.status: config.h is unchanged
-config.status: executing depfiles commands
-config.status: executing libtool commands
-
-libmnl configuration:
-  doxygen:          yes
-
-but it says yes here.
-
-I'd prefer if documentation is not enabled by default, ie. users have
-to explicitly specify --with-doxygen=yes to build documentation, so
-users explicitly picks what they needs.
-
-Please, follow up with a few patches, thanks.
