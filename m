@@ -2,60 +2,163 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_2 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4814C4743C
-	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Jun 2021 12:46:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D5C7C4743C
+	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Jun 2021 16:19:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 90FA061076
-	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Jun 2021 12:46:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 092236024A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Jun 2021 16:19:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230163AbhFWMsd (ORCPT
+        id S229902AbhFWQV4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 23 Jun 2021 08:48:33 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:60646 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230019AbhFWMsd (ORCPT
+        Wed, 23 Jun 2021 12:21:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56376 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229801AbhFWQVz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 23 Jun 2021 08:48:33 -0400
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 13D706423C
-        for <netfilter-devel@vger.kernel.org>; Wed, 23 Jun 2021 14:44:50 +0200 (CEST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] rule: obj_free() releases timeout state string
-Date:   Wed, 23 Jun 2021 14:46:11 +0200
-Message-Id: <20210623124611.2663-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+        Wed, 23 Jun 2021 12:21:55 -0400
+Received: from mail-lf1-x133.google.com (mail-lf1-x133.google.com [IPv6:2a00:1450:4864:20::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12980C061574;
+        Wed, 23 Jun 2021 09:19:38 -0700 (PDT)
+Received: by mail-lf1-x133.google.com with SMTP id f30so5118863lfj.1;
+        Wed, 23 Jun 2021 09:19:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:in-reply-to:references
+         :mime-version;
+        bh=/Krbzq37k1sCPaakVsLwyC67OCSSZuxfiSPx6Qi5QzI=;
+        b=M86HOfXUVH5O2ebnaL7FrciUwyvUFN27hWfI2LxJxr+s2VCB+vAfueoKTr2aZIxu8p
+         LEoUcsoO9/tygtHYwRsAfA6WDe7/fKvEohFVyaQYbrfyDmAmiAag1ZnYJAohUjfdhM2T
+         E+WimHdKu4hcGwx1Qv08kZBvNDM85qrzlHCIbhyzmFfUAq4Gi6Hq9XVJbAlRExna7Brb
+         fSdyvDURW2nPzRmSFvPsa/xj2AYzIB62VB5yZuk05AEFPcwTdjCLiyJB4rudb0ErPFWQ
+         k68f0o/0ikcwCC+kLadGhYVX3FJglXCQgXzyASf4hWKRufneeYMgD/NKpWhlG3TBCxgt
+         OB+w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:in-reply-to
+         :references:mime-version;
+        bh=/Krbzq37k1sCPaakVsLwyC67OCSSZuxfiSPx6Qi5QzI=;
+        b=aH0Tgs/PNAnLmydzZaP1pxa8jPh2IGpr1zyh5oy/zi0QFGq9fwfr5B0hzTc02s2gWj
+         0+AT1OQSMD+fWHKXmO7+L1Qfhv8AyyqdaVZJC+UTu0qOMmFPE0mby9pd1tycenJfQ/Zg
+         VBkoJhnYUc4Qq+8zRX51/5E8SF6WGrApXGn+k6kGxAt1MoJlNIQqLERMNVN6ZUyUV626
+         VoU4MwhAiWU9dBmjwiD0N//siSryRrhipMecCdohN29MZ+5AuEF+7MkvqC3sRpNR1ton
+         W5GR9jBYwUONsoj5Eqt7Cnf5wOrwYyaC4BrGWLkFSazQgjtowhbJCxkEwFHkpGaT85UO
+         VDqQ==
+X-Gm-Message-State: AOAM531/ZGSqqrHmjg1wplbvBXg/42OTx70Wm6yveLGeUZPfqGO7gGH8
+        Sji5ue3l8RIBwHvkh7kklz0=
+X-Google-Smtp-Source: ABdhPJxPos8WRklKRY4cTHO1X3q1tR2gxIW/5WTxL+4ITuO4LXCxH4mt9tAEYN4uVXLjGfVdVG9Kxg==
+X-Received: by 2002:a19:7414:: with SMTP id v20mr294814lfe.203.1624465176302;
+        Wed, 23 Jun 2021 09:19:36 -0700 (PDT)
+Received: from localhost.localdomain ([94.103.225.155])
+        by smtp.gmail.com with ESMTPSA id h24sm42632lfp.60.2021.06.23.09.19.34
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 23 Jun 2021 09:19:35 -0700 (PDT)
+Date:   Wed, 23 Jun 2021 19:19:28 +0300
+From:   Pavel Skripkin <paskripkin@gmail.com>
+To:     syzbot <syzbot+c2f6f09fe907a838effb@syzkaller.appspotmail.com>
+Cc:     akpm@linux-foundation.org, coreteam@netfilter.org,
+        davem@davemloft.net, dsahern@kernel.org, fw@strlen.de,
+        kadlec@netfilter.org, kuba@kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        pablo@netfilter.org, syzkaller-bugs@googlegroups.com,
+        yoshfuji@linux-ipv6.org
+Subject: Re: [syzbot] WARNING: zero-size vmalloc in corrupted
+Message-ID: <20210623191928.69d279d1@gmail.com>
+In-Reply-To: <000000000000aa23a205c56b587d@google.com>
+References: <000000000000aa23a205c56b587d@google.com>
+X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; x86_64-suse-linux-gnu)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="MP_/WS2tHtsc/ybjuavLYXEFySg"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Missing free() on the timeout state string on object release.
+--MP_/WS2tHtsc/ybjuavLYXEFySg
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Fixes: 7a0e26723496 ("rule: memleak of list of timeout policies"
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+On Wed, 23 Jun 2021 02:15:23 -0700
+syzbot <syzbot+c2f6f09fe907a838effb@syzkaller.appspotmail.com> wrote:
+
+> Hello,
+> 
+> syzbot found the following issue on:
+> 
+> HEAD commit:    13311e74 Linux 5.13-rc7
+> git tree:       upstream
+> console output:
+> https://syzkaller.appspot.com/x/log.txt?x=15d01e58300000 kernel
+> config:  https://syzkaller.appspot.com/x/.config?x=42ecca11b759d96c
+> dashboard link:
+> https://syzkaller.appspot.com/bug?extid=c2f6f09fe907a838effb syz
+> repro:
+> https://syzkaller.appspot.com/x/repro.syz?x=14bb89e8300000 C
+> reproducer:   https://syzkaller.appspot.com/x/repro.c?x=17cc51b8300000
+> 
+> The issue was bisected to:
+> 
+> commit f9006acc8dfe59e25aa75729728ac57a8d84fc32
+> Author: Florian Westphal <fw@strlen.de>
+> Date:   Wed Apr 21 07:51:08 2021 +0000
+> 
+>     netfilter: arp_tables: pass table pointer via nf_hook_ops
+> 
+> bisection log:
+> https://syzkaller.appspot.com/x/bisect.txt?x=13b88400300000 final
+> oops:     https://syzkaller.appspot.com/x/report.txt?x=10788400300000
+> console output:
+> https://syzkaller.appspot.com/x/log.txt?x=17b88400300000
+> 
+
+This one is similar to previous zero-size vmalloc, I guess :)
+
+#syz test
+git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
+
+
+With regards,
+Pavel Skripkin
+
+--MP_/WS2tHtsc/ybjuavLYXEFySg
+Content-Type: text/x-patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename=0001-media-dvb-usb-fix-wrong-definition.patch
+
+From b1ed745713bb840e0778c5a13f1f83f535dca044 Mon Sep 17 00:00:00 2001
+From: Pavel Skripkin <paskripkin@gmail.com>
+Date: Wed, 23 Jun 2021 19:18:09 +0300
+Subject: [PATCH] media: dvb-usb: fix wrong definition
+
+/* ..... */
+
+Signed-off-by: Pavel Skripkin <paskripkin@gmail.com>
 ---
- src/rule.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/usb/dvb-usb/cxusb.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/rule.c b/src/rule.c
-index 10569aa7875a..877eae3cd85d 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -1714,6 +1714,7 @@ void obj_free(struct obj *obj)
+diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
+index 761992ad05e2..7707de7bae7c 100644
+--- a/drivers/media/usb/dvb-usb/cxusb.c
++++ b/drivers/media/usb/dvb-usb/cxusb.c
+@@ -1947,7 +1947,7 @@ static struct dvb_usb_device_properties cxusb_bluebird_lgz201_properties = {
  
- 		list_for_each_entry_safe(ts, next, &obj->ct_timeout.timeout_list, head) {
- 			list_del(&ts->head);
-+			xfree(ts->timeout_str);
- 			xfree(ts);
- 		}
- 	}
+ 	.size_of_priv     = sizeof(struct cxusb_state),
+ 
+-	.num_adapters = 2,
++	.num_adapters = 1,
+ 	.adapter = {
+ 		{
+ 		.num_frontends = 1,
 -- 
-2.20.1
+2.32.0
 
+
+--MP_/WS2tHtsc/ybjuavLYXEFySg--
