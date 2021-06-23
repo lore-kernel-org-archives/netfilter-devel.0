@@ -2,112 +2,69 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,INCLUDES_PULL_REQUEST,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24D94C4743C
-	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Jun 2021 17:03:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3EABC49EA5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Jun 2021 17:03:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F026B611C1
-	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Jun 2021 17:03:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 98FA9611CB
+	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Jun 2021 17:03:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229922AbhFWRF1 (ORCPT
+        id S230021AbhFWRFa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 23 Jun 2021 13:05:27 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:33500 "EHLO
+        Wed, 23 Jun 2021 13:05:30 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:33514 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229774AbhFWRF1 (ORCPT
+        with ESMTP id S230010AbhFWRF3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 23 Jun 2021 13:05:27 -0400
+        Wed, 23 Jun 2021 13:05:29 -0400
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 5D1C064275;
-        Wed, 23 Jun 2021 19:01:43 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 011B06427E;
+        Wed, 23 Jun 2021 19:01:45 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 0/6] Netfilter updates for net-next
-Date:   Wed, 23 Jun 2021 19:02:55 +0200
-Message-Id: <20210623170301.59973-1-pablo@netfilter.org>
+Subject: [PATCH net-next 2/6] netfilter: nft_extdhr: Drop pointless check of tprot_set
+Date:   Wed, 23 Jun 2021 19:02:57 +0200
+Message-Id: <20210623170301.59973-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20210623170301.59973-1-pablo@netfilter.org>
+References: <20210623170301.59973-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+From: Phil Sutter <phil@nwl.cc>
 
-The following patchset contains Netfilter updates for net-next:
+Pablo says, tprot_set is only there to detect if tprot was set to
+IPPROTO_IP as that evaluates to zero. Therefore, code asserting a
+different value in tprot does not need to check tprot_set.
 
-1) Skip non-SCTP packets in the new SCTP chunk support for nft_exthdr,
-   from Phil Sutter.
+Fixes: 935b7f6430188 ("netfilter: nft_exthdr: add TCP option matching")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nft_exthdr.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-2) Simplify TCP option sanity check for TCP packets, also from Phil.
+diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
+index 9cf86be2cff4..4f583d2e220e 100644
+--- a/net/netfilter/nft_exthdr.c
++++ b/net/netfilter/nft_exthdr.c
+@@ -164,7 +164,7 @@ nft_tcp_header_pointer(const struct nft_pktinfo *pkt,
+ {
+ 	struct tcphdr *tcph;
+ 
+-	if (!pkt->tprot_set || pkt->tprot != IPPROTO_TCP)
++	if (pkt->tprot != IPPROTO_TCP)
+ 		return NULL;
+ 
+ 	tcph = skb_header_pointer(pkt->skb, nft_thoff(pkt), sizeof(*tcph), buffer);
+-- 
+2.30.2
 
-3) Add a new expression to store when the rule has been used last time.
-
-4) Pass the hook state object to log function, from Florian Westphal.
-
-5) Document the new sysctl knobs to tune the flowtable timeouts,
-   from Oz Shlomo.
-
-6) Fix snprintf error check in the new nfnetlink_hook infrastructure,
-   from Dan Carpenter.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
-
-Thank you!
-
-----------------------------------------------------------------
-
-The following changes since commit c7654495916e109f76a67fd3ae68f8fa70ab4faa:
-
-  net: chelsio: cxgb4: use eth_zero_addr() to assign zero address (2021-06-16 00:53:17 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git HEAD
-
-for you to fetch changes up to 24610ed80df65a564d6165d15505a950d05f9f5a:
-
-  netfilter: nfnetlink_hook: fix check for snprintf() overflow (2021-06-21 22:05:29 +0200)
-
-----------------------------------------------------------------
-Dan Carpenter (1):
-      netfilter: nfnetlink_hook: fix check for snprintf() overflow
-
-Florian Westphal (1):
-      netfilter: conntrack: pass hook state to log functions
-
-Oz Shlomo (1):
-      docs: networking: Update connection tracking offload sysctl parameters
-
-Pablo Neira Ayuso (1):
-      netfilter: nf_tables: add last expression
-
-Phil Sutter (2):
-      netfilter: nft_exthdr: Search chunks in SCTP packets only
-      netfilter: nft_extdhr: Drop pointless check of tprot_set
-
- Documentation/networking/nf_conntrack-sysctl.rst | 24 +++++++
- include/net/netfilter/nf_conntrack_l4proto.h     | 20 +++---
- include/net/netfilter/nf_tables_core.h           |  1 +
- include/uapi/linux/netfilter/nf_tables.h         | 15 ++++
- net/netfilter/Makefile                           |  2 +-
- net/netfilter/nf_conntrack_proto.c               | 16 +++--
- net/netfilter/nf_conntrack_proto_dccp.c          | 14 ++--
- net/netfilter/nf_conntrack_proto_icmp.c          |  7 +-
- net/netfilter/nf_conntrack_proto_icmpv6.c        |  3 +-
- net/netfilter/nf_conntrack_proto_sctp.c          |  2 +-
- net/netfilter/nf_conntrack_proto_tcp.c           | 23 ++++---
- net/netfilter/nf_conntrack_proto_udp.c           |  6 +-
- net/netfilter/nf_tables_core.c                   |  1 +
- net/netfilter/nfnetlink_hook.c                   |  4 +-
- net/netfilter/nft_exthdr.c                       |  7 +-
- net/netfilter/nft_last.c                         | 87 ++++++++++++++++++++++++
- 16 files changed, 184 insertions(+), 48 deletions(-)
- create mode 100644 net/netfilter/nft_last.c
