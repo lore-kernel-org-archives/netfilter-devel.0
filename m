@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B20EC48BE5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Jun 2021 17:02:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31ADEC49EA4
+	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Jun 2021 17:02:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 259A2611AC
-	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Jun 2021 17:02:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1368F611C9
+	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Jun 2021 17:02:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229755AbhFWRFE (ORCPT
+        id S229794AbhFWRFF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 23 Jun 2021 13:05:04 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:33444 "EHLO
+        Wed, 23 Jun 2021 13:05:05 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:33446 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229523AbhFWRFE (ORCPT
+        with ESMTP id S229523AbhFWRFF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 23 Jun 2021 13:05:04 -0400
+        Wed, 23 Jun 2021 13:05:05 -0400
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 556306427C
-        for <netfilter-devel@vger.kernel.org>; Wed, 23 Jun 2021 19:01:21 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 0E98B64275
+        for <netfilter-devel@vger.kernel.org>; Wed, 23 Jun 2021 19:01:22 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH net-next 1/6] netfilter: nft_exthdr: Search chunks in SCTP packets only
-Date:   Wed, 23 Jun 2021 19:02:36 +0200
-Message-Id: <20210623170241.59902-2-pablo@netfilter.org>
+Subject: [PATCH net-next 2/6] netfilter: nft_extdhr: Drop pointless check of tprot_set
+Date:   Wed, 23 Jun 2021 19:02:37 +0200
+Message-Id: <20210623170241.59902-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210623170241.59902-1-pablo@netfilter.org>
 References: <20210623170241.59902-1-pablo@netfilter.org>
@@ -40,40 +40,30 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Phil Sutter <phil@nwl.cc>
 
-Since user space does not generate a payload dependency, plain sctp
-chunk matches cause searching in non-SCTP packets, too. Avoid this
-potential mis-interpretation of packet data by checking pkt->tprot.
+Pablo says, tprot_set is only there to detect if tprot was set to
+IPPROTO_IP as that evaluates to zero. Therefore, code asserting a
+different value in tprot does not need to check tprot_set.
 
-Fixes: 133dc203d77df ("netfilter: nft_exthdr: Support SCTP chunks")
+Fixes: 935b7f6430188 ("netfilter: nft_exthdr: add TCP option matching")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_exthdr.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ net/netfilter/nft_exthdr.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-index 7f705b5c09de..9cf86be2cff4 100644
+index 9cf86be2cff4..4f583d2e220e 100644
 --- a/net/netfilter/nft_exthdr.c
 +++ b/net/netfilter/nft_exthdr.c
-@@ -312,6 +312,9 @@ static void nft_exthdr_sctp_eval(const struct nft_expr *expr,
- 	const struct sctp_chunkhdr *sch;
- 	struct sctp_chunkhdr _sch;
+@@ -164,7 +164,7 @@ nft_tcp_header_pointer(const struct nft_pktinfo *pkt,
+ {
+ 	struct tcphdr *tcph;
  
-+	if (pkt->tprot != IPPROTO_SCTP)
-+		goto err;
-+
- 	do {
- 		sch = skb_header_pointer(pkt->skb, offset, sizeof(_sch), &_sch);
- 		if (!sch || !sch->length)
-@@ -334,7 +337,7 @@ static void nft_exthdr_sctp_eval(const struct nft_expr *expr,
- 		}
- 		offset += SCTP_PAD4(ntohs(sch->length));
- 	} while (offset < pkt->skb->len);
--
-+err:
- 	if (priv->flags & NFT_EXTHDR_F_PRESENT)
- 		nft_reg_store8(dest, false);
- 	else
+-	if (!pkt->tprot_set || pkt->tprot != IPPROTO_TCP)
++	if (pkt->tprot != IPPROTO_TCP)
+ 		return NULL;
+ 
+ 	tcph = skb_header_pointer(pkt->skb, nft_thoff(pkt), sizeof(*tcph), buffer);
 -- 
 2.30.2
 
