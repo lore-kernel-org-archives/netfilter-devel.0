@@ -6,76 +6,58 @@ X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B085BC49EA7
-	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Jun 2021 10:20:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FDB3C49EA7
+	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Jun 2021 10:21:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9B50161439
-	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Jun 2021 10:20:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 25D326143B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Jun 2021 10:21:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230461AbhFYKWu (ORCPT
+        id S231439AbhFYKXl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 25 Jun 2021 06:22:50 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:51280 "EHLO
+        Fri, 25 Jun 2021 06:23:41 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:51340 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230082AbhFYKWs (ORCPT
+        with ESMTP id S231182AbhFYKXi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 25 Jun 2021 06:22:48 -0400
+        Fri, 25 Jun 2021 06:23:38 -0400
 Received: from netfilter.org (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 86567607EB;
-        Fri, 25 Jun 2021 12:20:24 +0200 (CEST)
-Date:   Fri, 25 Jun 2021 12:20:21 +0200
+        by mail.netfilter.org (Postfix) with ESMTPSA id 7E1FF607EB;
+        Fri, 25 Jun 2021 12:21:15 +0200 (CEST)
+Date:   Fri, 25 Jun 2021 12:21:13 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Dan Carpenter <dan.carpenter@oracle.com>
+To:     Walter Harms <wharms@bfs.de>
 Cc:     Colin King <colin.king@canonical.com>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
         "David S . Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, kernel-janitors@vger.kernel.org,
-        linux-kernel@vger.kernel.org
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "coreteam@netfilter.org" <coreteam@netfilter.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 Subject: Re: [PATCH][next] netfilter: nf_tables: Fix dereference of null
  pointer flow
-Message-ID: <20210625102021.GA32352@salvia>
+Message-ID: <20210625102113.GB32352@salvia>
 References: <20210624195718.170796-1-colin.king@canonical.com>
- <20210625095901.GH2040@kadam>
+ <b9c2377849aa4ac38ab0306589eb22d2@bfs.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20210625095901.GH2040@kadam>
+In-Reply-To: <b9c2377849aa4ac38ab0306589eb22d2@bfs.de>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+On Fri, Jun 25, 2021 at 10:06:26AM +0000, Walter Harms wrote:
+> hi Colin,
+> most free_something_functions accept NULL
+> these days, perhaps it would be more efficient
+> to add a check in nft_flow_rule_destroy().
+> There is a chance that this will catch the same
+> mistake in future  also.
 
-On Fri, Jun 25, 2021 at 12:59:01PM +0300, Dan Carpenter wrote:
-> Btw, why is there no clean up if nft_table_validate() fails?
+I'm fine with Colin patch.
 
-See below.
-
-> net/netfilter/nf_tables_api.c
->   3432                                  list_add_tail_rcu(&rule->list, &old_rule->list);
->   3433                          else
->   3434                                  list_add_rcu(&rule->list, &chain->rules);
->   3435                  }
->   3436          }
->   3437          kvfree(expr_info);
->   3438          chain->use++;
->   3439  
->   3440          if (flow)
->   3441                  nft_trans_flow_rule(trans) = flow;
->   3442  
->   3443          if (nft_net->validate_state == NFT_VALIDATE_DO)
->   3444                  return nft_table_validate(net, table);
->                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> The cleanup for this would be quite involved unfortunately...  Not
-> necessarily something to attempt without being able to test the code.
-
-At this stage, the transaction has been already registered in the
-list, and the nf_tables_abort() path takes care of undoing what has
-been updated in the preparation phase.
-
-Having said this, Colin patch is correct, it's fixing up the error
-path.
+Thanks.
