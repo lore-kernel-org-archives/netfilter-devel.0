@@ -6,83 +6,138 @@ X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 991E2C11F66
-	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Jun 2021 08:37:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18721C11F66
+	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Jun 2021 09:38:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6E43761DE5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Jun 2021 08:37:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F014761D6E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Jun 2021 09:38:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232454AbhF2Iju (ORCPT
+        id S232834AbhF2JlI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 29 Jun 2021 04:39:50 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:33428 "EHLO
+        Tue, 29 Jun 2021 05:41:08 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:33574 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232429AbhF2Ijt (ORCPT
+        with ESMTP id S232816AbhF2JlI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 29 Jun 2021 04:39:49 -0400
+        Tue, 29 Jun 2021 05:41:08 -0400
 Received: from netfilter.org (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id E2DAF60788;
-        Tue, 29 Jun 2021 10:37:16 +0200 (CEST)
-Date:   Tue, 29 Jun 2021 10:37:18 +0200
+        by mail.netfilter.org (Postfix) with ESMTPSA id DBF6161655
+        for <netfilter-devel@vger.kernel.org>; Tue, 29 Jun 2021 11:38:35 +0200 (CEST)
+Date:   Tue, 29 Jun 2021 11:38:37 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     "Neal P. Murphy" <neal.p.murphy@alum.wpi.edu>
-Cc:     netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: Reload IPtables
-Message-ID: <20210629083718.GA10943@salvia>
-References: <f5314629-8a08-3b5f-cfad-53bf13483ec3@hajes.org>
- <adc28927-724f-2cdb-ca6a-ff39be8de3ba@thelounge.net>
- <96559e16-e3a6-cefd-6183-1b47f31b9345@hajes.org>
- <16b55f10-5171-590f-f9d2-209cfaa7555d@thelounge.net>
- <54e70d0a-0398-16e4-a79e-ec96a8203b22@tana.it>
- <f0daea91-4d12-1605-e6df-e7f95ba18cac@thelounge.net>
- <8395d083-022b-f6f7-b2d3-e2a83b48c48a@tana.it>
- <20210628104310.61bd287ff147a59b12e23533@plushkava.net>
- <20210628220241.64f9af54@playground>
- <20210629083652.GA10896@salvia>
+To:     Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libmnl 1/1] build: doc: "make" builds & installs a full
+ set of man pages
+Message-ID: <20210629093837.GA23185@salvia>
+References: <20210622041933.25654-1-duncan_roe@optusnet.com.au>
+ <20210622041933.25654-2-duncan_roe@optusnet.com.au>
+ <20210623172621.GA25266@salvia>
+ <YNf+/1rOavTjxvQ7@slk1.local.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20210629083652.GA10896@salvia>
+In-Reply-To: <YNf+/1rOavTjxvQ7@slk1.local.net>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jun 28, 2021 at 10:02:41PM -0400, Neal P. Murphy wrote:
-> On Mon, 28 Jun 2021 10:43:10 +0100
-> Kerin Millar <kfm@plushkava.net> wrote:
+On Sun, Jun 27, 2021 at 02:30:55PM +1000, Duncan Roe wrote:
+> On Wed, Jun 23, 2021 at 07:26:21PM +0200, Pablo Neira Ayuso wrote:
 > 
-> > Now you benefit from atomicity (the rules will either be committed at once, in full, or not at all) and proper error handling (the exit status value of iptables-restore is meaningful and acted upon). Further, should you prefer to indent the body of the heredoc, you may write <<-EOF, though only leading tab characters will be stripped out.
-> > 
+> [...]
+> >
+> > Applied, thanks.
+> >
+> > One thing that needs a fix (both libnetfilter_queue and libmnl).
+> >
+> > If doxygen is not installed...
+> >
+> > configure: WARNING: Doxygen not found - continuing without Doxygen support
+> >
+> > it warns that it is missing...
+> >
+> > checking that generated files are newer than configure... done
+> > configure: creating ./config.status
+> > config.status: creating Makefile
+> > config.status: creating src/Makefile
+> > config.status: creating include/Makefile
+> > config.status: creating include/libmnl/Makefile
+> > config.status: creating include/linux/Makefile
+> > config.status: creating include/linux/netfilter/Makefile
+> > config.status: creating examples/Makefile
+> > config.status: creating examples/genl/Makefile
+> > config.status: creating examples/kobject/Makefile
+> > config.status: creating examples/netfilter/Makefile
+> > config.status: creating examples/rtnl/Makefile
+> > config.status: creating libmnl.pc
+> > config.status: creating doxygen.cfg
+> > config.status: creating doxygen/Makefile
+> > config.status: creating config.h
+> > config.status: config.h is unchanged
+> > config.status: executing depfiles commands
+> > config.status: executing libtool commands
+> >
+> > libmnl configuration:
+> >   doxygen:          yes
+> >
+> > but it says yes here.
+> >
+> >
+> > I'd prefer if documentation is not enabled by default, ie. users have
+> > to explicitly specify --with-doxygen=yes to build documentation, so
+> > users explicitly picks what they needs.
 > 
-> [minor digression]
+> I'm fine with *html* being optional:
 > 
-> Is iptables-restore truly atomic in *all* cases?
+>   --enable-html      build HTML documentation [default=no]
+> 
+> ATM `make install` doesn't do anything with the html dir. With --enable-html, I
+> guess it should install html/ where --htmldir points [DOCDIR].
+> 
+> But I think not having man pages in the past was a serious deficiency which we
+> can now address.
+> 
+> Think of it from a (Linux) Distributor's point of view. Man pages take up very
+> little space in the distribution medium: symlinks are removed and the remaining
+> pages compressed. Man pages stay compressed on installation and the symlinks are
+> re-created by the postinstall script (and now as .gz or whatever files).
 
-Packets either see the old table or the new table, no intermediate
-ruleset state is exposed to packet path.
+We are not Linux distributors, it's up to them to decide what they are
+shipping in their packages, this debate is out of our scope. Assuming
+that enabling this by default will not make them include this.
 
-> Some years ago, I found through experimentation that some rules were
-> 'lost' when restoring more than 25 000 rules.
+Most users rely on libmnl because they use some utility that pulls in
+this dependency, most of them are not developers.
 
-Could you specify kernel and userspace versions? Rules are not 'lost'
-when restoring large rulesets.
+> Typical end-users of the distribution won't have source, so the *need*
+> documentation.
+> 
+> Personally I'm happy if the build depends on doxygen and fails if it's not
+> installed.
 
-> If I placed a COMMIT every 20 000 rules or so, then all rules would
-> be properly loaded. I think COMMITs break atomicity.
+That's probably fine for you, but embedded developer will not be happy
+with this dependency.
 
-Why are you placing COMMIT in every few rules 20 000 rules?
+> If you inmsist on only printing a warning when doxygen is not installed then in
+> that event .configure could output:
+> 
+> > libmnl configuration:
+> >   doxygen:          no
+> > man pages:          no
+> 
+> with no "man pages" line when doxygen is installed.
 
-> I tested with 100k to 1M rules.
+I'd really prefer to retain the existing default that has been in
+place for many years.
 
-iptables is handling very large rulesets already.
+> What do you think?
 
-> I was comparing the efficiency of iptables-restore with another tool
-> that read from STDIN; the other tool was about 5% more efficient.
+It's also possible to provide up to date snapshots in the Netfilter
+website to give it more visibility.
 
-Could you please specify what other tool are you refering to?
+BTW, the autogenerated manpage differs quite a bit from standard
+manpages in other existing packages? Do you know of any other software
+following this approach of converting doxygen to manpage?
 
-iptables-restore is the best practise to restore your ruleset.
-
-You should also iptables-restore to perform incremental updates via
---noflush.
+Thanks.
