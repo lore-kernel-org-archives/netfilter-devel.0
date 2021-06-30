@@ -7,71 +7,59 @@ X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15A1FC11F65
-	for <netfilter-devel@archiver.kernel.org>; Wed, 30 Jun 2021 09:54:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3380C11F65
+	for <netfilter-devel@archiver.kernel.org>; Wed, 30 Jun 2021 12:09:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EDB3C61D0F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 30 Jun 2021 09:54:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 850A361992
+	for <netfilter-devel@archiver.kernel.org>; Wed, 30 Jun 2021 12:09:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234018AbhF3J4c (ORCPT
+        id S234426AbhF3MMT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 30 Jun 2021 05:56:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49666 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233943AbhF3J4c (ORCPT
+        Wed, 30 Jun 2021 08:12:19 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:36466 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234309AbhF3MMT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 30 Jun 2021 05:56:32 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93E84C061756;
-        Wed, 30 Jun 2021 02:54:03 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1lyWuv-0008Ii-LG; Wed, 30 Jun 2021 11:54:01 +0200
-Date:   Wed, 30 Jun 2021 11:54:01 +0200
-From:   Florian Westphal <fw@strlen.de>
+        Wed, 30 Jun 2021 08:12:19 -0400
+Received: from netfilter.org (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 24E9460777;
+        Wed, 30 Jun 2021 14:09:44 +0200 (CEST)
+Date:   Wed, 30 Jun 2021 14:09:47 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Vasily Averin <vvs@virtuozzo.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc:     Florian Westphal <fw@strlen.de>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
+        Taehee Yoo <ap420073@gmail.com>, Julian Anastasov <ja@ssi.bg>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         linux-kernel@vger.kernel.org
-Subject: Re: [PATCH NETFILTER] netfilter: gre: nf_ct_gre_keymap_flush()
- removal
-Message-ID: <20210630095401.GB18022@breakpoint.cc>
-References: <cb5dbf85-302d-386d-7b57-b043063cea06@virtuozzo.com>
+Subject: Re: [PATCH NETFILTER] netfilter: nfnetlink: suspicious RCU usage in
+ ctnetlink_dump_helpinfo
+Message-ID: <20210630120947.GA12739@salvia>
+References: <65205a04-f1a3-9901-f6b7-eab8f482f37f@virtuozzo.com>
+ <20210630094949.GA18022@breakpoint.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <cb5dbf85-302d-386d-7b57-b043063cea06@virtuozzo.com>
+In-Reply-To: <20210630094949.GA18022@breakpoint.cc>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Vasily Averin <vvs@virtuozzo.com> wrote:
-> nf_ct_gre_keymap_flush() is useless.
-> It is called from nf_conntrack_cleanup_net_list() only and tries to remove
-> nf_ct_gre_keymap entries from pernet gre keymap list. Though:
-> a) at this point the list should already be empty, all its entries were
-> deleted during the conntracks cleanup, because
-> nf_conntrack_cleanup_net_list() executes nf_ct_iterate_cleanup(kill_all)
-> before nf_conntrack_proto_pernet_fini():
->  nf_conntrack_cleanup_net_list
->   +- nf_ct_iterate_cleanup
->   |   nf_ct_put
->   |    nf_conntrack_put
->   |     nf_conntrack_destroy
->   |      destroy_conntrack
->   |       destroy_gre_conntrack
->   |        nf_ct_gre_keymap_destroy
->   `- nf_conntrack_proto_pernet_fini
->       nf_ct_gre_keymap_flush
-> 
-> b) Let's say we find that the keymap list is not empty. This means netns
-> still has a conntrack associated with gre, in which case we should not free
-> its memory, because this will lead to a double free and related crashes.
-> However I doubt it could have gone unnoticed for years, obviously
-> this does not happen in real life. So I think we can remove
-> both nf_ct_gre_keymap_flush() and nf_conntrack_proto_pernet_fini().
 
-Acked-by: Florian Westphal <fw@strlen.de>
+On Wed, Jun 30, 2021 at 11:49:49AM +0200, Florian Westphal wrote:
+> Vasily Averin <vvs@virtuozzo.com> wrote:
+> > Two patches listed below removed ctnetlink_dump_helpinfo call from under
+> > rcu_read_lock. Now its rcu_dereference generates following warning:
+> > =============================
+> > WARNING: suspicious RCU usage
+> > 5.13.0+ #5 Not tainted
+> > -----------------------------
+> > net/netfilter/nf_conntrack_netlink.c:221 suspicious rcu_dereference_check() usage!
+> 
+> Reviewed-by: Florian Westphal <fw@strlen.de>
+
+I don't see this patch in netfilter's patchwork nor in
+netfilter-devel@vger.kernel.org
+
+Where did they go?
