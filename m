@@ -2,164 +2,93 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40E6AC11F68
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Jul 2021 04:16:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C47DC07E95
+	for <netfilter-devel@archiver.kernel.org>; Sun,  4 Jul 2021 05:47:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 16CFC6141D
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Jul 2021 04:16:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E524261220
+	for <netfilter-devel@archiver.kernel.org>; Sun,  4 Jul 2021 05:47:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229645AbhGBESy (ORCPT
+        id S229492AbhGDFtu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 2 Jul 2021 00:18:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46632 "EHLO
+        Sun, 4 Jul 2021 01:49:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45278 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229596AbhGBESx (ORCPT
+        with ESMTP id S229483AbhGDFtu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 2 Jul 2021 00:18:53 -0400
-Received: from mail-pj1-x102c.google.com (mail-pj1-x102c.google.com [IPv6:2607:f8b0:4864:20::102c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2C56C061762
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Jul 2021 21:16:18 -0700 (PDT)
-Received: by mail-pj1-x102c.google.com with SMTP id cx9-20020a17090afd89b0290170a3e085edso5369249pjb.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 01 Jul 2021 21:16:18 -0700 (PDT)
+        Sun, 4 Jul 2021 01:49:50 -0400
+Received: from mail-pj1-x1031.google.com (mail-pj1-x1031.google.com [IPv6:2607:f8b0:4864:20::1031])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34C47C061762
+        for <netfilter-devel@vger.kernel.org>; Sat,  3 Jul 2021 22:47:14 -0700 (PDT)
+Received: by mail-pj1-x1031.google.com with SMTP id cs1-20020a17090af501b0290170856e1a8aso12391417pjb.3
+        for <netfilter-devel@vger.kernel.org>; Sat, 03 Jul 2021 22:47:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=sender:from:date:to:cc:subject:message-id:mail-followup-to
-         :references:mime-version:content-disposition:in-reply-to;
-        bh=rDJhOBzh7jw+UHCQzmqSygxvnRwUDXvIkYNRbnlJtD4=;
-        b=qz8soVicovENQsRibNne7GzFQMkT5kvpz2fy+PpRGlU3cQUrdsRz3cbHu08UCUihsS
-         QoSjSuhtV234rCBvgRxa6pU4pDllzp7ODXqiUqyJlUlSqUS/eCtai/BwhVA9AJLG9KJY
-         cwao9x2AHBV3uA1R7J7121QPeISepJlZouRQsnqwU3nkp9GYKHUd424mD4mfheJ963J/
-         CBZnfp9JKuTuTmQkMl09OsWc26fvF7dBGmQ5wvmsYVWPhJ6bj4ZTz7/26tZX2E0voqry
-         deFVCUL958/Z01p8wIE+OErRuAhtS+ZSO612C5tWCEvNMZndi01/sF/iB213QHinU9j7
-         EFjA==
+        h=sender:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=mQMxFPPHsV22G/K3kmBGuA0DEx99PB82wrLfYaFC6aM=;
+        b=QK38sedjOFaugJljmKGqOuPKldlIPayuJF4Cqfg9ZMbJgVHOh5b2G4OWQkAheBZ0+M
+         JzvFH8SgctyG2zZoAhrxHGZ5EWxuCCbaSyxQfO3vIJVT9XEll7flR/CY/koEpB2cCKRs
+         pZPeD/flBALAnWl01dAe/6btDfGRf3Mmbmp/1H2FY9Zw6BQYiAmGbpREPNSf6mjwBEbl
+         a3lVHI0Ua1Pd9gWda5DUXyLv4csSgrnKw5O8MM6KAMJSw7LiBn0hgBKQ1iGywdqQF4C3
+         x7bArsOBqFnT4umFwA4gvCi+FtPnE8xfvZweCMl8fLNwfUOYNOLOLqZR/WdxdrYUpIpq
+         9vSQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:from:date:to:cc:subject:message-id
-         :mail-followup-to:references:mime-version:content-disposition
-         :in-reply-to;
-        bh=rDJhOBzh7jw+UHCQzmqSygxvnRwUDXvIkYNRbnlJtD4=;
-        b=g3E8l+zFF1jn4D+y0OhE5t33HmFPF46PzssGLJvCGUG/xaqGBJ8Ldndb6kPGy6zhV+
-         onA64StN66e/d+fkSVzu99FiH9fejm3CIY0X2dhPzOQTzOjZ0Aci1AKtDpj7Hig+1coZ
-         2DL1GzzfR2U5+0wuVd/+5fMiQQaSYxbwkjBfWUXfxx5OfGyC0vw4X8Nyu6kDuEm9XLhS
-         xykV2QAyQ4fL15oqAWziiwlJhHKimIf/1Pc4WsXj2FFdi1fc2hjfukSEbqtfQ1jMsyf7
-         xe8CyxCzKdy3N9/lVdw34Tdf9+D73sedDwl9dcRydO11s5WHT6UIrx3glX/q4FpYmtVF
-         J7qA==
-X-Gm-Message-State: AOAM532qfjjMzAPFQbldVQE6py1W42iT08Vs52s7mT7QRKhiJuU1tpSR
-        MoC2/cGygpRZGxmCRGCKyaVeNxn7VQQ=
-X-Google-Smtp-Source: ABdhPJxgmmFLPLP0vPUpwMPlxQpGm5h7p0v9Gzdr7pS35772ylkzJ2JlhLiQefW+SWJNMdn1mL8Trg==
-X-Received: by 2002:a17:902:c3c6:b029:128:f061:889d with SMTP id j6-20020a170902c3c6b0290128f061889dmr2703265plj.50.1625199378195;
-        Thu, 01 Jul 2021 21:16:18 -0700 (PDT)
-Received: from slk1.local.net (n49-192-153-80.sun4.vic.optusnet.com.au. [49.192.153.80])
-        by smtp.gmail.com with ESMTPSA id d3sm1089360pjo.31.2021.07.01.21.16.16
+        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
+         :mime-version:content-transfer-encoding;
+        bh=mQMxFPPHsV22G/K3kmBGuA0DEx99PB82wrLfYaFC6aM=;
+        b=MZ0+1GeqtHGvTzD58GnHlq8uh7TO2j41zn0gMP+vGH5ggZETMrKlVrZBb0w18NxxQH
+         G4Gc134m+MUB8S+It44Zkuh4Oc44HVH/9k7B+PsFDMkoDxxURbaT1DyyCEGYkKdjDos4
+         UZSg1t8CkH38+PVuDeo8FIz8wwa4fv4v8dekTYSL5SlsZglN5J/479U7V71ey29Uc1aW
+         qJ6CuGecgSQO+A9BFTX9/pKqgxax8p+F4fZL/i7NlOC3AbwqBc1HMiLT1F5R7SM8XRT3
+         uFFwZj8mtekRsZ6Q+J/Opf5TQShGSlDMx+GvON15vnopbYNUp5x0V205zWkVZ39XEc/M
+         aGxw==
+X-Gm-Message-State: AOAM531hDkxMeuiur346uHwr/TsAPJwCSXP8Mvjs2HnfAG2msxu6orsq
+        3v/oDTz7SnHqHHsJ7w5FpAnYD07bHYo=
+X-Google-Smtp-Source: ABdhPJxrIpYh9fFkWH2/H/i+Si15G9y8TaqoQfsIQmoVdIeWGUuBSJzO644gnBG+BVc88pMrrFT7zw==
+X-Received: by 2002:a17:902:864c:b029:10d:8c9e:5f56 with SMTP id y12-20020a170902864cb029010d8c9e5f56mr6871111plt.8.1625377633753;
+        Sat, 03 Jul 2021 22:47:13 -0700 (PDT)
+Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
+        by smtp.gmail.com with ESMTPSA id n59sm16700190pji.46.2021.07.03.22.47.11
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 01 Jul 2021 21:16:17 -0700 (PDT)
+        Sat, 03 Jul 2021 22:47:13 -0700 (PDT)
 Sender: Duncan Roe <duncan.roe2@gmail.com>
 From:   Duncan Roe <duncan_roe@optusnet.com.au>
-X-Google-Original-From: Duncan Roe <dunc@slk1.local.net>
-Date:   Fri, 2 Jul 2021 14:16:13 +1000
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH libmnl 1/1] build: doc: "make" builds & installs a full
- set of man pages
-Message-ID: <YN6TDYS6qL0ddmcF@slk1.local.net>
-Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <20210622041933.25654-1-duncan_roe@optusnet.com.au>
- <20210622041933.25654-2-duncan_roe@optusnet.com.au>
- <20210623172621.GA25266@salvia>
- <YNf+/1rOavTjxvQ7@slk1.local.net>
- <20210629093837.GA23185@salvia>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH libnetfilter_queue] src: annotation: Correctly identify item for which header is needed
+Date:   Sun,  4 Jul 2021 15:47:08 +1000
+Message-Id: <20210704054708.8495-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.30.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210629093837.GA23185@salvia>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jun 29, 2021 at 11:38:37AM +0200, Pablo Neira Ayuso wrote:
-> On Sun, Jun 27, 2021 at 02:30:55PM +1000, Duncan Roe wrote:
-> > On Wed, Jun 23, 2021 at 07:26:21PM +0200, Pablo Neira Ayuso wrote:
-> >
-> > [...]
-> > >
-> > > Applied, thanks.
-> > >
-> > > One thing that needs a fix (both libnetfilter_queue and libmnl).
-> > >
-> > > If doxygen is not installed...
-> > >
-> > > configure: WARNING: Doxygen not found - continuing without Doxygen support
-> > >
-> > > it warns that it is missing...
-> > >
-> > > checking that generated files are newer than configure... done
-> > > configure: creating ./config.status
-> > > config.status: creating Makefile
-> > > config.status: creating src/Makefile
-> > > config.status: creating include/Makefile
-> > > config.status: creating include/libmnl/Makefile
-> > > config.status: creating include/linux/Makefile
-> > > config.status: creating include/linux/netfilter/Makefile
-> > > config.status: creating examples/Makefile
-> > > config.status: creating examples/genl/Makefile
-> > > config.status: creating examples/kobject/Makefile
-> > > config.status: creating examples/netfilter/Makefile
-> > > config.status: creating examples/rtnl/Makefile
-> > > config.status: creating libmnl.pc
-> > > config.status: creating doxygen.cfg
-> > > config.status: creating doxygen/Makefile
-> > > config.status: creating config.h
-> > > config.status: config.h is unchanged
-> > > config.status: executing depfiles commands
-> > > config.status: executing libtool commands
-> > >
-> > > libmnl configuration:
-> > >   doxygen:          yes
-> > >
-> > > but it says yes here.
-> > >
-> > >
-> > > I'd prefer if documentation is not enabled by default, ie. users have
-> > > to explicitly specify --with-doxygen=yes to build documentation, so
-> > > users explicitly picks what they needs.
-> >
-> > I'm fine with *html* being optional:
-> >
-> >   --enable-html      build HTML documentation [default=no]
-> >
-> > ATM `make install` doesn't do anything with the html dir. With --enable-html, I
-> > guess it should install html/ where --htmldir points [DOCDIR].
-> >
-> > But I think not having man pages in the past was a serious deficiency which we
-> > can now address.
-> >
-> > Think of it from a (Linux) Distributor's point of view. Man pages take up very
-> > little space in the distribution medium: symlinks are removed and the remaining
-> > pages compressed. Man pages stay compressed on installation and the symlinks are
-> > re-created by the postinstall script (and now as .gz or whatever files).
->
-> We are not Linux distributors, it's up to them to decide what they are
-> shipping in their packages, this debate is out of our scope. Assuming
-> that enabling this by default will not make them include this.
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+---
+ examples/nf-queue.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Not sure about that. It seems to me, most distros build the default
-configuration and remove stuff. F.I. if there is a "-devel" package variant then
-the base package will have neither man pages nor header files. Yet we always
-distribute header files. Man pages are a little bigger, but less than twice the
-size of headers for libmnl & libnfq (i.e. compressed pages with symlinks).
->
-> Most users rely on libmnl because they use some utility that pulls in
-> this dependency, most of them are not developers.
+diff --git a/examples/nf-queue.c b/examples/nf-queue.c
+index 3da2c24..7d34081 100644
+--- a/examples/nf-queue.c
++++ b/examples/nf-queue.c
+@@ -15,7 +15,7 @@
+ 
+ #include <libnetfilter_queue/libnetfilter_queue.h>
+ 
+-/* only for NFQA_CT, not needed otherwise: */
++/* only for CTA_MARK, not needed otherwise: */
+ #include <linux/netfilter/nfnetlink_conntrack.h>
+ 
+ static struct mnl_socket *nl;
+-- 
+2.17.5
 
-So they won't install the -devel package.
-
-[...]
-
-Will address your other points in a future email,
-
-Cheers ... Duncan.
