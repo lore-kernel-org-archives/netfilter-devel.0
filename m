@@ -2,108 +2,206 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31584C07E95
-	for <netfilter-devel@archiver.kernel.org>; Sun,  4 Jul 2021 23:46:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA618C07E98
+	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Jul 2021 04:09:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0CE9261352
-	for <netfilter-devel@archiver.kernel.org>; Sun,  4 Jul 2021 23:46:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AA8626137D
+	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Jul 2021 04:09:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229698AbhGDXso (ORCPT
+        id S229565AbhGEEMJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 4 Jul 2021 19:48:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54216 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229549AbhGDXsn (ORCPT
+        Mon, 5 Jul 2021 00:12:09 -0400
+Received: from gate2.alliedtelesis.co.nz ([202.36.163.20]:59536 "EHLO
+        gate2.alliedtelesis.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229495AbhGEEMJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 4 Jul 2021 19:48:43 -0400
-Received: from mail-pj1-x1035.google.com (mail-pj1-x1035.google.com [IPv6:2607:f8b0:4864:20::1035])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1684FC061574
-        for <netfilter-devel@vger.kernel.org>; Sun,  4 Jul 2021 16:46:08 -0700 (PDT)
-Received: by mail-pj1-x1035.google.com with SMTP id mn20-20020a17090b1894b02901707fc074e8so10490277pjb.0
-        for <netfilter-devel@vger.kernel.org>; Sun, 04 Jul 2021 16:46:08 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=sender:from:date:to:cc:subject:message-id:mail-followup-to
-         :mime-version:content-disposition;
-        bh=cL9FPazmk8PZSPO7rmpPfXdYSWrtyzaQkm8UpQ/izPg=;
-        b=fXhRSRC2Qs838qHI+jKqnOK4Mkz3pCnOtSwjh69BEdStxfR5jxdJ9DvzAnDSANOqD6
-         DJsBfuKIIFVTyEveilVUvIcHvPknY/aG1j0XdPEeGZ3/Em1iavOrM0SxCOg82IM5SBWn
-         vTY2Uy6eu3WWeOdQpdeudfxBl0z25egnrvFKNO2Qj76pIrEVh6DDG3+48Lp0ZwU3FTv8
-         qamFIzHuj2fWkwzVrUz6Xqa1wd++otxjBUEx6Fi42aNgDhaQLI2Wn8Vc5Q5qXfcnsrSI
-         Xztn6/UYlAU0B/F2yIt+raYpz8WEufy/f2UwXDvVBQyxS+RCEdQ2O1Hyc7aWHSBIe4KF
-         gwSA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:from:date:to:cc:subject:message-id
-         :mail-followup-to:mime-version:content-disposition;
-        bh=cL9FPazmk8PZSPO7rmpPfXdYSWrtyzaQkm8UpQ/izPg=;
-        b=Hl9BHe7wsSGFsfCW8o+xuyeRuDIIq7C2mk7PPoQ8z0LsF9uDjoA9iECRNSYZC7uYVp
-         VNLT39CtHaL7ijKI+8J0HP0hTm2QG4ld/IdI02K6t2NPI0auDxwXqVMREWORoTlF51pa
-         vsth2FmjQ8cTuTnJiLJSKDb1fDNlYmZknULAI7SrusH3SMGj5IzNm8JwjhG6uGzhowX7
-         v3Mk1OwhGsXhXM9cV6IHuSSElykNSBkM+wAugWv/Bs7xPshzHKrm8C0m8SEuGIZ5MbKQ
-         AGN4wIO6HJqcqaZQJPFShjUQkEGFKZ8Rof0EhClSrU6ggEpkWQyDJWSTMGQgYFK2ZCpF
-         9oNA==
-X-Gm-Message-State: AOAM530aGtnzY92NlkozC3EgVIWEtg/9DGxfQus4vOMPfpuecKmK1WOn
-        +KinPOTs/WeHOS4TEmSb8n3fdph28gM=
-X-Google-Smtp-Source: ABdhPJzbTzVvBcsw91PsYNejSkbbl0aOQYS4zdbXLESx10avE5EhVCAuD7z2ciedSUmEC9XWPH/Gkw==
-X-Received: by 2002:a17:902:6805:b029:129:6018:fedd with SMTP id h5-20020a1709026805b02901296018feddmr8245647plk.26.1625442361617;
-        Sun, 04 Jul 2021 16:46:01 -0700 (PDT)
-Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
-        by smtp.gmail.com with ESMTPSA id n33sm11609803pgm.55.2021.07.04.16.45.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 04 Jul 2021 16:46:00 -0700 (PDT)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-X-Google-Original-From: Duncan Roe <dunc@slk1.local.net>
-Date:   Mon, 5 Jul 2021 09:45:56 +1000
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Documentation question
-Message-ID: <YOJINLIUz9fFAxa2@slk1.local.net>
-Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Mon, 5 Jul 2021 00:12:09 -0400
+Received: from svr-chch-seg1.atlnz.lc (mmarshal3.atlnz.lc [10.32.18.43])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (Client did not present a certificate)
+        by gate2.alliedtelesis.co.nz (Postfix) with ESMTPS id 0C2D6806B7;
+        Mon,  5 Jul 2021 16:09:31 +1200 (NZST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alliedtelesis.co.nz;
+        s=mail181024; t=1625458171;
+        bh=CowyWUvzpCh9y/R1jbZYsayfadcPRDKitIhu4cUZRGo=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References;
+        b=RVDfL2Yuxos8JUh67YBdLtTZrRUPZ6x3Y/LqBWK09ZvciG5I8dgczCMyQLyPIfHum
+         u2RcbZUtyq5p4HXWMeR6TLkZNwdWaFTLWV5u5o3tEUSLcBAf+zY6dt3JNiQ9/WXQoo
+         JgFM1yydcToaG7kbOFVX1O7JSi61Ej/rkaOe3J0EVmrxAjoa4mE0xl1G2dVS6dtt/3
+         0EV7bKS/TksFk6jEseI/d9J5C9ALSEb4JF7RqGI+CRMYFaUpg3bw92gepLPapGM8Ka
+         AsKGiJODjmYCBlPPtLfOWjFkshyfH5snHTP9G/xYUpbNzKO86DuQDyUgHCm4QWYsC+
+         6COXAyerj23wQ==
+Received: from pat.atlnz.lc (Not Verified[10.32.16.33]) by svr-chch-seg1.atlnz.lc with Trustwave SEG (v8,2,6,11305)
+        id <B60e285fa0000>; Mon, 05 Jul 2021 16:09:30 +1200
+Received: from coled-dl.ws.atlnz.lc (coled-dl.ws.atlnz.lc [10.33.25.26])
+        by pat.atlnz.lc (Postfix) with ESMTP id DB80F13EE8E;
+        Mon,  5 Jul 2021 16:09:30 +1200 (NZST)
+Received: by coled-dl.ws.atlnz.lc (Postfix, from userid 1801)
+        id D81F3240C05; Mon,  5 Jul 2021 16:09:30 +1200 (NZST)
+From:   Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
+To:     pablo@netfilter.org
+Cc:     Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>,
+        Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>,
+        Scott Parlane <scott.parlane@alliedtelesis.co.nz>,
+        Blair Steven <blair.steven@alliedtelesis.co.nz>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
-        Netfilter Development <netfilter-devel@vger.kernel.org>
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org
+Subject: [PATCH] net: netfilter: Add RFC-7597 Section 5.1 PSID support xtables API
+Date:   Mon,  5 Jul 2021 16:08:54 +1200
+Message-Id: <20210705040856.25191-2-Cole.Dishington@alliedtelesis.co.nz>
+X-Mailer: git-send-email 2.32.0
+In-Reply-To: <20210705040856.25191-1-Cole.Dishington@alliedtelesis.co.nz>
+References: <20210630142049.GC18022@breakpoint.cc>
+ <20210705040856.25191-1-Cole.Dishington@alliedtelesis.co.nz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+X-SEG-SpamProfiler-Analysis: v=2.3 cv=IOh89TnG c=1 sm=1 tr=0 a=KLBiSEs5mFS1a/PbTCJxuA==:117 a=e_q4qTt1xDgA:10 a=3HDBlxybAAAA:8 a=mhPBjSskWxd-kjGSbREA:9 a=laEoCiVfU_Unz3mSdgXN:22
+X-SEG-SpamProfiler-Score: 0
+x-atlnz-ls: pat
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
+Add support for revision 2 of xtables masquerade extension.
 
-Did you follow the email thread
-https://www.spinics.net/lists/netfilter/msg60278.html?
+Co-developed-by: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
+Signed-off-by: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
+Co-developed-by: Scott Parlane <scott.parlane@alliedtelesis.co.nz>
+Signed-off-by: Scott Parlane <scott.parlane@alliedtelesis.co.nz>
+Signed-off-by: Blair Steven <blair.steven@alliedtelesis.co.nz>
+Signed-off-by: Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
+---
+ include/uapi/linux/netfilter/nf_nat.h |  3 +-
+ net/netfilter/xt_MASQUERADE.c         | 44 ++++++++++++++++++++++++---
+ 2 files changed, 41 insertions(+), 6 deletions(-)
 
-In summary, OP asked:
-> Good morning! I am using the nf-queue.c example from
-> libnetfilter_queue repo. In the queue_cb() function, I am trying to
-> get the conntrack info but this condition is always false.
->
-> if(attr[NFQA_CT])
->
-> I can see the flow in conntrack -L output. Anyone know what I am
-> missing? Appreciate your help!
+diff --git a/include/uapi/linux/netfilter/nf_nat.h b/include/uapi/linux/n=
+etfilter/nf_nat.h
+index a64586e77b24..660e53ffdb57 100644
+--- a/include/uapi/linux/netfilter/nf_nat.h
++++ b/include/uapi/linux/netfilter/nf_nat.h
+@@ -12,6 +12,7 @@
+ #define NF_NAT_RANGE_PROTO_RANDOM_FULLY		(1 << 4)
+ #define NF_NAT_RANGE_PROTO_OFFSET		(1 << 5)
+ #define NF_NAT_RANGE_NETMAP			(1 << 6)
++#define NF_NAT_RANGE_PSID			(1 << 7)
+=20
+ #define NF_NAT_RANGE_PROTO_RANDOM_ALL		\
+ 	(NF_NAT_RANGE_PROTO_RANDOM | NF_NAT_RANGE_PROTO_RANDOM_FULLY)
+@@ -20,7 +21,7 @@
+ 	(NF_NAT_RANGE_MAP_IPS | NF_NAT_RANGE_PROTO_SPECIFIED |	\
+ 	 NF_NAT_RANGE_PROTO_RANDOM | NF_NAT_RANGE_PERSISTENT |	\
+ 	 NF_NAT_RANGE_PROTO_RANDOM_FULLY | NF_NAT_RANGE_PROTO_OFFSET | \
+-	 NF_NAT_RANGE_NETMAP)
++	 NF_NAT_RANGE_NETMAP | NF_NAT_RANGE_PSID)
+=20
+ struct nf_nat_ipv4_range {
+ 	unsigned int			flags;
+diff --git a/net/netfilter/xt_MASQUERADE.c b/net/netfilter/xt_MASQUERADE.=
+c
+index eae05c178336..dc6870ca2b71 100644
+--- a/net/netfilter/xt_MASQUERADE.c
++++ b/net/netfilter/xt_MASQUERADE.c
+@@ -16,7 +16,7 @@ MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.=
+org>");
+ MODULE_DESCRIPTION("Xtables: automatic-address SNAT");
+=20
+ /* FIXME: Multiple targets. --RR */
+-static int masquerade_tg_check(const struct xt_tgchk_param *par)
++static int masquerade_tg_check_v0(const struct xt_tgchk_param *par)
+ {
+ 	const struct nf_nat_ipv4_multi_range_compat *mr =3D par->targinfo;
+=20
+@@ -31,8 +31,19 @@ static int masquerade_tg_check(const struct xt_tgchk_p=
+aram *par)
+ 	return nf_ct_netns_get(par->net, par->family);
+ }
+=20
++static int masquerade_tg_check_v1(const struct xt_tgchk_param *par)
++{
++	const struct nf_nat_range2 *range =3D par->targinfo;
++
++	if (range->flags & NF_NAT_RANGE_MAP_IPS) {
++		pr_debug("bad MAP_IPS.\n");
++		return -EINVAL;
++	}
++	return nf_ct_netns_get(par->net, par->family);
++}
++
+ static unsigned int
+-masquerade_tg(struct sk_buff *skb, const struct xt_action_param *par)
++masquerade_tg_v0(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+ 	struct nf_nat_range2 range;
+ 	const struct nf_nat_ipv4_multi_range_compat *mr;
+@@ -46,6 +57,15 @@ masquerade_tg(struct sk_buff *skb, const struct xt_act=
+ion_param *par)
+ 				      xt_out(par));
+ }
+=20
++static unsigned int
++masquerade_tg_v1(struct sk_buff *skb, const struct xt_action_param *par)
++{
++	const struct nf_nat_range2 *range =3D par->targinfo;
++
++	return nf_nat_masquerade_ipv4(skb, xt_hooknum(par), range,
++				      xt_out(par));
++}
++
+ static void masquerade_tg_destroy(const struct xt_tgdtor_param *par)
+ {
+ 	nf_ct_netns_put(par->net, par->family);
+@@ -73,6 +93,7 @@ static struct xt_target masquerade_tg_reg[] __read_most=
+ly =3D {
+ 	{
+ #if IS_ENABLED(CONFIG_IPV6)
+ 		.name		=3D "MASQUERADE",
++		.revision	=3D 0,
+ 		.family		=3D NFPROTO_IPV6,
+ 		.target		=3D masquerade_tg6,
+ 		.targetsize	=3D sizeof(struct nf_nat_range),
+@@ -84,15 +105,28 @@ static struct xt_target masquerade_tg_reg[] __read_m=
+ostly =3D {
+ 	}, {
+ #endif
+ 		.name		=3D "MASQUERADE",
++		.revision	=3D 0,
+ 		.family		=3D NFPROTO_IPV4,
+-		.target		=3D masquerade_tg,
++		.target		=3D masquerade_tg_v0,
+ 		.targetsize	=3D sizeof(struct nf_nat_ipv4_multi_range_compat),
+ 		.table		=3D "nat",
+ 		.hooks		=3D 1 << NF_INET_POST_ROUTING,
+-		.checkentry	=3D masquerade_tg_check,
++		.checkentry	=3D masquerade_tg_check_v0,
+ 		.destroy	=3D masquerade_tg_destroy,
+ 		.me		=3D THIS_MODULE,
+-	}
++	},
++	{
++		.name		=3D "MASQUERADE",
++		.revision	=3D 1,
++		.family		=3D NFPROTO_IPV4,
++		.target		=3D masquerade_tg_v1,
++		.targetsize	=3D sizeof(struct nf_nat_range2),
++		.table		=3D "nat",
++		.hooks		=3D 1 << NF_INET_POST_ROUTING,
++		.checkentry	=3D masquerade_tg_check_v1,
++		.destroy	=3D masquerade_tg_destroy,
++		.me		=3D THIS_MODULE,
++	},
+ };
+=20
+ static int __init masquerade_tg_init(void)
+--=20
+2.32.0
 
-and Florian replied:
-> IIRC you need to set NFQA_CFG_F_CONNTRACK in NFQA_CFG_FLAGS when setting
-> up the queue.  The example only sets F_GSO, so no conntrack info is
-> added.
-
-My question is, where should all this have been documented?
-
-`man nfq_set_queue_flags` documents NFQA_CFG_F_CONNTRACK, but
-nfq_set_queue_flags() is deprecated and OP was not using it.
-
-The modern approach is to code
-> mnl_attr_put_u32(nlh, NFQA_CFG_MASK, htonl(NFQA_CFG_F_GSO));
-
-NFQA_CFG_MASK is supplied by a libnetfilter_queue header, while
-mnl_attr_put_u32() is a libmnl function. What to do?
-
-Cheers ... Duncan.
