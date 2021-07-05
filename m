@@ -2,81 +2,97 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62546C07E98
-	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Jul 2021 09:27:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95B2DC07E99
+	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Jul 2021 10:40:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4B57461248
-	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Jul 2021 09:27:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7B376613F3
+	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Jul 2021 10:40:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230339AbhGEJa3 (ORCPT
+        id S231132AbhGEKmw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 5 Jul 2021 05:30:29 -0400
-Received: from smtp-out1.suse.de ([195.135.220.28]:34304 "EHLO
-        smtp-out1.suse.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230323AbhGEJa2 (ORCPT
+        Mon, 5 Jul 2021 06:42:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57904 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230474AbhGEKmv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 5 Jul 2021 05:30:28 -0400
-Received: from imap1.suse-dmz.suse.de (imap1.suse-dmz.suse.de [192.168.254.73])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 73FB622692;
-        Mon,  5 Jul 2021 09:27:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1625477271; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=3JiQRbESh5Ufmk0jSuX1LVUz6s7KZCA0+MaN+HENWn4=;
-        b=SVwbn0roV3h/ImxWxgU741snhaw0JpNwCNOn+RCavn27MB9a6jE6GfB8vWFMEcfmnDnRjk
-        Ozo5LwIkXOoX8B/eO2Mlrl+m/FGb0KiR5HN9amvl1IuFjayWWpwdThq0Q+UBM2WmW2F7d1
-        cr4hvDFMWauLD9BauW3I+jafgfsZiS0=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1625477271;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=3JiQRbESh5Ufmk0jSuX1LVUz6s7KZCA0+MaN+HENWn4=;
-        b=aQcvv0/TIHwAAM0mG8irG38r2ht1WQYm0Qlt9blcq9s5yrMNfgaVW7ECe9F2HJXJeOyBiv
-        E3/t5XEnhJ/ROTCw==
-Received: from imap1.suse-dmz.suse.de (imap1.suse-dmz.suse.de [192.168.254.73])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap1.suse-dmz.suse.de (Postfix) with ESMTPS id 674FF139A1;
-        Mon,  5 Jul 2021 09:27:51 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap1.suse-dmz.suse.de with ESMTPSA
-        id AEyuGJfQ4mA/TAAAGKfGzw
-        (envelope-from <aabdallah@suse.de>); Mon, 05 Jul 2021 09:27:51 +0000
+        Mon, 5 Jul 2021 06:42:51 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 99FB4C061574;
+        Mon,  5 Jul 2021 03:40:14 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1m0M19-0001Ez-WE; Mon, 05 Jul 2021 12:40:00 +0200
+Date:   Mon, 5 Jul 2021 12:39:59 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
+Cc:     pablo@netfilter.org,
+        Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>,
+        Scott Parlane <scott.parlane@alliedtelesis.co.nz>,
+        Blair Steven <blair.steven@alliedtelesis.co.nz>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] net: netfilter: Add RFC-7597 Section 5.1 PSID support
+Message-ID: <20210705103959.GG18022@breakpoint.cc>
+References: <20210630142049.GC18022@breakpoint.cc>
+ <20210705040856.25191-1-Cole.Dishington@alliedtelesis.co.nz>
+ <20210705040856.25191-3-Cole.Dishington@alliedtelesis.co.nz>
 MIME-Version: 1.0
-Date:   Mon, 05 Jul 2021 11:27:51 +0200
-From:   aabdallah <aabdallah@suse.de>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: conntrack: improve RST handling when tuple
- is re-used
-In-Reply-To: <20210520105311.20745-1-fw@strlen.de>
-References: <20210520105311.20745-1-fw@strlen.de>
-User-Agent: Roundcube Webmail
-Message-ID: <7f02834fae6dde2d351650177375d004@suse.de>
-X-Sender: aabdallah@suse.de
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210705040856.25191-3-Cole.Dishington@alliedtelesis.co.nz>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+Cole Dishington <Cole.Dishington@alliedtelesis.co.nz> wrote:
+> Adds support for masquerading into a smaller subset of ports -
+> defined by the PSID values from RFC-7597 Section 5.1. This is part of
+> the support for MAP-E and Lightweight 4over6, which allows multiple
+> devices to share an IPv4 address by splitting the L4 port / id into
+> ranges.
+> 
+> Co-developed-by: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
+> Signed-off-by: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
+> Co-developed-by: Scott Parlane <scott.parlane@alliedtelesis.co.nz>
+> Signed-off-by: Scott Parlane <scott.parlane@alliedtelesis.co.nz>
+> Signed-off-by: Blair Steven <blair.steven@alliedtelesis.co.nz>
+> Signed-off-by: Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
+> ---
 
-I see that this commit [1] is still under review, is there is any change 
-that it will be reviewed and merged soon? Thanks.
+Just a quick review:
+> +	/* In this case we are in PSID mode, avoid checking all ranges by computing bitmasks */
+> +	if (is_psid) {
+> +		u16 j = ntohs(max->all) - ntohs(min->all) + 1;
+> +		u16 a = (1 << 16) / ntohs(base->all);
 
-[1] 
-https://patchwork.ozlabs.org/project/netfilter-devel/list/?series=244902
+This gives crash when base->all is 0.
+If this is impossible, please add a comment, otherwise this needs
+a sanity test on the divisor.
+
+> @@ -55,8 +55,21 @@ nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
+>  	newrange.flags       = range->flags | NF_NAT_RANGE_MAP_IPS;
+>  	newrange.min_addr.ip = newsrc;
+>  	newrange.max_addr.ip = newsrc;
+> -	newrange.min_proto   = range->min_proto;
+> -	newrange.max_proto   = range->max_proto;
+> +
+> +	if (range->flags & NF_NAT_RANGE_PSID) {
+> +		u16 off = prandom_u32();
+> +		u16 base = ntohs(range->base_proto.all);
+> +		u16 min =  ntohs(range->min_proto.all);
+> +		u16 max_off = ((1 << 16) / base) - 1;
+> +
+> +		newrange.flags           = newrange.flags | NF_NAT_RANGE_PROTO_SPECIFIED;
+> +		newrange.min_proto.all   = htons(min + base * (off % max_off));
+
+Same here for base and max_off.
