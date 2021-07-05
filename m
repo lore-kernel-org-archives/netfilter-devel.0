@@ -2,77 +2,99 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8FD1C07E99
-	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Jul 2021 18:30:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2450C07E99
+	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Jul 2021 18:34:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B016D6196A
-	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Jul 2021 18:30:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D108861279
+	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Jul 2021 18:34:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229852AbhGESdS (ORCPT
+        id S229873AbhGEShP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 5 Jul 2021 14:33:18 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:48490 "EHLO
+        Mon, 5 Jul 2021 14:37:15 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:48522 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229734AbhGESdS (ORCPT
+        with ESMTP id S229829AbhGEShP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 5 Jul 2021 14:33:18 -0400
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 1165461653
-        for <netfilter-devel@vger.kernel.org>; Mon,  5 Jul 2021 20:30:30 +0200 (CEST)
+        Mon, 5 Jul 2021 14:37:15 -0400
+Received: from netfilter.org (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 744A961653;
+        Mon,  5 Jul 2021 20:34:27 +0200 (CEST)
+Date:   Mon, 5 Jul 2021 20:34:35 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf 1/2] netfilter: nft_last: honor NFTA_LAST_SET on restoration
-Date:   Mon,  5 Jul 2021 20:30:36 +0200
-Message-Id: <20210705183037.10815-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+To:     Duncan Roe <duncan_roe@optusnet.com.au>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next] include: fix header file name in 3 comments
+Message-ID: <20210705183435.GA10889@salvia>
+References: <20210705123829.10090-1-duncan_roe@optusnet.com.au>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20210705123829.10090-1-duncan_roe@optusnet.com.au>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-NFTA_LAST_SET tells us if this expression has ever seen a packet, do not
-ignore this attribute when restoring the ruleset.
+Please, add description to this patch, even one line should be fine,
+e.g.
 
-Fixes: 836382dc2471 ("netfilter: nf_tables: add last expression")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_last.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ nf_conntrack_netlink.h does not exist, refer to nfnetlink_netlink.h
+ instead.
 
-diff --git a/net/netfilter/nft_last.c b/net/netfilter/nft_last.c
-index 913ac45167f2..bbb352b64c73 100644
---- a/net/netfilter/nft_last.c
-+++ b/net/netfilter/nft_last.c
-@@ -23,15 +23,21 @@ static int nft_last_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- {
- 	struct nft_last_priv *priv = nft_expr_priv(expr);
- 	u64 last_jiffies;
-+	u32 last_set = 0;
- 	int err;
- 
--	if (tb[NFTA_LAST_MSECS]) {
-+	if (tb[NFTA_LAST_SET]) {
-+		last_set = ntohl(nla_get_be32(tb[NFTA_LAST_SET]));
-+		if (last_set == 1)
-+			priv->last_set = 1;
-+	}
-+
-+	if (last_set && tb[NFTA_LAST_MSECS]) {
- 		err = nf_msecs_to_jiffies64(tb[NFTA_LAST_MSECS], &last_jiffies);
- 		if (err < 0)
- 			return err;
- 
- 		priv->last_jiffies = jiffies + (unsigned long)last_jiffies;
--		priv->last_set = 1;
- 	}
- 
- 	return 0;
--- 
-2.20.1
+I suggest a more specific subject, such as:
 
+ netfilter: uapi: refer to nfnetlink_conntrack.h, not nf_conntrack_netlink.h
+
+Apart from these nitpicks, patch LGTM.
+
+net-next is still closed (so it is nf-next too), but I'll keep this
+patch in patchwork until it opens up again.
+
+Please revamp and send v2, thanks.
+
+On Mon, Jul 05, 2021 at 10:38:29PM +1000, Duncan Roe wrote:
+> Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+> ---
+>  include/uapi/linux/netfilter/nfnetlink_log.h   | 2 +-
+>  include/uapi/linux/netfilter/nfnetlink_queue.h | 4 ++--
+>  2 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/include/uapi/linux/netfilter/nfnetlink_log.h b/include/uapi/linux/netfilter/nfnetlink_log.h
+> index 45c8d3b027e0..0af9c113d665 100644
+> --- a/include/uapi/linux/netfilter/nfnetlink_log.h
+> +++ b/include/uapi/linux/netfilter/nfnetlink_log.h
+> @@ -61,7 +61,7 @@ enum nfulnl_attr_type {
+>  	NFULA_HWTYPE,			/* hardware type */
+>  	NFULA_HWHEADER,			/* hardware header */
+>  	NFULA_HWLEN,			/* hardware header length */
+> -	NFULA_CT,                       /* nf_conntrack_netlink.h */
+> +	NFULA_CT,                       /* nfnetlink_conntrack.h */
+>  	NFULA_CT_INFO,                  /* enum ip_conntrack_info */
+>  	NFULA_VLAN,			/* nested attribute: packet vlan info */
+>  	NFULA_L2HDR,			/* full L2 header */
+> diff --git a/include/uapi/linux/netfilter/nfnetlink_queue.h b/include/uapi/linux/netfilter/nfnetlink_queue.h
+> index bcb2cb5d40b9..aed90c4df0c8 100644
+> --- a/include/uapi/linux/netfilter/nfnetlink_queue.h
+> +++ b/include/uapi/linux/netfilter/nfnetlink_queue.h
+> @@ -51,11 +51,11 @@ enum nfqnl_attr_type {
+>  	NFQA_IFINDEX_PHYSOUTDEV,	/* __u32 ifindex */
+>  	NFQA_HWADDR,			/* nfqnl_msg_packet_hw */
+>  	NFQA_PAYLOAD,			/* opaque data payload */
+> -	NFQA_CT,			/* nf_conntrack_netlink.h */
+> +	NFQA_CT,			/* nfnetlink_conntrack.h */
+>  	NFQA_CT_INFO,			/* enum ip_conntrack_info */
+>  	NFQA_CAP_LEN,			/* __u32 length of captured packet */
+>  	NFQA_SKB_INFO,			/* __u32 skb meta information */
+> -	NFQA_EXP,			/* nf_conntrack_netlink.h */
+> +	NFQA_EXP,			/* nfnetlink_conntrack.h */
+>  	NFQA_UID,			/* __u32 sk uid */
+>  	NFQA_GID,			/* __u32 sk gid */
+>  	NFQA_SECCTX,			/* security context string */
+> -- 
+> 2.17.5
+> 
