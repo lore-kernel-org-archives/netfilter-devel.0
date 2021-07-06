@@ -6,60 +6,77 @@ X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B64EC07E96
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Jul 2021 12:10:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 139EAC07E9B
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Jul 2021 19:33:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3007A621DD
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Jul 2021 12:10:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E538561AC0
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Jul 2021 19:33:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237202AbhGFMJC convert rfc822-to-8bit (ORCPT
+        id S229807AbhGFTfq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 6 Jul 2021 08:09:02 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:51382 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239422AbhGFLzn (ORCPT
+        Tue, 6 Jul 2021 15:35:46 -0400
+Received: from www62.your-server.de ([213.133.104.62]:43614 "EHLO
+        www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229811AbhGFTfq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Jul 2021 07:55:43 -0400
-Received: from netfilter.org (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 81EBF6165C;
-        Tue,  6 Jul 2021 13:52:52 +0200 (CEST)
-Date:   Tue, 6 Jul 2021 13:53:01 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Ali Abdallah <ali.abdallah@suse.com>
-Cc:     aabdallah <aabdallah@suse.de>, Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: conntrack: improve RST handling when tuple
- is re-used
-Message-ID: <20210706115301.GA3835@salvia>
-References: <20210520105311.20745-1-fw@strlen.de>
- <7f02834fae6dde2d351650177375d004@suse.de>
- <20210705192349.GA16111@salvia>
- <20210706100410.kxsjk23zpnwbynpw@Fryzen495>
+        Tue, 6 Jul 2021 15:35:46 -0400
+Received: from sslproxy01.your-server.de ([78.46.139.224])
+        by www62.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
+        (Exim 4.92.3)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1m0qoa-0003eJ-DF; Tue, 06 Jul 2021 21:33:04 +0200
+Received: from [85.5.47.65] (helo=linux-3.home)
+        by sslproxy01.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1m0qoa-000S7C-5t; Tue, 06 Jul 2021 21:33:04 +0200
+Subject: LPC 2021 Networking and BPF Track CFP (Reminder)
+From:   Daniel Borkmann <daniel@iogearbox.net>
+To:     netdev@vger.kernel.org, bpf@vger.kernel.org
+Cc:     xdp-newbies@vger.kernel.org, iovisor-dev@lists.iovisor.org,
+        linux-wireless@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        lwn@lwn.net
+References: <6d225920-9ecc-ef24-2bf8-848ca86c7fb0@iogearbox.net>
+Message-ID: <c549da28-a3c0-9478-4b91-7aa2ff124b69@iogearbox.net>
+Date:   Tue, 6 Jul 2021 21:33:03 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8BIT
-In-Reply-To: <20210706100410.kxsjk23zpnwbynpw@Fryzen495>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <6d225920-9ecc-ef24-2bf8-848ca86c7fb0@iogearbox.net>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Authenticated-Sender: daniel@iogearbox.net
+X-Virus-Scanned: Clear (ClamAV 0.103.2/26223/Tue Jul  6 13:05:54 2021)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jul 06, 2021 at 12:04:10PM +0200, Ali Abdallah wrote:
-> On 05.07.2021 21:23, Pablo Neira Ayuso wrote:
-> > Ok, I'm assuming that you're fine with Florian's proposal to address
-> > your issue then. I was actually waiting for your ACK.
-> > 
-> > I'll place this patch:
-> > 
-> > https://patchwork.ozlabs.org/project/netfilter-devel/patch/20210520105311.20745-1-fw@strlen.de/
-> 
-> Thanks a lot!
-> 
-> Please also take into account the following patch:
-> 
-> https://patchwork.ozlabs.org/project/netfilter-devel/patch/20210527071906.s7z72s7wsene5lib@Fryzen495/
-> 
-> which was already acked by Florian.
+This is a reminder for the Call for Proposals (CFP) for the Networking and
+BPF track at the 2021 edition of the Linux Plumbers Conference (LPC), which
+will be held virtually on the wider Internet, on September 20th - 24th, 2021.
 
-Patches applied to nf.git, thanks.
+This year's Networking and BPF track technical committee is comprised of:
+
+   David S. Miller <davem@davemloft.net>
+   Jakub Kicinski <kuba@kernel.org>
+   Eric Dumazet <edumazet@google.com>
+   Alexei Starovoitov <ast@kernel.org>
+   Daniel Borkmann <daniel@iogearbox.net>
+   Andrii Nakryiko <andrii@kernel.org>
+
+We are seeking proposals of 40 minutes in length (including Q&A discussion),
+optionally accompanied by papers of 2 to 10 pages in length.
+
+Any kind of advanced Linux networking and/or BPF related topic will be considered.
+
+Please submit your proposals through the official LPC website at:
+
+   https://linuxplumbersconf.org/event/11/abstracts/
+
+Make sure to select "Networking & BPF Summit" in the Track pull-down menu.
+
+Proposals must be submitted by August 13th, and submitters will be notified of
+acceptance by August 16th.
+
+Final slides and papers (as PDF) are due on the first day of the conference.
