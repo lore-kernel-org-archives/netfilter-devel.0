@@ -7,131 +7,99 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78B94C07E9B
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Jul 2021 01:37:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8B14C07E96
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Jul 2021 04:27:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5F47E61977
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Jul 2021 01:37:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 95E66613D1
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Jul 2021 04:27:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229895AbhGFBjl (ORCPT
+        id S229956AbhGFE35 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 5 Jul 2021 21:39:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57462 "EHLO
+        Tue, 6 Jul 2021 00:29:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37598 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229880AbhGFBjk (ORCPT
+        with ESMTP id S229953AbhGFE35 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 5 Jul 2021 21:39:40 -0400
-Received: from mail-pg1-x52d.google.com (mail-pg1-x52d.google.com [IPv6:2607:f8b0:4864:20::52d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65C8EC061574
-        for <netfilter-devel@vger.kernel.org>; Mon,  5 Jul 2021 18:37:02 -0700 (PDT)
-Received: by mail-pg1-x52d.google.com with SMTP id h4so19898416pgp.5
-        for <netfilter-devel@vger.kernel.org>; Mon, 05 Jul 2021 18:37:02 -0700 (PDT)
+        Tue, 6 Jul 2021 00:29:57 -0400
+Received: from mail-pj1-x1034.google.com (mail-pj1-x1034.google.com [IPv6:2607:f8b0:4864:20::1034])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79E0FC061574
+        for <netfilter-devel@vger.kernel.org>; Mon,  5 Jul 2021 21:27:18 -0700 (PDT)
+Received: by mail-pj1-x1034.google.com with SMTP id g6-20020a17090adac6b029015d1a9a6f1aso954646pjx.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 05 Jul 2021 21:27:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=sender:from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=ttaOQmo/Dd83wfNbru2sFkECgKTbVAv/g/BowP+jrsU=;
-        b=ZUCAGAaYpAV0b5wbut2QpRdXVBcyoOwYp1pVd70E/vg2xCoHXcEGmp7m+1wN0uKjn7
-         MPWdftg40N51x/ey5P4Hcwxy627uLF1Xy2/i1rN9cswwf1fhNZzRA8G4/EieDuyxfkNG
-         PoPalFUqnDfOZs2XTd4Kzq7I7aJiP795GKI4hsbq5bRYKw65jiWhps6v738sBeXd4JgY
-         EG85+4iWispsI2Nssege4w2kYIL8PCCwfat7eGPfZ+8oGq9tJKkmY6ORHBqg7J+t4Co3
-         95l0uJzqEorg5JATRKBGv/um93mL9NGCMqNWd3bFfMw7Lv91BcRPhMrkVRClXDNkY6sy
-         boJQ==
+        bh=JLo9FJF60IA8lQnwvtPB/mAGPjNP9O4ahYoIlFHkzng=;
+        b=IVRLTq7YwO7U1AykVx6GxLZzmgHTCDmd+D4wZItpr+SGge8FLLaGax88Pf4nyv0VWM
+         eFVnPoHDZHA+WFq9qd5PxiVNT0rZQ8WLpQrtQ96aVaMnHRJsHh22Yv4LwI8iFE/iukMT
+         vNtUPg2Jyy51dhR+X8Bbc0JxYlKpkwd9tkVF/T7wfV3NS28xQJGBoZoTaELA1GrIqHvO
+         33n2QtSJJ2g0CX/IV8Y0olKxmSutns8wobKPVf+8nvIrdJ4WERhkh2R468mjcQYs93jq
+         IWgFlDlNW71FkeXcf8Nb4oo+rPlTzCoxsIvpLQT6jXuEDZuTsDJ3GGhwbGt3d1lVA8CU
+         xlDw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
          :in-reply-to:references:mime-version:content-transfer-encoding;
-        bh=ttaOQmo/Dd83wfNbru2sFkECgKTbVAv/g/BowP+jrsU=;
-        b=P0+YQM/feAEZgJ30kWqsuXBSYE4DGW5yCF+ppUE/QYE1N1P9Jad+0U9LvasNClMOm9
-         V2aeCb6sQLzgJbxcmhwSqAwPaPdX6q4BjE2i37+sMkmCGflf7wg9x1VWkZ8H3jA8N5CB
-         NOICsMCDflQLUYwO/ehgf4kwXL+F7D9z/WIgqt2Jp3GMDgUb7FsCPb2Vy/U0r978VMTq
-         Slfz8Jtx0u83+iET/7p5spU3wkmdbjmwrENw6REs0uzpgBmVyNGnCfwQlHcc5pigI0L7
-         lvMg/Z68TEpl7nJG42hDesutrhRPP7WyszcHoQ9oMdfpTqhdRydzyuHPFbzMFxxkkMod
-         L5og==
-X-Gm-Message-State: AOAM532e+SKiyUbn12xTQzVeVq7tp+HLK1CvbwIPNlxANg08RCYzgjTz
-        DE8ibuFKyVpu90/zHNfZlFFfLX5fy1g=
-X-Google-Smtp-Source: ABdhPJzxPiLJNrDlkA/Dr5TIGyLVE+X8lz3aUj6ZHtcetQ08OW/mPCCyQuGZZMoF+BiwQhN64rX+cw==
-X-Received: by 2002:a62:3344:0:b029:28c:6f0f:cb90 with SMTP id z65-20020a6233440000b029028c6f0fcb90mr17583404pfz.58.1625535421927;
-        Mon, 05 Jul 2021 18:37:01 -0700 (PDT)
+        bh=JLo9FJF60IA8lQnwvtPB/mAGPjNP9O4ahYoIlFHkzng=;
+        b=nh8WIFgP6PXv1zupNoKozWOx/G6+q2kirbcRprALowI2Hekv/mXJllgINR5Hf3DBdX
+         6ioLWU7Ejpwt7EUg/gK+Bko/9XP90fVH07n1faGPPSbAQwNxlbhI1fRE6lh9z8Uc1W4s
+         EcDTb01cD7XcTMfE6AWZS3PoDXeFU2UsuyhpH0VIhNGxbmoH1ZmkxkFEZ1TXnz3gz5Go
+         wMHBUhd9Oosr+VH9zOR3Radcne+isHz20BHxQo2HyUJWJLcWtP24we2F+pdTkkcDKhzL
+         BQTzhCpei2H4cUy5v1tRAq3WN/k7qzlYr+2pKWLz+Q8MRCoIkftZ43q/lmrYmmfy68ns
+         BtPg==
+X-Gm-Message-State: AOAM531oBt5lJ9bJ2qbNpF+sUnvKIc+9WmYjKEWnkb4YDjaQwEGhOOoJ
+        aZlt7SgEU1hvL/2QXbHoGeB7oZwuMIo=
+X-Google-Smtp-Source: ABdhPJyQ8D0USa5Knmek8oRHJdI3CjW5jmKmOAa++J/Kmmi+383yYwkJVbcfa8hMv93+RVCGsAJqkA==
+X-Received: by 2002:a17:90a:d988:: with SMTP id d8mr2389999pjv.111.1625545637995;
+        Mon, 05 Jul 2021 21:27:17 -0700 (PDT)
 Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
-        by smtp.gmail.com with ESMTPSA id y11sm14533663pfo.160.2021.07.05.18.36.59
+        by smtp.gmail.com with ESMTPSA id k8sm14623624pfa.142.2021.07.05.21.27.16
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 05 Jul 2021 18:37:01 -0700 (PDT)
+        Mon, 05 Jul 2021 21:27:17 -0700 (PDT)
 Sender: Duncan Roe <duncan.roe2@gmail.com>
 From:   Duncan Roe <duncan_roe@optusnet.com.au>
 To:     pablo@netfilter.org
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_queue v2] src: annotation: Correctly identify item for which header is needed
-Date:   Tue,  6 Jul 2021 11:36:56 +1000
-Message-Id: <20210706013656.10833-1-duncan_roe@optusnet.com.au>
+Subject: [PATCH libnetfilter_queue] src: examples: Use libnetfilter_queue cached linux headers throughout
+Date:   Tue,  6 Jul 2021 14:27:13 +1000
+Message-Id: <20210706042713.11002-1-duncan_roe@optusnet.com.au>
 X-Mailer: git-send-email 2.30.1
-In-Reply-To: <YOL6jXNMeRGh+BlX@slk1.local.net>
-References: <YOL6jXNMeRGh+BlX@slk1.local.net>
+In-Reply-To: <20210705144229.GB29924@salvia>
+References: <20210705144229.GB29924@salvia>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Also fix header annotation to refer to nfnetlink_conntrack.h,
-not nf_conntrack_netlink.h
+A user will typically copy nf-queue.c, make changes and compile: picking up
+/usr/include/linux/nfnetlink_queue.h rather than
+/usr/include/libnetfilter_queue/linux_nfnetlink_queue.h as is recommended.
+
+(Running `make nf-queue` from within libnetfilter_queue/examples will get
+the private cached version of nfnetlink_queue.h which is not distributed).
 
 Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
 ---
- examples/nf-queue.c                                | 2 +-
- include/libnetfilter_queue/linux_nfnetlink_queue.h | 4 ++--
- include/linux/netfilter/nfnetlink_queue.h          | 4 ++--
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ examples/nf-queue.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/examples/nf-queue.c b/examples/nf-queue.c
-index 3da2c24..5b86e69 100644
+index 5b86e69..7ad631d 100644
 --- a/examples/nf-queue.c
 +++ b/examples/nf-queue.c
-@@ -15,7 +15,7 @@
+@@ -11,9 +11,9 @@
+ #include <linux/netfilter/nfnetlink.h>
+ 
+ #include <linux/types.h>
+-#include <linux/netfilter/nfnetlink_queue.h>
  
  #include <libnetfilter_queue/libnetfilter_queue.h>
++#include <libnetfilter_queue/linux_nfnetlink_queue.h>
  
--/* only for NFQA_CT, not needed otherwise: */
-+/* NFQA_CT requires CTA_* attributes defined in nfnetlink_conntrack.h */
+ /* NFQA_CT requires CTA_* attributes defined in nfnetlink_conntrack.h */
  #include <linux/netfilter/nfnetlink_conntrack.h>
- 
- static struct mnl_socket *nl;
-diff --git a/include/libnetfilter_queue/linux_nfnetlink_queue.h b/include/libnetfilter_queue/linux_nfnetlink_queue.h
-index 1975dfa..caa6788 100644
---- a/include/libnetfilter_queue/linux_nfnetlink_queue.h
-+++ b/include/libnetfilter_queue/linux_nfnetlink_queue.h
-@@ -46,11 +46,11 @@ enum nfqnl_attr_type {
- 	NFQA_IFINDEX_PHYSOUTDEV,	/* __u32 ifindex */
- 	NFQA_HWADDR,			/* nfqnl_msg_packet_hw */
- 	NFQA_PAYLOAD,			/* opaque data payload */
--	NFQA_CT,			/* nf_conntrack_netlink.h */
-+	NFQA_CT,			/* nfnetlink_conntrack.h */
- 	NFQA_CT_INFO,			/* enum ip_conntrack_info */
- 	NFQA_CAP_LEN,			/* __u32 length of captured packet */
- 	NFQA_SKB_INFO,			/* __u32 skb meta information */
--	NFQA_EXP,			/* nf_conntrack_netlink.h */
-+	NFQA_EXP,			/* nfnetlink_conntrack.h */
- 	NFQA_UID,			/* __u32 sk uid */
- 	NFQA_GID,			/* __u32 sk gid */
- 	NFQA_SECCTX,			/* security context string */
-diff --git a/include/linux/netfilter/nfnetlink_queue.h b/include/linux/netfilter/nfnetlink_queue.h
-index 030672d..8e2e469 100644
---- a/include/linux/netfilter/nfnetlink_queue.h
-+++ b/include/linux/netfilter/nfnetlink_queue.h
-@@ -42,11 +42,11 @@ enum nfqnl_attr_type {
- 	NFQA_IFINDEX_PHYSOUTDEV,	/* __u32 ifindex */
- 	NFQA_HWADDR,			/* nfqnl_msg_packet_hw */
- 	NFQA_PAYLOAD,			/* opaque data payload */
--	NFQA_CT,			/* nf_conntrack_netlink.h */
-+	NFQA_CT,			/* nfnetlink_conntrack.h */
- 	NFQA_CT_INFO,			/* enum ip_conntrack_info */
- 	NFQA_CAP_LEN,			/* __u32 length of captured packet */
- 	NFQA_SKB_INFO,			/* __u32 skb meta information */
--	NFQA_EXP,			/* nf_conntrack_netlink.h */
-+	NFQA_EXP,			/* nfnetlink_conntrack.h */
- 	NFQA_UID,			/* __u32 sk uid */
- 	NFQA_GID,			/* __u32 sk gid */
- 	NFQA_SECCTX,
 -- 
 2.17.5
 
