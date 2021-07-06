@@ -7,111 +7,81 @@ X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 386FEC07E96
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Jul 2021 22:47:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC71AC07E96
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Jul 2021 22:52:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0FFF361CA8
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Jul 2021 22:47:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C83FE61C91
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Jul 2021 22:52:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229781AbhGFWtj (ORCPT
+        id S229781AbhGFWzN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 6 Jul 2021 18:49:39 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:52798 "EHLO
+        Tue, 6 Jul 2021 18:55:13 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:52814 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229753AbhGFWti (ORCPT
+        with ESMTP id S229753AbhGFWzN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Jul 2021 18:49:38 -0400
+        Tue, 6 Jul 2021 18:55:13 -0400
 Received: from netfilter.org (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id A7DA96164E;
-        Wed,  7 Jul 2021 00:46:47 +0200 (CEST)
-Date:   Wed, 7 Jul 2021 00:46:57 +0200
+        by mail.netfilter.org (Postfix) with ESMTPSA id B708B6164E;
+        Wed,  7 Jul 2021 00:52:22 +0200 (CEST)
+Date:   Wed, 7 Jul 2021 00:52:31 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Duncan Roe <duncan_roe@optusnet.com.au>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH libnetfilter_queue v2] src: annotation: Correctly
- identify item for which header is needed
-Message-ID: <20210706224657.GA12859@salvia>
-References: <YOL6jXNMeRGh+BlX@slk1.local.net>
- <20210706013656.10833-1-duncan_roe@optusnet.com.au>
+Subject: Re: [PATCH libnetfilter_queue v2] src: examples: Use
+ libnetfilter_queue cached linux headers throughout
+Message-ID: <20210706225231.GB12859@salvia>
+References: <20210706042713.11002-1-duncan_roe@optusnet.com.au>
+ <20210706053648.11109-1-duncan_roe@optusnet.com.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20210706013656.10833-1-duncan_roe@optusnet.com.au>
+In-Reply-To: <20210706053648.11109-1-duncan_roe@optusnet.com.au>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jul 06, 2021 at 11:36:56AM +1000, Duncan Roe wrote:
-> Also fix header annotation to refer to nfnetlink_conntrack.h,
-> not nf_conntrack_netlink.h
-
-Please, split this in two patches. See below. Thanks.
-
+On Tue, Jul 06, 2021 at 03:36:48PM +1000, Duncan Roe wrote:
+> A user will typically copy nf-queue.c, make changes and compile: picking up
+> /usr/include/linux/nfnetlink_queue.h rather than
+> /usr/include/libnetfilter_queue/linux_nfnetlink_queue.h as is recommended.
+> 
+> libnetfilter_queue.h already includes linux_nfnetlink_queue.h so we only need
+> to delete the errant line.
+> 
+> (Running `make nf-queue` from within libnetfilter_queue/examples will get
+> the private cached version of nfnetlink_queue.h which is not distributed).
+> 
 > Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
 > ---
->  examples/nf-queue.c                                | 2 +-
->  include/libnetfilter_queue/linux_nfnetlink_queue.h | 4 ++--
->  include/linux/netfilter/nfnetlink_queue.h          | 4 ++--
->  3 files changed, 5 insertions(+), 5 deletions(-)
+> v2: Don't insert a new #include
+>     Doesn't clash with other nearby patch
+>  examples/nf-queue.c | 1 -
+>  1 file changed, 1 deletion(-)
 > 
 > diff --git a/examples/nf-queue.c b/examples/nf-queue.c
-> index 3da2c24..5b86e69 100644
+> index 3da2c24..e4b33b5 100644
 > --- a/examples/nf-queue.c
 > +++ b/examples/nf-queue.c
-> @@ -15,7 +15,7 @@
+> @@ -11,7 +11,6 @@
+>  #include <linux/netfilter/nfnetlink.h>
 >  
->  #include <libnetfilter_queue/libnetfilter_queue.h>
->  
-> -/* only for NFQA_CT, not needed otherwise: */
-> +/* NFQA_CT requires CTA_* attributes defined in nfnetlink_conntrack.h */
->  #include <linux/netfilter/nfnetlink_conntrack.h>
->  
->  static struct mnl_socket *nl;
+>  #include <linux/types.h>
+> -#include <linux/netfilter/nfnetlink_queue.h>
 
-This chunk belongs to libnetfilter_queue.
+I remember now what the intention was.
 
-> diff --git a/include/libnetfilter_queue/linux_nfnetlink_queue.h b/include/libnetfilter_queue/linux_nfnetlink_queue.h
-> index 1975dfa..caa6788 100644
-> --- a/include/libnetfilter_queue/linux_nfnetlink_queue.h
-> +++ b/include/libnetfilter_queue/linux_nfnetlink_queue.h
+This include is fine as is: new applications should cache a copy of
+nfnetlink_queue.h in their own tree, that's the recommended way to go.
+This is the approach that we follow in other existing userspace
+netfilter codebase (ie. the userspace program caches the kernel UAPI
+header in the tree). The linux_nfnetlink_queue.h header is a legacy
+file only for backward compatibility, it should not be used for new
+software. This is not documented, the use of this include in
+examples/nf-queue.c was intentional.
 
-This chunk below, belongs to the nf tree. You have to fix first the
-kernel UAPI, then you can refresh this copy that is stored in
-libnetfilter_queue.
+This approach also allows to fall back to the UAPI kernel headers that
+are installed in your system.
 
-> @@ -46,11 +46,11 @@ enum nfqnl_attr_type {
->  	NFQA_IFINDEX_PHYSOUTDEV,	/* __u32 ifindex */
->  	NFQA_HWADDR,			/* nfqnl_msg_packet_hw */
->  	NFQA_PAYLOAD,			/* opaque data payload */
-> -	NFQA_CT,			/* nf_conntrack_netlink.h */
-> +	NFQA_CT,			/* nfnetlink_conntrack.h */
->  	NFQA_CT_INFO,			/* enum ip_conntrack_info */
->  	NFQA_CAP_LEN,			/* __u32 length of captured packet */
->  	NFQA_SKB_INFO,			/* __u32 skb meta information */
-> -	NFQA_EXP,			/* nf_conntrack_netlink.h */
-> +	NFQA_EXP,			/* nfnetlink_conntrack.h */
->  	NFQA_UID,			/* __u32 sk uid */
->  	NFQA_GID,			/* __u32 sk gid */
->  	NFQA_SECCTX,			/* security context string */
-> diff --git a/include/linux/netfilter/nfnetlink_queue.h b/include/linux/netfilter/nfnetlink_queue.h
-> index 030672d..8e2e469 100644
-> --- a/include/linux/netfilter/nfnetlink_queue.h
-> +++ b/include/linux/netfilter/nfnetlink_queue.h
-> @@ -42,11 +42,11 @@ enum nfqnl_attr_type {
->  	NFQA_IFINDEX_PHYSOUTDEV,	/* __u32 ifindex */
->  	NFQA_HWADDR,			/* nfqnl_msg_packet_hw */
->  	NFQA_PAYLOAD,			/* opaque data payload */
-> -	NFQA_CT,			/* nf_conntrack_netlink.h */
-> +	NFQA_CT,			/* nfnetlink_conntrack.h */
->  	NFQA_CT_INFO,			/* enum ip_conntrack_info */
->  	NFQA_CAP_LEN,			/* __u32 length of captured packet */
->  	NFQA_SKB_INFO,			/* __u32 skb meta information */
-> -	NFQA_EXP,			/* nf_conntrack_netlink.h */
-> +	NFQA_EXP,			/* nfnetlink_conntrack.h */
->  	NFQA_UID,			/* __u32 sk uid */
->  	NFQA_GID,			/* __u32 sk gid */
->  	NFQA_SECCTX,
-> -- 
-> 2.17.5
-> 
+Thanks.
