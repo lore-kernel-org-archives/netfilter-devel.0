@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6812C07E95
-	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Jul 2021 16:19:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59A68C11F66
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Jul 2021 16:19:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ADB7861C99
-	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Jul 2021 16:19:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 42A8B61CC2
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Jul 2021 16:19:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230237AbhGGQVl (ORCPT
+        id S230266AbhGGQVn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 7 Jul 2021 12:21:41 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:55144 "EHLO
+        Wed, 7 Jul 2021 12:21:43 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:55182 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230192AbhGGQVf (ORCPT
+        with ESMTP id S230220AbhGGQVi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 7 Jul 2021 12:21:35 -0400
+        Wed, 7 Jul 2021 12:21:38 -0400
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id E59E66244E;
-        Wed,  7 Jul 2021 18:18:41 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 0F09C63089;
+        Wed,  7 Jul 2021 18:18:44 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 06/11] netfilter: conntrack: improve RST handling when tuple is re-used
-Date:   Wed,  7 Jul 2021 18:18:39 +0200
-Message-Id: <20210707161844.20827-7-pablo@netfilter.org>
+Subject: [PATCH net 09/11] netfilter: nft_last: honor NFTA_LAST_SET on restoration
+Date:   Wed,  7 Jul 2021 18:18:42 +0200
+Message-Id: <20210707161844.20827-10-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20210707161844.20827-1-pablo@netfilter.org>
 References: <20210707161844.20827-1-pablo@netfilter.org>
@@ -39,120 +39,43 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Ali Abdallah <aabdallah@suse.de>
+NFTA_LAST_SET tells us if this expression has ever seen a packet, do not
+ignore this attribute when restoring the ruleset.
 
-If we receive a SYN packet in original direction on an existing
-connection tracking entry, we let this SYN through because conntrack
-might be out-of-sync.
-
-Conntrack gets back in sync when server responds with SYN/ACK and state
-gets updated accordingly.
-
-However, if server replies with RST, this packet might be marked as
-INVALID because td_maxack value reflects the *old* conntrack state
-and not the state of the originator of the RST.
-
-Avoid td_maxack-based checks if previous packet was a SYN.
-
-Unfortunately that is not be enough: an out of order ACK in original
-direction updates last_index, so we still end up marking valid RST.
-
-Thus disable the sequence check when we are not in established state and
-the received RST has a sequence of 0.
-
-Because marking RSTs as invalid usually leads to unwanted timeouts,
-also skip RST sequence checks if a conntrack entry is already closing.
-
-Such entries can already be evicted via GC in case the table is full.
-
-Co-developed-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Ali Abdallah <aabdallah@suse.de>
+Fixes: 836382dc2471 ("netfilter: nf_tables: add last expression")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_proto_tcp.c | 53 +++++++++++++++++---------
- 1 file changed, 36 insertions(+), 17 deletions(-)
+ net/netfilter/nft_last.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index eb4de92077a8..b8ff67671e93 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -823,6 +823,22 @@ static noinline bool tcp_new(struct nf_conn *ct, const struct sk_buff *skb,
- 	return true;
- }
+diff --git a/net/netfilter/nft_last.c b/net/netfilter/nft_last.c
+index 913ac45167f2..bbb352b64c73 100644
+--- a/net/netfilter/nft_last.c
++++ b/net/netfilter/nft_last.c
+@@ -23,15 +23,21 @@ static int nft_last_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ {
+ 	struct nft_last_priv *priv = nft_expr_priv(expr);
+ 	u64 last_jiffies;
++	u32 last_set = 0;
+ 	int err;
  
-+static bool tcp_can_early_drop(const struct nf_conn *ct)
-+{
-+	switch (ct->proto.tcp.state) {
-+	case TCP_CONNTRACK_FIN_WAIT:
-+	case TCP_CONNTRACK_LAST_ACK:
-+	case TCP_CONNTRACK_TIME_WAIT:
-+	case TCP_CONNTRACK_CLOSE:
-+	case TCP_CONNTRACK_CLOSE_WAIT:
-+		return true;
-+	default:
-+		break;
+-	if (tb[NFTA_LAST_MSECS]) {
++	if (tb[NFTA_LAST_SET]) {
++		last_set = ntohl(nla_get_be32(tb[NFTA_LAST_SET]));
++		if (last_set == 1)
++			priv->last_set = 1;
 +	}
 +
-+	return false;
-+}
-+
- /* Returns verdict for packet, or -1 for invalid. */
- int nf_conntrack_tcp_packet(struct nf_conn *ct,
- 			    struct sk_buff *skb,
-@@ -1030,9 +1046,28 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
- 		if (index != TCP_RST_SET)
- 			break;
++	if (last_set && tb[NFTA_LAST_MSECS]) {
+ 		err = nf_msecs_to_jiffies64(tb[NFTA_LAST_MSECS], &last_jiffies);
+ 		if (err < 0)
+ 			return err;
  
--		if (ct->proto.tcp.seen[!dir].flags & IP_CT_TCP_FLAG_MAXACK_SET) {
-+		/* If we are closing, tuple might have been re-used already.
-+		 * last_index, last_ack, and all other ct fields used for
-+		 * sequence/window validation are outdated in that case.
-+		 *
-+		 * As the conntrack can already be expired by GC under pressure,
-+		 * just skip validation checks.
-+		 */
-+		if (tcp_can_early_drop(ct))
-+			goto in_window;
-+
-+		/* td_maxack might be outdated if we let a SYN through earlier */
-+		if ((ct->proto.tcp.seen[!dir].flags & IP_CT_TCP_FLAG_MAXACK_SET) &&
-+		    ct->proto.tcp.last_index != TCP_SYN_SET) {
- 			u32 seq = ntohl(th->seq);
+ 		priv->last_jiffies = jiffies + (unsigned long)last_jiffies;
+-		priv->last_set = 1;
+ 	}
  
-+			/* If we are not in established state and SEQ=0 this is most
-+			 * likely an answer to a SYN we let go through above (last_index
-+			 * can be updated due to out-of-order ACKs).
-+			 */
-+			if (seq == 0 && !nf_conntrack_tcp_established(ct))
-+				break;
-+
- 			if (before(seq, ct->proto.tcp.seen[!dir].td_maxack)) {
- 				/* Invalid RST  */
- 				spin_unlock_bh(&ct->lock);
-@@ -1165,22 +1200,6 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
- 	return NF_ACCEPT;
- }
- 
--static bool tcp_can_early_drop(const struct nf_conn *ct)
--{
--	switch (ct->proto.tcp.state) {
--	case TCP_CONNTRACK_FIN_WAIT:
--	case TCP_CONNTRACK_LAST_ACK:
--	case TCP_CONNTRACK_TIME_WAIT:
--	case TCP_CONNTRACK_CLOSE:
--	case TCP_CONNTRACK_CLOSE_WAIT:
--		return true;
--	default:
--		break;
--	}
--
--	return false;
--}
--
- #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
- 
- #include <linux/netfilter/nfnetlink.h>
+ 	return 0;
 -- 
 2.20.1
 
