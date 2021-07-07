@@ -2,101 +2,116 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE8F4C07E96
-	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Jul 2021 00:05:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D0F7C07E96
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Jul 2021 00:57:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BE1EB61C3C
-	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Jul 2021 00:05:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4C3C761C3A
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Jul 2021 00:57:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229873AbhGGAIS (ORCPT
+        id S229993AbhGGBAh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 6 Jul 2021 20:08:18 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:52970 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229834AbhGGAIR (ORCPT
+        Tue, 6 Jul 2021 21:00:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58234 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229834AbhGGBAg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Jul 2021 20:08:17 -0400
-Received: from netfilter.org (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 751E86165D
-        for <netfilter-devel@vger.kernel.org>; Wed,  7 Jul 2021 02:05:26 +0200 (CEST)
-Date:   Wed, 7 Jul 2021 02:05:35 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH libnetfilter_queue v2] src: annotation: Correctly
- identify item for which header is needed
-Message-ID: <20210707000535.GA14395@salvia>
-References: <YOL6jXNMeRGh+BlX@slk1.local.net>
- <20210706013656.10833-1-duncan_roe@optusnet.com.au>
- <20210706224657.GA12859@salvia>
- <YOTu7qROo1iL/09T@slk1.local.net>
+        Tue, 6 Jul 2021 21:00:36 -0400
+Received: from mail-pg1-x535.google.com (mail-pg1-x535.google.com [IPv6:2607:f8b0:4864:20::535])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF0BFC061574
+        for <netfilter-devel@vger.kernel.org>; Tue,  6 Jul 2021 17:57:56 -0700 (PDT)
+Received: by mail-pg1-x535.google.com with SMTP id a2so521031pgi.6
+        for <netfilter-devel@vger.kernel.org>; Tue, 06 Jul 2021 17:57:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=sender:from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=TqLYLHgD9gHRi94acC5BT5UtTpaF7CnJ0ZpCjgN7F0E=;
+        b=gQblzrcDSBbw1/HGdgnRxJX/oqw6CLD85YYGGwGnAQowqHXQvclH9AcKOQHo+J0YXw
+         rgfdRGRpLpRaZdZ7PXKF1KzkzYaccvd0o7hHSEQ7jb54M9urp4LxgCMYKvs91foRIkw+
+         pxbVtxdJ/rf+TZQIduAQkdsp9Ww4pc+iXRXYH+L1SeuSj7WRyUhGdob8yvT5VY/R9119
+         dh0a4pe8Amz43XVIK+v/pH9pO1lWZUnw97LiMndm8xO4YRm9JRLImzp7RDKiQckSEpCL
+         eHK2WYbsNeFv2T5w2n0EV91J0p/79bDST7uoVG+7uheu0ntqMbDv1hnB/gvonxEEN2gg
+         abww==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
+         :in-reply-to:references:mime-version:content-transfer-encoding;
+        bh=TqLYLHgD9gHRi94acC5BT5UtTpaF7CnJ0ZpCjgN7F0E=;
+        b=DshzAGwdAuxynvr3n+jQuX7whuYJs/3k+sQwQKXzC2j/0dMTQYn4Y6RlgFwKh/cEZk
+         U6SLjJzwr02W4Vmhkh9soU86F0qxVNecTVi5wwal6t6zHEGY7ZnRAetQaUy/YfJc7ye/
+         GEsk5cWShDxIV+kRCTr8iaYRXqOVxYqgEzFkoSZA9h+6VHrk67YMxRKBwGHo6EaVSaHS
+         EIpBoBoAE6epUiqCtnEvyUNpStjJPHoBW0Ojd1B5A/a1sOyWEPsswantO47iW23X5FSc
+         YHmm7BBuS1W1U/qjeosreDl8yxUbJDIveoV/Gp70spCQDegaukrwIa0VAJfVFaB40E9J
+         ISkw==
+X-Gm-Message-State: AOAM5318uO17HDMLNjKKi0P8VHMx9g2yNbqHObdxzG2UwjWdDtT2+AJn
+        /1Jdi9EYberUWPc7hlJP2VY=
+X-Google-Smtp-Source: ABdhPJy4xF8vLze9540kZK8oJxxZQ8h0GWnKSEy+Ng7lrTkvGYwgok8TjNKN/MoawMqm4SbS6xMjmQ==
+X-Received: by 2002:a63:4041:: with SMTP id n62mr23137427pga.204.1625619476457;
+        Tue, 06 Jul 2021 17:57:56 -0700 (PDT)
+Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
+        by smtp.gmail.com with ESMTPSA id n26sm19980418pgd.15.2021.07.06.17.57.54
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 06 Jul 2021 17:57:55 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf] netfilter: uapi: refer to nfnetlink_conntrack.h, not nf_conntrack_netlink.h
+Date:   Wed,  7 Jul 2021 10:57:51 +1000
+Message-Id: <20210707005751.12108-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.30.1
+In-Reply-To: <20210706224657.GA12859@salvia>
+References: <20210706224657.GA12859@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <YOTu7qROo1iL/09T@slk1.local.net>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Jul 07, 2021 at 10:01:50AM +1000, Duncan Roe wrote:
-> On Wed, Jul 07, 2021 at 12:46:57AM +0200, Pablo Neira Ayuso wrote:
-> > On Tue, Jul 06, 2021 at 11:36:56AM +1000, Duncan Roe wrote:
-> > > Also fix header annotation to refer to nfnetlink_conntrack.h,
-> > > not nf_conntrack_netlink.h
-> >
-> > Please, split this in two patches. See below. Thanks.
-> >
-> > > Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
-> > > ---
-> > >  examples/nf-queue.c                                | 2 +-
-> > >  include/libnetfilter_queue/linux_nfnetlink_queue.h | 4 ++--
-> > >  include/linux/netfilter/nfnetlink_queue.h          | 4 ++--
-> > >  3 files changed, 5 insertions(+), 5 deletions(-)
-> > >
-> > > diff --git a/examples/nf-queue.c b/examples/nf-queue.c
-> > > index 3da2c24..5b86e69 100644
-> > > --- a/examples/nf-queue.c
-> > > +++ b/examples/nf-queue.c
-> > > @@ -15,7 +15,7 @@
-> > >
-> > >  #include <libnetfilter_queue/libnetfilter_queue.h>
-> > >
-> > > -/* only for NFQA_CT, not needed otherwise: */
-> > > +/* NFQA_CT requires CTA_* attributes defined in nfnetlink_conntrack.h */
-> > >  #include <linux/netfilter/nfnetlink_conntrack.h>
-> > >
-> > >  static struct mnl_socket *nl;
-> >
-> > This chunk belongs to libnetfilter_queue.
-> >
-> > > diff --git a/include/libnetfilter_queue/linux_nfnetlink_queue.h b/include/libnetfilter_queue/linux_nfnetlink_queue.h
-> > > index 1975dfa..caa6788 100644
-> > > --- a/include/libnetfilter_queue/linux_nfnetlink_queue.h
-> > > +++ b/include/libnetfilter_queue/linux_nfnetlink_queue.h
-> >
-> > This chunk below, belongs to the nf tree. You have to fix first the
-> > kernel UAPI, then you can refresh this copy that is stored in
-> > libnetfilter_queue.
-> 
-> I already sent you an nf-next patch which you said you would forward to nf.
+nf_conntrack_netlink.h does not exist, refer to nfnetlink_conntrack.h instead.
 
-Yes, it can be applied to nf as I said since it is a fix, it needs
-changes, I'm refering to this patch:
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+---
+ include/uapi/linux/netfilter/nfnetlink_log.h   | 2 +-
+ include/uapi/linux/netfilter/nfnetlink_queue.h | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20210705123829.10090-1-duncan_roe@optusnet.com.au/
+diff --git a/include/uapi/linux/netfilter/nfnetlink_log.h b/include/uapi/linux/netfilter/nfnetlink_log.h
+index 45c8d3b027e0..0af9c113d665 100644
+--- a/include/uapi/linux/netfilter/nfnetlink_log.h
++++ b/include/uapi/linux/netfilter/nfnetlink_log.h
+@@ -61,7 +61,7 @@ enum nfulnl_attr_type {
+ 	NFULA_HWTYPE,			/* hardware type */
+ 	NFULA_HWHEADER,			/* hardware header */
+ 	NFULA_HWLEN,			/* hardware header length */
+-	NFULA_CT,                       /* nf_conntrack_netlink.h */
++	NFULA_CT,                       /* nfnetlink_conntrack.h */
+ 	NFULA_CT_INFO,                  /* enum ip_conntrack_info */
+ 	NFULA_VLAN,			/* nested attribute: packet vlan info */
+ 	NFULA_L2HDR,			/* full L2 header */
+diff --git a/include/uapi/linux/netfilter/nfnetlink_queue.h b/include/uapi/linux/netfilter/nfnetlink_queue.h
+index bcb2cb5d40b9..aed90c4df0c8 100644
+--- a/include/uapi/linux/netfilter/nfnetlink_queue.h
++++ b/include/uapi/linux/netfilter/nfnetlink_queue.h
+@@ -51,11 +51,11 @@ enum nfqnl_attr_type {
+ 	NFQA_IFINDEX_PHYSOUTDEV,	/* __u32 ifindex */
+ 	NFQA_HWADDR,			/* nfqnl_msg_packet_hw */
+ 	NFQA_PAYLOAD,			/* opaque data payload */
+-	NFQA_CT,			/* nf_conntrack_netlink.h */
++	NFQA_CT,			/* nfnetlink_conntrack.h */
+ 	NFQA_CT_INFO,			/* enum ip_conntrack_info */
+ 	NFQA_CAP_LEN,			/* __u32 length of captured packet */
+ 	NFQA_SKB_INFO,			/* __u32 skb meta information */
+-	NFQA_EXP,			/* nf_conntrack_netlink.h */
++	NFQA_EXP,			/* nfnetlink_conntrack.h */
+ 	NFQA_UID,			/* __u32 sk uid */
+ 	NFQA_GID,			/* __u32 sk gid */
+ 	NFQA_SECCTX,			/* security context string */
+-- 
+2.17.5
 
-> I don't have the nf tree here but I guess the nf-next package will apply if
-> I re-package.
-
-The nf and nf-next trees look the same for nfnetlink_queue.h, you can
-base your patch on either tree, just use [PATCH nf] to target this to
-the nf git.
-
-> Will send 3 patches as you request.
-
-Thanks. I'll review them.
