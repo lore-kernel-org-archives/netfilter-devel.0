@@ -2,98 +2,159 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F379AC07E95
-	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Jul 2021 11:23:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10A40C07E95
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Jul 2021 13:22:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D4E9B61CB9
-	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Jul 2021 11:23:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EAA2861C60
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Jul 2021 13:22:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231406AbhGGL0J (ORCPT
+        id S231472AbhGGNZa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 7 Jul 2021 07:26:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55288 "EHLO
+        Wed, 7 Jul 2021 09:25:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53764 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231361AbhGGL0J (ORCPT
+        with ESMTP id S229757AbhGGNZ3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 7 Jul 2021 07:26:09 -0400
-Received: from mail-qt1-x830.google.com (mail-qt1-x830.google.com [IPv6:2607:f8b0:4864:20::830])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F329C061762
-        for <netfilter-devel@vger.kernel.org>; Wed,  7 Jul 2021 04:23:29 -0700 (PDT)
-Received: by mail-qt1-x830.google.com with SMTP id c13so1694506qtb.12
-        for <netfilter-devel@vger.kernel.org>; Wed, 07 Jul 2021 04:23:29 -0700 (PDT)
+        Wed, 7 Jul 2021 09:25:29 -0400
+Received: from mail-ej1-x643.google.com (mail-ej1-x643.google.com [IPv6:2a00:1450:4864:20::643])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A93D2C061574;
+        Wed,  7 Jul 2021 06:22:48 -0700 (PDT)
+Received: by mail-ej1-x643.google.com with SMTP id bu12so3318516ejb.0;
+        Wed, 07 Jul 2021 06:22:48 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=mojatatu-com.20150623.gappssmtp.com; s=20150623;
-        h=to:cc:from:subject:message-id:date:user-agent:mime-version
-         :content-language:content-transfer-encoding;
-        bh=oprwMzod/6MUSDVVxVpcrq6F+k0HVSo1xTGIJxIoykE=;
-        b=DqW2cyZZIwZJ4L09491xinpuYZsp77ByyyyDW9DcccwdjOGPS2lSp4XwQTQw+10Biz
-         AmxuEZwOgXapFupyUCTp2Zcr6tKGoYXYJHaiTYdw2TDxiIPERZ5BVvP19Kt++JVxvQiF
-         NzFcee/8Vj4utri6qM1gZ03rKXDBski973YNremOlItHKXtvFEg6jHBOt0OqF34rN4YX
-         HHfnVYmtTSh5Mp6/zh/85oOZjpuPbrktYEuf6gLfG08/dBplI2ePq4mb+ZoKXrYHK75U
-         Ghb6TiFlB9yfud0zbPzBVLtA93WnICYt+Hdhrr5u7UpjYsKgl/RT4tiJRQdVkpAzePaK
-         fEcg==
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=NX1ZKDJsQuuJjvtcyvAtIrLYE2dDnJwtrH+INwBVKA0=;
+        b=Pky5EfyGnHFuWzU1VkHcjQ5Cd8ZLb9e7Uz+KHY6CdD1szPAz44F8DrmZTNfTlSV+JY
+         yuCGcmuIBaW7Gafdc6xRhySf2F/+kyK8hzz5r7FmXwrp72ZPm/8sdiP1bkIznNH8rW44
+         XZY5w4bF4H3e6nirQrVAf+0FXlhFjKzX5IUgcGvXJqdZsufT4t7gkX6qasBgRlUTiSsf
+         tWcPdSdY3TVq1yZq7NGY5lhYMhxCGqqVPycCBJQZfdOU8qEocmyUBJ4L3ijx/HDHnH55
+         zHMX6hxWXFy9MDSacDZ0w1y82iE6pd5n2mXs26DuBeibWtFi/bPLMq4rLab19NVI8rql
+         x9cw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:to:cc:from:subject:message-id:date:user-agent
-         :mime-version:content-language:content-transfer-encoding;
-        bh=oprwMzod/6MUSDVVxVpcrq6F+k0HVSo1xTGIJxIoykE=;
-        b=L6Exx60p8zdxnl9/kbCjrDezo48adsCdlx6GW4MqZIYq05OwZCFdzGwBRPzQn5xmHj
-         6SYXGohDTZHA+RxFkKyeA/gRsGSjgjHMsZvs7Sm5G93mJhefaxw5/tUiKKwXtwELt6Ee
-         FgsfZnMWMJ7xTMzPpr4dlO2cOlkfnxyr9RzwVhFSyrHwxPHipnt9fkT4XFF3Fr/IoznH
-         DS7yemYH4s2qPSs4eLgQUtfZkleMNaLQ2cSs+E87vhemvcoTwsos2bMGJZP9YP071Sfo
-         ckuxb4RZnaKWudJx+5Uo9sBFfiuQjn6Y6Cu1Ohnjqy/ok9krs/cBA6cZle1w72YkqKs6
-         H5hw==
-X-Gm-Message-State: AOAM531n7KWS2FQeXVIkwmmr+379G3XSC/flMsWOe2CAejbmdC7pB7rG
-        cDe7tLOsujfQaVOWmp+dj8bm89M57x43Un/Y
-X-Google-Smtp-Source: ABdhPJwGP0B7Jf4MSIvu3GKIZZEa50D7QRKZQ/AYy072z0n8z5dus4W4ssxepN+HHM/4Mm3C6f8myA==
-X-Received: by 2002:ac8:775c:: with SMTP id g28mr9059154qtu.193.1625657008528;
-        Wed, 07 Jul 2021 04:23:28 -0700 (PDT)
-Received: from [192.168.1.171] (bras-base-kntaon1617w-grc-28-184-148-47-47.dsl.bell.ca. [184.148.47.47])
-        by smtp.googlemail.com with ESMTPSA id 3sm2353797qtz.5.2021.07.07.04.23.27
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 07 Jul 2021 04:23:28 -0700 (PDT)
-To:     "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        linux-wireless <linux-wireless@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, lartc@vger.kernel.org
-Cc:     lwn@lwn.net
-From:   Jamal Hadi Salim <jhs@mojatatu.com>
-Subject: Netdevconf 0x15 update
-Message-ID: <7892184b-c981-d5d1-0664-e64844b39686@mojatatu.com>
-Date:   Wed, 7 Jul 2021 07:23:23 -0400
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.11.0
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=NX1ZKDJsQuuJjvtcyvAtIrLYE2dDnJwtrH+INwBVKA0=;
+        b=KWCZAtzlKbH5+CnLyvCRWmE9sGAPKwe6Crn0pMIrItpKlfW6FuqywertwDFX6uuCcO
+         LEjC2rWON8RoIW4/TnKK/yAnBkkhE3wdYqfI8FB57bfZG6YBW/j4VNnh4kYAlrTsuB3/
+         qNjQdLAXluL3++qOB6Cq7gAg+ttbGZEfcM24W1sUMgU7xAbQzvKXe85uJ8ocFD6djzfj
+         3OJw2FsUKfQzhzLKdlayCpj4zkjSq/rxn9Cw29bP2QK5MqoVhFQp2g3Hg861y7mUIpwo
+         PS0zJl7Bg0OXsHnA5Si0+g5djDXpvVd2zVEdkHZVmX5G6Yyo34zpapeuTgqJiS9AQW0z
+         OShw==
+X-Gm-Message-State: AOAM531LsAbXSk5Jsij1f7OIf1X9O74vo24ga1hvtTtZn97Dg2LtN3HZ
+        wu58zA1OzDzyZujQO9TsW4pu+QpBYAS22Myv/HqiNTmc58IR4Xxg
+X-Google-Smtp-Source: ABdhPJyxIR7UkT66xJvNSNwNAdxLITultz32qew0PD2PJgaP6iPMpohAS1uS911QvIXI301VO5e/scNfzte2g3xukxQ=
+X-Received: by 2002:a17:906:3699:: with SMTP id a25mr17995642ejc.452.1625664167340;
+ Wed, 07 Jul 2021 06:22:47 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+References: <CABv53a97_5iaAdOcoVdQDxNyyTxgXHx=mHm0Sfo4UJVLHoxosg@mail.gmail.com>
+ <20210707091807.GA16039@salvia>
+In-Reply-To: <20210707091807.GA16039@salvia>
+From:   iLifetruth <yixiaonn@gmail.com>
+Date:   Wed, 7 Jul 2021 21:22:12 +0800
+Message-ID: <CABv53a_3sQmRzCfybo1s0EkNnFyaehx-E0WvBALe34XsXggpJg@mail.gmail.com>
+Subject: Re: netfilter: Use netlink_ns_capable to verify the permisions of
+ netlink messages
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Qiang Liu <cyruscyliu@gmail.com>, yajin@vm-kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Folks,
-Reminder that the virtual conference starts today with a keynote
-at 3PM UTC.
+I see.
+There is no need to check the capability again in the
+nfnetlink_cthelper and nfnetlink_osf now.
 
-A lot of great content, see:
-https://netdevconf.info/0x15/accepted-sessions.html
-Registration is reel cheep at USD $50 (50% for students).
+Regards and thanks for your analyze,
+- iLifetruth
 
-The conference will be spread over the next 2+ weeks
-(Upto and including July 23). See schedule (and registration)
-here:
-https://netdevconf.info/0x15/virtual.html
-We never close registration - and this time to
-accommodate for the different timezones we are going
-to keep all the session recordings on site. So if you
-missed a session because of a conflict or because it was
-running when it is late in your location, as long as you
-are registered,  you can login and replay the session.
-As usual we will make all session videos, slides and papers
-public after the conference.
 
-cheers,
-jamal
+
+
+On Wed, Jul 7, 2021 at 5:18 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>
+> On Wed, Jul 07, 2021 at 04:05:33PM +0800, iLifetruth wrote:
+> > Hi, we have found that the same fix pattern of CVE-2014-0181 may not
+> > forward ported to some netlink-related places in the latest linux
+> > kernel(v5.13)
+> >
+> > =============
+> > Here is the description of CVE-2014-0181:
+> >
+> > The Netlink implementation in the Linux kernel through 3.14.1 does not
+> > provide a mechanism for authorizing socket operations based on the opener
+> > of a socket, which allows local users to bypass intended access
+> > restrictions and modify network configurations by using a Netlink socket
+> > for the (1) stdout or (2) stderr of a setuid program.
+> >
+> > ==========
+> > And here is the solution to CVE-2014-0181:
+> >
+> > To keep this from happening, replace bare capable and ns_capable calls with
+> > netlink_capable, netlink_net_calls and netlink_ns_capable calls. Which act
+> > the same as the previous calls *except they verify that the opener of the
+> > socket had the desired permissions as well.*
+> >
+> > ==========
+> > The upstream patch commit of this vulnerability described in CVE-2014-0181
+> > is:
+> >     90f62cf30a78721641e08737bda787552428061e (committed about 7 years ago)
+> >
+> > =========
+> > Capable() checks were added to these netlink-related places listed below
+> > in netfilter by another upstream commit:
+> > 4b380c42f7d00a395feede754f0bc2292eebe6e5(committed about 4 years ago)
+> >
+> > In kernel v5.13:
+> >     File_1: linux/net/netfilter/nfnetlink_cthelper.c
+> >                        in line 424, line 623 and line 691
+> >     File_2: linux/net/netfilter/nfnetlink_osf.c
+> >                        in line 305 and line 351
+>
+> These subsystems depend on nfnetlink.
+>
+> nfnetlink_rcv() is called before passing the message to the
+> corresponding backend, e.g. nfnetlink_osf.
+>
+> static void nfnetlink_rcv(struct sk_buff *skb)
+> {
+>         struct nlmsghdr *nlh = nlmsg_hdr(skb);
+>
+>         if (skb->len < NLMSG_HDRLEN ||
+>             nlh->nlmsg_len < NLMSG_HDRLEN ||
+>             skb->len < nlh->nlmsg_len)
+>                 return;
+>
+>         if (!netlink_net_capable(skb, CAP_NET_ADMIN)) {
+>                 netlink_ack(skb, nlh, -EPERM, NULL);
+>                 return;
+>         }
+>         [...]
+>
+> which is calling netlink_net_capable().
+>
+> > But these checkers are still using bare capable instead of netlink_capable
+> > calls. So this is likely to trigger the vulnerability described in the
+> > CVE-2014-0181 without checking the desired permissions of the socket
+> > opener. Now, shall we forward port the fix pattern from the patch of
+> > CVE-2014-0181?
+> >
+> > We would like to contact you to confirm this problem.
+>
+> I think these capable() calls in nfnetlink_cthelper and nfnetlink_osf
+> are dead code that can be removed. As I explained these subsystems
+> stay behind nfnetlink.
