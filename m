@@ -2,121 +2,143 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 567A8C07E96
-	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Jul 2021 01:26:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EEC7CC07E96
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Jul 2021 01:58:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3C4A961C81
-	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Jul 2021 01:26:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D009861CBD
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Jul 2021 01:58:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229953AbhGGB31 (ORCPT
+        id S230015AbhGGCBJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 6 Jul 2021 21:29:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36246 "EHLO
+        Tue, 6 Jul 2021 22:01:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43046 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229949AbhGGB30 (ORCPT
+        with ESMTP id S229949AbhGGCBI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Jul 2021 21:29:26 -0400
-Received: from mail-pg1-x536.google.com (mail-pg1-x536.google.com [IPv6:2607:f8b0:4864:20::536])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F104C061574
-        for <netfilter-devel@vger.kernel.org>; Tue,  6 Jul 2021 18:26:46 -0700 (PDT)
-Received: by mail-pg1-x536.google.com with SMTP id 37so617579pgq.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 06 Jul 2021 18:26:46 -0700 (PDT)
+        Tue, 6 Jul 2021 22:01:08 -0400
+Received: from mail-pg1-x533.google.com (mail-pg1-x533.google.com [IPv6:2607:f8b0:4864:20::533])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 656B2C061574
+        for <netfilter-devel@vger.kernel.org>; Tue,  6 Jul 2021 18:58:28 -0700 (PDT)
+Received: by mail-pg1-x533.google.com with SMTP id v7so649334pgl.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 06 Jul 2021 18:58:28 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=sender:from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=gMUprEkvNKDrSeeU7av7wZtNJ8awLhDL6P/If9WDOjo=;
-        b=M1xLDC5mMf9JB+suc6maeIazp0uWbQaqmbDK7PlTaI3UrMz+Mhbdc0Y5dyu7drvRr2
-         X8Hc6hKeMeT87GAKV2y9cczBOf2SUf6MdeVb1S/39oEPdfaLDTGhkiFnQSgKVTWTd5Ey
-         6nvWhUZUSyzYYMat1fkQNvzEDEWgK4dPlhCY98oZhrOeFgiL2S4WnmEm/q4gjdI4g8BD
-         p69rqEZ89yTpCFkFgefYu3nUjKTw7DwQ9X/0OEujmEE6B+JXEBme26NHQEbWm4DavxGo
-         VBc+2teIDrm1/aYyhWQMEPBr9cqQffl3PzrKDx4SGgi3oLORKFqxaYWP379ALnnRR3QX
-         z5Pw==
+        h=sender:from:date:to:cc:subject:message-id:mail-followup-to
+         :references:mime-version:content-disposition:in-reply-to;
+        bh=vujzIV2u4S3lxIyG/UnRfDo3tGZuFH2ualPJuQoDHGg=;
+        b=fxU1xXiINheabWwyvwZZ5JB+m8S7PzpjO/51aqc1rNWf1tRYBUJbdFSQlOaBloV3nA
+         P7P6kdGMC77sKajTgnorc/wIbegfh5x3RCQ6Hak42282R2PzRIk70iCR8a/2Ga+eRfh9
+         Q4cHZ4nXtp6j+OWxGxSCKaBDx9CweHbA6kHcntDFRkvSB9jGHxYWFM86/8k5Pc/xxLb5
+         ryUlG2awMtR7qoXMIi7TvOXfduXDvwVWFFz/oWjN29PAz5ExVOaCA1gBeXIowlcc4kIU
+         f8kNQI00ARkpzkSUbgCpvqBdpVtn6LPctskgN6qkjJRLa6kfqfwjUbFZObmn2uE31F5I
+         2k9A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
-         :in-reply-to:references:mime-version:content-transfer-encoding;
-        bh=gMUprEkvNKDrSeeU7av7wZtNJ8awLhDL6P/If9WDOjo=;
-        b=toUZpxs4yyHz3fkl08J/w6SLhQ46lNFKqCw529Y+QLqvEn04kkge9a7upd0FgbCqWm
-         KEmjdyI0GpXKN3wao5A6cCGzdGQaMknZF/16aKBnGVbxftr3m51IBOZsZHK/OY+Xfp/5
-         hVkKUB8EKJ7El1P4tDtt0zU5fhyFBL0kwpXULJ/opAmrqHbYrXkca/XxIVlSfK87C9eT
-         7tvIe0tinlbTyGey/vuj4hq3cWQ+Y7DfWe3tNAC5lBtIIC4rJxY5BuXlsoQnUsdefqEI
-         Z8aAZ4bmVoSoB1ZLRL9EpSUc+mUer8AREVIpiXWTZUkkjsgEOgR6mpt/pkhC1GX921XD
-         nl7Q==
-X-Gm-Message-State: AOAM5336WJELGig8gVgyejlbcSQSGmz2abe2QcbUDQntPqx5EFRmnewn
-        OA1cDX7IBjjJPLfjI6tDKqI=
-X-Google-Smtp-Source: ABdhPJzYJxvWnYGhQkLP/WgLTibx5JBGkPnkrhvixu05JaAqMoq077GEx1kao67SQYl6OFjjCV1LDw==
-X-Received: by 2002:a63:5513:: with SMTP id j19mr23438680pgb.192.1625621205617;
-        Tue, 06 Jul 2021 18:26:45 -0700 (PDT)
+        h=x-gm-message-state:sender:from:date:to:cc:subject:message-id
+         :mail-followup-to:references:mime-version:content-disposition
+         :in-reply-to;
+        bh=vujzIV2u4S3lxIyG/UnRfDo3tGZuFH2ualPJuQoDHGg=;
+        b=NaW7yYKJIw66I+YwaUZ6cSe2iYJEhjj02fZGPnOSjHVFeR/moF+GgtQdsxF7SoQywS
+         04ybmuivD95KZgXFXQxdc8BJl/YUEKo70N1sEAms/rC6C6b70W5Qil8cmSCtSTDEiCo+
+         vib/07QB1VMJEsbdCwmKioLRHydC1IpyUCyfJMvW7Tc6Qfi5i/2ygk5LFZU9UWGCI0iz
+         sx8Z0VlOQ9O7x6lUl6Ap2imjkIQlpwj+RST4dIKIcswV6T+KmjWMT5i4ABjaOuIQUScD
+         47LqHZ8ietBkBYusqHvRc8QwOyJtc3HIb//8nPIH1WFj575xqjcYXFVMDmO5VOoRv5vC
+         vJyA==
+X-Gm-Message-State: AOAM532KVV43iWDdbY05/LndiAHC0J+FVcUvPvxzmFcsBupRPgXTKQO+
+        l+G7mKqT4W/ZOp/jiS4MHcedtRJDv14=
+X-Google-Smtp-Source: ABdhPJywzdJgj+veo/P0WY09WzG3Usxb74E9KOUx6wq+l9Q2bNgrFOKKJ915i1Rm2CT/f60W5B69pQ==
+X-Received: by 2002:a65:6a4c:: with SMTP id o12mr23810025pgu.446.1625623107864;
+        Tue, 06 Jul 2021 18:58:27 -0700 (PDT)
 Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
-        by smtp.gmail.com with ESMTPSA id y11sm5257384pfm.190.2021.07.06.18.26.43
+        by smtp.gmail.com with ESMTPSA id 11sm19589393pge.7.2021.07.06.18.58.25
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 06 Jul 2021 18:26:45 -0700 (PDT)
+        Tue, 06 Jul 2021 18:58:27 -0700 (PDT)
 Sender: Duncan Roe <duncan.roe2@gmail.com>
 From:   Duncan Roe <duncan_roe@optusnet.com.au>
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_queue] include: refer to nfnetlink_conntrack.h, not nf_conntrack_netlink.h
-Date:   Wed,  7 Jul 2021 11:26:41 +1000
-Message-Id: <20210707012641.12229-1-duncan_roe@optusnet.com.au>
-X-Mailer: git-send-email 2.30.1
-In-Reply-To: <20210706224657.GA12859@salvia>
-References: <20210706224657.GA12859@salvia>
+X-Google-Original-From: Duncan Roe <dunc@slk1.local.net>
+Date:   Wed, 7 Jul 2021 11:58:23 +1000
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libnetfilter_queue v2] src: examples: Use
+ libnetfilter_queue cached linux headers throughout
+Message-ID: <YOUKPzcHr534edLs@slk1.local.net>
+Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <20210706042713.11002-1-duncan_roe@optusnet.com.au>
+ <20210706053648.11109-1-duncan_roe@optusnet.com.au>
+ <20210706225231.GB12859@salvia>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210706225231.GB12859@salvia>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-nf_conntrack_netlink.h does not exist, refer to nfnetlink_conntrack.h instead.
+On Wed, Jul 07, 2021 at 12:52:31AM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Jul 06, 2021 at 03:36:48PM +1000, Duncan Roe wrote:
+> > A user will typically copy nf-queue.c, make changes and compile: picking up
+> > /usr/include/linux/nfnetlink_queue.h rather than
+> > /usr/include/libnetfilter_queue/linux_nfnetlink_queue.h as is recommended.
+> >
+> > libnetfilter_queue.h already includes linux_nfnetlink_queue.h so we only need
+> > to delete the errant line.
+> >
+> > (Running `make nf-queue` from within libnetfilter_queue/examples will get
+> > the private cached version of nfnetlink_queue.h which is not distributed).
+> >
+> > Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+> > ---
+> > v2: Don't insert a new #include
+> >     Doesn't clash with other nearby patch
+> >  examples/nf-queue.c | 1 -
+> >  1 file changed, 1 deletion(-)
+> >
+> > diff --git a/examples/nf-queue.c b/examples/nf-queue.c
+> > index 3da2c24..e4b33b5 100644
+> > --- a/examples/nf-queue.c
+> > +++ b/examples/nf-queue.c
+> > @@ -11,7 +11,6 @@
+> >  #include <linux/netfilter/nfnetlink.h>
+> >
+> >  #include <linux/types.h>
+> > -#include <linux/netfilter/nfnetlink_queue.h>
+>
+> I remember now what the intention was.
+>
+> This include is fine as is: new applications should cache a copy of
+> nfnetlink_queue.h in their own tree, that's the recommended way to go.
+> This is the approach that we follow in other existing userspace
+> netfilter codebase (ie. the userspace program caches the kernel UAPI
+> header in the tree). The linux_nfnetlink_queue.h header is a legacy
+> file only for backward compatibility, it should not be used for new
+> software. This is not documented, the use of this include in
+> examples/nf-queue.c was intentional.
+>
+> This approach also allows to fall back to the UAPI kernel headers that
+> are installed in your system.
+>
+> Thanks.
 
-Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
----
- include/libnetfilter_queue/linux_nfnetlink_queue.h | 4 ++--
- include/linux/netfilter/nfnetlink_queue.h          | 4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+Thanks for explaining. But I do see a glitch: if you put
+> #include <libnetfilter_queue/libnetfilter_queue.h>
+before
+> #include <linux/netfilter/nfnetlink_queue.h>
+then you will get libnetfilter_queue/linux_nfnetlink_queue.h because
+libnetfilter_queue.h includes it.
 
-diff --git a/include/libnetfilter_queue/linux_nfnetlink_queue.h b/include/libnetfilter_queue/linux_nfnetlink_queue.h
-index 1975dfa..caa6788 100644
---- a/include/libnetfilter_queue/linux_nfnetlink_queue.h
-+++ b/include/libnetfilter_queue/linux_nfnetlink_queue.h
-@@ -46,11 +46,11 @@ enum nfqnl_attr_type {
- 	NFQA_IFINDEX_PHYSOUTDEV,	/* __u32 ifindex */
- 	NFQA_HWADDR,			/* nfqnl_msg_packet_hw */
- 	NFQA_PAYLOAD,			/* opaque data payload */
--	NFQA_CT,			/* nf_conntrack_netlink.h */
-+	NFQA_CT,			/* nfnetlink_conntrack.h */
- 	NFQA_CT_INFO,			/* enum ip_conntrack_info */
- 	NFQA_CAP_LEN,			/* __u32 length of captured packet */
- 	NFQA_SKB_INFO,			/* __u32 skb meta information */
--	NFQA_EXP,			/* nf_conntrack_netlink.h */
-+	NFQA_EXP,			/* nfnetlink_conntrack.h */
- 	NFQA_UID,			/* __u32 sk uid */
- 	NFQA_GID,			/* __u32 sk gid */
- 	NFQA_SECCTX,			/* security context string */
-diff --git a/include/linux/netfilter/nfnetlink_queue.h b/include/linux/netfilter/nfnetlink_queue.h
-index 030672d..8e2e469 100644
---- a/include/linux/netfilter/nfnetlink_queue.h
-+++ b/include/linux/netfilter/nfnetlink_queue.h
-@@ -42,11 +42,11 @@ enum nfqnl_attr_type {
- 	NFQA_IFINDEX_PHYSOUTDEV,	/* __u32 ifindex */
- 	NFQA_HWADDR,			/* nfqnl_msg_packet_hw */
- 	NFQA_PAYLOAD,			/* opaque data payload */
--	NFQA_CT,			/* nf_conntrack_netlink.h */
-+	NFQA_CT,			/* nfnetlink_conntrack.h */
- 	NFQA_CT_INFO,			/* enum ip_conntrack_info */
- 	NFQA_CAP_LEN,			/* __u32 length of captured packet */
- 	NFQA_SKB_INFO,			/* __u32 skb meta information */
--	NFQA_EXP,			/* nf_conntrack_netlink.h */
-+	NFQA_EXP,			/* nfnetlink_conntrack.h */
- 	NFQA_UID,			/* __u32 sk uid */
- 	NFQA_GID,			/* __u32 sk gid */
- 	NFQA_SECCTX,
--- 
-2.17.5
+IMHO it's highly undesirable for the order of #include stmts to make a
+difference and we should do something about it.
 
+If you like, I can submit a patch to remove the linux_nfnetlink_queue.h include
+from libnetfilter_queue.h and add nfnetlink_queue.h to any sources which then
+fail to compile.
+
+Should I?
+
+Cheers ... Duncan.
