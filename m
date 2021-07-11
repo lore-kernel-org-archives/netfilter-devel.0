@@ -2,173 +2,161 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-9.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71C88C07E96
-	for <netfilter-devel@archiver.kernel.org>; Sun, 11 Jul 2021 07:12:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F00EC07E96
+	for <netfilter-devel@archiver.kernel.org>; Sun, 11 Jul 2021 12:33:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4D87361351
-	for <netfilter-devel@archiver.kernel.org>; Sun, 11 Jul 2021 07:12:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D86E8611CC
+	for <netfilter-devel@archiver.kernel.org>; Sun, 11 Jul 2021 12:33:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229726AbhGKHPl (ORCPT
+        id S232658AbhGKMgX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 11 Jul 2021 03:15:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59688 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229544AbhGKHPl (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 11 Jul 2021 03:15:41 -0400
-Received: from mail-pf1-x42e.google.com (mail-pf1-x42e.google.com [IPv6:2607:f8b0:4864:20::42e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 32481C0613DD
-        for <netfilter-devel@vger.kernel.org>; Sun, 11 Jul 2021 00:12:55 -0700 (PDT)
-Received: by mail-pf1-x42e.google.com with SMTP id d12so13116372pfj.2
-        for <netfilter-devel@vger.kernel.org>; Sun, 11 Jul 2021 00:12:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:subject:from:in-reply-to:date:cc
-         :content-transfer-encoding:message-id:references:to;
-        bh=8he8vJwyRIYpjg+FkaaXNzfmOPnNBINkdbbzLbKRzzg=;
-        b=sxnUsd3fjdQ/5x4X8b/r38ZvUiUN7iorNSUcaJuODR7Q6I/Omwkixt6zcusCXfcxWu
-         W5t2OI3de5x7CJKBegGYa1U/EZT5vV5CG/JlldHS7fK4IyLCo81q6IgUtL6qNUQpMdgf
-         VY9ph8K/LoUlHL5SoVI0YvIzH+Rm9jLIcUw+605cyJwHFyfcP2Y4Kz0K6HdueNLY2jtb
-         9XbMiFRATyiWxbvhiK+26dDyiLvZ9mLWl2NExt1L/rURYAhnJEUL0s1AoSxYpyIqXzM+
-         zuapTLkKLQZDygI8v7DwhQEJgepNCHdfrkL7oESMB9piHdb4+NssWPHs0APg25VR5st3
-         15eA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:subject:from:in-reply-to:date:cc
-         :content-transfer-encoding:message-id:references:to;
-        bh=8he8vJwyRIYpjg+FkaaXNzfmOPnNBINkdbbzLbKRzzg=;
-        b=BaHxYnVlDYuToFJWH0vmJfFbXRdokxHa7KV7cXXMtKvawA7FwGTE3ggCkWIA1JKwoj
-         hB0wlOvIPwQQUDqyzO2O8mEClst/AGcW4ZR+kzMuGlvTPl6Y67JzPEQiD6dKu07nGhE2
-         DZVW82wJ1kUX77BxDvPr38w9Zpw2CWUQoVSUn6PP6mHynqEmjx34mkMHtAL2Rt/Mskma
-         r2N6zR18/R23AtS9SWTFnrPgA88Ous+YKc+1UReCIhc9phMYqjoaNVUzPXn1q/9BfRIG
-         sm8xDispNjUAa7iyPUZA6jGqv+t8mIxQ3QRVsvPIfxjnHet9PkV7ALNALXvf/EEsnN/7
-         XvTg==
-X-Gm-Message-State: AOAM530vJXeKigGVq98tr9pVDGaEEUT0UiP0ZkDZiGFZs3v06DP8UnQp
-        YR66gz9VzT39U1mzd/V0kpc=
-X-Google-Smtp-Source: ABdhPJwXijSUm35mwM3OOu1JCL1L8F8vu+3sCNqdlZYSp+6cmekI9Zs0/Mxbw8xzHjSGxr0s0dkPGQ==
-X-Received: by 2002:aa7:87c2:0:b029:320:d13:d8a7 with SMTP id i2-20020aa787c20000b02903200d13d8a7mr35749047pfo.44.1625987574629;
-        Sun, 11 Jul 2021 00:12:54 -0700 (PDT)
-Received: from smtpclient.apple (softbank126168110019.bbtec.net. [126.168.110.19])
-        by smtp.gmail.com with ESMTPSA id z12sm9844494pjd.39.2021.07.11.00.12.51
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 11 Jul 2021 00:12:54 -0700 (PDT)
-Content-Type: text/plain;
-        charset=utf-8
-Mime-Version: 1.0 (Mac OS X Mail 14.0 \(3654.100.0.2.22\))
-Subject: Re: [PATCH] net: Add netfilter hooks to track SRv6-encapsulated flows
-From:   Ryoga Saito <proelbtn@gmail.com>
-In-Reply-To: <20210709204851.90b847c71760aa40668a0971@uniroma2.it>
-Date:   Sun, 11 Jul 2021 16:12:48 +0900
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>, davem@davemloft.net,
-        yoshfuji@linux-ipv6.org, dsahern@kernel.org, kuba@kernel.org,
-        netfilter-devel@vger.kernel.org,
-        Stefano Salsano <stefano.salsano@uniroma2.it>,
-        Paolo Lungaroni <paolo.lungaroni@uniroma2.it>
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <FEF1CBA8-62EC-483A-B7CA-50973020F27B@gmail.com>
-References: <20210706052548.5440-1-proelbtn@gmail.com>
- <20210708033138.ef3af5a724d7b569c379c35e@uniroma2.it>
- <20210708133859.GA6745@salvia>
- <20210708183239.824f8e1ed569b0240c38c7a8@uniroma2.it>
- <CALPAGbJt_rb_r3M2AEJ_6VRsG+zXrEOza0U-6SxFGsERGipT4w@mail.gmail.com>
- <8EFE7482-6E0E-4589-A9BE-F7BC96C7876E@gmail.com>
- <20210709204851.90b847c71760aa40668a0971@uniroma2.it>
-To:     Andrea Mayer <andrea.mayer@uniroma2.it>
-X-Mailer: Apple Mail (2.3654.100.0.2.22)
+        Sun, 11 Jul 2021 08:36:23 -0400
+Received: from mx3.wp.pl ([212.77.101.9]:28753 "EHLO mx3.wp.pl"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229688AbhGKMgX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 11 Jul 2021 08:36:23 -0400
+Received: (wp-smtpd smtp.wp.pl 30827 invoked from network); 11 Jul 2021 14:33:34 +0200
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=wp.pl; s=1024a;
+          t=1626006814; bh=yGD3+h86TDL0Au0dytegwySUcFcEQ6eQwHK3EqtKFOE=;
+          h=Subject:To:Cc:From;
+          b=gQ7B3LwZBxyuYVWozeXPPeSje5qiyZJsCYPaZKt9h1uec5e4nz6md1NPA8uvQiWb4
+           Bq3cm7MrtltPqrGRw5dqPKxHJKn3b0nzf4/ufsBztz9L+Awlk4p/NFOl0evqJxYDaz
+           w6nEcPteqrPN9RSdJT5jNCsNSPuvSjl9qOH4PDUQ=
+Received: from ip-5-172-255-228.free.aero2.net.pl (HELO [100.82.33.98]) (olek2@wp.pl@[5.172.255.228])
+          (envelope-sender <olek2@wp.pl>)
+          by smtp.wp.pl (WP-SMTPD) with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP
+          for <roid@nvidia.com>; 11 Jul 2021 14:33:34 +0200
+Subject: Re: [PATCH nf] Revert "netfilter: flowtable: Remove redundant hw
+ refresh bit"
+To:     Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
+        pablo@netfilter.org
+Cc:     nbd@nbd.name, coreteam@netfilter.org, davem@davemloft.net,
+        fw@strlen.de, kadlec@netfilter.org, kuba@kernel.org,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, roid@nvidia.com
+References: <20210614215351.GA734@salvia>
+ <20210711010244.1709329-1-martin.blumenstingl@googlemail.com>
+From:   Aleksander Bajkowski <olek2@wp.pl>
+Message-ID: <74c866f1-48e6-eccc-5bde-e9051f1c51cb@wp.pl>
+Date:   Sun, 11 Jul 2021 14:33:33 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.11.0
+MIME-Version: 1.0
+In-Reply-To: <20210711010244.1709329-1-martin.blumenstingl@googlemail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
+X-WP-MailID: 87004a05ed87b34b5ad386b03fa5ffb3
+X-WP-AV: skaner antywirusowy Poczty Wirtualnej Polski
+X-WP-SPAM: NO 0000005 [AQbA]                               
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Thanks for your reply.
+Hi Martin,
 
->> I considered srv6 Behaviors (e.g. T.Encaps) to be the same as the =
-encapsulation
->> in other tunneling protocols, and srv6local Behaviors (e.g. End, =
-End.DT4,
->> End.DT6, ...) to be the same as the decapsulation in other tunneling =
-protocols
->> even if decapsulation isn't happened.=20
->=20
-> This is the point: SRv6 End, End.T, End.X with their flavors are *not* =
-encap/
-> decap operations. As SRv6 is not a protocol meant only for =
-encap/decap, we
-> cannot apply to this the same logic found in other protocols that =
-perform
-> encap/decap operations.
+Thanks for the IRC log. Today I repeated my previous tests. I think I had to have Hardware flow offloading enabled before, even though Lantiq xRX200 doesn't support it. With only the software flow offloading turned on, I do not see a significant performance drop.
 
-Okay, I understood.
+Today's results (IPv6 routing with DSA driver and Burst Length Patch):
+Device	Kernel	Flow offload	Upload	Download
+HH5A	5.4.128	Disabled	101	170
+HH5A	5.10.46	Disabled	95.4	159
+HH5A	5.10.42	Disabled	96.6	165
+HH5A	5.10.41	Disabled	101	165
+HH5A	5.4.128	Soft		471	463
+HH5A	5.10.46	Soft		553	472
+HH5A	5.10.42	Soft		556	468
+HH5A	5.10.41	Soft		558	492
+HH5A	5.4.128	Soft+Hard	434	460
+HH5A	5.10.46	Soft+Hard	229	181
+HH5A	5.10.42	Soft+Hard	228	177
+HH5A	5.10.41	Soft+Hard	577	482
 
->> I think it works correctly on your situation with the following rule:
->>=20
->> ip6tables -A INPUT --dst fc01::2 -j ACCEPT
->>=20
->> To say more generally, SRv6 locator blocks should be allowed with =
-ip6tables if
->> you want to change default policy of INPUT chain to DROP/REJECT.
->>=20
->=20
-> No, this is a way to fix the problem that you introduce by changing =
-the current
-> srv6local forwarding model. If you have 100 End SIDs should you add =
-100 accept
-> rules? The root problem is that SRv6 (srv6local) traffic should not go =
-through
-> the INPUT path.
+It seems my workaround is unnecessary.
 
-No, you only need to add single rule for accepting these SIDs. Here is =
-the
-quote of RFC 8986.
+Best regards,
+Aleksander Jan Bajkowski
 
----
-This document defines an SRv6 SID as consisting of LOC:FUNCT:ARG, where
-a locator (LOC) is encoded in the L most significant bits of the SID,
-followed by F bits of function (FUNCT) and A bits of arguments (ARG). L,
-the locator length, is flexible, and an operator is free to use the =
-locator
-length of their choice. F and A may be any value as long as L+F+A <=3D =
-128.
-When L+F+A is less than 128, then the remaining bits of the SID MUST be
-zero.
-
-A locator may be represented as B:N where B is the SRv6 SID block (IPv6
-prefix allocated for SRv6 SIDs by the operator) and N is the identifier =
-of
-the parent node instantiating the SID.
-
-When the LOC part of the SRv6 SIDs is routable, it leads to the node, =
-which
-instantiates the SID.
----
-
-If there are 100 SIDs, but these SIDs are for the same node, the =
-locators
-of these SIDs also should be same. so, you can allow SRv6 flows by =
-adding
-only single rule.
-
-> Have you set the traffic to flow through INPUT to confirm a connection =
-(for
-> conntrack)? If this is the only reason, before changing the srv6local
-> processing model in such a disruptive way, you can investigate =
-different ways
-> to do connection confirmation without going directly through nfhook =
-with INPUT.
-> I can help with some hints if you are interested.
-
-You stated this patch isn't acceptable because NF_HOOK is called even =
-when
-End behavior is processing, aren't you? So, do you think it=E2=80=99s =
-natural that
-NF_HOOK is called *only* when SRv6 behavior is encap/decap operation. =
-The
-problem I stated first is that netfilter couldn't track inner flows of
-SRv6-encapsulated packets regardless of the status of IPv6 conntrack. If
-yes, I will fix and resubmit patch.
-
-Ryoga=
+On 7/11/21 3:02 AM, Martin Blumenstingl wrote:
+> Hi Aleksander,
+> 
+>> The xt_flowoffload module is inconditionally setting on the hardware
+>> offload flag:
+> [...]
+>>
+>> which is triggering the slow down because packet path is allocating
+>> work to offload the entry to hardware, however, this driver does not
+>> support for hardware offload.
+>>
+>> Probably this module can be updated to unset the flowtable flag if the
+>> harware does not support hardware offload.
+> 
+> yesterday there was a discussion about this on the #openwrt-devel IRC
+> channel. I am adding the IRC log to the end of this email because I am
+> not sure if you're using IRC.
+> 
+> I typically don't test with flow offloading enabled (I am testing with
+> OpenWrt's "default" network configuration, where flow offloading is
+> disabled by default). Also I am not familiar with the flow offloading
+> code at all and reading the xt_FLOWOFFLOAD code just raised more
+> questions for me.
+> 
+> Maybe you can share some info whether your workaround from [0] "fixes"
+> this issue. I am aware that it will probably break other devices. But
+> maybe it helps Pablo to confirm whether it's really an xt_FLOWOFFLOAD
+> bug or rather some generic flow offload issue (as Felix suggested on
+> IRC).
+> 
+> 
+> Best regards,
+> Martin
+> 
+> 
+> [0] https://github.com/abajk/openwrt/commit/ee4d790574c0edd170e1710d7cd4819727b23721
+> 
+> 
+> <rsalvaterra> nbd: I saw your flow offloading updates. Just to make sure, this issue hasn't been addressed yet, has it? https://lore.kernel.org/netdev/20210614215351.GA734@salvia/
+> <nbd> i don't think so
+> <nbd> can you reproduce it?
+> <rsalvaterra> nbd: Not really, I don't have the hardware.
+> <rsalvaterra> It's lantiq, I think (bthh5a).
+> <rsalvaterra> However, I believe dwmw2_gone has one, iirc.
+> <xdarklight> nbd: I also have a HH5A. if you have any patch ready you can also send it as RFC on the mailing list and Cc Aleksander
+> <rsalvaterra> xdarklight: Have you been able to reproduce the flow offloading regression?
+> <xdarklight> I can try (typically I test with a "default" network configuration, where flow offloading is disabled)
+> <rsalvaterra> xdarklight: I don't have a lot of details, only this thread: https://github.com/openwrt/openwrt/pull/4225#issuecomment-855454607
+> <xdarklight> rsalvaterra: this is the workaround that Aleksander has in his tree: https://github.com/abajk/openwrt/commit/ee4d790574c0edd170e1710d7cd4819727b23721
+> <rsalvaterra> xdarklight: Well, but that basically breaks hw flow offloading everywhere else, if I'm reading correctly. :)
+> <xdarklight> rsalvaterra: I am not arguing with that :). I wanted to point out that Pablo's finding on the netfilter mailing list seems to be correct
+> <rsalvaterra> xdarklight: Sure, which is why I pinged nbd, since he's the original author of the xt_FLOWOFFLOAD target.
+> <rsalvaterra> What it seems is that it isn't such trivial fix. :)
+> <xdarklight> I looked at the xt_FLOWOFFLOAD code myself and it raised more questions than I had before looking at the code. so I decided to wait for someone with better knowledge to look into that issue :)
+> <rsalvaterra> Same here. I just went "oh, this requires divine intervention" and set it aside. :P
+> <nbd> xdarklight: which finding did you mean?
+> <xdarklight> nbd: "The xt_flowoffload module is inconditionally setting on the hardware offload flag" [...] flowtable[1].ft.flags = NF_FLOWTABLE_HW_OFFLOAD;
+> <xdarklight> nbd: from this email: https://lore.kernel.org/netdev/20210614215351.GA734@salvia/
+> <nbd> i actually think that finding is wrong
+> <nbd> xt_FLOWOFFLOAD registers two flowtables
+> <nbd> one with hw offload, one without
+> <nbd> the target code does this:
+> <nbd> table = &flowtable[!!(info->flags & XT_FLOWOFFLOAD_HW)];
+> <nbd> so it selects flowtable[1] only if info->flags has XT_FLOWOFFLOAD_HW set
+> <rsalvaterra> nbd: That's between you and Pablo, I mustn't interfere. :)
+> <nbd> i did reply to pablo, but never heard back from him
+> <rsalvaterra> nbd: The merge window is still open, he's probably busy at the moment… maybe ping him on Monday?
+> <xdarklight> nbd: it seems that your mail also didn't make it to the netdev mailing list (at least I can't find it)
+> <rsalvaterra> xdarklight: Now that you mention it, neither do I.
+> <nbd> he wrote to me in private for some reason
+> <xdarklight> oh okay. so for me to summarize: you're saying that the xt_FLOWOFFLOAD code should be fine. in that case Aleksander's workaround (https://github.com/abajk/openwrt/commit/ee4d790574c0edd170e1710d7cd4819727b23721) is also a no-op and the original problem would still be seen
+> <rsalvaterra> xdarklight: I don't think it's a no-op, otherwise he wouldn't carry it in his tree… maybe something's wrong in the table selection? table = &flowtable[!!(info->flags & XT_FLOWOFFLOAD_HW)]; does look correct, though.
+> <nbd> xdarklight: well, it's not a no-op if the issue was reproduced with option flow_offloading_hw 1 in the config
+> <rsalvaterra> nbd: Uh… If he has option flow_offloading_hw '1' on a system which doesn't support hw flow offloading… he gets to keep the pieces, right?
+> <nbd> it shouldn't break
+> <nbd> and normally i'd expect the generic flow offload api to be able to deal with it without attempting to re-enable hw offload over and over again
+> 
