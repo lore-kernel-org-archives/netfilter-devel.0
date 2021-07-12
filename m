@@ -2,96 +2,218 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9ED0C07E99
-	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Jul 2021 10:18:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0E53C07E9C
+	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Jul 2021 12:53:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CFE8861006
-	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Jul 2021 10:18:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D5018610CD
+	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Jul 2021 12:53:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229581AbhGLKVY (ORCPT
+        id S234044AbhGLM4V (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 12 Jul 2021 06:21:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54396 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229471AbhGLKVX (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 12 Jul 2021 06:21:23 -0400
-Received: from nbd.name (nbd.name [IPv6:2a01:4f8:221:3d45::2])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 18E75C0613DD;
-        Mon, 12 Jul 2021 03:18:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nbd.name;
-         s=20160729; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:
-        MIME-Version:Date:Message-ID:From:References:Cc:To:Subject:Sender:Reply-To:
-        Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-        Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
-        List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=Lh1rljUNYbSH9uKLOmZ6nltPUrZDF5cP6bgaWb+JYl0=; b=tM3pEyh9XfYwXE8hPqqu7i4OFm
-        yU0O24XVPSa9z9lpNvziOR5qHyH13B8yJ9SAXRBKCN6mYWnvLoleRRP7KTda3Jg+P/y3MgHNiOugT
-        QdDY8BWZiyi/h109SQHTqcmNnAZFS/cVtUy06dXI2cvhEmOnuDHkT9IqGXsY9ScAvR8c=;
-Received: from p54ae93f7.dip0.t-ipconnect.de ([84.174.147.247] helo=nf.local)
-        by ds12 with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        (Exim 4.89)
-        (envelope-from <nbd@nbd.name>)
-        id 1m2t1A-0004Fq-9D; Mon, 12 Jul 2021 12:18:28 +0200
-Subject: Re: [PATCH nf] Revert "netfilter: flowtable: Remove redundant hw
- refresh bit"
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Cc:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        kadlec@netfilter.org, kuba@kernel.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, olek2@wp.pl, roid@nvidia.com
-References: <20210614215351.GA734@salvia>
- <20210711010244.1709329-1-martin.blumenstingl@googlemail.com>
- <20210712094652.GA6320@salvia>
-From:   Felix Fietkau <nbd@nbd.name>
-Message-ID: <f9f01b3b-f6ab-ef82-6604-5dd8e925abea@nbd.name>
-Date:   Mon, 12 Jul 2021 12:18:26 +0200
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0)
- Gecko/20100101 Thunderbird/78.11.0
+        Mon, 12 Jul 2021 08:56:21 -0400
+Received: from out0.migadu.com ([94.23.1.103]:20253 "EHLO out0.migadu.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S231205AbhGLM4V (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 12 Jul 2021 08:56:21 -0400
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+        t=1626094409;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=nLeorn7JAX1a2d/hq7DI3yYWcR2plTGaxbLKNq9l55M=;
+        b=W7corV9zVpilvj/nQG0SESgZO3fyTjFe1Ob5uoNvC+WH/f9RP6k1dKiGaiJDNAQb2BIMr+
+        j1maKRLZOvrqQYEOUd7SYNueYLRtciS9LAfQc6WBcUq2PQfBfnaAF6HuvoPX7m7U8AAd4H
+        RKforoo6ouQvMKOBE6sa7n38iimfQtI=
+From:   Yajun Deng <yajun.deng@linux.dev>
+To:     davem@davemloft.net, yoshfuji@linux-ipv6.org, dsahern@kernel.org,
+        kuba@kernel.org, mathew.j.martineau@linux.intel.com,
+        matthieu.baerts@tessares.net, pablo@netfilter.org,
+        kadlec@netfilter.org, fw@strlen.de, vyasevich@gmail.com,
+        nhorman@tuxdriver.com, marcelo.leitner@gmail.com,
+        johannes.berg@intel.com, ast@kernel.org, yhs@fb.com,
+        0x7f454c46@gmail.com, yajun.deng@linux.dev, aahringo@redhat.com,
+        rdunlap@infradead.org
+Cc:     netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        mptcp@lists.linux.dev, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, linux-sctp@vger.kernel.org
+Subject: [PATCH] net: Use nlmsg_unicast() instead of netlink_unicast()
+Date:   Mon, 12 Jul 2021 20:53:01 +0800
+Message-Id: <20210712125301.14248-1-yajun.deng@linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <20210712094652.GA6320@salvia>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
+X-Migadu-Auth-User: yajun.deng@linux.dev
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+There has 'if (err >0 )' in nlmsg_unicast(), so use nlmsg_unicast()
+instead of netlink_unicast(), this looks more concise.
 
-On 2021-07-12 11:46, Pablo Neira Ayuso wrote:
-> Maybe the user reporting this issue is enabling the --hw option?
-> As I said, the patch that is being proposed to be revert is just
-> amplifying.
-> 
-> The only way to trigger this bug that I can find is:
-> 
-> - NF_FLOWTABLE_HW_OFFLOAD is enabled.
-> - packets are following the software path.
-> 
-> I don't see yet how this can happen with upstream codebase, nftables
-> enables NF_FLOWTABLE_HW_OFFLOAD at configuration time, if the driver
-> does not support for hardware offload, then NF_FLOWTABLE_HW_OFFLOAD is
-> not set.
-> 
-> Is xt_flowoffload rejecting the rule load if user specifies --hw and
-> the hardware does not support for hardware offload?
-> 
-> By reading Felix's discussion on the IRC, it seems to me he does not
-> like that the packet path retries to offload flows. If so, it should
-> be possible to add a driver flag to disable this behaviour, so driver
-> developers select what they prefer that flowtable core retries to
-> offload entries. I can have a look into adding such flag and use it
-> from the mtk driver.
-I'd prefer making the retry behavior depend on the error code during
-setup. For example, if we get -ENOMEM, -EAGAIN or something like that,
-we should definitely retry.
-If we get -EOPNOTSUPP or -EINVAL, I don't think a retry makes any sense
-on any driver.
+Signed-off-by: Yajun Deng <yajun.deng@linux.dev>
+---
+ net/ipv4/fib_frontend.c    | 2 +-
+ net/ipv4/inet_diag.c       | 5 +----
+ net/ipv4/raw_diag.c        | 7 ++-----
+ net/ipv4/udp_diag.c        | 6 ++----
+ net/mptcp/mptcp_diag.c     | 6 ++----
+ net/netfilter/nft_compat.c | 6 ++----
+ net/netlink/af_netlink.c   | 2 +-
+ net/sctp/diag.c            | 6 ++----
+ net/unix/diag.c            | 6 ++----
+ 9 files changed, 15 insertions(+), 31 deletions(-)
 
-- Felix
+diff --git a/net/ipv4/fib_frontend.c b/net/ipv4/fib_frontend.c
+index a933bd6345b1..9fe13e4f5d08 100644
+--- a/net/ipv4/fib_frontend.c
++++ b/net/ipv4/fib_frontend.c
+@@ -1376,7 +1376,7 @@ static void nl_fib_input(struct sk_buff *skb)
+ 	portid = NETLINK_CB(skb).portid;      /* netlink portid */
+ 	NETLINK_CB(skb).portid = 0;        /* from kernel */
+ 	NETLINK_CB(skb).dst_group = 0;  /* unicast */
+-	netlink_unicast(net->ipv4.fibnl, skb, portid, MSG_DONTWAIT);
++	nlmsg_unicast(net->ipv4.fibnl, skb, portid);
+ }
+ 
+ static int __net_init nl_fib_lookup_init(struct net *net)
+diff --git a/net/ipv4/inet_diag.c b/net/ipv4/inet_diag.c
+index e65f4ef024a4..ef7897226f08 100644
+--- a/net/ipv4/inet_diag.c
++++ b/net/ipv4/inet_diag.c
+@@ -580,10 +580,7 @@ int inet_diag_dump_one_icsk(struct inet_hashinfo *hashinfo,
+ 		nlmsg_free(rep);
+ 		goto out;
+ 	}
+-	err = netlink_unicast(net->diag_nlsk, rep, NETLINK_CB(in_skb).portid,
+-			      MSG_DONTWAIT);
+-	if (err > 0)
+-		err = 0;
++	err = nlmsg_unicast(net->diag_nlsk, rep, NETLINK_CB(in_skb).portid);
+ 
+ out:
+ 	if (sk)
+diff --git a/net/ipv4/raw_diag.c b/net/ipv4/raw_diag.c
+index 1b5b8af27aaf..ccacbde30a2c 100644
+--- a/net/ipv4/raw_diag.c
++++ b/net/ipv4/raw_diag.c
+@@ -119,11 +119,8 @@ static int raw_diag_dump_one(struct netlink_callback *cb,
+ 		return err;
+ 	}
+ 
+-	err = netlink_unicast(net->diag_nlsk, rep,
+-			      NETLINK_CB(in_skb).portid,
+-			      MSG_DONTWAIT);
+-	if (err > 0)
+-		err = 0;
++	err = nlmsg_unicast(net->diag_nlsk, rep, NETLINK_CB(in_skb).portid);
++
+ 	return err;
+ }
+ 
+diff --git a/net/ipv4/udp_diag.c b/net/ipv4/udp_diag.c
+index b2cee9a307d4..1ed8c4d78e5c 100644
+--- a/net/ipv4/udp_diag.c
++++ b/net/ipv4/udp_diag.c
+@@ -77,10 +77,8 @@ static int udp_dump_one(struct udp_table *tbl,
+ 		kfree_skb(rep);
+ 		goto out;
+ 	}
+-	err = netlink_unicast(net->diag_nlsk, rep, NETLINK_CB(in_skb).portid,
+-			      MSG_DONTWAIT);
+-	if (err > 0)
+-		err = 0;
++	err = nlmsg_unicast(net->diag_nlsk, rep, NETLINK_CB(in_skb).portid);
++
+ out:
+ 	if (sk)
+ 		sock_put(sk);
+diff --git a/net/mptcp/mptcp_diag.c b/net/mptcp/mptcp_diag.c
+index 8f88ddeab6a2..f48eb6315bbb 100644
+--- a/net/mptcp/mptcp_diag.c
++++ b/net/mptcp/mptcp_diag.c
+@@ -57,10 +57,8 @@ static int mptcp_diag_dump_one(struct netlink_callback *cb,
+ 		kfree_skb(rep);
+ 		goto out;
+ 	}
+-	err = netlink_unicast(net->diag_nlsk, rep, NETLINK_CB(in_skb).portid,
+-			      MSG_DONTWAIT);
+-	if (err > 0)
+-		err = 0;
++	err = nlmsg_unicast(net->diag_nlsk, rep, NETLINK_CB(in_skb).portid);
++
+ out:
+ 	sock_put(sk);
+ 
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index 639c337c885b..aa3397eec330 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -683,10 +683,8 @@ static int nfnl_compat_get_rcu(struct sk_buff *skb,
+ 		goto out_put;
+ 	}
+ 
+-	ret = netlink_unicast(info->sk, skb2, NETLINK_CB(skb).portid,
+-			      MSG_DONTWAIT);
+-	if (ret > 0)
+-		ret = 0;
++	ret = nlmsg_unicast(info->sk, skb2, NETLINK_CB(skb).portid);
++
+ out_put:
+ 	rcu_read_lock();
+ 	module_put(THIS_MODULE);
+diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
+index d233ac4a91b6..380f95aacdec 100644
+--- a/net/netlink/af_netlink.c
++++ b/net/netlink/af_netlink.c
+@@ -2471,7 +2471,7 @@ void netlink_ack(struct sk_buff *in_skb, struct nlmsghdr *nlh, int err,
+ 
+ 	nlmsg_end(skb, rep);
+ 
+-	netlink_unicast(in_skb->sk, skb, NETLINK_CB(in_skb).portid, MSG_DONTWAIT);
++	nlmsg_unicast(in_skb->sk, skb, NETLINK_CB(in_skb).portid);
+ }
+ EXPORT_SYMBOL(netlink_ack);
+ 
+diff --git a/net/sctp/diag.c b/net/sctp/diag.c
+index 493fc01e5d2b..760b367644c1 100644
+--- a/net/sctp/diag.c
++++ b/net/sctp/diag.c
+@@ -284,10 +284,8 @@ static int sctp_tsp_dump_one(struct sctp_transport *tsp, void *p)
+ 		goto out;
+ 	}
+ 
+-	err = netlink_unicast(net->diag_nlsk, rep, NETLINK_CB(in_skb).portid,
+-			      MSG_DONTWAIT);
+-	if (err > 0)
+-		err = 0;
++	err = nlmsg_unicast(net->diag_nlsk, rep, NETLINK_CB(in_skb).portid);
++
+ out:
+ 	return err;
+ }
+diff --git a/net/unix/diag.c b/net/unix/diag.c
+index 9ff64f9df1f3..7e7d7f45685a 100644
+--- a/net/unix/diag.c
++++ b/net/unix/diag.c
+@@ -295,10 +295,8 @@ static int unix_diag_get_exact(struct sk_buff *in_skb,
+ 
+ 		goto again;
+ 	}
+-	err = netlink_unicast(net->diag_nlsk, rep, NETLINK_CB(in_skb).portid,
+-			      MSG_DONTWAIT);
+-	if (err > 0)
+-		err = 0;
++	err = nlmsg_unicast(net->diag_nlsk, rep, NETLINK_CB(in_skb).portid);
++
+ out:
+ 	if (sk)
+ 		sock_put(sk);
+-- 
+2.32.0
+
