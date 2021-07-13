@@ -2,104 +2,215 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 878DDC07E95
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Jul 2021 12:05:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87A42C07E95
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Jul 2021 12:47:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 663E7610A7
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Jul 2021 12:05:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 70E9B611AB
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Jul 2021 12:47:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235936AbhGMMIB (ORCPT
+        id S236178AbhGMMub (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 13 Jul 2021 08:08:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39436 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235797AbhGMMIB (ORCPT
+        Tue, 13 Jul 2021 08:50:31 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:37752 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S236156AbhGMMub (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 13 Jul 2021 08:08:01 -0400
-Received: from mail-yb1-xb2b.google.com (mail-yb1-xb2b.google.com [IPv6:2607:f8b0:4864:20::b2b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7EECCC0613DD;
-        Tue, 13 Jul 2021 05:05:10 -0700 (PDT)
-Received: by mail-yb1-xb2b.google.com with SMTP id k184so34335242ybf.12;
-        Tue, 13 Jul 2021 05:05:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=G4qUuiRcnCqECtHAPnwTFpmFpYXByDpjZoDpTuZyyA0=;
-        b=m/+o0ouN8yGbzHGH+fsTvse9H7ZEqDZwjDRjh9TWqyhEcJI28Ywq2C6WgRHl7VUVqk
-         dRux8kDtNTCWmv1K14fGv+U8qb6I/3tE/AMhMs5Hd+BjxxiD1QeTyrd6iYc4PmM9wCwm
-         Tgn3BPqYifaSbHpAGcnYiJHQWC9CYGZkKPirQPjak+iwqvkZYd9XHe/ZFiARBO7BMNzh
-         JJSsGRMrKjC92G+tVcD4R6yRHNkjms3DvKxHQzdqdIRrs/5yHW4HwHrYXEF0DYLlnVXz
-         3RUVzivnJznL2Hrr8HIkO84Hg8nAzvyOD1L8AxysH2Gt3HmL14yX8HoeFfRotr17hOYw
-         DD0w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=G4qUuiRcnCqECtHAPnwTFpmFpYXByDpjZoDpTuZyyA0=;
-        b=W//3IAOBx3y1+A7UG28Lj6wIPjAOlunT4PotCvYU0AdNuSwuFkFpCnW2Oit8U9QV1t
-         ry1K7ez7Smg/bOBbfbRBRMH2nU3N8pq9aSZrRqxogqVwMVorItLCqedMB3BMOL593rHR
-         eK4HENqYGma7S7svuVtNSNJ3COjdeEXYdDbH6dRSs+YrJkvisT5JLH5ij0Ni0+494+Vc
-         PqZFsw3d33I+OHOVd+c8bfwooMwrUYwGxc/6UtBOmcVx5QHOvIYqj4bfpabfo5422Prb
-         GMW0+ngf2sl8UB01gggCXini7+rIM/uCkYdRCa0NCDw7bYwencs4DEdMxoacgv6MCFjY
-         UpcA==
-X-Gm-Message-State: AOAM532C/QlE/JCD4wD53fBOtpqNSe07bd/fKc6HTuFLWYs9Vw+QiQmx
-        UDuWUlHmyqnwjNB6fE6kxlmWNLftSQ/OxIRnSAE=
-X-Google-Smtp-Source: ABdhPJxzbiMIFK6e9wYRrK4smZN209wow+vMaQRxI8Sn+Una/ZyJF+g1mVl1oHxCN5MYCBuxySSi/En7yAzSI+7pyXI=
-X-Received: by 2002:a25:7415:: with SMTP id p21mr5056281ybc.464.1626177909786;
- Tue, 13 Jul 2021 05:05:09 -0700 (PDT)
+        Tue, 13 Jul 2021 08:50:31 -0400
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id A53356243C
+        for <netfilter-devel@vger.kernel.org>; Tue, 13 Jul 2021 14:47:23 +0200 (CEST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nftables,v2 1/2] src: infer interval from set
+Date:   Tue, 13 Jul 2021 14:47:34 +0200
+Message-Id: <20210713124735.31498-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-References: <20210713094158.450434-1-mudongliangabcd@gmail.com>
- <CAKXUXMwMvWmS1jMfGe15tJKXpKdqGnhjsOhBKPkQ6_+twZpKxA@mail.gmail.com> <CAD-N9QUipQHb7WS1V=3MXmuO4uweYqX-=BMfmV_fUVhSxqXFHA@mail.gmail.com>
-In-Reply-To: <CAD-N9QUipQHb7WS1V=3MXmuO4uweYqX-=BMfmV_fUVhSxqXFHA@mail.gmail.com>
-From:   Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Date:   Tue, 13 Jul 2021 14:04:58 +0200
-Message-ID: <CAKXUXMyFRN=p-JtgFHXneTx8rF+tWLb4sBgjLRWdzZ_wz=pZiw@mail.gmail.com>
-Subject: Re: [PATCH] audit: fix memory leak in nf_tables_commit
-To:     Dongliang Mu <mudongliangabcd@gmail.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paul Moore <paul@paul-moore.com>,
-        Richard Guy Briggs <rgb@redhat.com>,
-        syzbot <syzkaller@googlegroups.com>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        Netdev <netdev@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jul 13, 2021 at 1:52 PM Dongliang Mu <mudongliangabcd@gmail.com> wrote:
->
-> On Tue, Jul 13, 2021 at 7:47 PM Lukas Bulwahn <lukas.bulwahn@gmail.com> wrote:
-> >
-> > On Tue, Jul 13, 2021 at 11:42 AM Dongliang Mu <mudongliangabcd@gmail.com> wrote:
-> > >
+STMT_NAT_F_INTERVAL can actually be interfered from the set, update
+9599d9d25a6b ("src: NAT support for intervals in maps") not to set on
+this flag.
 
-> > >
-> > > Reported-by: syzbot <syzkaller@googlegroups.com>
-> >
-> > As far as I see, the more default way is to reference to syzbot by:
-> >
-> > Reported-by: syzbot+[[20-letter hex reference]]@syzkaller.appspotmail.com
-> >
->
-> Hi Lukas,
->
-> this bug is not listed on the syzbot dashboard. I found this bug by
-> setting up a local syzkaller instance, so I only list syzbot other
-> than concrete syzbot id.
->
+Do not remove STMT_NAT_F_INTERVAL since this flag is needed for interval
+concatenations.
 
-I see. Thanks for your explanation.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: new in this series
 
-Lukas
+ src/evaluate.c                                | 20 -------------------
+ src/json.c                                    |  2 --
+ src/netlink_delinearize.c                     |  1 -
+ src/parser_bison.y                            |  8 ++------
+ src/statement.c                               |  2 --
+ tests/py/ip/snat.t                            |  2 +-
+ tests/py/ip/snat.t.payload                    |  2 +-
+ tests/shell/testcases/sets/0047nat_0          |  2 +-
+ .../shell/testcases/sets/dumps/0047nat_0.nft  |  2 +-
+ 9 files changed, 6 insertions(+), 35 deletions(-)
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 585182d3599f..30edaa3f333e 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -3200,26 +3200,6 @@ static int stmt_evaluate_nat(struct eval_ctx *ctx, struct stmt *stmt)
+ 			return err;
+ 	}
+ 
+-	if (stmt->nat.type_flags & STMT_NAT_F_INTERVAL) {
+-		switch (stmt->nat.addr->etype) {
+-		case EXPR_MAP:
+-			if (!(stmt->nat.addr->mappings->set->data->flags & EXPR_F_INTERVAL))
+-				return expr_error(ctx->msgs, stmt->nat.addr,
+-						  "map is not defined as interval");
+-			break;
+-		case EXPR_RANGE:
+-		case EXPR_PREFIX:
+-			break;
+-		default:
+-			return expr_error(ctx->msgs, stmt->nat.addr,
+-					  "neither prefix, range nor map expression");
+-		}
+-
+-		stmt->flags |= STMT_F_TERMINAL;
+-
+-		return 0;
+-	}
+-
+ 	if (stmt->nat.proto != NULL) {
+ 		err = nat_evaluate_transport(ctx, stmt, &stmt->nat.proto);
+ 		if (err < 0)
+diff --git a/src/json.c b/src/json.c
+index f111ad678f8a..edc9d640bbbc 100644
+--- a/src/json.c
++++ b/src/json.c
+@@ -1329,8 +1329,6 @@ static json_t *nat_type_flags_json(uint32_t type_flags)
+ {
+ 	json_t *array = json_array();
+ 
+-	if (type_flags & STMT_NAT_F_INTERVAL)
+-		json_array_append_new(array, json_string("interval"));
+ 	if (type_flags & STMT_NAT_F_PREFIX)
+ 		json_array_append_new(array, json_string("prefix"));
+ 	if (type_flags & STMT_NAT_F_CONCAT)
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 2723515df47a..0cb1df044242 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -1132,7 +1132,6 @@ static void netlink_parse_nat(struct netlink_parse_ctx *ctx,
+ 
+ 	if (is_nat_addr_map(addr, family)) {
+ 		stmt->nat.family = family;
+-		stmt->nat.type_flags |= STMT_NAT_F_INTERVAL;
+ 		ctx->stmt = stmt;
+ 		return;
+ 	}
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index c1fcedd7ecce..21c508f851d6 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -3644,28 +3644,24 @@ nat_stmt_args		:	stmt_expr
+ 			{
+ 				$<stmt>0->nat.family = $1;
+ 				$<stmt>0->nat.addr = $4;
+-				$<stmt>0->nat.type_flags = STMT_NAT_F_INTERVAL;
+ 			}
+ 			|	INTERVAL TO	stmt_expr
+ 			{
+ 				$<stmt>0->nat.addr = $3;
+-				$<stmt>0->nat.type_flags = STMT_NAT_F_INTERVAL;
+ 			}
+ 			|	nf_key_proto PREFIX TO	stmt_expr
+ 			{
+ 				$<stmt>0->nat.family = $1;
+ 				$<stmt>0->nat.addr = $4;
+ 				$<stmt>0->nat.type_flags =
+-						STMT_NAT_F_PREFIX |
+-						STMT_NAT_F_INTERVAL;
++						STMT_NAT_F_PREFIX;
+ 				$<stmt>0->nat.flags |= NF_NAT_RANGE_NETMAP;
+ 			}
+ 			|	PREFIX TO	stmt_expr
+ 			{
+ 				$<stmt>0->nat.addr = $3;
+ 				$<stmt>0->nat.type_flags =
+-						STMT_NAT_F_PREFIX |
+-						STMT_NAT_F_INTERVAL;
++						STMT_NAT_F_PREFIX;
+ 				$<stmt>0->nat.flags |= NF_NAT_RANGE_NETMAP;
+ 			}
+ 			;
+diff --git a/src/statement.c b/src/statement.c
+index b3e53451f5c7..507cb89155c7 100644
+--- a/src/statement.c
++++ b/src/statement.c
+@@ -707,8 +707,6 @@ static void nat_stmt_print(const struct stmt *stmt, struct output_ctx *octx)
+ 			nft_print(octx, " addr . port");
+ 		else if (stmt->nat.type_flags & STMT_NAT_F_PREFIX)
+ 			nft_print(octx, " prefix");
+-		else if (stmt->nat.type_flags & STMT_NAT_F_INTERVAL)
+-			nft_print(octx, " interval");
+ 
+ 		nft_print(octx, " to");
+ 	}
+diff --git a/tests/py/ip/snat.t b/tests/py/ip/snat.t
+index c6e8a8e68f9d..56ab943e8b97 100644
+--- a/tests/py/ip/snat.t
++++ b/tests/py/ip/snat.t
+@@ -10,5 +10,5 @@ iifname "eth0" tcp dport != {80, 90, 23} snat to 192.168.3.2;ok
+ iifname "eth0" tcp dport != 23-34 snat to 192.168.3.2;ok
+ 
+ snat ip addr . port to ip saddr map { 10.141.11.4 : 192.168.2.3 . 80 };ok
+-snat ip interval to ip saddr map { 10.141.11.4 : 192.168.2.2-192.168.2.4 };ok
++snat ip to ip saddr map { 10.141.11.4 : 192.168.2.2-192.168.2.4 };ok
+ snat ip prefix to ip saddr map { 10.141.11.0/24 : 192.168.2.0/24 };ok
+diff --git a/tests/py/ip/snat.t.payload b/tests/py/ip/snat.t.payload
+index ef4c1ce9f150..2a03ff1f95a0 100644
+--- a/tests/py/ip/snat.t.payload
++++ b/tests/py/ip/snat.t.payload
+@@ -69,7 +69,7 @@ ip
+   [ lookup reg 1 set __map%d dreg 1 ]
+   [ nat snat ip addr_min reg 1 proto_min reg 9 ]
+ 
+-# snat ip interval to ip saddr map { 10.141.11.4 : 192.168.2.2-192.168.2.4 }
++# snat ip to ip saddr map { 10.141.11.4 : 192.168.2.2-192.168.2.4 }
+ __map%d test-ip4 b size 1
+ __map%d test-ip4 0
+ 	element 040b8d0a  : 0202a8c0 0402a8c0 0 [end]
+diff --git a/tests/shell/testcases/sets/0047nat_0 b/tests/shell/testcases/sets/0047nat_0
+index 746a6b6d3450..cb1d4d68d2d2 100755
+--- a/tests/shell/testcases/sets/0047nat_0
++++ b/tests/shell/testcases/sets/0047nat_0
+@@ -10,7 +10,7 @@ EXPECTED="table ip x {
+ 
+             chain y {
+                     type nat hook postrouting priority srcnat; policy accept;
+-                    snat ip interval to ip saddr map @y
++                    snat to ip saddr map @y
+             }
+      }
+ "
+diff --git a/tests/shell/testcases/sets/dumps/0047nat_0.nft b/tests/shell/testcases/sets/dumps/0047nat_0.nft
+index 70730ef3c56f..e796805471a3 100644
+--- a/tests/shell/testcases/sets/dumps/0047nat_0.nft
++++ b/tests/shell/testcases/sets/dumps/0047nat_0.nft
+@@ -8,6 +8,6 @@ table ip x {
+ 
+ 	chain y {
+ 		type nat hook postrouting priority srcnat; policy accept;
+-		snat ip interval to ip saddr map @y
++		snat ip to ip saddr map @y
+ 	}
+ }
+-- 
+2.20.1
+
