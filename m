@@ -2,66 +2,66 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88306C07E95
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Jul 2021 11:52:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 878DDC07E95
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Jul 2021 12:05:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6574F61008
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Jul 2021 11:52:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 663E7610A7
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Jul 2021 12:05:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235966AbhGMLzB (ORCPT
+        id S235936AbhGMMIB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 13 Jul 2021 07:55:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36530 "EHLO
+        Tue, 13 Jul 2021 08:08:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39436 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235891AbhGMLzA (ORCPT
+        with ESMTP id S235797AbhGMMIB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 13 Jul 2021 07:55:00 -0400
-Received: from mail-ed1-x52a.google.com (mail-ed1-x52a.google.com [IPv6:2a00:1450:4864:20::52a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E214C0613DD;
-        Tue, 13 Jul 2021 04:52:10 -0700 (PDT)
-Received: by mail-ed1-x52a.google.com with SMTP id s15so32746786edt.13;
-        Tue, 13 Jul 2021 04:52:09 -0700 (PDT)
+        Tue, 13 Jul 2021 08:08:01 -0400
+Received: from mail-yb1-xb2b.google.com (mail-yb1-xb2b.google.com [IPv6:2607:f8b0:4864:20::b2b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7EECCC0613DD;
+        Tue, 13 Jul 2021 05:05:10 -0700 (PDT)
+Received: by mail-yb1-xb2b.google.com with SMTP id k184so34335242ybf.12;
+        Tue, 13 Jul 2021 05:05:10 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=OeqxKzwwhx4YHjM5KQJiNswe/2PWyz6Lv9R2luzCE0o=;
-        b=kdwgFvjffiTSAMCVLAlAXO/xfCCfsHdFcohe7BrIigsO2Gi/JaFMJgz0+YfOihMLt5
-         U5+xa1J4u0uxnCnwpepb7wpWtTJcnQChQf454jXMXqdVQPwE5zHGT44KjSfYXPfKAotw
-         wD92oGaNENSzsS96hPEqXNL2c7O7o/4xldnOoiVnrT/0V6yr4jEaRevMDFUd3kFhFjwB
-         c0wv1jEz/EWCTNysAYEhhrIh280yXNAFuuADatudSLol+YWeeMrrf4QetdeK5IRy0bs2
-         teWi1toJKpWWS46rze9zcODz1N91Vc4sWz7tchO41wfFj8Dokeh60zoW9v5/fxct5V8k
-         XQCA==
+        bh=G4qUuiRcnCqECtHAPnwTFpmFpYXByDpjZoDpTuZyyA0=;
+        b=m/+o0ouN8yGbzHGH+fsTvse9H7ZEqDZwjDRjh9TWqyhEcJI28Ywq2C6WgRHl7VUVqk
+         dRux8kDtNTCWmv1K14fGv+U8qb6I/3tE/AMhMs5Hd+BjxxiD1QeTyrd6iYc4PmM9wCwm
+         Tgn3BPqYifaSbHpAGcnYiJHQWC9CYGZkKPirQPjak+iwqvkZYd9XHe/ZFiARBO7BMNzh
+         JJSsGRMrKjC92G+tVcD4R6yRHNkjms3DvKxHQzdqdIRrs/5yHW4HwHrYXEF0DYLlnVXz
+         3RUVzivnJznL2Hrr8HIkO84Hg8nAzvyOD1L8AxysH2Gt3HmL14yX8HoeFfRotr17hOYw
+         DD0w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=OeqxKzwwhx4YHjM5KQJiNswe/2PWyz6Lv9R2luzCE0o=;
-        b=M4/hcVmPXByhPrjeBSEnOxGzMH/VLNdiNTL63paMxY3g5cFd+Z2KKBr3qkL8NtDET2
-         bT2/9NIBkvWfkSgC+yRo9NdQ/k728LbtOq4JPfILQy3FnF+/Ag+9eXHRGvpuHzJsFMxd
-         6cigW+l3FCnmYsFk4wv1mtdnkZn+n0Esirf3HjAMHRu3tMGryQcsMd4WoVMxroSnUqUi
-         jV0gJOUHEySrYyFosZT1cxQ195wIrmPbVKPYHhK79rWb3iOovVNtya4PFSRlZkK0shDM
-         CIX3coYRex/sFZ9f9yWYU0bEy7tNSsnhZO5bSuhnq5ut0WUpKQY3TZi+XsVRB4UREc/Q
-         Ih3A==
-X-Gm-Message-State: AOAM531g0pG1GlRqDKyu7v9WjangIi+oKgwOcFoq7r67FuYZly4pH8VQ
-        /IMH9ZDMBKa5vGCSsoy4c4hmtWYKWu8bOCFfHmU=
-X-Google-Smtp-Source: ABdhPJzv1VXR1O+kok2yEmvazi+5hwbcyw1N8xI/oLAgFZKKOKokQ7ifIh7Z28Q8tF6LbMV9x9KTcORdxVsEtfixIJs=
-X-Received: by 2002:a05:6402:4c5:: with SMTP id n5mr5138855edw.322.1626177128540;
- Tue, 13 Jul 2021 04:52:08 -0700 (PDT)
+        bh=G4qUuiRcnCqECtHAPnwTFpmFpYXByDpjZoDpTuZyyA0=;
+        b=W//3IAOBx3y1+A7UG28Lj6wIPjAOlunT4PotCvYU0AdNuSwuFkFpCnW2Oit8U9QV1t
+         ry1K7ez7Smg/bOBbfbRBRMH2nU3N8pq9aSZrRqxogqVwMVorItLCqedMB3BMOL593rHR
+         eK4HENqYGma7S7svuVtNSNJ3COjdeEXYdDbH6dRSs+YrJkvisT5JLH5ij0Ni0+494+Vc
+         PqZFsw3d33I+OHOVd+c8bfwooMwrUYwGxc/6UtBOmcVx5QHOvIYqj4bfpabfo5422Prb
+         GMW0+ngf2sl8UB01gggCXini7+rIM/uCkYdRCa0NCDw7bYwencs4DEdMxoacgv6MCFjY
+         UpcA==
+X-Gm-Message-State: AOAM532C/QlE/JCD4wD53fBOtpqNSe07bd/fKc6HTuFLWYs9Vw+QiQmx
+        UDuWUlHmyqnwjNB6fE6kxlmWNLftSQ/OxIRnSAE=
+X-Google-Smtp-Source: ABdhPJxzbiMIFK6e9wYRrK4smZN209wow+vMaQRxI8Sn+Una/ZyJF+g1mVl1oHxCN5MYCBuxySSi/En7yAzSI+7pyXI=
+X-Received: by 2002:a25:7415:: with SMTP id p21mr5056281ybc.464.1626177909786;
+ Tue, 13 Jul 2021 05:05:09 -0700 (PDT)
 MIME-Version: 1.0
-References: <20210713094158.450434-1-mudongliangabcd@gmail.com> <CAKXUXMwMvWmS1jMfGe15tJKXpKdqGnhjsOhBKPkQ6_+twZpKxA@mail.gmail.com>
-In-Reply-To: <CAKXUXMwMvWmS1jMfGe15tJKXpKdqGnhjsOhBKPkQ6_+twZpKxA@mail.gmail.com>
-From:   Dongliang Mu <mudongliangabcd@gmail.com>
-Date:   Tue, 13 Jul 2021 19:51:42 +0800
-Message-ID: <CAD-N9QUipQHb7WS1V=3MXmuO4uweYqX-=BMfmV_fUVhSxqXFHA@mail.gmail.com>
+References: <20210713094158.450434-1-mudongliangabcd@gmail.com>
+ <CAKXUXMwMvWmS1jMfGe15tJKXpKdqGnhjsOhBKPkQ6_+twZpKxA@mail.gmail.com> <CAD-N9QUipQHb7WS1V=3MXmuO4uweYqX-=BMfmV_fUVhSxqXFHA@mail.gmail.com>
+In-Reply-To: <CAD-N9QUipQHb7WS1V=3MXmuO4uweYqX-=BMfmV_fUVhSxqXFHA@mail.gmail.com>
+From:   Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Date:   Tue, 13 Jul 2021 14:04:58 +0200
+Message-ID: <CAKXUXMyFRN=p-JtgFHXneTx8rF+tWLb4sBgjLRWdzZ_wz=pZiw@mail.gmail.com>
 Subject: Re: [PATCH] audit: fix memory leak in nf_tables_commit
-To:     Lukas Bulwahn <lukas.bulwahn@gmail.com>
+To:     Dongliang Mu <mudongliangabcd@gmail.com>
 Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
@@ -78,105 +78,28 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jul 13, 2021 at 7:47 PM Lukas Bulwahn <lukas.bulwahn@gmail.com> wrote:
+On Tue, Jul 13, 2021 at 1:52 PM Dongliang Mu <mudongliangabcd@gmail.com> wrote:
 >
-> On Tue, Jul 13, 2021 at 11:42 AM Dongliang Mu <mudongliangabcd@gmail.com> wrote:
+> On Tue, Jul 13, 2021 at 7:47 PM Lukas Bulwahn <lukas.bulwahn@gmail.com> wrote:
 > >
-> > In nf_tables_commit, if nf_tables_commit_audit_alloc fails, it does not
-> > free the adp variable.
+> > On Tue, Jul 13, 2021 at 11:42 AM Dongliang Mu <mudongliangabcd@gmail.com> wrote:
+> > >
+
+> > >
+> > > Reported-by: syzbot <syzkaller@googlegroups.com>
 > >
-> > Fix this by freeing the linked list with head adl.
+> > As far as I see, the more default way is to reference to syzbot by:
 > >
-> > backtrace:
-> >   kmalloc include/linux/slab.h:591 [inline]
-> >   kzalloc include/linux/slab.h:721 [inline]
-> >   nf_tables_commit_audit_alloc net/netfilter/nf_tables_api.c:8439 [inline]
-> >   nf_tables_commit+0x16e/0x1760 net/netfilter/nf_tables_api.c:8508
-> >   nfnetlink_rcv_batch+0x512/0xa80 net/netfilter/nfnetlink.c:562
-> >   nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:634 [inline]
-> >   nfnetlink_rcv+0x1fa/0x220 net/netfilter/nfnetlink.c:652
-> >   netlink_unicast_kernel net/netlink/af_netlink.c:1314 [inline]
-> >   netlink_unicast+0x2c7/0x3e0 net/netlink/af_netlink.c:1340
-> >   netlink_sendmsg+0x36b/0x6b0 net/netlink/af_netlink.c:1929
-> >   sock_sendmsg_nosec net/socket.c:702 [inline]
-> >   sock_sendmsg+0x56/0x80 net/socket.c:722
+> > Reported-by: syzbot+[[20-letter hex reference]]@syzkaller.appspotmail.com
 > >
-> > Reported-by: syzbot <syzkaller@googlegroups.com>
 >
-> As far as I see, the more default way is to reference to syzbot by:
+> Hi Lukas,
 >
-> Reported-by: syzbot+[[20-letter hex reference]]@syzkaller.appspotmail.com
+> this bug is not listed on the syzbot dashboard. I found this bug by
+> setting up a local syzkaller instance, so I only list syzbot other
+> than concrete syzbot id.
 >
 
-Hi Lukas,
+I see. Thanks for your explanation.
 
-this bug is not listed on the syzbot dashboard. I found this bug by
-setting up a local syzkaller instance, so I only list syzbot other
-than concrete syzbot id.
-
-best regards,
-Dongliang Mu
-
-> as in for example:
->
-> Reported-by: syzbot+fee64147a25aecd48055@syzkaller.appspotmail.com
->
-> A rough count says that format above is used 1300 times, whereas
->
-> Reported-by: syzbot <syzkaller@googlegroups.com>
->
-> is only used about 330 times.
->
->
-> Lukas
->
-> > Fixes: c520292f29b8 ("audit: log nftables configuration change events once per table")
-> > Signed-off-by: Dongliang Mu <mudongliangabcd@gmail.com>
-> > ---
-> >  net/netfilter/nf_tables_api.c | 12 ++++++++++++
-> >  1 file changed, 12 insertions(+)
-> >
-> > diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> > index 390d4466567f..7f45b291be13 100644
-> > --- a/net/netfilter/nf_tables_api.c
-> > +++ b/net/netfilter/nf_tables_api.c
-> > @@ -8444,6 +8444,16 @@ static int nf_tables_commit_audit_alloc(struct list_head *adl,
-> >         return 0;
-> >  }
-> >
-> > +static void nf_tables_commit_free(struct list_head *adl)
-> > +{
-> > +       struct nft_audit_data *adp, *adn;
-> > +
-> > +       list_for_each_entry_safe(adp, adn, adl, list) {
-> > +               list_del(&adp->list);
-> > +               kfree(adp);
-> > +       }
-> > +}
-> > +
-> >  static void nf_tables_commit_audit_collect(struct list_head *adl,
-> >                                            struct nft_table *table, u32 op)
-> >  {
-> > @@ -8508,6 +8518,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
-> >                 ret = nf_tables_commit_audit_alloc(&adl, trans->ctx.table);
-> >                 if (ret) {
-> >                         nf_tables_commit_chain_prepare_cancel(net);
-> > +                       nf_tables_commit_free(adl);
-> >                         return ret;
-> >                 }
-> >                 if (trans->msg_type == NFT_MSG_NEWRULE ||
-> > @@ -8517,6 +8528,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
-> >                         ret = nf_tables_commit_chain_prepare(net, chain);
-> >                         if (ret < 0) {
-> >                                 nf_tables_commit_chain_prepare_cancel(net);
-> > +                               nf_tables_commit_free(adl);
-> >                                 return ret;
-> >                         }
-> >                 }
-> > --
-> > 2.25.1
-> >
-> > --
-> > You received this message because you are subscribed to the Google Groups "syzkaller" group.
-> > To unsubscribe from this group and stop receiving emails from it, send an email to syzkaller+unsubscribe@googlegroups.com.
-> > To view this discussion on the web visit https://groups.google.com/d/msgid/syzkaller/20210713094158.450434-1-mudongliangabcd%40gmail.com.
+Lukas
