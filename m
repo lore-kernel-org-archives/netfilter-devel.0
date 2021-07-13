@@ -3,206 +3,146 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7994C07E9C
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Jul 2021 02:49:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A9AAC07E95
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Jul 2021 09:42:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9A3C66120A
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Jul 2021 02:49:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4E4A86115A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Jul 2021 09:42:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233930AbhGMCvl (ORCPT
+        id S235222AbhGMJpF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 12 Jul 2021 22:51:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55030 "EHLO
+        Tue, 13 Jul 2021 05:45:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34920 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233444AbhGMCvl (ORCPT
+        with ESMTP id S235199AbhGMJpE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 12 Jul 2021 22:51:41 -0400
-X-Greylist: delayed 50121 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 12 Jul 2021 19:48:52 PDT
-Received: from out0.migadu.com (out0.migadu.com [IPv6:2001:41d0:2:267::])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 39A27C0613DD;
-        Mon, 12 Jul 2021 19:48:52 -0700 (PDT)
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1626144530;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=lStPFj8qvcgCwMoBQwKRWxIuDXA8OI5V+DDbWuXsQ9U=;
-        b=XzYsqY3+/nv4P9vUmEQymCL4lGnzA57LHW8zpl3Y/doBSkAOzY76fsHZI/0sWM0RM1R3vT
-        UdN99HvXA36JVXmUCg+Y1B2VrO25234DF61j2zoglEoKOff1WtkkXb2y7hxp9WbQJnzauq
-        OHM95gDhuL1iftdz9mXvLYFoGRoECnA=
-From:   Yajun Deng <yajun.deng@linux.dev>
-To:     davem@davemloft.net, yoshfuji@linux-ipv6.org, dsahern@kernel.org,
-        kuba@kernel.org, mathew.j.martineau@linux.intel.com,
-        matthieu.baerts@tessares.net, pablo@netfilter.org,
-        kadlec@netfilter.org, fw@strlen.de, vyasevich@gmail.com,
-        nhorman@tuxdriver.com, marcelo.leitner@gmail.com,
-        johannes.berg@intel.com, ast@kernel.org, yhs@fb.com,
-        0x7f454c46@gmail.com, yajun.deng@linux.dev, aahringo@redhat.com,
-        rdunlap@infradead.org
-Cc:     netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        mptcp@lists.linux.dev, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-sctp@vger.kernel.org
-Subject: [PATCH v2] net: Use nlmsg_unicast() instead of netlink_unicast()
-Date:   Tue, 13 Jul 2021 10:48:24 +0800
-Message-Id: <20210713024824.14359-1-yajun.deng@linux.dev>
+        Tue, 13 Jul 2021 05:45:04 -0400
+Received: from mail-pg1-x52d.google.com (mail-pg1-x52d.google.com [IPv6:2607:f8b0:4864:20::52d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED2D1C0613DD;
+        Tue, 13 Jul 2021 02:42:14 -0700 (PDT)
+Received: by mail-pg1-x52d.google.com with SMTP id v7so21128928pgl.2;
+        Tue, 13 Jul 2021 02:42:14 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=3fWMP9fQRTobWKqa9AEAof4IRXVKYtteX5duYf7hZbc=;
+        b=qXb2LQCtkyInsqxC5JJn1LnL4RjpgOltJlhN+455aYKGiBphUoR/xgs5IABM2A2tSB
+         hS+QLZB7fJYT72pUGaGqTyGHcXSun35PHsIrFf0pwS/8TvxXTMOH+aTg6TlRQFaCJzKq
+         oX+7/PfIYZBln0A03jbea6oNez3fEikd0UEsRREPcEujeTne2N+HnU4b2gEkWGktWBqL
+         LE/xywaqshZvL1zZ1SKOToInMLNN+Fbnz30gE7OHjptaW74H/muLCCWJHpliSYMuACOP
+         coVsldI2wnlPmqJOJI0+GhxhU51Nfya/BoaR7UzgR5W7TG65lQdgQXvyVnSBUruphR9d
+         0KvQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=3fWMP9fQRTobWKqa9AEAof4IRXVKYtteX5duYf7hZbc=;
+        b=PocTL4l+Yn4nTtzcwBITf1pZrc9CN+0cTv3PcF+cav8HUUM/KixgUAYuUBQN+B5JBd
+         kchA7sIjam0ArTLslLjiAfbTo4xC6Ii3FVwwButYH/XcDltORwzq71+Q+XybakhcCXbF
+         +m9OE3WNcNuTkvZnIe+nw7NcDQMpSgUI3T+Jv1qNleDk8Hk7ygCLjcB9qiBKMFfGQnXU
+         cfnvx3tSNVuTU4ecdF4XnlqLgShq7uCStvypyVx5PFku2O9RplX2fqklWCMg+SzHAtkm
+         Pwnqk8o4SoHUzPln2th1O4yWoTk03lE3vPYqi3YdwTa7RctDqtkR46jC4C5WACJn3xVW
+         61Lg==
+X-Gm-Message-State: AOAM533ahTkqsgqUnsHYOyw661OojsJjbJfyyBRrGeOnQpAlYBOqZOwb
+        K4fOOt3UJ1yOGTJFKXnUHC4=
+X-Google-Smtp-Source: ABdhPJyyDhrO5NGkQ2bzwhZfOXDZTJ8z3m998PSHfA79sGP2hZe7o45tHI6Iv6mumGQWyVv6oZ3lEg==
+X-Received: by 2002:a63:5351:: with SMTP id t17mr3378618pgl.315.1626169334332;
+        Tue, 13 Jul 2021 02:42:14 -0700 (PDT)
+Received: from localhost.localdomain ([154.16.166.218])
+        by smtp.gmail.com with ESMTPSA id s2sm18558087pgr.12.2021.07.13.02.42.10
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 13 Jul 2021 02:42:13 -0700 (PDT)
+From:   Dongliang Mu <mudongliangabcd@gmail.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paul Moore <paul@paul-moore.com>,
+        Richard Guy Briggs <rgb@redhat.com>
+Cc:     Dongliang Mu <mudongliangabcd@gmail.com>,
+        syzbot <syzkaller@googlegroups.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] audit: fix memory leak in nf_tables_commit
+Date:   Tue, 13 Jul 2021 17:41:57 +0800
+Message-Id: <20210713094158.450434-1-mudongliangabcd@gmail.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
-X-Migadu-Auth-User: yajun.deng@linux.dev
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-It has 'if (err >0 )' statement in nlmsg_unicast(), so use nlmsg_unicast()
-instead of netlink_unicast(), this looks more concise.
+In nf_tables_commit, if nf_tables_commit_audit_alloc fails, it does not
+free the adp variable.
 
-v2: remove the change in netfilter.
+Fix this by freeing the linked list with head adl.
 
-Signed-off-by: Yajun Deng <yajun.deng@linux.dev>
+backtrace:
+  kmalloc include/linux/slab.h:591 [inline]
+  kzalloc include/linux/slab.h:721 [inline]
+  nf_tables_commit_audit_alloc net/netfilter/nf_tables_api.c:8439 [inline]
+  nf_tables_commit+0x16e/0x1760 net/netfilter/nf_tables_api.c:8508
+  nfnetlink_rcv_batch+0x512/0xa80 net/netfilter/nfnetlink.c:562
+  nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:634 [inline]
+  nfnetlink_rcv+0x1fa/0x220 net/netfilter/nfnetlink.c:652
+  netlink_unicast_kernel net/netlink/af_netlink.c:1314 [inline]
+  netlink_unicast+0x2c7/0x3e0 net/netlink/af_netlink.c:1340
+  netlink_sendmsg+0x36b/0x6b0 net/netlink/af_netlink.c:1929
+  sock_sendmsg_nosec net/socket.c:702 [inline]
+  sock_sendmsg+0x56/0x80 net/socket.c:722
+
+Reported-by: syzbot <syzkaller@googlegroups.com>
+Fixes: c520292f29b8 ("audit: log nftables configuration change events once per table")
+Signed-off-by: Dongliang Mu <mudongliangabcd@gmail.com>
 ---
- net/ipv4/fib_frontend.c  | 2 +-
- net/ipv4/inet_diag.c     | 5 +----
- net/ipv4/raw_diag.c      | 7 ++-----
- net/ipv4/udp_diag.c      | 6 ++----
- net/mptcp/mptcp_diag.c   | 6 ++----
- net/netlink/af_netlink.c | 2 +-
- net/sctp/diag.c          | 6 ++----
- net/unix/diag.c          | 6 ++----
- 8 files changed, 13 insertions(+), 27 deletions(-)
+ net/netfilter/nf_tables_api.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/net/ipv4/fib_frontend.c b/net/ipv4/fib_frontend.c
-index a933bd6345b1..9fe13e4f5d08 100644
---- a/net/ipv4/fib_frontend.c
-+++ b/net/ipv4/fib_frontend.c
-@@ -1376,7 +1376,7 @@ static void nl_fib_input(struct sk_buff *skb)
- 	portid = NETLINK_CB(skb).portid;      /* netlink portid */
- 	NETLINK_CB(skb).portid = 0;        /* from kernel */
- 	NETLINK_CB(skb).dst_group = 0;  /* unicast */
--	netlink_unicast(net->ipv4.fibnl, skb, portid, MSG_DONTWAIT);
-+	nlmsg_unicast(net->ipv4.fibnl, skb, portid);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 390d4466567f..7f45b291be13 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -8444,6 +8444,16 @@ static int nf_tables_commit_audit_alloc(struct list_head *adl,
+ 	return 0;
  }
  
- static int __net_init nl_fib_lookup_init(struct net *net)
-diff --git a/net/ipv4/inet_diag.c b/net/ipv4/inet_diag.c
-index e65f4ef024a4..ef7897226f08 100644
---- a/net/ipv4/inet_diag.c
-+++ b/net/ipv4/inet_diag.c
-@@ -580,10 +580,7 @@ int inet_diag_dump_one_icsk(struct inet_hashinfo *hashinfo,
- 		nlmsg_free(rep);
- 		goto out;
- 	}
--	err = netlink_unicast(net->diag_nlsk, rep, NETLINK_CB(in_skb).portid,
--			      MSG_DONTWAIT);
--	if (err > 0)
--		err = 0;
-+	err = nlmsg_unicast(net->diag_nlsk, rep, NETLINK_CB(in_skb).portid);
- 
- out:
- 	if (sk)
-diff --git a/net/ipv4/raw_diag.c b/net/ipv4/raw_diag.c
-index 1b5b8af27aaf..ccacbde30a2c 100644
---- a/net/ipv4/raw_diag.c
-+++ b/net/ipv4/raw_diag.c
-@@ -119,11 +119,8 @@ static int raw_diag_dump_one(struct netlink_callback *cb,
- 		return err;
- 	}
- 
--	err = netlink_unicast(net->diag_nlsk, rep,
--			      NETLINK_CB(in_skb).portid,
--			      MSG_DONTWAIT);
--	if (err > 0)
--		err = 0;
-+	err = nlmsg_unicast(net->diag_nlsk, rep, NETLINK_CB(in_skb).portid);
++static void nf_tables_commit_free(struct list_head *adl)
++{
++	struct nft_audit_data *adp, *adn;
 +
- 	return err;
- }
- 
-diff --git a/net/ipv4/udp_diag.c b/net/ipv4/udp_diag.c
-index b2cee9a307d4..1ed8c4d78e5c 100644
---- a/net/ipv4/udp_diag.c
-+++ b/net/ipv4/udp_diag.c
-@@ -77,10 +77,8 @@ static int udp_dump_one(struct udp_table *tbl,
- 		kfree_skb(rep);
- 		goto out;
- 	}
--	err = netlink_unicast(net->diag_nlsk, rep, NETLINK_CB(in_skb).portid,
--			      MSG_DONTWAIT);
--	if (err > 0)
--		err = 0;
-+	err = nlmsg_unicast(net->diag_nlsk, rep, NETLINK_CB(in_skb).portid);
++	list_for_each_entry_safe(adp, adn, adl, list) {
++		list_del(&adp->list);
++		kfree(adp);
++	}
++}
 +
- out:
- 	if (sk)
- 		sock_put(sk);
-diff --git a/net/mptcp/mptcp_diag.c b/net/mptcp/mptcp_diag.c
-index 8f88ddeab6a2..f48eb6315bbb 100644
---- a/net/mptcp/mptcp_diag.c
-+++ b/net/mptcp/mptcp_diag.c
-@@ -57,10 +57,8 @@ static int mptcp_diag_dump_one(struct netlink_callback *cb,
- 		kfree_skb(rep);
- 		goto out;
- 	}
--	err = netlink_unicast(net->diag_nlsk, rep, NETLINK_CB(in_skb).portid,
--			      MSG_DONTWAIT);
--	if (err > 0)
--		err = 0;
-+	err = nlmsg_unicast(net->diag_nlsk, rep, NETLINK_CB(in_skb).portid);
-+
- out:
- 	sock_put(sk);
- 
-diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
-index d233ac4a91b6..380f95aacdec 100644
---- a/net/netlink/af_netlink.c
-+++ b/net/netlink/af_netlink.c
-@@ -2471,7 +2471,7 @@ void netlink_ack(struct sk_buff *in_skb, struct nlmsghdr *nlh, int err,
- 
- 	nlmsg_end(skb, rep);
- 
--	netlink_unicast(in_skb->sk, skb, NETLINK_CB(in_skb).portid, MSG_DONTWAIT);
-+	nlmsg_unicast(in_skb->sk, skb, NETLINK_CB(in_skb).portid);
- }
- EXPORT_SYMBOL(netlink_ack);
- 
-diff --git a/net/sctp/diag.c b/net/sctp/diag.c
-index 493fc01e5d2b..760b367644c1 100644
---- a/net/sctp/diag.c
-+++ b/net/sctp/diag.c
-@@ -284,10 +284,8 @@ static int sctp_tsp_dump_one(struct sctp_transport *tsp, void *p)
- 		goto out;
- 	}
- 
--	err = netlink_unicast(net->diag_nlsk, rep, NETLINK_CB(in_skb).portid,
--			      MSG_DONTWAIT);
--	if (err > 0)
--		err = 0;
-+	err = nlmsg_unicast(net->diag_nlsk, rep, NETLINK_CB(in_skb).portid);
-+
- out:
- 	return err;
- }
-diff --git a/net/unix/diag.c b/net/unix/diag.c
-index 9ff64f9df1f3..7e7d7f45685a 100644
---- a/net/unix/diag.c
-+++ b/net/unix/diag.c
-@@ -295,10 +295,8 @@ static int unix_diag_get_exact(struct sk_buff *in_skb,
- 
- 		goto again;
- 	}
--	err = netlink_unicast(net->diag_nlsk, rep, NETLINK_CB(in_skb).portid,
--			      MSG_DONTWAIT);
--	if (err > 0)
--		err = 0;
-+	err = nlmsg_unicast(net->diag_nlsk, rep, NETLINK_CB(in_skb).portid);
-+
- out:
- 	if (sk)
- 		sock_put(sk);
+ static void nf_tables_commit_audit_collect(struct list_head *adl,
+ 					   struct nft_table *table, u32 op)
+ {
+@@ -8508,6 +8518,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 		ret = nf_tables_commit_audit_alloc(&adl, trans->ctx.table);
+ 		if (ret) {
+ 			nf_tables_commit_chain_prepare_cancel(net);
++			nf_tables_commit_free(adl);
+ 			return ret;
+ 		}
+ 		if (trans->msg_type == NFT_MSG_NEWRULE ||
+@@ -8517,6 +8528,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 			ret = nf_tables_commit_chain_prepare(net, chain);
+ 			if (ret < 0) {
+ 				nf_tables_commit_chain_prepare_cancel(net);
++				nf_tables_commit_free(adl);
+ 				return ret;
+ 			}
+ 		}
 -- 
-2.32.0
+2.25.1
 
