@@ -2,81 +2,67 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E165C11F66
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Jul 2021 16:40:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D5C1C07E95
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Jul 2021 16:46:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6437560FF3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Jul 2021 16:40:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C52960FF4
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Jul 2021 16:46:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230458AbhGMQmy (ORCPT
+        id S231153AbhGMQtd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 13 Jul 2021 12:42:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42568 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230132AbhGMQmx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 13 Jul 2021 12:42:53 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPS id 9502C6128E;
-        Tue, 13 Jul 2021 16:40:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1626194403;
-        bh=DgebdvLjqE0RN6YbiHJD8f6gPMTe/vpQYXAV3mWqAeM=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=o9g9y5k8BWyexBWlAlBw+o/OTC10fjEfZuFF35eHJAGkc7We3ZZysecgwAN1taKk4
-         0hZGNbJQisiLLZZnN6YYANCSpaOg9P+L5o499TJqvvCgZKe6LsRsBZNmGnMeGvaTXu
-         t23MKygot+/chMiv12he1SX2NjSVRCzrbQqCQWRJj6YadT8nlQxlDw1byHDqx+ZZEi
-         lKwGHwPaRVpIAKis0V+UZygRSw6fMug/aHhXDWD7Y5KBTdftdIxUvBwbTb59CBr5k9
-         kOYof7XFoSfHly7VghpaKjeIZf9CMmoTUApu5FX/FiaJzY+h9x1ST7abRmjxGsyCBA
-         JwDGZ6w41063Q==
-Content-Type: text/plain; charset="utf-8"
+        Tue, 13 Jul 2021 12:49:33 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:38542 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229449AbhGMQtd (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 13 Jul 2021 12:49:33 -0400
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 337EE60702;
+        Tue, 13 Jul 2021 18:46:24 +0200 (CEST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     yajun.deng@linux.dev
+Subject: [PATCH nf] netfilter: nft_compat: use nfnetlink_unicast()
+Date:   Tue, 13 Jul 2021 18:46:40 +0200
+Message-Id: <20210713164640.28501-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH v2] net: Use nlmsg_unicast() instead of netlink_unicast()
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <162619440355.1289.14646732123262264150.git-patchwork-notify@kernel.org>
-Date:   Tue, 13 Jul 2021 16:40:03 +0000
-References: <20210713024824.14359-1-yajun.deng@linux.dev>
-In-Reply-To: <20210713024824.14359-1-yajun.deng@linux.dev>
-To:     Yajun Deng <yajun.deng@linux.dev>
-Cc:     davem@davemloft.net, yoshfuji@linux-ipv6.org, dsahern@kernel.org,
-        kuba@kernel.org, mathew.j.martineau@linux.intel.com,
-        matthieu.baerts@tessares.net, pablo@netfilter.org,
-        kadlec@netfilter.org, fw@strlen.de, vyasevich@gmail.com,
-        nhorman@tuxdriver.com, marcelo.leitner@gmail.com,
-        johannes.berg@intel.com, ast@kernel.org, yhs@fb.com,
-        0x7f454c46@gmail.com, aahringo@redhat.com, rdunlap@infradead.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        mptcp@lists.linux.dev, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-sctp@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+nfnetlink_unicast() translates EAGAIN to ENOBUFS, since EAGAIN is
+reserved to report missing module dependencies to the nfnetlink core.
 
-This patch was applied to netdev/net.git (refs/heads/master):
+Reported-by: Yajun Deng <yajun.deng@linux.dev>
+Fixes: e0241ae6ac59 ("netfilter: use nfnetlink_unicast()")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nft_compat.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-On Tue, 13 Jul 2021 10:48:24 +0800 you wrote:
-> It has 'if (err >0 )' statement in nlmsg_unicast(), so use nlmsg_unicast()
-> instead of netlink_unicast(), this looks more concise.
-> 
-> v2: remove the change in netfilter.
-> 
-> Signed-off-by: Yajun Deng <yajun.deng@linux.dev>
-> 
-> [...]
-
-Here is the summary with links:
-  - [v2] net: Use nlmsg_unicast() instead of netlink_unicast()
-    https://git.kernel.org/netdev/net/c/01757f536ac8
-
-You are awesome, thank you!
---
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index 639c337c885b..60f234df4e1d 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -683,10 +683,7 @@ static int nfnl_compat_get_rcu(struct sk_buff *skb,
+ 		goto out_put;
+ 	}
+ 
+-	ret = netlink_unicast(info->sk, skb2, NETLINK_CB(skb).portid,
+-			      MSG_DONTWAIT);
+-	if (ret > 0)
+-		ret = 0;
++	ret = nfnetlink_unicast(skb2, info->net, NETLINK_CB(skb).portid);
+ out_put:
+ 	rcu_read_lock();
+ 	module_put(THIS_MODULE);
+-- 
+2.20.1
 
