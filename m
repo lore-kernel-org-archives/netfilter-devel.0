@@ -2,147 +2,96 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A9AAC07E95
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Jul 2021 09:42:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC72BC07E95
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Jul 2021 10:08:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4E4A86115A
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Jul 2021 09:42:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 98DE9611C0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Jul 2021 10:08:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235222AbhGMJpF (ORCPT
+        id S235152AbhGMKK7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 13 Jul 2021 05:45:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34920 "EHLO
+        Tue, 13 Jul 2021 06:10:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40966 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235199AbhGMJpE (ORCPT
+        with ESMTP id S235109AbhGMKK6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 13 Jul 2021 05:45:04 -0400
-Received: from mail-pg1-x52d.google.com (mail-pg1-x52d.google.com [IPv6:2607:f8b0:4864:20::52d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED2D1C0613DD;
-        Tue, 13 Jul 2021 02:42:14 -0700 (PDT)
-Received: by mail-pg1-x52d.google.com with SMTP id v7so21128928pgl.2;
-        Tue, 13 Jul 2021 02:42:14 -0700 (PDT)
+        Tue, 13 Jul 2021 06:10:58 -0400
+Received: from mail-lj1-x22a.google.com (mail-lj1-x22a.google.com [IPv6:2a00:1450:4864:20::22a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0739EC0613DD
+        for <netfilter-devel@vger.kernel.org>; Tue, 13 Jul 2021 03:08:09 -0700 (PDT)
+Received: by mail-lj1-x22a.google.com with SMTP id a6so29155329ljq.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 13 Jul 2021 03:08:08 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
+        h=mime-version:from:date:message-id:subject:to:cc
          :content-transfer-encoding;
-        bh=3fWMP9fQRTobWKqa9AEAof4IRXVKYtteX5duYf7hZbc=;
-        b=qXb2LQCtkyInsqxC5JJn1LnL4RjpgOltJlhN+455aYKGiBphUoR/xgs5IABM2A2tSB
-         hS+QLZB7fJYT72pUGaGqTyGHcXSun35PHsIrFf0pwS/8TvxXTMOH+aTg6TlRQFaCJzKq
-         oX+7/PfIYZBln0A03jbea6oNez3fEikd0UEsRREPcEujeTne2N+HnU4b2gEkWGktWBqL
-         LE/xywaqshZvL1zZ1SKOToInMLNN+Fbnz30gE7OHjptaW74H/muLCCWJHpliSYMuACOP
-         coVsldI2wnlPmqJOJI0+GhxhU51Nfya/BoaR7UzgR5W7TG65lQdgQXvyVnSBUruphR9d
-         0KvQ==
+        bh=bi6vYY+hQwR2Ckgta+GNAKJVLohlPwz1R/SpzgahLGw=;
+        b=utRMRX6KJOfsKLIKb7zpvzVz5BBZ37t80Qb7dnlIQvIj42mmq3l9xvzoBiXldu+M9u
+         ujTfKfF1AKgg0aBwuGPpO6CW2SC90uiq8/APoAr4FTt+1/7/6pPG9a6GO4DHoqQjNdoA
+         uvWU2xrTdCgX+NkzNDx01AbTQs6IXC2zWUbIx1geEwe4Ysex2IYONI02M0aSKz5bgL+5
+         TOa1t05tumCfuFkL2KC3qKvXn+T/n/9SFAR+ZnqEuunE1nc5jm7ekVhFoX8trq80ac91
+         3F9+ijNvkSW0i7Lk4wL0cU7YDm8Z4F+PLwE9N0vgjhpV2T2pUp1dRgxJPMiLosrR+YgW
+         +j1w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc
          :content-transfer-encoding;
-        bh=3fWMP9fQRTobWKqa9AEAof4IRXVKYtteX5duYf7hZbc=;
-        b=PocTL4l+Yn4nTtzcwBITf1pZrc9CN+0cTv3PcF+cav8HUUM/KixgUAYuUBQN+B5JBd
-         kchA7sIjam0ArTLslLjiAfbTo4xC6Ii3FVwwButYH/XcDltORwzq71+Q+XybakhcCXbF
-         +m9OE3WNcNuTkvZnIe+nw7NcDQMpSgUI3T+Jv1qNleDk8Hk7ygCLjcB9qiBKMFfGQnXU
-         cfnvx3tSNVuTU4ecdF4XnlqLgShq7uCStvypyVx5PFku2O9RplX2fqklWCMg+SzHAtkm
-         Pwnqk8o4SoHUzPln2th1O4yWoTk03lE3vPYqi3YdwTa7RctDqtkR46jC4C5WACJn3xVW
-         61Lg==
-X-Gm-Message-State: AOAM533ahTkqsgqUnsHYOyw661OojsJjbJfyyBRrGeOnQpAlYBOqZOwb
-        K4fOOt3UJ1yOGTJFKXnUHC4=
-X-Google-Smtp-Source: ABdhPJyyDhrO5NGkQ2bzwhZfOXDZTJ8z3m998PSHfA79sGP2hZe7o45tHI6Iv6mumGQWyVv6oZ3lEg==
-X-Received: by 2002:a63:5351:: with SMTP id t17mr3378618pgl.315.1626169334332;
-        Tue, 13 Jul 2021 02:42:14 -0700 (PDT)
-Received: from localhost.localdomain ([154.16.166.218])
-        by smtp.gmail.com with ESMTPSA id s2sm18558087pgr.12.2021.07.13.02.42.10
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 13 Jul 2021 02:42:13 -0700 (PDT)
-From:   Dongliang Mu <mudongliangabcd@gmail.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paul Moore <paul@paul-moore.com>,
-        Richard Guy Briggs <rgb@redhat.com>
-Cc:     Dongliang Mu <mudongliangabcd@gmail.com>,
-        syzbot <syzkaller@googlegroups.com>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] audit: fix memory leak in nf_tables_commit
-Date:   Tue, 13 Jul 2021 17:41:57 +0800
-Message-Id: <20210713094158.450434-1-mudongliangabcd@gmail.com>
-X-Mailer: git-send-email 2.25.1
+        bh=bi6vYY+hQwR2Ckgta+GNAKJVLohlPwz1R/SpzgahLGw=;
+        b=f0uCTgQPsBHS4CEPkKRh6dDLi3PnOKZOHNNmszNWLuUvgXdpoTi6EWKBat7gnha9VW
+         J2g+55ucfmC6eirfOUS091xFDcQ5ZT6rnNUSB/jNH6h6OwOmIT/I8rlIlutWkUBHhYX0
+         ZYoRoIijKF6uc8q5QKJDjzzKHnu40mzXNkPg7Gcq97tzS39Cy2Ul02dxc0RQl8iTsHwc
+         hWoiwaloRn2EIUFOkrMTrzHOtyHVFMnCfoO5b66NoJ7I2ioPwHuKjWTqaU9REHO0eCh+
+         3SltbdIEnpgvePEi3EzmaLoVkzYJaG6q+fYYcmEoD8/1zx28EhJr/X7ptLR8Z8a7YpWu
+         OECQ==
+X-Gm-Message-State: AOAM533hu5dovozWi6fNm5GTD37FxxuX099ScJ98Y8CXfI6DKe9et8PW
+        kUqv4m40bhNixJj4c/fzftardzzmPOLZDYa1Wbco4IFmaW4=
+X-Google-Smtp-Source: ABdhPJw7NQ30kdc4rkJbO1rP6qEIO9JHWQlseaQgCdwoxBC7CVimOjpwoGMrfaWo2DVJqFRHl+D8lxr4JKdnfalykhU=
+X-Received: by 2002:a2e:9852:: with SMTP id e18mr3696395ljj.6.1626170886918;
+ Tue, 13 Jul 2021 03:08:06 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+From:   ze wang <wangze712@gmail.com>
+Date:   Tue, 13 Jul 2021 18:07:31 +0800
+Message-ID: <CANS1P8EzXbrYXzLpLS+sFv1vDz=NNUiyaWqOZHCaeZ23tfCSNw@mail.gmail.com>
+Subject: [issue] conntrack: lack of lock during nat
+To:     pablo@netfilter.org, netfilter-devel@vger.kernel.org
+Cc:     npl_nad@ucloud.cn
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-In nf_tables_commit, if nf_tables_commit_audit_alloc fails, it does not
-free the adp variable.
+Hi Pablo,
+         I'm doing CPS testing for conntrack=EF=BC=8Cand I think there may =
+be an issue
+in some scenarios. Here is the example=EF=BC=9A
 
-Fix this by freeing the linked list with head adl.
+iptables -t nat -A POSTROUTING -d 10.0.0.5 -p tcp -j SNAT --to 10.0.0.1
 
-backtrace:
-  kmalloc include/linux/slab.h:591 [inline]
-  kzalloc include/linux/slab.h:721 [inline]
-  nf_tables_commit_audit_alloc net/netfilter/nf_tables_api.c:8439 [inline]
-  nf_tables_commit+0x16e/0x1760 net/netfilter/nf_tables_api.c:8508
-  nfnetlink_rcv_batch+0x512/0xa80 net/netfilter/nfnetlink.c:562
-  nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:634 [inline]
-  nfnetlink_rcv+0x1fa/0x220 net/netfilter/nfnetlink.c:652
-  netlink_unicast_kernel net/netlink/af_netlink.c:1314 [inline]
-  netlink_unicast+0x2c7/0x3e0 net/netlink/af_netlink.c:1340
-  netlink_sendmsg+0x36b/0x6b0 net/netlink/af_netlink.c:1929
-  sock_sendmsg_nosec net/socket.c:702 [inline]
-  sock_sendmsg+0x56/0x80 net/socket.c:722
+pkt from p1: IP(src=3D"10.0.0.2",dst=3D"10.0.0.5")/TCP(sport=3D5555,dport=
+=3D8888,seq=3D100)
+pkt from p2: IP(src=3D"10.0.0.3",dst=3D"10.0.0.5")/TCP(sport=3D5555,dport=
+=3D8888,seq=3D100)
 
-Reported-by: syzbot <syzkaller@googlegroups.com>
-Fixes: c520292f29b8 ("audit: log nftables configuration change events once per table")
-Signed-off-by: Dongliang Mu <mudongliangabcd@gmail.com>
----
- net/netfilter/nf_tables_api.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+        If the number of attempts is large enough, there is a chance that t=
+he
+conntracks generated by the two packets will conflict, because their tuples
+in the reply direction have the same ip and port.
+        The reason for this phenomenon may be in the process of executing
+nat,there are two small locks in choosing nat tuple(ip and port) and
+confirming ct, but there is no lock between them(before confirm and
+after choose), which may cause kernel threads choosing the same
+reply tuple and confirming them, then go to clash resolve.
+        I=E2=80=99m not sure if my thoughts are correct, or there is any ot=
+her
+mechanism in
+the kernel to prevent this and I didn't find it. Can this be
+considered an issue?
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 390d4466567f..7f45b291be13 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -8444,6 +8444,16 @@ static int nf_tables_commit_audit_alloc(struct list_head *adl,
- 	return 0;
- }
- 
-+static void nf_tables_commit_free(struct list_head *adl)
-+{
-+	struct nft_audit_data *adp, *adn;
-+
-+	list_for_each_entry_safe(adp, adn, adl, list) {
-+		list_del(&adp->list);
-+		kfree(adp);
-+	}
-+}
-+
- static void nf_tables_commit_audit_collect(struct list_head *adl,
- 					   struct nft_table *table, u32 op)
- {
-@@ -8508,6 +8518,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 		ret = nf_tables_commit_audit_alloc(&adl, trans->ctx.table);
- 		if (ret) {
- 			nf_tables_commit_chain_prepare_cancel(net);
-+			nf_tables_commit_free(adl);
- 			return ret;
- 		}
- 		if (trans->msg_type == NFT_MSG_NEWRULE ||
-@@ -8517,6 +8528,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 			ret = nf_tables_commit_chain_prepare(net, chain);
- 			if (ret < 0) {
- 				nf_tables_commit_chain_prepare_cancel(net);
-+				nf_tables_commit_free(adl);
- 				return ret;
- 			}
- 		}
--- 
-2.25.1
-
+Thank you,
+wangze
