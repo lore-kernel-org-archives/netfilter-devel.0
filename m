@@ -2,139 +2,184 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66DAAC47E48
-	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Jul 2021 14:36:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 768E2C636C9
+	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Jul 2021 22:13:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4CC7D613CC
-	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Jul 2021 14:36:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5631C613D8
+	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Jul 2021 22:13:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233131AbhGOOjO (ORCPT
+        id S231887AbhGOWQj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 15 Jul 2021 10:39:14 -0400
-Received: from mail-io1-f70.google.com ([209.85.166.70]:44852 "EHLO
-        mail-io1-f70.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236721AbhGOOjN (ORCPT
+        Thu, 15 Jul 2021 18:16:39 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:43520 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231882AbhGOWQi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 15 Jul 2021 10:39:13 -0400
-Received: by mail-io1-f70.google.com with SMTP id k2-20020a5d8b020000b029050b6f9cfe31so3831726ion.11
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Jul 2021 07:36:19 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
-        bh=4HZUJQeBGZ+NVG0aXehK/sNcAjBRJ2CKQkm2snQI6AE=;
-        b=skYzTqtGbRU2uW3KqMOAi7WSQZPMzKW4L9EA7cKzqliGD/Fis+S3kUo3M1Jv1kcI78
-         BKuVovfnUrsf5IXu9AHCABhNF2gCcIlQkzutefp+cdGQIc6owAzpHGTFjTtHY256rWMZ
-         vzLQ1IraLErv7uIT7r8JDNkLYKRCCQuaB3U8qwSo7cDZPSp4jj51PgyRMCQ9n8uM5Q8K
-         bDCxG0+uMCD7ZuYFirWWOPJosVevbKqVzTxuT+3Z/CoWUDVA+kUxWjOC8Pi50m1vtc45
-         Iqq6V67Kyo/ine36ki/xbgBWHxMhKtO/unp6cnzFDn28YoFA0rQMY31FhHTUeUQiGDli
-         TGaQ==
-X-Gm-Message-State: AOAM530QOxUC+cQgR/fo+9q8m0LiYG3oPyKYxEoItEZjejF+0o7u9HOT
-        sdxwwkk1GOYvOsmPlMLrc3m7lKlWjxfoPcrt4DwvTcLXzocU
-X-Google-Smtp-Source: ABdhPJzNaMhJ0NPfS3lxheTwOkZOIxBRPuxh7EcJseVxeVinrsnAt8ZUGrKnGk5En2w9syUWnFumGonuBwUmZaY6/f8Cnzpi0mRI
+        Thu, 15 Jul 2021 18:16:38 -0400
+Received: from netfilter.org (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 59DC364299;
+        Fri, 16 Jul 2021 00:13:24 +0200 (CEST)
+Date:   Fri, 16 Jul 2021 00:13:42 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Andrea Mayer <andrea.mayer@uniroma2.it>
+Cc:     Ryoga Saito <proelbtn@gmail.com>, davem@davemloft.net,
+        yoshfuji@linux-ipv6.org, dsahern@kernel.org, kuba@kernel.org,
+        netfilter-devel@vger.kernel.org,
+        Stefano Salsano <stefano.salsano@uniroma2.it>,
+        Paolo Lungaroni <paolo.lungaroni@uniroma2.it>
+Subject: Re: [PATCH] net: Add netfilter hooks to track SRv6-encapsulated flows
+Message-ID: <20210715221342.GA19921@salvia>
+References: <20210706052548.5440-1-proelbtn@gmail.com>
+ <20210708033138.ef3af5a724d7b569c379c35e@uniroma2.it>
+ <20210708133859.GA6745@salvia>
+ <20210708183239.824f8e1ed569b0240c38c7a8@uniroma2.it>
+ <CALPAGbJt_rb_r3M2AEJ_6VRsG+zXrEOza0U-6SxFGsERGipT4w@mail.gmail.com>
+ <8EFE7482-6E0E-4589-A9BE-F7BC96C7876E@gmail.com>
+ <20210709204851.90b847c71760aa40668a0971@uniroma2.it>
+ <FEF1CBA8-62EC-483A-B7CA-50973020F27B@gmail.com>
+ <20210713013116.441cc6015af001c4df4f16b0@uniroma2.it>
 MIME-Version: 1.0
-X-Received: by 2002:a92:b748:: with SMTP id c8mr2919947ilm.302.1626359779406;
- Thu, 15 Jul 2021 07:36:19 -0700 (PDT)
-Date:   Thu, 15 Jul 2021 07:36:19 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000edbbe305c72a64d9@google.com>
-Subject: [syzbot] general protection fault in nf_tables_dump_flowtable
-From:   syzbot <syzbot+58a66a56fa9d7f98d19b@syzkaller.appspotmail.com>
-To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        kadlec@netfilter.org, kuba@kernel.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20210713013116.441cc6015af001c4df4f16b0@uniroma2.it>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello,
+Hi Andrea,
 
-syzbot found the following issue on:
+On Tue, Jul 13, 2021 at 01:31:16AM +0200, Andrea Mayer wrote:
+[...]
+> > On Sun, 11 Jul 2021 16:12:48 +0900
+> > Ryoga Saito <proelbtn@gmail.com> wrote:
+> 
+> > >
+> > > No, this is a way to fix the problem that you introduce by changing the current
+> > > srv6local forwarding model. If you have 100 End SIDs should you add 100 accept
+> > > rules? The root problem is that SRv6 (srv6local) traffic should not go through
+> > > the INPUT path.
+> >
+> > No, you only need to add single rule for accepting these SIDs. Here is the
+> > quote of RFC 8986.
+> >
+> > ---
+> > This document defines an SRv6 SID as consisting of LOC:FUNCT:ARG, where
+> > a locator (LOC) is encoded in the L most significant bits of the SID,
+> > followed by F bits of function (FUNCT) and A bits of arguments (ARG). L,
+> > the locator length, is flexible, and an operator is free to use the locator
+> > length of their choice. F and A may be any value as long as L+F+A <= 128.
+> > When L+F+A is less than 128, then the remaining bits of the SID MUST be
+> > zero.
+> >
+> > A locator may be represented as B:N where B is the SRv6 SID block (IPv6
+> > prefix allocated for SRv6 SIDs by the operator) and N is the identifier of
+> > the parent node instantiating the SID.
+> >
+> > When the LOC part of the SRv6 SIDs is routable, it leads to the node, which
+> > instantiates the SID.
+> > ---
+> >
+> > If there are 100 SIDs, but these SIDs are for the same node, the locators
+> > of these SIDs also should be same. so, you can allow SRv6 flows by adding
+> > only single rule.
+> 
+> No, you cannot rely on this assumption.
+> Operators can choose to assign different locators to the same node.
+> The document you mention does not prescribe how the SIDs should be allocated on
+> the nodes, nor whether they should be part of one or more locators.
+> Consequently, no one imposes on us that those 100 SIDs must belong all to the
+> same locator.
 
-HEAD commit:    222722bc6ebf virtio_net: check virtqueue_add_sgs() return ..
-git tree:       net
-console output: https://syzkaller.appspot.com/x/log.txt?x=100acffc300000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=51ea6c9df4ed04c4
-dashboard link: https://syzkaller.appspot.com/bug?extid=58a66a56fa9d7f98d19b
+It is possible to filter 100 SIDs with one single rule and one set,
+even if they are different SIDs.
 
-Unfortunately, I don't have any reproducer for this issue yet.
+> > > Have you set the traffic to flow through INPUT to confirm a connection (for
+> > > conntrack)? If this is the only reason, before changing the srv6local
+> > > processing model in such a disruptive way, you can investigate different ways
+> > > to do connection confirmation without going directly through nfhook with INPUT.
+> > > I can help with some hints if you are interested.
+> >
+> > You stated this patch isn't acceptable because NF_HOOK is called even when
+> > End behavior is processing, aren't you? 
+> 
+> Yes, since the SRv6 processing (seg6_local) is applied to traffic with DAs not
+> necessarily associated with local addresses, it should not pass through INPUT.
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+58a66a56fa9d7f98d19b@syzkaller.appspotmail.com
+See below.
 
-general protection fault, probably for non-canonical address 0xfbd59c0000000054: 0000 [#1] PREEMPT SMP KASAN
-KASAN: maybe wild-memory-access in range [0xdead0000000002a0-0xdead0000000002a7]
-CPU: 1 PID: 30836 Comm: syz-executor.2 Tainted: G        W         5.13.0-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-RIP: 0010:nf_tables_dump_flowtable+0x453/0xbc0 net/netfilter/nf_tables_api.c:7617
-Code: 5c 31 ff 89 de e8 ad 7a 16 fa 85 db 0f 85 67 ff ff ff e8 60 73 16 fa 48 8b 04 24 48 05 a0 01 00 00 48 89 44 24 10 48 c1 e8 03 <80> 3c 28 00 0f 85 bb 06 00 00 48 8b 04 24 48 8b 98 a0 01 00 00 48
-RSP: 0018:ffffc9000592f1e0 EFLAGS: 00010a02
-RAX: 1bd5a00000000054 RBX: 0000000000000000 RCX: ffffc9000dede000
-RDX: 0000000000040000 RSI: ffffffff875f0eb0 RDI: 0000000000000003
-RBP: dffffc0000000000 R08: 0000000000000000 R09: ffffffff8d6aef17
-R10: ffffffff875f0ea3 R11: 000000000000003f R12: 0000000000000000
-R13: ffff8880722d6544 R14: 0000000000000000 R15: ffff8880722d6548
-FS:  00007fb776e0f700(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00000000014a53ad CR3: 00000000715c8000 CR4: 00000000001506e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
- netlink_dump+0x4b9/0xb70 net/netlink/af_netlink.c:2278
- __netlink_dump_start+0x642/0x900 net/netlink/af_netlink.c:2383
- netlink_dump_start include/linux/netlink.h:258 [inline]
- nft_netlink_dump_start_rcu+0x9c/0x1b0 net/netfilter/nf_tables_api.c:859
- nf_tables_getflowtable+0x582/0x6b0 net/netfilter/nf_tables_api.c:7707
- nfnetlink_rcv_msg+0x6c6/0x13a0 net/netfilter/nfnetlink.c:285
- netlink_rcv_skb+0x153/0x420 net/netlink/af_netlink.c:2504
- nfnetlink_rcv+0x1ac/0x420 net/netfilter/nfnetlink.c:654
- netlink_unicast_kernel net/netlink/af_netlink.c:1314 [inline]
- netlink_unicast+0x533/0x7d0 net/netlink/af_netlink.c:1340
- netlink_sendmsg+0x85b/0xda0 net/netlink/af_netlink.c:1929
- sock_sendmsg_nosec net/socket.c:703 [inline]
- sock_sendmsg+0xcf/0x120 net/socket.c:723
- ____sys_sendmsg+0x6e8/0x810 net/socket.c:2392
- ___sys_sendmsg+0xf3/0x170 net/socket.c:2446
- __sys_sendmsg+0xe5/0x1b0 net/socket.c:2475
- do_syscall_x64 arch/x86/entry/common.c:50 [inline]
- do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
- entry_SYSCALL_64_after_hwframe+0x44/0xae
-RIP: 0033:0x4665d9
-Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007fb776e0f188 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
-RAX: ffffffffffffffda RBX: 000000000056bf80 RCX: 00000000004665d9
-RDX: 0000000000000000 RSI: 00000000200000c0 RDI: 0000000000000004
-RBP: 00000000004bfcb9 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 000000000056bf80
-R13: 00007ffd108f5eef R14: 00007fb776e0f300 R15: 0000000000022000
-Modules linked in:
----[ end trace 79a86b7be1217444 ]---
-RIP: 0010:nf_tables_dump_flowtable+0x453/0xbc0 net/netfilter/nf_tables_api.c:7617
-Code: 5c 31 ff 89 de e8 ad 7a 16 fa 85 db 0f 85 67 ff ff ff e8 60 73 16 fa 48 8b 04 24 48 05 a0 01 00 00 48 89 44 24 10 48 c1 e8 03 <80> 3c 28 00 0f 85 bb 06 00 00 48 8b 04 24 48 8b 98 a0 01 00 00 48
-RSP: 0018:ffffc9000592f1e0 EFLAGS: 00010a02
-RAX: 1bd5a00000000054 RBX: 0000000000000000 RCX: ffffc9000dede000
-RDX: 0000000000040000 RSI: ffffffff875f0eb0 RDI: 0000000000000003
-RBP: dffffc0000000000 R08: 0000000000000000 R09: ffffffff8d6aef17
-R10: ffffffff875f0ea3 R11: 000000000000003f R12: 0000000000000000
-R13: ffff8880722d6544 R14: 0000000000000000 R15: ffff8880722d6548
-FS:  00007fb776e0f700(0000) GS:ffff8880b9c00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00000000030eb708 CR3: 00000000715c8000 CR4: 00000000001506f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+> > So, do you think it’s natural that
+> > NF_HOOK is called *only* when SRv6 behavior is encap/decap operation. The
+> > problem I stated first is that netfilter couldn't track inner flows of
+> > SRv6-encapsulated packets regardless of the status of IPv6 conntrack. If
+> > yes, I will fix and resubmit patch.
+> >
+> 
+> Let's consider encap/decap operation. The first important consideration is that
+> encap and decap are two different beasts.
+> 
+> Encap (T.Encap) is done in seg6_input (seg6_iptunnel) when a packet is
+> received on the IPv6 receive path and in seg6_output if the packet to be
+> encapsulated is locally generated.
+> Then you will have decap operations that are performed in seg6_local, according
+> to several different decap behaviors.
+> 
+> For the moment, let's consider the encap operation applied to a packet received
+> on the IPv6 receive path. If your plan is to call NF_HOOK set on OUTPUT, you
+> will have a similar problem to what I have already described for
+> seg6_local_input (seg6_local). However, this time the OUTPUT is involved rather
+> than the INPUT.
 
+If this is a real concern, then it should be to possible to add new
+hooks such as NF_INET_LWT_LOCAL_IN and NF_INET_LWT_LOCAL_OUT, and extend
+conntrack to also register handlers for those new hooks.
 
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+> The SRv6 encap operation (seg6_input) for packets received on the IPv6 receive
+> path has been designed and implemented so that packets are not steered through
+> the OUTPUT. For this reason, if you change this design you will cause:
+> 
+>  1) possible traffic loss due to some already existing policies in OUTPUT.
+>     In other words you will break existing working configuration;
+>
+>  2) a performance drop in SRv6 encapsulation, which I have measured below.
+> 
+> ---
+> 
+> I set up a testbed with the purpose of quickly and preliminarily testing the
+> performance (throughput) of a couple of patched processing functions you
+> proposed:
+> 
+>   i) SRv6 End (since the seg6_local_input function was patched);
+> 
+>  ii) SRv6 T.Encap (seg6_iptunnel).
+> 
+> 
+> The following scenarios were tested:
+> 
+>  1.a) vanilla kernel with a single SRv6 End Behavior and only 1 ip6tables
+>       (filter) rule to fill the INPUT (although not necessary, see below);
+>  
+>  1.b) vanilla kernel with a single SRv6 T.Encap and 0 ip6tables (filter)
+>       rules on OUTPUT;
+> 
+>  2.a) patched kernel with a single SRv6 End Behavior and only 1 ip6tables
+>       (filter) rule in INPUT to do accept (necessary to accept the SID);
+>  
+>  2.b) patched kernel with a single SRv6 T.Encap and 0 ip6tables (filter)
+>       rules on OUTPUT.
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+This is not correct, you are evaluating here the cost of the
+filtering, not the cost of the new hooks. If your concern that the new
+hooks might slow down the IPv6 SRv6 datapath, then you should repeat
+your experiment with and without the patch that adds the hooks.
+
+And you should also provide more information on how you're collecting
+any performance number to allow us to scrutinize that your performance
+evaluation is correct.
+
+Thanks.
