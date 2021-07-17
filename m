@@ -7,31 +7,29 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BCCACC636CA
-	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Jul 2021 08:26:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C414CC636C9
+	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Jul 2021 08:26:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A19EA613C3
-	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Jul 2021 08:26:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9A9C46127C
+	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Jul 2021 08:26:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231228AbhGQI27 (ORCPT
+        id S231855AbhGQI3Y (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 17 Jul 2021 04:28:59 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:46202 "EHLO
+        Sat, 17 Jul 2021 04:29:24 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:46224 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230295AbhGQI2w (ORCPT
+        with ESMTP id S230081AbhGQI3U (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 17 Jul 2021 04:28:52 -0400
+        Sat, 17 Jul 2021 04:29:20 -0400
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id C579363089
-        for <netfilter-devel@vger.kernel.org>; Sat, 17 Jul 2021 10:25:34 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 08D546164A
+        for <netfilter-devel@vger.kernel.org>; Sat, 17 Jul 2021 10:25:58 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf 2/2] netfilter: flowtable: remove nf_ct_l4proto_find() call
-Date:   Sat, 17 Jul 2021 10:25:51 +0200
-Message-Id: <20210717082551.5051-2-pablo@netfilter.org>
+Subject: [PATCH nf-next] netfilter: flowtable: remove nf_ct_l4proto_find() call
+Date:   Sat, 17 Jul 2021 10:26:17 +0200
+Message-Id: <20210717082617.5120-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210717082551.5051-1-pablo@netfilter.org>
-References: <20210717082551.5051-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
