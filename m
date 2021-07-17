@@ -2,115 +2,71 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC026C636CA
-	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Jul 2021 15:18:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9610AC12002
+	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Jul 2021 00:22:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AD3D2613F5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Jul 2021 15:18:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 63D36613EB
+	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Jul 2021 00:22:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237326AbhGPPVi (ORCPT
+        id S229566AbhGQAZl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 16 Jul 2021 11:21:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53614 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233094AbhGPPVi (ORCPT
+        Fri, 16 Jul 2021 20:25:41 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:45700 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229462AbhGQAZl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 16 Jul 2021 11:21:38 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 20E62C06175F;
-        Fri, 16 Jul 2021 08:18:42 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1m4Pbl-0004ys-49; Fri, 16 Jul 2021 17:18:33 +0200
-Date:   Fri, 16 Jul 2021 17:18:33 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
-Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
-        davem@davemloft.net, kuba@kernel.org, shuah@kernel.org,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        linux-kselftest@vger.kernel.org,
-        Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>,
-        Scott Parlane <scott.parlane@alliedtelesis.co.nz>,
-        Blair Steven <blair.steven@alliedtelesis.co.nz>
-Subject: Re: [PATCH 2/3] net: netfilter: Add RFC-7597 Section 5.1 PSID support
-Message-ID: <20210716151833.GD9904@breakpoint.cc>
-References: <20210705103959.GG18022@breakpoint.cc>
- <20210716002742.31078-1-Cole.Dishington@alliedtelesis.co.nz>
- <20210716002742.31078-3-Cole.Dishington@alliedtelesis.co.nz>
+        Fri, 16 Jul 2021 20:25:41 -0400
+Received: from netfilter.org (unknown [90.77.255.23])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 0725D6164C;
+        Sat, 17 Jul 2021 02:22:25 +0200 (CEST)
+Date:   Sat, 17 Jul 2021 02:22:43 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Dongliang Mu <mudongliangabcd@gmail.com>
+Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Richard Guy Briggs <rgb@redhat.com>,
+        Paul Moore <paul@paul-moore.com>,
+        syzbot <syzkaller@googlegroups.com>,
+        kernel test robot <lkp@intel.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3] audit: fix memory leak in nf_tables_commit
+Message-ID: <20210717002243.GA27401@salvia>
+References: <20210714032703.505023-1-mudongliangabcd@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20210716002742.31078-3-Cole.Dishington@alliedtelesis.co.nz>
+In-Reply-To: <20210714032703.505023-1-mudongliangabcd@gmail.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Cole Dishington <Cole.Dishington@alliedtelesis.co.nz> wrote:
-> diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-> index 7de595ead06a..4a9448684504 100644
-> --- a/net/netfilter/nf_nat_core.c
-> +++ b/net/netfilter/nf_nat_core.c
-> @@ -195,13 +195,36 @@ static bool nf_nat_inet_in_range(const struct nf_conntrack_tuple *t,
->  static bool l4proto_in_range(const struct nf_conntrack_tuple *tuple,
->  			     enum nf_nat_manip_type maniptype,
->  			     const union nf_conntrack_man_proto *min,
-> -			     const union nf_conntrack_man_proto *max)
-> +			     const union nf_conntrack_man_proto *max,
-> +			     const union nf_conntrack_man_proto *base,
-> +			     bool is_psid)
->  {
->  	__be16 port;
-> +	u16 psid, psid_mask, offset_mask;
-> +
-> +	/* In this case we are in PSID mode, avoid checking all ranges by computing bitmasks */
-> +	if (is_psid) {
-> +		u16 power_j = ntohs(max->all) - ntohs(min->all) + 1;
-> +		u32 offset = ntohs(base->all);
-> +		u16 power_a;
-> +
-> +		if (offset == 0)
-> +			offset = 1 << 16;
-> +
-> +		power_a = (1 << 16) / offset;
+On Wed, Jul 14, 2021 at 11:27:03AM +0800, Dongliang Mu wrote:
+> In nf_tables_commit, if nf_tables_commit_audit_alloc fails, it does not
+> free the adp variable.
+> 
+> Fix this by adding nf_tables_commit_audit_free which frees 
+> the linked list with the head node adl.
+> 
+> backtrace:
+>   kmalloc include/linux/slab.h:591 [inline]
+>   kzalloc include/linux/slab.h:721 [inline]
+>   nf_tables_commit_audit_alloc net/netfilter/nf_tables_api.c:8439 [inline]
+>   nf_tables_commit+0x16e/0x1760 net/netfilter/nf_tables_api.c:8508
+>   nfnetlink_rcv_batch+0x512/0xa80 net/netfilter/nfnetlink.c:562
+>   nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:634 [inline]
+>   nfnetlink_rcv+0x1fa/0x220 net/netfilter/nfnetlink.c:652
+>   netlink_unicast_kernel net/netlink/af_netlink.c:1314 [inline]
+>   netlink_unicast+0x2c7/0x3e0 net/netlink/af_netlink.c:1340
+>   netlink_sendmsg+0x36b/0x6b0 net/netlink/af_netlink.c:1929
+>   sock_sendmsg_nosec net/socket.c:702 [inline]
+>   sock_sendmsg+0x56/0x80 net/socket.c:722
 
-Since the dividie is only needed nat setup and not for each packet I
-think its ok.
-
-> +	if (range->flags & NF_NAT_RANGE_PSID) {
-> +		u16 base = ntohs(range->base_proto.all);
-> +		u16 min =  ntohs(range->min_proto.all);
-> +		u16 off = 0;
-> +
-> +		/* If offset=0, port range is in one contiguous block */
-> +		if (base)
-> +			off = prandom_u32() % (((1 << 16) / base) - 1);
-
-Bases 32769 > gives 0 for the modulo value, so perhaps compute that
-independently.
-
-You could reject > 32769 in the iptables checkentry target.
-
-Also, base of 21846 and above always give 0 result (% 1).
-
-I don't know psid well enough to give a recommendation here.
-
-If such inputs are nonsensical, just reject it when userspace asks for
-this and add a 
-
-if (WARN_ON_ONCE(base > bogus))
-	return NF_DROP;
-
-with s small coment explaining that xtables is supposed to not provide
-such value.
-
-Other than this I think its ok.
-
-I still dislike the 'bool is_psid' in the nat core, but I can't find
-a better solution.
+Applied, thanks.
