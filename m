@@ -2,93 +2,94 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D497BC636C9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCCACC636CA
 	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Jul 2021 08:26:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B069F613C4
+	by mail.kernel.org (Postfix) with ESMTP id A19EA613C3
 	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Jul 2021 08:26:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230295AbhGQI27 (ORCPT
+        id S231228AbhGQI27 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sat, 17 Jul 2021 04:28:59 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:46200 "EHLO
+Received: from mail.netfilter.org ([217.70.188.207]:46202 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230081AbhGQI2v (ORCPT
+        with ESMTP id S230295AbhGQI2w (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 17 Jul 2021 04:28:51 -0400
+        Sat, 17 Jul 2021 04:28:52 -0400
 Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 3B9236164A
-        for <netfilter-devel@vger.kernel.org>; Sat, 17 Jul 2021 10:25:33 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id C579363089
+        for <netfilter-devel@vger.kernel.org>; Sat, 17 Jul 2021 10:25:34 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf 1/2] netfilter: nft_last: avoid possible false sharing
-Date:   Sat, 17 Jul 2021 10:25:50 +0200
-Message-Id: <20210717082551.5051-1-pablo@netfilter.org>
+Subject: [PATCH nf 2/2] netfilter: flowtable: remove nf_ct_l4proto_find() call
+Date:   Sat, 17 Jul 2021 10:25:51 +0200
+Message-Id: <20210717082551.5051-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20210717082551.5051-1-pablo@netfilter.org>
+References: <20210717082551.5051-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Use the idiom described in:
+TCP and UDP are built-in conntrack protocol trackers and the flowtable
+only supports for TCP and UDP, remove this call.
 
-https://github.com/google/ktsan/wiki/READ_ONCE-and-WRITE_ONCE#it-may-improve-performance
-
-Moreover, prevent a compiler optimization.
-
-Fixes: 836382dc2471 ("netfilter: nf_tables: add last expression")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_last.c | 20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ net/netfilter/nf_flow_table_core.c | 12 ------------
+ 1 file changed, 12 deletions(-)
 
-diff --git a/net/netfilter/nft_last.c b/net/netfilter/nft_last.c
-index 8088b99f2ee3..f29f205e9992 100644
---- a/net/netfilter/nft_last.c
-+++ b/net/netfilter/nft_last.c
-@@ -48,24 +48,30 @@ static void nft_last_eval(const struct nft_expr *expr,
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 551976e4284c..19f4c4343b7d 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -180,15 +180,10 @@ static void flow_offload_fixup_tcp(struct ip_ct_tcp *tcp)
+ 
+ static void flow_offload_fixup_ct_timeout(struct nf_conn *ct)
  {
- 	struct nft_last_priv *priv = nft_expr_priv(expr);
+-	const struct nf_conntrack_l4proto *l4proto;
+ 	struct net *net = nf_ct_net(ct);
+ 	int l4num = nf_ct_protonum(ct);
+ 	unsigned int timeout;
  
--	priv->last_jiffies = jiffies;
--	priv->last_set = 1;
-+	if (READ_ONCE(priv->last_set) == 0)
-+		WRITE_ONCE(priv->last_set, 1);
-+	if (READ_ONCE(priv->last_jiffies) != jiffies)
-+		WRITE_ONCE(priv->last_jiffies, jiffies);
- }
+-	l4proto = nf_ct_l4proto_find(l4num);
+-	if (!l4proto)
+-		return;
+-
+ 	if (l4num == IPPROTO_TCP) {
+ 		struct nf_tcp_net *tn = nf_tcp_pernet(net);
  
- static int nft_last_dump(struct sk_buff *skb, const struct nft_expr *expr)
+@@ -197,8 +192,6 @@ static void flow_offload_fixup_ct_timeout(struct nf_conn *ct)
+ 		struct nf_udp_net *tn = nf_udp_pernet(net);
+ 
+ 		timeout = tn->offload_pickup;
+-	} else {
+-		return;
+ 	}
+ 
+ 	if (nf_flow_timeout_delta(ct->timeout) > (__s32)timeout)
+@@ -273,15 +266,10 @@ static const struct rhashtable_params nf_flow_offload_rhash_params = {
+ 
+ unsigned long flow_offload_get_timeout(struct flow_offload *flow)
  {
- 	struct nft_last_priv *priv = nft_expr_priv(expr);
-+	unsigned long last_jiffies = READ_ONCE(priv->last_jiffies);
-+	u32 last_set = READ_ONCE(priv->last_set);
- 	__be64 msecs;
+-	const struct nf_conntrack_l4proto *l4proto;
+ 	unsigned long timeout = NF_FLOW_TIMEOUT;
+ 	struct net *net = nf_ct_net(flow->ct);
+ 	int l4num = nf_ct_protonum(flow->ct);
  
--	if (time_before(jiffies, priv->last_jiffies))
--		priv->last_set = 0;
-+	if (time_before(jiffies, last_jiffies)) {
-+		WRITE_ONCE(priv->last_set, 0);
-+		last_set = 0;
-+	}
- 
--	if (priv->last_set)
--		msecs = nf_jiffies64_to_msecs(jiffies - priv->last_jiffies);
-+	if (last_set)
-+		msecs = nf_jiffies64_to_msecs(jiffies - last_jiffies);
- 	else
- 		msecs = 0;
- 
--	if (nla_put_be32(skb, NFTA_LAST_SET, htonl(priv->last_set)) ||
-+	if (nla_put_be32(skb, NFTA_LAST_SET, htonl(last_set)) ||
- 	    nla_put_be64(skb, NFTA_LAST_MSECS, msecs, NFTA_LAST_PAD))
- 		goto nla_put_failure;
+-	l4proto = nf_ct_l4proto_find(l4num);
+-	if (!l4proto)
+-		return timeout;
+-
+ 	if (l4num == IPPROTO_TCP) {
+ 		struct nf_tcp_net *tn = nf_tcp_pernet(net);
  
 -- 
 2.30.2
