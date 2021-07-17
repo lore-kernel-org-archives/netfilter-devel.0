@@ -2,161 +2,115 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC118C12002
-	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Jul 2021 02:54:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7877EC636CA
+	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Jul 2021 03:27:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 91103611AB
-	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Jul 2021 02:54:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 41442613BB
+	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Jul 2021 03:27:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232405AbhGQC5B (ORCPT
+        id S230006AbhGQDab (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 16 Jul 2021 22:57:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39730 "EHLO
+        Fri, 16 Jul 2021 23:30:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46948 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230504AbhGQC4y (ORCPT
+        with ESMTP id S229982AbhGQDaa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 16 Jul 2021 22:56:54 -0400
-Received: from mail-pf1-x42d.google.com (mail-pf1-x42d.google.com [IPv6:2607:f8b0:4864:20::42d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06261C06175F
-        for <netfilter-devel@vger.kernel.org>; Fri, 16 Jul 2021 19:53:58 -0700 (PDT)
-Received: by mail-pf1-x42d.google.com with SMTP id u126so2742823pfb.8
-        for <netfilter-devel@vger.kernel.org>; Fri, 16 Jul 2021 19:53:58 -0700 (PDT)
+        Fri, 16 Jul 2021 23:30:30 -0400
+Received: from mail-pg1-x535.google.com (mail-pg1-x535.google.com [IPv6:2607:f8b0:4864:20::535])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1DD6EC06175F
+        for <netfilter-devel@vger.kernel.org>; Fri, 16 Jul 2021 20:27:35 -0700 (PDT)
+Received: by mail-pg1-x535.google.com with SMTP id y4so11867884pgl.10
+        for <netfilter-devel@vger.kernel.org>; Fri, 16 Jul 2021 20:27:35 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=sender:from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=+XlF+TAiiAIAA2BfRLALWWKZehZFYCYYxEhTVfGDdA0=;
-        b=UCamq8OX2i++DvgYliDwIfhF7jSBkvf9O9RUAIXiSlj7B+d/PSmNzm8Zx+hM66PqOh
-         qhHFaIVtadcQWj6O4P8lzHH7FCSW0q3Hd08lZAXWvIpgMW5N/byVBHDrr4KQhoK3nqla
-         BhTfNCFKgls9bFm65DwnF2Ysug1cF7707d64jOuB5+tCfISJ2S1PJIm/PKJeQoff+w3z
-         lfr8MpjqQSjnOnU4oMgLnrn4BSXID9UpdWE85JgQFCMEu493V22d7B81gZQFzqS4qr+o
-         vYXRH+cjYA8qShEo5mBr0egfVr82cZ9cf9/VIp2Y0XV6qcZXhq62BdLtCzpI6xOFJOvW
-         bncw==
+        h=sender:from:date:to:cc:subject:message-id:mail-followup-to
+         :references:mime-version:content-disposition:in-reply-to;
+        bh=TDY+2U3bZ+/XRKcTry6hgi1dOog/QuSyW2I0CLE6qPw=;
+        b=eYJf6zRidBI/5CkUtxa293k5AUXHt5Ie9jJgPHneVcwA1me+RwQB80R04kP+h+A4od
+         lIX6CVT7QG4UiRdc2fgo1ItBvtAAnltKIDf/2q42iItPBZ/iHs0w04V/r5QeQmnovbNl
+         PS/XVC3Ae0QqjbHwjSCRZ5cRswfoM/3uYxFSobZQ5UB6TUjsWzt/WvGe0DY5eXibo448
+         wCfiMj4EgYNb3vIKCS1QMECxVGKZ91M1x2ke9wBeVKVWmxAj1s/mn8HG8bCar95uUV9U
+         4tHYzj2T+QfeB5mf0FpjEXdhrVHdN+tTYeX/6rGE2qWXAKTLIX5Ftn1NY81aAJWcWLtw
+         zSvg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
-         :in-reply-to:references:mime-version:content-transfer-encoding;
-        bh=+XlF+TAiiAIAA2BfRLALWWKZehZFYCYYxEhTVfGDdA0=;
-        b=cxSmszbyq6YCCeRkRfU3rArxYkHkkgd45lTzDIe4t62d5UN5yN2jk448YC7YldECwC
-         m6CGu7ObS3RVy+7w+uH+z/WcQ4a2aFbMuWGk5jlNfjeWbyOTXLy6V386qBFj+ZHtwnOx
-         KJr6tmx28mUX0c02lhl6FKNw6tllUVPz6kH7cfbdGHkM3qXZdlqPQewtc7oY/B5fz4xc
-         zBsk3KHZfjJEN12Vg7/mdKNlNmShtJdkKMlfjEAy2lan5VfGKFTF/XPPbkOFFIn9Gyos
-         ynPz+3esRCR7OdL63EkcZKoiBJnbmYShzMEzjSnLnKJpRluFX4uEgRLRCGBcdC+K5KhV
-         pcBA==
-X-Gm-Message-State: AOAM530NTmcGbccFbaDui8n411frpdXaSVelo6qqDLkC5DlT7q6jhwTc
-        is0ASFtbrQU8EOjimrQsaV0=
-X-Google-Smtp-Source: ABdhPJyF+ZMo+iOoWfriA16T5pfISrmkjCajm6kUq9+ISg2fG9VUcZ93eBFFfK6JZDBVY9pKMFny3g==
-X-Received: by 2002:a63:d711:: with SMTP id d17mr13046194pgg.268.1626490437656;
-        Fri, 16 Jul 2021 19:53:57 -0700 (PDT)
+        h=x-gm-message-state:sender:from:date:to:cc:subject:message-id
+         :mail-followup-to:references:mime-version:content-disposition
+         :in-reply-to;
+        bh=TDY+2U3bZ+/XRKcTry6hgi1dOog/QuSyW2I0CLE6qPw=;
+        b=XcA9+RB1zKY7fTx9a76zib0Vv+BWKMedp1BM8trw3YPQ+OGJ8yJUSsa0UFV+nDMusO
+         2qyM6Q1N+sx/HOZqyaGJwRYD5Bs+CTpaEUWh82YSdQp8JqJVI1Rv4dYvAWKnkTFI58ex
+         0I0fOFwjH/M/3/ghELZewkwQ7za80u5GY9K0liZJ/bo99/qdgMH/S1izGTbyQofv3w1c
+         z1RHOjgbqKr5nukXN+paa89INxj8kjNesaqG2U8tPFHvg/50WPRfFF75bvWO1mpBqazT
+         4y0XQkHkbuZJS9OO2h4YdWlyqx1I6v+mZ75ILEovy313O7jbYktlehpeBUWa4xJA2/jX
+         BvNQ==
+X-Gm-Message-State: AOAM532w0tHCNmepTGK4yOl6dteA3x9NW2wsZnz7A5ERgohY/j+lsmLm
+        q6DaBqP8uillZ21wb2qPt+U=
+X-Google-Smtp-Source: ABdhPJwiOkQV3z/i5euBt5Guh8H9Vt38yub/aNRlf+ZhCbj/yd8xQc4p4xdTIZFVKmBsmqOa1seg2Q==
+X-Received: by 2002:a63:d511:: with SMTP id c17mr13143289pgg.219.1626492454493;
+        Fri, 16 Jul 2021 20:27:34 -0700 (PDT)
 Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
-        by smtp.gmail.com with ESMTPSA id j19sm12514736pgm.44.2021.07.16.19.53.55
+        by smtp.gmail.com with ESMTPSA id u33sm11762146pfg.3.2021.07.16.20.27.31
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 16 Jul 2021 19:53:57 -0700 (PDT)
+        Fri, 16 Jul 2021 20:27:33 -0700 (PDT)
 Sender: Duncan Roe <duncan.roe2@gmail.com>
 From:   Duncan Roe <duncan_roe@optusnet.com.au>
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH RFC libnetfilter_queue 1/1] src: doc: supply missing SYNOPSIS in pktbuff man pages
-Date:   Sat, 17 Jul 2021 12:53:50 +1000
-Message-Id: <20210717025350.24040-2-duncan_roe@optusnet.com.au>
-X-Mailer: git-send-email 2.30.1
-In-Reply-To: <20210629093837.GA23185@salvia>
-References: <20210629093837.GA23185@salvia>
+X-Google-Original-From: Duncan Roe <dunc@slk1.local.net>
+Date:   Sat, 17 Jul 2021 13:27:29 +1000
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libmnl 1/1] build: doc: "make" builds & installs a full
+ set of man pages
+Message-ID: <YPJOIYVbWCYFB2eW@slk1.local.net>
+Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <20210622041933.25654-1-duncan_roe@optusnet.com.au>
+ <20210622041933.25654-2-duncan_roe@optusnet.com.au>
+ <20210623172621.GA25266@salvia>
+ <YNf+/1rOavTjxvQ7@slk1.local.net>
+ <20210629093837.GA23185@salvia>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210629093837.GA23185@salvia>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Synopsis only has required headers, since doxygen already output the function
-summary. HTML only has 2 small changes for better man page readability:
-the Synopsis lines are manonly (had to do that to get SYNOPSIS over to cc 1).
+Hi Pablo,
 
-Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
----
- src/extra/pktbuff.c | 45 +++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 41 insertions(+), 4 deletions(-)
+On Tue, Jun 29, 2021 at 11:38:37AM +0200, Pablo Neira Ayuso wrote:
+> > On Wed, Jun 23, 2021 at 07:26:21PM +0200, Pablo Neira Ayuso wrote:
+> > >
+[...]
+> > > I'd prefer if documentation is not enabled by default, ie. users have
+> > > to explicitly specify --with-doxygen=yes to build documentation, so
+> > > users explicitly picks what they needs.
+[...]
+> I'd really prefer to retain the existing default that has been in
+> place for many years.
+>
+Agreed that was a sensible default for many years.
 
-diff --git a/src/extra/pktbuff.c b/src/extra/pktbuff.c
-index 9bdc6bd..8e9a8c7 100644
---- a/src/extra/pktbuff.c
-+++ b/src/extra/pktbuff.c
-@@ -23,8 +23,21 @@
- /**
-  * \defgroup pktbuff User-space network packet buffer
-  *
-- * This library provides the user-space network packet buffer. This abstraction
-- * is strongly inspired by Linux kernel network buffer, the so-called sk_buff.
-+ * These functions provide the user-space network packet buffer.
-+ * This abstraction is strongly inspired by Linux kernel network buffer,
-+ * the so-called sk_buff.
-+ *
-+ * \manonly
-+.RE
-+.RS -7
-+.nf
-+\fBSYNOPSIS
-+.RE
-+#include <stdint.h>
-+#include <stdbool.h>
-+#include <sys/socket.h>
-+#include <libnetfilter_queue/pktbuff.h>
-+\endmanonly
-  *
-  * @{
-  */
-@@ -150,8 +163,20 @@ void pktb_free(struct pkt_buff *pktb)
-  * \n
-  * 1. Functions to get values of members of opaque __struct pktbuff__, described
-  * below
-- * \n
-+ *
-  * 2. Internal functions, described in Module __Internal functions__
-+ *
-+ * \manonly
-+.RE
-+.RS -7
-+.nf
-+\fBSYNOPSIS
-+.RE
-+#include <stdint.h>
-+#include <stdbool.h>
-+#include <sys/socket.h>
-+#include <libnetfilter_queue/pktbuff.h>
-+\endmanonly
-  *
-  * @{
-  */
-@@ -159,11 +184,23 @@ void pktb_free(struct pkt_buff *pktb)
- /**
-  * \defgroup uselessfns Internal functions
-  *
-- * \warning Do not use these functions. Instead, always use the mangle
-+ * Do not use these functions. Instead, always use the mangle
-  * function appropriate to the level at which you are working.
-  * \n
-  * pktb_mangle() uses all the below functions except _pktb_pull_, which is not
-  * used by anything.
-+ *
-+ * \manonly
-+.RE
-+.RS -7
-+.nf
-+\fBSYNOPSIS
-+.RE
-+#include <stdint.h>
-+#include <stdbool.h>
-+#include <sys/socket.h>
-+#include <libnetfilter_queue/pktbuff.h>
-+\endmanonly
-  *
-  * @{
-  */
--- 
-2.17.5
+The man pages had obscure names and were prone to clash with other man pages,
+e.g. `man tcp` got you the libnfq page instead of tcp(7) and IIRC there was even
+a clash between libnfq and libmnl.
 
+At libnfq 1.0.5 there were no such clashes, and `man {any nfq function}` got you
+the documentation for that function. However, having man pages on by default
+broke `make distcheck`, so it was still sensible to have them off.
+
+Now `make distcheck` passes with man pages on by default.
+
+So I strongly suggest it is no longer sensible to have man page creation off by
+default.
+
+For the embedded guys, let's definitely keep --with-doxygen[=yes]. They can
+always say no. Or not have it installed in the first place. More of that in an
+email to come,
+
+Cheers ... Duncan.
