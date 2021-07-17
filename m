@@ -2,68 +2,68 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C515C12002
-	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Jul 2021 02:54:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC118C12002
+	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Jul 2021 02:54:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ED902611AB
-	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Jul 2021 02:54:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 91103611AB
+	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Jul 2021 02:54:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232454AbhGQC4w (ORCPT
+        id S232405AbhGQC5B (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 16 Jul 2021 22:56:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39720 "EHLO
+        Fri, 16 Jul 2021 22:57:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39730 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230504AbhGQC4w (ORCPT
+        with ESMTP id S230504AbhGQC4y (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 16 Jul 2021 22:56:52 -0400
-Received: from mail-pg1-x531.google.com (mail-pg1-x531.google.com [IPv6:2607:f8b0:4864:20::531])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1942CC06175F
-        for <netfilter-devel@vger.kernel.org>; Fri, 16 Jul 2021 19:53:56 -0700 (PDT)
-Received: by mail-pg1-x531.google.com with SMTP id w15so11811803pgk.13
-        for <netfilter-devel@vger.kernel.org>; Fri, 16 Jul 2021 19:53:56 -0700 (PDT)
+        Fri, 16 Jul 2021 22:56:54 -0400
+Received: from mail-pf1-x42d.google.com (mail-pf1-x42d.google.com [IPv6:2607:f8b0:4864:20::42d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06261C06175F
+        for <netfilter-devel@vger.kernel.org>; Fri, 16 Jul 2021 19:53:58 -0700 (PDT)
+Received: by mail-pf1-x42d.google.com with SMTP id u126so2742823pfb.8
+        for <netfilter-devel@vger.kernel.org>; Fri, 16 Jul 2021 19:53:58 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=sender:from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=+VLzoWypTLA2nqsFdk4D59RA9POA2z+0VYlJmKsK0RM=;
-        b=c5w4sgs//gHXeBIh733FNKaMN9s6IR4ePM5u3u6yngGWu5Pti/Yaa94NnZbfhDhE8F
-         GbULMBdhoVLjvtDPJbE3j1vET4JDLCnNtIWPA4RY4Ch9R/l0YOIGZpbwxJ6vAuKDF0mt
-         ewNlXEVp/VeU3D5ACo6E+LHS0O+uSqS/KVRdtgHNBtMdxVldIKTgXfrQUMEXyFYKfJGu
-         2GfrZIbJV+5gyVgFDcvbqnWRi/+frWpZbbvQjrXO5QSXZygNE5e+yPEMH9hi1E3N70yY
-         gQxBVQnTq7K2s24/rrwJfoSEm6M6pFi6EU0FF+4Mhhg0JGzsSgm1+oYsh+s/GJwY8t3t
-         kIcQ==
+        bh=+XlF+TAiiAIAA2BfRLALWWKZehZFYCYYxEhTVfGDdA0=;
+        b=UCamq8OX2i++DvgYliDwIfhF7jSBkvf9O9RUAIXiSlj7B+d/PSmNzm8Zx+hM66PqOh
+         qhHFaIVtadcQWj6O4P8lzHH7FCSW0q3Hd08lZAXWvIpgMW5N/byVBHDrr4KQhoK3nqla
+         BhTfNCFKgls9bFm65DwnF2Ysug1cF7707d64jOuB5+tCfISJ2S1PJIm/PKJeQoff+w3z
+         lfr8MpjqQSjnOnU4oMgLnrn4BSXID9UpdWE85JgQFCMEu493V22d7B81gZQFzqS4qr+o
+         vYXRH+cjYA8qShEo5mBr0egfVr82cZ9cf9/VIp2Y0XV6qcZXhq62BdLtCzpI6xOFJOvW
+         bncw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
          :in-reply-to:references:mime-version:content-transfer-encoding;
-        bh=+VLzoWypTLA2nqsFdk4D59RA9POA2z+0VYlJmKsK0RM=;
-        b=Gp1yoRqLkyJHcAS0tXpEfIqMs9zqkF5sSx+t5XnbTvEZaaio41qfXD/ork+M+tvA3R
-         Zv9Wi8Ej1AxUelCYm1pvkaZWYAkevRAS6G2xTwW1uX0uY5yJqqquXBjd+NhBwXugynfF
-         ieuBJZm3NzTvcmt8gG0Iat3SeECY60RX8gGRqd2IwfK35bCInW/x6LSTdJ5FpTxQRHTF
-         X1thKcIaiic+99ptNFw/YqmGtPlkeKwYnmf4qsyVDdNi42ERHcRa15yXV8JsOZgrweP9
-         LPyXM8ff1HNlvVsBaY2RtNcvWeH8Or0q3lOvDxuwXUTPfSHrkHo3qz3zUA8J1YkkC1zN
-         lWAw==
-X-Gm-Message-State: AOAM533wb+ZT+GD1w4Wezdb62OOv+2+5Ly8BUUVLeaW831AiVLxlyx3E
-        IycMYS2sELHvK+KiYAzu3Ov1btyLVIjO2A==
-X-Google-Smtp-Source: ABdhPJzzW53o/prDrkXAoRVgdOq+XBm+b6xh47YVU/DHNAddcBV2cLMmPOFRAs6rjeZIWuS7mtzOxA==
-X-Received: by 2002:a63:470b:: with SMTP id u11mr13008165pga.340.1626490435585;
-        Fri, 16 Jul 2021 19:53:55 -0700 (PDT)
+        bh=+XlF+TAiiAIAA2BfRLALWWKZehZFYCYYxEhTVfGDdA0=;
+        b=cxSmszbyq6YCCeRkRfU3rArxYkHkkgd45lTzDIe4t62d5UN5yN2jk448YC7YldECwC
+         m6CGu7ObS3RVy+7w+uH+z/WcQ4a2aFbMuWGk5jlNfjeWbyOTXLy6V386qBFj+ZHtwnOx
+         KJr6tmx28mUX0c02lhl6FKNw6tllUVPz6kH7cfbdGHkM3qXZdlqPQewtc7oY/B5fz4xc
+         zBsk3KHZfjJEN12Vg7/mdKNlNmShtJdkKMlfjEAy2lan5VfGKFTF/XPPbkOFFIn9Gyos
+         ynPz+3esRCR7OdL63EkcZKoiBJnbmYShzMEzjSnLnKJpRluFX4uEgRLRCGBcdC+K5KhV
+         pcBA==
+X-Gm-Message-State: AOAM530NTmcGbccFbaDui8n411frpdXaSVelo6qqDLkC5DlT7q6jhwTc
+        is0ASFtbrQU8EOjimrQsaV0=
+X-Google-Smtp-Source: ABdhPJyF+ZMo+iOoWfriA16T5pfISrmkjCajm6kUq9+ISg2fG9VUcZ93eBFFfK6JZDBVY9pKMFny3g==
+X-Received: by 2002:a63:d711:: with SMTP id d17mr13046194pgg.268.1626490437656;
+        Fri, 16 Jul 2021 19:53:57 -0700 (PDT)
 Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
-        by smtp.gmail.com with ESMTPSA id j19sm12514736pgm.44.2021.07.16.19.53.53
+        by smtp.gmail.com with ESMTPSA id j19sm12514736pgm.44.2021.07.16.19.53.55
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 16 Jul 2021 19:53:55 -0700 (PDT)
+        Fri, 16 Jul 2021 19:53:57 -0700 (PDT)
 Sender: Duncan Roe <duncan.roe2@gmail.com>
 From:   Duncan Roe <duncan_roe@optusnet.com.au>
 To:     pablo@netfilter.org
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH libmnl 1/1] build: doc: "make" builds & installs a full set of man pages
-Date:   Sat, 17 Jul 2021 12:53:49 +1000
-Message-Id: <20210717025350.24040-1-duncan_roe@optusnet.com.au>
+Subject: [PATCH RFC libnetfilter_queue 1/1] src: doc: supply missing SYNOPSIS in pktbuff man pages
+Date:   Sat, 17 Jul 2021 12:53:50 +1000
+Message-Id: <20210717025350.24040-2-duncan_roe@optusnet.com.au>
 X-Mailer: git-send-email 2.30.1
 In-Reply-To: <20210629093837.GA23185@salvia>
 References: <20210629093837.GA23185@salvia>
@@ -73,35 +73,90 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
+Synopsis only has required headers, since doxygen already output the function
+summary. HTML only has 2 small changes for better man page readability:
+the Synopsis lines are manonly (had to do that to get SYNOPSIS over to cc 1).
 
-On Tue, Jun 29, 2021 at 11:38:37AM +0200, Pablo Neira Ayuso wrote:
-> BTW, the autogenerated manpage differs quite a bit from standard
-> manpages in other existing packages?
-
-I noticed one substantial difference - missing the SYNOPSIS listing the required
-#include lines.
-
-The patch below adresses that, for the libnfq pktbuff modules.
-
-After applying the patch, do you still see any substantial shortcomings in e.g.
-`man pktb_alloc`?
-
-Using doxygen does impose some stylistic differences, but compared to, say, `man
-XShape` I think pktb_alloc(3) looks pretty normal? (You might need to install
-libXext-devel for XShape(3)).
-
-If you would apply the libnfq patch, I can get on with fixing the rest of
-libnfq and libmnl.
-
-Cheers ... Duncan.
-
-Duncan Roe (1):
-  src: doc: supply missing SYNOPSIS in pktbuff man pages
-
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+---
  src/extra/pktbuff.c | 45 +++++++++++++++++++++++++++++++++++++++++----
  1 file changed, 41 insertions(+), 4 deletions(-)
 
+diff --git a/src/extra/pktbuff.c b/src/extra/pktbuff.c
+index 9bdc6bd..8e9a8c7 100644
+--- a/src/extra/pktbuff.c
++++ b/src/extra/pktbuff.c
+@@ -23,8 +23,21 @@
+ /**
+  * \defgroup pktbuff User-space network packet buffer
+  *
+- * This library provides the user-space network packet buffer. This abstraction
+- * is strongly inspired by Linux kernel network buffer, the so-called sk_buff.
++ * These functions provide the user-space network packet buffer.
++ * This abstraction is strongly inspired by Linux kernel network buffer,
++ * the so-called sk_buff.
++ *
++ * \manonly
++.RE
++.RS -7
++.nf
++\fBSYNOPSIS
++.RE
++#include <stdint.h>
++#include <stdbool.h>
++#include <sys/socket.h>
++#include <libnetfilter_queue/pktbuff.h>
++\endmanonly
+  *
+  * @{
+  */
+@@ -150,8 +163,20 @@ void pktb_free(struct pkt_buff *pktb)
+  * \n
+  * 1. Functions to get values of members of opaque __struct pktbuff__, described
+  * below
+- * \n
++ *
+  * 2. Internal functions, described in Module __Internal functions__
++ *
++ * \manonly
++.RE
++.RS -7
++.nf
++\fBSYNOPSIS
++.RE
++#include <stdint.h>
++#include <stdbool.h>
++#include <sys/socket.h>
++#include <libnetfilter_queue/pktbuff.h>
++\endmanonly
+  *
+  * @{
+  */
+@@ -159,11 +184,23 @@ void pktb_free(struct pkt_buff *pktb)
+ /**
+  * \defgroup uselessfns Internal functions
+  *
+- * \warning Do not use these functions. Instead, always use the mangle
++ * Do not use these functions. Instead, always use the mangle
+  * function appropriate to the level at which you are working.
+  * \n
+  * pktb_mangle() uses all the below functions except _pktb_pull_, which is not
+  * used by anything.
++ *
++ * \manonly
++.RE
++.RS -7
++.nf
++\fBSYNOPSIS
++.RE
++#include <stdint.h>
++#include <stdbool.h>
++#include <sys/socket.h>
++#include <libnetfilter_queue/pktbuff.h>
++\endmanonly
+  *
+  * @{
+  */
 -- 
 2.17.5
 
