@@ -2,71 +2,106 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9610AC12002
-	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Jul 2021 00:22:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C515C12002
+	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Jul 2021 02:54:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 63D36613EB
-	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Jul 2021 00:22:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ED902611AB
+	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Jul 2021 02:54:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229566AbhGQAZl (ORCPT
+        id S232454AbhGQC4w (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 16 Jul 2021 20:25:41 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:45700 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229462AbhGQAZl (ORCPT
+        Fri, 16 Jul 2021 22:56:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39720 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230504AbhGQC4w (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 16 Jul 2021 20:25:41 -0400
-Received: from netfilter.org (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 0725D6164C;
-        Sat, 17 Jul 2021 02:22:25 +0200 (CEST)
-Date:   Sat, 17 Jul 2021 02:22:43 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Dongliang Mu <mudongliangabcd@gmail.com>
-Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Richard Guy Briggs <rgb@redhat.com>,
-        Paul Moore <paul@paul-moore.com>,
-        syzbot <syzkaller@googlegroups.com>,
-        kernel test robot <lkp@intel.com>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3] audit: fix memory leak in nf_tables_commit
-Message-ID: <20210717002243.GA27401@salvia>
-References: <20210714032703.505023-1-mudongliangabcd@gmail.com>
+        Fri, 16 Jul 2021 22:56:52 -0400
+Received: from mail-pg1-x531.google.com (mail-pg1-x531.google.com [IPv6:2607:f8b0:4864:20::531])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1942CC06175F
+        for <netfilter-devel@vger.kernel.org>; Fri, 16 Jul 2021 19:53:56 -0700 (PDT)
+Received: by mail-pg1-x531.google.com with SMTP id w15so11811803pgk.13
+        for <netfilter-devel@vger.kernel.org>; Fri, 16 Jul 2021 19:53:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=sender:from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=+VLzoWypTLA2nqsFdk4D59RA9POA2z+0VYlJmKsK0RM=;
+        b=c5w4sgs//gHXeBIh733FNKaMN9s6IR4ePM5u3u6yngGWu5Pti/Yaa94NnZbfhDhE8F
+         GbULMBdhoVLjvtDPJbE3j1vET4JDLCnNtIWPA4RY4Ch9R/l0YOIGZpbwxJ6vAuKDF0mt
+         ewNlXEVp/VeU3D5ACo6E+LHS0O+uSqS/KVRdtgHNBtMdxVldIKTgXfrQUMEXyFYKfJGu
+         2GfrZIbJV+5gyVgFDcvbqnWRi/+frWpZbbvQjrXO5QSXZygNE5e+yPEMH9hi1E3N70yY
+         gQxBVQnTq7K2s24/rrwJfoSEm6M6pFi6EU0FF+4Mhhg0JGzsSgm1+oYsh+s/GJwY8t3t
+         kIcQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
+         :in-reply-to:references:mime-version:content-transfer-encoding;
+        bh=+VLzoWypTLA2nqsFdk4D59RA9POA2z+0VYlJmKsK0RM=;
+        b=Gp1yoRqLkyJHcAS0tXpEfIqMs9zqkF5sSx+t5XnbTvEZaaio41qfXD/ork+M+tvA3R
+         Zv9Wi8Ej1AxUelCYm1pvkaZWYAkevRAS6G2xTwW1uX0uY5yJqqquXBjd+NhBwXugynfF
+         ieuBJZm3NzTvcmt8gG0Iat3SeECY60RX8gGRqd2IwfK35bCInW/x6LSTdJ5FpTxQRHTF
+         X1thKcIaiic+99ptNFw/YqmGtPlkeKwYnmf4qsyVDdNi42ERHcRa15yXV8JsOZgrweP9
+         LPyXM8ff1HNlvVsBaY2RtNcvWeH8Or0q3lOvDxuwXUTPfSHrkHo3qz3zUA8J1YkkC1zN
+         lWAw==
+X-Gm-Message-State: AOAM533wb+ZT+GD1w4Wezdb62OOv+2+5Ly8BUUVLeaW831AiVLxlyx3E
+        IycMYS2sELHvK+KiYAzu3Ov1btyLVIjO2A==
+X-Google-Smtp-Source: ABdhPJzzW53o/prDrkXAoRVgdOq+XBm+b6xh47YVU/DHNAddcBV2cLMmPOFRAs6rjeZIWuS7mtzOxA==
+X-Received: by 2002:a63:470b:: with SMTP id u11mr13008165pga.340.1626490435585;
+        Fri, 16 Jul 2021 19:53:55 -0700 (PDT)
+Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
+        by smtp.gmail.com with ESMTPSA id j19sm12514736pgm.44.2021.07.16.19.53.53
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 16 Jul 2021 19:53:55 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH libmnl 1/1] build: doc: "make" builds & installs a full set of man pages
+Date:   Sat, 17 Jul 2021 12:53:49 +1000
+Message-Id: <20210717025350.24040-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.30.1
+In-Reply-To: <20210629093837.GA23185@salvia>
+References: <20210629093837.GA23185@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20210714032703.505023-1-mudongliangabcd@gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Jul 14, 2021 at 11:27:03AM +0800, Dongliang Mu wrote:
-> In nf_tables_commit, if nf_tables_commit_audit_alloc fails, it does not
-> free the adp variable.
-> 
-> Fix this by adding nf_tables_commit_audit_free which frees 
-> the linked list with the head node adl.
-> 
-> backtrace:
->   kmalloc include/linux/slab.h:591 [inline]
->   kzalloc include/linux/slab.h:721 [inline]
->   nf_tables_commit_audit_alloc net/netfilter/nf_tables_api.c:8439 [inline]
->   nf_tables_commit+0x16e/0x1760 net/netfilter/nf_tables_api.c:8508
->   nfnetlink_rcv_batch+0x512/0xa80 net/netfilter/nfnetlink.c:562
->   nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:634 [inline]
->   nfnetlink_rcv+0x1fa/0x220 net/netfilter/nfnetlink.c:652
->   netlink_unicast_kernel net/netlink/af_netlink.c:1314 [inline]
->   netlink_unicast+0x2c7/0x3e0 net/netlink/af_netlink.c:1340
->   netlink_sendmsg+0x36b/0x6b0 net/netlink/af_netlink.c:1929
->   sock_sendmsg_nosec net/socket.c:702 [inline]
->   sock_sendmsg+0x56/0x80 net/socket.c:722
+Hi Pablo,
 
-Applied, thanks.
+On Tue, Jun 29, 2021 at 11:38:37AM +0200, Pablo Neira Ayuso wrote:
+> BTW, the autogenerated manpage differs quite a bit from standard
+> manpages in other existing packages?
+
+I noticed one substantial difference - missing the SYNOPSIS listing the required
+#include lines.
+
+The patch below adresses that, for the libnfq pktbuff modules.
+
+After applying the patch, do you still see any substantial shortcomings in e.g.
+`man pktb_alloc`?
+
+Using doxygen does impose some stylistic differences, but compared to, say, `man
+XShape` I think pktb_alloc(3) looks pretty normal? (You might need to install
+libXext-devel for XShape(3)).
+
+If you would apply the libnfq patch, I can get on with fixing the rest of
+libnfq and libmnl.
+
+Cheers ... Duncan.
+
+Duncan Roe (1):
+  src: doc: supply missing SYNOPSIS in pktbuff man pages
+
+ src/extra/pktbuff.c | 45 +++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 41 insertions(+), 4 deletions(-)
+
+-- 
+2.17.5
+
