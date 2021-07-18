@@ -7,63 +7,63 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 453A6C636C8
-	for <netfilter-devel@archiver.kernel.org>; Sun, 18 Jul 2021 03:47:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 737DDC636CA
+	for <netfilter-devel@archiver.kernel.org>; Sun, 18 Jul 2021 03:52:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1589E61166
-	for <netfilter-devel@archiver.kernel.org>; Sun, 18 Jul 2021 03:47:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4ABE361166
+	for <netfilter-devel@archiver.kernel.org>; Sun, 18 Jul 2021 03:52:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230249AbhGRDuZ (ORCPT
+        id S233156AbhGRDzq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 17 Jul 2021 23:50:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53324 "EHLO
+        Sat, 17 Jul 2021 23:55:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54462 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230102AbhGRDuZ (ORCPT
+        with ESMTP id S230102AbhGRDzp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 17 Jul 2021 23:50:25 -0400
-Received: from mail-pj1-x102f.google.com (mail-pj1-x102f.google.com [IPv6:2607:f8b0:4864:20::102f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C3457C061762
-        for <netfilter-devel@vger.kernel.org>; Sat, 17 Jul 2021 20:47:27 -0700 (PDT)
-Received: by mail-pj1-x102f.google.com with SMTP id d9-20020a17090ae289b0290172f971883bso11852526pjz.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 17 Jul 2021 20:47:27 -0700 (PDT)
+        Sat, 17 Jul 2021 23:55:45 -0400
+Received: from mail-pg1-x536.google.com (mail-pg1-x536.google.com [IPv6:2607:f8b0:4864:20::536])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B6141C061762
+        for <netfilter-devel@vger.kernel.org>; Sat, 17 Jul 2021 20:52:47 -0700 (PDT)
+Received: by mail-pg1-x536.google.com with SMTP id 62so15130807pgf.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 17 Jul 2021 20:52:47 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=sender:from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
-        bh=5ICRFzkNGFmZ9NdBpy5T3fsJdPFsokk0QN4iqHAW4m8=;
-        b=lcTSzP0rgQrZtzeJ9w8Q7CQJLICYCLpLIx6iyYFJBhYjkluNZoMLzFovvgaowXdJuJ
-         xl/c1gak1oRtegOEe+Bn/Ixa51yeMrNDCUyGyNiDoQriM+NgciM4cfOzkQq0yibOVrb2
-         PpYAIR5RfG39Ckcv33kyqjZhFMbeVLKjdmxmaiaC7t638fjKuXow43nL9IqpRUMTadRD
-         o3OHa4kA4OVndWi9nWPrfAnD4qT7BuILJFjsSe7RX0YspjFTBayU4DCKHavR9fyfMUjn
-         O9IhL3eyyC+wl4O/WliVNwj3MIeno5REfFe5dBQoWbd/baGV2+F49fXMtNJrZEqlqlOk
-         Xlrw==
+        bh=EK+k39SuCgZEHFRVqLY3TEsYPVsJDUaKVZeg3PIUXfE=;
+        b=fgZaFo27a12rOrPzt8EvEl43XHmhugCEaLfXtGQ9JRl/UZ8PoFaQyLskMIxiSEOUW6
+         0zBpoqr7nTCED/kwWhvaz+hVEDErZqKu0Un9vOpEvpmvxnA7SOmWwEIP5fgq+IUaypwl
+         IXamIlbowhGWyHTuJGpTwwXW5sUNm8u+nLPofoZiG0AGaW9zDxv1sfLmLpGZ6jcoFP8z
+         IAPizx66GUS9Wb4EAB0PHvSLdBrTgooUj1DCuGJA7E3L84185C8U0O9ejy0wCHDrlhv8
+         1EjefyYeSpZhKTpHjOpU6ecxw42I/D3nphHLMl8+eO9X3Cmjf2aVGqenJggiAW8S//YQ
+         Jcug==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
          :mime-version:content-transfer-encoding;
-        bh=5ICRFzkNGFmZ9NdBpy5T3fsJdPFsokk0QN4iqHAW4m8=;
-        b=IbQhKGq9k37VZfOznhiL81K04+QWdFZjmddc5yyL8rjs4qypqAzN0RuuXLzgCeKUa3
-         9SechuTrQDjmg0GVLy2gE203jPmigl1mrnUzrqWLOSj7hpIvj1vH6pG8LkdW+M/OJM1t
-         2xFY5ZPrWuTi8JOxMQzVZRv0z04m5T6TPpYMf9Er/e5BU72QOf2QshuYcJpdU19F0Aib
-         B057PJYY19672x2ExV781pNENXeYDR6pRlPDh/i3adJu1Jp1OvmyWcfkqJigTujxBQja
-         spJZJgWiZwQJwyGCwGa9aq0AmsOIf2C3eRLRvRZqiEj0Hhrs1RV9M7vKTlSV6VlinQ3G
-         cOAg==
-X-Gm-Message-State: AOAM533bTnA3NMmHrdUTT+9jzj9TUHUd18q/ffJIwu1x/W7AML93DjKl
-        /785nmpWLTxNe9aiajOiOwOni2vhslBXSA==
-X-Google-Smtp-Source: ABdhPJzpx+DB/4g5zFESjdTl3YWGrbnDBP7gcqpEhouQo6+du3In7M0xcM1matwlZ49u3RXaiUC1Fw==
-X-Received: by 2002:a17:90a:7a86:: with SMTP id q6mr23868549pjf.141.1626580047178;
-        Sat, 17 Jul 2021 20:47:27 -0700 (PDT)
+        bh=EK+k39SuCgZEHFRVqLY3TEsYPVsJDUaKVZeg3PIUXfE=;
+        b=TuuV50jgG7SOXng4jsu6pvyd57cpXr6ujNqfLhez21MdfvbvmwXWYyIouK0jm3eTx0
+         42P4jd1Qw1ZN/4lK03sSAWRmXxh7IBWhAwW8tnfYppPDv7OOAUcpXfP5o5t+lC5mriMP
+         Gf9elNajnORyUR26VX6kWbK3QUITx9mVNdAX+icahJ1BhJ80zMh7KU6zfFkd8KGPU2Ws
+         J9uolk0ayAoGVdKvyseDVnoGwwoFT2kLGJH98rj6l6LyPsQH7HRepZOW9977n2E2eWbK
+         1G4skmQ4bloYbjqBuRDaJ2d8mg6e5/BP/ewpC1SjFDJzHqCobJTtCxWkMVKvnzJ5TIoX
+         MfLw==
+X-Gm-Message-State: AOAM530oefxDW2sBKj9rcjtQaj4+8X1QhijsNCWP4503tPUqwawrTJQD
+        SRdjqb63ilNw1+4rY2u42uHSYBdzt+5hiA==
+X-Google-Smtp-Source: ABdhPJyMz6xk0eHren2gvZNOrTbeTqglVAcClQhYZhMyfjPYo60Xs5iY3YBlj84KM3zNdmCzrXYlsA==
+X-Received: by 2002:a05:6a00:a88:b029:31a:c2ef:d347 with SMTP id b8-20020a056a000a88b029031ac2efd347mr18829676pfl.20.1626580367259;
+        Sat, 17 Jul 2021 20:52:47 -0700 (PDT)
 Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
-        by smtp.gmail.com with ESMTPSA id u16sm16918853pgh.53.2021.07.17.20.47.25
+        by smtp.gmail.com with ESMTPSA id w10sm16424508pgl.46.2021.07.17.20.52.45
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 17 Jul 2021 20:47:26 -0700 (PDT)
+        Sat, 17 Jul 2021 20:52:46 -0700 (PDT)
 Sender: Duncan Roe <duncan.roe2@gmail.com>
 From:   Duncan Roe <duncan_roe@optusnet.com.au>
 To:     pablo@netfilter.org
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH libmnl] build: doc: get rid of the need for manual updating of Makefile
-Date:   Sun, 18 Jul 2021 13:47:22 +1000
-Message-Id: <20210718034722.25321-1-duncan_roe@optusnet.com.au>
+Subject: [PATCH libnetfilter_queue] build: doc: get rid of the need for manual updating of Makefile
+Date:   Sun, 18 Jul 2021 13:52:42 +1000
+Message-Id: <20210718035242.25370-1-duncan_roe@optusnet.com.au>
 X-Mailer: git-send-email 2.30.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -86,14 +86,14 @@ The new system eliminates all of the above.
 Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
 ---
  doxygen.cfg.in      |  1 +
- doxygen/Makefile.am | 71 ++++++++++++++++++++-------------------------
- 2 files changed, 32 insertions(+), 40 deletions(-)
+ doxygen/Makefile.am | 92 +++++++++++++++------------------------------
+ 2 files changed, 32 insertions(+), 61 deletions(-)
 
 diff --git a/doxygen.cfg.in b/doxygen.cfg.in
-index 1e42e44..ae31dbe 100644
+index 4c16e3e..266782e 100644
 --- a/doxygen.cfg.in
 +++ b/doxygen.cfg.in
-@@ -18,5 +18,6 @@ SEARCHENGINE           = NO
+@@ -23,5 +23,6 @@ SEARCHENGINE           = NO
  GENERATE_LATEX         = NO
  LATEX_CMD_NAME         = latex
  GENERATE_MAN           = YES
@@ -101,22 +101,27 @@ index 1e42e44..ae31dbe 100644
  HAVE_DOT               = @HAVE_DOT@
  DOT_TRANSPARENT        = YES
 diff --git a/doxygen/Makefile.am b/doxygen/Makefile.am
-index e0598ab..29078de 100644
+index b4268a5..29078de 100644
 --- a/doxygen/Makefile.am
 +++ b/doxygen/Makefile.am
-@@ -1,10 +1,6 @@
+@@ -1,15 +1,6 @@
  if HAVE_DOXYGEN
  
 -# Be sure to add new source files to this table
--doc_srcs = $(top_srcdir)/src/attr.c     \
--           $(top_srcdir)/src/callback.c \
--           $(top_srcdir)/src/nlmsg.c    \
--           $(top_srcdir)/src/socket.c
+-doc_srcs = $(top_srcdir)/src/libnetfilter_queue.c  \
+-           $(top_srcdir)/src/nlmsg.c               \
+-           $(top_srcdir)/src/extra/checksum.c      \
+-           $(top_srcdir)/src/extra/ipv6.c          \
+-           $(top_srcdir)/src/extra/ipv4.c          \
+-           $(top_srcdir)/src/extra/tcp.c           \
+-           $(top_srcdir)/src/extra/udp.c           \
+-           $(top_srcdir)/src/extra/icmp.c          \
+-           $(top_srcdir)/src/extra/pktbuff.c
 +doc_srcs = $(shell find $(top_srcdir)/src -name '*.c')
  
  doxyfile.stamp: $(doc_srcs) Makefile.am
  	rm -rf html man
-@@ -20,43 +16,37 @@ doxyfile.stamp: $(doc_srcs) Makefile.am
+@@ -25,59 +16,37 @@ doxyfile.stamp: $(doc_srcs) Makefile.am
  	[ ! -d ../src.distcheck ] || \
  { set -x; cd ..; rm src; mv src.distcheck src; }
  
@@ -127,35 +132,51 @@ index e0598ab..29078de 100644
 +# and so `make` gives all lines to `bash -c`
  # (hence ";\" at the end of every line but the last).
 -	main() { set -e; cd man/man3; rm -f _*;\
--setgroup attr mnl_attr_get_type;\
--  add2group mnl_attr_get_len mnl_attr_get_payload_len mnl_attr_get_payload;\
--  add2group mnl_attr_ok mnl_attr_next mnl_attr_type_valid mnl_attr_validate;\
--  add2group mnl_attr_validate2 mnl_attr_parse mnl_attr_parse_nested;\
--  add2group mnl_attr_parse_payload mnl_attr_get_u8 mnl_attr_get_u16;\
--  add2group mnl_attr_get_u32 mnl_attr_get_u64 mnl_attr_get_str mnl_attr_put;\
--  add2group mnl_attr_put_u8 mnl_attr_put_u16 mnl_attr_put_u32 mnl_attr_put_u64;\
--  add2group mnl_attr_put_str mnl_attr_put_strz mnl_attr_nest_start;\
--  add2group mnl_attr_put_check mnl_attr_put_u8_check mnl_attr_put_u16_check;\
--  add2group mnl_attr_put_u32_check mnl_attr_put_u64_check;\
--  add2group mnl_attr_put_str_check mnl_attr_put_strz_check;\
--  add2group mnl_attr_nest_start_check mnl_attr_nest_end mnl_attr_nest_cancel;\
--setgroup batch mnl_nlmsg_batch_start;\
--  add2group mnl_nlmsg_batch_stop mnl_nlmsg_batch_next mnl_nlmsg_batch_reset;\
--  add2group mnl_nlmsg_batch_size mnl_nlmsg_batch_head mnl_nlmsg_batch_current;\
--  add2group mnl_nlmsg_batch_is_empty;\
--setgroup callback mnl_cb_run;\
--  add2group mnl_cb_run2;\
--setgroup nlmsg mnl_nlmsg_size;\
--  add2group mnl_nlmsg_get_payload_len mnl_nlmsg_put_header;\
--  add2group mnl_nlmsg_put_extra_header mnl_nlmsg_get_payload;\
--  add2group mnl_nlmsg_get_payload_offset mnl_nlmsg_ok mnl_nlmsg_next;\
--  add2group mnl_nlmsg_get_payload_tail mnl_nlmsg_seq_ok mnl_nlmsg_portid_ok;\
--  add2group mnl_nlmsg_fprintf;\
--setgroup socket mnl_socket_get_fd;\
--  add2group mnl_socket_get_portid mnl_socket_open mnl_socket_open2;\
--  add2group mnl_socket_fdopen mnl_socket_bind mnl_socket_sendto;\
--  add2group mnl_socket_recvfrom mnl_socket_close mnl_socket_setsockopt;\
--  add2group mnl_socket_getsockopt;\
+-setgroup LibrarySetup nfq_open;\
+-  add2group nfq_close nfq_bind_pf nfq_unbind_pf;\
+-setgroup Parsing nfq_get_msg_packet_hdr;\
+-  add2group nfq_get_nfmark nfq_get_timestamp nfq_get_indev nfq_get_physindev;\
+-  add2group nfq_get_outdev nfq_get_physoutdev nfq_get_indev_name;\
+-  add2group nfq_get_physindev_name nfq_get_outdev_name;\
+-  add2group nfq_get_physoutdev_name nfq_get_packet_hw;\
+-  add2group nfq_get_skbinfo;\
+-  add2group nfq_get_uid nfq_get_gid;\
+-  add2group nfq_get_secctx nfq_get_payload;\
+-setgroup Queue nfq_fd;\
+-  add2group nfq_create_queue nfq_destroy_queue nfq_handle_packet nfq_set_mode;\
+-  add2group nfq_set_queue_flags nfq_set_queue_maxlen nfq_set_verdict;\
+-  add2group nfq_set_verdict2 nfq_set_verdict_batch;\
+-  add2group nfq_set_verdict_batch2 nfq_set_verdict_mark;\
+-setgroup ipv4 nfq_ip_get_hdr;\
+-  add2group nfq_ip_set_transport_header nfq_ip_mangle nfq_ip_snprintf;\
+-  setgroup ip_internals nfq_ip_set_checksum;\
+-setgroup ipv6 nfq_ip6_get_hdr;\
+-  add2group nfq_ip6_set_transport_header nfq_ip6_mangle nfq_ip6_snprintf;\
+-setgroup nfq_cfg nfq_nlmsg_cfg_put_cmd;\
+-  add2group nfq_nlmsg_cfg_put_params nfq_nlmsg_cfg_put_qmaxlen;\
+-setgroup nfq_verd nfq_nlmsg_verdict_put;\
+-  add2group nfq_nlmsg_verdict_put_mark nfq_nlmsg_verdict_put_pkt;\
+-setgroup nlmsg nfq_nlmsg_parse;\
+-  add2group nfq_nlmsg_put;\
+-setgroup pktbuff pktb_alloc;\
+-  add2group pktb_data pktb_len pktb_mangle pktb_mangled;\
+-  add2group pktb_free;\
+-  setgroup otherfns pktb_tailroom;\
+-    add2group pktb_mac_header pktb_network_header pktb_transport_header;\
+-    setgroup uselessfns pktb_push;\
+-      add2group pktb_pull pktb_put pktb_trim;\
+-setgroup tcp nfq_tcp_get_hdr;\
+-  add2group nfq_tcp_get_payload nfq_tcp_get_payload_len;\
+-  add2group nfq_tcp_snprintf nfq_tcp_mangle_ipv4 nfq_tcp_mangle_ipv6;\
+-  setgroup tcp_internals nfq_tcp_compute_checksum_ipv4;\
+-    add2group nfq_tcp_compute_checksum_ipv6;\
+-setgroup udp nfq_udp_get_hdr;\
+-  add2group nfq_udp_get_payload nfq_udp_get_payload_len;\
+-  add2group nfq_udp_mangle_ipv4 nfq_udp_mangle_ipv6 nfq_udp_snprintf;\
+-  setgroup udp_internals nfq_udp_compute_checksum_ipv4;\
+-    add2group nfq_udp_compute_checksum_ipv6;\
+-setgroup Printing nfq_snprintf_xml;\
+-setgroup icmp nfq_icmp_get_hdr;\
 +	/bin/bash -p -c 'declare -A renamed_page;\
 +main(){ set -e; cd man/man3; rm -f _*;\
 +  count_real_pages;\
@@ -188,7 +209,7 @@ index e0598ab..29078de 100644
  
  	touch doxyfile.stamp
  
-@@ -67,7 +57,8 @@ clean-local:
+@@ -88,7 +57,8 @@ clean-local:
  	rm -rf $(top_srcdir)/doxygen/man $(top_srcdir)/doxygen/html
  install-data-local:
  	mkdir -p $(DESTDIR)$(mandir)/man3
