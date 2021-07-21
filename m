@@ -2,63 +2,84 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-20.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7DF7C07E9B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Jul 2021 17:00:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 451A0C12002
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Jul 2021 15:22:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AED7161003
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Jul 2021 17:00:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2397A6124C
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Jul 2021 15:22:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231201AbhGTQTk (ORCPT
+        id S239521AbhGUOmO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 20 Jul 2021 12:19:40 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:51512 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229708AbhGTQTj (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Jul 2021 12:19:39 -0400
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 8C361608E0
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Jul 2021 18:59:52 +0200 (CEST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf] netfilter: nft_nat: allow to specify layer 4 protocol NAT only
-Date:   Tue, 20 Jul 2021 19:00:15 +0200
-Message-Id: <20210720170015.43063-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Wed, 21 Jul 2021 10:42:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34284 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S232808AbhGUOmO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 21 Jul 2021 10:42:14 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 61E8260E0C;
+        Wed, 21 Jul 2021 15:22:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1626880970;
+        bh=aoqDbVP+cfiPfy+Iu+/m5AKWZ/c2lRCRQKAI31Td0ro=;
+        h=From:To:Cc:Subject:Date:From;
+        b=TlPjuiG8q9lc0tPL8lMjFYuCjsGc4OrJ1Ou9Sd9C77K2T0yyM9c1MDtFlWBeqhRrr
+         D0QMZkP5ia9nIJjzrdt6+sKxRQ3SbodEFoC0+0BFV6/FvLBDSxXx6EZjkjdUdUewQQ
+         5GBHDh3W9CehL2R2lAJpBF7wywQBaLO7Po3sc182r6D3JqqmEDMDLy2Np7GsYKr1X6
+         lYUj3s2Yo3Barho8yPJhMO7bpQXrOLvGy2Teghr2MnTgNGBHpThh6jGtLLernHxNbT
+         I/VmX6beM6+FwoggA5d1HgRpPpuz7a4rB0ZgB3u+B++gWKpoe8XyBcRGg033CMgcqU
+         p/7YonQjckl+w==
+From:   Arnd Bergmann <arnd@kernel.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>
+Cc:     Arnd Bergmann <arnd@arndb.de>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] netfilter: nfnl_hook: fix unused variable warning
+Date:   Wed, 21 Jul 2021 17:22:32 +0200
+Message-Id: <20210721152245.2751702-1-arnd@kernel.org>
+X-Mailer: git-send-email 2.29.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-nft_nat reports a bogus EAFNOSUPPORT if no layer 3 information is specified.
+From: Arnd Bergmann <arnd@arndb.de>
 
-Fixes: d07db9884a5f ("netfilter: nf_tables: introduce nft_validate_register_load()")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+The only user of this variable is in an #ifdef:
+
+net/netfilter/nfnetlink_hook.c: In function 'nfnl_hook_entries_head':
+net/netfilter/nfnetlink_hook.c:177:28: error: unused variable 'netdev' [-Werror=unused-variable]
+
+Fixes: e2cf17d3774c ("netfilter: add new hook nfnl subsystem")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- net/netfilter/nft_nat.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ net/netfilter/nfnetlink_hook.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
-index 0840c635b752..be1595d6979d 100644
---- a/net/netfilter/nft_nat.c
-+++ b/net/netfilter/nft_nat.c
-@@ -201,7 +201,9 @@ static int nft_nat_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 		alen = sizeof_field(struct nf_nat_range, min_addr.ip6);
- 		break;
- 	default:
--		return -EAFNOSUPPORT;
-+		if (tb[NFTA_NAT_REG_ADDR_MIN])
-+			return -EAFNOSUPPORT;
-+		break;
- 	}
- 	priv->family = family;
+diff --git a/net/netfilter/nfnetlink_hook.c b/net/netfilter/nfnetlink_hook.c
+index 50b4e3c9347a..202f57d17bab 100644
+--- a/net/netfilter/nfnetlink_hook.c
++++ b/net/netfilter/nfnetlink_hook.c
+@@ -174,7 +174,9 @@ static const struct nf_hook_entries *
+ nfnl_hook_entries_head(u8 pf, unsigned int hook, struct net *net, const char *dev)
+ {
+ 	const struct nf_hook_entries *hook_head = NULL;
++#ifdef CONFIG_NETFILTER_INGRESS
+ 	struct net_device *netdev;
++#endif
  
+ 	switch (pf) {
+ 	case NFPROTO_IPV4:
 -- 
-2.30.2
+2.29.2
 
