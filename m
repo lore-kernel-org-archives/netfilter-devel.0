@@ -2,80 +2,64 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CDA4C63798
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Jul 2021 07:18:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E310DC6377D
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Jul 2021 08:48:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EA93061279
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Jul 2021 07:18:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BFBA461355
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Jul 2021 08:48:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230048AbhGVGhZ (ORCPT
+        id S230401AbhGVIIO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 22 Jul 2021 02:37:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59540 "EHLO
+        Thu, 22 Jul 2021 04:08:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51972 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229547AbhGVGhY (ORCPT
+        with ESMTP id S230314AbhGVIIO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 22 Jul 2021 02:37:24 -0400
+        Thu, 22 Jul 2021 04:08:14 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 315B7C061575;
-        Thu, 22 Jul 2021 00:18:00 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0768C061575
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Jul 2021 01:48:49 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1m6Sxq-0000W6-JX; Thu, 22 Jul 2021 09:17:50 +0200
-Date:   Thu, 22 Jul 2021 09:17:50 +0200
+        (envelope-from <fw@breakpoint.cc>)
+        id 1m6UNr-0000y6-Ps; Thu, 22 Jul 2021 10:48:47 +0200
 From:   Florian Westphal <fw@strlen.de>
-To:     Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
-Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
-        davem@davemloft.net, kuba@kernel.org, shuah@kernel.org,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        linux-kselftest@vger.kernel.org,
-        Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>,
-        Scott Parlane <scott.parlane@alliedtelesis.co.nz>,
-        Blair Steven <blair.steven@alliedtelesis.co.nz>
-Subject: Re: [PATCH 2/3] net: netfilter: Add RFC-7597 Section 5.1 PSID support
-Message-ID: <20210722071750.GG9904@breakpoint.cc>
-References: <20210716151833.GD9904@breakpoint.cc>
- <20210719012151.28324-1-Cole.Dishington@alliedtelesis.co.nz>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next 0/3] netfilter: clusterip: don't register hook in all netns
+Date:   Thu, 22 Jul 2021 10:48:31 +0200
+Message-Id: <20210722084834.27027-1-fw@strlen.de>
+X-Mailer: git-send-email 2.31.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210719012151.28324-1-Cole.Dishington@alliedtelesis.co.nz>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Cole Dishington <Cole.Dishington@alliedtelesis.co.nz> wrote:
-> Adds support for masquerading into a smaller subset of ports -
-> defined by the PSID values from RFC-7597 Section 5.1. This is part of
-> the support for MAP-E and Lightweight 4over6, which allows multiple
-> devices to share an IPv4 address by splitting the L4 port / id into
-> ranges.
-> 
-> Co-developed-by: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
-> Signed-off-by: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
-> Co-developed-by: Scott Parlane <scott.parlane@alliedtelesis.co.nz>
-> Signed-off-by: Scott Parlane <scott.parlane@alliedtelesis.co.nz>
-> Signed-off-by: Blair Steven <blair.steven@alliedtelesis.co.nz>
-> Signed-off-by: Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
-> ---
-> +
-> +	/* In this case we are in PSID mode, avoid checking all ranges by computing bitmasks */
-> +	if (is_psid) {
-> +		u16 power_j = ntohs(max->all) - ntohs(min->all) + 1;
+This series stops ipt_CLUSTERIP from registering arp mangling hook
+unconditionally.
 
-I think this needs to be 'u32 power_j' to prevent overflow of
-65535 + 1 -> 0.
+Hook gets installed/removed from checkentry/destroy callbacks.
 
-> +		if (base)
-> +			off = prandom_u32() % (((1 << 16) / base) - 1);
+Before this, modprobe ipt_CLUSTERIP would add a hook in each netns.
+While at it, also get rid of x_tables.h/xt storage space in struct net,
+there is no need for this.
 
-I think this can use prandom_u32_max(((1 << 16) / base) - 1).
+Florian Westphal (3):
+  netfilter: ipt_CLUSTERIP: only add arp mangle hook when required
+  netfilter: ipt_CLUSTERIP: use clusterip_net to store pernet warning
+  netfilter: remove xt pernet data
 
-I have no other comments.  Other kernel patches LGTM.
+ include/net/net_namespace.h        |  2 --
+ include/net/netns/x_tables.h       | 12 -------
+ net/ipv4/netfilter/ipt_CLUSTERIP.c | 56 ++++++++++++++++++++----------
+ net/netfilter/xt_CT.c              | 11 ------
+ 4 files changed, 37 insertions(+), 44 deletions(-)
+ delete mode 100644 include/net/netns/x_tables.h
+
+-- 
+2.31.1
+
