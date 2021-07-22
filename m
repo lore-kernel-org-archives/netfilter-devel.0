@@ -7,120 +7,71 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29819C6377D
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Jul 2021 08:49:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38CF2C63793
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Jul 2021 16:53:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0EDE761351
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Jul 2021 08:49:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 21C706052B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Jul 2021 16:53:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231211AbhGVII0 (ORCPT
+        id S234012AbhGVQMn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 22 Jul 2021 04:08:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52024 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231187AbhGVII0 (ORCPT
+        Thu, 22 Jul 2021 12:12:43 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:55422 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235568AbhGVQLj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 22 Jul 2021 04:08:26 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B23CBC061757
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Jul 2021 01:49:01 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1m6UO4-0000yr-9A; Thu, 22 Jul 2021 10:49:00 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 3/3] netfilter: remove xt pernet data
-Date:   Thu, 22 Jul 2021 10:48:34 +0200
-Message-Id: <20210722084834.27027-4-fw@strlen.de>
-X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20210722084834.27027-1-fw@strlen.de>
-References: <20210722084834.27027-1-fw@strlen.de>
+        Thu, 22 Jul 2021 12:11:39 -0400
+Received: from localhost.localdomain (unknown [78.30.10.20])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 9F1026429B
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Jul 2021 18:51:46 +0200 (CEST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft 1/2] parser_bison: missing initialization of ct timeout policy list
+Date:   Thu, 22 Jul 2021 18:52:13 +0200
+Message-Id: <20210722165214.1982-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-clusterip is now handled via net_generic.
+rule.c:1715:3: runtime error: member access within null pointer of type 'struct timeout_state'
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==29500==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x7f5bfd43c2a4 bp 0x7ffcb82f13b0 sp 0x7ffcb82f1360 T0)
+==29500==The signal is caused by a READ memory access.
+==29500==Hint: address points to the zero page.
+    #0 0x7f5bfd43c2a3 in obj_free /home/test/nftables/src/rule.c:1715
+    #1 0x7f5bfd43875d in cmd_free /home/test/nftables/src/rule.c:1447
+    #2 0x7f5bfd58e6f2 in nft_run_cmd_from_filename /home/test/nftables/src/libnftables.c:628
+    #3 0x5645c48762b1 in main /home/test/nftables/src/main.c:512
+    #4 0x7f5bfc0eb09a in __libc_start_main ../csu/libc-start.c:308
+    #5 0x5645c4873459 in _start (/home/test/nftables/src/.libs/nft+0x9459)
 
-NOTRACK is tiny compared to rest of xt_CT feature set, even the existing
-deprecation warning is bigger than the actual functionality.
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /home/test/nftables/src/rule.c:1715 in obj_free
+==29500==ABORTING
 
-Just remove the warning, its not worth keeping/adding a net_generic one.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 7a0e26723496 ("rule: memleak of list of timeout policies")
+Signed-off-by: Pablo Neira Ayuso <test@netfilter.org>
 ---
- include/net/net_namespace.h  |  2 --
- include/net/netns/x_tables.h | 12 ------------
- net/netfilter/xt_CT.c        | 11 -----------
- 3 files changed, 25 deletions(-)
- delete mode 100644 include/net/netns/x_tables.h
+ src/parser_bison.y | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/include/net/net_namespace.h b/include/net/net_namespace.h
-index 12cf6d7ea62c..60693fd5de45 100644
---- a/include/net/net_namespace.h
-+++ b/include/net/net_namespace.h
-@@ -23,7 +23,6 @@
- #include <net/netns/ieee802154_6lowpan.h>
- #include <net/netns/sctp.h>
- #include <net/netns/netfilter.h>
--#include <net/netns/x_tables.h>
- #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- #include <net/netns/conntrack.h>
- #endif
-@@ -132,7 +131,6 @@ struct net {
- #endif
- #ifdef CONFIG_NETFILTER
- 	struct netns_nf		nf;
--	struct netns_xt		xt;
- #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- 	struct netns_ct		ct;
- #endif
-diff --git a/include/net/netns/x_tables.h b/include/net/netns/x_tables.h
-deleted file mode 100644
-index d02316ec2906..000000000000
---- a/include/net/netns/x_tables.h
-+++ /dev/null
-@@ -1,12 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef __NETNS_X_TABLES_H
--#define __NETNS_X_TABLES_H
--
--#include <linux/list.h>
--#include <linux/netfilter_defs.h>
--
--struct netns_xt {
--	bool notrack_deprecated_warning;
--	bool clusterip_deprecated_warning;
--};
--#endif
-diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
-index 12404d221026..0a913ce07425 100644
---- a/net/netfilter/xt_CT.c
-+++ b/net/netfilter/xt_CT.c
-@@ -351,21 +351,10 @@ notrack_tg(struct sk_buff *skb, const struct xt_action_param *par)
- 	return XT_CONTINUE;
- }
- 
--static int notrack_chk(const struct xt_tgchk_param *par)
--{
--	if (!par->net->xt.notrack_deprecated_warning) {
--		pr_info("netfilter: NOTRACK target is deprecated, "
--			"use CT instead or upgrade iptables\n");
--		par->net->xt.notrack_deprecated_warning = true;
--	}
--	return 0;
--}
--
- static struct xt_target notrack_tg_reg __read_mostly = {
- 	.name		= "NOTRACK",
- 	.revision	= 0,
- 	.family		= NFPROTO_UNSPEC,
--	.checkentry	= notrack_chk,
- 	.target		= notrack_tg,
- 	.table		= "raw",
- 	.me		= THIS_MODULE,
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 790cd832b742..5545a43d160e 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -1313,6 +1313,8 @@ delete_cmd		:	TABLE		table_or_id_spec
+ 			|	CT	ct_obj_type	obj_spec	ct_obj_alloc	close_scope_ct
+ 			{
+ 				$$ = cmd_alloc_obj_ct(CMD_DELETE, $2, &$3, &@$, $4);
++				if ($2 == NFT_OBJECT_CT_TIMEOUT)
++					init_list_head(&$4->ct_timeout.timeout_list);
+ 			}
+ 			|	LIMIT		obj_or_id_spec	close_scope_limit
+ 			{
 -- 
-2.31.1
+2.20.1
 
