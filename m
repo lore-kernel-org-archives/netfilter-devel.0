@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8915CC432BE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93157C4320A
 	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Jul 2021 15:54:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 736FC60725
+	by mail.kernel.org (Postfix) with ESMTP id 7ED6860F02
 	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Jul 2021 15:54:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235746AbhGWPOD (ORCPT
+        id S235733AbhGWPOC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 23 Jul 2021 11:14:03 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:57302 "EHLO
+        Fri, 23 Jul 2021 11:14:02 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:57300 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235671AbhGWPNx (ORCPT
+        with ESMTP id S235672AbhGWPNx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 23 Jul 2021 11:13:53 -0400
 Received: from localhost.localdomain (unknown [78.30.39.111])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 8CCF2642A3;
-        Fri, 23 Jul 2021 17:53:56 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 815916429D;
+        Fri, 23 Jul 2021 17:53:55 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 4/6] netfilter: conntrack: adjust stop timestamp to real expiry value
-Date:   Fri, 23 Jul 2021 17:54:10 +0200
-Message-Id: <20210723155412.17916-5-pablo@netfilter.org>
+Subject: [PATCH net 2/6] netfilter: flowtable: avoid possible false sharing
+Date:   Fri, 23 Jul 2021 17:54:08 +0200
+Message-Id: <20210723155412.17916-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20210723155412.17916-1-pablo@netfilter.org>
 References: <20210723155412.17916-1-pablo@netfilter.org>
@@ -39,39 +39,33 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+The flowtable follows the same timeout approach as conntrack, use the
+same idiom as in cc16921351d8 ("netfilter: conntrack: avoid same-timeout
+update") but also include the fix provided by e37542ba111f ("netfilter:
+conntrack: avoid possible false sharing").
 
-In case the entry is evicted via garbage collection there is
-delay between the timeout value and the eviction event.
-
-This adjusts the stop value based on how much time has passed.
-
-Fixes: b87a2f9199ea82 ("netfilter: conntrack: add gc worker to remove timed-out entries")
-Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_core.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ net/netfilter/nf_flow_table_core.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 83c52df85870..5c03e5106751 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -670,8 +670,13 @@ bool nf_ct_delete(struct nf_conn *ct, u32 portid, int report)
- 		return false;
- 
- 	tstamp = nf_conn_tstamp_find(ct);
--	if (tstamp && tstamp->stop == 0)
-+	if (tstamp) {
-+		s32 timeout = ct->timeout - nfct_time_stamp;
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 1e50908b1b7e..551976e4284c 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -331,7 +331,11 @@ EXPORT_SYMBOL_GPL(flow_offload_add);
+ void flow_offload_refresh(struct nf_flowtable *flow_table,
+ 			  struct flow_offload *flow)
+ {
+-	flow->timeout = nf_flowtable_time_stamp + flow_offload_get_timeout(flow);
++	u32 timeout;
 +
- 		tstamp->stop = ktime_get_real_ns();
-+		if (timeout < 0)
-+			tstamp->stop -= jiffies_to_nsecs(-timeout);
-+	}
++	timeout = nf_flowtable_time_stamp + flow_offload_get_timeout(flow);
++	if (READ_ONCE(flow->timeout) != timeout)
++		WRITE_ONCE(flow->timeout, timeout);
  
- 	if (nf_conntrack_event_report(IPCT_DESTROY, ct,
- 				    portid, report) < 0) {
+ 	if (likely(!nf_flowtable_hw_offload(flow_table)))
+ 		return;
 -- 
 2.20.1
 
