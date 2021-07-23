@@ -2,48 +2,57 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D323BC4338F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Jul 2021 12:23:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA492C4320A
+	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Jul 2021 12:33:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 779B360ED7
-	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Jul 2021 12:23:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C9F2D60EE6
+	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Jul 2021 12:33:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234769AbhGWLnJ (ORCPT
+        id S234845AbhGWLwU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 23 Jul 2021 07:43:09 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:56886 "EHLO
+        Fri, 23 Jul 2021 07:52:20 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:56916 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234601AbhGWLnJ (ORCPT
+        with ESMTP id S234833AbhGWLvn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 23 Jul 2021 07:43:09 -0400
+        Fri, 23 Jul 2021 07:51:43 -0400
 Received: from netfilter.org (unknown [78.30.39.111])
-        by mail.netfilter.org (Postfix) with ESMTPSA id CE95B64119;
-        Fri, 23 Jul 2021 14:23:15 +0200 (CEST)
-Date:   Fri, 23 Jul 2021 14:23:44 +0200
+        by mail.netfilter.org (Postfix) with ESMTPSA id 874EB6244C;
+        Fri, 23 Jul 2021 14:31:20 +0200 (CEST)
+Date:   Fri, 23 Jul 2021 14:31:50 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: conntrack: adjust stop timestamp to real
- expiry value
-Message-ID: <20210723122344.GA14579@salvia>
-References: <20210718163600.220854-1-fw@strlen.de>
+To:     Arnd Bergmann <arnd@kernel.org>
+Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] netfilter: nfnl_hook: fix unused variable warning
+Message-ID: <20210723123150.GA15125@salvia>
+References: <20210721152245.2751702-1-arnd@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20210718163600.220854-1-fw@strlen.de>
+In-Reply-To: <20210721152245.2751702-1-arnd@kernel.org>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Jul 18, 2021 at 06:36:00PM +0200, Florian Westphal wrote:
-> In case the entry is evicted via garbage collection there is
-> delay between the timeout value and the eviction event.
+On Wed, Jul 21, 2021 at 05:22:32PM +0200, Arnd Bergmann wrote:
+> From: Arnd Bergmann <arnd@arndb.de>
 > 
-> This adjusts the stop value based on how much time has passed.
+> The only user of this variable is in an #ifdef:
+> 
+> net/netfilter/nfnetlink_hook.c: In function 'nfnl_hook_entries_head':
+> net/netfilter/nfnetlink_hook.c:177:28: error: unused variable 'netdev' [-Werror=unused-variable]
 
 Applied, thanks.
