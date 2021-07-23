@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07E70C4320A
-	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Jul 2021 15:54:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8915CC432BE
+	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Jul 2021 15:54:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E7A0E60725
-	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Jul 2021 15:54:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 736FC60725
+	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Jul 2021 15:54:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235719AbhGWPOA (ORCPT
+        id S235746AbhGWPOD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 23 Jul 2021 11:14:00 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:57314 "EHLO
+        Fri, 23 Jul 2021 11:14:03 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:57302 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235685AbhGWPNz (ORCPT
+        with ESMTP id S235671AbhGWPNx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 23 Jul 2021 11:13:55 -0400
+        Fri, 23 Jul 2021 11:13:53 -0400
 Received: from localhost.localdomain (unknown [78.30.39.111])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 49B65642A5;
-        Fri, 23 Jul 2021 17:53:57 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 8CCF2642A3;
+        Fri, 23 Jul 2021 17:53:56 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 6/6] netfilter: nfnl_hook: fix unused variable warning
-Date:   Fri, 23 Jul 2021 17:54:12 +0200
-Message-Id: <20210723155412.17916-7-pablo@netfilter.org>
+Subject: [PATCH net 4/6] netfilter: conntrack: adjust stop timestamp to real expiry value
+Date:   Fri, 23 Jul 2021 17:54:10 +0200
+Message-Id: <20210723155412.17916-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20210723155412.17916-1-pablo@netfilter.org>
 References: <20210723155412.17916-1-pablo@netfilter.org>
@@ -39,34 +39,39 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Arnd Bergmann <arnd@arndb.de>
+From: Florian Westphal <fw@strlen.de>
 
-The only user of this variable is in an #ifdef:
+In case the entry is evicted via garbage collection there is
+delay between the timeout value and the eviction event.
 
-net/netfilter/nfnetlink_hook.c: In function 'nfnl_hook_entries_head':
-net/netfilter/nfnetlink_hook.c:177:28: error: unused variable 'netdev' [-Werror=unused-variable]
+This adjusts the stop value based on how much time has passed.
 
-Fixes: e2cf17d3774c ("netfilter: add new hook nfnl subsystem")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Fixes: b87a2f9199ea82 ("netfilter: conntrack: add gc worker to remove timed-out entries")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_hook.c | 2 ++
- 1 file changed, 2 insertions(+)
+ net/netfilter/nf_conntrack_core.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nfnetlink_hook.c b/net/netfilter/nfnetlink_hook.c
-index 50b4e3c9347a..202f57d17bab 100644
---- a/net/netfilter/nfnetlink_hook.c
-+++ b/net/netfilter/nfnetlink_hook.c
-@@ -174,7 +174,9 @@ static const struct nf_hook_entries *
- nfnl_hook_entries_head(u8 pf, unsigned int hook, struct net *net, const char *dev)
- {
- 	const struct nf_hook_entries *hook_head = NULL;
-+#ifdef CONFIG_NETFILTER_INGRESS
- 	struct net_device *netdev;
-+#endif
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 83c52df85870..5c03e5106751 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -670,8 +670,13 @@ bool nf_ct_delete(struct nf_conn *ct, u32 portid, int report)
+ 		return false;
  
- 	switch (pf) {
- 	case NFPROTO_IPV4:
+ 	tstamp = nf_conn_tstamp_find(ct);
+-	if (tstamp && tstamp->stop == 0)
++	if (tstamp) {
++		s32 timeout = ct->timeout - nfct_time_stamp;
++
+ 		tstamp->stop = ktime_get_real_ns();
++		if (timeout < 0)
++			tstamp->stop -= jiffies_to_nsecs(-timeout);
++	}
+ 
+ 	if (nf_conntrack_event_report(IPCT_DESTROY, ct,
+ 				    portid, report) < 0) {
 -- 
 2.20.1
 
