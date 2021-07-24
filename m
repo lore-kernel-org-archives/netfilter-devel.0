@@ -2,98 +2,94 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6458DC4320A
-	for <netfilter-devel@archiver.kernel.org>; Sat, 24 Jul 2021 10:28:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 124A7C4338F
+	for <netfilter-devel@archiver.kernel.org>; Sat, 24 Jul 2021 15:53:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3EF6760E53
-	for <netfilter-devel@archiver.kernel.org>; Sat, 24 Jul 2021 10:28:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DAC7260E8E
+	for <netfilter-devel@archiver.kernel.org>; Sat, 24 Jul 2021 15:53:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233651AbhGXJrx (ORCPT
+        id S229982AbhGXPMz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 24 Jul 2021 05:47:53 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:58440 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234924AbhGXJrw (ORCPT
+        Sat, 24 Jul 2021 11:12:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33934 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229545AbhGXPMy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 24 Jul 2021 05:47:52 -0400
-Received: from localhost.localdomain (unknown [78.30.39.111])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 06EAE642A3
-        for <netfilter-devel@vger.kernel.org>; Sat, 24 Jul 2021 12:27:56 +0200 (CEST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 2/2] src: expose nft_ctx_clear_vars as API
-Date:   Sat, 24 Jul 2021 12:28:24 +0200
-Message-Id: <20210724102824.28011-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20210724102824.28011-1-pablo@netfilter.org>
-References: <20210724102824.28011-1-pablo@netfilter.org>
+        Sat, 24 Jul 2021 11:12:54 -0400
+Received: from mail-wr1-x42a.google.com (mail-wr1-x42a.google.com [IPv6:2a00:1450:4864:20::42a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6968C061575
+        for <netfilter-devel@vger.kernel.org>; Sat, 24 Jul 2021 08:53:25 -0700 (PDT)
+Received: by mail-wr1-x42a.google.com with SMTP id r2so5646131wrl.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 24 Jul 2021 08:53:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:from:date:message-id:subject:to;
+        bh=73dMHKgTwsbYJT/qumQlXzssv79wqGOcVEnbvWZ95Io=;
+        b=nzNfOgKK/3FFKLaj0Nz9qxT5Ofgu2H00RBX07gUkBarDeq6c469dXZuNXO6K6G58yf
+         8U2/+r0Ks7MjQ/2Ps9lC9mG30Ph+dB476w5G74DaoZdQznP4xWHFJkZMy6y3FCsBaNGY
+         D3LuQSIj73BKRpzeiVWj5H8FJ06D8/Otiupj4/Q3LRnNxvnlI2Acelmfs65uR39qPO3b
+         VRFG98n1ccNcq+GF1gzbcuVAZ4SmOcUAEvF9U4wKSJ/VRJIRAusNMyMKVFHOhTqUGeiJ
+         rAlBwHKeSCCtKwx2CitalSY4lgHyYnYTk7FJSJ9tt8fiVH+615Qyn1onBwzozZnVctUF
+         ZWtg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
+        bh=73dMHKgTwsbYJT/qumQlXzssv79wqGOcVEnbvWZ95Io=;
+        b=D4M5HAPyZZGbiy6JY9yURbRIITFsDOsnChP9PUFv2YKWejUQeHqBlgqP1WRqkj/TIt
+         NUtV7dUA5ld4bv9TlUCrtZWeTGKBSph6Jysi5nskfMPADoPBjNQeHARnZ8Kj1VVgSIA0
+         uP7OmyxTWKjEJW8TrRdxeFRdxCyEmo8Xt3HV9B2zIz2eG9zZf/jLuO1Xh1RZ2wN/3kZt
+         tgvj+QQwA301j7r47+Jq/BA9woj0J1T1sq/LM/OhvfO61ExSJLnA4zjsHN4Bw3NyNooL
+         XXSvEXSPexBqryzF+2313nM/+A+iSb+9e6r0ZgV5CRunYTn9sBpI4wecZ9O1beQypKGc
+         dJUw==
+X-Gm-Message-State: AOAM533CBeKiBbD4clJP1PhiyyeYS+CGaKKPDyIU/wX4Wf/66SssxbvZ
+        8z7C7Nw4alAkrP08tQMV5bShaiWip7vylwV+DOtJbR2W8LX8VQ==
+X-Google-Smtp-Source: ABdhPJx8m34CVVuEqKClnuomAZvkyf58wd9A3jXcCv6rJuzvGz03FbXqvwylrH67gLqrL2KEqS/HzVclmzPKda3u9R8=
+X-Received: by 2002:a5d:5305:: with SMTP id e5mr10570390wrv.237.1627142004136;
+ Sat, 24 Jul 2021 08:53:24 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+From:   Akshat Kakkar <akshat.1984@gmail.com>
+Date:   Sat, 24 Jul 2021 21:23:14 +0530
+Message-ID: <CAA5aLPirA-gNiYRCoQR6-2fP80ESvvXKu7f0bVPT80FFxua6=g@mail.gmail.com>
+Subject: Nf_nat_h323 module not working with Panasonic VCs
+To:     NetFilter <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This function might be useful to recycle the existing nft_ctx to use it
-with different external variables definition.
+I have 2 vc endpoints VC1 (Make:Panasonic, IP:10.1.1.11),
+VC2(make:Polycom,IP: 10.1.1.12) and 1 MCU (172.16.1.100).
 
-Moreover, reset ctx->num_vars to zero.
+There is a Linux firewall between VCs and MCU.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/nftables/libnftables.h | 1 +
- src/libnftables.c              | 4 +++-
- src/libnftables.map            | 1 +
- 3 files changed, 5 insertions(+), 1 deletion(-)
+There is one to one nat configured for these 2 VCs (10.1.1.11  <-->
+172.16.1.110, 10.1.1.12  <--> 172.16.1.120)
+There is no natting for MCU IP as it is routable.
 
-diff --git a/include/nftables/libnftables.h b/include/nftables/libnftables.h
-index aaf7388e6db2..8e7151a324b0 100644
---- a/include/nftables/libnftables.h
-+++ b/include/nftables/libnftables.h
-@@ -79,6 +79,7 @@ int nft_ctx_add_include_path(struct nft_ctx *ctx, const char *path);
- void nft_ctx_clear_include_paths(struct nft_ctx *ctx);
- 
- int nft_ctx_add_var(struct nft_ctx *ctx, const char *var);
-+void nft_ctx_clear_vars(struct nft_ctx *ctx);
- 
- int nft_run_cmd_from_buffer(struct nft_ctx *nft, const char *buf);
- int nft_run_cmd_from_filename(struct nft_ctx *nft, const char *filename);
-diff --git a/src/libnftables.c b/src/libnftables.c
-index de6dc7cdae6c..aa6493aae119 100644
---- a/src/libnftables.c
-+++ b/src/libnftables.c
-@@ -145,7 +145,8 @@ int nft_ctx_add_var(struct nft_ctx *ctx, const char *var)
- 	return 0;
- }
- 
--static void nft_ctx_clear_vars(struct nft_ctx *ctx)
-+EXPORT_SYMBOL(nft_ctx_clear_vars);
-+void nft_ctx_clear_vars(struct nft_ctx *ctx)
- {
- 	unsigned int i;
- 
-@@ -153,6 +154,7 @@ static void nft_ctx_clear_vars(struct nft_ctx *ctx)
- 		xfree(ctx->vars[i].key);
- 		xfree(ctx->vars[i].value);
- 	}
-+	ctx->num_vars = 0;
- 	xfree(ctx->vars);
- }
- 
-diff --git a/src/libnftables.map b/src/libnftables.map
-index 46d64a38e6e0..d3a795ce8567 100644
---- a/src/libnftables.map
-+++ b/src/libnftables.map
-@@ -26,4 +26,5 @@ local: *;
- 
- LIBNFTABLES_2 {
-   nft_ctx_add_var;
-+  nft_ctx_clear_vars;
- } LIBNFTABLES_1;
--- 
-2.20.1
+nf_nat_h323 and nf_conntrack_h323 module is enabled in the firewall.
 
+When VC1 and VC2 initiate call to MCU, everything works fine. Video
+call is successful for both VC1 and VC2. h245 IP address for tcp in
+h225: CS connect packet is correctly replaced by the natted IP.
+
+However, when there is a dial out from MCU to VCs (i.e. MCU initiate
+call to the natted IP (i.e. 172.16.1.110 and 172.16.1.120 of VCs),
+natting works fine but h245 IP address for tcp in h225:CS is replaced
+correctly only for VC2 and not for VC1. For VC1, it is still its
+actual IP (i.e. 10.1.1.12 and not 172.16.1.120).
+
+Because of this, video call is successful only with VC2 and not with
+VC1, when initiated from MCU. I tried with another panasonic VC
+hardware, there was no change.
+
+Further packet dump analysis showed that for VC1, there are 3 h225
+packets (setup, call proceeding and alert) before Connect message but
+for VC2 there are only 2 h225 packets (setup and alert) before connect
+message.
+
+Is there a bug in nf_nat_h323 module or am I missing something?
