@@ -2,84 +2,120 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 344D8C4320A
-	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Jul 2021 16:50:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AB6EC4338F
+	for <netfilter-devel@archiver.kernel.org>; Sat, 24 Jul 2021 03:49:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1DFF660ED4
-	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Jul 2021 16:50:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D9CC460EB4
+	for <netfilter-devel@archiver.kernel.org>; Sat, 24 Jul 2021 03:49:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231284AbhGWQJd (ORCPT
+        id S233804AbhGXDJR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 23 Jul 2021 12:09:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35868 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229847AbhGWQJc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 23 Jul 2021 12:09:32 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPS id 32C3A60E9C;
-        Fri, 23 Jul 2021 16:50:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1627059006;
-        bh=3/8tnojzEiEYMyqb8KSh1cm1Fsx5qkzL4Qylhfy0HOQ=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=Mee9nr9pD1QumHzYFS/TZRvlcDuT86s7GiFcTpfBE0vr/JcuFEYdDlKbG/moF7Aah
-         p081LZO5MyefV3TRwAPhOns7rNeR63H5J8VX5nzA7aJtoxjpJ5BicN5ugjEk5tdwq3
-         0i1Q1AHga0l5WtHBvID5pBCZumJSc6o8DDrD+SeO/+2g+u3xyd29nsw75+FOYuJQAB
-         3kkSfdKmNGaOeeAas4Adt/3xrDg6ICwcsiw/DC8Wbhtt0fEgol8USUibW2BTkdNO0m
-         osZCwReqDuhUwkFJbtnN88kfaiPVnndS/G2g1RHGh+7o8ok0Yob8Qqw0fogYkL2nEN
-         mC8GmdqHeGMQA==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/6] netfilter: nf_tables: fix audit memory leak in
- nf_tables_commit
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <162705900614.21133.233240311011263145.git-patchwork-notify@kernel.org>
-Date:   Fri, 23 Jul 2021 16:50:06 +0000
-References: <20210723155412.17916-2-pablo@netfilter.org>
-In-Reply-To: <20210723155412.17916-2-pablo@netfilter.org>
+        Fri, 23 Jul 2021 23:09:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45488 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233774AbhGXDJQ (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 23 Jul 2021 23:09:16 -0400
+Received: from mail-pl1-x62e.google.com (mail-pl1-x62e.google.com [IPv6:2607:f8b0:4864:20::62e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FBA0C061575
+        for <netfilter-devel@vger.kernel.org>; Fri, 23 Jul 2021 20:49:48 -0700 (PDT)
+Received: by mail-pl1-x62e.google.com with SMTP id k1so5223334plt.12
+        for <netfilter-devel@vger.kernel.org>; Fri, 23 Jul 2021 20:49:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=sender:from:date:to:cc:subject:message-id:mail-followup-to
+         :references:mime-version:content-disposition:in-reply-to;
+        bh=l1UEVbvYsE/441t5oia0fmW+o2MZjTy4lYjnxW5WX6I=;
+        b=s2GfRYf3OczJdm5avx34LMvpAZpMMrT+/8DIDi8CtTNMUHtep8PVyBDnTcOKBOGLgk
+         7ShV1gFwBCxSbzeXqW8DBl9FW4/o45xegMxa3P2brKJKyvbSQ/YA5sEy+WQ1j03WnBA5
+         eaE2dpjAiPXuXIP4P4py5uR8ikh6iG4If+nw71tpX6uU6X+6H1qtWQtH51SLqiermC1c
+         Sj/3KLTCk7IEhIGHczp8dFJmyJym7ECyad0wbl5aIvE0f8Wr07h76BCNsollYGFwhtmP
+         w8zX5nAxr13+77rJq1gVT1PaZKBGf1DxL4JtTcYpFMhom8pKnYSG3xfSAdeHiBPgwhqj
+         Z5VA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:sender:from:date:to:cc:subject:message-id
+         :mail-followup-to:references:mime-version:content-disposition
+         :in-reply-to;
+        bh=l1UEVbvYsE/441t5oia0fmW+o2MZjTy4lYjnxW5WX6I=;
+        b=HjjQce/rki9dKa762n8ewr7XN+Vlj0P3w3wGEBJNBgliEpY6xOpNQfur8SKeEX7gwV
+         UV92NemEEgnbu/7CKqZC0yMxbAP8saku8XRi+9vD3GoMzBlAEnIsQgXBgEpg6t37zMxZ
+         /eSQDKgB/GZdbX2z4j9uWcvEw0CrMsR2SazSsY6UFdYPvrSUvxiC9bNBruDVAX4H5xpJ
+         TuMPlZY+V3u/b1w/1OBEEpcZfLYIw1ybkKyYcs2eNuhOPRvUefMKHgfYQid+2CVUzeuG
+         8RXbsCa4o7Sj00lKeI/in1StZAcUnoqfqAqqC7tWCTvvioW1AOzbXPCv3J4AY/NnVl1D
+         VSwA==
+X-Gm-Message-State: AOAM531//STJ1b7RqQeKYQXcPtOi2nmyVNKd0o7F3kjQ0LVUyODQUXTa
+        fRZR74ax+SHztx/KzGs+3AWvoMHf5PxGaw==
+X-Google-Smtp-Source: ABdhPJz78tbrYmEMBTc95dsB/IPFrqgSKwjpkiQx5+kEX6hfX3zM4+e6nbMLWAayHnZHbtueToVIFg==
+X-Received: by 2002:a17:90a:c297:: with SMTP id f23mr7447963pjt.194.1627098586710;
+        Fri, 23 Jul 2021 20:49:46 -0700 (PDT)
+Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
+        by smtp.gmail.com with ESMTPSA id 20sm36429100pfi.170.2021.07.23.20.49.44
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 23 Jul 2021 20:49:46 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+X-Google-Original-From: Duncan Roe <dunc@slk1.local.net>
+Date:   Sat, 24 Jul 2021 13:49:41 +1000
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org
+Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH RFC libnetfilter_queue 1/1] src: doc: supply missing
+ SYNOPSIS in pktbuff man pages
+Message-ID: <YPuN1cuL1ukqzSFl@slk1.local.net>
+Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <20210629093837.GA23185@salvia>
+ <20210717025350.24040-2-duncan_roe@optusnet.com.au>
+ <20210722171015.GA12639@salvia>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210722171015.GA12639@salvia>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+On Thu, Jul 22, 2021 at 07:10:15PM +0200, Pablo Neira Ayuso wrote:
+> The existing autogenerated manpages are still a bit distant to usual
+> Linux Programmer's Manual manpages at quick glance.
 
-This series was applied to netdev/net.git (refs/heads/master):
+I guess doxygen-generated man pages will always be a little bit "distinctive".
 
-On Fri, 23 Jul 2021 17:54:07 +0200 you wrote:
-> From: Dongliang Mu <mudongliangabcd@gmail.com>
-> 
-> In nf_tables_commit, if nf_tables_commit_audit_alloc fails, it does not
-> free the adp variable.
-> 
-> Fix this by adding nf_tables_commit_audit_free which frees
-> the linked list with the head node adl.
-> 
-> [...]
+Looking carefully, I see a number of doxygen artefacts that can be
+post-processed away.
 
-Here is the summary with links:
-  - [net,1/6] netfilter: nf_tables: fix audit memory leak in nf_tables_commit
-    https://git.kernel.org/netdev/net/c/cfbe3650dd3e
-  - [net,2/6] netfilter: flowtable: avoid possible false sharing
-    https://git.kernel.org/netdev/net/c/32c3973d8083
-  - [net,3/6] netfilter: nft_last: avoid possible false sharing
-    https://git.kernel.org/netdev/net/c/32953df7a6eb
-  - [net,4/6] netfilter: conntrack: adjust stop timestamp to real expiry value
-    https://git.kernel.org/netdev/net/c/30a56a2b8818
-  - [net,5/6] netfilter: nft_nat: allow to specify layer 4 protocol NAT only
-    https://git.kernel.org/netdev/net/c/a33f387ecd5a
-  - [net,6/6] netfilter: nfnl_hook: fix unused variable warning
-    https://git.kernel.org/netdev/net/c/217e26bd87b2
+And I do see one substantive difference: the NAME section should have a list of
+functions instead of the (internal use only) module name. So:
+> pktbuff - User-space network packet buffer
+should be
+> pktb_alloc, pktb_data, pktb_len, pktb_free, pktb_mangle, pktb_mangled - User-space network packet buffer
 
-You are awesome, thank you!
---
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+The rest is window-dressing. Here's a list of changes (from top down (mostly)):
 
+ - Fix NAME entry as above
+ - If there is a "Modules" section, delete it
+ - If "Detailed Description" is empty, delete "Detailed Description" line
+   - otherwise rename it "Overview" maybe, since Function Documentation
+     contains detailed descriptions
+ - Reposition SYNOPSIS line through 1st blank line to before "Functions" line
+ - Delete "Functions" line
+ - Delete all "Definition at line nnn" lines
+ - Delete "Author" section (or should I leave that?)
 
+My sed-fu is not up to doing this. I'll be using the rather more programmable
+but little-known Q editor. Q is available at
+https://sourceforge.net/projects/q-editor/ or from
+https://github.com/duncan-roe/q
+
+I'll put together a Q-macro suite to implement the above. Then I'll post
+before/after samples of a short and a long page, say icmp & pktbuff.
+
+If you think the changes are worth having, can then update Makefile.am with a
+post-processing section that only runs if Q is available.
+
+Cheeers ... Duncan.
