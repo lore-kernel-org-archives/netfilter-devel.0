@@ -2,120 +2,62 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AB6EC4338F
-	for <netfilter-devel@archiver.kernel.org>; Sat, 24 Jul 2021 03:49:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C883AC4338F
+	for <netfilter-devel@archiver.kernel.org>; Sat, 24 Jul 2021 08:56:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D9CC460EB4
-	for <netfilter-devel@archiver.kernel.org>; Sat, 24 Jul 2021 03:49:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B192760E91
+	for <netfilter-devel@archiver.kernel.org>; Sat, 24 Jul 2021 08:56:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233804AbhGXDJR (ORCPT
+        id S234914AbhGXIQA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 23 Jul 2021 23:09:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45488 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233774AbhGXDJQ (ORCPT
+        Sat, 24 Jul 2021 04:16:00 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:58370 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234833AbhGXIQA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 23 Jul 2021 23:09:16 -0400
-Received: from mail-pl1-x62e.google.com (mail-pl1-x62e.google.com [IPv6:2607:f8b0:4864:20::62e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FBA0C061575
-        for <netfilter-devel@vger.kernel.org>; Fri, 23 Jul 2021 20:49:48 -0700 (PDT)
-Received: by mail-pl1-x62e.google.com with SMTP id k1so5223334plt.12
-        for <netfilter-devel@vger.kernel.org>; Fri, 23 Jul 2021 20:49:48 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=sender:from:date:to:cc:subject:message-id:mail-followup-to
-         :references:mime-version:content-disposition:in-reply-to;
-        bh=l1UEVbvYsE/441t5oia0fmW+o2MZjTy4lYjnxW5WX6I=;
-        b=s2GfRYf3OczJdm5avx34LMvpAZpMMrT+/8DIDi8CtTNMUHtep8PVyBDnTcOKBOGLgk
-         7ShV1gFwBCxSbzeXqW8DBl9FW4/o45xegMxa3P2brKJKyvbSQ/YA5sEy+WQ1j03WnBA5
-         eaE2dpjAiPXuXIP4P4py5uR8ikh6iG4If+nw71tpX6uU6X+6H1qtWQtH51SLqiermC1c
-         Sj/3KLTCk7IEhIGHczp8dFJmyJym7ECyad0wbl5aIvE0f8Wr07h76BCNsollYGFwhtmP
-         w8zX5nAxr13+77rJq1gVT1PaZKBGf1DxL4JtTcYpFMhom8pKnYSG3xfSAdeHiBPgwhqj
-         Z5VA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:from:date:to:cc:subject:message-id
-         :mail-followup-to:references:mime-version:content-disposition
-         :in-reply-to;
-        bh=l1UEVbvYsE/441t5oia0fmW+o2MZjTy4lYjnxW5WX6I=;
-        b=HjjQce/rki9dKa762n8ewr7XN+Vlj0P3w3wGEBJNBgliEpY6xOpNQfur8SKeEX7gwV
-         UV92NemEEgnbu/7CKqZC0yMxbAP8saku8XRi+9vD3GoMzBlAEnIsQgXBgEpg6t37zMxZ
-         /eSQDKgB/GZdbX2z4j9uWcvEw0CrMsR2SazSsY6UFdYPvrSUvxiC9bNBruDVAX4H5xpJ
-         TuMPlZY+V3u/b1w/1OBEEpcZfLYIw1ybkKyYcs2eNuhOPRvUefMKHgfYQid+2CVUzeuG
-         8RXbsCa4o7Sj00lKeI/in1StZAcUnoqfqAqqC7tWCTvvioW1AOzbXPCv3J4AY/NnVl1D
-         VSwA==
-X-Gm-Message-State: AOAM531//STJ1b7RqQeKYQXcPtOi2nmyVNKd0o7F3kjQ0LVUyODQUXTa
-        fRZR74ax+SHztx/KzGs+3AWvoMHf5PxGaw==
-X-Google-Smtp-Source: ABdhPJz78tbrYmEMBTc95dsB/IPFrqgSKwjpkiQx5+kEX6hfX3zM4+e6nbMLWAayHnZHbtueToVIFg==
-X-Received: by 2002:a17:90a:c297:: with SMTP id f23mr7447963pjt.194.1627098586710;
-        Fri, 23 Jul 2021 20:49:46 -0700 (PDT)
-Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
-        by smtp.gmail.com with ESMTPSA id 20sm36429100pfi.170.2021.07.23.20.49.44
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 23 Jul 2021 20:49:46 -0700 (PDT)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-X-Google-Original-From: Duncan Roe <dunc@slk1.local.net>
-Date:   Sat, 24 Jul 2021 13:49:41 +1000
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
+        Sat, 24 Jul 2021 04:16:00 -0400
+Received: from netfilter.org (unknown [78.30.39.111])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 109A7642A0
+        for <netfilter-devel@vger.kernel.org>; Sat, 24 Jul 2021 10:56:03 +0200 (CEST)
+Date:   Sat, 24 Jul 2021 10:56:33 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Netfilter Development <netfilter-devel@vger.kernel.org>
 Subject: Re: [PATCH RFC libnetfilter_queue 1/1] src: doc: supply missing
  SYNOPSIS in pktbuff man pages
-Message-ID: <YPuN1cuL1ukqzSFl@slk1.local.net>
-Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Development <netfilter-devel@vger.kernel.org>
+Message-ID: <20210724085633.GA21304@salvia>
 References: <20210629093837.GA23185@salvia>
  <20210717025350.24040-2-duncan_roe@optusnet.com.au>
  <20210722171015.GA12639@salvia>
+ <YPuN1cuL1ukqzSFl@slk1.local.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20210722171015.GA12639@salvia>
+In-Reply-To: <YPuN1cuL1ukqzSFl@slk1.local.net>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Jul 22, 2021 at 07:10:15PM +0200, Pablo Neira Ayuso wrote:
-> The existing autogenerated manpages are still a bit distant to usual
-> Linux Programmer's Manual manpages at quick glance.
+On Sat, Jul 24, 2021 at 01:49:41PM +1000, Duncan Roe wrote:
+> On Thu, Jul 22, 2021 at 07:10:15PM +0200, Pablo Neira Ayuso wrote:
+> > The existing autogenerated manpages are still a bit distant to usual
+> > Linux Programmer's Manual manpages at quick glance.
+> 
+> I guess doxygen-generated man pages will always be a little bit "distinctive".
+> 
+> Looking carefully, I see a number of doxygen artefacts that can be
+> post-processed away.
 
-I guess doxygen-generated man pages will always be a little bit "distinctive".
+I mean: If you can achieve this via standard features available in
+doxygen to keep this maintainable along time, such as \manonly or
+such, then that's good.
 
-Looking carefully, I see a number of doxygen artefacts that can be
-post-processed away.
+Otherwise, extending doxygen should be the way to keep it simple.
+I understand doxygen might generate a little but "distintive" output,
+that's OK. I'd rather not to add more dependencies on this.
 
-And I do see one substantive difference: the NAME section should have a list of
-functions instead of the (internal use only) module name. So:
-> pktbuff - User-space network packet buffer
-should be
-> pktb_alloc, pktb_data, pktb_len, pktb_free, pktb_mangle, pktb_mangled - User-space network packet buffer
-
-The rest is window-dressing. Here's a list of changes (from top down (mostly)):
-
- - Fix NAME entry as above
- - If there is a "Modules" section, delete it
- - If "Detailed Description" is empty, delete "Detailed Description" line
-   - otherwise rename it "Overview" maybe, since Function Documentation
-     contains detailed descriptions
- - Reposition SYNOPSIS line through 1st blank line to before "Functions" line
- - Delete "Functions" line
- - Delete all "Definition at line nnn" lines
- - Delete "Author" section (or should I leave that?)
-
-My sed-fu is not up to doing this. I'll be using the rather more programmable
-but little-known Q editor. Q is available at
-https://sourceforge.net/projects/q-editor/ or from
-https://github.com/duncan-roe/q
-
-I'll put together a Q-macro suite to implement the above. Then I'll post
-before/after samples of a short and a long page, say icmp & pktbuff.
-
-If you think the changes are worth having, can then update Makefile.am with a
-post-processing section that only runs if Q is available.
-
-Cheeers ... Duncan.
+Thanks.
