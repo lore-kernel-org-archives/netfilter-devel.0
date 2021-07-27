@@ -2,381 +2,180 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3910CC4338F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Jul 2021 11:22:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30123C4338F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Jul 2021 13:32:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1EAEC619E9
-	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Jul 2021 11:22:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1A1E361A7F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Jul 2021 13:32:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236461AbhG0LWo (ORCPT
+        id S236648AbhG0Ncy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 27 Jul 2021 07:22:44 -0400
-Received: from smtp-out.kfki.hu ([148.6.0.48]:54663 "EHLO smtp-out.kfki.hu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236455AbhG0LWo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 27 Jul 2021 07:22:44 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 7149CCC00F4;
-        Tue, 27 Jul 2021 13:17:27 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        blackhole.kfki.hu; h=mime-version:references:in-reply-to
-        :x-mailer:message-id:date:date:from:from:received:received
-        :received; s=20151130; t=1627384645; x=1629199046; bh=Sug07HAIBV
-        eVby7B83Ra4qbu8PNYv87W2F/4byFvA9g=; b=RwMI/gKs4poKOTTT/wPgnOnJ74
-        cfeSFB5zLO2bcUE5gr+E6151aS21JdgBvybNfFxIFq+TH7+ldBpNtCydlMNo6PIP
-        RokhDBgf7t39f1gsQCzi2HS6TlN1oLVZlmnyqp7KGIFsgtFTIwgAJujUPbfoPkTz
-        zh90XRrSe1EdPAh2k=
-X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
-        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Tue, 27 Jul 2021 13:17:25 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 53BD6CC00F6;
-        Tue, 27 Jul 2021 13:17:25 +0200 (CEST)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id 4D4C53412ED; Tue, 27 Jul 2021 13:17:25 +0200 (CEST)
-From:   Jozsef Kadlecsik <kadlec@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/1] netfilter: ipset: Limit the maximal range of consecutive elements to add/delete
-Date:   Tue, 27 Jul 2021 13:17:25 +0200
-Message-Id: <20210727111725.14013-2-kadlec@netfilter.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20210727111725.14013-1-kadlec@netfilter.org>
-References: <20210727111725.14013-1-kadlec@netfilter.org>
+        Tue, 27 Jul 2021 09:32:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34912 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S236604AbhG0Nct (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 27 Jul 2021 09:32:49 -0400
+Received: from mail-wm1-x32d.google.com (mail-wm1-x32d.google.com [IPv6:2a00:1450:4864:20::32d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1775C0613C1
+        for <netfilter-devel@vger.kernel.org>; Tue, 27 Jul 2021 06:32:48 -0700 (PDT)
+Received: by mail-wm1-x32d.google.com with SMTP id k4so7590048wms.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 27 Jul 2021 06:32:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=pv2Kr96fLteAlNp2/l7f5CHe0z5QYiMahXyKqjaVUfk=;
+        b=UzUzVbmg9RenswInYAbhQzf5Otryjlw39xOdGhU01EIcoDs5PQXuWUHZLlk8wXGZWL
+         O4+5ig1RVgQvcabYMhaBRCTGAtiyFB0iu0tjO1JJyna2Qw9kCJOBjRbHc6oysIjwRHn4
+         BZfshBo/M/Gg73I8MGNPnNHX7nTbAGCStJQEvRdIeedH4M7lL10EUJmEtSnwXyVb4/aS
+         mHX2Q8cHEZJ5VTujKFOHC1miPVYJOzhoLuDidg21+OWpGJsb93r5KX2ixCMb/LgZKOCW
+         Koo7G4+wd5hW6DClz5TNsuZgH/Oe1jf7Z7c8aoK7PPeMnaNUUwaR+4xMBmtV4a4dLQR8
+         vx9w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=pv2Kr96fLteAlNp2/l7f5CHe0z5QYiMahXyKqjaVUfk=;
+        b=r8NvzABhPVwatCabQcIwPvY6sL8UUq1VA6GeLSDAsyL9CRJPp/OUE8q3GcV+MnPrE5
+         2YabKatcDy96K2hmfXnBHOe81+N7HeJvjV4VAbu/KhguVrT2DkYcBG8NAhKW04+lcVwc
+         3VizjIZoUY4RCVtJeEcbuo8i6RomT4Abowt0TENCIALQBe0vHKBlgXpunNpxzuKi1SQ+
+         2AXDYLFaC3UGVSIu68VVrvd+8iZzfDvtOto2RUP+z2h7ahDbNe5MdJfTf1CO/jez3y1L
+         yLh311jxv9+hz5t3djPivgWNBrgAn23ypzBM3uGD++dRWOSo2mzTgnJepFgmjlrSAzFV
+         R3NQ==
+X-Gm-Message-State: AOAM533sA4q4Jikt53YsPn+1j3EthX+ahyHZnMlUSTDiBjsEgR9oyloq
+        FSTZg5jUvL48+Gn6mXHSwYoha7J0o37HIZnli1I=
+X-Google-Smtp-Source: ABdhPJztH5NqqOZ7IJWFYwmACBBkSSRaF5wXXPGSClTKgdkZHaRf0Hk+9LLLoB8UKwDj5UVmFy8Fu2ZYTYEstWr/BBs=
+X-Received: by 2002:a1c:e90f:: with SMTP id q15mr4075402wmc.175.1627392767449;
+ Tue, 27 Jul 2021 06:32:47 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+References: <CAA5aLPirA-gNiYRCoQR6-2fP80ESvvXKu7f0bVPT80FFxua6=g@mail.gmail.com>
+ <17a7e7ed-f324-2a94-5f82-18c3850de6a@netfilter.org> <CAA5aLPgQj8wEbawg8u=UqJedTPWCdK5WiizwCpNxMp7Vg=-JgA@mail.gmail.com>
+ <e38ddbe-a47-efb1-e56f-457f5e426b18@netfilter.org>
+In-Reply-To: <e38ddbe-a47-efb1-e56f-457f5e426b18@netfilter.org>
+From:   Akshat Kakkar <akshat.1984@gmail.com>
+Date:   Tue, 27 Jul 2021 19:02:35 +0530
+Message-ID: <CAA5aLPgowRWm7JZm02LCGeOPz4E_dO+8FCCag+8aO4HDeLUQFQ@mail.gmail.com>
+Subject: Re: Nf_nat_h323 module not working with Panasonic VCs
+To:     Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc:     NetFilter <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The range size of consecutive elements were not limited. Thus one could
-define a huge range which may result soft lockup errors due to the long
-execution time. Now the range size is limited to 2^20 entries.
+Hi Jozsef,
 
-Reported-by: Brad Spengler <spender@grsecurity.net>
-Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
----
- include/linux/netfilter/ipset/ip_set.h       |  3 +++
- net/netfilter/ipset/ip_set_hash_ip.c         |  8 +++++++-
- net/netfilter/ipset/ip_set_hash_ipmark.c     | 10 +++++++++-
- net/netfilter/ipset/ip_set_hash_ipport.c     |  3 +++
- net/netfilter/ipset/ip_set_hash_ipportip.c   |  3 +++
- net/netfilter/ipset/ip_set_hash_ipportnet.c  |  3 +++
- net/netfilter/ipset/ip_set_hash_net.c        | 11 ++++++++++-
- net/netfilter/ipset/ip_set_hash_netiface.c   | 10 +++++++++-
- net/netfilter/ipset/ip_set_hash_netnet.c     | 16 +++++++++++++++-
- net/netfilter/ipset/ip_set_hash_netport.c    | 11 ++++++++++-
- net/netfilter/ipset/ip_set_hash_netportnet.c | 16 +++++++++++++++-
- 11 files changed, 87 insertions(+), 7 deletions(-)
+For the VC which is working (i.e. VC2, IP:172.16.1.120) following are
+the generated debug log:
 
-diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfi=
-lter/ipset/ip_set.h
-index 10279c4830ac..ada1296c87d5 100644
---- a/include/linux/netfilter/ipset/ip_set.h
-+++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -196,6 +196,9 @@ struct ip_set_region {
- 	u32 elements;		/* Number of elements vs timeout */
- };
-=20
-+/* Max range where every element is added/deleted in one step */
-+#define IPSET_MAX_RANGE		(1<<20)
-+
- /* The max revision number supported by any set type + 1 */
- #define IPSET_REVISION_MAX	9
-=20
-diff --git a/net/netfilter/ipset/ip_set_hash_ip.c b/net/netfilter/ipset/i=
-p_set_hash_ip.c
-index d1bef23fd4f5..ef7457c68c7b 100644
---- a/net/netfilter/ipset/ip_set_hash_ip.c
-+++ b/net/netfilter/ipset/ip_set_hash_ip.c
-@@ -132,8 +132,11 @@ hash_ip4_uadt(struct ip_set *set, struct nlattr *tb[=
-],
- 		ret =3D ip_set_get_hostipaddr4(tb[IPSET_ATTR_IP_TO], &ip_to);
- 		if (ret)
- 			return ret;
--		if (ip > ip_to)
-+		if (ip > ip_to) {
-+			if (ip_to =3D=3D 0)
-+				return -IPSET_ERR_HASH_ELEM;
- 			swap(ip, ip_to);
-+		}
- 	} else if (tb[IPSET_ATTR_CIDR]) {
- 		u8 cidr =3D nla_get_u8(tb[IPSET_ATTR_CIDR]);
-=20
-@@ -144,6 +147,9 @@ hash_ip4_uadt(struct ip_set *set, struct nlattr *tb[]=
-,
-=20
- 	hosts =3D h->netmask =3D=3D 32 ? 1 : 2 << (32 - h->netmask - 1);
-=20
-+	if (((u64)ip_to - ip + 1)/hosts > IPSET_MAX_RANGE)
-+		return -ERANGE;
-+
- 	if (retried) {
- 		ip =3D ntohl(h->next.ip);
- 		e.ip =3D htonl(ip);
-diff --git a/net/netfilter/ipset/ip_set_hash_ipmark.c b/net/netfilter/ips=
-et/ip_set_hash_ipmark.c
-index 18346d18aa16..153de3457423 100644
---- a/net/netfilter/ipset/ip_set_hash_ipmark.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipmark.c
-@@ -121,6 +121,8 @@ hash_ipmark4_uadt(struct ip_set *set, struct nlattr *=
-tb[],
-=20
- 	e.mark =3D ntohl(nla_get_be32(tb[IPSET_ATTR_MARK]));
- 	e.mark &=3D h->markmask;
-+	if (e.mark =3D=3D 0 && e.ip =3D=3D 0)
-+		return -IPSET_ERR_HASH_ELEM;
-=20
- 	if (adt =3D=3D IPSET_TEST ||
- 	    !(tb[IPSET_ATTR_IP_TO] || tb[IPSET_ATTR_CIDR])) {
-@@ -133,8 +135,11 @@ hash_ipmark4_uadt(struct ip_set *set, struct nlattr =
-*tb[],
- 		ret =3D ip_set_get_hostipaddr4(tb[IPSET_ATTR_IP_TO], &ip_to);
- 		if (ret)
- 			return ret;
--		if (ip > ip_to)
-+		if (ip > ip_to) {
-+			if (e.mark =3D=3D 0 && ip_to =3D=3D 0)
-+				return -IPSET_ERR_HASH_ELEM;
- 			swap(ip, ip_to);
-+		}
- 	} else if (tb[IPSET_ATTR_CIDR]) {
- 		u8 cidr =3D nla_get_u8(tb[IPSET_ATTR_CIDR]);
-=20
-@@ -143,6 +148,9 @@ hash_ipmark4_uadt(struct ip_set *set, struct nlattr *=
-tb[],
- 		ip_set_mask_from_to(ip, ip_to, cidr);
- 	}
-=20
-+	if (((u64)ip_to - ip + 1) > IPSET_MAX_RANGE)
-+		return -ERANGE;
-+
- 	if (retried)
- 		ip =3D ntohl(h->next.ip);
- 	for (; ip <=3D ip_to; ip++) {
-diff --git a/net/netfilter/ipset/ip_set_hash_ipport.c b/net/netfilter/ips=
-et/ip_set_hash_ipport.c
-index e1ca11196515..7303138e46be 100644
---- a/net/netfilter/ipset/ip_set_hash_ipport.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipport.c
-@@ -173,6 +173,9 @@ hash_ipport4_uadt(struct ip_set *set, struct nlattr *=
-tb[],
- 			swap(port, port_to);
- 	}
-=20
-+	if (((u64)ip_to - ip + 1)*(port_to - port + 1) > IPSET_MAX_RANGE)
-+		return -ERANGE;
-+
- 	if (retried)
- 		ip =3D ntohl(h->next.ip);
- 	for (; ip <=3D ip_to; ip++) {
-diff --git a/net/netfilter/ipset/ip_set_hash_ipportip.c b/net/netfilter/i=
-pset/ip_set_hash_ipportip.c
-index ab179e064597..334fb1ad0e86 100644
---- a/net/netfilter/ipset/ip_set_hash_ipportip.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipportip.c
-@@ -180,6 +180,9 @@ hash_ipportip4_uadt(struct ip_set *set, struct nlattr=
- *tb[],
- 			swap(port, port_to);
- 	}
-=20
-+	if (((u64)ip_to - ip + 1)*(port_to - port + 1) > IPSET_MAX_RANGE)
-+		return -ERANGE;
-+
- 	if (retried)
- 		ip =3D ntohl(h->next.ip);
- 	for (; ip <=3D ip_to; ip++) {
-diff --git a/net/netfilter/ipset/ip_set_hash_ipportnet.c b/net/netfilter/=
-ipset/ip_set_hash_ipportnet.c
-index 8f075b44cf64..b293aa1ff258 100644
---- a/net/netfilter/ipset/ip_set_hash_ipportnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipportnet.c
-@@ -246,6 +246,9 @@ hash_ipportnet4_uadt(struct ip_set *set, struct nlatt=
-r *tb[],
- 		ip_set_mask_from_to(ip, ip_to, cidr);
- 	}
-=20
-+	if (((u64)ip_to - ip + 1)*(port_to - port + 1) > IPSET_MAX_RANGE)
-+		return -ERANGE;
-+
- 	port_to =3D port =3D ntohs(e.port);
- 	if (tb[IPSET_ATTR_PORT_TO]) {
- 		port_to =3D ip_set_get_h16(tb[IPSET_ATTR_PORT_TO]);
-diff --git a/net/netfilter/ipset/ip_set_hash_net.c b/net/netfilter/ipset/=
-ip_set_hash_net.c
-index c1a11f041ac6..1422739d9aa2 100644
---- a/net/netfilter/ipset/ip_set_hash_net.c
-+++ b/net/netfilter/ipset/ip_set_hash_net.c
-@@ -140,7 +140,7 @@ hash_net4_uadt(struct ip_set *set, struct nlattr *tb[=
-],
- 	ipset_adtfn adtfn =3D set->variant->adt[adt];
- 	struct hash_net4_elem e =3D { .cidr =3D HOST_MASK };
- 	struct ip_set_ext ext =3D IP_SET_INIT_UEXT(set);
--	u32 ip =3D 0, ip_to =3D 0;
-+	u32 ip =3D 0, ip_to =3D 0, ipn, n =3D 0;
- 	int ret;
-=20
- 	if (tb[IPSET_ATTR_LINENO])
-@@ -188,6 +188,15 @@ hash_net4_uadt(struct ip_set *set, struct nlattr *tb=
-[],
- 		if (ip + UINT_MAX =3D=3D ip_to)
- 			return -IPSET_ERR_HASH_RANGE;
- 	}
-+	ipn =3D ip;
-+	do {
-+		ipn =3D ip_set_range_to_cidr(ipn, ip_to, &e.cidr);
-+		n++;
-+	} while (ipn++ < ip_to);
-+
-+	if (n > IPSET_MAX_RANGE)
-+		return -ERANGE;
-+
- 	if (retried)
- 		ip =3D ntohl(h->next.ip);
- 	do {
-diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/i=
-pset/ip_set_hash_netiface.c
-index ddd51c2e1cb3..9810f5bf63f5 100644
---- a/net/netfilter/ipset/ip_set_hash_netiface.c
-+++ b/net/netfilter/ipset/ip_set_hash_netiface.c
-@@ -202,7 +202,7 @@ hash_netiface4_uadt(struct ip_set *set, struct nlattr=
- *tb[],
- 	ipset_adtfn adtfn =3D set->variant->adt[adt];
- 	struct hash_netiface4_elem e =3D { .cidr =3D HOST_MASK, .elem =3D 1 };
- 	struct ip_set_ext ext =3D IP_SET_INIT_UEXT(set);
--	u32 ip =3D 0, ip_to =3D 0;
-+	u32 ip =3D 0, ip_to =3D 0, ipn, n =3D 0;
- 	int ret;
-=20
- 	if (tb[IPSET_ATTR_LINENO])
-@@ -256,6 +256,14 @@ hash_netiface4_uadt(struct ip_set *set, struct nlatt=
-r *tb[],
- 	} else {
- 		ip_set_mask_from_to(ip, ip_to, e.cidr);
- 	}
-+	ipn =3D ip;
-+	do {
-+		ipn =3D ip_set_range_to_cidr(ipn, ip_to, &e.cidr);
-+		n++;
-+	} while (ipn++ < ip_to);
-+
-+	if (n > IPSET_MAX_RANGE)
-+		return -ERANGE;
-=20
- 	if (retried)
- 		ip =3D ntohl(h->next.ip);
-diff --git a/net/netfilter/ipset/ip_set_hash_netnet.c b/net/netfilter/ips=
-et/ip_set_hash_netnet.c
-index 6532f0505e66..3d09eefe998a 100644
---- a/net/netfilter/ipset/ip_set_hash_netnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_netnet.c
-@@ -168,7 +168,8 @@ hash_netnet4_uadt(struct ip_set *set, struct nlattr *=
-tb[],
- 	struct hash_netnet4_elem e =3D { };
- 	struct ip_set_ext ext =3D IP_SET_INIT_UEXT(set);
- 	u32 ip =3D 0, ip_to =3D 0;
--	u32 ip2 =3D 0, ip2_from =3D 0, ip2_to =3D 0;
-+	u32 ip2 =3D 0, ip2_from =3D 0, ip2_to =3D 0, ipn;
-+	u64 n =3D 0, m =3D 0;
- 	int ret;
-=20
- 	if (tb[IPSET_ATTR_LINENO])
-@@ -244,6 +245,19 @@ hash_netnet4_uadt(struct ip_set *set, struct nlattr =
-*tb[],
- 	} else {
- 		ip_set_mask_from_to(ip2_from, ip2_to, e.cidr[1]);
- 	}
-+	ipn =3D ip;
-+	do {
-+		ipn =3D ip_set_range_to_cidr(ipn, ip_to, &e.cidr[0]);
-+		n++;
-+	} while (ipn++ < ip_to);
-+	ipn =3D ip2_from;
-+	do {
-+		ipn =3D ip_set_range_to_cidr(ipn, ip2_to, &e.cidr[1]);
-+		m++;
-+	} while (ipn++ < ip2_to);
-+
-+	if (n*m > IPSET_MAX_RANGE)
-+		return -ERANGE;
-=20
- 	if (retried) {
- 		ip =3D ntohl(h->next.ip[0]);
-diff --git a/net/netfilter/ipset/ip_set_hash_netport.c b/net/netfilter/ip=
-set/ip_set_hash_netport.c
-index ec1564a1cb5a..09cf72eb37f8 100644
---- a/net/netfilter/ipset/ip_set_hash_netport.c
-+++ b/net/netfilter/ipset/ip_set_hash_netport.c
-@@ -158,7 +158,8 @@ hash_netport4_uadt(struct ip_set *set, struct nlattr =
-*tb[],
- 	ipset_adtfn adtfn =3D set->variant->adt[adt];
- 	struct hash_netport4_elem e =3D { .cidr =3D HOST_MASK - 1 };
- 	struct ip_set_ext ext =3D IP_SET_INIT_UEXT(set);
--	u32 port, port_to, p =3D 0, ip =3D 0, ip_to =3D 0;
-+	u32 port, port_to, p =3D 0, ip =3D 0, ip_to =3D 0, ipn;
-+	u64 n =3D 0;
- 	bool with_ports =3D false;
- 	u8 cidr;
- 	int ret;
-@@ -235,6 +236,14 @@ hash_netport4_uadt(struct ip_set *set, struct nlattr=
- *tb[],
- 	} else {
- 		ip_set_mask_from_to(ip, ip_to, e.cidr + 1);
- 	}
-+	ipn =3D ip;
-+	do {
-+		ipn =3D ip_set_range_to_cidr(ipn, ip_to, &cidr);
-+		n++;
-+	} while (ipn++ < ip_to);
-+
-+	if (n*(port_to - port + 1) > IPSET_MAX_RANGE)
-+		return -ERANGE;
-=20
- 	if (retried) {
- 		ip =3D ntohl(h->next.ip);
-diff --git a/net/netfilter/ipset/ip_set_hash_netportnet.c b/net/netfilter=
-/ipset/ip_set_hash_netportnet.c
-index 0e91d1e82f1c..19bcdb3141f6 100644
---- a/net/netfilter/ipset/ip_set_hash_netportnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_netportnet.c
-@@ -182,7 +182,8 @@ hash_netportnet4_uadt(struct ip_set *set, struct nlat=
-tr *tb[],
- 	struct hash_netportnet4_elem e =3D { };
- 	struct ip_set_ext ext =3D IP_SET_INIT_UEXT(set);
- 	u32 ip =3D 0, ip_to =3D 0, p =3D 0, port, port_to;
--	u32 ip2_from =3D 0, ip2_to =3D 0, ip2;
-+	u32 ip2_from =3D 0, ip2_to =3D 0, ip2, ipn;
-+	u64 n =3D 0, m =3D 0;
- 	bool with_ports =3D false;
- 	int ret;
-=20
-@@ -284,6 +285,19 @@ hash_netportnet4_uadt(struct ip_set *set, struct nla=
-ttr *tb[],
- 	} else {
- 		ip_set_mask_from_to(ip2_from, ip2_to, e.cidr[1]);
- 	}
-+	ipn =3D ip;
-+	do {
-+		ipn =3D ip_set_range_to_cidr(ipn, ip_to, &e.cidr[0]);
-+		n++;
-+	} while (ipn++ < ip_to);
-+	ipn =3D ip2_from;
-+	do {
-+		ipn =3D ip_set_range_to_cidr(ipn, ip2_to, &e.cidr[1]);
-+		m++;
-+	} while (ipn++ < ip2_to);
-+
-+	if (n*m*(port_to - port + 1) > IPSET_MAX_RANGE)
-+		return -ERANGE;
-=20
- 	if (retried) {
- 		ip =3D ntohl(h->next.ip[0]);
---=20
-2.20.1
+[Jul27 17:29] nf_nat_q931: expect H.245 172.16.1.100:0->172.16.1.120:5516
+[  +0.249944] nf_nat_h323: expect RTP 172.16.1.100:0->172.16.1.120:5506
+[  +0.000021] nf_nat_h323: expect RTCP 172.16.1.100:0->172.16.1.120:5507
+[  +0.003265] nf_nat_h323: expect RTP 172.16.1.100:0->172.16.1.120:5508
+[  +0.000011] nf_nat_h323: expect RTCP 172.16.1.100:0->172.16.1.120:5509
+[  +0.007606] nf_nat_h323: expect RTP 172.16.1.100:0->172.16.1.120:5506
+[  +0.000012] nf_nat_h323: expect RTCP 172.16.1.100:0->172.16.1.120:5507
+[  +0.000010] nf_nat_h323: expect RTP 172.16.1.100:0->172.16.1.120:5506
+[  +0.000004] nf_nat_h323: expect RTCP 172.16.1.100:0->172.16.1.120:5507
+[  +0.004337] nf_nat_h323: expect RTP 172.16.1.100:0->172.16.1.120:5508
+[  +0.000010] nf_nat_h323: expect RTCP 172.16.1.100:0->172.16.1.120:5509
+[  +0.000007] nf_nat_h323: expect RTP 172.16.1.100:0->172.16.1.120:5508
+[  +0.000007] nf_nat_h323: expect RTCP 172.16.1.100:0->172.16.1.120:5509
+[  +0.006028] nf_nat_h323: expect RTP 172.16.1.100:0->172.16.1.120:5510
+[  +0.000011] nf_nat_h323: expect RTCP 172.16.1.100:0->172.16.1.120:5511
+[  +0.001171] nf_nat_h323: expect RTP 172.16.1.100:0->172.16.1.120:5510
+[  +0.000008] nf_nat_h323: expect RTCP 172.16.1.100:0->172.16.1.120:5511
+[  +0.000006] nf_nat_h323: expect RTP 172.16.1.100:0->172.16.1.120:5510
+[  +0.000003] nf_nat_h323: expect RTCP 172.16.1.100:0->172.16.1.120:5511
+[  +0.003261] nf_nat_h323: expect RTP 172.16.1.100:0->172.16.1.120:5512
+[  +0.000011] nf_nat_h323: expect RTCP 172.16.1.100:0->172.16.1.120:5513
+[  +0.000006] nf_nat_h323: expect RTP 172.16.1.100:0->172.16.1.120:5512
+[  +0.000003] nf_nat_h323: expect RTCP 172.16.1.100:0->172.16.1.120:5513
+[  +0.007889] nf_nat_h323: expect RTP 172.16.1.100:0->172.16.1.120:5512
+[  +0.000012] nf_nat_h323: expect RTCP 172.16.1.100:0->172.16.1.120:5513
 
+
+However, for the panasonic VC1 i.e. the VC which is having issue,
+there are no debug log generated. absolutely nothing.
+
+On Mon, Jul 26, 2021 at 1:13 PM Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
+>
+> On Mon, 26 Jul 2021, Akshat Kakkar wrote:
+>
+> > MCU is using IP only to dial to VC1 and not hostname.
+> >
+> > I went through packet capture and find everything in line with the
+> > standard. Just that it is sending "CS : Call Proceeding" packet which
+> > is an optional packet but it is part of standard.
+> > I can share pcap file if needed.
+>
+> Could you enable dynamic debugging in the kernel and enable it for the
+> nf_conntrack_h323 module? Then please repeate the testing with the
+> working and not working VCs and send the generated kernel debug log
+> messages.
+>
+> Best regards,
+> Jozsef
+> > On Mon, Jul 26, 2021 at 2:11 AM Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
+> > >
+> > > Hello,
+> > >
+> > > On Sat, 24 Jul 2021, Akshat Kakkar wrote:
+> > >
+> > > > I have 2 vc endpoints VC1 (Make:Panasonic, IP:10.1.1.11),
+> > > > VC2(make:Polycom,IP: 10.1.1.12) and 1 MCU (172.16.1.100).
+> > > >
+> > > > There is a Linux firewall between VCs and MCU.
+> > > >
+> > > > There is one to one nat configured for these 2 VCs (10.1.1.11  <-->
+> > > > 172.16.1.110, 10.1.1.12  <--> 172.16.1.120)
+> > > > There is no natting for MCU IP as it is routable.
+> > > >
+> > > > nf_nat_h323 and nf_conntrack_h323 module is enabled in the firewall.
+> > > >
+> > > > When VC1 and VC2 initiate call to MCU, everything works fine. Video
+> > > > call is successful for both VC1 and VC2. h245 IP address for tcp in
+> > > > h225: CS connect packet is correctly replaced by the natted IP.
+> > > >
+> > > > However, when there is a dial out from MCU to VCs (i.e. MCU initiate
+> > > > call to the natted IP (i.e. 172.16.1.110 and 172.16.1.120 of VCs),
+> > > > natting works fine but h245 IP address for tcp in h225:CS is replaced
+> > > > correctly only for VC2 and not for VC1. For VC1, it is still its
+> > > > actual IP (i.e. 10.1.1.12 and not 172.16.1.120).
+> > > >
+> > > > Because of this, video call is successful only with VC2 and not with
+> > > > VC1, when initiated from MCU. I tried with another panasonic VC
+> > > > hardware, there was no change.
+> > > >
+> > > > Further packet dump analysis showed that for VC1, there are 3 h225
+> > > > packets (setup, call proceeding and alert) before Connect message but
+> > > > for VC2 there are only 2 h225 packets (setup and alert) before connect
+> > > > message.
+> > > >
+> > > > Is there a bug in nf_nat_h323 module or am I missing something?
+> > >
+> > > It can be a bug/incompatibility with the H.323 implementation in the
+> > > Panasonic device. However, first I'd make sure the MCU does not use
+> > > hostname for VC1 instead of its IP address. Hostnames in the calls are not
+> > > supported.
+> > >
+> > > Best regards,
+> > > Jozsef
+> > > -
+> > > E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+> > > PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
+> > > Address : Wigner Research Centre for Physics
+> > >           H-1525 Budapest 114, POB. 49, Hungary
+> >
+>
+> -
+> E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+> PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
+> Address : Wigner Research Centre for Physics
+>           H-1525 Budapest 114, POB. 49, Hungary
