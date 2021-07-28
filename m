@@ -2,41 +2,54 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E976BC4338F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Jul 2021 23:02:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDE7EC4338F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Jul 2021 01:43:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CC2C160EB2
-	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Jul 2021 23:02:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B5DFD60F9C
+	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Jul 2021 01:43:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232556AbhG0XCg (ORCPT
+        id S232926AbhG1Bny (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 27 Jul 2021 19:02:36 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:37010 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232198AbhG0XCg (ORCPT
+        Tue, 27 Jul 2021 21:43:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34038 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232786AbhG1Bnx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 27 Jul 2021 19:02:36 -0400
-Received: from netfilter.org (bl11-146-165.dsl.telepac.pt [85.244.146.165])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 112606429D;
-        Wed, 28 Jul 2021 01:02:03 +0200 (CEST)
-Date:   Wed, 28 Jul 2021 01:02:30 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
+        Tue, 27 Jul 2021 21:43:53 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C25A3C061757;
+        Tue, 27 Jul 2021 18:43:52 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1m8Ybr-0004uE-19; Wed, 28 Jul 2021 03:43:47 +0200
+Date:   Wed, 28 Jul 2021 03:43:47 +0200
+From:   Phil Sutter <phil@nwl.cc>
 To:     Alex Forster <aforster@cloudflare.com>
-Cc:     Kyle Bowman <kbowman@cloudflare.com>,
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         kernel-team <kernel-team@cloudflare.com>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Network Development <netdev@vger.kernel.org>,
+        Kyle Bowman <kbowman@cloudflare.com>,
         linux-kernel@vger.kernel.org,
-        Network Development <netdev@vger.kernel.org>
-Subject: Re: [PATCH] netfilter: xt_NFLOG: allow 128 character log prefixes
-Message-ID: <20210727230230.GA30104@salvia>
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
+        Jakub Kicinski <kuba@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>
+Subject: Re: [netfilter-core] [PATCH] netfilter: xt_NFLOG: allow 128
+ character log prefixes
+Message-ID: <20210728014347.GM3673@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Alex Forster <aforster@cloudflare.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        kernel-team <kernel-team@cloudflare.com>,
+        Network Development <netdev@vger.kernel.org>,
+        Kyle Bowman <kbowman@cloudflare.com>, linux-kernel@vger.kernel.org,
+        Jozsef Kadlecsik <kadlec@netfilter.org>, coreteam@netfilter.org,
+        netfilter-devel@vger.kernel.org, Jakub Kicinski <kuba@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>
 References: <20210727190001.914-1-kbowman@cloudflare.com>
  <20210727195459.GA15181@salvia>
  <CAKxSbF0tjY7EV=OOyfND8CxSmusfghvURQYnBxMz=DoNtGrfSg@mail.gmail.com>
@@ -47,15 +60,17 @@ References: <20210727190001.914-1-kbowman@cloudflare.com>
  <20210727215240.GA25043@salvia>
  <CAKxSbF1cxKOLTFNZG40HLN-gAYnYM+8dXH_04vQ8+v3KXdAq8Q@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <CAKxSbF1cxKOLTFNZG40HLN-gAYnYM+8dXH_04vQ8+v3KXdAq8Q@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Sender:  <n0-1@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jul 27, 2021 at 05:45:09PM -0500, Alex Forster wrote:
+Hi,
+
+On Tue, Jul 27, 2021 at 05:45:09PM -0500, Alex Forster via netfilter-core wrote:
 > > Yes, you can update iptables-nft to use nft_log instead of xt_LOG,
 > > that requires no kernel upgrades and it will work with older kernels.
 > 
@@ -65,16 +80,27 @@ On Tue, Jul 27, 2021 at 05:45:09PM -0500, Alex Forster wrote:
 > following rule will use xt_bpf to match a packet and then nft_log to
 > log it, rather than xt_log as it does today?
 
-You could actually use *any* of the existing extensions to match a
-packet, the matching side is completely irrelevant to this picture.
+iptables-nft is free to use either xtables extensions or native nftables
+expressions and it may mix them within the same rule. Internally, this
+is all nftables but calling xtables extensions via a compat expression.
 
-As I said, userspace iptables-nft can be updated to use nft_log
-instead of xt_LOG.
+You might want to check iptables commit ccf154d7420c0 ("xtables: Don't
+use native nftables comments") for reference, it does the opposite of
+what you want to do.
 
 >     iptables-nft -A test-chain -d 11.22.33.44/32 -m bpf --bytecode
 > "1,6 0 0 65536" -j NFLOG --nflog-prefix
 > "0123456789012345678901234567890123456789012345678901234567890123456789"
-> 
+
+Keep in mind though, you may end with rulesets an older iptables(-nft)
+will reject. I've seen people running into such compat issues when using
+containers for things they shouldn't, but that's a different story.
+
 > We had some unexplained performance loss when we were evaluating
 > switching to iptables-nft, but if this sort of mixing is possible then
 > it is certainly worth reevaluating.
+
+There were some significant performance improvements in the near past.
+Repeating the check might yield better results in this aspect, too.
+
+Cheers, Phil
