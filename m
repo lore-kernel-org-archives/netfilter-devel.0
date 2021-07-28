@@ -2,96 +2,165 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,INCLUDES_PULL_REQUEST,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14FC0C4338F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Jul 2021 15:02:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29F75C4338F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Jul 2021 15:56:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F03DA60F9B
-	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Jul 2021 15:02:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1365D61019
+	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Jul 2021 15:56:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236916AbhG1PCH (ORCPT
+        id S237265AbhG1P45 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 28 Jul 2021 11:02:07 -0400
-Received: from smtp-out.kfki.hu ([148.6.0.48]:49599 "EHLO smtp-out.kfki.hu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237046AbhG1PB3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 28 Jul 2021 11:01:29 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 13981CC00F8;
-        Wed, 28 Jul 2021 17:01:17 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        blackhole.kfki.hu; h=mime-version:x-mailer:message-id:date:date
-        :from:from:received:received:received; s=20151130; t=1627484475;
-         x=1629298876; bh=QdOCoNKAne96engqwdFLIbEzItfWIzA0/zcOZHTHEKo=; b=
-        OVl+07UizhFaPDpPecZKy+GHj3kA0x4X5UKpB3zoiXyNvjDAXqtXNHOGsfO3eH6N
-        cgh+06Jnp+hBkSJrt679+9tMJ6nCTVC3YPIcLv+pYoRAY1VKgA17ogAB7b13lunC
-        Yc14sVxh9oK6FQhw6q18ArvCucccL2jbFC5AdY01ONE=
-X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
-        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Wed, 28 Jul 2021 17:01:15 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 214D5CC00F3;
-        Wed, 28 Jul 2021 17:01:15 +0200 (CEST)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id 169A13412EC; Wed, 28 Jul 2021 17:01:15 +0200 (CEST)
-From:   Jozsef Kadlecsik <kadlec@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 0/1] ipset patch for the nf tree v2
-Date:   Wed, 28 Jul 2021 17:01:14 +0200
-Message-Id: <20210728150115.5107-1-kadlec@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+        Wed, 28 Jul 2021 11:56:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59340 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S237142AbhG1P44 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 28 Jul 2021 11:56:56 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06A5EC061757
+        for <netfilter-devel@vger.kernel.org>; Wed, 28 Jul 2021 08:56:54 -0700 (PDT)
+Received: from localhost ([::1]:38202 helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1m8lvQ-0004SS-HJ; Wed, 28 Jul 2021 17:56:52 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH] doc: ebtables-nft.8: Adjust for missing atomic-options
+Date:   Wed, 28 Jul 2021 17:56:43 +0200
+Message-Id: <20210728155643.31855-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.32.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
+Drop any reference to them (and the environment variable) but list them
+in BUGS section hinting at ebtables-save and -restore tools.
 
-Please apply the next patch to the nf tree. Brad Spengler reported that
-huge range of consecutive elements could result soft lockup errors due
-to the long execution time. The patch limits and enforces the maximal siz=
-e
-of such ranges. Previous version did not take into account that 64bit
-division isn't allowed on 32bit systems.
+Fixes: 1939cbc25e6f5 ("doc: Adjust ebtables man page")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ iptables/ebtables-nft.8 | 64 ++++++-----------------------------------
+ 1 file changed, 8 insertions(+), 56 deletions(-)
 
-Best regards,
-Jozsef
+diff --git a/iptables/ebtables-nft.8 b/iptables/ebtables-nft.8
+index 1fa5ad9388cc0..08e9766f2cc74 100644
+--- a/iptables/ebtables-nft.8
++++ b/iptables/ebtables-nft.8
+@@ -44,12 +44,6 @@ ebtables \- Ethernet bridge frame table administration (nft-based)
+ .br
+ .BR "ebtables " [ -t " table ] " --init-table
+ .br
+-.BR "ebtables " [ -t " table ] [" --atomic-file " file] " --atomic-commit
+-.br
+-.BR "ebtables " [ -t " table ] [" --atomic-file " file] " --atomic-init
+-.br
+-.BR "ebtables " [ -t " table ] [" --atomic-file " file] " --atomic-save
+-.br
+ 
+ .SH DESCRIPTION
+ .B ebtables
+@@ -149,11 +143,9 @@ a table, the commands apply to the default filter table.
+ Only one command may be used on the command line at a time, except when
+ the commands
+ .BR -L " and " -Z
+-are combined, the commands
++are combined or the commands
+ .BR -N " and " -P
+-are combined, or when
+-.B --atomic-file
+-is used.
++are combined.
+ .TP
+ .B "-A, --append"
+ Append a rule to the end of the selected chain.
+@@ -313,39 +305,6 @@ of the ebtables kernel table.
+ .TP
+ .B "--init-table"
+ Replace the current table data by the initial table data.
+-.TP
+-.B "--atomic-init"
+-Copy the kernel's initial data of the table to the specified
+-file. This can be used as the first action, after which rules are added
+-to the file. The file can be specified using the
+-.B --atomic-file
+-command or through the
+-.IR EBTABLES_ATOMIC_FILE " environment variable."
+-.TP
+-.B "--atomic-save"
+-Copy the kernel's current data of the table to the specified
+-file. This can be used as the first action, after which rules are added
+-to the file. The file can be specified using the
+-.B --atomic-file
+-command or through the
+-.IR EBTABLES_ATOMIC_FILE " environment variable."
+-.TP
+-.B "--atomic-commit"
+-Replace the kernel table data with the data contained in the specified
+-file. This is a useful command that allows you to load all your rules of a
+-certain table into the kernel at once, saving the kernel a lot of precious
+-time and allowing atomic updates of the tables. The file which contains
+-the table data is constructed by using either the
+-.B "--atomic-init"
+-or the
+-.B "--atomic-save"
+-command to generate a starting file. After that, using the
+-.B "--atomic-file"
+-command when constructing rules or setting the
+-.IR EBTABLES_ATOMIC_FILE " environment variable"
+-allows you to extend the file and build the complete table before
+-committing it to the kernel. This command can be very useful in boot scripts
+-to populate the ebtables tables in a fast way.
+ .SS MISCELLANOUS COMMANDS
+ .TP
+ .B "-V, --version"
+@@ -371,16 +330,6 @@ a target extension (see
+ .BR "TARGET EXTENSIONS" ")"
+ or a user-defined chain name.
+ .TP
+-.B --atomic-file "\fIfile\fP"
+-Let the command operate on the specified
+-.IR file .
+-The data of the table to
+-operate on will be extracted from the file and the result of the operation
+-will be saved back into the file. If specified, this option should come
+-before the command specification. An alternative that should be preferred,
+-is setting the
+-.IR EBTABLES_ATOMIC_FILE " environment variable."
+-.TP
+ .B -M, --modprobe "\fIprogram\fP"
+ When talking to the kernel, use this
+ .I program
+@@ -1100,8 +1049,6 @@ arp message and the hardware address length in the arp header is 6 bytes.
+ .br
+ .SH FILES
+ .I /etc/ethertypes
+-.SH ENVIRONMENT VARIABLES
+-.I EBTABLES_ATOMIC_FILE
+ .SH MAILINGLISTS
+ .BR "" "See " http://netfilter.org/mailinglists.html
+ .SH BUGS
+@@ -1109,7 +1056,12 @@ The version of ebtables this man page ships with does not support the
+ .B broute
+ table. Also there is no support for
+ .B string
+-match. And finally, this list is probably not complete.
++match. Further, support for atomic-options
++.RB ( --atomic-file ", " --atomic-init ", " --atomic-save ", " --atomic-commit )
++has not been implemented, although
++.BR ebtables-save " and " ebtables-restore
++might replace them entirely given the inherent atomicity of nftables.
++Finally, this list is probably not complete.
+ .SH SEE ALSO
+ .BR xtables-nft "(8), " iptables "(8), " ip (8)
+ .PP
+-- 
+2.32.0
 
-The following changes since commit 832df96d5f957d42fd9eb9660519a0c51fe853=
-8e:
-
-  Merge branch 'sctp-pmtu-probe' (2021-07-25 23:06:21 +0100)
-
-are available in the Git repository at:
-
-  git://blackhole.kfki.hu/nf eeae0a4c9f8992
-
-for you to fetch changes up to eeae0a4c9f899291f6ec461efdc0f2f75791ea0b:
-
-  netfilter: ipset: Limit the maximal range of consecutive elements to ad=
-d/delete (2021-07-28 16:42:13 +0200)
-
-----------------------------------------------------------------
-Jozsef Kadlecsik (1):
-      netfilter: ipset: Limit the maximal range of consecutive elements t=
-o add/delete
-
- include/linux/netfilter/ipset/ip_set.h       |  3 +++
- net/netfilter/ipset/ip_set_hash_ip.c         |  9 ++++++++-
- net/netfilter/ipset/ip_set_hash_ipmark.c     | 10 +++++++++-
- net/netfilter/ipset/ip_set_hash_ipport.c     |  3 +++
- net/netfilter/ipset/ip_set_hash_ipportip.c   |  3 +++
- net/netfilter/ipset/ip_set_hash_ipportnet.c  |  3 +++
- net/netfilter/ipset/ip_set_hash_net.c        | 11 ++++++++++-
- net/netfilter/ipset/ip_set_hash_netiface.c   | 10 +++++++++-
- net/netfilter/ipset/ip_set_hash_netnet.c     | 16 +++++++++++++++-
- net/netfilter/ipset/ip_set_hash_netport.c    | 11 ++++++++++-
- net/netfilter/ipset/ip_set_hash_netportnet.c | 16 +++++++++++++++-
- 11 files changed, 88 insertions(+), 7 deletions(-)
