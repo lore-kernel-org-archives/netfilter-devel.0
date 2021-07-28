@@ -2,165 +2,116 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29F75C4338F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Jul 2021 15:56:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58C74C4320A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Jul 2021 16:19:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1365D61019
-	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Jul 2021 15:56:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4157F60F93
+	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Jul 2021 16:19:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237265AbhG1P45 (ORCPT
+        id S229567AbhG1QTJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 28 Jul 2021 11:56:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59340 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237142AbhG1P44 (ORCPT
+        Wed, 28 Jul 2021 12:19:09 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:39104 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229542AbhG1QS4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 28 Jul 2021 11:56:56 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06A5EC061757
-        for <netfilter-devel@vger.kernel.org>; Wed, 28 Jul 2021 08:56:54 -0700 (PDT)
-Received: from localhost ([::1]:38202 helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1m8lvQ-0004SS-HJ; Wed, 28 Jul 2021 17:56:52 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH] doc: ebtables-nft.8: Adjust for missing atomic-options
-Date:   Wed, 28 Jul 2021 17:56:43 +0200
-Message-Id: <20210728155643.31855-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.32.0
+        Wed, 28 Jul 2021 12:18:56 -0400
+Received: from netfilter.org (bl11-146-165.dsl.telepac.pt [85.244.146.165])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 8C071642C6;
+        Wed, 28 Jul 2021 18:18:23 +0200 (CEST)
+Date:   Wed, 28 Jul 2021 18:18:49 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Yajun Deng <yajun.deng@linux.dev>
+Cc:     kadlec@netfilter.org, fw@strlen.de, roopa@nvidia.com,
+        nikolay@nvidia.com, davem@davemloft.net, kuba@kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] netfilter: nf_conntrack_bridge: Fix not free when error
+Message-ID: <20210728161849.GA10433@salvia>
+References: <20210726035702.11964-1-yajun.deng@linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="y0ulUmNC+osPPQO6"
+Content-Disposition: inline
+In-Reply-To: <20210726035702.11964-1-yajun.deng@linux.dev>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Drop any reference to them (and the environment variable) but list them
-in BUGS section hinting at ebtables-save and -restore tools.
 
-Fixes: 1939cbc25e6f5 ("doc: Adjust ebtables man page")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- iptables/ebtables-nft.8 | 64 ++++++-----------------------------------
- 1 file changed, 8 insertions(+), 56 deletions(-)
+--y0ulUmNC+osPPQO6
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-diff --git a/iptables/ebtables-nft.8 b/iptables/ebtables-nft.8
-index 1fa5ad9388cc0..08e9766f2cc74 100644
---- a/iptables/ebtables-nft.8
-+++ b/iptables/ebtables-nft.8
-@@ -44,12 +44,6 @@ ebtables \- Ethernet bridge frame table administration (nft-based)
- .br
- .BR "ebtables " [ -t " table ] " --init-table
- .br
--.BR "ebtables " [ -t " table ] [" --atomic-file " file] " --atomic-commit
--.br
--.BR "ebtables " [ -t " table ] [" --atomic-file " file] " --atomic-init
--.br
--.BR "ebtables " [ -t " table ] [" --atomic-file " file] " --atomic-save
--.br
+On Mon, Jul 26, 2021 at 11:57:02AM +0800, Yajun Deng wrote:
+> It should be added kfree_skb_list() when err is not equal to zero
+> in nf_br_ip_fragment().
+> 
+> Fixes: 3c171f496ef5 ("netfilter: bridge: add connection tracking system")
+> Signed-off-by: Yajun Deng <yajun.deng@linux.dev>
+> ---
+>  net/bridge/netfilter/nf_conntrack_bridge.c | 12 ++++++++----
+>  1 file changed, 8 insertions(+), 4 deletions(-)
+> 
+> diff --git a/net/bridge/netfilter/nf_conntrack_bridge.c b/net/bridge/netfilter/nf_conntrack_bridge.c
+> index 8d033a75a766..059f53903eda 100644
+> --- a/net/bridge/netfilter/nf_conntrack_bridge.c
+> +++ b/net/bridge/netfilter/nf_conntrack_bridge.c
+> @@ -83,12 +83,16 @@ static int nf_br_ip_fragment(struct net *net, struct sock *sk,
+>  
+>  			skb->tstamp = tstamp;
+>  			err = output(net, sk, data, skb);
+> -			if (err || !iter.frag)
+> -				break;
+> -
+> +			if (err) {
+> +				kfree_skb_list(iter.frag);
+> +				return err;
+> +			}
+> +
+> +			if (!iter.frag)
+> +				return 0;
+> +
+>  			skb = ip_fraglist_next(&iter);
+>  		}
+> -		return err;
+
+Why removing this line above? It enters slow_path: on success.
+
+This patch instead will keep this aligned with IPv6.
+
+>  	}
+>  slow_path:
+>  	/* This is a linearized skbuff, the original geometry is lost for us.
+> -- 
+> 2.32.0
+> 
+
+--y0ulUmNC+osPPQO6
+Content-Type: text/x-diff; charset=utf-8
+Content-Disposition: attachment; filename="x.patch"
+
+diff --git a/net/bridge/netfilter/nf_conntrack_bridge.c b/net/bridge/netfilter/nf_conntrack_bridge.c
+index 8d033a75a766..3cf5457919c6 100644
+--- a/net/bridge/netfilter/nf_conntrack_bridge.c
++++ b/net/bridge/netfilter/nf_conntrack_bridge.c
+@@ -88,6 +88,11 @@ static int nf_br_ip_fragment(struct net *net, struct sock *sk,
  
- .SH DESCRIPTION
- .B ebtables
-@@ -149,11 +143,9 @@ a table, the commands apply to the default filter table.
- Only one command may be used on the command line at a time, except when
- the commands
- .BR -L " and " -Z
--are combined, the commands
-+are combined or the commands
- .BR -N " and " -P
--are combined, or when
--.B --atomic-file
--is used.
-+are combined.
- .TP
- .B "-A, --append"
- Append a rule to the end of the selected chain.
-@@ -313,39 +305,6 @@ of the ebtables kernel table.
- .TP
- .B "--init-table"
- Replace the current table data by the initial table data.
--.TP
--.B "--atomic-init"
--Copy the kernel's initial data of the table to the specified
--file. This can be used as the first action, after which rules are added
--to the file. The file can be specified using the
--.B --atomic-file
--command or through the
--.IR EBTABLES_ATOMIC_FILE " environment variable."
--.TP
--.B "--atomic-save"
--Copy the kernel's current data of the table to the specified
--file. This can be used as the first action, after which rules are added
--to the file. The file can be specified using the
--.B --atomic-file
--command or through the
--.IR EBTABLES_ATOMIC_FILE " environment variable."
--.TP
--.B "--atomic-commit"
--Replace the kernel table data with the data contained in the specified
--file. This is a useful command that allows you to load all your rules of a
--certain table into the kernel at once, saving the kernel a lot of precious
--time and allowing atomic updates of the tables. The file which contains
--the table data is constructed by using either the
--.B "--atomic-init"
--or the
--.B "--atomic-save"
--command to generate a starting file. After that, using the
--.B "--atomic-file"
--command when constructing rules or setting the
--.IR EBTABLES_ATOMIC_FILE " environment variable"
--allows you to extend the file and build the complete table before
--committing it to the kernel. This command can be very useful in boot scripts
--to populate the ebtables tables in a fast way.
- .SS MISCELLANOUS COMMANDS
- .TP
- .B "-V, --version"
-@@ -371,16 +330,6 @@ a target extension (see
- .BR "TARGET EXTENSIONS" ")"
- or a user-defined chain name.
- .TP
--.B --atomic-file "\fIfile\fP"
--Let the command operate on the specified
--.IR file .
--The data of the table to
--operate on will be extracted from the file and the result of the operation
--will be saved back into the file. If specified, this option should come
--before the command specification. An alternative that should be preferred,
--is setting the
--.IR EBTABLES_ATOMIC_FILE " environment variable."
--.TP
- .B -M, --modprobe "\fIprogram\fP"
- When talking to the kernel, use this
- .I program
-@@ -1100,8 +1049,6 @@ arp message and the hardware address length in the arp header is 6 bytes.
- .br
- .SH FILES
- .I /etc/ethertypes
--.SH ENVIRONMENT VARIABLES
--.I EBTABLES_ATOMIC_FILE
- .SH MAILINGLISTS
- .BR "" "See " http://netfilter.org/mailinglists.html
- .SH BUGS
-@@ -1109,7 +1056,12 @@ The version of ebtables this man page ships with does not support the
- .B broute
- table. Also there is no support for
- .B string
--match. And finally, this list is probably not complete.
-+match. Further, support for atomic-options
-+.RB ( --atomic-file ", " --atomic-init ", " --atomic-save ", " --atomic-commit )
-+has not been implemented, although
-+.BR ebtables-save " and " ebtables-restore
-+might replace them entirely given the inherent atomicity of nftables.
-+Finally, this list is probably not complete.
- .SH SEE ALSO
- .BR xtables-nft "(8), " iptables "(8), " ip (8)
- .PP
--- 
-2.32.0
+ 			skb = ip_fraglist_next(&iter);
+ 		}
++
++		if (!err)
++			return 0;
++
++		kfree_skb_list(iter.frag_list);
+ 		return err;
+ 	}
+ slow_path:
 
+--y0ulUmNC+osPPQO6--
