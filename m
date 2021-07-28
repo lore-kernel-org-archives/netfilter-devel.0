@@ -2,131 +2,298 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24ECBC4320A
-	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Jul 2021 09:06:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D472C4338F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Jul 2021 10:15:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0166A60F9D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Jul 2021 09:06:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3F25660F9D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Jul 2021 10:15:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231451AbhG1JGq convert rfc822-to-8bit (ORCPT
+        id S232113AbhG1KPs (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 28 Jul 2021 05:06:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48766 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230520AbhG1JGq (ORCPT
+        Wed, 28 Jul 2021 06:15:48 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:38268 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232098AbhG1KPs (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 28 Jul 2021 05:06:46 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C9F7C061757;
-        Wed, 28 Jul 2021 02:06:45 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1m8fWN-00060Q-S5; Wed, 28 Jul 2021 11:06:35 +0200
-Date:   Wed, 28 Jul 2021 11:06:35 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
-Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
-        davem@davemloft.net, kuba@kernel.org, shuah@kernel.org,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        linux-kselftest@vger.kernel.org,
-        Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>,
-        Scott Parlane <scott.parlane@alliedtelesis.co.nz>,
-        Blair Steven <blair.steven@alliedtelesis.co.nz>
-Subject: Re: [PATCH] net: netfilter: Fix port selection of FTP for
- NF_NAT_RANGE_PROTO_SPECIFIED
-Message-ID: <20210728090635.GB15121@breakpoint.cc>
-References: <20210728032134.21983-1-Cole.Dishington@alliedtelesis.co.nz>
+        Wed, 28 Jul 2021 06:15:48 -0400
+Received: from salvia.lan (bl11-146-165.dsl.telepac.pt [85.244.146.165])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 1B4E0642BE
+        for <netfilter-devel@vger.kernel.org>; Wed, 28 Jul 2021 12:15:16 +0200 (CEST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] tests: py: check more flag match transformations to compact syntax
+Date:   Wed, 28 Jul 2021 12:15:37 +0200
+Message-Id: <20210728101540.2020-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: 8BIT
-In-Reply-To: <20210728032134.21983-1-Cole.Dishington@alliedtelesis.co.nz>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Cole Dishington <Cole.Dishington@alliedtelesis.co.nz> wrote:
-> FTP port selection ignores specified port ranges (with iptables
-> masquerade --to-ports) when creating an expectation, based on
-> FTP commands PORT or PASV, for the data connection.
-> 
-> Co-developed-by: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
-> Signed-off-by: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
-> Co-developed-by: Scott Parlane <scott.parlane@alliedtelesis.co.nz>
-> Signed-off-by: Scott Parlane <scott.parlane@alliedtelesis.co.nz>
-> Co-developed-by: Blair Steven <blair.steven@alliedtelesis.co.nz>
-> Signed-off-by: Blair Steven <blair.steven@alliedtelesis.co.nz>
-> Signed-off-by: Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
-> ---
-> 
-> Notes:
->     Currently with iptables -t nat -j MASQUERADE -p tcp --to-ports 10000-10005,
->     creating a passive ftp connection from a client will result in the control
->     connection being within the specified port range but the data connection being
->     outside of the range. This patch fixes this behaviour to have both connections
->     be in the specified range.
-> 
->  include/net/netfilter/nf_conntrack.h |  3 +++
->  net/netfilter/nf_nat_core.c          | 10 ++++++----
->  net/netfilter/nf_nat_ftp.c           | 26 ++++++++++++--------------
->  net/netfilter/nf_nat_helper.c        | 12 ++++++++----
->  4 files changed, 29 insertions(+), 22 deletions(-)
-> 
-> diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-> index cc663c68ddc4..b98d5d04c7ab 100644
-> --- a/include/net/netfilter/nf_conntrack.h
-> +++ b/include/net/netfilter/nf_conntrack.h
-> @@ -24,6 +24,8 @@
->  
->  #include <net/netfilter/nf_conntrack_tuple.h>
->  
-> +#include <uapi/linux/netfilter/nf_nat.h>
-> +
->  struct nf_ct_udp {
->  	unsigned long	stream_ts;
->  };
-> @@ -99,6 +101,7 @@ struct nf_conn {
->  
->  #if IS_ENABLED(CONFIG_NF_NAT)
->  	struct hlist_node	nat_bysource;
-> +	struct nf_nat_range2 range;
->  #endif
+Add a few more tests to extend coverage.
 
-Thats almost a 20% size increase of this structure.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ tests/py/inet/tcp.t         |   6 ++
+ tests/py/inet/tcp.t.json    | 139 ++++++++++++++++++++++++++++++++++++
+ tests/py/inet/tcp.t.payload |  48 +++++++++++++
+ 3 files changed, 193 insertions(+)
 
-Could you try to rework it based on this?
-diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_nat.h
---- a/include/net/netfilter/nf_nat.h
-+++ b/include/net/netfilter/nf_nat.h
-@@ -27,12 +27,18 @@ union nf_conntrack_nat_help {
- #endif
- };
+diff --git a/tests/py/inet/tcp.t b/tests/py/inet/tcp.t
+index dece9eaa89f8..afa70d85d6b4 100644
+--- a/tests/py/inet/tcp.t
++++ b/tests/py/inet/tcp.t
+@@ -70,11 +70,17 @@ tcp flags == syn;ok
+ tcp flags fin,syn / fin,syn;ok
+ tcp flags != syn / fin,syn;ok
+ tcp flags & syn != 0;ok;tcp flags syn
++tcp flags & syn == 0;ok;tcp flags ! syn
++tcp flags & (syn | ack) != 0;ok;tcp flags syn,ack
++tcp flags & (syn | ack) == 0;ok;tcp flags ! syn,ack
+ # it should be possible to transform this to: tcp flags syn
+ tcp flags & syn == syn;ok
+ tcp flags & (fin | syn | rst | ack) syn;ok;tcp flags syn / fin,syn,rst,ack
+ tcp flags & (fin | syn | rst | ack) == syn;ok;tcp flags syn / fin,syn,rst,ack
+ tcp flags & (fin | syn | rst | ack) != syn;ok;tcp flags != syn / fin,syn,rst,ack
++tcp flags & (fin | syn | rst | ack) == (syn | ack);ok;tcp flags syn,ack / fin,syn,rst,ack
++tcp flags & (fin | syn | rst | ack) != (syn | ack);ok;tcp flags != syn,ack / fin,syn,rst,ack
++tcp flags & (syn | ack) == (syn | ack);ok;tcp flags syn,ack / syn,ack
+ tcp flags & (fin | syn | rst | psh | ack | urg | ecn | cwr) == fin | syn | rst | psh | ack | urg | ecn | cwr;ok;tcp flags == 0xff
+ tcp flags { syn, syn | ack };ok
+ tcp flags & (fin | syn | rst | psh | ack | urg) == { fin, ack, psh | ack, fin | psh | ack };ok
+diff --git a/tests/py/inet/tcp.t.json b/tests/py/inet/tcp.t.json
+index 23244eaa2339..615bc68f881f 100644
+--- a/tests/py/inet/tcp.t.json
++++ b/tests/py/inet/tcp.t.json
+@@ -1521,6 +1521,22 @@
+     }
+ ]
  
-+struct nf_conn_nat_range_info {
-+	union nf_conntrack_man_proto	min_proto;
-+	union nf_conntrack_man_proto	max_proto;
-+};
++# tcp flags & syn == 0
++[
++    {
++        "match": {
++            "left": {
++                "payload": {
++                    "field": "flags",
++                    "protocol": "tcp"
++                }
++            },
++            "op": "!",
++            "right": "syn"
++        }
++    }
++]
 +
- /* The structure embedded in the conntrack structure. */
- struct nf_conn_nat {
- 	union nf_conntrack_nat_help help;
- #if IS_ENABLED(CONFIG_NF_NAT_MASQUERADE)
- 	int masq_index;
- #endif
-+	struct nf_conn_nat_range_info range_info;
- };
+ # tcp flags & syn != 0
+ [
+     {
+@@ -1537,6 +1553,44 @@
+     }
+ ]
  
- /* Set up the info structure to map into this range. */
-
-... and then store the range min/max proto iff nf_nat_setup_info had
-NF_NAT_RANGE_PROTO_SPECIFIED flag set.
-
-I don't think there is a need to keep the information in nf_conn.
++# tcp flags & (syn | ack) != 0
++[
++    {
++        "match": {
++            "left": {
++                "payload": {
++                    "field": "flags",
++                    "protocol": "tcp"
++                }
++            },
++            "op": "in",
++            "right": [
++                "syn",
++                "ack"
++            ]
++        }
++    }
++]
++
++# tcp flags & (syn | ack) == 0
++[
++    {
++        "match": {
++            "left": {
++                "payload": {
++                    "field": "flags",
++                    "protocol": "tcp"
++                }
++            },
++            "op": "!",
++            "right": [
++                "syn",
++                "ack"
++            ]
++        }
++    }
++]
++
+ # tcp flags & syn == syn
+ [
+     {
+@@ -1637,3 +1691,88 @@
+     }
+ ]
+ 
++# tcp flags & (fin | syn | rst | ack) == (syn | ack)
++[
++    {
++        "match": {
++            "left": {
++                "&": [
++                    {
++                        "payload": {
++                            "field": "flags",
++                            "protocol": "tcp"
++                        }
++                    },
++                    [
++                        "fin",
++                        "syn",
++                        "rst",
++                        "ack"
++                    ]
++                ]
++            },
++            "op": "==",
++            "right": [
++                "syn",
++                "ack"
++            ]
++        }
++    }
++]
++
++# tcp flags & (fin | syn | rst | ack) != (syn | ack)
++[
++    {
++        "match": {
++            "left": {
++                "&": [
++                    {
++                        "payload": {
++                            "field": "flags",
++                            "protocol": "tcp"
++                        }
++                    },
++                    [
++                        "fin",
++                        "syn",
++                        "rst",
++                        "ack"
++                    ]
++                ]
++            },
++            "op": "!=",
++            "right": [
++                "syn",
++                "ack"
++            ]
++        }
++    }
++]
++
++# tcp flags & (syn | ack) == (syn | ack)
++[
++    {
++        "match": {
++            "left": {
++                "&": [
++                    {
++                        "payload": {
++                            "field": "flags",
++                            "protocol": "tcp"
++                        }
++                    },
++                    [
++                        "syn",
++                        "ack"
++                    ]
++                ]
++            },
++            "op": "==",
++            "right": [
++                "syn",
++                "ack"
++            ]
++        }
++    }
++]
++
+diff --git a/tests/py/inet/tcp.t.payload b/tests/py/inet/tcp.t.payload
+index 4e795aa931ac..8aeeaee39aea 100644
+--- a/tests/py/inet/tcp.t.payload
++++ b/tests/py/inet/tcp.t.payload
+@@ -378,6 +378,30 @@ inet test-inet input
+   [ bitwise reg 1 = ( reg 1 & 0x00000002 ) ^ 0x00000000 ]
+   [ cmp neq reg 1 0x00000000 ]
+ 
++# tcp flags & syn == 0
++inet test-inet input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ payload load 1b @ transport header + 13 => reg 1 ]
++  [ bitwise reg 1 = ( reg 1 & 0x00000002 ) ^ 0x00000000 ]
++  [ cmp eq reg 1 0x00000000 ]
++
++# tcp flags & (syn | ack) != 0
++inet test-inet input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ payload load 1b @ transport header + 13 => reg 1 ]
++  [ bitwise reg 1 = ( reg 1 & 0x00000012 ) ^ 0x00000000 ]
++  [ cmp neq reg 1 0x00000000 ]
++
++# tcp flags & (syn | ack) == 0
++inet test-inet input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ payload load 1b @ transport header + 13 => reg 1 ]
++  [ bitwise reg 1 = ( reg 1 & 0x00000012 ) ^ 0x00000000 ]
++  [ cmp eq reg 1 0x00000000 ]
++
+ # tcp flags & syn == syn
+ inet test-inet input
+   [ meta load l4proto => reg 1 ]
+@@ -410,6 +434,30 @@ inet test-inet input
+   [ bitwise reg 1 = ( reg 1 & 0x00000017 ) ^ 0x00000000 ]
+   [ cmp neq reg 1 0x00000002 ]
+ 
++# tcp flags & (fin | syn | rst | ack) == (syn | ack)
++inet test-inet input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ payload load 1b @ transport header + 13 => reg 1 ]
++  [ bitwise reg 1 = ( reg 1 & 0x00000017 ) ^ 0x00000000 ]
++  [ cmp eq reg 1 0x00000012 ]
++
++# tcp flags & (fin | syn | rst | ack) != (syn | ack)
++inet test-inet input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ payload load 1b @ transport header + 13 => reg 1 ]
++  [ bitwise reg 1 = ( reg 1 & 0x00000017 ) ^ 0x00000000 ]
++  [ cmp neq reg 1 0x00000012 ]
++
++# tcp flags & (syn | ack) == (syn | ack)
++inet test-inet input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ payload load 1b @ transport header + 13 => reg 1 ]
++  [ bitwise reg 1 = ( reg 1 & 0x00000012 ) ^ 0x00000000 ]
++  [ cmp eq reg 1 0x00000012 ]
++
+ # tcp flags & (fin | syn | rst | psh | ack | urg | ecn | cwr) == fin | syn | rst | psh | ack | urg | ecn | cwr
+ inet test-inet input
+   [ meta load l4proto => reg 1 ]
+-- 
+2.20.1
 
