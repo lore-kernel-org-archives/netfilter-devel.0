@@ -2,392 +2,199 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88F56C4338F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Jul 2021 08:53:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 678FAC4338F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Jul 2021 10:42:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 669DC61059
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Jul 2021 08:53:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 497A960C41
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Jul 2021 10:42:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234949AbhG2Ixt (ORCPT
+        id S236224AbhG2KmE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 29 Jul 2021 04:53:49 -0400
-Received: from sender4-of-o55.zoho.com ([136.143.188.55]:21522 "EHLO
-        sender4-of-o55.zoho.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234886AbhG2Ixt (ORCPT
+        Thu, 29 Jul 2021 06:42:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33866 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S236797AbhG2Kl5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 29 Jul 2021 04:53:49 -0400
-ARC-Seal: i=1; a=rsa-sha256; t=1627547890; cv=none; 
-        d=zohomail.com; s=zohoarc; 
-        b=WO5BpnYnBnVhYLMf8R6std4iHV8iovVWm2JLJBYJZwj/O6a9N26+WU3FaHdE4B8SQOhz1qEDEvpU0IHreuoUoYV/lqIL1KXoI3d12mQVQ4f5FlDEu4d7cu1OxeN1gQfweraR5ufLeHhROrG5wZl6UoFujI/of6SDxd69cZjfwqY=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
-        t=1627547890; h=Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
-        bh=OwPo4qO/eS2F1SoQVwnwVxMDmLogfT1Y9LHgpA5fJNU=; 
-        b=f1Axw7gPvYelJBwBcY7GFfzUMowbKNcsmd615D/rBjnBrb051ha9KAMFOwCFR3U1A9tLB+HI2KIucoqs2fTsKuRPGjmzLT/moEZK15P0nFuMb4iLOKtwsZ9j/ysO9S8BNSJ7IXpk1CNwSKXjVZXF9NvepbS8Ge1nCkgulk6Zn+s=
-ARC-Authentication-Results: i=1; mx.zohomail.com;
-        dkim=pass  header.i=proelbtn.com;
-        spf=pass  smtp.mailfrom=contact@proelbtn.com;
-        dmarc=pass header.from=<contact@proelbtn.com>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1627547890;
-        s=default; d=proelbtn.com; i=contact@proelbtn.com;
-        h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-        bh=OwPo4qO/eS2F1SoQVwnwVxMDmLogfT1Y9LHgpA5fJNU=;
-        b=TwBrmZ6DHzx5V4fOa0ydWYOOSaDkJw6pgou+d3UYIfavkrgGypBe7scXtGK/L6a+
-        7LvnhpRdREGZr8+tlZjJR0tbWa8NlF6QNMb8loUZc6oqdSIaV6ThO7NVsJ8qblcQiO7
-        F7sXwkNbuvbbog6j5gUJ5qV+htsQBnAbutJ/Mmcw=
-Received: from srv6.prochi.io (softbank060108183144.bbtec.net [60.108.183.144]) by mx.zohomail.com
-        with SMTPS id 1627547877023998.4061656425704; Thu, 29 Jul 2021 01:37:57 -0700 (PDT)
-From:   Ryoga Saito <contact@proelbtn.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     pablo@netfilter.org, stefano.salsano@uniroma2.it,
-        andrea.mayer@uniroma2.it, davem@davemloft.net, kuba@kernel.org,
-        yoshfuji@linux-ipv6.org, dsahern@kernel.org,
-        Ryoga Saito <contact@proelbtn.com>
-Subject: [PATCH v2 2/2] netfilter: add netfilter hooks to SRv6 data plane
-Date:   Thu, 29 Jul 2021 08:37:13 +0000
-Message-Id: <7b59389116e4609487fe9a5696993727f3f82a72.1627546390.git.contact@proelbtn.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <cover.1627546390.git.contact@proelbtn.com>
-References: <cover.1627546390.git.contact@proelbtn.com>
+        Thu, 29 Jul 2021 06:41:57 -0400
+Received: from mail-lj1-x22e.google.com (mail-lj1-x22e.google.com [IPv6:2a00:1450:4864:20::22e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 69585C0617B1
+        for <netfilter-devel@vger.kernel.org>; Thu, 29 Jul 2021 03:41:34 -0700 (PDT)
+Received: by mail-lj1-x22e.google.com with SMTP id f12so6973044ljn.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 29 Jul 2021 03:41:34 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=N6PWn/tTg8wvMX0aqSgmSsHFDuUkt38MCMJ/j71AuFI=;
+        b=WWLnE8Dycb6a85kDkTTH/HdeFjdX631htHdSUVAPElHoTA6zCEU8rPYGZ/uvfRDBjL
+         TLFtXG3Dvh04Ki/DJ3KhB+Yo3Xw2rQku8eZBIplwEnkqeS0GYklTyP9HLBau57Oz0Cnu
+         /iFpN5HrdT+3zD8kz3G/95w6rIdl0Ye6enD9xB/Ww4gHHpSg9waPuwQtoozMY6t0OEC9
+         5irxMlCWtfLl66h9BTrpW85jxjpXqVIUxb56PCr7wTjhCgFuv2qnnkgBpJfTpoAUGO6i
+         X5Q1KSElogmiAwiZLgYPT8qHiRRrWhaSRXTmJkH66buyzQlD+5i79yiR+6niZ5eLWqnV
+         M0/w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=N6PWn/tTg8wvMX0aqSgmSsHFDuUkt38MCMJ/j71AuFI=;
+        b=kL4i1iL9zhLex50+IYaKiVVNHKskFIkA/JQUBKYaxkzD7TXo7n1BF2RY4TPm9QZMtM
+         WJrA8Kp+z03+LaQCkx7jzWITAe72Kg3dIcm91WASKXjrYom8G11Oh9UfnyZ2ruMD04Ia
+         HBJoR/LtsRbwCiyo0eJw4SzKLMtxNDi585TSzihVfuThC7ktJjOoyVg3dLBJOKHglyfB
+         zkABLScqsfSeWi6Pe2XbT8hXUB/X8rf7RTaJw7EtCwJFo4y431oT7Pxe8PP7QHC9+NO/
+         aPpqVyil72+7oVoQUXFHX1gUXuRsTGuPJ+T3OJKo59wtcUoH0Q8gZ9YMuXPPoY99Q6RE
+         hgqw==
+X-Gm-Message-State: AOAM531fZpK7gp+RfhLVIsm8mRJKpXhpe7EqR3vjoGNlerbYiFS7afc0
+        eljl0d8f2bCXH/jYHR+hKfAsHwpm031J4FBM6PQ=
+X-Google-Smtp-Source: ABdhPJybV+pRyzc4Xd7jDCxqhSZWMT5dMW2cg7W4hffxm9673ZaHSz9jLpDtM5igavGmYzRoqmK/UZWdfjMPSx1rK4M=
+X-Received: by 2002:a2e:9b10:: with SMTP id u16mr2477828lji.228.1627555292776;
+ Thu, 29 Jul 2021 03:41:32 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-ZohoMailClient: External
+References: <20210727153741.14406-1-pablo@netfilter.org> <20210727153741.14406-2-pablo@netfilter.org>
+ <CAGnHSE=e-iYaz3KOMBq1JSVRd0HTL=TKQ_HHMadfyd2Nr8__yg@mail.gmail.com>
+ <20210727210503.GA15429@salvia> <CAGnHSEn_oyCqrUoNgKZyE3sO--5RMqkGhepGobSjGKTz1-0=vQ@mail.gmail.com>
+ <20210729070345.GB15962@salvia>
+In-Reply-To: <20210729070345.GB15962@salvia>
+From:   Tom Yan <tom.ty89@gmail.com>
+Date:   Thu, 29 Jul 2021 18:41:21 +0800
+Message-ID: <CAGnHSEkfh57NqD2LJYKBjOXT+6kgvya67nfv0ZtaNnwsNg3diQ@mail.gmail.com>
+Subject: Re: [PATCH nft 2/3] netlink_linearize: incorrect netlink bytecode
+ with binary operation and flags
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch introduces netfilter hooks for solving the problem that
-conntrack couldn't record both inner flows and outer flows.
+I was quite overwhelmed by the whole thing, so I might not have made
+my point clear.
 
-Signed-off-by: Ryoga Saito <contact@proelbtn.com>
----
- net/ipv6/seg6_iptunnel.c |  68 +++++++++++++++++++++--
- net/ipv6/seg6_local.c    | 115 +++++++++++++++++++++++++++------------
- 2 files changed, 141 insertions(+), 42 deletions(-)
+While I find e.g. `tcp flags fin,ack,rst` being not the same as `tcp
+flags { fin, ack, rst }` confusing, in this case it is still
+"reasonable", as we can say that in the former it is a
+"comma-separated list" (hence no space), while in the latter it is a
+set (hence the spaces).
 
-diff --git a/net/ipv6/seg6_iptunnel.c b/net/ipv6/seg6_iptunnel.c
-index 897fa59c47de..77a2aafcb52f 100644
---- a/net/ipv6/seg6_iptunnel.c
-+++ b/net/ipv6/seg6_iptunnel.c
-@@ -26,6 +26,7 @@
- #ifdef CONFIG_IPV6_SEG6_HMAC
- #include <net/seg6_hmac.h>
- #endif
-+#include <net/netfilter/nf_conntrack.h>
- 
- static size_t seg6_lwt_headroom(struct seg6_iptunnel_encap *tuninfo)
- {
-@@ -295,25 +296,33 @@ static int seg6_do_srh(struct sk_buff *skb)
- 
- 	ipv6_hdr(skb)->payload_len = htons(skb->len - sizeof(struct ipv6hdr));
- 	skb_set_transport_header(skb, sizeof(struct ipv6hdr));
-+	nf_reset_ct(skb);
- 
- 	return 0;
- }
- 
--static int seg6_input(struct sk_buff *skb)
-+static int seg6_input_finish(struct net *net, struct sock *sk,
-+			     struct sk_buff *skb)
-+{
-+	return dst_input(skb);
-+}
-+
-+static int seg6_input_core(struct net *net, struct sock *sk,
-+			   struct sk_buff *skb)
- {
- 	struct dst_entry *orig_dst = skb_dst(skb);
- 	struct dst_entry *dst = NULL;
--	struct seg6_lwt *slwt;
-+	struct seg6_lwt *slwt = NULL;
- 	int err;
- 
-+	slwt = seg6_lwt_lwtunnel(orig_dst->lwtstate);
-+
- 	err = seg6_do_srh(skb);
- 	if (unlikely(err)) {
- 		kfree_skb(skb);
- 		return err;
- 	}
- 
--	slwt = seg6_lwt_lwtunnel(orig_dst->lwtstate);
--
- 	preempt_disable();
- 	dst = dst_cache_get(&slwt->cache);
- 	preempt_enable();
-@@ -337,10 +346,35 @@ static int seg6_input(struct sk_buff *skb)
- 	if (unlikely(err))
- 		return err;
- 
--	return dst_input(skb);
-+	if (static_branch_unlikely(&nf_ct_lwtunnel_enabled))
-+		return NF_HOOK(NFPROTO_IPV6, NF_INET_LOCAL_OUT,
-+			       dev_net(skb->dev), NULL, skb, NULL,
-+			       skb_dst(skb)->dev, seg6_input_finish);
-+
-+	return seg6_input_finish(dev_net(skb->dev), NULL, skb);
- }
- 
--static int seg6_output(struct net *net, struct sock *sk, struct sk_buff *skb)
-+static int seg6_input(struct sk_buff *skb)
-+{
-+	int proto;
-+
-+	if (skb->protocol == htons(ETH_P_IPV6))
-+		proto = NFPROTO_IPV6;
-+	else if (skb->protocol == htons(ETH_P_IP))
-+		proto = NFPROTO_IPV4;
-+	else
-+		return -EINVAL;
-+
-+	if (static_branch_unlikely(&nf_ct_lwtunnel_enabled))
-+		return NF_HOOK(proto, NF_INET_POST_ROUTING, dev_net(skb->dev),
-+			       NULL, skb, NULL, skb_dst(skb)->dev,
-+			       seg6_input_core);
-+
-+	return seg6_input_core(dev_net(skb->dev), NULL, skb);
-+}
-+
-+static int seg6_output_core(struct net *net, struct sock *sk,
-+			    struct sk_buff *skb)
- {
- 	struct dst_entry *orig_dst = skb_dst(skb);
- 	struct dst_entry *dst = NULL;
-@@ -387,12 +421,34 @@ static int seg6_output(struct net *net, struct sock *sk, struct sk_buff *skb)
- 	if (unlikely(err))
- 		goto drop;
- 
-+	if (static_branch_unlikely(&nf_ct_lwtunnel_enabled))
-+		return NF_HOOK(NFPROTO_IPV6, NF_INET_LOCAL_OUT, net, sk, skb,
-+			       NULL, skb_dst(skb)->dev, dst_output);
-+
- 	return dst_output(net, sk, skb);
- drop:
- 	kfree_skb(skb);
- 	return err;
- }
- 
-+static int seg6_output(struct net *net, struct sock *sk, struct sk_buff *skb)
-+{
-+	int proto;
-+
-+	if (skb->protocol == htons(ETH_P_IPV6))
-+		proto = NFPROTO_IPV6;
-+	else if (skb->protocol == htons(ETH_P_IP))
-+		proto = NFPROTO_IPV4;
-+	else
-+		return -EINVAL;
-+
-+	if (static_branch_unlikely(&nf_ct_lwtunnel_enabled))
-+		return NF_HOOK(proto, NF_INET_POST_ROUTING, net, sk, skb, NULL,
-+			       skb_dst(skb)->dev, seg6_output_core);
-+
-+	return seg6_output_core(net, sk, skb);
-+}
-+
- static int seg6_build_state(struct net *net, struct nlattr *nla,
- 			    unsigned int family, const void *cfg,
- 			    struct lwtunnel_state **ts,
-diff --git a/net/ipv6/seg6_local.c b/net/ipv6/seg6_local.c
-index 60bf3b877957..d883475be043 100644
---- a/net/ipv6/seg6_local.c
-+++ b/net/ipv6/seg6_local.c
-@@ -30,6 +30,7 @@
- #include <net/seg6_local.h>
- #include <linux/etherdevice.h>
- #include <linux/bpf.h>
-+#include <net/netfilter/nf_conntrack.h>
- 
- #define SEG6_F_ATTR(i)		BIT(i)
- 
-@@ -413,12 +414,33 @@ static int input_action_end_dx2(struct sk_buff *skb,
- 	return -EINVAL;
- }
- 
-+static int input_action_end_dx6_finish(struct net *net, struct sock *sk,
-+				       struct sk_buff *skb)
-+{
-+	struct dst_entry *orig_dst = skb_dst(skb);
-+	struct seg6_local_lwt *slwt = NULL;
-+	struct in6_addr *nhaddr = NULL;
-+
-+	slwt = seg6_local_lwtunnel(orig_dst->lwtstate);
-+
-+	/* The inner packet is not associated to any local interface,
-+	 * so we do not call netif_rx().
-+	 *
-+	 * If slwt->nh6 is set to ::, then lookup the nexthop for the
-+	 * inner packet's DA. Otherwise, use the specified nexthop.
-+	 */
-+	if (!ipv6_addr_any(&slwt->nh6))
-+		nhaddr = &slwt->nh6;
-+
-+	seg6_lookup_nexthop(skb, nhaddr, 0);
-+
-+	return dst_input(skb);
-+}
-+
- /* decapsulate and forward to specified nexthop */
- static int input_action_end_dx6(struct sk_buff *skb,
- 				struct seg6_local_lwt *slwt)
- {
--	struct in6_addr *nhaddr = NULL;
--
- 	/* this function accepts IPv6 encapsulated packets, with either
- 	 * an SRH with SL=0, or no SRH.
- 	 */
-@@ -429,55 +451,64 @@ static int input_action_end_dx6(struct sk_buff *skb,
- 	if (!pskb_may_pull(skb, sizeof(struct ipv6hdr)))
- 		goto drop;
- 
--	/* The inner packet is not associated to any local interface,
--	 * so we do not call netif_rx().
--	 *
--	 * If slwt->nh6 is set to ::, then lookup the nexthop for the
--	 * inner packet's DA. Otherwise, use the specified nexthop.
--	 */
--
--	if (!ipv6_addr_any(&slwt->nh6))
--		nhaddr = &slwt->nh6;
--
- 	skb_set_transport_header(skb, sizeof(struct ipv6hdr));
-+	nf_reset_ct(skb);
- 
--	seg6_lookup_nexthop(skb, nhaddr, 0);
-+	if (static_branch_unlikely(&nf_ct_lwtunnel_enabled))
-+		return NF_HOOK(NFPROTO_IPV6, NF_INET_PRE_ROUTING,
-+			       dev_net(skb->dev), NULL, skb, NULL,
-+			       skb_dst(skb)->dev, input_action_end_dx6_finish);
- 
--	return dst_input(skb);
-+	return input_action_end_dx6_finish(dev_net(skb->dev), NULL, skb);
- drop:
- 	kfree_skb(skb);
- 	return -EINVAL;
- }
- 
--static int input_action_end_dx4(struct sk_buff *skb,
--				struct seg6_local_lwt *slwt)
-+static int input_action_end_dx4_finish(struct net *net, struct sock *sk,
-+				       struct sk_buff *skb)
- {
-+	struct dst_entry *orig_dst = skb_dst(skb);
-+	struct seg6_local_lwt *slwt = NULL;
- 	struct iphdr *iph;
- 	__be32 nhaddr;
- 	int err;
- 
--	if (!decap_and_validate(skb, IPPROTO_IPIP))
--		goto drop;
--
--	if (!pskb_may_pull(skb, sizeof(struct iphdr)))
--		goto drop;
--
--	skb->protocol = htons(ETH_P_IP);
-+	slwt = seg6_local_lwtunnel(orig_dst->lwtstate);
- 
- 	iph = ip_hdr(skb);
--
- 	nhaddr = slwt->nh4.s_addr ?: iph->daddr;
- 
- 	skb_dst_drop(skb);
- 
--	skb_set_transport_header(skb, sizeof(struct iphdr));
--
- 	err = ip_route_input(skb, nhaddr, iph->saddr, 0, skb->dev);
--	if (err)
--		goto drop;
-+	if (err) {
-+		kfree_skb(skb);
-+		return -EINVAL;
-+	}
- 
- 	return dst_input(skb);
-+}
- 
-+static int input_action_end_dx4(struct sk_buff *skb,
-+				struct seg6_local_lwt *slwt)
-+{
-+	if (!decap_and_validate(skb, IPPROTO_IPIP))
-+		goto drop;
-+
-+	if (!pskb_may_pull(skb, sizeof(struct iphdr)))
-+		goto drop;
-+
-+	skb->protocol = htons(ETH_P_IP);
-+	skb_set_transport_header(skb, sizeof(struct iphdr));
-+	nf_reset_ct(skb);
-+
-+	if (static_branch_unlikely(&nf_ct_lwtunnel_enabled))
-+		return NF_HOOK(NFPROTO_IPV4, NF_INET_PRE_ROUTING,
-+			       dev_net(skb->dev), NULL, skb, NULL,
-+			       skb_dst(skb)->dev, input_action_end_dx4_finish);
-+
-+	return input_action_end_dx4_finish(dev_net(skb->dev), NULL, skb);
- drop:
- 	kfree_skb(skb);
- 	return -EINVAL;
-@@ -645,6 +676,7 @@ static struct sk_buff *end_dt_vrf_core(struct sk_buff *skb,
- 	skb_dst_drop(skb);
- 
- 	skb_set_transport_header(skb, hdrlen);
-+	nf_reset_ct(skb);
- 
- 	return end_dt_vrf_rcv(skb, family, vrf);
- 
-@@ -1078,22 +1110,18 @@ static void seg6_local_update_counters(struct seg6_local_lwt *slwt,
- 	u64_stats_update_end(&pcounters->syncp);
- }
- 
--static int seg6_local_input(struct sk_buff *skb)
-+static int seg6_local_input_core(struct net *net, struct sock *sk,
-+				 struct sk_buff *skb)
- {
- 	struct dst_entry *orig_dst = skb_dst(skb);
-+	struct seg6_local_lwt *slwt = NULL;
- 	struct seg6_action_desc *desc;
--	struct seg6_local_lwt *slwt;
- 	unsigned int len = skb->len;
- 	int rc;
- 
--	if (skb->protocol != htons(ETH_P_IPV6)) {
--		kfree_skb(skb);
--		return -EINVAL;
--	}
--
- 	slwt = seg6_local_lwtunnel(orig_dst->lwtstate);
--	desc = slwt->desc;
- 
-+	desc = slwt->desc;
- 	rc = desc->input(skb, slwt);
- 
- 	if (!seg6_lwtunnel_counters_enabled(slwt))
-@@ -1104,6 +1132,21 @@ static int seg6_local_input(struct sk_buff *skb)
- 	return rc;
- }
- 
-+static int seg6_local_input(struct sk_buff *skb)
-+{
-+	if (skb->protocol != htons(ETH_P_IPV6)) {
-+		kfree_skb(skb);
-+		return -EINVAL;
-+	}
-+
-+	if (static_branch_unlikely(&nf_ct_lwtunnel_enabled))
-+		return NF_HOOK(NFPROTO_IPV6, NF_INET_LOCAL_IN,
-+			       dev_net(skb->dev), NULL, skb, skb->dev, NULL,
-+			       seg6_local_input_core);
-+
-+	return seg6_local_input_core(dev_net(skb->dev), NULL, skb);
-+}
-+
- static const struct nla_policy seg6_local_policy[SEG6_LOCAL_MAX + 1] = {
- 	[SEG6_LOCAL_ACTION]	= { .type = NLA_U32 },
- 	[SEG6_LOCAL_SRH]	= { .type = NLA_BINARY },
--- 
-2.25.1
+The real issue here is that a comma-separated list itself can have
+totally different meanings. For example,
 
+1. If (just) `fin,rst,ack`, it means "any of the bits set".
+2. If `== fin,rst,ack`, it means (fin | rst | ack)
+3. If `fin,rst,ack / fin,rst,ack`, it means (fin | rst | ack). *(For
+both the value and the mask)*
+4. If `== fin,rst,ack / fin,rst,ack`, it means (fin | rst | ack).
+*(For both the value and the mask)*
+
+So how could anyone have thought in the first case `fin,rst,ack` does
+not have the same meaning as it does in the other cases? That's what I
+would call "unreasonable". Also, if in any case e.g. (just) `syn` is
+not considered a (single-value) "comma-separated list", it's
+"unreasonable" as well.
+
+Or in other words, I don't find a behavior/shortcut like, "if a mask
+is not specified explicitly, a mask that is equal to the value is
+implied, yet not when we compare the value (e.g. ==)", sensible /
+sensical. (Would anyone?)
+
+And you know what, comparing this with the `ct state` is unfair. The
+fact that you did so sort of explains why we end up in this...mess.
+(Not trying to say it's your fault but rather, how the issue could
+have happened.)
+
+In the case of `ct state`, while we use the different bits for the
+states, the states themselves are mutually exclusive (AFAIK, e.g. a
+packet can't be new and established at the same time). People assume
+e.g. `related,established` to be *practically* equivalent to `{
+related, established }` not because they would think like, "generally
+a comma-separated list should mean any of states", but either because
+they know in advance a packet can only be of either, or, they assume
+such similar syntax should mean the same thing. (The truth is, `ct
+state related,established` is NOT *logically* the same as `ct state {
+related, established }`; the former will be true for a packet if its
+state can be / is related | established.)
+
+On Thu, 29 Jul 2021 at 15:03, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>
+> On Thu, Jul 29, 2021 at 09:48:21AM +0800, Tom Yan wrote:
+> > I'm not sure it's just me or you that are missing something here.
+> >
+> > On Wed, 28 Jul 2021 at 05:05, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > >
+> > > On Wed, Jul 28, 2021 at 02:36:18AM +0800, Tom Yan wrote:
+> > > > Hmm, that means `tcp flags & (fin | syn | rst | ack) syn` is now
+> > > > equivalent to 'tcp flags & (fin | syn | rst | ack) == syn'.
+> > >
+> > > Yes, those two are equivalent.
+> > >
+> > > > Does that mean `tcp flags syn` (was supposed to be and) is now
+> > > > equivalent to `tcp flags == syn`
+> > >
+> > > tcp flag syn
+> > >
+> > > is a shortcut to match on the syn bit regarless other bit values, it's
+> > > a property of the bitmask datatypes.
+> >
+> > Don't you think the syntax will be inconsistent then? As a user, it
+> > looks pretty irrational to me: with a mask, just `syn` checks the
+> > exact value of the flags (combined); without a mask, it checks and
+> > checks only whether the specific bit is on.
+> >
+> > At least to me I would then expect `tcp flags syn` should be
+> > equivalent / is a shortcut to `tcp flags & (fin | syn | rst | psh |
+> > ack | urg | ecn | cwr) syn` hence `tcp flags & (fin | syn | rst | psh
+> > | ack | urg | ecn | cwr) == syn` hence `tcp flags == syn`.
+>
+> As I said, think of a different use-case:
+>
+>         ct state new,established
+>
+> people are _not_ expecting to match on both flags to be set on (that
+> will actually never happen).
+>
+> Should ct state and tcp flags use the same syntax (comma-separated
+> values) but intepret things in a different way? I don't think so.
+>
+> You can use:
+>
+>         nft describe ct state
+>
+> to check for the real datatype behind this selector: it's a bitmask.
+> For this datatype the implicit operation is not ==.
+>
+> > > tcp flags == syn
+> > >
+> > > is an exact match, it checks that the syn bit is set on.
+> > >
+> > > > instead of `tcp flags & syn == syn` / `tcp flags & syn != 0`?
+> > >
+> > > these two above are equivalent, I just sent a patch to fix the
+> > > tcp flags & syn == syn case.
+> > >
+> > > > Suppose `tcp flags & syn != 0` should then be translated to `tcp flags
+> > > > syn / syn` instead, please note that while nft translates `tcp flags &
+> > > > syn == syn` to `tcp flags syn / syn`, it does not accept the
+> > > > translation as input (when the mask is not a comma-separated list):
+> > > >
+> > > > # nft --debug=netlink add rule meh tcp_flags 'tcp flags syn / syn'
+> > > > Error: syntax error, unexpected newline, expecting comma
+> > > > add rule meh tcp_flags tcp flags syn / syn
+> > > >                                           ^
+> > >
+> > > The most simple way to express this is: tcp flags == syn.
+> >
+> > That does not sound right to me at all. Doesn't `syn / syn` means
+> > "with the mask (the second/"denominator" `syn`) applied on the flags,
+> > we get the value (the first/"nominator" `syn`), which means `tcp flags
+> > & syn == syn` instead of `tcp flags == syn` (which in turn means all
+> > bits but syn are cleared).
+>
+> tcp flags syn / syn makes no sense, it's actually: tcp flags syn.
+>
+> The goal is to provide a compact syntax for most common operations, so
+> users do not need to be mingling with explicit binary expressions
+> (which is considered to be a "more advanced" operation).
