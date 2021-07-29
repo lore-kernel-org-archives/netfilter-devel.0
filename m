@@ -7,155 +7,119 @@ X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2D39C4338F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Jul 2021 01:48:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0523C4338F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Jul 2021 02:28:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B6E866101C
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Jul 2021 01:48:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A69936103A
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Jul 2021 02:28:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233216AbhG2Bsi (ORCPT
+        id S233297AbhG2C2M (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 28 Jul 2021 21:48:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52692 "EHLO
+        Wed, 28 Jul 2021 22:28:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33410 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233205AbhG2Bsh (ORCPT
+        with ESMTP id S233256AbhG2C2M (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 28 Jul 2021 21:48:37 -0400
-Received: from mail-lj1-x22c.google.com (mail-lj1-x22c.google.com [IPv6:2a00:1450:4864:20::22c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D642C061757
-        for <netfilter-devel@vger.kernel.org>; Wed, 28 Jul 2021 18:48:34 -0700 (PDT)
-Received: by mail-lj1-x22c.google.com with SMTP id m9so5365872ljp.7
-        for <netfilter-devel@vger.kernel.org>; Wed, 28 Jul 2021 18:48:34 -0700 (PDT)
+        Wed, 28 Jul 2021 22:28:12 -0400
+Received: from mail-lf1-x136.google.com (mail-lf1-x136.google.com [IPv6:2a00:1450:4864:20::136])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE915C061757;
+        Wed, 28 Jul 2021 19:28:09 -0700 (PDT)
+Received: by mail-lf1-x136.google.com with SMTP id d18so7806177lfb.6;
+        Wed, 28 Jul 2021 19:28:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=iUoGRCCyi0U8HJh2759/G/1hC+LnOPKn5hEVMZ2ZYUQ=;
-        b=X0AbJSKItyPFxtD/cNZjHT8Zknp0FxYk2clx/ChIYIEsqwHXxcK2wGjYn9fHdqg+c+
-         pL7PHVwKEyLMRwpV4ttRQYt5Zna2xNCebvvy9GXJMeQbI/T1djPKKARXE510Txl/2f+f
-         SK+Hm1fZNyVmgzdXnyZlo5OJ7+Ot8rc/Ohep9oakf8o0pnRH8tU9/Xzq2mOhkHM+XEgj
-         XpenVjuhiBIXJTkXky3hPAxLikwbxlXeIuW9lbZ21PLNQJnKyoLQ0jRISIUvL7ZJ83Yl
-         Q9G6m6tltm0tm4K1bBd50LuSi8mFoaLZ1oC1Bn3j6AuL4Qi7I4SRzrIWwA37aoVFjEsg
-         327Q==
+        bh=ZiFuRn3UE8R4w3uIIXV4HugCKOA0UGhYmzbbJQgIxcg=;
+        b=SkDKe3cUZ/eHl9JQ6CSsP5+mQnFnkJIIZVgNo8qhtWvsBFoShGlQCU1MfraDTMeDdO
+         njkn1zfU1r3YhYjrp6Q8VkGt2rqYl/GiFov/cWXH+GhDr2Co0+rzix5FUrEQGGTr97nF
+         xYEkGlIjvuwZU12mA6nHHvrueeWSnpOWNu6MflKtCtrkqDcMR+EShMyM1jE7DOI5bN96
+         jGvUasU2bNYw+mkVLtN8L4lhpapgszkw7MGRaWpbvcDLdwOTwRFQhqU/PI4yNYc/VUhI
+         s0xcPhTMrXKkal+rwQQL2gnW4yk6onpwKC9FeYgqQ4FfUu9T7oLSGu5EJcyKJt75pcz4
+         N1jw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=iUoGRCCyi0U8HJh2759/G/1hC+LnOPKn5hEVMZ2ZYUQ=;
-        b=HVcJ3vEQuCTBdXVJLOFO6qlCq2y93KYlPswY8n9F4Uyqv7yawrS6hN2LD6msbLFT0d
-         nTH6idRpPYF0oR+sX/nkkLs8WtOzUsxbLRW7wdh/tZfwGNTgCx3FbD7aYNFCjPxa3gln
-         93h7SCNvxxhhdPsBqHYdhvvByh56rcJ7P1jC80V3CA3AetnA9CfnLJhTBVm9urZpcS51
-         zh+2JSd4mOrCF6CBgn6Lhh3A4ELw75gkiA9UPW/ckfmW3cGr+v3IB+e7ytljpv/rXA12
-         8rkkNSWXMydoqJxmw3yUOW1nJ/x8nyJ97fauK9tptfhhLr9tzXShffJ5Lo3wo+o/H7++
-         xM7w==
-X-Gm-Message-State: AOAM5310lgbrOTWY1BI/polo8wWrWDmSkYsSdOBZbVbU8B1onqf4j62g
-        MnWsZNYCwXPr+OXfgt7oA06jaWWQ/Wb+9tUiv3k=
-X-Google-Smtp-Source: ABdhPJz1LcvSbG7DsGlCeZl3MtDVLnYgYTskpZZPhEaVOftMnYYE0izZZjDaDTGRnAmEBKTe6KL1xSASbh8QE0Wm7WY=
-X-Received: by 2002:a2e:b0cb:: with SMTP id g11mr1461709ljl.227.1627523312798;
- Wed, 28 Jul 2021 18:48:32 -0700 (PDT)
+        bh=ZiFuRn3UE8R4w3uIIXV4HugCKOA0UGhYmzbbJQgIxcg=;
+        b=WUT2EnCGFhL2gpMpdQ5IQkWx01tiYH0TkMqfOJfFVG7nW4sNjj9iCcpngVISGAOqkl
+         PBWW+Py7rma9HeiEwbD89WaKT2oJTFiZLLxkJuXmfzjAgj3FNuOs5hs0ALMnpC8308Sb
+         dX+jxdaBKpYPMyo78eqlCi9ON0wwuMrVAEHu6+1Cgl/EaQimpxnAoi+Fj67rs2FiaTN0
+         fTpEbN/OXmOW6f0cWXtfTXyWX69DJ7bHrezvJ3tI3tuezUJQHgMq73NluFeSThH4pAah
+         aErdh+qxZkj01zbB4xC0zBieUZz8v8zt2/t+4pjTAZ/mgwqzBEtS7bY340rQcLMgVOqZ
+         A0VQ==
+X-Gm-Message-State: AOAM531Ubdqtk4ePagmU4p3OHxBPVVf9gIr8RpUMuEFvIPO9sYIL34e+
+        ddKF+ryqo79H9IFC7Vv/GL2nYNCAPv0W9wYf3IE=
+X-Google-Smtp-Source: ABdhPJwpLDJP63479IChnwiwvCPjjByMgHiumGWz8KFISOKrSEe0oMnp16gNp1AIdX30Be54Y0UQbVo1Y2KYY8aqEJo=
+X-Received: by 2002:a05:6512:1145:: with SMTP id m5mr485273lfg.37.1627525688241;
+ Wed, 28 Jul 2021 19:28:08 -0700 (PDT)
 MIME-Version: 1.0
-References: <20210727153741.14406-1-pablo@netfilter.org> <20210727153741.14406-2-pablo@netfilter.org>
- <CAGnHSE=e-iYaz3KOMBq1JSVRd0HTL=TKQ_HHMadfyd2Nr8__yg@mail.gmail.com> <20210727210503.GA15429@salvia>
-In-Reply-To: <20210727210503.GA15429@salvia>
+References: <CAGnHSEkt4xLAO_T9KNw2xGjjvC4y=E0LjX-iAACUktuCy0J7gw@mail.gmail.com>
+ <CAGnHSEncHuO2BduzGx1L9eVtAozdGb-XabQyrS7S+CO2swa1dw@mail.gmail.com> <20210727211116.GA13897@salvia>
+In-Reply-To: <20210727211116.GA13897@salvia>
 From:   Tom Yan <tom.ty89@gmail.com>
-Date:   Thu, 29 Jul 2021 09:48:21 +0800
-Message-ID: <CAGnHSEn_oyCqrUoNgKZyE3sO--5RMqkGhepGobSjGKTz1-0=vQ@mail.gmail.com>
-Subject: Re: [PATCH nft 2/3] netlink_linearize: incorrect netlink bytecode
- with binary operation and flags
+Date:   Thu, 29 Jul 2021 10:27:57 +0800
+Message-ID: <CAGnHSEknUAcg=bk1D43oZNMt=4GOZUcqh5Vt6=FU+ebRKtqcWw@mail.gmail.com>
+Subject: Re: [nft] Regarding `tcp flags` (and a potential bug)
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
+Cc:     netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-I'm not sure it's just me or you that are missing something here.
+Well, same problem as what I mentioned in the last reply from me for
+your patch: inconsistent / unexpected meaning of the syntax.
 
-On Wed, 28 Jul 2021 at 05:05, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->
-> On Wed, Jul 28, 2021 at 02:36:18AM +0800, Tom Yan wrote:
-> > Hmm, that means `tcp flags & (fin | syn | rst | ack) syn` is now
-> > equivalent to 'tcp flags & (fin | syn | rst | ack) == syn'.
->
-> Yes, those two are equivalent.
->
-> > Does that mean `tcp flags syn` (was supposed to be and) is now
-> > equivalent to `tcp flags == syn`
->
-> tcp flag syn
->
-> is a shortcut to match on the syn bit regarless other bit values, it's
-> a property of the bitmask datatypes.
+As of the current code (or even according to what you said / implied
+"should and would still be right"), `tcp flags syn` checks and checks
+only whether the syn bit is on:
 
-Don't you think the syntax will be inconsistent then? As a user, it
-looks pretty irrational to me: with a mask, just `syn` checks the
-exact value of the flags (combined); without a mask, it checks and
-checks only whether the specific bit is on.
+# nft --debug=netlink add rule meh tcp_flags 'tcp flags syn'
+ip
+  [ meta load l4proto => reg 1 ]
+  [ cmp eq reg 1 0x00000006 ]
+  [ payload load 1b @ transport header + 13 => reg 1 ]
+  [ bitwise reg 1 = ( reg 1 & 0x00000002 ) ^ 0x00000000 ]
+  [ cmp neq reg 1 0x00000000 ]
 
-At least to me I would then expect `tcp flags syn` should be
-equivalent / is a shortcut to `tcp flags & (fin | syn | rst | psh |
-ack | urg | ecn | cwr) syn` hence `tcp flags & (fin | syn | rst | psh
-| ack | urg | ecn | cwr) == syn` hence `tcp flags == syn`.
+which I consider to be a really bad (or even wrong) "shortcut",
+because it is so unexpected that it is not the same as this:
 
+# nft --debug=netlink add rule meh tcp_flags 'tcp flags { syn }'
+__set%d meh 3
+__set%d meh 0
+    element 00000002  : 0 [end]
+ip
+  [ meta load l4proto => reg 1 ]
+  [ cmp eq reg 1 0x00000006 ]
+  [ payload load 1b @ transport header + 13 => reg 1 ]
+  [ lookup reg 1 set __set%d ]
+
+Probably because `{ }` implies a `==`. And as per what you've written
+in your other reply to me, apparently a mask implies one as well. So
+many things implied. So "neat". But no one (at least not me) knows
+what the different syntaxes mean anymore until they --debug=netlink...
+
+
+
+On Wed, 28 Jul 2021 at 05:11, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 >
-> tcp flags == syn
->
-> is an exact match, it checks that the syn bit is set on.
->
-> > instead of `tcp flags & syn == syn` / `tcp flags & syn != 0`?
->
-> these two above are equivalent, I just sent a patch to fix the
-> tcp flags & syn == syn case.
->
-> > Suppose `tcp flags & syn != 0` should then be translated to `tcp flags
-> > syn / syn` instead, please note that while nft translates `tcp flags &
-> > syn == syn` to `tcp flags syn / syn`, it does not accept the
-> > translation as input (when the mask is not a comma-separated list):
+> On Tue, Jul 27, 2021 at 10:52:39PM +0800, Tom Yan wrote:
+> > Just noticed something that is even worse:
 > >
-> > # nft --debug=netlink add rule meh tcp_flags 'tcp flags syn / syn'
-> > Error: syntax error, unexpected newline, expecting comma
-> > add rule meh tcp_flags tcp flags syn / syn
-> >                                           ^
+> > # nft add rule meh tcp_flags 'tcp flags { fin, rst, ack }'
+> > # nft add rule meh tcp_flags 'tcp flags == { fin, rst, ack }'
+> > # nft add rule meh tcp_flags 'tcp flags & ( fin | rst | ack ) != 0'
+> > # nft add rule meh tcp_flags 'tcp flags & ( fin | rst | ack ) == 0'
+> > # nft list table meh
+> > table ip meh {
+> >     chain tcp_flags {
+> >         tcp flags { fin, rst, ack }
+> >         tcp flags { fin, rst, ack }
+> >         tcp flags fin,rst,ack
+> >         tcp flags ! fin,rst,ack
+> >     }
+> > }
 >
-> The most simple way to express this is: tcp flags == syn.
-
-That does not sound right to me at all. Doesn't `syn / syn` means
-"with the mask (the second/"denominator" `syn`) applied on the flags,
-we get the value (the first/"nominator" `syn`), which means `tcp flags
-& syn == syn` instead of `tcp flags == syn` (which in turn means all
-bits but syn are cleared).
-
->
-> > Also, does that mean `tcp flags & (fin | syn | rst | ack) fin,syn,ack`
-> > will now be equivalent to `tcp flags & (fin | syn | rst | ack) = (fin
-> > | syn | ack)`
->
-> Yes, those two are equivalent. This is the same example as the one you
-> have used at the beginning of this email.
->
-> > instead of (ultimately) `tcp flags & (fin | syn | ack)  != 0`?
->
-> That's equivalent to:
->
-> tcp flags fin,syn,ack
->
-> A quick summary:
->
-> - If you want an exact match:
->
-> tcp flags == fin,syn,ack
->
-> - If you want to check that those three bits are set on (regardless
->   the remaining bits):
->
-> tcp flags fin,syn,ack / fin,syn,ack
->
-> - If you want to check that any of these three bits is set on:
->
-> tcp flags fin,syn,ack
->
-> > Which means `tcp flags & (fin | syn | ack) != 0` should not be
-> > translated to `tcp flags fin,syn,ack`?
->
-> tcp flags & (fin | syn | ack) != 0 is checking for any of these three
-> bits to be set on, this translation is correct.
+> Could you develop the issue you're seeing here?
