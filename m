@@ -2,171 +2,328 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37D2BC4338F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Jul 2021 13:14:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EE3BC4320A
+	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Jul 2021 18:30:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1B6B560F5C
-	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Jul 2021 13:14:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E070560F4B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Jul 2021 18:30:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238893AbhG3NOo (ORCPT
+        id S230455AbhG3S2l (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 30 Jul 2021 09:14:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49598 "EHLO
+        Fri, 30 Jul 2021 14:28:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47680 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238887AbhG3NOo (ORCPT
+        with ESMTP id S230246AbhG3S2K (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 30 Jul 2021 09:14:44 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BAF59C06175F
-        for <netfilter-devel@vger.kernel.org>; Fri, 30 Jul 2021 06:14:39 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1m9SLW-0004NT-AE; Fri, 30 Jul 2021 15:14:38 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 2/2] netfilter: ctnetlink: allow to filter dump by status bits
-Date:   Fri, 30 Jul 2021 15:14:22 +0200
-Message-Id: <20210730131422.16958-3-fw@strlen.de>
-X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20210730131422.16958-1-fw@strlen.de>
-References: <20210730131422.16958-1-fw@strlen.de>
+        Fri, 30 Jul 2021 14:28:10 -0400
+Received: from mail-ot1-x333.google.com (mail-ot1-x333.google.com [IPv6:2607:f8b0:4864:20::333])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19686C0613C1
+        for <netfilter-devel@vger.kernel.org>; Fri, 30 Jul 2021 11:28:05 -0700 (PDT)
+Received: by mail-ot1-x333.google.com with SMTP id h63-20020a9d14450000b02904ce97efee36so10470214oth.7
+        for <netfilter-devel@vger.kernel.org>; Fri, 30 Jul 2021 11:28:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=cloudflare.com; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=y9TywsCPTkQ01Aqth2yeOqnyofLdA25ZI+98/Vypw6I=;
+        b=qNMIkqKD1bjsRrkxyRJe4zI/03JXHuA4mcluLEP2d1kw+6jKM7sdTlYKDui7fL2Ndu
+         wDEXoo3Mv4RONKBVwRNoTmIJ/XvJpoKJL78/VQ1UwloLsTxh8h6zoEKNuh/gpEmhP+nT
+         cP2lCUTzfsfkl25AJ+grlQlCSLtK9jZuihBEc=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=y9TywsCPTkQ01Aqth2yeOqnyofLdA25ZI+98/Vypw6I=;
+        b=FIF09p+vMSIcMsufJc7PTg1esOQdzLwq1eavuBaGIsw1rvsitFK5EH3g0lbkspL4D+
+         SZbGgJ/Vx/wglLPKFAI0YICaQrZMM3hDbk1tllJxOXSP9J52ge/dLGtZcQpH24o/M4aC
+         mZi9pChsdXjLV5jcnFty9JGvpTLJqR136cp6Y20ns3mDYDf83qNTA7oBLe0OMldhZ0VT
+         cNz1HagqrarpUGSybVruAobv4jmsZ+OQpYcF23xv0C73nMeGFf6chFKDvJCMHoZZWhIj
+         lvHXcR4MnDfG2NxuxXAidc4UxvV0XuM6+jNHJMYRT5oS3Bs+t7gSoJe5PJ0ahF61GmuJ
+         RXUg==
+X-Gm-Message-State: AOAM532DCV/CU9U8dkwO0q460l/tDusJFzWXVfMPMWNmTI6kBGJu0cIa
+        8eK4qv7+EFSmaRNOwia9e1LbKg==
+X-Google-Smtp-Source: ABdhPJwrPasDFY8VkuQFDjE1ErkRicWyG/xCwyn9fMZ2NM1ygqIJTH7ZH/Ucz2Fgep23M9R1T/Alfg==
+X-Received: by 2002:a9d:7010:: with SMTP id k16mr2968262otj.298.1627669684382;
+        Fri, 30 Jul 2021 11:28:04 -0700 (PDT)
+Received: from C02XR1NRJGH8 (65-36-81-87.static.grandenetworks.net. [65.36.81.87])
+        by smtp.gmail.com with ESMTPSA id n202sm412934oig.10.2021.07.30.11.28.03
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 30 Jul 2021 11:28:03 -0700 (PDT)
+Date:   Fri, 30 Jul 2021 13:27:49 -0500
+From:   Kyle Bowman <kbowman@cloudflare.com>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     Alex Forster <aforster@cloudflare.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        kernel-team <kernel-team@cloudflare.com>,
+        Network Development <netdev@vger.kernel.org>,
+        linux-kernel@vger.kernel.org,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
+        Jakub Kicinski <kuba@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>
+Subject: Re: [netfilter-core] [PATCH] netfilter: xt_NFLOG: allow 128
+ character log prefixes
+Message-ID: <YQREpVNFRUKtBliI@C02XR1NRJGH8>
+References: <20210727190001.914-1-kbowman@cloudflare.com>
+ <20210727195459.GA15181@salvia>
+ <CAKxSbF0tjY7EV=OOyfND8CxSmusfghvURQYnBxMz=DoNtGrfSg@mail.gmail.com>
+ <20210727211029.GA17432@salvia>
+ <CAKxSbF1bMzTc8sTQLFZpeY5XsymL+njKaTJOCb93RT6aj2NPVw@mail.gmail.com>
+ <20210727212730.GA20772@salvia>
+ <CAKxSbF3ZLjFo2TaWATCA8L-xQOEppUOhveybgtQrma=SjVoCeg@mail.gmail.com>
+ <20210727215240.GA25043@salvia>
+ <CAKxSbF1cxKOLTFNZG40HLN-gAYnYM+8dXH_04vQ8+v3KXdAq8Q@mail.gmail.com>
+ <20210728014347.GM3673@orbyte.nwl.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210728014347.GM3673@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If CTA_STATUS is present, but CTA_STATUS_MASK is not, then the
-mask is automatically set to 'status', so that kernel returns those
-entries that have all of the requested bits set.
+Hi Phil,
 
-This makes more sense than using a all-one mask since we'd hardly
-ever find a match.
+On Wed, Jul 28, 2021 at 03:43:47AM +0200, Phil Sutter wrote:
+> You might want to check iptables commit ccf154d7420c0 ("xtables: Don't
+> use native nftables comments") for reference, it does the opposite of
+> what you want to do.
 
-There are no other checks for status bits, so if e.g. userspace
-sets impossible combinations it will get an empty dump.
+I went ahead and looked through this commit and also found found the
+code that initially added this functionality; commit d64ef34a9961
+("iptables-compat: use nft built-in comments support ").
 
-If kernel would reject unknown status bits, then a program that works on
-a future kernel that has IPS_FOO bit fails on old kernels.
+Additionally I found some other commits that moved code to nft native
+implementations of the xtables counterpart so that proved helpful.
 
-Same for 'impossible' combinations:
+After a couple days of research I did end up figuring out what to do
+and have added a (mostly complete) native nft log support in
+iptables-nft. It all seems to work without any kernel changes
+required. The only problem I'm now faced with is that since we want to
+take the string passed into the iptables-nft command and add it to the
+nftnl expression (`NFTNL_EXPR_LOG_PREFIX`) I'm not entirely sure where
+to get the original sized string from aside from `argv` in the `struct
+iptables_command_state`. I would get it from the `struct
+xt_nflog_info`, but that's going to store the truncated version and we
+would like to be able to store 128 characters of the string as opposed
+to 64.
 
-Kernel never sets ASSURED without first having set SEEN_REPLY, but its
-possible that a future kernel could do so.
+Any recommendations about how I might do this safely?
 
-Therefore no sanity tests other than a 0-mask.
+An example of the program running with my patch:
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+kyle@debian:~/netfilter/iptables$ sudo /usr/local/sbin/iptables-nft -S
+
+-P INPUT ACCEPT
+-P FORWARD ACCEPT
+-P OUTPUT ACCEPT
+-N test-chain
+
+kyle@debian:~/netfilter/iptables$ sudo /usr/local/sbin/iptables-nft -A
+test-chain -j NFLOG --nflog-prefix "this string is hard coded for
+testing so what I put here doesn't end up in the prefix"
+
+kyle@debian:~/netfilter/iptables$ sudo /usr/local/sbin/iptables-nft -S
+-P INPUT ACCEPT
+-P FORWARD ACCEPT
+-P OUTPUT ACCEPT
+-N test-chain
+-A test-chain -j NFLOG --nflog-prefix  "iff the value at the end is 12
+then this string is truncated 12"
+
+kyle@debian:~/netfilter/iptables$ sudo nft list ruleset
+table ip filter {
+	chain test-chain {
+    counter packets 0 bytes 0 log prefix "iff the value at the end is
+    12 then this string is truncated 123"
+}
+
+	[...]
+}
+
+See below for the patch:
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kbowman <kbowman@cloudflare.com>
+Date: Thu, 29 Jul 2021 15:12:28 -0500
+Subject: [PATCH] iptables-nft: use nft built-in logging instead of xt_NFLOG
+
+Replaces the use of xt_NFLOG with the nft built-in log statement.
+
+This additionally adds support for using longer log prefixes of 128
+characters in size. A caveat to this is that the string will be
+truncated when the rule is printed via iptables-nft but will remain
+untruncated in nftables.
+
+Some changes have also been made to nft_is_expr_compatible() since
+xt_NFLOG does not support log level or log flags. With the new changes
+this means that when a log is used and sets either NFTNL_EXPR_LOG_LEVEL
+or NFTNL_LOG_FLAGS to a value aside from their default (log level
+defaults to 4, log flags will not be set) this will produce a
+compatibility error.
 ---
- .../linux/netfilter/nfnetlink_conntrack.h     |  1 +
- net/netfilter/nf_conntrack_netlink.c          | 34 ++++++++++++++++++-
- 2 files changed, 34 insertions(+), 1 deletion(-)
+ iptables/nft-shared.c | 45 +++++++++++++++++++++++++++++++++++++++++++
+ iptables/nft.c        | 38 ++++++++++++++++++++++++++++++++++++
+ iptables/nft.h        |  1 +
+ 3 files changed, 84 insertions(+)
 
-diff --git a/include/uapi/linux/netfilter/nfnetlink_conntrack.h b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
-index d8484be72fdc..c6e6d7d7d538 100644
---- a/include/uapi/linux/netfilter/nfnetlink_conntrack.h
-+++ b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
-@@ -56,6 +56,7 @@ enum ctattr_type {
- 	CTA_LABELS_MASK,
- 	CTA_SYNPROXY,
- 	CTA_FILTER,
-+	CTA_STATUS_MASK,
- 	__CTA_MAX
- };
- #define CTA_MAX (__CTA_MAX - 1)
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index e8368e66b0f5..eb35c6151fb0 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -868,6 +868,7 @@ struct ctnetlink_filter {
- 	struct nf_conntrack_zone zone;
+diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
+index 4253b081..b5259db0 100644
+--- a/iptables/nft-shared.c
++++ b/iptables/nft-shared.c
+@@ -22,6 +22,7 @@
  
- 	struct ctnetlink_filter_u32 mark;
-+	struct ctnetlink_filter_u32 status;
- };
+ #include <linux/netfilter/xt_comment.h>
+ #include <linux/netfilter/xt_limit.h>
++#include <linux/netfilter/xt_NFLOG.h>
  
- static const struct nla_policy cta_filter_nla_policy[CTA_FILTER_MAX + 1] = {
-@@ -927,6 +928,28 @@ static int ctnetlink_filter_parse_mark(struct ctnetlink_filter_u32 *mark,
- 	return 0;
+ #include <libmnl/libmnl.h>
+ #include <libnftnl/rule.h>
+@@ -595,6 +596,48 @@ static void nft_parse_limit(struct nft_xt_ctx *ctx, struct nftnl_expr *e)
+ 		ctx->h->ops->parse_match(match, ctx->cs);
  }
  
-+static int ctnetlink_filter_parse_status(struct ctnetlink_filter_u32 *status,
-+					 const struct nlattr * const cda[])
++static void nft_parse_log(struct nft_xt_ctx *ctx, struct nftnl_expr *e)
 +{
-+	if (cda[CTA_STATUS]) {
-+		status->val = ntohl(nla_get_be32(cda[CTA_STATUS]));
-+		if (cda[CTA_STATUS_MASK])
-+			status->mask = ntohl(nla_get_be32(cda[CTA_STATUS_MASK]));
-+		else
-+			status->mask = status->val;
++    __u16 group =  nftnl_expr_get_u16(e, NFTNL_EXPR_LOG_GROUP);
++    __u16 qthreshold = nftnl_expr_get_u16(e, NFTNL_EXPR_LOG_QTHRESHOLD);
++    __u32 snaplen = nftnl_expr_get_u32(e, NFTNL_EXPR_LOG_SNAPLEN);
++    const char *prefix = nftnl_expr_get_str(e, NFTNL_EXPR_LOG_PREFIX);
++    struct xtables_target *target;
++    struct xt_entry_target *t;
++    size_t target_size;
 +
-+		/* status->val == 0? always true, else always false. */
-+		if (status->mask == 0)
-+			return -EINVAL;
-+	} else if (cda[CTA_STATUS_MASK]) {
-+		return -EINVAL;
-+	}
++    void *data = ctx->cs;
 +
-+	/* CTA_STATUS is NLA_U32, if this fires UAPI needs to be extended */
-+	BUILD_BUG_ON(__IPS_MAX_BIT >= 32);
-+	return 0;
++    target = xtables_find_target("NFLOG", XTF_TRY_LOAD);
++    if (target == NULL)
++        return;
++
++    target_size = XT_ALIGN(sizeof(struct xt_entry_target)) + target->size;
++
++    t = xtables_calloc(1, target_size);
++    t->u.target_size = target_size;
++    strcpy(t->u.user.name, target->name);
++    t->u.user.revision = target->revision;
++
++    target->t = t;
++
++    struct xt_nflog_info *info = xtables_malloc(sizeof(struct xt_nflog_info));
++    info->group = group;
++    info->len = snaplen;
++    info->threshold = qthreshold;
++
++    /* Here, because we allow 128 characters in nftables but only 64
++     * characters in xtables (in xt_nflog_info specifically), we may
++     * end up truncating the string when parsing it.
++     */
++    strncpy(info->prefix, prefix, sizeof(info->prefix));
++    info->prefix[sizeof(info->prefix) - 1] = '\0';
++
++    memcpy(&target->t->data, info, target->size);
++
++    ctx->h->ops->parse_target(target, data);
 +}
 +
- static struct ctnetlink_filter *
- ctnetlink_alloc_filter(const struct nlattr * const cda[], u8 family)
+ static void nft_parse_lookup(struct nft_xt_ctx *ctx, struct nft_handle *h,
+ 			     struct nftnl_expr *e)
  {
-@@ -948,6 +971,10 @@ ctnetlink_alloc_filter(const struct nlattr * const cda[], u8 family)
- 	if (err)
- 		goto err_filter;
+@@ -644,6 +687,8 @@ void nft_rule_to_iptables_command_state(struct nft_handle *h,
+ 			nft_parse_limit(&ctx, expr);
+ 		else if (strcmp(name, "lookup") == 0)
+ 			nft_parse_lookup(&ctx, h, expr);
++		else if (strcmp(name, "log") == 0)
++		    nft_parse_log(&ctx, expr);
  
-+	err = ctnetlink_filter_parse_status(&filter->status, cda);
-+	if (err)
-+		goto err_filter;
-+
- 	if (!cda[CTA_FILTER])
- 		return filter;
+ 		expr = nftnl_expr_iter_next(iter);
+ 	}
+diff --git a/iptables/nft.c b/iptables/nft.c
+index f1deb82f..dce8fe0b 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -39,6 +39,7 @@
+ #include <linux/netfilter/nf_tables_compat.h>
  
-@@ -1001,7 +1028,7 @@ ctnetlink_alloc_filter(const struct nlattr * const cda[], u8 family)
+ #include <linux/netfilter/xt_limit.h>
++#include <linux/netfilter/xt_NFLOG.h>
  
- static bool ctnetlink_needs_filter(u8 family, const struct nlattr * const *cda)
- {
--	return family || cda[CTA_MARK] || cda[CTA_FILTER];
-+	return family || cda[CTA_MARK] || cda[CTA_FILTER] || cda[CTA_STATUS];
+ #include <libmnl/libmnl.h>
+ #include <libnftnl/gen.h>
+@@ -1340,6 +1341,8 @@ int add_action(struct nftnl_rule *r, struct iptables_command_state *cs,
+ 		       ret = add_verdict(r, NF_DROP);
+ 	       else if (strcmp(cs->jumpto, XTC_LABEL_RETURN) == 0)
+ 		       ret = add_verdict(r, NFT_RETURN);
++	       else if (strcmp(cs->jumpto, "NFLOG") == 0)
++	           ret = add_log(r, cs);
+ 	       else
+ 		       ret = add_target(r, cs->target->t);
+        } else if (strlen(cs->jumpto) > 0) {
+@@ -1352,6 +1355,36 @@ int add_action(struct nftnl_rule *r, struct iptables_command_state *cs,
+        return ret;
  }
  
- static int ctnetlink_start(struct netlink_callback *cb)
-@@ -1094,6 +1121,7 @@ static int ctnetlink_filter_match(struct nf_conn *ct, void *data)
++int add_log(struct nftnl_rule *r, struct iptables_command_state *cs)
++{
++    struct nftnl_expr *expr;
++    struct xt_nflog_info *info = (struct xt_nflog_info *)cs->target->t->data;
++
++    expr = nftnl_expr_alloc("log");
++    if (!expr)
++        return -ENOMEM;
++
++    if (info->prefix != NULL) {
++        //char prefix[NF_LOG_PREFIXLEN] = {};
++
++        // get prefix here from somewhere...
++        // maybe in cs->argv?
++        nftnl_expr_set_str(expr, NFTNL_EXPR_LOG_PREFIX, "iff the value at the end is 12 then this string is truncated 123");
++    }
++    if (info->group) {
++        nftnl_expr_set_u16(expr, NFTNL_EXPR_LOG_GROUP, info->group);
++        if (info->flags & XT_NFLOG_F_COPY_LEN)
++            nftnl_expr_set_u32(expr, NFTNL_EXPR_LOG_SNAPLEN,
++                               info->len);
++        if (info->threshold)
++            nftnl_expr_set_u16(expr, NFTNL_EXPR_LOG_QTHRESHOLD,
++                               info->threshold);
++    }
++
++    nftnl_rule_add_expr(r, expr);
++    return 0;
++}
++
+ static void nft_rule_print_debug(struct nftnl_rule *r, struct nlmsghdr *nlh)
  {
- 	struct ctnetlink_filter *filter = data;
- 	struct nf_conntrack_tuple *tuple;
-+	u32 status;
+ #ifdef NLDEBUG
+@@ -3487,6 +3520,11 @@ static int nft_is_expr_compatible(struct nftnl_expr *expr, void *data)
+ 	    nftnl_expr_get_u32(expr, NFTNL_EXPR_LIMIT_FLAGS) == 0)
+ 		return 0;
  
- 	if (filter == NULL)
- 		goto out;
-@@ -1125,6 +1153,9 @@ static int ctnetlink_filter_match(struct nf_conn *ct, void *data)
- 	if ((ct->mark & filter->mark.mask) != filter->mark.val)
- 		goto ignore_entry;
- #endif
-+	status = (u32)READ_ONCE(ct->status);
-+	if ((status & filter->status.mask) != filter->status.val)
-+		goto ignore_entry;
++	if (!strcmp(name, "log") &&
++	    nftnl_expr_get_u32(expr, NFTNL_EXPR_LOG_LEVEL) == 4 &&
++	    !nftnl_expr_is_set(expr, NFTNL_EXPR_LOG_FLAGS))
++	    return 0;
++
+ 	return -1;
+ }
  
- out:
- 	return 1;
-@@ -1507,6 +1538,7 @@ static const struct nla_policy ct_nla_policy[CTA_MAX+1] = {
- 	[CTA_LABELS_MASK]	= { .type = NLA_BINARY,
- 				    .len = NF_CT_LABELS_MAX_SIZE },
- 	[CTA_FILTER]		= { .type = NLA_NESTED },
-+	[CTA_STATUS_MASK]	= { .type = NLA_U32 },
- };
+diff --git a/iptables/nft.h b/iptables/nft.h
+index 4ac7e009..28dc81b7 100644
+--- a/iptables/nft.h
++++ b/iptables/nft.h
+@@ -193,6 +193,7 @@ int add_match(struct nft_handle *h, struct nftnl_rule *r, struct xt_entry_match
+ int add_target(struct nftnl_rule *r, struct xt_entry_target *t);
+ int add_jumpto(struct nftnl_rule *r, const char *name, int verdict);
+ int add_action(struct nftnl_rule *r, struct iptables_command_state *cs, bool goto_set);
++int add_log(struct nftnl_rule *r, struct iptables_command_state *cs);
+ char *get_comment(const void *data, uint32_t data_len);
  
- static int ctnetlink_flush_iterate(struct nf_conn *ct, void *data)
+ enum nft_rule_print {
 -- 
-2.31.1
+2.32.0
 
