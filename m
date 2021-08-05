@@ -2,173 +2,69 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C02EC4338F
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Aug 2021 11:53:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D477AC4338F
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Aug 2021 15:52:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D9833610A8
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Aug 2021 11:53:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A5998603E9
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Aug 2021 15:52:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241100AbhHELxN (ORCPT
+        id S242453AbhHEPxL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 5 Aug 2021 07:53:13 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:58794 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240848AbhHELxN (ORCPT
+        Thu, 5 Aug 2021 11:53:11 -0400
+Received: from sender4-of-o55.zoho.com ([136.143.188.55]:21578 "EHLO
+        sender4-of-o55.zoho.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229482AbhHEPxL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 5 Aug 2021 07:53:13 -0400
-Received: from netfilter.org (bl11-146-165.dsl.telepac.pt [85.244.146.165])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 5FE276004F;
-        Thu,  5 Aug 2021 13:52:20 +0200 (CEST)
-Date:   Thu, 5 Aug 2021 13:52:52 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     proelbtn <contact@proelbtn.com>
+        Thu, 5 Aug 2021 11:53:11 -0400
+ARC-Seal: i=1; a=rsa-sha256; t=1628178766; cv=none; 
+        d=zohomail.com; s=zohoarc; 
+        b=S6Th5NnuaF/BXu9Ql+jqC5m5TSsQH7Meuddg5rVzWLeJU/ZROj+Pi9MUhBE/wnyLQnmNabKq41Fp2lQ8gyZxAI4YTvPphlYkFzfkHVCa08GcdRhi5SNQoIhsYlwEwaJddOdQcrMzZ3LDEiurhza6YWXmb9n8w7cPtjHSQEPaIwU=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
+        t=1628178766; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
+        bh=+Il9M70e3NVz0vY8H1OjZVq7hSv1G20x/xCFvNG4drs=; 
+        b=daNwtW3zrM4aCL2tNIw1ri+3QWXrG2bhWa8TnpSqAKTkIrixoW81EDNv/N4pQb/85srYWk2H8ZBGuUc9ZlOdxsUNdimg7LFs7yB7YpAfsKlUY9uts6PkT7Q3N5/Wqfq5iaT4izSXDPoHtqh/YnI+TD/D3pO+Z+3Nde7Wqu5mYyM=
+ARC-Authentication-Results: i=1; mx.zohomail.com;
+        dkim=pass  header.i=proelbtn.com;
+        spf=pass  smtp.mailfrom=contact@proelbtn.com;
+        dmarc=pass header.from=<contact@proelbtn.com>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1628178766;
+        s=default; d=proelbtn.com; i=contact@proelbtn.com;
+        h=Content-Type:Mime-Version:Subject:From:In-Reply-To:Date:Cc:Content-Transfer-Encoding:Message-Id:References:To;
+        bh=+Il9M70e3NVz0vY8H1OjZVq7hSv1G20x/xCFvNG4drs=;
+        b=dKKXTqPAeGB73rTcM7YmL5J/zRX0yZdc/YYuxAc97GqQpysspyz6QfGxBFE/cdeC
+        JEriOmM4kANl5GxltjlJOuG5zTJ8sJdaQxJOvBPDFRhQfsg92gJamgIJqbBfZkb/3dn
+        JaJuzFnbK3HbXqU4fuuXk59fPLD4Vw7jqz95hzxo=
+Received: from smtpclient.apple (softbank060108183144.bbtec.net [60.108.183.144]) by mx.zohomail.com
+        with SMTPS id 1628178755824214.3116990364233; Thu, 5 Aug 2021 08:52:35 -0700 (PDT)
+Content-Type: text/plain;
+        charset=utf-8
+Mime-Version: 1.0 (Mac OS X Mail 14.0 \(3654.100.0.2.22\))
+Subject: Re: [PATCH v4 1/2] netfilter: add new sysctl toggle for lightweight
+ tunnel netfilter hooks
+From:   Ryoga Saito <contact@proelbtn.com>
+In-Reply-To: <20210805115252.GA13060@salvia>
+Date:   Fri, 6 Aug 2021 00:52:30 +0900
 Cc:     netfilter-devel@vger.kernel.org, stefano.salsano@uniroma2.it,
         andrea.mayer@uniroma2.it, davem@davemloft.net, kuba@kernel.org,
         yoshfuji@linux-ipv6.org, dsahern@kernel.org
-Subject: Re: [PATCH v4 1/2] netfilter: add new sysctl toggle for lightweight
- tunnel netfilter hooks
-Message-ID: <20210805115252.GA13060@salvia>
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <179E1D33-F193-4A91-8332-1AB76F765DAF@proelbtn.com>
 References: <20210802113433.6099-1-contact@proelbtn.com>
- <20210802113433.6099-2-contact@proelbtn.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20210802113433.6099-2-contact@proelbtn.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+ <20210802113433.6099-2-contact@proelbtn.com> <20210805115252.GA13060@salvia>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+X-Mailer: Apple Mail (2.3654.100.0.2.22)
+X-ZohoMailClient: External
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+Hi, Pablo
 
-On Mon, Aug 02, 2021 at 11:34:32AM +0000, proelbtn wrote:
-> This patch introduces new sysctl toggle for enabling lightweight tunnel
-> netfilter hooks.
-> 
-> Signed-off-by: proelbtn <contact@proelbtn.com>
-> ---
->  .../networking/nf_conntrack-sysctl.rst        |  7 +++
->  include/net/lwtunnel.h                        |  3 ++
->  include/net/netfilter/nf_conntrack_lwtunnel.h | 15 ++++++
->  net/core/lwtunnel.c                           |  3 ++
->  net/netfilter/Makefile                        |  3 ++
->  net/netfilter/nf_conntrack_lwtunnel.c         | 52 +++++++++++++++++++
->  net/netfilter/nf_conntrack_standalone.c       | 13 +++++
->  7 files changed, 96 insertions(+)
->  create mode 100644 include/net/netfilter/nf_conntrack_lwtunnel.h
->  create mode 100644 net/netfilter/nf_conntrack_lwtunnel.c
-> 
-> diff --git a/Documentation/networking/nf_conntrack-sysctl.rst b/Documentation/networking/nf_conntrack-sysctl.rst
-> index d31ed6c1cb0d..5afa4603aa4b 100644
-> --- a/Documentation/networking/nf_conntrack-sysctl.rst
-> +++ b/Documentation/networking/nf_conntrack-sysctl.rst
-> @@ -30,6 +30,13 @@ nf_conntrack_checksum - BOOLEAN
->  	in INVALID state. If this is enabled, such packets will not be
->  	considered for connection tracking.
->  
-> +nf_conntrack_lwtunnel - BOOLEAN
-> +	- 0 - disabled (default)
-> +	- not 0 - enabled
-> +
-> +	If this option is enabled, the lightweight tunnel netfilter hooks are
-> +	enabled. This option cannot be disabled once it is enabled.
-> +
+Thanks for your review. I=E2=80=99ll fix them in v5.
 
-Rename this to nf_hooks_lwtunnel?
+Ryoga Saito
 
->  nf_conntrack_count - INTEGER (read-only)
->  	Number of currently allocated flow entries.
->  
-> diff --git a/include/net/lwtunnel.h b/include/net/lwtunnel.h
-> index 05cfd6ff6528..11a2e3ce50b3 100644
-> --- a/include/net/lwtunnel.h
-> +++ b/include/net/lwtunnel.h
-> @@ -51,6 +51,9 @@ struct lwtunnel_encap_ops {
->  };
->  
->  #ifdef CONFIG_LWTUNNEL
-> +
-> +DECLARE_STATIC_KEY_FALSE(nf_ct_lwtunnel_enabled);
-> +
->  void lwtstate_free(struct lwtunnel_state *lws);
->  
->  static inline struct lwtunnel_state *
-> diff --git a/include/net/netfilter/nf_conntrack_lwtunnel.h b/include/net/netfilter/nf_conntrack_lwtunnel.h
-> new file mode 100644
-> index 000000000000..230206d035b7
-> --- /dev/null
-> +++ b/include/net/netfilter/nf_conntrack_lwtunnel.h
-> @@ -0,0 +1,15 @@
-> +#include <linux/sysctl.h>
-> +#include <linux/types.h>
-> +
-> +#ifdef CONFIG_LWTUNNEL
-> +int nf_conntrack_lwtunnel_sysctl_handler(struct ctl_table *table, int write,
-> +					 void *buffer, size_t *lenp,
-> +					 loff_t *ppos);
-> +#else // CONFIG_LWTUNNEL
-> +int nf_conntrack_lwtunnel_sysctl_handler(struct ctl_table *table, int write,
-> +					 void *buffer, size_t *lenp,
-> +					 loff_t *ppos)
-> +{
-> +    return 0;
-> +}
-> +#endif
-> \ No newline at end of file
-> diff --git a/net/core/lwtunnel.c b/net/core/lwtunnel.c
-> index 8ec7d13d2860..8be3274e30ec 100644
-> --- a/net/core/lwtunnel.c
-> +++ b/net/core/lwtunnel.c
-> @@ -23,6 +23,9 @@
->  #include <net/ip6_fib.h>
->  #include <net/rtnh.h>
->  
-> +DEFINE_STATIC_KEY_FALSE(nf_ct_lwtunnel_enabled);
-> +EXPORT_SYMBOL_GPL(nf_ct_lwtunnel_enabled);
-> +
->  #ifdef CONFIG_MODULES
->  
->  static const char *lwtunnel_encap_str(enum lwtunnel_encap_types encap_type)
-> diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-> index 049890e00a3d..07209930b5e4 100644
-> --- a/net/netfilter/Makefile
-> +++ b/net/netfilter/Makefile
-> @@ -212,3 +212,6 @@ obj-$(CONFIG_IP_SET) += ipset/
->  
->  # IPVS
->  obj-$(CONFIG_IP_VS) += ipvs/
-> +
-> +# lwtunnel
-> +obj-$(CONFIG_LWTUNNEL) += nf_conntrack_lwtunnel.o
-> diff --git a/net/netfilter/nf_conntrack_lwtunnel.c b/net/netfilter/nf_conntrack_lwtunnel.c
-> new file mode 100644
-> index 000000000000..cddbf8c5883a
-> --- /dev/null
-> +++ b/net/netfilter/nf_conntrack_lwtunnel.c
-> @@ -0,0 +1,52 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +
-> +#include <linux/sysctl.h>
-> +#include <net/lwtunnel.h>
-> +#include <net/netfilter/nf_conntrack.h>
-> +
-> +static inline int nf_conntrack_lwtunnel_get(void)
-> +{
-> +	if (static_branch_unlikely(&nf_ct_lwtunnel_enabled))
-> +		return 1;
-> +	else
-> +		return 0;
-> +}
-> +
-> +static inline int nf_conntrack_lwtunnel_set(int enable)
-> +{
-> +	if (static_branch_unlikely(&nf_ct_lwtunnel_enabled)) {
-> +		if (!enable)
-> +			return -EPERM;
-
-EBUSY instead.
