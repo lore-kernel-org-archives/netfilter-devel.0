@@ -4,35 +4,35 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A1A9C4338F
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Aug 2021 09:55:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11DD4C4338F
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Aug 2021 10:02:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6874B610A0
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Aug 2021 09:55:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EC64060F10
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Aug 2021 10:02:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239923AbhHEJzU (ORCPT
+        id S240050AbhHEKDH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 5 Aug 2021 05:55:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35260 "EHLO
+        Thu, 5 Aug 2021 06:03:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37062 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239922AbhHEJzT (ORCPT
+        with ESMTP id S240008AbhHEKDH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 5 Aug 2021 05:55:19 -0400
+        Thu, 5 Aug 2021 06:03:07 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD6A2C061765
-        for <netfilter-devel@vger.kernel.org>; Thu,  5 Aug 2021 02:55:05 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B068C061765
+        for <netfilter-devel@vger.kernel.org>; Thu,  5 Aug 2021 03:02:53 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1mBa5f-0002U6-Jy; Thu, 05 Aug 2021 11:55:03 +0200
+        id 1mBaDD-0002WD-Ui; Thu, 05 Aug 2021 12:02:51 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: nf_queue: move hookfn registration out of struct net
-Date:   Thu,  5 Aug 2021 11:54:58 +0200
-Message-Id: <20210805095458.16754-1-fw@strlen.de>
+Subject: [PATCH nf-next v2] netfilter: nf_queue: move hookfn registration out of struct net
+Date:   Thu,  5 Aug 2021 12:02:43 +0200
+Message-Id: <20210805100243.21249-1-fw@strlen.de>
 X-Mailer: git-send-email 2.31.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -43,19 +43,21 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 This was done to detect when the pernet->init() function was not called
 yet, by checking if net->nf.queue_handler is NULL.
 
-Once the nfnetlink_queue module is active, all struct net pointers contain
-the same address.  So place this back in nf_queue.c.
+Once the nfnetlink_queue module is active, all struct net pointers
+contain the same address.  So place this back in nf_queue.c.
 
 Handle the 'netns error unwind' test by checking nfnl_queue_net for a
 NULL pointer and add a comment for this.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
+ v2: avoid unused-variable warning in __nf_queue().
+
  include/net/netfilter/nf_queue.h |  4 ++--
  include/net/netns/netfilter.h    |  1 -
- net/netfilter/nf_queue.c         | 18 +++++++++---------
+ net/netfilter/nf_queue.c         | 19 +++++++++----------
  net/netfilter/nfnetlink_queue.c  | 15 +++++++++++++--
- 4 files changed, 24 insertions(+), 14 deletions(-)
+ 4 files changed, 24 insertions(+), 15 deletions(-)
 
 diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
 index e770bba00066..9eed51e920e8 100644
@@ -85,7 +87,7 @@ index 15e2b13fb0c0..986a2a9cfdfa 100644
  #ifdef CONFIG_SYSCTL
  	struct ctl_table_header *nf_log_dir_header;
 diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index bbd1209694b8..e36a8461486b 100644
+index bbd1209694b8..4903da82dc04 100644
 --- a/net/netfilter/nf_queue.c
 +++ b/net/netfilter/nf_queue.c
 @@ -21,6 +21,8 @@
@@ -132,7 +134,12 @@ index bbd1209694b8..e36a8461486b 100644
  	if (qh)
  		qh->nf_hook_drop(net);
  	rcu_read_unlock();
-@@ -162,7 +162,7 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
+@@ -157,12 +157,11 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
+ {
+ 	struct nf_queue_entry *entry = NULL;
+ 	const struct nf_queue_handler *qh;
+-	struct net *net = state->net;
+ 	unsigned int route_key_size;
  	int status;
  
  	/* QUEUE == DROP if no one is waiting, to be safe. */
