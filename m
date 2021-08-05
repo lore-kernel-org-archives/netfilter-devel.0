@@ -2,206 +2,137 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11DD4C4338F
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Aug 2021 10:02:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E42C0C4338F
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Aug 2021 10:43:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EC64060F10
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Aug 2021 10:02:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C791F610A2
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Aug 2021 10:43:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240050AbhHEKDH (ORCPT
+        id S232312AbhHEKnW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 5 Aug 2021 06:03:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37062 "EHLO
+        Thu, 5 Aug 2021 06:43:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46462 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240008AbhHEKDH (ORCPT
+        with ESMTP id S240406AbhHEKnW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 5 Aug 2021 06:03:07 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B068C061765
-        for <netfilter-devel@vger.kernel.org>; Thu,  5 Aug 2021 03:02:53 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1mBaDD-0002WD-Ui; Thu, 05 Aug 2021 12:02:51 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v2] netfilter: nf_queue: move hookfn registration out of struct net
-Date:   Thu,  5 Aug 2021 12:02:43 +0200
-Message-Id: <20210805100243.21249-1-fw@strlen.de>
-X-Mailer: git-send-email 2.31.1
+        Thu, 5 Aug 2021 06:43:22 -0400
+Received: from kadath.azazel.net (kadath.azazel.net [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4628C061765
+        for <netfilter-devel@vger.kernel.org>; Thu,  5 Aug 2021 03:43:07 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+         s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=cIxhroYbqQS/y22VrBeruLghaAoBIZQH+vHZYckdwRA=; b=YESKto5CTb4ncWVbVW1HkY+9oh
+        NwnLpXaIK+iyvpu/9MGplf0frw1RfA8/4Vzfh+hbsILZJjRNcSTL5YVO2ZbeeOdh0MXxDOBmbWfY2
+        Or6glz6SoyZEX+nqCH96w1EW5yLmT/VEGvoUh4L5MKRLnuuFiE0zc9arYSeKzxFu51b8vKrNrdS1U
+        Z2wkLm84t88r47TI1kYtz0tt1L8XXWokF5aScF/ZEyFQ5uIWEwuYhNtlnyl7o9bYZRNKeY61icAaG
+        GiUv4mQjGOlib2wHfE0O0/59A66+a77pqAvG+guMdLWuq60+E1ZKPaGgeSHX4/fYYhBo4EU9qyYhV
+        i+LQESmw==;
+Received: from [2001:8b0:fb7d:d6d7:feb3:bcff:fe5e:42c3] (helo=azazel.net)
+        by kadath.azazel.net with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <jeremy@azazel.net>)
+        id 1mBaq3-0008Bg-83; Thu, 05 Aug 2021 11:42:59 +0100
+Date:   Thu, 5 Aug 2021 11:42:58 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Kyle Bowman <kbowman@cloudflare.com>
+Cc:     Phil Sutter <phil@nwl.cc>, Alex Forster <aforster@cloudflare.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        kernel-team <kernel-team@cloudflare.com>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        coreteam@netfilter.org, netfilter-devel@vger.kernel.org
+Subject: Re: [netfilter-core] [PATCH] netfilter: xt_NFLOG: allow 128
+ character log prefixes
+Message-ID: <YQvAsgl/ylNAZVVP@azazel.net>
+References: <CAKxSbF3ZLjFo2TaWATCA8L-xQOEppUOhveybgtQrma=SjVoCeg@mail.gmail.com>
+ <20210727215240.GA25043@salvia>
+ <CAKxSbF1cxKOLTFNZG40HLN-gAYnYM+8dXH_04vQ8+v3KXdAq8Q@mail.gmail.com>
+ <20210728014347.GM3673@orbyte.nwl.cc>
+ <YQREpVNFRUKtBliI@C02XR1NRJGH8>
+ <YQasUsvJpML6CAsy@azazel.net>
+ <YQfU8km0t3clPVhl@azazel.net>
+ <YQggBDBruNxkscoi@azazel.net>
+ <YQkHIamDpqBzmNrO@azazel.net>
+ <YQmMlAheX6Tmg2qJ@C02XR1NRJGH8>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="gdI8iqFu+mV8mbir"
+Content-Disposition: inline
+In-Reply-To: <YQmMlAheX6Tmg2qJ@C02XR1NRJGH8>
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:feb3:bcff:fe5e:42c3
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This was done to detect when the pernet->init() function was not called
-yet, by checking if net->nf.queue_handler is NULL.
 
-Once the nfnetlink_queue module is active, all struct net pointers
-contain the same address.  So place this back in nf_queue.c.
+--gdI8iqFu+mV8mbir
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Handle the 'netns error unwind' test by checking nfnl_queue_net for a
-NULL pointer and add a comment for this.
+On 2021-08-03, at 13:36:04 -0500, Kyle Bowman wrote:
+> On Tue, Aug 03, 2021 at 10:06:41AM +0100, Jeremy Sowden wrote:
+> >
+> > Right, take three.  Firstly, use udata as I previously suggested, and
+> > then use a new struct with a layout compatible with struct xt_nflog_info
+> > just for printing and saving iptables-nft targets.
+> >
+> > Seems to work.  Doesn't break iptables-legacy.
+> >
+> > Patches attached.
+>
+> Thanks for writing in and helping with this, I appreciate it. I
+> actually was trying to make this work last night in a similar way to
+> how you've solved it but I gave up after a few hours. I'll go ahead
+> and organize this together and send the patches in a separate thread.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- v2: avoid unused-variable warning in __nf_queue().
+One thing before you do.  Some of iptables' unit-tests related to NFLOG
+are now failing.  For example:
 
- include/net/netfilter/nf_queue.h |  4 ++--
- include/net/netns/netfilter.h    |  1 -
- net/netfilter/nf_queue.c         | 19 +++++++++----------
- net/netfilter/nfnetlink_queue.c  | 15 +++++++++++++--
- 4 files changed, 24 insertions(+), 15 deletions(-)
+  $ sudo python3 ./iptables-test.py -n extensions/libxt_NFLOG.t
+  Cannot run in own namespace, connectivity might break
+  extensions/libxt_NFLOG.t: ERROR: line 2 (cannot find: iptables -I INPUT -j NFLOG --nflog-group 1)
+  extensions/libxt_NFLOG.t: ERROR: line 3 (cannot find: iptables -I INPUT -j NFLOG --nflog-group 65535)
+  extensions/libxt_NFLOG.t: ERROR: line 6 (cannot find: iptables -I INPUT -j NFLOG --nflog-range 1)
+  extensions/libxt_NFLOG.t: ERROR: line 7 (cannot find: iptables -I INPUT -j NFLOG --nflog-range 4294967295)
+  extensions/libxt_NFLOG.t: ERROR: line 10 (cannot find: iptables -I INPUT -j NFLOG --nflog-size 0)
+  extensions/libxt_NFLOG.t: ERROR: line 11 (cannot find: iptables -I INPUT -j NFLOG --nflog-size 1)
+  extensions/libxt_NFLOG.t: ERROR: line 12 (cannot find: iptables -I INPUT -j NFLOG --nflog-size 4294967295)
+  extensions/libxt_NFLOG.t: ERROR: line 19 (cannot find: iptables -I INPUT -j NFLOG --nflog-threshold 1)
+  extensions/libxt_NFLOG.t: ERROR: line 22 (cannot find: iptables -I INPUT -j NFLOG --nflog-threshold 65535)
+  1 test files, 17 unit tests, 8 passed
 
-diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
-index e770bba00066..9eed51e920e8 100644
---- a/include/net/netfilter/nf_queue.h
-+++ b/include/net/netfilter/nf_queue.h
-@@ -33,8 +33,8 @@ struct nf_queue_handler {
- 	void		(*nf_hook_drop)(struct net *net);
- };
- 
--void nf_register_queue_handler(struct net *net, const struct nf_queue_handler *qh);
--void nf_unregister_queue_handler(struct net *net);
-+void nf_register_queue_handler(const struct nf_queue_handler *qh);
-+void nf_unregister_queue_handler(void);
- void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict);
- 
- void nf_queue_entry_get_refs(struct nf_queue_entry *entry);
-diff --git a/include/net/netns/netfilter.h b/include/net/netns/netfilter.h
-index 15e2b13fb0c0..986a2a9cfdfa 100644
---- a/include/net/netns/netfilter.h
-+++ b/include/net/netns/netfilter.h
-@@ -12,7 +12,6 @@ struct netns_nf {
- #if defined CONFIG_PROC_FS
- 	struct proc_dir_entry *proc_netfilter;
- #endif
--	const struct nf_queue_handler __rcu *queue_handler;
- 	const struct nf_logger __rcu *nf_loggers[NFPROTO_NUMPROTO];
- #ifdef CONFIG_SYSCTL
- 	struct ctl_table_header *nf_log_dir_header;
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index bbd1209694b8..4903da82dc04 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -21,6 +21,8 @@
- 
- #include "nf_internals.h"
- 
-+static const struct nf_queue_handler __rcu *nf_queue_handler;
-+
- /*
-  * Hook for nfnetlink_queue to register its queue handler.
-  * We do this so that most of the NFQUEUE code can be modular.
-@@ -29,20 +31,18 @@
-  * receives, no matter what.
-  */
- 
--/* return EBUSY when somebody else is registered, return EEXIST if the
-- * same handler is registered, return 0 in case of success. */
--void nf_register_queue_handler(struct net *net, const struct nf_queue_handler *qh)
-+void nf_register_queue_handler(const struct nf_queue_handler *qh)
- {
- 	/* should never happen, we only have one queueing backend in kernel */
--	WARN_ON(rcu_access_pointer(net->nf.queue_handler));
--	rcu_assign_pointer(net->nf.queue_handler, qh);
-+	WARN_ON(rcu_access_pointer(nf_queue_handler));
-+	rcu_assign_pointer(nf_queue_handler, qh);
- }
- EXPORT_SYMBOL(nf_register_queue_handler);
- 
- /* The caller must flush their queue before this */
--void nf_unregister_queue_handler(struct net *net)
-+void nf_unregister_queue_handler(void)
- {
--	RCU_INIT_POINTER(net->nf.queue_handler, NULL);
-+	RCU_INIT_POINTER(nf_queue_handler, NULL);
- }
- EXPORT_SYMBOL(nf_unregister_queue_handler);
- 
-@@ -116,7 +116,7 @@ void nf_queue_nf_hook_drop(struct net *net)
- 	const struct nf_queue_handler *qh;
- 
- 	rcu_read_lock();
--	qh = rcu_dereference(net->nf.queue_handler);
-+	qh = rcu_dereference(nf_queue_handler);
- 	if (qh)
- 		qh->nf_hook_drop(net);
- 	rcu_read_unlock();
-@@ -157,12 +157,11 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
- {
- 	struct nf_queue_entry *entry = NULL;
- 	const struct nf_queue_handler *qh;
--	struct net *net = state->net;
- 	unsigned int route_key_size;
- 	int status;
- 
- 	/* QUEUE == DROP if no one is waiting, to be safe. */
--	qh = rcu_dereference(net->nf.queue_handler);
-+	qh = rcu_dereference(nf_queue_handler);
- 	if (!qh)
- 		return -ESRCH;
- 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index f774de0fc24f..4c3fbaaeb103 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -951,6 +951,16 @@ static void nfqnl_nf_hook_drop(struct net *net)
- 	struct nfnl_queue_net *q = nfnl_queue_pernet(net);
- 	int i;
- 
-+	/* This function is also called on net namespace error unwind,
-+	 * when pernet_ops->init() failed and ->exit() functions of the
-+	 * previous pernet_ops gets called.
-+	 *
-+	 * This may result in a call to nfqnl_nf_hook_drop() before
-+	 * struct nfnl_queue_net was allocated.
-+	 */
-+	if (!q)
-+		return;
-+
- 	for (i = 0; i < INSTANCE_BUCKETS; i++) {
- 		struct nfqnl_instance *inst;
- 		struct hlist_head *head = &q->instance_table[i];
-@@ -1502,7 +1512,6 @@ static int __net_init nfnl_queue_net_init(struct net *net)
- 			&nfqnl_seq_ops, sizeof(struct iter_state)))
- 		return -ENOMEM;
- #endif
--	nf_register_queue_handler(net, &nfqh);
- 	return 0;
- }
- 
-@@ -1511,7 +1520,6 @@ static void __net_exit nfnl_queue_net_exit(struct net *net)
- 	struct nfnl_queue_net *q = nfnl_queue_pernet(net);
- 	unsigned int i;
- 
--	nf_unregister_queue_handler(net);
- #ifdef CONFIG_PROC_FS
- 	remove_proc_entry("nfnetlink_queue", net->nf.proc_netfilter);
- #endif
-@@ -1555,6 +1563,8 @@ static int __init nfnetlink_queue_init(void)
- 		goto cleanup_netlink_subsys;
- 	}
- 
-+	nf_register_queue_handler(&nfqh);
-+
- 	return status;
- 
- cleanup_netlink_subsys:
-@@ -1568,6 +1578,7 @@ static int __init nfnetlink_queue_init(void)
- 
- static void __exit nfnetlink_queue_fini(void)
- {
-+	nf_unregister_queue_handler();
- 	unregister_netdevice_notifier(&nfqnl_dev_notifier);
- 	nfnetlink_subsys_unregister(&nfqnl_subsys);
- 	netlink_unregister_notifier(&nfqnl_rtnl_notifier);
--- 
-2.31.1
+I'm working my way through them.  I've got fixes for most.  I'll
+send patches when I've sorted out the remaining ones.
 
+J.
+
+--gdI8iqFu+mV8mbir
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmELwKsACgkQKYasCr3x
+BA131g//WanJQ220cxgSfvg4dYwUBmlzPfZQmZMS50VUUMRhP/J565sbdzpNF9ZL
+1l17EAQRVhQFSziKoG+Gwct66NOmaTGJV5mxcnXlhSQd5fYbVBgUwUvYmwAdHQu4
++S6tCBZnvWUqikQNUbbGVp7Ighxmp7JcINAxenbOHyd5s0VLFFDhX85BTQ0c9w8g
+b6x/fvkZC3xdfDZHY/r9MtwOvLV/+nNnBstwKyn1dRrFsO+nNTRMFavY+xU1hPtJ
+E6Ju9t9TgeLHd2vZYzbDJMiHjuDG5cwn/gvpM47h+WALG7LNxzVIHrKTnc6H/95G
+yfLNZBMuwwJQdvzQvqd/yC80GUEhyJtxRj+uoi1Neg0RYXegZqgeLaI/3sPLb3gr
+/CidGV/WKHeXmn/lKTsYFB3gjEMtIcWSCEpAeUPdXLQgv91Q2zSDV3BntICp89+G
+wcoQNK7n2Jkg9O4yLYPqwNo1kcgk7ceCJd+rdNyTJtWpYqmNK8v+ScatFwKLERi2
+/PLwDOYP9zCWJw6ryYA+wGdT2LTirJ7KC6csgW6SP0byCJGBp3BoTv17OZb8WLVu
+mjr2VZCQjEZACulR79GJNtoBtIOAMiiviRfQBYrEj8q7S9/gaWlIe0GQNOxrlHCI
+vO886b7hINCyhkRZcJ9DIgbJHtVO9DAV+Q1RWvq3T4IGa7QDK9U=
+=6IP8
+-----END PGP SIGNATURE-----
+
+--gdI8iqFu+mV8mbir--
