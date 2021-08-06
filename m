@@ -1,116 +1,126 @@
 Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: **
-X-Spam-Status: No, score=2.5 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,LOTS_OF_MONEY,MAILING_LIST_MULTI,
-	MONEY_FREEMAIL_REPTO,MONEY_NOHTML,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1967BC4320E
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Aug 2021 22:04:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A9DDC4338F
+	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Aug 2021 02:15:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F3C316113C
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Aug 2021 22:04:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 44E4A61184
+	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Aug 2021 02:15:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238848AbhHEWFC (ORCPT
+        id S242210AbhHFCPg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 5 Aug 2021 18:05:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33886 "EHLO
+        Thu, 5 Aug 2021 22:15:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33584 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238681AbhHEWE5 (ORCPT
+        with ESMTP id S236885AbhHFCPf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 5 Aug 2021 18:04:57 -0400
-Received: from server.example.com (unknown [IPv6:2001:41d0:8:808d::])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 64344C06179B
-        for <netfilter-devel@vger.kernel.org>; Thu,  5 Aug 2021 15:04:40 -0700 (PDT)
-Received: by server.example.com (Postfix, from userid 1023)
-        id 9AB2AD46631; Thu,  5 Aug 2021 21:15:40 +0000 (UTC)
-To:     netfilter-devel@vger.kernel.org
-Subject: {Spam?} =?UTF-8?Q?Z._HD,Sehr_geehrte_/_r_Fondsempf=C3=A4nger?=
-Date:   Thu, 5 Aug 2021 21:15:40 +0000
-From:   "ANWALT BILBAO &EMMA ASSOZIIERT & CO..." 
-        <support@quali.speed.hebergement-com4design.fr>
-Reply-To: buroLotto.es@spainmail.com
-Message-ID: <12bee6b361078c0d1ab0efe82121e861@www.quali.speed.hebergement-com4design.fr>
+        Thu, 5 Aug 2021 22:15:35 -0400
+Received: from mail-pj1-x1030.google.com (mail-pj1-x1030.google.com [IPv6:2607:f8b0:4864:20::1030])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0E1CC061798
+        for <netfilter-devel@vger.kernel.org>; Thu,  5 Aug 2021 19:15:19 -0700 (PDT)
+Received: by mail-pj1-x1030.google.com with SMTP id pj14-20020a17090b4f4eb029017786cf98f9so14353170pjb.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 05 Aug 2021 19:15:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=sender:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=yBGYXL7YmoxxBREdkDx5zOe2/71yrnTjQFist4rsdB0=;
+        b=CoAvCJlgF2atsP1dlCdOtZKvo+1f93ZiTEWFI4e5v0Wm7+cPxn9jXAtcuwWnExqk22
+         NFgTtCb5RsQejOv9ajJ/5XuL6frQr17LOeclOvLuh3106FDsuq6iXrNiWOIIdhDDYk5M
+         p3Lu/vYeCxMOUcCftY3/velC2LuUfLzp08xC+PWD8SZHjxfJY4irLYx2IkbKcdNqIE5p
+         IlpjcxAFsB7uwL7rfbhnR43fLJm1GbvaeBvHUwzTdH5MURPMw7d7VNYXXe2V9QkUAIYw
+         Q4pe9SAP6pVHPkB9zadhNc0P0hL/gBdjtioH09kik1Dwn0qG4YSNV97NeHXKYOMKDd2f
+         JSfg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
+         :mime-version:content-transfer-encoding;
+        bh=yBGYXL7YmoxxBREdkDx5zOe2/71yrnTjQFist4rsdB0=;
+        b=q94I8ZmPAOpMLDa3y3ooSYLOykSI2ojluqCH12jCE0lVcT+RaZg9QkrmPEuzBAmZvf
+         kyp9Xhnt6AcFwfhYEAzfo3FsEpE6AxGAMIXcWYa3BCdmzinKW2/VcIoimCtuiVY1kUdr
+         F5yDQkhauXBbxazCoXbwawE4PzvaRcIO+4JBCyJVJ1nXWEZjAhQipBi0gpQe3lN0eeOT
+         CWUbS6yZFaMaQZctXLN+SQc6wHo8YfcBw5GZBrJq8z3qg8PvYRULCOP1Y+6LRuPDYo/Q
+         vPNW2Yym61T4GNZ1lho0/hRC/wEeIMqVOHi6u77HVjo7SwmzTcDJXFi4UEOVEMc+Y9mO
+         v/KQ==
+X-Gm-Message-State: AOAM533OE7cKv9lov5dmyBYL1wwCH3RRcgniBM7iy8e8JiJeKv1MzdeP
+        pCvFBUjiaVzpD/Q/s3ciV6VkTVWtqagBTg==
+X-Google-Smtp-Source: ABdhPJwrFsYaibbJ2fM0s0QiTtqoFvy3oANINrw1hiSfpmXlaDSptO8TX4jJHWvgL9V84aD7s+S/dA==
+X-Received: by 2002:a62:3896:0:b029:33a:f41a:11a4 with SMTP id f144-20020a6238960000b029033af41a11a4mr8213625pfa.9.1628216119275;
+        Thu, 05 Aug 2021 19:15:19 -0700 (PDT)
+Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
+        by smtp.gmail.com with ESMTPSA id k5sm8067739pfi.55.2021.08.05.19.15.17
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 05 Aug 2021 19:15:18 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH libnetfilter_queue v2] src: Stop users from accidentally using legacy linux_nfnetlink_queue.h
+Date:   Fri,  6 Aug 2021 12:15:13 +1000
+Message-Id: <20210806021513.32560-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.32.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-yoursite-MailScanner-Information: Please contact the ISP for more information
-X-yoursite-MailScanner-ID: 9AB2AD46631.AA19E
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-SpamCheck: spam, SpamAssassin (cached, score=7.061,
-        required 6, ADVANCE_FEE_2_NEW_MONEY 0.15,
-        FREEMAIL_FORGED_REPLYTO 2.50, FREEMAIL_REPLYTO 1.00,
-        LOTS_OF_MONEY 0.00, MONEY_FREEMAIL_REPTO 2.43, MONEY_NOHTML 0.97,
-        NO_RELAYS -0.00, T_FILL_THIS_FORM_SHORT 0.01, XFER_LOTSA_MONEY 0.00)
-X-yoursite-MailScanner-SpamScore: sssssss
-X-yoursite-MailScanner-From: support@quali.speed.hebergement-com4design.fr
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Rechtsanwältin BILBAO &EMMA ASSOZIIERT & CO...
-#########################################
-AV/DE GRAN VIA NO.38k, 28008 MADRID.   SPAIN 
-TEL. ( 34) 602 810 185 FAX: ( 34) 931-702-120
-Eingetragener Fall NR: GY/Q3J63753 / SQQ/93000XS10.
+If a user coded
+  #include <libnetfilter_queue/libnetfilter_queue.h>
+  #include <linux/netfilter/nfnetlink_queue.h>
+then instead of nfnetlink_queue.h they would get linux_nfnetlink_queue.h.
+In the library, this only affects libnetfilter_queue.c
 
-Ihnen wird empfohlen, die folgenden Informationen an Ihre Bevollmächtigte zu senden. Rechtsanwältin  BILBAO & EMMA  ASSOZIIERT CO ERMÖGLICHT IHNEN DIE FREIGABE IHRES FONDS:Wir bitten dringend, Ihre E-Mails an unsere Büro-E-Mail zu beantworten, buroLotto.es@spainmail.com, 
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+---
+ include/libnetfilter_queue/libnetfilter_queue.h | 2 --
+ src/libnetfilter_queue.c                        | 1 +
+ utils/nfqnl_test.c                              | 1 +
+ 3 files changed, 2 insertions(+), 2 deletions(-)
 
-Wir gratulieren und informieren Sie über die Auswahl des Geldpreises €935.470,00 EUROS, SOMMERBONANZA, EL GORDO DE LA PRIMITIVA LOTTERIE IN VERBINDUNG MIT EUROMILLIONS ESPAÑA INTERNATIONAL LOTTERIE BEFÖRDERUNG  PROGRAMM Madrid Spanien
-
- Sehr Geehrter  Begünstigten, 
-Wir möchten Sie informieren, dass das Büro des nicht Beanspruchten Preisgeldes in Spanien,unsere Anwaltskanzlei ernannt hat, als gesetzliche Berater zu handeln, in der Verarbeitung und der Zahlung eines Preisgeldes, das auf Ihrem Namen gutgeschrieben wurde, und nun seit über zwei Jahren nicht beansprucht wurde.
-
- Der Gesamtbetrag der ihnen zusteht beträgt momentan €935, 470, 15, cent.
-
-Der Gesamtbetrag der ihnen zusteht beträgt momentan  €935, 470, 15, neunhundert fünfunddreißigtausend, vierhundertsiebzig und fünfzehn Cent, Das ursprüngliche Preisgeld bertug €785.810, 15.00 EUROS. Siebenhundert Fünfundachtzigtausend Acht Hundertzehn Euro und fünfzehn Cent Diese Summe wurde fuer nun mehr als zwei Jahre,Gewinnbringend  angelegt,daher die aufstockung auf die oben genannte Gesamtsumme.Entsprechend dem Büros des nicht Beanspruchten  Preisgeldes,wurde dieses Geld als nicht beanspruchten Gewinn einer Lotterie Firma bei ihnen zum verwalten niedergelegt und  in ihrem namen versichert. Nach Ansicht der Lotterie Firma wurde ihnen das Geld nach einer Weihnachts Förderung Lotterie  zugesprochen. 
-
- Die Kupons wurden von einer Investmentgesellschaft gekauft.Nach Ansicht der Lotterie Firma wurden sie damals Angeschrieben um Sie über dieses Geld zu informieren es hat sich aber leider bis zum Ablauf  der  gesetzten  Frist  keiner gemeldet um den Gewinn zu Beanspruchen. Dieses war der Grund weshalb das Geld zum verwalten niedergelegt wurde. Gemab des Spanischen Gesetzes muss der inhaber alle zwei Jahre ueber seinen vorhanden Gewinn informiert werden.Sollte dass Geld wieder nicht beansprucht werden,.wird der Gewinn abermals ueber eine Investierung gesellschaft fur eine weitere Periode von zwei Jahren angelegt werden.Wir sind daher, durch das Buro des nicht Beanspruchten Preisgelds beauftragt worden sie anzuschreiben.Dies ist eine Notifikation für das Beanspruchen dieses Gelds.
-
-Wir möchten sie darauf hinweisen, dass die Lotteriegesellschaft überprüfen und bestätigen wird ob ihre Identität  übereinstimmt bevor ihnen ihr Geld ausbezahlt wird.Wir werden sie beraten wie sie ihren Anspruch geltend machen.Bitte  setzen sie sich dafuer mit unserer Deutsch Spanisch oder Englisch Sprachigen Rechtsanwalt in Verbindung Rechtsanwältin: Bilbao & Emma ASSOZIIERT & CO.., TEL( 34) 602 810 185 & email,( Ihre Antwort sollte an diese E-MAIL-Adresse gerichtet, (promolottooffice@spainmail.com  )ist zustaendig fuer  Auszahlungen ins Ausland und wird ihnen in dieser sache zur seite stehen. Der Anspruch sollte vor den 30 August 2021 geltend  gemacht werden,da sonst dass Geld wieder angelegt werden wuerde.Wir freuen uns, von Ihnen zu hören, während wir Ihnen  unsere Rechtshilfe Versichern.
-
-Nachdem Sie die von Ihnen geforderten Daten bereitgestellt haben, können Sie davon ausgehen, dass Sie innerhalb weniger  Stunden direkt von diesem Büro erfahren werden. Bis dahin müssen wir Ihre Informationen verarbeitet und Ihre Fonds Akte für  die Zustellung vorbereitet haben, um Verzögerungen zu vermeiden. 
-Wir gehen davon aus, dass Sie die erläuternden Anweisungen und Anweisungen für den Erhalt Ihrer Prämien (935 €, 470, 15 Cent) verstehen, die Ihnen von der spanischen Euro Millones /El Gordo de la Primitiva International lotterie Madrid Spain legal zugesprochen werden.
-
-HINWEIS: Um unnötige Verzögerungen zu vermeiden, wenn es eine Änderung Ihrer Adresse oder Komplikationen geben, informieren Sie Ihren Agenten so schnell wie möglich, Ihr Agent wird 10% des Premium Preises bezahlt, da die Provision NACH Dem, was Sie Ihr Geld auf Ihr kostenpflichtiges Konto erhalten haben. Das Zahlungsbearbeitung Formular ist mit einer Fotokopie Ihres Ausweises auszufüllen und zur Überprüfung per Faxnummer zu senden: ( 34) 935457490 & E-Mail: Wir bitten dringend, Ihre E-Mails an unsere Büro-E-Mail zu beantworten  promolottooffice@spainmail.com
-
-Mit Freundlichen Grüßen
-Rechtsanwältin Bilbao & Emma ASSOZIIERT & CO..
-
-ANMELDEFORMULAR FÜR DEN GEWINNANSPRUCH Vom 28. Juni bis 30. August 2021
-Hinweis bitte geben Sie die folgenden Informationen, wie unten gefordert, faxen   34935457490 oder e mail: promolottooffice@spainmail.com ,es zurück in mein Büro sofort für uns in der Lage zu sein die Legalisierung Prozess Ihrer  Persönliche investiertes Preisgeld zu vervollständigen, und das Geld wird Ihnen von Zentralbank spain Int  ausgezahlt.  Alle Prozess Überprüfung durch unsere Kanzlei ist für Sie kostenlos, weil unsere Kosten werden von der internationalen  Lotto Kommission am Ende des Prozesses zu zahlen, wenn Sie Ihr Geld erhalten.Wenn Sie nicht die erforderlichen  Informationen vor der Zeit gegeben hat, können ist Anwaltskanzlei nicht haftbar gemacht werden, wenn Ihr Geld reinvestiert  wurde.
-
-Ein Bestätigungsschreiben wird Ihnen gefaxt werden sofort wenn wir komplette Überprüfung der Informationen die Sie uns zur  Verfügung stellen habe, Ich werde die Investmentbank unverzüglich über die von Ihnen angegebene Informationen zu kommen,  bevor sie werden mit Ihnen Kontakt aufnehmen für die ausZahlung von Ihrem Geld . Ihre Daten werden vertraulich gehalten  nach der Europäischen Union Datenschutzrecht.
-
-"Antworten Sie nicht auf die Absenderadresse oder die Quell-E-Mail-Adresse, es wird über den Computer gesendet virtuelle  Hilfe für die Antwort wird  nicht meine menschliche sondern Computer" Daher müssen Sie die Treuhänder über Telefon und E- Mail-Adresse oben" (ACHTUNG Wir (bitten Sie, auf diese E-Mail-Adresse zu antworten, (promolottooffice@spainmail.com )
-########################################################
-
-REF.NR:………………………………STAPELN Sie NR:…………………………
-Vorname:……………………Vor-NACHNAME…………………………………
-GEBURTSDATUM:……………………………BERUF:……………………………
-STRASSE:………………………………………PLZ/ORT…………………………
-ADRESSE:……………………………………………………………………………
-TELEFON:(___)……………………HANDY:(__)………………FAX (__)………
-EMAIL:…………………………………………………………Nationalitit:……
-
-HINWEIS: BANKVERBINDUNG IST NUR ERFORDERLICH, WENN SIE BESCHLIEßEN, IHREN GEWINN ZU ERHALTEN PER ÜBERWEISUNG
-
-Nachdem Sie die von Ihnen geforderten Daten bereitgestellt haben, können Sie davon ausgehen, dass Sie innerhalb weniger  Stunden direkt von diesem Büro erfahren werden. Bis dahin müssen wir Ihre Informationen verarbeitet und Ihre Fonds Akte für  die Zustellung vorbereitet haben, um Verzögerungen zu vermeiden. Wir gehen davon aus, dass Sie die erklärenden Anweisungen  und Anweisungen zum Einholen und Einholen Ihrer Auszeichnungen (€935,470,15 EUROS) verstehen, die Ihnen vom spanischen Euro Millones de La Primitiva International Madrid legal zugesprochen wurden
-
-BANK ZAHLUNGSOPTIONEN: A / BANKÜBERWEISUNG Oder BANK CERTIFIED CHECK (BANKDATEN SIND NUR NOTWENDIG, WENN SIE SICH FÜR EINE  BANKÜBERWEISUNG ENTSCHIEDEN HABEN)
-ZAHLUNGSOPTION: (A) BESTÄTIGTER SCHECK (BEZAHLEN Sie ÜBERTRAGUNG EIN
-
-BETRÄGE GEWONNEN: ……………………………………………………
-NAME DER BANK:……………………………………………………………
-KONTONUMMER:…………………………SWIFT-CODE:…………………
-ADRESSE DER BANK …………………………………………………………
-GEB-DATUM:…………Unterschrift …………(Erst bei hmeAbna)
-
-Rechtsanwältin  Bilbao & Emma Asociados, Abogados, Fiscal Y Accesorios horario de consultas Lunes.bis Samstag De. 09 - 16.30 Uhr  654280 / MLA & (Seien Sie informiert, dass Ihr Vertreter 10% des Preises als Provision erhält, wenn Sie Ihr Geld auf Ihrem  angegebenen Konto erhalten haben) Mitglied des Consejo de Constitucional de España, (ACHTUNG Wir bitten Sie, auf diese E-Mail-Adresse zu antworten (promolottooffice@spainmail.com) BÜRO-KONTOINFORMATIONEN- BANK NAME: P.F.S.SPAIN SL SWIFT CODE: PFSSESM1 IBAN: ES17 6713   0002 5700 0584 3906)COPYRIGHT 2019.LOTERIA SPANIEN. Alle Rechte vorbehalten. NUTZUNGSBEDINGUNGEN HANDELSPOLITIK DATENSCHUTZ VON BESCHWERDEN....
+diff --git a/include/libnetfilter_queue/libnetfilter_queue.h b/include/libnetfilter_queue/libnetfilter_queue.h
+index a19122f..42a3a45 100644
+--- a/include/libnetfilter_queue/libnetfilter_queue.h
++++ b/include/libnetfilter_queue/libnetfilter_queue.h
+@@ -16,8 +16,6 @@
+ #include <sys/time.h>
+ #include <libnfnetlink/libnfnetlink.h>
  
-Diese E-Mail ist für den vorgesehenen Empfänger bestimmt und enthält Informationen, die vertraulich sein können. Wenn Sie nicht der beabsichtigte Empfänger sind, benachrichtigen Sie bitte den Absender per E-Mail und löschen Sie diese E-Mail aus Ihrem Posteingang. Jede unbefugte Nutzung oder Verbreitung dieser E-Mail, ganz oder teilweise, ist strengstens untersagt und kann rechtswidrig sein. Alle in dieser E-Mail enthaltenen Preisangebote sind nur indikativ und führen zu keiner rechtlich bindenden oder durchsetzbaren Verpflichtung. Sofern nicht ausdrücklich als beabsichtigter E-Vertrag bezeichnet, stellt diese E-Mail kein Vertragsangebot, keine Vertragsänderung oder eine Annahme eines Vertragsangebots dar.
-WWW.GORDO/ EUROMILLIONS ESPAÑA  Sitz der Gesellschaft: Torre Europa Paseo de la Barcelona 15. Planta 16 28006 • Madrid. (Spanien)
+-#include <libnetfilter_queue/linux_nfnetlink_queue.h>
+-
+ #ifdef __cplusplus
+ extern "C" {
+ #endif
+diff --git a/src/libnetfilter_queue.c b/src/libnetfilter_queue.c
+index ef3b211..899c765 100644
+--- a/src/libnetfilter_queue.c
++++ b/src/libnetfilter_queue.c
+@@ -32,6 +32,7 @@
+ 
+ #include <libnfnetlink/libnfnetlink.h>
+ #include <libnetfilter_queue/libnetfilter_queue.h>
++#include <libnetfilter_queue/linux_nfnetlink_queue.h>
+ #include "internal.h"
+ 
+ /**
+diff --git a/utils/nfqnl_test.c b/utils/nfqnl_test.c
+index 5e76ffe..682f3d7 100644
+--- a/utils/nfqnl_test.c
++++ b/utils/nfqnl_test.c
+@@ -5,6 +5,7 @@
+ #include <netinet/in.h>
+ #include <linux/types.h>
+ #include <linux/netfilter.h>		/* for NF_ACCEPT */
++#include <linux/netfilter/nfnetlink_queue.h>
+ #include <errno.h>
+ 
+ #include <libnetfilter_queue/libnetfilter_queue.h>
+-- 
+2.17.5
 
