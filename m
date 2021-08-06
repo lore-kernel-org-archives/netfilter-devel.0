@@ -2,85 +2,82 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68DF8C4338F
-	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Aug 2021 15:12:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 186A2C4338F
+	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Aug 2021 19:50:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4F6ED61158
-	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Aug 2021 15:12:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 01AA3611C6
+	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Aug 2021 19:50:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243938AbhHFPMY (ORCPT
+        id S231207AbhHFTu4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 6 Aug 2021 11:12:24 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:33838 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243279AbhHFPMW (ORCPT
+        Fri, 6 Aug 2021 15:50:56 -0400
+Received: from www62.your-server.de ([213.133.104.62]:53504 "EHLO
+        www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229748AbhHFTu4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 6 Aug 2021 11:12:22 -0400
-Received: from salvia.lan (bl11-146-165.dsl.telepac.pt [85.244.146.165])
-        by mail.netfilter.org (Postfix) with ESMTPSA id DCFFA60057;
-        Fri,  6 Aug 2021 17:11:27 +0200 (CEST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 9/9] netfilter: nfnetlink_hook: translate inet ingress to netdev
-Date:   Fri,  6 Aug 2021 17:11:49 +0200
-Message-Id: <20210806151149.6356-10-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20210806151149.6356-1-pablo@netfilter.org>
-References: <20210806151149.6356-1-pablo@netfilter.org>
+        Fri, 6 Aug 2021 15:50:56 -0400
+Received: from sslproxy03.your-server.de ([88.198.220.132])
+        by www62.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
+        (Exim 4.92.3)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1mC5rZ-0004mn-Jc; Fri, 06 Aug 2021 21:50:37 +0200
+Received: from [85.5.47.65] (helo=linux.home)
+        by sslproxy03.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1mC5rZ-000Vl9-Cx; Fri, 06 Aug 2021 21:50:37 +0200
+Subject: LPC 2021 Networking and BPF Track CFP (2nd reminder)
+From:   Daniel Borkmann <daniel@iogearbox.net>
+To:     netdev@vger.kernel.org, bpf@vger.kernel.org
+Cc:     xdp-newbies@vger.kernel.org, iovisor-dev@lists.iovisor.org,
+        linux-wireless@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        lwn@lwn.net
+References: <6d225920-9ecc-ef24-2bf8-848ca86c7fb0@iogearbox.net>
+ <c549da28-a3c0-9478-4b91-7aa2ff124b69@iogearbox.net>
+Message-ID: <2fb02920-db19-f29f-5a18-3c4d7edb3960@iogearbox.net>
+Date:   Fri, 6 Aug 2021 21:50:36 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.2
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <c549da28-a3c0-9478-4b91-7aa2ff124b69@iogearbox.net>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Authenticated-Sender: daniel@iogearbox.net
+X-Virus-Scanned: Clear (ClamAV 0.103.2/26255/Fri Aug  6 10:24:06 2021)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The NFPROTO_INET pseudofamily is not exposed through this new netlink
-interface. The netlink dump either shows NFPROTO_IPV4 or NFPROTO_IPV6
-for NFPROTO_INET prerouting/input/forward/output/postrouting hooks.
-The NFNLA_CHAIN_FAMILY attribute provides the family chain, which
-specifies if this hook applies to inet traffic only (either IPv4 or
-IPv6).
+This is a reminder for the Call for Proposals (CFP) for the Networking and
+BPF track at the 2021 edition of the Linux Plumbers Conference (LPC), which
+will be held virtually on the wider Internet, on September 20th - 24th, 2021.
 
-Translate the inet/ingress hook to netdev/ingress to fully hide the
-NFPROTO_INET implementation details.
+This year's Networking and BPF track technical committee is comprised of:
 
-Fixes: e2cf17d3774c ("netfilter: add new hook nfnl subsystem")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nfnetlink_hook.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+   David S. Miller <davem@davemloft.net>
+   Jakub Kicinski <kuba@kernel.org>
+   Eric Dumazet <edumazet@google.com>
+   Alexei Starovoitov <ast@kernel.org>
+   Daniel Borkmann <daniel@iogearbox.net>
+   Andrii Nakryiko <andrii@kernel.org>
 
-diff --git a/net/netfilter/nfnetlink_hook.c b/net/netfilter/nfnetlink_hook.c
-index 32eea785ae25..f554e2ea32ee 100644
---- a/net/netfilter/nfnetlink_hook.c
-+++ b/net/netfilter/nfnetlink_hook.c
-@@ -119,6 +119,7 @@ static int nfnl_hook_dump_one(struct sk_buff *nlskb,
- 	unsigned int portid = NETLINK_CB(nlskb).portid;
- 	struct nlmsghdr *nlh;
- 	int ret = -EMSGSIZE;
-+	u32 hooknum;
- #ifdef CONFIG_KALLSYMS
- 	char sym[KSYM_SYMBOL_LEN];
- 	char *module_name;
-@@ -156,7 +157,12 @@ static int nfnl_hook_dump_one(struct sk_buff *nlskb,
- 		goto nla_put_failure;
- #endif
- 
--	ret = nla_put_be32(nlskb, NFNLA_HOOK_HOOKNUM, htonl(ops->hooknum));
-+	if (ops->pf == NFPROTO_INET && ops->hooknum == NF_INET_INGRESS)
-+		hooknum = NF_NETDEV_INGRESS;
-+	else
-+		hooknum = ops->hooknum;
-+
-+	ret = nla_put_be32(nlskb, NFNLA_HOOK_HOOKNUM, htonl(hooknum));
- 	if (ret)
- 		goto nla_put_failure;
- 
--- 
-2.20.1
+We are seeking proposals of 40 minutes in length (including Q&A discussion),
+optionally accompanied by papers of 2 to 10 pages in length.
 
+Any kind of advanced Linux networking and/or BPF related topic will be considered.
+
+Please submit your proposals through the official LPC website at:
+
+   https://linuxplumbersconf.org/event/11/abstracts/
+
+Make sure to select "Networking & BPF Summit" in the Track pull-down menu.
+
+Proposals must be submitted by August 13th, and submitters will be notified of
+acceptance by August 16th.
+
+Final slides and papers (as PDF) are due on the first day of the conference.
