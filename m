@@ -2,60 +2,90 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A18DC4338F
-	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Aug 2021 13:28:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADCE0C4338F
+	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Aug 2021 15:00:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F1B5161181
-	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Aug 2021 13:28:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 76C386115C
+	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Aug 2021 15:00:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344021AbhHFN2Q (ORCPT
+        id S242075AbhHFPAR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 6 Aug 2021 09:28:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39622 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S244222AbhHFN2Q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 6 Aug 2021 09:28:16 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 374D3610FB;
-        Fri,  6 Aug 2021 13:28:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1628256480;
-        bh=dkh3dvzjEZE9iTbls9gJibdZUt6AbGs04SlkQ7Guf4I=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=XuQDwYZ2Wr0+M+cak2eIvqvRhrJxoGYqqJWHWyOu63+rv1/zt60ch1sNmbxTutcQG
-         oyyNjqVBKSrnxhxsNm0xEZVTG6/lG/2LlsZ5jLuWZCFMhIt/mRE3enPv+kBdpFuBOL
-         i131lcYAlrYEfVWHwJWrgLjlIhFAqFAsH/2x2j2e5M2An0WxXb+0qMUEXSrAJGPvI7
-         pVbGYgk06oX14ptI7veakpj+LoVAFNz1kvVQMq9zYv4qaShQK432umuQL5LAge4VBQ
-         8PcYNzmFjJgtHxL9eWLM/C42dBApY8Y9fQ02gmRrcaF4dJl1Ji+n8dgE6oKO5bNM9c
-         11ZLsJ4UZ/+qA==
-Date:   Fri, 6 Aug 2021 06:27:59 -0700
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
+        Fri, 6 Aug 2021 11:00:17 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:33704 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S241958AbhHFPAQ (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 6 Aug 2021 11:00:16 -0400
+Received: from netfilter.org (bl11-146-165.dsl.telepac.pt [85.244.146.165])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 214CF60038;
+        Fri,  6 Aug 2021 16:59:21 +0200 (CEST)
+Date:   Fri, 6 Aug 2021 16:59:54 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jakub Kicinski <kuba@kernel.org>
 Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org
-Subject: Re: [PATCH net 3/9] netfilter: conntrack: collect all entries in
- one cycle
-Message-ID: <20210806062759.2acb5a47@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <20210806115207.2976-4-pablo@netfilter.org>
+        netdev@vger.kernel.org, fw@strlen.de
+Subject: Re: [PATCH net 3/9] netfilter: conntrack: collect all entries in one
+ cycle
+Message-ID: <20210806145954.GA1405@salvia>
 References: <20210806115207.2976-1-pablo@netfilter.org>
-        <20210806115207.2976-4-pablo@netfilter.org>
+ <20210806115207.2976-4-pablo@netfilter.org>
+ <20210806062759.2acb5a47@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="pf9I7BMVVzbSWLtt"
+Content-Disposition: inline
+In-Reply-To: <20210806062759.2acb5a47@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri,  6 Aug 2021 13:52:01 +0200 Pablo Neira Ayuso wrote:
->  		rcu_read_lock();
->  
->  		nf_conntrack_get_ht(&ct_hash, &hashsz);
->  		if (i >= hashsz)
-> -			i = 0;
-> +			break;
 
-Sparse says there is a missing rcu_read_unlock() here.
-Please follow up on this one.
+--pf9I7BMVVzbSWLtt
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+
+On Fri, Aug 06, 2021 at 06:27:59AM -0700, Jakub Kicinski wrote:
+> On Fri,  6 Aug 2021 13:52:01 +0200 Pablo Neira Ayuso wrote:
+> >  		rcu_read_lock();
+> >  
+> >  		nf_conntrack_get_ht(&ct_hash, &hashsz);
+> >  		if (i >= hashsz)
+> > -			i = 0;
+> > +			break;
+> 
+> Sparse says there is a missing rcu_read_unlock() here.
+> Please follow up on this one.
+
+Right.
+
+I can squash this fix and send another PR or send a follow up patch.
+
+Let me know your preference.
+
+--pf9I7BMVVzbSWLtt
+Content-Type: text/x-diff; charset=utf-8
+Content-Disposition: attachment; filename="x.patch"
+
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 3fdcf251ec1f..d31dbccbe7bd 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1377,8 +1377,10 @@ static void gc_worker(struct work_struct *work)
+ 		rcu_read_lock();
+ 
+ 		nf_conntrack_get_ht(&ct_hash, &hashsz);
+-		if (i >= hashsz)
++		if (i >= hashsz) {
++			rcu_read_unlock();
+ 			break;
++		}
+ 
+ 		hlist_nulls_for_each_entry_rcu(h, n, &ct_hash[i], hnnode) {
+ 			struct nf_conntrack_net *cnet;
+
+--pf9I7BMVVzbSWLtt--
