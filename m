@@ -2,85 +2,60 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7968C4338F
-	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Aug 2021 11:52:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A18DC4338F
+	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Aug 2021 13:28:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C62D560EBC
-	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Aug 2021 11:52:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F1B5161181
+	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Aug 2021 13:28:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343507AbhHFLwp (ORCPT
+        id S1344021AbhHFN2Q (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 6 Aug 2021 07:52:45 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:33318 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343505AbhHFLwk (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 6 Aug 2021 07:52:40 -0400
-Received: from salvia.lan (bl11-146-165.dsl.telepac.pt [85.244.146.165])
-        by mail.netfilter.org (Postfix) with ESMTPSA id ABE956005B;
-        Fri,  6 Aug 2021 13:51:44 +0200 (CEST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 9/9] netfilter: nfnetlink_hook: translate inet ingress to netdev
-Date:   Fri,  6 Aug 2021 13:52:07 +0200
-Message-Id: <20210806115207.2976-10-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20210806115207.2976-1-pablo@netfilter.org>
+        Fri, 6 Aug 2021 09:28:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39622 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S244222AbhHFN2Q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 6 Aug 2021 09:28:16 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 374D3610FB;
+        Fri,  6 Aug 2021 13:28:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1628256480;
+        bh=dkh3dvzjEZE9iTbls9gJibdZUt6AbGs04SlkQ7Guf4I=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=XuQDwYZ2Wr0+M+cak2eIvqvRhrJxoGYqqJWHWyOu63+rv1/zt60ch1sNmbxTutcQG
+         oyyNjqVBKSrnxhxsNm0xEZVTG6/lG/2LlsZ5jLuWZCFMhIt/mRE3enPv+kBdpFuBOL
+         i131lcYAlrYEfVWHwJWrgLjlIhFAqFAsH/2x2j2e5M2An0WxXb+0qMUEXSrAJGPvI7
+         pVbGYgk06oX14ptI7veakpj+LoVAFNz1kvVQMq9zYv4qaShQK432umuQL5LAge4VBQ
+         8PcYNzmFjJgtHxL9eWLM/C42dBApY8Y9fQ02gmRrcaF4dJl1Ji+n8dgE6oKO5bNM9c
+         11ZLsJ4UZ/+qA==
+Date:   Fri, 6 Aug 2021 06:27:59 -0700
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org
+Subject: Re: [PATCH net 3/9] netfilter: conntrack: collect all entries in
+ one cycle
+Message-ID: <20210806062759.2acb5a47@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+In-Reply-To: <20210806115207.2976-4-pablo@netfilter.org>
 References: <20210806115207.2976-1-pablo@netfilter.org>
+        <20210806115207.2976-4-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The NFPROTO_INET pseudofamily is not exposed through this new netlink
-interface. The netlink dump either shows NFPROTO_IPV4 or NFPROTO_IPV6
-for NFPROTO_INET prerouting/input/forward/output/postrouting hooks.
-The NFNLA_CHAIN_FAMILY attribute provides the family chain, which
-specifies if this hook applies to inet traffic only (either IPv4 or
-IPv6).
+On Fri,  6 Aug 2021 13:52:01 +0200 Pablo Neira Ayuso wrote:
+>  		rcu_read_lock();
+>  
+>  		nf_conntrack_get_ht(&ct_hash, &hashsz);
+>  		if (i >= hashsz)
+> -			i = 0;
+> +			break;
 
-Translate the inet/ingress hook to netdev/ingress to fully hide the
-NFPROTO_INET implementation details.
-
-Fixes: e2cf17d3774c ("netfilter: add new hook nfnl subsystem")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nfnetlink_hook.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nfnetlink_hook.c b/net/netfilter/nfnetlink_hook.c
-index 32eea785ae25..f554e2ea32ee 100644
---- a/net/netfilter/nfnetlink_hook.c
-+++ b/net/netfilter/nfnetlink_hook.c
-@@ -119,6 +119,7 @@ static int nfnl_hook_dump_one(struct sk_buff *nlskb,
- 	unsigned int portid = NETLINK_CB(nlskb).portid;
- 	struct nlmsghdr *nlh;
- 	int ret = -EMSGSIZE;
-+	u32 hooknum;
- #ifdef CONFIG_KALLSYMS
- 	char sym[KSYM_SYMBOL_LEN];
- 	char *module_name;
-@@ -156,7 +157,12 @@ static int nfnl_hook_dump_one(struct sk_buff *nlskb,
- 		goto nla_put_failure;
- #endif
- 
--	ret = nla_put_be32(nlskb, NFNLA_HOOK_HOOKNUM, htonl(ops->hooknum));
-+	if (ops->pf == NFPROTO_INET && ops->hooknum == NF_INET_INGRESS)
-+		hooknum = NF_NETDEV_INGRESS;
-+	else
-+		hooknum = ops->hooknum;
-+
-+	ret = nla_put_be32(nlskb, NFNLA_HOOK_HOOKNUM, htonl(hooknum));
- 	if (ret)
- 		goto nla_put_failure;
- 
--- 
-2.20.1
-
+Sparse says there is a missing rcu_read_unlock() here.
+Please follow up on this one.
