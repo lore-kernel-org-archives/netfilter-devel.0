@@ -2,101 +2,202 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C9D4C4338F
-	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Aug 2021 03:52:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DAE3C4338F
+	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Aug 2021 06:21:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D842861185
-	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Aug 2021 03:52:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 275BE60E96
+	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Aug 2021 06:21:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230379AbhHGDwc (ORCPT
+        id S231326AbhHGGVb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 6 Aug 2021 23:52:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39150 "EHLO
+        Sat, 7 Aug 2021 02:21:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42922 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230144AbhHGDwc (ORCPT
+        with ESMTP id S229495AbhHGGVa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 6 Aug 2021 23:52:32 -0400
-Received: from mail-pj1-x102d.google.com (mail-pj1-x102d.google.com [IPv6:2607:f8b0:4864:20::102d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86390C0613CF
-        for <netfilter-devel@vger.kernel.org>; Fri,  6 Aug 2021 20:52:15 -0700 (PDT)
-Received: by mail-pj1-x102d.google.com with SMTP id pj14-20020a17090b4f4eb029017786cf98f9so20925846pjb.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 06 Aug 2021 20:52:15 -0700 (PDT)
+        Sat, 7 Aug 2021 02:21:30 -0400
+Received: from mail-pj1-x1035.google.com (mail-pj1-x1035.google.com [IPv6:2607:f8b0:4864:20::1035])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD635C0613CF;
+        Fri,  6 Aug 2021 23:21:12 -0700 (PDT)
+Received: by mail-pj1-x1035.google.com with SMTP id o44-20020a17090a0a2fb0290176ca3e5a2fso21305722pjo.1;
+        Fri, 06 Aug 2021 23:21:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=sender:from:date:to:cc:subject:message-id:mail-followup-to
-         :references:mime-version:content-disposition:in-reply-to;
-        bh=tXcdy8hm7HKlC5Y5cFaR+kT8difu2mjIyTPQ+OXqO6s=;
-        b=g2zVPAVnce71UKnSymW75fQ5ThEXZ6ku1HyRCqxo/hk+nnq+Ib0Lb45rkHubB0XpJC
-         2hGMNgxGdZlqmKDldbb3tz/btzh5ijMssDYjDA+UOYxUyMyINH8GFp8KewNbkFa6COAK
-         q3A0+YZNqnzlJgq0sCCBGt+0kq1nbN8WI/hhff5oxVjVjRPdm77EC2GFP7Kr5OjTrrOW
-         XCuZMorUO1XSK9aSZjxvMMEUeHdF6FwLPVxvWfWokFL0c3kun+xBsvYvOEskNoquoUR5
-         Wrh1IsXBirF8+BN8x6wz4IoRc8NaWi7PLmX4Nv/WDFnqhx7FfMlyZZbTHjUj1HGfN4ju
-         Or2w==
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=m2cqmq90O7bUx6WnzE787bEO9ZOPXuPJtWAxQVGTmx4=;
+        b=Py6Y955oz6HI1f43MbKUetr8rs+3ZJ6lB8q0Qf5Opr/7xJTeHo+rODYHo3BN9XFHEz
+         IU85n4Dk9qBDKSBldSV9znRV07mYtKnIS4ZVLjg3QkbjzU7ggFanCAMiF04TDJ8Fh/FZ
+         i9auyoj0NYc2LlwSNbsoSHru5iyH7MOxxxWPidSjU8yrYp03ZV6IdZIa0IXfvXNGlodD
+         76gTaBUxCnfWToWZBPjzWLAR1S0rfG3SVznjj4GXBapDBRDg+7bgpv9GreHyvYgqudtc
+         r24o043IlEzBMLGqwyuAf3h62uATtvaNqnj3NkIa3wDyExg7HePpBCwqgOwsDzVPvhYE
+         gg6Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:from:date:to:cc:subject:message-id
-         :mail-followup-to:references:mime-version:content-disposition
-         :in-reply-to;
-        bh=tXcdy8hm7HKlC5Y5cFaR+kT8difu2mjIyTPQ+OXqO6s=;
-        b=QThWmozEoP03sYVrSaQmlzIVQ9A04TNtgPOiHIjTPVutY+G1x9AX9hNlUVzWu0obRV
-         HBQx5T8ahZTj9dW9iSPpRTXbWGjv012MQUP7zTtUDSpwnpNbPqFLkEz+ZP6ejmMBstxH
-         PKSCxK9gzCguU7bpo0PyS6a0xXilmWEqbw0G3Jy1iVxSB82H+5baVwFV0vhVIywM/Wny
-         gKuhLcl4cg9iT4Wp7m5H19aiMsF/ficBfZp+c3s4CpPW6zmiTOXBPuTjxrMcl3/x7JB1
-         Ftv78xwAN2D3Sc+FSPX/irna74pna5SQrfWX21bAcAj/mBWx4Z78o2Rv13dFDg0j4YN4
-         8rDw==
-X-Gm-Message-State: AOAM530RGO3WMkM/q8WHnzrZLVOv4ZaG+AK5GaPE0aXlMKETmBmqy6oN
-        IcErJPr3n6xl7369yqCkBwo=
-X-Google-Smtp-Source: ABdhPJxZpmeCRSZXSsUNI5sMpX7uLTyJz7ZR1wMcGwSHUvEBYRt5Q0/nJZW4MsEEpX8TCKghRvzzSA==
-X-Received: by 2002:a17:902:b78b:b029:12c:6f89:51aa with SMTP id e11-20020a170902b78bb029012c6f8951aamr11426650pls.3.1628308335146;
-        Fri, 06 Aug 2021 20:52:15 -0700 (PDT)
-Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
-        by smtp.gmail.com with ESMTPSA id w10sm14363239pgl.46.2021.08.06.20.52.13
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=m2cqmq90O7bUx6WnzE787bEO9ZOPXuPJtWAxQVGTmx4=;
+        b=Fl/r/+/dGZy1JY8ZQ1zuyYJF9drSwBm96qld2hPRDoXR19T2ugxBxEpno8jgCkIwDa
+         xfYySNvq5GxLwrdb7JdzbHLW3T7X1EyT6KsyvZUzjSqiVeVA+o1UGKfvsuJ7JZI4JxQO
+         R8P52uvhHpDtGAZRATW4burFO1qLTkelR9MeP3Kq/nH8HIeO1iJCrN1MOW+F9TaEknOR
+         9EQ/m+GEfA+g7wQsEth021PdfBPBCcm4IAjhxZ7eW0zktZsw4MpX51J5dptWs3X8r8c0
+         NITGqS1QsikQdrwEZJNwnNWklO72pDIIEiffXWzOBOCBT2f6HadFL3+XqUM7WX4l5IQ2
+         Pyzg==
+X-Gm-Message-State: AOAM533sPfXg+QnScsyf/tdVR1JhFvM/TAj/oePwUGcnErq8OerVPROV
+        8thIDS7mfq3IO65ZnKAkmN4=
+X-Google-Smtp-Source: ABdhPJwJOiCK3vqkQxeVgeIXyYL9YVCNVjrzLHcjv41inI2KjVSwGPFUPOTv1Jgbttk8NY778o/Rqg==
+X-Received: by 2002:a63:e214:: with SMTP id q20mr11413pgh.134.1628317272349;
+        Fri, 06 Aug 2021 23:21:12 -0700 (PDT)
+Received: from localhost.localdomain ([1.240.193.107])
+        by smtp.googlemail.com with ESMTPSA id y4sm10985287pjw.57.2021.08.06.23.21.09
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 06 Aug 2021 20:52:14 -0700 (PDT)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-X-Google-Original-From: Duncan Roe <dunc@slk1.local.net>
-Date:   Sat, 7 Aug 2021 13:52:10 +1000
+        Fri, 06 Aug 2021 23:21:11 -0700 (PDT)
+From:   Kangmin Park <l4stpr0gr4m@gmail.com>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH libnetfilter_queue] build: If doxygen is not available,
- be sure to report "doxygen: no" to ./configure
-Message-ID: <YQ4DaoPKEO+OHgkj@slk1.local.net>
-Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <20210806083840.440-1-duncan_roe@optusnet.com.au>
+Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] netfilter: remove duplicate code
+Date:   Sat,  7 Aug 2021 15:21:06 +0900
+Message-Id: <20210807062106.2563-1-l4stpr0gr4m@gmail.com>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210806083840.440-1-duncan_roe@optusnet.com.au>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Aug 06, 2021 at 06:38:40PM +1000, Duncan Roe wrote:
-> Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
-> ---
->  configure.ac | 1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/configure.ac b/configure.ac
-> index bdbee98..cf50003 100644
-> --- a/configure.ac
-> +++ b/configure.ac
-> @@ -52,6 +52,7 @@ AM_CONDITIONAL([HAVE_DOXYGEN], [test -n "$DOXYGEN"])
->  AS_IF([test "x$DOXYGEN" = x], [
->  	dnl Only run doxygen Makefile if doxygen installed
->  	AC_MSG_WARN([Doxygen not found - continuing without Doxygen support])
-> +	with_doxygen=no
->  ])
->  AC_OUTPUT
->
-> --
-> 2.17.5
->
-Scrub this - v2 on its way (Bogus warning on --without-doxygen)
+nf_nat_ipv4_fn() and nf_nat_ipv6_fn() call nf_nat_inet_fn().
+Those two functions are already contains routine that gets nf_conn
+object and checks the untrackable situation.
+So, the following code is duplicated.
+
+```
+ct = nf_ct_get(skb, &ctinfo);
+if (!ct)
+        return NF_ACCEPT;
+```
+
+Therefore, define a function __nf_nat_inet_fn() that has the same
+contents as the nf_nat_inet_fn() except for routine gets and checks
+the nf_conn object.
+Then, separate the nf_nat_inet_fn() into a routine that gets a
+nf_conn object and a routine that calls the __nf_nat_inet_fn().
+
+Signed-off-by: Kangmin Park <l4stpr0gr4m@gmail.com>
+---
+ include/net/netfilter/nf_nat.h |  5 +++++
+ net/netfilter/nf_nat_core.c    | 37 ++++++++++++++++++++++------------
+ net/netfilter/nf_nat_proto.c   |  4 ++--
+ 3 files changed, 31 insertions(+), 15 deletions(-)
+
+diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_nat.h
+index 987111ae5240..a66f617c5054 100644
+--- a/include/net/netfilter/nf_nat.h
++++ b/include/net/netfilter/nf_nat.h
+@@ -100,6 +100,11 @@ void nf_nat_ipv6_unregister_fn(struct net *net, const struct nf_hook_ops *ops);
+ int nf_nat_inet_register_fn(struct net *net, const struct nf_hook_ops *ops);
+ void nf_nat_inet_unregister_fn(struct net *net, const struct nf_hook_ops *ops);
+ 
++unsigned int
++__nf_nat_inet_fn(void *priv, struct sk_buff *skb,
++		 const struct nf_hook_state *state, struct nf_conn *ct,
++		 enum ip_conntrack_info ctinfo);
++
+ unsigned int
+ nf_nat_inet_fn(void *priv, struct sk_buff *skb,
+ 	       const struct nf_hook_state *state);
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 7de595ead06a..98ebba2c0f6d 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -682,25 +682,15 @@ unsigned int nf_nat_packet(struct nf_conn *ct,
+ }
+ EXPORT_SYMBOL_GPL(nf_nat_packet);
+ 
+ unsigned int
+-nf_nat_inet_fn(void *priv, struct sk_buff *skb,
+-	       const struct nf_hook_state *state)
++__nf_nat_inet_fn(void *priv, struct sk_buff *skb,
++		 const struct nf_hook_state *state, struct nf_conn *ct,
++		 enum ip_conntrack_info ctinfo)
+ {
+-	struct nf_conn *ct;
+-	enum ip_conntrack_info ctinfo;
+ 	struct nf_conn_nat *nat;
+ 	/* maniptype == SRC for postrouting. */
+ 	enum nf_nat_manip_type maniptype = HOOK2MANIP(state->hook);
+ 
+-	ct = nf_ct_get(skb, &ctinfo);
+-	/* Can't track?  It's not due to stress, or conntrack would
+-	 * have dropped it.  Hence it's the user's responsibilty to
+-	 * packet filter it out, or implement conntrack/NAT for that
+-	 * protocol. 8) --RR
+-	 */
+-	if (!ct)
+-		return NF_ACCEPT;
+-
+ 	nat = nfct_nat(ct);
+ 
+ 	switch (ctinfo) {
+@@ -755,6 +745,26 @@ nf_nat_inet_fn(void *priv, struct sk_buff *skb,
+ 	nf_ct_kill_acct(ct, ctinfo, skb);
+ 	return NF_DROP;
+ }
++EXPORT_SYMBOL_GPL(__nf_nat_inet_fn);
++
++unsigned int
++nf_nat_inet_fn(void *priv, struct sk_buff *skb,
++	       const struct nf_hook_state *state)
++{
++	struct nf_conn *ct;
++	enum ip_conntrack_info ctinfo;
++
++	ct = nf_ct_get(skb, &ctinfo);
++	/* Can't track?  It's not due to stress, or conntrack would
++	 * have dropped it.  Hence it's the user's responsibilty to
++	 * packet filter it out, or implement conntrack/NAT for that
++	 * protocol. 8) --RR
++	 */
++	if (!ct)
++		return NF_ACCEPT;
++
++	return __nf_nat_inet_fn(priv, skb, state, ct, ctinfo);
++}
+ EXPORT_SYMBOL_GPL(nf_nat_inet_fn);
+ 
+ struct nf_nat_proto_clean {
+diff --git a/net/netfilter/nf_nat_proto.c b/net/netfilter/nf_nat_proto.c
+index 48cc60084d28..897859730078 100644
+--- a/net/netfilter/nf_nat_proto.c
++++ b/net/netfilter/nf_nat_proto.c
+@@ -642,7 +642,7 @@ nf_nat_ipv4_fn(void *priv, struct sk_buff *skb,
+ 		}
+ 	}
+ 
+-	return nf_nat_inet_fn(priv, skb, state);
++	return __nf_nat_inet_fn(priv, skb, state, ct, ctinfo);
+ }
+ 
+ static unsigned int
+@@ -934,7 +934,7 @@ nf_nat_ipv6_fn(void *priv, struct sk_buff *skb,
+ 		}
+ 	}
+ 
+-	return nf_nat_inet_fn(priv, skb, state);
++	return __nf_nat_inet_fn(priv, skb, state, ct, ctinfo);
+ }
+ 
+ static unsigned int
+-- 
+2.26.2
+
