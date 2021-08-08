@@ -2,80 +2,112 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DE96C4338F
-	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Aug 2021 20:50:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24E27C4320A
+	for <netfilter-devel@archiver.kernel.org>; Sun,  8 Aug 2021 03:07:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 18D7561042
-	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Aug 2021 20:50:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 023A060F10
+	for <netfilter-devel@archiver.kernel.org>; Sun,  8 Aug 2021 03:07:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229854AbhHGUu1 (ORCPT
+        id S230049AbhHHDH4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 7 Aug 2021 16:50:27 -0400
-Received: from mail-io1-f69.google.com ([209.85.166.69]:36710 "EHLO
-        mail-io1-f69.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229755AbhHGUu0 (ORCPT
+        Sat, 7 Aug 2021 23:07:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58276 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229977AbhHHDH4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 7 Aug 2021 16:50:26 -0400
-Received: by mail-io1-f69.google.com with SMTP id x13-20020a5eda0d0000b02905976d643e4cso1022383ioj.3
-        for <netfilter-devel@vger.kernel.org>; Sat, 07 Aug 2021 13:50:09 -0700 (PDT)
+        Sat, 7 Aug 2021 23:07:56 -0400
+Received: from mail-pj1-x1031.google.com (mail-pj1-x1031.google.com [IPv6:2607:f8b0:4864:20::1031])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE0A9C061760
+        for <netfilter-devel@vger.kernel.org>; Sat,  7 Aug 2021 20:07:37 -0700 (PDT)
+Received: by mail-pj1-x1031.google.com with SMTP id j1so22589662pjv.3
+        for <netfilter-devel@vger.kernel.org>; Sat, 07 Aug 2021 20:07:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=sender:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=XrzKhcHocJ3rU7JDx2syTXWRU3/Si0PI4d6wwNeygO8=;
+        b=WIZrcyu/wCLeynemorlzut+WBzCpyfzHS0wFYi182feNZEq1BhB+KVhbXAGHanTDlU
+         9h/ZxaHMXcfpnFXq7c55uzhJ2MYvLwUcNgcUUgx29yP+qxsSKdukwtyas0iaiAt0+YUu
+         DyizC7WJyxHjRM92A0/Yqqy8HVwIj4NdRlO89lwPl6SFLjrhgnlJGWDtO1GKAKPiC/6h
+         J2RYgrrwKT+OF/USOO9eCXRTEOvdhjTS1tLDU61zlWqv1YNO+sLTqIUskymbbuEX3s/4
+         7uD58n6Cam60bezqzAlUKSfj7yjVCYlVLlNs3Zpfe1o6lDcSfWISTkZ55mGgz4igaEYv
+         fgqA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
-         :from:to;
-        bh=kB3Z+oJmbPVyqEenpzuOJ3r/Iu75zORAOLzcjtFRKcU=;
-        b=mMUAleSacIUIShvcz8cBi2nqmHtBoVnlKFmiUi8gCm9ICGWfvu+AkNCw4JOE4BhkdT
-         IAY2I8Fs5VIFgHJuUrUB+25MxPbuyzM8LDQ5g3ovj24+z0pJfJQHmMbz0a00VHAAzQvN
-         897OCgATIERMkHxEmnae2qxKTMgNarnAYWrns3/tGd2KFzuB3gTdro+ku0ZsuEJ5bKKj
-         3mkEOLmnC8xxo1OfKyZEJvs0X6zLmbS0rkV0fLaT3UWHjetOilg7MyGfgjlpo2lqPmsl
-         Xg8O7bn/FWINxtfy20LjXHTrYT3yHYMo6BiOY6hBCNqKxFTZqJ6El0oxiN6Q2yN8l6Kd
-         99Gw==
-X-Gm-Message-State: AOAM532I7AGU392/B580QSf3hbOfOFFCqI4D7bvaN9WR+ZsUspOlRuEZ
-        4wYhi38pNr3qC2KHEvHNNCCtLkgmvmoxqitRutX270PxC1i9
-X-Google-Smtp-Source: ABdhPJwjExny7u/hKTYAZ8j2/3MBwJ7OmePQ9gJZ+yu6LVU/yD0FZToysK+YsZWX2eREUDBAfRwOH4NNmSdjgH2lP5/tagQ/uNEH
+        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
+         :mime-version:content-transfer-encoding;
+        bh=XrzKhcHocJ3rU7JDx2syTXWRU3/Si0PI4d6wwNeygO8=;
+        b=JK743PXoeV/aEeY7Pnt6jSn5O2PMdbVAJolvqcErT6cuBGE1HDPtIq6Qm7wcz4GoIz
+         5nTJBV4jI0EHa2UMnGgA+wdiLfmmf2mskvG5oUO0iKnPqF1xljcbUqL4MVYVNOrHgUsj
+         xppnu5NNJK25DMkqYnOFyz9nC3d1T+3P+rDWhojG91apNDlDm8oawerxh5n2EeuGxuAO
+         c0KCpx4r8Bnbrq1ppp4zrYkF/XT5oBoE5E5zlnbS/crhbqXkkDIX2vnuS8coNcdfgw2n
+         StiAhQ0XHcldkLDPficxpFHS3797rVGGvyOKDJvN7z4dkpDJYS7xM040K4BzwVNRnHPc
+         oyRg==
+X-Gm-Message-State: AOAM531IjnMhjfjmOMdvaYUlogR/WINZZpr1WTVa3X8jHwE2IYESWWrQ
+        IEAyK6nqYxsox8Knye9p/6Nq+wQgy8r8CQ==
+X-Google-Smtp-Source: ABdhPJzY/WlsZv+5UA3MKyKfGf/kqVklt3T41obBXzeI3WikHROKNZT62wo1jq1HAtre98JT1QRlyA==
+X-Received: by 2002:a17:902:76cb:b029:12b:2fb8:7c35 with SMTP id j11-20020a17090276cbb029012b2fb87c35mr8766195plt.16.1628392057082;
+        Sat, 07 Aug 2021 20:07:37 -0700 (PDT)
+Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
+        by smtp.gmail.com with ESMTPSA id z3sm13268240pjn.43.2021.08.07.20.07.35
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 07 Aug 2021 20:07:36 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH libmnl] src: doc: Fix messed-up Netlink message batch diagram
+Date:   Sun,  8 Aug 2021 13:07:31 +1000
+Message-Id: <20210808030731.2762-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.32.0
 MIME-Version: 1.0
-X-Received: by 2002:a92:c52e:: with SMTP id m14mr19009ili.257.1628369408835;
- Sat, 07 Aug 2021 13:50:08 -0700 (PDT)
-Date:   Sat, 07 Aug 2021 13:50:08 -0700
-In-Reply-To: <000000000000b720b705c8f8599f@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000002d477205c8fe4ccd@google.com>
-Subject: Re: [syzbot] KASAN: use-after-free Write in nft_ct_tmpl_put_pcpu
-From:   syzbot <syzbot+649e339fa6658ee623d3@syzkaller.appspotmail.com>
-To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        kadlec@netfilter.org, kuba@kernel.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot has bisected this issue to:
+Put the diagram in a *verbatim* block (like all the other diagrams)
 
-commit 65038428b2c6c5be79d3f78a6b79c0cdc3a58a41
-Author: Pablo Neira Ayuso <pablo@netfilter.org>
-Date:   Tue Mar 17 13:13:46 2020 +0000
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+---
+ src/nlmsg.c | 19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-    netfilter: nf_tables: allow to specify stateful expression in set definition
+diff --git a/src/nlmsg.c b/src/nlmsg.c
+index d398e63..ce37cbc 100644
+--- a/src/nlmsg.c
++++ b/src/nlmsg.c
+@@ -381,15 +381,16 @@ EXPORT_SYMBOL void mnl_nlmsg_fprintf(FILE *fd, const void *data, size_t datalen,
+  * datagram. These helpers do not perform strict memory boundary checkings.
+  *
+  * The following figure represents a Netlink message batch:
+- *
+- *   |<-------------- MNL_SOCKET_BUFFER_SIZE ------------->|
+- *   |<-------------------- batch ------------------>|     |
+- *   |-----------|-----------|-----------|-----------|-----------|
+- *   |<- nlmsg ->|<- nlmsg ->|<- nlmsg ->|<- nlmsg ->|<- nlmsg ->|
+- *   |-----------|-----------|-----------|-----------|-----------|
+- *                                             ^           ^
+- *                                             |           |
+- *                                        message N   message N+1
++ *\verbatim
++   |<-------------- MNL_SOCKET_BUFFER_SIZE ------------->|
++   |<-------------------- batch ------------------>|     |
++   |-----------|-----------|-----------|-----------|-----------|
++   |<- nlmsg ->|<- nlmsg ->|<- nlmsg ->|<- nlmsg ->|<- nlmsg ->|
++   |-----------|-----------|-----------|-----------|-----------|
++					     ^           ^
++					     |           |
++					message N   message N+1
++\endverbatim
+  *
+  * To start the batch, you have to call mnl_nlmsg_batch_start() and you can
+  * use mnl_nlmsg_batch_stop() to release it.
+-- 
+2.17.5
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=1145a881300000
-start commit:   894d6f401b21 Merge tag 'spi-fix-v5.14-rc4' of git://git.ke..
-git tree:       upstream
-final oops:     https://syzkaller.appspot.com/x/report.txt?x=1345a881300000
-console output: https://syzkaller.appspot.com/x/log.txt?x=1545a881300000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=343fd21f6f4da2d6
-dashboard link: https://syzkaller.appspot.com/bug?extid=649e339fa6658ee623d3
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=110319aa300000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1142fac9d00000
-
-Reported-by: syzbot+649e339fa6658ee623d3@syzkaller.appspotmail.com
-Fixes: 65038428b2c6 ("netfilter: nf_tables: allow to specify stateful expression in set definition")
-
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
