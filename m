@@ -2,112 +2,121 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24E27C4320A
-	for <netfilter-devel@archiver.kernel.org>; Sun,  8 Aug 2021 03:07:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A018BC4338F
+	for <netfilter-devel@archiver.kernel.org>; Sun,  8 Aug 2021 16:44:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 023A060F10
-	for <netfilter-devel@archiver.kernel.org>; Sun,  8 Aug 2021 03:07:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 761C860EB9
+	for <netfilter-devel@archiver.kernel.org>; Sun,  8 Aug 2021 16:44:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230049AbhHHDH4 (ORCPT
+        id S230169AbhHHQoV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 7 Aug 2021 23:07:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58276 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229977AbhHHDH4 (ORCPT
+        Sun, 8 Aug 2021 12:44:21 -0400
+Received: from sender4-of-o55.zoho.com ([136.143.188.55]:21518 "EHLO
+        sender4-of-o55.zoho.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231357AbhHHQoV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 7 Aug 2021 23:07:56 -0400
-Received: from mail-pj1-x1031.google.com (mail-pj1-x1031.google.com [IPv6:2607:f8b0:4864:20::1031])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE0A9C061760
-        for <netfilter-devel@vger.kernel.org>; Sat,  7 Aug 2021 20:07:37 -0700 (PDT)
-Received: by mail-pj1-x1031.google.com with SMTP id j1so22589662pjv.3
-        for <netfilter-devel@vger.kernel.org>; Sat, 07 Aug 2021 20:07:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=sender:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=XrzKhcHocJ3rU7JDx2syTXWRU3/Si0PI4d6wwNeygO8=;
-        b=WIZrcyu/wCLeynemorlzut+WBzCpyfzHS0wFYi182feNZEq1BhB+KVhbXAGHanTDlU
-         9h/ZxaHMXcfpnFXq7c55uzhJ2MYvLwUcNgcUUgx29yP+qxsSKdukwtyas0iaiAt0+YUu
-         DyizC7WJyxHjRM92A0/Yqqy8HVwIj4NdRlO89lwPl6SFLjrhgnlJGWDtO1GKAKPiC/6h
-         J2RYgrrwKT+OF/USOO9eCXRTEOvdhjTS1tLDU61zlWqv1YNO+sLTqIUskymbbuEX3s/4
-         7uD58n6Cam60bezqzAlUKSfj7yjVCYlVLlNs3Zpfe1o6lDcSfWISTkZ55mGgz4igaEYv
-         fgqA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
-         :mime-version:content-transfer-encoding;
-        bh=XrzKhcHocJ3rU7JDx2syTXWRU3/Si0PI4d6wwNeygO8=;
-        b=JK743PXoeV/aEeY7Pnt6jSn5O2PMdbVAJolvqcErT6cuBGE1HDPtIq6Qm7wcz4GoIz
-         5nTJBV4jI0EHa2UMnGgA+wdiLfmmf2mskvG5oUO0iKnPqF1xljcbUqL4MVYVNOrHgUsj
-         xppnu5NNJK25DMkqYnOFyz9nC3d1T+3P+rDWhojG91apNDlDm8oawerxh5n2EeuGxuAO
-         c0KCpx4r8Bnbrq1ppp4zrYkF/XT5oBoE5E5zlnbS/crhbqXkkDIX2vnuS8coNcdfgw2n
-         StiAhQ0XHcldkLDPficxpFHS3797rVGGvyOKDJvN7z4dkpDJYS7xM040K4BzwVNRnHPc
-         oyRg==
-X-Gm-Message-State: AOAM531IjnMhjfjmOMdvaYUlogR/WINZZpr1WTVa3X8jHwE2IYESWWrQ
-        IEAyK6nqYxsox8Knye9p/6Nq+wQgy8r8CQ==
-X-Google-Smtp-Source: ABdhPJzY/WlsZv+5UA3MKyKfGf/kqVklt3T41obBXzeI3WikHROKNZT62wo1jq1HAtre98JT1QRlyA==
-X-Received: by 2002:a17:902:76cb:b029:12b:2fb8:7c35 with SMTP id j11-20020a17090276cbb029012b2fb87c35mr8766195plt.16.1628392057082;
-        Sat, 07 Aug 2021 20:07:37 -0700 (PDT)
-Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
-        by smtp.gmail.com with ESMTPSA id z3sm13268240pjn.43.2021.08.07.20.07.35
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 07 Aug 2021 20:07:36 -0700 (PDT)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH libmnl] src: doc: Fix messed-up Netlink message batch diagram
-Date:   Sun,  8 Aug 2021 13:07:31 +1000
-Message-Id: <20210808030731.2762-1-duncan_roe@optusnet.com.au>
-X-Mailer: git-send-email 2.32.0
+        Sun, 8 Aug 2021 12:44:21 -0400
+ARC-Seal: i=1; a=rsa-sha256; t=1628441031; cv=none; 
+        d=zohomail.com; s=zohoarc; 
+        b=O93sfjlgVHlWFOZpNDNTQ2B7eg7MawW6hEbVyvQwVab5VajEdaK7PVnq+7fUZjr/oiU20768VbZr6vcIVl0mRN+D9+Ftu2vtf6GgLneCrt2TJ9Zh1YHKpyRXT6kZRlJ/PiPMjS8xHLDS5ofpPumGBUCZnt0gxuVd0U56Fy1kd24=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
+        t=1628441031; h=Content-Transfer-Encoding:Cc:Date:From:MIME-Version:Message-ID:Subject:To; 
+        bh=emfQ9I/A3WN/OvBkIGv5xoTu31dVFxLi4djrBXma4k8=; 
+        b=bBR9i6FaTdGRi40Jhc9l6QgfGuB5WrLoJ/0rfLdwllR9mtPYIq0kA+lliUxpMxn6SeH8hzG/CHvHnhv9/JH7EtAkHzUUBuV4m80L1hG23tv2LY/VSoKr4/Gr1pB75XHB5GHtrXgaFJA90qTRRTml5eOuCo7uEUyPC5P1F5HQ2XQ=
+ARC-Authentication-Results: i=1; mx.zohomail.com;
+        dkim=pass  header.i=proelbtn.com;
+        spf=pass  smtp.mailfrom=contact@proelbtn.com;
+        dmarc=pass header.from=<contact@proelbtn.com>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1628441031;
+        s=default; d=proelbtn.com; i=contact@proelbtn.com;
+        h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Transfer-Encoding;
+        bh=emfQ9I/A3WN/OvBkIGv5xoTu31dVFxLi4djrBXma4k8=;
+        b=jzp6evoJvyAChP6l55Guv8cn9oY/S1ZY31CuxMt0pFeNoRJ07TOayW5UEYYqiRKJ
+        AA5ecYBgNorf4OTVHR5o45UCYStUTUqeQJZ9Xfby0G+UXRNM0+SSJMC3IQu04uSkb9t
+        6E/SqJGtTpDVWiehbt3LLVEvts/XIVEZYaLkIaXA=
+Received: from kerneldev.prochi.io (softbank060108183144.bbtec.net [60.108.183.144]) by mx.zohomail.com
+        with SMTPS id 1628441029093976.9565183678375; Sun, 8 Aug 2021 09:43:49 -0700 (PDT)
+From:   proelbtn <contact@proelbtn.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     pablo@netfilter.org, stefano.salsano@uniroma2.it,
+        andrea.mayer@uniroma2.it, davem@davemloft.net, kuba@kernel.org,
+        yoshfuji@linux-ipv6.org, dsahern@kernel.org,
+        proelbtn <contact@proelbtn.com>,
+        kernel test robot <lkp@intel.com>
+Subject: [PATCH v5 0/2] netfilter: add netfilter hooks to track  SRv6-encapsulated flows
+Date:   Sun,  8 Aug 2021 16:43:21 +0000
+Message-Id: <20210808164323.498860-1-contact@proelbtn.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-ZohoMailClient: External
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Put the diagram in a *verbatim* block (like all the other diagrams)
+Tunneling protocols such as VXLAN or IPIP are implemented using virtual
+network devices (vxlan0 or ipip0). Therefore, conntrack can record both
+inner flows and outer flows correctly. In contrast, SRv6 is implemented
+using lightweight tunnel infrastructure. Therefore, SRv6 packets are
+encapsulated and decapsulated without passing through virtual network
+device. Due to the following problems caused by this, conntrack can't
+record both inner flows and outer flows correctly.
 
-Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
----
- src/nlmsg.c | 19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+First problem is caused when SRv6 packets are encapsulated. In VXLAN, at
+first, packets received are passed to nf_conntrack_in called from
+ip_rcv/ipv6_rcv. These packets are sent to virtual network device and these
+flows are confirmed in ip_output/ip6_output. However, in SRv6, at first,
+packets are passed to nf_conntrack_in, encapsulated and flows are confirmed
+in ipv6_output even if inner packets are IPv4. Therefore, IPv6 conntrack
+needs to be enabled to track IPv4 inner flow.
 
-diff --git a/src/nlmsg.c b/src/nlmsg.c
-index d398e63..ce37cbc 100644
---- a/src/nlmsg.c
-+++ b/src/nlmsg.c
-@@ -381,15 +381,16 @@ EXPORT_SYMBOL void mnl_nlmsg_fprintf(FILE *fd, const void *data, size_t datalen,
-  * datagram. These helpers do not perform strict memory boundary checkings.
-  *
-  * The following figure represents a Netlink message batch:
-- *
-- *   |<-------------- MNL_SOCKET_BUFFER_SIZE ------------->|
-- *   |<-------------------- batch ------------------>|     |
-- *   |-----------|-----------|-----------|-----------|-----------|
-- *   |<- nlmsg ->|<- nlmsg ->|<- nlmsg ->|<- nlmsg ->|<- nlmsg ->|
-- *   |-----------|-----------|-----------|-----------|-----------|
-- *                                             ^           ^
-- *                                             |           |
-- *                                        message N   message N+1
-+ *\verbatim
-+   |<-------------- MNL_SOCKET_BUFFER_SIZE ------------->|
-+   |<-------------------- batch ------------------>|     |
-+   |-----------|-----------|-----------|-----------|-----------|
-+   |<- nlmsg ->|<- nlmsg ->|<- nlmsg ->|<- nlmsg ->|<- nlmsg ->|
-+   |-----------|-----------|-----------|-----------|-----------|
-+					     ^           ^
-+					     |           |
-+					message N   message N+1
-+\endverbatim
-  *
-  * To start the batch, you have to call mnl_nlmsg_batch_start() and you can
-  * use mnl_nlmsg_batch_stop() to release it.
+Second problem is caused when SRv6 packets are decapsulated. If IPv6
+conntrack is enabled, SRv6 packets are passed to nf_conntrack_in called
+from ipv6_rcv. Even if inner packets are passed to nf_conntrack_in after
+packets are decapsulated, flow aren't tracked because skb->_nfct is already
+set. Therefore, IPv6 conntrack needs to be disabled to track IPv4 flow
+when packets are decapsulated.
+
+This patch series solves these problems and allows conntrack to record 
+inner flows correctly. It introduces netfilter hooks to srv6 lwtunnel
+and srv6local lwtunnel. It also introduces new sysctl toggle to turn on
+lightweight tunnel netfilter hooks. You can enable lwtunnel netfilter as
+following:
+
+  sysctl net.netfilter.nf_hooks_lwtunnel=1
+
+v5: rename nf_conntrack_lwtunnel to nf_hooks_lwtunnel, fix link error
+ when CONFIG_SYSCTL, add example code
+v4: fix compile error when CONFIG_LWTUNNEL isn't enabled
+v3: fix warning in nf_conntrack_lwtunnel.c
+v2: introduce nf_ct_lwtunnel_enabled static_key and sysctl toggle to turn
+    on lightweight tunnel netfilter hooks
+
+Reported-by: kernel test robot <lkp@intel.com>
+
+proelbtn (2):
+  netfilter: add new sysctl toggle for lightweight tunnel netfilter
+    hooks
+  netfilter: add netfilter hooks to SRv6 data plane
+
+ .../networking/nf_conntrack-sysctl.rst        |   7 ++
+ include/net/lwtunnel.h                        |   3 +
+ include/net/netfilter/nf_hooks_lwtunnel.h     |  15 +++
+ net/core/lwtunnel.c                           |   3 +
+ net/ipv6/seg6_iptunnel.c                      |  69 ++++++++++-
+ net/ipv6/seg6_local.c                         | 116 ++++++++++++------
+ net/netfilter/Makefile                        |   3 +
+ net/netfilter/nf_conntrack_standalone.c       |  15 +++
+ net/netfilter/nf_hooks_lwtunnel.c             |  66 ++++++++++
+ 9 files changed, 255 insertions(+), 42 deletions(-)
+ create mode 100644 include/net/netfilter/nf_hooks_lwtunnel.h
+ create mode 100644 net/netfilter/nf_hooks_lwtunnel.c
+
 -- 
-2.17.5
+2.25.1
 
