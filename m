@@ -7,63 +7,63 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C044DC4338F
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Aug 2021 05:19:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30330C4338F
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Aug 2021 07:46:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9355360F55
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Aug 2021 05:19:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1632A61053
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Aug 2021 07:46:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232800AbhHIFT6 (ORCPT
+        id S233514AbhHIHqp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 9 Aug 2021 01:19:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60798 "EHLO
+        Mon, 9 Aug 2021 03:46:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36716 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231996AbhHIFT5 (ORCPT
+        with ESMTP id S233500AbhHIHqg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 9 Aug 2021 01:19:57 -0400
-Received: from mail-pj1-x1031.google.com (mail-pj1-x1031.google.com [IPv6:2607:f8b0:4864:20::1031])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A8B6C061764
-        for <netfilter-devel@vger.kernel.org>; Sun,  8 Aug 2021 22:19:37 -0700 (PDT)
-Received: by mail-pj1-x1031.google.com with SMTP id lw7-20020a17090b1807b029017881cc80b7so6602645pjb.3
-        for <netfilter-devel@vger.kernel.org>; Sun, 08 Aug 2021 22:19:37 -0700 (PDT)
+        Mon, 9 Aug 2021 03:46:36 -0400
+Received: from mail-pl1-x629.google.com (mail-pl1-x629.google.com [IPv6:2607:f8b0:4864:20::629])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BEC4C0613CF
+        for <netfilter-devel@vger.kernel.org>; Mon,  9 Aug 2021 00:46:15 -0700 (PDT)
+Received: by mail-pl1-x629.google.com with SMTP id k2so15406503plk.13
+        for <netfilter-devel@vger.kernel.org>; Mon, 09 Aug 2021 00:46:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=sender:from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
         bh=7YzDucKfn3OiE2W8qg5nAD5pI1xQk3Tf2YgQzTsAqMY=;
-        b=IimgK5fURlKV0OpzkPicMc/yrckggQ1dXF0ukG1nFnBI7qdXw1LgYyHcUeaWkOvVML
-         cJIk7wfxTRoizeSI4QQ2hhwvmWGREoadgSc7gKgSJGX6+QnCFkz2kVSOiYvUebusYt3q
-         v0nJSNvRyEzf+ljaDN/Ruf79xrGizSqvAd9YBgrRZJCQ9LxxsAR0F3TMgYVSJSVM7xZR
-         3dIo4FZkMuiSXTpLCL0tS/TzmGCR2hJPd7WGYSAhSglmXy4HacU8QQPuwNyvEk40guAX
-         8c+OvJtyNJLeOPxY8HaABVp+kFOMoZ/kN2ry5EStLGv/RdIL8oaUFoERg9h+rvvJmkfZ
-         /1xg==
+        b=iUiJ5PRfe6m3eDUbuiwAfmp2kzrwCtZhoFF7NXnzDn/C27B5dkzFkT8Kks3LqE8JTV
+         ++AhdwHpogkNgJS68fn/hyC15XW7ooMJXhCIX1pNxtT1Wwpe71M9MnqAF/D0MLrpt2iu
+         VWjyL88CmjYlOm4M0FhmCIg19b6n5Q1Ww0LKUW2LXyCH/1oTCl2dEE5exa62cTdJPy9y
+         5ciS3edwbbloUiVFLolyXfE3/8UWY1uw+3z/VgijSbIf4aGQVlqcw2rd3hX9ajoh+2ED
+         eusU1CuHHu+FK7M/iNA0icaQUwo96Z6KdobgzsWUxjpqz3ST0HtPAE+arKh6vlspJIQx
+         h7eQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
          :mime-version:content-transfer-encoding;
         bh=7YzDucKfn3OiE2W8qg5nAD5pI1xQk3Tf2YgQzTsAqMY=;
-        b=eqiCsNEePxYmgoKDUmwdFqYlftOO08N2kXFdMMNazbhSMomqZGYm2eLzrb3c989uk7
-         LWXKM7bI+cay4q1+g92VQaKuGSMhKY/rETpLCBagWVd+WYxRHaJKFZhy6WUA3fxSe0RO
-         GBx3qpt2ZdW2gxj0cizOn0Mm9tG7uY0hJAvftnQj6HaKC9W28efMNo/rDtlnvl/i4hvl
-         pvlV+oLXuzTAVw7RB5MXDweg6DRx6RRzN11LZY1a4gOImCtNA47PXk1QyspaSnZFj+HF
-         hKe4yVP1F1RohgNWKOnOFYW77Uja4/1pMUz1m8FJlghXfzUGzRh9lybtv918eiUfuJJN
-         IGpQ==
-X-Gm-Message-State: AOAM532KLZGAefnzVJ2qmKrciDQAztw3vpOYyXSGWYzX0SopSDFYbvCJ
-        rDdyVOL+YTXOsdTbbodlCwDo4Z2mAGvSnQ==
-X-Google-Smtp-Source: ABdhPJz4CfM9F71Ry9+t5+D+a1krpxpY2lXk7Z9mry9Zpy96foy0J0QeNY7JyQ2XLfl2ykURbMtrPA==
-X-Received: by 2002:a65:44c3:: with SMTP id g3mr84800pgs.233.1628486376718;
-        Sun, 08 Aug 2021 22:19:36 -0700 (PDT)
+        b=Z3e50trbAEhmB6EXXLm8vPt0ZMOx66jJUDvf7RZXQtr5wyRa/9dbPu73b0n89pTWTs
+         gRvKx8Au/xxGPGLsicDKTAOe83+3fl03TynX6cULZdQAv86wgkj/J1f0IR8sZpmH2Uiy
+         GTX0A6hjidmxt5i8AD2iGo/AyuHdVFPmmDehjk8HMxjkYLaJlvtVT3LNvxWrV5Eff7TX
+         jrYTvlXGhv5PNqDAtxyHFGUTnDPj+sW8pJb0Szn/J5LiXwg3DMFCsM7vq8vCtTMVMB+v
+         P1ETDSYFrdsxO4jTciqZecOZM6+0HXEbU05i+kq68HOdK226Sy0D2MAav9NDn789G1pW
+         fUTg==
+X-Gm-Message-State: AOAM531EOYobgni2T9bLnJSsWCkrg6lwtkMzyat1OQ6P1vhBegiLTcLK
+        fbR8eU85lF9vh/xmZmJgL1h86hWw8vjpGg==
+X-Google-Smtp-Source: ABdhPJykovyy0K2l2BzW1fC5z6BneKsiud7+W2AVxQGh40jjO2ZYvX/5szHgFH20zQsc8feuFmQvkA==
+X-Received: by 2002:a17:90a:f98f:: with SMTP id cq15mr8400146pjb.74.1628495174685;
+        Mon, 09 Aug 2021 00:46:14 -0700 (PDT)
 Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
-        by smtp.gmail.com with ESMTPSA id e13sm18285098pfi.210.2021.08.08.22.19.34
+        by smtp.gmail.com with ESMTPSA id v63sm20319874pgv.59.2021.08.09.00.46.12
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 08 Aug 2021 22:19:36 -0700 (PDT)
+        Mon, 09 Aug 2021 00:46:13 -0700 (PDT)
 Sender: Duncan Roe <duncan.roe2@gmail.com>
 From:   Duncan Roe <duncan_roe@optusnet.com.au>
 To:     pablo@netfilter.org
 Cc:     netfilter-devel@vger.kernel.org
 Subject: [PATCH libnetfilter_queue] build: doc: Fix NAME entry in man pages
-Date:   Mon,  9 Aug 2021 15:19:30 +1000
-Message-Id: <20210809051930.11109-1-duncan_roe@optusnet.com.au>
+Date:   Mon,  9 Aug 2021 17:46:07 +1000
+Message-Id: <20210809074607.11277-1-duncan_roe@optusnet.com.au>
 X-Mailer: git-send-email 2.32.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
