@@ -2,214 +2,73 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1214BC4338F
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Aug 2021 18:35:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E93BBC4338F
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Aug 2021 18:46:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E347761040
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Aug 2021 18:35:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C15DA60EE7
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Aug 2021 18:46:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233747AbhHISfo (ORCPT
+        id S235341AbhHISqX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 9 Aug 2021 14:35:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45540 "EHLO
+        Mon, 9 Aug 2021 14:46:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47942 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232640AbhHISfn (ORCPT
+        with ESMTP id S230175AbhHISqX (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 9 Aug 2021 14:35:43 -0400
-Received: from mail-wr1-x42b.google.com (mail-wr1-x42b.google.com [IPv6:2a00:1450:4864:20::42b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F45DC0613D3;
-        Mon,  9 Aug 2021 11:35:23 -0700 (PDT)
-Received: by mail-wr1-x42b.google.com with SMTP id l18so22706365wrv.5;
-        Mon, 09 Aug 2021 11:35:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=2Ir2Ax+o/Wuz6SUvaDDaTxwddrsgDfZmzdHZ8wRYNcs=;
-        b=gyjVKJ8jwTsJBwIbyWfPfETilrGuLzDpow4iU7Iy71UDg7XoGMBVKHrTlMkwGXA+47
-         nim7s4LbAI554LSpauA3a4qwfPO+23IMK7Dm6jjPPNJz7yePtNmGpL6a2k13JDfx7Tdm
-         GYktxGHc0YF9+SDXFCzx8tHZ2R1KmcHOvp5s6w9g+3YjPSDH/Gdt1gLzlXIT7VdiFg2m
-         FQMNjzTMiXz1Vg5oT7pg61iTLNjJqqwyh3YjOMKE95YtzTOGujNOP+T40vIXUNSBGhGL
-         n+VrldQqbnNZ0d4ZtX1etxhbWMspaV+oCgjQFscoAywpBgJk7s9jNPnek9rOG/JEH5Af
-         hnlQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=2Ir2Ax+o/Wuz6SUvaDDaTxwddrsgDfZmzdHZ8wRYNcs=;
-        b=OOjay2pxqkizQ3wNPiwjO/WTyi8SHh+XFyP0nVPz4JBVHMbaj1w5nGgvQi/UFs6CQw
-         HkCZXMmMjtH3HEAfWlRiBrjcyXtvKhGBOX0KSjZR5AHfPS/wpyFWsVECWu0erOAUVcdG
-         KncyhbW3mVwC9ln26rTZhYM6/iNjJlKpLLfU8EzkNMY/fMl/OwbGLuNt0h1J9msDawH7
-         k++YIFiF/DAvAPSTUyJHwyl+jHMWq3Vg5u1Fwea8vFcm7OrIfOeYv7zMV1fL/a3nrsQn
-         7hhgAj8CCaUh//xfQd9EOS3iQf5SqSI1cMo6L0+8cQCBSex3OCPghqI3eJ3SOIctogEp
-         UGiw==
-X-Gm-Message-State: AOAM5321zZiM34eOWjo6rnemnN/FdztRIPHSIinNx80T0jNOd7wGXOD4
-        BxJyrsPGR/53bOxhAMpomvVL1D91CzPNwC83Rvo=
-X-Google-Smtp-Source: ABdhPJxdxWTQHWuRFfmKnD4JmmhFpc36EKHfBmtJwp9UKt+MZw54AXidelEj8qO48WrlqfO0SGTuzVDRw24Ry3xoN7w=
-X-Received: by 2002:adf:e806:: with SMTP id o6mr27225080wrm.307.1628534121630;
- Mon, 09 Aug 2021 11:35:21 -0700 (PDT)
+        Mon, 9 Aug 2021 14:46:23 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 76E5CC0613D3
+        for <netfilter-devel@vger.kernel.org>; Mon,  9 Aug 2021 11:46:02 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1mDAHf-0002Al-BL; Mon, 09 Aug 2021 20:45:59 +0200
+Date:   Mon, 9 Aug 2021 20:45:59 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH RFC] scanner: nat: Move to own scope
+Message-ID: <20210809184559.GO607@breakpoint.cc>
+References: <20210809140141.18976-1-phil@nwl.cc>
+ <20210809151833.GM607@breakpoint.cc>
+ <20210809162514.GA3673@orbyte.nwl.cc>
 MIME-Version: 1.0
-References: <20210807062106.2563-1-l4stpr0gr4m@gmail.com>
-In-Reply-To: <20210807062106.2563-1-l4stpr0gr4m@gmail.com>
-From:   Kangmin Park <l4stpr0gr4m@gmail.com>
-Date:   Tue, 10 Aug 2021 03:35:10 +0900
-Message-ID: <CAKW4uUx=cOu46E0QCdmg1Jq3WJ3w6ROo6oKZaXA=g6gdhdiDdg@mail.gmail.com>
-Subject: Re: [PATCH] netfilter: remove duplicate code
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210809162514.GA3673@orbyte.nwl.cc>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-I checked the Changes Requested state in patchwork.
-But I have not received any review mails.
-I wonder if there is any problem.
-I'm sorry if you just review a little late due to a busy schedule.
+Phil Sutter <phil@nwl.cc> wrote:
+> > So, it is in IP scope, sees 'prefix' (which will be STRING as the
+> > PREFIX scan rule is off) and that ends up in a parser error due to lack
+> > of a 'IP STRING' rule.
+> 
+> OK, thanks. So does this mean we won't ever be able to move keywords
+> opening a statement or expression out of INIT scope or is my case a
+> special one?
 
-Kangmin Park
+We can move them out of INIT scope, but only if they remain within
+the same scope.
 
-2021=EB=85=84 8=EC=9B=94 7=EC=9D=BC (=ED=86=A0) =EC=98=A4=ED=9B=84 3:21, Ka=
-ngmin Park <l4stpr0gr4m@gmail.com>=EB=8B=98=EC=9D=B4 =EC=9E=91=EC=84=B1:
->
-> nf_nat_ipv4_fn() and nf_nat_ipv6_fn() call nf_nat_inet_fn().
-> Those two functions are already contains routine that gets nf_conn
-> object and checks the untrackable situation.
-> So, the following code is duplicated.
->
-> ```
-> ct =3D nf_ct_get(skb, &ctinfo);
-> if (!ct)
->         return NF_ACCEPT;
-> ```
->
-> Therefore, define a function __nf_nat_inet_fn() that has the same
-> contents as the nf_nat_inet_fn() except for routine gets and checks
-> the nf_conn object.
-> Then, separate the nf_nat_inet_fn() into a routine that gets a
-> nf_conn object and a routine that calls the __nf_nat_inet_fn().
->
-> Signed-off-by: Kangmin Park <l4stpr0gr4m@gmail.com>
-> ---
->  include/net/netfilter/nf_nat.h |  5 +++++
->  net/netfilter/nf_nat_core.c    | 37 ++++++++++++++++++++++------------
->  net/netfilter/nf_nat_proto.c   |  4 ++--
->  3 files changed, 31 insertions(+), 15 deletions(-)
->
-> diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_na=
-t.h
-> index 987111ae5240..a66f617c5054 100644
-> --- a/include/net/netfilter/nf_nat.h
-> +++ b/include/net/netfilter/nf_nat.h
-> @@ -100,6 +100,11 @@ void nf_nat_ipv6_unregister_fn(struct net *net, cons=
-t struct nf_hook_ops *ops);
->  int nf_nat_inet_register_fn(struct net *net, const struct nf_hook_ops *o=
-ps);
->  void nf_nat_inet_unregister_fn(struct net *net, const struct nf_hook_ops=
- *ops);
->
-> +unsigned int
-> +__nf_nat_inet_fn(void *priv, struct sk_buff *skb,
-> +                const struct nf_hook_state *state, struct nf_conn *ct,
-> +                enum ip_conntrack_info ctinfo);
-> +
->  unsigned int
->  nf_nat_inet_fn(void *priv, struct sk_buff *skb,
->                const struct nf_hook_state *state);
-> diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-> index 7de595ead06a..98ebba2c0f6d 100644
-> --- a/net/netfilter/nf_nat_core.c
-> +++ b/net/netfilter/nf_nat_core.c
-> @@ -682,25 +682,15 @@ unsigned int nf_nat_packet(struct nf_conn *ct,
->  }
->  EXPORT_SYMBOL_GPL(nf_nat_packet);
->
->  unsigned int
-> -nf_nat_inet_fn(void *priv, struct sk_buff *skb,
-> -              const struct nf_hook_state *state)
-> +__nf_nat_inet_fn(void *priv, struct sk_buff *skb,
-> +                const struct nf_hook_state *state, struct nf_conn *ct,
-> +                enum ip_conntrack_info ctinfo)
->  {
-> -       struct nf_conn *ct;
-> -       enum ip_conntrack_info ctinfo;
->         struct nf_conn_nat *nat;
->         /* maniptype =3D=3D SRC for postrouting. */
->         enum nf_nat_manip_type maniptype =3D HOOK2MANIP(state->hook);
->
-> -       ct =3D nf_ct_get(skb, &ctinfo);
-> -       /* Can't track?  It's not due to stress, or conntrack would
-> -        * have dropped it.  Hence it's the user's responsibilty to
-> -        * packet filter it out, or implement conntrack/NAT for that
-> -        * protocol. 8) --RR
-> -        */
-> -       if (!ct)
-> -               return NF_ACCEPT;
-> -
->         nat =3D nfct_nat(ct);
->
->         switch (ctinfo) {
-> @@ -755,6 +745,26 @@ nf_nat_inet_fn(void *priv, struct sk_buff *skb,
->         nf_ct_kill_acct(ct, ctinfo, skb);
->         return NF_DROP;
->  }
-> +EXPORT_SYMBOL_GPL(__nf_nat_inet_fn);
-> +
-> +unsigned int
-> +nf_nat_inet_fn(void *priv, struct sk_buff *skb,
-> +              const struct nf_hook_state *state)
-> +{
-> +       struct nf_conn *ct;
-> +       enum ip_conntrack_info ctinfo;
-> +
-> +       ct =3D nf_ct_get(skb, &ctinfo);
-> +       /* Can't track?  It's not due to stress, or conntrack would
-> +        * have dropped it.  Hence it's the user's responsibilty to
-> +        * packet filter it out, or implement conntrack/NAT for that
-> +        * protocol. 8) --RR
-> +        */
-> +       if (!ct)
-> +               return NF_ACCEPT;
-> +
-> +       return __nf_nat_inet_fn(priv, skb, state, ct, ctinfo);
-> +}
->  EXPORT_SYMBOL_GPL(nf_nat_inet_fn);
->
->  struct nf_nat_proto_clean {
-> diff --git a/net/netfilter/nf_nat_proto.c b/net/netfilter/nf_nat_proto.c
-> index 48cc60084d28..897859730078 100644
-> --- a/net/netfilter/nf_nat_proto.c
-> +++ b/net/netfilter/nf_nat_proto.c
-> @@ -642,7 +642,7 @@ nf_nat_ipv4_fn(void *priv, struct sk_buff *skb,
->                 }
->         }
->
-> -       return nf_nat_inet_fn(priv, skb, state);
-> +       return __nf_nat_inet_fn(priv, skb, state, ct, ctinfo);
->  }
->
->  static unsigned int
-> @@ -934,7 +934,7 @@ nf_nat_ipv6_fn(void *priv, struct sk_buff *skb,
->                 }
->         }
->
-> -       return nf_nat_inet_fn(priv, skb, state);
-> +       return __nf_nat_inet_fn(priv, skb, state, ct, ctinfo);
->  }
->
->  static unsigned int
-> --
-> 2.26.2
->
+For example, you could create a 'rule scope' or 'expression scope'
+that contains all tokens (ip, tcp, etc.) that start a new expression.
+
+I did not do this because there are too many cases where expressions are
+permitted outside of rule scope, e.g. in set definitions (key, elements
+...)
+
+> To clarify, what I have in mind is a sample rule 'ip id 1 tcp dport 1'
+> where 'tcp' must either be in INIT scope or part of SC_IP. 
+
+IP and TCP need to be in the same scope (e.g. INIT).
+
+In the given example I suspect that TCP doesn't have to be in SC_IP
+scope since 'ip id 1' is a full expression and scope closure happens
+before next token gets scanned.
