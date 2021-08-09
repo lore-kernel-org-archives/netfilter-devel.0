@@ -2,285 +2,281 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C403EC432BE
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Aug 2021 04:11:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C044DC4338F
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Aug 2021 05:19:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9F9C960184
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Aug 2021 04:11:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9355360F55
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Aug 2021 05:19:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231793AbhHIELb (ORCPT
+        id S232800AbhHIFT6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 9 Aug 2021 00:11:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45586 "EHLO
+        Mon, 9 Aug 2021 01:19:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60798 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231817AbhHIELY (ORCPT
+        with ESMTP id S231996AbhHIFT5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 9 Aug 2021 00:11:24 -0400
-Received: from gate2.alliedtelesis.co.nz (gate2.alliedtelesis.co.nz [IPv6:2001:df5:b000:5::4])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD295C0613D3
-        for <netfilter-devel@vger.kernel.org>; Sun,  8 Aug 2021 21:11:04 -0700 (PDT)
-Received: from svr-chch-seg1.atlnz.lc (mmarshal3.atlnz.lc [10.32.18.43])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (Client did not present a certificate)
-        by gate2.alliedtelesis.co.nz (Postfix) with ESMTPS id 5B645891B3;
-        Mon,  9 Aug 2021 16:11:03 +1200 (NZST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alliedtelesis.co.nz;
-        s=mail181024; t=1628482263;
-        bh=9qJpd9xSR7ilj9s/94yeh+OX1I1FvoUY8N6Fhs3y0yQ=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References;
-        b=lbQBF8ITtHJe4QQtiD7/cr2TAFPTTfU1Pu0gysNPPFFn3ue9lmqm8knptc5cobh97
-         l+DPBenS2par78o+huEiaRmBYLz7HhnVm00g37fVVH7MTWoz3Yd9gJxzbkAc2ottww
-         JtSXfQc1CYQb9AEKfPRPr2K+9//l5Ytd/BGcckozgMqrSdST+6hUH/BlqEpBCoN7Ow
-         zVvqOt8yDzVVJB6CwI+Dgeuf/1gzSk8IS3mEycJDnEkaqK//2yuSBMkXbj08FBgRqQ
-         d7oyhvTK/B/fe4IpS4wczvI0/ZvSqLBQpPuSuBx6F7mja9HoZwsKwrkkSSP8xYqLzB
-         ruSnekncXxI2Q==
-Received: from pat.atlnz.lc (Not Verified[10.32.16.33]) by svr-chch-seg1.atlnz.lc with Trustwave SEG (v8,2,6,11305)
-        id <B6110aad50000>; Mon, 09 Aug 2021 16:11:01 +1200
-Received: from coled-dl.ws.atlnz.lc (coled-dl.ws.atlnz.lc [10.33.25.26])
-        by pat.atlnz.lc (Postfix) with ESMTP id CAE4413EDC1;
-        Mon,  9 Aug 2021 16:11:01 +1200 (NZST)
-Received: by coled-dl.ws.atlnz.lc (Postfix, from userid 1801)
-        id C72FF2428A0; Mon,  9 Aug 2021 16:11:01 +1200 (NZST)
-From:   Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
+        Mon, 9 Aug 2021 01:19:57 -0400
+Received: from mail-pj1-x1031.google.com (mail-pj1-x1031.google.com [IPv6:2607:f8b0:4864:20::1031])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A8B6C061764
+        for <netfilter-devel@vger.kernel.org>; Sun,  8 Aug 2021 22:19:37 -0700 (PDT)
+Received: by mail-pj1-x1031.google.com with SMTP id lw7-20020a17090b1807b029017881cc80b7so6602645pjb.3
+        for <netfilter-devel@vger.kernel.org>; Sun, 08 Aug 2021 22:19:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=sender:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=7YzDucKfn3OiE2W8qg5nAD5pI1xQk3Tf2YgQzTsAqMY=;
+        b=IimgK5fURlKV0OpzkPicMc/yrckggQ1dXF0ukG1nFnBI7qdXw1LgYyHcUeaWkOvVML
+         cJIk7wfxTRoizeSI4QQ2hhwvmWGREoadgSc7gKgSJGX6+QnCFkz2kVSOiYvUebusYt3q
+         v0nJSNvRyEzf+ljaDN/Ruf79xrGizSqvAd9YBgrRZJCQ9LxxsAR0F3TMgYVSJSVM7xZR
+         3dIo4FZkMuiSXTpLCL0tS/TzmGCR2hJPd7WGYSAhSglmXy4HacU8QQPuwNyvEk40guAX
+         8c+OvJtyNJLeOPxY8HaABVp+kFOMoZ/kN2ry5EStLGv/RdIL8oaUFoERg9h+rvvJmkfZ
+         /1xg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
+         :mime-version:content-transfer-encoding;
+        bh=7YzDucKfn3OiE2W8qg5nAD5pI1xQk3Tf2YgQzTsAqMY=;
+        b=eqiCsNEePxYmgoKDUmwdFqYlftOO08N2kXFdMMNazbhSMomqZGYm2eLzrb3c989uk7
+         LWXKM7bI+cay4q1+g92VQaKuGSMhKY/rETpLCBagWVd+WYxRHaJKFZhy6WUA3fxSe0RO
+         GBx3qpt2ZdW2gxj0cizOn0Mm9tG7uY0hJAvftnQj6HaKC9W28efMNo/rDtlnvl/i4hvl
+         pvlV+oLXuzTAVw7RB5MXDweg6DRx6RRzN11LZY1a4gOImCtNA47PXk1QyspaSnZFj+HF
+         hKe4yVP1F1RohgNWKOnOFYW77Uja4/1pMUz1m8FJlghXfzUGzRh9lybtv918eiUfuJJN
+         IGpQ==
+X-Gm-Message-State: AOAM532KLZGAefnzVJ2qmKrciDQAztw3vpOYyXSGWYzX0SopSDFYbvCJ
+        rDdyVOL+YTXOsdTbbodlCwDo4Z2mAGvSnQ==
+X-Google-Smtp-Source: ABdhPJz4CfM9F71Ry9+t5+D+a1krpxpY2lXk7Z9mry9Zpy96foy0J0QeNY7JyQ2XLfl2ykURbMtrPA==
+X-Received: by 2002:a65:44c3:: with SMTP id g3mr84800pgs.233.1628486376718;
+        Sun, 08 Aug 2021 22:19:36 -0700 (PDT)
+Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
+        by smtp.gmail.com with ESMTPSA id e13sm18285098pfi.210.2021.08.08.22.19.34
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 08 Aug 2021 22:19:36 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
 To:     pablo@netfilter.org
-Cc:     kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
-        kuba@kernel.org, shuah@kernel.org,
-        Cole.Dishington@alliedtelesis.co.nz, linux-kernel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kselftest@vger.kernel.org
-Subject: [PATCH net-next 3/3] selftests: netfilter: Add RFC-7597 Section 5.1 PSID selftests
-Date:   Mon,  9 Aug 2021 16:10:37 +1200
-Message-Id: <20210809041037.29969-4-Cole.Dishington@alliedtelesis.co.nz>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH libnetfilter_queue] build: doc: Fix NAME entry in man pages
+Date:   Mon,  9 Aug 2021 15:19:30 +1000
+Message-Id: <20210809051930.11109-1-duncan_roe@optusnet.com.au>
 X-Mailer: git-send-email 2.32.0
-In-Reply-To: <20210809041037.29969-1-Cole.Dishington@alliedtelesis.co.nz>
-References: <20210726143729.GN9904@breakpoint.cc>
- <20210809041037.29969-1-Cole.Dishington@alliedtelesis.co.nz>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-X-SEG-SpamProfiler-Analysis: v=2.3 cv=dvql9Go4 c=1 sm=1 tr=0 a=KLBiSEs5mFS1a/PbTCJxuA==:117 a=MhDmnRu9jo8A:10 a=sF_rvDO487Xu6NHlfHgA:9 a=wOcukherponeolA-:21 a=uWybusRNZRjIeY3Y:21
-X-SEG-SpamProfiler-Score: 0
-x-atlnz-ls: pat
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add selftests for masquerading into a smaller subset of ports defined by
-PSID.
+Make the NAME line list the functions defined, like other man pages do.
+Also:
+- If there is a "Modules" section, delete it
+- If "Detailed Description" is empty, delete "Detailed Description" line
+- Reposition SYNOPSIS (with headers that we inserted) to start of page,
+  integrating with defined functions to look like other man pages
+- Delete all "Definition at line nnn" lines
+- Insert spacers and comments so Makefile.am is more readable
 
-Signed-off-by: Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
 ---
+ doxygen/Makefile.am | 157 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 157 insertions(+)
 
-Notes:
-    No changes.
-
- .../netfilter/nat_masquerade_psid.sh          | 182 ++++++++++++++++++
- 1 file changed, 182 insertions(+)
- create mode 100644 tools/testing/selftests/netfilter/nat_masquerade_psid=
-.sh
-
-diff --git a/tools/testing/selftests/netfilter/nat_masquerade_psid.sh b/t=
-ools/testing/selftests/netfilter/nat_masquerade_psid.sh
-new file mode 100644
-index 000000000000..56c1b509caf6
---- /dev/null
-+++ b/tools/testing/selftests/netfilter/nat_masquerade_psid.sh
-@@ -0,0 +1,182 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+#
-+# <:copyright-gpl
-+# Copyright (C) 2021 Allied Telesis Labs NZ
-+#
-+# check that NAT can masquerade using PSID defined ranges.
-+#
-+# Setup is:
-+#
-+# nsclient1(veth0) -> (veth1)nsrouter(veth2) -> (veth0)nsclient2
-+# Setup a nat masquerade rule with psid defined ranges.
-+#
+diff --git a/doxygen/Makefile.am b/doxygen/Makefile.am
+index 29078de..b6de81a 100644
+--- a/doxygen/Makefile.am
++++ b/doxygen/Makefile.am
+@@ -21,19 +21,32 @@ doxyfile.stamp: $(doc_srcs) Makefile.am
+ # The command has to be a single line so the functions work
+ # and so `make` gives all lines to `bash -c`
+ # (hence ";\" at the end of every line but the last).
++# automake (run by autogen.sh) allows comments starting ## after continuations
++# but not blank lines
 +
-+# Kselftest framework requirement - SKIP code is 4.
-+ksft_skip=3D4
-+ret=3D0
-+ns_all=3D"nsclient1 nsrouter nsclient2"
-+
-+readonly infile=3D"$(mktemp)"
-+readonly outfile=3D"$(mktemp)"
-+readonly datalen=3D32
-+readonly server_port=3D8080
-+
-+conntrack -V > /dev/null 2>&1
-+if [ $? -ne 0 ];then
-+	echo "SKIP: Could not run test without conntrack tool"
-+	exit $ksft_skip
-+fi
-+
-+iptables --version > /dev/null 2>&1
-+if [ $? -ne 0 ];then
-+	echo "SKIP: Could not run test without iptables tool"
-+	exit $ksft_skip
-+fi
-+
-+ip -Version > /dev/null 2>&1
-+if [ $? -ne 0 ];then
-+	echo "SKIP: Could not run test without ip tool"
-+	exit $ksft_skip
-+fi
-+
-+ipv4() {
-+	echo -n 192.168.$1.$2
-+}
-+
-+cleanup() {
-+	for n in $ns_all; do ip netns del $n;done
-+
-+	if [ -f "${outfile}" ]; then
-+		rm "$outfile"
-+	fi
-+	if [ -f "${infile}" ]; then
-+		rm "$infile"
-+	fi
-+}
-+
-+server_listen() {
-+	ip netns exec nsclient2 nc -l -p "$server_port" > "$outfile" &
-+	server_pid=3D$!
-+	sleep 0.2
-+}
-+
-+client_connect() {
-+	ip netns exec nsclient1 timeout 2 nc -w 1 -p "$port" $(ipv4 2 2) "$serv=
-er_port" < $infile
-+}
-+
-+verify_data() {
-+	local _ret=3D0
-+	wait "$server_pid"
-+	cmp "$infile" "$outfile" 2>/dev/null
-+	_ret=3D$?
-+	rm "$outfile"
-+	return $_ret
-+}
-+
-+test_service() {
-+	server_listen
-+	client_connect
-+	verify_data
-+}
-+
-+check_connection() {
-+	local _ret=3D0
-+	entry=3D$(ip netns exec nsrouter conntrack -p tcp --sport $port -L 2>&1=
-)
-+	entry=3D${entry##*sport=3D8080 dport=3D}
-+	entry=3D${entry%% *}
-+
-+	if [[ "x$(( ($entry & $psid_mask) / $two_power_j ))" !=3D "x$psid" ]]; =
-then
-+		_ret=3D1
-+		echo "Failed psid mask check for $offset_len:$psid:$psid_length with p=
-ort $entry"
-+	fi
-+
-+	if [[ "x$_ret" =3D "x0" ]] &&
-+	   [[ "x$offset_mask" !=3D "x0" -a "x$(( ($entry & $offset_mask) ))" =3D=
-=3D "x0" ]]; then
-+		_ret=3D1
-+		echo "Failed offset mask check for $offset_len:$psid:$psid_length with=
- port $entry"
-+	fi
-+	return $_ret
-+}
-+
-+run_test() {
-+	ip netns exec nsrouter iptables -A FORWARD -i veth1 -j ACCEPT
-+	ip netns exec nsrouter iptables -P FORWARD DROP
-+	ip netns exec nsrouter iptables -A FORWARD -m state --state ESTABLISHED=
-,RELATED -j ACCEPT
-+	ip netns exec nsrouter iptables -t nat --new psid
-+	ip netns exec nsrouter iptables -t nat --insert psid -j MASQUERADE \
-+		--psid $offset_len:$psid:$psid_length
-+	ip netns exec nsrouter iptables -t nat -I POSTROUTING -o veth2 -j psid
-+
-+	# calculate psid mask
-+	offset=3D$(( 1 << (16 - $offset_len) ))
-+	two_power_j=3D$(( $offset / (1 << $psid_length) ))
-+	offset_mask=3D$(( ( (1 << $offset_len) - 1 ) << (16 - $offset_len) ))
-+	psid_mask=3D$(( ( (1 << $psid_length) - 1) * $two_power_j ))
-+
-+	# Create file
-+	dd if=3D/dev/urandom of=3D"${infile}" bs=3D"${datalen}" count=3D1 >/dev=
-/null 2>&1
-+
-+	# Test multiple ports
-+	for p in 1 2 3 4 5; do
-+		port=3D1080$p
-+
-+		test_service
-+		if [ $? -ne 0 ]; then
-+			ret=3D1
-+			break
-+		fi
-+
-+		check_connection
-+		if [ $? -ne 0 ]; then
-+			ret=3D1
-+			break
-+		fi
-+	done
-+
-+	# tidy up test rules
-+	ip netns exec nsrouter iptables -F
-+	ip netns exec nsrouter iptables -t nat -F
-+	ip netns exec nsrouter iptables -t nat -X psid
-+}
-+
-+for n in $ns_all; do
-+	ip netns add $n
-+	ip -net $n link set lo up
-+done
-+
-+for i in 1 2; do
-+	ip link add veth0 netns nsclient$i type veth peer name veth$i netns nsr=
-outer
-+
-+	ip -net nsclient$i link set veth0 up
-+	ip -net nsclient$i addr add $(ipv4 $i 2)/24 dev veth0
-+
-+	ip -net nsrouter link set veth$i up
-+	ip -net nsrouter addr add $(ipv4 $i 1)/24 dev veth$i
-+done
-+
-+ip -net nsclient1 route add default via $(ipv4 1 1)
-+ip -net nsclient2 route add default via $(ipv4 2 1)
-+
-+ip netns exec nsrouter sysctl -q net.ipv4.conf.all.forwarding=3D1
-+
-+offset_len=3D0
-+psid_length=3D8
-+for psid in 0 52; do
-+	run_test
-+	if [ $? -ne 0 ]; then
-+		break
-+	fi
-+done
-+
-+offset_len=3D6
-+psid_length=3D8
-+for psid in 0 52; do
-+	run_test
-+	if [ $? -ne 0 ]; then
-+		break
-+	fi
-+done
-+
-+cleanup
-+exit $ret
---=20
-2.32.0
+ 	/bin/bash -p -c 'declare -A renamed_page;\
++##
+ main(){ set -e; cd man/man3; rm -f _*;\
+   count_real_pages;\
+   rename_real_pages;\
+   make_symlinks;\
++  post_process;\
+ };\
++##
+ count_real_pages(){ page_count=0;\
++  ##
++  ## Count "real" man pages (i.e. not generated by MAN_LINKS)
++  ## MAN_LINKS pages are 1-liners starting .so
++  ## Method: list files in descending order of size,
++  ## looking for the first 1-liner
++  ##
+   for i in $$(ls -S);\
+   do head -n1 $$i | grep -E -q '^\.so' && break;\
+     page_count=$$(($$page_count + 1));\
+   done;\
+   first_link=$$(($$page_count + 1));\
+ };\
++##
+ rename_real_pages(){ for i in $$(ls -S | head -n$$page_count);\
+   do for j in $$(ls -S | tail -n+$$first_link);\
+     do grep -E -q $$i$$ $$j && break;\
+@@ -42,10 +55,154 @@ rename_real_pages(){ for i in $$(ls -S | head -n$$page_count);\
+     renamed_page[$$i]=$$j;\
+   done;\
+ };\
++##
+ make_symlinks(){ for j in $$(ls -S | tail -n+$$first_link);\
+   do ln -sf $${renamed_page[$$(cat $$j | cut -f2 -d/)]} $$j;\
+   done;\
+ };\
++##
++post_process(){ make_temp_files;\
++  ##
++  ## DIAGNOSTIC / DEVELOPMENT CODE
++  ## set -x and restrict processing to keep_me: un-comment to activate
++  ## Change keep_me as required
++  ##
++  ##keep_me=nfq_icmp_get_hdr.3;\
++  ##do_diagnostics;\
++  ##
++  ## Work through the "real" man pages
++  for target in $$(ls -S | head -n$$page_count);\
++  do mygrep "^\\.SH \"Function Documentation" $$target;\
++    ## Next file if this isn't a function page
++    [ $$linnum -ne 0 ] || continue;\
++    ##
++    del_modules;\
++    del_bogus_synopsis;\
++    fix_name_line;\
++    move_synopsis;\
++    del_empty_det_desc;\
++    del_def_at_lines;\
++  done;\
++  ##
++  remove_temp_files;\
++};\
++##
++del_def_at_lines(){ linnum=1;\
++  while [ $$linnum -ne 0 ];\
++  do mygrep "^Definition at line [[:digit:]]* of file" $$target;\
++    [ $$linnum -eq 0 ] || delete_lines $$(($$linnum - 1)) $$linnum;\
++  done;\
++};\
++##
++## Only invoked if you un-comment the 2 diagnostic / development lines above
++do_diagnostics(){ mv $$keep_me xxx;\
++  rm *.3;\
++  mv xxx $$keep_me;\
++  page_count=1;\
++  set -x;\
++};\
++##
++del_empty_det_desc(){ mygrep "^\\.SH \"Function Documentation" $$target;\
++  i=$$linnum;\
++  mygrep "^\\.SH \"Detailed Description" $$target;\
++  [ $$linnum -ne 0  ] || return 0;\
++  [ $$(($$i - $$linnum)) -eq 3 ] || return 0;\
++  delete_lines $$linnum $$(($$i -1));\
++};\
++##
++move_synopsis(){ mygrep "SH SYNOPSIS" $$target;\
++  [ $$linnum -ne 0  ] || return 0;\
++  i=$$linnum;\
++  ## If this is a doxygen-created synopsis, leave it.
++  ## (We haven't inserted our own one in the source yet)
++  mygrep "^\\.SS \"Functions" $$target;\
++  [ $$i -gt $$linnum ] || return 0;\
++  ##
++  mygrep "^\\.SH \"Function Documentation" $$target;\
++  j=$$(($$linnum - 1));\
++  head -n$$(($$j - 1)) $$target | tail -n$$(($$linnum - $$i - 1)) >$$fileC;\
++  delete_lines $$i $$j;\
++  mygrep "^\\.SS \"Functions" $$target;\
++  head -n$$(($$linnum - 1)) $$target >$$fileA;\
++  tail -n+$$(($$linnum + 1)) $$target >$$fileB;\
++  cat $$fileA $$fileC $$fileB >$$target;\
++};\
++##
++fix_name_line(){ all_funcs="";\
++  ##
++  ## Search a shortened version of the page in case there are .RI lines later
++  mygrep "^\\.SH \"Function Documentation" $$target;\
++  head -n$$linnum $$target >$$fileC;\
++  ##
++  while :;\
++  do mygrep ^\\.RI $$fileC;\
++    [ $$linnum -ne 0 ] || break;\
++    ## Discard this entry
++    tail -n+$$(($$linnum + 1)) $$fileC >$$fileB;\
++    cp $$fileB $$fileC;\
++    ##
++    func=$$(cat $$fileG | cut -f2 -d\\ | cut -c3-);\
++    [ -z "$$all_funcs" ] && all_funcs=$$func ||\
++      all_funcs="$$all_funcs, $$func";\
++  done;\
++  ## For now, assume name is at line 5
++  head -n4 $$target >$$fileA;\
++  desc=$$(head -n5 $$target | tail -n1 | cut -f3- -d" ");\
++  tail -n+6 $$target >$$fileB;\
++  cat $$fileA >$$target;\
++  echo "$$all_funcs \\- $$desc" >>$$target;\
++  cat $$fileB >>$$target;\
++};\
++##
++del_modules(){ mygrep "^\.SS \"Modules" $$target;\
++  [ $$linnum -ne 0  ] || return 0;\
++  i=$$linnum;\
++  mygrep "^\\.SS \"Functions" $$target;\
++  delete_lines $$i $$(($$linnum - 1));\
++};\
++##
++del_bogus_synopsis(){ mygrep "SH SYNOPSIS" $$target;\
++  ##
++  ## doxygen 1.8.20 inserts its own SYNOPSIS line but there is no mention
++  ## in the documentation or git log what to do with it.
++  ## So get rid of it
++  ##
++  [ $$linnum -ne 0  ] || return 0;\
++  i=$$linnum;\
++  ## Look for the next one
++  tail -n+$$(($$i + 1)) $$target >$$fileC;\
++  mygrep "SH SYNOPSIS" $$fileC;\
++  [ $$linnum -ne 0  ] || return 0;\
++  ##
++  mygrep "^\\.SS \"Functions" $$target;\
++  delete_lines $$i $$(($$linnum - 1));\
++};\
++##
++## Delete lines $1 through $2 from $target
++delete_lines(){ head -n$$(($$1 - 1)) $$target >$$fileA;\
++  tail -n+$$(($$2 +1)) $$target >$$fileB;\
++  cat $$fileA $$fileB >$$target;\
++};\
++##
++mygrep(){ set +e;\
++  grep -En "$$1" $$2 2>/dev/null >$$fileH;\
++  [ $$? -ne 0 ] && linnum=0 ||\
++    { head -n1 $$fileH >$$fileG; linnum=$$(cat $$fileG | cut -f1 -d:); };\
++  set -e;\
++};\
++##
++make_temp_files(){ temps="A B C G H";\
++  for i in $$temps;\
++  do declare -g file$$i=$$(mktemp);\
++  done;\
++};\
++##
++remove_temp_files(){ for i in $$temps;\
++  do j=file$$i;\
++    rm $${!j};\
++  done;\
++};\
++##
+ main'
+ 
+ 	touch doxyfile.stamp
+-- 
+2.17.5
 
