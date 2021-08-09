@@ -2,90 +2,179 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4FA8C4338F
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Aug 2021 08:32:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BFBD9C4338F
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Aug 2021 14:01:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9E01D60232
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Aug 2021 08:32:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9C4D860F35
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Aug 2021 14:01:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233857AbhHIIdP (ORCPT
+        id S233568AbhHIOCJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 9 Aug 2021 04:33:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47474 "EHLO
+        Mon, 9 Aug 2021 10:02:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38690 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233794AbhHIIdP (ORCPT
+        with ESMTP id S233165AbhHIOCI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 9 Aug 2021 04:33:15 -0400
-Received: from mail-pj1-x102d.google.com (mail-pj1-x102d.google.com [IPv6:2607:f8b0:4864:20::102d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1FB90C0613CF
-        for <netfilter-devel@vger.kernel.org>; Mon,  9 Aug 2021 01:32:54 -0700 (PDT)
-Received: by mail-pj1-x102d.google.com with SMTP id u13-20020a17090abb0db0290177e1d9b3f7so33321990pjr.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 09 Aug 2021 01:32:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=sender:from:date:to:subject:message-id:mail-followup-to:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=RLEzwUzYig98brHmqr59LBgPJyq5lkqrLpXXAoaqlxM=;
-        b=VTVNP3lUmH63VUQStz7jAY3H7X8bY7UmRlnP8JaFxNAjU40nJx5uS2C8drWb+EWfg8
-         GaCJpDKT/+PWHQxW0vTP43vaTMbPv819NCo2d9XecwvbClnoVG1KddhB1L3eNBl5g8ER
-         wXQh3Lg51so9U64YGbt8kjzSLZI0nZKYl53L8+F0LeYslrWYBxvimbW5cdyIawPLODry
-         urBdIO+VcXy2/oA3cYI2G4CiqeM3F3ZctLUsnVhCNi2Q5Zgc8Ml+86FKgevnDwLNMOrp
-         wTp3IIf0HbXi+ZSVE/tIhHdH4eXC4Im2Ttglf7IjB5P7onpag70yoZJ558v/FswVmmQ3
-         0Xvg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:from:date:to:subject:message-id
-         :mail-followup-to:references:mime-version:content-disposition
-         :in-reply-to;
-        bh=RLEzwUzYig98brHmqr59LBgPJyq5lkqrLpXXAoaqlxM=;
-        b=DECoyO47p+qmA/1krzSx11FMBLeXFDkXjWQPTVtrIql0RRQf1/hby41g4UjXQ/k/8U
-         wG0/FYJ5tYb8fD/qwSYXMZTdQh8yUnDSeGqSBumoWGOiaj1+n4NZkvh6l2G6JMm6BXPb
-         XNYpopOUKHlA9E8vU2CbD7dbx5aPWFBFnKET805Y1KEQ5v5xCYtrtVQ2BjhVF7gad5QK
-         yvpR22qoTtujNgNIQhuttPCwtLwblBJ9C1mxOSEHP2eitT16kUex9m95q5GqwfnV2cfd
-         x7InWmVFPpHXNb99Wu+QKD/99CetuaFnBf7i6klyuH7GXoh71E15eLU2TbBRF1VdChfe
-         LWLA==
-X-Gm-Message-State: AOAM530zh/+Xzko8r3xoCfEFIRWCHjJZP0EKyWwa+yt/Nx1y4KmjACxd
-        cWoHrMUhxXBsyluRw2esG7jj9X9RhULyTQ==
-X-Google-Smtp-Source: ABdhPJxQ2xkbLXhLRwpqWHS/sBx8ot6UYIQX1F0geUZBIJ7THnSy7zEpGPqzqtJTWFmp0mtTZPCuUA==
-X-Received: by 2002:aa7:9115:0:b029:359:69db:bc89 with SMTP id 21-20020aa791150000b029035969dbbc89mr17080049pfh.32.1628497973337;
-        Mon, 09 Aug 2021 01:32:53 -0700 (PDT)
-Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
-        by smtp.gmail.com with ESMTPSA id f6sm19067708pfe.10.2021.08.09.01.32.51
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 09 Aug 2021 01:32:52 -0700 (PDT)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-X-Google-Original-From: Duncan Roe <dunc@slk1.local.net>
-Date:   Mon, 9 Aug 2021 18:32:48 +1000
-To:     Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH RFC libnetfilter_queue 1/1] src: doc: supply missing
- SYNOPSIS in pktbuff man pages
-Message-ID: <YRDoMFK29caJa6wJ@slk1.local.net>
-Mail-Followup-To: Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <20210629093837.GA23185@salvia>
- <20210717025350.24040-2-duncan_roe@optusnet.com.au>
- <20210722171015.GA12639@salvia>
- <YPuN1cuL1ukqzSFl@slk1.local.net>
- <20210724085633.GA21304@salvia>
- <YRDluYiIuSpBaDVB@slk1.local.net>
+        Mon, 9 Aug 2021 10:02:08 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E3BBC0613D3
+        for <netfilter-devel@vger.kernel.org>; Mon,  9 Aug 2021 07:01:48 -0700 (PDT)
+Received: from localhost ([::1]:48434 helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1mD5qb-00076s-Si; Mon, 09 Aug 2021 16:01:45 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Subject: [nft PATCH RFC] scanner: nat: Move to own scope
+Date:   Mon,  9 Aug 2021 16:01:41 +0200
+Message-Id: <20210809140141.18976-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.32.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YRDluYiIuSpBaDVB@slk1.local.net>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Aug 09, 2021 at 06:22:17PM +1000, Duncan Roe wrote:
-[...]Sat, Jul 24, 2021 at 10:56:33AM +0200, Pablo Neira Ayuso wrote:
-> The sample was made by doxygen-1.9.1, earlier versions e.g. doxygen-1.8.9.1
-> generate a few extra blank lines.
->
-It's the older man command inserting the blank lines, not doxygen.
+Unify nat, masquerade and redirect statements, they widely share their
+syntax.
 
-Cheers ... Duncan.
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+This seemingly valid change breaks the parser with this rule:
+
+| snat ip prefix to ip saddr map { 10.141.11.0/24 : 192.168.2.0/24 }
+
+Problem is that 'prefix' is not in SC_IP and close_scope_ip called from
+parser_bison.y:5067 is not sufficient. I assumed explicit scope closing
+would eliminate this lookahead problem. Did I find a proof against the
+concept or is there a bug in my patch?
+
+Thanks, Phil
+---
+ include/parser.h   |  1 +
+ src/parser_bison.y | 13 +++++++------
+ src/scanner.l      | 19 +++++++++++--------
+ 3 files changed, 19 insertions(+), 14 deletions(-)
+
+diff --git a/include/parser.h b/include/parser.h
+index e8635b4c0feb7..5bb45fc4380e4 100644
+--- a/include/parser.h
++++ b/include/parser.h
+@@ -52,6 +52,7 @@ enum startcond_type {
+ 	PARSER_SC_EXPR_SOCKET,
+ 
+ 	PARSER_SC_STMT_LOG,
++	PARSER_SC_STMT_NAT,
+ };
+ 
+ struct mnl_socket;
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 83f0250a87449..2634b90c559b9 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -924,6 +924,7 @@ close_scope_vlan	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_VLAN); };
+ close_scope_ipsec	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_IPSEC); };
+ close_scope_list	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_CMD_LIST); };
+ close_scope_limit	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_LIMIT); };
++close_scope_nat		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_STMT_NAT); };
+ close_scope_numgen	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_NUMGEN); };
+ close_scope_quota	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_QUOTA); };
+ close_scope_queue	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_QUEUE); };
+@@ -2793,12 +2794,12 @@ stmt			:	verdict_stmt
+ 			|	meta_stmt
+ 			|	log_stmt	close_scope_log
+ 			|	reject_stmt
+-			|	nat_stmt
++			|	nat_stmt	close_scope_nat
+ 			|	tproxy_stmt
+ 			|	queue_stmt
+ 			|	ct_stmt
+-			|	masq_stmt
+-			|	redir_stmt
++			|	masq_stmt	close_scope_nat
++			|	redir_stmt	close_scope_nat
+ 			|	dup_stmt
+ 			|	fwd_stmt
+ 			|	set_stmt
+@@ -4708,8 +4709,8 @@ keyword_expr		:	ETHER   close_scope_eth { $$ = symbol_value(&@$, "ether"); }
+ 			|	IP6	close_scope_ip6 { $$ = symbol_value(&@$, "ip6"); }
+ 			|	VLAN	close_scope_vlan { $$ = symbol_value(&@$, "vlan"); }
+ 			|	ARP	close_scope_arp { $$ = symbol_value(&@$, "arp"); }
+-			|	DNAT			{ $$ = symbol_value(&@$, "dnat"); }
+-			|	SNAT			{ $$ = symbol_value(&@$, "snat"); }
++			|	DNAT	close_scope_nat	{ $$ = symbol_value(&@$, "dnat"); }
++			|	SNAT	close_scope_nat	{ $$ = symbol_value(&@$, "snat"); }
+ 			|	ECN			{ $$ = symbol_value(&@$, "ecn"); }
+ 			|	RESET			{ $$ = symbol_value(&@$, "reset"); }
+ 			|	ORIGINAL		{ $$ = symbol_value(&@$, "original"); }
+@@ -4798,7 +4799,7 @@ primary_rhs_expr	:	symbol_expr		{ $$ = $1; }
+ 							 BYTEORDER_HOST_ENDIAN,
+ 							 sizeof(data) * BITS_PER_BYTE, &data);
+ 			}
+-			|	REDIRECT
++			|	REDIRECT	close_scope_nat
+ 			{
+ 				uint8_t data = ICMP_REDIRECT;
+ 				$$ = constant_expr_alloc(&@$, &icmp_type_type,
+diff --git a/src/scanner.l b/src/scanner.l
+index 6cc7778dd85e1..f1e0162b0ae5e 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -218,6 +218,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ %s SCANSTATE_EXPR_SOCKET
+ 
+ %s SCANSTATE_STMT_LOG
++%s SCANSTATE_STMT_NAT
+ 
+ %%
+ 
+@@ -366,7 +367,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "quotas"		{ return QUOTAS; }
+ 
+ "log"			{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_LOG); return LOG; }
+-"prefix"		{ return PREFIX; }
++<SCANSTATE_STMT_LOG,SCANSTATE_STMT_NAT>"prefix"		{ return PREFIX; }
+ "group"			{ return GROUP; }
+ <SCANSTATE_STMT_LOG>{
+ 	"snaplen"		{ return SNAPLEN; }
+@@ -403,13 +404,16 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "with"			{ return WITH; }
+ "icmpx"			{ return ICMPX; }
+ 
+-"snat"			{ return SNAT; }
+-"dnat"			{ return DNAT; }
+-"masquerade"		{ return MASQUERADE; }
+-"redirect"		{ return REDIRECT; }
++"snat"			{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_NAT); return SNAT; }
++"dnat"			{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_NAT); return DNAT; }
++"masquerade"		{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_NAT); return MASQUERADE; }
++"redirect"		{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_NAT); return REDIRECT; }
+ "random"		{ return RANDOM; }
+-"fully-random"		{ return FULLY_RANDOM; }
+-"persistent"		{ return PERSISTENT; }
++<SCANSTATE_STMT_NAT>{
++	"fully-random"		{ return FULLY_RANDOM; }
++	"persistent"		{ return PERSISTENT; }
++	"port"			{ return PORT; }
++}
+ 
+ "ll"			{ return LL_HDR; }
+ "nh"			{ return NETWORK_HDR; }
+@@ -523,7 +527,6 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "udplite"		{ return UDPLITE; }
+ "sport"			{ return SPORT; }
+ "dport"			{ return DPORT; }
+-"port"			{ return PORT; }
+ 
+ "tcp"			{ return TCP; }
+ "ackseq"		{ return ACKSEQ; }
+-- 
+2.32.0
+
