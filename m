@@ -2,74 +2,73 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.7 required=3.0 tests=BAYES_00,FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4BD1C4338F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Aug 2021 03:18:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D763C4338F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Aug 2021 09:22:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 70AB160FC3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Aug 2021 03:18:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5BE9F60249
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Aug 2021 09:22:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236540AbhHJDSn (ORCPT
+        id S238881AbhHJJWd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 9 Aug 2021 23:18:43 -0400
-Received: from mail-il1-f199.google.com ([209.85.166.199]:47889 "EHLO
-        mail-il1-f199.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236536AbhHJDSa (ORCPT
+        Tue, 10 Aug 2021 05:22:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47822 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S237758AbhHJJVh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 9 Aug 2021 23:18:30 -0400
-Received: by mail-il1-f199.google.com with SMTP id c7-20020a928e070000b0290222cccb8651so6776844ild.14
-        for <netfilter-devel@vger.kernel.org>; Mon, 09 Aug 2021 20:18:08 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
-         :from:to;
-        bh=5BRXu3w+C12fxdxN1C+eVxxxv4+y9P7u8pANMPW2JlA=;
-        b=LVIdlissWsA7FGMclmX2sy23M2VJ46ng0q5Mfgo0jvVnqyF2lUeUyvLUFYY/62RZcy
-         eHMzjtoKfUOyvAFulGEYjj8TtRPJc75VKT8ydHlb6IdPeXeDckVu/aQQ6x6Cd0dcnQbs
-         lVfqSEvSogBO+McNmJlfKz4f154qE062rw523TeBWzrfyD35U7Ix8hoM7koJN+q+xzEZ
-         78VgcOLtUxBTAdkERQnpsXKBSLdg7OoW5cqjY/cu+VWpX2p3xIccKgCyf+iHmWq8Xkrh
-         4GTy2O7BzMcAVSjaGjV+VDH6mrIg3X5OftcLDLXM8qgGD+vEXnHVqNvd2OxygxvOR5S/
-         Ek5g==
-X-Gm-Message-State: AOAM530uEXFA78kkklJYNDJEL7SHDKNCQpojdAdTR3po8Kp/BsUTgg2S
-        CHpz2rh+7+J+5gppMgkWxA74jEfa+sntWRM6nm5F3qaw/kHq
-X-Google-Smtp-Source: ABdhPJzSejOHZF2vwRQa08jvFtWilpXHY4p8/eqRrMxxZV+P6Xpydk/aba2JEJl1ObwHXQ0rqs6Y+cSJYd76Qvyoc+6FLgQKYkyI
+        Tue, 10 Aug 2021 05:21:37 -0400
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::48])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F61AC0617A2;
+        Tue, 10 Aug 2021 02:21:01 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by smtp2.kfki.hu (Postfix) with ESMTP id C1DA1CC00E1;
+        Tue, 10 Aug 2021 11:20:55 +0200 (CEST)
+X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP; Tue, 10 Aug 2021 11:20:51 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
+        by smtp2.kfki.hu (Postfix) with ESMTP id DE260CC00F4;
+        Tue, 10 Aug 2021 11:20:51 +0200 (CEST)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+        id C7FC3340D60; Tue, 10 Aug 2021 11:20:51 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by blackhole.kfki.hu (Postfix) with ESMTP id C3C35340D5D;
+        Tue, 10 Aug 2021 11:20:51 +0200 (CEST)
+Date:   Tue, 10 Aug 2021 11:20:51 +0200 (CEST)
+From:   Jozsef Kadlecsik <kadlec@netfilter.org>
+To:     netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: [ANNOUNCE] ipset 7.15 released
+Message-ID: <37635e40-d279-8f10-a3d1-c33d36923836@netfilter.org>
 MIME-Version: 1.0
-X-Received: by 2002:a6b:4015:: with SMTP id k21mr139228ioa.28.1628565488642;
- Mon, 09 Aug 2021 20:18:08 -0700 (PDT)
-Date:   Mon, 09 Aug 2021 20:18:08 -0700
-In-Reply-To: <2d002841-402c-2bc3-2b33-3e6d1cd14c23@gmail.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <00000000000071b06d05c92bf331@google.com>
-Subject: Re: [syzbot] KASAN: use-after-free Write in nft_ct_tmpl_put_pcpu
-From:   syzbot <syzbot+649e339fa6658ee623d3@syzkaller.appspotmail.com>
-To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        kadlec@netfilter.org, kuba@kernel.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        paskripkin@gmail.com, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello,
+Hi,
 
-syzbot has tested the proposed patch and the reproducer did not trigger any issue:
+The new ipset 7.15 release contains a single fix against the previous 
+version: a condition was wrongly placed in the hash:ip,port,net kernel 
+module. Please upgrade to the new release.
 
-Reported-and-tested-by: syzbot+649e339fa6658ee623d3@syzkaller.appspotmail.com
+Kernel part changes:
+  - netfilter: ipset: Fix maximal range check in hash_ipportnet4_uadt() 
+    (Nathan Chancellor)
 
-Tested on:
+You can download the source code of ipset from:
+        https://ipset.netfilter.org
+        ftp://ftp.netfilter.org/pub/ipset/
+        git://git.netfilter.org/ipset.git
 
-commit:         9a73fa37 Merge branch 'for-5.14-fixes' of git://git.ke..
-git tree:       upstream
-kernel config:  https://syzkaller.appspot.com/x/.config?x=e3a20bae04b96ccd
-dashboard link: https://syzkaller.appspot.com/bug?extid=649e339fa6658ee623d3
-compiler:       gcc (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.1
-patch:          https://syzkaller.appspot.com/x/patch.diff?x=12d6baf6300000
-
-Note: testing is done by a robot and is best-effort only.
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
