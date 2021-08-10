@@ -6,58 +6,58 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15AB6C4338F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Aug 2021 12:55:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14315C4338F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Aug 2021 12:59:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DEF4060F94
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Aug 2021 12:55:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E1DA360EC0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Aug 2021 12:59:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234448AbhHJMzu (ORCPT
+        id S241005AbhHJM77 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 10 Aug 2021 08:55:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41694 "EHLO
+        Tue, 10 Aug 2021 08:59:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42720 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233590AbhHJMzt (ORCPT
+        with ESMTP id S239188AbhHJM77 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 10 Aug 2021 08:55:49 -0400
-Received: from mail-lf1-x12a.google.com (mail-lf1-x12a.google.com [IPv6:2a00:1450:4864:20::12a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8ED71C0613D3;
-        Tue, 10 Aug 2021 05:55:27 -0700 (PDT)
-Received: by mail-lf1-x12a.google.com with SMTP id g13so41263944lfj.12;
-        Tue, 10 Aug 2021 05:55:27 -0700 (PDT)
+        Tue, 10 Aug 2021 08:59:59 -0400
+Received: from mail-lj1-x22a.google.com (mail-lj1-x22a.google.com [IPv6:2a00:1450:4864:20::22a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3175CC0613D3;
+        Tue, 10 Aug 2021 05:59:37 -0700 (PDT)
+Received: by mail-lj1-x22a.google.com with SMTP id m9so28921624ljp.7;
+        Tue, 10 Aug 2021 05:59:37 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=4rViaCUp03F0sOMlLIrr/48hOom8gf9ywmMtY7hOCEw=;
-        b=QhDrGZLyjbA+pSrCNOia22rq2ksofFcAAHQdCK9zOvnrwjwdvm8gX4oUvEzmyfEb+e
-         wiTutgnsFTzVv1Bi6DqP1lenvA2AEqpS83J1C+i4EaBai8teuEnfETejvbRfk+/RGWjf
-         JXe4+npxD9GWeetIrXD5uN2AKxaa3uvSCJzZ+ZU+UtEODLVifkAVYPSLgKeTAgXyjrKb
-         eAkTYnSjrkuMej/bG4d7vIHR4QVu0dfgUYs+/ZiR3Mxak1wSu4CnJCMI/9cZPWzrJtsL
-         Y7o+1TYR+rYMc4eaJD1TioIawKlGr+l5l8iGo5qV4ytqaGrkVuD3vPostkfucpRHHIsm
-         NGVQ==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=C8ukQa3sXo+DBl8G/r0rlRb+zkXrtXj0fbs8AcpdmLM=;
+        b=BeR0m3pZrkVng8z/cHE1HhRzPFWun7v6JeIPJr7i2Y0ic0pnr5hNFoZdBlYDJL0Xg+
+         RoM7hPyLnx0zqG27UL1O7qbP3yuUFooPWRR77qltiO/ij40qu7ZMsF8Mpa0Lw+/jdrQ/
+         fji0Tzfl/hUi1cU9j/u0iptIowVN2aNGLtqe7WzwL58Tu4aI83G5mGeJBzxrO7GkyjdE
+         wR4IB0POHiMTq6k2wTVyjghI9zGVJPRxWwmb7PbulzaU3YcwvLAUZvZSDEApQVWyvvp8
+         sawq7BSsw+rr64tuzNRMlSJQdgFQB68FAg3Kkq7vHCcApuV0zocldjj0uPpVts2MAh7j
+         1h9w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=4rViaCUp03F0sOMlLIrr/48hOom8gf9ywmMtY7hOCEw=;
-        b=uCQQwnvYG+BQLMMRIAwv7oZ90U2gWBc9HvHh37VwlsYKQxxOr1uexu9SKugfLwrIYN
-         xvFX6v3iuLDyZ3yVzAS2v46QoATs90nKabkGRvRy6BQOu9Dskew3qkO65f4P/kSSkiZO
-         cbZYz0+wzLM00xGSmPxhnaH/WIBwlXb/Nh5biKHnt6TsVme31wqS3B9WMm5dv8FCkyry
-         TGUqWb+UyNitMkoUEt6A9pY8F7dPD8uy2+jNil9t8AHVX0W+0p+Rvj8FTTu+HTcfAHkl
-         aTueXhdO8ZumzMY4VuqrLOEbcq3LNU2En2MUwQYhcqqYPdgtTA9TPQ1TDmEFN4YBeBWv
-         1WIg==
-X-Gm-Message-State: AOAM5337At97m+ZVWVeLAqJvOi/VGk7QMGD7h0PXQf6liQi+8t75AjXd
-        vthTljka3Wul5d9JZUOnNuI=
-X-Google-Smtp-Source: ABdhPJxVRsKFgx2m5ReTxzKsAj+BWBLyWiKUWBNi+p/47kWiw91JrwzOve3y9nUUzr9UpTQYPMXCPg==
-X-Received: by 2002:a05:6512:470:: with SMTP id x16mr22072229lfd.497.1628600125867;
-        Tue, 10 Aug 2021 05:55:25 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=C8ukQa3sXo+DBl8G/r0rlRb+zkXrtXj0fbs8AcpdmLM=;
+        b=fjeSbIHsOI9jEWIwwTHn4CtpOLUJ3Jxy8jbsV6wNlq3pjxCStOOgtTp+uF3gMsrjGr
+         Q7Xu6koICRGM/8NaYvzFOzBvsUgIjsiIBWHBJ3O8NrjJ7PpHy41WjPXthRdsopyOaodO
+         K5YkMJQN+IflPtuL/4KNoqwWH1uZuYGibIhzYYAJ8F5a+EmRpCw0MMHfnluH+IwQarE6
+         rZNz8egvY2x+SWxTt8d7+9DI/zpV+dXP93ye6Di3OJsTx3ZPMoW79XAQ/4xYTFLmGB0b
+         0uxJclebv+f5tbaAPS09Iw7oVV/mGYuQEFhiI9SmdsmXUE2su5zZyG1DECpntROGqvHm
+         Lb3w==
+X-Gm-Message-State: AOAM531IjXpLRn0Oh/jMO56gYoBo4gK/4C34oCgZlmrI4x1z4YkAdPWp
+        7qaZ2Wqmw24A78CqV5tuGqc=
+X-Google-Smtp-Source: ABdhPJyXKs6dOhzi+KmIRhTXSLCqmlcLAcEQglehQFPDp/eginYv8FRijzR7lGhqlXzh/oYaSjmoog==
+X-Received: by 2002:a2e:8250:: with SMTP id j16mr19645493ljh.164.1628600375545;
+        Tue, 10 Aug 2021 05:59:35 -0700 (PDT)
 Received: from localhost.localdomain ([46.235.67.232])
-        by smtp.gmail.com with ESMTPSA id k17sm1873341ljm.7.2021.08.10.05.55.24
+        by smtp.gmail.com with ESMTPSA id m12sm2039397lfh.182.2021.08.10.05.59.34
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 10 Aug 2021 05:55:25 -0700 (PDT)
+        Tue, 10 Aug 2021 05:59:35 -0700 (PDT)
 From:   Pavel Skripkin <paskripkin@gmail.com>
 To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
         davem@davemloft.net
@@ -65,10 +65,12 @@ Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
         Pavel Skripkin <paskripkin@gmail.com>,
         syzbot+649e339fa6658ee623d3@syzkaller.appspotmail.com
-Subject: [PATCH] netfiler: protect nft_ct_pcpu_template_refcnt with mutex
-Date:   Tue, 10 Aug 2021 15:55:23 +0300
-Message-Id: <20210810125523.15312-1-paskripkin@gmail.com>
+Subject: [PATCH v2] netfilter: protect nft_ct_pcpu_template_refcnt with mutex
+Date:   Tue, 10 Aug 2021 15:59:20 +0300
+Message-Id: <20210810125920.23187-1-paskripkin@gmail.com>
 X-Mailer: git-send-email 2.32.0
+In-Reply-To: <20210810125523.15312-1-paskripkin@gmail.com>
+References: <20210810125523.15312-1-paskripkin@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -91,6 +93,11 @@ changes with it.
 Fixes: f102d66b335a ("netfilter: nf_tables: use dedicated mutex to guard transactions")
 Reported-and-tested-by: syzbot+649e339fa6658ee623d3@syzkaller.appspotmail.com
 Signed-off-by: Pavel Skripkin <paskripkin@gmail.com>
+---
+
+Changes in v2:
+	Fixed typo in title: netfiler -> netfilter
+
 ---
  net/netfilter/nft_ct.c | 9 ++++++++-
  1 file changed, 8 insertions(+), 1 deletion(-)
