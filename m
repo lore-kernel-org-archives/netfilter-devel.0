@@ -2,90 +2,137 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF848C4338F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Aug 2021 11:19:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15AB6C4338F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Aug 2021 12:55:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C2A3360EC0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Aug 2021 11:19:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DEF4060F94
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Aug 2021 12:55:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238022AbhHJLTs (ORCPT
+        id S234448AbhHJMzu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 10 Aug 2021 07:19:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47642 "EHLO
+        Tue, 10 Aug 2021 08:55:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41694 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237252AbhHJLTr (ORCPT
+        with ESMTP id S233590AbhHJMzt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 10 Aug 2021 07:19:47 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 757F4C0613D3
-        for <netfilter-devel@vger.kernel.org>; Tue, 10 Aug 2021 04:19:25 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1mDPn0-00029e-Pc; Tue, 10 Aug 2021 13:19:22 +0200
-Date:   Tue, 10 Aug 2021 13:19:22 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH RFC] scanner: nat: Move to own scope
-Message-ID: <20210810111922.GD3673@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20210809140141.18976-1-phil@nwl.cc>
- <20210809151833.GM607@breakpoint.cc>
- <20210809162514.GA3673@orbyte.nwl.cc>
- <20210809184559.GO607@breakpoint.cc>
+        Tue, 10 Aug 2021 08:55:49 -0400
+Received: from mail-lf1-x12a.google.com (mail-lf1-x12a.google.com [IPv6:2a00:1450:4864:20::12a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8ED71C0613D3;
+        Tue, 10 Aug 2021 05:55:27 -0700 (PDT)
+Received: by mail-lf1-x12a.google.com with SMTP id g13so41263944lfj.12;
+        Tue, 10 Aug 2021 05:55:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=4rViaCUp03F0sOMlLIrr/48hOom8gf9ywmMtY7hOCEw=;
+        b=QhDrGZLyjbA+pSrCNOia22rq2ksofFcAAHQdCK9zOvnrwjwdvm8gX4oUvEzmyfEb+e
+         wiTutgnsFTzVv1Bi6DqP1lenvA2AEqpS83J1C+i4EaBai8teuEnfETejvbRfk+/RGWjf
+         JXe4+npxD9GWeetIrXD5uN2AKxaa3uvSCJzZ+ZU+UtEODLVifkAVYPSLgKeTAgXyjrKb
+         eAkTYnSjrkuMej/bG4d7vIHR4QVu0dfgUYs+/ZiR3Mxak1wSu4CnJCMI/9cZPWzrJtsL
+         Y7o+1TYR+rYMc4eaJD1TioIawKlGr+l5l8iGo5qV4ytqaGrkVuD3vPostkfucpRHHIsm
+         NGVQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=4rViaCUp03F0sOMlLIrr/48hOom8gf9ywmMtY7hOCEw=;
+        b=uCQQwnvYG+BQLMMRIAwv7oZ90U2gWBc9HvHh37VwlsYKQxxOr1uexu9SKugfLwrIYN
+         xvFX6v3iuLDyZ3yVzAS2v46QoATs90nKabkGRvRy6BQOu9Dskew3qkO65f4P/kSSkiZO
+         cbZYz0+wzLM00xGSmPxhnaH/WIBwlXb/Nh5biKHnt6TsVme31wqS3B9WMm5dv8FCkyry
+         TGUqWb+UyNitMkoUEt6A9pY8F7dPD8uy2+jNil9t8AHVX0W+0p+Rvj8FTTu+HTcfAHkl
+         aTueXhdO8ZumzMY4VuqrLOEbcq3LNU2En2MUwQYhcqqYPdgtTA9TPQ1TDmEFN4YBeBWv
+         1WIg==
+X-Gm-Message-State: AOAM5337At97m+ZVWVeLAqJvOi/VGk7QMGD7h0PXQf6liQi+8t75AjXd
+        vthTljka3Wul5d9JZUOnNuI=
+X-Google-Smtp-Source: ABdhPJxVRsKFgx2m5ReTxzKsAj+BWBLyWiKUWBNi+p/47kWiw91JrwzOve3y9nUUzr9UpTQYPMXCPg==
+X-Received: by 2002:a05:6512:470:: with SMTP id x16mr22072229lfd.497.1628600125867;
+        Tue, 10 Aug 2021 05:55:25 -0700 (PDT)
+Received: from localhost.localdomain ([46.235.67.232])
+        by smtp.gmail.com with ESMTPSA id k17sm1873341ljm.7.2021.08.10.05.55.24
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 10 Aug 2021 05:55:25 -0700 (PDT)
+From:   Pavel Skripkin <paskripkin@gmail.com>
+To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Pavel Skripkin <paskripkin@gmail.com>,
+        syzbot+649e339fa6658ee623d3@syzkaller.appspotmail.com
+Subject: [PATCH] netfiler: protect nft_ct_pcpu_template_refcnt with mutex
+Date:   Tue, 10 Aug 2021 15:55:23 +0300
+Message-Id: <20210810125523.15312-1-paskripkin@gmail.com>
+X-Mailer: git-send-email 2.32.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210809184559.GO607@breakpoint.cc>
-Sender:  <n0-1@orbyte.nwl.cc>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Aug 09, 2021 at 08:45:59PM +0200, Florian Westphal wrote:
-> Phil Sutter <phil@nwl.cc> wrote:
-> > > So, it is in IP scope, sees 'prefix' (which will be STRING as the
-> > > PREFIX scan rule is off) and that ends up in a parser error due to lack
-> > > of a 'IP STRING' rule.
-> > 
-> > OK, thanks. So does this mean we won't ever be able to move keywords
-> > opening a statement or expression out of INIT scope or is my case a
-> > special one?
-> 
-> We can move them out of INIT scope, but only if they remain within
-> the same scope.
-> 
-> For example, you could create a 'rule scope' or 'expression scope'
-> that contains all tokens (ip, tcp, etc.) that start a new expression.
+Syzbot hit use-after-free in nf_tables_dump_sets. The problem was in
+missing lock protection for nft_ct_pcpu_template_refcnt.
 
-Ah, OK!
+Before commit f102d66b335a ("netfilter: nf_tables: use dedicated
+mutex to guard transactions") all transactions were serialized by global
+mutex, but then global mutex was changed to local per netnamespace
+commit_mutex.
 
-> I did not do this because there are too many cases where expressions are
-> permitted outside of rule scope, e.g. in set definitions (key, elements
-> ...)
-> 
-> > To clarify, what I have in mind is a sample rule 'ip id 1 tcp dport 1'
-> > where 'tcp' must either be in INIT scope or part of SC_IP. 
-> 
-> IP and TCP need to be in the same scope (e.g. INIT).
-> 
-> In the given example I suspect that TCP doesn't have to be in SC_IP
-> scope since 'ip id 1' is a full expression and scope closure happens
-> before next token gets scanned.
+This change causes use-after-free bug, when 2 netnamespaces concurently
+changing nft_ct_pcpu_template_refcnt without proper locking. Fix it by
+adding nft_ct_pcpu_mutex and protect all nft_ct_pcpu_template_refcnt
+changes with it.
 
-Now I got it: The problem with nat_stmt is that 'snat ip' may either be
-'SNAT nf_key_proto' or 'SNAT stmt_expr' and bison carries on until it's
-clear. I missed the fact that stmt_expr is allowed in nat_stmt_args.
+Fixes: f102d66b335a ("netfilter: nf_tables: use dedicated mutex to guard transactions")
+Reported-and-tested-by: syzbot+649e339fa6658ee623d3@syzkaller.appspotmail.com
+Signed-off-by: Pavel Skripkin <paskripkin@gmail.com>
+---
+ net/netfilter/nft_ct.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-Thanks for the clarification! Maybe one day I'll finally understand how
-bison really works. %)
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index 337e22d8b40b..99b1de14ff7e 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -41,6 +41,7 @@ struct nft_ct_helper_obj  {
+ #ifdef CONFIG_NF_CONNTRACK_ZONES
+ static DEFINE_PER_CPU(struct nf_conn *, nft_ct_pcpu_template);
+ static unsigned int nft_ct_pcpu_template_refcnt __read_mostly;
++static DEFINE_MUTEX(nft_ct_pcpu_mutex);
+ #endif
+ 
+ static u64 nft_ct_get_eval_counter(const struct nf_conn_counter *c,
+@@ -525,8 +526,10 @@ static void __nft_ct_set_destroy(const struct nft_ctx *ctx, struct nft_ct *priv)
+ #endif
+ #ifdef CONFIG_NF_CONNTRACK_ZONES
+ 	case NFT_CT_ZONE:
++		mutex_lock(&nft_ct_pcpu_mutex);
+ 		if (--nft_ct_pcpu_template_refcnt == 0)
+ 			nft_ct_tmpl_put_pcpu();
++		mutex_unlock(&nft_ct_pcpu_mutex);
+ 		break;
+ #endif
+ 	default:
+@@ -564,9 +567,13 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
+ #endif
+ #ifdef CONFIG_NF_CONNTRACK_ZONES
+ 	case NFT_CT_ZONE:
+-		if (!nft_ct_tmpl_alloc_pcpu())
++		mutex_lock(&nft_ct_pcpu_mutex);
++		if (!nft_ct_tmpl_alloc_pcpu()) {
++			mutex_unlock(&nft_ct_pcpu_mutex);
+ 			return -ENOMEM;
++		}
+ 		nft_ct_pcpu_template_refcnt++;
++		mutex_unlock(&nft_ct_pcpu_mutex);
+ 		len = sizeof(u16);
+ 		break;
+ #endif
+-- 
+2.32.0
 
-Cheers, Phil
