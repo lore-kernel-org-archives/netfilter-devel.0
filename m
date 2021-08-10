@@ -2,119 +2,69 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3828C4338F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Aug 2021 14:02:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC4CCC4338F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Aug 2021 15:23:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 85A0A60C51
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Aug 2021 14:02:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C9D4060F56
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Aug 2021 15:23:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240480AbhHJOCd (ORCPT
+        id S243010AbhHJPXZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 10 Aug 2021 10:02:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57962 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236686AbhHJOCd (ORCPT
+        Tue, 10 Aug 2021 11:23:25 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:42276 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S243001AbhHJPXY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 10 Aug 2021 10:02:33 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5502C0613D3
-        for <netfilter-devel@vger.kernel.org>; Tue, 10 Aug 2021 07:02:10 -0700 (PDT)
-Received: from localhost ([::1]:51346 helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1mDSKU-0003yg-Qk; Tue, 10 Aug 2021 16:02:06 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
+        Tue, 10 Aug 2021 11:23:24 -0400
+Received: from netfilter.org (bl11-146-165.dsl.telepac.pt [85.244.146.165])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 1F47960030;
+        Tue, 10 Aug 2021 17:22:19 +0200 (CEST)
+Date:   Tue, 10 Aug 2021 17:22:56 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH] tests/py: Make netns spawning more robust
-Date:   Tue, 10 Aug 2021 16:02:04 +0200
-Message-Id: <20210810140204.19372-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.32.0
+Subject: Re: [PATCH nf-next] x_tables: never register tables by default
+Message-ID: <20210810152256.GA2502@salvia>
+References: <20210803144719.26735-1-fw@strlen.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20210803144719.26735-1-fw@strlen.de>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On systems without unshare Python module, try to call unshare binary
-with oneself as parameters.
+On Tue, Aug 03, 2021 at 04:47:19PM +0200, Florian Westphal wrote:
+> For historical reasons x_tables still register tables by default in the
+> initial namespace.
+> Only newly created net namespaces add the hook on demand.
+> 
+> This means that the init_net always pays hook cost, even if no filtering
+> rules are added (e.g. only used inside a single netns).
+> 
+> Note that the hooks are added even when 'iptables -L' is called.
+> This is because there is no way to tell 'iptables -A' and 'iptables -L'
+> apart at kernel level.
+> 
+> The only solution would be to register the table, but delay hook
+> registration until the first rule gets added (or policy gets changed).
+> 
+> That however means that counters are not hooked either, so 'iptables -L'
+> would always show 0-counters even when traffic is flowing which might be
+> unexpected.
+> 
+> This keeps table and hook registration consistent with what is already done
+> in non-init netns: first iptables(-save) invocation registers both table
+> and hooks.
+> 
+> This applies the same solution adopted for ebtables.
+> All tables register a template that contains the l3 family, the name
+> and a constructor function that is called when the initial table has to
+> be added.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- tests/py/nft-test.py | 38 ++++++++++++++++++++++++++++++++------
- 1 file changed, 32 insertions(+), 6 deletions(-)
-
-diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
-index 15e74d8b2c174..f993a2fa8cb46 100755
---- a/tests/py/nft-test.py
-+++ b/tests/py/nft-test.py
-@@ -1349,6 +1349,31 @@ def run_test_file(filename, force_all_family_option, specific_file):
- 
-     return [tests, passed, total_warning, total_error, total_unit_run]
- 
-+def spawn_netns():
-+    # prefer unshare module
-+    try:
-+        import unshare
-+        unshare.unshare(unshare.CLONE_NEWNET)
-+        return True
-+    except:
-+        pass
-+
-+    # sledgehammer style
-+    try:
-+        import shutil
-+
-+        unshare = shutil.which("unshare")
-+        if unshare is None:
-+            return False
-+
-+        sys.argv.append("--no-netns")
-+        if debug_option:
-+            print("calling: ", [unshare, "-n", sys.executable] + sys.argv)
-+        os.execv(unshare, [unshare, "-n", sys.executable] + sys.argv)
-+    except:
-+        pass
-+
-+    return False
- 
- def main():
-     parser = argparse.ArgumentParser(description='Run nft tests')
-@@ -1376,6 +1401,10 @@ def main():
-     parser.add_argument('-l', '--library', default=None,
-                         help='path to libntables.so.1, overrides --host')
- 
-+    parser.add_argument('-N', '--no-netns', action='store_true',
-+                        dest='no_netns',
-+                        help='Do not run in own network namespace')
-+
-     parser.add_argument('-s', '--schema', action='store_true',
-                         dest='enable_schema',
-                         help='verify json input/output against schema')
-@@ -1400,15 +1429,12 @@ def main():
-         print("You need to be root to run this, sorry")
-         return
- 
-+    if not args.no_netns and not spawn_netns():
-+        print_warning("cannot run in own namespace, connectivity might break")
-+
-     # Change working directory to repository root
-     os.chdir(TESTS_PATH + "/../..")
- 
--    try:
--        import unshare
--        unshare.unshare(unshare.CLONE_NEWNET)
--    except:
--        print_warning("cannot run in own namespace, connectivity might break")
--
-     check_lib_path = True
-     if args.library is None:
-         if args.host:
--- 
-2.32.0
-
+Applied to nf-next, thanks.
