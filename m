@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2897DC4338F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Aug 2021 08:49:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B34FEC4320E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Aug 2021 08:49:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0DA4660FC0
-	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Aug 2021 08:49:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9CBC660FC0
+	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Aug 2021 08:49:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236419AbhHKItq (ORCPT
+        id S236461AbhHKItr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 11 Aug 2021 04:49:46 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:44064 "EHLO
+        Wed, 11 Aug 2021 04:49:47 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:44078 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236369AbhHKItn (ORCPT
+        with ESMTP id S236242AbhHKItp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 11 Aug 2021 04:49:43 -0400
+        Wed, 11 Aug 2021 04:49:45 -0400
 Received: from salvia.lan (bl11-146-165.dsl.telepac.pt [85.244.146.165])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 9AA6960069;
-        Wed, 11 Aug 2021 10:48:36 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 7CF496006E;
+        Wed, 11 Aug 2021 10:48:38 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 05/10] netfilter: remove xt pernet data
-Date:   Wed, 11 Aug 2021 10:49:03 +0200
-Message-Id: <20210811084908.14744-6-pablo@netfilter.org>
+Subject: [PATCH net-next 07/10] netfilter: ctnetlink: add and use a helper for mark parsing
+Date:   Wed, 11 Aug 2021 10:49:05 +0200
+Message-Id: <20210811084908.14744-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20210811084908.14744-1-pablo@netfilter.org>
 References: <20210811084908.14744-1-pablo@netfilter.org>
@@ -41,86 +41,95 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-clusterip is now handled via net_generic.
+ctnetlink dumps can be filtered based on the connmark.
 
-NOTRACK is tiny compared to rest of xt_CT feature set, even the existing
-deprecation warning is bigger than the actual functionality.
+Prepare for status bit filtering by using a named structure and by
+moving the mark parsing code to a helper.
 
-Just remove the warning, its not worth keeping/adding a net_generic one.
+Else ctnetlink_alloc_filter size grows a bit too big for my taste
+when status handling is added.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/net_namespace.h  |  2 --
- include/net/netns/x_tables.h | 12 ------------
- net/netfilter/xt_CT.c        | 11 -----------
- 3 files changed, 25 deletions(-)
- delete mode 100644 include/net/netns/x_tables.h
+ net/netfilter/nf_conntrack_netlink.c | 42 ++++++++++++++++++----------
+ 1 file changed, 27 insertions(+), 15 deletions(-)
 
-diff --git a/include/net/net_namespace.h b/include/net/net_namespace.h
-index cc54750dd3db..bb5fa5914032 100644
---- a/include/net/net_namespace.h
-+++ b/include/net/net_namespace.h
-@@ -23,7 +23,6 @@
- #include <net/netns/ieee802154_6lowpan.h>
- #include <net/netns/sctp.h>
- #include <net/netns/netfilter.h>
--#include <net/netns/x_tables.h>
- #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- #include <net/netns/conntrack.h>
- #endif
-@@ -133,7 +132,6 @@ struct net {
- #endif
- #ifdef CONFIG_NETFILTER
- 	struct netns_nf		nf;
--	struct netns_xt		xt;
- #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- 	struct netns_ct		ct;
- #endif
-diff --git a/include/net/netns/x_tables.h b/include/net/netns/x_tables.h
-deleted file mode 100644
-index d02316ec2906..000000000000
---- a/include/net/netns/x_tables.h
-+++ /dev/null
-@@ -1,12 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef __NETNS_X_TABLES_H
--#define __NETNS_X_TABLES_H
--
--#include <linux/list.h>
--#include <linux/netfilter_defs.h>
--
--struct netns_xt {
--	bool notrack_deprecated_warning;
--	bool clusterip_deprecated_warning;
--};
--#endif
-diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
-index 12404d221026..0a913ce07425 100644
---- a/net/netfilter/xt_CT.c
-+++ b/net/netfilter/xt_CT.c
-@@ -351,21 +351,10 @@ notrack_tg(struct sk_buff *skb, const struct xt_action_param *par)
- 	return XT_CONTINUE;
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index e81af33b233b..e8368e66b0f5 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -852,6 +852,11 @@ static int ctnetlink_done(struct netlink_callback *cb)
+ 	return 0;
  }
  
--static int notrack_chk(const struct xt_tgchk_param *par)
--{
--	if (!par->net->xt.notrack_deprecated_warning) {
--		pr_info("netfilter: NOTRACK target is deprecated, "
--			"use CT instead or upgrade iptables\n");
--		par->net->xt.notrack_deprecated_warning = true;
++struct ctnetlink_filter_u32 {
++	u32 val;
++	u32 mask;
++};
++
+ struct ctnetlink_filter {
+ 	u8 family;
+ 
+@@ -862,10 +867,7 @@ struct ctnetlink_filter {
+ 	struct nf_conntrack_tuple reply;
+ 	struct nf_conntrack_zone zone;
+ 
+-	struct {
+-		u_int32_t val;
+-		u_int32_t mask;
+-	} mark;
++	struct ctnetlink_filter_u32 mark;
+ };
+ 
+ static const struct nla_policy cta_filter_nla_policy[CTA_FILTER_MAX + 1] = {
+@@ -907,6 +909,24 @@ static int ctnetlink_parse_tuple_filter(const struct nlattr * const cda[],
+ 					 struct nf_conntrack_zone *zone,
+ 					 u_int32_t flags);
+ 
++static int ctnetlink_filter_parse_mark(struct ctnetlink_filter_u32 *mark,
++				       const struct nlattr * const cda[])
++{
++#ifdef CONFIG_NF_CONNTRACK_MARK
++	if (cda[CTA_MARK]) {
++		mark->val = ntohl(nla_get_be32(cda[CTA_MARK]));
++
++		if (cda[CTA_MARK_MASK])
++			mark->mask = ntohl(nla_get_be32(cda[CTA_MARK_MASK]));
++		else
++			mark->mask = 0xffffffff;
++	} else if (cda[CTA_MARK_MASK]) {
++		return -EINVAL;
++	}
++#endif
++	return 0;
++}
++
+ static struct ctnetlink_filter *
+ ctnetlink_alloc_filter(const struct nlattr * const cda[], u8 family)
+ {
+@@ -924,18 +944,10 @@ ctnetlink_alloc_filter(const struct nlattr * const cda[], u8 family)
+ 
+ 	filter->family = family;
+ 
+-#ifdef CONFIG_NF_CONNTRACK_MARK
+-	if (cda[CTA_MARK]) {
+-		filter->mark.val = ntohl(nla_get_be32(cda[CTA_MARK]));
+-		if (cda[CTA_MARK_MASK])
+-			filter->mark.mask = ntohl(nla_get_be32(cda[CTA_MARK_MASK]));
+-		else
+-			filter->mark.mask = 0xffffffff;
+-	} else if (cda[CTA_MARK_MASK]) {
+-		err = -EINVAL;
++	err = ctnetlink_filter_parse_mark(&filter->mark, cda);
++	if (err)
+ 		goto err_filter;
 -	}
--	return 0;
--}
--
- static struct xt_target notrack_tg_reg __read_mostly = {
- 	.name		= "NOTRACK",
- 	.revision	= 0,
- 	.family		= NFPROTO_UNSPEC,
--	.checkentry	= notrack_chk,
- 	.target		= notrack_tg,
- 	.table		= "raw",
- 	.me		= THIS_MODULE,
+-#endif
++
+ 	if (!cda[CTA_FILTER])
+ 		return filter;
+ 
 -- 
 2.20.1
 
