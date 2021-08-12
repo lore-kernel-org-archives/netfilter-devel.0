@@ -2,61 +2,138 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC858C4338F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Aug 2021 14:31:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BA7FC4338F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Aug 2021 14:51:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AF2F46109F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Aug 2021 14:31:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 45B646101E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Aug 2021 14:50:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236800AbhHLObw (ORCPT
+        id S238157AbhHLOvX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 12 Aug 2021 10:31:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48868 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233293AbhHLObw (ORCPT
+        Thu, 12 Aug 2021 10:51:23 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:47670 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S236114AbhHLOvW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 12 Aug 2021 10:31:52 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7DE5AC061756;
-        Thu, 12 Aug 2021 07:31:26 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1mEBjs-0007tz-Pr; Thu, 12 Aug 2021 16:31:20 +0200
-Date:   Thu, 12 Aug 2021 16:31:20 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Kangmin Park <l4stpr0gr4m@gmail.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] netfilter: remove duplicate code
-Message-ID: <20210812143120.GD607@breakpoint.cc>
-References: <20210807062106.2563-1-l4stpr0gr4m@gmail.com>
- <CAKW4uUx=cOu46E0QCdmg1Jq3WJ3w6ROo6oKZaXA=g6gdhdiDdg@mail.gmail.com>
+        Thu, 12 Aug 2021 10:51:22 -0400
+Received: from salvia.lan (bl11-146-165.dsl.telepac.pt [85.244.146.165])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 234706006E
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Aug 2021 16:50:12 +0200 (CEST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] evaluate: expand variable containing set into multiple mappings
+Date:   Thu, 12 Aug 2021 16:50:48 +0200
+Message-Id: <20210812145048.12372-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAKW4uUx=cOu46E0QCdmg1Jq3WJ3w6ROo6oKZaXA=g6gdhdiDdg@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Kangmin Park <l4stpr0gr4m@gmail.com> wrote:
-> I checked the Changes Requested state in patchwork.
-> But I have not received any review mails.
+ # cat x.nft
+ define interfaces = { eth0, eth1 }
 
-I did not see any either.
+ table ip x {
+        chain y {
+		type filter hook input priority 0; policy accept;
+                iifname vmap { lo : accept, $interfaces : drop }
+        }
+ }
+ # nft -f x.nft
+ # nft list ruleset
+ table ip x {
+        chain y {
+		type filter hook input priority 0; policy accept;
+                iifname vmap { "lo" : accept, "eth0" : drop, "eth1" : drop }
+        }
+ }
 
-> I wonder if there is any problem.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+supersedes: https://patchwork.ozlabs.org/project/netfilter-devel/patch/20210811103344.23073-1-pablo@netfilter.org/
 
-I don't think its worth doing, the 'extra' check avoids the
-need for two additional function arguments (and those are not free
-either).
+ src/evaluate.c                                 | 17 +++++++++++++++++
+ tests/shell/testcases/maps/0012map_0           | 17 +++++++++++++++++
+ tests/shell/testcases/maps/dumps/0012map_0.nft | 12 ++++++++++++
+ 3 files changed, 46 insertions(+)
+ create mode 100755 tests/shell/testcases/maps/0012map_0
+ create mode 100644 tests/shell/testcases/maps/dumps/0012map_0.nft
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 8b5f51cee01c..8ebc75617b1c 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1431,6 +1431,23 @@ static int expr_evaluate_set(struct eval_ctx *ctx, struct expr **expr)
+ 		if (list_member_evaluate(ctx, &i) < 0)
+ 			return -1;
+ 
++		if (i->etype == EXPR_MAPPING &&
++		    i->left->etype == EXPR_SET_ELEM &&
++		    i->left->key->etype == EXPR_SET) {
++			struct expr *new, *j;
++
++			list_for_each_entry(j, &i->left->key->expressions, list) {
++				new = mapping_expr_alloc(&i->location,
++							 expr_get(j),
++							 expr_clone(i->right));
++				list_add_tail(&new->list, &set->expressions);
++				set->size++;
++			}
++			list_del(&i->list);
++			expr_free(i);
++			continue;
++		}
++
+ 		elem = expr_set_elem(i);
+ 
+ 		if (elem->etype == EXPR_SET_ELEM &&
+diff --git a/tests/shell/testcases/maps/0012map_0 b/tests/shell/testcases/maps/0012map_0
+new file mode 100755
+index 000000000000..dd93c482f441
+--- /dev/null
++++ b/tests/shell/testcases/maps/0012map_0
+@@ -0,0 +1,17 @@
++#!/bin/bash
++
++set -e
++
++EXPECTED="define interfaces = { eth0, eth1 }
++
++table ip x {
++	map z {
++		type ifname : verdict
++		elements = { \$interfaces : drop, lo : accept }
++	}
++	chain y {
++		iifname vmap { lo : accept, \$interfaces : drop }
++	}
++}"
++
++$NFT -f - <<< "$EXPECTED"
+diff --git a/tests/shell/testcases/maps/dumps/0012map_0.nft b/tests/shell/testcases/maps/dumps/0012map_0.nft
+new file mode 100644
+index 000000000000..e734fc1c70b9
+--- /dev/null
++++ b/tests/shell/testcases/maps/dumps/0012map_0.nft
+@@ -0,0 +1,12 @@
++table ip x {
++	map z {
++		type ifname : verdict
++		elements = { "lo" : accept,
++			     "eth0" : drop,
++			     "eth1" : drop }
++	}
++
++	chain y {
++		iifname vmap { "lo" : accept, "eth0" : drop, "eth1" : drop }
++	}
++}
+-- 
+2.20.1
+
