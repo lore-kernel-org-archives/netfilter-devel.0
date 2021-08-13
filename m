@@ -2,105 +2,110 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD4F6C4338F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Aug 2021 18:25:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 242D2C4338F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Aug 2021 04:44:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A351460E78
-	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Aug 2021 18:25:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F13C8610A5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Aug 2021 04:44:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231331AbhHLSZz (ORCPT
+        id S235170AbhHMEpK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 12 Aug 2021 14:25:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47102 "EHLO
+        Fri, 13 Aug 2021 00:45:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44224 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230382AbhHLSZz (ORCPT
+        with ESMTP id S234019AbhHMEpJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 12 Aug 2021 14:25:55 -0400
-Received: from mail-pl1-x633.google.com (mail-pl1-x633.google.com [IPv6:2607:f8b0:4864:20::633])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 74BFCC061756
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 Aug 2021 11:25:29 -0700 (PDT)
-Received: by mail-pl1-x633.google.com with SMTP id n12so7706313plf.4
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 Aug 2021 11:25:29 -0700 (PDT)
+        Fri, 13 Aug 2021 00:45:09 -0400
+Received: from mail-pj1-x102b.google.com (mail-pj1-x102b.google.com [IPv6:2607:f8b0:4864:20::102b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB16AC061756
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Aug 2021 21:44:43 -0700 (PDT)
+Received: by mail-pj1-x102b.google.com with SMTP id s22-20020a17090a1c16b0290177caeba067so19000731pjs.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Aug 2021 21:44:43 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=sender:from:date:to:cc:subject:message-id:mail-followup-to
-         :references:mime-version:content-disposition:in-reply-to;
-        bh=a89X3x6nrqGsOe37YUXty7qztIXiu6WomHt7PsfCUOw=;
-        b=TFJv5LbjFXzn/UZ70MyBNQ5f8yzXJLfM09ovfrWdQLelS25ZA4k8DgdkTKCxVeupFT
-         etD/Ar+VBWOT1GIzjlWjt6sePNy1CFgy9MNIDaa2R2GyUi5n36Ss8LwZGtZUPa/hbB7B
-         qbSp4hN5hhrncqs7uUw2cBTBQJ4sRTukilYf8XeiU8BW6JuNRNV/R4tP9nJSMSsFLo+o
-         HQHDbal/yP1gZcvqtmg87ZVuyhYPAuaKDpyGaFeQTBNn+bMuTjNVmdo0cUDOP/TwYVJq
-         G3bzdRc2dCndnQAi+v3IqqaKKK3aVhtJX2K95euDDlLVA/x3wAQIzRc0nLZq9XclWhVd
-         MpVQ==
+        h=sender:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=xuKncfOPSBTpSoTaGwjN5Vl+vzNWpXdvaji1fVUtT34=;
+        b=iP+PvvwQ8bTHqviaKWgS4kQEUst49T/moX4HGm2zOmreZ2dA3KdYxUoxQskDXZhxFB
+         kFcmp+f0ljtwA0TN2AiQc7l3wcMfPau0QS0wt5XJcvTd0FQHrqQSScrmxOMNYJVFErH9
+         XAVtrO+FCYF5JXjLHvLL2XUYTvId+fBoN5NdAucEHEXxEr1AUjXR9h/OHPEMpgs2JESy
+         mUwXeiii/4TDOb1cWo5b8XcLDf6qy7xBUVOj2lEzWh2G9wKRS6UtPUj9CsCpzQRPHbJD
+         lstHMfyyXzCDZzyGo327BgIbjcKbgolYHAUXy5JDS4zzspQiuRbIMnEChGNaYlCnu8Cb
+         dgew==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:from:date:to:cc:subject:message-id
-         :mail-followup-to:references:mime-version:content-disposition
-         :in-reply-to;
-        bh=a89X3x6nrqGsOe37YUXty7qztIXiu6WomHt7PsfCUOw=;
-        b=XrKM+DkzkQh4S78t9v8iw4TWMXrsf+pllNJt/bNimcUGjNBfEehRE2Zxft8aRoVNKE
-         ov/CAWyKQ9IQHmvvykgnOpSMRM01MUczSfjhwgOYCS4JSaOMzxJ3oHxiiKCZmpeGEPvd
-         Z7pgbOg/XDQcbMbwJQIYWm+xxG+P99XnJMLf5mnTUxTPKosXWzOwJAqUAKoPLaGIS3Wb
-         hUXtzer9TdXYJ06kmpLmivQkCx93Cwo0N9/kX7JYeoEA87AuGeajzA/HVdodGdNc0hT4
-         HbCwWBpGZlWYCPFtbeLmvLaVXXL8FixZVm67ZpWyvAJRsddWY5wqj59i1u7hBwUzstsQ
-         Wc7w==
-X-Gm-Message-State: AOAM530xIGy3Y25FBilgY/ZjqiXSaDEI8UtWbhnl+dVzj0EtfryzMcDA
-        cre/Lg4c3XUzNRRfmt17WPPgCnDxQbGpKw==
-X-Google-Smtp-Source: ABdhPJwAqw43Xnkn+udkK++eNs0R68KXvuHiZmr6Goj+Yo7WRO8vrA2stZvVnsqnTRDGvRlo4GxLbg==
-X-Received: by 2002:a17:90b:104b:: with SMTP id gq11mr10870533pjb.64.1628792728959;
-        Thu, 12 Aug 2021 11:25:28 -0700 (PDT)
+        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
+         :mime-version:content-transfer-encoding;
+        bh=xuKncfOPSBTpSoTaGwjN5Vl+vzNWpXdvaji1fVUtT34=;
+        b=mA+K90kZf8gjjyqx0LpfGIsPOlkC0rTSmfCyyGrUhgbGyTXPwkqMzX9dQ1H1Je+cmu
+         Kc1I6q6dPX6I9pG09cxr+ywmRrI32PbHyr8HIm7EbvH2R3kmdLkM8fa1g0fZQwSyELHe
+         F/kRUjWgMgaaTrMiPqDfb5i9wfCTgOyklfTOfbb/sBMH1vhMfRWRi5R41X4YCz8Dba5K
+         KKvkYLjfMkqP7VsuXeNmUHUKkLu+txPH7RPsheh4ZnJUxTYwdkg586ws6ZKxROu1FTFt
+         L9lQvBmNqffxp2TxRw9dBfLw673sKQJ6J1IgddRpnL5ujqdFKdTwpqCUov/zr2RRlrSr
+         CO2A==
+X-Gm-Message-State: AOAM530Uts7sGxMZx/zDXo6x7mLoJdNPbD3+pSvQOeVG6al0W8sK+bYJ
+        cbvlB2dhy6kpHRfuq3vIkicOFbBVXx0nEg==
+X-Google-Smtp-Source: ABdhPJwuLdpCuTNU9ysjZ3Jz8LtKn+Sa1ZOZfPjyCOBh+x4hkMw0iOju3hlQ8lf/QIdMyDVIP2xgmw==
+X-Received: by 2002:a63:a54f:: with SMTP id r15mr605269pgu.212.1628829883370;
+        Thu, 12 Aug 2021 21:44:43 -0700 (PDT)
 Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
-        by smtp.gmail.com with ESMTPSA id y3sm852662pgc.67.2021.08.12.11.25.26
+        by smtp.gmail.com with ESMTPSA id s23sm427116pfg.208.2021.08.12.21.44.41
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 12 Aug 2021 11:25:28 -0700 (PDT)
+        Thu, 12 Aug 2021 21:44:42 -0700 (PDT)
 Sender: Duncan Roe <duncan.roe2@gmail.com>
 From:   Duncan Roe <duncan_roe@optusnet.com.au>
-X-Google-Original-From: Duncan Roe <dunc@slk1.local.net>
-Date:   Fri, 13 Aug 2021 04:25:23 +1000
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH libnetfilter_queue] include: deprecate
- libnetfilter_queue/linux_nfnetlink_queue.h
-Message-ID: <YRVnk97MgWzKogGO@slk1.local.net>
-Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <20210810160813.26984-1-pablo@netfilter.org>
- <YRNsdKcEl0z3a2ox@slk1.local.net>
- <20210811090203.GA23374@salvia>
- <YRQfo6YISjO7z6gH@slk1.local.net>
- <20210812082055.GA1284@salvia>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH libnetfilter_queue v3 0/1] src: doc: Insert SYNOPSIS sections for man pages
+Date:   Fri, 13 Aug 2021 14:44:35 +1000
+Message-Id: <20210813044436.16066-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.32.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210812082055.GA1284@salvia>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Aug 12, 2021 at 10:20:55AM +0200, Pablo Neira Ayuso wrote:
-> On Thu, Aug 12, 2021 at 05:06:11AM +1000, Duncan Roe wrote:
-> > On Wed, Aug 11, 2021 at 11:02:03AM +0200, Pablo Neira Ayuso wrote:
-> > > On Wed, Aug 11, 2021 at 04:21:40PM +1000, Duncan Roe wrote:
-> > > [...]
-> > > > Suggest you leave include/libnetfilter_queue/libnetfilter_queue.h unaltered.
-> > > >
-> > > > That way, if a user fails to insert linux/netfilter/nfnetlink_queue.h at all, he
-> > > > will get the warning. With the patched libnetfilter_queue.h, he will get
-> > > > compilation errors where previously he did not.
-> > >
-> > > OK, done and pushed it out. Thanks.
-> >
-> > You really didn't need all these extra #include lines. The only source that
-> > doesn't compile with "#include <libnetfilter_queue/linux_nfnetlink_queue.h>"
-> > removed from libnetfilter_queue.h is libnetfilter_queue.c.
->
-> Those are needed, otherwise libnetfilter_queue emits warnings all over
-> the place.
+Here's a simple way to test this patch and the associated
+"Fix NAME entry in man pages" patch.
 
-Of course, thank you. I'll send a v3 of "Insert SYNOPSIS sections for man pages"
+1. Apply the 2 above-mentioned patches
 
-Cheers ... Duncan.
+2. Build the result.
+
+3. Ensure environment variable MANPATH starts with the 'man' directory you just
+   built.
+
+4. Issue the following:
+
+man nfq_create_queue nfq_get_gid pktb_alloc nfq_tcp_get_hdr nfq_udp_get_hdr\
+nfq_nlmsg_verdict_put nfq_bind_pf nfq_ip_get_hdr nfq_ip6_get_hdr\
+pktb_mac_header nfq_nlmsg_cfg_put_cmd pktb_pull nfq_udp_compute_checksum_ipv4\
+nfq_tcp_compute_checksum_ipv4 nfq_snprintf_xml nfq_nlmsg_parse\
+nfq_icmp_get_hdr nfq_ip_set_checksum
+
+5. 'q' each man page to see the next (maybe ':n' on some systems).
+   Verify for correct synopsis and general appearance.
+   (If the page is shorter than screen lines, 'g' should put it at top).
+
+Duncan Roe (1):
+  src: doc: Insert SYNOPSIS sections for man pages
+
+ src/extra/icmp.c         |  9 +++++++++
+ src/extra/ipv4.c         | 20 +++++++++++++++++++-
+ src/extra/ipv6.c         | 11 +++++++++++
+ src/extra/pktbuff.c      | 37 +++++++++++++++++++++++++++++++------
+ src/extra/tcp.c          | 20 ++++++++++++++++++++
+ src/extra/udp.c          | 20 ++++++++++++++++++++
+ src/libnetfilter_queue.c | 40 ++++++++++++++++++++++++++++++++++++++--
+ src/nlmsg.c              | 28 ++++++++++++++++++++++++++++
+ 8 files changed, 176 insertions(+), 9 deletions(-)
+
+-- 
+2.17.5
+
