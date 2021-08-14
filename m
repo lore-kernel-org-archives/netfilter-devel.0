@@ -4,66 +4,64 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B51FC4338F
-	for <netfilter-devel@archiver.kernel.org>; Sat, 14 Aug 2021 20:53:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D357DC4338F
+	for <netfilter-devel@archiver.kernel.org>; Sat, 14 Aug 2021 21:01:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CD0D160EB2
-	for <netfilter-devel@archiver.kernel.org>; Sat, 14 Aug 2021 20:53:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B098660EE2
+	for <netfilter-devel@archiver.kernel.org>; Sat, 14 Aug 2021 21:01:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230354AbhHNUxq (ORCPT
+        id S230354AbhHNVBe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 14 Aug 2021 16:53:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48550 "EHLO
+        Sat, 14 Aug 2021 17:01:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50336 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229532AbhHNUxp (ORCPT
+        with ESMTP id S229532AbhHNVBe (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 14 Aug 2021 16:53:45 -0400
+        Sat, 14 Aug 2021 17:01:34 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D0BBBC061764
-        for <netfilter-devel@vger.kernel.org>; Sat, 14 Aug 2021 13:53:16 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49DF0C061764
+        for <netfilter-devel@vger.kernel.org>; Sat, 14 Aug 2021 14:01:05 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@strlen.de>)
-        id 1mF0eY-00058G-Pl; Sat, 14 Aug 2021 22:53:14 +0200
-Date:   Sat, 14 Aug 2021 22:53:14 +0200
+        id 1mF0m7-0005AA-UR; Sat, 14 Aug 2021 23:01:03 +0200
+Date:   Sat, 14 Aug 2021 23:01:03 +0200
 From:   Florian Westphal <fw@strlen.de>
-To:     Jan Engelhardt <jengelh@inai.de>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH iptabes-nft] iptables-nft: allow removal of empty builtin
- chains
-Message-ID: <20210814205314.GF607@breakpoint.cc>
-References: <20210814174643.130760-1-fw@strlen.de>
- <84q02320-o5pp-8q8q-q646-473ssq92n552@vanv.qr>
+To:     alexandre.ferrieux@orange.com
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: nfnetlink_queue -- why linear lookup ?
+Message-ID: <20210814210103.GG607@breakpoint.cc>
+References: <11790_1628855682_61165D82_11790_25_1_3f865faa-9fd8-40aa-6e49-5d85dd596b5b@orange.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <84q02320-o5pp-8q8q-q646-473ssq92n552@vanv.qr>
+In-Reply-To: <11790_1628855682_61165D82_11790_25_1_3f865faa-9fd8-40aa-6e49-5d85dd596b5b@orange.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Jan Engelhardt <jengelh@inai.de> wrote:
+alexandre.ferrieux@orange.com <alexandre.ferrieux@orange.com> wrote:
+>   find_dequeue_entry(struct nfqnl_instance *queue, unsigned int id)
+>   {
+>     ...
+>     list_for_each_entry(i, &queue->queue_list, list) {
+>       if (i->id == id) {
+>         entry = i;
+>         break;
+>       }
+>     }
+>     ...
+>   }
 > 
-> On Saturday 2021-08-14 19:46, Florian Westphal wrote:
-> > Conservative change:
-> > iptables-nft -X will not remove empty builtin chains.
-> > OTOH, maybe it would be better to auto-remove those too, if empty.
-> > Comments?
+> As a result, in a situation of "highly asynchronous" verdicts, i.e. when we
+> want some packets to linger in the queue for some time before reinjection,
+> the mere existence of a large number of such "old packets" may incur a
+> nonnegligible cost to the system.
 > 
-> How are chain policies expressed in nft, as a property on the
-> chain (like legacy), or as a separate rule?
-> That is significant when removing "empty" chains.
+> So I'm wondering: why is the list implemented as a simple linked list
+> instead of an array directly indexed by the id (like file descriptors) ?
 
-Indeed.  Since this removes the base chain, it implicitly reverts
-a DROP policy too.
-
-I wish that iptables-nft would do drop policy by DROP rule (then the
-deletion would fail), but it does not.
-
-As it stands, the only way to get rid of an iptables-nft added table
-is via nft.  For -legacy its not even possible unless you can rmmod
-the module, which is not always possible.
-
-Sucks.  Any suggestions/idea?
+Because when this was implemented "highly asynchronous" was not on the
+radar.  All users of this (that I know of) do in-order verdicts.
