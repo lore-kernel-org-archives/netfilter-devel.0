@@ -6,104 +6,75 @@ X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80A95C4338F
-	for <netfilter-devel@archiver.kernel.org>; Sun, 15 Aug 2021 13:49:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 511FBC4338F
+	for <netfilter-devel@archiver.kernel.org>; Sun, 15 Aug 2021 14:12:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6346560EB5
-	for <netfilter-devel@archiver.kernel.org>; Sun, 15 Aug 2021 13:49:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 26C32610FD
+	for <netfilter-devel@archiver.kernel.org>; Sun, 15 Aug 2021 14:12:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232498AbhHONt5 (ORCPT
+        id S234012AbhHOOMm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 15 Aug 2021 09:49:57 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:53358 "EHLO
+        Sun, 15 Aug 2021 10:12:42 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:53380 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231881AbhHONt5 (ORCPT
+        with ESMTP id S233687AbhHOOMk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 15 Aug 2021 09:49:57 -0400
+        Sun, 15 Aug 2021 10:12:40 -0400
 Received: from netfilter.org (unknown [78.30.35.141])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 632F26005D;
-        Sun, 15 Aug 2021 15:48:40 +0200 (CEST)
-Date:   Sun, 15 Aug 2021 15:49:22 +0200
+        by mail.netfilter.org (Postfix) with ESMTPSA id 2FB576005D;
+        Sun, 15 Aug 2021 16:11:23 +0200 (CEST)
+Date:   Sun, 15 Aug 2021 16:12:04 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH iptabes-nft] iptables-nft: allow removal of empty builtin
- chains
-Message-ID: <20210815134922.GA10659@salvia>
-References: <20210814174643.130760-1-fw@strlen.de>
- <84q02320-o5pp-8q8q-q646-473ssq92n552@vanv.qr>
- <20210814205314.GF607@breakpoint.cc>
- <20210815131223.GA30503@salvia>
- <20210815132733.GI607@breakpoint.cc>
+To:     alexandre.ferrieux@orange.com
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: nfnetlink_queue -- why linear lookup ?
+Message-ID: <20210815141204.GA22946@salvia>
+References: <11790_1628855682_61165D82_11790_25_1_3f865faa-9fd8-40aa-6e49-5d85dd596b5b@orange.com>
+ <20210814210103.GG607@breakpoint.cc>
+ <14552_1628975094_61182FF6_14552_82_1_d4901cb2-0852-a524-436c-62bf06f95d0e@orange.com>
+ <20210814211238.GH607@breakpoint.cc>
+ <27263_1629029795_611905A3_27263_246_1_ddbb7a24-d843-9985-5833-c7c8c1aa8d29@orange.com>
+ <20210815130716.GA21655@salvia>
+ <4942_1629034317_6119174D_4942_150_1_d69d3f05-89f7-63b5-4759-ef1987aca476@orange.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20210815132733.GI607@breakpoint.cc>
+In-Reply-To: <4942_1629034317_6119174D_4942_150_1_d69d3f05-89f7-63b5-4759-ef1987aca476@orange.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Aug 15, 2021 at 03:27:33PM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Sat, Aug 14, 2021 at 10:53:14PM +0200, Florian Westphal wrote:
-> > > Indeed.  Since this removes the base chain, it implicitly reverts
-> > > a DROP policy too.
+On Sun, Aug 15, 2021 at 03:32:30PM +0200, alexandre.ferrieux@orange.com wrote:
+> On 8/15/21 3:07 PM, Pablo Neira Ayuso wrote:
+> > On Sun, Aug 15, 2021 at 02:17:08PM +0200, alexandre.ferrieux@orange.com wrote:
+> > [...]
+> > > So, the only way forward would be a separate hashtable on ids.
 > > 
-> > User still has to iptables -F on that given chain before deleting,
-> > right?
+> > Using the rhashtable implementation is fine for this, it's mostly
+> > boilerplate code that is needed to use it and there are plenty of
+> > examples in the kernel tree if you need a reference.
 > 
-> Yes, -X fails if the chain has rules.
-> 
-> > If NLM_F_NONREC is used, the EBUSY is reported when trying to delete
-> > a chain with rules.
-> 
-> Yes.
+> Thanks, that's indeed pretty simple. I was just worried that people would
+> object to adding even the slightest overhead (hash_add/hash_del) to the
+> existing code path, that satisfies 99% of uses (LIFO). What do you think ?
 
-But we really do not need NLM_F_NONREC for this new feature, right? I
-mean, a quick shortcut to remove the basechain and its content should
-be fine.
+It should be possible to maintain both the list and the hashtable,
+AFAICS, the batch callback still needs the queue_list.
 
-> > My assumption is that the user will perform:
+> > > PS: what is the intended dominant use case for batch verdicts ?
 > > 
-> > iptables-nft -F -t filter
-> > iptables-nft -D -t filter
+> > Issuing a batch containing several packets helps to amortize the
+> > cost of the syscall.
 > 
-> Yes, assuminy you meant -X instead of -D.
+> Yes, but that could also be achieved by passing an array of ids.
 
-Oh well, embarrasing, yes.
+You mean, one single sendmsg() with several netlink messages, that
+would also work to achieve a similar batching effect.
 
-> This behaves just like before, it deletes all rules (-F) and all user-defined
-> chains (-X).
->
-> > I mean, by when the user has an empty basechain with default policy to
-> > DROP, if they remove the chain, then they are really meaning to remove
-> > the chain and this default policy to DROP.
-> 
-> ATM iptables -X $BUILTIN will always fail.
-> In -legecy there is no kernel API to allow for its removal,
-> for -nft there is an extra check that throws an error.
-> 
-> > Or am I missing anything else?
-> 
-> No, I don't think so.  I would prefer if
-> iptables-nft -F -t filter
-> iptables-nft -X -t filter
-> 
-> ... would result in an empty "filter" table.
+> The extra constraint of using a (contiguous) range means that there
+> is no outlier.  This seems to imply that ranges are no help when
+> flows are multiplexed. Or maybe, the assumption was that bursts tend
+> to be homogeneous ?
 
-Your concern is that this would change the default behaviour?
-
-> I could also add a patch that requests removal
-> of the table as well for the -X case; but unlike base chain the
-> presence of the table alone has no impact on dataplane.
-
-Then, probably add a new command for this?
-
-iptables-nft -K INPUT -t filter => to remove the INPUT/filter basechain.
-
-Then:
-
-iptables-nft -N INPUT -t filter
-
-to bring it back (if it was removed).
+What is your usecase?
