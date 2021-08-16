@@ -2,247 +2,142 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CE8FC4338F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Aug 2021 15:16:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24959C4338F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Aug 2021 15:47:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EE2F660EFF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Aug 2021 15:16:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F24F460F4B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Aug 2021 15:47:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232388AbhHPPRZ (ORCPT
+        id S233258AbhHPPs2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 16 Aug 2021 11:17:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47660 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232441AbhHPPRZ (ORCPT
+        Mon, 16 Aug 2021 11:48:28 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:55608 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S236848AbhHPPsY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 Aug 2021 11:17:25 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3B55C061764
-        for <netfilter-devel@vger.kernel.org>; Mon, 16 Aug 2021 08:16:53 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1mFeM8-0007E3-Gl; Mon, 16 Aug 2021 17:16:52 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 5/5] netfilter: ecache: remove nf_exp_event_notifier structure
-Date:   Mon, 16 Aug 2021 17:16:26 +0200
-Message-Id: <20210816151626.28770-6-fw@strlen.de>
-X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20210816151626.28770-1-fw@strlen.de>
-References: <20210816151626.28770-1-fw@strlen.de>
+        Mon, 16 Aug 2021 11:48:24 -0400
+Received: from netfilter.org (unknown [78.30.35.141])
+        by mail.netfilter.org (Postfix) with ESMTPSA id AD7DA6004F;
+        Mon, 16 Aug 2021 17:47:02 +0200 (CEST)
+Date:   Mon, 16 Aug 2021 17:47:45 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     proelbtn <contact@proelbtn.com>
+Cc:     netfilter-devel@vger.kernel.org, stefano.salsano@uniroma2.it,
+        andrea.mayer@uniroma2.it, davem@davemloft.net, kuba@kernel.org,
+        yoshfuji@linux-ipv6.org, dsahern@kernel.org
+Subject: Re: [PATCH v5 2/2] netfilter: add netfilter hooks to SRv6 data plane
+Message-ID: <20210816154745.GA1928@salvia>
+References: <20210808164323.498860-1-contact@proelbtn.com>
+ <20210808164323.498860-3-contact@proelbtn.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20210808164323.498860-3-contact@proelbtn.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Reuse the conntrack event notofier struct, this allows to remove the
-extra register/unregister functions and avoids a pointer in struct net.
+Hi,
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/net/netfilter/nf_conntrack_ecache.h | 23 ++++-------
- include/net/netns/conntrack.h               |  1 -
- net/netfilter/nf_conntrack_ecache.c         | 43 ++-------------------
- net/netfilter/nf_conntrack_netlink.c        | 30 ++------------
- 4 files changed, 13 insertions(+), 84 deletions(-)
+On Sun, Aug 08, 2021 at 04:43:23PM +0000, proelbtn wrote:
+> This patch introduces netfilter hooks for solving the problem that
+> conntrack couldn't record both inner flows and outer flows.
 
-diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
-index 061a93a03b82..d932e22edcb4 100644
---- a/include/net/netfilter/nf_conntrack_ecache.h
-+++ b/include/net/netfilter/nf_conntrack_ecache.h
-@@ -72,8 +72,15 @@ struct nf_ct_event {
- 	int report;
- };
- 
-+struct nf_exp_event {
-+	struct nf_conntrack_expect *exp;
-+	u32 portid;
-+	int report;
-+};
+Using pktgen_bench_xmit_mode_netif_receive.sh, I don't see any
+noticeable impact in the seg6_input path for non-netfilter users:
+similar numbers with and without your patchset.
+
+This is a sample of the perf report output:
+
+    11.67%  kpktgend_0       [ipv6]                    [k] ipv6_get_saddr_eval
+     7.89%  kpktgend_0       [ipv6]                    [k] __ipv6_addr_label
+     7.52%  kpktgend_0       [ipv6]                    [k] __ipv6_dev_get_saddr
+     6.63%  kpktgend_0       [kernel.vmlinux]          [k] asm_exc_nmi
+     4.74%  kpktgend_0       [ipv6]                    [k] fib6_node_lookup_1
+     3.48%  kpktgend_0       [kernel.vmlinux]          [k] pskb_expand_head
+     3.33%  kpktgend_0       [ipv6]                    [k] ip6_rcv_core.isra.29
+     3.33%  kpktgend_0       [ipv6]                    [k] seg6_do_srh_encap
+     2.53%  kpktgend_0       [ipv6]                    [k] ipv6_dev_get_saddr
+     2.45%  kpktgend_0       [ipv6]                    [k] fib6_table_lookup
+     2.24%  kpktgend_0       [kernel.vmlinux]          [k] ___cache_free
+     2.16%  kpktgend_0       [ipv6]                    [k] ip6_pol_route
+     2.11%  kpktgend_0       [kernel.vmlinux]          [k] __ipv6_addr_type
+
+I made a few small updates here on top of your patch, not changing the
+numbers that I obtain here either.
+
+#1 Just remove slwt initialization to NULL.
+
+diff --git a/net/ipv6/seg6_local.c b/net/ipv6/seg6_local.c
+index f29cdd753a37..cf3d831d7b62 100644
+--- a/net/ipv6/seg6_local.c
++++ b/net/ipv6/seg6_local.c
+@@ -1115,9 +1115,9 @@ static int seg6_local_input_core(struct net *net, struct sock *sk,
+                                 struct sk_buff *skb)
+ {
+        struct dst_entry *orig_dst = skb_dst(skb);
+-       struct seg6_local_lwt *slwt = NULL;
+        struct seg6_action_desc *desc;
+        unsigned int len = skb->len;
++       struct seg6_local_lwt *slwt;
+        int rc;
+
+        slwt = seg6_local_lwtunnel(orig_dst->lwtstate);
+
+#2 encapsulate the netfilter hook codepath.
+
+diff --git a/net/ipv6/seg6_iptunnel.c b/net/ipv6/seg6_iptunnel.c
+index 09870ef41768..91d5491b140e 100644
+--- a/net/ipv6/seg6_iptunnel.c
++++ b/net/ipv6/seg6_iptunnel.c
+@@ -355,21 +355,27 @@ static int seg6_input_core(struct net *net, struct sock *sk,
+        return seg6_input_finish(dev_net(skb->dev), NULL, skb);
+ }
+
+-static int seg6_input(struct sk_buff *skb)
++static int seg6_input_nf(struct sk_buff *skb)
+ {
+-       int proto;
++       struct net_device *dev = skb_dst(skb)->dev;
++       struct net *net = dev_net(skb->dev);
 +
- struct nf_ct_event_notifier {
- 	int (*ct_event)(unsigned int events, const struct nf_ct_event *item);
-+	int (*exp_event)(unsigned int events, const struct nf_exp_event *item);
- };
- 
- void nf_conntrack_register_notifier(struct net *net,
-@@ -150,22 +157,6 @@ nf_conntrack_event(enum ip_conntrack_events event, struct nf_conn *ct)
- }
- 
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
--
--struct nf_exp_event {
--	struct nf_conntrack_expect *exp;
--	u32 portid;
--	int report;
--};
--
--struct nf_exp_event_notifier {
--	int (*exp_event)(unsigned int events, struct nf_exp_event *item);
--};
--
--int nf_ct_expect_register_notifier(struct net *net,
--				   struct nf_exp_event_notifier *nb);
--void nf_ct_expect_unregister_notifier(struct net *net,
--				      struct nf_exp_event_notifier *nb);
--
- void nf_ct_expect_event_report(enum ip_conntrack_expect_events event,
- 			       struct nf_conntrack_expect *exp,
- 			       u32 portid, int report);
-diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
-index 37e5300c7e5a..e4827abf5396 100644
---- a/include/net/netns/conntrack.h
-+++ b/include/net/netns/conntrack.h
-@@ -115,7 +115,6 @@ struct netns_ct {
- 	struct ct_pcpu __percpu *pcpu_lists;
- 	struct ip_conntrack_stat __percpu *stat;
- 	struct nf_ct_event_notifier __rcu *nf_conntrack_event_cb;
--	struct nf_exp_event_notifier __rcu *nf_expect_event_cb;
- 	struct nf_ip_net	nf_ct_proto;
- #if defined(CONFIG_NF_CONNTRACK_LABELS)
- 	unsigned int		labels_used;
-diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
-index d92f78e4bc7c..41768ff19464 100644
---- a/net/netfilter/nf_conntrack_ecache.c
-+++ b/net/netfilter/nf_conntrack_ecache.c
-@@ -240,11 +240,11 @@ void nf_ct_expect_event_report(enum ip_conntrack_expect_events event,
- 
- {
- 	struct net *net = nf_ct_exp_net(exp);
--	struct nf_exp_event_notifier *notify;
-+	struct nf_ct_event_notifier *notify;
- 	struct nf_conntrack_ecache *e;
- 
- 	rcu_read_lock();
--	notify = rcu_dereference(net->ct.nf_expect_event_cb);
-+	notify = rcu_dereference(net->ct.nf_conntrack_event_cb);
- 	if (!notify)
- 		goto out_unlock;
- 
-@@ -283,47 +283,10 @@ void nf_conntrack_unregister_notifier(struct net *net)
- 	mutex_lock(&nf_ct_ecache_mutex);
- 	RCU_INIT_POINTER(net->ct.nf_conntrack_event_cb, NULL);
- 	mutex_unlock(&nf_ct_ecache_mutex);
--	/* synchronize_rcu() is called from ctnetlink_exit. */
-+	/* synchronize_rcu() is called after netns pre_exit */
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_unregister_notifier);
- 
--int nf_ct_expect_register_notifier(struct net *net,
--				   struct nf_exp_event_notifier *new)
--{
--	int ret;
--	struct nf_exp_event_notifier *notify;
--
--	mutex_lock(&nf_ct_ecache_mutex);
--	notify = rcu_dereference_protected(net->ct.nf_expect_event_cb,
--					   lockdep_is_held(&nf_ct_ecache_mutex));
--	if (notify != NULL) {
--		ret = -EBUSY;
--		goto out_unlock;
--	}
--	rcu_assign_pointer(net->ct.nf_expect_event_cb, new);
--	ret = 0;
--
--out_unlock:
--	mutex_unlock(&nf_ct_ecache_mutex);
--	return ret;
--}
--EXPORT_SYMBOL_GPL(nf_ct_expect_register_notifier);
--
--void nf_ct_expect_unregister_notifier(struct net *net,
--				      struct nf_exp_event_notifier *new)
--{
--	struct nf_exp_event_notifier *notify;
--
--	mutex_lock(&nf_ct_ecache_mutex);
--	notify = rcu_dereference_protected(net->ct.nf_expect_event_cb,
--					   lockdep_is_held(&nf_ct_ecache_mutex));
--	BUG_ON(notify != new);
--	RCU_INIT_POINTER(net->ct.nf_expect_event_cb, NULL);
--	mutex_unlock(&nf_ct_ecache_mutex);
--	/* synchronize_rcu() is called from ctnetlink_exit. */
--}
--EXPORT_SYMBOL_GPL(nf_ct_expect_unregister_notifier);
--
- void nf_conntrack_ecache_work(struct net *net, enum nf_ct_ecache_state state)
- {
- 	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 6d6f7cd70753..5008fa0891b3 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -3104,7 +3104,7 @@ ctnetlink_exp_fill_info(struct sk_buff *skb, u32 portid, u32 seq,
- 
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
- static int
--ctnetlink_expect_event(unsigned int events, struct nf_exp_event *item)
-+ctnetlink_expect_event(unsigned int events, const struct nf_exp_event *item)
- {
- 	struct nf_conntrack_expect *exp = item->exp;
- 	struct net *net = nf_ct_exp_net(exp);
-@@ -3756,9 +3756,6 @@ static int ctnetlink_stat_exp_cpu(struct sk_buff *skb,
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
- static struct nf_ct_event_notifier ctnl_notifier = {
- 	.ct_event = ctnetlink_conntrack_event,
--};
--
--static struct nf_exp_event_notifier ctnl_notifier_exp = {
- 	.exp_event = ctnetlink_expect_event,
- };
- #endif
-@@ -3852,42 +3849,21 @@ MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_CTNETLINK_EXP);
- static int __net_init ctnetlink_net_init(struct net *net)
- {
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
--	int ret;
--
- 	nf_conntrack_register_notifier(net, &ctnl_notifier);
--
--	ret = nf_ct_expect_register_notifier(net, &ctnl_notifier_exp);
--	if (ret < 0) {
--		pr_err("ctnetlink_init: cannot expect register notifier.\n");
--		nf_conntrack_unregister_notifier(net);
--		return ret;
--	}
- #endif
- 	return 0;
- }
- 
--static void ctnetlink_net_exit(struct net *net)
-+static void ctnetlink_net_pre_exit(struct net *net)
- {
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
--	nf_ct_expect_unregister_notifier(net, &ctnl_notifier_exp);
- 	nf_conntrack_unregister_notifier(net);
- #endif
- }
- 
--static void __net_exit ctnetlink_net_exit_batch(struct list_head *net_exit_list)
--{
--	struct net *net;
--
--	list_for_each_entry(net, net_exit_list, exit_list)
--		ctnetlink_net_exit(net);
--
--	/* wait for other cpus until they are done with ctnl_notifiers */
--	synchronize_rcu();
--}
--
- static struct pernet_operations ctnetlink_net_ops = {
- 	.init		= ctnetlink_net_init,
--	.exit_batch	= ctnetlink_net_exit_batch,
-+	.pre_exit	= ctnetlink_net_pre_exit,
- };
- 
- static int __init ctnetlink_init(void)
--- 
-2.31.1
++       switch (skb->protocol) {
++       case htons(ETH_P_IP):
++               return NF_HOOK(NFPROTO_IPV4, NF_INET_POST_ROUTING, net,
++                              NULL, skb, NULL, dev, seg6_input_core);
++       case htons(ETH_P_IPV6):
++               return NF_HOOK(NFPROTO_IPV6, NF_INET_POST_ROUTING, net,
++                              NULL, skb, NULL, dev, seg6_input_core);
++       }
 
+-       if (skb->protocol == htons(ETH_P_IPV6))
+-               proto = NFPROTO_IPV6;
+-       else if (skb->protocol == htons(ETH_P_IP))
+-               proto = NFPROTO_IPV4;
+-       else
+-               return -EINVAL;
++       return -EINVAL;
++}
+
++static int seg6_input(struct sk_buff *skb)
++{
+        if (static_branch_unlikely(&nf_hooks_lwtunnel_enabled))
+-               return NF_HOOK(proto, NF_INET_POST_ROUTING, dev_net(skb->dev),
+-                              NULL, skb, NULL, skb_dst(skb)->dev,
+-                              seg6_input_core);
++               return seg6_input_nf(skb);
+
+        return seg6_input_core(dev_net(skb->dev), NULL, skb);
+ }
+
+First chunk is needed, second chunk I think the use of variable
+proto might make __builtin_constant_p() return false in nf_hook().
+If you choose to take chunk #2 above, then same idiom could apply to
+the seg6_output path (there's a similar function in your patch).
+
+Thanks for your patience.
