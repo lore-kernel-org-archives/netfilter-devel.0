@@ -2,125 +2,116 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78D81C4338F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Aug 2021 04:23:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C59CFC4320A
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Aug 2021 09:06:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4DF5661458
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Aug 2021 04:23:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AB8E06113A
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Aug 2021 09:06:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229556AbhHPEXg (ORCPT
+        id S235056AbhHPJGz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 16 Aug 2021 00:23:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38470 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229485AbhHPEXc (ORCPT
+        Mon, 16 Aug 2021 05:06:55 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:54592 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235057AbhHPJGp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 Aug 2021 00:23:32 -0400
-Received: from mail-pj1-x102d.google.com (mail-pj1-x102d.google.com [IPv6:2607:f8b0:4864:20::102d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CDB00C061764
-        for <netfilter-devel@vger.kernel.org>; Sun, 15 Aug 2021 21:23:01 -0700 (PDT)
-Received: by mail-pj1-x102d.google.com with SMTP id n5so4003826pjt.4
-        for <netfilter-devel@vger.kernel.org>; Sun, 15 Aug 2021 21:23:01 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=sender:from:date:to:cc:subject:message-id:mail-followup-to
-         :references:mime-version:content-disposition:in-reply-to;
-        bh=VNIDj601VTlBJwq6+pF4tl+a8FETLXi67ZjOKR+UkOI=;
-        b=a+E2qSTKpY59np/iBvUH6/3unCA4rc7vpBczT8ntVVEmCNRkGsLSbaLEWnc6KpcnyS
-         FdLL9MXF0kPvuOuQH4JC5EPrCmMevnll0lHDvwnFBumXdXufXIupb+DljcjjBzddvtQ6
-         lerdCLca1/nbnzJTjLXrukp0rMrTyqDMVZc0+rrS0/dCCRkOD+YPNaESErUV1Rygd1XD
-         Gyk7+sIXtZa4T0+YsE2pr0Y5qxpughwnDu821H9Yl49b2ULWV1py+OIFACx6ZTdHHejg
-         OmiUgHz7wYUfWcl1+3EsJOQkAn4B5TUevQeeWrRJo1BRZl7ATn/UZcOCamv4WfO9fznr
-         B5Uw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:from:date:to:cc:subject:message-id
-         :mail-followup-to:references:mime-version:content-disposition
-         :in-reply-to;
-        bh=VNIDj601VTlBJwq6+pF4tl+a8FETLXi67ZjOKR+UkOI=;
-        b=fcA46j09dbCVDA9hi41OHvrCB+QjI9UYlpwb/IZNR4ZKRd7hWPo/OfqzKU2CapAV5X
-         N7IRg51IMVwqBoiFDR/MZbRu6lFHd1/tq6dmlwpLUn3dyEU7UzhDvReXwJfaGo4JJTpt
-         iKnQ4CEOc+2knhI4tlqfXl32VCq5XNT4AmMYA1Vsqk8grbWQoCi8PvieJvNFHHuWrsH4
-         wMdobqujbcsc/oSHCAeoB827LEBWSjrcnHkDToEFQeK20fDlwKLjpLq9Z+qVSVq7Jyg/
-         pC3srJrzh56QF63p+cALpm/bpJ0IBkLh9hp8SCzvhIPVnQXhIri0q64n/QYTtOtWC+/b
-         kLig==
-X-Gm-Message-State: AOAM533vzPj9Tu+QA14q12YaHW+UwVUnP0HAKPdt+cBJrmSeo351fznI
-        i6ykF1XXI08qEpxTjNN2yWIi14v9GhJcsQ==
-X-Google-Smtp-Source: ABdhPJyqDl5Jet0N+DKTwMpQpUdkNJjqLcP4cxeqOlY8/bHZhxFLVWHnryc8ZrqEerCiNZSGJBYHDg==
-X-Received: by 2002:a17:90a:4e8c:: with SMTP id o12mr10028603pjh.118.1629087781429;
-        Sun, 15 Aug 2021 21:23:01 -0700 (PDT)
-Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
-        by smtp.gmail.com with ESMTPSA id x7sm9442968pfn.70.2021.08.15.21.22.58
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 15 Aug 2021 21:23:00 -0700 (PDT)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-X-Google-Original-From: Duncan Roe <dunc@slk1.local.net>
-Date:   Mon, 16 Aug 2021 14:22:55 +1000
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH libnetfilter_queue v2] build: doc: Fix NAME entry in man
- pages
-Message-ID: <YRnoH6nkSh8HI5lT@slk1.local.net>
-Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <20210810024001.12361-1-duncan_roe@optusnet.com.au>
- <20210815121509.GA9606@salvia>
+        Mon, 16 Aug 2021 05:06:45 -0400
+Received: from netfilter.org (unknown [78.30.35.141])
+        by mail.netfilter.org (Postfix) with ESMTPSA id B29DC6004F;
+        Mon, 16 Aug 2021 11:05:13 +0200 (CEST)
+Date:   Mon, 16 Aug 2021 11:05:55 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     alexandre.ferrieux@orange.com
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: nfnetlink_queue -- why linear lookup ?
+Message-ID: <20210816090555.GA2364@salvia>
+References: <11790_1628855682_61165D82_11790_25_1_3f865faa-9fd8-40aa-6e49-5d85dd596b5b@orange.com>
+ <20210814210103.GG607@breakpoint.cc>
+ <14552_1628975094_61182FF6_14552_82_1_d4901cb2-0852-a524-436c-62bf06f95d0e@orange.com>
+ <20210814211238.GH607@breakpoint.cc>
+ <27263_1629029795_611905A3_27263_246_1_ddbb7a24-d843-9985-5833-c7c8c1aa8d29@orange.com>
+ <20210815130716.GA21655@salvia>
+ <4942_1629034317_6119174D_4942_150_1_d69d3f05-89f7-63b5-4759-ef1987aca476@orange.com>
+ <20210815141204.GA22946@salvia>
+ <5337_1629053191_61196107_5337_107_1_13003d18-0f95-f798-db9d-7182114b90c6@orange.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20210815121509.GA9606@salvia>
+In-Reply-To: <5337_1629053191_61196107_5337_107_1_13003d18-0f95-f798-db9d-7182114b90c6@orange.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Aug 15, 2021 at 02:15:09PM +0200, Pablo Neira Ayuso wrote:
-> On Tue, Aug 10, 2021 at 12:40:01PM +1000, Duncan Roe wrote:
-> > Make the NAME line list the functions defined, like other man pages do.
-> > Also:
-> > - If there is a "Modules" section, delete it
-> > - If "Detailed Description" is empty, delete "Detailed Description" line
-> > - Reposition SYNOPSIS (with headers that we inserted) to start of page,
-> >   integrating with defined functions to look like other man pages
-> > - Delete all "Definition at line nnn" lines
-> > - Delete lines that make older versions of man o/p an unwanted blank line
-> > - Insert spacers and comments so Makefile.am is more readable
-> >
-> > Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
-> > ---
-> > v2: Delete lines that make older versions of man o/p an unwanted blank line
-> >  doxygen/Makefile.am | 172 ++++++++++++++++++++++++++++++++++++++++++++
->
-> Time to add this to an independent fixup shell script for
-> doxygen-based manpages that Makefile.am could call instead?
->
-> This script could be imported by other libraries too, so it only needs to
-> be downloaded from somewhere to be refreshed to keep it in sync with
-> latest.
->
-> The git tree could cache a copy of this script.
->
-> Could you have a look into this?
->
-> Thanks.
+On Sun, Aug 15, 2021 at 08:47:04PM +0200, alexandre.ferrieux@orange.com wrote:
+> 
+> 
+> On 8/15/21 4:12 PM, Pablo Neira Ayuso wrote:
+> > On Sun, Aug 15, 2021 at 03:32:30PM +0200, alexandre.ferrieux@orange.com wrote:
+> >>
+> > > [...] I was just worried that people would >> object to adding even the slightest overhead (hash_add/hash_del) to the
+> > > existing code path, that satisfies 99% of uses (LIFO). What do you think ?
+> > 
+> > It should be possible to maintain both the list and the hashtable,
+> > AFAICS, the batch callback still needs the queue_list.
+> 
+> Yes, but to maintain the hashtable, we need to bother the "normal" code path
+> with hash_add/del. Not much, but still, some overhead...
 
-At the moment, libmnl and libnetfilter_queue share an identical
-doxygen/Makefile.am.
+Probably you can collect some numbers to make sure this is not a
+theoretical issue.
 
-So, you could declare libnetfilter_queue to be the master and copy from there.
+> > > > > PS: what is the intended dominant use case for batch verdicts ?
+> > > > > Issuing a batch containing several packets helps to amortize the
+> > > > cost of the syscall.
+> > > 
+> > > Yes, but that could also be achieved by passing an array of ids.
+> > 
+> > You mean, one single sendmsg() with several netlink messages, that
+> > would also work to achieve a similar batching effect.
+> 
+> Yes, a full spectrum of batching methods are possible. If we're to minimize
+> the number of bytes crossing the kernel/user boundary though, an array of
+> ids looks like the way to go (4 bytes per packet, assuming uint32 ids).
 
-The files' staying identical will depend at least on configure.ac in other libs
-tracking libnfq. Currently configure.ac supplies HAVE_DOXYGEN but I am working
-on a patch where there will also be BUILD_HTML and BUILD_MAN.
+Are you proposing a new batching mechanism?
 
-I had to move fixmanpages.sh inside Makefile.am to get `make distcheck` to
-pass. So I'll need to be careful about introducing new files (e.g. to include).
+> > > The extra constraint of using a (contiguous) range means that there
+> > > is no outlier.  This seems to imply that ranges are no help when
+> > > flows are multiplexed. Or maybe, the assumption was that bursts tend
+> > > to be homogeneous ?
+> > 
+> > What is your usecase?
+> 
+> For O(1) lookup:
+> 
+> My primary motivation is for transparent proxies and userland qdiscs. In
+> both cases, specific packets must be held for some time and reinjected at a
+> later time which is not computed by a simple, fixed delay, but rather
+> triggered by some external event.
+> 
+> My secondary motivation is that the netfilter queue is a beautifully
+> asynchronous mechanism, and absolutely nothing in its definition limits it
+> to the dumb FIFO-of-instantaneous-drop-decisions that seems to dominate
+> sample code.
 
-Will keep investigating,
+I see. Thanks for telling me.
 
-Cheers ... Duncan.
+> For the deprecation of id-range-based batching:
+> 
+> It seems that as soon as two different packet streams are muxed in the
+> queue, one deserving verdict A and the other verdict B, contiguous id ranges
+> of a given verdict may be very small. But I realize I'm 20 years late to
+> complain :)
+
+As I said, you can place several netlink messages in one single
+sendmsg() call, then they do not need to be contiguous.
+
+> That being said, the Doxygen of the userland nfqueue API mentions being
+> DEPRECATED... So what is the recommended replacement ?
+
+What API are you refering to specifically?
