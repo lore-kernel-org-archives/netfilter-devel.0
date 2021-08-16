@@ -2,33 +2,53 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FORGED_MUA_MOZILLA,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C59CFC4320A
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Aug 2021 09:06:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AEF7C4338F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Aug 2021 10:53:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AB8E06113A
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Aug 2021 09:06:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 838FA61C16
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Aug 2021 10:53:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235056AbhHPJGz (ORCPT
+        id S235906AbhHPKxh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 16 Aug 2021 05:06:55 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:54592 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235057AbhHPJGp (ORCPT
+        Mon, 16 Aug 2021 06:53:37 -0400
+Received: from relais-inet.orange.com ([80.12.70.34]:60878 "EHLO
+        relais-inet.orange.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235731AbhHPKxh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 Aug 2021 05:06:45 -0400
-Received: from netfilter.org (unknown [78.30.35.141])
-        by mail.netfilter.org (Postfix) with ESMTPSA id B29DC6004F;
-        Mon, 16 Aug 2021 11:05:13 +0200 (CEST)
-Date:   Mon, 16 Aug 2021 11:05:55 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     alexandre.ferrieux@orange.com
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+        Mon, 16 Aug 2021 06:53:37 -0400
+Received: from opfednr03.francetelecom.fr (unknown [xx.xx.xx.67])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by opfednr23.francetelecom.fr (ESMTP service) with ESMTPS id 4Gp9x75nyRz5vn0;
+        Mon, 16 Aug 2021 12:52:59 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=orange.com;
+        s=ORANGE001; t=1629111179;
+        bh=R8LV36GT5nKe+cVTi/vCStRwuesQJwJ6cAc4lZO8UpI=;
+        h=Subject:To:From:Message-ID:Date:MIME-Version:Content-Type:
+         Content-Transfer-Encoding;
+        b=W75vO8MgD+qgC6fAur75TJOdqU2P3Keo7Ul08cpigyoCSE/p9b+FfnPNTN+nFMjNI
+         3GKXCTqUYAbg4MbdICR2bcuA2dES2xduhvgbUH0UoD+spUfbB2aiJYc2v2JJTgT0c1
+         Wy6+oXMpwWKCYt7Txcm+ZqYbQTukbPv01qUqmJRZMbN45leqzzfvM3HtTrFaU/rvum
+         nEvPKAC1ayWo0sJ4uuk2icCIQCkxE77S9ZoquvWAP3GJt7nKr06jnkpQWI4aixeH4v
+         lU+Iw4c5Zdu6PDkKg5qzcNUVx46yDs5c/C8f5ndZUju6elfMqQw8UoPXmv8TVrZfpk
+         WscXIoVVY5IoA==
+Received: from Exchangemail-eme3.itn.ftgroup (unknown [xx.xx.50.14])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by opfednr03.francetelecom.fr (ESMTP service) with ESMTPS id 4Gp9x74vCVzDq7t;
+        Mon, 16 Aug 2021 12:52:59 +0200 (CEST)
+Received: from [10.193.4.89] (10.114.50.248) by exchange-eme3.itn.ftgroup
+ (10.114.50.14) with Microsoft SMTP Server (TLS) id 14.3.498.0; Mon, 16 Aug
+ 2021 12:52:59 +0200
 Subject: Re: nfnetlink_queue -- why linear lookup ?
-Message-ID: <20210816090555.GA2364@salvia>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+CC:     Florian Westphal <fw@strlen.de>, <netfilter-devel@vger.kernel.org>
 References: <11790_1628855682_61165D82_11790_25_1_3f865faa-9fd8-40aa-6e49-5d85dd596b5b@orange.com>
  <20210814210103.GG607@breakpoint.cc>
  <14552_1628975094_61182FF6_14552_82_1_d4901cb2-0852-a524-436c-62bf06f95d0e@orange.com>
@@ -38,80 +58,70 @@ References: <11790_1628855682_61165D82_11790_25_1_3f865faa-9fd8-40aa-6e49-5d85dd
  <4942_1629034317_6119174D_4942_150_1_d69d3f05-89f7-63b5-4759-ef1987aca476@orange.com>
  <20210815141204.GA22946@salvia>
  <5337_1629053191_61196107_5337_107_1_13003d18-0f95-f798-db9d-7182114b90c6@orange.com>
+ <20210816090555.GA2364@salvia>
+From:   <alexandre.ferrieux@orange.com>
+Message-ID: <19560_1629111179_611A438B_19560_274_1_0633ee7a-2660-91b4-f1d7-adc727864376@orange.com>
+Date:   Mon, 16 Aug 2021 12:53:33 +0200
+User-Agent: Mozilla/5.0 (X11; Linux i686; rv:78.0) Gecko/20100101
+ Thunderbird/78.11.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <5337_1629053191_61196107_5337_107_1_13003d18-0f95-f798-db9d-7182114b90c6@orange.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20210816090555.GA2364@salvia>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.114.50.248]
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Aug 15, 2021 at 08:47:04PM +0200, alexandre.ferrieux@orange.com wrote:
+
+
+On 8/16/21 11:05 AM, Pablo Neira Ayuso wrote:
+> On Sun, Aug 15, 2021 at 08:47:04PM +0200, alexandre.ferrieux@orange.com wrote:
+>> 
+>> 
+>> [...] to maintain the hashtable, we need to bother the "normal" code path
+>> with hash_add/del. Not much, but still, some overhead...
 > 
+> Probably you can collect some numbers to make sure this is not a
+> theoretical issue.
+
+'k, will do :)
+
+>> Yes, a full spectrum of batching methods are possible. If we're to minimize
+>> the number of bytes crossing the kernel/user boundary though, an array of
+>> ids looks like the way to go (4 bytes per packet, assuming uint32 ids).
 > 
-> On 8/15/21 4:12 PM, Pablo Neira Ayuso wrote:
-> > On Sun, Aug 15, 2021 at 03:32:30PM +0200, alexandre.ferrieux@orange.com wrote:
-> >>
-> > > [...] I was just worried that people would >> object to adding even the slightest overhead (hash_add/hash_del) to the
-> > > existing code path, that satisfies 99% of uses (LIFO). What do you think ?
-> > 
-> > It should be possible to maintain both the list and the hashtable,
-> > AFAICS, the batch callback still needs the queue_list.
+> Are you proposing a new batching mechanism?
+
+Well, the problem is backwards compatibility. Indeed I'd propose more flexible 
+batching via an array of ids instead of a maxid. But the main added value of 
+this flexibility is to enable reused-small-integers ids, like file descriptors. 
+As long as the maxid API remains in place, this is impossible.
+
+>> That being said, the Doxygen of the userland nfqueue API mentions being
+>> DEPRECATED... So what is the recommended replacement ?
 > 
-> Yes, but to maintain the hashtable, we need to bother the "normal" code path
-> with hash_add/del. Not much, but still, some overhead...
+> What API are you refering to specifically?
 
-Probably you can collect some numbers to make sure this is not a
-theoretical issue.
 
-> > > > > PS: what is the intended dominant use case for batch verdicts ?
-> > > > > Issuing a batch containing several packets helps to amortize the
-> > > > cost of the syscall.
-> > > 
-> > > Yes, but that could also be achieved by passing an array of ids.
-> > 
-> > You mean, one single sendmsg() with several netlink messages, that
-> > would also work to achieve a similar batching effect.
-> 
-> Yes, a full spectrum of batching methods are possible. If we're to minimize
-> the number of bytes crossing the kernel/user boundary though, an array of
-> ids looks like the way to go (4 bytes per packet, assuming uint32 ids).
+I'm referring to the nfq API documented here:
 
-Are you proposing a new batching mechanism?
+ 
+https://www.netfilter.org/projects/libnetfilter_queue/doxygen/html/group__Queue.html
 
-> > > The extra constraint of using a (contiguous) range means that there
-> > > is no outlier.  This seems to imply that ranges are no help when
-> > > flows are multiplexed. Or maybe, the assumption was that bursts tend
-> > > to be homogeneous ?
-> > 
-> > What is your usecase?
-> 
-> For O(1) lookup:
-> 
-> My primary motivation is for transparent proxies and userland qdiscs. In
-> both cases, specific packets must be held for some time and reinjected at a
-> later time which is not computed by a simple, fixed delay, but rather
-> triggered by some external event.
-> 
-> My secondary motivation is that the netfilter queue is a beautifully
-> asynchronous mechanism, and absolutely nothing in its definition limits it
-> to the dumb FIFO-of-instantaneous-drop-decisions that seems to dominate
-> sample code.
+It starts with "Queue handling [DEPRECATED]"...
 
-I see. Thanks for telling me.
+_________________________________________________________________________________________________________________________
 
-> For the deprecation of id-range-based batching:
-> 
-> It seems that as soon as two different packet streams are muxed in the
-> queue, one deserving verdict A and the other verdict B, contiguous id ranges
-> of a given verdict may be very small. But I realize I'm 20 years late to
-> complain :)
+Ce message et ses pieces jointes peuvent contenir des informations confidentielles ou privilegiees et ne doivent donc
+pas etre diffuses, exploites ou copies sans autorisation. Si vous avez recu ce message par erreur, veuillez le signaler
+a l'expediteur et le detruire ainsi que les pieces jointes. Les messages electroniques etant susceptibles d'alteration,
+Orange decline toute responsabilite si ce message a ete altere, deforme ou falsifie. Merci.
 
-As I said, you can place several netlink messages in one single
-sendmsg() call, then they do not need to be contiguous.
+This message and its attachments may contain confidential or privileged information that may be protected by law;
+they should not be distributed, used or copied without authorisation.
+If you have received this email in error, please notify the sender and delete this message and its attachments.
+As emails may be altered, Orange is not liable for messages that have been modified, changed or falsified.
+Thank you.
 
-> That being said, the Doxygen of the userland nfqueue API mentions being
-> DEPRECATED... So what is the recommended replacement ?
-
-What API are you refering to specifically?
