@@ -3,141 +3,126 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24959C4338F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Aug 2021 15:47:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79E40C4338F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Aug 2021 16:10:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F24F460F4B
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Aug 2021 15:47:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 560566056B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Aug 2021 16:10:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233258AbhHPPs2 (ORCPT
+        id S229621AbhHPQKp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 16 Aug 2021 11:48:28 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:55608 "EHLO
+        Mon, 16 Aug 2021 12:10:45 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:55678 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236848AbhHPPsY (ORCPT
+        with ESMTP id S229600AbhHPQKp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 Aug 2021 11:48:24 -0400
+        Mon, 16 Aug 2021 12:10:45 -0400
 Received: from netfilter.org (unknown [78.30.35.141])
-        by mail.netfilter.org (Postfix) with ESMTPSA id AD7DA6004F;
-        Mon, 16 Aug 2021 17:47:02 +0200 (CEST)
-Date:   Mon, 16 Aug 2021 17:47:45 +0200
+        by mail.netfilter.org (Postfix) with ESMTPSA id B5EE36003C;
+        Mon, 16 Aug 2021 18:09:25 +0200 (CEST)
+Date:   Mon, 16 Aug 2021 18:10:09 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     proelbtn <contact@proelbtn.com>
-Cc:     netfilter-devel@vger.kernel.org, stefano.salsano@uniroma2.it,
-        andrea.mayer@uniroma2.it, davem@davemloft.net, kuba@kernel.org,
-        yoshfuji@linux-ipv6.org, dsahern@kernel.org
-Subject: Re: [PATCH v5 2/2] netfilter: add netfilter hooks to SRv6 data plane
-Message-ID: <20210816154745.GA1928@salvia>
-References: <20210808164323.498860-1-contact@proelbtn.com>
- <20210808164323.498860-3-contact@proelbtn.com>
+To:     alexandre.ferrieux@orange.com, Florian Westphal <fw@strlen.de>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: nfnetlink_queue -- why linear lookup ?
+Message-ID: <20210816161009.GA2258@salvia>
+References: <11790_1628855682_61165D82_11790_25_1_3f865faa-9fd8-40aa-6e49-5d85dd596b5b@orange.com>
+ <20210814210103.GG607@breakpoint.cc>
+ <14552_1628975094_61182FF6_14552_82_1_d4901cb2-0852-a524-436c-62bf06f95d0e@orange.com>
+ <20210814211238.GH607@breakpoint.cc>
+ <27263_1629029795_611905A3_27263_246_1_ddbb7a24-d843-9985-5833-c7c8c1aa8d29@orange.com>
+ <20210815130716.GA21655@salvia>
+ <4942_1629034317_6119174D_4942_150_1_d69d3f05-89f7-63b5-4759-ef1987aca476@orange.com>
+ <20210815141204.GA22946@salvia>
+ <YRpUauSav1HMS+hw@slk1.local.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20210808164323.498860-3-contact@proelbtn.com>
+In-Reply-To: <YRpUauSav1HMS+hw@slk1.local.net>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+On Mon, Aug 16, 2021 at 10:04:58PM +1000, Duncan Roe wrote:
+> On Sun, Aug 15, 2021 at 04:12:04PM +0200, Pablo Neira Ayuso wrote:
+> > On Sun, Aug 15, 2021 at 03:32:30PM +0200, alexandre.ferrieux@orange.com wrote:
+> > > On 8/15/21 3:07 PM, Pablo Neira Ayuso wrote:
+> > > > On Sun, Aug 15, 2021 at 02:17:08PM +0200, alexandre.ferrieux@orange.com wrote:
+> > > > [...]
+> > > > > So, the only way forward would be a separate hashtable on ids.
+> > > >
+> > > > Using the rhashtable implementation is fine for this, it's mostly
+> > > > boilerplate code that is needed to use it and there are plenty of
+> > > > examples in the kernel tree if you need a reference.
+> > >
+> > > Thanks, that's indeed pretty simple. I was just worried that people would
+> > > object to adding even the slightest overhead (hash_add/hash_del) to the
+> > > existing code path, that satisfies 99% of uses (LIFO). What do you think ?
+> >
+> > It should be possible to maintain both the list and the hashtable,
+> > AFAICS, the batch callback still needs the queue_list.
+> >
+> > > > > PS: what is the intended dominant use case for batch verdicts ?
+> > > >
+> > > > Issuing a batch containing several packets helps to amortize the
+> > > > cost of the syscall.
+> > >
+> > > Yes, but that could also be achieved by passing an array of ids.
+> >
+> > You mean, one single sendmsg() with several netlink messages, that
+> > would also work to achieve a similar batching effect.
+> 
+> sendmsg() can actually be slower. I gave up on a project to send verdicts using
+> sendmsg() (especially with large mangled packets), because benchmarking showed:
+> 
+> 1. on a 3YO laptop, no discernable difference.
+> 
+> 2. On a 1YO Ryzen desktop, sendmsg() significantly slower.
+> 
+> sendmsg() sent 3 or 4 buffers: 1. leading netlink message blocks; 2. the packet;
+> 3. padding to 4 bytes (if required); last: trailing netlink message blocks.
+>
+> sendmsg() saved moving these data blocks into a single buffer. But it introduced
+> the overhead of the kernel's having to validate 4 userland buffers instead of 1.
+> 
+> A colleague suggested the Ryzen result is because of having 128-bit registers to
+> move data. I guess that must be it.
+> 
+> The spreadsheets from the tests are up on GitHub:
+> https://github.com/duncan-roe/nfq6/blob/main/laptop_timings.ods
+> https://github.com/duncan-roe/nfq6/blob/main/timings.ods
 
-On Sun, Aug 08, 2021 at 04:43:23PM +0000, proelbtn wrote:
-> This patch introduces netfilter hooks for solving the problem that
-> conntrack couldn't record both inner flows and outer flows.
+Just a quick test creating 64K entries in the conntrack table, using
+libmnl.
 
-Using pktgen_bench_xmit_mode_netif_receive.sh, I don't see any
-noticeable impact in the seg6_input path for non-netfilter users:
-similar numbers with and without your patchset.
+- With batching
 
-This is a sample of the perf report output:
+# time ./batch
 
-    11.67%  kpktgend_0       [ipv6]                    [k] ipv6_get_saddr_eval
-     7.89%  kpktgend_0       [ipv6]                    [k] __ipv6_addr_label
-     7.52%  kpktgend_0       [ipv6]                    [k] __ipv6_dev_get_saddr
-     6.63%  kpktgend_0       [kernel.vmlinux]          [k] asm_exc_nmi
-     4.74%  kpktgend_0       [ipv6]                    [k] fib6_node_lookup_1
-     3.48%  kpktgend_0       [kernel.vmlinux]          [k] pskb_expand_head
-     3.33%  kpktgend_0       [ipv6]                    [k] ip6_rcv_core.isra.29
-     3.33%  kpktgend_0       [ipv6]                    [k] seg6_do_srh_encap
-     2.53%  kpktgend_0       [ipv6]                    [k] ipv6_dev_get_saddr
-     2.45%  kpktgend_0       [ipv6]                    [k] fib6_table_lookup
-     2.24%  kpktgend_0       [kernel.vmlinux]          [k] ___cache_free
-     2.16%  kpktgend_0       [ipv6]                    [k] ip6_pol_route
-     2.11%  kpktgend_0       [kernel.vmlinux]          [k] __ipv6_addr_type
+real    0m0,122s
+user    0m0,010s
+sys     0m0,112s
 
-I made a few small updates here on top of your patch, not changing the
-numbers that I obtain here either.
+- Without batching
 
-#1 Just remove slwt initialization to NULL.
+# time ./nobatch
 
-diff --git a/net/ipv6/seg6_local.c b/net/ipv6/seg6_local.c
-index f29cdd753a37..cf3d831d7b62 100644
---- a/net/ipv6/seg6_local.c
-+++ b/net/ipv6/seg6_local.c
-@@ -1115,9 +1115,9 @@ static int seg6_local_input_core(struct net *net, struct sock *sk,
-                                 struct sk_buff *skb)
- {
-        struct dst_entry *orig_dst = skb_dst(skb);
--       struct seg6_local_lwt *slwt = NULL;
-        struct seg6_action_desc *desc;
-        unsigned int len = skb->len;
-+       struct seg6_local_lwt *slwt;
-        int rc;
+real    0m0,195s
+user    0m0,049s
+sys     0m0,146s
 
-        slwt = seg6_local_lwtunnel(orig_dst->lwtstate);
+Just a sample, repeating the tests show similar numbers.
 
-#2 encapsulate the netfilter hook codepath.
+Submitting a verdict on a packet via nfnetlink_queue is similar to
+creating an ct entry through ctnetlink (both use the send syscall).
 
-diff --git a/net/ipv6/seg6_iptunnel.c b/net/ipv6/seg6_iptunnel.c
-index 09870ef41768..91d5491b140e 100644
---- a/net/ipv6/seg6_iptunnel.c
-+++ b/net/ipv6/seg6_iptunnel.c
-@@ -355,21 +355,27 @@ static int seg6_input_core(struct net *net, struct sock *sk,
-        return seg6_input_finish(dev_net(skb->dev), NULL, skb);
- }
+If you only have a few packets waiting for verdict in userspace, then
+probably batching is not helping much.
 
--static int seg6_input(struct sk_buff *skb)
-+static int seg6_input_nf(struct sk_buff *skb)
- {
--       int proto;
-+       struct net_device *dev = skb_dst(skb)->dev;
-+       struct net *net = dev_net(skb->dev);
-+
-+       switch (skb->protocol) {
-+       case htons(ETH_P_IP):
-+               return NF_HOOK(NFPROTO_IPV4, NF_INET_POST_ROUTING, net,
-+                              NULL, skb, NULL, dev, seg6_input_core);
-+       case htons(ETH_P_IPV6):
-+               return NF_HOOK(NFPROTO_IPV6, NF_INET_POST_ROUTING, net,
-+                              NULL, skb, NULL, dev, seg6_input_core);
-+       }
-
--       if (skb->protocol == htons(ETH_P_IPV6))
--               proto = NFPROTO_IPV6;
--       else if (skb->protocol == htons(ETH_P_IP))
--               proto = NFPROTO_IPV4;
--       else
--               return -EINVAL;
-+       return -EINVAL;
-+}
-
-+static int seg6_input(struct sk_buff *skb)
-+{
-        if (static_branch_unlikely(&nf_hooks_lwtunnel_enabled))
--               return NF_HOOK(proto, NF_INET_POST_ROUTING, dev_net(skb->dev),
--                              NULL, skb, NULL, skb_dst(skb)->dev,
--                              seg6_input_core);
-+               return seg6_input_nf(skb);
-
-        return seg6_input_core(dev_net(skb->dev), NULL, skb);
- }
-
-First chunk is needed, second chunk I think the use of variable
-proto might make __builtin_constant_p() return false in nf_hook().
-If you choose to take chunk #2 above, then same idiom could apply to
-the seg6_output path (there's a similar function in your patch).
-
-Thanks for your patience.
+BTW, leading and trailing netlink message blocks to the kernel are not
+required for nfnetlink_queue.
