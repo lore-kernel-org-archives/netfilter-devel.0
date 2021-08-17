@@ -7,31 +7,31 @@ X-Spam-Status: No, score=-19.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE6ACC4338F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Aug 2021 00:36:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77AE9C4338F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Aug 2021 00:36:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B9EDB61038
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Aug 2021 00:36:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 55DF760240
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Aug 2021 00:36:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236623AbhHQAgp (ORCPT
+        id S236565AbhHQAhM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 16 Aug 2021 20:36:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35690 "EHLO mail.kernel.org"
+        Mon, 16 Aug 2021 20:37:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36346 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236020AbhHQAge (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 Aug 2021 20:36:34 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C025B60F58;
-        Tue, 17 Aug 2021 00:36:00 +0000 (UTC)
+        id S236710AbhHQAgw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 16 Aug 2021 20:36:52 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CB6DE61053;
+        Tue, 17 Aug 2021 00:36:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1629160561;
-        bh=GUuUlJd+bkg2MUpnqwFsnl2vXaURQF0D8zHYepadehE=;
+        s=k20201202; t=1629160579;
+        bh=UXnPXI1cTXaNjcJpROv7owWl0W840oE9wPlrQJQJ1R8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=lOFZPEe8Avm2tIVRleHLI5URIIwU+CyogyPpWX4IYSvINsPB9d9gTNCtQlz19x3EQ
-         +0Qxxl4x44guZF243szanMaYagT0Eqccq8bpceP5nbsDhWNBYlGnBLWT/32OyTj7Es
-         1pFJfAvLagFh33+aF2cx78wNLrAz1LAuUdkxoxS0q29a+vsfkHaEmB70zu4VhSWiPP
-         n5ZF79Hx+oRCe6nD047CjQG/Hqec/Pb6e0YhRXxfUXE/W2SikSYxIEP5Nphbnt9tK8
-         Ncx1Nx24aa++9+yw5z3AnwUQ5ADECvYJuel3jcgrO/x0ICfwvAlZZM1Qp1YfIoK5Iq
-         1o96T7HQbN1RQ==
+        b=WiunM/XClrfJN1T7HNGDZxWDRe04ZUKNgDWuaCer+43fK5tT4JG3LFUGeE8RIeNCG
+         pot/5x+6/Wz/SJt9cGQ62Y7+DtHHIpRoHike/zEP6OyksolMGmpxJ+iz+7dwEWEOCu
+         3trQglBeKVW8AJOyFtVBDjzzy+m2Xe44Z1A9viBGAkUDu3L5Vqm2bdLZXSxnAtLBlB
+         RUTx4sWw9EFwPGSFUv46utloPbTtC1dni337TmJWYHqnOoIJsMKWXuGDds13jNZ0nF
+         CgUW1mKAR08fzGze6Je+jgB1B+cL5SS50AL9MGiv+iajR8/53WO4MpuUHHoro0ih4x
+         PuYjHY2HKZhpg==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Florian Westphal <fw@strlen.de>, Michal Kubecek <mkubecek@suse.cz>,
@@ -39,12 +39,12 @@ Cc:     Florian Westphal <fw@strlen.de>, Michal Kubecek <mkubecek@suse.cz>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.10 5/9] netfilter: conntrack: collect all entries in one cycle
-Date:   Mon, 16 Aug 2021 20:35:50 -0400
-Message-Id: <20210817003554.83213-5-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 3/4] netfilter: conntrack: collect all entries in one cycle
+Date:   Mon, 16 Aug 2021 20:36:14 -0400
+Message-Id: <20210817003615.83434-3-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210817003554.83213-1-sashal@kernel.org>
-References: <20210817003554.83213-1-sashal@kernel.org>
+In-Reply-To: <20210817003615.83434-1-sashal@kernel.org>
+References: <20210817003615.83434-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -83,10 +83,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 22 insertions(+), 49 deletions(-)
 
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index f9f2af26ccb3..54430a34d2f6 100644
+index c5590d36b775..a38caf317dbb 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -66,22 +66,17 @@ EXPORT_SYMBOL_GPL(nf_conntrack_hash);
+@@ -70,10 +70,9 @@ EXPORT_SYMBOL_GPL(nf_conntrack_hash);
  
  struct conntrack_gc_work {
  	struct delayed_work	dwork;
@@ -98,7 +98,8 @@ index f9f2af26ccb3..54430a34d2f6 100644
  };
  
  static __read_mostly struct kmem_cache *nf_conntrack_cachep;
- static DEFINE_SPINLOCK(nf_conntrack_locks_all_lock);
+@@ -81,12 +80,8 @@ static __read_mostly spinlock_t nf_conntrack_locks_all_lock;
+ static __read_mostly DEFINE_SPINLOCK(nf_conntrack_locks_all_lock);
  static __read_mostly bool nf_conntrack_locks_all;
  
 -/* every gc cycle scans at most 1/GC_MAX_BUCKETS_DIV part of table */
@@ -112,7 +113,7 @@ index f9f2af26ccb3..54430a34d2f6 100644
  
  static struct conntrack_gc_work conntrack_gc_work;
  
-@@ -1352,17 +1347,13 @@ static bool gc_worker_can_early_drop(const struct nf_conn *ct)
+@@ -1198,17 +1193,13 @@ static void nf_ct_offload_timeout(struct nf_conn *ct)
  
  static void gc_worker(struct work_struct *work)
  {
@@ -134,7 +135,7 @@ index f9f2af26ccb3..54430a34d2f6 100644
  	if (gc_work->early_drop)
  		nf_conntrack_max95 = nf_conntrack_max / 100u * 95u;
  
-@@ -1370,22 +1361,21 @@ static void gc_worker(struct work_struct *work)
+@@ -1216,22 +1207,21 @@ static void gc_worker(struct work_struct *work)
  		struct nf_conntrack_tuple_hash *h;
  		struct hlist_nulls_head *ct_hash;
  		struct hlist_nulls_node *n;
@@ -161,7 +162,7 @@ index f9f2af26ccb3..54430a34d2f6 100644
  			if (test_bit(IPS_OFFLOAD_BIT, &tmp->status)) {
  				nf_ct_offload_timeout(tmp);
  				continue;
-@@ -1393,7 +1383,6 @@ static void gc_worker(struct work_struct *work)
+@@ -1239,7 +1229,6 @@ static void gc_worker(struct work_struct *work)
  
  			if (nf_ct_is_expired(tmp)) {
  				nf_ct_gc_expired(tmp);
@@ -169,7 +170,7 @@ index f9f2af26ccb3..54430a34d2f6 100644
  				continue;
  			}
  
-@@ -1425,7 +1414,14 @@ static void gc_worker(struct work_struct *work)
+@@ -1271,7 +1260,14 @@ static void gc_worker(struct work_struct *work)
  		 */
  		rcu_read_unlock();
  		cond_resched();
@@ -185,7 +186,7 @@ index f9f2af26ccb3..54430a34d2f6 100644
  
  	if (gc_work->exiting)
  		return;
-@@ -1436,40 +1432,17 @@ static void gc_worker(struct work_struct *work)
+@@ -1282,40 +1278,17 @@ static void gc_worker(struct work_struct *work)
  	 *
  	 * This worker is only here to reap expired entries when system went
  	 * idle after a busy period.
