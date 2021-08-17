@@ -2,382 +2,404 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC5A1C4338F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Aug 2021 08:40:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 623FEC4320A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Aug 2021 13:57:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D588360EFE
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Aug 2021 08:40:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 441C16024A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Aug 2021 13:57:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238985AbhHQIlK (ORCPT
+        id S237629AbhHQN6N (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Aug 2021 04:41:10 -0400
-Received: from sender4-of-o55.zoho.com ([136.143.188.55]:21563 "EHLO
-        sender4-of-o55.zoho.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235195AbhHQIlK (ORCPT
+        Tue, 17 Aug 2021 09:58:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49074 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S236040AbhHQN6M (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Aug 2021 04:41:10 -0400
-ARC-Seal: i=1; a=rsa-sha256; t=1629189597; cv=none; 
-        d=zohomail.com; s=zohoarc; 
-        b=IgmcjaZKJk5EC7kfOpZ1k54qbMujt9+iw69fKeDFftNVDxebakjGW1Xuez/8iHE95crZA+N/rodNAMBDnHSF09gIhx6GYNPy/mjo1JD1eKRfN4N/OD7ND4dDY5do1Nv9R+D9VKwgO2kQ3NkP8/LZ/LipTnKIXVVyikHyPFxV2VU=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
-        t=1629189597; h=Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
-        bh=2upSKHGZqtnrKU856c9efnJQavyakqzwS8NnbUPJGas=; 
-        b=FVNywPGv7hAwqDcXJHdGbaI4qKiQLVoPcP0fmwKDvaoEa8P8nLkwxadiHTuVSPE8TuYUuIYhQsxsKe9XLtF6Rbu9bJzVbPOOKVF56GHm1N7sdx53s0QSof7wwItwvhj22tfLGN3UIMndKfNqH6D8O9u2bY7tfDz3IY5PncqZLOs=
-ARC-Authentication-Results: i=1; mx.zohomail.com;
-        dkim=pass  header.i=proelbtn.com;
-        spf=pass  smtp.mailfrom=contact@proelbtn.com;
-        dmarc=pass header.from=<contact@proelbtn.com>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1629189597;
-        s=default; d=proelbtn.com; i=contact@proelbtn.com;
-        h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-        bh=2upSKHGZqtnrKU856c9efnJQavyakqzwS8NnbUPJGas=;
-        b=cy4aYVnyuIewOq5Gj13VTmo5uI14NX02ZpoZQA6LSRwuRSVMGqpnWVlFrmmO/YtG
-        EqF9tYzUxESIMKeKMznU/LtQLeQafZwYwHcQy/hRjRBxFJJiL5MRBznkQ8goV55JMtC
-        zOaD0lOsinNXwDoU4zD3OqznvZHOev1jdOmsj7KY=
-Received: from kerneldev.prochi.io (softbank060108183144.bbtec.net [60.108.183.144]) by mx.zohomail.com
-        with SMTPS id 162918959719911.496015609779306; Tue, 17 Aug 2021 01:39:57 -0700 (PDT)
-From:   Ryoga Saito <contact@proelbtn.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     pablo@netfilter.org, stefano.salsano@uniroma2.it,
-        andrea.mayer@uniroma2.it, davem@davemloft.net, kuba@kernel.org,
-        yoshfuji@linux-ipv6.org, dsahern@kernel.org,
-        Ryoga Saito <contact@proelbtn.com>
-Subject: [PATCH v7 2/2] netfilter: add netfilter hooks to SRv6 data plane
-Date:   Tue, 17 Aug 2021 08:39:38 +0000
-Message-Id: <20210817083938.15051-3-contact@proelbtn.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20210817083938.15051-1-contact@proelbtn.com>
-References: <20210817083938.15051-1-contact@proelbtn.com>
+        Tue, 17 Aug 2021 09:58:12 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C81A6C0613C1
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Aug 2021 06:57:39 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1mFzay-0005hx-Ag; Tue, 17 Aug 2021 15:57:36 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2 iptables] iptables-nft: allow removal of empty builtin chains
+Date:   Tue, 17 Aug 2021 15:57:31 +0200
+Message-Id: <20210817135731.18443-1-fw@strlen.de>
+X-Mailer: git-send-email 2.31.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-ZohoMailClient: External
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch introduces netfilter hooks for solving the problem that
-conntrack couldn't record both inner flows and outer flows.
+The only reason why this is prohibited is that you cannot do it
+in iptables-legacy.
 
-Signed-off-by: Ryoga Saito <contact@proelbtn.com>
+This removes the artifical limitation.
+
+"iptables-nft -X" will leave the builtin chains alone;
+Also, deletion is only permitted if the chain is empty.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/ipv6/seg6_iptunnel.c |  74 ++++++++++++++++++++++++--
- net/ipv6/seg6_local.c    | 110 +++++++++++++++++++++++++++------------
- 2 files changed, 148 insertions(+), 36 deletions(-)
+ As per discussion.  -X removes all chains, provided all are empty.
+ NB: DROP policy is also removed implicitly when a base chain is
+ deleted.
 
-diff --git a/net/ipv6/seg6_iptunnel.c b/net/ipv6/seg6_iptunnel.c
-index 897fa59c47de..f0288464a06f 100644
---- a/net/ipv6/seg6_iptunnel.c
-+++ b/net/ipv6/seg6_iptunnel.c
-@@ -26,6 +26,7 @@
- #ifdef CONFIG_IPV6_SEG6_HMAC
- #include <net/seg6_hmac.h>
- #endif
-+#include <net/lwtunnel.h>
+ iptables/iptables.8.in | 13 ++++---
+ iptables/nft-cmd.c     |  8 ++---
+ iptables/nft-cmd.h     |  4 +--
+ iptables/nft.c         | 78 +++++++++++++++++++++++++++---------------
+ iptables/nft.h         |  4 +--
+ iptables/xtables-arp.c |  4 +--
+ iptables/xtables-eb.c  |  2 +-
+ iptables/xtables.c     |  4 +--
+ 8 files changed, 72 insertions(+), 45 deletions(-)
+
+diff --git a/iptables/iptables.8.in b/iptables/iptables.8.in
+index 999cf339845f..759ec54fdeb7 100644
+--- a/iptables/iptables.8.in
++++ b/iptables/iptables.8.in
+@@ -25,10 +25,10 @@
+ .SH NAME
+ iptables/ip6tables \(em administration tool for IPv4/IPv6 packet filtering and NAT
+ .SH SYNOPSIS
+-\fBiptables\fP [\fB\-t\fP \fItable\fP] {\fB\-A\fP|\fB\-C\fP|\fB\-D\fP}
++\fBiptables\fP [\fB\-t\fP \fItable\fP] {\fB\-A\fP|\fB\-C\fP|\fB\-D\fP|\fB-V\fP}
+ \fIchain\fP \fIrule-specification\fP
+ .P
+-\fBip6tables\fP [\fB\-t\fP \fItable\fP] {\fB\-A\fP|\fB\-C\fP|\fB\-D\fP}
++\fBip6tables\fP [\fB\-t\fP \fItable\fP] {\fB\-A\fP|\fB\-C\fP|\fB\-D\fP|\fB-V\fP}
+ \fIchain rule-specification\fP
+ .PP
+ \fBiptables\fP [\fB\-t\fP \fItable\fP] \fB\-I\fP \fIchain\fP [\fIrulenum\fP] \fIrule-specification\fP
+@@ -220,11 +220,11 @@ Create a new user-defined chain by the given name.  There must be no
+ target of that name already.
+ .TP
+ \fB\-X\fP, \fB\-\-delete\-chain\fP [\fIchain\fP]
+-Delete the optional user-defined chain specified.  There must be no references
++Delete the chain specified.  There must be no references
+ to the chain.  If there are, you must delete or replace the referring rules
+ before the chain can be deleted.  The chain must be empty, i.e. not contain
+-any rules.  If no argument is given, it will attempt to delete every
+-non-builtin chain in the table.
++any rules.  If no argument is given, it will delete all empty chains in the
++table. Empty builtin chains can only be deleted with \fBiptables-nft\fP.
+ .TP
+ \fB\-P\fP, \fB\-\-policy\fP \fIchain target\fP
+ Set the policy for the built-in (non-user-defined) chain to the given target.
+@@ -362,6 +362,9 @@ For appending, insertion, deletion and replacement, this causes
+ detailed information on the rule or rules to be printed. \fB\-v\fP may be
+ specified multiple times to possibly emit more detailed debug statements.
+ .TP
++\fB\-V\fP, \fB\-\-version\fP
++Show program version and the kernel API used.
++.TP
+ \fB\-w\fP, \fB\-\-wait\fP [\fIseconds\fP]
+ Wait for the xtables lock.
+ To prevent multiple instances of the program from running concurrently,
+diff --git a/iptables/nft-cmd.c b/iptables/nft-cmd.c
+index a0c76a795e59..41677e9340cc 100644
+--- a/iptables/nft-cmd.c
++++ b/iptables/nft-cmd.c
+@@ -208,12 +208,12 @@ int nft_cmd_chain_user_add(struct nft_handle *h, const char *chain,
+ 	return 1;
+ }
  
- static size_t seg6_lwt_headroom(struct seg6_iptunnel_encap *tuninfo)
+-int nft_cmd_chain_user_del(struct nft_handle *h, const char *chain,
+-			   const char *table, bool verbose)
++int nft_cmd_chain_del(struct nft_handle *h, const char *chain,
++		      const char *table, bool verbose)
  {
-@@ -295,11 +296,19 @@ static int seg6_do_srh(struct sk_buff *skb)
+ 	struct nft_cmd *cmd;
  
- 	ipv6_hdr(skb)->payload_len = htons(skb->len - sizeof(struct ipv6hdr));
- 	skb_set_transport_header(skb, sizeof(struct ipv6hdr));
-+	nf_reset_ct(skb);
+-	cmd = nft_cmd_new(h, NFT_COMPAT_CHAIN_USER_DEL, table, chain, NULL, -1,
++	cmd = nft_cmd_new(h, NFT_COMPAT_CHAIN_DEL, table, chain, NULL, -1,
+ 			  verbose);
+ 	if (!cmd)
+ 		return 0;
+@@ -320,7 +320,7 @@ int nft_cmd_table_flush(struct nft_handle *h, const char *table, bool verbose)
  
+ 	if (verbose) {
+ 		return nft_cmd_rule_flush(h, NULL, table, verbose) &&
+-		       nft_cmd_chain_user_del(h, NULL, table, verbose);
++		       nft_cmd_chain_del(h, NULL, table, verbose);
+ 	}
+ 
+ 	cmd = nft_cmd_new(h, NFT_COMPAT_TABLE_FLUSH, table, NULL, NULL, -1,
+diff --git a/iptables/nft-cmd.h b/iptables/nft-cmd.h
+index ecf7655a4a61..b5a99ef74ad9 100644
+--- a/iptables/nft-cmd.h
++++ b/iptables/nft-cmd.h
+@@ -49,8 +49,8 @@ int nft_cmd_zero_counters(struct nft_handle *h, const char *chain,
+ 			  const char *table, bool verbose);
+ int nft_cmd_chain_user_add(struct nft_handle *h, const char *chain,
+ 			   const char *table);
+-int nft_cmd_chain_user_del(struct nft_handle *h, const char *chain,
+-			   const char *table, bool verbose);
++int nft_cmd_chain_del(struct nft_handle *h, const char *chain,
++		      const char *table, bool verbose);
+ int nft_cmd_chain_zero_counters(struct nft_handle *h, const char *chain,
+ 				const char *table, bool verbose);
+ int nft_cmd_rule_list(struct nft_handle *h, const char *chain,
+diff --git a/iptables/nft.c b/iptables/nft.c
+index 795dff860540..828ba5095b5c 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -290,7 +290,7 @@ static int mnl_append_error(const struct nft_handle *h,
+ 		[NFT_COMPAT_TABLE_FLUSH] = "TABLE_FLUSH",
+ 		[NFT_COMPAT_CHAIN_ADD] = "CHAIN_ADD",
+ 		[NFT_COMPAT_CHAIN_USER_ADD] = "CHAIN_USER_ADD",
+-		[NFT_COMPAT_CHAIN_USER_DEL] = "CHAIN_USER_DEL",
++		[NFT_COMPAT_CHAIN_DEL] = "CHAIN_DEL",
+ 		[NFT_COMPAT_CHAIN_USER_FLUSH] = "CHAIN_USER_FLUSH",
+ 		[NFT_COMPAT_CHAIN_UPDATE] = "CHAIN_UPDATE",
+ 		[NFT_COMPAT_CHAIN_RENAME] = "CHAIN_RENAME",
+@@ -321,7 +321,7 @@ static int mnl_append_error(const struct nft_handle *h,
+ 	case NFT_COMPAT_CHAIN_ADD:
+ 	case NFT_COMPAT_CHAIN_ZERO:
+ 	case NFT_COMPAT_CHAIN_USER_ADD:
+-	case NFT_COMPAT_CHAIN_USER_DEL:
++	case NFT_COMPAT_CHAIN_DEL:
+ 	case NFT_COMPAT_CHAIN_USER_FLUSH:
+ 	case NFT_COMPAT_CHAIN_UPDATE:
+ 	case NFT_COMPAT_CHAIN_RENAME:
+@@ -1845,22 +1845,19 @@ int nft_chain_restore(struct nft_handle *h, const char *chain, const char *table
+ #define NLM_F_NONREC	0x100	/* Do not delete recursively    */
+ #endif
+ 
+-struct chain_user_del_data {
++struct chain_del_data {
+ 	struct nft_handle	*handle;
++	struct nft_cache	*cache;
++	enum nft_table_type	type;
+ 	bool			verbose;
+-	int			builtin_err;
+ };
+ 
+-static int __nft_chain_user_del(struct nft_chain *nc, void *data)
++static int __nft_chain_del(struct nft_chain *nc, void *data)
+ {
+-	struct chain_user_del_data *d = data;
++	struct chain_del_data *d = data;
+ 	struct nftnl_chain *c = nc->nftnl;
+ 	struct nft_handle *h = d->handle;
+ 
+-	/* don't delete built-in chain */
+-	if (nft_chain_builtin(c))
+-		return d->builtin_err;
+-
+ 	if (d->verbose)
+ 		fprintf(stdout, "Deleting chain `%s'\n",
+ 			nftnl_chain_get_str(c, NFTNL_CHAIN_NAME));
+@@ -1868,9 +1865,16 @@ static int __nft_chain_user_del(struct nft_chain *nc, void *data)
+ 
+ 	/* XXX This triggers a fast lookup from the kernel. */
+ 	nftnl_chain_unset(c, NFTNL_CHAIN_HANDLE);
+-	if (!batch_chain_add(h, NFT_COMPAT_CHAIN_USER_DEL, c))
++	if (!batch_chain_add(h, NFT_COMPAT_CHAIN_DEL, c))
+ 		return -1;
+ 
++	if (nft_chain_builtin(c)) {
++		uint32_t num = nftnl_chain_get_u32(c, NFTNL_CHAIN_HOOKNUM);
++
++		if (nc == d->cache->table[d->type].base_chains[num])
++			d->cache->table[d->type].base_chains[num] = NULL;
++	}
++
+ 	/* nftnl_chain is freed when deleting the batch object */
+ 	nc->nftnl = NULL;
+ 
+@@ -1879,17 +1883,18 @@ static int __nft_chain_user_del(struct nft_chain *nc, void *data)
  	return 0;
  }
  
--static int seg6_input(struct sk_buff *skb)
-+static int seg6_input_finish(struct net *net, struct sock *sk,
-+			     struct sk_buff *skb)
-+{
-+	return dst_input(skb);
-+}
-+
-+static int seg6_input_core(struct net *net, struct sock *sk,
-+			   struct sk_buff *skb)
+-int nft_chain_user_del(struct nft_handle *h, const char *chain,
++int nft_chain_del(struct nft_handle *h, const char *chain,
+ 		       const char *table, bool verbose)
  {
- 	struct dst_entry *orig_dst = skb_dst(skb);
- 	struct dst_entry *dst = NULL;
-@@ -337,10 +346,41 @@ static int seg6_input(struct sk_buff *skb)
- 	if (unlikely(err))
- 		return err;
+-	struct chain_user_del_data d = {
++	const struct builtin_table *t;
++	struct chain_del_data d = {
+ 		.handle = h,
+ 		.verbose = verbose,
+ 	};
+ 	struct nft_chain *c;
+ 	int ret = 0;
  
--	return dst_input(skb);
-+	if (static_branch_unlikely(&nf_hooks_lwtunnel_enabled))
-+		return NF_HOOK(NFPROTO_IPV6, NF_INET_LOCAL_OUT,
-+			       dev_net(skb->dev), NULL, skb, NULL,
-+			       skb_dst(skb)->dev, seg6_input_finish);
-+
-+	return seg6_input_finish(dev_net(skb->dev), NULL, skb);
- }
+-	nft_fn = nft_chain_user_del;
++	nft_fn = nft_chain_del;
  
--static int seg6_output(struct net *net, struct sock *sk, struct sk_buff *skb)
-+static int seg6_input_nf(struct sk_buff *skb)
-+{
-+	struct net_device *dev = skb_dst(skb)->dev;
-+	struct net *net = dev_net(skb->dev);
+ 	if (chain) {
+ 		c = nft_chain_find(h, table, chain);
+@@ -1897,17 +1902,37 @@ int nft_chain_user_del(struct nft_handle *h, const char *chain,
+ 			errno = ENOENT;
+ 			return 0;
+ 		}
+-		d.builtin_err = -2;
+-		ret = __nft_chain_user_del(c, &d);
 +
-+	switch (skb->protocol) {
-+	case htons(ETH_P_IP):
-+		return NF_HOOK(NFPROTO_IPV4, NF_INET_POST_ROUTING, net, NULL,
-+			       skb, NULL, dev, seg6_input_core);
-+	case htons(ETH_P_IPV6):
-+		return NF_HOOK(NFPROTO_IPV6, NF_INET_POST_ROUTING, net, NULL,
-+			       skb, NULL, dev, seg6_input_core);
++		if (nft_chain_builtin(c->nftnl)) {
++			t = nft_table_builtin_find(h, table);
++			if (!t) {
++				errno = EINVAL;
++				return 0;
++			}
++
++			d.type = t->type;
++			d.cache = h->cache;
++		}
++
++		ret = __nft_chain_del(c, &d);
+ 		if (ret == -2)
+ 			errno = EINVAL;
+ 		goto out;
+ 	}
+ 
++	t = nft_table_builtin_find(h, table);
++	if (!t) {
++		errno = EINVAL;
++		return 0;
 +	}
 +
-+	return -EINVAL;
-+}
++	d.type = t->type;
++	d.cache = h->cache;
 +
-+static int seg6_input(struct sk_buff *skb)
-+{
-+	if (static_branch_unlikely(&nf_hooks_lwtunnel_enabled))
-+		return seg6_input_nf(skb);
-+
-+	return seg6_input_core(dev_net(skb->dev), NULL, skb);
-+}
-+
-+static int seg6_output_core(struct net *net, struct sock *sk,
-+			    struct sk_buff *skb)
- {
- 	struct dst_entry *orig_dst = skb_dst(skb);
- 	struct dst_entry *dst = NULL;
-@@ -387,12 +427,40 @@ static int seg6_output(struct net *net, struct sock *sk, struct sk_buff *skb)
- 	if (unlikely(err))
- 		goto drop;
+ 	if (verbose)
+ 		nft_cache_sort_chains(h, table);
  
-+	if (static_branch_unlikely(&nf_hooks_lwtunnel_enabled))
-+		return NF_HOOK(NFPROTO_IPV6, NF_INET_LOCAL_OUT, net, sk, skb,
-+			       NULL, skb_dst(skb)->dev, dst_output);
-+
- 	return dst_output(net, sk, skb);
- drop:
- 	kfree_skb(skb);
- 	return err;
- }
+-	ret = nft_chain_foreach(h, table, __nft_chain_user_del, &d);
++	ret = nft_chain_foreach(h, table, __nft_chain_del, &d);
+ out:
+ 	/* the core expects 1 for success and 0 for error */
+ 	return ret == 0 ? 1 : 0;
+@@ -2672,7 +2697,7 @@ static void batch_obj_del(struct nft_handle *h, struct obj_update *o)
+ 	case NFT_COMPAT_CHAIN_USER_ADD:
+ 	case NFT_COMPAT_CHAIN_ADD:
+ 		break;
+-	case NFT_COMPAT_CHAIN_USER_DEL:
++	case NFT_COMPAT_CHAIN_DEL:
+ 	case NFT_COMPAT_CHAIN_USER_FLUSH:
+ 	case NFT_COMPAT_CHAIN_UPDATE:
+ 	case NFT_COMPAT_CHAIN_RENAME:
+@@ -2757,7 +2782,7 @@ static void nft_refresh_transaction(struct nft_handle *h)
+ 		case NFT_COMPAT_TABLE_ADD:
+ 		case NFT_COMPAT_CHAIN_ADD:
+ 		case NFT_COMPAT_CHAIN_ZERO:
+-		case NFT_COMPAT_CHAIN_USER_DEL:
++		case NFT_COMPAT_CHAIN_DEL:
+ 		case NFT_COMPAT_CHAIN_USER_FLUSH:
+ 		case NFT_COMPAT_CHAIN_UPDATE:
+ 		case NFT_COMPAT_CHAIN_RENAME:
+@@ -2823,7 +2848,7 @@ retry:
+ 						   NLM_F_EXCL, n->seq,
+ 						   n->chain);
+ 			break;
+-		case NFT_COMPAT_CHAIN_USER_DEL:
++		case NFT_COMPAT_CHAIN_DEL:
+ 			nft_compat_chain_batch_add(h, NFT_MSG_DELCHAIN,
+ 						   NLM_F_NONREC, n->seq,
+ 						   n->chain);
+@@ -3068,9 +3093,9 @@ static int nft_prepare(struct nft_handle *h)
+ 		case NFT_COMPAT_CHAIN_USER_ADD:
+ 			ret = nft_chain_user_add(h, cmd->chain, cmd->table);
+ 			break;
+-		case NFT_COMPAT_CHAIN_USER_DEL:
+-			ret = nft_chain_user_del(h, cmd->chain, cmd->table,
+-						 cmd->verbose);
++		case NFT_COMPAT_CHAIN_DEL:
++			ret = nft_chain_del(h, cmd->chain, cmd->table,
++					    cmd->verbose);
+ 			break;
+ 		case NFT_COMPAT_CHAIN_RESTORE:
+ 			ret = nft_chain_restore(h, cmd->chain, cmd->table);
+@@ -3269,10 +3294,9 @@ const char *nft_strerror(int err)
+ 		const char *message;
+ 	} table[] =
+ 	  {
+-	    { nft_chain_user_del, ENOTEMPTY, "Chain is not empty" },
+-	    { nft_chain_user_del, EINVAL, "Can't delete built-in chain" },
+-	    { nft_chain_user_del, EBUSY, "Directory not empty" },
+-	    { nft_chain_user_del, EMLINK,
++	    { nft_chain_del, ENOTEMPTY, "Chain is not empty" },
++	    { nft_chain_del, EBUSY, "Directory not empty" },
++	    { nft_chain_del, EMLINK,
+ 	      "Can't delete chain with references left" },
+ 	    { nft_chain_user_add, EEXIST, "Chain already exists" },
+ 	    { nft_chain_user_rename, EEXIST, "File exists" },
+diff --git a/iptables/nft.h b/iptables/nft.h
+index 4ac7e0099d56..a7b652ff62a4 100644
+--- a/iptables/nft.h
++++ b/iptables/nft.h
+@@ -53,7 +53,7 @@ enum obj_update_type {
+ 	NFT_COMPAT_TABLE_FLUSH,
+ 	NFT_COMPAT_CHAIN_ADD,
+ 	NFT_COMPAT_CHAIN_USER_ADD,
+-	NFT_COMPAT_CHAIN_USER_DEL,
++	NFT_COMPAT_CHAIN_DEL,
+ 	NFT_COMPAT_CHAIN_USER_FLUSH,
+ 	NFT_COMPAT_CHAIN_UPDATE,
+ 	NFT_COMPAT_CHAIN_RENAME,
+@@ -147,7 +147,7 @@ struct nftnl_chain;
+ int nft_chain_set(struct nft_handle *h, const char *table, const char *chain, const char *policy, const struct xt_counters *counters);
+ int nft_chain_save(struct nft_chain *c, void *data);
+ int nft_chain_user_add(struct nft_handle *h, const char *chain, const char *table);
+-int nft_chain_user_del(struct nft_handle *h, const char *chain, const char *table, bool verbose);
++int nft_chain_del(struct nft_handle *h, const char *chain, const char *table, bool verbose);
+ int nft_chain_restore(struct nft_handle *h, const char *chain, const char *table);
+ int nft_chain_user_rename(struct nft_handle *h, const char *chain, const char *table, const char *newname);
+ int nft_chain_zero_counters(struct nft_handle *h, const char *chain, const char *table, bool verbose);
+diff --git a/iptables/xtables-arp.c b/iptables/xtables-arp.c
+index 4a351f0cab4a..9a079f06b948 100644
+--- a/iptables/xtables-arp.c
++++ b/iptables/xtables-arp.c
+@@ -893,8 +893,8 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table,
+ 		ret = nft_cmd_chain_user_add(h, chain, *table);
+ 		break;
+ 	case CMD_DELETE_CHAIN:
+-		ret = nft_cmd_chain_user_del(h, chain, *table,
+-					 options & OPT_VERBOSE);
++		ret = nft_cmd_chain_del(h, chain, *table,
++					options & OPT_VERBOSE);
+ 		break;
+ 	case CMD_RENAME_CHAIN:
+ 		ret = nft_cmd_chain_user_rename(h, chain, *table, newname);
+diff --git a/iptables/xtables-eb.c b/iptables/xtables-eb.c
+index 6e35f58ee685..21c4477a6d4f 100644
+--- a/iptables/xtables-eb.c
++++ b/iptables/xtables-eb.c
+@@ -779,7 +779,7 @@ int do_commandeb(struct nft_handle *h, int argc, char *argv[], char **table,
+ 					chain = argv[optind];
+ 					optind++;
+ 				}
+-				ret = nft_cmd_chain_user_del(h, chain, *table, 0);
++				ret = nft_cmd_chain_del(h, chain, *table, 0);
+ 				break;
+ 			}
  
-+static int seg6_output_nf(struct net *net, struct sock *sk, struct sk_buff *skb)
-+{
-+	struct net_device *dev = skb_dst(skb)->dev;
-+
-+	switch (skb->protocol) {
-+	case htons(ETH_P_IP):
-+		return NF_HOOK(NFPROTO_IPV4, NF_INET_POST_ROUTING, net, sk, skb,
-+			       NULL, dev, seg6_output_core);
-+	case htons(ETH_P_IPV6):
-+		return NF_HOOK(NFPROTO_IPV6, NF_INET_POST_ROUTING, net, sk, skb,
-+			       NULL, dev, seg6_output_core);
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static int seg6_output(struct net *net, struct sock *sk, struct sk_buff *skb)
-+{
-+	if (static_branch_unlikely(&nf_hooks_lwtunnel_enabled))
-+		return seg6_output_nf(net, sk, skb);
-+
-+	return seg6_output_core(net, sk, skb);
-+}
-+
- static int seg6_build_state(struct net *net, struct nlattr *nla,
- 			    unsigned int family, const void *cfg,
- 			    struct lwtunnel_state **ts,
-diff --git a/net/ipv6/seg6_local.c b/net/ipv6/seg6_local.c
-index 60bf3b877957..cc9d573fc85a 100644
---- a/net/ipv6/seg6_local.c
-+++ b/net/ipv6/seg6_local.c
-@@ -30,6 +30,7 @@
- #include <net/seg6_local.h>
- #include <linux/etherdevice.h>
- #include <linux/bpf.h>
-+#include <net/lwtunnel.h>
- 
- #define SEG6_F_ATTR(i)		BIT(i)
- 
-@@ -413,12 +414,33 @@ static int input_action_end_dx2(struct sk_buff *skb,
- 	return -EINVAL;
- }
- 
-+static int input_action_end_dx6_finish(struct net *net, struct sock *sk,
-+				       struct sk_buff *skb)
-+{
-+	struct dst_entry *orig_dst = skb_dst(skb);
-+	struct in6_addr *nhaddr = NULL;
-+	struct seg6_local_lwt *slwt;
-+
-+	slwt = seg6_local_lwtunnel(orig_dst->lwtstate);
-+
-+	/* The inner packet is not associated to any local interface,
-+	 * so we do not call netif_rx().
-+	 *
-+	 * If slwt->nh6 is set to ::, then lookup the nexthop for the
-+	 * inner packet's DA. Otherwise, use the specified nexthop.
-+	 */
-+	if (!ipv6_addr_any(&slwt->nh6))
-+		nhaddr = &slwt->nh6;
-+
-+	seg6_lookup_nexthop(skb, nhaddr, 0);
-+
-+	return dst_input(skb);
-+}
-+
- /* decapsulate and forward to specified nexthop */
- static int input_action_end_dx6(struct sk_buff *skb,
- 				struct seg6_local_lwt *slwt)
- {
--	struct in6_addr *nhaddr = NULL;
--
- 	/* this function accepts IPv6 encapsulated packets, with either
- 	 * an SRH with SL=0, or no SRH.
- 	 */
-@@ -429,40 +451,30 @@ static int input_action_end_dx6(struct sk_buff *skb,
- 	if (!pskb_may_pull(skb, sizeof(struct ipv6hdr)))
- 		goto drop;
- 
--	/* The inner packet is not associated to any local interface,
--	 * so we do not call netif_rx().
--	 *
--	 * If slwt->nh6 is set to ::, then lookup the nexthop for the
--	 * inner packet's DA. Otherwise, use the specified nexthop.
--	 */
--
--	if (!ipv6_addr_any(&slwt->nh6))
--		nhaddr = &slwt->nh6;
--
- 	skb_set_transport_header(skb, sizeof(struct ipv6hdr));
-+	nf_reset_ct(skb);
- 
--	seg6_lookup_nexthop(skb, nhaddr, 0);
-+	if (static_branch_unlikely(&nf_hooks_lwtunnel_enabled))
-+		return NF_HOOK(NFPROTO_IPV6, NF_INET_PRE_ROUTING,
-+			       dev_net(skb->dev), NULL, skb, NULL,
-+			       skb_dst(skb)->dev, input_action_end_dx6_finish);
- 
--	return dst_input(skb);
-+	return input_action_end_dx6_finish(dev_net(skb->dev), NULL, skb);
- drop:
- 	kfree_skb(skb);
- 	return -EINVAL;
- }
- 
--static int input_action_end_dx4(struct sk_buff *skb,
--				struct seg6_local_lwt *slwt)
-+static int input_action_end_dx4_finish(struct net *net, struct sock *sk,
-+				       struct sk_buff *skb)
- {
-+	struct dst_entry *orig_dst = skb_dst(skb);
-+	struct seg6_local_lwt *slwt;
- 	struct iphdr *iph;
- 	__be32 nhaddr;
- 	int err;
- 
--	if (!decap_and_validate(skb, IPPROTO_IPIP))
--		goto drop;
--
--	if (!pskb_may_pull(skb, sizeof(struct iphdr)))
--		goto drop;
--
--	skb->protocol = htons(ETH_P_IP);
-+	slwt = seg6_local_lwtunnel(orig_dst->lwtstate);
- 
- 	iph = ip_hdr(skb);
- 
-@@ -470,14 +482,34 @@ static int input_action_end_dx4(struct sk_buff *skb,
- 
- 	skb_dst_drop(skb);
- 
--	skb_set_transport_header(skb, sizeof(struct iphdr));
--
- 	err = ip_route_input(skb, nhaddr, iph->saddr, 0, skb->dev);
--	if (err)
--		goto drop;
-+	if (err) {
-+		kfree_skb(skb);
-+		return -EINVAL;
-+	}
- 
- 	return dst_input(skb);
-+}
-+
-+static int input_action_end_dx4(struct sk_buff *skb,
-+				struct seg6_local_lwt *slwt)
-+{
-+	if (!decap_and_validate(skb, IPPROTO_IPIP))
-+		goto drop;
-+
-+	if (!pskb_may_pull(skb, sizeof(struct iphdr)))
-+		goto drop;
-+
-+	skb->protocol = htons(ETH_P_IP);
-+	skb_set_transport_header(skb, sizeof(struct iphdr));
-+	nf_reset_ct(skb);
-+
-+	if (static_branch_unlikely(&nf_hooks_lwtunnel_enabled))
-+		return NF_HOOK(NFPROTO_IPV4, NF_INET_PRE_ROUTING,
-+			       dev_net(skb->dev), NULL, skb, NULL,
-+			       skb_dst(skb)->dev, input_action_end_dx4_finish);
- 
-+	return input_action_end_dx4_finish(dev_net(skb->dev), NULL, skb);
- drop:
- 	kfree_skb(skb);
- 	return -EINVAL;
-@@ -645,6 +677,7 @@ static struct sk_buff *end_dt_vrf_core(struct sk_buff *skb,
- 	skb_dst_drop(skb);
- 
- 	skb_set_transport_header(skb, hdrlen);
-+	nf_reset_ct(skb);
- 
- 	return end_dt_vrf_rcv(skb, family, vrf);
- 
-@@ -1078,7 +1111,8 @@ static void seg6_local_update_counters(struct seg6_local_lwt *slwt,
- 	u64_stats_update_end(&pcounters->syncp);
- }
- 
--static int seg6_local_input(struct sk_buff *skb)
-+static int seg6_local_input_core(struct net *net, struct sock *sk,
-+				 struct sk_buff *skb)
- {
- 	struct dst_entry *orig_dst = skb_dst(skb);
- 	struct seg6_action_desc *desc;
-@@ -1086,11 +1120,6 @@ static int seg6_local_input(struct sk_buff *skb)
- 	unsigned int len = skb->len;
- 	int rc;
- 
--	if (skb->protocol != htons(ETH_P_IPV6)) {
--		kfree_skb(skb);
--		return -EINVAL;
--	}
--
- 	slwt = seg6_local_lwtunnel(orig_dst->lwtstate);
- 	desc = slwt->desc;
- 
-@@ -1104,6 +1133,21 @@ static int seg6_local_input(struct sk_buff *skb)
- 	return rc;
- }
- 
-+static int seg6_local_input(struct sk_buff *skb)
-+{
-+	if (skb->protocol != htons(ETH_P_IPV6)) {
-+		kfree_skb(skb);
-+		return -EINVAL;
-+	}
-+
-+	if (static_branch_unlikely(&nf_hooks_lwtunnel_enabled))
-+		return NF_HOOK(NFPROTO_IPV6, NF_INET_LOCAL_IN,
-+			       dev_net(skb->dev), NULL, skb, skb->dev, NULL,
-+			       seg6_local_input_core);
-+
-+	return seg6_local_input_core(dev_net(skb->dev), NULL, skb);
-+}
-+
- static const struct nla_policy seg6_local_policy[SEG6_LOCAL_MAX + 1] = {
- 	[SEG6_LOCAL_ACTION]	= { .type = NLA_U32 },
- 	[SEG6_LOCAL_SRH]	= { .type = NLA_BINARY },
+diff --git a/iptables/xtables.c b/iptables/xtables.c
+index daa9b137b5fa..0a700e084740 100644
+--- a/iptables/xtables.c
++++ b/iptables/xtables.c
+@@ -998,8 +998,8 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
+ 		ret = nft_cmd_chain_user_add(h, p.chain, p.table);
+ 		break;
+ 	case CMD_DELETE_CHAIN:
+-		ret = nft_cmd_chain_user_del(h, p.chain, p.table,
+-					 cs.options & OPT_VERBOSE);
++		ret = nft_cmd_chain_del(h, p.chain, p.table,
++					cs.options & OPT_VERBOSE);
+ 		break;
+ 	case CMD_RENAME_CHAIN:
+ 		ret = nft_cmd_chain_user_rename(h, p.chain, p.table, p.newname);
 -- 
-2.25.1
+2.31.1
 
