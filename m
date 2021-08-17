@@ -2,120 +2,122 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6026C4338F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Aug 2021 04:03:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C319DC4338F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Aug 2021 06:35:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9B36660E09
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Aug 2021 04:03:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A029A60F5C
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Aug 2021 06:35:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229477AbhHQEE2 (ORCPT
+        id S231895AbhHQGf7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Aug 2021 00:04:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54328 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229466AbhHQEE2 (ORCPT
+        Tue, 17 Aug 2021 02:35:59 -0400
+Received: from sender4-of-o55.zoho.com ([136.143.188.55]:21585 "EHLO
+        sender4-of-o55.zoho.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229460AbhHQGf6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Aug 2021 00:04:28 -0400
-Received: from mail-pj1-x1029.google.com (mail-pj1-x1029.google.com [IPv6:2607:f8b0:4864:20::1029])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A5D94C061764
-        for <netfilter-devel@vger.kernel.org>; Mon, 16 Aug 2021 21:03:55 -0700 (PDT)
-Received: by mail-pj1-x1029.google.com with SMTP id j1so29904297pjv.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 16 Aug 2021 21:03:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=sender:from:date:to:cc:subject:message-id:mail-followup-to
-         :references:mime-version:content-disposition:in-reply-to;
-        bh=kK72pRpuYbOBv6LsxSnqxYQBmPEEuy2Ao7CTaTtCLK4=;
-        b=jAEb8oQ79ZEUjCs7+DL/uoueOdqnYXaepao/yOZGTOeDfQdG9oVjDzOwmHChCKqw4j
-         4P4XnNRf14BeoU/xm9+YzEtegdsQLIiI+XXajau41PeD6WXi5DI+yLRtV8OpEMVIKmf1
-         RuPfwgn/q7PXNvUbAVPvsSySIKP07NXFSSJ3YiZoxQAT87T+91YjBfcdmyxTX8LAJsVp
-         gpy/JP7wjSBXK8wim6BYLeZKJEFv+KMAw0ox6Na543zt5vu+auyREncboJWM7xufADzt
-         tsF6FsJaleTiHgxOeyhtYppeijzr8gGXlWuu/a3zYDfRqkuMBlCnhxw6waknckfgvJ0J
-         iLXg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:from:date:to:cc:subject:message-id
-         :mail-followup-to:references:mime-version:content-disposition
-         :in-reply-to;
-        bh=kK72pRpuYbOBv6LsxSnqxYQBmPEEuy2Ao7CTaTtCLK4=;
-        b=dT4GXZZ3WDDKziGZ8DTVvVshhb8yEQk/ZQvo5NFUL7TIpeoWBbSdBpknYIJk7oSDRP
-         RlpGEsXD1Vhtm/du7dif2jrTGG42YFtDculflxwOT23Q9JkvsADT2FiLE9BOzwRpCAjc
-         wGGutnK9XjWaJGgjC2MEgZw3sr7vmQzN7mG0/dud6byfKJCxTmTMUlpGCvXa2UPbpjZQ
-         4N6xe/2eV4Xvt0XjBBkIu6s16hS43BITZwWc9TrKrVklAgWJXIgcFUQv9lp3QqVHsTvY
-         sWQ96O9m3ohjzaaCVK5bfe6zSUPx/LtQb2iVElwjWqJ1A43GWYtUGqQ2hFdi25UEvbux
-         Yeew==
-X-Gm-Message-State: AOAM531ZvRZ8zD8aRGgOyLoi+KvcVyuPHOMuJZCNz/bxma8mkVE81bqE
-        GhKlB9YOjheAhFaibiEtCjpD5x5gtS++Iw==
-X-Google-Smtp-Source: ABdhPJw/aVNe550zXM68zJ115N6iGV5YOta6l5PqHYGq43kR32Fr0idbzFI8waC2LyVqeRRHUiXWPQ==
-X-Received: by 2002:a17:90a:2ac4:: with SMTP id i4mr1489138pjg.157.1629173035252;
-        Mon, 16 Aug 2021 21:03:55 -0700 (PDT)
-Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
-        by smtp.gmail.com with ESMTPSA id y8sm688626pfe.162.2021.08.16.21.03.53
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 16 Aug 2021 21:03:54 -0700 (PDT)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-X-Google-Original-From: Duncan Roe <dunc@slk1.local.net>
-Date:   Tue, 17 Aug 2021 14:03:50 +1000
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: nfnetlink_queue -- why linear lookup ?
-Message-ID: <YRs1JqWeW7XBrkKV@slk1.local.net>
-Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <11790_1628855682_61165D82_11790_25_1_3f865faa-9fd8-40aa-6e49-5d85dd596b5b@orange.com>
- <20210814210103.GG607@breakpoint.cc>
- <14552_1628975094_61182FF6_14552_82_1_d4901cb2-0852-a524-436c-62bf06f95d0e@orange.com>
- <20210814211238.GH607@breakpoint.cc>
- <27263_1629029795_611905A3_27263_246_1_ddbb7a24-d843-9985-5833-c7c8c1aa8d29@orange.com>
- <20210815130716.GA21655@salvia>
- <4942_1629034317_6119174D_4942_150_1_d69d3f05-89f7-63b5-4759-ef1987aca476@orange.com>
- <20210815141204.GA22946@salvia>
- <YRpUauSav1HMS+hw@slk1.local.net>
- <20210816161009.GA2258@salvia>
+        Tue, 17 Aug 2021 02:35:58 -0400
+ARC-Seal: i=1; a=rsa-sha256; t=1629182116; cv=none; 
+        d=zohomail.com; s=zohoarc; 
+        b=Be68qdTg1/kF4VL0LeY0DpCy8f/QSedSu5C8TIDVF5UcN42sdvMFnC2C9bwGKdftMlbUmSi88xUJLLQ8sqRxwdWh7PrBhhgGkbIcUNKJHcPWMibpR3Wgcd2m058j83ei8yu9kyWGEfv/je8L86qZSaBwiozQuyrOD2lTXP/LP/s=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
+        t=1629182116; h=Content-Transfer-Encoding:Cc:Date:From:MIME-Version:Message-ID:Subject:To; 
+        bh=aHpZqYqidovkIqt3lCdICUhUR2vwcvCj9PwJ5xa/83k=; 
+        b=HmwEtLnSoBkurODCjr+iLXXBzBXvyweWjHqrqJLHX/vOujJo3agxAaNtaqdHkxIjthF5+Hc1CJz7JJITMJ787hwjRZRaxTrNU4APdBXuNtNqY3/s2qf1MzMA71k589dxPe7kn1lPLmGyLZPFhS+RW7k5bsqYSIyTIXAygH8LPMk=
+ARC-Authentication-Results: i=1; mx.zohomail.com;
+        dkim=pass  header.i=proelbtn.com;
+        spf=pass  smtp.mailfrom=contact@proelbtn.com;
+        dmarc=pass header.from=<contact@proelbtn.com>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1629182116;
+        s=default; d=proelbtn.com; i=contact@proelbtn.com;
+        h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Transfer-Encoding;
+        bh=aHpZqYqidovkIqt3lCdICUhUR2vwcvCj9PwJ5xa/83k=;
+        b=RP9DsmpPM7ZadR9NMQCoG4PtEopFxCtuCrMJl7XoLioadYJe9cslJCV86p/NvOjp
+        pxHKZenFBw83t9rWZ+NbsHWQK0cBRmRgT8RFmVNzVZKwTKkIefTjpEPdZA8OaPpi44q
+        sYogxxLmjWkkNkKgpScR2LJVCo5e88ImHDcwgMSs=
+Received: from kerneldev.prochi.io (softbank060108183144.bbtec.net [60.108.183.144]) by mx.zohomail.com
+        with SMTPS id 1629182114365352.17233021178197; Mon, 16 Aug 2021 23:35:14 -0700 (PDT)
+From:   Ryoga Saito <contact@proelbtn.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     pablo@netfilter.org, stefano.salsano@uniroma2.it,
+        andrea.mayer@uniroma2.it, davem@davemloft.net, kuba@kernel.org,
+        yoshfuji@linux-ipv6.org, dsahern@kernel.org,
+        Ryoga Saito <contact@proelbtn.com>,
+        kernel test robot <lkp@intel.com>
+Subject: [PATCH v6 0/2] netfilter: add netfilter hooks to track  SRv6-encapsulated flows
+Date:   Tue, 17 Aug 2021 06:34:51 +0000
+Message-Id: <20210817063453.8487-1-contact@proelbtn.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210816161009.GA2258@salvia>
+Content-Transfer-Encoding: 8bit
+X-ZohoMailClient: External
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Aug 16, 2021 at 06:10:09PM +0200, Pablo Neira Ayuso wrote: [...]
->
-> BTW, leading and trailing netlink message blocks to the kernel are not
-> required for nfnetlink_queue.
+Tunneling protocols such as VXLAN or IPIP are implemented using virtual
+network devices (vxlan0 or ipip0). Therefore, conntrack can record both
+inner flows and outer flows correctly. In contrast, SRv6 is implemented
+using lightweight tunnel infrastructure. Therefore, SRv6 packets are
+encapsulated and decapsulated without passing through virtual network
+device. Due to the following problems caused by this, conntrack can't
+record both inner flows and outer flows correctly.
 
-Sorry, sloppy explanation on my part. This had nothing to do with batches.
+First problem is caused when SRv6 packets are encapsulated. In VXLAN, at
+first, packets received are passed to nf_conntrack_in called from
+ip_rcv/ipv6_rcv. These packets are sent to virtual network device and these
+flows are confirmed in ip_output/ip6_output. However, in SRv6, at first,
+packets are passed to nf_conntrack_in, encapsulated and flows are confirmed
+in ipv6_output even if inner packets are IPv4. Therefore, IPv6 conntrack
+needs to be enabled to track IPv4 inner flow.
 
-The idea was to attain a zero-copy nfq program by using sendmsg with an iov
-pointing at the mangled packet, wherever it is. A previous iov has to point to
-the struct nlmsghdr that starts the message.
+Second problem is caused when SRv6 packets are decapsulated. If IPv6
+conntrack is enabled, SRv6 packets are passed to nf_conntrack_in called
+from ipv6_rcv. Even if inner packets are passed to nf_conntrack_in after
+packets are decapsulated, flow aren't tracked because skb->_nfct is already
+set. Therefore, IPv6 conntrack needs to be disabled to track IPv4 flow
+when packets are decapsulated.
 
-That first buffer ends with the struct nlattr for the packet data addressed by
-the next iov.
+This patch series solves these problems and allows conntrack to record 
+inner flows correctly. It introduces netfilter hooks to srv6 lwtunnel
+and srv6local lwtunnel. It also introduces new sysctl toggle to turn on
+lightweight tunnel netfilter hooks. You can enable lwtunnel netfilter as
+following:
 
-If padding was required, I was sending a 3rd buffer. It's almost certainly fine
-to append the padding to the packet buffer instead, and for sure fine if check
-`pktb_tailroom > pad` first.
+  sysctl net.netfilter.nf_hooks_lwtunnel=1
 
-Then I was sending the ACCEPT verdict in a 4th buffer. As you point out, I could
-have sent that earlier, before the trailing struct nlattr.
+v6: apply some code chunks suggested
+v5: rename nf_conntrack_lwtunnel to nf_hooks_lwtunnel, fix link error
+ when CONFIG_SYSCTL, add example code
+v4: fix compile error when CONFIG_LWTUNNEL isn't enabled
+v3: fix warning in nf_conntrack_lwtunnel.c
+v2: introduce nf_ct_lwtunnel_enabled static_key and sysctl toggle to turn
+    on lightweight tunnel netfilter hook
 
-When I originally started writing nfq programs I was concerned that the kernel
-might accept the original packet as soon as it encountered the ACCEPT, and miss
-that there was an updated packet following.
+Reported-by: kernel test robot <lkp@intel.com>
 
-I now realise it doesn't work that way, but got stuck with the old order of
-doing thins.
+Ryoga Saito (2):
+  netfilter: add new sysctl toggle for lightweight tunnel netfilter
+    hooks
+  netfilter: add netfilter hooks to SRv6 data plane
 
-So the code would be down to trading 1 kernel user buffer validate against 2
-userland data copies. Which method is faster might well depend on packet length.
+ .../networking/nf_conntrack-sysctl.rst        |   7 ++
+ include/net/lwtunnel.h                        |   3 +
+ include/net/netfilter/nf_hooks_lwtunnel.h     |  15 +++
+ net/core/lwtunnel.c                           |   3 +
+ net/ipv6/seg6_iptunnel.c                      |  79 +++++++++++-
+ net/ipv6/seg6_local.c                         | 114 ++++++++++++------
+ net/netfilter/Makefile                        |   3 +
+ net/netfilter/nf_conntrack_standalone.c       |  15 +++
+ net/netfilter/nf_hooks_lwtunnel.c             |  66 ++++++++++
+ 9 files changed, 265 insertions(+), 40 deletions(-)
+ create mode 100644 include/net/netfilter/nf_hooks_lwtunnel.h
+ create mode 100644 net/netfilter/nf_hooks_lwtunnel.c
 
-I don't plan to pursue this further for now.
+-- 
+2.25.1
 
-Cheers ... Duncan.
