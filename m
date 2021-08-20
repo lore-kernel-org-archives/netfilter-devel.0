@@ -2,132 +2,116 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78445C4338F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Aug 2021 00:44:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53898C4338F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Aug 2021 09:58:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4F495610CE
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Aug 2021 00:44:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 33F3E61075
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Aug 2021 09:58:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237020AbhHTApH (ORCPT
+        id S235321AbhHTJ7Q (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 19 Aug 2021 20:45:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44800 "EHLO
+        Fri, 20 Aug 2021 05:59:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56912 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236411AbhHTApG (ORCPT
+        with ESMTP id S234846AbhHTJ7Q (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 Aug 2021 20:45:06 -0400
-Received: from mail-pg1-x52d.google.com (mail-pg1-x52d.google.com [IPv6:2607:f8b0:4864:20::52d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 13ACDC061575;
-        Thu, 19 Aug 2021 17:44:30 -0700 (PDT)
-Received: by mail-pg1-x52d.google.com with SMTP id q2so7518071pgt.6;
-        Thu, 19 Aug 2021 17:44:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-transfer-encoding:content-language;
-        bh=mru2aAZhlzaUY/DrSDbPFG1xG59cnFQ9kByAf+CKxao=;
-        b=TKF5VEjfsBL3RlYuiD3YFQZ84YGaYuZwzQGc2O3VCtQM6x6sv8PnRJG2huU0LKAL4y
-         qAlxyadFiAmSDI9PNzsgT0CbjSuWJDMh7WMmSD/iXgHLGS0wqimRt+azoywk3rQABSjv
-         nbyYTsD/DRngXuIAZhQDo4S3Qr8fSDU1FYVUJRGMjy2q0Me+ELf5FRibSThFH//b9xmI
-         0eqtrJPd7jRDRf0F/h2KI5f0snzOipE2rDSluKwKqwsH2RWwLDkjqkvW97/O1hz6/NpW
-         W20qTWjgm+TC+2clPntXE+dXzdta1DEloNczyqR/OzNLeJCkjhXF3wrNvxKMh280ci89
-         wlSQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-transfer-encoding
-         :content-language;
-        bh=mru2aAZhlzaUY/DrSDbPFG1xG59cnFQ9kByAf+CKxao=;
-        b=MLAGGrCE4Iik41F7d8p/dJHqD/GvSr6QNtCGyS5c84v4ZCE7sMKvNy9oLkynLkwSgO
-         zM6sNQh7pqFMxP8wgW8OLoN77yEz5F7wJ4E9cOvPW936rVXCQKigsLWbZymiGOzg8zs/
-         W1BGsUpSSemJfaeJwx0JBEKutcb8mh9CmY7GIFPPK04zwEjBIWja1rmT2svbAxzzpvt8
-         rxcSVHzPFq8KBgzNCtbNcFube8jiAdNTahzzKjJziFQD9kOWwjR0YCrIgIBbD3VKY0Xo
-         2Xv6Emazccak+15q3d8Imlck1Lrou91TBhJxbP59qxFkURQnn4umiRSHroLxEcEKWpi9
-         fCQQ==
-X-Gm-Message-State: AOAM5308wed0r8U2Zzlm3a2SxaZd4HZRZDdKIj44NlC0h6j/SJe3jAU6
-        Pw9iIGp9QQfKawfPKty3hyE=
-X-Google-Smtp-Source: ABdhPJwTGCChxWC26jG1D7oswHP+QZodK8LdAgQYvEyKAJ7PJFdFOOP4Q+DfK3edraQTp4VQxoAbQg==
-X-Received: by 2002:a65:4682:: with SMTP id h2mr16608280pgr.409.1629420268905;
-        Thu, 19 Aug 2021 17:44:28 -0700 (PDT)
-Received: from [192.168.43.134] ([49.32.150.144])
-        by smtp.gmail.com with ESMTPSA id e26sm4729539pfj.46.2021.08.19.17.44.26
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 19 Aug 2021 17:44:28 -0700 (PDT)
-Subject: Re: [ANNOUNCE] nftables 1.0.0 release
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter <netfilter@vger.kernel.org>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>
-Cc:     lwn@lwn.net
-References: <20210819173626.GA1776@salvia>
-From:   Amish <anon.amish@gmail.com>
-Message-ID: <ffc4dd4e-bbb1-0380-2cf2-7053fc3ab39c@gmail.com>
-Date:   Fri, 20 Aug 2021 06:14:24 +0530
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.13.0
+        Fri, 20 Aug 2021 05:59:16 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D8F39C061575
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Aug 2021 02:58:38 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1mH1IJ-0002UN-QU; Fri, 20 Aug 2021 11:58:35 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>, Amish <anon.amish@gmail.com>
+Subject: [PATCH nft] parser: permit symbolic defines for 'queue num' again
+Date:   Fri, 20 Aug 2021 11:58:31 +0200
+Message-Id: <20210820095831.7948-1-fw@strlen.de>
+X-Mailer: git-send-email 2.31.1
+In-Reply-To: <ffc4dd4e-bbb1-0380-2cf2-7053fc3ab39c@gmail.com>
+References: <ffc4dd4e-bbb1-0380-2cf2-7053fc3ab39c@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20210819173626.GA1776@salvia>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+WHen I simplified the parser to restrict 'queue num' I forgot that
+instead of range and immediate value its also allowed to pass in
+a symbolic constant, e.g.
 
-On 19/08/21 11:06 pm, Pablo Neira Ayuso wrote:
-> * Allow to combine jhash, symhash and numgen expressions with the
->    queue statement, to fan out packets to userspace queues via
->    nfnetlink_queue.
->
->    ... queue to symhash mod 65536
->    ... queue flags bypass to numgen inc mod 65536
->    ... queue to jhash oif . meta mark mod 32
->
->    You can also combine it with maps, to select the userspace queue
->    based on any other singleton key or concatenations:
->
->    ... queue flags bypass to oifname map { "eth0" : 0, "ppp0" : 2, "eth1" : 2 }
+define myq = 0
+add rule ... 'queue num $myq bypass'
 
-I upgraded from nftables 0.9.9 to 1.0.0 (Arch Linux).
+Allow those as well and add a test case for this.
 
-Earlier I had this statement which used to work in nftables 0.9.9:
+Fixes: 767f0af82a389 ("parser: restrict queue num expressiveness")
+Reported-by: Amish <anon.amish@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/parser_bison.y                                         | 1 +
+ tests/shell/testcases/nft-f/0012different_defines_0        | 7 +++++++
+ .../testcases/nft-f/dumps/0012different_defines_0.nft      | 5 +++++
+ 3 files changed, 13 insertions(+)
 
-define ips_queue = 0
-add rule ip foo snortips queue num $ips_queue bypass
-
-And it gave error in nftables 1.0.0:
-
-Aug 20 05:51:00 amish nft[3540]: /etc/nftables4.conf:19:49-54: Error: 
-syntax error, unexpected bypass, expecting -
-Aug 20 05:51:00 amish nft[3540]: add rule ip foo snortips queue num 
-$ips_queue bypass
-
-So I changed the rule to:
-define ips_queue = 0
-add rule ip foo snortips queue flags bypass num $ips_queue
-
-But it still gave me error:
-
-Aug 20 05:54:51 amish nft[3649]: /etc/nftables4.conf:19:61-61: Error: 
-syntax error, unexpected newline, expecting -
-Aug 20 05:54:51 amish nft[3649]: add rule ip foo snortips queue flags 
-bypass num $ips_queue
-
-
-Then I replaced $ips_queue directly with 0 (zero), and it worked.
-
-add rule ip foo snortips queue flags bypass num 0
-
-So why isn't nftables allowing defined variable?
-
-It used to work till nft 0.9.9
-
-Regards,
-
-Amish
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 2634b90c559b..2c96ea69d0b2 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -3793,6 +3793,7 @@ queue_stmt_arg		:	QUEUENUM	queue_stmt_expr_simple
+ 
+ queue_stmt_expr_simple	:	integer_expr
+ 			|	range_rhs_expr
++			|	symbol_expr
+ 			;
+ 
+ queue_stmt_expr		:	numgen_expr
+diff --git a/tests/shell/testcases/nft-f/0012different_defines_0 b/tests/shell/testcases/nft-f/0012different_defines_0
+index 0bdbd1b5f147..fe22858791a1 100755
+--- a/tests/shell/testcases/nft-f/0012different_defines_0
++++ b/tests/shell/testcases/nft-f/0012different_defines_0
+@@ -14,6 +14,8 @@ define d_ipv4_2 = 10.0.0.2
+ define d_ipv6 = fe0::1
+ define d_ipv6_2 = fe0::2
+ define d_ports = 100-222
++define d_qnum = 0
++define d_qnumr = 1-42
+ 
+ table inet t {
+ 	chain c {
+@@ -29,6 +31,11 @@ table inet t {
+ 		ip daddr . meta iif vmap { \$d_ipv4 . \$d_iif : accept }
+ 		tcp dport \$d_ports
+ 		udp dport vmap { \$d_ports : accept }
++		tcp dport 1 tcp sport 1 meta oifname \"foobar\" queue num \$d_qnum bypass
++		tcp dport 1 tcp sport 1 meta oifname \"foobar\" queue num \$d_qnumr
++		tcp dport 1 tcp sport 1 meta oifname \"foobar\" queue flags bypass,fanout num \$d_qnumr
++		tcp dport 1 tcp sport 1 meta oifname \"foobar\" queue to symhash mod 2
++		tcp dport 1 tcp sport 1 meta oifname \"foobar\" queue flags bypass to jhash tcp dport . tcp sport mod 4
+ 	}
+ }"
+ 
+diff --git a/tests/shell/testcases/nft-f/dumps/0012different_defines_0.nft b/tests/shell/testcases/nft-f/dumps/0012different_defines_0.nft
+index 28094387ebed..e690f322436d 100644
+--- a/tests/shell/testcases/nft-f/dumps/0012different_defines_0.nft
++++ b/tests/shell/testcases/nft-f/dumps/0012different_defines_0.nft
+@@ -12,5 +12,10 @@ table inet t {
+ 		ip daddr . iif vmap { 10.0.0.0 . "lo" : accept }
+ 		tcp dport 100-222
+ 		udp dport vmap { 100-222 : accept }
++		tcp sport 1 tcp dport 1 oifname "foobar" queue flags bypass num 0
++		tcp sport 1 tcp dport 1 oifname "foobar" queue num 1-42
++		tcp sport 1 tcp dport 1 oifname "foobar" queue flags bypass,fanout num 1-42
++		tcp sport 1 tcp dport 1 oifname "foobar" queue to symhash mod 2
++		tcp sport 1 tcp dport 1 oifname "foobar" queue flags bypass to jhash tcp dport . tcp sport mod 4
+ 	}
+ }
+-- 
+2.31.1
 
