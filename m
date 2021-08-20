@@ -2,149 +2,78 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 520D4C4338F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Aug 2021 18:32:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 187AFC4338F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Aug 2021 21:29:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3D23D61209
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Aug 2021 18:32:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E9F5C6108B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Aug 2021 21:29:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237076AbhHTScn (ORCPT
+        id S240598AbhHTV3z (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 20 Aug 2021 14:32:43 -0400
-Received: from smtpo.poczta.interia.pl ([217.74.65.155]:50166 "EHLO
-        smtpo.poczta.interia.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235229AbhHTScm (ORCPT
+        Fri, 20 Aug 2021 17:29:55 -0400
+Received: from mail-il1-f198.google.com ([209.85.166.198]:39656 "EHLO
+        mail-il1-f198.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S238398AbhHTV3x (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 20 Aug 2021 14:32:42 -0400
-X-Greylist: delayed 447 seconds by postgrey-1.27 at vger.kernel.org; Fri, 20 Aug 2021 14:32:42 EDT
-X-Interia-R: Interia
-X-Interia-R-IP: 77.46.101.67
-X-Interia-R-Helo: <[172.16.16.104]>
-Received: from [172.16.16.104] (PC-77-46-101-67.euro-net.pl [77.46.101.67])
-        (using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        by poczta.interia.pl (INTERIA.PL) with ESMTPSA
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Aug 2021 20:24:36 +0200 (CEST)
-Reply-To: grzegorz.kuczynski@interia.eu
-To:     netfilter-devel@vger.kernel.org
-From:   =?UTF-8?Q?Grzegorz_Kuczy=c5=84ski?= <grzegorz.kuczynski@interia.eu>
-Subject: [PATCH] xtables-addons 3.18 condition - Improved network namespace
- support
-Message-ID: <a2e36a8e-939f-453d-8a0d-d6ef61bbf280@interia.eu>
-Date:   Fri, 20 Aug 2021 20:24:36 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.10.0
+        Fri, 20 Aug 2021 17:29:53 -0400
+Received: by mail-il1-f198.google.com with SMTP id y8-20020a92c748000000b00224811cb945so6128113ilp.6
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Aug 2021 14:29:15 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
+         :from:to;
+        bh=irP4+a4MqOno9gjzxCYV4LkdM8U6+CH4E7PsJC0/pm4=;
+        b=Bwo6sXa+7h1ZMlRgxrWmBwnSZPqQU3hsfXQg4HUUEeAntR3llHeZcTW+wdqH9ZWVqZ
+         2MxgwKIQ34KsoeFg1X5oY8n8TZP1vFpZoxcbseNiXl+GxhSRl8/ZzzUJoK63PN8vGzPF
+         17StNe+lOGXDzDPhTp3nhmst5V+81f1Q0ZlZVh2oEdLXUYWASQNaRg7d7uvue7nPLDk7
+         /4yp0X6e+8BSyMe2qDEy/VUdvHGEVKJypqjO2UEEnbvg/C8e5E1m9GyXL9QJKiadr7Hr
+         XKThy203YigmyKKpRq/xBtAfQzDmjKPRGXxzHcSJlMbMqyEuphOCi/nMrYMM/7mk1ble
+         /t/Q==
+X-Gm-Message-State: AOAM532PRhkFaRVgdNLPAfFV0uOaOiRqQbzO9ErzTudvJx50ST7BB6CG
+        IUXiHRO3ftdt0sQwGQi5BI9kKw9O7abpj7HjjCdZ0LfB7Pxv
+X-Google-Smtp-Source: ABdhPJzwQnqnBvNJw3VYBFYSQJOZJNIfjhdUk4XZi5YP/GetgfyT4o7ZYLOJzWzalZHwhX6L41qpYmxt/NbXjWGg30XqrAwCrd24
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
-X-Interia-Antivirus: OK
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=interia.pl;
-        s=biztos; t=1629483876;
-        bh=eqtX+lxdubOI1Fef6UDyDfA8nWm7xQncv0YRDvYZm7Q=;
-        h=X-Interia-R:X-Interia-R-IP:X-Interia-R-Helo:Reply-To:To:From:
-         Subject:Message-ID:Date:User-Agent:MIME-Version:Content-Type:
-         Content-Transfer-Encoding:Content-Language:X-Interia-Antivirus;
-        b=faoNdyAYtou7KPHUPmTN56d46E6qUS1hPiTJaSi/ObmqV62q9UrKbTjIpV2XlF6Qp
-         /nAd3Wmql+u/TQik++b0zjh7GihB/RVdr4QaXx5yU5sqw1KjNrB74jgatLli95ZBQM
-         sIPTCe7kZGPt/y4bPvr41iXL2mzQrz3YbekwhOhY=
+X-Received: by 2002:a92:7108:: with SMTP id m8mr10061663ilc.238.1629494954973;
+ Fri, 20 Aug 2021 14:29:14 -0700 (PDT)
+Date:   Fri, 20 Aug 2021 14:29:14 -0700
+In-Reply-To: <0000000000000845ce05c9222d57@google.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000f460a305ca045b3e@google.com>
+Subject: Re: [syzbot] KASAN: use-after-free Read in nf_tables_dump_sets
+From:   syzbot <syzbot+8cc940a9689599e10587@syzkaller.appspotmail.com>
+To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
+        kadlec@netfilter.org, kuba@kernel.org,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello
-A few years ago I add network namespace to extension condition.
-I review this changes again and make changes again.
-This is better version.
+syzbot has bisected this issue to:
 
+commit 6001a930ce0378b62210d4f83583fc88a903d89d
+Author: Pablo Neira Ayuso <pablo@netfilter.org>
+Date:   Mon Feb 15 11:28:07 2021 +0000
 
-diff --git a/extensions/xt_condition.c b/extensions/xt_condition.c
-index 8227c5d..c5b0df3 100644
---- a/extensions/xt_condition.c
-+++ b/extensions/xt_condition.c
-@@ -65,12 +65,11 @@ static DEFINE_MUTEX(proc_lock);
- struct condition_net {
-        struct list_head conditions_list;
-        struct proc_dir_entry *proc_net_condition;
--       bool after_clear;
- };
- 
- static int condition_net_id;
- 
--static inline struct condition_net *condition_pernet(struct net *net)
-+static inline struct condition_net *get_condition_pernet(struct net *net)
- {
-        return net_generic(net, condition_net_id);
- }
-@@ -132,7 +131,7 @@ static int condition_mt_check(const struct
-xt_mtchk_param *par)
- {
-        struct xt_condition_mtinfo *info = par->matchinfo;
-        struct condition_variable *var;
--       struct condition_net *condition_net = condition_pernet(par->net);
-+       struct condition_net *condition_net =
-get_condition_pernet(par->net);
- 
-        /* Forbid certain names */
-        if (*info->name == '\0' || *info->name == '.' ||
-@@ -190,13 +189,10 @@ static void condition_mt_destroy(const struct
-xt_mtdtor_param *par)
- {
-        const struct xt_condition_mtinfo *info = par->matchinfo;
-        struct condition_variable *var = info->condvar;
--       struct condition_net *cnet = condition_pernet(par->net);
--
--       if (cnet->after_clear)
--               return;
--
-+       struct condition_net *cnet = get_condition_pernet(par->net);
-+      
-        mutex_lock(&proc_lock);
--       if (--var->refcount == 0) {
-+       if (--var->refcount == 0 &&
-!list_empty_careful(&cnet->conditions_list)) {
-                list_del(&var->list);
-                remove_proc_entry(var->name, cnet->proc_net_condition);
-                mutex_unlock(&proc_lock);
-@@ -233,18 +229,17 @@ static const char *const dir_name = "nf_condition";
- 
- static int __net_init condition_net_init(struct net *net)
- {
--       struct condition_net *condition_net = condition_pernet(net);
-+       struct condition_net *condition_net = get_condition_pernet(net);
-        INIT_LIST_HEAD(&condition_net->conditions_list);
-        condition_net->proc_net_condition = proc_mkdir(dir_name,
-net->proc_net);
-        if (condition_net->proc_net_condition == NULL)
-                return -EACCES;
--       condition_net->after_clear = 0;
-        return 0;
- }
- 
- static void __net_exit condition_net_exit(struct net *net)
- {
--       struct condition_net *condition_net = condition_pernet(net);
-+       struct condition_net *condition_net = get_condition_pernet(net);
-        struct list_head *pos, *q;
-        struct condition_variable *var = NULL;
- 
-@@ -256,7 +251,6 @@ static void __net_exit condition_net_exit(struct net
-*net)
-                kfree(var);
-        }
-        mutex_unlock(&proc_lock);
--       condition_net->after_clear = true;
- }
- 
- static struct pernet_operations condition_net_ops = {
+    netfilter: nftables: introduce table ownership
 
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=12d34475300000
+start commit:   f9be84db09d2 net: bonding: bond_alb: Remove the dependency..
+git tree:       net-next
+final oops:     https://syzkaller.appspot.com/x/report.txt?x=11d34475300000
+console output: https://syzkaller.appspot.com/x/log.txt?x=16d34475300000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=8075b2614f3db143
+dashboard link: https://syzkaller.appspot.com/bug?extid=8cc940a9689599e10587
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=15fbb98e300000
 
--- 
-Grzegorz Kuczyński
+Reported-by: syzbot+8cc940a9689599e10587@syzkaller.appspotmail.com
+Fixes: 6001a930ce03 ("netfilter: nftables: introduce table ownership")
 
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
