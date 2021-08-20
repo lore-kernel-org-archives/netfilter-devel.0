@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 212A1C4338F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Aug 2021 11:34:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CC19C4338F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Aug 2021 11:43:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ED945610A3
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Aug 2021 11:34:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5B4956108F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Aug 2021 11:43:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240164AbhHTLfS (ORCPT
+        id S237830AbhHTLoO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 20 Aug 2021 07:35:18 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:53476 "EHLO
+        Fri, 20 Aug 2021 07:44:14 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:53582 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239870AbhHTLfS (ORCPT
+        with ESMTP id S237633AbhHTLoO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 20 Aug 2021 07:35:18 -0400
+        Fri, 20 Aug 2021 07:44:14 -0400
 Received: from localhost.localdomain (unknown [213.94.13.0])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 01E5160202;
-        Fri, 20 Aug 2021 13:33:48 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 3215660112;
+        Fri, 20 Aug 2021 13:42:45 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     fw@strlen.de
-Subject: [PATCH nft,v2] src: queue: consolidate queue statement syntax
-Date:   Fri, 20 Aug 2021 13:34:35 +0200
-Message-Id: <20210820113435.11172-1-pablo@netfilter.org>
+Subject: [PATCH nft,v3] src: queue: consolidate queue statement syntax
+Date:   Fri, 20 Aug 2021 13:43:31 +0200
+Message-Id: <20210820114331.11777-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -47,9 +47,9 @@ Update and add new tests.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: update manpage.
-    update tests/py for json.
-    fix broken tests/shell in v1.
+v3: update tests/shell/testcases/nft-f/dumps/0012different_defines_0.nft
+    dump file only, leave tests/shell/testcases/nft-f/0012different_defines_0
+    as is to keep covering of the 'queue num' syntax, requested by Florian.
 
  doc/statements.txt                            |  4 +-
  src/parser_bison.y                            | 14 +++-
@@ -57,9 +57,8 @@ v2: update manpage.
  tests/py/any/queue.t                          | 22 ++++--
  tests/py/any/queue.t.json                     | 75 +++++++++++++++++++
  tests/py/any/queue.t.payload                  | 24 ++++++
- .../testcases/nft-f/0012different_defines_0   |  2 +-
  .../nft-f/dumps/0012different_defines_0.nft   |  6 +-
- 8 files changed, 133 insertions(+), 25 deletions(-)
+ 7 files changed, 132 insertions(+), 24 deletions(-)
 
 diff --git a/doc/statements.txt b/doc/statements.txt
 index af98e42c3633..5bb3050f7ab2 100644
@@ -294,19 +293,6 @@ index 02660afa8d30..2f221930a1ef 100644
 +# queue to 1-65535
 +ip
 +  [ queue num 1-65535 ]
-diff --git a/tests/shell/testcases/nft-f/0012different_defines_0 b/tests/shell/testcases/nft-f/0012different_defines_0
-index fe22858791a1..230c6e3f65b2 100755
---- a/tests/shell/testcases/nft-f/0012different_defines_0
-+++ b/tests/shell/testcases/nft-f/0012different_defines_0
-@@ -32,7 +32,7 @@ table inet t {
- 		tcp dport \$d_ports
- 		udp dport vmap { \$d_ports : accept }
- 		tcp dport 1 tcp sport 1 meta oifname \"foobar\" queue num \$d_qnum bypass
--		tcp dport 1 tcp sport 1 meta oifname \"foobar\" queue num \$d_qnumr
-+		tcp dport 1 tcp sport 1 meta oifname \"foobar\" queue to \$d_qnumr
- 		tcp dport 1 tcp sport 1 meta oifname \"foobar\" queue flags bypass,fanout num \$d_qnumr
- 		tcp dport 1 tcp sport 1 meta oifname \"foobar\" queue to symhash mod 2
- 		tcp dport 1 tcp sport 1 meta oifname \"foobar\" queue flags bypass to jhash tcp dport . tcp sport mod 4
 diff --git a/tests/shell/testcases/nft-f/dumps/0012different_defines_0.nft b/tests/shell/testcases/nft-f/dumps/0012different_defines_0.nft
 index e690f322436d..4734b2fd8bd1 100644
 --- a/tests/shell/testcases/nft-f/dumps/0012different_defines_0.nft
