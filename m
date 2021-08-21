@@ -7,297 +7,275 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10F9FC4338F
-	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Aug 2021 05:38:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06DCEC4338F
+	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Aug 2021 05:38:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D132D611CA
-	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Aug 2021 05:38:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D3F0B611C9
+	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Aug 2021 05:38:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230375AbhHUFiw (ORCPT
+        id S230205AbhHUFiy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 21 Aug 2021 01:38:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42152 "EHLO
+        Sat, 21 Aug 2021 01:38:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42162 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229657AbhHUFiv (ORCPT
+        with ESMTP id S229657AbhHUFiy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 21 Aug 2021 01:38:51 -0400
-Received: from mail-pg1-x52c.google.com (mail-pg1-x52c.google.com [IPv6:2607:f8b0:4864:20::52c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 113CBC061575
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Aug 2021 22:38:13 -0700 (PDT)
-Received: by mail-pg1-x52c.google.com with SMTP id c17so11336959pgc.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Aug 2021 22:38:13 -0700 (PDT)
+        Sat, 21 Aug 2021 01:38:54 -0400
+Received: from mail-pf1-x42b.google.com (mail-pf1-x42b.google.com [IPv6:2607:f8b0:4864:20::42b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5735AC061575
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Aug 2021 22:38:15 -0700 (PDT)
+Received: by mail-pf1-x42b.google.com with SMTP id t13so10471482pfl.6
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Aug 2021 22:38:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=sender:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=n58DrGtfZhSKcgZhQCVh2+Zr1zsMpIimH1Q1qLFreLY=;
-        b=txQXfOZ5/aZ65OKll3++eDWZQDUVpjWu7ASmKS4ePMA4TOtkJBzMu0O4222HEC306z
-         +c8lk457Gfw6oTry4pI+C9S80qsGpkkk6fdRrNPbRMM+/I219mWj/WExN9M8A3MxbHUN
-         t0DRmL0XWjdSrtGaEayjKSd6/255S704pb7hYaPKsaPytUThAAf2DND6T7WR/qlPW6ia
-         2WGl7xa1r0Np7NozJwOzbIAdmMksTZO2IbZnM6pNnt9vrK/zLeUluosvjsC/1IaqtaBR
-         bRJofl9svkGJwGd8IO6syRz/VAwq21Zm7Y1czPU2RoqktJRF3cQriJlb04FkCH0jeZtH
-         kIcA==
+        h=sender:from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=xFC0KDJXPd+lqKpf3D1n+XRWwbEcV4spDt/Mr8eCIOM=;
+        b=SiL1+Wi+32oCxQ6TDiIUjNBJD06X4/4QfzaPXchtTNp5RTxZQFCCUBNypzXIe59tVe
+         wRNYHY26jW2sVez0mllJR473THNSXY8QfcOzkDTpdMoQzQNEoZPxqtfF1KJakBFgE0Ea
+         WiKPunEhFhGAnBP7Csr8tROXsErvTIYF3pS9O8Co1KoU7JIOddVViTpI0oq4IjO86/u6
+         5GhaTlvv2jhNcJMWjpV16A5gdr5UyGVwpFbN3EK2Rn9GkPi0fydfA39CsF3AHPig3vAK
+         7SzrZEd1FZKJxmjtb5NYhKRdDj/JIrnZaioGH4GJ6ETnOGVPllZa4iGgd8qyRDP1M7fK
+         hLjQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
-         :mime-version:content-transfer-encoding;
-        bh=n58DrGtfZhSKcgZhQCVh2+Zr1zsMpIimH1Q1qLFreLY=;
-        b=Tn9BjFHpwoHsvCTY75PZyOstQrHxnlFIhpo9cG5MQoqoqSjAqektMISwTWwEewthpl
-         Q08hAuc6wfyel2fjQZ1l19NhJAPsNarBiXfiifuCmXvujtR9zqpF6JdsfrDsbhrC/c/Y
-         A/zSPKQsXCyzLtFV10SJEwxeASlyhRyMsQBWP4dHY+i/UUf9cXjdXIk5p78A75KTMojr
-         xPMLMEEQGUVYJvkwZ9dB7ETrqJBLgPrm4lz0gdL0XOq3Up2yT0V43MLoUT7BVgoXRdpL
-         KwVzdL6p0uJvdZVP33USU2pml8p4zZev+Fau2CkXcebnjM7b5iPsKwBQNQkTO7G0Ptza
-         hAtA==
-X-Gm-Message-State: AOAM532NoklnpJmEJp+tSAPN35yVfVkq39RTCr2hHDGjN5bE726nUjEr
-        06tNp0LWrhmsnjQkSeUqxRFIBXwIfr+biA==
-X-Google-Smtp-Source: ABdhPJxtVGM0FvR0tZ+RdAMhJuLGvnz+c6bjsu/LaWXSEFdk08g1D5Y0IJH/8neSKeXculmvS+PDvg==
-X-Received: by 2002:a63:1c66:: with SMTP id c38mr22019401pgm.286.1629524292456;
-        Fri, 20 Aug 2021 22:38:12 -0700 (PDT)
+         :in-reply-to:references:mime-version:content-transfer-encoding;
+        bh=xFC0KDJXPd+lqKpf3D1n+XRWwbEcV4spDt/Mr8eCIOM=;
+        b=Hx3HyK2RSrp927dUTy+M9gvOa0YIcGf7zbYRpGLfqofcAF4sVfY71WyAiRiJxzNDDF
+         edDJtTy3wLFVaTwWp1Ci3dp3QN7PI6dtlmsVIA9M5oQN/hR1cQyih0lrykife14NlwFe
+         XykAhSSVVtLqgaPhkTpqa5yBbUVRdpiCZjuytVkQyprsBFINuCq2wX9ld90sN3B/qb4w
+         /ToTdKvv4ahQsHiApKeKlm6hAmV7CwUmmOtvrpnxDY0IPbQU5LGLZzWg8Dh2qpbikoM+
+         TKnF5QuJv7oONqjLmwF5svKLhHBSVDxOTbaNTc9ZDpxAf2Wkbzmc5zkKXG1uELNHxUUz
+         O/ag==
+X-Gm-Message-State: AOAM532590a0f0T6+kYbFK0pMU6YqOzoJNO2NXTj/iVrivzZUOID3YDy
+        oagZJzklnv/BZ8vTZdbKpB7cZTK/3LV7eg==
+X-Google-Smtp-Source: ABdhPJzLtc6fibhMynSLSLfIel6q+cZGcW/uyjlEEm+tmXvKTSN+mvjUyW0UYhOMoPBVfoJv6t9ROw==
+X-Received: by 2002:a65:450c:: with SMTP id n12mr21506672pgq.316.1629524294934;
+        Fri, 20 Aug 2021 22:38:14 -0700 (PDT)
 Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
-        by smtp.gmail.com with ESMTPSA id n30sm8905913pfv.87.2021.08.20.22.38.09
+        by smtp.gmail.com with ESMTPSA id n30sm8905913pfv.87.2021.08.20.22.38.12
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 20 Aug 2021 22:38:11 -0700 (PDT)
+        Fri, 20 Aug 2021 22:38:14 -0700 (PDT)
 Sender: Duncan Roe <duncan.roe2@gmail.com>
 From:   Duncan Roe <duncan_roe@optusnet.com.au>
 To:     pablo@netfilter.org
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_queue v3 1/3] build: doc: Fix NAME entry in man pages
-Date:   Sat, 21 Aug 2021 15:38:03 +1000
-Message-Id: <20210821053805.6371-1-duncan_roe@optusnet.com.au>
+Subject: [PATCH libnetfilter_queue v3 2/3] build: doc: can choose what to build and install
+Date:   Sat, 21 Aug 2021 15:38:04 +1000
+Message-Id: <20210821053805.6371-2-duncan_roe@optusnet.com.au>
 X-Mailer: git-send-email 2.32.0
+In-Reply-To: <20210821053805.6371-1-duncan_roe@optusnet.com.au>
+References: <20210821053805.6371-1-duncan_roe@optusnet.com.au>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add a post_process() function to the big shell script inside doxygen/Makefile.am
-to make the NAME line in a man page list the functions defined, like other man
-pages do.
-This function does a number of other things:
-- If there is a "Modules" section, delete it
-- If "Detailed Description" is empty, delete "Detailed Description" line
-- Reposition SYNOPSIS (with headers that we inserted) to start of page,
-  integrating with defined functions to look like other man pages
-- Delete all "Definition at line nnn" lines
-- Delete lines that make older versions of man o/p an unwanted blank line
-- Insert spacers and comments so Makefile.am is more readable
-- Delete lines that make older versions of man o/p an unwanted blank line
+Update doxygen/Makefile.am to build and install man pages and html documentation
+conditionally. Involves configure.ac and doxygen.cfg.in, see below.
+
+CONFIGURE.AC
+
+Update `configure --help` to list non-default documentation options, as do most
+packages (i.e. list non-defaults). 3 listed options:
+1. --enable-html-doc
+2. --disable-man-pages
+3. --without-doxygen
+Option 3 overrides 1 & 2: e.g. if you have --without-doxygen but not
+--disable-man-pages you get:
+  WARNING: Doxygen disabled - man pages will not be built
+doxygen is not run if no documentation is requested.
+
+Configure command                  Installed package size (KB)
+========= =======                  ========= ======= ==== ====
+./configure --without-doxygen       176
+./configure --disable-man-pages     176
+./configure                         300
+./configure --enable-html-doc      1460
+./configure --enable-html-doc\
+	    --disable-man-pages    1340
+
+Do some extra re-ordering for clarity. Also for clarity, since this is
+linux-only, re-work test commands to look mode modern.
+
+DOXYGEN.CFG.IN
+
+HTML and man page generation are both conditional.
 
 Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
 ---
-v2: Delete lines that make older versions of man o/p an unwanted blank line
-v3: same as v2 but there are now 2 more patches
- doxygen/Makefile.am | 172 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 172 insertions(+)
+ configure.ac        | 76 +++++++++++++++++++++++++++++++--------------
+ doxygen.cfg.in      |  3 +-
+ doxygen/Makefile.am | 11 ++++++-
+ 3 files changed, 64 insertions(+), 26 deletions(-)
 
+diff --git a/configure.ac b/configure.ac
+index 0fe754c..376d4ff 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -10,9 +10,42 @@ AM_INIT_AUTOMAKE([-Wall foreign subdir-objects
+ 	tar-pax no-dist-gzip dist-bzip2 1.6])
+ m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
+ 
++case "$host" in
++*-*-linux* | *-*-uclinux*) ;;
++*) AC_MSG_ERROR([Linux only, dude!]);;
++esac
++
+ dnl kernel style compile messages
+ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+ 
++AC_ARG_WITH([doxygen], [AS_HELP_STRING([--without-doxygen],
++	    [Don't run doxygen (to create documentation)])],
++	    [with_doxygen="$withval"], [with_doxygen=yes])
++
++AC_ARG_ENABLE([html-doc],
++	      AS_HELP_STRING([--enable-html-doc], [Enable html documentation]),
++	      [], [enable_html_doc=no])
++AS_IF([test "$with_doxygen" = no -a "$enable_html_doc" = yes], [
++	AC_MSG_WARN([Doxygen disabled - html documentation will not be built])
++	enable_html_doc=no
++])
++AM_CONDITIONAL([BUILD_HTML], [test "$enable_html_doc" = yes])
++AS_IF([test "$enable_html_doc" = yes],
++	[AC_SUBST(GEN_HTML, YES)],
++	[AC_SUBST(GEN_HTML, NO)])
++
++AC_ARG_ENABLE([man-pages],
++	      AS_HELP_STRING([--disable-man-pages], [Disable man page documentation]),
++	      [], [enable_man_pages=yes])
++AS_IF([test "$with_doxygen" = no -a "$enable_man_pages" = yes], [
++	AC_MSG_WARN([Doxygen disabled - man pages will not be built])
++	enable_man_pages=no
++])
++AM_CONDITIONAL([BUILD_MAN], [test "$enable_man_pages" = yes])
++AS_IF([test "$enable_man_pages" = yes],
++	[AC_SUBST(GEN_MAN, YES)],
++	[AC_SUBST(GEN_MAN, NO)])
++
+ AC_PROG_CC
+ AM_PROG_CC_C_O
+ AC_DISABLE_STATIC
+@@ -20,44 +53,39 @@ AM_PROG_LIBTOOL
+ AC_PROG_INSTALL
+ CHECK_GCC_FVISIBILITY
+ 
+-case "$host" in
+-*-*-linux* | *-*-uclinux*) ;;
+-*) AC_MSG_ERROR([Linux only, dude!]);;
+-esac
+-
+ dnl Dependencies
+ PKG_CHECK_MODULES([LIBNFNETLINK], [libnfnetlink >= 0.0.41])
+ PKG_CHECK_MODULES([LIBMNL], [libmnl >= 1.0.3])
+ 
+-dnl Output the makefiles
+-AC_CONFIG_FILES([Makefile src/Makefile utils/Makefile examples/Makefile
+-        libnetfilter_queue.pc doxygen.cfg
+-	include/Makefile include/libnetfilter_queue/Makefile
+-	doxygen/Makefile
+-	include/linux/Makefile include/linux/netfilter/Makefile])
+-
+-AC_ARG_WITH([doxygen], [AS_HELP_STRING([--with-doxygen],
+-	    [create doxygen documentation])],
+-	    [with_doxygen="$withval"], [with_doxygen=yes])
++AS_IF([test "$enable_man_pages" = no -a "$enable_html_doc" = no], [with_doxygen=no])
+ 
+-AS_IF([test "x$with_doxygen" != xno], [
++AS_IF([test "$with_doxygen" = yes], [
+ 	AC_CHECK_PROGS([DOXYGEN], [doxygen])
+ 	AC_CHECK_PROGS([DOT], [dot], [""])
+-	AS_IF([test "x$DOT" != "x"],
++	AS_IF([test -n "$DOT"],
+ 	      [AC_SUBST(HAVE_DOT, YES)],
+ 	      [AC_SUBST(HAVE_DOT, NO)])
+ ])
+ 
+ AM_CONDITIONAL([HAVE_DOXYGEN], [test -n "$DOXYGEN"])
+-AS_IF([test "x$DOXYGEN" = x], [
+-	AS_IF([test "x$with_doxygen" != xno], [
+-		dnl Only run doxygen Makefile if doxygen installed
+-		AC_MSG_WARN([Doxygen not found - continuing without Doxygen support])
+-		with_doxygen=no
+-	])
++AS_IF([test -z "$DOXYGEN" -a "$with_doxygen" = yes], [
++	dnl Only run doxygen Makefile if doxygen installed
++	AC_MSG_WARN([Doxygen not found - no documentation will be built])
++	with_doxygen=no
++	enable_html_doc=no
++	enable_man_pages=no
+ ])
++
++dnl Output the makefiles
++AC_CONFIG_FILES([Makefile src/Makefile utils/Makefile examples/Makefile
++	libnetfilter_queue.pc doxygen.cfg
++	include/Makefile include/libnetfilter_queue/Makefile
++	doxygen/Makefile
++	include/linux/Makefile include/linux/netfilter/Makefile])
+ AC_OUTPUT
+ 
+ echo "
+ libnetfilter_queue configuration:
+-  doxygen:                      ${with_doxygen}"
++  doxygen:                      ${with_doxygen}
++man pages:                      ${enable_man_pages}
++html docs:                      ${enable_html_doc}"
+diff --git a/doxygen.cfg.in b/doxygen.cfg.in
+index 266782e..757d72e 100644
+--- a/doxygen.cfg.in
++++ b/doxygen.cfg.in
+@@ -22,7 +22,8 @@ ALPHABETICAL_INDEX     = NO
+ SEARCHENGINE           = NO
+ GENERATE_LATEX         = NO
+ LATEX_CMD_NAME         = latex
+-GENERATE_MAN           = YES
++GENERATE_MAN           = @GEN_MAN@
++GENERATE_HTML          = @GEN_HTML@
+ MAN_LINKS              = YES
+ HAVE_DOT               = @HAVE_DOT@
+ DOT_TRANSPARENT        = YES
 diff --git a/doxygen/Makefile.am b/doxygen/Makefile.am
-index 29078de..5bcef61 100644
+index 5bcef61..37ed7aa 100644
 --- a/doxygen/Makefile.am
 +++ b/doxygen/Makefile.am
-@@ -21,19 +21,32 @@ doxyfile.stamp: $(doc_srcs) Makefile.am
- # The command has to be a single line so the functions work
- # and so `make` gives all lines to `bash -c`
- # (hence ";\" at the end of every line but the last).
-+# automake (run by autogen.sh) allows comments starting ## after continuations
-+# but not blank lines
-+
+@@ -24,6 +24,7 @@ doxyfile.stamp: $(doc_srcs) Makefile.am
+ # automake (run by autogen.sh) allows comments starting ## after continuations
+ # but not blank lines
+ 
++if BUILD_MAN
  	/bin/bash -p -c 'declare -A renamed_page;\
-+##
+ ##
  main(){ set -e; cd man/man3; rm -f _*;\
-   count_real_pages;\
-   rename_real_pages;\
-   make_symlinks;\
-+  post_process;\
+@@ -219,6 +220,7 @@ remove_temp_files(){ for i in $$temps;\
  };\
-+##
- count_real_pages(){ page_count=0;\
-+  ##
-+  ## Count "real" man pages (i.e. not generated by MAN_LINKS)
-+  ## MAN_LINKS pages are 1-liners starting .so
-+  ## Method: list files in descending order of size,
-+  ## looking for the first 1-liner
-+  ##
-   for i in $$(ls -S);\
-   do head -n1 $$i | grep -E -q '^\.so' && break;\
-     page_count=$$(($$page_count + 1));\
-   done;\
-   first_link=$$(($$page_count + 1));\
- };\
-+##
- rename_real_pages(){ for i in $$(ls -S | head -n$$page_count);\
-   do for j in $$(ls -S | tail -n+$$first_link);\
-     do grep -E -q $$i$$ $$j && break;\
-@@ -42,10 +55,169 @@ rename_real_pages(){ for i in $$(ls -S | head -n$$page_count);\
-     renamed_page[$$i]=$$j;\
-   done;\
- };\
-+##
- make_symlinks(){ for j in $$(ls -S | tail -n+$$first_link);\
-   do ln -sf $${renamed_page[$$(cat $$j | cut -f2 -d/)]} $$j;\
-   done;\
- };\
-+##
-+post_process(){ make_temp_files;\
-+  ##
-+  ## DIAGNOSTIC / DEVELOPMENT CODE
-+  ## set -x and restrict processing to keep_me: un-comment to activate
-+  ## Change keep_me as required
-+  ##
-+  ##keep_me=nfq_icmp_get_hdr.3;\
-+  ##do_diagnostics;\
-+  ##
-+  ## Work through the "real" man pages
-+  for target in $$(ls -S | head -n$$page_count);\
-+  do mygrep "^\\.SH \"Function Documentation" $$target;\
-+    ## Next file if this isn't a function page
-+    [ $$linnum -ne 0 ] || continue;\
-+    ##
-+    del_modules;\
-+    del_bogus_synopsis;\
-+    fix_name_line;\
-+    move_synopsis;\
-+    del_empty_det_desc;\
-+    del_def_at_lines;\
-+    fix_double_blanks;\
-+  done;\
-+  ##
-+  remove_temp_files;\
-+};\
-+##
-+fix_double_blanks(){ linnum=1;\
-+  ##
-+  ## Older versions of man display a blank line on encountering "\fB\fP";
-+  ## newer versions of man do not.
-+  ## doxygen emits "\fB\fP" on seeing "\par" on a line by itself.
-+  ## "\par" gives us double-spacing in the web doc, which we want, but double-
-+  ## spacing looks odd in a man page so remove "\fB\fP".
-+  ##
-+  while [ $$linnum -ne 0 ];\
-+  do mygrep \\\\fB\\\\fP $$target;\
-+    [ $$linnum -eq 0 ] || delete_lines $$linnum $$linnum;\
-+  done;\
-+};\
-+##
-+del_def_at_lines(){ linnum=1;\
-+  while [ $$linnum -ne 0 ];\
-+  do mygrep "^Definition at line [[:digit:]]* of file" $$target;\
-+    [ $$linnum -eq 0 ] || delete_lines $$(($$linnum - 1)) $$linnum;\
-+  done;\
-+};\
-+##
-+## Only invoked if you un-comment the 2 diagnostic / development lines above
-+do_diagnostics(){ mv $$keep_me xxx;\
-+  rm *.3;\
-+  mv xxx $$keep_me;\
-+  page_count=1;\
-+  set -x;\
-+};\
-+##
-+del_empty_det_desc(){ mygrep "^\\.SH \"Function Documentation" $$target;\
-+  i=$$linnum;\
-+  mygrep "^\\.SH \"Detailed Description" $$target;\
-+  [ $$linnum -ne 0  ] || return 0;\
-+  [ $$(($$i - $$linnum)) -eq 3 ] || return 0;\
-+  delete_lines $$linnum $$(($$i -1));\
-+};\
-+##
-+move_synopsis(){ mygrep "SH SYNOPSIS" $$target;\
-+  [ $$linnum -ne 0  ] || return 0;\
-+  i=$$linnum;\
-+  ## If this is a doxygen-created synopsis, leave it.
-+  ## (We haven't inserted our own one in the source yet)
-+  mygrep "^\\.SS \"Functions" $$target;\
-+  [ $$i -gt $$linnum ] || return 0;\
-+  ##
-+  mygrep "^\\.SH \"Function Documentation" $$target;\
-+  j=$$(($$linnum - 1));\
-+  head -n$$(($$j - 1)) $$target | tail -n$$(($$linnum - $$i - 1)) >$$fileC;\
-+  delete_lines $$i $$j;\
-+  mygrep "^\\.SS \"Functions" $$target;\
-+  head -n$$(($$linnum - 1)) $$target >$$fileA;\
-+  tail -n+$$(($$linnum + 1)) $$target >$$fileB;\
-+  cat $$fileA $$fileC $$fileB >$$target;\
-+};\
-+##
-+fix_name_line(){ all_funcs="";\
-+  ##
-+  ## Search a shortened version of the page in case there are .RI lines later
-+  mygrep "^\\.SH \"Function Documentation" $$target;\
-+  head -n$$linnum $$target >$$fileC;\
-+  ##
-+  while :;\
-+  do mygrep ^\\.RI $$fileC;\
-+    [ $$linnum -ne 0 ] || break;\
-+    ## Discard this entry
-+    tail -n+$$(($$linnum + 1)) $$fileC >$$fileB;\
-+    cp $$fileB $$fileC;\
-+    ##
-+    func=$$(cat $$fileG | cut -f2 -d\\ | cut -c3-);\
-+    [ -z "$$all_funcs" ] && all_funcs=$$func ||\
-+      all_funcs="$$all_funcs, $$func";\
-+  done;\
-+  ## For now, assume name is at line 5
-+  head -n4 $$target >$$fileA;\
-+  desc=$$(head -n5 $$target | tail -n1 | cut -f3- -d" ");\
-+  tail -n+6 $$target >$$fileB;\
-+  cat $$fileA >$$target;\
-+  echo "$$all_funcs \\- $$desc" >>$$target;\
-+  cat $$fileB >>$$target;\
-+};\
-+##
-+del_modules(){ mygrep "^\.SS \"Modules" $$target;\
-+  [ $$linnum -ne 0  ] || return 0;\
-+  i=$$linnum;\
-+  mygrep "^\\.SS \"Functions" $$target;\
-+  delete_lines $$i $$(($$linnum - 1));\
-+};\
-+##
-+del_bogus_synopsis(){ mygrep "SH SYNOPSIS" $$target;\
-+  ##
-+  ## doxygen 1.8.20 inserts its own SYNOPSIS line but there is no mention
-+  ## in the documentation or git log what to do with it.
-+  ## So get rid of it
-+  ##
-+  [ $$linnum -ne 0  ] || return 0;\
-+  i=$$linnum;\
-+  ## Look for the next one
-+  tail -n+$$(($$i + 1)) $$target >$$fileC;\
-+  mygrep "SH SYNOPSIS" $$fileC;\
-+  [ $$linnum -ne 0  ] || return 0;\
-+  ##
-+  mygrep "^\\.SS \"Functions" $$target;\
-+  delete_lines $$i $$(($$linnum - 1));\
-+};\
-+##
-+## Delete lines $1 through $2 from $target
-+delete_lines(){ head -n$$(($$1 - 1)) $$target >$$fileA;\
-+  tail -n+$$(($$2 +1)) $$target >$$fileB;\
-+  cat $$fileA $$fileB >$$target;\
-+};\
-+##
-+mygrep(){ set +e;\
-+  grep -En "$$1" $$2 2>/dev/null >$$fileH;\
-+  [ $$? -ne 0 ] && linnum=0 ||\
-+    { head -n1 $$fileH >$$fileG; linnum=$$(cat $$fileG | cut -f1 -d:); };\
-+  set -e;\
-+};\
-+##
-+make_temp_files(){ temps="A B C G H";\
-+  for i in $$temps;\
-+  do declare -g file$$i=$$(mktemp);\
-+  done;\
-+};\
-+##
-+remove_temp_files(){ for i in $$temps;\
-+  do j=file$$i;\
-+    rm $${!j};\
-+  done;\
-+};\
-+##
+ ##
  main'
++endif
  
  	touch doxyfile.stamp
+ 
+@@ -228,11 +230,18 @@ all-local: doxyfile.stamp
+ clean-local:
+ 	rm -rf $(top_srcdir)/doxygen/man $(top_srcdir)/doxygen/html
+ install-data-local:
++if BUILD_MAN
+ 	mkdir -p $(DESTDIR)$(mandir)/man3
+ 	cp --no-dereference --preserve=links,mode,timestamps man/man3/*.3\
+ 	  $(DESTDIR)$(mandir)/man3/
++endif
++if BUILD_HTML
++	mkdir  -p $(DESTDIR)$(htmldir)
++	cp  --no-dereference --preserve=links,mode,timestamps html/*\
++		$(DESTDIR)$(htmldir)
++endif
+ 
+ # make distcheck needs uninstall-local
+ uninstall-local:
+-	rm -r $(DESTDIR)$(mandir) man html doxyfile.stamp
++	rm -rf $(DESTDIR)$(htmldir) $(DESTDIR)$(mandir) man html doxyfile.stamp
+ endif
 -- 
 2.17.5
 
