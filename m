@@ -2,133 +2,92 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44A0EC4338F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Aug 2021 10:37:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 025E9C4338F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Aug 2021 14:38:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2B1DA61262
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Aug 2021 10:37:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DDE7D6127B
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Aug 2021 14:38:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236205AbhHXKig (ORCPT
+        id S237582AbhHXOj3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 24 Aug 2021 06:38:36 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:43158 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236289AbhHXKie (ORCPT
+        Tue, 24 Aug 2021 10:39:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51466 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S237821AbhHXOj2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Aug 2021 06:38:34 -0400
-Received: from netfilter.org (unknown [78.30.35.141])
-        by mail.netfilter.org (Postfix) with ESMTPSA id AA9826024F;
-        Tue, 24 Aug 2021 12:29:12 +0200 (CEST)
-Date:   Tue, 24 Aug 2021 12:30:01 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Duncan Roe <duncan_roe@optusnet.com.au>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH libnetfilter_queue v4 2/4] build: doc: can choose what to
- build and install
-Message-ID: <20210824103001.GB30322@salvia>
-References: <20210822041442.8394-1-duncan_roe@optusnet.com.au>
- <20210822041442.8394-2-duncan_roe@optusnet.com.au>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20210822041442.8394-2-duncan_roe@optusnet.com.au>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+        Tue, 24 Aug 2021 10:39:28 -0400
+X-Greylist: delayed 308 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 24 Aug 2021 07:38:44 PDT
+Received: from sottospazio.it (centauri.sottospazio.it [IPv6:2a01:7e01::f03c:91ff:feb6:f035])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E804C061764
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Aug 2021 07:38:44 -0700 (PDT)
+To:     netfilter-devel@vger.kernel.org
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=sottospazio.it;
+        s=201909; t=1629815613;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=JSM2wJTMf/gftGcAW/am8CM4syUnF9QPRmSbK/CvZ1A=;
+        b=s1OXG9mf68RkwrHfswgzsfpbmLO/SfcdWBFP1Iuv3ISqvLJItL0x0R4JriN2n35AuB93ih
+        pfoub9fWxVw1rV8AD9jYBb063lPxoUC+r+VEju/LB9M7cNTLBNCN5Av7lI044Se3BZLdvI
+        Z5L35Z8SIAUtqYmUmrhIHQPYaoqBiuEVPFHCJrHD/n7OVD+OwTeDKPhUflk8Tk6UlQUMLC
+        7jzd4tgi9P+0snErxs5cI3IIP/jo63uRg5T7Pq7ZpiZD0xW5TkrLvyqh3/pEcNkzhnu498
+        VgSEKSy5NP79wGCLZ73OxzDGbhh0INmTaccL60wX3PVF7vhFyW7XV23U60L/lA==
+From:   Gianluca Anzolin <gianluca@sottospazio.it>
+Subject: Request for a backport to Linux v5.4
+Message-ID: <c1088b68-1804-d009-9627-d649162cdfff@sottospazio.it>
+Date:   Tue, 24 Aug 2021 16:33:32 +0200
+Content-Type: text/plain; charset=iso-8859-15; format=flowed
+Content-Language: en-US-large
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Aug 22, 2021 at 02:14:40PM +1000, Duncan Roe wrote:
-> Update doxygen/Makefile.am to build and install man pages and html documentation
-> conditionally. Involves configure.ac and doxygen.cfg.in, see below.
-> 
-> CONFIGURE.AC
-> 
-> Update `configure --help` to list non-default documentation options, as do most
-> packages (i.e. list non-defaults). 3 listed options:
-> 1. --enable-html-doc
-> 2. --disable-man-pages
-> 3. --without-doxygen
-> Option 3 overrides 1 & 2: e.g. if you have --without-doxygen but not
-> --disable-man-pages you get:
->   WARNING: Doxygen disabled - man pages will not be built
-> doxygen is not run if no documentation is requested.
-> 
-> Configure command                  Installed package size (KB)
-> ========= =======                  ========= ======= ==== ====
-> ./configure --without-doxygen       176
-> ./configure --disable-man-pages     176
-> ./configure                         300
-> ./configure --enable-html-doc      1460
-> ./configure --enable-html-doc\
-> 	    --disable-man-pages    1340
-> 
-> Do some extra re-ordering for clarity. Also for clarity, since this is
-> linux-only, re-work test commands to look mode modern.
-> 
-> DOXYGEN.CFG.IN
-> 
-> HTML and man page generation are both conditional.
-> 
-> Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
-> ---
->  configure.ac        | 76 +++++++++++++++++++++++++++++++--------------
->  doxygen.cfg.in      |  3 +-
->  doxygen/Makefile.am | 11 ++++++-
->  3 files changed, 64 insertions(+), 26 deletions(-)
-> 
-> diff --git a/configure.ac b/configure.ac
-> index 0fe754c..376d4ff 100644
-> --- a/configure.ac
-> +++ b/configure.ac
-> @@ -10,9 +10,42 @@ AM_INIT_AUTOMAKE([-Wall foreign subdir-objects
->  	tar-pax no-dist-gzip dist-bzip2 1.6])
->  m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
->  
-> +case "$host" in
-> +*-*-linux* | *-*-uclinux*) ;;
-> +*) AC_MSG_ERROR([Linux only, dude!]);;
-> +esac
+Hello,
 
-This update is unnecessary, please avoid unnecessary changes in your
-updates, it makes it harder to review.
+I'm writing to request a backport of the following commit:
 
->  dnl kernel style compile messages
->  m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
->  
-> +AC_ARG_WITH([doxygen], [AS_HELP_STRING([--without-doxygen],
-> +	    [Don't run doxygen (to create documentation)])],
-> +	    [with_doxygen="$withval"], [with_doxygen=yes])
-> +
-> +AC_ARG_ENABLE([html-doc],
-> +	      AS_HELP_STRING([--enable-html-doc], [Enable html documentation]),
-> +	      [], [enable_html_doc=no])
-> +AS_IF([test "$with_doxygen" = no -a "$enable_html_doc" = yes], [
-> +	AC_MSG_WARN([Doxygen disabled - html documentation will not be built])
-> +	enable_html_doc=no
-> +])
-> +AM_CONDITIONAL([BUILD_HTML], [test "$enable_html_doc" = yes])
-> +AS_IF([test "$enable_html_doc" = yes],
-> +	[AC_SUBST(GEN_HTML, YES)],
-> +	[AC_SUBST(GEN_HTML, NO)])
-> +
-> +AC_ARG_ENABLE([man-pages],
-> +	      AS_HELP_STRING([--disable-man-pages], [Disable man page documentation]),
-> +	      [], [enable_man_pages=yes])
-> +AS_IF([test "$with_doxygen" = no -a "$enable_man_pages" = yes], [
-> +	AC_MSG_WARN([Doxygen disabled - man pages will not be built])
-> +	enable_man_pages=no
-> +])
-> +AM_CONDITIONAL([BUILD_MAN], [test "$enable_man_pages" = yes])
-> +AS_IF([test "$enable_man_pages" = yes],
-> +	[AC_SUBST(GEN_MAN, YES)],
-> +	[AC_SUBST(GEN_MAN, NO)])
+    2e34328b396a netfilter: nft_exthdr: fix endianness of tcp option cast
 
-Moving this block is also not necessary. Please, don't move code
-around while you're updating it, it makes it harder to review.
+to the stable version of Linux v5.4.
 
-Thanks.
+This bugfix never landed to Linux v5.4: a later similar endianness 
+bugfix (b428336676db) instead did (see commit 666d1d1a0584).
+
+The aforementioned commit fixes an endianness bug in the mangling of the 
+MSS tcp option for nftables.
+
+This bug bites hard big-endian routers (MIPS for example) running the 
+PPPoE stack and nftables.
+
+The following rule:
+
+     nft add rule ip filter forward tcp flags syn tcp option maxseg size 
+set rt mtu
+
+instead of changing the MSS value the one in the routing cache, ZEROES 
+it, disrupting the tcp connections.
+
+A backport would be nice because Linux v5.4 is the release used in the 
+upcoming stable release of OpenWRT (21.02).
+
+I already submitted a bug-report to OpenWRT a few weeks ago but I've got 
+no answer yet maybe because they still use iptables as the default 
+netfilter tool, even if they offer nftables as an alternative.
+
+Still I think this bug should be fixed in the stable versions of the kernel.
+
+This way it will also come to OpenWRT when they update the kernel to the 
+latest minor version, even if the maintainers don't see the my bug 
+report is ignored.
+
+I'd like to thank you for the attention you paid to this message even if 
+I probably didn't follow the right process for reporting the problem.
+
+Regards,
+
+Gianluca Anzolin
