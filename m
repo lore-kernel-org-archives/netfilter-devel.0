@@ -6,96 +6,99 @@ X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
 	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 371CFC4338F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Aug 2021 02:20:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3023C4338F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Aug 2021 04:15:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0455560FD9
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Aug 2021 02:20:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B7F676128A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Aug 2021 04:15:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235877AbhHYCVm (ORCPT
+        id S229446AbhHYEP4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 24 Aug 2021 22:21:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43082 "EHLO
+        Wed, 25 Aug 2021 00:15:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40110 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235237AbhHYCVl (ORCPT
+        with ESMTP id S229379AbhHYEP4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Aug 2021 22:21:41 -0400
-Received: from mail-pf1-x42b.google.com (mail-pf1-x42b.google.com [IPv6:2607:f8b0:4864:20::42b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BFEF8C061757
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Aug 2021 19:20:56 -0700 (PDT)
-Received: by mail-pf1-x42b.google.com with SMTP id y11so19996483pfl.13
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Aug 2021 19:20:56 -0700 (PDT)
+        Wed, 25 Aug 2021 00:15:56 -0400
+Received: from mail-pg1-x532.google.com (mail-pg1-x532.google.com [IPv6:2607:f8b0:4864:20::532])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B0F7EC061757
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Aug 2021 21:15:10 -0700 (PDT)
+Received: by mail-pg1-x532.google.com with SMTP id w8so21831421pgf.5
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Aug 2021 21:15:10 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=sender:from:date:to:cc:subject:message-id:mail-followup-to
          :references:mime-version:content-disposition:in-reply-to;
-        bh=/YNXYcouWDvFkJeVwVMjC+BOk8j/33nPx6Zqsvlspgw=;
-        b=avpbF3n2QwJe43WskJzVZYVDya2XmoBDSJaB6SoIaKtQCUndqNcntYVtZmhMq3zh8i
-         tffbljmhfGIVM9plDx9QN9055oTdv6m2EBUP0yqC/SzAL3fXExL9q0Uy1eE4dE8bDnbS
-         3CZ65oAepx1LAqKhU3cPxen+gZGkRRoT5avFHWoCiNHjVRGlGFZu/0rd1SGUXUVc8cdZ
-         4TYfteVcasXU1H/E5H6lyvDvJXWuc+6VoZjD/kOmUqc7T1A7TA76yjcvqB8tY7wHnFxg
-         nk8iTpwNHkZr7OSyLuxj+PbtlKeZP5ov5Bqd7FIwA1NTB/S2Goo8IpQhFnbtOmSsseZp
-         3tgg==
+        bh=LG2Mbl5uGwROh+E6eebLmrF4CfIqKafSj8IuIPmOILY=;
+        b=qj9MZNmLyHXECI7PthkaynWw/Y7KEfjoqB31HgOAGYKeNb6bq75aQEQ4UM3KJUoYeb
+         gX8bw6QR/Sg1q6ktJY/U1+lqRZ0NhUhGCJOLzGqGNmrMwBNkTNunlCwFXF8FXUb6hv9i
+         rhbeNk56/DFLaxn9Nn2RDwkBBfoaQm7qP+xlWQcH/KtS+mhAgp6MbCMK/bDx3Mkv95dS
+         PtSZYt5St833KwFNm4G2L6P3jDi8XFCHgIXpc+t8hhZewquTJVamlHQTJltVmsF1pidx
+         SnK+HLkA9JfKf/Vovpd6xIO2C10JEE6Qi7NFvDzj0FVaNTCY8PQnvPQkhrJfOBcVIa5A
+         8Pug==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:sender:from:date:to:cc:subject:message-id
          :mail-followup-to:references:mime-version:content-disposition
          :in-reply-to;
-        bh=/YNXYcouWDvFkJeVwVMjC+BOk8j/33nPx6Zqsvlspgw=;
-        b=DdIHvJmc4uLIaX2BmRlALWD493EzM0dTe8Z/K7j6CgngrrwFALQpADeoHhSR7GzoMT
-         w3Ru1dRsyONOS2v3oswJSfSsu/2mcLs9sxGmOZEbjFTscNerS2GL2zUmZwv7PJepETh+
-         q4vpBHVIEQVxvgOFR4HzIVpE6TIy8Xv9iHLodny3KkSlHgkfcoxbu7oh2z2TK+nTh5X6
-         SXTV0ErwvLWL9SUPoVqTtUewrT8W9nTYnBBgVtRtwSxJjFoPnYL0bnHuMCC3oHdd6orB
-         poq/xobMTU21jxgOcMWg7OoHX7noiaX9sX1Q4dkZs2Bx6A7kO5eYh7XQYe/Oqj1GpeA/
-         0WSA==
-X-Gm-Message-State: AOAM532ztcp4OKzZ4jv8Yfm7UIuji+pj4HQmQTYGUrD8lVaRyRi777gl
-        QFtiJeOieREJC64mG1TA+6w=
-X-Google-Smtp-Source: ABdhPJxCEYu3BWrZ0PbKt3nRXDNui2rc7Tx1uwNcf5JS3zxPTs5U/W8sOT2yZ2Q7kjFF00gD9HBmSQ==
-X-Received: by 2002:a05:6a00:1a4b:b0:3ee:d49a:d615 with SMTP id h11-20020a056a001a4b00b003eed49ad615mr3158859pfv.81.1629858056316;
-        Tue, 24 Aug 2021 19:20:56 -0700 (PDT)
+        bh=LG2Mbl5uGwROh+E6eebLmrF4CfIqKafSj8IuIPmOILY=;
+        b=DBYyxZPPlULwQFMLHGbwrLm1jb6z5wXx0qs9FiigX3t7/FRxytpjuivjX8INQ8T9Ds
+         to3yyfMaAFMDOQmG6fPQEuIXt+kVVE+Y0RvuwFPMxB4nmenZvuVfCrwpeyTePMz8jMzE
+         +gi3ONEezINncO3wQddcSL1QbdwFa8ITKK0MIeVXyV07HAysvbm6pyCykD54zBssQzMh
+         4qQ9B4efM/GfTd1ndFRor0ziX5wzeqIAJPpteJ3fa7ImuKTOJDc/L12u3H0YXrbt9+1v
+         kgtShXoPzlSI/f0wwX+z4UaqeMIrLTpaEloxZBivl++95oVeZ+rohxjIqpqquEum46ks
+         SlTw==
+X-Gm-Message-State: AOAM531D7YwR1GL0pIwAyBdaM6rDsfVc9Lj3+Qn7Dikcrn7WgtAQuhB1
+        Nz/cUasfPY2yWjTMZTKrd2U=
+X-Google-Smtp-Source: ABdhPJzaob03Xrkjyr+vI5GIJUMlDr/AfasbveHrV/cKJeYNKJq+fBKQCB/vja+juwr1WoOw84eNvw==
+X-Received: by 2002:a05:6a00:ac8:b029:320:a6bb:880d with SMTP id c8-20020a056a000ac8b0290320a6bb880dmr42690013pfl.41.1629864910252;
+        Tue, 24 Aug 2021 21:15:10 -0700 (PDT)
 Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
-        by smtp.gmail.com with ESMTPSA id u24sm21684668pfm.27.2021.08.24.19.20.54
+        by smtp.gmail.com with ESMTPSA id r14sm20555108pff.106.2021.08.24.21.15.08
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 24 Aug 2021 19:20:55 -0700 (PDT)
+        Tue, 24 Aug 2021 21:15:09 -0700 (PDT)
 Sender: Duncan Roe <duncan.roe2@gmail.com>
 From:   Duncan Roe <duncan_roe@optusnet.com.au>
 X-Google-Original-From: Duncan Roe <dunc@slk1.local.net>
-Date:   Wed, 25 Aug 2021 12:20:51 +1000
+Date:   Wed, 25 Aug 2021 14:15:05 +1000
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH libnetfilter_queue v4 3/4] build: doc: VPATH builds work
- again
-Message-ID: <YSWpAwfcgSmvxc0N@slk1.local.net>
+Subject: Re: [PATCH libnetfilter_queue v4 4/4] build: doc: split off shell
+ script from within doxygen/Makefile.am
+Message-ID: <YSXDyR2RIKf675l6@slk1.local.net>
 Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
         Netfilter Development <netfilter-devel@vger.kernel.org>
 References: <20210822041442.8394-1-duncan_roe@optusnet.com.au>
- <20210822041442.8394-3-duncan_roe@optusnet.com.au>
- <20210824102840.GA30322@salvia>
- <YSWjkN/8Bp23ZITM@slk1.local.net>
+ <20210822041442.8394-4-duncan_roe@optusnet.com.au>
+ <20210824103052.GC30322@salvia>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <YSWjkN/8Bp23ZITM@slk1.local.net>
+In-Reply-To: <20210824103052.GC30322@salvia>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Aug 25, 2021 at 11:57:36AM +1000, Duncan Roe wrote:
-> On Tue, Aug 24, 2021 at 12:28:40PM +0200, Pablo Neira Ayuso wrote:
-> > On Sun, Aug 22, 2021 at 02:14:41PM +1000, Duncan Roe wrote:
-> > > Also get make distcleancheck to pass (only applies to VPATH builds).
-> >
-> > Not sure I follow. What commit broke this?
+On Tue, Aug 24, 2021 at 12:30:52PM +0200, Pablo Neira Ayuso wrote:
+> On Sun, Aug 22, 2021 at 02:14:42PM +1000, Duncan Roe wrote:
+> > This time, Makefile obeys the script via its absolute source pathname rather
+> > than trying to force a copy into the build dir as we did previously.
 >
-> No idea. make distcleancheck fails in current master. Never tested it before.
->                   ^^^^^
-> > Why does this need a separated patch?
+> Could you make this in first place? As coming 1/x coming in this
+> series.
 >
-> That's what it took to get make distcleancheck to pass.
+> Thanks.
 
-Sorry - meant to say this is for a VPATH build (e.g. mkdir build; cd build;
-../configure).
+Time to wrap up the whole lot in a single patch.
 
-After that, `make` is fine at master but `make distcleancheck` fails.
+v5 was going to remove the make distcheck cruft in doxygen/Makefile.am, which is
+adjacent to the now-removed embedded script. So now there is juat 1 big block of
+red.
+
+I reverted some non-essential changes in configure.ac to reduce the diff.
+
+The new patch will be titled "Fix man pages".
+
+I hope you like it,
 
 Cheers ... Duncan.
