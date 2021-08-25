@@ -2,103 +2,105 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B49EC432BE
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Aug 2021 16:30:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 598A4C4338F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Aug 2021 01:21:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 518036127B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Aug 2021 16:30:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 41ACB60F25
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Aug 2021 01:21:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231177AbhHXQb0 (ORCPT
+        id S231586AbhHYBW1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 24 Aug 2021 12:31:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57342 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229896AbhHXQbQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Aug 2021 12:31:16 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 885AF6127B;
-        Tue, 24 Aug 2021 16:30:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1629822631;
-        bh=88cAadYJmUnTaRYiMI1JA+OIlkT2sO/mIm8B4EQIKrI=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=t5J9rz3EFd3O4+7qETnknPF7tCDfP6mTgExEy7BZfEV71Kz9xmzYL2MKhQqjOtZ00
-         x8WFfBK7OXmfcNHXY1NI5CSVSALAEVbGGNOpS9dcDuHqQfBaGBNyvlCmQlXHJ8RMKG
-         VhVVmA2LCWSmB9NyIq4KGtDdcEdFWzlCDrArEuPhi8pNqBwzE4OMm1d09qWT+aBMJz
-         Mq5YVaGluaiUeK4ftAtzozj/yIlz2SJ09u7IZ12cC8MnjZ7f5DcnLuGNPM19y9GAJ1
-         6kVtbAy034JbSrp/1JMKUKPoHxHJZp5NXfEfGdxY4rAny7W6xjsHE5mhtKKQPprU4c
-         dJ1KPH00WluTg==
-Date:   Tue, 24 Aug 2021 12:30:30 -0400
-From:   Sasha Levin <sashal@kernel.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Gianluca Anzolin <gianluca@sottospazio.it>,
-        netfilter-devel@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: Request for a backport to Linux v5.4
-Message-ID: <YSUepiKWvjzKXsia@sashalap>
-References: <c1088b68-1804-d009-9627-d649162cdfff@sottospazio.it>
- <20210824154629.GA6610@breakpoint.cc>
+        Tue, 24 Aug 2021 21:22:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58274 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231415AbhHYBW0 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 24 Aug 2021 21:22:26 -0400
+Received: from mail-pf1-x42f.google.com (mail-pf1-x42f.google.com [IPv6:2607:f8b0:4864:20::42f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 016D7C061757
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Aug 2021 18:21:42 -0700 (PDT)
+Received: by mail-pf1-x42f.google.com with SMTP id a21so19888318pfh.5
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Aug 2021 18:21:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=sender:from:date:to:cc:subject:message-id:mail-followup-to
+         :references:mime-version:content-disposition:in-reply-to;
+        bh=npa9/1IaIp7C7kekdycz1l+E9CvQ/hDmdbtPxdf48Hc=;
+        b=j1GpbhuApqDXwYE0gWbfz3aVvSfTTQNhsm3LZwoaCKBBwbx+yWDX7Hc3FLEvYmqDUo
+         nuCxpKzylcS0W6s3/ixiHHXSQJbFt5lG222tFiX3yZ4paqjh3CyrC+1/Uo9EVZBTqpVx
+         VT+pTdPX0QOeRrpahFMpdBwJByHrGN53s3/CS6sr7JgjMS3WOzXexU1SMZEv/RYY9D/u
+         vcHrV9yu9osLcLgUIZXVKPlEChepexGJO7kYpmQ0aH47faV7O2Zt7FfMBLF8mTSVvfxP
+         cs7Aw0ehVMoCBVGFJtdnREAEjr8Y2sPlusoBeF2BoIg2DisClOCWyRhonWruwPrRQZLu
+         XUFw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:sender:from:date:to:cc:subject:message-id
+         :mail-followup-to:references:mime-version:content-disposition
+         :in-reply-to;
+        bh=npa9/1IaIp7C7kekdycz1l+E9CvQ/hDmdbtPxdf48Hc=;
+        b=sQBnUo7+OOCN3lm1ldojR9EN9t4D7G4rlgPLb8GmOr46ju4oG4ee23zYyyV8E1mIYz
+         g0rVpbMeUKm7K5xjx5ClmaASLndAcXW25akC41W9iFAsGFCOlRZRH4P3uBnJMblouYeC
+         5YQOc9jZ9kaOCG8MKKSiNXfD/nbNEtjIte9r4ruovJj3jkI7Kp99TbalJi2CEwVG8g6F
+         rsv0KCISRDYOo4IjRr3CM81CPAx0QE6s3YsdMPbVyYsDsOJOTv8EE10SE52b3EVwOjGR
+         OSSQH8A41g2nIo8jJ5utrzTTu6eW5tStn9JwBz8KH3+Wb/TPI4nkPnX56FnZa1cODsPa
+         rLNQ==
+X-Gm-Message-State: AOAM530dBMuId/iemgEt+q+kERBrI7mmUnBv/pc0jbNPup1rMXPz3mUP
+        lK68mym2d/tCIq1E4xt4rPE=
+X-Google-Smtp-Source: ABdhPJxyuGPXUxTZK0UhwltU5vpbd+eqEqYRoIi7PzZ45E3/ji+FL1aBqcKoCgI/RnZBMsVaFEbLbw==
+X-Received: by 2002:a63:b950:: with SMTP id v16mr39818551pgo.328.1629854501569;
+        Tue, 24 Aug 2021 18:21:41 -0700 (PDT)
+Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
+        by smtp.gmail.com with ESMTPSA id r8sm22876313pgp.30.2021.08.24.18.21.39
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 24 Aug 2021 18:21:41 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+X-Google-Original-From: Duncan Roe <dunc@slk1.local.net>
+Date:   Wed, 25 Aug 2021 11:21:36 +1000
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libnetfilter_queue v4 2/4] build: doc: can choose what to
+ build and install
+Message-ID: <YSWbIAulHPwgcnep@slk1.local.net>
+Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <20210822041442.8394-1-duncan_roe@optusnet.com.au>
+ <20210822041442.8394-2-duncan_roe@optusnet.com.au>
+ <20210824103001.GB30322@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210824154629.GA6610@breakpoint.cc>
+In-Reply-To: <20210824103001.GB30322@salvia>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Aug 24, 2021 at 05:46:29PM +0200, Florian Westphal wrote:
->Gianluca Anzolin <gianluca@sottospazio.it> wrote:
+On Tue, Aug 24, 2021 at 12:30:01PM +0200, Pablo Neira Ayuso wrote:
+> On Sun, Aug 22, 2021 at 02:14:40PM +1000, Duncan Roe wrote:
+> > Update doxygen/Makefile.am to build and install man pages and html documentation
+> > conditionally. Involves configure.ac and doxygen.cfg.in, see below.
+[...]
+> > diff --git a/configure.ac b/configure.ac
+> > index 0fe754c..376d4ff 100644
+> > --- a/configure.ac
+> > +++ b/configure.ac
+> > @@ -10,9 +10,42 @@ AM_INIT_AUTOMAKE([-Wall foreign subdir-objects
+> >  	tar-pax no-dist-gzip dist-bzip2 1.6])
+> >  m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
+> >
+> > +case "$host" in
+> > +*-*-linux* | *-*-uclinux*) ;;
+> > +*) AC_MSG_ERROR([Linux only, dude!]);;
+> > +esac
 >
->[ CC stable ]
+> This update is unnecessary, please avoid unnecessary changes in your
+> updates, it makes it harder to review.
 >
->> I'm writing to request a backport of the following commit:
->>
->>    2e34328b396a netfilter: nft_exthdr: fix endianness of tcp option cast
->> to the stable version of Linux v5.4.
->
->Hello stable maintainers, can you please pick this change
->for 5.4, 4.19 and 4.14?
->
->It applies cleanly to all of those branches.
->I'll leave rest as full-quote for context.
->
->> This bugfix never landed to Linux v5.4: a later similar endianness bugfix
->> (b428336676db) instead did (see commit 666d1d1a0584).
->>
->> The aforementioned commit fixes an endianness bug in the mangling of the MSS
->> tcp option for nftables.
->>
->> This bug bites hard big-endian routers (MIPS for example) running the PPPoE
->> stack and nftables.
->>
->> The following rule:
->>
->>     nft add rule ip filter forward tcp flags syn tcp option maxseg size set
->> rt mtu
->>
->> instead of changing the MSS value the one in the routing cache, ZEROES it,
->> disrupting the tcp connections.
->>
->> A backport would be nice because Linux v5.4 is the release used in the
->> upcoming stable release of OpenWRT (21.02).
->>
->> I already submitted a bug-report to OpenWRT a few weeks ago but I've got no
->> answer yet maybe because they still use iptables as the default netfilter
->> tool, even if they offer nftables as an alternative.
->>
->> Still I think this bug should be fixed in the stable versions of the kernel.
->>
->> This way it will also come to OpenWRT when they update the kernel to the
->> latest minor version, even if the maintainers don't see the my bug report is
->> ignored.
->>
->> I'd like to thank you for the attention you paid to this message even if I
->> probably didn't follow the right process for reporting the problem.
+My thinking was that we should check for running under Linux before we assume
+that `test` is sane and accepts modern constructs.
 
-I've queued it up, thanks!
-
--- 
-Thanks,
-Sasha
+Cheers ... Duncan.
