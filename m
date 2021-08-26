@@ -2,110 +2,465 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D67E5C432BE
-	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Aug 2021 04:14:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5F59C4320E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Aug 2021 10:50:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AFA5B610A6
-	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Aug 2021 04:14:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8FDA1606A5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Aug 2021 10:50:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230076AbhHZEOr (ORCPT
+        id S240993AbhHZKut (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 26 Aug 2021 00:14:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59874 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229566AbhHZEOq (ORCPT
+        Thu, 26 Aug 2021 06:50:49 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:58894 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234327AbhHZKut (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 26 Aug 2021 00:14:46 -0400
-Received: from mail-lj1-x22c.google.com (mail-lj1-x22c.google.com [IPv6:2a00:1450:4864:20::22c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0392BC061757
-        for <netfilter-devel@vger.kernel.org>; Wed, 25 Aug 2021 21:13:59 -0700 (PDT)
-Received: by mail-lj1-x22c.google.com with SMTP id f2so2636801ljn.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 25 Aug 2021 21:13:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to;
-        bh=ksfbqAO1y92zPCcjXG+Opb8Rq3ERc1NXCshXP19VqcY=;
-        b=UrEErHrdypJw3eYwmjZfRfKL9T+0btZE4CZZDfPq+7W3JX9bpSXNDhiEkhlDvXk7C5
-         Iq6m6M7gSUTFUkgdfYTD+rU9dUf6cVfzsbRno8lowcYBdHb2UC/tlQbzBKEEaX0+/H8D
-         MgVHifduEtGH2T/lSEIqjx6KPdrQCDXycRsElQLkBV7VykvdsLWPE563oAER2kfuBb8X
-         I4XL5ojtRK901b9UJEqNv8OplXirj3Tj2V1T5/uZiOd0PA1/be3YdM3eA+Qh8FHjJG0D
-         /B6K3JrMnVfPSV6LJkMqJJ5c3j8sAnlWKfZ3x6UQcRHvzh8+QoEKbSzhWkZVgmvnUFkS
-         i5aQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to;
-        bh=ksfbqAO1y92zPCcjXG+Opb8Rq3ERc1NXCshXP19VqcY=;
-        b=PH4nfV8LCQkRDXQXm7++bIBbcZ23hnm4rS5KhrRMQ2dJ9MM6Jyn+zMvZxqdR58pnAq
-         BoR4iFJAsm8G0mBEthOJC0HBDEQx01Vx5D8NLA8mi2GgYRGCQd6Kg4wNbJ2qFesnqCVn
-         Kaqqgd1tm9ddPZhNIQ3JUesv15u/Yue7HzvgPnbNoBt/Gp3MJWxls/WUtR9FTL0Ms/er
-         b9S/Fx/g6uvYLlw4lEXkUwKrfCZM10qys70ESfxVCRna6+Lgw+LYv32aaG97Yuj2RAMi
-         OxjtYNeMc7FfRwgIwuQz3aQTwAxLcK+UW1I+GHYsErN9sZPP/x1tz43RnX6Npnxpiqdm
-         xK9g==
-X-Gm-Message-State: AOAM531W5IkSLP7n2oSMXZG98Iaq/UIycPSuTM4/cIK6b8Izv02oQRe4
-        288kRBTJvL7g0Cb2WHP8Fqmd/Ah/g+6f5XGOy0zDBWRVeII=
-X-Google-Smtp-Source: ABdhPJyIffQ6gb0gVSB7yKtlj+oG+Wl0NHJD3Jj5GToQS4H92LpN70AcI2Y35AzcnruhTdDwk7V4N+VtG7x4j+iXmvI=
-X-Received: by 2002:a05:651c:11c7:: with SMTP id z7mr1287139ljo.87.1629951238220;
- Wed, 25 Aug 2021 21:13:58 -0700 (PDT)
-MIME-Version: 1.0
-References: <CAGnHSEmo1D2bCemVuCT-D2jdM8AmUgGKxZrq0RpXUMaLyQqjwA@mail.gmail.com>
-In-Reply-To: <CAGnHSEmo1D2bCemVuCT-D2jdM8AmUgGKxZrq0RpXUMaLyQqjwA@mail.gmail.com>
-From:   Tom Yan <tom.ty89@gmail.com>
-Date:   Thu, 26 Aug 2021 12:13:46 +0800
-Message-ID: <CAGnHSE=d1DrtdxvM8h-SHa7fMZq1RzfxOcQxAxszf5-KhcuddA@mail.gmail.com>
-Subject: Re: [Bug] Reverse translation skips "leading" meta protocol match
+        Thu, 26 Aug 2021 06:50:49 -0400
+Received: from localhost.localdomain (unknown [78.30.35.141])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 6FAC860121
+        for <netfilter-devel@vger.kernel.org>; Thu, 26 Aug 2021 12:49:05 +0200 (CEST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Subject: [PATCH nft] netlink_delinearize: incorrect meta protocol dependency kill
+Date:   Thu, 26 Aug 2021 12:49:52 +0200
+Message-Id: <20210826104952.4812-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Actually, rather than "leading", it's actually "non-trailing".
+meta protocol is meaningful in bridge, netdev and inet familiiess, do
+not remove this.
 
-On Thu, 26 Aug 2021 at 12:10, Tom Yan <tom.ty89@gmail.com> wrote:
->
-> Hi,
->
-> Please see the following for details:
->
-> # nft --debug=netlink list table bridge meh
-> bridge meh hmm 2
->   [ meta load l4proto => reg 1 ]
->   [ cmp eq reg 1 0x00000011 ]
->   [ payload load 2b @ transport header + 2 => reg 1 ]
->   [ cmp eq reg 1 0x00004300 ]
->   [ immediate reg 0 accept ]
->
-> bridge meh hmm 3 2
->   [ meta load protocol => reg 1 ]
->   [ cmp eq reg 1 0x00000008 ]
->   [ meta load l4proto => reg 1 ]
->   [ cmp eq reg 1 0x00000011 ]
->   [ payload load 2b @ transport header + 2 => reg 1 ]
->   [ cmp eq reg 1 0x00004300 ]
->   [ immediate reg 0 accept ]
->
-> bridge meh hmm 4 3
->   [ meta load l4proto => reg 1 ]
->   [ cmp eq reg 1 0x00000011 ]
->   [ payload load 2b @ transport header + 2 => reg 1 ]
->   [ cmp eq reg 1 0x00004300 ]
->   [ meta load protocol => reg 1 ]
->   [ cmp eq reg 1 0x00000008 ]
->   [ immediate reg 0 accept ]
->
-> table bridge meh {
->     chain hmm {
->         udp dport 67 accept
->         udp dport 67 accept
->         udp dport 67 meta protocol ip accept
->     }
-> }
->
-> Regards,
-> Tom
+Fixes: a1bcf8a34975 ("payload: add payload_may_dependency_kill()")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/netlink_delinearize.c      | 22 ++++++++++++--
+ tests/py/bridge/meta.t         |  3 ++
+ tests/py/bridge/meta.t.json    | 54 ++++++++++++++++++++++++++++++++++
+ tests/py/bridge/meta.t.payload | 18 ++++++++++++
+ tests/py/inet/meta.t           |  4 +++
+ tests/py/inet/meta.t.json      | 54 ++++++++++++++++++++++++++++++++++
+ tests/py/inet/meta.t.payload   | 18 ++++++++++++
+ tests/py/ip/meta.t             |  2 ++
+ tests/py/ip/meta.t.json        | 16 ++++++++++
+ tests/py/ip/meta.t.payload     |  9 ++++++
+ tests/py/ip6/meta.t            |  3 ++
+ tests/py/ip6/meta.t.json       | 54 ++++++++++++++++++++++++++++++++++
+ tests/py/ip6/meta.t.payload    | 18 ++++++++++++
+ 13 files changed, 272 insertions(+), 3 deletions(-)
+
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 5b545701e8b7..92617a46df6f 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -1993,7 +1993,7 @@ static bool meta_may_dependency_kill(struct payload_dep_ctx *ctx,
+ 				     const struct expr *expr)
+ {
+ 	struct expr *dep = ctx->pdep->expr;
+-	uint16_t l3proto;
++	uint16_t l3proto, protocol;
+ 	uint8_t l4proto;
+ 
+ 	if (ctx->pbase != PROTO_BASE_NETWORK_HDR)
+@@ -2005,7 +2005,22 @@ static bool meta_may_dependency_kill(struct payload_dep_ctx *ctx,
+ 	case NFPROTO_BRIDGE:
+ 		break;
+ 	default:
+-		return true;
++		if (dep->left->etype != EXPR_META ||
++		    dep->right->etype != EXPR_VALUE)
++			return false;
++
++		if (dep->left->meta.key == NFT_META_PROTOCOL) {
++			protocol = mpz_get_uint16(dep->right->value);
++
++			if (family == NFPROTO_IPV4 &&
++			    protocol == ETH_P_IP)
++				return true;
++			else if (family == NFPROTO_IPV6 &&
++				 protocol == ETH_P_IPV6)
++				return true;
++		}
++
++		return false;
+ 	}
+ 
+ 	if (expr->left->meta.key != NFT_META_L4PROTO)
+@@ -2015,7 +2030,8 @@ static bool meta_may_dependency_kill(struct payload_dep_ctx *ctx,
+ 
+ 	switch (dep->left->etype) {
+ 	case EXPR_META:
+-		if (dep->left->meta.key != NFT_META_NFPROTO)
++		if (dep->left->meta.key != NFT_META_NFPROTO &&
++		    dep->left->meta.key != NFT_META_PROTOCOL)
+ 			return true;
+ 		break;
+ 	case EXPR_PAYLOAD:
+diff --git a/tests/py/bridge/meta.t b/tests/py/bridge/meta.t
+index eda7082f02b4..d77ebd899f18 100644
+--- a/tests/py/bridge/meta.t
++++ b/tests/py/bridge/meta.t
+@@ -6,3 +6,6 @@ meta obrname "br0";ok
+ meta ibrname "br0";ok
+ meta ibrvproto vlan;ok;meta ibrvproto 8021q
+ meta ibrpvid 100;ok
++
++meta protocol ip udp dport 67;ok
++meta protocol ip6 udp dport 67;ok
+diff --git a/tests/py/bridge/meta.t.json b/tests/py/bridge/meta.t.json
+index 3122774eba8c..d7dc9d7b5ea7 100644
+--- a/tests/py/bridge/meta.t.json
++++ b/tests/py/bridge/meta.t.json
+@@ -49,3 +49,57 @@
+         }
+     }
+ ]
++
++# meta protocol ip udp dport 67
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "protocol"
++                }
++            },
++            "op": "==",
++            "right": "ip"
++        }
++    },
++    {
++        "match": {
++            "left": {
++                "payload": {
++                    "field": "dport",
++                    "protocol": "udp"
++                }
++            },
++            "op": "==",
++            "right": 67
++        }
++    }
++]
++
++# meta protocol ip6 udp dport 67
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "protocol"
++                }
++            },
++            "op": "==",
++            "right": "ip6"
++        }
++    },
++    {
++        "match": {
++            "left": {
++                "payload": {
++                    "field": "dport",
++                    "protocol": "udp"
++                }
++            },
++            "op": "==",
++            "right": 67
++        }
++    }
++]
+diff --git a/tests/py/bridge/meta.t.payload b/tests/py/bridge/meta.t.payload
+index aa8c994bfe58..14177767fdfc 100644
+--- a/tests/py/bridge/meta.t.payload
++++ b/tests/py/bridge/meta.t.payload
+@@ -17,3 +17,21 @@ bridge test-bridge input
+ bridge test-bridge input
+   [ meta load bri_iifpvid => reg 1 ]
+   [ cmp eq reg 1 0x00000064 ]
++
++# meta protocol ip udp dport 67
++bridge
++  [ meta load protocol => reg 1 ]
++  [ cmp eq reg 1 0x00000008 ]
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000011 ]
++  [ payload load 2b @ transport header + 2 => reg 1 ]
++  [ cmp eq reg 1 0x00004300 ]
++
++# meta protocol ip6 udp dport 67
++bridge
++  [ meta load protocol => reg 1 ]
++  [ cmp eq reg 1 0x0000dd86 ]
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000011 ]
++  [ payload load 2b @ transport header + 2 => reg 1 ]
++  [ cmp eq reg 1 0x00004300 ]
+diff --git a/tests/py/inet/meta.t b/tests/py/inet/meta.t
+index 3638898b5dbb..423cc5f32cba 100644
+--- a/tests/py/inet/meta.t
++++ b/tests/py/inet/meta.t
+@@ -12,6 +12,10 @@ meta nfproto ipv4 tcp dport 22;ok
+ meta nfproto ipv4 ip saddr 1.2.3.4;ok;ip saddr 1.2.3.4
+ meta nfproto ipv6 meta l4proto tcp;ok;meta nfproto ipv6 meta l4proto 6
+ meta nfproto ipv4 counter ip saddr 1.2.3.4;ok
++
++meta protocol ip udp dport 67;ok
++meta protocol ip6 udp dport 67;ok
++
+ meta ipsec exists;ok
+ meta secpath missing;ok;meta ipsec missing
+ meta ibrname "br0";fail
+diff --git a/tests/py/inet/meta.t.json b/tests/py/inet/meta.t.json
+index 5c0e7d2e0e42..723a36f74946 100644
+--- a/tests/py/inet/meta.t.json
++++ b/tests/py/inet/meta.t.json
+@@ -235,3 +235,57 @@
+         }
+     }
+ ]
++
++# meta protocol ip udp dport 67
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "protocol"
++                }
++            },
++            "op": "==",
++            "right": "ip"
++        }
++    },
++    {
++        "match": {
++            "left": {
++                "payload": {
++                    "field": "dport",
++                    "protocol": "udp"
++                }
++            },
++            "op": "==",
++            "right": 67
++        }
++    }
++]
++
++# meta protocol ip6 udp dport 67
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "protocol"
++                }
++            },
++            "op": "==",
++            "right": "ip6"
++        }
++    },
++    {
++        "match": {
++            "left": {
++                "payload": {
++                    "field": "dport",
++                    "protocol": "udp"
++                }
++            },
++            "op": "==",
++            "right": 67
++        }
++    }
++]
+diff --git a/tests/py/inet/meta.t.payload b/tests/py/inet/meta.t.payload
+index 6ccf6d24210a..f2c861378c61 100644
+--- a/tests/py/inet/meta.t.payload
++++ b/tests/py/inet/meta.t.payload
+@@ -79,3 +79,21 @@ inet test-inet input
+   [ ct load mark => reg 1 ]
+   [ bitwise reg 1 = ( reg 1 >> 0x00000008 ) ]
+   [ meta set mark with reg 1 ]
++
++# meta protocol ip udp dport 67
++inet
++  [ meta load protocol => reg 1 ]
++  [ cmp eq reg 1 0x00000008 ]
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000011 ]
++  [ payload load 2b @ transport header + 2 => reg 1 ]
++  [ cmp eq reg 1 0x00004300 ]
++
++# meta protocol ip6 udp dport 67
++inet
++  [ meta load protocol => reg 1 ]
++  [ cmp eq reg 1 0x0000dd86 ]
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000011 ]
++  [ payload load 2b @ transport header + 2 => reg 1 ]
++  [ cmp eq reg 1 0x00004300 ]
+diff --git a/tests/py/ip/meta.t b/tests/py/ip/meta.t
+index f733d22de2c3..fecd0caf71a7 100644
+--- a/tests/py/ip/meta.t
++++ b/tests/py/ip/meta.t
+@@ -8,6 +8,8 @@ meta l4proto ipv6-icmp icmpv6 type nd-router-advert;ok;icmpv6 type nd-router-adv
+ meta l4proto 58 icmpv6 type nd-router-advert;ok;icmpv6 type nd-router-advert
+ icmpv6 type nd-router-advert;ok
+ 
++meta protocol ip udp dport 67;ok
++
+ meta ibrname "br0";fail
+ meta obrname "br0";fail
+ 
+diff --git a/tests/py/ip/meta.t.json b/tests/py/ip/meta.t.json
+index f83864f672d5..3df31ce381fc 100644
+--- a/tests/py/ip/meta.t.json
++++ b/tests/py/ip/meta.t.json
+@@ -140,3 +140,19 @@
+         "accept": null
+     }
+ ]
++
++# meta protocol ip udp dport 67
++[
++    {
++        "match": {
++            "left": {
++                "payload": {
++                    "field": "dport",
++                    "protocol": "udp"
++                }
++            },
++            "op": "==",
++            "right": 67
++        }
++    }
++]
+diff --git a/tests/py/ip/meta.t.payload b/tests/py/ip/meta.t.payload
+index 7bc69a290d24..ebff0e4bb3b0 100644
+--- a/tests/py/ip/meta.t.payload
++++ b/tests/py/ip/meta.t.payload
+@@ -44,3 +44,12 @@ ip6 test-ip4 input
+   [ meta load sdifname => reg 1 ]
+   [ cmp neq reg 1 0x31667276 0x00000000 0x00000000 0x00000000 ]
+   [ immediate reg 0 accept ]
++
++# meta protocol ip udp dport 67
++ip
++  [ meta load protocol => reg 1 ]
++  [ cmp eq reg 1 0x00000008 ]
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000011 ]
++  [ payload load 2b @ transport header + 2 => reg 1 ]
++  [ cmp eq reg 1 0x00004300 ]
+diff --git a/tests/py/ip6/meta.t b/tests/py/ip6/meta.t
+index dce97f5b0fd0..2c1aee2309a9 100644
+--- a/tests/py/ip6/meta.t
++++ b/tests/py/ip6/meta.t
+@@ -9,5 +9,8 @@ meta l4proto icmp icmp type echo-request;ok;icmp type echo-request
+ meta l4proto 1 icmp type echo-request;ok;icmp type echo-request
+ icmp type echo-request;ok
+ 
++meta protocol ip udp dport 67;ok
++meta protocol ip6 udp dport 67;ok
++
+ meta sdif "lo" accept;ok
+ meta sdifname != "vrf1" accept;ok
+diff --git a/tests/py/ip6/meta.t.json b/tests/py/ip6/meta.t.json
+index e72350f375e9..351320d70f7c 100644
+--- a/tests/py/ip6/meta.t.json
++++ b/tests/py/ip6/meta.t.json
+@@ -140,3 +140,57 @@
+         "accept": null
+     }
+ ]
++
++# meta protocol ip udp dport 67
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "protocol"
++                }
++            },
++            "op": "==",
++            "right": "ip"
++        }
++    },
++    {
++        "match": {
++            "left": {
++                "payload": {
++                    "field": "dport",
++                    "protocol": "udp"
++                }
++            },
++            "op": "==",
++            "right": 67
++        }
++    }
++]
++
++# meta protocol ip6 udp dport 67
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "protocol"
++                }
++            },
++            "op": "==",
++            "right": "ip6"
++        }
++    },
++    {
++        "match": {
++            "left": {
++                "payload": {
++                    "field": "dport",
++                    "protocol": "udp"
++                }
++            },
++            "op": "==",
++            "right": 67
++        }
++    }
++]
+diff --git a/tests/py/ip6/meta.t.payload b/tests/py/ip6/meta.t.payload
+index be04816eeec2..d654b019e7a7 100644
+--- a/tests/py/ip6/meta.t.payload
++++ b/tests/py/ip6/meta.t.payload
+@@ -44,3 +44,21 @@ ip6 test-ip6 input
+   [ meta load sdifname => reg 1 ]
+   [ cmp neq reg 1 0x31667276 0x00000000 0x00000000 0x00000000 ]
+   [ immediate reg 0 accept ]
++
++# meta protocol ip udp dport 67
++ip6
++  [ meta load protocol => reg 1 ]
++  [ cmp eq reg 1 0x00000008 ]
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000011 ]
++  [ payload load 2b @ transport header + 2 => reg 1 ]
++  [ cmp eq reg 1 0x00004300 ]
++
++# meta protocol ip6 udp dport 67
++ip6
++  [ meta load protocol => reg 1 ]
++  [ cmp eq reg 1 0x0000dd86 ]
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000011 ]
++  [ payload load 2b @ transport header + 2 => reg 1 ]
++  [ cmp eq reg 1 0x00004300 ]
+-- 
+2.20.1
+
