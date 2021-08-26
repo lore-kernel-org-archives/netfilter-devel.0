@@ -2,188 +2,176 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51E54C4338F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Aug 2021 17:05:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C332FC432BE
+	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Aug 2021 03:43:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 362696109F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Aug 2021 17:05:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9EA17610CD
+	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Aug 2021 03:43:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232026AbhHYRGW (ORCPT
+        id S236891AbhHZDok (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 25 Aug 2021 13:06:22 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:53282 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229540AbhHYRGW (ORCPT
+        Wed, 25 Aug 2021 23:44:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53152 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235803AbhHZDoj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 25 Aug 2021 13:06:22 -0400
-Received: from netfilter.org (unknown [78.30.35.141])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 558FF60126;
-        Wed, 25 Aug 2021 19:04:39 +0200 (CEST)
-Date:   Wed, 25 Aug 2021 19:05:29 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
-Cc:     kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
-        kuba@kernel.org, shuah@kernel.org, linux-kernel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kselftest@vger.kernel.org,
-        Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>,
-        Scott Parlane <scott.parlane@alliedtelesis.co.nz>,
-        Blair Steven <blair.steven@alliedtelesis.co.nz>
-Subject: Re: [PATCH net-next 2/3] net: netfilter: Add RFC-7597 Section 5.1
- PSID support
-Message-ID: <20210825170529.GA31115@salvia>
-References: <20210726143729.GN9904@breakpoint.cc>
- <20210809041037.29969-1-Cole.Dishington@alliedtelesis.co.nz>
- <20210809041037.29969-3-Cole.Dishington@alliedtelesis.co.nz>
+        Wed, 25 Aug 2021 23:44:39 -0400
+Received: from mail-pj1-x102d.google.com (mail-pj1-x102d.google.com [IPv6:2607:f8b0:4864:20::102d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22C7BC061757
+        for <netfilter-devel@vger.kernel.org>; Wed, 25 Aug 2021 20:43:53 -0700 (PDT)
+Received: by mail-pj1-x102d.google.com with SMTP id ot2-20020a17090b3b4200b0019127f8ed87so5154096pjb.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 25 Aug 2021 20:43:53 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=sender:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=5VZBCyaq5mR8XSRgUCQBNhuB2c4wh1NWsb0wCIFvIuk=;
+        b=IJ3Cqx8egUcYAWl10oWzElVErRfs2vqN69rz7VnLNkeflCAZqt/g1YmkiY9hyBjl3Z
+         aCbFYA1FlnqARHBZbzxWKluLJm4RT0s8vVYhfpQu/AaYM0ZKnlaji9vzBaTSIUPk4iKb
+         7XEi1DjBI1Fix1qwmDU/cL79k+hun02SlmpbGMD0OwwnRlTWmUiAIE9VtqptFO0qCzHT
+         qbdTXlzDSv8rxO4c2XG1P0ZaGX9uoIykFL50ClWMC5uxUBa+Tui85CU+x4KtKSOiotsK
+         nsN7d9VYuHYKzloBNkRbRP/w5fnYAF1EN70Fg1h3CFHBcOXkn/Wq0SJWUxMxmhilMc54
+         s1cw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
+         :mime-version:content-transfer-encoding;
+        bh=5VZBCyaq5mR8XSRgUCQBNhuB2c4wh1NWsb0wCIFvIuk=;
+        b=FHX+1zA4rUfY/KKfMKAOf8Osr1JifzMP5FaZZtWUAgVLWTA2VOwa6uBjDbh2s9FPmf
+         nboZlamfXlkrarXAcptDnw/OzSoac5VvHhEAtGMBIXzVIhVsZ+/0+TWGfr7x1jx6GEUW
+         LOnPYFdqcBI+clMKJWyg2viBswTQV35j8pEBF8rt2dInbPJDIkgV//XzfRZvoo2gqg2k
+         NxLJAAbpcqKgvyaWmp1QflwYoBpKI2L0aDDJ/3rJxTIrvrWyidPLc/a9yxTSo0reroo7
+         rqpY4c84e6yrNjNazwiO9ozR3piZePBBQypCqjxKDEKjHBIfMbpMaox981esNlfE6F+M
+         gxtw==
+X-Gm-Message-State: AOAM532UsKqjYLUpABrImX+Kq3PASFlQPSiE2o6nBlXieGfwHKUPp1cg
+        E+e/4oqDcvlzNOzkth23UVHy4hY4DP5Xng==
+X-Google-Smtp-Source: ABdhPJwypzAO7rAxsWGuP8BouzSPqWcICjLtFXZnfKrMRlhcYyD1py64RBi3hTka7oqmD8a06r3DIQ==
+X-Received: by 2002:a17:90b:3144:: with SMTP id ip4mr14459224pjb.22.1629949432691;
+        Wed, 25 Aug 2021 20:43:52 -0700 (PDT)
+Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
+        by smtp.gmail.com with ESMTPSA id s11sm1109193pfh.18.2021.08.25.20.43.50
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 25 Aug 2021 20:43:52 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH libnetfilter_queue v2 1/5] build: doc: Fix man pages
+Date:   Thu, 26 Aug 2021 13:43:42 +1000
+Message-Id: <20210826034346.13224-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.32.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20210809041037.29969-3-Cole.Dishington@alliedtelesis.co.nz>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+Split off shell script from within doxygen/Makefile.am into
+doxygen/build_man.sh.
 
-On Mon, Aug 09, 2021 at 04:10:36PM +1200, Cole Dishington wrote:
-> Adds support for masquerading into a smaller subset of ports -
-> defined by the PSID values from RFC-7597 Section 5.1. This is part of
-> the support for MAP-E and Lightweight 4over6, which allows multiple
-> devices to share an IPv4 address by splitting the L4 port / id into
-> ranges.
-> 
-> Co-developed-by: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
-> Signed-off-by: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
-> Co-developed-by: Scott Parlane <scott.parlane@alliedtelesis.co.nz>
-> Signed-off-by: Scott Parlane <scott.parlane@alliedtelesis.co.nz>
-> Signed-off-by: Blair Steven <blair.steven@alliedtelesis.co.nz>
-> Signed-off-by: Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
-> Reviewed-by: Florian Westphal <fw@strlen.de>
-[...]
+This patch by itself doesn't fix anything.
+The patch is only for traceability, because diff patch format is not very good
+at catching code updates and moving code together.
+Therefore the script is exactly as it was; it still looks a bit different
+because of having to un-double doubled-up $ signs, remove trailing ";/" and so
+on.
 
-Looking at the userspace logic:
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+---
+ doxygen/Makefile.am  | 34 +++-------------------------------
+ doxygen/build_man.sh | 29 +++++++++++++++++++++++++++++
+ 2 files changed, 32 insertions(+), 31 deletions(-)
+ create mode 100755 doxygen/build_man.sh
 
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20210716002219.30193-1-Cole.Dishington@alliedtelesis.co.nz/
+diff --git a/doxygen/Makefile.am b/doxygen/Makefile.am
+index 29078de..5068544 100644
+--- a/doxygen/Makefile.am
++++ b/doxygen/Makefile.am
+@@ -16,37 +16,7 @@ doxyfile.stamp: $(doc_srcs) Makefile.am
+ 	[ ! -d ../src.distcheck ] || \
+ { set -x; cd ..; rm src; mv src.distcheck src; }
+ 
+-# We need to use bash for its associative array facility
+-# (`bash -p` prevents import of functions from the environment).
+-# The command has to be a single line so the functions work
+-# and so `make` gives all lines to `bash -c`
+-# (hence ";\" at the end of every line but the last).
+-	/bin/bash -p -c 'declare -A renamed_page;\
+-main(){ set -e; cd man/man3; rm -f _*;\
+-  count_real_pages;\
+-  rename_real_pages;\
+-  make_symlinks;\
+-};\
+-count_real_pages(){ page_count=0;\
+-  for i in $$(ls -S);\
+-  do head -n1 $$i | grep -E -q '^\.so' && break;\
+-    page_count=$$(($$page_count + 1));\
+-  done;\
+-  first_link=$$(($$page_count + 1));\
+-};\
+-rename_real_pages(){ for i in $$(ls -S | head -n$$page_count);\
+-  do for j in $$(ls -S | tail -n+$$first_link);\
+-    do grep -E -q $$i$$ $$j && break;\
+-    done;\
+-    mv -f $$i $$j;\
+-    renamed_page[$$i]=$$j;\
+-  done;\
+-};\
+-make_symlinks(){ for j in $$(ls -S | tail -n+$$first_link);\
+-  do ln -sf $${renamed_page[$$(cat $$j | cut -f2 -d/)]} $$j;\
+-  done;\
+-};\
+-main'
++	$(abs_top_srcdir)/doxygen/build_man.sh
+ 
+ 	touch doxyfile.stamp
+ 
+@@ -64,3 +34,5 @@ install-data-local:
+ uninstall-local:
+ 	rm -r $(DESTDIR)$(mandir) man html doxyfile.stamp
+ endif
++
++EXTRA_DIST = build_man.sh
+diff --git a/doxygen/build_man.sh b/doxygen/build_man.sh
+new file mode 100755
+index 0000000..304a305
+--- /dev/null
++++ b/doxygen/build_man.sh
+@@ -0,0 +1,29 @@
++#!/bin/bash -p
++# We need to use bash for its associative array facility
++# (`bash -p` prevents import of functions from the environment).
++declare -A renamed_page
++main(){ set -e; cd man/man3; rm -f _*
++  count_real_pages
++  rename_real_pages
++  make_symlinks
++}
++count_real_pages(){ page_count=0
++  for i in $(ls -S)
++  do head -n1 $i | grep -E -q '^\.so' && break
++    page_count=$(($page_count + 1))
++  done
++  first_link=$(($page_count + 1))
++}
++rename_real_pages(){ for i in $(ls -S | head -n$page_count)
++  do for j in $(ls -S | tail -n+$first_link)
++    do grep -E -q $i$ $j && break
++    done
++    mv -f $i $j
++    renamed_page[$i]=$j
++  done
++}
++make_symlinks(){ for j in $(ls -S | tail -n+$first_link)
++  do ln -sf ${renamed_page[$(cat $j | cut -f2 -d/)]} $j
++  done
++}
++main
+-- 
+2.17.5
 
-Chunk extracted from void parse_psid(...)
-
->        offset = (1 << (16 - offset_len));
-
-Assuming offset_len = 6, then you skip 0-1023 ports, OK.
-
->        psid = psid << (16 - offset_len - psid_len);
-
-This psid calculation is correct? Maybe:
-
-        psid = psid << (16 - offset_len);
-
-instead?
-
-        psid=0  =>      0 << (16 - 6) = 1024
-        psid=1  =>      1 << (16 - 6) = 2048
-
-This is implicitly assuming that 64 PSIDs are available, each of them
-taking 1024 ports, ie. psid_len is 6 bits. But why are you subtracting
-the psid_len above?
-
->        /* Handle the special case of no offset bits (a=0), so offset loops */
->        min = psid;
-
-OK, this line above is the minimal port in the range
-
->        if (offset)
->                min += offset;
-
-... which is incremented by the offset (to skip the 0-1023 ports).
-
->       r->min_proto.all = htons(min);
->       r->max_proto.all = htons(min + ((1 << (16 - offset_len - psid_len)) - 1));
-
-Here, you subtract psid_len again, not sure why.
-
->       r->base_proto.all = htons(offset);
-
-base is set to offset, ie. 1024.
-
->       r->flags |= NF_NAT_RANGE_PSID;
->       r->flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
-
-Now looking at the kernel side.
-
-> diff --git a/net/netfilter/nf_nat_masquerade.c b/net/netfilter/nf_nat_masquerade.c
-> index 8e8a65d46345..19a4754cda76 100644
-> --- a/net/netfilter/nf_nat_masquerade.c
-> +++ b/net/netfilter/nf_nat_masquerade.c
-> @@ -55,8 +55,31 @@ nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
->  	newrange.flags       = range->flags | NF_NAT_RANGE_MAP_IPS;
->  	newrange.min_addr.ip = newsrc;
->  	newrange.max_addr.ip = newsrc;
-> -	newrange.min_proto   = range->min_proto;
-> -	newrange.max_proto   = range->max_proto;
-> +
-> +	if (range->flags & NF_NAT_RANGE_PSID) {
-> +		u16 base = ntohs(range->base_proto.all);
-> +		u16 min =  ntohs(range->min_proto.all);
-> +		u16 off = 0;
-> +
-> +		/* xtables should stop base > 2^15 by enforcement of
-> +		 * 0 <= offset_len < 16 argument, with offset_len=0
-> +		 * as a special case inwhich base=0.
-
-I don't understand this comment.
-
-> +		 */
-> +		if (WARN_ON_ONCE(base > (1 << 15)))
-> +			return NF_DROP;
-> +
-> +		/* If offset=0, port range is in one contiguous block */
-> +		if (base)
-> +			off = prandom_u32_max(((1 << 16) / base) - 1);
-
-Assuming the example above, base is set to 1024. Then, off is a random
-value between UINT16_MAX (you expressed this as 1 << 16) and the base
-which is 1024 minus 1.
-
-So this is picking a random off (actually the PSID?) between 0 and 63.
-What about clashes? I mean, two different machines behind the NAT
-might get the same off.
-
-> +		newrange.min_proto.all   = htons(min + base * off);
-
-min could be 1024, 2048, 3072... you add base which is 1024 * off.
-
-Is this duplicated? Both calculated in user and kernel space?
-
-> +		newrange.max_proto.all   = htons(ntohs(newrange.min_proto.all) + ntohs(range->max_proto.all) - min);
-
-I'm stopping here, I'm getting lost.
-
-My understanding about this RFC is that you would like to split the
-16-bit ports in ranges to uniquely identify the host behind the NAT.
-
-Why don't you just you just select the port range from userspace
-utilizing the existing infrastructure? I mean, why do you need this
-kernel patch?
-
-Florian already suggested:
-
-> Is it really needed to place all of this in the nat core?
-> 
-> The only thing that has to be done in the NAT core, afaics, is to
-> suppress port reallocation attmepts when NF_NAT_RANGE_PSID is set.
-> 
-> Is there a reason why nf_nat_masquerade_ipv4/6 can't be changed instead
-> to do what you want?
-> 
-> AFAICS its enough to set NF_NAT_RANGE_PROTO_SPECIFIED and init the
-> upper/lower boundaries, i.e. change input given to nf_nat_setup_info().
-
-extracted from:
-
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20210422023506.4651-1-Cole.Dishington@alliedtelesis.co.nz/
