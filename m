@@ -7,32 +7,32 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1521EC432BE
-	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Aug 2021 13:54:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F35FC432BE
+	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Aug 2021 13:54:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EE30E61038
-	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Aug 2021 13:54:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 16B3D60EFF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Aug 2021 13:54:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229793AbhHZNzf (ORCPT
+        id S242755AbhHZNzn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 26 Aug 2021 09:55:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52122 "EHLO
+        Thu, 26 Aug 2021 09:55:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52142 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242759AbhHZNze (ORCPT
+        with ESMTP id S242750AbhHZNzi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 26 Aug 2021 09:55:34 -0400
+        Thu, 26 Aug 2021 09:55:38 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3D272C0613C1
-        for <netfilter-devel@vger.kernel.org>; Thu, 26 Aug 2021 06:54:47 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6750FC061757
+        for <netfilter-devel@vger.kernel.org>; Thu, 26 Aug 2021 06:54:51 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1mJFq9-0000Z0-Pg; Thu, 26 Aug 2021 15:54:45 +0200
+        id 1mJFqD-0000ZA-Uz; Thu, 26 Aug 2021 15:54:49 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf 3/3] netfilter: conntrack: refuse insertion if chain has grown too large
-Date:   Thu, 26 Aug 2021 15:54:21 +0200
-Message-Id: <20210826135422.31063-4-fw@strlen.de>
+Subject: [PATCH nf 3/3] netfilter: refuse insertion if chain has grown too large
+Date:   Thu, 26 Aug 2021 15:54:22 +0200
+Message-Id: <20210826135422.31063-5-fw@strlen.de>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20210826135422.31063-1-fw@strlen.de>
 References: <20210826135422.31063-1-fw@strlen.de>
@@ -42,19 +42,21 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Also add a stat counter for this that gets exported both via old /proc
+interface and ctnetlink.
+
 Assuming the old default size of 16536 buckets and max hash occupancy of
 64k, this results in 128k insertions (origin+reply), so ~8 entries per
 chain on average.
 
-The revised settings in the earlier change result in about two entries per
+The revised settings in this series will result in about two entries per
 bucket on average.
 
-This enforces a hard-limit of 64.
+This allows a hard-limit ceiling of 64.
 
 This is not tunable at the moment, but its possible to either increase
-nf_conntrack_buckets or decrease nf_conntrack_max to reduce average lengths.
-
-A new stat counter for this gets exported both via old /proc interface and ctnetlink.
+nf_conntrack_buckets or decrease nf_conntrack_max to reduce average
+lengths.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
