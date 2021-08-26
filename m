@@ -6,48 +6,49 @@ X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F25BCC4320A
-	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Aug 2021 10:51:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AF5DC432BE
+	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Aug 2021 10:59:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D7408606A5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Aug 2021 10:51:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E7EA46108F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Aug 2021 10:59:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241744AbhHZKvv (ORCPT
+        id S241552AbhHZLAj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 26 Aug 2021 06:51:51 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:58906 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234055AbhHZKvv (ORCPT
+        Thu, 26 Aug 2021 07:00:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38652 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231610AbhHZLAi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 26 Aug 2021 06:51:51 -0400
-Received: from netfilter.org (unknown [78.30.35.141])
-        by mail.netfilter.org (Postfix) with ESMTPSA id DEA6B6017B;
-        Thu, 26 Aug 2021 12:50:08 +0200 (CEST)
-Date:   Thu, 26 Aug 2021 12:51:00 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Tom Yan <tom.ty89@gmail.com>
+        Thu, 26 Aug 2021 07:00:38 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7CBF5C061757
+        for <netfilter-devel@vger.kernel.org>; Thu, 26 Aug 2021 03:59:51 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1mJD6p-0008AO-Ux; Thu, 26 Aug 2021 12:59:47 +0200
+Date:   Thu, 26 Aug 2021 12:59:47 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [Bug] Reverse translation skips "leading" meta protocol match
-Message-ID: <20210826105100.GA4859@salvia>
-References: <CAGnHSEmo1D2bCemVuCT-D2jdM8AmUgGKxZrq0RpXUMaLyQqjwA@mail.gmail.com>
+Subject: Re: [PATCH nft] netlink_delinearize: incorrect meta protocol
+ dependency kill
+Message-ID: <20210826105947.GA13818@breakpoint.cc>
+References: <20210826104952.4812-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAGnHSEmo1D2bCemVuCT-D2jdM8AmUgGKxZrq0RpXUMaLyQqjwA@mail.gmail.com>
+In-Reply-To: <20210826104952.4812-1-pablo@netfilter.org>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Aug 26, 2021 at 12:10:05PM +0800, Tom Yan wrote:
-[...]
-> bridge meh hmm 3 2
->   [ meta load protocol => reg 1 ]
->   [ cmp eq reg 1 0x00000008 ]
->   [ meta load l4proto => reg 1 ]
->   [ cmp eq reg 1 0x00000011 ]
->   [ payload load 2b @ transport header + 2 => reg 1 ]
->   [ cmp eq reg 1 0x00004300 ]
->   [ immediate reg 0 accept ]
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> meta protocol is meaningful in bridge, netdev and inet familiiess, do
+> not remove this.
+> 
+> Fixes: a1bcf8a34975 ("payload: add payload_may_dependency_kill()")
 
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20210826104952.4812-1-pablo@netfilter.org/
+Looks like its a regression from
+"netlink_delinearize: Refactor meta_may_dependency_kill()",
+056aaa3e6dc65aced5e552233ac3e7f89fb81f86.
