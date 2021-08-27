@@ -2,245 +2,114 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F35FC432BE
-	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Aug 2021 13:54:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB9B8C432BE
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Aug 2021 17:44:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 16B3D60EFF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Aug 2021 13:54:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A9E90600D4
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Aug 2021 17:44:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242755AbhHZNzn (ORCPT
+        id S231287AbhH0Roy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 26 Aug 2021 09:55:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52142 "EHLO
+        Fri, 27 Aug 2021 13:44:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37724 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242750AbhHZNzi (ORCPT
+        with ESMTP id S230035AbhH0Roy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 26 Aug 2021 09:55:38 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6750FC061757
-        for <netfilter-devel@vger.kernel.org>; Thu, 26 Aug 2021 06:54:51 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1mJFqD-0000ZA-Uz; Thu, 26 Aug 2021 15:54:49 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf 3/3] netfilter: refuse insertion if chain has grown too large
-Date:   Thu, 26 Aug 2021 15:54:22 +0200
-Message-Id: <20210826135422.31063-5-fw@strlen.de>
-X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20210826135422.31063-1-fw@strlen.de>
-References: <20210826135422.31063-1-fw@strlen.de>
+        Fri, 27 Aug 2021 13:44:54 -0400
+Received: from kadath.azazel.net (kadath.azazel.net [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD92EC061757
+        for <netfilter-devel@vger.kernel.org>; Fri, 27 Aug 2021 10:44:04 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20190108; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=JBMLsZIk7Q3PE/BGruPet2mzgsPL3TCHhk+JwErS1yI=; b=XMAQj+cEV+NCtSYnBYjaX8fNlV
+        YBQkHYKNHF5oXWgXw0F+ad7FJOepE+1Z2aV+q2L86tAFOdGe3AtkKZmhAa52cmh0xZdsU9rON35Ew
+        rtb89wFA7Bxh7XUcUGXpwqqRU36xqVypm497xYQ9PFxZbWTqYvjOHlYKWhDJTwn9TN7/tOtZf3wuR
+        A7IlSTlaCYkgG0xsE5Ljf4bzRW7tHCDhW4OTpe2E4ONNBbawf7HHHiPY8LCnlzS6YjLGOrOFVBfHF
+        Av89Req+7sqkZnFnD/k81rGEVTFC2eLBeWz5sx36YINSDPpKGcpXue2oOLJI+oqYn2ZYN5fk8K/hS
+        lgscc27Q==;
+Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
+        by kadath.azazel.net with esmtp (Exim 4.94.2)
+        (envelope-from <jeremy@azazel.net>)
+        id 1mJftZ-00ERf1-2y; Fri, 27 Aug 2021 18:44:01 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH libnetfilter_log] build: remove broken code from autogen.sh.
+Date:   Fri, 27 Aug 2021 18:41:43 +0100
+Message-Id: <20210827174143.1094883-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.33.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Also add a stat counter for this that gets exported both via old /proc
-interface and ctnetlink.
+The `include` function, which is intended to include a copy of the
+kernel's nfnetlink_log.h into the source distribution, has been broken
+since 2012 when the header file was moved from where the function
+expects to find it.  The header is manually sync'ed when necessary.
 
-Assuming the old default size of 16536 buckets and max hash occupancy of
-64k, this results in 128k insertions (origin+reply), so ~8 entries per
-chain on average.
-
-The revised settings in this series will result in about two entries per
-bucket on average.
-
-This allows a hard-limit ceiling of 64.
-
-This is not tunable at the moment, but its possible to either increase
-nf_conntrack_buckets or decrease nf_conntrack_max to reduce average
-lengths.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- include/linux/netfilter/nf_conntrack_common.h |  1 +
- .../linux/netfilter/nfnetlink_conntrack.h     |  1 +
- net/netfilter/nf_conntrack_core.c             | 42 +++++++++++++++----
- net/netfilter/nf_conntrack_netlink.c          |  4 +-
- net/netfilter/nf_conntrack_standalone.c       |  4 +-
- 5 files changed, 42 insertions(+), 10 deletions(-)
+ autogen.sh | 35 -----------------------------------
+ 1 file changed, 35 deletions(-)
 
-diff --git a/include/linux/netfilter/nf_conntrack_common.h b/include/linux/netfilter/nf_conntrack_common.h
-index 0c7d8d1e945d..700ea077ce2d 100644
---- a/include/linux/netfilter/nf_conntrack_common.h
-+++ b/include/linux/netfilter/nf_conntrack_common.h
-@@ -18,6 +18,7 @@ struct ip_conntrack_stat {
- 	unsigned int expect_create;
- 	unsigned int expect_delete;
- 	unsigned int search_restart;
-+	unsigned int chaintoolong;
- };
+diff --git a/autogen.sh b/autogen.sh
+index 2b2995306786..5e1344a85402 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -1,39 +1,4 @@
+ #!/bin/sh -e
  
- #define NFCT_INFOMASK	7UL
-diff --git a/include/uapi/linux/netfilter/nfnetlink_conntrack.h b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
-index d8484be72fdc..5ade231f497b 100644
---- a/include/uapi/linux/netfilter/nfnetlink_conntrack.h
-+++ b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
-@@ -257,6 +257,7 @@ enum ctattr_stats_cpu {
- 	CTA_STATS_ERROR,
- 	CTA_STATS_SEARCH_RESTART,
- 	CTA_STATS_CLASH_RESOLVE,
-+	CTA_STATS_CHAIN_TOOLONG,
- 	__CTA_STATS_MAX,
- };
- #define CTA_STATS_MAX (__CTA_STATS_MAX - 1)
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index da2650f872e1..94e18fb9690d 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -77,6 +77,8 @@ static __read_mostly bool nf_conntrack_locks_all;
- #define GC_SCAN_INTERVAL	(120u * HZ)
- #define GC_SCAN_MAX_DURATION	msecs_to_jiffies(10)
- 
-+#define MAX_CHAINLEN	64u
-+
- static struct conntrack_gc_work conntrack_gc_work;
- 
- void nf_conntrack_lock(spinlock_t *lock) __acquires(lock)
-@@ -840,7 +842,9 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
- 	unsigned int hash, reply_hash;
- 	struct nf_conntrack_tuple_hash *h;
- 	struct hlist_nulls_node *n;
-+	unsigned int chainlen = 0;
- 	unsigned int sequence;
-+	int err = -EEXIST;
- 
- 	zone = nf_ct_zone(ct);
- 
-@@ -854,15 +858,24 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
- 	} while (nf_conntrack_double_lock(net, hash, reply_hash, sequence));
- 
- 	/* See if there's one in the list already, including reverse */
--	hlist_nulls_for_each_entry(h, n, &nf_conntrack_hash[hash], hnnode)
-+	hlist_nulls_for_each_entry(h, n, &nf_conntrack_hash[hash], hnnode) {
- 		if (nf_ct_key_equal(h, &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
- 				    zone, net))
- 			goto out;
- 
--	hlist_nulls_for_each_entry(h, n, &nf_conntrack_hash[reply_hash], hnnode)
-+		if (chainlen++ > MAX_CHAINLEN)
-+			goto chaintoolong;
-+	}
-+
-+	chainlen = 0;
-+
-+	hlist_nulls_for_each_entry(h, n, &nf_conntrack_hash[reply_hash], hnnode) {
- 		if (nf_ct_key_equal(h, &ct->tuplehash[IP_CT_DIR_REPLY].tuple,
- 				    zone, net))
- 			goto out;
-+		if (chainlen++ > MAX_CHAINLEN)
-+			goto chaintoolong;
-+	}
- 
- 	smp_wmb();
- 	/* The caller holds a reference to this object */
-@@ -872,11 +885,13 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
- 	NF_CT_STAT_INC(net, insert);
- 	local_bh_enable();
- 	return 0;
+-include ()
+-{
+-    # If we keep a copy of the kernel header in the SVN tree, we'll have
+-    # to worry about synchronization issues forever. Instead, we just copy 
+-    # the headers that we need from the lastest kernel version at autogen
+-    # stage.
 -
-+chaintoolong:
-+	NF_CT_STAT_INC(net, chaintoolong);
-+	err = -ENOSPC;
- out:
- 	nf_conntrack_double_unlock(hash, reply_hash);
- 	local_bh_enable();
--	return -EEXIST;
-+	return err;
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_hash_check_insert);
- 
-@@ -1089,6 +1104,7 @@ int
- __nf_conntrack_confirm(struct sk_buff *skb)
- {
- 	const struct nf_conntrack_zone *zone;
-+	unsigned int chainlen = 0, sequence;
- 	unsigned int hash, reply_hash;
- 	struct nf_conntrack_tuple_hash *h;
- 	struct nf_conn *ct;
-@@ -1096,7 +1112,6 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 	struct hlist_nulls_node *n;
- 	enum ip_conntrack_info ctinfo;
- 	struct net *net;
--	unsigned int sequence;
- 	int ret = NF_DROP;
- 
- 	ct = nf_ct_get(skb, &ctinfo);
-@@ -1156,15 +1171,28 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 	/* See if there's one in the list already, including reverse:
- 	   NAT could have grabbed it without realizing, since we're
- 	   not in the hash.  If there is, we lost race. */
--	hlist_nulls_for_each_entry(h, n, &nf_conntrack_hash[hash], hnnode)
-+	hlist_nulls_for_each_entry(h, n, &nf_conntrack_hash[hash], hnnode) {
- 		if (nf_ct_key_equal(h, &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
- 				    zone, net))
- 			goto out;
-+		if (chainlen++ > MAX_CHAINLEN)
-+			goto chaintoolong;
-+	}
- 
--	hlist_nulls_for_each_entry(h, n, &nf_conntrack_hash[reply_hash], hnnode)
-+	chainlen = 0;
-+	hlist_nulls_for_each_entry(h, n, &nf_conntrack_hash[reply_hash], hnnode) {
- 		if (nf_ct_key_equal(h, &ct->tuplehash[IP_CT_DIR_REPLY].tuple,
- 				    zone, net))
- 			goto out;
-+		if (chainlen++ > MAX_CHAINLEN) {
-+chaintoolong:
-+			nf_ct_add_to_dying_list(ct);
-+			NF_CT_STAT_INC(net, chaintoolong);
-+			NF_CT_STAT_INC(net, insert_failed);
-+			ret = NF_DROP;
-+			goto dying;
-+		}
-+	}
- 
- 	/* Timer relative to confirmation time, not original
- 	   setting time, otherwise we'd get timer wrap in
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index e81af33b233b..3f081ae08266 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -2484,7 +2484,9 @@ ctnetlink_ct_stat_cpu_fill_info(struct sk_buff *skb, u32 portid, u32 seq,
- 	    nla_put_be32(skb, CTA_STATS_SEARCH_RESTART,
- 				htonl(st->search_restart)) ||
- 	    nla_put_be32(skb, CTA_STATS_CLASH_RESOLVE,
--				htonl(st->clash_resolve)))
-+				htonl(st->clash_resolve)) ||
-+	    nla_put_be32(skb, CTA_STATS_CHAIN_TOOLONG,
-+			 htonl(st->chaintoolong)))
- 		goto nla_put_failure;
- 
- 	nlmsg_end(skb, nlh);
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index e84b499b7bfa..f94ebd5194b5 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -429,7 +429,7 @@ static int ct_cpu_seq_show(struct seq_file *seq, void *v)
- 	unsigned int nr_conntracks;
- 
- 	if (v == SEQ_START_TOKEN) {
--		seq_puts(seq, "entries  clashres found new invalid ignore delete delete_list insert insert_failed drop early_drop icmp_error  expect_new expect_create expect_delete search_restart\n");
-+		seq_puts(seq, "entries  clashres found new invalid ignore delete chainlength insert insert_failed drop early_drop icmp_error  expect_new expect_create expect_delete search_restart\n");
- 		return 0;
- 	}
- 
-@@ -444,7 +444,7 @@ static int ct_cpu_seq_show(struct seq_file *seq, void *v)
- 		   st->invalid,
- 		   0,
- 		   0,
--		   0,
-+		   st->chaintoolong,
- 		   st->insert,
- 		   st->insert_failed,
- 		   st->drop,
+-    INCLUDEDIR=${KERNEL_DIR:-/lib/modules/`uname -r`/build}/include/linux
+-    if [ -f $INCLUDEDIR/netfilter/nfnetlink_log.h ]
+-    then
+-    	TARGET=include/libnetfilter_log/linux_nfnetlink_log.h
+-    	echo "Copying nfnetlink_log.h to linux_nfnetlink_log.h"
+-    	cp $INCLUDEDIR/netfilter/nfnetlink_log.h $TARGET
+-	TEMP=`tempfile`
+-	sed 's/linux\/netfilter\/nfnetlink.h/libnfnetlink\/linux_nfnetlink.h/g' $TARGET > $TEMP
+-	# Add aligned_u64 definition after #define _NFNETLINK_LOG_H
+-	awk '{
+-        if ( $0 == "#define _NFNETLINK_LOG_H" ) {
+-		print $0
+-		getline
+-		print $0
+-		print "#ifndef aligned_u64"
+-		print "#define aligned_u64 unsigned long long __attribute__((aligned(8)))"
+-		print "#endif"
+-	}
+-
+-	print $0
+-	}' $TEMP > $TARGET
+-    else
+-    	echo "can't find nfnetlink_log.h kernel file in $INCLUDEDIR"
+-    	exit 1
+-    fi
+-}
+-
+-[ "x$1" = "xdistrib" ] && include
+ autoreconf -fi
+ rm -Rf autom4te.cache
 -- 
-2.31.1
+2.33.0
 
