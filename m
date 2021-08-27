@@ -2,114 +2,145 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB9B8C432BE
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Aug 2021 17:44:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C59ACC432BE
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Aug 2021 20:01:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A9E90600D4
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Aug 2021 17:44:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9F69960F92
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Aug 2021 20:01:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231287AbhH0Roy (ORCPT
+        id S231410AbhH0UCk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 27 Aug 2021 13:44:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37724 "EHLO
+        Fri, 27 Aug 2021 16:02:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41248 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230035AbhH0Roy (ORCPT
+        with ESMTP id S231215AbhH0UCk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 27 Aug 2021 13:44:54 -0400
-Received: from kadath.azazel.net (kadath.azazel.net [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD92EC061757
-        for <netfilter-devel@vger.kernel.org>; Fri, 27 Aug 2021 10:44:04 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20190108; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
-        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=JBMLsZIk7Q3PE/BGruPet2mzgsPL3TCHhk+JwErS1yI=; b=XMAQj+cEV+NCtSYnBYjaX8fNlV
-        YBQkHYKNHF5oXWgXw0F+ad7FJOepE+1Z2aV+q2L86tAFOdGe3AtkKZmhAa52cmh0xZdsU9rON35Ew
-        rtb89wFA7Bxh7XUcUGXpwqqRU36xqVypm497xYQ9PFxZbWTqYvjOHlYKWhDJTwn9TN7/tOtZf3wuR
-        A7IlSTlaCYkgG0xsE5Ljf4bzRW7tHCDhW4OTpe2E4ONNBbawf7HHHiPY8LCnlzS6YjLGOrOFVBfHF
-        Av89Req+7sqkZnFnD/k81rGEVTFC2eLBeWz5sx36YINSDPpKGcpXue2oOLJI+oqYn2ZYN5fk8K/hS
-        lgscc27Q==;
-Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
-        by kadath.azazel.net with esmtp (Exim 4.94.2)
-        (envelope-from <jeremy@azazel.net>)
-        id 1mJftZ-00ERf1-2y; Fri, 27 Aug 2021 18:44:01 +0100
-From:   Jeremy Sowden <jeremy@azazel.net>
+        Fri, 27 Aug 2021 16:02:40 -0400
+Received: from mail-pj1-x102f.google.com (mail-pj1-x102f.google.com [IPv6:2607:f8b0:4864:20::102f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C146C0613D9
+        for <netfilter-devel@vger.kernel.org>; Fri, 27 Aug 2021 13:01:51 -0700 (PDT)
+Received: by mail-pj1-x102f.google.com with SMTP id z24-20020a17090acb1800b0018e87a24300so5604828pjt.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 27 Aug 2021 13:01:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=sender:from:date:to:cc:subject:message-id:mail-followup-to
+         :references:mime-version:content-disposition:in-reply-to;
+        bh=jHOql/xL4RFZXXnzQpmSC6RDlJhkGTh2psqM48nO9Ko=;
+        b=TCVAT4QeQ3lNjkUa42YQ/D+HbwqccLSc/3IWplyEgDBdYhRweZsp71zDqMv/GEHteb
+         CN39NdW4DTfEFiiw9ZSIY4t202za1rswii4Vth28Sa1aGs6bn9ZKwHUsFwz7xrLpfl9l
+         9ZxCASOmM14IpNlC9hXQWS+ahA9IyJ4btSoqv0XxFIZnKbdwJ1Lsm9I7RH7iOZZEAzsw
+         1fOzet3nGoVBq6uN4rOZpvE+y+X5P3GjETVrTaI0YU5f91VuPG+Cjq6CXe3FsccqreQd
+         itM3X2zNlmnCaXb0ZDhvXp8qwvoalJNmDBUO3gmgNDKACxovwxrXkzRbBKYBJk7PNuY4
+         BHGA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:sender:from:date:to:cc:subject:message-id
+         :mail-followup-to:references:mime-version:content-disposition
+         :in-reply-to;
+        bh=jHOql/xL4RFZXXnzQpmSC6RDlJhkGTh2psqM48nO9Ko=;
+        b=CiS/IwbLTrgpNs2pjxKHu3OqdDzt+/UmVgY8u9LDFa8dftyD9O5N3vSbK8IClnXuOe
+         U3cAWLGUqcQrvDvPyT+Y/wEXMgmbb1ESV4updzyn+Y7MZ7sOA703QU2ctK3rSw6W3vq0
+         dFNnBYcJL3ykV/HXFTYT25QjBe9T2jgosuvIFDaFL1UyzxfwNwkLV3DhEA1c/R+tJN5I
+         79CJhEapWviFPPCVbW4+blXvrItgB4l3WX43f11Zj5hOjYYl7gwj1quPP+KmRZ/wgVIJ
+         fsFB79e/d2/N8Epvj5hzAZsEUeul4Dg4nHCGrC6srtyekL72XkEQFKPnsz0bFqhBffhD
+         A9jw==
+X-Gm-Message-State: AOAM5331ihHhpYuuC3cVccClvAmJPTJmUaZ4UugPWCDI4reMKG7NDLBS
+        lOSWS1BQNa6rgvw2FiXs0shd0pdmgDs=
+X-Google-Smtp-Source: ABdhPJwtyWLYdKnqPTHIzwG/5ULZcUBmzPGlz3dj+T70vxhfU/eKWKEoAfx/NRexGk7ofd5JwyCZmQ==
+X-Received: by 2002:a17:902:8346:b0:131:bb78:7a9e with SMTP id z6-20020a170902834600b00131bb787a9emr10171325pln.28.1630094510631;
+        Fri, 27 Aug 2021 13:01:50 -0700 (PDT)
+Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
+        by smtp.gmail.com with ESMTPSA id u62sm7128492pfc.68.2021.08.27.13.01.47
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 27 Aug 2021 13:01:49 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+X-Google-Original-From: Duncan Roe <dunc@slk1.local.net>
+Date:   Sat, 28 Aug 2021 06:01:44 +1000
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH libnetfilter_log] build: remove broken code from autogen.sh.
-Date:   Fri, 27 Aug 2021 18:41:43 +0100
-Message-Id: <20210827174143.1094883-1-jeremy@azazel.net>
-X-Mailer: git-send-email 2.33.0
+Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libnetfilter_queue v2] build: doc: Fix NAME entry in man
+ pages
+Message-ID: <YSlEqAnybDgl5FaF@slk1.local.net>
+Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <20210810024001.12361-1-duncan_roe@optusnet.com.au>
+ <20210815121509.GA9606@salvia>
+ <YSROzjG3oyIYS6oN@slk1.local.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <YSROzjG3oyIYS6oN@slk1.local.net>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The `include` function, which is intended to include a copy of the
-kernel's nfnetlink_log.h into the source distribution, has been broken
-since 2012 when the header file was moved from where the function
-expects to find it.  The header is manually sync'ed when necessary.
+On Tue, Aug 24, 2021 at 11:43:42AM +1000, Duncan Roe wrote:
+> On Sun, Aug 15, 2021 at 02:15:09PM +0200, Pablo Neira Ayuso wrote:
+> > On Tue, Aug 10, 2021 at 12:40:01PM +1000, Duncan Roe wrote:
+> > > Make the NAME line list the functions defined, like other man pages do.
+> > > Also:
+> > > - If there is a "Modules" section, delete it
+> > > - If "Detailed Description" is empty, delete "Detailed Description" line
+> > > - Reposition SYNOPSIS (with headers that we inserted) to start of page,
+> > >   integrating with defined functions to look like other man pages
+> > > - Delete all "Definition at line nnn" lines
+> > > - Delete lines that make older versions of man o/p an unwanted blank line
+> > > - Insert spacers and comments so Makefile.am is more readable
+> > >
+> > > Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+> > > ---
+> > > v2: Delete lines that make older versions of man o/p an unwanted blank line
+> > >  doxygen/Makefile.am | 172 ++++++++++++++++++++++++++++++++++++++++++++
+> >
+> > Time to add this to an independent fixup shell script for
+> > doxygen-based manpages that Makefile.am could call instead?
+>
+> There is an independent fixup shell script at v4
+> >
+> > This script could be imported by other libraries too, so it only needs to
+> > be downloaded from somewhere to be refreshed to keep it in sync with
+> > latest.
+>
+> Please do not wait for this to happen. As I gain familiarity with autotools,
+> there will be more and more incremental updates.
+>
+> So you can review them easily, I'll try to keep each patch doing just one thing.
+> But that means more patches, so can you just apply one of the patch series so we
+> don't get too far behind?
+> >
+> > The git tree could cache a copy of this script.
+>
+> Here's a possible mechanism, but it needs there to be a new netfilter git
+> project: how would you be with that?
+>
+>  - autogen.sh does `git clone libnetfilter_doc`
+>  - autogen.sh distributes the files(*) in libnetfilter_doc to wherever they go
+>    in the current source tree
+>  - autogen.sh deletes libnetfilter_doc/
+>
+> This approach has the advantage that `make distcheck` tarballs are complete,
+> i.e. don't require a working network to build.
+>
+> For best results, update doxygen comments in the source to contain SYNOPSIS
+> sections.
+>
+> (*) as well as build_man.sh, most of configure.ac is boilerplate and could be
+> encapsulated in 1 or more m4 macros to reside in libnetfilter_doc. Also most of
+> doxygen.cfg.in could go there, with local variations in doxygen.cfg.local (at
+> least EXCLUDE_SYMBOLS, maybe nothing else).
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- autogen.sh | 35 -----------------------------------
- 1 file changed, 35 deletions(-)
 
-diff --git a/autogen.sh b/autogen.sh
-index 2b2995306786..5e1344a85402 100755
---- a/autogen.sh
-+++ b/autogen.sh
-@@ -1,39 +1,4 @@
- #!/bin/sh -e
- 
--include ()
--{
--    # If we keep a copy of the kernel header in the SVN tree, we'll have
--    # to worry about synchronization issues forever. Instead, we just copy 
--    # the headers that we need from the lastest kernel version at autogen
--    # stage.
--
--    INCLUDEDIR=${KERNEL_DIR:-/lib/modules/`uname -r`/build}/include/linux
--    if [ -f $INCLUDEDIR/netfilter/nfnetlink_log.h ]
--    then
--    	TARGET=include/libnetfilter_log/linux_nfnetlink_log.h
--    	echo "Copying nfnetlink_log.h to linux_nfnetlink_log.h"
--    	cp $INCLUDEDIR/netfilter/nfnetlink_log.h $TARGET
--	TEMP=`tempfile`
--	sed 's/linux\/netfilter\/nfnetlink.h/libnfnetlink\/linux_nfnetlink.h/g' $TARGET > $TEMP
--	# Add aligned_u64 definition after #define _NFNETLINK_LOG_H
--	awk '{
--        if ( $0 == "#define _NFNETLINK_LOG_H" ) {
--		print $0
--		getline
--		print $0
--		print "#ifndef aligned_u64"
--		print "#define aligned_u64 unsigned long long __attribute__((aligned(8)))"
--		print "#endif"
--	}
--
--	print $0
--	}' $TEMP > $TARGET
--    else
--    	echo "can't find nfnetlink_log.h kernel file in $INCLUDEDIR"
--    	exit 1
--    fi
--}
--
--[ "x$1" = "xdistrib" ] && include
- autoreconf -fi
- rm -Rf autom4te.cache
--- 
-2.33.0
+No need for a new git project. curl can fetch files from libnfq. E.g.
+> curl https://git.netfilter.org/libnetfilter_queue/plain/doxygen/Makefile.am
+fetches Makefile.am.
 
+Same for doxygen/build_man.sh, once the patches are applied. autogen.sh would
+run the curl commands.
+
+Cheers ... Duncan.
