@@ -2,169 +2,176 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B8B2C432BE
-	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Aug 2021 03:31:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E86CDC432BE
+	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Aug 2021 03:35:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 62DE960F5B
-	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Aug 2021 03:31:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AC03B60F25
+	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Aug 2021 03:35:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233170AbhH1Dch (ORCPT
+        id S233117AbhH1DgF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 27 Aug 2021 23:32:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56764 "EHLO
+        Fri, 27 Aug 2021 23:36:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57522 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233117AbhH1Dch (ORCPT
+        with ESMTP id S233101AbhH1DgE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 27 Aug 2021 23:32:37 -0400
-Received: from mail-pg1-x533.google.com (mail-pg1-x533.google.com [IPv6:2607:f8b0:4864:20::533])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DAD32C0613D9
-        for <netfilter-devel@vger.kernel.org>; Fri, 27 Aug 2021 20:31:47 -0700 (PDT)
-Received: by mail-pg1-x533.google.com with SMTP id r2so7648500pgl.10
-        for <netfilter-devel@vger.kernel.org>; Fri, 27 Aug 2021 20:31:47 -0700 (PDT)
+        Fri, 27 Aug 2021 23:36:04 -0400
+Received: from mail-pf1-x42e.google.com (mail-pf1-x42e.google.com [IPv6:2607:f8b0:4864:20::42e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34EE0C0613D9
+        for <netfilter-devel@vger.kernel.org>; Fri, 27 Aug 2021 20:35:15 -0700 (PDT)
+Received: by mail-pf1-x42e.google.com with SMTP id s29so2525354pfw.5
+        for <netfilter-devel@vger.kernel.org>; Fri, 27 Aug 2021 20:35:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=sender:from:date:to:cc:subject:message-id:mail-followup-to
-         :references:mime-version:content-disposition:in-reply-to;
-        bh=0gNK85B9QyAL+omwX3m/JTaXpsiCGt4569mZ3w/Fr9U=;
-        b=D6WvzjFZD/DMAng5M/juk9i5a5VmFLB+3Jb7ZzFxac9mkoDH7SOpPk3JWHpJDrGojb
-         E4fPKdDWUpCWu51KWtnFCiyt7ugIa+M9PatjlnajMglZPLoq05gP5Ml3tMHhOOAFqLY6
-         NH+u+3imv8zr90NL5+bPLv3BzonFpdkgP+OScT+P7QzyYOdiKpbl4Z7xU3XheU60hHNU
-         APrY5Vreq64hoBTvl5tKqZP4lbIl6UbABw3tbPbZhm+nJQlo+mbLHLJKbcjWhLc+yiSY
-         3z9FcNhQI+8hGuQfadRYe+aIwvVPhS/WEMYhz+8xHU1oRF9qrIHv0IjWd6OUppp1CvvJ
-         Ag4Q==
+        h=sender:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=5VZBCyaq5mR8XSRgUCQBNhuB2c4wh1NWsb0wCIFvIuk=;
+        b=MF/YnlW8s8na5/I52KD60+pJMKM28DhpHCkwP6iUAsbkTMrNNLuG29/MNzLujgV7St
+         xrEsx+EsQV1AfQ4g5GS9kUXIb7i8RGrMNy2r46bIc9TXq6bQEm1yecqkvyU2kR4lKRdA
+         EgmCpneTvuRskNsexdn3FymvETF9xMnMtCCuZ1sknYjJvQh2t7QuaQtRdSgeAbzs9WnU
+         gLUvxSnjxf2bv42fLLVLLRYbF+Cd6/7j7gIjHDgOL/wzGIbDdQnTZ9w3I6ndzAoaty3Q
+         llNu0gfAZ3NGOpDltYxA0N84hDA6c5Fpq7PB+xsPseANbWve4fPCcgbLVZT9kSM5O2LW
+         oClA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:from:date:to:cc:subject:message-id
-         :mail-followup-to:references:mime-version:content-disposition
-         :in-reply-to;
-        bh=0gNK85B9QyAL+omwX3m/JTaXpsiCGt4569mZ3w/Fr9U=;
-        b=rIewYzX/xOpGJTQLOKY70hMBvjMWFgw37VC8Ia2SseW2+DR7MhSqHy30kxx13ipjX7
-         sOwpPVu7F9meX8xCSJOCX4/BTL/Kp3E25G0jjYsVAMnLq6ifke+ozOauNCKITfVP8nZD
-         i8ughNTfTLN5wQ5jTFUqO6tP7LCtvNJMsiEh0yIIwjFVv2wv0fMeZtkbKXEK8x7vNOGT
-         gEHhlAXN1WSO0ZrVohi2gOb+D6Fd2UP2pJ/VYcM5qZbzzLsvQDbomPJ2iHthqBZWoM+v
-         0qGJGhsUbs4boYlq1A6X0ssZ4I+Ns7nqM02o1b+HdEtqEtg8K8jkvEv2iyLSirhdd/nV
-         LRcw==
-X-Gm-Message-State: AOAM533uYJlgUbBatNASawF2FNGjMIGV/rXn3DJuZEym1F1s1eCGCE5c
-        pEzeffjLOt66QP4eWQF7/mxLae19jz4=
-X-Google-Smtp-Source: ABdhPJzji60yoJeAy0OwbTkLaUAt7swmazzSCjwPgeezDfxjeIj8MngTMCAUGDci9Ccg118KRlP3Mg==
-X-Received: by 2002:a62:cfc4:0:b0:3e1:bd85:9b63 with SMTP id b187-20020a62cfc4000000b003e1bd859b63mr12237279pfg.46.1630121507379;
-        Fri, 27 Aug 2021 20:31:47 -0700 (PDT)
+        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
+         :mime-version:content-transfer-encoding;
+        bh=5VZBCyaq5mR8XSRgUCQBNhuB2c4wh1NWsb0wCIFvIuk=;
+        b=BMhx/DDIC6KqlyIfsJUgX1zpEaktC4Ws3fPfGqZJZ0YrroZn/xoqsJgpFfe1vURTbH
+         knwo6D6q9q24am81oUi3WKvnuftegHuMEjatoA4gdmXvjLhVBrkIe1XYTKvvtn8UrBI0
+         BzyrwpWSC5TBxo6mLx9Tt0rOUw6MA39G5v26TKaNIg4eda1nJ7KYGE/KOWInaq/H0uvq
+         HreKGoegW99sgj7pB3EJY061+eeCHCei8Qut2R1SHIkzQehxS1T7xWfQnL2cSJVfTjwO
+         H1AXUBbXMQU5oJxnC7Gctqy9mPTcIBINMB/qM3uWLv81nLa56+0P5w4zAmGf2GoOP+r8
+         cV5g==
+X-Gm-Message-State: AOAM532OotvM9Ma7Ksv3mha4U/ncqIYwHIiF9r+Bn2d3Wc6A4Cu67R2h
+        0RVLgD+zpMnhU5t0mMvjXvK2L47EkRk=
+X-Google-Smtp-Source: ABdhPJxb48+ikjJsq2W3JvqGQHpG98ksNn6xVEacMyy+yzsAI/9QZhXI3N/vqo49kjRfVBmPE3Nw0g==
+X-Received: by 2002:aa7:9096:0:b0:3e1:72fd:a614 with SMTP id i22-20020aa79096000000b003e172fda614mr11981026pfa.56.1630121714543;
+        Fri, 27 Aug 2021 20:35:14 -0700 (PDT)
 Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
-        by smtp.gmail.com with ESMTPSA id j11sm7575085pfa.10.2021.08.27.20.31.44
+        by smtp.gmail.com with ESMTPSA id q21sm8513021pgk.71.2021.08.27.20.35.12
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 27 Aug 2021 20:31:46 -0700 (PDT)
+        Fri, 27 Aug 2021 20:35:14 -0700 (PDT)
 Sender: Duncan Roe <duncan.roe2@gmail.com>
 From:   Duncan Roe <duncan_roe@optusnet.com.au>
-X-Google-Original-From: Duncan Roe <dunc@slk1.local.net>
-Date:   Sat, 28 Aug 2021 13:31:41 +1000
-To:     Jeremy Sowden <jeremy@azazel.net>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: libnetfilter_queue: automake portability warning
-Message-ID: <YSmuHXXVTYnFm6Yw@slk1.local.net>
-Mail-Followup-To: Jeremy Sowden <jeremy@azazel.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <YSlUpg5zfcwNiS50@azazel.net>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH libnetfilter_queue v3 1/6] build: doc: Fix man pages
+Date:   Sat, 28 Aug 2021 13:35:03 +1000
+Message-Id: <20210828033508.15618-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.32.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YSlUpg5zfcwNiS50@azazel.net>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Jeremy,
+Split off shell script from within doxygen/Makefile.am into
+doxygen/build_man.sh.
 
-On Fri, Aug 27, 2021 at 10:09:58PM +0100, Jeremy Sowden wrote:
-> Running autogen.sh gives the following output when it gets to
-> doxygen/Makefile.am:
->
->   doxygen/Makefile.am:3: warning: shell find $(top_srcdir: non-POSIX variable name
->   doxygen/Makefile.am:3: (probably a GNU make extension)
->
-> Automake doesn't understand the GNU make $(shell ...) function and tries
-> to interpret it as an Automake variable.  The Automake people would
-> probably say we shouldn't do that 'cause it's not portable:
->
->   https://www.gnu.org/software/automake/manual/automake.html#Wildcards
->
-> However, if we accept that we are targetting GNU make, but we want to
-> get rid of the warning, I believe there are two ways to do so.  We can
-> tell Automake not to warn about non-portable constructions:
->
->   diff --git a/configure.ac b/configure.ac
->   index 4721eebbab1f..7cd34d079e67 100644
->   --- a/configure.ac
->   +++ b/configure.ac
->   @@ -6,7 +6,7 @@ AC_CANONICAL_HOST
->    AC_CONFIG_MACRO_DIR([m4])
->    AC_CONFIG_HEADERS([config.h])
->
->   -AM_INIT_AUTOMAKE([-Wall foreign subdir-objects
->   +AM_INIT_AUTOMAKE([-Wall -Wno-portability foreign subdir-objects
->           tar-pax no-dist-gzip dist-bzip2 1.6])
->    m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
->
-> On the other hand, if we want to suppress the warning for just this one
-> GNU-ism, we can hide it from automake:
->
->   diff --git a/configure.ac b/configure.ac
->   index 4721eebbab1f..b2b54d3168ad 100644
->   --- a/configure.ac
->   +++ b/configure.ac
->   @@ -56,6 +56,19 @@ AS_IF([test "x$DOXYGEN" = x], [
->                   with_doxygen=no
->           ])
->    ])
->   +#
->   +# Putting $(shell ... ) directly into the doyxgen Makefile.am confuses automake,
->   +# which tries to interpret it as an automake variable:
->   +#
->   +#   doxygen/Makefile.am:3: warning: shell find $(top_srcdir: non-POSIX variable name
->   +#   doxygen/Makefile.am:3: (probably a GNU make extension)
->   +#
->   +# Instead, we use autoconf to substitute it into place after automake has run.
->   +#
->   +AS_IF([test "x$with_doxygen" != no], [
->   +  AC_SUBST([DOC_SRCS], ['$(shell find $(top_srcdir)/src -name '"'"'*.c'"'"')'])
->   +])
->   +
->    AC_OUTPUT
->
->    echo "
->   diff --git a/doxygen/Makefile.am b/doxygen/Makefile.am
->   index f38009b24114..6ed30e21ff75 100644
->   --- a/doxygen/Makefile.am
->   +++ b/doxygen/Makefile.am
->   @@ -1,6 +1,6 @@
->    if HAVE_DOXYGEN
->
->   -doc_srcs = $(shell find $(top_srcdir)/src -name '*.c')
->   +doc_srcs = @DOC_SRCS@
->
->    doxyfile.stamp: $(doc_srcs) Makefile.am
->           rm -rf html man
->
-> J.
+This patch by itself doesn't fix anything.
+The patch is only for traceability, because diff patch format is not very good
+at catching code updates and moving code together.
+Therefore the script is exactly as it was; it still looks a bit different
+because of having to un-double doubled-up $ signs, remove trailing ";/" and so
+on.
 
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+---
+ doxygen/Makefile.am  | 34 +++-------------------------------
+ doxygen/build_man.sh | 29 +++++++++++++++++++++++++++++
+ 2 files changed, 32 insertions(+), 31 deletions(-)
+ create mode 100755 doxygen/build_man.sh
 
-Thanks for the suggestioms. I strongly prefer adding -Wno-portability to
-AM_INIT_AUTOMAKE.
+diff --git a/doxygen/Makefile.am b/doxygen/Makefile.am
+index 29078de..5068544 100644
+--- a/doxygen/Makefile.am
++++ b/doxygen/Makefile.am
+@@ -16,37 +16,7 @@ doxyfile.stamp: $(doc_srcs) Makefile.am
+ 	[ ! -d ../src.distcheck ] || \
+ { set -x; cd ..; rm src; mv src.distcheck src; }
+ 
+-# We need to use bash for its associative array facility
+-# (`bash -p` prevents import of functions from the environment).
+-# The command has to be a single line so the functions work
+-# and so `make` gives all lines to `bash -c`
+-# (hence ";\" at the end of every line but the last).
+-	/bin/bash -p -c 'declare -A renamed_page;\
+-main(){ set -e; cd man/man3; rm -f _*;\
+-  count_real_pages;\
+-  rename_real_pages;\
+-  make_symlinks;\
+-};\
+-count_real_pages(){ page_count=0;\
+-  for i in $$(ls -S);\
+-  do head -n1 $$i | grep -E -q '^\.so' && break;\
+-    page_count=$$(($$page_count + 1));\
+-  done;\
+-  first_link=$$(($$page_count + 1));\
+-};\
+-rename_real_pages(){ for i in $$(ls -S | head -n$$page_count);\
+-  do for j in $$(ls -S | tail -n+$$first_link);\
+-    do grep -E -q $$i$$ $$j && break;\
+-    done;\
+-    mv -f $$i $$j;\
+-    renamed_page[$$i]=$$j;\
+-  done;\
+-};\
+-make_symlinks(){ for j in $$(ls -S | tail -n+$$first_link);\
+-  do ln -sf $${renamed_page[$$(cat $$j | cut -f2 -d/)]} $$j;\
+-  done;\
+-};\
+-main'
++	$(abs_top_srcdir)/doxygen/build_man.sh
+ 
+ 	touch doxyfile.stamp
+ 
+@@ -64,3 +34,5 @@ install-data-local:
+ uninstall-local:
+ 	rm -r $(DESTDIR)$(mandir) man html doxyfile.stamp
+ endif
++
++EXTRA_DIST = build_man.sh
+diff --git a/doxygen/build_man.sh b/doxygen/build_man.sh
+new file mode 100755
+index 0000000..304a305
+--- /dev/null
++++ b/doxygen/build_man.sh
+@@ -0,0 +1,29 @@
++#!/bin/bash -p
++# We need to use bash for its associative array facility
++# (`bash -p` prevents import of functions from the environment).
++declare -A renamed_page
++main(){ set -e; cd man/man3; rm -f _*
++  count_real_pages
++  rename_real_pages
++  make_symlinks
++}
++count_real_pages(){ page_count=0
++  for i in $(ls -S)
++  do head -n1 $i | grep -E -q '^\.so' && break
++    page_count=$(($page_count + 1))
++  done
++  first_link=$(($page_count + 1))
++}
++rename_real_pages(){ for i in $(ls -S | head -n$page_count)
++  do for j in $(ls -S | tail -n+$first_link)
++    do grep -E -q $i$ $j && break
++    done
++    mv -f $i $j
++    renamed_page[$i]=$j
++  done
++}
++make_symlinks(){ for j in $(ls -S | tail -n+$first_link)
++  do ln -sf ${renamed_page[$(cat $j | cut -f2 -d/)]} $j
++  done
++}
++main
+-- 
+2.17.5
 
-The alternative patch is longer, and IMHO less clear to follow. Also it's
-error-prone - consider this line:
-> AS_IF([test "x$with_doxygen" != no], [
-The test needs to be one of the following:
-> [test "x$with_doxygen" != xno]
-> [test "$with_doxygen" != no]
-> [test "$with_doxygen" = yes]
-
-I'd like to get rid of the warning so will send a v3.
-
-Cheers ... Duncan.
