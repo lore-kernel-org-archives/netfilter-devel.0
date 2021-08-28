@@ -2,48 +2,48 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 865ECC432BE
-	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Aug 2021 09:11:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36B4AC432BE
+	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Aug 2021 09:18:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 610A361157
-	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Aug 2021 09:11:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0535E6115B
+	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Aug 2021 09:18:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233618AbhH1JMX (ORCPT
+        id S230496AbhH1JTL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 28 Aug 2021 05:12:23 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:49412 "EHLO
+        Sat, 28 Aug 2021 05:19:11 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:49468 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233595AbhH1JMV (ORCPT
+        with ESMTP id S230444AbhH1JTL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 28 Aug 2021 05:12:21 -0400
+        Sat, 28 Aug 2021 05:19:11 -0400
 Received: from netfilter.org (unknown [78.30.35.141])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 1D70860226;
-        Sat, 28 Aug 2021 11:10:34 +0200 (CEST)
-Date:   Sat, 28 Aug 2021 11:11:27 +0200
+        by mail.netfilter.org (Postfix) with ESMTPSA id C4C4860089;
+        Sat, 28 Aug 2021 11:17:23 +0200 (CEST)
+Date:   Sat, 28 Aug 2021 11:18:17 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Duncan Roe <duncan_roe@optusnet.com.au>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH libnetfilter_queue v3 4/6] build: doc: fix `make
- distcleancheck`
-Message-ID: <20210828091127.GD31560@salvia>
-References: <20210828033508.15618-1-duncan_roe@optusnet.com.au>
- <20210828033508.15618-4-duncan_roe@optusnet.com.au>
+To:     Jeremy Sowden <jeremy@azazel.net>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libnetfilter_log] build: remove broken code from
+ autogen.sh.
+Message-ID: <20210828091817.GA13936@salvia>
+References: <20210827174143.1094883-1-jeremy@azazel.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20210828033508.15618-4-duncan_roe@optusnet.com.au>
+In-Reply-To: <20210827174143.1094883-1-jeremy@azazel.net>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Aug 28, 2021 at 01:35:06PM +1000, Duncan Roe wrote:
-> `make distcleancheck` was not passing before this patchset. Now fixed.
+On Fri, Aug 27, 2021 at 06:41:43PM +0100, Jeremy Sowden wrote:
+> The `include` function, which is intended to include a copy of the
+> kernel's nfnetlink_log.h into the source distribution, has been broken
+> since 2012 when the header file was moved from where the function
+> expects to find it.  The header is manually sync'ed when necessary.
 
 Applied, thanks.
-
-5/6 and 6/6 in this series, I'll catch up to review them later.
