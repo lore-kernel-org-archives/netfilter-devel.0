@@ -2,58 +2,78 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B678EC432BE
-	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Aug 2021 19:53:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87F84C432BE
+	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Aug 2021 20:27:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9153C60EB3
-	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Aug 2021 19:53:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5DF3E60C51
+	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Aug 2021 20:27:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230253AbhH1TyN (ORCPT
+        id S231276AbhH1U2s (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 28 Aug 2021 15:54:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45838 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232200AbhH1TyM (ORCPT
+        Sat, 28 Aug 2021 16:28:48 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:54484 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230253AbhH1U2s (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 28 Aug 2021 15:54:12 -0400
-Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 82AACC061756
-        for <netfilter-devel@vger.kernel.org>; Sat, 28 Aug 2021 12:53:21 -0700 (PDT)
-Received: by a3.inai.de (Postfix, from userid 25121)
-        id 03C2C59BB01EA; Sat, 28 Aug 2021 21:53:19 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by a3.inai.de (Postfix) with ESMTP id 0010C60C43D95;
-        Sat, 28 Aug 2021 21:53:19 +0200 (CEST)
-Date:   Sat, 28 Aug 2021 21:53:19 +0200 (CEST)
-From:   Jan Engelhardt <jengelh@inai.de>
-To:     Jeremy Sowden <jeremy@azazel.net>
-cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH libnetfilter_log 0/6] Implementation of some fields
- omitted by `ipulog_get_packet`.
-In-Reply-To: <20210828193824.1288478-1-jeremy@azazel.net>
-Message-ID: <5n2q9rr7-p920-pro6-3nn2-pn5qps91so64@vanv.qr>
-References: <20210828193824.1288478-1-jeremy@azazel.net>
-User-Agent: Alpine 2.24 (LSU 510 2020-10-10)
+        Sat, 28 Aug 2021 16:28:48 -0400
+Received: from netfilter.org (unknown [78.30.35.141])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 847B26007E;
+        Sat, 28 Aug 2021 22:26:59 +0200 (CEST)
+Date:   Sat, 28 Aug 2021 22:27:52 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jan Engelhardt <jengelh@inai.de>,
+        Jeremy Sowden <jeremy@azazel.net>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: libnetfilter_queue: automake portability warning
+Message-ID: <20210828202752.GA15388@salvia>
+References: <YSlUpg5zfcwNiS50@azazel.net>
+ <7n261qsp-or96-6559-5orp-srp285p4p6q@vanv.qr>
+ <YSqSWaXwzRhhwCk9@slk1.local.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <YSqSWaXwzRhhwCk9@slk1.local.net>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Saturday 2021-08-28 21:38, Jeremy Sowden wrote:
+On Sun, Aug 29, 2021 at 05:45:29AM +1000, Duncan Roe wrote:
+> On Sat, Aug 28, 2021 at 03:39:38PM +0200, Jan Engelhardt wrote:
+> >
+> > On Friday 2021-08-27 23:09, Jeremy Sowden wrote:
+> >
+> > >Running autogen.sh gives the following output when it gets to
+> > >doxygen/Makefile.am:
+> > >
+> > >  doxygen/Makefile.am:3: warning: shell find $(top_srcdir: non-POSIX variable name
+> > >  doxygen/Makefile.am:3: (probably a GNU make extension)
+> > >
+> > >Automake doesn't understand the GNU make $(shell ...) [...]
+> >
+> > Or, third option, ditch the wildcarding and just name the sources. If going for
+> > a single Makefile (ditching recursive make), that will also be beneficial for
+> > parallel building, and the repo is not too large for such undertaking to be
+> > infeasible.
+> >
+> Certainly naming the sources would work.
+> 
+> But, with wildcarding, Makefile.am works unmodified in other projects, such as
+> libmnl. Indeed I was planning to have libmnl/autogen.sh fetch both
+> doxygen/Makefile.am and doxygen/build_man.sh
+> 
+> If the project ends up with a single Makefile, it could `include` nearly all of
+> the existing doxygen/Makefile.am, and autogen.sh could fetch that in other
+> projects.
 
->Jeremy Sowden (6):
->  Add doxygen directory to .gitignore.
->  build: remove references to non-existent man-pages.
->  doc: fix typo's in example.
->  src: use calloc instead of malloc + memset.
->  libipulog: use correct index to find attribute in packet.
->  libipulog: fill in missing packet fields.
+doxygen's Makefile.am is relatively small now.
 
-Subjects are not full sentences, as such they should never contain 
-trailing periods.
+autogen.sh can be used to keep build_man.sh in sync, that should be
+good enough, my main concern is that addressed with shell script split
+off.
+
+So I'd suggest remove the wildcarding from Makefile.am too.
