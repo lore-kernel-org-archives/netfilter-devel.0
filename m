@@ -7,304 +7,223 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52498C432BE
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Aug 2021 22:34:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29D2DC4320A
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Aug 2021 22:34:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2D2EC60FF2
+	by mail.kernel.org (Postfix) with ESMTP id 044C060FF2
 	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Aug 2021 22:34:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230140AbhH3WfO (ORCPT
+        id S238897AbhH3WfQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 30 Aug 2021 18:35:14 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:45470 "EHLO
+        Mon, 30 Aug 2021 18:35:16 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:45476 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238897AbhH3WfO (ORCPT
+        with ESMTP id S238898AbhH3WfP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 30 Aug 2021 18:35:14 -0400
+        Mon, 30 Aug 2021 18:35:15 -0400
 Received: from localhost.localdomain (unknown [78.30.35.141])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 5034F6007D;
-        Tue, 31 Aug 2021 00:33:19 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id D7C1D60087;
+        Tue, 31 Aug 2021 00:33:20 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     phil@nwl.cc
-Subject: [PATCH nft 1/2] netlink_delinearize: incorrect meta protocol dependency kill again
-Date:   Tue, 31 Aug 2021 00:34:11 +0200
-Message-Id: <20210830223412.12865-1-pablo@netfilter.org>
+Subject: [PATCH nft 2/2] rule: remove redundant meta protocol from the evaluation step
+Date:   Tue, 31 Aug 2021 00:34:12 +0200
+Message-Id: <20210830223412.12865-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20210830223412.12865-1-pablo@netfilter.org>
+References: <20210830223412.12865-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch adds __meta_dependency_may_kill() to consolidate inspection
-of the meta protocol, nfproto and ether type expression to validate
-dependency removal on listings.
+567ea4774e13 ("netlink_delinearize: incorrect meta protocol dependency kill")
+does not document two cases that are handled in this patch:
 
-Phil reports that 567ea4774e13 includes an update on the ip and ip6
-families that is not described in the patch, moreover, it flips the
-default verdict from true to false.
+- 'meta protocol ip' is removed if used in the ip family.
+- 'meta protocol ip6' is removed if used in the ip6 family.
 
-Fixes: 567ea4774e13 ("netlink_delinearize: incorrect meta protocol dependency kill")
+This patch removes this redundancy earlier, from the evaluation step
+before netlink bytecode generation.
+
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/netlink_delinearize.c                     | 106 ++++++++++--------
- .../testcases/optimizations/dependency_kill   |  48 ++++++++
- .../optimizations/dumps/dependency_kill.nft   |  42 +++++++
- 3 files changed, 151 insertions(+), 45 deletions(-)
- create mode 100755 tests/shell/testcases/optimizations/dependency_kill
- create mode 100644 tests/shell/testcases/optimizations/dumps/dependency_kill.nft
+ src/rule.c                  | 77 ++++++++++++++++++++++++++-----------
+ tests/py/ip/meta.t          |  2 +-
+ tests/py/ip/meta.t.payload  |  2 -
+ tests/py/ip6/meta.t         |  2 +-
+ tests/py/ip6/meta.t.payload |  2 -
+ 5 files changed, 56 insertions(+), 29 deletions(-)
 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 92617a46df6f..0f00b9555266 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -1983,6 +1983,55 @@ static void payload_match_postprocess(struct rule_pp_ctx *ctx,
- 	}
+diff --git a/src/rule.c b/src/rule.c
+index 3e59f27c69be..6091067f608b 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -2757,49 +2757,80 @@ static void payload_do_merge(struct stmt *sa[], unsigned int n)
  }
  
-+static uint8_t ether_type_to_nfproto(uint16_t l3proto)
-+{
-+	switch(l3proto) {
-+	case ETH_P_IP:
-+		return NFPROTO_IPV4;
-+	case ETH_P_IPV6:
-+		return NFPROTO_IPV6;
-+	default:
-+		break;
-+	}
-+
-+	return NFPROTO_UNSPEC;
-+}
-+
-+static bool __meta_dependency_may_kill(const struct expr *dep, uint8_t *nfproto)
-+{
-+	uint16_t l3proto;
-+
-+	switch (dep->left->etype) {
-+	case EXPR_META:
-+		switch (dep->left->meta.key) {
-+		case NFT_META_NFPROTO:
-+			*nfproto = mpz_get_uint8(dep->right->value);
-+			break;
-+		case NFT_META_PROTOCOL:
-+			l3proto = mpz_get_uint16(dep->right->value);
-+			*nfproto = ether_type_to_nfproto(l3proto);
-+			break;
-+		default:
-+			return true;
-+		}
-+		break;
-+	case EXPR_PAYLOAD:
-+		if (dep->left->payload.base != PROTO_BASE_LL_HDR)
-+			return true;
-+
-+		if (dep->left->dtype != &ethertype_type)
-+			return true;
-+
-+		l3proto = mpz_get_uint16(dep->right->value);
-+		*nfproto = ether_type_to_nfproto(l3proto);
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return false;
-+}
-+
- /* We have seen a protocol key expression that restricts matching at the network
-  * base, leave it in place since this is meaninful in bridge, inet and netdev
-  * families. Exceptions are ICMP and ICMPv6 where this code assumes that can
-@@ -1993,66 +2042,33 @@ static bool meta_may_dependency_kill(struct payload_dep_ctx *ctx,
- 				     const struct expr *expr)
+ /**
+- * payload_try_merge - try to merge consecutive payload match statements
++ * stmt_reduce - reduce statements in rule
+  *
+  * @rule:	nftables rule
+  *
++ * This function aims to:
++ *
++ * - remove redundant statement, e.g. remove 'meta protocol ip' if family is ip
++ * - merge consecutive payload match statements
++ *
+  * Locate sequences of payload match statements referring to adjacent
+  * header locations and merge those using only equality relations.
+  *
+  * As a side-effect, payload match statements are ordered in ascending
+  * order according to the location of the payload.
+  */
+-static void payload_try_merge(const struct rule *rule)
++static void stmt_reduce(const struct rule *rule)
  {
- 	struct expr *dep = ctx->pdep->expr;
--	uint16_t l3proto, protocol;
--	uint8_t l4proto;
-+	uint8_t l4proto, nfproto;
++	struct stmt *stmt, *dstmt = NULL, *next;
+ 	struct stmt *sa[rule->num_stmts];
+-	struct stmt *stmt, *next;
+ 	unsigned int idx = 0;
  
- 	if (ctx->pbase != PROTO_BASE_NETWORK_HDR)
- 		return true;
- 
-+	if (__meta_dependency_may_kill(dep, &nfproto))
-+		return true;
+ 	list_for_each_entry_safe(stmt, next, &rule->stmts, list) {
++		/* delete this redundant statement */
++		if (dstmt) {
++			list_del(&dstmt->list);
++			stmt_free(dstmt);
++			dstmt = NULL;
++		}
 +
- 	switch (family) {
- 	case NFPROTO_INET:
- 	case NFPROTO_NETDEV:
- 	case NFPROTO_BRIDGE:
- 		break;
- 	default:
--		if (dep->left->etype != EXPR_META ||
--		    dep->right->etype != EXPR_VALUE)
-+		if (family == NFPROTO_IPV4 &&
-+		    nfproto != NFPROTO_IPV4)
-+			return false;
-+		else if (family == NFPROTO_IPV6 &&
-+			 nfproto != NFPROTO_IPV6)
- 			return false;
+ 		/* Must not merge across other statements */
+-		if (stmt->ops->type != STMT_EXPRESSION)
+-			goto do_merge;
++		if (stmt->ops->type != STMT_EXPRESSION) {
++			if (idx < 2)
++				continue;
  
--		if (dep->left->meta.key == NFT_META_PROTOCOL) {
--			protocol = mpz_get_uint16(dep->right->value);
--
--			if (family == NFPROTO_IPV4 &&
--			    protocol == ETH_P_IP)
--				return true;
--			else if (family == NFPROTO_IPV6 &&
--				 protocol == ETH_P_IPV6)
--				return true;
--		}
--
--		return false;
-+		return true;
- 	}
- 
- 	if (expr->left->meta.key != NFT_META_L4PROTO)
- 		return true;
- 
--	l3proto = mpz_get_uint16(dep->right->value);
--
--	switch (dep->left->etype) {
--	case EXPR_META:
--		if (dep->left->meta.key != NFT_META_NFPROTO &&
--		    dep->left->meta.key != NFT_META_PROTOCOL)
--			return true;
--		break;
--	case EXPR_PAYLOAD:
--		if (dep->left->payload.base != PROTO_BASE_LL_HDR)
--			return true;
--
--		switch(l3proto) {
--		case ETH_P_IP:
--			l3proto = NFPROTO_IPV4;
--			break;
--		case ETH_P_IPV6:
--			l3proto = NFPROTO_IPV6;
+-		if (stmt->expr->etype != EXPR_RELATIONAL)
++			payload_do_merge(sa, idx);
++			idx = 0;
+ 			continue;
+-		if (stmt->expr->left->etype != EXPR_PAYLOAD)
++		}
++
++		if (stmt->expr->etype != EXPR_RELATIONAL)
+ 			continue;
+ 		if (stmt->expr->right->etype != EXPR_VALUE)
+ 			continue;
+-		switch (stmt->expr->op) {
+-		case OP_EQ:
+-		case OP_IMPLICIT:
+-		case OP_NEQ:
 -			break;
 -		default:
--			break;
+-			continue;
 -		}
--		break;
--	default:
--		break;
--	}
--
- 	l4proto = mpz_get_uint8(expr->right->value);
  
- 	switch (l4proto) {
-@@ -2063,8 +2079,8 @@ static bool meta_may_dependency_kill(struct payload_dep_ctx *ctx,
- 		return false;
+-		sa[idx++] = stmt;
+-		continue;
+-do_merge:
+-		if (idx < 2)
+-			continue;
+-		payload_do_merge(sa, idx);
+-		idx = 0;
++		if (stmt->expr->left->etype == EXPR_PAYLOAD) {
++			switch (stmt->expr->op) {
++			case OP_EQ:
++			case OP_IMPLICIT:
++			case OP_NEQ:
++				break;
++			default:
++				continue;
++			}
++
++			sa[idx++] = stmt;
++		} else if (stmt->expr->left->etype == EXPR_META) {
++			switch (stmt->expr->op) {
++			case OP_EQ:
++			case OP_IMPLICIT:
++				if (stmt->expr->left->meta.key == NFT_META_PROTOCOL) {
++					uint16_t protocol;
++
++					protocol = mpz_get_uint16(stmt->expr->right->value);
++					if ((rule->handle.family == NFPROTO_IPV4 &&
++					     protocol == ETH_P_IP) ||
++					    (rule->handle.family == NFPROTO_IPV6 &&
++					     protocol == ETH_P_IPV6))
++						dstmt = stmt;
++				}
++				break;
++			default:
++				break;
++			}
++		}
  	}
  
--	if ((l3proto == NFPROTO_IPV4 && l4proto == IPPROTO_ICMPV6) ||
--	    (l3proto == NFPROTO_IPV6 && l4proto == IPPROTO_ICMP))
-+	if ((nfproto == NFPROTO_IPV4 && l4proto == IPPROTO_ICMPV6) ||
-+	    (nfproto == NFPROTO_IPV6 && l4proto == IPPROTO_ICMP))
- 		return false;
+ 	if (idx > 1)
+@@ -2808,6 +2839,6 @@ do_merge:
  
- 	return true;
-diff --git a/tests/shell/testcases/optimizations/dependency_kill b/tests/shell/testcases/optimizations/dependency_kill
-new file mode 100755
-index 000000000000..904eecf89b6e
---- /dev/null
-+++ b/tests/shell/testcases/optimizations/dependency_kill
-@@ -0,0 +1,48 @@
-+#!/bin/bash
-+
-+set -e
-+
-+RULESET="table bridge foo {
-+	chain bar {
-+		meta protocol ip udp dport 67
-+		meta protocol ip6 udp dport 67
-+		ether type ip udp dport 67
-+		ether type ip6 udp dport 67
-+	}
-+}
-+table ip foo {
-+	chain bar {
-+		meta protocol ip udp dport 67
-+		meta protocol ip6 udp dport 67
-+		ether type ip udp dport 67
-+		ether type ip6 udp dport 67
-+	}
-+}
-+table ip6 foo {
-+	chain bar {
-+		meta protocol ip udp dport 67
-+		meta protocol ip6 udp dport 67
-+		ether type ip udp dport 67
-+		ether type ip6 udp dport 67
-+	}
-+}
-+table netdev foo {
-+	chain bar {
-+		meta protocol ip udp dport 67
-+		meta protocol ip6 udp dport 67
-+		ether type ip udp dport 67
-+		ether type ip6 udp dport 67
-+	}
-+}
-+table inet foo {
-+	chain bar {
-+		meta protocol ip udp dport 67
-+		meta protocol ip6 udp dport 67
-+		ether type ip udp dport 67
-+		ether type ip6 udp dport 67
-+		meta nfproto ipv4 udp dport 67
-+		meta nfproto ipv6 udp dport 67
-+	}
-+}"
-+
-+$NFT -f - <<< $RULESET
-diff --git a/tests/shell/testcases/optimizations/dumps/dependency_kill.nft b/tests/shell/testcases/optimizations/dumps/dependency_kill.nft
-new file mode 100644
-index 000000000000..1781f7be0c09
---- /dev/null
-+++ b/tests/shell/testcases/optimizations/dumps/dependency_kill.nft
-@@ -0,0 +1,42 @@
-+table bridge foo {
-+	chain bar {
-+		meta protocol ip udp dport 67
-+		meta protocol ip6 udp dport 67
-+		ether type ip udp dport 67
-+		ether type ip6 udp dport 67
-+	}
-+}
-+table ip foo {
-+	chain bar {
-+		udp dport 67
-+		meta protocol ip6 udp dport 67
-+		udp dport 67
-+		ether type ip6 udp dport 67
-+	}
-+}
-+table ip6 foo {
-+	chain bar {
-+		meta protocol ip udp dport 67
-+		udp dport 67
-+		ether type ip udp dport 67
-+		udp dport 67
-+	}
-+}
-+table netdev foo {
-+	chain bar {
-+		meta protocol ip udp dport 67
-+		meta protocol ip6 udp dport 67
-+		ether type ip udp dport 67
-+		ether type ip6 udp dport 67
-+	}
-+}
-+table inet foo {
-+	chain bar {
-+		meta protocol ip udp dport 67
-+		meta protocol ip6 udp dport 67
-+		ether type ip udp dport 67
-+		ether type ip6 udp dport 67
-+		meta nfproto ipv4 udp dport 67
-+		meta nfproto ipv6 udp dport 67
-+	}
-+}
+ struct error_record *rule_postprocess(struct rule *rule)
+ {
+-	payload_try_merge(rule);
++	stmt_reduce(rule);
+ 	return NULL;
+ }
+diff --git a/tests/py/ip/meta.t b/tests/py/ip/meta.t
+index fecd0caf71a7..5a05923a1ce1 100644
+--- a/tests/py/ip/meta.t
++++ b/tests/py/ip/meta.t
+@@ -8,7 +8,7 @@ meta l4proto ipv6-icmp icmpv6 type nd-router-advert;ok;icmpv6 type nd-router-adv
+ meta l4proto 58 icmpv6 type nd-router-advert;ok;icmpv6 type nd-router-advert
+ icmpv6 type nd-router-advert;ok
+ 
+-meta protocol ip udp dport 67;ok
++meta protocol ip udp dport 67;ok;udp dport 67
+ 
+ meta ibrname "br0";fail
+ meta obrname "br0";fail
+diff --git a/tests/py/ip/meta.t.payload b/tests/py/ip/meta.t.payload
+index a1fd00864ef9..afde5cc13ac5 100644
+--- a/tests/py/ip/meta.t.payload
++++ b/tests/py/ip/meta.t.payload
+@@ -47,8 +47,6 @@ ip6 test-ip4 input
+ 
+ # meta protocol ip udp dport 67
+ ip test-ip4 input
+-  [ meta load protocol => reg 1 ]
+-  [ cmp eq reg 1 0x00000008 ]
+   [ meta load l4proto => reg 1 ]
+   [ cmp eq reg 1 0x00000011 ]
+   [ payload load 2b @ transport header + 2 => reg 1 ]
+diff --git a/tests/py/ip6/meta.t b/tests/py/ip6/meta.t
+index 2c1aee2309a9..471e14811975 100644
+--- a/tests/py/ip6/meta.t
++++ b/tests/py/ip6/meta.t
+@@ -10,7 +10,7 @@ meta l4proto 1 icmp type echo-request;ok;icmp type echo-request
+ icmp type echo-request;ok
+ 
+ meta protocol ip udp dport 67;ok
+-meta protocol ip6 udp dport 67;ok
++meta protocol ip6 udp dport 67;ok;udp dport 67
+ 
+ meta sdif "lo" accept;ok
+ meta sdifname != "vrf1" accept;ok
+diff --git a/tests/py/ip6/meta.t.payload b/tests/py/ip6/meta.t.payload
+index 59c20d994138..0e3db6ba07f9 100644
+--- a/tests/py/ip6/meta.t.payload
++++ b/tests/py/ip6/meta.t.payload
+@@ -56,8 +56,6 @@ ip6 test-ip6 input
+ 
+ # meta protocol ip6 udp dport 67
+ ip6 test-ip6 input
+-  [ meta load protocol => reg 1 ]
+-  [ cmp eq reg 1 0x0000dd86 ]
+   [ meta load l4proto => reg 1 ]
+   [ cmp eq reg 1 0x00000011 ]
+   [ payload load 2b @ transport header + 2 => reg 1 ]
 -- 
 2.20.1
 
