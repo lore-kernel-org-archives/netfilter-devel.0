@@ -2,131 +2,114 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,INCLUDES_PULL_REQUEST,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88708C432BE
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Aug 2021 09:39:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4886C432BE
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Aug 2021 09:39:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 69FB461053
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Aug 2021 09:39:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C771D61053
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Aug 2021 09:39:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235604AbhH3Jj5 (ORCPT
+        id S235464AbhH3Jj6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 30 Aug 2021 05:39:57 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:42584 "EHLO
+        Mon, 30 Aug 2021 05:39:58 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:42588 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235464AbhH3Jj5 (ORCPT
+        with ESMTP id S235583AbhH3Jj6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 30 Aug 2021 05:39:57 -0400
+        Mon, 30 Aug 2021 05:39:58 -0400
 Received: from localhost.localdomain (unknown [78.30.35.141])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 4B7B76003C;
-        Mon, 30 Aug 2021 11:38:03 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 85CD0600B0;
+        Mon, 30 Aug 2021 11:38:05 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 0/8] Netfilter updates for net-next
-Date:   Mon, 30 Aug 2021 11:38:44 +0200
-Message-Id: <20210830093852.21654-1-pablo@netfilter.org>
+Subject: [PATCH net-next 2/8] netfilter: ecache: remove another indent level
+Date:   Mon, 30 Aug 2021 11:38:46 +0200
+Message-Id: <20210830093852.21654-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20210830093852.21654-1-pablo@netfilter.org>
+References: <20210830093852.21654-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+From: Florian Westphal <fw@strlen.de>
 
-The following patchset contains Netfilter updates for net-next:
+... by changing:
 
-1) Clean up and consolidate ct ecache infrastructure by merging ct and
-   expect notifiers, from Florian Westphal.
+if (unlikely(ret < 0 || missed)) {
+	if (ret < 0) {
+to
+if (likely(ret >= 0 && !missed))
+	goto out;
 
-2) Missing counters and timestamp in nfnetlink_queue and _log conntrack
-   information.
+if (ret < 0) {
 
-3) Missing error check for xt_register_template() in iptables mangle,
-   as a incremental fix for the previous pull request, also from
-   Florian Westphal.
+After this nf_conntrack_eventmask_report and nf_ct_deliver_cached_events
+look pretty much the same, next patch moves common code to a helper.
 
-4) Add netfilter hooks for the SRv6 lightweigh tunnel driver, from
-   Ryoga Sato. The hooks are enabled via nf_hooks_lwtunnel sysctl
-   to make sure existing netfilter rulesets do not break. There is
-   a static key to disable the hooks by default.
+This patch has no effect on generated code.
 
-   The pktgen_bench_xmit_mode_netif_receive.sh shows no noticeable
-   impact in the seg6_input path for non-netfilter users: similar
-   numbers with and without this patch.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_conntrack_ecache.c | 34 +++++++++++++++--------------
+ 1 file changed, 18 insertions(+), 16 deletions(-)
 
-   This is a sample of the perf report output:
+diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
+index 3f1e0add58bc..127a0fa6ae43 100644
+--- a/net/netfilter/nf_conntrack_ecache.c
++++ b/net/netfilter/nf_conntrack_ecache.c
+@@ -165,25 +165,27 @@ int nf_conntrack_eventmask_report(unsigned int eventmask, struct nf_conn *ct,
+ 		goto out_unlock;
+ 
+ 	ret = notify->fcn(eventmask | missed, &item);
+-	if (unlikely(ret < 0 || missed)) {
+-		spin_lock_bh(&ct->lock);
+-		if (ret < 0) {
+-			/* This is a destroy event that has been
+-			 * triggered by a process, we store the PORTID
+-			 * to include it in the retransmission.
+-			 */
+-			if (eventmask & (1 << IPCT_DESTROY)) {
+-				if (e->portid == 0 && portid != 0)
+-					e->portid = portid;
+-				e->state = NFCT_ECACHE_DESTROY_FAIL;
+-			} else {
+-				e->missed |= eventmask;
+-			}
++	if (likely(ret >= 0 && !missed))
++		goto out_unlock;
++
++	spin_lock_bh(&ct->lock);
++	if (ret < 0) {
++		/* This is a destroy event that has been
++		 * triggered by a process, we store the PORTID
++		 * to include it in the retransmission.
++		 */
++		if (eventmask & (1 << IPCT_DESTROY)) {
++			if (e->portid == 0 && portid != 0)
++				e->portid = portid;
++			e->state = NFCT_ECACHE_DESTROY_FAIL;
+ 		} else {
+-			e->missed &= ~missed;
++			e->missed |= eventmask;
+ 		}
+-		spin_unlock_bh(&ct->lock);
++	} else {
++		e->missed &= ~missed;
+ 	}
++	spin_unlock_bh(&ct->lock);
++
+ out_unlock:
+ 	rcu_read_unlock();
+ 	return ret;
+-- 
+2.20.1
 
-    11.67%  kpktgend_0       [ipv6]                    [k] ipv6_get_saddr_eval
-     7.89%  kpktgend_0       [ipv6]                    [k] __ipv6_addr_label
-     7.52%  kpktgend_0       [ipv6]                    [k] __ipv6_dev_get_saddr
-     6.63%  kpktgend_0       [kernel.vmlinux]          [k] asm_exc_nmi
-     4.74%  kpktgend_0       [ipv6]                    [k] fib6_node_lookup_1
-     3.48%  kpktgend_0       [kernel.vmlinux]          [k] pskb_expand_head
-     3.33%  kpktgend_0       [ipv6]                    [k] ip6_rcv_core.isra.29
-     3.33%  kpktgend_0       [ipv6]                    [k] seg6_do_srh_encap
-     2.53%  kpktgend_0       [ipv6]                    [k] ipv6_dev_get_saddr
-     2.45%  kpktgend_0       [ipv6]                    [k] fib6_table_lookup
-     2.24%  kpktgend_0       [kernel.vmlinux]          [k] ___cache_free
-     2.16%  kpktgend_0       [ipv6]                    [k] ip6_pol_route
-     2.11%  kpktgend_0       [kernel.vmlinux]          [k] __ipv6_addr_type
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 87e5ef4b19cec86c861e3ebab3a5d840ecc2f4a4:
-
-  mctp: Remove the repeated declaration (2021-08-25 11:23:14 +0100)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git HEAD
-
-for you to fetch changes up to 7a3f5b0de3647c854e34269c3332d7a1e902901a:
-
-  netfilter: add netfilter hooks to SRv6 data plane (2021-08-30 01:51:36 +0200)
-
-----------------------------------------------------------------
-Florian Westphal (5):
-      netfilter: ecache: remove one indent level
-      netfilter: ecache: remove another indent level
-      netfilter: ecache: add common helper for nf_conntrack_eventmask_report
-      netfilter: ecache: prepare for event notifier merge
-      netfilter: ecache: remove nf_exp_event_notifier structure
-
-Lukas Bulwahn (1):
-      netfilter: x_tables: handle xt_register_template() returning an error value
-
-Pablo Neira Ayuso (1):
-      netfilter: ctnetlink: missing counters and timestamp in nfnetlink_{log,queue}
-
-Ryoga Saito (1):
-      netfilter: add netfilter hooks to SRv6 data plane
-
- Documentation/networking/nf_conntrack-sysctl.rst |   7 +
- include/net/lwtunnel.h                           |   3 +
- include/net/netfilter/nf_conntrack_ecache.h      |  32 ++--
- include/net/netfilter/nf_hooks_lwtunnel.h        |   7 +
- include/net/netns/conntrack.h                    |   1 -
- net/core/lwtunnel.c                              |   3 +
- net/ipv4/netfilter/iptable_mangle.c              |   2 +
- net/ipv6/seg6_iptunnel.c                         |  75 +++++++-
- net/ipv6/seg6_local.c                            | 111 ++++++++----
- net/netfilter/Makefile                           |   3 +
- net/netfilter/nf_conntrack_ecache.c              | 211 +++++++++--------------
- net/netfilter/nf_conntrack_netlink.c             |  56 ++----
- net/netfilter/nf_conntrack_standalone.c          |  15 ++
- net/netfilter/nf_hooks_lwtunnel.c                |  53 ++++++
- 14 files changed, 345 insertions(+), 234 deletions(-)
- create mode 100644 include/net/netfilter/nf_hooks_lwtunnel.h
- create mode 100644 net/netfilter/nf_hooks_lwtunnel.c
