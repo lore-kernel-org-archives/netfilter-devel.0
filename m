@@ -2,67 +2,131 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,INCLUDES_PULL_REQUEST,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3276FC432BE
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Aug 2021 09:16:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88708C432BE
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Aug 2021 09:39:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0987A6102A
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Aug 2021 09:16:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 69FB461053
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Aug 2021 09:39:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235073AbhH3JRT (ORCPT
+        id S235604AbhH3Jj5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 30 Aug 2021 05:17:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59838 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235042AbhH3JRS (ORCPT
+        Mon, 30 Aug 2021 05:39:57 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:42584 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235464AbhH3Jj5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 30 Aug 2021 05:17:18 -0400
-Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D627C061575
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Aug 2021 02:16:25 -0700 (PDT)
-Received: by a3.inai.de (Postfix, from userid 25121)
-        id 9F3A55871AF15; Mon, 30 Aug 2021 11:16:22 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by a3.inai.de (Postfix) with ESMTP id 9E66761032CCB;
-        Mon, 30 Aug 2021 11:16:22 +0200 (CEST)
-Date:   Mon, 30 Aug 2021 11:16:22 +0200 (CEST)
-From:   Jan Engelhardt <jengelh@inai.de>
-To:     "a.wojcik hyp.home.pl" <a.wojcik@hyp.home.pl>
-cc:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Subject: Re: Patch for iptables v 1.8.7 mac extension
-In-Reply-To: <680249120.4405960.1630312157715@poczta.home.pl>
-Message-ID: <32np9833-6qp2-n779-r745-s1344rn86193@vanv.qr>
-References: <680249120.4405960.1630312157715@poczta.home.pl>
-User-Agent: Alpine 2.24 (LSU 510 2020-10-10)
+        Mon, 30 Aug 2021 05:39:57 -0400
+Received: from localhost.localdomain (unknown [78.30.35.141])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 4B7B76003C;
+        Mon, 30 Aug 2021 11:38:03 +0200 (CEST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
+Subject: [PATCH net-next 0/8] Netfilter updates for net-next
+Date:   Mon, 30 Aug 2021 11:38:44 +0200
+Message-Id: <20210830093852.21654-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Monday 2021-08-30 10:29, a.wojcik hyp.home.pl wrote:
+Hi,
 
->Hi.
->In iptables version 1.8.7 mac extension sticks words together.
->Title: Patch for libxt_mac.c
->Description: Extension mac in iptables v 1.8.7 sticks words together
->Best Regards.
->Adam Wójcik
+The following patchset contains Netfilter updates for net-next:
 
->@@ -55,7 +55,7 @@ static void mac_save(const void *ip, const struct xt_entry_match *match)
-> 	const struct xt_mac_info *info = (void *)match->data;
-> 
-> 	if (info->invert)
->-		printf(" !");
->+		printf(" ! ");
-> 
-> 	printf(" --mac-source ");
-> 	xtables_print_mac(info->srcaddr);
+1) Clean up and consolidate ct ecache infrastructure by merging ct and
+   expect notifiers, from Florian Westphal.
 
-At least in this one instance, it's rather obvious you now have two spaces
-after !.
+2) Missing counters and timestamp in nfnetlink_queue and _log conntrack
+   information.
+
+3) Missing error check for xt_register_template() in iptables mangle,
+   as a incremental fix for the previous pull request, also from
+   Florian Westphal.
+
+4) Add netfilter hooks for the SRv6 lightweigh tunnel driver, from
+   Ryoga Sato. The hooks are enabled via nf_hooks_lwtunnel sysctl
+   to make sure existing netfilter rulesets do not break. There is
+   a static key to disable the hooks by default.
+
+   The pktgen_bench_xmit_mode_netif_receive.sh shows no noticeable
+   impact in the seg6_input path for non-netfilter users: similar
+   numbers with and without this patch.
+
+   This is a sample of the perf report output:
+
+    11.67%  kpktgend_0       [ipv6]                    [k] ipv6_get_saddr_eval
+     7.89%  kpktgend_0       [ipv6]                    [k] __ipv6_addr_label
+     7.52%  kpktgend_0       [ipv6]                    [k] __ipv6_dev_get_saddr
+     6.63%  kpktgend_0       [kernel.vmlinux]          [k] asm_exc_nmi
+     4.74%  kpktgend_0       [ipv6]                    [k] fib6_node_lookup_1
+     3.48%  kpktgend_0       [kernel.vmlinux]          [k] pskb_expand_head
+     3.33%  kpktgend_0       [ipv6]                    [k] ip6_rcv_core.isra.29
+     3.33%  kpktgend_0       [ipv6]                    [k] seg6_do_srh_encap
+     2.53%  kpktgend_0       [ipv6]                    [k] ipv6_dev_get_saddr
+     2.45%  kpktgend_0       [ipv6]                    [k] fib6_table_lookup
+     2.24%  kpktgend_0       [kernel.vmlinux]          [k] ___cache_free
+     2.16%  kpktgend_0       [ipv6]                    [k] ip6_pol_route
+     2.11%  kpktgend_0       [kernel.vmlinux]          [k] __ipv6_addr_type
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 87e5ef4b19cec86c861e3ebab3a5d840ecc2f4a4:
+
+  mctp: Remove the repeated declaration (2021-08-25 11:23:14 +0100)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git HEAD
+
+for you to fetch changes up to 7a3f5b0de3647c854e34269c3332d7a1e902901a:
+
+  netfilter: add netfilter hooks to SRv6 data plane (2021-08-30 01:51:36 +0200)
+
+----------------------------------------------------------------
+Florian Westphal (5):
+      netfilter: ecache: remove one indent level
+      netfilter: ecache: remove another indent level
+      netfilter: ecache: add common helper for nf_conntrack_eventmask_report
+      netfilter: ecache: prepare for event notifier merge
+      netfilter: ecache: remove nf_exp_event_notifier structure
+
+Lukas Bulwahn (1):
+      netfilter: x_tables: handle xt_register_template() returning an error value
+
+Pablo Neira Ayuso (1):
+      netfilter: ctnetlink: missing counters and timestamp in nfnetlink_{log,queue}
+
+Ryoga Saito (1):
+      netfilter: add netfilter hooks to SRv6 data plane
+
+ Documentation/networking/nf_conntrack-sysctl.rst |   7 +
+ include/net/lwtunnel.h                           |   3 +
+ include/net/netfilter/nf_conntrack_ecache.h      |  32 ++--
+ include/net/netfilter/nf_hooks_lwtunnel.h        |   7 +
+ include/net/netns/conntrack.h                    |   1 -
+ net/core/lwtunnel.c                              |   3 +
+ net/ipv4/netfilter/iptable_mangle.c              |   2 +
+ net/ipv6/seg6_iptunnel.c                         |  75 +++++++-
+ net/ipv6/seg6_local.c                            | 111 ++++++++----
+ net/netfilter/Makefile                           |   3 +
+ net/netfilter/nf_conntrack_ecache.c              | 211 +++++++++--------------
+ net/netfilter/nf_conntrack_netlink.c             |  56 ++----
+ net/netfilter/nf_conntrack_standalone.c          |  15 ++
+ net/netfilter/nf_hooks_lwtunnel.c                |  53 ++++++
+ 14 files changed, 345 insertions(+), 234 deletions(-)
+ create mode 100644 include/net/netfilter/nf_hooks_lwtunnel.h
+ create mode 100644 net/netfilter/nf_hooks_lwtunnel.c
