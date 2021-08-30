@@ -2,89 +2,116 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66949C432BE
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Aug 2021 10:00:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADAB9C432BE
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Aug 2021 10:02:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4426E61057
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Aug 2021 10:00:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8971561076
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Aug 2021 10:02:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236021AbhH3KBA (ORCPT
+        id S234178AbhH3KDp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 30 Aug 2021 06:01:00 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50428 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235950AbhH3KBA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 30 Aug 2021 06:01:00 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPS id E554C61076;
-        Mon, 30 Aug 2021 10:00:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1630317606;
-        bh=EMljaQJ/hYz+7LPscSCU+AIZGZsC/CcVGaugvSVLMYc=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=ht8nB33CL+upu/rtmYLJGGCN0HvYAQKlDEqDN1gf6bySRRgpSb1h574JlC2d7ucjY
-         PoGG8SqwErd8ff50oKYrcV6OHFC24PtVrY2Qd1IiFL4fsTi1GfImS0HweVEmglSGIm
-         aTi1pD+iRaXOlMgViUW1bU6igsXfXa4aCoZ/uF7TPL4MeCP6ikfJEbL4UrROol1Tbs
-         ptqF5SGPYHVMZkaQAteXsPF43/idjXcW7xAs87roxNE+InvTlKHnMNms6ufkl7Q/3k
-         IMtKkQlo+6pP2CEwx62WtHeZWSGwS2bebz6nknPkCtl0AiPAsg4mJUs32cLoX8WFYL
-         W1kgbdF8eaeFg==
-Content-Type: text/plain; charset="utf-8"
+        Mon, 30 Aug 2021 06:03:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42404 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233248AbhH3KDp (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 30 Aug 2021 06:03:45 -0400
+Received: from kadath.azazel.net (kadath.azazel.net [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F56EC061575
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Aug 2021 03:02:52 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=8u+LPP21mFD+eg59Bq9nuAbo0LtNaI24+5QwilZxCk8=; b=lEzsfpv6AmpCHHnV+6aaLJEDTt
+        4gV6X/iUlJFaSi9U3JGQoQsEX+N43emm1blBcKLnUIHskQ6rKs0rcCntsbhjydqYab75o8Nckt4Vt
+        r7VBnkCyuQX6Cy3WXReQYwOqSEKLnUXMCBmKjw5NS4umKnAPlXsYjTh0G01660znzaiAKmP4xFI0k
+        rKJQF9G5HoQlRFDakDdqPTpBtkpk/P4G2RFwyH+gjAdTDCJERbBh/Q4Afxc9IElMvyIMkPfyBSoGJ
+        3aNSfJCaMa7Xz4T02bJTsat0S0qqsqVXNlIyv8XZ/Vs19AqkMqQ9kQIl4AMUtuaQCkJafNYI/wjkd
+        ZWZtB4Yw==;
+Received: from [2001:8b0:fb7d:d6d7:feb3:bcff:fe5e:42c3] (helo=azazel.net)
+        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <jeremy@azazel.net>)
+        id 1mKe7q-0007wK-Tx; Mon, 30 Aug 2021 11:02:47 +0100
+Date:   Mon, 30 Aug 2021 11:02:45 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Duncan Roe <duncan_roe@optusnet.com.au>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libnetfilter_log 0/6] Implementation of some fields
+ omitted by `ipulog_get_packet`.
+Message-ID: <YSysxcqZ7iSZsPjZ@azazel.net>
+References: <20210828193824.1288478-1-jeremy@azazel.net>
+ <20210830001621.GA15908@salvia>
+ <YSw1dN3aO6GeIPWq@slk1.local.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next 1/8] netfilter: ecache: remove one indent level
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <163031760688.27483.14106552894924526730.git-patchwork-notify@kernel.org>
-Date:   Mon, 30 Aug 2021 10:00:06 +0000
-References: <20210830093852.21654-2-pablo@netfilter.org>
-In-Reply-To: <20210830093852.21654-2-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="Oant7L4ChF31L51F"
+Content-Disposition: inline
+In-Reply-To: <YSw1dN3aO6GeIPWq@slk1.local.net>
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:feb3:bcff:fe5e:42c3
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
 
-This series was applied to netdev/net-next.git (refs/heads/master):
+--Oant7L4ChF31L51F
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On Mon, 30 Aug 2021 11:38:45 +0200 you wrote:
-> From: Florian Westphal <fw@strlen.de>
-> 
-> nf_conntrack_eventmask_report and nf_ct_deliver_cached_events shared
-> most of their code.  This unifies the layout by changing
-> 
->  if (nf_ct_is_confirmed(ct)) {
->    foo
->  }
-> 
-> [...]
+On 2021-08-30, at 11:33:40 +1000, Duncan Roe wrote:
+> On Mon, Aug 30, 2021 at 02:16:21AM +0200, Pablo Neira Ayuso wrote:
+> > On Sat, Aug 28, 2021 at 08:38:18PM +0100, Jeremy Sowden wrote:
+> > > The first four patches contain some miscellaneous improvements,
+> > > then the last two add code to retrieve time-stamps and interface
+> > > names from packets.
+> >
+> > Applied, thanks.
+> >
+> > > Incidentally, I notice that the last release of libnetfilter_log
+> > > was in 2012.  Time for 1.0.2, perhaps?
+> >
+> > I'll prepare for release, thanks for signalling.
+>
+> With man pages?
 
-Here is the summary with links:
-  - [net-next,1/8] netfilter: ecache: remove one indent level
-    https://git.kernel.org/netdev/net-next/c/478374a3c15f
-  - [net-next,2/8] netfilter: ecache: remove another indent level
-    https://git.kernel.org/netdev/net-next/c/9291f0902d0c
-  - [net-next,3/8] netfilter: ecache: add common helper for nf_conntrack_eventmask_report
-    https://git.kernel.org/netdev/net-next/c/b3afdc175863
-  - [net-next,4/8] netfilter: ecache: prepare for event notifier merge
-    https://git.kernel.org/netdev/net-next/c/b86c0e6429da
-  - [net-next,5/8] netfilter: ecache: remove nf_exp_event_notifier structure
-    https://git.kernel.org/netdev/net-next/c/bd1431db0b81
-  - [net-next,6/8] netfilter: ctnetlink: missing counters and timestamp in nfnetlink_{log,queue}
-    https://git.kernel.org/netdev/net-next/c/6c89dac5b985
-  - [net-next,7/8] netfilter: x_tables: handle xt_register_template() returning an error value
-    https://git.kernel.org/netdev/net-next/c/7bc416f14716
-  - [net-next,8/8] netfilter: add netfilter hooks to SRv6 data plane
-    https://git.kernel.org/netdev/net-next/c/7a3f5b0de364
+I was waiting for you and Pablo to finalize the changes to
+libnetfilter_queue with the intention of then looking at porting them to
+libnetfilter_log. :)
 
-You are awesome, thank you!
---
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+The most recent Debian release included a -doc package with the HTML
+doc's in it, and the next one will include the test programmes as
+examples, but I think the man-pages need a bit of work first.
 
+J.
 
+--Oant7L4ChF31L51F
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmEsrL8ACgkQKYasCr3x
+BA0M+Q//Y4bSa2zWHpPxbjbIY3Sw4i+PbCY13QrfrvDr9WIYWKGKKAOOk5nzrIDS
+GN7SykjkztbvP5Nz2RihtZXjqBi1iYdocZUf02g2QWgk/aXw08zW4iYkFfmf6wLI
+4QnWoahkTJld4JSWX4ud8QirJXN/UL6QDrIlk5Z3qOnhIqEe80KASTQk+WdSGxVe
+XQIueW8BtyZu3o8z4yxqqUlIQLYISPbbtJzyqi19/pdKjnkNkyqT6N1ROtKV7YZo
+uqkZkhfyUAhHrsR0cvOp9py2cQnClNYhC9o2NEdb68NjG5/EX0NF5CY957xm7OMJ
+iHdxrpQBEp/lanRBLgcMDSNy7+MAJnM8vP9b2PtPTzkyR1X6+jCQ+AUPA8Ws4yiv
+Wa+JeuLv3FKzMau/qd5+OIe4yuhtKc7qiHpmJR6fE9UhTk/sxigVwMambaHJghRy
+wg5/HPj6pAsI/jR4KzoIqEYAG9+BK1nnccebHrc9/A6h/IbMqNZ+vgBK+AstkSqS
+Mk38S4flnu2rLi0LcnmmVSEW0BQAHCWy8nsGOxn2dW+fMXHIUdxBsFVZtPmWiXwe
+T5Rd7WrbIwlABNjkMKE5CY9dcqIsZpYyBVFJ4IbaskBqwv50SA2/VOlhiIjGW1Bz
+cFCqeu/7PoX2fhWoWVWd16WftIg4vu2rvJcSO8qBKM1bdB0JVkI=
+=nnkz
+-----END PGP SIGNATURE-----
+
+--Oant7L4ChF31L51F--
