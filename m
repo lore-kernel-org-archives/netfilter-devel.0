@@ -2,226 +2,96 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,TONOM_EQ_TOLOC_SHRT_SHRTNER,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CC27C4320A
-	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Aug 2021 12:14:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9BBCC432BE
+	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Aug 2021 12:19:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2DFAA61029
-	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Aug 2021 12:14:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 87B3F6102A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Aug 2021 12:19:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240207AbhHaMPc (ORCPT
+        id S230154AbhHaMTH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 31 Aug 2021 08:15:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60470 "EHLO
+        Tue, 31 Aug 2021 08:19:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33856 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240249AbhHaMPZ (ORCPT
+        with ESMTP id S229818AbhHaMTG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 31 Aug 2021 08:15:25 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A461C035424
-        for <netfilter-devel@vger.kernel.org>; Tue, 31 Aug 2021 05:08:05 -0700 (PDT)
-Received: from localhost ([::1]:37568 helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1mL2Yd-0006Vj-PX; Tue, 31 Aug 2021 14:08:03 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 2/2] nft: Use xtables_{m,c}alloc() everywhere
-Date:   Tue, 31 Aug 2021 14:08:30 +0200
-Message-Id: <20210831120830.6414-2-phil@nwl.cc>
-X-Mailer: git-send-email 2.32.0
-In-Reply-To: <20210831120830.6414-1-phil@nwl.cc>
-References: <20210831120830.6414-1-phil@nwl.cc>
+        Tue, 31 Aug 2021 08:19:06 -0400
+Received: from mail-qt1-x82c.google.com (mail-qt1-x82c.google.com [IPv6:2607:f8b0:4864:20::82c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56D6EC06175F
+        for <netfilter-devel@vger.kernel.org>; Tue, 31 Aug 2021 05:18:11 -0700 (PDT)
+Received: by mail-qt1-x82c.google.com with SMTP id x5so14349843qtq.13
+        for <netfilter-devel@vger.kernel.org>; Tue, 31 Aug 2021 05:18:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=mojatatu-com.20150623.gappssmtp.com; s=20150623;
+        h=from:subject:to:cc:message-id:date:user-agent:mime-version
+         :content-language:content-transfer-encoding;
+        bh=Tu4+uxp4XyX6aEhdHL/PmBEnSH2qrVBxKdrE8vdWq/o=;
+        b=xK+DfoI9N93Yh6XrQT8RzbaSazNDgeIEY2V59Sm0StmIQ6wo4l+OfOJtAdCjXV+uCa
+         kDqe3tmZi/EeyD9ZAvEhb0OUAGRe6jQkD79LsyqV+ZBnHojErQckiKe2ztJvLSLTA/aE
+         MufAaQIR3Fb5UggnHfIyWEGqDrQ/vQbO6lGNIlDy6LN7LG6RdlkRQfdt0ImO41W3kcpT
+         M4IjCsWN1kBVyrn/q/NswcIJUX9HVbgTYyWut6J/8DPJrRJ8GJCqbqpQnLEWqiLZ8SoL
+         Uoi7FvyMlJtbvN8PI9CxQIgb1jkVxBQngEeu1aJHbmijZZ+i9NUJVyYQ4Ob8L0SC1gyO
+         V4+Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:subject:to:cc:message-id:date:user-agent
+         :mime-version:content-language:content-transfer-encoding;
+        bh=Tu4+uxp4XyX6aEhdHL/PmBEnSH2qrVBxKdrE8vdWq/o=;
+        b=XrO2xPnSOroguj28i3sgf9RgSC85cAWgyg7CXuOh1diNc+axX5w944FEpW5BDppmmz
+         14WAMjb3T9sRvjZ8wUmiXuwOKPz+XrWCefs5SBzyYUHYgISND3MSFMeIZ8MIaex/g3vn
+         mZErxG5EF9z8bkqC866muQXgLM36ieKOIKOTlKHQRpfwZQJ3KUBVmxO+YXlZOazePfN7
+         vFgiWuFL2dotbECnWkiD1fWMvtmgawefsnnw4byYlQtrkv6jYOoVfJPuexq6l85KwbJf
+         wK/PSsDsb2xJNTXCEyr/9qeCpG2KglbEMoNr+gmeYRhuXscF8Av3TEnd7Q+r374ep79r
+         rF9A==
+X-Gm-Message-State: AOAM533mz5RVXafRo5HoWg0Dol/YU/rpRRJiBKQAVG4Jv9uPtpiwU4kO
+        oPFr68GqtkFraAtWJk5hItW+kw==
+X-Google-Smtp-Source: ABdhPJxr3llu+9b2eKzBDY/xfPMRJ0ZbGzZ7C6K2RqOfFd67Bnw2BlSLl/LjjUfJdI2KBswVm1iv9g==
+X-Received: by 2002:a05:622a:1908:: with SMTP id w8mr2407784qtc.269.1630412290585;
+        Tue, 31 Aug 2021 05:18:10 -0700 (PDT)
+Received: from [192.168.1.79] (bras-base-kntaon1617w-grc-28-184-148-47-47.dsl.bell.ca. [184.148.47.47])
+        by smtp.googlemail.com with ESMTPSA id p1sm13822151qkh.115.2021.08.31.05.18.09
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 31 Aug 2021 05:18:10 -0700 (PDT)
+From:   Jamal Hadi Salim <jhs@mojatatu.com>
+Subject: Netdevconf 0x15 slides and papers up
+To:     people <people@netdevconf.org>
+Cc:     lwn@lwn.net, "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org,
+        linux-wireless <linux-wireless@vger.kernel.org>,
+        lartc@vger.kernel.org
+Message-ID: <12a6899a-3d65-86c9-8610-c1b171d45cb6@mojatatu.com>
+Date:   Tue, 31 Aug 2021 08:18:09 -0400
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.13.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Make use of libxtables allocators where sensible to have implicit error
-checking. Leave library-internal calls in place to not create unexpected
-program exit points for users, apart from xt_xlate_alloc() as that
-function called xtables_error() in error case which exits by itself
-already.
+Hi folks,
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- iptables/nft-bridge.c |  6 +-----
- iptables/nft-cmd.c    |  5 +----
- iptables/nft.c        | 15 +++------------
- iptables/xshared.c    |  8 ++------
- iptables/xtables-eb.c | 14 +++-----------
- libxtables/xtables.c  | 11 ++---------
- 6 files changed, 12 insertions(+), 47 deletions(-)
+We are pleased to announce that the videos for 0x15 are now up.
 
-diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
-index d98fd527d9549..11f3df3582aa5 100644
---- a/iptables/nft-bridge.c
-+++ b/iptables/nft-bridge.c
-@@ -477,11 +477,7 @@ static void nft_bridge_parse_lookup(struct nft_xt_ctx *ctx,
- static void parse_watcher(void *object, struct ebt_match **match_list,
- 			  bool ismatch)
- {
--	struct ebt_match *m;
--
--	m = calloc(1, sizeof(struct ebt_match));
--	if (m == NULL)
--		xtables_error(OTHER_PROBLEM, "Can't allocate memory");
-+	struct ebt_match *m = xtables_calloc(1, sizeof(struct ebt_match));
- 
- 	if (ismatch)
- 		m->u.match = object;
-diff --git a/iptables/nft-cmd.c b/iptables/nft-cmd.c
-index a0c76a795e59c..87e66905655d6 100644
---- a/iptables/nft-cmd.c
-+++ b/iptables/nft-cmd.c
-@@ -23,10 +23,7 @@ struct nft_cmd *nft_cmd_new(struct nft_handle *h, int command,
- 	struct nftnl_rule *rule;
- 	struct nft_cmd *cmd;
- 
--	cmd = calloc(1, sizeof(struct nft_cmd));
--	if (!cmd)
--		return NULL;
--
-+	cmd = xtables_calloc(1, sizeof(struct nft_cmd));
- 	cmd->command = command;
- 	cmd->table = xtables_strdup(table);
- 	if (chain)
-diff --git a/iptables/nft.c b/iptables/nft.c
-index a470939db54fb..c9ed38bd29a53 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -362,10 +362,7 @@ static struct obj_update *batch_add(struct nft_handle *h, enum obj_update_type t
- {
- 	struct obj_update *obj;
- 
--	obj = calloc(1, sizeof(struct obj_update));
--	if (obj == NULL)
--		return NULL;
--
-+	obj = xtables_calloc(1, sizeof(struct obj_update));
- 	obj->ptr = ptr;
- 	obj->error.lineno = h->error.lineno;
- 	obj->type = type;
-@@ -997,10 +994,7 @@ static int __add_match(struct nftnl_expr *e, struct xt_entry_match *m)
- 	nftnl_expr_set(e, NFTNL_EXPR_MT_NAME, m->u.user.name, strlen(m->u.user.name));
- 	nftnl_expr_set_u32(e, NFTNL_EXPR_MT_REV, m->u.user.revision);
- 
--	info = calloc(1, m->u.match_size);
--	if (info == NULL)
--		return -ENOMEM;
--
-+	info = xtables_calloc(1, m->u.match_size);
- 	memcpy(info, m->data, m->u.match_size - sizeof(*m));
- 	nftnl_expr_set(e, NFTNL_EXPR_MT_INFO, info, m->u.match_size - sizeof(*m));
- 
-@@ -1245,10 +1239,7 @@ static int __add_target(struct nftnl_expr *e, struct xt_entry_target *t)
- 			  strlen(t->u.user.name));
- 	nftnl_expr_set_u32(e, NFTNL_EXPR_TG_REV, t->u.user.revision);
- 
--	info = calloc(1, t->u.target_size);
--	if (info == NULL)
--		return -ENOMEM;
--
-+	info = xtables_calloc(1, t->u.target_size);
- 	memcpy(info, t->data, t->u.target_size - sizeof(*t));
- 	nftnl_expr_set(e, NFTNL_EXPR_TG_INFO, info, t->u.target_size - sizeof(*t));
- 
-diff --git a/iptables/xshared.c b/iptables/xshared.c
-index ed3e9c5a4426a..2d3ef679fd765 100644
---- a/iptables/xshared.c
-+++ b/iptables/xshared.c
-@@ -220,9 +220,7 @@ void xs_init_target(struct xtables_target *target)
- {
- 	if (target->udata_size != 0) {
- 		free(target->udata);
--		target->udata = calloc(1, target->udata_size);
--		if (target->udata == NULL)
--			xtables_error(RESOURCE_PROBLEM, "malloc");
-+		target->udata = xtables_calloc(1, target->udata_size);
- 	}
- 	if (target->init != NULL)
- 		target->init(target->t);
-@@ -238,9 +236,7 @@ void xs_init_match(struct xtables_match *match)
- 		 * Same goes for target.
- 		 */
- 		free(match->udata);
--		match->udata = calloc(1, match->udata_size);
--		if (match->udata == NULL)
--			xtables_error(RESOURCE_PROBLEM, "malloc");
-+		match->udata = xtables_calloc(1, match->udata_size);
- 	}
- 	if (match->init != NULL)
- 		match->init(match->m);
-diff --git a/iptables/xtables-eb.c b/iptables/xtables-eb.c
-index 6e35f58ee685f..6e5ecd4864fa5 100644
---- a/iptables/xtables-eb.c
-+++ b/iptables/xtables-eb.c
-@@ -274,9 +274,7 @@ static struct option *merge_options(struct option *oldopts,
- 	ebtables_globals.option_offset += OPTION_OFFSET;
- 	*options_offset = ebtables_globals.option_offset;
- 
--	merge = malloc(sizeof(struct option) * (num_new + num_old + 1));
--	if (!merge)
--		return NULL;
-+	merge = xtables_malloc(sizeof(struct option) * (num_new + num_old + 1));
- 	memcpy(merge, oldopts, num_old * sizeof(struct option));
- 	for (i = 0; i < num_new; i++) {
- 		merge[num_old + i] = newopts[i];
-@@ -571,10 +569,7 @@ void ebt_add_match(struct xtables_match *m,
- 	m->mflags = 0;
- 
- 	/* glue code for watchers */
--	newnode = calloc(1, sizeof(struct ebt_match));
--	if (newnode == NULL)
--		xtables_error(OTHER_PROBLEM, "Unable to alloc memory");
--
-+	newnode = xtables_calloc(1, sizeof(struct ebt_match));
- 	newnode->ismatch = true;
- 	newnode->u.match = newm;
- 
-@@ -603,10 +598,7 @@ void ebt_add_watcher(struct xtables_target *watcher,
- 	watcher->tflags = 0;
- 
- 
--	newnode = calloc(1, sizeof(struct ebt_match));
--	if (newnode == NULL)
--		xtables_error(OTHER_PROBLEM, "Unable to alloc memory");
--
-+	newnode = xtables_calloc(1, sizeof(struct ebt_match));
- 	newnode->u.watcher = clone;
- 
- 	for (matchp = &cs->match_list; *matchp; matchp = &(*matchp)->next)
-diff --git a/libxtables/xtables.c b/libxtables/xtables.c
-index b261e97bba3b7..d670175db2236 100644
---- a/libxtables/xtables.c
-+++ b/libxtables/xtables.c
-@@ -2353,18 +2353,11 @@ struct xt_xlate {
- 
- struct xt_xlate *xt_xlate_alloc(int size)
- {
--	struct xt_xlate *xl;
-+	struct xt_xlate *xl = xtables_malloc(sizeof(struct xt_xlate));
- 	int i;
- 
--	xl = malloc(sizeof(struct xt_xlate));
--	if (xl == NULL)
--		xtables_error(RESOURCE_PROBLEM, "OOM");
--
- 	for (i = 0; i < __XT_XLATE_MAX; i++) {
--		xl->buf[i].data = malloc(size);
--		if (xl->buf[i].data == NULL)
--			xtables_error(RESOURCE_PROBLEM, "OOM");
--
-+		xl->buf[i].data = xtables_malloc(size);
- 		xl->buf[i].data[0] = '\0';
- 		xl->buf[i].size = size;
- 		xl->buf[i].rem = size;
--- 
-2.32.0
+All the slides, papers and videos are now up. Visit:
+https://www.netdevconf.info/0x15/accepted-sessions.html
 
+The videos can be viewed directly on the 0x15 playlist here:
+https://bit.ly/netdev-0x15
+
+Unfortunately we couldnt capture within the videos the full
+textual chat sessions that were ongoing during the session
+(platform should have it next time we do this).
+For access to the text, registered users can still login
+into the airmeet platform and replay any session. The content
+will stay up for another 11 months.
+
+cheers,
+jamal
