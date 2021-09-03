@@ -2,96 +2,124 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12AEBC43219
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Sep 2021 16:30:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A46CC433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Sep 2021 23:50:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EF91D60EC0
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Sep 2021 16:30:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6064960F9C
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Sep 2021 23:50:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350017AbhICQbc (ORCPT
+        id S1350291AbhICXvb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 3 Sep 2021 12:31:32 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:58776 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1350005AbhICQbc (ORCPT
+        Fri, 3 Sep 2021 19:51:31 -0400
+Received: from mail-io1-f70.google.com ([209.85.166.70]:51720 "EHLO
+        mail-io1-f70.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S236141AbhICXvb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Sep 2021 12:31:32 -0400
-Received: from localhost.localdomain (unknown [78.30.35.141])
-        by mail.netfilter.org (Postfix) with ESMTPSA id E412E600AD;
-        Fri,  3 Sep 2021 18:29:28 +0200 (CEST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 5/5] netfilter: socket: icmp6: fix use-after-scope
-Date:   Fri,  3 Sep 2021 18:30:20 +0200
-Message-Id: <20210903163020.13741-6-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20210903163020.13741-1-pablo@netfilter.org>
-References: <20210903163020.13741-1-pablo@netfilter.org>
+        Fri, 3 Sep 2021 19:51:31 -0400
+Received: by mail-io1-f70.google.com with SMTP id i11-20020a056602134b00b005be82e3028bso444840iov.18
+        for <netfilter-devel@vger.kernel.org>; Fri, 03 Sep 2021 16:50:30 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
+        bh=E4DKx2x3qEqa/La398s4sWrvTl4Rrvl7+M4z46YI5nw=;
+        b=Q8KHXKcKX8CWcpCPKowXiyeAN9UzPoY+vFQGxNKBtvJebZ2jP6LDHMm+D2ohnAv/r6
+         19sm7JLnih61ke50cqC9r8lx3g/c6YNF2QV+jv+IP69MIygENUh5FNSQEGPueCXj9jnE
+         FghbCjYBl8XfKgwfXQNehh9RG+oPu4ZGgZQMXIYMkPYb7Yi09ib/abBfd4+3RgeRI5Q6
+         AMmlK00yDSGZ5cFzJW6YOUyF9xh9u+1Vzc+2v7GfNCIqcqT9k3a0bRmOtHYF04giA0OC
+         pVilVvFXmmSKKWbcW6icG9YJsKGaXLMNtHs0EsmN0qvxaIzcBe/AXkfWottHoQvfc0mI
+         EMVw==
+X-Gm-Message-State: AOAM530RTJEgtxHvk3sMvRKxzp1lVpEWU/XMKksiA15velBOYeX9qDUK
+        vArMZ8S4KzfSbzgFHGuvrEVCL8nV0VFIgzRYSsSaZe5ZR1GJ
+X-Google-Smtp-Source: ABdhPJzSeGhr37gFeiCKruL8NhBCmPy1C8w+hqnxOiKGXVriffaHMbUj5Y+WfrPbf599kIzjB1187p6UDgJKxMmCZe0mjYkUQVJE
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-Received: by 2002:a05:6e02:144:: with SMTP id j4mr1033579ilr.75.1630713030517;
+ Fri, 03 Sep 2021 16:50:30 -0700 (PDT)
+Date:   Fri, 03 Sep 2021 16:50:30 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000ea2f2605cb1ff6f6@google.com>
+Subject: [syzbot] WARNING: kmalloc bug in hash_ip_create
+From:   syzbot <syzbot+3493b1873fb3ea827986@syzkaller.appspotmail.com>
+To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
+        kadlec@netfilter.org, kuba@kernel.org,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Benjamin Hesmans <benjamin.hesmans@tessares.net>
+Hello,
 
-Bug reported by KASAN:
+syzbot found the following issue on:
 
-BUG: KASAN: use-after-scope in inet6_ehashfn (net/ipv6/inet6_hashtables.c:40)
+HEAD commit:    a9c9a6f741cd Merge tag 'scsi-misc' of git://git.kernel.org..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=13246f25300000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=7860a0536ececf0c
+dashboard link: https://syzkaller.appspot.com/bug?extid=3493b1873fb3ea827986
+compiler:       gcc (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.1
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=11602f35300000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=10e8fbf5300000
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+3493b1873fb3ea827986@syzkaller.appspotmail.com
+
+------------[ cut here ]------------
+WARNING: CPU: 1 PID: 8430 at mm/util.c:597 kvmalloc_node+0x111/0x120 mm/util.c:597
+Modules linked in:
+CPU: 1 PID: 8430 Comm: syz-executor792 Not tainted 5.14.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:kvmalloc_node+0x111/0x120 mm/util.c:597
+Code: 01 00 00 00 4c 89 e7 e8 8d 12 0d 00 49 89 c5 e9 69 ff ff ff e8 f0 21 d1 ff 41 89 ed 41 81 cd 00 20 01 00 eb 95 e8 df 21 d1 ff <0f> 0b e9 4c ff ff ff 0f 1f 84 00 00 00 00 00 55 48 89 fd 53 e8 c6
+RSP: 0018:ffffc9000108f280 EFLAGS: 00010293
+RAX: 0000000000000000 RBX: ffffc9000108f3a0 RCX: 0000000000000000
+RDX: ffff88801bfd5580 RSI: ffffffff81a4f621 RDI: 0000000000000003
+RBP: 0000000000400dc0 R08: 000000007fffffff R09: 00000000ffffffff
+R10: ffffffff81a4f5de R11: 000000000000001f R12: 0000000200000018
+R13: 0000000000000000 R14: 00000000ffffffff R15: ffff888028b41a00
+FS:  0000000002409300(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000006 CR3: 00000000127f1000 CR4: 0000000000350ee0
 Call Trace:
-(...)
-inet6_ehashfn (net/ipv6/inet6_hashtables.c:40)
-(...)
-nf_sk_lookup_slow_v6 (net/ipv6/netfilter/nf_socket_ipv6.c:91
-net/ipv6/netfilter/nf_socket_ipv6.c:146)
+ hash_ip_create+0x4bb/0x13d0 net/netfilter/ipset/ip_set_hash_gen.h:1524
+ ip_set_create+0x782/0x15a0 net/netfilter/ipset/ip_set_core.c:1100
+ nfnetlink_rcv_msg+0xbc9/0x13f0 net/netfilter/nfnetlink.c:296
+ netlink_rcv_skb+0x153/0x420 net/netlink/af_netlink.c:2504
+ nfnetlink_rcv+0x1ac/0x420 net/netfilter/nfnetlink.c:654
+ netlink_unicast_kernel net/netlink/af_netlink.c:1314 [inline]
+ netlink_unicast+0x533/0x7d0 net/netlink/af_netlink.c:1340
+ netlink_sendmsg+0x86d/0xdb0 net/netlink/af_netlink.c:1929
+ sock_sendmsg_nosec net/socket.c:704 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:724
+ ____sys_sendmsg+0x6e8/0x810 net/socket.c:2409
+ ___sys_sendmsg+0xf3/0x170 net/socket.c:2463
+ __sys_sendmsg+0xe5/0x1b0 net/socket.c:2492
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x43f029
+Code: 28 c3 e8 2a 14 00 00 66 2e 0f 1f 84 00 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffd662e8c48 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 0000000000400488 RCX: 000000000043f029
+RDX: 0000000000000000 RSI: 00000000200000c0 RDI: 0000000000000003
+RBP: 0000000000403010 R08: 0000000000000005 R09: 0000000000400488
+R10: 0000000000000001 R11: 0000000000000246 R12: 00000000004030a0
+R13: 0000000000000000 R14: 00000000004ac018 R15: 0000000000400488
 
-It seems that this bug has already been fixed by Eric Dumazet in the
-past in:
-commit 78296c97ca1f ("netfilter: xt_socket: fix a stack corruption bug")
 
-But a variant of the same issue has been introduced in
-commit d64d80a2cde9 ("netfilter: x_tables: don't extract flow keys on early demuxed sks in socket match")
-
-`daddr` and `saddr` potentially hold a reference to ipv6_var that is no
-longer in scope when the call to `nf_socket_get_sock_v6` is made.
-
-Fixes: d64d80a2cde9 ("netfilter: x_tables: don't extract flow keys on early demuxed sks in socket match")
-Acked-by: Matthieu Baerts <matthieu.baerts@tessares.net>
-Signed-off-by: Benjamin Hesmans <benjamin.hesmans@tessares.net>
-Reviewed-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv6/netfilter/nf_socket_ipv6.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-diff --git a/net/ipv6/netfilter/nf_socket_ipv6.c b/net/ipv6/netfilter/nf_socket_ipv6.c
-index 6fd54744cbc3..aa5bb8789ba0 100644
---- a/net/ipv6/netfilter/nf_socket_ipv6.c
-+++ b/net/ipv6/netfilter/nf_socket_ipv6.c
-@@ -99,7 +99,7 @@ struct sock *nf_sk_lookup_slow_v6(struct net *net, const struct sk_buff *skb,
- {
- 	__be16 dport, sport;
- 	const struct in6_addr *daddr = NULL, *saddr = NULL;
--	struct ipv6hdr *iph = ipv6_hdr(skb);
-+	struct ipv6hdr *iph = ipv6_hdr(skb), ipv6_var;
- 	struct sk_buff *data_skb = NULL;
- 	int doff = 0;
- 	int thoff = 0, tproto;
-@@ -129,8 +129,6 @@ struct sock *nf_sk_lookup_slow_v6(struct net *net, const struct sk_buff *skb,
- 			thoff + sizeof(*hp);
- 
- 	} else if (tproto == IPPROTO_ICMPV6) {
--		struct ipv6hdr ipv6_var;
--
- 		if (extract_icmp6_fields(skb, thoff, &tproto, &saddr, &daddr,
- 					 &sport, &dport, &ipv6_var))
- 			return NULL;
--- 
-2.20.1
-
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+syzbot can test patches for this issue, for details see:
+https://goo.gl/tpsmEJ#testing-patches
