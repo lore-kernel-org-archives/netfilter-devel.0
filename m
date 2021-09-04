@@ -8,72 +8,72 @@ X-Spam-Status: No, score=-15.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MENTIONS_GIT_HOSTING,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58336C433F5
-	for <netfilter-devel@archiver.kernel.org>; Sat,  4 Sep 2021 00:06:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B56F7C433F5
+	for <netfilter-devel@archiver.kernel.org>; Sat,  4 Sep 2021 00:07:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 31899610E5
-	for <netfilter-devel@archiver.kernel.org>; Sat,  4 Sep 2021 00:06:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9683F610E7
+	for <netfilter-devel@archiver.kernel.org>; Sat,  4 Sep 2021 00:07:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350648AbhIDAH5 (ORCPT
+        id S1350851AbhIDAI1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 3 Sep 2021 20:07:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58012 "EHLO
+        Fri, 3 Sep 2021 20:08:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58120 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241161AbhIDAH5 (ORCPT
+        with ESMTP id S1350601AbhIDAI0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Sep 2021 20:07:57 -0400
-Received: from mail-pl1-x62b.google.com (mail-pl1-x62b.google.com [IPv6:2607:f8b0:4864:20::62b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E88DC061575;
-        Fri,  3 Sep 2021 17:06:56 -0700 (PDT)
-Received: by mail-pl1-x62b.google.com with SMTP id u1so475279plq.5;
-        Fri, 03 Sep 2021 17:06:56 -0700 (PDT)
+        Fri, 3 Sep 2021 20:08:26 -0400
+Received: from mail-pj1-x102e.google.com (mail-pj1-x102e.google.com [IPv6:2607:f8b0:4864:20::102e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 050A1C061575;
+        Fri,  3 Sep 2021 17:07:26 -0700 (PDT)
+Received: by mail-pj1-x102e.google.com with SMTP id 28-20020a17090a031cb0290178dcd8a4d1so554827pje.0;
+        Fri, 03 Sep 2021 17:07:26 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=subject:to:references:from:message-id:date:user-agent:mime-version
          :in-reply-to:content-language:content-transfer-encoding;
-        bh=xaoHiweSdsgNXsYn8GeMGyTDRryw+OlFigbP6DTFrPo=;
-        b=pEMvGzCD4rR48TWlNy5K6HGuhTIX3z7Of7r3ie7EjPfDE9yP+vf3+jfMZZ8Wqo8S5z
-         LwmsX6dKV/+JV6BFEv4oqiSK0fa2hgdBy+ZsUcLz5YcB/phjqPzQFo7f6I6oRw/CBzKa
-         Cm5cYxykmKqesOeSxOxC9C8ZCGs8gyIgFcODIJQgwlkkRhX23c/lSHWC9ta6lwZGoxv/
-         rrhJcii+RYPrVQMbiQVHKEvvbWn2OWA15vcAccvSRE079oUOZDBvSVRWPjeAj/P/G3Fk
-         4aKHs77C6U968JDefi+f2CZjsjLD1yZuA7QCaLWuwkliDPFgnGvQpNP1gM01e+S7uIWN
-         Hqjw==
+        bh=Myq6bRmVy0VPz7UOQnNxBiQSZVbmCyYoGJRM61g0+C4=;
+        b=A9G4KhtufPhoOA8gvqml423oqLYCKrmLp2WVGtlkAY2WLWHrWloZX/LQkD2w0xa5PG
+         GWS+iKch3cYRLecm4ovgybpc1X8Mr0I5uNToKcfAzqU3QTf2r3ftwGwCVo+Pj74wpFVJ
+         Ov/FlvOSGPKGsODcR85Gfyx2q5EGxxzk3m+8gky8aY3GfZf5klLD9ph1EQdMq2qgxWrU
+         fWCJVawGjMIPCkB0E73qtZgu7Wee/PFuOZPHzP7QQg/dxNNYLgw6erfdLFpNkNMAo66a
+         xkn6SKX/eKRIBgmNncDRjH63PlTAHe/ETvPH/8OecTRouJt3LyuOn+sh+VhUyUiuWwOo
+         j/ng==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:subject:to:references:from:message-id:date
          :user-agent:mime-version:in-reply-to:content-language
          :content-transfer-encoding;
-        bh=xaoHiweSdsgNXsYn8GeMGyTDRryw+OlFigbP6DTFrPo=;
-        b=Nq2NCkm/X9WbszK2yMD+O7f8eGj+ixbrs58L0ZLYmT8W1qHYZkV+lmSiHqS0scQqCg
-         PcVIGHfUM05sHwvdjENgH4iER5S4JnM5/BWDaoBsKUIyxviJCAlbhSXbNwd4aT9LbiI9
-         7Yp01lctcNXfyUR/3kFYg46PIs7nFlyJcChuxsxuINU5djL9B/aOmM1M1bb5VL8HLsyq
-         HUyBXvl47LvQj9TPqsHNx4gdxTZDcMN4dv6a1/OxMf2arNpamfHJP33x7bRwsOrnMgFH
-         mI+PY2QDqAkBr4xnfJTSHLy23zafOxwiTARn8Cg7GiKqT3IFwMPVTVX6Yn1bwGqwzX28
-         HF+w==
-X-Gm-Message-State: AOAM532Rlyuuey1XeEt12Cb1hPnoSNovqLcU7KhZG6w32RhC54AoGHRa
-        GnIgJ4C5P3Kkhx/7ZnnFVJM=
-X-Google-Smtp-Source: ABdhPJwdVOBvcMDZvmVqokbCZ94DKQ3Gu4lDUMNUWGIrO/36My8R2WcrkQdvQqEJp1YTMbM7usJJJQ==
-X-Received: by 2002:a17:90b:ec8:: with SMTP id gz8mr1460491pjb.41.1630714016075;
-        Fri, 03 Sep 2021 17:06:56 -0700 (PDT)
+        bh=Myq6bRmVy0VPz7UOQnNxBiQSZVbmCyYoGJRM61g0+C4=;
+        b=XnCMI3YVcaZiHjITjj42Wb6LNo+6VNGO6KL6LERjjWq+rIm9HINajhBEsPEIhW5wS2
+         S1SEO3PhiJQDN+bBtDI/NONanGSU3jbna62heIyTVIafzeXeHadWpJVHTmPqlzyjneO5
+         wY/WAlHc6jyxyLu+8mAUAIcnckjhNzsvqqg49VY8a8Ecjp3Z6I9mwKbfrhmLga29AR18
+         /tsaKlGI658X/bHoriJs/OMYDk3/MFD73jbdU4nMTPyBctM5KTxO4OXxgt3PRL8/D1ud
+         pkMVneqn/XrlzbCp+KOgODRuqWQGkoYfIt9EX2IWA/5WW6EW9FDGg718wUmQKiPUj7wt
+         9cvQ==
+X-Gm-Message-State: AOAM533wNLk3Ujx+6No7j5azbykxOXtcnXYdgr0x5a4A6cWH/nUAhwlE
+        gFxxgrVsGjytHYRjqBRAhxo=
+X-Google-Smtp-Source: ABdhPJyx/gQkg5in+KQuvrev3VebglsQMJxualNgy5/M+zPrYTL2ts4BQaJ8iHGY1k9XCP23CgmUsA==
+X-Received: by 2002:a17:902:8d8b:b0:138:e09d:d901 with SMTP id v11-20020a1709028d8b00b00138e09dd901mr1167727plo.34.1630714045562;
+        Fri, 03 Sep 2021 17:07:25 -0700 (PDT)
 Received: from [192.168.86.235] (c-73-241-150-58.hsd1.ca.comcast.net. [73.241.150.58])
-        by smtp.gmail.com with ESMTPSA id m12sm349632pjc.18.2021.09.03.17.06.54
+        by smtp.gmail.com with ESMTPSA id z67sm425437pfb.169.2021.09.03.17.07.24
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 03 Sep 2021 17:06:55 -0700 (PDT)
-Subject: Re: [syzbot] WARNING: kmalloc bug in hash_ipmark_create
-To:     syzbot <syzbot+5a5a70ab7329b98649e7@syzkaller.appspotmail.com>,
+        Fri, 03 Sep 2021 17:07:25 -0700 (PDT)
+Subject: Re: [syzbot] WARNING: kmalloc bug in hash_netport_create
+To:     syzbot <syzbot+3f5904753c2388727c6c@syzkaller.appspotmail.com>,
         coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
         kadlec@netfilter.org, kuba@kernel.org,
         linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
         netfilter-devel@vger.kernel.org, pablo@netfilter.org,
         syzkaller-bugs@googlegroups.com
-References: <00000000000029697605cb201ed2@google.com>
+References: <0000000000003166f105cb201ea6@google.com>
 From:   Eric Dumazet <eric.dumazet@gmail.com>
-Message-ID: <83e6e77a-fb61-bf4b-6d6e-36895923bedc@gmail.com>
-Date:   Fri, 3 Sep 2021 17:06:53 -0700
+Message-ID: <78f147d2-3f26-462e-4263-2029e0dc4d98@gmail.com>
+Date:   Fri, 3 Sep 2021 17:07:23 -0700
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
  Thunderbird/78.12.0
 MIME-Version: 1.0
-In-Reply-To: <00000000000029697605cb201ed2@google.com>
+In-Reply-To: <0000000000003166f105cb201ea6@google.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
@@ -90,36 +90,36 @@ On 9/3/21 5:01 PM, syzbot wrote:
 > 
 > HEAD commit:    a9c9a6f741cd Merge tag 'scsi-misc' of git://git.kernel.org..
 > git tree:       upstream
-> console output: https://syzkaller.appspot.com/x/log.txt?x=16490fb1300000
+> console output: https://syzkaller.appspot.com/x/log.txt?x=12a90fb1300000
 > kernel config:  https://syzkaller.appspot.com/x/.config?x=1ac29107aeb2a552
-> dashboard link: https://syzkaller.appspot.com/bug?extid=5a5a70ab7329b98649e7
+> dashboard link: https://syzkaller.appspot.com/bug?extid=3f5904753c2388727c6c
 > compiler:       gcc (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.1
-> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=115e5ccd300000
-> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=178b4cb9300000
+> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=14581b33300000
+> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=13579a69300000
 > 
 > IMPORTANT: if you fix the issue, please add the following tag to the commit:
-> Reported-by: syzbot+5a5a70ab7329b98649e7@syzkaller.appspotmail.com
+> Reported-by: syzbot+3f5904753c2388727c6c@syzkaller.appspotmail.com
 > 
 > ------------[ cut here ]------------
-> WARNING: CPU: 0 PID: 8416 at mm/util.c:597 kvmalloc_node+0x111/0x120 mm/util.c:597
+> WARNING: CPU: 1 PID: 8430 at mm/util.c:597 kvmalloc_node+0x111/0x120 mm/util.c:597
 > Modules linked in:
-> CPU: 0 PID: 8416 Comm: syz-executor566 Not tainted 5.14.0-syzkaller #0
+> CPU: 1 PID: 8430 Comm: syz-executor891 Not tainted 5.14.0-syzkaller #0
 > Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
 > RIP: 0010:kvmalloc_node+0x111/0x120 mm/util.c:597
 > Code: 01 00 00 00 4c 89 e7 e8 ed 11 0d 00 49 89 c5 e9 69 ff ff ff e8 90 55 d1 ff 41 89 ed 41 81 cd 00 20 01 00 eb 95 e8 7f 55 d1 ff <0f> 0b e9 4c ff ff ff 0f 1f 84 00 00 00 00 00 55 48 89 fd 53 e8 66
-> RSP: 0018:ffffc90001cb7280 EFLAGS: 00010293
-> RAX: 0000000000000000 RBX: ffffc90001cb73a0 RCX: 0000000000000000
-> RDX: ffff8880292f8100 RSI: ffffffff81a3f651 RDI: 0000000000000003
-> RBP: 0000000000400dc0 R08: 000000007fffffff R09: 000000000000001e
-> R10: ffffffff81a3f60e R11: 000000000000001f R12: 0000000200000018
-> R13: 0000000000000000 R14: 00000000ffffffff R15: ffff888015dc1800
-> FS:  00000000016c3300(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+> RSP: 0018:ffffc900010a7078 EFLAGS: 00010293
+> RAX: 0000000000000000 RBX: ffffc900010a7190 RCX: 0000000000000000
+> RDX: ffff88801d93e300 RSI: ffffffff81a3f651 RDI: 0000000000000003
+> RBP: 0000000000400dc0 R08: 000000007fffffff R09: 000000000000001f
+> R10: ffffffff81a3f60e R11: 000000000000001f R12: 0000000400000018
+> R13: 0000000000000000 R14: 00000000ffffffff R15: ffff88803040e000
+> FS:  0000000002161300(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
 > CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> CR2: 0000000020000146 CR3: 00000000168e4000 CR4: 00000000001506e0
+> CR2: 0000000020000080 CR3: 000000003ea95000 CR4: 00000000001506e0
 > DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
 > DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
 > Call Trace:
->  hash_ipmark_create+0x4bd/0x1370 net/netfilter/ipset/ip_set_hash_gen.h:1524
+>  hash_netport_create+0x3dd/0x1220 net/netfilter/ipset/ip_set_hash_gen.h:1524
 >  ip_set_create+0x782/0x15a0 net/netfilter/ipset/ip_set_core.c:1100
 >  nfnetlink_rcv_msg+0xbc9/0x13f0 net/netfilter/nfnetlink.c:296
 >  netlink_rcv_skb+0x153/0x420 net/netlink/af_netlink.c:2504
@@ -129,19 +129,31 @@ On 9/3/21 5:01 PM, syzbot wrote:
 >  netlink_sendmsg+0x86d/0xdb0 net/netlink/af_netlink.c:1929
 >  sock_sendmsg_nosec net/socket.c:704 [inline]
 >  sock_sendmsg+0xcf/0x120 net/socket.c:724
->  ____sys_sendmsg+0x6e8/0x810 net/socket.c:2409
->  ___sys_sendmsg+0xf3/0x170 net/socket.c:2463
->  __sys_sendmsg+0xe5/0x1b0 net/socket.c:2492
+>  sock_no_sendpage+0xf3/0x130 net/core/sock.c:2980
+>  kernel_sendpage.part.0+0x1a0/0x340 net/socket.c:3504
+>  kernel_sendpage net/socket.c:3501 [inline]
+>  sock_sendpage+0xe5/0x140 net/socket.c:1003
+>  pipe_to_sendpage+0x2ad/0x380 fs/splice.c:364
+>  splice_from_pipe_feed fs/splice.c:418 [inline]
+>  __splice_from_pipe+0x43e/0x8a0 fs/splice.c:562
+>  splice_from_pipe fs/splice.c:597 [inline]
+>  generic_splice_sendpage+0xd4/0x140 fs/splice.c:746
+>  do_splice_from fs/splice.c:767 [inline]
+>  do_splice+0xb7e/0x1960 fs/splice.c:1079
+>  __do_splice+0x134/0x250 fs/splice.c:1144
+>  __do_sys_splice fs/splice.c:1350 [inline]
+>  __se_sys_splice fs/splice.c:1332 [inline]
+>  __x64_sys_splice+0x198/0x250 fs/splice.c:1332
 >  do_syscall_x64 arch/x86/entry/common.c:50 [inline]
 >  do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
 >  entry_SYSCALL_64_after_hwframe+0x44/0xae
-> RIP: 0033:0x43f039
+> RIP: 0033:0x43efb9
 > Code: 28 c3 e8 2a 14 00 00 66 2e 0f 1f 84 00 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
-> RSP: 002b:00007ffdcfb9e628 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
-> RAX: ffffffffffffffda RBX: 0000000000400488 RCX: 000000000043f039
-> RDX: 0000000000000000 RSI: 00000000200000c0 RDI: 0000000000000003
-> RBP: 0000000000403020 R08: 0000000000000005 R09: 0000000000400488
-> R10: 0000000000000001 R11: 0000000000000246 R12: 00000000004030b0
+> RSP: 002b:00007ffd3f03c028 EFLAGS: 00000246 ORIG_RAX: 0000000000000113
+> RAX: ffffffffffffffda RBX: 0000000000400488 RCX: 000000000043efb9
+> RDX: 0000000000000004 RSI: 0000000000000000 RDI: 0000000000000003
+> RBP: 0000000000402fa0 R08: 0000000100000000 R09: 0000000000000000
+> R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000403030
 > R13: 0000000000000000 R14: 00000000004ac018 R15: 0000000000400488
 > 
 > 
