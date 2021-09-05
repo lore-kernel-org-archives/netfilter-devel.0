@@ -2,97 +2,140 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC37EC433EF
-	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Sep 2021 02:46:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4852C433F5
+	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Sep 2021 20:22:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A24ED60238
-	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Sep 2021 02:46:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 84CBC6101C
+	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Sep 2021 20:22:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233201AbhIECrC (ORCPT
+        id S237960AbhIEUX2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 4 Sep 2021 22:47:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39752 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231908AbhIECrC (ORCPT
+        Sun, 5 Sep 2021 16:23:28 -0400
+Received: from mail-il1-f200.google.com ([209.85.166.200]:53951 "EHLO
+        mail-il1-f200.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233435AbhIEUX2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 4 Sep 2021 22:47:02 -0400
-Received: from mail-pl1-x62f.google.com (mail-pl1-x62f.google.com [IPv6:2607:f8b0:4864:20::62f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3E13C061575
-        for <netfilter-devel@vger.kernel.org>; Sat,  4 Sep 2021 19:45:59 -0700 (PDT)
-Received: by mail-pl1-x62f.google.com with SMTP id v1so1882837plo.10
-        for <netfilter-devel@vger.kernel.org>; Sat, 04 Sep 2021 19:45:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=sender:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=m4hf3I7KsTY7EVtdXHQub+Q/mEJ9pXMlu543/w9Zf1c=;
-        b=ZFXRUMfRJp6YV8+CGXdSHqZKn161SDlA0Sg/Pj3D5jWOqATRyezRJkM+tZee2MlUnb
-         HzVPkxMeBlyDjRDvX2Kqc2Y4AY/BZbIJmJ8Ec0AzNr3X5PVFxUkwxeTz00qOzB9Sb2kb
-         njG1eBNW6DDypNU4m7fDBj6Tj8pO8ZdDNbyrL5wCevwaSYaaV2X3POLf/FrPwPu5a1he
-         WDS23LG/VCBSs2DPeMVp+Bjx6mXd3cmV9HYTVgiTgxj52xm22FqFJrCambItfJEPHkr1
-         KB62TkOADe1AVVHxaxRBOwpD4mxhKEevMiYZwg9fw5iqgx0k4o6hcM15ssZWRK6ST/fx
-         tZaA==
+        Sun, 5 Sep 2021 16:23:28 -0400
+Received: by mail-il1-f200.google.com with SMTP id h8-20020a056e021b8800b0022b466f3373so1262149ili.20
+        for <netfilter-devel@vger.kernel.org>; Sun, 05 Sep 2021 13:22:24 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
-         :mime-version:content-transfer-encoding;
-        bh=m4hf3I7KsTY7EVtdXHQub+Q/mEJ9pXMlu543/w9Zf1c=;
-        b=bsFhRVfZgsP5RipQFha8YGUe7XDsifq5DJ6+rESnUAMQSSQzTfXsbf2pNt7mGuHIIl
-         +pTQ3Wt56CaJbcAB2BfWFvWRpw/8XNTmeG9649SA4yBFqsAhqgmtUIh7rx3TTwHIhmgo
-         E+RLP/CfCg//+FV2v3tL9kcAMpffScZQlI/pkx39JqsTsJN/4JWCPLyRuBsKDzPn0r0n
-         6/8kYh+xhky6d/FbRfsyp7dkS6WWMi9caf2YBox4KxUdVfFB4mcnnFLWxng1XBVHrTYg
-         JM3nIXjuUXYIlfgPg0mRApncs0v92Wg30p3Y13VWcGdvPuwjAxP1Zp1Ywwd5sCiEc0pK
-         crmw==
-X-Gm-Message-State: AOAM531RJFs+vm5E1D7EA4cRRV7pjyf39AhL1zCjmV840SpmJy+nTdde
-        wQcDqmCo6Ag0U8VZCDchUpOiPwTbRR8=
-X-Google-Smtp-Source: ABdhPJzSDh7xOeoiRRc+iTUIIOHsP5m8wV2HbXQXNvbV2+vD0z+q9CnxAXbVmP1eLWQu7nHyB876iQ==
-X-Received: by 2002:a17:902:ba90:b0:135:6709:705 with SMTP id k16-20020a170902ba9000b0013567090705mr5159241pls.79.1630809959353;
-        Sat, 04 Sep 2021 19:45:59 -0700 (PDT)
-Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
-        by smtp.gmail.com with ESMTPSA id p2sm4307194pgd.84.2021.09.04.19.45.57
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 04 Sep 2021 19:45:58 -0700 (PDT)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_queue] build: doc: Fix rendering of verbatim '\n"' in man pages
-Date:   Sun,  5 Sep 2021 12:45:54 +1000
-Message-Id: <20210905024554.29795-1-duncan_roe@optusnet.com.au>
-X-Mailer: git-send-email 2.32.0
+        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
+        bh=c5leV5y9rccNMKyaVLsPr4ci3Qbh+DuXsgXg1dI/SAo=;
+        b=W4L82UWb6yKgpwK/bzy4aPWEr7oVQobm8zDORpJcS6JkrW0ejqk//KB6qr3ExxpQQP
+         g9J9Fju2ql5wzJ8JHxSBJcvjliePXnrzl0wIDxnC/a09HQ03yAPHVwbl5ajcYjoX9/67
+         6ZlqsCtM8QdO3d15EnSKpmydv1xSZlf5GAzzEoCE82wBCB38hbZbuqKqUTv3taMB3hW7
+         UUskMsAizJzqefgloeBrjrDpEP/0HvCkKF78qw7+aiyh04KKKcE0eQ81QoFzY/863sYQ
+         s6Bh2piM86jZGCxPRoyPmlWHiy9zOpNAT2tIqbwYUJsydXfjMOq7bGMURppSsS82moOH
+         OpNw==
+X-Gm-Message-State: AOAM532wjAfDPlKCHqMiy7tbpKKiGnz5rgcufKGgK5S+Otf3KuM0crMv
+        Sh2SzCd4m4/tU96rDyTbX/FP8z9eMSz/AOQ5E9s6fdWfJKfR
+X-Google-Smtp-Source: ABdhPJzbK8MusWS7FLnSncUFAZP00mUWU/cDuvnVsoO1YTOA709AMU9z/9Qk3/ShWZzIlwWHSrb7ihPmjRDKqEZOB1KKKb1v9t45
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-Received: by 2002:a05:6e02:1107:: with SMTP id u7mr6089430ilk.39.1630873344357;
+ Sun, 05 Sep 2021 13:22:24 -0700 (PDT)
+Date:   Sun, 05 Sep 2021 13:22:24 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <0000000000005d3d5f05cb454a4b@google.com>
+Subject: [syzbot] WARNING: kmalloc bug in hash_mac_create
+From:   syzbot <syzbot+ee5cb15f4a0e85e0d54e@syzkaller.appspotmail.com>
+To:     akpm@linux-foundation.org, coreteam@netfilter.org,
+        davem@davemloft.net, fw@strlen.de, kadlec@netfilter.org,
+        kuba@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        pablo@netfilter.org, syzkaller-bugs@googlegroups.com,
+        torvalds@linux-foundation.org, w@1wt.eu
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Without this patch, '\n"' rendered as '0' in e.g. man nfq_create_queue
+Hello,
 
-Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+syzbot found the following issue on:
+
+HEAD commit:    f1583cb1be35 Merge tag 'linux-kselftest-next-5.15-rc1' of ..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=13e15a43300000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=8aa56a640db99eb1
+dashboard link: https://syzkaller.appspot.com/bug?extid=ee5cb15f4a0e85e0d54e
+compiler:       gcc (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.1
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=17c97493300000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=16d974b5300000
+
+The issue was bisected to:
+
+commit 7661809d493b426e979f39ab512e3adf41fbcc69
+Author: Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Wed Jul 14 16:45:49 2021 +0000
+
+    mm: don't allow oversized kvmalloc() calls
+
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=1780855d300000
+final oops:     https://syzkaller.appspot.com/x/report.txt?x=1440855d300000
+console output: https://syzkaller.appspot.com/x/log.txt?x=1040855d300000
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+ee5cb15f4a0e85e0d54e@syzkaller.appspotmail.com
+Fixes: 7661809d493b ("mm: don't allow oversized kvmalloc() calls")
+
+------------[ cut here ]------------
+WARNING: CPU: 1 PID: 8439 at mm/util.c:597 kvmalloc_node+0x111/0x120 mm/util.c:597
+Modules linked in:
+CPU: 1 PID: 8439 Comm: syz-executor737 Not tainted 5.14.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:kvmalloc_node+0x111/0x120 mm/util.c:597
+Code: 01 00 00 00 4c 89 e7 e8 4d 17 0d 00 49 89 c5 e9 69 ff ff ff e8 30 3e d1 ff 41 89 ed 41 81 cd 00 20 01 00 eb 95 e8 1f 3e d1 ff <0f> 0b e9 4c ff ff ff 0f 1f 84 00 00 00 00 00 55 48 89 fd 53 e8 06
+RSP: 0018:ffffc90001097290 EFLAGS: 00010293
+RAX: 0000000000000000 RBX: 000000000000001f RCX: 0000000000000000
+RDX: ffff888074f06240 RSI: ffffffff81a41371 RDI: 0000000000000003
+RBP: 0000000000400dc0 R08: 000000007fffffff R09: 000000000000001f
+R10: ffffffff81a4132e R11: 000000000000001f R12: 0000000400000018
+R13: 0000000000000000 R14: 00000000ffffffff R15: ffff888029e5d3c0
+FS:  00000000019c3300(0000) GS:ffff8880b9c00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000106 CR3: 0000000023af8000 CR4: 00000000001506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ hash_mac_create+0x3bb/0xf50 net/netfilter/ipset/ip_set_hash_gen.h:1524
+ ip_set_create+0x782/0x15a0 net/netfilter/ipset/ip_set_core.c:1100
+ nfnetlink_rcv_msg+0xbc9/0x13f0 net/netfilter/nfnetlink.c:296
+ netlink_rcv_skb+0x153/0x420 net/netlink/af_netlink.c:2504
+ nfnetlink_rcv+0x1ac/0x420 net/netfilter/nfnetlink.c:654
+ netlink_unicast_kernel net/netlink/af_netlink.c:1314 [inline]
+ netlink_unicast+0x533/0x7d0 net/netlink/af_netlink.c:1340
+ netlink_sendmsg+0x86d/0xdb0 net/netlink/af_netlink.c:1929
+ sock_sendmsg_nosec net/socket.c:704 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:724
+ ____sys_sendmsg+0x6e8/0x810 net/socket.c:2409
+ ___sys_sendmsg+0xf3/0x170 net/socket.c:2463
+ __sys_sendmsg+0xe5/0x1b0 net/socket.c:2492
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x43f039
+Code: 28 c3 e8 2a 14 00 00 66 2e 0f 1f 84 00 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffcc15b62a8 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 0000000000400488 RCX: 000000000043f039
+RDX: 0000000000000000 RSI: 0000000020000040 RDI: 0000000000000003
+RBP: 0000000000403020 R08: 0000000000000005 R09: 0000000000400488
+R10: 0000000000000002 R11: 0000000000000246 R12: 00000000004030b0
+R13: 0000000000000000 R14: 00000000004ac018 R15: 0000000000400488
+
+
 ---
- doxygen/build_man.sh | 4 ++++
- 1 file changed, 4 insertions(+)
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-diff --git a/doxygen/build_man.sh b/doxygen/build_man.sh
-index e0cda71..96c97d5 100755
---- a/doxygen/build_man.sh
-+++ b/doxygen/build_man.sh
-@@ -69,6 +69,10 @@ post_process(){
-     del_empty_det_desc
-     del_def_at_lines
-     fix_double_blanks
-+
-+    # Fix rendering of verbatim "\n" (in code snippets)
-+    sed -i 's/\\n/\\\\n/' $target
-+
-   done
- 
-   remove_temp_files
--- 
-2.17.5
-
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+syzbot can test patches for this issue, for details see:
+https://goo.gl/tpsmEJ#testing-patches
