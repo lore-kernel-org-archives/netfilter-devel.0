@@ -2,89 +2,143 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 461C3C43217
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Sep 2021 13:00:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67BBEC433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Sep 2021 16:17:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3260960F92
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Sep 2021 13:00:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 45F38608FB
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Sep 2021 16:17:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243423AbhIFNBJ (ORCPT
+        id S237633AbhIFQSV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 6 Sep 2021 09:01:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40164 "EHLO
+        Mon, 6 Sep 2021 12:18:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57094 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243596AbhIFNAD (ORCPT
+        with ESMTP id S234132AbhIFQSV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Sep 2021 09:00:03 -0400
-Received: from mail-yb1-xb2e.google.com (mail-yb1-xb2e.google.com [IPv6:2607:f8b0:4864:20::b2e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 71D26C0613CF
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Sep 2021 05:57:52 -0700 (PDT)
-Received: by mail-yb1-xb2e.google.com with SMTP id e131so13439987ybb.7
-        for <netfilter-devel@vger.kernel.org>; Mon, 06 Sep 2021 05:57:52 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=ZQNCHEgUbJcmCrDf5vdXrIRNpsBtW4kXCqg5Vmp9JbE=;
-        b=ja77ZYG/TQ2WvHGS4Qv1PccJMfTbbZsXfWrGr+pLLFHYWkU/FBqC9/QNrHxWUsq92O
-         JNlRcUeF2DFbTfd/356NXeQ6h97dVKD72cQbz0WE5eg+heYVPyz+ZaERieT6HeMT2eHN
-         D9TpDOBotoPDLLRnzLPxiFStYUJUZIRjgkSiH5ICpZL9sNHKI8JAVqpTxaIaRzW1gFWm
-         bf+X7NhLFKFf+UWPUYOCMu+7Hkt/kkA5mLEr0K49Wt4x4OPc8mrZV5l1ZhGMqBDrNJjb
-         RCFwQttH30CpxhJE8GmnRvxqPIwQYhCC6tGvwaBmHrB+AQJ1lVDqLBB99nUp1SySK3R2
-         WkDg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=ZQNCHEgUbJcmCrDf5vdXrIRNpsBtW4kXCqg5Vmp9JbE=;
-        b=ol2YY3FNr+p1iao7Zp718xdiHMT0DrmBKnjWkjFgtNPVOeRf+1v0YGyr8slIIyNMzR
-         A8hpFFEX93AqHid0Ku5yU/ScvvUvGVcLGGtPWo9nGCngnrHODYUaBGGois1270NcxqZW
-         Bn5eTEN+jY7+QQfQQKb+U26RF6I9U85bpJQZDYrECzeZIsSIgnPm7ldTXse/XvHK0jdS
-         v5U+Dx8YY0EY21VhmGnVpfuAIe9KEHI86RVBoXPcs8p/x0TDW4DyZBOcRqswheOfYEVn
-         /h5YIJGbfJOyRdb4PfPaByRLmasf0l1cIj8iXoI6PB/pKX6pGIK6l0BXYLiVr7Ayz5kw
-         Y1qw==
-X-Gm-Message-State: AOAM5333js1EiPVEaHP+Sjxi9+fJC4e1IdUEhMuR8lXAPMzHB9w25cI9
-        jtJ0mGWCAh7Kk8fHHdLiQggk7tbi3CnuzOXa3USGmTWKQehXdg==
-X-Google-Smtp-Source: ABdhPJyIXnJCtDdnL7TdWtDIwctDLbfQv97ZKxCW5VgyFtWnqowSS4XGUPLjyGZAg6k0YGkifGLBLlluUlQOEpCzuq4=
-X-Received: by 2002:a25:388c:: with SMTP id f134mr16315314yba.209.1630933071667;
- Mon, 06 Sep 2021 05:57:51 -0700 (PDT)
+        Mon, 6 Sep 2021 12:18:21 -0400
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::48])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1C36C061575
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Sep 2021 09:17:16 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by smtp2.kfki.hu (Postfix) with ESMTP id 2A770CC00FC;
+        Mon,  6 Sep 2021 18:17:12 +0200 (CEST)
+X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP; Mon,  6 Sep 2021 18:17:09 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
+        by smtp2.kfki.hu (Postfix) with ESMTP id 98A0FCC00F8;
+        Mon,  6 Sep 2021 18:17:08 +0200 (CEST)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+        id 6E9AF340D60; Mon,  6 Sep 2021 18:17:08 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by blackhole.kfki.hu (Postfix) with ESMTP id 6A284340D5D;
+        Mon,  6 Sep 2021 18:17:08 +0200 (CEST)
+Date:   Mon, 6 Sep 2021 18:17:08 +0200 (CEST)
+From:   Jozsef Kadlecsik <kadlec@netfilter.org>
+To:     syzbot <syzbot+3493b1873fb3ea827986@syzkaller.appspotmail.com>
+cc:     coreteam@netfilter.org, David Miller <davem@davemloft.net>,
+        Florian Westphal <fw@strlen.de>, kuba@kernel.org,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        syzkaller-bugs@googlegroups.com
+Subject: Re: [syzbot] WARNING: kmalloc bug in hash_ip_create
+In-Reply-To: <000000000000ea2f2605cb1ff6f6@google.com>
+Message-ID: <b891cfcd-eecf-b1a8-594-e744aebd55f@netfilter.org>
+References: <000000000000ea2f2605cb1ff6f6@google.com>
 MIME-Version: 1.0
-References: <20210906030641.10958-1-shaw.leon@gmail.com> <20210906091304.GA2114@salvia>
-In-Reply-To: <20210906091304.GA2114@salvia>
-From:   Xiao Liang <shaw.leon@gmail.com>
-Date:   Mon, 6 Sep 2021 20:57:15 +0800
-Message-ID: <CABAhCOSRfufkkDZd7GcLa2yjqhwew4roB+AnUsL8kuNeF0gJRQ@mail.gmail.com>
-Subject: Re: [PATCH nft] src: Check range bounds before converting to prefix
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel <netfilter-devel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Sep 6, 2021 at 5:13 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->
-> Hi,
->
-> On Mon, Sep 06, 2021 at 11:06:41AM +0800, Xiao Liang wrote:
-> > The lower bound must be the first value of the prefix to be coverted.
-> > For example, range "10.0.0.15-10.0.0.240" can not be converted to
-> > "10.0.0.15/24". Validate it by checking if the lower bound value has
-> > enough trailing zeros.
->
-> # nft add rule x y ip saddr 10.0.0.15-10.0.0.240
-> # nft list ruleset
-> ...
->         ip saddr 10.0.0.15-10.0.0.240
->
-> Is a different range that triggers the problem?
+Hi Pablo,
 
-Hi,
+I'm going to send the patch which fixes the issue together with the other 
+ones in the same bunch.
 
-Please try
-# nft add rule x y snat to 10.0.0.15-10.0.0.240
+Best regards,
+Jozsef
+
+On Fri, 3 Sep 2021, syzbot wrote:
+
+> Hello,
+> 
+> syzbot found the following issue on:
+> 
+> HEAD commit:    a9c9a6f741cd Merge tag 'scsi-misc' of git://git.kernel.org..
+> git tree:       upstream
+> console output: https://syzkaller.appspot.com/x/log.txt?x=13246f25300000
+> kernel config:  https://syzkaller.appspot.com/x/.config?x=7860a0536ececf0c
+> dashboard link: https://syzkaller.appspot.com/bug?extid=3493b1873fb3ea827986
+> compiler:       gcc (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.1
+> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=11602f35300000
+> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=10e8fbf5300000
+> 
+> IMPORTANT: if you fix the issue, please add the following tag to the commit:
+> Reported-by: syzbot+3493b1873fb3ea827986@syzkaller.appspotmail.com
+> 
+> ------------[ cut here ]------------
+> WARNING: CPU: 1 PID: 8430 at mm/util.c:597 kvmalloc_node+0x111/0x120 mm/util.c:597
+> Modules linked in:
+> CPU: 1 PID: 8430 Comm: syz-executor792 Not tainted 5.14.0-syzkaller #0
+> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+> RIP: 0010:kvmalloc_node+0x111/0x120 mm/util.c:597
+> Code: 01 00 00 00 4c 89 e7 e8 8d 12 0d 00 49 89 c5 e9 69 ff ff ff e8 f0 21 d1 ff 41 89 ed 41 81 cd 00 20 01 00 eb 95 e8 df 21 d1 ff <0f> 0b e9 4c ff ff ff 0f 1f 84 00 00 00 00 00 55 48 89 fd 53 e8 c6
+> RSP: 0018:ffffc9000108f280 EFLAGS: 00010293
+> RAX: 0000000000000000 RBX: ffffc9000108f3a0 RCX: 0000000000000000
+> RDX: ffff88801bfd5580 RSI: ffffffff81a4f621 RDI: 0000000000000003
+> RBP: 0000000000400dc0 R08: 000000007fffffff R09: 00000000ffffffff
+> R10: ffffffff81a4f5de R11: 000000000000001f R12: 0000000200000018
+> R13: 0000000000000000 R14: 00000000ffffffff R15: ffff888028b41a00
+> FS:  0000000002409300(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> CR2: 0000000020000006 CR3: 00000000127f1000 CR4: 0000000000350ee0
+> Call Trace:
+>  hash_ip_create+0x4bb/0x13d0 net/netfilter/ipset/ip_set_hash_gen.h:1524
+>  ip_set_create+0x782/0x15a0 net/netfilter/ipset/ip_set_core.c:1100
+>  nfnetlink_rcv_msg+0xbc9/0x13f0 net/netfilter/nfnetlink.c:296
+>  netlink_rcv_skb+0x153/0x420 net/netlink/af_netlink.c:2504
+>  nfnetlink_rcv+0x1ac/0x420 net/netfilter/nfnetlink.c:654
+>  netlink_unicast_kernel net/netlink/af_netlink.c:1314 [inline]
+>  netlink_unicast+0x533/0x7d0 net/netlink/af_netlink.c:1340
+>  netlink_sendmsg+0x86d/0xdb0 net/netlink/af_netlink.c:1929
+>  sock_sendmsg_nosec net/socket.c:704 [inline]
+>  sock_sendmsg+0xcf/0x120 net/socket.c:724
+>  ____sys_sendmsg+0x6e8/0x810 net/socket.c:2409
+>  ___sys_sendmsg+0xf3/0x170 net/socket.c:2463
+>  __sys_sendmsg+0xe5/0x1b0 net/socket.c:2492
+>  do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+>  do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+>  entry_SYSCALL_64_after_hwframe+0x44/0xae
+> RIP: 0033:0x43f029
+> Code: 28 c3 e8 2a 14 00 00 66 2e 0f 1f 84 00 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+> RSP: 002b:00007ffd662e8c48 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+> RAX: ffffffffffffffda RBX: 0000000000400488 RCX: 000000000043f029
+> RDX: 0000000000000000 RSI: 00000000200000c0 RDI: 0000000000000003
+> RBP: 0000000000403010 R08: 0000000000000005 R09: 0000000000400488
+> R10: 0000000000000001 R11: 0000000000000246 R12: 00000000004030a0
+> R13: 0000000000000000 R14: 00000000004ac018 R15: 0000000000400488
+> 
+> 
+> ---
+> This report is generated by a bot. It may contain errors.
+> See https://goo.gl/tpsmEJ for more information about syzbot.
+> syzbot engineers can be reached at syzkaller@googlegroups.com.
+> 
+> syzbot will keep track of this issue. See:
+> https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+> syzbot can test patches for this issue, for details see:
+> https://goo.gl/tpsmEJ#testing-patches
+> 
+
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics
+          H-1525 Budapest 114, POB. 49, Hungary
