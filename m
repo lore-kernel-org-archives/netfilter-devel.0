@@ -2,111 +2,93 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A2FFC433F5
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Sep 2021 03:06:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9951C433FE
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Sep 2021 03:40:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0AD6260F22
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Sep 2021 03:06:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A133460FE6
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Sep 2021 03:40:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239231AbhIFDIA (ORCPT
+        id S230191AbhIFDlT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 5 Sep 2021 23:08:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48114 "EHLO
+        Sun, 5 Sep 2021 23:41:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55384 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239093AbhIFDIA (ORCPT
+        with ESMTP id S237233AbhIFDlS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 5 Sep 2021 23:08:00 -0400
-Received: from mail-pg1-x533.google.com (mail-pg1-x533.google.com [IPv6:2607:f8b0:4864:20::533])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9DF37C061575
-        for <netfilter-devel@vger.kernel.org>; Sun,  5 Sep 2021 20:06:56 -0700 (PDT)
-Received: by mail-pg1-x533.google.com with SMTP id r2so5316323pgl.10
-        for <netfilter-devel@vger.kernel.org>; Sun, 05 Sep 2021 20:06:56 -0700 (PDT)
+        Sun, 5 Sep 2021 23:41:18 -0400
+Received: from mail-pj1-x102e.google.com (mail-pj1-x102e.google.com [IPv6:2607:f8b0:4864:20::102e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 03CC8C061575
+        for <netfilter-devel@vger.kernel.org>; Sun,  5 Sep 2021 20:40:15 -0700 (PDT)
+Received: by mail-pj1-x102e.google.com with SMTP id f11-20020a17090aa78b00b0018e98a7cddaso3607406pjq.4
+        for <netfilter-devel@vger.kernel.org>; Sun, 05 Sep 2021 20:40:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:mime-version
+        h=sender:from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
-        bh=ql6e+DZIpY5JprOB0mZute+zqfxFV19m9QFQJBQ4vTA=;
-        b=C0dsxfsgaaizd87XDHybe15y7znmOXBhstHhk1C0RURV0yV6gIV/4vmMcDR4yWqiCg
-         UTs0ydOKM7TvarvOaP08MR145PAN+ksc/KRvlWha4IxkgMYzClXI0JBV4KXyZGqFWuNd
-         fC5h7nEpA5kuq4dsRvGD4mAwc8OGtcUfreRASk9de0r3rqF5Ru5GpvrZF32iTvlj3oU8
-         saZjuTupDC+28Ye6oBbtfpM3V9dWlr7TdXZIolDBvgHbtGfCyMJ/tJsvC48Tx7oEWuK+
-         NDPvh90dJdaM2nCrORJG3bP3LifHNmVrgv5cym9B89XMtaTa4TsJWfSV5PpcnvGEyM7Z
-         c7Yw==
+        bh=NJN9XGtobqw7/84xDTkxJG0ALHbnzv33EOHnunTaai8=;
+        b=BUWYAhCkxobUYP1t78yJPsmPXN/i5iHd/o7XEMz6tJIH5UMA4Oa9fGkzwsveblQq5A
+         O6JjnUbnsQL1SjdJgHgI3yXmQbBZ8qrgHx8hYBNVfs6lPLQvLZXWDmSAp9EK497An68j
+         UN67zFSS8b6WqyHTXsjZzihZdn0lT2kjpJBZI1SJJaSnI03jjveB0heMDceDF/Iu41XJ
+         GEzn9QQMb5MCC+KyJb9++vlnzyLGbbje73I1d9gtvfHAy/Y4js35lOWo6F+MCT+rPcSM
+         d9hFELx7X6/rBC54YEfyeCS/vV5saEaChWj9v6V/fBpkTNKhm09PXybRC55L1hhpmcS9
+         /euA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=ql6e+DZIpY5JprOB0mZute+zqfxFV19m9QFQJBQ4vTA=;
-        b=Xyx/2KBMvJUhXwzR8wm8xSuM2h/zhl7kwwqv+pPwyzdGnDer9ROaY9avEUSQsXrdZZ
-         uD1thr+dsAsa9ZeUHFrxy6Je4KIsqqzoEjFZTma0Xyo7LdlzsamT1VCsmERmCzKTX89p
-         MVF9NQgt0vta3WOK2dwPqpdqdRovajO5l8O08/TzuP90bSKcuw+r5fR034e9vf4Ty4MA
-         lUfsA4sxxeeJ9NLnM8QjD3/iWZIJhJTpHyql7KokfbUtBtc5VA6i8PitE+Fof7DVs14z
-         3Fpc/LqTQekx6AVIOnJqv0V60oZ8KABh8Fg9T9TamTXc7xpbf2VaiT89n9Tuhxj5ok5A
-         O3WQ==
-X-Gm-Message-State: AOAM5320Xp/+F5+hpdz1g9g7RLsk6aOOAOFuhyfOr/Nqq3FIHbxtTpC0
-        bJQ4TVykwWZnFNtfRIcVmVSHbKfuePz/fA==
-X-Google-Smtp-Source: ABdhPJyN9FvTu1wnTTN8QiBsGJ+fHNxhHJFJU6SSCYebYhjozvBQCXscPpyB5zTX5sz6V/7R7A44kg==
-X-Received: by 2002:a63:f40b:: with SMTP id g11mr10169242pgi.401.1630897615838;
-        Sun, 05 Sep 2021 20:06:55 -0700 (PDT)
-Received: from nova-ws.. ([103.29.142.250])
-        by smtp.gmail.com with ESMTPSA id n21sm5641090pfo.61.2021.09.05.20.06.54
+        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
+         :mime-version:content-transfer-encoding;
+        bh=NJN9XGtobqw7/84xDTkxJG0ALHbnzv33EOHnunTaai8=;
+        b=TdYuWR11f5869sFQ+qTFKqfgAi5kybso5EDTl2KFQSGtR78EOjxTYhdUF8naFVW0BC
+         jdqrqGr9fVhkc8q3cwaECUQa33Eg4rxXChSTB7TtU0cqx+iRonFcyowR1mFejcuE/oq8
+         ivSbfKJJcDs2J9z3vZZE05gwurN8et8pyQLw3GvX8puQrKn3QQtzqTYT4OHdrRREF5Ie
+         yrFbY0W9BYIaSawCh2KB/sSIOt892QAyZ+LWDJ0xifE4uSfUJdK6Si6WoVPMxL7kveIG
+         izZeTkenD3T+p9EcQTfNp0B3IGod/Yljb9bQR0o0yrK7nIPdVRJxtUUO1Ok3XHpYf/xG
+         yx9Q==
+X-Gm-Message-State: AOAM530J5tP6uaJ9NkxXoOQX2ZLeVgsWD+dwA6HjyfvwllKfWM/EUeOz
+        VuvWtlGyDfonZhEjyiTlZ/hh4W3r6ww=
+X-Google-Smtp-Source: ABdhPJwqdJy0SVg5a+m89gP1YjVKcw08UX+SHfxuC1XOMp+kqJMAyyk3ImVVaTEhSaricPxKalBuQQ==
+X-Received: by 2002:a17:902:e0cc:b0:134:7191:f39 with SMTP id e12-20020a170902e0cc00b0013471910f39mr9084561pla.36.1630899614488;
+        Sun, 05 Sep 2021 20:40:14 -0700 (PDT)
+Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
+        by smtp.gmail.com with ESMTPSA id i21sm7156694pgn.93.2021.09.05.20.40.12
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 05 Sep 2021 20:06:55 -0700 (PDT)
-From:   Xiao Liang <shaw.leon@gmail.com>
-To:     netfilter-devel <netfilter-devel@vger.kernel.org>
-Cc:     Xiao Liang <shaw.leon@gmail.com>
-Subject: [PATCH nft] src: Check range bounds before converting to prefix
-Date:   Mon,  6 Sep 2021 11:06:41 +0800
-Message-Id: <20210906030641.10958-1-shaw.leon@gmail.com>
-X-Mailer: git-send-email 2.33.0
+        Sun, 05 Sep 2021 20:40:13 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nftables] doc: libnflog handles `log group`, not libnfq
+Date:   Mon,  6 Sep 2021 13:40:09 +1000
+Message-Id: <20210906034009.28808-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.32.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The lower bound must be the first value of the prefix to be coverted.
-For example, range "10.0.0.15-10.0.0.240" can not be converted to
-"10.0.0.15/24". Validate it by checking if the lower bound value has
-enough trailing zeros.
-
-Signed-off-by: Xiao Liang <shaw.leon@gmail.com>
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
 ---
- src/netlink.c | 15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ doc/statements.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/netlink.c b/src/netlink.c
-index cbf9d436..0fd0b664 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -1079,12 +1079,15 @@ struct expr *range_expr_to_prefix(struct expr *range)
+diff --git a/doc/statements.txt b/doc/statements.txt
+index 5bb3050f..6c4ba4f7 100644
+--- a/doc/statements.txt
++++ b/doc/statements.txt
+@@ -96,7 +96,7 @@ In the second form of invocation (if 'nflog_group' is specified), the Linux
+ kernel will pass the packet to nfnetlink_log which will multicast the packet
+ through a netlink socket to the specified multicast group. One or more userspace
+ processes may subscribe to the group to receive the packets, see
+-libnetfilter_queue documentation for details.
++libnetfilter_log documentation for details.
  
- 	if (mpz_bitmask_is_prefix(bitmask, len)) {
- 		prefix_len = mpz_bitmask_to_prefix(bitmask, len);
--		prefix = prefix_expr_alloc(&range->location, expr_get(left),
--					   prefix_len);
--		mpz_clear(bitmask);
--		expr_free(range);
--
--		return prefix;
-+		if (mpz_scan1(left->value, 0) >= len - prefix_len) {
-+			prefix = prefix_expr_alloc(&range->location,
-+						   expr_get(left),
-+						   prefix_len);
-+			mpz_clear(bitmask);
-+			expr_free(range);
-+
-+			return prefix;
-+		}
- 	}
- 	mpz_clear(bitmask);
- 
+ In the third form of invocation (if level audit is specified), the Linux
+ kernel writes a message into the audit buffer suitably formatted for reading
 -- 
-2.33.0
+2.17.5
 
