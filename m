@@ -2,69 +2,96 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E301C433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Sep 2021 20:34:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28321C433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Sep 2021 23:04:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F1B7361077
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Sep 2021 20:34:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E76B360F70
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Sep 2021 23:04:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229766AbhIFUgB (ORCPT
+        id S230169AbhIFXFg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 6 Sep 2021 16:36:01 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:40338 "EHLO
+        Mon, 6 Sep 2021 19:05:36 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:40502 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229717AbhIFUgA (ORCPT
+        with ESMTP id S229949AbhIFXFf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Sep 2021 16:36:00 -0400
-Received: from localhost.localdomain (unknown [78.30.35.141])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 486506001B
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Sep 2021 22:33:50 +0200 (CEST)
+        Mon, 6 Sep 2021 19:05:35 -0400
+Received: from netfilter.org (unknown [78.30.35.141])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 32F0A6001B;
+        Tue,  7 Sep 2021 01:03:23 +0200 (CEST)
+Date:   Tue, 7 Sep 2021 01:04:24 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] doc: nfnetlink_log allows one single process through unicast
-Date:   Mon,  6 Sep 2021 22:34:50 +0200
-Message-Id: <20210906203450.30891-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+To:     Duncan Roe <duncan_roe@optusnet.com.au>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH libnetfilter_log] src: doc: revise doxygen for module
+ "Netlink message helper functions"
+Message-ID: <20210906230424.GA356@salvia>
+References: <20210905023320.29740-1-duncan_roe@optusnet.com.au>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20210905023320.29740-1-duncan_roe@optusnet.com.au>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-nfnetlink_log uses netlink unicast to send logs to one single process in
-userspace.
+On Sun, Sep 05, 2021 at 12:33:20PM +1000, Duncan Roe wrote:
+> Adjust style to work better in a man page.
+> Document actual return values.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- doc/statements.txt | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+All good, except one chunk I'm ambivalent.
 
-diff --git a/doc/statements.txt b/doc/statements.txt
-index 646311d19831..d402da7061a1 100644
---- a/doc/statements.txt
-+++ b/doc/statements.txt
-@@ -93,11 +93,11 @@ packets, such as header fields, via the kernel log (where it can be read with
- dmesg(1) or read in the syslog).
- 
- In the second form of invocation (if 'nflog_group' is specified), the Linux
--kernel will pass the packet to nfnetlink_log which will multicast the packet
--through a netlink socket to the specified multicast group. One or more userspace
--processes may subscribe to the group to receive the packets, see man(8) ulogd
--for the Netfilter userspace log daemon and libnetfilter_log documentation for
--details in case you would like to develop a custom program to digest your logs.
-+kernel will pass the packet to nfnetlink_log which will send the log through a
-+netlink socket to the specified group. One userspace process may subscribe to
-+the group to receive the logs, see man(8) ulogd for the Netfilter userspace log
-+daemon and libnetfilter_log documentation for details in case you would like to
-+develop a custom program to digest your logs.
- 
- In the third form of invocation (if level audit is specified), the Linux
- kernel writes a message into the audit buffer suitably formatted for reading
--- 
-2.20.1
+> Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+> ---
+>  src/nlmsg.c | 53 +++++++++++++++++++++++++----------------------------
+>  1 file changed, 25 insertions(+), 28 deletions(-)
+> 
+> diff --git a/src/nlmsg.c b/src/nlmsg.c
+> index 3ebb364..399b19a 100644
+> --- a/src/nlmsg.c
+> +++ b/src/nlmsg.c
+> @@ -18,15 +18,15 @@
+>   */
+>  
+>  /**
+> - * nflog_nlmsg_put_header - reserve and prepare room for nflog Netlink header
+> - * \param buf memory already allocated to store the Netlink header
+> - * \param type message type one of the enum nfulnl_msg_types
+> - * \param family protocol family to be an object of
+> - * \param qnum queue number to be an object of
+> + * nflog_nlmsg_put_header - convert memory buffer into an nflog Netlink header
 
+this is not just converting as in a cast, I understand "reserve and
+prepare room" might not be so clear to understand.
+
+> + * \param buf pointer to memory buffer
+> + * \param type either NFULNL_MSG_PACKET or NFULNL_MSG_CONFIG
+
+I'd keep above a reference to 'enum nfulnl_msg_types'.
+
+> + * \param family protocol family
+> + * \param qnum queue number
+
+I remember you posted a patch to rename qh to gh, from queue handler
+to group handler. You could rename this to 'group number'.
+
+>   *
+> - * This function creates Netlink header in the memory buffer passed
+> - * as parameter that will send to nfnetlink log. This function
+> - * returns a pointer to the Netlink header structure.
+> + * Creates a Netlink header in _buf_ followed by
+> + * a log\-subsystem\-specific extra header.
+
+This function is adding the netlink + nfnetlink headers to the buffer
+as well as setting up the header fields accordingly.
+
+> + * \return pointer to created Netlink header structure
+>   */
+>  struct nlmsghdr *
+>  nflog_nlmsg_put_header(char *buf, uint8_t type, uint8_t family, uint16_t qnum)
