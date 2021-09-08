@@ -2,36 +2,68 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EEB44C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Sep 2021 15:11:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCC91C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Sep 2021 02:22:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CD51460E76
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Sep 2021 15:11:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9F2EC61090
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Sep 2021 02:22:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344937AbhIGPMu (ORCPT
+        id S1347273AbhIHCYC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 7 Sep 2021 11:12:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52742 "EHLO
+        Tue, 7 Sep 2021 22:24:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36334 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232090AbhIGPMu (ORCPT
+        with ESMTP id S1347250AbhIHCYA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 7 Sep 2021 11:12:50 -0400
-Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 13685C061575;
-        Tue,  7 Sep 2021 08:11:44 -0700 (PDT)
-Received: by a3.inai.de (Postfix, from userid 25121)
-        id 2B9DF59F6BDB2; Tue,  7 Sep 2021 17:11:42 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by a3.inai.de (Postfix) with ESMTP id 288A36168CF3D;
-        Tue,  7 Sep 2021 17:11:42 +0200 (CEST)
-Date:   Tue, 7 Sep 2021 17:11:42 +0200 (CEST)
-From:   Jan Engelhardt <jengelh@inai.de>
-To:     Florian Westphal <fw@strlen.de>
-cc:     Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>,
+        Tue, 7 Sep 2021 22:24:00 -0400
+Received: from mail-pf1-x436.google.com (mail-pf1-x436.google.com [IPv6:2607:f8b0:4864:20::436])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 027C7C06175F;
+        Tue,  7 Sep 2021 19:22:53 -0700 (PDT)
+Received: by mail-pf1-x436.google.com with SMTP id e16so738089pfc.6;
+        Tue, 07 Sep 2021 19:22:53 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=sender:from:date:to:cc:subject:message-id:mail-followup-to
+         :references:mime-version:content-disposition:in-reply-to;
+        bh=RgKpPDodG3G5oLWhYuKNMeJdFTTOJJB0RNkReJ0NUcw=;
+        b=R3aTWtDcq6OEPruWydNlWcCuhPQOTZh38ifMO0YYkI2RtcN8BOaFlFIPOFIetS6hLm
+         lE9XRhFuw0NiGnNrApwroNdTVkGBN6+drWHFfVZtrLHxSyhjHYvEC+3zHfQQ3DDvVEQw
+         DWd/xBKG8GgDtMpXx+hm4vv84Vy0J9fBiPcbAE6zmSu55kZ3zJ31dA6CJDjfjuyNx9zY
+         5wJZCBwRbvFUtZ5RxYF3FHhdxSSfvlFvSyRwxEgiSaUYxmsclAl8BU2uYGdFIomvXuR4
+         Cgdm6mMfqCJkIgN5nJVufdlXNEiBIysOBBydrKsG6OMhVPLGL6Ox/TXYKbIz9oK0Pl66
+         +kbQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:sender:from:date:to:cc:subject:message-id
+         :mail-followup-to:references:mime-version:content-disposition
+         :in-reply-to;
+        bh=RgKpPDodG3G5oLWhYuKNMeJdFTTOJJB0RNkReJ0NUcw=;
+        b=cuCTG+bZ9R45/YApcYrU0Dz8XpgBn7SXXAefxZe9hrW71CAhWGJefIXetaUFZ1HReI
+         BHeAcEu2x5cKrXry3TRDLssERkttsbnSBoZmciS9lBOGMX88XHO7DjhexLYsx9ywUL+N
+         wDQPOFbf2raVWNIItJxFLa9lX4Din5eGiQsuN391K9avJv+5PTgTjbVtDYtO6OIuIipF
+         gNLyvXKTNMOiyhChKEwbCZGPlNP8UMgZYynJGUX840ZwhRh6cpZtVZhZQAQbWjbpHvfg
+         I4QdiNYiO+vlh/ZAvwO5IX2wwBekyKIu3A+ZcfQKjfGEJ4N9IpTwKdoq0DRLoBwvhikM
+         LmHQ==
+X-Gm-Message-State: AOAM533WUf6V7/xMK2Fhx77GYPMn4OK/4SG1fxKxFc2DWGPRLMHnCVLm
+        RxGuXkF4dw4XmaoLKp4kd07X/c7XU82Pgw==
+X-Google-Smtp-Source: ABdhPJxYE3fKWGUVetuvwfA/m57aNn0CUrXx82i9bK8h75ppM+lWtRKW12hARoe9d818bHP9PuhMNQ==
+X-Received: by 2002:aa7:9f10:0:b0:414:ab4e:7c53 with SMTP id g16-20020aa79f10000000b00414ab4e7c53mr1380478pfr.59.1631067773331;
+        Tue, 07 Sep 2021 19:22:53 -0700 (PDT)
+Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
+        by smtp.gmail.com with ESMTPSA id n11sm330633pjh.23.2021.09.07.19.22.47
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 07 Sep 2021 19:22:52 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+X-Google-Original-From: Duncan Roe <dunc@slk1.local.net>
+Date:   Wed, 8 Sep 2021 12:22:44 +1000
+To:     Jan Engelhardt <jengelh@inai.de>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>,
         pablo@netfilter.org, kadlec@netfilter.org, davem@davemloft.net,
         kuba@kernel.org, shuah@kernel.org, linux-kernel@vger.kernel.org,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
@@ -41,33 +73,50 @@ cc:     Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>,
         Blair Steven <blair.steven@alliedtelesis.co.nz>
 Subject: Re: [PATCH net v2] net: netfilter: Fix port selection of FTP for
  NF_NAT_RANGE_PROTO_SPECIFIED
-In-Reply-To: <20210907135458.GF23554@breakpoint.cc>
-Message-ID: <r46nn4-n993-rs28-84sr-o1qop429rr9@vanv.qr>
-References: <20210907021415.962-1-Cole.Dishington@alliedtelesis.co.nz> <20210907135458.GF23554@breakpoint.cc>
-User-Agent: Alpine 2.24 (LSU 510 2020-10-10)
+Message-ID: <YTgedODOPAQboQlm@slk1.local.net>
+Mail-Followup-To: Jan Engelhardt <jengelh@inai.de>,
+        Florian Westphal <fw@strlen.de>,
+        Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>,
+        pablo@netfilter.org, kadlec@netfilter.org, davem@davemloft.net,
+        kuba@kernel.org, shuah@kernel.org, linux-kernel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org,
+        Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>,
+        Scott Parlane <scott.parlane@alliedtelesis.co.nz>,
+        Blair Steven <blair.steven@alliedtelesis.co.nz>
+References: <20210907021415.962-1-Cole.Dishington@alliedtelesis.co.nz>
+ <20210907135458.GF23554@breakpoint.cc>
+ <r46nn4-n993-rs28-84sr-o1qop429rr9@vanv.qr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <r46nn4-n993-rs28-84sr-o1qop429rr9@vanv.qr>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
-On Tuesday 2021-09-07 15:54, Florian Westphal wrote:
->> -	/* Try to get same port: if not, try to change it. */
->> -	for (port = ntohs(exp->saved_proto.tcp.port); port != 0; port++) {
->> -		int ret;
->> +	if (htons(nat->range_info.min_proto.all) == 0 ||
->> +	    htons(nat->range_info.max_proto.all) == 0) {
+On Tue, Sep 07, 2021 at 05:11:42PM +0200, Jan Engelhardt wrote:
 >
->Either use if (nat->range_info.min_proto.all || ...
+> On Tuesday 2021-09-07 15:54, Florian Westphal wrote:
+> >> -	/* Try to get same port: if not, try to change it. */
+> >> -	for (port = ntohs(exp->saved_proto.tcp.port); port != 0; port++) {
+> >> -		int ret;
+> >> +	if (htons(nat->range_info.min_proto.all) == 0 ||
+> >> +	    htons(nat->range_info.max_proto.all) == 0) {
+> >
+> >Either use if (nat->range_info.min_proto.all || ...
+> >
+> >or use ntohs().  I will leave it up to you if you prefer
+> >ntohs(nat->range_info.min_proto.all) == 0 or
+> >nat->range_info.min_proto.all == ntohs(0).
 >
->or use ntohs().  I will leave it up to you if you prefer
->ntohs(nat->range_info.min_proto.all) == 0 or
->nat->range_info.min_proto.all == ntohs(0).
+> If one has the option, one should always prefer to put htons/htonl on
+> the side with the constant literal;
+> Propagation of constants and compile-time evaluation is the target.
+>
+> That works for some other functions as well (e.g.
+> strlen("fixedstring")).
 
-If one has the option, one should always prefer to put htons/htonl on 
-the side with the constant literal;
-Propagation of constants and compile-time evaluation is the target.
+When comparing against constant zero, why use htons/htonl at all?
 
-That works for some other functions as well (e.g. 
-strlen("fixedstring")).
+Cheers ... Duncan.
