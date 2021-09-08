@@ -7,32 +7,33 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF049C433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Sep 2021 12:29:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F6F5C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Sep 2021 12:29:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A9FA061153
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Sep 2021 12:29:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 233986113E
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Sep 2021 12:29:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346096AbhIHMaI (ORCPT
+        id S1348677AbhIHMaM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 8 Sep 2021 08:30:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60624 "EHLO
+        Wed, 8 Sep 2021 08:30:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60640 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1348677AbhIHMaI (ORCPT
+        with ESMTP id S1348610AbhIHMaM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Sep 2021 08:30:08 -0400
+        Wed, 8 Sep 2021 08:30:12 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 71832C061575
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Sep 2021 05:29:00 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9362BC061575
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Sep 2021 05:29:04 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1mNwhG-0004bM-Vj; Wed, 08 Sep 2021 14:28:59 +0200
+        id 1mNwhL-0004bc-3c; Wed, 08 Sep 2021 14:29:03 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf 1/5] netfilter: conntrack: make max chain length random
-Date:   Wed,  8 Sep 2021 14:28:35 +0200
-Message-Id: <20210908122839.7526-3-fw@strlen.de>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Daniel Borkmann <daniel@iogearbox.net>
+Subject: [PATCH nf 2/5] netfilter: conntrack: include zone id in tuple hash again
+Date:   Wed,  8 Sep 2021 14:28:36 +0200
+Message-Id: <20210908122839.7526-4-fw@strlen.de>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20210908122839.7526-1-fw@strlen.de>
 References: <20210908122839.7526-1-fw@strlen.de>
@@ -42,101 +43,252 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Similar to commit 67d6d681e15b
-("ipv4: make exception cache less predictible"):
+commit deedb59039f111 ("netfilter: nf_conntrack: add direction support for zones")
+removed the zone id from the hash value.
 
-Use a random drop length to make it harder to detect when entries were
-hashed to same bucket list.
+This has implications on hash chain lengths with overlapping tuples, which
+can hit 64k entries on released kernels, before upper droplimit was added
+in d7e7747ac5c ("netfilter: refuse insertion if chain has grown too large").
 
+With that change reverted, test script coming with this series shows
+linear insertion time growth:
+
+ 10000 entries in 3737 ms (now 10000 total, loop 1)
+ 10000 entries in 16994 ms (now 20000 total, loop 2)
+ 10000 entries in 47787 ms (now 30000 total, loop 3)
+ 10000 entries in 72731 ms (now 40000 total, loop 4)
+ 10000 entries in 95761 ms (now 50000 total, loop 5)
+ 10000 entries in 96809 ms (now 60000 total, loop 6)
+ inserted 60000 entries from packet path in 333825 ms
+
+With d7e7747ac5c in place, the test fails.
+
+There are three supported zone use cases:
+ 1. Connection is in the default zone (zone 0).
+    This means to special config (the default).
+ 2. Connection is in a different zone (1 to 2**16).
+    This means rules are in place to put packets in
+    the desired zone, e.g. derived from vlan id or interface.
+ 3. Original direction is in zone X and Reply is in zone 0.
+
+3) allows to use of the existing NAT port collision avoidance to provide
+   connectivity to internet/wan even when the various zones have overlapping
+   source networks separated via policy routing.
+
+In case the original zone is 0 all three cases are identical.
+
+There is no way to place original direction in zone x and reply in
+zone y (with y != 0).
+
+Zones need to be assigned manually via the iptables/nftables ruleset,
+before conntrack lookup occurs (raw table in iptables) using the
+"CT" target conntrack template support
+(-j CT --{zone,zone-orig,zone-reply} X).
+
+Normally zone assignment happens based on incoming interface, but could
+also be derived from packet mark, vlan id and so on.
+
+This means that when case 3 is used, the ruleset will typically not even
+assign a connection tracking template to the "reply" packets, so lookup
+happens in zone 0.
+
+However, it is possible that reply packets also match a ct zone
+assignment rule which sets up a template for zone X (X > 0) in original
+direction only.
+
+Therefore, after making the zone id part of the hash, we need to do a
+second lookup using the reply zone id if we did not find an entry on
+the first lookup.
+
+In practice, most deployments will either not use zones at all or the
+origin and reply zones are the same, no second lookup is required in
+either case.
+
+After this change, packet path insertion test passes with constant
+insertion times:
+
+ 10000 entries in 1064 ms (now 10000 total, loop 1)
+ 10000 entries in 1074 ms (now 20000 total, loop 2)
+ 10000 entries in 1066 ms (now 30000 total, loop 3)
+ 10000 entries in 1079 ms (now 40000 total, loop 4)
+ 10000 entries in 1081 ms (now 50000 total, loop 5)
+ 10000 entries in 1082 ms (now 60000 total, loop 6)
+ inserted 60000 entries from packet path in 6452 ms
+
+Cc: Daniel Borkmann <daniel@iogearbox.net>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_conntrack_core.c | 17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ net/netfilter/nf_conntrack_core.c | 67 ++++++++++++++++++++++++-------
+ 1 file changed, 52 insertions(+), 15 deletions(-)
 
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 94e18fb9690d..91b7edaa635c 100644
+index 91b7edaa635c..97b91d62589d 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -77,7 +77,8 @@ static __read_mostly bool nf_conntrack_locks_all;
- #define GC_SCAN_INTERVAL	(120u * HZ)
- #define GC_SCAN_MAX_DURATION	msecs_to_jiffies(10)
+@@ -189,11 +189,13 @@ seqcount_spinlock_t nf_conntrack_generation __read_mostly;
+ static siphash_key_t nf_conntrack_hash_rnd __read_mostly;
  
--#define MAX_CHAINLEN	64u
-+#define MIN_CHAINLEN	8u
-+#define MAX_CHAINLEN	(32u - MIN_CHAINLEN)
+ static u32 hash_conntrack_raw(const struct nf_conntrack_tuple *tuple,
++			      unsigned int zoneid,
+ 			      const struct net *net)
+ {
+ 	struct {
+ 		struct nf_conntrack_man src;
+ 		union nf_inet_addr dst_addr;
++		unsigned int zone;
+ 		u32 net_mix;
+ 		u16 dport;
+ 		u16 proto;
+@@ -206,6 +208,7 @@ static u32 hash_conntrack_raw(const struct nf_conntrack_tuple *tuple,
+ 	/* The direction must be ignored, so handle usable members manually. */
+ 	combined.src = tuple->src;
+ 	combined.dst_addr = tuple->dst.u3;
++	combined.zone = zoneid;
+ 	combined.net_mix = net_hash_mix(net);
+ 	combined.dport = (__force __u16)tuple->dst.u.all;
+ 	combined.proto = tuple->dst.protonum;
+@@ -220,15 +223,17 @@ static u32 scale_hash(u32 hash)
  
- static struct conntrack_gc_work conntrack_gc_work;
+ static u32 __hash_conntrack(const struct net *net,
+ 			    const struct nf_conntrack_tuple *tuple,
++			    unsigned int zoneid,
+ 			    unsigned int size)
+ {
+-	return reciprocal_scale(hash_conntrack_raw(tuple, net), size);
++	return reciprocal_scale(hash_conntrack_raw(tuple, zoneid, net), size);
+ }
  
-@@ -842,6 +843,7 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
- 	unsigned int hash, reply_hash;
- 	struct nf_conntrack_tuple_hash *h;
- 	struct hlist_nulls_node *n;
-+	unsigned int max_chainlen;
- 	unsigned int chainlen = 0;
- 	unsigned int sequence;
- 	int err = -EEXIST;
-@@ -857,13 +859,15 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
- 					   &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
+ static u32 hash_conntrack(const struct net *net,
+-			  const struct nf_conntrack_tuple *tuple)
++			  const struct nf_conntrack_tuple *tuple,
++			  unsigned int zoneid)
+ {
+-	return scale_hash(hash_conntrack_raw(tuple, net));
++	return scale_hash(hash_conntrack_raw(tuple, zoneid, net));
+ }
+ 
+ static bool nf_ct_get_tuple_ports(const struct sk_buff *skb,
+@@ -651,9 +656,11 @@ static void nf_ct_delete_from_lists(struct nf_conn *ct)
+ 	do {
+ 		sequence = read_seqcount_begin(&nf_conntrack_generation);
+ 		hash = hash_conntrack(net,
+-				      &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
++				      &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
++				      nf_ct_zone_id(nf_ct_zone(ct), IP_CT_DIR_ORIGINAL));
+ 		reply_hash = hash_conntrack(net,
+-					   &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
++					   &ct->tuplehash[IP_CT_DIR_REPLY].tuple,
++					   nf_ct_zone_id(nf_ct_zone(ct), IP_CT_DIR_REPLY));
  	} while (nf_conntrack_double_lock(net, hash, reply_hash, sequence));
  
-+	max_chainlen = MIN_CHAINLEN + prandom_u32_max(MAX_CHAINLEN);
-+
- 	/* See if there's one in the list already, including reverse */
- 	hlist_nulls_for_each_entry(h, n, &nf_conntrack_hash[hash], hnnode) {
- 		if (nf_ct_key_equal(h, &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
- 				    zone, net))
- 			goto out;
- 
--		if (chainlen++ > MAX_CHAINLEN)
-+		if (chainlen++ > max_chainlen)
- 			goto chaintoolong;
- 	}
- 
-@@ -873,7 +877,7 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
- 		if (nf_ct_key_equal(h, &ct->tuplehash[IP_CT_DIR_REPLY].tuple,
- 				    zone, net))
- 			goto out;
--		if (chainlen++ > MAX_CHAINLEN)
-+		if (chainlen++ > max_chainlen)
- 			goto chaintoolong;
- 	}
- 
-@@ -1103,8 +1107,8 @@ nf_ct_resolve_clash(struct sk_buff *skb, struct nf_conntrack_tuple_hash *h,
- int
- __nf_conntrack_confirm(struct sk_buff *skb)
+ 	clean_from_lists(ct);
+@@ -820,8 +827,20 @@ struct nf_conntrack_tuple_hash *
+ nf_conntrack_find_get(struct net *net, const struct nf_conntrack_zone *zone,
+ 		      const struct nf_conntrack_tuple *tuple)
  {
-+	unsigned int chainlen = 0, sequence, max_chainlen;
- 	const struct nf_conntrack_zone *zone;
--	unsigned int chainlen = 0, sequence;
- 	unsigned int hash, reply_hash;
+-	return __nf_conntrack_find_get(net, zone, tuple,
+-				       hash_conntrack_raw(tuple, net));
++	unsigned int rid, zone_id = nf_ct_zone_id(zone, IP_CT_DIR_ORIGINAL);
++	struct nf_conntrack_tuple_hash *thash;
++
++	thash = __nf_conntrack_find_get(net, zone, tuple,
++					hash_conntrack_raw(tuple, zone_id, net));
++
++	if (thash)
++		return thash;
++
++	rid = nf_ct_zone_id(zone, IP_CT_DIR_REPLY);
++	if (rid != zone_id)
++		return __nf_conntrack_find_get(net, zone, tuple,
++					       hash_conntrack_raw(tuple, rid, net));
++	return thash;
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_find_get);
+ 
+@@ -854,9 +873,11 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
+ 	do {
+ 		sequence = read_seqcount_begin(&nf_conntrack_generation);
+ 		hash = hash_conntrack(net,
+-				      &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
++				      &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
++				      nf_ct_zone_id(nf_ct_zone(ct), IP_CT_DIR_ORIGINAL));
+ 		reply_hash = hash_conntrack(net,
+-					   &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
++					   &ct->tuplehash[IP_CT_DIR_REPLY].tuple,
++					   nf_ct_zone_id(nf_ct_zone(ct), IP_CT_DIR_REPLY));
+ 	} while (nf_conntrack_double_lock(net, hash, reply_hash, sequence));
+ 
+ 	max_chainlen = MIN_CHAINLEN + prandom_u32_max(MAX_CHAINLEN);
+@@ -1137,8 +1158,8 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+ 		hash = *(unsigned long *)&ct->tuplehash[IP_CT_DIR_REPLY].hnnode.pprev;
+ 		hash = scale_hash(hash);
+ 		reply_hash = hash_conntrack(net,
+-					   &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
+-
++					   &ct->tuplehash[IP_CT_DIR_REPLY].tuple,
++					   nf_ct_zone_id(nf_ct_zone(ct), IP_CT_DIR_REPLY));
+ 	} while (nf_conntrack_double_lock(net, hash, reply_hash, sequence));
+ 
+ 	/* We're not in hash table, and we refuse to set up related
+@@ -1251,7 +1272,7 @@ nf_conntrack_tuple_taken(const struct nf_conntrack_tuple *tuple,
+ 	rcu_read_lock();
+  begin:
+ 	nf_conntrack_get_ht(&ct_hash, &hsize);
+-	hash = __hash_conntrack(net, tuple, hsize);
++	hash = __hash_conntrack(net, tuple, nf_ct_zone_id(zone, IP_CT_DIR_REPLY), hsize);
+ 
+ 	hlist_nulls_for_each_entry_rcu(h, n, &ct_hash[hash], hnnode) {
+ 		ct = nf_ct_tuplehash_to_ctrack(h);
+@@ -1692,8 +1713,8 @@ resolve_normal_ct(struct nf_conn *tmpl,
  	struct nf_conntrack_tuple_hash *h;
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_conntrack_zone tmp;
++	u32 hash, zone_id, rid;
  	struct nf_conn *ct;
-@@ -1168,6 +1172,7 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 		goto dying;
- 	}
+-	u32 hash;
  
-+	max_chainlen = MIN_CHAINLEN + prandom_u32_max(MAX_CHAINLEN);
- 	/* See if there's one in the list already, including reverse:
- 	   NAT could have grabbed it without realizing, since we're
- 	   not in the hash.  If there is, we lost race. */
-@@ -1175,7 +1180,7 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 		if (nf_ct_key_equal(h, &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
- 				    zone, net))
- 			goto out;
--		if (chainlen++ > MAX_CHAINLEN)
-+		if (chainlen++ > max_chainlen)
- 			goto chaintoolong;
- 	}
+ 	if (!nf_ct_get_tuple(skb, skb_network_offset(skb),
+ 			     dataoff, state->pf, protonum, state->net,
+@@ -1704,8 +1725,20 @@ resolve_normal_ct(struct nf_conn *tmpl,
  
-@@ -1184,7 +1189,7 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 		if (nf_ct_key_equal(h, &ct->tuplehash[IP_CT_DIR_REPLY].tuple,
- 				    zone, net))
- 			goto out;
--		if (chainlen++ > MAX_CHAINLEN) {
-+		if (chainlen++ > max_chainlen) {
- chaintoolong:
- 			nf_ct_add_to_dying_list(ct);
- 			NF_CT_STAT_INC(net, chaintoolong);
+ 	/* look for tuple match */
+ 	zone = nf_ct_zone_tmpl(tmpl, skb, &tmp);
+-	hash = hash_conntrack_raw(&tuple, state->net);
++
++	zone_id = nf_ct_zone_id(zone, IP_CT_DIR_ORIGINAL);
++	hash = hash_conntrack_raw(&tuple, zone_id, state->net);
+ 	h = __nf_conntrack_find_get(state->net, zone, &tuple, hash);
++
++	if (!h) {
++		rid = nf_ct_zone_id(zone, IP_CT_DIR_REPLY);
++		if (zone_id != rid) {
++			u32 tmp = hash_conntrack_raw(&tuple, rid, state->net);
++
++			h = __nf_conntrack_find_get(state->net, zone, &tuple, tmp);
++		}
++	}
++
+ 	if (!h) {
+ 		h = init_conntrack(state->net, tmpl, &tuple,
+ 				   skb, dataoff, hash);
+@@ -2542,12 +2575,16 @@ int nf_conntrack_hash_resize(unsigned int hashsize)
+ 
+ 	for (i = 0; i < nf_conntrack_htable_size; i++) {
+ 		while (!hlist_nulls_empty(&nf_conntrack_hash[i])) {
++			unsigned int zone_id;
++
+ 			h = hlist_nulls_entry(nf_conntrack_hash[i].first,
+ 					      struct nf_conntrack_tuple_hash, hnnode);
+ 			ct = nf_ct_tuplehash_to_ctrack(h);
+ 			hlist_nulls_del_rcu(&h->hnnode);
++
++			zone_id = nf_ct_zone_id(nf_ct_zone(ct), NF_CT_DIRECTION(h));
+ 			bucket = __hash_conntrack(nf_ct_net(ct),
+-						  &h->tuple, hashsize);
++						  &h->tuple, zone_id, hashsize);
+ 			hlist_nulls_add_head_rcu(&h->hnnode, &hash[bucket]);
+ 		}
+ 	}
 -- 
 2.32.0
 
