@@ -2,229 +2,132 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF0DBC433FE
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Sep 2021 12:29:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EAB6BC433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Sep 2021 20:58:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A16A260E77
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Sep 2021 12:29:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BE8406103E
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Sep 2021 20:58:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348610AbhIHMaZ (ORCPT
+        id S1350619AbhIHU7Y (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 8 Sep 2021 08:30:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60688 "EHLO
+        Wed, 8 Sep 2021 16:59:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35612 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1348488AbhIHMaY (ORCPT
+        with ESMTP id S235437AbhIHU7Y (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Sep 2021 08:30:24 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 10B7BC061575
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Sep 2021 05:29:17 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1mNwhX-0004c7-JF; Wed, 08 Sep 2021 14:29:15 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf 5/5] selftests: netfilter: add zone stress test with colliding tuples
-Date:   Wed,  8 Sep 2021 14:28:39 +0200
-Message-Id: <20210908122839.7526-7-fw@strlen.de>
-X-Mailer: git-send-email 2.32.0
-In-Reply-To: <20210908122839.7526-1-fw@strlen.de>
-References: <20210908122839.7526-1-fw@strlen.de>
+        Wed, 8 Sep 2021 16:59:24 -0400
+Received: from mail-wm1-x32e.google.com (mail-wm1-x32e.google.com [IPv6:2a00:1450:4864:20::32e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 78C45C061575;
+        Wed,  8 Sep 2021 13:58:15 -0700 (PDT)
+Received: by mail-wm1-x32e.google.com with SMTP id z9-20020a7bc149000000b002e8861aff59so2631478wmi.0;
+        Wed, 08 Sep 2021 13:58:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=sender:date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=hSocSWxCXqTtY7IKswJjQcQ4A/k6XRZNGQUNO2WMnGY=;
+        b=VUBU5OR6v6gVEVmrEFfx+o4vCn96JH3KGMWJo7zyAa7DlTJtK01Yt6qimX3yltc18z
+         dKIJb14ozxEjNI66XlGwkXYhwClNZ0nwF2/BKIeNMFm9Wrt0/pFvP0hcZbDfroRRAy28
+         pa8QSLqqfLiVEgh95eu4r8zQ3jndK8s9vqbCHVDagX0kDNnR9hMKpA069XKRXd6nPNS4
+         VASY33S7Ey2PpLg6HOM/uKMKlUhBZEdhiMcgNsy8KUgymWJHyC5FN/y2EdXhaGXX+evg
+         hkHrZ8u8YAu8k1fpC0RFjJFvMKgBN7YY2QqqnnYZOfl/oGM17FfyC6yFj+Cavj2qHHLZ
+         qGWw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:sender:date:from:to:cc:subject:message-id
+         :references:mime-version:content-disposition:in-reply-to;
+        bh=hSocSWxCXqTtY7IKswJjQcQ4A/k6XRZNGQUNO2WMnGY=;
+        b=HEJhwWxmDwl6RHCCEkfr3VsA5eGgnEFQdzZ387UpFZBmYuM/LTTpY4sJanxMrV9DRK
+         amEu70HNhX0vUeURRdlbyjQw1dwWO9vBQUF71EY+VLjVyoH5EGv3WLRYu+nhPi2uB1S4
+         PwQSSmhy9y3rTUYsJbnP25NDvtxJeAw1vkrRFfg7QBWFEZXnWuX+qIiZ5NKrcPgwSxCe
+         f2ExssDG+BYKPVZRoqotW6wzeYtl0sJYizzwTCO9d8gn7TGHwHm+RllYNkAXmaVJE/rp
+         A5yaMVEOG1B9t3A6uFNHZ7HVs3KV+VnPAxB3KMaEAp6fH2oxt8zfQafokiQIxFrlJFBD
+         26ng==
+X-Gm-Message-State: AOAM532VOf+QmIhzmOgfbU/fZsNjfERWIZ5iLEYERafh9CwQkbnbyV1N
+        pnCbj+rBqYsNG90DG82YobiSNhUoNN58Ug==
+X-Google-Smtp-Source: ABdhPJzGzcRN8XlxAJDijyjtEXq0U8rBWTPf+y5u0tB1o3a6kslnKemjvmsLF2GMUiU9xXFGEB+RTA==
+X-Received: by 2002:a7b:c255:: with SMTP id b21mr176029wmj.44.1631134694106;
+        Wed, 08 Sep 2021 13:58:14 -0700 (PDT)
+Received: from eldamar (80-218-24-251.dclient.hispeed.ch. [80.218.24.251])
+        by smtp.gmail.com with ESMTPSA id f17sm231024wrt.63.2021.09.08.13.58.12
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 08 Sep 2021 13:58:12 -0700 (PDT)
+Sender: Salvatore Bonaccorso <salvatore.bonaccorso@gmail.com>
+Date:   Wed, 8 Sep 2021 22:58:11 +0200
+From:   Salvatore Bonaccorso <carnil@debian.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     syzbot <syzbot+ce96ca2b1d0b37c6422d@syzkaller.appspotmail.com>,
+        coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
+        kadlec@netfilter.org, kuba@kernel.org,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, syzkaller-bugs@googlegroups.com,
+        stable@vger.kernel.org, elbrus@debian.org
+Subject: Re: [syzbot] general protection fault in nft_set_elem_expr_alloc
+Message-ID: <YTkj4xH2Ol075+Ge@eldamar.lan>
+References: <000000000000ef07b205c3cb1234@google.com>
+ <20210602170317.GA18869@salvia>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210602170317.GA18869@salvia>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add 20k entries to the connection tracking table, once from the
-data plane, once via ctnetlink.
+Hi Pablo,
 
-In both cases, each entry lives in a different conntrack zone
-and addresses/ports are identical.
+On Wed, Jun 02, 2021 at 07:03:17PM +0200, Pablo Neira Ayuso wrote:
+> On Wed, Jun 02, 2021 at 09:37:26AM -0700, syzbot wrote:
+> > Hello,
+> > 
+> > syzbot found the following issue on:
+> > 
+> > HEAD commit:    6850ec97 Merge branch 'mptcp-fixes-for-5-13'
+> > git tree:       net
+> > console output: https://syzkaller.appspot.com/x/log.txt?x=1355504dd00000
+> > kernel config:  https://syzkaller.appspot.com/x/.config?x=770708ea7cfd4916
+> > dashboard link: https://syzkaller.appspot.com/bug?extid=ce96ca2b1d0b37c6422d
+> > syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1502d517d00000
+> > C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=12bbbe13d00000
+> > 
+> > The issue was bisected to:
+> > 
+> > commit 05abe4456fa376040f6cc3cc6830d2e328723478
+> > Author: Pablo Neira Ayuso <pablo@netfilter.org>
+> > Date:   Wed May 20 13:44:37 2020 +0000
+> > 
+> >     netfilter: nf_tables: allow to register flowtable with no devices
+> > 
+> > bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=10fa1387d00000
+> > final oops:     https://syzkaller.appspot.com/x/report.txt?x=12fa1387d00000
+> > console output: https://syzkaller.appspot.com/x/log.txt?x=14fa1387d00000
+> > 
+> > IMPORTANT: if you fix the issue, please add the following tag to the commit:
+> > Reported-by: syzbot+ce96ca2b1d0b37c6422d@syzkaller.appspotmail.com
+> > Fixes: 05abe4456fa3 ("netfilter: nf_tables: allow to register flowtable with no devices")
+> > 
+> > general protection fault, probably for non-canonical address 0xdffffc000000000e: 0000 [#1] PREEMPT SMP KASAN
+> > KASAN: null-ptr-deref in range [0x0000000000000070-0x0000000000000077]
+> > CPU: 1 PID: 8438 Comm: syz-executor343 Not tainted 5.13.0-rc3-syzkaller #0
+> > Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+> > RIP: 0010:nft_set_elem_expr_alloc+0x17e/0x280 net/netfilter/nf_tables_api.c:5321
+> > Code: 48 c1 ea 03 80 3c 02 00 0f 85 09 01 00 00 49 8b 9d c0 00 00 00 48 b8 00 00 00 00 00 fc ff df 48 8d 7b 70 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85 d9 00 00 00 48 8b 5b 70 48 85 db 74 21 e8 9a bd
+> 
+> It's a real bug. Bisect is not correct though.
+> 
+> I'll post a patch to fix it. Thanks.
 
-Expectation is that insertions work and occurs in constant time:
+So if I see it correctly the fix landed in ad9f151e560b ("netfilter:
+nf_tables: initialize set before expression setup") in 5.13-rc7 and
+landed as well in 5.12.13. The issue is though still present in the
+5.10.y series.
 
-PASS: added 10000 entries in 1215 ms (now 10000 total, loop 1)
-PASS: added 10000 entries in 1214 ms (now 20000 total, loop 2)
-PASS: inserted 20000 entries from packet path in 2434 ms total
-PASS: added 10000 entries in 57631 ms (now 10000 total)
-PASS: added 10000 entries in 58572 ms (now 20000 total)
-PASS: inserted 20000 entries via ctnetlink in 116205 ms
+Would it be possible to backport the fix as well to 5.10.y? It is
+needed there as well.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- .../selftests/netfilter/nft_zones_many.sh     | 156 ++++++++++++++++++
- 1 file changed, 156 insertions(+)
- create mode 100755 tools/testing/selftests/netfilter/nft_zones_many.sh
-
-diff --git a/tools/testing/selftests/netfilter/nft_zones_many.sh b/tools/testing/selftests/netfilter/nft_zones_many.sh
-new file mode 100755
-index 000000000000..ac646376eb01
---- /dev/null
-+++ b/tools/testing/selftests/netfilter/nft_zones_many.sh
-@@ -0,0 +1,156 @@
-+#!/bin/bash
-+
-+# Test insertion speed for packets with identical addresses/ports
-+# that are all placed in distinct conntrack zones.
-+
-+sfx=$(mktemp -u "XXXXXXXX")
-+ns="ns-$sfx"
-+
-+# Kselftest framework requirement - SKIP code is 4.
-+ksft_skip=4
-+
-+zones=20000
-+have_ct_tool=0
-+ret=0
-+
-+cleanup()
-+{
-+	ip netns del $ns
-+}
-+
-+ip netns add $ns
-+if [ $? -ne 0 ];then
-+	echo "SKIP: Could not create net namespace $gw"
-+	exit $ksft_skip
-+fi
-+
-+trap cleanup EXIT
-+
-+conntrack -V > /dev/null 2>&1
-+if [ $? -eq 0 ];then
-+	have_ct_tool=1
-+fi
-+
-+ip -net "$ns" link set lo up
-+
-+test_zones() {
-+	local max_zones=$1
-+
-+ip netns exec $ns sysctl -q net.netfilter.nf_conntrack_udp_timeout=3600
-+ip netns exec $ns nft -f /dev/stdin<<EOF
-+flush ruleset
-+table inet raw {
-+	map rndzone {
-+		typeof numgen inc mod $max_zones : ct zone
-+	}
-+
-+	chain output {
-+		type filter hook output priority -64000; policy accept;
-+		udp dport 12345  ct zone set numgen inc mod 65536 map @rndzone
-+	}
-+}
-+EOF
-+	(
-+		echo "add element inet raw rndzone {"
-+	for i in $(seq 1 $max_zones);do
-+		echo -n "$i : $i"
-+		if [ $i -lt $max_zones ]; then
-+			echo ","
-+		else
-+			echo "}"
-+		fi
-+	done
-+	) | ip netns exec $ns nft -f /dev/stdin
-+
-+	local i=0
-+	local j=0
-+	local outerstart=$(date +%s%3N)
-+	local stop=$outerstart
-+
-+	while [ $i -lt $max_zones ]; do
-+		local start=$(date +%s%3N)
-+		i=$((i + 10000))
-+		j=$((j + 1))
-+		dd if=/dev/zero of=/dev/stdout bs=8k count=10000 2>/dev/null | ip netns exec "$ns" nc -w 1 -q 1 -u -p 12345 127.0.0.1 12345 > /dev/null
-+		if [ $? -ne 0 ] ;then
-+			ret=1
-+			break
-+		fi
-+
-+		stop=$(date +%s%3N)
-+		local duration=$((stop-start))
-+		echo "PASS: added 10000 entries in $duration ms (now $i total, loop $j)"
-+	done
-+
-+	if [ $have_ct_tool -eq 1 ]; then
-+		local count=$(ip netns exec "$ns" conntrack -C)
-+		local duration=$((stop-outerstart))
-+
-+		if [ $count -eq $max_zones ]; then
-+			echo "PASS: inserted $count entries from packet path in $duration ms total"
-+		else
-+			ip netns exec $ns conntrack -S 1>&2
-+			echo "FAIL: inserted $count entries from packet path in $duration ms total, expected $max_zones entries"
-+			ret=1
-+		fi
-+	fi
-+
-+	if [ $ret -ne 0 ];then
-+		echo "FAIL: insert $max_zones entries from packet path" 1>&2
-+	fi
-+}
-+
-+test_conntrack_tool() {
-+	local max_zones=$1
-+
-+	ip netns exec $ns conntrack -F >/dev/null 2>/dev/null
-+
-+	local outerstart=$(date +%s%3N)
-+	local start=$(date +%s%3N)
-+	local stop=$start
-+	local i=0
-+	while [ $i -lt $max_zones ]; do
-+		i=$((i + 1))
-+		ip netns exec "$ns" conntrack -I -s 1.1.1.1 -d 2.2.2.2 --protonum 6 \
-+	                 --timeout 3600 --state ESTABLISHED --sport 12345 --dport 1000 --zone $i >/dev/null 2>&1
-+		if [ $? -ne 0 ];then
-+			ip netns exec "$ns" conntrack -I -s 1.1.1.1 -d 2.2.2.2 --protonum 6 \
-+	                 --timeout 3600 --state ESTABLISHED --sport 12345 --dport 1000 --zone $i > /dev/null
-+			echo "FAIL: conntrack -I returned an error"
-+			ret=1
-+			break
-+		fi
-+
-+		if [ $((i%10000)) -eq 0 ];then
-+			stop=$(date +%s%3N)
-+
-+			local duration=$((stop-start))
-+			echo "PASS: added 10000 entries in $duration ms (now $i total)"
-+			start=$stop
-+		fi
-+	done
-+
-+	local count=$(ip netns exec "$ns" conntrack -C)
-+	local duration=$((stop-outerstart))
-+
-+	if [ $count -eq $max_zones ]; then
-+		echo "PASS: inserted $count entries via ctnetlink in $duration ms"
-+	else
-+		ip netns exec $ns conntrack -S 1>&2
-+		echo "FAIL: inserted $count entries via ctnetlink in $duration ms, expected $max_zones entries ($duration ms)"
-+		ret=1
-+	fi
-+}
-+
-+test_zones $zones
-+
-+if [ $have_ct_tool -eq 1 ];then
-+	test_conntrack_tool $zones
-+else
-+	echo "SKIP: Could not run ctnetlink insertion test without conntrack tool"
-+	if [ $ret -eq 0 ];then
-+		exit $ksft_skip
-+	fi
-+fi
-+
-+exit $ret
--- 
-2.32.0
-
+Regards,
+Salvatore
