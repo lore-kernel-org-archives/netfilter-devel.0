@@ -2,40 +2,40 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B729C43217
-	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Sep 2021 14:40:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80689C433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Sep 2021 14:40:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1E54861216
-	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Sep 2021 14:40:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 62AED61215
+	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Sep 2021 14:40:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242097AbhIIOlh (ORCPT
+        id S242857AbhIIOlj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 9 Sep 2021 10:41:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46380 "EHLO
+        Thu, 9 Sep 2021 10:41:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46366 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241000AbhIIOl2 (ORCPT
+        with ESMTP id S1346692AbhIIOld (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 9 Sep 2021 10:41:28 -0400
+        Thu, 9 Sep 2021 10:41:33 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB3EFC06641C;
-        Thu,  9 Sep 2021 07:03:53 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12271C06642B;
+        Thu,  9 Sep 2021 07:04:02 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1mOKee-0003xp-80; Thu, 09 Sep 2021 16:03:52 +0200
+        id 1mOKem-0003yH-KJ; Thu, 09 Sep 2021 16:04:00 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     stable@vger.kernel.org
 Cc:     <netfilter-devel@vger.kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
+        Laura Garcia Liebana <nevola@gmail.com>,
         Florian Westphal <fw@strlen.de>
-Subject: [PATCH 5.10.y 1/3] netfilter: nftables: avoid potential overflows on 32bit arches
-Date:   Thu,  9 Sep 2021 16:03:35 +0200
-Message-Id: <20210909140337.29707-2-fw@strlen.de>
+Subject: [PATCH 5.10.y 3/3] netfilter: nftables: clone set element expression template
+Date:   Thu,  9 Sep 2021 16:03:37 +0200
+Message-Id: <20210909140337.29707-4-fw@strlen.de>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20210909140337.29707-1-fw@strlen.de>
 References: <20210909140337.29707-1-fw@strlen.de>
@@ -45,84 +45,100 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Eric Dumazet <edumazet@google.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-commit 6c8774a94e6ad26f29ef103c8671f55c255c6201 upstream.
+commit 4d8f9065830e526c83199186c5f56a6514f457d2 upstream.
 
-User space could ask for very large hash tables, we need to make sure
-our size computations wont overflow.
+memcpy() breaks when using connlimit in set elements. Use
+nft_expr_clone() to initialize the connlimit expression list, otherwise
+connlimit garbage collector crashes when walking on the list head copy.
 
-nf_tables_newset() needs to double check the u64 size
-will fit into size_t field.
+[  493.064656] Workqueue: events_power_efficient nft_rhash_gc [nf_tables]
+[  493.064685] RIP: 0010:find_or_evict+0x5a/0x90 [nf_conncount]
+[  493.064694] Code: 2b 43 40 83 f8 01 77 0d 48 c7 c0 f5 ff ff ff 44 39 63 3c 75 df 83 6d 18 01 48 8b 43 08 48 89 de 48 8b 13 48 8b 3d ee 2f 00 00 <48> 89 42 08 48 89 10 48 b8 00 01 00 00 00 00 ad de 48 89 03 48 83
+[  493.064699] RSP: 0018:ffffc90000417dc0 EFLAGS: 00010297
+[  493.064704] RAX: 0000000000000000 RBX: ffff888134f38410 RCX: 0000000000000000
+[  493.064708] RDX: 0000000000000000 RSI: ffff888134f38410 RDI: ffff888100060cc0
+[  493.064711] RBP: ffff88812ce594a8 R08: ffff888134f38438 R09: 00000000ebb9025c
+[  493.064714] R10: ffffffff8219f838 R11: 0000000000000017 R12: 0000000000000001
+[  493.064718] R13: ffffffff82146740 R14: ffff888134f38410 R15: 0000000000000000
+[  493.064721] FS:  0000000000000000(0000) GS:ffff88840e440000(0000) knlGS:0000000000000000
+[  493.064725] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  493.064729] CR2: 0000000000000008 CR3: 00000001330aa002 CR4: 00000000001706e0
+[  493.064733] Call Trace:
+[  493.064737]  nf_conncount_gc_list+0x8f/0x150 [nf_conncount]
+[  493.064746]  nft_rhash_gc+0x106/0x390 [nf_tables]
 
-Fixes: 0ed6389c483d ("netfilter: nf_tables: rename set implementations")
-Signed-off-by: Eric Dumazet <edumazet@google.com>
+Reported-by: Laura Garcia Liebana <nevola@gmail.com>
+Fixes: 409444522976 ("netfilter: nf_tables: add elements with stateful expressions")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_tables_api.c |  7 +++++--
- net/netfilter/nft_set_hash.c  | 10 +++++-----
- 2 files changed, 10 insertions(+), 7 deletions(-)
+ net/netfilter/nf_tables_api.c | 36 +++++++++++++++++++++++++++--------
+ 1 file changed, 28 insertions(+), 8 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index e34d05cc5754..947d52cff582 100644
+index 3942a29413a4..2b5f97e1d40b 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -4115,6 +4115,7 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
- 	struct nft_table *table;
- 	struct nft_set *set;
- 	struct nft_ctx ctx;
-+	size_t alloc_size;
- 	char *name;
- 	u64 size;
- 	u64 timeout;
-@@ -4263,8 +4264,10 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
- 	size = 0;
- 	if (ops->privsize != NULL)
- 		size = ops->privsize(nla, &desc);
--
--	set = kvzalloc(sizeof(*set) + size + udlen, GFP_KERNEL);
-+	alloc_size = sizeof(*set) + size + udlen;
-+	if (alloc_size < size)
-+		return -ENOMEM;
-+	set = kvzalloc(alloc_size, GFP_KERNEL);
- 	if (!set)
- 		return -ENOMEM;
- 
-diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index d7083bcb20e8..858c8d4d659a 100644
---- a/net/netfilter/nft_set_hash.c
-+++ b/net/netfilter/nft_set_hash.c
-@@ -604,7 +604,7 @@ static u64 nft_hash_privsize(const struct nlattr * const nla[],
- 			     const struct nft_set_desc *desc)
- {
- 	return sizeof(struct nft_hash) +
--	       nft_hash_buckets(desc->size) * sizeof(struct hlist_head);
-+	       (u64)nft_hash_buckets(desc->size) * sizeof(struct hlist_head);
+@@ -5150,6 +5150,24 @@ static void nf_tables_set_elem_destroy(const struct nft_ctx *ctx,
+ 	kfree(elem);
  }
  
- static int nft_hash_init(const struct nft_set *set,
-@@ -644,8 +644,8 @@ static bool nft_hash_estimate(const struct nft_set_desc *desc, u32 features,
- 		return false;
++static int nft_set_elem_expr_setup(struct nft_ctx *ctx,
++				   const struct nft_set_ext *ext,
++				   struct nft_expr *expr)
++{
++	struct nft_expr *elem_expr = nft_set_ext_expr(ext);
++	int err;
++
++	if (expr == NULL)
++		return 0;
++
++	err = nft_expr_clone(elem_expr, expr);
++	if (err < 0)
++		return -ENOMEM;
++
++	nft_expr_destroy(ctx, expr);
++	return 0;
++}
++
+ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 			    const struct nlattr *attr, u32 nlmsg_flags)
+ {
+@@ -5352,15 +5370,17 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 		*nft_set_ext_obj(ext) = obj;
+ 		obj->use++;
+ 	}
+-	if (expr) {
+-		memcpy(nft_set_ext_expr(ext), expr, expr->ops->size);
+-		kfree(expr);
+-		expr = NULL;
+-	}
++
++	err = nft_set_elem_expr_setup(ctx, ext, expr);
++	if (err < 0)
++		goto err_elem_expr;
++	expr = NULL;
  
- 	est->size   = sizeof(struct nft_hash) +
--		      nft_hash_buckets(desc->size) * sizeof(struct hlist_head) +
--		      desc->size * sizeof(struct nft_hash_elem);
-+		      (u64)nft_hash_buckets(desc->size) * sizeof(struct hlist_head) +
-+		      (u64)desc->size * sizeof(struct nft_hash_elem);
- 	est->lookup = NFT_SET_CLASS_O_1;
- 	est->space  = NFT_SET_CLASS_O_N;
+ 	trans = nft_trans_elem_alloc(ctx, NFT_MSG_NEWSETELEM, set);
+-	if (trans == NULL)
+-		goto err_trans;
++	if (trans == NULL) {
++		err = -ENOMEM;
++		goto err_elem_expr;
++	}
  
-@@ -662,8 +662,8 @@ static bool nft_hash_fast_estimate(const struct nft_set_desc *desc, u32 features
- 		return false;
- 
- 	est->size   = sizeof(struct nft_hash) +
--		      nft_hash_buckets(desc->size) * sizeof(struct hlist_head) +
--		      desc->size * sizeof(struct nft_hash_elem);
-+		      (u64)nft_hash_buckets(desc->size) * sizeof(struct hlist_head) +
-+		      (u64)desc->size * sizeof(struct nft_hash_elem);
- 	est->lookup = NFT_SET_CLASS_O_1;
- 	est->space  = NFT_SET_CLASS_O_N;
+ 	ext->genmask = nft_genmask_cur(ctx->net) | NFT_SET_ELEM_BUSY_MASK;
+ 	err = set->ops->insert(ctx->net, set, &elem, &ext2);
+@@ -5404,7 +5424,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 	set->ops->remove(ctx->net, set, &elem);
+ err_element_clash:
+ 	kfree(trans);
+-err_trans:
++err_elem_expr:
+ 	if (obj)
+ 		obj->use--;
  
 -- 
 2.32.0
