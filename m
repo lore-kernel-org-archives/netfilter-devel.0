@@ -2,81 +2,97 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-19.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 467CBC433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Sep 2021 10:32:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CCAFC433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Sep 2021 11:49:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 298346115B
-	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Sep 2021 10:32:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E228C61A6E
+	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Sep 2021 11:49:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233716AbhIIKdU (ORCPT
+        id S239753AbhIILu2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 9 Sep 2021 06:33:20 -0400
-Received: from mail-il1-f198.google.com ([209.85.166.198]:44895 "EHLO
-        mail-il1-f198.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233901AbhIIKdU (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 9 Sep 2021 06:33:20 -0400
-Received: by mail-il1-f198.google.com with SMTP id d4-20020a923604000000b0022a2b065b0aso1576775ila.11
-        for <netfilter-devel@vger.kernel.org>; Thu, 09 Sep 2021 03:32:11 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
-         :from:to;
-        bh=wYGQ6jwHlyJRKwQ0wASVxdo20+iSeZwpNWcEYrVI0Mg=;
-        b=JH/2f0clBfQda0MVU6obFmVM9TxhqSac1SmA3+dkO0m33wLMq318IpxZ5YZq6aTOTS
-         TVzSPkbi8hf01HEx/htnvjQbfr4P0LE0GoZSeEXtJ+H8pwENR4ZbswMbBg081Mv9cVgh
-         9EtK+is7/C2ev95QHj58nBMRhQsL5x/wk6aSFSLGqD31XsUAavCgnAUF43uv2jRYYeno
-         rb9nQbxmik09LIwiaPu+GGoIXDlJiThW/jYzWYrMpqZAsmhjJH4B5QfVSLJtZSgt4YVh
-         lNeWRn4CqspLEIxH6Tts63dCclkQp1qUXgjK7g5NlytFJQzsuRh9FL5D0aeu2HgOd2ZZ
-         GujQ==
-X-Gm-Message-State: AOAM533/kuEoeCTQd1538J21p5bluEIWvd8zaRfnE735aiWbjKsei0zJ
-        zr6LPI2HIzArXu83FxICrArepXu5edrVpyxQg5z2dK38pfxY
-X-Google-Smtp-Source: ABdhPJyLqRh/TbRtIHt72BPFNapbFg9OeSZoFGu+kZ/Sb6A9wM8KjD+jiurXOZXjz8P6xfgVBECN1lEOE5FmMsE/lX8rlWQ2Uj5i
+        Thu, 9 Sep 2021 07:50:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46218 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S241326AbhIILq5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 9 Sep 2021 07:46:57 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0107861205;
+        Thu,  9 Sep 2021 11:43:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1631187789;
+        bh=ze7B5FV3b/CWQmkaH2nhTOx865klHkNYpzxXSArr3fY=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=inkHa5UYAz+xgzQu54sKatwC/8OPWlCSTG8rhAuhUGg80sMTMlHiFOJUsWdTKWWau
+         ZmTEDAoO+IHU2YIHn9SlyAvQAI/GyHwtEradbYXrKJaIQ+UF0vVkjEjQ8erQP7Aqpo
+         wILaEY8ehmBjiBaduPjOuMukOpilj1ipN7G6QWwcE8hjkHARI3rZfeGqvwn7cLN3j1
+         ZUi9h0GwTGHYBLEtRylgND6OEx9OeLJURZyMVKn9hmSa7HgAmPWeAx8OqoBxE+ZLrX
+         ft/oqQZ11MPX3CF7tfjJx1yApN0ku5K/yI/rWaYu7uNG/YqBd3sqFBTjd8ebFZrybW
+         AhIFRYquFHLCQ==
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Yajun Deng <yajun.deng@linux.dev>,
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.14 096/252] netfilter: nft_compat: use nfnetlink_unicast()
+Date:   Thu,  9 Sep 2021 07:38:30 -0400
+Message-Id: <20210909114106.141462-96-sashal@kernel.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20210909114106.141462-1-sashal@kernel.org>
+References: <20210909114106.141462-1-sashal@kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a02:ba1a:: with SMTP id z26mr2259499jan.98.1631183531325;
- Thu, 09 Sep 2021 03:32:11 -0700 (PDT)
-Date:   Thu, 09 Sep 2021 03:32:11 -0700
-In-Reply-To: <0000000000006173bf05cb892427@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000f2bcea05cb8d8266@google.com>
-Subject: Re: [syzbot] WARNING: kmalloc bug in hash_ipport_create
-From:   syzbot <syzbot+a568bbab323b96631e61@syzkaller.appspotmail.com>
-To:     akpm@linux-foundation.org, coreteam@netfilter.org,
-        davem@davemloft.net, fw@strlen.de, kadlec@netfilter.org,
-        kuba@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, syzkaller-bugs@googlegroups.com,
-        torvalds@linux-foundation.org, w@1wt.eu
-Content-Type: text/plain; charset="UTF-8"
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot has bisected this issue to:
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-commit 7661809d493b426e979f39ab512e3adf41fbcc69
-Author: Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Wed Jul 14 16:45:49 2021 +0000
+[ Upstream commit 241d1af4c11a75d4c17ecc0193a6ab60553efbfc ]
 
-    mm: don't allow oversized kvmalloc() calls
+Use nfnetlink_unicast() which already translates EAGAIN to ENOBUFS,
+since EAGAIN is reserved to report missing module dependencies to the
+nfnetlink core.
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=15bb0a93300000
-start commit:   626bf91a292e Merge tag 'net-5.15-rc1' of git://git.kernel...
-git tree:       net-next
-final oops:     https://syzkaller.appspot.com/x/report.txt?x=17bb0a93300000
-console output: https://syzkaller.appspot.com/x/log.txt?x=13bb0a93300000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=16e23f04679ec35e
-dashboard link: https://syzkaller.appspot.com/bug?extid=a568bbab323b96631e61
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=178b5d0d300000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=16fad1dd300000
+e0241ae6ac59 ("netfilter: use nfnetlink_unicast() forgot to update
+this spot.
 
-Reported-by: syzbot+a568bbab323b96631e61@syzkaller.appspotmail.com
-Fixes: 7661809d493b ("mm: don't allow oversized kvmalloc() calls")
+Reported-by: Yajun Deng <yajun.deng@linux.dev>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/netfilter/nft_compat.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index 639c337c885b..272bcdb1392d 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -683,14 +683,12 @@ static int nfnl_compat_get_rcu(struct sk_buff *skb,
+ 		goto out_put;
+ 	}
+ 
+-	ret = netlink_unicast(info->sk, skb2, NETLINK_CB(skb).portid,
+-			      MSG_DONTWAIT);
+-	if (ret > 0)
+-		ret = 0;
++	ret = nfnetlink_unicast(skb2, info->net, NETLINK_CB(skb).portid);
+ out_put:
+ 	rcu_read_lock();
+ 	module_put(THIS_MODULE);
+-	return ret == -EAGAIN ? -ENOBUFS : ret;
++
++	return ret;
+ }
+ 
+ static const struct nla_policy nfnl_compat_policy_get[NFTA_COMPAT_MAX+1] = {
+-- 
+2.30.2
+
