@@ -2,166 +2,67 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AABBEC433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Sep 2021 14:40:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B7AFC433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Sep 2021 14:41:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8340961242
-	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Sep 2021 14:40:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EBB4A61216
+	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Sep 2021 14:41:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242975AbhIIOlk (ORCPT
+        id S242629AbhIIOmR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 9 Sep 2021 10:41:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46382 "EHLO
+        Thu, 9 Sep 2021 10:42:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47176 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242655AbhIIOld (ORCPT
+        with ESMTP id S239687AbhIIOmO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 9 Sep 2021 10:41:33 -0400
+        Thu, 9 Sep 2021 10:42:14 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 18784C066425;
-        Thu,  9 Sep 2021 07:03:58 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B8C9C0363C7;
+        Thu,  9 Sep 2021 07:05:38 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1mOKei-0003y3-FO; Thu, 09 Sep 2021 16:03:56 +0200
+        (envelope-from <fw@strlen.de>)
+        id 1mOKgF-0003zm-Hr; Thu, 09 Sep 2021 16:05:31 +0200
+Date:   Thu, 9 Sep 2021 16:05:31 +0200
 From:   Florian Westphal <fw@strlen.de>
-To:     stable@vger.kernel.org
-Cc:     <netfilter-devel@vger.kernel.org>,
+To:     Greg KH <gregkh@linuxfoundation.org>
+Cc:     Salvatore Bonaccorso <carnil@debian.org>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        syzbot+ce96ca2b1d0b37c6422d@syzkaller.appspotmail.com,
-        Florian Westphal <fw@strlen.de>
-Subject: [PATCH 5.10.y 2/3] netfilter: nf_tables: initialize set before expression setup
-Date:   Thu,  9 Sep 2021 16:03:36 +0200
-Message-Id: <20210909140337.29707-3-fw@strlen.de>
-X-Mailer: git-send-email 2.32.0
-In-Reply-To: <20210909140337.29707-1-fw@strlen.de>
-References: <20210909140337.29707-1-fw@strlen.de>
+        syzbot <syzbot+ce96ca2b1d0b37c6422d@syzkaller.appspotmail.com>,
+        coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
+        kadlec@netfilter.org, kuba@kernel.org,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, syzkaller-bugs@googlegroups.com,
+        stable@vger.kernel.org, elbrus@debian.org
+Subject: Re: [syzbot] general protection fault in nft_set_elem_expr_alloc
+Message-ID: <20210909140531.GJ23554@breakpoint.cc>
+References: <000000000000ef07b205c3cb1234@google.com>
+ <20210602170317.GA18869@salvia>
+ <YTkj4xH2Ol075+Ge@eldamar.lan>
+ <YTmnpquHt3+02t9k@kroah.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <YTmnpquHt3+02t9k@kroah.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+Greg KH <gregkh@linuxfoundation.org> wrote:
+> On Wed, Sep 08, 2021 at 10:58:11PM +0200, Salvatore Bonaccorso wrote:
+> > So if I see it correctly the fix landed in ad9f151e560b ("netfilter:
+> > nf_tables: initialize set before expression setup") in 5.13-rc7 and
+> > landed as well in 5.12.13. The issue is though still present in the
+> > 5.10.y series.
+> > 
+> > Would it be possible to backport the fix as well to 5.10.y? It is
+> > needed there as well.
+> 
+> I would need a working backport, as it does not apply cleanly to 5.10.y
+> :(
 
-commit ad9f151e560b016b6ad3280b48e42fa11e1a5440 upstream.
-
-nft_set_elem_expr_alloc() needs an initialized set if expression sets on
-the NFT_EXPR_GC flag. Move set fields initialization before expression
-setup.
-
-[4512935.019450] ==================================================================
-[4512935.019456] BUG: KASAN: null-ptr-deref in nft_set_elem_expr_alloc+0x84/0xd0 [nf_tables]
-[4512935.019487] Read of size 8 at addr 0000000000000070 by task nft/23532
-[4512935.019494] CPU: 1 PID: 23532 Comm: nft Not tainted 5.12.0-rc4+ #48
-[...]
-[4512935.019502] Call Trace:
-[4512935.019505]  dump_stack+0x89/0xb4
-[4512935.019512]  ? nft_set_elem_expr_alloc+0x84/0xd0 [nf_tables]
-[4512935.019536]  ? nft_set_elem_expr_alloc+0x84/0xd0 [nf_tables]
-[4512935.019560]  kasan_report.cold.12+0x5f/0xd8
-[4512935.019566]  ? nft_set_elem_expr_alloc+0x84/0xd0 [nf_tables]
-[4512935.019590]  nft_set_elem_expr_alloc+0x84/0xd0 [nf_tables]
-[4512935.019615]  nf_tables_newset+0xc7f/0x1460 [nf_tables]
-
-Reported-by: syzbot+ce96ca2b1d0b37c6422d@syzkaller.appspotmail.com
-Fixes: 65038428b2c6 ("netfilter: nf_tables: allow to specify stateful expression in set definition")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_tables_api.c | 46 ++++++++++++++++++-----------------
- 1 file changed, 24 insertions(+), 22 deletions(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 947d52cff582..3942a29413a4 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4280,15 +4280,7 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
- 	err = nf_tables_set_alloc_name(&ctx, set, name);
- 	kfree(name);
- 	if (err < 0)
--		goto err_set_alloc_name;
--
--	if (nla[NFTA_SET_EXPR]) {
--		expr = nft_set_elem_expr_alloc(&ctx, set, nla[NFTA_SET_EXPR]);
--		if (IS_ERR(expr)) {
--			err = PTR_ERR(expr);
--			goto err_set_alloc_name;
--		}
--	}
-+		goto err_set_name;
- 
- 	udata = NULL;
- 	if (udlen) {
-@@ -4299,21 +4291,19 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
- 	INIT_LIST_HEAD(&set->bindings);
- 	set->table = table;
- 	write_pnet(&set->net, net);
--	set->ops   = ops;
-+	set->ops = ops;
- 	set->ktype = ktype;
--	set->klen  = desc.klen;
-+	set->klen = desc.klen;
- 	set->dtype = dtype;
- 	set->objtype = objtype;
--	set->dlen  = desc.dlen;
--	set->expr = expr;
-+	set->dlen = desc.dlen;
- 	set->flags = flags;
--	set->size  = desc.size;
-+	set->size = desc.size;
- 	set->policy = policy;
--	set->udlen  = udlen;
--	set->udata  = udata;
-+	set->udlen = udlen;
-+	set->udata = udata;
- 	set->timeout = timeout;
- 	set->gc_int = gc_int;
--	set->handle = nf_tables_alloc_handle(table);
- 
- 	set->field_count = desc.field_count;
- 	for (i = 0; i < desc.field_count; i++)
-@@ -4323,20 +4313,32 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
- 	if (err < 0)
- 		goto err_set_init;
- 
-+	if (nla[NFTA_SET_EXPR]) {
-+		expr = nft_set_elem_expr_alloc(&ctx, set, nla[NFTA_SET_EXPR]);
-+		if (IS_ERR(expr)) {
-+			err = PTR_ERR(expr);
-+			goto err_set_expr_alloc;
-+		}
-+
-+		set->expr = expr;
-+	}
-+
-+	set->handle = nf_tables_alloc_handle(table);
-+
- 	err = nft_trans_set_add(&ctx, NFT_MSG_NEWSET, set);
- 	if (err < 0)
--		goto err_set_trans;
-+		goto err_set_expr_alloc;
- 
- 	list_add_tail_rcu(&set->list, &table->sets);
- 	table->use++;
- 	return 0;
- 
--err_set_trans:
-+err_set_expr_alloc:
-+	if (set->expr)
-+		nft_expr_destroy(&ctx, set->expr);
-+
- 	ops->destroy(set);
- err_set_init:
--	if (expr)
--		nft_expr_destroy(&ctx, expr);
--err_set_alloc_name:
- 	kfree(set->name);
- err_set_name:
- 	kvfree(set);
--- 
-2.32.0
-
+Done, sent to stable@.
