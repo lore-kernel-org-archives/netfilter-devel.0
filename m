@@ -7,43 +7,43 @@ X-Spam-Status: No, score=-19.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CB2AC433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Sep 2021 12:22:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35E75C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Sep 2021 12:40:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 56ACD6115A
-	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Sep 2021 12:22:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 20B8361100
+	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Sep 2021 12:40:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242719AbhIIMXX (ORCPT
+        id S1353776AbhIIMlL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 9 Sep 2021 08:23:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56974 "EHLO mail.kernel.org"
+        Thu, 9 Sep 2021 08:41:11 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46126 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1346781AbhIIMRd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 9 Sep 2021 08:17:33 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D17C061AA9;
-        Thu,  9 Sep 2021 11:49:56 +0000 (UTC)
+        id S236416AbhIIMfe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 9 Sep 2021 08:35:34 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0FA016137C;
+        Thu,  9 Sep 2021 11:53:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1631188197;
-        bh=2G3zIusuZom7k+klAprj8Kx4qWozJiy8cRpox8eK5FQ=;
+        s=k20201202; t=1631188439;
+        bh=J1mrhdFTEaNjzXoW4CbUkVw6pt0Rz7WHcCkwEjtFvCs=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Cn6cTQTSWnTGTcU2vE5M3BVYwmw8DpoOfgC3m9DkbXNWFrJdfOFrPidJeJMCZ2eTb
-         dplfHBymajaGVdxJEEDNGrbENmG58wp9Wv9p92iY6nS/CJST7XUpE9eW8P0bOxsr8n
-         ZGxQngppujw6+w/GNvK+ic69E3AJu7ak7APJLx0dvk8D/FLCV9y9mbQ9HYIcq5kO7C
-         Ql92xwLF7bdtpWRv0eEqb9XHoD2wUPtDgMeQu4M/6k6d9+KmbsZXH6H8uMreoUt9Mn
-         cgGkfDZg6XZ6JSTcvl72ChmQEDvgJMNiCtpfccPTOW6jSaOTjXq8Exj4myBWEUA5le
-         jHsyCvEmVRV3g==
+        b=hFIKyMoMOYKcoW8ximYLLTezT+0FDsR93Cg5WK+iY5seiGnp5P3QIdApGTn+2sMNo
+         6KLtYKNjpXo4WOIvzjctB0TQnNIlvp2aZqrNKkXwyHTFA669w7IT+yTIJzQFKF4dCb
+         7QtiEH4GDphqSh6jr7ea1IIR4AYKxMr5wbRZe6O3vJFmVjKiGSB0TzKyNXO5uBL7Xd
+         KWcxrGMMKVVfMdjwHBM0YxotV2ZOYT6F7fKOVBqHW5rqZ0fNWnUK0trk/aYHv2d1mc
+         uPSjjuT5R92MtjMtrTMIxMBEcyyVD+mWoLAtWUUjH4A0gSGSlu0U9T9/t8asebWRse
+         XEL310A+5IlpA==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Eli Cohen <elic@nvidia.com>, Jiri Pirko <jiri@nvidia.com>,
         "David S . Miller" <davem@davemloft.net>,
         Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: [PATCH AUTOSEL 5.13 156/219] net: Fix offloading indirect devices dependency on qdisc order creation
-Date:   Thu,  9 Sep 2021 07:45:32 -0400
-Message-Id: <20210909114635.143983-156-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.10 124/176] net: Fix offloading indirect devices dependency on qdisc order creation
+Date:   Thu,  9 Sep 2021 07:50:26 -0400
+Message-Id: <20210909115118.146181-124-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210909114635.143983-1-sashal@kernel.org>
-References: <20210909114635.143983-1-sashal@kernel.org>
+In-Reply-To: <20210909115118.146181-1-sashal@kernel.org>
+References: <20210909115118.146181-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -79,10 +79,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  5 files changed, 92 insertions(+), 1 deletion(-)
 
 diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
-index dc5c1e69cd9f..26788244d75b 100644
+index 123b1e9ea304..010d58159887 100644
 --- a/include/net/flow_offload.h
 +++ b/include/net/flow_offload.h
-@@ -451,6 +451,7 @@ struct flow_block_offload {
+@@ -444,6 +444,7 @@ struct flow_block_offload {
  	struct list_head *driver_block_list;
  	struct netlink_ext_ack *extack;
  	struct Qdisc *sch;
@@ -219,10 +219,10 @@ index 715b67f6c62f..e3f0d5906811 100644
  		this->cb(dev, sch, this->cb_priv, type, bo, data, cleanup);
  
 diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index 528b2f172684..0587f071e504 100644
+index 92047cea3c17..a6b654b028dd 100644
 --- a/net/netfilter/nf_flow_table_offload.c
 +++ b/net/netfilter/nf_flow_table_offload.c
-@@ -1097,6 +1097,7 @@ static void nf_flow_table_block_offload_init(struct flow_block_offload *bo,
+@@ -940,6 +940,7 @@ static void nf_flow_table_block_offload_init(struct flow_block_offload *bo,
  	bo->command	= cmd;
  	bo->binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
  	bo->extack	= extack;
@@ -231,10 +231,10 @@ index 528b2f172684..0587f071e504 100644
  }
  
 diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-index b58d73a96523..9656c1646222 100644
+index 9ce776175214..e5fcbb0e4b8e 100644
 --- a/net/netfilter/nf_tables_offload.c
 +++ b/net/netfilter/nf_tables_offload.c
-@@ -353,6 +353,7 @@ static void nft_flow_block_offload_init(struct flow_block_offload *bo,
+@@ -323,6 +323,7 @@ static void nft_flow_block_offload_init(struct flow_block_offload *bo,
  	bo->command	= cmd;
  	bo->binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
  	bo->extack	= extack;
@@ -243,7 +243,7 @@ index b58d73a96523..9656c1646222 100644
  }
  
 diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
-index e3e79e9bd706..9b276d14be4c 100644
+index 31ac76a9189e..8073657a0fd2 100644
 --- a/net/sched/cls_api.c
 +++ b/net/sched/cls_api.c
 @@ -634,6 +634,7 @@ static void tcf_block_offload_init(struct flow_block_offload *bo,
