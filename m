@@ -2,122 +2,112 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6CC5C433EF
-	for <netfilter-devel@archiver.kernel.org>; Sat, 11 Sep 2021 09:39:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4E92C433EF
+	for <netfilter-devel@archiver.kernel.org>; Sat, 11 Sep 2021 11:01:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9B0F2611BF
-	for <netfilter-devel@archiver.kernel.org>; Sat, 11 Sep 2021 09:39:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A5B1D61206
+	for <netfilter-devel@archiver.kernel.org>; Sat, 11 Sep 2021 11:01:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235539AbhIKJkn (ORCPT
+        id S235697AbhIKLCT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 11 Sep 2021 05:40:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56696 "EHLO
+        Sat, 11 Sep 2021 07:02:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46158 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235473AbhIKJkk (ORCPT
+        with ESMTP id S233746AbhIKLCR (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 11 Sep 2021 05:40:40 -0400
-Received: from mail-wm1-x330.google.com (mail-wm1-x330.google.com [IPv6:2a00:1450:4864:20::330])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF279C061574;
-        Sat, 11 Sep 2021 02:39:27 -0700 (PDT)
-Received: by mail-wm1-x330.google.com with SMTP id z9-20020a7bc149000000b002e8861aff59so3189874wmi.0;
-        Sat, 11 Sep 2021 02:39:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=sender:date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=RhpeDqVjLaXMHu4ZIDl1daKWSTzCEUPkicrz4d8qE58=;
-        b=ikIq/ug1WTOgBNkte4NHptkk+6jK0mosru9sw1Uqza9UIJ3rmNTV9t/eEedF1+MNrN
-         vpBJTYzB+sXHq4fSnfaiupDArWQp0D1xvzrJFF7qbQrAAwezVGFeGOVa91xFOQsJzYKF
-         qE/ocHyujZwX2isMywG+2l/AtlVanU0Yj+STrQl2Lu8DamiIq6kokzX4RhLhI9cJh+m/
-         MjDFm0qc3WI2RZdhjayndhj2yAVXM0QsbGUU+DqShrorX3SmX1h935lHjoloPp7FzPts
-         iXhBjowarz1gW9T1isruG713zWIpskw97djz4idS5zNG0gfHhlL1YERmDL6EnxykxNku
-         37jQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:sender:date:from:to:cc:subject:message-id
-         :references:mime-version:content-disposition:in-reply-to;
-        bh=RhpeDqVjLaXMHu4ZIDl1daKWSTzCEUPkicrz4d8qE58=;
-        b=1JPvS/lWx49Iq9U62E2WTM3/ndlJS3ohKl5YEgRRgJtV/ehnCRiAO3aDh+Bs+jyxoG
-         KEoZi8vOvt84eI2oCoXV1Ik9kF9qcIpVNWP2FX0QTxPKP/aG/L1KvpNI21R37exQfSF3
-         nCy9866glOHP0Xl4xLebdcXj3+rP+L0X/u6ez747Kc9HJE+ngVjPM7/eXkW//II5AbrB
-         rVoh32VfY6VsE/ZNGMja7JZKUvQk/xiP8JaAu9/ajg7K0kVJKbkp93cd6gs0QlMV9muN
-         dHmyQ6LguOB45pKn+5PcqskYYUNrO2FbmitvHRz/RMBw2j0s0BuWRJAyyw8lPnDEvjrJ
-         6GCQ==
-X-Gm-Message-State: AOAM5332nbvKUSKKCu5cveajz9p5AvoxJ3i5K/6N4G9LF9FJ/upatqLF
-        5k55HQsD96Hw9Dm9pn+XRndoEib1Xo0ONg==
-X-Google-Smtp-Source: ABdhPJym+/ESfDLYNcbFYq69FSf+Uv8zxtd1vjWQXhEwbpqUQSTI+7s6aIqIvvl9Txnw/xf0dhas8Q==
-X-Received: by 2002:a1c:a512:: with SMTP id o18mr1996101wme.162.1631353166448;
-        Sat, 11 Sep 2021 02:39:26 -0700 (PDT)
-Received: from eldamar (80-218-24-251.dclient.hispeed.ch. [80.218.24.251])
-        by smtp.gmail.com with ESMTPSA id p17sm1177598wmi.30.2021.09.11.02.39.25
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 11 Sep 2021 02:39:25 -0700 (PDT)
-Sender: Salvatore Bonaccorso <salvatore.bonaccorso@gmail.com>
-Date:   Sat, 11 Sep 2021 11:39:25 +0200
-From:   Salvatore Bonaccorso <carnil@debian.org>
-To:     Greg KH <gregkh@linuxfoundation.org>
-Cc:     Florian Westphal <fw@strlen.de>, stable@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH 5.10.y 0/3] netfilter: nf_tables fixes for 5.10.y
-Message-ID: <YTx5TXJ+M1Khn8uH@eldamar.lan>
-References: <20210909140337.29707-1-fw@strlen.de>
- <YTofmaFaPAtGLFs8@kroah.com>
+        Sat, 11 Sep 2021 07:02:17 -0400
+Received: from kadath.azazel.net (kadath.azazel.net [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93FF3C061574
+        for <netfilter-devel@vger.kernel.org>; Sat, 11 Sep 2021 04:01:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=a27NT9+dJDVLJ6ARKAJtJAXJ0Kbu+2qBXavCPvUsxLY=; b=aGKXGxonFBWs3i/Ep9CE6TfXGn
+        O41nHUlNZfQjYzVwAYpRwgHcevhj9vwfeduqCfZGGattVfyZbAPycDqLmRw1roU5mFr1kPJKaNbs8
+        ZmR36OmGgf/kvePHg0bRTjklTKA/9T6Z7wNNDzxIVB0l6w96D7A1w0+gola1GvWQ19PB1hJEnHhP7
+        6nd3oJiAb360R3tdcYtkk7ib+vkfyoc9LeCijVg5e4D+7ElQHxy3H15541sUB/tqo4XpruvEtACnj
+        Q5Nm/I3d9vHgBc3wDeEwWwjyuMcZ3UCw4xbUq1IoBTd6ys64wQcW/rbRgjaNuzSEWPkLizGNIgNxu
+        8HmNON5A==;
+Received: from [2001:8b0:fb7d:d6d7:feb3:bcff:fe5e:42c3] (helo=azazel.net)
+        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <jeremy@azazel.net>)
+        id 1mP0kl-00E5dF-0i; Sat, 11 Sep 2021 12:00:59 +0100
+Date:   Sat, 11 Sep 2021 12:00:57 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     kaskada@email.cz
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: module ipp2p (xtables) for ip6tables? No such file or
+ directory...
+Message-ID: <YTyMactVnbgb5rRP@azazel.net>
+References: <Tj.aVNM.6d2PRLDYSwa.1XEziN@seznam.cz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="gMZPGv83XdEON5JR"
 Content-Disposition: inline
-In-Reply-To: <YTofmaFaPAtGLFs8@kroah.com>
+In-Reply-To: <Tj.aVNM.6d2PRLDYSwa.1XEziN@seznam.cz>
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:feb3:bcff:fe5e:42c3
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Greg,
 
-On Thu, Sep 09, 2021 at 04:52:09PM +0200, Greg KH wrote:
-> On Thu, Sep 09, 2021 at 04:03:34PM +0200, Florian Westphal wrote:
-> > Hello,
-> > 
-> > please consider applying these nf_tables fixes to the 5.10.y tree.
-> > These patches had to mangled to make them apply to 5.10.y.
-> > 
-> > I've done the follwoing tests in a kasan/kmemleak enabled vm:
-> > 1. run upstream nft python/shell tests.
-> >    Without patch 2 and 3 doing so results in kernel crash.
-> >    Some tests fail but afaics those are expected to
-> >    fail on 5.10 due to lack of feature being tested.
-> > 2. Tested the 'conncount' feature (its affected by last patch).
-> >    Worked as designed.
-> > 3. ran nftables related kernel self tests.
-> > 
-> > No kmemleak or kasan splats were seen.
-> > 
-> > Eric Dumazet (1):
-> >   netfilter: nftables: avoid potential overflows on 32bit arches
-> > 
-> > Pablo Neira Ayuso (2):
-> >   netfilter: nf_tables: initialize set before expression setup
-> >   netfilter: nftables: clone set element expression template
-> > 
-> >  net/netfilter/nf_tables_api.c | 89 ++++++++++++++++++++++-------------
-> >  net/netfilter/nft_set_hash.c  | 10 ++--
-> >  2 files changed, 62 insertions(+), 37 deletions(-)
-> > 
-> > -- 
-> > 2.32.0
-> > 
-> 
-> All now queued up, thanks!
+--gMZPGv83XdEON5JR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Florian, thank you! My query originated from a bugreport in Debian
-triggering the issue with the 5.10.y kernels used.
+On 2021-09-11, at 00:24:23 +0200, kaskada@email.cz wrote:
+> I`m trying to use this ip6tables rule (similar I`m used to use in
+> iptables):
+>
+> ip6tables -t mangle -A PREROUTING -m ipp2p --dc -j ACCEPT
+>
+> But I get only this error:
+>
+> ip6tables v1.8.4 (legacy): Couldn't load match `ipp2p':No such file or directory
+> Try `ip6tables -h' or 'ip6tables --help' for more information.
+>
+> I`m running pkg-xtables-addons-debian-3.18-1 (compiled from sources)
+> on Debian 10 and iptables variant works as expected:
+> iptables -m ipp2p --help
+> iptables v1.8.4
+> Usage: iptables -[ACD] chain rule-specification [options]
+> ...
+>
+> What am I doing wrong, please? Or it seems ip6tables are not supported
+> by ipp2p module?
 
-Not really needed here as Greg already queued up but:
+ipp2p is only implemented for IPv4.
 
-Tested-by: Salvatore Bonaccorso <carnil@debian.org>
+J.
 
-Regards,
-Salvatore
+--gMZPGv83XdEON5JR
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmE8jGkACgkQKYasCr3x
+BA1yvA/9EXhuzOFbZs76s54q6bWYqwmFOwHdy0ijp3BPRVfc+oKEbsoq+YkQenL1
+C1tNJWw0CAJY/FZdF+9S8ReDJlQA3H+JgmFxgmxGS9/9g8COh29dlD6LW+k0KoPS
+qy9FcMS/kgsyOVImqQKUFTrFXi+obzNl652RUP4zTiLgHia9cKFk49iFTe5BXOOY
+5TbK1e5BqxOaNOW0Sg+YkDHjlMbkpJShVAqc6MEBYEXVMreMuer7rOci9t36dc3J
+UkRc6/S6srAKghZ5LXIEhjRRytDnTNdaCij983668oyRMtUFWnMkUkg4Z3J6cX4q
++zu3D5FNBKGX9vCZPMjZllAwGFnn32S6k5DCa+sH28atvYX9Z1UoOUHToBxvkHda
+Hb+UyypxjzzgSsFL7lBcqKVh6ywFxUz6frFc7sS5qh4kJZT0IbMo/5kVCRsKBEMK
+xa/yLD8DM0ISUTo8czfckTLrjLIxgqB+Jeyk7rhlLIIPh7Y4Ih9d9l3Gs3ASr5XF
+jF61/ixazwFYImUaptKaQH/BLNOvmgmRR7il8Ujq2+ZYYWBxNXz/0eiCCRFXIQEb
+JgkDiWxPqGDOn/lj4RWoysQ0bhfbZMZ1b2qh7F9HPulPMyv0iAYk4jkTEG8EQuKz
+FUqVZWnfgksv875y8kMg66LwcmwFb2LEe6Vudeq0P92PXDzFpU4=
+=e06d
+-----END PGP SIGNATURE-----
+
+--gMZPGv83XdEON5JR--
