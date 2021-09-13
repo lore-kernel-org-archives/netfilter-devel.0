@@ -4,52 +4,49 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C205BC4332F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Sep 2021 22:53:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C39AC433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Sep 2021 22:58:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9CDC260F51
-	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Sep 2021 22:53:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D62E060F11
+	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Sep 2021 22:58:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350067AbhIMWxi (ORCPT
+        id S1347527AbhIMXAM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 13 Sep 2021 18:53:38 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:53580 "EHLO
+        Mon, 13 Sep 2021 19:00:12 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:53608 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349745AbhIMWxC (ORCPT
+        with ESMTP id S1350353AbhIMW7n (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 13 Sep 2021 18:53:02 -0400
+        Mon, 13 Sep 2021 18:59:43 -0400
 Received: from netfilter.org (unknown [78.30.35.141])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 8C71860056;
-        Tue, 14 Sep 2021 00:49:30 +0200 (CEST)
-Date:   Tue, 14 Sep 2021 00:50:37 +0200
+        by mail.netfilter.org (Postfix) with ESMTPSA id 61A6C60056;
+        Tue, 14 Sep 2021 00:56:47 +0200 (CEST)
+Date:   Tue, 14 Sep 2021 00:57:54 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, syzkaller-bugs@googlegroups.com
-Subject: Re: [PATCH 1/1] netfilter: ipset: Fix oversized kvmalloc() calls
-Message-ID: <20210913225037.GA5737@salvia>
-References: <4591ee34-aa44-92d-51a8-22e8be5db20@netfilter.org>
+To:     Andrea Claudi <aclaudi@redhat.com>
+Cc:     netfilter-devel@vger.kernel.org, horms@verge.net.au, ja@ssi.bg
+Subject: Re: [PATCH nf] ipvs: check that ip_vs_conn_tab_bits is between 8 and
+ 20
+Message-ID: <20210913225754.GB5737@salvia>
+References: <86eabeb9dd62aebf1e2533926fdd13fed48bab1f.1631289960.git.aclaudi@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <4591ee34-aa44-92d-51a8-22e8be5db20@netfilter.org>
+In-Reply-To: <86eabeb9dd62aebf1e2533926fdd13fed48bab1f.1631289960.git.aclaudi@redhat.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Sep 06, 2021 at 06:26:34PM +0200, Jozsef Kadlecsik wrote:
-> The commit 
+On Fri, Sep 10, 2021 at 06:08:39PM +0200, Andrea Claudi wrote:
+> ip_vs_conn_tab_bits may be provided by the user through the
+> conn_tab_bits module parameter. If this value is greater than 31, or
+> less than 0, the shift operator used to derive tab_size causes undefined
+> behaviour.
 > 
-> commit 7661809d493b426e979f39ab512e3adf41fbcc69
-> Author: Linus Torvalds <torvalds@linux-foundation.org>
-> Date:   Wed Jul 14 09:45:49 2021 -0700
-> 
->     mm: don't allow oversized kvmalloc() calls
-> 
-> limits the max allocatable memory via kvmalloc() to MAX_INT. Apply the
-> same limit in ipset.
+> Fix this checking ip_vs_conn_tab_bits value to be in the range specified
+> in ipvs Kconfig. If not, simply use default value.
 
-Applied, thanks Jozsef.
+Applied, thanks.
