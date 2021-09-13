@@ -2,131 +2,125 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A81EC433F5
-	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Sep 2021 15:40:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ECC34C433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Sep 2021 15:42:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 65831610CE
-	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Sep 2021 15:40:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BEA31610A2
+	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Sep 2021 15:42:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234460AbhIMPlV (ORCPT
+        id S242395AbhIMPnR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 13 Sep 2021 11:41:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60086 "EHLO
+        Mon, 13 Sep 2021 11:43:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60348 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242379AbhIMPlQ (ORCPT
+        with ESMTP id S245001AbhIMPnK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 13 Sep 2021 11:41:16 -0400
-Received: from kadath.azazel.net (kadath.azazel.net [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF1DCC09CE57
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 Sep 2021 07:55:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=7eIXLVrdwl66dkcgf4oSDPzkfqHZ1QMtkZPfinnZJ/c=; b=pVn2NKW9g/oz9Zun5G3/HFG4gi
-        FqrPqUBsrZshWNKpUbtBOw+1R6J9J82fNo8IZp/htHBl7Rv0f1jnybMaj7jqHsKKkuvagNod/VHBO
-        Pl2Ss8ueTabmsokJL+tISCA9GYTiRMF2otRY6qYjOOGbAeVBo/634R7t5QSXrss1oRdUNt4v9izk6
-        Fbi3gnAZ1kXHxIzCw2x0jtZfzut20dvt66jGhJmfrzV6ezcE8o1sTklb0LLp4d5hXFhGgUZvrf0tU
-        x+pE/hK6wPc4bjnECRiBToqfxYij8bRn6ScVtRXoqapMMw7Mdjd0QiZY2okk6Q1rzONOyrbvhQX3O
-        QEPTBUVw==;
-Received: from [2001:8b0:fb7d:d6d7:feb3:bcff:fe5e:42c3] (helo=azazel.net)
-        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <jeremy@azazel.net>)
-        id 1mPnMc-00GUas-6d; Mon, 13 Sep 2021 15:55:18 +0100
-Date:   Mon, 13 Sep 2021 15:55:17 +0100
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     kaskada@email.cz
-Cc:     Jan Engelhardt <jengelh@inai.de>,
-        Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [xtables-addons 0/4] IPv6 support for xt_ipp2p
-Message-ID: <YT9mVQeL7yohP7th@azazel.net>
-References: <20210913092051.79743-1-jeremy@azazel.net>
- <1wg.aVMb.5l0xziYPqYA.1XFsCY@seznam.cz>
+        Mon, 13 Sep 2021 11:43:10 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F044AC0251AE
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Sep 2021 08:05:37 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1mPnWX-0005su-Tg; Mon, 13 Sep 2021 17:05:33 +0200
+Date:   Mon, 13 Sep 2021 17:05:33 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     =?utf-8?B?xaB0xJtww6FuIE7Em21lYw==?= <snemec@redhat.com>
+Cc:     netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH iptables] iptables-test.py: print with color escapes only
+ when stdout isatty
+Message-ID: <20210913150533.GA22465@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        =?utf-8?B?xaB0xJtww6FuIE7Em21lYw==?= <snemec@redhat.com>,
+        netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+References: <20210902113307.2368834-1-snemec@redhat.com>
+ <20210903125250.GK7616@orbyte.nwl.cc>
+ <20210903164441+0200.281220-snemec@redhat.com>
+ <20210903153420.GM7616@orbyte.nwl.cc>
+ <20210906110438+0200.839986-snemec@redhat.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="Pu0617Uo4xPr0HcK"
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <1wg.aVMb.5l0xziYPqYA.1XFsCY@seznam.cz>
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:feb3:bcff:fe5e:42c3
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20210906110438+0200.839986-snemec@redhat.com>
+Sender:  <n0-1@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi,
 
---Pu0617Uo4xPr0HcK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Mon, Sep 06, 2021 at 11:04:38AM +0200, Štěpán Němec wrote:
+> On Fri, 03 Sep 2021 17:34:20 +0200
+> Phil Sutter wrote:
+> 
+> > On Fri, Sep 03, 2021 at 04:44:41PM +0200, Štěpán Němec wrote:
+> >> On Fri, 03 Sep 2021 14:52:50 +0200
+> >> Phil Sutter wrote:
+> >> 
+> >> > With one minor nit:
+> >> >
+> >> >> diff --git a/iptables-test.py b/iptables-test.py
+> >> >> index 90e07feed365..e8fc0c75a43e 100755
+> >> >> --- a/iptables-test.py
+> >> >> +++ b/iptables-test.py
+> >> >> @@ -32,22 +32,25 @@ EXTENSIONS_PATH = "extensions"
+> >> >>  LOGFILE="/tmp/iptables-test.log"
+> >> >>  log_file = None
+> >> >>  
+> >> >> +STDOUT_IS_TTY = sys.stdout.isatty()
+> >> >>  
+> >> >> -class Colors:
+> >> >> -    HEADER = '\033[95m'
+> >> >> -    BLUE = '\033[94m'
+> >> >> -    GREEN = '\033[92m'
+> >> >> -    YELLOW = '\033[93m'
+> >> >> -    RED = '\033[91m'
+> >> >> -    ENDC = '\033[0m'
+> >> >> +def maybe_colored(color, text):
+> >> >> +    terminal_sequences = {
+> >> >> +        'green': '\033[92m',
+> >> >> +        'red': '\033[91m',
+> >> >> +    }
+> >> >> +
+> >> >> +    return (
+> >> >> +        terminal_sequences[color] + text + '\033[0m' if STDOUT_IS_TTY else text
+> >> >> +    )
+> >> >
+> >> > I would "simplify" this into:
+> >> >
+> >> > | if not sys.stdout.isatty():
+> >> > | 	return text
+> >> > | return terminal_sequences[color] + text + '\033[0m'
+> >> 
+> >> ...which could be further simplified by dropping 'not' and swapping the
+> >> two branches.
+> >
+> > My change was mostly about reducing the long line, i.e. cosmetics. ;)
+> 
+> Ah, I see. I agree it's not the prettiest thing, but it's still in 80
+> columns (something that can't be said about a few other lines in the
+> script).
+> 
+> > One other thing I just noticed, you're dropping the other colors'
+> > definitions. Maybe worth keeping them?
+> 
+> Is it? I couldn't find anything but red and green ever being used since
+> 2012 when the file was added.
+> 
+> > Also I'm not too happy about the Python exception if an unknown color
+> > name is passed to maybe_colored(). OTOH though it's just a test script
+> > and such bug is easily identified.
+> 
+> Yes, it's a helper function in a test script, not some kind of public
+> API. I don't see how maybe_colored('magenta', ...) is different in that
+> respect or more likely than print(Colors.MAGENTA + ...) previously.
 
-On 2021-09-13, at 16:41:38 +0200, kaskada@email.cz wrote:
-> big thank you for your patches. I`ve already tried to compile them as
-> those are already on git.
->
-> Unfortunatelly I got these errors after make. You can see it in the
-> attachment.
->
-> [...]
->
-> M=/usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions modules; fi;
-> make[3]: Vstupuje se do adres????e ???/usr/src/linux-headers-4.19.0-17-amd64???
->   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/ACCOUNT/xt_ACCOUNT.o
->   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/pknock/xt_pknock.o
->   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/compat_xtables.o
->   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_CHAOS.o
->   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_DELUDE.o
->   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_DHCPMAC.o
->   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_DNETMAP.o
->   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_ECHO.o
->   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_IPMARK.o
->   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_LOGMARK.o
->   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_PROTO.o
->   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_SYSRQ.o
->   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_TARPIT.o
->   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_condition.o
->   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_fuzzy.o
->   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_geoip.o
->   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_iface.o
->   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_ipp2p.o
-> /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_ipp2p.c: In function ???ipp2p_mt???:
-> /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_ipp2p.c:978:10: error: implicit declaration of function ???ip_transport_len???; did you mean ???skb_transport_offset???? [-Werror=implicit-function-declaration]
->    hlen = ip_transport_len(skb);
->           ^~~~~~~~~~~~~~~~
->           skb_transport_offset
-> /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_ipp2p.c:988:10: error: implicit declaration of function ???ipv6_transport_len???; did you mean ???ipv6_authlen???? [-Werror=implicit-function-declaration]
->    hlen = ipv6_transport_len(skb);
->           ^~~~~~~~~~~~~~~~~~
+OK, fine. I'm convinced. :)
 
-Ah, ip_transport_len and ipv6_transport_len were introduced in v5.1.
-I'll change the code to use something else.
-
-J.
-
---Pu0617Uo4xPr0HcK
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmE/ZlQACgkQKYasCr3x
-BA02rw//ZgBJ126z+TsHGHmnmSYwYLxPolUho4fIqTLz+g+4/0m3wm+lMtCeu6So
-8n18cztg++gyJK2HD96vQJiZHJXv4M90xcyD1JRVullTlau19qub8fMqfVekJ1cd
-+DrKQMhHNmbpYQ0m2iZ+209zsZ+wsRHaY9zcCnTuQiLL7mel0+Uh2kMHDF+h5mhg
-mqKHJjvnJptb7mw8am3t5vAt8V4jOOe3tiW8RcuV7BUHISzyfkTKXj8TeuG6LrvI
-rCxFOqjnXAmEyitzrstWipBfdJy0/4qWNvlAXvIqLB1YtfPR6AkgdGuRlj5avdCI
-HW2TuxNKsBFuuUJnjHHGakDjnpA5v4naoXkCpzsiWzwfEPzI6WDI0VzYj5iSgQcQ
-EAqzZ1FmcFqlAx0bI0FqS9JixJ/r6X1joQoJCfFs/O3O9AHSu8VrgXa2cXZq6JhM
-66sr43R2rAoNYZvhhhFUn5Hms68LZMnwfhjw8gKXz2Xw5fIHE4C70EG8MnhIR5vY
-xdsCtHf4p1SaDWeuC5XUHChl/tvspEU4BudSs/bBtfnuzt/LY1EDqfDML/oSgB3V
-8H6/El8VUGUEaVG1AhvfqP5s9uYSxzB+D1+9xF4fobfLD/AVAIsClt8Of438yWYt
-lQfN2TS3IBfkqTYvdh2mYxX7DRvTGUMWsbcStCr6LI/O4S0xS5A=
-=i9Xl
------END PGP SIGNATURE-----
-
---Pu0617Uo4xPr0HcK--
+Applied, thanks!
