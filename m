@@ -7,22 +7,22 @@ X-Spam-Status: No, score=-16.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F4A1C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EFE9C433EF
 	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Sep 2021 09:24:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E5D2660E94
-	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Sep 2021 09:24:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7502560E94
+	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Sep 2021 09:24:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238520AbhIMJ0H (ORCPT
+        id S238489AbhIMJ0H (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Mon, 13 Sep 2021 05:26:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60606 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60604 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238489AbhIMJ0G (ORCPT
+        with ESMTP id S238400AbhIMJ0G (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 13 Sep 2021 05:26:06 -0400
 Received: from kadath.azazel.net (kadath.azazel.net [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 412DAC061574
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41425C061760
         for <netfilter-devel@vger.kernel.org>; Mon, 13 Sep 2021 02:24:51 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
@@ -30,22 +30,22 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=wQOi6ixMpuSU5zIDCIa1AnOa+qaISS26+CxWgyVo/jM=; b=AOj6HDguOoKWL30ZHjZ9N9keBM
-        azxvEJHxpbPwIU+9aar6AQRiLb0Gqp+MqULv8s0qcXdJQxBPEXgwzgQDrGl8Y0LAu5gSpua5/meZE
-        xHpDC7v2FJsbaR9/eZnQ4WBLEVnDHsooYzvUNpHXkDxX8ivbQ3pw0gXkzYlFYk3A2CgmHIOiyawdO
-        9Ve+8MBrEoHHjlYy5vR35bvhEicTxeT3hyloGWeoL/sbpHMQ7Q3H44O2HWoep3c5zKIARqmtFUtHk
-        RuTlv99N/8vrHIyJeey7nUenEPVC8iybwsn5xMfy998s+GwMPlG8VCkP+rH42K+3yxcadTfFh0iB/
-        Dl72ofdw==;
+        bh=M7Aus6GdabCi5xbfbKgADQAmIMtYafFadSsmMd4z0O8=; b=JWEfEdPuDx+Grn6JMWuLkIHHK3
+        pRI+NYAdYoEqTI+DmlfB/RSNbSbfFFmomXcXxeUD3Z/AZnRDvqTWkmFgApBHxJWJBWaprdYOa5qHw
+        hmZ5itd30p7ZZQk8GJld0/jyMord/CrjJsOrezo+yjaUECEKTXL10HjS/I8Wu+avqs9MNi23/ZFiA
+        OF3zI+/WA3CEIqm9+dyYLLu4lRS8F8Bth3PklECrfb14lL3HuE/H4fkqnepVGFoX4269Q5GFCKSbm
+        JCFLu8r58z88bl5rykZWStdEOa84jnNE7dNVDAuw8/iNhpwdmdYJB7gWuJ2npgB4R2ku6nk/aruVn
+        TbM8v2Rw==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
         by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1mPiCm-00GLzi-GM; Mon, 13 Sep 2021 10:24:48 +0100
+        id 1mPiCm-00GLzi-NW; Mon, 13 Sep 2021 10:24:48 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Jan Engelhardt <jengelh@inai.de>
 Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>, kaskada@email.cz
-Subject: [xtables-addons 2/4] xt_ipp2p: move the protocol-specific code out into separate functions
-Date:   Mon, 13 Sep 2021 10:20:49 +0100
-Message-Id: <20210913092051.79743-3-jeremy@azazel.net>
+Subject: [xtables-addons 4/4] xt_ipp2p: add ipv6 support
+Date:   Mon, 13 Sep 2021 10:20:51 +0100
+Message-Id: <20210913092051.79743-5-jeremy@azazel.net>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20210913092051.79743-1-jeremy@azazel.net>
 References: <20210913092051.79743-1-jeremy@azazel.net>
@@ -60,207 +60,219 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- extensions/xt_ipp2p.c | 165 ++++++++++++++++++++++++------------------
- 1 file changed, 93 insertions(+), 72 deletions(-)
+ extensions/libxt_ipp2p.c |   2 +-
+ extensions/xt_ipp2p.c    | 110 ++++++++++++++++++++++++++++++---------
+ 2 files changed, 86 insertions(+), 26 deletions(-)
 
+diff --git a/extensions/libxt_ipp2p.c b/extensions/libxt_ipp2p.c
+index 74be4bee95ea..38b3be3eed0d 100644
+--- a/extensions/libxt_ipp2p.c
++++ b/extensions/libxt_ipp2p.c
+@@ -230,7 +230,7 @@ static struct xtables_match ipp2p_mt_reg = {
+ 	.version       = XTABLES_VERSION,
+ 	.name          = "ipp2p",
+ 	.revision      = 1,
+-	.family        = NFPROTO_IPV4,
++	.family        = NFPROTO_UNSPEC,
+ 	.size          = XT_ALIGN(sizeof(struct ipt_p2p_info)),
+ 	.userspacesize = XT_ALIGN(sizeof(struct ipt_p2p_info)),
+ 	.help          = ipp2p_mt_help,
 diff --git a/extensions/xt_ipp2p.c b/extensions/xt_ipp2p.c
-index 4e0fbb675c76..298950514569 100644
+index 56fcbe497718..74f7d18fc04b 100644
 --- a/extensions/xt_ipp2p.c
 +++ b/extensions/xt_ipp2p.c
-@@ -807,15 +807,97 @@ static const struct {
- 	{0},
+@@ -21,6 +21,7 @@ MODULE_LICENSE("GPL");
+ 
+ union ipp2p_addr {
+ 	__be32 ip;
++	struct in6_addr in6;
  };
  
-+static bool
-+ipp2p_mt_tcp(const struct ipt_p2p_info *info, const struct tcphdr *tcph,
-+	     const unsigned char *haystack, unsigned int hlen,
-+	     const struct iphdr *ip)
+ struct ipp2p_result_printer {
+@@ -829,14 +830,23 @@ static const struct {
+ };
+ 
+ static void
+-ipp2p_print_result_tcp(const union ipp2p_addr *saddr, short sport,
+-		       const union ipp2p_addr *daddr, short dport,
+-		       bool p2p_result, unsigned int hlen)
++ipp2p_print_result_tcp4(const union ipp2p_addr *saddr, short sport,
++			const union ipp2p_addr *daddr, short dport,
++			bool p2p_result, unsigned int hlen)
+ {
+ 	printk("IPP2P.debug:TCP-match: %d from: %pI4:%hu to: %pI4:%hu Length: %u\n",
+ 	       p2p_result, &saddr->ip, sport, &daddr->ip, dport, hlen);
+ }
+ 
++static void
++ipp2p_print_result_tcp6(const union ipp2p_addr *saddr, short sport,
++			const union ipp2p_addr *daddr, short dport,
++			bool p2p_result, unsigned int hlen)
 +{
-+	size_t tcph_len = tcph->doff * 4;
-+	bool p2p_result = false;
-+	int i = 0;
-+
-+	if (tcph->fin) return 0;  /* if FIN bit is set bail out */
-+	if (tcph->syn) return 0;  /* if SYN bit is set bail out */
-+	if (tcph->rst) return 0;  /* if RST bit is set bail out */
-+
-+	if (hlen < tcph_len) {
-+		if (info->debug)
-+			pr_info("TCP header indicated packet larger than it is\n");
-+		return 0;
-+	}
-+	if (hlen == tcph_len)
-+		return 0;
-+
-+	haystack += tcph_len;
-+	hlen     -= tcph_len;
-+
-+	while (matchlist[i].command) {
-+		if ((info->cmd & matchlist[i].command) == matchlist[i].command &&
-+		    hlen > matchlist[i].packet_len)
-+		{
-+			p2p_result = matchlist[i].function_name(haystack, hlen);
-+			if (p2p_result)	{
-+				if (info->debug)
-+					printk("IPP2P.debug:TCP-match: %d from: %pI4:%hu to: %pI4:%hu Length: %d\n",
-+					       p2p_result, &ip->saddr,
-+					       ntohs(tcph->source),
-+					       &ip->daddr,
-+					       ntohs(tcph->dest), hlen);
-+				return p2p_result;
-+			}
-+		}
-+		i++;
-+	}
-+	return p2p_result;
-+}
-+
-+static bool
-+ipp2p_mt_udp(const struct ipt_p2p_info *info, const struct udphdr *udph,
-+	     const unsigned char *haystack, unsigned int hlen,
-+	     const struct iphdr *ip)
-+{
-+	size_t udph_len = sizeof(*udph);
-+	bool p2p_result = false;
-+	int i = 0;
-+
-+	if (hlen < udph_len) {
-+		if (info->debug)
-+			pr_info("UDP header indicated packet larger than it is\n");
-+		return 0;
-+	}
-+	if (hlen == udph_len)
-+		return 0;
-+
-+	haystack += udph_len;
-+	hlen     -= udph_len;
-+
-+	while (udp_list[i].command) {
-+		if ((info->cmd & udp_list[i].command) == udp_list[i].command &&
-+		    hlen > udp_list[i].packet_len)
-+		{
-+			p2p_result = udp_list[i].function_name(haystack, hlen);
-+			if (p2p_result) {
-+				if (info->debug)
-+					printk("IPP2P.debug:UDP-match: %d from: %pI4:%hu to: %pI4:%hu Length: %d\n",
-+					       p2p_result, &ip->saddr,
-+					       ntohs(udph->source),
-+					       &ip->daddr,
-+					       ntohs(udph->dest), hlen);
-+				return p2p_result;
-+			}
-+		}
-+		i++;
-+	}
-+	return p2p_result;
++	printk("IPP2P.debug:TCP-match: %d from: %pI6:%hu to: %pI6:%hu Length: %u\n",
++	       p2p_result, &saddr->in6, sport, &daddr->in6, dport, hlen);
 +}
 +
  static bool
+ ipp2p_mt_tcp(const struct ipt_p2p_info *info, const struct tcphdr *tcph,
+ 	     const unsigned char *haystack, unsigned int hlen,
+@@ -878,14 +888,23 @@ ipp2p_mt_tcp(const struct ipt_p2p_info *info, const struct tcphdr *tcph,
+ }
+ 
+ static void
+-ipp2p_print_result_udp(const union ipp2p_addr *saddr, short sport,
+-		       const union ipp2p_addr *daddr, short dport,
+-		       bool p2p_result, unsigned int hlen)
++ipp2p_print_result_udp4(const union ipp2p_addr *saddr, short sport,
++			const union ipp2p_addr *daddr, short dport,
++			bool p2p_result, unsigned int hlen)
+ {
+ 	printk("IPP2P.debug:UDP-match: %d from: %pI4:%hu to: %pI4:%hu Length: %u\n",
+ 	       p2p_result, &saddr->ip, sport, &daddr->ip, dport, hlen);
+ }
+ 
++static void
++ipp2p_print_result_udp6(const union ipp2p_addr *saddr, short sport,
++			const union ipp2p_addr *daddr, short dport,
++			bool p2p_result, unsigned int hlen)
++{
++	printk("IPP2P.debug:UDP-match: %d from: %pI6:%hu to: %pI6:%hu Length: %u\n",
++	       p2p_result, &saddr->in6, sport, &daddr->in6, dport, hlen);
++}
++
+ static bool
+ ipp2p_mt_udp(const struct ipt_p2p_info *info, const struct udphdr *udph,
+ 	     const unsigned char *haystack, unsigned int hlen,
+@@ -926,13 +945,19 @@ static bool
  ipp2p_mt(const struct sk_buff *skb, struct xt_action_param *par)
  {
  	const struct ipt_p2p_info *info = par->matchinfo;
--	const unsigned char  *haystack;
- 	const struct iphdr *ip = ip_hdr(skb);
--	bool p2p_result = false;
--	int i = 0;
--	unsigned int hlen = ntohs(ip->tot_len) - ip_hdrlen(skb);	/* hlen = packet-data length */
-+	const unsigned char *haystack;  /* packet-data */
-+	unsigned int hlen;              /* packet-data length */
- 
- 	/* must not be a fragment */
+-	const struct iphdr *ip = ip_hdr(skb);
+ 	struct ipp2p_result_printer printer;
+ 	union ipp2p_addr saddr, daddr;
+ 	const unsigned char *haystack;  /* packet-data */
+ 	unsigned int hlen;              /* packet-data length */
+-
+-	/* must not be a fragment */
++	u8 family = xt_family(par);
++	int protocol;
++
++	/* must not be a fragment
++	 *
++	 * NB, `par->fragoff` may be zero for a fragmented IPv6 packet.
++	 * However, in that case the later call to `ipv6_find_hdr` will not find
++	 * a transport protocol, and so we will return 0 there.
++	 */
  	if (par->fragoff != 0) {
-@@ -831,84 +913,23 @@ ipp2p_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 		if (info->debug)
+ 			printk("IPP2P.match: offset found %d\n", par->fragoff);
+@@ -946,23 +971,47 @@ ipp2p_mt(const struct sk_buff *skb, struct xt_action_param *par)
  		return 0;
  	}
  
--	haystack = skb_network_header(skb) + ip_hdrlen(skb);
-+	haystack = skb_transport_header(skb);
-+	hlen     = ntohs(ip->tot_len) - skb_transport_offset(skb);
+-	haystack = skb_transport_header(skb);
+-	hlen     = ntohs(ip->tot_len) - skb_transport_offset(skb);
++	if (family == NFPROTO_IPV4) {
++
++		const struct iphdr *ip = ip_hdr(skb);
++
++		saddr.ip = ip->saddr;
++		daddr.ip = ip->daddr;
++
++		protocol = ip->protocol;
  
- 	switch (ip->protocol) {
+-	saddr.ip = ip->saddr;
+-	daddr.ip = ip->daddr;
++		hlen = ip_transport_len(skb);
++
++	} else {
++
++		const struct ipv6hdr *ip = ipv6_hdr(skb);
++		int thoff = 0;
++
++		saddr.in6 = ip->saddr;
++		daddr.in6 = ip->daddr;
++
++		protocol = ipv6_find_hdr(skb, &thoff, -1, NULL, NULL);
++		if (protocol < 0)
++			return 0;
++
++		hlen = ipv6_transport_len(skb);
++
++	}
+ 
+ 	printer.saddr = &saddr;
+ 	printer.daddr = &daddr;
+ 
+-	switch (ip->protocol) {
++	haystack = skb_transport_header(skb);
++
++	switch (protocol) {
  	case IPPROTO_TCP:	/* what to do with a TCP packet */
  	{
--		const struct tcphdr *tcph = (const void *)ip + ip_hdrlen(skb);
--
--		if (tcph->fin) return 0;  /* if FIN bit is set bail out */
--		if (tcph->syn) return 0;  /* if SYN bit is set bail out */
--		if (tcph->rst) return 0;  /* if RST bit is set bail out */
--
--		if (tcph->doff * 4 > hlen) {
--			if (info->debug)
--				pr_info("TCP header indicated packet larger than it is\n");
--			return 0;
--		}
--		if (tcph->doff * 4 == hlen)
--			return 0;
-+		const struct tcphdr *tcph = tcp_hdr(skb);
+ 		const struct tcphdr *tcph = tcp_hdr(skb);
  
--		haystack += tcph->doff * 4; /* get TCP-Header-Size */
--		hlen     -= tcph->doff * 4;
--
--		while (matchlist[i].command) {
--			if ((info->cmd & matchlist[i].command) == matchlist[i].command &&
--			    hlen > matchlist[i].packet_len)
--			{
--				p2p_result = matchlist[i].function_name(haystack, hlen);
--				if (p2p_result)	{
--					if (info->debug)
--						printk("IPP2P.debug:TCP-match: %d from: %pI4:%hu to: %pI4:%hu Length: %d\n",
--						       p2p_result, &ip->saddr,
--						       ntohs(tcph->source),
--						       &ip->daddr,
--						       ntohs(tcph->dest), hlen);
--					return p2p_result;
--				}
--			}
--			i++;
--		}
--		return p2p_result;
-+		return ipp2p_mt_tcp(info, tcph, haystack, hlen, ip);
- 	}
--
--	case IPPROTO_UDP:	/* what to do with an UDP packet */
-+	case IPPROTO_UDP:	/* what to do with a UDP packet */
- 	case IPPROTO_UDPLITE:
- 	{
--		const struct udphdr *udph = (const void *)ip + ip_hdrlen(skb);
-+		const struct udphdr *udph = udp_hdr(skb);
+ 		printer.sport = ntohs(tcph->source);
+ 		printer.dport = ntohs(tcph->dest);
+-		printer.print = ipp2p_print_result_tcp;
++		printer.print = family == NFPROTO_IPV4 ?
++			ipp2p_print_result_tcp4 : ipp2p_print_result_tcp6;
  
--		if (sizeof(*udph) > hlen) {
--			if (info->debug)
--				pr_info("UDP header indicated packet larger than it is\n");
--			return 0;
--		}
--		if (sizeof(*udph) == hlen)
--			return 0;
--
--		haystack += sizeof(*udph);
--		hlen     -= sizeof(*udph);
--
--		while (udp_list[i].command) {
--			if ((info->cmd & udp_list[i].command) == udp_list[i].command &&
--			    hlen > udp_list[i].packet_len)
--			{
--				p2p_result = udp_list[i].function_name(haystack, hlen);
--				if (p2p_result) {
--					if (info->debug)
--						printk("IPP2P.debug:UDP-match: %d from: %pI4:%hu to: %pI4:%hu Length: %d\n",
--						       p2p_result, &ip->saddr,
--						       ntohs(udph->source),
--						       &ip->daddr,
--						       ntohs(udph->dest), hlen);
--					return p2p_result;
--				}
--			}
--			i++;
--		}
--		return p2p_result;
-+		return ipp2p_mt_udp(info, udph, haystack, hlen, ip);
+ 		return ipp2p_mt_tcp(info, tcph, haystack, hlen, &printer);
  	}
--
- 	default:
- 		return 0;
+@@ -973,7 +1022,8 @@ ipp2p_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 
+ 		printer.sport = ntohs(udph->source);
+ 		printer.dport = ntohs(udph->dest);
+-		printer.print = ipp2p_print_result_udp;
++		printer.print = family == NFPROTO_IPV4 ?
++			ipp2p_print_result_udp4 : ipp2p_print_result_udp6;
+ 
+ 		return ipp2p_mt_udp(info, udph, haystack, hlen, &printer);
  	}
+@@ -982,23 +1032,33 @@ ipp2p_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	}
+ }
+ 
+-static struct xt_match ipp2p_mt_reg __read_mostly = {
+-	.name       = "ipp2p",
+-	.revision   = 1,
+-	.family     = NFPROTO_IPV4,
+-	.match      = ipp2p_mt,
+-	.matchsize  = sizeof(struct ipt_p2p_info),
+-	.me         = THIS_MODULE,
++static struct xt_match ipp2p_mt_reg[] __read_mostly = {
++	{
++		.name       = "ipp2p",
++		.revision   = 1,
++		.family     = NFPROTO_IPV4,
++		.match      = ipp2p_mt,
++		.matchsize  = sizeof(struct ipt_p2p_info),
++		.me         = THIS_MODULE,
++	},
++	{
++		.name       = "ipp2p",
++		.revision   = 1,
++		.family     = NFPROTO_IPV6,
++		.match      = ipp2p_mt,
++		.matchsize  = sizeof(struct ipt_p2p_info),
++		.me         = THIS_MODULE,
++	},
+ };
+ 
+ static int __init ipp2p_mt_init(void)
+ {
+-	return xt_register_match(&ipp2p_mt_reg);
++	return xt_register_matches(ipp2p_mt_reg, ARRAY_SIZE(ipp2p_mt_reg));
+ }
+ 
+ static void __exit ipp2p_mt_exit(void)
+ {
+-	xt_unregister_match(&ipp2p_mt_reg);
++	xt_unregister_matches(ipp2p_mt_reg, ARRAY_SIZE(ipp2p_mt_reg));
+ }
+ 
+ module_init(ipp2p_mt_init);
 -- 
 2.33.0
 
