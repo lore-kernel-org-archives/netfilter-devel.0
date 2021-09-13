@@ -2,141 +2,131 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59E2CC433FE
-	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Sep 2021 12:42:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A81EC433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Sep 2021 15:40:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3ED8360FBF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Sep 2021 12:42:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 65831610CE
+	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Sep 2021 15:40:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240030AbhIMMn4 (ORCPT
+        id S234460AbhIMPlV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 13 Sep 2021 08:43:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49924 "EHLO
+        Mon, 13 Sep 2021 11:41:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60086 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239992AbhIMMnz (ORCPT
+        with ESMTP id S242379AbhIMPlQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 13 Sep 2021 08:43:55 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11E09C061574
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 Sep 2021 05:42:40 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1mPlIE-00078V-8G; Mon, 13 Sep 2021 14:42:38 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     syzkaller-bugs@googlegroups.com, Florian Westphal <fw@strlen.de>,
-        syzbot+f31660cf279b0557160c@syzkaller.appspotmail.com
-Subject: [PATCH nf] netfilter: nf_tables: unlink table before deleting it
-Date:   Mon, 13 Sep 2021 14:42:33 +0200
-Message-Id: <20210913124233.16520-1-fw@strlen.de>
-X-Mailer: git-send-email 2.32.0
-In-Reply-To: <000000000000a3958805cbdb8102@google.com>
-References: <000000000000a3958805cbdb8102@google.com>
+        Mon, 13 Sep 2021 11:41:16 -0400
+Received: from kadath.azazel.net (kadath.azazel.net [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF1DCC09CE57
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Sep 2021 07:55:21 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=7eIXLVrdwl66dkcgf4oSDPzkfqHZ1QMtkZPfinnZJ/c=; b=pVn2NKW9g/oz9Zun5G3/HFG4gi
+        FqrPqUBsrZshWNKpUbtBOw+1R6J9J82fNo8IZp/htHBl7Rv0f1jnybMaj7jqHsKKkuvagNod/VHBO
+        Pl2Ss8ueTabmsokJL+tISCA9GYTiRMF2otRY6qYjOOGbAeVBo/634R7t5QSXrss1oRdUNt4v9izk6
+        Fbi3gnAZ1kXHxIzCw2x0jtZfzut20dvt66jGhJmfrzV6ezcE8o1sTklb0LLp4d5hXFhGgUZvrf0tU
+        x+pE/hK6wPc4bjnECRiBToqfxYij8bRn6ScVtRXoqapMMw7Mdjd0QiZY2okk6Q1rzONOyrbvhQX3O
+        QEPTBUVw==;
+Received: from [2001:8b0:fb7d:d6d7:feb3:bcff:fe5e:42c3] (helo=azazel.net)
+        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <jeremy@azazel.net>)
+        id 1mPnMc-00GUas-6d; Mon, 13 Sep 2021 15:55:18 +0100
+Date:   Mon, 13 Sep 2021 15:55:17 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     kaskada@email.cz
+Cc:     Jan Engelhardt <jengelh@inai.de>,
+        Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [xtables-addons 0/4] IPv6 support for xt_ipp2p
+Message-ID: <YT9mVQeL7yohP7th@azazel.net>
+References: <20210913092051.79743-1-jeremy@azazel.net>
+ <1wg.aVMb.5l0xziYPqYA.1XFsCY@seznam.cz>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="Pu0617Uo4xPr0HcK"
+Content-Disposition: inline
+In-Reply-To: <1wg.aVMb.5l0xziYPqYA.1XFsCY@seznam.cz>
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:feb3:bcff:fe5e:42c3
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot reports following UAF:
-BUG: KASAN: use-after-free in memcmp+0x18f/0x1c0 lib/string.c:955
- nla_strcmp+0xf2/0x130 lib/nlattr.c:836
- nft_table_lookup.part.0+0x1a2/0x460 net/netfilter/nf_tables_api.c:570
- nft_table_lookup net/netfilter/nf_tables_api.c:4064 [inline]
- nf_tables_getset+0x1b3/0x860 net/netfilter/nf_tables_api.c:4064
- nfnetlink_rcv_msg+0x659/0x13f0 net/netfilter/nfnetlink.c:285
- netlink_rcv_skb+0x153/0x420 net/netlink/af_netlink.c:2504
 
-Problem is that all get operations are lockless, so the commit_mutex
-held by nft_rcv_nl_event() isn't enough to stop a parallel GET request
-from doing read-accesses to the table object even after synchronize_rcu().
+--Pu0617Uo4xPr0HcK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-To avoid this, unlink the table first and store the table objects in
-on-stack scratch space.
+On 2021-09-13, at 16:41:38 +0200, kaskada@email.cz wrote:
+> big thank you for your patches. I`ve already tried to compile them as
+> those are already on git.
+>
+> Unfortunatelly I got these errors after make. You can see it in the
+> attachment.
+>
+> [...]
+>
+> M=/usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions modules; fi;
+> make[3]: Vstupuje se do adres????e ???/usr/src/linux-headers-4.19.0-17-amd64???
+>   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/ACCOUNT/xt_ACCOUNT.o
+>   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/pknock/xt_pknock.o
+>   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/compat_xtables.o
+>   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_CHAOS.o
+>   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_DELUDE.o
+>   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_DHCPMAC.o
+>   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_DNETMAP.o
+>   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_ECHO.o
+>   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_IPMARK.o
+>   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_LOGMARK.o
+>   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_PROTO.o
+>   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_SYSRQ.o
+>   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_TARPIT.o
+>   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_condition.o
+>   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_fuzzy.o
+>   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_geoip.o
+>   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_iface.o
+>   CC [M]  /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_ipp2p.o
+> /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_ipp2p.c: In function ???ipp2p_mt???:
+> /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_ipp2p.c:978:10: error: implicit declaration of function ???ip_transport_len???; did you mean ???skb_transport_offset???? [-Werror=implicit-function-declaration]
+>    hlen = ip_transport_len(skb);
+>           ^~~~~~~~~~~~~~~~
+>           skb_transport_offset
+> /usr/src/xtables-addons-with-ipv6-for-IPP2P/xtables-addons/extensions/xt_ipp2p.c:988:10: error: implicit declaration of function ???ipv6_transport_len???; did you mean ???ipv6_authlen???? [-Werror=implicit-function-declaration]
+>    hlen = ipv6_transport_len(skb);
+>           ^~~~~~~~~~~~~~~~~~
 
-Fixes: 6001a930ce03 ("netfilter: nftables: introduce table ownership")
-Reported-and-tested-by: syzbot+f31660cf279b0557160c@syzkaller.appspotmail.com
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- NB: Can't repro locally, syzbot-tested only.
+Ah, ip_transport_len and ipv6_transport_len were introduced in v5.1.
+I'll change the code to use something else.
 
- net/netfilter/nf_tables_api.c | 28 ++++++++++++++++++----------
- 1 file changed, 18 insertions(+), 10 deletions(-)
+J.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 081437dd75b7..33e771cd847c 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -9599,7 +9599,6 @@ static void __nft_release_table(struct net *net, struct nft_table *table)
- 		table->use--;
- 		nf_tables_chain_destroy(&ctx);
- 	}
--	list_del(&table->list);
- 	nf_tables_table_destroy(&ctx);
- }
- 
-@@ -9612,6 +9611,8 @@ static void __nft_release_tables(struct net *net)
- 		if (nft_table_has_owner(table))
- 			continue;
- 
-+		list_del(&table->list);
-+
- 		__nft_release_table(net, table);
- 	}
- }
-@@ -9619,31 +9620,38 @@ static void __nft_release_tables(struct net *net)
- static int nft_rcv_nl_event(struct notifier_block *this, unsigned long event,
- 			    void *ptr)
- {
-+	struct nft_table *table, *to_delete[8];
- 	struct nftables_pernet *nft_net;
- 	struct netlink_notify *n = ptr;
--	struct nft_table *table, *nt;
- 	struct net *net = n->net;
--	bool release = false;
-+	unsigned int deleted;
-+	bool restart = false;
- 
- 	if (event != NETLINK_URELEASE || n->protocol != NETLINK_NETFILTER)
- 		return NOTIFY_DONE;
- 
- 	nft_net = nft_pernet(net);
-+	deleted = 0;
- 	mutex_lock(&nft_net->commit_mutex);
-+again:
- 	list_for_each_entry(table, &nft_net->tables, list) {
- 		if (nft_table_has_owner(table) &&
- 		    n->portid == table->nlpid) {
- 			__nft_release_hook(net, table);
--			release = true;
-+			list_del_rcu(&table->list);
-+			to_delete[deleted++] = table;
-+			if (deleted >= ARRAY_SIZE(to_delete))
-+				break;
- 		}
- 	}
--	if (release) {
-+	if (deleted) {
-+		restart = deleted >= ARRAY_SIZE(to_delete);
- 		synchronize_rcu();
--		list_for_each_entry_safe(table, nt, &nft_net->tables, list) {
--			if (nft_table_has_owner(table) &&
--			    n->portid == table->nlpid)
--				__nft_release_table(net, table);
--		}
-+		while (deleted)
-+			__nft_release_table(net, to_delete[--deleted]);
-+
-+		if (restart)
-+			goto again;
- 	}
- 	mutex_unlock(&nft_net->commit_mutex);
- 
--- 
-2.32.0
+--Pu0617Uo4xPr0HcK
+Content-Type: application/pgp-signature; name="signature.asc"
 
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmE/ZlQACgkQKYasCr3x
+BA02rw//ZgBJ126z+TsHGHmnmSYwYLxPolUho4fIqTLz+g+4/0m3wm+lMtCeu6So
+8n18cztg++gyJK2HD96vQJiZHJXv4M90xcyD1JRVullTlau19qub8fMqfVekJ1cd
++DrKQMhHNmbpYQ0m2iZ+209zsZ+wsRHaY9zcCnTuQiLL7mel0+Uh2kMHDF+h5mhg
+mqKHJjvnJptb7mw8am3t5vAt8V4jOOe3tiW8RcuV7BUHISzyfkTKXj8TeuG6LrvI
+rCxFOqjnXAmEyitzrstWipBfdJy0/4qWNvlAXvIqLB1YtfPR6AkgdGuRlj5avdCI
+HW2TuxNKsBFuuUJnjHHGakDjnpA5v4naoXkCpzsiWzwfEPzI6WDI0VzYj5iSgQcQ
+EAqzZ1FmcFqlAx0bI0FqS9JixJ/r6X1joQoJCfFs/O3O9AHSu8VrgXa2cXZq6JhM
+66sr43R2rAoNYZvhhhFUn5Hms68LZMnwfhjw8gKXz2Xw5fIHE4C70EG8MnhIR5vY
+xdsCtHf4p1SaDWeuC5XUHChl/tvspEU4BudSs/bBtfnuzt/LY1EDqfDML/oSgB3V
+8H6/El8VUGUEaVG1AhvfqP5s9uYSxzB+D1+9xF4fobfLD/AVAIsClt8Of438yWYt
+lQfN2TS3IBfkqTYvdh2mYxX7DRvTGUMWsbcStCr6LI/O4S0xS5A=
+=i9Xl
+-----END PGP SIGNATURE-----
+
+--Pu0617Uo4xPr0HcK--
