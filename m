@@ -2,52 +2,47 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ECC34C433F5
-	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Sep 2021 15:42:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11559C433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Sep 2021 15:51:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BEA31610A2
-	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Sep 2021 15:42:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E0B9060FBF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Sep 2021 15:51:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242395AbhIMPnR (ORCPT
+        id S245594AbhIMPxI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 13 Sep 2021 11:43:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60348 "EHLO
+        Mon, 13 Sep 2021 11:53:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35236 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245001AbhIMPnK (ORCPT
+        with ESMTP id S244551AbhIMPxE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 13 Sep 2021 11:43:10 -0400
+        Mon, 13 Sep 2021 11:53:04 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F044AC0251AE
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 Sep 2021 08:05:37 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C028C0698DE
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Sep 2021 08:46:15 -0700 (PDT)
 Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
         (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1mPnWX-0005su-Tg; Mon, 13 Sep 2021 17:05:33 +0200
-Date:   Mon, 13 Sep 2021 17:05:33 +0200
+        id 1mPo9r-0006GB-1a; Mon, 13 Sep 2021 17:46:11 +0200
+Date:   Mon, 13 Sep 2021 17:46:11 +0200
 From:   Phil Sutter <phil@nwl.cc>
-To:     =?utf-8?B?xaB0xJtww6FuIE7Em21lYw==?= <snemec@redhat.com>
-Cc:     netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH iptables] iptables-test.py: print with color escapes only
- when stdout isatty
-Message-ID: <20210913150533.GA22465@orbyte.nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Cc:     Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH iptabes-nft] iptables-nft: allow removal of empty builtin
+ chains
+Message-ID: <20210913154611.GB22465@orbyte.nwl.cc>
 Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        =?utf-8?B?xaB0xJtww6FuIE7Em21lYw==?= <snemec@redhat.com>,
-        netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-References: <20210902113307.2368834-1-snemec@redhat.com>
- <20210903125250.GK7616@orbyte.nwl.cc>
- <20210903164441+0200.281220-snemec@redhat.com>
- <20210903153420.GM7616@orbyte.nwl.cc>
- <20210906110438+0200.839986-snemec@redhat.com>
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>, Jan Engelhardt <jengelh@inai.de>,
+        netfilter-devel@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20210906110438+0200.839986-snemec@redhat.com>
+In-Reply-To: <20210815143637.GK607@breakpoint.cc>
+ <20210815142734.GA31050@salvia>
 Sender:  <n0-1@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -55,72 +50,85 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 Hi,
 
-On Mon, Sep 06, 2021 at 11:04:38AM +0200, Štěpán Němec wrote:
-> On Fri, 03 Sep 2021 17:34:20 +0200
-> Phil Sutter wrote:
-> 
-> > On Fri, Sep 03, 2021 at 04:44:41PM +0200, Štěpán Němec wrote:
-> >> On Fri, 03 Sep 2021 14:52:50 +0200
-> >> Phil Sutter wrote:
-> >> 
-> >> > With one minor nit:
-> >> >
-> >> >> diff --git a/iptables-test.py b/iptables-test.py
-> >> >> index 90e07feed365..e8fc0c75a43e 100755
-> >> >> --- a/iptables-test.py
-> >> >> +++ b/iptables-test.py
-> >> >> @@ -32,22 +32,25 @@ EXTENSIONS_PATH = "extensions"
-> >> >>  LOGFILE="/tmp/iptables-test.log"
-> >> >>  log_file = None
-> >> >>  
-> >> >> +STDOUT_IS_TTY = sys.stdout.isatty()
-> >> >>  
-> >> >> -class Colors:
-> >> >> -    HEADER = '\033[95m'
-> >> >> -    BLUE = '\033[94m'
-> >> >> -    GREEN = '\033[92m'
-> >> >> -    YELLOW = '\033[93m'
-> >> >> -    RED = '\033[91m'
-> >> >> -    ENDC = '\033[0m'
-> >> >> +def maybe_colored(color, text):
-> >> >> +    terminal_sequences = {
-> >> >> +        'green': '\033[92m',
-> >> >> +        'red': '\033[91m',
-> >> >> +    }
-> >> >> +
-> >> >> +    return (
-> >> >> +        terminal_sequences[color] + text + '\033[0m' if STDOUT_IS_TTY else text
-> >> >> +    )
-> >> >
-> >> > I would "simplify" this into:
-> >> >
-> >> > | if not sys.stdout.isatty():
-> >> > | 	return text
-> >> > | return terminal_sequences[color] + text + '\033[0m'
-> >> 
-> >> ...which could be further simplified by dropping 'not' and swapping the
-> >> two branches.
-> >
-> > My change was mostly about reducing the long line, i.e. cosmetics. ;)
-> 
-> Ah, I see. I agree it's not the prettiest thing, but it's still in 80
-> columns (something that can't be said about a few other lines in the
-> script).
-> 
-> > One other thing I just noticed, you're dropping the other colors'
-> > definitions. Maybe worth keeping them?
-> 
-> Is it? I couldn't find anything but red and green ever being used since
-> 2012 when the file was added.
-> 
-> > Also I'm not too happy about the Python exception if an unknown color
-> > name is passed to maybe_colored(). OTOH though it's just a test script
-> > and such bug is easily identified.
-> 
-> Yes, it's a helper function in a test script, not some kind of public
-> API. I don't see how maybe_colored('magenta', ...) is different in that
-> respect or more likely than print(Colors.MAGENTA + ...) previously.
+Sorry to jump late onto this discussion, I missed it entirely and just
+noticed the new commit. /o\
 
-OK, fine. I'm convinced. :)
+On Sun, Aug 15, 2021 at 04:27:34PM +0200, Pablo Neira Ayuso wrote:
+> On Sun, Aug 15, 2021 at 04:14:14PM +0200, Florian Westphal wrote:
+> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > But we really do not need NLM_F_NONREC for this new feature, right? I
+> > > mean, a quick shortcut to remove the basechain and its content should
+> > > be fine.
+> > 
+> > Would deviate a lot from iptables behaviour.
+> 
+> It's a new feature: you could still keep NLM_F_NONREC in place, and
+> only allow to remove one chain (with no rules) at a time if you
+> prefer, ie.
+> 
+> iptables-nft -K INPUT -t filter
+> 
+> or -X if you prefer to overload the existing command.
+> 
+> > > > No, I don't think so.  I would prefer if
+> > > > iptables-nft -F -t filter
+> > > > iptables-nft -X -t filter
+> > > > 
+> > > > ... would result in an empty "filter" table.
+> > > 
+> > > Your concern is that this would change the default behaviour?
+> > 
+> > Yes, maybe ok to change it though.  After all, a "iptables-nft -A INPUT
+> > ..." will continue to work just fine (its auto-created again).
+> > 
+> > We could check if policy is still set to accept before implicit
+> > removal in the "iptables-nft -X" case.
+> 
+> That's possible yes, but why force the user to change the policy from
+> DROP to ACCEPT to delete an empty basechain right thereafter?
 
-Applied, thanks!
+On Sun, Aug 15, 2021 at 04:36:37PM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > We could check if policy is still set to accept before implicit
+> > > removal in the "iptables-nft -X" case.
+> > 
+> > That's possible yes, but why force the user to change the policy from
+> > DROP to ACCEPT to delete an empty basechain right thereafter?
+> 
+> Ok, so I will just send a simplified version of this patch that
+> will remove all empty basechains for -X too.
+
+I believe there was a misunderstanding: How I read Pablo's comments, he
+was walking about '-X' with base-chain name explicitly given. If a user
+calls e.g. 'iptables-nft -X FORWARD', it is clear that the new behaviour
+is intended and dropping any non-standard policy is not a surprise. The
+code right now though behaves unexpectedly:
+
+| # nft flush ruleset
+| # ./install/sbin/iptables-nft -P FORWARD DROP
+| # ./install/sbin/iptables-nft -X
+| # nft list ruleset
+| table ip filter {
+| }
+
+So forward DROP policy is lost even though the user just wanted to make
+sure any user-defined chains are gone. But things are worse in practice:
+
+| # iptables -A FORWARD -d 10.0.0.1 -j ACCEPT
+| # iptables -P FORWARD DROP
+| # iptables -X
+
+With iptables-nft, the last command above fails (EBUSY). I expect users
+to be pedantic when it comes to unexpected firewall openings or bogus
+errors in iptables-wrapping scripts.
+
+IMHO we're fine if chains with non-standard policy stay in place. Yet
+this might be racey because IIRC we don't have a "delete chain only if
+policy is accept" command flavour in kernel. This would be interesting,
+because we could drop a base chain also when it's flushed - just
+ignoring a rejected delete if it happens to be non-standard policy.
+
+The safe option should be to delete base chains only if given
+explicitly, as suggested by Pablo already I suppose.
+
+Cheers, Phil
