@@ -2,72 +2,43 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.0 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD6A6C433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Sep 2021 17:55:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1FC7C433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Sep 2021 23:09:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A336960FED
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Sep 2021 17:55:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A04F860F46
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Sep 2021 23:09:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230220AbhINR5L (ORCPT
+        id S235587AbhINXLL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 14 Sep 2021 13:57:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59702 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231670AbhINR5L (ORCPT
+        Tue, 14 Sep 2021 19:11:11 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:55456 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235884AbhINXLH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 14 Sep 2021 13:57:11 -0400
-X-Greylist: delayed 565 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 14 Sep 2021 10:55:53 PDT
-Received: from dehost.average.org (dehost.average.org [IPv6:2a01:4f8:130:53eb::2])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79E1AC061574
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Sep 2021 10:55:53 -0700 (PDT)
-Received: from [IPv6:2a02:8106:1:6800:fc82:dec2:f8e7:4714] (unknown [IPv6:2a02:8106:1:6800:fc82:dec2:f8e7:4714])
-        by dehost.average.org (Postfix) with ESMTPSA id E44BE38BFEBB
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Sep 2021 19:46:24 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=average.org; s=mail;
-        t=1631641584; bh=R98GpoZBRohfRIwYSlX7oQk0JoUYG22nMCepoaQDWv0=;
-        h=To:From:Subject:Date:From;
-        b=bVsC2cnyrUKqQMgubhktRBVCDXAV6XDVZ//ZVhH/jVPBMV5Rv5eE5V6PadQhckDGo
-         KDiZ8NvkLIOLCKMofEpxoWV/odIEbl/aPfwZyTKCaUTWhwfc2UJnVoEAVXZWsg72N5
-         v3+OZGAWotVi41VfVnJFi67CP8oOdqN6OdlgBbRo=
+        Tue, 14 Sep 2021 19:11:07 -0400
+Received: from localhost.localdomain (unknown [78.30.35.141])
+        by mail.netfilter.org (Postfix) with ESMTPSA id D034B6000C;
+        Wed, 15 Sep 2021 01:08:35 +0200 (CEST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-From:   Eugene Crosser <crosser@average.org>
-Subject: Python bindings crash when more than one Nftables is instantiated
-Message-ID: <5dcf2dd4-0fdf-30d7-6588-1e571c486289@average.org>
-Date:   Tue, 14 Sep 2021 19:46:16 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.13.0
+Cc:     fw@strlen.de
+Subject: [PATCH nft] src: revert hashtable for expression handlers
+Date:   Wed, 15 Sep 2021 01:09:43 +0200
+Message-Id: <20210914230943.31354-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="QaOiL4fRlVTzmRMHeS0XMwY2BPud0LTEm"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---QaOiL4fRlVTzmRMHeS0XMwY2BPud0LTEm
-Content-Type: multipart/mixed; boundary="7110Czb5OOmONoBhJTXYQXKJaHWJnOGmR";
- protected-headers="v1"
-From: Eugene Crosser <crosser@average.org>
-To: netfilter-devel@vger.kernel.org
-Message-ID: <5dcf2dd4-0fdf-30d7-6588-1e571c486289@average.org>
-Subject: Python bindings crash when more than one Nftables is instantiated
-
---7110Czb5OOmONoBhJTXYQXKJaHWJnOGmR
-Content-Type: text/plain; charset=koi8-r
-Content-Language: en-US
-Content-Transfer-Encoding: quoted-printable
-
-Hello,
-
-it seems to me that this should not be happening. Use case is not as
-pathological as it may seem: your program may be using different third pa=
-rty
-modules, each of them instantiate `Nftables` interface.
+Partially revert 913979f882d1 ("src: add expression handler hashtable")
+which is causing a crash with two instances of the nftables handler.
 
 $ sudo python
 [sudo] password for echerkashin:
@@ -75,38 +46,114 @@ Python 3.9.7 (default, Sep  3 2021, 06:18:44)
 [GCC 11.2.0] on linux
 Type "help", "copyright", "credits" or "license" for more information.
 >>> from nftables import Nftables
->>> n1=3DNftables()
->>> n2=3DNftables()
+>>> n1=Nftables()
+>>> n2=Nftables()
 >>> <Ctrl-D>
 double free or corruption (top)
 Aborted
 
-Note that it happens on exit (possibly on the second call to __del__()).
+Reported-by: Eugene Crosser <crosser@average.org>
+Suggested-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/netlink.h         |  3 ---
+ src/libnftables.c         |  2 --
+ src/netlink_delinearize.c | 40 ++++++++++-----------------------------
+ 3 files changed, 10 insertions(+), 35 deletions(-)
 
-nftables v0.9.9
+diff --git a/include/netlink.h b/include/netlink.h
+index 0c8655ca19cf..2467ff82a520 100644
+--- a/include/netlink.h
++++ b/include/netlink.h
+@@ -215,9 +215,6 @@ int netlink_events_trace_cb(const struct nlmsghdr *nlh, int type,
+ 
+ enum nft_data_types dtype_map_to_kernel(const struct datatype *dtype);
+ 
+-void expr_handler_init(void);
+-void expr_handler_exit(void);
+-
+ void netlink_linearize_init(struct netlink_linearize_ctx *lctx,
+ 			    struct nftnl_rule *nlr);
+ void netlink_linearize_fini(struct netlink_linearize_ctx *lctx);
+diff --git a/src/libnftables.c b/src/libnftables.c
+index aa6493aae119..fc52fbc35d21 100644
+--- a/src/libnftables.c
++++ b/src/libnftables.c
+@@ -106,13 +106,11 @@ static void nft_init(struct nft_ctx *ctx)
+ 	realm_table_rt_init(ctx);
+ 	devgroup_table_init(ctx);
+ 	ct_label_table_init(ctx);
+-	expr_handler_init();
+ }
+ 
+ static void nft_exit(struct nft_ctx *ctx)
+ {
+ 	cache_free(&ctx->cache.table_cache);
+-	expr_handler_exit();
+ 	ct_label_table_exit(ctx);
+ 	realm_table_rt_exit(ctx);
+ 	devgroup_table_exit(ctx);
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index f2207ea1d43e..bd75ad5cbe1e 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -1750,46 +1750,26 @@ static const struct expr_handler netlink_parsers[] = {
+ 	{ .name = "synproxy",	.parse = netlink_parse_synproxy },
+ };
+ 
+-static const struct expr_handler **expr_handle_ht;
+-
+-#define NFT_EXPR_HSIZE	4096
+-
+-void expr_handler_init(void)
+-{
+-	unsigned int i;
+-	uint32_t hash;
+-
+-	expr_handle_ht = xzalloc_array(NFT_EXPR_HSIZE,
+-				       sizeof(expr_handle_ht[0]));
+-
+-	for (i = 0; i < array_size(netlink_parsers); i++) {
+-		hash = djb_hash(netlink_parsers[i].name) % NFT_EXPR_HSIZE;
+-		assert(expr_handle_ht[hash] == NULL);
+-		expr_handle_ht[hash] = &netlink_parsers[i];
+-	}
+-}
+-
+-void expr_handler_exit(void)
+-{
+-	xfree(expr_handle_ht);
+-}
+-
+ static int netlink_parse_expr(const struct nftnl_expr *nle,
+ 			      struct netlink_parse_ctx *ctx)
+ {
+ 	const char *type = nftnl_expr_get_str(nle, NFTNL_EXPR_NAME);
+ 	struct location loc;
+-	uint32_t hash;
++	unsigned int i;
+ 
+ 	memset(&loc, 0, sizeof(loc));
+ 	loc.indesc = &indesc_netlink;
+ 	loc.nle = nle;
+ 
+-	hash = djb_hash(type) % NFT_EXPR_HSIZE;
+-	if (expr_handle_ht[hash])
+-		expr_handle_ht[hash]->parse(ctx, &loc, nle);
+-	else
+-		netlink_error(ctx, &loc, "unknown expression type '%s'", type);
++	for (i = 0; i < array_size(netlink_parsers); i++) {
++		if (strcmp(type, netlink_parsers[i].name))
++			continue;
++
++		netlink_parsers[i].parse(ctx, &loc, nle);
++
++		return 0;
++	}
++	netlink_error(ctx, &loc, "unknown expression type '%s'", type);
+ 
+ 	return 0;
+ }
+-- 
+2.20.1
 
-Regards,
-
-Eugene
-
-
---7110Czb5OOmONoBhJTXYQXKJaHWJnOGmR--
-
---QaOiL4fRlVTzmRMHeS0XMwY2BPud0LTEm
-Content-Type: application/pgp-signature; name="OpenPGP_signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="OpenPGP_signature"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAEBCgAdFiEEnAziRJw3ydIzIkaHfKQHw5GdRYwFAmFA3+gACgkQfKQHw5Gd
-RYxOYwgArIsog5xX3kqsNcy0Og/fkyX4yyQO6ZD0n4gnyLuGi9mgaDRTQxDVdYoP
-2CXYDMTMUXIisRqo0H1z9B101cNPgjitZtc+2HUPMNZ65yy/QJJsQPzqsxTNgYe+
-xq9jZKye4DhraIZsjt3eXBpcjNyJie2wdGXrj4cEA26jcUxcmgS9tnz5ymiM9zXU
-OTtKCmOHuZ1LirZvsDq/8AcJTJLva0UtWwHx4qj4/F4SqPAcUsyAyQ2DP6KzO2Ro
-P25dX+TBCETPaX2nW2Xvs/3Wa+kaZ98OPOWIKkSMjzf7zXi2OJAvWQpD/8c+kv5X
-0mqFX6KWSJCMQ5rKwc/h9UaGJmt4HQ==
-=HkPs
------END PGP SIGNATURE-----
-
---QaOiL4fRlVTzmRMHeS0XMwY2BPud0LTEm--
