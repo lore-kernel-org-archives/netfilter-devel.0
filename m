@@ -2,109 +2,158 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64A3EC4321E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Sep 2021 11:49:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07B49C433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Sep 2021 12:55:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4B14E60F12
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Sep 2021 11:49:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E0FA56113B
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Sep 2021 12:55:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232314AbhINLue (ORCPT
+        id S232762AbhINM4q (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 14 Sep 2021 07:50:34 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:21353 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S232617AbhINLuV (ORCPT
+        Tue, 14 Sep 2021 08:56:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44218 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233048AbhINM4q (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 14 Sep 2021 07:50:21 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1631620143;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=1DzY4yDydre1L5B2hE92LmX2FfdQJaCgioSZB8SSYtw=;
-        b=AkeMLwtBFAL+9K8opEoFdzw545ZsgVm7QCGv82UvkTPCnyVRvElyZugs7KZ4KUDX7owKmu
-        Q/ZHgHpQSHZn0ULanJCTw4zwW2fWlVlrkPAMIK9afKaq0B5+s1qjl9wVAj0eHTgKf6lQLl
-        y++xOgGUCAQo4Xa2R2H2KF+coOZKT/Y=
-Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com
- [209.85.221.72]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-55-K3yNzX3hM2a01ip_jJ_Fcw-1; Tue, 14 Sep 2021 07:49:02 -0400
-X-MC-Unique: K3yNzX3hM2a01ip_jJ_Fcw-1
-Received: by mail-wr1-f72.google.com with SMTP id i16-20020adfded0000000b001572ebd528eso3841432wrn.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Sep 2021 04:49:02 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:in-reply-to:references
-         :user-agent:date:message-id:mime-version:content-transfer-encoding;
-        bh=1DzY4yDydre1L5B2hE92LmX2FfdQJaCgioSZB8SSYtw=;
-        b=Ly4ZDF01OkadFWSypFcJ2DAG240HOoSOY7aQIfwKkNnpG9J6AFAs1Dk/skcmAYMQoc
-         fi2su4RL4oKaYEYCHp5vhmFDFBB3onRRmlNjP+gZvG440d/MPL8LFK0jjFg9yORfuUs6
-         yCYC/s0A3b0e2eegUm/2LRTbtb7DrbrXh7G1yGSJ+K3mzEy61Q5qHs509BE2agnAZHZx
-         L3UOmb5W0h0eLk7Hyjd5AdXbCFwlcYtgY9StE7MMyTb/hoUeycKJUJBw/XyBu/lG9Eot
-         5LcQbHrN8KiReQmd7QwiDmg6MROyKIQVpTX+EIkNgzw5D8HiwInJR79h8zOECaMhPhEu
-         XVtQ==
-X-Gm-Message-State: AOAM5313DpgiHew2VKEqyJf3n40PCU6WhgjAyjl88FXPlkObjHjWx/6W
-        zUz6L4yUctprseuTFZZApCpQUSoc9A9vN+7V4zQ1n+4XLgEodqJEFR8mBp1pTpH0o+M4dVyecX6
-        lQtjqtAQWYLtCT+XsWnZMLgXqkejI
-X-Received: by 2002:adf:f8d2:: with SMTP id f18mr18121707wrq.140.1631620141482;
-        Tue, 14 Sep 2021 04:49:01 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJyYPYZtEfOr6LtyvMv1R6krIJ0atg/3xjfISWNPyUGmY5kEnglZZ0nHKTsL2vx3MJ9nH+HDXA==
-X-Received: by 2002:adf:f8d2:: with SMTP id f18mr18121696wrq.140.1631620141286;
-        Tue, 14 Sep 2021 04:49:01 -0700 (PDT)
-Received: from localhost ([185.112.167.47])
-        by smtp.gmail.com with ESMTPSA id n4sm10598269wra.37.2021.09.14.04.49.00
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 14 Sep 2021 04:49:00 -0700 (PDT)
-From:   =?utf-8?B?xaB0xJtww6FuIE7Em21lYw==?= <snemec@redhat.com>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH iptables] iptables-test.py: print with color escapes
- only when stdout isatty
-In-Reply-To: <20210914112516.GA26723@orbyte.nwl.cc>
-References: <20210902113307.2368834-1-snemec@redhat.com>
- <20210903125250.GK7616@orbyte.nwl.cc>
- <20210903164441+0200.281220-snemec@redhat.com>
- <20210903153420.GM7616@orbyte.nwl.cc>
- <20210906110438+0200.839986-snemec@redhat.com>
- <20210913150533.GA22465@orbyte.nwl.cc>
- <20210914110342+0200.713702-snemec@redhat.com>
- <20210914112516.GA26723@orbyte.nwl.cc>
-User-Agent: Notmuch/0.32.3 (https://notmuchmail.org) Emacs/28.0.50
- (x86_64-pc-linux-gnu)
-Date:   Tue, 14 Sep 2021 13:49:26 +0200
-Message-ID: <20210914134926+0200.802182-snemec@redhat.com>
+        Tue, 14 Sep 2021 08:56:46 -0400
+Received: from kadath.azazel.net (kadath.azazel.net [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E474C061574
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Sep 2021 05:55:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=CVpnoRjHsT8MK1U+JNOt0leK6ID9h1btU4BMri0NfAk=; b=tQ6+81yCAqq/ADr29g/JgWIdzB
+        suCz+Ds7/0tIdFF6IFLaEujLUvqHJQK347WDwFLPtw8OeJKUuv2y02RGONAC7VN36OTQAb6Zkd/uQ
+        BQUq1NBG0iPanZNglnKbweq3WmG2XwQTDKwS6RuBh6BAH0jN+nwSAOtDLSOPhkZsSHYxuk1M6V84Z
+        EvH4zJSBY6kTy5WOiVMZMvPopaui6LXWl9WqzXwgQifabpmGXedb88UiB2D+v2Tz6PRfL/xEQEjw/
+        l+hWP9lfqWdkAiOWwHAz2h/gbqB/1BHYlgkjTZZp2VgPvEGgYtaTG4bFheBjEV7x/V4eoobosiI3C
+        NmhOqT1g==;
+Received: from [2001:8b0:fb7d:d6d7:feb3:bcff:fe5e:42c3] (helo=azazel.net)
+        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <jeremy@azazel.net>)
+        id 1mQ7y7-00008P-Hf; Tue, 14 Sep 2021 13:55:23 +0100
+Date:   Tue, 14 Sep 2021 13:55:22 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     kaskada@email.cz
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>,
+        Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [xtables-addons] xt_ipp2p: fix compatibility with pre-5.1 kernels
+Message-ID: <YUCburIOx/ykC+gJ@azazel.net>
+References: <20210913194607.134775-1-jeremy@azazel.net>
+ <2By.aVMy.1uKNcS{}pM6.1XG5DC@seznam.cz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="PpkUpB/s4ds207iw"
+Content-Disposition: inline
+In-Reply-To: <2By.aVMy.1uKNcS{}pM6.1XG5DC@seznam.cz>
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:feb3:bcff:fe5e:42c3
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, 14 Sep 2021 13:25:16 +0200
-Phil Sutter wrote:
 
-> Printing errors to stderr is useful to compare failing tests against an
-> expected set of failures - it is simply a task of comparing output on
-> stderr with a recorded one.
+--PpkUpB/s4ds207iw
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I see. I'm still not sure the expected convenience factor (avoiding some
-grep-like post processing? but couldn't you compare the combined output
-just the same?) outweighs the weirdness / least surprise factor (having
-two variations of the same diagnostic message split on two separate
-output streams).
+On 2021-09-14, at 09:46:20 +0200, kaskada@email.cz wrote:
+> On 13. 9. 2021, at 21:53:43, Jeremy Sowden wrote:
+> > `ip_transport_len` and `ipv6_transport_len` were introduced in 5.1.
+> > They are both single-statement static inline functions, so add
+> > fall-back implementations for compatibility with older kernels.
+>
+> now it is possible to compile the source on Debian 10 (kernel
+> 4.19.0-17-amd64), but when I run:
+>
+>   $ ip6tables -t mangle -A PREROUTING -m ipp2p --dc -j ACCEPT
+>
+> I still get this error:
+>
+>   ip6tables v1.8.4 (legacy): Couldn't load match `ipp2p':No such file or =
+directory
+>   Try `ip6tables -h' or 'ip6tables --help' for more information.
+>
+> When I run it with strace:
+>
+>   $ strace ip6tables -t mangle -A PREROUTING -m ipp2p --dc -j ACCEPT
+>   [...]
+>   stat("/usr/lib/x86_64-linux-gnu/xtables/libip6t_ipp2p.so", 0x7fff3562de=
+a0) =3D -1 ENOENT (Adres=C3=A1=C5=99 nebo soubor neexistuje)
+>
+> It says this (it seems that
+> "/usr/lib/x86_64-linux-gnu/xtables/libip6t_ipp2p.so" is missing, which
+> is a bit suspicious).
 
-> To not overcomplicate things, maybe the easiest fix would be to print
-> colors only if both stdout and stderr are a tty. What do you think?
+It tries libip6t_ipp2p.so first, which fails, ...
 
-Yes, if the split has to stay, I don't have a better suggestion.
+>   stat("/usr/lib/x86_64-linux-gnu/xtables/libxt_ipp2p.so", {st_mode=3DS_I=
+FREG|0755, st_size=3D33512, ...}) =3D 0
+>   brk(NULL)                               =3D 0x562ecafdb000
+>   brk(0x562ecaffc000)                     =3D 0x562ecaffc000
+>   openat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/xtables/libxt_ipp2p.so", O_=
+RDONLY|O_CLOEXEC) =3D 3
 
-Thanks,
+=2E.. and then libxt_ipp2p.so, which succeeds.
 
-  =C5=A0t=C4=9Bp=C3=A1n
+>   read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0p\20\0\0\0\0\0\0=
+"..., 832) =3D 832
+>   fstat(3, {st_mode=3DS_IFREG|0755, st_size=3D33512, ...}) =3D 0
+>   mmap(NULL, 16680, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) =3D 0x7f9=
+02e63a000
+>   mmap(0x7f902e63b000, 4096, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|M=
+AP_DENYWRITE, 3, 0x1000) =3D 0x7f902e63b000
+>   mmap(0x7f902e63c000, 4096, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRI=
+TE, 3, 0x2000) =3D 0x7f902e63c000
+>   mmap(0x7f902e63d000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|=
+MAP_DENYWRITE, 3, 0x2000) =3D 0x7f902e63d000
+>   close(3)                                =3D 0
+>   mprotect(0x7f902e63d000, 4096, PROT_READ) =3D 0
+>   socket(AF_INET6, SOCK_RAW, IPPROTO_RAW) =3D 3
+>   fcntl(3, F_SETFD, FD_CLOEXEC)           =3D 0
+>   lstat("/proc/net/ip6_tables_names", {st_mode=3DS_IFREG|0440, st_size=3D=
+0, ...}) =3D 0
+>   statfs("/proc/net/ip6_tables_names", {f_type=3DPROC_SUPER_MAGIC, f_bsiz=
+e=3D4096, f_blocks=3D0, f_bfree=3D0, f_bavail=3D0, f_files=3D0, f_ffree=3D0=
+, f_fsid=3D{val=3D[0, 0]}, f_namelen=3D255, f_frsize=3D4096, f_flags=3DST_V=
+ALID|ST_NOSUID|ST_NODEV|ST_NOEXEC|ST_RELATIME}) =3D 0
+>   getsockopt(3, SOL_IPV6, IP6T_SO_GET_REVISION_MATCH, 0x7fff3562ddb0, [30=
+]) =3D -1 ENOENT (Adres=C3=A1=C5=99 nebo soubor neexistuje)
 
+This is the problem.  The kernel is reporting that it could not find an
+ipv6 version.  That's because I forgot to add an ipv6 module alias.  I
+will send a patch shortly.
+
+J.
+
+--PpkUpB/s4ds207iw
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmFAm6oACgkQKYasCr3x
+BA0DHw/8Dlqnimul/Az32vIUhWuWBlKFGo+oZ1gK2Nhy5QUzwjygeqCILrLs4SuK
+Z2MXEsJ/WHjpsGcNTtUPZ31OsdsFVRYtIfvHGAqWQky0G0k8rylGcFC6Ol66LuFP
+a35JoTIQWV4723rcOzbjtO6UWwAhRZpnQPMCfN0kkzkw4BKLSErI5KK9iXRBmnmA
+icD9jUkPpEhNAM7XIN4D98vdBEVriUHCOG7Hrl6TrA3evRiUA/xqPZkyRqCFbKDD
+UsvrEri4TlC+3wBzWwtPrtzkbmssBvPp6l71lSq6xjXV4qBsXTAb0HONqModZQmu
+eq9WThWxU918stp0BIMjUJQrBFYkd+ZHKx6UeJyUVLH+pUnjRb0edaeO4UgnE+Jp
+V7m9vh3bLys/vrpSM2tlhhXvOH4gK9WzRYV4cT5VAUQezsncdfX4lDw1q4yizUcz
+MiSIsUk3eRumajPTPaCNCbtLiHxUrwmEi/n0tdeT39TKxhfQ3RTBX2NXBPUFFLic
+Iclzws/SHuzoVDRk6QdHfUZ/2/p7F5WIcGRwUDCafFuE99Z68fhLiO4mQSKIX9ry
+3iuPacBkDzQYZbZNqM0lt8mdY9teLYpmhqtr2Kh+gfC/Eo9y8AABqcNdRxG0+m80
+WtqkIs1yUpl1W6Cl0gfqmrfhLfeHlD8cWNcyns6D+rNtAWfk+1Y=
+=6/fz
+-----END PGP SIGNATURE-----
+
+--PpkUpB/s4ds207iw--
