@@ -2,158 +2,270 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1FC7C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Sep 2021 23:09:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52420C433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Sep 2021 23:30:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A04F860F46
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Sep 2021 23:09:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2943561175
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Sep 2021 23:30:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235587AbhINXLL (ORCPT
+        id S235895AbhINXbh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 14 Sep 2021 19:11:11 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:55456 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235884AbhINXLH (ORCPT
+        Tue, 14 Sep 2021 19:31:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52928 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232227AbhINXbg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 14 Sep 2021 19:11:07 -0400
-Received: from localhost.localdomain (unknown [78.30.35.141])
-        by mail.netfilter.org (Postfix) with ESMTPSA id D034B6000C;
-        Wed, 15 Sep 2021 01:08:35 +0200 (CEST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     fw@strlen.de
-Subject: [PATCH nft] src: revert hashtable for expression handlers
-Date:   Wed, 15 Sep 2021 01:09:43 +0200
-Message-Id: <20210914230943.31354-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+        Tue, 14 Sep 2021 19:31:36 -0400
+Received: from gate2.alliedtelesis.co.nz (gate2.alliedtelesis.co.nz [IPv6:2001:df5:b000:5::4])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3F565C061574
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Sep 2021 16:30:18 -0700 (PDT)
+Received: from svr-chch-seg1.atlnz.lc (mmarshal3.atlnz.lc [10.32.18.43])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (Client did not present a certificate)
+        by gate2.alliedtelesis.co.nz (Postfix) with ESMTPS id E60E5806AC;
+        Wed, 15 Sep 2021 11:30:12 +1200 (NZST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alliedtelesis.co.nz;
+        s=mail181024; t=1631662212;
+        bh=RADbeFbJkIv7Big72n9qhNPRwU04jTokEdgTpQmNz9U=;
+        h=From:To:Cc:Subject:Date;
+        b=lF2Vj2Y/fx63oEGTRPUPZZakOUwp6k8LhQW33UBwsNjPPlZv6dn7ObMGxxyb7Evf5
+         /cGFRkcrpZaXw/tU8V1A4lss2nP50EGEnVUMHGguSoqvtiht5D64flR1COMvje1jCP
+         /d11eZa32d1gHVTuMIjXFcU/Dp1J4b9TM0kKht4PjM14WNksjJJu+R6+y+GUDNUahR
+         cuCnLYBXJqokWkIaX89KNCvGJv7FOIldkWKqElqnY9OOwzV8dxxfdHKBVidvUOf/BW
+         QH0aFOUnlKFzPMviRZPF+TKjj+q/G8vix05Qi6sCsUREH/0ypLcyL94noKtEGB5OQA
+         5RAGzowFvVGZQ==
+Received: from pat.atlnz.lc (Not Verified[10.32.16.33]) by svr-chch-seg1.atlnz.lc with Trustwave SEG (v8,2,6,11305)
+        id <B614130840000>; Wed, 15 Sep 2021 11:30:12 +1200
+Received: from coled-dl.ws.atlnz.lc (coled-dl.ws.atlnz.lc [10.33.25.26])
+        by pat.atlnz.lc (Postfix) with ESMTP id B116A13EE3F;
+        Wed, 15 Sep 2021 11:30:12 +1200 (NZST)
+Received: by coled-dl.ws.atlnz.lc (Postfix, from userid 1801)
+        id A9767240D70; Wed, 15 Sep 2021 11:30:12 +1200 (NZST)
+From:   Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
+To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net, kuba@kernel.org, shuah@kernel.org
+Cc:     linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>,
+        Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>,
+        Scott Parlane <scott.parlane@alliedtelesis.co.nz>,
+        Blair Steven <blair.steven@alliedtelesis.co.nz>
+Subject: [PATCH net v3] net: netfilter: Fix port selection of FTP for NF_NAT_RANGE_PROTO_SPECIFIED
+Date:   Wed, 15 Sep 2021 11:30:06 +1200
+Message-Id: <20210914233006.8710-1-Cole.Dishington@alliedtelesis.co.nz>
+X-Mailer: git-send-email 2.33.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: quoted-printable
+X-SEG-SpamProfiler-Analysis: v=2.3 cv=fY/TNHYF c=1 sm=1 tr=0 a=KLBiSEs5mFS1a/PbTCJxuA==:117 a=7QKq2e-ADPsA:10 a=oMNuOPhhpfK_yRezG5QA:9 a=7Zwj6sZBwVKJAoWSPKxL6X1jA+E=:19
+X-SEG-SpamProfiler-Score: 0
+x-atlnz-ls: pat
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Partially revert 913979f882d1 ("src: add expression handler hashtable")
-which is causing a crash with two instances of the nftables handler.
+FTP port selection ignores specified port ranges (with iptables
+masquerade --to-ports) when creating an expectation, based on
+FTP commands PORT or PASV, for the data connection.
 
-$ sudo python
-[sudo] password for echerkashin:
-Python 3.9.7 (default, Sep  3 2021, 06:18:44)
-[GCC 11.2.0] on linux
-Type "help", "copyright", "credits" or "license" for more information.
->>> from nftables import Nftables
->>> n1=Nftables()
->>> n2=Nftables()
->>> <Ctrl-D>
-double free or corruption (top)
-Aborted
-
-Reported-by: Eugene Crosser <crosser@average.org>
-Suggested-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Co-developed-by: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
+Signed-off-by: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
+Co-developed-by: Scott Parlane <scott.parlane@alliedtelesis.co.nz>
+Signed-off-by: Scott Parlane <scott.parlane@alliedtelesis.co.nz>
+Co-developed-by: Blair Steven <blair.steven@alliedtelesis.co.nz>
+Signed-off-by: Blair Steven <blair.steven@alliedtelesis.co.nz>
+Signed-off-by: Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
 ---
- include/netlink.h         |  3 ---
- src/libnftables.c         |  2 --
- src/netlink_delinearize.c | 40 ++++++++++-----------------------------
- 3 files changed, 10 insertions(+), 35 deletions(-)
 
-diff --git a/include/netlink.h b/include/netlink.h
-index 0c8655ca19cf..2467ff82a520 100644
---- a/include/netlink.h
-+++ b/include/netlink.h
-@@ -215,9 +215,6 @@ int netlink_events_trace_cb(const struct nlmsghdr *nlh, int type,
- 
- enum nft_data_types dtype_map_to_kernel(const struct datatype *dtype);
- 
--void expr_handler_init(void);
--void expr_handler_exit(void);
--
- void netlink_linearize_init(struct netlink_linearize_ctx *lctx,
- 			    struct nftnl_rule *nlr);
- void netlink_linearize_fini(struct netlink_linearize_ctx *lctx);
-diff --git a/src/libnftables.c b/src/libnftables.c
-index aa6493aae119..fc52fbc35d21 100644
---- a/src/libnftables.c
-+++ b/src/libnftables.c
-@@ -106,13 +106,11 @@ static void nft_init(struct nft_ctx *ctx)
- 	realm_table_rt_init(ctx);
- 	devgroup_table_init(ctx);
- 	ct_label_table_init(ctx);
--	expr_handler_init();
- }
- 
- static void nft_exit(struct nft_ctx *ctx)
- {
- 	cache_free(&ctx->cache.table_cache);
--	expr_handler_exit();
- 	ct_label_table_exit(ctx);
- 	realm_table_rt_exit(ctx);
- 	devgroup_table_exit(ctx);
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index f2207ea1d43e..bd75ad5cbe1e 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -1750,46 +1750,26 @@ static const struct expr_handler netlink_parsers[] = {
- 	{ .name = "synproxy",	.parse = netlink_parse_synproxy },
+Notes:
+    Thanks for your time reviewing!
+   =20
+    Changes:
+    - Removed check for port =3D=3D 0.
+    - Added nf_nat_l4proto_unique_tuple() to include/net/netfilter/nf_nat=
+.h.
+    - Simplify htons/ntohs calls.
+    - Move away from conditional call of nf_nat_l4proto_unique_tuple() to=
+ applying full range to dst port
+      if ftp active with PORT/ePORT is used.
+    - Remove check for exp->master !=3D NULL.
+   =20
+    Comments:
+    - dir is the direction of the ftp PORT/PASV request, so exp->dir is t=
+he direction
+      of the data connection. In nat helper, the range should be applied =
+on !exp->dir
+      source port since this is the connection from the client.
+
+ include/net/netfilter/nf_nat.h | 11 ++++++++++
+ net/netfilter/nf_nat_core.c    | 17 +++++++++++----
+ net/netfilter/nf_nat_ftp.c     | 38 +++++++++++++++++++++++-----------
+ net/netfilter/nf_nat_helper.c  | 10 +++++++++
+ 4 files changed, 60 insertions(+), 16 deletions(-)
+
+diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_na=
+t.h
+index 0d412dd63707..89796ed2aad3 100644
+--- a/include/net/netfilter/nf_nat.h
++++ b/include/net/netfilter/nf_nat.h
+@@ -27,12 +27,18 @@ union nf_conntrack_nat_help {
+ #endif
  };
- 
--static const struct expr_handler **expr_handle_ht;
--
--#define NFT_EXPR_HSIZE	4096
--
--void expr_handler_init(void)
--{
--	unsigned int i;
--	uint32_t hash;
--
--	expr_handle_ht = xzalloc_array(NFT_EXPR_HSIZE,
--				       sizeof(expr_handle_ht[0]));
--
--	for (i = 0; i < array_size(netlink_parsers); i++) {
--		hash = djb_hash(netlink_parsers[i].name) % NFT_EXPR_HSIZE;
--		assert(expr_handle_ht[hash] == NULL);
--		expr_handle_ht[hash] = &netlink_parsers[i];
--	}
--}
--
--void expr_handler_exit(void)
--{
--	xfree(expr_handle_ht);
--}
--
- static int netlink_parse_expr(const struct nftnl_expr *nle,
- 			      struct netlink_parse_ctx *ctx)
+=20
++struct nf_conn_nat_range_info {
++	union nf_conntrack_man_proto    min_proto;
++	union nf_conntrack_man_proto    max_proto;
++};
++
+ /* The structure embedded in the conntrack structure. */
+ struct nf_conn_nat {
+ 	union nf_conntrack_nat_help help;
+ #if IS_ENABLED(CONFIG_NF_NAT_MASQUERADE)
+ 	int masq_index;
+ #endif
++	struct nf_conn_nat_range_info range_info;
+ };
+=20
+ /* Set up the info structure to map into this range. */
+@@ -40,6 +46,11 @@ unsigned int nf_nat_setup_info(struct nf_conn *ct,
+ 			       const struct nf_nat_range2 *range,
+ 			       enum nf_nat_manip_type maniptype);
+=20
++void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
++				 const struct nf_nat_range2 *range,
++				 enum nf_nat_manip_type maniptype,
++				 const struct nf_conn *ct);
++
+ extern unsigned int nf_nat_alloc_null_binding(struct nf_conn *ct,
+ 					      unsigned int hooknum);
+=20
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index ea923f8cf9c4..edfd72524c38 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -397,10 +397,10 @@ find_best_ips_proto(const struct nf_conntrack_zone =
+*zone,
+  *
+  * Per-protocol part of tuple is initialized to the incoming packet.
+  */
+-static void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple=
+,
+-					const struct nf_nat_range2 *range,
+-					enum nf_nat_manip_type maniptype,
+-					const struct nf_conn *ct)
++void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
++				 const struct nf_nat_range2 *range,
++				 enum nf_nat_manip_type maniptype,
++				 const struct nf_conn *ct)
  {
- 	const char *type = nftnl_expr_get_str(nle, NFTNL_EXPR_NAME);
- 	struct location loc;
--	uint32_t hash;
-+	unsigned int i;
- 
- 	memset(&loc, 0, sizeof(loc));
- 	loc.indesc = &indesc_netlink;
- 	loc.nle = nle;
- 
--	hash = djb_hash(type) % NFT_EXPR_HSIZE;
--	if (expr_handle_ht[hash])
--		expr_handle_ht[hash]->parse(ctx, &loc, nle);
--	else
--		netlink_error(ctx, &loc, "unknown expression type '%s'", type);
-+	for (i = 0; i < array_size(netlink_parsers); i++) {
-+		if (strcmp(type, netlink_parsers[i].name))
-+			continue;
+ 	unsigned int range_size, min, max, i, attempts;
+ 	__be16 *keyptr;
+@@ -623,6 +623,15 @@ nf_nat_setup_info(struct nf_conn *ct,
+ 			   &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
+=20
+ 	get_unique_tuple(&new_tuple, &curr_tuple, range, ct, maniptype);
++	if (range && (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED)) {
++		struct nf_conn_nat *nat =3D nf_ct_nat_ext_add(ct);
 +
-+		netlink_parsers[i].parse(ctx, &loc, nle);
++		if (WARN_ON_ONCE(!nat))
++			return NF_DROP;
 +
-+		return 0;
++		nat->range_info.min_proto =3D range->min_proto;
++		nat->range_info.max_proto =3D range->max_proto;
 +	}
-+	netlink_error(ctx, &loc, "unknown expression type '%s'", type);
- 
- 	return 0;
- }
--- 
-2.20.1
+=20
+ 	if (!nf_ct_tuple_equal(&new_tuple, &curr_tuple)) {
+ 		struct nf_conntrack_tuple reply;
+diff --git a/net/netfilter/nf_nat_ftp.c b/net/netfilter/nf_nat_ftp.c
+index aace6768a64e..f14e53e8dc04 100644
+--- a/net/netfilter/nf_nat_ftp.c
++++ b/net/netfilter/nf_nat_ftp.c
+@@ -72,8 +72,14 @@ static unsigned int nf_nat_ftp(struct sk_buff *skb,
+ 	u_int16_t port;
+ 	int dir =3D CTINFO2DIR(ctinfo);
+ 	struct nf_conn *ct =3D exp->master;
++	struct nf_conn_nat *nat =3D nfct_nat(ct);
++	struct nf_nat_range2 range =3D {};
+ 	char buffer[sizeof("|1||65535|") + INET6_ADDRSTRLEN];
+ 	unsigned int buflen;
++	int ret;
++
++	if (WARN_ON_ONCE(!nat))
++		return NF_DROP;
+=20
+ 	pr_debug("type %i, off %u len %u\n", type, matchoff, matchlen);
+=20
+@@ -86,21 +92,29 @@ static unsigned int nf_nat_ftp(struct sk_buff *skb,
+ 	 * this one. */
+ 	exp->expectfn =3D nf_nat_follow_master;
+=20
+-	/* Try to get same port: if not, try to change it. */
+-	for (port =3D ntohs(exp->saved_proto.tcp.port); port !=3D 0; port++) {
+-		int ret;
++	/* Avoid applying range to external ports */
++	if (!exp->dir || !nat->range_info.min_proto.all || !nat->range_info.max=
+_proto.all) {
++		range.min_proto.all =3D htons(1);
++		range.max_proto.all =3D htons(65535);
++	} else {
++		range.min_proto     =3D nat->range_info.min_proto;
++		range.max_proto     =3D nat->range_info.max_proto;
++	}
++	range.flags                 =3D NF_NAT_RANGE_PROTO_SPECIFIED;
++
++	/* Try to get same port if it matches range */
++	ret =3D -1;
++	port =3D ntohs(exp->tuple.dst.u.tcp.port);
++	if (ntohs(range.min_proto.all) <=3D port && port <=3D ntohs(range.max_p=
+roto.all))
++		ret =3D nf_ct_expect_related(exp, 0);
+=20
+-		exp->tuple.dst.u.tcp.port =3D htons(port);
++	/* Same port is not available, try to change it */
++	if (ret !=3D 0) {
++		nf_nat_l4proto_unique_tuple(&exp->tuple, &range, NF_NAT_MANIP_DST, ct)=
+;
++		port =3D ntohs(exp->tuple.dst.u.tcp.port);
+ 		ret =3D nf_ct_expect_related(exp, 0);
+-		if (ret =3D=3D 0)
+-			break;
+-		else if (ret !=3D -EBUSY) {
+-			port =3D 0;
+-			break;
+-		}
+ 	}
+-
+-	if (port =3D=3D 0) {
++	if (ret !=3D 0) {
+ 		nf_ct_helper_log(skb, ct, "all ports in use");
+ 		return NF_DROP;
+ 	}
+diff --git a/net/netfilter/nf_nat_helper.c b/net/netfilter/nf_nat_helper.=
+c
+index a263505455fc..718fc423bc44 100644
+--- a/net/netfilter/nf_nat_helper.c
++++ b/net/netfilter/nf_nat_helper.c
+@@ -188,6 +188,16 @@ void nf_nat_follow_master(struct nf_conn *ct,
+ 	range.flags =3D NF_NAT_RANGE_MAP_IPS;
+ 	range.min_addr =3D range.max_addr
+ 		=3D ct->master->tuplehash[!exp->dir].tuple.dst.u3;
++	if (!exp->dir) {
++		struct nf_conn_nat *nat =3D nfct_nat(exp->master);
++
++		if (nat && nat->range_info.min_proto.all &&
++		    nat->range_info.max_proto.all) {
++			range.min_proto =3D nat->range_info.min_proto;
++			range.max_proto =3D nat->range_info.max_proto;
++			range.flags |=3D NF_NAT_RANGE_PROTO_SPECIFIED;
++		}
++	}
+ 	nf_nat_setup_info(ct, &range, NF_NAT_MANIP_SRC);
+=20
+ 	/* For DST manip, map port here to where it's expected. */
+--=20
+2.33.0
 
