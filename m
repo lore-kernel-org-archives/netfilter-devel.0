@@ -2,157 +2,166 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B184EC433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Sep 2021 08:47:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 754AEC433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Sep 2021 09:45:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 898B861216
-	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Sep 2021 08:47:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5A7D56124E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Sep 2021 09:45:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232307AbhIOIsb (ORCPT
+        id S237230AbhIOJrN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 15 Sep 2021 04:48:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37186 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231610AbhIOIsb (ORCPT
+        Wed, 15 Sep 2021 05:47:13 -0400
+Received: from www62.your-server.de ([213.133.104.62]:50992 "EHLO
+        www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S237103AbhIOJrA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Sep 2021 04:48:31 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF2E1C061574;
-        Wed, 15 Sep 2021 01:47:12 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1mQQZI-0004F3-SI; Wed, 15 Sep 2021 10:47:00 +0200
-Date:   Wed, 15 Sep 2021 10:47:00 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
-Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
-        davem@davemloft.net, kuba@kernel.org, shuah@kernel.org,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>,
-        Scott Parlane <scott.parlane@alliedtelesis.co.nz>,
-        Blair Steven <blair.steven@alliedtelesis.co.nz>
-Subject: Re: [PATCH net v3] net: netfilter: Fix port selection of FTP for
- NF_NAT_RANGE_PROTO_SPECIFIED
-Message-ID: <20210915084700.GE25110@breakpoint.cc>
-References: <20210914233006.8710-1-Cole.Dishington@alliedtelesis.co.nz>
+        Wed, 15 Sep 2021 05:47:00 -0400
+Received: from sslproxy03.your-server.de ([88.198.220.132])
+        by www62.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
+        (Exim 4.92.3)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1mQRU1-0000qI-Dy; Wed, 15 Sep 2021 11:45:37 +0200
+Received: from [85.5.47.65] (helo=linux.home)
+        by sslproxy03.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1mQRU1-000FGT-4P; Wed, 15 Sep 2021 11:45:37 +0200
+Subject: Re: [PATCH nf-next v4 4/5] netfilter: Introduce egress hook
+To:     Lukas Wunner <lukas@wunner.de>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Thomas Graf <tgraf@suug.ch>,
+        Laura Garcia Liebana <nevola@gmail.com>,
+        John Fastabend <john.fastabend@gmail.com>
+References: <cover.1611304190.git.lukas@wunner.de>
+ <979835dc887d3affc4e76464aa21da0e298fd638.1611304190.git.lukas@wunner.de>
+ <4b36df57-ee60-78da-cc6a-fb443226c978@iogearbox.net>
+ <20210911212650.GA17551@wunner.de>
+From:   Daniel Borkmann <daniel@iogearbox.net>
+Message-ID: <11584665-e3b5-3afe-d72c-ef92ad0b9313@iogearbox.net>
+Date:   Wed, 15 Sep 2021 11:45:36 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210914233006.8710-1-Cole.Dishington@alliedtelesis.co.nz>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20210911212650.GA17551@wunner.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Authenticated-Sender: daniel@iogearbox.net
+X-Virus-Scanned: Clear (ClamAV 0.103.2/26295/Wed Sep 15 10:22:57 2021)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Cole Dishington <Cole.Dishington@alliedtelesis.co.nz> wrote:
-> FTP port selection ignores specified port ranges (with iptables
-> masquerade --to-ports) when creating an expectation, based on
-> FTP commands PORT or PASV, for the data connection.
+Hi Lukas,
 
-Can you elaborate here?
-Why is this a problem, how to address it, etc?
-
-> Co-developed-by: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
-> Signed-off-by: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
-> Co-developed-by: Scott Parlane <scott.parlane@alliedtelesis.co.nz>
-> Signed-off-by: Scott Parlane <scott.parlane@alliedtelesis.co.nz>
-> Co-developed-by: Blair Steven <blair.steven@alliedtelesis.co.nz>
-> Signed-off-by: Blair Steven <blair.steven@alliedtelesis.co.nz>
-> Signed-off-by: Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
-> ---
+On 9/11/21 11:26 PM, Lukas Wunner wrote:
+> On Tue, Jan 26, 2021 at 08:13:19PM +0100, Daniel Borkmann wrote:
+>> On 1/22/21 9:47 AM, Lukas Wunner wrote:
+[...]
+>> Wrt above objection, what needs to be done for the minimum case is to
+>> i) fix the asymmetry problem from here, and
+>> ii) add a flag for tc layer-redirected skbs to skip the nf egress hook *;
+>> with that in place this concern should be resolved. Thanks!
 > 
-> Notes:
->     Thanks for your time reviewing!
->     
->     Changes:
->     - Removed check for port == 0.
->     - Added nf_nat_l4proto_unique_tuple() to include/net/netfilter/nf_nat.h.
->     - Simplify htons/ntohs calls.
->     - Move away from conditional call of nf_nat_l4proto_unique_tuple() to applying full range to dst port
->       if ftp active with PORT/ePORT is used.
->     - Remove check for exp->master != NULL.
->     
->     Comments:
->     - dir is the direction of the ftp PORT/PASV request, so exp->dir is the direction
->       of the data connection. In nat helper, the range should be applied on !exp->dir
->       source port since this is the connection from the client.
+> Daniel, your reply above has left me utterly confused.  After thinking
+> about it for a while, I'm requesting clarification what you really want.
+> We do want the netfilter egress hook in mainline and we're happy to
+> accommodate to your requirements, but we need you to specify them clearly.
+> 
+> Regarding the data path for packets which are going out from a container,
+> I think you've erroneously mixed up the last two elements above:
+> If the nf egress hook is placed after tc egress (as is done in the present
+> patch), the data path is actually as follows:
+> 
+>    [tc egress (veth,podns)] -> [tc ingress (veth,hostns)] ->
+>    [tc egress (phys,hostns)] -> [nf egress (phys,hostns)*]
+> 
+> By contrast, if nf egress is put in front of tc egress (as you're
+> requesting above), the data path becomes:
+> 
+>    [nf egress (veth,podns)] -> [tc egress (veth,podns)] ->
+>    [tc ingress (veth,hostns)] ->
+>    [nf egress (phys,hostns)*] -> [tc egress (phys,hostns)]
+> 
+> So this order results in an *additional* nf egress hook in the data path,
+> which may cost performance.  Previously you voiced concerns that the
+> nf egress hook may degrade performance.  To address that concern,
+> we ordered nf egress *after* tc egress, thereby avoiding any performance
+> impact as much as possible.
+> 
+> I agree with your argument that an inverse order vis-a-vis ingress is
+> more logical because it avoids NAT incongruencies etc.  So I'll be happy
+> to reorder nf egress before tc egress.  I'm just confused that you're now
+> requesting an order which may be *more* detrimental to performance.
 
-This should be part of the commit log, or augment your ...
-	/* Avoid applying range to external ports */
-... comment in the source code.
+Right, the issue is that placing it either in front or after the existing tc
+egress hook just as-is results in layering violations given both tc/nf subsystems
+will inevitably step on each other when both dataplanes are used by different
+components where things break. To provide a walk-through on what I think would
+work w/o breaking layers:
 
-> diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-> index ea923f8cf9c4..edfd72524c38 100644
-> --- a/net/netfilter/nf_nat_core.c
-> +++ b/net/netfilter/nf_nat_core.c
-> @@ -397,10 +397,10 @@ find_best_ips_proto(const struct nf_conntrack_zone *zone,
->   *
->   * Per-protocol part of tuple is initialized to the incoming packet.
->   */
-> -static void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
-> -					const struct nf_nat_range2 *range,
-> -					enum nf_nat_manip_type maniptype,
-> -					const struct nf_conn *ct)
-> +void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
-> +				 const struct nf_nat_range2 *range,
-> +				 enum nf_nat_manip_type maniptype,
-> +				 const struct nf_conn *ct)
->  {
+1) Packet going up hostns stack. Here, we'll end up with:
 
-Are you sure this doesn't need an EXPORT_SYMBOL_GPL()?
-I seem to recall seeing a buildbot linker error because of this.
+    [tc ingress (phys,hostns)] -> [nf ingress (phys,hostns)] ->
+      upper stack ->
+        [nf egress (phys,hostns)] -> [tc egress (phys,hostns)]
 
->  	get_unique_tuple(&new_tuple, &curr_tuple, range, ct, maniptype);
-> +	if (range && (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED)) {
-> +		struct nf_conn_nat *nat = nf_ct_nat_ext_add(ct);
-> +
-> +		if (WARN_ON_ONCE(!nat))
-> +			return NF_DROP;
-> +
+2) Packet going up podns stack. Here, if the forwarding happens entirely in tc
+    layer, then the datapath (as-is today) operates _below_ nf and must look like:
 
-This WARN needs to be removed, nf_ct_nat_ext_add() can fail if memory
-is low.
+    [tc ingress (phys,hostns)] -> [tc egress (veth,hostns)] ->
+      netns switch -> (*) -> netns switch ->
+        [tc ingress (veth,hostns)] -> [tc egress (phys,hostns)]
 
-WARN signals 'cannot happen, if it does something else is wrong and has
-to be debugged'.
+    For simplicity, I left out (*), but it's essentially the same as case 1)
+    just for the Pod's/container's stack PoV.
 
-> diff --git a/net/netfilter/nf_nat_ftp.c b/net/netfilter/nf_nat_ftp.c
-> index aace6768a64e..f14e53e8dc04 100644
-> --- a/net/netfilter/nf_nat_ftp.c
-> +++ b/net/netfilter/nf_nat_ftp.c
-> -	/* Try to get same port: if not, try to change it. */
-> -	for (port = ntohs(exp->saved_proto.tcp.port); port != 0; port++) {
-> -		int ret;
-> +	/* Avoid applying range to external ports */
-> +	if (!exp->dir || !nat->range_info.min_proto.all || !nat->range_info.max_proto.all) {
-> +		range.min_proto.all = htons(1);
-> +		range.max_proto.all = htons(65535);
-> +	} else {
-> +		range.min_proto     = nat->range_info.min_proto;
-> +		range.max_proto     = nat->range_info.max_proto;
-> +	}
-> +	range.flags                 = NF_NAT_RANGE_PROTO_SPECIFIED;
-> +
-> +	/* Try to get same port if it matches range */
-> +	ret = -1;
-> +	port = ntohs(exp->tuple.dst.u.tcp.port);
-> +	if (ntohs(range.min_proto.all) <= port && port <= ntohs(range.max_proto.all))
-> +		ret = nf_ct_expect_related(exp, 0);
->  
-> -		exp->tuple.dst.u.tcp.port = htons(port);
-> +	/* Same port is not available, try to change it */
-> +	if (ret != 0) {
-> +		nf_nat_l4proto_unique_tuple(&exp->tuple, &range, NF_NAT_MANIP_DST, ct);
+3) Packet is locally forwarded between Pods. Same as 2) for the case where the
+    forwarding happens entirely in tc (as-is today) which operates _below_ nf and
+    must look like:
 
-This looks buggy.  nf_nat_l4proto_unique_tuple() uses 'ct' as 'please
-ignore this one' when checking for port collisions.
+    (+) -> [tc ingress (veth,hostns)] -> [tc egress (veth,hostns)] ->
+      netns switch -> (*) -> netns switch ->
+        [tc ingress (veth,hostns)] -> [tc egress (veth,hostns)] -> (+)
 
-But the way its used here, 'ct' has little to do with the future tuple.
-So, as far as i can see, this needs a fixup to also detect when
-exp->tuple reply direction would collide with the existing ct, no?
+    The (+) denotes the src/sink where we enter/exit the hostns after netns switch.
+
+The skb bit marker would be that tc [& BPF]-related redirect functions are internally
+setting that bit, so that nf egress hook is skipped for cases like 2)/3).
+
+Walking through a similar 1/2/3) scenario from nf side one layer higher if you were
+to do an equivalent, things would look like:
+
+1) Packet going up hostns stack. Same as above:
+
+    [tc ingress (phys,hostns)] -> [nf ingress (phys,hostns)] ->
+      upper stack ->
+        [nf egress (phys,hostns)] -> [tc egress (phys,hostns)]
+
+2) Packet going up podns stack with forwarding from nf side:
+
+    [tc ingress (phys,hostns)] -> [nf ingress (phys,hostns)] ->
+      [nf egress (veth,hostns)] -> [tc egress (veth,hostns)] ->
+        netns switch -> (*) -> netns switch ->
+          [tc ingress (veth,hostns)] -> [nf ingress (veth,hostns)] ->
+            [nf egress (phys,hostns)] -> [tc egress (phys,hostns)]
+
+3) Packet is locally forwarded between Pods with forwarding from nf side:
+
+    (+) -> [tc ingress (veth,hostns)] -> [nf ingress (veth,hostns)] ->
+      [nf egress (veth,hostns)] -> [tc egress (veth,hostns)] ->
+        netns switch -> (*) -> netns switch ->
+          [tc ingress (veth,hostns)] -> [nf ingress (veth,hostns)] ->
+            [nf egress (veth,hostns)] -> [tc egress (veth,hostns)] -> (+)
+
+Thanks,
+Daniel
