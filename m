@@ -2,111 +2,105 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40A61C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Sep 2021 11:26:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1260AC433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Sep 2021 11:58:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1AA0C604DA
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Sep 2021 11:26:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DFF8660F5B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Sep 2021 11:58:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237889AbhIPL2K (ORCPT
+        id S238618AbhIPMAG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Sep 2021 07:28:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33620 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234769AbhIPL2K (ORCPT
+        Thu, 16 Sep 2021 08:00:06 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:59188 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S238535AbhIPMAF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Sep 2021 07:28:10 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2909DC061574;
-        Thu, 16 Sep 2021 04:26:50 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1mQpXN-0002K7-IT; Thu, 16 Sep 2021 13:26:41 +0200
-Date:   Thu, 16 Sep 2021 13:26:41 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
-Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
-        davem@davemloft.net, kuba@kernel.org, shuah@kernel.org,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>,
-        Scott Parlane <scott.parlane@alliedtelesis.co.nz>,
-        Blair Steven <blair.steven@alliedtelesis.co.nz>
-Subject: Re: [PATCH net v4] net: netfilter: Fix port selection of FTP for
- NF_NAT_RANGE_PROTO_SPECIFIED
-Message-ID: <20210916112641.GC20414@breakpoint.cc>
-References: <20210916041057.459-1-Cole.Dishington@alliedtelesis.co.nz>
+        Thu, 16 Sep 2021 08:00:05 -0400
+Received: from localhost.localdomain (unknown [78.30.35.141])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 7164F63069
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Sep 2021 13:57:30 +0200 (CEST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] netlink: reset temporary set element stmt list after list splice
+Date:   Thu, 16 Sep 2021 13:58:38 +0200
+Message-Id: <20210916115838.21724-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210916041057.459-1-Cole.Dishington@alliedtelesis.co.nz>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Cole Dishington <Cole.Dishington@alliedtelesis.co.nz> wrote:
-> +	/* Avoid applying nat->range to the reply direction */
-> +	if (!exp->dir || !nat->range_info.min_proto.all || !nat->range_info.max_proto.all) {
-> +		min = ntohs(exp->saved_proto.tcp.port);
-> +		range_size = 65535 - min + 1;
-> +	} else {
-> +		min = ntohs(nat->range_info.min_proto.all);
-> +		range_size = ntohs(nat->range_info.max_proto.all) - min + 1;
-> +	}
-> +
->  	/* Try to get same port: if not, try to change it. */
-> -	for (port = ntohs(exp->saved_proto.tcp.port); port != 0; port++) {
-> -		int ret;
-> +	first_port = ntohs(exp->saved_proto.tcp.port);
-> +	if (min > first_port || first_port > (min + range_size - 1))
-> +		first_port = min;
->  
-> +	for (i = 0, port = first_port; i < range_size; i++, port = (port - first_port + i) % range_size) {
+Reset temporary stmt list to deal with the key_end case which might
+result in a jump backward to handle the rhs of the interval.
 
-This looks complicated.  As far as I understand, this could instead be
-written like this (not even compile tested):
+Reported-by: Martin Zatloukal <slezi2@pvfree.net>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/netlink.c                                  |  2 +-
+ tests/shell/testcases/maps/0013map_0           | 14 ++++++++++++++
+ tests/shell/testcases/maps/dumps/0013map_0.nft | 13 +++++++++++++
+ 3 files changed, 28 insertions(+), 1 deletion(-)
+ create mode 100755 tests/shell/testcases/maps/0013map_0
+ create mode 100644 tests/shell/testcases/maps/dumps/0013map_0.nft
 
-	/* Avoid applying nat->range to the reply direction */
-	if (!exp->dir || !nat->range_info.min_proto.all || !nat->range_info.max_proto.all) {
-		min = 1;
-		max = 65535;
-		range_size = 65535;
-	} else {
-		min = ntohs(nat->range_info.min_proto.all);
-		max = ntohs(nat->range_info.max_proto.all);
-		range_size = max - min + 1;
-	}
+diff --git a/src/netlink.c b/src/netlink.c
+index 9a0d96f0b546..28a5514ad873 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -1324,7 +1324,7 @@ key_end:
+ 		nftnl_set_elem_expr_foreach(nlse, set_elem_parse_expressions,
+ 					    &setelem_parse_ctx);
+ 	}
+-	list_splice_tail(&setelem_parse_ctx.stmt_list, &expr->stmt_list);
++	list_splice_tail_init(&setelem_parse_ctx.stmt_list, &expr->stmt_list);
+ 
+ 	if (flags & NFT_SET_ELEM_INTERVAL_END) {
+ 		expr->flags |= EXPR_F_INTERVAL_END;
+diff --git a/tests/shell/testcases/maps/0013map_0 b/tests/shell/testcases/maps/0013map_0
+new file mode 100755
+index 000000000000..70d7fd3b002f
+--- /dev/null
++++ b/tests/shell/testcases/maps/0013map_0
+@@ -0,0 +1,14 @@
++#!/bin/bash
++
++set -e
++
++RULESET="
++flush ruleset
++
++add table ip filter
++add chain ip filter FORWARD { type filter hook forward priority 0; policy drop; }
++add map ip filter forwport { type ipv4_addr . inet_proto . inet_service: verdict; flags interval; counter; }
++add rule ip filter FORWARD iifname enp0s8 ip daddr . ip protocol  . th dport vmap @forwport counter
++add element ip filter forwport { 10.133.89.138 . tcp . 8081: accept }"
++
++$NFT -f - <<< "$RULESET"
+diff --git a/tests/shell/testcases/maps/dumps/0013map_0.nft b/tests/shell/testcases/maps/dumps/0013map_0.nft
+new file mode 100644
+index 000000000000..1455877df1bf
+--- /dev/null
++++ b/tests/shell/testcases/maps/dumps/0013map_0.nft
+@@ -0,0 +1,13 @@
++table ip filter {
++	map forwport {
++		type ipv4_addr . inet_proto . inet_service : verdict
++		flags interval
++		counter
++		elements = { 10.133.89.138 . tcp . 8081 counter packets 0 bytes 0 : accept }
++	}
++
++	chain FORWARD {
++		type filter hook forward priority filter; policy drop;
++		iifname "enp0s8" ip daddr . ip protocol . th dport vmap @forwport counter packets 0 bytes 0
++	}
++}
+-- 
+2.20.1
 
-  	/* Try to get same port: if not, try to change it. */
-	port = ntohs(exp->saved_proto.tcp.port);
-
-	if (port < min || port > max)
-		port = min;
-
-	for (i = 0; i < range_size; i++) {
-  		exp->tuple.dst.u.tcp.port = htons(port);
-  		ret = nf_ct_expect_related(exp, 0);
-		if (ret != -EBUSY)
- 			break;
-		port++;
-		if (port > max)
-			port = min;
-  	}
-
-	if (ret != 0) {
-	...
-
-AFAICS this is the same, we loop at most range_size times,
-in case range_size is 64k, we will loop through all (hmmm,
-not good actually, but better make that a different change)
-else through given min - max range.
-
-If orig port was in-range, we try it first, then increment.
-If port exceeds upper bound, cycle back to min.
-
-What do you think?
