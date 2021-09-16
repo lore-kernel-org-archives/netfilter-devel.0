@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EC5BC433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Sep 2021 10:39:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C16DC433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Sep 2021 10:40:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6705F60F70
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Sep 2021 10:39:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4DAEA61212
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Sep 2021 10:40:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236827AbhIPKkh (ORCPT
+        id S236755AbhIPKlf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Sep 2021 06:40:37 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:58850 "EHLO
+        Thu, 16 Sep 2021 06:41:35 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:58862 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235570AbhIPKkh (ORCPT
+        with ESMTP id S235570AbhIPKlf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Sep 2021 06:40:37 -0400
+        Thu, 16 Sep 2021 06:41:35 -0400
 Received: from localhost.localdomain (unknown [78.30.35.141])
-        by mail.netfilter.org (Postfix) with ESMTPSA id A6B5863068
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Sep 2021 12:38:02 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id E1A4E63068
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Sep 2021 12:38:59 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] doc: fix sinopsis of named counter, quota and ct {helper,timeout,expect}
-Date:   Thu, 16 Sep 2021 12:39:09 +0200
-Message-Id: <20210916103909.10144-1-pablo@netfilter.org>
+Subject: [PATCH nft,v2] doc: fix sinopsis of named counter, quota and ct {helper,timeout,expect}
+Date:   Thu, 16 Sep 2021 12:40:09 +0200
+Message-Id: <20210916104009.10259-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -40,9 +40,50 @@ Sinopsis is not complete. Add examples for counters and quotas.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
+ doc/nft.txt              |  8 +++---
  doc/stateful-objects.txt | 62 ++++++++++++++++++++++++++++++++++++----
- 1 file changed, 57 insertions(+), 5 deletions(-)
+ 2 files changed, 61 insertions(+), 9 deletions(-)
 
+diff --git a/doc/nft.txt b/doc/nft.txt
+index 13fe8b1f6671..c9bb901b85b9 100644
+--- a/doc/nft.txt
++++ b/doc/nft.txt
+@@ -291,7 +291,7 @@ Effectively, this is the nft-equivalent of *iptables-save* and
+ TABLES
+ ------
+ [verse]
+-{*add* | *create*} *table* ['family'] 'table' [*{ flags* 'flags' *; }*]
++{*add* | *create*} *table* ['family'] 'table' [ {*comment* 'comment' *;*'} *{ flags* 'flags' *; }*]
+ {*delete* | *list* | *flush*} *table* ['family'] 'table'
+ *list tables* ['family']
+ *delete table* ['family'] *handle* 'handle'
+@@ -344,7 +344,7 @@ add table inet mytable
+ CHAINS
+ ------
+ [verse]
+-{*add* | *create*} *chain* ['family'] 'table' 'chain' [*{ type* 'type' *hook* 'hook' [*device* 'device'] *priority* 'priority' *;* [*policy* 'policy' *;*] *}*]
++{*add* | *create*} *chain* ['family'] 'table' 'chain' [*{ type* 'type' *hook* 'hook' [*device* 'device'] *priority* 'priority' *;* [*policy* 'policy' *;*] [*comment* 'comment' *;*'] *}*]
+ {*delete* | *list* | *flush*} *chain* ['family'] 'table' 'chain'
+ *list chains* ['family']
+ *delete chain* ['family'] 'table' *handle* 'handle'
+@@ -527,7 +527,7 @@ The sets allowed_hosts and allowed_ports need to be created first. The next
+ section describes nft set syntax in more detail.
+ 
+ [verse]
+-*add set* ['family'] 'table' 'set' *{ type* 'type' | *typeof* 'expression' *;* [*flags* 'flags' *;*] [*timeout* 'timeout' *;*] [*gc-interval* 'gc-interval' *;*] [*elements = {* 'element'[*,* ...] *} ;*] [*size* 'size' *;*] [*policy* 'policy' *;*] [*auto-merge ;*] *}*
++*add set* ['family'] 'table' 'set' *{ type* 'type' | *typeof* 'expression' *;* [*flags* 'flags' *;*] [*timeout* 'timeout' *;*] [*gc-interval* 'gc-interval' *;*] [*elements = {* 'element'[*,* ...] *} ;*] [*size* 'size' *;*] [*comment* 'comment' *;*'] [*policy* 'policy' *;*] [*auto-merge ;*] *}*
+ {*delete* | *list* | *flush*} *set* ['family'] 'table' 'set'
+ *list sets* ['family']
+ *delete set* ['family'] 'table' *handle* 'handle'
+@@ -580,7 +580,7 @@ automatic merge of adjacent/overlapping set elements (only for interval sets) |
+ MAPS
+ -----
+ [verse]
+-*add map* ['family'] 'table' 'map' *{ type* 'type' | *typeof* 'expression' [*flags* 'flags' *;*] [*elements = {* 'element'[*,* ...] *} ;*] [*size* 'size' *;*] [*policy* 'policy' *;*] *}*
++*add map* ['family'] 'table' 'map' *{ type* 'type' | *typeof* 'expression' [*flags* 'flags' *;*] [*elements = {* 'element'[*,* ...] *} ;*] [*size* 'size' *;*] [*comment* 'comment' *;*'] [*policy* 'policy' *;*] *}*
+ {*delete* | *list* | *flush*} *map* ['family'] 'table' 'map'
+ *list maps* ['family']
+ 
 diff --git a/doc/stateful-objects.txt b/doc/stateful-objects.txt
 index c7488b28d21e..4972969eb250 100644
 --- a/doc/stateful-objects.txt
