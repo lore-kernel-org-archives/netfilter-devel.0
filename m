@@ -2,363 +2,239 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 83A61C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Sep 2021 03:52:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E86EAC433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Sep 2021 04:11:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6562C61165
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Sep 2021 03:52:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CE4706113E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Sep 2021 04:11:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234179AbhIPDyC (ORCPT
+        id S230344AbhIPEM2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 15 Sep 2021 23:54:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44114 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232217AbhIPDyB (ORCPT
+        Thu, 16 Sep 2021 00:12:28 -0400
+Received: from gate2.alliedtelesis.co.nz ([202.36.163.20]:34960 "EHLO
+        gate2.alliedtelesis.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229463AbhIPEM2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Sep 2021 23:54:01 -0400
-Received: from mail-pf1-x42f.google.com (mail-pf1-x42f.google.com [IPv6:2607:f8b0:4864:20::42f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B298C061574
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 Sep 2021 20:52:42 -0700 (PDT)
-Received: by mail-pf1-x42f.google.com with SMTP id c1so1737338pfp.10
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 Sep 2021 20:52:42 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=sender:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=Q70lojcpAK1sigofqZxkl8PBHhdksG9Uq7e8nbjXpaA=;
-        b=aCJUS8gWNho7ys1BsBmthOIGW4FFMZEjX0DKgy2Bl0+HLT2NIOAH7Ls5PpIfApaBwM
-         bBqQ1vDtZqzGfmOXyDjDlnbyqZQy6TYUTSVwnKqn88R2jh7jK7wBPZQI3cq7Y4GuELZY
-         9kRPOTWDUzKaibl5QRjgGbSLdd09VYlWxmAQmS5PxDOZnB3SIEdCOI+b/+lvKSwj+jAy
-         qMUMrFzhZpruQcE8YL0YRVFkyL55OMyNoE4+A+BJ8tswwNjkzyDp2+Ty7I7qC13Ruk7r
-         Zs8QWdXWfH7RmhL1NhaqEW5NZgIt5zMYsncsMJXVUIfGV8J1V9TQVsG2KqYp5q7OqHTH
-         lRrw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
-         :mime-version:content-transfer-encoding;
-        bh=Q70lojcpAK1sigofqZxkl8PBHhdksG9Uq7e8nbjXpaA=;
-        b=dt9YxUC+60LjqsB2LKEm9On5oFqJj89k9a+6zBsWKJqfc8E08hffu61bJKYKhx2g04
-         epI1ftrZC504YNoRgKi6kQ6C0RPe0aMYXT7E3U5nz+jH4mAqst7MjYM7z3odS9YM2wfg
-         DhXp7sbAiIvDdXpvJzpk6tGVHeQf6wFF1IHjO+SE4bn0t6VA+XFg6U0p4/w4kbM0v6dK
-         maZTeMBfX11Nu/2l3wFBX4HLp6Vd35Pwt2KwEy+lUrag6AzH/5sT6pyqdMYPFHFbbRaR
-         15RJ5TjuseMqeRsp24rk7Iao+wUJ6CzgwFW7z+RmBO48F3N7wLdYquaV+/4CdTBfgSel
-         fIxg==
-X-Gm-Message-State: AOAM533dVVtEJJnw9wfl//rXhTwXzRYnc7uSo0tn0Rc+i+gLsBfxG4nG
-        zjMWvVye32voqgjR6n3gXg778+KclD0=
-X-Google-Smtp-Source: ABdhPJwCut0HJasop7Y/tCpwl/be+l2FQOXPO09IocB0H0qeMPsOVPnfD4RPuDb4fWl7p77dhtfgxQ==
-X-Received: by 2002:a05:6a00:1694:b0:440:3c9a:ea68 with SMTP id k20-20020a056a00169400b004403c9aea68mr3374860pfc.84.1631764361461;
-        Wed, 15 Sep 2021 20:52:41 -0700 (PDT)
-Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
-        by smtp.gmail.com with ESMTPSA id h127sm1146918pfe.191.2021.09.15.20.52.39
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 15 Sep 2021 20:52:40 -0700 (PDT)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_log] src: doc: revise doxygen for all other modules
-Date:   Thu, 16 Sep 2021 13:52:36 +1000
-Message-Id: <20210916035236.14327-1-duncan_roe@optusnet.com.au>
-X-Mailer: git-send-email 2.32.0
+        Thu, 16 Sep 2021 00:12:28 -0400
+Received: from svr-chch-seg1.atlnz.lc (mmarshal3.atlnz.lc [10.32.18.43])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (Client did not present a certificate)
+        by gate2.alliedtelesis.co.nz (Postfix) with ESMTPS id 36FC1806A8;
+        Thu, 16 Sep 2021 16:11:06 +1200 (NZST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alliedtelesis.co.nz;
+        s=mail181024; t=1631765466;
+        bh=xzFoaghB6J50a9Z3r8Mfbhqg3yDoiQQCqdhnRGIjaIo=;
+        h=From:To:Cc:Subject:Date;
+        b=hluijJ9qmc0De+wXQjuFTPAKO0qurTKIKiPHotnV6JaLQndMqlJUAu33dx2W8ebTP
+         DsORN+UW6/NC7c35gAxMA1vlUenwVSVtsY+uENgfHdNuAOdnLlH9hqbK6egSrx6m8O
+         TINSk+rDssUSBeFmnScey/grDjMr0yVwQSfRPJfP4lCQKE3fLlu4xEqT6gs2kJLSzK
+         hngBnIse3w3YLe5hPIb7rvK3dRXNTPWChxcEG8p7VUrSFFnMrV+8k7xw/wnl318cKE
+         jGVMWg9zyCHGI9dMiF0IGvUTpgFlAEFcs5zENty1hR0oT9iZBy/afSsPhvkX/EYVQd
+         9/DUHIqepBp5A==
+Received: from pat.atlnz.lc (Not Verified[10.32.16.33]) by svr-chch-seg1.atlnz.lc with Trustwave SEG (v8,2,6,11305)
+        id <B6142c3d90000>; Thu, 16 Sep 2021 16:11:05 +1200
+Received: from coled-dl.ws.atlnz.lc (coled-dl.ws.atlnz.lc [10.33.25.26])
+        by pat.atlnz.lc (Postfix) with ESMTP id EA44113ED4A;
+        Thu, 16 Sep 2021 16:11:05 +1200 (NZST)
+Received: by coled-dl.ws.atlnz.lc (Postfix, from userid 1801)
+        id E38802428CC; Thu, 16 Sep 2021 16:11:05 +1200 (NZST)
+From:   Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
+To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net, kuba@kernel.org, shuah@kernel.org
+Cc:     linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>,
+        Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>,
+        Scott Parlane <scott.parlane@alliedtelesis.co.nz>,
+        Blair Steven <blair.steven@alliedtelesis.co.nz>
+Subject: [PATCH net v4] net: netfilter: Fix port selection of FTP for NF_NAT_RANGE_PROTO_SPECIFIED
+Date:   Thu, 16 Sep 2021 16:10:57 +1200
+Message-Id: <20210916041057.459-1-Cole.Dishington@alliedtelesis.co.nz>
+X-Mailer: git-send-email 2.33.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: quoted-printable
+X-SEG-SpamProfiler-Analysis: v=2.3 cv=fY/TNHYF c=1 sm=1 tr=0 a=KLBiSEs5mFS1a/PbTCJxuA==:117 a=7QKq2e-ADPsA:10 a=xOT0nC9th1TpZTiSAT0A:9 a=7Zwj6sZBwVKJAoWSPKxL6X1jA+E=:19
+X-SEG-SpamProfiler-Score: 0
+x-atlnz-ls: pat
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-I.e. all modules except "Netlink message helper functions"
-- different cross-reference for man page and html
-- remove duplicate description for nflog_fd
-- try to differentiate between "rare" and "common" errors
-- gh is a Netfilter log *group* handle (cf h)
-- minor native English corrections
-- update Linux source reference
-- document actual return values
+FTP port selection ignores specified port ranges (with iptables
+masquerade --to-ports) when creating an expectation, based on
+FTP commands PORT or PASV, for the data connection.
 
-Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+For masquerading, this issue allows an FTP client to use unassigned sourc=
+e ports
+for their data connection (in both the PORT and PASV cases). This can
+cause problems in setups that allocate different masquerade port ranges f=
+or each
+client.
+
+The proposed fix involves storing a port range (on nf_conn_nat) to:
+- Fix FTP PORT data connections using the stored port range to select a
+  port number in nf_conntrack_ftp.
+- Fix FTP PASV data connections using the stored port range to specify a
+  port range on source port in nf_nat_helper if the FTP PORT/PASV packet
+  comes from the client.
+
+Co-developed-by: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
+Signed-off-by: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
+Co-developed-by: Scott Parlane <scott.parlane@alliedtelesis.co.nz>
+Signed-off-by: Scott Parlane <scott.parlane@alliedtelesis.co.nz>
+Co-developed-by: Blair Steven <blair.steven@alliedtelesis.co.nz>
+Signed-off-by: Blair Steven <blair.steven@alliedtelesis.co.nz>
+Signed-off-by: Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
 ---
- src/libnetfilter_log.c | 98 +++++++++++++++++++++++++++++-------------
- 1 file changed, 69 insertions(+), 29 deletions(-)
 
-diff --git a/src/libnetfilter_log.c b/src/libnetfilter_log.c
-index 546d667..cd37879 100644
---- a/src/libnetfilter_log.c
-+++ b/src/libnetfilter_log.c
-@@ -207,8 +207,19 @@ struct nfnl_handle *nflog_nfnlh(struct nflog_handle *h)
- 	}
- \endverbatim
-  *
-- * Data and information about the packet can be fetch by using message parsing
-- * functions (See \link Parsing \endlink).
-+ * Data and information about the packet can be fetched by using message parsing
-+ * \htmlonly
-+ functions (See <a class="el" href="group__Parsing.html">Parsing</a>).
-+\endhtmlonly
-+ * \manonly
-+functions.
-+.PP
-+\fBSee also:\fP
-+.RS 4
-+\fBParsing\fP man page (\fBman nflog_get_gid\fP)
-+.RE
-+.PP
-+\endmanonly
-  * @{
-  */
- 
-@@ -220,9 +231,6 @@ struct nfnl_handle *nflog_nfnlh(struct nflog_handle *h)
-  * given log connection handle. The file descriptor can then be used for
-  * receiving the logged packets for processing.
-  *
-- * This function returns a file descriptor that can be used for communication
-- * over the netlink connection associated with the given log connection
-- * handle.
-  */
- int nflog_fd(struct nflog_handle *h)
- {
-@@ -279,7 +287,9 @@ out_free:
-  * it by calling nflog_close(). A new netlink connection is obtained internally
-  * and associated with the log connection handle returned.
-  *
-- * \return a pointer to a new log handle or NULL on failure.
-+ * \return a pointer to a new log handle or NULL on failure with \b errno set.
-+ * \par Errors
-+ * from underlying calls, in exceptional circumstances
-  */
- struct nflog_handle *nflog_open(void)
- {
-@@ -335,7 +345,9 @@ int nflog_handle_packet(struct nflog_handle *h, char *buf, int len)
-  *
-  * This function closes the nflog handler and free associated resources.
-  *
-- * \return 0 on success, non-zero on failure.
-+ * \return 0 on success, -1 on failure with \b errno set.
-+ * \par Errors
-+ * as for __close__(2)
-  */
- int nflog_close(struct nflog_handle *h)
- {
-@@ -352,7 +364,9 @@ int nflog_close(struct nflog_handle *h)
-  * Binds the given log connection handle to process packets belonging to
-  * the given protocol family (ie. PF_INET, PF_INET6, etc).
-  *
-- * \return integer inferior to 0 in case of failure
-+ * \return 0 on success, -1 on failure with \b errno set.
-+ * \par Errors
-+ * \b EOPNOTSUPP Not running as root
-  */
- int nflog_bind_pf(struct nflog_handle *h, uint16_t pf)
- {
-@@ -367,6 +381,9 @@ int nflog_bind_pf(struct nflog_handle *h, uint16_t pf)
-  *
-  * Unbinds the given nflog handle from processing packets belonging
-  * to the given protocol family.
-+ * \return 0 on success, -1 on failure with \b errno set.
-+ * \par Errors
-+ * \b EOPNOTSUPP Not running as root
-  */
- int nflog_unbind_pf(struct nflog_handle *h, uint16_t pf)
- {
-@@ -387,15 +404,22 @@ int nflog_unbind_pf(struct nflog_handle *h, uint16_t pf)
-  * \param h Netfilter log handle obtained via call to nflog_open()
-  * \param num the number of the group to bind to
-  *
-- * \return a nflog_g_handle pointing to the newly created group
-+ * \return an nflog_g_handle for the newly created group or NULL on failure.
-+ * \par Errors
-+ * \b EBUSY This process has already binded to the group
-+ * \n
-+ * \b EOPNOTSUPP Request rejected by kernel. Another process has already
-+ * binded to the group, or this process is not running as root
-  */
- struct nflog_g_handle *
- nflog_bind_group(struct nflog_handle *h, uint16_t num)
- {
- 	struct nflog_g_handle *gh;
- 
--	if (find_gh(h, num))
-+	if (find_gh(h, num)) {
-+		errno = EBUSY;
- 		return NULL;
+Notes:
+    Thanks for your time reviewing!
+   =20
+    Changes:
+    - Avoid allocating same port to ftp data connection expectation as us=
+ed for ftp control.
+      - Changed ftp port selection back to a for loop with expectation ch=
+ecking.
+      - Iterate over a range of ports rather than exp dst port to max por=
+t.
+    - Added further description to commit message to detail the problem t=
+his patch is fixing.
+
+ include/net/netfilter/nf_nat.h |  6 ++++++
+ net/netfilter/nf_nat_core.c    |  9 +++++++++
+ net/netfilter/nf_nat_ftp.c     | 29 +++++++++++++++++++++--------
+ net/netfilter/nf_nat_helper.c  | 10 ++++++++++
+ 4 files changed, 46 insertions(+), 8 deletions(-)
+
+diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_na=
+t.h
+index 0d412dd63707..231cffc16722 100644
+--- a/include/net/netfilter/nf_nat.h
++++ b/include/net/netfilter/nf_nat.h
+@@ -27,12 +27,18 @@ union nf_conntrack_nat_help {
+ #endif
+ };
+=20
++struct nf_conn_nat_range_info {
++	union nf_conntrack_man_proto    min_proto;
++	union nf_conntrack_man_proto    max_proto;
++};
++
+ /* The structure embedded in the conntrack structure. */
+ struct nf_conn_nat {
+ 	union nf_conntrack_nat_help help;
+ #if IS_ENABLED(CONFIG_NF_NAT_MASQUERADE)
+ 	int masq_index;
+ #endif
++	struct nf_conn_nat_range_info range_info;
+ };
+=20
+ /* Set up the info structure to map into this range. */
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index ea923f8cf9c4..5ae27cf7e808 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -623,6 +623,15 @@ nf_nat_setup_info(struct nf_conn *ct,
+ 			   &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
+=20
+ 	get_unique_tuple(&new_tuple, &curr_tuple, range, ct, maniptype);
++	if (range && (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED)) {
++		struct nf_conn_nat *nat =3D nf_ct_nat_ext_add(ct);
++
++		if (!nat)
++			return NF_DROP;
++
++		nat->range_info.min_proto =3D range->min_proto;
++		nat->range_info.max_proto =3D range->max_proto;
 +	}
- 
- 	gh = calloc(1, sizeof(*gh));
- 	if (!gh)
-@@ -426,7 +450,9 @@ nflog_bind_group(struct nflog_handle *h, uint16_t num)
-  * nflog_unbind_group - unbind a group handle.
-  * \param gh Netfilter log group handle obtained via nflog_bind_group()
-  *
-- * \return -1 in case of error and errno is explicity in case of error.
-+ * \return 0 on success, -1 on failure with \b errno set.
-+ * \par Errors
-+ * from underlying calls, in exceptional circumstances
-  */
- int nflog_unbind_group(struct nflog_g_handle *gh)
- {
-@@ -441,7 +467,7 @@ int nflog_unbind_group(struct nflog_g_handle *gh)
- 
- /**
-  * nflog_set_mode - set the amount of packet data that nflog copies to userspace
-- * \param gh Netfilter log handle obtained by call to nflog_bind_group().
-+ * \param gh Netfilter log group handle obtained by call to nflog_bind_group().
-  * \param mode the part of the packet that we are interested in
-  * \param range size of the packet that we want to get
-  *
-@@ -452,7 +478,9 @@ int nflog_unbind_group(struct nflog_g_handle *gh)
-  * - NFULNL_COPY_META - copy only packet metadata
-  * - NFULNL_COPY_PACKET - copy entire packet
-  *
-- * \return -1 on error; >= otherwise.
-+ * \return 0 on success, -1 on failure with \b errno set.
-+ * \par Errors
-+ * from underlying calls, in exceptional circumstances
-  */
- int nflog_set_mode(struct nflog_g_handle *gh,
- 		   uint8_t mode, uint32_t range)
-@@ -477,7 +505,7 @@ int nflog_set_mode(struct nflog_g_handle *gh,
- 
- /**
-  * nflog_set_timeout - set the maximum time to push log buffer for this group
-- * \param gh Netfilter log handle obtained by call to nflog_bind_group().
-+ * \param gh Netfilter log group handle obtained by call to nflog_bind_group().
-  * \param timeout Time to wait until the log buffer is pushed to userspace
-  *
-  * This function allows to set the maximum time that nflog waits until it
-@@ -485,7 +513,9 @@ int nflog_set_mode(struct nflog_g_handle *gh,
-  * Basically, nflog implements a buffer to reduce the computational cost
-  * of delivering the log message to userspace.
-  *
-- * \return -1 in case of error and errno is explicity set.
-+ * \return 0 on success, -1 on failure with \b errno set.
-+ * \par Errors
-+ * from underlying calls, in exceptional circumstances
-  */
- int nflog_set_timeout(struct nflog_g_handle *gh, uint32_t timeout)
- {
-@@ -504,13 +534,15 @@ int nflog_set_timeout(struct nflog_g_handle *gh, uint32_t timeout)
- 
- /**
-  * nflog_set_qthresh - set the maximum amount of logs in buffer for this group
-- * \param gh Netfilter log handle obtained by call to nflog_bind_group().
-+ * \param gh Netfilter log group handle obtained by call to nflog_bind_group().
-  * \param qthresh Maximum number of log entries
-  *
-  * This function determines the maximum number of log entries in the buffer
-  * until it is pushed to userspace.
-  *
-- * \return -1 in case of error and errno is explicity set.
-+ * \return 0 on success, -1 on failure with \b errno set.
-+ * \par Errors
-+ * from underlying calls, in exceptional circumstances
-  */
- int nflog_set_qthresh(struct nflog_g_handle *gh, uint32_t qthresh)
- {
-@@ -529,17 +561,19 @@ int nflog_set_qthresh(struct nflog_g_handle *gh, uint32_t qthresh)
- 
- /**
-  * nflog_set_nlbufsiz - set the size of the nflog buffer for this group
-- * \param gh Netfilter log handle obtained by call to nflog_bind_group().
-+ * \param gh Netfilter log group handle obtained by call to nflog_bind_group().
-  * \param nlbufsiz Size of the nflog buffer
-  *
-  * This function sets the size (in bytes) of the buffer that is used to
-  * stack log messages in nflog.
-  *
-- * NOTE: The use of this function is strongly discouraged. The default
-+ * \warning The use of this function is strongly discouraged. The default
-  * buffer size (which is one memory page) provides the optimum results
-  * in terms of performance. Do not use this function in your applications.
-  *
-- * \return -1 in case of error and errno is explicity set.
-+ * \return 0 on success, -1 on failure with \b errno set.
-+ * \par Errors
-+ * from underlying calls, in exceptional circumstances
-  */
- int nflog_set_nlbufsiz(struct nflog_g_handle *gh, uint32_t nlbufsiz)
- {
-@@ -565,7 +599,7 @@ int nflog_set_nlbufsiz(struct nflog_g_handle *gh, uint32_t nlbufsiz)
- 
- /**
-  * nflog_set_flags - set the nflog flags for this group
-- * \param gh Netfilter log handle obtained by call to nflog_bind_group().
-+ * \param gh Netfilter log group handle obtained by call to nflog_bind_group().
-  * \param flags Flags that you want to set
-  *
-  * There are two existing flags:
-@@ -573,7 +607,9 @@ int nflog_set_nlbufsiz(struct nflog_g_handle *gh, uint32_t nlbufsiz)
-  *	- NFULNL_CFG_F_SEQ: This enables local nflog sequence numbering.
-  *	- NFULNL_CFG_F_SEQ_GLOBAL: This enables global nflog sequence numbering.
-  *
-- * \return -1 in case of error and errno is explicity set.
-+ * \return 0 on success, -1 on failure with \b errno set.
-+ * \par Errors
-+ * from underlying calls, in exceptional circumstances
-  */
- int nflog_set_flags(struct nflog_g_handle *gh, uint16_t flags)
- {
-@@ -671,9 +707,11 @@ uint32_t nflog_get_nfmark(struct nflog_data *nfad)
-  * \param nfad Netlink packet data handle passed to callback function
-  * \param tv structure to fill with timestamp info
-  *
-- * Retrieves the received timestamp when the given logged packet.
-+ * Retrieves the received timestamp from the given logged packet.
-  *
-- * \return 0 on success, a negative value on failure.
-+ * \return 0 on success, -1 on failure with \b errno set.
-+ * \par Errors
-+ * from underlying calls, in exceptional circumstances
-  */
- int nflog_get_timestamp(struct nflog_data *nfad, struct timeval *tv)
- {
-@@ -698,8 +736,8 @@ int nflog_get_timestamp(struct nflog_data *nfad, struct timeval *tv)
-  * returned index is 0, the packet was locally generated or the input
-  * interface is not known (ie. POSTROUTING?).
-  *
-- * \warning all nflog_get_dev() functions return 0 if not set, since linux
-- * only allows ifindex >= 1, see net/core/dev.c:2600  (in 2.6.13.1)
-+ * \warning all nflog_get_dev() functions return 0 if not set, since Linux
-+ * only allows ifindex >= 1, see net/core/dev.c:9819  (in 5.14.3)
-  */
- uint32_t nflog_get_indev(struct nflog_data *nfad)
- {
-@@ -782,7 +820,7 @@ struct nfulnl_msg_packet_hw *nflog_get_packet_hw(struct nflog_data *nfad)
-  * data retrieved by this function will depend on the mode set with the
-  * nflog_set_mode() function.
-  *
-- * \return -1 on error, otherwise > 0.
-+ * \return payload length, or -1 if this is not available
-  */
- int nflog_get_payload(struct nflog_data *nfad, char **data)
- {
-@@ -798,7 +836,7 @@ int nflog_get_payload(struct nflog_data *nfad, char **data)
-  * \param nfad Netlink packet data handle passed to callback function
-  *
-  * \return the string prefix that is specified as argument to the iptables'
-- * NFLOG target.
-+ * NFLOG target or NULL if this is not available.
-  */
- char *nflog_get_prefix(struct nflog_data *nfad)
- {
-@@ -919,11 +957,13 @@ do {								\
-  *	- NFLOG_XML_TIME: include the timestamp
-  *	- NFLOG_XML_ALL: include all the logging information (all flags set)
-  *
-- * You can combine this flags with an binary OR.
-+ * You can combine these flags with a bitwise OR.
-  *
-  * \return -1 in case of failure, otherwise the length of the string that
-  * would have been printed into the buffer (in case that there is enough
-  * room in it). See snprintf() return value for more information.
-+ * \par Errors
-+ * from underlying calls, in exceptional circumstances
-  */
- int nflog_snprintf_xml(char *buf, size_t rem, struct nflog_data *tb, int flags)
- {
--- 
-2.17.5
+=20
+ 	if (!nf_ct_tuple_equal(&new_tuple, &curr_tuple)) {
+ 		struct nf_conntrack_tuple reply;
+diff --git a/net/netfilter/nf_nat_ftp.c b/net/netfilter/nf_nat_ftp.c
+index aace6768a64e..499798ade988 100644
+--- a/net/netfilter/nf_nat_ftp.c
++++ b/net/netfilter/nf_nat_ftp.c
+@@ -72,8 +72,14 @@ static unsigned int nf_nat_ftp(struct sk_buff *skb,
+ 	u_int16_t port;
+ 	int dir =3D CTINFO2DIR(ctinfo);
+ 	struct nf_conn *ct =3D exp->master;
++	struct nf_conn_nat *nat =3D nfct_nat(ct);
++	unsigned int i, first_port, min, range_size;
+ 	char buffer[sizeof("|1||65535|") + INET6_ADDRSTRLEN];
+ 	unsigned int buflen;
++	int ret;
++
++	if (WARN_ON_ONCE(!nat))
++		return NF_DROP;
+=20
+ 	pr_debug("type %i, off %u len %u\n", type, matchoff, matchlen);
+=20
+@@ -86,21 +92,28 @@ static unsigned int nf_nat_ftp(struct sk_buff *skb,
+ 	 * this one. */
+ 	exp->expectfn =3D nf_nat_follow_master;
+=20
++	/* Avoid applying nat->range to the reply direction */
++	if (!exp->dir || !nat->range_info.min_proto.all || !nat->range_info.max=
+_proto.all) {
++		min =3D ntohs(exp->saved_proto.tcp.port);
++		range_size =3D 65535 - min + 1;
++	} else {
++		min =3D ntohs(nat->range_info.min_proto.all);
++		range_size =3D ntohs(nat->range_info.max_proto.all) - min + 1;
++	}
++
+ 	/* Try to get same port: if not, try to change it. */
+-	for (port =3D ntohs(exp->saved_proto.tcp.port); port !=3D 0; port++) {
+-		int ret;
++	first_port =3D ntohs(exp->saved_proto.tcp.port);
++	if (min > first_port || first_port > (min + range_size - 1))
++		first_port =3D min;
+=20
++	for (i =3D 0, port =3D first_port; i < range_size; i++, port =3D (port =
+- first_port + i) % range_size) {
+ 		exp->tuple.dst.u.tcp.port =3D htons(port);
+ 		ret =3D nf_ct_expect_related(exp, 0);
+-		if (ret =3D=3D 0)
+-			break;
+-		else if (ret !=3D -EBUSY) {
+-			port =3D 0;
++		if (ret !=3D -EBUSY)
+ 			break;
+-		}
+ 	}
+=20
+-	if (port =3D=3D 0) {
++	if (ret !=3D 0) {
+ 		nf_ct_helper_log(skb, ct, "all ports in use");
+ 		return NF_DROP;
+ 	}
+diff --git a/net/netfilter/nf_nat_helper.c b/net/netfilter/nf_nat_helper.=
+c
+index a263505455fc..718fc423bc44 100644
+--- a/net/netfilter/nf_nat_helper.c
++++ b/net/netfilter/nf_nat_helper.c
+@@ -188,6 +188,16 @@ void nf_nat_follow_master(struct nf_conn *ct,
+ 	range.flags =3D NF_NAT_RANGE_MAP_IPS;
+ 	range.min_addr =3D range.max_addr
+ 		=3D ct->master->tuplehash[!exp->dir].tuple.dst.u3;
++	if (!exp->dir) {
++		struct nf_conn_nat *nat =3D nfct_nat(exp->master);
++
++		if (nat && nat->range_info.min_proto.all &&
++		    nat->range_info.max_proto.all) {
++			range.min_proto =3D nat->range_info.min_proto;
++			range.max_proto =3D nat->range_info.max_proto;
++			range.flags |=3D NF_NAT_RANGE_PROTO_SPECIFIED;
++		}
++	}
+ 	nf_nat_setup_info(ct, &range, NF_NAT_MANIP_SRC);
+=20
+ 	/* For DST manip, map port here to where it's expected. */
+--=20
+2.33.0
 
