@@ -7,63 +7,63 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D94CC433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Sep 2021 02:58:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83A61C433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Sep 2021 03:52:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6919261186
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Sep 2021 02:58:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6562C61165
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Sep 2021 03:52:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233856AbhIPC7s (ORCPT
+        id S234179AbhIPDyC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 15 Sep 2021 22:59:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60498 "EHLO
+        Wed, 15 Sep 2021 23:54:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44114 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233847AbhIPC7s (ORCPT
+        with ESMTP id S232217AbhIPDyB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Sep 2021 22:59:48 -0400
-Received: from mail-pg1-x536.google.com (mail-pg1-x536.google.com [IPv6:2607:f8b0:4864:20::536])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9AED0C061574
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 Sep 2021 19:58:28 -0700 (PDT)
-Received: by mail-pg1-x536.google.com with SMTP id w8so4783092pgf.5
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 Sep 2021 19:58:28 -0700 (PDT)
+        Wed, 15 Sep 2021 23:54:01 -0400
+Received: from mail-pf1-x42f.google.com (mail-pf1-x42f.google.com [IPv6:2607:f8b0:4864:20::42f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B298C061574
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Sep 2021 20:52:42 -0700 (PDT)
+Received: by mail-pf1-x42f.google.com with SMTP id c1so1737338pfp.10
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Sep 2021 20:52:42 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=sender:from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
-        bh=y91MJPpfiRKrvQP3NxSWVvBnhIcPzWL+3g5Z1UUrQns=;
-        b=T8od49URKhyxHAxSUeDbQ2fZ6i/jtNTJ53UW2Aq/XUVLrcpDXPDL7LkhS29ooDDqBO
-         3X48np58ptFRpWpXxzRwN1yZ7r/hvUm1y6UPEucDQNXTARf0wrRJQWaPKsAEiP0aHBf2
-         MLHFlrSgVRyG7G34kEjXV4p+kJkpyMSYwwi7GVggXVTxmgMDy3J88gQLymgQGC5BhsK4
-         2fBFALj6ro3W4qYaH+OvZEY9Cbgs8gBu85gBBNvGrwH2O4klKmM7wRJyOk4bPxm4E3c9
-         fNooMOyMmbYZ89qKwRW5fXXb13JRRGDKJQVVWROw14oR162ldp05TQoaKTeUvLpR1hSR
-         YlEw==
+        bh=Q70lojcpAK1sigofqZxkl8PBHhdksG9Uq7e8nbjXpaA=;
+        b=aCJUS8gWNho7ys1BsBmthOIGW4FFMZEjX0DKgy2Bl0+HLT2NIOAH7Ls5PpIfApaBwM
+         bBqQ1vDtZqzGfmOXyDjDlnbyqZQy6TYUTSVwnKqn88R2jh7jK7wBPZQI3cq7Y4GuELZY
+         9kRPOTWDUzKaibl5QRjgGbSLdd09VYlWxmAQmS5PxDOZnB3SIEdCOI+b/+lvKSwj+jAy
+         qMUMrFzhZpruQcE8YL0YRVFkyL55OMyNoE4+A+BJ8tswwNjkzyDp2+Ty7I7qC13Ruk7r
+         Zs8QWdXWfH7RmhL1NhaqEW5NZgIt5zMYsncsMJXVUIfGV8J1V9TQVsG2KqYp5q7OqHTH
+         lRrw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
          :mime-version:content-transfer-encoding;
-        bh=y91MJPpfiRKrvQP3NxSWVvBnhIcPzWL+3g5Z1UUrQns=;
-        b=Yj+UIlR0LyNHIYzzu9JiWBHJJFEG/sKJX1GaR9Dk2wVH3/n2QE3cBe+c9/G1BYAa3q
-         sdq1wtKOzmGbRDU0RLogMIf0kq/J0K/spxDwuDs4RRpZA8iHfaJFyRiInRtnikyythRj
-         ttGpTQc/0cgF1S/kFmPP8lyyf1pF5+ips+0/pDa6DxjTM4+MsRYs8n5fHGM1UnVyEj0I
-         FN2M/dxoW398BmXWpG/HxdbXIKV+WIi3QIqHn2o363QvEmne5q8bx5ZWfTFzQ9t8vTTK
-         Wpu9LJVmSMT8o+GBpuKPdW2spOO6odS5hdKyF9ciMZ5doo6qMa2J8s0szFZFtytaipeh
-         Gnow==
-X-Gm-Message-State: AOAM533c6xOR1lQ/UIrMinqw3V7gR/veu8n8rfELRE4809SD/aHN4J11
-        ddwZO5BNb73Yw3fzA/miDCM6u6wrQRU=
-X-Google-Smtp-Source: ABdhPJyrZwNLL+EKQOc1aBi191YXCRYQGz7uHuVdCv4J3SJIrFMVXfUADZTuBtUSxddpIlPoLs+nxA==
-X-Received: by 2002:a63:5c2:: with SMTP id 185mr2831610pgf.220.1631761108103;
-        Wed, 15 Sep 2021 19:58:28 -0700 (PDT)
+        bh=Q70lojcpAK1sigofqZxkl8PBHhdksG9Uq7e8nbjXpaA=;
+        b=dt9YxUC+60LjqsB2LKEm9On5oFqJj89k9a+6zBsWKJqfc8E08hffu61bJKYKhx2g04
+         epI1ftrZC504YNoRgKi6kQ6C0RPe0aMYXT7E3U5nz+jH4mAqst7MjYM7z3odS9YM2wfg
+         DhXp7sbAiIvDdXpvJzpk6tGVHeQf6wFF1IHjO+SE4bn0t6VA+XFg6U0p4/w4kbM0v6dK
+         maZTeMBfX11Nu/2l3wFBX4HLp6Vd35Pwt2KwEy+lUrag6AzH/5sT6pyqdMYPFHFbbRaR
+         15RJ5TjuseMqeRsp24rk7Iao+wUJ6CzgwFW7z+RmBO48F3N7wLdYquaV+/4CdTBfgSel
+         fIxg==
+X-Gm-Message-State: AOAM533dVVtEJJnw9wfl//rXhTwXzRYnc7uSo0tn0Rc+i+gLsBfxG4nG
+        zjMWvVye32voqgjR6n3gXg778+KclD0=
+X-Google-Smtp-Source: ABdhPJwCut0HJasop7Y/tCpwl/be+l2FQOXPO09IocB0H0qeMPsOVPnfD4RPuDb4fWl7p77dhtfgxQ==
+X-Received: by 2002:a05:6a00:1694:b0:440:3c9a:ea68 with SMTP id k20-20020a056a00169400b004403c9aea68mr3374860pfc.84.1631764361461;
+        Wed, 15 Sep 2021 20:52:41 -0700 (PDT)
 Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
-        by smtp.gmail.com with ESMTPSA id g19sm5598998pjl.25.2021.09.15.19.58.25
+        by smtp.gmail.com with ESMTPSA id h127sm1146918pfe.191.2021.09.15.20.52.39
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 15 Sep 2021 19:58:27 -0700 (PDT)
+        Wed, 15 Sep 2021 20:52:40 -0700 (PDT)
 Sender: Duncan Roe <duncan.roe2@gmail.com>
 From:   Duncan Roe <duncan_roe@optusnet.com.au>
 To:     pablo@netfilter.org
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_log v3] src: doc: revise doxygen for module "Netlink message helper functions"
-Date:   Thu, 16 Sep 2021 12:58:22 +1000
-Message-Id: <20210916025822.14231-1-duncan_roe@optusnet.com.au>
+Subject: [PATCH libnetfilter_log] src: doc: revise doxygen for all other modules
+Date:   Thu, 16 Sep 2021 13:52:36 +1000
+Message-Id: <20210916035236.14327-1-duncan_roe@optusnet.com.au>
 X-Mailer: git-send-email 2.32.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -71,195 +71,294 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Adjust style to work better in a man page.
-Document actual return values.
-Replace qnum with gnum (and in .h and utils/).
-Show possible copy modes (rather than refer users to header file)
+I.e. all modules except "Netlink message helper functions"
+- different cross-reference for man page and html
+- remove duplicate description for nflog_fd
+- try to differentiate between "rare" and "common" errors
+- gh is a Netfilter log *group* handle (cf h)
+- minor native English corrections
+- update Linux source reference
+- document actual return values
 
 Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
 ---
-v2: Implement Pablo's suggestions
-v3: Show possible modes for nflog_attr_put_cfg_mode
- include/libnetfilter_log/libnetfilter_log.h |  2 +-
- src/nlmsg.c                                 | 61 ++++++++++-----------
- utils/nf-log.c                              |  8 +--
- 3 files changed, 35 insertions(+), 36 deletions(-)
+ src/libnetfilter_log.c | 98 +++++++++++++++++++++++++++++-------------
+ 1 file changed, 69 insertions(+), 29 deletions(-)
 
-diff --git a/include/libnetfilter_log/libnetfilter_log.h b/include/libnetfilter_log/libnetfilter_log.h
-index c27149f..16c4748 100644
---- a/include/libnetfilter_log/libnetfilter_log.h
-+++ b/include/libnetfilter_log/libnetfilter_log.h
-@@ -88,7 +88,7 @@ enum {
- extern int nflog_snprintf_xml(char *buf, size_t len, struct nflog_data *tb, int flags);
- 
- extern struct nlmsghdr *
--nflog_nlmsg_put_header(char *buf, uint8_t type, uint8_t family, uint16_t qnum);
-+nflog_nlmsg_put_header(char *buf, uint8_t type, uint8_t family, uint16_t gnum);
- extern int nflog_attr_put_cfg_mode(struct nlmsghdr *nlh, uint8_t mode, uint32_t range);
- extern int nflog_attr_put_cfg_cmd(struct nlmsghdr *nlh, uint8_t cmd);
- extern int nflog_nlmsg_parse(const struct nlmsghdr *nlh, struct nlattr **attr);
-diff --git a/src/nlmsg.c b/src/nlmsg.c
-index 3ebb364..e4973a6 100644
---- a/src/nlmsg.c
-+++ b/src/nlmsg.c
-@@ -18,18 +18,19 @@
+diff --git a/src/libnetfilter_log.c b/src/libnetfilter_log.c
+index 546d667..cd37879 100644
+--- a/src/libnetfilter_log.c
++++ b/src/libnetfilter_log.c
+@@ -207,8 +207,19 @@ struct nfnl_handle *nflog_nfnlh(struct nflog_handle *h)
+ 	}
+ \endverbatim
+  *
+- * Data and information about the packet can be fetch by using message parsing
+- * functions (See \link Parsing \endlink).
++ * Data and information about the packet can be fetched by using message parsing
++ * \htmlonly
++ functions (See <a class="el" href="group__Parsing.html">Parsing</a>).
++\endhtmlonly
++ * \manonly
++functions.
++.PP
++\fBSee also:\fP
++.RS 4
++\fBParsing\fP man page (\fBman nflog_get_gid\fP)
++.RE
++.PP
++\endmanonly
+  * @{
   */
+ 
+@@ -220,9 +231,6 @@ struct nfnl_handle *nflog_nfnlh(struct nflog_handle *h)
+  * given log connection handle. The file descriptor can then be used for
+  * receiving the logged packets for processing.
+  *
+- * This function returns a file descriptor that can be used for communication
+- * over the netlink connection associated with the given log connection
+- * handle.
+  */
+ int nflog_fd(struct nflog_handle *h)
+ {
+@@ -279,7 +287,9 @@ out_free:
+  * it by calling nflog_close(). A new netlink connection is obtained internally
+  * and associated with the log connection handle returned.
+  *
+- * \return a pointer to a new log handle or NULL on failure.
++ * \return a pointer to a new log handle or NULL on failure with \b errno set.
++ * \par Errors
++ * from underlying calls, in exceptional circumstances
+  */
+ struct nflog_handle *nflog_open(void)
+ {
+@@ -335,7 +345,9 @@ int nflog_handle_packet(struct nflog_handle *h, char *buf, int len)
+  *
+  * This function closes the nflog handler and free associated resources.
+  *
+- * \return 0 on success, non-zero on failure.
++ * \return 0 on success, -1 on failure with \b errno set.
++ * \par Errors
++ * as for __close__(2)
+  */
+ int nflog_close(struct nflog_handle *h)
+ {
+@@ -352,7 +364,9 @@ int nflog_close(struct nflog_handle *h)
+  * Binds the given log connection handle to process packets belonging to
+  * the given protocol family (ie. PF_INET, PF_INET6, etc).
+  *
+- * \return integer inferior to 0 in case of failure
++ * \return 0 on success, -1 on failure with \b errno set.
++ * \par Errors
++ * \b EOPNOTSUPP Not running as root
+  */
+ int nflog_bind_pf(struct nflog_handle *h, uint16_t pf)
+ {
+@@ -367,6 +381,9 @@ int nflog_bind_pf(struct nflog_handle *h, uint16_t pf)
+  *
+  * Unbinds the given nflog handle from processing packets belonging
+  * to the given protocol family.
++ * \return 0 on success, -1 on failure with \b errno set.
++ * \par Errors
++ * \b EOPNOTSUPP Not running as root
+  */
+ int nflog_unbind_pf(struct nflog_handle *h, uint16_t pf)
+ {
+@@ -387,15 +404,22 @@ int nflog_unbind_pf(struct nflog_handle *h, uint16_t pf)
+  * \param h Netfilter log handle obtained via call to nflog_open()
+  * \param num the number of the group to bind to
+  *
+- * \return a nflog_g_handle pointing to the newly created group
++ * \return an nflog_g_handle for the newly created group or NULL on failure.
++ * \par Errors
++ * \b EBUSY This process has already binded to the group
++ * \n
++ * \b EOPNOTSUPP Request rejected by kernel. Another process has already
++ * binded to the group, or this process is not running as root
+  */
+ struct nflog_g_handle *
+ nflog_bind_group(struct nflog_handle *h, uint16_t num)
+ {
+ 	struct nflog_g_handle *gh;
+ 
+-	if (find_gh(h, num))
++	if (find_gh(h, num)) {
++		errno = EBUSY;
+ 		return NULL;
++	}
+ 
+ 	gh = calloc(1, sizeof(*gh));
+ 	if (!gh)
+@@ -426,7 +450,9 @@ nflog_bind_group(struct nflog_handle *h, uint16_t num)
+  * nflog_unbind_group - unbind a group handle.
+  * \param gh Netfilter log group handle obtained via nflog_bind_group()
+  *
+- * \return -1 in case of error and errno is explicity in case of error.
++ * \return 0 on success, -1 on failure with \b errno set.
++ * \par Errors
++ * from underlying calls, in exceptional circumstances
+  */
+ int nflog_unbind_group(struct nflog_g_handle *gh)
+ {
+@@ -441,7 +467,7 @@ int nflog_unbind_group(struct nflog_g_handle *gh)
  
  /**
-- * nflog_nlmsg_put_header - reserve and prepare room for nflog Netlink header
-- * \param buf memory already allocated to store the Netlink header
-- * \param type message type one of the enum nfulnl_msg_types
-- * \param family protocol family to be an object of
-- * \param qnum queue number to be an object of
-+ * nflog_nlmsg_put_header - populate memory buffer with nflog Netlink headers
-+ * \param buf pointer to memory buffer
-+ * \param type either NFULNL_MSG_PACKET or NFULNL_MSG_CONFIG
-+ * (enum nfulnl_msg_types)
-+ * \param family protocol family
-+ * \param gnum group number
+  * nflog_set_mode - set the amount of packet data that nflog copies to userspace
+- * \param gh Netfilter log handle obtained by call to nflog_bind_group().
++ * \param gh Netfilter log group handle obtained by call to nflog_bind_group().
+  * \param mode the part of the packet that we are interested in
+  * \param range size of the packet that we want to get
   *
-- * This function creates Netlink header in the memory buffer passed
-- * as parameter that will send to nfnetlink log. This function
-- * returns a pointer to the Netlink header structure.
-+ * Initialises _buf_ to start with a netlink header for the log subsystem
-+ * followed by an nfnetlink header with the log group
-+ * \return pointer to created Netlink header structure
+@@ -452,7 +478,9 @@ int nflog_unbind_group(struct nflog_g_handle *gh)
+  * - NFULNL_COPY_META - copy only packet metadata
+  * - NFULNL_COPY_PACKET - copy entire packet
+  *
+- * \return -1 on error; >= otherwise.
++ * \return 0 on success, -1 on failure with \b errno set.
++ * \par Errors
++ * from underlying calls, in exceptional circumstances
   */
- struct nlmsghdr *
--nflog_nlmsg_put_header(char *buf, uint8_t type, uint8_t family, uint16_t qnum)
-+nflog_nlmsg_put_header(char *buf, uint8_t type, uint8_t family, uint16_t gnum)
- {
- 	struct nlmsghdr *nlh = mnl_nlmsg_put_header(buf);
- 	struct nfgenmsg *nfg;
-@@ -40,19 +41,19 @@ nflog_nlmsg_put_header(char *buf, uint8_t type, uint8_t family, uint16_t qnum)
- 	nfg = mnl_nlmsg_put_extra_header(nlh, sizeof(*nfg));
- 	nfg->nfgen_family = family;
- 	nfg->version = NFNETLINK_V0;
--	nfg->res_id = htons(qnum);
-+	nfg->res_id = htons(gnum);
- 
- 	return nlh;
- }
+ int nflog_set_mode(struct nflog_g_handle *gh,
+ 		   uint8_t mode, uint32_t range)
+@@ -477,7 +505,7 @@ int nflog_set_mode(struct nflog_g_handle *gh,
  
  /**
-  * nflog_attr_put_cfg_mode - add a mode attribute to nflog netlink message
-- * \param nlh pointer to the netlink message
-- * \param mode copy mode defined in linux/netfilter/nfnetlink_log.h
-+ * \param nlh pointer to netlink message
-+ * \param mode copy mode: NFULNL_COPY_NONE, NFULNL_COPY_META or
-+ * NFULNL_COPY_PACKET
-  * \param range copy range
+  * nflog_set_timeout - set the maximum time to push log buffer for this group
+- * \param gh Netfilter log handle obtained by call to nflog_bind_group().
++ * \param gh Netfilter log group handle obtained by call to nflog_bind_group().
+  * \param timeout Time to wait until the log buffer is pushed to userspace
   *
-- * this function returns -1 and errno is explicitly set on error.
-- * On success, this function returns 1.
-+ * \return 0
+  * This function allows to set the maximum time that nflog waits until it
+@@ -485,7 +513,9 @@ int nflog_set_mode(struct nflog_g_handle *gh,
+  * Basically, nflog implements a buffer to reduce the computational cost
+  * of delivering the log message to userspace.
+  *
+- * \return -1 in case of error and errno is explicity set.
++ * \return 0 on success, -1 on failure with \b errno set.
++ * \par Errors
++ * from underlying calls, in exceptional circumstances
   */
- int nflog_attr_put_cfg_mode(struct nlmsghdr *nlh, uint8_t mode, uint32_t range)
+ int nflog_set_timeout(struct nflog_g_handle *gh, uint32_t timeout)
  {
-@@ -68,12 +69,11 @@ int nflog_attr_put_cfg_mode(struct nlmsghdr *nlh, uint8_t mode, uint32_t range)
- }
+@@ -504,13 +534,15 @@ int nflog_set_timeout(struct nflog_g_handle *gh, uint32_t timeout)
  
  /**
-- * nflog_attr_put_cfg_cmd - add a cmd attribute to nflog netlink message
-- * \param nlh pointer to the netlink message
-- * \param cmd command one of the enum nfulnl_msg_config_cmds
-+ * nflog_attr_put_cfg_cmd - add a command attribute to nflog netlink message
-+ * \param nlh pointer to netlink message
-+ * \param cmd one of the enum nfulnl_msg_config_cmds
+  * nflog_set_qthresh - set the maximum amount of logs in buffer for this group
+- * \param gh Netfilter log handle obtained by call to nflog_bind_group().
++ * \param gh Netfilter log group handle obtained by call to nflog_bind_group().
+  * \param qthresh Maximum number of log entries
   *
-- * this function returns -1 and errno is explicitly set on error.
-- *  On success, this function returns 1.
-+ * \return 0
+  * This function determines the maximum number of log entries in the buffer
+  * until it is pushed to userspace.
+  *
+- * \return -1 in case of error and errno is explicity set.
++ * \return 0 on success, -1 on failure with \b errno set.
++ * \par Errors
++ * from underlying calls, in exceptional circumstances
   */
- int nflog_attr_put_cfg_cmd(struct nlmsghdr *nlh, uint8_t cmd)
+ int nflog_set_qthresh(struct nflog_g_handle *gh, uint32_t qthresh)
  {
-@@ -148,11 +148,10 @@ static int nflog_parse_attr_cb(const struct nlattr *attr, void *data)
+@@ -529,17 +561,19 @@ int nflog_set_qthresh(struct nflog_g_handle *gh, uint32_t qthresh)
  
  /**
-  * nflog_nlmsg_parse - set nlattrs from netlink message
-- * \param nlh netlink message that you want to read.
-- * \param attr pointer to the array of nlattr which size is NFULA_MAX + 1
-+ * \param nlh pointer to netlink message
-+ * \param attr pointer to an array of nlattr of size NFULA_MAX + 1
+  * nflog_set_nlbufsiz - set the size of the nflog buffer for this group
+- * \param gh Netfilter log handle obtained by call to nflog_bind_group().
++ * \param gh Netfilter log group handle obtained by call to nflog_bind_group().
+  * \param nlbufsiz Size of the nflog buffer
   *
-- * This function returns MNL_CB_ERROR if any error occurs, or MNL_CB_OK on
-- * success.
-+ * \return 0
+  * This function sets the size (in bytes) of the buffer that is used to
+  * stack log messages in nflog.
+  *
+- * NOTE: The use of this function is strongly discouraged. The default
++ * \warning The use of this function is strongly discouraged. The default
+  * buffer size (which is one memory page) provides the optimum results
+  * in terms of performance. Do not use this function in your applications.
+  *
+- * \return -1 in case of error and errno is explicity set.
++ * \return 0 on success, -1 on failure with \b errno set.
++ * \par Errors
++ * from underlying calls, in exceptional circumstances
   */
- int nflog_nlmsg_parse(const struct nlmsghdr *nlh, struct nlattr **attr)
+ int nflog_set_nlbufsiz(struct nflog_g_handle *gh, uint32_t nlbufsiz)
  {
-@@ -164,12 +163,12 @@ int nflog_nlmsg_parse(const struct nlmsghdr *nlh, struct nlattr **attr)
-  * nflog_nlmsg_snprintf - print a nflog nlattrs to a buffer
-  * \param buf buffer used to build the printable nflog
-  * \param bufsiz size of the buffer
-- * \param nlh netlink message (to get queue num in the futuer)
-- * \param attr pointer to a nflog attrs
-+ * \param nlh pointer to netlink message (to get queue num in the future)
-+ * \param attr pointer to an array of nlattr of size NFULA_MAX + 1
-  * \param type print message type in enum nflog_output_type
-  * \param flags The flag that tell what to print into the buffer
+@@ -565,7 +599,7 @@ int nflog_set_nlbufsiz(struct nflog_g_handle *gh, uint32_t nlbufsiz)
+ 
+ /**
+  * nflog_set_flags - set the nflog flags for this group
+- * \param gh Netfilter log handle obtained by call to nflog_bind_group().
++ * \param gh Netfilter log group handle obtained by call to nflog_bind_group().
+  * \param flags Flags that you want to set
   *
-- * This function supports the following type - flags:
-+ * This function supports the following types / flags:
+  * There are two existing flags:
+@@ -573,7 +607,9 @@ int nflog_set_nlbufsiz(struct nflog_g_handle *gh, uint32_t nlbufsiz)
+  *	- NFULNL_CFG_F_SEQ: This enables local nflog sequence numbering.
+  *	- NFULNL_CFG_F_SEQ_GLOBAL: This enables global nflog sequence numbering.
   *
-  *   type: NFLOG_OUTPUT_XML
-  *	- NFLOG_XML_PREFIX: include the string prefix
-@@ -181,12 +180,12 @@ int nflog_nlmsg_parse(const struct nlmsghdr *nlh, struct nlattr **attr)
+- * \return -1 in case of error and errno is explicity set.
++ * \return 0 on success, -1 on failure with \b errno set.
++ * \par Errors
++ * from underlying calls, in exceptional circumstances
+  */
+ int nflog_set_flags(struct nflog_g_handle *gh, uint16_t flags)
+ {
+@@ -671,9 +707,11 @@ uint32_t nflog_get_nfmark(struct nflog_data *nfad)
+  * \param nfad Netlink packet data handle passed to callback function
+  * \param tv structure to fill with timestamp info
+  *
+- * Retrieves the received timestamp when the given logged packet.
++ * Retrieves the received timestamp from the given logged packet.
+  *
+- * \return 0 on success, a negative value on failure.
++ * \return 0 on success, -1 on failure with \b errno set.
++ * \par Errors
++ * from underlying calls, in exceptional circumstances
+  */
+ int nflog_get_timestamp(struct nflog_data *nfad, struct timeval *tv)
+ {
+@@ -698,8 +736,8 @@ int nflog_get_timestamp(struct nflog_data *nfad, struct timeval *tv)
+  * returned index is 0, the packet was locally generated or the input
+  * interface is not known (ie. POSTROUTING?).
+  *
+- * \warning all nflog_get_dev() functions return 0 if not set, since linux
+- * only allows ifindex >= 1, see net/core/dev.c:2600  (in 2.6.13.1)
++ * \warning all nflog_get_dev() functions return 0 if not set, since Linux
++ * only allows ifindex >= 1, see net/core/dev.c:9819  (in 5.14.3)
+  */
+ uint32_t nflog_get_indev(struct nflog_data *nfad)
+ {
+@@ -782,7 +820,7 @@ struct nfulnl_msg_packet_hw *nflog_get_packet_hw(struct nflog_data *nfad)
+  * data retrieved by this function will depend on the mode set with the
+  * nflog_set_mode() function.
+  *
+- * \return -1 on error, otherwise > 0.
++ * \return payload length, or -1 if this is not available
+  */
+ int nflog_get_payload(struct nflog_data *nfad, char **data)
+ {
+@@ -798,7 +836,7 @@ int nflog_get_payload(struct nflog_data *nfad, char **data)
+  * \param nfad Netlink packet data handle passed to callback function
+  *
+  * \return the string prefix that is specified as argument to the iptables'
+- * NFLOG target.
++ * NFLOG target or NULL if this is not available.
+  */
+ char *nflog_get_prefix(struct nflog_data *nfad)
+ {
+@@ -919,11 +957,13 @@ do {								\
   *	- NFLOG_XML_TIME: include the timestamp
   *	- NFLOG_XML_ALL: include all the logging information (all flags set)
   *
 - * You can combine this flags with an binary OR.
 + * You can combine these flags with a bitwise OR.
   *
-- * this function returns -1 and errno is explicitly set in case of
-- * failure, otherwise the length of the string that would have been
-- * printed into the buffer (in case that there is enough room in
-- * it). See snprintf() return value for more information.
-+ * \return -1 on failure else same as snprintf
+  * \return -1 in case of failure, otherwise the length of the string that
+  * would have been printed into the buffer (in case that there is enough
+  * room in it). See snprintf() return value for more information.
 + * \par Errors
-+ * __EOPNOTSUPP__ _type_ is unsupported (i.e. not __NFLOG_OUTPUT_XML__)
-+ * \sa __snprintf__(3)
++ * from underlying calls, in exceptional circumstances
   */
- int nflog_nlmsg_snprintf(char *buf, size_t bufsiz, const struct nlmsghdr *nlh,
- 			 struct nlattr **attr, enum nflog_output_type type,
-diff --git a/utils/nf-log.c b/utils/nf-log.c
-index ad8369c..e6832b0 100644
---- a/utils/nf-log.c
-+++ b/utils/nf-log.c
-@@ -144,13 +144,13 @@ int main(int argc, char *argv[])
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
- 	struct nlmsghdr *nlh;
- 	int ret;
--	unsigned int portid, qnum;
-+	unsigned int portid, gnum;
- 
- 	if (argc != 2) {
- 		printf("Usage: %s [queue_num]\n", argv[0]);
- 		exit(EXIT_FAILURE);
- 	}
--	qnum = atoi(argv[1]);
-+	gnum = atoi(argv[1]);
- 
- 	nl = mnl_socket_open(NETLINK_NETFILTER);
- 	if (nl == NULL) {
-@@ -188,7 +188,7 @@ int main(int argc, char *argv[])
- 		exit(EXIT_FAILURE);
- 	}
- 
--	nlh = nflog_nlmsg_put_header(buf, NFULNL_MSG_CONFIG, AF_INET, qnum);
-+	nlh = nflog_nlmsg_put_header(buf, NFULNL_MSG_CONFIG, AF_INET, gnum);
- 	if (nflog_attr_put_cfg_cmd(nlh, NFULNL_CFG_CMD_BIND) < 0) {
- 		perror("nflog_attr_put_cfg_cmd");
- 		exit(EXIT_FAILURE);
-@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
- 		exit(EXIT_FAILURE);
- 	}
- 
--	nlh = nflog_nlmsg_put_header(buf, NFULNL_MSG_CONFIG, AF_UNSPEC, qnum);
-+	nlh = nflog_nlmsg_put_header(buf, NFULNL_MSG_CONFIG, AF_UNSPEC, gnum);
- 	if (nflog_attr_put_cfg_mode(nlh, NFULNL_COPY_PACKET, 0xffff) < 0) {
- 		perror("nflog_attr_put_cfg_mode");
- 		exit(EXIT_FAILURE);
+ int nflog_snprintf_xml(char *buf, size_t rem, struct nflog_data *tb, int flags)
+ {
 -- 
 2.17.5
 
