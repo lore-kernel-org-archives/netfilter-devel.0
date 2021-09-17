@@ -7,63 +7,63 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 089E8C433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Sep 2021 22:09:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53C6CC433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Sep 2021 22:10:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DCDE2600AA
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Sep 2021 22:09:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 35AED600AA
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Sep 2021 22:10:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240902AbhIQWKd (ORCPT
+        id S240936AbhIQWLl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 Sep 2021 18:10:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56428 "EHLO
+        Fri, 17 Sep 2021 18:11:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56706 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239448AbhIQWK3 (ORCPT
+        with ESMTP id S1344034AbhIQWLh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Sep 2021 18:10:29 -0400
-Received: from mail-pl1-x62f.google.com (mail-pl1-x62f.google.com [IPv6:2607:f8b0:4864:20::62f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 593A7C061574
-        for <netfilter-devel@vger.kernel.org>; Fri, 17 Sep 2021 15:09:07 -0700 (PDT)
-Received: by mail-pl1-x62f.google.com with SMTP id f21so7093248plb.4
-        for <netfilter-devel@vger.kernel.org>; Fri, 17 Sep 2021 15:09:07 -0700 (PDT)
+        Fri, 17 Sep 2021 18:11:37 -0400
+Received: from mail-pj1-x1035.google.com (mail-pj1-x1035.google.com [IPv6:2607:f8b0:4864:20::1035])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A685C061757
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Sep 2021 15:10:15 -0700 (PDT)
+Received: by mail-pj1-x1035.google.com with SMTP id v19so7871626pjh.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Sep 2021 15:10:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=sender:from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
-        bh=YDlxVUw0c9apc185NpwxUKCe02MNVAMpS+lvk+MoqSw=;
-        b=ZD95DmEIEi6lyLOyx42Pmynp7tl27ifT2QAdYAi7TOi1FCpNA7ZFv5uT8O25trcMtr
-         Xrmw8Ot4rhn3IZ01N7zIGPCby6NqzxtRiIotA9T5CHgYZZDRrpKqIQHjiBngfft3fSs+
-         C0/nyjV3kdmTUGd/Z/7xfuD7o+Q4gmVkwwZwn3oa05CBWBdAFhezyCGk7EeZ7DNhgR98
-         eefjUgDqIfE8uHArqYBI9o9hMEYHYN/ICPgVWIsg7fph4ERCoQcpXIfJCWDm6EgreZtj
-         nRxFio/gosHviHiQnJ7Ko3Kn8u9eXi4da8XuqyDlNp0fdd+1n0+7/rlLt/e6tIDgxqqg
-         9nxw==
+        bh=tlpOR2Q6qKqqH14Veg4f6UN1Pw9wWw5MCHzJToFK/78=;
+        b=UQyg8tGxvAiLTPOIwcV+K8OYoDHA89d2Ma3TuxXpjhF0RZcc1tKTOQANKdJEwPCYpD
+         VPY8zoBLuZkRjfan7n7u7Ac7k6ggN4KMUOcJ3DXvarFZHz3L7V2/381Am0Y4HLZ3wKYk
+         XAge2yNjOhCcChdPgJOap3cpxVxnNF/vWu8p1+dr86X3lUJS2DTlV7fLcpBaKkjnkjHS
+         WnBMA2O8o9b4qcCQJo74Ma1uUw6OXElTTdcFKPFgIe58/XBZZiOq0m1Zn582es2n11t2
+         RaOA/0NPA6LScW8eF39ZYq+hVfe5YEj6QVk0P2RHpI5f2Aaf/w9kcw0ecNNycUeOPYxO
+         nEjA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
          :mime-version:content-transfer-encoding;
-        bh=YDlxVUw0c9apc185NpwxUKCe02MNVAMpS+lvk+MoqSw=;
-        b=tKULDWYQI5EwQzu75KD4My7TVG+d8/nkAlVAJL+or6gu8tRIEmfXQIuftH+az+2GW/
-         zznMUOd9TjJTA6qgWKR/FMeP0x2989RTtl36lHhD/IAKGk95uC0CBgLV1jXmGmROFWMY
-         MrImfYG8YL6yDvVdQ80vntXfRYU+Sy8OQIvEgI5m0BNRNL3Ws6aHG5klodIVecpLpUog
-         FJHTr/N130iUSBEBxOha5NhcXDvVQasE8cQEM1BQmMf/HL/z28pC6eGkB160SvxbB1c1
-         927Zg2OEClUPfJQoyaJhIF2YszB+08r4t/D2gv+zqMpud+nVbyDZnXvv9SS3Z1DhygX0
-         qmNQ==
-X-Gm-Message-State: AOAM530w8nUEh2yfbZbScyrQBjp8eaC8tXI6alfu3AEO5Q2TksdCmEpt
-        fDbQu1GVzajs4shzEgjXuTCZUmEWRxY=
-X-Google-Smtp-Source: ABdhPJwr3+rvXfPwxZCwVQaL/LJEGwyD70omojpSR/iRAHyXt4yD2hubePUb39S+HVHS6hxDevlttA==
-X-Received: by 2002:a17:902:ced1:b0:13b:a0f8:63 with SMTP id d17-20020a170902ced100b0013ba0f80063mr11636101plg.37.1631916546821;
-        Fri, 17 Sep 2021 15:09:06 -0700 (PDT)
+        bh=tlpOR2Q6qKqqH14Veg4f6UN1Pw9wWw5MCHzJToFK/78=;
+        b=AqAXxtElKlh1S2l0SPdPREZ8RHOuP9N7vTMpUnnfhfz1D4OFbA7Gk8oc0dF0EkJi6o
+         9UeezTlzeHVWH6DlTRneYYT7+yp7JG++eeVuFCte+1jpZjn+gc2Q08cnUdGKRqk2Gb4L
+         J/SKDAclm6N7d3K6j9uBM9Fz1Vc+rzBe1rfcq/0AA0Nfge15p6ji/GAP+jAvcmTxpKaK
+         18zXZUZ/uLB9NjuaERvd1wVRVEbjzAWaCMw5K0LcMXwstfFx9OUifdr+1m7tGrjMZK3Y
+         RAHLXW5Fq72WJDzwX3GRqBx/qpO4gUB7f8IpBRI8oI4p5JpPkG4sBXCKieo/ZeItx4ER
+         eMLQ==
+X-Gm-Message-State: AOAM530W+qtdEp31hFC3FZQgowgbGQ6+8+lnpxz2PTfXouRnZXbXzCaq
+        BU1asel+hZgY6WLfXHRDHfHkzzcG6tQ=
+X-Google-Smtp-Source: ABdhPJzncQBFAP5inb7iCe5k8zw1vuWZfPkX8qnKrQ6waL/37mgWLZYj7gLvqp/B0v1eHfSFVvnJuw==
+X-Received: by 2002:a17:90b:17cb:: with SMTP id me11mr23690899pjb.109.1631916614709;
+        Fri, 17 Sep 2021 15:10:14 -0700 (PDT)
 Received: from faith.kottiga.ml ([240f:82:1adf:1:cee1:d5ff:fe3f:5153])
-        by smtp.gmail.com with ESMTPSA id y126sm7004406pfy.88.2021.09.17.15.09.05
+        by smtp.gmail.com with ESMTPSA id 19sm11687352pjd.42.2021.09.17.15.10.13
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 17 Sep 2021 15:09:06 -0700 (PDT)
+        Fri, 17 Sep 2021 15:10:14 -0700 (PDT)
 Sender: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
 From:   Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
 To:     netfilter-devel@vger.kernel.org
 Cc:     Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
-Subject: [PATCH ulogd] XML: support nflog pkt output
-Date:   Sat, 18 Sep 2021 07:08:23 +0900
-Message-Id: <20210917220822.37012-1-chamas@h4.dion.ne.jp>
+Subject: [PATCH ulogd] NFLOG: fix seq global flag setting
+Date:   Sat, 18 Sep 2021 07:09:29 +0900
+Message-Id: <20210917220928.37078-1-chamas@h4.dion.ne.jp>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -71,26 +71,24 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-plugin input type ULOGD_DTYPE_RAW was missing
-
 Signed-off-by: Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
 ---
- output/ulogd_output_XML.c | 2 +-
+ input/packet/ulogd_inppkt_NFLOG.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/output/ulogd_output_XML.c b/output/ulogd_output_XML.c
-index ba33739..ea7ed96 100644
---- a/output/ulogd_output_XML.c
-+++ b/output/ulogd_output_XML.c
-@@ -314,7 +314,7 @@ static struct ulogd_plugin xml_plugin = {
- 	.input = {
- 		.keys = xml_inp,
- 		.num_keys = ARRAY_SIZE(xml_inp),
--		.type = ULOGD_DTYPE_FLOW | ULOGD_DTYPE_SUM,
-+		.type = ULOGD_DTYPE_FLOW | ULOGD_DTYPE_SUM | ULOGD_DTYPE_RAW,
- 	},
- 	.output = {
- 		.type = ULOGD_DTYPE_SINK,
+diff --git a/input/packet/ulogd_inppkt_NFLOG.c b/input/packet/ulogd_inppkt_NFLOG.c
+index a367959..c314433 100644
+--- a/input/packet/ulogd_inppkt_NFLOG.c
++++ b/input/packet/ulogd_inppkt_NFLOG.c
+@@ -595,7 +595,7 @@ static int start(struct ulogd_pluginstance *upi)
+ 	flags = 0;
+ 	if (seq_ce(upi->config_kset).u.value != 0)
+ 		flags = NFULNL_CFG_F_SEQ;
+-	if (seq_ce(upi->config_kset).u.value != 0)
++	if (seq_global_ce(upi->config_kset).u.value != 0)
+ 		flags |= NFULNL_CFG_F_SEQ_GLOBAL;
+ 	if (flags) {
+ 		if (nflog_set_flags(ui->nful_gh, flags) < 0)
 -- 
 2.30.2
 
