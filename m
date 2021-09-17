@@ -2,342 +2,179 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F1A9C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Sep 2021 17:02:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14B40C433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Sep 2021 22:07:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 16BF760EC0
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Sep 2021 17:02:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E2E64610A4
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Sep 2021 22:07:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244816AbhIQRDz (ORCPT
+        id S245184AbhIQWJN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 Sep 2021 13:03:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44230 "EHLO
+        Fri, 17 Sep 2021 18:09:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56128 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233746AbhIQRDy (ORCPT
+        with ESMTP id S244695AbhIQWJH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Sep 2021 13:03:54 -0400
-Received: from mxd2.seznam.cz (mxd2.seznam.cz [IPv6:2a02:598:2::210])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C74D0C061574
-        for <netfilter-devel@vger.kernel.org>; Fri, 17 Sep 2021 10:02:31 -0700 (PDT)
-Received: from email.seznam.cz
-        by email-smtpc9b.ng.seznam.cz (email-smtpc9b.ng.seznam.cz [10.23.14.15])
-        id 4842bba2562753e648d3104d;
-        Fri, 17 Sep 2021 19:02:24 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=email.cz; s=beta;
-        t=1631898144; bh=H2yeBdYXWKgtoWSRS4cDizpCW2lMSjRxjn6PsLRzG30=;
-        h=Received:From:To:Cc:Subject:Date:Message-Id:References:
-         Mime-Version:X-Mailer:Content-Type:Content-Transfer-Encoding;
-        b=Qm86xZ4CuYFbPfu53AKG/4hlf0M4pJEYL4jbV7XeB1ysLTosUCLWbuQ8ayqwzEZfJ
-         8Y9p9xHtMy+p82FW6Mg95s+MHBefwBwUakwgTotv/7CKt9JBcsgkaHInvuLzsO5DTL
-         KDQ80bvoK2mUcTPCO8j+0nFm3EJf2oetYI65xviM=
-Received: from unknown ([::ffff:176.114.242.3])
-        by email.seznam.cz (szn-ebox-5.0.80) with HTTP;
-        Fri, 17 Sep 2021 19:02:21 +0200 (CEST)
-From:   <kaskada@email.cz>
-To:     "Jeremy Sowden" <jeremy@azazel.net>
-Cc:     "Jan Engelhardt" <jengelh@inai.de>,
-        "Netfilter Devel" <netfilter-devel@vger.kernel.org>
-Subject: Re: [xtables-addons] xt_ipp2p: add ipv6 module alias
-Date:   Fri, 17 Sep 2021 19:02:21 +0200 (CEST)
-Message-Id: <LB.aVMR.2UsKdL7t3RE.1XHCeT@seznam.cz>
-References: <FA.Zu6V.5ytypyKnDSO.1XGXsj@seznam.cz>
-        <20210914140934.190397-1-jeremy@azazel.net>
-        <33D.aVMp.3L4gqjighB0.1XGFsS@seznam.cz>
-        <YUIJW3DPDsmmjYPA@azazel.net>
-        <sqos9337-n8n6-1os2-s7qr-n4364on33nqp@vanv.qr>
-        <14d.aVM5.6eKrJXfu}0l.1XGpUS@seznam.cz>
-        <YUOWFQUquE59aamm@azazel.net>
-Mime-Version: 1.0 (szn-mime-2.1.14)
-X-Mailer: szn-ebox-5.0.80
-Content-Type: text/plain;
-        charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+        Fri, 17 Sep 2021 18:09:07 -0400
+Received: from mail-pj1-x102a.google.com (mail-pj1-x102a.google.com [IPv6:2607:f8b0:4864:20::102a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C52FC061574
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Sep 2021 15:07:45 -0700 (PDT)
+Received: by mail-pj1-x102a.google.com with SMTP id k23-20020a17090a591700b001976d2db364so8384609pji.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Sep 2021 15:07:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=sender:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=pDmjGEtZpto/d3ZFh6NOiCfQVGfCSzRkeIV3t34tFY4=;
+        b=O5IzrNlB+oA7AMnzIjzBZbwpKaqpuH31r6PSGynbXt1okbO3I9ou64KTRvBaoGhfAN
+         nHe2pYbO4oMxkeynMsK/gfzRbMD06Fl+eAX9ag8ry5cvyFEgt564XFcPnzhyKr1EFV5k
+         C3kb/G+xB64aLveCocKiYH6ggKg4YZXA5UX6voHT6sPJxz9+iLWhlxsxF9uzhfRMaFWl
+         sI6jZ2TIB+XjuQamqYF8m+HYAJHH7ZyboTS/360ZQ5etM0bV8dTRQ6vc9xf5WHpylqpm
+         KRkm43iRlW6nqGl0Ax9rBX5Y+lnKOIHrmyMUfm4an7KKzTH7C6iSxrLsJctqLdIjsC98
+         8dJA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
+         :mime-version:content-transfer-encoding;
+        bh=pDmjGEtZpto/d3ZFh6NOiCfQVGfCSzRkeIV3t34tFY4=;
+        b=ujHi4PfvWa/kjW6xWq65iwhY67K0qxWGNpRmduH9NtVpMi8QTyz46vALIVg6UHJ3OA
+         kqIn4PwatYcMw0zgWpfXpjJia1XIsF52GZ3a8ApFtUEqybJbv8V7gpoDHFBRqDXkSBZj
+         g0fKuz6JohRLvt6kQXuFAp4MWA8bphTgV213L2C8AUq62a3IPWpWJD88cnEMhojIM3Vq
+         LhtZzsu62RN/eqmo03IgL0gA6KKm5H9KZyXFiYdo4GWsU+eFt4y7PzKLwZKmzO0xCKVU
+         QiY0StDRXKg8aoDtONe4SJP6EPhh4GLzErofNfF4bUdiu9t0rvX0Q205TK5NVyyMctnf
+         0T6g==
+X-Gm-Message-State: AOAM533/hNK5+qWvx44lagcIEsg5/XZlYSs5AP6IJBDLOt8QJbD8qU5B
+        u66BD5S6B0136PvRYXYHvcbCv5qoktc=
+X-Google-Smtp-Source: ABdhPJz2ANSTLi9wvswRWLsHUsXeQ/+uWyzz5jxPvGamROcatQ5ZQQoilVlamzs5KaPN6NTw5qMK2A==
+X-Received: by 2002:a17:90a:31cf:: with SMTP id j15mr14875687pjf.86.1631916464756;
+        Fri, 17 Sep 2021 15:07:44 -0700 (PDT)
+Received: from faith.kottiga.ml ([240f:82:1adf:1:cee1:d5ff:fe3f:5153])
+        by smtp.gmail.com with ESMTPSA id 187sm6051179pfg.59.2021.09.17.15.07.43
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 17 Sep 2021 15:07:44 -0700 (PDT)
+Sender: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+From:   Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
+Subject: [RFC PATCH libnetfilter_log] src: support conntrack XML output
+Date:   Sat, 18 Sep 2021 07:02:33 +0900
+Message-Id: <20210917220232.36907-1-chamas@h4.dion.ne.jp>
+X-Mailer: git-send-email 2.30.2
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Thank you a lot for your support. Unfortunatelly I`ll be away for next 2 w=
-eeks, so I can not cooperate now. After that I`d like to continue.
-
-see you soon
-Pep.
-
-
-
----------- P=C5=AFvodn=C3=AD e-mail ----------
-
-Od: Jeremy Sowden <jeremy@azazel.net>
-
-Komu: kaskada@email.cz
-
-Datum: 16. 9. 2021 21:13:04
-
-P=C5=99edm=C4=9Bt: Re: [xtables-addons] xt_ipp2p: add ipv6 module alias
-
-On 2021-09-16, at 14:25:00 +0200, kaskada@email.cz wrote:
-
-> How can I check where iptables/ip6tables searches for plugins/modules
-
-> please?
-
->
-
-> Actually the problem is not with iptables but with ip6tables. I can
-
-> use IPP2P module on the same Debian with no problems with iptables,
-
-> but ip6tables give this error (still the same):
-
->
-
-> ip6tables -t mangle -A PREROUTING -m ipp2p --dc -j ACCEPT
-
-> ip6tables v1.8.4 (legacy): Couldn't load match `ipp2p':No such file or=
-
-
-> directory
-
->
-
-> Try `ip6tables -h' or 'ip6tables --help' for more information.
-
->
-
-> BTW I`m using legacy (not nf_tables) iptables and ip6tables (changed
-
-> with update-alternatives --config iptables, update-alternatives
-
-> --config ip6tables).
-
-
-
-xtables-addons installs the following kernel modules:
-
-
-
-  /lib/modules/4.19.0-17-amd64/extra/compat_xtables.ko
-
-  /lib/modules/4.19.0-17-amd64/extra/xt_ACCOUNT.ko
-
-  /lib/modules/4.19.0-17-amd64/extra/xt_CHAOS.ko
-
-  /lib/modules/4.19.0-17-amd64/extra/xt_condition.ko
-
-  /lib/modules/4.19.0-17-amd64/extra/xt_DELUDE.ko
-
-  /lib/modules/4.19.0-17-amd64/extra/xt_DHCPMAC.ko
-
-  /lib/modules/4.19.0-17-amd64/extra/xt_DNETMAP.ko
-
-  /lib/modules/4.19.0-17-amd64/extra/xt_ECHO.ko
-
-  /lib/modules/4.19.0-17-amd64/extra/xt_fuzzy.ko
-
-  /lib/modules/4.19.0-17-amd64/extra/xt_geoip.ko
-
-  /lib/modules/4.19.0-17-amd64/extra/xt_iface.ko
-
-  /lib/modules/4.19.0-17-amd64/extra/xt_IPMARK.ko
-
-  /lib/modules/4.19.0-17-amd64/extra/xt_ipp2p.ko
-
-  /lib/modules/4.19.0-17-amd64/extra/xt_ipv4options.ko
-
-  /lib/modules/4.19.0-17-amd64/extra/xt_length2.ko
-
-  /lib/modules/4.19.0-17-amd64/extra/xt_LOGMARK.ko
-
-  /lib/modules/4.19.0-17-amd64/extra/xt_lscan.ko
-
-  /lib/modules/4.19.0-17-amd64/extra/xt_pknock.ko
-
-  /lib/modules/4.19.0-17-amd64/extra/xt_PROTO.ko
-
-  /lib/modules/4.19.0-17-amd64/extra/xt_psd.ko
-
-  /lib/modules/4.19.0-17-amd64/extra/xt_quota2.ko
-
-  /lib/modules/4.19.0-17-amd64/extra/xt_SYSRQ.ko
-
-  /lib/modules/4.19.0-17-amd64/extra/xt_TARPIT.ko
-
-
-
-and the following user-space libraries:
-
-
-
-  /usr/lib/x86_64-linux-gnu/xtables/libxt_ACCOUNT.so
-
-  /usr/lib/x86_64-linux-gnu/xtables/libxt_CHAOS.so
-
-  /usr/lib/x86_64-linux-gnu/xtables/libxt_condition.so
-
-  /usr/lib/x86_64-linux-gnu/xtables/libxt_DELUDE.so
-
-  /usr/lib/x86_64-linux-gnu/xtables/libxt_dhcpmac.so
-
-  /usr/lib/x86_64-linux-gnu/xtables/libxt_DHCPMAC.so
-
-  /usr/lib/x86_64-linux-gnu/xtables/libxt_DNETMAP.so
-
-  /usr/lib/x86_64-linux-gnu/xtables/libxt_ECHO.so
-
-  /usr/lib/x86_64-linux-gnu/xtables/libxt_fuzzy.so
-
-  /usr/lib/x86_64-linux-gnu/xtables/libxt_geoip.so
-
-  /usr/lib/x86_64-linux-gnu/xtables/libxt_gradm.so
-
-  /usr/lib/x86_64-linux-gnu/xtables/libxt_iface.so
-
-  /usr/lib/x86_64-linux-gnu/xtables/libxt_IPMARK.so
-
-  /usr/lib/x86_64-linux-gnu/xtables/libxt_ipp2p.so
-
-  /usr/lib/x86_64-linux-gnu/xtables/libxt_ipv4options.so
-
-  /usr/lib/x86_64-linux-gnu/xtables/libxt_length2.so
-
-  /usr/lib/x86_64-linux-gnu/xtables/libxt_LOGMARK.so
-
-  /usr/lib/x86_64-linux-gnu/xtables/libxt_lscan.so
-
-  /usr/lib/x86_64-linux-gnu/xtables/libxt_pknock.so
-
-  /usr/lib/x86_64-linux-gnu/xtables/libxt_PROTO.so
-
-  /usr/lib/x86_64-linux-gnu/xtables/libxt_psd.so
-
-  /usr/lib/x86_64-linux-gnu/xtables/libxt_quota2.so
-
-  /usr/lib/x86_64-linux-gnu/xtables/libxt_SYSRQ.so
-
-  /usr/lib/x86_64-linux-gnu/xtables/libxt_TARPIT.so
-
-
-
-Make sure you're not using the xt_ipp2p.ko kernel module:
-
-
-
-  $ sudo ip6tables-legacy -F -t mangle
-
-  $ sudo iptables-legacy -F -t mangle
-
-
-
-Make sure you don't have xt_ipp2p.ko loaded:
-
-
-
-  $ sudo modprobe -r xt_ipp2p
-
-
-
-Make sure the files don't exists on your box:
-
-
-
-  $ sudo rm /lib/modules/4.19.0-17-amd64/extra/xt_ipp2p.ko
-
-  $ sudo rm /usr/lib/x86_64-linux-gnu/xtables/libxt_ipp2p.so
-
-
-
-Run depmod:
-
-
-
-  $ sudo depmod -av | awk '$1 ~ /xt_ipp2p/'
-
-
-
-Make sure you've got the latest source checked out and pristine:
-
-
-
-  $ git clean -d -f -x
-
-  $ git reset --hard master
-
-  HEAD is now at f144c2e xt_ipp2p: replace redundant ipp2p_addr
-
-  $ git pull --rebase origin master
-
-  From https://git.inai.de/xtables-addons
-
-   * branch            master     -> FETCH_HEAD
-
-  Already up to date.
-
-  Current branch master is up to date.
-
-  $ git log -1
-
-  commit f144c2ebba17aa4c6b8d402623d53b655945be76 (HEAD -> master, origin/=
-master, origin/HEAD)
-
-  Author: Jan Engelhardt <jengelh@inai.de>
-
-  Date:   Tue Sep 14 17:07:58 2021 +0200
-
-
-
-      xt_ipp2p: replace redundant ipp2p_addr
-
-
-
-Build and install it:
-
-
-
-  $ ./autogen.sh
-
-  $ ./configure
-
-  $ make -j3
-
-  $ sudo make install
-
-
-
-Run depmod:
-
-
-
-  $ sudo depmod -av | awk '$1 ~ /xt_ipp2p/'
-
-  /lib/modules/4.19.0-17-amd64/extra/xt_ipp2p.ko needs "xt_unregister_matc=
-hes": /lib/modules/4.19.0-17-amd64/kernel/net/netfilter/x_tables.ko
-
-  /lib/modules/4.19.0-17-amd64/extra/xt_ipp2p.ko needs "HX_memmem": /lib/m=
-odules/4.19.0-17-amd64/extra/compat_xtables.ko
-
-
-
-Use the extension:
-
-
-
-  $ sudo ip6tables-legacy -t mangle -A PREROUTING -m ipp2p --dc -j ACCEPT=
-
-
-  $ sudo ip6tables-legacy -t mangle -L PREROUTING
-
-  Chain PREROUTING (policy ACCEPT)
-
-  target     prot opt source               destination
-
-  ACCEPT     all      anywhere             anywhere             -m ipp2p  =
---dc
-
-
-
-J.
+This patch enables to let conntrack information including XML output.
+---
+ Hi,
+
+I think there are two issues. First, it deals with obsolete libnfnetlink
+internal data. The other is that the family of nfgenmsg is not available, so the
+ethernet hw protocol type is used. Are these acceptable?
+About ethernet type, should I use IP version from payload?
+
+----
+
+ include/libnetfilter_log/libnetfilter_log.h |  4 +++
+ src/Makefile.am                             |  5 +++
+ src/libnetfilter_log.c                      | 35 +++++++++++++++++++++
+ 3 files changed, 44 insertions(+)
+
+diff --git a/include/libnetfilter_log/libnetfilter_log.h b/include/libnetfilter_log/libnetfilter_log.h
+index 6192fa3..a98a39e 100644
+--- a/include/libnetfilter_log/libnetfilter_log.h
++++ b/include/libnetfilter_log/libnetfilter_log.h
+@@ -82,6 +82,10 @@ enum {
+ 	NFLOG_XML_PHYSDEV	= (1 << 4),
+ 	NFLOG_XML_PAYLOAD	= (1 << 5),
+ 	NFLOG_XML_TIME		= (1 << 6),
++#ifdef BUILD_NFCT
++        NFLOG_XML_CT		= (1 << 7),
++        NFLOG_XML_CT_TIMESTAMP	= (1 << 8),
++#endif
+ 	NFLOG_XML_ALL		= ~0U,
+ };
+ 
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 335c393..bc8da41 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -37,3 +37,8 @@ libnetfilter_log_libipulog_la_LDFLAGS = -Wc,-nostartfiles	\
+ libnetfilter_log_libipulog_la_LIBADD = libnetfilter_log.la ${LIBNFNETLINK_LIBS}
+ libnetfilter_log_libipulog_la_SOURCES = libipulog_compat.c
+ endif
++
++if BUILD_NFCT
++libnetfilter_log_la_LDFLAGS += $(LIBNETFILTER_CONNTRACK_LIBS)
++libnetfilter_log_la_CPPFLAGS = ${AM_CPPFLAGS} ${LIBNETFILTER_CONNTRACK_CFLAGS} -DBUILD_NFCT
++endif
+diff --git a/src/libnetfilter_log.c b/src/libnetfilter_log.c
+index 567049c..aa97b51 100644
+--- a/src/libnetfilter_log.c
++++ b/src/libnetfilter_log.c
+@@ -33,6 +33,11 @@
+ #include <libnfnetlink/libnfnetlink.h>
+ #include <libnetfilter_log/libnetfilter_log.h>
+ 
++#ifdef BUILD_NFCT
++#include <libmnl/libmnl.h>
++#include <libnetfilter_conntrack/libnetfilter_conntrack.h>
++#endif
++
+ /**
+  * \mainpage
+  *
+@@ -907,6 +912,8 @@ do {								\
+  *	- NFLOG_XML_PHYSDEV: include the physical device information
+  *	- NFLOG_XML_PAYLOAD: include the payload (in hexadecimal)
+  *	- NFLOG_XML_TIME: include the timestamp
++ *	- NFLOG_XML_CT: include conntrack entry
++ *	- NFLOG_XML_CT_TIMESTAMP: include conntrack timestamp
+  *	- NFLOG_XML_ALL: include all the logging information (all flags set)
+  *
+  * You can combine this flags with an binary OR.
+@@ -1056,6 +1063,34 @@ int nflog_snprintf_xml(char *buf, size_t rem, struct nflog_data *tb, int flags)
+ 		SNPRINTF_FAILURE(size, rem, offset, len);
+ 	}
+ 
++#ifdef BUILD_NFCT
++        if (flags & NFLOG_XML_CT) {
++                struct nlattr *ctattr = (struct nlattr *)tb->nfa[NFULA_CT - 1];
++                struct nf_conntrack *ct = nfct_new();
++                unsigned int ct_flags = 0;
++                uint8_t family = 0;
++                uint16_t hw_proto = ntohs(ph->hw_protocol);
++
++                if (!ctattr) goto close_tag;
++                if (hw_proto == 0x0800)
++                        family = AF_INET;
++                else if (hw_proto == 0x86dd)
++                        family = AF_INET6;
++                else
++                        goto close_tag;
++
++                if (nfct_payload_parse(mnl_attr_get_payload(ctattr),
++                                       mnl_attr_get_payload_len(ctattr),
++                                       family, ct) < 0)
++                        goto close_tag;
++                if (flags & NFLOG_XML_CT_TIMESTAMP)
++                        ct_flags |= NFCT_OF_TIMESTAMP;
++                size = nfct_snprintf(buf + offset, rem, ct, 0, NFCT_O_XML,
++                                     ct_flags);
++		SNPRINTF_FAILURE(size, rem, offset, len);
++        }
++close_tag:
++#endif
+ 	size = snprintf(buf + offset, rem, "</log>");
+ 	SNPRINTF_FAILURE(size, rem, offset, len);
+ 
+-- 
+2.30.2
 
