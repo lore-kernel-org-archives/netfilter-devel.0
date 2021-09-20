@@ -2,171 +2,165 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF88DC433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Sep 2021 23:21:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1C17C433FE
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Sep 2021 01:55:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8AD8D61211
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Sep 2021 23:21:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9651660E08
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Sep 2021 01:55:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232690AbhITXWj (ORCPT
+        id S233484AbhIUB5O (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 20 Sep 2021 19:22:39 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:39378 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240403AbhITXUj (ORCPT
+        Mon, 20 Sep 2021 21:57:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58814 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229783AbhIUBkg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 Sep 2021 19:20:39 -0400
-Received: from localhost.localdomain (unknown [78.30.35.141])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 5C7F96005C
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Sep 2021 01:17:53 +0200 (CEST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft,v2 2/2] monitor: honor NLM_F_APPEND flag for rules
-Date:   Tue, 21 Sep 2021 01:19:06 +0200
-Message-Id: <20210920231906.113614-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Mon, 20 Sep 2021 21:40:36 -0400
+Received: from gate2.alliedtelesis.co.nz (gate2.alliedtelesis.co.nz [IPv6:2001:df5:b000:5::4])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2013CC0604CB
+        for <netfilter-devel@vger.kernel.org>; Mon, 20 Sep 2021 13:44:47 -0700 (PDT)
+Received: from svr-chch-seg1.atlnz.lc (mmarshal3.atlnz.lc [10.32.18.43])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (Client did not present a certificate)
+        by gate2.alliedtelesis.co.nz (Postfix) with ESMTPS id 3FCCB806AC;
+        Tue, 21 Sep 2021 08:44:43 +1200 (NZST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alliedtelesis.co.nz;
+        s=mail181024; t=1632170683;
+        bh=Cn+19qSMvfgrOTGheCboaarnn1DHBPEuHJWDY1D7Op8=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References;
+        b=Y4FtHIIpJl3KwVIy+BopoqYloLYg+M7m7ZIerKet2iatALeBCuE4P6oBX/dq5YJiu
+         JsV5/MvOvO+yuHeVZMylnlgYFYTgNASHe7vYQHe2MoLzqxaCSDF3AwfL55QXuoUOx8
+         kXpvL7bZBAjefbsuQYeOSTrKeQH93nnZYYPZfjLKijOjUiUfXeiZTBHaJAvm+S3u3+
+         yY76eKmtm0VA0Q6i416hTrDO3dL7DdUz7FPBGJF9R8kDA2w20e2SyQrvGq5xWPghYR
+         E7r96aRDUL4Y2tGo+spUgbqiJkNWozzGuQ3jVv2FpbVafJzKhhMLQ0n/Gi7LwZs53c
+         7Iqeo8XVeBVlw==
+Received: from pat.atlnz.lc (Not Verified[10.32.16.33]) by svr-chch-seg1.atlnz.lc with Trustwave SEG (v8,2,6,11305)
+        id <B6148f2ba0001>; Tue, 21 Sep 2021 08:44:42 +1200
+Received: from coled-dl.ws.atlnz.lc (coled-dl.ws.atlnz.lc [10.33.25.26])
+        by pat.atlnz.lc (Postfix) with ESMTP id DB4F513EEA3;
+        Tue, 21 Sep 2021 08:44:42 +1200 (NZST)
+Received: by coled-dl.ws.atlnz.lc (Postfix, from userid 1801)
+        id D5EF1242823; Tue, 21 Sep 2021 08:44:42 +1200 (NZST)
+From:   Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
+To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net, kuba@kernel.org, shuah@kernel.org
+Cc:     linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>,
+        Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>,
+        Scott Parlane <scott.parlane@alliedtelesis.co.nz>,
+        Blair Steven <blair.steven@alliedtelesis.co.nz>
+Subject: [PATCH net v6 1/2] net: netfilter: Limit the number of ftp helper port attempts
+Date:   Tue, 21 Sep 2021 08:44:38 +1200
+Message-Id: <20210920204439.13179-2-Cole.Dishington@alliedtelesis.co.nz>
+X-Mailer: git-send-email 2.33.0
+In-Reply-To: <20210920204439.13179-1-Cole.Dishington@alliedtelesis.co.nz>
+References: <20210920204439.13179-1-Cole.Dishington@alliedtelesis.co.nz>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: quoted-printable
+X-SEG-SpamProfiler-Analysis: v=2.3 cv=FtN7AFjq c=1 sm=1 tr=0 a=KLBiSEs5mFS1a/PbTCJxuA==:117 a=7QKq2e-ADPsA:10 a=v0C0h8vM-w728WOTjeQA:9 a=7Zwj6sZBwVKJAoWSPKxL6X1jA+E=:19
+X-SEG-SpamProfiler-Score: 0
+x-atlnz-ls: pat
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Print 'add' or 'insert' according to this netlink flag.
+In preparation of fixing the port selection of ftp helper when using
+NF_NAT_RANGE_PROTO_SPECIFIED, limit the number of ftp helper port
+attempts to 128.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Looping a large port range takes too long. Instead select a random
+offset within [ntohs(exp->saved_proto.tcp.port), 65535] and try 128
+ports.
+
+Co-developed-by: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
+Signed-off-by: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
+Co-developed-by: Scott Parlane <scott.parlane@alliedtelesis.co.nz>
+Signed-off-by: Scott Parlane <scott.parlane@alliedtelesis.co.nz>
+Co-developed-by: Blair Steven <blair.steven@alliedtelesis.co.nz>
+Signed-off-by: Blair Steven <blair.steven@alliedtelesis.co.nz>
+Signed-off-by: Cole Dishington <Cole.Dishington@alliedtelesis.co.nz>
+Acked-by: Florian Westphal <fw@strlen.de>
 ---
-v2: restrict 'insert' to rule commands.
 
- src/monitor.c | 40 ++++++++++++++++++++++++++--------------
- 1 file changed, 26 insertions(+), 14 deletions(-)
+Notes:
+	Thanks for your time reviewing!
 
-diff --git a/src/monitor.c b/src/monitor.c
-index ffaa39b67304..ff69234bfab4 100644
---- a/src/monitor.c
-+++ b/src/monitor.c
-@@ -40,6 +40,12 @@
- #include <iface.h>
- #include <json.h>
- 
-+enum {
-+	NFT_OF_EVENT_ADD,
-+	NFT_OF_EVENT_INSERT,
-+	NFT_OF_EVENT_DEL,
-+};
+	Changes:
+	- Add missing argument from nf_ct_helper_log.
+	- Add Acked-by: Florian Westphal <fw@strlen.de>
+
+ net/netfilter/nf_nat_ftp.c | 39 +++++++++++++++++++++++++-------------
+ 1 file changed, 26 insertions(+), 13 deletions(-)
+
+diff --git a/net/netfilter/nf_nat_ftp.c b/net/netfilter/nf_nat_ftp.c
+index aace6768a64e..2da29e5d4309 100644
+--- a/net/netfilter/nf_nat_ftp.c
++++ b/net/netfilter/nf_nat_ftp.c
+@@ -72,8 +72,11 @@ static unsigned int nf_nat_ftp(struct sk_buff *skb,
+ 	u_int16_t port;
+ 	int dir =3D CTINFO2DIR(ctinfo);
+ 	struct nf_conn *ct =3D exp->master;
++	unsigned int i, min, max, range_size;
++	static const unsigned int max_attempts =3D 128;
+ 	char buffer[sizeof("|1||65535|") + INET6_ADDRSTRLEN];
+ 	unsigned int buflen;
++	int ret;
+=20
+ 	pr_debug("type %i, off %u len %u\n", type, matchoff, matchlen);
+=20
+@@ -86,22 +89,32 @@ static unsigned int nf_nat_ftp(struct sk_buff *skb,
+ 	 * this one. */
+ 	exp->expectfn =3D nf_nat_follow_master;
+=20
+-	/* Try to get same port: if not, try to change it. */
+-	for (port =3D ntohs(exp->saved_proto.tcp.port); port !=3D 0; port++) {
+-		int ret;
+-
+-		exp->tuple.dst.u.tcp.port =3D htons(port);
+-		ret =3D nf_ct_expect_related(exp, 0);
+-		if (ret =3D=3D 0)
+-			break;
+-		else if (ret !=3D -EBUSY) {
+-			port =3D 0;
+-			break;
++	min =3D ntohs(exp->saved_proto.tcp.port);
++	max =3D 65535;
 +
- #define nft_mon_print(monh, ...) nft_print(&monh->ctx->nft->output, __VA_ARGS__)
- 
- struct nftnl_table *netlink_table_alloc(const struct nlmsghdr *nlh)
-@@ -120,17 +126,21 @@ struct nftnl_obj *netlink_obj_alloc(const struct nlmsghdr *nlh)
- 	return nlo;
- }
- 
--static uint32_t netlink_msg2nftnl_of(uint32_t msg)
-+static uint32_t netlink_msg2nftnl_of(uint32_t type, uint16_t flags)
- {
--	switch (msg) {
-+	switch (type) {
-+	case NFT_MSG_NEWRULE:
-+		if (flags & NLM_F_APPEND)
-+			return NFT_OF_EVENT_ADD;
-+		else
-+			return NFT_OF_EVENT_INSERT;
- 	case NFT_MSG_NEWTABLE:
- 	case NFT_MSG_NEWCHAIN:
- 	case NFT_MSG_NEWSET:
- 	case NFT_MSG_NEWSETELEM:
--	case NFT_MSG_NEWRULE:
- 	case NFT_MSG_NEWOBJ:
- 	case NFT_MSG_NEWFLOWTABLE:
--		return NFTNL_OF_EVENT_NEW;
-+		return NFT_OF_EVENT_ADD;
- 	case NFT_MSG_DELTABLE:
- 	case NFT_MSG_DELCHAIN:
- 	case NFT_MSG_DELSET:
-@@ -147,18 +157,20 @@ static uint32_t netlink_msg2nftnl_of(uint32_t msg)
- static const char *nftnl_of2cmd(uint32_t of)
- {
- 	switch (of) {
--	case NFTNL_OF_EVENT_NEW:
-+	case NFT_OF_EVENT_ADD:
- 		return "add";
--	case NFTNL_OF_EVENT_DEL:
-+	case NFT_OF_EVENT_INSERT:
-+		return "insert";
-+	case NFT_OF_EVENT_DEL:
- 		return "delete";
- 	default:
- 		return "???";
++	/* Try to get same port */
++	ret =3D nf_ct_expect_related(exp, 0);
++
++	/* if same port is not in range or available, try to change it. */
++	if (ret !=3D 0) {
++		range_size =3D max - min + 1;
++		if (range_size > max_attempts)
++			range_size =3D max_attempts;
++
++		port =3D min + prandom_u32_max(max - min);
++		for (i =3D 0; i < range_size; i++) {
++			exp->tuple.dst.u.tcp.port =3D htons(port);
++			ret =3D nf_ct_expect_related(exp, 0);
++			if (ret !=3D -EBUSY)
++				break;
++			port++;
++			if (port > max)
++				port =3D min;
+ 		}
  	}
- }
- 
--static const char *netlink_msg2cmd(uint32_t msg)
-+static const char *netlink_msg2cmd(uint32_t type, uint16_t flags)
- {
--	return nftnl_of2cmd(netlink_msg2nftnl_of(msg));
-+	return nftnl_of2cmd(netlink_msg2nftnl_of(type, flags));
- }
- 
- static void nlr_for_each_set(struct nftnl_rule *nlr,
-@@ -206,7 +218,7 @@ static int netlink_events_table_cb(const struct nlmsghdr *nlh, int type,
- 
- 	nlt = netlink_table_alloc(nlh);
- 	t = netlink_delinearize_table(monh->ctx, nlt);
--	cmd = netlink_msg2cmd(type);
-+	cmd = netlink_msg2cmd(type, nlh->nlmsg_flags);
- 
- 	switch (monh->format) {
- 	case NFTNL_OUTPUT_DEFAULT:
-@@ -243,7 +255,7 @@ static int netlink_events_chain_cb(const struct nlmsghdr *nlh, int type,
- 
- 	nlc = netlink_chain_alloc(nlh);
- 	c = netlink_delinearize_chain(monh->ctx, nlc);
--	cmd = netlink_msg2cmd(type);
-+	cmd = netlink_msg2cmd(type, nlh->nlmsg_flags);
- 
- 	switch (monh->format) {
- 	case NFTNL_OUTPUT_DEFAULT:
-@@ -292,7 +304,7 @@ static int netlink_events_set_cb(const struct nlmsghdr *nlh, int type,
- 		return MNL_CB_ERROR;
+=20
+-	if (port =3D=3D 0) {
+-		nf_ct_helper_log(skb, ct, "all ports in use");
++	if (ret !=3D 0) {
++		nf_ct_helper_log(skb, ct, "tried %u ports, all were in use", range_siz=
+e);
+ 		return NF_DROP;
  	}
- 	family = family2str(set->handle.family);
--	cmd = netlink_msg2cmd(type);
-+	cmd = netlink_msg2cmd(type, nlh->nlmsg_flags);
- 
- 	switch (monh->format) {
- 	case NFTNL_OUTPUT_DEFAULT:
-@@ -394,7 +406,7 @@ static int netlink_events_setelem_cb(const struct nlmsghdr *nlh, int type,
- 	table = nftnl_set_get_str(nls, NFTNL_SET_TABLE);
- 	setname = nftnl_set_get_str(nls, NFTNL_SET_NAME);
- 	family = nftnl_set_get_u32(nls, NFTNL_SET_FAMILY);
--	cmd = netlink_msg2cmd(type);
-+	cmd = netlink_msg2cmd(type, nlh->nlmsg_flags);
- 
- 	set = set_lookup_global(family, table, setname, &monh->ctx->nft->cache);
- 	if (set == NULL) {
-@@ -482,7 +494,7 @@ static int netlink_events_obj_cb(const struct nlmsghdr *nlh, int type,
- 		return MNL_CB_ERROR;
- 	}
- 	family = family2str(obj->handle.family);
--	cmd = netlink_msg2cmd(type);
-+	cmd = netlink_msg2cmd(type, nlh->nlmsg_flags);
- 
- 	switch (monh->format) {
- 	case NFTNL_OUTPUT_DEFAULT:
-@@ -530,7 +542,7 @@ static int netlink_events_rule_cb(const struct nlmsghdr *nlh, int type,
- 	r = netlink_delinearize_rule(monh->ctx, nlr);
- 	nlr_for_each_set(nlr, rule_map_decompose_cb, NULL,
- 			 &monh->ctx->nft->cache);
--	cmd = netlink_msg2cmd(type);
-+	cmd = netlink_msg2cmd(type, nlh->nlmsg_flags);
- 
- 	switch (monh->format) {
- 	case NFTNL_OUTPUT_DEFAULT:
--- 
-2.30.2
+=20
+--=20
+2.33.0
 
