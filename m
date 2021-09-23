@@ -2,107 +2,98 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F333C433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Sep 2021 16:07:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65AAEC433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Sep 2021 13:13:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 72F306109E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Sep 2021 16:07:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 496916115A
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Sep 2021 13:13:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236558AbhIVQIe (ORCPT
+        id S234006AbhIWNOa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 Sep 2021 12:08:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52236 "EHLO
+        Thu, 23 Sep 2021 09:14:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57826 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236550AbhIVQId (ORCPT
+        with ESMTP id S232798AbhIWNOa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Sep 2021 12:08:33 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE813C061574
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Sep 2021 09:07:03 -0700 (PDT)
-Received: from localhost ([::1]:59570 helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1mT4ly-0006Px-AX; Wed, 22 Sep 2021 18:07:02 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 1/4] nft: cache: Avoid double free of unrecognized base-chains
-Date:   Wed, 22 Sep 2021 18:06:29 +0200
-Message-Id: <20210922160632.15635-2-phil@nwl.cc>
-X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20210922160632.15635-1-phil@nwl.cc>
-References: <20210922160632.15635-1-phil@nwl.cc>
+        Thu, 23 Sep 2021 09:14:30 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6592C061574
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 Sep 2021 06:12:58 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1mTOX2-00025y-Bs; Thu, 23 Sep 2021 15:12:56 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     eric@garver.life, phil@nwl.cc, kadlec@netfilter.org,
+        Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf 0/1.5 RFC] netfilter: nat: source port shadowing
+Date:   Thu, 23 Sep 2021 15:12:41 +0200
+Message-Id: <20210923131243.24071-1-fw@strlen.de>
+X-Mailer: git-send-email 2.32.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On error, nft_cache_add_chain() frees the allocated nft_chain object
-along with the nftnl_chain it points at. Fix nftnl_chain_list_cb() to
-not free the nftnl_chain again in that case.
+In brief:
 
-Fixes: 176c92c26bfc9 ("nft: Introduce a dedicated base chain array")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- iptables/nft-cache.c                          |  4 +--
- .../shell/testcases/chain/0004extra-base_0    | 27 +++++++++++++++++++
- 2 files changed, 28 insertions(+), 3 deletions(-)
- create mode 100755 iptables/tests/shell/testcases/chain/0004extra-base_0
+Given
+internal_client -- <router:service> -- external_client
 
-diff --git a/iptables/nft-cache.c b/iptables/nft-cache.c
-index 2c88301cc7445..9a03bbfbb32bb 100644
---- a/iptables/nft-cache.c
-+++ b/iptables/nft-cache.c
-@@ -314,9 +314,7 @@ static int nftnl_chain_list_cb(const struct nlmsghdr *nlh, void *data)
- 		goto out;
- 	}
- 
--	if (nft_cache_add_chain(h, t, c))
--		goto out;
--
-+	nft_cache_add_chain(h, t, c);
- 	return MNL_CB_OK;
- out:
- 	nftnl_chain_free(c);
-diff --git a/iptables/tests/shell/testcases/chain/0004extra-base_0 b/iptables/tests/shell/testcases/chain/0004extra-base_0
-new file mode 100755
-index 0000000000000..1b85b060c1487
---- /dev/null
-+++ b/iptables/tests/shell/testcases/chain/0004extra-base_0
-@@ -0,0 +1,27 @@
-+#!/bin/bash
-+
-+case $XT_MULTI in
-+*xtables-nft-multi)
-+	;;
-+*)
-+	echo skip $XT_MULTI
-+	exit 0
-+	;;
-+esac
-+
-+set -e
-+
-+nft -f - <<EOF
-+table ip filter {
-+        chain INPUT {
-+                type filter hook input priority filter
-+                counter packets 218 bytes 91375 accept
-+        }
-+
-+        chain x {
-+                type filter hook input priority filter
-+        }
-+}
-+EOF
-+
-+$XT_MULTI iptables -L
+The internal client can create NAT entry on router in a way so that
+an external client trying to contact router:service is reverse-natted
+to internal_client:service instead.
+
+Long version: https://breakpointingbad.com/2021/09/08/Port-Shadows-via-Network-Alchemy.html
+
+First patch extends nft_nat.sh selftest with above scenario plus three
+ruleset changes that prevent this (sport-filtering, notrack for
+router:service and sport-based port remapping).
+
+I tried to come up with a kernel based solution as well, but those
+are not really nice either.
+
+The first option is attached: kernel queries udp with reversed addresses
+to see if this maps to a socket.  If so, remap.
+
+Major pain point: adds entanglement to socket layer and will
+need extra glue for CONFIG_IPV6=m case.
+
+Second option is similar to the attached patch, but instead of
+sk lookup check the porposed new source port versus the
+'ip_local_reserved_ports' sysctl.
+
+Would require userspace to set the reserved ports accordingly.
+
+I also had a look at the 'socket' match, but it cannot be used.
+It would have to be extended so that the socket lookup is done
+on arbirary saddr/daddr/sport/dport combination, or at the very
+least we'd need a 'invert' flag.
+
+Existing 'socket' uses the addresses/ports in the packet, but
+we'd need the addresses/ports of the hypothetical reply.
+
+Things that do not work:
+Change the sport range to only cover the IANA reserved port
+range.  It sounds tempting but it sabotages dns resolvers using random
+source ports.
+
+Comments welcome.
+
+Florian Westphal (2):
+  selftests: nft_nat: add udp hole punch test case
+  netfilter: nf_nat: don't allow source ports that shadow local port
+
+ net/netfilter/nf_nat_core.c                  |  41 +++++-
+ tools/testing/selftests/netfilter/nft_nat.sh | 145 +++++++++++++++++++
+ 2 files changed, 183 insertions(+), 3 deletions(-)
+
 -- 
-2.33.0
+2.32.0
 
