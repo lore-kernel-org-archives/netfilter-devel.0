@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5294DC4332F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Sep 2021 22:11:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CD3FC43217
+	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Sep 2021 22:11:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3D2836124B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Sep 2021 22:11:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0A771611C8
+	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Sep 2021 22:11:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345192AbhIXWNC (ORCPT
+        id S1345593AbhIXWNE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 24 Sep 2021 18:13:02 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:49764 "EHLO
+        Fri, 24 Sep 2021 18:13:04 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:49780 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235874AbhIXWM4 (ORCPT
+        with ESMTP id S1345143AbhIXWM6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 24 Sep 2021 18:12:56 -0400
+        Fri, 24 Sep 2021 18:12:58 -0400
 Received: from localhost.localdomain (unknown [78.30.35.141])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 8305663EB1;
-        Sat, 25 Sep 2021 00:10:00 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id A403A63EAA;
+        Sat, 25 Sep 2021 00:10:02 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 03/15] netfilter: ip6_tables: zero-initialize fragment offset
-Date:   Sat, 25 Sep 2021 00:11:01 +0200
-Message-Id: <20210924221113.348767-4-pablo@netfilter.org>
+Subject: [PATCH net 06/15] netfilter: nat: include zone id in nat table hash again
+Date:   Sat, 25 Sep 2021 00:11:04 +0200
+Message-Id: <20210924221113.348767-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210924221113.348767-1-pablo@netfilter.org>
 References: <20210924221113.348767-1-pablo@netfilter.org>
@@ -34,33 +34,81 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Jeremy Sowden <jeremy@azazel.net>
+From: Florian Westphal <fw@strlen.de>
 
-ip6tables only sets the `IP6T_F_PROTO` flag on a rule if a protocol is
-specified (`-p tcp`, for example).  However, if the flag is not set,
-`ip6_packet_match` doesn't call `ipv6_find_hdr` for the skb, in which
-case the fragment offset is left uninitialized and a garbage value is
-passed to each matcher.
+Similar to the conntrack change, also use the zone id for the nat source
+lists if the zone id is valid in both directions.
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
-Reviewed-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv6/netfilter/ip6_tables.c | 1 +
- 1 file changed, 1 insertion(+)
+ net/netfilter/nf_nat_core.c | 17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index de2cf3943b91..a579ea14a69b 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -273,6 +273,7 @@ ip6t_do_table(struct sk_buff *skb,
- 	 * things we don't know, ie. tcp syn flag or ports).  If the
- 	 * rule is also a fragment-specific rule, non-fragments won't
- 	 * match it. */
-+	acpar.fragoff = 0;
- 	acpar.hotdrop = false;
- 	acpar.state   = state;
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 7008961f5cb0..273117683922 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -150,13 +150,16 @@ static void __nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl)
  
+ /* We keep an extra hash for each conntrack, for fast searching. */
+ static unsigned int
+-hash_by_src(const struct net *n, const struct nf_conntrack_tuple *tuple)
++hash_by_src(const struct net *net,
++	    const struct nf_conntrack_zone *zone,
++	    const struct nf_conntrack_tuple *tuple)
+ {
+ 	unsigned int hash;
+ 	struct {
+ 		struct nf_conntrack_man src;
+ 		u32 net_mix;
+ 		u32 protonum;
++		u32 zone;
+ 	} __aligned(SIPHASH_ALIGNMENT) combined;
+ 
+ 	get_random_once(&nf_nat_hash_rnd, sizeof(nf_nat_hash_rnd));
+@@ -165,9 +168,13 @@ hash_by_src(const struct net *n, const struct nf_conntrack_tuple *tuple)
+ 
+ 	/* Original src, to ensure we map it consistently if poss. */
+ 	combined.src = tuple->src;
+-	combined.net_mix = net_hash_mix(n);
++	combined.net_mix = net_hash_mix(net);
+ 	combined.protonum = tuple->dst.protonum;
+ 
++	/* Zone ID can be used provided its valid for both directions */
++	if (zone->dir == NF_CT_DEFAULT_ZONE_DIR)
++		combined.zone = zone->id;
++
+ 	hash = siphash(&combined, sizeof(combined), &nf_nat_hash_rnd);
+ 
+ 	return reciprocal_scale(hash, nf_nat_htable_size);
+@@ -272,7 +279,7 @@ find_appropriate_src(struct net *net,
+ 		     struct nf_conntrack_tuple *result,
+ 		     const struct nf_nat_range2 *range)
+ {
+-	unsigned int h = hash_by_src(net, tuple);
++	unsigned int h = hash_by_src(net, zone, tuple);
+ 	const struct nf_conn *ct;
+ 
+ 	hlist_for_each_entry_rcu(ct, &nf_nat_bysource[h], nat_bysource) {
+@@ -619,7 +626,7 @@ nf_nat_setup_info(struct nf_conn *ct,
+ 		unsigned int srchash;
+ 		spinlock_t *lock;
+ 
+-		srchash = hash_by_src(net,
++		srchash = hash_by_src(net, nf_ct_zone(ct),
+ 				      &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
+ 		lock = &nf_nat_locks[srchash % CONNTRACK_LOCKS];
+ 		spin_lock_bh(lock);
+@@ -788,7 +795,7 @@ static void __nf_nat_cleanup_conntrack(struct nf_conn *ct)
+ {
+ 	unsigned int h;
+ 
+-	h = hash_by_src(nf_ct_net(ct), &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
++	h = hash_by_src(nf_ct_net(ct), nf_ct_zone(ct), &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
+ 	spin_lock_bh(&nf_nat_locks[h % CONNTRACK_LOCKS]);
+ 	hlist_del_rcu(&ct->nat_bysource);
+ 	spin_unlock_bh(&nf_nat_locks[h % CONNTRACK_LOCKS]);
 -- 
 2.30.2
 
