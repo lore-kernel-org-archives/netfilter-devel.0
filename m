@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12138C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73971C4332F
 	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Sep 2021 22:11:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F250960F13
-	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Sep 2021 22:11:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5A59960F13
+	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Sep 2021 22:11:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345674AbhIXWNF (ORCPT
+        id S1345700AbhIXWNG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 24 Sep 2021 18:13:05 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:49774 "EHLO
+        Fri, 24 Sep 2021 18:13:06 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:49782 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345111AbhIXWM5 (ORCPT
+        with ESMTP id S1345149AbhIXWM7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 24 Sep 2021 18:12:57 -0400
+        Fri, 24 Sep 2021 18:12:59 -0400
 Received: from localhost.localdomain (unknown [78.30.35.141])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 46BB563EA4;
-        Sat, 25 Sep 2021 00:10:01 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id DD90C63EB7;
+        Sat, 25 Sep 2021 00:10:03 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 04/15] netfilter: conntrack: make max chain length random
-Date:   Sat, 25 Sep 2021 00:11:02 +0200
-Message-Id: <20210924221113.348767-5-pablo@netfilter.org>
+Subject: [PATCH net 08/15] selftests: netfilter: add zone stress test with colliding tuples
+Date:   Sat, 25 Sep 2021 00:11:06 +0200
+Message-Id: <20210924221113.348767-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210924221113.348767-1-pablo@netfilter.org>
 References: <20210924221113.348767-1-pablo@netfilter.org>
@@ -36,102 +36,190 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-Similar to commit 67d6d681e15b
-("ipv4: make exception cache less predictible"):
+Add 20k entries to the connection tracking table, once from the
+data plane, once via ctnetlink.
 
-Use a random drop length to make it harder to detect when entries were
-hashed to same bucket list.
+In both cases, each entry lives in a different conntrack zone
+and addresses/ports are identical.
+
+Expectation is that insertions work and occurs in constant time:
+
+PASS: added 10000 entries in 1215 ms (now 10000 total, loop 1)
+PASS: added 10000 entries in 1214 ms (now 20000 total, loop 2)
+PASS: inserted 20000 entries from packet path in 2434 ms total
+PASS: added 10000 entries in 57631 ms (now 10000 total)
+PASS: added 10000 entries in 58572 ms (now 20000 total)
+PASS: inserted 20000 entries via ctnetlink in 116205 ms
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_core.c | 17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ .../selftests/netfilter/nft_zones_many.sh     | 156 ++++++++++++++++++
+ 1 file changed, 156 insertions(+)
+ create mode 100755 tools/testing/selftests/netfilter/nft_zones_many.sh
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 94e18fb9690d..91b7edaa635c 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -77,7 +77,8 @@ static __read_mostly bool nf_conntrack_locks_all;
- #define GC_SCAN_INTERVAL	(120u * HZ)
- #define GC_SCAN_MAX_DURATION	msecs_to_jiffies(10)
- 
--#define MAX_CHAINLEN	64u
-+#define MIN_CHAINLEN	8u
-+#define MAX_CHAINLEN	(32u - MIN_CHAINLEN)
- 
- static struct conntrack_gc_work conntrack_gc_work;
- 
-@@ -842,6 +843,7 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
- 	unsigned int hash, reply_hash;
- 	struct nf_conntrack_tuple_hash *h;
- 	struct hlist_nulls_node *n;
-+	unsigned int max_chainlen;
- 	unsigned int chainlen = 0;
- 	unsigned int sequence;
- 	int err = -EEXIST;
-@@ -857,13 +859,15 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
- 					   &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
- 	} while (nf_conntrack_double_lock(net, hash, reply_hash, sequence));
- 
-+	max_chainlen = MIN_CHAINLEN + prandom_u32_max(MAX_CHAINLEN);
+diff --git a/tools/testing/selftests/netfilter/nft_zones_many.sh b/tools/testing/selftests/netfilter/nft_zones_many.sh
+new file mode 100755
+index 000000000000..ac646376eb01
+--- /dev/null
++++ b/tools/testing/selftests/netfilter/nft_zones_many.sh
+@@ -0,0 +1,156 @@
++#!/bin/bash
 +
- 	/* See if there's one in the list already, including reverse */
- 	hlist_nulls_for_each_entry(h, n, &nf_conntrack_hash[hash], hnnode) {
- 		if (nf_ct_key_equal(h, &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
- 				    zone, net))
- 			goto out;
- 
--		if (chainlen++ > MAX_CHAINLEN)
-+		if (chainlen++ > max_chainlen)
- 			goto chaintoolong;
- 	}
- 
-@@ -873,7 +877,7 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
- 		if (nf_ct_key_equal(h, &ct->tuplehash[IP_CT_DIR_REPLY].tuple,
- 				    zone, net))
- 			goto out;
--		if (chainlen++ > MAX_CHAINLEN)
-+		if (chainlen++ > max_chainlen)
- 			goto chaintoolong;
- 	}
- 
-@@ -1103,8 +1107,8 @@ nf_ct_resolve_clash(struct sk_buff *skb, struct nf_conntrack_tuple_hash *h,
- int
- __nf_conntrack_confirm(struct sk_buff *skb)
- {
-+	unsigned int chainlen = 0, sequence, max_chainlen;
- 	const struct nf_conntrack_zone *zone;
--	unsigned int chainlen = 0, sequence;
- 	unsigned int hash, reply_hash;
- 	struct nf_conntrack_tuple_hash *h;
- 	struct nf_conn *ct;
-@@ -1168,6 +1172,7 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 		goto dying;
- 	}
- 
-+	max_chainlen = MIN_CHAINLEN + prandom_u32_max(MAX_CHAINLEN);
- 	/* See if there's one in the list already, including reverse:
- 	   NAT could have grabbed it without realizing, since we're
- 	   not in the hash.  If there is, we lost race. */
-@@ -1175,7 +1180,7 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 		if (nf_ct_key_equal(h, &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
- 				    zone, net))
- 			goto out;
--		if (chainlen++ > MAX_CHAINLEN)
-+		if (chainlen++ > max_chainlen)
- 			goto chaintoolong;
- 	}
- 
-@@ -1184,7 +1189,7 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 		if (nf_ct_key_equal(h, &ct->tuplehash[IP_CT_DIR_REPLY].tuple,
- 				    zone, net))
- 			goto out;
--		if (chainlen++ > MAX_CHAINLEN) {
-+		if (chainlen++ > max_chainlen) {
- chaintoolong:
- 			nf_ct_add_to_dying_list(ct);
- 			NF_CT_STAT_INC(net, chaintoolong);
++# Test insertion speed for packets with identical addresses/ports
++# that are all placed in distinct conntrack zones.
++
++sfx=$(mktemp -u "XXXXXXXX")
++ns="ns-$sfx"
++
++# Kselftest framework requirement - SKIP code is 4.
++ksft_skip=4
++
++zones=20000
++have_ct_tool=0
++ret=0
++
++cleanup()
++{
++	ip netns del $ns
++}
++
++ip netns add $ns
++if [ $? -ne 0 ];then
++	echo "SKIP: Could not create net namespace $gw"
++	exit $ksft_skip
++fi
++
++trap cleanup EXIT
++
++conntrack -V > /dev/null 2>&1
++if [ $? -eq 0 ];then
++	have_ct_tool=1
++fi
++
++ip -net "$ns" link set lo up
++
++test_zones() {
++	local max_zones=$1
++
++ip netns exec $ns sysctl -q net.netfilter.nf_conntrack_udp_timeout=3600
++ip netns exec $ns nft -f /dev/stdin<<EOF
++flush ruleset
++table inet raw {
++	map rndzone {
++		typeof numgen inc mod $max_zones : ct zone
++	}
++
++	chain output {
++		type filter hook output priority -64000; policy accept;
++		udp dport 12345  ct zone set numgen inc mod 65536 map @rndzone
++	}
++}
++EOF
++	(
++		echo "add element inet raw rndzone {"
++	for i in $(seq 1 $max_zones);do
++		echo -n "$i : $i"
++		if [ $i -lt $max_zones ]; then
++			echo ","
++		else
++			echo "}"
++		fi
++	done
++	) | ip netns exec $ns nft -f /dev/stdin
++
++	local i=0
++	local j=0
++	local outerstart=$(date +%s%3N)
++	local stop=$outerstart
++
++	while [ $i -lt $max_zones ]; do
++		local start=$(date +%s%3N)
++		i=$((i + 10000))
++		j=$((j + 1))
++		dd if=/dev/zero of=/dev/stdout bs=8k count=10000 2>/dev/null | ip netns exec "$ns" nc -w 1 -q 1 -u -p 12345 127.0.0.1 12345 > /dev/null
++		if [ $? -ne 0 ] ;then
++			ret=1
++			break
++		fi
++
++		stop=$(date +%s%3N)
++		local duration=$((stop-start))
++		echo "PASS: added 10000 entries in $duration ms (now $i total, loop $j)"
++	done
++
++	if [ $have_ct_tool -eq 1 ]; then
++		local count=$(ip netns exec "$ns" conntrack -C)
++		local duration=$((stop-outerstart))
++
++		if [ $count -eq $max_zones ]; then
++			echo "PASS: inserted $count entries from packet path in $duration ms total"
++		else
++			ip netns exec $ns conntrack -S 1>&2
++			echo "FAIL: inserted $count entries from packet path in $duration ms total, expected $max_zones entries"
++			ret=1
++		fi
++	fi
++
++	if [ $ret -ne 0 ];then
++		echo "FAIL: insert $max_zones entries from packet path" 1>&2
++	fi
++}
++
++test_conntrack_tool() {
++	local max_zones=$1
++
++	ip netns exec $ns conntrack -F >/dev/null 2>/dev/null
++
++	local outerstart=$(date +%s%3N)
++	local start=$(date +%s%3N)
++	local stop=$start
++	local i=0
++	while [ $i -lt $max_zones ]; do
++		i=$((i + 1))
++		ip netns exec "$ns" conntrack -I -s 1.1.1.1 -d 2.2.2.2 --protonum 6 \
++	                 --timeout 3600 --state ESTABLISHED --sport 12345 --dport 1000 --zone $i >/dev/null 2>&1
++		if [ $? -ne 0 ];then
++			ip netns exec "$ns" conntrack -I -s 1.1.1.1 -d 2.2.2.2 --protonum 6 \
++	                 --timeout 3600 --state ESTABLISHED --sport 12345 --dport 1000 --zone $i > /dev/null
++			echo "FAIL: conntrack -I returned an error"
++			ret=1
++			break
++		fi
++
++		if [ $((i%10000)) -eq 0 ];then
++			stop=$(date +%s%3N)
++
++			local duration=$((stop-start))
++			echo "PASS: added 10000 entries in $duration ms (now $i total)"
++			start=$stop
++		fi
++	done
++
++	local count=$(ip netns exec "$ns" conntrack -C)
++	local duration=$((stop-outerstart))
++
++	if [ $count -eq $max_zones ]; then
++		echo "PASS: inserted $count entries via ctnetlink in $duration ms"
++	else
++		ip netns exec $ns conntrack -S 1>&2
++		echo "FAIL: inserted $count entries via ctnetlink in $duration ms, expected $max_zones entries ($duration ms)"
++		ret=1
++	fi
++}
++
++test_zones $zones
++
++if [ $have_ct_tool -eq 1 ];then
++	test_conntrack_tool $zones
++else
++	echo "SKIP: Could not run ctnetlink insertion test without conntrack tool"
++	if [ $ret -eq 0 ];then
++		exit $ksft_skip
++	fi
++fi
++
++exit $ret
 -- 
 2.30.2
 
