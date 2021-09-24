@@ -2,37 +2,68 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90BBCC433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Sep 2021 14:44:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66948C433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Sep 2021 05:32:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 77CAE61216
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Sep 2021 14:44:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4F4426124D
+	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Sep 2021 05:32:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241804AbhIWOqQ (ORCPT
+        id S244116AbhIXFeX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 Sep 2021 10:46:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51690 "EHLO
+        Fri, 24 Sep 2021 01:34:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55856 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241785AbhIWOqN (ORCPT
+        with ESMTP id S244134AbhIXFeU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Sep 2021 10:46:13 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00DECC061574
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 Sep 2021 07:44:41 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1mTPxo-0002bz-2y; Thu, 23 Sep 2021 16:44:40 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: conntrack: fix boot failure with nf_conntrack.enable_hooks=1
-Date:   Thu, 23 Sep 2021 16:44:34 +0200
-Message-Id: <20210923144434.22531-1-fw@strlen.de>
+        Fri, 24 Sep 2021 01:34:20 -0400
+Received: from mail-pg1-x52d.google.com (mail-pg1-x52d.google.com [IPv6:2607:f8b0:4864:20::52d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59227C061574
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 Sep 2021 22:32:48 -0700 (PDT)
+Received: by mail-pg1-x52d.google.com with SMTP id w8so8844592pgf.5
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 Sep 2021 22:32:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=sender:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=pCzJKWmntQ3ebtf200GC4XWA2v2bTEjO1HhQqYjzvYM=;
+        b=R1SZLwQMgUlUK9msj1v4fm+nuexyMi2P+pJEhkR8dfyTESIX12Y1R87KtXyL8DHN9b
+         ZlhbWCR82KbI0cIzMseFLv3wgFpzOnOztP2wpAlp3RzDhP5PEj0ooRr8K907Zuhnz7nd
+         f8smZ0ClH2IHpE9wSh06iiKFolIUA3MqQo5pykSnQd9q3gt8/1r1oYdUsTYVIpDwt1gT
+         k1LC9pBSW9Dj9O59gl+Ox+q/Rqsj3bVHZsrLwFKqu3laVHp5atmQfYnDzU/g/7XbHMDw
+         fv0YjEP5HXIHW9/XEfyQM0z/KlgNZxtUa/fPflLGRWWMAxarfTPjGVQYj/4e6WDNksvk
+         D67w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
+         :mime-version:content-transfer-encoding;
+        bh=pCzJKWmntQ3ebtf200GC4XWA2v2bTEjO1HhQqYjzvYM=;
+        b=UzfPdLZpw28Mubgd1cz9u8lCCbzQgUsHnOxrrRKq2aMxXa0iz02D2kjP9BNAdZXxUk
+         9aco0oba7Qi9IUjJpEC7Gq3oyC5dPT5dl8z6yOS9VwGavZOi19PElixW4Z4bo7Br+Mfo
+         bvUAhHayaLni0QCPw2C+NLnrfobmEcqDu+M/5V+rLCAcF3Vb9nXQk6ZIhthEBW39mpHo
+         WxPp1dX8iXa2uXP7qIftjaN/4YYvwQsc3L3g8Thefxb4OzDhS1MaTDgA+JrA5p5SQZn6
+         /CEEHS3ZiQRK5SptfOfM5CfrzLIQx/Jzal3BhwMx1Ua4eerSTEGWpwA1uR+UYzEAuPfg
+         ewkA==
+X-Gm-Message-State: AOAM532/u/vL2l1SWGGhSr6K/BJE/5S80Wdp+7m/ycrIrKZAF70DXfsV
+        7kI5HLO6Iaojrwy/nRWIinU475JDDpM=
+X-Google-Smtp-Source: ABdhPJyz/xWByqY5mfoNfUhKpmffGEkYmhYoUgpw4YL88xV+xBjI8Iumus+gx95LLNs/HR0CJdaPbQ==
+X-Received: by 2002:a63:6f42:: with SMTP id k63mr2268353pgc.358.1632461567763;
+        Thu, 23 Sep 2021 22:32:47 -0700 (PDT)
+Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
+        by smtp.gmail.com with ESMTPSA id e18sm7484433pfj.159.2021.09.23.22.32.45
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 23 Sep 2021 22:32:47 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH libnetfilter_queue v4 0/1] build: doc: Allow to specify whether to produce man pages, html, neither or both
+Date:   Fri, 24 Sep 2021 15:32:41 +1000
+Message-Id: <20210924053242.7846-1-duncan_roe@optusnet.com.au>
 X-Mailer: git-send-email 2.32.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -40,231 +71,23 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This is a revert of
-7b1957b049 ("netfilter: nf_defrag_ipv4: use net_generic infra")
-and a partial revert of
-8b0adbe3e3 ("netfilter: nf_defrag_ipv6: use net_generic infra").
+Hi Pablo,
 
-If conntrack is builtin and kernel is booted with:
-nf_conntrack.enable_hooks=1
+This version simplifies the configure.ac patch by removing --with-doxygen
+altogether.
+./configure will not even look for doxygen if no documentation is requested,
 
-.... kernel will fail to boot due to a NULL deref in
-nf_defrag_ipv4_enable(): Its called before the ipv4 defrag initcall is
-made, so net_generic() returns NULL.
+Cheers ... Duncan.
 
-To resolve this, move the user refcount back to struct net so calls
-to those functions are possible even before their initcalls have run.
+Duncan Roe (1):
+  build: doc: Allow to specify whether to produce man pages, html,
+    neither or both
 
-Fixes: 7b1957b04956 ("netfilter: nf_defrag_ipv4: use net_generic infra")
-Fixes: 8b0adbe3e38d ("netfilter: nf_defrag_ipv6: use net_generic infra").
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/net/netfilter/ipv6/nf_defrag_ipv6.h |  1 -
- include/net/netns/netfilter.h               |  6 +++++
- net/ipv4/netfilter/nf_defrag_ipv4.c         | 30 +++++++--------------
- net/ipv6/netfilter/nf_conntrack_reasm.c     |  2 +-
- net/ipv6/netfilter/nf_defrag_ipv6_hooks.c   | 25 +++++++----------
- 5 files changed, 25 insertions(+), 39 deletions(-)
+ configure.ac           | 28 ++++++++++++++++++++++------
+ doxygen/Makefile.am    | 11 ++++++++++-
+ doxygen/doxygen.cfg.in |  3 ++-
+ 3 files changed, 34 insertions(+), 8 deletions(-)
 
-diff --git a/include/net/netfilter/ipv6/nf_defrag_ipv6.h b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
-index 0fd8a4159662..ceadf8ba25a4 100644
---- a/include/net/netfilter/ipv6/nf_defrag_ipv6.h
-+++ b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
-@@ -17,7 +17,6 @@ struct inet_frags_ctl;
- struct nft_ct_frag6_pernet {
- 	struct ctl_table_header *nf_frag_frags_hdr;
- 	struct fqdir	*fqdir;
--	unsigned int users;
- };
- 
- #endif /* _NF_DEFRAG_IPV6_H */
-diff --git a/include/net/netns/netfilter.h b/include/net/netns/netfilter.h
-index 986a2a9cfdfa..b593f95e9991 100644
---- a/include/net/netns/netfilter.h
-+++ b/include/net/netns/netfilter.h
-@@ -27,5 +27,11 @@ struct netns_nf {
- #if IS_ENABLED(CONFIG_DECNET)
- 	struct nf_hook_entries __rcu *hooks_decnet[NF_DN_NUMHOOKS];
- #endif
-+#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
-+	unsigned int defrag_ipv4_users;
-+#endif
-+#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
-+	unsigned int defrag_ipv6_users;
-+#endif
- };
- #endif
-diff --git a/net/ipv4/netfilter/nf_defrag_ipv4.c b/net/ipv4/netfilter/nf_defrag_ipv4.c
-index 613432a36f0a..e61ea428ea18 100644
---- a/net/ipv4/netfilter/nf_defrag_ipv4.c
-+++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
-@@ -20,13 +20,8 @@
- #endif
- #include <net/netfilter/nf_conntrack_zones.h>
- 
--static unsigned int defrag4_pernet_id __read_mostly;
- static DEFINE_MUTEX(defrag4_mutex);
- 
--struct defrag4_pernet {
--	unsigned int users;
--};
--
- static int nf_ct_ipv4_gather_frags(struct net *net, struct sk_buff *skb,
- 				   u_int32_t user)
- {
-@@ -111,19 +106,15 @@ static const struct nf_hook_ops ipv4_defrag_ops[] = {
- 
- static void __net_exit defrag4_net_exit(struct net *net)
- {
--	struct defrag4_pernet *nf_defrag = net_generic(net, defrag4_pernet_id);
--
--	if (nf_defrag->users) {
-+	if (net->nf.defrag_ipv4_users) {
- 		nf_unregister_net_hooks(net, ipv4_defrag_ops,
- 					ARRAY_SIZE(ipv4_defrag_ops));
--		nf_defrag->users = 0;
-+		net->nf.defrag_ipv4_users = 0;
- 	}
- }
- 
- static struct pernet_operations defrag4_net_ops = {
- 	.exit = defrag4_net_exit,
--	.id   = &defrag4_pernet_id,
--	.size = sizeof(struct defrag4_pernet),
- };
- 
- static int __init nf_defrag_init(void)
-@@ -138,24 +129,23 @@ static void __exit nf_defrag_fini(void)
- 
- int nf_defrag_ipv4_enable(struct net *net)
- {
--	struct defrag4_pernet *nf_defrag = net_generic(net, defrag4_pernet_id);
- 	int err = 0;
- 
- 	mutex_lock(&defrag4_mutex);
--	if (nf_defrag->users == UINT_MAX) {
-+	if (net->nf.defrag_ipv4_users == UINT_MAX) {
- 		err = -EOVERFLOW;
- 		goto out_unlock;
- 	}
- 
--	if (nf_defrag->users) {
--		nf_defrag->users++;
-+	if (net->nf.defrag_ipv4_users) {
-+		net->nf.defrag_ipv4_users++;
- 		goto out_unlock;
- 	}
- 
- 	err = nf_register_net_hooks(net, ipv4_defrag_ops,
- 				    ARRAY_SIZE(ipv4_defrag_ops));
- 	if (err == 0)
--		nf_defrag->users = 1;
-+		net->nf.defrag_ipv4_users = 1;
- 
-  out_unlock:
- 	mutex_unlock(&defrag4_mutex);
-@@ -165,12 +155,10 @@ EXPORT_SYMBOL_GPL(nf_defrag_ipv4_enable);
- 
- void nf_defrag_ipv4_disable(struct net *net)
- {
--	struct defrag4_pernet *nf_defrag = net_generic(net, defrag4_pernet_id);
--
- 	mutex_lock(&defrag4_mutex);
--	if (nf_defrag->users) {
--		nf_defrag->users--;
--		if (nf_defrag->users == 0)
-+	if (net->nf.defrag_ipv4_users) {
-+		net->nf.defrag_ipv4_users--;
-+		if (net->nf.defrag_ipv4_users == 0)
- 			nf_unregister_net_hooks(net, ipv4_defrag_ops,
- 						ARRAY_SIZE(ipv4_defrag_ops));
- 	}
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index a0108415275f..5c47be29b9ee 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -33,7 +33,7 @@
- 
- static const char nf_frags_cache_name[] = "nf-frags";
- 
--unsigned int nf_frag_pernet_id __read_mostly;
-+static unsigned int nf_frag_pernet_id __read_mostly;
- static struct inet_frags nf_frags;
- 
- static struct nft_ct_frag6_pernet *nf_frag_pernet(struct net *net)
-diff --git a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-index e8a59d8bf2ad..cb4eb1d2c620 100644
---- a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-+++ b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-@@ -25,8 +25,6 @@
- #include <net/netfilter/nf_conntrack_zones.h>
- #include <net/netfilter/ipv6/nf_defrag_ipv6.h>
- 
--extern unsigned int nf_frag_pernet_id;
--
- static DEFINE_MUTEX(defrag6_mutex);
- 
- static enum ip6_defrag_users nf_ct6_defrag_user(unsigned int hooknum,
-@@ -91,12 +89,10 @@ static const struct nf_hook_ops ipv6_defrag_ops[] = {
- 
- static void __net_exit defrag6_net_exit(struct net *net)
- {
--	struct nft_ct_frag6_pernet *nf_frag = net_generic(net, nf_frag_pernet_id);
--
--	if (nf_frag->users) {
-+	if (net->nf.defrag_ipv6_users) {
- 		nf_unregister_net_hooks(net, ipv6_defrag_ops,
- 					ARRAY_SIZE(ipv6_defrag_ops));
--		nf_frag->users = 0;
-+		net->nf.defrag_ipv6_users = 0;
- 	}
- }
- 
-@@ -134,24 +130,23 @@ static void __exit nf_defrag_fini(void)
- 
- int nf_defrag_ipv6_enable(struct net *net)
- {
--	struct nft_ct_frag6_pernet *nf_frag = net_generic(net, nf_frag_pernet_id);
- 	int err = 0;
- 
- 	mutex_lock(&defrag6_mutex);
--	if (nf_frag->users == UINT_MAX) {
-+	if (net->nf.defrag_ipv6_users == UINT_MAX) {
- 		err = -EOVERFLOW;
- 		goto out_unlock;
- 	}
- 
--	if (nf_frag->users) {
--		nf_frag->users++;
-+	if (net->nf.defrag_ipv6_users) {
-+		net->nf.defrag_ipv6_users++;
- 		goto out_unlock;
- 	}
- 
- 	err = nf_register_net_hooks(net, ipv6_defrag_ops,
- 				    ARRAY_SIZE(ipv6_defrag_ops));
- 	if (err == 0)
--		nf_frag->users = 1;
-+		net->nf.defrag_ipv6_users = 1;
- 
-  out_unlock:
- 	mutex_unlock(&defrag6_mutex);
-@@ -161,12 +156,10 @@ EXPORT_SYMBOL_GPL(nf_defrag_ipv6_enable);
- 
- void nf_defrag_ipv6_disable(struct net *net)
- {
--	struct nft_ct_frag6_pernet *nf_frag = net_generic(net, nf_frag_pernet_id);
--
- 	mutex_lock(&defrag6_mutex);
--	if (nf_frag->users) {
--		nf_frag->users--;
--		if (nf_frag->users == 0)
-+	if (net->nf.defrag_ipv6_users) {
-+		net->nf.defrag_ipv6_users--;
-+		if (net->nf.defrag_ipv6_users == 0)
- 			nf_unregister_net_hooks(net, ipv6_defrag_ops,
- 						ARRAY_SIZE(ipv6_defrag_ops));
- 	}
 -- 
-2.32.0
+2.17.5
 
