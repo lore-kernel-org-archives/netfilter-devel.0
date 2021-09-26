@@ -2,247 +2,123 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22BC8C433EF
-	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Sep 2021 11:22:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BBF79C433EF
+	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Sep 2021 19:39:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EB54B61019
-	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Sep 2021 11:22:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 914FB60F39
+	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Sep 2021 19:39:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230200AbhIZLYF (ORCPT
+        id S229741AbhIZTk7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 26 Sep 2021 07:24:05 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:52640 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230128AbhIZLYF (ORCPT
+        Sun, 26 Sep 2021 15:40:59 -0400
+Received: from mail.redfish-solutions.com ([45.33.216.244]:43130 "EHLO
+        mail.redfish-solutions.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S229932AbhIZTk6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 26 Sep 2021 07:24:05 -0400
-Received: from localhost.localdomain (unknown [78.30.35.141])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 60D5063EB4
-        for <netfilter-devel@vger.kernel.org>; Sun, 26 Sep 2021 13:21:06 +0200 (CEST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
+        Sun, 26 Sep 2021 15:40:58 -0400
+X-Greylist: delayed 1012 seconds by postgrey-1.27 at vger.kernel.org; Sun, 26 Sep 2021 15:40:58 EDT
+Received: from ubuntu20.redfish-solutions.com (ubuntu20.redfish-solutions.com [192.168.4.33])
+        (authenticated bits=0)
+        by mail.redfish-solutions.com (8.16.1/8.16.1) with ESMTPSA id 18QJMNS3535259
+        (version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
+        Sun, 26 Sep 2021 13:22:23 -0600
+From:   "Philip Prindeville" <philipp@redfish-solutions.com>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v2] netfilter: nf_tables: honor NLM_F_CREATE and NLM_F_EXCL in event notification
-Date:   Sun, 26 Sep 2021 13:22:24 +0200
-Message-Id: <20210926112224.6642-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+Cc:     Jan Engelhardt <jengelh@inai.de>,
+        Philip Prindeville <philipp@redfish-solutions.com>
+Subject: [PATCH 1/1] xt_ECHO, xt_TARPIT: make properly conditional on IPv6
+Date:   Sun, 26 Sep 2021 13:22:23 -0600
+Message-Id: <20210926192223.614850-1-philipp@redfish-solutions.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 2.84 on 192.168.4.3
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Include the NLM_F_CREATE and NLM_F_EXCL flags in netlink event
-notifications, otherwise userspace cannot distiguish between create and
-add commands.
+From: Philip Prindeville <philipp@redfish-solutions.com>
 
-Fixes: 96518518cc41 ("netfilter: add nftables")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Not all modules compile equally welll when CONFIG_IPv6 is disabled.
+
+Signed-off-by: Philip Prindeville <philipp@redfish-solutions.com>
 ---
-v2: save a few LoC.
+ extensions/xt_ECHO.c   | 19 ++++++++++++++-----
+ extensions/xt_TARPIT.c |  2 ++
+ 2 files changed, 16 insertions(+), 5 deletions(-)
 
- include/net/netfilter/nf_tables.h |  2 +-
- net/netfilter/nf_tables_api.c     | 47 +++++++++++++++++++++++--------
- net/netfilter/nft_quota.c         |  2 +-
- 3 files changed, 37 insertions(+), 14 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 148f5d8ee5ab..a16171c5fd9e 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1202,7 +1202,7 @@ struct nft_object *nft_obj_lookup(const struct net *net,
+diff --git a/extensions/xt_ECHO.c b/extensions/xt_ECHO.c
+index a0b718561db53ab468f86e17a05b5d991771d983..3c419f36f5169212af01cf62afa0b93456401767 100644
+--- a/extensions/xt_ECHO.c
++++ b/extensions/xt_ECHO.c
+@@ -22,7 +22,11 @@
+ #include <net/ip6_route.h>
+ #include <net/route.h>
+ #include "compat_xtables.h"
++#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
++#	define WITH_IPV6 1
++#endif
  
- void nft_obj_notify(struct net *net, const struct nft_table *table,
- 		    struct nft_object *obj, u32 portid, u32 seq,
--		    int event, int family, int report, gfp_t gfp);
-+		    int event, u16 flags, int family, int report, gfp_t gfp);
- 
- /**
-  *	struct nft_object_type - stateful object type
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index c8acd26c7201..c0851fec11d4 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -780,6 +780,7 @@ static void nf_tables_table_notify(const struct nft_ctx *ctx, int event)
++#ifdef WITH_IPV6
+ static unsigned int
+ echo_tg6(struct sk_buff *oldskb, const struct xt_action_param *par)
  {
- 	struct nftables_pernet *nft_net;
- 	struct sk_buff *skb;
-+	u16 flags = 0;
- 	int err;
- 
- 	if (!ctx->report &&
-@@ -790,8 +791,11 @@ static void nf_tables_table_notify(const struct nft_ctx *ctx, int event)
- 	if (skb == NULL)
- 		goto err;
- 
-+	if (ctx->flags & (NLM_F_CREATE | NLM_F_EXCL))
-+		flags |= ctx->flags & (NLM_F_CREATE | NLM_F_EXCL);
-+
- 	err = nf_tables_fill_table_info(skb, ctx->net, ctx->portid, ctx->seq,
--					event, 0, ctx->family, ctx->table);
-+					event, flags, ctx->family, ctx->table);
- 	if (err < 0) {
- 		kfree_skb(skb);
- 		goto err;
-@@ -1563,6 +1567,7 @@ static void nf_tables_chain_notify(const struct nft_ctx *ctx, int event)
- {
- 	struct nftables_pernet *nft_net;
- 	struct sk_buff *skb;
-+	u16 flags = 0;
- 	int err;
- 
- 	if (!ctx->report &&
-@@ -1573,8 +1578,11 @@ static void nf_tables_chain_notify(const struct nft_ctx *ctx, int event)
- 	if (skb == NULL)
- 		goto err;
- 
-+	if (ctx->flags & (NLM_F_CREATE | NLM_F_EXCL))
-+		flags |= ctx->flags & (NLM_F_CREATE | NLM_F_EXCL);
-+
- 	err = nf_tables_fill_chain_info(skb, ctx->net, ctx->portid, ctx->seq,
--					event, 0, ctx->family, ctx->table,
-+					event, flags, ctx->family, ctx->table,
- 					ctx->chain);
- 	if (err < 0) {
- 		kfree_skb(skb);
-@@ -2945,6 +2953,8 @@ static void nf_tables_rule_notify(const struct nft_ctx *ctx,
- 	}
- 	if (ctx->flags & (NLM_F_APPEND | NLM_F_REPLACE))
- 		flags |= NLM_F_APPEND;
-+	if (ctx->flags & (NLM_F_CREATE | NLM_F_EXCL))
-+		flags |= ctx->flags & (NLM_F_CREATE | NLM_F_EXCL);
- 
- 	err = nf_tables_fill_rule_info(skb, ctx->net, ctx->portid, ctx->seq,
- 				       event, flags, ctx->family, ctx->table,
-@@ -3957,8 +3967,9 @@ static void nf_tables_set_notify(const struct nft_ctx *ctx,
- 			         gfp_t gfp_flags)
- {
- 	struct nftables_pernet *nft_net = nft_pernet(ctx->net);
--	struct sk_buff *skb;
- 	u32 portid = ctx->portid;
-+	struct sk_buff *skb;
-+	u16 flags = 0;
- 	int err;
- 
- 	if (!ctx->report &&
-@@ -3969,7 +3980,10 @@ static void nf_tables_set_notify(const struct nft_ctx *ctx,
- 	if (skb == NULL)
- 		goto err;
- 
--	err = nf_tables_fill_set(skb, ctx, set, event, 0);
-+	if (ctx->flags & (NLM_F_CREATE | NLM_F_EXCL))
-+		flags |= ctx->flags & (NLM_F_CREATE | NLM_F_EXCL);
-+
-+	err = nf_tables_fill_set(skb, ctx, set, event, flags);
- 	if (err < 0) {
- 		kfree_skb(skb);
- 		goto err;
-@@ -5245,12 +5259,13 @@ static int nf_tables_getsetelem(struct sk_buff *skb,
- static void nf_tables_setelem_notify(const struct nft_ctx *ctx,
- 				     const struct nft_set *set,
- 				     const struct nft_set_elem *elem,
--				     int event, u16 flags)
-+				     int event)
- {
- 	struct nftables_pernet *nft_net;
- 	struct net *net = ctx->net;
- 	u32 portid = ctx->portid;
- 	struct sk_buff *skb;
-+	u16 flags = 0;
- 	int err;
- 
- 	if (!ctx->report && !nfnetlink_has_listeners(net, NFNLGRP_NFTABLES))
-@@ -5260,6 +5275,9 @@ static void nf_tables_setelem_notify(const struct nft_ctx *ctx,
- 	if (skb == NULL)
- 		goto err;
- 
-+	if (ctx->flags & (NLM_F_CREATE | NLM_F_EXCL))
-+		flags |= ctx->flags & (NLM_F_CREATE | NLM_F_EXCL);
-+
- 	err = nf_tables_fill_setelem_info(skb, ctx, 0, portid, event, flags,
- 					  set, elem);
- 	if (err < 0) {
-@@ -6935,7 +6953,7 @@ static int nf_tables_delobj(struct sk_buff *skb, const struct nfnl_info *info,
- 
- void nft_obj_notify(struct net *net, const struct nft_table *table,
- 		    struct nft_object *obj, u32 portid, u32 seq, int event,
--		    int family, int report, gfp_t gfp)
-+		    u16 flags, int family, int report, gfp_t gfp)
- {
- 	struct nftables_pernet *nft_net = nft_pernet(net);
- 	struct sk_buff *skb;
-@@ -6960,8 +6978,9 @@ void nft_obj_notify(struct net *net, const struct nft_table *table,
- 	if (skb == NULL)
- 		goto err;
- 
--	err = nf_tables_fill_obj_info(skb, net, portid, seq, event, 0, family,
--				      table, obj, false);
-+	err = nf_tables_fill_obj_info(skb, net, portid, seq, event,
-+				      flags & (NLM_F_CREATE | NLM_F_EXCL),
-+				      family, table, obj, false);
- 	if (err < 0) {
- 		kfree_skb(skb);
- 		goto err;
-@@ -6978,7 +6997,7 @@ static void nf_tables_obj_notify(const struct nft_ctx *ctx,
- 				 struct nft_object *obj, int event)
- {
- 	nft_obj_notify(ctx->net, ctx->table, obj, ctx->portid, ctx->seq, event,
--		       ctx->family, ctx->report, GFP_KERNEL);
-+		       ctx->flags, ctx->family, ctx->report, GFP_KERNEL);
+@@ -124,6 +128,7 @@ echo_tg6(struct sk_buff *oldskb, const struct xt_action_param *par)
+ 	kfree_skb(newskb);
+ 	return NF_DROP;
  }
++#endif
  
- /*
-@@ -7759,6 +7778,7 @@ static void nf_tables_flowtable_notify(struct nft_ctx *ctx,
- {
- 	struct nftables_pernet *nft_net = nft_pernet(ctx->net);
- 	struct sk_buff *skb;
-+	u16 flags = 0;
- 	int err;
+ static unsigned int
+ echo_tg4(struct sk_buff *oldskb, const struct xt_action_param *par)
+@@ -219,21 +224,23 @@ static struct xt_target echo_tg_reg[] __read_mostly = {
+ 	{
+ 		.name       = "ECHO",
+ 		.revision   = 0,
+-		.family     = NFPROTO_IPV6,
++		.family     = NFPROTO_IPV4,
+ 		.proto      = IPPROTO_UDP,
+ 		.table      = "filter",
+-		.target     = echo_tg6,
++		.target     = echo_tg4,
+ 		.me         = THIS_MODULE,
+ 	},
++#ifdef WITH_IPV6
+ 	{
+ 		.name       = "ECHO",
+ 		.revision   = 0,
+-		.family     = NFPROTO_IPV4,
++		.family     = NFPROTO_IPV6,
+ 		.proto      = IPPROTO_UDP,
+ 		.table      = "filter",
+-		.target     = echo_tg4,
++		.target     = echo_tg6,
+ 		.me         = THIS_MODULE,
+ 	},
++#endif
+ };
  
- 	if (!ctx->report &&
-@@ -7769,8 +7789,11 @@ static void nf_tables_flowtable_notify(struct nft_ctx *ctx,
- 	if (skb == NULL)
- 		goto err;
- 
-+	if (ctx->flags & (NLM_F_CREATE | NLM_F_EXCL))
-+		flags |= ctx->flags & (NLM_F_CREATE | NLM_F_EXCL);
-+
- 	err = nf_tables_fill_flowtable_info(skb, ctx->net, ctx->portid,
--					    ctx->seq, event, 0,
-+					    ctx->seq, event, flags,
- 					    ctx->family, flowtable, hook_list);
- 	if (err < 0) {
- 		kfree_skb(skb);
-@@ -8648,7 +8671,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 			nft_setelem_activate(net, te->set, &te->elem);
- 			nf_tables_setelem_notify(&trans->ctx, te->set,
- 						 &te->elem,
--						 NFT_MSG_NEWSETELEM, 0);
-+						 NFT_MSG_NEWSETELEM);
- 			nft_trans_destroy(trans);
- 			break;
- 		case NFT_MSG_DELSETELEM:
-@@ -8656,7 +8679,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 
- 			nf_tables_setelem_notify(&trans->ctx, te->set,
- 						 &te->elem,
--						 NFT_MSG_DELSETELEM, 0);
-+						 NFT_MSG_DELSETELEM);
- 			nft_setelem_remove(net, te->set, &te->elem);
- 			if (!nft_setelem_is_catchall(te->set, &te->elem)) {
- 				atomic_dec(&te->set->nelems);
-diff --git a/net/netfilter/nft_quota.c b/net/netfilter/nft_quota.c
-index 0363f533a42b..c4d1389f7185 100644
---- a/net/netfilter/nft_quota.c
-+++ b/net/netfilter/nft_quota.c
-@@ -60,7 +60,7 @@ static void nft_quota_obj_eval(struct nft_object *obj,
- 	if (overquota &&
- 	    !test_and_set_bit(NFT_QUOTA_DEPLETED_BIT, &priv->flags))
- 		nft_obj_notify(nft_net(pkt), obj->key.table, obj, 0, 0,
--			       NFT_MSG_NEWOBJ, nft_pf(pkt), 0, GFP_ATOMIC);
-+			       NFT_MSG_NEWOBJ, 0, nft_pf(pkt), 0, GFP_ATOMIC);
- }
- 
- static int nft_quota_do_init(const struct nlattr * const tb[],
+ static int __init echo_tg_init(void)
+@@ -251,5 +258,7 @@ module_exit(echo_tg_exit);
+ MODULE_AUTHOR("Jan Engelhardt ");
+ MODULE_DESCRIPTION("Xtables: ECHO diagnosis target");
+ MODULE_LICENSE("GPL");
+-MODULE_ALIAS("ip6t_ECHO");
+ MODULE_ALIAS("ipt_ECHO");
++#ifdef WITH_IPV6
++MODULE_ALIAS("ip6t_ECHO");
++#endif
+diff --git a/extensions/xt_TARPIT.c b/extensions/xt_TARPIT.c
+index 0b70dd9c8d16fe9193125b66f0773af8b00a6e81..9a7ae5cc840683d96a98ba298626b81fee355ac1 100644
+--- a/extensions/xt_TARPIT.c
++++ b/extensions/xt_TARPIT.c
+@@ -532,4 +532,6 @@ MODULE_DESCRIPTION("Xtables: \"TARPIT\", capture and hold TCP connections");
+ MODULE_AUTHOR("Jan Engelhardt ");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_TARPIT");
++#ifdef WITH_IPV6
+ MODULE_ALIAS("ip6t_TARPIT");
++#endif
 -- 
-2.30.2
+2.25.1
 
