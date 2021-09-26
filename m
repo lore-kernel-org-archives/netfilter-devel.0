@@ -2,59 +2,45 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 469CFC433F5
-	for <netfilter-devel@archiver.kernel.org>; Sat, 25 Sep 2021 20:46:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05E7DC433F5
+	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Sep 2021 09:34:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1E56360FDC
-	for <netfilter-devel@archiver.kernel.org>; Sat, 25 Sep 2021 20:46:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BEA6060EC0
+	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Sep 2021 09:34:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229904AbhIYUsG (ORCPT
+        id S229691AbhIZJgT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 25 Sep 2021 16:48:06 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:51758 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229934AbhIYUsF (ORCPT
+        Sun, 26 Sep 2021 05:36:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41276 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229584AbhIZJgT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 25 Sep 2021 16:48:05 -0400
-Received: from localhost.localdomain (unknown [78.30.35.141])
-        by mail.netfilter.org (Postfix) with ESMTPSA id D2AB763EB1
-        for <netfilter-devel@vger.kernel.org>; Sat, 25 Sep 2021 22:45:07 +0200 (CEST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] evaluate: provide a hint on missing dynamic flag
-Date:   Sat, 25 Sep 2021 22:46:25 +0200
-Message-Id: <20210925204625.22803-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Sun, 26 Sep 2021 05:36:19 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33F01C061570
+        for <netfilter-devel@vger.kernel.org>; Sun, 26 Sep 2021 02:34:43 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1mUQYR-0001J4-MD; Sun, 26 Sep 2021 11:34:39 +0200
+Date:   Sun, 26 Sep 2021 11:34:39 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     "mizuta.takeshi@fujitsu.com" <mizuta.takeshi@fujitsu.com>
+Cc:     "'netfilter-devel@vger.kernel.org'" <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH iptables] xtables-translate: add missing argument and
+ option to usage
+Message-ID: <20210926093439.GA2935@breakpoint.cc>
+References: <TYAPR01MB4160D345C99412EED8FFF1C38EA29@TYAPR01MB4160.jpnprd01.prod.outlook.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <TYAPR01MB4160D345C99412EED8FFF1C38EA29@TYAPR01MB4160.jpnprd01.prod.outlook.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Provide a hint to users if they forget to set on the dynamic flag, if
-such set is updated from the packet path.
+mizuta.takeshi@fujitsu.com <mizuta.takeshi@fujitsu.com> wrote:
+> In xtables-translate usage, the argument <FILE> for the -f option and
+> the -V|--version option are missing, so added them.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/evaluate.c | 5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 8ebc75617b1c..a0c67fb0e213 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -3598,6 +3598,11 @@ static int stmt_evaluate_set(struct eval_ctx *ctx, struct stmt *stmt)
- 		return expr_error(ctx->msgs, stmt->set.set,
- 				  "Expression does not refer to a set");
- 
-+	if (!(stmt->set.set->set->flags & NFT_SET_EVAL))
-+		return expr_error(ctx->msgs, stmt->set.set,
-+				  "%s does not allow for dynamic updates, add 'flags dynamic' to your set declaration",
-+				  stmt->set.set->set->flags & NFT_SET_MAP ? "map" : "set");
-+
- 	if (stmt_evaluate_arg(ctx, stmt,
- 			      stmt->set.set->set->key->dtype,
- 			      stmt->set.set->set->key->len,
--- 
-2.30.2
-
+Applied, thanks.
