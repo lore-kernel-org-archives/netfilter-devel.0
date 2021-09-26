@@ -2,33 +2,32 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BBF79C433EF
-	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Sep 2021 19:39:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BFF9C433F5
+	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Sep 2021 19:57:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 914FB60F39
-	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Sep 2021 19:39:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1AE1860F6D
+	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Sep 2021 19:57:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229741AbhIZTk7 (ORCPT
+        id S229916AbhIZT7V (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 26 Sep 2021 15:40:59 -0400
-Received: from mail.redfish-solutions.com ([45.33.216.244]:43130 "EHLO
+        Sun, 26 Sep 2021 15:59:21 -0400
+Received: from mail.redfish-solutions.com ([45.33.216.244]:43132 "EHLO
         mail.redfish-solutions.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S229932AbhIZTk6 (ORCPT
+        by vger.kernel.org with ESMTP id S229894AbhIZT7V (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 26 Sep 2021 15:40:58 -0400
-X-Greylist: delayed 1012 seconds by postgrey-1.27 at vger.kernel.org; Sun, 26 Sep 2021 15:40:58 EDT
+        Sun, 26 Sep 2021 15:59:21 -0400
 Received: from ubuntu20.redfish-solutions.com (ubuntu20.redfish-solutions.com [192.168.4.33])
         (authenticated bits=0)
-        by mail.redfish-solutions.com (8.16.1/8.16.1) with ESMTPSA id 18QJMNS3535259
+        by mail.redfish-solutions.com (8.16.1/8.16.1) with ESMTPSA id 18QJvY5w535332
         (version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-        Sun, 26 Sep 2021 13:22:23 -0600
+        Sun, 26 Sep 2021 13:57:34 -0600
 From:   "Philip Prindeville" <philipp@redfish-solutions.com>
 To:     netfilter-devel@vger.kernel.org
 Cc:     Jan Engelhardt <jengelh@inai.de>,
         Philip Prindeville <philipp@redfish-solutions.com>
-Subject: [PATCH 1/1] xt_ECHO, xt_TARPIT: make properly conditional on IPv6
-Date:   Sun, 26 Sep 2021 13:22:23 -0600
-Message-Id: <20210926192223.614850-1-philipp@redfish-solutions.com>
+Subject: [PATCH v2 1/1] xt_ECHO, xt_TARPIT: make properly conditional on IPv6
+Date:   Sun, 26 Sep 2021 13:57:34 -0600
+Message-Id: <20210926195734.702772-1-philipp@redfish-solutions.com>
 X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -39,7 +38,7 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Philip Prindeville <philipp@redfish-solutions.com>
 
-Not all modules compile equally welll when CONFIG_IPv6 is disabled.
+Not all modules compile equally well when CONFIG_IPv6 is disabled.
 
 Signed-off-by: Philip Prindeville <philipp@redfish-solutions.com>
 ---
