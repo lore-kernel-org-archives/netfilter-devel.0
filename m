@@ -2,63 +2,63 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73493C433F5
-	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Sep 2021 03:53:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 774CAC433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Sep 2021 03:53:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 52E086108E
-	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Sep 2021 03:53:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 58EC760F4F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Sep 2021 03:53:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232559AbhI0DzR (ORCPT
+        id S232498AbhI0DzT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 26 Sep 2021 23:55:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54352 "EHLO
+        Sun, 26 Sep 2021 23:55:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54362 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232498AbhI0DzR (ORCPT
+        with ESMTP id S232574AbhI0DzT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 26 Sep 2021 23:55:17 -0400
-Received: from mail-pg1-x533.google.com (mail-pg1-x533.google.com [IPv6:2607:f8b0:4864:20::533])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2107AC061570
-        for <netfilter-devel@vger.kernel.org>; Sun, 26 Sep 2021 20:53:40 -0700 (PDT)
-Received: by mail-pg1-x533.google.com with SMTP id m21so16462382pgu.13
-        for <netfilter-devel@vger.kernel.org>; Sun, 26 Sep 2021 20:53:40 -0700 (PDT)
+        Sun, 26 Sep 2021 23:55:19 -0400
+Received: from mail-pl1-x62f.google.com (mail-pl1-x62f.google.com [IPv6:2607:f8b0:4864:20::62f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 21E70C061570
+        for <netfilter-devel@vger.kernel.org>; Sun, 26 Sep 2021 20:53:42 -0700 (PDT)
+Received: by mail-pl1-x62f.google.com with SMTP id n2so10804905plk.12
+        for <netfilter-devel@vger.kernel.org>; Sun, 26 Sep 2021 20:53:42 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=sender:from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=BrLhoatIija5++8ud62m28ysUFzlh5tMfHVjglnL/Mw=;
-        b=VTiwOZB3QofcywUhcLDnMVVosyxukiWmLET5OedBUlUT5U4CwHdhCP77NsI2qCfVMJ
-         yrYkMCHxErnmbi1VH6G2Dxd9kjv2YsnYP6hhGkakmCeTPLi+FT2/3Ri5N2aauQeuqMMd
-         +QIEdPHtUdIFUSXWei3rnznJJenv1B+jifl1A2tqgOSQYnZuYQSiNVOn/avXd+5xdGXB
-         VYOAIeQFhx2YSWx8pmPDjxywOTv8P4r9eZ1GDG1ocdPalfBDXgbpxUY1kGZGs4e7hjyn
-         caDDANM1OQHftpjZAD+XNSGLnbgjK/cqtH3nKX2RaaVdXmUygb00HN/EA5EB5GuSxOb3
-         mJaA==
+        bh=p36eAGJ0KlTV2uwm5XGw5VXXWJr6iigaVH3Hr5HYYd8=;
+        b=FOnTmAynCiKuv5d+pIZsJntQ+XM6JXNc23WxMD9mmqw+U+c7ObEeiGyHtmXzRJfnm3
+         zXALczcrn+YtgK5YIOBRY0EGauDAoSexjWeCYXYxCek27jlmj2EJ4yC/k7kUn44vXY3H
+         R1yN0A+23NzalVUz3R8vP58nLall/UezQ11h5hPM55K/5sSfG7gZJHIT+Xuiakslk9Ws
+         yigOQuDXsdTJuOHc8yTlvLuEC38EZ9IJjbyuMEWN1E0DctCsOlLIirecurA1FNe7TKxu
+         PI+A8PE12NdhKtEMxyoVpQ37hagega8zzQJE4DkbmiTuFWVPeod2vWi4OHXvpo2i8+M5
+         pX9w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
          :in-reply-to:references:mime-version:content-transfer-encoding;
-        bh=BrLhoatIija5++8ud62m28ysUFzlh5tMfHVjglnL/Mw=;
-        b=pbSZGybwfVg8eMTknnBtcc9zF5+Ajqg/2Oj0RxrWVyx2N25UXYMOM3GFVFRsXvmf62
-         y2QrctNXM0+B/Pgowc4wDyHDkpKxmKZy6zwATUQIh4ZXncGQwYaa4viHyY1rfgsk4T+d
-         lCYZG0hnOTP1gpIAqBQhCfotH98r/qmmS3SNP0rsuEYwxGv2jMPpjjMCj1sZfyLxfFR6
-         extS/93ji8PjW0DKhlZqIMCHjDuC11ZNTJY05w1o1DkLev/s17RbFT0AdMrsoEGpOxW4
-         lhRkJGE70SDp0usvkCQLNOwJaXNQmtaNZ0EyZR8s667dPbfaFTen+NjrFzF7GVrX7y4P
-         MwCA==
-X-Gm-Message-State: AOAM531u6o6LaW3SeNaKaGqxZqoy1K0C/KtdgOs+Gh3sJaPLhOU+udxq
-        ISrHkuPHeYLOsawWLB8tjkzQ8yMQLQ0=
-X-Google-Smtp-Source: ABdhPJzEa2RAcDpz5IqNEkRpVJp1lI5K24nv1x7x0peEl6md1LBe1FgHb3SndCP2QxRjXjNlraD35w==
-X-Received: by 2002:a62:7696:0:b0:44b:4b19:6417 with SMTP id r144-20020a627696000000b0044b4b196417mr17486506pfc.5.1632714819727;
-        Sun, 26 Sep 2021 20:53:39 -0700 (PDT)
+        bh=p36eAGJ0KlTV2uwm5XGw5VXXWJr6iigaVH3Hr5HYYd8=;
+        b=Ky8U/ISSY68hdxxuex30awtxUpiEIDmc7IvbmqozAeKMFB7hBEWv6xSecoY3lMMEax
+         6kPckRhMRKjIDVKoXzVdyhWg+CF3ftKerJw0Ia1YChXz0K3//Mr6cGJlYrW5CctCqJy0
+         Z2P26Jzzu97EWSnu9jisxfuR2brcwtN6tZLMb0fbbmwmRmmz9B1rYFnrrggKnDKveK1D
+         k4HMBgSRiK3f6djtO4NlVC1g6Ob/b4R6O5SB/PSMXmCP3+kgauktM1ZO6dbet1HVV9WW
+         FGizYhHKeAH25ZVpJEb4sPEOoepJqaOAS9aK1q+o2At7TTnfv+DHw1Sew5ZnXCUyKkJ0
+         hMJw==
+X-Gm-Message-State: AOAM530hvFgmNkqD11/RH36J2mArkElRnZ0DlAUogl6O1vl+0NLXltfP
+        uRSyVzJm38mhcDgAdCxNBf8H132xPBU=
+X-Google-Smtp-Source: ABdhPJwLapi8r4MtQPk8SdYxJCGfps5oMjzag6qh5y6/+9/QU3djZ3QmQIVTPdV22wyvuPiy81CvMg==
+X-Received: by 2002:a17:90b:1c10:: with SMTP id oc16mr17253758pjb.245.1632714821784;
+        Sun, 26 Sep 2021 20:53:41 -0700 (PDT)
 Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
-        by smtp.gmail.com with ESMTPSA id e14sm16429926pga.23.2021.09.26.20.53.38
+        by smtp.gmail.com with ESMTPSA id e14sm16429926pga.23.2021.09.26.20.53.40
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 26 Sep 2021 20:53:39 -0700 (PDT)
+        Sun, 26 Sep 2021 20:53:41 -0700 (PDT)
 Sender: Duncan Roe <duncan.roe2@gmail.com>
 From:   Duncan Roe <duncan_roe@optusnet.com.au>
 To:     pablo@netfilter.org
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_queue v3 3/4] src: doc: Add \return for nflog_get_packet_hw()
-Date:   Mon, 27 Sep 2021 13:53:29 +1000
-Message-Id: <20210927035330.11390-3-duncan_roe@optusnet.com.au>
+Subject: [PATCH libnetfilter_queue v3 4/4] src: doc: Document nflog_callback_register() and nflog_handle_packet()
+Date:   Mon, 27 Sep 2021 13:53:30 +1000
+Message-Id: <20210927035330.11390-4-duncan_roe@optusnet.com.au>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20210927035330.11390-1-duncan_roe@optusnet.com.au>
 References: <20210927035330.11390-1-duncan_roe@optusnet.com.au>
@@ -68,34 +68,68 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Also indicate that hw_addrlen has NBO in struct nfulnl_msg_packet_hw
+utils/nfulnl_test.c uses these functions
 
 Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
 ---
- src/libnetfilter_log.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ src/libnetfilter_log.c | 32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
 
 diff --git a/src/libnetfilter_log.c b/src/libnetfilter_log.c
-index 581f612..66669af 100644
+index 66669af..27a6a2d 100644
 --- a/src/libnetfilter_log.c
 +++ b/src/libnetfilter_log.c
-@@ -818,11 +818,15 @@ uint32_t nflog_get_physoutdev(struct nflog_data *nfad)
-  * The nfulnl_msg_packet_hw structure is defined in libnetfilter_log.h as:
-  * \verbatim
- 	struct nfulnl_msg_packet_hw {
--		uint16_t       hw_addrlen;
-+		uint16_t       hw_addrlen; // Network Byte Order
- 		uint16_t       _pad;
- 		uint8_t        hw_addr[8];
- 	} __attribute__ ((packed));
- \endverbatim
-+ *
-+ * \return Pointer to struct nfulnl_msg_packet_hw from originating host
-+ * or NULL if none available (e.g. locally-originated packet not for \b lo
-+ * interface).
+@@ -323,6 +323,20 @@ struct nflog_handle *nflog_open(void)
+  * @}
   */
- struct nfulnl_msg_packet_hw *nflog_get_packet_hw(struct nflog_data *nfad)
+ 
++/**
++ * \addtogroup Log
++ * @{
++ */
++
++/**
++ * nflog_callback_register - register function to process packets
++ *
++ * \param gh Netfilter log group handle obtained by call to nflog_bind_group()
++ * \param cb callback function to call for each logged packet
++ * \param data custom data to pass to the callback function
++ \return 0
++ */
++
+ int nflog_callback_register(struct nflog_g_handle *gh, nflog_callback *cb,
+ 			     void *data)
  {
+@@ -332,11 +346,29 @@ int nflog_callback_register(struct nflog_g_handle *gh, nflog_callback *cb,
+ 	return 0;
+ }
+ 
++/**
++ * nflog_handle_packet - handle a packet received from the nflog subsystem
++ * \param h Netfilter log handle obtained via call to nflog_open()
++ * \param buf nflog data received from the kernel
++ * \param len length of packet data in buffer
++ *
++ * Triggers an associated callback for each packet contained in \b buf.
++ * Data can be read from the queue using nflog_fd() and \b recv().
++ * See example code in the Detailed Description.
++ * \return 0 on success, -1 if either the callback returned -ve or \b buf
++ * contains corrupt data. \b errno is not reliably set:
++ * caller should zeroise first if interested.
++ */
++
+ int nflog_handle_packet(struct nflog_handle *h, char *buf, int len)
+ {
+ 	return nfnl_handle_packet(h->nfnlh, buf, len);
+ }
+ 
++/**
++ * @}
++ */
++
+ /**
+  * \addtogroup LibrarySetup
+  *
 -- 
 2.17.5
 
