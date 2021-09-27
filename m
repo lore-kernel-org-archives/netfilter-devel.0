@@ -2,122 +2,194 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BFF9C433F5
-	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Sep 2021 19:57:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2923C433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Sep 2021 03:53:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1AE1860F6D
-	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Sep 2021 19:57:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 81FB160F4F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Sep 2021 03:53:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229916AbhIZT7V (ORCPT
+        id S232488AbhI0DzP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 26 Sep 2021 15:59:21 -0400
-Received: from mail.redfish-solutions.com ([45.33.216.244]:43132 "EHLO
-        mail.redfish-solutions.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S229894AbhIZT7V (ORCPT
+        Sun, 26 Sep 2021 23:55:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54344 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232498AbhI0DzP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 26 Sep 2021 15:59:21 -0400
-Received: from ubuntu20.redfish-solutions.com (ubuntu20.redfish-solutions.com [192.168.4.33])
-        (authenticated bits=0)
-        by mail.redfish-solutions.com (8.16.1/8.16.1) with ESMTPSA id 18QJvY5w535332
-        (version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-        Sun, 26 Sep 2021 13:57:34 -0600
-From:   "Philip Prindeville" <philipp@redfish-solutions.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Jan Engelhardt <jengelh@inai.de>,
-        Philip Prindeville <philipp@redfish-solutions.com>
-Subject: [PATCH v2 1/1] xt_ECHO, xt_TARPIT: make properly conditional on IPv6
-Date:   Sun, 26 Sep 2021 13:57:34 -0600
-Message-Id: <20210926195734.702772-1-philipp@redfish-solutions.com>
-X-Mailer: git-send-email 2.25.1
+        Sun, 26 Sep 2021 23:55:15 -0400
+Received: from mail-pj1-x1035.google.com (mail-pj1-x1035.google.com [IPv6:2607:f8b0:4864:20::1035])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2025BC061570
+        for <netfilter-devel@vger.kernel.org>; Sun, 26 Sep 2021 20:53:38 -0700 (PDT)
+Received: by mail-pj1-x1035.google.com with SMTP id me1so11444446pjb.4
+        for <netfilter-devel@vger.kernel.org>; Sun, 26 Sep 2021 20:53:38 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=sender:from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=yvXrDFABFpyOIkiJurgEyTizo2AgC2GlA1VnpCD9LMs=;
+        b=OctkiEmZqpurqaIX/bTlvn3MDgLToLbkqGWSGg3xbLZTLcBzDEOOZHcy99Re4oY/QD
+         cUDXDe2QY4v3utWaxLT8sB0HP8WSF/AsW9R+AqZcLeEuObaNhmvughqvG2F5GBv1fTDv
+         4btIhKlGFcXqeKcncr3TKFADx/9kKWJtjuxamfS95CEOpWHR+JcbdSWpwuw/FhijLhxR
+         Ducnuqc2EfH7H4PTcn8GgfyvQZzZXMlAfq109AhNJhR7SZUOMDxVtlXI87JvD1+MsEDA
+         eUzn6Ex9RHE8B2KgA6MZD7m811CuIglGzgpqZQIod0lC8EibItyTom7MYDBG2qSemLrN
+         RZrw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
+         :in-reply-to:references:mime-version:content-transfer-encoding;
+        bh=yvXrDFABFpyOIkiJurgEyTizo2AgC2GlA1VnpCD9LMs=;
+        b=zkkSc5/ZR+D57zyq5G0920QQ4APeb6ygGJ5fvRPQZaxxNqstBoc0WlLpi4c53936It
+         WugG42wssNkpfPzu1tpe4/XyCLkUJR+Y8poePQUJ3O8VoNg34X+tEj8L6g8Duw4mRWEy
+         X4rk8g7iRJOcldsNQ83q8DaGPXVjD03kZ8ghMIAkzVObiWM2zvUOeNyElngSswf0HwUS
+         NKhoUImWdlRIZatT/DhDDRWBCTAeJJ6JNcx/faeGi7aQD7cj4bvYowqZZ87TQLDE3AW9
+         kS9IH3LdnZ3KL46VlsW+0AWTIFMqSd9HBuMxNTrUpyO8+npaCBouZp0hXS86y1KhCPN5
+         /CBw==
+X-Gm-Message-State: AOAM531Re73I5umz2iXBY2a8zrfZnEMTZT/mXEDgjiDel9UfLNhTspVv
+        KdDK2HTkiOHBamvXZ9/X6ARGiO3Y4/Y=
+X-Google-Smtp-Source: ABdhPJyqph5cKmcwHciNZTnZsvY3q+FoESyvinHUhEoJBkMfU9d/dIW7ah2s5j+fOvB/j5ZrXQeORg==
+X-Received: by 2002:a17:90a:4618:: with SMTP id w24mr16417984pjg.142.1632714817627;
+        Sun, 26 Sep 2021 20:53:37 -0700 (PDT)
+Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
+        by smtp.gmail.com with ESMTPSA id e14sm16429926pga.23.2021.09.26.20.53.35
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 26 Sep 2021 20:53:37 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH libnetfilter_queue v3 2/4] src: doc: Insert SYNOPSIS sections for man pages
+Date:   Mon, 27 Sep 2021 13:53:28 +1000
+Message-Id: <20210927035330.11390-2-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.32.0
+In-Reply-To: <20210927035330.11390-1-duncan_roe@optusnet.com.au>
+References: <20210927035330.11390-1-duncan_roe@optusnet.com.au>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.84 on 192.168.4.3
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Philip Prindeville <philipp@redfish-solutions.com>
+Also a few more minor native English corrections
 
-Not all modules compile equally well when CONFIG_IPv6 is disabled.
-
-Signed-off-by: Philip Prindeville <philipp@redfish-solutions.com>
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
 ---
- extensions/xt_ECHO.c   | 19 ++++++++++++++-----
- extensions/xt_TARPIT.c |  2 ++
- 2 files changed, 16 insertions(+), 5 deletions(-)
+ src/libnetfilter_log.c | 37 ++++++++++++++++++++++++++++++-------
+ src/nlmsg.c            |  7 +++++++
+ 2 files changed, 37 insertions(+), 7 deletions(-)
 
-diff --git a/extensions/xt_ECHO.c b/extensions/xt_ECHO.c
-index a0b718561db53ab468f86e17a05b5d991771d983..3c419f36f5169212af01cf62afa0b93456401767 100644
---- a/extensions/xt_ECHO.c
-+++ b/extensions/xt_ECHO.c
-@@ -22,7 +22,11 @@
- #include <net/ip6_route.h>
- #include <net/route.h>
- #include "compat_xtables.h"
-+#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
-+#	define WITH_IPV6 1
-+#endif
+diff --git a/src/libnetfilter_log.c b/src/libnetfilter_log.c
+index 8124a30..581f612 100644
+--- a/src/libnetfilter_log.c
++++ b/src/libnetfilter_log.c
+@@ -221,6 +221,11 @@ functions.
+ \fBParsing\fP man page (\fBman nflog_get_gid\fP)
+ .RE
+ .PP
++.SH SYNOPSIS
++.nf
++\fB
++#include <stddef.h>
++#include <libnetfilter_log/libnetfilter_log.h>
+ \endmanonly
+  * @{
+  */
+@@ -338,6 +343,13 @@ int nflog_handle_packet(struct nflog_handle *h, char *buf, int len)
+  * When the program has finished with libnetfilter_log, it has to call
+  * the nflog_close() function to release all associated resources.
+  *
++ * \manonly
++.SH SYNOPSIS
++.nf
++\fB
++#include <netinet/in.h>
++#include <libnetfilter_log/libnetfilter_log.h>
++\endmanonly
+  * @{
+  */
  
-+#ifdef WITH_IPV6
- static unsigned int
- echo_tg6(struct sk_buff *oldskb, const struct xt_action_param *par)
- {
-@@ -124,6 +128,7 @@ echo_tg6(struct sk_buff *oldskb, const struct xt_action_param *par)
- 	kfree_skb(newskb);
- 	return NF_DROP;
+@@ -634,6 +646,13 @@ int nflog_set_flags(struct nflog_g_handle *gh, uint16_t flags)
+ 
+ /**
+  * \defgroup Parsing Message parsing functions
++ * \manonly
++.SH SYNOPSIS
++.nf
++\fB
++#include <stddef.h>
++#include <libnetfilter_log/libnetfilter_log.h>
++\endmanonly
+  * @{
+  */
+ 
+@@ -748,6 +767,7 @@ uint32_t nflog_get_indev(struct nflog_data *nfad)
+ 
+ /**
+  * nflog_get_physindev - get the physical interface that the packet was received
++ * through
+  * \param nfad Netlink packet data handle passed to callback function
+  *
+  * \return The index of the physical device the packet was received via.
+@@ -760,10 +780,10 @@ uint32_t nflog_get_physindev(struct nflog_data *nfad)
  }
-+#endif
  
- static unsigned int
- echo_tg4(struct sk_buff *oldskb, const struct xt_action_param *par)
-@@ -219,21 +224,23 @@ static struct xt_target echo_tg_reg[] __read_mostly = {
- 	{
- 		.name       = "ECHO",
- 		.revision   = 0,
--		.family     = NFPROTO_IPV6,
-+		.family     = NFPROTO_IPV4,
- 		.proto      = IPPROTO_UDP,
- 		.table      = "filter",
--		.target     = echo_tg6,
-+		.target     = echo_tg4,
- 		.me         = THIS_MODULE,
- 	},
-+#ifdef WITH_IPV6
- 	{
- 		.name       = "ECHO",
- 		.revision   = 0,
--		.family     = NFPROTO_IPV4,
-+		.family     = NFPROTO_IPV6,
- 		.proto      = IPPROTO_UDP,
- 		.table      = "filter",
--		.target     = echo_tg4,
-+		.target     = echo_tg6,
- 		.me         = THIS_MODULE,
- 	},
-+#endif
- };
+ /**
+- * nflog_get_outdev - gets the interface that the packet will be routed out
++ * nflog_get_outdev - gets the interface that the packet will be routed to
+  * \param nfad Netlink packet data handle passed to callback function
+  *
+- * \return The index of the device the packet will be sent out.  If the
++ * \return The index of the device the packet will be sent to.  If the
+  * returned index is 0, the packet is destined for localhost or the output
+  * interface is not yet known (ie. PREROUTING?).
+  */
+@@ -773,15 +793,12 @@ uint32_t nflog_get_outdev(struct nflog_data *nfad)
+ }
  
- static int __init echo_tg_init(void)
-@@ -251,5 +258,7 @@ module_exit(echo_tg_exit);
- MODULE_AUTHOR("Jan Engelhardt ");
- MODULE_DESCRIPTION("Xtables: ECHO diagnosis target");
- MODULE_LICENSE("GPL");
--MODULE_ALIAS("ip6t_ECHO");
- MODULE_ALIAS("ipt_ECHO");
-+#ifdef WITH_IPV6
-+MODULE_ALIAS("ip6t_ECHO");
-+#endif
-diff --git a/extensions/xt_TARPIT.c b/extensions/xt_TARPIT.c
-index 0b70dd9c8d16fe9193125b66f0773af8b00a6e81..9a7ae5cc840683d96a98ba298626b81fee355ac1 100644
---- a/extensions/xt_TARPIT.c
-+++ b/extensions/xt_TARPIT.c
-@@ -532,4 +532,6 @@ MODULE_DESCRIPTION("Xtables: \"TARPIT\", capture and hold TCP connections");
- MODULE_AUTHOR("Jan Engelhardt ");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("ipt_TARPIT");
-+#ifdef WITH_IPV6
- MODULE_ALIAS("ip6t_TARPIT");
-+#endif
+ /**
+- * nflog_get_physoutdev - get the physical interface that the packet output
++ * nflog_get_physoutdev - get the physical interface for packet output
+  * \param nfad Netlink packet data handle passed to callback function
+  *
+- * The index of the physical device the packet will be sent out. If the
++ * \return Index of physical device the packet will be routed to. If the
+  * returned index is 0, the packet is destined for localhost or the
+  * physical output interface is not yet known (ie. PREROUTING?).
+- *
+- * \return The index of physical interface that the packet output will be
+- * routed out.
+  */
+ uint32_t nflog_get_physoutdev(struct nflog_data *nfad)
+ {
+@@ -938,6 +955,12 @@ do {								\
+ 
+ /**
+  * \defgroup Printing Printing
++ * \manonly
++.SH SYNOPSIS
++.nf
++\fB
++#include <libnetfilter_log/libnetfilter_log.h>
++\endmanonly
+  * @{
+  */
+ 
+diff --git a/src/nlmsg.c b/src/nlmsg.c
+index 98c6768..587a046 100644
+--- a/src/nlmsg.c
++++ b/src/nlmsg.c
+@@ -14,6 +14,13 @@
+ 
+ /**
+  * \defgroup nlmsg Netlink message helper functions
++ * \manonly
++.SH SYNOPSIS
++.nf
++\fB
++#include <netinet/in.h>
++#include <libnetfilter_log/libnetfilter_log.h>
++\endmanonly
+  * @{
+  */
+ 
 -- 
-2.25.1
+2.17.5
 
