@@ -2,65 +2,65 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 94278C433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Sep 2021 15:05:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E363C433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Sep 2021 15:12:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6B9296108E
-	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Sep 2021 15:05:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 51F2B60F44
+	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Sep 2021 15:12:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234917AbhI0PHM (ORCPT
+        id S235019AbhI0PN7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 27 Sep 2021 11:07:12 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:25834 "EHLO
+        Mon, 27 Sep 2021 11:13:59 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:27364 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S234975AbhI0PHL (ORCPT
+        by vger.kernel.org with ESMTP id S234976AbhI0PN6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 Sep 2021 11:07:11 -0400
+        Mon, 27 Sep 2021 11:13:58 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1632755133;
+        s=mimecast20190719; t=1632755540;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding;
-        bh=s4G2O1nJFkNJ8gZZwP18XCjwQfh2FfR8MZUb9ilZ8P0=;
-        b=I6pJqbCYyXB9D11STBFFVMPMV0TBh4B7D/Z0SOQOWeUFXaQSHOx8K+l7d+bd+dZAcRPfth
-        aQh8BVizg7Gk2ZW0/9DycWOAtWw/r6tvWOsxVS3Lp9OwvgOMuaLSgiqZ+ZzleeFpm9AGLA
-        VYqskMqOk8Pv6/5Ch6sQ3iCU9wVXobM=
-Received: from mail-ed1-f72.google.com (mail-ed1-f72.google.com
- [209.85.208.72]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-359-JFjBAFhUN46HjmAyyn42ig-1; Mon, 27 Sep 2021 11:05:31 -0400
-X-MC-Unique: JFjBAFhUN46HjmAyyn42ig-1
-Received: by mail-ed1-f72.google.com with SMTP id m20-20020aa7c2d4000000b003d1add00b8aso18194378edp.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 Sep 2021 08:05:31 -0700 (PDT)
+        bh=xG/RRjSPhfCweSdXtrBUGiA5VU2JM3/56cNN3A0t8Sw=;
+        b=G9ZufO6XM14nx4oJH440kRJIPQeBD3KIZqkiTLHVYHTuMe5N4S6IpWZvz7JOEDBzGFz/Xr
+        UT73cHPZGhXwnS8R8PcXUxE3yfMXEktXqFrjD3XH+EnaqK3lI9nw+sRxf+FKf67+oNBTJm
+        1r4WxeMugtY6DU77FFlephrTrplg1uk=
+Received: from mail-ed1-f70.google.com (mail-ed1-f70.google.com
+ [209.85.208.70]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-584-Uf7MlqChMRKgUjROflHkmw-1; Mon, 27 Sep 2021 11:12:19 -0400
+X-MC-Unique: Uf7MlqChMRKgUjROflHkmw-1
+Received: by mail-ed1-f70.google.com with SMTP id z6-20020a50cd06000000b003d2c2e38f1fso18182644edi.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Sep 2021 08:12:19 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:subject:date:message-id:mime-version
          :content-transfer-encoding;
-        bh=s4G2O1nJFkNJ8gZZwP18XCjwQfh2FfR8MZUb9ilZ8P0=;
-        b=yBD4aFTHrssMeZCva1DRrj05HysBCM8KfEwdMOTJHkLsx3mN/0Boq0oxwV7xLowGDe
-         1FdmNw+U8klcppPo5yngCCwHYgEjIXg8/Yj/MD3O565NN5/f4dQUFC2yBWSJGGGLra07
-         txIcKoAB98Bj9H8k5RTTvQ0bkWVEFyvkGU+HV4dMFHm5ymbK0kcrnewV3aX+G6MzCrDn
-         4hWvGpZclUK1DIoY2Yd09qia9ALYLwvR6mwfCnxY4/pxPtl0Yvfum4wGRQQb1lbCq56h
-         okXtw5E3xWCdPeb6ixPBrrT54L8iCKkDHtdRZRgBemWXz2iDHLbNq+M9FZDSdvyh9nC6
-         JcHA==
-X-Gm-Message-State: AOAM5331h9t017v2TYY0l7Nz0CUGvJhw/oHUBF4KPBbf0PPAfFnR5+cW
-        y1Lm9VZkcxWrjBd2ry8p2mZPNUFoXfaub491xaOTf9X/BFlWpEgouf3mUAPriQt3UZTr+wtov72
-        OW8LkWCcTo8FeEASVHFQZrJsNEuvwMmrJmx44BcXCypENHcgFca8C3rvOKlm2jEqvcqOOLVfuZX
-        ZHag==
-X-Received: by 2002:a17:906:c18d:: with SMTP id g13mr545526ejz.518.1632755130312;
-        Mon, 27 Sep 2021 08:05:30 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJxJFB8kUv946Z9sMxEQhsnVNAQ7n1vitNgtARk6dX6VUN38B51c9Iz8WB8hEF4KZEqhWjXLrQ==
-X-Received: by 2002:a17:906:c18d:: with SMTP id g13mr545500ejz.518.1632755130064;
-        Mon, 27 Sep 2021 08:05:30 -0700 (PDT)
+        bh=xG/RRjSPhfCweSdXtrBUGiA5VU2JM3/56cNN3A0t8Sw=;
+        b=ry9ILPXEu36iIgMvYHZhqBmyoZb/raCU4cyK8iekiuFI4tlFPx7RnttEYAIc8lQIuT
+         7BXOkcuyM8mUu1JrLUupuUiLNO7Ls/AljhvEwVJCoU+nM+2IK96kJzsuYmX0ACZ1u5N3
+         +uqT/AhyfDg48qlhfxf+u7fRsp9OiIW3pTdoORjOyKwE+8m0mNro6/eRK1bSBMrhBUbv
+         JFhVuvHtaw+AdVsdit8GEfHsST28b/fsgWUmYTpLyRwgMigaZZu6ds/PwM+TCbyThB3i
+         VUfH0ilJFrmaFTOc7/jvzAEFJsjD5DQnnQedjvExlOrm9PefjqC+iCw7OPZGTO+tGGWV
+         U/HA==
+X-Gm-Message-State: AOAM531brBK9lke1pFR1CtpJrXRWCRnO+bwVdtSTPS+vslxDxFnM0QNR
+        hY8JX5SXr9JLjnPuupNiyFYFmZuo1iVwmKgkHxtuiU/xF2mwMUPAERC59fdG4X8M0ETtX7ASRxc
+        xDEuQQpWehHAzv/ft9oYc9D7vNY4SldRHhdmxvWTH0Fah4Q+igOWy1oiyNlc3kCnTw7doP5/dqa
+        hkgA==
+X-Received: by 2002:a17:906:fa8a:: with SMTP id lt10mr616860ejb.320.1632755537297;
+        Mon, 27 Sep 2021 08:12:17 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJwCOj6lpiYfMmUN9jHRSlwFgZroCzMTyOEUuBaOldsv2BKmhvKTEerO4KXEcHVeZkGTncGnfg==
+X-Received: by 2002:a17:906:fa8a:: with SMTP id lt10mr616824ejb.320.1632755536978;
+        Mon, 27 Sep 2021 08:12:16 -0700 (PDT)
 Received: from localhost ([185.112.167.40])
-        by smtp.gmail.com with ESMTPSA id w11sm11051386edl.12.2021.09.27.08.05.29
+        by smtp.gmail.com with ESMTPSA id p5sm8676331eju.30.2021.09.27.08.12.15
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 27 Sep 2021 08:05:29 -0700 (PDT)
+        Mon, 27 Sep 2021 08:12:16 -0700 (PDT)
 From:   =?UTF-8?q?=C5=A0t=C4=9Bp=C3=A1n=20N=C4=9Bmec?= <snemec@redhat.com>
 To:     netfilter-devel@vger.kernel.org,
         Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH conntrack-tools] conntrack.8: minor copy edit
-Date:   Mon, 27 Sep 2021 17:06:01 +0200
-Message-Id: <20210927150601.3131400-1-snemec@redhat.com>
+Subject: [PATCH conntrack-tools v2] conntrack.8: minor copy edit
+Date:   Mon, 27 Sep 2021 17:12:47 +0200
+Message-Id: <20210927151247.3133748-1-snemec@redhat.com>
 X-Mailer: git-send-email 2.33.0
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -71,11 +71,13 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 Signed-off-by: Štěpán Němec <snemec@redhat.com>
 ---
+v2: Forgot to escape the dashes, sorry.
+
  conntrack.8 | 23 +++++++++++------------
  1 file changed, 11 insertions(+), 12 deletions(-)
 
 diff --git a/conntrack.8 b/conntrack.8
-index a14cca6f6480..de1cac2bebac 100644
+index a14cca6f6480..c3214ee0c886 100644
 --- a/conntrack.8
 +++ b/conntrack.8
 @@ -26,7 +26,7 @@ conntrack \- command line interface for netfilter connection tracking
@@ -83,7 +85,7 @@ index a14cca6f6480..de1cac2bebac 100644
  .BR "conntrack -R file"
  .SH DESCRIPTION
 -The \fBconntrack\fP utilty provides a full featured userspace interface to the
-+The \fBconntrack\fP utility provides a full-featured userspace interface to the
++The \fBconntrack\fP utility provides a full\-featured userspace interface to the
  Netfilter connection tracking system that is intended to replace the old
  /proc/net/ip_conntrack interface. This tool can be used to search, list,
  inspect and maintain the connection tracking subsystem of the Linux kernel.
@@ -152,7 +154,7 @@ index a14cca6f6480..de1cac2bebac 100644
 -Pablo Neira Ayuso wrote and maintain the conntrack tool, Harald Welte added
 -support for conntrack based accounting counters.
 +Pablo Neira Ayuso wrote and maintains the conntrack tool, Harald Welte added
-+support for conntrack-based accounting counters.
++support for conntrack\-based accounting counters.
  .PP
  Man page written by Harald Welte <laforge@netfilter.org> and
  Pablo Neira Ayuso <pablo@netfilter.org>.
