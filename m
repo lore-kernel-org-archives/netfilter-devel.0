@@ -2,168 +2,97 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3807C433FE
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Sep 2021 19:34:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CA45C4332F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Sep 2021 20:02:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A98EF60FD7
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Sep 2021 19:34:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 765FF611EF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Sep 2021 20:02:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242438AbhI1TgY (ORCPT
+        id S242621AbhI1UEZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 28 Sep 2021 15:36:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39114 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237134AbhI1TgX (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 28 Sep 2021 15:36:23 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16119C06161C
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Sep 2021 12:34:44 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1mVIsD-0000OU-E7; Tue, 28 Sep 2021 21:34:41 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     netfilter@breakpoint.cc, Florian Westphal <fw@strlen.de>,
-        Paulo Ricardo Bruck <paulobruck1@gmail.com>
-Subject: [PATCH nft] netlink: dynset: set compound expr dtype based on set key definition
-Date:   Tue, 28 Sep 2021 21:34:30 +0200
-Message-Id: <20210928193430.20328-1-fw@strlen.de>
-X-Mailer: git-send-email 2.32.0
-In-Reply-To: <CANSGRxSmW1HZwtZReU10S0Yf1bN2B1f1cV=P1OMbig2mx8=j4Q@mail.gmail.com>
-References: <CANSGRxSmW1HZwtZReU10S0Yf1bN2B1f1cV=P1OMbig2mx8=j4Q@mail.gmail.com>
+        Tue, 28 Sep 2021 16:04:25 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36626 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S242534AbhI1UEZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 28 Sep 2021 16:04:25 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 74A6D610E6;
+        Tue, 28 Sep 2021 20:02:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1632859365;
+        bh=JUbEawgwP2c3g8ePRDbJDUMS5ioHTfLNboJDo0lgTFU=;
+        h=Date:From:To:Cc:Subject:From;
+        b=Ux5mxk8+u9s/JuBAUe8lOapvH73pC8IDGMANlVx6y8oPhvgbvBvHWer4TncIe4O5P
+         zRAc9E+j11GMc534Us0lyChK0krofQdH61wQYT+tlB96ajEswJlW5LiB//1WTO2L5f
+         OMdrtwjp0duaQIPR+qZIqgAi6Qa8l2np6wXwolZtpIwLuqrEayWPXVgfeSukyRPcND
+         nY0jFdRZ4a8XxMmYjRaDR7p3FjeSk8z6pkePYifJt/My7UG/ldZJhgQVzS3VbSERG8
+         OBVMvKrRhltAQVgX/vRxXj76KXsBAURq7425SEWqtcbmF2tEpoF58LKK2rfiAYS5sI
+         9KKrJqsNYsFsw==
+Date:   Tue, 28 Sep 2021 15:06:47 -0500
+From:   "Gustavo A. R. Silva" <gustavoars@kernel.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Roopa Prabhu <roopa@nvidia.com>,
+        Nikolay Aleksandrov <nikolay@nvidia.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <gustavoars@kernel.org>,
+        linux-hardening@vger.kernel.org
+Subject: [PATCH][net-next] netfilter: ebtables: use array_size() helper in
+ copy_{from,to}_user()
+Message-ID: <20210928200647.GA266402@embeddedor>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-"nft add rule ... add @t { ip saddr . 22 ..." will be listed as
-'ip saddr . 0x16  [ invalid type]".
+Use array_size() helper instead of the open-coded version in
+copy_{from,to}_user().  These sorts of multiplication factors
+need to be wrapped in array_size().
 
-This is a display bug, the compound expression created during netlink
-deserialization lacks correct datatypes for the value expression.
-
-Avoid this by setting the individual expressions' datatype.
-The set key defintion has those, so walk over the types and set
-them as needed.
-
-Also add a test case.
-
-Reported-by: Paulo Ricardo Bruck <paulobruck1@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Link: https://github.com/KSPP/linux/issues/160
+Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
 ---
- src/netlink_delinearize.c                     | 46 ++++++++++++++++++-
- .../testcases/sets/0045concat_ipv4_service    | 16 +++++++
- .../sets/dumps/0045concat_ipv4_service.nft    | 12 +++++
- 3 files changed, 73 insertions(+), 1 deletion(-)
- create mode 100755 tests/shell/testcases/sets/0045concat_ipv4_service
- create mode 100644 tests/shell/testcases/sets/dumps/0045concat_ipv4_service.nft
+ net/bridge/netfilter/ebtables.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index bd75ad5cbe1e..0c2b439eac6f 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -134,6 +134,50 @@ err:
- 	return NULL;
- }
- 
-+static struct expr *netlink_parse_concat_key(struct netlink_parse_ctx *ctx,
-+					       const struct location *loc,
-+					       unsigned int reg,
-+					       const struct expr *key)
-+{
-+	uint32_t type = key->dtype->type;
-+	unsigned int n, len = key->len;
-+	struct expr *concat, *expr;
-+	unsigned int consumed;
-+
-+	concat = concat_expr_alloc(loc);
-+	n = div_round_up(fls(type), TYPE_BITS);
-+
-+	while (len > 0) {
-+		const struct datatype *i;
-+
-+		expr = netlink_get_register(ctx, loc, reg);
-+		if (expr == NULL) {
-+			netlink_error(ctx, loc,
-+				      "Concat expression size mismatch");
-+			goto err;
-+		}
-+
-+		if (n > 0 && concat_subtype_id(type, --n)) {
-+			i = concat_subtype_lookup(type, n);
-+
-+			expr_set_type(expr, i, i->byteorder);
-+		}
-+
-+		compound_expr_add(concat, expr);
-+
-+		consumed = netlink_padded_len(expr->len);
-+		assert(consumed > 0);
-+		len -= consumed;
-+		reg += netlink_register_space(expr->len);
-+	}
-+
-+	return concat;
-+
-+err:
-+	expr_free(concat);
-+	return NULL;
-+}
-+
- static struct expr *netlink_parse_concat_data(struct netlink_parse_ctx *ctx,
- 					      const struct location *loc,
- 					      unsigned int reg,
-@@ -1572,7 +1616,7 @@ static void netlink_parse_dynset(struct netlink_parse_ctx *ctx,
- 
- 	if (expr->len < set->key->len) {
- 		expr_free(expr);
--		expr = netlink_parse_concat_expr(ctx, loc, sreg, set->key->len);
-+		expr = netlink_parse_concat_key(ctx, loc, sreg, set->key);
- 		if (expr == NULL)
- 			return;
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 83d1798dfbb4..32fa05ec4a6d 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -1071,7 +1071,7 @@ static int do_replace_finish(struct net *net, struct ebt_replace *repl,
+ 	 */
+ 	if (repl->num_counters &&
+ 	   copy_to_user(repl->counters, counterstmp,
+-	   repl->num_counters * sizeof(struct ebt_counter))) {
++	   array_size(repl->num_counters, sizeof(struct ebt_counter)))) {
+ 		/* Silent error, can't fail, new table is already in place */
+ 		net_warn_ratelimited("ebtables: counters copy to user failed while replacing table\n");
  	}
-diff --git a/tests/shell/testcases/sets/0045concat_ipv4_service b/tests/shell/testcases/sets/0045concat_ipv4_service
-new file mode 100755
-index 000000000000..5b40f97302ad
---- /dev/null
-+++ b/tests/shell/testcases/sets/0045concat_ipv4_service
-@@ -0,0 +1,16 @@
-+#!/bin/bash
-+
-+$NFT -f - <<EOF
-+table inet t {
-+	set s {
-+		type ipv4_addr . inet_service
-+		size 65536
-+		flags dynamic,timeout
-+		elements = { 192.168.7.1 . 22 }
-+	}
-+
-+	chain c {
-+		tcp dport 21 add @s { ip saddr . 22 timeout 60s }
-+	}
-+}
-+EOF
-diff --git a/tests/shell/testcases/sets/dumps/0045concat_ipv4_service.nft b/tests/shell/testcases/sets/dumps/0045concat_ipv4_service.nft
-new file mode 100644
-index 000000000000..e548a17a142d
---- /dev/null
-+++ b/tests/shell/testcases/sets/dumps/0045concat_ipv4_service.nft
-@@ -0,0 +1,12 @@
-+table inet t {
-+	set s {
-+		type ipv4_addr . inet_service
-+		size 65536
-+		flags dynamic,timeout
-+		elements = { 192.168.7.1 . 22 }
-+	}
-+
-+	chain c {
-+		tcp dport 21 add @s { ip saddr . 22 timeout 1m }
-+	}
-+}
+@@ -1399,7 +1399,8 @@ static int do_update_counters(struct net *net, const char *name,
+ 		goto unlock_mutex;
+ 	}
+ 
+-	if (copy_from_user(tmp, counters, num_counters * sizeof(*counters))) {
++	if (copy_from_user(tmp, counters,
++			   array_size(num_counters, sizeof(*counters)))) {
+ 		ret = -EFAULT;
+ 		goto unlock_mutex;
+ 	}
+@@ -1532,7 +1533,7 @@ static int copy_counters_to_user(struct ebt_table *t,
+ 	write_unlock_bh(&t->lock);
+ 
+ 	if (copy_to_user(user, counterstmp,
+-	   nentries * sizeof(struct ebt_counter)))
++	    array_size(nentries, sizeof(struct ebt_counter))))
+ 		ret = -EFAULT;
+ 	vfree(counterstmp);
+ 	return ret;
 -- 
-2.32.0
+2.27.0
 
