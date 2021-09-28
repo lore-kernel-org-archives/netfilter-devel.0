@@ -2,97 +2,105 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CA45C4332F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Sep 2021 20:02:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3B8BC433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Sep 2021 20:55:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 765FF611EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Sep 2021 20:02:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B052D6137E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Sep 2021 20:55:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242621AbhI1UEZ (ORCPT
+        id S242762AbhI1U53 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 28 Sep 2021 16:04:25 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36626 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S242534AbhI1UEZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 28 Sep 2021 16:04:25 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 74A6D610E6;
-        Tue, 28 Sep 2021 20:02:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1632859365;
-        bh=JUbEawgwP2c3g8ePRDbJDUMS5ioHTfLNboJDo0lgTFU=;
-        h=Date:From:To:Cc:Subject:From;
-        b=Ux5mxk8+u9s/JuBAUe8lOapvH73pC8IDGMANlVx6y8oPhvgbvBvHWer4TncIe4O5P
-         zRAc9E+j11GMc534Us0lyChK0krofQdH61wQYT+tlB96ajEswJlW5LiB//1WTO2L5f
-         OMdrtwjp0duaQIPR+qZIqgAi6Qa8l2np6wXwolZtpIwLuqrEayWPXVgfeSukyRPcND
-         nY0jFdRZ4a8XxMmYjRaDR7p3FjeSk8z6pkePYifJt/My7UG/ldZJhgQVzS3VbSERG8
-         OBVMvKrRhltAQVgX/vRxXj76KXsBAURq7425SEWqtcbmF2tEpoF58LKK2rfiAYS5sI
-         9KKrJqsNYsFsw==
-Date:   Tue, 28 Sep 2021 15:06:47 -0500
-From:   "Gustavo A. R. Silva" <gustavoars@kernel.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Roopa Prabhu <roopa@nvidia.com>,
-        Nikolay Aleksandrov <nikolay@nvidia.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>
-Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <gustavoars@kernel.org>,
-        linux-hardening@vger.kernel.org
-Subject: [PATCH][net-next] netfilter: ebtables: use array_size() helper in
- copy_{from,to}_user()
-Message-ID: <20210928200647.GA266402@embeddedor>
+        Tue, 28 Sep 2021 16:57:29 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:58740 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S242734AbhI1U53 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 28 Sep 2021 16:57:29 -0400
+Received: from localhost.localdomain (unknown [78.30.35.141])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 8FBE863EC4
+        for <netfilter-devel@vger.kernel.org>; Tue, 28 Sep 2021 22:54:23 +0200 (CEST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft 1/2] evaluate: check for concatenation in set data datatype
+Date:   Tue, 28 Sep 2021 22:55:42 +0200
+Message-Id: <20210928205543.368551-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Use array_size() helper instead of the open-coded version in
-copy_{from,to}_user().  These sorts of multiplication factors
-need to be wrapped in array_size().
+When adding this rule with an existing map:
 
-Link: https://github.com/KSPP/linux/issues/160
-Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+  add rule nat x y meta l4proto { tcp, udp } dnat ip to ip daddr . th dport map @fwdtoip_th
+
+reports a bogus:
+
+Error: datatype mismatch: expected IPv4 address, expression has type
+concatenation of (IPv4 address, internet network service)
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/bridge/netfilter/ebtables.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ src/evaluate.c                                        |  3 ++-
+ tests/shell/testcases/sets/0067nat_concat_interval_0  | 11 +++++++++++
+ .../sets/dumps/0067nat_concat_interval_0.nft          |  7 +++++++
+ 3 files changed, 20 insertions(+), 1 deletion(-)
 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 83d1798dfbb4..32fa05ec4a6d 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -1071,7 +1071,7 @@ static int do_replace_finish(struct net *net, struct ebt_replace *repl,
- 	 */
- 	if (repl->num_counters &&
- 	   copy_to_user(repl->counters, counterstmp,
--	   repl->num_counters * sizeof(struct ebt_counter))) {
-+	   array_size(repl->num_counters, sizeof(struct ebt_counter)))) {
- 		/* Silent error, can't fail, new table is already in place */
- 		net_warn_ratelimited("ebtables: counters copy to user failed while replacing table\n");
- 	}
-@@ -1399,7 +1399,8 @@ static int do_update_counters(struct net *net, const char *name,
- 		goto unlock_mutex;
+diff --git a/src/evaluate.c b/src/evaluate.c
+index a0c67fb0e213..1737ca0854cd 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -3243,7 +3243,8 @@ static bool nat_concat_map(struct eval_ctx *ctx, struct stmt *stmt)
+ 		if (expr_evaluate(ctx, &stmt->nat.addr->mappings))
+ 			return false;
+ 
+-		if (stmt->nat.addr->mappings->set->data->etype == EXPR_CONCAT) {
++		if (stmt->nat.addr->mappings->set->data->etype == EXPR_CONCAT ||
++		    stmt->nat.addr->mappings->set->data->dtype->subtypes) {
+ 			stmt->nat.type_flags |= STMT_NAT_F_CONCAT;
+ 			return true;
+ 		}
+diff --git a/tests/shell/testcases/sets/0067nat_concat_interval_0 b/tests/shell/testcases/sets/0067nat_concat_interval_0
+index 3d1b62d69b26..530771b0016c 100755
+--- a/tests/shell/testcases/sets/0067nat_concat_interval_0
++++ b/tests/shell/testcases/sets/0067nat_concat_interval_0
+@@ -31,3 +31,14 @@ EXPECTED="table ip nat {
+ }"
+ 
+ $NFT -f - <<< $EXPECTED
++
++EXPECTED="table ip nat {
++	map fwdtoip_th {
++		type ipv4_addr . inet_service : interval ipv4_addr . inet_service
++		flags interval
++		elements = { 1.2.3.4 . 10000-20000 : 192.168.3.4 . 30000-40000 }
++	}
++}"
++
++$NFT -f - <<< $EXPECTED
++$NFT add rule ip nat prerouting meta l4proto { tcp, udp } dnat to ip daddr . th dport map @fwdtoip_th
+diff --git a/tests/shell/testcases/sets/dumps/0067nat_concat_interval_0.nft b/tests/shell/testcases/sets/dumps/0067nat_concat_interval_0.nft
+index c565d21f8acc..3226da157272 100644
+--- a/tests/shell/testcases/sets/dumps/0067nat_concat_interval_0.nft
++++ b/tests/shell/testcases/sets/dumps/0067nat_concat_interval_0.nft
+@@ -11,9 +11,16 @@ table ip nat {
+ 		elements = { 192.168.1.2 . 192.168.2.2 : 127.0.0.0/8 . 42-43 }
  	}
  
--	if (copy_from_user(tmp, counters, num_counters * sizeof(*counters))) {
-+	if (copy_from_user(tmp, counters,
-+			   array_size(num_counters, sizeof(*counters)))) {
- 		ret = -EFAULT;
- 		goto unlock_mutex;
++	map fwdtoip_th {
++		type ipv4_addr . inet_service : interval ipv4_addr . inet_service
++		flags interval
++		elements = { 1.2.3.4 . 10000-20000 : 192.168.3.4 . 30000-40000 }
++	}
++
+ 	chain prerouting {
+ 		type nat hook prerouting priority dstnat; policy accept;
+ 		ip protocol tcp dnat ip to ip saddr map @ipportmap
+ 		ip protocol tcp dnat ip to ip saddr . ip daddr map @ipportmap2
++		meta l4proto { tcp, udp } dnat ip to ip daddr . th dport map @fwdtoip_th
  	}
-@@ -1532,7 +1533,7 @@ static int copy_counters_to_user(struct ebt_table *t,
- 	write_unlock_bh(&t->lock);
- 
- 	if (copy_to_user(user, counterstmp,
--	   nentries * sizeof(struct ebt_counter)))
-+	    array_size(nentries, sizeof(struct ebt_counter))))
- 		ret = -EFAULT;
- 	vfree(counterstmp);
- 	return ret;
+ }
 -- 
-2.27.0
+2.30.2
 
