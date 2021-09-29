@@ -2,121 +2,94 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F6F7C433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Sep 2021 17:56:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F7B5C43217
+	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Sep 2021 23:05:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1088861527
-	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Sep 2021 17:56:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 043C86152A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Sep 2021 23:05:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344095AbhI2R6C (ORCPT
+        id S1347371AbhI2XGs (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 29 Sep 2021 13:58:02 -0400
-Received: from mail-io1-f69.google.com ([209.85.166.69]:54874 "EHLO
-        mail-io1-f69.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343505AbhI2R6C (ORCPT
+        Wed, 29 Sep 2021 19:06:48 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:34766 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1346417AbhI2XGr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 29 Sep 2021 13:58:02 -0400
-Received: by mail-io1-f69.google.com with SMTP id k16-20020a5d8750000000b005db426b2619so3657875iol.21
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Sep 2021 10:56:20 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
-        bh=8EkP+0NB8mdZ019aGNAgeV/WzYJeLcjm5TRKX1/Ca/Y=;
-        b=vIRj+QvJcusddTj3Z4zHVdazgyVq721xE66kri47QT9/Ii94C1WFsXPm+ytpSKQ9Ic
-         23oa/n+XxxnW4KqWi7ziFexIuvVs8tIeSjHLml6SoQQSmG9flDh2zNuSCIlKe08fAZA/
-         vTvskzGIdRcqlXpWTrsVFTqc775N60psyKPiN3kM5qlB0kKBGRKL23bJwBjotMU/FaBu
-         AYW2TjD2PM6x0N36ovVhwkW1K5TgNGTLqvqmgXo14xAv9PtKeD2axYGCpdyd13bMblVj
-         cWUJzr3sPwaxpgbyv5zAuLNsdE7pGz2EdDn4PoRxiEz40i6f+tsSUJASfc+gH33SE7/Z
-         yReQ==
-X-Gm-Message-State: AOAM532E7Kej+Y0u5boiTlxHxoQA6P7+JxZ/WlxPRyKSBdDLQRtzhX27
-        JsZtIAkefYlixj9Mrok/GbYRYCNH0kl5JG3axTduodn7u6hN
-X-Google-Smtp-Source: ABdhPJxUHoL5xvF2va6rKr2jDyegz+Do0jKBNzgXgYqC13RdD+FG2aN7OXGu9w34driWjQusArCJTbbQsjBYKxSPDBowFKfSVkUG
+        Wed, 29 Sep 2021 19:06:47 -0400
+Received: from localhost.localdomain (unknown [78.30.35.141])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 3808E63586;
+        Thu, 30 Sep 2021 01:03:39 +0200 (CEST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
+Subject: [PATCH net 0/5] Netfilter fixes for net
+Date:   Thu, 30 Sep 2021 01:04:55 +0200
+Message-Id: <20210929230500.811946-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-X-Received: by 2002:a5e:c00e:: with SMTP id u14mr776832iol.13.1632938180630;
- Wed, 29 Sep 2021 10:56:20 -0700 (PDT)
-Date:   Wed, 29 Sep 2021 10:56:20 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000325b0905cd260c86@google.com>
-Subject: [syzbot] WARNING: kmalloc bug in hash_netportnet_create
-From:   syzbot <syzbot+60c1bad54e53f88e8c4f@syzkaller.appspotmail.com>
-To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        kadlec@netfilter.org, kuba@kernel.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello,
+Hi,
 
-syzbot found the following issue on:
+The following patchset contains Netfilter fixes for net:
 
-HEAD commit:    0513e464f900 Merge tag 'perf-tools-fixes-for-v5.15-2021-09..
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=1567e17f300000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=9290a409049988d4
-dashboard link: https://syzkaller.appspot.com/bug?extid=60c1bad54e53f88e8c4f
-compiler:       gcc (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.2
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=15403413300000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=15041b5b300000
+1) Move back the defrag users fields to the global netns_nf area.
+   Kernel fails to boot if conntrack is builtin and kernel is booted
+   with: nf_conntrack.enable_hooks=1. From Florian Westphal.
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+60c1bad54e53f88e8c4f@syzkaller.appspotmail.com
+2) Rule event notification is missing relevant context such as
+   the position handle and the NLM_F_APPEND flag.
 
-------------[ cut here ]------------
-WARNING: CPU: 0 PID: 6527 at mm/util.c:597 kvmalloc_node+0x111/0x120 mm/util.c:597
-Modules linked in:
-CPU: 0 PID: 6527 Comm: syz-executor600 Not tainted 5.15.0-rc3-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-RIP: 0010:kvmalloc_node+0x111/0x120 mm/util.c:597
-Code: 01 00 00 00 4c 89 e7 e8 ad 18 0d 00 49 89 c5 e9 69 ff ff ff e8 f0 98 d0 ff 41 89 ed 41 81 cd 00 20 01 00 eb 95 e8 df 98 d0 ff <0f> 0b e9 4c ff ff ff 0f 1f 84 00 00 00 00 00 55 48 89 fd 53 e8 c6
-RSP: 0018:ffffc900011ef288 EFLAGS: 00010293
-RAX: 0000000000000000 RBX: ffffc900011ef3a0 RCX: 0000000000000000
-RDX: ffff88801c058000 RSI: ffffffff81a56291 RDI: 0000000000000003
-RBP: 0000000000400dc0 R08: 000000007fffffff R09: ffff8880b9c32a0b
-R10: ffffffff81a5624e R11: 000000000000001f R12: 0000000080000018
-R13: 0000000000000000 R14: 00000000ffffffff R15: ffff88801b33d000
-FS:  000055555632e300(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007f13792ab6c0 CR3: 0000000071744000 CR4: 00000000003506e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
- hash_netportnet_create+0x3dd/0x1220 net/netfilter/ipset/ip_set_hash_gen.h:1524
- ip_set_create+0x782/0x15a0 net/netfilter/ipset/ip_set_core.c:1100
- nfnetlink_rcv_msg+0xbc9/0x13f0 net/netfilter/nfnetlink.c:296
- netlink_rcv_skb+0x153/0x420 net/netlink/af_netlink.c:2504
- nfnetlink_rcv+0x1ac/0x420 net/netfilter/nfnetlink.c:654
- netlink_unicast_kernel net/netlink/af_netlink.c:1314 [inline]
- netlink_unicast+0x533/0x7d0 net/netlink/af_netlink.c:1340
- netlink_sendmsg+0x86d/0xdb0 net/netlink/af_netlink.c:1929
- sock_sendmsg_nosec net/socket.c:704 [inline]
- sock_sendmsg+0xcf/0x120 net/socket.c:724
- ____sys_sendmsg+0x6e8/0x810 net/socket.c:2409
- ___sys_sendmsg+0xf3/0x170 net/socket.c:2463
- __sys_sendmsg+0xe5/0x1b0 net/socket.c:2492
- do_syscall_x64 arch/x86/entry/common.c:50 [inline]
- do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
- entry_SYSCALL_64_after_hwframe+0x44/0xae
-RIP: 0033:0x7fd5133b21c9
-Code: 28 c3 e8 2a 14 00 00 66 2e 0f 1f 84 00 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007ffe43b70828 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
-RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007fd5133b21c9
-RDX: 0000000000000000 RSI: 0000000020000280 RDI: 0000000000000003
-RBP: 00007fd5133761b0 R08: 0000000000000005 R09: 0000000000000000
-R10: 0000000000000004 R11: 0000000000000246 R12: 00007fd513376240
-R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+3) Rule replacement is expanded to add + delete using the existing
+   rule handle, reverse order of this operation so it makes sense
+   from rule notification standpoint.
 
+4) Remove superfluous check in the dynamic set extension which
+   disallow update commands on a set without timeout.
 
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+5) Propagate to userspace the NLM_F_CREATE and NLM_F_EXCL flags
+   from the rule notification path.
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-syzbot can test patches for this issue, for details see:
-https://goo.gl/tpsmEJ#testing-patches
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 3b1b6e82fb5e08e2cb355d7b2ee8644ec289de66:
+
+  net: phy: enhance GPY115 loopback disable function (2021-09-27 13:49:38 +0100)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
+
+for you to fetch changes up to 3d3b30175a51cf027201670af3e2e5b05447b985:
+
+  netfilter: nf_tables: honor NLM_F_CREATE and NLM_F_EXCL in event notification (2021-09-28 13:04:56 +0200)
+
+----------------------------------------------------------------
+Florian Westphal (1):
+      netfilter: conntrack: fix boot failure with nf_conntrack.enable_hooks=1
+
+Pablo Neira Ayuso (4):
+      netfilter: nf_tables: add position handle in event notification
+      netfilter: nf_tables: reverse order in rule replacement expansion
+      netfilter: nft_dynset: relax superfluous check on set updates
+      netfilter: nf_tables: honor NLM_F_CREATE and NLM_F_EXCL in event notification
+
+ include/net/netfilter/ipv6/nf_defrag_ipv6.h |  1 -
+ include/net/netfilter/nf_tables.h           |  2 +-
+ include/net/netns/netfilter.h               |  6 ++
+ net/ipv4/netfilter/nf_defrag_ipv4.c         | 30 +++-------
+ net/ipv6/netfilter/nf_conntrack_reasm.c     |  2 +-
+ net/ipv6/netfilter/nf_defrag_ipv6_hooks.c   | 25 +++-----
+ net/netfilter/nf_tables_api.c               | 91 ++++++++++++++++++++---------
+ net/netfilter/nft_dynset.c                  | 11 +---
+ net/netfilter/nft_quota.c                   |  2 +-
+ 9 files changed, 92 insertions(+), 78 deletions(-)
