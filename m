@@ -2,67 +2,99 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7E6CC433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Sep 2021 08:10:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74112C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Sep 2021 09:24:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BD86E613DA
-	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Sep 2021 08:10:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 551D3613DA
+	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Sep 2021 09:24:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243480AbhI2IM2 (ORCPT
+        id S230347AbhI2J0f (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 29 Sep 2021 04:12:28 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:59872 "EHLO
+        Wed, 29 Sep 2021 05:26:35 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:60098 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244580AbhI2IM1 (ORCPT
+        with ESMTP id S245010AbhI2J0f (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 29 Sep 2021 04:12:27 -0400
-Received: from netfilter.org (unknown [78.30.35.141])
-        by mail.netfilter.org (Postfix) with ESMTPSA id F292A63EC4;
-        Wed, 29 Sep 2021 10:09:21 +0200 (CEST)
-Date:   Wed, 29 Sep 2021 10:10:42 +0200
+        Wed, 29 Sep 2021 05:26:35 -0400
+Received: from localhost.localdomain (unknown [78.30.35.141])
+        by mail.netfilter.org (Postfix) with ESMTPSA id ACA8063595
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Sep 2021 11:23:28 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     "Bernhard M. Wiedemann" <bwiedemann@suse.de>
-Cc:     Larry Len Rainey <llrainey15@gmail.com>,
-        Manfred Schwarb <manfred99@gmx.ch>,
-        netfilter-devel@vger.kernel.org, kadlec@netfilter.org
-Subject: Re: [PATCH] Fix typo in ipset-translate man page
-Message-ID: <YVQfggOPewM2RFjg@salvia>
-References: <20210929075543.28054-1-bwiedemann@suse.de>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] cache: set on cache flags for nested notation
+Date:   Wed, 29 Sep 2021 11:24:49 +0200
+Message-Id: <20210929092449.503576-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20210929075543.28054-1-bwiedemann@suse.de>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+Set on the cache flags for the nested notation too, this is fixing nft -f
+with two files, one that contains the set declaration and another that
+adds a rule that refers to such set.
 
-On Wed, Sep 29, 2021 at 09:55:43AM +0200, Bernhard M. Wiedemann wrote:
-> originally reported in
-> https://lists.opensuse.org/archives/list/factory@lists.opensuse.org/thread/ZIXKNQHSSCQ4ZLEGYYKLAXQ4PQ5EYFGZ/
-> by Larry Len Rainey
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1474
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/cache.c                                  | 10 ++++++++
+ tests/shell/testcases/nft-f/0029split_file_0 | 25 ++++++++++++++++++++
+ 2 files changed, 35 insertions(+)
+ create mode 100755 tests/shell/testcases/nft-f/0029split_file_0
 
-Applied, thanks.
+diff --git a/src/cache.c b/src/cache.c
+index 42e6b65c6d9e..544f64a20396 100644
+--- a/src/cache.c
++++ b/src/cache.c
+@@ -20,6 +20,16 @@
+ static unsigned int evaluate_cache_add(struct cmd *cmd, unsigned int flags)
+ {
+ 	switch (cmd->obj) {
++	case CMD_OBJ_TABLE:
++		if (!cmd->table)
++			break;
++
++		flags |= NFT_CACHE_TABLE |
++			 NFT_CACHE_CHAIN |
++			 NFT_CACHE_SET |
++			 NFT_CACHE_OBJECT |
++			 NFT_CACHE_FLOWTABLE;
++		break;
+ 	case CMD_OBJ_CHAIN:
+ 	case CMD_OBJ_SET:
+ 	case CMD_OBJ_COUNTER:
+diff --git a/tests/shell/testcases/nft-f/0029split_file_0 b/tests/shell/testcases/nft-f/0029split_file_0
+new file mode 100755
+index 000000000000..0cc547abc37e
+--- /dev/null
++++ b/tests/shell/testcases/nft-f/0029split_file_0
+@@ -0,0 +1,25 @@
++#!/bin/bash
++
++set -e
++
++RULESET="table inet filter {
++	set whitelist_v4 {
++		type ipv4_addr;
++	}
++
++	chain prerouting {
++		type filter hook prerouting priority filter;
++	}
++}
++"
++
++$NFT -f - <<< "$RULESET"
++
++RULESET="table inet filter {
++	chain prerouting {
++		ip daddr @whitelist_v4
++	}
++}
++"
++
++$NFT -f - <<< "$RULESET"
+-- 
+2.30.2
 
-> Signed-off-by: Bernhard M. Wiedemann <bwiedemann@suse.de>
-> ---
->  src/ipset-translate.8 | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/src/ipset-translate.8 b/src/ipset-translate.8
-> index bb4e737..55ce2a9 100644
-> --- a/src/ipset-translate.8
-> +++ b/src/ipset-translate.8
-> @@ -33,7 +33,7 @@ to \fBnftables(8)\fP.
->  The only available command is:
->  
->  .IP \[bu] 2
-> -ipset-translate restores < file.ipt
-> +ipset-translate restore < file.ipt
->  
->  .SH USAGE
->  The \fBipset-translate\fP tool reads an IP sets file in the syntax produced by
-> -- 
-> 2.26.2
-> 
