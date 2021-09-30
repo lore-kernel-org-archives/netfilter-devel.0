@@ -2,33 +2,33 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42BA9C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Sep 2021 14:05:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1B6FC433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Sep 2021 14:05:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2AE31619FA
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Sep 2021 14:05:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ADD8E619FA
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Sep 2021 14:05:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351709AbhI3OHN (ORCPT
+        id S1351745AbhI3OHP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 30 Sep 2021 10:07:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58622 "EHLO
+        Thu, 30 Sep 2021 10:07:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58644 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1351745AbhI3OHJ (ORCPT
+        with ESMTP id S1351734AbhI3OHP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 30 Sep 2021 10:07:09 -0400
+        Thu, 30 Sep 2021 10:07:15 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD6ECC06176A
-        for <netfilter-devel@vger.kernel.org>; Thu, 30 Sep 2021 07:05:26 -0700 (PDT)
-Received: from localhost ([::1]:51720 helo=xic)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 71045C06176A
+        for <netfilter-devel@vger.kernel.org>; Thu, 30 Sep 2021 07:05:32 -0700 (PDT)
+Received: from localhost ([::1]:51726 helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1mVwgf-0007Ri-9O; Thu, 30 Sep 2021 16:05:25 +0200
+        id 1mVwgk-0007Ro-Je; Thu, 30 Sep 2021 16:05:30 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH v2 02/17] xshared: Store optstring in xtables_globals
-Date:   Thu, 30 Sep 2021 16:04:04 +0200
-Message-Id: <20210930140419.6170-3-phil@nwl.cc>
+Subject: [iptables PATCH v2 17/17] nft: Store maximum allowed chain name length in family ops
+Date:   Thu, 30 Sep 2021 16:04:19 +0200
+Message-Id: <20210930140419.6170-18-phil@nwl.cc>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20210930140419.6170-1-phil@nwl.cc>
 References: <20210930140419.6170-1-phil@nwl.cc>
@@ -38,114 +38,79 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Preparing for a common option parser, store the string of options for
-each family inside the respective xtables_globals object. The
-array of long option definitions sitting in there already indicates it's
-the right place.
-
-While being at it, drop '-m' support from arptables-nft.
+arptables accepts chain names of at max 30chars while ip(6)tables only
+accepts up to 29chars. To retain the old behaviour, store the value in
+nft_family_ops.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- include/xtables.h      | 1 +
- iptables/xshared.h     | 2 ++
- iptables/xtables-arp.c | 4 ++--
- iptables/xtables-eb.c  | 5 +++--
- iptables/xtables.c     | 4 ++--
- 5 files changed, 10 insertions(+), 6 deletions(-)
+ iptables/nft-arp.c    | 1 +
+ iptables/nft-ipv4.c   | 1 +
+ iptables/nft-ipv6.c   | 1 +
+ iptables/nft-shared.h | 1 +
+ iptables/xtables.c    | 6 +++---
+ 5 files changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/include/xtables.h b/include/xtables.h
-index e51f4bfda318a..c872a04220867 100644
---- a/include/xtables.h
-+++ b/include/xtables.h
-@@ -420,6 +420,7 @@ struct xtables_globals
- {
- 	unsigned int option_offset;
- 	const char *program_name, *program_version;
-+	const char *optstring;
- 	struct option *orig_opts;
- 	struct option *opts;
- 	void (*exit_err)(enum xtables_exittype status, const char *msg, ...) __attribute__((noreturn, format(printf,2,3)));
-diff --git a/iptables/xshared.h b/iptables/xshared.h
-index 823894f94b841..b59116ac49747 100644
---- a/iptables/xshared.h
-+++ b/iptables/xshared.h
-@@ -68,6 +68,8 @@ struct xtables_globals;
- struct xtables_rule_match;
- struct xtables_target;
+diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
+index 32eb91add4f1e..de3c7028818ab 100644
+--- a/iptables/nft-arp.c
++++ b/iptables/nft-arp.c
+@@ -811,4 +811,5 @@ struct nft_family_ops nft_family_ops_arp = {
+ 	.delete_entry		= nft_arp_delete_entry,
+ 	.check_entry		= nft_arp_check_entry,
+ 	.replace_entry		= nft_arp_replace_entry,
++	.chain_maxnamelen	= ARPT_FUNCTION_MAXNAMELEN,
+ };
+diff --git a/iptables/nft-ipv4.c b/iptables/nft-ipv4.c
+index febd7673af4f8..85ab0fe559dfd 100644
+--- a/iptables/nft-ipv4.c
++++ b/iptables/nft-ipv4.c
+@@ -577,4 +577,5 @@ struct nft_family_ops nft_family_ops_ipv4 = {
+ 	.delete_entry		= nft_ipv4_delete_entry,
+ 	.check_entry		= nft_ipv4_check_entry,
+ 	.replace_entry		= nft_ipv4_replace_entry,
++	.chain_maxnamelen	= XT_EXTENSION_MAXNAMELEN,
+ };
+diff --git a/iptables/nft-ipv6.c b/iptables/nft-ipv6.c
+index f0e64bbd4ab23..48bcef6a1823a 100644
+--- a/iptables/nft-ipv6.c
++++ b/iptables/nft-ipv6.c
+@@ -530,4 +530,5 @@ struct nft_family_ops nft_family_ops_ipv6 = {
+ 	.delete_entry		= nft_ipv6_delete_entry,
+ 	.check_entry		= nft_ipv6_check_entry,
+ 	.replace_entry		= nft_ipv6_replace_entry,
++	.chain_maxnamelen	= XT_EXTENSION_MAXNAMELEN,
+ };
+diff --git a/iptables/nft-shared.h b/iptables/nft-shared.h
+index 339c46e7f5b06..75597a0f609e8 100644
+--- a/iptables/nft-shared.h
++++ b/iptables/nft-shared.h
+@@ -129,6 +129,7 @@ struct nft_family_ops {
+ 			     struct iptables_command_state *cs,
+ 			     struct xtables_args *args, bool verbose,
+ 			     int rulenum);
++	size_t chain_maxnamelen;
+ };
  
-+#define OPTSTRING_COMMON "-:A:C:D:E:F::I:L::M:N:P:VX::Z::" "c:d:i:j:o:p:s:t:"
-+
- /* define invflags which won't collide with IPT ones */
- #define IPT_INV_SRCDEVADDR	0x0080
- #define IPT_INV_TGTDEVADDR	0x0100
-diff --git a/iptables/xtables-arp.c b/iptables/xtables-arp.c
-index 1d132bdf23546..a028ac340cba0 100644
---- a/iptables/xtables-arp.c
-+++ b/iptables/xtables-arp.c
-@@ -100,6 +100,7 @@ extern void xtables_exit_error(enum xtables_exittype status, const char *msg, ..
- struct xtables_globals arptables_globals = {
- 	.option_offset		= 0,
- 	.program_version	= PACKAGE_VERSION,
-+	.optstring		= OPTSTRING_COMMON "R:S::" "h::l:nv" /* "m:" */,
- 	.orig_opts		= original_opts,
- 	.exit_err		= xtables_exit_error,
- 	.compat_rev		= nft_compatible_revision,
-@@ -444,8 +445,7 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table,
- 	opterr = 0;
- 
- 	opts = xt_params->orig_opts;
--	while ((c = getopt_long(argc, argv,
--	   "-A:D:R:I:L::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:l:i:vnt:m:c:",
-+	while ((c = getopt_long(argc, argv, xt_params->optstring,
- 					   opts, NULL)) != -1) {
- 		switch (c) {
- 			/*
-diff --git a/iptables/xtables-eb.c b/iptables/xtables-eb.c
-index 1ed6bcd8a7877..3f58754d14cee 100644
---- a/iptables/xtables-eb.c
-+++ b/iptables/xtables-eb.c
-@@ -220,6 +220,7 @@ extern void xtables_exit_error(enum xtables_exittype status, const char *msg, ..
- struct xtables_globals ebtables_globals = {
- 	.option_offset 		= 0,
- 	.program_version	= PACKAGE_VERSION,
-+	.optstring		= OPTSTRING_COMMON "h",
- 	.orig_opts		= ebt_original_options,
- 	.exit_err		= xtables_exit_error,
- 	.compat_rev		= nft_compatible_revision,
-@@ -732,8 +733,8 @@ int do_commandeb(struct nft_handle *h, int argc, char *argv[], char **table,
- 	opterr = false;
- 
- 	/* Getopt saves the day */
--	while ((c = getopt_long(argc, argv,
--	   "-A:D:C:I:N:E:X::L::Z::F::P:Vhi:o:j:c:p:s:d:t:M:", opts, NULL)) != -1) {
-+	while ((c = getopt_long(argc, argv, xt_params->optstring,
-+					opts, NULL)) != -1) {
- 		cs.c = c;
- 		switch (c) {
- 
+ void add_meta(struct nftnl_rule *r, uint32_t key);
 diff --git a/iptables/xtables.c b/iptables/xtables.c
-index 0a700e0847400..c17cf7aec6178 100644
+index dba497b85064a..c6c7cbddbd3a3 100644
 --- a/iptables/xtables.c
 +++ b/iptables/xtables.c
-@@ -89,6 +89,7 @@ void xtables_exit_error(enum xtables_exittype status, const char *msg, ...) __at
- struct xtables_globals xtables_globals = {
- 	.option_offset = 0,
- 	.program_version = PACKAGE_VERSION,
-+	.optstring = OPTSTRING_COMMON "R:S::W::" "46bfg:h::m:nvw::x",
- 	.orig_opts = original_opts,
- 	.exit_err = xtables_exit_error,
- 	.compat_rev = nft_compatible_revision,
-@@ -455,8 +456,7 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
- 	opterr = 0;
+@@ -788,10 +788,10 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
  
- 	opts = xt_params->orig_opts;
--	while ((cs->c = getopt_long(argc, argv,
--	   "-:A:C:D:R:I:L::S::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:fbvw::W::nt:m:xc:g:46",
-+	while ((cs->c = getopt_long(argc, argv, xt_params->optstring,
- 					   opts, NULL)) != -1) {
- 		switch (cs->c) {
- 			/*
+ 	generic_opt_check(p->command, cs->options);
+ 
+-	if (p->chain != NULL && strlen(p->chain) >= XT_EXTENSION_MAXNAMELEN)
++	if (p->chain != NULL && strlen(p->chain) >= h->ops->chain_maxnamelen)
+ 		xtables_error(PARAMETER_PROBLEM,
+-			   "chain name `%s' too long (must be under %u chars)",
+-			   p->chain, XT_EXTENSION_MAXNAMELEN);
++			   "chain name `%s' too long (must be under %zu chars)",
++			   p->chain, h->ops->chain_maxnamelen);
+ 
+ 	if (p->command == CMD_APPEND ||
+ 	    p->command == CMD_DELETE ||
 -- 
 2.33.0
 
