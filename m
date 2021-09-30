@@ -2,88 +2,111 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 559AFC433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Sep 2021 07:10:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A462DC433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Sep 2021 07:16:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 218D8617E4
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Sep 2021 07:10:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8CBF56187A
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Sep 2021 07:16:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348554AbhI3HMT (ORCPT
+        id S1348589AbhI3HR6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 30 Sep 2021 03:12:19 -0400
-Received: from www62.your-server.de ([213.133.104.62]:50252 "EHLO
-        www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1348676AbhI3HMH (ORCPT
+        Thu, 30 Sep 2021 03:17:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47008 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1348579AbhI3HR5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 30 Sep 2021 03:12:07 -0400
-Received: from sslproxy02.your-server.de ([78.47.166.47])
-        by www62.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
-        (Exim 4.92.3)
-        (envelope-from <daniel@iogearbox.net>)
-        id 1mVqD0-00028c-N7; Thu, 30 Sep 2021 09:10:22 +0200
-Received: from [85.1.206.226] (helo=linux.home)
-        by sslproxy02.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <daniel@iogearbox.net>)
-        id 1mVqD0-000V9g-By; Thu, 30 Sep 2021 09:10:22 +0200
-Subject: Re: [PATCH nf-next v5 0/6] Netfilter egress hook
-To:     Lukas Wunner <lukas@wunner.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org, kadlec@netfilter.org,
-        fw@strlen.de, ast@kernel.org, edumazet@google.com, tgraf@suug.ch,
-        nevola@gmail.com, john.fastabend@gmail.com, willemb@google.com
-References: <20210928095538.114207-1-pablo@netfilter.org>
- <e4f1700c-c299-7091-1c23-60ec329a5b8d@iogearbox.net>
- <20210930065238.GA28709@wunner.de>
-From:   Daniel Borkmann <daniel@iogearbox.net>
-Message-ID: <f4646b14-5ee9-e18e-8bb0-5087cd4f6cae@iogearbox.net>
-Date:   Thu, 30 Sep 2021 09:10:21 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.2
+        Thu, 30 Sep 2021 03:17:57 -0400
+Received: from kadath.azazel.net (kadath.azazel.net [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 944F0C06161C
+        for <netfilter-devel@vger.kernel.org>; Thu, 30 Sep 2021 00:16:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=J7vbq+cFK+Bd4umOfBO0FH/3gyFwfSpyRnSCQJ4diLg=; b=Rso/7yDNcbewe0V6lxUIKbmekB
+        GqbxofJscQbGtI35MnsA9Go9uPbJ/lxHbhqbMz0cPYbtsZJNPtODVgs4tMhhOrhRAvODsA2tQ2LH6
+        3sx6E4zcaPcEQ8hmVmyPk5r5vAVg4EFhIJIYwxhVEPDoLIcGWWo8iACOuw+DeYM04sBEQEeyBIZLh
+        7SgMyDtoA/iE1Y0tYmi/dY2iSG6+8ooduknaYmWiVeph8ZKMm3hVgmnepSqucYSfbvpJ71br0wvqH
+        59fDDpteWH8M0oZxUAfCyVlvM7WIdzADSS7uEZCqZu89axCciHvGZcr/HqIT2YA1JnM9ktTJOJEX9
+        kwDf49uA==;
+Received: from [2001:8b0:fb7d:d6d7:feb3:bcff:fe5e:42c3] (helo=azazel.net)
+        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <jeremy@azazel.net>)
+        id 1mVqIa-000zyK-Fg; Thu, 30 Sep 2021 08:16:08 +0100
+Date:   Thu, 30 Sep 2021 08:16:07 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Netfilter Core Team <coreteam@netfilter.org>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>,
+        Kyle Bowman <kbowman@cloudflare.com>,
+        Alex Forster <aforster@cloudflare.com>,
+        Cloudflare Kernel Team <kernel-team@cloudflare.com>
+Subject: Re: [PATCH 1/3] extensions: libtxt_NFLOG: use nft built-in logging
+ instead of xt_NFLOG
+Message-ID: <YVVkN0ZNs5I+tKG+@azazel.net>
+References: <20210809194243.53370-1-kbowman@cloudflare.com>
 MIME-Version: 1.0
-In-Reply-To: <20210930065238.GA28709@wunner.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Authenticated-Sender: daniel@iogearbox.net
-X-Virus-Scanned: Clear (ClamAV 0.103.3/26307/Wed Sep 29 11:09:54 2021)
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="RTUT6lRwdoDagbBh"
+Content-Disposition: inline
+In-Reply-To: <20210809194243.53370-1-kbowman@cloudflare.com>
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:feb3:bcff:fe5e:42c3
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 9/30/21 8:52 AM, Lukas Wunner wrote:
-> On Thu, Sep 30, 2021 at 08:08:53AM +0200, Daniel Borkmann wrote:
->> Hm, so in the case of SRv6 users were running into a similar issue
->> and commit 7a3f5b0de364 ("netfilter: add netfilter hooks to SRv6
->> data plane") [0] added a new hook along with a sysctl which defaults
->> the new hook to off.
->>
->> The rationale for it was given as "the hooks are enabled via
->> nf_hooks_lwtunnel sysctl to make sure existing netfilter rulesets
->>   do not break." [0,1]
->>
->> If the suggestion to flag the skb [2] one way or another from the
->> tc forwarding path (e.g. skb bit or per-cpu marker) is not
->> technically feasible, then why not do a sysctl toggle like in the
->> SRv6 case?
-> 
-> The skb flag *is* technically feasible.  I amended the patches with
-> the flag and was going to post them this week, but Pablo beat me to
-> the punch and posted his alternative version, which lacks the flag
-> but modularizes netfilter ingress/egress processing instead.
-> 
-> Honestly I think a hodge-podge of config options and sysctl toggles
-> is awful and I would prefer the skb flag you suggested.  I kind of
-> like your idea of considering tc and netfilter as layers.
-> 
-> FWIW the finished patches *with* the flag are on this branch:
-> https://github.com/l1k/linux/commits/nft_egress_v5
-> 
-> Below is the "git range-diff" between Pablo's patches and mine
-> (just the hunks which pertain to the skb flag, plus excerpts
-> from the commit message).
-> 
-> Would you find the patch set acceptable with this skb flag?
 
-Yes, that looks good to me, thanks Lukas!
+--RTUT6lRwdoDagbBh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On 2021-08-09, at 14:42:41 -0500, Kyle Bowman wrote:
+> Replaces the use of xt_NFLOG with the nft built-in log statement.
+>
+> This additionally adds support for using longer log prefixes of 128
+> characters in size. Until now NFLOG has truncated the log-prefix to
+> the 64-character limit supported by iptables-legacy. We now use the
+> struct xtables_target's udata member to store the longer 128-character
+> prefix supported by iptables-nft.
+>
+> Signed-off-by: Kyle Bowman <kbowman@cloudflare.com>
+> Signed-off-by: Alex Forster <aforster@cloudflare.com>
+> Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+
+Hi Core Team,
+
+It's been the better part of two months since this patch series was
+posted and there has been no feedback.  I was wondering if one of you
+might be in a position to review it in the not too distant future.  I
+see that it is delegated to Pablo in Patchwork, but then so is every-
+thing else. :)
+
+Cheers,
+
+J.
+
+--RTUT6lRwdoDagbBh
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmFVZCoACgkQKYasCr3x
+BA341A//ZLq3MJCZF3JZFf3R6gVzYERj+0/G7dKHac3qf2BeRxuYVQUqfcAVii0c
+ErQyc2Odlf61j7/DgbhUxpZVaY3riJ+5iz38d1BJ/8LaVN0+qH6ngMQ1UIfO5EF1
+MsjEHy2j88gp5UWV+61CntlKx5gDfa3iZ4BtfTqY3T0IvGh5d5Nz0L9Gx7+7l4Fc
+pOH1kVgWpQsGpkQ2h3JItZsq/H95iUrzWTIdurF167Yoh99KJjRIz/k4YkPsXyCJ
+VTgiOtMR79is/6MGetnH903ndsYQMcSKbYzdgGdChfqkLkrw4eekfFygElB5ROS0
+lWlGTU7sN2V66Ty/k33gQzxqqRU53k44pFNvWAcLBF5UFmSXfXSUvZR+vwt3vnZb
+aFRiVmNGjSfpiV2mPqidbvNropDZnfQRP3UEvLZ0C/kVCHB1siubWlWS0cnUwcBj
+50TKGDbh3Jq/l60K6t32hxOx4SVHI1HYUQKn/FxRNNVVECjRTL7CivWOp6HT3Wpx
+on/d5P1hEF50S3N7r15MTKp57W+kJ49gpFFn/RKmfU+QFEbyVcyJHvsr5J/RsrEI
+BCl7fg+77v9dayC8bP8PFnZsooLJbEpRq/LwAEcj2tEFtTzmRKAU+a9GNIIAVUL9
+oaZHukNDkaxOCAriWyI0s0k9lnP5bDdWSa/M1f5nwr2MYR66mAg=
+=jryJ
+-----END PGP SIGNATURE-----
+
+--RTUT6lRwdoDagbBh--
