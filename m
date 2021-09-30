@@ -2,98 +2,108 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 27FEBC433FE
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Sep 2021 06:08:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D04A4C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Sep 2021 06:24:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EF57561880
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Sep 2021 06:08:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B36496141B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Sep 2021 06:24:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348218AbhI3GKj (ORCPT
+        id S1348260AbhI3GZv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 30 Sep 2021 02:10:39 -0400
-Received: from www62.your-server.de ([213.133.104.62]:39430 "EHLO
-        www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1348185AbhI3GKj (ORCPT
+        Thu, 30 Sep 2021 02:25:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34948 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1348249AbhI3GZv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 30 Sep 2021 02:10:39 -0400
-Received: from sslproxy06.your-server.de ([78.46.172.3])
-        by www62.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
-        (Exim 4.92.3)
-        (envelope-from <daniel@iogearbox.net>)
-        id 1mVpFW-000Ca3-Nk; Thu, 30 Sep 2021 08:08:54 +0200
-Received: from [85.1.206.226] (helo=linux.home)
-        by sslproxy06.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <daniel@iogearbox.net>)
-        id 1mVpFW-000TrI-EH; Thu, 30 Sep 2021 08:08:54 +0200
-Subject: Re: [PATCH nf-next v5 0/6] Netfilter egress hook
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
-        lukas@wunner.de, kadlec@netfilter.org, fw@strlen.de,
-        ast@kernel.org, edumazet@google.com, tgraf@suug.ch,
-        nevola@gmail.com, john.fastabend@gmail.com, willemb@google.com
-References: <20210928095538.114207-1-pablo@netfilter.org>
-From:   Daniel Borkmann <daniel@iogearbox.net>
-Message-ID: <e4f1700c-c299-7091-1c23-60ec329a5b8d@iogearbox.net>
-Date:   Thu, 30 Sep 2021 08:08:53 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.2
+        Thu, 30 Sep 2021 02:25:51 -0400
+Received: from mail-qt1-x829.google.com (mail-qt1-x829.google.com [IPv6:2607:f8b0:4864:20::829])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A0EEC06161C
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Sep 2021 23:24:09 -0700 (PDT)
+Received: by mail-qt1-x829.google.com with SMTP id m26so4735914qtn.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Sep 2021 23:24:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=qubercomm.com; s=google;
+        h=mime-version:from:date:message-id:subject:to:cc;
+        bh=JKcU4W3jMaQPAuEuFwaSR5sUdAVWcjNrOOli+XMrryw=;
+        b=PfWqc1nCdNRW73KoQOjKqXno55KOGOwjvyGnimNCx4verJkIu0JJVFLYT1xCnBaaFD
+         6dlr5keFUH3wkVCfuIEaj2xG80VaDeFVZ6NImDg5t7MmyEw+FUc1Nc7zk3m3cCTCak9P
+         zl4ljBa4hsCVOJSW0QyJQk23fY4DNwi/38Rx8=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
+        bh=JKcU4W3jMaQPAuEuFwaSR5sUdAVWcjNrOOli+XMrryw=;
+        b=oqtP/ZH846vAnD84g45AqvEARkjdqKK02f/lLpFXE6OHhx0bJcU5iwzOjMdTooCkIE
+         GYgTxzOAmIosDLMvY6JtgKqsV46pawSwWvogT2B8HTxqx2scwnu/9aRRyfIGP75Ul/lV
+         WOsINVyY/UAqiPk0bzMtW1c5wi4OhjMeTxn2FthKdVgCi5D0KJWdWhdnl4I2NwQXOJk9
+         DMAa40CgmZ8bkYSen9h0ugnF0uKvmvQyM2j3znrMTZu3qiqX4zSr9WxOivsawjK4I8/v
+         1Ha5vtS98TS1mr8G8Lqe9MO2zzXZF+2UkU7y7cSfGfkswBM6Bs07BaEjUHWBrhr5paVS
+         Vxmw==
+X-Gm-Message-State: AOAM533mKmUnWZeT5nD5IbO2FFyUgSupEdnN2dIiPL6NOVY2GjJkEyl1
+        5fzfD7vg+SoGawXegQ/pPGmUfDrGYyZSYqOXkhnNodzo+wCY0xEE
+X-Google-Smtp-Source: ABdhPJzYTW2bhZejzqrZYzbgZzFlCXzpAsNMkMJDrO/4NUl1Rpu66+XHo1JlrRiahfD3oXZoJqndMe+F9YSgLL4hT4M=
+X-Received: by 2002:a05:622a:3cb:: with SMTP id k11mr4466477qtx.233.1632983047905;
+ Wed, 29 Sep 2021 23:24:07 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20210928095538.114207-1-pablo@netfilter.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Authenticated-Sender: daniel@iogearbox.net
-X-Virus-Scanned: Clear (ClamAV 0.103.3/26307/Wed Sep 29 11:09:54 2021)
+From:   Senthil Kumar Balasubramanian <senthilb@qubercomm.com>
+Date:   Thu, 30 Sep 2021 11:53:32 +0530
+Message-ID: <CA+6nuS7f=bLh56k463rJSPn7P3PvwW-kzAz2oYx2wiw24_9_Mw@mail.gmail.com>
+Subject: ebtables behaving weirdly on MIPS platform
+To:     netfilter-devel@vger.kernel.org
+Cc:     pablo@netfilter.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 9/28/21 11:55 AM, Pablo Neira Ayuso wrote:
-> Hi,
-> 
-> This patchset v5 that re-adds the Netfilter egress:
-> 
-> 1) Rename linux/netfilter_ingress.h to linux/netfilter_netdev.h
->     from Lukas Wunner.
-> 
-> 2) Generalize ingress hook file to accomodate egress support,
->     from Lukas Wunner.
-> 
-> 3) Modularize Netfilter ingress hook into nf_tables_netdev: Daniel
->     Borkmann is requesting for a mechanism to allow to blacklist
->     Netfilter, this allows users to blacklist this new module that
->     includes ingress chain and the new egress chain for the netdev
->     family. There is no other in-tree user of the ingress and egress
->     hooks than this which might interfer with his matter.
-> 
-> 4) Place the egress hook again before the tc egress hook as requested
->     by Daniel Borkmann. Patch to add egress hook from Lukas Wunner.
->     The Netfilter egress hook remains behind the static key, if unused
->     performance degradation is negligible.
-> 
-> 5) Add netfilter egress handling to af_packet.
-> 
-> Arguably, distributors might decide to compile nf_tables_netdev
-> built-in. Traditionally, distributors have compiled their kernels using
-> the default configuration that Netfilter Kconfig provides (ie. use
-> modules whenever possible). In any case, I consider that distributor
-> policy is out of scope in this discussion, providing a mechanism to
-> allow Daniel to prevent Netfilter ingress and egress chains to be loaded
-> should be sufficient IMHO.
+We are running OpenWRT/Tp-Link Archer A6 HW v2... (openwrt : 21.02
+ebtables v2.0.10-4)
 
-Hm, so in the case of SRv6 users were running into a similar issue and commit
-7a3f5b0de364 ("netfilter: add netfilter hooks to SRv6 data plane") [0] added
-a new hook along with a sysctl which defaults the new hook to off.
+and when we run this ebtables with nflog extension as mentioned below
 
-The rationale for it was given as "the hooks are enabled via nf_hooks_lwtunnel
-sysctl to make sure existing netfilter rulesets do not break." [0,1]
+ebtables -I FORWARD -o eth1 -p ip  --ip-protocol udp --ip-source-port
+68 --nflog-group 1  --nflog-prefix "ENTRY1" -j ACCEPT
 
-If the suggestion to flag the skb [2] one way or another from the tc forwarding
-path (e.g. skb bit or per-cpu marker) is not technically feasible, then why not
-do a sysctl toggle like in the SRv6 case?
+, we are running into the following issues..
 
-   [0] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=7a3f5b0de3647c854e34269c3332d7a1e902901a
-   [1] https://lore.kernel.org/netdev/20210830093852.21654-1-pablo@netfilter.org/
-   [2] https://lore.kernel.org/netdev/11584665-e3b5-3afe-d72c-ef92ad0b9313@iogearbox.net/
+Unable to update the kernel. Two possible causes:
+1. Multiple ebtables programs were executing simultaneously. The ebtables
+   userspace tool doesn't by default support multiple ebtables programs running
+   concurrently. The ebtables option --concurrent or a tool like flock can be
+   used to support concurrent scripts that update the ebtables kernel tables.
+2. The kernel doesn't support a certain ebtables extension, consider
+   recompiling your kernel or insmod the extension.
+
+We have confirmed the required kernel configs are enabled and ensured
+the same with a ARM platform where the same command works..
+
+However, dumping the data that goes to the kernel, we see a huge
+difference between MIPS and ARM..
+
+in ARM platform
+ w_l->w:
+  0000  6e 66 6c 6f 67 00 ff b6 00 00 00 00 00 00 00 00  nflog...........
+  0010  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  0020  50 00 00 00 00 00 00 00 01 00 01 00 00 00 00 00  P...............
+  0030  45 4e 54 52 59 31 00 00 00 00 00 00 00 00 00 00  ENTRY1..........
+  0040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  0050  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  0060  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  0070  00 00 00 00
+
+in tplink a6 (MIPS platform)
+
+ w_l->w:
+  0000  6e 66 6c 6f 67 00 b2 e0 69 6d 69 74 20 65 78 63    nflog...imit exc
+  0010  65 65 64 65 64 00 56 69 72 74 75 61 6c 20 74 69    eeded.Virtual ti
+  0020  00 00 00 50 65 78 70 69 00 01 00 01 50 72 6f 66     ...Pexpi....Prof
+  0030  45 4e 54 52 59 31 00 69 6d 65 72 20 65 78 70 69    ENTRY1.imer expi
+  0040  72 65 64 00 57 69 6e 64 6f 77 20 63 68 61 6e 67     red.Window chang
+  0050  65 64 00 49 2f 4f 20 70 6f 73 73 69 62 6c 65 00        ed.I/O possible.
+  0060  50 6f 77 65 72 20 66 61 69 6c 75 72 65 00 42 61       Power failure.Ba
+  0070  64 20 73 79
+              d sy
+
+Can you please let me know what's going wrong with this?
+
+Thanks
+Senthil
