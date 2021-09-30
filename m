@@ -2,84 +2,75 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01DDBC433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Sep 2021 18:01:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 799F0C433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Sep 2021 19:18:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DF64C619F6
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Sep 2021 18:01:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 532DD61425
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Sep 2021 19:18:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1352970AbhI3SCo (ORCPT
+        id S1345189AbhI3TTq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 30 Sep 2021 14:02:44 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:38246 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1352957AbhI3SCo (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 30 Sep 2021 14:02:44 -0400
-Received: from netfilter.org (unknown [78.30.35.141])
-        by mail.netfilter.org (Postfix) with ESMTPSA id D58CD63ED1;
-        Thu, 30 Sep 2021 19:59:33 +0200 (CEST)
-Date:   Thu, 30 Sep 2021 20:00:56 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jakub Kicinski <kuba@kernel.org>
+        Thu, 30 Sep 2021 15:19:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50088 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1345434AbhI3TTm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 30 Sep 2021 15:19:42 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6FF6C619F8;
+        Thu, 30 Sep 2021 19:17:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1633029479;
+        bh=XtIJvXsruNGVf58rTbKNKsu6/VR3FXPQSA4IE3yR++M=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=c4jwZSNKhXJBgiK2kwsxuQN2574x0xOlUJm0tzSXmCW2CKdjaOO3x9ikJEUsBOQjV
+         K6N5M7MJDx4PJrgZgQ1fsxHdGFhlyrt7WuahHqAJDDcZgbBeoJScwIQZbLN+PIs3GD
+         cbzvAsfvv3FQGKeFvfdxcTSLewAxVkWKBoeDfyUYU5GZbM11MlvCmfVY2A57n3WJ9z
+         D2iSUTU/cawuozZ9EvJOp0i8hff+QcA1Bov1RwxX52evQ5gcoT5VV4W+9t+r24oC/g
+         I4rjC6nb2yXBGSLyw8OEy6OYqe5W2AjIyBY57lq4VPiE+ySnqhZvhoptIypFnCKmGA
+         EcYt1JqCp/xpQ==
+Date:   Thu, 30 Sep 2021 12:17:58 -0700
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     Daniel Borkmann <daniel@iogearbox.net>,
         netfilter-devel@vger.kernel.org, davem@davemloft.net,
         netdev@vger.kernel.org, lukas@wunner.de, kadlec@netfilter.org,
         fw@strlen.de, ast@kernel.org, edumazet@google.com, tgraf@suug.ch,
         nevola@gmail.com, john.fastabend@gmail.com, willemb@google.com
 Subject: Re: [PATCH nf-next v5 0/6] Netfilter egress hook
-Message-ID: <YVX7WATmhsJUATSB@salvia>
+Message-ID: <20210930121758.43e1893d@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+In-Reply-To: <YVX7WATmhsJUATSB@salvia>
 References: <20210928095538.114207-1-pablo@netfilter.org>
- <e4f1700c-c299-7091-1c23-60ec329a5b8d@iogearbox.net>
- <YVVk/C6mb8O3QMPJ@salvia>
- <3973254b-9afb-72d5-7bf1-59edfcf39a58@iogearbox.net>
- <YVWBpsC4kvMuMQsc@salvia>
- <20210930072835.791085f3@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
- <YVXUIUMk0m3L+My+@salvia>
- <20210930090652.4f91be57@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+        <e4f1700c-c299-7091-1c23-60ec329a5b8d@iogearbox.net>
+        <YVVk/C6mb8O3QMPJ@salvia>
+        <3973254b-9afb-72d5-7bf1-59edfcf39a58@iogearbox.net>
+        <YVWBpsC4kvMuMQsc@salvia>
+        <20210930072835.791085f3@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+        <YVXUIUMk0m3L+My+@salvia>
+        <20210930090652.4f91be57@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+        <YVX7WATmhsJUATSB@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20210930090652.4f91be57@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Sep 30, 2021 at 09:06:52AM -0700, Jakub Kicinski wrote:
-> On Thu, 30 Sep 2021 17:13:37 +0200 Pablo Neira Ayuso wrote:
-> > On Thu, Sep 30, 2021 at 07:28:35AM -0700, Jakub Kicinski wrote:
-> > > The lifetime of this information is constrained, can't it be a percpu
-> > > flag, like xmit_more?  
+On Thu, 30 Sep 2021 20:00:56 +0200 Pablo Neira Ayuso wrote:
+> On Thu, Sep 30, 2021 at 09:06:52AM -0700, Jakub Kicinski wrote:
+> > On Thu, 30 Sep 2021 17:13:37 +0200 Pablo Neira Ayuso wrote:  
+> > > It's just one single bit in this case after all.  
 > > 
-> > It's just one single bit in this case after all.
+> > ??  
 > 
-> ??
+> There are "escape" points such ifb from ingress, where the packets gets
+> enqueued and then percpu might not help, it might be fragile to use
+> percpu in this case.
 
-There are "escape" points such ifb from ingress, where the packets gets
-enqueued and then percpu might not help, it might be fragile to use
-percpu in this case.
+You still have to scrub the skb mark at the correct points, otherwise
+the ignoring egress may propagate beyond the "paired hook". I don't see
+much difference in fragility TBH.
 
-> > > > Probably the sysctl for this new egress hook is the way to go as you
-> > > > suggest.  
-> > > 
-> > > Knobs is making users pay, let's do our best to avoid that.  
-> > 
-> > Could you elaborate?
-> 
-> My reading of Daniel's objections was that the layering is incorrect
-> because tc is not exclusively "under" nf. That problem is not solved 
-> by adding a knob. The only thing the knob achieves is let someone
-> deploying tc/bpf based solution protect themselves from accidental
-> nf deployment.
-> 
-> That's just background / level set. IDK what requires explanation 
-> in my statement itself. I thought "admin knobs are bad" is as
-> universally agreed on as, say, "testing is good".
+Speaking of ifb, doesn't it have an egress hook? And ingress on the way
+out? IMHO the "ignore egress" mark should not survive going thru ifb.
 
-Yes, knobs are not ideal but Daniel mentioned it as a posibility, the
-skbuff bit might not ideal either because it might be not easy to
-debug the behaviour that it turns on to the user, but it could only be
-set on from act_mirred, Daniel mentioned to cover only the
-skb->redirect case.
-
-Thanks
+Anyway, that's just my preference. Whatever you, Daniel and Lukas
+decide together in the end is fine by me.
