@@ -2,76 +2,98 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F1E9C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Sep 2021 02:19:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27FEBC433FE
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Sep 2021 06:08:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4490261881
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Sep 2021 02:19:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EF57561880
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Sep 2021 06:08:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347576AbhI3CVg (ORCPT
+        id S1348218AbhI3GKj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 29 Sep 2021 22:21:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44686 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232383AbhI3CVg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 29 Sep 2021 22:21:36 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8CFAD613D3;
-        Thu, 30 Sep 2021 02:19:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1632968394;
-        bh=ua9+bSTUTs0nqUTaRAPXnrex+Ls5qh2nXr/Sjt4l7qs=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=lOcn7/tizcJzYz/Xmzd2yqn8psqxmzjc5UWAHbcOmPo79Ydw4n486AIKx84uZf7cF
-         uGws/YspcadKmONB1SsLtSE3pWZCjgmJjW4xLmDMh3pBicPxWT3JjtIoSfY0wr0+tO
-         OP0HgkrvilhWtucxh9u58npS4SbQTJiBqQZzyCnf8H7XCQ+k/mnFwed4gMCyF0TMlm
-         gr+ttjPbw2YMNU5VjSWPRnLcidLAfcRXeJ/DBoWklTt4hJX84XUoTXIxO+1/J7AX56
-         fZXsrHjqNT+YSiSo2qvavp7JI1uYtV6ilENyHuqoinZDpUybtJOMOCQBfNXcZ6EXtw
-         t2/8zFpOrZ6mg==
-Date:   Wed, 29 Sep 2021 19:19:53 -0700
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org
-Subject: Re: [PATCH net 2/5] netfilter: nf_tables: add position handle in
- event notification
-Message-ID: <20210929191953.00378ec4@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <20210929230500.811946-3-pablo@netfilter.org>
-References: <20210929230500.811946-1-pablo@netfilter.org>
-        <20210929230500.811946-3-pablo@netfilter.org>
+        Thu, 30 Sep 2021 02:10:39 -0400
+Received: from www62.your-server.de ([213.133.104.62]:39430 "EHLO
+        www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1348185AbhI3GKj (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 30 Sep 2021 02:10:39 -0400
+Received: from sslproxy06.your-server.de ([78.46.172.3])
+        by www62.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
+        (Exim 4.92.3)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1mVpFW-000Ca3-Nk; Thu, 30 Sep 2021 08:08:54 +0200
+Received: from [85.1.206.226] (helo=linux.home)
+        by sslproxy06.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1mVpFW-000TrI-EH; Thu, 30 Sep 2021 08:08:54 +0200
+Subject: Re: [PATCH nf-next v5 0/6] Netfilter egress hook
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        lukas@wunner.de, kadlec@netfilter.org, fw@strlen.de,
+        ast@kernel.org, edumazet@google.com, tgraf@suug.ch,
+        nevola@gmail.com, john.fastabend@gmail.com, willemb@google.com
+References: <20210928095538.114207-1-pablo@netfilter.org>
+From:   Daniel Borkmann <daniel@iogearbox.net>
+Message-ID: <e4f1700c-c299-7091-1c23-60ec329a5b8d@iogearbox.net>
+Date:   Thu, 30 Sep 2021 08:08:53 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20210928095538.114207-1-pablo@netfilter.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
+X-Authenticated-Sender: daniel@iogearbox.net
+X-Virus-Scanned: Clear (ClamAV 0.103.3/26307/Wed Sep 29 11:09:54 2021)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, 30 Sep 2021 01:04:57 +0200 Pablo Neira Ayuso wrote:
-> Add position handle to allow to identify the rule location from netlink
-> events. Otherwise, userspace cannot incrementally update a userspace
-> cache through monitoring events.
+On 9/28/21 11:55 AM, Pablo Neira Ayuso wrote:
+> Hi,
 > 
-> Skip handle dump if the rule has been either inserted (at the beginning
-> of the ruleset) or appended (at the end of the ruleset), the
-> NLM_F_APPEND netlink flag is sufficient in these two cases.
+> This patchset v5 that re-adds the Netfilter egress:
 > 
-> Handle NLM_F_REPLACE as NLM_F_APPEND since the rule replacement
-> expansion appends it after the specified rule handle.
+> 1) Rename linux/netfilter_ingress.h to linux/netfilter_netdev.h
+>     from Lukas Wunner.
 > 
-> Fixes: 96518518cc41 ("netfilter: add nftables")
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> 2) Generalize ingress hook file to accomodate egress support,
+>     from Lukas Wunner.
+> 
+> 3) Modularize Netfilter ingress hook into nf_tables_netdev: Daniel
+>     Borkmann is requesting for a mechanism to allow to blacklist
+>     Netfilter, this allows users to blacklist this new module that
+>     includes ingress chain and the new egress chain for the netdev
+>     family. There is no other in-tree user of the ingress and egress
+>     hooks than this which might interfer with his matter.
+> 
+> 4) Place the egress hook again before the tc egress hook as requested
+>     by Daniel Borkmann. Patch to add egress hook from Lukas Wunner.
+>     The Netfilter egress hook remains behind the static key, if unused
+>     performance degradation is negligible.
+> 
+> 5) Add netfilter egress handling to af_packet.
+> 
+> Arguably, distributors might decide to compile nf_tables_netdev
+> built-in. Traditionally, distributors have compiled their kernels using
+> the default configuration that Netfilter Kconfig provides (ie. use
+> modules whenever possible). In any case, I consider that distributor
+> policy is out of scope in this discussion, providing a mechanism to
+> allow Daniel to prevent Netfilter ingress and egress chains to be loaded
+> should be sufficient IMHO.
 
-Let me defer to Dave on this one. Krzysztof K recently provided us with
-this quote:
+Hm, so in the case of SRv6 users were running into a similar issue and commit
+7a3f5b0de364 ("netfilter: add netfilter hooks to SRv6 data plane") [0] added
+a new hook along with a sysctl which defaults the new hook to off.
 
-"One thing that does bother [Linus] is developers who send him fixes in the
--rc2 or -rc3 time frame for things that never worked in the first place.
-If something never worked, then the fact that it doesn't work now is not
-a regression, so the fixes should just wait for the next merge window.
-Those fixes are, after all, essentially development work."
+The rationale for it was given as "the hooks are enabled via nf_hooks_lwtunnel
+sysctl to make sure existing netfilter rulesets do not break." [0,1]
 
-	https://lwn.net/Articles/705245/
+If the suggestion to flag the skb [2] one way or another from the tc forwarding
+path (e.g. skb bit or per-cpu marker) is not technically feasible, then why not
+do a sysctl toggle like in the SRv6 case?
 
-Maybe the thinking has evolved since, but this patch strikes me as odd.
-We forgot to put an attribute in netlink 8 years ago, and suddenly it's
-urgent to fill it in?  Something does not connect for me, certainly the
-commit message should have explained things better...
+   [0] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=7a3f5b0de3647c854e34269c3332d7a1e902901a
+   [1] https://lore.kernel.org/netdev/20210830093852.21654-1-pablo@netfilter.org/
+   [2] https://lore.kernel.org/netdev/11584665-e3b5-3afe-d72c-ef92ad0b9313@iogearbox.net/
