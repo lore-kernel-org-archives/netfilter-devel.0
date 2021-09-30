@@ -2,86 +2,92 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F9A7C433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Sep 2021 07:21:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9238C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Sep 2021 07:28:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3DA2C61880
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Sep 2021 07:21:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AF6B5617E5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Sep 2021 07:28:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348674AbhI3HXC (ORCPT
+        id S1348748AbhI3Ha3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 30 Sep 2021 03:23:02 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:35940 "EHLO
+        Thu, 30 Sep 2021 03:30:29 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:35972 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1348577AbhI3HXB (ORCPT
+        with ESMTP id S1348739AbhI3Ha1 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 30 Sep 2021 03:23:01 -0400
+        Thu, 30 Sep 2021 03:30:27 -0400
 Received: from netfilter.org (unknown [78.30.35.141])
-        by mail.netfilter.org (Postfix) with ESMTPSA id F211763EB3;
-        Thu, 30 Sep 2021 09:19:51 +0200 (CEST)
-Date:   Thu, 30 Sep 2021 09:21:14 +0200
+        by mail.netfilter.org (Postfix) with ESMTPSA id D442C63EBA;
+        Thu, 30 Sep 2021 09:27:17 +0200 (CEST)
+Date:   Thu, 30 Sep 2021 09:28:39 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Lukas Wunner <lukas@wunner.de>
-Cc:     Daniel Borkmann <daniel@iogearbox.net>,
-        netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org, kadlec@netfilter.org,
-        fw@strlen.de, ast@kernel.org, edumazet@google.com, tgraf@suug.ch,
-        nevola@gmail.com, john.fastabend@gmail.com, willemb@google.com
-Subject: Re: [PATCH nf-next v5 0/6] Netfilter egress hook
-Message-ID: <YVVlamF0tG/awdHX@salvia>
-References: <20210928095538.114207-1-pablo@netfilter.org>
- <e4f1700c-c299-7091-1c23-60ec329a5b8d@iogearbox.net>
- <20210930065238.GA28709@wunner.de>
+To:     Jakub Kicinski <kuba@kernel.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org
+Subject: Re: [PATCH net 2/5] netfilter: nf_tables: add position handle in
+ event notification
+Message-ID: <YVVnJ+Rv36/aF3+u@salvia>
+References: <20210929230500.811946-1-pablo@netfilter.org>
+ <20210929230500.811946-3-pablo@netfilter.org>
+ <20210929191953.00378ec4@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20210930065238.GA28709@wunner.de>
+In-Reply-To: <20210929191953.00378ec4@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Sep 30, 2021 at 08:52:38AM +0200, Lukas Wunner wrote:
-> On Thu, Sep 30, 2021 at 08:08:53AM +0200, Daniel Borkmann wrote:
-> > Hm, so in the case of SRv6 users were running into a similar issue
-> > and commit 7a3f5b0de364 ("netfilter: add netfilter hooks to SRv6
-> > data plane") [0] added a new hook along with a sysctl which defaults
-> > the new hook to off.
+Hi Jakub,
+
+On Wed, Sep 29, 2021 at 07:19:53PM -0700, Jakub Kicinski wrote:
+> On Thu, 30 Sep 2021 01:04:57 +0200 Pablo Neira Ayuso wrote:
+> > Add position handle to allow to identify the rule location from netlink
+> > events. Otherwise, userspace cannot incrementally update a userspace
+> > cache through monitoring events.
 > > 
-> > The rationale for it was given as "the hooks are enabled via
-> > nf_hooks_lwtunnel sysctl to make sure existing netfilter rulesets
-> >  do not break." [0,1]
+> > Skip handle dump if the rule has been either inserted (at the beginning
+> > of the ruleset) or appended (at the end of the ruleset), the
+> > NLM_F_APPEND netlink flag is sufficient in these two cases.
 > > 
-> > If the suggestion to flag the skb [2] one way or another from the
-> > tc forwarding path (e.g. skb bit or per-cpu marker) is not
-> > technically feasible, then why not do a sysctl toggle like in the
-> > SRv6 case?
+> > Handle NLM_F_REPLACE as NLM_F_APPEND since the rule replacement
+> > expansion appends it after the specified rule handle.
+> > 
+> > Fixes: 96518518cc41 ("netfilter: add nftables")
+> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 > 
-> The skb flag *is* technically feasible.  I amended the patches with
-> the flag and was going to post them this week, but Pablo beat me to
-> the punch and posted his alternative version, which lacks the flag
-> but modularizes netfilter ingress/egress processing instead.
+> Let me defer to Dave on this one. Krzysztof K recently provided us with
+> this quote:
 > 
-> Honestly I think a hodge-podge of config options and sysctl toggles
-> is awful and I would prefer the skb flag you suggested.  I kind of
-> like your idea of considering tc and netfilter as layers.
+> "One thing that does bother [Linus] is developers who send him fixes in the
+> -rc2 or -rc3 time frame for things that never worked in the first place.
+> If something never worked, then the fact that it doesn't work now is not
+> a regression, so the fixes should just wait for the next merge window.
+> Those fixes are, after all, essentially development work."
 > 
-> FWIW the finished patches *with* the flag are on this branch:
-> https://github.com/l1k/linux/commits/nft_egress_v5
+> 	https://lwn.net/Articles/705245/
 > 
-> Below is the "git range-diff" between Pablo's patches and mine
-> (just the hunks which pertain to the skb flag, plus excerpts
-> from the commit message).
-> 
-> Would you find the patch set acceptable with this skb flag?
+> Maybe the thinking has evolved since, but this patch strikes me as odd.
+> We forgot to put an attribute in netlink 8 years ago, and suddenly it's
+> urgent to fill it in?  Something does not connect for me, certainly the
+> commit message should have explained things better...
 
-Why do you need a programmatic skb flag?
+Reasonable, but in this particular case I cannot fix userspace monitor
+mode without this patch.
 
-Are you planning to do:
+A user reported that 'nft insert rule...' shows as 'nft add rule...'
+in 'nft monitor'.
 
-        skb->skip_nf_egress = random();
+Then if 'nft add rule x y position 10...' is used to add a rule at a
+given position, then it does not show the 'position 10' so the user
+is just getting a 'add rule x y' which means append it at the end.
 
-from the packet path?
+Same thing happens with 'create table x', it shows as 'add table x'.
 
-Seriously, Daniel is asking for a global toggle to disable Netfilter.
+Noone noticed the missing flags in the event notification path so far.
 
-What is wrong with the Netfilter blacklisting approach?
+I can place this into net-next, yes, but this is only going to delay
+things before I can ask for including this in -stable, meanwhile users
+will keep getting misleading event notification for these cases.
+
+Thanks.
