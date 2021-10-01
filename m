@@ -2,22 +2,22 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CCBDEC43217
-	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Oct 2021 17:45:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98D9FC433FE
+	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Oct 2021 17:45:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B0A3661ABB
-	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Oct 2021 17:45:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7EAEC61A10
+	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Oct 2021 17:45:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1355161AbhJARr0 (ORCPT
+        id S229687AbhJARrY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 1 Oct 2021 13:47:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43642 "EHLO
+        Fri, 1 Oct 2021 13:47:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43638 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1355137AbhJARrY (ORCPT
+        with ESMTP id S1355106AbhJARrY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 1 Oct 2021 13:47:24 -0400
 Received: from kadath.azazel.net (kadath.azazel.net [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E5F6C0613E2
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E51DC06177F
         for <netfilter-devel@vger.kernel.org>; Fri,  1 Oct 2021 10:45:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
@@ -25,24 +25,24 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=cp+dsN8bxedox04sctX+JaBULyXR+ytH1tFE6L981ZA=; b=czi5CJtIaI+lfO+o/lcNqNQsyb
-        7D20aIOTepePMywMdZ2q0q83e8g//v2A9GcA9MXuopOQLhywldKQ2Ufmq36hzBHmFBw84eJ3iSBiT
-        db1JdcXdJ1YunYpSr22TZphWarR1dUNy/fWYiAZ9S2dNRx1V7Cv4hyqg/y7MJK4r/fCd576iCdc2j
-        3gKPkNLy97v6aTa27Y3KZGNt14rBBMt+XQqvUuzAk72qKnoz5GeqW3HFydDOIf0MGGBXOJnPb4Q+g
-        fGPdFPks/jcqQ5IK+TfObjD+49G6Uz/WhzfPKAvn4hvfyxKWm+1b0WChO4ZtOtXV32j0Yxam9FHkb
-        Uciqna5Q==;
+        bh=+h56Sy0+UdoWEiItUs4F4I3Zcaqfu9wn35hlVLRMAOg=; b=BXRRXT+ROn4ewEte77K6vEgkaT
+        BKlCINUz3A6oTQ7FuMPWnay1iO0MgfFnKcx6B+c1m5aVqXpSbKYaBc+r/LdKCWyW9KDXSjgymU/KK
+        PAITkpa0NlWeWRN8P9iNjHbwZNxJE8SXZIIbl1YemQLWFI0sqwn67ufpcx7dSzC/DEvdsxcUlP/Q/
+        xGXO+d3xrzqhO55jECHZMulIcy0SHoSXN3JRL46XszeCqxe3JWuX/DgiphTUwFzwUibHvl2bBiuGy
+        sbLSV9uUvvgQw0xtwz5HV9MH+O5Hy/0pBuQfyAqtjUDE/KkkAabSAYs7w9aF8wHu27e4VthxE+GHc
+        mh14ZqUA==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
         by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1mWMbG-002RLP-TZ; Fri, 01 Oct 2021 18:45:34 +0100
+        id 1mWMbH-002RLP-8K; Fri, 01 Oct 2021 18:45:35 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
 Cc:     Kyle Bowman <kbowman@cloudflare.com>,
         Alex Forster <aforster@cloudflare.com>,
         Cloudflare Kernel Team <kernel-team@cloudflare.com>
-Subject: [PATCH iptables v2 4/8] extensions: libxt_NFLOG: disable `--nflog-range` Python test-cases
-Date:   Fri,  1 Oct 2021 18:41:38 +0100
-Message-Id: <20211001174142.1267726-5-jeremy@azazel.net>
+Subject: [PATCH iptables v2 6/8] extensions: libxt_NFLOG: remove extra space when saving targets with prefixes
+Date:   Fri,  1 Oct 2021 18:41:40 +0100
+Message-Id: <20211001174142.1267726-7-jeremy@azazel.net>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20211001174142.1267726-1-jeremy@azazel.net>
 References: <20211001174142.1267726-1-jeremy@azazel.net>
@@ -55,41 +55,48 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Kyle Bowman <kbowman@cloudflare.com>
+When printing out NFLOG targets an extra space was inserted between
+`--nflog-prefix` and the prefix itself:
 
-nft has no equivalent to `--nflog-range`, so we cannot emulate it and
-the Python unit-tests for it fail.  However, since `--nflog-range` is
-broken and doesn't do anything, the tests are not testing anything
-useful.
-
-Signed-off-by: Kyle Bowman <kbowman@cloudflare.com>
-Signed-off-by: Alex Forster <aforster@cloudflare.com>
+  $ sudo /usr/sbin/iptables -A INPUT -j NFLOG --nflog-prefix test
+  $ sudo /usr/sbin/iptables-save | grep NFLOG
+  -A INPUT -j NFLOG --nflog-prefix  test
+                                  ^^
+Fixes: 73866357e4a7 ("iptables: do not print trailing whitespaces")
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- extensions/libxt_NFLOG.t | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ extensions/libxt_NFLOG.c | 2 +-
+ extensions/libxt_NFLOG.t | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
+diff --git a/extensions/libxt_NFLOG.c b/extensions/libxt_NFLOG.c
+index 2b78e27808f8..6137a68f8cd2 100644
+--- a/extensions/libxt_NFLOG.c
++++ b/extensions/libxt_NFLOG.c
+@@ -83,7 +83,7 @@ static void NFLOG_check(struct xt_fcheck_call *cb)
+ static void nflog_print(const struct xt_nflog_info *info, char *prefix)
+ {
+ 	if (info->prefix[0] != '\0') {
+-		printf(" %snflog-prefix ", prefix);
++		printf(" %snflog-prefix", prefix);
+ 		xtables_save_string(info->prefix);
+ 	}
+ 	if (info->group)
 diff --git a/extensions/libxt_NFLOG.t b/extensions/libxt_NFLOG.t
-index 933fa22160e5..eefb058be30e 100644
+index 13bbf2bfc5a5..561ec8c77650 100644
 --- a/extensions/libxt_NFLOG.t
 +++ b/extensions/libxt_NFLOG.t
-@@ -3,10 +3,12 @@
- -j NFLOG --nflog-group 65535;=;OK
- -j NFLOG --nflog-group 65536;;FAIL
- -j NFLOG --nflog-group 0;-j NFLOG;OK
---j NFLOG --nflog-range 1;=;OK
---j NFLOG --nflog-range 4294967295;=;OK
---j NFLOG --nflog-range 4294967296;;FAIL
---j NFLOG --nflog-range -1;;FAIL
-+# `--nflog-range` is broken and only supported by xtables-legacy.  It
-+# has been superseded by `--nflog--group`.
-+# -j NFLOG --nflog-range 1;=;OK
-+# -j NFLOG --nflog-range 4294967295;=;OK
-+# -j NFLOG --nflog-range 4294967296;;FAIL
-+# -j NFLOG --nflog-range -1;;FAIL
- -j NFLOG --nflog-size 0;=;OK
- -j NFLOG --nflog-size 1;=;OK
+@@ -14,8 +14,8 @@
  -j NFLOG --nflog-size 4294967295;=;OK
+ -j NFLOG --nflog-size 4294967296;;FAIL
+ -j NFLOG --nflog-size -1;;FAIL
+--j NFLOG --nflog-prefix  xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;=;OK
+--j NFLOG --nflog-prefix  xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;-j NFLOG --nflog-prefix  xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;OK
++-j NFLOG --nflog-prefix xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;=;OK
++-j NFLOG --nflog-prefix xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;-j NFLOG --nflog-prefix xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;OK
+ -j NFLOG --nflog-threshold 1;=;OK
+ # ERROR: line 13 (should fail: iptables -A INPUT -j NFLOG --nflog-threshold 0
+ # -j NFLOG --nflog-threshold 0;;FAIL
 -- 
 2.33.0
 
