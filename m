@@ -2,103 +2,78 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD835C433F5
-	for <netfilter-devel@archiver.kernel.org>; Sat,  2 Oct 2021 10:08:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7160C433F5
+	for <netfilter-devel@archiver.kernel.org>; Sat,  2 Oct 2021 10:08:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8FD5761AE0
-	for <netfilter-devel@archiver.kernel.org>; Sat,  2 Oct 2021 10:08:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A350861A81
+	for <netfilter-devel@archiver.kernel.org>; Sat,  2 Oct 2021 10:08:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232767AbhJBKKY (ORCPT
+        id S232783AbhJBKK1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 2 Oct 2021 06:10:24 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:45068 "EHLO
+        Sat, 2 Oct 2021 06:10:27 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:45080 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232691AbhJBKKY (ORCPT
+        with ESMTP id S232773AbhJBKKZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 2 Oct 2021 06:10:24 -0400
+        Sat, 2 Oct 2021 06:10:25 -0400
 Received: from localhost.localdomain (unknown [78.30.35.141])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 6915F63EDC;
-        Sat,  2 Oct 2021 12:07:09 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 7F3F263EE7;
+        Sat,  2 Oct 2021 12:07:12 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 0/4] Netfilter fixes for net (v2)
-Date:   Sat,  2 Oct 2021 12:08:29 +0200
-Message-Id: <20211002100833.21411-1-pablo@netfilter.org>
+Subject: [PATCH net 3/4] netfilter: nf_tables: reverse order in rule replacement expansion
+Date:   Sat,  2 Oct 2021 12:08:32 +0200
+Message-Id: <20211002100833.21411-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20211002100833.21411-1-pablo@netfilter.org>
+References: <20211002100833.21411-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+Deactivate old rule first, then append the new rule, so rule replacement
+notification via netlink first reports the deletion of the old rule with
+handle X in first place, then it adds the new rule (reusing the handle X
+of the replaced old rule).
 
-The following patchset contains Netfilter fixes for net:
+Note that the abort path releases the transaction that has been created
+by nft_delrule() on error.
 
-1) Move back the defrag users fields to the global netns_nf area.
-   Kernel fails to boot if conntrack is builtin and kernel is booted
-   with: nf_conntrack.enable_hooks=1. From Florian Westphal.
+Fixes: ca08987885a1 ("netfilter: nf_tables: deactivate expressions in rule replecement routine")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-2) Rule event notification is missing relevant context such as
-   the position handle and the NLM_F_APPEND flag.
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 085783b14075..c8acd26c7201 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3419,17 +3419,15 @@ static int nf_tables_newrule(struct sk_buff *skb, const struct nfnl_info *info,
+ 	}
+ 
+ 	if (info->nlh->nlmsg_flags & NLM_F_REPLACE) {
++		err = nft_delrule(&ctx, old_rule);
++		if (err < 0)
++			goto err_destroy_flow_rule;
++
+ 		trans = nft_trans_rule_add(&ctx, NFT_MSG_NEWRULE, rule);
+ 		if (trans == NULL) {
+ 			err = -ENOMEM;
+ 			goto err_destroy_flow_rule;
+ 		}
+-		err = nft_delrule(&ctx, old_rule);
+-		if (err < 0) {
+-			nft_trans_destroy(trans);
+-			goto err_destroy_flow_rule;
+-		}
+-
+ 		list_add_tail_rcu(&rule->list, &old_rule->list);
+ 	} else {
+ 		trans = nft_trans_rule_add(&ctx, NFT_MSG_NEWRULE, rule);
+-- 
+2.30.2
 
-3) Rule replacement is expanded to add + delete using the existing
-   rule handle, reverse order of this operation so it makes sense
-   from rule notification standpoint.
-
-4) Propagate to userspace the NLM_F_CREATE and NLM_F_EXCL flags
-   from the rule notification path.
-
-Patches #2, #3 and #4 are used by 'nft monitor' and 'iptables-monitor'
-userspace utilities which are not correctly representing the following
-operations through netlink notifications:
-
-- rule insertions
-- rule addition/insertion from position handle
-- create table/chain/set/map/flowtable/...
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-In this round, I have keep back the patch 4/5 ("netfilter: nft_dynset:
-relax superfluous check on set updates") coming in the previous series,
-which is relaxing a bogus check in the dynset extension for the timeout
-flag. Such patch has no existing users in the strict sense and it is
-possible to route it through net-next.
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 3b1b6e82fb5e08e2cb355d7b2ee8644ec289de66:
-
-  net: phy: enhance GPY115 loopback disable function (2021-09-27 13:49:38 +0100)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
-
-for you to fetch changes up to 6fb721cf781808ee2ca5e737fb0592cc68de3381:
-
-  netfilter: nf_tables: honor NLM_F_CREATE and NLM_F_EXCL in event notification (2021-10-02 12:00:17 +0200)
-
-----------------------------------------------------------------
-Florian Westphal (1):
-      netfilter: conntrack: fix boot failure with nf_conntrack.enable_hooks=1
-
-Pablo Neira Ayuso (3):
-      netfilter: nf_tables: add position handle in event notification
-      netfilter: nf_tables: reverse order in rule replacement expansion
-      netfilter: nf_tables: honor NLM_F_CREATE and NLM_F_EXCL in event notification
-
- include/net/netfilter/ipv6/nf_defrag_ipv6.h |  1 -
- include/net/netfilter/nf_tables.h           |  2 +-
- include/net/netns/netfilter.h               |  6 ++
- net/ipv4/netfilter/nf_defrag_ipv4.c         | 30 +++-------
- net/ipv6/netfilter/nf_conntrack_reasm.c     |  2 +-
- net/ipv6/netfilter/nf_defrag_ipv6_hooks.c   | 25 +++-----
- net/netfilter/nf_tables_api.c               | 91 ++++++++++++++++++++---------
- net/netfilter/nft_quota.c                   |  2 +-
- 8 files changed, 91 insertions(+), 68 deletions(-)
