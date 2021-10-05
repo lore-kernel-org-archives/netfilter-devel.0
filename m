@@ -2,42 +2,43 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0FACC433FE
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 13:52:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DFBB9C433FE
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 13:53:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BC1B161526
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 13:52:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C97DC6023D
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 13:53:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236039AbhJENyH (ORCPT
+        id S235520AbhJENzO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 5 Oct 2021 09:54:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60572 "EHLO mail.kernel.org"
+        Tue, 5 Oct 2021 09:55:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60662 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235524AbhJENwt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 5 Oct 2021 09:52:49 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3834761526;
-        Tue,  5 Oct 2021 13:50:58 +0000 (UTC)
+        id S235551AbhJENwx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 5 Oct 2021 09:52:53 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 62CDF615E3;
+        Tue,  5 Oct 2021 13:51:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1633441859;
-        bh=jrcEUgW68Qkqt5B8DOxIH62D8gSCwxGLreQ0NMB8Lc4=;
+        s=k20201202; t=1633441862;
+        bh=U2uqL6w8bT5xKU7qMShB7MtSMtcH07sXJcK0MA4O1gk=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Qa8gCMtlXzr3YQgjGkUu3r6y/F86WrUi+8RY6x+uMAsQtmGrEhVt3A0K/y1OGb7SI
-         jT7Kt7A9Wg24FVRaV4+EgEGxY/hnWoBqw6/HO+oeDeBInZYMow24FGwGTvwxf2xPa7
-         VUoBowqfVkKcYPcrZSPFLp9MBu4xYuuMgmZXeUDNyFYtIy6nGCFQLB2qnhUbtcinF6
-         FhNYM59r7iZ0zfziDMxQcQcuhNig3W5xbN+UkxKGQeOf2L2/GjhY6Gedf8z2lAGYC8
-         JUHuxgNiUGkOrxA8AMcsH4k3uWISqRR/tCQ2izygmtIp6YHQM2C27yerKkjKXs04ot
-         s1LtsGxMrg58g==
+        b=dJ/H4JLMAYUy+AeaolgAsel/RewvigH4WrEqA3wicUipPHSUYPAubJDydoidOl2BM
+         A/Cr6bz7Pd7gaB8IKyCztnYL4IFfQIuFLD4ltSfdx3yyu/3WqVvxnuzXMXYMpl4d/4
+         GxSnfOk3st3RUlTRN0Vtc7qN3MYlkDvQ06ZTMBmQVWCKgN9M1U5bzrDQrBYdGag+jj
+         w1PG1o14hBtzUR/I0d4cPwC7VUaFwrTx4e4er7eHtYG1SUA54x/JsO55zN1duj0N5V
+         Twi6qh4HRT8mWSz90jRGXeH8ZU2BlFAUWckn1xat8cGgPWrpnnATObIRedf9zuYdWo
+         e1A63cz+d7AdQ==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Florian Westphal <fw@strlen.de>,
+Cc:     Eric Dumazet <edumazet@google.com>,
+        syzbot <syzkaller@googlegroups.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>, kadlec@netfilter.org,
-        davem@davemloft.net, kuba@kernel.org,
+        fw@strlen.de, davem@davemloft.net, kuba@kernel.org,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.14 18/40] netfilter: nf_nat_masquerade: make async masq_inet6_event handling generic
-Date:   Tue,  5 Oct 2021 09:49:57 -0400
-Message-Id: <20211005135020.214291-18-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.14 20/40] netfilter: conntrack: serialize hash resizes and cleanups
+Date:   Tue,  5 Oct 2021 09:49:59 -0400
+Message-Id: <20211005135020.214291-20-sashal@kernel.org>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20211005135020.214291-1-sashal@kernel.org>
 References: <20211005135020.214291-1-sashal@kernel.org>
@@ -49,207 +50,212 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Eric Dumazet <edumazet@google.com>
 
-[ Upstream commit 30db406923b9285a9bac06a6af5e74bd6d0f1d06 ]
+[ Upstream commit e9edc188fc76499b0b9bd60364084037f6d03773 ]
 
-masq_inet6_event is called asynchronously from system work queue,
-because the inet6 notifier is atomic and nf_iterate_cleanup can sleep.
+Syzbot was able to trigger the following warning [1]
 
-The ipv4 and device notifiers call nf_iterate_cleanup directly.
+No repro found by syzbot yet but I was able to trigger similar issue
+by having 2 scripts running in parallel, changing conntrack hash sizes,
+and:
 
-This is legal, but these notifiers are called with RTNL mutex held.
-A large conntrack table with many devices coming and going will have severe
-impact on the system usability, with 'ip a' blocking for several seconds.
+for j in `seq 1 1000` ; do unshare -n /bin/true >/dev/null ; done
 
-This change places the defer code into a helper and makes it more
-generic so ipv4 and ifdown notifiers can be converted to defer the
-cleanup walk as well in a follow patch.
+It would take more than 5 minutes for net_namespace structures
+to be cleaned up.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+This is because nf_ct_iterate_cleanup() has to restart everytime
+a resize happened.
+
+By adding a mutex, we can serialize hash resizes and cleanups
+and also make get_next_corpse() faster by skipping over empty
+buckets.
+
+Even without resizes in the picture, this patch considerably
+speeds up network namespace dismantles.
+
+[1]
+INFO: task syz-executor.0:8312 can't die for more than 144 seconds.
+task:syz-executor.0  state:R  running task     stack:25672 pid: 8312 ppid:  6573 flags:0x00004006
+Call Trace:
+ context_switch kernel/sched/core.c:4955 [inline]
+ __schedule+0x940/0x26f0 kernel/sched/core.c:6236
+ preempt_schedule_common+0x45/0xc0 kernel/sched/core.c:6408
+ preempt_schedule_thunk+0x16/0x18 arch/x86/entry/thunk_64.S:35
+ __local_bh_enable_ip+0x109/0x120 kernel/softirq.c:390
+ local_bh_enable include/linux/bottom_half.h:32 [inline]
+ get_next_corpse net/netfilter/nf_conntrack_core.c:2252 [inline]
+ nf_ct_iterate_cleanup+0x15a/0x450 net/netfilter/nf_conntrack_core.c:2275
+ nf_conntrack_cleanup_net_list+0x14c/0x4f0 net/netfilter/nf_conntrack_core.c:2469
+ ops_exit_list+0x10d/0x160 net/core/net_namespace.c:171
+ setup_net+0x639/0xa30 net/core/net_namespace.c:349
+ copy_net_ns+0x319/0x760 net/core/net_namespace.c:470
+ create_new_namespaces+0x3f6/0xb20 kernel/nsproxy.c:110
+ unshare_nsproxy_namespaces+0xc1/0x1f0 kernel/nsproxy.c:226
+ ksys_unshare+0x445/0x920 kernel/fork.c:3128
+ __do_sys_unshare kernel/fork.c:3202 [inline]
+ __se_sys_unshare kernel/fork.c:3200 [inline]
+ __x64_sys_unshare+0x2d/0x40 kernel/fork.c:3200
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f63da68e739
+RSP: 002b:00007f63d7c05188 EFLAGS: 00000246 ORIG_RAX: 0000000000000110
+RAX: ffffffffffffffda RBX: 00007f63da792f80 RCX: 00007f63da68e739
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000040000000
+RBP: 00007f63da6e8cc4 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f63da792f80
+R13: 00007fff50b75d3f R14: 00007f63d7c05300 R15: 0000000000022000
+
+Showing all locks held in the system:
+1 lock held by khungtaskd/27:
+ #0: ffffffff8b980020 (rcu_read_lock){....}-{1:2}, at: debug_show_all_locks+0x53/0x260 kernel/locking/lockdep.c:6446
+2 locks held by kworker/u4:2/153:
+ #0: ffff888010c69138 ((wq_completion)events_unbound){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff888010c69138 ((wq_completion)events_unbound){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff888010c69138 ((wq_completion)events_unbound){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1198 [inline]
+ #0: ffff888010c69138 ((wq_completion)events_unbound){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:634 [inline]
+ #0: ffff888010c69138 ((wq_completion)events_unbound){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:661 [inline]
+ #0: ffff888010c69138 ((wq_completion)events_unbound){+.+.}-{0:0}, at: process_one_work+0x896/0x1690 kernel/workqueue.c:2268
+ #1: ffffc9000140fdb0 ((kfence_timer).work){+.+.}-{0:0}, at: process_one_work+0x8ca/0x1690 kernel/workqueue.c:2272
+1 lock held by systemd-udevd/2970:
+1 lock held by in:imklog/6258:
+ #0: ffff88807f970ff0 (&f->f_pos_lock){+.+.}-{3:3}, at: __fdget_pos+0xe9/0x100 fs/file.c:990
+3 locks held by kworker/1:6/8158:
+1 lock held by syz-executor.0/8312:
+2 locks held by kworker/u4:13/9320:
+1 lock held by syz-executor.5/10178:
+1 lock held by syz-executor.4/10217:
+
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Reported-by: syzbot <syzkaller@googlegroups.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_nat_masquerade.c | 122 ++++++++++++++++++------------
- 1 file changed, 75 insertions(+), 47 deletions(-)
+ net/netfilter/nf_conntrack_core.c | 70 ++++++++++++++++---------------
+ 1 file changed, 37 insertions(+), 33 deletions(-)
 
-diff --git a/net/netfilter/nf_nat_masquerade.c b/net/netfilter/nf_nat_masquerade.c
-index 8e8a65d46345..415919a6ac1a 100644
---- a/net/netfilter/nf_nat_masquerade.c
-+++ b/net/netfilter/nf_nat_masquerade.c
-@@ -9,8 +9,19 @@
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index d31dbccbe7bd..4f074d7653b8 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -75,6 +75,9 @@ static __read_mostly struct kmem_cache *nf_conntrack_cachep;
+ static DEFINE_SPINLOCK(nf_conntrack_locks_all_lock);
+ static __read_mostly bool nf_conntrack_locks_all;
  
- #include <net/netfilter/nf_nat_masquerade.h>
++/* serialize hash resizes and nf_ct_iterate_cleanup */
++static DEFINE_MUTEX(nf_conntrack_mutex);
++
+ #define GC_SCAN_INTERVAL	(120u * HZ)
+ #define GC_SCAN_MAX_DURATION	msecs_to_jiffies(10)
  
-+struct masq_dev_work {
-+	struct work_struct work;
-+	struct net *net;
-+	union nf_inet_addr addr;
-+	int ifindex;
-+	int (*iter)(struct nf_conn *i, void *data);
-+};
-+
-+#define MAX_MASQ_WORKER_COUNT	16
-+
- static DEFINE_MUTEX(masq_mutex);
- static unsigned int masq_refcnt __read_mostly;
-+static atomic_t masq_worker_count __read_mostly;
+@@ -2192,28 +2195,31 @@ get_next_corpse(int (*iter)(struct nf_conn *i, void *data),
+ 	spinlock_t *lockp;
  
- unsigned int
- nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
-@@ -63,6 +74,63 @@ nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
- }
- EXPORT_SYMBOL_GPL(nf_nat_masquerade_ipv4);
- 
-+static void iterate_cleanup_work(struct work_struct *work)
-+{
-+	struct masq_dev_work *w;
+ 	for (; *bucket < nf_conntrack_htable_size; (*bucket)++) {
++		struct hlist_nulls_head *hslot = &nf_conntrack_hash[*bucket];
 +
-+	w = container_of(work, struct masq_dev_work, work);
++		if (hlist_nulls_empty(hslot))
++			continue;
 +
-+	nf_ct_iterate_cleanup_net(w->net, w->iter, (void *)w, 0, 0);
-+
-+	put_net(w->net);
-+	kfree(w);
-+	atomic_dec(&masq_worker_count);
-+	module_put(THIS_MODULE);
-+}
-+
-+/* Iterate conntrack table in the background and remove conntrack entries
-+ * that use the device/address being removed.
-+ *
-+ * In case too many work items have been queued already or memory allocation
-+ * fails iteration is skipped, conntrack entries will time out eventually.
-+ */
-+static void nf_nat_masq_schedule(struct net *net, union nf_inet_addr *addr,
-+				 int ifindex,
-+				 int (*iter)(struct nf_conn *i, void *data),
-+				 gfp_t gfp_flags)
-+{
-+	struct masq_dev_work *w;
-+
-+	if (atomic_read(&masq_worker_count) > MAX_MASQ_WORKER_COUNT)
-+		return;
-+
-+	net = maybe_get_net(net);
-+	if (!net)
-+		return;
-+
-+	if (!try_module_get(THIS_MODULE))
-+		goto err_module;
-+
-+	w = kzalloc(sizeof(*w), gfp_flags);
-+	if (w) {
-+		/* We can overshoot MAX_MASQ_WORKER_COUNT, no big deal */
-+		atomic_inc(&masq_worker_count);
-+
-+		INIT_WORK(&w->work, iterate_cleanup_work);
-+		w->ifindex = ifindex;
-+		w->net = net;
-+		w->iter = iter;
-+		if (addr)
-+			w->addr = *addr;
-+		schedule_work(&w->work);
-+		return;
-+	}
-+
-+	module_put(THIS_MODULE);
-+ err_module:
-+	put_net(net);
-+}
-+
- static int device_cmp(struct nf_conn *i, void *ifindex)
+ 		lockp = &nf_conntrack_locks[*bucket % CONNTRACK_LOCKS];
+ 		local_bh_disable();
+ 		nf_conntrack_lock(lockp);
+-		if (*bucket < nf_conntrack_htable_size) {
+-			hlist_nulls_for_each_entry(h, n, &nf_conntrack_hash[*bucket], hnnode) {
+-				if (NF_CT_DIRECTION(h) != IP_CT_DIR_REPLY)
+-					continue;
+-				/* All nf_conn objects are added to hash table twice, one
+-				 * for original direction tuple, once for the reply tuple.
+-				 *
+-				 * Exception: In the IPS_NAT_CLASH case, only the reply
+-				 * tuple is added (the original tuple already existed for
+-				 * a different object).
+-				 *
+-				 * We only need to call the iterator once for each
+-				 * conntrack, so we just use the 'reply' direction
+-				 * tuple while iterating.
+-				 */
+-				ct = nf_ct_tuplehash_to_ctrack(h);
+-				if (iter(ct, data))
+-					goto found;
+-			}
++		hlist_nulls_for_each_entry(h, n, hslot, hnnode) {
++			if (NF_CT_DIRECTION(h) != IP_CT_DIR_REPLY)
++				continue;
++			/* All nf_conn objects are added to hash table twice, one
++			 * for original direction tuple, once for the reply tuple.
++			 *
++			 * Exception: In the IPS_NAT_CLASH case, only the reply
++			 * tuple is added (the original tuple already existed for
++			 * a different object).
++			 *
++			 * We only need to call the iterator once for each
++			 * conntrack, so we just use the 'reply' direction
++			 * tuple while iterating.
++			 */
++			ct = nf_ct_tuplehash_to_ctrack(h);
++			if (iter(ct, data))
++				goto found;
+ 		}
+ 		spin_unlock(lockp);
+ 		local_bh_enable();
+@@ -2231,26 +2237,20 @@ get_next_corpse(int (*iter)(struct nf_conn *i, void *data),
+ static void nf_ct_iterate_cleanup(int (*iter)(struct nf_conn *i, void *data),
+ 				  void *data, u32 portid, int report)
  {
- 	const struct nf_conn_nat *nat = nfct_nat(i);
-@@ -136,8 +204,6 @@ static struct notifier_block masq_inet_notifier = {
- };
+-	unsigned int bucket = 0, sequence;
++	unsigned int bucket = 0;
+ 	struct nf_conn *ct;
  
- #if IS_ENABLED(CONFIG_IPV6)
--static atomic_t v6_worker_count __read_mostly;
--
- static int
- nat_ipv6_dev_get_saddr(struct net *net, const struct net_device *dev,
- 		       const struct in6_addr *daddr, unsigned int srcprefs,
-@@ -187,13 +253,6 @@ nf_nat_masquerade_ipv6(struct sk_buff *skb, const struct nf_nat_range2 *range,
- }
- EXPORT_SYMBOL_GPL(nf_nat_masquerade_ipv6);
+ 	might_sleep();
  
--struct masq_dev_work {
--	struct work_struct work;
--	struct net *net;
--	struct in6_addr addr;
--	int ifindex;
--};
+-	for (;;) {
+-		sequence = read_seqcount_begin(&nf_conntrack_generation);
 -
- static int inet6_cmp(struct nf_conn *ct, void *work)
- {
- 	struct masq_dev_work *w = (struct masq_dev_work *)work;
-@@ -204,21 +263,7 @@ static int inet6_cmp(struct nf_conn *ct, void *work)
+-		while ((ct = get_next_corpse(iter, data, &bucket)) != NULL) {
+-			/* Time to push up daises... */
++	mutex_lock(&nf_conntrack_mutex);
++	while ((ct = get_next_corpse(iter, data, &bucket)) != NULL) {
++		/* Time to push up daises... */
  
- 	tuple = &ct->tuplehash[IP_CT_DIR_REPLY].tuple;
- 
--	return ipv6_addr_equal(&w->addr, &tuple->dst.u3.in6);
--}
+-			nf_ct_delete(ct, portid, report);
+-			nf_ct_put(ct);
+-			cond_resched();
+-		}
 -
--static void iterate_cleanup_work(struct work_struct *work)
--{
--	struct masq_dev_work *w;
--
--	w = container_of(work, struct masq_dev_work, work);
--
--	nf_ct_iterate_cleanup_net(w->net, inet6_cmp, (void *)w, 0, 0);
--
--	put_net(w->net);
--	kfree(w);
--	atomic_dec(&v6_worker_count);
--	module_put(THIS_MODULE);
-+	return nf_inet_addr_cmp(&w->addr, &tuple->dst.u3);
+-		if (!read_seqcount_retry(&nf_conntrack_generation, sequence))
+-			break;
+-		bucket = 0;
++		nf_ct_delete(ct, portid, report);
++		nf_ct_put(ct);
++		cond_resched();
+ 	}
++	mutex_unlock(&nf_conntrack_mutex);
  }
  
- /* atomic notifier; can't call nf_ct_iterate_cleanup_net (it can sleep).
-@@ -233,36 +278,19 @@ static int masq_inet6_event(struct notifier_block *this,
- {
- 	struct inet6_ifaddr *ifa = ptr;
- 	const struct net_device *dev;
--	struct masq_dev_work *w;
--	struct net *net;
-+	union nf_inet_addr addr;
+ struct iter_data {
+@@ -2486,8 +2486,10 @@ int nf_conntrack_hash_resize(unsigned int hashsize)
+ 	if (!hash)
+ 		return -ENOMEM;
  
--	if (event != NETDEV_DOWN || atomic_read(&v6_worker_count) >= 16)
-+	if (event != NETDEV_DOWN)
- 		return NOTIFY_DONE;
++	mutex_lock(&nf_conntrack_mutex);
+ 	old_size = nf_conntrack_htable_size;
+ 	if (old_size == hashsize) {
++		mutex_unlock(&nf_conntrack_mutex);
+ 		kvfree(hash);
+ 		return 0;
+ 	}
+@@ -2523,6 +2525,8 @@ int nf_conntrack_hash_resize(unsigned int hashsize)
+ 	nf_conntrack_all_unlock();
+ 	local_bh_enable();
  
- 	dev = ifa->idev->dev;
--	net = maybe_get_net(dev_net(dev));
--	if (!net)
--		return NOTIFY_DONE;
- 
--	if (!try_module_get(THIS_MODULE))
--		goto err_module;
-+	memset(&addr, 0, sizeof(addr));
- 
--	w = kmalloc(sizeof(*w), GFP_ATOMIC);
--	if (w) {
--		atomic_inc(&v6_worker_count);
-+	addr.in6 = ifa->addr;
- 
--		INIT_WORK(&w->work, iterate_cleanup_work);
--		w->ifindex = dev->ifindex;
--		w->net = net;
--		w->addr = ifa->addr;
--		schedule_work(&w->work);
--
--		return NOTIFY_DONE;
--	}
--
--	module_put(THIS_MODULE);
-- err_module:
--	put_net(net);
-+	nf_nat_masq_schedule(dev_net(dev), &addr, dev->ifindex, inet6_cmp,
-+			     GFP_ATOMIC);
- 	return NOTIFY_DONE;
- }
- 
++	mutex_unlock(&nf_conntrack_mutex);
++
+ 	synchronize_net();
+ 	kvfree(old_hash);
+ 	return 0;
 -- 
 2.33.0
 
