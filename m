@@ -2,28 +2,28 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0489CC433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 20:07:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D245FC433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 20:38:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D9BCE6113A
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 20:07:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B63B0614C8
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 20:38:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232590AbhJEUIv convert rfc822-to-8bit (ORCPT
+        id S235994AbhJEUju (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 5 Oct 2021 16:08:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46506 "EHLO mail.kernel.org"
+        Tue, 5 Oct 2021 16:39:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54998 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231159AbhJEUIu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 5 Oct 2021 16:08:50 -0400
+        id S230098AbhJEUjt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 5 Oct 2021 16:39:49 -0400
 Received: from gandalf.local.home (cpe-66-24-58-225.stny.res.rr.com [66.24.58.225])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 30FDB610CE;
-        Tue,  5 Oct 2021 20:06:58 +0000 (UTC)
-Date:   Tue, 5 Oct 2021 16:06:56 -0400
+        by mail.kernel.org (Postfix) with ESMTPSA id 5065C613D5;
+        Tue,  5 Oct 2021 20:37:57 +0000 (UTC)
+Date:   Tue, 5 Oct 2021 16:37:54 -0400
 From:   Steven Rostedt <rostedt@goodmis.org>
-To:     Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc:     Jan Engelhardt <jengelh@inai.de>,
+To:     Jan Engelhardt <jengelh@inai.de>
+Cc:     Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
         Rasmus Villemoes <linux@rasmusvillemoes.dk>,
         linux-kernel <linux-kernel@vger.kernel.org>,
         Linus Torvalds <torvalds@linux-foundation.org>,
@@ -42,8 +42,8 @@ Cc:     Jan Engelhardt <jengelh@inai.de>,
         coreteam <coreteam@netfilter.org>,
         netdev <netdev@vger.kernel.org>
 Subject: Re: [RFC][PATCH] rcu: Use typeof(p) instead of typeof(*p) *
-Message-ID: <20211005160656.29e8bf38@gandalf.local.home>
-In-Reply-To: <1403497170.3059.1633463398562.JavaMail.zimbra@efficios.com>
+Message-ID: <20211005163754.66552fb3@gandalf.local.home>
+In-Reply-To: <20211005154029.46f9c596@gandalf.local.home>
 References: <20211005094728.203ecef2@gandalf.local.home>
         <ef5b1654-1f75-da82-cab8-248319efbe3f@rasmusvillemoes.dk>
         <639278914.2878.1633457192964.JavaMail.zimbra@efficios.com>
@@ -51,62 +51,80 @@ References: <20211005094728.203ecef2@gandalf.local.home>
         <20211005144002.34008ea0@gandalf.local.home>
         <srqsppq-p657-43qq-np31-pq5pp03271r6@vanv.qr>
         <20211005154029.46f9c596@gandalf.local.home>
-        <1403497170.3059.1633463398562.JavaMail.zimbra@efficios.com>
 X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, 5 Oct 2021 15:49:58 -0400 (EDT)
-Mathieu Desnoyers <mathieu.desnoyers@efficios.com> wrote:
+On Tue, 5 Oct 2021 15:40:29 -0400
+Steven Rostedt <rostedt@goodmis.org> wrote:
 
-> ----- On Oct 5, 2021, at 3:40 PM, rostedt rostedt@goodmis.org wrote:
+> struct trace_pid_list {
+> 	unsigned long		ignore;
+> };
 > 
-> > On Tue, 5 Oct 2021 21:06:36 +0200 (CEST)
-> > Jan Engelhardt <jengelh@inai.de> wrote:
-> >   
-> >> On Tuesday 2021-10-05 20:40, Steven Rostedt wrote:  
-> >> >>     
-> >> >> >>>> typeof(*p) *________p1 = (typeof(*p) *__force)READ_ONCE(p);  
-> >> >> 
-> >> >> #define static_cast(type, expr) ((struct { type x; }){(expr)}.x)
-> >> >> typeof(p) p1 = (typeof(p) __force)static_cast(void *, READ_ONCE(p));
-> >> >> 
-> >> >> Let the name not fool you; it's absolutely _not_ the same as C++'s
-> >> >> static_cast, but still: it does emit a warning when you do pass an
-> >> >> integer, which is better than no warning at all in that case.
-> >> >> 
-> >> >>  *flies away*  
-> >> >
-> >> >Are you suggesting I should continue this exercise ;-)  
-> >> 
-> >> “After all, why not?”
-> >> 
-> >> typeof(p) p1 = (typeof(p) __force)READ_ONCE(p) +
-> >>                BUILD_BUG_ON_EXPR(__builtin_classify_type(p) != 5);  
-> > 
-> > I may try it, because exposing the structure I want to hide, is pulling out
-> > a lot of other crap with it :-p  
+> Rename the above struct trace_pid_list to struct trace_pid_internal.
 > 
-> I like the static_cast() approach above. It is neat way to validate that the
-> argument is a pointer without need to dereference the pointer.
+> And internally have:
 > 
-> I would also be open to consider this trick for liburcu's userspace API.
+> union trace_pid_data {
+> 	struct trace_pid_list		external;
+> 	struct trace_pid_internal	internal;
+> };
 > 
-> About the other proposed solution based on __builtin_classify_type, I am
-> reluctant to use something designed specifically for varargs in a context
-> where they are not used.
-> 
+> Then use the internal version within the C file that modifies it, and just
+> return a pointer to the external part.
 
-Unfortunately, it doesn't solve the Debian gcc 10 compiler failing when
-passing the function name instead of a pointer to the function in
-RCU_INIT_POINTER()  That alone makes me feel like I shouldn't touch that
-macro :-(
+So this has proved to be a PITA.
 
-And who knows what other version of gcc will fail on passing the address :-p
+> 
+> That should follow the "C standard".
+
+Really, thinking about abstraction, I don't believe there's anything wrong
+with returning a pointer of one type, and then typecasting it to a pointer
+of another type. Is there? As long as whoever uses the returned type does
+nothing with it.
+
+That is, if I simply do:
+
+In the header file:
+
+struct trace_pid_list {
+	void *ignore;
+};
+
+struct trace_pid_list *trace_pid_list_alloc(void);
+void trace_pid_list_free(struct trace_pid_list *pid_list);
+
+
+And then in the C file:
+
+struct pid_list {
+	[...]
+};
+
+struct trace_pid_list *trace_pid_list_alloc(void)
+{
+	struct pid_list *pid_list;
+
+	pid_list = kmalloc(sizeof(*pid_list), GFP_KERNEL);
+	[..]
+
+	return (struct trace_pid_list *)pid_list;
+}
+
+void trace_pid_list_free(struct trace_pid_list *list)
+{
+	struct pid_list *pid_list = (struct pid_list *)list;
+
+	[..]
+	kfree(pid_list);
+}
+
+That should be perfectly fine for standard C. Right?
 
 -- Steve
 
