@@ -2,123 +2,87 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86811C433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 20:52:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B86C2C433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 20:55:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5B8E061154
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 20:52:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A0B886138F
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 20:55:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230027AbhJEUxu (ORCPT
+        id S231712AbhJEU5O (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 5 Oct 2021 16:53:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50956 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230019AbhJEUxt (ORCPT
+        Tue, 5 Oct 2021 16:57:14 -0400
+Received: from mx0a-00069f02.pphosted.com ([205.220.165.32]:10784 "EHLO
+        mx0a-00069f02.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S236136AbhJEU5N (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 5 Oct 2021 16:53:49 -0400
-Received: from mail-ed1-x529.google.com (mail-ed1-x529.google.com [IPv6:2a00:1450:4864:20::529])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93A7FC061749
-        for <netfilter-devel@vger.kernel.org>; Tue,  5 Oct 2021 13:51:58 -0700 (PDT)
-Received: by mail-ed1-x529.google.com with SMTP id f9so1598898edx.4
-        for <netfilter-devel@vger.kernel.org>; Tue, 05 Oct 2021 13:51:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=WSPoOTkRr5tV7uZ2oQ4/a2w9VK4Qjz1YAPZdC+7bcrw=;
-        b=atKPmliQ9LuYJrilGpsViHfk6LQV6BmknanYEfaKC5+DRlC/Sf/bbZjgm5eOG2gsrs
-         fmv7trPUK3bUcYnjK+F3dvGkJznH7EtdSCCwNZlfE6Q1ZLEG8bowAjHuLUwTsaJgDL3U
-         E3zlV7ocEBIN+OWdpawxUEevr7fS0Jaaj9cW0=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=WSPoOTkRr5tV7uZ2oQ4/a2w9VK4Qjz1YAPZdC+7bcrw=;
-        b=MaAMUUVRHNSHWHwYaPDx7Lp1Ma9dWHrhHL0jgV46TU6hWEPYBxYC8ZyKUgI0fjOfSN
-         FHBNkyXTtFBAHDnLocxkHbagpCpru1qpuswGyO3SUErHzECXbzlpttyDonTzhOgUSb4O
-         SUEh0m2D/Ql6IAE++4t7SfTF1BSXOWMfpYLjt9wjUJJShXqW4sgVfIpzooHYJEBC56ja
-         I2HupuRiDkVINN8iqxe+0mjdVk0xtBztu9+NqDA+hA0nPNZN73l9YL2zMCCwp2HJTO1h
-         vZm8r/r2cOLTjAwN0AKPoSmNaPzLwf8Q8lCVTetB9wZDfGQIJhhzNk5uufUHdENKPOpP
-         7ZKQ==
-X-Gm-Message-State: AOAM531WPYviBy+XUo3p+WvCaKvrh2X9uqfL+52ycAcRMquy+qlfv5/Y
-        6x37lJZHsqdNNxG6OuuQ1K1Nh/yI6oFacGK9Y/E=
-X-Google-Smtp-Source: ABdhPJx/hvk+aVk9z9sPo+IEewR8FMgtvxghXp8rWoeenU3b0Y7bhYlF2d3BT5Ngj8mQFhO2je+Xyg==
-X-Received: by 2002:aa7:cac2:: with SMTP id l2mr13460520edt.168.1633467116987;
-        Tue, 05 Oct 2021 13:51:56 -0700 (PDT)
-Received: from mail-ed1-f45.google.com (mail-ed1-f45.google.com. [209.85.208.45])
-        by smtp.gmail.com with ESMTPSA id g8sm868988edb.60.2021.10.05.13.51.56
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 05 Oct 2021 13:51:56 -0700 (PDT)
-Received: by mail-ed1-f45.google.com with SMTP id v18so1453066edc.11
-        for <netfilter-devel@vger.kernel.org>; Tue, 05 Oct 2021 13:51:56 -0700 (PDT)
-X-Received: by 2002:a05:651c:a09:: with SMTP id k9mr25182695ljq.191.1633466769318;
- Tue, 05 Oct 2021 13:46:09 -0700 (PDT)
+        Tue, 5 Oct 2021 16:57:13 -0400
+Received: from pps.filterd (m0246629.ppops.net [127.0.0.1])
+        by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 195KIJne004475;
+        Tue, 5 Oct 2021 20:55:18 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
+ subject : date : message-id : mime-version : content-transfer-encoding;
+ s=corp-2021-07-09; bh=muvHI4iXP5mXWGYr5Wm3GquW6uyy68Wl3o3On7C+zOY=;
+ b=X6OhKGy+tCBpENBUmI7mzxUOhcrxnG/BYsZ6IAWpAMl+taOf28x+m8YuBtE/zZI4NETA
+ IJF12IgiW/MC4GnYFOf9qekjQSvP4N7CvxhZ8TwV6gG7cT1HlRpntndxRMznZjM1w5IQ
+ k0BTSlGDA0VSISkPHoQwxR8AF6zABTK9rpiP/QdNyso+PDJH2FKUFBUq8hkMZLxpW7Qw
+ PQ/lVsRzOL5oGauid7VZpiauX8Uzk2IaTStyTHtPjT5/t7lr0b6YagBwPXD1HUufHBaR
+ wBAaBwpXqPcZelKFnUQxlIrQbY0yGLcD8sCv0FPePQQq4OkYa9yuUjsHs1iVRrjijA41 qg== 
+Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
+        by mx0b-00069f02.pphosted.com with ESMTP id 3bg43e21bs-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Tue, 05 Oct 2021 20:55:17 +0000
+Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
+        by aserp3030.oracle.com (8.16.1.2/8.16.1.2) with SMTP id 195KnxZg070294;
+        Tue, 5 Oct 2021 20:55:16 GMT
+Received: from pps.reinject (localhost [127.0.0.1])
+        by aserp3030.oracle.com with ESMTP id 3bev7tun8g-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Tue, 05 Oct 2021 20:55:16 +0000
+Received: from aserp3030.oracle.com (aserp3030.oracle.com [127.0.0.1])
+        by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 195KtGRg093733;
+        Tue, 5 Oct 2021 20:55:16 GMT
+Received: from t460.home (dhcp-10-175-13-223.vpn.oracle.com [10.175.13.223])
+        by aserp3030.oracle.com with ESMTP id 3bev7tun7r-1;
+        Tue, 05 Oct 2021 20:55:15 +0000
+From:   Vegard Nossum <vegard.nossum@oracle.com>
+To:     coreteam@netfilter.org, netfilter-devel@vger.kernel.org
+Cc:     Vegard Nossum <vegard.nossum@gmail.com>,
+        Vegard Nossum <vegard.nossum@oracle.com>
+Subject: [PATCH] net/netfilter/Kconfig: use 'default y' instead of 'm' for bool config option
+Date:   Tue,  5 Oct 2021 22:54:54 +0200
+Message-Id: <20211005205454.20244-1-vegard.nossum@oracle.com>
+X-Mailer: git-send-email 2.23.0.718.g5ad94255a8
 MIME-Version: 1.0
-References: <20211005094728.203ecef2@gandalf.local.home> <ef5b1654-1f75-da82-cab8-248319efbe3f@rasmusvillemoes.dk>
- <639278914.2878.1633457192964.JavaMail.zimbra@efficios.com>
- <826o327o-3r46-3oop-r430-8qr0ssp537o3@vanv.qr> <20211005144002.34008ea0@gandalf.local.home>
- <srqsppq-p657-43qq-np31-pq5pp03271r6@vanv.qr> <20211005154029.46f9c596@gandalf.local.home>
- <20211005163754.66552fb3@gandalf.local.home>
-In-Reply-To: <20211005163754.66552fb3@gandalf.local.home>
-From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Tue, 5 Oct 2021 13:45:52 -0700
-X-Gmail-Original-Message-ID: <CAHk-=wj+P=YeuY=tpY72nDMQgxGTzEMqjfq5P536G=qYEkQr1w@mail.gmail.com>
-Message-ID: <CAHk-=wj+P=YeuY=tpY72nDMQgxGTzEMqjfq5P536G=qYEkQr1w@mail.gmail.com>
-Subject: Re: [RFC][PATCH] rcu: Use typeof(p) instead of typeof(*p) *
-To:     Steven Rostedt <rostedt@goodmis.org>
-Cc:     Jan Engelhardt <jengelh@inai.de>,
-        Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
-        Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        Paul <paulmck@linux.vnet.ibm.com>,
-        Josh Triplett <josh@joshtriplett.org>,
-        Lai Jiangshan <jiangshanlai@gmail.com>,
-        "Joel Fernandes, Google" <joel@joelfernandes.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        David Ahern <dsahern@kernel.org>,
-        Jakub Kicinski <kuba@kernel.org>, rcu <rcu@vger.kernel.org>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>,
-        coreteam <coreteam@netfilter.org>,
-        netdev <netdev@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-GUID: JJEpgteRjA3JVEg9Q7eUncyhq6evmR2-
+X-Proofpoint-ORIG-GUID: JJEpgteRjA3JVEg9Q7eUncyhq6evmR2-
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Oct 5, 2021 at 1:38 PM Steven Rostedt <rostedt@goodmis.org> wrote:
->
-> Really, thinking about abstraction, I don't believe there's anything wrong
-> with returning a pointer of one type, and then typecasting it to a pointer
-> of another type. Is there? As long as whoever uses the returned type does
-> nothing with it.
+From: Vegard Nossum <vegard.nossum@gmail.com>
 
-Just stop doing this.,
+This option, NF_CONNTRACK_SECMARK, is a bool, so it can never be 'm'.
 
-Dammit, just include the header file that defines the type in the
-places that you use the thing.
+Fixes: 33b8e77605620 ("[NETFILTER]: Add CONFIG_NETFILTER_ADVANCED option")
+Signed-off-by: Vegard Nossum <vegard.nossum@oracle.com>
+---
+ net/netfilter/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Because, yes, there is a LOT wrong with just randomly casting pointers
-that you think have the "wrong type". You're basically taking it on
-yourself to lie to the compiler, and intentionally breaking the type
-system, because you have some completely bogus reason to hide a type.
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 54395266339d7..92a747896f808 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -109,7 +109,7 @@ config NF_CONNTRACK_MARK
+ config NF_CONNTRACK_SECMARK
+ 	bool  'Connection tracking security mark support'
+ 	depends on NETWORK_SECMARK
+-	default m if NETFILTER_ADVANCED=n
++	default y if NETFILTER_ADVANCED=n
+ 	help
+ 	  This option enables security markings to be applied to
+ 	  connections.  Typically they are copied to connections from
+-- 
+2.23.0.718.g5ad94255a8
 
-We don't hide types in the kernel for no good reason.
-
-You are literally talking about making things worse, for a reason that
-hasn't even been explained, and isn't valid in the first place.
-Nothing else in the kernel has had a problem just declaring the damn
-type,.
-
-If there was some clean and simple solution to the compiler warning
-problem, that would be one thing. But when you think you need to
-change core RCU macros, or lie to the compiler about the type system,
-at that point it's not some clean and simple fix any more. At that
-point you're literally making things worse than just exposing the
-type.
-
-           Linus
