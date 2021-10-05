@@ -2,31 +2,31 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48187C433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 20:02:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0489CC433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 20:07:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2B9FB6120A
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 20:02:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D9BCE6113A
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 20:07:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235546AbhJEUEr (ORCPT
+        id S232590AbhJEUIv convert rfc822-to-8bit (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 5 Oct 2021 16:04:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46014 "EHLO mail.kernel.org"
+        Tue, 5 Oct 2021 16:08:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46506 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230333AbhJEUEr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 5 Oct 2021 16:04:47 -0400
+        id S231159AbhJEUIu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 5 Oct 2021 16:08:50 -0400
 Received: from gandalf.local.home (cpe-66-24-58-225.stny.res.rr.com [66.24.58.225])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DD35E613B5;
-        Tue,  5 Oct 2021 20:02:54 +0000 (UTC)
-Date:   Tue, 5 Oct 2021 16:02:52 -0400
+        by mail.kernel.org (Postfix) with ESMTPSA id 30FDB610CE;
+        Tue,  5 Oct 2021 20:06:58 +0000 (UTC)
+Date:   Tue, 5 Oct 2021 16:06:56 -0400
 From:   Steven Rostedt <rostedt@goodmis.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
+To:     Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc:     Jan Engelhardt <jengelh@inai.de>,
-        Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
         Rasmus Villemoes <linux@rasmusvillemoes.dk>,
         linux-kernel <linux-kernel@vger.kernel.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
         Paul <paulmck@linux.vnet.ibm.com>,
         Josh Triplett <josh@joshtriplett.org>,
         Lai Jiangshan <jiangshanlai@gmail.com>,
@@ -42,8 +42,8 @@ Cc:     Jan Engelhardt <jengelh@inai.de>,
         coreteam <coreteam@netfilter.org>,
         netdev <netdev@vger.kernel.org>
 Subject: Re: [RFC][PATCH] rcu: Use typeof(p) instead of typeof(*p) *
-Message-ID: <20211005160252.54640350@gandalf.local.home>
-In-Reply-To: <CAHk-=wiL+wyCOTedh48Oz0cNOKJq2GNwtxg6423hf-1FuGrv_A@mail.gmail.com>
+Message-ID: <20211005160656.29e8bf38@gandalf.local.home>
+In-Reply-To: <1403497170.3059.1633463398562.JavaMail.zimbra@efficios.com>
 References: <20211005094728.203ecef2@gandalf.local.home>
         <ef5b1654-1f75-da82-cab8-248319efbe3f@rasmusvillemoes.dk>
         <639278914.2878.1633457192964.JavaMail.zimbra@efficios.com>
@@ -51,62 +51,62 @@ References: <20211005094728.203ecef2@gandalf.local.home>
         <20211005144002.34008ea0@gandalf.local.home>
         <srqsppq-p657-43qq-np31-pq5pp03271r6@vanv.qr>
         <20211005154029.46f9c596@gandalf.local.home>
-        <CAHk-=wiL+wyCOTedh48Oz0cNOKJq2GNwtxg6423hf-1FuGrv_A@mail.gmail.com>
+        <1403497170.3059.1633463398562.JavaMail.zimbra@efficios.com>
 X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, 5 Oct 2021 12:46:43 -0700
-Linus Torvalds <torvalds@linux-foundation.org> wrote:
+On Tue, 5 Oct 2021 15:49:58 -0400 (EDT)
+Mathieu Desnoyers <mathieu.desnoyers@efficios.com> wrote:
 
-> On Tue, Oct 5, 2021 at 12:40 PM Steven Rostedt <rostedt@goodmis.org> wrote:
-> >
+> ----- On Oct 5, 2021, at 3:40 PM, rostedt rostedt@goodmis.org wrote:
+> 
+> > On Tue, 5 Oct 2021 21:06:36 +0200 (CEST)
+> > Jan Engelhardt <jengelh@inai.de> wrote:
+> >   
+> >> On Tuesday 2021-10-05 20:40, Steven Rostedt wrote:  
+> >> >>     
+> >> >> >>>> typeof(*p) *________p1 = (typeof(*p) *__force)READ_ONCE(p);  
+> >> >> 
+> >> >> #define static_cast(type, expr) ((struct { type x; }){(expr)}.x)
+> >> >> typeof(p) p1 = (typeof(p) __force)static_cast(void *, READ_ONCE(p));
+> >> >> 
+> >> >> Let the name not fool you; it's absolutely _not_ the same as C++'s
+> >> >> static_cast, but still: it does emit a warning when you do pass an
+> >> >> integer, which is better than no warning at all in that case.
+> >> >> 
+> >> >>  *flies away*  
+> >> >
+> >> >Are you suggesting I should continue this exercise ;-)  
+> >> 
+> >> “After all, why not?”
+> >> 
+> >> typeof(p) p1 = (typeof(p) __force)READ_ONCE(p) +
+> >>                BUILD_BUG_ON_EXPR(__builtin_classify_type(p) != 5);  
+> > 
 > > I may try it, because exposing the structure I want to hide, is pulling out
 > > a lot of other crap with it :-p  
 > 
-> One option is just "don't do rcu_access of a pointer that you're not
-> supposed to touch in a file that isn't supposed to touch it".
-
-The problem is, the RCU isn't for touching it, it is for knowing it exists.
-
+> I like the static_cast() approach above. It is neat way to validate that the
+> argument is a pointer without need to dereference the pointer.
 > 
-> IOW, why are you doing that
+> I would also be open to consider this trick for liburcu's userspace API.
 > 
->      pid_list = rcu_dereference_sched(tr->function_pids);
+> About the other proposed solution based on __builtin_classify_type, I am
+> reluctant to use something designed specifically for varargs in a context
+> where they are not used.
 > 
-> in a place that isn't supposed to look at the pid_list in the first place?
-> 
-> Yeah, yeah, I see how you just pass it to trace_ignore_this_task() as
-> an argument, but maybe the real fix is to just pass that trace_array
-> pointer instead?
-> 
-> IOW, if you want to keep that structure private, maybe you really just
-> shouldn't have non-private users of it randomly doing RCU lookups of
-> it?
->
 
-Ideally, I wanted to keep the logic of the pid lists separate, and not have
-it know about the trace array at all.
+Unfortunately, it doesn't solve the Debian gcc 10 compiler failing when
+passing the function name instead of a pointer to the function in
+RCU_INIT_POINTER()  That alone makes me feel like I shouldn't touch that
+macro :-(
 
-And this was the best "incremental" approach I had, as the code is
-currently all just open coded.
-
-The RCU lookups are not an internal use functionality of the pid lists. The
-updates to the pid list are done by allocating a new pid_list, copying the
-old pid_list with the new updates and then swapping the pointers. The logic
-of the pid_list is orthogonal to the RCU update. It's just "allocate some
-random thing" and use RCU to swap it with the old random thing.
-
-That is, the logic to synchronize updates is left to the user not the pid
-list itself.
-
-I also want to limit function calls, as this is called from the function
-tracer (every function being traced) and if the pid_list pointer is NULL it
-skips it. Hence, I want to avoid calling a function to know if the pointer
-is NULL or not.
+And who knows what other version of gcc will fail on passing the address :-p
 
 -- Steve
+
