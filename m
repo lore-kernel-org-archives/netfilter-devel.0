@@ -2,51 +2,34 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2823EC433FE
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 18:06:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90BDBC433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 18:28:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 109FD61154
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 18:06:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 726C9613D3
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 18:28:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234477AbhJESIZ (ORCPT
+        id S234201AbhJESas (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 5 Oct 2021 14:08:25 -0400
-Received: from mail.efficios.com ([167.114.26.124]:58954 "EHLO
-        mail.efficios.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229796AbhJESIZ (ORCPT
+        Tue, 5 Oct 2021 14:30:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45698 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229626AbhJESas (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 5 Oct 2021 14:08:25 -0400
+        Tue, 5 Oct 2021 14:30:48 -0400
+Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66465C061749;
+        Tue,  5 Oct 2021 11:28:57 -0700 (PDT)
+Received: by a3.inai.de (Postfix, from userid 25121)
+        id 9FB465877C256; Tue,  5 Oct 2021 20:28:54 +0200 (CEST)
 Received: from localhost (localhost [127.0.0.1])
-        by mail.efficios.com (Postfix) with ESMTP id B0E2438EEEF;
-        Tue,  5 Oct 2021 14:06:33 -0400 (EDT)
-Received: from mail.efficios.com ([127.0.0.1])
-        by localhost (mail03.efficios.com [127.0.0.1]) (amavisd-new, port 10032)
-        with ESMTP id iZsE1lZA6tlX; Tue,  5 Oct 2021 14:06:33 -0400 (EDT)
-Received: from localhost (localhost [127.0.0.1])
-        by mail.efficios.com (Postfix) with ESMTP id 2ABCC38EEEE;
-        Tue,  5 Oct 2021 14:06:33 -0400 (EDT)
-DKIM-Filter: OpenDKIM Filter v2.10.3 mail.efficios.com 2ABCC38EEEE
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=efficios.com;
-        s=default; t=1633457193;
-        bh=tfKh6mHkN2x9qWMzx/jgb3e4/+PZ5d3ilSaKBX4BnfE=;
-        h=Date:From:To:Message-ID:MIME-Version;
-        b=J1O8CHuaXrbI7ETe8Lggn0Ls3THmmH6Z255M+LFzCsvbwZvBjLaWEfdtRLINCrWKF
-         h+hFmLwjsWKIFlLaxcszT1refvDhhwvXpKU0PgW+dj2kjV4E98m+bevWK2dxNpkV5M
-         Qe/iIuKd4hwBKoQRGEVNQVmBIRi2/KxaS0E3saN0ArKs82vUSXgdzIGctghBcm5mlI
-         bdQx2RQCRwI7UTH7y3Au+l6horu4X28A/qMAUyWPTaJxqElbOhvK9Ujp8p1e9xeR5h
-         MvWQjVHa4IekTRKcmedzI4kcmRCof5bK/Jz+8LUOgiYWVnRydMteIRMgQQTnz/+47W
-         2i7Fugh/Da13Q==
-X-Virus-Scanned: amavisd-new at efficios.com
-Received: from mail.efficios.com ([127.0.0.1])
-        by localhost (mail03.efficios.com [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP id PKk_2bA41C_h; Tue,  5 Oct 2021 14:06:33 -0400 (EDT)
-Received: from mail03.efficios.com (mail03.efficios.com [167.114.26.124])
-        by mail.efficios.com (Postfix) with ESMTP id 0EC1B38F196;
-        Tue,  5 Oct 2021 14:06:33 -0400 (EDT)
-Date:   Tue, 5 Oct 2021 14:06:32 -0400 (EDT)
-From:   Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-To:     Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc:     rostedt <rostedt@goodmis.org>,
+        by a3.inai.de (Postfix) with ESMTP id 9C8A260C1CB34;
+        Tue,  5 Oct 2021 20:28:54 +0200 (CEST)
+Date:   Tue, 5 Oct 2021 20:28:54 +0200 (CEST)
+From:   Jan Engelhardt <jengelh@inai.de>
+To:     rostedt <rostedt@goodmis.org>
+cc:     Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+        Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+        rostedt <rostedt@goodmis.org>,
         linux-kernel <linux-kernel@vger.kernel.org>,
         Linus Torvalds <torvalds@linux-foundation.org>,
         Paul <paulmck@linux.vnet.ibm.com>,
@@ -63,51 +46,37 @@ Cc:     rostedt <rostedt@goodmis.org>,
         netfilter-devel <netfilter-devel@vger.kernel.org>,
         coreteam <coreteam@netfilter.org>,
         netdev <netdev@vger.kernel.org>
-Message-ID: <639278914.2878.1633457192964.JavaMail.zimbra@efficios.com>
-In-Reply-To: <ef5b1654-1f75-da82-cab8-248319efbe3f@rasmusvillemoes.dk>
-References: <20211005094728.203ecef2@gandalf.local.home> <ef5b1654-1f75-da82-cab8-248319efbe3f@rasmusvillemoes.dk>
 Subject: Re: [RFC][PATCH] rcu: Use typeof(p) instead of typeof(*p) *
+In-Reply-To: <639278914.2878.1633457192964.JavaMail.zimbra@efficios.com>
+Message-ID: <826o327o-3r46-3oop-r430-8qr0ssp537o3@vanv.qr>
+References: <20211005094728.203ecef2@gandalf.local.home> <ef5b1654-1f75-da82-cab8-248319efbe3f@rasmusvillemoes.dk> <639278914.2878.1633457192964.JavaMail.zimbra@efficios.com>
+User-Agent: Alpine 2.25 (LSU 592 2021-09-18)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [167.114.26.124]
-X-Mailer: Zimbra 8.8.15_GA_4156 (ZimbraWebClient - FF92 (Linux)/8.8.15_GA_4156)
-Thread-Topic: Use typeof(p) instead of typeof(*p) *
-Thread-Index: RjCoJoA6Ynqqjw2vHnEn40XORyRWhA==
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
------ On Oct 5, 2021, at 2:01 PM, Rasmus Villemoes linux@rasmusvillemoes.dk wrote:
 
-> On 05/10/2021 15.47, Steven Rostedt wrote:
-> 
->> That is, instead of declaring: typeof(*p) *_p; just do:
->>  typeof(p) _p;
->> 
->> Also had to update a lot of the function pointer initialization in the
->> networking code, as a function address must be passed as an argument in
->> RCU_INIT_POINTER()
-> 
-> I would think that one could avoid that churn by saying
-> 
->  typeof((p) + 0)
-> 
-> instead of just "typeof(p)", to force the decay to a pointer.
+On Tuesday 2021-10-05 20:06, Mathieu Desnoyers wrote:
+>> instead of just "typeof(p)", to force the decay to a pointer.
+>
+>If the type of @p is an integer, (p) + 0 is still valid, so it will not
+>prevent users from passing an integer type as argument, which is what
+>the current implementation prevents.
+>
+>Also, AFAIU, the compiler wants to know the sizeof(p) in order to evaluate
+>(p + 0). Steven's goal is to hide the structure declaration, so that would
+>not work either.
 
-If the type of @p is an integer, (p) + 0 is still valid, so it will not
-prevent users from passing an integer type as argument, which is what
-the current implementation prevents.
+>>>> typeof(*p) *________p1 = (typeof(*p) *__force)READ_ONCE(p);
 
-Also, AFAIU, the compiler wants to know the sizeof(p) in order to evaluate
-(p + 0). Steven's goal is to hide the structure declaration, so that would
-not work either.
 
-Thanks,
+#define static_cast(type, expr) ((struct { type x; }){(expr)}.x)
+typeof(p) p1 = (typeof(p) __force)static_cast(void *, READ_ONCE(p));
 
-Mathieu
+Let the name not fool you; it's absolutely _not_ the same as C++'s 
+static_cast, but still: it does emit a warning when you do pass an 
+integer, which is better than no warning at all in that case.
 
--- 
-Mathieu Desnoyers
-EfficiOS Inc.
-http://www.efficios.com
+ *flies away*
