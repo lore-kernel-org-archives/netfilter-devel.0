@@ -2,54 +2,31 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BBF2EC433FE
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 19:50:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48187C433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 20:02:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9E00A6124C
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 19:50:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2B9FB6120A
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 20:02:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235351AbhJETvw (ORCPT
+        id S235546AbhJEUEr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 5 Oct 2021 15:51:52 -0400
-Received: from mail.efficios.com ([167.114.26.124]:38746 "EHLO
-        mail.efficios.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235424AbhJETvv (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 5 Oct 2021 15:51:51 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by mail.efficios.com (Postfix) with ESMTP id 7E7C238FB64;
-        Tue,  5 Oct 2021 15:49:59 -0400 (EDT)
-Received: from mail.efficios.com ([127.0.0.1])
-        by localhost (mail03.efficios.com [127.0.0.1]) (amavisd-new, port 10032)
-        with ESMTP id ZEXrR5Ci9ztl; Tue,  5 Oct 2021 15:49:58 -0400 (EDT)
-Received: from localhost (localhost [127.0.0.1])
-        by mail.efficios.com (Postfix) with ESMTP id C548438FD25;
-        Tue,  5 Oct 2021 15:49:58 -0400 (EDT)
-DKIM-Filter: OpenDKIM Filter v2.10.3 mail.efficios.com C548438FD25
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=efficios.com;
-        s=default; t=1633463398;
-        bh=dozxmLSuH4fqPxd682HodmlOfauCaaugJuGX+lZefU8=;
-        h=Date:From:To:Message-ID:MIME-Version;
-        b=VQLxpJX9s6Ims/iCloj2co6DZ+kAdayJlyjk0y39LTLedU12jjm3nRuS3ML03MCxy
-         UY9oFtvBhPj8xL+HiCsR7Pwg4pWZisnoHzhUgxTh0R/QYj+/4YNutoi+kOcS/YdKMS
-         wBGAZWIGIye7ICOyCS3Rc/lVbHQ4WNpQ0AVIsXN1r920EaxyuHuGeqkSyR8y2Fmdo0
-         KJps0Xp0reKwLf3Wbgi2mxfR+PbgOIFy126o8QYAEFtBWQAFf8m4kFSiV76TqdgDf/
-         8cjY4PLqtdqMqCyyloggvXTrp/dgg1EovojbCFhaBWRD8zpQnda+JqtKRVkyap5eqF
-         /OSD+5ooicwig==
-X-Virus-Scanned: amavisd-new at efficios.com
-Received: from mail.efficios.com ([127.0.0.1])
-        by localhost (mail03.efficios.com [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP id 1mYUU1jAuvet; Tue,  5 Oct 2021 15:49:58 -0400 (EDT)
-Received: from mail03.efficios.com (mail03.efficios.com [167.114.26.124])
-        by mail.efficios.com (Postfix) with ESMTP id AB0C738FBD8;
-        Tue,  5 Oct 2021 15:49:58 -0400 (EDT)
-Date:   Tue, 5 Oct 2021 15:49:58 -0400 (EDT)
-From:   Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-To:     rostedt <rostedt@goodmis.org>
+        Tue, 5 Oct 2021 16:04:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46014 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230333AbhJEUEr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 5 Oct 2021 16:04:47 -0400
+Received: from gandalf.local.home (cpe-66-24-58-225.stny.res.rr.com [66.24.58.225])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id DD35E613B5;
+        Tue,  5 Oct 2021 20:02:54 +0000 (UTC)
+Date:   Tue, 5 Oct 2021 16:02:52 -0400
+From:   Steven Rostedt <rostedt@goodmis.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
 Cc:     Jan Engelhardt <jengelh@inai.de>,
+        Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
         Rasmus Villemoes <linux@rasmusvillemoes.dk>,
         linux-kernel <linux-kernel@vger.kernel.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
         Paul <paulmck@linux.vnet.ibm.com>,
         Josh Triplett <josh@joshtriplett.org>,
         Lai Jiangshan <jiangshanlai@gmail.com>,
@@ -64,66 +41,72 @@ Cc:     Jan Engelhardt <jengelh@inai.de>,
         netfilter-devel <netfilter-devel@vger.kernel.org>,
         coreteam <coreteam@netfilter.org>,
         netdev <netdev@vger.kernel.org>
-Message-ID: <1403497170.3059.1633463398562.JavaMail.zimbra@efficios.com>
-In-Reply-To: <20211005154029.46f9c596@gandalf.local.home>
-References: <20211005094728.203ecef2@gandalf.local.home> <ef5b1654-1f75-da82-cab8-248319efbe3f@rasmusvillemoes.dk> <639278914.2878.1633457192964.JavaMail.zimbra@efficios.com> <826o327o-3r46-3oop-r430-8qr0ssp537o3@vanv.qr> <20211005144002.34008ea0@gandalf.local.home> <srqsppq-p657-43qq-np31-pq5pp03271r6@vanv.qr> <20211005154029.46f9c596@gandalf.local.home>
 Subject: Re: [RFC][PATCH] rcu: Use typeof(p) instead of typeof(*p) *
+Message-ID: <20211005160252.54640350@gandalf.local.home>
+In-Reply-To: <CAHk-=wiL+wyCOTedh48Oz0cNOKJq2GNwtxg6423hf-1FuGrv_A@mail.gmail.com>
+References: <20211005094728.203ecef2@gandalf.local.home>
+        <ef5b1654-1f75-da82-cab8-248319efbe3f@rasmusvillemoes.dk>
+        <639278914.2878.1633457192964.JavaMail.zimbra@efficios.com>
+        <826o327o-3r46-3oop-r430-8qr0ssp537o3@vanv.qr>
+        <20211005144002.34008ea0@gandalf.local.home>
+        <srqsppq-p657-43qq-np31-pq5pp03271r6@vanv.qr>
+        <20211005154029.46f9c596@gandalf.local.home>
+        <CAHk-=wiL+wyCOTedh48Oz0cNOKJq2GNwtxg6423hf-1FuGrv_A@mail.gmail.com>
+X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-X-Originating-IP: [167.114.26.124]
-X-Mailer: Zimbra 8.8.15_GA_4156 (ZimbraWebClient - FF92 (Linux)/8.8.15_GA_4156)
-Thread-Topic: Use typeof(p) instead of typeof(*p) *
-Thread-Index: 1k/Ly56F/MzpErICaHpi/t7hzD4jKA==
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
------ On Oct 5, 2021, at 3:40 PM, rostedt rostedt@goodmis.org wrote:
+On Tue, 5 Oct 2021 12:46:43 -0700
+Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-> On Tue, 5 Oct 2021 21:06:36 +0200 (CEST)
-> Jan Engelhardt <jengelh@inai.de> wrote:
->=20
->> On Tuesday 2021-10-05 20:40, Steven Rostedt wrote:
->> >>  =20
->> >> >>>> typeof(*p) *________p1 =3D (typeof(*p) *__force)READ_ONCE(p);
->> >>=20
->> >> #define static_cast(type, expr) ((struct { type x; }){(expr)}.x)
->> >> typeof(p) p1 =3D (typeof(p) __force)static_cast(void *, READ_ONCE(p))=
-;
->> >>=20
->> >> Let the name not fool you; it's absolutely _not_ the same as C++'s
->> >> static_cast, but still: it does emit a warning when you do pass an
->> >> integer, which is better than no warning at all in that case.
->> >>=20
->> >>  *flies away*
->> >
->> >Are you suggesting I should continue this exercise ;-)
->>=20
->> =E2=80=9CAfter all, why not?=E2=80=9D
->>=20
->> typeof(p) p1 =3D (typeof(p) __force)READ_ONCE(p) +
->>                BUILD_BUG_ON_EXPR(__builtin_classify_type(p) !=3D 5);
->=20
-> I may try it, because exposing the structure I want to hide, is pulling o=
-ut
-> a lot of other crap with it :-p
+> On Tue, Oct 5, 2021 at 12:40 PM Steven Rostedt <rostedt@goodmis.org> wrote:
+> >
+> > I may try it, because exposing the structure I want to hide, is pulling out
+> > a lot of other crap with it :-p  
+> 
+> One option is just "don't do rcu_access of a pointer that you're not
+> supposed to touch in a file that isn't supposed to touch it".
 
-I like the static_cast() approach above. It is neat way to validate that th=
-e
-argument is a pointer without need to dereference the pointer.
+The problem is, the RCU isn't for touching it, it is for knowing it exists.
 
-I would also be open to consider this trick for liburcu's userspace API.
+> 
+> IOW, why are you doing that
+> 
+>      pid_list = rcu_dereference_sched(tr->function_pids);
+> 
+> in a place that isn't supposed to look at the pid_list in the first place?
+> 
+> Yeah, yeah, I see how you just pass it to trace_ignore_this_task() as
+> an argument, but maybe the real fix is to just pass that trace_array
+> pointer instead?
+> 
+> IOW, if you want to keep that structure private, maybe you really just
+> shouldn't have non-private users of it randomly doing RCU lookups of
+> it?
+>
 
-About the other proposed solution based on __builtin_classify_type, I am
-reluctant to use something designed specifically for varargs in a context
-where they are not used.
+Ideally, I wanted to keep the logic of the pid lists separate, and not have
+it know about the trace array at all.
 
-Thanks,
+And this was the best "incremental" approach I had, as the code is
+currently all just open coded.
 
-Mathieu
+The RCU lookups are not an internal use functionality of the pid lists. The
+updates to the pid list are done by allocating a new pid_list, copying the
+old pid_list with the new updates and then swapping the pointers. The logic
+of the pid_list is orthogonal to the RCU update. It's just "allocate some
+random thing" and use RCU to swap it with the old random thing.
 
---=20
-Mathieu Desnoyers
-EfficiOS Inc.
-http://www.efficios.com
+That is, the logic to synchronize updates is left to the user not the pid
+list itself.
+
+I also want to limit function calls, as this is called from the function
+tracer (every function being traced) and if the pid_list pointer is NULL it
+skips it. Hence, I want to avoid calling a function to know if the pointer
+is NULL or not.
+
+-- Steve
