@@ -2,64 +2,46 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FF21C433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 01:24:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05988C433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 13:32:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7DA1A61409
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 01:24:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DD1DF6124C
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Oct 2021 13:32:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230395AbhJEB0E (ORCPT
+        id S235112AbhJENd6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 4 Oct 2021 21:26:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33356 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230097AbhJEB0B (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 4 Oct 2021 21:26:01 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6F4416140B;
-        Tue,  5 Oct 2021 01:24:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1633397051;
-        bh=57LNnA6XsVpnlGoKJUQ0C8IgmbyCmlx3YFFD3e/WyOk=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=WFpCe1AmoQWQ66uZdkx10c2v2o/7M/02a4+v8fER2wGHrT3xXpKAHsVx4n7pUDX59
-         cyyKRboHXzpjccP3/mQH2jWP5pU5E9LLdKDWL/n/C8xmdT5mCa/CLsAHDJ/1dcYO+j
-         0RsSK9TLgdXM4Xltt3U5c92AE7yAo68ArgYS61tpx45JFP1WYwZorputd4pNGRaK42
-         dvvjoQaQoLF7H32lcqPhcPvoihXvrqQRDjK11R5AMflhCWyLnyNij7qI6yAnV2gD1f
-         S9Pu8rm3LhBFpWGLb3O1ZLxMfEQoQHe2l6wHSho/TDwIw9iwhouZI7B+ZRRv5U3OEx
-         Up4+hgxlI7cfQ==
-Date:   Mon, 4 Oct 2021 18:24:10 -0700
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        "Jose M. Guisado Gomez" <guigom@riseup.net>,
-        "David S. Miller" <davem@davemloft.net>,
-        Arnd Bergmann <arnd@arndb.de>, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        David Ahern <dsahern@kernel.org>
-Subject: Re: [PATCH v1 net-next 1/1] net: Mark possible unused variables on
- stack with __maybe_unused
-Message-ID: <20211004182410.3f3496b9@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <20211001145056.12184-1-andriy.shevchenko@linux.intel.com>
-References: <20211001145056.12184-1-andriy.shevchenko@linux.intel.com>
+        Tue, 5 Oct 2021 09:33:58 -0400
+Received: from mail.thelounge.net ([91.118.73.15]:63485 "EHLO
+        mail.thelounge.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235101AbhJENd4 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 5 Oct 2021 09:33:56 -0400
+X-Greylist: delayed 1054 seconds by postgrey-1.27 at vger.kernel.org; Tue, 05 Oct 2021 09:33:56 EDT
+Received: from [10.10.10.2] (rh.vpn.thelounge.net [10.10.10.2])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-256) server-digest SHA256)
+        (No client certificate requested)
+        (Authenticated sender: h.reindl@thelounge.net)
+        by mail.thelounge.net (THELOUNGE MTA) with ESMTPSA id 4HNyjK2BjCzXj4
+        for <netfilter-devel@vger.kernel.org>; Tue,  5 Oct 2021 15:14:24 +0200 (CEST)
+Message-ID: <f4ccb286-44a6-81ce-0ca7-dddf6efed79d@thelounge.net>
+Date:   Tue, 5 Oct 2021 15:14:23 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.1.0
+To:     netfilter-devel@vger.kernel.org
+Content-Language: en-US
+From:   Reindl Harald <h.reindl@thelounge.net>
+Subject: Linux 5.14 breaks wlan-ap traffic between wlan device
+Organization: the lounge interactive design
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri,  1 Oct 2021 17:50:56 +0300 Andy Shevchenko wrote:
-> When compile with COMPILE_TEST=y the -Werror is implied.
-> If we run `make W=1` the first level warnings will become
-> the build errors. Some of them related to possible unused
-> variables. Hence, to allow clean build in such case, mark
-> them with __maybe_unused.
-> 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+not exactly the correct mailing list but i guess some relevant 
+maintainers are also subscribed here:
 
-You need to split the socket and fib change from the netfilter ones.
-Those go via different sub-trees.
+https://bugzilla.kernel.org/show_bug.cgi?id=214531
+https://bugzilla.redhat.com/show_bug.cgi?id=2007974
