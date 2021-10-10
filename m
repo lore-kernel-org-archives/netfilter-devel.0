@@ -2,82 +2,90 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 646F9C433F5
-	for <netfilter-devel@archiver.kernel.org>; Sat,  9 Oct 2021 12:19:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C61AC433EF
+	for <netfilter-devel@archiver.kernel.org>; Sun, 10 Oct 2021 02:37:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 41A4460F70
-	for <netfilter-devel@archiver.kernel.org>; Sat,  9 Oct 2021 12:19:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0D87860EBC
+	for <netfilter-devel@archiver.kernel.org>; Sun, 10 Oct 2021 02:37:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232978AbhJIMVw (ORCPT
+        id S229872AbhJJCji (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 9 Oct 2021 08:21:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58906 "EHLO
+        Sat, 9 Oct 2021 22:39:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48794 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232960AbhJIMVv (ORCPT
+        with ESMTP id S229689AbhJJCjh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 9 Oct 2021 08:21:51 -0400
-Received: from mail-wr1-x42f.google.com (mail-wr1-x42f.google.com [IPv6:2a00:1450:4864:20::42f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC5BFC061570
-        for <netfilter-devel@vger.kernel.org>; Sat,  9 Oct 2021 05:19:54 -0700 (PDT)
-Received: by mail-wr1-x42f.google.com with SMTP id r18so38217021wrg.6
-        for <netfilter-devel@vger.kernel.org>; Sat, 09 Oct 2021 05:19:54 -0700 (PDT)
+        Sat, 9 Oct 2021 22:39:37 -0400
+Received: from mail-pj1-x1034.google.com (mail-pj1-x1034.google.com [IPv6:2607:f8b0:4864:20::1034])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F3316C061570
+        for <netfilter-devel@vger.kernel.org>; Sat,  9 Oct 2021 19:37:39 -0700 (PDT)
+Received: by mail-pj1-x1034.google.com with SMTP id d13-20020a17090ad3cd00b0019e746f7bd4so12114324pjw.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 09 Oct 2021 19:37:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=to:from:subject:message-id:date:user-agent:mime-version
-         :content-transfer-encoding:content-language;
-        bh=AjHipsnHPuQmV7iTk4X8/BkfFZ7YJZtFNPlw9DGiwfY=;
-        b=q3TfM5Ys1X2w7g6Z+fJGG2BNTsx+LFC+KA8IhmfZZbVkZEJUbIf/09IGagF+QF1a1f
-         vGMEXfQRK0913MXrKbIF4xkwvA/po4waNgcY/nfQ5ZxvTLg1q1oqCC7JRYYu3eBBo1X+
-         Fs4i6WHaLhR8U7l6Mm5MV+3Ri85ip+MuCXqRasVywRmP6AQRxzpQQb15U7dKvNhk2Dwz
-         FnCavrh+NrRF91/vrMhwOAA0EV4igd2giQ4Jnb1FMjtN85TXjwzlqqpH77xY8xpT7Wp0
-         PZ2Wn4MiEXj8jl1L+tNtN/hzKTTxBdFOBTTUeQpJZX8881rbqHN5Oe0BZhOIuX3GF2jx
-         xCRA==
+        h=sender:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=hFIDQg3VrdS3Z+fudv5dwMXgcd7gN/ETO56nV1kHkWQ=;
+        b=T3rAn1CkzsMLzDMphbo67onOvotbXgmQCtINooopb9QtKLjqEG4m98VeJfdVFSPXKh
+         2s7a9ejJX0qWRRhFVgt+s4mNRUc2UU43AGlP4l+WCIerjnaMq8tPN9+UD8wtjbqxbmDl
+         MWZfbLBbGOkHQtf+b979Tq/AVQK9D7KvQuBkwMR0izhqGHOUbfRZVUttCyxnSJJL+aCk
+         TmULwv0uRGOZTKtJ0Af118xE2PeLcYwGK1wT9EiMUWaKzFK7DxCX4o9nZs7zLbrrFlB/
+         oJz4tcCiYsmrJ/TO8gBbP6WELVTW+gRBtOhXT6D+BR5D/vO1vQ1l3I7p3Yly66bAjbuA
+         IpWQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:to:from:subject:message-id:date:user-agent
-         :mime-version:content-transfer-encoding:content-language;
-        bh=AjHipsnHPuQmV7iTk4X8/BkfFZ7YJZtFNPlw9DGiwfY=;
-        b=nCQpxtvzwJHHxl8vH+cVPTwMXBbC6EsguL+Q1t4EuN1BC2y7L2snclB14EO8FO77Of
-         frqA7CRAQlGmrUa0No7BiTkXbJeongRwMfxX3AuG07OEtGfSGlx+0cJLFi8MQ2MFPazA
-         VFaIaLs9Dub2RqxipJdtFE7ZNwFbuogsIw52Eu7wI4kN3ebjaMuOLm5Nb3yf7Vr3qEen
-         9thOsoOJkM7Wb5zAjdcEYVUmbPuGIdTzzHuUn4kZiqoPZqezq9h637cDVtpBRkD6xdrp
-         4OzaZpVKaHRA+h5cokTj0SO09DDRtTIkaBJJg9bSz5PuB0kW6ep3gQGEIR0uLo/lblwm
-         5NtA==
-X-Gm-Message-State: AOAM5333M46NTBAM4u/THncFXbqCsPXFxi9Ayg5Iwi0044wXPCgYYegm
-        etGA0R3LKUaIdLHasSX3FGBjWgwDPioGItBLoQE=
-X-Google-Smtp-Source: ABdhPJzkYl8DFJRb22AsWA76ns+6zyU1bv0aQEyG+S2c7h1Rv3Pmt+FdK9gmL6n8+wNgnL/9n4YXXg==
-X-Received: by 2002:a05:6000:1866:: with SMTP id d6mr10825202wri.141.1633781993124;
-        Sat, 09 Oct 2021 05:19:53 -0700 (PDT)
-Received: from [192.168.1.109] ([31.56.181.233])
-        by smtp.gmail.com with ESMTPSA id y5sm2131050wma.5.2021.10.09.05.19.50
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sat, 09 Oct 2021 05:19:52 -0700 (PDT)
-To:     netfilter-devel@vger.kernel.org
-From:   alireza sadeghpour <alireza0101sadeghpour@gmail.com>
-Subject: xtable-addons document request
-Message-ID: <04436e65-8c72-e2e5-d5ca-e45fd96575eb@gmail.com>
-Date:   Sat, 9 Oct 2021 15:49:45 +0330
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.13.0
+        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
+         :mime-version:content-transfer-encoding;
+        bh=hFIDQg3VrdS3Z+fudv5dwMXgcd7gN/ETO56nV1kHkWQ=;
+        b=AaKXRnLCNpS+Lsd3SpHCGUcJO9hMrlWCds+HNKy6xGut9tngx0QAjFRut3AhFtG4ws
+         6Lm2sBfFAgF1LFOCZd8kcfCP9rAJUoGCDRlK76d8E2NXgBYnpn2SF6NIfsBQo4Bx/AAY
+         DoKUYK1W+TFps1rdbyAhbGutZfB/PrVg7OSLazt2PmgGTpLerAsbb18i78uECUps3Dex
+         gbikV5f6PiICTfIUnhZMt1gt3fgikz7+3HkGxUl2q/E8ikBJOllAmybVcWbuaTsk5LjX
+         A5ja3/tviioBzWnhShf4PsgH7hGjXV0t+kpUqvPAgEa6YPC9iBFHbjV8u1z7DqSmJi7Y
+         +taw==
+X-Gm-Message-State: AOAM531Q/GfbNMoWi/nSjN2X0TUNkmP+BmYtm9NW+i8DX2H9pGpoeI/i
+        jNF9nWRDvp6NHQQckgXzTbH0HeNpuJM=
+X-Google-Smtp-Source: ABdhPJx0zGYYjsbCRrhHdSFtzbegrWu5vhIY88ycbnHHPJSLm5iZk/9AV27brL/fi0AF7w6eRcEzVw==
+X-Received: by 2002:a17:90b:1d04:: with SMTP id on4mr21320783pjb.68.1633833459479;
+        Sat, 09 Oct 2021 19:37:39 -0700 (PDT)
+Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
+        by smtp.gmail.com with ESMTPSA id b23sm3889749pgn.83.2021.10.09.19.37.37
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 09 Oct 2021 19:37:39 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH libnetfilter_log v5 0/1] build: doc: `make` generates requested documentation
+Date:   Sun, 10 Oct 2021 13:37:33 +1100
+Message-Id: <20211010023734.26923-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.32.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
-I've some questions about Xtable-addons:
+Hi Pablo,
+ 
+v5 is a rebase of v4 onto Jeremy's "Build fixes" patch series.
+So please apply "Build fixes" first, then this patch.
 
-1. is there any tool in xtable-addons that can help me to change MTU 
-field of the incoming / outgoing packets?
-2. as xtable-addons user guide, I've found the man page of xtable-addons 
-but I think it is not a Comprehensive document. I would really 
-appreciate it if anyone can share a comprehensive document about 
-xtable-addons.
+Cheers ... Duncan.
 
+Duncan Roe (1):
+  build: doc: `make` generates requested documentation
 
-Sincerely
+ .gitignore                               |  7 ++--
+ Makefile.am                              |  2 +-
+ autogen.sh                               |  8 +++++
+ configure.ac                             | 46 +++++++++++++++++++++++-
+ doxygen/Makefile.am                      | 39 ++++++++++++++++++++
+ doxygen.cfg.in => doxygen/doxygen.cfg.in |  9 ++---
+ 6 files changed, 103 insertions(+), 8 deletions(-)
+ create mode 100644 doxygen/Makefile.am
+ rename doxygen.cfg.in => doxygen/doxygen.cfg.in (76%)
+
+-- 
+2.17.5
 
