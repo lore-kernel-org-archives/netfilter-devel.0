@@ -2,283 +2,193 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C344C433FE
-	for <netfilter-devel@archiver.kernel.org>; Sun, 10 Oct 2021 02:37:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DCDCC433FE
+	for <netfilter-devel@archiver.kernel.org>; Sun, 10 Oct 2021 08:25:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7E04E60F57
-	for <netfilter-devel@archiver.kernel.org>; Sun, 10 Oct 2021 02:37:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 27A4D60F9D
+	for <netfilter-devel@archiver.kernel.org>; Sun, 10 Oct 2021 08:25:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229689AbhJJCjk (ORCPT
+        id S231134AbhJJI1l (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 9 Oct 2021 22:39:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48802 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229907AbhJJCjk (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 9 Oct 2021 22:39:40 -0400
-Received: from mail-pg1-x52d.google.com (mail-pg1-x52d.google.com [IPv6:2607:f8b0:4864:20::52d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1DD0CC061570
-        for <netfilter-devel@vger.kernel.org>; Sat,  9 Oct 2021 19:37:42 -0700 (PDT)
-Received: by mail-pg1-x52d.google.com with SMTP id a73so7325645pge.0
-        for <netfilter-devel@vger.kernel.org>; Sat, 09 Oct 2021 19:37:42 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=sender:from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=YCS1lBttf4rno5Mxe9SteAZeunF8T+fnkopRzho/VqQ=;
-        b=fTnEb8mElaPdCN250698eVCzDGjgoHV+5Fiih1dUmdZCO9sCUBY1D1CrBLtjHGgjW8
-         eUhnQFtMFvwA6MsDB8mHyfn7H2D5OlnPZ8HnOJfx6lqA3O1uMUogyDaoEuaISaYZxsHX
-         2R5Cskr7Z9O/b/bk6hYozrrzqmGLzaN6jA0Zjmzci6ABgd7InVVjGr/RKEO+Sq7g8KGc
-         iih9eRRbbrJl4KBSjMUDPZ/4I3m9zpS0OSfF5ILvz4JxGirTYaILFFqDVow1P8W8IM3b
-         9bre66yxT7aT9BY5rz5lVyhNYvjI5BTe0Oe7KjOPCH+TphPL+JtrNnL+Ytzf3hVk31w+
-         s9ug==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
-         :in-reply-to:references:mime-version:content-transfer-encoding;
-        bh=YCS1lBttf4rno5Mxe9SteAZeunF8T+fnkopRzho/VqQ=;
-        b=T+12Ilfy4Ek8fgeOBC42tLWbwUnDcHnHf4btahyg75tzSOsjG01xzRph7HzhGS2qq+
-         VJaQ3sTbGDH+NTzcqXADCeB7eogAXRDJpeQNz00mJ4zFoQborxJSDPWvOrRQWwBGsKAg
-         ltw+/e2jJgkQpUQRMnghaJJ4sDuN+YshO2BU99qm2q6qHg88n/3JLuIbBxHi4FIVNkWp
-         xpktis0xgyQKTakn6etyr3UUn0r3stB6IGmOtU5Fqw2OcwxSijEh9FNpIXi/V8ihzKwU
-         1kPKwELgdoksQRdK3q7KF54U4NVtsmWCauHt1gp81ZyHGc3MEcWWU3lZUAQcntK6eMOz
-         jx+w==
-X-Gm-Message-State: AOAM5301/SE8H8lPoW9DhOZ/oDMQjwb1eV6jcr552PQKA/MYJpdZCibU
-        BShVIIdyxwLnBVBMLI8tq069M1AhLdI=
-X-Google-Smtp-Source: ABdhPJwyae3a9c/0o0MFMKiNYIpOYM131PeG5q+hw7R9uUIzsFUPQsNZEDpsgPnTtKNhQs82tBcnWA==
-X-Received: by 2002:a63:6a05:: with SMTP id f5mr12019285pgc.398.1633833461563;
-        Sat, 09 Oct 2021 19:37:41 -0700 (PDT)
-Received: from slk1.local.net (n49-192-82-34.sun3.vic.optusnet.com.au. [49.192.82.34])
-        by smtp.gmail.com with ESMTPSA id b23sm3889749pgn.83.2021.10.09.19.37.39
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 09 Oct 2021 19:37:41 -0700 (PDT)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_log v5 1/1] build: doc: `make` generates requested documentation
-Date:   Sun, 10 Oct 2021 13:37:34 +1100
-Message-Id: <20211010023734.26923-2-duncan_roe@optusnet.com.au>
-X-Mailer: git-send-email 2.32.0
-In-Reply-To: <20211010023734.26923-1-duncan_roe@optusnet.com.au>
-References: <20211010023734.26923-1-duncan_roe@optusnet.com.au>
+        Sun, 10 Oct 2021 04:27:41 -0400
+Received: from mail-eopbgr70108.outbound.protection.outlook.com ([40.107.7.108]:39016
+        "EHLO EUR04-HE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S229697AbhJJI1k (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 10 Oct 2021 04:27:40 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=I1lbPCInxBzBnf5w5MwTjUIa3EZtjGRvOLXjE/Mc7vazF6Hpj8Qt2/g5JN76c+TJAoMLyniUf55I46das9A7Va0pSSm8NIS6jUr3SBA/bRS1NDVj3u/YnNBI3qM2BrORTjIq+ZX7LpjS/9rEa+WhjA+j2vdgq8AHtcwme64Ry3uh201tJPfTHK1Antxvr08p5zyqh3R1INDTVPnTHfIRRUx5hmbg9pOdz9XAj4WEwOM9TY+2wxRh678WBiSLzHqhVZxhHnePr+xhnJndXArf0UBaPhNBRz7RSQuYC4Y1FfFKJILrmhNJebz9/GEDYx1S4r4cMa+k1W3haT2+uIACNQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=3h3zCRqGc4724EeP1+BsJP17wg35L0NDuQh+bv0hEOk=;
+ b=OaWSR7f64JKiH3JyEbskW7dw8/tmasBJ75AnIyyOCKjLhCBu/O0YtuRPoJTmsmiuR51NQCNfDuCtlhaxEtmxFvRMBSSYL0hhBUyJmMO67PMutR2hWlesQnlAPpvJwuqgXiejFnGJuen5gIuHyMj+XDLesbu2n+6Nzl5jO/ohy8615Z5BJYlDA3//76YUti0NiokQK2jBrjga5PETVMKClzgE1EI8laIJrpK5zWsLyVIFMzi7iHKRJNMhG/SZ+AFVavgUyB0XcOXs9tL5VeL8KOBilvTEeXQ0wf2MQ+nRA6c+Wtk/JigAaBLZlaOiU3vFD2V+74kSQXnh7sN1GVsOEQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=plvision.eu; dmarc=pass action=none header.from=plvision.eu;
+ dkim=pass header.d=plvision.eu; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=plvision.eu;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=3h3zCRqGc4724EeP1+BsJP17wg35L0NDuQh+bv0hEOk=;
+ b=HXZyTWHdgXP0BlZRays+eTiiOMTD3kjmkO83XbKgYGGpsJjefeaU15APzwkWx0MgkI118sgGrQYa74QKTJ5NVVnNBT6OebOVygsSJclfCKTfgB8htNGr3Ftztx2DI1SGCFoz8DMAZn/6kXLAIbLz82uUpM/xc2R5QI+uGIEy6UA=
+Authentication-Results: vger.kernel.org; dkim=none (message not signed)
+ header.d=none;vger.kernel.org; dmarc=none action=none
+ header.from=plvision.eu;
+Received: from VI1P190MB0734.EURP190.PROD.OUTLOOK.COM (2603:10a6:800:123::23)
+ by VI1P190MB0222.EURP190.PROD.OUTLOOK.COM (2603:10a6:800:a2::9) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4587.18; Sun, 10 Oct
+ 2021 08:25:38 +0000
+Received: from VI1P190MB0734.EURP190.PROD.OUTLOOK.COM
+ ([fe80::4c5:a11b:e5c6:2f36]) by VI1P190MB0734.EURP190.PROD.OUTLOOK.COM
+ ([fe80::4c5:a11b:e5c6:2f36%4]) with mapi id 15.20.4587.025; Sun, 10 Oct 2021
+ 08:25:38 +0000
+From:   Volodymyr Mytnyk <volodymyr.mytnyk@plvision.eu>
+To:     netdev@vger.kernel.org
+Cc:     Volodymyr Mytnyk <vmytnyk@marvell.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paul Blakey <paulb@mellanox.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v2 net] netfilter: fix conntrack flows stuck issue on cleanup.
+Date:   Sun, 10 Oct 2021 11:25:20 +0300
+Message-Id: <1633854320-12326-1-git-send-email-volodymyr.mytnyk@plvision.eu>
+X-Mailer: git-send-email 2.7.4
+Content-Type: text/plain
+X-ClientProxiedBy: HE1PR0501CA0023.eurprd05.prod.outlook.com
+ (2603:10a6:3:1a::33) To VI1P190MB0734.EURP190.PROD.OUTLOOK.COM
+ (2603:10a6:800:123::23)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from vmytnykub.x.ow.s (217.20.186.93) by HE1PR0501CA0023.eurprd05.prod.outlook.com (2603:10a6:3:1a::33) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id 15.20.4587.18 via Frontend Transport; Sun, 10 Oct 2021 08:25:36 +0000
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: e937bcde-8c5f-4c78-62d0-08d98bc789f3
+X-MS-TrafficTypeDiagnostic: VI1P190MB0222:
+X-Microsoft-Antispam-PRVS: <VI1P190MB0222D882993DDB288E7C38938FB49@VI1P190MB0222.EURP190.PROD.OUTLOOK.COM>
+X-MS-Oob-TLC-OOBClassifiers: OLM:9508;
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 4J0giYAhztSZe6p8lU/donUq+OHYqxVYsqnDZ+pZMqwvQrNFaBTkDAIkk1H4Nc9CpMSMCg+13j1hgZ4Npw+jzwQnxdLY+WffF/DcRjrrJpX4B+tLFkS7ry266qY2qp74G5c9TWNxR1HuKJQbc9QmyFg9DVQjbKF1lltHNSaG6UOjRX5zSRWNNJFNO8b+hxsWAl59L/pLZXuK+iQB/guw92vxDqhkKpLfQRdmbEcXHeNO8WT1L+cIlrNY/49KW40shM2Kxxtriowh5ddScRaP5VjzR1aRRArAmIsGZ+9+ijYE5HneHtz3p7OEkMzIjTZxb7YiZ72L6KrsV8trc+G6gmVU3X8MVSNsV5fGfspQzjJmRjDYSfwqfL1Xdm6MmOS6FeN1q3MX/S+5NqLIdNQ9H1ToB3m00m6+2/hqOyqFbLXq1aN5AlYzVAPyATFptuo2ZtrpGAnWqMklbaApud93UDEK9FYcdq+1yK1e7ym9XGv3t95Ss0yvHcCBVhq3gfUdjFD5qB9ugHCK9OikqJhFZl6PlyMQt1kBz+2VkFOWhH22F4MCft/ojY03Zvv1vO0jdwzFg9cG+UhlLX2Yldtvsh7LMMYmNuofCTd5x5ACeLbmGZeeQLNxsFWrcOYUj8Eq4lVr8gyutDXqnNmcSxqgNo5vbs0R96/pod/UUp9DnKTF8c4aqdJVeJNf+e2RPsnDOdLyHeudBovvMpjHgVwdJw==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:VI1P190MB0734.EURP190.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(136003)(366004)(39830400003)(376002)(396003)(346002)(316002)(4326008)(8936002)(54906003)(8676002)(6512007)(52116002)(2906002)(5660300002)(6506007)(6916009)(66946007)(7416002)(6486002)(66556008)(66476007)(186003)(36756003)(2616005)(956004)(83380400001)(26005)(86362001)(38100700002)(38350700002)(44832011)(6666004)(508600001);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?xTjLnltjmOC3NANmtoL92LoaAU/3rHnS2L7pidcxvb90HJkf7AAWmBo3yTrU?=
+ =?us-ascii?Q?12f+TftZStgAczc2jEtwBNMUzfggGmLvZQJuFVyDzGacTZqPsIUoVQ/nyiWI?=
+ =?us-ascii?Q?M3C0KDfGSiqXBEtacY6Ct3CHTBJSmT3jX4kTuR6CtDQt0BSlZB9vqFXxEJWa?=
+ =?us-ascii?Q?hfj8Kv7C8Eerdl2x3sogoupe5K5ysLFQkBQxsKLHQedyPHFrsoArX/P2ltW/?=
+ =?us-ascii?Q?AMMkgmSzGOe4nLwhMuVKyUMpBCBXJdvBtBCqYca76zxdHPVBmdxBZoYWYHDI?=
+ =?us-ascii?Q?Ef9rdjFPgY5mGviT0OS/ShVUH7d/an0FCkL35i2Hkq1PvBJEhSjsvOfVOieR?=
+ =?us-ascii?Q?GUx5wUrnQue6V9kzo/PqIo336uIvQp1ATgbMUMxu+GjF0stmxukm3+jrN9VA?=
+ =?us-ascii?Q?SMnJXL5vSUXLMC0B3k2pAf6+AvXqA3/B64pREO2ssh2d15nB+81WVQiDqOJJ?=
+ =?us-ascii?Q?7hxn5lSYB5urOahIGsLKy2IL+zHD76MYI+oLtX6ksxpX4402ib2LzvhW++hh?=
+ =?us-ascii?Q?vYSzk3CBtc0IfwR2XP5DsJ+ayZkeoT/FxkBFqkOcJFfZCmizFMxTWJFvdQHN?=
+ =?us-ascii?Q?ycAjaCV/z2mGQ1HECR2q2GLqmQ/Q9T6V2Vcj9OjrwcDCF1nnKw2sSRrbFu6D?=
+ =?us-ascii?Q?3+iz5saq+VwddeqTULYVMIrYnKajwMZduX3WMNknaah6qdZo7ooJebUDNwOl?=
+ =?us-ascii?Q?eWXH1WraQLoS7kAe9LhFodPUWMpdvjxln0ZzI3dkMTyH2Fu88Vhuy4Le8QK6?=
+ =?us-ascii?Q?+WWd7Iy4F45huptVd0rTI5+ziQRXW/z2wu2wkBI576xjg/8sfyln6ARScHY3?=
+ =?us-ascii?Q?lbakpHaECCbU/QSIddG5SHCz/cp9lNrEGPZ7KkEVWAA08VZGqjqFlPjlbNG/?=
+ =?us-ascii?Q?XkZ030TAcqR6jwM2sPhN+DYl7KXCjijwH2FpwP6K2OtnUHTqh42GCFpm5g1O?=
+ =?us-ascii?Q?38M1e9p/D/NGAO/Gzs8gzeQl0FL6+uJ4WGmkM45f9oE4vDvo3IUv02CxOIgP?=
+ =?us-ascii?Q?kD074KR4BAbKxOxbUYrkUrnDv8XFePhULFbqTPIwuMIuHRNImUMGFf6BXMi2?=
+ =?us-ascii?Q?Wv018Eq7b4nDqgtL0aLQ1itcxaLLvarr+Fw3BssivWl6/n07/aGNh9y9Y1Tu?=
+ =?us-ascii?Q?AYnRvNcP/I1lE+zSMcVn20aUyVSoAgghhyU6bnljhcvy7/NlDipFaXrGmdtP?=
+ =?us-ascii?Q?C9mTNVWvBEJfWUuOjtPc28y73FVwPV3U04KYcPIcGnDmyPGw29FjNJSJv/pk?=
+ =?us-ascii?Q?DUF77RsgvRgNRZ5hiPs5XV6CfRO15EBAUvDBi7g0QjBluL+aVTlrq/wKM10p?=
+ =?us-ascii?Q?1A2b9sxIQRtIm+J/VK/qJaLs?=
+X-OriginatorOrg: plvision.eu
+X-MS-Exchange-CrossTenant-Network-Message-Id: e937bcde-8c5f-4c78-62d0-08d98bc789f3
+X-MS-Exchange-CrossTenant-AuthSource: VI1P190MB0734.EURP190.PROD.OUTLOOK.COM
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Oct 2021 08:25:38.0769
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 03707b74-30f3-46b6-a0e0-ff0a7438c9c4
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: KL662lKGpD8fFALknLFJzrEG0e8IAHcJ5wekIjsbqNz/FBQvcrf9Z+uj5ey1aptpSQ3PlvEIVywBTzSTieWixKRiLqOXaT8TDy5fMC1QPbY=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1P190MB0222
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Generate man pages, HTML, neither or both according to ./configure.
-Based on the work done for libnetfilter_queue
+From: Volodymyr Mytnyk <vmytnyk@marvell.com>
 
-Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+On busy system with big number (few thousands) of HW offloaded flows, it
+is possible to hit the situation, where some of the conntack flows are
+stuck in conntrack table (as offloaded) and cannot be removed by user.
+
+This behaviour happens if user has configured conntack using tc sub-system,
+offloaded those flows for HW and then deleted tc configuration from Linux
+system by deleting the tc qdiscs.
+
+When qdiscs are removed, the nf_flow_table_free() is called to do the
+cleanup of HW offloaded flows in conntrack table.
+
+...
+process_one_work
+  tcf_ct_flow_table_cleanup_work()
+    nf_flow_table_free()
+
+The nf_flow_table_free() does the following things:
+
+  1. cancels gc workqueue
+  2. marks all flows as teardown
+  3. executes nf_flow_offload_gc_step() once for each flow to
+     trigger correct teardown flow procedure (e.g., allocate
+     work to delete the HW flow and marks the flow as "dying").
+  4. waits for all scheduled flow offload works to be finished.
+  5. executes nf_flow_offload_gc_step() once for each flow to
+     trigger the deleting of flows.
+
+Root cause:
+
+In step 3, nf_flow_offload_gc_step() expects to move flow to "dying"
+state by using nf_flow_offload_del() and deletes the flow in next
+nf_flow_offload_gc_step() iteration. But, if flow is in "pending" state
+for some reason (e.g., reading HW stats), it will not be moved to
+"dying" state as expected by nf_flow_offload_gc_step() and will not
+be marked as "dead" for delition.
+
+In step 5, nf_flow_offload_gc_step() assumes that all flows marked
+as "dead" and will be deleted by this call, but this is not true since
+the state was not set diring previous nf_flow_offload_gc_step()
+call.
+
+It issue causes some of the flows to get stuck in connection tracking
+system or not release properly.
+
+To fix this problem, add nf_flow_table_offload_flush() call between 2 & 3
+step, to make sure no other flow offload works will be in "pending" state
+during step 3.
+
+Fixes: 0f34f30a1be8 ("netfilter: flowtable: Fix missing flush hardware on table free")
+
+Signed-off-by: Volodymyr Mytnyk <vmytnyk@marvell.com>
 ---
-v2: remove --without-doxygen since -disable-man-pages does that
-v3: - update .gitignore for clean `git status` after in-tree build
-    - adjust configure.ac indentation for better readability
-    - adjust configure.ac for all lines to fit in 80cc
-v4: implement Jeremy's suggestions
-v5: rebase on top of Jeremy's "Build fixes" patch series
- .gitignore                               |  7 ++--
- Makefile.am                              |  2 +-
- autogen.sh                               |  8 +++++
- configure.ac                             | 46 +++++++++++++++++++++++-
- doxygen/Makefile.am                      | 39 ++++++++++++++++++++
- doxygen.cfg.in => doxygen/doxygen.cfg.in |  9 ++---
- 6 files changed, 103 insertions(+), 8 deletions(-)
- create mode 100644 doxygen/Makefile.am
- rename doxygen.cfg.in => doxygen/doxygen.cfg.in (76%)
 
-diff --git a/.gitignore b/.gitignore
-index ef6bb0f..4990a51 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -16,6 +16,9 @@ Makefile.in
- /configure
- /libtool
+V1->V2:
+    * fix typo in the subject 'stack -> stuck'
+    * improve comment in the code
+    * add fixes tag
+
+ net/netfilter/nf_flow_table_core.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 1e50908b1b7e..57634bdf90d8 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -638,6 +638,8 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
  
--/doxygen/
--/doxygen.cfg
-+/doxygen/doxygen.cfg
-+/doxygen/build_man.sh
-+/doxygen/doxyfile.stamp
-+/doxygen/man/
-+/doxygen/html/
- /*.pc
-diff --git a/Makefile.am b/Makefile.am
-index c7b86f7..46b14f9 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -1,4 +1,4 @@
--SUBDIRS	= include src utils
-+SUBDIRS	= include src utils doxygen
- 
- ACLOCAL_AMFLAGS = -I m4
- 
-diff --git a/autogen.sh b/autogen.sh
-index 5e1344a..93e2a23 100755
---- a/autogen.sh
-+++ b/autogen.sh
-@@ -1,4 +1,12 @@
- #!/bin/sh -e
- 
-+BUILD_MAN=doxygen/build_man.sh
-+
-+# Allow to override build_man.sh url for local testing
-+# E.g. export NFQ_URL=file:///usr/src/libnetfilter_queue
-+curl ${NFQ_URL:-https://git.netfilter.org/libnetfilter_queue/plain}/$BUILD_MAN\
-+  -o$BUILD_MAN
-+chmod a+x $BUILD_MAN
-+
- autoreconf -fi
- rm -Rf autom4te.cache
-diff --git a/configure.ac b/configure.ac
-index 85e49ed..589eb59 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -12,6 +12,23 @@ m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
- dnl kernel style compile messages
- m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
- 
-+AC_ARG_ENABLE([html-doc],
-+	      AS_HELP_STRING([--enable-html-doc], [Enable html documentation]),
-+	      [], [enable_html_doc=no])
-+AM_CONDITIONAL([BUILD_HTML], [test "$enable_html_doc" = yes])
-+AS_IF([test "$enable_html_doc" = yes],
-+      [AC_SUBST(GEN_HTML, YES)],
-+      [AC_SUBST(GEN_HTML, NO)])
-+
-+AC_ARG_ENABLE([man-pages],
-+	      AS_HELP_STRING([--disable-man-pages],
-+			     [Disable man page documentation]),
-+	      [], [enable_man_pages=yes])
-+AM_CONDITIONAL([BUILD_MAN], [test "$enable_man_pages" = yes])
-+AS_IF([test "$enable_man_pages" = yes],
-+      [AC_SUBST(GEN_MAN, YES)],
-+      [AC_SUBST(GEN_MAN, NO)])
-+
- AC_PROG_CC
- AM_PROG_CC_C_O
- LT_INIT([disable_static])
-@@ -37,6 +54,27 @@ PKG_CHECK_MODULES([LIBNETFILTER_CONNTRACK], [libnetfilter_conntrack >= 1.0.2],
- 		  [HAVE_LNFCT=1], [HAVE_LNFCT=0])
- AM_CONDITIONAL([BUILD_NFCT], [test "$HAVE_LNFCT" -eq 1])
- 
-+AS_IF([test "$enable_man_pages" = no -a "$enable_html_doc" = no],
-+      [with_doxygen=no], [with_doxygen=yes])
-+
-+AS_IF([test "x$with_doxygen" != xno], [
-+	AC_CHECK_PROGS([DOXYGEN], [doxygen], [""])
-+	AC_CHECK_PROGS([DOT], [dot], [""])
-+	AS_IF([test "x$DOT" != "x"],
-+	      [AC_SUBST(HAVE_DOT, YES)],
-+	      [AC_SUBST(HAVE_DOT, NO)])
-+])
-+
-+AM_CONDITIONAL([HAVE_DOXYGEN], [test -n "$DOXYGEN"])
-+AS_IF([test "x$DOXYGEN" = x], [
-+	AS_IF([test "x$with_doxygen" != xno], [
-+		dnl Only run doxygen Makefile if doxygen installed
-+		AC_MSG_WARN([Doxygen not found - not building documentation])
-+		enable_html_doc=no
-+		enable_man_pages=no
-+	])
-+])
-+
- dnl Output the makefile
- AC_CONFIG_FILES([Makefile
- 		src/Makefile
-@@ -45,5 +83,11 @@ AC_CONFIG_FILES([Makefile
- 		utils/Makefile
- 		libnetfilter_log.pc
- 		libnetfilter_log_libipulog.pc
--		doxygen.cfg])
-+		doxygen/Makefile
-+		doxygen/doxygen.cfg])
- AC_OUTPUT
-+
-+echo "
-+libnetfilter_log configuration:
-+man pages:                    ${enable_man_pages}
-+html docs:                    ${enable_html_doc}"
-diff --git a/doxygen/Makefile.am b/doxygen/Makefile.am
-new file mode 100644
-index 0000000..582db4e
---- /dev/null
-+++ b/doxygen/Makefile.am
-@@ -0,0 +1,39 @@
-+if HAVE_DOXYGEN
-+
-+doc_srcs = $(top_srcdir)/src/libnetfilter_log.c\
-+	   $(top_srcdir)/src/nlmsg.c\
-+	   $(top_srcdir)/src/libipulog_compat.c
-+
-+doxyfile.stamp: $(doc_srcs) Makefile
-+	rm -rf html man
-+	doxygen doxygen.cfg >/dev/null
-+
-+if BUILD_MAN
-+	$(abs_top_srcdir)/doxygen/build_man.sh
-+endif
-+
-+	touch doxyfile.stamp
-+
-+CLEANFILES = doxyfile.stamp
-+
-+all-local: doxyfile.stamp
-+clean-local:
-+	rm -rf man html
-+install-data-local:
-+if BUILD_MAN
-+	mkdir -p $(DESTDIR)$(mandir)/man3
-+	cp --no-dereference --preserve=links,mode,timestamps man/man3/*.3\
-+	  $(DESTDIR)$(mandir)/man3/
-+endif
-+if BUILD_HTML
-+	mkdir  -p $(DESTDIR)$(htmldir)
-+	cp  --no-dereference --preserve=links,mode,timestamps html/*\
-+		$(DESTDIR)$(htmldir)
-+endif
-+
-+# make distcheck needs uninstall-local
-+uninstall-local:
-+	rm -rf $(DESTDIR)$(mandir) man html doxyfile.stamp $(DESTDIR)$(htmldir)
-+endif
-+
-+EXTRA_DIST = build_man.sh
-diff --git a/doxygen.cfg.in b/doxygen/doxygen.cfg.in
-similarity index 76%
-rename from doxygen.cfg.in
-rename to doxygen/doxygen.cfg.in
-index dc2fddb..b6c27dc 100644
---- a/doxygen.cfg.in
-+++ b/doxygen/doxygen.cfg.in
-@@ -1,12 +1,11 @@
- # Difference with default Doxyfile 1.8.20
- PROJECT_NAME           = @PACKAGE@
- PROJECT_NUMBER         = @VERSION@
--OUTPUT_DIRECTORY       = doxygen
- ABBREVIATE_BRIEF       =
- FULL_PATH_NAMES        = NO
- TAB_SIZE               = 8
- OPTIMIZE_OUTPUT_FOR_C  = YES
--INPUT                  = .
-+INPUT                  = @abs_top_srcdir@/src
- FILE_PATTERNS          = *.c
- RECURSIVE              = YES
- EXCLUDE_SYMBOLS        = nflog_g_handle \
-@@ -18,7 +17,9 @@ SOURCE_BROWSER         = YES
- ALPHABETICAL_INDEX     = NO
- GENERATE_LATEX         = NO
- LATEX_CMD_NAME         = latex
--GENERATE_MAN           = YES
--HAVE_DOT               = YES
-+GENERATE_MAN           = @GEN_MAN@
-+GENERATE_HTML          = @GEN_HTML@
-+MAN_LINKS              = YES
-+HAVE_DOT               = @HAVE_DOT@
- DOT_TRANSPARENT        = YES
- SEARCHENGINE           = NO
+ 	cancel_delayed_work_sync(&flow_table->gc_work);
+ 	nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
++	/* wait for all 'pending' flows to be finished */
++	nf_flow_table_offload_flush(flow_table);
+ 	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, flow_table);
+ 	nf_flow_table_offload_flush(flow_table);
+ 	if (nf_flowtable_hw_offload(flow_table))
 -- 
-2.17.5
+2.7.4
 
