@@ -2,32 +2,32 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F4D8C433F5
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Oct 2021 15:16:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D16CC433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Oct 2021 15:16:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 721C060F11
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Oct 2021 15:16:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 45CF760F14
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Oct 2021 15:16:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231899AbhJKPSr (ORCPT
+        id S234799AbhJKPSv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 11 Oct 2021 11:18:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55942 "EHLO
+        Mon, 11 Oct 2021 11:18:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55962 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235140AbhJKPSq (ORCPT
+        with ESMTP id S235070AbhJKPSv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 11 Oct 2021 11:18:46 -0400
+        Mon, 11 Oct 2021 11:18:51 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE9E8C061745
-        for <netfilter-devel@vger.kernel.org>; Mon, 11 Oct 2021 08:16:46 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F3985C061570
+        for <netfilter-devel@vger.kernel.org>; Mon, 11 Oct 2021 08:16:50 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1mZx2j-0001rK-D8; Mon, 11 Oct 2021 17:16:45 +0200
+        id 1mZx2n-0001rU-I9; Mon, 11 Oct 2021 17:16:49 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 3/4] netfilter: ip6tables: allow use of ip6t_do_table as hookfn
-Date:   Mon, 11 Oct 2021 17:15:13 +0200
-Message-Id: <20211011151514.6580-5-fw@strlen.de>
+Subject: [PATCH nf-next 4/4] netfilter: ebtables: allow use of ebt_do_table as hookfn
+Date:   Mon, 11 Oct 2021 17:15:14 +0200
+Message-Id: <20211011151514.6580-6-fw@strlen.de>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20211011151514.6580-1-fw@strlen.de>
 References: <20211011151514.6580-1-fw@strlen.de>
@@ -41,208 +41,131 @@ This is possible now that the xt_table structure is passed via *priv.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/linux/netfilter_ipv6/ip6_tables.h |  5 ++---
- net/ipv6/netfilter/ip6_tables.c           |  6 +++---
- net/ipv6/netfilter/ip6table_filter.c      | 10 +---------
- net/ipv6/netfilter/ip6table_mangle.c      |  8 ++++----
- net/ipv6/netfilter/ip6table_nat.c         | 15 ++++-----------
- net/ipv6/netfilter/ip6table_raw.c         | 10 +---------
- net/ipv6/netfilter/ip6table_security.c    |  9 +--------
- 7 files changed, 16 insertions(+), 47 deletions(-)
+ include/linux/netfilter_bridge/ebtables.h |  5 ++---
+ net/bridge/netfilter/ebtable_broute.c     |  2 +-
+ net/bridge/netfilter/ebtable_filter.c     | 13 +++----------
+ net/bridge/netfilter/ebtable_nat.c        | 12 +++---------
+ net/bridge/netfilter/ebtables.c           |  6 +++---
+ 5 files changed, 12 insertions(+), 26 deletions(-)
 
-diff --git a/include/linux/netfilter_ipv6/ip6_tables.h b/include/linux/netfilter_ipv6/ip6_tables.h
-index 79e73fd7d965..8b8885a73c76 100644
---- a/include/linux/netfilter_ipv6/ip6_tables.h
-+++ b/include/linux/netfilter_ipv6/ip6_tables.h
-@@ -29,9 +29,8 @@ int ip6t_register_table(struct net *net, const struct xt_table *table,
- 			const struct nf_hook_ops *ops);
- void ip6t_unregister_table_pre_exit(struct net *net, const char *name);
- void ip6t_unregister_table_exit(struct net *net, const char *name);
--extern unsigned int ip6t_do_table(struct sk_buff *skb,
--				  const struct nf_hook_state *state,
--				  struct xt_table *table);
-+extern unsigned int ip6t_do_table(void *priv, struct sk_buff *skb,
-+				  const struct nf_hook_state *state);
+diff --git a/include/linux/netfilter_bridge/ebtables.h b/include/linux/netfilter_bridge/ebtables.h
+index 10a01978bc0d..a13296d6c7ce 100644
+--- a/include/linux/netfilter_bridge/ebtables.h
++++ b/include/linux/netfilter_bridge/ebtables.h
+@@ -112,9 +112,8 @@ extern int ebt_register_table(struct net *net,
+ 			      const struct nf_hook_ops *ops);
+ extern void ebt_unregister_table(struct net *net, const char *tablename);
+ void ebt_unregister_table_pre_exit(struct net *net, const char *tablename);
+-extern unsigned int ebt_do_table(struct sk_buff *skb,
+-				 const struct nf_hook_state *state,
+-				 struct ebt_table *table);
++extern unsigned int ebt_do_table(void *priv, struct sk_buff *skb,
++				 const struct nf_hook_state *state);
  
- #ifdef CONFIG_NETFILTER_XTABLES_COMPAT
- #include <net/compat.h>
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index a579ea14a69b..2d816277f2c5 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -247,10 +247,10 @@ ip6t_next_entry(const struct ip6t_entry *entry)
+ /* True if the hook mask denotes that the rule is in a base chain,
+  * used in the check() functions */
+diff --git a/net/bridge/netfilter/ebtable_broute.c b/net/bridge/netfilter/ebtable_broute.c
+index a7af4eaff17d..1a11064f9990 100644
+--- a/net/bridge/netfilter/ebtable_broute.c
++++ b/net/bridge/netfilter/ebtable_broute.c
+@@ -66,7 +66,7 @@ static unsigned int ebt_broute(void *priv, struct sk_buff *skb,
+ 			   NFPROTO_BRIDGE, s->in, NULL, NULL,
+ 			   s->net, NULL);
  
- /* Returns one of the generic firewall policies, like NF_ACCEPT. */
- unsigned int
--ip6t_do_table(struct sk_buff *skb,
--	      const struct nf_hook_state *state,
--	      struct xt_table *table)
-+ip6t_do_table(void *priv, struct sk_buff *skb,
-+	      const struct nf_hook_state *state)
- {
-+	const struct xt_table *table = priv;
- 	unsigned int hook = state->hook;
- 	static const char nulldevname[IFNAMSIZ] __attribute__((aligned(sizeof(long))));
- 	/* Initializing verdict to NF_DROP keeps gcc happy. */
-diff --git a/net/ipv6/netfilter/ip6table_filter.c b/net/ipv6/netfilter/ip6table_filter.c
-index 727ee8097012..df785ebda0ca 100644
---- a/net/ipv6/netfilter/ip6table_filter.c
-+++ b/net/ipv6/netfilter/ip6table_filter.c
-@@ -27,14 +27,6 @@ static const struct xt_table packet_filter = {
- 	.priority	= NF_IP6_PRI_FILTER,
- };
- 
--/* The work comes in here from netfilter.c. */
--static unsigned int
--ip6table_filter_hook(void *priv, struct sk_buff *skb,
--		     const struct nf_hook_state *state)
--{
--	return ip6t_do_table(skb, state, priv);
--}
--
- static struct nf_hook_ops *filter_ops __read_mostly;
- 
- /* Default to forward because I got too much mail already. */
-@@ -90,7 +82,7 @@ static int __init ip6table_filter_init(void)
- 	if (ret < 0)
+-	ret = ebt_do_table(skb, &state, priv);
++	ret = ebt_do_table(priv, skb, &state);
+ 	if (ret != NF_DROP)
  		return ret;
  
--	filter_ops = xt_hook_ops_alloc(&packet_filter, ip6table_filter_hook);
-+	filter_ops = xt_hook_ops_alloc(&packet_filter, ip6t_do_table);
- 	if (IS_ERR(filter_ops)) {
- 		xt_unregister_template(&packet_filter);
- 		return PTR_ERR(filter_ops);
-diff --git a/net/ipv6/netfilter/ip6table_mangle.c b/net/ipv6/netfilter/ip6table_mangle.c
-index 9b518ce37d6a..a88b2ce4a3cb 100644
---- a/net/ipv6/netfilter/ip6table_mangle.c
-+++ b/net/ipv6/netfilter/ip6table_mangle.c
-@@ -29,7 +29,7 @@ static const struct xt_table packet_mangler = {
+diff --git a/net/bridge/netfilter/ebtable_filter.c b/net/bridge/netfilter/ebtable_filter.c
+index c0b121df4a9a..cb949436bc0e 100644
+--- a/net/bridge/netfilter/ebtable_filter.c
++++ b/net/bridge/netfilter/ebtable_filter.c
+@@ -58,28 +58,21 @@ static const struct ebt_table frame_filter = {
+ 	.me		= THIS_MODULE,
  };
  
- static unsigned int
--ip6t_mangle_out(struct sk_buff *skb, const struct nf_hook_state *state, void *priv)
-+ip6t_mangle_out(void *priv, struct sk_buff *skb, const struct nf_hook_state *state)
- {
- 	unsigned int ret;
- 	struct in6_addr saddr, daddr;
-@@ -46,7 +46,7 @@ ip6t_mangle_out(struct sk_buff *skb, const struct nf_hook_state *state, void *pr
- 	/* flowlabel and prio (includes version, which shouldn't change either */
- 	flowlabel = *((u_int32_t *)ipv6_hdr(skb));
+-static unsigned int
+-ebt_filter_hook(void *priv, struct sk_buff *skb,
+-		const struct nf_hook_state *state)
+-{
+-	return ebt_do_table(skb, state, priv);
+-}
+-
+ static const struct nf_hook_ops ebt_ops_filter[] = {
+ 	{
+-		.hook		= ebt_filter_hook,
++		.hook		= ebt_do_table,
+ 		.pf		= NFPROTO_BRIDGE,
+ 		.hooknum	= NF_BR_LOCAL_IN,
+ 		.priority	= NF_BR_PRI_FILTER_BRIDGED,
+ 	},
+ 	{
+-		.hook		= ebt_filter_hook,
++		.hook		= ebt_do_table,
+ 		.pf		= NFPROTO_BRIDGE,
+ 		.hooknum	= NF_BR_FORWARD,
+ 		.priority	= NF_BR_PRI_FILTER_BRIDGED,
+ 	},
+ 	{
+-		.hook		= ebt_filter_hook,
++		.hook		= ebt_do_table,
+ 		.pf		= NFPROTO_BRIDGE,
+ 		.hooknum	= NF_BR_LOCAL_OUT,
+ 		.priority	= NF_BR_PRI_FILTER_OTHER,
+diff --git a/net/bridge/netfilter/ebtable_nat.c b/net/bridge/netfilter/ebtable_nat.c
+index 4078151c224f..5ee0531ae506 100644
+--- a/net/bridge/netfilter/ebtable_nat.c
++++ b/net/bridge/netfilter/ebtable_nat.c
+@@ -58,27 +58,21 @@ static const struct ebt_table frame_nat = {
+ 	.me		= THIS_MODULE,
+ };
  
--	ret = ip6t_do_table(skb, state, priv);
-+	ret = ip6t_do_table(priv, skb, state);
- 
- 	if (ret != NF_DROP && ret != NF_STOLEN &&
- 	    (!ipv6_addr_equal(&ipv6_hdr(skb)->saddr, &saddr) ||
-@@ -68,8 +68,8 @@ ip6table_mangle_hook(void *priv, struct sk_buff *skb,
- 		     const struct nf_hook_state *state)
- {
- 	if (state->hook == NF_INET_LOCAL_OUT)
--		return ip6t_mangle_out(skb, state, priv);
--	return ip6t_do_table(skb, state, priv);
-+		return ip6t_mangle_out(priv, skb, state);
-+	return ip6t_do_table(priv, skb, state);
+-static unsigned int ebt_nat_hook(void *priv, struct sk_buff *skb,
+-				 const struct nf_hook_state *state)
+-{
+-	return ebt_do_table(skb, state, priv);
+-}
+-
+ static const struct nf_hook_ops ebt_ops_nat[] = {
+ 	{
+-		.hook		= ebt_nat_hook,
++		.hook		= ebt_do_table,
+ 		.pf		= NFPROTO_BRIDGE,
+ 		.hooknum	= NF_BR_LOCAL_OUT,
+ 		.priority	= NF_BR_PRI_NAT_DST_OTHER,
+ 	},
+ 	{
+-		.hook		= ebt_nat_hook,
++		.hook		= ebt_do_table,
+ 		.pf		= NFPROTO_BRIDGE,
+ 		.hooknum	= NF_BR_POST_ROUTING,
+ 		.priority	= NF_BR_PRI_NAT_SRC,
+ 	},
+ 	{
+-		.hook		= ebt_nat_hook,
++		.hook		= ebt_do_table,
+ 		.pf		= NFPROTO_BRIDGE,
+ 		.hooknum	= NF_BR_PRE_ROUTING,
+ 		.priority	= NF_BR_PRI_NAT_DST_BRIDGED,
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 83d1798dfbb4..4a1508a1c566 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -189,10 +189,10 @@ ebt_get_target_c(const struct ebt_entry *e)
  }
  
- static struct nf_hook_ops *mangle_ops __read_mostly;
-diff --git a/net/ipv6/netfilter/ip6table_nat.c b/net/ipv6/netfilter/ip6table_nat.c
-index 921c1723a01e..bf3cb3a13600 100644
---- a/net/ipv6/netfilter/ip6table_nat.c
-+++ b/net/ipv6/netfilter/ip6table_nat.c
-@@ -31,34 +31,27 @@ static const struct xt_table nf_nat_ipv6_table = {
- 	.af		= NFPROTO_IPV6,
- };
- 
--static unsigned int ip6table_nat_do_chain(void *priv,
--					  struct sk_buff *skb,
--					  const struct nf_hook_state *state)
--{
--	return ip6t_do_table(skb, state, priv);
--}
--
- static const struct nf_hook_ops nf_nat_ipv6_ops[] = {
- 	{
--		.hook		= ip6table_nat_do_chain,
-+		.hook		= ip6t_do_table,
- 		.pf		= NFPROTO_IPV6,
- 		.hooknum	= NF_INET_PRE_ROUTING,
- 		.priority	= NF_IP6_PRI_NAT_DST,
- 	},
- 	{
--		.hook		= ip6table_nat_do_chain,
-+		.hook		= ip6t_do_table,
- 		.pf		= NFPROTO_IPV6,
- 		.hooknum	= NF_INET_POST_ROUTING,
- 		.priority	= NF_IP6_PRI_NAT_SRC,
- 	},
- 	{
--		.hook		= ip6table_nat_do_chain,
-+		.hook		= ip6t_do_table,
- 		.pf		= NFPROTO_IPV6,
- 		.hooknum	= NF_INET_LOCAL_OUT,
- 		.priority	= NF_IP6_PRI_NAT_DST,
- 	},
- 	{
--		.hook		= ip6table_nat_do_chain,
-+		.hook		= ip6t_do_table,
- 		.pf		= NFPROTO_IPV6,
- 		.hooknum	= NF_INET_LOCAL_IN,
- 		.priority	= NF_IP6_PRI_NAT_SRC,
-diff --git a/net/ipv6/netfilter/ip6table_raw.c b/net/ipv6/netfilter/ip6table_raw.c
-index 4f2a04af71d3..08861d5d1f4d 100644
---- a/net/ipv6/netfilter/ip6table_raw.c
-+++ b/net/ipv6/netfilter/ip6table_raw.c
-@@ -31,14 +31,6 @@ static const struct xt_table packet_raw_before_defrag = {
- 	.priority = NF_IP6_PRI_RAW_BEFORE_DEFRAG,
- };
- 
--/* The work comes in here from netfilter.c. */
--static unsigned int
--ip6table_raw_hook(void *priv, struct sk_buff *skb,
--		  const struct nf_hook_state *state)
--{
--	return ip6t_do_table(skb, state, priv);
--}
--
- static struct nf_hook_ops *rawtable_ops __read_mostly;
- 
- static int ip6table_raw_table_init(struct net *net)
-@@ -88,7 +80,7 @@ static int __init ip6table_raw_init(void)
- 		return ret;
- 
- 	/* Register hooks */
--	rawtable_ops = xt_hook_ops_alloc(table, ip6table_raw_hook);
-+	rawtable_ops = xt_hook_ops_alloc(table, ip6t_do_table);
- 	if (IS_ERR(rawtable_ops)) {
- 		xt_unregister_template(table);
- 		return PTR_ERR(rawtable_ops);
-diff --git a/net/ipv6/netfilter/ip6table_security.c b/net/ipv6/netfilter/ip6table_security.c
-index 931674034d8b..4df14a9bae78 100644
---- a/net/ipv6/netfilter/ip6table_security.c
-+++ b/net/ipv6/netfilter/ip6table_security.c
-@@ -32,13 +32,6 @@ static const struct xt_table security_table = {
- 	.priority	= NF_IP6_PRI_SECURITY,
- };
- 
--static unsigned int
--ip6table_security_hook(void *priv, struct sk_buff *skb,
--		       const struct nf_hook_state *state)
--{
--	return ip6t_do_table(skb, state, priv);
--}
--
- static struct nf_hook_ops *sectbl_ops __read_mostly;
- 
- static int ip6table_security_table_init(struct net *net)
-@@ -77,7 +70,7 @@ static int __init ip6table_security_init(void)
- 	if (ret < 0)
- 		return ret;
- 
--	sectbl_ops = xt_hook_ops_alloc(&security_table, ip6table_security_hook);
-+	sectbl_ops = xt_hook_ops_alloc(&security_table, ip6t_do_table);
- 	if (IS_ERR(sectbl_ops)) {
- 		xt_unregister_template(&security_table);
- 		return PTR_ERR(sectbl_ops);
+ /* Do some firewalling */
+-unsigned int ebt_do_table(struct sk_buff *skb,
+-			  const struct nf_hook_state *state,
+-			  struct ebt_table *table)
++unsigned int ebt_do_table(void *priv, struct sk_buff *skb,
++			  const struct nf_hook_state *state)
+ {
++	struct ebt_table *table = priv;
+ 	unsigned int hook = state->hook;
+ 	int i, nentries;
+ 	struct ebt_entry *point;
 -- 
 2.32.0
 
