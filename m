@@ -2,35 +2,37 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A7BA1C433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Oct 2021 20:38:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B668C433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Oct 2021 20:48:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 883F0610C9
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Oct 2021 20:38:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E8ACE60C4B
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Oct 2021 20:48:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233899AbhJLUkH (ORCPT
+        id S233709AbhJLUu5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 Oct 2021 16:40:07 -0400
-Received: from ink.ssi.bg ([178.16.128.7]:50083 "EHLO ink.ssi.bg"
+        Tue, 12 Oct 2021 16:50:57 -0400
+Received: from ink.ssi.bg ([178.16.128.7]:53605 "EHLO ink.ssi.bg"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229795AbhJLUkH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 Oct 2021 16:40:07 -0400
+        id S230467AbhJLUu5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 12 Oct 2021 16:50:57 -0400
 Received: from ja.ssi.bg (unknown [178.16.129.10])
-        by ink.ssi.bg (Postfix) with ESMTPS id 093163C09C0;
-        Tue, 12 Oct 2021 23:38:02 +0300 (EEST)
+        by ink.ssi.bg (Postfix) with ESMTPS id 7FEF73C09C0;
+        Tue, 12 Oct 2021 23:48:53 +0300 (EEST)
 Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.16.1/8.16.1) with ESMTP id 19CKc1ZS044603;
-        Tue, 12 Oct 2021 23:38:01 +0300
-Date:   Tue, 12 Oct 2021 23:38:01 +0300 (EEST)
+        by ja.ssi.bg (8.16.1/8.16.1) with ESMTP id 19CKmqbB047141;
+        Tue, 12 Oct 2021 23:48:52 +0300
+Date:   Tue, 12 Oct 2021 23:48:52 +0300 (EEST)
 From:   Julian Anastasov <ja@ssi.bg>
-To:     Florian Westphal <fw@strlen.de>
-cc:     netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
-        horms@verge.net.au
-Subject: Re: [PATCH nf-next v2 0/4] netfilter: ipvs: remove unneeded hook
- wrappers
-In-Reply-To: <20211012172959.745-1-fw@strlen.de>
-Message-ID: <c0378ce6-d5d0-6a11-b25f-2f098a2349e@ssi.bg>
-References: <20211012172959.745-1-fw@strlen.de>
+To:     Antoine Tenart <atenart@kernel.org>
+cc:     davem@davemloft.net, kuba@kernel.org, horms@verge.net.au,
+        pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
+Subject: Re: [PATCH net] netfilter: ipvs: make global sysctl readonly in
+ non-init netns
+In-Reply-To: <20211012145437.754391-1-atenart@kernel.org>
+Message-ID: <8e76869d-ae27-198a-e750-16cd26e63737@ssi.bg>
+References: <20211012145437.754391-1-atenart@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
@@ -40,32 +42,40 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 	Hello,
 
-On Tue, 12 Oct 2021, Florian Westphal wrote:
+On Tue, 12 Oct 2021, Antoine Tenart wrote:
 
-> V2: Patch 4/4 had a bug that would enter ipv6 branch for
-> ipv4 packets, fix that.
+> Because the data pointer of net/ipv4/vs/debug_level is not updated per
+> netns, it must be marked as read-only in non-init netns.
 > 
-> This series reduces the number of different hook function
-> implementations by merging the ipv4 and ipv6 hooks into
-> common code.
-> 
-> selftests/netfilter/ipvs.sh passes.
-> 
-> Florian Westphal (4):
->   netfilter: ipvs: prepare for hook function reduction
->   netfilter: ipvs: remove unneeded output wrappers
->   netfilter: ipvs: remove unneeded input wrappers
->   netfilter: ipvs: merge ipv4 + ipv6 icmp reply handlers
+> Fixes: c6d2d445d8de ("IPVS: netns, final patch enabling network name space.")
+> Signed-off-by: Antoine Tenart <atenart@kernel.org>
 
-	Patchset v2 looks good to me, thanks!
+	Looks good to me, thanks!
 
 Acked-by: Julian Anastasov <ja@ssi.bg>
 
->  net/netfilter/ipvs/ip_vs_core.c | 166 ++++++--------------------------
->  1 file changed, 32 insertions(+), 134 deletions(-)
+> ---
+>  net/netfilter/ipvs/ip_vs_ctl.c | 5 +++++
+>  1 file changed, 5 insertions(+)
 > 
+> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> index c25097092a06..29ec3ef63edc 100644
+> --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+> @@ -4090,6 +4090,11 @@ static int __net_init ip_vs_control_net_init_sysctl(struct netns_ipvs *ipvs)
+>  	tbl[idx++].data = &ipvs->sysctl_conn_reuse_mode;
+>  	tbl[idx++].data = &ipvs->sysctl_schedule_icmp;
+>  	tbl[idx++].data = &ipvs->sysctl_ignore_tunneled;
+> +#ifdef CONFIG_IP_VS_DEBUG
+> +	/* Global sysctls must be ro in non-init netns */
+> +	if (!net_eq(net, &init_net))
+> +		tbl[idx++].mode = 0444;
+> +#endif
+>  
+>  	ipvs->sysctl_hdr = register_net_sysctl(net, "net/ipv4/vs", tbl);
+>  	if (ipvs->sysctl_hdr == NULL) {
 > -- 
-> 2.32.0
+> 2.31.1
 
 Regards
 
