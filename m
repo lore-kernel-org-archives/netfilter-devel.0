@@ -2,183 +2,117 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA001C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Oct 2021 04:42:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73141C433FE
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Oct 2021 08:44:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B8B6460C4A
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Oct 2021 04:42:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5E8B6610E7
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Oct 2021 08:44:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229733AbhJLEol (ORCPT
+        id S235347AbhJLIqF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 Oct 2021 00:44:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38676 "EHLO
+        Tue, 12 Oct 2021 04:46:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36712 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229593AbhJLEol (ORCPT
+        with ESMTP id S235382AbhJLIqE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 Oct 2021 00:44:41 -0400
-Received: from mail-pg1-x52b.google.com (mail-pg1-x52b.google.com [IPv6:2607:f8b0:4864:20::52b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 76150C061570
-        for <netfilter-devel@vger.kernel.org>; Mon, 11 Oct 2021 21:42:40 -0700 (PDT)
-Received: by mail-pg1-x52b.google.com with SMTP id 133so12750101pgb.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 11 Oct 2021 21:42:40 -0700 (PDT)
+        Tue, 12 Oct 2021 04:46:04 -0400
+Received: from mail-qt1-x834.google.com (mail-qt1-x834.google.com [IPv6:2607:f8b0:4864:20::834])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 26EDEC06174E;
+        Tue, 12 Oct 2021 01:44:03 -0700 (PDT)
+Received: by mail-qt1-x834.google.com with SMTP id w8so9628908qts.4;
+        Tue, 12 Oct 2021 01:44:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=sender:from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=/XP89vrZGKg16iBURqtEbyTRZFKCCrlUCFYzTTyeb6c=;
-        b=E7RxFo2ENjwUw0ccf+y1h1YcFP1d6NIHVNcVhmgGIZAioyyXpjk9eh4K0tfXetwJob
-         TbPsMWcbkQ6mRsNXMNKnt1Oz0tosLKMnRiN/2iS6Z3r6vhR0eXtFgEAkraTnbIPgX0zl
-         XJt3QM4Jw9htUFZlNI3XVY+Qw7S5h2Cvr0ksmIammGus+dA8ukNtAlXeTXR4Q7MqGosO
-         Iim6krvGXvVM6Rty5+Bi+ttELbN7hAr6IWUoyWDmQzEm9aokG4r1dUI/JgNfLBB2Ev2y
-         lfQTt/XSnO0a9If255w3+yC/QKDXITMX0HlQtcrGWHNX/gGXgiyQoN8GA+GRd3FQF7M0
-         MxJg==
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=VfQ3pN1Wn4j6A/3u2FeV9UXUwDseQ7lyqBpHMKNttwQ=;
+        b=LpsFlzNolwpXyMKTm0MbsCNr7jyVUcwhDI/eDqcWEdapUlOTe9TvDou+0ZzsO8ERwN
+         YyANMv+gKHNwMYfHNeGSjQhlM0wRFY8lU1TrCgJE+LMD1b1xnPpErPZ8sam2l6HXoRXo
+         Xvo3KhLF//01y/FFKbS1cKkj/nUX0xyCZTijQ6UG9vd83mc7u0a8DtozKOzFT26wLUuK
+         301g+9BYtfnzMBsnrxTO8iN1iVa/uP3J3kC9ezvUIvwkLEB8EkGepEMqUQuu1+jKjEi2
+         sRXACZlrbEYsMoaLhBAdtz0Hed25be9MTfGTZ4rTdupCHlQb29Y79GQS+NXG+Ng/WnRp
+         m2Pw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
-         :in-reply-to:references:mime-version:content-transfer-encoding;
-        bh=/XP89vrZGKg16iBURqtEbyTRZFKCCrlUCFYzTTyeb6c=;
-        b=6gUnPSFqjJWUJ3pkBXi+Mf2/vCFDDPJwJqcFJCMfvi+hr+9dpzzUfABoSKklCcEDxU
-         p7Of4EIDX6hDuyUQRgTRrqTud+RsdYWTt0thM+n+XVS4q+MpXWq3GHL8SAXbz9AthOC2
-         66Q2eiLgi3rQyvlUjfdVKO/GgK0oixZljuBFZ8y5KguYIyz7ANyr/XNfhlu0jFMlXd/f
-         E9pQjEwkkFon63wtEksuQICkMxN/avGBJN+N4q5WcqIof/NdEahmbwrhlDOCvoPO1VXo
-         ZnkSWKzv/vlBkGCIf3G9RdqXseei0ey6RTkv8dR2wBQltsd/aj8MSAQ0R2eZGh4/8XpN
-         gKTQ==
-X-Gm-Message-State: AOAM530wEaNr+klyPIVuSU7rAfAn5o5px4cDnufcKptBvwejHNoxDWxo
-        UpCyxGJ96bhuRvioKb5Qa5vbVsiDW4U=
-X-Google-Smtp-Source: ABdhPJyl9aJzKUghxnW57j5zv8PI+fIRo0XcUdL2wOdBDVSc1ixa//yRzhnK1o3/tY/+3WjLMzl0yA==
-X-Received: by 2002:a63:3fce:: with SMTP id m197mr3969736pga.296.1634013759893;
-        Mon, 11 Oct 2021 21:42:39 -0700 (PDT)
-Received: from faith.kottiga.ml ([240f:82:1adf:1:cee1:d5ff:fe3f:5153])
-        by smtp.gmail.com with ESMTPSA id o2sm1015327pja.7.2021.10.11.21.42.38
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=VfQ3pN1Wn4j6A/3u2FeV9UXUwDseQ7lyqBpHMKNttwQ=;
+        b=wSWTr6xFHBbQk4kIA/CQ2V0r2Hu4iN1MyNQCAa9tTrJQKPdjCWLfrOpMvm/IhVueXK
+         WOb1rkIlDRt6/VNem+qqDi0YtY9dGa99R2wSVOGlnlV7F+sWQlXKTUJj/hOBhPe2dsi5
+         AniiKNgLZEfGGz7KOycmYl+fiDUgOLhic7bToiehXJA1g735ow17VKMf7zV4NtDEULEB
+         sQsSKMxxtqP5W+Z51wWjGZiQiiWP/bmPH3AVZbjGeoDbp6EjIE8j+XMOzzn+biFbv2o1
+         297VGnB7K0e1TENrtIMh0MCSPjqmzQOAb0v2DUfFygVWHNk/ha4r3KZ71p8dvZPNvDOz
+         l4tg==
+X-Gm-Message-State: AOAM533yk0rMaByviq6hWBSNVqHSF0l+gDUuKFL2bINNZZeuTTPLSwi4
+        7wByC+vdHqWlFnIFi2MeJndyXcIYXHfNTA==
+X-Google-Smtp-Source: ABdhPJw+AA+6ybWt+MFjv/URB4aGoizbzzcXUS6UalpNJTesRT0CVKh3MhIuKyB5wiHcWcBgbdHOBQ==
+X-Received: by 2002:ac8:6683:: with SMTP id d3mr20946779qtp.291.1634028242132;
+        Tue, 12 Oct 2021 01:44:02 -0700 (PDT)
+Received: from wsfd-netdev15.ntdv.lab.eng.bos.redhat.com (nat-pool-bos-t.redhat.com. [66.187.233.206])
+        by smtp.gmail.com with ESMTPSA id e4sm4272414qty.59.2021.10.12.01.44.01
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 11 Oct 2021 21:42:39 -0700 (PDT)
-Sender: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-From:   Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
-Subject: [PATCH libnf-log] src: add conntrack ID to XML output
-Date:   Tue, 12 Oct 2021 13:39:14 +0900
-Message-Id: <20211012043912.18513-1-chamas@h4.dion.ne.jp>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <YWTKdTsedRgM6Lgh@salvia>
-References: <YWTKdTsedRgM6Lgh@salvia>
+        Tue, 12 Oct 2021 01:44:01 -0700 (PDT)
+From:   Xin Long <lucien.xin@gmail.com>
+To:     network dev <netdev@vger.kernel.org>, davem@davemloft.net,
+        kuba@kernel.org, netfilter-devel@vger.kernel.org,
+        pablo@netfilter.org
+Cc:     Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [PATCH nf] netfilter: ip6t_rt: fix rt0_hdr parsing in rt_mt6
+Date:   Tue, 12 Oct 2021 04:44:00 -0400
+Message-Id: <346934f2ad88d64589fa9a942aed844443cf7110.1634028240.git.lucien.xin@gmail.com>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch enables to add conntrack ID as `ctid' element to XML output. Users
-could identify conntrack entries by this ID from another conntrack output.
+In rt_mt6(), when it's a nonlinear skb, the 1st skb_header_pointer()
+only copies sizeof(struct ipv6_rt_hdr) to _route that rh points to.
+The access by ((const struct rt0_hdr *)rh)->reserved will overflow
+the buffer. So this access should be moved below the 2nd call to
+skb_header_pointer().
 
-Signed-off-by: Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
+Besides, after the 2nd skb_header_pointer(), its return value should
+also be checked, othersize, *rp may cause null-pointer-ref.
+
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Xin Long <lucien.xin@gmail.com>
 ---
- include/libnetfilter_log/libnetfilter_log.h |  1 +
- src/libnetfilter_log.c                      | 44 ++++++++++++++++++++-
- 2 files changed, 44 insertions(+), 1 deletion(-)
+ net/ipv6/netfilter/ip6t_rt.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/include/libnetfilter_log/libnetfilter_log.h b/include/libnetfilter_log/libnetfilter_log.h
-index 16c4748..3b52f01 100644
---- a/include/libnetfilter_log/libnetfilter_log.h
-+++ b/include/libnetfilter_log/libnetfilter_log.h
-@@ -82,6 +82,7 @@ enum {
- 	NFLOG_XML_PHYSDEV	= (1 << 4),
- 	NFLOG_XML_PAYLOAD	= (1 << 5),
- 	NFLOG_XML_TIME		= (1 << 6),
-+        NFLOG_XML_CTID		= (1 << 7),
- 	NFLOG_XML_ALL		= ~0U,
- };
+diff --git a/net/ipv6/netfilter/ip6t_rt.c b/net/ipv6/netfilter/ip6t_rt.c
+index 733c83d38b30..d25192949217 100644
+--- a/net/ipv6/netfilter/ip6t_rt.c
++++ b/net/ipv6/netfilter/ip6t_rt.c
+@@ -83,11 +83,7 @@ static bool rt_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 		 !(rtinfo->flags & IP6T_RT_LEN) ||
+ 		  ((rtinfo->hdrlen == hdrlen) ^
+ 		   !!(rtinfo->invflags & IP6T_RT_INV_LEN)));
+-	pr_debug("res %02X %02X %02X ",
+-		 rtinfo->flags & IP6T_RT_RES,
+-		 ((const struct rt0_hdr *)rh)->reserved,
+-		 !((rtinfo->flags & IP6T_RT_RES) &&
+-		   (((const struct rt0_hdr *)rh)->reserved)));
++	pr_debug("res flag %02X ", rtinfo->flags & IP6T_RT_RES);
  
-diff --git a/src/libnetfilter_log.c b/src/libnetfilter_log.c
-index 27a6a2d..f2311ae 100644
---- a/src/libnetfilter_log.c
-+++ b/src/libnetfilter_log.c
-@@ -33,6 +33,9 @@
- #include <libnfnetlink/libnfnetlink.h>
- #include <libnetfilter_log/libnetfilter_log.h>
+ 	ret = (segsleft_match(rtinfo->segsleft[0], rtinfo->segsleft[1],
+ 			      rh->segments_left,
+@@ -107,7 +103,12 @@ static bool rt_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 						       reserved),
+ 					sizeof(_reserved),
+ 					&_reserved);
++		if (!rp) {
++			par->hotdrop = true;
++			return false;
++		}
  
-+#include <libmnl/libmnl.h>
-+#include <linux/netfilter/nfnetlink_conntrack.h>
-+
- /**
-  * \mainpage
-  *
-@@ -652,6 +655,7 @@ int nflog_set_nlbufsiz(struct nflog_g_handle *gh, uint32_t nlbufsiz)
-  *
-  *	- NFULNL_CFG_F_SEQ: This enables local nflog sequence numbering.
-  *	- NFULNL_CFG_F_SEQ_GLOBAL: This enables global nflog sequence numbering.
-+ *	- NFULNL_CFG_F_CONNTRACK: This enables to acquire related conntrack.
-  *
-  * \return 0 on success, -1 on failure with \b errno set.
-  * \par Errors
-@@ -974,6 +978,36 @@ int nflog_get_seq_global(struct nflog_data *nfad, uint32_t *seq)
- 	return 0;
- }
- 
-+/**
-+ * nflog_get_ct_id - get the conntrack id
-+ * \param nfad Netlink packet data handle passed to callback function
-+ * \param id conntrack id, if the function returns zero
-+ *
-+ * You must enable this via nflog_set_flags().
-+ *
-+ * \return 0 on success or -1 if conntrack itself or its id was unavailable
-+ */
-+int nflog_get_ctid(struct nflog_data *nfad, uint32_t *id)
-+{
-+        struct nlattr *cta = (struct nlattr *)nfad->nfa[NFULA_CT - 1];
-+        struct nlattr *attr, *ida = NULL;
-+
-+        if (cta == NULL) return -1;
-+
-+        mnl_attr_for_each_nested(attr, cta) {
-+                if (mnl_attr_get_type(attr) == CTA_ID) {
-+                        ida = attr;
-+                        break;
-+                }
-+        }
-+
-+        if (ida == NULL || mnl_attr_validate(ida, MNL_TYPE_U32) < 0)
-+                return -1;
-+
-+        *id = ntohl(mnl_attr_get_u32(ida));
-+        return 0;
-+}
-+
- /**
-  * @}
-  */
-@@ -1016,6 +1050,7 @@ do {								\
-  *	- NFLOG_XML_PHYSDEV: include the physical device information
-  *	- NFLOG_XML_PAYLOAD: include the payload (in hexadecimal)
-  *	- NFLOG_XML_TIME: include the timestamp
-+ *	- NFLOG_XML_CTID: include conntrack id
-  *	- NFLOG_XML_ALL: include all the logging information (all flags set)
-  *
-  * You can combine these flags with a bitwise OR.
-@@ -1030,7 +1065,7 @@ int nflog_snprintf_xml(char *buf, size_t rem, struct nflog_data *tb, int flags)
- {
- 	struct nfulnl_msg_packet_hdr *ph;
- 	struct nfulnl_msg_packet_hw *hwph;
--	uint32_t mark, ifi;
-+	uint32_t mark, ifi, ctid;
- 	int size, offset = 0, len = 0, ret;
- 	char *data;
- 
-@@ -1150,6 +1185,13 @@ int nflog_snprintf_xml(char *buf, size_t rem, struct nflog_data *tb, int flags)
- 		SNPRINTF_FAILURE(size, rem, offset, len);
++		pr_debug("res value %02X ", *rp);
+ 		ret = (*rp == 0);
  	}
  
-+	ret = nflog_get_ctid(tb, &ctid);
-+	if (ret >= 0 && (flags & NFLOG_XML_CTID)) {
-+		size = snprintf(buf + offset, rem,
-+				"<ctid>%u</ctid>", ctid);
-+		SNPRINTF_FAILURE(size, rem, offset, len);
-+	}
-+
- 	ret = nflog_get_payload(tb, &data);
- 	if (ret >= 0 && (flags & NFLOG_XML_PAYLOAD)) {
- 		int i;
 -- 
-2.30.2
+2.27.0
 
