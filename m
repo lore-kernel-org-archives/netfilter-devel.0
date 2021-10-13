@@ -2,83 +2,62 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 265CFC433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Oct 2021 12:58:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39B3CC433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Oct 2021 20:33:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 12CDB610E8
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Oct 2021 12:58:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1F3BE610CF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Oct 2021 20:33:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231312AbhJMNAe (ORCPT
+        id S229692AbhJMUfg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 13 Oct 2021 09:00:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56558 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230197AbhJMNAd (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 13 Oct 2021 09:00:33 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 64FDEC061570;
-        Wed, 13 Oct 2021 05:58:30 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1madpz-00055V-LO; Wed, 13 Oct 2021 14:58:27 +0200
-Date:   Wed, 13 Oct 2021 14:58:27 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Lahav Schlesinger <lschlesinger@drivenets.com>
-Cc:     Eugene Crosser <crosser@average.org>, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, David Ahern <dsahern@kernel.org>
-Subject: Re: Commit 09e856d54bda5f288ef8437a90ab2b9b3eab83d1r "vrf: Reset skb
- conntrack connection on VRF rcv" breaks expected netfilter behaviour
-Message-ID: <20211013125827.GB32450@breakpoint.cc>
-References: <bca5dcab-ef6b-8711-7f99-8d86e79d76eb@average.org>
- <20211013122843.wxj7jtyzifwng3j4@kgollan-pc>
+        Wed, 13 Oct 2021 16:35:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53174 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229496AbhJMUfg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 13 Oct 2021 16:35:36 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1EF13610CE;
+        Wed, 13 Oct 2021 20:33:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1634157212;
+        bh=JUi6Yrt6b3RrzaP0GICRbOBRuJGs4INzI/hs1Pv1ynA=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=SourJ8TlnOofBWndt0Z4Ov7zJeXmPKK9QVPLhT0bssGWje0ZQeexHPnzQKnfRe20G
+         Et06r+zv79HlJn9pahoeu0mQQEvzBCOsMq6wSt/RAOyiBdj9t5eFqZGbOKPVsPlNrh
+         Uena4duOKbT1zt4511C45BmlHC4cg3Tf/isiq7COiQNWqOCd1lmjAGuuNpApID921j
+         RUdLd+8PJ9TW9pIkAW0iXym+eC69E6Dyfd63gjEtJxMyc22yCQBIVCacnXIvo29FkV
+         tIDTmp5ZaUm44LQU+4uIfISb1y9wyrJ3LGIh5DggEmob0XAxjra7jfsa7SLAAsarOl
+         Md98WOalFav3w==
+Date:   Wed, 13 Oct 2021 13:33:31 -0700
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Kyungrok Chung <acadx0@gmail.com>
+Cc:     Roopa Prabhu <roopa@nvidia.com>,
+        Nikolay Aleksandrov <nikolay@nvidia.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
+Subject: Re: [PATCH net-next] net: bridge: make use of helper
+ netif_is_bridge_master()
+Message-ID: <20211013133331.0b846cd5@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+In-Reply-To: <20211012141810.30661-1-acadx0@gmail.com>
+References: <20211012141810.30661-1-acadx0@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20211013122843.wxj7jtyzifwng3j4@kgollan-pc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Lahav Schlesinger <lschlesinger@drivenets.com> wrote:
-> The call to nf_reset_ct() I added was to match the existing call in the
-> egress flow, which I didn't want to change in order to not break
-> existing behaviour (which I unintentionally still did :-)).
+On Tue, 12 Oct 2021 23:18:09 +0900 Kyungrok Chung wrote:
+> Make use of netdev helper functions to improve code readability.
+> Replace 'dev->priv_flags & IFF_EBRIDGE' with netif_is_bridge_master(dev).
 > 
-> Seems like any combination of calling nf_reset_ct() will lead to
-> something breaking. So continuing on what Florian suggested, another
-> possibility is to make the calls to nf_reset_ct() in both ingress and egress
-> flow configurable (procfs or new flags to RTM_NEWLINK).
-> 
-> One benefit of this is that disabling nf_reset_ct() on the egress flow will
-> mean no port SNAT will take place when SNAT rule is installed on a VRF
-> (as I described in my original commit), which can break applications
-> that depend on using a specific source port.
+> Signed-off-by: Kyungrok Chung <acadx0@gmail.com>
 
-Looking at the original change, eb63ecc1706b3e094d0f57438b6c2067cfc299f2
-"net: vrf: Drop conntrack data after pass through VRF device on Tx",
-I wonder if thats not the real cause of the problem.
+Why leave these out?
 
-=========================
-Locally originated traffic in a VRF fails in the presence of a POSTROUTING
-rule. For example,
-
-$ iptables -t nat -A POSTROUTING -s 11.1.1.0/24  -j
-MASQUERADE
-$ ping -I red -c1 11.1.1.3
-ping: Warning: source address might
-be selected on device other than red.
-PING 11.1.1.3 (11.1.1.3)
-from 11.1.1.2 red: 56(84) bytes of data.
-ping: sendmsg: Operation not permitted
-=========================
-
-I think we first need selftest scripts that re-creates the three scenarios
-the one reported by Eugene, the one outlined above and the double-PAT one Lahav
-fixed before any code changes are tested.
-
-Its tempting to just change the nf_ct_reset() done on egress to be
-conditional on the ct->status snat bit & drop support for double-snat.
-
-Given Lahavs patch, double-snat probably never worked to begin with?
+net/batman-adv/multicast.c:     } while (upper && !(upper->priv_flags & IFF_EBRIDGE));
+net/core/rtnetlink.c:                               !(dev->priv_flags & IFF_EBRIDGE))
