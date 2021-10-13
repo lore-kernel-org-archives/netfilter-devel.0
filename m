@@ -2,82 +2,61 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B668C433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Oct 2021 20:48:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD96AC433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Oct 2021 09:22:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E8ACE60C4B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Oct 2021 20:48:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AEC7560ED4
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Oct 2021 09:22:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233709AbhJLUu5 (ORCPT
+        id S237139AbhJMJYl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 Oct 2021 16:50:57 -0400
-Received: from ink.ssi.bg ([178.16.128.7]:53605 "EHLO ink.ssi.bg"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230467AbhJLUu5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 Oct 2021 16:50:57 -0400
-Received: from ja.ssi.bg (unknown [178.16.129.10])
-        by ink.ssi.bg (Postfix) with ESMTPS id 7FEF73C09C0;
-        Tue, 12 Oct 2021 23:48:53 +0300 (EEST)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.16.1/8.16.1) with ESMTP id 19CKmqbB047141;
-        Tue, 12 Oct 2021 23:48:52 +0300
-Date:   Tue, 12 Oct 2021 23:48:52 +0300 (EEST)
-From:   Julian Anastasov <ja@ssi.bg>
-To:     Antoine Tenart <atenart@kernel.org>
-cc:     davem@davemloft.net, kuba@kernel.org, horms@verge.net.au,
-        pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-Subject: Re: [PATCH net] netfilter: ipvs: make global sysctl readonly in
- non-init netns
-In-Reply-To: <20211012145437.754391-1-atenart@kernel.org>
-Message-ID: <8e76869d-ae27-198a-e750-16cd26e63737@ssi.bg>
-References: <20211012145437.754391-1-atenart@kernel.org>
+        Wed, 13 Oct 2021 05:24:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34926 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230150AbhJMJYl (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 13 Oct 2021 05:24:41 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5BF7EC061570;
+        Wed, 13 Oct 2021 02:22:38 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1maaT5-00043q-Sh; Wed, 13 Oct 2021 11:22:35 +0200
+Date:   Wed, 13 Oct 2021 11:22:35 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Eugene Crosser <crosser@average.org>
+Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Lahav Schlesinger <lschlesinger@drivenets.com>,
+        David Ahern <dsahern@kernel.org>
+Subject: Re: Commit 09e856d54bda5f288ef8437a90ab2b9b3eab83d1r "vrf: Reset skb
+ conntrack connection on VRF rcv" breaks expected netfilter behaviour
+Message-ID: <20211013092235.GA32450@breakpoint.cc>
+References: <bca5dcab-ef6b-8711-7f99-8d86e79d76eb@average.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <bca5dcab-ef6b-8711-7f99-8d86e79d76eb@average.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Eugene Crosser <crosser@average.org> wrote:
+> Maybe a better solution for stray conntrack entries would be to
+> introduce finer control in netfilter? One possible idea would be to
+> implement both "track" and "notrack" targets; then a working
+> configuration would look like this:
 
-	Hello,
+'track' is hard to implement correctly because of RELATED traffic.
 
-On Tue, 12 Oct 2021, Antoine Tenart wrote:
+E.g. 'tcp dport 22 track' won't work correctly because icmp pmtu
+won't be handled.
 
-> Because the data pointer of net/ipv4/vs/debug_level is not updated per
-> netns, it must be marked as read-only in non-init netns.
-> 
-> Fixes: c6d2d445d8de ("IPVS: netns, final patch enabling network name space.")
-> Signed-off-by: Antoine Tenart <atenart@kernel.org>
+I'd suggest to try a conditional nf_ct_reset that keeps the conntrack
+entry if its in another zone.
 
-	Looks good to me, thanks!
-
-Acked-by: Julian Anastasov <ja@ssi.bg>
-
-> ---
->  net/netfilter/ipvs/ip_vs_ctl.c | 5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> index c25097092a06..29ec3ef63edc 100644
-> --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> @@ -4090,6 +4090,11 @@ static int __net_init ip_vs_control_net_init_sysctl(struct netns_ipvs *ipvs)
->  	tbl[idx++].data = &ipvs->sysctl_conn_reuse_mode;
->  	tbl[idx++].data = &ipvs->sysctl_schedule_icmp;
->  	tbl[idx++].data = &ipvs->sysctl_ignore_tunneled;
-> +#ifdef CONFIG_IP_VS_DEBUG
-> +	/* Global sysctls must be ro in non-init netns */
-> +	if (!net_eq(net, &init_net))
-> +		tbl[idx++].mode = 0444;
-> +#endif
->  
->  	ipvs->sysctl_hdr = register_net_sysctl(net, "net/ipv4/vs", tbl);
->  	if (ipvs->sysctl_hdr == NULL) {
-> -- 
-> 2.31.1
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+I can't think of another solution at the moment, the existing behaviour
+of resetting conntrack entry for postrouting/output is too old,
+otherwise the better solution IMO would be to keep that entry around on
+egress if a NAT rewrite has been done. This would avoid the 'double snat'
+problem that the 'reset on ingress' tries to solve.
