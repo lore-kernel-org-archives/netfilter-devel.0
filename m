@@ -2,62 +2,161 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39B3CC433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Oct 2021 20:33:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D84EEC433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Oct 2021 12:11:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1F3BE610CF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Oct 2021 20:33:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BE18760174
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Oct 2021 12:11:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229692AbhJMUfg (ORCPT
+        id S231458AbhJNMNG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 13 Oct 2021 16:35:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53174 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229496AbhJMUfg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 13 Oct 2021 16:35:36 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1EF13610CE;
-        Wed, 13 Oct 2021 20:33:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1634157212;
-        bh=JUi6Yrt6b3RrzaP0GICRbOBRuJGs4INzI/hs1Pv1ynA=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=SourJ8TlnOofBWndt0Z4Ov7zJeXmPKK9QVPLhT0bssGWje0ZQeexHPnzQKnfRe20G
-         Et06r+zv79HlJn9pahoeu0mQQEvzBCOsMq6wSt/RAOyiBdj9t5eFqZGbOKPVsPlNrh
-         Uena4duOKbT1zt4511C45BmlHC4cg3Tf/isiq7COiQNWqOCd1lmjAGuuNpApID921j
-         RUdLd+8PJ9TW9pIkAW0iXym+eC69E6Dyfd63gjEtJxMyc22yCQBIVCacnXIvo29FkV
-         tIDTmp5ZaUm44LQU+4uIfISb1y9wyrJ3LGIh5DggEmob0XAxjra7jfsa7SLAAsarOl
-         Md98WOalFav3w==
-Date:   Wed, 13 Oct 2021 13:33:31 -0700
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Kyungrok Chung <acadx0@gmail.com>
-Cc:     Roopa Prabhu <roopa@nvidia.com>,
-        Nikolay Aleksandrov <nikolay@nvidia.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-Subject: Re: [PATCH net-next] net: bridge: make use of helper
- netif_is_bridge_master()
-Message-ID: <20211013133331.0b846cd5@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <20211012141810.30661-1-acadx0@gmail.com>
-References: <20211012141810.30661-1-acadx0@gmail.com>
+        Thu, 14 Oct 2021 08:13:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36382 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231455AbhJNMNF (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 14 Oct 2021 08:13:05 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 21C84C061570;
+        Thu, 14 Oct 2021 05:11:01 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1mazZb-0002k3-4b; Thu, 14 Oct 2021 14:10:59 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     bpf@vger.kernel.org, netdev@vger.kernel.org, me@ubique.spb.ru,
+        Florian Westphal <fw@strlen.de>
+Subject: [PATCH RFC nf-next 0/9] netfilter: bpf base hook program generator
+Date:   Thu, 14 Oct 2021 14:10:36 +0200
+Message-Id: <20211014121046.29329-1-fw@strlen.de>
+X-Mailer: git-send-email 2.32.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, 12 Oct 2021 23:18:09 +0900 Kyungrok Chung wrote:
-> Make use of netdev helper functions to improve code readability.
-> Replace 'dev->priv_flags & IFF_EBRIDGE' with netif_is_bridge_master(dev).
-> 
-> Signed-off-by: Kyungrok Chung <acadx0@gmail.com>
+This series adds a bpf program generator for netfilter base hooks.
 
-Why leave these out?
+Currently netfilter hooks are invoked via nf_hook_slow, which walks
+an array of function_addr:arg pairs:
 
-net/batman-adv/multicast.c:     } while (upper && !(upper->priv_flags & IFF_EBRIDGE));
-net/core/rtnetlink.c:                               !(dev->priv_flags & IFF_EBRIDGE))
+for i in hooks[]; do
+  verdict = hooks[i]->addr(hooks->[i].arg, skb, state);
+  switch (verdict) { ....
+
+The autogenerator unrolls this loop and builds a bpf program
+that does:
+
+state->priv = hooks->[0].hook_arg;
+v = firstfunction(state);
+if (v != ACCEPT) goto out;
+state->priv = hooks->[1].hook_arg;
+v = secondfunction(state); ...
+if (v != ACCEPT) goto out;
+
+... and so on.
+
+Indirections are converted to direct calls. Invocation of the
+autogenerated programs is done via bpf dispatcher from nf_hook().
+
+As long as NF_QUEUE is not used, normal data path will not call
+nf_hook_slow "interpreter" anymore.
+
+Purpose of this is to eventually add a 'netfilter prog type' to bpf and
+permit attachment of (userspace generated) bpf programs to the netfilter
+machinery, e.g.  'attach bpf prog id 1234 to ipv6 PREROUTING at prio -300'.
+The autogenerator would be adjusted so that these userspace-bpf programs
+are invoked just like native c functions.
+
+This will require to expose the context structure (program argument,
+'struct __nf_hook_state *' and rewrite read-accesses to it to match internal
+nf_hook_state layout plus new verifier checks on permitted return values
+(e.g. a plain 'return NF_STOLEN' results in a skb leak).
+
+Known problems:
+- I did not convert all hooks to the new scheme, e.g. ILA won't compile ATM.
+- checkpatch complains about a few indendation issues, line lengths etc.
+
+Future work:
+add support for NAT hooks, they still use indirect calls, but those
+are less of a problem because these get called only once per connection.
+
+Could annotate ops struct as to what kind of verdicts the
+C function can return.  This would allow to elide retval
+check when hook can only return NF_ACCEPT.
+
+Could add extra support for INGRESS hook to move more code from
+inline functions to the autogenerated program.
+
+Initial tests show roughly 8% performance improvement in a netns-to-netns
+UDP forward test with conntrack enabled in the 'forward' net namespace.
+
+I'm looking for feedback on the chosen approach.
+
+Thanks,
+Florian
+
+Florian Westphal (9):
+  netfilter: nf_queue: carry index in hook state
+  netfilter: nat: split nat hook iteration into a helper
+  netfilter: remove hook index from nf_hook_slow arguments
+  netfilter: make hook functions accept only one argument
+  netfilter: reduce allowed hook count to 32
+  netfilter: add bpf base hook program generator
+  netfilter: core: do not rebuild bpf program on dying netns
+  netfilter: ingress: switch to invocation via bpf
+  netfilter: hook_jit: add prog cache
+
+ drivers/net/ipvlan/ipvlan_l3s.c            |   4 +-
+ include/linux/netfilter.h                  |  72 ++-
+ include/linux/netfilter_ingress.h          |  17 +-
+ include/net/netfilter/br_netfilter.h       |   7 +-
+ include/net/netfilter/nf_flow_table.h      |   6 +-
+ include/net/netfilter/nf_hook_bpf.h        |  14 +
+ include/net/netfilter/nf_queue.h           |   3 +-
+ include/net/netfilter/nf_synproxy.h        |   6 +-
+ net/bridge/br_input.c                      |   3 +-
+ net/bridge/br_netfilter_hooks.c            |  30 +-
+ net/bridge/br_netfilter_ipv6.c             |   5 +-
+ net/bridge/netfilter/ebtable_broute.c      |   8 +-
+ net/bridge/netfilter/ebtable_filter.c      |   5 +-
+ net/bridge/netfilter/ebtable_nat.c         |   5 +-
+ net/bridge/netfilter/nf_conntrack_bridge.c |   8 +-
+ net/ipv4/netfilter/arptable_filter.c       |   5 +-
+ net/ipv4/netfilter/ipt_CLUSTERIP.c         |   6 +-
+ net/ipv4/netfilter/iptable_filter.c        |   5 +-
+ net/ipv4/netfilter/iptable_mangle.c        |   7 +-
+ net/ipv4/netfilter/iptable_nat.c           |   6 +-
+ net/ipv4/netfilter/iptable_raw.c           |   5 +-
+ net/ipv4/netfilter/iptable_security.c      |   5 +-
+ net/ipv4/netfilter/nf_defrag_ipv4.c        |   5 +-
+ net/ipv6/netfilter/ip6table_filter.c       |   5 +-
+ net/ipv6/netfilter/ip6table_mangle.c       |   6 +-
+ net/ipv6/netfilter/ip6table_nat.c          |   6 +-
+ net/ipv6/netfilter/ip6table_raw.c          |   5 +-
+ net/ipv6/netfilter/ip6table_security.c     |   5 +-
+ net/ipv6/netfilter/nf_defrag_ipv6_hooks.c  |   5 +-
+ net/netfilter/Kconfig                      |  10 +
+ net/netfilter/Makefile                     |   1 +
+ net/netfilter/core.c                       | 103 +++-
+ net/netfilter/ipvs/ip_vs_core.c            |  48 +-
+ net/netfilter/nf_conntrack_proto.c         |  34 +-
+ net/netfilter/nf_flow_table_inet.c         |   9 +-
+ net/netfilter/nf_flow_table_ip.c           |  12 +-
+ net/netfilter/nf_hook_bpf.c                | 569 +++++++++++++++++++++
+ net/netfilter/nf_nat_core.c                |  50 +-
+ net/netfilter/nf_nat_proto.c               |  56 +-
+ net/netfilter/nf_queue.c                   |  12 +-
+ net/netfilter/nf_synproxy_core.c           |   8 +-
+ net/netfilter/nft_chain_filter.c           |  48 +-
+ net/netfilter/nft_chain_nat.c              |   7 +-
+ net/netfilter/nft_chain_route.c            |  22 +-
+ security/selinux/hooks.c                   |  58 +--
+ 45 files changed, 1001 insertions(+), 315 deletions(-)
+ create mode 100644 include/net/netfilter/nf_hook_bpf.h
+ create mode 100644 net/netfilter/nf_hook_bpf.c
+
+-- 
+2.32.0
+
