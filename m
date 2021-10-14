@@ -2,46 +2,48 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 306A2C433FE
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Oct 2021 21:02:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EED53C433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Oct 2021 21:09:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 178FE61056
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Oct 2021 21:02:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CEAB2610CB
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Oct 2021 21:09:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232243AbhJNVFD (ORCPT
+        id S232909AbhJNVLb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 14 Oct 2021 17:05:03 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:47190 "EHLO
+        Thu, 14 Oct 2021 17:11:31 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:47212 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229471AbhJNVFD (ORCPT
+        with ESMTP id S230314AbhJNVLa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 14 Oct 2021 17:05:03 -0400
+        Thu, 14 Oct 2021 17:11:30 -0400
 Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id B27D363F25;
-        Thu, 14 Oct 2021 23:01:19 +0200 (CEST)
-Date:   Thu, 14 Oct 2021 23:02:53 +0200
+        by mail.netfilter.org (Postfix) with ESMTPSA id 40EBF63F25;
+        Thu, 14 Oct 2021 23:07:46 +0200 (CEST)
+Date:   Thu, 14 Oct 2021 23:09:20 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
-        ja@ssi.bg, horms@verge.net.au
-Subject: Re: [PATCH nf-next v2 0/4] netfilter: ipvs: remove unneeded hook
- wrappers
-Message-ID: <YWia/ZWkCbsa3iUm@salvia>
-References: <20211012172959.745-1-fw@strlen.de>
+To:     Xin Long <lucien.xin@gmail.com>
+Cc:     network dev <netdev@vger.kernel.org>, davem@davemloft.net,
+        kuba@kernel.org, netfilter-devel@vger.kernel.org,
+        Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [PATCHv2 nf] netfilter: ip6t_rt: fix rt0_hdr parsing in rt_mt6
+Message-ID: <YWicgKOG51NLyyi7@salvia>
+References: <6ee8ec63c78925fadf0304c8a55cac73824234af.1634041093.git.lucien.xin@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20211012172959.745-1-fw@strlen.de>
+In-Reply-To: <6ee8ec63c78925fadf0304c8a55cac73824234af.1634041093.git.lucien.xin@gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Oct 12, 2021 at 07:29:55PM +0200, Florian Westphal wrote:
-> V2: Patch 4/4 had a bug that would enter ipv6 branch for
-> ipv4 packets, fix that.
+On Tue, Oct 12, 2021 at 08:18:13AM -0400, Xin Long wrote:
+> In rt_mt6(), when it's a nonlinear skb, the 1st skb_header_pointer()
+> only copies sizeof(struct ipv6_rt_hdr) to _route that rh points to.
+> The access by ((const struct rt0_hdr *)rh)->reserved will overflow
+> the buffer. So this access should be moved below the 2nd call to
+> skb_header_pointer().
 > 
-> This series reduces the number of different hook function
-> implementations by merging the ipv4 and ipv6 hooks into
-> common code.
+> Besides, after the 2nd skb_header_pointer(), its return value should
+> also be checked, othersize, *rp may cause null-pointer-ref.
 
-Series applied, thanks.
+Applied, thanks
