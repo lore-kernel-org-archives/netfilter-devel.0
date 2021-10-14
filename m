@@ -2,66 +2,51 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64E0FC433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Oct 2021 21:01:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59DB2C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Oct 2021 21:02:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 45C6261056
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Oct 2021 21:01:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3E67561073
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Oct 2021 21:02:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229959AbhJNVDa (ORCPT
+        id S231787AbhJNVEj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 14 Oct 2021 17:03:30 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:47108 "EHLO
+        Thu, 14 Oct 2021 17:04:39 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:47174 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229471AbhJNVD3 (ORCPT
+        with ESMTP id S229471AbhJNVEi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 14 Oct 2021 17:03:29 -0400
+        Thu, 14 Oct 2021 17:04:38 -0400
 Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 344EF63F1F;
-        Thu, 14 Oct 2021 22:59:46 +0200 (CEST)
-Date:   Thu, 14 Oct 2021 23:01:19 +0200
+        by mail.netfilter.org (Postfix) with ESMTPSA id AB72863F25;
+        Thu, 14 Oct 2021 23:00:55 +0200 (CEST)
+Date:   Thu, 14 Oct 2021 23:02:29 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Lukas Wunner <lukas@wunner.de>
-Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, Daniel Borkmann <daniel@iogearbox.net>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Thomas Graf <tgraf@suug.ch>,
-        Laura Garcia Liebana <nevola@gmail.com>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Willem de Bruijn <willemb@google.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>
-Subject: Re: [PATCH nf-next v6 0/4] Netfilter egress hook
-Message-ID: <YWianzD4donIclhQ@salvia>
-References: <cover.1633693519.git.lukas@wunner.de>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next 0/4] netfilter: remove obsolete hook wrappers
+Message-ID: <YWia5Qd69YiHea6P@salvia>
+References: <20211011151514.6580-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <cover.1633693519.git.lukas@wunner.de>
+In-Reply-To: <20211011151514.6580-1-fw@strlen.de>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Oct 08, 2021 at 10:06:00PM +0200, Lukas Wunner wrote:
-> Netfilter egress hook, 6th iteration
+On Mon, Oct 11, 2021 at 05:15:09PM +0200, Florian Westphal wrote:
+> An earlier series, starting with
+> commit a4aeafa28cf706f65f ("netfilter: xt_nat: pass table to hookfn"),
+> converted the x_tables table implementations to store the hook blob in
+> the ->priv pointer that gets passed to the hook function.
 > 
-> Changes:
+> Before this, the blobs were stored in struct net, so each table
+> required its own wrapper to fetch the correct table blob.
 > 
-> * Perform netfilter egress classifying before tc egress classifying
->   to achieve reverse order vis-a-vis ingress datapath.
+> Nowadays, allmost all hook functions in x_table land just call the hook
+> evaluation loop.
 > 
-> * Avoid layering violations by way of new skb->nf_skip_egress flag.
-> 
-> * Add egress support to new nfnetlink_hook.c.
-> 
-> 
-> Link to previous version v5 (posted by Pablo):
-> https://lore.kernel.org/netdev/20210928095538.114207-1-pablo@netfilter.org/
-> 
-> Link to previous version v4:
-> https://lore.kernel.org/netdev/cover.1611304190.git.lukas@wunner.de/
+> This series converts the table evaluation loop so it can be used directly,
+> then removes most of the wrappers.
 
-Applied to nf-next, thanks.
+Series applied, thanks
