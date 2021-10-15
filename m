@@ -2,69 +2,88 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5E47C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Oct 2021 10:50:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EE2AC433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Oct 2021 11:01:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9048D6105A
-	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Oct 2021 10:50:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 539FD61073
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Oct 2021 11:01:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238163AbhJOKw6 convert rfc822-to-8bit (ORCPT
+        id S238213AbhJOLDg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 15 Oct 2021 06:52:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32958 "EHLO
+        Fri, 15 Oct 2021 07:03:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35320 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238167AbhJOKwy (ORCPT
+        with ESMTP id S235080AbhJOLDf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 15 Oct 2021 06:52:54 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2197C061570;
-        Fri, 15 Oct 2021 03:50:48 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1mbKnW-0000QY-AO; Fri, 15 Oct 2021 12:50:46 +0200
-Date:   Fri, 15 Oct 2021 12:50:46 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Cc:     Florian Westphal <fw@strlen.de>,
+        Fri, 15 Oct 2021 07:03:35 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 38FD5C061570
+        for <netfilter-devel@vger.kernel.org>; Fri, 15 Oct 2021 04:01:29 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1mbKxo-0001il-Dg; Fri, 15 Oct 2021 13:01:24 +0200
+Date:   Fri, 15 Oct 2021 13:01:24 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH v2 00/17] Eliminate dedicated arptables-nft
+ parser
+Message-ID: <20211015110124.GL1668@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        Linux Network Development Mailing List 
-        <netdev@vger.kernel.org>,
-        Netfilter Development Mailing List 
-        <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH netfilter] netfilter: conntrack: udp: generate event on
- switch to stream timeout
-Message-ID: <20211015105046.GI2942@breakpoint.cc>
-References: <20211015090934.2870662-1-zenczykowski@gmail.com>
- <YWlKGFpHa5o5jFgJ@salvia>
- <CANP3RGdCBzjWuK8FfHOOKcFAbd_Zru=DkOBBpD3d_PYDR91P5g@mail.gmail.com>
- <20211015095716.GH2942@breakpoint.cc>
- <CAHo-OoxsN5d+ipbp0TQ=a+o=ynd3-w5RZ3S3F8Vg89ipT5=UHw@mail.gmail.com>
+        netfilter-devel@vger.kernel.org
+References: <20210930140419.6170-1-phil@nwl.cc>
+ <YWiZacKr4s3mkdhU@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8BIT
-In-Reply-To: <CAHo-OoxsN5d+ipbp0TQ=a+o=ynd3-w5RZ3S3F8Vg89ipT5=UHw@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <YWiZacKr4s3mkdhU@salvia>
+Sender:  <n0-1@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Maciej Żenczykowski <zenczykowski@gmail.com> wrote:
-> On Fri, Oct 15, 2021 at 2:57 AM Florian Westphal <fw@strlen.de> wrote:
-> > Do you think it makes sense to just delay setting the ASSURED bit
-> > until after the 2s period?
-> 
-> That would work for this particular use case.... but I don't know if
-> it's a good idea.
-> I did of course think of it, but the commit message seemed to imply
-> there's a good reason to set the assured bit earlier rather than
-> later...
-> 
-> A udp flow becoming bidirectional seems like an important event to
-> notify about...
-> Afterall, the UDP flow might become a stream 29 seconds after it
-> becomes bidirectional...
+Hi Pablo,
 
-Oh right, never mind then.
+On Thu, Oct 14, 2021 at 10:56:09PM +0200, Pablo Neira Ayuso wrote:
+> On Thu, Sep 30, 2021 at 04:04:02PM +0200, Phil Sutter wrote:
+> > Commandline parsing was widely identical with iptables and ip6tables.
+> > This series adds the necessary code-changes to unify the parsers into a
+> > common one.
+> > 
+> > Changes since v1:
+> > - Fix patch 12, the parser has to check existence of proto_parse
+> >   callback before dereferencing it. Otherwise arptables-nft segfaults if
+> >   '-p' option is given.
+> 
+> LGTM.
 
-Acked-by: Florian Westphal <fw@strlen.de>
+Thanks for your review!
+
+> > - Patches 13-17 add all the arptables quirks to restore compatibility
+> >   with arptables-legacy. I didn't consider them important enough to push
+> >   them unless someone complains. Yet breaking existing scripts is bad
+> >   indeed. Please consider them RFC: If you consider (one of) them not
+> >   important, please NACk and I will drop them before pushing.
+> 
+> For patch 13-16, you could display a warning for people to fix their
+> scripts, so this particular (strange) behaviour in some cases can be
+> dropped (at least, 13-15 look like left-over/bugs). For the
+> check_inverse logic, I'd suggest to display a warning too, this is
+> what it was done in iptables time ago to address this inconsistency.
+
+I wonder how likely it is for someone to rely upon the behaviour. I can
+imagine a script passing an empty interface name and expecting the
+argument to be ignored (patch 13). Though what are the odds someone
+actually calls arptables with '-m something' (patch 14) or a bogus table
+name (patch 15)?
+
+> I'd probably keep back patch 17/17, the max chain name length was
+> reduced by when the revision field was introduced and this resulted in
+> no issue being reported.
+
+If that's OK with you, I would turn the empty interface name error into
+a warning for arptables-nft, reintroduce the warning for intrapositioned
+negations and drop the remaining quirks as they are likely hiding a bug.
+
+Cheers, Phil
