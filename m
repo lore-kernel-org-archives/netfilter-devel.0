@@ -2,120 +2,173 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 340EFC433FE
-	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Oct 2021 02:00:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09207C433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Oct 2021 09:09:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 035E0611F0
-	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Oct 2021 02:00:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E7F2760F70
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Oct 2021 09:09:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234829AbhJOCCc (ORCPT
+        id S236662AbhJOJLu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 14 Oct 2021 22:02:32 -0400
-Received: from gandalf.ozlabs.org ([150.107.74.76]:56105 "EHLO
-        gandalf.ozlabs.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232271AbhJOCCc (ORCPT
+        Fri, 15 Oct 2021 05:11:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37900 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S236895AbhJOJLu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 14 Oct 2021 22:02:32 -0400
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4HVqGv3YY5z4xbG;
-        Fri, 15 Oct 2021 13:00:23 +1100 (AEDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canb.auug.org.au;
-        s=201702; t=1634263224;
-        bh=VSoqlCX0nQzSZmUT56l1XRpOc8YsMVqw5ljMHwwDSOk=;
-        h=Date:From:To:Cc:Subject:From;
-        b=NpxhYkSxxpG0mZw576IzAMNes4tI5CEeB+bh8bArsG0cw+Iiv3dkJ8toe0TsKd3oi
-         lqYJWoCBFeYTrjbiLtpTmmYNGEAYI9mYRw8VTuhKZ4tyzdx5olOf+IpsUcUppVnHj1
-         /VdxpTyhsmonnb2q7b6snHj44uWEGFrHFgRc7PClQCvWDN98YQtC05Gf+rKoO00vsK
-         EVO0HteLEmsKKtsb2GxlIgNCxIxPifLXn3K6p1s3i6Y/k0RC5P59ARbGY29sQygG1G
-         NDKf/qMeXkZTtXXRqr5BYsw9MeYETEG/RIeGlI+J4378Gfz10lyOuFKIE3F8rzq/tB
-         DO7qPu3fOomzw==
-Date:   Fri, 15 Oct 2021 13:00:22 +1100
-From:   Stephen Rothwell <sfr@canb.auug.org.au>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-Cc:     Antoine Tenart <atenart@kernel.org>,
-        Dust Li <dust.li@linux.alibaba.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux Next Mailing List <linux-next@vger.kernel.org>
-Subject: linux-next: manual merge of the netfilter-next tree with the
- netfilter tree
-Message-ID: <20211015130022.51468c6d@canb.auug.org.au>
+        Fri, 15 Oct 2021 05:11:50 -0400
+Received: from mail-pl1-x62f.google.com (mail-pl1-x62f.google.com [IPv6:2607:f8b0:4864:20::62f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 347ACC061570;
+        Fri, 15 Oct 2021 02:09:44 -0700 (PDT)
+Received: by mail-pl1-x62f.google.com with SMTP id t11so5989874plq.11;
+        Fri, 15 Oct 2021 02:09:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=dqkAJ7cyGwsKnh2HC9/AWtnTSkngUFywloc5uLJfxlk=;
+        b=Qdi/nUwkPz3L8BZgwRAxsKrBMXZCyZsVVsVOBFXz/6Lq9nlo4X8kG9ke5cLralNnXl
+         MbomyyR84FuiSSrsFryNJ5sSqU1ejs17TrcdAzH1GmLtCuZy2c4pAwi4f/Agm8bwzRDV
+         TESNkWnkxJKYhg62FJmrhOtyhrrebVTlbkqTWscfxADrZI2sKvvZ0VbGGM4S84Esknkj
+         sddE19X8bs0nmpctoTWirrcIYbvIg2V4BU4GrpO7Qh2tJ/iMrsK7oK9E0EntzJRXJsj+
+         ffI3uRkhZqDBxSxQnua9n33szhCGTQcSc13BxMW9AiIhguPabimRZxYBHI4pQzqS9mxR
+         Fvrg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=dqkAJ7cyGwsKnh2HC9/AWtnTSkngUFywloc5uLJfxlk=;
+        b=QtZn3fJW5mIgNkd0tC1hCu2o+S9w9GKuTrGU9s+MMfE5/VrgMDWM1dvJ42Twd4mtd5
+         Ww4X80kRWh1NLRbhCZJFB3DsXNEOXV3QOjbbp7NvXz3faWAniLYdkV84ucGzKYEsPiju
+         i5e6b16I9STEUXuv29+hMZQa+f+G5SvrnmQoHAXvR6KeeZx0GvW7u/zNQzs7p2y/OX2g
+         rPcKnQEzvUrujwcHn97XQ4F8BK5MUoSR980LMIKM3+j6Hd+OuB5BXssof4vNwgktM2V+
+         rPXqqXEC+hFz4Yz1TC0XCtHVlObbBMgw1TBKA2Skvdv8re+oqyNBK59YskzlCaplk+dY
+         YZow==
+X-Gm-Message-State: AOAM533zW+giQ2i04fWn7L09HVbyXtd5ex9dYaJevxqGWYphODs7SQnR
+        kggi/ngZUvNzGGDB9OeGOKGkWX/XeNM=
+X-Google-Smtp-Source: ABdhPJw4trk3u0yFq0vchr54Pz4m53l/MZxSY8AUPnBgmNddBu6L18Rrduqp9EJ92NqyYawO/EbWpA==
+X-Received: by 2002:a17:90a:642:: with SMTP id q2mr12561538pje.55.1634288983429;
+        Fri, 15 Oct 2021 02:09:43 -0700 (PDT)
+Received: from athina.mtv.corp.google.com ([2620:15c:211:200:fb72:79a:c1e7:291b])
+        by smtp.gmail.com with ESMTPSA id i18sm4601981pfq.198.2021.10.15.02.09.42
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 15 Oct 2021 02:09:42 -0700 (PDT)
+From:   =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <zenczykowski@gmail.com>
+To:     =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <maze@google.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Cc:     Linux Network Development Mailing List <netdev@vger.kernel.org>,
+        Netfilter Development Mailing List 
+        <netfilter-devel@vger.kernel.org>
+Subject: [PATCH netfilter] netfilter: conntrack: udp: generate event on switch to stream timeout
+Date:   Fri, 15 Oct 2021 02:09:34 -0700
+Message-Id: <20211015090934.2870662-1-zenczykowski@gmail.com>
+X-Mailer: git-send-email 2.33.0.1079.g6e70778dc9-goog
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/fLJIbhJf0t_u9d4k7m4vggE";
- protocol="application/pgp-signature"; micalg=pgp-sha256
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
---Sig_/fLJIbhJf0t_u9d4k7m4vggE
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+From: Maciej Żenczykowski <maze@google.com>
 
-Hi all,
+Without this it's hard to offload udp due to lack of a conntrack event
+at the appropriate time (ie. once udp stream is established and stream
+timeout is in effect).
 
-Today's linux-next merge of the netfilter-next tree got a conflict in:
+Without this udp conntrack events 'update/assured/timeout=30'
+either need to be ignored, or polling loop needs to be <30 second
+instead of <120 second.
 
-  net/netfilter/ipvs/ip_vs_ctl.c
+With this change:
+      [NEW] udp      17 30 src=10.246.11.13 dst=216.239.35.0 sport=37282 dport=123 [UNREPLIED] src=216.239.35.0 dst=10.246.11.13 sport=123 dport=37282
+   [UPDATE] udp      17 30 src=10.246.11.13 dst=216.239.35.0 sport=37282 dport=123 src=216.239.35.0 dst=10.246.11.13 sport=123 dport=37282
+   [UPDATE] udp      17 30 src=10.246.11.13 dst=216.239.35.0 sport=37282 dport=123 src=216.239.35.0 dst=10.246.11.13 sport=123 dport=37282 [ASSURED]
+   [UPDATE] udp      17 120 src=10.246.11.13 dst=216.239.35.0 sport=37282 dport=123 src=216.239.35.0 dst=10.246.11.13 sport=123 dport=37282 [ASSURED]
+  [DESTROY] udp      17 src=10.246.11.13 dst=216.239.35.0 sport=37282 dport=123 src=216.239.35.0 dst=10.246.11.13 sport=123 dport=37282 [ASSURED]
+(the 3rd update/assured/120 event is new)
 
-between commit:
+Cc: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes: d535c8a69c19 'netfilter: conntrack: udp: only extend timeout to stream mode after 2s'
+Signed-off-by: Maciej Żenczykowski <maze@google.com>
+---
+ include/net/netfilter/nf_conntrack.h             |  1 +
+ .../uapi/linux/netfilter/nf_conntrack_common.h   |  1 +
+ net/netfilter/nf_conntrack_proto_udp.c           | 16 ++++++++++++++--
+ 3 files changed, 16 insertions(+), 2 deletions(-)
 
-  174c37627894 ("netfilter: ipvs: make global sysctl readonly in non-init n=
-etns")
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index cc663c68ddc4..12029d616cfa 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -26,6 +26,7 @@
+ 
+ struct nf_ct_udp {
+ 	unsigned long	stream_ts;
++	bool		notified;
+ };
+ 
+ /* per conntrack: protocol private data */
+diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h b/include/uapi/linux/netfilter/nf_conntrack_common.h
+index 4b3395082d15..a8e91b5821fa 100644
+--- a/include/uapi/linux/netfilter/nf_conntrack_common.h
++++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
+@@ -144,6 +144,7 @@ enum ip_conntrack_events {
+ 	IPCT_SECMARK,		/* new security mark has been set */
+ 	IPCT_LABEL,		/* new connlabel has been set */
+ 	IPCT_SYNPROXY,		/* synproxy has been set */
++	IPCT_UDPSTREAM,		/* udp stream has been set */
+ #ifdef __KERNEL__
+ 	__IPCT_MAX
+ #endif
+diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
+index 68911fcaa0f1..f0d9869aa30f 100644
+--- a/net/netfilter/nf_conntrack_proto_udp.c
++++ b/net/netfilter/nf_conntrack_proto_udp.c
+@@ -97,18 +97,23 @@ int nf_conntrack_udp_packet(struct nf_conn *ct,
+ 	if (!timeouts)
+ 		timeouts = udp_get_timeouts(nf_ct_net(ct));
+ 
+-	if (!nf_ct_is_confirmed(ct))
++	if (!nf_ct_is_confirmed(ct)) {
+ 		ct->proto.udp.stream_ts = 2 * HZ + jiffies;
++		ct->proto.udp.notified = false;
++	}
+ 
+ 	/* If we've seen traffic both ways, this is some kind of UDP
+ 	 * stream. Set Assured.
+ 	 */
+ 	if (test_bit(IPS_SEEN_REPLY_BIT, &ct->status)) {
+ 		unsigned long extra = timeouts[UDP_CT_UNREPLIED];
++		bool stream = false;
+ 
+ 		/* Still active after two seconds? Extend timeout. */
+-		if (time_after(jiffies, ct->proto.udp.stream_ts))
++		if (time_after(jiffies, ct->proto.udp.stream_ts)) {
+ 			extra = timeouts[UDP_CT_REPLIED];
++			stream = true;
++		}
+ 
+ 		nf_ct_refresh_acct(ct, ctinfo, skb, extra);
+ 
+@@ -116,9 +121,16 @@ int nf_conntrack_udp_packet(struct nf_conn *ct,
+ 		if (unlikely((ct->status & IPS_NAT_CLASH)))
+ 			return NF_ACCEPT;
+ 
++		if (stream) {
++			stream = !ct->proto.udp.notified;
++			ct->proto.udp.notified = true;
++		}
++
+ 		/* Also, more likely to be important, and not a probe */
+ 		if (!test_and_set_bit(IPS_ASSURED_BIT, &ct->status))
+ 			nf_conntrack_event_cache(IPCT_ASSURED, ct);
++		else if (stream)
++			nf_conntrack_event_cache(IPCT_UDPSTREAM, ct);
+ 	} else {
+ 		nf_ct_refresh_acct(ct, ctinfo, skb, timeouts[UDP_CT_UNREPLIED]);
+ 	}
+-- 
+2.33.0.1079.g6e70778dc9-goog
 
-from the netfilter tree and commit:
-
-  2232642ec3fb ("ipvs: add sysctl_run_estimation to support disable estimat=
-ion")
-
-from the netfilter-next tree.
-
-I fixed it up (see below) and can carry the fix as necessary. This
-is now fixed as far as linux-next is concerned, but any non trivial
-conflicts should be mentioned to your upstream maintainer when your tree
-is submitted for merging.  You may also want to consider cooperating
-with the maintainer of the conflicting tree to minimise any particularly
-complex conflicts.
-
---=20
-Cheers,
-Stephen Rothwell
-
-diff --cc net/netfilter/ipvs/ip_vs_ctl.c
-index 29ec3ef63edc,cbea5a68afb5..000000000000
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@@ -4090,11 -4096,8 +4096,13 @@@ static int __net_init ip_vs_control_net
-  	tbl[idx++].data =3D &ipvs->sysctl_conn_reuse_mode;
-  	tbl[idx++].data =3D &ipvs->sysctl_schedule_icmp;
-  	tbl[idx++].data =3D &ipvs->sysctl_ignore_tunneled;
-+ 	ipvs->sysctl_run_estimation =3D 1;
-+ 	tbl[idx++].data =3D &ipvs->sysctl_run_estimation;
- +#ifdef CONFIG_IP_VS_DEBUG
- +	/* Global sysctls must be ro in non-init netns */
- +	if (!net_eq(net, &init_net))
- +		tbl[idx++].mode =3D 0444;
- +#endif
- =20
-  	ipvs->sysctl_hdr =3D register_net_sysctl(net, "net/ipv4/vs", tbl);
-  	if (ipvs->sysctl_hdr =3D=3D NULL) {
-
---Sig_/fLJIbhJf0t_u9d4k7m4vggE
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmFo4LYACgkQAVBC80lX
-0GzeFwf9Gjs3lvcAEhdy3xb9bwv/bGgOT4Zg3gXCovwpigymKXXNGfK1b489cIl9
-1YK1X/bFSRphJdEzdD9w1nqsqqgedxs3RtP4yL/QcRA4+APC1KO8QbHSkvQO51DX
-K9vCqtn1RTBuyU9VzbuHQJ0Lm56k7ob+7iV5nGYTFUqEOFy93AINvwsBKhdzBUwc
-C8cSDyrpNdDwi4Rs85MjR3Ut2rI34v7uGImBHCQQsUvUK9lRXoBfiRbJ7r06Q9Fh
-NCP15am4liiVIiiVXhX0Zg1PFk/rIcBFVQCmytklc9QJNHx+IbMpeO4TEeqY6e4r
-rMSFR/4niZT6ckJLMoQxtGuk8UWw5g==
-=0Q3x
------END PGP SIGNATURE-----
-
---Sig_/fLJIbhJf0t_u9d4k7m4vggE--
