@@ -2,33 +2,33 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EAFF1C4332F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Oct 2021 12:26:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D92A1C433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Oct 2021 12:26:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D14C460E05
-	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Oct 2021 12:26:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C04A461090
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Oct 2021 12:26:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238840AbhJOM2d (ORCPT
+        id S238858AbhJOM2g (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 15 Oct 2021 08:28:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54800 "EHLO
+        Fri, 15 Oct 2021 08:28:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54820 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238845AbhJOM2b (ORCPT
+        with ESMTP id S238851AbhJOM2f (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 15 Oct 2021 08:28:31 -0400
+        Fri, 15 Oct 2021 08:28:35 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BAEEFC061769
-        for <netfilter-devel@vger.kernel.org>; Fri, 15 Oct 2021 05:26:23 -0700 (PDT)
-Received: from localhost ([::1]:33830 helo=xic)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A58BC061570
+        for <netfilter-devel@vger.kernel.org>; Fri, 15 Oct 2021 05:26:29 -0700 (PDT)
+Received: from localhost ([::1]:33836 helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1mbMI2-0002TK-33; Fri, 15 Oct 2021 14:26:22 +0200
+        id 1mbMI7-0002TQ-GO; Fri, 15 Oct 2021 14:26:27 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH v3 05/13] nft: Add family ops callbacks wrapping different nft_cmd_* functions
-Date:   Fri, 15 Oct 2021 14:26:00 +0200
-Message-Id: <20211015122608.12474-6-phil@nwl.cc>
+Subject: [iptables PATCH v3 01/13] nft: Introduce builtin_tables_lookup()
+Date:   Fri, 15 Oct 2021 14:25:56 +0200
+Message-Id: <20211015122608.12474-2-phil@nwl.cc>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20211015122608.12474-1-phil@nwl.cc>
 References: <20211015122608.12474-1-phil@nwl.cc>
@@ -38,498 +38,238 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Commands supporting multiple source/destination addresses need to
-iterate over them and call the respective nft_cmd_* function multiple
-times. These loops are family-specific though as each family uses a
-different data structure within struct iptables_command_state to store
-the addresses.
+The set of builtin tables to use is fully determined by the given family
+so just look it up instead of having callers pass it explicitly.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/nft-ipv4.c   |  93 +++++++++++++++++++++
- iptables/nft-ipv6.c   | 104 +++++++++++++++++++++++
- iptables/nft-shared.h |  18 ++++
- iptables/xtables.c    | 190 +++---------------------------------------
- 4 files changed, 228 insertions(+), 177 deletions(-)
+ iptables/nft.c                | 19 +++++++++++++++++--
+ iptables/nft.h                |  2 +-
+ iptables/xtables-arp.c        |  2 +-
+ iptables/xtables-eb.c         |  2 +-
+ iptables/xtables-monitor.c    |  2 +-
+ iptables/xtables-restore.c    |  7 +------
+ iptables/xtables-save.c       |  6 +-----
+ iptables/xtables-standalone.c |  2 +-
+ iptables/xtables-translate.c  |  7 +------
+ 9 files changed, 25 insertions(+), 24 deletions(-)
 
-diff --git a/iptables/nft-ipv4.c b/iptables/nft-ipv4.c
-index 34f94bd8cc24a..febd7673af4f8 100644
---- a/iptables/nft-ipv4.c
-+++ b/iptables/nft-ipv4.c
-@@ -468,6 +468,95 @@ static int nft_ipv4_xlate(const void *data, struct xt_xlate *xl)
- 	return ret;
+diff --git a/iptables/nft.c b/iptables/nft.c
+index dc1f5160eb983..1d3f3a3da1cbb 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -863,7 +863,22 @@ int nft_restart(struct nft_handle *h)
+ 	return 0;
  }
  
-+static int
-+nft_ipv4_add_entry(struct nft_handle *h,
-+		   const char *chain, const char *table,
-+		   struct iptables_command_state *cs,
-+		   struct xtables_args *args, bool verbose,
-+		   bool append, int rulenum)
+-int nft_init(struct nft_handle *h, int family, const struct builtin_table *t)
++static const struct builtin_table *builtin_tables_lookup(int family)
 +{
-+	unsigned int i, j;
-+	int ret = 1;
-+
-+	for (i = 0; i < args->s.naddrs; i++) {
-+		cs->fw.ip.src.s_addr = args->s.addr.v4[i].s_addr;
-+		cs->fw.ip.smsk.s_addr = args->s.mask.v4[i].s_addr;
-+		for (j = 0; j < args->d.naddrs; j++) {
-+			cs->fw.ip.dst.s_addr = args->d.addr.v4[j].s_addr;
-+			cs->fw.ip.dmsk.s_addr = args->d.mask.v4[j].s_addr;
-+
-+			if (append) {
-+				ret = nft_cmd_rule_append(h, chain, table,
-+						      cs, NULL, verbose);
-+			} else {
-+				ret = nft_cmd_rule_insert(h, chain, table,
-+						      cs, rulenum, verbose);
-+			}
-+		}
++	switch (family) {
++	case AF_INET:
++	case AF_INET6:
++		return xtables_ipv4;
++	case NFPROTO_ARP:
++		return xtables_arp;
++	case NFPROTO_BRIDGE:
++		return xtables_bridge;
++	default:
++		return NULL;
 +	}
-+
-+	return ret;
 +}
 +
-+static int
-+nft_ipv4_delete_entry(struct nft_handle *h,
-+		      const char *chain, const char *table,
-+		      struct iptables_command_state *cs,
-+		      struct xtables_args *args, bool verbose)
-+{
-+	unsigned int i, j;
-+	int ret = 1;
-+
-+	for (i = 0; i < args->s.naddrs; i++) {
-+		cs->fw.ip.src.s_addr = args->s.addr.v4[i].s_addr;
-+		cs->fw.ip.smsk.s_addr = args->s.mask.v4[i].s_addr;
-+		for (j = 0; j < args->d.naddrs; j++) {
-+			cs->fw.ip.dst.s_addr = args->d.addr.v4[j].s_addr;
-+			cs->fw.ip.dmsk.s_addr = args->d.mask.v4[j].s_addr;
-+			ret = nft_cmd_rule_delete(h, chain, table, cs, verbose);
-+		}
-+	}
-+
-+	return ret;
-+}
-+
-+static int
-+nft_ipv4_check_entry(struct nft_handle *h,
-+		     const char *chain, const char *table,
-+		     struct iptables_command_state *cs,
-+		     struct xtables_args *args, bool verbose)
-+{
-+	unsigned int i, j;
-+	int ret = 1;
-+
-+	for (i = 0; i < args->s.naddrs; i++) {
-+		cs->fw.ip.src.s_addr = args->s.addr.v4[i].s_addr;
-+		cs->fw.ip.smsk.s_addr = args->s.mask.v4[i].s_addr;
-+		for (j = 0; j < args->d.naddrs; j++) {
-+			cs->fw.ip.dst.s_addr = args->d.addr.v4[j].s_addr;
-+			cs->fw.ip.dmsk.s_addr = args->d.mask.v4[j].s_addr;
-+			ret = nft_cmd_rule_check(h, chain, table, cs, verbose);
-+		}
-+	}
-+
-+	return ret;
-+}
-+
-+static int
-+nft_ipv4_replace_entry(struct nft_handle *h,
-+		       const char *chain, const char *table,
-+		       struct iptables_command_state *cs,
-+		       struct xtables_args *args, bool verbose,
-+		       int rulenum)
-+{
-+	cs->fw.ip.src.s_addr = args->s.addr.v4->s_addr;
-+	cs->fw.ip.dst.s_addr = args->d.addr.v4->s_addr;
-+	cs->fw.ip.smsk.s_addr = args->s.mask.v4->s_addr;
-+	cs->fw.ip.dmsk.s_addr = args->d.mask.v4->s_addr;
-+
-+	return nft_cmd_rule_replace(h, chain, table, cs, rulenum, verbose);
-+}
-+
- struct nft_family_ops nft_family_ops_ipv4 = {
- 	.add			= nft_ipv4_add,
- 	.is_same		= nft_ipv4_is_same,
-@@ -484,4 +573,8 @@ struct nft_family_ops nft_family_ops_ipv4 = {
- 	.rule_to_cs		= nft_rule_to_iptables_command_state,
- 	.clear_cs		= nft_clear_iptables_command_state,
- 	.xlate			= nft_ipv4_xlate,
-+	.add_entry		= nft_ipv4_add_entry,
-+	.delete_entry		= nft_ipv4_delete_entry,
-+	.check_entry		= nft_ipv4_check_entry,
-+	.replace_entry		= nft_ipv4_replace_entry,
- };
-diff --git a/iptables/nft-ipv6.c b/iptables/nft-ipv6.c
-index d9c9400ad7dc3..f0e64bbd4ab23 100644
---- a/iptables/nft-ipv6.c
-+++ b/iptables/nft-ipv6.c
-@@ -410,6 +410,106 @@ static int nft_ipv6_xlate(const void *data, struct xt_xlate *xl)
- 	return ret;
- }
++int nft_init(struct nft_handle *h, int family)
+ {
+ 	memset(h, 0, sizeof(*h));
  
-+static int
-+nft_ipv6_add_entry(struct nft_handle *h,
-+		   const char *chain, const char *table,
-+		   struct iptables_command_state *cs,
-+		   struct xtables_args *args, bool verbose,
-+		   bool append, int rulenum)
-+{
-+	unsigned int i, j;
-+	int ret = 1;
-+
-+	for (i = 0; i < args->s.naddrs; i++) {
-+		memcpy(&cs->fw6.ipv6.src,
-+		       &args->s.addr.v6[i], sizeof(struct in6_addr));
-+		memcpy(&cs->fw6.ipv6.smsk,
-+		       &args->s.mask.v6[i], sizeof(struct in6_addr));
-+		for (j = 0; j < args->d.naddrs; j++) {
-+			memcpy(&cs->fw6.ipv6.dst,
-+			       &args->d.addr.v6[j], sizeof(struct in6_addr));
-+			memcpy(&cs->fw6.ipv6.dmsk,
-+			       &args->d.mask.v6[j], sizeof(struct in6_addr));
-+			if (append) {
-+				ret = nft_cmd_rule_append(h, chain, table,
-+						      cs, NULL, verbose);
-+			} else {
-+				ret = nft_cmd_rule_insert(h, chain, table,
-+						      cs, rulenum, verbose);
-+			}
-+		}
-+	}
-+
-+	return ret;
-+}
-+
-+static int
-+nft_ipv6_delete_entry(struct nft_handle *h,
-+		      const char *chain, const char *table,
-+		      struct iptables_command_state *cs,
-+		      struct xtables_args *args, bool verbose)
-+{
-+	unsigned int i, j;
-+	int ret = 1;
-+
-+	for (i = 0; i < args->s.naddrs; i++) {
-+		memcpy(&cs->fw6.ipv6.src,
-+		       &args->s.addr.v6[i], sizeof(struct in6_addr));
-+		memcpy(&cs->fw6.ipv6.smsk,
-+		       &args->s.mask.v6[i], sizeof(struct in6_addr));
-+		for (j = 0; j < args->d.naddrs; j++) {
-+			memcpy(&cs->fw6.ipv6.dst,
-+			       &args->d.addr.v6[j], sizeof(struct in6_addr));
-+			memcpy(&cs->fw6.ipv6.dmsk,
-+			       &args->d.mask.v6[j], sizeof(struct in6_addr));
-+			ret = nft_cmd_rule_delete(h, chain, table, cs, verbose);
-+		}
-+	}
-+
-+	return ret;
-+}
-+
-+static int
-+nft_ipv6_check_entry(struct nft_handle *h,
-+		     const char *chain, const char *table,
-+		     struct iptables_command_state *cs,
-+		     struct xtables_args *args, bool verbose)
-+{
-+	unsigned int i, j;
-+	int ret = 1;
-+
-+	for (i = 0; i < args->s.naddrs; i++) {
-+		memcpy(&cs->fw6.ipv6.src,
-+		       &args->s.addr.v6[i], sizeof(struct in6_addr));
-+		memcpy(&cs->fw6.ipv6.smsk,
-+		       &args->s.mask.v6[i], sizeof(struct in6_addr));
-+		for (j = 0; j < args->d.naddrs; j++) {
-+			memcpy(&cs->fw6.ipv6.dst,
-+			       &args->d.addr.v6[j], sizeof(struct in6_addr));
-+			memcpy(&cs->fw6.ipv6.dmsk,
-+			       &args->d.mask.v6[j], sizeof(struct in6_addr));
-+			ret = nft_cmd_rule_check(h, chain, table, cs, verbose);
-+		}
-+	}
-+
-+	return ret;
-+}
-+
-+static int
-+nft_ipv6_replace_entry(struct nft_handle *h,
-+		       const char *chain, const char *table,
-+		       struct iptables_command_state *cs,
-+		       struct xtables_args *args, bool verbose,
-+		       int rulenum)
-+{
-+	memcpy(&cs->fw6.ipv6.src, args->s.addr.v6, sizeof(struct in6_addr));
-+	memcpy(&cs->fw6.ipv6.dst, args->d.addr.v6, sizeof(struct in6_addr));
-+	memcpy(&cs->fw6.ipv6.smsk, args->s.mask.v6, sizeof(struct in6_addr));
-+	memcpy(&cs->fw6.ipv6.dmsk, args->d.mask.v6, sizeof(struct in6_addr));
-+
-+	return nft_cmd_rule_replace(h, chain, table, cs, rulenum, verbose);
-+}
-+
- struct nft_family_ops nft_family_ops_ipv6 = {
- 	.add			= nft_ipv6_add,
- 	.is_same		= nft_ipv6_is_same,
-@@ -426,4 +526,8 @@ struct nft_family_ops nft_family_ops_ipv6 = {
- 	.rule_to_cs		= nft_rule_to_iptables_command_state,
- 	.clear_cs		= nft_clear_iptables_command_state,
- 	.xlate			= nft_ipv6_xlate,
-+	.add_entry		= nft_ipv6_add_entry,
-+	.delete_entry		= nft_ipv6_delete_entry,
-+	.check_entry		= nft_ipv6_check_entry,
-+	.replace_entry		= nft_ipv6_replace_entry,
- };
-diff --git a/iptables/nft-shared.h b/iptables/nft-shared.h
-index 44ad0811f4081..cb1c3fffe63b4 100644
---- a/iptables/nft-shared.h
-+++ b/iptables/nft-shared.h
-@@ -111,6 +111,24 @@ struct nft_family_ops {
- 			   struct iptables_command_state *cs);
- 	void (*clear_cs)(struct iptables_command_state *cs);
- 	int (*xlate)(const void *data, struct xt_xlate *xl);
-+	int (*add_entry)(struct nft_handle *h,
-+			 const char *chain, const char *table,
-+			 struct iptables_command_state *cs,
-+			 struct xtables_args *args, bool verbose,
-+			 bool append, int rulenum);
-+	int (*delete_entry)(struct nft_handle *h,
-+			    const char *chain, const char *table,
-+			    struct iptables_command_state *cs,
-+			    struct xtables_args *args, bool verbose);
-+	int (*check_entry)(struct nft_handle *h,
-+			   const char *chain, const char *table,
-+			   struct iptables_command_state *cs,
-+			   struct xtables_args *args, bool verbose);
-+	int (*replace_entry)(struct nft_handle *h,
-+			     const char *chain, const char *table,
-+			     struct iptables_command_state *cs,
-+			     struct xtables_args *args, bool verbose,
-+			     int rulenum);
- };
+@@ -881,7 +896,7 @@ int nft_init(struct nft_handle *h, int family, const struct builtin_table *t)
+ 		xtables_error(PARAMETER_PROBLEM, "Unknown family");
  
- void add_meta(struct nftnl_rule *r, uint32_t key);
-diff --git a/iptables/xtables.c b/iptables/xtables.c
-index f45e36086dcb8..9abfc8f8d7f32 100644
---- a/iptables/xtables.c
-+++ b/iptables/xtables.c
-@@ -223,168 +223,6 @@ xtables_exit_error(enum xtables_exittype status, const char *msg, ...)
+ 	h->portid = mnl_socket_get_portid(h->nl);
+-	h->tables = t;
++	h->tables = builtin_tables_lookup(family);
+ 	h->cache = &h->__cache[0];
+ 	h->family = family;
  
- /* Christophe Burki wants `-p 6' to imply `-m tcp'.  */
+diff --git a/iptables/nft.h b/iptables/nft.h
+index ef79b018f7836..f189b03fbc6b9 100644
+--- a/iptables/nft.h
++++ b/iptables/nft.h
+@@ -123,7 +123,7 @@ extern const struct builtin_table xtables_bridge[NFT_TABLE_MAX];
+ int mnl_talk(struct nft_handle *h, struct nlmsghdr *nlh,
+ 	     int (*cb)(const struct nlmsghdr *nlh, void *data),
+ 	     void *data);
+-int nft_init(struct nft_handle *h, int family, const struct builtin_table *t);
++int nft_init(struct nft_handle *h, int family);
+ void nft_fini(struct nft_handle *h);
+ int nft_restart(struct nft_handle *h);
  
--static int
--add_entry(const char *chain,
--	  const char *table,
--	  struct iptables_command_state *cs,
--	  int rulenum, int family,
--	  const struct addr_mask s,
--	  const struct addr_mask d,
--	  bool verbose, struct nft_handle *h, bool append)
--{
--	unsigned int i, j;
--	int ret = 1;
--
--	for (i = 0; i < s.naddrs; i++) {
--		if (family == AF_INET) {
--			cs->fw.ip.src.s_addr = s.addr.v4[i].s_addr;
--			cs->fw.ip.smsk.s_addr = s.mask.v4[i].s_addr;
--			for (j = 0; j < d.naddrs; j++) {
--				cs->fw.ip.dst.s_addr = d.addr.v4[j].s_addr;
--				cs->fw.ip.dmsk.s_addr = d.mask.v4[j].s_addr;
--
--				if (append) {
--					ret = nft_cmd_rule_append(h, chain, table,
--							      cs, NULL,
--							      verbose);
--				} else {
--					ret = nft_cmd_rule_insert(h, chain, table,
--							      cs, rulenum,
--							      verbose);
--				}
--			}
--		} else if (family == AF_INET6) {
--			memcpy(&cs->fw6.ipv6.src,
--			       &s.addr.v6[i], sizeof(struct in6_addr));
--			memcpy(&cs->fw6.ipv6.smsk,
--			       &s.mask.v6[i], sizeof(struct in6_addr));
--			for (j = 0; j < d.naddrs; j++) {
--				memcpy(&cs->fw6.ipv6.dst,
--				       &d.addr.v6[j], sizeof(struct in6_addr));
--				memcpy(&cs->fw6.ipv6.dmsk,
--				       &d.mask.v6[j], sizeof(struct in6_addr));
--				if (append) {
--					ret = nft_cmd_rule_append(h, chain, table,
--							      cs, NULL,
--							      verbose);
--				} else {
--					ret = nft_cmd_rule_insert(h, chain, table,
--							      cs, rulenum,
--							      verbose);
--				}
--			}
--		}
--	}
--
--	return ret;
--}
--
--static int
--replace_entry(const char *chain, const char *table,
--	      struct iptables_command_state *cs,
--	      unsigned int rulenum,
--	      int family,
--	      const struct addr_mask s,
--	      const struct addr_mask d,
--	      bool verbose, struct nft_handle *h)
--{
--	if (family == AF_INET) {
--		cs->fw.ip.src.s_addr = s.addr.v4->s_addr;
--		cs->fw.ip.dst.s_addr = d.addr.v4->s_addr;
--		cs->fw.ip.smsk.s_addr = s.mask.v4->s_addr;
--		cs->fw.ip.dmsk.s_addr = d.mask.v4->s_addr;
--	} else if (family == AF_INET6) {
--		memcpy(&cs->fw6.ipv6.src, s.addr.v6, sizeof(struct in6_addr));
--		memcpy(&cs->fw6.ipv6.dst, d.addr.v6, sizeof(struct in6_addr));
--		memcpy(&cs->fw6.ipv6.smsk, s.mask.v6, sizeof(struct in6_addr));
--		memcpy(&cs->fw6.ipv6.dmsk, d.mask.v6, sizeof(struct in6_addr));
--	} else
--		return 1;
--
--	return nft_cmd_rule_replace(h, chain, table, cs, rulenum, verbose);
--}
--
--static int
--delete_entry(const char *chain, const char *table,
--	     struct iptables_command_state *cs,
--	     int family,
--	     const struct addr_mask s,
--	     const struct addr_mask d,
--	     bool verbose,
--	     struct nft_handle *h)
--{
--	unsigned int i, j;
--	int ret = 1;
--
--	for (i = 0; i < s.naddrs; i++) {
--		if (family == AF_INET) {
--			cs->fw.ip.src.s_addr = s.addr.v4[i].s_addr;
--			cs->fw.ip.smsk.s_addr = s.mask.v4[i].s_addr;
--			for (j = 0; j < d.naddrs; j++) {
--				cs->fw.ip.dst.s_addr = d.addr.v4[j].s_addr;
--				cs->fw.ip.dmsk.s_addr = d.mask.v4[j].s_addr;
--				ret = nft_cmd_rule_delete(h, chain,
--						      table, cs, verbose);
--			}
--		} else if (family == AF_INET6) {
--			memcpy(&cs->fw6.ipv6.src,
--			       &s.addr.v6[i], sizeof(struct in6_addr));
--			memcpy(&cs->fw6.ipv6.smsk,
--			       &s.mask.v6[i], sizeof(struct in6_addr));
--			for (j = 0; j < d.naddrs; j++) {
--				memcpy(&cs->fw6.ipv6.dst,
--				       &d.addr.v6[j], sizeof(struct in6_addr));
--				memcpy(&cs->fw6.ipv6.dmsk,
--				       &d.mask.v6[j], sizeof(struct in6_addr));
--				ret = nft_cmd_rule_delete(h, chain,
--						      table, cs, verbose);
--			}
--		}
--	}
--
--	return ret;
--}
--
--static int
--check_entry(const char *chain, const char *table,
--	    struct iptables_command_state *cs,
--	    int family,
--	    const struct addr_mask s,
--	    const struct addr_mask d,
--	    bool verbose, struct nft_handle *h)
--{
--	unsigned int i, j;
--	int ret = 1;
--
--	for (i = 0; i < s.naddrs; i++) {
--		if (family == AF_INET) {
--			cs->fw.ip.src.s_addr = s.addr.v4[i].s_addr;
--			cs->fw.ip.smsk.s_addr = s.mask.v4[i].s_addr;
--			for (j = 0; j < d.naddrs; j++) {
--				cs->fw.ip.dst.s_addr = d.addr.v4[j].s_addr;
--				cs->fw.ip.dmsk.s_addr = d.mask.v4[j].s_addr;
--				ret = nft_cmd_rule_check(h, chain,
--						     table, cs, verbose);
--			}
--		} else if (family == AF_INET6) {
--			memcpy(&cs->fw6.ipv6.src,
--			       &s.addr.v6[i], sizeof(struct in6_addr));
--			memcpy(&cs->fw6.ipv6.smsk,
--			       &s.mask.v6[i], sizeof(struct in6_addr));
--			for (j = 0; j < d.naddrs; j++) {
--				memcpy(&cs->fw6.ipv6.dst,
--				       &d.addr.v6[j], sizeof(struct in6_addr));
--				memcpy(&cs->fw6.ipv6.dmsk,
--				       &d.mask.v6[j], sizeof(struct in6_addr));
--				ret = nft_cmd_rule_check(h, chain,
--						     table, cs, verbose);
--			}
--		}
--	}
--
--	return ret;
--}
--
+diff --git a/iptables/xtables-arp.c b/iptables/xtables-arp.c
+index 9a079f06b948a..1d132bdf23546 100644
+--- a/iptables/xtables-arp.c
++++ b/iptables/xtables-arp.c
+@@ -397,7 +397,7 @@ int nft_init_arp(struct nft_handle *h, const char *pname)
+ 	init_extensionsa();
+ #endif
+ 
+-	if (nft_init(h, NFPROTO_ARP, xtables_arp) < 0)
++	if (nft_init(h, NFPROTO_ARP) < 0)
+ 		xtables_error(OTHER_PROBLEM,
+ 			      "Could not initialize nftables layer.");
+ 
+diff --git a/iptables/xtables-eb.c b/iptables/xtables-eb.c
+index 23023ce13e4b8..1ed6bcd8a7877 100644
+--- a/iptables/xtables-eb.c
++++ b/iptables/xtables-eb.c
+@@ -672,7 +672,7 @@ int nft_init_eb(struct nft_handle *h, const char *pname)
+ 	init_extensionsb();
+ #endif
+ 
+-	if (nft_init(h, NFPROTO_BRIDGE, xtables_bridge) < 0)
++	if (nft_init(h, NFPROTO_BRIDGE) < 0)
+ 		xtables_error(OTHER_PROBLEM,
+ 			      "Could not initialize nftables layer.");
+ 
+diff --git a/iptables/xtables-monitor.c b/iptables/xtables-monitor.c
+index 21d4bec08fd9a..73dc80c24d722 100644
+--- a/iptables/xtables-monitor.c
++++ b/iptables/xtables-monitor.c
+@@ -631,7 +631,7 @@ int xtables_monitor_main(int argc, char *argv[])
+ 	init_extensions6();
+ #endif
+ 
+-	if (nft_init(&h, AF_INET, xtables_ipv4)) {
++	if (nft_init(&h, AF_INET)) {
+ 		fprintf(stderr, "%s/%s Failed to initialize nft: %s\n",
+ 			xtables_globals.program_name,
+ 			xtables_globals.program_version,
+diff --git a/iptables/xtables-restore.c b/iptables/xtables-restore.c
+index 72832103d6bc3..86dcede395e07 100644
+--- a/iptables/xtables-restore.c
++++ b/iptables/xtables-restore.c
+@@ -281,7 +281,6 @@ void xtables_restore_parse(struct nft_handle *h,
  static int
- list_entries(struct nft_handle *h, const char *chain, const char *table,
- 	     int rulenum, int verbose, int numeric, int expanded,
-@@ -923,33 +761,31 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
+ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
+ {
+-	const struct builtin_table *tables;
+ 	struct nft_xt_restore_parse p = {
+ 		.commit = true,
+ 		.cb = &restore_cb,
+@@ -360,7 +359,6 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
+ 	switch (family) {
+ 	case NFPROTO_IPV4:
+ 	case NFPROTO_IPV6: /* fallthough, same table */
+-		tables = xtables_ipv4;
+ #if defined(ALL_INCLUSIVE) || defined(NO_SHARED_LIBS)
+ 		init_extensions();
+ 		init_extensions4();
+@@ -368,17 +366,14 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
+ #endif
+ 		break;
+ 	case NFPROTO_ARP:
+-		tables = xtables_arp;
+-		break;
+ 	case NFPROTO_BRIDGE:
+-		tables = xtables_bridge;
+ 		break;
+ 	default:
+ 		fprintf(stderr, "Unknown family %d\n", family);
+ 		return 1;
+ 	}
  
- 	switch (p.command) {
- 	case CMD_APPEND:
--		ret = add_entry(p.chain, p.table, &cs, 0, h->family,
--				args.s, args.d,
--				cs.options & OPT_VERBOSE, h, true);
-+		ret = h->ops->add_entry(h, p.chain, p.table, &cs, &args,
-+					cs.options & OPT_VERBOSE, true,
-+					p.rulenum - 1);
+-	if (nft_init(&h, family, tables) < 0) {
++	if (nft_init(&h, family) < 0) {
+ 		fprintf(stderr, "%s/%s Failed to initialize nft: %s\n",
+ 				xtables_globals.program_name,
+ 				xtables_globals.program_version,
+diff --git a/iptables/xtables-save.c b/iptables/xtables-save.c
+index f794e3ff1e318..c6ebb0ec94c4f 100644
+--- a/iptables/xtables-save.c
++++ b/iptables/xtables-save.c
+@@ -131,7 +131,6 @@ static int
+ xtables_save_main(int family, int argc, char *argv[],
+ 		  const char *optstring, const struct option *longopts)
+ {
+-	const struct builtin_table *tables;
+ 	const char *tablename = NULL;
+ 	struct do_output_data d = {
+ 		.format = FMT_NOCOUNTS,
+@@ -208,11 +207,9 @@ xtables_save_main(int family, int argc, char *argv[],
+ 		init_extensions4();
+ 		init_extensions6();
+ #endif
+-		tables = xtables_ipv4;
+ 		d.commit = true;
  		break;
- 	case CMD_DELETE:
--		ret = delete_entry(p.chain, p.table, &cs, h->family,
--				   args.s, args.d,
--				   cs.options & OPT_VERBOSE, h);
-+		ret = h->ops->delete_entry(h, p.chain, p.table, &cs, &args,
-+					   cs.options & OPT_VERBOSE);
+ 	case NFPROTO_ARP:
+-		tables = xtables_arp;
  		break;
- 	case CMD_DELETE_NUM:
- 		ret = nft_cmd_rule_delete_num(h, p.chain, p.table,
- 					      p.rulenum - 1, p.verbose);
+ 	case NFPROTO_BRIDGE: {
+ 		const char *ctr = getenv("EBTABLES_SAVE_COUNTER");
+@@ -223,7 +220,6 @@ xtables_save_main(int family, int argc, char *argv[],
+ 			d.format &= ~FMT_NOCOUNTS;
+ 			d.format |= FMT_C_COUNTS | FMT_EBT_SAVE;
+ 		}
+-		tables = xtables_bridge;
  		break;
- 	case CMD_CHECK:
--		ret = check_entry(p.chain, p.table, &cs, h->family,
--				  args.s, args.d,
--				  cs.options & OPT_VERBOSE, h);
-+		ret = h->ops->check_entry(h, p.chain, p.table, &cs, &args,
-+					  cs.options & OPT_VERBOSE);
+ 	}
+ 	default:
+@@ -231,7 +227,7 @@ xtables_save_main(int family, int argc, char *argv[],
+ 		return 1;
+ 	}
+ 
+-	if (nft_init(&h, family, tables) < 0) {
++	if (nft_init(&h, family) < 0) {
+ 		fprintf(stderr, "%s/%s Failed to initialize nft: %s\n",
+ 				xtables_globals.program_name,
+ 				xtables_globals.program_version,
+diff --git a/iptables/xtables-standalone.c b/iptables/xtables-standalone.c
+index 1a6b7cf73a4bb..f4d40cda6ae43 100644
+--- a/iptables/xtables-standalone.c
++++ b/iptables/xtables-standalone.c
+@@ -60,7 +60,7 @@ xtables_main(int family, const char *progname, int argc, char *argv[])
+ 	init_extensions6();
+ #endif
+ 
+-	if (nft_init(&h, family, xtables_ipv4) < 0) {
++	if (nft_init(&h, family) < 0) {
+ 		fprintf(stderr, "%s/%s Failed to initialize nft: %s\n",
+ 				xtables_globals.program_name,
+ 				xtables_globals.program_version,
+diff --git a/iptables/xtables-translate.c b/iptables/xtables-translate.c
+index 2a00a85088e2c..086b85d2f9cef 100644
+--- a/iptables/xtables-translate.c
++++ b/iptables/xtables-translate.c
+@@ -465,7 +465,6 @@ static int xtables_xlate_main_common(struct nft_handle *h,
+ 				     int family,
+ 				     const char *progname)
+ {
+-	const struct builtin_table *tables;
+ 	int ret;
+ 
+ 	xtables_globals.program_name = progname;
+@@ -485,20 +484,16 @@ static int xtables_xlate_main_common(struct nft_handle *h,
+ 	init_extensions4();
+ 	init_extensions6();
+ #endif
+-		tables = xtables_ipv4;
  		break;
- 	case CMD_REPLACE:
--		ret = replace_entry(p.chain, p.table, &cs, p.rulenum - 1,
--				    h->family, args.s, args.d,
--				    cs.options & OPT_VERBOSE, h);
-+		ret = h->ops->replace_entry(h, p.chain, p.table, &cs, &args,
-+					    cs.options & OPT_VERBOSE,
-+					    p.rulenum - 1);
+ 	case NFPROTO_ARP:
+-		tables = xtables_arp;
+-		break;
+ 	case NFPROTO_BRIDGE:
+-		tables = xtables_bridge;
  		break;
- 	case CMD_INSERT:
--		ret = add_entry(p.chain, p.table, &cs, p.rulenum - 1,
--				h->family, args.s, args.d,
--				cs.options&OPT_VERBOSE, h, false);
-+		ret = h->ops->add_entry(h, p.chain, p.table, &cs, &args,
-+					cs.options & OPT_VERBOSE, false,
-+					p.rulenum - 1);
- 		break;
- 	case CMD_FLUSH:
- 		ret = nft_cmd_rule_flush(h, p.chain, p.table,
+ 	default:
+ 		fprintf(stderr, "Unknown family %d\n", family);
+ 		return 1;
+ 	}
+ 
+-	if (nft_init(h, family, tables) < 0) {
++	if (nft_init(h, family) < 0) {
+ 		fprintf(stderr, "%s/%s Failed to initialize nft: %s\n",
+ 				xtables_globals.program_name,
+ 				xtables_globals.program_version,
 -- 
 2.33.0
 
