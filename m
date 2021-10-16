@@ -2,263 +2,97 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70ABAC433F5
-	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Oct 2021 05:04:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D5EAC433F5
+	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Oct 2021 07:28:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 546FD61108
-	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Oct 2021 05:04:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 143E961101
+	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Oct 2021 07:28:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243658AbhJPFGz (ORCPT
+        id S239770AbhJPHaJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 16 Oct 2021 01:06:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54622 "EHLO
+        Sat, 16 Oct 2021 03:30:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57450 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236843AbhJPFGz (ORCPT
+        with ESMTP id S234387AbhJPHaJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 16 Oct 2021 01:06:55 -0400
-Received: from mail-pf1-x42d.google.com (mail-pf1-x42d.google.com [IPv6:2607:f8b0:4864:20::42d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 480C7C061570;
-        Fri, 15 Oct 2021 22:04:47 -0700 (PDT)
-Received: by mail-pf1-x42d.google.com with SMTP id i76so7973751pfe.13;
-        Fri, 15 Oct 2021 22:04:47 -0700 (PDT)
+        Sat, 16 Oct 2021 03:30:09 -0400
+Received: from mail-pj1-x102b.google.com (mail-pj1-x102b.google.com [IPv6:2607:f8b0:4864:20::102b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B309EC061570
+        for <netfilter-devel@vger.kernel.org>; Sat, 16 Oct 2021 00:28:01 -0700 (PDT)
+Received: by mail-pj1-x102b.google.com with SMTP id na16-20020a17090b4c1000b0019f5bb661f9so9016138pjb.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 16 Oct 2021 00:28:01 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=VNg5ZuSqXtZnIDT/1CeK+dUC1AUVpXTi6dIHjGdCB00=;
-        b=O6f/lrGFRvziPIrEcq2SK9AmUeLEU3LElV7tq1rCZPWAQ5lx8VJgS5O+2FOZaY0MYc
-         Z09kxUko1rnjEfPnHhu3FfbANUunLACgh7JnMYQw9sWzjc3NxoHQrqFTzypDj2kjohm0
-         oToW0d88Gm03fTTZVGcxB+3vppPNm4WFpUansTv1NV/qwKEhXttEJMJ/1wcow703btaF
-         MuMzXQGNjeRVmsupDxWx0g1ZCbT5PJV3aknIWoDVFTnM23pOEykGlzMC/AU9CXIxGN+a
-         S6CiUlSWASAPZVO/sBMN6KfI9i8ylnS3yALkQoRydqJLLQC4s1mJJXx6bJL/s355/Uw/
-         tnBg==
+        h=sender:from:date:to:cc:subject:message-id:mail-followup-to
+         :references:mime-version:content-disposition:in-reply-to;
+        bh=C5N7jPrEL4k555xoi4F/66bdo6CBNmypUIIuoQgOBHk=;
+        b=kNhF+m8Obk4JVWdUfIUuCHFva2LbrSiclNS5r7jEXzeDouN98Jek5+yCWM4sUVnoi+
+         4g3psYk2B6WwlWh0Yb6i/kWFJRpVz5flCeyO1WLZlKo/pK9J/FIiSVxqTDOQ2QrUY8Mu
+         8isVY8cfyJlRltztmMOipFzKrHTaVE9UaNfmMPgT0qenGakuhj6EXYOdlFnyWypD66fX
+         J4qlqplZsI7XrxGp7S6f1VTeo9KeO3cOzAat1VS9Qgd8ZQrY0M/Zi3/eryvx/HPM0oXs
+         YTj9qcAmwQmPVdCSb9ybgRrMCozCboCjBI+O/gTXPL0n1IfnkX3LZlzDiwjUKt8NjzAb
+         HRyA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=VNg5ZuSqXtZnIDT/1CeK+dUC1AUVpXTi6dIHjGdCB00=;
-        b=qTIWn3NGXUOE8uNRSXJB0xqbytfbRevRkNjN0Mowginh2nwxqiC90nfS9ilHioIN84
-         HG6cy1YPZsKv9vTZ1FJXU+/aHhSLZ1i99q5+agcD6QJJeB4+429bPQDsVTvcL9zCnzyx
-         PJen07wIdqzjmMmjCwPI24uftvJAEk4zzXzs1YS+QVGiYsVn8wnffSaxaOcRQB36VeIn
-         AHMEARqRYERne63QFAdjKDvhR7fFdaicjK1GbuBRr/pTIMxUil52YdhT8mHRMle4E6OK
-         Ya6mcQASKqLp8DKZSFdgck8H6B7Ug3mRVVcznW6nEPg7peEvby1Mcl2AUMxbMEeiq7EV
-         MKVg==
-X-Gm-Message-State: AOAM530NKB3TVDYoP/5gH4L7qsGCk+prgN/gjmKbL0ib7oB+QovKPely
-        f7uGXFvINS5nyJIa1tGglB4=
-X-Google-Smtp-Source: ABdhPJzQXYg1bz9xjyuz0BE9PX7NPJ2cEc8GOhsD22CjbWyyyiI0x7xzT6EX3ZLXoChnqKclO8+avA==
-X-Received: by 2002:a63:ea48:: with SMTP id l8mr12304501pgk.99.1634360686763;
-        Fri, 15 Oct 2021 22:04:46 -0700 (PDT)
-Received: from rok-te3.kortoor.gmail.com.beta.tailscale.net ([211.250.198.237])
-        by smtp.googlemail.com with ESMTPSA id u24sm6263989pfm.27.2021.10.15.22.04.42
+        h=x-gm-message-state:sender:from:date:to:cc:subject:message-id
+         :mail-followup-to:references:mime-version:content-disposition
+         :in-reply-to;
+        bh=C5N7jPrEL4k555xoi4F/66bdo6CBNmypUIIuoQgOBHk=;
+        b=HLTIEAYE2Uz2u1OGKAQXLmJex+qPkPsuoUO73iwz2mc/rR/K/Y6qIelyBL7GKiCCXo
+         D2fa4mdL3RVEy3dYih+rdIkSm35ZlssfxygwLiogTtoQYN7+Cdr2h0vpewMIvDKWmkRm
+         k//d7vs+zwJfRDfB+RWDNQ8oJzlnt8O1wiLL2NUcjbubUrarN/DudRs1s5PIF8FQ0MEr
+         yQEdKesb4XSkFF2JyxWq53SqEgefnqKtlF87I9xidjbljkKe3RjsL4h59EGGkIsKr9Dw
+         quNslwobYKaFcf93T6WkFRgu2JU/tkwv98ZJoEUcbPAuAjCK4/OG2BKDdJ1l4F29bQ3u
+         JHqA==
+X-Gm-Message-State: AOAM533bB7MYj09Ub8WOnrZCpT5pSuZMl8wPLEpGlwXSKOn4v5UdX9Pa
+        rCIcHqfobjjsQk7V7t/3enh93swT8tw=
+X-Google-Smtp-Source: ABdhPJywIVy2q/JDJIh3HDLIxmwEj5DYJ/FmW2YXFlR+oWeSsmpf/wwDkLXOtGuA4jyEzUkUjaa+/Q==
+X-Received: by 2002:a17:902:e843:b0:13f:2212:d64c with SMTP id t3-20020a170902e84300b0013f2212d64cmr15323069plg.16.1634369281131;
+        Sat, 16 Oct 2021 00:28:01 -0700 (PDT)
+Received: from slk1.local.net (n110-23-108-30.sun3.vic.optusnet.com.au. [110.23.108.30])
+        by smtp.gmail.com with ESMTPSA id y22sm13071804pjj.33.2021.10.16.00.27.58
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 15 Oct 2021 22:04:46 -0700 (PDT)
-From:   Kyungrok Chung <acadx0@gmail.com>
-To:     Marek Lindner <mareklindner@neomailbox.ch>,
-        Simon Wunderlich <sw@simonwunderlich.de>,
-        Antonio Quartulli <a@unstable.cc>,
-        Sven Eckelmann <sven@narfation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Roopa Prabhu <roopa@nvidia.com>,
-        Nikolay Aleksandrov <nikolay@nvidia.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Cc:     b.a.t.m.a.n@lists.open-mesh.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, bridge@lists.linux-foundation.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: [PATCH v2 net-next] net: make use of helper netif_is_bridge_master()
-Date:   Sat, 16 Oct 2021 14:04:38 +0900
-Message-Id: <20211016050439.2592877-1-acadx0@gmail.com>
-X-Mailer: git-send-email 2.33.0
+        Sat, 16 Oct 2021 00:28:00 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+X-Google-Original-From: Duncan Roe <dunc@slk1.local.net>
+Date:   Sat, 16 Oct 2021 18:27:56 +1100
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libnetfilter_log v5] build: doc: Allow to specify whether
+ to produce man pages, html, neither or both
+Message-ID: <YWp+/MO6jhvgUdGM@slk1.local.net>
+Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <20211016043948.2422-1-duncan_roe@optusnet.com.au>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20211016043948.2422-1-duncan_roe@optusnet.com.au>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Make use of netdev helper functions to improve code readability.
-Replace 'dev->priv_flags & IFF_EBRIDGE' with netif_is_bridge_master(dev).
+On Sat, Oct 16, 2021 at 03:39:48PM +1100, Duncan Roe wrote:
+> - configure --help lists non-default documentation options.
+>   Looking around the web, this seemed to me to be what most projects do.
+>   Listed options are --enable-html-doc & --disable-man-pages.
+> - --with-doxygen is removed: --disable-man-pages also disables doxygen unless
+>   --enable-html-doc is asserted.
+> If html is requested, `make install` installs it in htmldir.
+>
+> Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+> ---
+> v2: broken out from 0001-build-doc-Fix-man-pages.patch
+> v3: no change (still part of a series)
+> v4: remove --without-doxygen since -disable-man-pages does that
+> v5: - update .gitignore for clean `git status` after in-tree build
+>     - in configure.ac:
+>       - ensure all variables are always set (avoid leakage from environment)
+>       - provide helpful warning if HTML enabled but dot not found
+[...]
+Sorry Pablo, this is for libnetfilter_queue.
+I don't see it in patchwork - did you get rid of it already?
+Will re-send with correct Sj.
 
-Signed-off-by: Kyungrok Chung <acadx0@gmail.com>
----
-
-v1->v2:
-  - Apply fixes to batman-adv, core too.
-
- net/batman-adv/multicast.c      | 2 +-
- net/bridge/br.c                 | 4 ++--
- net/bridge/br_fdb.c             | 6 +++---
- net/bridge/br_if.c              | 2 +-
- net/bridge/br_ioctl.c           | 2 +-
- net/bridge/br_mdb.c             | 4 ++--
- net/bridge/br_netfilter_hooks.c | 2 +-
- net/bridge/br_netlink.c         | 4 ++--
- net/core/rtnetlink.c            | 2 +-
- 9 files changed, 14 insertions(+), 14 deletions(-)
-
-diff --git a/net/batman-adv/multicast.c b/net/batman-adv/multicast.c
-index a3b6658ed789..433901dcf0c3 100644
---- a/net/batman-adv/multicast.c
-+++ b/net/batman-adv/multicast.c
-@@ -89,7 +89,7 @@ static struct net_device *batadv_mcast_get_bridge(struct net_device *soft_iface)
- 	rcu_read_lock();
- 	do {
- 		upper = netdev_master_upper_dev_get_rcu(upper);
--	} while (upper && !(upper->priv_flags & IFF_EBRIDGE));
-+	} while (upper && !netif_is_bridge_master(upper));
- 
- 	dev_hold(upper);
- 	rcu_read_unlock();
-diff --git a/net/bridge/br.c b/net/bridge/br.c
-index d3a32c6813e0..1fac72cc617f 100644
---- a/net/bridge/br.c
-+++ b/net/bridge/br.c
-@@ -36,7 +36,7 @@ static int br_device_event(struct notifier_block *unused, unsigned long event, v
- 	bool changed_addr;
- 	int err;
- 
--	if (dev->priv_flags & IFF_EBRIDGE) {
-+	if (netif_is_bridge_master(dev)) {
- 		err = br_vlan_bridge_event(dev, event, ptr);
- 		if (err)
- 			return notifier_from_errno(err);
-@@ -349,7 +349,7 @@ static void __net_exit br_net_exit(struct net *net)
- 
- 	rtnl_lock();
- 	for_each_netdev(net, dev)
--		if (dev->priv_flags & IFF_EBRIDGE)
-+		if (netif_is_bridge_master(dev))
- 			br_dev_delete(dev, &list);
- 
- 	unregister_netdevice_many(&list);
-diff --git a/net/bridge/br_fdb.c b/net/bridge/br_fdb.c
-index 46812b659710..a6a68e18c70a 100644
---- a/net/bridge/br_fdb.c
-+++ b/net/bridge/br_fdb.c
-@@ -825,7 +825,7 @@ int br_fdb_dump(struct sk_buff *skb,
- 	struct net_bridge_fdb_entry *f;
- 	int err = 0;
- 
--	if (!(dev->priv_flags & IFF_EBRIDGE))
-+	if (!netif_is_bridge_master(dev))
- 		return err;
- 
- 	if (!filter_dev) {
-@@ -1076,7 +1076,7 @@ int br_fdb_add(struct ndmsg *ndm, struct nlattr *tb[],
- 		return -EINVAL;
- 	}
- 
--	if (dev->priv_flags & IFF_EBRIDGE) {
-+	if (netif_is_bridge_master(dev)) {
- 		br = netdev_priv(dev);
- 		vg = br_vlan_group(br);
- 	} else {
-@@ -1173,7 +1173,7 @@ int br_fdb_delete(struct ndmsg *ndm, struct nlattr *tb[],
- 	struct net_bridge *br;
- 	int err;
- 
--	if (dev->priv_flags & IFF_EBRIDGE) {
-+	if (netif_is_bridge_master(dev)) {
- 		br = netdev_priv(dev);
- 		vg = br_vlan_group(br);
- 	} else {
-diff --git a/net/bridge/br_if.c b/net/bridge/br_if.c
-index 4a02f8bb278a..c11bba3e7ec0 100644
---- a/net/bridge/br_if.c
-+++ b/net/bridge/br_if.c
-@@ -471,7 +471,7 @@ int br_del_bridge(struct net *net, const char *name)
- 	if (dev == NULL)
- 		ret =  -ENXIO; 	/* Could not find device */
- 
--	else if (!(dev->priv_flags & IFF_EBRIDGE)) {
-+	else if (!netif_is_bridge_master(dev)) {
- 		/* Attempt to delete non bridge device! */
- 		ret = -EPERM;
- 	}
-diff --git a/net/bridge/br_ioctl.c b/net/bridge/br_ioctl.c
-index 49c268871fc1..db4ab2c2ce18 100644
---- a/net/bridge/br_ioctl.c
-+++ b/net/bridge/br_ioctl.c
-@@ -26,7 +26,7 @@ static int get_bridge_ifindices(struct net *net, int *indices, int num)
- 	for_each_netdev_rcu(net, dev) {
- 		if (i >= num)
- 			break;
--		if (dev->priv_flags & IFF_EBRIDGE)
-+		if (netif_is_bridge_master(dev))
- 			indices[i++] = dev->ifindex;
- 	}
- 	rcu_read_unlock();
-diff --git a/net/bridge/br_mdb.c b/net/bridge/br_mdb.c
-index 0281453f7766..61ccf46fcc21 100644
---- a/net/bridge/br_mdb.c
-+++ b/net/bridge/br_mdb.c
-@@ -422,7 +422,7 @@ static int br_mdb_dump(struct sk_buff *skb, struct netlink_callback *cb)
- 	cb->seq = net->dev_base_seq;
- 
- 	for_each_netdev_rcu(net, dev) {
--		if (dev->priv_flags & IFF_EBRIDGE) {
-+		if (netif_is_bridge_master(dev)) {
- 			struct net_bridge *br = netdev_priv(dev);
- 			struct br_port_msg *bpm;
- 
-@@ -1016,7 +1016,7 @@ static int br_mdb_parse(struct sk_buff *skb, struct nlmsghdr *nlh,
- 		return -ENODEV;
- 	}
- 
--	if (!(dev->priv_flags & IFF_EBRIDGE)) {
-+	if (!netif_is_bridge_master(dev)) {
- 		NL_SET_ERR_MSG_MOD(extack, "Device is not a bridge");
- 		return -EOPNOTSUPP;
- 	}
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index 8edfb98ae1d5..b5af68c105a8 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -968,7 +968,7 @@ static int brnf_device_event(struct notifier_block *unused, unsigned long event,
- 	struct net *net;
- 	int ret;
- 
--	if (event != NETDEV_REGISTER || !(dev->priv_flags & IFF_EBRIDGE))
-+	if (event != NETDEV_REGISTER || !netif_is_bridge_master(dev))
- 		return NOTIFY_DONE;
- 
- 	ASSERT_RTNL();
-diff --git a/net/bridge/br_netlink.c b/net/bridge/br_netlink.c
-index 5c6c4305ed23..0c8b5f1a15bc 100644
---- a/net/bridge/br_netlink.c
-+++ b/net/bridge/br_netlink.c
-@@ -106,7 +106,7 @@ static size_t br_get_link_af_size_filtered(const struct net_device *dev,
- 		p = br_port_get_check_rcu(dev);
- 		if (p)
- 			vg = nbp_vlan_group_rcu(p);
--	} else if (dev->priv_flags & IFF_EBRIDGE) {
-+	} else if (netif_is_bridge_master(dev)) {
- 		br = netdev_priv(dev);
- 		vg = br_vlan_group_rcu(br);
- 	}
-@@ -1050,7 +1050,7 @@ int br_dellink(struct net_device *dev, struct nlmsghdr *nlh, u16 flags)
- 
- 	p = br_port_get_rtnl(dev);
- 	/* We want to accept dev as bridge itself as well */
--	if (!p && !(dev->priv_flags & IFF_EBRIDGE))
-+	if (!p && !netif_is_bridge_master(dev))
- 		return -EINVAL;
- 
- 	err = br_afspec(br, p, afspec, RTM_DELLINK, &changed, NULL);
-diff --git a/net/core/rtnetlink.c b/net/core/rtnetlink.c
-index 2dc1b209ba91..d3676666a529 100644
---- a/net/core/rtnetlink.c
-+++ b/net/core/rtnetlink.c
-@@ -4384,7 +4384,7 @@ static int rtnl_fdb_dump(struct sk_buff *skb, struct netlink_callback *cb)
- 					continue;
- 
- 				if (br_dev != netdev_master_upper_dev_get(dev) &&
--				    !(dev->priv_flags & IFF_EBRIDGE))
-+				    netif_is_bridge_master(dev))
- 					continue;
- 				cops = ops;
- 			}
--- 
-2.33.0
-
+Cheers ... Duncan.
