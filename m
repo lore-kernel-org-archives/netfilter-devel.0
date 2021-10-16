@@ -2,45 +2,45 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDB48C4321E
-	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Oct 2021 08:49:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73113C4332F
+	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Oct 2021 08:49:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C6E1360E0B
-	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Oct 2021 08:49:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C30460EC0
+	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Oct 2021 08:49:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243881AbhJPIve (ORCPT
+        id S243882AbhJPIvg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 16 Oct 2021 04:51:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46712 "EHLO
+        Sat, 16 Oct 2021 04:51:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46718 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243868AbhJPIvb (ORCPT
+        with ESMTP id S243872AbhJPIvb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Sat, 16 Oct 2021 04:51:31 -0400
 Received: from galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1EC18C061765;
-        Sat, 16 Oct 2021 01:49:22 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 665D1C061767;
+        Sat, 16 Oct 2021 01:49:23 -0700 (PDT)
 From:   Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1634374160;
+        s=2020; t=1634374161;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=gM2yDvLyY+7aL4gq9i8mFvY0dtpO2LCsdg3qEmboh1I=;
-        b=gwGl8xtoaj9f1/PTr+fZp4ve9lsP5WoJ6LcnLXhGG0Rh55YMN78Rzxu96kC4qnJ0N8La7F
-        J+OYtPIXpjoqh9gNPzPDw4Jn+9dOlkNAfIroEZjtmi0ALFZjwqj7mumv/ME1r0jlOrsi7f
-        ODfX9LOqz2PMlBgK3bWLKdAPJmHlfXUHbGZcmekBbqgiYKDzU0xGAntlqcovoFoMrj+Fgz
-        s3M8gv5qY/oaw1nnmqv3c6Oe6mrcZPJJlO8Mk6atZ1CH0fnAJgVwulMzR6vLnjsllbqv61
-        BVq9LaHnJ56ykrEE6Q1+tuG2bRXNmkSBMcVnko/BVBhrRThyvfSuW2k7MqHvVw==
+        bh=U23NvPBjy6Hz+FIRjnLMIc98LqFQDEb8QgF4aAwbanA=;
+        b=S75VKMQCCa7/eIHouK8VukL+ChqSA8OhzXRHd8wOOzfvOJXdaSlpsnZvWODePFHBPc+Wwi
+        0S4otrx5zpbX0+Lr5RHKMTd7hHpPFK8UKU/0S9CBy0wfcSC2MOEDjkx8tprSExZyA2bzo9
+        p02xiMtEePsUoDLiUEW/VsDE+wkQqOuB1+1lW4beqW2Iv2CSkDDxHrmdKKtM+m9InKX6IG
+        rjr/71pkSAs+bLUtm2+d1EZLUllBiMs8tZfidiql42BkYePjGmKiJdnZB9WOvyfUwSM0Co
+        w82OyhQnUNIC6kSBRJ755OvWgap12o9XAZ0BGzAoqJJB3mtlyiQpJAfiidFyIQ==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1634374160;
+        s=2020e; t=1634374161;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=gM2yDvLyY+7aL4gq9i8mFvY0dtpO2LCsdg3qEmboh1I=;
-        b=Vk2nl3xOOgKp9BOWFvV81QQsra0P9OGOmGbuB5vUPyvk21PHdfLVLplAcGg+zteJDKN3dZ
-        prW5vOyZoFRsjnCg==
+        bh=U23NvPBjy6Hz+FIRjnLMIc98LqFQDEb8QgF4aAwbanA=;
+        b=LRfipEi1ReB7cxsSU1O7JaVOja5T3HKPUvQBFV9jS0k6H+QEdkfr5G7riLB62cK3pyh/EW
+        cpX+Ke4a0CPpbLBQ==
 To:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
 Cc:     Jakub Kicinski <kuba@kernel.org>,
         "David S. Miller" <davem@davemloft.net>,
@@ -54,9 +54,9 @@ Cc:     Jakub Kicinski <kuba@kernel.org>,
         Eric Dumazet <edumazet@google.com>,
         Thomas Gleixner <tglx@linutronix.de>,
         Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH net-next 3/9] mq, mqprio: Use gnet_stats_add_queue().
-Date:   Sat, 16 Oct 2021 10:49:04 +0200
-Message-Id: <20211016084910.4029084-4-bigeasy@linutronix.de>
+Subject: [PATCH net-next 5/9] u64_stats: Introduce u64_stats_set()
+Date:   Sat, 16 Oct 2021 10:49:06 +0200
+Message-Id: <20211016084910.4029084-6-bigeasy@linutronix.de>
 In-Reply-To: <20211016084910.4029084-1-bigeasy@linutronix.de>
 References: <20211016084910.4029084-1-bigeasy@linutronix.de>
 MIME-Version: 1.0
@@ -65,148 +65,49 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-gnet_stats_add_basic() and gnet_stats_add_queue() add up the statistics
-so they can be used directly for both the per-CPU and global case.
+From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 
-gnet_stats_add_queue() copies either Qdisc's per-CPU
-gnet_stats_queue::qlen or the global member. The global
-gnet_stats_queue::qlen isn't touched in the per-CPU case so there is no
-need to consider it in the global-case.
+Allow to directly set a u64_stats_t value which is used to provide an init
+function which sets it directly to zero intead of memset() the value.
 
-In the per-CPU case, the sum of global gnet_stats_queue::qlen and
-the per-CPU gnet_stats_queue::qlen was assigned to sch->q.qlen and
-sch->qstats.qlen. Now both fields are copied individually.
+Add u64_stats_set() to the u64_stats API.
 
+[bigeasy: commit message. ]
+
+Signed-off-by: Ahmed S. Darwish <a.darwish@linutronix.de>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- net/sched/sch_mq.c     | 24 +++++----------------
- net/sched/sch_mqprio.c | 49 +++++++++++-------------------------------
- 2 files changed, 17 insertions(+), 56 deletions(-)
+ include/linux/u64_stats_sync.h | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/net/sched/sch_mq.c b/net/sched/sch_mq.c
-index 1edd98a50e33d..9d58ecb4e80c6 100644
---- a/net/sched/sch_mq.c
-+++ b/net/sched/sch_mq.c
-@@ -130,7 +130,6 @@ static int mq_dump(struct Qdisc *sch, struct sk_buff *s=
-kb)
- 	struct net_device *dev =3D qdisc_dev(sch);
- 	struct Qdisc *qdisc;
- 	unsigned int ntx;
--	__u32 qlen =3D 0;
+diff --git a/include/linux/u64_stats_sync.h b/include/linux/u64_stats_sync.h
+index e81856c0ba134..e8ec116c916bf 100644
+--- a/include/linux/u64_stats_sync.h
++++ b/include/linux/u64_stats_sync.h
+@@ -83,6 +83,11 @@ static inline u64 u64_stats_read(const u64_stats_t *p)
+ 	return local64_read(&p->v);
+ }
 =20
- 	sch->q.qlen =3D 0;
- 	memset(&sch->bstats, 0, sizeof(sch->bstats));
-@@ -145,24 +144,11 @@ static int mq_dump(struct Qdisc *sch, struct sk_buff =
-*skb)
- 		qdisc =3D netdev_get_tx_queue(dev, ntx)->qdisc_sleeping;
- 		spin_lock_bh(qdisc_lock(qdisc));
-=20
--		if (qdisc_is_percpu_stats(qdisc)) {
--			qlen =3D qdisc_qlen_sum(qdisc);
--			gnet_stats_add_basic(NULL, &sch->bstats,
--					     qdisc->cpu_bstats, &qdisc->bstats);
--			__gnet_stats_copy_queue(&sch->qstats,
--						qdisc->cpu_qstats,
--						&qdisc->qstats, qlen);
--			sch->q.qlen		+=3D qlen;
--		} else {
--			sch->q.qlen		+=3D qdisc->q.qlen;
--			sch->bstats.bytes	+=3D qdisc->bstats.bytes;
--			sch->bstats.packets	+=3D qdisc->bstats.packets;
--			sch->qstats.qlen	+=3D qdisc->qstats.qlen;
--			sch->qstats.backlog	+=3D qdisc->qstats.backlog;
--			sch->qstats.drops	+=3D qdisc->qstats.drops;
--			sch->qstats.requeues	+=3D qdisc->qstats.requeues;
--			sch->qstats.overlimits	+=3D qdisc->qstats.overlimits;
--		}
-+		gnet_stats_add_basic(NULL, &sch->bstats, qdisc->cpu_bstats,
-+				     &qdisc->bstats);
-+		gnet_stats_add_queue(&sch->qstats, qdisc->cpu_qstats,
-+				     &qdisc->qstats);
-+		sch->q.qlen +=3D qdisc_qlen(qdisc);
-=20
- 		spin_unlock_bh(qdisc_lock(qdisc));
- 	}
-diff --git a/net/sched/sch_mqprio.c b/net/sched/sch_mqprio.c
-index 4bae601e15e1e..57427b40f0d2e 100644
---- a/net/sched/sch_mqprio.c
-+++ b/net/sched/sch_mqprio.c
-@@ -402,24 +402,11 @@ static int mqprio_dump(struct Qdisc *sch, struct sk_b=
-uff *skb)
- 		qdisc =3D netdev_get_tx_queue(dev, ntx)->qdisc_sleeping;
- 		spin_lock_bh(qdisc_lock(qdisc));
-=20
--		if (qdisc_is_percpu_stats(qdisc)) {
--			__u32 qlen =3D qdisc_qlen_sum(qdisc);
--
--			gnet_stats_add_basic(NULL, &sch->bstats,
--					     qdisc->cpu_bstats, &qdisc->bstats);
--			__gnet_stats_copy_queue(&sch->qstats,
--						qdisc->cpu_qstats,
--						&qdisc->qstats, qlen);
--			sch->q.qlen		+=3D qlen;
--		} else {
--			sch->q.qlen		+=3D qdisc->q.qlen;
--			sch->bstats.bytes	+=3D qdisc->bstats.bytes;
--			sch->bstats.packets	+=3D qdisc->bstats.packets;
--			sch->qstats.backlog	+=3D qdisc->qstats.backlog;
--			sch->qstats.drops	+=3D qdisc->qstats.drops;
--			sch->qstats.requeues	+=3D qdisc->qstats.requeues;
--			sch->qstats.overlimits	+=3D qdisc->qstats.overlimits;
--		}
-+		gnet_stats_add_basic(NULL, &sch->bstats, qdisc->cpu_bstats,
-+				     &qdisc->bstats);
-+		gnet_stats_add_queue(&sch->qstats, qdisc->cpu_qstats,
-+				     &qdisc->qstats);
-+		sch->q.qlen +=3D qdisc_qlen(qdisc);
-=20
- 		spin_unlock_bh(qdisc_lock(qdisc));
- 	}
-@@ -511,7 +498,7 @@ static int mqprio_dump_class_stats(struct Qdisc *sch, u=
-nsigned long cl,
++static inline void u64_stats_set(u64_stats_t *p, u64 val)
++{
++	local64_set(&p->v, val);
++}
++
+ static inline void u64_stats_add(u64_stats_t *p, unsigned long val)
  {
- 	if (cl >=3D TC_H_MIN_PRIORITY) {
- 		int i;
--		__u32 qlen =3D 0;
-+		__u32 qlen;
- 		struct gnet_stats_queue qstats =3D {0};
- 		struct gnet_stats_basic_packed bstats =3D {0};
- 		struct net_device *dev =3D qdisc_dev(sch);
-@@ -531,27 +518,15 @@ static int mqprio_dump_class_stats(struct Qdisc *sch,=
- unsigned long cl,
+ 	local64_add(val, &p->v);
+@@ -104,6 +109,11 @@ static inline u64 u64_stats_read(const u64_stats_t *p)
+ 	return p->v;
+ }
 =20
- 			spin_lock_bh(qdisc_lock(qdisc));
-=20
--			if (qdisc_is_percpu_stats(qdisc)) {
--				qlen =3D qdisc_qlen_sum(qdisc);
-+			gnet_stats_add_basic(NULL, &bstats, qdisc->cpu_bstats,
-+					     &qdisc->bstats);
-+			gnet_stats_add_queue(&qstats, qdisc->cpu_qstats,
-+					     &qdisc->qstats);
-+			sch->q.qlen +=3D qdisc_qlen(qdisc);
-=20
--				gnet_stats_add_basic(NULL, &bstats,
--						     qdisc->cpu_bstats,
--						     &qdisc->bstats);
--				__gnet_stats_copy_queue(&qstats,
--							qdisc->cpu_qstats,
--							&qdisc->qstats,
--							qlen);
--			} else {
--				qlen		+=3D qdisc->q.qlen;
--				bstats.bytes	+=3D qdisc->bstats.bytes;
--				bstats.packets	+=3D qdisc->bstats.packets;
--				qstats.backlog	+=3D qdisc->qstats.backlog;
--				qstats.drops	+=3D qdisc->qstats.drops;
--				qstats.requeues	+=3D qdisc->qstats.requeues;
--				qstats.overlimits +=3D qdisc->qstats.overlimits;
--			}
- 			spin_unlock_bh(qdisc_lock(qdisc));
- 		}
-+		qlen =3D qdisc_qlen(sch) + qstats.qlen;
-=20
- 		/* Reclaim root sleeping lock before completing stats */
- 		if (d->lock)
++static inline void u64_stats_set(u64_stats_t *p, u64 val)
++{
++	p->v =3D val;
++}
++
+ static inline void u64_stats_add(u64_stats_t *p, unsigned long val)
+ {
+ 	p->v +=3D val;
 --=20
 2.33.0
 
