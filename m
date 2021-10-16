@@ -2,427 +2,170 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1727CC4332F
-	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Oct 2021 08:49:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DAEFC433EF
+	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Oct 2021 10:56:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F071960FF2
-	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Oct 2021 08:49:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 549046108E
+	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Oct 2021 10:56:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243867AbhJPIvj (ORCPT
+        id S236880AbhJPK6q (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 16 Oct 2021 04:51:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46724 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239880AbhJPIvb (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 16 Oct 2021 04:51:31 -0400
-Received: from galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7A5E9C061768;
-        Sat, 16 Oct 2021 01:49:23 -0700 (PDT)
-From:   Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1634374162;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=Yw/PhGeTHnOd+fdoKLTbDscvuD9GVSalzgauUykgFwA=;
-        b=lr+1dO9eYQcb9dq46hRDvaWXO6s4E64QXrAnZE8etSizT2R/ikbPaH5gpU4rryHbYOqFi7
-        XiqwAETj+hqDIR34NDX8mlWr5lrY9wNhf4500bPEioqe8cTsT4MAivLhNlhIMzWBX21aW8
-        JXdA25EHsoYNalfAgCKc8sdivR1E+UXbmypcFMnf9Htp8zNSGzN06XYiTro1utxKQLU0s8
-        xkvOfvksBspxPsheTVEZ3LD0xKTHT/X+a3pikM5VC3h0raxRYnQ8tHRupAxoNBM1B18Kyh
-        o82vmDGqJ5h6Cl5R2un2QbDRRHP9dtmPqyEwQ93oXQBfIvrWrdZhMFOUF/rIaw==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1634374162;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=Yw/PhGeTHnOd+fdoKLTbDscvuD9GVSalzgauUykgFwA=;
-        b=XjPeUxU60EspJ14f58VBSM2jnxhCAca6+E1txrb/b5egSdqUsPrATTGXXOpHlh69E4mpho
-        8g0fvfvNV/T9VKDg==
-To:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Cc:     Jakub Kicinski <kuba@kernel.org>,
+        Sat, 16 Oct 2021 06:58:46 -0400
+Received: from mail-bn8nam11on2043.outbound.protection.outlook.com ([40.107.236.43]:7777
+        "EHLO NAM11-BN8-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S229832AbhJPK6q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 16 Oct 2021 06:58:46 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=LEGvVNFQC5B0sfCTDOAtp6pVBrAbtmV+hrFGfzHiTyQwYidYpoaCZN2QeIHjPq3kGSORaS/RlvaP9nss/vtpTuXNbd59kYKISFsT1g2N3sQyHSiYhMVwhsHb2DD0cy+BuQF+8tP/tX9Qyhv9s0mrpc/ZqHxofVsNfK1LxTutAVwXStt+jKb9yMPevZHQXccGMjllsF+x9lPkyiNRjjKXXfJUlSUVvg8Put56cF1bR/zBmIkGJIkQZcGISjN+1gtcKxc2cQ4M0cC9vPOlvbaKJSpyiGJ71sh6rA+o+86goSovaHQPLRKfSXaazY0tbGkcYvIS0FjdZeK4JjgR2LUwoQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=AUniiJ6OeGLbG1wAJSEpLFfBJJ74i9fSehgCxYgN2+c=;
+ b=lj4npjBkxpcCsnc76EFC0RErF21uaZbb7hH9nbQ8lK9v5C3I41OKYapyL20TSgSNyQrwZ4jzbxaBmYWjKzJ9swymt99fo5DAJWcJG7ArVWr5S3YhxE5UYOSduV4lmOWN/BAJXcWtmuOCOp+ywlCOijXvzVPOj4r28UzFFHetEJIJDfLRmQqipfmIMbPFlCw5y28JLnyNW/rgss0OKAI/SkQKWp+B60cEGL4Fro97u+Q+4b1BzeNV+tZOSTJVYPDC+dfoT7jGEO9Wz0DiABojjh5TvugWWVPM/j+bnAN5jDDirYWAPVEf5htCKiaair7iU8ibQqzd13bOUD1cUkz+lg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=AUniiJ6OeGLbG1wAJSEpLFfBJJ74i9fSehgCxYgN2+c=;
+ b=PIz5G9by3kgNh9tIF0M/s2JcFADqltX4LJG0oWIGr8/5GDWdHrNFIUCrU5+zXW5Us/tm1HLryTOCwWC/CTYy4e4xm/hEHNy9R8nx7PgF4JzTvvH3S5oTeOXJoO7VWGpNzWbHaNv0qjA3yNVj6AigQ4OLp8y0Ar4NcrOa6ANWhEd+PoEmupckkQD+i9QLy0ngXgwOTWMIX10P+GhXRHCeR7UT2EB+FyZFGqdHnkqaP8r5dh/KnsG/NKYEpVI3rBSjOONogJlcoIZlpS8lXHuwJzKlB5B0M7eCqXCguMcLoeKEeFIBBY387j+puUvQvY6W7UEjYOihk0DITXqkmnVTRA==
+Authentication-Results: gmail.com; dkim=none (message not signed)
+ header.d=none;gmail.com; dmarc=none action=none header.from=nvidia.com;
+Received: from DM4PR12MB5278.namprd12.prod.outlook.com (2603:10b6:5:39e::17)
+ by DM4PR12MB5167.namprd12.prod.outlook.com (2603:10b6:5:396::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4608.16; Sat, 16 Oct
+ 2021 10:56:36 +0000
+Received: from DM4PR12MB5278.namprd12.prod.outlook.com
+ ([fe80::513c:d3d8:9c43:2cea]) by DM4PR12MB5278.namprd12.prod.outlook.com
+ ([fe80::513c:d3d8:9c43:2cea%8]) with mapi id 15.20.4608.018; Sat, 16 Oct 2021
+ 10:56:36 +0000
+Message-ID: <badf4e55-ddeb-cfdd-4162-b8b9ae3fed04@nvidia.com>
+Date:   Sat, 16 Oct 2021 13:56:26 +0300
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.1.0
+Subject: Re: [PATCH v2 net-next] net: make use of helper
+ netif_is_bridge_master()
+Content-Language: en-US
+To:     Kyungrok Chung <acadx0@gmail.com>,
+        Marek Lindner <mareklindner@neomailbox.ch>,
+        Simon Wunderlich <sw@simonwunderlich.de>,
+        Antonio Quartulli <a@unstable.cc>,
+        Sven Eckelmann <sven@narfation.org>,
         "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Roopa Prabhu <roopa@nvidia.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Jamal Hadi Salim <jhs@mojatatu.com>,
-        Cong Wang <xiyou.wangcong@gmail.com>,
-        Jiri Pirko <jiri@resnulli.us>,
-        "Ahmed S. Darwish" <a.darwish@linutronix.de>,
-        Eric Dumazet <edumazet@google.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH net-next 6/9] net: sched: Protect Qdisc::bstats with u64_stats
-Date:   Sat, 16 Oct 2021 10:49:07 +0200
-Message-Id: <20211016084910.4029084-7-bigeasy@linutronix.de>
-In-Reply-To: <20211016084910.4029084-1-bigeasy@linutronix.de>
-References: <20211016084910.4029084-1-bigeasy@linutronix.de>
+        Florian Westphal <fw@strlen.de>
+Cc:     b.a.t.m.a.n@lists.open-mesh.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, bridge@lists.linux-foundation.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+References: <20211016050439.2592877-1-acadx0@gmail.com>
+From:   Nikolay Aleksandrov <nikolay@nvidia.com>
+In-Reply-To: <20211016050439.2592877-1-acadx0@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: ZR0P278CA0054.CHEP278.PROD.OUTLOOK.COM
+ (2603:10a6:910:1d::23) To DM4PR12MB5278.namprd12.prod.outlook.com
+ (2603:10b6:5:39e::17)
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Received: from [10.21.240.28] (213.179.129.39) by ZR0P278CA0054.CHEP278.PROD.OUTLOOK.COM (2603:10a6:910:1d::23) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4566.22 via Frontend Transport; Sat, 16 Oct 2021 10:56:32 +0000
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 69fc3f0d-b4a0-4459-7940-08d990939f76
+X-MS-TrafficTypeDiagnostic: DM4PR12MB5167:
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS: <DM4PR12MB5167072F4BCE23C06DBEB117DFBA9@DM4PR12MB5167.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:1775;
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: J3kT00u8s714I0t/388AlVjTwv+54M1VfbiCB9t7UnRXcO9QnoltfgMTtJWt93jSqYWr+lwwOzidNJsqHp7AULVRJjIFDf6vYfuzX+ddXIak2+nkHfp+8qzOLt8eOU/doH3DjEBdVhEsSS4yNRL4XTQgtigZCGyTrASBxfjcbBYY2egZDn0G5XQ5NaDUp73gNnL6mEJOSL6QbL5kvf4NR8dUfKuu3yiC9gjPJ5abVJUGDKfL/2B+AsMG4ApqLh5LRQhVFqGB+f1h2qfV43H5bcn2EJq5q1ldtdiKE6HSRi0BKgll86hN2bvuDylw3TS7UW5Eo/laiQd1NPrBRP5EMVG/vdwzkfE61Fg434FhRVYXBK1HBlzEla2Qze38V3iJT1ZeR7Z5g6fXrL760UIRBCnBK94J2u6qM67PA5qFYuMOuYtMnNoXeetyVRzIRi1EwYyhyAXPyO6xoMZZDuH4IVjzWwggsdgBxQebkV8KLPjOADZaNKtuLNIVmXI5fPsU1l2bepHiMVbh38dILKMtoJ9m/kQ8BLDNpCI/1/rpTnhMz/wo9RZhSE1QXTogGiLtntQtKMR6wYA1Ebl8Sw7zComVpLhk+afjk+yt207NN7fWKUn1cvsR+tVNANEQ4wuvlvDCLFbFoO+EWwj2cDWTX3bG2w97XZQR2p+MUXlfFf8aq38kYziTRZeeS6V34O9Uj4y5lMIbB75sWKfCT0kUg1OQfL+YxGXm95J559o9P9IIwiCuezPP6dDro18FRvcwwRMNAu8y7K6dK8TNFBrWzg==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR12MB5278.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(316002)(31696002)(16576012)(956004)(38100700002)(921005)(5660300002)(83380400001)(186003)(31686004)(2616005)(53546011)(8676002)(6486002)(508600001)(2906002)(7416002)(66946007)(66556008)(66476007)(86362001)(36756003)(110136005)(4326008)(8936002)(26005)(6666004)(781001)(43740500002)(45980500001);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?TTMxY1BEVmV2dEU1Z1dpOHRFSXU5RTU4Qyt2dXdDVVVJUXkwVHo3eXdvUm5R?=
+ =?utf-8?B?UkIrYjhoUG10c3JUbFh2bTVWTm5PMjAwOFFmMjZib05OQnVFSkxPRFA1bCtE?=
+ =?utf-8?B?YXY1akVrcTVVYnBrc045WW5MWlM3R2lKWXpVT29Ha1ZGZ1YzWDVLUy9VQTgx?=
+ =?utf-8?B?TnV5bFRQbGdJQkR5TTlXNzlISEpnVVBvYjRFdzdXNGVSNFNaRHdsT2hqZ0hq?=
+ =?utf-8?B?TXVtbmRSTGhOTHI0U1BhYlkvTitUdWFxbFpBZStoUGJiNzl3aUxMbTVubTNp?=
+ =?utf-8?B?TzN4S3BWLzcydWtSOGhCNi96elp1dlFQVlhPRENNK0JyMHg2NFJkTVM5OXdh?=
+ =?utf-8?B?WWNUck1XeVZwVDdobGZ5bmxvdStBdW94MEVzbTRtSDZlTG1oTDduMkRiMnpt?=
+ =?utf-8?B?RHBjTmtWNlhleVpQRU5EUkF1bW9OTU5GbUFObXVMdEtHbVU5Rmw1WExIWHAz?=
+ =?utf-8?B?WldjT1RDV0R2ajB0c2VHZnk4dGdja0ozcmx5UXJaQ1JlMDdVTW5JQ0ZVanhH?=
+ =?utf-8?B?VVVNSDZiTHRCQXpRSWNlSGJxcERmNUdhdGNpeWpPMjNwd0pFSm9xUzZLWUsv?=
+ =?utf-8?B?ZUwycjNnMkRDejNnS2g0RmNobk9ieHZZQ0dwRlgwVnN4WlhKQnFzZllqTkJ1?=
+ =?utf-8?B?RlpIVXZDeVZEakpSNHFUazlTOFhtSzZiOVFmRjl0d3BsZFVXb0wyTEJ0L2hW?=
+ =?utf-8?B?b01DYXhjY2FtNm1nZjNGZ1FRWENmK28xejhWMVJwSnFvdk5IVUsxRU9TYXFy?=
+ =?utf-8?B?S0loL29UVFVEcFJzazMxRzA5eWZQYVZKSU16U3pkV08veGo2VnB5eFptTCtP?=
+ =?utf-8?B?dWEzeisxQjNxT2dwdmZFZElXbEhkOVNHZEpaN1ZndjhvSTIxRDcvbXBDVjdD?=
+ =?utf-8?B?eUdDSVc2MzlqSWZWL3F2R2FCT2ptZmt4VXc1ZGpwMEc0U0w2TGdLelZ0azNs?=
+ =?utf-8?B?eTlTbWExdXAzK0N5NkVwRHBRTk5ZR3ArQ2JzK01YRWhPLzZqdzhMMUNIUGdn?=
+ =?utf-8?B?UllGRjhRMEI1dlVZNzh1T2RWUU11L2dlSmlFTWFtNHZWLzhsOStTZERTQ0l0?=
+ =?utf-8?B?S1RZTHE4K1FVaWVTQldrMXlkb0tlMFpMMVdpckxjZHFrWnp3bkdGM0VJRVpl?=
+ =?utf-8?B?Q3Y1blJxeWZWVTcvM1JsVm5WVFZ1V2xaM21OZzlNejVsMmg1MUZGay94ZGtn?=
+ =?utf-8?B?VjdQbWZuRFNiU0xsMDU5Rmw4MGpRTmhHQnNDZVNPTmp0MGEySUM4OUdaQkp6?=
+ =?utf-8?B?bVA4MTEreFg1a0tQUVpqdjFHWVh5aDhTSnN6UTNlQVkxMTY4UmVnY1ovbTBD?=
+ =?utf-8?B?aG1Da3hxdHBCdkxLNmZOR3dpaC80ZmF6WVVVZGJmcDRKcXdvK1RWSDB3K3p3?=
+ =?utf-8?B?VG1GL1pDUUZ1TVI5VGozWmJ4dFZHODZnMEl4ZW5LVjZDZy9lNEpsVG9ZcmhF?=
+ =?utf-8?B?a2xEWnJXUnFyaElaUHh3cjhXQWluL2dOTk83SHF5VWFiK2hLY29uVVloeWpw?=
+ =?utf-8?B?WkhlOFpTYWEzSkRlYUN3dXVFUmhleWdnRXlHS1JYWFgzSVE5bkZOZG1ZQTZ5?=
+ =?utf-8?B?SFFFMDVXbzRyL1FNeG1FeXo1NWJHekFBV3BYRDBDTjRhTS9RWHdUUW9ZWS9z?=
+ =?utf-8?B?dUJlZ2cwalZtblMzbW92YjZhcWU1RHJZZFQxbFc1ZVJDb1krRGx4MVBORVpX?=
+ =?utf-8?B?V09QTFJVT2dsbE5lVmVYbk1qaTJwaUdaTEJUdThvREtMRVhGcGU3V3VMUWt1?=
+ =?utf-8?Q?IAsrNbg4vJFJddryuxK3+JhB9uwoOD6IYR9PdZx?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 69fc3f0d-b4a0-4459-7940-08d990939f76
+X-MS-Exchange-CrossTenant-AuthSource: DM4PR12MB5278.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Oct 2021 10:56:36.2705
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: e68Lp+naZFLSw7fdEhH/nVAqoQNSPbW0pfX7nyklLqOsZB+Ez47AiWvE5QVjf1jzSdOKme8HJHw4tDLSt3uz7g==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR12MB5167
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
+On 16/10/2021 08:04, Kyungrok Chung wrote:
+> Make use of netdev helper functions to improve code readability.
+> Replace 'dev->priv_flags & IFF_EBRIDGE' with netif_is_bridge_master(dev).
+> 
+> Signed-off-by: Kyungrok Chung <acadx0@gmail.com>
+> ---
+> 
+> v1->v2:
+>   - Apply fixes to batman-adv, core too.
+> 
+>  net/batman-adv/multicast.c      | 2 +-
+>  net/bridge/br.c                 | 4 ++--
+>  net/bridge/br_fdb.c             | 6 +++---
+>  net/bridge/br_if.c              | 2 +-
+>  net/bridge/br_ioctl.c           | 2 +-
+>  net/bridge/br_mdb.c             | 4 ++--
+>  net/bridge/br_netfilter_hooks.c | 2 +-
+>  net/bridge/br_netlink.c         | 4 ++--
+>  net/core/rtnetlink.c            | 2 +-
+>  9 files changed, 14 insertions(+), 14 deletions(-)
+> 
+[snip]
+>  	err = br_afspec(br, p, afspec, RTM_DELLINK, &changed, NULL);
+> diff --git a/net/core/rtnetlink.c b/net/core/rtnetlink.c
+> index 2dc1b209ba91..d3676666a529 100644
+> --- a/net/core/rtnetlink.c
+> +++ b/net/core/rtnetlink.c
+> @@ -4384,7 +4384,7 @@ static int rtnl_fdb_dump(struct sk_buff *skb, struct netlink_callback *cb)
+>  					continue;
+>  
+>  				if (br_dev != netdev_master_upper_dev_get(dev) &&
+> -				    !(dev->priv_flags & IFF_EBRIDGE))
+> +				    netif_is_bridge_master(dev))
+>  					continue;
+>  				cops = ops;
+>  			}
+> 
 
-The not-per-CPU variant of qdisc tc (traffic control) statistics,
-Qdisc::gnet_stats_basic_packed bstats, is protected with Qdisc::running
-sequence counter.
-
-This sequence counter is used for reliably protecting bstats reads from
-parallel writes. Meanwhile, the seqcount's write section covers a much
-wider area than bstats update: qdisc_run_begin() =3D> qdisc_run_end().
-
-That read/write section asymmetry can lead to needless retries of the
-read section. To prepare for removing the Qdisc::running sequence
-counter altogether, introduce a u64_stats sync point inside bstats
-instead.
-
-Modify _bstats_update() to start/end the bstats u64_stats write
-section.
-
-For bisectability, and finer commits granularity, the bstats read
-section is still protected with a Qdisc::running read/retry loop and
-qdisc_run_begin/end() still starts/ends that seqcount write section.
-Once all call sites are modified to use _bstats_update(), the
-Qdisc::running seqcount will be removed and bstats read/retry loop will
-be modified to utilize the internal u64_stats sync point.
-
-Note, using u64_stats implies no sequence counter protection for 64-bit
-architectures. This can lead to the statistics "packets" vs. "bytes"
-values getting out of sync on rare occasions. The individual values will
-still be valid.
-
-[bigeasy: Minor commit message edits, init all gnet_stats_basic_packed.]
-
-Signed-off-by: Ahmed S. Darwish <a.darwish@linutronix.de>
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
----
- include/net/gen_stats.h    |  2 ++
- include/net/sch_generic.h  |  2 ++
- net/core/gen_estimator.c   |  2 +-
- net/core/gen_stats.c       | 14 ++++++++++++--
- net/netfilter/xt_RATEEST.c |  1 +
- net/sched/act_api.c        |  2 ++
- net/sched/sch_atm.c        |  1 +
- net/sched/sch_cbq.c        |  1 +
- net/sched/sch_drr.c        |  1 +
- net/sched/sch_ets.c        |  2 +-
- net/sched/sch_generic.c    |  1 +
- net/sched/sch_gred.c       |  4 +++-
- net/sched/sch_hfsc.c       |  1 +
- net/sched/sch_htb.c        |  7 +++++--
- net/sched/sch_mq.c         |  2 +-
- net/sched/sch_mqprio.c     |  5 +++--
- net/sched/sch_qfq.c        |  1 +
- 17 files changed, 39 insertions(+), 10 deletions(-)
-
-diff --git a/include/net/gen_stats.h b/include/net/gen_stats.h
-index d47155f5db5d7..304d792f79776 100644
---- a/include/net/gen_stats.h
-+++ b/include/net/gen_stats.h
-@@ -11,6 +11,7 @@
- struct gnet_stats_basic_packed {
- 	__u64	bytes;
- 	__u64	packets;
-+	struct u64_stats_sync syncp;
- };
-=20
- struct gnet_stats_basic_cpu {
-@@ -34,6 +35,7 @@ struct gnet_dump {
- 	struct tc_stats   tc_stats;
- };
-=20
-+void gnet_stats_basic_packed_init(struct gnet_stats_basic_packed *b);
- int gnet_stats_start_copy(struct sk_buff *skb, int type, spinlock_t *lock,
- 			  struct gnet_dump *d, int padattr);
-=20
-diff --git a/include/net/sch_generic.h b/include/net/sch_generic.h
-index 7bc2d30b5c067..d7746aea3cecf 100644
---- a/include/net/sch_generic.h
-+++ b/include/net/sch_generic.h
-@@ -852,8 +852,10 @@ static inline int qdisc_enqueue(struct sk_buff *skb, s=
-truct Qdisc *sch,
- static inline void _bstats_update(struct gnet_stats_basic_packed *bstats,
- 				  __u64 bytes, __u32 packets)
- {
-+	u64_stats_update_begin(&bstats->syncp);
- 	bstats->bytes +=3D bytes;
- 	bstats->packets +=3D packets;
-+	u64_stats_update_end(&bstats->syncp);
- }
-=20
- static inline void bstats_update(struct gnet_stats_basic_packed *bstats,
-diff --git a/net/core/gen_estimator.c b/net/core/gen_estimator.c
-index 205df8b5116e5..64978e77368f4 100644
---- a/net/core/gen_estimator.c
-+++ b/net/core/gen_estimator.c
-@@ -62,7 +62,7 @@ struct net_rate_estimator {
- static void est_fetch_counters(struct net_rate_estimator *e,
- 			       struct gnet_stats_basic_packed *b)
- {
--	memset(b, 0, sizeof(*b));
-+	gnet_stats_basic_packed_init(b);
- 	if (e->stats_lock)
- 		spin_lock(e->stats_lock);
-=20
-diff --git a/net/core/gen_stats.c b/net/core/gen_stats.c
-index 6ec11289140b6..f2e12fe7112b1 100644
---- a/net/core/gen_stats.c
-+++ b/net/core/gen_stats.c
-@@ -18,7 +18,7 @@
- #include <linux/gen_stats.h>
- #include <net/netlink.h>
- #include <net/gen_stats.h>
--
-+#include <net/sch_generic.h>
-=20
- static inline int
- gnet_stats_copy(struct gnet_dump *d, int type, void *buf, int size, int pa=
-dattr)
-@@ -114,6 +114,15 @@ gnet_stats_start_copy(struct sk_buff *skb, int type, s=
-pinlock_t *lock,
- }
- EXPORT_SYMBOL(gnet_stats_start_copy);
-=20
-+/* Must not be inlined, due to u64_stats seqcount_t lockdep key */
-+void gnet_stats_basic_packed_init(struct gnet_stats_basic_packed *b)
-+{
-+	b->bytes =3D 0;
-+	b->packets =3D 0;
-+	u64_stats_init(&b->syncp);
-+}
-+EXPORT_SYMBOL(gnet_stats_basic_packed_init);
-+
- static void gnet_stats_add_basic_cpu(struct gnet_stats_basic_packed *bstat=
-s,
- 				     struct gnet_stats_basic_cpu __percpu *cpu)
- {
-@@ -167,8 +176,9 @@ ___gnet_stats_copy_basic(const seqcount_t *running,
- 			 struct gnet_stats_basic_packed *b,
- 			 int type)
- {
--	struct gnet_stats_basic_packed bstats =3D {0};
-+	struct gnet_stats_basic_packed bstats;
-=20
-+	gnet_stats_basic_packed_init(&bstats);
- 	gnet_stats_add_basic(running, &bstats, cpu, b);
-=20
- 	if (d->compat_tc_stats && type =3D=3D TCA_STATS_BASIC) {
-diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
-index 0d5c422f87452..d5200725ca62c 100644
---- a/net/netfilter/xt_RATEEST.c
-+++ b/net/netfilter/xt_RATEEST.c
-@@ -143,6 +143,7 @@ static int xt_rateest_tg_checkentry(const struct xt_tgc=
-hk_param *par)
- 	if (!est)
- 		goto err1;
-=20
-+	gnet_stats_basic_packed_init(&est->bstats);
- 	strlcpy(est->name, info->name, sizeof(est->name));
- 	spin_lock_init(&est->lock);
- 	est->refcnt		=3D 1;
-diff --git a/net/sched/act_api.c b/net/sched/act_api.c
-index 7dd3a2dc5fa40..0302dad42df14 100644
---- a/net/sched/act_api.c
-+++ b/net/sched/act_api.c
-@@ -490,6 +490,8 @@ int tcf_idr_create(struct tc_action_net *tn, u32 index,=
- struct nlattr *est,
- 		if (!p->cpu_qstats)
- 			goto err3;
- 	}
-+	gnet_stats_basic_packed_init(&p->tcfa_bstats);
-+	gnet_stats_basic_packed_init(&p->tcfa_bstats_hw);
- 	spin_lock_init(&p->tcfa_lock);
- 	p->tcfa_index =3D index;
- 	p->tcfa_tm.install =3D jiffies;
-diff --git a/net/sched/sch_atm.c b/net/sched/sch_atm.c
-index 7d8518176b45a..c8e1771383f9a 100644
---- a/net/sched/sch_atm.c
-+++ b/net/sched/sch_atm.c
-@@ -548,6 +548,7 @@ static int atm_tc_init(struct Qdisc *sch, struct nlattr=
- *opt,
- 	pr_debug("atm_tc_init(sch %p,[qdisc %p],opt %p)\n", sch, p, opt);
- 	INIT_LIST_HEAD(&p->flows);
- 	INIT_LIST_HEAD(&p->link.list);
-+	gnet_stats_basic_packed_init(&p->link.bstats);
- 	list_add(&p->link.list, &p->flows);
- 	p->link.q =3D qdisc_create_dflt(sch->dev_queue,
- 				      &pfifo_qdisc_ops, sch->handle, extack);
-diff --git a/net/sched/sch_cbq.c b/net/sched/sch_cbq.c
-index e0da15530f0e9..d01f6ec315f87 100644
---- a/net/sched/sch_cbq.c
-+++ b/net/sched/sch_cbq.c
-@@ -1611,6 +1611,7 @@ cbq_change_class(struct Qdisc *sch, u32 classid, u32 =
-parentid, struct nlattr **t
- 	if (cl =3D=3D NULL)
- 		goto failure;
-=20
-+	gnet_stats_basic_packed_init(&cl->bstats);
- 	err =3D tcf_block_get(&cl->block, &cl->filter_list, sch, extack);
- 	if (err) {
- 		kfree(cl);
-diff --git a/net/sched/sch_drr.c b/net/sched/sch_drr.c
-index 642cd179b7a75..319906e19a6ba 100644
---- a/net/sched/sch_drr.c
-+++ b/net/sched/sch_drr.c
-@@ -106,6 +106,7 @@ static int drr_change_class(struct Qdisc *sch, u32 clas=
-sid, u32 parentid,
- 	if (cl =3D=3D NULL)
- 		return -ENOBUFS;
-=20
-+	gnet_stats_basic_packed_init(&cl->bstats);
- 	cl->common.classid =3D classid;
- 	cl->quantum	   =3D quantum;
- 	cl->qdisc	   =3D qdisc_create_dflt(sch->dev_queue,
-diff --git a/net/sched/sch_ets.c b/net/sched/sch_ets.c
-index ed86b7021f6d0..83693107371f9 100644
---- a/net/sched/sch_ets.c
-+++ b/net/sched/sch_ets.c
-@@ -689,7 +689,7 @@ static int ets_qdisc_change(struct Qdisc *sch, struct n=
-lattr *opt,
- 		q->classes[i].qdisc =3D NULL;
- 		q->classes[i].quantum =3D 0;
- 		q->classes[i].deficit =3D 0;
--		memset(&q->classes[i].bstats, 0, sizeof(q->classes[i].bstats));
-+		gnet_stats_basic_packed_init(&q->classes[i].bstats);
- 		memset(&q->classes[i].qstats, 0, sizeof(q->classes[i].qstats));
- 	}
- 	return 0;
-diff --git a/net/sched/sch_generic.c b/net/sched/sch_generic.c
-index 8c64a552a64fe..ef27ff3ddee4f 100644
---- a/net/sched/sch_generic.c
-+++ b/net/sched/sch_generic.c
-@@ -892,6 +892,7 @@ struct Qdisc *qdisc_alloc(struct netdev_queue *dev_queu=
-e,
- 	__skb_queue_head_init(&sch->gso_skb);
- 	__skb_queue_head_init(&sch->skb_bad_txq);
- 	qdisc_skb_head_init(&sch->q);
-+	gnet_stats_basic_packed_init(&sch->bstats);
- 	spin_lock_init(&sch->q.lock);
-=20
- 	if (ops->static_flags & TCQ_F_CPUSTATS) {
-diff --git a/net/sched/sch_gred.c b/net/sched/sch_gred.c
-index 621dc6afde8f3..2ddcbb2efdbbc 100644
---- a/net/sched/sch_gred.c
-+++ b/net/sched/sch_gred.c
-@@ -364,9 +364,11 @@ static int gred_offload_dump_stats(struct Qdisc *sch)
- 	hw_stats->handle =3D sch->handle;
- 	hw_stats->parent =3D sch->parent;
-=20
--	for (i =3D 0; i < MAX_DPs; i++)
-+	for (i =3D 0; i < MAX_DPs; i++) {
-+		gnet_stats_basic_packed_init(&hw_stats->stats.bstats[i]);
- 		if (table->tab[i])
- 			hw_stats->stats.xstats[i] =3D &table->tab[i]->stats;
-+	}
-=20
- 	ret =3D qdisc_offload_dump_helper(sch, TC_SETUP_QDISC_GRED, hw_stats);
- 	/* Even if driver returns failure adjust the stats - in case offload
-diff --git a/net/sched/sch_hfsc.c b/net/sched/sch_hfsc.c
-index b7ac30cca035d..ff6ff54806fcd 100644
---- a/net/sched/sch_hfsc.c
-+++ b/net/sched/sch_hfsc.c
-@@ -1406,6 +1406,7 @@ hfsc_init_qdisc(struct Qdisc *sch, struct nlattr *opt,
- 	if (err)
- 		return err;
-=20
-+	gnet_stats_basic_packed_init(&q->root.bstats);
- 	q->root.cl_common.classid =3D sch->handle;
- 	q->root.sched   =3D q;
- 	q->root.qdisc =3D qdisc_create_dflt(sch->dev_queue, &pfifo_qdisc_ops,
-diff --git a/net/sched/sch_htb.c b/net/sched/sch_htb.c
-index 5067a6e5d4fde..2e805b17efcf9 100644
---- a/net/sched/sch_htb.c
-+++ b/net/sched/sch_htb.c
-@@ -1311,7 +1311,7 @@ static void htb_offload_aggregate_stats(struct htb_sc=
-hed *q,
- 	struct htb_class *c;
- 	unsigned int i;
-=20
--	memset(&cl->bstats, 0, sizeof(cl->bstats));
-+	gnet_stats_basic_packed_init(&cl->bstats);
-=20
- 	for (i =3D 0; i < q->clhash.hashsize; i++) {
- 		hlist_for_each_entry(c, &q->clhash.hash[i], common.hnode) {
-@@ -1357,7 +1357,7 @@ htb_dump_class_stats(struct Qdisc *sch, unsigned long=
- arg, struct gnet_dump *d)
- 			if (cl->leaf.q)
- 				cl->bstats =3D cl->leaf.q->bstats;
- 			else
--				memset(&cl->bstats, 0, sizeof(cl->bstats));
-+				gnet_stats_basic_packed_init(&cl->bstats);
- 			cl->bstats.bytes +=3D cl->bstats_bias.bytes;
- 			cl->bstats.packets +=3D cl->bstats_bias.packets;
- 		} else {
-@@ -1849,6 +1849,9 @@ static int htb_change_class(struct Qdisc *sch, u32 cl=
-assid,
- 		if (!cl)
- 			goto failure;
-=20
-+		gnet_stats_basic_packed_init(&cl->bstats);
-+		gnet_stats_basic_packed_init(&cl->bstats_bias);
-+
- 		err =3D tcf_block_get(&cl->block, &cl->filter_list, sch, extack);
- 		if (err) {
- 			kfree(cl);
-diff --git a/net/sched/sch_mq.c b/net/sched/sch_mq.c
-index 9d58ecb4e80c6..704e14a58f09d 100644
---- a/net/sched/sch_mq.c
-+++ b/net/sched/sch_mq.c
-@@ -132,7 +132,7 @@ static int mq_dump(struct Qdisc *sch, struct sk_buff *s=
-kb)
- 	unsigned int ntx;
-=20
- 	sch->q.qlen =3D 0;
--	memset(&sch->bstats, 0, sizeof(sch->bstats));
-+	gnet_stats_basic_packed_init(&sch->bstats);
- 	memset(&sch->qstats, 0, sizeof(sch->qstats));
-=20
- 	/* MQ supports lockless qdiscs. However, statistics accounting needs
-diff --git a/net/sched/sch_mqprio.c b/net/sched/sch_mqprio.c
-index 57427b40f0d2e..fe6b4a178fc9f 100644
---- a/net/sched/sch_mqprio.c
-+++ b/net/sched/sch_mqprio.c
-@@ -390,7 +390,7 @@ static int mqprio_dump(struct Qdisc *sch, struct sk_buf=
-f *skb)
- 	unsigned int ntx, tc;
-=20
- 	sch->q.qlen =3D 0;
--	memset(&sch->bstats, 0, sizeof(sch->bstats));
-+	gnet_stats_basic_packed_init(&sch->bstats);
- 	memset(&sch->qstats, 0, sizeof(sch->qstats));
-=20
- 	/* MQ supports lockless qdiscs. However, statistics accounting needs
-@@ -500,10 +500,11 @@ static int mqprio_dump_class_stats(struct Qdisc *sch,=
- unsigned long cl,
- 		int i;
- 		__u32 qlen;
- 		struct gnet_stats_queue qstats =3D {0};
--		struct gnet_stats_basic_packed bstats =3D {0};
-+		struct gnet_stats_basic_packed bstats;
- 		struct net_device *dev =3D qdisc_dev(sch);
- 		struct netdev_tc_txq tc =3D dev->tc_to_txq[cl & TC_BITMASK];
-=20
-+		gnet_stats_basic_packed_init(&bstats);
- 		/* Drop lock here it will be reclaimed before touching
- 		 * statistics this is required because the d->lock we
- 		 * hold here is the look on dev_queue->qdisc_sleeping
-diff --git a/net/sched/sch_qfq.c b/net/sched/sch_qfq.c
-index 58a9d42b52b8f..b6d989b69324d 100644
---- a/net/sched/sch_qfq.c
-+++ b/net/sched/sch_qfq.c
-@@ -465,6 +465,7 @@ static int qfq_change_class(struct Qdisc *sch, u32 clas=
-sid, u32 parentid,
- 	if (cl =3D=3D NULL)
- 		return -ENOBUFS;
-=20
-+	gnet_stats_basic_packed_init(&cl->bstats);
- 	cl->common.classid =3D classid;
- 	cl->deficit =3D lmax;
-=20
---=20
-2.33.0
-
+This looks wrong, the original check is if it's _not_ a bridge master.
