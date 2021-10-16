@@ -2,97 +2,222 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D5EAC433F5
-	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Oct 2021 07:28:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DE54C433EF
+	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Oct 2021 07:52:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 143E961101
-	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Oct 2021 07:28:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F183D60C51
+	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Oct 2021 07:52:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239770AbhJPHaJ (ORCPT
+        id S243826AbhJPHyo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 16 Oct 2021 03:30:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57450 "EHLO
+        Sat, 16 Oct 2021 03:54:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34502 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234387AbhJPHaJ (ORCPT
+        with ESMTP id S239843AbhJPHyo (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 16 Oct 2021 03:30:09 -0400
-Received: from mail-pj1-x102b.google.com (mail-pj1-x102b.google.com [IPv6:2607:f8b0:4864:20::102b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B309EC061570
-        for <netfilter-devel@vger.kernel.org>; Sat, 16 Oct 2021 00:28:01 -0700 (PDT)
-Received: by mail-pj1-x102b.google.com with SMTP id na16-20020a17090b4c1000b0019f5bb661f9so9016138pjb.0
-        for <netfilter-devel@vger.kernel.org>; Sat, 16 Oct 2021 00:28:01 -0700 (PDT)
+        Sat, 16 Oct 2021 03:54:44 -0400
+Received: from mail-pj1-x1034.google.com (mail-pj1-x1034.google.com [IPv6:2607:f8b0:4864:20::1034])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 832C2C061570
+        for <netfilter-devel@vger.kernel.org>; Sat, 16 Oct 2021 00:52:36 -0700 (PDT)
+Received: by mail-pj1-x1034.google.com with SMTP id g13-20020a17090a3c8d00b00196286963b9so10931679pjc.3
+        for <netfilter-devel@vger.kernel.org>; Sat, 16 Oct 2021 00:52:36 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=sender:from:date:to:cc:subject:message-id:mail-followup-to
-         :references:mime-version:content-disposition:in-reply-to;
-        bh=C5N7jPrEL4k555xoi4F/66bdo6CBNmypUIIuoQgOBHk=;
-        b=kNhF+m8Obk4JVWdUfIUuCHFva2LbrSiclNS5r7jEXzeDouN98Jek5+yCWM4sUVnoi+
-         4g3psYk2B6WwlWh0Yb6i/kWFJRpVz5flCeyO1WLZlKo/pK9J/FIiSVxqTDOQ2QrUY8Mu
-         8isVY8cfyJlRltztmMOipFzKrHTaVE9UaNfmMPgT0qenGakuhj6EXYOdlFnyWypD66fX
-         J4qlqplZsI7XrxGp7S6f1VTeo9KeO3cOzAat1VS9Qgd8ZQrY0M/Zi3/eryvx/HPM0oXs
-         YTj9qcAmwQmPVdCSb9ybgRrMCozCboCjBI+O/gTXPL0n1IfnkX3LZlzDiwjUKt8NjzAb
-         HRyA==
+        h=sender:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=i9JpjL980ETRd4VL7Xi7Snxjf6CcVE6dT9gqdCL6Mbw=;
+        b=IZk4EduD9kX3Fi9sJTytljqjpI9xGAEULPAkeGpKp+cAUxEsQez/qw0EemGvAZWKoX
+         m/291hlWcwdU9MiwFAAk6+QP2wqeh/bGBMndb6ckOU9rJFbrOqCFenV9boKwIMsqvnCc
+         EPFPByy5wTZpM7I44rWGMkOR8EgH2Is5kzMatE1YqQGIIhLunSkauu+itTDED2VCw39K
+         zgui34BpYrLTq2oRjAGs9iUanHb1Ln3eoTPGRV29X9cadDgq+hpZxxA49HdTLe9lXfNU
+         +r4y5+bGhi4zwDFvmUfpXh3M7uehrLcZQnUt5o2+oNRFLXUq3oK80PCtMcFemfmcJ8S1
+         6gXA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:sender:from:date:to:cc:subject:message-id
-         :mail-followup-to:references:mime-version:content-disposition
-         :in-reply-to;
-        bh=C5N7jPrEL4k555xoi4F/66bdo6CBNmypUIIuoQgOBHk=;
-        b=HLTIEAYE2Uz2u1OGKAQXLmJex+qPkPsuoUO73iwz2mc/rR/K/Y6qIelyBL7GKiCCXo
-         D2fa4mdL3RVEy3dYih+rdIkSm35ZlssfxygwLiogTtoQYN7+Cdr2h0vpewMIvDKWmkRm
-         k//d7vs+zwJfRDfB+RWDNQ8oJzlnt8O1wiLL2NUcjbubUrarN/DudRs1s5PIF8FQ0MEr
-         yQEdKesb4XSkFF2JyxWq53SqEgefnqKtlF87I9xidjbljkKe3RjsL4h59EGGkIsKr9Dw
-         quNslwobYKaFcf93T6WkFRgu2JU/tkwv98ZJoEUcbPAuAjCK4/OG2BKDdJ1l4F29bQ3u
-         JHqA==
-X-Gm-Message-State: AOAM533bB7MYj09Ub8WOnrZCpT5pSuZMl8wPLEpGlwXSKOn4v5UdX9Pa
-        rCIcHqfobjjsQk7V7t/3enh93swT8tw=
-X-Google-Smtp-Source: ABdhPJywIVy2q/JDJIh3HDLIxmwEj5DYJ/FmW2YXFlR+oWeSsmpf/wwDkLXOtGuA4jyEzUkUjaa+/Q==
-X-Received: by 2002:a17:902:e843:b0:13f:2212:d64c with SMTP id t3-20020a170902e84300b0013f2212d64cmr15323069plg.16.1634369281131;
-        Sat, 16 Oct 2021 00:28:01 -0700 (PDT)
+        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
+         :mime-version:content-transfer-encoding;
+        bh=i9JpjL980ETRd4VL7Xi7Snxjf6CcVE6dT9gqdCL6Mbw=;
+        b=mnrnDDgt5btm8QI7bCRjI2J+t0wuLe0f4B2YfZiobvab9d89ryKT4YuSZGRyvSKdw6
+         EaLx7X2hq0v0dkOtgbqCXblzFX3YalQ++6zSN4SqdhjQpmspdEZz5qX/7uI4TfCv0WND
+         pOpfO9XIACfXWXh1WtJxjpSBWSh31aSdcEbZtdn7Lu5GT311WTj6l8mTLKDdFqXFnmnq
+         dMA3AnPDdJo7NeNjoqn2SdaDzavd8zQ8PBDUexRkt8dkg2YScla17SqnRUIC9ZPQyBeQ
+         DANfbcCWFDZH9yMhe3dU8t1TigOxd+QEjivoWnHu6k0QvshfI+Ae8spe/p5F/JWakbOY
+         SLkw==
+X-Gm-Message-State: AOAM533AkKjTnyakHjVOQLPiMiyQ6saL4TQr71U3g74bT7MIOQpqea5s
+        A/8TECb+0MMAiUiEYGJ0prnFeg3eZqw=
+X-Google-Smtp-Source: ABdhPJzm1l9oMy1bAHGqX1JRg65nVQ9vUydLXYxzmU3JjzLQFSZS36GNQzN5OVpVqgy7+sSwJ2BMTw==
+X-Received: by 2002:a17:902:d904:b0:13f:398e:a0df with SMTP id c4-20020a170902d90400b0013f398ea0dfmr15259140plz.47.1634370756069;
+        Sat, 16 Oct 2021 00:52:36 -0700 (PDT)
 Received: from slk1.local.net (n110-23-108-30.sun3.vic.optusnet.com.au. [110.23.108.30])
-        by smtp.gmail.com with ESMTPSA id y22sm13071804pjj.33.2021.10.16.00.27.58
+        by smtp.gmail.com with ESMTPSA id y75sm6906077pfb.57.2021.10.16.00.52.34
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 16 Oct 2021 00:28:00 -0700 (PDT)
+        Sat, 16 Oct 2021 00:52:35 -0700 (PDT)
 Sender: Duncan Roe <duncan.roe2@gmail.com>
 From:   Duncan Roe <duncan_roe@optusnet.com.au>
-X-Google-Original-From: Duncan Roe <dunc@slk1.local.net>
-Date:   Sat, 16 Oct 2021 18:27:56 +1100
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH libnetfilter_log v5] build: doc: Allow to specify whether
- to produce man pages, html, neither or both
-Message-ID: <YWp+/MO6jhvgUdGM@slk1.local.net>
-Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <20211016043948.2422-1-duncan_roe@optusnet.com.au>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH libnetfilter_queue v5] build: doc: Allow to specify whether to produce man pages, html, neither or both
+Date:   Sat, 16 Oct 2021 18:52:31 +1100
+Message-Id: <20211016075231.11620-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.32.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20211016043948.2422-1-duncan_roe@optusnet.com.au>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Oct 16, 2021 at 03:39:48PM +1100, Duncan Roe wrote:
-> - configure --help lists non-default documentation options.
->   Looking around the web, this seemed to me to be what most projects do.
->   Listed options are --enable-html-doc & --disable-man-pages.
-> - --with-doxygen is removed: --disable-man-pages also disables doxygen unless
->   --enable-html-doc is asserted.
-> If html is requested, `make install` installs it in htmldir.
->
-> Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
-> ---
-> v2: broken out from 0001-build-doc-Fix-man-pages.patch
-> v3: no change (still part of a series)
-> v4: remove --without-doxygen since -disable-man-pages does that
-> v5: - update .gitignore for clean `git status` after in-tree build
->     - in configure.ac:
->       - ensure all variables are always set (avoid leakage from environment)
->       - provide helpful warning if HTML enabled but dot not found
-[...]
-Sorry Pablo, this is for libnetfilter_queue.
-I don't see it in patchwork - did you get rid of it already?
-Will re-send with correct Sj.
+- configure --help lists non-default documentation options.
+  Looking around the web, this seemed to me to be what most projects do.
+  Listed options are --enable-html-doc & --disable-man-pages.
+- --with-doxygen is removed: --disable-man-pages also disables doxygen unless
+  --enable-html-doc is asserted.
+If html is requested, `make install` installs it in htmldir.
 
-Cheers ... Duncan.
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+---
+v2: broken out from 0001-build-doc-Fix-man-pages.patch
+v3: no change (still part of a series)
+v4: remove --without-doxygen since -disable-man-pages does that
+v5: - update .gitignore for clean `git status` after in-tree build
+    - in configure.ac:
+      - ensure all variables are always set (avoid leakage from environment)
+      - provide helpful warning if HTML enabled but dot not found
+ .gitignore             |  5 ++++-
+ configure.ac           | 34 +++++++++++++++++++++++++++-------
+ doxygen/Makefile.am    | 11 ++++++++++-
+ doxygen/doxygen.cfg.in |  3 ++-
+ 4 files changed, 43 insertions(+), 10 deletions(-)
+
+diff --git a/.gitignore b/.gitignore
+index 525628e..ae3e740 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -15,7 +15,10 @@ Makefile.in
+ /libtool
+ /stamp-h1
+ 
+-/doxygen.cfg
++/doxygen/doxygen.cfg
+ /libnetfilter_queue.pc
+ 
+ /examples/nf-queue
++/doxygen/doxyfile.stamp
++/doxygen/html/
++/doxygen/man/
+diff --git a/configure.ac b/configure.ac
+index 4721eeb..83959b0 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -13,6 +13,22 @@ m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
+ dnl kernel style compile messages
+ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+ 
++AC_ARG_ENABLE([html-doc],
++	      AS_HELP_STRING([--enable-html-doc], [Enable html documentation]),
++	      [], [enable_html_doc=no])
++AM_CONDITIONAL([BUILD_HTML], [test "$enable_html_doc" = yes])
++AS_IF([test "$enable_html_doc" = yes],
++	[AC_SUBST(GEN_HTML, YES)],
++	[AC_SUBST(GEN_HTML, NO)])
++
++AC_ARG_ENABLE([man-pages],
++	      AS_HELP_STRING([--disable-man-pages], [Disable man page documentation]),
++	      [], [enable_man_pages=yes])
++AM_CONDITIONAL([BUILD_MAN], [test "$enable_man_pages" = yes])
++AS_IF([test "$enable_man_pages" = yes],
++	[AC_SUBST(GEN_MAN, YES)],
++	[AC_SUBST(GEN_MAN, NO)])
++
+ AC_PROG_CC
+ AM_PROG_CC_C_O
+ AC_DISABLE_STATIC
+@@ -36,12 +52,10 @@ AC_CONFIG_FILES([Makefile src/Makefile utils/Makefile examples/Makefile
+ 	doxygen/Makefile doxygen/doxygen.cfg
+ 	include/linux/Makefile include/linux/netfilter/Makefile])
+ 
+-AC_ARG_WITH([doxygen], [AS_HELP_STRING([--with-doxygen],
+-	    [create doxygen documentation])],
+-	    [with_doxygen="$withval"], [with_doxygen=yes])
++AS_IF([test "$enable_man_pages" = no -a "$enable_html_doc" = no], [with_doxygen=no], [with_doxygen=yes])
+ 
+ AS_IF([test "x$with_doxygen" != xno], [
+-	AC_CHECK_PROGS([DOXYGEN], [doxygen])
++	AC_CHECK_PROGS([DOXYGEN], [doxygen], [""])
+ 	AC_CHECK_PROGS([DOT], [dot], [""])
+ 	AS_IF([test "x$DOT" != "x"],
+ 	      [AC_SUBST(HAVE_DOT, YES)],
+@@ -52,12 +66,18 @@ AM_CONDITIONAL([HAVE_DOXYGEN], [test -n "$DOXYGEN"])
+ AS_IF([test "x$DOXYGEN" = x], [
+ 	AS_IF([test "x$with_doxygen" != xno], [
+ 		dnl Only run doxygen Makefile if doxygen installed
+-		AC_MSG_WARN([Doxygen not found - continuing without Doxygen support])
+-		with_doxygen=no
++		AC_MSG_WARN([Doxygen not found - no documentation will be built])
++		enable_html_doc=no
++		enable_man_pages=no
+ 	])
++], [
++	dnl Warn user if html docs will be missing diagrams
++	AS_IF([test "$enable_html_doc" = yes -a -z "$DOT"],
++		AC_MSG_WARN([Dot not found - install graphviz to get interactive diagrams in HTML]))
+ ])
+ AC_OUTPUT
+ 
+ echo "
+ libnetfilter_queue configuration:
+-  doxygen:                      ${with_doxygen}"
++man pages:                      ${enable_man_pages}
++html docs:                      ${enable_html_doc}"
+diff --git a/doxygen/Makefile.am b/doxygen/Makefile.am
+index 5a7fdd5..c6eeed7 100644
+--- a/doxygen/Makefile.am
++++ b/doxygen/Makefile.am
+@@ -14,7 +14,9 @@ doxyfile.stamp: $(doc_srcs) Makefile
+ 	rm -rf html man
+ 	doxygen doxygen.cfg >/dev/null
+ 
++if BUILD_MAN
+ 	$(abs_top_srcdir)/doxygen/build_man.sh
++endif
+ 
+ 	touch doxyfile.stamp
+ 
+@@ -24,13 +26,20 @@ all-local: doxyfile.stamp
+ clean-local:
+ 	rm -rf man html
+ install-data-local:
++if BUILD_MAN
+ 	mkdir -p $(DESTDIR)$(mandir)/man3
+ 	cp --no-dereference --preserve=links,mode,timestamps man/man3/*.3\
+ 	  $(DESTDIR)$(mandir)/man3/
++endif
++if BUILD_HTML
++	mkdir  -p $(DESTDIR)$(htmldir)
++	cp  --no-dereference --preserve=links,mode,timestamps html/*\
++		$(DESTDIR)$(htmldir)
++endif
+ 
+ # make distcheck needs uninstall-local
+ uninstall-local:
+-	rm -r $(DESTDIR)$(mandir) man html doxyfile.stamp
++	rm -rf $(DESTDIR)$(mandir) man html doxyfile.stamp $(DESTDIR)$(htmldir)
+ endif
+ 
+ EXTRA_DIST = build_man.sh
+diff --git a/doxygen/doxygen.cfg.in b/doxygen/doxygen.cfg.in
+index 99b5c90..14bd0cf 100644
+--- a/doxygen/doxygen.cfg.in
++++ b/doxygen/doxygen.cfg.in
+@@ -21,7 +21,8 @@ ALPHABETICAL_INDEX     = NO
+ SEARCHENGINE           = NO
+ GENERATE_LATEX         = NO
+ LATEX_CMD_NAME         = latex
+-GENERATE_MAN           = YES
++GENERATE_MAN           = @GEN_MAN@
++GENERATE_HTML          = @GEN_HTML@
+ MAN_LINKS              = YES
+ HAVE_DOT               = @HAVE_DOT@
+ DOT_TRANSPARENT        = YES
+-- 
+2.17.5
+
