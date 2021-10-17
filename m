@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64EBDC433F5
-	for <netfilter-devel@archiver.kernel.org>; Sun, 17 Oct 2021 22:15:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 384A1C433FE
+	for <netfilter-devel@archiver.kernel.org>; Sun, 17 Oct 2021 22:15:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5268360FED
-	for <netfilter-devel@archiver.kernel.org>; Sun, 17 Oct 2021 22:15:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 21CDB610C7
+	for <netfilter-devel@archiver.kernel.org>; Sun, 17 Oct 2021 22:15:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344779AbhJQWSD (ORCPT
+        id S1344762AbhJQWSG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 17 Oct 2021 18:18:03 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:53396 "EHLO
+        Sun, 17 Oct 2021 18:18:06 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:53480 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344778AbhJQWR6 (ORCPT
+        with ESMTP id S1344784AbhJQWR7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 17 Oct 2021 18:17:58 -0400
+        Sun, 17 Oct 2021 18:17:59 -0400
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 6EEE563F29;
-        Mon, 18 Oct 2021 00:14:06 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 2018F63F04;
+        Mon, 18 Oct 2021 00:14:08 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH nf-next 12/15] netfilter: ipvs: remove unneeded output wrappers
-Date:   Mon, 18 Oct 2021 00:15:19 +0200
-Message-Id: <20211017221522.853838-13-pablo@netfilter.org>
+Subject: [PATCH nf-next 15/15] netfilter: core: Fix clang warnings about unused static inlines
+Date:   Mon, 18 Oct 2021 00:15:22 +0200
+Message-Id: <20211017221522.853838-16-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20211017221522.853838-1-pablo@netfilter.org>
 References: <20211017221522.853838-1-pablo@netfilter.org>
@@ -34,132 +34,62 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Lukas Wunner <lukas@wunner.de>
 
-After earlier patch we can use ip_vs_out_hook directly.
+Unlike gcc, clang warns about unused static inlines that are not in an
+include file:
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Acked-by: Julian Anastasov <ja@ssi.bg>
+  net/netfilter/core.c:344:20: error: unused function 'nf_ingress_hook' [-Werror,-Wunused-function]
+  static inline bool nf_ingress_hook(const struct nf_hook_ops *reg, int pf)
+                     ^
+  net/netfilter/core.c:353:20: error: unused function 'nf_egress_hook' [-Werror,-Wunused-function]
+  static inline bool nf_egress_hook(const struct nf_hook_ops *reg, int pf)
+                     ^
+
+According to commit 6863f5643dd7 ("kbuild: allow Clang to find unused
+static inline functions for W=1 build"), the proper resolution is to
+mark the affected functions as __maybe_unused.  An alternative approach
+would be to move them to include/linux/netfilter_netdev.h, but since
+Pablo didn't do that in commit ddcfa710d40b ("netfilter: add
+nf_ingress_hook() helper function"), I'm guessing __maybe_unused is
+preferred.
+
+This fixes both the warning introduced by Pablo in v5.10 as well as the
+one recently introduced by myself with commit 42df6e1d221d ("netfilter:
+Introduce egress hook").
+
+Fixes: ddcfa710d40b ("netfilter: add nf_ingress_hook() helper function")
+Reported-by: kernel test robot <lkp@intel.com>
+Signed-off-by: Lukas Wunner <lukas@wunner.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_core.c | 62 ++++-----------------------------
- 1 file changed, 6 insertions(+), 56 deletions(-)
+ net/netfilter/core.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 5a5deee3425c..2db033455204 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -1471,56 +1471,6 @@ ip_vs_out_hook(void *priv, struct sk_buff *skb, const struct nf_hook_state *stat
- 	return NF_ACCEPT;
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 3a32a813fcde..6dec9cd395f1 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -341,7 +341,8 @@ static int nf_ingress_check(struct net *net, const struct nf_hook_ops *reg,
+ 	return 0;
  }
  
--/*
-- *	It is hooked at the NF_INET_FORWARD and NF_INET_LOCAL_IN chain,
-- *	used only for VS/NAT.
-- *	Check if packet is reply for established ip_vs_conn.
-- */
--static unsigned int
--ip_vs_reply4(void *priv, struct sk_buff *skb,
--	     const struct nf_hook_state *state)
--{
--	return ip_vs_out_hook(priv, skb, state);
--}
--
--/*
-- *	It is hooked at the NF_INET_LOCAL_OUT chain, used only for VS/NAT.
-- *	Check if packet is reply for established ip_vs_conn.
-- */
--static unsigned int
--ip_vs_local_reply4(void *priv, struct sk_buff *skb,
--		   const struct nf_hook_state *state)
--{
--	return ip_vs_out_hook(priv, skb, state);
--}
--
--#ifdef CONFIG_IP_VS_IPV6
--
--/*
-- *	It is hooked at the NF_INET_FORWARD and NF_INET_LOCAL_IN chain,
-- *	used only for VS/NAT.
-- *	Check if packet is reply for established ip_vs_conn.
-- */
--static unsigned int
--ip_vs_reply6(void *priv, struct sk_buff *skb,
--	     const struct nf_hook_state *state)
--{
--	return ip_vs_out_hook(priv, skb, state);
--}
--
--/*
-- *	It is hooked at the NF_INET_LOCAL_OUT chain, used only for VS/NAT.
-- *	Check if packet is reply for established ip_vs_conn.
-- */
--static unsigned int
--ip_vs_local_reply6(void *priv, struct sk_buff *skb,
--		   const struct nf_hook_state *state)
--{
--	return ip_vs_out_hook(priv, skb, state);
--}
--
--#endif
--
- static unsigned int
- ip_vs_try_to_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
- 		      struct ip_vs_proto_data *pd,
-@@ -2243,7 +2193,7 @@ ip_vs_forward_icmp_v6(void *priv, struct sk_buff *skb,
- static const struct nf_hook_ops ip_vs_ops4[] = {
- 	/* After packet filtering, change source only for VS/NAT */
- 	{
--		.hook		= ip_vs_reply4,
-+		.hook		= ip_vs_out_hook,
- 		.pf		= NFPROTO_IPV4,
- 		.hooknum	= NF_INET_LOCAL_IN,
- 		.priority	= NF_IP_PRI_NAT_SRC - 2,
-@@ -2259,7 +2209,7 @@ static const struct nf_hook_ops ip_vs_ops4[] = {
- 	},
- 	/* Before ip_vs_in, change source only for VS/NAT */
- 	{
--		.hook		= ip_vs_local_reply4,
-+		.hook		= ip_vs_out_hook,
- 		.pf		= NFPROTO_IPV4,
- 		.hooknum	= NF_INET_LOCAL_OUT,
- 		.priority	= NF_IP_PRI_NAT_DST + 1,
-@@ -2281,7 +2231,7 @@ static const struct nf_hook_ops ip_vs_ops4[] = {
- 	},
- 	/* After packet filtering, change source only for VS/NAT */
- 	{
--		.hook		= ip_vs_reply4,
-+		.hook		= ip_vs_out_hook,
- 		.pf		= NFPROTO_IPV4,
- 		.hooknum	= NF_INET_FORWARD,
- 		.priority	= 100,
-@@ -2292,7 +2242,7 @@ static const struct nf_hook_ops ip_vs_ops4[] = {
- static const struct nf_hook_ops ip_vs_ops6[] = {
- 	/* After packet filtering, change source only for VS/NAT */
- 	{
--		.hook		= ip_vs_reply6,
-+		.hook		= ip_vs_out_hook,
- 		.pf		= NFPROTO_IPV6,
- 		.hooknum	= NF_INET_LOCAL_IN,
- 		.priority	= NF_IP6_PRI_NAT_SRC - 2,
-@@ -2308,7 +2258,7 @@ static const struct nf_hook_ops ip_vs_ops6[] = {
- 	},
- 	/* Before ip_vs_in, change source only for VS/NAT */
- 	{
--		.hook		= ip_vs_local_reply6,
-+		.hook		= ip_vs_out_hook,
- 		.pf		= NFPROTO_IPV6,
- 		.hooknum	= NF_INET_LOCAL_OUT,
- 		.priority	= NF_IP6_PRI_NAT_DST + 1,
-@@ -2330,7 +2280,7 @@ static const struct nf_hook_ops ip_vs_ops6[] = {
- 	},
- 	/* After packet filtering, change source only for VS/NAT */
- 	{
--		.hook		= ip_vs_reply6,
-+		.hook		= ip_vs_out_hook,
- 		.pf		= NFPROTO_IPV6,
- 		.hooknum	= NF_INET_FORWARD,
- 		.priority	= 100,
+-static inline bool nf_ingress_hook(const struct nf_hook_ops *reg, int pf)
++static inline bool __maybe_unused nf_ingress_hook(const struct nf_hook_ops *reg,
++						  int pf)
+ {
+ 	if ((pf == NFPROTO_NETDEV && reg->hooknum == NF_NETDEV_INGRESS) ||
+ 	    (pf == NFPROTO_INET && reg->hooknum == NF_INET_INGRESS))
+@@ -350,7 +351,8 @@ static inline bool nf_ingress_hook(const struct nf_hook_ops *reg, int pf)
+ 	return false;
+ }
+ 
+-static inline bool nf_egress_hook(const struct nf_hook_ops *reg, int pf)
++static inline bool __maybe_unused nf_egress_hook(const struct nf_hook_ops *reg,
++						 int pf)
+ {
+ 	return pf == NFPROTO_NETDEV && reg->hooknum == NF_NETDEV_EGRESS;
+ }
 -- 
 2.30.2
 
