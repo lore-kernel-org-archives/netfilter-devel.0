@@ -2,66 +2,72 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11C5FC433F5
-	for <netfilter-devel@archiver.kernel.org>; Sun, 17 Oct 2021 12:18:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 172D6C433F5
+	for <netfilter-devel@archiver.kernel.org>; Sun, 17 Oct 2021 13:41:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D995861250
-	for <netfilter-devel@archiver.kernel.org>; Sun, 17 Oct 2021 12:18:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EA31C60462
+	for <netfilter-devel@archiver.kernel.org>; Sun, 17 Oct 2021 13:41:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245633AbhJQMUp (ORCPT
+        id S1343749AbhJQNoC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 17 Oct 2021 08:20:45 -0400
-Received: from kirsty.vergenet.net ([202.4.237.240]:45290 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245622AbhJQMUo (ORCPT
+        Sun, 17 Oct 2021 09:44:02 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:52938 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S242392AbhJQNoC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 17 Oct 2021 08:20:44 -0400
-Received: from madeliefje.horms.nl (120-114-128-083.dynamic.caiway.nl [83.128.114.120])
-        by kirsty.vergenet.net (Postfix) with ESMTPA id 9B95F25AEAA;
-        Sun, 17 Oct 2021 23:18:33 +1100 (AEDT)
-Received: by madeliefje.horms.nl (Postfix, from userid 7100)
-        id 8BC3D4421; Sun, 17 Oct 2021 14:18:31 +0200 (CEST)
-Date:   Sun, 17 Oct 2021 14:18:31 +0200
-From:   Simon Horman <horms@verge.net.au>
-To:     Julian Anastasov <ja@ssi.bg>
-Cc:     Antoine Tenart <atenart@kernel.org>, davem@davemloft.net,
-        kuba@kernel.org, pablo@netfilter.org, kadlec@netfilter.org,
-        fw@strlen.de, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: Re: [PATCH net] netfilter: ipvs: make global sysctl readonly in
- non-init netns
-Message-ID: <20211017121831.GD8292@vergenet.net>
-References: <20211012145437.754391-1-atenart@kernel.org>
- <8e76869d-ae27-198a-e750-16cd26e63737@ssi.bg>
+        Sun, 17 Oct 2021 09:44:02 -0400
+Received: from netfilter.org (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 52D6263EE1;
+        Sun, 17 Oct 2021 15:40:11 +0200 (CEST)
+Date:   Sun, 17 Oct 2021 15:41:46 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jeremy Sowden <jeremy@azazel.net>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: You dropped the wrong patvh from patchwork
+Message-ID: <YWwoGrraZHIaPqIx@salvia>
+References: <20211016043948.2422-1-duncan_roe@optusnet.com.au>
+ <YWp+/MO6jhvgUdGM@slk1.local.net>
+ <YWuCt8cFd3k5YcXz@slk1.local.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <8e76869d-ae27-198a-e750-16cd26e63737@ssi.bg>
-Organisation: Horms Solutions BV
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <YWuCt8cFd3k5YcXz@slk1.local.net>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Oct 12, 2021 at 11:48:52PM +0300, Julian Anastasov wrote:
+On Sun, Oct 17, 2021 at 12:56:07PM +1100, Duncan Roe wrote:
+> Hi Pablo,
 > 
-> 	Hello,
-> 
-> On Tue, 12 Oct 2021, Antoine Tenart wrote:
-> 
-> > Because the data pointer of net/ipv4/vs/debug_level is not updated per
-> > netns, it must be marked as read-only in non-init netns.
-> > 
-> > Fixes: c6d2d445d8de ("IPVS: netns, final patch enabling network name space.")
-> > Signed-off-by: Antoine Tenart <atenart@kernel.org>
-> 
-> 	Looks good to me, thanks!
-> 
-> Acked-by: Julian Anastasov <ja@ssi.bg>
+> On Sat, Oct 16, 2021 at 06:27:56PM +1100, Duncan Roe wrote:
+> > On Sat, Oct 16, 2021 at 03:39:48PM +1100, Duncan Roe wrote:
+> > > - configure --help lists non-default documentation options.
+> > >   Looking around the web, this seemed to me to be what most projects do.
+> > >   Listed options are --enable-html-doc & --disable-man-pages.
+> > > - --with-doxygen is removed: --disable-man-pages also disables doxygen unless
+> > >   --enable-html-doc is asserted.
+> > > If html is requested, `make install` installs it in htmldir.
+> > >
+> > > Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+> > > ---
+> > > v2: broken out from 0001-build-doc-Fix-man-pages.patch
+> > > v3: no change (still part of a series)
+> > > v4: remove --without-doxygen since -disable-man-pages does that
+> > > v5: - update .gitignore for clean `git status` after in-tree build
+> > >     - in configure.ac:
+> > >       - ensure all variables are always set (avoid leakage from environment)
+> > >       - provide helpful warning if HTML enabled but dot not found
+> > [...]
+> > Sorry Pablo, this is for libnetfilter_queue.
+> > I don't see it in patchwork - did you get rid of it already?
+> > Will re-send with correct Sj.
+> >
+> Sorry again for the confusion but you dropped the good libnetfilter_log patch
+> that was Tested-by: Jeremy Sowden and left the bad libnetfilter_log patch that
+> actually applies to libnetfilter_queue.
 
-Likewise, thanks.
+Are you refering to this patch?
 
-Acked-by: Simon Horman <horms@verge.net.au>
+https://patchwork.ozlabs.org/project/netfilter-devel/patch/20211017013951.12584-1-duncan_roe@optusnet.com.au/
 
-Pablo, please consider picking up this patch.
-
+This is the one that Jeremy added the Tested-by: tag, correct?
