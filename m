@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14AC6C4167E
-	for <netfilter-devel@archiver.kernel.org>; Sun, 17 Oct 2021 22:15:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64EBDC433F5
+	for <netfilter-devel@archiver.kernel.org>; Sun, 17 Oct 2021 22:15:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F304060FED
+	by mail.kernel.org (Postfix) with ESMTP id 5268360FED
 	for <netfilter-devel@archiver.kernel.org>; Sun, 17 Oct 2021 22:15:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344798AbhJQWSE (ORCPT
+        id S1344779AbhJQWSD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 17 Oct 2021 18:18:04 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:53440 "EHLO
+        Sun, 17 Oct 2021 18:18:03 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:53396 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344782AbhJQWR6 (ORCPT
+        with ESMTP id S1344778AbhJQWR6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Sun, 17 Oct 2021 18:17:58 -0400
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id F2C65605E1;
+        by mail.netfilter.org (Postfix) with ESMTPSA id 6EEE563F29;
         Mon, 18 Oct 2021 00:14:06 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH nf-next 13/15] netfilter: ipvs: remove unneeded input wrappers
-Date:   Mon, 18 Oct 2021 00:15:20 +0200
-Message-Id: <20211017221522.853838-14-pablo@netfilter.org>
+Subject: [PATCH nf-next 12/15] netfilter: ipvs: remove unneeded output wrappers
+Date:   Mon, 18 Oct 2021 00:15:19 +0200
+Message-Id: <20211017221522.853838-13-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20211017221522.853838-1-pablo@netfilter.org>
 References: <20211017221522.853838-1-pablo@netfilter.org>
@@ -36,111 +36,130 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-After earlier patch ip_vs_hook_in can be used directly.
+After earlier patch we can use ip_vs_out_hook directly.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Acked-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_core.c | 57 +++------------------------------
- 1 file changed, 4 insertions(+), 53 deletions(-)
+ net/netfilter/ipvs/ip_vs_core.c | 62 ++++-----------------------------
+ 1 file changed, 6 insertions(+), 56 deletions(-)
 
 diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 2db033455204..ad5f5e50547f 100644
+index 5a5deee3425c..2db033455204 100644
 --- a/net/netfilter/ipvs/ip_vs_core.c
 +++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -2093,55 +2093,6 @@ ip_vs_in_hook(void *priv, struct sk_buff *skb, const struct nf_hook_state *state
- 	return ret;
+@@ -1471,56 +1471,6 @@ ip_vs_out_hook(void *priv, struct sk_buff *skb, const struct nf_hook_state *stat
+ 	return NF_ACCEPT;
  }
  
 -/*
-- *	AF_INET handler in NF_INET_LOCAL_IN chain
-- *	Schedule and forward packets from remote clients
+- *	It is hooked at the NF_INET_FORWARD and NF_INET_LOCAL_IN chain,
+- *	used only for VS/NAT.
+- *	Check if packet is reply for established ip_vs_conn.
 - */
 -static unsigned int
--ip_vs_remote_request4(void *priv, struct sk_buff *skb,
--		      const struct nf_hook_state *state)
+-ip_vs_reply4(void *priv, struct sk_buff *skb,
+-	     const struct nf_hook_state *state)
 -{
--	return ip_vs_in_hook(priv, skb, state);
+-	return ip_vs_out_hook(priv, skb, state);
 -}
 -
 -/*
-- *	AF_INET handler in NF_INET_LOCAL_OUT chain
-- *	Schedule and forward packets from local clients
+- *	It is hooked at the NF_INET_LOCAL_OUT chain, used only for VS/NAT.
+- *	Check if packet is reply for established ip_vs_conn.
 - */
 -static unsigned int
--ip_vs_local_request4(void *priv, struct sk_buff *skb,
--		     const struct nf_hook_state *state)
+-ip_vs_local_reply4(void *priv, struct sk_buff *skb,
+-		   const struct nf_hook_state *state)
 -{
--	return ip_vs_in_hook(priv, skb, state);
+-	return ip_vs_out_hook(priv, skb, state);
 -}
 -
 -#ifdef CONFIG_IP_VS_IPV6
 -
 -/*
-- *	AF_INET6 handler in NF_INET_LOCAL_IN chain
-- *	Schedule and forward packets from remote clients
+- *	It is hooked at the NF_INET_FORWARD and NF_INET_LOCAL_IN chain,
+- *	used only for VS/NAT.
+- *	Check if packet is reply for established ip_vs_conn.
 - */
 -static unsigned int
--ip_vs_remote_request6(void *priv, struct sk_buff *skb,
--		      const struct nf_hook_state *state)
+-ip_vs_reply6(void *priv, struct sk_buff *skb,
+-	     const struct nf_hook_state *state)
 -{
--	return ip_vs_in_hook(priv, skb, state);
+-	return ip_vs_out_hook(priv, skb, state);
 -}
 -
 -/*
-- *	AF_INET6 handler in NF_INET_LOCAL_OUT chain
-- *	Schedule and forward packets from local clients
+- *	It is hooked at the NF_INET_LOCAL_OUT chain, used only for VS/NAT.
+- *	Check if packet is reply for established ip_vs_conn.
 - */
 -static unsigned int
--ip_vs_local_request6(void *priv, struct sk_buff *skb,
--		     const struct nf_hook_state *state)
+-ip_vs_local_reply6(void *priv, struct sk_buff *skb,
+-		   const struct nf_hook_state *state)
 -{
--	return ip_vs_in_hook(priv, skb, state);
+-	return ip_vs_out_hook(priv, skb, state);
 -}
 -
 -#endif
 -
--
- /*
-  *	It is hooked at the NF_INET_FORWARD chain, in order to catch ICMP
-  *      related packets destined for 0.0.0.0/0.
-@@ -2202,7 +2153,7 @@ static const struct nf_hook_ops ip_vs_ops4[] = {
- 	 * or VS/NAT(change destination), so that filtering rules can be
- 	 * applied to IPVS. */
+ static unsigned int
+ ip_vs_try_to_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+ 		      struct ip_vs_proto_data *pd,
+@@ -2243,7 +2193,7 @@ ip_vs_forward_icmp_v6(void *priv, struct sk_buff *skb,
+ static const struct nf_hook_ops ip_vs_ops4[] = {
+ 	/* After packet filtering, change source only for VS/NAT */
  	{
--		.hook		= ip_vs_remote_request4,
-+		.hook		= ip_vs_in_hook,
+-		.hook		= ip_vs_reply4,
++		.hook		= ip_vs_out_hook,
  		.pf		= NFPROTO_IPV4,
  		.hooknum	= NF_INET_LOCAL_IN,
- 		.priority	= NF_IP_PRI_NAT_SRC - 1,
-@@ -2216,7 +2167,7 @@ static const struct nf_hook_ops ip_vs_ops4[] = {
+ 		.priority	= NF_IP_PRI_NAT_SRC - 2,
+@@ -2259,7 +2209,7 @@ static const struct nf_hook_ops ip_vs_ops4[] = {
  	},
- 	/* After mangle, schedule and forward local requests */
+ 	/* Before ip_vs_in, change source only for VS/NAT */
  	{
--		.hook		= ip_vs_local_request4,
-+		.hook		= ip_vs_in_hook,
+-		.hook		= ip_vs_local_reply4,
++		.hook		= ip_vs_out_hook,
  		.pf		= NFPROTO_IPV4,
  		.hooknum	= NF_INET_LOCAL_OUT,
- 		.priority	= NF_IP_PRI_NAT_DST + 2,
-@@ -2251,7 +2202,7 @@ static const struct nf_hook_ops ip_vs_ops6[] = {
- 	 * or VS/NAT(change destination), so that filtering rules can be
- 	 * applied to IPVS. */
+ 		.priority	= NF_IP_PRI_NAT_DST + 1,
+@@ -2281,7 +2231,7 @@ static const struct nf_hook_ops ip_vs_ops4[] = {
+ 	},
+ 	/* After packet filtering, change source only for VS/NAT */
  	{
--		.hook		= ip_vs_remote_request6,
-+		.hook		= ip_vs_in_hook,
+-		.hook		= ip_vs_reply4,
++		.hook		= ip_vs_out_hook,
+ 		.pf		= NFPROTO_IPV4,
+ 		.hooknum	= NF_INET_FORWARD,
+ 		.priority	= 100,
+@@ -2292,7 +2242,7 @@ static const struct nf_hook_ops ip_vs_ops4[] = {
+ static const struct nf_hook_ops ip_vs_ops6[] = {
+ 	/* After packet filtering, change source only for VS/NAT */
+ 	{
+-		.hook		= ip_vs_reply6,
++		.hook		= ip_vs_out_hook,
  		.pf		= NFPROTO_IPV6,
  		.hooknum	= NF_INET_LOCAL_IN,
- 		.priority	= NF_IP6_PRI_NAT_SRC - 1,
-@@ -2265,7 +2216,7 @@ static const struct nf_hook_ops ip_vs_ops6[] = {
+ 		.priority	= NF_IP6_PRI_NAT_SRC - 2,
+@@ -2308,7 +2258,7 @@ static const struct nf_hook_ops ip_vs_ops6[] = {
  	},
- 	/* After mangle, schedule and forward local requests */
+ 	/* Before ip_vs_in, change source only for VS/NAT */
  	{
--		.hook		= ip_vs_local_request6,
-+		.hook		= ip_vs_in_hook,
+-		.hook		= ip_vs_local_reply6,
++		.hook		= ip_vs_out_hook,
  		.pf		= NFPROTO_IPV6,
  		.hooknum	= NF_INET_LOCAL_OUT,
- 		.priority	= NF_IP6_PRI_NAT_DST + 2,
+ 		.priority	= NF_IP6_PRI_NAT_DST + 1,
+@@ -2330,7 +2280,7 @@ static const struct nf_hook_ops ip_vs_ops6[] = {
+ 	},
+ 	/* After packet filtering, change source only for VS/NAT */
+ 	{
+-		.hook		= ip_vs_reply6,
++		.hook		= ip_vs_out_hook,
+ 		.pf		= NFPROTO_IPV6,
+ 		.hooknum	= NF_INET_FORWARD,
+ 		.priority	= 100,
 -- 
 2.30.2
 
