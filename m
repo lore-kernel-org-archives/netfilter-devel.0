@@ -2,307 +2,198 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CB8FC433F5
-	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Oct 2021 12:38:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EBD6C433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Oct 2021 14:34:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4560060FC3
-	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Oct 2021 12:38:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EFFFB60FC3
+	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Oct 2021 14:34:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231857AbhJRMk5 (ORCPT
+        id S231941AbhJROgo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 18 Oct 2021 08:40:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51014 "EHLO
+        Mon, 18 Oct 2021 10:36:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49744 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231922AbhJRMkl (ORCPT
+        with ESMTP id S231495AbhJROgn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 18 Oct 2021 08:40:41 -0400
+        Mon, 18 Oct 2021 10:36:43 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2CD40C06176F
-        for <netfilter-devel@vger.kernel.org>; Mon, 18 Oct 2021 05:38:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5EC3C06161C;
+        Mon, 18 Oct 2021 07:34:32 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1mcRuN-0006EC-Cv; Mon, 18 Oct 2021 14:38:27 +0200
+        (envelope-from <fw@strlen.de>)
+        id 1mcTig-0007Ls-1l; Mon, 18 Oct 2021 16:34:30 +0200
+Date:   Mon, 18 Oct 2021 16:34:30 +0200
 From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     dsahern@kernel.org, Florian Westphal <fw@strlen.de>,
-        Eugene Crosser <crosser@average.org>,
-        Lahav Schlesinger <lschlesinger@drivenets.com>
-Subject: [PATCH nf] selftests: netfilter: add a vrf+conntrack testcase
-Date:   Mon, 18 Oct 2021 14:38:13 +0200
-Message-Id: <20211018123813.17248-1-fw@strlen.de>
-X-Mailer: git-send-email 2.32.0
+To:     David Ahern <dsahern@gmail.com>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Eugene Crosser <crosser@average.org>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org,
+        Lahav Schlesinger <lschlesinger@drivenets.com>,
+        David Ahern <dsahern@kernel.org>
+Subject: Re: Commit 09e856d54bda5f288ef8437a90ab2b9b3eab83d1r "vrf: Reset skb
+ conntrack connection on VRF rcv" breaks expected netfilter behaviour
+Message-ID: <20211018143430.GB28644@breakpoint.cc>
+References: <bca5dcab-ef6b-8711-7f99-8d86e79d76eb@average.org>
+ <20211013092235.GA32450@breakpoint.cc>
+ <20211015210448.GA5069@breakpoint.cc>
+ <378ca299-4474-7e9a-3d36-2350c8c98995@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <378ca299-4474-7e9a-3d36-2350c8c98995@gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Rework the reproducer for the vrf+conntrack regression reported
-by Eugene into a selftest and also add a test for ip masquerading
-that Lahav fixed recently.
+David Ahern <dsahern@gmail.com> wrote:
 
-With net or net-next tree, the first test fails and the latter
-two pass.
+Hi David
 
-With 09e856d54bda5f28 ("vrf: Reset skb conntrack connection on VRF rcv")
-reverted first test passes but the last two fail.
+TL;DR:
+What is your take on the correct/expected behaviour with vrf+conntrack+nat?
 
-A proper fix needs more work, for time being a revert seems to be
-the best choice, snat/masquerade did not work before the fix.
+> Thanks for jumping in, Florian.
 
-Link: https://lore.kernel.org/netdev/378ca299-4474-7e9a-3d36-2350c8c98995@gmail.com/T/#m95358a31810df7392f541f99d187227bc75c9963
-Reported-by: Eugene Crosser <crosser@average.org>
-Cc: Lahav Schlesinger <lschlesinger@drivenets.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- Lahav, it would be nice if you could check if this
- is a correct test of the scenario that you fixed with
- 09e856d54bda5f28. Thanks!
+NP.
 
- tools/testing/selftests/netfilter/Makefile    |   3 +-
- .../selftests/netfilter/conntrack_vrf.sh      | 219 ++++++++++++++++++
- 2 files changed, 221 insertions(+), 1 deletion(-)
- create mode 100755 tools/testing/selftests/netfilter/conntrack_vrf.sh
+Sorry for the wall of text below.
 
-diff --git a/tools/testing/selftests/netfilter/Makefile b/tools/testing/selftests/netfilter/Makefile
-index 8748199ac109..ffca314897c4 100644
---- a/tools/testing/selftests/netfilter/Makefile
-+++ b/tools/testing/selftests/netfilter/Makefile
-@@ -5,7 +5,8 @@ TEST_PROGS := nft_trans_stress.sh nft_fib.sh nft_nat.sh bridge_brouter.sh \
- 	conntrack_icmp_related.sh nft_flowtable.sh ipvs.sh \
- 	nft_concat_range.sh nft_conntrack_helper.sh \
- 	nft_queue.sh nft_meta.sh nf_nat_edemux.sh \
--	ipip-conntrack-mtu.sh conntrack_tcp_unreplied.sh
-+	ipip-conntrack-mtu.sh conntrack_tcp_unreplied.sh \
-+	conntrack_vrf.sh
- 
- LDLIBS = -lmnl
- TEST_GEN_FILES =  nf-queue
-diff --git a/tools/testing/selftests/netfilter/conntrack_vrf.sh b/tools/testing/selftests/netfilter/conntrack_vrf.sh
-new file mode 100755
-index 000000000000..91f3ef0f1192
---- /dev/null
-+++ b/tools/testing/selftests/netfilter/conntrack_vrf.sh
-@@ -0,0 +1,219 @@
-+#!/bin/sh
-+
-+# This script demonstrates interaction of conntrack and vrf.
-+# The vrf driver calls the netfilter hooks again, with oif/iif
-+# pointing at the VRF device.
-+#
-+# For ingress, this means first iteration has iifname of lower/real
-+# device.  In this script, thats veth0.
-+# Second iteration is iifname set to vrf device, tvrf in this script.
-+#
-+# For egress, this is reversed: first iteration has the vrf device,
-+# second iteration is done with the lower/real/veth0 device.
-+#
-+# test_ct_zone_in demonstrates unexpected change of nftables
-+# behavior # caused by commit 09e856d54bda5f28 "vrf: Reset skb conntrack
-+# connection on VRF rcv"
-+#
-+# It was possible to assign conntrack zone to a packet (or mark it for
-+# `notracking`) in the prerouting chain before conntrack, based on real iif.
-+#
-+# After the change, the zone assignment is lost and the zone is assigned based
-+# on the VRF master interface (in case such a rule exists).
-+# assignment is lost. Instead, assignment based on the `iif` matching
-+# Thus it is impossible to distinguish packets based on the original
-+# interface.
-+#
-+# test_masquerade_vrf and test_masquerade_veth0 demonstrate the problem
-+# that was supposed to be fixed by the commit mentioned above to make sure
-+# that any fix to test case 1 won't break masquerade again.
-+
-+ksft_skip=4
-+
-+IP0=172.30.30.1
-+IP1=172.30.30.2
-+PFXL=30
-+ret=0
-+
-+sfx=$(mktemp -u "XXXXXXXX")
-+ns0="ns0-$sfx"
-+ns1="ns1-$sfx"
-+
-+cleanup()
-+{
-+	ip netns pids $ns0 | xargs kill 2>/dev/null
-+	ip netns pids $ns1 | xargs kill 2>/dev/null
-+
-+	ip netns del $ns0 $ns1
-+}
-+
-+nft --version > /dev/null 2>&1
-+if [ $? -ne 0 ];then
-+	echo "SKIP: Could not run test without nft tool"
-+	exit $ksft_skip
-+fi
-+
-+ip -Version > /dev/null 2>&1
-+if [ $? -ne 0 ];then
-+	echo "SKIP: Could not run test without ip tool"
-+	exit $ksft_skip
-+fi
-+
-+ip netns add "$ns0"
-+if [ $? -ne 0 ];then
-+	echo "SKIP: Could not create net namespace $ns0"
-+	exit $ksft_skip
-+fi
-+ip netns add "$ns1"
-+
-+trap cleanup EXIT
-+
-+ip netns exec $ns0 sysctl -q -w net.ipv4.conf.default.rp_filter=0
-+ip netns exec $ns0 sysctl -q -w net.ipv4.conf.all.rp_filter=0
-+ip netns exec $ns0 sysctl -q -w net.ipv4.conf.all.rp_filter=0
-+
-+ip link add veth0 netns "$ns0" type veth peer name veth0 netns "$ns1" > /dev/null 2>&1
-+if [ $? -ne 0 ];then
-+	echo "SKIP: Could not add veth device"
-+	exit $ksft_skip
-+fi
-+
-+ip -net $ns0 li add tvrf type vrf table 9876
-+if [ $? -ne 0 ];then
-+	echo "SKIP: Could not add vrf device"
-+	exit $ksft_skip
-+fi
-+
-+ip -net $ns0 li set lo up
-+
-+ip -net $ns0 li set veth0 master tvrf
-+ip -net $ns0 li set tvrf up
-+ip -net $ns0 li set veth0 up
-+ip -net $ns1 li set veth0 up
-+
-+ip -net $ns0 addr add $IP0/$PFXL dev veth0
-+ip -net $ns1 addr add $IP1/$PFXL dev veth0
-+
-+ip netns exec $ns1 iperf3 -s > /dev/null 2>&1&
-+if [ $? -ne 0 ];then
-+	echo "SKIP: Could not start iperf3"
-+	exit $ksft_skip
-+fi
-+
-+# test vrf ingress handling.
-+# The incoming connection should be placed in conntrack zone 1,
-+# as decided by the first iteration of the ruleset.
-+test_ct_zone_in()
-+{
-+ip netns exec $ns0 nft -f - <<EOF
-+table testct {
-+	chain rawpre {
-+		type filter hook prerouting priority raw;
-+
-+		iif { veth0, tvrf } counter meta nftrace set 1
-+		iif veth0 counter ct zone set 1 counter return
-+		iif tvrf counter ct zone set 2 counter return
-+		ip protocol icmp counter
-+		notrack counter
-+	}
-+
-+	chain rawout {
-+		type filter hook output priority raw;
-+
-+		oif veth0 counter ct zone set 1 counter return
-+		oif tvrf counter ct zone set 2 counter return
-+		notrack counter
-+	}
-+}
-+EOF
-+	ip netns exec $ns1 ping -W 1 -c 1 -I veth0 $IP0 > /dev/null
-+
-+	# should be in zone 1, not zone 2
-+	count=$(ip netns exec $ns0 conntrack -L -s $IP1 -d $IP0 -p icmp --zone 1 2>/dev/null | wc -l)
-+	if [ $count -eq 1 ]; then
-+		echo "PASS: entry found in conntrack zone 1"
-+	else
-+		echo "FAIL: entry not found in conntrack zone 1"
-+		count=$(ip netns exec $ns0 conntrack -L -s $IP1 -d $IP0 -p icmp --zone 2 2> /dev/null | wc -l)
-+		if [ $count -eq 1 ]; then
-+			echo "FAIL: entry found in zone 2 instead"
-+		else
-+			echo "FAIL: entry not in zone 1 or 2, dumping table"
-+			ip netns exec $ns0 conntrack -L
-+			ip netns exec $ns0 nft list ruleset
-+		fi
-+	fi
-+}
-+
-+# add masq rule that gets evaluated w. outif set to vrf device.
-+# This tests the first iteration of the packet through conntrack,
-+# oifname is the vrf device.
-+test_masquerade_vrf()
-+{
-+	ip netns exec $ns0 conntrack -F 2>/dev/null
-+
-+ip netns exec $ns0 nft -f - <<EOF
-+flush ruleset
-+table ip nat {
-+	chain postrouting {
-+		type nat hook postrouting priority 0;
-+		# NB: masquerade should always be combined with 'oif(name) bla',
-+		# lack of this is intentional here, we want to exercise double-snat.
-+		ip saddr 172.30.30.0/30 counter masquerade random
-+	}
-+}
-+EOF
-+	ip netns exec $ns0 ip vrf exec tvrf iperf3 -t 1 -c $IP1 >/dev/null
-+	if [ $? -ne 0 ]; then
-+		echo "FAIL: iperf3 connect failure with masquerade + sport rewrite on vrf device"
-+		ret=1
-+		return
-+	fi
-+
-+	# must also check that nat table was evaluated on second (lower device) iteration.
-+	ip netns exec $ns0 nft list table ip nat |grep -q 'counter packets 2'
-+	if [ $? -eq 0 ]; then
-+		echo "PASS: iperf3 connect with masquerade + sport rewrite on vrf device"
-+	else
-+		echo "FAIL: vrf masq rule has unexpected counter value"
-+		ret=1
-+	fi
-+}
-+
-+# add masq rule that gets evaluated w. outif set to veth device.
-+# This tests the 2nd iteration of the packet through conntrack,
-+# oifname is the lower device (veth0 in this case).
-+test_masquerade_veth()
-+{
-+	ip netns exec $ns0 conntrack -F 2>/dev/null
-+ip netns exec $ns0 nft -f - <<EOF
-+flush ruleset
-+table ip nat {
-+	chain postrouting {
-+		type nat hook postrouting priority 0;
-+		meta oif veth0 ip saddr 172.30.30.0/30 counter masquerade random
-+	}
-+}
-+EOF
-+	ip netns exec $ns0 ip vrf exec tvrf iperf3 -t 1 -c $IP1 > /dev/null
-+	if [ $? -ne 0 ]; then
-+		echo "FAIL: iperf3 connect failure with masquerade + sport rewrite on veth device"
-+		ret=1
-+		return
-+	fi
-+
-+	# must also check that nat table was evaluated on second (lower device) iteration.
-+	ip netns exec $ns0 nft list table ip nat |grep -q 'counter packets 2'
-+	if [ $? -eq 0 ]; then
-+		echo "PASS: iperf3 connect with masquerade + sport rewrite on veth device"
-+	else
-+		echo "FAIL: vrf masq rule has unexpected counter value"
-+		ret=1
-+	fi
-+}
-+
-+test_ct_zone_in
-+test_masquerade_vrf
-+test_masquerade_veth
-+
-+exit $ret
--- 
-2.32.0
+You can fast-forward to 'Possible solutions' if you want, but they key
+question for me at the moment is the one above.
 
+I've just submitted a selftest patch to nf.git that adds test
+cases for the problem reported by Eugene + two masquerade/snat test
+cases.
+
+With net/net-next, first test fails and the other two work, after
+revert its vice versa.
+
+To get all three working there are a couple of possible solutions to
+this but so far I don't have anything that is void of side effects.
+
+It assumes revert of the problematic commit, i.e. no nf_reset_ct in
+ingress path from VRF driver.
+
+First, a summary of VRF+nf+conntrack interaction and where problems are.
+
+The VRF driver invokes netfilter for output+postrouting hooks,
+with outdev set to the vrf device. Afterwards, ip stack calls those
+hooks again, with outdev set to lower device.
+
+This is a problem when conntrack is used with IP masquerading.
+With all nf_reset_ct() in vrf driver removed following will happen:
+
+1. Conntrack only, no nat, locally generated traffic.
+
+vrf driver calls output/postrouting hooks.
+output creates new conntrack object and attaches it to skb.
+postrouting confirms entry and places it into state table.
+
+When hooks are called a second time by IP stack, no new conntrack lookup is
+done because skb already has one attached to it.
+
+2. When SNAT is used, this works as well, second iteration doesn't
+   do connection tracking and re-uses nat settings done in iteration 1.
+
+However there are caveats:
+a) NAT rules that use something like '-o eth0' won't have any effect.
+b) IP address matching in round 2 is 'broken', as the second round deals
+with a rewritten skb (iph saddr already updated).
+
+This is because when the hooks are invoked a second time, there already
+is a NAT binding attached to the entry. This happens regardless of a
+matching '-o vrfdevice' nat rule or not; when first round did not match
+a nat rule, nat engine attaches a 'nat null binding'.
+
+3) When Masquerade is used, things don't work at all.
+
+This is because of nf_nat_oif_changed() triggering errnously in the nat
+engine.  When masquerade is hit, the output interface index gets stored
+in the conntrack entry.  When the interface index changes, its assumed
+that a routing change took place and the connection has been broken
+(masquerade picks saddr based on the output interface).
+
+Therefore, NF_DROP gets returned.
+
+In VRF case, this triggers because we see the skb twice, once with
+ifindex == vrf and once with lower/physdev.
+
+I suspect that this is what lead eb63ecc1706b3e094d0f57438b6c2067cfc299f2
+(net: vrf: Drop conntrack data after pass through VRF device on Tx),
+this added nf_reset() calls to the tx path.
+
+This changes things as follows:
+
+1. Conntrack only, no nat:
+same as before, expect that the second round does a new conntrack lookup.
+It will find the entry created by first iteration and use that.
+
+2. With nat:
+If first round has no matching nat rule, things work:
+Second round will find existing entry and use it.
+NAT rules on second iteration have no effect, just like before.
+
+If first round had a matching nat rule, then the packet gets rewritten.
+This means that the second round will NOT find an existing entry, and
+conntrack tracks the flow a second time, this time with the post-nat
+source address.
+
+Because of this, conntrack will also detect a tuple collision when it
+tries to insert the 'new flow incarnation', because the reply direction
+of the 'first round flow' collides with the original direction of the
+second iteration. This forces allocation of a new source port, so source
+port translation is done.
+
+This in turn breaks in reverse direction, because incoming/reply packet
+only hits the connection tracking engine once, i.e. only the source
+port translation is reversed.
+
+To fix this, Lahav also added nf_reset_ct() to ingress processing to
+undo the first round nat transformation as well.
+
+... and that in turn breaks 'notrack', 'mark' or 'ct zone' assignments
+done based on the incoming/lower device -- the nf_reset_ct zaps those
+settings before round 2 so they have no effect anymore.
+
+Possible solutions
+==================
+
+Taking a few steps back and ignoring 'backwards compat' for now, I think
+that conntrack should process the flow only once.  VRF doesn't transform the
+packets in any way and the only reason for the extra NF_HOOK() calls appear to
+be so that users can match on the incoming/outgoing vrf interface.
+
+a)
+For locally generated packets, the most simple fix would be to mark
+skb->nfct as 'untracked', and clear it again instead of nf_reset_ct().
+
+This avoids the need to change anyting on conntrack/nat side.
+The downside is that it becomes impossible to add nat mappings based
+on '-o vrf', because conntrack gets bypassed in round 1.
+
+For forwarding case (where OUTPUT hooks are not hit and
+ingress path has attached skb->nfct), we would need to find a different
+way to bypass conntrack.  One solution (least-LOC) is to nf_reset() and
+then mark skb as untracked.  IP(6)CB should have FORWARD flag set that
+can be used to detect this condition.
+
+b)
+make the nf_ct_reset calls in vrf tx path conditional.
+Its possible to detect when a NAT rule was hit via ct->status bits.
+
+When the NF_HOOK() calls invoked via VRF found a SNAT/MASQ rule,
+don't reset the conntrack entry.
+
+Downside 1: the second invocation is done with 'incorrect' ip source
+address, OTOH that already happens at this time.
+
+Downside 2: We need to alter conntrack/nat to avoid the 'oif has
+changed' logic from kicking in.
+
+I don't see other solutions at the moment.
+
+For INPUT, users can also match the lower device via inet_sdif()
+(original ifindex stored in IP(6)CB), but we don't have that
+for output, and its not easy to add something because IPCB isn't
+preserved between rounds 1 & 2.
