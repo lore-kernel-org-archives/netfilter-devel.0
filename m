@@ -2,69 +2,76 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C92EC433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Oct 2021 11:54:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 697B8C433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Oct 2021 12:10:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 86EC160FD8
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Oct 2021 11:54:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 49D426137D
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Oct 2021 12:10:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235466AbhJSL5F (ORCPT
+        id S231236AbhJSMMV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 19 Oct 2021 07:57:05 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:57566 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235431AbhJSL5E (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 19 Oct 2021 07:57:04 -0400
-Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 8454A60056;
-        Tue, 19 Oct 2021 13:53:08 +0200 (CEST)
-Date:   Tue, 19 Oct 2021 13:54:45 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] main: _exit() if setuid
-Message-ID: <YW6yBaF+ELt1nkr+@salvia>
-References: <20211016225623.155790-1-fw@strlen.de>
- <YWyhCwDYq8zYd8Lm@salvia>
- <20211019104103.GC28644@breakpoint.cc>
+        Tue, 19 Oct 2021 08:12:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47162 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230129AbhJSMMV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 19 Oct 2021 08:12:21 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPS id 85ECB6115B;
+        Tue, 19 Oct 2021 12:10:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1634645408;
+        bh=EwZRvJnCszVQ44JnJffy29m+a7HL1Huzi17+KrmGPV4=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=nTpWXSEkCmxFlITm0IPluR2gyrCuHg6iMxADXpBMCS8AloOYCjWXhZY8CTgl9SJmM
+         3RTfQv+5S8damDkb6g1n9S8q7kr3L4oQaYox34BKTA35cWrbbXP3PIVTnxm7FYWRbj
+         VfTRLO9u1rwrujLmlJ0pNNsR2pc6QZUwi1OAG7PWDtj04JGeZZj5o7Jh+zwOVJs6Lq
+         +lv1dnDXrCKAZtTal5DB2Acky01jK1DSv0zVB0N1WQMXNih6DBANBkZvC8w12SH+6g
+         1rwpgsqIvZTtI+W7nhA4YCdx6+GJbfbun15ORXd0MM/Wh9eSPGgWX8/Y8HR+sQyUkK
+         cxbx1gJ3W6NuQ==
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20211019104103.GC28644@breakpoint.cc>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next] net: sched: Allow statistics reads from softirq.
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <163464540849.1998.7367449316991483244.git-patchwork-notify@kernel.org>
+Date:   Tue, 19 Oct 2021 12:10:08 +0000
+References: <20211019101204.4a7m2i3u5uoqrc6b@linutronix.de>
+In-Reply-To: <20211019101204.4a7m2i3u5uoqrc6b@linutronix.de>
+To:     Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc:     eric.dumazet@gmail.com, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, kuba@kernel.org,
+        davem@davemloft.net, pablo@netfilter.org, kadlec@netfilter.org,
+        fw@strlen.de, jhs@mojatatu.com, xiyou.wangcong@gmail.com,
+        jiri@resnulli.us, a.darwish@linutronix.de, edumazet@google.com,
+        tglx@linutronix.de
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Oct 19, 2021 at 12:41:03PM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Sun, Oct 17, 2021 at 12:56:23AM +0200, Florian Westphal wrote:
-> > > Apparently some people think its a good idea to make nft setuid so
-> > > unrivilged users can change settings.
-> > > 
-> > > "nft -f /etc/shadow" is just one example of why this is a bad idea.
-> > > Disable this.  Do not print anything, fd cannot be trusted.
-> > > 
-> > > Signed-off-by: Florian Westphal <fw@strlen.de>
-> > > ---
-> > >  src/main.c | 4 ++++
-> > >  1 file changed, 4 insertions(+)
-> > > 
-> > > diff --git a/src/main.c b/src/main.c
-> > > index 21096fc7398b..5847fc4ad514 100644
-> > > --- a/src/main.c
-> > > +++ b/src/main.c
-> > > @@ -363,6 +363,10 @@ int main(int argc, char * const *argv)
-> > >  	unsigned int len;
-> > >  	int i, val, rc;
-> > >  
-> > > +	/* nftables cannot be used with setuid in a safe way. */
-> > > +	if (getuid() != geteuid())
-> > > +		_exit(111);
-> > 
-> > Applications using libnftables would still face the same issue.
-> 
-> Yes, but there is an off-chance they know what they are doing.
+Hello:
 
-Sounds sensible, I'd suggest you document this in the commit before
-pushing.
+This patch was applied to netdev/net-next.git (master)
+by David S. Miller <davem@davemloft.net>:
+
+On Tue, 19 Oct 2021 12:12:04 +0200 you wrote:
+> Eric reported that the rate estimator reads statics from the softirq
+> which in turn triggers a warning introduced in the statistics rework.
+> 
+> The warning is too cautious. The updates happen in the softirq context
+> so reads from softirq are fine since the writes can not be preempted.
+> The updates/writes happen during qdisc_run() which ensures one writer
+> and the softirq context.
+> The remaining bad context for reading statistics remains in hard-IRQ
+> because it may preempt a writer.
+> 
+> [...]
+
+Here is the summary with links:
+  - [net-next] net: sched: Allow statistics reads from softirq.
+    https://git.kernel.org/netdev/net-next/c/e22db7bd552f
+
+You are awesome, thank you!
+--
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
