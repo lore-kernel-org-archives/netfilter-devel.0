@@ -2,124 +2,115 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5890C433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Oct 2021 23:45:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D34FC433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Oct 2021 02:02:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A859A60F8F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Oct 2021 23:45:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2C24E6117A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Oct 2021 02:02:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229784AbhJSXrU (ORCPT
+        id S229728AbhJTCEp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 19 Oct 2021 19:47:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50618 "EHLO
+        Tue, 19 Oct 2021 22:04:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52776 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229668AbhJSXrT (ORCPT
+        with ESMTP id S229663AbhJTCEp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 19 Oct 2021 19:47:19 -0400
-Received: from mail-pf1-x436.google.com (mail-pf1-x436.google.com [IPv6:2607:f8b0:4864:20::436])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C66A9C06161C
-        for <netfilter-devel@vger.kernel.org>; Tue, 19 Oct 2021 16:45:05 -0700 (PDT)
-Received: by mail-pf1-x436.google.com with SMTP id k26so1358649pfi.5
-        for <netfilter-devel@vger.kernel.org>; Tue, 19 Oct 2021 16:45:05 -0700 (PDT)
+        Tue, 19 Oct 2021 22:04:45 -0400
+Received: from mail-il1-x130.google.com (mail-il1-x130.google.com [IPv6:2607:f8b0:4864:20::130])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 722F1C06161C;
+        Tue, 19 Oct 2021 19:02:31 -0700 (PDT)
+Received: by mail-il1-x130.google.com with SMTP id g2so20471226ild.1;
+        Tue, 19 Oct 2021 19:02:31 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=sender:from:date:to:cc:subject:message-id:mail-followup-to
-         :references:mime-version:content-disposition:in-reply-to;
-        bh=WnVXfMpoV6SiqOwAt+9HKh2QfjEOJExNgkzGbcOM8vM=;
-        b=HXKv4iJrRdxuelwSy+Upn+spGp6nh6JCtazvCt6STrjlQYchDHNCGAYiZZN9xAnRCn
-         qhJLKi5upFHrKYksKzQp0JL9fi9v2RQJqEfIA+7XAfMOT7pbY9XbIab330OaHoEHdC0h
-         cpf/ZFhOcTL0oufJB3SOThwDmcCQ+x+LSb1MP0gVWiD2u1olYNhbvCYLm/fUuFK8LsTE
-         Vt6sd9s/BOMVIFuglO4KsE8mh4obAQWlYpAxZNo50dOqS27evxTpc7XEdFIALm2Xdj7L
-         nbbU9V1pSGKS0VVShLp2jVISJhbXdWY/uGi1qW+wCDTQNGYmt59kxbd09dXUs4AI4grz
-         DYYw==
+        h=message-id:date:mime-version:user-agent:subject:content-language:to
+         :cc:references:from:in-reply-to:content-transfer-encoding;
+        bh=q2jYWlCNWClrtqnlx7YbYB8lDGyrA8nXyrUF7zcT2Ys=;
+        b=MI3Hog3FAWN6fF7dLObyz2Z0USsjwtbicgkCFam/SIeOR2khvc0oyogVAgVXzd2USR
+         6XnUIGkVfGJd8SOBIScfmAEeAb47IddWW7ZnysxnfUnUqm6Sb0gBt6n++TgDXzrF0+eq
+         +IoQgIgTWFmI/23q+3XY3octW5+GfPG4gGOql415iwdaHiLpYg6kba9Tq/qZSHNdtkm+
+         oIdITBdse66wY8VpC/gz23kRpXfnJfuc2QDkpEl7mTgOdaS0sl5p27qPE4ojpoOqzxDM
+         8Jxes8E6eV8Rz+H2N9nE/ARhWcJqVRBOa0lj2cTW0ttJaMklt/u3fA4yo2FqmUQwkG9X
+         vT1g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:sender:from:date:to:cc:subject:message-id
-         :mail-followup-to:references:mime-version:content-disposition
-         :in-reply-to;
-        bh=WnVXfMpoV6SiqOwAt+9HKh2QfjEOJExNgkzGbcOM8vM=;
-        b=YZi45EZOC0yi7oK04Xcnes6vSdIHB9alrcxSTxyi869NWwP2rFKvu19Kd7v0HGgPRA
-         OikdzLscbFqxewEXZ30Edqh+dSbeAf9ZgZwbGNELmdDrBvYuh0JA7dIp5uwFUImlMQET
-         +pEEEf67fsAtYTPRBv1YME6HzC9U7saoxvM1qnVDhpdG9mYNkmbncumD2dJFfZGuH6ZW
-         J7lIjb894SwVuOFqO/B4NpBqCIxRuKgc/K1gBmCa7AvInvJPjea6ZyJfkPrIWGhUaz8r
-         bSJgIXdFfPz0kVLSZuUDutSVHV3BqtcpktIbu9GfSqfqWQW9xD+CFjwWmq7Q4fgK8tVt
-         z+Hg==
-X-Gm-Message-State: AOAM5311wFFwVFFaFGa8iieBWUH04KT742+hr+CCqJaNLYoTB6uwxgIm
-        HSJbLyV2kaEfFYxdmayF22tPs1LrXcY=
-X-Google-Smtp-Source: ABdhPJyiiD5T7GvLLrs2sdRw3N900s9dOSYJoV1VpwT4A9H7bdgmLTpOaEEMTxqtEA2zF82i+zN6mQ==
-X-Received: by 2002:a63:7542:: with SMTP id f2mr23852394pgn.147.1634687105289;
-        Tue, 19 Oct 2021 16:45:05 -0700 (PDT)
-Received: from slk1.local.net (n110-23-108-30.sun3.vic.optusnet.com.au. [110.23.108.30])
-        by smtp.gmail.com with ESMTPSA id t2sm3766770pjf.1.2021.10.19.16.45.03
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 19 Oct 2021 16:45:04 -0700 (PDT)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-X-Google-Original-From: Duncan Roe <dunc@slk1.local.net>
-Date:   Wed, 20 Oct 2021 10:45:00 +1100
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: You dropped the wrong patvh from patchwork
-Message-ID: <YW9YfFJjFLPtgJjU@slk1.local.net>
-Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <20211016043948.2422-1-duncan_roe@optusnet.com.au>
- <YWp+/MO6jhvgUdGM@slk1.local.net>
- <YWuCt8cFd3k5YcXz@slk1.local.net>
- <YWwoGrraZHIaPqIx@salvia>
- <YWzDvhmmX2pw+cWx@slk1.local.net>
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
+         :content-language:to:cc:references:from:in-reply-to
+         :content-transfer-encoding;
+        bh=q2jYWlCNWClrtqnlx7YbYB8lDGyrA8nXyrUF7zcT2Ys=;
+        b=qXCU6YMVS642ko+DZWfNzQQpbbyHD99vRJSx0ltpJUp51F0bLgmWbj8gCfXvaSjQx2
+         /XpLQUpsAg8F+LfgX9U3zo+seV1lN1YJOu79KwQ+BZtg0mPjPSCxc/YTGpTA31YASRWF
+         u/7C8hSxAjDmhF0rnyhGrPZy0khtWBu/iN55de1WWxsAmGNGJFsq3RPBxSmhXCH0rW+0
+         +Vyft3uaK/oyhX7USZZRw2BI1Uat0BaPXQd+il7q71uYl55bTP9poWG+Tav0szSnG1Do
+         E/XncIvbiNKM/G8hp9R0GdD4GAWc90kOziSwx07GPFhYMDjreW0nmB409HU5bt47JQBM
+         MraA==
+X-Gm-Message-State: AOAM531bGuXdumTqN/akbv8+OEotY+p9yDZSUsodFTZZhIHXEarKNVWe
+        uCJ8IuxTbMlImKKgbp2Mgn/rfKE8aEw=
+X-Google-Smtp-Source: ABdhPJwxw21nRHUZFUsJ3fel6NOQ3L8wQpmCK+GvpHLkzfDBnhqDDPf3klO4UprFCGgkmO7SnThVTw==
+X-Received: by 2002:a05:6e02:1bae:: with SMTP id n14mr22086374ili.253.1634695350651;
+        Tue, 19 Oct 2021 19:02:30 -0700 (PDT)
+Received: from [172.16.0.2] ([8.48.134.34])
+        by smtp.googlemail.com with ESMTPSA id v26sm407208iox.35.2021.10.19.19.02.29
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 19 Oct 2021 19:02:30 -0700 (PDT)
+Message-ID: <e8dca460-7f5a-ee90-865c-dbb8bb0aa5d6@gmail.com>
+Date:   Tue, 19 Oct 2021 20:02:29 -0600
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YWzDvhmmX2pw+cWx@slk1.local.net>
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
+ Gecko/20100101 Thunderbird/91.2.0
+Subject: Re: [PATCH net 1/1] vrf: Revert "Reset skb conntrack connection..."
+Content-Language: en-US
+To:     Eugene Crosser <crosser@average.org>, netdev@vger.kernel.org
+Cc:     netfilter-devel@vger.kernel.org, David Ahern <dsahern@gmail.com>,
+        Florian Westphal <fw@strlen.de>,
+        Lahav Schlesinger <lschlesinger@drivenets.com>
+References: <20211018182250.23093-1-crosser@average.org>
+ <20211018182250.23093-2-crosser@average.org>
+From:   David Ahern <dsahern@gmail.com>
+In-Reply-To: <20211018182250.23093-2-crosser@average.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Oct 18, 2021 at 11:45:50AM +1100, Duncan Roe wrote:
-> On Sun, Oct 17, 2021 at 03:41:46PM +0200, Pablo Neira Ayuso wrote:
-> > On Sun, Oct 17, 2021 at 12:56:07PM +1100, Duncan Roe wrote:
-> > > Hi Pablo,
-> > >
-> > > On Sat, Oct 16, 2021 at 06:27:56PM +1100, Duncan Roe wrote:
-> > > > On Sat, Oct 16, 2021 at 03:39:48PM +1100, Duncan Roe wrote:
-> > > > > - configure --help lists non-default documentation options.
-> > > > >   Looking around the web, this seemed to me to be what most projects do.
-> > > > >   Listed options are --enable-html-doc & --disable-man-pages.
-> > > > > - --with-doxygen is removed: --disable-man-pages also disables doxygen unless
-> > > > >   --enable-html-doc is asserted.
-> > > > > If html is requested, `make install` installs it in htmldir.
-> > > > >
-> > > > > Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
-> > > > > ---
-> > > > > v2: broken out from 0001-build-doc-Fix-man-pages.patch
-> > > > > v3: no change (still part of a series)
-> > > > > v4: remove --without-doxygen since -disable-man-pages does that
-> > > > > v5: - update .gitignore for clean `git status` after in-tree build
-> > > > >     - in configure.ac:
-> > > > >       - ensure all variables are always set (avoid leakage from environment)
-> > > > >       - provide helpful warning if HTML enabled but dot not found
-> > > > [...]
-> > > > Sorry Pablo, this is for libnetfilter_queue.
-> > > > I don't see it in patchwork - did you get rid of it already?
-> > > > Will re-send with correct Sj.
-> > > >
-> > > Sorry again for the confusion but you dropped the good libnetfilter_log patch
-> > > that was Tested-by: Jeremy Sowden and left the bad libnetfilter_log patch that
-> > > actually applies to libnetfilter_queue.
-> >
-> > Are you refering to this patch?
-> >
-> > https://patchwork.ozlabs.org/project/netfilter-devel/patch/20211017013951.12584-1-duncan_roe@optusnet.com.au/
-> >
-> > This is the one that Jeremy added the Tested-by: tag, correct?
->
-> Yes that's the one. I re-sent it
+On 10/18/21 12:22 PM, Eugene Crosser wrote:
+> This reverts commit 09e856d54bda5f288ef8437a90ab2b9b3eab83d1.
+> 
+> When an interface is enslaved in a VRF, prerouting conntrack hook is
+> called twice: once in the context of the original input interface, and
+> once in the context of the VRF interface. If no special precausions are
+> taken, this leads to creation of two conntrack entries instead of one,
+> and breaks SNAT.
+> 
+> Commit above was intended to avoid creation of extra conntrack entries
+> when input interface is enslaved in a VRF. It did so by resetting
+> conntrack related data associated with the skb when it enters VRF context.
+> 
+> However it breaks netfilter operation. Imagine a use case when conntrack
+> zone must be assigned based on the original input interface, rather than
+> VRF interface (that would make original interfaces indistinguishable). One
+> could create netfilter rules similar to these:
+> 
+>         chain rawprerouting {
+>                 type filter hook prerouting priority raw;
+>                 iif realiface1 ct zone set 1 return
+>                 iif realiface2 ct zone set 2 return
+>         }
+> 
+> This works before the mentioned commit, but not after: zone assignment
+> is "forgotten", and any subsequent NAT or filtering that is dependent
+> on the conntrack zone does not work.
+> 
+...
 
-To be unambiguous, the bad patch is
+> 
+> Signed-off-by: Eugene Crosser <crosser@average.org>
+> ---
+>  drivers/net/vrf.c | 4 ----
+>  1 file changed, 4 deletions(-)
+> 
 
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20211016043948.2422-1-duncan_roe@optusnet.com.au/
+Acked-by: David Ahern <dsahern@kernel.org>
 
-If you would remove that, then patchwork will be all good.
 
-Cheers ... Duncan.
