@@ -2,100 +2,86 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E13BBC433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Oct 2021 11:02:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A3A4C433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Oct 2021 11:40:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C7EC960FF2
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Oct 2021 11:02:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0C83C610FF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Oct 2021 11:40:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230340AbhJULFK (ORCPT
+        id S230283AbhJULmc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 21 Oct 2021 07:05:10 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:58388 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S230324AbhJULFG (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 21 Oct 2021 07:05:06 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1634814170;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=qOiSWqgECZJi4yTpDwh5GiM4MdjOSwLswQT3eU7nHgU=;
-        b=SIzTq0IE5vtqxeIuTUTighSOJe/lhOVg2ijZZ6oaqedx08dvGbvawnqhZl2ei8nL8/PHCs
-        LdfiTKZprguholbPN90WuIYpc0zJw0/2JrY1hHISqvKKpw9sSCbdmx3UoJL21s9EERJQR7
-        ZzsZHwHeWso8LnxGiYc9kQPixCvi7YM=
-Received: from mail-ed1-f69.google.com (mail-ed1-f69.google.com
- [209.85.208.69]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-409-KkWPbSmAOq6n0FbK5nwBPQ-1; Thu, 21 Oct 2021 07:02:49 -0400
-X-MC-Unique: KkWPbSmAOq6n0FbK5nwBPQ-1
-Received: by mail-ed1-f69.google.com with SMTP id x5-20020a50f185000000b003db0f796903so23929120edl.18
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Oct 2021 04:02:49 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:in-reply-to:references
-         :user-agent:date:message-id:mime-version:content-transfer-encoding;
-        bh=qOiSWqgECZJi4yTpDwh5GiM4MdjOSwLswQT3eU7nHgU=;
-        b=jVysultZzrszTZVFHz3trcFm6SUS3O/ghkUb3kk7wNgX1hZo+LbIJ2QzqNYRbAxlQn
-         yZoW+WTiGEUsAqjKt3d2Lq6zvSbNPbTRgUVrl+ZPA6uQbOiYb5VWLfh19Tbtg0etyM/m
-         RBjZG0Wv3ei6suRhz4kjKVHkwR4ur+Bb7yWqJ7n9oBi1gkfVDEZ+9O16WcvfwPt6y37D
-         RtJOJOk01xXHuXYapMxoiIGFHKZZuN7fDtBfceuX4mSjgZEG5v2cGpfw5R6O//zhZ2eQ
-         v1Q74MrZuGwDO3zgpqX5ept8F3RAZ0+AezaR16Helpkf4P2PcaZWIuaYL0njFewBT+Kg
-         C4vg==
-X-Gm-Message-State: AOAM530nfe9iYSevxlpDHBekFFQ/eLjUMaiqlTI4gGfYJBDabAvV/m5/
-        X8G49GZdgUd1L1RttNgrw9+8l9QKQjTS7SHVBzMCbuJbMF42SuzqKBSbkg+YCkuy6kehzStux/i
-        XD04PCUrTqzBg4uHR7+ozICy/LwP2
-X-Received: by 2002:a17:907:7d8b:: with SMTP id oz11mr6598850ejc.84.1634814168029;
-        Thu, 21 Oct 2021 04:02:48 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJwlE/37QTO1ZOAuGy2cFKitbTNV8MRY1JXUWr4lxBB0QSH/S1DEvn8A710iRt0gxxeQXJ7snw==
-X-Received: by 2002:a17:907:7d8b:: with SMTP id oz11mr6598822ejc.84.1634814167788;
-        Thu, 21 Oct 2021 04:02:47 -0700 (PDT)
-Received: from localhost ([185.112.167.53])
-        by smtp.gmail.com with ESMTPSA id o25sm2645237edq.40.2021.10.21.04.02.46
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 21 Oct 2021 04:02:47 -0700 (PDT)
-From:   =?utf-8?B?xaB0xJtww6FuIE7Em21lYw==?= <snemec@redhat.com>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft 1/3] tests: shell: README: copy edit
-In-Reply-To: <20211021102644.GM1668@orbyte.nwl.cc>
-References: <20211020124512.490288-1-snemec@redhat.com>
- <20211020150402.GJ1668@orbyte.nwl.cc>
- <20211021103025+0200.945334-snemec@redhat.com>
- <20211021102644.GM1668@orbyte.nwl.cc>
-User-Agent: Notmuch/0.33.2 (https://notmuchmail.org) Emacs/29.0.50
- (x86_64-pc-linux-gnu)
-Date:   Thu, 21 Oct 2021 13:03:23 +0200
-Message-ID: <20211021130323+0200.342006-snemec@redhat.com>
+        Thu, 21 Oct 2021 07:42:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46606 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229765AbhJULm2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 21 Oct 2021 07:42:28 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPS id 326B0610FF;
+        Thu, 21 Oct 2021 11:40:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1634816412;
+        bh=B69kHncm3+fZAwkbgcBS9BvkN6mONRI9FWmom9jPw/0=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=UKXtvstloZrrR71cXl1dJV72wTTY/0QtaQDjcwGyBxyCl3BthYaY4bGcOyz/hhD/D
+         pMKg2uMSJW0UKb//eSg3pN1ShWrZQryeU9UkEz3zdzmILQheoRP8VyFHQ8x3GlxU+A
+         dyPGFuZo+2MjK/n3agE5bzSf0MAEaIIJx2nd+nujLLbSFdKJVHt43SoOLke8GeYkja
+         QVdnhSrrMY+EEvPoXbUJrbwmN6xTxA2sAiTHvzU+Rvj09Nh+mIzucVX75WW4jYpdQK
+         W6vyQ9DGUus7yLDFgs2OPYgwJo1J0FPqRgUsQvq9SRkgXyx25MSrHzk4G0Y49CUtHq
+         3OVYQz942qktg==
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/8] netfilter: xt_IDLETIMER: fix panic that occurs when
+ timer_type has garbage value
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <163481641215.11574.15881715403045755138.git-patchwork-notify@kernel.org>
+Date:   Thu, 21 Oct 2021 11:40:12 +0000
+References: <20211021100821.964677-2-pablo@netfilter.org>
+In-Reply-To: <20211021100821.964677-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, 21 Oct 2021 12:26:44 +0200
-Phil Sutter wrote:
+Hello:
 
-> Sorry for not checking the guideline but quoting advice I once received
-> from the top of my head instead. Maybe I was incorrect and in obvious
-> cases the description is optional. The relevant text in [2] at least
-> doesn't explicitly state it is, while being pretty verbose about it
-> regarding cover letters.
+This series was applied to netdev/net.git (master)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-Does this mean that you retract your requirement? If not, could you
-please make sure that you and the other maintainers are on the same page
-about this, and document the requirement?
+On Thu, 21 Oct 2021 12:08:14 +0200 you wrote:
+> From: Juhee Kang <claudiajkang@gmail.com>
+> 
+> Currently, when the rule related to IDLETIMER is added, idletimer_tg timer
+> structure is initialized by kmalloc on executing idletimer_tg_create
+> function. However, in this process timer->timer_type is not defined to
+> a specific value. Thus, timer->timer_type has garbage value and it occurs
+> kernel panic. So, this commit fixes the panic by initializing
+> timer->timer_type using kzalloc instead of kmalloc.
+> 
+> [...]
 
-Regarding this patch series (if it is to be resent, in part or as a
-whole): we've discussed the first patch so far; the other two patches
-have no description, either. Do they need one? If so, could you provide
-some suggestions? I can't think of anything sensible that isn't already
-said in the subject, Fixes:, or the modified README text itself.
+Here is the summary with links:
+  - [net,1/8] netfilter: xt_IDLETIMER: fix panic that occurs when timer_type has garbage value
+    https://git.kernel.org/netdev/net/c/902c0b188752
+  - [net,2/8] netfilter: Kconfig: use 'default y' instead of 'm' for bool config option
+    https://git.kernel.org/netdev/net/c/77076934afdc
+  - [net,3/8] netfilter: nf_tables: skip netdev events generated on netns removal
+    https://git.kernel.org/netdev/net/c/68a3765c659f
+  - [net,4/8] selftests: nft_nat: add udp hole punch test case
+    https://git.kernel.org/netdev/net/c/465f15a6d1a8
+  - [net,5/8] netfilter: ip6t_rt: fix rt0_hdr parsing in rt_mt6
+    https://git.kernel.org/netdev/net/c/a482c5e00a9b
+  - [net,6/8] netfilter: ipvs: make global sysctl readonly in non-init netns
+    https://git.kernel.org/netdev/net/c/174c37627894
+  - [net,7/8] selftests: netfilter: remove stray bash debug line
+    https://git.kernel.org/netdev/net/c/3e6ed7703dae
+  - [net,8/8] netfilter: ebtables: allocate chainstack on CPU local nodes
+    https://git.kernel.org/netdev/net/c/d9aaaf223297
 
-Thanks,
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-  =C5=A0t=C4=9Bp=C3=A1n
 
