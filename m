@@ -2,63 +2,94 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06F24C4332F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Oct 2021 10:08:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DED6AC433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Oct 2021 10:26:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E6BAD6120F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Oct 2021 10:08:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B063860F6E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Oct 2021 10:26:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230460AbhJUKK5 (ORCPT
+        id S230072AbhJUK3D (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 21 Oct 2021 06:10:57 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:33864 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230119AbhJUKKt (ORCPT
+        Thu, 21 Oct 2021 06:29:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38922 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229567AbhJUK3C (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 21 Oct 2021 06:10:49 -0400
-Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id DFE5F63F44;
-        Thu, 21 Oct 2021 12:06:48 +0200 (CEST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 8/8] netfilter: ebtables: allocate chainstack on CPU local nodes
-Date:   Thu, 21 Oct 2021 12:08:21 +0200
-Message-Id: <20211021100821.964677-9-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20211021100821.964677-1-pablo@netfilter.org>
-References: <20211021100821.964677-1-pablo@netfilter.org>
+        Thu, 21 Oct 2021 06:29:02 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E8ED3C06161C
+        for <netfilter-devel@vger.kernel.org>; Thu, 21 Oct 2021 03:26:46 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1mdVHY-0006g1-NB; Thu, 21 Oct 2021 12:26:44 +0200
+Date:   Thu, 21 Oct 2021 12:26:44 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     =?utf-8?B?xaB0xJtww6FuIE7Em21lYw==?= <snemec@redhat.com>
+Cc:     netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nft 1/3] tests: shell: README: copy edit
+Message-ID: <20211021102644.GM1668@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        =?utf-8?B?xaB0xJtww6FuIE7Em21lYw==?= <snemec@redhat.com>,
+        netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+References: <20211020124512.490288-1-snemec@redhat.com>
+ <20211020150402.GJ1668@orbyte.nwl.cc>
+ <20211021103025+0200.945334-snemec@redhat.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20211021103025+0200.945334-snemec@redhat.com>
+Sender:  <n0-1@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Davidlohr Bueso <dave@stgolabs.net>
+Hi,
 
-Keep the per-CPU memory allocated for chainstacks local.
+On Thu, Oct 21, 2021 at 10:30:25AM +0200, Štěpán Němec wrote:
+> On Wed, 20 Oct 2021 17:04:02 +0200
+> Phil Sutter wrote:
+> 
+> > What you you mean with 'copy edit'?
+> 
+> https://en.wikipedia.org/wiki/Copy_editing
 
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/bridge/netfilter/ebtables.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+Ah, thanks! I didn't know the term.
 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 83d1798dfbb4..ba045f35114d 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -926,7 +926,9 @@ static int translate_table(struct net *net, const char *name,
- 			return -ENOMEM;
- 		for_each_possible_cpu(i) {
- 			newinfo->chainstack[i] =
--			  vmalloc(array_size(udc_cnt, sizeof(*(newinfo->chainstack[0]))));
-+			  vmalloc_node(array_size(udc_cnt,
-+					  sizeof(*(newinfo->chainstack[0]))),
-+				       cpu_to_node(i));
- 			if (!newinfo->chainstack[i]) {
- 				while (i)
- 					vfree(newinfo->chainstack[--i]);
--- 
-2.30.2
+> > Please make subject line a bit more comprehensible.
+> 
+> Would "fix language issues" work for you? Or, could we perhaps keep the
+> original subject, and add "fix language issues" in the body, to address
+> your other concern?
 
+Yes, I'm fine with keeping the subject if a description is added.
+
+> > Also, adding at least a single line of description is mandatory, even
+> > if the subject speaks for itself.
+> 
+> Commit messages consisting of only the subject and trailers (SOB et al.)
+> are quite common, both in this project and elsewhere. [1]
+
+Well yes, roughly 10% of all commits in nftables repo are. In iptables
+repo it's even worse with close to 50%. Thanks a lot for providing the
+script, BTW! :)
+
+> I suppose that as someone responsible for reviewing and applying
+> patches, you're free to install any hoops you see fit for contributors
+> to jump through, but if it is the project's and contributors' best
+> interest you have in mind, I think it would be better if you mentioned
+> the "description is always mandatory" rule explicitly in patch
+> submission guidelines [2] (providing a rationale and being consistent
+> about it in reality would be better still).
+
+Sorry for not checking the guideline but quoting advice I once received
+from the top of my head instead. Maybe I was incorrect and in obvious
+cases the description is optional. The relevant text in [2] at least
+doesn't explicitly state it is, while being pretty verbose about it
+regarding cover letters.
+
+Cheers, Phil
+
+> [2] https://wiki.nftables.org/wiki-nftables/index.php/Portal:DeveloperDocs/Patch_submission_guidelines
