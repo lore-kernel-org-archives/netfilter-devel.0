@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C43B3C433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Oct 2021 10:08:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06F24C4332F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Oct 2021 10:08:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ADBF7610D0
+	by mail.kernel.org (Postfix) with ESMTP id E6BAD6120F
 	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Oct 2021 10:08:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230283AbhJUKK5 (ORCPT
+        id S230460AbhJUKK5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Thu, 21 Oct 2021 06:10:57 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:33832 "EHLO
+Received: from mail.netfilter.org ([217.70.188.207]:33864 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230105AbhJUKKs (ORCPT
+        with ESMTP id S230119AbhJUKKt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 21 Oct 2021 06:10:48 -0400
+        Thu, 21 Oct 2021 06:10:49 -0400
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 3697463F42;
+        by mail.netfilter.org (Postfix) with ESMTPSA id DFE5F63F44;
         Thu, 21 Oct 2021 12:06:48 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 7/8] selftests: netfilter: remove stray bash debug line
-Date:   Thu, 21 Oct 2021 12:08:20 +0200
-Message-Id: <20211021100821.964677-8-pablo@netfilter.org>
+Subject: [PATCH net 8/8] netfilter: ebtables: allocate chainstack on CPU local nodes
+Date:   Thu, 21 Oct 2021 12:08:21 +0200
+Message-Id: <20211021100821.964677-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20211021100821.964677-1-pablo@netfilter.org>
 References: <20211021100821.964677-1-pablo@netfilter.org>
@@ -34,29 +34,31 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Davidlohr Bueso <dave@stgolabs.net>
 
-This should not be there.
+Keep the per-CPU memory allocated for chainstacks local.
 
-Fixes: 2de03b45236f ("selftests: netfilter: add flowtable test script")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- tools/testing/selftests/netfilter/nft_flowtable.sh | 1 -
- 1 file changed, 1 deletion(-)
+ net/bridge/netfilter/ebtables.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/tools/testing/selftests/netfilter/nft_flowtable.sh b/tools/testing/selftests/netfilter/nft_flowtable.sh
-index 427d94816f2d..d4ffebb989f8 100755
---- a/tools/testing/selftests/netfilter/nft_flowtable.sh
-+++ b/tools/testing/selftests/netfilter/nft_flowtable.sh
-@@ -199,7 +199,6 @@ fi
- # test basic connectivity
- if ! ip netns exec ns1 ping -c 1 -q 10.0.2.99 > /dev/null; then
-   echo "ERROR: ns1 cannot reach ns2" 1>&2
--  bash
-   exit 1
- fi
- 
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 83d1798dfbb4..ba045f35114d 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -926,7 +926,9 @@ static int translate_table(struct net *net, const char *name,
+ 			return -ENOMEM;
+ 		for_each_possible_cpu(i) {
+ 			newinfo->chainstack[i] =
+-			  vmalloc(array_size(udc_cnt, sizeof(*(newinfo->chainstack[0]))));
++			  vmalloc_node(array_size(udc_cnt,
++					  sizeof(*(newinfo->chainstack[0]))),
++				       cpu_to_node(i));
+ 			if (!newinfo->chainstack[i]) {
+ 				while (i)
+ 					vfree(newinfo->chainstack[--i]);
 -- 
 2.30.2
 
