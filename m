@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5BBAC433FE
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Oct 2021 10:08:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E94DC43217
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Oct 2021 10:08:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 94562610C8
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Oct 2021 10:08:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3D9EC610C8
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Oct 2021 10:08:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230379AbhJUKKt (ORCPT
+        id S230500AbhJUKKv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 21 Oct 2021 06:10:49 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:33826 "EHLO
+        Thu, 21 Oct 2021 06:10:51 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:33842 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230323AbhJUKKr (ORCPT
+        with ESMTP id S231734AbhJUKKr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Thu, 21 Oct 2021 06:10:47 -0400
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 88D2A63F41;
-        Thu, 21 Oct 2021 12:06:47 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id E464263F40;
+        Thu, 21 Oct 2021 12:06:46 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 6/8] netfilter: ipvs: make global sysctl readonly in non-init netns
-Date:   Thu, 21 Oct 2021 12:08:19 +0200
-Message-Id: <20211021100821.964677-7-pablo@netfilter.org>
+Subject: [PATCH net 5/8] netfilter: ip6t_rt: fix rt0_hdr parsing in rt_mt6
+Date:   Thu, 21 Oct 2021 12:08:18 +0200
+Message-Id: <20211021100821.964677-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20211021100821.964677-1-pablo@netfilter.org>
 References: <20211021100821.964677-1-pablo@netfilter.org>
@@ -34,35 +34,141 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Antoine Tenart <atenart@kernel.org>
+From: Xin Long <lucien.xin@gmail.com>
 
-Because the data pointer of net/ipv4/vs/debug_level is not updated per
-netns, it must be marked as read-only in non-init netns.
+In rt_mt6(), when it's a nonlinear skb, the 1st skb_header_pointer()
+only copies sizeof(struct ipv6_rt_hdr) to _route that rh points to.
+The access by ((const struct rt0_hdr *)rh)->reserved will overflow
+the buffer. So this access should be moved below the 2nd call to
+skb_header_pointer().
 
-Fixes: c6d2d445d8de ("IPVS: netns, final patch enabling network name space.")
-Signed-off-by: Antoine Tenart <atenart@kernel.org>
-Acked-by: Julian Anastasov <ja@ssi.bg>
+Besides, after the 2nd skb_header_pointer(), its return value should
+also be checked, othersize, *rp may cause null-pointer-ref.
+
+v1->v2:
+  - clean up some old debugging log.
+
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Xin Long <lucien.xin@gmail.com>
+Acked-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_ctl.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ net/ipv6/netfilter/ip6t_rt.c | 48 +++++-------------------------------
+ 1 file changed, 6 insertions(+), 42 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index c25097092a06..29ec3ef63edc 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -4090,6 +4090,11 @@ static int __net_init ip_vs_control_net_init_sysctl(struct netns_ipvs *ipvs)
- 	tbl[idx++].data = &ipvs->sysctl_conn_reuse_mode;
- 	tbl[idx++].data = &ipvs->sysctl_schedule_icmp;
- 	tbl[idx++].data = &ipvs->sysctl_ignore_tunneled;
-+#ifdef CONFIG_IP_VS_DEBUG
-+	/* Global sysctls must be ro in non-init netns */
-+	if (!net_eq(net, &init_net))
-+		tbl[idx++].mode = 0444;
-+#endif
+diff --git a/net/ipv6/netfilter/ip6t_rt.c b/net/ipv6/netfilter/ip6t_rt.c
+index 733c83d38b30..4ad8b2032f1f 100644
+--- a/net/ipv6/netfilter/ip6t_rt.c
++++ b/net/ipv6/netfilter/ip6t_rt.c
+@@ -25,12 +25,7 @@ MODULE_AUTHOR("Andras Kis-Szabo <kisza@sch.bme.hu>");
+ static inline bool
+ segsleft_match(u_int32_t min, u_int32_t max, u_int32_t id, bool invert)
+ {
+-	bool r;
+-	pr_debug("segsleft_match:%c 0x%x <= 0x%x <= 0x%x\n",
+-		 invert ? '!' : ' ', min, id, max);
+-	r = (id >= min && id <= max) ^ invert;
+-	pr_debug(" result %s\n", r ? "PASS" : "FAILED");
+-	return r;
++	return (id >= min && id <= max) ^ invert;
+ }
  
- 	ipvs->sysctl_hdr = register_net_sysctl(net, "net/ipv4/vs", tbl);
- 	if (ipvs->sysctl_hdr == NULL) {
+ static bool rt_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+@@ -65,30 +60,6 @@ static bool rt_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 		return false;
+ 	}
+ 
+-	pr_debug("IPv6 RT LEN %u %u ", hdrlen, rh->hdrlen);
+-	pr_debug("TYPE %04X ", rh->type);
+-	pr_debug("SGS_LEFT %u %02X\n", rh->segments_left, rh->segments_left);
+-
+-	pr_debug("IPv6 RT segsleft %02X ",
+-		 segsleft_match(rtinfo->segsleft[0], rtinfo->segsleft[1],
+-				rh->segments_left,
+-				!!(rtinfo->invflags & IP6T_RT_INV_SGS)));
+-	pr_debug("type %02X %02X %02X ",
+-		 rtinfo->rt_type, rh->type,
+-		 (!(rtinfo->flags & IP6T_RT_TYP) ||
+-		  ((rtinfo->rt_type == rh->type) ^
+-		   !!(rtinfo->invflags & IP6T_RT_INV_TYP))));
+-	pr_debug("len %02X %04X %02X ",
+-		 rtinfo->hdrlen, hdrlen,
+-		 !(rtinfo->flags & IP6T_RT_LEN) ||
+-		  ((rtinfo->hdrlen == hdrlen) ^
+-		   !!(rtinfo->invflags & IP6T_RT_INV_LEN)));
+-	pr_debug("res %02X %02X %02X ",
+-		 rtinfo->flags & IP6T_RT_RES,
+-		 ((const struct rt0_hdr *)rh)->reserved,
+-		 !((rtinfo->flags & IP6T_RT_RES) &&
+-		   (((const struct rt0_hdr *)rh)->reserved)));
+-
+ 	ret = (segsleft_match(rtinfo->segsleft[0], rtinfo->segsleft[1],
+ 			      rh->segments_left,
+ 			      !!(rtinfo->invflags & IP6T_RT_INV_SGS))) &&
+@@ -107,22 +78,22 @@ static bool rt_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 						       reserved),
+ 					sizeof(_reserved),
+ 					&_reserved);
++		if (!rp) {
++			par->hotdrop = true;
++			return false;
++		}
+ 
+ 		ret = (*rp == 0);
+ 	}
+ 
+-	pr_debug("#%d ", rtinfo->addrnr);
+ 	if (!(rtinfo->flags & IP6T_RT_FST)) {
+ 		return ret;
+ 	} else if (rtinfo->flags & IP6T_RT_FST_NSTRICT) {
+-		pr_debug("Not strict ");
+ 		if (rtinfo->addrnr > (unsigned int)((hdrlen - 8) / 16)) {
+-			pr_debug("There isn't enough space\n");
+ 			return false;
+ 		} else {
+ 			unsigned int i = 0;
+ 
+-			pr_debug("#%d ", rtinfo->addrnr);
+ 			for (temp = 0;
+ 			     temp < (unsigned int)((hdrlen - 8) / 16);
+ 			     temp++) {
+@@ -138,26 +109,20 @@ static bool rt_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 					return false;
+ 				}
+ 
+-				if (ipv6_addr_equal(ap, &rtinfo->addrs[i])) {
+-					pr_debug("i=%d temp=%d;\n", i, temp);
++				if (ipv6_addr_equal(ap, &rtinfo->addrs[i]))
+ 					i++;
+-				}
+ 				if (i == rtinfo->addrnr)
+ 					break;
+ 			}
+-			pr_debug("i=%d #%d\n", i, rtinfo->addrnr);
+ 			if (i == rtinfo->addrnr)
+ 				return ret;
+ 			else
+ 				return false;
+ 		}
+ 	} else {
+-		pr_debug("Strict ");
+ 		if (rtinfo->addrnr > (unsigned int)((hdrlen - 8) / 16)) {
+-			pr_debug("There isn't enough space\n");
+ 			return false;
+ 		} else {
+-			pr_debug("#%d ", rtinfo->addrnr);
+ 			for (temp = 0; temp < rtinfo->addrnr; temp++) {
+ 				ap = skb_header_pointer(skb,
+ 							ptr
+@@ -173,7 +138,6 @@ static bool rt_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 				if (!ipv6_addr_equal(ap, &rtinfo->addrs[temp]))
+ 					break;
+ 			}
+-			pr_debug("temp=%d #%d\n", temp, rtinfo->addrnr);
+ 			if (temp == rtinfo->addrnr &&
+ 			    temp == (unsigned int)((hdrlen - 8) / 16))
+ 				return ret;
 -- 
 2.30.2
 
