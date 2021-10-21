@@ -2,93 +2,120 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 629AEC4332F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Oct 2021 17:00:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D39CC433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Oct 2021 17:54:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2D46B615A7
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Oct 2021 17:00:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 00C7A615E1
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Oct 2021 17:54:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231992AbhJURCx (ORCPT
+        id S231666AbhJUR4R (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 21 Oct 2021 13:02:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47380 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231826AbhJURCw (ORCPT
+        Thu, 21 Oct 2021 13:56:17 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:37728 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S231396AbhJUR4Q (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 21 Oct 2021 13:02:52 -0400
-Received: from mail-pg1-x534.google.com (mail-pg1-x534.google.com [IPv6:2607:f8b0:4864:20::534])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7A072C061243
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Oct 2021 10:00:36 -0700 (PDT)
-Received: by mail-pg1-x534.google.com with SMTP id f5so850358pgc.12
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Oct 2021 10:00:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=5RyUrXEQJgkpkS3LgGmg7QZzk/Xp6vh/AxqTCLe3xyo=;
-        b=KrRrga5C/YO2dLe0TvqzGlGSYEQLjNmER7uhbG0b9kkxrtdRmWn1Nr9EZRKoCnCX6I
-         t4NUngrX6gaK3GG/PDiRpl8xDbd2VtNkJLVHb7tdhwFJ+uypWCHF38OcH5/A2L2fMC6I
-         vu+ScOMVCSX4SUjMU26XP9cvq+DRQoarq3J98=
+        Thu, 21 Oct 2021 13:56:16 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1634838840;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=SBEbnSZD3k9GNrI98++uqx2j0vBXYFSEk/bywyfR7V8=;
+        b=EPQEaUK1swiBxhE6EGG+9CPxBeDAVe5Q2YtK/Ysc1kF37m/212QrnoxtFT5G7hZgX38q4g
+        juEJ2sh4xAXNNLGo+v8bW8zZeO0vGlubIGeM4VUcvVn3T2vJ0vanVGpeB/diYBO1qR+7nf
+        kz0kshjla+46nZzU7VQ0wX/UTiyKtCM=
+Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
+ [209.85.128.72]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-501-6h2bSLDAOc-_kNHvnI7MZw-1; Thu, 21 Oct 2021 13:53:58 -0400
+X-MC-Unique: 6h2bSLDAOc-_kNHvnI7MZw-1
+Received: by mail-wm1-f72.google.com with SMTP id f63-20020a1c3842000000b0032a621260deso169678wma.8
+        for <netfilter-devel@vger.kernel.org>; Thu, 21 Oct 2021 10:53:58 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=5RyUrXEQJgkpkS3LgGmg7QZzk/Xp6vh/AxqTCLe3xyo=;
-        b=Gih1QI9UpEsJy2WPfhjZcdFY8TcAYXwRBXs9OGHV25A5kraFZUnqy5QDjCr+rnClh9
-         xuawIcIBCjPH0UyqMzAv0OxYL58FKPbpMvpvmM77l/CHZ+unvFK/B1v0YQ3i6SuR/DwC
-         1EadKPCiDG7s7Q/5UPwJz7QAylph7KTjoHdSB0XoYaei4P1c6lJaNJ6Rr4xRjj4x4pg3
-         aTrqMpQJNToyiJACmnCkdMM2BHEK7GOMQmlCM0jugnEfPPMLfrt9RR2SUdYeSd9Sx1HU
-         ZMt3kBZZjqio0nd+1O8YVUGzna2rLMBJTxoQ6uQrAKl4kAjeOMCKwYLn8Y0oZwpNcESp
-         wOWg==
-X-Gm-Message-State: AOAM530+o+AIyjbw/Df+kaFDcOC+rNpfU3GOHCiNQzo7eGIXd8wZmi6s
-        G/6AwAux4Vp47AUe7J8KuvxYeA==
-X-Google-Smtp-Source: ABdhPJyp07wPRl6ojFhBTknpEQr+udO/xRkU+FJi/ud9R/y5lOsFr0ekXZoY1cF/hAYFZ5chiWTJxg==
-X-Received: by 2002:a62:7a8b:0:b0:44d:47e2:99bf with SMTP id v133-20020a627a8b000000b0044d47e299bfmr6821186pfc.64.1634835635924;
-        Thu, 21 Oct 2021 10:00:35 -0700 (PDT)
-Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
-        by smtp.gmail.com with ESMTPSA id c12sm6843823pfc.161.2021.10.21.10.00.35
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=SBEbnSZD3k9GNrI98++uqx2j0vBXYFSEk/bywyfR7V8=;
+        b=j3uw3fyWOgHonU/2rTVgkgqfW2Joo/KkNjSgibZztmvbXxbltmPPEDggRsoXzCN+O8
+         jXdmeGUPVSag0qNNv4NzBvqkxxBfvPvxXBbgbBRVuyavr4+ZQGLQf6NMy2JpHn3MpFHx
+         eelbay7Ac50a/6+EddGxgBSfI6lK9VwvSXHqhD/+WsHU94j45gq7qI39qjN4i7wQau43
+         HDYKUmckvviG60YbHHW/u2baAiqMJu525pN61y2VB5ltetAIfpcVrsltHlllQrz5YP/7
+         mRH7aMpnasQRZKXLpJ9q6bHkHngPYS4YW2P+4Jrdi4AtcGaix54n3sFnwex+3LXYjw9i
+         gmMg==
+X-Gm-Message-State: AOAM533xG5+zQ8ATXBhG7Xdbo7a2zlEhOyCvQew6598bnHvdszK2kkQ8
+        Z7KP66GXxrAPVvPpMfDB4eWy4p5W+ZOwqhga2hDArpH0qmcDByiG4gGRXfOpySUGmf/ycTS36jb
+        be3kr1pUX+1kGGafwX72VjY/EsWynoIx0aN8GBvO/eWs0UxeHy3PRY1PrOedpmLQ9KneZQuTkbX
+        GVUQ==
+X-Received: by 2002:adf:82d6:: with SMTP id 80mr1188675wrc.346.1634838837387;
+        Thu, 21 Oct 2021 10:53:57 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJx+FXiIMy4Kc8hoDdOlRycfiktZif6FHVhHN5gIkae38mRgz2XMTlOSi0Lug7D5vMHdrVA0uQ==
+X-Received: by 2002:adf:82d6:: with SMTP id 80mr1188640wrc.346.1634838836980;
+        Thu, 21 Oct 2021 10:53:56 -0700 (PDT)
+Received: from localhost ([185.112.167.53])
+        by smtp.gmail.com with ESMTPSA id c15sm5488576wrs.19.2021.10.21.10.53.56
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 21 Oct 2021 10:00:35 -0700 (PDT)
-Date:   Thu, 21 Oct 2021 10:00:34 -0700
-From:   Kees Cook <keescook@chromium.org>
-To:     "Gustavo A. R. Silva" <gustavoars@kernel.org>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Roopa Prabhu <roopa@nvidia.com>,
-        Nikolay Aleksandrov <nikolay@nvidia.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org
-Subject: Re: [PATCH][net-next] netfilter: ebtables: use array_size() helper
- in copy_{from,to}_user()
-Message-ID: <202110210958.6626A30@keescook>
-References: <20210928200647.GA266402@embeddedor>
+        Thu, 21 Oct 2021 10:53:56 -0700 (PDT)
+From:   =?UTF-8?q?=C5=A0t=C4=9Bp=C3=A1n=20N=C4=9Bmec?= <snemec@redhat.com>
+To:     netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     phil@nwl.cc
+Subject: [PATCH nft] tests: shell: $NFT needs to be invoked unquoted
+Date:   Thu, 21 Oct 2021 19:54:38 +0200
+Message-Id: <20211021175438.758386-1-snemec@redhat.com>
+X-Mailer: git-send-email 2.33.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210928200647.GA266402@embeddedor>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Sep 28, 2021 at 03:06:47PM -0500, Gustavo A. R. Silva wrote:
-> Use array_size() helper instead of the open-coded version in
-> copy_{from,to}_user().  These sorts of multiplication factors
-> need to be wrapped in array_size().
-> 
-> Link: https://github.com/KSPP/linux/issues/160
-> Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+The variable has to undergo word splitting, otherwise the shell tries
+to find the variable value as an executable, which breaks in cases that
+7c8a44b25c22 ("tests: shell: Allow wrappers to be passed as nft command")
+intends to support.
 
-Thanks!
+Mention this in the shell tests README.
 
-Reviewed-by: Kees Cook <keescook@chromium.org>
+Fixes: d8ccad2a2b73 ("tests: cover baecd1cf2685 ("segtree: Fix segfault when restoring a huge interval set")")
+Signed-off-by: Štěpán Němec <snemec@redhat.com>
+---
+The test I added (0068) is the only problematic occurrence.
 
-I see that this is marked "Awaiting Upstream" (for an ebtables
-maintainer ack?)
-https://patchwork.kernel.org/project/netdevbpf/patch/20210928200647.GA266402@embeddedor/
+This would be best applied on top of the README series (otherwise
+the README still talks about $NFT being a path to a binary).
 
+ tests/shell/README                                       | 3 +++
+ tests/shell/testcases/sets/0068interval_stack_overflow_0 | 2 +-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/tests/shell/README b/tests/shell/README
+index 07d5cc2e3e7c..2a6f224f6fc9 100644
+--- a/tests/shell/README
++++ b/tests/shell/README
+@@ -30,4 +30,7 @@ which contains the nft command being tested.
+ You can pass an arbitrary $NFT value as well:
+  # NFT=/usr/local/sbin/nft ./run-tests.sh
+ 
++Note that, to support usage such as NFT='valgrind nft', tests must
++invoke $NFT unquoted.
++
+ By default, the tests are run with the nft binary at '../../src/nft'
+diff --git a/tests/shell/testcases/sets/0068interval_stack_overflow_0 b/tests/shell/testcases/sets/0068interval_stack_overflow_0
+index 134282de2826..6620572449c3 100755
+--- a/tests/shell/testcases/sets/0068interval_stack_overflow_0
++++ b/tests/shell/testcases/sets/0068interval_stack_overflow_0
+@@ -26,4 +26,4 @@ table inet test68_table {
+ }
+ EOF
+ 
+-( ulimit -s 128 && "$NFT" -f "$ruleset_file" )
++( ulimit -s 128 && $NFT -f "$ruleset_file" )
+
+base-commit: d8ccad2a2b73c4189934eb5fd0e3d096699b5043
+prerequisite-patch-id: fa363c8411ae8d859aadb73624b07008564db275
+prerequisite-patch-id: 8b6016a2f32a72dacadaad08c5f48d4897adf816
+prerequisite-patch-id: e2e3c6baa8d81d2da42a32bcd76d8ffd4ad24921
 -- 
-Kees Cook
+2.33.1
+
