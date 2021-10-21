@@ -2,72 +2,87 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15474C433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Oct 2021 13:03:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E2B3C433FE
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Oct 2021 14:49:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E855C611CE
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Oct 2021 13:03:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E35C66121F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Oct 2021 14:49:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230359AbhJUNFl (ORCPT
+        id S231572AbhJUOvZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 21 Oct 2021 09:05:41 -0400
-Received: from todd.t-8ch.de ([159.69.126.157]:51261 "EHLO todd.t-8ch.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230190AbhJUNFk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 21 Oct 2021 09:05:40 -0400
-From:   =?UTF-8?q?Thomas=20Wei=C3=9Fschuh?= <linux@weissschuh.net>
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=weissschuh.net;
-        s=mail; t=1634821397;
-        bh=4YdKHvN93yhq8+9juz+qrXE/FDAOs4WQpC3s82kIpYY=;
-        h=From:To:Cc:Subject:Date:From;
-        b=ANysfixJonxu2KHFisv92/hdJqmcHpqRwjYtE1I7s3BPC6PnveWTakAuG1qfPg6X+
-         T5rxYNJYSX99ixp8eoRnB5i59zo4W1iT1+LuZMXJSze+uB8dzLHVuJDcRR8Frm+8TR
-         3pZBn7AyWdjrgsa3c5UAJNVBnwfrPvzZDiX2KETc=
-To:     Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-Cc:     =?UTF-8?q?Thomas=20Wei=C3=9Fschuh?= <linux@weissschuh.net>,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] ipvs: autoload ipvs on genl access
-Date:   Thu, 21 Oct 2021 15:02:55 +0200
-Message-Id: <20211021130255.4177-1-linux@weissschuh.net>
-X-Mailer: git-send-email 2.33.1
+        Thu, 21 Oct 2021 10:51:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43888 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231424AbhJUOvX (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 21 Oct 2021 10:51:23 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72A3BC0613B9;
+        Thu, 21 Oct 2021 07:49:07 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1mdZNR-00014c-IX; Thu, 21 Oct 2021 16:49:05 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netdev@vger.kernel.org>
+Cc:     netfilter-devel@vger.kernel.org, dsahern@kernel.org,
+        pablo@netfilter.org, crosser@average.org,
+        lschlesinger@drivenets.com, Florian Westphal <fw@strlen.de>
+Subject: [PATCH net-next 0/2] vrf: rework interaction with netfilter/conntrack
+Date:   Thu, 21 Oct 2021 16:48:55 +0200
+Message-Id: <20211021144857.29714-1-fw@strlen.de>
+X-Mailer: git-send-email 2.32.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The kernel provides the functionality to automatically load modules
-providing genl families. Use this to remove the need for users to
-manually load the module.
+This patch series aims to solve the to-be-reverted change 09e856d54bda5f288e
+("vrf: Reset skb conntrack connection on VRF rcv") in a different way.
 
-Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
----
- net/netfilter/ipvs/ip_vs_ctl.c | 2 ++
- 1 file changed, 2 insertions(+)
+Rather than have skbs pass through conntrack and nat hooks twice, suppress
+conntrack invocation if the conntrack/nat hook is called from the vrf driver.
 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 29ec3ef63edc..0ff94c66641f 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -48,6 +48,8 @@
- 
- #include <net/ip_vs.h>
- 
-+MODULE_ALIAS_GENL_FAMILY(IPVS_GENL_NAME);
-+
- /* semaphore for IPVS sockopts. And, [gs]etsockopt may sleep. */
- static DEFINE_MUTEX(__ip_vs_mutex);
- 
+First patch deals with 'incoming connection' case:
+1. suppress NAT transformations
+2. skip conntrack confirmation
 
-base-commit: d9aaaf223297f6146d9d7f36caca927c92ab855a
+NAT and conntrack confirmation is done when ip/ipv6 stack calls
+the postrouting hook.
+
+Second patch deals with local packets:
+in vrf driver, mark the skbs as 'untracked', so conntrack output
+hook ignores them.  This skips all nat hooks as well.
+
+Afterwards, remove the untracked state again so the second
+round will pick them up.
+
+One alternative to the chosen implementation would be to add a 'caller
+id' field to 'struct nf_hook_state' and then use that, these patches
+use the more straightforward check of VRF flag on the state->out device.
+
+The two patches apply to both net and net-next, i am targeting -next
+because I think that since snat did not work correctly for so long that
+we can take the longer route.  If you disagree, apply to net at your
+discretion.
+
+The patches apply both with 09e856d54bda5f288e reverted or still
+in-place, but only with the revert in place ingress conntrack settings
+(zone, notrack etc) start working again.
+
+I've already submitted selftests for vrf+nfqueue and conntrack+vrf.
+
+Florian Westphal (2):
+  netfilter: conntrack: skip confirmation and nat hooks in postrouting
+    for vrf
+  vrf: run conntrack only in context of lower/physdev for locally
+    generated packets
+
+ drivers/net/vrf.c                  | 28 ++++++++++++++++++++++++----
+ net/netfilter/nf_conntrack_proto.c | 16 ++++++++++++++++
+ net/netfilter/nf_nat_core.c        | 12 +++++++++++-
+ 3 files changed, 51 insertions(+), 5 deletions(-)
+
 -- 
-2.33.1
+2.32.0
 
