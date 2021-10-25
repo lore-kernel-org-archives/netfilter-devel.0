@@ -2,91 +2,91 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6B24C433F5
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Oct 2021 13:43:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92DD5C433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Oct 2021 14:14:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B6B9F60F9B
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Oct 2021 13:43:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7125060F9D
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Oct 2021 14:14:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232653AbhJYNp7 (ORCPT
+        id S233385AbhJYOQf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 25 Oct 2021 09:45:59 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:42154 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232692AbhJYNp7 (ORCPT
+        Mon, 25 Oct 2021 10:16:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36574 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233400AbhJYOQf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 25 Oct 2021 09:45:59 -0400
-Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 9F6B963F1F
-        for <netfilter-devel@vger.kernel.org>; Mon, 25 Oct 2021 15:41:47 +0200 (CEST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next] netfilter: nft_meta: add NFT_META_IFTYPE
-Date:   Mon, 25 Oct 2021 15:43:29 +0200
-Message-Id: <20211025134329.1030333-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Mon, 25 Oct 2021 10:16:35 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA552C061745;
+        Mon, 25 Oct 2021 07:14:12 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1mf0jp-0004GQ-Qt; Mon, 25 Oct 2021 16:14:09 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netdev@vger.kernel.org>
+Cc:     <netfilter-devel@vger.kernel.org>, lschlesinger@drivenets.com,
+        dsahern@kernel.org, pablo@netfilter.org, crosser@average.org,
+        Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2 net-next 0/2] vrf: rework interaction with netfilter/conntrack
+Date:   Mon, 25 Oct 2021 16:13:58 +0200
+Message-Id: <20211025141400.13698-1-fw@strlen.de>
+X-Mailer: git-send-email 2.32.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Generalize NFT_META_IIFTYPE to NFT_META_IFTYPE which allows you to match
-on the interface type of the skb->dev field. This field is used by the
-netdev family to add an implicit dependency to skip non-ethernet packets
-when matching on layer 3 and 4 TCP/IP header fields.
+V2:
+- fix 'plain integer as null pointer' warning
+- reword commit message in patch 2 to clarify loss of 'ct set untracked'
 
-For backward compatibility, add the NFT_META_IIFTYPE alias to
-NFT_META_IFTYPE.
+This patch series aims to solve the to-be-reverted change 09e856d54bda5f288e
+("vrf: Reset skb conntrack connection on VRF rcv") in a different way.
 
-Add __NFT_META_IIFTYPE, to be used by userspace in the future to match
-specifically on the iiftype.
+Rather than have skbs pass through conntrack and nat hooks twice, suppress
+conntrack invocation if the conntrack/nat hook is called from the vrf driver.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/uapi/linux/netfilter/nf_tables.h | 4 +++-
- net/netfilter/nft_meta.c                 | 6 +++++-
- 2 files changed, 8 insertions(+), 2 deletions(-)
+First patch deals with 'incoming connection' case:
+1. suppress NAT transformations
+2. skip conntrack confirmation
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index e94d1fa554cb..08db4ee06ab6 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -896,7 +896,8 @@ enum nft_meta_keys {
- 	NFT_META_OIF,
- 	NFT_META_IIFNAME,
- 	NFT_META_OIFNAME,
--	NFT_META_IIFTYPE,
-+	NFT_META_IFTYPE,
-+#define NFT_META_IIFTYPE	NFT_META_IFTYPE
- 	NFT_META_OIFTYPE,
- 	NFT_META_SKUID,
- 	NFT_META_SKGID,
-@@ -923,6 +924,7 @@ enum nft_meta_keys {
- 	NFT_META_TIME_HOUR,
- 	NFT_META_SDIF,
- 	NFT_META_SDIFNAME,
-+	__NFT_META_IIFTYPE,
- };
- 
- /**
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index a7e01e9952f1..516e74635bae 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -244,7 +244,11 @@ static bool nft_meta_get_eval_ifname(enum nft_meta_keys key, u32 *dest,
- 	case NFT_META_OIF:
- 		nft_meta_store_ifindex(dest, nft_out(pkt));
- 		break;
--	case NFT_META_IIFTYPE:
-+	case NFT_META_IFTYPE:
-+		if (!nft_meta_store_iftype(dest, pkt->skb->dev))
-+			return false;
-+		break;
-+	case __NFT_META_IIFTYPE:
- 		if (!nft_meta_store_iftype(dest, nft_in(pkt)))
- 			return false;
- 		break;
+NAT and conntrack confirmation is done when ip/ipv6 stack calls
+the postrouting hook.
+
+Second patch deals with local packets:
+in vrf driver, mark the skbs as 'untracked', so conntrack output
+hook ignores them.  This skips all nat hooks as well.
+
+Afterwards, remove the untracked state again so the second
+round will pick them up.
+
+One alternative to the chosen implementation would be to add a 'caller
+id' field to 'struct nf_hook_state' and then use that, these patches
+use the more straightforward check of VRF flag on the state->out device.
+
+The two patches apply to both net and net-next, i am targeting -next
+because I think that since snat did not work correctly for so long that
+we can take the longer route.  If you disagree, apply to net at your
+discretion.
+
+The patches apply both with 09e856d54bda5f288e reverted or still
+in-place, but only with the revert in place ingress conntrack settings
+(zone, notrack etc) start working again.
+
+I've already submitted selftests for vrf+nfqueue and conntrack+vrf.
+
+Florian Westphal (2):
+  netfilter: conntrack: skip confirmation and nat hooks in postrouting
+    for vrf
+  vrf: run conntrack only in context of lower/physdev for locally
+    generated packets
+
+ drivers/net/vrf.c                  | 28 ++++++++++++++++++++++++----
+ net/netfilter/nf_conntrack_proto.c | 16 ++++++++++++++++
+ net/netfilter/nf_nat_core.c        | 12 +++++++++++-
+ 3 files changed, 51 insertions(+), 5 deletions(-)
+
 -- 
-2.30.2
+2.32.0
 
