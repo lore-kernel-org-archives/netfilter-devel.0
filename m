@@ -2,62 +2,73 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4757DC433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Oct 2021 11:25:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C36F3C433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Oct 2021 12:30:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 266DC60C4B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Oct 2021 11:25:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AF30160F70
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Oct 2021 12:30:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234416AbhJZL2B (ORCPT
+        id S235950AbhJZMce (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 26 Oct 2021 07:28:01 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:45258 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234514AbhJZL1v (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 26 Oct 2021 07:27:51 -0400
-Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 2621A63F4E
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 Oct 2021 13:23:39 +0200 (CEST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next] netfilter: nft_meta: infer ptktype from IP address from the output path
-Date:   Tue, 26 Oct 2021 13:25:21 +0200
-Message-Id: <20211026112521.1278472-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Tue, 26 Oct 2021 08:32:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45402 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S235947AbhJZMcd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 26 Oct 2021 08:32:33 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPS id 2430B60EFF;
+        Tue, 26 Oct 2021 12:30:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1635251410;
+        bh=SnqNFSP5+VU+b68u/KalevXJYYfsYkIBQSYK4fTHDHY=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=eIfsSaDy9yQmrIpYsZQp6AP6+xjWCOG1EbZ8ri5lLwm3hSGjtpDh8QA569HrtgU43
+         DwqHVoo0K4VZF9vnBvTpd2XQgD6LqAjvMGn8JFfqI7ha2FUxwjPSQdkfYHgwtHhzVL
+         AntSspK4yqHfxClKMtBPuNUwW/nxf4YWhhZHw7outBIW+2g6HKYLOwyXbldvCJecgj
+         O4u2LS6P9CVHUYEhgw0BXgFNIigm0Dief3aYlFANLIPLOIgkSLCF4lkKpmhjrqQzCJ
+         5ztkQvR8vI/S5GH5hD4Wh47EMK6TSgTYmhJOBMdq8XmJ7PDJ13c1tCDeO0JSd1PuPC
+         MQo5T4fKd41oQ==
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH v2 net-next 0/2] vrf: rework interaction with
+ netfilter/conntrack
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <163525141010.31388.2177083204352859727.git-patchwork-notify@kernel.org>
+Date:   Tue, 26 Oct 2021 12:30:10 +0000
+References: <20211025141400.13698-1-fw@strlen.de>
+In-Reply-To: <20211025141400.13698-1-fw@strlen.de>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        lschlesinger@drivenets.com, dsahern@kernel.org,
+        pablo@netfilter.org, crosser@average.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-meta pkttype always says 0 (host) from the output path. The code to
-infer the packet type from the IP address is already in place for
-loopback traffic, extend it to infer it the packet type from the output,
-postrouting and egress path too.
+Hello:
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_meta.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+This series was applied to netdev/net-next.git (master)
+by David S. Miller <davem@davemloft.net>:
 
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 516e74635bae..58a87205be8e 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -371,7 +371,11 @@ void nft_meta_get_eval(const struct nft_expr *expr,
- 		break;
- #endif
- 	case NFT_META_PKTTYPE:
--		if (skb->pkt_type != PACKET_LOOPBACK) {
-+		if (skb->pkt_type != PACKET_LOOPBACK &&
-+		    nft_hook(pkt) != NF_INET_LOCAL_OUT &&
-+		    nft_hook(pkt) != NF_INET_POST_ROUTING &&
-+		    (nft_pf(pkt) == NFPROTO_NETDEV &&
-+		     nft_hook(pkt) != NF_NETDEV_EGRESS)) {
- 			nft_reg_store8(dest, skb->pkt_type);
- 			break;
- 		}
+On Mon, 25 Oct 2021 16:13:58 +0200 you wrote:
+> V2:
+> - fix 'plain integer as null pointer' warning
+> - reword commit message in patch 2 to clarify loss of 'ct set untracked'
+> 
+> This patch series aims to solve the to-be-reverted change 09e856d54bda5f288e
+> ("vrf: Reset skb conntrack connection on VRF rcv") in a different way.
+> 
+> [...]
+
+Here is the summary with links:
+  - [v2,net-next,1/2] netfilter: conntrack: skip confirmation and nat hooks in postrouting for vrf
+    https://git.kernel.org/netdev/net-next/c/8e0538d8ee06
+  - [v2,net-next,2/2] vrf: run conntrack only in context of lower/physdev for locally generated packets
+    https://git.kernel.org/netdev/net-next/c/8c9c296adfae
+
+You are awesome, thank you!
 -- 
-2.30.2
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
