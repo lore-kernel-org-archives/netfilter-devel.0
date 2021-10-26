@@ -2,63 +2,73 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FDCBC433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Oct 2021 13:16:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54209C433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Oct 2021 14:10:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 41DA061040
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Oct 2021 13:16:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3794861078
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Oct 2021 14:10:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235479AbhJZNTH (ORCPT
+        id S236408AbhJZOMc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 26 Oct 2021 09:19:07 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:45628 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234252AbhJZNTH (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 26 Oct 2021 09:19:07 -0400
-Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 14A8463F4E;
-        Tue, 26 Oct 2021 15:14:55 +0200 (CEST)
-Date:   Tue, 26 Oct 2021 15:16:38 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        lschlesinger@drivenets.com, dsahern@kernel.org, crosser@average.org
-Subject: Re: [PATCH v2 net-next 2/2] vrf: run conntrack only in context of
- lower/physdev for locally generated packets
-Message-ID: <YXf/tlpw0ARmS8j5@salvia>
-References: <20211025141400.13698-1-fw@strlen.de>
- <20211025141400.13698-3-fw@strlen.de>
- <YXf2TJivC1Tp3Tfj@salvia>
- <20211026125858.GA18032@breakpoint.cc>
+        Tue, 26 Oct 2021 10:12:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40376 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S234708AbhJZOMc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 26 Oct 2021 10:12:32 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPS id 3F93B60F46;
+        Tue, 26 Oct 2021 14:10:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1635257408;
+        bh=FFJnADgPLJo4DqKk8qn2qFJ/ALCH+PSU+vvWfDpSowQ=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=lnI50V44naYPyMZ1nimPG/HWziGlnFycVz/eHRnOMkY1rjwdJlyZjJyTyBip8Lf3t
+         Y9uxwYiE2c1QrTFSrktq4ZkCWCk62iBkICunau9LG8EifD9x4w+dYjgXjfgq3HUlDD
+         XoE+6+UTurVgF3MfB1IJlBS9+Q/mztOSY9owhatKFUyDmRPF6ZD3hfGUK6+tO/KUP3
+         1gmEETM6SOtNCF8u7gQFh6GyE9VKzQBQgPGbm80BGz3v1ZrDNORvQt6JLQCnImZVGO
+         h5hDmvT3/ygyLSYggzgJPZAJjXRRrboP6OjyQoEkG/Yld4Wwm2rVUnMGJtwzrfRcqx
+         hl2XuxFPQnFxA==
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20211026125858.GA18032@breakpoint.cc>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next] ifb: Depend on netfilter alternatively to tc
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <163525740820.12899.4671888384340688200.git-patchwork-notify@kernel.org>
+Date:   Tue, 26 Oct 2021 14:10:08 +0000
+References: <c8b883e60f7b143ed438fd6b032a054572acee47.1635225091.git.lukas@wunner.de>
+In-Reply-To: <c8b883e60f7b143ed438fd6b032a054572acee47.1635225091.git.lukas@wunner.de>
+To:     Lukas Wunner <lukas@wunner.de>
+Cc:     davem@davemloft.net, kuba@kernel.org, pablo@netfilter.org,
+        kadlec@netfilter.org, fw@strlen.de,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, jhs@mojatatu.com, xiyou.wangcong@gmail.com,
+        jiri@resnulli.us, daniel@iogearbox.net, willemb@google.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Oct 26, 2021 at 02:58:58PM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > If the motion for these hooks in the driver is to match for 'oif vrf',
-> > now that there is an egress hook, it might make more sense to filter
-> > from there based on the interface rather than adding these hook calls
-> > from the vrf driver?
-> > 
-> > I wonder if, in the future, it makes sense to entirely disable these
-> > hooks in the vrf driver and rely on egress hook?
+Hello:
+
+This patch was applied to netdev/net-next.git (master)
+by David S. Miller <davem@davemloft.net>:
+
+On Tue, 26 Oct 2021 07:15:32 +0200 you wrote:
+> IFB originally depended on NET_CLS_ACT for traffic redirection.
+> But since v4.5, that may be achieved with NFT_FWD_NETDEV as well.
 > 
-> Agree, it would be better to support ingress+egress hhoks from vrf
-> so vrf specific filtering can be done per-device.
+> Fixes: 39e6dea28adc ("netfilter: nf_tables: add forward expression to the netdev family")
+> Signed-off-by: Lukas Wunner <lukas@wunner.de>
+> Cc: <stable@vger.kernel.org> # v4.5+: bcfabee1afd9: netfilter: nft_fwd_netdev: allow to redirect to ifb via ingress
+> Cc: <stable@vger.kernel.org> # v4.5+
 > 
-> I don't think we can just remove the existing NF_HOOK()s in vrf though.
+> [...]
 
-I understand, there are people relying on this.
+Here is the summary with links:
+  - [net-next] ifb: Depend on netfilter alternatively to tc
+    https://git.kernel.org/netdev/net-next/c/046178e726c2
 
-> We could add toggles to disable them, but I'm not sure how to best
-> expose that (ip link attribute, ethtool, sysctl ...)...?
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-I would make it global toggle. As you mentioned it might be good to
-explore an alternative to this via the ingress+egress hooks now that
-the usecases are better known?
+
