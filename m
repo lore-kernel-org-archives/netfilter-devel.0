@@ -2,206 +2,81 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73203C433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Oct 2021 20:40:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE8DBC433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Oct 2021 21:09:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 54A3E60F39
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Oct 2021 20:40:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D90EE60F02
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Oct 2021 21:09:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240602AbhJ0Umx (ORCPT
+        id S244197AbhJ0VLn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Oct 2021 16:42:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45028 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235613AbhJ0Umw (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Oct 2021 16:42:52 -0400
-X-Greylist: delayed 2285 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 27 Oct 2021 13:40:26 PDT
-Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:fb7d:d6d6:e0:4cff:fe83:e514])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9EDFAC061570
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Oct 2021 13:40:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=IceR7HXeh4b1zIyfxIcmS2JakqoLVLiXacfHFvafJnk=; b=QjC7c44NXtG3J8xEyBJhRzLjFN
-        s/4cwsZAVyBODziSEOs4YinleneWXKnzG3cfmrPze6wWn9KmhW8gp09OyB3CvYGj/6WQbZieg9ZHg
-        9orng+a0EDpFYTrSC3jPWlzdzLJ/cujHceV5UcYmrfsJL87lHTIKvZsxIiuZdOWcEgD3rgSh8ilQM
-        jgSlyXjams/vNElPODIG7F20anyH6Yeft3OUqpExi/AWLjScKIRYvRN3R1Tr2ODK1HJmXPu5loqzJ
-        Ji291T3euyCQur+FA890h9pkO9jJG0hPZe8cmcciHCKAS0IMn0siVO5FoEXORBv/wrMCEuer2yb6T
-        KqfsrTFQ==;
-Received: from celephais.dreamlands ([192.168.96.3] helo=azazel.net)
-        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <jeremy@azazel.net>)
-        id 1mfp7p-007IVW-C5; Wed, 27 Oct 2021 21:02:17 +0100
-Date:   Wed, 27 Oct 2021 21:02:13 +0100
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [nft PATCH] parser: extend limit statement syntax.
-Message-ID: <YXmwRcI1A5wpNZs7@azazel.net>
-References: <20211002152230.1568537-1-jeremy@azazel.net>
- <YVnFGPHsva1xm7F+@azazel.net>
- <YXkaInao+hLzLkR7@salvia>
+        Wed, 27 Oct 2021 17:11:43 -0400
+Received: from ink.ssi.bg ([178.16.128.7]:36507 "EHLO ink.ssi.bg"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S244195AbhJ0VLn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 27 Oct 2021 17:11:43 -0400
+Received: from ja.ssi.bg (unknown [178.16.129.10])
+        by ink.ssi.bg (Postfix) with ESMTPS id E1AE43C0332;
+        Thu, 28 Oct 2021 00:09:12 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.16.1/8.16.1) with ESMTP id 19RL999a042887;
+        Thu, 28 Oct 2021 00:09:10 +0300
+Date:   Thu, 28 Oct 2021 00:09:09 +0300 (EEST)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     yangxingwu <xingwu.yang@gmail.com>
+cc:     Simon Horman <horms@verge.net.au>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-doc@vger.kernel.org
+Subject: Re: [PATCH] ipvs: Fix reuse connection if RS weight is 0
+In-Reply-To: <CA+7U5Jta_g2vCXiwScVVwLZppWp51TDOB7LxUxeundkPxNZYnA@mail.gmail.com>
+Message-ID: <35e6215-4fb3-5149-a888-67aa6fae958f@ssi.bg>
+References: <20211025115910.2595-1-xingwu.yang@gmail.com> <707b5fb3-6b61-c53-e983-bc1373aa2bf@ssi.bg> <CA+7U5JsSuwqP7eHj1tMHfsb+EemwrhZEJ2b944LFWTroxAnQRQ@mail.gmail.com> <1190ef60-3ad9-119e-5336-1c62522aec81@ssi.bg> <CA+7U5JvvsNejgOifAwDdjddkLHUL30JPXSaDBTwysSL7dhphuA@mail.gmail.com>
+ <CA+7U5Jta_g2vCXiwScVVwLZppWp51TDOB7LxUxeundkPxNZYnA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="sOb7zdfFxOijEGGI"
-Content-Disposition: inline
-In-Reply-To: <YXkaInao+hLzLkR7@salvia>
-X-SA-Exim-Connect-IP: 192.168.96.3
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
---sOb7zdfFxOijEGGI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	Hello,
 
-On 2021-10-27, at 11:21:38 +0200, Pablo Neira Ayuso wrote:
-> On Sun, Oct 03, 2021 at 03:58:32PM +0100, Jeremy Sowden wrote:
-> > On 2021-10-02, at 16:22:30 +0100, Jeremy Sowden wrote:
-> > > The documentation describes the syntax of limit statements thus:
-> > >
-> > >   limit rate [over] packet_number / TIME_UNIT [burst packet_number packets]
-> > >   limit rate [over] byte_number BYTE_UNIT / TIME_UNIT [burst byte_number BYTE_UNIT]
-> > >
-> > >   TIME_UNIT := second | minute | hour | day
-> > >   BYTE_UNIT := bytes | kbytes | mbytes
-> > >
-> > > This implies that one may specify a limit as either of the following:
-> > >
-> > >   limit rate 1048576 / second
-> > >   limit rate 1048576 mbytes / second
-> > >
-> > > However, the latter currently does not parse:
-> > >
-> > >   $ sudo /usr/sbin/nft add filter input limit rate 1048576 mbytes / second
-> > >   Error: wrong rate format
-> > >   add filter input limit rate 1048576 mbytes / second
-> > >                    ^^^^^^^^^^^^^^^^^^^^^^^^^
-> > >
-> > > Extend the parser to support it.
-> > >
-> > > Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
-> > > ---
-> > >
-> > > I can't help thinking that it ought to be possible to fold the two
-> > >
-> > >   limit rate [over] byte_number BYTE_UNIT / TIME_UNIT [burst byte_number BYTE_UNIT]
-> > >
-> > > rules into one.  However, my attempts to get the scanner to
-> > > tokenize "bytes/second" as "bytes" "/" "second" (for example)
-> > > failed.
-> >
-> > Having reread the Flex manual, I've changed my mind.  While it would be
-> > possible, it would be rather fiddly and require more effort than it
-> > would be worth.
->
-> I can apply this workaround meanwhile we have a better solution for
-> this if this is an issue on your side.
->
-> Did you get any bug report regarding this?
+On Wed, 27 Oct 2021, yangxingwu wrote:
 
-Can't quite remember how I found it.  I may have been doing some testing
-in relation to this:
+> what we want is if RS weight is 0, then no new connections should be
+> served even if conn_reuse_mode is 0, just as commit dc7b3eb900aa
+> ("ipvs: Fix reuse connection if real server is
+> dead") trying to do
+> 
+> Pls let me know if there are any other issues of concern
 
-  https://lore.kernel.org/netfilter-devel/20211007201222.2613750-1-jeremy@azazel.net/#r
+	My concern is with the behaviour people expect
+from each sysctl var: conn_reuse_mode decides if port reuse
+is considered for rescheduling and expire_nodest_conn
+should have priority only for unavailable servers (nodest means
+No Destination), not in this case.
 
-I happened to notice that nft would accept all these:
+	We don't know how people use the conn_reuse_mode=0
+mode, one may bind to a local port and try to send multiple
+connections in a row with the hope they will go to same real
+server, i.e. as part from same "session", even while weight=0.
+If they do not want such behaviour (99% of the cases), they
+will use the default conn_reuse_mode=1. OTOH, you have different
+expectations for mode 0, not sure why but you do not want to use
+the default mode=1 which is safer to use. May be the setups
+forget to stay with conn_reuse_mode=1 on kernels 5.9+ and
+set the var to 0 ?
 
-  limit rate 1048576/second
-  limit rate 1048576 / second
-  limit rate 1048576 mbytes/second
+	The problem with mentioned commit dc7b3eb900aa is that
+it breaks FTP and persistent connections while the goal of
+weight=0 is graceful inhibition of the server. We made
+the mistake to add priority for expire_nodest_conn when weight=0.
+This can be fixed with a !cp->control check. We do not want
+expire_nodest_conn to kill every connection during the
+graceful period.
 
-but not this:
+Regards
 
-  limit rate 1048576 mbytes / second
-
-The problem is that the scanner defines a string as:
-
-  ({letter}|[_.])({letter}|{digit}|[/\-_\.])*
-
-This means that:
-
-  1048576/second
-
-cannot be tokenized as a string, but:
-
- mbytes/second
-
-can.  Thus the scanner will tokenize both
-
- 1048576/second
-
-and:
-
-  1048576 / second
-
-as:
-
-  numberstring slash string
-
-allowing this parser rule:
-
-  LIMIT RATE limit_mode NUM SLASH time_unit limit_burst_pkts close_scope_limit
-
-to match both.  On the other hand, the scanner will tokenize:
-
-  mbytes/second
-
-as:
-
-  string
-
-which is matched by the existing parser rule:
-
-  LIMIT RATE limit_mode NUM STRING limit_burst_bytes close_scope_limit
-
-but:
-
-  mbytes / second
-
-as:
-
-  string slash string
-
-and so I added a new parser rule to match the latter.
-
-I did consider removing '/' from the scanner's definition of "string",
-and it didn't seem to cause any unit test failures, but I dare say
-somebody has used it somewhere weird that would break. :)
-
-The other possibility I tried was to have a separate definition of
-"string" active in the "SCANSTATE_LIMIT" start-condition, but that
-turned out to require a lot more than just the one extra rule and to be
-a much more fiddly and invasive change than just adding the parser rule.
-
-J.
-
---sOb7zdfFxOijEGGI
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmF5sD0ACgkQKYasCr3x
-BA0ONQ/9HiRBvRZ/V0BPLk0hrYbSS9KndodLU+ReiTRSIMXD+E/1FBnKeUq/CFur
-kUQgyTFjIs27XyueEDwk13tPHMLeYOVcBUfRivLYE2IuUQzLixhWfAsoFYzBBFo5
-wob6/yIXsf1BBcdA22dikyllf2Fg7IGUWcpyxFjzeIyDhcIQHovTfk0xjWXYVQar
-8MJOZc5IeRe6q0p2KIP96SCWPv/E2svzGEC7hQU9/6txd9ylqGxb4rai0YgHV9As
-5mvVyz4IEW5GKmvuC5ZlwCYXMsx5T2h5Lha0mnHl5eYyN7h4SGQKT01oa2ijG6cO
-id7sOTcCMILRWVdBDsDSe/ofK9/m9+piKpnPbTOurXGUKv5b2mrfuOtqPH0aVbLa
-vD1mOUNX+xkCz/ocF0TJRQUjM12wPRe74PRAoJVwX1SRn6C8QiRJUrmdGtQGq1dx
-YJXyYU3wYaGM8cqL1tCfK58ccWAc2BwX2Buc9+lgwwMY4Za0vC3wLa7Hez+dv43R
-UhSl2PH1SNjfbTprmg2OGLjNHPCvZCW8WvoXLKJXQKeYlodWj0LdmN1SS7Wjyz8S
-ZC+budAqhL+MxCbpWG9wbcMzJ6uB/6AEWi9vT3b+hVOQRGT1eRlwxnZJSdiCju/J
-Dcvm0tfrDbKAGgJUXjHaw6SOdOP5zqBcdX6yt/4KIe/5Xxz7CKg=
-=gRt4
------END PGP SIGNATURE-----
-
---sOb7zdfFxOijEGGI--
+--
+Julian Anastasov <ja@ssi.bg>
