@@ -2,28 +2,28 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDFA7C433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Oct 2021 14:45:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0E37C433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Oct 2021 14:59:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BC995610CF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Oct 2021 14:45:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D3FB2610C7
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Oct 2021 14:59:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229607AbhJ2OsU (ORCPT
+        id S229623AbhJ2PC1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 29 Oct 2021 10:48:20 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:52798 "EHLO
+        Fri, 29 Oct 2021 11:02:27 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:52830 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229558AbhJ2OsU (ORCPT
+        with ESMTP id S229542AbhJ2PC0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 29 Oct 2021 10:48:20 -0400
+        Fri, 29 Oct 2021 11:02:26 -0400
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id D6F3963586
-        for <netfilter-devel@vger.kernel.org>; Fri, 29 Oct 2021 16:43:59 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 1EF2563586
+        for <netfilter-devel@vger.kernel.org>; Fri, 29 Oct 2021 16:58:07 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next,v3 2/2] netfilter: nft_payload: support for inner header matching / mangling
-Date:   Fri, 29 Oct 2021 16:45:12 +0200
-Message-Id: <20211029144512.9570-1-pablo@netfilter.org>
+Subject: [PACH nf-next,v4] netfilter: nft_payload: support for inner header matching / mangling
+Date:   Fri, 29 Oct 2021 16:59:53 +0200
+Message-Id: <20211029145953.11155-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -38,13 +38,12 @@ Only TCP and UDP supported at this stage.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v3: - check for NFT_PKTINFO_L4PROTO from __nft_payload_inner_offset()
-    - update commit description
+v4: check for nft_payload_inner_offset == -1, then goto err.
 
  include/net/netfilter/nf_tables.h        |  2 +
  include/uapi/linux/netfilter/nf_tables.h |  2 +
- net/netfilter/nft_payload.c              | 52 +++++++++++++++++++++++-
- 3 files changed, 54 insertions(+), 2 deletions(-)
+ net/netfilter/nft_payload.c              | 56 +++++++++++++++++++++++-
+ 3 files changed, 58 insertions(+), 2 deletions(-)
 
 diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
 index 7e3188cf4a7d..a0d9e0b47ab8 100644
@@ -85,7 +84,7 @@ index 08db4ee06ab6..466fd3f4447c 100644
  
  /**
 diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index d1cd6583ee00..f40995fb7571 100644
+index d1cd6583ee00..cbfe4e4a4ad7 100644
 --- a/net/netfilter/nft_payload.c
 +++ b/net/netfilter/nft_payload.c
 @@ -22,6 +22,7 @@
@@ -142,27 +141,31 @@ index d1cd6583ee00..f40995fb7571 100644
  void nft_payload_eval(const struct nft_expr *expr,
  		      struct nft_regs *regs,
  		      const struct nft_pktinfo *pkt)
-@@ -112,6 +152,9 @@ void nft_payload_eval(const struct nft_expr *expr,
+@@ -112,6 +152,11 @@ void nft_payload_eval(const struct nft_expr *expr,
  			goto err;
  		offset = nft_thoff(pkt);
  		break;
 +	case NFT_PAYLOAD_INNER_HEADER:
 +		offset = nft_payload_inner_offset(pkt);
++		if (offset < 0)
++			goto err;
 +		break;
  	default:
  		BUG();
  	}
-@@ -614,6 +657,9 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
+@@ -614,6 +659,11 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
  			goto err;
  		offset = nft_thoff(pkt);
  		break;
 +	case NFT_PAYLOAD_INNER_HEADER:
 +		offset = nft_payload_inner_offset(pkt);
++		if (offset < 0)
++			goto err;
 +		break;
  	default:
  		BUG();
  	}
-@@ -622,7 +668,8 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
+@@ -622,7 +672,8 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
  	offset += priv->offset;
  
  	if ((priv->csum_type == NFT_PAYLOAD_CSUM_INET || priv->csum_flags) &&
@@ -172,7 +175,7 @@ index d1cd6583ee00..f40995fb7571 100644
  	     skb->ip_summed != CHECKSUM_PARTIAL)) {
  		fsum = skb_checksum(skb, offset, priv->len, 0);
  		tsum = csum_partial(src, priv->len, 0);
-@@ -741,6 +788,7 @@ nft_payload_select_ops(const struct nft_ctx *ctx,
+@@ -741,6 +792,7 @@ nft_payload_select_ops(const struct nft_ctx *ctx,
  	case NFT_PAYLOAD_LL_HEADER:
  	case NFT_PAYLOAD_NETWORK_HEADER:
  	case NFT_PAYLOAD_TRANSPORT_HEADER:
@@ -180,7 +183,7 @@ index d1cd6583ee00..f40995fb7571 100644
  		break;
  	default:
  		return ERR_PTR(-EOPNOTSUPP);
-@@ -759,7 +807,7 @@ nft_payload_select_ops(const struct nft_ctx *ctx,
+@@ -759,7 +811,7 @@ nft_payload_select_ops(const struct nft_ctx *ctx,
  	len    = ntohl(nla_get_be32(tb[NFTA_PAYLOAD_LEN]));
  
  	if (len <= 4 && is_power_of_2(len) && IS_ALIGNED(offset, len) &&
