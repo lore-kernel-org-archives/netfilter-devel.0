@@ -2,67 +2,28 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D63C2C4332F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Oct 2021 03:26:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DDFA7C433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Oct 2021 14:45:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BE5666103B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Oct 2021 03:26:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BC995610CF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Oct 2021 14:45:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231679AbhJ2D2v (ORCPT
+        id S229607AbhJ2OsU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 28 Oct 2021 23:28:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37782 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231611AbhJ2D2u (ORCPT
+        Fri, 29 Oct 2021 10:48:20 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:52798 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229558AbhJ2OsU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 Oct 2021 23:28:50 -0400
-Received: from mail-pj1-x102f.google.com (mail-pj1-x102f.google.com [IPv6:2607:f8b0:4864:20::102f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B743DC061570;
-        Thu, 28 Oct 2021 20:26:22 -0700 (PDT)
-Received: by mail-pj1-x102f.google.com with SMTP id n36-20020a17090a5aa700b0019fa884ab85so9523210pji.5;
-        Thu, 28 Oct 2021 20:26:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=LtgP/cUoxxhvYcfdihWX13hRZAIDcFCne2uXGpi/AnA=;
-        b=pnVPSE1jjdTlHf5q+/QOUvnEnDh/dyo56Nltoztkn7rp+u2qIthB4nz3zQts+FpEaC
-         ztX77ZUZG39hwxvuBeOUVCq5ol3T6+oOYJa8bHnbXZE2cWTGG1Qf0O0YXl73KaFpu0iQ
-         CQXkjEnU7IFLnvn1f+Ij2haWAY7oY5krONTZ2Xss/PowjeSm5Eo0LA9lKrxzzz6qm9qz
-         X7/4eE9kpYZ+AKwDk8M+IgYdSOGwXG1VqZ6gjFdouNpSWYHLJ8iiRXPGpy33W6w4GqTc
-         D3PDOZdA/hsQZ5Em7wFXVcQrmlWHF8ctOokrHC4PdaoO1KdkhrtW38ry8HxfVeJYrwJg
-         f9kA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=LtgP/cUoxxhvYcfdihWX13hRZAIDcFCne2uXGpi/AnA=;
-        b=I7pmpnRpcbiLr4ny7QEwmHvANP+IDEsffW16VZOsaUAXPXx4LmxNmRvbZ4ChnZePhK
-         M0jCHw1k7SJWtm9LQ/b1lrVzPbZqfFRjwF5hXjeVys4T76SisAE7I0pPeNBxKO0esp0x
-         KR8/CeHGS+tKx51pVsm/Bi85DKBS8Bd32cQcfv/CDe2RK//1QwgSvrb6hIze6pvZgQSB
-         kVmJUqHb+fy8yjKizt5AK550yJ1dFqsioLj6UBrLoxZSo8NAGzA+1a7LTB0mxsPjxnvU
-         eKMv7RNNhI+/eKkAH0v91nVy+7jCbccuWAG1pNqCm65zUw3QvkyTkveYLoEDv6whqPkA
-         gO1g==
-X-Gm-Message-State: AOAM5322MpDhDjPJmeVug8ZxYRT20Np/7IzuMReo6AxuTvzWHjGkS0E0
-        YaIfsoqxmZMcHAe7kpCeo/Y=
-X-Google-Smtp-Source: ABdhPJx9XgkGtE7qaUfO6vkh3qBVQlAF06dNogc1Z+fyPegLEQQNp04S/8BzTa1IelY1NsXFX41OOg==
-X-Received: by 2002:a17:902:bd96:b0:140:4a2b:c3ee with SMTP id q22-20020a170902bd9600b001404a2bc3eemr7549951pls.8.1635477982228;
-        Thu, 28 Oct 2021 20:26:22 -0700 (PDT)
-Received: from ubuntu-hirsute.. ([154.86.159.245])
-        by smtp.gmail.com with ESMTPSA id v2sm3940400pga.57.2021.10.28.20.26.17
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 28 Oct 2021 20:26:21 -0700 (PDT)
-From:   yangxingwu <xingwu.yang@gmail.com>
-To:     horms@verge.net.au
-Cc:     ja@ssi.bg, pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
-        davem@davemloft.net, kuba@kernel.org, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-        linux-doc@vger.kernel.org, corbet@lwn.net, xingwu.yang@gmail.com,
-        legend050709@qq.com
-Subject: [PATCH v2] ipvs: Fix reuse connection if RS weight is 0
-Date:   Fri, 29 Oct 2021 11:26:04 +0800
-Message-Id: <20211029032604.5432-1-xingwu.yang@gmail.com>
+        Fri, 29 Oct 2021 10:48:20 -0400
+Received: from localhost.localdomain (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id D6F3963586
+        for <netfilter-devel@vger.kernel.org>; Fri, 29 Oct 2021 16:43:59 +0200 (CEST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next,v3 2/2] netfilter: nft_payload: support for inner header matching / mangling
+Date:   Fri, 29 Oct 2021 16:45:12 +0200
+Message-Id: <20211029144512.9570-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -70,59 +31,164 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Since commit dc7b3eb900aa ("ipvs: Fix reuse connection if real server is
-dead"), new connections to dead servers are redistributed immediately to
-new servers.
+Allow to match and mangle on inner headers / payload data after the
+transport header. There is a new field in the pktinfo structure that
+stores the inner header offset which is calculated only when requested.
+Only TCP and UDP supported at this stage.
 
-Then commit d752c3645717 ("ipvs: allow rescheduling of new connections when
-port reuse is detected") disable expire_nodest_conn if conn_reuse_mode is
-0. And new connection may be distributed to a real server with weight 0.
-
-Co-developed-by: Chuanqi Liu <legend050709@qq.com>
-Signed-off-by: Chuanqi Liu <legend050709@qq.com>
-Signed-off-by: yangxingwu <xingwu.yang@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- Documentation/networking/ipvs-sysctl.rst | 3 +--
- net/netfilter/ipvs/ip_vs_core.c          | 7 ++++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+v3: - check for NFT_PKTINFO_L4PROTO from __nft_payload_inner_offset()
+    - update commit description
 
-diff --git a/Documentation/networking/ipvs-sysctl.rst b/Documentation/networking/ipvs-sysctl.rst
-index 2afccc63856e..1cfbf1add2fc 100644
---- a/Documentation/networking/ipvs-sysctl.rst
-+++ b/Documentation/networking/ipvs-sysctl.rst
-@@ -37,8 +37,7 @@ conn_reuse_mode - INTEGER
+ include/net/netfilter/nf_tables.h        |  2 +
+ include/uapi/linux/netfilter/nf_tables.h |  2 +
+ net/netfilter/nft_payload.c              | 52 +++++++++++++++++++++++-
+ 3 files changed, 54 insertions(+), 2 deletions(-)
+
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 7e3188cf4a7d..a0d9e0b47ab8 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -23,6 +23,7 @@ struct module;
  
- 	0: disable any special handling on port reuse. The new
- 	connection will be delivered to the same real server that was
--	servicing the previous connection. This will effectively
--	disable expire_nodest_conn.
-+	servicing the previous connection.
+ enum {
+ 	NFT_PKTINFO_L4PROTO	= (1 << 0),
++	NFT_PKTINFO_INNER	= (1 << 1),
+ };
  
- 	bit 1: enable rescheduling of new connections when it is safe.
- 	That is, whenever expire_nodest_conn and for TCP sockets, when
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 128690c512df..374f4b0b7080 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -2042,14 +2042,15 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
- 			     ipvs, af, skb, &iph);
+ struct nft_pktinfo {
+@@ -32,6 +33,7 @@ struct nft_pktinfo {
+ 	u8				tprot;
+ 	u16				fragoff;
+ 	unsigned int			thoff;
++	unsigned int			inneroff;
+ };
  
- 	conn_reuse_mode = sysctl_conn_reuse_mode(ipvs);
--	if (conn_reuse_mode && !iph.fragoffs && is_new_conn(skb, &iph) && cp) {
-+	if (!iph.fragoffs && is_new_conn(skb, &iph) && cp) {
- 		bool old_ct = false, resched = false;
+ static inline struct sock *nft_sk(const struct nft_pktinfo *pkt)
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 08db4ee06ab6..466fd3f4447c 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -753,11 +753,13 @@ enum nft_dynset_attributes {
+  * @NFT_PAYLOAD_LL_HEADER: link layer header
+  * @NFT_PAYLOAD_NETWORK_HEADER: network header
+  * @NFT_PAYLOAD_TRANSPORT_HEADER: transport header
++ * @NFT_PAYLOAD_INNER_HEADER: inner header / payload
+  */
+ enum nft_payload_bases {
+ 	NFT_PAYLOAD_LL_HEADER,
+ 	NFT_PAYLOAD_NETWORK_HEADER,
+ 	NFT_PAYLOAD_TRANSPORT_HEADER,
++	NFT_PAYLOAD_INNER_HEADER,
+ };
  
- 		if (unlikely(sysctl_expire_nodest_conn(ipvs)) && cp->dest &&
--		    unlikely(!atomic_read(&cp->dest->weight))) {
-+		    unlikely(!atomic_read(&cp->dest->weight)) && !cp->control) {
- 			resched = true;
- 			old_ct = ip_vs_conn_uses_old_conntrack(cp, skb);
--		} else if (is_new_conn_expected(cp, conn_reuse_mode)) {
-+		} else if (conn_reuse_mode &&
-+			   is_new_conn_expected(cp, conn_reuse_mode)) {
- 			old_ct = ip_vs_conn_uses_old_conntrack(cp, skb);
- 			if (!atomic_read(&cp->n_control)) {
- 				resched = true;
+ /**
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index d1cd6583ee00..f40995fb7571 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -22,6 +22,7 @@
+ #include <linux/icmpv6.h>
+ #include <linux/ip.h>
+ #include <linux/ipv6.h>
++#include <linux/ip.h>
+ #include <net/sctp/checksum.h>
+ 
+ static bool nft_payload_rebuild_vlan_hdr(const struct sk_buff *skb, int mac_off,
+@@ -79,6 +80,45 @@ nft_payload_copy_vlan(u32 *d, const struct sk_buff *skb, u8 offset, u8 len)
+ 	return skb_copy_bits(skb, offset + mac_off, dst_u8, len) == 0;
+ }
+ 
++static int __nft_payload_inner_offset(struct nft_pktinfo *pkt)
++{
++	unsigned int thoff = nft_thoff(pkt);
++
++	if (!(pkt->flags & NFT_PKTINFO_L4PROTO))
++		return -1;
++
++	switch (pkt->tprot) {
++	case IPPROTO_UDP:
++		pkt->inneroff = thoff + sizeof(struct udphdr);
++		break;
++	case IPPROTO_TCP: {
++		struct tcphdr *th, _tcph;
++
++		th = skb_header_pointer(pkt->skb, thoff, sizeof(_tcph), &_tcph);
++		if (!th)
++			return -1;
++
++		pkt->inneroff = thoff + __tcp_hdrlen(th);
++		}
++		break;
++	default:
++		return -1;
++	}
++
++	pkt->flags |= NFT_PKTINFO_INNER;
++
++	return 0;
++}
++
++static int nft_payload_inner_offset(const struct nft_pktinfo *pkt)
++{
++	if (!(pkt->flags & NFT_PKTINFO_INNER) &&
++	    __nft_payload_inner_offset((struct nft_pktinfo *)pkt) < 0)
++		return -1;
++
++	return pkt->inneroff;
++}
++
+ void nft_payload_eval(const struct nft_expr *expr,
+ 		      struct nft_regs *regs,
+ 		      const struct nft_pktinfo *pkt)
+@@ -112,6 +152,9 @@ void nft_payload_eval(const struct nft_expr *expr,
+ 			goto err;
+ 		offset = nft_thoff(pkt);
+ 		break;
++	case NFT_PAYLOAD_INNER_HEADER:
++		offset = nft_payload_inner_offset(pkt);
++		break;
+ 	default:
+ 		BUG();
+ 	}
+@@ -614,6 +657,9 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
+ 			goto err;
+ 		offset = nft_thoff(pkt);
+ 		break;
++	case NFT_PAYLOAD_INNER_HEADER:
++		offset = nft_payload_inner_offset(pkt);
++		break;
+ 	default:
+ 		BUG();
+ 	}
+@@ -622,7 +668,8 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
+ 	offset += priv->offset;
+ 
+ 	if ((priv->csum_type == NFT_PAYLOAD_CSUM_INET || priv->csum_flags) &&
+-	    (priv->base != NFT_PAYLOAD_TRANSPORT_HEADER ||
++	    ((priv->base != NFT_PAYLOAD_TRANSPORT_HEADER &&
++	      priv->base != NFT_PAYLOAD_INNER_HEADER) ||
+ 	     skb->ip_summed != CHECKSUM_PARTIAL)) {
+ 		fsum = skb_checksum(skb, offset, priv->len, 0);
+ 		tsum = csum_partial(src, priv->len, 0);
+@@ -741,6 +788,7 @@ nft_payload_select_ops(const struct nft_ctx *ctx,
+ 	case NFT_PAYLOAD_LL_HEADER:
+ 	case NFT_PAYLOAD_NETWORK_HEADER:
+ 	case NFT_PAYLOAD_TRANSPORT_HEADER:
++	case NFT_PAYLOAD_INNER_HEADER:
+ 		break;
+ 	default:
+ 		return ERR_PTR(-EOPNOTSUPP);
+@@ -759,7 +807,7 @@ nft_payload_select_ops(const struct nft_ctx *ctx,
+ 	len    = ntohl(nla_get_be32(tb[NFTA_PAYLOAD_LEN]));
+ 
+ 	if (len <= 4 && is_power_of_2(len) && IS_ALIGNED(offset, len) &&
+-	    base != NFT_PAYLOAD_LL_HEADER)
++	    base != NFT_PAYLOAD_LL_HEADER && base != NFT_PAYLOAD_INNER_HEADER)
+ 		return &nft_payload_fast_ops;
+ 	else
+ 		return &nft_payload_ops;
 -- 
 2.30.2
 
