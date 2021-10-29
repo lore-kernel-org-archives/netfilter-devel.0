@@ -2,95 +2,125 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C25ABC433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Oct 2021 19:07:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E216C433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Oct 2021 19:25:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9C34861177
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Oct 2021 19:07:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 56D2260F58
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Oct 2021 19:25:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230253AbhJ2TJw (ORCPT
+        id S231177AbhJ2T2G (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 29 Oct 2021 15:09:52 -0400
-Received: from proxmox-new.maurer-it.com ([94.136.29.106]:12144 "EHLO
-        proxmox-new.maurer-it.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231246AbhJ2TJu (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 29 Oct 2021 15:09:50 -0400
-X-Greylist: delayed 420 seconds by postgrey-1.27 at vger.kernel.org; Fri, 29 Oct 2021 15:09:49 EDT
-Received: from proxmox-new.maurer-it.com (localhost.localdomain [127.0.0.1])
-        by proxmox-new.maurer-it.com (Proxmox) with ESMTP id B655F46000;
-        Fri, 29 Oct 2021 21:00:17 +0200 (CEST)
-From:   Thomas Lamprecht <t.lamprecht@proxmox.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Vasily Averin <vvs@virtuozzo.com>,
-        Thomas Lamprecht <t.lamprecht@proxmox.com>
-Subject: [RFC] netfilter: ipset: fix AHASH_MAX_SIZE to documented one
-Date:   Fri, 29 Oct 2021 20:59:50 +0200
-Message-Id: <20211029185951.987921-1-t.lamprecht@proxmox.com>
-X-Mailer: git-send-email 2.30.2
+        Fri, 29 Oct 2021 15:28:06 -0400
+Received: from ink.ssi.bg ([178.16.128.7]:56431 "EHLO ink.ssi.bg"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230287AbhJ2T2F (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 29 Oct 2021 15:28:05 -0400
+Received: from ja.ssi.bg (unknown [178.16.129.10])
+        by ink.ssi.bg (Postfix) with ESMTPS id 81BBD3C09BA;
+        Fri, 29 Oct 2021 22:25:32 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.16.1/8.16.1) with ESMTP id 19TJPRVa026763;
+        Fri, 29 Oct 2021 22:25:29 +0300
+Date:   Fri, 29 Oct 2021 22:25:27 +0300 (EEST)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     yangxingwu <xingwu.yang@gmail.com>
+cc:     Simon Horman <horms@verge.net.au>, pablo@netfilter.org,
+        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-doc@vger.kernel.org, legend050709@qq.com
+Subject: Re: [PATCH v2] ipvs: Fix reuse connection if RS weight is 0
+In-Reply-To: <20211029032604.5432-1-xingwu.yang@gmail.com>
+Message-ID: <8bdab9e0-3bd4-c37-94e9-ca1f74883356@ssi.bg>
+References: <20211029032604.5432-1-xingwu.yang@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Ran into getting a different default value applied for `bucketsize` as
-documented in the man page, i.e., 12 vs. 14, for example:
 
-`create foo hash:net family inet hashsize 64 maxelem 64`
+	Hello,
 
-ipset save tells me:
-`create foo hash:net family inet hashsize 64 maxelem 64 bucketsize 12 initval 0xd4f64074`
+On Fri, 29 Oct 2021, yangxingwu wrote:
 
-But the man page states:
-> Possible values are any even number between 2-14 and the default is 14.
+> Since commit dc7b3eb900aa ("ipvs: Fix reuse connection if real server is
+> dead"), new connections to dead servers are redistributed immediately to
+> new servers.
+> 
+> Then commit d752c3645717 ("ipvs: allow rescheduling of new connections when
+> port reuse is detected") disable expire_nodest_conn if conn_reuse_mode is
+> 0. And new connection may be distributed to a real server with weight 0.
 
-In the kernel code the `AHASH_MAX_SIZE`, which was used to bound
-check any value coming from user space and acts also as default, was
-defined to `2 * 6` = 12, it almost seems like it was inteded to
-define the span of valid values (2 - 14 = 12 after all) but then used
-as actual upper bound everywhere, so it was lost that the range
-starts on 2, not zero.
+	Can you better explain in commit message that we are changing 
+expire_nodest_conn to work even for reused connections when
+conn_reuse_mode=0 but without affecting the controlled/persistent
+connections during the grace period while server is with weight=0.
 
-Either one should be fixed and I went for the code, seems nicer to
-have a bigger tuning range, the docs are quite explicit and the
-commit ccf0a4b7fc68 ("netfilter: ipset: Add bucketsize parameter to
-all hash types")' that introduced the change on the kernelside
-doesn't mentions any range/default values at all.
+	Even if you target -next trees adding commit d752c3645717
+as Fixes line would be a good idea. Make sure the tree is specified
+after the v3 tag.
 
-So I just added the AHASH_INIT_SIZE and checked all use sites of
-`AHASH_MAX_SIZE`, but those sites basically are only the range checks
-anyway.
+> Co-developed-by: Chuanqi Liu <legend050709@qq.com>
+> Signed-off-by: Chuanqi Liu <legend050709@qq.com>
+> Signed-off-by: yangxingwu <xingwu.yang@gmail.com>
+> ---
+>  Documentation/networking/ipvs-sysctl.rst | 3 +--
+>  net/netfilter/ipvs/ip_vs_core.c          | 7 ++++---
+>  2 files changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/Documentation/networking/ipvs-sysctl.rst b/Documentation/networking/ipvs-sysctl.rst
+> index 2afccc63856e..1cfbf1add2fc 100644
+> --- a/Documentation/networking/ipvs-sysctl.rst
+> +++ b/Documentation/networking/ipvs-sysctl.rst
+> @@ -37,8 +37,7 @@ conn_reuse_mode - INTEGER
+>  
+>  	0: disable any special handling on port reuse. The new
+>  	connection will be delivered to the same real server that was
+> -	servicing the previous connection. This will effectively
+> -	disable expire_nodest_conn.
+> +	servicing the previous connection.
+>  
+>  	bit 1: enable rescheduling of new connections when it is safe.
+>  	That is, whenever expire_nodest_conn and for TCP sockets, when
+> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+> index 128690c512df..374f4b0b7080 100644
+> --- a/net/netfilter/ipvs/ip_vs_core.c
+> +++ b/net/netfilter/ipvs/ip_vs_core.c
+> @@ -2042,14 +2042,15 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
+>  			     ipvs, af, skb, &iph);
+>  
+>  	conn_reuse_mode = sysctl_conn_reuse_mode(ipvs);
+> -	if (conn_reuse_mode && !iph.fragoffs && is_new_conn(skb, &iph) && cp) {
+> +	if (!iph.fragoffs && is_new_conn(skb, &iph) && cp) {
 
-Signed-off-by: Thomas Lamprecht <t.lamprecht@proxmox.com>
----
+	It is even better to move the !cp->control check above:
 
-sending as RFC as one could still go for the docs fix instead and
-because I'm not to versed with the whole netfilter code base, so may
-overlook something.
+	if (!iph.fragoffs && is_new_conn(skb, &iph) && cp && !cp->control) {
 
- net/netfilter/ipset/ip_set_hash_gen.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+	Then is not needed in is_new_conn_expected() anymore.
 
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 6e391308431d..8bc6c46403de 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -39,7 +39,7 @@
- /* Number of elements to store in an initial array block */
- #define AHASH_INIT_SIZE			2
- /* Max number of elements to store in an array block */
--#define AHASH_MAX_SIZE			(6 * AHASH_INIT_SIZE)
-+#define AHASH_MAX_SIZE			(AHASH_INIT_SIZE + 6 * AHASH_INIT_SIZE)
- /* Max muber of elements in the array block when tuned */
- #define AHASH_MAX_TUNED			64
- 
--- 
-2.30.2
+>  		bool old_ct = false, resched = false;
 
+	And now you can move conn_reuse_mode here:
 
+		int conn_reuse_mode = sysctl_conn_reuse_mode(ipvs);
+
+>  		if (unlikely(sysctl_expire_nodest_conn(ipvs)) && cp->dest &&
+> -		    unlikely(!atomic_read(&cp->dest->weight))) {
+> +		    unlikely(!atomic_read(&cp->dest->weight)) && !cp->control) {
+>  			resched = true;
+>  			old_ct = ip_vs_conn_uses_old_conntrack(cp, skb);
+> -		} else if (is_new_conn_expected(cp, conn_reuse_mode)) {
+> +		} else if (conn_reuse_mode &&
+> +			   is_new_conn_expected(cp, conn_reuse_mode)) {
+>  			old_ct = ip_vs_conn_uses_old_conntrack(cp, skb);
+>  			if (!atomic_read(&cp->n_control)) {
+>  				resched = true;
+> -- 
+> 2.30.2
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
