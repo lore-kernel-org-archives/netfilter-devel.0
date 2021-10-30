@@ -2,133 +2,92 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B6E3C433F5
-	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Oct 2021 07:45:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E8FFC433EF
+	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Oct 2021 12:15:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 61BB760FC0
-	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Oct 2021 07:45:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E8D3160EB8
+	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Oct 2021 12:15:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231715AbhJ3HsW (ORCPT
+        id S231926AbhJ3MSW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 30 Oct 2021 03:48:22 -0400
-Received: from ink.ssi.bg ([178.16.128.7]:43737 "EHLO ink.ssi.bg"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230365AbhJ3HsW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 30 Oct 2021 03:48:22 -0400
-Received: from ja.ssi.bg (unknown [178.16.129.10])
-        by ink.ssi.bg (Postfix) with ESMTPS id 9941F3C09BA;
-        Sat, 30 Oct 2021 10:45:48 +0300 (EEST)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.16.1/8.16.1) with ESMTP id 19U7jhRk009603;
-        Sat, 30 Oct 2021 10:45:44 +0300
-Date:   Sat, 30 Oct 2021 10:45:43 +0300 (EEST)
-From:   Julian Anastasov <ja@ssi.bg>
-To:     yangxingwu <xingwu.yang@gmail.com>
-cc:     Simon Horman <horms@verge.net.au>, pablo@netfilter.org,
-        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-doc@vger.kernel.org, Chuanqi Liu <legend050709@qq.com>
-Subject: Re: [PATCH nf-next v4] netfilter: ipvs: Fix reuse connection if RS
- weight is 0
-In-Reply-To: <20211030064049.9992-1-xingwu.yang@gmail.com>
-Message-ID: <e2699ba8-e733-2c71-584a-138746511f4@ssi.bg>
-References: <20211030064049.9992-1-xingwu.yang@gmail.com>
+        Sat, 30 Oct 2021 08:18:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50486 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231830AbhJ3MSW (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 30 Oct 2021 08:18:22 -0400
+Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:fb7d:d6d6:e0:4cff:fe83:e514])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE56DC061570
+        for <netfilter-devel@vger.kernel.org>; Sat, 30 Oct 2021 05:15:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20190108; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=JD7kPANIQ/hw7DG0rI9hDvShLiDzGLn3ZVemJbiiu0Y=; b=rr7ErnEzL5HNPX0vt2y37YYOtJ
+        AhmfyCju4zOAANmTesRDfZuZGyxWIm6KQ2TvJEXd6lABCoZiHF377Cygs4O/nfb3wwffUp11pCxN6
+        qhZtiuazM1gMiIaqdfGfnzYToJpIJQt4bojy0OSvmZ9r2zSwhyt6mvOR4NQFg8kF2H3HbvxoSajL/
+        N9IZcWRAiKVmhkNO5/Jpaa6qsRVkGdy3BoYavJw+0D0TrYwjF1Ur5u5FlbO2g3RBLGPhV5y09k7GY
+        XAIuKH54cjKbaaIU8YlF8toad0s91cfLh9QLg2mZWm9WjJ+hmKkpbwNekuDExSV9ACvLN/GTY5htL
+        J61P0kLw==;
+Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] helo=ulthar.scientificgames.com)
+        by kadath.azazel.net with esmtp (Exim 4.94.2)
+        (envelope-from <jeremy@azazel.net>)
+        id 1mgnH2-00AAuB-0C
+        for netfilter-devel@vger.kernel.org; Sat, 30 Oct 2021 13:15:48 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [libnetfilter_log PATCH] build: fix pkg-config syntax-errors
+Date:   Sat, 30 Oct 2021 13:15:46 +0100
+Message-Id: <20211030121546.1072767-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.33.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+pkg-config config-files require back-slashes when definitions are folded
+across multiple lines.
 
-	Hello,
+Fixes: 3c2229da2e7f ("build: add pkg-config configuration for libipulog")
+Fixes: f7da00cdc597 ("build: correct pkg-config dependency configuration")
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+ libnetfilter_log.pc.in           | 2 +-
+ libnetfilter_log_libipulog.pc.in | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-On Sat, 30 Oct 2021, yangxingwu wrote:
+diff --git a/libnetfilter_log.pc.in b/libnetfilter_log.pc.in
+index 9dbed7709632..14d16ed667d5 100644
+--- a/libnetfilter_log.pc.in
++++ b/libnetfilter_log.pc.in
+@@ -9,7 +9,7 @@ Name: libnetfilter_log
+ Description: Netfilter userspace packet logging library
+ URL: http://netfilter.org/projects/libnetfilter_log/
+ Version: @VERSION@
+-Requires.private: libnfnetlink >= @LIBNFNETLINK_MIN_VERSION@,
++Requires.private: libnfnetlink >= @LIBNFNETLINK_MIN_VERSION@, \
+ 		  libmnl >= @LIBMNL_MIN_VERSION@
+ Conflicts:
+ Libs: -L${libdir} -lnetfilter_log
+diff --git a/libnetfilter_log_libipulog.pc.in b/libnetfilter_log_libipulog.pc.in
+index 1b7d17a0ac62..35967902e22c 100644
+--- a/libnetfilter_log_libipulog.pc.in
++++ b/libnetfilter_log_libipulog.pc.in
+@@ -9,7 +9,7 @@ Name: libnetfilter_log_libipulog
+ Description: Netfilter ULOG userspace compat library
+ URL: http://netfilter.org/projects/libnetfilter_log/
+ Version: @VERSION@
+-Requires.private: libnetfilter_log >= @VERSION@,
++Requires.private: libnetfilter_log >= @VERSION@, \
+                   libnfnetlink >= @LIBNFNETLINK_MIN_VERSION@
+ Conflicts:
+ Libs: -L${libdir} -lnetfilter_log_libipulog
+-- 
+2.33.0
 
-> We are changing expire_nodest_conn to work even for reused connections when
-> conn_reuse_mode=0 but without affecting the controlled and persistent
-> connections during the graceful termination period while server is with
-> weight=0.
-> 
-> Fixes: d752c3645717 ("ipvs: allow rescheduling of new connections when port
-> reuse is detected")
-> Co-developed-by: Chuanqi Liu <legend050709@qq.com>
-> Signed-off-by: Chuanqi Liu <legend050709@qq.com>
-> Signed-off-by: yangxingwu <xingwu.yang@gmail.com>
-
-	Looks good to me, thanks!
-
-Acked-by: Julian Anastasov <ja@ssi.bg>
-
-	Simon, Pablo, may be you can change Fixes tag to be
-on one line before applying.
-
-> ---
->  Documentation/networking/ipvs-sysctl.rst |  3 +--
->  net/netfilter/ipvs/ip_vs_core.c          | 12 ++++--------
->  2 files changed, 5 insertions(+), 10 deletions(-)
-> 
-> diff --git a/Documentation/networking/ipvs-sysctl.rst b/Documentation/networking/ipvs-sysctl.rst
-> index 2afccc63856e..1cfbf1add2fc 100644
-> --- a/Documentation/networking/ipvs-sysctl.rst
-> +++ b/Documentation/networking/ipvs-sysctl.rst
-> @@ -37,8 +37,7 @@ conn_reuse_mode - INTEGER
->  
->  	0: disable any special handling on port reuse. The new
->  	connection will be delivered to the same real server that was
-> -	servicing the previous connection. This will effectively
-> -	disable expire_nodest_conn.
-> +	servicing the previous connection.
->  
->  	bit 1: enable rescheduling of new connections when it is safe.
->  	That is, whenever expire_nodest_conn and for TCP sockets, when
-> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-> index 128690c512df..ce6ceb55822b 100644
-> --- a/net/netfilter/ipvs/ip_vs_core.c
-> +++ b/net/netfilter/ipvs/ip_vs_core.c
-> @@ -1100,10 +1100,6 @@ static inline bool is_new_conn(const struct sk_buff *skb,
->  static inline bool is_new_conn_expected(const struct ip_vs_conn *cp,
->  					int conn_reuse_mode)
->  {
-> -	/* Controlled (FTP DATA or persistence)? */
-> -	if (cp->control)
-> -		return false;
-> -
->  	switch (cp->protocol) {
->  	case IPPROTO_TCP:
->  		return (cp->state == IP_VS_TCP_S_TIME_WAIT) ||
-> @@ -1964,7 +1960,6 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
->  	struct ip_vs_proto_data *pd;
->  	struct ip_vs_conn *cp;
->  	int ret, pkts;
-> -	int conn_reuse_mode;
->  	struct sock *sk;
->  
->  	/* Already marked as IPVS request or reply? */
-> @@ -2041,15 +2036,16 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
->  	cp = INDIRECT_CALL_1(pp->conn_in_get, ip_vs_conn_in_get_proto,
->  			     ipvs, af, skb, &iph);
->  
-> -	conn_reuse_mode = sysctl_conn_reuse_mode(ipvs);
-> -	if (conn_reuse_mode && !iph.fragoffs && is_new_conn(skb, &iph) && cp) {
-> +	if (!iph.fragoffs && is_new_conn(skb, &iph) && cp && !cp->control) {
->  		bool old_ct = false, resched = false;
-> +		int conn_reuse_mode = sysctl_conn_reuse_mode(ipvs);
->  
->  		if (unlikely(sysctl_expire_nodest_conn(ipvs)) && cp->dest &&
->  		    unlikely(!atomic_read(&cp->dest->weight))) {
->  			resched = true;
->  			old_ct = ip_vs_conn_uses_old_conntrack(cp, skb);
-> -		} else if (is_new_conn_expected(cp, conn_reuse_mode)) {
-> +		} else if (conn_reuse_mode &&
-> +			   is_new_conn_expected(cp, conn_reuse_mode)) {
->  			old_ct = ip_vs_conn_uses_old_conntrack(cp, skb);
->  			if (!atomic_read(&cp->n_control)) {
->  				resched = true;
-> -- 
-> 2.30.2
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
