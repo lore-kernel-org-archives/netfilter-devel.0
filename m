@@ -2,273 +2,145 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 273A5C433EF
-	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Oct 2021 13:03:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DEDFC433F5
+	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Oct 2021 13:51:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0E7B06101E
-	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Oct 2021 13:03:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CEBBE60FC4
+	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Oct 2021 13:51:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230089AbhJ3NGI (ORCPT
+        id S230116AbhJ3NyE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 30 Oct 2021 09:06:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60804 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230004AbhJ3NGH (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 30 Oct 2021 09:06:07 -0400
-Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:fb7d:d6d6:e0:4cff:fe83:e514])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC721C061570
-        for <netfilter-devel@vger.kernel.org>; Sat, 30 Oct 2021 06:03:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=dw4BPig0M4MX6lboGLX9XbiQ7H9RCKuW2ps9tR9Wd/8=; b=HUCc5OnUrVgOBq6ihD14LmhAGT
-        Dc2+N/mjBsWf77RM8QazX0KDXIiuNRQVBjZ1yCZpC+u6CPsd1bNv7zvi2mazhkpZbtHUQd9a5tQFL
-        917hG7Xx1mG3XAkkPw99GClDj6smPR8V4mone9CXOyDuVDzmUAD0W6SMK6vqtr6W9EwGUrszPtqk8
-        dLPeIszZMbKhwa6ZJc7IqF8Bx4oQujkqOnblfAqMV46QxuPFNaEqDesoEEzubw/4s9RQjrMw7Id9Z
-        TtPn2hnkK+a7mwI7FceK6TPVV1g4dpwLn4VBzXx0T5AViqII1UB8cYH5KOCTLGAJn4eSWQlLbqeN4
-        TRQrV4gw==;
-Received: from celephais.dreamlands ([192.168.96.3] helo=azazel.net)
-        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <jeremy@azazel.net>)
-        id 1mgo1E-00ABxg-Np; Sat, 30 Oct 2021 14:03:32 +0100
-Date:   Sat, 30 Oct 2021 14:03:25 +0100
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH ulogd 2/2] NFLOG: attach struct nf_conntrack
-Message-ID: <YX1CnY+TPBZuYC8R@azazel.net>
-References: <20211012111636.81419-1-chamas@h4.dion.ne.jp>
+        Sat, 30 Oct 2021 09:54:04 -0400
+Received: from ink.ssi.bg ([178.16.128.7]:38749 "EHLO ink.ssi.bg"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230005AbhJ3NyE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 30 Oct 2021 09:54:04 -0400
+Received: from ja.ssi.bg (unknown [178.16.129.10])
+        by ink.ssi.bg (Postfix) with ESMTPS id 43BC33C09BA;
+        Sat, 30 Oct 2021 16:51:29 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.16.1/8.16.1) with ESMTP id 19UDpOQX008896;
+        Sat, 30 Oct 2021 16:51:26 +0300
+Date:   Sat, 30 Oct 2021 16:51:24 +0300 (EEST)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     yangxingwu <xingwu.yang@gmail.com>
+cc:     Simon Horman <horms@verge.net.au>, pablo@netfilter.org,
+        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-doc@vger.kernel.org, Chuanqi Liu <legend050709@qq.com>
+Subject: Re: [PATCH nf-next v4] netfilter: ipvs: Fix reuse connection if RS
+ weight is 0
+In-Reply-To: <e2699ba8-e733-2c71-584a-138746511f4@ssi.bg>
+Message-ID: <3fa86627-969-cf6-9de0-25721c9f3964@ssi.bg>
+References: <20211030064049.9992-1-xingwu.yang@gmail.com> <e2699ba8-e733-2c71-584a-138746511f4@ssi.bg>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="M248Sa8w1HzUA0YN"
-Content-Disposition: inline
-In-Reply-To: <20211012111636.81419-1-chamas@h4.dion.ne.jp>
-X-SA-Exim-Connect-IP: 192.168.96.3
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
---M248Sa8w1HzUA0YN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	Hello,
 
-On 2021-10-12, at 20:16:37 +0900, Ken-ichirou MATSUZAWA wrote:
-> put nf_conntrack in ct output key when 'attach_conntrack' is specified.
->
-> Signed-off-by: Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
-> ---
->  input/packet/Makefile.am          |  5 ++-
->  input/packet/ulogd_inppkt_NFLOG.c | 68 +++++++++++++++++++++++++++++--
->  2 files changed, 67 insertions(+), 6 deletions(-)
->
-> diff --git a/input/packet/Makefile.am b/input/packet/Makefile.am
-> index 1c3151d..0f9c316 100644
-> --- a/input/packet/Makefile.am
-> +++ b/input/packet/Makefile.am
-> @@ -1,5 +1,5 @@
->
-> -AM_CPPFLAGS = -I$(top_srcdir)/include ${LIBNETFILTER_LOG_CFLAGS}
-> +AM_CPPFLAGS = -I$(top_srcdir)/include ${LIBNETFILTER_LOG_CFLAGS} ${LIBNETFILTER_CONNTRACK_CFLAGS}
->  AM_CFLAGS = ${regular_CFLAGS}
->
->  pkglib_LTLIBRARIES = ulogd_inppkt_UNIXSOCK.la
-> @@ -13,7 +13,8 @@ pkglib_LTLIBRARIES += ulogd_inppkt_NFLOG.la
->  endif
->
->  ulogd_inppkt_NFLOG_la_SOURCES = ulogd_inppkt_NFLOG.c
-> -ulogd_inppkt_NFLOG_la_LDFLAGS = -avoid-version -module $(LIBNETFILTER_LOG_LIBS)
-> +ulogd_inppkt_NFLOG_la_LDFLAGS = -avoid-version -module $(LIBNETFILTER_LOG_LIBS) \
-> +                                 $(LIBNETFILTER_CONNTRACK_LIBS)
->
->  ulogd_inppkt_ULOG_la_SOURCES = ulogd_inppkt_ULOG.c
->  ulogd_inppkt_ULOG_la_LDFLAGS = -avoid-version -module
-> diff --git a/input/packet/ulogd_inppkt_NFLOG.c b/input/packet/ulogd_inppkt_NFLOG.c
-> index ea6fb0e..c8b1836 100644
-> --- a/input/packet/ulogd_inppkt_NFLOG.c
-> +++ b/input/packet/ulogd_inppkt_NFLOG.c
-> @@ -12,6 +12,11 @@
->  #include <ulogd/ulogd.h>
->  #include <libnfnetlink/libnfnetlink.h>
->  #include <libnetfilter_log/libnetfilter_log.h>
-> +#ifdef BUILD_NFCT
-> +#include <libmnl/libmnl.h>
-> +#include <libnetfilter_conntrack/libnetfilter_conntrack.h>
-> +#endif
-> +
+On Sat, 30 Oct 2021, Julian Anastasov wrote:
 
-I would declare `struct nf_conntrack` here if BUILD_NFCT is not defined:
+> On Sat, 30 Oct 2021, yangxingwu wrote:
+> 
+> > We are changing expire_nodest_conn to work even for reused connections when
+> > conn_reuse_mode=0 but without affecting the controlled and persistent
+> > connections during the graceful termination period while server is with
+> > weight=0.
+> > 
+> > Fixes: d752c3645717 ("ipvs: allow rescheduling of new connections when port
+> > reuse is detected")
+> > Co-developed-by: Chuanqi Liu <legend050709@qq.com>
+> > Signed-off-by: Chuanqi Liu <legend050709@qq.com>
+> > Signed-off-by: yangxingwu <xingwu.yang@gmail.com>
+> 
+> 	Looks good to me, thanks!
+> 
+> Acked-by: Julian Anastasov <ja@ssi.bg>
 
-  +#ifdef BUILD_NFCT
-  +#include <libmnl/libmnl.h>
-  +#include <libnetfilter_conntrack/libnetfilter_conntrack.h>
-  +#else
-  +struct nf_conntrack;
-  +#endif
+NACK for v4.
 
-Then we can declare `build_ct` as always returning
-`struct nf_conntrack *`:
+	May be we should not include the !cp->control changes
+in this patch, it is better to reschedule as it was done
+before, the new connection will get the needed real server
+depending on the rules in ip_vs_check_template().
 
-  +struct nf_conntrack *build_ct(struct nfgenmsg *nfmsg) {
-  +#ifdef BUILD_NFCT
-  +        struct nlattr *attr, *ctattr = NULL;
-  +        struct nf_conntrack *ct = NULL;
-  +        ...
-  +        return ct;
-  +#else
-  +        return NULL;
-  +#endif
-  +}
+	So, please send v5 with cp->control changes removed,
+updated commit message and Fixes tag without line wrap.
 
-and `ct` as `struct nf_conntrack *` instead of `void *` below.
+> 	Simon, Pablo, may be you can change Fixes tag to be
+> on one line before applying.
+> 
+> > ---
+> >  Documentation/networking/ipvs-sysctl.rst |  3 +--
+> >  net/netfilter/ipvs/ip_vs_core.c          | 12 ++++--------
+> >  2 files changed, 5 insertions(+), 10 deletions(-)
+> > 
+> > diff --git a/Documentation/networking/ipvs-sysctl.rst b/Documentation/networking/ipvs-sysctl.rst
+> > index 2afccc63856e..1cfbf1add2fc 100644
+> > --- a/Documentation/networking/ipvs-sysctl.rst
+> > +++ b/Documentation/networking/ipvs-sysctl.rst
+> > @@ -37,8 +37,7 @@ conn_reuse_mode - INTEGER
+> >  
+> >  	0: disable any special handling on port reuse. The new
+> >  	connection will be delivered to the same real server that was
+> > -	servicing the previous connection. This will effectively
+> > -	disable expire_nodest_conn.
+> > +	servicing the previous connection.
+> >  
+> >  	bit 1: enable rescheduling of new connections when it is safe.
+> >  	That is, whenever expire_nodest_conn and for TCP sockets, when
+> > diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+> > index 128690c512df..ce6ceb55822b 100644
+> > --- a/net/netfilter/ipvs/ip_vs_core.c
+> > +++ b/net/netfilter/ipvs/ip_vs_core.c
+> > @@ -1100,10 +1100,6 @@ static inline bool is_new_conn(const struct sk_buff *skb,
+> >  static inline bool is_new_conn_expected(const struct ip_vs_conn *cp,
+> >  					int conn_reuse_mode)
+> >  {
+> > -	/* Controlled (FTP DATA or persistence)? */
+> > -	if (cp->control)
+> > -		return false;
+> > -
+> >  	switch (cp->protocol) {
+> >  	case IPPROTO_TCP:
+> >  		return (cp->state == IP_VS_TCP_S_TIME_WAIT) ||
+> > @@ -1964,7 +1960,6 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
+> >  	struct ip_vs_proto_data *pd;
+> >  	struct ip_vs_conn *cp;
+> >  	int ret, pkts;
+> > -	int conn_reuse_mode;
+> >  	struct sock *sk;
+> >  
+> >  	/* Already marked as IPVS request or reply? */
+> > @@ -2041,15 +2036,16 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
+> >  	cp = INDIRECT_CALL_1(pp->conn_in_get, ip_vs_conn_in_get_proto,
+> >  			     ipvs, af, skb, &iph);
+> >  
+> > -	conn_reuse_mode = sysctl_conn_reuse_mode(ipvs);
+> > -	if (conn_reuse_mode && !iph.fragoffs && is_new_conn(skb, &iph) && cp) {
+> > +	if (!iph.fragoffs && is_new_conn(skb, &iph) && cp && !cp->control) {
+> >  		bool old_ct = false, resched = false;
+> > +		int conn_reuse_mode = sysctl_conn_reuse_mode(ipvs);
+> >  
+> >  		if (unlikely(sysctl_expire_nodest_conn(ipvs)) && cp->dest &&
+> >  		    unlikely(!atomic_read(&cp->dest->weight))) {
+> >  			resched = true;
+> >  			old_ct = ip_vs_conn_uses_old_conntrack(cp, skb);
+> > -		} else if (is_new_conn_expected(cp, conn_reuse_mode)) {
+> > +		} else if (conn_reuse_mode &&
+> > +			   is_new_conn_expected(cp, conn_reuse_mode)) {
+> >  			old_ct = ip_vs_conn_uses_old_conntrack(cp, skb);
+> >  			if (!atomic_read(&cp->n_control)) {
+> >  				resched = true;
+> > -- 
+> > 2.30.2
 
->  #ifndef NFLOG_GROUP_DEFAULT
->  #define NFLOG_GROUP_DEFAULT	0
-> @@ -148,6 +153,7 @@ enum nflog_keys {
->  	NFLOG_KEY_RAW_MAC_SADDR,
->  	NFLOG_KEY_RAW_MAC_ADDRLEN,
->  	NFLOG_KEY_RAW,
-> +	NFLOG_KEY_RAW_CT,
->  };
->
->  static struct ulogd_key output_keys[] = {
-> @@ -319,11 +325,53 @@ static struct ulogd_key output_keys[] = {
->  		.flags = ULOGD_RETF_NONE,
->  		.name = "raw",
->  	},
-> +	[NFLOG_KEY_RAW_CT] = {
-> +		.type = ULOGD_RET_RAW,
-> +		.flags = ULOGD_RETF_NONE,
-> +		.name = "ct",
-> +	},
->  };
->
+Regards
 
-You have used spaces, not tabs:
-
-> +#ifdef BUILD_NFCT
-> +struct nf_conntrack *build_ct(struct nfgenmsg *nfmsg) {
-> +        struct nlattr *attr, *ctattr = NULL;
-> +        struct nf_conntrack *ct = NULL;
-> +        struct nlmsghdr *nlh
-> +                = (struct nlmsghdr *)((void *)nfmsg - sizeof(*nlh));
-> +
-> +        mnl_attr_for_each(attr, nlh, sizeof(struct nfgenmsg)) {
-> +                if (mnl_attr_get_type(attr) == NFULA_CT) {
-> +                        ctattr = attr;
-> +                        break;
-> +                }
-> +        }
-> +        if (ctattr == NULL)
-> +                return NULL;
-> +
-> +        ct = nfct_new();
-> +        if (ct == NULL) {
-> +                ulogd_log(ULOGD_ERROR, "failed to allocate nfct\n");
-> +                return NULL;
-> +        }
-> +        if (nfct_payload_parse(mnl_attr_get_payload(ctattr),
-> +                               mnl_attr_get_payload_len(ctattr),
-> +                               nfmsg->nfgen_family, ct) < 0) {
-> +                ulogd_log(ULOGD_ERROR, "failed to parse nfct payload\n");
-> +                nfct_destroy(ct);
-> +                return NULL;
-> +        }
-> +
-> +        return ct;
-> +}
-> +#else
-> +void *build_ct(struct nfgenmsg *nfmsg) {
-> +        return NULL;
-> +}
-> +#endif
->  static inline int
->  interp_packet(struct ulogd_pluginstance *upi, uint8_t pf_family,
-> -	      struct nflog_data *ldata)
-> +	      struct nflog_data *ldata, void *ct)
->  {
->  	struct ulogd_key *ret = upi->output.keys;
->
-> @@ -404,6 +452,9 @@ interp_packet(struct ulogd_pluginstance *upi, uint8_t pf_family,
->
->  	okey_set_ptr(&ret[NFLOG_KEY_RAW], ldata);
->
-
-Spaces, not tabs:
-
-> +        if (ct != NULL)
-> +                okey_set_ptr(&ret[NFLOG_KEY_RAW_CT], ct);
-> +
->  	ulogd_propagate_results(upi);
->  	return 0;
->  }
-> @@ -479,15 +530,24 @@ static int msg_cb(struct nflog_g_handle *gh, struct nfgenmsg *nfmsg,
->  	struct ulogd_pluginstance *upi = data;
->  	struct ulogd_pluginstance *npi = NULL;
->  	int ret = 0;
-
-Spaces, not tabs:
-
-> +        void *ct = build_ct(nfmsg);
->
->  	/* since we support the re-use of one instance in several
->  	 * different stacks, we duplicate the message to let them know */
->  	llist_for_each_entry(npi, &upi->plist, plist) {
-> -		ret = interp_packet(npi, nfmsg->nfgen_family, nfa);
-> +		ret = interp_packet(npi, nfmsg->nfgen_family, nfa, ct);
->  		if (ret != 0)
-
-Spaces, not tabs:
-
-> -			return ret;
-> +                        goto release_ct;
->  	}
-
-Spaces, not tabs:
-
-> -	return interp_packet(upi, nfmsg->nfgen_family, nfa);
-> +        ret = interp_packet(upi, nfmsg->nfgen_family, nfa, ct);
-> +
-> +release_ct:
-> +#ifdef BUILD_NFCT
-> +        if (ct != NULL)
-> +                nfct_destroy(ct);
-> +#endif
-> +
-> +        return ret;
->  }
->
->  static int configure(struct ulogd_pluginstance *upi,
-> --
-> 2.30.2
->
->
-
---M248Sa8w1HzUA0YN
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmF9Qp0ACgkQKYasCr3x
-BA3KdQ//Z3mCFpp8d8SovR70L/WsGBPA4c0K4ommDijrSoE1QtsEk1+23rKrZlm1
-PWfWlwWen/8r0buz/QWh3OtHwRqLGs0MwfB9pIDtavwlw0t0IWTU0piQ6AoQrSmz
-24OCi3vpwAjnzgUp1Ko/5WFboDcf5rIQjO+9VZrV+BEwvSUhPVQXa/ZtkltOpvxc
-zm9xiobJ0WVXGjDJDF366xQc+5NhvcRiCdKrIq8WMUfl0jNcHNqHBDgvYF4UmiwE
-0ruDvPnM8gJ4o5SVZ8Epb5DVW0lhjgkTqUrMMLEzJsLl8hNNWE2ZhIe/0PaVKvAT
-96xEsQ6iKnpisoWa53BzDcqajADQRL6U7XpWZ2whdZvbQsaFuSo2DUvWKc6Wds5I
-2BpXvnn3bYcoPZfTCQ48So/wgFMKnnj2o2Y8mWCF9Fnzy1IjCs+/wJyO1gCPgFAd
-/HYLcjU4cg3fOJ9x0QTX0c9bm2blyPALf6CMLfdrPwp4ViMZ093QZxNLMnfG7iQg
-U2pZL0GDivfu/KyZRi+05CZGG6VBPcH1h4L+aqDsuZjrzdpx7bicd0JhY9vlUhqt
-ED5MhhO4uaTTQQjr8Gv8pUwdMWyeqpw4BjSGn2jIcgfjWsqr7MG1a2KLnWrWHlBA
-OyaX08rPb20OHjVsiGLj24NEmfow8oBNQNYOwmFY+GeNzgJV9bI=
-=VzML
------END PGP SIGNATURE-----
-
---M248Sa8w1HzUA0YN--
+--
+Julian Anastasov <ja@ssi.bg>
