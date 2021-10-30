@@ -2,198 +2,159 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14E83C433FE
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Oct 2021 20:40:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06619C433FE
+	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Oct 2021 02:42:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DFD9761075
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Oct 2021 20:40:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DC5C960F56
+	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Oct 2021 02:42:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230070AbhJ2Umy (ORCPT
+        id S231621AbhJ3CpJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 29 Oct 2021 16:42:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45444 "EHLO
+        Fri, 29 Oct 2021 22:45:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40550 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230253AbhJ2Umr (ORCPT
+        with ESMTP id S231522AbhJ3CpJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 29 Oct 2021 16:42:47 -0400
-Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:fb7d:d6d6:e0:4cff:fe83:e514])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 926F3C061767
-        for <netfilter-devel@vger.kernel.org>; Fri, 29 Oct 2021 13:40:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=WMLNYCdgvHhxiAWw6Qp2xt5WnQ0337jRvmojQmzQrDg=; b=k7I7VJiY+hEmIlehwYN3IwldlU
-        9hLsvbbO9A0GW2lTKnytUirMm4meBXp8dT/daQ0f4X9L5NoOQsKnL2CVUbVhsb+VkroshMLJ0OrzZ
-        Y4JO6kAx2oEk7qvgXGax+YgvzuOdIkG+cqVQLvV/A2cibBtlZDrgMAcfMhF4jlb+7dtpGSdRaS4Gz
-        InbTWL2jl2vqBIwy8OrsBfTuxNSf2Soz4z3Gf5V1ANHtGrfMQHxuqhEffplABHvJ8dvaZXobcWTBj
-        5sqyT0p161VScW8MSq4ZbEUSyx8ngE8dS2WVxanjso5nax5KOkM4+1TTsMeii6sO0JiOBSOnjpjNz
-        u/JKIWrA==;
-Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] helo=ulthar.scientificgames.com)
-        by kadath.azazel.net with esmtp (Exim 4.94.2)
-        (envelope-from <jeremy@azazel.net>)
-        id 1mgYfb-009Imx-9i; Fri, 29 Oct 2021 21:40:11 +0100
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [nft PATCH v2 3/3] parser: extend limit syntax
-Date:   Fri, 29 Oct 2021 21:40:09 +0100
-Message-Id: <20211029204009.954315-4-jeremy@azazel.net>
-X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20211029204009.954315-1-jeremy@azazel.net>
-References: <20211029204009.954315-1-jeremy@azazel.net>
+        Fri, 29 Oct 2021 22:45:09 -0400
+Received: from mail-qv1-xf29.google.com (mail-qv1-xf29.google.com [IPv6:2607:f8b0:4864:20::f29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF114C061570;
+        Fri, 29 Oct 2021 19:42:39 -0700 (PDT)
+Received: by mail-qv1-xf29.google.com with SMTP id v2so7558488qve.11;
+        Fri, 29 Oct 2021 19:42:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=qMW69CHxQGpNnhAkNKPRDDtsEZGfHtFrwwNPa8aIYaY=;
+        b=k/hTgn3lRJV/6kfSO/s5arnLWVXhmg6ujrGaBU3d8kb/iy8MKUHJjvbuljDJLaeboS
+         Ax2ZJCREMw6F3o3Td9o2XVPPV20suzFi7wS9efLeNiWnyo/SiKV6nvu147bvucQJqiXn
+         DdQVMHa9A6aXPbk8KdTeuImsXPCSb1+l1HA4sfnD5C8k+x041y8ZGqJ2rER5EDNwjtwB
+         VeJMjlebHqbOVdrY4XMwjzWCVHM1Qb5rM2NczgNOTyLntSoRWC79CHc0od7A6tZ7OuAO
+         MA80EKRdAG24mUnYTESjcyclT1gw1nEDL4wqPDJkQVQf7vAy9aZQrNTMB7i3QKoGw9Hd
+         sIJg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=qMW69CHxQGpNnhAkNKPRDDtsEZGfHtFrwwNPa8aIYaY=;
+        b=0qgX6YZmb/XFFALEXjAjkVynPjEI8AxKJX+NXeCz7pv+hfHr6PsNc6UEtcrA8+puDW
+         tXk7FdCDpLBITEpVMIU4nIRDMglJTQlyWBeH3AUh0sz+K9fFiE9g/St3WuDrpL9RIA1q
+         crgxjnYXlkXVYIV7C8Gf9FkitYUk002BUlSKnmGWWNhHpnVIdUqQVv17vXWUAmsMj3ng
+         5OBHSfRA8Gi+hNHuCSfIMeb1DJvnUWYRWu5oc6EnBjghgFMejgaM1AOSGTJzVYf3WHNa
+         s3EUUHW3dU3QmnBdysAbZnGAZZYzO9vMrnsCX9viZ1DtTheZjr7TN7elqhXgjPfX5BOX
+         Pj/g==
+X-Gm-Message-State: AOAM533WPjrXQJGwLXEIT3UfcnXtXcRYPe0F4NxNMOIGiabyrhQH5i0+
+        7ZymkZtzdn7tNRftM8vfuKLc4vdQApKVZNV5Fl8=
+X-Google-Smtp-Source: ABdhPJyCnJSFXqCUWrkPgYBKBMKP6N4F6HfYQLR6Ow2+wIYUh6hcbkxM4L9M/mQcNaGykrR3OCtZGgayxN+ycayHOg4=
+X-Received: by 2002:a05:6214:2308:: with SMTP id gc8mr14408587qvb.31.1635561758501;
+ Fri, 29 Oct 2021 19:42:38 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+References: <20211029032604.5432-1-xingwu.yang@gmail.com> <8bdab9e0-3bd4-c37-94e9-ca1f74883356@ssi.bg>
+In-Reply-To: <8bdab9e0-3bd4-c37-94e9-ca1f74883356@ssi.bg>
+From:   yangxingwu <xingwu.yang@gmail.com>
+Date:   Sat, 30 Oct 2021 10:42:27 +0800
+Message-ID: <CA+7U5Juzh+2+3Bnxc9jVPWT71=h6pwfVoWAtam7Cuxasr28C4Q@mail.gmail.com>
+Subject: Re: [PATCH v2] ipvs: Fix reuse connection if RS weight is 0
+To:     Julian Anastasov <ja@ssi.bg>
+Cc:     Simon Horman <horms@verge.net.au>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-doc@vger.kernel.org, legend050709@qq.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The documentation describes the syntax of limit statements thus:
+thanks Julian
 
-  limit rate [over] packet_number / TIME_UNIT [burst packet_number packets]
-  limit rate [over] byte_number BYTE_UNIT / TIME_UNIT [burst byte_number BYTE_UNIT]
+I will do that
 
-  TIME_UNIT := second | minute | hour | day
-  BYTE_UNIT := bytes | kbytes | mbytes
-
-From this one might infer that a limit may be specified by any of the
-following:
-
-  limit rate 1048576/second
-  limit rate 1048576 mbytes/second
-
-  limit rate 1048576 / second
-  limit rate 1048576 mbytes / second
-
-However, the last does not currently parse:
-
-  $ sudo /usr/sbin/nft add filter input limit rate 1048576 mbytes / second
-  Error: wrong rate format
-  add filter input limit rate 1048576 mbytes / second
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Extend the `limit_rate_bytes` parser rule to support it, and add some
-new Python test-cases.
-
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- src/parser_bison.y           |  5 +++++
- tests/py/any/limit.t         |  5 +++++
- tests/py/any/limit.t.json    | 39 ++++++++++++++++++++++++++++++++++++
- tests/py/any/limit.t.payload | 13 ++++++++++++
- 4 files changed, 62 insertions(+)
-
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index cf1e139d42f3..65fd35a36cde 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -3268,6 +3268,11 @@ limit_rate_bytes	:	NUM     STRING
- 				$$.rate = rate * $1;
- 				$$.unit = unit;
- 			}
-+			|	limit_bytes SLASH time_unit
-+			{
-+				$$.rate = $1;
-+				$$.unit = $3;
-+			}
- 			;
- 
- limit_bytes		:	NUM	BYTES		{ $$ = $1; }
-diff --git a/tests/py/any/limit.t b/tests/py/any/limit.t
-index 0110e77f2e85..86e8d43009b9 100644
---- a/tests/py/any/limit.t
-+++ b/tests/py/any/limit.t
-@@ -25,6 +25,11 @@ limit rate 10230 mbytes/second;ok
- limit rate 1023000 mbytes/second;ok
- limit rate 512 kbytes/second burst 5 packets;fail
- 
-+limit rate 1 bytes / second;ok;limit rate 1 bytes/second
-+limit rate 1 kbytes / second;ok;limit rate 1 kbytes/second
-+limit rate 1 mbytes / second;ok;limit rate 1 mbytes/second
-+limit rate 1 gbytes / second;fail
-+
- limit rate 1025 bytes/second burst 512 bytes;ok
- limit rate 1025 kbytes/second burst 1023 kbytes;ok
- limit rate 1025 mbytes/second burst 1025 kbytes;ok
-diff --git a/tests/py/any/limit.t.json b/tests/py/any/limit.t.json
-index 8bab7e3d79b4..b41ae60a3bd6 100644
---- a/tests/py/any/limit.t.json
-+++ b/tests/py/any/limit.t.json
-@@ -125,6 +125,45 @@
-     }
- ]
- 
-+# limit rate 1 bytes / second
-+[
-+    {
-+        "limit": {
-+            "burst": 5,
-+            "burst_unit": "bytes",
-+            "per": "second",
-+            "rate": 1,
-+            "rate_unit": "bytes"
-+        }
-+    }
-+]
-+
-+# limit rate 1 kbytes / second
-+[
-+    {
-+        "limit": {
-+            "burst": 5,
-+            "burst_unit": "bytes",
-+            "per": "second",
-+            "rate": 1,
-+            "rate_unit": "kbytes"
-+        }
-+    }
-+]
-+
-+# limit rate 1 mbytes / second
-+[
-+    {
-+        "limit": {
-+            "burst": 5,
-+            "burst_unit": "bytes",
-+            "per": "second",
-+            "rate": 1,
-+            "rate_unit": "mbytes"
-+        }
-+    }
-+]
-+
- # limit rate 1025 bytes/second burst 512 bytes
- [
-     {
-diff --git a/tests/py/any/limit.t.payload b/tests/py/any/limit.t.payload
-index dc6cea9b2846..3bd85f4ebf45 100644
---- a/tests/py/any/limit.t.payload
-+++ b/tests/py/any/limit.t.payload
-@@ -46,6 +46,19 @@ ip test-ip4 output
- ip test-ip4 output
-   [ limit rate 1072693248000/second burst 5 type bytes flags 0x0 ]
- 
-+# limit rate 1 bytes / second
-+ip
-+  [ limit rate 1/second burst 5 type bytes flags 0x0 ]
-+
-+# limit rate 1 kbytes / second
-+ip
-+  [ limit rate 1024/second burst 5 type bytes flags 0x0 ]
-+
-+# limit rate 1 mbytes / second
-+ip
-+  [ limit rate 1048576/second burst 5 type bytes flags 0x0 ]
-+
-+
- # limit rate 1025 bytes/second burst 512 bytes
- ip test-ip4 output
-   [ limit rate 1025/second burst 512 type bytes flags 0x0 ]
--- 
-2.33.0
-
+On Sat, Oct 30, 2021 at 3:25 AM Julian Anastasov <ja@ssi.bg> wrote:
+>
+>
+>         Hello,
+>
+> On Fri, 29 Oct 2021, yangxingwu wrote:
+>
+> > Since commit dc7b3eb900aa ("ipvs: Fix reuse connection if real server is
+> > dead"), new connections to dead servers are redistributed immediately to
+> > new servers.
+> >
+> > Then commit d752c3645717 ("ipvs: allow rescheduling of new connections when
+> > port reuse is detected") disable expire_nodest_conn if conn_reuse_mode is
+> > 0. And new connection may be distributed to a real server with weight 0.
+>
+>         Can you better explain in commit message that we are changing
+> expire_nodest_conn to work even for reused connections when
+> conn_reuse_mode=0 but without affecting the controlled/persistent
+> connections during the grace period while server is with weight=0.
+>
+>         Even if you target -next trees adding commit d752c3645717
+> as Fixes line would be a good idea. Make sure the tree is specified
+> after the v3 tag.
+>
+> > Co-developed-by: Chuanqi Liu <legend050709@qq.com>
+> > Signed-off-by: Chuanqi Liu <legend050709@qq.com>
+> > Signed-off-by: yangxingwu <xingwu.yang@gmail.com>
+> > ---
+> >  Documentation/networking/ipvs-sysctl.rst | 3 +--
+> >  net/netfilter/ipvs/ip_vs_core.c          | 7 ++++---
+> >  2 files changed, 5 insertions(+), 5 deletions(-)
+> >
+> > diff --git a/Documentation/networking/ipvs-sysctl.rst b/Documentation/networking/ipvs-sysctl.rst
+> > index 2afccc63856e..1cfbf1add2fc 100644
+> > --- a/Documentation/networking/ipvs-sysctl.rst
+> > +++ b/Documentation/networking/ipvs-sysctl.rst
+> > @@ -37,8 +37,7 @@ conn_reuse_mode - INTEGER
+> >
+> >       0: disable any special handling on port reuse. The new
+> >       connection will be delivered to the same real server that was
+> > -     servicing the previous connection. This will effectively
+> > -     disable expire_nodest_conn.
+> > +     servicing the previous connection.
+> >
+> >       bit 1: enable rescheduling of new connections when it is safe.
+> >       That is, whenever expire_nodest_conn and for TCP sockets, when
+> > diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+> > index 128690c512df..374f4b0b7080 100644
+> > --- a/net/netfilter/ipvs/ip_vs_core.c
+> > +++ b/net/netfilter/ipvs/ip_vs_core.c
+> > @@ -2042,14 +2042,15 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
+> >                            ipvs, af, skb, &iph);
+> >
+> >       conn_reuse_mode = sysctl_conn_reuse_mode(ipvs);
+> > -     if (conn_reuse_mode && !iph.fragoffs && is_new_conn(skb, &iph) && cp) {
+> > +     if (!iph.fragoffs && is_new_conn(skb, &iph) && cp) {
+>
+>         It is even better to move the !cp->control check above:
+>
+>         if (!iph.fragoffs && is_new_conn(skb, &iph) && cp && !cp->control) {
+>
+>         Then is not needed in is_new_conn_expected() anymore.
+>
+> >               bool old_ct = false, resched = false;
+>
+>         And now you can move conn_reuse_mode here:
+>
+>                 int conn_reuse_mode = sysctl_conn_reuse_mode(ipvs);
+>
+> >               if (unlikely(sysctl_expire_nodest_conn(ipvs)) && cp->dest &&
+> > -                 unlikely(!atomic_read(&cp->dest->weight))) {
+> > +                 unlikely(!atomic_read(&cp->dest->weight)) && !cp->control) {
+> >                       resched = true;
+> >                       old_ct = ip_vs_conn_uses_old_conntrack(cp, skb);
+> > -             } else if (is_new_conn_expected(cp, conn_reuse_mode)) {
+> > +             } else if (conn_reuse_mode &&
+> > +                        is_new_conn_expected(cp, conn_reuse_mode)) {
+> >                       old_ct = ip_vs_conn_uses_old_conntrack(cp, skb);
+> >                       if (!atomic_read(&cp->n_control)) {
+> >                               resched = true;
+> > --
+> > 2.30.2
+>
+> Regards
+>
+> --
+> Julian Anastasov <ja@ssi.bg>
