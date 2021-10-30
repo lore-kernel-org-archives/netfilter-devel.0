@@ -2,22 +2,22 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00C80C4332F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CD14C433FE
 	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Oct 2021 16:01:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D473E60EB2
+	by mail.kernel.org (Postfix) with ESMTP id E1EB860FDA
 	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Oct 2021 16:01:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230086AbhJ3QES (ORCPT
+        id S232008AbhJ3QES (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sat, 30 Oct 2021 12:04:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43024 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43028 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231199AbhJ3QER (ORCPT
+        with ESMTP id S231830AbhJ3QER (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Sat, 30 Oct 2021 12:04:17 -0400
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:fb7d:d6d6:e0:4cff:fe83:e514])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37935C061714
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 57DE8C061766
         for <netfilter-devel@vger.kernel.org>; Sat, 30 Oct 2021 09:01:46 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
@@ -25,22 +25,22 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=d7YYeVwYLvmoNjdOTzGlNW70LUbZrOQu9H8r0+vayQw=; b=MRq6IQVh/ZPZoqEerVodKB2Co6
-        GKOlPiRKSYf7cyvYYBYn8mcIyU1F7Yk6LS4V0h6pKbHFsaBQnrtr0HmvdaRk2R0VCLz3jdwUpAmcg
-        wQVuJlDnJq59WFtHa3Oa3pTG8NbkQwSFpeLokts/xIu0IXu3nradiX6FmBk+r9cKff4wNZX35rDNv
-        R30epl/qhFZX8NM/jfwE6z4lRwPthNj0O0zBMvZ2SiMprKiVMzx9qozLRkPq2ZbC3EfQObxW9Bunb
-        gjFBLD+3oGt3FvC63AMURe5Bo+xVgq9Zw0rI+8CRmBkSwK7UQMr0fU31dlMvY7JhlU2eSEwdLEAa1
-        J6OhDJLQ==;
+        bh=hi6zW7dF9ATFrcXnMxMpQIyu/q238MFCspXvZh80Nis=; b=TE3+LNV5rkc1u27PEkdJTaBjVt
+        SwDI/bBhVHp/CsnxZRiQ5UESwb7+kJq1iiao1WJPiOMoOecoE83xWsptHarLvUvQS/BY4MLwnBEDN
+        cMzAo4DqM9kWGfCs/JaiDDtUigzfuIGGwEepvZGpRC6dr0kbcFbdUf4dZYi6efjLbSLgFyAYNvt2y
+        1yBMqLYq9lnxZlKvXFTNG7PiTo5N5nJAXHIGlICGOQn/18nbk5/Ih7EWbUXR0YxtIpzHa98i3CJWZ
+        MAp+BnYeJ70IeYiD0rvTUF0TIt37ZBq8d0rbl4y6zqloCkTso3oSWdqHDN+qw5PmZGjc69qRKLJBS
+        GillhV6A==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] helo=ulthar.scientificgames.com)
         by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1mgqnf-00AFQk-RW
+        id 1mgqnf-00AFQk-UD
         for netfilter-devel@vger.kernel.org; Sat, 30 Oct 2021 17:01:43 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [ulogd2 PATCH 05/13] build: move cpp flag to the only Makefile.am file where it's needed
-Date:   Sat, 30 Oct 2021 17:01:33 +0100
-Message-Id: <20211030160141.1132819-6-jeremy@azazel.net>
+Subject: [ulogd2 PATCH 06/13] build: add Make_global.am for common flags and include it where necessary
+Date:   Sat, 30 Oct 2021 17:01:34 +0100
+Message-Id: <20211030160141.1132819-7-jeremy@azazel.net>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20211030160141.1132819-1-jeremy@azazel.net>
 References: <20211030160141.1132819-1-jeremy@azazel.net>
@@ -55,38 +55,289 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- configure.ac    | 2 +-
- src/Makefile.am | 5 +++--
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ Make_global.am                |  2 ++
+ Makefile.am                   |  7 ++-----
+ configure.ac                  |  3 ---
+ filter/Makefile.am            |  5 +++--
+ filter/raw2packet/Makefile.am |  4 +---
+ include/libipulog/Makefile.am |  1 -
+ include/ulogd/Makefile.am     |  1 -
+ input/Makefile.am             |  1 -
+ input/flow/Makefile.am        |  4 ++--
+ input/packet/Makefile.am      |  4 ++--
+ input/sum/Makefile.am         |  6 ++++--
+ libipulog/Makefile.am         |  4 +---
+ output/Makefile.am            | 10 ++++++----
+ output/dbi/Makefile.am        |  4 ++--
+ output/ipfix/Makefile.am      |  3 +--
+ output/mysql/Makefile.am      |  5 +++--
+ output/pcap/Makefile.am       |  4 +---
+ output/pgsql/Makefile.am      |  4 ++--
+ output/sqlite3/Makefile.am    |  5 +++--
+ src/Makefile.am               |  9 ++++-----
+ 20 files changed, 39 insertions(+), 47 deletions(-)
+ create mode 100644 Make_global.am
 
+diff --git a/Make_global.am b/Make_global.am
+new file mode 100644
+index 000000000000..4ce896d06d70
+--- /dev/null
++++ b/Make_global.am
+@@ -0,0 +1,2 @@
++AM_CPPFLAGS = -I$(top_srcdir)/include
++AM_CFLAGS   = -Wall -Wextra -Wno-unused-parameter
+diff --git a/Makefile.am b/Makefile.am
+index 5600f8c6f552..838d6ec29156 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -1,13 +1,11 @@
++ACLOCAL_AMFLAGS = -I m4
+ 
+-ACLOCAL_AMFLAGS  = -I m4
++SUBDIRS = include libipulog src input filter output
+ 
+ man_MANS = ulogd.8
+ 
+ EXTRA_DIST = $(man_MANS) ulogd.conf.in doc
+ 
+-AM_CPPFLAGS = -I$(top_srcdir)/include
+-SUBDIRS = include libipulog src input filter output
+-
+ noinst_DATA = ulogd.conf
+ 
+ edit = sed \
+@@ -18,4 +16,3 @@ ulogd.conf: Makefile $(srcdir)/ulogd.conf.in
+ 
+ dist-hook:
+ 	rm -f ulogd.conf
+-
 diff --git a/configure.ac b/configure.ac
-index 4e502171292e..1d795bad325d 100644
+index 1d795bad325d..f7d6b50c47f5 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -157,7 +157,7 @@ AC_ARG_WITH([ulogd2libdir],
+@@ -157,9 +157,6 @@ AC_ARG_WITH([ulogd2libdir],
          [ulogd2libdir="${libdir}/ulogd"])
  AC_SUBST([ulogd2libdir])
  
--regular_CFLAGS="-Wall -Wextra -Wno-unused-parameter -DULOGD2_LIBDIR=\\\"\${ulogd2libdir}\\\"";
-+regular_CFLAGS="-Wall -Wextra -Wno-unused-parameter";
- AC_SUBST([regular_CFLAGS])
- 
+-regular_CFLAGS="-Wall -Wextra -Wno-unused-parameter";
+-AC_SUBST([regular_CFLAGS])
+-
  dnl AC_SUBST(DATABASE_DIR)
+ dnl AC_SUBST(DATABASE_LIB)
+ dnl AC_SUBST(DATABASE_LIB_DIR)
+diff --git a/filter/Makefile.am b/filter/Makefile.am
+index c2755ecb7c49..f1d2c81f48d4 100644
+--- a/filter/Makefile.am
++++ b/filter/Makefile.am
+@@ -1,7 +1,8 @@
+ SUBDIRS = raw2packet
+ 
+-AM_CPPFLAGS = -I$(top_srcdir)/include ${LIBNFNETLINK_CFLAGS}
+-AM_CFLAGS = ${regular_CFLAGS}
++include $(top_srcdir)/Make_global.am
++
++AM_CPPFLAGS += ${LIBNFNETLINK_CFLAGS}
+ 
+ pkglib_LTLIBRARIES = ulogd_filter_IFINDEX.la ulogd_filter_PWSNIFF.la \
+ 			 ulogd_filter_PRINTPKT.la ulogd_filter_PRINTFLOW.la \
+diff --git a/filter/raw2packet/Makefile.am b/filter/raw2packet/Makefile.am
+index 7498f9aa3c55..90768ef6ca0e 100644
+--- a/filter/raw2packet/Makefile.am
++++ b/filter/raw2packet/Makefile.am
+@@ -1,6 +1,4 @@
+-
+-AM_CPPFLAGS = -I$(top_srcdir)/include
+-AM_CFLAGS = ${regular_CFLAGS}
++include $(top_srcdir)/Make_global.am
+ 
+ pkglib_LTLIBRARIES = ulogd_raw2packet_BASE.la
+ 
+diff --git a/include/libipulog/Makefile.am b/include/libipulog/Makefile.am
+index a98f941a781d..80d16b1b22a0 100644
+--- a/include/libipulog/Makefile.am
++++ b/include/libipulog/Makefile.am
+@@ -1,2 +1 @@
+-
+ noinst_HEADERS = libipulog.h
+diff --git a/include/ulogd/Makefile.am b/include/ulogd/Makefile.am
+index 5e6aa75606f9..e4b41c4f3d19 100644
+--- a/include/ulogd/Makefile.am
++++ b/include/ulogd/Makefile.am
+@@ -1,2 +1 @@
+-
+ noinst_HEADERS = conffile.h db.h ipfix_protocol.h linuxlist.h ulogd.h printpkt.h printflow.h common.h linux_rbtree.h timer.h slist.h hash.h jhash.h addr.h
+diff --git a/input/Makefile.am b/input/Makefile.am
+index 5ffef1b4e711..8f2e934fcdfa 100644
+--- a/input/Makefile.am
++++ b/input/Makefile.am
+@@ -1,2 +1 @@
+-
+ SUBDIRS = packet flow sum
+diff --git a/input/flow/Makefile.am b/input/flow/Makefile.am
+index 0e07a7dc1ccc..004e532981a4 100644
+--- a/input/flow/Makefile.am
++++ b/input/flow/Makefile.am
+@@ -1,6 +1,6 @@
++include $(top_srcdir)/Make_global.am
+ 
+-AM_CPPFLAGS = -I$(top_srcdir)/include ${LIBNETFILTER_CONNTRACK_CFLAGS}
+-AM_CFLAGS = ${regular_CFLAGS}
++AM_CPPFLAGS += ${LIBNETFILTER_CONNTRACK_CFLAGS}
+ 
+ if BUILD_NFCT
+ pkglib_LTLIBRARIES = ulogd_inpflow_NFCT.la # ulogd_inpflow_IPFIX.la
+diff --git a/input/packet/Makefile.am b/input/packet/Makefile.am
+index 1c3151d52f13..daf374a65917 100644
+--- a/input/packet/Makefile.am
++++ b/input/packet/Makefile.am
+@@ -1,6 +1,6 @@
++include $(top_srcdir)/Make_global.am
+ 
+-AM_CPPFLAGS = -I$(top_srcdir)/include ${LIBNETFILTER_LOG_CFLAGS}
+-AM_CFLAGS = ${regular_CFLAGS}
++AM_CPPFLAGS += ${LIBNETFILTER_LOG_CFLAGS}
+ 
+ pkglib_LTLIBRARIES = ulogd_inppkt_UNIXSOCK.la
+ 
+diff --git a/input/sum/Makefile.am b/input/sum/Makefile.am
+index b6ddb4d29b93..e0c42f7de376 100644
+--- a/input/sum/Makefile.am
++++ b/input/sum/Makefile.am
+@@ -1,5 +1,7 @@
+-AM_CPPFLAGS = -I$(top_srcdir)/include $(LIBNETFILTER_ACCT_CFLAGS) $(LIBMNL_CFLAGS)
+-AM_CFLAGS = ${regular_CFLAGS}
++include $(top_srcdir)/Make_global.am
++
++AM_CPPFLAGS += $(LIBNETFILTER_ACCT_CFLAGS) $(LIBMNL_CFLAGS)
++
+ if BUILD_NFACCT
+ pkglib_LTLIBRARIES = ulogd_inpflow_NFACCT.la
+ ulogd_inpflow_NFACCT_la_SOURCES = ulogd_inpflow_NFACCT.c
+diff --git a/libipulog/Makefile.am b/libipulog/Makefile.am
+index 111cd4889ed6..708975a5fb99 100644
+--- a/libipulog/Makefile.am
++++ b/libipulog/Makefile.am
+@@ -1,6 +1,4 @@
+-
+-AM_CPPFLAGS = -I$(top_srcdir)/include
+-AM_CFLAGS = ${regular_CFLAGS}
++include $(top_srcdir)/Make_global.am
+ 
+ noinst_LTLIBRARIES = libipulog.la
+ 
+diff --git a/output/Makefile.am b/output/Makefile.am
+index 7ba821764afe..2b7d12b12be3 100644
+--- a/output/Makefile.am
++++ b/output/Makefile.am
+@@ -1,9 +1,11 @@
+-AM_CPPFLAGS = -I$(top_srcdir)/include ${LIBNETFILTER_ACCT_CFLAGS} \
+-              ${LIBNETFILTER_CONNTRACK_CFLAGS} ${LIBNETFILTER_LOG_CFLAGS}
+-AM_CFLAGS = ${regular_CFLAGS}
+-
+ SUBDIRS= pcap mysql pgsql sqlite3 dbi ipfix
+ 
++include $(top_srcdir)/Make_global.am
++
++AM_CPPFLAGS += ${LIBNETFILTER_ACCT_CFLAGS} \
++	       ${LIBNETFILTER_CONNTRACK_CFLAGS} \
++	       ${LIBNETFILTER_LOG_CFLAGS}
++
+ pkglib_LTLIBRARIES = ulogd_output_LOGEMU.la ulogd_output_SYSLOG.la \
+ 			 ulogd_output_OPRINT.la ulogd_output_GPRINT.la \
+ 			 ulogd_output_NACCT.la ulogd_output_XML.la \
+diff --git a/output/dbi/Makefile.am b/output/dbi/Makefile.am
+index f413cab4a340..38db0a26fd84 100644
+--- a/output/dbi/Makefile.am
++++ b/output/dbi/Makefile.am
+@@ -1,6 +1,6 @@
++include $(top_srcdir)/Make_global.am
+ 
+-AM_CPPFLAGS = -I$(top_srcdir)/include $(DBI_INC)
+-AM_CFLAGS = ${regular_CFLAGS}
++AM_CPPFLAGS += $(DBI_INC)
+ 
+ if HAVE_DBI
+ 
+diff --git a/output/ipfix/Makefile.am b/output/ipfix/Makefile.am
+index cacda265c1f5..7354f6be6d51 100644
+--- a/output/ipfix/Makefile.am
++++ b/output/ipfix/Makefile.am
+@@ -1,5 +1,4 @@
+-AM_CPPFLAGS = -I$(top_srcdir)/include
+-AM_CFLAGS = $(regular_CFLAGS)
++include $(top_srcdir)/Make_global.am
+ 
+ pkglib_LTLIBRARIES = ulogd_output_IPFIX.la
+ 
+diff --git a/output/mysql/Makefile.am b/output/mysql/Makefile.am
+index c24208c3e302..3839a135c926 100644
+--- a/output/mysql/Makefile.am
++++ b/output/mysql/Makefile.am
+@@ -1,5 +1,6 @@
+-AM_CPPFLAGS = -I$(top_srcdir)/include $(MYSQL_INC)
+-AM_CFLAGS = ${regular_CFLAGS}
++include $(top_srcdir)/Make_global.am
++
++AM_CPPFLAGS += $(MYSQL_INC)
+ 
+ if HAVE_MYSQL
+ 
+diff --git a/output/pcap/Makefile.am b/output/pcap/Makefile.am
+index c1723a642a63..a022bf0cc15c 100644
+--- a/output/pcap/Makefile.am
++++ b/output/pcap/Makefile.am
+@@ -1,6 +1,4 @@
+-
+-AM_CPPFLAGS = -I$(top_srcdir)/include
+-AM_CFLAGS = ${regular_CFLAGS}
++include $(top_srcdir)/Make_global.am
+ 
+ if HAVE_PCAP
+ 
+diff --git a/output/pgsql/Makefile.am b/output/pgsql/Makefile.am
+index bdaf1d249dce..fbc0d04c9f11 100644
+--- a/output/pgsql/Makefile.am
++++ b/output/pgsql/Makefile.am
+@@ -1,6 +1,6 @@
++include $(top_srcdir)/Make_global.am
+ 
+-AM_CPPFLAGS = -I$(top_srcdir)/include -I$(PQINCPATH)
+-AM_CFLAGS = ${regular_CFLAGS}
++AM_CPPFLAGS += -I$(PQINCPATH)
+ 
+ if HAVE_PGSQL
+ 
+diff --git a/output/sqlite3/Makefile.am b/output/sqlite3/Makefile.am
+index 62af267c4108..e00e1d6cf11c 100644
+--- a/output/sqlite3/Makefile.am
++++ b/output/sqlite3/Makefile.am
+@@ -1,5 +1,6 @@
+-AM_CPPFLAGS = -I$(top_srcdir)/include ${libsqlite3_CFLAGS}
+-AM_CFLAGS = ${regular_CFLAGS}
++include $(top_srcdir)/Make_global.am
++
++AM_CPPFLAGS += ${libsqlite3_CFLAGS}
+ 
+ if HAVE_SQLITE3
+ 
 diff --git a/src/Makefile.am b/src/Makefile.am
-index 998e776a8079..e1d45aee4b6c 100644
+index e1d45aee4b6c..7a12a72da9a3 100644
 --- a/src/Makefile.am
 +++ b/src/Makefile.am
-@@ -1,7 +1,8 @@
+@@ -1,9 +1,8 @@
++include $(top_srcdir)/Make_global.am
  
- AM_CPPFLAGS = -I$(top_srcdir)/include \
--	      -DULOGD_CONFIGFILE="\"$(sysconfdir)/ulogd.conf\"" \
--	      -DULOGD_LOGFILE_DEFAULT="\"$(localstatedir)/log/ulogd.log\""
-+	      -DULOGD_CONFIGFILE='"$(sysconfdir)/ulogd.conf"' \
-+	      -DULOGD_LOGFILE_DEFAULT='"$(localstatedir)/log/ulogd.log"' \
-+	      -DULOGD2_LIBDIR='"$(ulogd2libdir)"'
- AM_CFLAGS = ${regular_CFLAGS}
+-AM_CPPFLAGS = -I$(top_srcdir)/include \
+-	      -DULOGD_CONFIGFILE='"$(sysconfdir)/ulogd.conf"' \
+-	      -DULOGD_LOGFILE_DEFAULT='"$(localstatedir)/log/ulogd.log"' \
+-	      -DULOGD2_LIBDIR='"$(ulogd2libdir)"'
+-AM_CFLAGS = ${regular_CFLAGS}
++AM_CPPFLAGS += -DULOGD_CONFIGFILE='"$(sysconfdir)/ulogd.conf"' \
++	       -DULOGD_LOGFILE_DEFAULT='"$(localstatedir)/log/ulogd.log"' \
++	       -DULOGD2_LIBDIR='"$(ulogd2libdir)"'
  
  sbin_PROGRAMS = ulogd
+ 
 -- 
 2.33.0
 
