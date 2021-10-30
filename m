@@ -2,45 +2,45 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5446BC433EF
-	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Oct 2021 17:10:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26A5DC433F5
+	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Oct 2021 17:10:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 33BC260F38
-	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Oct 2021 17:10:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0FF1960F38
+	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Oct 2021 17:10:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230123AbhJ3RNJ (ORCPT
+        id S230188AbhJ3RNM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 30 Oct 2021 13:13:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57868 "EHLO
+        Sat, 30 Oct 2021 13:13:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57880 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229863AbhJ3RNI (ORCPT
+        with ESMTP id S229863AbhJ3RNM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 30 Oct 2021 13:13:08 -0400
+        Sat, 30 Oct 2021 13:13:12 -0400
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:fb7d:d6d6:e0:4cff:fe83:e514])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BDF2C061570
-        for <netfilter-devel@vger.kernel.org>; Sat, 30 Oct 2021 10:10:38 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7A545C061570
+        for <netfilter-devel@vger.kernel.org>; Sat, 30 Oct 2021 10:10:41 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=x73y1mbw3WGFoL3pEhh4auiua5LnQS+c66HxqxTbjN4=; b=NvVdcSeaDYNUQ5nM6+UzgwyyEv
-        9carLBepoUOt7p0gy5G7bRAtSW7snW5G/TfyNotOW1rtaVD+2zXuVYDFwNNLIb32o3SQ+MZw65DSH
-        SUnSr/dXhSa7dl4Qts4mrEbLCs5rhpCxPwRRs1V/l50zbnbtdQQLFHxncBmwppw+eixcjKnCxU9wp
-        asEHi7GGZGg3IepjpWIXmLHwF+d7rLvIAxgk+b0+SL/q/+8Fbqq1yiXJ2WPfEFf9zFgG3ELlqF3QT
-        hKIqNlVPyFdljXGdqy1NF/ZRNb6SDYshyO+X2q5FNQey30np6cwmfxXo2PeEhwn6MSLlwrh99Omfa
-        ARMFkmLA==;
+        bh=1/ww1tM9G1Bdrqq43bg4EZaBAsCHHojr9kMW0gSbYM4=; b=nGWloWL85sSvDgEUwpm8P7J3RR
+        F+KdLRBKa7Hlf264a0N3arICg6Sm1yVB2yTvNN6TPhU8PDS432p/jk7yD4LY7P2w/MK3FO48jrDy2
+        z2NNXKiL3bn4aYOlChaZEFXTImKH+fWqfMT4rVmGKPVT399YMxARmS+GGD7pX6/F9yppKOdVIkd4a
+        ZkrsYSQjcUdlt0pdYjopjw5WgcfSElaTBWJaHpmOmGlABFD2zAX3snAIvkc4/ngkP9hB/mW/4/vLD
+        8ZsXsZOwd3fALnGq6ffIKJx5eeAMsJ34+0E2rjts4tD+kO/AaUc11ZqYby2XjfJXuKDWI7H0i2COD
+        p7ZoLHSw==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] helo=ulthar.scientificgames.com)
         by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1mgrT9-00AFgT-Sh
-        for netfilter-devel@vger.kernel.org; Sat, 30 Oct 2021 17:44:35 +0100
+        id 1mgrTA-00AFgT-9o
+        for netfilter-devel@vger.kernel.org; Sat, 30 Oct 2021 17:44:36 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [ulogd2 PATCH 15/26] input: UNIXSOCK: prevent unaligned pointer access.
-Date:   Sat, 30 Oct 2021 17:44:21 +0100
-Message-Id: <20211030164432.1140896-16-jeremy@azazel.net>
+Subject: [ulogd2 PATCH 17/26] output: DBI: fix string truncation warnings
+Date:   Sat, 30 Oct 2021 17:44:23 +0100
+Message-Id: <20211030164432.1140896-18-jeremy@azazel.net>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20211030164432.1140896-1-jeremy@azazel.net>
 References: <20211030164432.1140896-1-jeremy@azazel.net>
@@ -53,77 +53,103 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-`struct ulogd_unixsock_packet_t` is packed, so taking the address of its
-`struct iphdr payload` member may yield an unaligned pointer value.
-Copy it to a local variable instead.
+Replace `strncpy` with `snprintf` and `memcpy`.
 
-Remove a couple of stray semicolons.
+Remove intermediate buffer.
+
+Ensure that `dst` is properly initialized if `dbi_conn_quote_string_copy`
+returns an error.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- input/packet/ulogd_inppkt_UNIXSOCK.c | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ output/dbi/ulogd_output_DBI.c | 46 +++++++++++++++--------------------
+ 1 file changed, 20 insertions(+), 26 deletions(-)
 
-diff --git a/input/packet/ulogd_inppkt_UNIXSOCK.c b/input/packet/ulogd_inppkt_UNIXSOCK.c
-index af2fbeca1f4c..f7611189363c 100644
---- a/input/packet/ulogd_inppkt_UNIXSOCK.c
-+++ b/input/packet/ulogd_inppkt_UNIXSOCK.c
-@@ -371,7 +371,7 @@ struct ulogd_unixsock_option_t  {
- static int handle_packet(struct ulogd_pluginstance *upi, struct ulogd_unixsock_packet_t *pkt, uint16_t total_len)
+diff --git a/output/dbi/ulogd_output_DBI.c b/output/dbi/ulogd_output_DBI.c
+index 461aed4bddb6..babaf58a9a56 100644
+--- a/output/dbi/ulogd_output_DBI.c
++++ b/output/dbi/ulogd_output_DBI.c
+@@ -91,15 +91,6 @@ static struct config_keyset dbi_kset = {
+ #define dbtype_ce(x)	(x->ces[DB_CE_NUM+6])
+ 
+ 
+-/* lower-cases s in place */
+-static void str_tolower(char *s)
+-{
+-	while(*s) {
+-		*s = tolower(*s);
+-		s++;
+-	}
+-}
+-
+ /* find out which columns the table has */
+ static int get_columns_dbi(struct ulogd_pluginstance *upi)
  {
- 	char *data = NULL;
--	struct iphdr *ip;
-+	struct iphdr ip = pkt->payload;
- 	struct ulogd_key *ret = upi->output.keys;
- 	uint8_t oob_family;
- 	uint16_t payload_len;
-@@ -387,22 +387,22 @@ static int handle_packet(struct ulogd_pluginstance *upi, struct ulogd_unixsock_p
- 
- 	payload_len = ntohs(pkt->payload_length);
- 
--	ip = &pkt->payload;
--	if (ip->version == 4)
-+	if (ip.version == 4)
- 		oob_family = AF_INET;
--	else if (ip->version == 6)
-+	else if (ip.version == 6)
- 		oob_family = AF_INET6;
--	else oob_family = 0;
-+	else
-+		oob_family = 0;
- 
- 	okey_set_u8(&ret[UNIXSOCK_KEY_OOB_FAMILY], oob_family);
--	okey_set_ptr(&ret[UNIXSOCK_KEY_RAW_PCKT], ip);
-+	okey_set_ptr(&ret[UNIXSOCK_KEY_RAW_PCKT], &ip);
- 	okey_set_u32(&ret[UNIXSOCK_KEY_RAW_PCKTLEN], payload_len);
- 
- 	/* options */
- 	if (total_len > payload_len + sizeof(uint16_t)) {
- 		/* option starts at the next aligned address after the payload */
- 		new_offset = USOCK_ALIGN(payload_len);
--		options_start = (void*)ip + new_offset;
-+		options_start = (char *) &ip + new_offset;
- 		data = options_start;
- 		total_len -= (options_start - (char*)pkt);
- 
-@@ -460,7 +460,7 @@ static int handle_packet(struct ulogd_pluginstance *upi, struct ulogd_unixsock_p
- 						"ulogd2: unknown option %d\n",
- 						option_number);
- 				break;
--			};
-+			}
- 		}
+@@ -139,25 +130,26 @@ static int get_columns_dbi(struct ulogd_pluginstance *upi)
+ 		return -ENOMEM;
  	}
  
-@@ -674,7 +674,7 @@ static int unixsock_instance_read_cb(int fd, unsigned int what, void *param)
- 		}
+-	for (ui=1; ui<=upi->input.num_keys; ui++) {
+-		char buf[ULOGD_MAX_KEYLEN+1];
+-		char *underscore;
+-		const char* field_name = dbi_result_get_field_name(pi->result, ui);
++	for (ui = 1; ui <= upi->input.num_keys; ui++) {
++		const char *field_name = dbi_result_get_field_name(pi->result, ui);
++		char *cp;
  
- 		/* handle_packet has shifted data in buffer */
--	};
+ 		if (!field_name)
+ 			break;
+ 
+-		/* replace all underscores with dots */
+-		strncpy(buf, field_name, ULOGD_MAX_KEYLEN);
+-		while ((underscore = strchr(buf, '_')))
+-			*underscore = '.';
++		snprintf(upi->input.keys[ui - 1].name,
++			 sizeof(upi->input.keys[ui - 1].name),
++			 "%s", field_name);
+ 
+-		str_tolower(buf);
++		/* down-case and replace all underscores with dots */
++		for (cp = upi->input.keys[ui - 1].name; *cp; cp++) {
++			if (*cp == '_')
++				*cp = '.';
++			else
++				*cp = tolower(*cp);
++		}
+ 
+-		DEBUGP("field '%s' found: ", buf);
+-
+-		/* add it to list of input keys */
+-		strncpy(upi->input.keys[ui-1].name, buf, ULOGD_MAX_KEYLEN);
++		DEBUGP("field '%s' found: ", upi->input.keys[ui - 1].name);
+ 	}
+ 
+ 	/* ID is a sequence */
+@@ -245,18 +237,20 @@ static int escape_string_dbi(struct ulogd_pluginstance *upi,
+ 	}
+ 
+ 	ret = dbi_conn_quote_string_copy(pi->dbh, src, &newstr);
+-	if (ret <= 2)
++	if (ret == 0) {
++		*dst = '\0';
+ 		return 0;
 +	}
  
- 	return 0;
+ 	/* dbi_conn_quote_string_copy returns a quoted string,
+ 	 * but __interp_db already quotes the string
+ 	 * So we return a string without the quotes
+ 	 */
+-	strncpy(dst,newstr+1,ret-2);
+-	dst[ret-2] = '\0';
++	memcpy(dst, newstr + 1, ret - 2);
++	dst[ret - 2] = '\0';
+ 	free(newstr);
+ 
+-	return (ret-2);
++	return ret - 2;
  }
+ 
+ static int execute_dbi(struct ulogd_pluginstance *upi,
 -- 
 2.33.0
 
