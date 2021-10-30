@@ -2,45 +2,45 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C732C433F5
-	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Oct 2021 17:10:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2781C433F5
+	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Oct 2021 17:10:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0BD6B60F9B
-	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Oct 2021 17:10:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CB9FA60F38
+	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Oct 2021 17:10:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230323AbhJ3RNP (ORCPT
+        id S229863AbhJ3RNS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 30 Oct 2021 13:13:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57892 "EHLO
+        Sat, 30 Oct 2021 13:13:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57904 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230155AbhJ3RNP (ORCPT
+        with ESMTP id S230338AbhJ3RNR (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 30 Oct 2021 13:13:15 -0400
+        Sat, 30 Oct 2021 13:13:17 -0400
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:fb7d:d6d6:e0:4cff:fe83:e514])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A203BC061570
-        for <netfilter-devel@vger.kernel.org>; Sat, 30 Oct 2021 10:10:44 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9BABC061570
+        for <netfilter-devel@vger.kernel.org>; Sat, 30 Oct 2021 10:10:47 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=mpMOj/MKQiLBukKk1edf3w1TciBTGYXcm6F6gyeRDno=; b=dXl6qG2Pf/wo43tT5bhcgZT/CK
-        JOXfzQ1c8O836yOD3SIZzpDMdJJ9hFgOV4hEAO2Bkl8G53c7n8Kg5DRb/cg9lq72BF4d4WHevSzhP
-        O8PUjOcc1EN5M0FnQ9YyjqR7cJ67CD5EwHzXlCebaKjToEKtEqUP4941t+0qHAS24NibnuBKJZw/D
-        CQYTXczr5Efs3ohuLgItaQ62AiNY78tLAolCHF4fUgNLNsqe3UdDu2DWhMXuuUVp516byQoqr9Vxs
-        7K6Qx2VIEPvxfG+IlXXfGdcu5bniuJCRWUGeNPXK+BLe2s4XvbgWQokKUCkkgtO8tiwHUqr9V3b+g
-        40xQDsog==;
+        bh=rl9Ng6/fsfB1HtYGDanNwYE8DCScCc3tLNQwZ+wqbzk=; b=j+3TGv4SDgYIhAsqqNslSXPtRx
+        zpNh191zNtaHd3OahzPz0nRqzYSnDvWav4X6OsZKrhbBRnZ7wNB5nSzsC1Bc0SU2Z1phi0aIl20aA
+        h7FIk44QBr0GrDkNxrfeS+EYLLRZtkJv548giYc7IJd98dtSNIv0N+AuGT4hwevbVqDJo4K7bJcKo
+        wyW9Yr3I/h7FpZ+lRhhcmWDmLKi10KYZDfkoStpPItC0tYOGxbXPgdiBqpO8aCmcfF09PsLQe9vcP
+        GwdY0lzntwgJOdwbJD/TmSKN6cHtKvw1rWivZTPWVn/WKiB5EEBkHjgSkWgPp4liUxWlRN7QcIm5O
+        bF5fhCTg==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] helo=ulthar.scientificgames.com)
         by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1mgrT9-00AFgT-6a
-        for netfilter-devel@vger.kernel.org; Sat, 30 Oct 2021 17:44:35 +0100
+        id 1mgrTA-00AFgT-Rp
+        for netfilter-devel@vger.kernel.org; Sat, 30 Oct 2021 17:44:36 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [ulogd2 PATCH 12/26] filter: PWSNIFF: replace malloc+strncpy with strndup.
-Date:   Sat, 30 Oct 2021 17:44:18 +0100
-Message-Id: <20211030164432.1140896-13-jeremy@azazel.net>
+Subject: [ulogd2 PATCH 22/26] util: db: fix possible string truncation.
+Date:   Sat, 30 Oct 2021 17:44:28 +0100
+Message-Id: <20211030164432.1140896-23-jeremy@azazel.net>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20211030164432.1140896-1-jeremy@azazel.net>
 References: <20211030164432.1140896-1-jeremy@azazel.net>
@@ -53,81 +53,103 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Correct buffer size to match that of key-name.
+
+We can now replace strncpy with strcpy.
+
+Don't start strchr from the beginning every time.
+
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- filter/ulogd_filter_PWSNIFF.c | 26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ util/db.c | 23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
-diff --git a/filter/ulogd_filter_PWSNIFF.c b/filter/ulogd_filter_PWSNIFF.c
-index 934ff0e09c4f..9060d16feac6 100644
---- a/filter/ulogd_filter_PWSNIFF.c
-+++ b/filter/ulogd_filter_PWSNIFF.c
-@@ -35,10 +35,14 @@
- #define DEBUGP(format, args...)
- #endif
+diff --git a/util/db.c b/util/db.c
+index f0711146867f..0f8eb7057436 100644
+--- a/util/db.c
++++ b/util/db.c
+@@ -10,7 +10,7 @@
+  *           (C) 2008,2013 Eric Leblond <eric@regit.org>
+  *
+  *  This program is free software; you can redistribute it and/or modify
+- *  it under the terms of the GNU General Public License version 2 
++ *  it under the terms of the GNU General Public License version 2
+  *  as published by the Free Software Foundation
+  *
+  *  This program is distributed in the hope that it will be useful,
+@@ -21,7 +21,7 @@
+  *  You should have received a copy of the GNU General Public License
+  *  along with this program; if not, write to the Free Software
+  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+- * 
++ *
+  */
  
--
- #define PORT_POP3	110
- #define PORT_FTP	21
+ #include <unistd.h>
+@@ -96,8 +96,6 @@ static int sql_createstmt(struct ulogd_pluginstance *upi)
+ 	if (strncasecmp(procedure,"INSERT", strlen("INSERT")) == 0 &&
+ 	    (procedure[strlen("INSERT")] == '\0' ||
+ 			procedure[strlen("INSERT")] == ' ')) {
+-		char buf[ULOGD_MAX_KEYLEN];
+-		char *underscore;
  
-+enum pwsniff_output_keys {
-+	PWSNIFF_OUT_KEY_USER,
-+	PWSNIFF_OUT_KEY_PASS,
-+};
+ 		if(procedure[6] == '\0') {
+ 			/* procedure == "INSERT" */
+@@ -112,11 +110,13 @@ static int sql_createstmt(struct ulogd_pluginstance *upi)
+ 		stmt_val = mi->stmt + strlen(mi->stmt);
+ 
+ 		for (i = 0; i < upi->input.num_keys; i++) {
++			char buf[sizeof(upi->input.keys[0].name)], *underscore = buf;
 +
- static uint16_t pwsniff_ports[] = {
- 	PORT_POP3,
- 	PORT_FTP,
-@@ -93,11 +97,11 @@ static int interp_pwsniff(struct ulogd_pluginstance *pi)
- 		return ULOGD_IRET_STOP;
+ 			if (upi->input.keys[i].flags & ULOGD_KEYF_INACTIVE)
+ 				continue;
  
- 	DEBUGP("----> pwsniff detected, tcplen=%d, struct=%d, iphtotlen=%d, "
--		"ihl=%d\n", tcplen, sizeof(struct tcphdr), ntohs(iph->tot_len),
--		iph->ihl);
-+	       "ihl=%d\n", tcplen, sizeof(struct tcphdr), ntohs(iph->tot_len),
-+	       iph->ihl);
+-			strncpy(buf, upi->input.keys[i].name, ULOGD_MAX_KEYLEN);	
+-			while ((underscore = strchr(buf, '.')))
++			strcpy(buf, upi->input.keys[i].name);
++			while ((underscore = strchr(underscore, '.')))
+ 				*underscore = '_';
+ 			sprintf(stmt_val, "%s,", buf);
+ 			stmt_val = mi->stmt + strlen(mi->stmt);
+@@ -168,7 +168,7 @@ int ulogd_db_configure(struct ulogd_pluginstance *upi,
+ 	ret = di->driver->get_columns(upi);
+ 	if (ret < 0)
+ 		ulogd_log(ULOGD_ERROR, "error in get_columns\n");
+-	
++
+ 	/* Close database, since ulogd core could just call configure
+ 	 * but abort during input key resolving routines.  configure
+ 	 * doesn't have a destructor... */
+@@ -215,7 +215,7 @@ int ulogd_db_start(struct ulogd_pluginstance *upi)
  
- 	for (ptr = (unsigned char *) tcph + sizeof(struct tcphdr); 
--			ptr < (unsigned char *) tcph + tcplen; ptr++)
-+	     ptr < (unsigned char *) tcph + tcplen; ptr++)
- 	{
- 		if (!strncasecmp((char *)ptr, "USER ", 5)) {
- 			begp = ptr+5;
-@@ -108,7 +112,7 @@ static int interp_pwsniff(struct ulogd_pluginstance *pi)
- 		if (!strncasecmp((char *)ptr, "PASS ", 5)) {
- 			pw_begp = ptr+5;
- 			pw_endp = _get_next_blank(pw_begp, 
--					(unsigned char *)tcph + tcplen);
-+						  (unsigned char *)tcph + tcplen);
- 			if (pw_endp)
- 				pw_len = pw_endp - pw_begp + 1;
+ 	if (di->ring.size > 0) {
+ 		/* allocate */
+-		di->ring.ring = calloc(di->ring.size, sizeof(char) * di->ring.length);
++		di->ring.ring = calloc(di->ring.size, di->ring.length);
+ 		if (di->ring.ring == NULL) {
+ 			ret = -1;
+ 			goto db_error;
+@@ -226,9 +226,8 @@ int ulogd_db_start(struct ulogd_pluginstance *upi)
+ 			  di->ring.size, di->ring.length);
+ 		/* init start of query for each element */
+ 		for(i = 0; i < di->ring.size; i++) {
+-			strncpy(di->ring.ring + di->ring.length * i + 1,
+-				di->stmt,
+-				strlen(di->stmt));
++			strcpy(di->ring.ring + di->ring.length * i + 1,
++			       di->stmt);
  		}
-@@ -116,21 +120,17 @@ static int interp_pwsniff(struct ulogd_pluginstance *pi)
- 
- 	if (len) {
- 		char *ptr;
--		ptr = (char *) malloc(len+1);
-+		ptr = strndup((char *)begp, len);
- 		if (!ptr)
- 			return ULOGD_IRET_ERR;
--		strncpy(ptr, (char *)begp, len);
--		ptr[len] = '\0';
--		okey_set_ptr(&ret[0], ptr);
-+		okey_set_ptr(&ret[PWSNIFF_OUT_KEY_USER], ptr);
- 	}
- 	if (pw_len) {
- 		char *ptr;
--		ptr = (char *) malloc(pw_len+1);
-+		ptr = strndup((char *)pw_begp, pw_len);
- 		if (!ptr)
- 			return ULOGD_IRET_ERR;
--		strncpy(ptr, (char *)pw_begp, pw_len);
--		ptr[pw_len] = '\0';
--		okey_set_ptr(&ret[1], ptr);
-+		okey_set_ptr(&ret[PWSNIFF_OUT_KEY_PASS], ptr);
- 	}
- 	return ULOGD_IRET_OK;
+ 		/* init cond & mutex */
+ 		ret = pthread_cond_init(&di->ring.cond, NULL);
+@@ -314,7 +313,7 @@ static int _init_reconnect(struct ulogd_pluginstance *upi)
+ 	/* Disable plugin permanently */
+ 	ulogd_log(ULOGD_ERROR, "permanently disabling plugin\n");
+ 	di->interp = &disabled_interp_db;
+-	
++
+ 	return 0;
  }
+ 
 -- 
 2.33.0
 
