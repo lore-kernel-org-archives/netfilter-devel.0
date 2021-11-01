@@ -2,120 +2,148 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CFEB8C433FE
-	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Nov 2021 18:22:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7D22C433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Nov 2021 19:50:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BC20660F46
-	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Nov 2021 18:22:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8304561053
+	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Nov 2021 19:50:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231927AbhKASYg (ORCPT
+        id S229948AbhKATwc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 1 Nov 2021 14:24:36 -0400
-Received: from ink.ssi.bg ([178.16.128.7]:37455 "EHLO ink.ssi.bg"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231916AbhKASYe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 1 Nov 2021 14:24:34 -0400
-Received: from ja.ssi.bg (unknown [178.16.129.10])
-        by ink.ssi.bg (Postfix) with ESMTPS id 8B0DA3C0332;
-        Mon,  1 Nov 2021 20:21:56 +0200 (EET)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.16.1/8.16.1) with ESMTP id 1A1ILsOa006822;
-        Mon, 1 Nov 2021 20:21:54 +0200
-Date:   Mon, 1 Nov 2021 20:21:54 +0200 (EET)
-From:   Julian Anastasov <ja@ssi.bg>
-To:     yangxingwu <xingwu.yang@gmail.com>
-cc:     Simon Horman <horms@verge.net.au>, pablo@netfilter.org,
-        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-doc@vger.kernel.org, Chuanqi Liu <legend050709@qq.com>
-Subject: Re: [PATCH nf-next v5] netfilter: ipvs: Fix reuse connection if RS
- weight is 0
-In-Reply-To: <20211101020416.31402-1-xingwu.yang@gmail.com>
-Message-ID: <ae67eb7b-a25f-57d3-195f-cdbd9247ef5b@ssi.bg>
-References: <20211101020416.31402-1-xingwu.yang@gmail.com>
+        Mon, 1 Nov 2021 15:52:32 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:35820 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S229692AbhKATwb (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 1 Nov 2021 15:52:31 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1635796197;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=qqc178qZXVlRBTkSP0Y4vQlYfIbVccbQXGvB2hKE2bQ=;
+        b=Hte8Sl8ZxkVsb7GvAr17GBppIZdeUck9yV9UO2Y7jGKQkhMWbKlzQ+gx3qCI7sx/ooQKr5
+        lVDUJwAJ0H4oM7WJd0/8M3fTfkiT3Qy+qYcO0dGXxP+3UZwLkaUAz2mr9WM9ZuSZzHhh+h
+        oxzZEC0yKoeUpanFdC4e0dkfyZGAcHw=
+Received: from mail-ed1-f71.google.com (mail-ed1-f71.google.com
+ [209.85.208.71]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-359-sO93PObJOUi1tI5J0kB7BQ-1; Mon, 01 Nov 2021 15:49:56 -0400
+X-MC-Unique: sO93PObJOUi1tI5J0kB7BQ-1
+Received: by mail-ed1-f71.google.com with SMTP id x13-20020a05640226cd00b003dd4720703bso16587103edd.8
+        for <netfilter-devel@vger.kernel.org>; Mon, 01 Nov 2021 12:49:56 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:in-reply-to:references:date
+         :message-id:mime-version;
+        bh=qqc178qZXVlRBTkSP0Y4vQlYfIbVccbQXGvB2hKE2bQ=;
+        b=5YGm2ytRGnqEDV++IYOpkSZgxCFuV+JSifTmkRLKynw58501C4MrrMlo8EY4hXfSJs
+         fu0vrzuKFpRpt1xvci+AAv/GZR4aHnXN4UH6Ps80JT8NESxLPMyYI6KuE3AJPi2vl5mJ
+         9rUxqaoOWm4ZLJVzFfSzLC2ANHa33CYumukSnSM42KoqiLpazaLTcDzt0oRp6j0kBXdK
+         8fFDLLhrRia5WlNzSsFAlN74XecbQii/Ijbk5MWMwGjgDcAqNrref7OFVjQcANW5h6Cg
+         j+CLy2fVAf19penJFmg8pCG5y1L2U1ETE2wpW0RVxTi4BVyASk7NpZ/DLJU9T/CLkDGY
+         X1Kw==
+X-Gm-Message-State: AOAM531ruOxLIBH+snfvztieKw6liQsTw4P0gH+zrXmW29IFH42U8QGg
+        jy/gvggHgRqWk8Q/+PIK6U2Z2W1rrAYqrQa8bFkzoqE4cO/AsAFS+xkzka/bq7yWLwqpuHp8pVS
+        hkJhptLZuc/gmP9IAQxAhYctuWtX+
+X-Received: by 2002:a50:8744:: with SMTP id 4mr43744781edv.100.1635796195598;
+        Mon, 01 Nov 2021 12:49:55 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJwgHydV0CV/xhpm8QAcsGfvxbZrz1g8h+fAKTtFLxBddFuMKEdw4igXKgtcQv3rCUwkr499hA==
+X-Received: by 2002:a50:8744:: with SMTP id 4mr43744738edv.100.1635796195291;
+        Mon, 01 Nov 2021 12:49:55 -0700 (PDT)
+Received: from alrua-x1.borgediget.toke.dk ([45.145.92.2])
+        by smtp.gmail.com with ESMTPSA id t6sm9565835edj.27.2021.11.01.12.49.54
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 01 Nov 2021 12:49:54 -0700 (PDT)
+Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
+        id 30EE4180248; Mon,  1 Nov 2021 20:49:54 +0100 (CET)
+From:   Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
+To:     Florian Westphal <fw@strlen.de>,
+        Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Cc:     bpf@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Martin KaFai Lau <kafai@fb.com>,
+        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
+        John Fastabend <john.fastabend@gmail.com>,
+        Maxim Mikityanskiy <maximmi@nvidia.com>,
+        Florian Westphal <fw@strlen.de>,
+        Jesper Dangaard Brouer <brouer@redhat.com>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH RFC bpf-next v1 5/6] net: netfilter: Add unstable CT
+ lookup helper for XDP and TC-BPF
+In-Reply-To: <20211031191045.GA19266@breakpoint.cc>
+References: <20211030144609.263572-1-memxor@gmail.com>
+ <20211030144609.263572-6-memxor@gmail.com>
+ <20211031191045.GA19266@breakpoint.cc>
+X-Clacks-Overhead: GNU Terry Pratchett
+Date:   Mon, 01 Nov 2021 20:49:54 +0100
+Message-ID: <87y2677j19.fsf@toke.dk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Florian Westphal <fw@strlen.de> writes:
 
-	Hello,
+> Kumar Kartikeya Dwivedi <memxor@gmail.com> wrote:
+>> This change adds conntrack lookup helpers using the unstable kfunc call
+>> interface for the XDP and TC-BPF hooks.
+>> 
+>> Also add acquire/release functions (randomly returning NULL), and also
+>> exercise the RET_PTR_TO_BTF_ID_OR_NULL path so that BPF program caller
+>> has to check for NULL before dereferencing the pointer, for the TC hook.
+>> These will be used in selftest.
+>> 
+>> Export get_net_ns_by_id and btf_type_by_id as nf_conntrack needs to call
+>> them.
+>
+> It would be good to get a summary on how this is useful.
+>
+> I tried to find a use case but I could not.
+> Entry will time out soon once packets stop appearing, so it can't be
+> used for stack bypass.  Is it for something else?  If so, what?
 
-On Mon, 1 Nov 2021, yangxingwu wrote:
+I think Maxim's use case was to implement a SYN proxy in XDP, where the
+XDP program just needs to answer the question "do I have state for this
+flow already". For TCP flows terminating on the local box this can be
+done via a socket lookup, but for a middlebox, a conntrack lookup is
+useful. Maxim, please correct me if I got your use case wrong.
 
-> We are changing expire_nodest_conn to work even for reused connections when
-> conn_reuse_mode=0, just as what was done with commit dc7b3eb900aa ("ipvs:
-> Fix reuse connection if real server is dead").
-> 
-> For controlled and persistent connections, the new connection will get the
-> needed real server depending on the rules in ip_vs_check_template().
-> 
-> Fixes: d752c3645717 ("ipvs: allow rescheduling of new connections when port reuse is detected")
-> Co-developed-by: Chuanqi Liu <legend050709@qq.com>
-> Signed-off-by: Chuanqi Liu <legend050709@qq.com>
-> Signed-off-by: yangxingwu <xingwu.yang@gmail.com>
+> For UDP it will work to let a packet pass through classic forward
+> path once in a while, but this will not work for tcp, depending
+> on conntrack settings (lose mode, liberal pickup etc. pp).
 
-	Looks good to me, thanks!
+The idea is certainly to follow up with some kind of 'update' helper. At
+a minimum a "keep this entry alive" update, but potentially more
+complicated stuff as well. Details TBD, input welcome :)
 
-Acked-by: Julian Anastasov <ja@ssi.bg>
+>> +/* Unstable Kernel Helpers for XDP hook */
+>> +static struct nf_conn *__bpf_nf_ct_lookup(struct net *net,
+>> +					  struct bpf_sock_tuple *bpf_tuple,
+>> +					  u32 tuple_len, u8 protonum,
+>> +					  u64 netns_id, u64 flags)
+>> +{
+>> +	struct nf_conntrack_tuple_hash *hash;
+>> +	struct nf_conntrack_tuple tuple;
+>> +
+>> +	if (flags != IP_CT_DIR_ORIGINAL && flags != IP_CT_DIR_REPLY)
+>> +		return ERR_PTR(-EINVAL);
+>
+> The flags argument is not needed.
+>
+>> +	tuple.dst.dir = flags;
+>
+> .dir can be 0, its not used by nf_conntrack_find_get().
+>
+>> +	hash = nf_conntrack_find_get(net, &nf_ct_zone_dflt, &tuple);
+>
+> Ok, so default zone. Depending on meaning of "unstable helper" this
+> is ok and can be changed in incompatible way later.
 
-> ---
->  Documentation/networking/ipvs-sysctl.rst | 3 +--
->  net/netfilter/ipvs/ip_vs_core.c          | 8 ++++----
->  2 files changed, 5 insertions(+), 6 deletions(-)
-> 
-> diff --git a/Documentation/networking/ipvs-sysctl.rst b/Documentation/networking/ipvs-sysctl.rst
-> index 2afccc63856e..1cfbf1add2fc 100644
-> --- a/Documentation/networking/ipvs-sysctl.rst
-> +++ b/Documentation/networking/ipvs-sysctl.rst
-> @@ -37,8 +37,7 @@ conn_reuse_mode - INTEGER
->  
->  	0: disable any special handling on port reuse. The new
->  	connection will be delivered to the same real server that was
-> -	servicing the previous connection. This will effectively
-> -	disable expire_nodest_conn.
-> +	servicing the previous connection.
->  
->  	bit 1: enable rescheduling of new connections when it is safe.
->  	That is, whenever expire_nodest_conn and for TCP sockets, when
-> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-> index 128690c512df..f9d65d2c8da8 100644
-> --- a/net/netfilter/ipvs/ip_vs_core.c
-> +++ b/net/netfilter/ipvs/ip_vs_core.c
-> @@ -1964,7 +1964,6 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
->  	struct ip_vs_proto_data *pd;
->  	struct ip_vs_conn *cp;
->  	int ret, pkts;
-> -	int conn_reuse_mode;
->  	struct sock *sk;
->  
->  	/* Already marked as IPVS request or reply? */
-> @@ -2041,15 +2040,16 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
->  	cp = INDIRECT_CALL_1(pp->conn_in_get, ip_vs_conn_in_get_proto,
->  			     ipvs, af, skb, &iph);
->  
-> -	conn_reuse_mode = sysctl_conn_reuse_mode(ipvs);
-> -	if (conn_reuse_mode && !iph.fragoffs && is_new_conn(skb, &iph) && cp) {
-> +	if (!iph.fragoffs && is_new_conn(skb, &iph) && cp) {
->  		bool old_ct = false, resched = false;
-> +		int conn_reuse_mode = sysctl_conn_reuse_mode(ipvs);
->  
->  		if (unlikely(sysctl_expire_nodest_conn(ipvs)) && cp->dest &&
->  		    unlikely(!atomic_read(&cp->dest->weight))) {
->  			resched = true;
->  			old_ct = ip_vs_conn_uses_old_conntrack(cp, skb);
-> -		} else if (is_new_conn_expected(cp, conn_reuse_mode)) {
-> +		} else if (conn_reuse_mode &&
-> +			   is_new_conn_expected(cp, conn_reuse_mode)) {
->  			old_ct = ip_vs_conn_uses_old_conntrack(cp, skb);
->  			if (!atomic_read(&cp->n_control)) {
->  				resched = true;
-> -- 
-> 2.30.2
+I'm not sure about the meaning of "unstable" either, TBH, but in either
+case I'd rather avoid changing things if we don't have to, so I think
+adding the zone as an argument from the get-go may be better...
 
-Regards
+-Toke
 
---
-Julian Anastasov <ja@ssi.bg>
