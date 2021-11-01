@@ -2,94 +2,82 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC5EEC43217
-	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Nov 2021 08:39:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7783C433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Nov 2021 13:10:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CB1CC610D2
-	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Nov 2021 08:39:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CAF14610CC
+	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Nov 2021 13:10:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231728AbhKAImZ (ORCPT
+        id S231913AbhKANMo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 1 Nov 2021 04:42:25 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:57802 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231371AbhKAImW (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 1 Nov 2021 04:42:22 -0400
-Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 06B4463F4E;
-        Mon,  1 Nov 2021 09:37:55 +0100 (CET)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 3/5] netfilter: nft_meta: add NFT_META_IFTYPE
-Date:   Mon,  1 Nov 2021 09:39:38 +0100
-Message-Id: <20211101083940.51007-4-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20211101083940.51007-1-pablo@netfilter.org>
-References: <20211101083940.51007-1-pablo@netfilter.org>
+        Mon, 1 Nov 2021 09:12:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46194 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S231880AbhKANMn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 1 Nov 2021 09:12:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPS id DDA0560FE8;
+        Mon,  1 Nov 2021 13:10:09 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1635772210;
+        bh=vH/clyqhqEERJEsBz/fHzo9jIYxPNNBWZI3e1gNCfOY=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=uAf9n8UzxP0NL3x6eqeTSDgW/qyhsyA4mHU8Baw48P85t17oMy/bi17VsW06S1Nri
+         vqqpNTKb9wvJEENs4T7MFxqZa8su3cfxkTHYnIh9j2WzKgwJLoMy6Uo6tXaTr2+BCG
+         NUhremsTq1Uj7aMshTllKaZaYXRL/Flx6NY8OHvaBEjO/8kWj1YPQELmW2LwB0UHTq
+         LZWQTWzEigK3Ug9nE7p86R/1Npeg4WsVIx59SB4SId7Z4dY62bRAP5C2m9zIyoDkUo
+         uGp7Qh63x6f2ldiM4QYA7GXQlqKgfi0kvTRiUD4v88b0sBoBsKUg2ZE2DZsAlUWCE/
+         wuNkj1x5kGN9g==
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next 1/5] netfilter: ebtables: use array_size() helper in
+ copy_{from,to}_user()
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <163577220975.25752.12348298706166739820.git-patchwork-notify@kernel.org>
+Date:   Mon, 01 Nov 2021 13:10:09 +0000
+References: <20211101083940.51007-2-pablo@netfilter.org>
+In-Reply-To: <20211101083940.51007-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Generalize NFT_META_IIFTYPE to NFT_META_IFTYPE which allows you to match
-on the interface type of the skb->dev field. This field is used by the
-netdev family to add an implicit dependency to skip non-ethernet packets
-when matching on layer 3 and 4 TCP/IP header fields.
+Hello:
 
-For backward compatibility, add the NFT_META_IIFTYPE alias to
-NFT_META_IFTYPE.
+This series was applied to netdev/net-next.git (master)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-Add __NFT_META_IIFTYPE, to be used by userspace in the future to match
-specifically on the iiftype.
+On Mon,  1 Nov 2021 09:39:36 +0100 you wrote:
+> From: "Gustavo A. R. Silva" <gustavoars@kernel.org>
+> 
+> Use array_size() helper instead of the open-coded version in
+> copy_{from,to}_user().  These sorts of multiplication factors
+> need to be wrapped in array_size().
+> 
+> Link: https://github.com/KSPP/linux/issues/160
+> Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+> Reviewed-by: Kees Cook <keescook@chromium.org>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> 
+> [...]
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/uapi/linux/netfilter/nf_tables.h | 4 +++-
- net/netfilter/nft_meta.c                 | 6 +++++-
- 2 files changed, 8 insertions(+), 2 deletions(-)
+Here is the summary with links:
+  - [net-next,1/5] netfilter: ebtables: use array_size() helper in copy_{from,to}_user()
+    https://git.kernel.org/netdev/net-next/c/241eb3f3ee42
+  - [net-next,2/5] netfilter: conntrack: set on IPS_ASSURED if flows enters internal stream state
+    https://git.kernel.org/netdev/net-next/c/b7b1d02fc439
+  - [net-next,3/5] netfilter: nft_meta: add NFT_META_IFTYPE
+    https://git.kernel.org/netdev/net-next/c/56fa95014a04
+  - [net-next,4/5] netfilter: nf_tables: convert pktinfo->tprot_set to flags field
+    https://git.kernel.org/netdev/net-next/c/b5bdc6f9c24d
+  - [net-next,5/5] netfilter: nft_payload: support for inner header matching / mangling
+    https://git.kernel.org/netdev/net-next/c/c46b38dc8743
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index e94d1fa554cb..08db4ee06ab6 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -896,7 +896,8 @@ enum nft_meta_keys {
- 	NFT_META_OIF,
- 	NFT_META_IIFNAME,
- 	NFT_META_OIFNAME,
--	NFT_META_IIFTYPE,
-+	NFT_META_IFTYPE,
-+#define NFT_META_IIFTYPE	NFT_META_IFTYPE
- 	NFT_META_OIFTYPE,
- 	NFT_META_SKUID,
- 	NFT_META_SKGID,
-@@ -923,6 +924,7 @@ enum nft_meta_keys {
- 	NFT_META_TIME_HOUR,
- 	NFT_META_SDIF,
- 	NFT_META_SDIFNAME,
-+	__NFT_META_IIFTYPE,
- };
- 
- /**
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index a7e01e9952f1..516e74635bae 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -244,7 +244,11 @@ static bool nft_meta_get_eval_ifname(enum nft_meta_keys key, u32 *dest,
- 	case NFT_META_OIF:
- 		nft_meta_store_ifindex(dest, nft_out(pkt));
- 		break;
--	case NFT_META_IIFTYPE:
-+	case NFT_META_IFTYPE:
-+		if (!nft_meta_store_iftype(dest, pkt->skb->dev))
-+			return false;
-+		break;
-+	case __NFT_META_IIFTYPE:
- 		if (!nft_meta_store_iftype(dest, nft_in(pkt)))
- 			return false;
- 		break;
+You are awesome, thank you!
 -- 
-2.30.2
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
