@@ -2,28 +2,28 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0855C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Nov 2021 21:36:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51C2AC433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Nov 2021 21:51:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B0F2061051
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Nov 2021 21:36:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2317D60FC4
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Nov 2021 21:51:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230409AbhKBVjP (ORCPT
+        id S229900AbhKBVxn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 2 Nov 2021 17:39:15 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:33330 "EHLO
+        Tue, 2 Nov 2021 17:53:43 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:33348 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229981AbhKBVjO (ORCPT
+        with ESMTP id S229628AbhKBVxn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 2 Nov 2021 17:39:14 -0400
+        Tue, 2 Nov 2021 17:53:43 -0400
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 5F1E0605BD
-        for <netfilter-devel@vger.kernel.org>; Tue,  2 Nov 2021 22:34:44 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id D4ECB605C2
+        for <netfilter-devel@vger.kernel.org>; Tue,  2 Nov 2021 22:49:13 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft,v2] datatype: add xinteger_type alias to print in hexadecimal
-Date:   Tue,  2 Nov 2021 22:36:31 +0100
-Message-Id: <20211102213631.500244-1-pablo@netfilter.org>
+Subject: [PATCH nft,v3] datatype: add xinteger_type alias to print in hexadecimal
+Date:   Tue,  2 Nov 2021 22:50:58 +0100
+Message-Id: <20211102215058.520935-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -38,15 +38,14 @@ Update tests/py.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: - simplify xinteger_type_print()
-    - update tests/py
+v3: set basetype to integer_type.
 
  include/datatype.h                |  1 +
- src/datatype.c                    | 15 +++++++++++++++
+ src/datatype.c                    | 16 ++++++++++++++++
  src/payload.c                     |  2 +-
  tests/py/any/rawpayload.t         | 10 +++++-----
  tests/py/any/rawpayload.t.payload |  6 +++---
- 5 files changed, 25 insertions(+), 9 deletions(-)
+ 5 files changed, 26 insertions(+), 9 deletions(-)
 
 diff --git a/include/datatype.h b/include/datatype.h
 index 7ddd3566d459..f5bb9dc4d937 100644
@@ -61,10 +60,10 @@ index 7ddd3566d459..f5bb9dc4d937 100644
  extern const struct datatype lladdr_type;
  extern const struct datatype ipaddr_type;
 diff --git a/src/datatype.c b/src/datatype.c
-index b849f70833c7..38aaf0a84a93 100644
+index b849f70833c7..a06c39960fa0 100644
 --- a/src/datatype.c
 +++ b/src/datatype.c
-@@ -410,6 +410,21 @@ const struct datatype integer_type = {
+@@ -410,6 +410,22 @@ const struct datatype integer_type = {
  	.parse		= integer_type_parse,
  };
  
@@ -78,6 +77,7 @@ index b849f70833c7..38aaf0a84a93 100644
 +	.type		= TYPE_INTEGER,
 +	.name		= "integer",
 +	.desc		= "integer",
++	.basetype	= &integer_type,
 +	.print		= xinteger_type_print,
 +	.json		= integer_type_json,
 +	.parse		= integer_type_parse,
