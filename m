@@ -2,75 +2,101 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DCFBEC433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Nov 2021 20:31:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6ED94C433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Nov 2021 20:44:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B49F760F90
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Nov 2021 20:31:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4653E61058
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Nov 2021 20:44:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230477AbhKBUdy (ORCPT
+        id S230409AbhKBUqn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 2 Nov 2021 16:33:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41822 "EHLO
+        Tue, 2 Nov 2021 16:46:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44644 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229813AbhKBUdx (ORCPT
+        with ESMTP id S229813AbhKBUqn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 2 Nov 2021 16:33:53 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE180C061714
-        for <netfilter-devel@vger.kernel.org>; Tue,  2 Nov 2021 13:31:17 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1mi0R9-0001bp-GC; Tue, 02 Nov 2021 21:31:15 +0100
-Date:   Tue, 2 Nov 2021 21:31:15 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     =?utf-8?B?xaB0xJtww6FuIE7Em21lYw==?= <snemec@redhat.com>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] tests: run-tests.sh: ensure non-zero exit when
- $failed != 0
-Message-ID: <20211102203115.GP1668@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        =?utf-8?B?xaB0xJtww6FuIE7Em21lYw==?= <snemec@redhat.com>,
-        netfilter-devel@vger.kernel.org
-References: <20211020124409.489875-1-snemec@redhat.com>
- <20211020150641.GK1668@orbyte.nwl.cc>
- <YXkXQ2hrbZJ7YLcw@salvia>
+        Tue, 2 Nov 2021 16:46:43 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1FBFC061714;
+        Tue,  2 Nov 2021 13:44:07 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1mi0dS-0004AG-Aa; Tue, 02 Nov 2021 21:43:58 +0100
+Date:   Tue, 2 Nov 2021 21:43:58 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     Toke =?iso-8859-15?Q?H=F8iland-J=F8rgensen?= <toke@redhat.com>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Kumar Kartikeya Dwivedi <memxor@gmail.com>,
+        bpf@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Martin KaFai Lau <kafai@fb.com>,
+        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
+        John Fastabend <john.fastabend@gmail.com>,
+        Maxim Mikityanskiy <maximmi@nvidia.com>,
+        Jesper Dangaard Brouer <brouer@redhat.com>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH RFC bpf-next v1 5/6] net: netfilter: Add unstable CT
+ lookup helper for XDP and TC-BPF
+Message-ID: <20211102204358.GC11415@breakpoint.cc>
+References: <20211030144609.263572-1-memxor@gmail.com>
+ <20211030144609.263572-6-memxor@gmail.com>
+ <20211031191045.GA19266@breakpoint.cc>
+ <87y2677j19.fsf@toke.dk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-15
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <YXkXQ2hrbZJ7YLcw@salvia>
-Sender:  <n0-1@orbyte.nwl.cc>
+In-Reply-To: <87y2677j19.fsf@toke.dk>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
-
-On Wed, Oct 27, 2021 at 11:09:23AM +0200, Pablo Neira Ayuso wrote:
-> On Wed, Oct 20, 2021 at 05:06:41PM +0200, Phil Sutter wrote:
-> > On Wed, Oct 20, 2021 at 02:44:09PM +0200, Štěpán Němec wrote:
-> > > POSIX [1] does not specify the behavior of `exit' with arguments
-> > > outside the 0-255 range, but what generally (bash, dash, zsh, OpenBSD
-> > > ksh, busybox) seems to happen is the shell exiting with status & 255
-> > > [2], which results in zero exit for certain non-zero arguments.
-> > 
-> > Standards aside, failed=256 is an actual bug:
-> > 
-> > | % bash -c "exit 255"; echo $?
-> > | 255
-> > | % bash -c "exit 256"; echo $?
-> > | 0
-> > | % bash -c "exit 257"; echo $?
-> > | 1
+Toke H�iland-J�rgensen <toke@redhat.com> wrote:
+> > I tried to find a use case but I could not.
+> > Entry will time out soon once packets stop appearing, so it can't be
+> > used for stack bypass.  Is it for something else?  If so, what?
 > 
-> This is extra information you provided here for the commit message for
-> completion?
+> I think Maxim's use case was to implement a SYN proxy in XDP, where the
+> XDP program just needs to answer the question "do I have state for this
+> flow already". For TCP flows terminating on the local box this can be
+> done via a socket lookup, but for a middlebox, a conntrack lookup is
+> useful. Maxim, please correct me if I got your use case wrong.
 
-No need to extend the commit message IMO. I was just curious and played
-a bit with exit values in bash. So although unlikely, the unpatched code
-indeed confuses a result of 256 errors for a pass. :)
+Looked at
+https://netdevconf.info/0x15/slides/30/Netdev%200x15%20Accelerating%20synproxy%20with%20XDP.pdf
 
-Cheers, Phil
+seems thats right, its only a "does it exist".
+
+> > For UDP it will work to let a packet pass through classic forward
+> > path once in a while, but this will not work for tcp, depending
+> > on conntrack settings (lose mode, liberal pickup etc. pp).
+> 
+> The idea is certainly to follow up with some kind of 'update' helper. At
+> a minimum a "keep this entry alive" update, but potentially more
+> complicated stuff as well. Details TBD, input welcome :)
+
+Depends on use case.  For bypass infra I'd target the flowtable
+infra rather than conntrack because it gets rid of the "early time out"
+problem, plus you get the output interface/dst entry.
+
+Not trivial for xdp because existing code assumes sk_buff.
+But I think it can be refactored to allow raw buffers, similar
+to flow dissector.
+
+> >> +	hash = nf_conntrack_find_get(net, &nf_ct_zone_dflt, &tuple);
+> >
+> > Ok, so default zone. Depending on meaning of "unstable helper" this
+> > is ok and can be changed in incompatible way later.
+> 
+> I'm not sure about the meaning of "unstable" either, TBH, but in either
+> case I'd rather avoid changing things if we don't have to, so I think
+> adding the zone as an argument from the get-go may be better...
+
+Another thing I just noted:
+The above gives a nf_conn with incremented reference count.
+
+For Maxims use case, thats unnecessary overhead. Existence can be
+determined without reference increment.  The caveat is that the pointer
+cannot be used after last rcu_read_unlock().
