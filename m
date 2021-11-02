@@ -2,155 +2,107 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51C2AC433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Nov 2021 21:51:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0909DC433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Nov 2021 23:16:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2317D60FC4
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Nov 2021 21:51:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E1C0A6109D
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Nov 2021 23:16:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229900AbhKBVxn (ORCPT
+        id S231489AbhKBXTW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 2 Nov 2021 17:53:43 -0400
-Received: from mail.netfilter.org ([217.70.188.207]:33348 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229628AbhKBVxn (ORCPT
+        Tue, 2 Nov 2021 19:19:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50540 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231480AbhKBXTU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 2 Nov 2021 17:53:43 -0400
-Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id D4ECB605C2
-        for <netfilter-devel@vger.kernel.org>; Tue,  2 Nov 2021 22:49:13 +0100 (CET)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft,v3] datatype: add xinteger_type alias to print in hexadecimal
-Date:   Tue,  2 Nov 2021 22:50:58 +0100
-Message-Id: <20211102215058.520935-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Tue, 2 Nov 2021 19:19:20 -0400
+Received: from mail-pf1-x436.google.com (mail-pf1-x436.google.com [IPv6:2607:f8b0:4864:20::436])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6CB00C061714;
+        Tue,  2 Nov 2021 16:16:45 -0700 (PDT)
+Received: by mail-pf1-x436.google.com with SMTP id m14so457915pfc.9;
+        Tue, 02 Nov 2021 16:16:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=+v3yyZb0G5ns3De2ViS1173mJGx1xEPY475SSam2m5g=;
+        b=SF2dqR4dgG9rM0vR9eefug4g+O9kU9qYOWMEoOz2wbSuLFA8ca30anZ0TdZIMaPO4R
+         ojGkfnb4+3VRJegLz0xdbh5f/8kROMMnZRvTjh3k1BlJdK5HdZ0daJYGTGj1hLYIsoad
+         hpRlMTUs+dyMSX97A6O33DnuHcEy+SLIocMlLaFOxEPxQsyTqtfStfFOTGM9NAOrZFQO
+         ghF3CvprRhTwz/XbRmLIHTgD/x6aOx56nikjyRTCm3pVnlvwqcqLQn6oZPCyuvBZCeT5
+         PaYs3QQXtLinxhSDxLN28Lz/+UTCtRMLDMMEoSoMmPP9VVr3w5vVj6CX2tK75zvrkXlB
+         WLRw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=+v3yyZb0G5ns3De2ViS1173mJGx1xEPY475SSam2m5g=;
+        b=rsSMMEjW7rDM6hRtqdh3fQmJj15ncQynBvMsUqwlVvkVt5odM+ewPnZTTWSZyQL9kx
+         LHWuwNMcuNN6NFarfu5XM+rfrVYdFMpUAOqXKZRJ3MwUh+vrHPyJ+Sr1LeyerYeADVWW
+         ecJYaS7re7K/6uydtAG7nelPeoHWZs8k07qORi6At9msZ822Cce62KOFvLrSc0yIw8RH
+         FgkvegW0axFlSDuSBQ2hICkn94VBbWF66yyr00DaxSDn6ZQVUZ8IswA7hNHgDOKoOSKe
+         XVHdWsWvi8CAlkXH/JEfl+qhkGEkmhiN7n3Vz6xteEnmWu9Z0KAzNb8k9rNHA2ySkgdf
+         d9Yg==
+X-Gm-Message-State: AOAM530VbU9+yd8aCOl7ac/s+KrxoaTbydwxEysk14jWvfYhOkZ0R8RH
+        D3eGf98gXjJQ9yss48MmYOL/1yYiG44=
+X-Google-Smtp-Source: ABdhPJycVc1WWKH4xHo3jje11uwkkvWEP89/xmIDAoqSRyAVxzmpdso/95EiY7QTSSRHFxnB6tctyQ==
+X-Received: by 2002:aa7:8149:0:b0:44c:916c:1fdb with SMTP id d9-20020aa78149000000b0044c916c1fdbmr40818515pfn.34.1635895004963;
+        Tue, 02 Nov 2021 16:16:44 -0700 (PDT)
+Received: from ast-mbp.dhcp.thefacebook.com ([2620:10d:c090:400::5:9df1])
+        by smtp.gmail.com with ESMTPSA id b4sm225352pfl.60.2021.11.02.16.16.43
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 02 Nov 2021 16:16:44 -0700 (PDT)
+Date:   Tue, 2 Nov 2021 16:16:42 -0700
+From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
+To:     Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Cc:     bpf@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Martin KaFai Lau <kafai@fb.com>,
+        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
+        John Fastabend <john.fastabend@gmail.com>,
+        Maxim Mikityanskiy <maximmi@nvidia.com>,
+        Florian Westphal <fw@strlen.de>,
+        Jesper Dangaard Brouer <brouer@redhat.com>,
+        Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH RFC bpf-next v1 0/6] Introduce unstable CT lookup helpers
+Message-ID: <20211102231642.yqgocduxcoladqne@ast-mbp.dhcp.thefacebook.com>
+References: <20211030144609.263572-1-memxor@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20211030144609.263572-1-memxor@gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add an alias of the integer type to print raw payload expressions in
-hexadecimal.
+On Sat, Oct 30, 2021 at 08:16:03PM +0530, Kumar Kartikeya Dwivedi wrote:
+> This series adds unstable conntrack lookup helpers using BPF kfunc support.  The
+> patch adding the lookup helper is based off of Maxim's recent patch to aid in
+> rebasing their series on top of this, all adjusted to work with kfunc support
+> [0].
+> 
+> This is an RFC series, as I'm unsure whether the reference tracking for
+> PTR_TO_BTF_ID will be accepted.
 
-Update tests/py.
+Yes. The patches look good overall.
+Please don't do __BPF_RET_TYPE_MAX signalling. It's an ambiguous name.
+_MAX is typically used for a different purpose. Just give it an explicit name.
+I don't fully understand why that skip is needed though.
+Why it's not one of existing RET_*. Duplication of return and
+being lazy to propagate the correct ret value into get_kfunc_return_type ?
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v3: set basetype to integer_type.
+> If not, we can go back to doing it the typical
+> way with PTR_TO_NF_CONN type, guarded with #if IS_ENABLED(CONFIG_NF_CONNTRACK).
 
- include/datatype.h                |  1 +
- src/datatype.c                    | 16 ++++++++++++++++
- src/payload.c                     |  2 +-
- tests/py/any/rawpayload.t         | 10 +++++-----
- tests/py/any/rawpayload.t.payload |  6 +++---
- 5 files changed, 26 insertions(+), 9 deletions(-)
+Please don't. We already have a ton of special and custom types in the verifier.
+refcnted PTR_TO_BTF_ID sounds as good way to scale it.
 
-diff --git a/include/datatype.h b/include/datatype.h
-index 7ddd3566d459..f5bb9dc4d937 100644
---- a/include/datatype.h
-+++ b/include/datatype.h
-@@ -254,6 +254,7 @@ extern const struct datatype verdict_type;
- extern const struct datatype nfproto_type;
- extern const struct datatype bitmask_type;
- extern const struct datatype integer_type;
-+extern const struct datatype xinteger_type;
- extern const struct datatype string_type;
- extern const struct datatype lladdr_type;
- extern const struct datatype ipaddr_type;
-diff --git a/src/datatype.c b/src/datatype.c
-index b849f70833c7..a06c39960fa0 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -410,6 +410,22 @@ const struct datatype integer_type = {
- 	.parse		= integer_type_parse,
- };
- 
-+static void xinteger_type_print(const struct expr *expr, struct output_ctx *octx)
-+{
-+	nft_gmp_print(octx, "0x%Zx", expr->value);
-+}
-+
-+/* Alias of integer_type to print raw payload expressions in hexadecimal. */
-+const struct datatype xinteger_type = {
-+	.type		= TYPE_INTEGER,
-+	.name		= "integer",
-+	.desc		= "integer",
-+	.basetype	= &integer_type,
-+	.print		= xinteger_type_print,
-+	.json		= integer_type_json,
-+	.parse		= integer_type_parse,
-+};
-+
- static void string_type_print(const struct expr *expr, struct output_ctx *octx)
- {
- 	unsigned int len = div_round_up(expr->len, BITS_PER_BYTE);
-diff --git a/src/payload.c b/src/payload.c
-index c662900bdaac..d9e0d4254f19 100644
---- a/src/payload.c
-+++ b/src/payload.c
-@@ -269,7 +269,7 @@ void payload_init_raw(struct expr *expr, enum proto_bases base,
- 	expr->payload.base	= base;
- 	expr->payload.offset	= offset;
- 	expr->len		= len;
--	expr->dtype		= &integer_type;
-+	expr->dtype		= &xinteger_type;
- 
- 	if (base != PROTO_BASE_TRANSPORT_HDR)
- 		return;
-diff --git a/tests/py/any/rawpayload.t b/tests/py/any/rawpayload.t
-index 9687729d610d..9fe377e24397 100644
---- a/tests/py/any/rawpayload.t
-+++ b/tests/py/any/rawpayload.t
-@@ -7,14 +7,14 @@
- 
- meta l4proto { tcp, udp, sctp} @th,16,16 { 22, 23, 80 };ok;meta l4proto { 6, 17, 132} th dport { 22, 23, 80}
- meta l4proto tcp @th,16,16 { 22, 23, 80};ok;tcp dport { 22, 23, 80}
--@nh,8,8 255;ok
--@nh,8,16 0;ok
-+@nh,8,8 0xff;ok
-+@nh,8,16 0x0;ok
- 
- # out of range (0-1)
- @th,16,1 2;fail
- 
- @ll,0,0 2;fail
- @ll,0,1;fail
--@ll,0,1 1;ok;@ll,0,8 & 128 == 128
--@ll,0,8 and 0x80 eq 0x80;ok;@ll,0,8 & 128 == 128
--@ll,0,128 0xfedcba987654321001234567890abcde;ok;@ll,0,128 338770000845734292516042252062074518750
-+@ll,0,1 1;ok;@ll,0,8 & 0x80 == 0x80
-+@ll,0,8 & 0x80 == 0x80;ok
-+@ll,0,128 0xfedcba987654321001234567890abcde;ok
-diff --git a/tests/py/any/rawpayload.t.payload b/tests/py/any/rawpayload.t.payload
-index b3ca919fb6e5..d2b38183cc95 100644
---- a/tests/py/any/rawpayload.t.payload
-+++ b/tests/py/any/rawpayload.t.payload
-@@ -21,12 +21,12 @@ inet test-inet input
-   [ payload load 2b @ transport header + 2 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
- 
--# @nh,8,8 255
-+# @nh,8,8 0xff
- inet test-inet input
-   [ payload load 1b @ network header + 1 => reg 1 ]
-   [ cmp eq reg 1 0x000000ff ]
- 
--# @nh,8,16 0
-+# @nh,8,16 0x0
- inet test-inet input
-   [ payload load 2b @ network header + 1 => reg 1 ]
-   [ cmp eq reg 1 0x00000000 ]
-@@ -37,7 +37,7 @@ inet test-inet input
-   [ bitwise reg 1 = ( reg 1 & 0x00000080 ) ^ 0x00000000 ]
-   [ cmp eq reg 1 0x00000080 ]
- 
--# @ll,0,8 and 0x80 eq 0x80
-+# @ll,0,8 & 0x80 == 0x80
- inet test-inet input
-   [ payload load 1b @ link header + 0 => reg 1 ]
-   [ bitwise reg 1 = ( reg 1 & 0x00000080 ) ^ 0x00000000 ]
--- 
-2.30.2
+> Also, I want to understand whether it would make sense to introduce
+> check_helper_call style bpf_func_proto based argument checking for kfuncs, or
+> continue with how it is right now, since it doesn't seem correct that PTR_TO_MEM
+> can be passed where PTR_TO_BTF_ID may be expected. Only PTR_TO_CTX is enforced.
 
+Do we really allow to pass PTR_TO_MEM argument into a function that expects PTR_TO_BTF_ID ?
+That sounds like a bug that we need to fix.
