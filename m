@@ -2,81 +2,62 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4A9AC4332F
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Nov 2021 16:36:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5152FC433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Nov 2021 20:08:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9CBA5611AE
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Nov 2021 16:36:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2BB2960F70
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Nov 2021 20:08:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235072AbhKBQjP (ORCPT
+        id S230043AbhKBUKh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 2 Nov 2021 12:39:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41648 "EHLO
+        Tue, 2 Nov 2021 16:10:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36440 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235108AbhKBQir (ORCPT
+        with ESMTP id S229813AbhKBUKh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 2 Nov 2021 12:38:47 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 729C8C079780;
-        Tue,  2 Nov 2021 09:24:09 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1mhwZu-0002xs-Mh; Tue, 02 Nov 2021 17:24:02 +0100
-Date:   Tue, 2 Nov 2021 17:24:02 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Arturo Borrero Gonzalez <arturo@netfilter.org>
-Cc:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        Florian Westphal <fw@strlen.de>,
-        Lahav Schlesinger <lschlesinger@drivenets.com>,
-        David Ahern <dsahern@kernel.org>, stable@vger.kernel.org
-Subject: Re: Potential problem with VRF+conntrack after kernel upgrade
-Message-ID: <20211102162402.GB19266@breakpoint.cc>
-References: <1a816689-3960-eb6b-2256-9478265d2d8e@netfilter.org>
+        Tue, 2 Nov 2021 16:10:37 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C7927C061714
+        for <netfilter-devel@vger.kernel.org>; Tue,  2 Nov 2021 13:08:01 -0700 (PDT)
+Received: from localhost ([::1]:49166 helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1mi04b-0001O6-1K; Tue, 02 Nov 2021 21:07:57 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, Lukas Wunner <lukas@wunner.de>
+Subject: [nft PATCH] tests: shell: Fix bogus testsuite failure with 250Hz
+Date:   Tue,  2 Nov 2021 21:07:53 +0100
+Message-Id: <20211102200753.25311-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.33.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1a816689-3960-eb6b-2256-9478265d2d8e@netfilter.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Arturo Borrero Gonzalez <arturo@netfilter.org> wrote:
+Previous fix for HZ=100 was not sufficient, a kernel with HZ=250 rounds
+the 10ms to 8ms it seems. Do as Lukas suggests and accept the occasional
+input/output asymmetry instead of continuing the hide'n'seek game.
 
-[ cc stable@ ]
+Fixes: c9c5b5f621c37 ("tests: shell: Fix bogus testsuite failure with 100Hz")
+Suggested-by: Lukas Wunner <lukas@wunner.de>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ tests/shell/testcases/sets/0031set_timeout_size_0 | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> We experienced a major network outage today when upgrading kernels.
-> 
-> The affected servers run the VRF+conntrack+nftables combo. They are edge
-> firewalls/NAT boxes, meaning most interesting traffic is not locally
-> generated, but forwarded.
-> 
-> What we experienced is NATed traffic in the reply direction never being
-> forwarded back to the original client.
-> 
-> Good kernel: 5.10.40 (debian 5.10.0-0.bpo.7-amd64)
-> Bad kernel: 5.10.70 (debian 5.10.0-0.bpo.9-amd64)
-> 
-> I suspect the problem may be related to this patch:
-> https://x-lore.kernel.org/stable/20210824165908.709932-58-sashal@kernel.org/
+diff --git a/tests/shell/testcases/sets/0031set_timeout_size_0 b/tests/shell/testcases/sets/0031set_timeout_size_0
+index 796640d64670a..9a4a27f6c4512 100755
+--- a/tests/shell/testcases/sets/0031set_timeout_size_0
++++ b/tests/shell/testcases/sets/0031set_timeout_size_0
+@@ -8,5 +8,5 @@ add rule x test set update ip daddr timeout 100ms @y"
+ 
+ set -e
+ $NFT -f - <<< "$RULESET"
+-$NFT list chain x test | grep -q 'update @y { ip saddr timeout 1d2h3m4s10ms }'
++$NFT list chain x test | grep -q 'update @y { ip saddr timeout 1d2h3m4s\(10\|8\)ms }'
+ $NFT list chain x test | grep -q 'update @y { ip daddr timeout 100ms }'
+-- 
+2.33.0
 
-This commit has been reverted upstream:
-
-55161e67d44fdd23900be166a81e996abd6e3be9
-("vrf: Revert "Reset skb conntrack connection...").
-
-Sasha, Greg, it would be good if you could apply this revert to all
-stable trees that have a backport of
-09e856d54bda5f288ef8437a90ab2b9b3eab83d1
-("vrf: Reset skb conntrack connection on VRF rcv").
-
-Arturo, it would be good if you could check current linux.git or
-net.git -- those contain the revert + an alternate approach to address
-the problem that 09e856d54bda5f288ef8437a90ab2b9b3eab83d1 tried to fix.
-
-If net.git is still broken for your use case it would be great if you
-could extend this test script:
-
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20211018123813.17248-1-fw@strlen.de/
-
-this would help to figure out what the issue is.
