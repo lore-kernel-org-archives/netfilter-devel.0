@@ -2,77 +2,123 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0725C433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Nov 2021 09:42:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 336E5C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Nov 2021 09:55:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B29EE61139
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Nov 2021 09:42:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1985D60E73
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Nov 2021 09:55:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231435AbhKCJop (ORCPT
+        id S231894AbhKCJ6C (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 3 Nov 2021 05:44:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58872 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231278AbhKCJop (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 3 Nov 2021 05:44:45 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9F2946023E;
-        Wed,  3 Nov 2021 09:42:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1635932529;
-        bh=1h2VN8LrKMjwSkdkZ0SH9Vpr4P3HWT71CwT/3GqYsqQ=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=k8AapTAja/J+tv7rG/kDJkitc7tyibOCGzCf6ACWzKd/NRYZS6BMz/koclSp3zTYG
-         FDLOBsiWM7DrOJ0tbRkME1Ay/wDAqXhUtX9zdlWjCKNyZS7t9z9kbIK5Gw2PVYmeyc
-         SS/8xdTe4bQusboFXyoUCzSeZJHPOHl3qeZJ3bZg=
-Date:   Wed, 3 Nov 2021 10:42:04 +0100
-From:   Greg KH <gregkh@linuxfoundation.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Arturo Borrero Gonzalez <arturo@netfilter.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        Lahav Schlesinger <lschlesinger@drivenets.com>,
-        David Ahern <dsahern@kernel.org>, stable@vger.kernel.org
-Subject: Re: Potential problem with VRF+conntrack after kernel upgrade
-Message-ID: <YYJZbE/8HRje+0eT@kroah.com>
-References: <1a816689-3960-eb6b-2256-9478265d2d8e@netfilter.org>
- <20211102162402.GB19266@breakpoint.cc>
+        Wed, 3 Nov 2021 05:58:02 -0400
+Received: from kirsty.vergenet.net ([202.4.237.240]:53754 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231278AbhKCJ55 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 3 Nov 2021 05:57:57 -0400
+Received: from madeliefje.horms.nl (ip-80-113-23-202.ip.prioritytelecom.net [80.113.23.202])
+        by kirsty.vergenet.net (Postfix) with ESMTPA id EEF0E25B78D;
+        Wed,  3 Nov 2021 20:55:18 +1100 (AEDT)
+Received: by madeliefje.horms.nl (Postfix, from userid 7100)
+        id 5338A229A; Wed,  3 Nov 2021 10:55:16 +0100 (CET)
+Date:   Wed, 3 Nov 2021 10:55:16 +0100
+From:   Simon Horman <horms@verge.net.au>
+To:     yangxingwu <xingwu.yang@gmail.com>
+Cc:     ja@ssi.bg, pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net, kuba@kernel.org, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, linux-kernel@vger.kernel.org,
+        linux-doc@vger.kernel.org, corbet@lwn.net,
+        Chuanqi Liu <legend050709@qq.com>
+Subject: Re: [PATCH nf-next v5] netfilter: ipvs: Fix reuse connection if RS
+ weight is 0
+Message-ID: <20211103095516.GA31071@vergenet.net>
+References: <20211101020416.31402-1-xingwu.yang@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20211102162402.GB19266@breakpoint.cc>
+In-Reply-To: <20211101020416.31402-1-xingwu.yang@gmail.com>
+Organisation: Horms Solutions BV
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Nov 02, 2021 at 05:24:02PM +0100, Florian Westphal wrote:
-> Arturo Borrero Gonzalez <arturo@netfilter.org> wrote:
+On Mon, Nov 01, 2021 at 10:04:16AM +0800, yangxingwu wrote:
+> We are changing expire_nodest_conn to work even for reused connections when
+> conn_reuse_mode=0, just as what was done with commit dc7b3eb900aa ("ipvs:
+> Fix reuse connection if real server is dead").
 > 
-> [ cc stable@ ]
+> For controlled and persistent connections, the new connection will get the
+> needed real server depending on the rules in ip_vs_check_template().
 > 
-> > We experienced a major network outage today when upgrading kernels.
-> > 
-> > The affected servers run the VRF+conntrack+nftables combo. They are edge
-> > firewalls/NAT boxes, meaning most interesting traffic is not locally
-> > generated, but forwarded.
-> > 
-> > What we experienced is NATed traffic in the reply direction never being
-> > forwarded back to the original client.
-> > 
-> > Good kernel: 5.10.40 (debian 5.10.0-0.bpo.7-amd64)
-> > Bad kernel: 5.10.70 (debian 5.10.0-0.bpo.9-amd64)
-> > 
-> > I suspect the problem may be related to this patch:
-> > https://x-lore.kernel.org/stable/20210824165908.709932-58-sashal@kernel.org/
-> 
-> This commit has been reverted upstream:
-> 
-> 55161e67d44fdd23900be166a81e996abd6e3be9
-> ("vrf: Revert "Reset skb conntrack connection...").
-> 
-> Sasha, Greg, it would be good if you could apply this revert to all
-> stable trees that have a backport of
-> 09e856d54bda5f288ef8437a90ab2b9b3eab83d1
-> ("vrf: Reset skb conntrack connection on VRF rcv").
+> Fixes: d752c3645717 ("ipvs: allow rescheduling of new connections when port reuse is detected")
+> Co-developed-by: Chuanqi Liu <legend050709@qq.com>
+> Signed-off-by: Chuanqi Liu <legend050709@qq.com>
+> Signed-off-by: yangxingwu <xingwu.yang@gmail.com>
 
-Now reverted, thanks.
+Thanks, and sorry but I have a few nits.
 
-greg k-h
+> ---
+>  Documentation/networking/ipvs-sysctl.rst | 3 +--
+>  net/netfilter/ipvs/ip_vs_core.c          | 8 ++++----
+>  2 files changed, 5 insertions(+), 6 deletions(-)
+> 
+> diff --git a/Documentation/networking/ipvs-sysctl.rst b/Documentation/networking/ipvs-sysctl.rst
+> index 2afccc63856e..1cfbf1add2fc 100644
+> --- a/Documentation/networking/ipvs-sysctl.rst
+> +++ b/Documentation/networking/ipvs-sysctl.rst
+> @@ -37,8 +37,7 @@ conn_reuse_mode - INTEGER
+>  
+>  	0: disable any special handling on port reuse. The new
+>  	connection will be delivered to the same real server that was
+> -	servicing the previous connection. This will effectively
+> -	disable expire_nodest_conn.
+> +	servicing the previous connection.
+
+nit: s/servicing/service/
+
+>  
+>  	bit 1: enable rescheduling of new connections when it is safe.
+>  	That is, whenever expire_nodest_conn and for TCP sockets, when
+> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+> index 128690c512df..f9d65d2c8da8 100644
+> --- a/net/netfilter/ipvs/ip_vs_core.c
+> +++ b/net/netfilter/ipvs/ip_vs_core.c
+> @@ -1964,7 +1964,6 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
+>  	struct ip_vs_proto_data *pd;
+>  	struct ip_vs_conn *cp;
+>  	int ret, pkts;
+> -	int conn_reuse_mode;
+>  	struct sock *sk;
+>  
+>  	/* Already marked as IPVS request or reply? */
+> @@ -2041,15 +2040,16 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
+>  	cp = INDIRECT_CALL_1(pp->conn_in_get, ip_vs_conn_in_get_proto,
+>  			     ipvs, af, skb, &iph);
+>  
+> -	conn_reuse_mode = sysctl_conn_reuse_mode(ipvs);
+> -	if (conn_reuse_mode && !iph.fragoffs && is_new_conn(skb, &iph) && cp) {
+> +	if (!iph.fragoffs && is_new_conn(skb, &iph) && cp) {
+>  		bool old_ct = false, resched = false;
+> +		int conn_reuse_mode = sysctl_conn_reuse_mode(ipvs);
+
+We should probably try to move towards reverse xmas tree, which
+is preferred for Linux network code these days.
+
+So could you move the conn_reuse_mode line above the bool line?
+
+>  
+>  		if (unlikely(sysctl_expire_nodest_conn(ipvs)) && cp->dest &&
+>  		    unlikely(!atomic_read(&cp->dest->weight))) {
+>  			resched = true;
+>  			old_ct = ip_vs_conn_uses_old_conntrack(cp, skb);
+> -		} else if (is_new_conn_expected(cp, conn_reuse_mode)) {
+> +		} else if (conn_reuse_mode &&
+> +			   is_new_conn_expected(cp, conn_reuse_mode)) {
+>  			old_ct = ip_vs_conn_uses_old_conntrack(cp, skb);
+>  			if (!atomic_read(&cp->n_control)) {
+>  				resched = true;
+> -- 
+> 2.30.2
+> 
