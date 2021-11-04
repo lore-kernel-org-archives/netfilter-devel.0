@@ -2,126 +2,103 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21B08C433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Nov 2021 16:57:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 218CCC433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Nov 2021 21:38:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 08F2D61101
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Nov 2021 16:57:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 09D7161213
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Nov 2021 21:38:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232148AbhKDQ77 (ORCPT
+        id S232191AbhKDVle (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 4 Nov 2021 12:59:59 -0400
-Received: from mg.ssi.bg ([193.238.174.37]:44958 "EHLO mg.ssi.bg"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232134AbhKDQ7p (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 4 Nov 2021 12:59:45 -0400
-X-Greylist: delayed 542 seconds by postgrey-1.27 at vger.kernel.org; Thu, 04 Nov 2021 12:59:42 EDT
-Received: from mg.ssi.bg (localhost [127.0.0.1])
-        by mg.ssi.bg (Proxmox) with ESMTP id DF8402883C;
-        Thu,  4 Nov 2021 18:48:01 +0200 (EET)
-Received: from ink.ssi.bg (unknown [193.238.174.40])
-        by mg.ssi.bg (Proxmox) with ESMTP id 2593F287A6;
-        Thu,  4 Nov 2021 18:48:00 +0200 (EET)
-Received: from ja.ssi.bg (unknown [178.16.129.10])
-        by ink.ssi.bg (Postfix) with ESMTPS id 290F93C0325;
-        Thu,  4 Nov 2021 18:47:56 +0200 (EET)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.16.1/8.16.1) with ESMTP id 1A4GlsFT007224;
-        Thu, 4 Nov 2021 18:47:55 +0200
-Date:   Thu, 4 Nov 2021 18:47:54 +0200 (EET)
-From:   Julian Anastasov <ja@ssi.bg>
-To:     yangxingwu <xingwu.yang@gmail.com>
-cc:     Simon Horman <horms@verge.net.au>, pablo@netfilter.org,
-        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-doc@vger.kernel.org, Chuanqi Liu <legend050709@qq.com>
-Subject: Re: [PATCH nf-next v6] netfilter: ipvs: Fix reuse connection if RS
- weight is 0
-In-Reply-To: <20211104031029.157366-1-xingwu.yang@gmail.com>
-Message-ID: <72d07ec2-ec1-9024-ca98-c923f5d8f74@ssi.bg>
-References: <20211104031029.157366-1-xingwu.yang@gmail.com>
+        Thu, 4 Nov 2021 17:41:34 -0400
+Received: from mail.netfilter.org ([217.70.188.207]:38488 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231643AbhKDVle (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 4 Nov 2021 17:41:34 -0400
+Received: from localhost.localdomain (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 7CD0060831
+        for <netfilter-devel@vger.kernel.org>; Thu,  4 Nov 2021 22:36:58 +0100 (CET)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH libnftnl 1/2] set: expose nftnl_set_elem_nlmsg_build()
+Date:   Thu,  4 Nov 2021 22:38:10 +0100
+Message-Id: <20211104213811.366540-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Expose a function to build one single set element netlink message.
 
-	Hello,
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/libnftnl/set.h | 2 ++
+ src/libnftnl.map       | 4 ++++
+ src/set_elem.c         | 9 +++++----
+ 3 files changed, 11 insertions(+), 4 deletions(-)
 
-On Thu, 4 Nov 2021, yangxingwu wrote:
-
-> We are changing expire_nodest_conn to work even for reused connections when
-> conn_reuse_mode=0, just as what was done with commit dc7b3eb900aa ("ipvs:
-> Fix reuse connection if real server is dead").
-> 
-> For controlled and persistent connections, the new connection will get the
-> needed real server depending on the rules in ip_vs_check_template().
-> 
-> Fixes: d752c3645717 ("ipvs: allow rescheduling of new connections when port reuse is detected")
-> Co-developed-by: Chuanqi Liu <legend050709@qq.com>
-> Signed-off-by: Chuanqi Liu <legend050709@qq.com>
-> Signed-off-by: yangxingwu <xingwu.yang@gmail.com>
-
-Acked-by: Julian Anastasov <ja@ssi.bg>
-
-> ---
->  Documentation/networking/ipvs-sysctl.rst | 3 +--
->  net/netfilter/ipvs/ip_vs_core.c          | 8 ++++----
->  2 files changed, 5 insertions(+), 6 deletions(-)
-> 
-> diff --git a/Documentation/networking/ipvs-sysctl.rst b/Documentation/networking/ipvs-sysctl.rst
-> index 2afccc63856e..1cfbf1add2fc 100644
-> --- a/Documentation/networking/ipvs-sysctl.rst
-> +++ b/Documentation/networking/ipvs-sysctl.rst
-> @@ -37,8 +37,7 @@ conn_reuse_mode - INTEGER
->  
->  	0: disable any special handling on port reuse. The new
->  	connection will be delivered to the same real server that was
-> -	servicing the previous connection. This will effectively
-> -	disable expire_nodest_conn.
-> +	servicing the previous connection.
->  
->  	bit 1: enable rescheduling of new connections when it is safe.
->  	That is, whenever expire_nodest_conn and for TCP sockets, when
-> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-> index 128690c512df..393058a43aa7 100644
-> --- a/net/netfilter/ipvs/ip_vs_core.c
-> +++ b/net/netfilter/ipvs/ip_vs_core.c
-> @@ -1964,7 +1964,6 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
->  	struct ip_vs_proto_data *pd;
->  	struct ip_vs_conn *cp;
->  	int ret, pkts;
-> -	int conn_reuse_mode;
->  	struct sock *sk;
->  
->  	/* Already marked as IPVS request or reply? */
-> @@ -2041,15 +2040,16 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
->  	cp = INDIRECT_CALL_1(pp->conn_in_get, ip_vs_conn_in_get_proto,
->  			     ipvs, af, skb, &iph);
->  
-> -	conn_reuse_mode = sysctl_conn_reuse_mode(ipvs);
-> -	if (conn_reuse_mode && !iph.fragoffs && is_new_conn(skb, &iph) && cp) {
-> +	if (!iph.fragoffs && is_new_conn(skb, &iph) && cp) {
-> +		int conn_reuse_mode = sysctl_conn_reuse_mode(ipvs);
->  		bool old_ct = false, resched = false;
->  
->  		if (unlikely(sysctl_expire_nodest_conn(ipvs)) && cp->dest &&
->  		    unlikely(!atomic_read(&cp->dest->weight))) {
->  			resched = true;
->  			old_ct = ip_vs_conn_uses_old_conntrack(cp, skb);
-> -		} else if (is_new_conn_expected(cp, conn_reuse_mode)) {
-> +		} else if (conn_reuse_mode &&
-> +			   is_new_conn_expected(cp, conn_reuse_mode)) {
->  			old_ct = ip_vs_conn_uses_old_conntrack(cp, skb);
->  			if (!atomic_read(&cp->n_control)) {
->  				resched = true;
-> -- 
-> 2.30.2
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+diff --git a/include/libnftnl/set.h b/include/libnftnl/set.h
+index 1eae024c8523..e2e5795aa9b4 100644
+--- a/include/libnftnl/set.h
++++ b/include/libnftnl/set.h
+@@ -144,6 +144,8 @@ bool nftnl_set_elem_is_set(const struct nftnl_set_elem *s, uint16_t attr);
+ #define nftnl_set_elem_nlmsg_build_hdr	nftnl_nlmsg_build_hdr
+ void nftnl_set_elems_nlmsg_build_payload(struct nlmsghdr *nlh, struct nftnl_set *s);
+ void nftnl_set_elem_nlmsg_build_payload(struct nlmsghdr *nlh, struct nftnl_set_elem *e);
++struct nlattr *nftnl_set_elem_nlmsg_build(struct nlmsghdr *nlh,
++					  struct nftnl_set_elem *elem, int i);
+ 
+ int nftnl_set_elem_parse(struct nftnl_set_elem *e, enum nftnl_parse_type type,
+ 		       const char *data, struct nftnl_parse_err *err);
+diff --git a/src/libnftnl.map b/src/libnftnl.map
+index e707b89cfdfd..ad8f2af060ae 100644
+--- a/src/libnftnl.map
++++ b/src/libnftnl.map
+@@ -383,3 +383,7 @@ LIBNFTNL_16 {
+   nftnl_expr_add_expr;
+   nftnl_expr_expr_foreach;
+ } LIBNFTNL_15;
++
++LIBNFTNL_17 {
++  nftnl_set_elem_nlmsg_build;
++} LIBNFTNL_16;
+diff --git a/src/set_elem.c b/src/set_elem.c
+index 90632a298312..edcc4a271b24 100644
+--- a/src/set_elem.c
++++ b/src/set_elem.c
+@@ -388,8 +388,9 @@ static void nftnl_set_elem_nlmsg_build_def(struct nlmsghdr *nlh,
+ 		mnl_attr_put_strz(nlh, NFTA_SET_ELEM_LIST_TABLE, s->table);
+ }
+ 
+-static struct nlattr *nftnl_set_elem_build(struct nlmsghdr *nlh,
+-					      struct nftnl_set_elem *elem, int i)
++EXPORT_SYMBOL(nftnl_set_elem_nlmsg_build);
++struct nlattr *nftnl_set_elem_nlmsg_build(struct nlmsghdr *nlh,
++					  struct nftnl_set_elem *elem, int i)
+ {
+ 	struct nlattr *nest2;
+ 
+@@ -414,7 +415,7 @@ void nftnl_set_elems_nlmsg_build_payload(struct nlmsghdr *nlh, struct nftnl_set
+ 
+ 	nest1 = mnl_attr_nest_start(nlh, NFTA_SET_ELEM_LIST_ELEMENTS);
+ 	list_for_each_entry(elem, &s->element_list, head)
+-		nftnl_set_elem_build(nlh, elem, ++i);
++		nftnl_set_elem_nlmsg_build(nlh, elem, ++i);
+ 
+ 	mnl_attr_nest_end(nlh, nest1);
+ }
+@@ -898,7 +899,7 @@ int nftnl_set_elems_nlmsg_build_payload_iter(struct nlmsghdr *nlh,
+ 	nest1 = mnl_attr_nest_start(nlh, NFTA_SET_ELEM_LIST_ELEMENTS);
+ 	elem = nftnl_set_elems_iter_next(iter);
+ 	while (elem != NULL) {
+-		nest2 = nftnl_set_elem_build(nlh, elem, ++i);
++		nest2 = nftnl_set_elem_nlmsg_build(nlh, elem, ++i);
+ 		if (nftnl_attr_nest_overflow(nlh, nest1, nest2)) {
+ 			/* Go back to previous not to miss this element */
+ 			iter->cur = list_entry(iter->cur->head.prev,
+-- 
+2.30.2
 
