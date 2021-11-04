@@ -2,48 +2,56 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72CE5C433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Nov 2021 14:04:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21B08C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Nov 2021 16:57:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5778F611C1
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Nov 2021 14:04:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 08F2D61101
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Nov 2021 16:57:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231211AbhKDOGr (ORCPT
+        id S232148AbhKDQ77 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 4 Nov 2021 10:06:47 -0400
-Received: from kirsty.vergenet.net ([202.4.237.240]:36828 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230420AbhKDOGq (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 4 Nov 2021 10:06:46 -0400
-Received: from madeliefje.horms.nl (ip-80-113-23-202.ip.prioritytelecom.net [80.113.23.202])
-        by kirsty.vergenet.net (Postfix) with ESMTPA id CFB4925AE8A;
-        Fri,  5 Nov 2021 01:04:06 +1100 (AEDT)
-Received: by madeliefje.horms.nl (Postfix, from userid 7100)
-        id 3FF8327B5; Thu,  4 Nov 2021 15:04:04 +0100 (CET)
-Date:   Thu, 4 Nov 2021 15:04:04 +0100
-From:   Simon Horman <horms@verge.net.au>
-To:     yangxingwu <xingwu.yang@gmail.com>, pablo@netfilter.org
-Cc:     ja@ssi.bg, kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
-        kuba@kernel.org, netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        Thu, 4 Nov 2021 12:59:59 -0400
+Received: from mg.ssi.bg ([193.238.174.37]:44958 "EHLO mg.ssi.bg"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S232134AbhKDQ7p (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 4 Nov 2021 12:59:45 -0400
+X-Greylist: delayed 542 seconds by postgrey-1.27 at vger.kernel.org; Thu, 04 Nov 2021 12:59:42 EDT
+Received: from mg.ssi.bg (localhost [127.0.0.1])
+        by mg.ssi.bg (Proxmox) with ESMTP id DF8402883C;
+        Thu,  4 Nov 2021 18:48:01 +0200 (EET)
+Received: from ink.ssi.bg (unknown [193.238.174.40])
+        by mg.ssi.bg (Proxmox) with ESMTP id 2593F287A6;
+        Thu,  4 Nov 2021 18:48:00 +0200 (EET)
+Received: from ja.ssi.bg (unknown [178.16.129.10])
+        by ink.ssi.bg (Postfix) with ESMTPS id 290F93C0325;
+        Thu,  4 Nov 2021 18:47:56 +0200 (EET)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.16.1/8.16.1) with ESMTP id 1A4GlsFT007224;
+        Thu, 4 Nov 2021 18:47:55 +0200
+Date:   Thu, 4 Nov 2021 18:47:54 +0200 (EET)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     yangxingwu <xingwu.yang@gmail.com>
+cc:     Simon Horman <horms@verge.net.au>, pablo@netfilter.org,
+        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-        corbet@lwn.net, Chuanqi Liu <legend050709@qq.com>
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-doc@vger.kernel.org, Chuanqi Liu <legend050709@qq.com>
 Subject: Re: [PATCH nf-next v6] netfilter: ipvs: Fix reuse connection if RS
  weight is 0
-Message-ID: <20211104140401.GA16560@vergenet.net>
+In-Reply-To: <20211104031029.157366-1-xingwu.yang@gmail.com>
+Message-ID: <72d07ec2-ec1-9024-ca98-c923f5d8f74@ssi.bg>
 References: <20211104031029.157366-1-xingwu.yang@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20211104031029.157366-1-xingwu.yang@gmail.com>
-Organisation: Horms Solutions BV
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Nov 04, 2021 at 11:10:29AM +0800, yangxingwu wrote:
+
+	Hello,
+
+On Thu, 4 Nov 2021, yangxingwu wrote:
+
 > We are changing expire_nodest_conn to work even for reused connections when
 > conn_reuse_mode=0, just as what was done with commit dc7b3eb900aa ("ipvs:
 > Fix reuse connection if real server is dead").
@@ -56,11 +64,7 @@ On Thu, Nov 04, 2021 at 11:10:29AM +0800, yangxingwu wrote:
 > Signed-off-by: Chuanqi Liu <legend050709@qq.com>
 > Signed-off-by: yangxingwu <xingwu.yang@gmail.com>
 
-Acked-by: Simon Horman <horms@verge.net.au>
-
-(v5 was acked by Julian, probably that can be propagated here)
-
-Pablo, please consider this for nf-next at your convenience.
+Acked-by: Julian Anastasov <ja@ssi.bg>
 
 > ---
 >  Documentation/networking/ipvs-sysctl.rst | 3 +--
@@ -115,4 +119,9 @@ Pablo, please consider this for nf-next at your convenience.
 >  				resched = true;
 > -- 
 > 2.30.2
-> 
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
+
