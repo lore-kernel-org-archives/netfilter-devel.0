@@ -2,141 +2,91 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EEE2C433F5
-	for <netfilter-devel@archiver.kernel.org>; Sun,  7 Nov 2021 16:07:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ECEB6C433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Nov 2021 00:46:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 74D3E61356
-	for <netfilter-devel@archiver.kernel.org>; Sun,  7 Nov 2021 16:07:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B7AC861038
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Nov 2021 00:46:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234767AbhKGQKT (ORCPT
+        id S235286AbhKHAso (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 7 Nov 2021 11:10:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54062 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233295AbhKGQKS (ORCPT
+        Sun, 7 Nov 2021 19:48:44 -0500
+Received: from prt-mail.chinatelecom.cn ([42.123.76.219]:59515 "EHLO
+        chinatelecom.cn" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S229807AbhKHAso (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 7 Nov 2021 11:10:18 -0500
-Received: from kadath.azazel.net (kadath.azazel.net [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B595DC061570
-        for <netfilter-devel@vger.kernel.org>; Sun,  7 Nov 2021 08:07:34 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=YGfzPJa9t95V0gVf/PXweUbOognS7xqqy3Wqx6Isan4=; b=VkTHBxFneMUSO33cDVjmn9DLN2
-        CkUMwV5mHWHqk+4WukebBCQrg89Emzm3UqXrUKWAiEhVLRAic5BJvrgbMs8IvxAuNBi99l1STcM/z
-        MXHlXEEEKTZ5G7MFzgxgcEI3WNA+RanFIyyidxWgOZeMeF2zqoF0NhwZ1d7/MWTpWahWnwVfT0i5E
-        n3ZjvpZgRpRY9UFuaFe5bE/yf0qTSEOgJHPuIOBD3TrF99WMx1te0oUeqEQ7bN+FrxwW28CkfJ6pQ
-        i3NdIFjUG+cGNnVtGaDZoEhn9U8lqkTxIY61Axiv8qJOZcm5Tjhr4M6cWxgVcfkTS0e28jExV58qg
-        dPqk2PaA==;
-Received: from ec2-18-200-185-153.eu-west-1.compute.amazonaws.com ([18.200.185.153] helo=azazel.net)
-        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <jeremy@azazel.net>)
-        id 1mjkhg-005khQ-Bl; Sun, 07 Nov 2021 16:07:32 +0000
-Date:   Sun, 7 Nov 2021 16:07:27 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH] Unbreak xtables-translate
-Message-ID: <YYf5vzKUJB3bgQpV@azazel.net>
-References: <20211106204544.13136-1-phil@nwl.cc>
- <YYf41EwPa8YBKNpY@azazel.net>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="QMMItw3X+Eu31K7H"
-Content-Disposition: inline
-In-Reply-To: <YYf41EwPa8YBKNpY@azazel.net>
-X-SA-Exim-Connect-IP: 18.200.185.153
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+        Sun, 7 Nov 2021 19:48:44 -0500
+X-Greylist: delayed 412 seconds by postgrey-1.27 at vger.kernel.org; Sun, 07 Nov 2021 19:48:42 EST
+HMM_SOURCE_IP: 172.18.0.48:43760.616130149
+HMM_ATTACHE_NUM: 0000
+HMM_SOURCE_TYPE: SMTP
+Received: from clientip-110.80.1.45 (unknown [172.18.0.48])
+        by chinatelecom.cn (HERMES) with SMTP id 1090E2800AF;
+        Mon,  8 Nov 2021 08:38:21 +0800 (CST)
+X-189-SAVE-TO-SEND: +zhenggy@chinatelecom.cn
+Received: from  ([172.18.0.48])
+        by app0024 with ESMTP id a7c1a4c9887d45d59953a2e84212ca75 for lvs-devel@vger.kernel.org;
+        Mon, 08 Nov 2021 08:38:42 CST
+X-Transaction-ID: a7c1a4c9887d45d59953a2e84212ca75
+X-Real-From: zhenggy@chinatelecom.cn
+X-Receive-IP: 172.18.0.48
+X-MEDUSA-Status: 0
+Sender: zhenggy@chinatelecom.cn
+From:   GuoYong Zheng <zhenggy@chinatelecom.cn>
+To:     lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
+Cc:     horms@verge.net.au, ja@ssi.bg, pablo@netfilter.org,
+        kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
+        kuba@kernel.org, netdev@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org,
+        GuoYong Zheng <zhenggy@chinatelecom.cn>
+Subject: [PATCH] ipvs: remove unused variable for ip_vs_new_dest
+Date:   Fri,  5 Nov 2021 19:39:40 +0800
+Message-Id: <1636112380-11040-1-git-send-email-zhenggy@chinatelecom.cn>
+X-Mailer: git-send-email 1.8.3.1
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+The dest variable is not used after ip_vs_new_dest anymore in
+ip_vs_add_dest, do not need pass it to ip_vs_new_dest, remove it.
 
---QMMItw3X+Eu31K7H
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: GuoYong Zheng <zhenggy@chinatelecom.cn>
+---
+ net/netfilter/ipvs/ip_vs_ctl.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-On 2021-11-07, at 16:03:38 +0000, Jeremy Sowden wrote:
-> On 2021-11-06, at 21:45:44 +0100, Phil Sutter wrote:
-> > Fixed commit broke xtables-translate which still relied upon
-> > do_parse() to properly initialize the passed iptables_command_state
-> > reference. To allow for callers to preset fields, this doesn't
-> > happen anymore so do_command_xlate() has to initialize itself.
-> > Otherwise garbage from stack is read leading to segfaults and
-> > program aborts.
-> >
-> > Although init_cs callback is used by arptables only and
-> > arptables-translate has not been implemented, do call it if set just
-> > to avoid future issues.
-> >
-> > Fixes: cfdda18044d81 ("nft-shared: Introduce init_cs family ops callback")
-> > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> > ---
-> >  iptables/xtables-translate.c | 9 ++++++++-
-> >  1 file changed, 8 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/iptables/xtables-translate.c b/iptables/xtables-translate.c
-> > index 086b85d2f9cef..e2948c5009dd6 100644
-> > --- a/iptables/xtables-translate.c
-> > +++ b/iptables/xtables-translate.c
-> > @@ -253,11 +253,18 @@ static int do_command_xlate(struct nft_handle *h, int argc, char *argv[],
-> >  		.restore	= restore,
-> >  		.xlate		= true,
-> >  	};
-> > -	struct iptables_command_state cs;
-> > +	struct iptables_command_state cs = {
-> > +		.jumpto = "",
-> > +		.argv = argv,
-> > +	};
->
-> No need to initialize .jumpto explicitly: initializing .argv will
-> zero-initialize all the other members.
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index e62b40b..494399d 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -959,8 +959,7 @@ static void ip_vs_trash_cleanup(struct netns_ipvs *ipvs)
+  *	Create a destination for the given service
+  */
+ static int
+-ip_vs_new_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest,
+-	       struct ip_vs_dest **dest_p)
++ip_vs_new_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
+ {
+ 	struct ip_vs_dest *dest;
+ 	unsigned int atype, i;
+@@ -1020,8 +1019,6 @@ static void ip_vs_trash_cleanup(struct netns_ipvs *ipvs)
+ 	spin_lock_init(&dest->stats.lock);
+ 	__ip_vs_update_dest(svc, dest, udest, 1);
+ 
+-	*dest_p = dest;
+-
+ 	LeaveFunction(2);
+ 	return 0;
+ 
+@@ -1095,7 +1092,7 @@ static void ip_vs_trash_cleanup(struct netns_ipvs *ipvs)
+ 		/*
+ 		 * Allocate and initialize the dest structure
+ 		 */
+-		ret = ip_vs_new_dest(svc, udest, &dest);
++		ret = ip_vs_new_dest(svc, udest);
+ 	}
+ 	LeaveFunction(2);
+ 
+-- 
+1.8.3.1
 
-Apologies, I'm talking nonsense: .jumpto is a pointer, not an array.
-Ignore me. :)
-
-> > +
-> >  	struct xtables_args args = {
-> >  		.family = h->family,
-> >  	};
-> >
-> > +	if (h->ops->init_cs)
-> > +		h->ops->init_cs(&cs);
-> > +
-> >  	do_parse(h, argc, argv, &p, &cs, &args);
-> >
-> >  	cs.restore = restore;
-> > --
-> > 2.33.0
-> >
-> >
-
-
-
---QMMItw3X+Eu31K7H
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmGH+b8ACgkQKYasCr3x
-BA2ogxAAnT378E3qmKvjCIbA0du5W2jD7XsAPb52rFcMEtKQTxVc4xfuWkkHr4CH
-JZxXEbl6EmZa9VMvDeoiT3D5OcCh7Tz+x0U9Ji9/w6iecXSNi6uJc6mSyuovSgYf
-HJ8iXIMMoIS9ICx6icMqaK8wcKXsNR591jM0fbyY2+MBPZubpcQ0lnwytWjCMu5w
-Fv0FF+X9F8RNITq4WpH+878uKndNZtEaDuVSbO/14hTdR8N2RoHzm9Ck5ydcS5lV
-4buqIARavSrjaiu6CFMWQV6H3hQU1BdggfjxpYedE2D4fN/WiD3sNcVRB76u+UTF
-DLcWLIsMdu7qOuoF0eMMpUWc9FZoCz6Lt/BSnNRTCymI/nhEHvSSeDxgH8qrZLVU
-lvfBP8++3/aFLrd3O0FH4ViQ5eEnGNDSTnqBHM9Fz90+KyVmJrA+zHBNrJmunIbj
-C4/8BaY7x6qbmkfD0R1sLFf7KJCEokZJa29kGWJ68DtA6wuZR8phRpwpMQXoAsy/
-zTkrgxWYmDltH77bUyan81Wtc+NKl6Wrpa2v44S9h3cASDkrHKxA1+7vXBe0vI0K
-oogllKarv1OX7uxH6mXj5slD1/Pgt8lyxAdngTuUuqre6G3r/j1imJNZROpmRf/d
-5oZFrqZIrQDk0307T/MhlB1qBf5iYPgOrAf1AhWeGH9mWvYt28E=
-=R40L
------END PGP SIGNATURE-----
-
---QMMItw3X+Eu31K7H--
