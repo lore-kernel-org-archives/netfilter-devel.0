@@ -2,45 +2,45 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C032C433F5
-	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Nov 2021 17:14:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33717C433EF
+	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Nov 2021 17:14:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4D5AE61360
-	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Nov 2021 17:14:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1BF4361360
+	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Nov 2021 17:14:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234653AbhKFRRe (ORCPT
+        id S234659AbhKFRRg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 6 Nov 2021 13:17:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40468 "EHLO
+        Sat, 6 Nov 2021 13:17:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40476 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231328AbhKFRRd (ORCPT
+        with ESMTP id S231328AbhKFRRg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 6 Nov 2021 13:17:33 -0400
+        Sat, 6 Nov 2021 13:17:36 -0400
 Received: from kadath.azazel.net (kadath.azazel.net [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E8C3C061570
-        for <netfilter-devel@vger.kernel.org>; Sat,  6 Nov 2021 10:14:52 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9253FC061570
+        for <netfilter-devel@vger.kernel.org>; Sat,  6 Nov 2021 10:14:54 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=Evo1lJOvyGT8ovCo1QYIajPDG0GQwr81uNTdqbdtaQM=; b=OTjg4PifkTmBAloOqyfm3bunCw
-        GfjP4zLvnU/wrH3jjHRAwECvIHdLqjPOhdAWSEHa5NzGlGcIP+cjGuvjz/p9vXJi7kvH2s5xt4lC5
-        XYwu+kasx9RiiaZDMuVTMUVU+MTm1f02sTdZiBWwFk1IgEXk6CXw8uLK5V9Fe3oURTAFgJeTmrG26
-        StRTI40n/UQiYEvLNsn0+gddkb2pgKkVAidVUWwqUDhiVRs2vvaxY7CirV003b8Y233/yXUPssaIv
-        EFn+6avMHUh6OnqqaTmQVtHl9dTlLQEKEF0cXG6RxEeojHZZN/RYANOeBGZ4V9Cd0rpWZwnvoDiFs
-        B4mvS8Hw==;
+        bh=8hvgyFjNe3fI2zhBYXFuQbvNeCpzqJoLHeFqlSuNMqM=; b=s46D2byQ38NJDKh5id76N5GlKv
+        wVlKBXLFkQmudmH+vGV1nQF/Vd0bWWsoIzdqFnhbadgTCJqNOTys8SRZEhR6OY4Gs56l5mNb7VQHS
+        ffC5rXemoEF0FyT+b+D09uD9Dt6xsPEEI1sty7YmanNSVqraY+gtC7SYe8gsfWBmMENhX/5ghqF9U
+        ocNXcecB2Vqgzf/qR22jNbDR9mCHkiDnuC4xChxQ4rej+M34Ng0swXer/Lqif9JoWTEVezlEmfbZO
+        Muip+/IjR/pr5GWyy/CgEVMe8EfTmmTBUzn+LytrCZf4ZPr3h3ZTZTUV/8uQj2BTiUzQ4b1lCjU7j
+        6ErCwJjw==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
         by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1mjOtL-004m1E-F6
-        for netfilter-devel@vger.kernel.org; Sat, 06 Nov 2021 16:50:07 +0000
+        id 1mjOtK-004m1E-S8
+        for netfilter-devel@vger.kernel.org; Sat, 06 Nov 2021 16:50:06 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [ulogd2 PATCH v2 24/27] output: JSON: fix printf truncation warnings
-Date:   Sat,  6 Nov 2021 16:49:50 +0000
-Message-Id: <20211106164953.130024-25-jeremy@azazel.net>
+Subject: [ulogd2 PATCH v2 19/27] output: PGSQL: Fix string truncation warning
+Date:   Sat,  6 Nov 2021 16:49:45 +0000
+Message-Id: <20211106164953.130024-20-jeremy@azazel.net>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20211106164953.130024-1-jeremy@azazel.net>
 References: <20211106164953.130024-1-jeremy@azazel.net>
@@ -53,39 +53,44 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Mod gmt offset by 86400 to give the compiler a hint.
+Replace `strncpy` with `snprintf`.
 
-Make date-time buffer big enough to fit all integer values.
+Remove superfluous intermediate buffer.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- output/ulogd_output_JSON.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ output/pgsql/ulogd_output_PGSQL.c | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff --git a/output/ulogd_output_JSON.c b/output/ulogd_output_JSON.c
-index 621333261733..6c61eb144135 100644
---- a/output/ulogd_output_JSON.c
-+++ b/output/ulogd_output_JSON.c
-@@ -269,7 +269,7 @@ static int json_interp_file(struct ulogd_pluginstance *upi, char *buf)
- 	return ULOGD_IRET_OK;
- }
+diff --git a/output/pgsql/ulogd_output_PGSQL.c b/output/pgsql/ulogd_output_PGSQL.c
+index f5a2823a7e1d..c20ca605fb52 100644
+--- a/output/pgsql/ulogd_output_PGSQL.c
++++ b/output/pgsql/ulogd_output_PGSQL.c
+@@ -190,18 +190,17 @@ static int get_columns_pgsql(struct ulogd_pluginstance *upi)
+ 	}
  
--#define MAX_LOCAL_TIME_STRING 38
-+#define MAX_LOCAL_TIME_STRING 80
+ 	for (i = 0; i < PQntuples(pi->pgres); i++) {
+-		char buf[ULOGD_MAX_KEYLEN+1];
+ 		char *underscore;
  
- static int json_interp(struct ulogd_pluginstance *upi)
- {
-@@ -305,8 +305,8 @@ static int json_interp(struct ulogd_pluginstance *upi)
- 			snprintf(opi->cached_tz, sizeof(opi->cached_tz),
- 				 "%c%02ld%02ld",
- 				 t->tm_gmtoff > 0 ? '+' : '-',
--				 labs(t->tm_gmtoff) / 60 / 60,
--				 labs(t->tm_gmtoff) / 60 % 60);
-+				 labs(t->tm_gmtoff) % 86400 / 60 / 60,
-+				 labs(t->tm_gmtoff) % 86400 / 60 % 60);
- 		}
++		snprintf(upi->input.keys[i].name,
++			 sizeof(upi->input.keys[i].name),
++			 "%s", PQgetvalue(pi->pgres, i, 0));
+ 		/* replace all underscores with dots */
+-		strncpy(buf, PQgetvalue(pi->pgres, i, 0), ULOGD_MAX_KEYLEN);
+-		while ((underscore = strchr(buf, '_')))
++		for (underscore = upi->input.keys[i].name;
++		     (underscore = strchr(underscore, '_')); )
+ 			*underscore = '.';
  
- 		if (pp_is_valid(inp, opi->usec_idx)) {
+-		DEBUGP("field '%s' found: ", buf);
+-
+-		/* add it to list of input keys */
+-		strncpy(upi->input.keys[i].name, buf, ULOGD_MAX_KEYLEN);
++		DEBUGP("field '%s' found\n", upi->input.keys[i].name);
+ 	}
+ 
+ 	/* ID (starting by '.') is a sequence */
 -- 
 2.33.0
 
