@@ -2,45 +2,45 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E0E8C433EF
-	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Nov 2021 17:15:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48139C433EF
+	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Nov 2021 17:15:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 23E5A61360
-	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Nov 2021 17:15:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3259761361
+	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Nov 2021 17:15:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234667AbhKFRRt (ORCPT
+        id S234666AbhKFRRv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 6 Nov 2021 13:17:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40536 "EHLO
+        Sat, 6 Nov 2021 13:17:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40546 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234666AbhKFRRt (ORCPT
+        with ESMTP id S234665AbhKFRRv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 6 Nov 2021 13:17:49 -0400
+        Sat, 6 Nov 2021 13:17:51 -0400
 Received: from kadath.azazel.net (kadath.azazel.net [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C49EBC061570
-        for <netfilter-devel@vger.kernel.org>; Sat,  6 Nov 2021 10:15:07 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E310C061570
+        for <netfilter-devel@vger.kernel.org>; Sat,  6 Nov 2021 10:15:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=NKj7WNGWduPK1lzG8v+10PkjDV640AQmW3pjyChajIc=; b=q3hT0gH4i/hh0V+lnf2v8tTOVC
-        s+8x0n/nnPpahU9bhuexE+z5Mpu0sSbbTuObZIl0takVc7LT5Ao++4omAK0jEu/2KZZFWHE44FoNa
-        FbaabsRvRZq62DMMF+rr1AMi1zfSTBftJlBsIOG5etV2iHTm5/sU+ei90pzg+OG5Z63aBh4ZQO5My
-        7qQkwh+/25D1AgWAq7NKmNnYVzn7KW/JQYdIfDBLDLq6Me0Y7qFI75ppsqsSD5lC8SgvdK7+KzD7s
-        ZMffEICwj8/mdJatbZ9m26gHrXvxdL7+ZnLZxN2DV7sLpE8806g/baHcaRsFwzxQ5ZHxdXUPLkyPw
-        jH9LTaoA==;
+        bh=TYvhgmhQi0wpYA0urK3vMpatAYMzc3UgcVPgLYBSeEQ=; b=Xz8Vya6wY2cS3pjcNYgzSuJjaE
+        NiHiJsG5t1Sv7xguvOi+mvqsZ7XU3jgASpZ/M3M25kSdL0g9GY2q18lmIoviF9Z9Sly4MMw4Zw4YX
+        6jgE2t8vEhtGzNh4xd5gPc9OdhOqpC40a1WxcWefESquu0k5WBiWpL2WCGBb7p0pkp9Gdid47Wod6
+        RyaHOJdDPt1faogs5OL3pW1ECz/ItFVShySDt1vocU6ESLQAdFAkwZC/IPp59Plg02tNev8iaugeW
+        PLpMyYgyJxzi3KNEymOzeQKOR8SbBl3wsRkxkY/HPKE+pJQLp1nZaDuLIRjDHz2IWnsRdvs3hjbdT
+        Yw1OxV+A==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
         by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1mjOtK-004m1E-A2
-        for netfilter-devel@vger.kernel.org; Sat, 06 Nov 2021 16:50:06 +0000
+        id 1mjOtK-004m1E-Uo
+        for netfilter-devel@vger.kernel.org; Sat, 06 Nov 2021 16:50:07 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [ulogd2 PATCH v2 14/27] input: UNIXSOCK: fix possible truncation of socket path
-Date:   Sat,  6 Nov 2021 16:49:40 +0000
-Message-Id: <20211106164953.130024-15-jeremy@azazel.net>
+Subject: [ulogd2 PATCH v2 20/27] output: SQLITE3: Fix string truncation warnings and possible buffer overruns
+Date:   Sat,  6 Nov 2021 16:49:46 +0000
+Message-Id: <20211106164953.130024-21-jeremy@azazel.net>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20211106164953.130024-1-jeremy@azazel.net>
 References: <20211106164953.130024-1-jeremy@azazel.net>
@@ -53,48 +53,115 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Verify that the path is short enough, and replace `strncpy` with `strcpy`.
+Extend name length to match input key.
+
+Replace strncpy with snprintf.
+
+Remove superfluous intermediate buffers.
+
+Leave `field->name` with underscores: we can get the key-name from
+`field->key->name`.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- input/packet/ulogd_inppkt_UNIXSOCK.c | 15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ output/sqlite3/ulogd_output_SQLITE3.c | 38 +++++++++++----------------
+ 1 file changed, 16 insertions(+), 22 deletions(-)
 
-diff --git a/input/packet/ulogd_inppkt_UNIXSOCK.c b/input/packet/ulogd_inppkt_UNIXSOCK.c
-index 62a1c1a00cdf..f318250f1fe1 100644
---- a/input/packet/ulogd_inppkt_UNIXSOCK.c
-+++ b/input/packet/ulogd_inppkt_UNIXSOCK.c
-@@ -475,9 +475,18 @@ static int handle_packet(struct ulogd_pluginstance *upi, struct ulogd_unixsock_p
- static int _create_unix_socket(const char *unix_path)
- {
- 	int ret = -1;
--	struct sockaddr_un server_sock;
-+	struct sockaddr_un server_sock = { .sun_family = AF_UNIX };
- 	int s;
+diff --git a/output/sqlite3/ulogd_output_SQLITE3.c b/output/sqlite3/ulogd_output_SQLITE3.c
+index 20ceb3b5d6e2..053d7a3b0238 100644
+--- a/output/sqlite3/ulogd_output_SQLITE3.c
++++ b/output/sqlite3/ulogd_output_SQLITE3.c
+@@ -48,7 +48,7 @@
  
-+	if (sizeof(server_sock.sun_path) <= strlen(unix_path)) {
-+		ulogd_log(ULOGD_ERROR,
-+			  "ulogd2: unix socket path '%s' too long\n",
-+			  unix_path);
-+		return -1;
-+	}
+ struct field {
+ 	TAILQ_ENTRY(field) link;
+-	char name[ULOGD_MAX_KEYLEN];
++	char name[ULOGD_MAX_KEYLEN + 1];
+ 	struct ulogd_key *key;
+ };
+ 
+@@ -214,8 +214,6 @@ sqlite3_createstmt(struct ulogd_pluginstance *pi)
+ {
+ 	struct sqlite3_priv *priv = (void *)pi->private;
+ 	struct field *f;
+-	char buf[ULOGD_MAX_KEYLEN];
+-	char *underscore;
+ 	char *stmt_pos;
+ 	int i, cols = 0;
+ 
+@@ -231,12 +229,7 @@ sqlite3_createstmt(struct ulogd_pluginstance *pi)
+ 	stmt_pos = priv->stmt + strlen(priv->stmt);
+ 
+ 	tailq_for_each(f, priv->fields, link) {
+-		strncpy(buf, f->name, ULOGD_MAX_KEYLEN);
+-
+-		while ((underscore = strchr(buf, '.')))
+-			*underscore = '_';
+-
+-		sprintf(stmt_pos, "%s,", buf);
++		sprintf(stmt_pos, "%s,", f->name);
+ 		stmt_pos = priv->stmt + strlen(priv->stmt);
+ 
+ 		cols++;
+@@ -273,10 +266,15 @@ sqlite3_createstmt(struct ulogd_pluginstance *pi)
+ static struct ulogd_key *
+ ulogd_find_key(struct ulogd_pluginstance *pi, const char *name)
+ {
++	char key_name[ULOGD_MAX_KEYLEN + 1] = "";
+ 	unsigned int i;
+ 
++	/* replace all underscores with dots */
++	for (i = 0; i < sizeof(key_name) && name[i]; ++i)
++		key_name[i] = name[i] != '_' ? name[i] : '.';
 +
-+	strcpy(server_sock.sun_path, unix_path);
-+
- 	s = socket(AF_UNIX, SOCK_STREAM, 0);
- 	if (s < 0) {
- 		ulogd_log(ULOGD_ERROR,
-@@ -485,10 +494,6 @@ static int _create_unix_socket(const char *unix_path)
- 		return -1;
+ 	for (i = 0; i < pi->input.num_keys; i++) {
+-		if (strcmp(pi->input.keys[i].name, name) == 0)
++		if (strcmp(pi->input.keys[i].name, key_name) == 0)
+ 			return &pi->input.keys[i];
  	}
  
--	server_sock.sun_family = AF_UNIX;
--	strncpy(server_sock.sun_path, unix_path, sizeof(server_sock.sun_path));
--	server_sock.sun_path[sizeof(server_sock.sun_path)-1] = '\0';
+@@ -305,9 +303,6 @@ static int
+ sqlite3_init_db(struct ulogd_pluginstance *pi)
+ {
+ 	struct sqlite3_priv *priv = (void *)pi->private;
+-	char buf[ULOGD_MAX_KEYLEN];
+-	char *underscore;
+-	struct field *f;
+ 	sqlite3_stmt *schema_stmt;
+ 	int col, num_cols;
+ 
+@@ -327,23 +322,22 @@ sqlite3_init_db(struct ulogd_pluginstance *pi)
+ 	}
+ 
+ 	for (col = 0; col < num_cols; col++) {
+-		strncpy(buf, sqlite3_column_name(schema_stmt, col), ULOGD_MAX_KEYLEN);
 -
- 	ret = bind(s, (struct sockaddr *)&server_sock, sizeof(server_sock));
- 	if (ret < 0) {
- 		ulogd_log(ULOGD_ERROR,
+-		/* replace all underscores with dots */
+-		while ((underscore = strchr(buf, '_')) != NULL)
+-			*underscore = '.';
+-
+-		DEBUGP("field '%s' found\n", buf);
++		struct field *f;
+ 
+ 		/* prepend it to the linked list */
+ 		if ((f = calloc(1, sizeof(struct field))) == NULL) {
+ 			ulogd_log(ULOGD_ERROR, "SQLITE3: out of memory\n");
+ 			return -1;
+ 		}
+-		strncpy(f->name, buf, ULOGD_MAX_KEYLEN);
++		snprintf(f->name, sizeof(f->name),
++			 "%s", sqlite3_column_name(schema_stmt, col));
+ 
+-		if ((f->key = ulogd_find_key(pi, buf)) == NULL)
++		DEBUGP("field '%s' found\n", f->name);
++
++		if ((f->key = ulogd_find_key(pi, f->name)) == NULL) {
++			free(f);
+ 			return -1;
++		}
+ 
+ 		TAILQ_INSERT_TAIL(&priv->fields, f, link);
+ 	}
 -- 
 2.33.0
 
