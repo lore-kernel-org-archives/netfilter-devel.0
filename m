@@ -2,45 +2,45 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 837D8C433EF
-	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Nov 2021 17:15:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FE47C433F5
+	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Nov 2021 17:15:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7063861361
-	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Nov 2021 17:15:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6737D61361
+	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Nov 2021 17:15:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234657AbhKFRRp (ORCPT
+        id S234662AbhKFRRr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 6 Nov 2021 13:17:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40518 "EHLO
+        Sat, 6 Nov 2021 13:17:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40528 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234662AbhKFRRp (ORCPT
+        with ESMTP id S234665AbhKFRRr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 6 Nov 2021 13:17:45 -0400
+        Sat, 6 Nov 2021 13:17:47 -0400
 Received: from kadath.azazel.net (kadath.azazel.net [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14BDCC061570
-        for <netfilter-devel@vger.kernel.org>; Sat,  6 Nov 2021 10:15:04 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC9EAC061570
+        for <netfilter-devel@vger.kernel.org>; Sat,  6 Nov 2021 10:15:05 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=kfVtM/n6tJ2eZ3We3Ezb896JR3swtY86ek1iyhRTDrI=; b=bhX3ElMxd0CUYgpLIRSNwE444d
-        8DvLXfIE1mALoLUxXV2elJ55mZ8uazonCXFxA0sDNc88BS49zJ3YXWHnlpVS+W+2tFg7xs/iXcZeb
-        ezOvDWIMSeWlydQ/F68SJO2Nk9rPc3RSkPqIBq4LObG7Z7e28mzHjLh1KYaVYal755Yed2ylosrBx
-        sVCWNttWBPk2uRBmu6dsKjw1rKXBHQWLwPfTxoYXiyopi9ZTj8XVaA/3lszkd7hN0GtWwrw2RpQ4o
-        CjQLIZBmOpglfPvnmxRRasPX9CCfke6HEM3RHjjT3sBJew3R2TLDR8dhZtI6tGcy79XV3he4U8eNH
-        vkhjEPEw==;
+        bh=C0tJo4vouygYHu5DGm2a2Praj4YCgGqlIV836dXbetY=; b=PXnL84dL5m4BvpBrZ+FW/bfrx6
+        7U91EENiobT2WD0L4qf1v0L4YQn8UvyZZgFDwYWrwtQeO3FjfV5fVxBJKK7h6tkD6SRWMaIA+7mFb
+        CeItymQXo6ylQS2KtBa/CQll43VM7Fl43hl7c5PksDsbNwVSKV3UggllQ0wg/NPHMDQdmjfgHjzkL
+        mYti84ppS/sipbAijuRGD84BzP77BWVwXV1oDdsmreSlg3xQGnRyVc36uDN42nAzxfFSgC7Qrawbo
+        lP0goVlfCwayleRN/fuQAgUzsbwZFSUj+sRxm58cx30UEHE3f6I8IAnJ2xOeEwJlvsgtEW2t0Ui5C
+        Bk7qpsMw==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
         by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1mjOtK-004m1E-71
-        for netfilter-devel@vger.kernel.org; Sat, 06 Nov 2021 16:50:06 +0000
+        id 1mjOtJ-004m1E-VB
+        for netfilter-devel@vger.kernel.org; Sat, 06 Nov 2021 16:50:05 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [ulogd2 PATCH v2 13/27] input: UNIXSOCK: remove stat of socket-path
-Date:   Sat,  6 Nov 2021 16:49:39 +0000
-Message-Id: <20211106164953.130024-14-jeremy@azazel.net>
+Subject: [ulogd2 PATCH v2 11/27] Replace malloc+memset with calloc
+Date:   Sat,  6 Nov 2021 16:49:37 +0000
+Message-Id: <20211106164953.130024-12-jeremy@azazel.net>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20211106164953.130024-1-jeremy@azazel.net>
 References: <20211106164953.130024-1-jeremy@azazel.net>
@@ -53,67 +53,125 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-There is a TOCTOU race between the stat(2) and bind(2) calls, and if the
-path is already bound, the bind(2) call will fail in any case.
-
-A couple of error message fixes.
-
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- input/packet/ulogd_inppkt_UNIXSOCK.c | 19 +++++--------------
- 1 file changed, 5 insertions(+), 14 deletions(-)
+ output/dbi/ulogd_output_DBI.c     | 6 +-----
+ output/ipfix/ipfix.c              | 4 +---
+ output/mysql/ulogd_output_MYSQL.c | 6 +-----
+ output/pgsql/ulogd_output_PGSQL.c | 6 +-----
+ src/ulogd.c                       | 3 +--
+ 5 files changed, 5 insertions(+), 20 deletions(-)
 
-diff --git a/input/packet/ulogd_inppkt_UNIXSOCK.c b/input/packet/ulogd_inppkt_UNIXSOCK.c
-index f97c2e174b2d..62a1c1a00cdf 100644
---- a/input/packet/ulogd_inppkt_UNIXSOCK.c
-+++ b/input/packet/ulogd_inppkt_UNIXSOCK.c
-@@ -477,12 +477,11 @@ static int _create_unix_socket(const char *unix_path)
- 	int ret = -1;
- 	struct sockaddr_un server_sock;
- 	int s;
--	struct stat st_dummy;
+diff --git a/output/dbi/ulogd_output_DBI.c b/output/dbi/ulogd_output_DBI.c
+index d2a968293314..23cc9c8fb492 100644
+--- a/output/dbi/ulogd_output_DBI.c
++++ b/output/dbi/ulogd_output_DBI.c
+@@ -129,8 +129,7 @@ static int get_columns_dbi(struct ulogd_pluginstance *upi)
+ 	upi->input.num_keys = dbi_result_get_numfields(pi->result);
+ 	ulogd_log(ULOGD_DEBUG, "%u fields in table\n", upi->input.num_keys);
  
- 	s = socket(AF_UNIX, SOCK_STREAM, 0);
- 	if (s < 0) {
- 		ulogd_log(ULOGD_ERROR,
--				"ulogd2: could not create unix socket\n");
-+			  "ulogd2: could not create unix socket\n");
- 		return -1;
+-	upi->input.keys = malloc(sizeof(struct ulogd_key) *
+-						upi->input.num_keys);
++	upi->input.keys = calloc(upi->input.num_keys, sizeof(*upi->input.keys));
+ 	if (!upi->input.keys) {
+ 		upi->input.num_keys = 0;
+ 		ulogd_log(ULOGD_ERROR, "ENOMEM\n");
+@@ -138,9 +137,6 @@ static int get_columns_dbi(struct ulogd_pluginstance *upi)
+ 		return -ENOMEM;
  	}
  
-@@ -490,19 +489,11 @@ static int _create_unix_socket(const char *unix_path)
- 	strncpy(server_sock.sun_path, unix_path, sizeof(server_sock.sun_path));
- 	server_sock.sun_path[sizeof(server_sock.sun_path)-1] = '\0';
- 
--	if (stat(unix_path, &st_dummy) == 0 && st_dummy.st_size > 0) {
--		ulogd_log(ULOGD_ERROR,
--				"ulogd2: unix socket \'%s\' already exists\n",
--				unix_path);
--		close(s);
--		return -1;
--	}
+-	memset(upi->input.keys, 0, sizeof(struct ulogd_key) *
+-						upi->input.num_keys);
 -
- 	ret = bind(s, (struct sockaddr *)&server_sock, sizeof(server_sock));
- 	if (ret < 0) {
- 		ulogd_log(ULOGD_ERROR,
--				"ulogd2: could not bind to unix socket \'%s\'\n",
--				server_sock.sun_path);
-+			  "ulogd2: could not bind to unix socket '%s'\n",
-+			  server_sock.sun_path);
- 		close(s);
- 		return -1;
+ 	for (ui=1; ui<=upi->input.num_keys; ui++) {
+ 		char buf[ULOGD_MAX_KEYLEN+1];
+ 		char *underscore;
+diff --git a/output/ipfix/ipfix.c b/output/ipfix/ipfix.c
+index 4bb432a73d14..b2719fd1d8a3 100644
+--- a/output/ipfix/ipfix.c
++++ b/output/ipfix/ipfix.c
+@@ -85,8 +85,7 @@ struct ipfix_msg *ipfix_msg_alloc(size_t len, uint32_t oid, int tid)
+ 	    (len < IPFIX_HDRLEN + IPFIX_SET_HDRLEN))
+ 		return NULL;
+ 
+-	msg = malloc(sizeof(struct ipfix_msg) + len);
+-	memset(msg, 0, sizeof(struct ipfix_msg));
++	msg = calloc(1, sizeof(struct ipfix_msg) + len);
+ 	msg->tid = tid;
+ 	msg->end = msg->data + len;
+ 	msg->tail = msg->data + IPFIX_HDRLEN;
+@@ -95,7 +94,6 @@ struct ipfix_msg *ipfix_msg_alloc(size_t len, uint32_t oid, int tid)
+ 
+ 	/* Initialize message header */
+ 	hdr = ipfix_msg_hdr(msg);
+-	memset(hdr, 0, IPFIX_HDRLEN);
+ 	hdr->version = htons(IPFIX_VERSION);
+ 	hdr->oid = htonl(oid);
+ 
+diff --git a/output/mysql/ulogd_output_MYSQL.c b/output/mysql/ulogd_output_MYSQL.c
+index 643320ce724c..66151feb4939 100644
+--- a/output/mysql/ulogd_output_MYSQL.c
++++ b/output/mysql/ulogd_output_MYSQL.c
+@@ -127,16 +127,12 @@ static int get_columns_mysql(struct ulogd_pluginstance *upi)
+ 
+ 	upi->input.num_keys = mysql_num_fields(result);
+ 	ulogd_log(ULOGD_DEBUG, "%u fields in table\n", upi->input.num_keys);
+-	upi->input.keys = malloc(sizeof(struct ulogd_key) * 
+-						upi->input.num_keys);
++	upi->input.keys = calloc(upi->input.num_keys, sizeof(*upi->input.keys));
+ 	if (!upi->input.keys) {
+ 		upi->input.num_keys = 0;
+ 		ulogd_log(ULOGD_ERROR, "ENOMEM\n");
+ 		return -ENOMEM;
  	}
-@@ -510,8 +501,8 @@ static int _create_unix_socket(const char *unix_path)
- 	ret = listen(s, 10);
- 	if (ret < 0) {
- 		ulogd_log(ULOGD_ERROR,
--				"ulogd2: could not bind to unix socket \'%s\'\n",
--				server_sock.sun_path);
-+			  "ulogd2: could not listen to unix socket '%s'\n",
-+			  server_sock.sun_path);
- 		close(s);
- 		return -1;
+-	
+-	memset(upi->input.keys, 0, sizeof(struct ulogd_key) *
+-						upi->input.num_keys);
+ 
+ 	for (i = 0; (field = mysql_fetch_field(result)); i++) {
+ 		char buf[ULOGD_MAX_KEYLEN+1];
+diff --git a/output/pgsql/ulogd_output_PGSQL.c b/output/pgsql/ulogd_output_PGSQL.c
+index fda289eca776..f5a2823a7e1d 100644
+--- a/output/pgsql/ulogd_output_PGSQL.c
++++ b/output/pgsql/ulogd_output_PGSQL.c
+@@ -181,8 +181,7 @@ static int get_columns_pgsql(struct ulogd_pluginstance *upi)
+ 
+ 	upi->input.num_keys = PQntuples(pi->pgres);
+ 	ulogd_log(ULOGD_DEBUG, "%u fields in table\n", upi->input.num_keys);
+-	upi->input.keys = malloc(sizeof(struct ulogd_key) *
+-						upi->input.num_keys);
++	upi->input.keys = calloc(upi->input.num_keys, sizeof(*upi->input.keys));
+ 	if (!upi->input.keys) {
+ 		upi->input.num_keys = 0;
+ 		ulogd_log(ULOGD_ERROR, "ENOMEM\n");
+@@ -190,9 +189,6 @@ static int get_columns_pgsql(struct ulogd_pluginstance *upi)
+ 		return -ENOMEM;
  	}
+ 
+-	memset(upi->input.keys, 0, sizeof(struct ulogd_key) *
+-						upi->input.num_keys);
+-
+ 	for (i = 0; i < PQntuples(pi->pgres); i++) {
+ 		char buf[ULOGD_MAX_KEYLEN+1];
+ 		char *underscore;
+diff --git a/src/ulogd.c b/src/ulogd.c
+index 97da4fc0018f..b02f2602a895 100644
+--- a/src/ulogd.c
++++ b/src/ulogd.c
+@@ -661,12 +661,11 @@ pluginstance_alloc_init(struct ulogd_plugin *pl, char *pi_id,
+ 	}
+ 	size += pl->input.num_keys * sizeof(struct ulogd_key);
+ 	size += pl->output.num_keys * sizeof(struct ulogd_key);
+-	pi = malloc(size);
++	pi = calloc(1, size);
+ 	if (!pi)
+ 		return NULL;
+ 
+ 	/* initialize */
+-	memset(pi, 0, size);
+ 	INIT_LLIST_HEAD(&pi->list);
+ 	INIT_LLIST_HEAD(&pi->plist);
+ 	pi->plugin = pl;
 -- 
 2.33.0
 
