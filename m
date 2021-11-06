@@ -2,22 +2,22 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D16FCC4167B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 091D6C4321E
 	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Nov 2021 16:18:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B038C610E9
-	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Nov 2021 16:18:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E2387610FD
+	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Nov 2021 16:18:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234530AbhKFQU4 (ORCPT
+        id S234525AbhKFQUz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 6 Nov 2021 12:20:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56310 "EHLO
+        Sat, 6 Nov 2021 12:20:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56308 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234532AbhKFQUy (ORCPT
+        with ESMTP id S234530AbhKFQUx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 6 Nov 2021 12:20:54 -0400
+        Sat, 6 Nov 2021 12:20:53 -0400
 Received: from kadath.azazel.net (kadath.azazel.net [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AFF7EC061570
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 595E6C061208
         for <netfilter-devel@vger.kernel.org>; Sat,  6 Nov 2021 09:18:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
@@ -25,22 +25,22 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=GT2TjmJDl4TcOLZveIUYgZo/ztZZZfgY4He9strUlyQ=; b=IyWMydx20QTnlimOO+u6bZx3Mf
-        nVt04Hc/2g72DBFe+TM+/+a2Y4RMO1Nh4SJ6BjnIsxNNIWPfy3ycaTwpUazod9nem4/o7OjXYAcRT
-        +1ZkU3NjH/iyOEi5BYjSoncyw8TWVOqUi+rrsS6tFlKEchg50ZVJu9zMBjTsNLUi3Qag4LXX7BRcn
-        i8wqw6WkgbEkgl1jSqNL0p1hRp6eX5hNkQgnHjYpFHzV0ry9986zkmGci8jWpx/WdRcpe7fJor1CG
-        Zop59ZxFlUkEEO72AF1Y7KHA5OfyzUPftVpnPvuo4UQPU1WwWFO/ihzrA3lWH0yhZtMSlAwq/bLqB
-        QDSJemaw==;
+        bh=ZsLo62ZgK42eAqd1ICirjS1rL67Lvl8P5jhqIqPc7Qg=; b=jZdBvq9RSQYshJDOWjI31wNluD
+        puPNxo7zIgECYVsPhgk9MgmB45dLNzCxlt352KVe6whIpFkKcSWzkYcYtzEh3SnVYRBS+zUe8gvNi
+        McoMq9DazmZ2bkhCiGMpbaBWSEYcqKSLfsNp72qnzFL85homAKxahYWYi+YDCuQ3bTMBLa1MN5OqB
+        qc/12cehP/8rgUsRgaZRAqy6n9v9+l4uT2suJcWQfON6wqXumMYWBJKWZLNP0FqZMwLBORbarSdXC
+        CjA8zeYwElFZoFCPvzsNha4E2q9g0MPdMHJFRhpT3aWlixKAVzXc8+i5IK1AVzlrswp7gw1NRwbeG
+        dTw/WINQ==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
         by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1mjOOQ-004loO-VO
-        for netfilter-devel@vger.kernel.org; Sat, 06 Nov 2021 16:18:11 +0000
+        id 1mjOOQ-004loO-MA
+        for netfilter-devel@vger.kernel.org; Sat, 06 Nov 2021 16:18:10 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [ulogd2 PATCH v2 07/12] build: use `dist_man_MANS`
-Date:   Sat,  6 Nov 2021 16:17:54 +0000
-Message-Id: <20211106161759.128364-8-jeremy@azazel.net>
+Subject: [ulogd2 PATCH v2 04/12] build: remove empty filter sub-directory
+Date:   Sat,  6 Nov 2021 16:17:51 +0000
+Message-Id: <20211106161759.128364-5-jeremy@azazel.net>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20211106161759.128364-1-jeremy@azazel.net>
 References: <20211106161759.128364-1-jeremy@azazel.net>
@@ -53,27 +53,42 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+The only file in filter/packet2flow is an empty Makefile.am.  Remove it.
+
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- Makefile.am | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ configure.ac                   | 2 +-
+ filter/Makefile.am             | 2 +-
+ filter/packet2flow/Makefile.am | 0
+ 3 files changed, 2 insertions(+), 2 deletions(-)
+ delete mode 100644 filter/packet2flow/Makefile.am
 
-diff --git a/Makefile.am b/Makefile.am
-index 838d6ec29156..60cf8c6c595f 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -2,9 +2,9 @@ ACLOCAL_AMFLAGS = -I m4
+diff --git a/configure.ac b/configure.ac
+index e341ad12a159..4e502171292e 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -177,7 +177,7 @@ AC_CONFIG_FILES(include/Makefile include/ulogd/Makefile include/libipulog/Makefi
+ 	  include/linux/netfilter_ipv4/Makefile libipulog/Makefile \
+ 	  input/Makefile input/packet/Makefile input/flow/Makefile \
+ 	  input/sum/Makefile \
+-	  filter/Makefile filter/raw2packet/Makefile filter/packet2flow/Makefile \
++	  filter/Makefile filter/raw2packet/Makefile \
+ 	  output/Makefile output/pcap/Makefile output/mysql/Makefile output/pgsql/Makefile output/sqlite3/Makefile \
+ 	  output/dbi/Makefile output/ipfix/Makefile \
+ 	  src/Makefile Makefile)
+diff --git a/filter/Makefile.am b/filter/Makefile.am
+index 875850b8ae90..c2755ecb7c49 100644
+--- a/filter/Makefile.am
++++ b/filter/Makefile.am
+@@ -1,4 +1,4 @@
+-SUBDIRS = raw2packet packet2flow
++SUBDIRS = raw2packet
  
- SUBDIRS = include libipulog src input filter output
- 
--man_MANS = ulogd.8
-+dist_man_MANS = ulogd.8
- 
--EXTRA_DIST = $(man_MANS) ulogd.conf.in doc
-+EXTRA_DIST = ulogd.conf.in doc
- 
- noinst_DATA = ulogd.conf
- 
+ AM_CPPFLAGS = -I$(top_srcdir)/include ${LIBNFNETLINK_CFLAGS}
+ AM_CFLAGS = ${regular_CFLAGS}
+diff --git a/filter/packet2flow/Makefile.am b/filter/packet2flow/Makefile.am
+deleted file mode 100644
+index e69de29bb2d1..000000000000
 -- 
 2.33.0
 
