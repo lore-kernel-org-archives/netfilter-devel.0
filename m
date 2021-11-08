@@ -2,91 +2,52 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ECEB6C433F5
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Nov 2021 00:46:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F49CC433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Nov 2021 10:08:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B7AC861038
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Nov 2021 00:46:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4CDE661179
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Nov 2021 10:08:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235286AbhKHAso (ORCPT
+        id S229966AbhKHKLj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 7 Nov 2021 19:48:44 -0500
-Received: from prt-mail.chinatelecom.cn ([42.123.76.219]:59515 "EHLO
-        chinatelecom.cn" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S229807AbhKHAso (ORCPT
+        Mon, 8 Nov 2021 05:11:39 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:46698 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235894AbhKHKLi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 7 Nov 2021 19:48:44 -0500
-X-Greylist: delayed 412 seconds by postgrey-1.27 at vger.kernel.org; Sun, 07 Nov 2021 19:48:42 EST
-HMM_SOURCE_IP: 172.18.0.48:43760.616130149
-HMM_ATTACHE_NUM: 0000
-HMM_SOURCE_TYPE: SMTP
-Received: from clientip-110.80.1.45 (unknown [172.18.0.48])
-        by chinatelecom.cn (HERMES) with SMTP id 1090E2800AF;
-        Mon,  8 Nov 2021 08:38:21 +0800 (CST)
-X-189-SAVE-TO-SEND: +zhenggy@chinatelecom.cn
-Received: from  ([172.18.0.48])
-        by app0024 with ESMTP id a7c1a4c9887d45d59953a2e84212ca75 for lvs-devel@vger.kernel.org;
-        Mon, 08 Nov 2021 08:38:42 CST
-X-Transaction-ID: a7c1a4c9887d45d59953a2e84212ca75
-X-Real-From: zhenggy@chinatelecom.cn
-X-Receive-IP: 172.18.0.48
-X-MEDUSA-Status: 0
-Sender: zhenggy@chinatelecom.cn
-From:   GuoYong Zheng <zhenggy@chinatelecom.cn>
-To:     lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
-Cc:     horms@verge.net.au, ja@ssi.bg, pablo@netfilter.org,
-        kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
-        kuba@kernel.org, netdev@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org,
-        GuoYong Zheng <zhenggy@chinatelecom.cn>
-Subject: [PATCH] ipvs: remove unused variable for ip_vs_new_dest
-Date:   Fri,  5 Nov 2021 19:39:40 +0800
-Message-Id: <1636112380-11040-1-git-send-email-zhenggy@chinatelecom.cn>
-X-Mailer: git-send-email 1.8.3.1
+        Mon, 8 Nov 2021 05:11:38 -0500
+Received: from netfilter.org (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id C0B9B6063C;
+        Mon,  8 Nov 2021 11:06:55 +0100 (CET)
+Date:   Mon, 8 Nov 2021 11:08:49 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jeremy Sowden <jeremy@azazel.net>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [ulogd2 PATCH v2 00/27] Compiler Warning Fixes
+Message-ID: <YYj3MZu+JG0G9zhj@salvia>
+References: <20211106164953.130024-1-jeremy@azazel.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20211106164953.130024-1-jeremy@azazel.net>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The dest variable is not used after ip_vs_new_dest anymore in
-ip_vs_add_dest, do not need pass it to ip_vs_new_dest, remove it.
+On Sat, Nov 06, 2021 at 04:49:26PM +0000, Jeremy Sowden wrote:
+> This patch-set fixes all the warnings reported by gcc 11.
+> 
+> Patch 1 adds the `format` GCC attribute to ulogd_log.
+> Patches 2-5 fix the format errors revealed by the patch 1.
+> Patches 6-8 fix fall-through warnings.
+> Patches 9-10 are flow-control improvements related to patch 8.
+> Patch 11 replaces malloc+memset with calloc.
+> Patches 12-14 fix string-truncation warnings.
+> Patch 15 fixes a possible unaligned pointer access.
+> Patch 16 fixes DBI deprecation warnings.
+> Patches 17-20 fix more truncation warnings.
+> Patch 21 adds error-checking to sqlite SQL preparation.
+> Patches 22-26 fix more truncation and format warnings.
+> Patches 27 removes some superfluous preprocessor macros.
 
-Signed-off-by: GuoYong Zheng <zhenggy@chinatelecom.cn>
----
- net/netfilter/ipvs/ip_vs_ctl.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
-
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index e62b40b..494399d 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -959,8 +959,7 @@ static void ip_vs_trash_cleanup(struct netns_ipvs *ipvs)
-  *	Create a destination for the given service
-  */
- static int
--ip_vs_new_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest,
--	       struct ip_vs_dest **dest_p)
-+ip_vs_new_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
- {
- 	struct ip_vs_dest *dest;
- 	unsigned int atype, i;
-@@ -1020,8 +1019,6 @@ static void ip_vs_trash_cleanup(struct netns_ipvs *ipvs)
- 	spin_lock_init(&dest->stats.lock);
- 	__ip_vs_update_dest(svc, dest, udest, 1);
- 
--	*dest_p = dest;
--
- 	LeaveFunction(2);
- 	return 0;
- 
-@@ -1095,7 +1092,7 @@ static void ip_vs_trash_cleanup(struct netns_ipvs *ipvs)
- 		/*
- 		 * Allocate and initialize the dest structure
- 		 */
--		ret = ip_vs_new_dest(svc, udest, &dest);
-+		ret = ip_vs_new_dest(svc, udest);
- 	}
- 	LeaveFunction(2);
- 
--- 
-1.8.3.1
-
+Please, add a description to your patches. Thanks.
