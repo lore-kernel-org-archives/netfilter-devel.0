@@ -2,101 +2,61 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D51BC433F5
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Nov 2021 12:03:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39B97C433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Nov 2021 13:23:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3774F611C0
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Nov 2021 12:03:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 20D416120D
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Nov 2021 13:23:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238058AbhKHMFp (ORCPT
+        id S239917AbhKHN0a (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Nov 2021 07:05:45 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35562 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238065AbhKHMFp (ORCPT
+        Mon, 8 Nov 2021 08:26:30 -0500
+Received: from latitanza.investici.org ([82.94.249.234]:64433 "EHLO
+        latitanza.investici.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S239916AbhKHN03 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Nov 2021 07:05:45 -0500
-Received: from kadath.azazel.net (kadath.azazel.net [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0BC67C061570
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Nov 2021 04:03:00 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=KLVwPdrBkkxtZ5VBfAbrnodJ89BAFpJ3XHgIatV9GmA=; b=B1QZ3v/lWk7PCYC6g+mOhSZ3zh
-        0rR7SMzCS6EjPpqs674FvH419XQEZgsuKMIpMrYtOUcBxkI/yfOnhd8CzV+bAmVol8aGA/Wse0qJ1
-        zR/cmh9v9lRFf446TVlqRzRM/fV33i19unTG7d7MtMAtQgwivgNACrxoRDOHa4/ruiFTG7qIsoUUr
-        5xx4e6pIeS6r9rOfyqJohiNswBCGPfW4HUsvRhUYGiw30KqQRx3DS2nmoBg1Dniwxt9TBVFuaiF2o
-        a4xmSwcMwhxbptO5OKVjK3m7bfSYGyXGwVfPwbSni8B2o+OqnplVjtDNYPk6+4jLaybgmZ2EwsXhc
-        jyGQ2pqQ==;
-Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] helo=ulthar.dreamlands)
-        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <jeremy@azazel.net>)
-        id 1mk3MZ-006fxk-CT; Mon, 08 Nov 2021 12:02:59 +0000
-Date:   Mon, 8 Nov 2021 12:02:47 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [ulogd2 PATCH v2 00/13] Build Improvements
-Message-ID: <YYkR5z0g0anX2aMr@ulthar.dreamlands>
-References: <20211106161759.128364-1-jeremy@azazel.net>
- <YYkFdfmq4gtY7Fr6@salvia>
+        Mon, 8 Nov 2021 08:26:29 -0500
+X-Greylist: delayed 357 seconds by postgrey-1.27 at vger.kernel.org; Mon, 08 Nov 2021 08:26:29 EST
+Received: from mx3.investici.org (unknown [127.0.0.1])
+        by latitanza.investici.org (Postfix) with ESMTP id 4Hns9P19hWzGpGQ
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Nov 2021 13:17:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=boum.org;
+        s=stigmate; t=1636377465;
+        bh=TADdmBM245ANm6/2PQJ9hOMX/M4lhLDmvo/TNgSS95k=;
+        h=Subject:From:To:Date:From;
+        b=NOVUrBvh9vOdEJsUQf4MtRm97ivYhkKhSyqwt3igeqV+2FS7ZPxrM5yi1GBLDs7EE
+         wLMtCeH+1KNDkhZU+GdVbRhYiPwx1RBe74Xq6HsfksCuHdj87JT8/ZF2xGeOptCrS8
+         8qrn41TmiSlIIF/setBfKRSz9SY0iI8fpdVSZvi0=
+Received: from [82.94.249.234] (mx3.investici.org [82.94.249.234]) (Authenticated sender: lafleur@boum.org) by localhost (Postfix) with ESMTPSA id 4Hns9P0PM0zGp59
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Nov 2021 13:17:45 +0000 (UTC)
+Message-ID: <5c9dd5052404e0edd6bf418939bacbe26a3d27d6.camel@boum.org>
+Subject: libnftnl: guarantee a stable interface between minor updates ?
+From:   la Fleur <lafleur@boum.org>
+To:     netfilter-devel@vger.kernel.org
+Date:   Mon, 08 Nov 2021 14:17:44 +0100
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.40.4 
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="mztoOcTrn/SedOOj"
-Content-Disposition: inline
-In-Reply-To: <YYkFdfmq4gtY7Fr6@salvia>
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hello !
 
---mztoOcTrn/SedOOj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+We have been working on a rust library linked to libnftnl, called
+rustables. We derived our work from the libnftnl-rs crate, and
+automated the linking process in a build script. We now happily support
+versions from 1.1.6 to 1.2.0 .
 
-On 2021-11-08, at 12:09:41 +0100, Pablo Neira Ayuso wrote:
-> On Sat, Nov 06, 2021 at 04:17:47PM +0000, Jeremy Sowden wrote:
-> > Some tidying and autotools updates and fixes.
->
-> Same thing, please add a description.
->
-> Sorry for dumping this series for this "silly reason", I think this
-> helps dig out in the future if the natural language description
-> (expressed in the commit description) matches with update as a way to
-> spot for bugs.
->
-> It does not need to be long, I understand some little update are quite
-> obvious to the reader, so a concise description should be fine.
+Is there a semantic versioning strategy inside libnftnl ? That would
+really simplify maintenance on our side if we knew the public interface
+won't change between minor versions, for example.
 
-No problem.
+Perhaps this information is already somewhere on the netfilter site. I
+couldn't find it though ; I scrolled through documentation, FAQs, and
+some Stack Overflow questions. Did I miss something ?
 
-J.
 
---mztoOcTrn/SedOOj
-Content-Type: application/pgp-signature; name="signature.asc"
+Thanks for the long time great work anyway !
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmGJEeAACgkQKYasCr3x
-BA19/w//W/jImAo8Ac1Apq788lhb/lmNZAPHiOrSQvgsSvQF8DE2+zgBIvqfQmD0
-iS/qVnUSwBHd891OPN9Y0qDDkmudZMywXWyoOoirgmPJ5xPC4CCUJ0BDXwn84dPd
-eHHM7Kwy1V7fc73Yt7DN8cungFBZIbTQ9xQXQNixU7xKw7uLTnsLfWGbALj4Dy3N
-lMel8m7rJgH3eVeb8j1toT3DJUxZkQMd4td3rM80XFsfGl8nrnbOrguIZhZJHfTU
-REmhrjlh86URGch9BRuduoQ8v3jmkw8poiAP/JFHIKRw2mruwXjAtio/qNZoWi+5
-ipL51aKCTmyKKs05uitO+NGJcdwSP/bVZgkZrEeDBatJEn4WyBItrQeKsLY5RL2D
-/5SobLRUXZXMBYfwYmcIIBppH1d4NiookbRushzMJQxck0SNUWQD973rlojqvAWx
-smvk6EigL++stauJ47U6moDORM5KmY7nuAqduXtopW0O4H5ldi7NUEd2qu3P2O45
-GW+P6ZVSVVdm2YPOr1CTxDvL+mw/aCGQSqGjJukZYM0U2Ks8qOmiG/CUYDnG57hf
-/NrrR8YRKot1K3o8EUEohYg8JUbbcrzmP7P/z8eEiBqosJzDr9LkAO/ohHftnIBP
-1oUFZhlIVeZK5N2bmze4/jV0b82f0u10+kpRx3dnhJ4uZMsGYBw=
-=qgYN
------END PGP SIGNATURE-----
-
---mztoOcTrn/SedOOj--
