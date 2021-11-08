@@ -2,51 +2,59 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C6C3C433F5
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Nov 2021 11:18:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D42E0C433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Nov 2021 11:21:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3767260F36
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Nov 2021 11:18:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B29FE60F36
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Nov 2021 11:21:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237741AbhKHLVD (ORCPT
+        id S237458AbhKHLXy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Nov 2021 06:21:03 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:47120 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237148AbhKHLVC (ORCPT
+        Mon, 8 Nov 2021 06:23:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54530 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235502AbhKHLXy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Nov 2021 06:21:02 -0500
-Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id BC43A6063C;
-        Mon,  8 Nov 2021 12:16:18 +0100 (CET)
-Date:   Mon, 8 Nov 2021 12:18:13 +0100
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     cgel.zte@gmail.com
-Cc:     kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
-        kuba@kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Jing Yao <yao.jing2@zte.com.cn>,
-        Zeal Robot <zealci@zte.com.cn>
-Subject: Re: [PATCH] netfilter: xt_IDLETIMER: replace snprintf in show
- functions with sysfs_emit
-Message-ID: <YYkHdbjKFTiSlfNj@salvia>
-References: <20211104114911.31214-1-yao.jing2@zte.com.cn>
+        Mon, 8 Nov 2021 06:23:54 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9635C061570
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Nov 2021 03:21:09 -0800 (PST)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1mk2i2-000593-Tz; Mon, 08 Nov 2021 12:21:06 +0100
+Date:   Mon, 8 Nov 2021 12:21:06 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Jeremy Sowden <jeremy@azazel.net>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH] Unbreak xtables-translate
+Message-ID: <20211108112106.GC1668@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Jeremy Sowden <jeremy@azazel.net>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20211106204544.13136-1-phil@nwl.cc>
+ <YYf41EwPa8YBKNpY@azazel.net>
+ <YYf5vzKUJB3bgQpV@azazel.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20211104114911.31214-1-yao.jing2@zte.com.cn>
+In-Reply-To: <YYf5vzKUJB3bgQpV@azazel.net>
+Sender:  <n0-1@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Nov 04, 2021 at 11:49:11AM +0000, cgel.zte@gmail.com wrote:
-> From: Jing Yao <yao.jing2@zte.com.cn>
-> 
-> coccicheck complains about the use of snprintf() in sysfs show
-> functions:
-> WARNING use scnprintf or sprintf
-> 
-> Use sysfs_emit instead of scnprintf, snprintf or sprintf makes more
-> sense.
+Hey Jeremy,
 
-Applied, thanks.
+On Sun, Nov 07, 2021 at 04:07:27PM +0000, Jeremy Sowden wrote:
+[...]
+> Apologies, I'm talking nonsense: .jumpto is a pointer, not an array.
+> Ignore me. :)
+
+I wondered at first, but indeed assigning an empty string to an array is
+identical to setting all fields zero. :)
+
+Thanks for the review!
+
+Cheers, Phil
