@@ -2,78 +2,147 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00D0EC433F5
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Nov 2021 16:25:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F932C433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Nov 2021 18:21:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D304B61056
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Nov 2021 16:25:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 578D0613B3
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Nov 2021 18:21:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237416AbhKHQ2b (ORCPT
+        id S235228AbhKHSYW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Nov 2021 11:28:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39546 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235633AbhKHQ2b (ORCPT
+        Mon, 8 Nov 2021 13:24:22 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:48110 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235387AbhKHSYW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Nov 2021 11:28:31 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22369C061570
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Nov 2021 08:25:47 -0800 (PST)
-Received: from localhost ([::1]:34856 helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1mk7Sp-0007nL-S3; Mon, 08 Nov 2021 17:25:43 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH] extensions: hashlimit: Fix tests with HZ=1000
-Date:   Mon,  8 Nov 2021 17:25:35 +0100
-Message-Id: <20211108162535.19522-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.33.0
+        Mon, 8 Nov 2021 13:24:22 -0500
+Received: from localhost.localdomain (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 87A7460831
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Nov 2021 19:19:38 +0100 (CET)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] cache: do not populate cache if it is going to be flushed
+Date:   Mon,  8 Nov 2021 19:21:31 +0100
+Message-Id: <20211108182131.246466-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-In an attempt to fix for failing hashlimit tests with HZ=100, the
-expected failures were changed so they are expected to pass and the
-parameters changed to seemingly fix them. Yet while the new parameters
-worked on HZ=100 systems, with higher tick rates they didn't so the
-observed problem moved from the test failing on HZ=100 to failing on
-HZ=1000 instead.
+Skip set element netlink dump if set is flushed, this speeds up
+set flush + add element operation in a batch file for an existing set.
 
-Kernel's error message "try lower: 864000000/5" turned out to be a red
-herring: The burst value does not act as a dividor but a multiplier
-instead, so in order to lower the overflow-checked value, a lower burst
-value must be chosen. Inded, using a burst value of 1 makes the kernel
-accept the rule in both HZ=100 and HZ=1000 configurations.
-
-Fixes: bef9dc575625a ("extensions: hashlimit: Fix tests with HZ=100")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- extensions/libxt_hashlimit.t | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/cache.h | 13 +++++++++++--
+ src/cache.c     | 40 ++++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 49 insertions(+), 4 deletions(-)
 
-diff --git a/extensions/libxt_hashlimit.t b/extensions/libxt_hashlimit.t
-index 8369933786f68..206d92935f2e2 100644
---- a/extensions/libxt_hashlimit.t
-+++ b/extensions/libxt_hashlimit.t
-@@ -3,12 +3,12 @@
- -m hashlimit --hashlimit-above 1000000/sec --hashlimit-burst 5 --hashlimit-name mini1;=;OK
- -m hashlimit --hashlimit-above 1/min --hashlimit-burst 5 --hashlimit-name mini1;=;OK
- -m hashlimit --hashlimit-above 1/hour --hashlimit-burst 5 --hashlimit-name mini1;=;OK
---m hashlimit --hashlimit-above 1/day --hashlimit-burst 500 --hashlimit-name mini1;=;OK
-+-m hashlimit --hashlimit-above 1/day --hashlimit-burst 1 --hashlimit-name mini1;=;OK
- -m hashlimit --hashlimit-upto 1/sec --hashlimit-burst 5 --hashlimit-name mini1;=;OK
- -m hashlimit --hashlimit-upto 1000000/sec --hashlimit-burst 5 --hashlimit-name mini1;=;OK
- -m hashlimit --hashlimit-upto 1/min --hashlimit-burst 5 --hashlimit-name mini1;=;OK
- -m hashlimit --hashlimit-upto 1/hour --hashlimit-burst 5 --hashlimit-name mini1;=;OK
---m hashlimit --hashlimit-upto 1/day --hashlimit-burst 500 --hashlimit-name mini1;=;OK
-+-m hashlimit --hashlimit-upto 1/day --hashlimit-burst 1 --hashlimit-name mini1;=;OK
- -m hashlimit --hashlimit-upto 1/sec --hashlimit-burst 1 --hashlimit-name mini1 --hashlimit-htable-expire 2000;=;OK
- -m hashlimit --hashlimit-upto 1/sec --hashlimit-burst 1 --hashlimit-mode srcip --hashlimit-name mini1 --hashlimit-htable-expire 2000;=;OK
- -m hashlimit --hashlimit-upto 1/sec --hashlimit-burst 1 --hashlimit-mode dstip --hashlimit-name mini1 --hashlimit-htable-expire 2000;=;OK
+diff --git a/include/cache.h b/include/cache.h
+index 0523358889de..f3572319c451 100644
+--- a/include/cache.h
++++ b/include/cache.h
+@@ -38,9 +38,18 @@ enum cache_level_flags {
+ 	NFT_CACHE_FLUSHED	= (1 << 31),
+ };
+ 
++#define NFT_CACHE_MAX_FILTER		12
++
+ struct nft_cache_filter {
+-	const char		*table;
+-	const char		*set;
++	const char			*table;
++	const char			*set;
++
++	struct {
++		const char		*table;
++		const char		*set;
++	} obj[NFT_CACHE_MAX_FILTER];
++
++	unsigned int			num_objs;
+ };
+ 
+ struct nft_cache;
+diff --git a/src/cache.c b/src/cache.c
+index 0cddd1e1cb48..08f6ca700263 100644
+--- a/src/cache.c
++++ b/src/cache.c
+@@ -96,13 +96,43 @@ static unsigned int evaluate_cache_get(struct cmd *cmd, unsigned int flags)
+ 	return flags;
+ }
+ 
+-static unsigned int evaluate_cache_flush(struct cmd *cmd, unsigned int flags)
++static void cache_filter_add(struct nft_cache_filter *filter,
++			     const struct cmd *cmd)
++{
++	int i;
++
++	if (filter->num_objs >= NFT_CACHE_MAX_FILTER)
++		return;
++
++	i = filter->num_objs;
++	filter->obj[i].table = cmd->handle.table.name;
++	filter->obj[i].set = cmd->handle.set.name;
++	filter->num_objs++;
++}
++
++static bool cache_filter_find(const struct nft_cache_filter *filter,
++			      const struct handle *handle)
++{
++	unsigned int i;
++
++	for (i = 0; i < filter->num_objs; i++) {
++		if (!strcmp(filter->obj[i].table, handle->table.name) &&
++		    !strcmp(filter->obj[i].set, handle->set.name))
++			return true;
++	}
++
++	return false;
++}
++
++static unsigned int evaluate_cache_flush(struct cmd *cmd, unsigned int flags,
++					 struct nft_cache_filter *filter)
+ {
+ 	switch (cmd->obj) {
+ 	case CMD_OBJ_SET:
+ 	case CMD_OBJ_MAP:
+ 	case CMD_OBJ_METER:
+ 		flags |= NFT_CACHE_SET;
++		cache_filter_add(filter, cmd);
+ 		break;
+ 	case CMD_OBJ_RULESET:
+ 		flags |= NFT_CACHE_FLUSHED;
+@@ -219,7 +249,7 @@ unsigned int nft_cache_evaluate(struct nft_ctx *nft, struct list_head *cmds,
+ 			flags |= NFT_CACHE_FULL;
+ 			break;
+ 		case CMD_FLUSH:
+-			flags = evaluate_cache_flush(cmd, flags);
++			flags = evaluate_cache_flush(cmd, flags, filter);
+ 			break;
+ 		case CMD_RENAME:
+ 			flags = evaluate_cache_rename(cmd, flags);
+@@ -685,6 +715,9 @@ static int cache_init_objects(struct netlink_ctx *ctx, unsigned int flags,
+ 		}
+ 		if (flags & NFT_CACHE_SETELEM_BIT) {
+ 			list_for_each_entry(set, &table->set_cache.list, cache.list) {
++				if (cache_filter_find(filter, &set->handle))
++					continue;
++
+ 				ret = netlink_list_setelems(ctx, &set->handle,
+ 							    set);
+ 				if (ret < 0) {
+@@ -694,6 +727,9 @@ static int cache_init_objects(struct netlink_ctx *ctx, unsigned int flags,
+ 			}
+ 		} else if (flags & NFT_CACHE_SETELEM_MAYBE) {
+ 			list_for_each_entry(set, &table->set_cache.list, cache.list) {
++				if (cache_filter_find(filter, &set->handle))
++					continue;
++
+ 				if (!set_is_non_concat_range(set))
+ 					continue;
+ 
 -- 
-2.33.0
+2.30.2
 
