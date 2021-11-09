@@ -2,102 +2,82 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03D06C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Nov 2021 11:30:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EFF8C433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Nov 2021 12:42:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D98C7610E9
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Nov 2021 11:30:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3F4C761077
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Nov 2021 12:42:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230492AbhKILdU (ORCPT
+        id S235932AbhKIMo6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 9 Nov 2021 06:33:20 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:50284 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245760AbhKILdT (ORCPT
+        Tue, 9 Nov 2021 07:44:58 -0500
+Received: from mailout1.hostsharing.net ([83.223.95.204]:40251 "EHLO
+        mailout1.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235574AbhKIMo5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 9 Nov 2021 06:33:19 -0500
-Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 87395607F6
-        for <netfilter-devel@vger.kernel.org>; Tue,  9 Nov 2021 12:28:33 +0100 (CET)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft,v5 3/3] cache: missing family in cache filtering
-Date:   Tue,  9 Nov 2021 12:30:28 +0100
-Message-Id: <20211109113028.205658-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Tue, 9 Nov 2021 07:44:57 -0500
+Received: from h08.hostsharing.net (h08.hostsharing.net [IPv6:2a01:37:1000::53df:5f1c:0])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (Client CN "*.hostsharing.net", Issuer "RapidSSL TLS DV RSA Mixed SHA256 2020 CA-1" (verified OK))
+        by mailout1.hostsharing.net (Postfix) with ESMTPS id 9A1DB10193E98;
+        Tue,  9 Nov 2021 13:42:10 +0100 (CET)
+Received: from localhost (unknown [89.246.108.87])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        (No client certificate requested)
+        by h08.hostsharing.net (Postfix) with ESMTPSA id 6BF3C6147FCD;
+        Tue,  9 Nov 2021 13:42:10 +0100 (CET)
+X-Mailbox-Line: From af1325c0c71ad2786b7fba282a4b21c8fc0cf53c Mon Sep 17 00:00:00 2001
+Message-Id: <af1325c0c71ad2786b7fba282a4b21c8fc0cf53c.1636461297.git.lukas@wunner.de>
+From:   Lukas Wunner <lukas@wunner.de>
+Date:   Tue, 9 Nov 2021 13:42:01 +0100
+Subject: [PATCH nf-next] netfilter: nft_fwd_netdev: Support egress hook
+To:     "Pablo Neira Ayuso" <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Check family when filtering out listing of tables and sets.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Fixes: 3f1d3912c3a6 ("cache: filter out tables that are not requested")
-Fixes: 635ee1cad8aa ("cache: filter out sets and maps that are not requested")
+Allow packet redirection to another interface upon egress.
+
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+[lukas: set skb_iif, add commit message]
+Signed-off-by: Lukas Wunner <lukas@wunner.de>
 ---
-v5: incorrect test in cache_init_tables (use of && instead of ||)
+ net/netfilter/nft_fwd_netdev.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
- include/cache.h |  1 +
- src/cache.c     | 12 ++++++++----
- 2 files changed, 9 insertions(+), 4 deletions(-)
-
-diff --git a/include/cache.h b/include/cache.h
-index cdf1f4fbf6f7..120a1b8d91b5 100644
---- a/include/cache.h
-+++ b/include/cache.h
-@@ -49,6 +49,7 @@ struct nft_filter_obj {
- 
- struct nft_cache_filter {
- 	struct {
-+		uint32_t	family;
- 		const char	*table;
- 		const char	*set;
- 	} list;
-diff --git a/src/cache.c b/src/cache.c
-index fb4137bc17a6..facec093dd77 100644
---- a/src/cache.c
-+++ b/src/cache.c
-@@ -194,14 +194,16 @@ static unsigned int evaluate_cache_list(struct nft_ctx *nft, struct cmd *cmd,
+diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
+index cd59afde5b2f..fa9301ca6033 100644
+--- a/net/netfilter/nft_fwd_netdev.c
++++ b/net/netfilter/nft_fwd_netdev.c
+@@ -27,9 +27,11 @@ static void nft_fwd_netdev_eval(const struct nft_expr *expr,
  {
- 	switch (cmd->obj) {
- 	case CMD_OBJ_TABLE:
--		if (filter && cmd->handle.table.name)
-+		if (filter && cmd->handle.table.name) {
-+			filter->list.family = cmd->handle.family;
- 			filter->list.table = cmd->handle.table.name;
--
-+		}
- 		flags |= NFT_CACHE_FULL;
- 		break;
- 	case CMD_OBJ_SET:
- 	case CMD_OBJ_MAP:
- 		if (filter && cmd->handle.table.name && cmd->handle.set.name) {
-+			filter->list.family = cmd->handle.family;
- 			filter->list.table = cmd->handle.table.name;
- 			filter->list.set = cmd->handle.set.name;
- 		}
-@@ -439,7 +441,8 @@ static int set_cache_cb(struct nftnl_set *nls, void *arg)
- 		return -1;
+ 	struct nft_fwd_netdev *priv = nft_expr_priv(expr);
+ 	int oif = regs->data[priv->sreg_dev];
++	struct sk_buff *skb = pkt->skb;
  
- 	if (ctx->filter && ctx->filter->list.set &&
--	    (strcmp(ctx->filter->list.table, set->handle.table.name) ||
-+	    (ctx->filter->list.family != set->handle.family ||
-+	     strcmp(ctx->filter->list.table, set->handle.table.name) ||
- 	     strcmp(ctx->filter->list.set, set->handle.set.name))) {
- 		set_free(set);
- 		return 0;
-@@ -699,7 +702,8 @@ static int cache_init_tables(struct netlink_ctx *ctx, struct handle *h,
- 		list_del(&table->list);
+ 	/* This is used by ifb only. */
+-	skb_set_redirected(pkt->skb, true);
++	skb->skb_iif = skb->dev->ifindex;
++	skb_set_redirected(skb, nft_hook(pkt) == NF_NETDEV_INGRESS);
  
- 		if (filter && filter->list.table &&
--		    (strcmp(filter->list.table, table->handle.table.name))) {
-+		    (filter->list.family != table->handle.family ||
-+		     strcmp(filter->list.table, table->handle.table.name))) {
- 			table_free(table);
- 			continue;
- 		}
+ 	nf_fwd_netdev_egress(pkt, oif);
+ 	regs->verdict.code = NF_STOLEN;
+@@ -198,7 +200,8 @@ static int nft_fwd_validate(const struct nft_ctx *ctx,
+ 			    const struct nft_expr *expr,
+ 			    const struct nft_data **data)
+ {
+-	return nft_chain_validate_hooks(ctx->chain, (1 << NF_NETDEV_INGRESS));
++	return nft_chain_validate_hooks(ctx->chain, (1 << NF_NETDEV_INGRESS) |
++						    (1 << NF_NETDEV_EGRESS));
+ }
+ 
+ static struct nft_expr_type nft_fwd_netdev_type;
 -- 
-2.30.2
+2.33.0
 
