@@ -2,90 +2,90 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F22EC433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Nov 2021 17:26:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12945C433FE
+	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Nov 2021 20:44:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 617D561039
-	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Nov 2021 17:26:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EE750604DC
+	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Nov 2021 20:44:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233445AbhKLR3O (ORCPT
+        id S235828AbhKLUrN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 12 Nov 2021 12:29:14 -0500
-Received: from mta-p5.oit.umn.edu ([134.84.196.205]:39652 "EHLO
-        mta-p5.oit.umn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232399AbhKLR3N (ORCPT
+        Fri, 12 Nov 2021 15:47:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41914 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235830AbhKLUrM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 12 Nov 2021 12:29:13 -0500
-Received: from localhost (unknown [127.0.0.1])
-        by mta-p5.oit.umn.edu (Postfix) with ESMTP id 4HrQVQ6CPjz9vHdM
-        for <netfilter-devel@vger.kernel.org>; Fri, 12 Nov 2021 17:26:22 +0000 (UTC)
-X-Virus-Scanned: amavisd-new at umn.edu
-Received: from mta-p5.oit.umn.edu ([127.0.0.1])
-        by localhost (mta-p5.oit.umn.edu [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id oiZeS1OonXGC for <netfilter-devel@vger.kernel.org>;
-        Fri, 12 Nov 2021 11:26:22 -0600 (CST)
-Received: from mail-qt1-f200.google.com (mail-qt1-f200.google.com [209.85.160.200])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mta-p5.oit.umn.edu (Postfix) with ESMTPS id 4HrQVQ4Xk9z9vHdL
-        for <netfilter-devel@vger.kernel.org>; Fri, 12 Nov 2021 11:26:22 -0600 (CST)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mta-p5.oit.umn.edu 4HrQVQ4Xk9z9vHdL
-DKIM-Filter: OpenDKIM Filter v2.11.0 mta-p5.oit.umn.edu 4HrQVQ4Xk9z9vHdL
-Received: by mail-qt1-f200.google.com with SMTP id e14-20020a05622a110e00b002b0681d127eso6347377qty.15
-        for <netfilter-devel@vger.kernel.org>; Fri, 12 Nov 2021 09:26:22 -0800 (PST)
+        Fri, 12 Nov 2021 15:47:12 -0500
+Received: from mail-ed1-x52c.google.com (mail-ed1-x52c.google.com [IPv6:2a00:1450:4864:20::52c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D85FC061766
+        for <netfilter-devel@vger.kernel.org>; Fri, 12 Nov 2021 12:44:21 -0800 (PST)
+Received: by mail-ed1-x52c.google.com with SMTP id g14so42567678edz.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 12 Nov 2021 12:44:20 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=d.umn.edu; s=google;
-        h=mime-version:from:date:message-id:subject:to;
-        bh=SpdfITWTEBuNkr+83MF7mtV/0zBDQuMumkE2hkVmx8k=;
-        b=gE1Ql1zfj7DymVcJIAZLcvvlycseZn/TD90U5hB8oJmboWSrwoTfprpRnjUqzUycot
-         9RShwQRkRboQLXk2W2J9b6X/YCVZZJ8OyulfsbFGmJk1esw72yMrscLZkgVhHa+PFC7U
-         jhL4KeB5KfZwGYS9Rul0pzGnhJ092DXTS5f25A6wjcYpBxzchVfk7wVk5LGMB5ZUpobH
-         qFrK2eB+QZBPznzq5gu4cNu9k14gPVO+CENHpP+happWTU5RnqmVjbv0hnV9DEHOWUS5
-         NecMaFeubEZulREXvxqex+GDfpUKFghzbbbqJxx7e5/X9kLIMjB1S7D0EP+r20jXws4b
-         JLzw==
+        d=linux-foundation.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=55PU7NCx+y3qp+yVH779Q0TOGJYQ+3HFYI6HIRyxT3U=;
+        b=htlSI9PbweXay3zAqrSqMP+DpA1ClH8JSrIOkKm4ThM5VQWQeSQcQTuWqsEfU+IDbe
+         QIUllEebtflPJL8Cv/ENnzIJTDRXjeJPxnccsg30WJ4yh/6GCPQx8bZfjt8NAF4Bh6Vd
+         1rJPvM8EESgHfctOmZ+HPr1SV7NkIGVI9BqW0=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
-        bh=SpdfITWTEBuNkr+83MF7mtV/0zBDQuMumkE2hkVmx8k=;
-        b=W22zJl+iRxCjVHDsnVx7uW7UF++TUCOrwkSLoRaVX3RDNgedUFaDgesJ9T8vTQzS5s
-         EB069Q3E7ZnUZ7KsZoLpjVM+Lcu25gFa8vRyvx88d0IXW891DTQ2ZHE/hPnsjAy+y/JX
-         HVHI8xZWu1V8QQBvkv5m6j/wUlvQTNqj+ldMOCuT3ANOhKy/AvtnWGhgLcgaefmj3uKv
-         1H6yPfTwRCZtWkAcmLcl7W2X5GsyDENEH9OSW/8QYKPo+YmT87AVnhyZ39Wz2iPxVM9W
-         FKQiNhe8UwossgKUz+CFBuWsPOcFAppA5JmTl8whe5P/lwTIbxSKd7dY4YUtiA6qHVM0
-         x4Jw==
-X-Gm-Message-State: AOAM533BeHDFpBG0Ge9XuycNOy6rz5B9plGryQBfF653/YWml76qF3G2
-        pi5wasktekZJHWafP1zxsIxy28dHBVqDpsu9e0Vc9wPOwOCM7Gq/hy4FiVLfaSKnO/8fZYwfWRc
-        3JoxkwybuTJbC8SJcCKnsxe16Y66litUe9CJNeIMSU2A+esRg
-X-Received: by 2002:a05:620a:45aa:: with SMTP id bp42mr13752032qkb.3.1636737981978;
-        Fri, 12 Nov 2021 09:26:21 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJxNk5haLoKGiacdQ6+JvsKBnuFvtQ5ClEhcmTEkv8YEcOYcyiu0oiSJlKhsYuSkxg2BhWqUi52tInrVt38nNNk=
-X-Received: by 2002:a05:620a:45aa:: with SMTP id bp42mr13752005qkb.3.1636737981762;
- Fri, 12 Nov 2021 09:26:21 -0800 (PST)
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=55PU7NCx+y3qp+yVH779Q0TOGJYQ+3HFYI6HIRyxT3U=;
+        b=uRn6TKlsHJ/+FZIlPs7l5JRKgj39kz8vqZ03GlF0YDuvTJ5gHzg6a6BHapV8RsoxQ2
+         d5v0sEAjWLForicYQaTORSnU3z5MaEaNA0x1HB/9sHYJoGZkY7E/5nj+VHMpF/gZHUMu
+         9P0stJPIRYbQ7IDLd9w7yOF2JyZU3g4icNGRhNh0dYxiRoaiEin6E2JRMZnrpOUkngRl
+         8rUd3Ulec7DCaq0yrt2w4iQeOtt3UxGOu3fbXof5k2dgn7VipMQ0aJoy1hteHeUX2sET
+         lirg5TzWrbJbtrC9xDIhhP4ky/o+EdaNW0o6kV0SBiAshvLegzuTb3YNnnxXF41w9GbW
+         h7vQ==
+X-Gm-Message-State: AOAM530fuMu4KHOPL8dne+NxsyL+ibDmvj0ISwSAjCcK5z46qDwFT/Hm
+        SD7nG1YnqfGVPyJ7NXLYK5uJ/d3anSgobW2pfsw=
+X-Google-Smtp-Source: ABdhPJzk5o3yfQMBM81gfT1e0bxbZnCSHO8lkvA2VDEXALIYpwkeYG13AHRzkNogxfUAJrlnst1xqQ==
+X-Received: by 2002:a17:906:2bd5:: with SMTP id n21mr23101875ejg.337.1636749859164;
+        Fri, 12 Nov 2021 12:44:19 -0800 (PST)
+Received: from mail-wr1-f51.google.com (mail-wr1-f51.google.com. [209.85.221.51])
+        by smtp.gmail.com with ESMTPSA id r19sm3394820edt.54.2021.11.12.12.44.17
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 12 Nov 2021 12:44:18 -0800 (PST)
+Received: by mail-wr1-f51.google.com with SMTP id d27so17655045wrb.6
+        for <netfilter-devel@vger.kernel.org>; Fri, 12 Nov 2021 12:44:17 -0800 (PST)
+X-Received: by 2002:adf:dcd0:: with SMTP id x16mr22056131wrm.229.1636749857666;
+ Fri, 12 Nov 2021 12:44:17 -0800 (PST)
 MIME-Version: 1.0
-From:   Matt Zagrabelny <mzagrabe@d.umn.edu>
-Date:   Fri, 12 Nov 2021 11:26:11 -0600
-Message-ID: <CAOLfK3Xq-vre2+vG6k4shjKnEJ+Dq=-z1isVCsgqNLjh=xxfXg@mail.gmail.com>
-Subject: redefining a variable
-To:     netfilter-devel@vger.kernel.org
+References: <20211111163301.1930617-1-kuba@kernel.org> <163667214755.13198.7575893429746378949.pr-tracker-bot@kernel.org>
+ <20211111174654.3d1f83e3@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com> <CAHk-=wiNEdrLirAbHwJvmp_s2Kjjd5eV680hTZnbBT2gXK4QbQ@mail.gmail.com>
+In-Reply-To: <CAHk-=wiNEdrLirAbHwJvmp_s2Kjjd5eV680hTZnbBT2gXK4QbQ@mail.gmail.com>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Fri, 12 Nov 2021 12:44:01 -0800
+X-Gmail-Original-Message-ID: <CAHk-=wi=w9_TXkQF9P5KranoL_=ChVQyahjecMo1wzRTe0UtEg@mail.gmail.com>
+Message-ID: <CAHk-=wi=w9_TXkQF9P5KranoL_=ChVQyahjecMo1wzRTe0UtEg@mail.gmail.com>
+Subject: Re: 32bit x86 build broken (was: Re: [GIT PULL] Networking for 5.16-rc1)
+To:     Jakub Kicinski <kuba@kernel.org>
+Cc:     "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+        David Miller <davem@davemloft.net>,
+        Netdev <netdev@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        bpf <bpf@vger.kernel.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        linux-can@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Greetings,
+On Thu, Nov 11, 2021 at 6:48 PM Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
+>
+>   +#include <linux/io-64-nonatomic-lo-hi.h>
 
-I would like to be able to redefine variables in nft.
+I committed that fix just to have my tree build on x86-32.
 
-Would you folks consider a switch or a new keyword to achieve something like:
+If the driver later gets disabled entirely for non-64bit builds,
+that's fine too, I guess. Presumably the hardware isn't relevant for
+old 32-bit processors anyway.
 
-define ints = eth0
-
-define --redefine-ok ints = { $ints, eth1 }
-
-define_or_redefine ints = { $ints, eth2 }
-
-?
-
-Thanks for your help and support.
-
--m
+                Linus
