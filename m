@@ -2,156 +2,306 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A30CFC433EF
-	for <netfilter-devel@archiver.kernel.org>; Sun, 14 Nov 2021 11:59:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63F65C433EF
+	for <netfilter-devel@archiver.kernel.org>; Sun, 14 Nov 2021 14:01:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7C6CB60FE8
-	for <netfilter-devel@archiver.kernel.org>; Sun, 14 Nov 2021 11:59:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 48B0560184
+	for <netfilter-devel@archiver.kernel.org>; Sun, 14 Nov 2021 14:01:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235895AbhKNMCH (ORCPT
+        id S229563AbhKNOER (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 14 Nov 2021 07:02:07 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:60842 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235836AbhKNMCE (ORCPT
+        Sun, 14 Nov 2021 09:04:17 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41364 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229862AbhKNOEN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 14 Nov 2021 07:02:04 -0500
-Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 0EDDF6063A
-        for <netfilter-devel@vger.kernel.org>; Sun, 14 Nov 2021 12:57:06 +0100 (CET)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH conntrack-tools 2/3] conntrack: enhance mnl_nfct_dump_cb()
-Date:   Sun, 14 Nov 2021 12:59:04 +0100
-Message-Id: <20211114115905.608546-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20211114115905.608546-1-pablo@netfilter.org>
-References: <20211114115905.608546-1-pablo@netfilter.org>
+        Sun, 14 Nov 2021 09:04:13 -0500
+Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77728C061766
+        for <netfilter-devel@vger.kernel.org>; Sun, 14 Nov 2021 06:01:13 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=086GgTyx3EmFYqURfyJ4HkuVcPJto99JQpDLQUH2ij4=; b=e97mDdwDm8WAPzPN/8BTnyD8lT
+        GaRcJ5Nic0xUP+Kn68pR6PYeiA1NsTewxKaP+DNbrveiUk4MWdaKyHx+fKffO/FpbvLLdcUAAeZ/W
+        iLITfc3bTC790mLONqAeDTr1ybwRuJEUlv00/aYByAa5ng2IjdBdeMasxrNHjczaz04LxxzczSBUg
+        O8oo7WoV6dzEr3Aa+lg2PgcFAHbJq5eqsVAhr1sbJQP+JkFvym+NQuGNlMCO5WiLqHp8EEG129mCG
+        0eRVIM70S0M2bPO4yf03s7Mlk8Vn5G2ePZHNBVmMOZeHoTZIR7fvMBqz3MdvSqxjMcZmE5XAaIzL/
+        SxK+EZ2Q==;
+Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
+        by kadath.azazel.net with esmtp (Exim 4.94.2)
+        (envelope-from <jeremy@azazel.net>)
+        id 1mmG4F-00Cdsh-JO
+        for netfilter-devel@vger.kernel.org; Sun, 14 Nov 2021 14:01:11 +0000
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [ulogd2 PATCH v3 06/16] build: add Make_global.am for common flags
+Date:   Sun, 14 Nov 2021 14:00:48 +0000
+Message-Id: <20211114140058.752394-7-jeremy@azazel.net>
+X-Mailer: git-send-email 2.33.0
+In-Reply-To: <20211114140058.752394-1-jeremy@azazel.net>
+References: <20211114140058.752394-1-jeremy@azazel.net>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add missing features in dump_cb() to mnl_nfct_dump_cb().
+Move `${regular_CFLAGS}` from configure.ac to Make_global.am, renaming
+it to `AM_CFLAGS`.  Add `AM_CPPFGLAGS` to include
+`$(top_srcdir)/include`.  Include the new file in the Makefiles that
+require it.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- src/conntrack.c | 51 +++++++++++++++++++++++++++++++++++++------------
- 1 file changed, 39 insertions(+), 12 deletions(-)
+ Make_global.am                | 2 ++
+ Makefile.am                   | 1 -
+ configure.ac                  | 3 ---
+ filter/Makefile.am            | 5 +++--
+ filter/raw2packet/Makefile.am | 4 +---
+ input/flow/Makefile.am        | 4 ++--
+ input/packet/Makefile.am      | 4 ++--
+ input/sum/Makefile.am         | 6 ++++--
+ libipulog/Makefile.am         | 4 +---
+ output/Makefile.am            | 8 +++++---
+ output/dbi/Makefile.am        | 4 ++--
+ output/ipfix/Makefile.am      | 3 +--
+ output/mysql/Makefile.am      | 5 +++--
+ output/pcap/Makefile.am       | 4 +---
+ output/pgsql/Makefile.am      | 4 ++--
+ output/sqlite3/Makefile.am    | 5 +++--
+ src/Makefile.am               | 9 ++++-----
+ 17 files changed, 36 insertions(+), 39 deletions(-)
+ create mode 100644 Make_global.am
 
-diff --git a/src/conntrack.c b/src/conntrack.c
-index 1346fa8df338..7d9eddb0f5d1 100644
---- a/src/conntrack.c
-+++ b/src/conntrack.c
-@@ -2441,9 +2441,10 @@ static void nfct_mnl_socket_close(void)
- }
+diff --git a/Make_global.am b/Make_global.am
+new file mode 100644
+index 000000000000..4ce896d06d70
+--- /dev/null
++++ b/Make_global.am
+@@ -0,0 +1,2 @@
++AM_CPPFLAGS = -I$(top_srcdir)/include
++AM_CFLAGS   = -Wall -Wextra -Wno-unused-parameter
+diff --git a/Makefile.am b/Makefile.am
+index 5600f8c6f552..0e5721472cb2 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -5,7 +5,6 @@ man_MANS = ulogd.8
  
- static int
--nfct_mnl_dump(uint16_t subsys, uint16_t type, mnl_cb_t cb, uint8_t family,
--	      const struct nfct_filter_dump *filter_dump)
-+nfct_mnl_dump(uint16_t subsys, uint16_t type, mnl_cb_t cb,
-+	      struct ct_cmd *cmd, const struct nfct_filter_dump *filter_dump)
- {
-+	uint8_t family = cmd ? cmd->family : AF_UNSPEC;
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
- 	struct nlmsghdr *nlh;
- 	int res;
-@@ -2457,7 +2458,7 @@ nfct_mnl_dump(uint16_t subsys, uint16_t type, mnl_cb_t cb, uint8_t family,
- 	res = mnl_socket_recvfrom(sock.mnl, buf, sizeof(buf));
- 	while (res > 0) {
- 		res = mnl_cb_run(buf, res, nlh->nlmsg_seq, sock.portid,
--					 cb, NULL);
-+				 cb, cmd);
- 		if (res <= MNL_CB_STOP)
- 			break;
+ EXTRA_DIST = $(man_MANS) ulogd.conf.in doc
  
-@@ -2626,6 +2627,9 @@ static int nfct_global_stats_cb(const struct nlmsghdr *nlh, void *data)
+-AM_CPPFLAGS = -I$(top_srcdir)/include
+ SUBDIRS = include libipulog src input filter output
  
- static int mnl_nfct_dump_cb(const struct nlmsghdr *nlh, void *data)
- {
-+	unsigned int op_type = NFCT_O_DEFAULT;
-+	unsigned int op_flags = 0;
-+	struct ct_cmd *cmd = data;
- 	struct nf_conntrack *ct;
- 	char buf[4096];
+ noinst_DATA = ulogd.conf
+diff --git a/configure.ac b/configure.ac
+index 1d795bad325d..f7d6b50c47f5 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -157,9 +157,6 @@ AC_ARG_WITH([ulogd2libdir],
+         [ulogd2libdir="${libdir}/ulogd"])
+ AC_SUBST([ulogd2libdir])
  
-@@ -2635,7 +2639,34 @@ static int mnl_nfct_dump_cb(const struct nlmsghdr *nlh, void *data)
+-regular_CFLAGS="-Wall -Wextra -Wno-unused-parameter";
+-AC_SUBST([regular_CFLAGS])
+-
+ dnl AC_SUBST(DATABASE_DIR)
+ dnl AC_SUBST(DATABASE_LIB)
+ dnl AC_SUBST(DATABASE_LIB_DIR)
+diff --git a/filter/Makefile.am b/filter/Makefile.am
+index c2755ecb7c49..f1d2c81f48d4 100644
+--- a/filter/Makefile.am
++++ b/filter/Makefile.am
+@@ -1,7 +1,8 @@
+ SUBDIRS = raw2packet
  
- 	nfct_nlmsg_parse(nlh, ct);
- 
--	nfct_snprintf(buf, sizeof(buf), ct, NFCT_T_UNKNOWN, NFCT_O_DEFAULT, 0);
-+	if (nfct_filter(cmd, ct, cur_tmpl)) {
-+		nfct_destroy(ct);
-+		return MNL_CB_OK;
-+	}
+-AM_CPPFLAGS = -I$(top_srcdir)/include ${LIBNFNETLINK_CFLAGS}
+-AM_CFLAGS = ${regular_CFLAGS}
++include $(top_srcdir)/Make_global.am
 +
-+	if (output_mask & _O_SAVE) {
-+		ct_save_snprintf(buf, sizeof(buf), ct, labelmap, NFCT_T_NEW);
-+		goto done;
-+	}
++AM_CPPFLAGS += ${LIBNFNETLINK_CFLAGS}
+ 
+ pkglib_LTLIBRARIES = ulogd_filter_IFINDEX.la ulogd_filter_PWSNIFF.la \
+ 			 ulogd_filter_PRINTPKT.la ulogd_filter_PRINTFLOW.la \
+diff --git a/filter/raw2packet/Makefile.am b/filter/raw2packet/Makefile.am
+index 7498f9aa3c55..90768ef6ca0e 100644
+--- a/filter/raw2packet/Makefile.am
++++ b/filter/raw2packet/Makefile.am
+@@ -1,6 +1,4 @@
+-
+-AM_CPPFLAGS = -I$(top_srcdir)/include
+-AM_CFLAGS = ${regular_CFLAGS}
++include $(top_srcdir)/Make_global.am
+ 
+ pkglib_LTLIBRARIES = ulogd_raw2packet_BASE.la
+ 
+diff --git a/input/flow/Makefile.am b/input/flow/Makefile.am
+index 0e07a7dc1ccc..004e532981a4 100644
+--- a/input/flow/Makefile.am
++++ b/input/flow/Makefile.am
+@@ -1,6 +1,6 @@
++include $(top_srcdir)/Make_global.am
+ 
+-AM_CPPFLAGS = -I$(top_srcdir)/include ${LIBNETFILTER_CONNTRACK_CFLAGS}
+-AM_CFLAGS = ${regular_CFLAGS}
++AM_CPPFLAGS += ${LIBNETFILTER_CONNTRACK_CFLAGS}
+ 
+ if BUILD_NFCT
+ pkglib_LTLIBRARIES = ulogd_inpflow_NFCT.la # ulogd_inpflow_IPFIX.la
+diff --git a/input/packet/Makefile.am b/input/packet/Makefile.am
+index 1c3151d52f13..daf374a65917 100644
+--- a/input/packet/Makefile.am
++++ b/input/packet/Makefile.am
+@@ -1,6 +1,6 @@
++include $(top_srcdir)/Make_global.am
+ 
+-AM_CPPFLAGS = -I$(top_srcdir)/include ${LIBNETFILTER_LOG_CFLAGS}
+-AM_CFLAGS = ${regular_CFLAGS}
++AM_CPPFLAGS += ${LIBNETFILTER_LOG_CFLAGS}
+ 
+ pkglib_LTLIBRARIES = ulogd_inppkt_UNIXSOCK.la
+ 
+diff --git a/input/sum/Makefile.am b/input/sum/Makefile.am
+index b6ddb4d29b93..e0c42f7de376 100644
+--- a/input/sum/Makefile.am
++++ b/input/sum/Makefile.am
+@@ -1,5 +1,7 @@
+-AM_CPPFLAGS = -I$(top_srcdir)/include $(LIBNETFILTER_ACCT_CFLAGS) $(LIBMNL_CFLAGS)
+-AM_CFLAGS = ${regular_CFLAGS}
++include $(top_srcdir)/Make_global.am
 +
-+	if (output_mask & _O_XML) {
-+		op_type = NFCT_O_XML;
-+		if (dump_xml_header_done) {
-+			dump_xml_header_done = 0;
-+			printf("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
-+			       "<conntrack>\n");
-+		}
-+	}
-+	if (output_mask & _O_EXT)
-+		op_flags = NFCT_OF_SHOW_LAYER3;
-+	if (output_mask & _O_KTMS)
-+		op_flags |= NFCT_OF_TIMESTAMP;
-+	if (output_mask & _O_ID)
-+		op_flags |= NFCT_OF_ID;
++AM_CPPFLAGS += $(LIBNETFILTER_ACCT_CFLAGS) $(LIBMNL_CFLAGS)
 +
-+	nfct_snprintf_labels(buf, sizeof(buf), ct, NFCT_T_UNKNOWN, op_type,
-+			     op_flags, labelmap);
-+done:
- 	printf("%s\n", buf);
+ if BUILD_NFACCT
+ pkglib_LTLIBRARIES = ulogd_inpflow_NFACCT.la
+ ulogd_inpflow_NFACCT_la_SOURCES = ulogd_inpflow_NFACCT.c
+diff --git a/libipulog/Makefile.am b/libipulog/Makefile.am
+index 111cd4889ed6..708975a5fb99 100644
+--- a/libipulog/Makefile.am
++++ b/libipulog/Makefile.am
+@@ -1,6 +1,4 @@
+-
+-AM_CPPFLAGS = -I$(top_srcdir)/include
+-AM_CFLAGS = ${regular_CFLAGS}
++include $(top_srcdir)/Make_global.am
  
- 	nfct_destroy(ct);
-@@ -3191,8 +3222,7 @@ static int do_command_ct(const char *progname, struct ct_cmd *cmd)
+ noinst_LTLIBRARIES = libipulog.la
  
- 			res = nfct_mnl_dump(NFNL_SUBSYS_CTNETLINK,
- 					    IPCTNL_MSG_CT_GET_DYING,
--					    mnl_nfct_dump_cb, cmd->family,
--					    NULL);
-+					    mnl_nfct_dump_cb, cmd, NULL);
+diff --git a/output/Makefile.am b/output/Makefile.am
+index 7ba821764afe..879c317d03ff 100644
+--- a/output/Makefile.am
++++ b/output/Makefile.am
+@@ -1,6 +1,8 @@
+-AM_CPPFLAGS = -I$(top_srcdir)/include ${LIBNETFILTER_ACCT_CFLAGS} \
+-              ${LIBNETFILTER_CONNTRACK_CFLAGS} ${LIBNETFILTER_LOG_CFLAGS}
+-AM_CFLAGS = ${regular_CFLAGS}
++include $(top_srcdir)/Make_global.am
++
++AM_CPPFLAGS += ${LIBNETFILTER_ACCT_CFLAGS} \
++	       ${LIBNETFILTER_CONNTRACK_CFLAGS} \
++	       ${LIBNETFILTER_LOG_CFLAGS}
  
- 			nfct_mnl_socket_close();
- 			break;
-@@ -3202,8 +3232,7 @@ static int do_command_ct(const char *progname, struct ct_cmd *cmd)
+ SUBDIRS= pcap mysql pgsql sqlite3 dbi ipfix
  
- 			res = nfct_mnl_dump(NFNL_SUBSYS_CTNETLINK,
- 					    IPCTNL_MSG_CT_GET_UNCONFIRMED,
--					    mnl_nfct_dump_cb, cmd->family,
--					    NULL);
-+					    mnl_nfct_dump_cb, cmd, NULL);
+diff --git a/output/dbi/Makefile.am b/output/dbi/Makefile.am
+index f413cab4a340..38db0a26fd84 100644
+--- a/output/dbi/Makefile.am
++++ b/output/dbi/Makefile.am
+@@ -1,6 +1,6 @@
++include $(top_srcdir)/Make_global.am
  
- 			nfct_mnl_socket_close();
- 			break;
-@@ -3560,8 +3589,7 @@ try_proc_count:
+-AM_CPPFLAGS = -I$(top_srcdir)/include $(DBI_INC)
+-AM_CFLAGS = ${regular_CFLAGS}
++AM_CPPFLAGS += $(DBI_INC)
  
- 		res = nfct_mnl_dump(NFNL_SUBSYS_CTNETLINK,
- 				    IPCTNL_MSG_CT_GET_STATS_CPU,
--				    nfct_stats_cb, AF_UNSPEC,
--				    NULL);
-+				    nfct_stats_cb, NULL, NULL);
+ if HAVE_DBI
  
- 		nfct_mnl_socket_close();
+diff --git a/output/ipfix/Makefile.am b/output/ipfix/Makefile.am
+index cacda265c1f5..7354f6be6d51 100644
+--- a/output/ipfix/Makefile.am
++++ b/output/ipfix/Makefile.am
+@@ -1,5 +1,4 @@
+-AM_CPPFLAGS = -I$(top_srcdir)/include
+-AM_CFLAGS = $(regular_CFLAGS)
++include $(top_srcdir)/Make_global.am
  
-@@ -3580,8 +3608,7 @@ try_proc_count:
+ pkglib_LTLIBRARIES = ulogd_output_IPFIX.la
  
- 		res = nfct_mnl_dump(NFNL_SUBSYS_CTNETLINK_EXP,
- 				    IPCTNL_MSG_EXP_GET_STATS_CPU,
--				    nfexp_stats_cb, AF_UNSPEC,
--				    NULL);
-+				    nfexp_stats_cb, NULL, NULL);
+diff --git a/output/mysql/Makefile.am b/output/mysql/Makefile.am
+index c24208c3e302..3839a135c926 100644
+--- a/output/mysql/Makefile.am
++++ b/output/mysql/Makefile.am
+@@ -1,5 +1,6 @@
+-AM_CPPFLAGS = -I$(top_srcdir)/include $(MYSQL_INC)
+-AM_CFLAGS = ${regular_CFLAGS}
++include $(top_srcdir)/Make_global.am
++
++AM_CPPFLAGS += $(MYSQL_INC)
  
- 		nfct_mnl_socket_close();
+ if HAVE_MYSQL
+ 
+diff --git a/output/pcap/Makefile.am b/output/pcap/Makefile.am
+index c1723a642a63..a022bf0cc15c 100644
+--- a/output/pcap/Makefile.am
++++ b/output/pcap/Makefile.am
+@@ -1,6 +1,4 @@
+-
+-AM_CPPFLAGS = -I$(top_srcdir)/include
+-AM_CFLAGS = ${regular_CFLAGS}
++include $(top_srcdir)/Make_global.am
+ 
+ if HAVE_PCAP
+ 
+diff --git a/output/pgsql/Makefile.am b/output/pgsql/Makefile.am
+index bdaf1d249dce..fbc0d04c9f11 100644
+--- a/output/pgsql/Makefile.am
++++ b/output/pgsql/Makefile.am
+@@ -1,6 +1,6 @@
++include $(top_srcdir)/Make_global.am
+ 
+-AM_CPPFLAGS = -I$(top_srcdir)/include -I$(PQINCPATH)
+-AM_CFLAGS = ${regular_CFLAGS}
++AM_CPPFLAGS += -I$(PQINCPATH)
+ 
+ if HAVE_PGSQL
+ 
+diff --git a/output/sqlite3/Makefile.am b/output/sqlite3/Makefile.am
+index 62af267c4108..e00e1d6cf11c 100644
+--- a/output/sqlite3/Makefile.am
++++ b/output/sqlite3/Makefile.am
+@@ -1,5 +1,6 @@
+-AM_CPPFLAGS = -I$(top_srcdir)/include ${libsqlite3_CFLAGS}
+-AM_CFLAGS = ${regular_CFLAGS}
++include $(top_srcdir)/Make_global.am
++
++AM_CPPFLAGS += ${libsqlite3_CFLAGS}
+ 
+ if HAVE_SQLITE3
+ 
+diff --git a/src/Makefile.am b/src/Makefile.am
+index e1d45aee4b6c..7a12a72da9a3 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -1,9 +1,8 @@
++include $(top_srcdir)/Make_global.am
+ 
+-AM_CPPFLAGS = -I$(top_srcdir)/include \
+-	      -DULOGD_CONFIGFILE='"$(sysconfdir)/ulogd.conf"' \
+-	      -DULOGD_LOGFILE_DEFAULT='"$(localstatedir)/log/ulogd.log"' \
+-	      -DULOGD2_LIBDIR='"$(ulogd2libdir)"'
+-AM_CFLAGS = ${regular_CFLAGS}
++AM_CPPFLAGS += -DULOGD_CONFIGFILE='"$(sysconfdir)/ulogd.conf"' \
++	       -DULOGD_LOGFILE_DEFAULT='"$(localstatedir)/log/ulogd.log"' \
++	       -DULOGD2_LIBDIR='"$(ulogd2libdir)"'
+ 
+ sbin_PROGRAMS = ulogd
  
 -- 
-2.30.2
+2.33.0
 
