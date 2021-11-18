@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB2D2C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Nov 2021 22:26:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE0FDC433FE
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Nov 2021 22:26:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B809061AA3
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Nov 2021 22:26:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CA44561139
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Nov 2021 22:26:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231991AbhKRW3h (ORCPT
+        id S232294AbhKRW3i (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 Nov 2021 17:29:37 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:58300 "EHLO
+        Thu, 18 Nov 2021 17:29:38 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:58276 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232157AbhKRW3f (ORCPT
+        with ESMTP id S232010AbhKRW3d (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 Nov 2021 17:29:35 -0500
+        Thu, 18 Nov 2021 17:29:33 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 762916499E;
-        Thu, 18 Nov 2021 23:24:26 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 31884649B7;
+        Thu, 18 Nov 2021 23:24:24 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 07/11] netfilter: ctnetlink: do not erase error code with EINVAL
-Date:   Thu, 18 Nov 2021 23:26:14 +0100
-Message-Id: <20211118222618.433273-8-pablo@netfilter.org>
+Subject: [PATCH net 03/11] netfilter: nft_payload: Remove duplicated include in nft_payload.c
+Date:   Thu, 18 Nov 2021 23:26:10 +0100
+Message-Id: <20211118222618.433273-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20211118222618.433273-1-pablo@netfilter.org>
 References: <20211118222618.433273-1-pablo@netfilter.org>
@@ -34,33 +34,29 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florent Fourcot <florent.fourcot@wifirst.fr>
+From: Wan Jiabing <wanjiabing@vivo.com>
 
-And be consistent in error management for both orig/reply filtering
+Fix following checkincludes.pl warning:
+./net/netfilter/nft_payload.c: linux/ip.h is included more than once.
 
-Fixes: cb8aa9a3affb ("netfilter: ctnetlink: add kernel side filtering for dump")
-Signed-off-by: Florent Fourcot <florent.fourcot@wifirst.fr>
+Signed-off-by: Wan Jiabing <wanjiabing@vivo.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_netlink.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ net/netfilter/nft_payload.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 2663764d0b6e..c7708bde057c 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1012,10 +1012,8 @@ ctnetlink_alloc_filter(const struct nlattr * const cda[], u8 family)
- 						   filter->family,
- 						   &filter->zone,
- 						   filter->reply_flags);
--		if (err < 0) {
--			err = -EINVAL;
-+		if (err < 0)
- 			goto err_filter;
--		}
- 	}
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index cbfe4e4a4ad7..bd689938a2e0 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -22,7 +22,6 @@
+ #include <linux/icmpv6.h>
+ #include <linux/ip.h>
+ #include <linux/ipv6.h>
+-#include <linux/ip.h>
+ #include <net/sctp/checksum.h>
  
- 	return filter;
+ static bool nft_payload_rebuild_vlan_hdr(const struct sk_buff *skb, int mac_off,
 -- 
 2.30.2
 
