@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D1BAC4332F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A980DC43219
 	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Nov 2021 22:26:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 441E061AA2
+	by mail.kernel.org (Postfix) with ESMTP id 9109961A79
 	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Nov 2021 22:26:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232322AbhKRW3k (ORCPT
+        id S232312AbhKRW3l (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 Nov 2021 17:29:40 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:58318 "EHLO
+        Thu, 18 Nov 2021 17:29:41 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:58282 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232013AbhKRW3g (ORCPT
+        with ESMTP id S232292AbhKRW3h (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 Nov 2021 17:29:36 -0500
+        Thu, 18 Nov 2021 17:29:37 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 8EFE464A76;
-        Thu, 18 Nov 2021 23:24:27 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id A6DCE64B41;
+        Thu, 18 Nov 2021 23:24:28 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 09/11] netfilter: xt_IDLETIMER: replace snprintf in show functions with sysfs_emit
-Date:   Thu, 18 Nov 2021 23:26:16 +0100
-Message-Id: <20211118222618.433273-10-pablo@netfilter.org>
+Subject: [PATCH net 11/11] selftests: nft_nat: switch port shadow test cases to socat
+Date:   Thu, 18 Nov 2021 23:26:18 +0100
+Message-Id: <20211118222618.433273-12-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20211118222618.433273-1-pablo@netfilter.org>
 References: <20211118222618.433273-1-pablo@netfilter.org>
@@ -34,38 +34,87 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Jing Yao <yao.jing2@zte.com.cn>
+From: Florian Westphal <fw@strlen.de>
 
-coccicheck complains about the use of snprintf() in sysfs show
-functions:
-WARNING use scnprintf or sprintf
+There are now at least three distinct flavours of netcat/nc tool:
+'original' version, one version ported from openbsd and nmap-ncat.
 
-Use sysfs_emit instead of scnprintf, snprintf or sprintf makes more
-sense.
+The script only works with original because it sets SOREUSEPORT option.
 
-Reported-by: Zeal Robot <zealci@zte.com.cn>
-Signed-off-by: Jing Yao <yao.jing2@zte.com.cn>
+Other nc versions return 'port already in use' error and port shadow test fails:
+
+PASS: inet IPv6 redirection for ns2-hMHcaRvx
+nc: bind failed: Address already in use
+ERROR: portshadow test default: got reply from "ROUTER", not CLIENT as intended
+
+Switch to socat instead.
+
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_IDLETIMER.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/testing/selftests/netfilter/nft_nat.sh | 26 ++++++++++++++------
+ 1 file changed, 19 insertions(+), 7 deletions(-)
 
-diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
-index 2f7cf5ecebf4..0f8bb0bf558f 100644
---- a/net/netfilter/xt_IDLETIMER.c
-+++ b/net/netfilter/xt_IDLETIMER.c
-@@ -85,9 +85,9 @@ static ssize_t idletimer_tg_show(struct device *dev,
- 	mutex_unlock(&list_mutex);
+diff --git a/tools/testing/selftests/netfilter/nft_nat.sh b/tools/testing/selftests/netfilter/nft_nat.sh
+index c62e4e26252c..d88867d2fed7 100755
+--- a/tools/testing/selftests/netfilter/nft_nat.sh
++++ b/tools/testing/selftests/netfilter/nft_nat.sh
+@@ -760,20 +760,20 @@ test_port_shadow()
+ 	local logmsg=""
  
- 	if (time_after(expires, jiffies) || ktimespec.tv_sec > 0)
--		return snprintf(buf, PAGE_SIZE, "%ld\n", time_diff);
-+		return sysfs_emit(buf, "%ld\n", time_diff);
+ 	# make shadow entry, from client (ns2), going to (ns1), port 41404, sport 1405.
+-	echo "fake-entry" | ip netns exec "$ns2" nc -w 1 -p 1405 -u "$daddrc" 41404 > /dev/null
++	echo "fake-entry" | ip netns exec "$ns2" timeout 1 socat -u STDIN UDP:"$daddrc":41404,sourceport=1405
  
--	return snprintf(buf, PAGE_SIZE, "0\n");
-+	return sysfs_emit(buf, "0\n");
- }
+-	echo ROUTER | ip netns exec "$ns0" nc -w 5 -u -l -p 1405 >/dev/null 2>&1 &
+-	nc_r=$!
++	echo ROUTER | ip netns exec "$ns0" timeout 5 socat -u STDIN UDP4-LISTEN:1405 &
++	sc_r=$!
  
- static void idletimer_tg_work(struct work_struct *work)
+-	echo CLIENT | ip netns exec "$ns2" nc -w 5 -u -l -p 1405 >/dev/null 2>&1 &
+-	nc_c=$!
++	echo CLIENT | ip netns exec "$ns2" timeout 5 socat -u STDIN UDP4-LISTEN:1405,reuseport &
++	sc_c=$!
+ 
+ 	sleep 0.3
+ 
+ 	# ns1 tries to connect to ns0:1405.  With default settings this should connect
+ 	# to client, it matches the conntrack entry created above.
+ 
+-	result=$(echo "" | ip netns exec "$ns1" nc -w 1 -p 41404 -u "$daddrs" 1405)
++	result=$(echo "data" | ip netns exec "$ns1" timeout 1 socat - UDP:"$daddrs":1405,sourceport=41404)
+ 
+ 	if [ "$result" = "$expect" ] ;then
+ 		echo "PASS: portshadow test $test: got reply from ${expect}${logmsg}"
+@@ -782,7 +782,7 @@ test_port_shadow()
+ 		ret=1
+ 	fi
+ 
+-	kill $nc_r $nc_c 2>/dev/null
++	kill $sc_r $sc_c 2>/dev/null
+ 
+ 	# flush udp entries for next test round, if any
+ 	ip netns exec "$ns0" conntrack -F >/dev/null 2>&1
+@@ -852,6 +852,18 @@ test_port_shadowing()
+ {
+ 	local family="ip"
+ 
++	conntrack -h >/dev/null 2>&1
++	if [ $? -ne 0 ];then
++		echo "SKIP: Could not run nat port shadowing test without conntrack tool"
++		return
++	fi
++
++	socat -h > /dev/null 2>&1
++	if [ $? -ne 0 ];then
++		echo "SKIP: Could not run nat port shadowing test without socat tool"
++		return
++	fi
++
+ 	ip netns exec "$ns0" sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
+ 	ip netns exec "$ns0" sysctl net.ipv4.conf.veth1.forwarding=1 > /dev/null
+ 
 -- 
 2.30.2
 
