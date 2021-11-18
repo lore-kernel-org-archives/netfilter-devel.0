@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D6B6C43217
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Nov 2021 22:26:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B8E8C433FE
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Nov 2021 22:26:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2906B61139
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Nov 2021 22:26:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4736261A79
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Nov 2021 22:26:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232033AbhKRW3d (ORCPT
+        id S232255AbhKRW3g (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 Nov 2021 17:29:33 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:58270 "EHLO
+        Thu, 18 Nov 2021 17:29:36 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:58272 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231610AbhKRW3c (ORCPT
+        with ESMTP id S231991AbhKRW3d (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 Nov 2021 17:29:32 -0500
+        Thu, 18 Nov 2021 17:29:33 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 932BB6499E;
-        Thu, 18 Nov 2021 23:24:23 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id BC392649C0;
+        Thu, 18 Nov 2021 23:24:24 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 02/11] selftests: netfilter: extend nfqueue tests to cover vrf device
-Date:   Thu, 18 Nov 2021 23:26:09 +0100
-Message-Id: <20211118222618.433273-3-pablo@netfilter.org>
+Subject: [PATCH net 04/11] selftests: nft_nat: Improve port shadow test stability
+Date:   Thu, 18 Nov 2021 23:26:11 +0100
+Message-Id: <20211118222618.433273-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20211118222618.433273-1-pablo@netfilter.org>
 References: <20211118222618.433273-1-pablo@netfilter.org>
@@ -34,95 +34,45 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Phil Sutter <phil@nwl.cc>
 
-VRF device calls the output/postrouting hooks so packet should be seeon
-with oifname tvrf and once with eth0.
+Setup phase in test_port_shadow() relied upon a race-condition:
+Listening nc on port 1405 was started in background before attempting to
+create the fake conntrack entry using the same source port. If listening
+nc won, fake conntrack entry could not be created causing wrong
+behaviour. Reorder nc calls to fix this and introduce a short delay
+before testing the setup to wait for listening nc process startup.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 465f15a6d1a8f ("selftests: nft_nat: add udp hole punch test case")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- .../testing/selftests/netfilter/nft_queue.sh  | 54 +++++++++++++++++++
- 1 file changed, 54 insertions(+)
+ tools/testing/selftests/netfilter/nft_nat.sh | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/tools/testing/selftests/netfilter/nft_queue.sh b/tools/testing/selftests/netfilter/nft_queue.sh
-index 3d202b90b33d..7d27f1f3bc01 100755
---- a/tools/testing/selftests/netfilter/nft_queue.sh
-+++ b/tools/testing/selftests/netfilter/nft_queue.sh
-@@ -16,6 +16,10 @@ timeout=4
+diff --git a/tools/testing/selftests/netfilter/nft_nat.sh b/tools/testing/selftests/netfilter/nft_nat.sh
+index da1c1e4b6c86..905c033db74d 100755
+--- a/tools/testing/selftests/netfilter/nft_nat.sh
++++ b/tools/testing/selftests/netfilter/nft_nat.sh
+@@ -759,14 +759,16 @@ test_port_shadow()
+ 	local result=""
+ 	local logmsg=""
  
- cleanup()
- {
-+	ip netns pids ${ns1} | xargs kill 2>/dev/null
-+	ip netns pids ${ns2} | xargs kill 2>/dev/null
-+	ip netns pids ${nsrouter} | xargs kill 2>/dev/null
++	# make shadow entry, from client (ns2), going to (ns1), port 41404, sport 1405.
++	echo "fake-entry" | ip netns exec "$ns2" nc -w 1 -p 1405 -u "$daddrc" 41404 > /dev/null
 +
- 	ip netns del ${ns1}
- 	ip netns del ${ns2}
- 	ip netns del ${nsrouter}
-@@ -332,6 +336,55 @@ EOF
- 	echo "PASS: tcp via loopback and re-queueing"
- }
+ 	echo ROUTER | ip netns exec "$ns0" nc -w 5 -u -l -p 1405 >/dev/null 2>&1 &
+ 	nc_r=$!
  
-+test_icmp_vrf() {
-+	ip -net $ns1 link add tvrf type vrf table 9876
-+	if [ $? -ne 0 ];then
-+		echo "SKIP: Could not add vrf device"
-+		return
-+	fi
-+
-+	ip -net $ns1 li set eth0 master tvrf
-+	ip -net $ns1 li set tvrf up
-+
-+	ip -net $ns1 route add 10.0.2.0/24 via 10.0.1.1 dev eth0 table 9876
-+ip netns exec ${ns1} nft -f /dev/stdin <<EOF
-+flush ruleset
-+table inet filter {
-+	chain output {
-+		type filter hook output priority 0; policy accept;
-+		meta oifname "tvrf" icmp type echo-request counter queue num 1
-+		meta oifname "eth0" icmp type echo-request counter queue num 1
-+	}
-+	chain post {
-+		type filter hook postrouting priority 0; policy accept;
-+		meta oifname "tvrf" icmp type echo-request counter queue num 1
-+		meta oifname "eth0" icmp type echo-request counter queue num 1
-+	}
-+}
-+EOF
-+	ip netns exec ${ns1} ./nf-queue -q 1 -t $timeout &
-+	local nfqpid=$!
-+
-+	sleep 1
-+	ip netns exec ${ns1} ip vrf exec tvrf ping -c 1 10.0.2.99 > /dev/null
-+
-+	for n in output post; do
-+		for d in tvrf eth0; do
-+			ip netns exec ${ns1} nft list chain inet filter $n | grep -q "oifname \"$d\" icmp type echo-request counter packets 1"
-+			if [ $? -ne 0 ] ; then
-+				echo "FAIL: chain $n: icmp packet counter mismatch for device $d" 1>&2
-+				ip netns exec ${ns1} nft list ruleset
-+				ret=1
-+				return
-+			fi
-+		done
-+	done
-+
-+	wait $nfqpid
-+	[ $? -eq 0 ] && echo "PASS: icmp+nfqueue via vrf"
-+	wait 2>/dev/null
-+}
-+
- ip netns exec ${nsrouter} sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
- ip netns exec ${nsrouter} sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
- ip netns exec ${nsrouter} sysctl net.ipv4.conf.veth1.forwarding=1 > /dev/null
-@@ -372,5 +425,6 @@ test_queue 20
- test_tcp_forward
- test_tcp_localhost
- test_tcp_localhost_requeue
-+test_icmp_vrf
+ 	echo CLIENT | ip netns exec "$ns2" nc -w 5 -u -l -p 1405 >/dev/null 2>&1 &
+ 	nc_c=$!
  
- exit $ret
+-	# make shadow entry, from client (ns2), going to (ns1), port 41404, sport 1405.
+-	echo "fake-entry" | ip netns exec "$ns2" nc -w 1 -p 1405 -u "$daddrc" 41404 > /dev/null
++	sleep 0.3
+ 
+ 	# ns1 tries to connect to ns0:1405.  With default settings this should connect
+ 	# to client, it matches the conntrack entry created above.
 -- 
 2.30.2
 
