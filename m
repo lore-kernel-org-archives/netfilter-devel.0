@@ -2,101 +2,260 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BE03C433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Nov 2021 20:31:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7446BC433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Nov 2021 22:01:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 61926611BF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Nov 2021 20:31:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 45FDE61361
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Nov 2021 22:01:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232031AbhKRUeQ (ORCPT
+        id S229600AbhKRWEB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 Nov 2021 15:34:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43130 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232082AbhKRUeQ (ORCPT
+        Thu, 18 Nov 2021 17:04:01 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:57556 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229472AbhKRWEB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 Nov 2021 15:34:16 -0500
-Received: from mail-pj1-x102b.google.com (mail-pj1-x102b.google.com [IPv6:2607:f8b0:4864:20::102b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DDFF1C06174A
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Nov 2021 12:31:15 -0800 (PST)
-Received: by mail-pj1-x102b.google.com with SMTP id gb13-20020a17090b060d00b001a674e2c4a8so6791696pjb.4
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Nov 2021 12:31:15 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=TcLB7MvG3K4Ke10h1bINRCs3q+QDRcCT3lfYvCR0Icg=;
-        b=eF6YFsU21ZNpUT9ttG8va6xfpqx992IvMr6iI4uWNx3Pi4DmcbDIos4Wu0d7fCnbOa
-         2i0Q2JaqJO6RFFFu7I3C9jpN+/7Gfho/SD4r6QgMcQxBKiyIpei3Irq/AsGzMdTeNNPi
-         qsXM+DEypZ3V0IH04X71UaBa7n7L2U77ZXVyE=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=TcLB7MvG3K4Ke10h1bINRCs3q+QDRcCT3lfYvCR0Icg=;
-        b=3AwjSoHiEL2gzOxO61Tp6babLYQzouYXWgtobHf3jFgcxyaM/Q/tYH0T1/GqQCm2rP
-         te86gayZGl5q2lbZ9k92O08qWnxxjV4h3dtCmGMyW9fKUz0bYf+onOAcxcJufMPwSSyg
-         Vm0sTiXfNaalp1MF2bdASPa8dYv7sA06f9AFt/QpXTkEF7OQ2Z5f23NvcgC7uIyZMdgu
-         EluxidoGUJsz9eod07lJk2JL8GEOPfViM3ymptzERUlNNucK3vOC0kIL6XMBAcLxSMcD
-         CrbrmyoB3I2Xz5jipmuZU58Bd1xIFdvx2DLjEXFGBccCAv1OHtwCvALdEFQQPWGavnEp
-         rDRQ==
-X-Gm-Message-State: AOAM5308vvXau+mcWP+gHsRBlHDuaa4fXSS9ZC0Gshz3P8/yOYesfjA8
-        6zwbOb+yk5VLt4yFAbpzuIAbKg==
-X-Google-Smtp-Source: ABdhPJzRya15wHW2UAKLnXUjjo2OcJuImXw4tuyrV18/sEsTXSQY7dn3QqXgLgUi5g6uysZtaiNrKA==
-X-Received: by 2002:a17:90a:df83:: with SMTP id p3mr13827388pjv.145.1637267475336;
-        Thu, 18 Nov 2021 12:31:15 -0800 (PST)
-Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
-        by smtp.gmail.com with ESMTPSA id g17sm453059pfv.136.2021.11.18.12.31.14
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 18 Nov 2021 12:31:15 -0800 (PST)
-From:   Kees Cook <keescook@chromium.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Kees Cook <keescook@chromium.org>,
+        Thu, 18 Nov 2021 17:04:01 -0500
+Received: from netfilter.org (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 34E6F64A8D;
+        Thu, 18 Nov 2021 22:58:52 +0100 (CET)
+Date:   Thu, 18 Nov 2021 23:00:53 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Volodymyr Mytnyk <volodymyr.mytnyk@plvision.eu>
+Cc:     netdev@vger.kernel.org, mickeyr@marvell.com,
+        serhiy.pshyk@plvision.eu, taras.chornyi@plvision.eu,
+        Volodymyr Mytnyk <vmytnyk@marvell.com>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
         "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>, linux-kernel@vger.kernel.org,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paul Blakey <paulb@mellanox.com>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-hardening@vger.kernel.org
-Subject: [PATCH] netfilter: conntrack: Use memset_startat() to zero struct nf_conn
-Date:   Thu, 18 Nov 2021 12:31:13 -0800
-Message-Id: <20211118203113.1286928-1-keescook@chromium.org>
-X-Mailer: git-send-email 2.30.2
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net v2 RESEND] netfilter: fix conntrack flows stuck issue
+ on cleanup.
+Message-ID: <YZbNFaKUHaCIYdRK@salvia>
+References: <1635931896-27539-1-git-send-email-volodymyr.mytnyk@plvision.eu>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=989; h=from:subject; bh=8G8ELxCaYyImypCEBWdgERqa1W0PnBKrxOA03FjrnuI=; b=owEBbQKS/ZANAwAKAYly9N/cbcAmAcsmYgBhlrgQ81go+amAV4Ra130N28YvcOlvVMevTi2OsK0V PP+vTgmJAjMEAAEKAB0WIQSlw/aPIp3WD3I+bhOJcvTf3G3AJgUCYZa4EAAKCRCJcvTf3G3AJhlGEA CjA7esHrkQXRc1xiiREdoZsmG60wWX92CFRgE+X8+C993iK8CaPdrfi+8Rhz2iOksVsnAYaNX8DR3T jKd0zhYJMa7TtVHL8OMDF3GCDJib0UYXjG1ocqe/hwTOyyANGytLztehRyHb7B7Kb1b02ea+gw65wW xjiAan5E9RVw90+50uTGqkK9d2GfBsv2XcF3HEXzhktA0zkH4Aurk6CtKXr8Xprwysw32Xc9Omk8Su ARAP1kfq+qgC+vKE/wCvXvSEJ0xYbq959PtCQW41dbwGQTYiPvCNBc2zs/lnuNEwqr+D7ZJ7oFg5ct 6ftzPlVwPlX5ij7oit5cn9nSXzMlvAu2MCBlQnRij4gi0VTWmbdUNh5q1tQGnEk90rLXrfom5OGd66 /F46gyg6mlZi0u6cv51ZtnacUdXkjVSZfaguaj3I4owqxrNcw4LzyemNqfAHEcLAR/Ra5feQB8Ovjx jZe/OEwgFXlP+LeVKvotPY45hztqforSJyNLWlWsCopwG7wyt0uZKXVApXDKR39N+mMy41d1nRitT9 Cvb3wb5aH6OPXhaQ6BfWwRAzWtnvOmVSd9K/CHbQtRw/g55Qt0jT2raJQQlGD9oCarRkGQeA2wfy1o JNg+0TmqxKV1SHFoj+KWXJbJvzv9wT6Bt4kbwdO1rEkoaojBo8A7ObRgzmeQ==
-X-Developer-Key: i=keescook@chromium.org; a=openpgp; fpr=A5C3F68F229DD60F723E6E138972F4DFDC6DC026
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="UMHJGjOvqhOHZk8H"
+Content-Disposition: inline
+In-Reply-To: <1635931896-27539-1-git-send-email-volodymyr.mytnyk@plvision.eu>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-In preparation for FORTIFY_SOURCE performing compile-time and run-time
-field bounds checking for memset(), avoid intentionally writing across
-neighboring fields.
 
-Use memset_startat() to avoid confusing memset() about writing beyond
-the target struct member.
+--UMHJGjOvqhOHZk8H
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
+Hi,
+
+On Wed, Nov 03, 2021 at 11:31:36AM +0200, Volodymyr Mytnyk wrote:
+> From: Volodymyr Mytnyk <vmytnyk@marvell.com>
+> 
+> On busy system with big number (few thousands) of HW offloaded flows, it
+> is possible to hit the situation, where some of the conntack flows are
+> stuck in conntrack table (as offloaded) and cannot be removed by user.
+> 
+> This behaviour happens if user has configured conntack using tc sub-system,
+> offloaded those flows for HW and then deleted tc configuration from Linux
+> system by deleting the tc qdiscs.
+> 
+> When qdiscs are removed, the nf_flow_table_free() is called to do the
+> cleanup of HW offloaded flows in conntrack table.
+> 
+> ...
+> process_one_work
+>   tcf_ct_flow_table_cleanup_work()
+>     nf_flow_table_free()
+> 
+> The nf_flow_table_free() does the following things:
+> 
+>   1. cancels gc workqueue
+>   2. marks all flows as teardown
+>   3. executes nf_flow_offload_gc_step() once for each flow to
+>      trigger correct teardown flow procedure (e.g., allocate
+>      work to delete the HW flow and marks the flow as "dying").
+>   4. waits for all scheduled flow offload works to be finished.
+>   5. executes nf_flow_offload_gc_step() once for each flow to
+>      trigger the deleting of flows.
+> 
+> Root cause:
+> 
+> In step 3, nf_flow_offload_gc_step() expects to move flow to "dying"
+> state by using nf_flow_offload_del() and deletes the flow in next
+> nf_flow_offload_gc_step() iteration. But, if flow is in "pending" state
+> for some reason (e.g., reading HW stats), it will not be moved to
+> "dying" state as expected by nf_flow_offload_gc_step() and will not
+> be marked as "dead" for delition.
+> 
+> In step 5, nf_flow_offload_gc_step() assumes that all flows marked
+> as "dead" and will be deleted by this call, but this is not true since
+> the state was not set diring previous nf_flow_offload_gc_step()
+> call.
+> 
+> It issue causes some of the flows to get stuck in connection tracking
+> system or not release properly.
+> 
+> To fix this problem, add nf_flow_table_offload_flush() call between 2 & 3
+> step, to make sure no other flow offload works will be in "pending" state
+> during step 3.
+
+Thanks for the detailed report.
+
+I'm attaching two patches, the first one is a preparation patch. The
+second patch flushes the pending work, then it sets the teardown flag
+to all flows in the flowtable and it forces a garbage collector run to
+queue work to remove the flows from hardware, then it flushes this new
+pending work and (finally) it forces another garbage collector run to
+remove the entry from the software flowtable. Compile-tested only.
+
+--UMHJGjOvqhOHZk8H
+Content-Type: text/x-diff; charset=utf-8
+Content-Disposition: attachment;
+	filename="0001-netfilter-flowtable-add-nf_flow_table_gc_run.patch"
+
+From 81dd33c687b1e868b40e1aac066529d93fa396d8 Mon Sep 17 00:00:00 2001
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Thu, 18 Nov 2021 22:16:37 +0100
+Subject: [PATCH 1/2] netfilter: flowtable: add nf_flow_table_gc_run()
+
+Expose nf_flow_table_gc_run() to force a garbage collector run from the
+offload infrastructure.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_core.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ include/net/netfilter/nf_flow_table.h |  1 +
+ net/netfilter/nf_flow_table_core.c    | 13 +++++++++----
+ 2 files changed, 10 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 770a63103c7a..cdfb63509501 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1562,9 +1562,7 @@ __nf_conntrack_alloc(struct net *net,
- 	ct->status = 0;
- 	ct->timeout = 0;
- 	write_pnet(&ct->ct_net, net);
--	memset(&ct->__nfct_init_offset, 0,
--	       offsetof(struct nf_conn, proto) -
--	       offsetof(struct nf_conn, __nfct_init_offset));
-+	memset_after(ct, 0, __nfct_init_offset);
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index a3647fadf1cc..6dc19d1ceeff 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -264,6 +264,7 @@ void flow_offload_refresh(struct nf_flowtable *flow_table,
  
- 	nf_ct_zone_add(ct, zone);
+ struct flow_offload_tuple_rhash *flow_offload_lookup(struct nf_flowtable *flow_table,
+ 						     struct flow_offload_tuple *tuple);
++void nf_flow_table_gc_run(struct nf_flowtable *flow_table);
+ void nf_flow_table_gc_cleanup(struct nf_flowtable *flowtable,
+ 			      struct net_device *dev);
+ void nf_flow_table_cleanup(struct net_device *dev);
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 87a7388b6c89..37fd6c646ccb 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -474,12 +474,17 @@ static void nf_flow_offload_gc_step(struct flow_offload *flow, void *data)
+ 	}
+ }
  
++void nf_flow_table_gc_run(struct nf_flowtable *flow_table)
++{
++	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, flow_table);
++}
++
+ static void nf_flow_offload_work_gc(struct work_struct *work)
+ {
+ 	struct nf_flowtable *flow_table;
+ 
+ 	flow_table = container_of(work, struct nf_flowtable, gc_work.work);
+-	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, flow_table);
++	nf_flow_table_gc_run(flow_table);
+ 	queue_delayed_work(system_power_efficient_wq, &flow_table->gc_work, HZ);
+ }
+ 
+@@ -637,11 +642,11 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
+ 
+ 	cancel_delayed_work_sync(&flow_table->gc_work);
+ 	nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
+-	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, flow_table);
++	nf_flow_table_gc_run(flow_table);
+ 	nf_flow_table_offload_flush(flow_table);
+ 	if (nf_flowtable_hw_offload(flow_table))
+-		nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step,
+-				      flow_table);
++		nf_flow_table_gc_run(flow_table);
++
+ 	rhashtable_destroy(&flow_table->rhashtable);
+ }
+ EXPORT_SYMBOL_GPL(nf_flow_table_free);
 -- 
 2.30.2
 
+
+--UMHJGjOvqhOHZk8H
+Content-Type: text/x-diff; charset=utf-8
+Content-Disposition: attachment;
+	filename="0002-netfilter-flowtable-fix-stuck-flows-on-cleanup-due-t.patch"
+
+From 737a4ff4df8b3e6791352b2b379e102f7682fa0f Mon Sep 17 00:00:00 2001
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Thu, 18 Nov 2021 22:24:15 +0100
+Subject: [PATCH 2/2] netfilter: flowtable: fix stuck flows on cleanup due to
+ pending work
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_flow_table.h | 2 ++
+ net/netfilter/nf_flow_table_core.c    | 7 +++----
+ net/netfilter/nf_flow_table_offload.c | 8 ++++++++
+ 3 files changed, 13 insertions(+), 4 deletions(-)
+
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index 6dc19d1ceeff..4c3d537f1069 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -301,6 +301,8 @@ void nf_flow_offload_stats(struct nf_flowtable *flowtable,
+ 			   struct flow_offload *flow);
+ 
+ void nf_flow_table_offload_flush(struct nf_flowtable *flowtable);
++void nf_flow_table_offload_flush_cleanup(struct nf_flowtable *flowtable);
++
+ int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
+ 				struct net_device *dev,
+ 				enum flow_block_command cmd);
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 37fd6c646ccb..fddc44de3550 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -641,12 +641,11 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
+ 	mutex_unlock(&flowtable_lock);
+ 
+ 	cancel_delayed_work_sync(&flow_table->gc_work);
++	nf_flow_table_offload_flush(flow_table);
++	/* ... no more pending work after this stage ... */
+ 	nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
+ 	nf_flow_table_gc_run(flow_table);
+-	nf_flow_table_offload_flush(flow_table);
+-	if (nf_flowtable_hw_offload(flow_table))
+-		nf_flow_table_gc_run(flow_table);
+-
++	nf_flow_table_offload_flush_cleanup(flow_table);
+ 	rhashtable_destroy(&flow_table->rhashtable);
+ }
+ EXPORT_SYMBOL_GPL(nf_flow_table_free);
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index b561e0a44a45..c4559fae8acd 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -1050,6 +1050,14 @@ void nf_flow_offload_stats(struct nf_flowtable *flowtable,
+ 	flow_offload_queue_work(offload);
+ }
+ 
++void nf_flow_table_offload_flush_cleanup(struct nf_flowtable *flowtable)
++{
++	if (nf_flowtable_hw_offload(flowtable)) {
++		flush_workqueue(nf_flow_offload_del_wq);
++		nf_flow_table_gc_run(flowtable);
++	}
++}
++
+ void nf_flow_table_offload_flush(struct nf_flowtable *flowtable)
+ {
+ 	if (nf_flowtable_hw_offload(flowtable)) {
+-- 
+2.30.2
+
+
+--UMHJGjOvqhOHZk8H--
