@@ -2,28 +2,29 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32118C433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Nov 2021 22:10:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41091C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Nov 2021 22:26:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 166F16142A
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Nov 2021 22:10:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 22C1561AA5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Nov 2021 22:26:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229634AbhKRWNw (ORCPT
+        id S231789AbhKRW3b (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 Nov 2021 17:13:52 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:57912 "EHLO
+        Thu, 18 Nov 2021 17:29:31 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:58256 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229777AbhKRWNv (ORCPT
+        with ESMTP id S230378AbhKRW3b (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 Nov 2021 17:13:51 -0500
+        Thu, 18 Nov 2021 17:29:31 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id C68F664B1E
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Nov 2021 23:08:42 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 034C764972;
+        Thu, 18 Nov 2021 23:24:21 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] Revert "configure: default to libedit for cli"
-Date:   Thu, 18 Nov 2021 23:10:44 +0100
-Message-Id: <20211118221044.432552-1-pablo@netfilter.org>
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
+Subject: [PATCH net 00/11] Netfilter fixes for net
+Date:   Thu, 18 Nov 2021 23:26:07 +0100
+Message-Id: <20211118222618.433273-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -31,28 +32,90 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Revert b4dded0ca78d ("configure: default to libedit for cli"), it seems
-editline/history.h is not packaged by all distros, leading to
-compilation breakage unless you explicitly select readline.
+Hi,
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- configure.ac | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The following patchset contains Netfilter/IPVS fixes for net:
 
-diff --git a/configure.ac b/configure.ac
-index bb65f749691c..70b28f9d35bd 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -69,7 +69,7 @@ AM_CONDITIONAL([BUILD_MINIGMP], [test "x$with_mini_gmp" = xyes])
- 
- AC_ARG_WITH([cli], [AS_HELP_STRING([--without-cli],
-             [disable interactive CLI (libreadline, editline or linenoise support)])],
--            [], [with_cli=editline])
-+            [], [with_cli=readline])
- 
- AS_IF([test "x$with_cli" = xreadline], [
- AC_CHECK_LIB([readline], [readline], ,
--- 
-2.30.2
+1) Add selftest for vrf+conntrack, from Florian Westphal.
 
+2) Extend nfqueue selftest to cover nfqueue, also from Florian.
+
+3) Remove duplicated include in nft_payload, from Wan Jiabing.
+
+4) Several improvements to the nat port shadowing selftest,
+   from Phil Sutter.
+
+5) Fix filtering of reply tuple in ctnetlink, from Florent Fourcot.
+
+6) Do not override error with -EINVAL in filter setup path, also
+   from Florent.
+
+7) Honor sysctl_expire_nodest_conn regardless conn_reuse_mode for
+   reused connections, from yangxingwu.
+
+8) Replace snprintf() by sysfs_emit() in xt_IDLETIMER as reported
+   by Coccinelle, from Jing Yao.
+
+9) Incorrect IPv6 tunnel match in flowtable offload, from Will
+   Mortensen.
+
+10) Switch port shadow selftest to use socat, from Florian Westphal.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit c45231a7668d6b632534f692b10592ea375b55b0:
+
+  litex_liteeth: Fix a double free in the remove function (2021-11-07 21:51:17 +0000)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
+
+for you to fetch changes up to a2acf0c0e2da29950d0361a3b5ea05e8d0351dfe:
+
+  selftests: nft_nat: switch port shadow test cases to socat (2021-11-15 12:02:11 +0100)
+
+----------------------------------------------------------------
+Florent Fourcot (2):
+      netfilter: ctnetlink: fix filtering with CTA_TUPLE_REPLY
+      netfilter: ctnetlink: do not erase error code with EINVAL
+
+Florian Westphal (3):
+      selftests: netfilter: add a vrf+conntrack testcase
+      selftests: netfilter: extend nfqueue tests to cover vrf device
+      selftests: nft_nat: switch port shadow test cases to socat
+
+Jing Yao (1):
+      netfilter: xt_IDLETIMER: replace snprintf in show functions with sysfs_emit
+
+Phil Sutter (2):
+      selftests: nft_nat: Improve port shadow test stability
+      selftests: nft_nat: Simplify port shadow notrack test
+
+Wan Jiabing (1):
+      netfilter: nft_payload: Remove duplicated include in nft_payload.c
+
+Will Mortensen (1):
+      netfilter: flowtable: fix IPv6 tunnel addr match
+
+yangxingwu (1):
+      netfilter: ipvs: Fix reuse connection if RS weight is 0
+
+ Documentation/networking/ipvs-sysctl.rst           |   3 +-
+ net/netfilter/ipvs/ip_vs_core.c                    |   8 +-
+ net/netfilter/nf_conntrack_netlink.c               |   6 +-
+ net/netfilter/nf_flow_table_offload.c              |   4 +-
+ net/netfilter/nft_payload.c                        |   1 -
+ net/netfilter/xt_IDLETIMER.c                       |   4 +-
+ tools/testing/selftests/netfilter/Makefile         |   3 +-
+ tools/testing/selftests/netfilter/conntrack_vrf.sh | 219 +++++++++++++++++++++
+ tools/testing/selftests/netfilter/nft_nat.sh       |  33 +++-
+ tools/testing/selftests/netfilter/nft_queue.sh     |  54 +++++
+ 10 files changed, 309 insertions(+), 26 deletions(-)
+ create mode 100755 tools/testing/selftests/netfilter/conntrack_vrf.sh
