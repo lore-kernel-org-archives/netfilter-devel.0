@@ -2,103 +2,101 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A3C8C4332F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Nov 2021 17:33:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BE03C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Nov 2021 20:31:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 80F7061A53
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Nov 2021 17:33:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 61926611BF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Nov 2021 20:31:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232035AbhKRRgp (ORCPT
+        id S232031AbhKRUeQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 Nov 2021 12:36:45 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:50966 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232058AbhKRRgo (ORCPT
+        Thu, 18 Nov 2021 15:34:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43130 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232082AbhKRUeQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 Nov 2021 12:36:44 -0500
-Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id AEDC064B07
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Nov 2021 18:31:36 +0100 (CET)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] configure: fall back to readline if libedit is not available
-Date:   Thu, 18 Nov 2021 18:33:34 +0100
-Message-Id: <20211118173334.301434-1-pablo@netfilter.org>
+        Thu, 18 Nov 2021 15:34:16 -0500
+Received: from mail-pj1-x102b.google.com (mail-pj1-x102b.google.com [IPv6:2607:f8b0:4864:20::102b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DDFF1C06174A
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Nov 2021 12:31:15 -0800 (PST)
+Received: by mail-pj1-x102b.google.com with SMTP id gb13-20020a17090b060d00b001a674e2c4a8so6791696pjb.4
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Nov 2021 12:31:15 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=TcLB7MvG3K4Ke10h1bINRCs3q+QDRcCT3lfYvCR0Icg=;
+        b=eF6YFsU21ZNpUT9ttG8va6xfpqx992IvMr6iI4uWNx3Pi4DmcbDIos4Wu0d7fCnbOa
+         2i0Q2JaqJO6RFFFu7I3C9jpN+/7Gfho/SD4r6QgMcQxBKiyIpei3Irq/AsGzMdTeNNPi
+         qsXM+DEypZ3V0IH04X71UaBa7n7L2U77ZXVyE=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=TcLB7MvG3K4Ke10h1bINRCs3q+QDRcCT3lfYvCR0Icg=;
+        b=3AwjSoHiEL2gzOxO61Tp6babLYQzouYXWgtobHf3jFgcxyaM/Q/tYH0T1/GqQCm2rP
+         te86gayZGl5q2lbZ9k92O08qWnxxjV4h3dtCmGMyW9fKUz0bYf+onOAcxcJufMPwSSyg
+         Vm0sTiXfNaalp1MF2bdASPa8dYv7sA06f9AFt/QpXTkEF7OQ2Z5f23NvcgC7uIyZMdgu
+         EluxidoGUJsz9eod07lJk2JL8GEOPfViM3ymptzERUlNNucK3vOC0kIL6XMBAcLxSMcD
+         CrbrmyoB3I2Xz5jipmuZU58Bd1xIFdvx2DLjEXFGBccCAv1OHtwCvALdEFQQPWGavnEp
+         rDRQ==
+X-Gm-Message-State: AOAM5308vvXau+mcWP+gHsRBlHDuaa4fXSS9ZC0Gshz3P8/yOYesfjA8
+        6zwbOb+yk5VLt4yFAbpzuIAbKg==
+X-Google-Smtp-Source: ABdhPJzRya15wHW2UAKLnXUjjo2OcJuImXw4tuyrV18/sEsTXSQY7dn3QqXgLgUi5g6uysZtaiNrKA==
+X-Received: by 2002:a17:90a:df83:: with SMTP id p3mr13827388pjv.145.1637267475336;
+        Thu, 18 Nov 2021 12:31:15 -0800 (PST)
+Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
+        by smtp.gmail.com with ESMTPSA id g17sm453059pfv.136.2021.11.18.12.31.14
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 18 Nov 2021 12:31:15 -0800 (PST)
+From:   Kees Cook <keescook@chromium.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Kees Cook <keescook@chromium.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>, linux-kernel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-hardening@vger.kernel.org
+Subject: [PATCH] netfilter: conntrack: Use memset_startat() to zero struct nf_conn
+Date:   Thu, 18 Nov 2021 12:31:13 -0800
+Message-Id: <20211118203113.1286928-1-keescook@chromium.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
+X-Developer-Signature: v=1; a=openpgp-sha256; l=989; h=from:subject; bh=8G8ELxCaYyImypCEBWdgERqa1W0PnBKrxOA03FjrnuI=; b=owEBbQKS/ZANAwAKAYly9N/cbcAmAcsmYgBhlrgQ81go+amAV4Ra130N28YvcOlvVMevTi2OsK0V PP+vTgmJAjMEAAEKAB0WIQSlw/aPIp3WD3I+bhOJcvTf3G3AJgUCYZa4EAAKCRCJcvTf3G3AJhlGEA CjA7esHrkQXRc1xiiREdoZsmG60wWX92CFRgE+X8+C993iK8CaPdrfi+8Rhz2iOksVsnAYaNX8DR3T jKd0zhYJMa7TtVHL8OMDF3GCDJib0UYXjG1ocqe/hwTOyyANGytLztehRyHb7B7Kb1b02ea+gw65wW xjiAan5E9RVw90+50uTGqkK9d2GfBsv2XcF3HEXzhktA0zkH4Aurk6CtKXr8Xprwysw32Xc9Omk8Su ARAP1kfq+qgC+vKE/wCvXvSEJ0xYbq959PtCQW41dbwGQTYiPvCNBc2zs/lnuNEwqr+D7ZJ7oFg5ct 6ftzPlVwPlX5ij7oit5cn9nSXzMlvAu2MCBlQnRij4gi0VTWmbdUNh5q1tQGnEk90rLXrfom5OGd66 /F46gyg6mlZi0u6cv51ZtnacUdXkjVSZfaguaj3I4owqxrNcw4LzyemNqfAHEcLAR/Ra5feQB8Ovjx jZe/OEwgFXlP+LeVKvotPY45hztqforSJyNLWlWsCopwG7wyt0uZKXVApXDKR39N+mMy41d1nRitT9 Cvb3wb5aH6OPXhaQ6BfWwRAzWtnvOmVSd9K/CHbQtRw/g55Qt0jT2raJQQlGD9oCarRkGQeA2wfy1o JNg+0TmqxKV1SHFoj+KWXJbJvzv9wT6Bt4kbwdO1rEkoaojBo8A7ObRgzmeQ==
+X-Developer-Key: i=keescook@chromium.org; a=openpgp; fpr=A5C3F68F229DD60F723E6E138972F4DFDC6DC026
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-By default, check for editline, if not present, fall back to readline.
+In preparation for FORTIFY_SOURCE performing compile-time and run-time
+field bounds checking for memset(), avoid intentionally writing across
+neighboring fields.
 
-Extend test coverage for readline.
+Use memset_startat() to avoid confusing memset() about writing beyond
+the target struct member.
 
-Fixes: b4dded0ca78d ("configure: default to libedit for cli")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Kees Cook <keescook@chromium.org>
 ---
- configure.ac             | 20 +++++++++++++-------
- tests/build/run-tests.sh |  2 +-
- 2 files changed, 14 insertions(+), 8 deletions(-)
+ net/netfilter/nf_conntrack_core.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/configure.ac b/configure.ac
-index bb65f749691c..3c93fb2bf3cd 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -71,26 +71,32 @@ AC_ARG_WITH([cli], [AS_HELP_STRING([--without-cli],
-             [disable interactive CLI (libreadline, editline or linenoise support)])],
-             [], [with_cli=editline])
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 770a63103c7a..cdfb63509501 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1562,9 +1562,7 @@ __nf_conntrack_alloc(struct net *net,
+ 	ct->status = 0;
+ 	ct->timeout = 0;
+ 	write_pnet(&ct->ct_net, net);
+-	memset(&ct->__nfct_init_offset, 0,
+-	       offsetof(struct nf_conn, proto) -
+-	       offsetof(struct nf_conn, __nfct_init_offset));
++	memset_after(ct, 0, __nfct_init_offset);
  
-+AS_IF([test "x$with_cli" = xeditline], [
-+AC_CHECK_LIB([edit], [readline], ,
-+	     [AC_MSG_WARN([No suitable version of libedit found, falling back to libreadline])
-+	      with_cli=readline])
-+])
- AS_IF([test "x$with_cli" = xreadline], [
- AC_CHECK_LIB([readline], [readline], ,
- 	     AC_MSG_ERROR([No suitable version of libreadline found]))
--AC_DEFINE([HAVE_LIBREADLINE], [1], [])
- ],
-       [test "x$with_cli" = xlinenoise], [
- AC_CHECK_LIB([linenoise], [linenoise], ,
- 	     AC_MSG_ERROR([No suitable version of linenoise found]))
- AC_DEFINE([HAVE_LIBLINENOISE], [1], [])
- ],
--      [test "x$with_cli" = xeditline], [
--AC_CHECK_LIB([edit], [readline], ,
--	     AC_MSG_ERROR([No suitable version of libedit found]))
--AC_DEFINE([HAVE_LIBEDIT], [1], [])
--],
--      [test "x$with_cli" != xno], [
-+      [test "x$with_cli" != xno && test "x$with_cli" != xeditline], [
- AC_MSG_ERROR([unexpected CLI value: $with_cli])
- ])
- AM_CONDITIONAL([BUILD_CLI], [test "x$with_cli" != xno])
+ 	nf_ct_zone_add(ct, zone);
  
-+AS_IF([test "x$with_cli" = xeditline], [
-+AC_DEFINE([HAVE_LIBEDIT], [1], [])
-+],
-+      [test "x$with_cli" = xreadline], [
-+AC_DEFINE([HAVE_LIBREADLINE], [1], [])
-+])
-+
- AC_ARG_WITH([xtables], [AS_HELP_STRING([--with-xtables],
-             [Use libxtables for iptables interaction])],
- 	    [], [with_xtables=no])
-diff --git a/tests/build/run-tests.sh b/tests/build/run-tests.sh
-index f78cc9019a30..c257eb008140 100755
---- a/tests/build/run-tests.sh
-+++ b/tests/build/run-tests.sh
-@@ -2,7 +2,7 @@
- 
- log_file="`pwd`/tests.log"
- dir=../..
--argument=( --without-cli --with-cli=linenoise --with-cli=editline --enable-debug --with-mini-gmp
-+argument=( --without-cli --with-cli=linenoise --with-cli=editline --with-cli=readline --enable-debug --with-mini-gmp
- 	   --enable-man-doc --with-xtables --with-json)
- ok=0
- failed=0
 -- 
 2.30.2
 
