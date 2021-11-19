@@ -2,32 +2,32 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6120C433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Nov 2021 15:29:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0642AC433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Nov 2021 15:29:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C875F6108B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Nov 2021 15:29:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D1A336108B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Nov 2021 15:29:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234286AbhKSPcG (ORCPT
+        id S234310AbhKSPcK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 19 Nov 2021 10:32:06 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44950 "EHLO
+        Fri, 19 Nov 2021 10:32:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44970 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231563AbhKSPcG (ORCPT
+        with ESMTP id S231563AbhKSPcK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 Nov 2021 10:32:06 -0500
+        Fri, 19 Nov 2021 10:32:10 -0500
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 76D31C061574
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 Nov 2021 07:29:04 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C4282C061574
+        for <netfilter-devel@vger.kernel.org>; Fri, 19 Nov 2021 07:29:08 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1mo5p1-0005Qe-09; Fri, 19 Nov 2021 16:29:03 +0100
+        id 1mo5p5-0005RC-CC; Fri, 19 Nov 2021 16:29:07 +0100
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 2/8] scanner: add tcp flex scope
-Date:   Fri, 19 Nov 2021 16:28:41 +0100
-Message-Id: <20211119152847.18118-3-fw@strlen.de>
+Subject: [PATCH nft 3/8] parser: split tcp option rules
+Date:   Fri, 19 Nov 2021 16:28:42 +0100
+Message-Id: <20211119152847.18118-4-fw@strlen.de>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20211119152847.18118-1-fw@strlen.de>
 References: <20211119152847.18118-1-fw@strlen.de>
@@ -37,158 +37,154 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This moves tcp options not used anywhere else (e.g. in synproxy) to a
-distinct scope.  This will also allow to avoid exposing new option
-keywords in the ruleset context.
+At this time the parser will accept nonsensical input like
+
+ tcp option mss left 2
+
+which will be treated as 'tcp option maxseg size 2'.
+This is because the enum space overlaps.
+
+Split the rules so that 'tcp option mss' will only
+accept field names specific to the mss/maxseg option kind.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
+(cherry picked from commit 46168852c03d73c29b557c93029dc512ca6e233a)
 ---
- include/parser.h   |  1 +
- src/parser_bison.y | 11 ++++++-----
- src/scanner.l      | 17 +++++++++++------
- 3 files changed, 18 insertions(+), 11 deletions(-)
+ src/parser_bison.y | 80 +++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 61 insertions(+), 19 deletions(-)
 
-diff --git a/include/parser.h b/include/parser.h
-index e8635b4c0feb..cb7d12a36edb 100644
---- a/include/parser.h
-+++ b/include/parser.h
-@@ -40,6 +40,7 @@ enum startcond_type {
- 	PARSER_SC_QUOTA,
- 	PARSER_SC_SCTP,
- 	PARSER_SC_SECMARK,
-+	PARSER_SC_TCP,
- 	PARSER_SC_VLAN,
- 	PARSER_SC_CMD_LIST,
- 	PARSER_SC_EXPR_FIB,
 diff --git a/src/parser_bison.y b/src/parser_bison.y
-index bc5ec2e667b8..2606098534e6 100644
+index 2606098534e6..fca791326094 100644
 --- a/src/parser_bison.y
 +++ b/src/parser_bison.y
-@@ -929,6 +929,7 @@ close_scope_list	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_CMD_LIST); }
- close_scope_limit	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_LIMIT); };
- close_scope_numgen	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_NUMGEN); };
- close_scope_quota	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_QUOTA); };
-+close_scope_tcp		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_TCP); }
- close_scope_queue	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_QUEUE); };
- close_scope_rt		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_RT); };
- close_scope_sctp	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_SCTP); };
-@@ -3109,7 +3110,7 @@ level_type		:	string
- 			}
- 			;
- 
--log_flags		:	TCP	log_flags_tcp
-+log_flags		:	TCP	log_flags_tcp	close_scope_tcp
- 			{
- 				$$ = $2;
- 			}
-@@ -3360,7 +3361,7 @@ reject_opts		:       /* empty */
- 				$<stmt>0->reject.expr = $3;
- 				datatype_set($<stmt>0->reject.expr, &icmpx_code_type);
- 			}
--			|	WITH	TCP	RESET
-+			|	WITH	TCP	close_scope_tcp RESET
- 			{
- 				$<stmt>0->reject.type = NFT_REJECT_TCP_RST;
- 			}
-@@ -4460,7 +4461,7 @@ ct_cmd_type		:	HELPERS		{ $$ = CMD_OBJ_CT_HELPERS; }
- 			|	EXPECTATION	{ $$ = CMD_OBJ_CT_EXPECT; }
- 			;
- 
--ct_l4protoname		:	TCP	{ $$ = IPPROTO_TCP; }
-+ct_l4protoname		:	TCP	close_scope_tcp	{ $$ = IPPROTO_TCP; }
- 			|	UDP	{ $$ = IPPROTO_UDP; }
- 			;
- 
-@@ -4734,7 +4735,7 @@ primary_rhs_expr	:	symbol_expr		{ $$ = $1; }
- 			|	integer_expr		{ $$ = $1; }
- 			|	boolean_expr		{ $$ = $1; }
- 			|	keyword_expr		{ $$ = $1; }
--			|	TCP
-+			|	TCP	close_scope_tcp
- 			{
- 				uint8_t data = IPPROTO_TCP;
- 				$$ = constant_expr_alloc(&@$, &inet_protocol_type,
-@@ -5241,7 +5242,7 @@ payload_expr		:	payload_raw_expr
- 			|	comp_hdr_expr
- 			|	udp_hdr_expr
- 			|	udplite_hdr_expr
--			|	tcp_hdr_expr
-+			|	tcp_hdr_expr	close_scope_tcp
- 			|	dccp_hdr_expr
- 			|	sctp_hdr_expr
- 			|	th_hdr_expr
-diff --git a/src/scanner.l b/src/scanner.l
-index 455ef99fea8f..09fcbd094aa6 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -206,6 +206,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- %s SCANSTATE_QUOTA
- %s SCANSTATE_SCTP
- %s SCANSTATE_SECMARK
-+%s SCANSTATE_TCP
- %s SCANSTATE_VLAN
- %s SCANSTATE_CMD_LIST
- %s SCANSTATE_EXPR_FIB
-@@ -465,10 +466,9 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- 	"value"			{ return VALUE; }
+@@ -187,6 +187,10 @@ int nft_lex(void *, void *, void *);
+ 	struct position_spec	position_spec;
+ 	struct prio_spec	prio_spec;
+ 	struct limit_rate	limit_rate;
++	struct tcp_kind_field {
++		uint16_t kind; /* must allow > 255 for SACK1, 2.. hack */
++		uint8_t field;
++	} tcp_kind_field;
  }
  
-+<SCANSTATE_TCP>{
- "echo"			{ return ECHO; }
- "eol"			{ return EOL; }
--"maxseg"		{ return MSS; }
--"mss"			{ return MSS; }
- "nop"			{ return NOP; }
- "noop"			{ return NOP; }
- "sack"			{ return SACK; }
-@@ -476,9 +476,6 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "sack1"			{ return SACK1; }
- "sack2"			{ return SACK2; }
- "sack3"			{ return SACK3; }
--"sack-permitted"	{ return SACK_PERM; }
--"sack-perm"		{ return SACK_PERM; }
--"timestamp"		{ return TIMESTAMP; }
- "time"			{ return TIME; }
+ %token TOKEN_EOF 0		"end of file"
+@@ -873,7 +877,10 @@ int nft_lex(void *, void *, void *);
+ %type <expr>			tcp_hdr_expr
+ %destructor { expr_free($$); }	tcp_hdr_expr
+ %type <val>			tcp_hdr_field
+-%type <val>			tcp_hdr_option_type tcp_hdr_option_field
++%type <val>			tcp_hdr_option_type
++%type <val>			tcp_hdr_option_sack
++%type <val>			tcpopt_field_maxseg	tcpopt_field_sack	 tcpopt_field_tsopt	tcpopt_field_window
++%type <tcp_kind_field>		tcp_hdr_option_kind_and_field
  
- "count"			{ return COUNT; }
-@@ -486,6 +483,12 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "right"			{ return RIGHT; }
- "tsval"			{ return TSVAL; }
- "tsecr"			{ return TSECR; }
-+}
-+"maxseg"		{ return MSS; }
-+"mss"			{ return MSS; }
-+"sack-permitted"	{ return SACK_PERM; }
-+"sack-perm"		{ return SACK_PERM; }
-+"timestamp"		{ return TIMESTAMP; }
+ %type <expr>			boolean_expr
+ %destructor { expr_free($$); }	boolean_expr
+@@ -5477,15 +5484,15 @@ tcp_hdr_expr		:	TCP	tcp_hdr_field
+ 			{
+ 				$$ = payload_expr_alloc(&@$, &proto_tcp, $2);
+ 			}
+-			|	TCP	OPTION	tcp_hdr_option_type tcp_hdr_option_field
+-			{
+-				$$ = tcpopt_expr_alloc(&@$, $3, $4);
+-			}
+ 			|	TCP	OPTION	tcp_hdr_option_type
+ 			{
+ 				$$ = tcpopt_expr_alloc(&@$, $3, TCPOPT_COMMON_KIND);
+ 				$$->exthdr.flags = NFT_EXTHDR_F_PRESENT;
+ 			}
++			|	TCP	OPTION	tcp_hdr_option_kind_and_field
++			{
++				$$ = tcpopt_expr_alloc(&@$, $3.kind, $3.field);
++			}
+ 			|	TCP	OPTION	AT tcp_hdr_option_type	COMMA	NUM	COMMA	NUM
+ 			{
+ 				$$ = tcpopt_expr_alloc(&@$, $4, 0);
+@@ -5505,19 +5512,49 @@ tcp_hdr_field		:	SPORT		{ $$ = TCPHDR_SPORT; }
+ 			|	URGPTR		{ $$ = TCPHDR_URGPTR; }
+ 			;
  
- "icmp"			{ return ICMP; }
- "code"			{ return CODE; }
-@@ -524,7 +527,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "dport"			{ return DPORT; }
- "port"			{ return PORT; }
+-tcp_hdr_option_type	:	EOL		{ $$ = TCPOPT_KIND_EOL; }
+-			|	NOP		{ $$ = TCPOPT_KIND_NOP; }
+-			|	MSS  	  	{ $$ = TCPOPT_KIND_MAXSEG; }
+-			|	WINDOW		{ $$ = TCPOPT_KIND_WINDOW; }
+-			|	SACK_PERM	{ $$ = TCPOPT_KIND_SACK_PERMITTED; }
+-			|	SACK		{ $$ = TCPOPT_KIND_SACK; }
++tcp_hdr_option_kind_and_field	:	MSS	tcpopt_field_maxseg
++				{
++					struct tcp_kind_field kind_field = { .kind = TCPOPT_KIND_MAXSEG, .field = $2 };
++					$$ = kind_field;
++				}
++				|	tcp_hdr_option_sack	tcpopt_field_sack
++				{
++					struct tcp_kind_field kind_field = { .kind = $1, .field = $2 };
++					$$ = kind_field;
++				}
++				|	WINDOW	tcpopt_field_window
++				{
++					struct tcp_kind_field kind_field = { .kind = TCPOPT_KIND_WINDOW, .field = $2 };
++					$$ = kind_field;
++				}
++				|	TIMESTAMP	tcpopt_field_tsopt
++				{
++					struct tcp_kind_field kind_field = { .kind = TCPOPT_KIND_TIMESTAMP, .field = $2 };
++					$$ = kind_field;
++				}
++				|	tcp_hdr_option_type	LENGTH
++				{
++					struct tcp_kind_field kind_field = { .kind = $1, .field = TCPOPT_COMMON_LENGTH };
++					$$ = kind_field;
++				}
++				;
++
++tcp_hdr_option_sack	:	SACK		{ $$ = TCPOPT_KIND_SACK; }
+ 			|	SACK0		{ $$ = TCPOPT_KIND_SACK; }
+ 			|	SACK1		{ $$ = TCPOPT_KIND_SACK1; }
+ 			|	SACK2		{ $$ = TCPOPT_KIND_SACK2; }
+ 			|	SACK3		{ $$ = TCPOPT_KIND_SACK3; }
+-			|	ECHO		{ $$ = TCPOPT_KIND_ECHO; }
+-			|	TIMESTAMP	{ $$ = TCPOPT_KIND_TIMESTAMP; }
+-			|	NUM		{
++			;
++
++tcp_hdr_option_type	:	ECHO			{ $$ = TCPOPT_KIND_ECHO; }
++			|	EOL			{ $$ = TCPOPT_KIND_EOL; }
++			|	MSS			{ $$ = TCPOPT_KIND_MAXSEG; }
++			|	NOP			{ $$ = TCPOPT_KIND_NOP; }
++			|	SACK_PERM		{ $$ = TCPOPT_KIND_SACK_PERMITTED; }
++			|	TIMESTAMP		{ $$ = TCPOPT_KIND_TIMESTAMP; }
++			|	WINDOW			{ $$ = TCPOPT_KIND_WINDOW; }
++			|	tcp_hdr_option_sack	{ $$ = $1; }
++			|	NUM			{
+ 				if ($1 > 255) {
+ 					erec_queue(error(&@1, "value too large"), state->msgs);
+ 					YYERROR;
+@@ -5526,15 +5563,20 @@ tcp_hdr_option_type	:	EOL		{ $$ = TCPOPT_KIND_EOL; }
+ 			}
+ 			;
  
--"tcp"			{ return TCP; }
-+"tcp"			{ scanner_push_start_cond(yyscanner, SCANSTATE_TCP); return TCP; }
- "ackseq"		{ return ACKSEQ; }
- "doff"			{ return DOFF; }
- "window"		{ return WINDOW; }
-@@ -560,6 +563,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- 	"asconf"		{ return ASCONF; }
+-tcp_hdr_option_field	:	LENGTH		{ $$ = TCPOPT_COMMON_LENGTH; }
+-			|	SIZE		{ $$ = TCPOPT_MAXSEG_SIZE; }
+-			|	COUNT		{ $$ = TCPOPT_WINDOW_COUNT; }
+-			|	LEFT		{ $$ = TCPOPT_SACK_LEFT; }
++tcpopt_field_sack	: 	LEFT		{ $$ = TCPOPT_SACK_LEFT; }
+ 			|	RIGHT		{ $$ = TCPOPT_SACK_RIGHT; }
+-			|	TSVAL		{ $$ = TCPOPT_TS_TSVAL; }
++			;
++
++tcpopt_field_window	:	COUNT           { $$ = TCPOPT_WINDOW_COUNT; }
++			;
++
++tcpopt_field_tsopt	:	TSVAL           { $$ = TCPOPT_TS_TSVAL; }
+ 			|	TSECR		{ $$ = TCPOPT_TS_TSECR; }
+ 			;
  
- 	"tsn"			{ return TSN; }
-+	"sack"			{ return SACK; }
- 	"stream"		{ return STREAM; }
- 	"ssn"			{ return SSN; }
- 	"ppid"			{ return PPID; }
-@@ -641,6 +645,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- 	"label"			{ return LABEL; }
- 	"state"			{ return STATE; }
- 	"status"		{ return STATUS; }
-+	"count"			{ return COUNT; }
- }
- 
- "numgen"		{ scanner_push_start_cond(yyscanner, SCANSTATE_EXPR_NUMGEN); return NUMGEN; }
++tcpopt_field_maxseg	:	SIZE		{ $$ = TCPOPT_MAXSEG_SIZE; }
++			;
++
+ dccp_hdr_expr		:	DCCP	dccp_hdr_field
+ 			{
+ 				$$ = payload_expr_alloc(&@$, &proto_dccp, $2);
 -- 
 2.32.0
 
