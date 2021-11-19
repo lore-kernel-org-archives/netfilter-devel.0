@@ -2,32 +2,32 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0642AC433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Nov 2021 15:29:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 860B6C433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Nov 2021 15:29:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D1A336108B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Nov 2021 15:29:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 663A86117A
+	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Nov 2021 15:29:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234310AbhKSPcK (ORCPT
+        id S234601AbhKSPcP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 19 Nov 2021 10:32:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44970 "EHLO
+        Fri, 19 Nov 2021 10:32:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44986 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231563AbhKSPcK (ORCPT
+        with ESMTP id S231563AbhKSPcO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 Nov 2021 10:32:10 -0500
+        Fri, 19 Nov 2021 10:32:14 -0500
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C4282C061574
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 Nov 2021 07:29:08 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 24CBEC061574
+        for <netfilter-devel@vger.kernel.org>; Fri, 19 Nov 2021 07:29:13 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1mo5p5-0005RC-CC; Fri, 19 Nov 2021 16:29:07 +0100
+        id 1mo5p9-0005RS-ND; Fri, 19 Nov 2021 16:29:11 +0100
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 3/8] parser: split tcp option rules
-Date:   Fri, 19 Nov 2021 16:28:42 +0100
-Message-Id: <20211119152847.18118-4-fw@strlen.de>
+Subject: [PATCH nft 4/8] tcpopt: add md5sig, fastopen and mptcp options
+Date:   Fri, 19 Nov 2021 16:28:43 +0100
+Message-Id: <20211119152847.18118-5-fw@strlen.de>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20211119152847.18118-1-fw@strlen.de>
 References: <20211119152847.18118-1-fw@strlen.de>
@@ -37,154 +37,145 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-At this time the parser will accept nonsensical input like
+Allow to use "fastopen", "md5sig" and "mptcp" mnemonics rather than the
+raw option numbers.
 
- tcp option mss left 2
-
-which will be treated as 'tcp option maxseg size 2'.
-This is because the enum space overlaps.
-
-Split the rules so that 'tcp option mss' will only
-accept field names specific to the mss/maxseg option kind.
+These new keywords are only recognized while scanner is in tcp state.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
-(cherry picked from commit 46168852c03d73c29b557c93029dc512ca6e233a)
 ---
- src/parser_bison.y | 80 +++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 61 insertions(+), 19 deletions(-)
+ include/tcpopt.h   |  8 ++++++++
+ src/parser_bison.y | 10 ++++++++--
+ src/scanner.l      |  3 +++
+ src/tcpopt.c       | 30 ++++++++++++++++++++++++++++++
+ 4 files changed, 49 insertions(+), 2 deletions(-)
 
+diff --git a/include/tcpopt.h b/include/tcpopt.h
+index 667c8a7725d8..22df69dc5b93 100644
+--- a/include/tcpopt.h
++++ b/include/tcpopt.h
+@@ -25,6 +25,9 @@ enum tcpopt_kind {
+ 	TCPOPT_KIND_SACK = 5,
+ 	TCPOPT_KIND_TIMESTAMP = 8,
+ 	TCPOPT_KIND_ECHO = 8,
++	TCPOPT_KIND_MD5SIG = 19,
++	TCPOPT_KIND_MPTCP = 30,
++	TCPOPT_KIND_FASTOPEN = 34,
+ 	__TCPOPT_KIND_MAX,
+ 
+ 	/* extra oob info, internal to nft */
+@@ -71,6 +74,11 @@ enum tcpopt_hdr_field_sack {
+ 	TCPOPT_SACK_RIGHT3,
+ };
+ 
++enum tcpopt_hdr_mptcp_common {
++	TCPOPT_MPTCP_KIND,
++	TCPOPT_MPTCP_LENGTH,
++};
++
+ extern const struct exthdr_desc *tcpopt_protocols[__TCPOPT_KIND_MAX];
+ 
+ #endif /* NFTABLES_TCPOPT_H */
 diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 2606098534e6..fca791326094 100644
+index fca791326094..a6a591b7e00d 100644
 --- a/src/parser_bison.y
 +++ b/src/parser_bison.y
-@@ -187,6 +187,10 @@ int nft_lex(void *, void *, void *);
- 	struct position_spec	position_spec;
- 	struct prio_spec	prio_spec;
- 	struct limit_rate	limit_rate;
-+	struct tcp_kind_field {
-+		uint16_t kind; /* must allow > 255 for SACK1, 2.. hack */
-+		uint8_t field;
-+	} tcp_kind_field;
- }
+@@ -408,6 +408,7 @@ int nft_lex(void *, void *, void *);
+ %token OPTION			"option"
+ %token ECHO			"echo"
+ %token EOL			"eol"
++%token MPTCP			"mptcp"
+ %token NOP			"nop"
+ %token SACK			"sack"
+ %token SACK0			"sack0"
+@@ -415,6 +416,8 @@ int nft_lex(void *, void *, void *);
+ %token SACK2			"sack2"
+ %token SACK3			"sack3"
+ %token SACK_PERM		"sack-permitted"
++%token FASTOPEN			"fastopen"
++%token MD5SIG			"md5sig"
+ %token TIMESTAMP		"timestamp"
+ %token COUNT			"count"
+ %token LEFT			"left"
+@@ -5548,11 +5551,14 @@ tcp_hdr_option_sack	:	SACK		{ $$ = TCPOPT_KIND_SACK; }
  
- %token TOKEN_EOF 0		"end of file"
-@@ -873,7 +877,10 @@ int nft_lex(void *, void *, void *);
- %type <expr>			tcp_hdr_expr
- %destructor { expr_free($$); }	tcp_hdr_expr
- %type <val>			tcp_hdr_field
--%type <val>			tcp_hdr_option_type tcp_hdr_option_field
-+%type <val>			tcp_hdr_option_type
-+%type <val>			tcp_hdr_option_sack
-+%type <val>			tcpopt_field_maxseg	tcpopt_field_sack	 tcpopt_field_tsopt	tcpopt_field_window
-+%type <tcp_kind_field>		tcp_hdr_option_kind_and_field
- 
- %type <expr>			boolean_expr
- %destructor { expr_free($$); }	boolean_expr
-@@ -5477,15 +5484,15 @@ tcp_hdr_expr		:	TCP	tcp_hdr_field
- 			{
- 				$$ = payload_expr_alloc(&@$, &proto_tcp, $2);
- 			}
--			|	TCP	OPTION	tcp_hdr_option_type tcp_hdr_option_field
--			{
--				$$ = tcpopt_expr_alloc(&@$, $3, $4);
--			}
- 			|	TCP	OPTION	tcp_hdr_option_type
- 			{
- 				$$ = tcpopt_expr_alloc(&@$, $3, TCPOPT_COMMON_KIND);
- 				$$->exthdr.flags = NFT_EXTHDR_F_PRESENT;
- 			}
-+			|	TCP	OPTION	tcp_hdr_option_kind_and_field
-+			{
-+				$$ = tcpopt_expr_alloc(&@$, $3.kind, $3.field);
-+			}
- 			|	TCP	OPTION	AT tcp_hdr_option_type	COMMA	NUM	COMMA	NUM
- 			{
- 				$$ = tcpopt_expr_alloc(&@$, $4, 0);
-@@ -5505,19 +5512,49 @@ tcp_hdr_field		:	SPORT		{ $$ = TCPHDR_SPORT; }
- 			|	URGPTR		{ $$ = TCPHDR_URGPTR; }
- 			;
- 
--tcp_hdr_option_type	:	EOL		{ $$ = TCPOPT_KIND_EOL; }
--			|	NOP		{ $$ = TCPOPT_KIND_NOP; }
--			|	MSS  	  	{ $$ = TCPOPT_KIND_MAXSEG; }
--			|	WINDOW		{ $$ = TCPOPT_KIND_WINDOW; }
--			|	SACK_PERM	{ $$ = TCPOPT_KIND_SACK_PERMITTED; }
--			|	SACK		{ $$ = TCPOPT_KIND_SACK; }
-+tcp_hdr_option_kind_and_field	:	MSS	tcpopt_field_maxseg
-+				{
-+					struct tcp_kind_field kind_field = { .kind = TCPOPT_KIND_MAXSEG, .field = $2 };
-+					$$ = kind_field;
-+				}
-+				|	tcp_hdr_option_sack	tcpopt_field_sack
-+				{
-+					struct tcp_kind_field kind_field = { .kind = $1, .field = $2 };
-+					$$ = kind_field;
-+				}
-+				|	WINDOW	tcpopt_field_window
-+				{
-+					struct tcp_kind_field kind_field = { .kind = TCPOPT_KIND_WINDOW, .field = $2 };
-+					$$ = kind_field;
-+				}
-+				|	TIMESTAMP	tcpopt_field_tsopt
-+				{
-+					struct tcp_kind_field kind_field = { .kind = TCPOPT_KIND_TIMESTAMP, .field = $2 };
-+					$$ = kind_field;
-+				}
-+				|	tcp_hdr_option_type	LENGTH
-+				{
-+					struct tcp_kind_field kind_field = { .kind = $1, .field = TCPOPT_COMMON_LENGTH };
-+					$$ = kind_field;
-+				}
-+				;
-+
-+tcp_hdr_option_sack	:	SACK		{ $$ = TCPOPT_KIND_SACK; }
- 			|	SACK0		{ $$ = TCPOPT_KIND_SACK; }
- 			|	SACK1		{ $$ = TCPOPT_KIND_SACK1; }
- 			|	SACK2		{ $$ = TCPOPT_KIND_SACK2; }
- 			|	SACK3		{ $$ = TCPOPT_KIND_SACK3; }
--			|	ECHO		{ $$ = TCPOPT_KIND_ECHO; }
--			|	TIMESTAMP	{ $$ = TCPOPT_KIND_TIMESTAMP; }
--			|	NUM		{
-+			;
-+
-+tcp_hdr_option_type	:	ECHO			{ $$ = TCPOPT_KIND_ECHO; }
-+			|	EOL			{ $$ = TCPOPT_KIND_EOL; }
-+			|	MSS			{ $$ = TCPOPT_KIND_MAXSEG; }
-+			|	NOP			{ $$ = TCPOPT_KIND_NOP; }
-+			|	SACK_PERM		{ $$ = TCPOPT_KIND_SACK_PERMITTED; }
-+			|	TIMESTAMP		{ $$ = TCPOPT_KIND_TIMESTAMP; }
-+			|	WINDOW			{ $$ = TCPOPT_KIND_WINDOW; }
-+			|	tcp_hdr_option_sack	{ $$ = $1; }
-+			|	NUM			{
+ tcp_hdr_option_type	:	ECHO			{ $$ = TCPOPT_KIND_ECHO; }
+ 			|	EOL			{ $$ = TCPOPT_KIND_EOL; }
++			|	FASTOPEN		{ $$ = TCPOPT_KIND_FASTOPEN; }
++			|	MD5SIG			{ $$ = TCPOPT_KIND_MD5SIG; }
++			|	MPTCP			{ $$ = TCPOPT_KIND_MPTCP; }
+ 			|	MSS			{ $$ = TCPOPT_KIND_MAXSEG; }
+ 			|	NOP			{ $$ = TCPOPT_KIND_NOP; }
+ 			|	SACK_PERM		{ $$ = TCPOPT_KIND_SACK_PERMITTED; }
+-			|	TIMESTAMP		{ $$ = TCPOPT_KIND_TIMESTAMP; }
+-			|	WINDOW			{ $$ = TCPOPT_KIND_WINDOW; }
++			|       TIMESTAMP               { $$ = TCPOPT_KIND_TIMESTAMP; }
++			|       WINDOW                  { $$ = TCPOPT_KIND_WINDOW; }
+ 			|	tcp_hdr_option_sack	{ $$ = $1; }
+ 			|	NUM			{
  				if ($1 > 255) {
- 					erec_queue(error(&@1, "value too large"), state->msgs);
- 					YYERROR;
-@@ -5526,15 +5563,20 @@ tcp_hdr_option_type	:	EOL		{ $$ = TCPOPT_KIND_EOL; }
- 			}
- 			;
+diff --git a/src/scanner.l b/src/scanner.l
+index 09fcbd094aa6..c65d57846c59 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -469,6 +469,9 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ <SCANSTATE_TCP>{
+ "echo"			{ return ECHO; }
+ "eol"			{ return EOL; }
++"fastopen"		{ return FASTOPEN; }
++"mptcp"			{ return MPTCP; }
++"md5sig"		{ return MD5SIG; }
+ "nop"			{ return NOP; }
+ "noop"			{ return NOP; }
+ "sack"			{ return SACK; }
+diff --git a/src/tcpopt.c b/src/tcpopt.c
+index 53fe9bc860a8..5913cd065d03 100644
+--- a/src/tcpopt.c
++++ b/src/tcpopt.c
+@@ -91,6 +91,33 @@ static const struct exthdr_desc tcpopt_timestamp = {
+ 	},
+ };
  
--tcp_hdr_option_field	:	LENGTH		{ $$ = TCPOPT_COMMON_LENGTH; }
--			|	SIZE		{ $$ = TCPOPT_MAXSEG_SIZE; }
--			|	COUNT		{ $$ = TCPOPT_WINDOW_COUNT; }
--			|	LEFT		{ $$ = TCPOPT_SACK_LEFT; }
-+tcpopt_field_sack	: 	LEFT		{ $$ = TCPOPT_SACK_LEFT; }
- 			|	RIGHT		{ $$ = TCPOPT_SACK_RIGHT; }
--			|	TSVAL		{ $$ = TCPOPT_TS_TSVAL; }
-+			;
++static const struct exthdr_desc tcpopt_fastopen = {
++	.name		= "fastopen",
++	.type		= TCPOPT_KIND_FASTOPEN,
++	.templates	= {
++		[TCPOPT_COMMON_KIND]	= PHT("kind",   0, 8),
++		[TCPOPT_COMMON_LENGTH]	= PHT("length", 8, 8),
++	},
++};
 +
-+tcpopt_field_window	:	COUNT           { $$ = TCPOPT_WINDOW_COUNT; }
-+			;
++static const struct exthdr_desc tcpopt_md5sig = {
++	.name		= "md5sig",
++	.type		= TCPOPT_KIND_MD5SIG,
++	.templates	= {
++		[TCPOPT_COMMON_KIND]	= PHT("kind",   0, 8),
++		[TCPOPT_COMMON_LENGTH]	= PHT("length", 8, 8),
++	},
++};
 +
-+tcpopt_field_tsopt	:	TSVAL           { $$ = TCPOPT_TS_TSVAL; }
- 			|	TSECR		{ $$ = TCPOPT_TS_TSECR; }
- 			;
++
++static const struct exthdr_desc tcpopt_mptcp = {
++	.name		= "mptcp",
++	.type		= TCPOPT_KIND_MPTCP,
++	.templates	= {
++		[TCPOPT_MPTCP_KIND]	= PHT("kind",   0,   8),
++		[TCPOPT_MPTCP_LENGTH]	= PHT("length", 8,  8),
++	},
++};
+ #undef PHT
  
-+tcpopt_field_maxseg	:	SIZE		{ $$ = TCPOPT_MAXSEG_SIZE; }
-+			;
-+
- dccp_hdr_expr		:	DCCP	dccp_hdr_field
- 			{
- 				$$ = payload_expr_alloc(&@$, &proto_dccp, $2);
+ const struct exthdr_desc *tcpopt_protocols[] = {
+@@ -101,6 +128,9 @@ const struct exthdr_desc *tcpopt_protocols[] = {
+ 	[TCPOPT_KIND_SACK_PERMITTED]	= &tcpopt_sack_permitted,
+ 	[TCPOPT_KIND_SACK]		= &tcpopt_sack,
+ 	[TCPOPT_KIND_TIMESTAMP]		= &tcpopt_timestamp,
++	[TCPOPT_KIND_MD5SIG]		= &tcpopt_md5sig,
++	[TCPOPT_KIND_MPTCP]		= &tcpopt_mptcp,
++	[TCPOPT_KIND_FASTOPEN]		= &tcpopt_fastopen,
+ };
+ 
+ /**
 -- 
 2.32.0
 
