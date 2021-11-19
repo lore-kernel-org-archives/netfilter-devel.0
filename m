@@ -2,91 +2,67 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73DE0C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Nov 2021 11:10:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70045C433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Nov 2021 12:33:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3EC8661B5E
-	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Nov 2021 11:10:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5823C61353
+	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Nov 2021 12:33:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235020AbhKSLN2 (ORCPT
+        id S234265AbhKSMgT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 19 Nov 2021 06:13:28 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44294 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235009AbhKSLNZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 Nov 2021 06:13:25 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPS id D4B6A61547;
-        Fri, 19 Nov 2021 11:10:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1637320223;
-        bh=pPFYim4UOfeJciW4C3LfDndYjhsOkGHBJkPBwEdqjcA=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=srb1dGULReqP+xFEevIAa1ogEcR/ALiNfb2Mhrwag4OcYBc73M+gZw1meZqiCFuj/
-         0IqmcBGPUYUGn+CLKBjCRP0PrivdF2KkIHXSKxSt0871+TJpP+Hrcipq5zoK4U2oN6
-         ucyEWHvFxeUFx6XbCJuIz8wyIE+5GJZjODmYN+XbVGA6zzzLh/QJAgzQXfCzU4wkUw
-         qxLvTiRdJcajH75YsgQ6UqAGo4F5zvo6ElCcZZzYpsWpMdna2VRjZdzFd4809+dVeZ
-         0F2yYgySidUwbg5gZaix3QraeBUa36Q6wE8i5kVXS5lu8D09NoraZFD4b3HtV3+VPB
-         UG2GAJn+pIT1Q==
-Content-Type: text/plain; charset="utf-8"
+        Fri, 19 Nov 2021 07:36:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60950 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230385AbhKSMgS (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 19 Nov 2021 07:36:18 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 28572C061574
+        for <netfilter-devel@vger.kernel.org>; Fri, 19 Nov 2021 04:33:17 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1mo34s-0004eV-Aa; Fri, 19 Nov 2021 13:33:14 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: nf_queue: remove leftover synchronize_rcu
+Date:   Fri, 19 Nov 2021 13:33:09 +0100
+Message-Id: <20211119123309.22041-1-fw@strlen.de>
+X-Mailer: git-send-email 2.32.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 01/11] selftests: netfilter: add a vrf+conntrack testcase
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <163732022384.23424.5821789807519736618.git-patchwork-notify@kernel.org>
-Date:   Fri, 19 Nov 2021 11:10:23 +0000
-References: <20211118222618.433273-2-pablo@netfilter.org>
-In-Reply-To: <20211118222618.433273-2-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+Its no longer needed after commit 870299707436
+("netfilter: nf_queue: move hookfn registration out of struct net").
 
-This series was applied to netdev/net.git (master)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nfnetlink_queue.c | 6 ------
+ 1 file changed, 6 deletions(-)
 
-On Thu, 18 Nov 2021 23:26:08 +0100 you wrote:
-> From: Florian Westphal <fw@strlen.de>
-> 
-> Rework the reproducer for the vrf+conntrack regression reported
-> by Eugene into a selftest and also add a test for ip masquerading
-> that Lahav fixed recently.
-> 
-> With net or net-next tree, the first test fails and the latter
-> two pass.
-> 
-> [...]
-
-Here is the summary with links:
-  - [net,01/11] selftests: netfilter: add a vrf+conntrack testcase
-    https://git.kernel.org/netdev/net/c/33b8aad21ac1
-  - [net,02/11] selftests: netfilter: extend nfqueue tests to cover vrf device
-    https://git.kernel.org/netdev/net/c/228c3fa054ad
-  - [net,03/11] netfilter: nft_payload: Remove duplicated include in nft_payload.c
-    https://git.kernel.org/netdev/net/c/00d8b83725e9
-  - [net,04/11] selftests: nft_nat: Improve port shadow test stability
-    https://git.kernel.org/netdev/net/c/e1f8bc06e497
-  - [net,05/11] selftests: nft_nat: Simplify port shadow notrack test
-    https://git.kernel.org/netdev/net/c/85c0c8b342e8
-  - [net,06/11] netfilter: ctnetlink: fix filtering with CTA_TUPLE_REPLY
-    https://git.kernel.org/netdev/net/c/ad81d4daf6a3
-  - [net,07/11] netfilter: ctnetlink: do not erase error code with EINVAL
-    https://git.kernel.org/netdev/net/c/77522ff02f33
-  - [net,08/11] netfilter: ipvs: Fix reuse connection if RS weight is 0
-    https://git.kernel.org/netdev/net/c/c95c07836fa4
-  - [net,09/11] netfilter: xt_IDLETIMER: replace snprintf in show functions with sysfs_emit
-    https://git.kernel.org/netdev/net/c/c08d3286caf1
-  - [net,10/11] netfilter: flowtable: fix IPv6 tunnel addr match
-    https://git.kernel.org/netdev/net/c/39f6eed4cb20
-  - [net,11/11] selftests: nft_nat: switch port shadow test cases to socat
-    https://git.kernel.org/netdev/net/c/a2acf0c0e2da
-
-You are awesome, thank you!
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 4acc4b8e9fe5..b61165e97252 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -1527,15 +1527,9 @@ static void __net_exit nfnl_queue_net_exit(struct net *net)
+ 		WARN_ON_ONCE(!hlist_empty(&q->instance_table[i]));
+ }
+ 
+-static void nfnl_queue_net_exit_batch(struct list_head *net_exit_list)
+-{
+-	synchronize_rcu();
+-}
+-
+ static struct pernet_operations nfnl_queue_net_ops = {
+ 	.init		= nfnl_queue_net_init,
+ 	.exit		= nfnl_queue_net_exit,
+-	.exit_batch	= nfnl_queue_net_exit_batch,
+ 	.id		= &nfnl_queue_net_id,
+ 	.size		= sizeof(struct nfnl_queue_net),
+ };
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.32.0
 
