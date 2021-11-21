@@ -2,19 +2,19 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C125C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D1D8C43217
 	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Nov 2021 20:41:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233042AbhKUUo4 (ORCPT
+        id S231284AbhKUUo4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sun, 21 Nov 2021 15:44:56 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35744 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35742 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232923AbhKUUo4 (ORCPT
+        with ESMTP id S232919AbhKUUo4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Sun, 21 Nov 2021 15:44:56 -0500
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A7888C061748
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F1FEC06173E
         for <netfilter-devel@vger.kernel.org>; Sun, 21 Nov 2021 12:41:50 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
@@ -22,22 +22,22 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=Q3slwVu3XrbRto7Rb6M0vPTZ6Tmvn5kaLUuDA5wi1es=; b=e+MwIDglX6u3+/K5a5kBwFxnJJ
-        wFmWzrKBjGsMP9VKfxC3xF6525vxCMpc/KtMrRviodjGxpRQfJQu1/NJXTCw41E5vIUhhLoO+BsmR
-        hbNe7h5dK6ORTLQ+6H7lZISsLxCKOOWYM7nGkQq86m63x+Zib1fLsELeLyPye0eOoubl/TClBXMeg
-        ojmAGsU4/maFUQhPkNgQjTjGYZLhHxp/3VTY8PvzjOcpvVxzOkyP0cMwb/U0ZrnME6AnM7HMKg/Ja
-        j7YU9bGBPexmeNeekfpECvwJNhAqrg8YC09YpTHWOKo7N+v5kKqvpAphtjrzI+odcxBWLdFBIx+oe
-        4u9UfHDA==;
+        bh=ynYtcKNQ9dh55ol7Jpaq4sx1Vq4pg6VfVnltJN4dbyU=; b=fLpLwSrK/ziTpVrSYN8oTYy6ny
+        NJ2nHCVbFdEoPvCcvPD6exB3OxmN0DWi9MoSkQTs66covsfvQvlZiPUFJu46IWRey7OCnaO+vkOD5
+        +rYV8gF0GSCJIXrn47LufM8JXmx0HxFPAOgBAs3vBYS5b+quSDYfR+ArDUgUJUwN62XsGFL9kENW/
+        Dr+X9Eq6GZjvJdzG//rM+6T2AZPk1itGtM0Vxy9YmiDFNwpIA3GRXVJu0V8uFUenWMsF1ojgNbe5P
+        J1PhMrZTVUZKEe+uEh2/r16FP7hVq7E7XedDuEXXHYYZ5n+PYtJ55ytooqdRNtN+Qh3SNd67vY26E
+        fXh9IX/g==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
         by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1motel-0025lK-AM
+        id 1motel-0025lK-Cn
         for netfilter-devel@vger.kernel.org; Sun, 21 Nov 2021 20:41:47 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [ulogd2 PATCH 3/5] ulogd: fix order of log arguments
-Date:   Sun, 21 Nov 2021 20:41:37 +0000
-Message-Id: <20211121204139.2218387-4-jeremy@azazel.net>
+Subject: [ulogd2 PATCH 4/5] input: UNIXSOCK: correct format specifiers
+Date:   Sun, 21 Nov 2021 20:41:38 +0000
+Message-Id: <20211121204139.2218387-5-jeremy@azazel.net>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20211121204139.2218387-1-jeremy@azazel.net>
 References: <20211121204139.2218387-1-jeremy@azazel.net>
@@ -50,28 +50,50 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If `daemon` fails during start-up, ulogd attempts to print `errno` and
-`strerror(errno)` to the log.  However, the arguments are the wrong way
-round.  Swap them.
+There are a couple of logging calls which use the wrong specifiers for
+their integer arguments.  Change the specifiers to match the arguments.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- src/ulogd.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ input/packet/ulogd_inppkt_UNIXSOCK.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/src/ulogd.c b/src/ulogd.c
-index a31b35592a87..97da4fc0018f 100644
---- a/src/ulogd.c
-+++ b/src/ulogd.c
-@@ -1569,7 +1569,7 @@ int main(int argc, char* argv[])
- 	if (daemonize){
- 		if (daemon(0, 0) < 0) {
- 			ulogd_log(ULOGD_FATAL, "can't daemonize: %s (%d)\n",
--				  errno, strerror(errno));
-+				  strerror(errno), errno);
- 			warn_and_exit(daemonize);
+diff --git a/input/packet/ulogd_inppkt_UNIXSOCK.c b/input/packet/ulogd_inppkt_UNIXSOCK.c
+index 39944bf5cdb1..86ab590073d8 100644
+--- a/input/packet/ulogd_inppkt_UNIXSOCK.c
++++ b/input/packet/ulogd_inppkt_UNIXSOCK.c
+@@ -18,6 +18,7 @@
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+ 
++#include <inttypes.h>
+ #include <unistd.h>
+ #include <stdlib.h>
+ #include <netinet/ether.h>
+@@ -632,9 +633,9 @@ static int unixsock_instance_read_cb(int fd, unsigned int what, void *param)
+ 		packet_sig = ntohl(unixsock_packet->marker);
+ 		if (packet_sig != ULOGD_SOCKET_MARK) {
+ 			ulogd_log(ULOGD_ERROR,
+-				"ulogd2: invalid packet marked received "
+-				"(read %lx, expected %lx), closing socket.\n",
+-				packet_sig, ULOGD_SOCKET_MARK);
++				  "ulogd2: invalid packet marked received "
++				  "(read %" PRIx32 ", expected %" PRIx32 "), closing socket.\n",
++				  packet_sig, ULOGD_SOCKET_MARK);
+ 			_disconnect_client(ui);
+ 			return -1;
+ 
+@@ -663,8 +664,8 @@ static int unixsock_instance_read_cb(int fd, unsigned int what, void *param)
+ 			}
+ 
+ 		} else {
+-			ulogd_log(ULOGD_DEBUG, "  We have %d bytes, but need %d. Requesting more\n",
+-					ui->unixsock_buf_avail, needed_len + sizeof(uint32_t));
++			ulogd_log(ULOGD_DEBUG, "  We have %u bytes, but need %zu. Requesting more\n",
++				  ui->unixsock_buf_avail, needed_len + sizeof(uint32_t));
+ 			return 0;
  		}
- 	}
+ 
 -- 
 2.33.0
 
