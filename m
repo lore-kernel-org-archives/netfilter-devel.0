@@ -2,80 +2,78 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D455C4321E
-	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Nov 2021 20:41:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A59DC433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Nov 2021 13:29:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233089AbhKUUo5 (ORCPT
+        id S229984AbhKVNcv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 21 Nov 2021 15:44:57 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35746 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232930AbhKUUo4 (ORCPT
+        Mon, 22 Nov 2021 08:32:51 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:26954 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S232194AbhKVNcv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 21 Nov 2021 15:44:56 -0500
-Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF4F3C06174A
-        for <netfilter-devel@vger.kernel.org>; Sun, 21 Nov 2021 12:41:50 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=0UtzhUaOBtyrnyy3mKZVtkzz0ztQvQhzn5O/MkDmSI0=; b=DTAcE2dzciu52eMIwz6D5giTCL
-        VtbfYDoVZ6V3Z4AwS14GCOZyKzbIJiyQ5Y00ZAI9M09osVFst+pQN3h5VSnGslDzLfYtb0zgnKvBL
-        1N8vxrzVmow5+FaW7XmgaA9JhmURXc6gbsEFvg4em/4Bi1pTnaGmJnF9aCpgfnA13wEx+pUZKlJ7z
-        Rlqh93+9y9fiF04rlA6WZkjhiHrwuMq6z9GUay/1A5DQBBigRriqnn5cCKMgZVovRpJ99E9Rn8GLQ
-        /gtgmeXbfLOtSTkfg05WVuzVoNZ6YoITePD/dwdOFcc8Hh40e029E+wHGo5AwZh8eKmiaEWpfBOTz
-        M8YakBNA==;
-Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
-        by kadath.azazel.net with esmtp (Exim 4.94.2)
-        (envelope-from <jeremy@azazel.net>)
-        id 1motel-0025lK-4A
-        for netfilter-devel@vger.kernel.org; Sun, 21 Nov 2021 20:41:47 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [ulogd2 PATCH 1/5] include: add `format` attribute to `__ulogd_log` declaration
-Date:   Sun, 21 Nov 2021 20:41:35 +0000
-Message-Id: <20211121204139.2218387-2-jeremy@azazel.net>
-X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20211121204139.2218387-1-jeremy@azazel.net>
-References: <20211121204139.2218387-1-jeremy@azazel.net>
+        Mon, 22 Nov 2021 08:32:51 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1637587784;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=gzKaeQ3x/E+JRitbqysGctyZRY4eXpFnnFZOkrrbUGI=;
+        b=LFjD5CQinBaUEIG1ySFWHawv9s5pMzyrIXn91FlXrnZrzJSbtPxQDfX5cH9KSYU8y9TiGf
+        VPdLRVRwovGKe0RwVF5tDMQZKVGthjXeiNW/Ci2rZo/QIN00BvsFgpjPkorRNbdunUDh+f
+        W8CmJvXA8VFfhZASKFda5tOS/snn1xM=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-507-Mt5XMedyNJuV4Fplapg8mA-1; Mon, 22 Nov 2021 08:29:38 -0500
+X-MC-Unique: Mt5XMedyNJuV4Fplapg8mA-1
+Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 37D968735C1;
+        Mon, 22 Nov 2021 13:29:37 +0000 (UTC)
+Received: from maya.cloud.tilaa.com (unknown [10.40.208.30])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 988A960C9F;
+        Mon, 22 Nov 2021 13:29:36 +0000 (UTC)
+Date:   Mon, 22 Nov 2021 14:29:33 +0100
+From:   Stefano Brivio <sbrivio@redhat.com>
+To:     Nikita Yushchenko <nikita.yushchenko@virtuozzo.com>
+Cc:     Florian Westphal <fw@strlen.de>, Netdev <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, kernel@openvz.org
+Subject: Re: "AVX2-based lookup implementation" has broken ebtables
+ --among-src
+Message-ID: <20211122142933.15e6bffc@elisabeth>
+In-Reply-To: <6d484385-5bf6-5cc5-4d26-fd90c367a2dc@virtuozzo.com>
+References: <d35db9d6-0727-1296-fa78-4efeadf3319c@virtuozzo.com>
+        <20211116173352.1a5ff66a@elisabeth>
+        <20211117120609.GI6326@breakpoint.cc>
+        <6d484385-5bf6-5cc5-4d26-fd90c367a2dc@virtuozzo.com>
+Organization: Red Hat
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-`__ulogd_log` takes a printf-style format string and matching arguments.
-Add the gcc `format` attribute to its declaration in order to allow the
-compiler to type-check the function arguments against the specifiers in
-the format string.
+On Wed, 17 Nov 2021 15:08:54 +0300
+Nikita Yushchenko <nikita.yushchenko@virtuozzo.com> wrote:
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- include/ulogd/ulogd.h | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+> >>> Looks like the AVX2-based lookup does not process this correctly.
+> >>
+> >> Thanks for bisecting and reporting this! I'm looking into it now, I
+> >> might be a bit slow as I'm currently traveling.  
+> > 
+> > Might be a bug in ebtables....  
+> 
+> Exactly same ebtables binary (and exactly same rule) works with
+> kernel 4.18 and all kernels up to the mentioned patch applied.
 
-diff --git a/include/ulogd/ulogd.h b/include/ulogd/ulogd.h
-index 1636a8caa854..a487c8e70e37 100644
---- a/include/ulogd/ulogd.h
-+++ b/include/ulogd/ulogd.h
-@@ -299,8 +299,9 @@ void ulogd_register_plugin(struct ulogd_plugin *me);
- /* allocate a new ulogd_key */
- struct ulogd_key *alloc_ret(const uint16_t type, const char*);
- 
--/* write a message to the daemons' logfile */
--void __ulogd_log(int level, char *file, int line, const char *message, ...);
-+/* write a message to the daemon's logfile */
-+void __ulogd_log(int level, char *file, int line, const char *message, ...)
-+	__attribute__((format(printf, 4, 5)));
- /* macro for logging including filename and line number */
- #define ulogd_log(level, format, args...) \
- 	__ulogd_log(level, __FILE__, __LINE__, format, ## args)
+Sorry for the delay, I've been offline the past days, I'll restart
+looking into this now.
+
 -- 
-2.33.0
+Stefano
 
