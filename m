@@ -2,78 +2,56 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A59DC433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Nov 2021 13:29:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C38FC433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Nov 2021 17:05:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229984AbhKVNcv (ORCPT
+        id S237015AbhKVRIt (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 22 Nov 2021 08:32:51 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:26954 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S232194AbhKVNcv (ORCPT
+        Mon, 22 Nov 2021 12:08:49 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:33326 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231714AbhKVRIs (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Nov 2021 08:32:51 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1637587784;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=gzKaeQ3x/E+JRitbqysGctyZRY4eXpFnnFZOkrrbUGI=;
-        b=LFjD5CQinBaUEIG1ySFWHawv9s5pMzyrIXn91FlXrnZrzJSbtPxQDfX5cH9KSYU8y9TiGf
-        VPdLRVRwovGKe0RwVF5tDMQZKVGthjXeiNW/Ci2rZo/QIN00BvsFgpjPkorRNbdunUDh+f
-        W8CmJvXA8VFfhZASKFda5tOS/snn1xM=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-507-Mt5XMedyNJuV4Fplapg8mA-1; Mon, 22 Nov 2021 08:29:38 -0500
-X-MC-Unique: Mt5XMedyNJuV4Fplapg8mA-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 37D968735C1;
-        Mon, 22 Nov 2021 13:29:37 +0000 (UTC)
-Received: from maya.cloud.tilaa.com (unknown [10.40.208.30])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 988A960C9F;
-        Mon, 22 Nov 2021 13:29:36 +0000 (UTC)
-Date:   Mon, 22 Nov 2021 14:29:33 +0100
-From:   Stefano Brivio <sbrivio@redhat.com>
-To:     Nikita Yushchenko <nikita.yushchenko@virtuozzo.com>
-Cc:     Florian Westphal <fw@strlen.de>, Netdev <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, kernel@openvz.org
-Subject: Re: "AVX2-based lookup implementation" has broken ebtables
- --among-src
-Message-ID: <20211122142933.15e6bffc@elisabeth>
-In-Reply-To: <6d484385-5bf6-5cc5-4d26-fd90c367a2dc@virtuozzo.com>
-References: <d35db9d6-0727-1296-fa78-4efeadf3319c@virtuozzo.com>
-        <20211116173352.1a5ff66a@elisabeth>
-        <20211117120609.GI6326@breakpoint.cc>
-        <6d484385-5bf6-5cc5-4d26-fd90c367a2dc@virtuozzo.com>
-Organization: Red Hat
+        Mon, 22 Nov 2021 12:08:48 -0500
+Received: from localhost.localdomain (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 94B4264A8F
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Nov 2021 18:03:31 +0100 (CET)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] mnl: different signedness compilation warning
+Date:   Mon, 22 Nov 2021 18:05:37 +0100
+Message-Id: <20211122170537.534136-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, 17 Nov 2021 15:08:54 +0300
-Nikita Yushchenko <nikita.yushchenko@virtuozzo.com> wrote:
+mnl.c: In function ‘mnl_batch_talk’:
+mnl.c:417:17: warning: comparison of integer expressions of different signedness: ‘unsigned in’ and ‘long int’ [-Wsign-compare]
+   if (rcvbufsiz < NFT_MNL_ECHO_RCVBUFF_DEFAULT)
+                 ^
 
-> >>> Looks like the AVX2-based lookup does not process this correctly.
-> >>
-> >> Thanks for bisecting and reporting this! I'm looking into it now, I
-> >> might be a bit slow as I'm currently traveling.  
-> > 
-> > Might be a bug in ebtables....  
-> 
-> Exactly same ebtables binary (and exactly same rule) works with
-> kernel 4.18 and all kernels up to the mentioned patch applied.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/mnl.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Sorry for the delay, I've been offline the past days, I'll restart
-looking into this now.
-
+diff --git a/src/mnl.c b/src/mnl.c
+index 4a10647f9f17..23348e1393bc 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -377,7 +377,7 @@ static int mnl_batch_extack_cb(const struct nlmsghdr *nlh, void *data)
+ 	return MNL_CB_ERROR;
+ }
+ 
+-#define NFT_MNL_ECHO_RCVBUFF_DEFAULT	(MNL_SOCKET_BUFFER_SIZE * 1024)
++#define NFT_MNL_ECHO_RCVBUFF_DEFAULT	(MNL_SOCKET_BUFFER_SIZE * 1024U)
+ #define NFT_MNL_ACK_MAXSIZE		((sizeof(struct nlmsghdr) + \
+ 					  sizeof(struct nfgenmsg) + (1 << 16)) + \
+ 					  MNL_SOCKET_BUFFER_SIZE)
 -- 
-Stefano
+2.30.2
 
