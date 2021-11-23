@@ -2,99 +2,73 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A769AC433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Nov 2021 11:50:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 584BEC433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Nov 2021 13:17:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234665AbhKWLxr (ORCPT
+        id S234664AbhKWNUM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 23 Nov 2021 06:53:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54144 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234482AbhKWLxq (ORCPT
+        Tue, 23 Nov 2021 08:20:12 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:60230 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234466AbhKWNUM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 23 Nov 2021 06:53:46 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C7928C061574
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Nov 2021 03:50:38 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1mpUJn-0007O0-6a; Tue, 23 Nov 2021 12:50:35 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>, Amish Chana <amish@3g.co.za>
-Subject: [PATCH nf] netfilter: bridge: add support for ppoe filtering
-Date:   Tue, 23 Nov 2021 12:50:31 +0100
-Message-Id: <20211123115031.2304-1-fw@strlen.de>
-X-Mailer: git-send-email 2.32.0
+        Tue, 23 Nov 2021 08:20:12 -0500
+Received: from netfilter.org (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 3607A64704;
+        Tue, 23 Nov 2021 14:14:53 +0100 (CET)
+Date:   Tue, 23 Nov 2021 14:16:59 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft 0/8] mptcp subtype option match support
+Message-ID: <YZzpy9bk4AFahSVI@salvia>
+References: <20211119152847.18118-1-fw@strlen.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20211119152847.18118-1-fw@strlen.de>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This makes 'bridge-nf-filter-pppoe-tagged' sysctl work for
-bridged traffic.
+On Fri, Nov 19, 2021 at 04:28:39PM +0100, Florian Westphal wrote:
+> This series adds 'tcp option mptcp subtype' matching to nft.
 
-Looking at the original commit it doesn't appear this ever worked:
+LGTM.
 
- static unsigned int br_nf_post_routing(unsigned int hook, struct sk_buff **pskb,
-[..]
-        if (skb->protocol == htons(ETH_P_8021Q)) {
-                skb_pull(skb, VLAN_HLEN);
-                skb->network_header += VLAN_HLEN;
-+       } else if (skb->protocol == htons(ETH_P_PPP_SES)) {
-+               skb_pull(skb, PPPOE_SES_HLEN);
-+               skb->network_header += PPPOE_SES_HLEN;
-        }
- [..]
-	NF_HOOK(... POST_ROUTING, ...)
+> Because the subtype is only 4 bits in size the exthdr
+> delinearization needs a fixup to remove the binop added by the
+> evaluation step.
 
-... but the adjusted offsets are never restored.
+By the bitwise operation to take the 4 bits you can infer this refers to
+mptcp, but it might be good to store in the rule userdata area that this
+expression refers to mptcp as a suggestion to userspace when
+delinearizing the rule. I wanted to look into this for a different
+usecase.
 
-The alternative would be to rip this code out for good,
-but otoh we'd have to keep this anyway for the vlan handling
-(which works because vlan tag info is in the skb, not the packet
- payload).
+> One remaining usablility problem is the lack of mnemonics for the
+> subtype, i.e. something like:
+> 
+> static const struct symbol_table mptcp_subtype_tbl = {
+>        .base           = BASE_DECIMAL,
+>        .symbols        = {
+>                SYMBOL("mp-capable",    0),
+>                SYMBOL("mp-join",       1),
+>                SYMBOL("dss",           2),
+>                SYMBOL("add-addr",      3),
+>                SYMBOL("remove-addr",   4),
+>                SYMBOL("mp-prio",       5),
+>                SYMBOL("mp-fail",       6),
+>                SYMBOL("mp-fastclose",  7),
+>                SYMBOL("mp-tcprst",     8),
+>                SYMBOL_LIST_END
+>        },
+> 
+> ... but this would need addition of yet another data type.
+>
+> Use of implicit/context-dependent symbol table would
+> be preferrable, I will look into this next.
 
-Reported-and-tested-by: Amish Chana <amish@3g.co.za>
-Fixes: 516299d2f5b6f97 ("[NETFILTER]: bridge-nf: filter bridged IPv4/IPv6 encapsulated in pppoe traffic")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/bridge/br_netfilter_hooks.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+Could you develop your idea?
 
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index b5af68c105a8..4fd882686b04 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -743,6 +743,9 @@ static int br_nf_dev_queue_xmit(struct net *net, struct sock *sk, struct sk_buff
- 	if (nf_bridge->frag_max_size && nf_bridge->frag_max_size < mtu)
- 		mtu = nf_bridge->frag_max_size;
- 
-+	nf_bridge_update_protocol(skb);
-+	nf_bridge_push_encap_header(skb);
-+
- 	if (skb_is_gso(skb) || skb->len + mtu_reserved <= mtu) {
- 		nf_bridge_info_free(skb);
- 		return br_dev_queue_push_xmit(net, sk, skb);
-@@ -760,8 +763,6 @@ static int br_nf_dev_queue_xmit(struct net *net, struct sock *sk, struct sk_buff
- 
- 		IPCB(skb)->frag_max_size = nf_bridge->frag_max_size;
- 
--		nf_bridge_update_protocol(skb);
--
- 		data = this_cpu_ptr(&brnf_frag_data_storage);
- 
- 		if (skb_vlan_tag_present(skb)) {
-@@ -789,8 +790,6 @@ static int br_nf_dev_queue_xmit(struct net *net, struct sock *sk, struct sk_buff
- 
- 		IP6CB(skb)->frag_max_size = nf_bridge->frag_max_size;
- 
--		nf_bridge_update_protocol(skb);
--
- 		data = this_cpu_ptr(&brnf_frag_data_storage);
- 		data->encap_size = nf_bridge_encap_header_len(skb);
- 		data->size = ETH_HLEN + data->encap_size;
--- 
-2.32.0
-
+Thanks.
