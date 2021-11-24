@@ -2,30 +2,30 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 401C7C433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Nov 2021 17:23:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA79BC433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Nov 2021 17:24:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237321AbhKXR0x (ORCPT
+        id S237480AbhKXR1e (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 24 Nov 2021 12:26:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60756 "EHLO
+        Wed, 24 Nov 2021 12:27:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60844 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237252AbhKXR0w (ORCPT
+        with ESMTP id S240975AbhKXR12 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Nov 2021 12:26:52 -0500
+        Wed, 24 Nov 2021 12:27:28 -0500
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1903DC061574
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 Nov 2021 09:23:43 -0800 (PST)
-Received: from localhost ([::1]:44862 helo=xic)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A5514C061574
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 Nov 2021 09:24:18 -0800 (PST)
+Received: from localhost ([::1]:44892 helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1mpvzh-000183-CV; Wed, 24 Nov 2021 18:23:41 +0100
+        id 1mpw0G-000198-Vv; Wed, 24 Nov 2021 18:24:17 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 02/15] exthdr: Fix for segfault with unknown exthdr
-Date:   Wed, 24 Nov 2021 18:22:38 +0100
-Message-Id: <20211124172251.11539-3-phil@nwl.cc>
+Subject: [nft PATCH 12/15] include: Use struct nftnl_set_desc
+Date:   Wed, 24 Nov 2021 18:22:48 +0100
+Message-Id: <20211124172251.11539-13-phil@nwl.cc>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20211124172251.11539-1-phil@nwl.cc>
 References: <20211124172251.11539-1-phil@nwl.cc>
@@ -35,60 +35,49 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Unknown exthdr type with NFT_EXTHDR_F_PRESENT flag set caused
-NULL-pointer deref. Fix this by moving the conditional exthdr.desc deref
-atop the function and use the result in all cases.
+Since libnftnl now exports the data structure, use it in struct set.
 
-Fixes: e02bd59c4009b ("exthdr: Implement existence check")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/exthdr.c | 12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ include/rule.h | 11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff --git a/src/exthdr.c b/src/exthdr.c
-index 22a08b0c9c2bf..7a29e63d4d536 100644
---- a/src/exthdr.c
-+++ b/src/exthdr.c
-@@ -46,6 +46,9 @@ static const struct exthdr_desc *exthdr_find_desc(enum exthdr_desc_id desc_id)
+diff --git a/include/rule.h b/include/rule.h
+index be31695636df4..5e6647f9d6cca 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -6,6 +6,7 @@
+ #include <list.h>
+ #include <netinet/in.h>
+ #include <libnftnl/object.h>	/* For NFTNL_CTTIMEOUT_ARRAY_MAX. */
++#include <libnftnl/set.h>
+ #include <linux/netfilter/nf_tables.h>
+ #include <string.h>
+ #include <cache.h>
+@@ -330,9 +331,7 @@ void rule_stmt_insert_at(struct rule *rule, struct stmt *nstmt,
+  * @policy:	set mechanism policy
+  * @automerge:	merge adjacents and overlapping elements, if possible
+  * @comment:	comment
+- * @desc.size:		count of set elements
+- * @desc.field_len:	length of single concatenated fields, bytes
+- * @desc.field_count:	count of concatenated fields
++ * @desc:	set element meta data
+  */
+ struct set {
+ 	struct list_head	list;
+@@ -354,11 +353,7 @@ struct set {
+ 	bool			automerge;
+ 	bool			key_typeof_valid;
+ 	const char		*comment;
+-	struct {
+-		uint32_t	size;
+-		uint8_t		field_len[NFT_REG32_COUNT];
+-		uint8_t		field_count;
+-	} desc;
++	struct nftnl_set_desc	desc;
+ };
  
- static void exthdr_expr_print(const struct expr *expr, struct output_ctx *octx)
- {
-+	const char *name = expr->exthdr.desc ?
-+		expr->exthdr.desc->name : "unknown-exthdr";
-+
- 	if (expr->exthdr.op == NFT_EXTHDR_OP_TCPOPT) {
- 		/* Offset calculation is a bit hacky at this point.
- 		 * There might be a tcp option one day with another
-@@ -65,14 +68,14 @@ static void exthdr_expr_print(const struct expr *expr, struct output_ctx *octx)
- 			return;
- 		}
- 
--		nft_print(octx, "tcp option %s", expr->exthdr.desc->name);
-+		nft_print(octx, "tcp option %s", name);
- 		if (expr->exthdr.flags & NFT_EXTHDR_F_PRESENT)
- 			return;
- 		if (offset)
- 			nft_print(octx, "%d", offset);
- 		nft_print(octx, " %s", expr->exthdr.tmpl->token);
- 	} else if (expr->exthdr.op == NFT_EXTHDR_OP_IPV4) {
--		nft_print(octx, "ip option %s", expr->exthdr.desc->name);
-+		nft_print(octx, "ip option %s", name);
- 		if (expr->exthdr.flags & NFT_EXTHDR_F_PRESENT)
- 			return;
- 		nft_print(octx, " %s", expr->exthdr.tmpl->token);
-@@ -83,10 +86,9 @@ static void exthdr_expr_print(const struct expr *expr, struct output_ctx *octx)
- 		nft_print(octx, " %s", expr->exthdr.tmpl->token);
- 	} else {
- 		if (expr->exthdr.flags & NFT_EXTHDR_F_PRESENT)
--			nft_print(octx, "exthdr %s", expr->exthdr.desc->name);
-+			nft_print(octx, "exthdr %s", name);
- 		else {
--			nft_print(octx, "%s %s",
--				  expr->exthdr.desc ? expr->exthdr.desc->name : "unknown-exthdr",
-+			nft_print(octx, "%s %s", name,
- 				  expr->exthdr.tmpl->token);
- 		}
- 	}
+ extern struct set *set_alloc(const struct location *loc);
 -- 
 2.33.0
 
