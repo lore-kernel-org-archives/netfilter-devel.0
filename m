@@ -2,137 +2,108 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18570C433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Nov 2021 09:17:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B990C433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Nov 2021 17:23:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232187AbhKXJVF (ORCPT
+        id S236518AbhKXR0J (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 24 Nov 2021 04:21:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35868 "EHLO
+        Wed, 24 Nov 2021 12:26:09 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60556 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229926AbhKXJVE (ORCPT
+        with ESMTP id S236761AbhKXR0D (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Nov 2021 04:21:04 -0500
-Received: from mail-pj1-x102b.google.com (mail-pj1-x102b.google.com [IPv6:2607:f8b0:4864:20::102b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C842C061574
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 Nov 2021 01:17:55 -0800 (PST)
-Received: by mail-pj1-x102b.google.com with SMTP id gt5so2017614pjb.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 Nov 2021 01:17:55 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=maxtel-cz.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=9OeqPDxfCkgzNpmKuV+9nDZ1U5l+EGLhslSlNR9viTo=;
-        b=imD+8v7DtX190OEgyxWMdkpMqhGZkAAlFwfjSqtreMUvf70MryHLj2IIRkHJfrcDmM
-         X5G8IpQnv9aVWFFQPzBWsz5bKF+eIKWMF8xuPQvBeGmtMMrKrSO5MURqNOoPHfmGQicY
-         +L1f+rbipoNHlpILXnUGkyGp8qImBXwRNrQ0b1ne5NiuOBQ2dt8BRVwYHrMPZG3nrPm6
-         P8hxxHJmu5Z7kqWcRQ5jcOs5qUASqPq6/hCZ6i4bQJZ7LeAdOu6bfNcbOGeGVPX3z/Vh
-         Z3LIxc7DCFhnVavECcrucYNOKU7iv1E+dGR/XTi8lPPccOsYu+684/KBGQH9nKZbqVD8
-         FZlg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=9OeqPDxfCkgzNpmKuV+9nDZ1U5l+EGLhslSlNR9viTo=;
-        b=19lD3C5GzQ3Y+KU8+L/q++klhx9OjzH2zTcuB+YddcJV2jw+vzhACOXrD2lvQ+kSRV
-         iibPKIkyBI0VbTc5/WiXBRQ0Uws3kszVg4uGzODP4+zaSstT6JYr02s5q0BMOegyT8h/
-         FbSUI47mYYSSqpF+REFFhzgahBpJgXM+LN9TwgJSGPBU+jut3sn3YmwM0j9CKLAGhLbL
-         cBJf3ku3qkd9JKFKjjLwR8bAG1MIYJz7CX57mfVG/yrsDleqHLvIro6KNabGzymml/or
-         jNBU2/7/s5iJkmJQiyPwAIyhBYQf2XF7nsFI/bC5RNhDaQTxty3nILu8D7meBMd7XSIq
-         zXzA==
-X-Gm-Message-State: AOAM531MF+A+WTjf4DVNX9S1+AFJVl9K66G1JtkBh+dPDIv9Fwnk1HyI
-        o6pclr0uMdSx9I4esom7ukCo0EPZplQcXk8iRKKRnQ==
-X-Google-Smtp-Source: ABdhPJy+/ADwizxbc3KF2B97qaOVGZz6pbXQ9Ka0yEYyuT5Akm4znIXp897J2cN5VVHv/CFZjItGWYNKGNDJGwkcdOI=
-X-Received: by 2002:a17:90b:3848:: with SMTP id nl8mr13029262pjb.221.1637745474855;
- Wed, 24 Nov 2021 01:17:54 -0800 (PST)
+        Wed, 24 Nov 2021 12:26:03 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F19B4C061714
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 Nov 2021 09:22:53 -0800 (PST)
+Received: from localhost ([::1]:44814 helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1mpvyt-000151-3V; Wed, 24 Nov 2021 18:22:51 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [libnftnl PATCH 3/7] set: Introduce NFTNL_SET_DESC_CONCAT_DATA
+Date:   Wed, 24 Nov 2021 18:22:38 +0100
+Message-Id: <20211124172242.11402-4-phil@nwl.cc>
+X-Mailer: git-send-email 2.33.0
+In-Reply-To: <20211124172242.11402-1-phil@nwl.cc>
+References: <20211124172242.11402-1-phil@nwl.cc>
 MIME-Version: 1.0
-References: <20211121170514.2595-1-fw@strlen.de> <YZzrgVYskeXzLuM5@salvia> <CAHsH6GvEWVTOxNGU1b3U5gcaZ=0oXSrANroaD_ZnrCOBr+37nQ@mail.gmail.com>
-In-Reply-To: <CAHsH6GvEWVTOxNGU1b3U5gcaZ=0oXSrANroaD_ZnrCOBr+37nQ@mail.gmail.com>
-From:   Karel Rericha <karel@maxtel.cz>
-Date:   Wed, 24 Nov 2021 10:17:43 +0100
-Message-ID: <CAN==1Rq26zfjpOAATj7qnSEoo7OF=cpMnpTYkqLzAw9UC+y7nA@mail.gmail.com>
-Subject: Re: [PATCH nf-next] netfilter: conntrack: allow to tune gc behavior
-To:     Eyal Birger <eyal.birger@gmail.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org,
-        Shmulik Ladkani <shmulik.ladkani@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If I may add myself to discussion:
+Analogous to NFTNL_SET_DESC_CONCAT, introduce a data structure
+describing individual data lengths of elements' concatenated data
+fields.
 
-Florian's tunable solution is good enough for both worlds: setting
-high gc interval will make idle VMs not waking up unnecessarily often
-and low gc interval will prevent dropping conntrack events for systems
-with busy very large conntrack tables which acquire conntrack events
-through netlink.
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ include/libnftnl/set.h | 1 +
+ include/set.h          | 2 ++
+ src/set.c              | 8 ++++++++
+ 3 files changed, 11 insertions(+)
 
-I'm not sure about the default value though. Two minutes means
-dropping events for some systems, i.e. breaking functionality compared
-to previous gc solution. For VMs a few more waking ups don't break
-anything I would guess (except for a little higher load). So a good
-default would be returning back to hundreds of milliseconds or at
-least to seconds. Two minutes are causing dropping conntrack events
-even for 100MB netlink socket buffer here (several thousands events
-per second, conntrack max 1M, hash table size 1M).
+diff --git a/include/libnftnl/set.h b/include/libnftnl/set.h
+index 1ffb6c415260d..958bbc9065f67 100644
+--- a/include/libnftnl/set.h
++++ b/include/libnftnl/set.h
+@@ -33,6 +33,7 @@ enum nftnl_set_attr {
+ 	NFTNL_SET_EXPR,
+ 	NFTNL_SET_EXPRESSIONS,
+ 	NFTNL_SET_DESC_BYTEORDER,
++	NFTNL_SET_DESC_CONCAT_DATA,
+ 	__NFTNL_SET_MAX
+ };
+ #define NFTNL_SET_MAX (__NFTNL_SET_MAX - 1)
+diff --git a/include/set.h b/include/set.h
+index 816bd24faf651..a9f6225401a4e 100644
+--- a/include/set.h
++++ b/include/set.h
+@@ -28,6 +28,8 @@ struct nftnl_set {
+ 		uint32_t	byteorder;
+ 		uint8_t		field_len[NFT_REG32_COUNT];
+ 		uint8_t		field_count;
++		uint8_t		data_len[NFT_REG32_COUNT];
++		uint8_t		data_count;
+ 	} desc;
+ 	struct list_head	element_list;
+ 
+diff --git a/src/set.c b/src/set.c
+index 651eaf5503dee..e793282175eb5 100644
+--- a/src/set.c
++++ b/src/set.c
+@@ -100,6 +100,7 @@ void nftnl_set_unset(struct nftnl_set *s, uint16_t attr)
+ 	case NFTNL_SET_TIMEOUT:
+ 	case NFTNL_SET_GC_INTERVAL:
+ 	case NFTNL_SET_DESC_BYTEORDER:
++	case NFTNL_SET_DESC_CONCAT_DATA:
+ 		break;
+ 	case NFTNL_SET_USERDATA:
+ 		xfree(s->user.data);
+@@ -221,6 +222,10 @@ int nftnl_set_set_data(struct nftnl_set *s, uint16_t attr, const void *data,
+ 	case NFTNL_SET_DESC_BYTEORDER:
+ 		s->desc.byteorder = *(uint32_t *)data;
+ 		break;
++	case NFTNL_SET_DESC_CONCAT_DATA:
++		memcpy(&s->desc.data_len, data, data_len);
++		while (s->desc.data_len[++s->desc.data_count]);
++		break;
+ 	}
+ 	s->flags |= (1 << attr);
+ 	return 0;
+@@ -318,6 +323,9 @@ const void *nftnl_set_get_data(const struct nftnl_set *s, uint16_t attr,
+ 	case NFTNL_SET_DESC_BYTEORDER:
+ 		*data_len = sizeof(uint32_t);
+ 		return &s->desc.byteorder;
++	case NFTNL_SET_DESC_CONCAT_DATA:
++		*data_len = s->desc.data_count;
++		return s->desc.data_len;
+ 	}
+ 	return NULL;
+ }
+-- 
+2.33.0
 
-Karel
-
-=C3=BAt 23. 11. 2021 v 15:01 odes=C3=ADlatel Eyal Birger <eyal.birger@gmail=
-.com> napsal:
->
-> Hi Pablo,
->
-> On Tue, Nov 23, 2021 at 3:24 PM Pablo Neira Ayuso <pablo@netfilter.org> w=
-rote:
-> >
-> > Hi,
-> >
-> > On Sun, Nov 21, 2021 at 06:05:14PM +0100, Florian Westphal wrote:
-> > > as of commit 4608fdfc07e1
-> > > ("netfilter: conntrack: collect all entries in one cycle")
-> > > conntrack gc was changed to run periodically every 2 minutes.
-> > >
-> > > On systems where conntrack hash table is set to large value,
-> > > almost all evictions happen from gc worker rather than the packet
-> > > path due to hash table distribution.
-> > >
-> > > This causes netlink event overflows when the events are collected.
-> >
-> > If the issue is netlink, it should be possible to batch netlink
-> > events.
-> >
-> > > This change exposes two sysctls:
-> > >
-> > > 1. gc interval (milliseconds, default: 2 minutes)
-> > > 2. buckets per cycle (default: UINT_MAX / all)
-> > >
-> > > This allows to increase the scan intervals but also to reduce bustine=
-ss
-> > > by switching to partial scans of the table for each cycle.
-> >
-> > Is there a way to apply autotuning? I know, this question might be
-> > hard, but when does the user has update this new toggle? And do we
-> > know what value should be placed here?
-> >
-> > @Eyal: What gc interval you selected for your setup to address this
-> > issue? You mentioned a lot of UDP short-lived flows, correct?
->
-> Yes, we have a lot of short lived UDP flows related to a DNS server servi=
-ce.
->
-> We collect flow termination events using ulogd and forward them as JSON
-> messages over UDP to fluentd. Since these flows are reaped every 2 minute=
-s,
-> we see spikes in UDP rx drops due to fluentd not keeping up with the burs=
-ts.
->
-> We planned to configure this to run every 10s or so, which should be
-> sufficient for our workloads, and monitor these spikes in order to tune
-> further as needed.
->
-> Eyal.
