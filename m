@@ -2,30 +2,30 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98EBFC433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Nov 2021 17:24:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76B3AC4332F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Nov 2021 17:24:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237889AbhKXR1e (ORCPT
+        id S237537AbhKXR1f (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 24 Nov 2021 12:27:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60890 "EHLO
+        Wed, 24 Nov 2021 12:27:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60844 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237938AbhKXR1W (ORCPT
+        with ESMTP id S242668AbhKXR1L (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Nov 2021 12:27:22 -0500
+        Wed, 24 Nov 2021 12:27:11 -0500
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01F8AC06173E
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 Nov 2021 09:24:13 -0800 (PST)
-Received: from localhost ([::1]:44886 helo=xic)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E439C06174A
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 Nov 2021 09:24:01 -0800 (PST)
+Received: from localhost ([::1]:44874 helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1mpw0B-000191-95; Wed, 24 Nov 2021 18:24:11 +0100
+        id 1mpvzz-00018j-GQ; Wed, 24 Nov 2021 18:23:59 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 07/15] datatype: Fix size of time_type
-Date:   Wed, 24 Nov 2021 18:22:43 +0100
-Message-Id: <20211124172251.11539-8-phil@nwl.cc>
+Subject: [nft PATCH 11/15] evaluate: Fix key byteorder value in range sets/maps
+Date:   Wed, 24 Nov 2021 18:22:47 +0100
+Message-Id: <20211124172251.11539-12-phil@nwl.cc>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20211124172251.11539-1-phil@nwl.cc>
 References: <20211124172251.11539-1-phil@nwl.cc>
@@ -35,49 +35,68 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Used by 'ct expiration', time_type is supposed to be 32bits. Passing a
-64bits variable to constant_expr_alloc() causes the value to be always
-zero on Big Endian.
+In interval sets/maps, elements are always Big Endian, set
+key->byteorder accordingly. This becomes relevant when dumping set
+elements for debug output.
 
-Fixes: 0974fa84f162a ("datatype: seperate time parsing/printing from time_type")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/datatype.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ src/evaluate.c | 26 ++++++++++++++++++--------
+ 1 file changed, 18 insertions(+), 8 deletions(-)
 
-diff --git a/src/datatype.c b/src/datatype.c
-index a06c39960fa0c..b2e667cef2c62 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -1068,6 +1068,7 @@ static struct error_record *time_type_parse(struct parse_ctx *ctx,
- 					    struct expr **res)
- {
- 	struct error_record *erec;
-+	uint32_t s32;
- 	uint64_t s;
+diff --git a/src/evaluate.c b/src/evaluate.c
+index fbf3aa8d19139..983808d65714b 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1617,9 +1617,12 @@ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
+ 	map->flags |= EXPR_F_CONSTANT;
  
- 	erec = time_parse(&sym->location, sym->identifier, &s);
-@@ -1077,9 +1078,10 @@ static struct error_record *time_type_parse(struct parse_ctx *ctx,
- 	if (s > UINT32_MAX)
- 		return error(&sym->location, "value too large");
+ 	/* Data for range lookups needs to be in big endian order */
+-	if (map->mappings->set->flags & NFT_SET_INTERVAL &&
+-	    byteorder_conversion(ctx, &map->map, BYTEORDER_BIG_ENDIAN) < 0)
+-		return -1;
++	if (map->mappings->set->flags & NFT_SET_INTERVAL) {
++		if (byteorder_conversion(ctx, &map->map,
++					 BYTEORDER_BIG_ENDIAN) < 0)
++			return -1;
++		map->mappings->set->key->byteorder = BYTEORDER_BIG_ENDIAN;
++	}
  
-+	s32 = s;
- 	*res = constant_expr_alloc(&sym->location, &time_type,
- 				   BYTEORDER_HOST_ENDIAN,
--				   sizeof(uint32_t) * BITS_PER_BYTE, &s);
-+				   sizeof(uint32_t) * BITS_PER_BYTE, &s32);
- 	return NULL;
+ 	return 0;
  }
+@@ -2077,10 +2080,14 @@ static int expr_evaluate_relational(struct eval_ctx *ctx, struct expr **expr)
+ 				return expr_error(ctx->msgs, left,
+ 						  "specify either ip or ip6 for address matching");
  
-@@ -1088,7 +1090,7 @@ const struct datatype time_type = {
- 	.name		= "time",
- 	.desc		= "relative time",
- 	.byteorder	= BYTEORDER_HOST_ENDIAN,
--	.size		= 8 * BITS_PER_BYTE,
-+	.size		= 4 * BITS_PER_BYTE,
- 	.basetype	= &integer_type,
- 	.print		= time_type_print,
- 	.json		= time_type_json,
++			if (!(right->set->flags & NFT_SET_INTERVAL))
++				break;
++
+ 			/* Data for range lookups needs to be in big endian order */
+-			if (right->set->flags & NFT_SET_INTERVAL &&
+-			    byteorder_conversion(ctx, &rel->left, BYTEORDER_BIG_ENDIAN) < 0)
++			if (byteorder_conversion(ctx, &rel->left,
++						 BYTEORDER_BIG_ENDIAN) < 0)
+ 				return -1;
++			right->set->key->byteorder = BYTEORDER_BIG_ENDIAN;
+ 			break;
+ 		case EXPR_CONCAT:
+ 			return expr_binary_error(ctx->msgs, left, right,
+@@ -3759,9 +3766,12 @@ static int stmt_evaluate_objref_map(struct eval_ctx *ctx, struct stmt *stmt)
+ 	map->flags |= EXPR_F_CONSTANT;
+ 
+ 	/* Data for range lookups needs to be in big endian order */
+-	if (map->mappings->set->flags & NFT_SET_INTERVAL &&
+-	    byteorder_conversion(ctx, &map->map, BYTEORDER_BIG_ENDIAN) < 0)
+-		return -1;
++	if (map->mappings->set->flags & NFT_SET_INTERVAL) {
++		if (byteorder_conversion(ctx, &map->map,
++					 BYTEORDER_BIG_ENDIAN) < 0)
++			return -1;
++		map->mappings->set->key->byteorder = BYTEORDER_BIG_ENDIAN;
++	}
+ 
+ 	return 0;
+ }
 -- 
 2.33.0
 
