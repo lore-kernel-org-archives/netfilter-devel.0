@@ -2,104 +2,98 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A367C433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Nov 2021 17:38:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D2B2C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Nov 2021 22:24:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237085AbhKXRlt (ORCPT
+        id S1344168AbhKXW2C (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 24 Nov 2021 12:41:49 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:41013 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S229538AbhKXRlt (ORCPT
+        Wed, 24 Nov 2021 17:28:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44986 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235257AbhKXW2A (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Nov 2021 12:41:49 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1637775518;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=OLUqX+NA205CZ8AVMNzH9C20UeQx+kT4jJesdTak08s=;
-        b=Oa+09urAFtbWzOoIWjCgS9y4gTI4DnGYkoyPrQghml4Tmz1JQgk1tT1iY0hUEFnTBWKylU
-        J0kvEkeqkPoynXUwtjBSbHkj+lCRAZgdML0Zj/Au1P0XPhCK+KI80GrUvazdX4pVbkVKRX
-        eSSnhb3//CHZ/v4xu+0LyJ1lYU3kbI4=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-216-laaDgCz8PUGc712QxTOFbw-1; Wed, 24 Nov 2021 12:38:35 -0500
-X-MC-Unique: laaDgCz8PUGc712QxTOFbw-1
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 812EF81CCBE;
-        Wed, 24 Nov 2021 17:38:34 +0000 (UTC)
-Received: from maya.cloud.tilaa.com (unknown [10.40.208.30])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 2087460854;
-        Wed, 24 Nov 2021 17:38:34 +0000 (UTC)
-Date:   Wed, 24 Nov 2021 18:38:13 +0100
-From:   Stefano Brivio <sbrivio@redhat.com>
-To:     Nikita Yushchenko <nikita.yushchenko@virtuozzo.com>
-Cc:     Florian Westphal <fw@strlen.de>, Netdev <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, kernel@openvz.org
-Subject: Re: "AVX2-based lookup implementation" has broken ebtables
- --among-src
-Message-ID: <20211124183813.674dcf6a@elisabeth>
-In-Reply-To: <20211122142933.15e6bffc@elisabeth>
-References: <d35db9d6-0727-1296-fa78-4efeadf3319c@virtuozzo.com>
-        <20211116173352.1a5ff66a@elisabeth>
-        <20211117120609.GI6326@breakpoint.cc>
-        <6d484385-5bf6-5cc5-4d26-fd90c367a2dc@virtuozzo.com>
-        <20211122142933.15e6bffc@elisabeth>
-Organization: Red Hat
+        Wed, 24 Nov 2021 17:28:00 -0500
+Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DF52C06173E
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 Nov 2021 14:24:50 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=uJPyc8Um7TiptWK8LwD+zUMbwdgd+J05Ge9aSnvU6xU=; b=LTkPe496+DQ1nJAAOCKM1fTSwu
+        Z+nFVK33Sk1rru9ncS3HlAmXn4e0A1FABo5yH+uhw4eYZHvrLZRJDI07LZ5xvtt8AlFClxyOUJE2y
+        XC5i7NXdFY2WCwGZmku63DRb2bRYUstWUsr5J1FJRQa6ixGa/ISdQVsXRP3svoYMQxqKEtb5rMl7r
+        qzZ0z7q9gqkoPg9M3S2O8vVVDTUD9l/7gWI43Jl1MA3NthokLSqvWj1fe4F1e52glOJu8Q7Zscf/5
+        V3iUCqCWrN6SlN15XSbeZ2HEqklWiY9zeewZZgJKy9sGZiaCCx8Fyr/nxtknXedBfrrZ2N+qrOV20
+        FJlYnyvg==;
+Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
+        by kadath.azazel.net with esmtp (Exim 4.94.2)
+        (envelope-from <jeremy@azazel.net>)
+        id 1mq0h6-00563U-9x
+        for netfilter-devel@vger.kernel.org; Wed, 24 Nov 2021 22:24:48 +0000
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [ulogd2 PATCH v3 01/32] jhash: add "fall through" comments to switch cases
+Date:   Wed, 24 Nov 2021 22:23:56 +0000
+Message-Id: <20211124222444.2597311-2-jeremy@azazel.net>
+X-Mailer: git-send-email 2.33.0
+In-Reply-To: <20211124222444.2597311-1-jeremy@azazel.net>
+References: <20211124222444.2597311-1-jeremy@azazel.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, 22 Nov 2021 14:29:33 +0100
-Stefano Brivio <sbrivio@redhat.com> wrote:
+gcc warns about undocumented fall-throughs in switches.  In this case,
+the fall-throughs are intended, so add commnts to indicate this to the
+compiler.
 
-> On Wed, 17 Nov 2021 15:08:54 +0300
-> Nikita Yushchenko <nikita.yushchenko@virtuozzo.com> wrote:
-> 
-> > >>> Looks like the AVX2-based lookup does not process this correctly.  
-> > >>
-> > >> Thanks for bisecting and reporting this! I'm looking into it now, I
-> > >> might be a bit slow as I'm currently traveling.    
-> > > 
-> > > Might be a bug in ebtables....    
-> > 
-> > Exactly same ebtables binary (and exactly same rule) works with
-> > kernel 4.18 and all kernels up to the mentioned patch applied.  
-> 
-> Sorry for the delay, I've been offline the past days, I'll restart
-> looking into this now.
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+ include/ulogd/jhash.h | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-I'm still debugging this but, if it helps, I found another workaround
-while checking: swapping the order of IP address and MAC address
-"fixes" it -- unfortunately I didn't think of this while writing the
-selftests, so that's what nft_concat_range.sh checks, a set with type
-"net, mac", and not "mac, net". E.g.:
-
-table ip t {
-	set s {
-		type ipv4_addr . ether_addr
-		flags interval
-		elements = { 192.168.122.1 . 52:54:00:04:9e:00 }
-	}
-
-	chain c {
-		type filter hook input priority filter; policy accept;
-		ip saddr . ether saddr @s counter packets 19 bytes 1284
-	}
-}
-
-...of course this is due to an implementation detail (and the bug I'm
-chasing), functionally it's expected to be the same.
-
+diff --git a/include/ulogd/jhash.h b/include/ulogd/jhash.h
+index 38b87801a795..e5ca287e7e58 100644
+--- a/include/ulogd/jhash.h
++++ b/include/ulogd/jhash.h
+@@ -66,18 +66,18 @@ static inline u32 jhash(const void *key, u32 length, u32 initval)
+ 
+ 	c += length;
+ 	switch (len) {
+-	case 11: c += ((u32)k[10]<<24);
+-	case 10: c += ((u32)k[9]<<16);
+-	case 9 : c += ((u32)k[8]<<8);
+-	case 8 : b += ((u32)k[7]<<24);
+-	case 7 : b += ((u32)k[6]<<16);
+-	case 6 : b += ((u32)k[5]<<8);
+-	case 5 : b += k[4];
+-	case 4 : a += ((u32)k[3]<<24);
+-	case 3 : a += ((u32)k[2]<<16);
+-	case 2 : a += ((u32)k[1]<<8);
+-	case 1 : a += k[0];
+-	};
++	case 11: c += ((u32)k[10]<<24);	// fall through
++	case 10: c += ((u32)k[9]<<16);	// fall through
++	case 9 : c += ((u32)k[8]<<8);	// fall through
++	case 8 : b += ((u32)k[7]<<24);	// fall through
++	case 7 : b += ((u32)k[6]<<16);	// fall through
++	case 6 : b += ((u32)k[5]<<8);	// fall through
++	case 5 : b += k[4];		// fall through
++	case 4 : a += ((u32)k[3]<<24);	// fall through
++	case 3 : a += ((u32)k[2]<<16);	// fall through
++	case 2 : a += ((u32)k[1]<<8);	// fall through
++	case 1 : a += k[0];		// fall through
++	}
+ 
+ 	__jhash_mix(a,b,c);
+ 
 -- 
-Stefano
+2.33.0
 
