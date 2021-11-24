@@ -2,193 +2,138 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 058E4C4332F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Nov 2021 02:03:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4905CC433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Nov 2021 02:18:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237636AbhKXCGl (ORCPT
+        id S240717AbhKXCV3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 23 Nov 2021 21:06:41 -0500
-Received: from sonic306-28.consmr.mail.ne1.yahoo.com ([66.163.189.90]:46234
-        "EHLO sonic306-28.consmr.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S229774AbhKXCGk (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 23 Nov 2021 21:06:40 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1637719411; bh=IIKa//ZfOf9ldI+2RZhwihcRPJzmFh5O4/PZDXiqrxo=; h=From:To:Cc:Subject:Date:In-Reply-To:References:From:Subject:Reply-To; b=PmEsScGDT56QiN+Jy0pLLGWnyKN/gxJNzyhhd6aK3mRYlCg73q0c9rwol/PA/5QNmZZrs8OwZfgaO37mdxg0V4fjz15kfxwtcKEJDh+75IDWTyrTBO3u6hs9kxW5Z0vRtPMUcWMQKBiYTU5IyFpBkiT/58d4bWNAxWwPYnST3qR1gN5OP2IN77JU9xK1JxhBF7LHzY1G2Y9e0HuyLBd1RZwklhIWJOGv4hRald+W0e5RrWL81YGjPUbxSLNUoCPqxS9ERupUW2f65ctbSz30DYdtloPxOi2dvPO9//HihtPZ2Z2l6sNx48LQGfh3ebYCgjDKsJZDPI9M91ojIjpkXA==
-X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1637719411; bh=Kk3ubQbKAXNodGGFZb4TOQ/XxT7hCHClgdl+jbCiNKf=; h=X-Sonic-MF:From:To:Subject:Date:From:Subject; b=hraTilyCEzf3Xz1/kMyToHIaVcszJP3eHqQjv2dQJ6YIKwHp7DffGV2AMA4yQSYZ7QN5ETsT8VowS4tdEbkh3++cYGFS9LFR4YMKWydNPlURkN8JUvzQ+jT94yHJB6oVSIvoxE/flx1ElvjiAihZ50VXZBUGU8hQt2kYzyPsNSHvYIrck1Jzdy2Y/GuPcBbGU1d5WOoA/FbeN6c8rFumUQ9dOJcCsJBEy50sOCS1ka1SVvYPbn81UZRMm3wz96MFXTbF22EqqDqpjFVCkcB7iyO+Hez6fYOVc7wOIdrDnL1+xkKuwt/mhOnCXhX7PjojQk2L3iJrGLgtAY384u/ktA==
-X-YMail-OSG: xgUVGOkVM1nXHxEhPw3sY.j_OYRqsPJ_Huiuktw0vgRcbjLDak49Y_LL6lx24O0
- TSqN1kqHycB3BvTPaG7wX3RoKQy3FMuo82MJNTaitTth_VmKUIYsXOEfWQnLy0YJCPUh8I35jHfd
- J4ZVfuNqjumX_KtVFVb6NMpG7e7nLkdJtE0bkbKG2xvCKGgMNI9OfVjCtlGx_7mA1KshGe7x9vUE
- K.5.8ozChTGi._V87HIYJBr6vD8njc5eX1z6w15rFSTgETPuC8wpzLZZK0DPIwsBSVd_GC4xjZNj
- W1T.Y2kYFr6BLkPf0H31S_cpiUE88HlzAv.5jmm.cmbye.z95.HPsV17ANiBMxD1CnlJEM_R.z1u
- 9csz7U54Fkqy9.7bdojv0i4hc8.EHOCvujS9.nnHngPkN7qdER1HoFMKCPjC_nAIKBYL3rWtpJyL
- zaEQEng0RQDUu0ViFd_EnqFDIHTHb8k_Wl.xvt4g.MrSbvLCVouSNkD9eeWA1szXUUlYuYs4Mj5z
- VpEOjsIn8PzkYEs6fM6X9MDeUUU_6gtKWn7P6rZfF975aK5EYOVXoxHXG56jGKZYGReRFK76C0h6
- Y0A2QqWJwOqHfn_naJe3HYTCWlx7qpT.7F.zB1zQfMZ4_vNGdTiuMyG2Osu5xpzoxXo6gmBYtZCY
- R35Y0pUwhKp4IWxAimSx3Da7ol_yiQT6WNwitJz5gX8kv_DwtWLJnSBeYe0pSiccJJeD5HxjOEM4
- 1GdOYdV2BhRN1C1GgTBBx1JaFC7uHdgprTAbq7ndUWhugaF2ngRIISPP5zDFn_yB7DpoYvawXuuS
- .6IXhgOk.ANumooQJm3RQYwy9nrJb.lqWbNZ5BdsdTqUqO4o6I_0K6ko7wn39vQcJjN7HMJAZOBa
- QO5VtuIjSgmp2CkMpN2YJfP4KjOsjPqx2tehPWt3nAOEe0pTpDtqoW.UEZ5O0QS4XMx.oHmgkyxN
- PuC.UJbv6lC_8do6t5rCL.ZJJKyRfNtIJOVbo3PywFyQ98yHoCqEiaUnvw2zULc91TWJWrlMOhes
- CMWoEyc2tph.PfkOk54h215zmGpMdgvsWFbSM65cLtlv0yAhN8ze7_1ZTSlboKEYzGOGqBQ2PALM
- QqlO2WdmkocVV5eUd.e66rykwn_fggIuzayEN1zx8Np0V9ZXeVCqa8dFPO4TOKqqz6PavqCLmWyW
- M1fYpBAq4B1AOVUv1fex3xiRE798h_8PTSv2YpCLts3Q8WDLaiVnMqQ5cG3jj5PNUTXiaWyf8TW9
- 51POf8kr7xElrzvntsRoUTX31lU0C4r6GvPqKeGV5BWUw__FBSPtDf_j7K_pdPE9.BBgigfr45s1
- bvOtgyGc46a.0AZxpeRBTSkwnbBkegjYTkqOzp0gsAYwuYcbgvDLVFEFKltqYBPw3Jk_2_RYfgkX
- ShIHrKXaj4TJr_hyHNfVwWNWCnX.2sH6ELK_Pmx4txwtq.bqofX_6SgzcSALI9_9w0NkgPP6WyMz
- cVfGlEF5M2s8qFu9g28jA_AT8pXN3ymunfJ45uAFS_tDg..0pfz46mv11CwtXFVH8RO3HfjrefeC
- gGKimdYrpfZ1FJaGVouF7VP_ZhOMMfixYrSZ.o.MLjae_0iAT3likas0bYQ5ucAfv8pqTgUE.YqP
- jYYzIKCGuT6FY0AZLhRRNEr1bg9mHbbj7dMNncrssaMCSrch7uaa1PefuGE9A2EnqI_sKGUx6tK4
- or7plbTstSE90mr08RwTRe1p26WRHpzwHUvQXGm34vNKNEX6ratDTSNLkKUs1Mg9yzFhf9qAoiAF
- nSLbW5KotBRfBcz85mXrU0vA6xD7ZN_gxn9XTjfQWa.umOmAvR9u2ap8Qb0snHSNtMED.eV.YvyH
- UPERgDFVmMELHa5MNQAY4IxXBHj6.rw34KC9J8XPK_s1ZPt7xdqAh1LERUk3ZNURtf0XpsTmHRUm
- 0iMrqW6vI3ltV.EO4Xf1IVGVrLx6GV7d2KN8FYb.zPeqB7sBfknMNOS1xubHMgL2yASuqHf1zD_m
- Tk6dzvl_1uODOP2HIlavmCNclsLBn2QLsQ7TNE2USUWVzZxjZlrEpg3Uw_enI2kjkYfREXuG0QoH
- rkX3hhy5GqZyfsbx7nvh89jqVnEeC1sG.BD3Npdiuu5gliRGBQWH5nWmovj.cXaOmZKyxjP2hQlA
- 2K5sB8oeIZLyDvEp4iYRq8mPvWWkA1URTR9AM1E0GYsoewADPKf3Bnj1IW1HugA0PxSwYaznr_Yd
- TQuh8jPbULIdvMCz4KduFd4Q0gEIgDszYxtGt9afKFtsiIXZ.p7TDvwDQNG72D74O5A--
-X-Sonic-MF: <casey@schaufler-ca.com>
-Received: from sonic.gate.mail.ne1.yahoo.com by sonic306.consmr.mail.ne1.yahoo.com with HTTP; Wed, 24 Nov 2021 02:03:31 +0000
-Received: by kubenode514.mail-prod1.omega.bf1.yahoo.com (VZM Hermes SMTP Server) with ESMTPA ID 6a5ec7ba15e43f08e83dd45ef02c9b3f;
-          Wed, 24 Nov 2021 02:03:25 +0000 (UTC)
-From:   Casey Schaufler <casey@schaufler-ca.com>
-To:     casey.schaufler@intel.com, jmorris@namei.org,
-        linux-security-module@vger.kernel.org, selinux@vger.kernel.org
-Cc:     casey@schaufler-ca.com, linux-audit@redhat.com,
-        keescook@chromium.org, john.johansen@canonical.com,
-        penguin-kernel@i-love.sakura.ne.jp, paul@paul-moore.com,
-        sds@tycho.nsa.gov, linux-kernel@vger.kernel.org,
-        Stephen Smalley <stephen.smalley.work@gmail.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: [PATCH v30 18/28] LSM: security_secid_to_secctx in netlink netfilter
-Date:   Tue, 23 Nov 2021 17:43:22 -0800
-Message-Id: <20211124014332.36128-19-casey@schaufler-ca.com>
-X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20211124014332.36128-1-casey@schaufler-ca.com>
-References: <20211124014332.36128-1-casey@schaufler-ca.com>
-MIME-Version: 1.0
+        Tue, 23 Nov 2021 21:21:29 -0500
+Received: from mail-sgaapc01on2109.outbound.protection.outlook.com ([40.107.215.109]:24097
+        "EHLO APC01-SG2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S234152AbhKXCV1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 23 Nov 2021 21:21:27 -0500
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=KsA4jwVCp+olCB8sFPgag37T+o7JSBbgwZ8TieNMg3ouW3zXsgl8mwCN6KLbcVLjswaPWFSpUQgYFFnqTpsJb54apzguQ+4EoS6BJrDMjkIA2sTGrggov0DCUwvJhdklOR5z8ljstIfBm7Rl7R68bGAmjv0/+1Z9XnXqXQgeGh5qazVdBnkWeAB4hEMpXOyfXRJaOcTnqjCaqGxWvzF4HUTXjBv5pRuq4fAD0aCiA/M4xQV1cmgnxpDJITuD5XHBOyv71QMip870KP+hkBQgi6t0+URvCfdYYOwM95wFLgRi/KbCULgjKjO8DnUIsPVHO10i+hdf2b/6fNNjHu80Eg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=FQmZqyMh2r6ajGLA6zxiLWBrIUDDjpXNnuTnpGRETG8=;
+ b=C7tykBB/Kst6nO4az9cXsCFrFmJfWxfe7dUN1PEj1HPp8UtdJtDRlzfZr+7L1lP4gg9uQT2o778ukAjxgrshWpU7Lyc+1LHArp8vKkJj/iRSgq0gS/96SnbgvBvrSgoqjqn2phYHDEE94Yz/RtgYZzBVr36/fb6b7FmAexE0ie++8Zd1Pvm5XUq0VBlMihmkoB/MHjuEgFC7bQzqByzIaAKCpbU+Rrd4uZzqYWfugJTiiW9io+BUm7bfxLl8fjO8XP9MhWxf+Z1k0uzyUhYT0X88rjoyHrwuCls7Q7QK8P0TEytNFIHIUi7JrO02cYDudovUyUNBqiAtsksCXZ86fA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=vivo.com; dmarc=pass action=none header.from=vivo.com;
+ dkim=pass header.d=vivo.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=vivo0.onmicrosoft.com;
+ s=selector2-vivo0-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=FQmZqyMh2r6ajGLA6zxiLWBrIUDDjpXNnuTnpGRETG8=;
+ b=hq72znyqgn1c8f3w9nmDZ0JedbeTgrzkCO9Q2+ipS/5Cwt1qStliSmMCRzw41xZtwGJTuOtWiUwFE3UImn6SGJqIwQLFeqUB29z6ZPF6/PbMoICavdI5/ASp7JPaTTr6fB7rgyRcScCE3dxo4Sbo/tgnDMm8JYGj70+RfE0Ebdo=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=vivo.com;
+Received: from PSAPR06MB4021.apcprd06.prod.outlook.com (2603:1096:301:37::11)
+ by PS2PR06MB2502.apcprd06.prod.outlook.com (2603:1096:300:4a::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4734.20; Wed, 24 Nov
+ 2021 02:18:12 +0000
+Received: from PSAPR06MB4021.apcprd06.prod.outlook.com
+ ([fe80::395a:f2d7:d67f:b385]) by PSAPR06MB4021.apcprd06.prod.outlook.com
+ ([fe80::395a:f2d7:d67f:b385%4]) with mapi id 15.20.4713.025; Wed, 24 Nov 2021
+ 02:18:12 +0000
+From:   Bernard Zhao <bernard@vivo.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc:     Bernard Zhao <bernard@vivo.com>
+Subject: [PATCH] net/netfilter: remove useless type conversion to bool
+Date:   Tue, 23 Nov 2021 18:18:00 -0800
+Message-Id: <20211124021801.223309-1-bernard@vivo.com>
+X-Mailer: git-send-email 2.33.1
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: HK2PR02CA0173.apcprd02.prod.outlook.com
+ (2603:1096:201:1f::33) To PSAPR06MB4021.apcprd06.prod.outlook.com
+ (2603:1096:301:37::11)
+MIME-Version: 1.0
+Received: from ubuntu.localdomain (203.90.234.87) by HK2PR02CA0173.apcprd02.prod.outlook.com (2603:1096:201:1f::33) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4713.19 via Frontend Transport; Wed, 24 Nov 2021 02:18:10 +0000
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 06099841-9e2d-456a-9cee-08d9aef0aa17
+X-MS-TrafficTypeDiagnostic: PS2PR06MB2502:
+X-Microsoft-Antispam-PRVS: <PS2PR06MB25023BD1471A87CCE39A91EFDF619@PS2PR06MB2502.apcprd06.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:1201;
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: Wp45HhNCnZEi1J6cRdl43j96JPddwsRZ/z6dAxWO5ApBfvTNBHVTpjIE0sf15HevyhtV9u1NSR3K3VR6BWcfLfIzVdF9iiCXw8tuolIVwPBHtXJllAINIwuTQ1yN9rMqJd3VatZuqrp5aSFT8YXQa/SWkjtluMGihnXU4nRFCt5njErATUDtqRqEcIMr7Aa7EOojw4pM3CeH1wEze0FnxFlYv6zDXdwHmVc+ukhoVf0IxcQmN2n+MAwXQ9ow1OTN0Xgz9uKLJjdpBjpVFXtfQVJOqsNVFCwZzwASoWYt1CbDIvfyqC2pjSCFi8kpgs79SHwI/L1aKkV86DEOlWP+mDQii1egPjB3BL94VGxfdTBz0nfBQ8VaKyW+t8gUbXLfwVHXL71AI+L9HqnynxCc2XtkX3TknODzt4Gd8zyCP/gCRC7YY7URkQqlD0+0AYrIyL7LQG7ygdS4K7vVnWbIcecf7l2+7+NqUu5uWNAWdR16dLty+AK+QhoLAtG6g8PBUdiTN0djbIXSTC0kjpSzhoHjFvg7YE0ReV2MoOnxRCsv3ZyxvNmH1O6SUAY13trM9B3BdHVlEo5DW9bFjngsUBSlN4PnVs/t5chU2W4dhV71A1yXTFbnD1xiQShz4uBrwtxQQKba3WH/+lQWb8lluWYuJV2wwYvQ3XHyI1OCsoQ2vNj/84EYK4UbCQ3xs7tr5b9erANoTgH34WpbRBhhkQ==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PSAPR06MB4021.apcprd06.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(2906002)(6506007)(4744005)(86362001)(26005)(1076003)(107886003)(6512007)(83380400001)(6666004)(66556008)(4326008)(66946007)(2616005)(52116002)(6486002)(66476007)(186003)(38350700002)(316002)(8676002)(38100700002)(956004)(508600001)(8936002)(5660300002)(36756003)(110136005);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?JPKURGaLRjS08gKaUgjq/0ecU1pH6oo6IothekEnNS4j7UuleuQU/9bABHS7?=
+ =?us-ascii?Q?P7HYhsFYQojUNL6QI/6HXtekC0y4UCugwxyuyFg0Cc+hlBySF+bnAnthzHXU?=
+ =?us-ascii?Q?rDPaCRs10lU1gPohcQG/TDg/j8MwTN0xzb1/zxOW/t2hNpN0RiBs//Y4LMck?=
+ =?us-ascii?Q?DMQCNt7bbBqVw4FP5F6ir5fOJtgLF95sJiNP/j2v86FH0Cu6qKxp8W7781/e?=
+ =?us-ascii?Q?SVEFkiltQhvfz+RxKJ8UEMiws8FS1ymBgeqt+A/nE1Jj0GCdG1OtYAzhyiLm?=
+ =?us-ascii?Q?cKEMGjzMIgGxVFI/uCK69YqdJmYWlyFvt9Ch05GMJy9Nd4KbW3xCcehInd0b?=
+ =?us-ascii?Q?hQlORpJDoT7mofUOL0uOJ4DYhLhqrh3zlXDgIQuLZPGmb6wo1I1BI7LRLrc7?=
+ =?us-ascii?Q?dWyC69arfr78u4QVzBJqUvABY+YiR8cwip5FNftjjCGeMWRJNvxoG7DxoIjT?=
+ =?us-ascii?Q?dsYlzgq/Se3Yv/Zr0d8JjMbRN/7m4CPIigU2/fQcbwA628EdmcGqB8AH/lCT?=
+ =?us-ascii?Q?ogQMKxHaBTEVEEF/otctMmJnCPS6F9AenrQlLwvUKuLiSuCjbit3kCIMce11?=
+ =?us-ascii?Q?0IBnBi6aV9gXMdn4Hs5DKs1uxSaLuFY7gGLDRtcX2IqblK8zybD+BiDN8fcY?=
+ =?us-ascii?Q?cPmF5uGDiDFNvF3k3gDfXet3KUY3GWHlXOv5hlSA41CXjJ/i1cMh6SC2po/W?=
+ =?us-ascii?Q?VIMwJmiG9/ThiKvfNv8e1aUX2fEDs7pZ6J8FEBfJVhg8QFh0OsjRUYQAGFpF?=
+ =?us-ascii?Q?i8KPOy37lCfToNXyUXnDGzcdNAp2bKEhElSux7KkbzObVx8B5IyTrxGtM1DN?=
+ =?us-ascii?Q?an4wBjnxEAQLtMI4v2X6YJmSOim1WSo5tbgco7ntxPW7rrkCMwE3Bp59gT1b?=
+ =?us-ascii?Q?j1oq+qznM11FmkTASU1D4MrHbzJqQv/vxBPvojjSeI3hSZ0roYeUGFiYQImf?=
+ =?us-ascii?Q?7TksUJHWJV/l52m01T58IU6i4DaEPHnN7XGqb9E3qqwqF4CSAAag28hy2PKl?=
+ =?us-ascii?Q?BC1D/58jdVOqEs2yZzTsL3/cLf7meYsh+N0B3DdwjeBVuPpxj+9NxhVixhld?=
+ =?us-ascii?Q?T5OSdZLTfU4uBh0MGZeujjy5oH+g0bM92d/rO3jlRVeo0MF03MGAmpjgaMK2?=
+ =?us-ascii?Q?B/qldDmodblaj/soALzMkjOCQ7zRsQ4nKnOH2zYnbDYxIC0EiLvByui5fCtF?=
+ =?us-ascii?Q?fjWoe4TLlckeqpwHzYhMZJqoobIu9uu3BzRjljQYef5/mcXc0h99nvnE/syn?=
+ =?us-ascii?Q?rQqDuOym1u3VcGUvCg+AyXt6FQ3dogC9kIWKotm2AUcTxZ4o6t9Wgb0Sbbo9?=
+ =?us-ascii?Q?+1GwRWyjTPM9ZHwnmJVkR2+FWLue7mhelb4+dhhUa1oAQJx/bzP8DNflvB/N?=
+ =?us-ascii?Q?C4rxxXtYuDKOM31MWLcPH/MW2OZetGdKRFt/E6iVBVrRHIUVc5njrxfs8JTV?=
+ =?us-ascii?Q?B1sotPwS319uN2RA8PNJMdwQgtS9R9WDa8BWYfmdmL2+bWo3+XePJMh7s66H?=
+ =?us-ascii?Q?aY0SKDI/Pqjx6xWyPCC1d7Y+aAYph/jFysvBTwrgF3ZAg5fXgehdIXNILHQ2?=
+ =?us-ascii?Q?jRnD6ZPSMgWRqhEpjvX/5wUYQVoLRracqEdMNUqUF5CFUFb/yrt0fR0TUeKz?=
+ =?us-ascii?Q?rDtkt2UYRB38nN1DN5vNBpY=3D?=
+X-OriginatorOrg: vivo.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 06099841-9e2d-456a-9cee-08d9aef0aa17
+X-MS-Exchange-CrossTenant-AuthSource: PSAPR06MB4021.apcprd06.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Nov 2021 02:18:12.3104
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 923e42dc-48d5-4cbe-b582-1a797a6412ed
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: zlpEsHl57IRdOAjuWtZl88K+Gy/7Ejt9SmtIAPRsNt+beu72i/iZkEOaAhrZDtre3+/j/C08O+9OqUWVQ1VMmA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PS2PR06MB2502
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Change netlink netfilter interfaces to use lsmcontext
-pointers, and remove scaffolding.
+dying is bool, the type conversion to true/false value is not
+needed.
 
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: John Johansen <john.johansen@canonical.com>
-Acked-by: Paul Moore <paul@paul-moore.com>
-Acked-by: Stephen Smalley <stephen.smalley.work@gmail.com>
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
-Cc: netdev@vger.kernel.org
-Cc: netfilter-devel@vger.kernel.org
+Signed-off-by: Bernard Zhao <bernard@vivo.com>
 ---
- net/netfilter/nfnetlink_queue.c | 37 +++++++++++++--------------------
- 1 file changed, 14 insertions(+), 23 deletions(-)
+ net/netfilter/nf_conntrack_netlink.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index f19897b3cf39..69343275c54b 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -301,15 +301,13 @@ static int nfqnl_put_sk_uidgid(struct sk_buff *skb, struct sock *sk)
- 	return -1;
- }
- 
--static u32 nfqnl_get_sk_secctx(struct sk_buff *skb, char **secdata)
-+static void nfqnl_get_sk_secctx(struct sk_buff *skb, struct lsmcontext *context)
- {
--	u32 seclen = 0;
- #if IS_ENABLED(CONFIG_NETWORK_SECMARK)
- 	struct lsmblob blob;
--	struct lsmcontext context = { };
- 
- 	if (!skb || !sk_fullsock(skb->sk))
--		return 0;
-+		return;
- 
- 	read_lock_bh(&skb->sk->sk_callback_lock);
- 
-@@ -318,14 +316,12 @@ static u32 nfqnl_get_sk_secctx(struct sk_buff *skb, char **secdata)
- 		 * blob. security_secid_to_secctx() will know which security
- 		 * module to use to create the secctx.  */
- 		lsmblob_init(&blob, skb->secmark);
--		security_secid_to_secctx(&blob, &context);
--		*secdata = context.context;
-+		security_secid_to_secctx(&blob, context);
- 	}
- 
- 	read_unlock_bh(&skb->sk->sk_callback_lock);
--	seclen = context.len;
- #endif
--	return seclen;
-+	return;
- }
- 
- static u32 nfqnl_get_bridge_size(struct nf_queue_entry *entry)
-@@ -397,12 +393,10 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	struct net_device *indev;
- 	struct net_device *outdev;
- 	struct nf_conn *ct = NULL;
-+	struct lsmcontext context = { };
- 	enum ip_conntrack_info ctinfo;
- 	struct nfnl_ct_hook *nfnl_ct;
- 	bool csum_verify;
--	struct lsmcontext scaff; /* scaffolding */
--	char *secdata = NULL;
--	u32 seclen = 0;
- 
- 	size = nlmsg_total_size(sizeof(struct nfgenmsg))
- 		+ nla_total_size(sizeof(struct nfqnl_msg_packet_hdr))
-@@ -470,9 +464,9 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	}
- 
- 	if ((queue->flags & NFQA_CFG_F_SECCTX) && entskb->sk) {
--		seclen = nfqnl_get_sk_secctx(entskb, &secdata);
--		if (seclen)
--			size += nla_total_size(seclen);
-+		nfqnl_get_sk_secctx(entskb, &context);
-+		if (context.len)
-+			size += nla_total_size(context.len);
- 	}
- 
- 	skb = alloc_skb(size, GFP_ATOMIC);
-@@ -602,7 +596,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	    nfqnl_put_sk_uidgid(skb, entskb->sk) < 0)
- 		goto nla_put_failure;
- 
--	if (seclen && nla_put(skb, NFQA_SECCTX, seclen, secdata))
-+	if (context.len &&
-+	    nla_put(skb, NFQA_SECCTX, context.len, context.context))
- 		goto nla_put_failure;
- 
- 	if (ct && nfnl_ct->build(skb, ct, ctinfo, NFQA_CT, NFQA_CT_INFO) < 0)
-@@ -630,10 +625,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	}
- 
- 	nlh->nlmsg_len = skb->len;
--	if (seclen) {
--		lsmcontext_init(&scaff, secdata, seclen, 0);
--		security_release_secctx(&scaff);
--	}
-+	if (context.len)
-+		security_release_secctx(&context);
- 	return skb;
- 
- nla_put_failure:
-@@ -641,10 +634,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	kfree_skb(skb);
- 	net_err_ratelimited("nf_queue: error creating packet message\n");
- nlmsg_failure:
--	if (seclen) {
--		lsmcontext_init(&scaff, secdata, seclen, 0);
--		security_release_secctx(&scaff);
--	}
-+	if (context.len)
-+		security_release_secctx(&context);
- 	return NULL;
- }
- 
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index f1e5443fe7c7..a6503bd188e3 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -1748,7 +1748,7 @@ ctnetlink_dump_list(struct sk_buff *skb, struct netlink_callback *cb, bool dying
+ 			res = ctnetlink_fill_info(skb, NETLINK_CB(cb->skb).portid,
+ 						  cb->nlh->nlmsg_seq,
+ 						  NFNL_MSG_TYPE(cb->nlh->nlmsg_type),
+-						  ct, dying ? true : false, 0);
++						  ct, dying, 0);
+ 			if (res < 0) {
+ 				if (!atomic_inc_not_zero(&ct->ct_general.use))
+ 					continue;
 -- 
-2.31.1
+2.33.1
 
