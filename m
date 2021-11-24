@@ -2,219 +2,352 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1E91C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Nov 2021 16:36:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 004BFC433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Nov 2021 01:52:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236273AbhKWQj1 (ORCPT
+        id S238097AbhKXBzl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 23 Nov 2021 11:39:27 -0500
-Received: from mx0b-0016f401.pphosted.com ([67.231.156.173]:45208 "EHLO
-        mx0b-0016f401.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S233389AbhKWQjW (ORCPT
+        Tue, 23 Nov 2021 20:55:41 -0500
+Received: from sonic308-16.consmr.mail.ne1.yahoo.com ([66.163.187.39]:37757
+        "EHLO sonic308-16.consmr.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S238067AbhKXBzj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 23 Nov 2021 11:39:22 -0500
-Received: from pps.filterd (m0045851.ppops.net [127.0.0.1])
-        by mx0b-0016f401.pphosted.com (8.16.1.2/8.16.1.2) with ESMTP id 1ANAMvtN005580;
-        Tue, 23 Nov 2021 08:35:55 -0800
-Received: from nam04-mw2-obe.outbound.protection.outlook.com (mail-mw2nam08lp2176.outbound.protection.outlook.com [104.47.73.176])
-        by mx0b-0016f401.pphosted.com (PPS) with ESMTPS id 3cgug529dk-2
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 23 Nov 2021 08:35:55 -0800
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=hE7MgM4rM85o4Btd4ZWw/+2eY41E4dgmG/G5vCKCfs0ZRoddXb2n4hiQOkUmPLTRDDwr4EnK89WAd9csMMHfmRtNLiITf/ig2LsYZrbgL+vBaKh3Os8DqL0J/bW6cmm5XtMNEzfs50badmIbNOhM2kDUn3+XOex3T9+24bFhh0abQ6O1remIqxFB5pVfXesKVGo8iimCLhkshreMhtaUPOCIR5L5BX3+hAN9GIeMwf8SQrKHOYKZveN7hbVaEkos9EcIfvIirA34a/mv8Vrnf3Ly8X3ynEN0nHiqrkI23x5K1QjHXnvxNhuqpGhf/cole57gVlxVVp8YqgWmza97GA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=4j9EK+RnwpGy5p90uICWTM1W5uQkfGFaCqtgaQzMO0A=;
- b=Dz3Q+1O0aCJCGQHjWjshKaATI3FNaXQaZxbr3O7nNF2AFOsUSmmOdQ1xLOsQ+YhWWyR82WpjsGyj7xzrQ0rdllqzO0HUuiBdOrGuqhC9oLgt8VzWB7WmCjhuDTq3Z5zxOGCTn646i/uiUaj8K1zK8pPHNWkHKFCZCQjiY0s7HMAm3ig/zOoRDh5kSa3+qLqRxj8UW1Czr4EB87dy7isU8TcBtuBZ53F9SjT8T15gYu4SHKNC/AOocmQRUPceMXxYLF2I2DyYPw61mJsb98wHtyecJ+mv83r8ApttLJ1yAjuqF/n/iCJcTzsroJU80XwMEUbiIaR0vPWWi/CvieoXEw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=marvell.com; dmarc=pass action=none header.from=marvell.com;
- dkim=pass header.d=marvell.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=marvell.onmicrosoft.com; s=selector1-marvell-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=4j9EK+RnwpGy5p90uICWTM1W5uQkfGFaCqtgaQzMO0A=;
- b=BkKfQu3n6kZhNaqCsjGyk0FKnYC9DjnY+XK0lACukwEFSuo1OYlZ39+vIP/a/uDNGh2/42fgeQNzOIQKtWI9E+9dPHCBEQmoaCd9xV7gr7UXk7/pWwKL9mZE4PSRM91DBAWZz4W5T65LFxuILAn/RkrfhZ7CdOLVhjvqemBGMx4=
-Received: from SJ0PR18MB4009.namprd18.prod.outlook.com (2603:10b6:a03:2eb::24)
- by BY5PR18MB3427.namprd18.prod.outlook.com (2603:10b6:a03:195::32) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4713.21; Tue, 23 Nov
- 2021 16:35:51 +0000
-Received: from SJ0PR18MB4009.namprd18.prod.outlook.com
- ([fe80::f5d7:4f64:40f1:2c31]) by SJ0PR18MB4009.namprd18.prod.outlook.com
- ([fe80::f5d7:4f64:40f1:2c31%5]) with mapi id 15.20.4713.026; Tue, 23 Nov 2021
- 16:35:51 +0000
-From:   "Volodymyr Mytnyk [C]" <vmytnyk@marvell.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-CC:     "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        Mickey Rachamim <mickeyr@marvell.com>,
-        Serhiy Pshyk <serhiy.pshyk@plvision.eu>,
-        Taras Chornyi <taras.chornyi@plvision.eu>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paul Blakey <paulb@mellanox.com>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "coreteam@netfilter.org" <coreteam@netfilter.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH net v2 RESEND] netfilter: fix conntrack flows stuck issue
- on cleanup.
-Thread-Topic: [PATCH net v2 RESEND] netfilter: fix conntrack flows stuck issue
- on cleanup.
-Thread-Index: AQHX4IgtTXkn6umzxUSR7vyg3u+6CA==
-Date:   Tue, 23 Nov 2021 16:35:51 +0000
-Message-ID: <SJ0PR18MB4009934E6C87505AD1A7349FB2609@SJ0PR18MB4009.namprd18.prod.outlook.com>
-References: <1635931896-27539-1-git-send-email-volodymyr.mytnyk@plvision.eu>
- <YZbNFaKUHaCIYdRK@salvia>
-In-Reply-To: <YZbNFaKUHaCIYdRK@salvia>
-Accept-Language: en-GB, uk-UA, en-US
-Content-Language: en-GB
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-suggested_attachment_session_id: 4f3cb7ec-2b60-b943-c6ff-3cbf7e1d4c39
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: d8144871-6775-480b-e3f0-08d9ae9f5004
-x-ms-traffictypediagnostic: BY5PR18MB3427:
-x-ld-processed: 70e1fb47-1155-421d-87fc-2e58f638b6e0,ExtAddr
-x-microsoft-antispam-prvs: <BY5PR18MB342738F30C0739AE4B084B49B2609@BY5PR18MB3427.namprd18.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:8882;
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: wP2EwaGa56piSwYRawUZuod90cK7MnP5gEtGFuU45PpuxnBLhF3A2aAzBMLZNH+4lJYlsX16Kbht7AZGoJLQRV2TEZxeKG2zdNloJXxxGdCSNLhSg6lXylimxnpXKKOfNPLXzCETLQdPT/I3Lpg8/tSYyosNvvedsT2KsDCaabrplMJ8sabhgILZaGNhMVDsK7cPu1RGRGd7RX/l2IePYN68PIeQg4l1LvQTFhTyUg1rpwJBdZWpV9UP1u3aWc5uNC6kgc1umsgsvbYNMVORJeyubrA+oQonVcHOfQt7PQwfhd0n35Ql4jV+FJKsdGqQOxRXhelv1mBslTVmDDn6IyP8zktMPTvlipxNevXBbLDS+fZWETKQjmgz/v9RNVCBzg/nNisPjNeI4YamO4NLhZkEw4dRf6dSjL3SKBKoSLa76BySXi4KYFAgIUQoBje+dVjlWKYF6QDCXV1Sn/VF3Gt+6PJD+3+YlUrd4+QJ0+E1ZfGEC83nIIgew3x+YRsNYq+JUez93vCs0kgMtByoO0wy0ix2cb3kHUu4NGzsaKUi6JPDg6Hx790oJdEeqGdxHYvP6uoMSlmLYIUmdEmkZQEkfjwJoTo6nuU861bb+zrMOHTUBGmE/Bges8H6q7iDYqbCF5DJYXI6QuoSRoGMSXbsZK+F9ubs8MctrlArsJm88INItNKxkUCvyIZRHdjnGIa45A2dFw+GmIjCD3WKPg==
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ0PR18MB4009.namprd18.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(122000001)(38100700002)(8676002)(86362001)(33656002)(66446008)(6916009)(71200400001)(8936002)(55016003)(26005)(9686003)(4326008)(186003)(38070700005)(6506007)(7696005)(52536014)(5660300002)(316002)(508600001)(66946007)(66476007)(66556008)(64756008)(2906002)(54906003)(76116006)(83380400001)(7416002);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?iso-8859-1?Q?hyPOOC2xUv4T1FjLe0ySx9tdohuFfZ5Q4GVDitL0Kn6nmDe3vK7w8o78J0?=
- =?iso-8859-1?Q?lz2kqZm5tDN//jtjYijhRBBuKtPTXfuFY7E6MGuPb2kfCH+P00YStEbreu?=
- =?iso-8859-1?Q?curoi6hYgjZcOp63ojuEhuGii6saf8e6VTRMXUyQHMh3oxFprCWRvzDzt9?=
- =?iso-8859-1?Q?fdGBHq3afvMByFA5Pugf+fHm/9Ue/VevWA8AmQYFtcti9NxzeBNWVuy5Nx?=
- =?iso-8859-1?Q?T8DEYOTNLazi6g5T4JYyObOcZc0JlcsYBim8pVmBiQ7yGntcmQev/UUDf4?=
- =?iso-8859-1?Q?xA2JxaLupyR40rIKUSMRImr1kWvzR3pFt3EUs/7mrdiHKTfMniMqErc21I?=
- =?iso-8859-1?Q?apX7T51IZ0TCQkITnZjNC/njsSwd6tBoVyc/oERHkQLaHofx4Mze7XRGc6?=
- =?iso-8859-1?Q?qNZHHcCMbWyKyv12bGGh9jVD1GesWu9s1cESpumEtxyV2NrZ69w+oqwEEG?=
- =?iso-8859-1?Q?zDaEwnUm0V1yExpunPtX0q3w/FwYX8b99V49Uk2UB42ZMWZjkCElrFcvPa?=
- =?iso-8859-1?Q?3WlgKSJyOScgDa42Wck0cVauRqvGDN/HduYZbfBjBfPetIUn8YepkoJtWk?=
- =?iso-8859-1?Q?6Gude1JBxC5yk9GVIZZYehiehmIhlHY9iijOsVGBc6ECNAeaeM7xJdFx+B?=
- =?iso-8859-1?Q?sgahnBK+X1kOJYnOBZk4G52mfm8ErsVEHWrztnqTDyMS7R85bxzfXq+u7h?=
- =?iso-8859-1?Q?E+Z9N1aNOvph6LIXkC4dq1T6wkE9ruh7eYxc9N25DAq2ZBDVw5xe/y1OMT?=
- =?iso-8859-1?Q?c9CUOYClQtkFSpHrteTeTtZR5mCie5cb5McXV7Ru/ugO5Xw0DIGbDeOvlH?=
- =?iso-8859-1?Q?eiBbjL5/F0oC6BMnbFec2S0iGFqCY5pEI8C5lTCmMpodYYcMzAe3EiSLgR?=
- =?iso-8859-1?Q?imaETEE4cndZxfOqdyKg/Ur0zcFrHIS35oBxc6BGT4AXEDqwKC5W03CKj2?=
- =?iso-8859-1?Q?0UYXhsLi1MMblvxCjWrcdXIGP7xP5pd/R9xeZWSznm5RdywMVgn6WGr1fg?=
- =?iso-8859-1?Q?tJs+5D75JjDG0B6KuG0Dy+rZeWlpCXVbNgmAT8hEsMPAjfDiwOb9vl1oQZ?=
- =?iso-8859-1?Q?ecI2nxsXc/nyV/AFP1y3oUjm/RlXuH5tFfEqL7qd4pIRQ8hXi0MBJA/Td2?=
- =?iso-8859-1?Q?qN07fVr//a6wmqoRIiooZ5zYAlcIOAGviCOqHKoNchhuu4r1dicM0wI3u+?=
- =?iso-8859-1?Q?CW6bMPndsvmHXk29kJ3FHBHmj7HEYYkheRT0OKu944VMN/znD5NHW3QB5X?=
- =?iso-8859-1?Q?i+FCKst2x62q6xRng/ie5g/CoWLKuaQE4lrh+almnB9mnXAzUTIGzmYNhb?=
- =?iso-8859-1?Q?Wlph2t9wVwHmkeCpe/EtGyzmWmoA8Y6D8fRkfbgrH0BMYYClExbebt6g5P?=
- =?iso-8859-1?Q?eAsWlR/FY32wD7lWxNM3Z6UOkcLQ0J6Pz0fy1eQmvLycWNZZ8hoVM144rB?=
- =?iso-8859-1?Q?W53WF6d6q31uqhFHfLqbgNKPh5hajMnf1rdMjpxuH2ntWmv3a97UQ8h/U7?=
- =?iso-8859-1?Q?9vTnx0nsQJthJq3weJguBzmpnBy+zmwDfcn5CVP1N82gDUhjn4dDpSCiEj?=
- =?iso-8859-1?Q?jeJVO/ueKDLN7o8QPJ1MlZMtYOv8HIAtH/3mwKScRxIy0L0cHtW8znaAvv?=
- =?iso-8859-1?Q?ZBDwJAC+ExqyUhz1U6iux8c1YSKioeXzA2+dh9CmTLUdkokpztrz2laQ?=
- =?iso-8859-1?Q?=3D=3D?=
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+        Tue, 23 Nov 2021 20:55:39 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1637718746; bh=FKZoy7Ae8g2fJFCJVup+YbOhxC6lR8pSGHi0aTX2obw=; h=From:To:Cc:Subject:Date:In-Reply-To:References:From:Subject:Reply-To; b=o+0wnoaLLoddnCCOifSoV9Nf7Gl7RVXd1s5Ib6AA9Hjr3X8G6RrSLo7hK+840PO2dep4P36ZmJj/pr42OknpB6ypHPPQ6xuHHiOvEp4beZbhV2vfkWG0E8g6fzlKA0NEpr0ZsQ7H6y6/AHV313Pc+Odw+lSUycljO21oAOm7ZUQePJGVl391MezfgGzSkhu2jHkBGLF1KrCztSeKQYBym+7yKmAuPCfJ4+1aLyz7mkf7bKIqIrSYMW4OEEPkeW50Kcv83zrvoIpheZnBVsMK+Su2q8F2SPNzqbgxIg/b036o0jSWOauQAbAd+O8UskJMZtxAtSUb5TyZZ6MhlHShYg==
+X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1637718746; bh=Fw3f7wMa7P1VShv4P45ZOnt7nbBNdy7u8bLYO3jHjEr=; h=X-Sonic-MF:From:To:Subject:Date:From:Subject; b=GVQTD5L7Hj3lKsbocR6W7X1n1rD23GlTGs18k2GbeB/Y8SQnGMFinqBp37LvAVvirAWfLyiW+XmSaQB59t22sIxmc0cuoXhXMWSKzmxNHQii0MLe+f+5oKkUqNJLIj0WDyHep8mK+b6BTQRL99IcHm4Y6WCJvocQ+TFol8K7ptn3kKkYvyi5/SgOBepusc/IxgW8sK4a+LK2HoKJiYW2O6Cpq9kRlT+J1uaGGgZJTUpvK2fhKveEt+0GpiwQHu+ysmZNOv+UFMXI9cg7bB/Kz3jMxz/MFqcJ8NgG0xctU5kaSN3WM93C0T0HMr2x3d0x07J8lZX/fZp3mGQhgF0fWA==
+X-YMail-OSG: iV3YhFMVM1lqFYBw.s6ixUNEV_LMBo.FcpmQ5uhOPx7FmkLPMHkV9ewG2VRjP0i
+ fXBpnoOto_ZlFmseGQ3MPVCxE1wWUWiE0EfEXccNni23nej1qaNPyT.z3g2qiO.uJWsZ3avIEMkl
+ Ii_.7nmdlBlCKI1pYkKTfgM0KlW022rKeUl.AWNbdVKRJRNMqBC9bk0Mz8od1yxPv.GuOZls1Yfg
+ HowEhn2wOzaMmBc9q_sYfjx_fHVcOtQSX0qTCWvtbCZpd0UfZ4QyuiEVfmY3sOXfPni2.v3Rib4P
+ ibjeKTzRpFoLGW_J9pbxniw92MrdqUOzG2cWfTGIG_Cp6sFIFMZyN0Y96b7cAf8CllM1Rud_Zmku
+ .XwEgaLKkm5rw7Fbs6WzqiLf8Hcj1U1Urrb6yjX1gffDLhG9Z7kacYxkqLcxSRkqHc4RhbDfSOAB
+ 6tK1FvSXTyd2BBBNheYGIVPoFhF2.571veXF.6groGvnQqMkhPqqIyBby5i6grAsXANL7kjrK5LS
+ 1i3g2yRDjT5wZKI2bdsBYux5Z0mc2XZg.Gj8wgZ_rdWWd_cWEKuH9QziTRGj6UP73bgw7jLTJ.qx
+ PeXz_Hw.4R30e3VwLL3fNWw2Vdy_CdG3aBMfxSJoejVbWoUpD3BSKBJ.GK3x79epIMeQY4iifhdD
+ OGIDCfsoh0.Fc_jtlG9THFe_UPZhOn.vD2jubxf9FMdz1xzRWkh2puYHv8ODimSjeXzl5JGkh1CR
+ XSAXhejTb9uMsX__eF7PBeB_Nn4mPSzZipYxk.MecR1422eY5xUmzODF19jZQDZg6Cky19iMzP.o
+ N2QAAz9QkoBIYtvhjvBlbPpid9_XWljhkIQx41KKaAC4R8S0bm91vklCoaFIxJn9zP.45zpUkEFE
+ gfTrB._ZqnimBhfc7CHNyrEpVFEmRp4P2sn.lm8c7yJVfyEqRa6pVwlWytQZCkK3PTkF.vMtbFTG
+ OQ9O.gbbxS9KJj9aJiitJ07aRxdGTeEECr8pYdqNF2Ji_6wUFiExmc0qktU0jIqEyX7RRgMZkxl5
+ yMEWZhtmS7ZW9TijFFDcR0.mMJU4gfo6iQpZONMZqZ9WE93UBq5vTt8xFaFObqPGiWKdwTGe541_
+ M9SX_yECQC9bRm6KYr3zibY0QNhOmwjicYsutFJY.T9rSUmEHR7P9aRtCnsehqHG2a7zXNLlBjA4
+ P5Ei3CdogSeOIaBOIlcD54t7zV1cuEKbp6tlbgz2MTvYBK7E7a3CCrfYYbtCKllkkX2nJdLQTFCD
+ RvBWSE5eaIPnjg9zXLJvff0JTSU37k3LxBD7ljNMie9D0gSP_cebFuo8RBbS9usVeXobqZubQt2F
+ I_7.prSNDo8Vjn0Bci4MyzSUDY9mriSIw8p0KOYM.63KsSSRMx4pC0N.TKNo9ZMCu.ex6qiBpgaB
+ XmLDzNn28rZQkmJLneIjqpkEkXWjV2ZyZqLPunWmzkjbd3.ZsREvVUCnU7DLoU5oaydcsW82Acdg
+ ByFi28zNTHHfGxj0Zsgo9Z8udo80aaAJ.3WfkCQBEXrBgweTs0FZ2E9D1eF0qja0u.E5QYFN_vJs
+ dRc5NXkSZnqL3woRfavu6pylWFqM8OjUymePviSxqSNNxUeulnJZPkldZCl1qdLr7gvuAABNgI9U
+ uqpAFg2S07KJfoPa.7YV14875IZtFicMqOVpZ5d0h6p0Gnv6N2ixKjSXpelIb0.fpApP498ieGcm
+ Mqfxjn9TTgDoVlXBcJiIvASVaFQrH_9YMKVs7vdr8gyToy_WxuVr1b8KvvZQKuO.SG8DwpXdSmUT
+ BoV._geAmdieKwe5PQKhZUddIQtnfGl97ZvNl2A.BLJzh4I6KljT.chtbZg6HVBdMHRkaePQ2k5s
+ 0zuRN8l0B56eZbx_b7YwlMsEw4WKnmHG_UI9jabrVV._CkWHlecJYaY6dLMuyNGw_zhTd5HDoffq
+ khPctibUOy9Ohh3PugVDh0dhDFozxsW3f6WUdpV5.2KRTXSMA9xKaU0eDP6WqFns_UJZRNqjRyQF
+ OhpzAzHHz4hcuf0KWQm.ZUXWxlxyQF9zqYxANik0fTQbOeSCTjwc.1lwrE4Z770M3TxS7i807ZH6
+ NNMUAWcJ030V1t2cnY.uRLrQff77XNeg6Ub9abKlWaYVFL_puycDr2JjAbJX0JEp6SrEvgxlE0Ua
+ 6G2nn6W.ZcUkvcrrQ3DvOa6MsV.7_1ArKoUC8BblL46_X6IBAmsdANNDF5FNpRrrnno_283m.vEq
+ 599i8DrukkMrjzb5QD7xo4fjz.MXsrZ9EpOO3ptPpg4hCAxY9YWI8ekAz
+X-Sonic-MF: <casey@schaufler-ca.com>
+Received: from sonic.gate.mail.ne1.yahoo.com by sonic308.consmr.mail.ne1.yahoo.com with HTTP; Wed, 24 Nov 2021 01:52:26 +0000
+Received: by kubenode504.mail-prod1.omega.ne1.yahoo.com (VZM Hermes SMTP Server) with ESMTPA ID f73285a66f3fbf39f2e43e2b2e480b38;
+          Wed, 24 Nov 2021 01:52:28 +0000 (UTC)
+From:   Casey Schaufler <casey@schaufler-ca.com>
+To:     casey.schaufler@intel.com, jmorris@namei.org,
+        linux-security-module@vger.kernel.org, selinux@vger.kernel.org
+Cc:     casey@schaufler-ca.com, linux-audit@redhat.com,
+        keescook@chromium.org, john.johansen@canonical.com,
+        penguin-kernel@i-love.sakura.ne.jp, paul@paul-moore.com,
+        sds@tycho.nsa.gov, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: [PATCH v30 08/28] LSM: Use lsmblob in security_secctx_to_secid
+Date:   Tue, 23 Nov 2021 17:43:12 -0800
+Message-Id: <20211124014332.36128-9-casey@schaufler-ca.com>
+X-Mailer: git-send-email 2.31.1
+In-Reply-To: <20211124014332.36128-1-casey@schaufler-ca.com>
+References: <20211124014332.36128-1-casey@schaufler-ca.com>
 MIME-Version: 1.0
-X-OriginatorOrg: marvell.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: SJ0PR18MB4009.namprd18.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: d8144871-6775-480b-e3f0-08d9ae9f5004
-X-MS-Exchange-CrossTenant-originalarrivaltime: 23 Nov 2021 16:35:51.3175
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 70e1fb47-1155-421d-87fc-2e58f638b6e0
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: 9T47MF9fJ2am7eRmK3WyxVPZllxdOYBPAr2Kcaop39c4S46nMbL3PFi4trGl6yoI+iupbKtliM8q7N/0vdDKZQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BY5PR18MB3427
-X-Proofpoint-GUID: uSOm7euXi6T3FbsqRsbnIjvUlvvnLpJk
-X-Proofpoint-ORIG-GUID: uSOm7euXi6T3FbsqRsbnIjvUlvvnLpJk
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.205,Aquarius:18.0.790,Hydra:6.0.425,FMLib:17.0.607.475
- definitions=2021-11-23_05,2021-11-23_01,2020-04-07_01
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-> Hi,=0A=
-> =0A=
-> On Wed, Nov 03, 2021 at 11:31:36AM +0200, Volodymyr Mytnyk wrote:=0A=
-> > From: Volodymyr Mytnyk <vmytnyk@marvell.com>=0A=
-> > =0A=
-> > On busy system with big number (few thousands) of HW offloaded flows, i=
-t=0A=
-> > is possible to hit the situation, where some of the conntack flows are=
-=0A=
-> > stuck in conntrack table (as offloaded) and cannot be removed by user.=
-=0A=
-> > =0A=
-> > This behaviour happens if user has configured conntack using tc sub-sys=
-tem,=0A=
-> > offloaded those flows for HW and then deleted tc configuration from Lin=
-ux=0A=
-> > system by deleting the tc qdiscs.=0A=
-> > =0A=
-> > When qdiscs are removed, the nf_flow_table_free() is called to do the=
-=0A=
-> > cleanup of HW offloaded flows in conntrack table.=0A=
-> > =0A=
-> > ...=0A=
-> > process_one_work=0A=
-> >   tcf_ct_flow_table_cleanup_work()=0A=
-> >     nf_flow_table_free()=0A=
-> > =0A=
-> > The nf_flow_table_free() does the following things:=0A=
-> > =0A=
-> >   1. cancels gc workqueue=0A=
-> >   2. marks all flows as teardown=0A=
-> >   3. executes nf_flow_offload_gc_step() once for each flow to=0A=
-> >      trigger correct teardown flow procedure (e.g., allocate=0A=
-> >      work to delete the HW flow and marks the flow as "dying").=0A=
-> >   4. waits for all scheduled flow offload works to be finished.=0A=
-> >   5. executes nf_flow_offload_gc_step() once for each flow to=0A=
-> >      trigger the deleting of flows.=0A=
-> > =0A=
-> > Root cause:=0A=
-> > =0A=
-> > In step 3, nf_flow_offload_gc_step() expects to move flow to "dying"=0A=
-> > state by using nf_flow_offload_del() and deletes the flow in next=0A=
-> > nf_flow_offload_gc_step() iteration. But, if flow is in "pending" state=
-=0A=
-> > for some reason (e.g., reading HW stats), it will not be moved to=0A=
-> > "dying" state as expected by nf_flow_offload_gc_step() and will not=0A=
-> > be marked as "dead" for delition.=0A=
-> > =0A=
-> > In step 5, nf_flow_offload_gc_step() assumes that all flows marked=0A=
-> > as "dead" and will be deleted by this call, but this is not true since=
-=0A=
-> > the state was not set diring previous nf_flow_offload_gc_step()=0A=
-> > call.=0A=
-> > =0A=
-> > It issue causes some of the flows to get stuck in connection tracking=
-=0A=
-> > system or not release properly.=0A=
-> > =0A=
-> > To fix this problem, add nf_flow_table_offload_flush() call between 2 &=
- 3=0A=
-> > step, to make sure no other flow offload works will be in "pending" sta=
-te=0A=
-> > during step 3.=0A=
-> =0A=
-> Thanks for the detailed report.=0A=
-> =0A=
-> I'm attaching two patches, the first one is a preparation patch. The=0A=
-> second patch flushes the pending work, then it sets the teardown flag=0A=
-> to all flows in the flowtable and it forces a garbage collector run to=0A=
-> queue work to remove the flows from hardware, then it flushes this new=0A=
-> pending work and (finally) it forces another garbage collector run to=0A=
-> remove the entry from the software flowtable. Compile-tested only.=0A=
-=0A=
-Hi Pablo,=0A=
-=0A=
-	Thanks for reviewing the changes and problem investigation.=0A=
-=0A=
-I will check the provided patches and will back to you.=0A=
-=0A=
-Regards,=0A=
-  Volodymyr=
+Change the security_secctx_to_secid interface to use a lsmblob
+structure in place of the single u32 secid in support of
+module stacking. Change its callers to do the same.
+
+The security module hook is unchanged, still passing back a secid.
+The infrastructure passes the correct entry from the lsmblob.
+
+Acked-by: Paul Moore <paul@paul-moore.com>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
+Cc: netdev@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/linux/security.h          | 26 ++++++++++++++++++--
+ kernel/cred.c                     |  4 +---
+ net/netfilter/nft_meta.c          | 10 ++++----
+ net/netfilter/xt_SECMARK.c        |  7 +++++-
+ net/netlabel/netlabel_unlabeled.c | 23 +++++++++++-------
+ security/security.c               | 40 ++++++++++++++++++++++++++-----
+ 6 files changed, 85 insertions(+), 25 deletions(-)
+
+diff --git a/include/linux/security.h b/include/linux/security.h
+index e6dd3463604e..65dc61067e7c 100644
+--- a/include/linux/security.h
++++ b/include/linux/security.h
+@@ -198,6 +198,27 @@ static inline bool lsmblob_equal(struct lsmblob *bloba, struct lsmblob *blobb)
+ extern int lsm_name_to_slot(char *name);
+ extern const char *lsm_slot_to_name(int slot);
+ 
++/**
++ * lsmblob_value - find the first non-zero value in an lsmblob structure.
++ * @blob: Pointer to the data
++ *
++ * This needs to be used with extreme caution, as the cases where
++ * it is appropriate are rare.
++ *
++ * Return the first secid value set in the lsmblob.
++ * There should only be one.
++ */
++static inline u32 lsmblob_value(const struct lsmblob *blob)
++{
++	int i;
++
++	for (i = 0; i < LSMBLOB_ENTRIES; i++)
++		if (blob->secid[i])
++			return blob->secid[i];
++
++	return 0;
++}
++
+ /* These functions are in security/commoncap.c */
+ extern int cap_capable(const struct cred *cred, struct user_namespace *ns,
+ 		       int cap, unsigned int opts);
+@@ -530,7 +551,8 @@ int security_setprocattr(const char *lsm, const char *name, void *value,
+ int security_netlink_send(struct sock *sk, struct sk_buff *skb);
+ int security_ismaclabel(const char *name);
+ int security_secid_to_secctx(u32 secid, char **secdata, u32 *seclen);
+-int security_secctx_to_secid(const char *secdata, u32 seclen, u32 *secid);
++int security_secctx_to_secid(const char *secdata, u32 seclen,
++			     struct lsmblob *blob);
+ void security_release_secctx(char *secdata, u32 seclen);
+ void security_inode_invalidate_secctx(struct inode *inode);
+ int security_inode_notifysecctx(struct inode *inode, void *ctx, u32 ctxlen);
+@@ -1391,7 +1413,7 @@ static inline int security_secid_to_secctx(u32 secid, char **secdata, u32 *secle
+ 
+ static inline int security_secctx_to_secid(const char *secdata,
+ 					   u32 seclen,
+-					   u32 *secid)
++					   struct lsmblob *blob)
+ {
+ 	return -EOPNOTSUPP;
+ }
+diff --git a/kernel/cred.c b/kernel/cred.c
+index e5e41bd4efc3..a112ea708b6e 100644
+--- a/kernel/cred.c
++++ b/kernel/cred.c
+@@ -796,14 +796,12 @@ EXPORT_SYMBOL(set_security_override);
+ int set_security_override_from_ctx(struct cred *new, const char *secctx)
+ {
+ 	struct lsmblob blob;
+-	u32 secid;
+ 	int ret;
+ 
+-	ret = security_secctx_to_secid(secctx, strlen(secctx), &secid);
++	ret = security_secctx_to_secid(secctx, strlen(secctx), &blob);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	lsmblob_init(&blob, secid);
+ 	return set_security_override(new, &blob);
+ }
+ EXPORT_SYMBOL(set_security_override_from_ctx);
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index fe91ff5f8fbe..c171c9aadb01 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -813,21 +813,21 @@ static const struct nla_policy nft_secmark_policy[NFTA_SECMARK_MAX + 1] = {
+ 
+ static int nft_secmark_compute_secid(struct nft_secmark *priv)
+ {
+-	u32 tmp_secid = 0;
++	struct lsmblob blob;
+ 	int err;
+ 
+-	err = security_secctx_to_secid(priv->ctx, strlen(priv->ctx), &tmp_secid);
++	err = security_secctx_to_secid(priv->ctx, strlen(priv->ctx), &blob);
+ 	if (err)
+ 		return err;
+ 
+-	if (!tmp_secid)
++	if (!lsmblob_is_set(&blob))
+ 		return -ENOENT;
+ 
+-	err = security_secmark_relabel_packet(tmp_secid);
++	err = security_secmark_relabel_packet(lsmblob_value(&blob));
+ 	if (err)
+ 		return err;
+ 
+-	priv->secid = tmp_secid;
++	priv->secid = lsmblob_value(&blob);
+ 	return 0;
+ }
+ 
+diff --git a/net/netfilter/xt_SECMARK.c b/net/netfilter/xt_SECMARK.c
+index 498a0bf6f044..87ca3a537d1c 100644
+--- a/net/netfilter/xt_SECMARK.c
++++ b/net/netfilter/xt_SECMARK.c
+@@ -42,13 +42,14 @@ secmark_tg(struct sk_buff *skb, const struct xt_secmark_target_info_v1 *info)
+ 
+ static int checkentry_lsm(struct xt_secmark_target_info_v1 *info)
+ {
++	struct lsmblob blob;
+ 	int err;
+ 
+ 	info->secctx[SECMARK_SECCTX_MAX - 1] = '\0';
+ 	info->secid = 0;
+ 
+ 	err = security_secctx_to_secid(info->secctx, strlen(info->secctx),
+-				       &info->secid);
++				       &blob);
+ 	if (err) {
+ 		if (err == -EINVAL)
+ 			pr_info_ratelimited("invalid security context \'%s\'\n",
+@@ -56,6 +57,10 @@ static int checkentry_lsm(struct xt_secmark_target_info_v1 *info)
+ 		return err;
+ 	}
+ 
++	/* xt_secmark_target_info can't be changed to use lsmblobs because
++	 * it is exposed as an API. Use lsmblob_value() to get the one
++	 * value that got set by security_secctx_to_secid(). */
++	info->secid = lsmblob_value(&blob);
+ 	if (!info->secid) {
+ 		pr_info_ratelimited("unable to map security context \'%s\'\n",
+ 				    info->secctx);
+diff --git a/net/netlabel/netlabel_unlabeled.c b/net/netlabel/netlabel_unlabeled.c
+index 566ba4397ee4..762561318d78 100644
+--- a/net/netlabel/netlabel_unlabeled.c
++++ b/net/netlabel/netlabel_unlabeled.c
+@@ -880,7 +880,7 @@ static int netlbl_unlabel_staticadd(struct sk_buff *skb,
+ 	void *addr;
+ 	void *mask;
+ 	u32 addr_len;
+-	u32 secid;
++	struct lsmblob blob;
+ 	struct netlbl_audit audit_info;
+ 
+ 	/* Don't allow users to add both IPv4 and IPv6 addresses for a
+@@ -904,13 +904,18 @@ static int netlbl_unlabel_staticadd(struct sk_buff *skb,
+ 	ret_val = security_secctx_to_secid(
+ 		                  nla_data(info->attrs[NLBL_UNLABEL_A_SECCTX]),
+ 				  nla_len(info->attrs[NLBL_UNLABEL_A_SECCTX]),
+-				  &secid);
++				  &blob);
+ 	if (ret_val != 0)
+ 		return ret_val;
+ 
++	/* netlbl_unlhsh_add will be changed to pass a struct lsmblob *
++	 * instead of a u32 later in this patch set. security_secctx_to_secid()
++	 * will only be setting one entry in the lsmblob struct, so it is
++	 * safe to use lsmblob_value() to get that one value. */
++
+ 	return netlbl_unlhsh_add(&init_net,
+-				 dev_name, addr, mask, addr_len, secid,
+-				 &audit_info);
++				 dev_name, addr, mask, addr_len,
++				 lsmblob_value(&blob), &audit_info);
+ }
+ 
+ /**
+@@ -931,7 +936,7 @@ static int netlbl_unlabel_staticadddef(struct sk_buff *skb,
+ 	void *addr;
+ 	void *mask;
+ 	u32 addr_len;
+-	u32 secid;
++	struct lsmblob blob;
+ 	struct netlbl_audit audit_info;
+ 
+ 	/* Don't allow users to add both IPv4 and IPv6 addresses for a
+@@ -953,13 +958,15 @@ static int netlbl_unlabel_staticadddef(struct sk_buff *skb,
+ 	ret_val = security_secctx_to_secid(
+ 		                  nla_data(info->attrs[NLBL_UNLABEL_A_SECCTX]),
+ 				  nla_len(info->attrs[NLBL_UNLABEL_A_SECCTX]),
+-				  &secid);
++				  &blob);
+ 	if (ret_val != 0)
+ 		return ret_val;
+ 
++	/* security_secctx_to_secid() will only put one secid into the lsmblob
++	 * so it's safe to use lsmblob_value() to get the secid. */
+ 	return netlbl_unlhsh_add(&init_net,
+-				 NULL, addr, mask, addr_len, secid,
+-				 &audit_info);
++				 NULL, addr, mask, addr_len,
++				 lsmblob_value(&blob), &audit_info);
+ }
+ 
+ /**
+diff --git a/security/security.c b/security/security.c
+index f3d30ef512d4..852aaa05edea 100644
+--- a/security/security.c
++++ b/security/security.c
+@@ -2195,10 +2195,22 @@ int security_secid_to_secctx(u32 secid, char **secdata, u32 *seclen)
+ }
+ EXPORT_SYMBOL(security_secid_to_secctx);
+ 
+-int security_secctx_to_secid(const char *secdata, u32 seclen, u32 *secid)
++int security_secctx_to_secid(const char *secdata, u32 seclen,
++			     struct lsmblob *blob)
+ {
+-	*secid = 0;
+-	return call_int_hook(secctx_to_secid, 0, secdata, seclen, secid);
++	struct security_hook_list *hp;
++	int rc;
++
++	lsmblob_init(blob, 0);
++	hlist_for_each_entry(hp, &security_hook_heads.secctx_to_secid, list) {
++		if (WARN_ON(hp->lsmid->slot < 0 || hp->lsmid->slot >= lsm_slot))
++			continue;
++		rc = hp->hook.secctx_to_secid(secdata, seclen,
++					      &blob->secid[hp->lsmid->slot]);
++		if (rc != 0)
++			return rc;
++	}
++	return 0;
+ }
+ EXPORT_SYMBOL(security_secctx_to_secid);
+ 
+@@ -2349,10 +2361,26 @@ int security_socket_getpeersec_stream(struct socket *sock, char __user *optval,
+ 				optval, optlen, len);
+ }
+ 
+-int security_socket_getpeersec_dgram(struct socket *sock, struct sk_buff *skb, u32 *secid)
++int security_socket_getpeersec_dgram(struct socket *sock, struct sk_buff *skb,
++				     u32 *secid)
+ {
+-	return call_int_hook(socket_getpeersec_dgram, -ENOPROTOOPT, sock,
+-			     skb, secid);
++	struct security_hook_list *hp;
++	int rc = -ENOPROTOOPT;
++
++	/*
++	 * Only one security module should provide a real hook for
++	 * this. A stub or bypass like is used in BPF should either
++	 * (somehow) leave rc unaltered or return -ENOPROTOOPT.
++	 */
++	hlist_for_each_entry(hp, &security_hook_heads.socket_getpeersec_dgram,
++			     list) {
++		if (WARN_ON(hp->lsmid->slot < 0 || hp->lsmid->slot >= lsm_slot))
++			continue;
++		rc = hp->hook.socket_getpeersec_dgram(sock, skb, secid);
++		if (rc != -ENOPROTOOPT)
++			break;
++	}
++	return rc;
+ }
+ EXPORT_SYMBOL(security_socket_getpeersec_dgram);
+ 
+-- 
+2.31.1
+
