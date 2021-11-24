@@ -2,42 +2,42 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3928C433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Nov 2021 22:45:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C742EC433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Nov 2021 22:45:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345074AbhKXWsP (ORCPT
+        id S1344361AbhKXWsR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 24 Nov 2021 17:48:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49522 "EHLO
+        Wed, 24 Nov 2021 17:48:17 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49530 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344361AbhKXWsO (ORCPT
+        with ESMTP id S1344072AbhKXWsQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Nov 2021 17:48:14 -0500
+        Wed, 24 Nov 2021 17:48:16 -0500
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C75CC061574
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 Nov 2021 14:45:04 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B4BBC061574
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 Nov 2021 14:45:06 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=ids3tharwDnGFr8EgGRa+2RBHaTQDBczz1AaWQO23U8=; b=OGgrHowY4+J6zMuwNLRhON+LC8
-        f3ipxMkZi26CcQXN+q6wcxd7f/CdOg+sJwD11BwPbVnLX0yAxFpX/rV2/6noZsZ84GB8mWszJbDzA
-        x8WbPLeYahYt4LpBoSHQHA84q1TMNRuEGlTZ58DO8+mVcH2M2jHHYYJyfcJZT4F+toa2ePFHqnP5o
-        GTjNU8NyXVi7eTQNfyJxcHVEHlD4rROaCWRHSi6LuXOvcJmmUKsH8oy4MhlcESOCg9klIYOtnHQHK
-        e5rVZoqgr6wP5kdXmLJklXXDljp+OebJW4zWIh0KWu+9WJpJIMqH38aswod/iBKfp/CyBzPdGpowT
-        hcdRJwHw==;
+        bh=iCWmAYEZF/v0WIOer3lgyeoNkpB7V749Na3zkI+8xPk=; b=unjH65N5AONkbbpgztOiW8ufGU
+        VmZwnBf3RyhHE+eiXyZrs92qkHYbTgWqv255SDQuuQv10rHYMf2GJp9EMsyonuFcuTtcoxwCP79Ih
+        c0nnSSpzJBjSTm3XMyxZY1ID9jybBUY3Ed6Jvd/YsJReDLpyJxn6PXxBnM2EnBWRs70mn+0Udz+ZY
+        YKqpil3P/L7YFYP2zQRPIceJWC93vknqyir0x+SdMsO4nZZEI1zmL+9XhFdBfa8FcUaM4KDvhD1/Q
+        GKOqV2hL9q1j2O/itAiC/UEIatGARiGvHVHXGleNaJDd58tmSTKFzmdZ3blnabki4EHBpB2s12MdE
+        9KCpNUFw==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
         by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1mq0h7-00563U-81
+        id 1mq0h7-00563U-4V
         for netfilter-devel@vger.kernel.org; Wed, 24 Nov 2021 22:24:49 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [ulogd2 PATCH v3 11/32] output: DBI: fix deprecation warnings
-Date:   Wed, 24 Nov 2021 22:24:06 +0000
-Message-Id: <20211124222444.2597311-12-jeremy@azazel.net>
+Subject: [ulogd2 PATCH v3 10/32] input: UNIXSOCK: prevent unaligned pointer access
+Date:   Wed, 24 Nov 2021 22:24:05 +0000
+Message-Id: <20211124222444.2597311-11-jeremy@azazel.net>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20211124222444.2597311-1-jeremy@azazel.net>
 References: <20211124222444.2597311-1-jeremy@azazel.net>
@@ -50,76 +50,79 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The DBI output plugin uses some libdbi functions which have been
-deprecated in favour of re-entrant equivalents.  Switch to the
-re-entrant functions.
+`struct ulogd_unixsock_packet_t` is packed, so taking the address of its
+`struct iphdr payload` member may yield an unaligned pointer value.  We
+only actually dereference the pointer to get the IP version, so replace
+the pointer with a version variable and elsewhere use `pkt.payload`
+directly.
 
-Remove superfluous `init` declaration.
-
-Add destructor to clean up DBI instance on exit.
+Remove a couple of stray semicolons.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- output/dbi/ulogd_output_DBI.c | 18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ input/packet/ulogd_inppkt_UNIXSOCK.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/output/dbi/ulogd_output_DBI.c b/output/dbi/ulogd_output_DBI.c
-index 23cc9c8fb492..b4a5bacd156f 100644
---- a/output/dbi/ulogd_output_DBI.c
-+++ b/output/dbi/ulogd_output_DBI.c
-@@ -29,6 +29,8 @@
- #define DEBUGP(x, args...)
- #endif
+diff --git a/input/packet/ulogd_inppkt_UNIXSOCK.c b/input/packet/ulogd_inppkt_UNIXSOCK.c
+index 66735e3ab4fe..5cf7cfb57703 100644
+--- a/input/packet/ulogd_inppkt_UNIXSOCK.c
++++ b/input/packet/ulogd_inppkt_UNIXSOCK.c
+@@ -371,7 +371,7 @@ struct ulogd_unixsock_option_t  {
+ static int handle_packet(struct ulogd_pluginstance *upi, struct ulogd_unixsock_packet_t *pkt, uint16_t total_len)
+ {
+ 	char *data = NULL;
+-	struct iphdr *ip;
++	unsigned int ip_version = pkt->payload.version;
+ 	struct ulogd_key *ret = upi->output.keys;
+ 	uint8_t oob_family;
+ 	uint16_t payload_len;
+@@ -387,22 +387,22 @@ static int handle_packet(struct ulogd_pluginstance *upi, struct ulogd_unixsock_p
  
-+static dbi_inst libdbi_instance;
-+
- struct dbi_instance {
- 	struct db_instance db_inst;
+ 	payload_len = ntohs(pkt->payload_length);
  
-@@ -173,7 +175,6 @@ static int close_db_dbi(struct ulogd_pluginstance *upi)
- 	ulogd_log(ULOGD_DEBUG, "dbi: closing connection\n");
- 	dbi_conn_close(pi->dbh);
- 	pi->dbh = NULL;
--	//dbi_shutdown();
+-	ip = &pkt->payload;
+-	if (ip->version == 4)
++	if (ip_version == 4)
+ 		oob_family = AF_INET;
+-	else if (ip->version == 6)
++	else if (ip_version == 6)
+ 		oob_family = AF_INET6;
+-	else oob_family = 0;
++	else
++		oob_family = 0;
+ 
+ 	okey_set_u8(&ret[UNIXSOCK_KEY_OOB_FAMILY], oob_family);
+-	okey_set_ptr(&ret[UNIXSOCK_KEY_RAW_PCKT], ip);
++	okey_set_ptr(&ret[UNIXSOCK_KEY_RAW_PCKT], &pkt->payload);
+ 	okey_set_u32(&ret[UNIXSOCK_KEY_RAW_PCKTLEN], payload_len);
+ 
+ 	/* options */
+ 	if (total_len > payload_len + sizeof(uint16_t)) {
+ 		/* option starts at the next aligned address after the payload */
+ 		new_offset = USOCK_ALIGN(payload_len);
+-		options_start = (void*)ip + new_offset;
++		options_start = (void*)&pkt->payload + new_offset;
+ 		data = options_start;
+ 		total_len -= (options_start - (char*)pkt);
+ 
+@@ -460,7 +460,7 @@ static int handle_packet(struct ulogd_pluginstance *upi, struct ulogd_unixsock_p
+ 						"ulogd2: unknown option %d\n",
+ 						option_number);
+ 				break;
+-			};
++			}
+ 		}
+ 	}
+ 
+@@ -666,7 +666,7 @@ static int unixsock_instance_read_cb(int fd, unsigned int what, void *param)
+ 		}
+ 
+ 		/* handle_packet has shifted data in buffer */
+-	};
++	}
  
  	return 0;
  }
-@@ -195,14 +196,14 @@ static int open_db_dbi(struct ulogd_pluginstance *upi)
- 
- 	ulogd_log(ULOGD_ERROR, "Opening connection for db type %s\n",
- 		  dbtype);
--	driver = dbi_driver_open(dbtype);
-+	driver = dbi_driver_open_r(dbtype, libdbi_instance);
- 	if (driver == NULL) {
- 		ulogd_log(ULOGD_ERROR, "unable to load driver for db type %s\n",
- 			  dbtype);
- 		close_db_dbi(upi);
- 		return -1;
- 	}
--	pi->dbh = dbi_conn_new(dbtype);
-+	pi->dbh = dbi_conn_new_r(dbtype, libdbi_instance);
- 	if (pi->dbh == NULL) {
- 		ulogd_log(ULOGD_ERROR, "unable to initialize db type %s\n",
- 			  dbtype);
-@@ -316,11 +317,14 @@ static struct ulogd_plugin dbi_plugin = {
- 	.version	= VERSION,
- };
- 
--void __attribute__ ((constructor)) init(void);
--
--void init(void)
-+void __attribute__ ((constructor)) init(void)
- {
--	dbi_initialize(NULL);
-+	dbi_initialize_r(NULL, &libdbi_instance);
- 
- 	ulogd_register_plugin(&dbi_plugin);
- }
-+
-+void __attribute__ ((destructor)) fini(void)
-+{
-+	dbi_shutdown_r(libdbi_instance);
-+}
 -- 
 2.33.0
 
