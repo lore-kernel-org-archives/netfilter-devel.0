@@ -2,42 +2,42 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6294FC433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Nov 2021 22:45:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BCAEC433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Nov 2021 22:45:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351786AbhKXWtB (ORCPT
+        id S1343941AbhKXWtD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 24 Nov 2021 17:49:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49734 "EHLO
+        Wed, 24 Nov 2021 17:49:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49742 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245389AbhKXWtB (ORCPT
+        with ESMTP id S245389AbhKXWtD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Nov 2021 17:49:01 -0500
+        Wed, 24 Nov 2021 17:49:03 -0500
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36345C061574
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 Nov 2021 14:45:51 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3BD1AC061574
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 Nov 2021 14:45:53 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=czn9kCCeuSMZKvzrm+yXw4O0UC7YcfuC5W+X8RFYqH8=; b=mmFWCoCb5+LkAXs0n0C4zn7E+r
-        AwB7jAxkhRTbXjgaIaps4Tq44NHwLOfot6FT/ikVwQIcds67vNDjXvF9QeKr96E36JNiiLvLNjrB7
-        anEgIBYcvaMpEjJYibZLT2fCc8gwor5Kxp8sHue/JX0qWALSutq3QOpg6OPJ72pVJ5ayfrQ+iyOsD
-        Qx1aabQc87XpYtj6pKRqqBN4zJBYct0dDbIpnM2YLmK08YCQ9cIBnGY4otYdQI+PZdofVG/60MY3z
-        JZNzwijPW/IkvcduG7idTXI0jsS9tDKhO0hpMZ2LvAWvvURAMSOXB7MnOomyJrGxiYgAftslfd8MC
-        BGyLV/+w==;
+        bh=LIB1Y5NShiZoXG+gz4+Wf1m9shwTYx851IbuJyvlwXU=; b=WxQfHk1dfyzxeya+jnBjMYN02X
+        RyFbsutCEtqOJBP1lE90q423NlMF0LJToZHzfFoohyXSbxTn86Sl9lY9nyXDjLkOIPpqjzzfdouxd
+        8wovylfn+YWkB4lwUb9S6LyGodx2AYdIHiTzWJVdmUxq41LgOhNyIsETcgRIavIHLwM+XvJg/Uket
+        JdOocbZhIJqiBvxrwd0DvDz9rM/01qR4uvJpSBeqHkCXjJYl2RQRL0yKNDfZ8wD1dvksIxHBSAHRw
+        HFknoAPj6N7P5v+U6n/G67AXyMzVLCw9hQgJ3lB0DNP6QU5QZFHg5jwJ/npJjFmSCDhEvsPxonpT+
+        KbzKLwZw==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
         by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1mq0hA-00563U-5s
-        for netfilter-devel@vger.kernel.org; Wed, 24 Nov 2021 22:24:52 +0000
+        id 1mq0hB-00563U-36
+        for netfilter-devel@vger.kernel.org; Wed, 24 Nov 2021 22:24:53 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [ulogd2 PATCH v3 25/32] db: improve mapping of input-keys to DB columns
-Date:   Wed, 24 Nov 2021 22:24:31 +0000
-Message-Id: <20211124222444.2597311-37-jeremy@azazel.net>
+Subject: [ulogd2 PATCH v3 30/30] output: IPFIX: remove compiler attribute macros
+Date:   Wed, 24 Nov 2021 22:24:41 +0000
+Message-Id: <20211124222444.2597311-47-jeremy@azazel.net>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20211124222444.2597311-1-jeremy@azazel.net>
 References: <20211124222444.2597311-1-jeremy@azazel.net>
@@ -50,60 +50,88 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Currently, we copy the key-name to a buffer, iterate over it to replace
-the full-stops with underscores, using `strchr` from the start of the
-buffer on each iteration, then append the buffer to the SQL statement.
-
-Apart from the inefficiency, `strncpy` is used to do the copies, which
-leads gcc to complain:
-
-  ../../util/db.c:118:25: warning: `strncpy` output may be truncated copying 31 bytes from a string of length 31
-
-Furthermore, the buffer is one character too short and so there is the
-possibility of overruns.
-
-Instead, append the key-name directly to the statement using `sprintf`,
-and run `strchr` from the last underscore on each iteration.
+The ipfix.h header includes three macros which expand to compiler attributes.
+Presumably, at some point the definitions were one branch of an if-else
+preprocessor conditional where the definitions in the other branch expanded to
+nothing.  This is no longer the case.  Only one of the macros (`__packed`) is
+used and the raw attribute is used elsewhere in the code-base.  Remove the
+macros.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- util/db.c | 13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ include/ulogd/ulogd.h | 5 -----
+ output/ipfix/ipfix.c  | 2 --
+ output/ipfix/ipfix.h  | 8 ++++----
+ 3 files changed, 4 insertions(+), 11 deletions(-)
 
-diff --git a/util/db.c b/util/db.c
-index 2dbe0db2fbfe..339e39ef4797 100644
---- a/util/db.c
-+++ b/util/db.c
-@@ -96,8 +96,6 @@ static int sql_createstmt(struct ulogd_pluginstance *upi)
- 	    (procedure[strlen("INSERT")] == '\0' ||
- 			procedure[strlen("INSERT")] == ' ')) {
- 		char *stmt_val = mi->stmt;
--		char buf[ULOGD_MAX_KEYLEN];
--		char *underscore;
+diff --git a/include/ulogd/ulogd.h b/include/ulogd/ulogd.h
+index a487c8e70e37..092d9f521a70 100644
+--- a/include/ulogd/ulogd.h
++++ b/include/ulogd/ulogd.h
+@@ -28,11 +28,6 @@
  
- 		if(procedure[6] == '\0') {
- 			/* procedure == "INSERT" */
-@@ -112,13 +110,18 @@ static int sql_createstmt(struct ulogd_pluginstance *upi)
- 			stmt_val += sprintf(stmt_val, "%s (", procedure);
+ /* types without length */
+ #define ULOGD_RET_NONE		0x0000
+-#define __packed		__attribute__((packed))
+-#define __noreturn		__attribute__((noreturn))
+-#define __cold			__attribute__((cold))
+-
+-#define __packed		__attribute__((packed))
  
- 		for (i = 0; i < upi->input.num_keys; i++) {
-+			char *underscore;
-+
- 			if (upi->input.keys[i].flags & ULOGD_KEYF_INACTIVE)
- 				continue;
+ #define ULOGD_RET_INT8		0x0001
+ #define ULOGD_RET_INT16		0x0002
+diff --git a/output/ipfix/ipfix.c b/output/ipfix/ipfix.c
+index b2719fd1d8a3..e0b3440e1d1a 100644
+--- a/output/ipfix/ipfix.c
++++ b/output/ipfix/ipfix.c
+@@ -8,8 +8,6 @@
+ /* These forward declarations are needed since ulogd.h doesn't like to be the first */
+ #include <ulogd/linuxlist.h>
  
--			strncpy(buf, upi->input.keys[i].name, ULOGD_MAX_KEYLEN);	
--			while ((underscore = strchr(buf, '.')))
-+			underscore = stmt_val;
-+
-+			stmt_val += sprintf(stmt_val, "%s,",
-+					    upi->input.keys[i].name);
-+
-+			while ((underscore = strchr(underscore, '.')))
- 				*underscore = '_';
--			stmt_val += sprintf(stmt_val, "%s,", buf);
- 		}
- 		*(stmt_val - 1) = ')';
+-#define __packed		__attribute__((packed))
+-
+ #include "ipfix.h"
+ 
+ #include <ulogd/ulogd.h>
+diff --git a/output/ipfix/ipfix.h b/output/ipfix/ipfix.h
+index 93945fbd562b..b0f3ae64740f 100644
+--- a/output/ipfix/ipfix.h
++++ b/output/ipfix/ipfix.h
+@@ -19,7 +19,7 @@ struct ipfix_hdr {
+ 	uint32_t seqno;
+ 	uint32_t oid;				/* Observation Domain ID */
+ 	uint8_t data[];
+-} __packed;
++} __attribute__((packed));
+ 
+ #define IPFIX_HDRLEN		sizeof(struct ipfix_hdr)
+ 
+@@ -32,7 +32,7 @@ struct ipfix_templ_hdr {
+ 	uint16_t tid;
+ 	uint16_t cnt;
+ 	uint8_t data[];
+-} __packed;
++} __attribute__((packed));
+ 
+ #define IPFIX_TEMPL_HDRLEN(nfields)	sizeof(struct ipfix_templ_hdr) + (sizeof(uint16_t) * 2 * nfields)
+ 
+@@ -42,7 +42,7 @@ struct ipfix_set_hdr {
+ 	uint16_t id;
+ 	uint16_t len;
+ 	uint8_t data[];
+-} __packed;
++} __attribute__((packed));
+ 
+ #define IPFIX_SET_HDRLEN		sizeof(struct ipfix_set_hdr)
+ 
+@@ -67,7 +67,7 @@ struct vy_ipfix_data {
+ 	uint16_t dport;
+ 	uint8_t l4_proto;
+ 	uint32_t aid;				/* Application ID */
+-} __packed;
++} __attribute__((packed));
+ 
+ #define VY_IPFIX_SID		256
  
 -- 
 2.33.0
