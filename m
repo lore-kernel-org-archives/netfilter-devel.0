@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30063C433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Nov 2021 23:16:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B75F9C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Nov 2021 01:34:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347038AbhKXXTu (ORCPT
+        id S238769AbhKYBhn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 24 Nov 2021 18:19:50 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:38156 "EHLO
+        Wed, 24 Nov 2021 20:37:43 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:38436 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345942AbhKXXTp (ORCPT
+        with ESMTP id S1347659AbhKYBfn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Nov 2021 18:19:45 -0500
+        Wed, 24 Nov 2021 20:35:43 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 83689606B0
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Nov 2021 00:14:22 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 74516607C1
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Nov 2021 02:30:19 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft,v2] cli: save history on ctrl-d with editline
-Date:   Thu, 25 Nov 2021 00:16:28 +0100
-Message-Id: <20211124231628.607281-1-pablo@netfilter.org>
+Subject: [PATCH nft] cli: print newline with ctrl-d with editline
+Date:   Thu, 25 Nov 2021 02:32:24 +0100
+Message-Id: <20211125013224.615716-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -28,75 +28,44 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Missing call to cli_exit() to save the history when ctrl-d is pressed in
-nft -i.
+If user does not explicitly 'quit' then print a newline before going
+back to the shell.
 
-Moreover, remove call to rl_callback_handler_remove() in cli_exit() for
-editline cli since it does not call rl_callback_handler_install().
-
-And print newline otherwise shell prompt is garbled:
-
- nft> ^D[user@system]$
-
-Fixes: bc2d5f79c2ea ("cli: use plain readline() interface with libedit")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: print newline after ctrl-d to fix shell prompt.
-
- src/cli.c | 22 +++++++++++++++-------
- 1 file changed, 15 insertions(+), 7 deletions(-)
+ src/cli.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
 diff --git a/src/cli.c b/src/cli.c
-index 8729176680cf..ba1d86b7c436 100644
+index 11fc85abeaa2..8762a636fd41 100644
 --- a/src/cli.c
 +++ b/src/cli.c
-@@ -152,13 +152,6 @@ static void cli_complete(char *line)
- 	nft_run_cmd_from_buffer(cli_nft, line);
- 	free(line);
- }
--
--void cli_exit(void)
--{
--	rl_callback_handler_remove();
--	rl_deprep_terminal();
--	write_history(histfile);
--}
- #endif
+@@ -38,6 +38,7 @@
+ #define CMDLINE_QUIT		"quit"
  
- #if defined(HAVE_LIBREADLINE)
-@@ -188,6 +181,13 @@ int cli_init(struct nft_ctx *nft)
- 	return 0;
- }
+ static char histfile[PATH_MAX];
++static bool quit;
  
-+void cli_exit(void)
-+{
-+	rl_callback_handler_remove();
-+	rl_deprep_terminal();
-+	write_history(histfile);
-+}
-+
- #elif defined(HAVE_LIBEDIT)
+ static void
+ init_histfile(void)
+@@ -140,6 +141,7 @@ static void cli_complete(char *line)
+ 		return;
  
- int cli_init(struct nft_ctx *nft)
-@@ -212,10 +212,18 @@ int cli_init(struct nft_ctx *nft)
- 
- 		cli_complete(line);
+ 	if (!strcmp(line, CMDLINE_QUIT)) {
++		quit = true;
+ 		cli_exit();
+ 		exit(0);
  	}
-+	cli_exit();
- 
- 	return 0;
+@@ -221,6 +223,9 @@ void cli_exit(void)
+ {
+ 	rl_deprep_terminal();
+ 	write_history(histfile);
++	/* Print \n when user exits via ^D */
++	if (!quit)
++		printf("\n");
  }
  
-+void cli_exit(void)
-+{
-+	rl_deprep_terminal();
-+	write_history(histfile);
-+	printf("\n");
-+}
-+
  #else /* HAVE_LINENOISE */
- 
- int cli_init(struct nft_ctx *nft)
 -- 
 2.30.2
 
