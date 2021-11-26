@@ -2,56 +2,62 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A931C433FE
-	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Nov 2021 15:10:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 594C2C433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Nov 2021 20:40:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353956AbhKZPNr convert rfc822-to-8bit (ORCPT
+        id S232051AbhKZUoK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 26 Nov 2021 10:13:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44152 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354220AbhKZPLq (ORCPT
+        Fri, 26 Nov 2021 15:44:10 -0500
+Received: from m70-157.mailgun.net ([166.78.70.157]:55952 "EHLO
+        m70-157.mailgun.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233501AbhKZUmK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 26 Nov 2021 10:11:46 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2FF0C0613F9;
-        Fri, 26 Nov 2021 06:53:53 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1mqcbd-00034R-44; Fri, 26 Nov 2021 15:53:41 +0100
-Date:   Fri, 26 Nov 2021 15:53:41 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Cc:     fw@strlen.de, pablo@netfilter.org, lschlesinger@drivenets.com,
-        dsahern@kernel.org, crosser@average.org,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH nf] vrf: don't run conntrack on vrf with !dflt qdisc
-Message-ID: <20211126145341.GP6326@breakpoint.cc>
-References: <20211126143612.11262-1-nicolas.dichtel@6wind.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: 8BIT
-In-Reply-To: <20211126143612.11262-1-nicolas.dichtel@6wind.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+        Fri, 26 Nov 2021 15:42:10 -0500
+X-Greylist: delayed 302 seconds by postgrey-1.27 at vger.kernel.org; Fri, 26 Nov 2021 15:42:10 EST
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=mg.crystalcommerce.com;
+ q=dns/txt; s=k1; t=1637959137; h=Content-Transfer-Encoding:
+ Content-Type: Mime-Version: Subject: Message-ID: To: From: Date:
+ Sender; bh=gL6ZB7+7jXM7xlsAUUH0xyRHcjG30Xr3fLW1iaOBfLs=; b=hCZ6QLia5X5wUrFjTD49fX0mSwI3T97I6d4cVuLW7fg/Y+IvaFJhyp4QPgO2VOdRuybFjROc
+ njQw7AYPIp0Mje0c0Sk5un2IszcUQhiZB9Xu2MbZaFD0vUf5hZ+InlohATyO4Rci0+BgOlJM
+ uwQVGrHh4DSSaxpst37vIrrk9XU=
+X-Mailgun-Sending-Ip: 166.78.70.157
+X-Mailgun-Sid: WyJlNjc3OSIsICJuZXRmaWx0ZXItZGV2ZWxAdmdlci5rZXJuZWwub3JnIiwgIjkxNjciXQ==
+Received: from mg.crystalcommerce.com
+ (ec2-13-52-67-95.us-west-1.compute.amazonaws.com [13.52.67.95]) by
+ smtp-out-n07.prod.us-west-2.postgun.com with SMTP id
+ 61a144b31abc6f02d08bd9b5 (version=TLS1.2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256); Fri, 26 Nov 2021 20:33:55
+ GMT
+Sender: cartamagica=videotron.ca@mg.crystalcommerce.com
+Date:   Fri, 26 Nov 2021 15:33:55 -0500
+From:   cartamagica@videotron.ca
+To:     netfilter-devel@vger.kernel.org
+Message-ID: <61a144b31e2dc_66b72ac1135e5584113c4@ip-10-100-100-234.mail>
+Subject: Welcome to Carta Magica Centre de Jeux!
+Mime-Version: 1.0
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Nicolas Dichtel <nicolas.dichtel@6wind.com> wrote:
-> After the below patch, the conntrack attached to skb is set to "notrack" in
-> the context of vrf device, for locally generated packets.
-> But this is true only when the default qdisc is set to the vrf device. When
-> changing the qdisc, notrack is not set anymore.
-> In fact, there is a shortcut in the vrf driver, when the default qdisc is
-> set, see commit dcdd43c41e60 ("net: vrf: performance improvements for
-> IPv4") for more details.
-> 
-> This patch ensures that the behavior is always the same, whatever the qdisc
-> is.
-> 
-> To demonstrate the difference, a new test is added in conntrack_vrf.sh.
+Welcome to Carta Magica Centre de Jeux, =E2=9D=A4=EF=B8=8F Alice want to =
+meet you! Click Here: http://bit.do/fSGXu?p4k =E2=9D=A4=EF=B8=8F cddeu3p!=
 
-Thanks Nicolas for the explanation & test case.
 
-Acked-by: Florian Westphal <fw@strlen.de>
+Your login is: netfilter-devel@vger.kernel.org
+
+To change your password, please visit
+
+<a href=3D"https://accounts.crystalcommerce.com/users/password/new">https=
+://accounts.crystalcommerce.com/users/password/new</a>
+
+Sincerely,
+
+Carta Magica Centre de Jeux
+6360, St-Hubert
+Montreal, QC H2S 2M2
+cartamagica@videotron.ca
+514-286-9099
+cartamagica.crystalcommerce.com
