@@ -2,62 +2,68 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 594C2C433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Nov 2021 20:40:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FD3DC4332F
+	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Nov 2021 10:36:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232051AbhKZUoK (ORCPT
+        id S236289AbhK0KjO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 26 Nov 2021 15:44:10 -0500
-Received: from m70-157.mailgun.net ([166.78.70.157]:55952 "EHLO
-        m70-157.mailgun.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233501AbhKZUmK (ORCPT
+        Sat, 27 Nov 2021 05:39:14 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.129.124]:57404 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S239184AbhK0KhN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 26 Nov 2021 15:42:10 -0500
-X-Greylist: delayed 302 seconds by postgrey-1.27 at vger.kernel.org; Fri, 26 Nov 2021 15:42:10 EST
-DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=mg.crystalcommerce.com;
- q=dns/txt; s=k1; t=1637959137; h=Content-Transfer-Encoding:
- Content-Type: Mime-Version: Subject: Message-ID: To: From: Date:
- Sender; bh=gL6ZB7+7jXM7xlsAUUH0xyRHcjG30Xr3fLW1iaOBfLs=; b=hCZ6QLia5X5wUrFjTD49fX0mSwI3T97I6d4cVuLW7fg/Y+IvaFJhyp4QPgO2VOdRuybFjROc
- njQw7AYPIp0Mje0c0Sk5un2IszcUQhiZB9Xu2MbZaFD0vUf5hZ+InlohATyO4Rci0+BgOlJM
- uwQVGrHh4DSSaxpst37vIrrk9XU=
-X-Mailgun-Sending-Ip: 166.78.70.157
-X-Mailgun-Sid: WyJlNjc3OSIsICJuZXRmaWx0ZXItZGV2ZWxAdmdlci5rZXJuZWwub3JnIiwgIjkxNjciXQ==
-Received: from mg.crystalcommerce.com
- (ec2-13-52-67-95.us-west-1.compute.amazonaws.com [13.52.67.95]) by
- smtp-out-n07.prod.us-west-2.postgun.com with SMTP id
- 61a144b31abc6f02d08bd9b5 (version=TLS1.2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256); Fri, 26 Nov 2021 20:33:55
- GMT
-Sender: cartamagica=videotron.ca@mg.crystalcommerce.com
-Date:   Fri, 26 Nov 2021 15:33:55 -0500
-From:   cartamagica@videotron.ca
-To:     netfilter-devel@vger.kernel.org
-Message-ID: <61a144b31e2dc_66b72ac1135e5584113c4@ip-10-100-100-234.mail>
-Subject: Welcome to Carta Magica Centre de Jeux!
-Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+        Sat, 27 Nov 2021 05:37:13 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1638009239;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=OVuAk298/Ida9SlJtQUnhBQrrLWLnpK6TTTaXfrF7NI=;
+        b=HsVEahdOot1fCkHTOMTA8Nl81P+/0O3aBKlDzfPVVsMju3NnpV66l/uxcBEryatK9lS7v+
+        VW7AkzTbBrk1yjFvFg9wgAWlSxAJDBl9tIX3HJtKvAKBkl2idm61K0QkFIbNUSkaK7AJR0
+        ozE5R5jHQGfF9tbz/G594o8bBMkN6a4=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-565-p2OLfCNLPmiqKs3pfkUOvw-1; Sat, 27 Nov 2021 05:33:57 -0500
+X-MC-Unique: p2OLfCNLPmiqKs3pfkUOvw-1
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 85CDA835B47;
+        Sat, 27 Nov 2021 10:33:56 +0000 (UTC)
+Received: from maya.cloud.tilaa.com (unknown [10.40.208.3])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 4AD0918A50;
+        Sat, 27 Nov 2021 10:33:53 +0000 (UTC)
+From:   Stefano Brivio <sbrivio@redhat.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Nikita Yushchenko <nikita.yushchenko@virtuozzo.com>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        stable@vger.kernel.org
+Subject: [PATCH nf 0/2] nft_set_pipapo: Fix AVX2 MAC address match, add test
+Date:   Sat, 27 Nov 2021 11:33:36 +0100
+Message-Id: <cover.1637976889.git.sbrivio@redhat.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Welcome to Carta Magica Centre de Jeux, =E2=9D=A4=EF=B8=8F Alice want to =
-meet you! Click Here: http://bit.do/fSGXu?p4k =E2=9D=A4=EF=B8=8F cddeu3p!=
+Patch 1/2 fixes the issue reported by Nikita where a MAC address
+wouldn't match if given as first field of a set, and patch 2/2 adds
+the corresponding test.
 
+Stefano Brivio (2):
+  nft_set_pipapo: Fix bucket load in AVX2 lookup routine for six 8-bit
+    groups
+  selftests: netfilter: Add correctness test for mac,net set type
 
-Your login is: netfilter-devel@vger.kernel.org
+ net/netfilter/nft_set_pipapo_avx2.c           |  2 +-
+ .../selftests/netfilter/nft_concat_range.sh   | 24 ++++++++++++++++---
+ 2 files changed, 22 insertions(+), 4 deletions(-)
 
-To change your password, please visit
+-- 
+2.30.2
 
-<a href=3D"https://accounts.crystalcommerce.com/users/password/new">https=
-://accounts.crystalcommerce.com/users/password/new</a>
-
-Sincerely,
-
-Carta Magica Centre de Jeux
-6360, St-Hubert
-Montreal, QC H2S 2M2
-cartamagica@videotron.ca
-514-286-9099
-cartamagica.crystalcommerce.com
