@@ -2,34 +2,43 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BD07C433F5
-	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Nov 2021 11:24:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6942DC433F5
+	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Nov 2021 12:45:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234794AbhK0L17 (ORCPT
+        id S233240AbhK0MsW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 27 Nov 2021 06:27:59 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:43950 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233200AbhK0LZ7 (ORCPT
+        Sat, 27 Nov 2021 07:48:22 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:27217 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S239338AbhK0MqU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 27 Nov 2021 06:25:59 -0500
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        Sat, 27 Nov 2021 07:46:20 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1638016985;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=WDTqGFUsAsCLetUVG/vUO9a5OS/hVgX06nVfr6avo0o=;
+        b=eexvjdry7zDz9Yxx6O2qDk6tkLHAy0DP5h+12+HBk9HhrI9sQFjHa8ljGqmBffXCFPv7j+
+        H9cqb11bWe9aNLmmLkAMOPaLuTykbMSdsFbnsCfFJEYNlwFAfrzBOZ7aKA6UMn5v6rh6IP
+        OaDAWXib1sgAs6AWGyguT2hwLnYL1Nk=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-390-LX146rs9P4KKGfBuVLmrHQ-1; Sat, 27 Nov 2021 07:43:01 -0500
+X-MC-Unique: LX146rs9P4KKGfBuVLmrHQ-1
+Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4F6D6B8216C;
-        Sat, 27 Nov 2021 11:22:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 499B5C53FAD;
-        Sat, 27 Nov 2021 11:22:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1638012162;
-        bh=Z2iO990jnBa1aHgMo793U6xtseQx02BM9p+2ix1My9c=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=wkH8njxdcjEK6h/gL+v9holLd17r8VBjrtJ7KyIPXl/V4d1dnKj3OkBB5KCrundTI
-         kOShgJNe/h7+9tfnL7+74cOjrjz2XDVuwCSUciE/caTM4xx6Lm4H5xzBc8cA6ZWjmz
-         kDP7fA7/rIDYyiaO1ydgbDXCBAeM/BV3WqQrd4+c=
-Date:   Sat, 27 Nov 2021 12:22:39 +0100
-From:   Greg KH <gregkh@linuxfoundation.org>
-To:     Stefano Brivio <sbrivio@redhat.com>
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id E8D938042FC;
+        Sat, 27 Nov 2021 12:42:59 +0000 (UTC)
+Received: from maya.cloud.tilaa.com (unknown [10.40.208.3])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 7612C60BE5;
+        Sat, 27 Nov 2021 12:42:59 +0000 (UTC)
+Date:   Sat, 27 Nov 2021 13:42:51 +0100
+From:   Stefano Brivio <sbrivio@redhat.com>
+To:     Greg KH <gregkh@linuxfoundation.org>
 Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Nikita Yushchenko <nikita.yushchenko@virtuozzo.com>,
         Florian Westphal <fw@strlen.de>,
@@ -37,37 +46,52 @@ Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         stable@vger.kernel.org
 Subject: Re: [PATCH nf 2/2] selftests: netfilter: Add correctness test for
  mac,net set type
-Message-ID: <YaIU/7LKgAJD/TSS@kroah.com>
+Message-ID: <20211127134251.30d3b196@elisabeth>
+In-Reply-To: <YaIU/7LKgAJD/TSS@kroah.com>
 References: <cover.1637976889.git.sbrivio@redhat.com>
- <142425004cc8d6bc6777fef933d3f290491f87c4.1637976889.git.sbrivio@redhat.com>
+        <142425004cc8d6bc6777fef933d3f290491f87c4.1637976889.git.sbrivio@redhat.com>
+        <YaIU/7LKgAJD/TSS@kroah.com>
+Organization: Red Hat
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <142425004cc8d6bc6777fef933d3f290491f87c4.1637976889.git.sbrivio@redhat.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Nov 27, 2021 at 11:33:38AM +0100, Stefano Brivio wrote:
-> The existing net,mac test didn't cover the issue recently reported
-> by Nikita Yushchenko, where MAC addresses wouldn't match if given
-> as first field of a concatenated set with AVX2 and 8-bit groups,
-> because there's a different code path covering the lookup of six
-> 8-bit groups (MAC addresses) if that's the first field.
+Hi Greg,
+
+On Sat, 27 Nov 2021 12:22:39 +0100
+Greg KH <gregkh@linuxfoundation.org> wrote:
+
+> On Sat, Nov 27, 2021 at 11:33:38AM +0100, Stefano Brivio wrote:
+> > The existing net,mac test didn't cover the issue recently reported
+> > by Nikita Yushchenko, where MAC addresses wouldn't match if given
+> > as first field of a concatenated set with AVX2 and 8-bit groups,
+> > because there's a different code path covering the lookup of six
+> > 8-bit groups (MAC addresses) if that's the first field.
+> > 
+> > Add a similar mac,net test, with MAC address and IPv4 address
+> > swapped in the set specification.
+> > 
+> > Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
+> > ---
+> >  .../selftests/netfilter/nft_concat_range.sh   | 24 ++++++++++++++++---
+> >  1 file changed, 21 insertions(+), 3 deletions(-)  
 > 
-> Add a similar mac,net test, with MAC address and IPv4 address
-> swapped in the set specification.
+> <formletter>
 > 
-> Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
-> ---
->  .../selftests/netfilter/nft_concat_range.sh   | 24 ++++++++++++++++---
->  1 file changed, 21 insertions(+), 3 deletions(-)
+> This is not the correct way to submit patches for inclusion in the
+> stable kernel tree.  Please read:
+>     https://www.kernel.org/doc/html/latest/process/stable-kernel-rules.html
+> for how to do this properly.
+> 
+> </formletter>
 
-<formletter>
+This patch (2/2) is not intended for the stable kernel tree, only patch
+1/2 is. I Cc'ed stable@kernel.org on the whole series for context.
 
-This is not the correct way to submit patches for inclusion in the
-stable kernel tree.  Please read:
-    https://www.kernel.org/doc/html/latest/process/stable-kernel-rules.html
-for how to do this properly.
+-- 
+Stefano
 
-</formletter>
