@@ -2,96 +2,98 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6942DC433F5
-	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Nov 2021 12:45:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B0B7C433F5
+	for <netfilter-devel@archiver.kernel.org>; Sun, 28 Nov 2021 19:01:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233240AbhK0MsW (ORCPT
+        id S236857AbhK1TEp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 27 Nov 2021 07:48:22 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:27217 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S239338AbhK0MqU (ORCPT
+        Sun, 28 Nov 2021 14:04:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38974 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231458AbhK1TCo (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 27 Nov 2021 07:46:20 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1638016985;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=WDTqGFUsAsCLetUVG/vUO9a5OS/hVgX06nVfr6avo0o=;
-        b=eexvjdry7zDz9Yxx6O2qDk6tkLHAy0DP5h+12+HBk9HhrI9sQFjHa8ljGqmBffXCFPv7j+
-        H9cqb11bWe9aNLmmLkAMOPaLuTykbMSdsFbnsCfFJEYNlwFAfrzBOZ7aKA6UMn5v6rh6IP
-        OaDAWXib1sgAs6AWGyguT2hwLnYL1Nk=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-390-LX146rs9P4KKGfBuVLmrHQ-1; Sat, 27 Nov 2021 07:43:01 -0500
-X-MC-Unique: LX146rs9P4KKGfBuVLmrHQ-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id E8D938042FC;
-        Sat, 27 Nov 2021 12:42:59 +0000 (UTC)
-Received: from maya.cloud.tilaa.com (unknown [10.40.208.3])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 7612C60BE5;
-        Sat, 27 Nov 2021 12:42:59 +0000 (UTC)
-Date:   Sat, 27 Nov 2021 13:42:51 +0100
-From:   Stefano Brivio <sbrivio@redhat.com>
-To:     Greg KH <gregkh@linuxfoundation.org>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Nikita Yushchenko <nikita.yushchenko@virtuozzo.com>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        stable@vger.kernel.org
-Subject: Re: [PATCH nf 2/2] selftests: netfilter: Add correctness test for
- mac,net set type
-Message-ID: <20211127134251.30d3b196@elisabeth>
-In-Reply-To: <YaIU/7LKgAJD/TSS@kroah.com>
-References: <cover.1637976889.git.sbrivio@redhat.com>
-        <142425004cc8d6bc6777fef933d3f290491f87c4.1637976889.git.sbrivio@redhat.com>
-        <YaIU/7LKgAJD/TSS@kroah.com>
-Organization: Red Hat
+        Sun, 28 Nov 2021 14:02:44 -0500
+Received: from mail-oo1-xc2a.google.com (mail-oo1-xc2a.google.com [IPv6:2607:f8b0:4864:20::c2a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DEE57C061574;
+        Sun, 28 Nov 2021 10:59:27 -0800 (PST)
+Received: by mail-oo1-xc2a.google.com with SMTP id p2-20020a4adfc2000000b002c2676904fdso5021064ood.13;
+        Sun, 28 Nov 2021 10:59:27 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=message-id:date:mime-version:user-agent:subject:content-language:to
+         :cc:references:from:in-reply-to:content-transfer-encoding;
+        bh=B9P6WMjxC8/fIqPYLfI9IFXh8XTtDuAHtkDHh/xjesY=;
+        b=V+OvyCxa+39vWxiqtXWpngGTm/XQgxkkldgc4jo1vhX4F2zgPR3uBM/J3aafMKYNay
+         VwnV6JldZVH5VyqNbkbX7ie61+IAiIFBjpu61e8GT+CwdGSGvAsHSY49hLVkI7Jtm+25
+         3YOXovZdT4KQg1agn1JLA9Ii+cB+k9HEKH0TpuiyYckybeqnTsI/eCS7KRkyVPVhm2a5
+         xTJJaKT/OlX+9yEUWkpZOQlIQtjsaszScAgnxZl/jePeCNOn63lblzHlSftlQm/VsdSp
+         OJZhR/qwVkjf3gdI3/VimyrYEUVo4uGQcNGZCx8UZdn1ZgcXlktl12mnUf4nffvxs7SY
+         vr/w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
+         :content-language:to:cc:references:from:in-reply-to
+         :content-transfer-encoding;
+        bh=B9P6WMjxC8/fIqPYLfI9IFXh8XTtDuAHtkDHh/xjesY=;
+        b=cTsxLc/zzIjlqTnQMAmJcCEyhikNa4YYSq+5eXU0n4jMsxb7ibQqFqE7rM8f+xeZ/b
+         Zx+w87eCCVMxk01GK96hWsU6s2ube/knFxVa9uOJUdouTYZtErIOdk29CIGEZsArKz7K
+         VSGtDvrC97vJBV9L8+vGdh0XwnXxHZlNnar3RRfFgeRAG3lnjwpJNGZWlPJzGemcAoMU
+         2TpUhDQ99InV987fv/YZl+AsMXCJi72Dr4eqMNkSBXGcHl+ADOH5kd+uQZ3GXSzGNBdX
+         KdN9lNUDZOUmeO+wWu8VmK1ViC62f9V0fs2BR+WOqpcTi2GHdxyXHmmsiepLOuo0wgwx
+         JIdA==
+X-Gm-Message-State: AOAM531n3onHu4KCU9n6HQFPne+GeaoDBav+qWCJ/9zG5AP8ym7ceKCb
+        0/mvs5IWrcDcm2/pV/2sWhY=
+X-Google-Smtp-Source: ABdhPJz3P1jvKnuMrqZtoEu0CxuIbJ7H4HqjKYVa4XCzwl+Jc/6qrzbHLM426V7D+HD+Z4ieDW+XIA==
+X-Received: by 2002:a4a:e4c9:: with SMTP id w9mr28077105oov.10.1638125967183;
+        Sun, 28 Nov 2021 10:59:27 -0800 (PST)
+Received: from [172.16.0.2] ([8.48.134.30])
+        by smtp.googlemail.com with ESMTPSA id 3sm2465888oif.12.2021.11.28.10.59.24
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 28 Nov 2021 10:59:26 -0800 (PST)
+Message-ID: <75f4ceed-b556-42ca-0a87-0bc0539139bb@gmail.com>
+Date:   Sun, 28 Nov 2021 11:59:23 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
+ Gecko/20100101 Thunderbird/91.3.1
+Subject: Re: [PATCH nf] vrf: don't run conntrack on vrf with !dflt qdisc
+Content-Language: en-US
+To:     Nicolas Dichtel <nicolas.dichtel@6wind.com>, fw@strlen.de,
+        pablo@netfilter.org
+Cc:     lschlesinger@drivenets.com, dsahern@kernel.org,
+        crosser@average.org, netfilter-devel@vger.kernel.org,
+        netdev@vger.kernel.org
+References: <20211126143612.11262-1-nicolas.dichtel@6wind.com>
+From:   David Ahern <dsahern@gmail.com>
+In-Reply-To: <20211126143612.11262-1-nicolas.dichtel@6wind.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Greg,
-
-On Sat, 27 Nov 2021 12:22:39 +0100
-Greg KH <gregkh@linuxfoundation.org> wrote:
-
-> On Sat, Nov 27, 2021 at 11:33:38AM +0100, Stefano Brivio wrote:
-> > The existing net,mac test didn't cover the issue recently reported
-> > by Nikita Yushchenko, where MAC addresses wouldn't match if given
-> > as first field of a concatenated set with AVX2 and 8-bit groups,
-> > because there's a different code path covering the lookup of six
-> > 8-bit groups (MAC addresses) if that's the first field.
-> > 
-> > Add a similar mac,net test, with MAC address and IPv4 address
-> > swapped in the set specification.
-> > 
-> > Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
-> > ---
-> >  .../selftests/netfilter/nft_concat_range.sh   | 24 ++++++++++++++++---
-> >  1 file changed, 21 insertions(+), 3 deletions(-)  
+On 11/26/21 7:36 AM, Nicolas Dichtel wrote:
+> After the below patch, the conntrack attached to skb is set to "notrack" in
+> the context of vrf device, for locally generated packets.
+> But this is true only when the default qdisc is set to the vrf device. When
+> changing the qdisc, notrack is not set anymore.
+> In fact, there is a shortcut in the vrf driver, when the default qdisc is
+> set, see commit dcdd43c41e60 ("net: vrf: performance improvements for
+> IPv4") for more details.
 > 
-> <formletter>
+> This patch ensures that the behavior is always the same, whatever the qdisc
+> is.
 > 
-> This is not the correct way to submit patches for inclusion in the
-> stable kernel tree.  Please read:
->     https://www.kernel.org/doc/html/latest/process/stable-kernel-rules.html
-> for how to do this properly.
+> To demonstrate the difference, a new test is added in conntrack_vrf.sh.
 > 
-> </formletter>
+> Fixes: 8c9c296adfae ("vrf: run conntrack only in context of lower/physdev for locally generated packets")
+> Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+> ---
+>  drivers/net/vrf.c                             |  8 ++---
+>  .../selftests/netfilter/conntrack_vrf.sh      | 30 ++++++++++++++++---
+>  2 files changed, 30 insertions(+), 8 deletions(-)
+> 
 
-This patch (2/2) is not intended for the stable kernel tree, only patch
-1/2 is. I Cc'ed stable@kernel.org on the whole series for context.
 
--- 
-Stefano
+Good catch. Thanks, Nicolas.
 
+Reviewed-by: David Ahern <dsahern@kernel.org>
