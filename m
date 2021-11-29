@@ -2,74 +2,51 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 737A3C433F5
-	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Nov 2021 20:25:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF6D7C433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Nov 2021 22:38:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234588AbhK2U2E (ORCPT
+        id S234566AbhK2Wlu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 29 Nov 2021 15:28:04 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:54196 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S234507AbhK2UZw (ORCPT
+        Mon, 29 Nov 2021 17:41:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33612 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234579AbhK2Wky (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 29 Nov 2021 15:25:52 -0500
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-576-Rkx9VgH3NzuCuc4CKcIF9Q-1; Mon, 29 Nov 2021 15:22:29 -0500
-X-MC-Unique: Rkx9VgH3NzuCuc4CKcIF9Q-1
-Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 32B155A064;
-        Mon, 29 Nov 2021 20:22:28 +0000 (UTC)
-Received: from localhost (unknown [10.22.33.169])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id B48CA45D60;
-        Mon, 29 Nov 2021 20:22:27 +0000 (UTC)
-Date:   Mon, 29 Nov 2021 15:22:26 -0500
-From:   Eric Garver <eric@garver.life>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, Phil Sutter <phil@nwl.cc>
+        Mon, 29 Nov 2021 17:40:54 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 29F1FC08E9BC
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Nov 2021 14:02:57 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1mroje-00035G-RK; Mon, 29 Nov 2021 23:02:54 +0100
+Date:   Mon, 29 Nov 2021 23:02:54 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     Eric Garver <eric@garver.life>, Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, Phil Sutter <phil@nwl.cc>
 Subject: Re: [PATCH nf] netfilter: nat: force port remap to prevent shadowing
  well-known ports
-Message-ID: <YaU2gndowxjvV+zn@egarver.remote.csb>
-Mail-Followup-To: Eric Garver <eric@garver.life>,
-        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-        Phil Sutter <phil@nwl.cc>
+Message-ID: <20211129220254.GA17540@breakpoint.cc>
 References: <20211129144218.2677-1-fw@strlen.de>
+ <YaU2gndowxjvV+zn@egarver.remote.csb>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20211129144218.2677-1-fw@strlen.de>
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
+In-Reply-To: <YaU2gndowxjvV+zn@egarver.remote.csb>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Nov 29, 2021 at 03:42:18PM +0100, Florian Westphal wrote:
-> If destination port is above 32k and source port below 16k
-> assume this might cause 'port shadowing' where a 'new' inbound
-> connection matches an existing one, e.g.
+Eric Garver <eric@garver.life> wrote:
+> On Mon, Nov 29, 2021 at 03:42:18PM +0100, Florian Westphal wrote:
+> > If destination port is above 32k and source port below 16k
+> > assume this might cause 'port shadowing' where a 'new' inbound
+> > connection matches an existing one, e.g.
+> 
+> How did you arrive at 16k?
 
-How did you arrive at 16k?
+I had to pick some number.  1k is too low since some administrative
+portals (or openvpn for that matter) are on ports above that.
 
-> 
-> inbound X:41234 -> Y:53 matches existing conntrack entry
->         Z:53 -> X:4123, where Z got natted to X.
-> 
-> In this case, new packet is natted to Z:53 which is likely
-> unwanted.
-> 
-> We could avoid the rewrite for connections that are not being forwarded,
-> but get_unique_tuple() and the callers don't propagate the required hook
-> information for this.
-> 
-> Also adjust test case.
-> 
-> Cc: Eric Garver <eric@garver.life>
-> Cc: Phil Sutter <phil@nwl.cc>
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
-
-[..]
-
+I wanted to pick something that would not kick in for most cases.
+16k just seemed like a good compromise, thats all.
