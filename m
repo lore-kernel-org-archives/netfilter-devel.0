@@ -2,96 +2,131 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6277EC433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Nov 2021 10:46:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F244AC433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Nov 2021 10:56:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236057AbhK3KuD (ORCPT
+        id S236476AbhK3K71 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 30 Nov 2021 05:50:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59646 "EHLO
+        Tue, 30 Nov 2021 05:59:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33444 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236584AbhK3KuC (ORCPT
+        with ESMTP id S233731AbhK3K7Y (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Nov 2021 05:50:02 -0500
+        Tue, 30 Nov 2021 05:59:24 -0500
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2CC3C061574
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Nov 2021 02:46:43 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F23D7C061574
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Nov 2021 02:56:04 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:To:From:Date:Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        s=20190108; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=KONKad38dq4qsBKevCPJT7GRpMP07KgS+EZF9MCdm1E=; b=VUh3wJ4rkhpS7n3XwlyEyerDEn
-        vyNgq0aitqRHj2Hzx/UByqcG+/FL3kEoFrMR0nMuuJ2J6SyEJnT/D9UDt2tgKj8Dj+eJ59nCcHMZM
-        NMtdgKlpbP2erdurC1eMmN9Go/7MwlOKt3BoNjprzWqp96DXOsQVgSYciFOFEBlEsxXBekDU4TP+R
-        FwDqVO1SwCTaRXS6JsSgBJU6wrYyfj7TEW7xkFAoJQkR8IjOCtQzxS1RR9T/zJf2mSXGfNw7jLwvX
-        J97RI3TebnBSMvBYAedQ5daAWLZU/bsapvVrBiYAv/5wl2mzjTWJtxb0AL943A36rpx2D/POUPbCR
-        5rmdSD6A==;
-Received: from [2001:8b0:fb7d:d6d7:feb3:bcff:fe5e:42c3] (helo=azazel.net)
-        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
+        bh=L2ZclW0d8d3WpQG0ClX0mkdqREdqWZ8NC9PqLbbvdJ0=; b=bUp/go0B6Tw3qje3VfEqKthe9C
+        oRRDv69E8cK60teU2qy1paZLKpFs4VPs300FCVhYoDLzVbxOr+Q6K0q6pENa+Ppe3srvY8B+VsEzQ
+        cBtMW0F3KGLbo0S/JnvcCBJgqjnAuiShe1vV47QXhFmJcUizxfbouQ1tVApZn07RMJKoY3vVeq26i
+        gmenT0qD/uiollNUqWcgp7H0BLbuuZOPbH2p5n9N/3zllhZsaqsl/SwPKPMlOCMmIrDFN5sEr4FbG
+        DkuBe8ApOR1ZvgUPtmYymr1brStbV3orCQgMlwgP+limQTF5z6bOAYpbIHofMXZRWXd4X6ko9Biyk
+        lO4rsu4w==;
+Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
+        by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1ms0en-00Awtr-A2
-        for netfilter-devel@vger.kernel.org; Tue, 30 Nov 2021 10:46:41 +0000
-Date:   Tue, 30 Nov 2021 10:46:40 +0000
+        id 1ms0nq-00Awwr-Ud
+        for netfilter-devel@vger.kernel.org; Tue, 30 Nov 2021 10:56:03 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [ulogd2 PATCH v3 00/32] Fixes for compiler warnings
-Message-ID: <YaYBEPXKyyWgogtX@azazel.net>
-References: <20211124222444.2597311-1-jeremy@azazel.net>
+Subject: [ulogd2 PATCH v4 00/32] Fixes for compiler warnings
+Date:   Tue, 30 Nov 2021 10:55:28 +0000
+Message-Id: <20211130105600.3103609-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.33.0
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="8QJ16v2KjVmin42S"
-Content-Disposition: inline
-In-Reply-To: <20211124222444.2597311-1-jeremy@azazel.net>
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:feb3:bcff:fe5e:42c3
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
 X-SA-Exim-Mail-From: jeremy@azazel.net
 X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+This patch-set fixes all the warnings reported by gcc 11.
 
---8QJ16v2KjVmin42S
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Most of the warnings concern fall-throughs in switches, possibly
+problematic uses of functions like `strncpy` and `strncat` and possible
+truncation of output by `sprintf` and its siblings.
 
-On 2021-11-24, at 22:23:55 +0000, Jeremy Sowden wrote:
-> This patch-set fixes all the warnings reported by gcc 11.
->
-> Most of the warnings concern fall-throughs in switches, possibly
-> problematic uses of functions like `strncpy` and `strncat` and possible
-> truncation of output by `sprintf` and its siblings.
->
-> Some of the patches fix bugs revealed by warnings, some tweak code to
-> avoid warnings, others fix or improve things I noticed while looking at
-> the warnings.
+Some of the patches fix bugs revealed by warnings, some tweak code to
+avoid warnings, others fix or improve things I noticed while looking at
+the warnings.
 
-Just noticed I've mucked up the publication of this version of the
-patch-set and included patches from a previous rebase.  Will send out v4
-shortly with the duplicates removed.
+Changes since v3:
 
-J.
+  * When publishing v3 I accidentally sent out two different versions of the
+    patch-set under one cover-letter.  There are no code-changes in v4: it just
+    omits the earlier superseded patches.
+  
+Changes since v2:
 
---8QJ16v2KjVmin42S
-Content-Type: application/pgp-signature; name="signature.asc"
+  * the first four patches of v2 have been merged;
+  * some of the v2 patches have been broken up into more, smaller parts;
+  * more detailed commit messages;
+  * patches 14 and 17 are new.
 
------BEGIN PGP SIGNATURE-----
+Changes since v1:
 
-iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmGmAQUACgkQKYasCr3x
-BA07HRAAudsQdXvaMXcfqbRUt3ucHlVq0UfrWQGtB2LIYuAhfVAPxLm2isdJJjXr
-VfOas58cQnATN9Yw24AL3h2ZegD/Fo9k1e5i8cuCTVrlSe1z116Cd33GN+8C8Lef
-XL5y5OJC2sEdVeNHxkdZfQHcY3wV/6Tfs8+6WNIqUhn9ciH5G7Y/Jec1kwc38tRd
-kKA2QL7HxYaQ9rm6R0sjJ946/2LkVJKCiqS6dD99vl/MDMTFo2SJp7umSX9tHjdR
-77wCtYZUkLKa9Uav04J0BgNdoym1/tmqOOpeQZXSBTchw9g9bK3iYMelNfVWfz0w
-nDWSjjY9u1W4pyBPlnNQ80lPQ5isum0voni2VBG3Ljw9nu5cqhb/FS74cVntBjMh
-xLd4Mnxbla7TCPSIp9TapfLnWO1QXfQjDryUVNTiqX7b0VzQmsc7ShHAfjyREE0J
-tmrtwoaRvUpZU0NleFV0oeohjXZcdXGG4YRlJuCmwhEcUiTDvBkl2cxFbWE/sFWG
-iqlWvY3s6xxV48J4px1esBKu9yPv9SIF8nLxsyP3MvFy1sDCeWO3ZxXHWplIL/eJ
-lc3lDt9vafaaoeevvwF2Zk8XCNRri5u8KINGkGcm7Xigzst3R2k2a5P7x76cko52
-g3L4F+cvHUA91YYBL2Fy8G6/mZgtHEhOwSWx47iLx9tYiblpsWE=
-=RvTM
------END PGP SIGNATURE-----
+  * patch 13: stat of socket removed;
+  * patch 15: `struct iphdr` pointer removed;
+  * patch 27 is new.
 
---8QJ16v2KjVmin42S--
+Jeremy Sowden (32):
+  jhash: add "fall through" comments to switch cases
+  db: add missing `break` to switch case
+  filter: HWHDR: simplify flow-control
+  filter: HWHDR: re-order KEY_RAW_MAC checks
+  filter: HWHDR: remove zero-initialization of MAC type
+  Replace malloc+memset with calloc
+  filter: PWSNIFF: replace malloc+strncpy with strndup
+  input: UNIXSOCK: remove stat of socket-path
+  input: UNIXSOCK: fix possible truncation of socket path
+  input: UNIXSOCK: prevent unaligned pointer access
+  output: DBI: fix deprecation warnings
+  output: DBI: improve mapping of DB columns to input-keys
+  output: DBI: fix NUL-termination of escaped SQL string
+  output: DBI: fix configuration of DB connection
+  output: MYSQL: improve mapping of DB columns to input-keys
+  output: PGSQL: improve mapping of DB columns to input-keys
+  output: PGSQL: fix non-`connstring` configuration of DB connection
+  output: SQLITE3: fix possible buffer overruns
+  output: SQLITE3: fix memory-leak in error-handling
+  output: SQLITE3: improve formatting of insert statement
+  output: SQLITE3: improve mapping of DB columns to fields
+  output: SQLITE3: improve mapping of fields to DB columns
+  output: SQLITE3: catch errors creating SQL statement
+  db: improve formatting of insert statement
+  db: improve mapping of input-keys to DB columns
+  db: simplify initialization of ring-buffer
+  output: JSON: fix output of GMT offset
+  output: JSON: increase time-stamp buffer size
+  output: JSON: fix possible leak in error-handling.
+  output: JSON: optimize appending of newline to output
+  output: JSON: fix possible truncation of socket path
+  output: IPFIX: remove compiler attribute macros
+
+ filter/ulogd_filter_HWHDR.c           | 54 ++++++++---------
+ filter/ulogd_filter_PWSNIFF.c         | 18 +++---
+ include/ulogd/jhash.h                 | 24 ++++----
+ include/ulogd/ulogd.h                 |  5 --
+ input/packet/ulogd_inppkt_UNIXSOCK.c  | 46 +++++++--------
+ output/dbi/ulogd_output_DBI.c         | 84 +++++++++++++--------------
+ output/ipfix/ipfix.c                  |  6 +-
+ output/ipfix/ipfix.h                  |  8 +--
+ output/mysql/ulogd_output_MYSQL.c     | 20 +++----
+ output/pgsql/ulogd_output_PGSQL.c     | 64 ++++++++------------
+ output/sqlite3/ulogd_output_SQLITE3.c | 71 +++++++++++-----------
+ output/ulogd_output_JSON.c            | 45 +++++++-------
+ src/ulogd.c                           |  3 +-
+ util/db.c                             | 36 ++++++------
+ 14 files changed, 223 insertions(+), 261 deletions(-)
+
+-- 
+2.33.0
+
