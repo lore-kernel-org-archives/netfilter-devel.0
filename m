@@ -2,42 +2,42 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CD72C433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Nov 2021 11:14:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51D7DC433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Nov 2021 11:14:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236009AbhK3LSH (ORCPT
+        id S231690AbhK3LSJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 30 Nov 2021 06:18:07 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37840 "EHLO
+        Tue, 30 Nov 2021 06:18:09 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37850 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234329AbhK3LSH (ORCPT
+        with ESMTP id S234329AbhK3LSI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Nov 2021 06:18:07 -0500
+        Tue, 30 Nov 2021 06:18:08 -0500
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 110D9C061574
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Nov 2021 03:14:47 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 078DBC061574
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Nov 2021 03:14:49 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=6DeriJC9ToutIxYShYBrIiqaFs1BSOfIJICtIUZo6vM=; b=lCAvJe4pztvIyOV+KjZfF4i7JA
-        02fuldhFznJqvHFOEBIcfWYNg63ktQ2Ptf3w1ESS2fRtvsRpjkD1ueuOznBqeyTic0g0a2OJPQinm
-        i6OTQubS9lAHW8b95XFw3iXXt+n/OKkiBFpGgYWSf4hUV70WdVHLw7tVDydxXeiguyPwVCQJJyiJj
-        3vEcHPV9rskCaseFy5aLlhUPbHrq7Gz2rDujxeBJJXOJDyXysFqBOVHrNQE/4BpBOKfQVIUm/5FjK
-        W+WMusR8NXb2ugieuiYVDKRNF4IFjSklUPBRy12Es8xu6vdxF3yZ5BHJWKezCUMjYGAvrpZoThg62
-        PLoXaFDg==;
+        bh=Fi1VGtKOWMHxLn0ZCrS2o9p9rHnh9GOI7NIN+chDxhs=; b=AhPGPA14R9nY89YPKyRX1t+sKg
+        lR+4nI3fxxZpr1lQlSZNmi5pVoNZI+P1+CGTri7tyxbN2vyyh800I596fM6jjnJITGeC0khw1W+I3
+        ehre9to5i8lcbbO4gqp3tIIBNApYeoh75IESYYAMeyz1FeH7bbspBArjfEoD+serE1grdV7chqwPH
+        11L9mgjFl9C+w/w4RVsS1tf1YXsIX4Pvrtx6Z/3JGikFxWOTNZ5mOaTi3BvbH9Ldgf7qajLce/kOh
+        qvAo6iilQLst6dJXuSaQI6PqRQVXg+5dqeLZFb+PrIOdCwZdHuC+Dm6JkunK0ZeT4BBY7rcjB4Qop
+        nTpDZ9+A==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
         by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1ms0ns-00Awwr-Vy
-        for netfilter-devel@vger.kernel.org; Tue, 30 Nov 2021 10:56:05 +0000
+        id 1ms0ns-00Awwr-5T
+        for netfilter-devel@vger.kernel.org; Tue, 30 Nov 2021 10:56:04 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [ulogd2 PATCH v4 21/32] output: SQLITE3: improve mapping of DB columns to fields
-Date:   Tue, 30 Nov 2021 10:55:49 +0000
-Message-Id: <20211130105600.3103609-22-jeremy@azazel.net>
+Subject: [ulogd2 PATCH v4 13/32] output: DBI: fix NUL-termination of escaped SQL string
+Date:   Tue, 30 Nov 2021 10:55:41 +0000
+Message-Id: <20211130105600.3103609-14-jeremy@azazel.net>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20211130105600.3103609-1-jeremy@azazel.net>
 References: <20211130105600.3103609-1-jeremy@azazel.net>
@@ -50,80 +50,47 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Currently, we copy the column-name to a buffer, iterate over it to
-replace the underscores with full-stops, using `strchr` from the start
-of the buffer on each iteration, then copy the buffer to the field's
-`name` member.
+On error, `dbi_conn_quote_string_copy` returns zero.  In this case, we
+need to set `*dst` to NUL.  Handle a return-value of `2` as normal
+below.  `1` is never returned.
 
-Apart from the inefficiency, `strncpy` is used to do the copies, which
-leads gcc to complain:
-
-  ulogd_output_SQLITE3.c:341:17: warning: `strncpy` output may be truncated copying 31 bytes from a string of length 31
-
-Furthermore, the buffer is not initialized, which means that there is
-also a possible buffer overrun if the column-name is too long, since
-`strncpy` will not append a NUL.
-
-Instead, copy the column-name directly to the field using `snprintf`,
-and run `strchr` from the last underscore on each iteration.
+Replace `strncpy` with `memcpy`: using `strncpy` is nearly always a
+mistake, and we don't need its special behaviour here.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- output/sqlite3/ulogd_output_SQLITE3.c | 26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ output/dbi/ulogd_output_DBI.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/output/sqlite3/ulogd_output_SQLITE3.c b/output/sqlite3/ulogd_output_SQLITE3.c
-index da1c09f08047..e3040a8a2fac 100644
---- a/output/sqlite3/ulogd_output_SQLITE3.c
-+++ b/output/sqlite3/ulogd_output_SQLITE3.c
-@@ -303,9 +303,6 @@ static int
- sqlite3_init_db(struct ulogd_pluginstance *pi)
- {
- 	struct sqlite3_priv *priv = (void *)pi->private;
--	char buf[ULOGD_MAX_KEYLEN + 1];
--	char *underscore;
--	struct field *f;
- 	sqlite3_stmt *schema_stmt;
- 	int col, num_cols;
- 
-@@ -325,24 +322,27 @@ sqlite3_init_db(struct ulogd_pluginstance *pi)
+diff --git a/output/dbi/ulogd_output_DBI.c b/output/dbi/ulogd_output_DBI.c
+index fff9abc57ff6..57e3058036d9 100644
+--- a/output/dbi/ulogd_output_DBI.c
++++ b/output/dbi/ulogd_output_DBI.c
+@@ -236,18 +236,20 @@ static int escape_string_dbi(struct ulogd_pluginstance *upi,
  	}
  
- 	for (col = 0; col < num_cols; col++) {
--		strncpy(buf, sqlite3_column_name(schema_stmt, col), ULOGD_MAX_KEYLEN);
--
--		/* replace all underscores with dots */
--		while ((underscore = strchr(buf, '_')) != NULL)
--			*underscore = '.';
--
--		DEBUGP("field '%s' found\n", buf);
-+		struct field *f;
-+		char *underscore;
+ 	ret = dbi_conn_quote_string_copy(pi->dbh, src, &newstr);
+-	if (ret <= 2)
++	if (ret == 0) {
++		*dst = '\0';
+ 		return 0;
++	}
  
- 		/* prepend it to the linked list */
- 		if ((f = calloc(1, sizeof(struct field))) == NULL) {
- 			ulogd_log(ULOGD_ERROR, "SQLITE3: out of memory\n");
- 			return -1;
- 		}
--		strncpy(f->name, buf, ULOGD_MAX_KEYLEN);
-+		snprintf(f->name, sizeof(f->name),
-+			 "%s", sqlite3_column_name(schema_stmt, col));
-+
-+		/* replace all underscores with dots */
-+		for (underscore = f->name;
-+		     (underscore = strchr(underscore, '_')) != NULL; )
-+			*underscore = '.';
-+
-+		DEBUGP("field '%s' found\n", f->name);
+ 	/* dbi_conn_quote_string_copy returns a quoted string,
+ 	 * but __interp_db already quotes the string
+ 	 * So we return a string without the quotes
+ 	 */
+-	strncpy(dst,newstr+1,ret-2);
+-	dst[ret-2] = '\0';
++	memcpy(dst, newstr + 1, ret - 2);
++	dst[ret - 2] = '\0';
+ 	free(newstr);
  
--		if ((f->key = ulogd_find_key(pi, buf)) == NULL) {
-+		if ((f->key = ulogd_find_key(pi, f->name)) == NULL) {
- 			ulogd_log(ULOGD_ERROR,
--				  "SQLITE3: unknown input key: %s\n", buf);
-+				  "SQLITE3: unknown input key: %s\n", f->name);
- 			free(f);
- 			return -1;
- 		}
+-	return (ret-2);
++	return ret - 2;
+ }
+ 
+ static int execute_dbi(struct ulogd_pluginstance *upi,
 -- 
 2.33.0
 
