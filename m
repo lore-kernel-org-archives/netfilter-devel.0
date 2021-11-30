@@ -2,83 +2,47 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92F83C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Nov 2021 21:50:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9332C433FE
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Nov 2021 21:50:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233089AbhK3Vxl (ORCPT
+        id S234458AbhK3VyB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 30 Nov 2021 16:53:41 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:51864 "EHLO
+        Tue, 30 Nov 2021 16:54:01 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:51930 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344653AbhK3VwF (ORCPT
+        with ESMTP id S1344608AbhK3VxO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Nov 2021 16:52:05 -0500
+        Tue, 30 Nov 2021 16:53:14 -0500
 Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 0F6D860022;
-        Tue, 30 Nov 2021 22:46:28 +0100 (CET)
-Date:   Tue, 30 Nov 2021 22:48:40 +0100
+        by mail.netfilter.org (Postfix) with ESMTPSA id 46ABF607E0;
+        Tue, 30 Nov 2021 22:47:30 +0100 (CET)
+Date:   Tue, 30 Nov 2021 22:49:42 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Lukas Wunner <lukas@wunner.de>
+To:     Kees Cook <keescook@chromium.org>
 Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: Re: [PATCH nf-next] netfilter: nft_fwd_netdev: Support egress hook
-Message-ID: <YaacOHx7Gxp2cxlq@salvia>
-References: <af1325c0c71ad2786b7fba282a4b21c8fc0cf53c.1636461297.git.lukas@wunner.de>
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>, linux-kernel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-hardening@vger.kernel.org
+Subject: Re: [PATCH] netfilter: conntrack: Use memset_startat() to zero
+ struct nf_conn
+Message-ID: <Yaacdlj7UX1StO5Y@salvia>
+References: <20211118203113.1286928-1-keescook@chromium.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <af1325c0c71ad2786b7fba282a4b21c8fc0cf53c.1636461297.git.lukas@wunner.de>
+In-Reply-To: <20211118203113.1286928-1-keescook@chromium.org>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Lukas,
-
-I'm sorry, I just noticed something below.
-
-On Tue, Nov 09, 2021 at 01:42:01PM +0100, Lukas Wunner wrote:
-> From: Pablo Neira Ayuso <pablo@netfilter.org>
+On Thu, Nov 18, 2021 at 12:31:13PM -0800, Kees Cook wrote:
+> In preparation for FORTIFY_SOURCE performing compile-time and run-time
+> field bounds checking for memset(), avoid intentionally writing across
+> neighboring fields.
 > 
-> Allow packet redirection to another interface upon egress.
-> 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> [lukas: set skb_iif, add commit message]
-> Signed-off-by: Lukas Wunner <lukas@wunner.de>
-> ---
->  net/netfilter/nft_fwd_netdev.c | 7 +++++--
->  1 file changed, 5 insertions(+), 2 deletions(-)
-> 
-> diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
-> index cd59afde5b2f..fa9301ca6033 100644
-> --- a/net/netfilter/nft_fwd_netdev.c
-> +++ b/net/netfilter/nft_fwd_netdev.c
-> @@ -27,9 +27,11 @@ static void nft_fwd_netdev_eval(const struct nft_expr *expr,
->  {
->  	struct nft_fwd_netdev *priv = nft_expr_priv(expr);
->  	int oif = regs->data[priv->sreg_dev];
-> +	struct sk_buff *skb = pkt->skb;
->  
->  	/* This is used by ifb only. */
-> -	skb_set_redirected(pkt->skb, true);
-> +	skb->skb_iif = skb->dev->ifindex;
+> Use memset_startat() to avoid confusing memset() about writing beyond
+> the target struct member.
 
-Probably good to set skb->skb_iif only for NF_NETDEV_EGRESS?
-
-> +	skb_set_redirected(skb, nft_hook(pkt) == NF_NETDEV_INGRESS);
->  
->  	nf_fwd_netdev_egress(pkt, oif);
->  	regs->verdict.code = NF_STOLEN;
-> @@ -198,7 +200,8 @@ static int nft_fwd_validate(const struct nft_ctx *ctx,
->  			    const struct nft_expr *expr,
->  			    const struct nft_data **data)
->  {
-> -	return nft_chain_validate_hooks(ctx->chain, (1 << NF_NETDEV_INGRESS));
-> +	return nft_chain_validate_hooks(ctx->chain, (1 << NF_NETDEV_INGRESS) |
-> +						    (1 << NF_NETDEV_EGRESS));
->  }
->  
->  static struct nft_expr_type nft_fwd_netdev_type;
-> -- 
-> 2.33.0
-> 
+Applied to nf-next, thanks
