@@ -2,42 +2,42 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B66C3C433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Nov 2021 11:15:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E733C433FE
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Nov 2021 11:15:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236828AbhK3LS2 (ORCPT
+        id S236839AbhK3LS3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 30 Nov 2021 06:18:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37950 "EHLO
+        Tue, 30 Nov 2021 06:18:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37964 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235176AbhK3LS1 (ORCPT
+        with ESMTP id S235176AbhK3LS3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Nov 2021 06:18:27 -0500
+        Tue, 30 Nov 2021 06:18:29 -0500
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A4D70C061574
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Nov 2021 03:15:08 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 729EDC061574
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Nov 2021 03:15:10 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=LIB1Y5NShiZoXG+gz4+Wf1m9shwTYx851IbuJyvlwXU=; b=YVrwdKnoZuZ4EICukUafkmyo0Z
-        GxKElf+aGXp7lrmIBGBQnISshCdkCgjjMsiZxFYXZ6Fy1LTfOZYutly9ua77NsAuPHnWa+PB2e67B
-        LlEz2I/G5+nNuuoNmWkvdJZwbHtepX5BMZuvxYS89q8sT4+q5SgjpETHc91ToSszXwV/twOO1uUzT
-        VD1PjWi2/4Y9vCU+HO2eWhGqsSXaWWjhxIhI/nscE4D27ZCVwGUuv3kFkdJjAo9DagbIFHp8pJJGs
-        F+rk4dDVyJ3g4p0nqJv9WHrAvznDwJtUJLmu0zovlDrRvTB+ZgmQJahArZjKsQM9/IS2eo+300WcI
-        CS7JajiA==;
+        bh=1VpApnz9g4f87qFdjIovcLRoOamQFNZJt9o/E64jh7k=; b=LKcN4YeAYJ/4jiDYFljE8wvp8j
+        Y6+6LZLcd6V06zMg2u+3Qj4jASWtdoGAgCEqFAahjtwpKt76xlb3cnxeOYxzxiwrJbVP/TpLeXz5R
+        XsDTYvdOy/1M9QhxXNPUpNbm8x1Wr97d8qtVXtoWht9iEBZnxPyK/KzsR9aLkoTYc2hZGDeYEXG6O
+        dUqCGQx68z9fkh4BI2V9g/GU8PF21qT4KdmJZD0A1q95OTdjgPFQ7yOHN+633GjikRWKc06DA9+Yn
+        6/vDMnILBRAM8A6pYb7UJVI4M7qn7HONu7c4/ua2TqxyOiR/pXaULkNSZ6kLNRMFDIkC/YLT6rrd3
+        J/Kg8S3g==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
         by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1ms0nu-00Awwr-2L
-        for netfilter-devel@vger.kernel.org; Tue, 30 Nov 2021 10:56:06 +0000
+        id 1ms0ns-00Awwr-2V
+        for netfilter-devel@vger.kernel.org; Tue, 30 Nov 2021 10:56:04 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [ulogd2 PATCH v4 32/32] output: IPFIX: remove compiler attribute macros
-Date:   Tue, 30 Nov 2021 10:56:00 +0000
-Message-Id: <20211130105600.3103609-33-jeremy@azazel.net>
+Subject: [ulogd2 PATCH v4 12/32] output: DBI: improve mapping of DB columns to input-keys
+Date:   Tue, 30 Nov 2021 10:55:40 +0000
+Message-Id: <20211130105600.3103609-13-jeremy@azazel.net>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20211130105600.3103609-1-jeremy@azazel.net>
 References: <20211130105600.3103609-1-jeremy@azazel.net>
@@ -50,89 +50,88 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The ipfix.h header includes three macros which expand to compiler attributes.
-Presumably, at some point the definitions were one branch of an if-else
-preprocessor conditional where the definitions in the other branch expanded to
-nothing.  This is no longer the case.  Only one of the macros (`__packed`) is
-used and the raw attribute is used elsewhere in the code-base.  Remove the
-macros.
+Currently, we copy the column-name to a buffer, iterate over it to
+replace the underscores with full-stops, using `strchr` from the start
+of the buffer on each iteration, iterate over it a second time to
+lower-case all letters, and finally copy the buffer to the input-key's
+`name` member.
+
+In addition to being inefficient, `strncpy` is used to do the copies,
+which leads gcc to complain:
+
+  ulogd_output_DBI.c:160:17: warning: `strncpy` output may be truncated copying 31 bytes from a string of length 31
+
+Furthermore, the buffer is not initialized, which means that there is
+also a possible buffer overrun if the column-name is too long, since
+`strncpy` will not append a NUL.
+
+Instead, copy the column-name directly to the input-key using
+`snprintf`, and then iterate over it once to replace underscores and
+lower-case letters.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- include/ulogd/ulogd.h | 5 -----
- output/ipfix/ipfix.c  | 2 --
- output/ipfix/ipfix.h  | 8 ++++----
- 3 files changed, 4 insertions(+), 11 deletions(-)
+ output/dbi/ulogd_output_DBI.c | 34 +++++++++++++---------------------
+ 1 file changed, 13 insertions(+), 21 deletions(-)
 
-diff --git a/include/ulogd/ulogd.h b/include/ulogd/ulogd.h
-index a487c8e70e37..092d9f521a70 100644
---- a/include/ulogd/ulogd.h
-+++ b/include/ulogd/ulogd.h
-@@ -28,11 +28,6 @@
+diff --git a/output/dbi/ulogd_output_DBI.c b/output/dbi/ulogd_output_DBI.c
+index b4a5bacd156f..fff9abc57ff6 100644
+--- a/output/dbi/ulogd_output_DBI.c
++++ b/output/dbi/ulogd_output_DBI.c
+@@ -91,15 +91,6 @@ static struct config_keyset dbi_kset = {
+ #define dbtype_ce(x)	(x->ces[DB_CE_NUM+6])
  
- /* types without length */
- #define ULOGD_RET_NONE		0x0000
--#define __packed		__attribute__((packed))
--#define __noreturn		__attribute__((noreturn))
--#define __cold			__attribute__((cold))
+ 
+-/* lower-cases s in place */
+-static void str_tolower(char *s)
+-{
+-	while(*s) {
+-		*s = tolower(*s);
+-		s++;
+-	}
+-}
 -
--#define __packed		__attribute__((packed))
+ /* find out which columns the table has */
+ static int get_columns_dbi(struct ulogd_pluginstance *upi)
+ {
+@@ -140,24 +131,25 @@ static int get_columns_dbi(struct ulogd_pluginstance *upi)
+ 	}
  
- #define ULOGD_RET_INT8		0x0001
- #define ULOGD_RET_INT16		0x0002
-diff --git a/output/ipfix/ipfix.c b/output/ipfix/ipfix.c
-index b2719fd1d8a3..e0b3440e1d1a 100644
---- a/output/ipfix/ipfix.c
-+++ b/output/ipfix/ipfix.c
-@@ -8,8 +8,6 @@
- /* These forward declarations are needed since ulogd.h doesn't like to be the first */
- #include <ulogd/linuxlist.h>
+ 	for (ui=1; ui<=upi->input.num_keys; ui++) {
+-		char buf[ULOGD_MAX_KEYLEN+1];
+-		char *underscore;
+-		const char* field_name = dbi_result_get_field_name(pi->result, ui);
++		const char *field_name = dbi_result_get_field_name(pi->result, ui);
++		char *cp;
  
--#define __packed		__attribute__((packed))
+ 		if (!field_name)
+ 			break;
+ 
+-		/* replace all underscores with dots */
+-		strncpy(buf, field_name, ULOGD_MAX_KEYLEN);
+-		while ((underscore = strchr(buf, '_')))
+-			*underscore = '.';
 -
- #include "ipfix.h"
+-		str_tolower(buf);
++		snprintf(upi->input.keys[ui - 1].name,
++			 sizeof(upi->input.keys[ui - 1].name),
++			 "%s", field_name);
  
- #include <ulogd/ulogd.h>
-diff --git a/output/ipfix/ipfix.h b/output/ipfix/ipfix.h
-index 93945fbd562b..b0f3ae64740f 100644
---- a/output/ipfix/ipfix.h
-+++ b/output/ipfix/ipfix.h
-@@ -19,7 +19,7 @@ struct ipfix_hdr {
- 	uint32_t seqno;
- 	uint32_t oid;				/* Observation Domain ID */
- 	uint8_t data[];
--} __packed;
-+} __attribute__((packed));
+-		DEBUGP("field '%s' found: ", buf);
++		/* down-case and replace all underscores with dots */
++		for (cp = upi->input.keys[ui - 1].name; *cp; cp++) {
++			if (*cp == '_')
++				*cp = '.';
++			else
++				*cp = tolower(*cp);
++		}
  
- #define IPFIX_HDRLEN		sizeof(struct ipfix_hdr)
+-		/* add it to list of input keys */
+-		strncpy(upi->input.keys[ui-1].name, buf, ULOGD_MAX_KEYLEN);
++		DEBUGP("field '%s' found: ", upi->input.keys[ui - 1].name);
+ 	}
  
-@@ -32,7 +32,7 @@ struct ipfix_templ_hdr {
- 	uint16_t tid;
- 	uint16_t cnt;
- 	uint8_t data[];
--} __packed;
-+} __attribute__((packed));
- 
- #define IPFIX_TEMPL_HDRLEN(nfields)	sizeof(struct ipfix_templ_hdr) + (sizeof(uint16_t) * 2 * nfields)
- 
-@@ -42,7 +42,7 @@ struct ipfix_set_hdr {
- 	uint16_t id;
- 	uint16_t len;
- 	uint8_t data[];
--} __packed;
-+} __attribute__((packed));
- 
- #define IPFIX_SET_HDRLEN		sizeof(struct ipfix_set_hdr)
- 
-@@ -67,7 +67,7 @@ struct vy_ipfix_data {
- 	uint16_t dport;
- 	uint8_t l4_proto;
- 	uint32_t aid;				/* Application ID */
--} __packed;
-+} __attribute__((packed));
- 
- #define VY_IPFIX_SID		256
- 
+ 	/* ID is a sequence */
 -- 
 2.33.0
 
