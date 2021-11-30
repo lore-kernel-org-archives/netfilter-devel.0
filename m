@@ -2,42 +2,61 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41747C43219
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Nov 2021 22:14:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D129C433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Nov 2021 22:16:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344788AbhK3WRO (ORCPT
+        id S231491AbhK3WTj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 30 Nov 2021 17:17:14 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:52008 "EHLO
+        Tue, 30 Nov 2021 17:19:39 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:52088 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344780AbhK3WOX (ORCPT
+        with ESMTP id S230215AbhK3WTj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Nov 2021 17:14:23 -0500
+        Tue, 30 Nov 2021 17:19:39 -0500
 Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 8F7A7607C3;
-        Tue, 30 Nov 2021 23:08:45 +0100 (CET)
-Date:   Tue, 30 Nov 2021 23:10:58 +0100
+        by mail.netfilter.org (Postfix) with ESMTPSA id E01E8607C3;
+        Tue, 30 Nov 2021 23:14:02 +0100 (CET)
+Date:   Tue, 30 Nov 2021 23:16:14 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Bernard Zhao <bernard@vivo.com>
-Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] net/netfilter: remove useless type conversion to bool
-Message-ID: <Yaahcsu5c3noMnP8@salvia>
-References: <20211124021801.223309-1-bernard@vivo.com>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org, Amish Chana <amish@3g.co.za>
+Subject: Re: [PATCH nf] netfilter: bridge: add support for ppoe filtering
+Message-ID: <YaairnnpCs3pd+Y3@salvia>
+References: <20211123115031.2304-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20211124021801.223309-1-bernard@vivo.com>
+In-Reply-To: <20211123115031.2304-1-fw@strlen.de>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Nov 23, 2021 at 06:18:00PM -0800, Bernard Zhao wrote:
-> dying is bool, the type conversion to true/false value is not
-> needed.
+On Tue, Nov 23, 2021 at 12:50:31PM +0100, Florian Westphal wrote:
+> This makes 'bridge-nf-filter-pppoe-tagged' sysctl work for
+> bridged traffic.
+> 
+> Looking at the original commit it doesn't appear this ever worked:
+> 
+>  static unsigned int br_nf_post_routing(unsigned int hook, struct sk_buff **pskb,
+> [..]
+>         if (skb->protocol == htons(ETH_P_8021Q)) {
+>                 skb_pull(skb, VLAN_HLEN);
+>                 skb->network_header += VLAN_HLEN;
+> +       } else if (skb->protocol == htons(ETH_P_PPP_SES)) {
+> +               skb_pull(skb, PPPOE_SES_HLEN);
+> +               skb->network_header += PPPOE_SES_HLEN;
+>         }
+>  [..]
+> 	NF_HOOK(... POST_ROUTING, ...)
+> 
+> ... but the adjusted offsets are never restored.
+> 
+> The alternative would be to rip this code out for good,
+> but otoh we'd have to keep this anyway for the vlan handling
+> (which works because vlan tag info is in the skb, not the packet
+>  payload).
+
+If this has never worked (day 0), then I'm inclined to apply this to
+nf-next.
 
 Applied, thanks
