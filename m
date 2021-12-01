@@ -2,30 +2,30 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA89BC433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Dec 2021 15:03:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF458C433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Dec 2021 15:03:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232043AbhLAPHD (ORCPT
+        id S234653AbhLAPHE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 1 Dec 2021 10:07:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53196 "EHLO
+        Wed, 1 Dec 2021 10:07:04 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53212 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234653AbhLAPGm (ORCPT
+        with ESMTP id S235927AbhLAPGm (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Wed, 1 Dec 2021 10:06:42 -0500
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 83689C061748
-        for <netfilter-devel@vger.kernel.org>; Wed,  1 Dec 2021 07:03:14 -0800 (PST)
-Received: from localhost ([::1]:35142 helo=xic)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC396C06174A
+        for <netfilter-devel@vger.kernel.org>; Wed,  1 Dec 2021 07:03:19 -0800 (PST)
+Received: from localhost ([::1]:35148 helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1msR8a-00067i-OR; Wed, 01 Dec 2021 16:03:12 +0100
+        id 1msR8g-00067r-4R; Wed, 01 Dec 2021 16:03:18 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 2/5] cache: Filter rule list on kernel side
-Date:   Wed,  1 Dec 2021 16:02:55 +0100
-Message-Id: <20211201150258.18436-3-phil@nwl.cc>
+Subject: [nft PATCH 5/5] cache: Support filtering for a specific flowtable
+Date:   Wed,  1 Dec 2021 16:02:58 +0100
+Message-Id: <20211201150258.18436-6-phil@nwl.cc>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20211201150258.18436-1-phil@nwl.cc>
 References: <20211201150258.18436-1-phil@nwl.cc>
@@ -35,138 +35,292 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Instead of fetching all existing rules in kernel's ruleset and filtering
-in user space, add payload to the dump request specifying the table and
-chain to filter for.
+Extend nft_cache_filter to hold a flowtable name so 'list flowtable'
+command causes fetching the requested flowtable only.
 
-Since list_rule_cb() no longer needs the filter, pass only netlink_ctx
-to the callback and drop struct rule_cache_dump_ctx.
+Dump flowtables just once instead of for each table, merely assign
+fetched data to tables inside the loop.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- include/mnl.h |  4 ++--
- src/cache.c   | 23 +++--------------------
- src/mnl.c     | 21 +++++++++++++++++++--
- 3 files changed, 24 insertions(+), 24 deletions(-)
+ include/cache.h                               |  1 +
+ include/mnl.h                                 |  3 +-
+ src/cache.c                                   | 55 ++++++++++++++-----
+ src/mnl.c                                     | 14 +++--
+ src/netlink.c                                 |  3 +-
+ tests/shell/testcases/listing/0020flowtable_0 | 51 +++++++++++++++--
+ 6 files changed, 103 insertions(+), 24 deletions(-)
 
+diff --git a/include/cache.h b/include/cache.h
+index 3a9a5e8197114..d185f3cfeda06 100644
+--- a/include/cache.h
++++ b/include/cache.h
+@@ -54,6 +54,7 @@ struct nft_cache_filter {
+ 		const char	*table;
+ 		const char	*chain;
+ 		const char	*set;
++		const char	*ft;
+ 	} list;
+ 
+ 	struct {
 diff --git a/include/mnl.h b/include/mnl.h
-index 344030f306940..19faa651fdb91 100644
+index 8659879c17f44..b006192cf7b23 100644
 --- a/include/mnl.h
 +++ b/include/mnl.h
-@@ -33,8 +33,8 @@ int mnl_nft_rule_add(struct netlink_ctx *ctx, struct cmd *cmd,
- int mnl_nft_rule_del(struct netlink_ctx *ctx, struct cmd *cmd);
- int mnl_nft_rule_replace(struct netlink_ctx *ctx, struct cmd *cmd);
+@@ -77,7 +77,8 @@ int mnl_nft_obj_add(struct netlink_ctx *ctx, struct cmd *cmd,
+ int mnl_nft_obj_del(struct netlink_ctx *ctx, struct cmd *cmd, int type);
  
--struct nftnl_rule_list *mnl_nft_rule_dump(struct netlink_ctx *ctx,
--					  int family);
-+struct nftnl_rule_list *mnl_nft_rule_dump(struct netlink_ctx *ctx, int family,
-+					  const struct nft_cache_filter *filter);
+ struct nftnl_flowtable_list *
+-mnl_nft_flowtable_dump(struct netlink_ctx *ctx, int family, const char *table);
++mnl_nft_flowtable_dump(struct netlink_ctx *ctx, int family,
++		       const char *table, const char *ft);
  
- int mnl_nft_chain_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 		      unsigned int flags);
+ int mnl_nft_flowtable_add(struct netlink_ctx *ctx, struct cmd *cmd,
+ 			  unsigned int flags);
 diff --git a/src/cache.c b/src/cache.c
-index 66da2b3475732..484efdb93862b 100644
+index b0f13e7ebb16a..71bd06169a7d1 100644
 --- a/src/cache.c
 +++ b/src/cache.c
-@@ -441,16 +441,9 @@ struct chain *chain_cache_find(const struct table *table, const char *name)
- 	return NULL;
- }
- 
--struct rule_cache_dump_ctx {
--	struct netlink_ctx	*nlctx;
--	const struct nft_cache_filter *filter;
--};
--
- static int list_rule_cb(struct nftnl_rule *nlr, void *data)
+@@ -229,6 +229,15 @@ static unsigned int evaluate_cache_list(struct nft_ctx *nft, struct cmd *cmd,
+ 	case CMD_OBJ_MAPS:
+ 		flags |= NFT_CACHE_TABLE | NFT_CACHE_SET;
+ 		break;
++	case CMD_OBJ_FLOWTABLE:
++		if (filter &&
++		    cmd->handle.table.name &&
++		    cmd->handle.flowtable.name) {
++			filter->list.family = cmd->handle.family;
++			filter->list.table = cmd->handle.table.name;
++			filter->list.ft = cmd->handle.flowtable.name;
++		}
++		/* fall through */
+ 	case CMD_OBJ_FLOWTABLES:
+ 		flags |= NFT_CACHE_TABLE | NFT_CACHE_FLOWTABLE;
+ 		break;
+@@ -681,10 +690,19 @@ struct ft_cache_dump_ctx {
+ static int ft_cache_cb(struct nftnl_flowtable *nlf, void *arg)
  {
--	struct rule_cache_dump_ctx *rule_ctx = data;
--	const struct nft_cache_filter *filter = rule_ctx->filter;
--	struct netlink_ctx *ctx = rule_ctx->nlctx;
-+	struct netlink_ctx *ctx = data;
- 	const struct handle *h = ctx->data;
- 	const char *table, *chain;
- 	struct rule *rule;
-@@ -465,12 +458,6 @@ static int list_rule_cb(struct nftnl_rule *nlr, void *data)
- 	    (h->chain.name && strcmp(chain, h->chain.name) != 0))
- 		return 0;
+ 	struct ft_cache_dump_ctx *ctx = arg;
+-	const char *ft_name;
+ 	struct flowtable *ft;
++	const char *ft_table;
++	const char *ft_name;
++	uint32_t ft_family;
+ 	uint32_t hash;
  
--	if (filter && filter->list.table && filter->list.chain &&
--	    (filter->list.family != family ||
--	     strcmp(filter->list.table, table) ||
--	     strcmp(filter->list.chain, chain)))
--		return 0;
--
- 	netlink_dump_rule(nlr, ctx);
- 	rule = netlink_delinearize_rule(ctx, nlr);
- 	list_add_tail(&rule->list, &ctx->list);
-@@ -481,13 +468,9 @@ static int list_rule_cb(struct nftnl_rule *nlr, void *data)
- static int rule_cache_init(struct netlink_ctx *ctx, const struct handle *h,
- 			   const struct nft_cache_filter *filter)
- {
--	struct rule_cache_dump_ctx rule_ctx = {
--		.nlctx = ctx,
--		.filter = filter,
--	};
- 	struct nftnl_rule_list *rule_cache;
++	ft_family = nftnl_flowtable_get_u32(nlf, NFTNL_FLOWTABLE_FAMILY);
++	ft_table = nftnl_flowtable_get_str(nlf, NFTNL_FLOWTABLE_TABLE);
++
++	if (ft_family != ctx->table->handle.family ||
++	    strcmp(ft_table, ctx->table->handle.table.name))
++		return 0;
++
+ 	ft = netlink_delinearize_flowtable(ctx->nlctx, nlf);
+ 	if (!ft)
+ 		return -1;
+@@ -693,6 +711,8 @@ static int ft_cache_cb(struct nftnl_flowtable *nlf, void *arg)
+ 	hash = djb_hash(ft_name) % NFT_CACHE_HSIZE;
+ 	cache_add(&ft->cache, &ctx->table->ft_cache, hash);
  
--	rule_cache = mnl_nft_rule_dump(ctx, h->family);
-+	rule_cache = mnl_nft_rule_dump(ctx, h->family, filter);
- 	if (rule_cache == NULL) {
- 		if (errno == EINTR)
- 			return -1;
-@@ -496,7 +479,7 @@ static int rule_cache_init(struct netlink_ctx *ctx, const struct handle *h,
- 	}
- 
- 	ctx->data = h;
--	nftnl_rule_list_foreach(rule_cache, list_rule_cb, &rule_ctx);
-+	nftnl_rule_list_foreach(rule_cache, list_rule_cb, ctx);
- 	nftnl_rule_list_free(rule_cache);
++	nftnl_flowtable_list_del(nlf);
++	nftnl_flowtable_free(nlf);
  	return 0;
  }
-diff --git a/src/mnl.c b/src/mnl.c
-index edd951186d3a7..35fff92a180c7 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -653,20 +653,37 @@ err_free:
- 	return MNL_CB_OK;
+ 
+@@ -708,13 +728,21 @@ static int ft_cache_init(struct netlink_ctx *ctx, struct table *table,
+ 	return 0;
  }
  
--struct nftnl_rule_list *mnl_nft_rule_dump(struct netlink_ctx *ctx,
--					  int family)
-+struct nftnl_rule_list *mnl_nft_rule_dump(struct netlink_ctx *ctx, int family,
-+					  const struct nft_cache_filter *filter)
+-static struct nftnl_flowtable_list *ft_cache_dump(struct netlink_ctx *ctx,
+-						  const struct table *table)
++static struct nftnl_flowtable_list *
++ft_cache_dump(struct netlink_ctx *ctx, const struct nft_cache_filter *filter)
  {
+ 	struct nftnl_flowtable_list *ft_list;
++	int family = NFPROTO_UNSPEC;
++	const char *table = NULL;
++	const char *ft = NULL;
+ 
+-	ft_list = mnl_nft_flowtable_dump(ctx, table->handle.family,
+-					 table->handle.table.name);
++	if (filter) {
++		family = filter->list.family;
++		table = filter->list.table;
++		ft = filter->list.ft;
++	}
++
++	ft_list = mnl_nft_flowtable_dump(ctx, family, table, ft);
+ 	if (!ft_list) {
+                 if (errno == EINTR)
+ 			return NULL;
+@@ -801,6 +829,13 @@ static int cache_init_objects(struct netlink_ctx *ctx, unsigned int flags,
+ 			goto cache_fails;
+ 		}
+ 	}
++	if (flags & NFT_CACHE_FLOWTABLE_BIT) {
++		ft_list = ft_cache_dump(ctx, filter);
++		if (!ft_list) {
++			ret = -1;
++			goto cache_fails;
++		}
++	}
+ 
+ 	list_for_each_entry(table, &ctx->nft->cache.table_cache.list, cache.list) {
+ 		if (flags & NFT_CACHE_SET_BIT) {
+@@ -849,15 +884,7 @@ static int cache_init_objects(struct netlink_ctx *ctx, unsigned int flags,
+ 			}
+ 		}
+ 		if (flags & NFT_CACHE_FLOWTABLE_BIT) {
+-			ft_list = ft_cache_dump(ctx, table);
+-			if (!ft_list) {
+-				ret = -1;
+-				goto cache_fails;
+-			}
+ 			ret = ft_cache_init(ctx, table, ft_list);
+-
+-			nftnl_flowtable_list_free(ft_list);
+-
+ 			if (ret < 0) {
+ 				ret = -1;
+ 				goto cache_fails;
+@@ -903,6 +930,8 @@ static int cache_init_objects(struct netlink_ctx *ctx, unsigned int flags,
+ cache_fails:
+ 	if (set_list)
+ 		nftnl_set_list_free(set_list);
++	if (ft_list)
++		nftnl_flowtable_list_free(ft_list);
+ 
+ 	if (flags & NFT_CACHE_CHAIN_BIT)
+ 		nftnl_chain_list_free(chain_list);
+diff --git a/src/mnl.c b/src/mnl.c
+index 9a98eed1ed9db..9a97a3965d5b5 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -1826,11 +1826,13 @@ err_free:
+ }
+ 
+ struct nftnl_flowtable_list *
+-mnl_nft_flowtable_dump(struct netlink_ctx *ctx, int family, const char *table)
++mnl_nft_flowtable_dump(struct netlink_ctx *ctx, int family,
++		       const char *table, const char *ft)
+ {
+ 	struct nftnl_flowtable_list *nln_list;
  	char buf[MNL_SOCKET_BUFFER_SIZE];
- 	struct nftnl_rule_list *nlr_list;
-+	struct nftnl_rule *nlr = NULL;
+ 	struct nftnl_flowtable *n;
++	int flags = NLM_F_DUMP;
  	struct nlmsghdr *nlh;
  	int ret;
  
-+	if (filter && filter->list.table) {
-+		nlr = nftnl_rule_alloc();
-+		if (!nlr)
-+			memory_allocation_error();
-+
-+		nftnl_rule_set_str(nlr, NFTNL_RULE_TABLE,
-+				   filter->list.table);
-+		if (filter->list.chain)
-+			nftnl_rule_set_str(nlr, NFTNL_RULE_CHAIN,
-+					   filter->list.chain);
-+	}
-+
- 	nlr_list = nftnl_rule_list_alloc();
- 	if (nlr_list == NULL)
+@@ -1838,10 +1840,14 @@ mnl_nft_flowtable_dump(struct netlink_ctx *ctx, int family, const char *table)
+ 	if (n == NULL)
  		memory_allocation_error();
  
- 	nlh = nftnl_nlmsg_build_hdr(buf, NFT_MSG_GETRULE, family,
- 				    NLM_F_DUMP, ctx->seqnum);
-+	if (nlr) {
-+		nftnl_rule_nlmsg_build_payload(nlh, nlr);
-+		nftnl_rule_free(nlr);
+-	nlh = nftnl_nlmsg_build_hdr(buf, NFT_MSG_GETFLOWTABLE, family,
+-				    NLM_F_DUMP, ctx->seqnum);
+ 	if (table != NULL)
+ 		nftnl_flowtable_set_str(n, NFTNL_FLOWTABLE_TABLE, table);
++	if (ft) {
++		nftnl_flowtable_set_str(n, NFTNL_FLOWTABLE_NAME, ft);
++		flags = NLM_F_ACK;
 +	}
++	nlh = nftnl_nlmsg_build_hdr(buf, NFT_MSG_GETFLOWTABLE, family,
++				    flags, ctx->seqnum);
+ 	nftnl_flowtable_nlmsg_build_payload(nlh, n);
+ 	nftnl_flowtable_free(n);
  
- 	ret = nft_mnl_talk(ctx, nlh, nlh->nlmsg_len, rule_cb, nlr_list);
- 	if (ret < 0)
+@@ -1850,7 +1856,7 @@ mnl_nft_flowtable_dump(struct netlink_ctx *ctx, int family, const char *table)
+ 		memory_allocation_error();
+ 
+ 	ret = nft_mnl_talk(ctx, nlh, nlh->nlmsg_len, flowtable_cb, nln_list);
+-	if (ret < 0)
++	if (ret < 0 && !ft)
+ 		goto err;
+ 
+ 	return nln_list;
+diff --git a/src/netlink.c b/src/netlink.c
+index f74c0383a0db3..359d801c29d35 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -1721,7 +1721,8 @@ int netlink_list_flowtables(struct netlink_ctx *ctx, const struct handle *h)
+ 	struct nftnl_flowtable_list *flowtable_cache;
+ 	int err;
+ 
+-	flowtable_cache = mnl_nft_flowtable_dump(ctx, h->family, h->table.name);
++	flowtable_cache = mnl_nft_flowtable_dump(ctx, h->family,
++						 h->table.name, NULL);
+ 	if (flowtable_cache == NULL) {
+ 		if (errno == EINTR)
+ 			return -1;
+diff --git a/tests/shell/testcases/listing/0020flowtable_0 b/tests/shell/testcases/listing/0020flowtable_0
+index 2f0a98d16fd38..47488d8ea92a4 100755
+--- a/tests/shell/testcases/listing/0020flowtable_0
++++ b/tests/shell/testcases/listing/0020flowtable_0
+@@ -2,19 +2,60 @@
+ 
+ # list only the flowtable asked for with table
+ 
++FLOWTABLES="flowtable f {
++	hook ingress priority filter
++	devices = { lo }
++}
++flowtable f2 {
++	hook ingress priority filter
++	devices = { d0 }
++}"
++
++RULESET="table inet filter {
++	$FLOWTABLES
++}
++table ip filter {
++	$FLOWTABLES
++}"
++
+ EXPECTED="table inet filter {
+ 	flowtable f {
+ 		hook ingress priority filter
+ 		devices = { lo }
+ 	}
+ }"
++EXPECTED2="table ip filter {
++	flowtable f2 {
++		hook ingress priority filter
++		devices = { d0 }
++	}
++}"
++EXPECTED3="table ip filter {
++	flowtable f {
++		hook ingress priority filter
++		devices = { lo }
++	}
++	flowtable f2 {
++		hook ingress priority filter
++		devices = { d0 }
++	}
++}"
++
++ip link add d0 type dummy || {
++	echo "Skipping, no dummy interface available"
++	exit 0
++}
++trap "ip link del d0" EXIT
+ 
+ set -e
+ 
+-$NFT -f - <<< "$EXPECTED"
++$NFT -f - <<< "$RULESET"
+ 
+ GET="$($NFT list flowtable inet filter f)"
+-if [ "$EXPECTED" != "$GET" ] ; then
+-	$DIFF -u <(echo "$EXPECTED") <(echo "$GET")
+-	exit 1
+-fi
++$DIFF -u <(echo "$EXPECTED") <(echo "$GET")
++
++GET="$($NFT list flowtable ip filter f2)"
++$DIFF -u <(echo "$EXPECTED2") <(echo "$GET")
++
++GET="$($NFT list flowtables ip)"
++$DIFF -u <(echo "$EXPECTED3") <(echo "$GET")
 -- 
 2.33.0
 
