@@ -2,94 +2,178 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B647C433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Dec 2021 17:33:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18FA8C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Dec 2021 17:33:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351936AbhLARgr (ORCPT
+        id S234552AbhLARhP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 1 Dec 2021 12:36:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60308 "EHLO
+        Wed, 1 Dec 2021 12:37:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60320 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1351919AbhLARgZ (ORCPT
+        with ESMTP id S1351961AbhLARg2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 1 Dec 2021 12:36:25 -0500
-Received: from mail-wr1-x429.google.com (mail-wr1-x429.google.com [IPv6:2a00:1450:4864:20::429])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 09F35C061748
-        for <netfilter-devel@vger.kernel.org>; Wed,  1 Dec 2021 09:33:04 -0800 (PST)
-Received: by mail-wr1-x429.google.com with SMTP id d9so33138586wrw.4
-        for <netfilter-devel@vger.kernel.org>; Wed, 01 Dec 2021 09:33:03 -0800 (PST)
+        Wed, 1 Dec 2021 12:36:28 -0500
+Received: from mail-wr1-x433.google.com (mail-wr1-x433.google.com [IPv6:2a00:1450:4864:20::433])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80E4BC061756
+        for <netfilter-devel@vger.kernel.org>; Wed,  1 Dec 2021 09:33:05 -0800 (PST)
+Received: by mail-wr1-x433.google.com with SMTP id d24so54074800wra.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 01 Dec 2021 09:33:05 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ionos.com; s=google;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=4OLIUQGr/uV+Q63AqXTSSth4T2CYBaqf451RN1Zyb4Q=;
-        b=UkX5S1jZFJf+T1RWkkIz/6hNplXlgCZN2lr2rO6fzqQC34I6l/Zo2XP9CqMyFSh/pr
-         aGmpfYPsgjIVH4L3SKL/IkPVRrjNSQpGgu8RPw95N0rRsVpkD/345m19UJe3q4mmABpT
-         0gtqgJECFiNHI0Nyw8er2PXTAMLKdSA+uo09WkPy2nDszQ8R076rV7ah5q7HDp/bc+ng
-         tnHZ06hVlKed4UHFwRLyrrInZKdz79JpyAqSY0OfPcfzdrjnYCWfNeL12NZkh4qd55IQ
-         b66iDUR/vUsK8+wofEqjy4C/Ib+mo6sleNQVpIq6XILOvjG9jBUzoxXKuSOwMlXqp7q1
-         XMAg==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=BqqMYbceZ2eH75Ze8ZVybOW04RtLI8SxCx0eJbaegJY=;
+        b=UEaxupB5wYcnvtWMBGbstFVzU312pIOMxmLvcQGmzoJQV+vCMXut1BBF8ynu9PnyFW
+         v7GhHBYCNNlIGcugLehjqABAD6rw45DZPA/S7M+S8TGMJMTV48dAdAK+i95tpLQ1SHB0
+         BNRL1kUjMg7CSVAN9lN+xFvh2tgi5xgixzFGoO9YYwUoVEa2/lZEyaxCvbsuqj6E/yFS
+         pexjF4Pza4EWqMUIceGYsfZBo0LyXXA7cmmaylnRb9ClY3gbxBpDZrSz8fpG79ZNNdaN
+         TfyPYoLOYtM31RHOkFEbXXEk4+SId9nmFXFGP4S+UA1IwgijdgNsZxm1KJttFtxbn+q8
+         r6Tg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=4OLIUQGr/uV+Q63AqXTSSth4T2CYBaqf451RN1Zyb4Q=;
-        b=PDoUv6MR3pJ4wgJ2Eok8+88OuRayIArMxbdy6BWk+fFL+vUvjX9xLX71zj9MEnO8NC
-         5BK9f27JZHFtxodeZL5+kfVUblwaaOvI9X+hh19jU0lfiJc9GUqElRjHLpsueqww63SQ
-         R4Q6CGNMPHqI/WAo7Fz5byPPAzh5U750ti8+Ebyi0E77KdbDK3yYBDjFBG3l1/LKMmGb
-         PR5o4S5Dv8NYQ6HONFC9CEU5YHNmVxYrvknby+9qLZMWfhKSWuQ2NdXf4Zlk6Xuykhbr
-         D/onywEDYO6W9vtjUiOky9eWp5onccQgFCxuhQKJGNU/n8I8FmJRUf+uwOrbMzbs9mtA
-         7GMA==
-X-Gm-Message-State: AOAM531NbrbYrZs0x967PmQa3wwvdMl7bUWmOJpYn3/yYCdvkTdWuylF
-        NihWTZrGz6Ox5hde49JVhFXf0faT9bYl/A==
-X-Google-Smtp-Source: ABdhPJxdunRAsYNxl+y78kbWcf7bq2wnweymbKgGubzHSOuUjQ3L5NtcLQQJoUu7OBcyCYxJrDL+aw==
-X-Received: by 2002:adf:dd0a:: with SMTP id a10mr8417982wrm.60.1638379981574;
-        Wed, 01 Dec 2021 09:33:01 -0800 (PST)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=BqqMYbceZ2eH75Ze8ZVybOW04RtLI8SxCx0eJbaegJY=;
+        b=4y31VlR/F9970jUHSo9D3NsAGEH4BKPL1hHi4hBwid/6F989sH4W8ihVzpN7tuNahB
+         rxGBfyY5wZzMCWvYy8xzU3t71I06KjX3wxXbJUCdJJS9fUdhs2V1aGwx2FzVO9jwdDiU
+         eU+lQGZ5Kx2B++v6idsI9SzKiZcLDhF5OEJTCdBHBQJ/RlPkR+ZAiJ0QUrqSc2hfvzCp
+         s9k1Tk3GPlBizC/vm325Tt5/odp3EWQ2JVoxzAnCqU7X8Z6+Yi8w/OhoPJlyVFuSnyOt
+         OZ0g5+uv11jTXF793lQttPzIj5epCvREOEG29QtsMJd/gdd/QEV21/4Omo+3EL0K21v1
+         h9Sg==
+X-Gm-Message-State: AOAM533+1WP5mUSn3EflwfijVzqRjNrIopjmEcDOxCe3ukY3CI7Mh23R
+        4Sd+33ELht92dFxRqYhWIULQ99NUbc55Yg==
+X-Google-Smtp-Source: ABdhPJwOa2485WN6Q/e8gLoSMMjVclTfxQud1WVPa0zuA2GK2SWICKhxJBtpWQwqvkf43fagujBvzw==
+X-Received: by 2002:a5d:5888:: with SMTP id n8mr8304528wrf.234.1638379983494;
+        Wed, 01 Dec 2021 09:33:03 -0800 (PST)
 Received: from msennikovskii4.fkb.profitbricks.net (ip5f5bf77c.dynamic.kabel-deutschland.de. [95.91.247.124])
-        by smtp.gmail.com with ESMTPSA id r17sm1918291wmq.5.2021.12.01.09.33.00
+        by smtp.gmail.com with ESMTPSA id r17sm1918291wmq.5.2021.12.01.09.33.01
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 01 Dec 2021 09:33:00 -0800 (PST)
+        Wed, 01 Dec 2021 09:33:02 -0800 (PST)
 From:   Mikhail Sennikovsky <mikhail.sennikovskii@ionos.com>
 To:     netfilter-devel@vger.kernel.org, pablo@netfilter.org,
         mikhail.sennikovsky@gmail.com
 Cc:     Mikhail Sennikovsky <mikhail.sennikovskii@ionos.com>
-Subject: [PATCH 0/6] conntrack: use libmnl for various operations
-Date:   Wed,  1 Dec 2021 18:32:47 +0100
-Message-Id: <20211201173253.33432-1-mikhail.sennikovskii@ionos.com>
+Subject: [PATCH 1/6] conntrack: generic nfct_mnl_call function
+Date:   Wed,  1 Dec 2021 18:32:48 +0100
+Message-Id: <20211201173253.33432-2-mikhail.sennikovskii@ionos.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20211201173253.33432-1-mikhail.sennikovskii@ionos.com>
+References: <20211201173253.33432-1-mikhail.sennikovskii@ionos.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo and all,
+In preparation for using libmnl for ct entry creation
+and other operations
 
-Here is a set of patches to switch to libmnl a set of commands
-that can be used in the load-file operation.
+Signed-off-by: Mikhail Sennikovsky <mikhail.sennikovskii@ionos.com>
+---
+ src/conntrack.c | 55 ++++++++++++++++++++++++++++++-------------------
+ 1 file changed, 34 insertions(+), 21 deletions(-)
 
-As discussed, once we can get this set of patches applied,
-I'm going to adjust my previous patch of using the same netlink
-handle for all operations in the load-file batch,
-and as a further step I would also adopt all the remaining commands
-to using libmnl.
-
-As usual, any feedback is very welcome!)
-
-Thanks & Regards,
-Mikhail
-
-Mikhail Sennikovsky (6):
-  conntrack: generic nfct_mnl_call function
-  conntrack: use libmnl for conntrack entry creation
-  conntrack: pass sock to nfct_mnl_xxx functions
-  conntrack: use libmnl for updating conntrack table
-  conntrack: use libmnl for ct entries deletion
-  conntrack: use libmnl for flushing conntrack table
-
- src/conntrack.c | 529 +++++++++++++++++++++++++++++-------------------
- 1 file changed, 316 insertions(+), 213 deletions(-)
-
+diff --git a/src/conntrack.c b/src/conntrack.c
+index 5bd3cb5..d37f130 100644
+--- a/src/conntrack.c
++++ b/src/conntrack.c
+@@ -2417,6 +2417,7 @@ static int nfct_mnl_socket_open(unsigned int events)
+ 
+ static struct nlmsghdr *
+ nfct_mnl_nlmsghdr_put(char *buf, uint16_t subsys, uint16_t type,
++		      uint16_t flags,
+ 		      uint8_t family)
+ {
+ 	struct nlmsghdr *nlh;
+@@ -2424,7 +2425,7 @@ nfct_mnl_nlmsghdr_put(char *buf, uint16_t subsys, uint16_t type,
+ 
+ 	nlh = mnl_nlmsg_put_header(buf);
+ 	nlh->nlmsg_type = (subsys << 8) | type;
+-	nlh->nlmsg_flags = NLM_F_REQUEST|NLM_F_DUMP;
++	nlh->nlmsg_flags = flags;
+ 	nlh->nlmsg_seq = time(NULL);
+ 
+ 	nfh = mnl_nlmsg_put_extra_header(nlh, sizeof(struct nfgenmsg));
+@@ -2441,15 +2442,28 @@ static void nfct_mnl_socket_close(void)
+ }
+ 
+ static int
+-nfct_mnl_dump(uint16_t subsys, uint16_t type, mnl_cb_t cb,
+-	      struct ct_cmd *cmd, const struct nfct_filter_dump *filter_dump)
++nfct_mnl_call(uint16_t subsys, uint16_t type, uint16_t flags,
++	      const struct nf_conntrack *ct, uint8_t family,
++	      const struct nfct_filter_dump *filter_dump,
++	      mnl_cb_t cb, void* context)
+ {
+-	uint8_t family = cmd ? cmd->family : AF_UNSPEC;
+ 	char buf[MNL_SOCKET_BUFFER_SIZE];
+ 	struct nlmsghdr *nlh;
+ 	int res;
+ 
+-	nlh = nfct_mnl_nlmsghdr_put(buf, subsys, type, family);
++	if (ct) {
++		family = nfct_get_attr_u8(ct, ATTR_ORIG_L3PROTO);
++		if (!family)
++			return -1;
++	}
++
++	nlh = nfct_mnl_nlmsghdr_put(buf, subsys, type, flags, family);
++
++	if (ct) {
++		res = nfct_nlmsg_build(nlh, ct);
++		if (res < 0)
++			return res;
++	}
+ 
+ 	if (filter_dump)
+ 		nfct_nlmsg_build_filter(nlh, filter_dump);
+@@ -2461,7 +2475,7 @@ nfct_mnl_dump(uint16_t subsys, uint16_t type, mnl_cb_t cb,
+ 	res = mnl_socket_recvfrom(sock.mnl, buf, sizeof(buf));
+ 	while (res > 0) {
+ 		res = mnl_cb_run(buf, res, nlh->nlmsg_seq, sock.portid,
+-				 cb, cmd);
++				 cb, context);
+ 		if (res <= MNL_CB_STOP)
+ 			break;
+ 
+@@ -2472,23 +2486,22 @@ nfct_mnl_dump(uint16_t subsys, uint16_t type, mnl_cb_t cb,
+ }
+ 
+ static int
+-nfct_mnl_get(uint16_t subsys, uint16_t type, mnl_cb_t cb, uint8_t family)
++nfct_mnl_dump(uint16_t subsys, uint16_t type, mnl_cb_t cb,
++	      struct ct_cmd *cmd, const struct nfct_filter_dump *filter_dump)
+ {
+-	char buf[MNL_SOCKET_BUFFER_SIZE];
+-	struct nlmsghdr *nlh;
+-	int res;
+-
+-	nlh = nfct_mnl_nlmsghdr_put(buf, subsys, type, family);
+-
+-	res = mnl_socket_sendto(sock.mnl, nlh, nlh->nlmsg_len);
+-	if (res < 0)
+-		return res;
+-
+-	res = mnl_socket_recvfrom(sock.mnl, buf, sizeof(buf));
+-	if (res < 0)
+-		return res;
++	return nfct_mnl_call(subsys, type, NLM_F_REQUEST|NLM_F_DUMP,
++		      NULL, cmd ? cmd->family : AF_UNSPEC,
++		      filter_dump,
++		      cb, cmd);
++}
+ 
+-	return mnl_cb_run(buf, res, nlh->nlmsg_seq, sock.portid, cb, NULL);
++static int
++nfct_mnl_get(uint16_t subsys, uint16_t type, mnl_cb_t cb, uint8_t family)
++{
++	return nfct_mnl_call(subsys, type, NLM_F_REQUEST|NLM_F_DUMP,
++		      NULL, family,
++		      NULL,
++		      cb, NULL);
+ }
+ 
+ #define UNKNOWN_STATS_NUM 4
 -- 
 2.25.1
 
