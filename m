@@ -2,116 +2,59 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC3BEC433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Dec 2021 11:30:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 372C3C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Dec 2021 12:00:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239426AbhLALdr convert rfc822-to-8bit (ORCPT
+        id S239541AbhLAMDe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 1 Dec 2021 06:33:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60746 "EHLO
+        Wed, 1 Dec 2021 07:03:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39498 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233238AbhLALdf (ORCPT
+        with ESMTP id S1347818AbhLAMD1 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 1 Dec 2021 06:33:35 -0500
+        Wed, 1 Dec 2021 07:03:27 -0500
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D40BC061574
-        for <netfilter-devel@vger.kernel.org>; Wed,  1 Dec 2021 03:30:12 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19101C06174A
+        for <netfilter-devel@vger.kernel.org>; Wed,  1 Dec 2021 04:00:07 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1msNoQ-000569-Tc; Wed, 01 Dec 2021 12:30:10 +0100
-Date:   Wed, 1 Dec 2021 12:30:10 +0100
+        (envelope-from <fw@breakpoint.cc>)
+        id 1msOHN-0005FZ-K5; Wed, 01 Dec 2021 13:00:05 +0100
 From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft 0/8] mptcp subtype option match support
-Message-ID: <20211201113010.GC2315@breakpoint.cc>
-References: <20211119152847.18118-1-fw@strlen.de>
- <YZzpy9bk4AFahSVI@salvia>
- <20211123133742.GN6326@breakpoint.cc>
- <Yaabbty7g8XyeMs/@salvia>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft 1/3] netlink_delinearize: use correct member type
+Date:   Wed,  1 Dec 2021 12:59:54 +0100
+Message-Id: <20211201115956.13252-2-fw@strlen.de>
+X-Mailer: git-send-email 2.32.0
+In-Reply-To: <20211201115956.13252-1-fw@strlen.de>
+References: <20211201115956.13252-1-fw@strlen.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: 8BIT
-In-Reply-To: <Yaabbty7g8XyeMs/@salvia>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Tue, Nov 23, 2021 at 02:37:42PM +0100, Florian Westphal wrote:
-> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > On Fri, Nov 19, 2021 at 04:28:39PM +0100, Florian Westphal wrote:
-> > > > Because the subtype is only 4 bits in size the exthdr
-> > > > delinearization needs a fixup to remove the binop added by the
-> > > > evaluation step.
-> > > 
-> > > By the bitwise operation to take the 4 bits you can infer this refers to
-> > > mptcp, but it might be good to store in the rule userdata area that this
-> > > expression refers to mptcp as a suggestion to userspace when
-> > > delinearizing the rule.
-> > 
-> > Why?  Userspace has all info: its a tcp option, we have the tcp option
-> > number (mptcp) and a 4 bit field which matches the template field.
-> > 
-> > There is no guesswork here.
-> 
-> OK, thanks for explaining.
+expr is a map, so this should use expr->map, not expr->left.
+These fields are aliased, so this would break if that is ever changed.
 
-I can add a commet before pushing this out.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/netlink_delinearize.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-All mptcp suboptions have this 4bit identifier at the same location,
-so
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 0c2b439eac6f..66120d659dc3 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -2300,7 +2300,7 @@ static void binop_postprocess(struct rule_pp_ctx *ctx, struct expr *expr)
+ 
+ static void map_binop_postprocess(struct rule_pp_ctx *ctx, struct expr *expr)
+ {
+-	struct expr *binop = expr->left;
++	struct expr *binop = expr->map;
+ 
+ 	if (binop->op != OP_AND)
+ 		return;
+-- 
+2.32.0
 
-'tcp option == mptcp' always allows to take those 4 bit to identify
-the next subheader.
-
-The only caveat is that some suboptions have different sizes depending
-on the option length field, this will get more complicated once matching
-on those is added (we will need to take moer dependencies into account).
-
-> > > > One remaining usablility problem is the lack of mnemonics for the
-> > > > subtype, i.e. something like:
-> > > > 
-> > > > static const struct symbol_table mptcp_subtype_tbl = {
-> > > >        .base           = BASE_DECIMAL,
-> > > >        .symbols        = {
-> > > >                SYMBOL("mp-capable",    0),
-> > > >                SYMBOL("mp-join",       1),
-> > > >                SYMBOL("dss",           2),
-> > > >                SYMBOL("add-addr",      3),
-> > > >                SYMBOL("remove-addr",   4),
-> > > >                SYMBOL("mp-prio",       5),
-> > > >                SYMBOL("mp-fail",       6),
-> > > >                SYMBOL("mp-fastclose",  7),
-> > > >                SYMBOL("mp-tcprst",     8),
-> > > >                SYMBOL_LIST_END
-> > > >        },
-> > > > 
-> > > > ... but this would need addition of yet another data type.
-> > > >
-> > > > Use of implicit/context-dependent symbol table would
-> > > > be preferrable, I will look into this next.
-> > > 
-> > > Could you develop your idea?
-> > 
-> > No idea, I have not thought about it at all.  I do not want
-> > to add a new data type for this.
-> > 
-> > One way is to just extend the scanner with even more keywords.
-> > I tought I could annotate the eval context with 'saw mptcp'
-> > and then use that when trying to resolve the symbol expressions.
-> > 
-> > No idea if that works and no idea how much hassle that is.
-> 
-> You can probably use a string in the parser for these types, then
-> invoke the symbol_table lookup from the parser to fetch the value?
-
-Current solution I'm working on adds a phony integer type, similar
-to the 'hex output' one.
-
-Delinearization needs to do some extra steps to override the integer
-again though.
-
-I will share some draft patches soon.
