@@ -2,128 +2,162 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FE9DC433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Dec 2021 19:37:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9FD4C433FE
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Dec 2021 21:49:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1382933AbhLCTk6 (ORCPT
+        id S1383310AbhLCVw0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 3 Dec 2021 14:40:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39938 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1382938AbhLCTk5 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Dec 2021 14:40:57 -0500
-Received: from mail-pf1-x436.google.com (mail-pf1-x436.google.com [IPv6:2607:f8b0:4864:20::436])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D412C061A83
-        for <netfilter-devel@vger.kernel.org>; Fri,  3 Dec 2021 11:37:32 -0800 (PST)
-Received: by mail-pf1-x436.google.com with SMTP id 8so3823643pfo.4
-        for <netfilter-devel@vger.kernel.org>; Fri, 03 Dec 2021 11:37:32 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:content-transfer-encoding:in-reply-to;
-        bh=LWKe71eoAeBHksA0Q7+Vwnu16+B3Z32gMf+kM6ZvOQ4=;
-        b=nD8yc5lBfABo04YgzouuSTSYpFiXY5AXCEKXm98aIJamKZ/bx+whO0RKathBGqpWPa
-         Vr4JjT5d+4Yr6DSJiKlhkLCarMfCipVAfazjgIn3IExbUgmrWRkw/9u8so3k1BNiEINl
-         4fhpJUG4ukx5itGDbEj5HYbViqZ9ELm3/ePQ+67QqNDlfQdZOUhGrx4OSB8CaEGVQTbQ
-         vv62qK2P4DkWqGKIa4V/qGamKp4AQttdKRwrfHp7lcBlVvOOa1uKg2lPc5ZWXSHuJYnI
-         dlMZopzr56H2Amo4Qx/1aiHNpjN0VbcsIBTaIpWAjP91SPytsl+jmqZSgq7rO7dzUxDF
-         23dA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:content-transfer-encoding
-         :in-reply-to;
-        bh=LWKe71eoAeBHksA0Q7+Vwnu16+B3Z32gMf+kM6ZvOQ4=;
-        b=f6Jmdib6jNHnoescE/Oa47EdQjVlEX/Kzw6QXOe/1r/Ncq3QMfWsKkIs2THI+wDUod
-         RwkbbxfmdC4hiM9tA0UBpGtrYWIjBj1sFRsuzEQ3hUUZdFobswBo2/rZGsRLKirheAYa
-         zcBt074xRwKxlSlGlHp09FVpxMlPLbGGNpk/keXYS1Fux0MwyTOGZe1kJ0fwd/twvvi/
-         1kYFcHNThkOH7MW7JTGIUbq7A9rD7XaEaYj1ZLIMo+zS+DVW6ty7+NcGXvv1sXy6xGxA
-         GsmX+juYRx1LuecQD0Roi69IwLJRAXQRWNomxi+XMbAq/u6SBlO8yWXX6C8knQetLI0c
-         OkBg==
-X-Gm-Message-State: AOAM533/ziPG/99wYCsbwl/mmxhtS0A3OBQ1nr8tx+x/JZNLMgc6FO78
-        iGL3n9dDWW+08evfD0+MxtES4A==
-X-Google-Smtp-Source: ABdhPJyp/28P9Mh6YI90nIBvHPEaeUZhE/OQ5ZC3aFwSxJFfhptKa82wUzQdyyEddkXP5V+Zt6s46A==
-X-Received: by 2002:a05:6a00:1348:b0:481:179c:ce9b with SMTP id k8-20020a056a00134800b00481179cce9bmr20825495pfu.27.1638560251726;
-        Fri, 03 Dec 2021 11:37:31 -0800 (PST)
-Received: from google.com (157.214.185.35.bc.googleusercontent.com. [35.185.214.157])
-        by smtp.gmail.com with ESMTPSA id lp12sm3017627pjb.24.2021.12.03.11.37.30
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 03 Dec 2021 11:37:31 -0800 (PST)
-Date:   Fri, 3 Dec 2021 19:37:27 +0000
-From:   Sean Christopherson <seanjc@google.com>
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Bixuan Cui <cuibixuan@linux.alibaba.com>, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
-        leon@kernel.org, w@1wt.eu, keescook@chromium.org,
-        bpf@vger.kernel.org, netdev@vger.kernel.org,
-        Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Jakub Kicinski <kuba@kernel.org>, kvm@vger.kernel.org,
-        netfilter-devel@vger.kernel.org,
-        Paolo Bonzini <pbonzini@redhat.com>
-Subject: Re: [PATCH -next] mm: delete oversized WARN_ON() in kvmalloc() calls
-Message-ID: <Yapx9+fakH6GYpcO@google.com>
-References: <1638410784-48646-1-git-send-email-cuibixuan@linux.alibaba.com>
- <20211201192643.ecb0586e0d53bf8454c93669@linux-foundation.org>
- <10cb0382-012b-5012-b664-c29461ce4de8@linux.alibaba.com>
- <20211201202905.b9892171e3f5b9a60f9da251@linux-foundation.org>
+        Fri, 3 Dec 2021 16:52:26 -0500
+Received: from mg.ssi.bg ([193.238.174.37]:41494 "EHLO mg.ssi.bg"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1344131AbhLCVwZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 3 Dec 2021 16:52:25 -0500
+Received: from mg.ssi.bg (localhost [127.0.0.1])
+        by mg.ssi.bg (Proxmox) with ESMTP id 6173524B47;
+        Fri,  3 Dec 2021 23:48:56 +0200 (EET)
+Received: from ink.ssi.bg (unknown [193.238.174.40])
+        by mg.ssi.bg (Proxmox) with ESMTP id 7002E24BA8;
+        Fri,  3 Dec 2021 23:48:53 +0200 (EET)
+Received: from ja.ssi.bg (unknown [178.16.129.10])
+        by ink.ssi.bg (Postfix) with ESMTPS id EE0E43C0332;
+        Fri,  3 Dec 2021 23:48:52 +0200 (EET)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.16.1/8.16.1) with ESMTP id 1B3LmpVc038846;
+        Fri, 3 Dec 2021 23:48:52 +0200
+Date:   Fri, 3 Dec 2021 23:48:51 +0200 (EET)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     Simon Kirby <sim@hostway.ca>
+cc:     Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org
+Subject: Re: Inability to IPVS DR with nft dnat since 9971a514ed26
+In-Reply-To: <20211203083452.GA13536@hostway.ca>
+Message-ID: <ae4d64a5-8742-a392-4866-edce08e3bdd@ssi.bg>
+References: <20190327062650.GA10700@hostway.ca> <20190327093027.gmflo27icuhr326p@breakpoint.cc> <20211203083452.GA13536@hostway.ca>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20211201202905.b9892171e3f5b9a60f9da251@linux-foundation.org>
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-+Paolo, I'm pretty sure he's still not subscribed to the KVM mailing list :-)
 
-On Wed, Dec 01, 2021, Andrew Morton wrote:
-> On Thu, 2 Dec 2021 12:05:15 +0800 Bixuan Cui <cuibixuan@linux.alibaba.com> wrote:
-> 
-> > 
-> > 在 2021/12/2 上午11:26, Andrew Morton 写道:
-> > >> Delete the WARN_ON() and return NULL directly for oversized parameter
-> > >> in kvmalloc() calls.
-> > >> Also add unlikely().
-> > >>
-> > >> Fixes: 7661809d493b ("mm: don't allow oversized kvmalloc() calls")
-> > >> Signed-off-by: Bixuan Cui<cuibixuan@linux.alibaba.com>
-> > >> ---
-> > >> There are a lot of oversize warnings and patches about kvmalloc() calls
-> > >> recently. Maybe these warnings are not very necessary.
-> > > Or maybe they are.  Please let's take a look at these warnings, one at
-> > > a time.  If a large number of them are bogus then sure, let's disable
-> > > the runtime test.  But perhaps it's the case that calling code has
-> > > genuine issues and should be repaired.
-> > Such as：
-> 
-> Thanks, that's helpful.
-> 
-> Let's bring all these to the attention of the relevant developers.
-> 
-> If the consensus is "the code's fine, the warning is bogus" then let's
-> consider retiring the warning.
-> 
-> If the consensus is otherwise then hopefully they will fix their stuff!
-> 
-> 
-> 
-> > https://syzkaller.appspot.com/bug?id=24452f89446639c901ac07379ccc702808471e8e
-> 
-> (cc bpf@vger.kernel.org)
-> 
-> > https://syzkaller.appspot.com/bug?id=f7c5a86e747f9b7ce333e7295875cd4ede2c7a0d
-> 
-> (cc netdev@vger.kernel.org, maintainers)
-> 
-> > https://syzkaller.appspot.com/bug?id=8f306f3db150657a1f6bbe1927467084531602c7
-> 
-> (cc kvm@vger.kernel.org)
+	Hello,
 
-Paolo posted patches to resolve the KVM issues, but I don't think they ever got
-applied.
+On Fri, 3 Dec 2021, Simon Kirby wrote:
 
-https://lore.kernel.org/all/20211016064302.165220-1-pbonzini@redhat.com/
-https://lore.kernel.org/all/20211015165519.135670-1-pbonzini@redhat.com/
+> I had some time to set up some test VMs for this, which I can post if
+> you'd like (several GB), or I can tarball up the configs.
+> 
+> Our setup still doesn't work in 5.15, and we have some LVS servers held
+> up on 4.14 kernels that are the last working stable branch.
+> 
+> LVS expects the VIPs to route to loopback in order to reach the ipvs
+> hook, and since 9971a514ed2697e542f3984a6162eac54bb1da98 ("netfilter:
+> nf_nat: add nat type hooks to nat core"), the nftrace output changes to
+> show that the ipvs_vs_dr_xmit packet is oif "lo" rather than "enp1s0".
+> 
+> With perf probes, I found that the reason the outbound device is changing
+> is that there is an nft hook that ends up calling ip_route_me_harder().
+
+	Yes, this call is supposed to route locally generated
+packets after daddr is translated by Netfilter. But IPVS uses
+LOCAL_OUT hook to post packets to real servers. If you use
+DR method, daddr is not changed (remains VIP) but packet's route
+points to the real server (different from VIP). Any rerouting
+will assign wrong route.
+
+	Such code that compares tuple.dst.u3.ip with
+tuple.src.u3.ip (for !dir) in nf_nat_ipv4_local_fn() is present
+in old kernels. So, I'm not sure how you escaped it. The
+only possible way is if net.ipv4.vs.conntrack is 0 because
+in this case ip_vs_send_or_cont() calls ip_vs_notrack() to set 
+IP_CT_UNTRACKED and ct becomes NULL (untracked skb is skipped
+by NAT).
+
+> This function is not called prior to this change, but we can make it be
+> called even on 4.14 by hooking nat output (with no rules) or route output
+> with anything modifying, such as "mark set 1".
+
+	In this case it hits the mangle code (ipt_mangle_out).
+
+> We just didn't happen to hook this previously, so it worked for us, but
+> after this change, all hooks (including output) are always applied.
+> 
+> # perf probe -a 'ip_route_me_harder%return retval=$retval'
+> # perf record -g -e probe:ip_route_me_harder__return -aR sleep 4
+> (send a test connection)
+> # perf script
+> swapper     0 [000]  1654.547622: probe:ip_route_me_harder__return: (ffffffff819ac910 <- ffffffffa002b8f6) retval=0x0
+>         ffffffff810564b0 kretprobe_trampoline+0x0 (vmlinux-4.14.252)
+>         ffffffffa0084090 nft_nat_ipv4_local_fn+0x10 ([nft_chain_nat_ipv4])
+>         ffffffff8193e793 nf_hook_slow+0x43 (vmlinux-4.14.252)
+>         ffffffffa004af2b ip_vs_dr_xmit+0x18b ([ip_vs])
+>         ffffffffa003fb2e ip_vs_in+0x58e ([ip_vs])
+>         ffffffffa00400d1 ip_vs_local_request4+0x21 ([ip_vs])
+>         ffffffffa00400e9 ip_vs_remote_request4+0x9 ([ip_vs])
+>         ffffffff8193e793 nf_hook_slow+0x43 (vmlinux-4.14.252)
+>         ffffffff8195c48b ip_local_deliver+0x7b (vmlinux-4.14.252)
+>         ffffffff8195c0b8 ip_rcv_finish+0x1f8 (vmlinux-4.14.252)
+>         ffffffff8195c7b7 ip_rcv+0x2e7 (vmlinux-4.14.252)
+>         ffffffff818dc113 __netif_receive_skb_core+0x883 (vmlinux-4.14.252)
+> (pruned a bit)
+> 
+> On 5.15, the trace is similar, but nft_nat_ipv4_local_fn is gone
+> (nft_nat_do_chain is inlined).
+> 
+> nftrace output through "nft monitor trace" shows it changing the packet
+> dest between filter output and nat postrouting:
+> 
+> ...
+> trace id 32904fd3 ip filter output packet: oif "enp1s0" @ll,0,112 0x5254009039555254002ace280800 ip saddr 192.168.7.1 ip daddr 10.99.99.10 ip dscp 0x04 ip ecn not-ect ip ttl 63 ip id 5753 ip length 60 tcp sport 58620 tcp dport 80 tcp flags == syn tcp window 64240
+> trace id 32904fd3 ip filter output verdict continue
+> trace id 32904fd3 ip filter output policy accept
+> trace id 32904fd3 ip nat postrouting packet: iif "enp1s0" oif "lo" ether saddr 52:54:00:2a:ce:28 ether daddr 52:54:00:90:39:55 ip saddr 192.168.7.1 ip daddr 10.99.99.10 ip dscp 0x04 ip ecn not-ect ip ttl 63 ip id 5753 ip length 60 tcp sport 58620 tcp dport 80 tcp flags == syn tcp window 64240
+> trace id 32904fd3 ip nat postrouting verdict continue
+> trace id 32904fd3 ip nat postrouting policy accept
+> 
+> On 4.14 without hooking nat output, the oif for nat postrouting remains
+> unchanged ("enp1s0").
+
+	Is net.ipv4.vs.conntrack set in 4.14 ?
+
+> If we avoid the nftables dnat rule and connect directly to the LVS VIP,
+> it still works on newer kernels, I suspect because nf_nat_ipv4_fn()
+> doesn't match. If we dnat directly to the DR VIP without LVS, it works
+
+	The problem is that the DNAT rule schedules translation
+which is detected by this check:
+
+	if (ct->tuplehash[dir].tuple.dst.u3.ip !=
+	    ct->tuplehash[!dir].tuple.src.u3.ip) {
+		err = ip_route_me_harder(state->net, state->sk, skb, RTN_UNSPEC);
+
+	But it happens if ct is not NULL (vs/conntrack=1).
+
+> because the dest is not loopback, as expected. It's the combination of
+> these two that used to work, but now doesn't.
+> 
+> Our specific use case here is that we're doing the dnat from public to
+> rfc1918 space, and the rfc1918 LVS VIPs support some hairpinning cases.
+> 
+> Any ideas?
+
+	As nf_nat_ipv4_local_fn is just for LOCAL_OUT, an additional
+skb->dev check can help to skip the code when packet comes from
+network (not from local stack):
+
+	if (ret != NF_ACCEPT || skb->dev)
+		return ret;
+
+	But I'm not sure if such hack breaks something.
+
+	Second option is to check if daddr/dport actually changed
+in our call to nf_nat_ipv4_fn() but it is more complex.
+It will catch that packet was already DNAT-ed in PRE_ROUTING,
+it was already routed locally and now it is passed on LOCAL_OUT
+by IPVS for second DNAT+rerouting which is not wanted by IPVS.
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
+
