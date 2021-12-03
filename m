@@ -2,121 +2,128 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 304DAC433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Dec 2021 16:08:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FE9DC433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Dec 2021 19:37:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1381979AbhLCQLi (ORCPT
+        id S1382933AbhLCTk6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 3 Dec 2021 11:11:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47868 "EHLO
+        Fri, 3 Dec 2021 14:40:58 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39938 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1381970AbhLCQLi (ORCPT
+        with ESMTP id S1382938AbhLCTk5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Dec 2021 11:11:38 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12170C061751
-        for <netfilter-devel@vger.kernel.org>; Fri,  3 Dec 2021 08:08:14 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1mtB6a-00027V-LC; Fri, 03 Dec 2021 17:08:12 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 3/3] iptopt: fix crash with invalid field/type combo
-Date:   Fri,  3 Dec 2021 17:07:55 +0100
-Message-Id: <20211203160755.8720-4-fw@strlen.de>
-X-Mailer: git-send-email 2.32.0
-In-Reply-To: <20211203160755.8720-1-fw@strlen.de>
-References: <20211203160755.8720-1-fw@strlen.de>
+        Fri, 3 Dec 2021 14:40:57 -0500
+Received: from mail-pf1-x436.google.com (mail-pf1-x436.google.com [IPv6:2607:f8b0:4864:20::436])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D412C061A83
+        for <netfilter-devel@vger.kernel.org>; Fri,  3 Dec 2021 11:37:32 -0800 (PST)
+Received: by mail-pf1-x436.google.com with SMTP id 8so3823643pfo.4
+        for <netfilter-devel@vger.kernel.org>; Fri, 03 Dec 2021 11:37:32 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20210112;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:content-transfer-encoding:in-reply-to;
+        bh=LWKe71eoAeBHksA0Q7+Vwnu16+B3Z32gMf+kM6ZvOQ4=;
+        b=nD8yc5lBfABo04YgzouuSTSYpFiXY5AXCEKXm98aIJamKZ/bx+whO0RKathBGqpWPa
+         Vr4JjT5d+4Yr6DSJiKlhkLCarMfCipVAfazjgIn3IExbUgmrWRkw/9u8so3k1BNiEINl
+         4fhpJUG4ukx5itGDbEj5HYbViqZ9ELm3/ePQ+67QqNDlfQdZOUhGrx4OSB8CaEGVQTbQ
+         vv62qK2P4DkWqGKIa4V/qGamKp4AQttdKRwrfHp7lcBlVvOOa1uKg2lPc5ZWXSHuJYnI
+         dlMZopzr56H2Amo4Qx/1aiHNpjN0VbcsIBTaIpWAjP91SPytsl+jmqZSgq7rO7dzUxDF
+         23dA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to;
+        bh=LWKe71eoAeBHksA0Q7+Vwnu16+B3Z32gMf+kM6ZvOQ4=;
+        b=f6Jmdib6jNHnoescE/Oa47EdQjVlEX/Kzw6QXOe/1r/Ncq3QMfWsKkIs2THI+wDUod
+         RwkbbxfmdC4hiM9tA0UBpGtrYWIjBj1sFRsuzEQ3hUUZdFobswBo2/rZGsRLKirheAYa
+         zcBt074xRwKxlSlGlHp09FVpxMlPLbGGNpk/keXYS1Fux0MwyTOGZe1kJ0fwd/twvvi/
+         1kYFcHNThkOH7MW7JTGIUbq7A9rD7XaEaYj1ZLIMo+zS+DVW6ty7+NcGXvv1sXy6xGxA
+         GsmX+juYRx1LuecQD0Roi69IwLJRAXQRWNomxi+XMbAq/u6SBlO8yWXX6C8knQetLI0c
+         OkBg==
+X-Gm-Message-State: AOAM533/ziPG/99wYCsbwl/mmxhtS0A3OBQ1nr8tx+x/JZNLMgc6FO78
+        iGL3n9dDWW+08evfD0+MxtES4A==
+X-Google-Smtp-Source: ABdhPJyp/28P9Mh6YI90nIBvHPEaeUZhE/OQ5ZC3aFwSxJFfhptKa82wUzQdyyEddkXP5V+Zt6s46A==
+X-Received: by 2002:a05:6a00:1348:b0:481:179c:ce9b with SMTP id k8-20020a056a00134800b00481179cce9bmr20825495pfu.27.1638560251726;
+        Fri, 03 Dec 2021 11:37:31 -0800 (PST)
+Received: from google.com (157.214.185.35.bc.googleusercontent.com. [35.185.214.157])
+        by smtp.gmail.com with ESMTPSA id lp12sm3017627pjb.24.2021.12.03.11.37.30
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 03 Dec 2021 11:37:31 -0800 (PST)
+Date:   Fri, 3 Dec 2021 19:37:27 +0000
+From:   Sean Christopherson <seanjc@google.com>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     Bixuan Cui <cuibixuan@linux.alibaba.com>, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
+        leon@kernel.org, w@1wt.eu, keescook@chromium.org,
+        bpf@vger.kernel.org, netdev@vger.kernel.org,
+        Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Jakub Kicinski <kuba@kernel.org>, kvm@vger.kernel.org,
+        netfilter-devel@vger.kernel.org,
+        Paolo Bonzini <pbonzini@redhat.com>
+Subject: Re: [PATCH -next] mm: delete oversized WARN_ON() in kvmalloc() calls
+Message-ID: <Yapx9+fakH6GYpcO@google.com>
+References: <1638410784-48646-1-git-send-email-cuibixuan@linux.alibaba.com>
+ <20211201192643.ecb0586e0d53bf8454c93669@linux-foundation.org>
+ <10cb0382-012b-5012-b664-c29461ce4de8@linux.alibaba.com>
+ <20211201202905.b9892171e3f5b9a60f9da251@linux-foundation.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20211201202905.b9892171e3f5b9a60f9da251@linux-foundation.org>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-% nft describe ip option rr value
-segmentation fault
++Paolo, I'm pretty sure he's still not subscribed to the KVM mailing list :-)
 
-after this fix, this exits with 'Error: unknown ip option type/field'.
+On Wed, Dec 01, 2021, Andrew Morton wrote:
+> On Thu, 2 Dec 2021 12:05:15 +0800 Bixuan Cui <cuibixuan@linux.alibaba.com> wrote:
+> 
+> > 
+> > 在 2021/12/2 上午11:26, Andrew Morton 写道:
+> > >> Delete the WARN_ON() and return NULL directly for oversized parameter
+> > >> in kvmalloc() calls.
+> > >> Also add unlikely().
+> > >>
+> > >> Fixes: 7661809d493b ("mm: don't allow oversized kvmalloc() calls")
+> > >> Signed-off-by: Bixuan Cui<cuibixuan@linux.alibaba.com>
+> > >> ---
+> > >> There are a lot of oversize warnings and patches about kvmalloc() calls
+> > >> recently. Maybe these warnings are not very necessary.
+> > > Or maybe they are.  Please let's take a look at these warnings, one at
+> > > a time.  If a large number of them are bogus then sure, let's disable
+> > > the runtime test.  But perhaps it's the case that calling code has
+> > > genuine issues and should be repaired.
+> > Such as：
+> 
+> Thanks, that's helpful.
+> 
+> Let's bring all these to the attention of the relevant developers.
+> 
+> If the consensus is "the code's fine, the warning is bogus" then let's
+> consider retiring the warning.
+> 
+> If the consensus is otherwise then hopefully they will fix their stuff!
+> 
+> 
+> 
+> > https://syzkaller.appspot.com/bug?id=24452f89446639c901ac07379ccc702808471e8e
+> 
+> (cc bpf@vger.kernel.org)
+> 
+> > https://syzkaller.appspot.com/bug?id=f7c5a86e747f9b7ce333e7295875cd4ede2c7a0d
+> 
+> (cc netdev@vger.kernel.org, maintainers)
+> 
+> > https://syzkaller.appspot.com/bug?id=8f306f3db150657a1f6bbe1927467084531602c7
+> 
+> (cc kvm@vger.kernel.org)
 
-Problem is that 'rr' doesn't have a value template, so the template struct is
-all-zeroes, so we crash when trying to use tmpl->dtype (its NULL).
+Paolo posted patches to resolve the KVM issues, but I don't think they ever got
+applied.
 
-Furthermore, expr_describe tries to print expr->identifier but expr is
-exthdr, not symbol: ->identifier contains garbage.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- src/expression.c                       | 8 ++++----
- src/ipopt.c                            | 3 +++
- src/parser_bison.y                     | 4 ++++
- tests/shell/testcases/parsing/describe | 7 +++++++
- 4 files changed, 18 insertions(+), 4 deletions(-)
- create mode 100755 tests/shell/testcases/parsing/describe
-
-diff --git a/src/expression.c b/src/expression.c
-index 4c0874fe9950..f1cca8845376 100644
---- a/src/expression.c
-+++ b/src/expression.c
-@@ -135,12 +135,12 @@ void expr_describe(const struct expr *expr, struct output_ctx *octx)
- 		nft_print(octx, "datatype %s (%s)",
- 			  dtype->name, dtype->desc);
- 		len = dtype->size;
--	} else if (dtype != &invalid_type) {
-+	} else {
- 		nft_print(octx, "%s expression, datatype %s (%s)",
- 			  expr_name(expr), dtype->name, dtype->desc);
--	} else {
--		nft_print(octx, "datatype %s is invalid\n", expr->identifier);
--		return;
-+
-+		if (dtype == &invalid_type)
-+			return;
- 	}
- 
- 	if (dtype->basetype != NULL) {
-diff --git a/src/ipopt.c b/src/ipopt.c
-index 42ea41cd705b..67e904ff3d88 100644
---- a/src/ipopt.c
-+++ b/src/ipopt.c
-@@ -78,6 +78,9 @@ struct expr *ipopt_expr_alloc(const struct location *loc, uint8_t type,
- 	if (!tmpl)
- 		return NULL;
- 
-+	if (!tmpl->len)
-+		return NULL;
-+
- 	expr = expr_alloc(loc, EXPR_EXTHDR, tmpl->dtype,
- 			  BYTEORDER_BIG_ENDIAN, tmpl->len);
- 	expr->exthdr.desc   = desc;
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 357850dececc..16607bb79bdd 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -5332,6 +5332,10 @@ ip_hdr_expr		:	IP	ip_hdr_field	close_scope_ip
- 			|	IP	OPTION	ip_option_type ip_option_field	close_scope_ip
- 			{
- 				$$ = ipopt_expr_alloc(&@$, $3, $4);
-+				if (!$$) {
-+					erec_queue(error(&@1, "unknown ip option type/field"), state->msgs);
-+					YYERROR;
-+				}
- 			}
- 			|	IP	OPTION	ip_option_type close_scope_ip
- 			{
-diff --git a/tests/shell/testcases/parsing/describe b/tests/shell/testcases/parsing/describe
-new file mode 100755
-index 000000000000..2ee072e820fd
---- /dev/null
-+++ b/tests/shell/testcases/parsing/describe
-@@ -0,0 +1,7 @@
-+#!/bin/bash
-+
-+errmsg='Error: unknown ip option type/field'
-+
-+str=$($NFT describe ip option rr value 2>&1 | head -n 1)
-+
-+[ "$str" = "$errmsg" ] && exit 0
--- 
-2.32.0
-
+https://lore.kernel.org/all/20211016064302.165220-1-pbonzini@redhat.com/
+https://lore.kernel.org/all/20211015165519.135670-1-pbonzini@redhat.com/
