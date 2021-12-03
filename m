@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7EB0C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Dec 2021 16:08:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 304DAC433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Dec 2021 16:08:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1381985AbhLCQLf (ORCPT
+        id S1381979AbhLCQLi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 3 Dec 2021 11:11:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47842 "EHLO
+        Fri, 3 Dec 2021 11:11:38 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47868 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1381980AbhLCQLe (ORCPT
+        with ESMTP id S1381970AbhLCQLi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Dec 2021 11:11:34 -0500
+        Fri, 3 Dec 2021 11:11:38 -0500
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 124B6C061751
-        for <netfilter-devel@vger.kernel.org>; Fri,  3 Dec 2021 08:08:10 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12170C061751
+        for <netfilter-devel@vger.kernel.org>; Fri,  3 Dec 2021 08:08:14 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1mtB6W-00027A-Gn; Fri, 03 Dec 2021 17:08:08 +0100
+        id 1mtB6a-00027V-LC; Fri, 03 Dec 2021 17:08:12 +0100
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 2/3] exthdr: support ip/tcp options and sctp chunks in typeof expressions
-Date:   Fri,  3 Dec 2021 17:07:54 +0100
-Message-Id: <20211203160755.8720-3-fw@strlen.de>
+Subject: [PATCH nft 3/3] iptopt: fix crash with invalid field/type combo
+Date:   Fri,  3 Dec 2021 17:07:55 +0100
+Message-Id: <20211203160755.8720-4-fw@strlen.de>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20211203160755.8720-1-fw@strlen.de>
 References: <20211203160755.8720-1-fw@strlen.de>
@@ -34,197 +34,89 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This did not store the 'op' member and listing always treated this as ipv6
-extension header.
+% nft describe ip option rr value
+segmentation fault
 
-Add test cases for this.
+after this fix, this exits with 'Error: unknown ip option type/field'.
+
+Problem is that 'rr' doesn't have a value template, so the template struct is
+all-zeroes, so we crash when trying to use tmpl->dtype (its NULL).
+
+Furthermore, expr_describe tries to print expr->identifier but expr is
+exthdr, not symbol: ->identifier contains garbage.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/exthdr.c                                  | 47 ++++++++++++++++---
- .../testcases/sets/dumps/typeof_sets_0.nft    | 27 +++++++++++
- tests/shell/testcases/sets/typeof_sets_0      | 27 +++++++++++
- 3 files changed, 94 insertions(+), 7 deletions(-)
+ src/expression.c                       | 8 ++++----
+ src/ipopt.c                            | 3 +++
+ src/parser_bison.y                     | 4 ++++
+ tests/shell/testcases/parsing/describe | 7 +++++++
+ 4 files changed, 18 insertions(+), 4 deletions(-)
+ create mode 100755 tests/shell/testcases/parsing/describe
 
-diff --git a/src/exthdr.c b/src/exthdr.c
-index 2357ab60648d..3e5f5cd8b73e 100644
---- a/src/exthdr.c
-+++ b/src/exthdr.c
-@@ -115,7 +115,8 @@ static void exthdr_expr_clone(struct expr *new, const struct expr *expr)
+diff --git a/src/expression.c b/src/expression.c
+index 4c0874fe9950..f1cca8845376 100644
+--- a/src/expression.c
++++ b/src/expression.c
+@@ -135,12 +135,12 @@ void expr_describe(const struct expr *expr, struct output_ctx *octx)
+ 		nft_print(octx, "datatype %s (%s)",
+ 			  dtype->name, dtype->desc);
+ 		len = dtype->size;
+-	} else if (dtype != &invalid_type) {
++	} else {
+ 		nft_print(octx, "%s expression, datatype %s (%s)",
+ 			  expr_name(expr), dtype->name, dtype->desc);
+-	} else {
+-		nft_print(octx, "datatype %s is invalid\n", expr->identifier);
+-		return;
++
++		if (dtype == &invalid_type)
++			return;
+ 	}
  
- #define NFTNL_UDATA_EXTHDR_DESC 0
- #define NFTNL_UDATA_EXTHDR_TYPE 1
--#define NFTNL_UDATA_EXTHDR_MAX 2
-+#define NFTNL_UDATA_EXTHDR_OP	2
-+#define NFTNL_UDATA_EXTHDR_MAX 3
- 
- static int exthdr_parse_udata(const struct nftnl_udata *attr, void *data)
- {
-@@ -126,6 +127,7 @@ static int exthdr_parse_udata(const struct nftnl_udata *attr, void *data)
- 	switch (type) {
- 	case NFTNL_UDATA_EXTHDR_DESC:
- 	case NFTNL_UDATA_EXTHDR_TYPE:
-+	case NFTNL_UDATA_EXTHDR_OP:
- 		if (len != sizeof(uint32_t))
- 			return -1;
- 		break;
-@@ -140,6 +142,7 @@ static int exthdr_parse_udata(const struct nftnl_udata *attr, void *data)
- static struct expr *exthdr_expr_parse_udata(const struct nftnl_udata *attr)
- {
- 	const struct nftnl_udata *ud[NFTNL_UDATA_EXTHDR_MAX + 1] = {};
-+	enum nft_exthdr_op op = NFT_EXTHDR_OP_IPV6;
- 	const struct exthdr_desc *desc;
- 	unsigned int type;
- 	uint32_t desc_id;
-@@ -154,14 +157,31 @@ static struct expr *exthdr_expr_parse_udata(const struct nftnl_udata *attr)
- 	    !ud[NFTNL_UDATA_EXTHDR_TYPE])
+ 	if (dtype->basetype != NULL) {
+diff --git a/src/ipopt.c b/src/ipopt.c
+index 42ea41cd705b..67e904ff3d88 100644
+--- a/src/ipopt.c
++++ b/src/ipopt.c
+@@ -78,6 +78,9 @@ struct expr *ipopt_expr_alloc(const struct location *loc, uint8_t type,
+ 	if (!tmpl)
  		return NULL;
  
--	desc_id = nftnl_udata_get_u32(ud[NFTNL_UDATA_EXTHDR_DESC]);
--	desc = exthdr_find_desc(desc_id);
--	if (!desc)
--		return NULL;
-+	if (ud[NFTNL_UDATA_EXTHDR_OP])
-+		op = nftnl_udata_get_u32(ud[NFTNL_UDATA_EXTHDR_OP]);
- 
-+	desc_id = nftnl_udata_get_u32(ud[NFTNL_UDATA_EXTHDR_DESC]);
- 	type = nftnl_udata_get_u32(ud[NFTNL_UDATA_EXTHDR_TYPE]);
- 
--	return exthdr_expr_alloc(&internal_location, desc, type);
-+	switch (op) {
-+	case NFT_EXTHDR_OP_IPV6:
-+		desc = exthdr_find_desc(desc_id);
-+
-+		return exthdr_expr_alloc(&internal_location, desc, type);
-+	case NFT_EXTHDR_OP_TCPOPT:
-+		return tcpopt_expr_alloc(&internal_location,
-+					 desc_id, type);
-+	case NFT_EXTHDR_OP_IPV4:
-+		return ipopt_expr_alloc(&internal_location,
-+					 desc_id, type);
-+	case NFT_EXTHDR_OP_SCTP:
-+		return sctp_chunk_expr_alloc(&internal_location,
-+					     desc_id, type);
-+	case __NFT_EXTHDR_OP_MAX:
++	if (!tmpl->len)
 +		return NULL;
-+	}
 +
-+	return NULL;
- }
- 
- static unsigned int expr_exthdr_type(const struct exthdr_desc *desc,
-@@ -176,9 +196,22 @@ static int exthdr_expr_build_udata(struct nftnl_udata_buf *udbuf,
- 	const struct proto_hdr_template *tmpl = expr->exthdr.tmpl;
- 	const struct exthdr_desc *desc = expr->exthdr.desc;
- 	unsigned int type = expr_exthdr_type(desc, tmpl);
-+	enum nft_exthdr_op op = expr->exthdr.op;
- 
--	nftnl_udata_put_u32(udbuf, NFTNL_UDATA_EXTHDR_DESC, desc->id);
- 	nftnl_udata_put_u32(udbuf, NFTNL_UDATA_EXTHDR_TYPE, type);
-+	switch (op) {
-+	case NFT_EXTHDR_OP_IPV6:
-+		nftnl_udata_put_u32(udbuf, NFTNL_UDATA_EXTHDR_DESC, desc->id);
-+		break;
-+	case NFT_EXTHDR_OP_TCPOPT:
-+	case NFT_EXTHDR_OP_IPV4:
-+	case NFT_EXTHDR_OP_SCTP:
-+		nftnl_udata_put_u32(udbuf, NFTNL_UDATA_EXTHDR_OP, op);
-+		nftnl_udata_put_u32(udbuf, NFTNL_UDATA_EXTHDR_DESC, expr->exthdr.raw_type);
-+		break;
-+	default:
-+		return -1;
-+	}
- 
- 	return 0;
- }
-diff --git a/tests/shell/testcases/sets/dumps/typeof_sets_0.nft b/tests/shell/testcases/sets/dumps/typeof_sets_0.nft
-index 06d891e682b7..8f11b110552c 100644
---- a/tests/shell/testcases/sets/dumps/typeof_sets_0.nft
-+++ b/tests/shell/testcases/sets/dumps/typeof_sets_0.nft
-@@ -19,6 +19,21 @@ table inet t {
- 		elements = { 1, 1024 }
- 	}
- 
-+	set s5 {
-+		typeof ip option ra value
-+		elements = { 1, 1024 }
-+	}
+ 	expr = expr_alloc(loc, EXPR_EXTHDR, tmpl->dtype,
+ 			  BYTEORDER_BIG_ENDIAN, tmpl->len);
+ 	expr->exthdr.desc   = desc;
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 357850dececc..16607bb79bdd 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -5332,6 +5332,10 @@ ip_hdr_expr		:	IP	ip_hdr_field	close_scope_ip
+ 			|	IP	OPTION	ip_option_type ip_option_field	close_scope_ip
+ 			{
+ 				$$ = ipopt_expr_alloc(&@$, $3, $4);
++				if (!$$) {
++					erec_queue(error(&@1, "unknown ip option type/field"), state->msgs);
++					YYERROR;
++				}
+ 			}
+ 			|	IP	OPTION	ip_option_type close_scope_ip
+ 			{
+diff --git a/tests/shell/testcases/parsing/describe b/tests/shell/testcases/parsing/describe
+new file mode 100755
+index 000000000000..2ee072e820fd
+--- /dev/null
++++ b/tests/shell/testcases/parsing/describe
+@@ -0,0 +1,7 @@
++#!/bin/bash
 +
-+	set s6 {
-+		typeof tcp option maxseg size
-+		elements = { 1, 1024 }
-+	}
++errmsg='Error: unknown ip option type/field'
 +
-+	set s7 {
-+		typeof sctp chunk init num-inbound-streams
-+		elements = { 1, 4 }
-+	}
++str=$($NFT describe ip option rr value 2>&1 | head -n 1)
 +
- 	chain c1 {
- 		osf name @s1 accept
- 	}
-@@ -26,4 +41,16 @@ table inet t {
- 	chain c2 {
- 		vlan id @s2 accept
- 	}
-+
-+	chain c5 {
-+		ip option ra value @s5 accept
-+	}
-+
-+	chain c6 {
-+		tcp option maxseg size @s6 accept
-+	}
-+
-+	chain c7 {
-+		sctp chunk init num-inbound-streams @s7 accept
-+	}
- }
-diff --git a/tests/shell/testcases/sets/typeof_sets_0 b/tests/shell/testcases/sets/typeof_sets_0
-index a6ff8ca772e2..1e99e2987733 100755
---- a/tests/shell/testcases/sets/typeof_sets_0
-+++ b/tests/shell/testcases/sets/typeof_sets_0
-@@ -25,6 +25,21 @@ EXPECTED="table inet t {
- 		elements = { 1, 1024 }
- 	}
- 
-+	set s5 {
-+		typeof ip option ra value
-+		elements = { 1, 1024 }
-+	}
-+
-+	set s6 {
-+		typeof tcp option maxseg size
-+		elements = { 1, 1024 }
-+	}
-+
-+	set s7 {
-+		typeof sctp chunk init num-inbound-streams
-+		elements = { 1, 4 }
-+	}
-+
- 	chain c1 {
- 		osf name @s1 accept
- 	}
-@@ -32,6 +47,18 @@ EXPECTED="table inet t {
- 	chain c2 {
- 		ether type vlan vlan id @s2 accept
- 	}
-+
-+	chain c5 {
-+		ip option ra value @s5 accept
-+	}
-+
-+	chain c6 {
-+		tcp option maxseg size @s6 accept
-+	}
-+
-+	chain c7 {
-+		sctp chunk init num-inbound-streams @s7 accept
-+	}
- }"
- 
- set -e
++[ "$str" = "$errmsg" ] && exit 0
 -- 
 2.32.0
 
