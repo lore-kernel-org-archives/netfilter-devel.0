@@ -2,101 +2,101 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FAA8C433EF
-	for <netfilter-devel@archiver.kernel.org>; Sat,  4 Dec 2021 07:45:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 403E6C433EF
+	for <netfilter-devel@archiver.kernel.org>; Sat,  4 Dec 2021 12:05:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1354846AbhLDHtO (ORCPT
+        id S1384859AbhLDMI7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 4 Dec 2021 02:49:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58348 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243286AbhLDHtO (ORCPT
+        Sat, 4 Dec 2021 07:08:59 -0500
+Received: from dehost.average.org ([88.198.2.197]:39798 "EHLO
+        dehost.average.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1355048AbhLDMI6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 4 Dec 2021 02:49:14 -0500
-Received: from mail-pl1-x62a.google.com (mail-pl1-x62a.google.com [IPv6:2607:f8b0:4864:20::62a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2014EC061751;
-        Fri,  3 Dec 2021 23:45:49 -0800 (PST)
-Received: by mail-pl1-x62a.google.com with SMTP id u17so3640749plg.9;
-        Fri, 03 Dec 2021 23:45:49 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=sender:from:date:to:cc:subject:message-id:mail-followup-to
-         :references:mime-version:content-disposition:in-reply-to;
-        bh=WzYbQixtEx0KS/ZlBu83PT1ZVIAaCCusOpVsAtnAPp4=;
-        b=XODDrs75y6Mt1shO8VbPrsuiMWdQfGi58SsoDAoSoKh1v61969XcmnTCzIXl7Li8wy
-         k09QRbzqqyBy7joRE/+ngQ7Mfj3TKCBjHSythyTeimVbF/j1/nosPQbAAmRfIF078Yy8
-         4jwu2iG08+EQRFIgOcunEFLXGZWDzQi+Fi2BkFF0097OKcG0dGRBzSt6Y9ZtIkLZP6IW
-         gQRYdrnYthF0tPyTU1+QXViC8Pq0JRDUoyqJkxBKUpYZIMrqxbZn51PYm0904CyJtnvs
-         w+6vU1zgQ2zqppvliRWbV0ScAUjvtlzjeuVKX/DXQExE4CUsYSEv58Ieu+SFeR9I+txF
-         diFA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:sender:from:date:to:cc:subject:message-id
-         :mail-followup-to:references:mime-version:content-disposition
-         :in-reply-to;
-        bh=WzYbQixtEx0KS/ZlBu83PT1ZVIAaCCusOpVsAtnAPp4=;
-        b=jqb9DuaH5KMw0vyLGDmvSt0/VQYcBzfLFuA3lU8Ph+tLUSE6zLJNEg2BpSQQBsRH4T
-         bB3FIBZxC4nzXj86CJs6nunZDwXetbvIsT8ftRCQujAXGBRWki0fn6HIL94clieCDjjO
-         1kFaEhDYAKIb9T+WyIkM/nfqAjy+rj0965DnhYQ+ir2xVj4l4e4aWOZXmRNL/Cezzr2w
-         KEuiXAYDeiFPqvayc555th9CXMv1xyGAwjfhAujSOiu4aNelKLxKOFJtr5zL5T79aDzA
-         LSC1PuKmVNgRoiCS1pq/Ti3XI/42Wd8urkXf/qF8D9t3c2WMhLu816Qmpncryby0hd/z
-         XM+w==
-X-Gm-Message-State: AOAM5326fyl7JoEybuBMH3p1Mqx3xtdgKsnxh3n9BqDbL+n3Y3Omz2Gt
-        Qxll/Bh1JXWsY4CEia6Ed9GLyO7Ok1k=
-X-Google-Smtp-Source: ABdhPJxSJ8qOlX37SarlC2oo19qho3uetLjPGfSJHqdZhONOhufcRYjBhl4wtOSu9N/PDjHvcQCcuw==
-X-Received: by 2002:a17:90a:e40f:: with SMTP id hv15mr19990557pjb.5.1638603948348;
-        Fri, 03 Dec 2021 23:45:48 -0800 (PST)
-Received: from slk1.local.net (n110-23-108-30.sun3.vic.optusnet.com.au. [110.23.108.30])
-        by smtp.gmail.com with ESMTPSA id l1sm7051466pjh.28.2021.12.03.23.45.46
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 03 Dec 2021 23:45:47 -0800 (PST)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-X-Google-Original-From: Duncan Roe <dunc@slk1.local.net>
-Date:   Sat, 4 Dec 2021 18:45:43 +1100
-To:     netfilter@vger.kernel.org
-Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
+        Sat, 4 Dec 2021 07:08:58 -0500
+Received: from [IPV6:2a02:8106:1:6800:625a:a812:a95b:4e26] (unknown [IPv6:2a02:8106:1:6800:625a:a812:a95b:4e26])
+        by dehost.average.org (Postfix) with ESMTPSA id F40883947BCB;
+        Sat,  4 Dec 2021 13:05:29 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=average.org; s=mail;
+        t=1638619530; bh=PKvViDPLORg8+bSALvhEW+x4Yg2bTIx4EYamFFaB5Ls=;
+        h=Date:Subject:To:References:From:In-Reply-To:From;
+        b=E6qRlXYJnIzEOqt3afQYrKbsT9f+GM+nhZTeF1IW+wwmG+iDtzmKSltfU7/KfYifw
+         HNWk6z+SCAy5ypmEqg6n0Wb/aVqB7iizSn/PPDNIf1a8XmJjNdhq/T6HsNUvGbREhi
+         6Iqi6iDbUX8G7khpE6ZmNZv64s/MIkF2+rg1nC0g=
+Message-ID: <9d66247c-51c5-b2d9-584b-0422c99d08bd@average.org>
+Date:   Sat, 4 Dec 2021 13:05:21 +0100
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.3.1
 Subject: Re: Meaning of "." (dot) in netfilter
-Message-ID: <YascpztWuzJgKRgq@slk1.local.net>
-Mail-Followup-To: netfilter@vger.kernel.org,
+Content-Language: en-US
+To:     netfilter@vger.kernel.org,
         Netfilter Development <netfilter-devel@vger.kernel.org>
 References: <CAK3NTRAQE7UD9_0EuzyS0UGQ_s++Dg_hbZPXscHBrStnGJHGjw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAK3NTRAQE7UD9_0EuzyS0UGQ_s++Dg_hbZPXscHBrStnGJHGjw@mail.gmail.com>
+ <YascpztWuzJgKRgq@slk1.local.net>
+From:   Eugene Crosser <crosser@average.org>
+In-Reply-To: <YascpztWuzJgKRgq@slk1.local.net>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="------------uukmFQYdyBQKr4UI5wrf5b8x"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Ross,
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--------------uukmFQYdyBQKr4UI5wrf5b8x
+Content-Type: multipart/mixed; boundary="------------j7oSEXizHa9bkn0a3PHQ0Xyd";
+ protected-headers="v1"
+From: Eugene Crosser <crosser@average.org>
+To: netfilter@vger.kernel.org,
+ Netfilter Development <netfilter-devel@vger.kernel.org>
+Message-ID: <9d66247c-51c5-b2d9-584b-0422c99d08bd@average.org>
+Subject: Re: Meaning of "." (dot) in netfilter
+References: <CAK3NTRAQE7UD9_0EuzyS0UGQ_s++Dg_hbZPXscHBrStnGJHGjw@mail.gmail.com>
+ <YascpztWuzJgKRgq@slk1.local.net>
+In-Reply-To: <YascpztWuzJgKRgq@slk1.local.net>
 
-On Fri, Dec 03, 2021 at 10:33:55PM -0800, Ross Boylan wrote:
-> https://wiki.nftables.org/wiki-nftables/index.php/Simple_ruleset_for_a_home_router
-> include a number of rules like
->
->         ip protocol . th dport vmap { tcp . 22 : accept, udp . 53 :
-> accept, tcp . 53 : accept, udp . 67 : accept}
-> with possibly 2 different uses of ".", namely 'ip protocol .'  and 'udp . 67'.
-> What do those "."'s mean?
->
-> I've looked in available documentation, but can't tell.
->
-> Thanks.
-> Ross Boylan
+--------------j7oSEXizHa9bkn0a3PHQ0Xyd
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-"." is the symbol for concatenation. It's been missing from the man page
-forever.
+Hi Duncan,
 
-I was going to submit a patch to add "." but wasn't really sure when you could
-use it so I never did.
+On 04/12/2021 08:45, Duncan Roe wrote:
 
-The rule defines a Verdict Map (vmap) whose elements are a concatenation of ip
-protocol and Transport Header (th) Destination Port (dport). Accept tcp.ssh,
-udp.domain, tcp.domain and udp.bootps (udp & tcp are IP protocols).
+> "." is the symbol for concatenation. It's been missing from the man pag=
+e
+> forever.
+>=20
+> I was going to submit a patch to add "." but wasn't really sure when yo=
+u could
+> use it so I never did.
 
-Post back if I didn't explain well enough.
+It is my understanding that the only use for concatenation is to define
+composite value for the key in a `map` / `vmap` or the element in a `set`=
+=2E Maybe
+someone more knowledgeable can correct me.
 
-cc: netfilter-devel in the hope someone could update the man page.
+Regards,
 
-Cheers ... Duncan.
+Eugene
+
+--------------j7oSEXizHa9bkn0a3PHQ0Xyd--
+
+--------------uukmFQYdyBQKr4UI5wrf5b8x
+Content-Type: application/pgp-signature; name="OpenPGP_signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="OpenPGP_signature"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCgAdFiEEnAziRJw3ydIzIkaHfKQHw5GdRYwFAmGrWYEACgkQfKQHw5Gd
+RYxItAf/Vk8vU7PeochVHAGIJyWPB7H6JfW/tOr+y9lVYTK1IqO6DynynbwaYrIj
+nYZHAhYeuRWF+QQuKSOqBcYQbfZUq6pxMVQr2MVDD8JFk00soTmor97KPnJknWlQ
+FsOgG8xCderRfJB/YfAFfxm2CbGB5QwTxlGGkAojbfb1AEhhAW7fSRrU5/UsQ8WV
+noEKua3fdpvNuWxRLJ56QHFU5FZ8uSZ0y3egoMx6ybKlByly1m6k9tMXQhejGy/W
+MnAdpqrI2yw8HT2wUazQ32Awsnj3HxdsijP5fWiA0YBPge3QErc6LK7maWWAvInf
+owmi5w6qrdPRT2zTqUfsuipEAiyIdg==
+=09Fz
+-----END PGP SIGNATURE-----
+
+--------------uukmFQYdyBQKr4UI5wrf5b8x--
