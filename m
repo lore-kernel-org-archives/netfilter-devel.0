@@ -2,162 +2,101 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9FD4C433FE
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Dec 2021 21:49:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FAA8C433EF
+	for <netfilter-devel@archiver.kernel.org>; Sat,  4 Dec 2021 07:45:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1383310AbhLCVw0 (ORCPT
+        id S1354846AbhLDHtO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 3 Dec 2021 16:52:26 -0500
-Received: from mg.ssi.bg ([193.238.174.37]:41494 "EHLO mg.ssi.bg"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1344131AbhLCVwZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Dec 2021 16:52:25 -0500
-Received: from mg.ssi.bg (localhost [127.0.0.1])
-        by mg.ssi.bg (Proxmox) with ESMTP id 6173524B47;
-        Fri,  3 Dec 2021 23:48:56 +0200 (EET)
-Received: from ink.ssi.bg (unknown [193.238.174.40])
-        by mg.ssi.bg (Proxmox) with ESMTP id 7002E24BA8;
-        Fri,  3 Dec 2021 23:48:53 +0200 (EET)
-Received: from ja.ssi.bg (unknown [178.16.129.10])
-        by ink.ssi.bg (Postfix) with ESMTPS id EE0E43C0332;
-        Fri,  3 Dec 2021 23:48:52 +0200 (EET)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.16.1/8.16.1) with ESMTP id 1B3LmpVc038846;
-        Fri, 3 Dec 2021 23:48:52 +0200
-Date:   Fri, 3 Dec 2021 23:48:51 +0200 (EET)
-From:   Julian Anastasov <ja@ssi.bg>
-To:     Simon Kirby <sim@hostway.ca>
-cc:     Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org
-Subject: Re: Inability to IPVS DR with nft dnat since 9971a514ed26
-In-Reply-To: <20211203083452.GA13536@hostway.ca>
-Message-ID: <ae4d64a5-8742-a392-4866-edce08e3bdd@ssi.bg>
-References: <20190327062650.GA10700@hostway.ca> <20190327093027.gmflo27icuhr326p@breakpoint.cc> <20211203083452.GA13536@hostway.ca>
+        Sat, 4 Dec 2021 02:49:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58348 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S243286AbhLDHtO (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 4 Dec 2021 02:49:14 -0500
+Received: from mail-pl1-x62a.google.com (mail-pl1-x62a.google.com [IPv6:2607:f8b0:4864:20::62a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2014EC061751;
+        Fri,  3 Dec 2021 23:45:49 -0800 (PST)
+Received: by mail-pl1-x62a.google.com with SMTP id u17so3640749plg.9;
+        Fri, 03 Dec 2021 23:45:49 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=sender:from:date:to:cc:subject:message-id:mail-followup-to
+         :references:mime-version:content-disposition:in-reply-to;
+        bh=WzYbQixtEx0KS/ZlBu83PT1ZVIAaCCusOpVsAtnAPp4=;
+        b=XODDrs75y6Mt1shO8VbPrsuiMWdQfGi58SsoDAoSoKh1v61969XcmnTCzIXl7Li8wy
+         k09QRbzqqyBy7joRE/+ngQ7Mfj3TKCBjHSythyTeimVbF/j1/nosPQbAAmRfIF078Yy8
+         4jwu2iG08+EQRFIgOcunEFLXGZWDzQi+Fi2BkFF0097OKcG0dGRBzSt6Y9ZtIkLZP6IW
+         gQRYdrnYthF0tPyTU1+QXViC8Pq0JRDUoyqJkxBKUpYZIMrqxbZn51PYm0904CyJtnvs
+         w+6vU1zgQ2zqppvliRWbV0ScAUjvtlzjeuVKX/DXQExE4CUsYSEv58Ieu+SFeR9I+txF
+         diFA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:sender:from:date:to:cc:subject:message-id
+         :mail-followup-to:references:mime-version:content-disposition
+         :in-reply-to;
+        bh=WzYbQixtEx0KS/ZlBu83PT1ZVIAaCCusOpVsAtnAPp4=;
+        b=jqb9DuaH5KMw0vyLGDmvSt0/VQYcBzfLFuA3lU8Ph+tLUSE6zLJNEg2BpSQQBsRH4T
+         bB3FIBZxC4nzXj86CJs6nunZDwXetbvIsT8ftRCQujAXGBRWki0fn6HIL94clieCDjjO
+         1kFaEhDYAKIb9T+WyIkM/nfqAjy+rj0965DnhYQ+ir2xVj4l4e4aWOZXmRNL/Cezzr2w
+         KEuiXAYDeiFPqvayc555th9CXMv1xyGAwjfhAujSOiu4aNelKLxKOFJtr5zL5T79aDzA
+         LSC1PuKmVNgRoiCS1pq/Ti3XI/42Wd8urkXf/qF8D9t3c2WMhLu816Qmpncryby0hd/z
+         XM+w==
+X-Gm-Message-State: AOAM5326fyl7JoEybuBMH3p1Mqx3xtdgKsnxh3n9BqDbL+n3Y3Omz2Gt
+        Qxll/Bh1JXWsY4CEia6Ed9GLyO7Ok1k=
+X-Google-Smtp-Source: ABdhPJxSJ8qOlX37SarlC2oo19qho3uetLjPGfSJHqdZhONOhufcRYjBhl4wtOSu9N/PDjHvcQCcuw==
+X-Received: by 2002:a17:90a:e40f:: with SMTP id hv15mr19990557pjb.5.1638603948348;
+        Fri, 03 Dec 2021 23:45:48 -0800 (PST)
+Received: from slk1.local.net (n110-23-108-30.sun3.vic.optusnet.com.au. [110.23.108.30])
+        by smtp.gmail.com with ESMTPSA id l1sm7051466pjh.28.2021.12.03.23.45.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 03 Dec 2021 23:45:47 -0800 (PST)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+X-Google-Original-From: Duncan Roe <dunc@slk1.local.net>
+Date:   Sat, 4 Dec 2021 18:45:43 +1100
+To:     netfilter@vger.kernel.org
+Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: Meaning of "." (dot) in netfilter
+Message-ID: <YascpztWuzJgKRgq@slk1.local.net>
+Mail-Followup-To: netfilter@vger.kernel.org,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <CAK3NTRAQE7UD9_0EuzyS0UGQ_s++Dg_hbZPXscHBrStnGJHGjw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAK3NTRAQE7UD9_0EuzyS0UGQ_s++Dg_hbZPXscHBrStnGJHGjw@mail.gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi Ross,
 
-	Hello,
+On Fri, Dec 03, 2021 at 10:33:55PM -0800, Ross Boylan wrote:
+> https://wiki.nftables.org/wiki-nftables/index.php/Simple_ruleset_for_a_home_router
+> include a number of rules like
+>
+>         ip protocol . th dport vmap { tcp . 22 : accept, udp . 53 :
+> accept, tcp . 53 : accept, udp . 67 : accept}
+> with possibly 2 different uses of ".", namely 'ip protocol .'  and 'udp . 67'.
+> What do those "."'s mean?
+>
+> I've looked in available documentation, but can't tell.
+>
+> Thanks.
+> Ross Boylan
 
-On Fri, 3 Dec 2021, Simon Kirby wrote:
+"." is the symbol for concatenation. It's been missing from the man page
+forever.
 
-> I had some time to set up some test VMs for this, which I can post if
-> you'd like (several GB), or I can tarball up the configs.
-> 
-> Our setup still doesn't work in 5.15, and we have some LVS servers held
-> up on 4.14 kernels that are the last working stable branch.
-> 
-> LVS expects the VIPs to route to loopback in order to reach the ipvs
-> hook, and since 9971a514ed2697e542f3984a6162eac54bb1da98 ("netfilter:
-> nf_nat: add nat type hooks to nat core"), the nftrace output changes to
-> show that the ipvs_vs_dr_xmit packet is oif "lo" rather than "enp1s0".
-> 
-> With perf probes, I found that the reason the outbound device is changing
-> is that there is an nft hook that ends up calling ip_route_me_harder().
+I was going to submit a patch to add "." but wasn't really sure when you could
+use it so I never did.
 
-	Yes, this call is supposed to route locally generated
-packets after daddr is translated by Netfilter. But IPVS uses
-LOCAL_OUT hook to post packets to real servers. If you use
-DR method, daddr is not changed (remains VIP) but packet's route
-points to the real server (different from VIP). Any rerouting
-will assign wrong route.
+The rule defines a Verdict Map (vmap) whose elements are a concatenation of ip
+protocol and Transport Header (th) Destination Port (dport). Accept tcp.ssh,
+udp.domain, tcp.domain and udp.bootps (udp & tcp are IP protocols).
 
-	Such code that compares tuple.dst.u3.ip with
-tuple.src.u3.ip (for !dir) in nf_nat_ipv4_local_fn() is present
-in old kernels. So, I'm not sure how you escaped it. The
-only possible way is if net.ipv4.vs.conntrack is 0 because
-in this case ip_vs_send_or_cont() calls ip_vs_notrack() to set 
-IP_CT_UNTRACKED and ct becomes NULL (untracked skb is skipped
-by NAT).
+Post back if I didn't explain well enough.
 
-> This function is not called prior to this change, but we can make it be
-> called even on 4.14 by hooking nat output (with no rules) or route output
-> with anything modifying, such as "mark set 1".
+cc: netfilter-devel in the hope someone could update the man page.
 
-	In this case it hits the mangle code (ipt_mangle_out).
-
-> We just didn't happen to hook this previously, so it worked for us, but
-> after this change, all hooks (including output) are always applied.
-> 
-> # perf probe -a 'ip_route_me_harder%return retval=$retval'
-> # perf record -g -e probe:ip_route_me_harder__return -aR sleep 4
-> (send a test connection)
-> # perf script
-> swapper     0 [000]  1654.547622: probe:ip_route_me_harder__return: (ffffffff819ac910 <- ffffffffa002b8f6) retval=0x0
->         ffffffff810564b0 kretprobe_trampoline+0x0 (vmlinux-4.14.252)
->         ffffffffa0084090 nft_nat_ipv4_local_fn+0x10 ([nft_chain_nat_ipv4])
->         ffffffff8193e793 nf_hook_slow+0x43 (vmlinux-4.14.252)
->         ffffffffa004af2b ip_vs_dr_xmit+0x18b ([ip_vs])
->         ffffffffa003fb2e ip_vs_in+0x58e ([ip_vs])
->         ffffffffa00400d1 ip_vs_local_request4+0x21 ([ip_vs])
->         ffffffffa00400e9 ip_vs_remote_request4+0x9 ([ip_vs])
->         ffffffff8193e793 nf_hook_slow+0x43 (vmlinux-4.14.252)
->         ffffffff8195c48b ip_local_deliver+0x7b (vmlinux-4.14.252)
->         ffffffff8195c0b8 ip_rcv_finish+0x1f8 (vmlinux-4.14.252)
->         ffffffff8195c7b7 ip_rcv+0x2e7 (vmlinux-4.14.252)
->         ffffffff818dc113 __netif_receive_skb_core+0x883 (vmlinux-4.14.252)
-> (pruned a bit)
-> 
-> On 5.15, the trace is similar, but nft_nat_ipv4_local_fn is gone
-> (nft_nat_do_chain is inlined).
-> 
-> nftrace output through "nft monitor trace" shows it changing the packet
-> dest between filter output and nat postrouting:
-> 
-> ...
-> trace id 32904fd3 ip filter output packet: oif "enp1s0" @ll,0,112 0x5254009039555254002ace280800 ip saddr 192.168.7.1 ip daddr 10.99.99.10 ip dscp 0x04 ip ecn not-ect ip ttl 63 ip id 5753 ip length 60 tcp sport 58620 tcp dport 80 tcp flags == syn tcp window 64240
-> trace id 32904fd3 ip filter output verdict continue
-> trace id 32904fd3 ip filter output policy accept
-> trace id 32904fd3 ip nat postrouting packet: iif "enp1s0" oif "lo" ether saddr 52:54:00:2a:ce:28 ether daddr 52:54:00:90:39:55 ip saddr 192.168.7.1 ip daddr 10.99.99.10 ip dscp 0x04 ip ecn not-ect ip ttl 63 ip id 5753 ip length 60 tcp sport 58620 tcp dport 80 tcp flags == syn tcp window 64240
-> trace id 32904fd3 ip nat postrouting verdict continue
-> trace id 32904fd3 ip nat postrouting policy accept
-> 
-> On 4.14 without hooking nat output, the oif for nat postrouting remains
-> unchanged ("enp1s0").
-
-	Is net.ipv4.vs.conntrack set in 4.14 ?
-
-> If we avoid the nftables dnat rule and connect directly to the LVS VIP,
-> it still works on newer kernels, I suspect because nf_nat_ipv4_fn()
-> doesn't match. If we dnat directly to the DR VIP without LVS, it works
-
-	The problem is that the DNAT rule schedules translation
-which is detected by this check:
-
-	if (ct->tuplehash[dir].tuple.dst.u3.ip !=
-	    ct->tuplehash[!dir].tuple.src.u3.ip) {
-		err = ip_route_me_harder(state->net, state->sk, skb, RTN_UNSPEC);
-
-	But it happens if ct is not NULL (vs/conntrack=1).
-
-> because the dest is not loopback, as expected. It's the combination of
-> these two that used to work, but now doesn't.
-> 
-> Our specific use case here is that we're doing the dnat from public to
-> rfc1918 space, and the rfc1918 LVS VIPs support some hairpinning cases.
-> 
-> Any ideas?
-
-	As nf_nat_ipv4_local_fn is just for LOCAL_OUT, an additional
-skb->dev check can help to skip the code when packet comes from
-network (not from local stack):
-
-	if (ret != NF_ACCEPT || skb->dev)
-		return ret;
-
-	But I'm not sure if such hack breaks something.
-
-	Second option is to check if daddr/dport actually changed
-in our call to nf_nat_ipv4_fn() but it is more complex.
-It will catch that packet was already DNAT-ed in PRE_ROUTING,
-it was already routed locally and now it is passed on LOCAL_OUT
-by IPVS for second DNAT+rerouting which is not wanted by IPVS.
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
-
+Cheers ... Duncan.
