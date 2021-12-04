@@ -2,101 +2,90 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 403E6C433EF
-	for <netfilter-devel@archiver.kernel.org>; Sat,  4 Dec 2021 12:05:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4C89C433F5
+	for <netfilter-devel@archiver.kernel.org>; Sat,  4 Dec 2021 20:56:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1384859AbhLDMI7 (ORCPT
+        id S1353205AbhLDU7c (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 4 Dec 2021 07:08:59 -0500
-Received: from dehost.average.org ([88.198.2.197]:39798 "EHLO
-        dehost.average.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1355048AbhLDMI6 (ORCPT
+        Sat, 4 Dec 2021 15:59:32 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33858 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S243137AbhLDU7c (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 4 Dec 2021 07:08:58 -0500
-Received: from [IPV6:2a02:8106:1:6800:625a:a812:a95b:4e26] (unknown [IPv6:2a02:8106:1:6800:625a:a812:a95b:4e26])
-        by dehost.average.org (Postfix) with ESMTPSA id F40883947BCB;
-        Sat,  4 Dec 2021 13:05:29 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=average.org; s=mail;
-        t=1638619530; bh=PKvViDPLORg8+bSALvhEW+x4Yg2bTIx4EYamFFaB5Ls=;
-        h=Date:Subject:To:References:From:In-Reply-To:From;
-        b=E6qRlXYJnIzEOqt3afQYrKbsT9f+GM+nhZTeF1IW+wwmG+iDtzmKSltfU7/KfYifw
-         HNWk6z+SCAy5ypmEqg6n0Wb/aVqB7iizSn/PPDNIf1a8XmJjNdhq/T6HsNUvGbREhi
-         6Iqi6iDbUX8G7khpE6ZmNZv64s/MIkF2+rg1nC0g=
-Message-ID: <9d66247c-51c5-b2d9-584b-0422c99d08bd@average.org>
-Date:   Sat, 4 Dec 2021 13:05:21 +0100
+        Sat, 4 Dec 2021 15:59:32 -0500
+Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF3A6C061751
+        for <netfilter-devel@vger.kernel.org>; Sat,  4 Dec 2021 12:56:06 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20190108; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=4b+QhE/gvzRBZYDT2yR8qYLon0WuPIzF0Y5MutRF00Q=; b=RIqvuiVKWjgcgQIq9ODYdMp0mW
+        6KVr2Zlx37gRdwLEEWUKmWpWrKBmQDFKGI8a9Rr0tmqBLUpyYXS8DxTCxUcmMckCPTVBopCuqIa+T
+        4761xxO4/MHw8R3ig6+4CuUV9t146pf2vjV8BitftSTGkca5y47/CrvGd2DLfd4xgzwdYfYmTcFnx
+        /B2UZ8ZIldohOI45rJrIT6CFfy+izCORUB4ArtRDtGm5sXVLCthZPxPtXq2Cml/CotTqdmvPYLVmU
+        wX+YEbQINIzP+RCQOXSXng41/6eFuoh5bzzf9gDxbFX7fHPpxU9B8e0IiYl59kURaRlHELBzp0prx
+        n/xPRJgA==;
+Received: from ulthar.dreamlands ([192.168.96.2] helo=ulthar.dreamlands.azazel.net)
+        by kadath.azazel.net with esmtp (Exim 4.94.2)
+        (envelope-from <jeremy@azazel.net>)
+        id 1mtc4h-00FAZ2-Qd
+        for netfilter-devel@vger.kernel.org; Sat, 04 Dec 2021 20:56:03 +0000
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [ulogd2 PATCH] build: bump libnetfilter_log dependency
+Date:   Sat,  4 Dec 2021 20:56:00 +0000
+Message-Id: <20211204205600.3570672-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.33.0
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.3.1
-Subject: Re: Meaning of "." (dot) in netfilter
-Content-Language: en-US
-To:     netfilter@vger.kernel.org,
-        Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <CAK3NTRAQE7UD9_0EuzyS0UGQ_s++Dg_hbZPXscHBrStnGJHGjw@mail.gmail.com>
- <YascpztWuzJgKRgq@slk1.local.net>
-From:   Eugene Crosser <crosser@average.org>
-In-Reply-To: <YascpztWuzJgKRgq@slk1.local.net>
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="------------uukmFQYdyBQKr4UI5wrf5b8x"
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 192.168.96.2
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---------------uukmFQYdyBQKr4UI5wrf5b8x
-Content-Type: multipart/mixed; boundary="------------j7oSEXizHa9bkn0a3PHQ0Xyd";
- protected-headers="v1"
-From: Eugene Crosser <crosser@average.org>
-To: netfilter@vger.kernel.org,
- Netfilter Development <netfilter-devel@vger.kernel.org>
-Message-ID: <9d66247c-51c5-b2d9-584b-0422c99d08bd@average.org>
-Subject: Re: Meaning of "." (dot) in netfilter
-References: <CAK3NTRAQE7UD9_0EuzyS0UGQ_s++Dg_hbZPXscHBrStnGJHGjw@mail.gmail.com>
- <YascpztWuzJgKRgq@slk1.local.net>
-In-Reply-To: <YascpztWuzJgKRgq@slk1.local.net>
+Recent changes to add conntrack info to the NFLOG output plug-in rely on
+symbols only present in the headers provided by libnetfilter-log v1.0.2:
 
---------------j7oSEXizHa9bkn0a3PHQ0Xyd
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+    CC       ulogd_inppkt_NFLOG.lo
+  ulogd_inppkt_NFLOG.c: In function 'build_ct':
+  ulogd_inppkt_NFLOG.c:346:34: error: 'NFULA_CT' undeclared (first use in this function); did you mean 'NFULA_GID'?
+     if (mnl_attr_get_type(attr) == NFULA_CT) {
+                                    ^~~~~~~~
+                                    NFULA_GID
+  ulogd_inppkt_NFLOG.c:346:34: note: each undeclared identifier is reported only once for each function it appears in
+  ulogd_inppkt_NFLOG.c: In function 'start':
+  ulogd_inppkt_NFLOG.c:669:12: error: 'NFULNL_CFG_F_CONNTRACK' undeclared (first use in this function); did you mean 'NFULNL_CFG_F_SEQ'?
+     flags |= NFULNL_CFG_F_CONNTRACK;
+              ^~~~~~~~~~~~~~~~~~~~~~
+              NFULNL_CFG_F_SEQ
 
-Hi Duncan,
+Bump the pkg-config version accordingly.
 
-On 04/12/2021 08:45, Duncan Roe wrote:
+Fixes: f6a615587a10 ("NFLOG: attach struct nf_conntrack")
+Fixes: e513a04cd925 ("NFLOG: add NFULNL_CFG_F_CONNTRACK flag")
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+ configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> "." is the symbol for concatenation. It's been missing from the man pag=
-e
-> forever.
->=20
-> I was going to submit a patch to add "." but wasn't really sure when yo=
-u could
-> use it so I never did.
+diff --git a/configure.ac b/configure.ac
+index 895d58439ef7..b3e1c8f6b926 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -52,7 +52,7 @@ AC_ARG_ENABLE([nflog],
+               [enable_nflog=$enableval],
+               [enable_nflog=yes])
+ AS_IF([test "x$enable_nflog" = "xyes"],
+-      [PKG_CHECK_MODULES([LIBNETFILTER_LOG], [libnetfilter_log >= 1.0.0])
++      [PKG_CHECK_MODULES([LIBNETFILTER_LOG], [libnetfilter_log >= 1.0.2])
+        AC_DEFINE([BUILD_NFLOG], [1], [Building nflog module])],
+       [enable_nflog=no])
+ AM_CONDITIONAL([BUILD_NFLOG], [test "x$enable_nflog" = "xyes"])
+-- 
+2.33.0
 
-It is my understanding that the only use for concatenation is to define
-composite value for the key in a `map` / `vmap` or the element in a `set`=
-=2E Maybe
-someone more knowledgeable can correct me.
-
-Regards,
-
-Eugene
-
---------------j7oSEXizHa9bkn0a3PHQ0Xyd--
-
---------------uukmFQYdyBQKr4UI5wrf5b8x
-Content-Type: application/pgp-signature; name="OpenPGP_signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="OpenPGP_signature"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAEBCgAdFiEEnAziRJw3ydIzIkaHfKQHw5GdRYwFAmGrWYEACgkQfKQHw5Gd
-RYxItAf/Vk8vU7PeochVHAGIJyWPB7H6JfW/tOr+y9lVYTK1IqO6DynynbwaYrIj
-nYZHAhYeuRWF+QQuKSOqBcYQbfZUq6pxMVQr2MVDD8JFk00soTmor97KPnJknWlQ
-FsOgG8xCderRfJB/YfAFfxm2CbGB5QwTxlGGkAojbfb1AEhhAW7fSRrU5/UsQ8WV
-noEKua3fdpvNuWxRLJ56QHFU5FZ8uSZ0y3egoMx6ybKlByly1m6k9tMXQhejGy/W
-MnAdpqrI2yw8HT2wUazQ32Awsnj3HxdsijP5fWiA0YBPge3QErc6LK7maWWAvInf
-owmi5w6qrdPRT2zTqUfsuipEAiyIdg==
-=09Fz
------END PGP SIGNATURE-----
-
---------------uukmFQYdyBQKr4UI5wrf5b8x--
