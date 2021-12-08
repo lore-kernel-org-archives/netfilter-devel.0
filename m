@@ -2,73 +2,62 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 320D7C433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Dec 2021 13:48:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66E7BC433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Dec 2021 13:49:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232454AbhLHNvb (ORCPT
+        id S232769AbhLHNxN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 8 Dec 2021 08:51:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59868 "EHLO
+        Wed, 8 Dec 2021 08:53:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60276 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231571AbhLHNva (ORCPT
+        with ESMTP id S232761AbhLHNxN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Dec 2021 08:51:30 -0500
-Received: from mail-lf1-x12b.google.com (mail-lf1-x12b.google.com [IPv6:2a00:1450:4864:20::12b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE6DCC061746
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Dec 2021 05:47:58 -0800 (PST)
-Received: by mail-lf1-x12b.google.com with SMTP id u3so5771756lfl.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 08 Dec 2021 05:47:58 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ns1.com; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to;
-        bh=lSBMe7RouMFOapr4mmTCEBsCRhqrrf7enDPfwXJMGoQ=;
-        b=V8sL9+ZicUEKb5IIpUh2Xv7+HmlCLnMBYnBt36Bx0Xm16yYgRGYVTjkHPYW2ceFt18
-         jOoDdxCN7VtZctgIOMeF5xFjyE7n/K54lpNiZleXhdYZJBhFR6Xax8luoy5m6G77cnMC
-         lVaAxi9fegoDstY0gokHOuJuVxl7YHsKKXnywlFGTFWJVIit3BniBrDsPZapXq2CJNZb
-         EerGbBo7vW/4jYEb5373VY/tCsUD/9yWTs5fTOMpP24dNYVfzlFWaTUsPXa0o0eP+5Dk
-         +nY9o1f4I0Zk0QQ+v8J//DECNDS6Pmq9pZ/Vt/PopqugWk+Y7dLxvg/OszO7+D0IpXiZ
-         5jNQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to;
-        bh=lSBMe7RouMFOapr4mmTCEBsCRhqrrf7enDPfwXJMGoQ=;
-        b=IwydN4UNz36ks5lDzC/1NNosoGefA3mBBRHYzYnWnmSKptpWRefHbQwrP7L95W3XIk
-         QHVewgwL7BHp63bWX9GDbA5L139qweuco8mNl/64Rv94hz1S3E6LL9xnYFu2AKOh+zbr
-         cH60VzpEF5Lz06EKm2C6OxBIgK6zZ3v69qoK2jeqNyvFMkBAB9eXetzrA7PKbPI3LqGt
-         SN4h6BtaGcAeDpBkrhx97mqKybnkMndT1hzAIWSyEI4OEsC4FSGMEmZAMLNs4yqz4ICv
-         DVgnuWPPCM3usfHLE5IvlTCzab6i3oaQDYUZ7mCfdKIRZr9S+KFRw9SvjwpdbsXmbftT
-         vRsQ==
-X-Gm-Message-State: AOAM530DwmFW0IwSmdQAWsCn6tJ3GfGSFKYDv7enJ5xKmjzzi1QAsuZT
-        PISjlu78fuRZ32/uNYCsNTiEA1nrrWN/JC8G3t5WAiv1q1lEWw==
-X-Google-Smtp-Source: ABdhPJw+ivLJ19gXs8CHH4s/j5wOnUViQ6arlbaY7FHwmk32c5SZCqk7YHnTxKA3i+9jo46HPP8ie9IiBoCuZwwRvFo=
-X-Received: by 2002:a05:6512:3d10:: with SMTP id d16mr46352679lfv.78.1638971276955;
- Wed, 08 Dec 2021 05:47:56 -0800 (PST)
-MIME-Version: 1.0
-References: <CA+PiBLyAYMBw-TgdaqVZ_a2agbRcdKnpZjS9OvP02oPAGPb=+Q@mail.gmail.com>
-In-Reply-To: <CA+PiBLyAYMBw-TgdaqVZ_a2agbRcdKnpZjS9OvP02oPAGPb=+Q@mail.gmail.com>
-From:   Vitaly Zuevsky <vzuevsky@ns1.com>
-Date:   Wed, 8 Dec 2021 13:47:46 +0000
-Message-ID: <CA+PiBLx2PKt68im24s1wHD7dcyHK-f0pBEhPWQTHsrvenT1f9w@mail.gmail.com>
-Subject: Fwd: conntrack -L does not show the full table
+        Wed, 8 Dec 2021 08:53:13 -0500
+X-Greylist: delayed 161467 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 08 Dec 2021 05:49:41 PST
+Received: from dehost.average.org (dehost.average.org [IPv6:2a01:4f8:130:53eb::2])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5ECA3C061746
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Dec 2021 05:49:41 -0800 (PST)
+Received: from wncross.fkb.profitbricks.net (unknown [IPv6:2a02:8106:1:6800:8b1c:cff2:1ce3:e09b])
+        by dehost.average.org (Postfix) with ESMTPA id E0709394DE98
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Dec 2021 14:49:37 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=average.org; s=mail;
+        t=1638971378; bh=sI9bBkpdRwAyxVzGYSmaNFUcTH1xJR5BFeMIFMQ+Kt4=;
+        h=From:To:Subject:Date:From;
+        b=o05AEMXYprZ74MAyJkvcQW4qyD87vwzGHFFhm0usdPtIxw/8hXbrQ9Fh411YDVpo2
+         l84DTA8rrTp/3BTbbTJlEt/9mcpgVCXQ0dXMPwTE5T+prZzVfMjZJpUhCPSQ5TIIRO
+         +jlJGXc+K3bp/2fdXwCqTd5PTBTpS0TlKq4p6O7E=
+From:   Eugene Crosser <crosser@average.org>
 To:     netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Subject: [PATCH nft] Improve handling of errors from mnl* functions"
+Date:   Wed,  8 Dec 2021 14:49:12 +0100
+Message-Id: <20211208134914.16365-1-crosser@average.org>
+X-Mailer: git-send-email 2.32.0
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi
+Libnftables does not handle errors that libmnl functions may return
+properly:
 
-I have many conntrack entries:
-# conntrack -C
-85380
-However, I can't see them all:
-# conntrack -L
-...
-conntrack v1.4.4 (conntrack-tools): 7315 flow entries have been shown.
+1. Retriable errors indicated by errno=EINTR are not retried, but
+   rather treted as fatal.
+2. Instead of reporting the error to the caller, functions call
+   exit() on error, which terminates the caller process.
 
-It is not in the man conntrack how to get the rest (85380-7315)
-entries. Will it be a bug?
+This patch set partly addresses the second point, by calling
+abort() instead of exit() on ABI error, that will at least give
+more information to the sysadmin than quiet termination of a
+process.
 
-Thank you.
-Vitaly Zuevsky
+It attempts to properly address the first point, by introducing
+retry logic when mnl_socket_recvfrom() or mnl_cb_run() return
+-1 with errno=EINTR.
+
+It would be desirable to fully address the second point at some
+future time, though it requires some redesign of the code structure.
+
+ [PATCH nft 1/2] Use abort() in case of netlink_abi_error
+ [PATCH nft 2/2] Handle retriable errors from mnl functions
+
