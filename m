@@ -2,141 +2,63 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F4AFC433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Dec 2021 13:49:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AA70C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Dec 2021 13:51:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232761AbhLHNxT (ORCPT
+        id S231142AbhLHNzJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 8 Dec 2021 08:53:19 -0500
-Received: from dehost.average.org ([88.198.2.197]:47502 "EHLO
-        dehost.average.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232719AbhLHNxT (ORCPT
+        Wed, 8 Dec 2021 08:55:09 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60718 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232916AbhLHNzJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Dec 2021 08:53:19 -0500
-Received: from wncross.fkb.profitbricks.net (unknown [IPv6:2a02:8106:1:6800:8b1c:cff2:1ce3:e09b])
-        by dehost.average.org (Postfix) with ESMTPA id 258D3394DEAB;
-        Wed,  8 Dec 2021 14:49:46 +0100 (CET)
+        Wed, 8 Dec 2021 08:55:09 -0500
+Received: from dehost.average.org (dehost.average.org [IPv6:2a01:4f8:130:53eb::2])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A5259C061746
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Dec 2021 05:51:37 -0800 (PST)
+Received: from [IPV6:2a02:8106:1:6800:8b1c:cff2:1ce3:e09b] (unknown [IPv6:2a02:8106:1:6800:8b1c:cff2:1ce3:e09b])
+        by dehost.average.org (Postfix) with ESMTPSA id CAC84394DEC7
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Dec 2021 14:51:35 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=average.org; s=mail;
-        t=1638971386; bh=s1fhuSWfF4Cs5J9Br+0mqP+BL0meUj5ax/rruKiXRH0=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=eoyhlj+xmBvB+/ceUt38bkKAlFdv+zgwXjZPV29F4Blo9DoY98QedS3J5NFNbQT1q
-         iJGvv8PGdnvT1sgUfUWrRQ+kdk6U6T5TjsK2WYTmPUNIKNOAiTsMWkm93Qubl6Sbex
-         RlbPrWPdvfQEQae9ufM/NsSeDHtK9PSmuOiXSerc=
-From:   Eugene Crosser <crosser@average.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Eugene Crosser <crosser@average.org>
-Subject: [PATCH nft 2/2] Handle retriable errors from mnl functions
-Date:   Wed,  8 Dec 2021 14:49:14 +0100
-Message-Id: <20211208134914.16365-3-crosser@average.org>
-X-Mailer: git-send-email 2.32.0
-In-Reply-To: <20211208134914.16365-1-crosser@average.org>
-References: <20211208134914.16365-1-crosser@average.org>
+        t=1638971495; bh=jWVkmMPUX6dHtp8N6fyZWocpFiXYhV8KfKlNoexddxc=;
+        h=Date:From:Subject:To:From;
+        b=UGg4LvDPQsy4ATnbJfZbPTO3pg2xEhsMNDBkZ8MVBUEOAmcPFLzZS1zBoagRsSgXH
+         JfavAh9JOmS5JQF65zHYzVH9KZhNKwc1BJQHUjE6t4iqBkMEkyGh7VACdsR1jTrqby
+         vunI7abe0EsxegRmip5p4IwJJCGYHtODa8J30leg=
+Message-ID: <843b84ac-f59e-c1d9-46c3-84133c3ab9a4@average.org>
+Date:   Wed, 8 Dec 2021 14:51:35 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.3.1
+From:   Eugene Crosser <crosser@average.org>
+Subject: [PATCH nft] Improve handling of errors from mnl* functions"
+To:     netfilter-devel@vger.kernel.org
+Content-Language: en-GB
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-rc == -1 and errno == EINTR mean:
+Libnftables does not handle errors that libmnl functions may return
+properly:
 
-mnl_socket_recvfrom() - blindly rerun the function
-mnl_cb_run()          - restart dump request from scratch
+1. Retriable errors indicated by errno=EINTR are not retried, but
+   rather treted as fatal.
+2. Instead of reporting the error to the caller, functions call
+   exit() on error, which terminates the caller process.
 
-This commit introduces handling of both these conditions
+This patch set partly addresses the second point, by calling
+abort() instead of exit() on ABI error, that will at least give
+more information to the sysadmin than quiet termination of a
+process.
 
-Signed-off-by: Eugene Crosser <crosser@average.org>
----
- src/iface.c | 73 ++++++++++++++++++++++++++++++++---------------------
- 1 file changed, 44 insertions(+), 29 deletions(-)
+It attempts to properly address the first point, by introducing
+retry logic when mnl_socket_recvfrom() or mnl_cb_run() return
+-1 with errno=EINTR.
 
-diff --git a/src/iface.c b/src/iface.c
-index d0e1834c..029f6476 100644
---- a/src/iface.c
-+++ b/src/iface.c
-@@ -66,39 +66,54 @@ void iface_cache_update(void)
- 	struct nlmsghdr *nlh;
- 	struct rtgenmsg *rt;
- 	uint32_t seq, portid;
-+	bool need_restart;
-+	int retry_count = 5;
- 	int ret;
- 
--	nlh = mnl_nlmsg_put_header(buf);
--	nlh->nlmsg_type	= RTM_GETLINK;
--	nlh->nlmsg_flags = NLM_F_REQUEST | NLM_F_DUMP;
--	nlh->nlmsg_seq = seq = time(NULL);
--	rt = mnl_nlmsg_put_extra_header(nlh, sizeof(struct rtgenmsg));
--	rt->rtgen_family = AF_PACKET;
--
--	nl = mnl_socket_open(NETLINK_ROUTE);
--	if (nl == NULL)
--		netlink_init_error();
--
--	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0)
--		netlink_init_error();
--
--	portid = mnl_socket_get_portid(nl);
--
--	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0)
--		netlink_init_error();
--
--	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
--	while (ret > 0) {
--		ret = mnl_cb_run(buf, ret, seq, portid, data_cb, NULL);
--		if (ret <= MNL_CB_STOP)
--			break;
--		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
--	}
--	if (ret == -1)
-+	do {
-+		nlh = mnl_nlmsg_put_header(buf);
-+		nlh->nlmsg_type	= RTM_GETLINK;
-+		nlh->nlmsg_flags = NLM_F_REQUEST | NLM_F_DUMP;
-+		nlh->nlmsg_seq = seq = time(NULL);
-+		rt = mnl_nlmsg_put_extra_header(nlh, sizeof(struct rtgenmsg));
-+		rt->rtgen_family = AF_PACKET;
-+
-+		nl = mnl_socket_open(NETLINK_ROUTE);
-+		if (nl == NULL)
-+			netlink_init_error();
-+
-+		if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0)
-+			netlink_init_error();
-+
-+		portid = mnl_socket_get_portid(nl);
-+
-+		if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0)
-+			netlink_init_error();
-+
-+		need_restart = false;
-+		while (true) {
-+			ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
-+			if (ret == -1) {
-+				if (errno == EINTR)
-+					continue;
-+				else
-+					netlink_init_error();
-+			}
-+			ret = mnl_cb_run(buf, ret, seq, portid, data_cb, NULL);
-+			if (ret == MNL_CB_STOP)
-+				break;
-+			if (ret == -1) {
-+				if (errno == EINTR)
-+					need_restart = true;
-+				else
-+					netlink_init_error();
-+			}
-+		}
-+		mnl_socket_close(nl);
-+	} while (need_restart && retry_count--);
-+	if (need_restart)
- 		netlink_init_error();
- 
--	mnl_socket_close(nl);
--
- 	iface_cache_init = true;
- }
- 
--- 
-2.32.0
+It would be desirable to fully address the second point at some
+future time, though it requires some redesign of the code structure.
 
+  [PATCH nft 1/2] Use abort() in case of netlink_abi_error
+  [PATCH nft 2/2] Handle retriable errors from mnl functions
