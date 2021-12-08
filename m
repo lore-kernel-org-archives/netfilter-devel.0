@@ -2,100 +2,48 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2745BC433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Dec 2021 07:57:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8303C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Dec 2021 10:47:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231804AbhLHIAm (ORCPT
+        id S229551AbhLHKvC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 8 Dec 2021 03:00:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34644 "EHLO
+        Wed, 8 Dec 2021 05:51:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45534 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229610AbhLHIAm (ORCPT
+        with ESMTP id S229475AbhLHKvC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Dec 2021 03:00:42 -0500
-Received: from mail-pj1-x1030.google.com (mail-pj1-x1030.google.com [IPv6:2607:f8b0:4864:20::1030])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3E11C061574;
-        Tue,  7 Dec 2021 23:57:10 -0800 (PST)
-Received: by mail-pj1-x1030.google.com with SMTP id iq11so1349587pjb.3;
-        Tue, 07 Dec 2021 23:57:10 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=AhgVDMFI8xa91WQLyAK9fa0Trf9hS9CXcQk6dJBH0LY=;
-        b=XpBiDODZyLWjFH34iGVpNBqGjYm6SfzkUC1zgSEdrUNm23g3vo722PvjicjWtPxS4b
-         wriQMtCjcXmdoyaX4eg9jUQTTDaRMsf8sFtj7c8/41MpYA+1gkqau1ahgJtN/WEhHYIE
-         h3L5yDf6ZMyBpzLyItsLXlDut0pZscQPucHH7GDeZ44blsyh2gOIzb02Rexd9hzpVh11
-         SzypkRQUstLxlwCIEQNZg6FE3NrGLXZmjabNZUOyKJTtJgyDQ1GwX2jrKwpfsSqFeMZp
-         zN6BPglMw1qSyuj6e7od1dZm7y62TDd7dEI6kVuBDPbYRSqU2BYP5aNB6MaAvXpt9fby
-         EWuA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=AhgVDMFI8xa91WQLyAK9fa0Trf9hS9CXcQk6dJBH0LY=;
-        b=KQy6KuoOiyd0ZyZ4r5l6HQs0xGVs4Z9Ta1lXapS6xYnw0kjJdpwKo/XC/RU8t4Py6L
-         pdPN6LzNLrU8n3tAu8H5vSG2vOtyuwVF+4YL9OcJ68EbjSoTF3x7p86ixSA7yiWxkFOq
-         7WgycguIBbULjwF+KMRdm5oViKaoL6nwqBW+aH/SQUs8hJrGxZIAIc6n4a+yAvQSq3Z1
-         VEUvrQeYBBenOrJLkx6+QyhaPDA0u/Vmr10VnmlkGT23/nBN7qz72GXev770DspkX9ts
-         HuuhW7f44r2osdcBazL/wVV8aV7/eKCUnGYigI26eyyh0i3YOsDUB8J+xlaqhX7A+FtW
-         CA0Q==
-X-Gm-Message-State: AOAM532XlGgUyQalWeFnoSuHNtAZ31LeJlQN/a7nzHwN4CLc58uk5oE9
-        46mz08yv8vGj9ehS7TFvxt0=
-X-Google-Smtp-Source: ABdhPJyV8kXDyBhPJSYUE6GkKkAUyBltUIuhfVJ1RF6D5G/nZmamk6Bo/+gee8AhkRfpMUpnTpbJ5Q==
-X-Received: by 2002:a17:90b:4ace:: with SMTP id mh14mr5456606pjb.164.1638950230309;
-        Tue, 07 Dec 2021 23:57:10 -0800 (PST)
-Received: from localhost.localdomain ([193.203.214.57])
-        by smtp.gmail.com with ESMTPSA id b15sm2292514pfv.48.2021.12.07.23.57.08
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 07 Dec 2021 23:57:09 -0800 (PST)
-From:   cgel.zte@gmail.com
-X-Google-Original-From: luo.penghao@zte.com.cn
+        Wed, 8 Dec 2021 05:51:02 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE9FAC061746
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Dec 2021 02:47:30 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1muuTv-0006kc-Ql; Wed, 08 Dec 2021 11:47:27 +0100
+Date:   Wed, 8 Dec 2021 11:47:27 +0100
+From:   Florian Westphal <fw@strlen.de>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org, luo penghao <luo.penghao@zte.com.cn>,
-        Zeal Robot <zealci@zte.com.cn>
-Subject: [PATCH linux-next] netfilter: Remove useless assignment statements
-Date:   Wed,  8 Dec 2021 07:57:06 +0000
-Message-Id: <20211208075706.404966-1-luo.penghao@zte.com.cn>
-X-Mailer: git-send-email 2.25.1
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+        Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>
+Subject: Re: [PATCH nf] netfilter: nat: force port remap to prevent shadowing
+ well-known ports
+Message-ID: <20211208104727.GD30918@breakpoint.cc>
+References: <20211129144218.2677-1-fw@strlen.de>
+ <Ya/8HfhxpspXzE01@salvia>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Ya/8HfhxpspXzE01@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: luo penghao <luo.penghao@zte.com.cn>
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > We could avoid the rewrite for connections that are not being forwarded,
+> > but get_unique_tuple() and the callers don't propagate the required hook
+> > information for this.
+> 
+> Probably you can scratch a bit to store in the struct nf_conn object
+> if this is locally generated flows?
 
-The old_size assignment here will not be used anymore
-
-The clang_analyzer complains as follows:
-
-Value stored to 'old_size' is never read
-
-Reported-by: Zeal Robot <zealci@zte.com.cn>
-Signed-off-by: luo penghao <luo.penghao@zte.com.cn>
----
- net/netfilter/nf_conntrack_core.c | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 770a631..1c786a4 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -2590,7 +2590,6 @@ int nf_conntrack_hash_resize(unsigned int hashsize)
- 			hlist_nulls_add_head_rcu(&h->hnnode, &hash[bucket]);
- 		}
- 	}
--	old_size = nf_conntrack_htable_size;
- 	old_hash = nf_conntrack_hash;
- 
- 	nf_conntrack_hash = hash;
--- 
-2.15.2
-
-
+Yes, that's doable.
