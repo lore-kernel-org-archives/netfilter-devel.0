@@ -2,60 +2,125 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E984CC433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Dec 2021 18:26:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FA07C433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Dec 2021 18:26:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238039AbhLIS34 (ORCPT
+        id S243297AbhLISaE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 9 Dec 2021 13:29:56 -0500
-Received: from dehost.average.org ([88.198.2.197]:49804 "EHLO
+        Thu, 9 Dec 2021 13:30:04 -0500
+Received: from dehost.average.org ([88.198.2.197]:49808 "EHLO
         dehost.average.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229504AbhLIS34 (ORCPT
+        with ESMTP id S243257AbhLISaD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 9 Dec 2021 13:29:56 -0500
+        Thu, 9 Dec 2021 13:30:03 -0500
 Received: from wncross.lan (unknown [IPv6:2a02:8106:1:6800:300b:b575:41c4:b71a])
-        by dehost.average.org (Postfix) with ESMTPA id E6F38394FB1B
-        for <netfilter-devel@vger.kernel.org>; Thu,  9 Dec 2021 19:26:20 +0100 (CET)
+        by dehost.average.org (Postfix) with ESMTPA id D4F26394FB2D;
+        Thu,  9 Dec 2021 19:26:28 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=average.org; s=mail;
-        t=1639074381; bh=Y1QYsGzrEJ9JEaI+/AH5oFCEC/On2PsosBmn+rqJwyo=;
-        h=From:To:Subject:Date:From;
-        b=MRSYFp05Q1JlOPwv4hNb8UqbjbgCNDpB1GRdxTwsmdKSch1HkkioRxmOr9FCgoNmz
-         1nEpcpCOunJMLAEaeknVf9AVgADwDWZKWjjcHqVbwIMSmRaZ9WqH8etdI069BsV1Or
-         PttmxVZ8TnvV6UflrJ7Xl+DKpfYJtbnN95l5bDOI=
+        t=1639074388; bh=M0JfwGc6PMjalbUpgfaK7VacfFW8X1n9Oa6zbZdOnnY=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=lNNNbEYVcyR51JJUb8Zn3EgS4ZXp3IDuV3QBaBib3mYRsLu2WA0ApSaq4QhVBImAd
+         BV1ho11eXO+Zhu5PZZtJCZUG3RCVa5JyxZSoPH6b10tcM21FqAL3LvpD9tZYwUJmls
+         oRBDSpTCFKlxrj+TxIvgNxYslAzqsFFBAalb0SWQ=
 From:   Eugene Crosser <crosser@average.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft v2 0/2] Improve handling of errors from mnl* functions"
-Date:   Thu,  9 Dec 2021 19:26:05 +0100
-Message-Id: <20211209182607.18550-1-crosser@average.org>
+Cc:     Eugene Crosser <crosser@average.org>
+Subject: [PATCH nft v2 2/2] Handle retriable errors from mnl functions
+Date:   Thu,  9 Dec 2021 19:26:07 +0100
+Message-Id: <20211209182607.18550-3-crosser@average.org>
 X-Mailer: git-send-email 2.32.0
+In-Reply-To: <20211209182607.18550-1-crosser@average.org>
+References: <20211209182607.18550-1-crosser@average.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-   Version 2 of the patchset
+rc == -1 and errno == EINTR mean:
 
-Libnftables does not handle errors that libmnl functions may return
-properly:
+mnl_socket_recvfrom() - blindly rerun the function
+mnl_cb_run()          - restart dump request from scratch
 
-1. Retriable errors indicated by errno=EINTR are not retried, but
-   rather treted as fatal.
-2. Instead of reporting the error to the caller, functions call
-   exit() on error, which terminates the caller process.
+This commit introduces handling of both these conditions
 
-This patch set partly addresses the second point, by calling
-abort() instead of exit() on ABI error, that will at least give
-more information to the sysadmin than quiet termination of a
-process.
+Signed-off-by: Eugene Crosser <crosser@average.org>
+---
+ src/iface.c | 37 ++++++++++++++++++++++++-------------
+ 1 file changed, 24 insertions(+), 13 deletions(-)
 
-It attempts to properly address the first point, by introducing
-retry logic when mnl_socket_recvfrom() or mnl_cb_run() return
--1 with errno=EINTR.
-
-It would be desirable to fully address the second point at some
-future time, though it requires some redesign of the code structure.
-
-  [PATCH nft v2 1/2] Use abort() in case of netlink_abi_error
-  [PATCH nft v2 2/2] Handle retriable errors from mnl functions
+diff --git a/src/iface.c b/src/iface.c
+index d0e1834c..5ecc087d 100644
+--- a/src/iface.c
++++ b/src/iface.c
+@@ -59,14 +59,14 @@ static int data_cb(const struct nlmsghdr *nlh, void *data)
+ 	return MNL_CB_OK;
+ }
+ 
+-void iface_cache_update(void)
++static int __iface_cache_update(void)
+ {
+ 	char buf[MNL_SOCKET_BUFFER_SIZE];
+ 	struct mnl_socket *nl;
+ 	struct nlmsghdr *nlh;
+ 	struct rtgenmsg *rt;
+ 	uint32_t seq, portid;
+-	int ret;
++	int ret = -1;
+ 
+ 	nlh = mnl_nlmsg_put_header(buf);
+ 	nlh->nlmsg_type	= RTM_GETLINK;
+@@ -77,28 +77,39 @@ void iface_cache_update(void)
+ 
+ 	nl = mnl_socket_open(NETLINK_ROUTE);
+ 	if (nl == NULL)
+-		netlink_init_error();
++		return -1;
+ 
+ 	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0)
+-		netlink_init_error();
++		goto close_and_return;
+ 
+ 	portid = mnl_socket_get_portid(nl);
+ 
+ 	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0)
+-		netlink_init_error();
++		goto close_and_return;
+ 
+-	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
+-	while (ret > 0) {
+-		ret = mnl_cb_run(buf, ret, seq, portid, data_cb, NULL);
+-		if (ret <= MNL_CB_STOP)
++	do {
++		do ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++		while (ret == -1 && errno == EINTR);
++		if (ret == -1)
+ 			break;
+-		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
+-	}
+-	if (ret == -1)
+-		netlink_init_error();
++		ret = mnl_cb_run(buf, ret, seq, portid, data_cb, NULL);
++	} while (ret > MNL_CB_STOP);
+ 
++close_and_return:
+ 	mnl_socket_close(nl);
+ 
++	return ret;
++}
++
++void iface_cache_update(void)
++{
++	int ret;
++
++	do ret = __iface_cache_update();
++	while (ret == -1 && errno == EINTR);
++	if (ret == -1)
++		netlink_init_error();
++
+ 	iface_cache_init = true;
+ }
+ 
+-- 
+2.32.0
 
