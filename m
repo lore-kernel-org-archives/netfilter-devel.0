@@ -2,26 +2,26 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A121CC433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Dec 2021 00:08:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6565DC4332F
+	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Dec 2021 00:09:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241330AbhLIAMb (ORCPT
+        id S241336AbhLIAMc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 8 Dec 2021 19:12:31 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:41732 "EHLO
+        Wed, 8 Dec 2021 19:12:32 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:41742 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238311AbhLIAMb (ORCPT
+        with ESMTP id S241319AbhLIAMb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Wed, 8 Dec 2021 19:12:31 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id E8575605C4;
-        Thu,  9 Dec 2021 01:06:33 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id ABB54605BD;
+        Thu,  9 Dec 2021 01:06:35 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 1/7] netfilter: nfnetlink_queue: silence bogus compiler warning
-Date:   Thu,  9 Dec 2021 01:08:41 +0100
-Message-Id: <20211209000847.102598-2-pablo@netfilter.org>
+Subject: [PATCH net 4/7] selftests: netfilter: Add correctness test for mac,net set type
+Date:   Thu,  9 Dec 2021 01:08:44 +0100
+Message-Id: <20211209000847.102598-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20211209000847.102598-1-pablo@netfilter.org>
 References: <20211209000847.102598-1-pablo@netfilter.org>
@@ -31,34 +31,72 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Stefano Brivio <sbrivio@redhat.com>
 
-net/netfilter/nfnetlink_queue.c:601:36: warning: variable 'ctinfo' is
-uninitialized when used here [-Wuninitialized]
-   if (ct && nfnl_ct->build(skb, ct, ctinfo, NFQA_CT, NFQA_CT_INFO) < 0)
+The existing net,mac test didn't cover the issue recently reported
+by Nikita Yushchenko, where MAC addresses wouldn't match if given
+as first field of a concatenated set with AVX2 and 8-bit groups,
+because there's a different code path covering the lookup of six
+8-bit groups (MAC addresses) if that's the first field.
 
-ctinfo is only uninitialized if ct == NULL.  Init it to 0 to silence this.
+Add a similar mac,net test, with MAC address and IPv4 address
+swapped in the set specification.
 
-Reported-by: kernel test robot <lkp@intel.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_queue.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .../selftests/netfilter/nft_concat_range.sh   | 24 ++++++++++++++++---
+ 1 file changed, 21 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 4acc4b8e9fe5..5837e8efc9c2 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -387,7 +387,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	struct net_device *indev;
- 	struct net_device *outdev;
- 	struct nf_conn *ct = NULL;
--	enum ip_conntrack_info ctinfo;
-+	enum ip_conntrack_info ctinfo = 0;
- 	struct nfnl_ct_hook *nfnl_ct;
- 	bool csum_verify;
- 	char *secdata = NULL;
+diff --git a/tools/testing/selftests/netfilter/nft_concat_range.sh b/tools/testing/selftests/netfilter/nft_concat_range.sh
+index 5a4938d6dcf2..ed61f6cab60f 100755
+--- a/tools/testing/selftests/netfilter/nft_concat_range.sh
++++ b/tools/testing/selftests/netfilter/nft_concat_range.sh
+@@ -23,8 +23,8 @@ TESTS="reported_issues correctness concurrency timeout"
+ 
+ # Set types, defined by TYPE_ variables below
+ TYPES="net_port port_net net6_port port_proto net6_port_mac net6_port_mac_proto
+-       net_port_net net_mac net_mac_icmp net6_mac_icmp net6_port_net6_port
+-       net_port_mac_proto_net"
++       net_port_net net_mac mac_net net_mac_icmp net6_mac_icmp
++       net6_port_net6_port net_port_mac_proto_net"
+ 
+ # Reported bugs, also described by TYPE_ variables below
+ BUGS="flush_remove_add"
+@@ -277,6 +277,23 @@ perf_entries	1000
+ perf_proto	ipv4
+ "
+ 
++TYPE_mac_net="
++display		mac,net
++type_spec	ether_addr . ipv4_addr
++chain_spec	ether saddr . ip saddr
++dst		 
++src		mac addr4
++start		1
++count		5
++src_delta	2000
++tools		sendip nc bash
++proto		udp
++
++race_repeat	0
++
++perf_duration	0
++"
++
+ TYPE_net_mac_icmp="
+ display		net,mac - ICMP
+ type_spec	ipv4_addr . ether_addr
+@@ -984,7 +1001,8 @@ format() {
+ 		fi
+ 	done
+ 	for f in ${src}; do
+-		__expr="${__expr} . "
++		[ "${__expr}" != "{ " ] && __expr="${__expr} . "
++
+ 		__start="$(eval format_"${f}" "${srcstart}")"
+ 		__end="$(eval format_"${f}" "${srcend}")"
+ 
 -- 
 2.30.2
 
