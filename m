@@ -2,115 +2,177 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CE48C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Dec 2021 17:08:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 427E1C433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Dec 2021 17:09:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242463AbhLIRMW (ORCPT
+        id S239165AbhLIRNH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 9 Dec 2021 12:12:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44858 "EHLO
+        Thu, 9 Dec 2021 12:13:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45092 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242456AbhLIRMV (ORCPT
+        with ESMTP id S239180AbhLIRNG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 9 Dec 2021 12:12:21 -0500
-Received: from mail-lj1-x234.google.com (mail-lj1-x234.google.com [IPv6:2a00:1450:4864:20::234])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FE50C061746
-        for <netfilter-devel@vger.kernel.org>; Thu,  9 Dec 2021 09:08:46 -0800 (PST)
-Received: by mail-lj1-x234.google.com with SMTP id l7so10031617lja.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 09 Dec 2021 09:08:46 -0800 (PST)
+        Thu, 9 Dec 2021 12:13:06 -0500
+Received: from mail-pl1-x644.google.com (mail-pl1-x644.google.com [IPv6:2607:f8b0:4864:20::644])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A7FFC061746;
+        Thu,  9 Dec 2021 09:09:33 -0800 (PST)
+Received: by mail-pl1-x644.google.com with SMTP id v19so4360315plo.7;
+        Thu, 09 Dec 2021 09:09:33 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ns1.com; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=7B4jlP4VD881cFWC/4iDeVFecLMFrVcIDe/l0Ru2woI=;
-        b=U+7tl7hJHCbSZn2mt1v9U6f+xgxJW1ahkH8CkfhWkJzO6jaWqpjY8CKcOXMugDb0Zt
-         P6gKYmjF85EcN5iTjZiKm8RJzm1KSWkhJhN1StdRzDYssIQpIiiZtcSW4uKqohSA37JF
-         +61g53+mMlg2tJ5R7yb1s3sDVANrWB6Ea+66OIzXMRzDUwgS1Hw38apwvLRAyVJeyYi7
-         mi2t2ISUYzpz9qQoAjd68QAsUVaY9ikKHHgsCHXN2YWKt1NmIsxJWRqIo6YU3kXs7Asc
-         Z3/nG9snCYcKe+6XanwhIUQNH1/WLRjoyKlhuuOy51wOtd3hpqRPCrg22my6jCfFby+u
-         tAqA==
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=7JNL+Wc+1xhZG0xbYS8UO1UpYjDPLiWp9xlSvuottUk=;
+        b=McDE++6edbVHFJKO26fHRM7jn5Uxy3ScZC+muILuZHQf9lRA5OS/IxvpSxF1gOxNg6
+         6pKpjEGRr4lzS7RMa6CIhod1w5Ebny97s/RizxaClPR2CaOxBdrzO0T+cPS+UMSL7LPb
+         MTEhxxi6fx3XSNjraBhAFfbCxhsYvdjFoeS/yBKR48tHkAAVTO5COYfmhfz4jIn+f/QX
+         pwlWyxvH0FJ9KWmENxm0OAOlTxSYAJfNKGEOyOqTE/152UiJEqYgvchCQpQGjNS7xxrz
+         cSZdwJ2BirzwF9QQlv+N9HeXmE7TYa7iqJXTX6jaJ2q2AlL697/1UMSR0Ws55FOh5WpR
+         RgLQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=7B4jlP4VD881cFWC/4iDeVFecLMFrVcIDe/l0Ru2woI=;
-        b=soHUg4tjmqRy8+9DaAFeJJw3g9IQcTmUllA04P9P6ryJA+UnXHNxmjLrYeW7Tl2p//
-         roeoQNQcISg414pUY6pjcO9Z0smwOXAkvV2Hg4fk3bfjVeAZPBiLKEl1grjCwIotKapu
-         8WGOGzC0Xzh7AgBgHp+LYDCfnuC22E0XGyR3ZHP+9Pt+mCMjq4RqUQAlpa7YMjAOaBMG
-         6rP1gU0DUt37QG+O0/E33pzihnpa/is7PBLaZtTnvZnMT7X8goNEW8SibjxEh+RVC2rH
-         oXjzZ9hfGJqfq7009fSDfLel2pXHsjTPDxggEi3ht1rUEDshg5KGunOFDun9RzzD7aib
-         8utw==
-X-Gm-Message-State: AOAM530w+YHfZeVlIxhpYAI+Jk29uBRfSa7f7zP/nQWSQ1c1mI+gJK5x
-        LEoZpAwodYnZls/qnryGcT1vPfTStGAuxOCm5T9bj/fdCJC/4Ffi
-X-Google-Smtp-Source: ABdhPJz8Nsz3JVO5dd5bOj3S0DxHdxqtpxWixV8SzVFa8a543CqHrg/AoONqqojfjRAKY4OApd3uyYrKCYtXca1XL3w=
-X-Received: by 2002:a2e:5d7:: with SMTP id 206mr7605366ljf.133.1639069724749;
- Thu, 09 Dec 2021 09:08:44 -0800 (PST)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=7JNL+Wc+1xhZG0xbYS8UO1UpYjDPLiWp9xlSvuottUk=;
+        b=skqW5k60QFTYQiLzdFIC4GovmrFvX8B/ZmxPMZwvQY1VlsdQGMZdSsnf4agYgtaluD
+         JvBtt04kFYWqjuiGRCco6yr0Q4k0cMeY6XVCBxlOO8reYtgBL4KyNdnXz5e3419t2ASB
+         iYBja6zTO0BZLvS6NokadPTj6lhSPd2B0lCb7OW72nf+//PnLcbKVlT8VsNTa8SW5gGT
+         KeOeSeBVsr8qiERIXEug05pvRrIXkHvbmlB89xV46CLFiYWdaMGhAmH8lYuSSshnlzg8
+         D9G1VhMzVe3wq7EaYsQErGkcLAa+b1djH4t9pV+Ti+xIDdfDCsYBwUeKvAC6noSkyO0J
+         umnA==
+X-Gm-Message-State: AOAM532xG+oLsfpb5eTMnbBiwSkwYV8cgrHOdx9y/0QDduKqvCOaC5nZ
+        71f7g9MMsJnOQX1rgzPjl7hrB2scEFk=
+X-Google-Smtp-Source: ABdhPJwm3aeU29ywUj3AzmhChOzHBB1i1NgJ69+U0Zl623FIrwFSWj+/uif1afxu3+rQrIVW6XSMYw==
+X-Received: by 2002:a17:90a:284f:: with SMTP id p15mr960177pjf.1.1639069772359;
+        Thu, 09 Dec 2021 09:09:32 -0800 (PST)
+Received: from localhost ([2405:201:6014:d064:3d4e:6265:800c:dc84])
+        by smtp.gmail.com with ESMTPSA id k15sm179229pgn.91.2021.12.09.09.09.31
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 09 Dec 2021 09:09:31 -0800 (PST)
+From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
+To:     bpf@vger.kernel.org
+Cc:     Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Martin KaFai Lau <kafai@fb.com>,
+        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
+        John Fastabend <john.fastabend@gmail.com>,
+        Maxim Mikityanskiy <maximmi@nvidia.com>,
+        Florian Westphal <fw@strlen.de>,
+        Jesper Dangaard Brouer <brouer@redhat.com>,
+        =?UTF-8?q?Toke=20H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: [PATCH bpf-next v2 0/9] Introduce unstable CT lookup helpers
+Date:   Thu,  9 Dec 2021 22:39:20 +0530
+Message-Id: <20211209170929.3485242-1-memxor@gmail.com>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-References: <20211209163926.25563-1-fw@strlen.de>
-In-Reply-To: <20211209163926.25563-1-fw@strlen.de>
-From:   Vitaly Zuevsky <vzuevsky@ns1.com>
-Date:   Thu, 9 Dec 2021 17:08:34 +0000
-Message-ID: <CA+PiBLw3aUEd7X3yt5p7D6=-+EdL3EtFxiqSV8FDb5GuuyyxaQ@mail.gmail.com>
-Subject: Re: [PATCH nf] netfilter: ctnetlink: remove expired entries first
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+X-Developer-Signature: v=1; a=openpgp-sha256; l=5329; h=from:subject; bh=2wAbs+O2N2WXsg37Hk0gMAiFUVaJTnu3lYSyHTO+aog=; b=owEBbQKS/ZANAwAIAUzgyIZIvxHKAcsmYgBhsjgGXzAgRCeePjiVglmVv/rET2v+dq5PgOK5y5AQ L3lFic6JAjMEAAEIAB0WIQRLvip+Buz51YI8YRFM4MiGSL8RygUCYbI4BgAKCRBM4MiGSL8RyrnWD/ 9JDWBFjlXThz4hO++83odRJd/7t4n4a1uX4Jk3vvcFomI9r3HUlNKxZD6531bo63WwFH1einhNCO4H g62SxFiX5shXx770/P79SEIvtUwBhw+y0nUDwSpCLe29+7Sxq8xbuc0I7v4/asFWWxhappzIXQ1SV0 ZkHtbIuLuNAJuy1ZLy3b3MaDzPwBVY2FmrJAlmZxb7T8y06kIcToIoIYiGatdHDN5dld/AghzQLkUt sp77RVcVaqydb2Hp6Ga+WleBfglnHjVv78E09yg/hk3wnlkDOd6RmbBoNdzmHWy3uS4c3xYb1HAwYS Ra4CXjxvMUpnlUG2Jb5qGvxSzl7jEukoLaXrLEI7i2oUCpCJlJqOMD8e1NNB428k2g9x44B3l9tPQ/ QUWK66pFwJwgeDc+MYnanP+fIWycJA/+p6+PRLP9caaW/wJo/1KVcqhhGIlmY9io1eG+edWt5B94qW cvvaNqwfyCU3s279de0xoYq25OzpeWFUdv4loAwnCAFCazzTR1eX45Pm0sunTmtvs3l/PylVGIpNZz sL7+zFkxwpCg9dFz9uyWX2QB8FvVABgHFCcZx7aF23TuXRpzVk9mvmAF7bQbyNsSIYcnVKG4gvbuzc O5yDSawm2UweafwXNY8V3HjBlqP+yx4IFyaOIO/H1vSM+0exCUjvzvU6jUwA==
+X-Developer-Key: i=memxor@gmail.com; a=openpgp; fpr=4BBE2A7E06ECF9D5823C61114CE0C88648BF11CA
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Dec 9, 2021 at 4:39 PM Florian Westphal <fw@strlen.de> wrote:
->
-> When dumping conntrack table to userspace via ctnetlink, check if the ct has
-> already expired before doing any of the 'skip' checks.
->
-> This expires dead entries faster.
-> /proc handler also removes outdated entries first.
->
-> Reported-by: Vitaly Zuevsky <vzuevsky@ns1.com>
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  Vitaly, I suspect this might be related to the issue you reported,
->  I suspect we skip the NAT-clash entries instead of evicting them from
->  ctnetlink path too.
->
->  net/netfilter/nf_conntrack_netlink.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
->
-> diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-> index 81d03acf68d4..ec4164c32d27 100644
-> --- a/net/netfilter/nf_conntrack_netlink.c
-> +++ b/net/netfilter/nf_conntrack_netlink.c
-> @@ -1195,8 +1195,6 @@ ctnetlink_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
->                 }
->                 hlist_nulls_for_each_entry(h, n, &nf_conntrack_hash[cb->args[0]],
->                                            hnnode) {
-> -                       if (NF_CT_DIRECTION(h) != IP_CT_DIR_ORIGINAL)
-> -                               continue;
->                         ct = nf_ct_tuplehash_to_ctrack(h);
->                         if (nf_ct_is_expired(ct)) {
->                                 if (i < ARRAY_SIZE(nf_ct_evict) &&
-> @@ -1208,6 +1206,9 @@ ctnetlink_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
->                         if (!net_eq(net, nf_ct_net(ct)))
->                                 continue;
->
-> +                       if (NF_CT_DIRECTION(h) != IP_CT_DIR_ORIGINAL)
-> +                               continue;
-> +
->                         if (cb->args[1]) {
->                                 if (ct != last)
->                                         continue;
-> --
-> 2.32.0
->
+This series adds unstable conntrack lookup helpers using BPF kfunc support.  The
+patch adding the lookup helper is based off of Maxim's recent patch to aid in
+rebasing their series on top of this, all adjusted to work with module kfuncs [0].
 
-Florian, thanks for prompt turnaround on this. Seeing
-conntrack -C
-107530
-mandates the check what flows consume this many entries. I cannot do
-this if conntrack -L skips anything while kernel defaults to not
-exposing conntrack table via /proc. This server is not supposed to NAT
-anything by the way. We use some -j NOTRACK rules and I'd like to see
-what flows evade those rules and consume so many slots. Could you
-perhaps recommend a way to achieve this other than reconfiguring the
-kernel?
+  [0]: https://lore.kernel.org/bpf/20211019144655.3483197-8-maximmi@nvidia.com
+
+To enable returning a reference to struct nf_conn, the verifier is extended to
+support reference tracking for PTR_TO_BTF_ID, and kfunc is extended with support
+for working as acquire/release functions, similar to existing BPF helpers. kfunc
+returning pointer (limited to PTR_TO_BTF_ID in the kernel) can also return a
+PTR_TO_BTF_ID_OR_NULL now, typically needed when acquiring a resource can fail.
+kfunc can also receive PTR_TO_CTX and PTR_TO_MEM (with some limitations) as
+arguments now. There is also support for passing a mem, len pair as argument
+to kfunc now. In such cases, passing pointer to unsized type (void) is also
+permitted.
+
+Please see individual commits for details.
+
+Note 1: Patch 1 in this series makes the same change as b12f03104324 ("bpf: Fix
+bpf_check_mod_kfunc_call for built-in modules") in bpf tree, so there will be a
+conflict if patch 1 is applied against that commit. I incorporated the same diff
+change so that testing this set is possible (tests in patch 8 rely on it), but
+before applying this, I'll rebase and resend, after bpf tree is merged into
+bpf-next.
+
+Note 2: BPF CI needs to add the following to config to test the set. I did
+update the selftests config in patch 8, but not sure if that is enough.
+
+	CONFIG_NETFILTER=y
+	CONFIG_NF_DEFRAG_IPV4=y
+	CONFIG_NF_DEFRAG_IPV6=y
+	CONFIG_NF_CONNTRACK=y
+
+Changelog:
+----------
+
+RFC v1 -> v2:
+v1: https://lore.kernel.org/bpf/20211030144609.263572-1-memxor@gmail.com
+
+ * Limit PTR_TO_MEM support to pointer to scalar, or struct with scalars (Alexei)
+ * Use btf_id_set for checking acquire, release, ret type null (Alexei)
+ * Introduce opts struct for CT helpers, move int err parameter to it
+ * Add l4proto as parameter to CT helper's opts, remove separate tcp/udp helpers
+ * Add support for mem, len argument pair to kfunc
+ * Allow void * as pointer type for mem, len argument pair
+ * Extend selftests to cover new additions to kfuncs
+ * Copy ref_obj_id to PTR_TO_BTF_ID dst_reg on btf_struct_access, test it
+ * Fix other misc nits, bugs, and expand commit messages
+
+Kumar Kartikeya Dwivedi (9):
+  bpf: Refactor bpf_check_mod_kfunc_call
+  bpf: Remove DEFINE_KFUNC_BTF_ID_SET
+  bpf: Extend kfunc with PTR_TO_CTX, PTR_TO_MEM argument support
+  bpf: Introduce mem, size argument pair support for kfunc
+  bpf: Add reference tracking support to kfunc
+  bpf: Track provenance for pointers formed from referenced
+    PTR_TO_BTF_ID
+  net/netfilter: Add unstable CT lookup helpers for XDP and TC-BPF
+  selftests/bpf: Extend kfunc selftests
+  selftests/bpf: Add test for unstable CT lookup API
+
+ include/linux/bpf.h                           |  27 +-
+ include/linux/bpf_verifier.h                  |  12 +
+ include/linux/btf.h                           |  48 +++-
+ kernel/bpf/btf.c                              | 218 ++++++++++++---
+ kernel/bpf/verifier.c                         | 232 +++++++++++-----
+ net/bpf/test_run.c                            | 147 ++++++++++
+ net/core/filter.c                             |  27 ++
+ net/core/net_namespace.c                      |   1 +
+ net/ipv4/tcp_bbr.c                            |   5 +-
+ net/ipv4/tcp_cubic.c                          |   5 +-
+ net/ipv4/tcp_dctcp.c                          |   5 +-
+ net/netfilter/nf_conntrack_core.c             | 252 ++++++++++++++++++
+ .../selftests/bpf/bpf_testmod/bpf_testmod.c   |   5 +-
+ tools/testing/selftests/bpf/config            |   4 +
+ .../testing/selftests/bpf/prog_tests/bpf_nf.c |  48 ++++
+ .../selftests/bpf/prog_tests/kfunc_call.c     |  28 ++
+ .../selftests/bpf/progs/kfunc_call_test.c     |  52 +++-
+ .../bpf/progs/kfunc_call_test_fail1.c         |  16 ++
+ .../bpf/progs/kfunc_call_test_fail2.c         |  16 ++
+ .../bpf/progs/kfunc_call_test_fail3.c         |  16 ++
+ .../bpf/progs/kfunc_call_test_fail4.c         |  16 ++
+ .../bpf/progs/kfunc_call_test_fail5.c         |  16 ++
+ .../bpf/progs/kfunc_call_test_fail6.c         |  16 ++
+ .../bpf/progs/kfunc_call_test_fail7.c         |  24 ++
+ .../bpf/progs/kfunc_call_test_fail8.c         |  22 ++
+ .../testing/selftests/bpf/progs/test_bpf_nf.c | 113 ++++++++
+ 26 files changed, 1259 insertions(+), 112 deletions(-)
+ create mode 100644 tools/testing/selftests/bpf/prog_tests/bpf_nf.c
+ create mode 100644 tools/testing/selftests/bpf/progs/kfunc_call_test_fail1.c
+ create mode 100644 tools/testing/selftests/bpf/progs/kfunc_call_test_fail2.c
+ create mode 100644 tools/testing/selftests/bpf/progs/kfunc_call_test_fail3.c
+ create mode 100644 tools/testing/selftests/bpf/progs/kfunc_call_test_fail4.c
+ create mode 100644 tools/testing/selftests/bpf/progs/kfunc_call_test_fail5.c
+ create mode 100644 tools/testing/selftests/bpf/progs/kfunc_call_test_fail6.c
+ create mode 100644 tools/testing/selftests/bpf/progs/kfunc_call_test_fail7.c
+ create mode 100644 tools/testing/selftests/bpf/progs/kfunc_call_test_fail8.c
+ create mode 100644 tools/testing/selftests/bpf/progs/test_bpf_nf.c
+
+-- 
+2.34.1
+
