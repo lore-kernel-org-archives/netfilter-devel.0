@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E7BFC4167B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Dec 2021 00:29:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBBDDC4321E
+	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Dec 2021 00:29:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234890AbhLJAcl (ORCPT
+        id S234885AbhLJAck (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 9 Dec 2021 19:32:41 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:44412 "EHLO
+        Thu, 9 Dec 2021 19:32:40 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:44418 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234906AbhLJAcj (ORCPT
+        with ESMTP id S234890AbhLJAch (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 9 Dec 2021 19:32:39 -0500
+        Thu, 9 Dec 2021 19:32:37 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id CBD61607C3
-        for <netfilter-devel@vger.kernel.org>; Fri, 10 Dec 2021 01:26:40 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id F1DB560140
+        for <netfilter-devel@vger.kernel.org>; Fri, 10 Dec 2021 01:26:38 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next 10/11] netfilter: nft_meta: track register operations
-Date:   Fri, 10 Dec 2021 01:28:53 +0100
-Message-Id: <20211210002854.144328-11-pablo@netfilter.org>
+Subject: [PATCH nf-next 06/11] netfilter: nft_limit: move stateful fields out of expression data
+Date:   Fri, 10 Dec 2021 01:28:49 +0100
+Message-Id: <20211210002854.144328-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20211210002854.144328-1-pablo@netfilter.org>
 References: <20211210002854.144328-1-pablo@netfilter.org>
@@ -30,70 +30,183 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Check if the destination register already contains the data that this
-meta store expression performs. This allows to skip this redundant
-operation. If the destination contains a different selector, update
-the register tracking information.
+In preparation for the rule blob representation.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_meta.c | 37 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
+ net/netfilter/nft_limit.c | 94 ++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 82 insertions(+), 12 deletions(-)
 
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index fe91ff5f8fbe..a078427d0c40 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -750,12 +750,49 @@ static int nft_meta_get_offload(struct nft_offload_ctx *ctx,
- 	return 0;
+diff --git a/net/netfilter/nft_limit.c b/net/netfilter/nft_limit.c
+index d6e0226b7603..f04be5be73a0 100644
+--- a/net/netfilter/nft_limit.c
++++ b/net/netfilter/nft_limit.c
+@@ -14,10 +14,14 @@
+ #include <linux/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables.h>
+ 
+-struct nft_limit_priv {
++struct nft_limit {
+ 	spinlock_t	lock;
+ 	u64		last;
+ 	u64		tokens;
++};
++
++struct nft_limit_priv {
++	struct nft_limit *limit;
+ 	u64		tokens_max;
+ 	u64		rate;
+ 	u64		nsecs;
+@@ -30,21 +34,21 @@ static inline bool nft_limit_eval(struct nft_limit_priv *priv, u64 cost)
+ 	u64 now, tokens;
+ 	s64 delta;
+ 
+-	spin_lock_bh(&priv->lock);
++	spin_lock_bh(&priv->limit->lock);
+ 	now = ktime_get_ns();
+-	tokens = priv->tokens + now - priv->last;
++	tokens = priv->limit->tokens + now - priv->limit->last;
+ 	if (tokens > priv->tokens_max)
+ 		tokens = priv->tokens_max;
+ 
+-	priv->last = now;
++	priv->limit->last = now;
+ 	delta = tokens - cost;
+ 	if (delta >= 0) {
+-		priv->tokens = delta;
+-		spin_unlock_bh(&priv->lock);
++		priv->limit->tokens = delta;
++		spin_unlock_bh(&priv->limit->lock);
+ 		return priv->invert;
+ 	}
+-	priv->tokens = tokens;
+-	spin_unlock_bh(&priv->lock);
++	priv->limit->tokens = tokens;
++	spin_unlock_bh(&priv->limit->lock);
+ 	return !priv->invert;
  }
  
-+static bool nft_meta_get_reduce(struct nft_regs_track *track,
-+				const struct nft_expr *expr)
+@@ -86,8 +90,12 @@ static int nft_limit_init(struct nft_limit_priv *priv,
+ 				 priv->rate);
+ 	}
+ 
+-	priv->tokens = tokens;
+-	priv->tokens_max = priv->tokens;
++	priv->limit = kmalloc(sizeof(*priv->limit), GFP_KERNEL);
++	if (!priv->limit)
++		return -ENOMEM;
++
++	priv->limit->tokens = tokens;
++	priv->tokens_max = priv->limit->tokens;
+ 
+ 	if (tb[NFTA_LIMIT_FLAGS]) {
+ 		u32 flags = ntohl(nla_get_be32(tb[NFTA_LIMIT_FLAGS]));
+@@ -95,8 +103,8 @@ static int nft_limit_init(struct nft_limit_priv *priv,
+ 		if (flags & NFT_LIMIT_F_INV)
+ 			priv->invert = true;
+ 	}
+-	priv->last = ktime_get_ns();
+-	spin_lock_init(&priv->lock);
++	priv->limit->last = ktime_get_ns();
++	spin_lock_init(&priv->limit->lock);
+ 
+ 	return 0;
+ }
+@@ -121,6 +129,32 @@ static int nft_limit_dump(struct sk_buff *skb, const struct nft_limit_priv *priv
+ 	return -1;
+ }
+ 
++static void nft_limit_destroy(const struct nft_ctx *ctx,
++			      const struct nft_limit_priv *priv)
 +{
-+	const struct nft_meta *priv = nft_expr_priv(expr);
-+	const struct nft_expr *last = track->last;
-+	const struct nft_meta *meta;
-+	const struct nft_expr *next;
-+
-+	if (!track->regs[priv->dreg].selector ||
-+	    track->regs[priv->dreg].selector->ops != expr->ops) {
-+		track->regs[priv->dreg].selector = expr;
-+		track->regs[priv->dreg].bitwise = NULL;
-+		return false;
-+	}
-+
-+	meta = nft_expr_priv(track->regs[priv->dreg].selector);
-+	if (priv->key != meta->key ||
-+	    priv->dreg != meta->dreg) {
-+		track->regs[priv->dreg].selector = expr;
-+		track->regs[priv->dreg].bitwise = NULL;
-+		return false;
-+	}
-+
-+	if (!track->regs[priv->dreg].bitwise)
-+		return true;
-+
-+	next = nft_expr_next(expr);
-+	if (next == last || !next->ops->reduce)
-+		return true;
-+
-+	if (next->ops->reduce(track, next))
-+		return true;
-+
-+	return false;
++	kfree(priv->limit);
 +}
 +
- static const struct nft_expr_ops nft_meta_get_ops = {
- 	.type		= &nft_meta_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_meta)),
- 	.eval		= nft_meta_get_eval,
- 	.init		= nft_meta_get_init,
- 	.dump		= nft_meta_get_dump,
-+	.reduce		= nft_meta_get_reduce,
- 	.validate	= nft_meta_get_validate,
- 	.offload	= nft_meta_get_offload,
++static int nft_limit_clone(struct nft_limit_priv *priv_dst,
++			   const struct nft_limit_priv *priv_src)
++{
++	priv_dst->tokens_max = priv_src->tokens_max;
++	priv_dst->rate = priv_src->rate;
++	priv_dst->nsecs = priv_src->nsecs;
++	priv_dst->burst = priv_src->burst;
++	priv_dst->invert = priv_src->invert;
++
++	priv_dst->limit = kmalloc(sizeof(*priv_dst->limit), GFP_ATOMIC);
++	if (priv_dst->limit)
++		return -ENOMEM;
++
++	spin_lock_init(&priv_dst->limit->lock);
++	priv_dst->limit->tokens = priv_src->tokens_max;
++	priv_dst->limit->last = ktime_get_ns();
++
++	return 0;
++}
++
+ struct nft_limit_priv_pkts {
+ 	struct nft_limit_priv	limit;
+ 	u64			cost;
+@@ -166,12 +200,30 @@ static int nft_limit_pkts_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 	return nft_limit_dump(skb, &priv->limit, NFT_LIMIT_PKTS);
+ }
+ 
++static void nft_limit_pkts_destroy(const struct nft_ctx *ctx,
++				   const struct nft_expr *expr)
++{
++	const struct nft_limit_priv_pkts *priv = nft_expr_priv(expr);
++
++	nft_limit_destroy(ctx, &priv->limit);
++}
++
++static int nft_limit_pkts_clone(struct nft_expr *dst, const struct nft_expr *src)
++{
++	struct nft_limit_priv_pkts *priv_dst = nft_expr_priv(dst);
++	struct nft_limit_priv_pkts *priv_src = nft_expr_priv(src);
++
++	return nft_limit_clone(&priv_dst->limit, &priv_src->limit);
++}
++
+ static struct nft_expr_type nft_limit_type;
+ static const struct nft_expr_ops nft_limit_pkts_ops = {
+ 	.type		= &nft_limit_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_limit_priv_pkts)),
+ 	.eval		= nft_limit_pkts_eval,
+ 	.init		= nft_limit_pkts_init,
++	.destroy	= nft_limit_pkts_destroy,
++	.clone		= nft_limit_pkts_clone,
+ 	.dump		= nft_limit_pkts_dump,
  };
+ 
+@@ -203,12 +255,30 @@ static int nft_limit_bytes_dump(struct sk_buff *skb,
+ 	return nft_limit_dump(skb, priv, NFT_LIMIT_PKT_BYTES);
+ }
+ 
++static void nft_limit_bytes_destroy(const struct nft_ctx *ctx,
++				    const struct nft_expr *expr)
++{
++	const struct nft_limit_priv *priv = nft_expr_priv(expr);
++
++	nft_limit_destroy(ctx, priv);
++}
++
++static int nft_limit_bytes_clone(struct nft_expr *dst, const struct nft_expr *src)
++{
++	struct nft_limit_priv *priv_dst = nft_expr_priv(dst);
++	struct nft_limit_priv *priv_src = nft_expr_priv(src);
++
++	return nft_limit_clone(priv_dst, priv_src);
++}
++
+ static const struct nft_expr_ops nft_limit_bytes_ops = {
+ 	.type		= &nft_limit_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_limit_priv)),
+ 	.eval		= nft_limit_bytes_eval,
+ 	.init		= nft_limit_bytes_init,
+ 	.dump		= nft_limit_bytes_dump,
++	.clone		= nft_limit_bytes_clone,
++	.destroy	= nft_limit_bytes_destroy,
+ };
+ 
+ static const struct nft_expr_ops *
 -- 
 2.30.2
 
