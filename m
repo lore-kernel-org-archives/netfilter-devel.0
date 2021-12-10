@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7700BC4332F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F12BFC433FE
 	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Dec 2021 00:29:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234887AbhLJAcj (ORCPT
+        id S229871AbhLJAcj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Thu, 9 Dec 2021 19:32:39 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:44414 "EHLO
+Received: from mail.netfilter.org ([217.70.188.207]:44422 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229871AbhLJAcg (ORCPT
+        with ESMTP id S234904AbhLJAch (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 9 Dec 2021 19:32:36 -0500
+        Thu, 9 Dec 2021 19:32:37 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 0973060098
-        for <netfilter-devel@vger.kernel.org>; Fri, 10 Dec 2021 01:26:36 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id AAC32605BA
+        for <netfilter-devel@vger.kernel.org>; Fri, 10 Dec 2021 01:26:39 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next 02/11] netfilter: nft_last: move stateful fields out of expression data
-Date:   Fri, 10 Dec 2021 01:28:45 +0100
-Message-Id: <20211210002854.144328-3-pablo@netfilter.org>
+Subject: [PATCH nf-next 08/11] netfilter: nf_tables: add register tracking infrastructure
+Date:   Fri, 10 Dec 2021 01:28:51 +0100
+Message-Id: <20211210002854.144328-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20211210002854.144328-1-pablo@netfilter.org>
 References: <20211210002854.144328-1-pablo@netfilter.org>
@@ -30,138 +30,93 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-In preparation for the rule blob representation.
+This patch adds new infrastructure to skip redundant selector store
+operations on the same register to achieve a performance boost from
+the packet path.
+
+This is particularly noticeable in pure linear rulesets but it also
+helps in rulesets which are already heaving relying in maps to avoid
+ruleset linear inspection.
+
+The idea is to keep data of the most recurrent store operations on
+register to reuse them with cmp and lookup expressions.
+
+This infrastructure allows for dynamic ruleset updates since the ruleset
+blob reduction happens from the kernel.
+
+Userspace still needs to be updated to maximize register utilization to
+cooperate to improve register data reuse / reduce number of store on
+register operations.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_last.c | 69 +++++++++++++++++++++++++++++-----------
- 1 file changed, 51 insertions(+), 18 deletions(-)
+ include/net/netfilter/nf_tables.h | 12 ++++++++++++
+ net/netfilter/nf_tables_api.c     | 12 ++++++++++++
+ 2 files changed, 24 insertions(+)
 
-diff --git a/net/netfilter/nft_last.c b/net/netfilter/nft_last.c
-index 304e33cbed9b..5ee33d0ccd4e 100644
---- a/net/netfilter/nft_last.c
-+++ b/net/netfilter/nft_last.c
-@@ -8,9 +8,13 @@
- #include <net/netfilter/nf_tables_core.h>
- #include <net/netfilter/nf_tables.h>
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 5a046b01bdab..f894ff776151 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -120,6 +120,16 @@ struct nft_regs {
+ 	};
+ };
  
-+struct nft_last {
-+	unsigned long	jiffies;
-+	unsigned int	set;
++struct nft_regs_track {
++	struct {
++		const struct nft_expr		*selector;
++		const struct nft_expr		*bitwise;
++	} regs[20];
++
++	const struct nft_expr			*cur;
++	const struct nft_expr			*last;
 +};
 +
- struct nft_last_priv {
--	unsigned long	last_jiffies;
--	unsigned int	last_set;
-+	struct nft_last	*last;
- };
- 
- static const struct nla_policy nft_last_policy[NFTA_LAST_MAX + 1] = {
-@@ -22,47 +26,55 @@ static int nft_last_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 			 const struct nlattr * const tb[])
+ /* Store/load an u8, u16 or u64 integer to/from the u32 data register.
+  *
+  * Note, when using concatenations, register allocation happens at 32-bit
+@@ -884,6 +894,8 @@ struct nft_expr_ops {
+ 	int				(*validate)(const struct nft_ctx *ctx,
+ 						    const struct nft_expr *expr,
+ 						    const struct nft_data **data);
++	bool				(*reduce)(struct nft_regs_track *track,
++						  const struct nft_expr *expr);
+ 	bool				(*gc)(struct net *net,
+ 					      const struct nft_expr *expr);
+ 	int				(*offload)(struct nft_offload_ctx *ctx,
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 8214537ba555..14cfc42f648b 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -8256,6 +8256,7 @@ static int nf_tables_commit_chain_prepare(struct net *net, struct nft_chain *cha
  {
- 	struct nft_last_priv *priv = nft_expr_priv(expr);
-+	struct nft_last *last;
- 	u64 last_jiffies;
--	u32 last_set = 0;
- 	int err;
+ 	const struct nft_expr *expr, *last;
+ 	unsigned int alloc = 0, size = 0;
++	struct nft_regs_track track = {};
+ 	struct nft_rule_dp *prule;
+ 	struct nft_rule *rule;
+ 	char *ptr;
+@@ -8288,9 +8289,20 @@ static int nf_tables_commit_chain_prepare(struct net *net, struct nft_chain *cha
+ 		prule = (struct nft_rule_dp *)ptr;
+ 		ptr += offsetof(struct nft_rule_dp, data);
  
--	if (tb[NFTA_LAST_SET]) {
--		last_set = ntohl(nla_get_be32(tb[NFTA_LAST_SET]));
--		if (last_set == 1)
--			priv->last_set = 1;
--	}
-+	last = kzalloc(sizeof(*last), GFP_KERNEL);
-+	if (!last)
-+		return -ENOMEM;
++		size = 0;
++		track.last = last;
+ 		nft_rule_for_each_expr(expr, last, rule) {
++			track.cur = expr;
 +
-+	if (tb[NFTA_LAST_SET])
-+		last->set = ntohl(nla_get_be32(tb[NFTA_LAST_SET]));
- 
--	if (last_set && tb[NFTA_LAST_MSECS]) {
-+	if (last->set && tb[NFTA_LAST_MSECS]) {
- 		err = nf_msecs_to_jiffies64(tb[NFTA_LAST_MSECS], &last_jiffies);
- 		if (err < 0)
--			return err;
-+			goto err;
- 
--		priv->last_jiffies = jiffies - (unsigned long)last_jiffies;
-+		last->jiffies = jiffies - (unsigned long)last_jiffies;
- 	}
-+	priv->last = last;
- 
- 	return 0;
-+err:
-+	kfree(last);
++			if (expr->ops->reduce &&
++			    expr->ops->reduce(&track, expr)) {
++				expr = track.cur;
++				continue;
++			}
 +
-+	return err;
- }
- 
- static void nft_last_eval(const struct nft_expr *expr,
- 			  struct nft_regs *regs, const struct nft_pktinfo *pkt)
- {
- 	struct nft_last_priv *priv = nft_expr_priv(expr);
-+	struct nft_last *last = priv->last;
- 
--	if (READ_ONCE(priv->last_jiffies) != jiffies)
--		WRITE_ONCE(priv->last_jiffies, jiffies);
--	if (READ_ONCE(priv->last_set) == 0)
--		WRITE_ONCE(priv->last_set, 1);
-+	if (READ_ONCE(last->jiffies) != jiffies)
-+		WRITE_ONCE(last->jiffies, jiffies);
-+	if (READ_ONCE(last->set) == 0)
-+		WRITE_ONCE(last->set, 1);
- }
- 
- static int nft_last_dump(struct sk_buff *skb, const struct nft_expr *expr)
- {
- 	struct nft_last_priv *priv = nft_expr_priv(expr);
--	unsigned long last_jiffies = READ_ONCE(priv->last_jiffies);
--	u32 last_set = READ_ONCE(priv->last_set);
-+	struct nft_last *last = priv->last;
-+	unsigned long last_jiffies = READ_ONCE(last->jiffies);
-+	u32 last_set = READ_ONCE(last->set);
- 	__be64 msecs;
- 
- 	if (time_before(jiffies, last_jiffies)) {
--		WRITE_ONCE(priv->last_set, 0);
-+		WRITE_ONCE(last->set, 0);
- 		last_set = 0;
- 	}
- 
-@@ -81,11 +93,32 @@ static int nft_last_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 	return -1;
- }
- 
-+static void nft_last_destroy(const struct nft_ctx *ctx,
-+			     const struct nft_expr *expr)
-+{
-+	struct nft_last_priv *priv = nft_expr_priv(expr);
-+
-+	kfree(priv->last);
-+}
-+
-+static int nft_last_clone(struct nft_expr *dst, const struct nft_expr *src)
-+{
-+	struct nft_last_priv *priv_dst = nft_expr_priv(dst);
-+
-+	priv_dst->last = kzalloc(sizeof(*priv_dst->last), GFP_ATOMIC);
-+	if (priv_dst->last)
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+
- static const struct nft_expr_ops nft_last_ops = {
- 	.type		= &nft_last_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_last_priv)),
- 	.eval		= nft_last_eval,
- 	.init		= nft_last_init,
-+	.destroy	= nft_last_destroy,
-+	.clone		= nft_last_clone,
- 	.dump		= nft_last_dump,
- };
- 
+ 			memcpy(ptr, expr, expr->ops->size);
+ 			ptr += expr->ops->size;
++			size += expr->ops->size;
+ 		}
+ 		prule->handle = rule->handle;
+ 		prule->dlen = size;
 -- 
 2.30.2
 
