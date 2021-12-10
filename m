@@ -2,68 +2,63 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6218BC433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Dec 2021 19:35:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0982DC433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Dec 2021 00:12:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230410AbhLITjZ (ORCPT
+        id S231965AbhLJAQM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 9 Dec 2021 14:39:25 -0500
-Received: from sin.source.kernel.org ([145.40.73.55]:47408 "EHLO
-        sin.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229590AbhLITjX (ORCPT
+        Thu, 9 Dec 2021 19:16:12 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:44330 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233422AbhLJAQL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 9 Dec 2021 14:39:23 -0500
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 9D144CE27F4;
-        Thu,  9 Dec 2021 19:35:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 113F7C341CB;
-        Thu,  9 Dec 2021 19:35:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1639078546;
-        bh=3Y6sSFhQC6zE/Ent9Dbju/+ZfZjUqmHxioM8+U3W42U=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=f2WlktgMywCTKzyIIcW2CS6FmU8GJMWn1v1ZLvvhkjI8+QgyuBd+KRy2Pc3F/5FSU
-         dRijOqESZz/F08TOgFMipp3kAFFMq6y6boMXd56AqpEgY2595LvI7JrhVEB/DrlWEE
-         5vNKcdWo5BkI6qDzBtAMcgMMID3FmW47fVWjgfhkTz1uHhDFwtqcQowYUqb4sSIgy/
-         PzreDnftvNnvoUVnvFcet9IJeo5JrXb8QYDIihyEtPwMmJqz7PhK+K9QLmbmXsT3zO
-         dR+B3vTc+atkmj3lIb2Lkl7WqFIBRJNqI1oNniHeaHDUVdOCctfJeHIS2ZcR60iPnS
-         BJdDJtbAHMA3Q==
-Received: from pdx-korg-docbuild-2.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by pdx-korg-docbuild-2.ci.codeaurora.org (Postfix) with ESMTP id EDAEB60A37;
-        Thu,  9 Dec 2021 19:35:45 +0000 (UTC)
-Subject: Re: [GIT PULL] Networking for 5.16-rc5
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <20211209172032.610738-1-kuba@kernel.org>
-References: <20211209172032.610738-1-kuba@kernel.org>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20211209172032.610738-1-kuba@kernel.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/netdev/net.git tags/net-5.16-rc5
-X-PR-Tracked-Commit-Id: 04ec4e6250e5f58b525b08f3dca45c7d7427620e
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: ded746bfc94398d2ee9de315a187677b207b2004
-Message-Id: <163907854596.11961.15478565326988801668.pr-tracker-bot@kernel.org>
-Date:   Thu, 09 Dec 2021 19:35:45 +0000
-To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     torvalds@linux-foundation.org, kuba@kernel.org,
-        davem@davemloft.net, netdev@vger.kernel.org, bpf@vger.kernel.org,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        linux-can@vger.kernel.org
+        Thu, 9 Dec 2021 19:16:11 -0500
+Received: from localhost.localdomain (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id B2DCF60085
+        for <netfilter-devel@vger.kernel.org>; Fri, 10 Dec 2021 01:10:12 +0100 (CET)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next 0/5] nf_tables misc updates
+Date:   Fri, 10 Dec 2021 01:12:26 +0100
+Message-Id: <20211210001231.144098-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The pull request you sent on Thu,  9 Dec 2021 09:20:32 -0800:
+Hi,
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/netdev/net.git tags/net-5.16-rc5
+This patchset contains misc updates for nf_tables:
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/ded746bfc94398d2ee9de315a187677b207b2004
+1) Remove unnecessary rcu read-size lock when updating chain counters.
+   from the nft_do_chain() path.
 
-Thank you!
+2) Replace BUG_ON by WARN_ON_ONCE in nft_payload on buggy payload base.
+
+3) Consolidate verdict tracing in nft_do_chain().
+
+4) Replace WARN_ON() by WARN_ON_ONCE() in nft_do_chain() for unknown
+   verdicts.
+
+5) Make counters a built-in expression (IIRC, already suggested by Florian).
+
+Pablo Neira Ayuso (5):
+  netfilter: nf_tables: remove rcu read-size lock
+  netfilter: nft_payload: WARN_ON_ONCE instead of BUG
+  netfilter: nf_tables: consolidate rule verdict trace call
+  netfilter: nf_tables: replace WARN_ON by WARN_ON_ONCE for unknown verdicts
+  netfilter: nf_tables: make counter support built-in
+
+ include/net/netfilter/nf_tables_core.h |  4 ++
+ net/netfilter/Kconfig                  |  6 ---
+ net/netfilter/Makefile                 |  3 +-
+ net/netfilter/nf_tables_core.c         | 46 +++++++++++++++-----
+ net/netfilter/nft_counter.c            | 59 +++++++-------------------
+ net/netfilter/nft_payload.c            |  6 ++-
+ 6 files changed, 61 insertions(+), 63 deletions(-)
 
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+2.30.2
+
