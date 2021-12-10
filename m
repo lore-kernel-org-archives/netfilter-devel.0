@@ -2,96 +2,99 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65BCDC433FE
-	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Dec 2021 15:31:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4576EC433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Dec 2021 16:09:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242869AbhLJPfI (ORCPT
+        id S238248AbhLJQMp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 10 Dec 2021 10:35:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42266 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231651AbhLJPfH (ORCPT
+        Fri, 10 Dec 2021 11:12:45 -0500
+Received: from str75-3-78-193-33-39.fbxo.proxad.net ([78.193.33.39]:43784 "EHLO
+        mail.qult.net" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+        with ESMTP id S238157AbhLJQMp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 10 Dec 2021 10:35:07 -0500
-Received: from mail-pj1-x1044.google.com (mail-pj1-x1044.google.com [IPv6:2607:f8b0:4864:20::1044])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EAF10C061746;
-        Fri, 10 Dec 2021 07:31:32 -0800 (PST)
-Received: by mail-pj1-x1044.google.com with SMTP id k6-20020a17090a7f0600b001ad9d73b20bso7800115pjl.3;
-        Fri, 10 Dec 2021 07:31:32 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=GmMgSJl49zzsKmujGBq1/GKCheREG+aHuBZn5X9zec8=;
-        b=OInQHPsFh8QlZ3nsvgVAWVIUzWiqT4ACnBqvELU1Ie8Gyc4L/9Fp5aSoZgxRxz+qdJ
-         Kgb+FhrdHydpVVji2anqr5M7zKaENoath1ZiJErNtlU71KkJolopTZwNztxFU+pEdI95
-         AACUhq75T9traKSaSOOGrl3xQV9vfWZkn823zSvGwRrlZPmRCmG2aS4cXJmVnoITUawR
-         XHoZ62hudq5GUdC329VUKZQTy8a4M+R2GmV1rpIsICyNwdHkYVydy5i/KYsxAp4soqm2
-         0KeEoGylEwDwXca1SI3ddXodQO9bTgDx4JmYKFao1igJCJYK0q1yv4hAW+76X/SfEOfL
-         /tMw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=GmMgSJl49zzsKmujGBq1/GKCheREG+aHuBZn5X9zec8=;
-        b=YfxD4CclW13s62lIStcORdF62wGvI0Pu+tQ3Vg+n8XkUGajY9ZhPT3Tu5dbGHso4nz
-         daByEFbXLLExtJSeLOY/1u+OLiFoxC+b6x9CbjEch43UxSzQs/tKxk3zrx2XLWnLQG34
-         ezHKa5g749haxa/KuLT+G71W2Sdy/bjHBdDWQAXX6ash77ShzzOHpKI0pPpCJGgohzrR
-         xNG80VgLk/TQhza0XHU8rj5sfJbhMNzCDcOH2mUMWSI9eQyNyZKDnqmmRiaYdPYWPmxa
-         rrXRv2B6hRJ5iPECgD768J8raQSHlMmP2NZSPTXtRvUcwOUhuY6Yd1IAJV4ngnvMLC1m
-         gSww==
-X-Gm-Message-State: AOAM5337RRKjaGVB0OGNiskFwQz8sGWd8seJltXZhsH7JlidwrjsxNAJ
-        9vlnl/O4MtArGURIN7nrEHc=
-X-Google-Smtp-Source: ABdhPJwUOu1SkB7OR8mR0uykpCWAfXNZZW+m0ex7PRT6nTzcK4o/C1QlpAHyHZR2CAyz4nCZ05Xc/w==
-X-Received: by 2002:a17:902:bd06:b0:143:aa76:faf0 with SMTP id p6-20020a170902bd0600b00143aa76faf0mr75794437pls.88.1639150292405;
-        Fri, 10 Dec 2021 07:31:32 -0800 (PST)
-Received: from localhost ([2405:201:6014:d064:3d4e:6265:800c:dc84])
-        by smtp.gmail.com with ESMTPSA id f21sm3969562pfc.191.2021.12.10.07.31.31
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 10 Dec 2021 07:31:32 -0800 (PST)
-Date:   Fri, 10 Dec 2021 21:01:29 +0530
-From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     bpf@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Martin KaFai Lau <kafai@fb.com>,
-        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Maxim Mikityanskiy <maximmi@nvidia.com>,
-        Florian Westphal <fw@strlen.de>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH bpf-next v3 7/9] net/netfilter: Add unstable CT lookup
- helpers for XDP and TC-BPF
-Message-ID: <20211210153129.srb6p2ebzhl5yyzh@apollo.legion>
-References: <20211210130230.4128676-1-memxor@gmail.com>
- <20211210130230.4128676-8-memxor@gmail.com>
- <YbNtmlaeqPuHHRgl@salvia>
+        Fri, 10 Dec 2021 11:12:45 -0500
+X-Greylist: delayed 2260 seconds by postgrey-1.27 at vger.kernel.org; Fri, 10 Dec 2021 11:12:44 EST
+Received: from zenon.in.qult.net ([192.168.64.1])
+        by mail.qult.net with esmtp (Exim 4.90_1)
+        (envelope-from <ignacy.gawedzki@green-communications.fr>)
+        id 1mvhrt-0004uU-Nl
+        for netfilter-devel@vger.kernel.org; Fri, 10 Dec 2021 16:31:29 +0100
+Received: from ig by zenon.in.qult.net with local (Exim 4.94.2)
+        (envelope-from <ignacy.gawedzki@green-communications.fr>)
+        id 1mvhrr-00G8Ch-Bg
+        for netfilter-devel@vger.kernel.org; Fri, 10 Dec 2021 16:31:27 +0100
+Date:   Fri, 10 Dec 2021 16:31:27 +0100
+From:   Ignacy =?utf-8?B?R2F3xJlkemtp?= 
+        <ignacy.gawedzki@green-communications.fr>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH v3] netfilter: fix regression in looped (broad|multi)cast's
+ MAC handling
+Message-ID: <20211210153127.i7kqadosjgw6qiqp@zenon.in.qult.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-2
 Content-Disposition: inline
-In-Reply-To: <YbNtmlaeqPuHHRgl@salvia>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Dec 10, 2021 at 08:39:14PM IST, Pablo Neira Ayuso wrote:
-> On Fri, Dec 10, 2021 at 06:32:28PM +0530, Kumar Kartikeya Dwivedi wrote:
-> [...]
-> >  net/netfilter/nf_conntrack_core.c | 252 ++++++++++++++++++++++++++++++
-> >  7 files changed, 497 insertions(+), 1 deletion(-)
-> >
-> [...]
-> > diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-> > index 770a63103c7a..85042cb6f82e 100644
-> > --- a/net/netfilter/nf_conntrack_core.c
-> > +++ b/net/netfilter/nf_conntrack_core.c
->
-> Please, keep this new code away from net/netfilter/nf_conntrack_core.c
+In commit 5648b5e1169f ("netfilter: nfnetlink_queue: fix OOB when mac
+header was cleared"), the test for non-empty MAC header introduced in
+commit 2c38de4c1f8da7 ("netfilter: fix looped (broad|multi)cast's MAC
+handling") has been replaced with a test for a set MAC header.
 
-Ok. Can it be a new file under net/netfilter, or should it live elsewhere?
+This breaks the case when the MAC header has been reset (using
+skb_reset_mac_header), as is the case with looped-back multicast
+packets.  As a result, the packets ending up in NFQUEUE get a bogus
+hwaddr interpreted from the first bytes of the IP header.
 
---
-Kartikeya
+This patch adds a test for a non-empty MAC header in addition to the
+test for a set MAC header.  The same two tests are also implemented in
+nfnetlink_log.c, where the initial code of commit 2c38de4c1f8da7
+("netfilter: fix looped (broad|multi)cast's MAC handling") has not been
+touched, but where supposedly the same situation may happen.
+
+Fixes: 5648b5e1169f ("netfilter: nfnetlink_queue: fix OOB when mac
+header was cleared")
+
+Signed-off-by: Ignacy Gawêdzki <ignacy.gawedzki@green-communications.fr>
+Reviewed-by: Florian Westphal <fw@strlen.de>
+---
+changelog:
+ v3: reword commit message again
+ v2: reword commit message
+
+ net/netfilter/nfnetlink_log.c   | 3 ++-
+ net/netfilter/nfnetlink_queue.c | 3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index 691ef4cffdd9..7f83f9697fc1 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -556,7 +556,8 @@ __build_packet_message(struct nfnl_log_net *log,
+ 		goto nla_put_failure;
+ 
+ 	if (indev && skb->dev &&
+-	    skb->mac_header != skb->network_header) {
++	    skb_mac_header_was_set(skb) &&
++	    skb_mac_header_len(skb) != 0) {
+ 		struct nfulnl_msg_packet_hw phw;
+ 		int len;
+ 
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 4acc4b8e9fe5..959527708e38 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -560,7 +560,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 		goto nla_put_failure;
+ 
+ 	if (indev && entskb->dev &&
+-	    skb_mac_header_was_set(entskb)) {
++	    skb_mac_header_was_set(entskb) &&
++	    skb_mac_header_len(entskb) != 0) {
+ 		struct nfqnl_msg_packet_hw phw;
+ 		int len;
+ 
+-- 
+2.32.0
