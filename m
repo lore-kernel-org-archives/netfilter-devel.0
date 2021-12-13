@@ -2,267 +2,150 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2343C433F5
-	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Dec 2021 18:08:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 580ACC433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Dec 2021 21:25:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238767AbhLMSIc (ORCPT
+        id S237990AbhLMVZo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 13 Dec 2021 13:08:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35916 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241633AbhLMSIb (ORCPT
+        Mon, 13 Dec 2021 16:25:44 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:57213 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S233303AbhLMVZn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 13 Dec 2021 13:08:31 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 67A55C061574
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 Dec 2021 10:08:31 -0800 (PST)
-Received: from localhost ([::1]:58966 helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1mwpkT-0004JL-6l; Mon, 13 Dec 2021 19:08:29 +0100
-From:   Phil Sutter <phil@nwl.cc>
+        Mon, 13 Dec 2021 16:25:43 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1639430742;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=H8ZoXvqnTXyU+fSxcQb0nWRbuEnwE4j20xX1vRvBOX8=;
+        b=Tf4uRt2Pt4WIGiDYLPwFVK9qiEts7/XBNXpKx8XrWTyST9nmvOAJk4P3vGjNeoNTudgR8D
+        VcoY78P61gIhQGJc7J1yEYcR1NA1I/nAwyRzct/3GvOmGC8h9kqImxL/PcKizibepUvIGv
+        kSXe1P+jlxalkRxO4IcEG2aSQ+6Mgw0=
+Received: from mail-ed1-f69.google.com (mail-ed1-f69.google.com
+ [209.85.208.69]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-524-zyJoK6sEOEOwpqY8dWq5cw-1; Mon, 13 Dec 2021 16:25:41 -0500
+X-MC-Unique: zyJoK6sEOEOwpqY8dWq5cw-1
+Received: by mail-ed1-f69.google.com with SMTP id b15-20020aa7c6cf000000b003e7cf0f73daso15053063eds.22
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Dec 2021 13:25:41 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:in-reply-to:references:date
+         :message-id:mime-version:content-transfer-encoding;
+        bh=H8ZoXvqnTXyU+fSxcQb0nWRbuEnwE4j20xX1vRvBOX8=;
+        b=CbdDlHSvC3dZ7ZvBY00QLGUXs6TuDQbK0rjeIYwz407l/qFTH+ssk+Z0Quz2vM7Yxs
+         XWNgoNdOq/Z84D8tB/KVJQYSDcUJ5Mo+vIfchDXm8ugbX8kXV0tmq4pL8P3nhvxwMdbk
+         DNhQwtnNoWKFdGCy+NRVCivUwBpvbaHP0tS2PTYF+5tsfYmV+fw6avwILvbS4ltTDIsj
+         2iUzEZbGfV2YBq5Uz1dBY/V/35J/p0BlPXeXh493NoIil560Yd/N+XOx7dQFeKan9sho
+         3YeoSPcvNpJmETGjybhD+huY68mMwvLxth2q17CS8IXVonc4U4REePGC7AqrW7uCz11x
+         GYNQ==
+X-Gm-Message-State: AOAM531ytgj1Eq3PI+VRsO+VT/nLVw8CgfP+z8bkyI0MBH8yRzsuCLE+
+        yLf1NXyA6URxmw5Mj7DZvYWgCUc9kCgLm+J606N0rY/lBhmGYZ5RtFyw01HMytCWL2ihtAm9fAM
+        Gbm2DQFFhf6wwh/afsoKfp8f7LxWu
+X-Received: by 2002:a17:906:b785:: with SMTP id dt5mr900720ejb.515.1639430739606;
+        Mon, 13 Dec 2021 13:25:39 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJx8q82txFC/iLUcmzva/RS0ZVHVyvAEWXIEByFJzlk88Br1P5RIVH1cuFavfwFtOUo5VBbGjg==
+X-Received: by 2002:a17:906:b785:: with SMTP id dt5mr900636ejb.515.1639430738730;
+        Mon, 13 Dec 2021 13:25:38 -0800 (PST)
+Received: from alrua-x1.borgediget.toke.dk ([2a0c:4d80:42:443::2])
+        by smtp.gmail.com with ESMTPSA id o17sm523086ejj.162.2021.12.13.13.25.37
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 13 Dec 2021 13:25:37 -0800 (PST)
+Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
+        id 3619F183566; Mon, 13 Dec 2021 22:25:37 +0100 (CET)
+From:   Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH v2 5/6] libxtables: Extend basic_exit_err()
-Date:   Mon, 13 Dec 2021 19:07:46 +0100
-Message-Id: <20211213180747.20707-6-phil@nwl.cc>
-X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20211213180747.20707-1-phil@nwl.cc>
-References: <20211213180747.20707-1-phil@nwl.cc>
+Cc:     Kumar Kartikeya Dwivedi <memxor@gmail.com>, bpf@vger.kernel.org,
+        Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Martin KaFai Lau <kafai@fb.com>,
+        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
+        John Fastabend <john.fastabend@gmail.com>,
+        Maxim Mikityanskiy <maximmi@nvidia.com>,
+        Florian Westphal <fw@strlen.de>,
+        Jesper Dangaard Brouer <brouer@redhat.com>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH bpf-next v3 7/9] net/netfilter: Add unstable CT lookup
+ helpers for XDP and TC-BPF
+In-Reply-To: <YbT5DEmlkunw7cCo@salvia>
+References: <20211210130230.4128676-1-memxor@gmail.com>
+ <20211210130230.4128676-8-memxor@gmail.com> <YbNtmlaeqPuHHRgl@salvia>
+ <20211210153129.srb6p2ebzhl5yyzh@apollo.legion> <YbPcxjdsdqepEQAJ@salvia>
+ <87pmq3ugz5.fsf@toke.dk> <YbT5DEmlkunw7cCo@salvia>
+X-Clacks-Overhead: GNU Terry Pratchett
+Date:   Mon, 13 Dec 2021 22:25:37 +0100
+Message-ID: <87tufcyz72.fsf@toke.dk>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Basically merge the function with xtables_exit_error, optionally
-printing the program variant (if set) and a status-specific footer.
+Pablo Neira Ayuso <pablo@netfilter.org> writes:
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
-Changes since v1:
-- Do not require existence of exit_tryhelp() in libxtables, instead
-  merge its code into basic_exit_error().
----
- iptables/ip6tables.c   | 22 ----------------------
- iptables/iptables.c    | 23 -----------------------
- iptables/xtables-arp.c |  2 --
- iptables/xtables-eb.c  |  2 --
- iptables/xtables.c     | 23 -----------------------
- libxtables/xtables.c   | 20 +++++++++++++++++++-
- 6 files changed, 19 insertions(+), 73 deletions(-)
+> On Sat, Dec 11, 2021 at 07:35:58PM +0100, Toke H=C3=B8iland-J=C3=B8rgense=
+n wrote:
+>> Pablo Neira Ayuso <pablo@netfilter.org> writes:
+>>=20
+>> > On Fri, Dec 10, 2021 at 09:01:29PM +0530, Kumar Kartikeya Dwivedi wrot=
+e:
+>> >> On Fri, Dec 10, 2021 at 08:39:14PM IST, Pablo Neira Ayuso wrote:
+>> >> > On Fri, Dec 10, 2021 at 06:32:28PM +0530, Kumar Kartikeya Dwivedi w=
+rote:
+>> >> > [...]
+>> >> > >  net/netfilter/nf_conntrack_core.c | 252 ++++++++++++++++++++++++=
+++++++
+>> >> > >  7 files changed, 497 insertions(+), 1 deletion(-)
+>> >> > >
+>> >> > [...]
+>> >> > > diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf=
+_conntrack_core.c
+>> >> > > index 770a63103c7a..85042cb6f82e 100644
+>> >> > > --- a/net/netfilter/nf_conntrack_core.c
+>> >> > > +++ b/net/netfilter/nf_conntrack_core.c
+>> >> >
+>> >> > Please, keep this new code away from net/netfilter/nf_conntrack_cor=
+e.c
+>> >>=20
+>> >> Ok. Can it be a new file under net/netfilter, or should it live elsew=
+here?
+>> >
+>> > IPVS and OVS use conntrack for already quite a bit of time and they
+>> > keep their code in their respective folders.
+>>=20
+>> Those are users, though.
+>
+> OK, I see this as a yet user of the conntrack infrastructure.
 
-diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
-index d9fd3de69dfea..c7d2377906e0c 100644
---- a/iptables/ip6tables.c
-+++ b/iptables/ip6tables.c
-@@ -87,13 +87,11 @@ static struct option original_opts[] = {
- 	{NULL},
- };
- 
--void ip6tables_exit_error(enum xtables_exittype status, const char *msg, ...) __attribute__((noreturn, format(printf,2,3)));
- struct xtables_globals ip6tables_globals = {
- 	.option_offset = 0,
- 	.program_version = PACKAGE_VERSION,
- 	.program_variant = "legacy",
- 	.orig_opts = original_opts,
--	.exit_err = ip6tables_exit_error,
- 	.compat_rev = xtables_compatible_revision,
- };
- 
-@@ -108,26 +106,6 @@ exit_printhelp(const struct xtables_rule_match *matches)
- 	exit(0);
- }
- 
--void
--ip6tables_exit_error(enum xtables_exittype status, const char *msg, ...)
--{
--	va_list args;
--
--	va_start(args, msg);
--	fprintf(stderr, "%s v%s (legacy): ", prog_name, prog_vers);
--	vfprintf(stderr, msg, args);
--	va_end(args);
--	fprintf(stderr, "\n");
--	if (status == PARAMETER_PROBLEM)
--		exit_tryhelp(status, line);
--	if (status == VERSION_PROBLEM)
--		fprintf(stderr,
--			"Perhaps ip6tables or your kernel needs to be upgraded.\n");
--	/* On error paths, make sure that we don't leak memory */
--	xtables_free_opts(1);
--	exit(status);
--}
--
- /*
-  *	All functions starting with "parse" should succeed, otherwise
-  *	the program fails.
-diff --git a/iptables/iptables.c b/iptables/iptables.c
-index 5a634b2ef7a5d..cc17f8d4e5ce7 100644
---- a/iptables/iptables.c
-+++ b/iptables/iptables.c
-@@ -84,14 +84,11 @@ static struct option original_opts[] = {
- 	{NULL},
- };
- 
--void iptables_exit_error(enum xtables_exittype status, const char *msg, ...) __attribute__((noreturn, format(printf,2,3)));
--
- struct xtables_globals iptables_globals = {
- 	.option_offset = 0,
- 	.program_version = PACKAGE_VERSION,
- 	.program_variant = "legacy",
- 	.orig_opts = original_opts,
--	.exit_err = iptables_exit_error,
- 	.compat_rev = xtables_compatible_revision,
- };
- 
-@@ -106,26 +103,6 @@ exit_printhelp(const struct xtables_rule_match *matches)
- 	exit(0);
- }
- 
--void
--iptables_exit_error(enum xtables_exittype status, const char *msg, ...)
--{
--	va_list args;
--
--	va_start(args, msg);
--	fprintf(stderr, "%s v%s (legacy): ", prog_name, prog_vers);
--	vfprintf(stderr, msg, args);
--	va_end(args);
--	fprintf(stderr, "\n");
--	if (status == PARAMETER_PROBLEM)
--		exit_tryhelp(status, line);
--	if (status == VERSION_PROBLEM)
--		fprintf(stderr,
--			"Perhaps iptables or your kernel needs to be upgraded.\n");
--	/* On error paths, make sure that we don't leak memory */
--	xtables_free_opts(1);
--	exit(status);
--}
--
- /*
-  *	All functions starting with "parse" should succeed, otherwise
-  *	the program fails.
-diff --git a/iptables/xtables-arp.c b/iptables/xtables-arp.c
-index 24d020de23370..479749390f8cc 100644
---- a/iptables/xtables-arp.c
-+++ b/iptables/xtables-arp.c
-@@ -84,7 +84,6 @@ static struct option original_opts[] = {
- 
- #define opts xt_params->opts
- 
--extern void xtables_exit_error(enum xtables_exittype status, const char *msg, ...) __attribute__((noreturn, format(printf,2,3)));
- static void printhelp(const struct xtables_rule_match *m);
- struct xtables_globals arptables_globals = {
- 	.option_offset		= 0,
-@@ -92,7 +91,6 @@ struct xtables_globals arptables_globals = {
- 	.program_variant	= "nf_tables",
- 	.optstring		= OPTSTRING_COMMON "C:R:S::" "h::l:nv" /* "m:" */,
- 	.orig_opts		= original_opts,
--	.exit_err		= xtables_exit_error,
- 	.compat_rev		= nft_compatible_revision,
- 	.print_help		= printhelp,
- };
-diff --git a/iptables/xtables-eb.c b/iptables/xtables-eb.c
-index b78d5b6aa74f5..5ac122971c644 100644
---- a/iptables/xtables-eb.c
-+++ b/iptables/xtables-eb.c
-@@ -216,14 +216,12 @@ struct option ebt_original_options[] =
- 	{ 0 }
- };
- 
--extern void xtables_exit_error(enum xtables_exittype status, const char *msg, ...) __attribute__((noreturn, format(printf,2,3)));
- struct xtables_globals ebtables_globals = {
- 	.option_offset 		= 0,
- 	.program_version	= PACKAGE_VERSION,
- 	.program_variant	= "nf_tables",
- 	.optstring		= OPTSTRING_COMMON "h",
- 	.orig_opts		= ebt_original_options,
--	.exit_err		= xtables_exit_error,
- 	.compat_rev		= nft_compatible_revision,
- };
- 
-diff --git a/iptables/xtables.c b/iptables/xtables.c
-index e85df75e7c1c3..adf03b9348bd3 100644
---- a/iptables/xtables.c
-+++ b/iptables/xtables.c
-@@ -86,15 +86,12 @@ static struct option original_opts[] = {
- 	{NULL},
- };
- 
--void xtables_exit_error(enum xtables_exittype status, const char *msg, ...) __attribute__((noreturn, format(printf,2,3)));
--
- struct xtables_globals xtables_globals = {
- 	.option_offset = 0,
- 	.program_version = PACKAGE_VERSION,
- 	.program_variant = "nf_tables",
- 	.optstring = OPTSTRING_COMMON "R:S::W::" "46bfg:h::m:nvw::x",
- 	.orig_opts = original_opts,
--	.exit_err = xtables_exit_error,
- 	.compat_rev = nft_compatible_revision,
- 	.print_help = xtables_printhelp,
- };
-@@ -103,26 +100,6 @@ struct xtables_globals xtables_globals = {
- #define prog_name xt_params->program_name
- #define prog_vers xt_params->program_version
- 
--void
--xtables_exit_error(enum xtables_exittype status, const char *msg, ...)
--{
--	va_list args;
--
--	va_start(args, msg);
--	fprintf(stderr, "%s v%s (nf_tables): ", prog_name, prog_vers);
--	vfprintf(stderr, msg, args);
--	va_end(args);
--	fprintf(stderr, "\n");
--	if (status == PARAMETER_PROBLEM)
--		exit_tryhelp(status, line);
--	if (status == VERSION_PROBLEM)
--		fprintf(stderr,
--			"Perhaps iptables or your kernel needs to be upgraded.\n");
--	/* On error paths, make sure that we don't leak memory */
--	xtables_free_opts(1);
--	exit(status);
--}
--
- /*
-  *	All functions starting with "parse" should succeed, otherwise
-  *	the program fails.
-diff --git a/libxtables/xtables.c b/libxtables/xtables.c
-index d670175db2236..e15c6dd1f9069 100644
---- a/libxtables/xtables.c
-+++ b/libxtables/xtables.c
-@@ -86,10 +86,28 @@ void basic_exit_err(enum xtables_exittype status, const char *msg, ...)
- 	va_list args;
- 
- 	va_start(args, msg);
--	fprintf(stderr, "%s v%s: ", xt_params->program_name, xt_params->program_version);
-+	fprintf(stderr, "%s v%s",
-+		xt_params->program_name, xt_params->program_version);
-+	if (xt_params->program_variant)
-+		fprintf(stderr, " (%s)", xt_params->program_variant);
-+	fprintf(stderr, ": ");
-+
- 	vfprintf(stderr, msg, args);
- 	va_end(args);
- 	fprintf(stderr, "\n");
-+
-+	if (status == PARAMETER_PROBLEM) {
-+		if (line != -1)
-+			fprintf(stderr, "Error occurred at line: %d\n", line);
-+		fprintf(stderr, "Try `%s -h' or '%s --help' for more information.\n",
-+				xt_params->program_name, xt_params->program_name);
-+	} else if (status == VERSION_PROBLEM) {
-+		fprintf(stderr,
-+			"Perhaps %s or your kernel needs to be upgraded.\n",
-+			xt_params->program_name);
-+	}
-+	/* On error paths, make sure that we don't leak memory */
-+	xtables_free_opts(1);
- 	exit(status);
- }
- 
--- 
-2.33.0
+The users are the BPF programs; this series adds the exports. I.e., the
+code defines an API that BPF programs can hook into, and implements the
+validation and lifetime enforcement that is necessary for the particular
+data structures being exposed. This is very much something that the
+module doing the exports should be concerned with, so from that
+perspective it makes sense to keep it in the nf_conntrack kmod.
+
+>> This is adding a different set of exported functions, like a BPF
+>> version of EXPORT_SYMBOL(). We don't put those outside the module
+>> where the code lives either...
+>
+> OVS and IPVS uses Kconfig to enable the conntrack module as a
+> dependency. Then, add module that is loaded when conntrack is used.
+
+BPF can't do that, though: all the core BPF code is always built into
+the kernel, so we can't have any dependencies on module code. Until now,
+this has meant that hooking into modules has been out of scope for BPF
+entirely. With kfuncs and the module BTF support this is now possible,
+but it's a bit "weird" (i.e., different) compared to what we're used to
+with kernel modules.
+
+This series represents the first instance of actually implementing BPF
+hooks into a module, BTW, so opinions on how to do it best are
+absolutely welcome. But I have a hard time seeing how this could be done
+without introducing *any* new code into the conntrack module...
+
+-Toke
 
