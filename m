@@ -2,194 +2,180 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C19EC433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Dec 2021 00:00:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 287F5C433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Dec 2021 10:37:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244383AbhLNAAf (ORCPT
+        id S232824AbhLNKhl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 13 Dec 2021 19:00:35 -0500
-Received: from sonic315-27.consmr.mail.ne1.yahoo.com ([66.163.190.153]:37856
-        "EHLO sonic315-27.consmr.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S242585AbhLNAAf (ORCPT
+        Tue, 14 Dec 2021 05:37:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35178 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231219AbhLNKhk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 13 Dec 2021 19:00:35 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1639440035; bh=IIKa//ZfOf9ldI+2RZhwihcRPJzmFh5O4/PZDXiqrxo=; h=From:To:Cc:Subject:Date:In-Reply-To:References:From:Subject:Reply-To; b=At4f0v9ZRIeAl1TmpXlWbNAtmLwMyclenQ84AtCqi+1JgsAv+dFNs+KkLTH7qB2RFVc/TlMRNd2wuPXVDdZqKn0pmWbuU/mKSjoLEhn5WosF6zjJd7w1h95NCtc2ns63wFxsXEYdNs0/GdER9gytuhUbeQc9rDTKA0D3JYDOvltiPXallT3OPOS0Mtc73e/yALQu8vGguN7b3aGwdqLU2pIXZa9Kjlj07CuRrOUSOwngrFeSQvrPqmgA4CVoqpPTOA5RNPlP9Tty7o9mi4/gVaG009pwePTIzOI7aDk4mBYZd3VZilzTxel2w7n034d9nwbcy01ov65Q3phIdcdyjQ==
-X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1639440035; bh=CwPoWL/GQUcdxFWZsBGI8L44rlH3jTfPje7Kl4NSJE3=; h=X-Sonic-MF:From:To:Subject:Date:From:Subject; b=rU6SnYCpMTBsfLk7PNtn1y7yEK8+xbithXL1qp4ja/SWW/3H2Q836OVdwiD/bLQz4/Bfrrn193jtI5u+kEZJCMADCYdLnHl7e1OdmfAJNfS4PzkK2KK8GK+37dFiHrMcEr9RnLhTAT93KzY8xklYlg/+U9SnpD5iCD7yuoZyi0YxjpOAhoIUPCM3CovSCLtJNkOcLikcav4F9gElyzq/WFtAgLLS/rgGGdrBo+fY447l9rWKgllqtiTnBA+JAZ5AI8N8AYRIf+cXq+Jj28rF+k1pJfGFSXV5jadcal06HIsK8E2/Do+MgjrmW85JsLeI+Hs4kW2tP5OqQ0rwyxULCQ==
-X-YMail-OSG: rPKqrxgVM1n1y6qm4CPuvvnOVf0sfan3XVDMFwN.kTgvOzpa9FWkCNIVLgeYCEG
- FtwLQMWh8g3bXOiaXXiwPB5Y5fDUAycL0zi6wSChz2rLMumeZnpQcI.S99zEqtfgjoo8VGHkHDKS
- fDFz3yvgmhwxilA7bIPpAEoooo1iT34NZmS88hByExLZkuT1qTOZQQEfH5rwZtz2mQE80zbFHAo9
- JCZcMo5pSTVE4.lHuVK75r7Uqh2o.zeTr49hZLuV96A8rEux0WWcxHEvGkLdVeiwpDC3SPwXt3sX
- B3X_PtcywSxTSWiqgJbsCVS4pUqF2p3WxLMfdYmBQSf_cgLRL0uHP5O2LVGbK92tDXOa35bTgn_N
- bfAKE.72Li12I4EPPMr16x_NxcXVAdA6c7udIeoa9zSiLzr0rBHzQzHpY0.otklcHyK3w7jPDo4R
- pFggCihPx_DybzA9ywLAXf.ZZJ_mzTQ6NkqtvIdSmRmtH.oTtrmEHKeo6xEe4.CjO.Cdi65DKqoh
- qt3WYpzLX7qPJNwPOba4WR1U3jEYK3Nexfjf8fmaktI_BFtx5gbw9de8XCPMaLril4KiZUooCW.n
- wcVTKTVlWSE47NrNIp4BMca6PP_0dbYBqe7iyypRjWfZ9LpL0Ok5sGYMmi3btJNJi029oM73ssa0
- _tbK5nQxrpyPSGzN92kQFzQcYnKqyJA8M7YnD3.WyEwv0izfGbozD0R_xmo0yuoKLrMs6sgKt._B
- E5P_GoyPj1SarNgF268uT1SxalLQoeKL3xEyEDzv5yNyQZeurVGj4tx8Zo0yQCakpfigSfoOj.za
- P5D5xw49SYDGNDg9aFyRLvgWxQyWmOCjAiJ.yzgAzPg3m_Qg3SZmGdcQv58LoBjYrFQ8GXeowc2l
- uLryjYaUrQw.TARsYK6mpVRF.lKYUVwqvsb1Ig6DPGWaLSt9a4zHwI9bsj4eG7oYXiWLi9ZvJLRE
- BGr6LzCnrBph8Y2x5BMWNxOepov4I04eOvshf_ssPAWJY9GFQXqiSGaUiPD1kv_SXd8SpcabPtAr
- ON5UNHRETqoRb1i9jWdLrKGhFc7KKLyk0dv5noNqtWfGR4kXHICDNfChFVVvPW0YZi5yLQY90DzB
- l725TIhxBDnNQNF69mbJsiRFrBohmqsrUFfUO4uUYIhbHbth_m1VSLD2_1zHpSje58DtjZQPvEkb
- O2Tz045REDfWYoggILcqaOGfMEBDtLko0SRvAjDX3f4YcAg7hhhdFhY225q_EAtPR4nn3B6SSWqz
- 7RXesQuGL3v6A76QMrY7x.id90b5LVF99YWytqI1yZ6VkOgoEUQaUNNBiZMWUjFGXPDPqYe_exse
- b7aO0L_ECXJNhRhX7I_TWWisnD.Hd0XkkS1jJO8PZgDtFpWIuFeFXCpQj.5G7lJ0oJzl3bq6hMHq
- Ik6ANLQbg92yoAvX1S.p2uHzwmUbjskZLql.PUy8O60tqCz8bmZaSTeYIhKpfPbZ7vGudtimqScN
- 8UrPSQT2_1trBFfJlQL0LSQI0KIQUz4AWJLOd0lfXzkzDVJt6fC_1PUx8kFz_vzCqZAhpiXikOU0
- g0_8PEhMXyoVUly5bY8ukLVNcLXyxt8GDTAV_Qny_G1RHtlkp7Nb0C69Y6.trm1bHBqtcjQ6AVfI
- AQfnkSmOaJuvLeDfsM4idMOMp.Td3oiVWDqhfghguGO8aBLv._Kt0gVgKRTsi7mSgFNZqAajMvM6
- m4BN0UwrPtluMTeuLUNDXCl3JS1eAZXcGrPUDH5qg0vlLLe8JTLobnVnq86OaHKhoXSs5slZMh.I
- hKg2WjHwqh1TMQd_VYQk75cIQi4QI4h2mUHCDU0Wj1mM5jDtfpFCDp5SwPc9WOkVYtTfd5nuk2BJ
- nR7O3fefbTr35SrD3sqFqr0URG2Y.knWgEAWoIJ12LCeXuYUdFw7o8qULYzYtKgPs3CUO3I9RDfr
- 1gMEyodS_xjU0SJvoJO6wiAqn4yGalNWraMG7mNg3C0t705b4nNz2bfCuaSxfjUPwGPKhPnNDm4J
- p_5ZT.mSc.iCqiDNz7DVdBetBnL9TDXKoD6tLWKKZgM3N0AxHDouB.urlhXyNyLtiAICZ_.sJaDK
- SdEHX1D28vmJCyx4jou_E3aDk77TCaL9V.aeNPii6As5m_YDNtZLqhYVpr8W3FbJhASUHsMVVSGs
- L3DTKqIqgyrZSkP.a1SMqrq2y6omzEU86kXkqdHXYnCr.GCBqO44BnRnRpNdxiVvZkaid8IYR_Cu
- mkNh56jOIeA3LLoLASPGxVC4V6hfWf1eLXv_3SIGqPlj3fXSPmmkMElZk9KTdLA5QFUu0cMpRZH1
- bIUNCrX7bVNmDYrSw3G55Oc.ZNVmpxyxEUlAZLIwDXiackaI-
-X-Sonic-MF: <casey@schaufler-ca.com>
-Received: from sonic.gate.mail.ne1.yahoo.com by sonic315.consmr.mail.ne1.yahoo.com with HTTP; Tue, 14 Dec 2021 00:00:35 +0000
-Received: by kubenode516.mail-prod1.omega.bf1.yahoo.com (VZM Hermes SMTP Server) with ESMTPA ID d9da30bbc942afdefef6ca173bbb7167;
-          Tue, 14 Dec 2021 00:00:30 +0000 (UTC)
-From:   Casey Schaufler <casey@schaufler-ca.com>
-To:     casey.schaufler@intel.com, jmorris@namei.org,
-        linux-security-module@vger.kernel.org, selinux@vger.kernel.org
-Cc:     casey@schaufler-ca.com, linux-audit@redhat.com,
-        keescook@chromium.org, john.johansen@canonical.com,
-        penguin-kernel@i-love.sakura.ne.jp, paul@paul-moore.com,
-        sds@tycho.nsa.gov, linux-kernel@vger.kernel.org,
-        Stephen Smalley <stephen.smalley.work@gmail.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: [PATCH v31 18/28] LSM: security_secid_to_secctx in netlink netfilter
-Date:   Mon, 13 Dec 2021 15:40:24 -0800
-Message-Id: <20211213234034.111891-19-casey@schaufler-ca.com>
-X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20211213234034.111891-1-casey@schaufler-ca.com>
-References: <20211213234034.111891-1-casey@schaufler-ca.com>
+        Tue, 14 Dec 2021 05:37:40 -0500
+Received: from mail-yb1-xb31.google.com (mail-yb1-xb31.google.com [IPv6:2607:f8b0:4864:20::b31])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FAE7C061574
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Dec 2021 02:37:40 -0800 (PST)
+Received: by mail-yb1-xb31.google.com with SMTP id d10so45197135ybe.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Dec 2021 02:37:40 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=fGRme/yN1DmMSCwAQOZ9+c9iMC5deuyGO5yzn8ntP+o=;
+        b=CbKvhDvy6ZRK1psW0zfFZMS6DpMVaw4o99yM8sGrtKFA5ORJAysJBcCJwfPW832LZX
+         CWICWRl/WhALixbRTp9e1CHJvIblghnatpq77Jq42uRR7Z44qeODY1OiVZGIxSPBs+zx
+         STBYY7Hux2TvvLps0d5x7duqRc6BeN2yVzhLZMh5DlcstpWPhqu3CSw49Ob/EAqoEkSk
+         u/0qPOktyw5zUPlnQAXP+ANUW3XcU05z0a86Dh+o/fDCbTYEpPmbyBB17EJZhbHwKL5Y
+         diNor/FdU6FPuFeupecCrNPBoJm4kqmInJ3pDd1s5Dde5XiCVTT/0TQm4kGa2SXTAmmv
+         GToQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=fGRme/yN1DmMSCwAQOZ9+c9iMC5deuyGO5yzn8ntP+o=;
+        b=OVCC7nXPb9C2BtOFxEuuGSWQYi5beHlpDBKZobcay1dhiBcg3wtPpDuP4E0xglDMVB
+         2Z1y3MGEaY8Ltq5iZTHtvxEnh9UU6zHxuvGxm6+tS+29E+6rkMw7abewSAMRFUrmeUd2
+         iSS21/mxbrRra5GpD/wZeD+6tKgyl60f0WJBiWyqK/7fqPc2Dah8WZW5MFuxxGrqxK+t
+         fF3BcxJnzyKRK7rwmaB90QPCyhZNP+x3uIM47Tfbt4+UDvLXAV8YFfkLrF69GGW02mF0
+         6AcPuWQIFy1S3DyZvl1LVmpGCtdp3ZofOHbm5ITtSrwZCCjXenMcHWyeNi5ltvRnf7Ij
+         prsw==
+X-Gm-Message-State: AOAM531ARaLFbC3yb+/D4UVDnbzLcWAGl8fMCq5VJwH94yZXo8vETxlO
+        ADoo+y0LnPehtdFkXLZ8wcKmA6RZGz5AbZBvHYg=
+X-Google-Smtp-Source: ABdhPJwcyefE+TsClapehP+Z2a+s2QK+W+nSrQzZgkq+ramCfL6gAcK0cF9ZBcETgMHFCA9mua4Tp9pv8yXTOrmAT40=
+X-Received: by 2002:a25:26d3:: with SMTP id m202mr5047119ybm.689.1639478259674;
+ Tue, 14 Dec 2021 02:37:39 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20211121170514.2595-1-fw@strlen.de> <YZzrgVYskeXzLuM5@salvia>
+ <20211123133045.GM6326@breakpoint.cc> <YaaYK9i2hixxbs70@salvia> <20211201112454.GA2315@breakpoint.cc>
+In-Reply-To: <20211201112454.GA2315@breakpoint.cc>
+From:   Eyal Birger <eyal.birger@gmail.com>
+Date:   Tue, 14 Dec 2021 12:37:27 +0200
+Message-ID: <CAHsH6Gs9wX7-_DS8MA8QQZEFzzP1A2AMhAeqMcSOLda2GE_-5Q@mail.gmail.com>
+Subject: Re: [PATCH nf-next] netfilter: conntrack: allow to tune gc behavior
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, Karel Rericha <karel@maxtel.cz>,
+        Shmulik Ladkani <shmulik.ladkani@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Change netlink netfilter interfaces to use lsmcontext
-pointers, and remove scaffolding.
+On Wed, Dec 1, 2021 at 1:24 PM Florian Westphal <fw@strlen.de> wrote:
+>
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > I do not see how.
+> >
+> > I started a patchset, but the single hashtable for every netns might
+> > defeat the batching, if there is a table per netns then it should be
+> > similar to 67cc570edaa0.
+>
+> I see.
+>
+> > > for going with 2m.
+> >
+> > Default 2m is probably too large? This should be set at least to the
+> > UDP unreplied timeout, ie. 30s?
+>
+> Perhaps but I don't think 30s is going to resolve the issue at hand
+> (burstiness).
+>
+> > Probably set default scan interval to 20s and reduce it if there is
+> > workload coming in the next scan round? It is possible to count for
+> > the number of entries that will expired in the next round, if this
+> > represents a large % of entries, then reduce the scan interval of the
+> > vgarbage collector.
+>
+> I don't see how thios helps, see below.
+>
+> > diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+> > index 770a63103c7a..3f6731a9c722 100644
+> > --- a/net/netfilter/nf_conntrack_core.c
+> > +++ b/net/netfilter/nf_conntrack_core.c
+> > @@ -77,7 +77,8 @@ static __read_mostly bool nf_conntrack_locks_all;
+> >  /* serialize hash resizes and nf_ct_iterate_cleanup */
+> >  static DEFINE_MUTEX(nf_conntrack_mutex);
+> >
+> > -#define GC_SCAN_INTERVAL     (120u * HZ)
+> > +/* Scan every 20 seconds which is 2/3 of the UDP unreplied timeout. */
+> > +#define GC_SCAN_INTERVAL     (20u * HZ)
+> >  #define GC_SCAN_MAX_DURATION msecs_to_jiffies(10)
+> >
+> >  #define MIN_CHAINLEN 8u
+> > @@ -1418,12 +1419,22 @@ static bool gc_worker_can_early_drop(const struct nf_conn *ct)
+> >       return false;
+> >  }
+> >
+> > +static bool nf_ct_is_expired_next_run(const struct nf_conn *ct)
+> > +{
+> > +     unsigned long next_timestamp = nfct_time_stamp + GC_SCAN_INTERVAL;
+> > +
+> > +     return (__s32)(ct->timeout - next_timestamp) <= 0;
+> > +}
+>
+> Ok.
+>
+> >  static void gc_worker(struct work_struct *work)
+> >  {
+> > +     unsigned long next_run_expired_entries = 0, entries = 0, idle;
+> >       unsigned long end_time = jiffies + GC_SCAN_MAX_DURATION;
+> >       unsigned int i, hashsz, nf_conntrack_max95 = 0;
+> >       unsigned long next_run = GC_SCAN_INTERVAL;
+> >       struct conntrack_gc_work *gc_work;
+> > +     bool next_run_expired;
+> > +
+> >       gc_work = container_of(work, struct conntrack_gc_work, dwork.work);
+> >
+> >       i = gc_work->next_bucket;
+> > @@ -1448,6 +1459,8 @@ static void gc_worker(struct work_struct *work)
+> >                       struct nf_conntrack_net *cnet;
+> >                       struct net *net;
+> >
+> > +                     next_run_expired = false;
+> > +                     entries++;
+> >                       tmp = nf_ct_tuplehash_to_ctrack(h);
+> >
+> >                       if (test_bit(IPS_OFFLOAD_BIT, &tmp->status)) {
+> > @@ -1458,6 +1471,9 @@ static void gc_worker(struct work_struct *work)
+> >                       if (nf_ct_is_expired(tmp)) {
+> >                               nf_ct_gc_expired(tmp);
+> >                               continue;
+> > +                     } else if (nf_ct_is_expired_next_run(tmp)) {
+> > +                             next_run_expired = true;
+> > +                             next_run_expired_entries++;
+>
+> This means this expires within next 20s, but not now.
+>
+> > @@ -1511,7 +1531,22 @@ static void gc_worker(struct work_struct *work)
+> >       if (next_run) {
+> >               gc_work->early_drop = false;
+> >               gc_work->next_bucket = 0;
+> > +             /*
+> > +              * Calculate gc workload for the next run, adjust the gc
+> > +              * interval not to reap expired entries in bursts.
+> > +              *
+> > +              * Adjust scan interval linearly based on the percentage of
+> > +              * entries that will expire in the next run. The scan interval
+> > +              * is inversely proportional to the workload.
+> > +              */
+> > +             if (entries == 0) {
+> > +                     next_run = GC_SCAN_INTERVAL;
+> > +             } else {
+> > +                     idle = 100u - (next_run_expired_entries * 100u / entries);
+> > +                     next_run = GC_SCAN_INTERVAL * idle / 100u;
+>
+> AFAICS we may now schedule next run for 'right now' even though that
+> would not find any expired entries (they might all have a timeout of
+> 19s). Next round would reap no entries, then resched again immediately
+>
+> (the nf_ct_is_expired_next_run expire count assumes next run is in
+>  20s, not before).
+>
+> This would burn cycles for 19s before those entries can be expired.
+>
+> Not sure how to best avoid this, perhaps computing the remaining avg timeout
+> of the nf_ct_is_expired_next_run() candidates would help?
 
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: John Johansen <john.johansen@canonical.com>
-Acked-by: Paul Moore <paul@paul-moore.com>
-Acked-by: Stephen Smalley <stephen.smalley.work@gmail.com>
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
-Cc: netdev@vger.kernel.org
-Cc: netfilter-devel@vger.kernel.org
----
- net/netfilter/nfnetlink_queue.c | 37 +++++++++++++--------------------
- 1 file changed, 14 insertions(+), 23 deletions(-)
-
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index f19897b3cf39..69343275c54b 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -301,15 +301,13 @@ static int nfqnl_put_sk_uidgid(struct sk_buff *skb, struct sock *sk)
- 	return -1;
- }
- 
--static u32 nfqnl_get_sk_secctx(struct sk_buff *skb, char **secdata)
-+static void nfqnl_get_sk_secctx(struct sk_buff *skb, struct lsmcontext *context)
- {
--	u32 seclen = 0;
- #if IS_ENABLED(CONFIG_NETWORK_SECMARK)
- 	struct lsmblob blob;
--	struct lsmcontext context = { };
- 
- 	if (!skb || !sk_fullsock(skb->sk))
--		return 0;
-+		return;
- 
- 	read_lock_bh(&skb->sk->sk_callback_lock);
- 
-@@ -318,14 +316,12 @@ static u32 nfqnl_get_sk_secctx(struct sk_buff *skb, char **secdata)
- 		 * blob. security_secid_to_secctx() will know which security
- 		 * module to use to create the secctx.  */
- 		lsmblob_init(&blob, skb->secmark);
--		security_secid_to_secctx(&blob, &context);
--		*secdata = context.context;
-+		security_secid_to_secctx(&blob, context);
- 	}
- 
- 	read_unlock_bh(&skb->sk->sk_callback_lock);
--	seclen = context.len;
- #endif
--	return seclen;
-+	return;
- }
- 
- static u32 nfqnl_get_bridge_size(struct nf_queue_entry *entry)
-@@ -397,12 +393,10 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	struct net_device *indev;
- 	struct net_device *outdev;
- 	struct nf_conn *ct = NULL;
-+	struct lsmcontext context = { };
- 	enum ip_conntrack_info ctinfo;
- 	struct nfnl_ct_hook *nfnl_ct;
- 	bool csum_verify;
--	struct lsmcontext scaff; /* scaffolding */
--	char *secdata = NULL;
--	u32 seclen = 0;
- 
- 	size = nlmsg_total_size(sizeof(struct nfgenmsg))
- 		+ nla_total_size(sizeof(struct nfqnl_msg_packet_hdr))
-@@ -470,9 +464,9 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	}
- 
- 	if ((queue->flags & NFQA_CFG_F_SECCTX) && entskb->sk) {
--		seclen = nfqnl_get_sk_secctx(entskb, &secdata);
--		if (seclen)
--			size += nla_total_size(seclen);
-+		nfqnl_get_sk_secctx(entskb, &context);
-+		if (context.len)
-+			size += nla_total_size(context.len);
- 	}
- 
- 	skb = alloc_skb(size, GFP_ATOMIC);
-@@ -602,7 +596,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	    nfqnl_put_sk_uidgid(skb, entskb->sk) < 0)
- 		goto nla_put_failure;
- 
--	if (seclen && nla_put(skb, NFQA_SECCTX, seclen, secdata))
-+	if (context.len &&
-+	    nla_put(skb, NFQA_SECCTX, context.len, context.context))
- 		goto nla_put_failure;
- 
- 	if (ct && nfnl_ct->build(skb, ct, ctinfo, NFQA_CT, NFQA_CT_INFO) < 0)
-@@ -630,10 +625,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	}
- 
- 	nlh->nlmsg_len = skb->len;
--	if (seclen) {
--		lsmcontext_init(&scaff, secdata, seclen, 0);
--		security_release_secctx(&scaff);
--	}
-+	if (context.len)
-+		security_release_secctx(&context);
- 	return skb;
- 
- nla_put_failure:
-@@ -641,10 +634,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	kfree_skb(skb);
- 	net_err_ratelimited("nf_queue: error creating packet message\n");
- nlmsg_failure:
--	if (seclen) {
--		lsmcontext_init(&scaff, secdata, seclen, 0);
--		security_release_secctx(&scaff);
--	}
-+	if (context.len)
-+		security_release_secctx(&context);
- 	return NULL;
- }
- 
--- 
-2.31.1
-
+At least for us - where our load is mostly constant - using an avg
+seems like a good approach.
