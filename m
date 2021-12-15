@@ -2,26 +2,26 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36A1FC43219
-	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Dec 2021 23:49:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB4C3C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Dec 2021 23:49:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232122AbhLOXt1 (ORCPT
+        id S232096AbhLOXt1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Wed, 15 Dec 2021 18:49:27 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:56614 "EHLO
+Received: from mail.netfilter.org ([217.70.188.207]:56628 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232096AbhLOXtY (ORCPT
+        with ESMTP id S232135AbhLOXtZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Dec 2021 18:49:24 -0500
+        Wed, 15 Dec 2021 18:49:25 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id A2B41625F2;
-        Thu, 16 Dec 2021 00:46:53 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 33A25625F6;
+        Thu, 16 Dec 2021 00:46:55 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH nf-next 2/7] netfilter: conntrack: Use memset_startat() to zero struct nf_conn
-Date:   Thu, 16 Dec 2021 00:49:06 +0100
-Message-Id: <20211215234911.170741-3-pablo@netfilter.org>
+Subject: [PATCH nf-next 5/7] netfilter: nft_fwd_netdev: Support egress hook
+Date:   Thu, 16 Dec 2021 00:49:09 +0100
+Message-Id: <20211215234911.170741-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20211215234911.170741-1-pablo@netfilter.org>
 References: <20211215234911.170741-1-pablo@netfilter.org>
@@ -31,36 +31,42 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Kees Cook <keescook@chromium.org>
+Allow packet redirection to another interface upon egress.
 
-In preparation for FORTIFY_SOURCE performing compile-time and run-time
-field bounds checking for memset(), avoid intentionally writing across
-neighboring fields.
-
-Use memset_startat() to avoid confusing memset() about writing beyond
-the target struct member.
-
-Signed-off-by: Kees Cook <keescook@chromium.org>
+[lukas: set skb_iif, add commit message, original patch from Pablo. ]
+Signed-off-by: Lukas Wunner <lukas@wunner.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_core.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ net/netfilter/nft_fwd_netdev.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 054ee9d25efe..aa657db18318 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1562,9 +1562,7 @@ __nf_conntrack_alloc(struct net *net,
- 	ct->status = 0;
- 	ct->timeout = 0;
- 	write_pnet(&ct->ct_net, net);
--	memset(&ct->__nfct_init_offset, 0,
--	       offsetof(struct nf_conn, proto) -
--	       offsetof(struct nf_conn, __nfct_init_offset));
-+	memset_after(ct, 0, __nfct_init_offset);
+diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
+index cd59afde5b2f..fa9301ca6033 100644
+--- a/net/netfilter/nft_fwd_netdev.c
++++ b/net/netfilter/nft_fwd_netdev.c
+@@ -27,9 +27,11 @@ static void nft_fwd_netdev_eval(const struct nft_expr *expr,
+ {
+ 	struct nft_fwd_netdev *priv = nft_expr_priv(expr);
+ 	int oif = regs->data[priv->sreg_dev];
++	struct sk_buff *skb = pkt->skb;
  
- 	nf_ct_zone_add(ct, zone);
+ 	/* This is used by ifb only. */
+-	skb_set_redirected(pkt->skb, true);
++	skb->skb_iif = skb->dev->ifindex;
++	skb_set_redirected(skb, nft_hook(pkt) == NF_NETDEV_INGRESS);
  
+ 	nf_fwd_netdev_egress(pkt, oif);
+ 	regs->verdict.code = NF_STOLEN;
+@@ -198,7 +200,8 @@ static int nft_fwd_validate(const struct nft_ctx *ctx,
+ 			    const struct nft_expr *expr,
+ 			    const struct nft_data **data)
+ {
+-	return nft_chain_validate_hooks(ctx->chain, (1 << NF_NETDEV_INGRESS));
++	return nft_chain_validate_hooks(ctx->chain, (1 << NF_NETDEV_INGRESS) |
++						    (1 << NF_NETDEV_EGRESS));
+ }
+ 
+ static struct nft_expr_type nft_fwd_netdev_type;
 -- 
 2.30.2
 
