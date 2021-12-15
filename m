@@ -2,67 +2,53 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C72DC433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Dec 2021 11:00:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA5C4C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Dec 2021 12:20:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233834AbhLOLA4 (ORCPT
+        id S242362AbhLOMUf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 15 Dec 2021 06:00:56 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:54786 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229812AbhLOLA4 (ORCPT
+        Wed, 15 Dec 2021 07:20:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48842 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S242338AbhLOMUf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Dec 2021 06:00:56 -0500
-Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 83584625D0
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 Dec 2021 11:58:26 +0100 (CET)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH] tests: shell: implicit chains simple coverage
-Date:   Wed, 15 Dec 2021 12:00:30 +0100
-Message-Id: <20211215110031.84328-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Wed, 15 Dec 2021 07:20:35 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F61BC061574
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Dec 2021 04:20:33 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1mxTGq-0001gS-1i; Wed, 15 Dec 2021 13:20:32 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next v2 0/2] nat: force port remap to prevent shadowing well-known ports
+Date:   Wed, 15 Dec 2021 13:20:24 +0100
+Message-Id: <20211215122026.20850-1-fw@strlen.de>
+X-Mailer: git-send-email 2.32.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Already fixed by 17297d1acbbf ("cache: Filter chain list on kernel side").
+Hi,
 
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1577
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- tests/shell/testcases/cache/0010_implicit_chain_0          | 5 +++++
- .../shell/testcases/cache/dumps/0010_implicit_chain_0.nft  | 7 +++++++
- 2 files changed, 12 insertions(+)
- create mode 100755 tests/shell/testcases/cache/0010_implicit_chain_0
- create mode 100644 tests/shell/testcases/cache/dumps/0010_implicit_chain_0.nft
+this patchset updates the v1 of the port remap change to not remap
+locally originating connections.
 
-diff --git a/tests/shell/testcases/cache/0010_implicit_chain_0 b/tests/shell/testcases/cache/0010_implicit_chain_0
-new file mode 100755
-index 000000000000..43bdb6477542
---- /dev/null
-+++ b/tests/shell/testcases/cache/0010_implicit_chain_0
-@@ -0,0 +1,5 @@
-+#!/bin/bash
-+
-+set -e
-+
-+$NFT 'table ip f { chain c { jump { accept; }; }; }'
-diff --git a/tests/shell/testcases/cache/dumps/0010_implicit_chain_0.nft b/tests/shell/testcases/cache/dumps/0010_implicit_chain_0.nft
-new file mode 100644
-index 000000000000..aba92c0e5065
---- /dev/null
-+++ b/tests/shell/testcases/cache/dumps/0010_implicit_chain_0.nft
-@@ -0,0 +1,7 @@
-+table ip f {
-+	chain c {
-+		jump {
-+			accept
-+		}
-+	}
-+}
+This is done by adding a bit in nf_conn for LOCAL_OUT tracked entries.
+
+Florian Westphal (2):
+  netfilter: conntrack: tag conntracks picked up in local out hook
+  netfilter: nat: force port remap to prevent shadowing well-known ports
+
+ include/net/netfilter/nf_conntrack.h         |  1 +
+ net/netfilter/nf_conntrack_core.c            |  3 ++
+ net/netfilter/nf_nat_core.c                  | 43 ++++++++++++++++++--
+ tools/testing/selftests/netfilter/nft_nat.sh |  5 ++-
+ 4 files changed, 47 insertions(+), 5 deletions(-)
+
 -- 
-2.30.2
+2.32.0
 
