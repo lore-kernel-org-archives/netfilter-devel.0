@@ -2,26 +2,26 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB8C2C433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Dec 2021 23:49:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90BCDC433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Dec 2021 23:49:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232170AbhLOXtZ (ORCPT
+        id S232151AbhLOXt0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 15 Dec 2021 18:49:25 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:56606 "EHLO
+        Wed, 15 Dec 2021 18:49:26 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:56608 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231740AbhLOXtX (ORCPT
+        with ESMTP id S232093AbhLOXtX (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Wed, 15 Dec 2021 18:49:23 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 0AA4B625F1;
-        Thu, 16 Dec 2021 00:46:53 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 3988B625F3;
+        Thu, 16 Dec 2021 00:46:54 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH nf-next 1/7] ipvs: remove unused variable for ip_vs_new_dest
-Date:   Thu, 16 Dec 2021 00:49:05 +0100
-Message-Id: <20211215234911.170741-2-pablo@netfilter.org>
+Subject: [PATCH nf-next 3/7] netfilter: nf_queue: remove leftover synchronize_rcu
+Date:   Thu, 16 Dec 2021 00:49:07 +0100
+Message-Id: <20211215234911.170741-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20211215234911.170741-1-pablo@netfilter.org>
 References: <20211215234911.170741-1-pablo@netfilter.org>
@@ -31,51 +31,37 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: GuoYong Zheng <zhenggy@chinatelecom.cn>
+From: Florian Westphal <fw@strlen.de>
 
-The dest variable is not used after ip_vs_new_dest anymore in
-ip_vs_add_dest, do not need pass it to ip_vs_new_dest, remove it.
+Its no longer needed after commit 870299707436
+("netfilter: nf_queue: move hookfn registration out of struct net").
 
-Signed-off-by: GuoYong Zheng <zhenggy@chinatelecom.cn>
-Acked-by: Julian Anastasov <ja@ssi.bg>
-Acked-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_ctl.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ net/netfilter/nfnetlink_queue.c | 6 ------
+ 1 file changed, 6 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 39c523bd775c..7f645328b47f 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -960,8 +960,7 @@ __ip_vs_update_dest(struct ip_vs_service *svc, struct ip_vs_dest *dest,
-  *	Create a destination for the given service
-  */
- static int
--ip_vs_new_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest,
--	       struct ip_vs_dest **dest_p)
-+ip_vs_new_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
- {
- 	struct ip_vs_dest *dest;
- 	unsigned int atype, i;
-@@ -1021,8 +1020,6 @@ ip_vs_new_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest,
- 	spin_lock_init(&dest->stats.lock);
- 	__ip_vs_update_dest(svc, dest, udest, 1);
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 4acc4b8e9fe5..b61165e97252 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -1527,15 +1527,9 @@ static void __net_exit nfnl_queue_net_exit(struct net *net)
+ 		WARN_ON_ONCE(!hlist_empty(&q->instance_table[i]));
+ }
  
--	*dest_p = dest;
+-static void nfnl_queue_net_exit_batch(struct list_head *net_exit_list)
+-{
+-	synchronize_rcu();
+-}
 -
- 	LeaveFunction(2);
- 	return 0;
- 
-@@ -1096,7 +1093,7 @@ ip_vs_add_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
- 		/*
- 		 * Allocate and initialize the dest structure
- 		 */
--		ret = ip_vs_new_dest(svc, udest, &dest);
-+		ret = ip_vs_new_dest(svc, udest);
- 	}
- 	LeaveFunction(2);
- 
+ static struct pernet_operations nfnl_queue_net_ops = {
+ 	.init		= nfnl_queue_net_init,
+ 	.exit		= nfnl_queue_net_exit,
+-	.exit_batch	= nfnl_queue_net_exit_batch,
+ 	.id		= &nfnl_queue_net_id,
+ 	.size		= sizeof(struct nfnl_queue_net),
+ };
 -- 
 2.30.2
 
