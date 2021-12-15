@@ -2,110 +2,108 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EFAFC433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Dec 2021 18:44:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E745C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Dec 2021 18:47:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238826AbhLOSou (ORCPT
+        id S1343970AbhLOSr3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 15 Dec 2021 13:44:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54572 "EHLO
+        Wed, 15 Dec 2021 13:47:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55176 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232870AbhLOSou (ORCPT
+        with ESMTP id S1343977AbhLOSrZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Dec 2021 13:44:50 -0500
+        Wed, 15 Dec 2021 13:47:25 -0500
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C747EC061574
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 Dec 2021 10:44:49 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07A99C061574
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Dec 2021 10:47:25 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20190108; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
-        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:To:From:Date:Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=YSAoMuD4pPAcOi/bi9cD2E7bXqNbBqu5jb4/6X5tyK4=; b=oGKMtjRj3TQzNDX281cf5d7N/Q
-        rLL8kMptmimkBWHc7YrS4bGY6hogCdhZgsz0wbN5cWp9MBp30knChJNS6qUpfJU6Chz6CK156blxm
-        IesyUwUrJYMMS1yFhi54v9paAN4Mj5TBuLVEFtFi1ONwK09LpVjcS/xAqOXEScftQD+n9et8Farmj
-        bns0j5TiGK8S6k9Bo2JI2E1i6aGmRjjZQEi7Mya+B1HEOl3dbVDY2FD7+a1umASteZHL9fmOn88E5
-        3EX1Q4qzyTZ3FwxBlVjhXrBas5SAGpVaNoSjoPL4SHuPCGh8LNQ3T4FtHL1rFTDu8pIddV9bKkeG3
-        /G7gmOAw==;
-Received: from ulthar.dreamlands ([192.168.96.2] helo=ulthar.dreamlands.azazel.net)
-        by kadath.azazel.net with esmtp (Exim 4.94.2)
+        bh=zi3BYaZjeKMlSutxLDxih9oi2rGSKu9mxFOnWXtk8+Q=; b=mreY+UIVrFHz/+oN/Y6kWaZ/IH
+        YNfDgipEiCbxgasekokycj3FVZ641pHM10Wk8VBkjDC01Zkxc1N/Y2NFzpH/uktW6IntbTfEQV3Gg
+        z1gnuvGPRmEZgLf0TDpIpL2dR7RdxM/ewnF/VaWSwJYZpejPqEaHbqrLakvFSovAUB5YQ36lvptIO
+        BTlqbexu332Ky59ebjEE5TwoEs0ycKMEqAkA4ZWWjtWFf8lh+ug5inz3wCQ1VrtHg8EKXWzHo74zO
+        tQuCbM8dRswob2Rz4iBL/28w/7x/tIAkGHc2AhixmZZNomwk3T58AS146jagEOWRGnHvGzklpPScX
+        ZhPLFCOw==;
+Received: from celephais.dreamlands ([192.168.96.3] helo=azazel.net)
+        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1mxZGh-008YbR-BC
-        for netfilter-devel@vger.kernel.org; Wed, 15 Dec 2021 18:44:47 +0000
+        id 1mxZJD-008YcJ-4e
+        for netfilter-devel@vger.kernel.org; Wed, 15 Dec 2021 18:47:23 +0000
+Date:   Wed, 15 Dec 2021 18:47:19 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH] build: fix autoconf warnings
-Date:   Wed, 15 Dec 2021 18:44:40 +0000
-Message-Id: <20211215184440.39507-1-jeremy@azazel.net>
-X-Mailer: git-send-email 2.34.1
+Subject: Re: [PATCH] tests: shell: remove stray debug flag.
+Message-ID: <Ybo4N6NsO/kpA3rJ@azazel.net>
+References: <20211215184341.39427-1-jeremy@azazel.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 192.168.96.2
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="cVs18uzJBrf4WnZs"
+Content-Disposition: inline
+In-Reply-To: <20211215184341.39427-1-jeremy@azazel.net>
+X-SA-Exim-Connect-IP: 192.168.96.3
 X-SA-Exim-Mail-From: jeremy@azazel.net
 X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-autoconf complains about three obsolete macros.
 
-`AC_CONFIG_HEADER` has been superseded by `AC_CONFIG_HEADERS`, so
-replace it.
+--cVs18uzJBrf4WnZs
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-`AM_PROG_LEX` calls `AC_PROG_LEX` with no arguments, but this usage is
-deprecated.  The only difference between `AM_PROG_LEX` and `AC_PROG_LEX`
-is that the former defines `$LEX` as "./build-aux/missing lex" if no lex
-is found to ensure a useful error is reported when make is run.  How-
-ever, the configure script checks that we have a working lex and exits
-with an error if none is available, so `$LEX` will never be called and
-we can replace `AM_PROG_LEX` with `AC_PROG_LEX`.
+On 2021-12-15, at 18:43:41 +0000, Jeremy Sowden wrote:
+> 0040mark_shift_0 was passing --debug=eval to nft.  Remove it.
+>
+> Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+> ---
+>  tests/shell/testcases/chains/0040mark_shift_0 | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/tests/shell/testcases/chains/0040mark_shift_0 b/tests/shell/testcases/chains/0040mark_shift_0
+> index 55447f0b9737..ef3dccfa049a 100755
+> --- a/tests/shell/testcases/chains/0040mark_shift_0
+> +++ b/tests/shell/testcases/chains/0040mark_shift_0
+> @@ -8,4 +8,4 @@ RULESET="
+>    add rule t c oif lo ct mark set (meta mark | 0x10) << 8
+>  "
+>
+> -$NFT --debug=eval -f - <<< "$RULESET"
+> +$NFT -f - <<< "$RULESET"
+> --
+> 2.34.1
+>
+>
 
-`AM_PROG_LIBTOOL` has been superseded by `LT_INIT`, which is already in
-configure.ac, so remove it.
+Forgot to set the subject-prefix to "nft".
 
-We can also replace `AC_DISABLE_STATIC` with an argument to `LT_INIT`.
+Apologies,
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- configure.ac | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+J.
 
-diff --git a/configure.ac b/configure.ac
-index bb65f749691c..503883f28c66 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -9,7 +9,7 @@ AM_INIT_AUTOMAKE([-Wall foreign subdir-objects
- dnl kernel style compile messages
- m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
- 
--AC_CONFIG_HEADER([config.h])
-+AC_CONFIG_HEADERS([config.h])
- 
- AC_ARG_ENABLE([debug],
- 	      AS_HELP_STRING([--disable-debug], [Disable debugging symbols]),
-@@ -26,7 +26,7 @@ AC_PROG_CC
- AC_PROG_MKDIR_P
- AC_PROG_INSTALL
- AC_PROG_SED
--AM_PROG_LEX
-+AC_PROG_LEX([noyywrap])
- AC_PROG_YACC
- 
- if test -z "$ac_cv_prog_YACC" -a ! -f "${srcdir}/src/parser_bison.c"
-@@ -43,11 +43,9 @@ then
- fi
- 
- AM_PROG_AR
--AM_PROG_LIBTOOL
--LT_INIT
-+LT_INIT([disable-static])
- AM_PROG_CC_C_O
- AC_EXEEXT
--AC_DISABLE_STATIC
- CHECK_GCC_FVISIBILITY
- 
- AS_IF([test "x$enable_man_doc" = "xyes"], [
--- 
-2.34.1
+--cVs18uzJBrf4WnZs
+Content-Type: application/pgp-signature; name="signature.asc"
 
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmG6OCgACgkQKYasCr3x
+BA1VCQ/+LTK46qwrO2/bC6eHfa4t9G+DslVGxjE6oV1dx78Kcpexc+vTOsmPWXJA
+3H9AskHdWKeMd4phiyWoyRRTjjavTw0LtNukWAU84a5ucmFSGIC5wDTG+6pwwHEd
+FxLPesaKGqX4OuM6S4bGiUjeQafAVZ2ZOoDovkybFFb5aId9sL+YYt3vZgCTYWwy
+4sK6eKZHO5qXZEqIDsmQSAg9ZxhgdNaabA1xAz+evB22kOKxribSVSEue/yaQlM+
+hGApsqZapyqpJ793OdXNMIMO5q+KhuhC5i2BHHE7X48QZL0tFkM7p2CQitZkWLZ6
+g8iPiYnwxLA2TrrQZVlEC5s+RStr2dxsLbaWrhGs9dySxeYITB659n8sWEwgdu6G
+8qYp/dvb8fCkLXwy/S4KdEcqyg01gf8ET3e0kLdG7mIx2muV2WMgUTWNoXO2eZLZ
+z3vhVG3dhjktQHwczNewxYHMgPMNFkKbis7PBHhZ7g/+m9lvhHnm67xeAIdgk0ll
+MM+MwTWPE7m2CKmyQLvfuMiUxwX6pSAVCl6cKBwTKnmVrWZVzU417HUN3mBvzZix
+TKI16GRJIVTT9LoxWrhwtew22ZRM9XP2BGi2WVTPKeQo9tnsETiUcE6OsvdOFlv+
+mnglgpjhth4FTrVjh3CTu2c9JGiHAXV3FzQjIPwJJVFW5mol14E=
+=TybH
+-----END PGP SIGNATURE-----
+
+--cVs18uzJBrf4WnZs--
