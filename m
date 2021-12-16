@@ -2,100 +2,108 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AA64C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Dec 2021 11:54:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB4F7C433FE
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Dec 2021 12:24:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233946AbhLPLyF (ORCPT
+        id S234262AbhLPMYC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Dec 2021 06:54:05 -0500
-Received: from mail-wm1-f44.google.com ([209.85.128.44]:45578 "EHLO
-        mail-wm1-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229845AbhLPLyE (ORCPT
+        Thu, 16 Dec 2021 07:24:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41630 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S236123AbhLPMYB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Dec 2021 06:54:04 -0500
-Received: by mail-wm1-f44.google.com with SMTP id g191-20020a1c9dc8000000b0032fbf912885so17982258wme.4
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Dec 2021 03:54:04 -0800 (PST)
+        Thu, 16 Dec 2021 07:24:01 -0500
+Received: from mail-pg1-x52c.google.com (mail-pg1-x52c.google.com [IPv6:2607:f8b0:4864:20::52c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 83E19C061574
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Dec 2021 04:24:01 -0800 (PST)
+Received: by mail-pg1-x52c.google.com with SMTP id q16so22904959pgq.10
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Dec 2021 04:24:01 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=sender:from:date:to:cc:subject:message-id:mail-followup-to
+         :references:mime-version:content-disposition:in-reply-to;
+        bh=H3tC897UHG6QXvIlos5XngOrSNPnjMx9q9dhAqydDXM=;
+        b=LwMUssFWHpwYWuaisdIY4/h8EtX7QIwYdzI1DIpzYyeGC/3IDZNJtx6CSnzOu/YR1c
+         pteyWHqFnVIK0RAxWOjDd88RmI88XX0NCgyS04IJ/8arbh7MWJrrsv8XqZJwstVGt7oc
+         nPdEDJzrmQG6pk9ug84VoMtKWwQt/b94Jn0lcl10c51tiynANuHd8QNS0SZMBIMdajhq
+         S2kusgqxg8R+K5CfLLMdOZQyDZGXQJC8PIIhOB6iEG4fZHn5DDAykfFKiwujLPbV4n+O
+         +rWt67ySXCSoUiF+RdXzVAsoHT0mIUxt+rvaYfboP8GNWhV9M/m7YIPcb2NllSQQdSid
+         bWZA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:to:references:from:in-reply-to
-         :content-transfer-encoding;
-        bh=HUghnC33qcWlObghuT5LjJT7S+a/Gy924nKfyjhSaIE=;
-        b=DEURbbdDBOCutUD4nZmjYCjSGP0EtMJjAloG0umJevE9EJhmmIB9uJitOSh/su6KbR
-         NjwDTrYBLr8+PwUIxiS9uueGWotOuLpO4WGcapMxCrSZITrG+6eNQWLIhQdGLWw+67rV
-         S4vP5A7ni49QPNd09o4lZdK2xRgJt1R+BEXCwm2/HQEgLRstQfyC0OyYdmXDYTL138s3
-         3fCD4wOVudJJUBLAp+BPXPU4uymKLQa2iYe21J2E1+LY1lkNoE2wZnWPCLZvq6fvVrbR
-         BubTsuG0WomC/5DoTnvw9MMakr8BYrQk6doZScHaYMofOTiVeiisBtF6+EBTMJ+xNa09
-         OAwA==
-X-Gm-Message-State: AOAM533e9h0YLmSDJiyw8vixyp2/Ps1/PqwRYQNQ4edfbeMIRFCjnGr5
-        deI2XIrReEy6Yfy7jdV6RXKqETVlXvZLXw==
-X-Google-Smtp-Source: ABdhPJxbyFqJAO0eMNCc5HOKLisBRFqJ3Ohtx5uNTvVfV8NirAxXByNa0lDn4CV5qPIbtkdKW14lfQ==
-X-Received: by 2002:a05:600c:1d28:: with SMTP id l40mr4584295wms.192.1639655643463;
-        Thu, 16 Dec 2021 03:54:03 -0800 (PST)
-Received: from [10.239.43.214] (79.red-80-24-233.staticip.rima-tde.net. [80.24.233.79])
-        by smtp.gmail.com with ESMTPSA id d2sm4537312wra.61.2021.12.16.03.54.02
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 16 Dec 2021 03:54:03 -0800 (PST)
-Message-ID: <d878f630-adff-1522-c953-ec845d72a89c@netfilter.org>
-Date:   Thu, 16 Dec 2021 12:54:02 +0100
+        h=x-gm-message-state:sender:from:date:to:cc:subject:message-id
+         :mail-followup-to:references:mime-version:content-disposition
+         :in-reply-to;
+        bh=H3tC897UHG6QXvIlos5XngOrSNPnjMx9q9dhAqydDXM=;
+        b=mLty/YBUkhp4QoQ/0dGaV/tdMYs3NV2ZnBn3eQSNBzZL1+m94U6kQDAJDbCpHs/IZj
+         8pn7w6UjnRPkbdzXuiCn17pduTgHgHK0hkcUDBmdlzARKw+/9M8w8Rx+M1SM7C0GqJrR
+         /qcaqS+4Miq6kQnpMBT1b3Po9tGrPltjVO6jHGiyfO969cftpFTtpYqzqjx9KVmeUE7t
+         gmuq5xcM98t9WqqVyabZXGH4Yvplyf75V6JBxrmaZ/JtDnm3QoQ3+7NUY88gsV+2zstN
+         ai1EA25a5etcfcC6Caal0eH0ykP8eVSm8UZ6mpyDoVj5jQDoOCQh+vVniA76BOLHBkkR
+         CsMg==
+X-Gm-Message-State: AOAM532xxftLNP72wrJ3hKJv2Hid13i1S+ZBPQFkLbc7yKcTVjXvcDVo
+        tssyPqB6QQB+l+QSnyqfNutxq/L9Eos=
+X-Google-Smtp-Source: ABdhPJx9tg1gnWXiazqrq/FCVp2RSLdHr+2JpDKzryjyCCv/JY9mjNIV1phrarz3A2VeA8iie8/bkg==
+X-Received: by 2002:aa7:8d0a:0:b0:4a2:82d7:1695 with SMTP id j10-20020aa78d0a000000b004a282d71695mr13909117pfe.86.1639657440964;
+        Thu, 16 Dec 2021 04:24:00 -0800 (PST)
+Received: from slk1.local.net (n110-23-108-30.sun3.vic.optusnet.com.au. [110.23.108.30])
+        by smtp.gmail.com with ESMTPSA id bt2sm5445905pjb.57.2021.12.16.04.23.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 16 Dec 2021 04:24:00 -0800 (PST)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+X-Google-Original-From: Duncan Roe <dunc@slk1.local.net>
+Date:   Thu, 16 Dec 2021 23:23:56 +1100
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libnetfilter_queue] build: doc: Update build_man.sh for
+ doxygen 1.9.2
+Message-ID: <Ybsv3Hkk93EEYqSr@slk1.local.net>
+Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <20211207224502.16008-1-duncan_roe@optusnet.com.au>
+ <Ybp6IlQAlAFVSdjQ@salvia>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.4.0
-Subject: Re: [PATCH nft 0/3] ruleset optimization infrastructure
-Content-Language: en-US
-To:     netfilter-devel@vger.kernel.org
-References: <20211215195615.139902-1-pablo@netfilter.org>
-From:   Arturo Borrero Gonzalez <arturo@netfilter.org>
-In-Reply-To: <20211215195615.139902-1-pablo@netfilter.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Ybp6IlQAlAFVSdjQ@salvia>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 12/15/21 20:56, Pablo Neira Ayuso wrote:
-> Hi,
-> 
-> This patchset adds a new -o/--optimize option to enable ruleset
-> optimization.
-> 
+Hi Pablo,
 
-Thanks for working on this. From what I see in the community, this feature will 
-be of high value to some folks: users often struggle with doing this kind of 
-optimizations by hand.
+On Thu, Dec 16, 2021 at 12:28:34AM +0100, Pablo Neira Ayuso wrote:
+> A bit more details on this one? It's just a cosmetic issue?
+>
+> On Wed, Dec 08, 2021 at 09:45:02AM +1100, Duncan Roe wrote:
+> > Cater for bold line number in del_def_at_lines()
+> >
+> > Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+> > ---
+> >  doxygen/build_man.sh | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/doxygen/build_man.sh b/doxygen/build_man.sh
+> > index 852c7b8..c68876c 100755
+> > --- a/doxygen/build_man.sh
+> > +++ b/doxygen/build_man.sh
+> > @@ -96,7 +96,7 @@ fix_double_blanks(){
+> >  del_def_at_lines(){
+> >    linnum=1
+> >    while [ $linnum -ne 0 ]
+> > -  do mygrep "^Definition at line [[:digit:]]* of file" $target
+> > +  do mygrep '^Definition at line (\\fB)?[[:digit:]]*(\\fP)? of file' $target
+> >      [ $linnum -eq 0 ] || delete_lines $(($linnum - 1)) $linnum
+> >    done
+> >  }
+> > --
+> > 2.17.5
+> >
+No, not cosmetic. The regexp has to be updated to recognise a line with bold
+line numbering. Without the patch, the unwanted line appears in the man page.
 
-> The ruleset optimization first loads the ruleset in "dry run" mode to
-> validate that the original ruleset is correct. Then, on a second pass it
-> performs the ruleset optimization before adding the rules into the
-> kernel.
-> 
+I thought that was obvious. Will submit a v2 explaining a bit more, unless you
+apply the patch in the meantime.
 
-Could you please describe how to work with this if all I want is to check how an 
-optimized version of my ruleset would look like, but not load it into the kernel?
-
-The use case would be: I just need a diff between my ruleset.nft file and 
-whatever the optimized version would be, without performing any actual change.
-
-Of course this can be added later on if not supported in this patch.
-
-> This infrastructure collects the statements that are used in rules. Then,
-> it builds a matrix of rules vs. statements. Then, it looks for common
-> statements in consecutive rules that are candidate to be merged. Finally,
-> it merges rules.
-
-clever!
-
-Is this infra extensible enough to support scanning non-adjacent rules in the 
-future?
-
-ie, being able to transform:
-
-* ip daddr 1.1.1.1 counter accept
-* tcp dport 80 accept
-* ip daddr 2.2.2.2 counter accept
-
-into:
-
-* ip daddr { 1.1.1., 2.2.2.2 } counter accept
-* tcp dport 80 accept
+Cheers ... Duncan.
