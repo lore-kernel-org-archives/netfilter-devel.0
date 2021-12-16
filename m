@@ -2,140 +2,128 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF578C433FE
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Dec 2021 17:54:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B6F4C433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Dec 2021 20:34:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239625AbhLPRyn (ORCPT
+        id S238125AbhLPUeB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Dec 2021 12:54:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37466 "EHLO
+        Thu, 16 Dec 2021 15:34:01 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46104 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236102AbhLPRym (ORCPT
+        with ESMTP id S241456AbhLPUeB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Dec 2021 12:54:42 -0500
-Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F99BC061574
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Dec 2021 09:54:42 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=CM7tzbw+8Y/L/glVoCmKBjPJEfxAbaAEePxvwKJodFM=; b=cRtLgm8+soeJ52jV6lbYfDujON
-        YX2dMyR+u+R03ZM3+zxIih5EcnxH3vpqMZgYtTEYdHjaqR89Ew4UnDF/zg8Cu88QIvgnjHxm+BRY5
-        jNV1B+FZXPfm8EV7LwOMuV5504uaDy8UyfwC6/lJy4wP+9BgPTrrNL6wHQdh9oiSPE+/AeTdEdeif
-        b92JUK6HL1kOhTyswRxXJCg7bu0P/b4xLgwC4WOJSMi6g6+UiP3gRUQx7j5oDPvRrbCu1Egz8oTvC
-        asBWq4VvTND7fVW0ZJPFuHBMg0yF/5+uNVI2EKvxxxwfnS2z6NtPOThNBzWe6UtStiqZqAZSIvawd
-        3thheN+g==;
-Received: from celephais.dreamlands ([192.168.96.3] helo=azazel.net)
-        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <jeremy@azazel.net>)
-        id 1mxuxj-009WUI-Nv; Thu, 16 Dec 2021 17:54:39 +0000
-Date:   Thu, 16 Dec 2021 17:54:35 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
+        Thu, 16 Dec 2021 15:34:01 -0500
+Received: from dehost.average.org (dehost.average.org [IPv6:2a01:4f8:130:53eb::2])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C61FC061574
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Dec 2021 12:33:59 -0800 (PST)
+Received: from [IPV6:2a02:8106:1:6800:7a98:db47:a81d:6ef0] (unknown [IPv6:2a02:8106:1:6800:7a98:db47:a81d:6ef0])
+        by dehost.average.org (Postfix) with ESMTPSA id D949D3956677;
+        Thu, 16 Dec 2021 21:33:55 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=average.org; s=mail;
+        t=1639686836; bh=BqOURQISV9DydWfe7ondO0w72acjbfN7iMkrhxNDH8o=;
+        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+        b=U8M4ii+jgkmibhcmECmbm2nAPy2AVldREH07SbITG8Oea2T7LN9DCIOqHPmJuBf0W
+         TMFEN2QHJoAqsW7AwUefv+947sqV+Lv23DBTNPSLVck+19ik6ZlDgN22Qr23C+tI4G
+         aXN+bSbGFerUZT0PIzlYa22kA4arwVNmTLxpLKxo=
+Message-ID: <ad893f82-2490-af82-9ad2-ccb25d73d59d@average.org>
+Date:   Thu, 16 Dec 2021 21:33:45 +0100
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.0
+Subject: Re: [PATCH nft 2/2] Handle retriable errors from mnl functions
+Content-Language: en-US
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] proto: revisit short-circuit loops over upper
- protocols
-Message-ID: <Ybt9W9ha+TyQW1VK@azazel.net>
-References: <20211215233607.170171-1-pablo@netfilter.org>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="Jr0nn2hvr+hFjC0V"
-Content-Disposition: inline
-In-Reply-To: <20211215233607.170171-1-pablo@netfilter.org>
-X-SA-Exim-Connect-IP: 192.168.96.3
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+References: <20211208134914.16365-1-crosser@average.org>
+ <20211208134914.16365-3-crosser@average.org> <YbD0P44IvQYGU7Dm@salvia>
+From:   Eugene Crosser <crosser@average.org>
+In-Reply-To: <YbD0P44IvQYGU7Dm@salvia>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="------------NX3U0665GuQ5dI8xhjB0EFnS"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--------------NX3U0665GuQ5dI8xhjB0EFnS
+Content-Type: multipart/mixed; boundary="------------f32B2vl1ZoG0IL0A5ZQqRFcI";
+ protected-headers="v1"
+From: Eugene Crosser <crosser@average.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Message-ID: <ad893f82-2490-af82-9ad2-ccb25d73d59d@average.org>
+Subject: Re: [PATCH nft 2/2] Handle retriable errors from mnl functions
+References: <20211208134914.16365-1-crosser@average.org>
+ <20211208134914.16365-3-crosser@average.org> <YbD0P44IvQYGU7Dm@salvia>
+In-Reply-To: <YbD0P44IvQYGU7Dm@salvia>
 
---Jr0nn2hvr+hFjC0V
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--------------f32B2vl1ZoG0IL0A5ZQqRFcI
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-On 2021-12-16, at 00:36:06 +0100, Pablo Neira Ayuso wrote:
-> Move the check for NULL protocol description away from the loop to
-> avoid too long line.
+Hello,
 
-LGTM.
+On 08/12/2021 19:06, Pablo Neira Ayuso wrote:
 
-J.
+>> ---
+>>  src/iface.c | 73 ++++++++++++++++++++++++++++++++--------------------=
+-
+>>  1 file changed, 44 insertions(+), 29 deletions(-)
+>>
+>> diff --git a/src/iface.c b/src/iface.c
+>> index d0e1834c..029f6476 100644
+>> --- a/src/iface.c
+>> +++ b/src/iface.c
+>> @@ -66,39 +66,54 @@ void iface_cache_update(void)
+>>  	struct nlmsghdr *nlh;
+>>  	struct rtgenmsg *rt;
+>>  	uint32_t seq, portid;
+>> +	bool need_restart;
+>> +	int retry_count =3D 5;
+>=20
+> Did you ever hit this retry count? What is you daemon going to do
+> after these retries?
+>=20
+> Probably this can be made configurable for libraries in case you
+> prefer your daemon to give up after many retries, but, by default,
+> I'd prefer to to keep trying until you get a consistent cache from the
+> kernel via netlink dump.
+[...]
+> BTW, could you just rename iface_cache_update() to
+> __iface_cache_update() then add the loop to retry on EINTR? That would
+> skip this extra large indent in this patch.
 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
->
-> ---
->  src/proto.c | 16 +++++++++-------
->  1 file changed, 9 insertions(+), 7 deletions(-)
->
-> diff --git a/src/proto.c b/src/proto.c
-> index 31a2f38065ad..a013a00d2c7b 100644
-> --- a/src/proto.c
-> +++ b/src/proto.c
-> @@ -59,8 +59,9 @@ proto_find_upper(const struct proto_desc *base, unsigned int num)
->  {
->  	unsigned int i;
->
-> -	for (i = 0; i < array_size(base->protocols) && base->protocols[i].desc;
-> -	     i++) {
-> +	for (i = 0; i < array_size(base->protocols); i++) {
-> +		if (!base->protocols[i].desc)
-> +			break;
->  		if (base->protocols[i].num == num)
->  			return base->protocols[i].desc;
->  	}
-> @@ -78,8 +79,9 @@ int proto_find_num(const struct proto_desc *base,
->  {
->  	unsigned int i;
->
-> -	for (i = 0; i < array_size(base->protocols) && base->protocols[i].desc;
-> -	     i++) {
-> +	for (i = 0; i < array_size(base->protocols); i++) {
-> +		if (!base->protocols[i].desc)
-> +			break;
->  		if (base->protocols[i].desc == desc)
->  			return base->protocols[i].num;
->  	}
-> @@ -107,9 +109,9 @@ int proto_dev_type(const struct proto_desc *desc, uint16_t *res)
->  			*res = dev_proto_desc[i].type;
->  			return 0;
->  		}
-> -		for (j = 0; j < array_size(base->protocols) &&
-> -			     base->protocols[j].desc;
-> -		     j++) {
-> +		for (j = 0; j < array_size(base->protocols); j++) {
-> +			if (!base->protocols[j].desc)
-> +				break;
->  			if (base->protocols[j].desc == desc) {
->  				*res = dev_proto_desc[i].type;
->  				return 0;
-> --
-> 2.30.2
->
->
 
---Jr0nn2hvr+hFjC0V
-Content-Type: application/pgp-signature; name="signature.asc"
+I have sent the new patches a week ago:
+
+  [PATCH nft v2 0/2] Improve handling of errors from mnl* functions"
+  [PATCH nft v2 1/2] Use abort() in case of netlink_abi_error
+  [PATCH nft v2 2/2] Handle retriable errors from mnl functions
+
+Do they look better now?
+
+Thanks,
+
+Eugene
+
+--------------f32B2vl1ZoG0IL0A5ZQqRFcI--
+
+--------------NX3U0665GuQ5dI8xhjB0EFnS
+Content-Type: application/pgp-signature; name="OpenPGP_signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="OpenPGP_signature"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmG7fVEACgkQKYasCr3x
-BA307g//QFrlWI3COTnTcqgwOkeicxFxC8qIgmP/EFLwUn0lMOtlKlkk4vfQ/KNH
-m9NFYLAJvAw8kMnP9/yyzx4NfcolP/naLsGaBsC4IiH0jYaxqdK+mwd8DK+0dhRj
-Mdn+rFMMWM5hn5eCkGg+y5k8BgpaHNBNBrD/uzZSqGT2oorjlRABha262KFKq3N6
-hoikVM6BCM5IdAXpiQlPbErUwNHFMi7njXuQUoTP5Rfm36WX+tMjGes5ulA36H7N
-1yLTSXQrF+6b0Uq49gZKsLqvQtBC08aRf1mhbN5VajwPqOD2f4H/YwnndutZz14o
-EJC0oWjUqV/Jz0Ewy4o7IBGQGESxj1bottq9RfdpOrX1iieMJSH4QB129gXMaXT6
-eo69ymlkfNY++zUyzXECp4JbrM5VdNFSlVonMWSgGoFanaVPCJ9GwDQ+GQxLwMLX
-bbRWZ4/fTxOFK4Ia3qpaVmECNc6LGwRwa0J7zvk0y7bX9XtJp4HvfC1AOc8B5gf8
-yLZIgSdyIQDSAOr2TtAQdlz7faf9F6ieE79+7Kg+C+veJeErZ5Id+dVR2PWh5iUG
-vjJXK+qMZC02Ky0Ee83iGLs0oOpE8O0M9Js2Ljx2Xy7q2vhCQ9gVOTVb/6AQc4dS
-hISc5Agn/jnct5F0cNaCSPWCNy6I8T+U8tHfgyyFB/Cb0DBLVTk=
-=q68J
+iQEzBAEBCgAdFiEEnAziRJw3ydIzIkaHfKQHw5GdRYwFAmG7oqoACgkQfKQHw5Gd
+RYy44Af/SfsQ8geW2/Q0GkuaBnWPVvBnkA5JdfTHQeWALbYgXQbazXTDxm6zUImx
+UGhE4shKafkNs7JbwrjNKXSbnpaN8IZplzp1kJjaAc2hTEVoZ+kZujS7CQ2SbjN2
+io1mscorLO3+J9JyTg5pbS5NtOxR/8m/Fkc/jhf2OhbQ/hr8qAizfcm9HbB4vMAa
+Oe7ONOQ6Q/80iwyCDh1CJ30oSVUwlj+XI8jIoQVBOX7fGOOm3spp3+4vIMrmIrCV
+61Xt/Nd3GE090EgmYKXC9RFNk/EZCh5nO44OUsye/UiZv8LR5W9XczINzLat+i54
+fXN+iy5DzvipHhjIcdesQxBQZ2SAGQ==
+=aD/2
 -----END PGP SIGNATURE-----
 
---Jr0nn2hvr+hFjC0V--
+--------------NX3U0665GuQ5dI8xhjB0EFnS--
