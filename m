@@ -2,30 +2,30 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 634BAC433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Dec 2021 12:58:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B481C433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Dec 2021 12:59:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232066AbhLPM64 (ORCPT
+        id S229797AbhLPM7C (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Dec 2021 07:58:56 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49880 "EHLO
+        Thu, 16 Dec 2021 07:59:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49902 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237060AbhLPM64 (ORCPT
+        with ESMTP id S237061AbhLPM7B (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Dec 2021 07:58:56 -0500
+        Thu, 16 Dec 2021 07:59:01 -0500
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5325AC06173E
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Dec 2021 04:58:56 -0800 (PST)
-Received: from localhost ([::1]:58972 helo=xic)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B547FC06173E
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Dec 2021 04:59:01 -0800 (PST)
+Received: from localhost ([::1]:58974 helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1mxqLW-00044d-Ka; Thu, 16 Dec 2021 13:58:54 +0100
+        id 1mxqLc-00044j-2I; Thu, 16 Dec 2021 13:59:00 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH v3 3/6] xshared: Share exit_tryhelp()
-Date:   Thu, 16 Dec 2021 13:58:37 +0100
-Message-Id: <20211216125840.385-4-phil@nwl.cc>
+Subject: [iptables PATCH v3 5/6] libxtables: Extend basic_exit_err()
+Date:   Thu, 16 Dec 2021 13:58:39 +0100
+Message-Id: <20211216125840.385-6-phil@nwl.cc>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20211216125840.385-1-phil@nwl.cc>
 References: <20211216125840.385-1-phil@nwl.cc>
@@ -35,230 +35,222 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The function existed three times in identical form. Avoid having to
-declare extern int line in xshared.c by making it a parameter.
+Basically merge the function with xtables_exit_error,
+printing a status-specific footer for parameter or version problems.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/ip6tables.c | 19 ++++---------------
- iptables/iptables.c  | 19 ++++---------------
- iptables/xshared.c   | 10 ++++++++++
- iptables/xshared.h   |  1 +
- iptables/xtables.c   | 21 +++++----------------
- 5 files changed, 24 insertions(+), 46 deletions(-)
+Changes since v2:
+- No need to account for possible program_variant.
+
+Changes since v1:
+- Do not require existence of exit_tryhelp() in libxtables, instead
+  merge its code into basic_exit_error() - it's merely two printf()
+  calls after all.
+---
+ iptables/ip6tables.c   | 22 ----------------------
+ iptables/iptables.c    | 23 -----------------------
+ iptables/xtables-arp.c |  2 --
+ iptables/xtables-eb.c  |  2 --
+ iptables/xtables.c     | 23 -----------------------
+ libxtables/xtables.c   | 12 ++++++++++++
+ 6 files changed, 12 insertions(+), 72 deletions(-)
 
 diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
-index 46f7785b8a9c5..788966d6b68af 100644
+index 44d2c08cddc42..2f3ff034fbbb7 100644
 --- a/iptables/ip6tables.c
 +++ b/iptables/ip6tables.c
-@@ -100,17 +100,6 @@ struct xtables_globals ip6tables_globals = {
- #define prog_name ip6tables_globals.program_name
- #define prog_vers ip6tables_globals.program_version
+@@ -87,12 +87,10 @@ static struct option original_opts[] = {
+ 	{NULL},
+ };
  
--static void __attribute__((noreturn))
--exit_tryhelp(int status)
+-void ip6tables_exit_error(enum xtables_exittype status, const char *msg, ...) __attribute__((noreturn, format(printf,2,3)));
+ struct xtables_globals ip6tables_globals = {
+ 	.option_offset = 0,
+ 	.program_version = PACKAGE_VERSION " (legacy)",
+ 	.orig_opts = original_opts,
+-	.exit_err = ip6tables_exit_error,
+ 	.compat_rev = xtables_compatible_revision,
+ };
+ 
+@@ -107,26 +105,6 @@ exit_printhelp(const struct xtables_rule_match *matches)
+ 	exit(0);
+ }
+ 
+-void
+-ip6tables_exit_error(enum xtables_exittype status, const char *msg, ...)
 -{
--	if (line != -1)
--		fprintf(stderr, "Error occurred at line: %d\n", line);
--	fprintf(stderr, "Try `%s -h' or '%s --help' for more information.\n",
--			prog_name, prog_name);
+-	va_list args;
+-
+-	va_start(args, msg);
+-	fprintf(stderr, "%s v%s: ", prog_name, prog_vers);
+-	vfprintf(stderr, msg, args);
+-	va_end(args);
+-	fprintf(stderr, "\n");
+-	if (status == PARAMETER_PROBLEM)
+-		exit_tryhelp(status, line);
+-	if (status == VERSION_PROBLEM)
+-		fprintf(stderr,
+-			"Perhaps ip6tables or your kernel needs to be upgraded.\n");
+-	/* On error paths, make sure that we don't leak memory */
 -	xtables_free_opts(1);
 -	exit(status);
 -}
 -
- static void
- exit_printhelp(const struct xtables_rule_match *matches)
- {
-@@ -129,7 +118,7 @@ ip6tables_exit_error(enum xtables_exittype status, const char *msg, ...)
- 	va_end(args);
- 	fprintf(stderr, "\n");
- 	if (status == PARAMETER_PROBLEM)
--		exit_tryhelp(status);
-+		exit_tryhelp(status, line);
- 	if (status == VERSION_PROBLEM)
- 		fprintf(stderr,
- 			"Perhaps ip6tables or your kernel needs to be upgraded.\n");
-@@ -1106,7 +1095,7 @@ int do_command6(int argc, char *argv[], char **table,
- 			if (line != -1)
- 				return 1; /* success: line ignored */
- 			fprintf(stderr, "This is the IPv6 version of ip6tables.\n");
--			exit_tryhelp(2);
-+			exit_tryhelp(2, line);
- 
- 		case '6':
- 			/* This is indeed the IPv6 ip6tables */
-@@ -1123,7 +1112,7 @@ int do_command6(int argc, char *argv[], char **table,
- 				continue;
- 			}
- 			fprintf(stderr, "Bad argument `%s'\n", optarg);
--			exit_tryhelp(2);
-+			exit_tryhelp(2, line);
- 
- 		default:
- 			if (command_default(&cs, &ip6tables_globals, invert))
-@@ -1372,7 +1361,7 @@ int do_command6(int argc, char *argv[], char **table,
- 		break;
- 	default:
- 		/* We should never reach this... */
--		exit_tryhelp(2);
-+		exit_tryhelp(2, line);
- 	}
- 
- 	if (verbose > 1)
+ /*
+  *	All functions starting with "parse" should succeed, otherwise
+  *	the program fails.
 diff --git a/iptables/iptables.c b/iptables/iptables.c
-index 7b4503498865d..78fff9ef77b81 100644
+index 191877ec1bb06..ba04fbc6a806e 100644
 --- a/iptables/iptables.c
 +++ b/iptables/iptables.c
-@@ -98,17 +98,6 @@ struct xtables_globals iptables_globals = {
- #define prog_name iptables_globals.program_name
- #define prog_vers iptables_globals.program_version
+@@ -84,13 +84,10 @@ static struct option original_opts[] = {
+ 	{NULL},
+ };
  
--static void __attribute__((noreturn))
--exit_tryhelp(int status)
+-void iptables_exit_error(enum xtables_exittype status, const char *msg, ...) __attribute__((noreturn, format(printf,2,3)));
+-
+ struct xtables_globals iptables_globals = {
+ 	.option_offset = 0,
+ 	.program_version = PACKAGE_VERSION " (legacy)",
+ 	.orig_opts = original_opts,
+-	.exit_err = iptables_exit_error,
+ 	.compat_rev = xtables_compatible_revision,
+ };
+ 
+@@ -105,26 +102,6 @@ exit_printhelp(const struct xtables_rule_match *matches)
+ 	exit(0);
+ }
+ 
+-void
+-iptables_exit_error(enum xtables_exittype status, const char *msg, ...)
 -{
--	if (line != -1)
--		fprintf(stderr, "Error occurred at line: %d\n", line);
--	fprintf(stderr, "Try `%s -h' or '%s --help' for more information.\n",
--			prog_name, prog_name);
+-	va_list args;
+-
+-	va_start(args, msg);
+-	fprintf(stderr, "%s v%s: ", prog_name, prog_vers);
+-	vfprintf(stderr, msg, args);
+-	va_end(args);
+-	fprintf(stderr, "\n");
+-	if (status == PARAMETER_PROBLEM)
+-		exit_tryhelp(status, line);
+-	if (status == VERSION_PROBLEM)
+-		fprintf(stderr,
+-			"Perhaps iptables or your kernel needs to be upgraded.\n");
+-	/* On error paths, make sure that we don't leak memory */
 -	xtables_free_opts(1);
 -	exit(status);
 -}
 -
- static void
- exit_printhelp(const struct xtables_rule_match *matches)
- {
-@@ -127,7 +116,7 @@ iptables_exit_error(enum xtables_exittype status, const char *msg, ...)
- 	va_end(args);
- 	fprintf(stderr, "\n");
- 	if (status == PARAMETER_PROBLEM)
--		exit_tryhelp(status);
-+		exit_tryhelp(status, line);
- 	if (status == VERSION_PROBLEM)
- 		fprintf(stderr,
- 			"Perhaps iptables or your kernel needs to be upgraded.\n");
-@@ -1093,7 +1082,7 @@ int do_command4(int argc, char *argv[], char **table,
- 			if (line != -1)
- 				return 1; /* success: line ignored */
- 			fprintf(stderr, "This is the IPv4 version of iptables.\n");
--			exit_tryhelp(2);
-+			exit_tryhelp(2, line);
+ /*
+  *	All functions starting with "parse" should succeed, otherwise
+  *	the program fails.
+diff --git a/iptables/xtables-arp.c b/iptables/xtables-arp.c
+index 8a226330a7124..805fb19a5f937 100644
+--- a/iptables/xtables-arp.c
++++ b/iptables/xtables-arp.c
+@@ -84,14 +84,12 @@ static struct option original_opts[] = {
  
- 		case 1: /* non option */
- 			if (optarg[0] == '!' && optarg[1] == '\0') {
-@@ -1106,7 +1095,7 @@ int do_command4(int argc, char *argv[], char **table,
- 				continue;
- 			}
- 			fprintf(stderr, "Bad argument `%s'\n", optarg);
--			exit_tryhelp(2);
-+			exit_tryhelp(2, line);
+ #define opts xt_params->opts
  
- 		default:
- 			if (command_default(&cs, &iptables_globals, invert))
-@@ -1353,7 +1342,7 @@ int do_command4(int argc, char *argv[], char **table,
- 		break;
- 	default:
- 		/* We should never reach this... */
--		exit_tryhelp(2);
-+		exit_tryhelp(2, line);
- 	}
+-extern void xtables_exit_error(enum xtables_exittype status, const char *msg, ...) __attribute__((noreturn, format(printf,2,3)));
+ static void printhelp(const struct xtables_rule_match *m);
+ struct xtables_globals arptables_globals = {
+ 	.option_offset		= 0,
+ 	.program_version	= PACKAGE_VERSION " (nf_tables)",
+ 	.optstring		= OPTSTRING_COMMON "C:R:S::" "h::l:nv" /* "m:" */,
+ 	.orig_opts		= original_opts,
+-	.exit_err		= xtables_exit_error,
+ 	.compat_rev		= nft_compatible_revision,
+ 	.print_help		= printhelp,
+ };
+diff --git a/iptables/xtables-eb.c b/iptables/xtables-eb.c
+index 604d4d39e90f7..ed8f733246ca3 100644
+--- a/iptables/xtables-eb.c
++++ b/iptables/xtables-eb.c
+@@ -216,13 +216,11 @@ struct option ebt_original_options[] =
+ 	{ 0 }
+ };
  
- 	if (verbose > 1)
-diff --git a/iptables/xshared.c b/iptables/xshared.c
-index 9b32610772ba5..efee7a30b39fd 100644
---- a/iptables/xshared.c
-+++ b/iptables/xshared.c
-@@ -1252,3 +1252,13 @@ xtables_printhelp(const struct xtables_rule_match *matches)
+-extern void xtables_exit_error(enum xtables_exittype status, const char *msg, ...) __attribute__((noreturn, format(printf,2,3)));
+ struct xtables_globals ebtables_globals = {
+ 	.option_offset 		= 0,
+ 	.program_version	= PACKAGE_VERSION " (nf_tables)",
+ 	.optstring		= OPTSTRING_COMMON "h",
+ 	.orig_opts		= ebt_original_options,
+-	.exit_err		= xtables_exit_error,
+ 	.compat_rev		= nft_compatible_revision,
+ };
  
- 	print_extension_helps(xtables_targets, matches);
- }
-+
-+void exit_tryhelp(int status, int line)
-+{
-+	if (line != -1)
-+		fprintf(stderr, "Error occurred at line: %d\n", line);
-+	fprintf(stderr, "Try `%s -h' or '%s --help' for more information.\n",
-+			xt_params->program_name, xt_params->program_name);
-+	xtables_free_opts(1);
-+	exit(status);
-+}
-diff --git a/iptables/xshared.h b/iptables/xshared.h
-index 3310954c1f441..2c05b0d7c4ace 100644
---- a/iptables/xshared.h
-+++ b/iptables/xshared.h
-@@ -260,5 +260,6 @@ void save_rule_details(const char *iniface, unsigned const char *iniface_mask,
- int print_match_save(const struct xt_entry_match *e, const void *ip);
- 
- void xtables_printhelp(const struct xtables_rule_match *matches);
-+void exit_tryhelp(int status, int line) __attribute__((noreturn));
- 
- #endif /* IPTABLES_XSHARED_H */
 diff --git a/iptables/xtables.c b/iptables/xtables.c
-index 36324a5de22a8..d53fd758ac72d 100644
+index a6b10cf846d58..5255fa340d55d 100644
 --- a/iptables/xtables.c
 +++ b/iptables/xtables.c
-@@ -102,17 +102,6 @@ struct xtables_globals xtables_globals = {
+@@ -86,14 +86,11 @@ static struct option original_opts[] = {
+ 	{NULL},
+ };
+ 
+-void xtables_exit_error(enum xtables_exittype status, const char *msg, ...) __attribute__((noreturn, format(printf,2,3)));
+-
+ struct xtables_globals xtables_globals = {
+ 	.option_offset = 0,
+ 	.program_version = PACKAGE_VERSION " (nf_tables)",
+ 	.optstring = OPTSTRING_COMMON "R:S::W::" "46bfg:h::m:nvw::x",
+ 	.orig_opts = original_opts,
+-	.exit_err = xtables_exit_error,
+ 	.compat_rev = nft_compatible_revision,
+ 	.print_help = xtables_printhelp,
+ };
+@@ -102,26 +99,6 @@ struct xtables_globals xtables_globals = {
  #define prog_name xt_params->program_name
  #define prog_vers xt_params->program_version
  
--static void __attribute__((noreturn))
--exit_tryhelp(int status)
+-void
+-xtables_exit_error(enum xtables_exittype status, const char *msg, ...)
 -{
--	if (line != -1)
--		fprintf(stderr, "Error occurred at line: %d\n", line);
--	fprintf(stderr, "Try `%s -h' or '%s --help' for more information.\n",
--			prog_name, prog_name);
+-	va_list args;
+-
+-	va_start(args, msg);
+-	fprintf(stderr, "%s v%s: ", prog_name, prog_vers);
+-	vfprintf(stderr, msg, args);
+-	va_end(args);
+-	fprintf(stderr, "\n");
+-	if (status == PARAMETER_PROBLEM)
+-		exit_tryhelp(status, line);
+-	if (status == VERSION_PROBLEM)
+-		fprintf(stderr,
+-			"Perhaps iptables or your kernel needs to be upgraded.\n");
+-	/* On error paths, make sure that we don't leak memory */
 -	xtables_free_opts(1);
 -	exit(status);
 -}
 -
- void
- xtables_exit_error(enum xtables_exittype status, const char *msg, ...)
- {
-@@ -124,7 +113,7 @@ xtables_exit_error(enum xtables_exittype status, const char *msg, ...)
+ /*
+  *	All functions starting with "parse" should succeed, otherwise
+  *	the program fails.
+diff --git a/libxtables/xtables.c b/libxtables/xtables.c
+index d670175db2236..50fd6a44b0100 100644
+--- a/libxtables/xtables.c
++++ b/libxtables/xtables.c
+@@ -90,6 +90,18 @@ void basic_exit_err(enum xtables_exittype status, const char *msg, ...)
+ 	vfprintf(stderr, msg, args);
  	va_end(args);
  	fprintf(stderr, "\n");
- 	if (status == PARAMETER_PROBLEM)
--		exit_tryhelp(status);
-+		exit_tryhelp(status, line);
- 	if (status == VERSION_PROBLEM)
- 		fprintf(stderr,
- 			"Perhaps iptables or your kernel needs to be upgraded.\n");
-@@ -631,7 +620,7 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
- 			if (p->restore && args->family == AF_INET6)
- 				return;
++	if (status == PARAMETER_PROBLEM) {
++		if (line != -1)
++			fprintf(stderr, "Error occurred at line: %d\n", line);
++		fprintf(stderr, "Try `%s -h' or '%s --help' for more information.\n",
++				xt_params->program_name, xt_params->program_name);
++	} else if (status == VERSION_PROBLEM) {
++		fprintf(stderr,
++			"Perhaps %s or your kernel needs to be upgraded.\n",
++			xt_params->program_name);
++	}
++	/* On error paths, make sure that we don't leak memory */
++	xtables_free_opts(1);
+ 	exit(status);
+ }
  
--			exit_tryhelp(2);
-+			exit_tryhelp(2, line);
- 
- 		case '6':
- 			if (args->family == AF_INET6)
-@@ -640,7 +629,7 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
- 			if (p->restore && args->family == AF_INET)
- 				return;
- 
--			exit_tryhelp(2);
-+			exit_tryhelp(2, line);
- 
- 		case 1: /* non option */
- 			if (optarg[0] == '!' && optarg[1] == '\0') {
-@@ -653,7 +642,7 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
- 				continue;
- 			}
- 			fprintf(stderr, "Bad argument `%s'\n", optarg);
--			exit_tryhelp(2);
-+			exit_tryhelp(2, line);
- 
- 		default:
- 			if (command_default(cs, xt_params, invert))
-@@ -849,7 +838,7 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
- 		break;
- 	default:
- 		/* We should never reach this... */
--		exit_tryhelp(2);
-+		exit_tryhelp(2, line);
- 	}
- 
- 	*table = p.table;
 -- 
 2.33.0
 
