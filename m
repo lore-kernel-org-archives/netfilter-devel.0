@@ -2,80 +2,140 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D018BC4332F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Dec 2021 17:05:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF578C433FE
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Dec 2021 17:54:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235669AbhLPRFX (ORCPT
+        id S239625AbhLPRyn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Dec 2021 12:05:23 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53814 "EHLO
+        Thu, 16 Dec 2021 12:54:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37466 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235683AbhLPRFW (ORCPT
+        with ESMTP id S236102AbhLPRym (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Dec 2021 12:05:22 -0500
+        Thu, 16 Dec 2021 12:54:42 -0500
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 682ACC06173F
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Dec 2021 09:05:22 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F99BC061574
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Dec 2021 09:54:42 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
+        s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=/qf9ItFzjku+kz6svi+RGy69e94IZF505HoyVaTVsWQ=; b=iare0ZG8h9S0JhGw6pH5gVpUDS
-        vGlDq9EzMP1pKj9ErWBkleQ9Nu74vVfIWSLNFZsIDpzM8PL6dKPVNrxC0si+/GmWGALN9bIBuOL99
-        Jh1RXhdsG+1aGnww+xvsM13AfZsH4O/gwCYXRnw3boLMkoQXfh10XZqhK5EK61PCNVvErkvBUXPVj
-        /oqkE/5FvwzQAY9qkI4QplVeqRb1pBsedA24Eoqycf0Ptgiy1sawu8jcnzYTgopc+JeO7AWs4VxFb
-        2GtUg4CuESOdEc5z3mEg7qG8ahWXAg6ejmqaott1/NRA/EG2lFSlBKelFrSR4LKz2hBfTdf4sfzF4
-        P5q3RfaA==;
-Received: from ulthar.dreamlands ([192.168.96.2] helo=ulthar.dreamlands.azazel.net)
-        by kadath.azazel.net with esmtp (Exim 4.94.2)
+        bh=CM7tzbw+8Y/L/glVoCmKBjPJEfxAbaAEePxvwKJodFM=; b=cRtLgm8+soeJ52jV6lbYfDujON
+        YX2dMyR+u+R03ZM3+zxIih5EcnxH3vpqMZgYtTEYdHjaqR89Ew4UnDF/zg8Cu88QIvgnjHxm+BRY5
+        jNV1B+FZXPfm8EV7LwOMuV5504uaDy8UyfwC6/lJy4wP+9BgPTrrNL6wHQdh9oiSPE+/AeTdEdeif
+        b92JUK6HL1kOhTyswRxXJCg7bu0P/b4xLgwC4WOJSMi6g6+UiP3gRUQx7j5oDPvRrbCu1Egz8oTvC
+        asBWq4VvTND7fVW0ZJPFuHBMg0yF/5+uNVI2EKvxxxwfnS2z6NtPOThNBzWe6UtStiqZqAZSIvawd
+        3thheN+g==;
+Received: from celephais.dreamlands ([192.168.96.3] helo=azazel.net)
+        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1mxuC0-009WE2-FG
-        for netfilter-devel@vger.kernel.org; Thu, 16 Dec 2021 17:05:20 +0000
+        id 1mxuxj-009WUI-Nv; Thu, 16 Dec 2021 17:54:39 +0000
+Date:   Thu, 16 Dec 2021 17:54:35 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [conntrack-tools PATCH 3/3] build: replace `AM_PROG_LEX` with `AC_PROG_LEX`
-Date:   Thu, 16 Dec 2021 17:05:13 +0000
-Message-Id: <20211216170513.180579-4-jeremy@azazel.net>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20211216170513.180579-1-jeremy@azazel.net>
-References: <20211216170513.180579-1-jeremy@azazel.net>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] proto: revisit short-circuit loops over upper
+ protocols
+Message-ID: <Ybt9W9ha+TyQW1VK@azazel.net>
+References: <20211215233607.170171-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 192.168.96.2
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="Jr0nn2hvr+hFjC0V"
+Content-Disposition: inline
+In-Reply-To: <20211215233607.170171-1-pablo@netfilter.org>
+X-SA-Exim-Connect-IP: 192.168.96.3
 X-SA-Exim-Mail-From: jeremy@azazel.net
 X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-`AM_PROG_LEX` calls `AC_PROG_LEX` with no arguments, but this usage is
-deprecated.  The only difference between `AM_PROG_LEX` and `AC_PROG_LEX`
-is that the former defines `$LEX` as "./build-aux/missing lex" if no lex
-is found to ensure a useful error is reported when make is run.  How-
-ever, the configure script checks that we have a working lex and exits
-with an error if none is available, so `$LEX` will never be called and
-we can replace `AM_PROG_LEX` with `AC_PROG_LEX`.
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- configure.ac | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+--Jr0nn2hvr+hFjC0V
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/configure.ac b/configure.ac
-index a20c6bb4ca1c..b12b722a3396 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -17,7 +17,7 @@ AM_PROG_AR
- LT_INIT([disable-static])
- AC_PROG_INSTALL
- AC_PROG_LN_S
--AM_PROG_LEX
-+AC_PROG_LEX([noyywrap])
- AC_PROG_YACC
- 
- case "$host" in
--- 
-2.34.1
+On 2021-12-16, at 00:36:06 +0100, Pablo Neira Ayuso wrote:
+> Move the check for NULL protocol description away from the loop to
+> avoid too long line.
 
+LGTM.
+
+J.
+
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+>
+> ---
+>  src/proto.c | 16 +++++++++-------
+>  1 file changed, 9 insertions(+), 7 deletions(-)
+>
+> diff --git a/src/proto.c b/src/proto.c
+> index 31a2f38065ad..a013a00d2c7b 100644
+> --- a/src/proto.c
+> +++ b/src/proto.c
+> @@ -59,8 +59,9 @@ proto_find_upper(const struct proto_desc *base, unsigned int num)
+>  {
+>  	unsigned int i;
+>
+> -	for (i = 0; i < array_size(base->protocols) && base->protocols[i].desc;
+> -	     i++) {
+> +	for (i = 0; i < array_size(base->protocols); i++) {
+> +		if (!base->protocols[i].desc)
+> +			break;
+>  		if (base->protocols[i].num == num)
+>  			return base->protocols[i].desc;
+>  	}
+> @@ -78,8 +79,9 @@ int proto_find_num(const struct proto_desc *base,
+>  {
+>  	unsigned int i;
+>
+> -	for (i = 0; i < array_size(base->protocols) && base->protocols[i].desc;
+> -	     i++) {
+> +	for (i = 0; i < array_size(base->protocols); i++) {
+> +		if (!base->protocols[i].desc)
+> +			break;
+>  		if (base->protocols[i].desc == desc)
+>  			return base->protocols[i].num;
+>  	}
+> @@ -107,9 +109,9 @@ int proto_dev_type(const struct proto_desc *desc, uint16_t *res)
+>  			*res = dev_proto_desc[i].type;
+>  			return 0;
+>  		}
+> -		for (j = 0; j < array_size(base->protocols) &&
+> -			     base->protocols[j].desc;
+> -		     j++) {
+> +		for (j = 0; j < array_size(base->protocols); j++) {
+> +			if (!base->protocols[j].desc)
+> +				break;
+>  			if (base->protocols[j].desc == desc) {
+>  				*res = dev_proto_desc[i].type;
+>  				return 0;
+> --
+> 2.30.2
+>
+>
+
+--Jr0nn2hvr+hFjC0V
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmG7fVEACgkQKYasCr3x
+BA307g//QFrlWI3COTnTcqgwOkeicxFxC8qIgmP/EFLwUn0lMOtlKlkk4vfQ/KNH
+m9NFYLAJvAw8kMnP9/yyzx4NfcolP/naLsGaBsC4IiH0jYaxqdK+mwd8DK+0dhRj
+Mdn+rFMMWM5hn5eCkGg+y5k8BgpaHNBNBrD/uzZSqGT2oorjlRABha262KFKq3N6
+hoikVM6BCM5IdAXpiQlPbErUwNHFMi7njXuQUoTP5Rfm36WX+tMjGes5ulA36H7N
+1yLTSXQrF+6b0Uq49gZKsLqvQtBC08aRf1mhbN5VajwPqOD2f4H/YwnndutZz14o
+EJC0oWjUqV/Jz0Ewy4o7IBGQGESxj1bottq9RfdpOrX1iieMJSH4QB129gXMaXT6
+eo69ymlkfNY++zUyzXECp4JbrM5VdNFSlVonMWSgGoFanaVPCJ9GwDQ+GQxLwMLX
+bbRWZ4/fTxOFK4Ia3qpaVmECNc6LGwRwa0J7zvk0y7bX9XtJp4HvfC1AOc8B5gf8
+yLZIgSdyIQDSAOr2TtAQdlz7faf9F6ieE79+7Kg+C+veJeErZ5Id+dVR2PWh5iUG
+vjJXK+qMZC02Ky0Ee83iGLs0oOpE8O0M9Js2Ljx2Xy7q2vhCQ9gVOTVb/6AQc4dS
+hISc5Agn/jnct5F0cNaCSPWCNy6I8T+U8tHfgyyFB/Cb0DBLVTk=
+=q68J
+-----END PGP SIGNATURE-----
+
+--Jr0nn2hvr+hFjC0V--
