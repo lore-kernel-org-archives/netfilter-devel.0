@@ -2,65 +2,77 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F97FC433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Dec 2021 15:30:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B082C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Dec 2021 16:37:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238185AbhLPPa1 (ORCPT
+        id S231819AbhLPQhb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Dec 2021 10:30:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58064 "EHLO
+        Thu, 16 Dec 2021 11:37:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47216 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229868AbhLPPa0 (ORCPT
+        with ESMTP id S231419AbhLPQhb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Dec 2021 10:30:26 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94408C061574
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Dec 2021 07:30:26 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1mxsi8-0005PD-UT; Thu, 16 Dec 2021 16:30:24 +0100
-Date:   Thu, 16 Dec 2021 16:30:24 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, Eric Garver <eric@garver.life>
-Subject: Re: [PATCH nf v3] netfilter: nat: force port remap to prevent
- shadowing well-known ports
-Message-ID: <YbtbkP/F77ej9KkC@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-        Eric Garver <eric@garver.life>
-References: <20211216152816.1481-1-fw@strlen.de>
+        Thu, 16 Dec 2021 11:37:31 -0500
+Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37536C061574
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Dec 2021 08:37:31 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20190108; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=WjQimTst4Y+8mdCYKGS64aM/dXtiJAPlR1rJtGM7J4I=; b=gBGE5D667f6ErzRgd8n04I+WQ4
+        kWp2IYdrkkQZQEhvVTZxDGn/+HXjXPTYOAVEzSeBcXXJewNrdDuDrnT6Dfl6o1EwWRp9mslBmLkDV
+        94SFF3Bb2gq8mH0uG0m7g1mTHU1cTTs9WuFaruarkqOtWlc6TF734EjV+0Q9hrrwFatvzuI4j1GYr
+        2vzoWSvoWtDruWbckSr+leXl1jsYCJ8gmaYQWKcaAfWHqAl/k/x/cKqod9/FOBcJA/GbAWZ8b1omd
+        gLsoi7sZtrIKCZs/i+iIAvPZ+o/TUjlcUfAJ+qO+lhdhKJshEpwKH6DG5DsIm+NDK0y/EbvYdgtto
+        2BniqOkw==;
+Received: from ulthar.dreamlands ([192.168.96.2] helo=ulthar.dreamlands.azazel.net)
+        by kadath.azazel.net with esmtp (Exim 4.94.2)
+        (envelope-from <jeremy@azazel.net>)
+        id 1mxtl1-009VFY-76
+        for netfilter-devel@vger.kernel.org; Thu, 16 Dec 2021 16:37:27 +0000
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [nft PATCH] build: remove scanner.c and parser_bison.c with `maintainer-clean`
+Date:   Thu, 16 Dec 2021 16:37:20 +0000
+Message-Id: <20211216163720.180125-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20211216152816.1481-1-fw@strlen.de>
-Sender:  <n0-1@orbyte.nwl.cc>
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 192.168.96.2
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Dec 16, 2021 at 04:28:16PM +0100, Florian Westphal wrote:
-> If destination port is above 32k and source port below 16k
-> assume this might cause 'port shadowing' where a 'new' inbound
-> connection matches an existing one, e.g.
-> 
-> inbound X:41234 -> Y:53 matches existing conntrack entry
->         Z:53 -> X:4123, where Z got natted to X.
-> 
-> In this case, new packet is natted to Z:53 which is likely
-> unwanted.
-> 
-> We avoid the rewrite for connections that originate from local host:
-> port-shadowing is only possible with forwarded connections.
-> 
-> Also adjust test case.
-> 
-> v3: no need to call tuple_force_port_remap if already in random mode
-> 
-> Cc: Eric Garver <eric@garver.life>
-> Cc: Phil Sutter <phil@nwl.cc>
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+automake recommends shipping the output of bison and lex in distribution
+tar-balls and runs bison and lex during `make dist` (this has the
+advantage that end-users don't need to have bison or lex installed to
+compile the software).  Accordingly, automake also recommends removing
+these files with `make maintainer-clean` and generates rules to do so.
+Therefore, remove scanner.c and parser_bison.c from `CLEANFILES`.
 
-Acked-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+ src/Makefile.am | 2 --
+ 1 file changed, 2 deletions(-)
 
-Thanks for the quick follow-up!
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 01c12c81bce7..6ab0752337b2 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -2,8 +2,6 @@ include $(top_srcdir)/Make_global.am
+ 
+ sbin_PROGRAMS = nft
+ 
+-CLEANFILES = scanner.c parser_bison.c
+-
+ AM_CPPFLAGS = -I$(top_srcdir)/include
+ AM_CPPFLAGS += -DDEFAULT_INCLUDE_PATH="\"${sysconfdir}\"" \
+ 		${LIBMNL_CFLAGS} ${LIBNFTNL_CFLAGS}
+-- 
+2.34.1
+
