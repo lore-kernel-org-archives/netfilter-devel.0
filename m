@@ -2,114 +2,90 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42B17C433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Dec 2021 23:50:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA624C433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Dec 2021 01:50:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232215AbhLOXuF (ORCPT
+        id S232657AbhLPBuP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 15 Dec 2021 18:50:05 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:56732 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231740AbhLOXuE (ORCPT
+        Wed, 15 Dec 2021 20:50:15 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:59192 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229555AbhLPBuO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Dec 2021 18:50:04 -0500
-Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id EE160607E0;
-        Thu, 16 Dec 2021 00:47:33 +0100 (CET)
-Date:   Thu, 16 Dec 2021 00:49:59 +0100
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
-Cc:     Kumar Kartikeya Dwivedi <memxor@gmail.com>, bpf@vger.kernel.org,
-        Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Martin KaFai Lau <kafai@fb.com>,
-        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Maxim Mikityanskiy <maximmi@nvidia.com>,
-        Florian Westphal <fw@strlen.de>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH bpf-next v3 7/9] net/netfilter: Add unstable CT lookup
- helpers for XDP and TC-BPF
-Message-ID: <Ybp/J5KXn0hLT4DZ@salvia>
-References: <20211210130230.4128676-1-memxor@gmail.com>
- <20211210130230.4128676-8-memxor@gmail.com>
- <YbNtmlaeqPuHHRgl@salvia>
- <20211210153129.srb6p2ebzhl5yyzh@apollo.legion>
- <YbPcxjdsdqepEQAJ@salvia>
- <87pmq3ugz5.fsf@toke.dk>
- <YbT5DEmlkunw7cCo@salvia>
- <87tufcyz72.fsf@toke.dk>
+        Wed, 15 Dec 2021 20:50:14 -0500
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7754AB82270;
+        Thu, 16 Dec 2021 01:50:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 19147C36AE3;
+        Thu, 16 Dec 2021 01:50:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1639619412;
+        bh=xRCi2BjmOz49Fn05BPlL8EHRVcVN25KewWgzQ2EVIvI=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=GMwpnzryTgq93dYa4GbaXRYIKVmBCeIoa2V/K8p5sh8kiyQUX+9GUYFZXwzQJyGQq
+         BXjZWvrv4qUF4/GZF675R+9LI6gy11ton0cCphhLbD9zX7e8UiMfJNoif+DoghY9yQ
+         RdSk7abImJEMkRIkIQul4JuhYwpJMzXpWYA5bn+ROgr02GB5w5Z1G/limHfVYCoTrP
+         C2CRS+MdLmnOXIqRmky8Kv3i8Uf5t9V3uKf7ToJuBYsMEp3wJPEFfn7N+cMJ2SSr/D
+         owPwo+sR78ZioWXk0e+tyEaSQwhrCnjNuROrOtylAtw/1JTKIDvVdffJiqXb9I7Syf
+         rk6NVZjoWjXOw==
+Received: from pdx-korg-docbuild-2.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by pdx-korg-docbuild-2.ci.codeaurora.org (Postfix) with ESMTP id E311E609F5;
+        Thu, 16 Dec 2021 01:50:11 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <87tufcyz72.fsf@toke.dk>
+Subject: Re: [PATCH nf-next 1/7] ipvs: remove unused variable for ip_vs_new_dest
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <163961941192.15023.123221288094192092.git-patchwork-notify@kernel.org>
+Date:   Thu, 16 Dec 2021 01:50:11 +0000
+References: <20211215234911.170741-2-pablo@netfilter.org>
+In-Reply-To: <20211215234911.170741-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Dec 13, 2021 at 10:25:37PM +0100, Toke Høiland-Jørgensen wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> writes:
+Hello:
+
+This series was applied to netdev/net-next.git (master)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
+
+On Thu, 16 Dec 2021 00:49:05 +0100 you wrote:
+> From: GuoYong Zheng <zhenggy@chinatelecom.cn>
 > 
-> > On Sat, Dec 11, 2021 at 07:35:58PM +0100, Toke Høiland-Jørgensen wrote:
-> >> Pablo Neira Ayuso <pablo@netfilter.org> writes:
-> >> 
-> >> > On Fri, Dec 10, 2021 at 09:01:29PM +0530, Kumar Kartikeya Dwivedi wrote:
-> >> >> On Fri, Dec 10, 2021 at 08:39:14PM IST, Pablo Neira Ayuso wrote:
-> >> >> > On Fri, Dec 10, 2021 at 06:32:28PM +0530, Kumar Kartikeya Dwivedi wrote:
-> >> >> > [...]
-> >> >> > >  net/netfilter/nf_conntrack_core.c | 252 ++++++++++++++++++++++++++++++
-> >> >> > >  7 files changed, 497 insertions(+), 1 deletion(-)
-> >> >> > >
-> >> >> > [...]
-> >> >> > > diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-> >> >> > > index 770a63103c7a..85042cb6f82e 100644
-> >> >> > > --- a/net/netfilter/nf_conntrack_core.c
-> >> >> > > +++ b/net/netfilter/nf_conntrack_core.c
-> >> >> >
-> >> >> > Please, keep this new code away from net/netfilter/nf_conntrack_core.c
-> >> >> 
-> >> >> Ok. Can it be a new file under net/netfilter, or should it live elsewhere?
-> >> >
-> >> > IPVS and OVS use conntrack for already quite a bit of time and they
-> >> > keep their code in their respective folders.
-> >> 
-> >> Those are users, though.
-> >
-> > OK, I see this as a yet user of the conntrack infrastructure.
+> The dest variable is not used after ip_vs_new_dest anymore in
+> ip_vs_add_dest, do not need pass it to ip_vs_new_dest, remove it.
 > 
-> The users are the BPF programs; this series adds the exports. I.e., the
-> code defines an API that BPF programs can hook into, and implements the
-> validation and lifetime enforcement that is necessary for the particular
-> data structures being exposed. This is very much something that the
-> module doing the exports should be concerned with, so from that
-> perspective it makes sense to keep it in the nf_conntrack kmod.
-
-Thanks for explaining.
-
-> >> This is adding a different set of exported functions, like a BPF
-> >> version of EXPORT_SYMBOL(). We don't put those outside the module
-> >> where the code lives either...
-> >
-> > OVS and IPVS uses Kconfig to enable the conntrack module as a
-> > dependency. Then, add module that is loaded when conntrack is used.
+> Signed-off-by: GuoYong Zheng <zhenggy@chinatelecom.cn>
+> Acked-by: Julian Anastasov <ja@ssi.bg>
+> Acked-by: Simon Horman <horms@verge.net.au>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 > 
-> BPF can't do that, though: all the core BPF code is always built into
-> the kernel, so we can't have any dependencies on module code. Until now,
-> this has meant that hooking into modules has been out of scope for BPF
-> entirely. With kfuncs and the module BTF support this is now possible,
-> but it's a bit "weird" (i.e., different) compared to what we're used to
-> with kernel modules.
+> [...]
 
-OK.
+Here is the summary with links:
+  - [nf-next,1/7] ipvs: remove unused variable for ip_vs_new_dest
+    https://git.kernel.org/netdev/net-next/c/fc5e0352ccb5
+  - [nf-next,2/7] netfilter: conntrack: Use memset_startat() to zero struct nf_conn
+    https://git.kernel.org/netdev/net-next/c/4be1dbb75c3d
+  - [nf-next,3/7] netfilter: nf_queue: remove leftover synchronize_rcu
+    https://git.kernel.org/netdev/net-next/c/c5fc837bf934
+  - [nf-next,4/7] netfilter: ctnetlink: remove useless type conversion to bool
+    https://git.kernel.org/netdev/net-next/c/632cb151ca53
+  - [nf-next,5/7] netfilter: nft_fwd_netdev: Support egress hook
+    https://git.kernel.org/netdev/net-next/c/f87b9464d152
+  - [nf-next,6/7] netfilter: bridge: add support for pppoe filtering
+    https://git.kernel.org/netdev/net-next/c/28b78ecffea8
+  - [nf-next,7/7] netfilter: conntrack: Remove useless assignment statements
+    https://git.kernel.org/netdev/net-next/c/284ca7647c67
 
-> This series represents the first instance of actually implementing BPF
-> hooks into a module, BTW, so opinions on how to do it best are
-> absolutely welcome. But I have a hard time seeing how this could be done
-> without introducing *any* new code into the conntrack module...
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-OK, move on then and let's take the time to revisit.
 
-Thanks.
