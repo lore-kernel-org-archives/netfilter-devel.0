@@ -2,81 +2,75 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BD29C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Dec 2021 08:14:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97896C433FE
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Dec 2021 08:18:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230510AbhLQIOn (ORCPT
+        id S230487AbhLQISY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 Dec 2021 03:14:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40390 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230487AbhLQIOn (ORCPT
+        Fri, 17 Dec 2021 03:18:24 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:60398 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230377AbhLQISY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Dec 2021 03:14:43 -0500
-Received: from mail-pf1-x431.google.com (mail-pf1-x431.google.com [IPv6:2607:f8b0:4864:20::431])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 88DFBC061574
-        for <netfilter-devel@vger.kernel.org>; Fri, 17 Dec 2021 00:14:43 -0800 (PST)
-Received: by mail-pf1-x431.google.com with SMTP id v13so1634515pfi.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 17 Dec 2021 00:14:43 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=sender:from:date:to:cc:subject:message-id:mail-followup-to
-         :references:mime-version:content-disposition:in-reply-to;
-        bh=AnhaEZ23AYbKR6C5wC9L4fpd1WTBZSvWij6vI4XXBjY=;
-        b=cq+JgZTVxTNZLa2B15xN03yR7t3uFyx++o/ldURCMsAv8fgWH1SQWXbfjjdRaS/6y5
-         S8WVQdZHLyZ/zyCKRUMi7SO1MrFN7cl4TrhAKxR0OpnHtBqEMwcKEaGET/JR5z8QFO3H
-         DeEpv5F6iaNFZb25slUbZCY2sCj0T4XYGauPwdqgjamoVhuQgvLgoZtdhT8CQ46eK+UY
-         EB1i+YfK0Zob18CdvCpPmy/+w8v5yCjk/N77DM+xtRyBWIXgb71RzfU7drLilIyeDMqL
-         ECBCqO2/5R9rshrDpRz0ODQmQlTBHNx80bzWSyUnrF1EKrRyfTfPGCFU+5PXLadck9ZI
-         5nWQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:sender:from:date:to:cc:subject:message-id
-         :mail-followup-to:references:mime-version:content-disposition
-         :in-reply-to;
-        bh=AnhaEZ23AYbKR6C5wC9L4fpd1WTBZSvWij6vI4XXBjY=;
-        b=Ou2tmI5jCT1U9W31xphQj5XPfnNvaQWOjclXzfN4tb4RXbBI5UAyUmEByXxEczvFx0
-         tzVLd2GJ0pGVAJszVbl/bGbAiqj/M/v4RGgODzO9P4WSw4I+KdfEd5MkwuuLDhlQPypL
-         2XiuNJTp88S4SSl3oqem2hs20w/5OIfau+UkjQ9157mNGuox+YLbNDgp2J8t/lo44bhS
-         ZULzRFkHgaGvE9yDv1sNcZWfpoHk2Y7seqZYhi6Xi2J39eE77y3M+PuFP0xbmjOeum5E
-         yIjAeeBKfiCWT9gDcnudbIm6xuOyoLJoKrxYjpB2jIhjbxIbt6fH1emNHpd/Ed8YOpvP
-         yZiw==
-X-Gm-Message-State: AOAM533WMJmXODdYMA+RgbjU5KOXnJGcr3zmpNVctG+hIai2TKtYQRXp
-        bAbroJwuE6PV8H3B7l8hjRQ=
-X-Google-Smtp-Source: ABdhPJxvZII6vmK9jv8qSXOHVXa+9DHO9+nixO/Qpgyeovy4CO0jpeUt3sN6owFQU68xuE3yRlnDgA==
-X-Received: by 2002:a05:6a00:24d6:b0:4b4:d8cb:7dc7 with SMTP id d22-20020a056a0024d600b004b4d8cb7dc7mr1992083pfv.66.1639728883093;
-        Fri, 17 Dec 2021 00:14:43 -0800 (PST)
-Received: from slk1.local.net (n110-23-108-30.sun3.vic.optusnet.com.au. [110.23.108.30])
-        by smtp.gmail.com with ESMTPSA id s30sm7758887pfw.57.2021.12.17.00.14.41
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 17 Dec 2021 00:14:42 -0800 (PST)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-X-Google-Original-From: Duncan Roe <dunc@slk1.local.net>
-Date:   Fri, 17 Dec 2021 19:14:38 +1100
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH 1/1] graphics/graphviz: Updated for version 2.50
-Message-ID: <YbxG7sYYbIsr/RX3@slk1.local.net>
-Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <20200910040431.GC15387@dimstar.local.net>
- <20211217080229.23826-2-duncan_roe@optusnet.com.au>
+        Fri, 17 Dec 2021 03:18:24 -0500
+Received: from netfilter.org (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id C844C607E0;
+        Fri, 17 Dec 2021 09:15:52 +0100 (CET)
+Date:   Fri, 17 Dec 2021 09:18:19 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Cc:     bpf@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org,
+        Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Martin KaFai Lau <kafai@fb.com>,
+        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
+        John Fastabend <john.fastabend@gmail.com>,
+        Maxim Mikityanskiy <maximmi@nvidia.com>,
+        Florian Westphal <fw@strlen.de>,
+        Jesper Dangaard Brouer <brouer@redhat.com>,
+        Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
+Subject: Re: [PATCH bpf-next v4 07/10] net/netfilter: Add unstable CT lookup
+ helpers for XDP and TC-BPF
+Message-ID: <YbxHy7yLwMQ7L0mN@salvia>
+References: <20211217015031.1278167-1-memxor@gmail.com>
+ <20211217015031.1278167-8-memxor@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20211217080229.23826-2-duncan_roe@optusnet.com.au>
+In-Reply-To: <20211217015031.1278167-8-memxor@gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
+On Fri, Dec 17, 2021 at 07:20:28AM +0530, Kumar Kartikeya Dwivedi wrote:
+> This change adds conntrack lookup helpers using the unstable kfunc call
+> interface for the XDP and TC-BPF hooks. The primary usecase is
+> implementing a synproxy in XDP, see Maxim's patchset at [0].
+> 
+> Export get_net_ns_by_id as nf_conntrack needs to call it.
+> 
+> Note that we search for acquire, release, and null returning kfuncs in
+> the intersection of those sets and main set.
+> 
+> This implies that the kfunc_btf_id_list acq_set, rel_set, null_set may
+> contain BTF ID not in main set, this is explicitly allowed and
+> recommended (to save on definining more and more sets), since
+> check_kfunc_call verifier operation would filter out the invalid BTF ID
+> fairly early, so later checks for acquire, release, and ret_type_null
+> kfunc will only consider allowed BTF IDs for that program that are
+> allowed in main set. This is why the nf_conntrack_acq_ids set has BTF
+> IDs for both xdp and tc hook kfuncs.
+> 
+>   [0]: https://lore.kernel.org/bpf/20211019144655.3483197-1-maximmi@nvidia.com
+> 
+> Signed-off-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
+> ---
+>  include/linux/btf.h               |   2 +
+>  kernel/bpf/btf.c                  |   1 +
+>  net/core/filter.c                 |  24 +++
+>  net/core/net_namespace.c          |   1 +
+>  net/netfilter/nf_conntrack_core.c | 278 ++++++++++++++++++++++++++++++
 
-Sorry also about this one (same git send-email), please ignore
-
-Cheers ... Duncan.
-
-On Fri, Dec 17, 2021 at 07:02:29PM +1100, Duncan Roe wrote:
-> Remove patch files - no longer required.
->
-[...]
+Toke proposed to move it to net/netfilter/nf_conntrack_bpf.c
