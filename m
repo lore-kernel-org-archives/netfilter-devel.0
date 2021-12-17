@@ -2,161 +2,83 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06005C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Dec 2021 10:30:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9F94C433FE
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Dec 2021 11:00:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235157AbhLQKaV (ORCPT
+        id S235195AbhLQLAO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 Dec 2021 05:30:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43386 "EHLO
+        Fri, 17 Dec 2021 06:00:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50122 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235082AbhLQKaO (ORCPT
+        with ESMTP id S235165AbhLQLAO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Dec 2021 05:30:14 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33FDCC061757
-        for <netfilter-devel@vger.kernel.org>; Fri, 17 Dec 2021 02:30:14 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1myAVA-0005r4-92; Fri, 17 Dec 2021 11:30:12 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>, Eric Garver <eric@garver.life>,
-        Phil Sutter <phil@nwl.cc>
-Subject: [PATCH v4 nf-next 2/2] netfilter: nat: force port remap to prevent shadowing well-known ports
-Date:   Fri, 17 Dec 2021 11:29:57 +0100
-Message-Id: <20211217102957.2999-3-fw@strlen.de>
-X-Mailer: git-send-email 2.32.0
-In-Reply-To: <20211217102957.2999-1-fw@strlen.de>
-References: <20211217102957.2999-1-fw@strlen.de>
+        Fri, 17 Dec 2021 06:00:14 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE3A8C06173E;
+        Fri, 17 Dec 2021 03:00:13 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 981CCB82793;
+        Fri, 17 Dec 2021 11:00:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 34192C36AEA;
+        Fri, 17 Dec 2021 11:00:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1639738811;
+        bh=FAiZPX3NutRx5szY1SNt30UH3643hwlmhU8iAuLK5SI=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=Wi2XQv/7oIGHohUfSMr3VIei8kiThnZlRf1JtkY8cf5L5Bni2gg0oerszIZODMod9
+         pWvCg5khLCQ+nqHR89xV50NoT6xfVHOFxPC+iKeD4TBPfTgDBULioOa8UMz6wYDNK9
+         ppuDSWn6xxInlGR6Km20cMwgNuZ3nITdnpyR0efhIihbn+cSGGxENKpAf9CmXL3w1x
+         zsx00GhIHZTGR24wS4WStt/U6DmNKwFmUPSih4rwXRveSL3ShEBXghoyTIvoMKGdKO
+         GvbOrUjHLy62oQHTEHqF3SQkx/qVZf/b0dISpmanxxbU2V4wFNe5Qxi7XYN1/WJZXH
+         YRZ0+Jfh3ScsA==
+Received: from pdx-korg-docbuild-2.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by pdx-korg-docbuild-2.ci.codeaurora.org (Postfix) with ESMTP id 1EAEF60A39;
+        Fri, 17 Dec 2021 11:00:11 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/3] netfilter: nf_tables: fix use-after-free in
+ nft_set_catchall_destroy()
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <163973881112.21643.5395709598532631747.git-patchwork-notify@kernel.org>
+Date:   Fri, 17 Dec 2021 11:00:11 +0000
+References: <20211217085303.363401-2-pablo@netfilter.org>
+In-Reply-To: <20211217085303.363401-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If destination port is above 32k and source port below 16k
-assume this might cause 'port shadowing' where a 'new' inbound
-connection matches an existing one, e.g.
+Hello:
 
-inbound X:41234 -> Y:53 matches existing conntrack entry
-        Z:53 -> X:4123, where Z got natted to X.
+This series was applied to netdev/net.git (master)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-In this case, new packet is natted to Z:53 which is likely
-unwanted.
+On Fri, 17 Dec 2021 09:53:01 +0100 you wrote:
+> From: Eric Dumazet <edumazet@google.com>
+> 
+> We need to use list_for_each_entry_safe() iterator
+> because we can not access @catchall after kfree_rcu() call.
+> 
+> syzbot reported:
+> 
+> [...]
 
-We avoid the rewrite for connections that originate from local host:
-port-shadowing is only possible with forwarded connections.
+Here is the summary with links:
+  - [net,1/3] netfilter: nf_tables: fix use-after-free in nft_set_catchall_destroy()
+    https://git.kernel.org/netdev/net/c/0f7d9b31ce7a
+  - [net,2/3] netfilter: fix regression in looped (broad|multi)cast's MAC handling
+    https://git.kernel.org/netdev/net/c/ebb966d3bdfe
+  - [net,3/3] netfilter: ctnetlink: remove expired entries first
+    https://git.kernel.org/netdev/net/c/76f12e632a15
 
-Also adjust test case.
-
-v3: no need to call tuple_force_port_remap if already in random mode (Phil)
-
-Cc: Eric Garver <eric@garver.life>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Acked-by: Phil Sutter <phil@nwl.cc>
----
- resent without changes, kept phils ack.
- net/netfilter/nf_nat_core.c                  | 43 ++++++++++++++++++--
- tools/testing/selftests/netfilter/nft_nat.sh |  5 ++-
- 2 files changed, 43 insertions(+), 5 deletions(-)
-
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index ab9f6c75524d..3dd130487b5b 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -494,6 +494,38 @@ static void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
- 	goto another_round;
- }
- 
-+static bool tuple_force_port_remap(const struct nf_conntrack_tuple *tuple)
-+{
-+	u16 sp, dp;
-+
-+	switch (tuple->dst.protonum) {
-+	case IPPROTO_TCP:
-+		sp = ntohs(tuple->src.u.tcp.port);
-+		dp = ntohs(tuple->dst.u.tcp.port);
-+		break;
-+	case IPPROTO_UDP:
-+	case IPPROTO_UDPLITE:
-+		sp = ntohs(tuple->src.u.udp.port);
-+		dp = ntohs(tuple->dst.u.udp.port);
-+		break;
-+	default:
-+		return false;
-+	}
-+
-+	/* IANA: System port range: 1-1023,
-+	 *         user port range: 1024-49151,
-+	 *      private port range: 49152-65535.
-+	 *
-+	 * Linux default ephemeral port range is 32768-60999.
-+	 *
-+	 * Enforce port remapping if sport is significantly lower
-+	 * than dport to prevent NAT port shadowing, i.e.
-+	 * accidental match of 'new' inbound connection vs.
-+	 * existing outbound one.
-+	 */
-+	return sp < 16384 && dp >= 32768;
-+}
-+
- /* Manipulate the tuple into the range given. For NF_INET_POST_ROUTING,
-  * we change the source to map into the range. For NF_INET_PRE_ROUTING
-  * and NF_INET_LOCAL_OUT, we change the destination to map into the
-@@ -507,11 +539,17 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
- 		 struct nf_conn *ct,
- 		 enum nf_nat_manip_type maniptype)
- {
-+	bool random_port = range->flags & NF_NAT_RANGE_PROTO_RANDOM_ALL;
- 	const struct nf_conntrack_zone *zone;
- 	struct net *net = nf_ct_net(ct);
- 
- 	zone = nf_ct_zone(ct);
- 
-+	if (maniptype == NF_NAT_MANIP_SRC &&
-+	    !random_port &&
-+	    !ct->local_origin)
-+		random_port = tuple_force_port_remap(orig_tuple);
-+
- 	/* 1) If this srcip/proto/src-proto-part is currently mapped,
- 	 * and that same mapping gives a unique tuple within the given
- 	 * range, use that.
-@@ -520,8 +558,7 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
- 	 * So far, we don't do local source mappings, so multiple
- 	 * manips not an issue.
- 	 */
--	if (maniptype == NF_NAT_MANIP_SRC &&
--	    !(range->flags & NF_NAT_RANGE_PROTO_RANDOM_ALL)) {
-+	if (maniptype == NF_NAT_MANIP_SRC && !random_port) {
- 		/* try the original tuple first */
- 		if (in_range(orig_tuple, range)) {
- 			if (!nf_nat_used_tuple(orig_tuple, ct)) {
-@@ -545,7 +582,7 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
- 	 */
- 
- 	/* Only bother mapping if it's not already in range and unique */
--	if (!(range->flags & NF_NAT_RANGE_PROTO_RANDOM_ALL)) {
-+	if (!random_port) {
- 		if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
- 			if (!(range->flags & NF_NAT_RANGE_PROTO_OFFSET) &&
- 			    l4proto_in_range(tuple, maniptype,
-diff --git a/tools/testing/selftests/netfilter/nft_nat.sh b/tools/testing/selftests/netfilter/nft_nat.sh
-index d88867d2fed7..349a319a9e51 100755
---- a/tools/testing/selftests/netfilter/nft_nat.sh
-+++ b/tools/testing/selftests/netfilter/nft_nat.sh
-@@ -880,8 +880,9 @@ EOF
- 		return $ksft_skip
- 	fi
- 
--	# test default behaviour. Packet from ns1 to ns0 is redirected to ns2.
--	test_port_shadow "default" "CLIENT"
-+	# test default behaviour. Packet from ns1 to ns0 is not redirected
-+	# due to automatic port translation.
-+	test_port_shadow "default" "ROUTER"
- 
- 	# test packet filter based mitigation: prevent forwarding of
- 	# packets claiming to come from the service port.
+You are awesome, thank you!
 -- 
-2.32.0
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
