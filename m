@@ -2,63 +2,117 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB8A2C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Dec 2021 11:38:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10A42C433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Dec 2021 11:38:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235560AbhLQLis (ORCPT
+        id S235583AbhLQLiw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 Dec 2021 06:38:48 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:60814 "EHLO
+        Fri, 17 Dec 2021 06:38:52 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:60830 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231841AbhLQLir (ORCPT
+        with ESMTP id S235476AbhLQLiu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Dec 2021 06:38:47 -0500
+        Fri, 17 Dec 2021 06:38:50 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 902B3605C2;
-        Fri, 17 Dec 2021 12:36:15 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 40388607C1;
+        Fri, 17 Dec 2021 12:36:18 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH nf-next,v2 1/5] netfilter: nf_tables: remove rcu read-size lock
-Date:   Fri, 17 Dec 2021 12:38:33 +0100
-Message-Id: <20211217113837.1253-1-pablo@netfilter.org>
+Subject: [PATCH nf-next,v2 3/5] netfilter: nf_tables: consolidate rule verdict trace call
+Date:   Fri, 17 Dec 2021 12:38:35 +0100
+Message-Id: <20211217113837.1253-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20211217113837.1253-1-pablo@netfilter.org>
+References: <20211217113837.1253-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Chain stats are updated from the Netfilter hook path which already run
-under rcu read-size lock section.
+Add function to consolidate verdict tracing.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 v2: no changes
 
- net/netfilter/nf_tables_core.c | 2 --
- 1 file changed, 2 deletions(-)
+ net/netfilter/nf_tables_core.c | 39 ++++++++++++++++++++++++++++------
+ 1 file changed, 32 insertions(+), 7 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index adc348056076..41c7509955e6 100644
+index 41c7509955e6..d026890a9842 100644
 --- a/net/netfilter/nf_tables_core.c
 +++ b/net/netfilter/nf_tables_core.c
-@@ -110,7 +110,6 @@ static noinline void nft_update_chain_stats(const struct nft_chain *chain,
- 
- 	base_chain = nft_base_chain(chain);
- 
--	rcu_read_lock();
- 	pstats = READ_ONCE(base_chain->stats);
- 	if (pstats) {
- 		local_bh_disable();
-@@ -121,7 +120,6 @@ static noinline void nft_update_chain_stats(const struct nft_chain *chain,
- 		u64_stats_update_end(&stats->syncp);
- 		local_bh_enable();
- 	}
--	rcu_read_unlock();
+@@ -67,6 +67,36 @@ static void nft_cmp_fast_eval(const struct nft_expr *expr,
+ 	regs->verdict.code = NFT_BREAK;
  }
  
- struct nft_jumpstack {
++static noinline void __nft_trace_verdict(struct nft_traceinfo *info,
++					 const struct nft_chain *chain,
++					 const struct nft_regs *regs)
++{
++	enum nft_trace_types type;
++
++	switch (regs->verdict.code) {
++	case NFT_CONTINUE:
++	case NFT_RETURN:
++		type = NFT_TRACETYPE_RETURN;
++		break;
++	default:
++		type = NFT_TRACETYPE_RULE;
++		break;
++	}
++
++	__nft_trace_packet(info, chain, type);
++}
++
++static inline void nft_trace_verdict(struct nft_traceinfo *info,
++				     const struct nft_chain *chain,
++				     const struct nft_rule *rule,
++				     const struct nft_regs *regs)
++{
++	if (static_branch_unlikely(&nft_trace_enabled)) {
++		info->rule = rule;
++		__nft_trace_verdict(info, chain, regs);
++	}
++}
++
+ static bool nft_payload_fast_eval(const struct nft_expr *expr,
+ 				  struct nft_regs *regs,
+ 				  const struct nft_pktinfo *pkt)
+@@ -205,13 +235,13 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
+ 		break;
+ 	}
+ 
++	nft_trace_verdict(&info, chain, rule, &regs);
++
+ 	switch (regs.verdict.code & NF_VERDICT_MASK) {
+ 	case NF_ACCEPT:
+ 	case NF_DROP:
+ 	case NF_QUEUE:
+ 	case NF_STOLEN:
+-		nft_trace_packet(&info, chain, rule,
+-				 NFT_TRACETYPE_RULE);
+ 		return regs.verdict.code;
+ 	}
+ 
+@@ -224,15 +254,10 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
+ 		stackptr++;
+ 		fallthrough;
+ 	case NFT_GOTO:
+-		nft_trace_packet(&info, chain, rule,
+-				 NFT_TRACETYPE_RULE);
+-
+ 		chain = regs.verdict.chain;
+ 		goto do_chain;
+ 	case NFT_CONTINUE:
+ 	case NFT_RETURN:
+-		nft_trace_packet(&info, chain, rule,
+-				 NFT_TRACETYPE_RETURN);
+ 		break;
+ 	default:
+ 		WARN_ON(1);
 -- 
 2.30.2
 
