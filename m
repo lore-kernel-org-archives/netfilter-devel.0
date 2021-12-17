@@ -2,173 +2,171 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 739F3C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Dec 2021 23:49:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D129C433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Dec 2021 01:50:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229847AbhLPXtc (ORCPT
+        id S231215AbhLQBuf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Dec 2021 18:49:32 -0500
-Received: from mga11.intel.com ([192.55.52.93]:5297 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229553AbhLPXtb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Dec 2021 18:49:31 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1639698571; x=1671234571;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=ZqOQad8ijOnESgkxHixcz4BprEm777kirwRvPk7K25g=;
-  b=eqrJp79ogI2KvM7HlBMDayazhXjf6xWa8WYNratxDyMKtAWkrEF3oLsb
-   Pffn5YBUybGARn2yfOwIl/VzGSFjeGM9bhvUVu+L/3w+yTu3qx86JzPzl
-   ARibdfgBm/yoVIquH38X+SQ50g4MGUyFsakHHXUmp7RzoynJPk5ucI8do
-   ig0AVqAkY1RuGIRVfCx+1eEOWi/ipdECQKaqBMnWuUImkDCIivDbOmMyf
-   12J6r/Ra91BTu7Wt5SX1zKeSMZ5JV+3RnMW7Gc7nWx/U/T3nV5WyiFXyG
-   FdCySNxCivTwO3knvJmTqe9gnzorZR43DTcNT6g0p87nugZF12juLIDbb
-   Q==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10200"; a="237173632"
-X-IronPort-AV: E=Sophos;i="5.88,212,1635231600"; 
-   d="scan'208";a="237173632"
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Dec 2021 15:49:31 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.88,212,1635231600"; 
-   d="scan'208";a="506545809"
-Received: from lkp-server02.sh.intel.com (HELO 9f38c0981d9f) ([10.239.97.151])
-  by orsmga007.jf.intel.com with ESMTP; 16 Dec 2021 15:49:29 -0800
-Received: from kbuild by 9f38c0981d9f with local (Exim 4.92)
-        (envelope-from <lkp@intel.com>)
-        id 1my0V7-0003y0-05; Thu, 16 Dec 2021 23:49:29 +0000
-Date:   Fri, 17 Dec 2021 07:48:39 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Cc:     llvm@lists.linux.dev, kbuild-all@lists.01.org,
+        Thu, 16 Dec 2021 20:50:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33324 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229662AbhLQBuf (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 16 Dec 2021 20:50:35 -0500
+Received: from mail-pj1-x1044.google.com (mail-pj1-x1044.google.com [IPv6:2607:f8b0:4864:20::1044])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D830EC061574;
+        Thu, 16 Dec 2021 17:50:34 -0800 (PST)
+Received: by mail-pj1-x1044.google.com with SMTP id j6-20020a17090a588600b001a78a5ce46aso4332796pji.0;
+        Thu, 16 Dec 2021 17:50:34 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=NhG7o+nsdY02iw3dYd2aTlPdsjbjsVvPHVIuGI/z9LY=;
+        b=J0tVkkSnTUQy77P7W0kkVWnA2mLJkVeVkkBlXvG4npM00vmUcP9D+hd2ItAQ1pcs2z
+         QjzDWOwAIMLhAFOIF1CarAl7AVnG0m4BB7Q9MhcyqKkxFVhalQ1lkSehl82+Pqwn8cOM
+         NoKdnoRdjhtGmIVmiK3E1GnYaBwkeN58QS1qX+l+1FH3xrHqkmdZueG8K4Hjpvc4S33G
+         pGl0hYWNouiR6JIu9+e/k3Yp8DTZKk/6J8RGzTF+COfrwBdcUB4dW2XvOK0VToAmCxte
+         Bqsk+XLpOehaSeCxkasJttaoSoobG6/urywG5xdlyZ9n1YmAyTxKj792S2ttSDk8279N
+         wjbg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=NhG7o+nsdY02iw3dYd2aTlPdsjbjsVvPHVIuGI/z9LY=;
+        b=F7JORF9jW51/Rp3NHS6E9QRx8DZvsyaAlWT7cMC5nXxECS9rcKspUessoLylX+Lt+Z
+         co6z/2w6V1gTGOt6tAYKXvYFlN9FYNEMV8tXMRlLP2K63pPORzXPyGjOh89IEYxiVsjY
+         rtUVPjWdFlvpDyi6+HwOHYxoAJP/Z+xjsAiEgyNjhysON8aA1BgLFZ49QldfJFLlfRfF
+         gXb5trKlWqtpLaDyhSDJmy1cvLSxkWbjEsmxjRjJZd7son1AhHEK0fMyBvjXZ52txQWj
+         JHvDKc5pVryyEwi2MPF0cZK+upkJeDP3ah+FP0Lv9f5t1+Q6rnDYyy747TYvP+pQ3Ipt
+         GyzA==
+X-Gm-Message-State: AOAM5337VBziAset/e+/iaFKgIfPgnD1nR01KXNA+DTiNSFdd8o8khNW
+        2Fj61LIDTsTtPJi7hgtZzVFa5JExrL4=
+X-Google-Smtp-Source: ABdhPJxNhKz9WNazgJ2GytKgLvjRAzyA5K63evER/ZuvEsf43XpOrIcoWtrEkNuGbVwMEQSM1QAI4Q==
+X-Received: by 2002:a17:902:728e:b0:143:a388:868b with SMTP id d14-20020a170902728e00b00143a388868bmr1007872pll.33.1639705834227;
+        Thu, 16 Dec 2021 17:50:34 -0800 (PST)
+Received: from localhost ([2405:201:6014:d064:3d4e:6265:800c:dc84])
+        by smtp.gmail.com with ESMTPSA id m11sm7474209pfk.27.2021.12.16.17.50.33
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 16 Dec 2021 17:50:33 -0800 (PST)
+From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
+To:     bpf@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+Cc:     Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Martin KaFai Lau <kafai@fb.com>,
+        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
+        John Fastabend <john.fastabend@gmail.com>,
+        Maxim Mikityanskiy <maximmi@nvidia.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
-        Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>
-Subject: Re: [PATCH nf v3] netfilter: nat: force port remap to prevent
- shadowing well-known ports
-Message-ID: <202112170757.knetsZWh-lkp@intel.com>
-References: <20211216152816.1481-1-fw@strlen.de>
+        Jesper Dangaard Brouer <brouer@redhat.com>,
+        =?UTF-8?q?Toke=20H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
+Subject: [PATCH bpf-next v4 00/10] Introduce unstable CT lookup helpers
+Date:   Fri, 17 Dec 2021 07:20:21 +0530
+Message-Id: <20211217015031.1278167-1-memxor@gmail.com>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20211216152816.1481-1-fw@strlen.de>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Developer-Signature: v=1; a=openpgp-sha256; l=4546; h=from:subject; bh=YscigycUksLr/b9v4i2qq748xsHI9ClA1gn/zVo1vhI=; b=owEBbQKS/ZANAwAIAUzgyIZIvxHKAcsmYgBhu+vEbu5ewbqYbD1Sj47TTOLXK6zekpZRzxxQ2JtP nyzgwm2JAjMEAAEIAB0WIQRLvip+Buz51YI8YRFM4MiGSL8RygUCYbvrxAAKCRBM4MiGSL8Ryi4vEA CQT/ziJvTSHR58gniy86vMkmf22hES0hs33kQ0VGNHNqEeVGiOLulbY08PfaJqCkWUkb0JO16D0vzq NZgYLZAonTrb3YjXihKlCdVhrNjxPX+pfhHKuQvgNtKt/zZIM9Q5R/sec+T6mB4NT6T1sdrd6qF0qQ LW6gWVRHxwYl6x/X5ch7H97wEg6+7V9euKvo3sRYTuljYJjnw8SOJ7+JgFow8fnRSIOBJtuRkH7CeO RbcXYkvqAPq2t/QEwVwgoO4hiTJKDS9yTKf1bFKOAUZYbWIlBJj1Bz8Vk6VnxWI0ny7mHXLkPHDNQe EnxoO08SjRRslmv9qRwsBEY5CYA1ggjOYmJ0wp3cZwKzSMqO7H4bdKlM4Z50V1ah0Bt4hJFtKBlXZu 3aF8NXN3DQ9h60Zc+5AFQua47HMTvVDn35KgNwOFhdWnFpv/nxJkyQ0KAa2d+4L7Gad0m986FQAM6O 0XEflb0A1TXpp7MYDIaPSiVpv6x+dnAaF/X08cj1D22ZEPwfM0nPD4TRA98Bn3H9pGsiIBGgRpSeS5 c3FnL03MN4XIYT+tv12CJEeEWPVDyY5DFz2rwvhD6Sb8X4HjlgMaL8a8T9JI8rOqIA+6mIMQAwOztl TuF/UouFEgnNINOdzKoPyH0BNP1KtjOJimsm2sv0bjelL2tHBMm/aNPKgg3w==
+X-Developer-Key: i=memxor@gmail.com; a=openpgp; fpr=4BBE2A7E06ECF9D5823C61114CE0C88648BF11CA
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Florian,
+This series adds unstable conntrack lookup helpers using BPF kfunc support.  The
+patch adding the lookup helper is based off of Maxim's recent patch to aid in
+rebasing their series on top of this, all adjusted to work with module kfuncs [0].
 
-I love your patch! Yet something to improve:
+  [0]: https://lore.kernel.org/bpf/20211019144655.3483197-8-maximmi@nvidia.com
 
-[auto build test ERROR on nf/master]
+To enable returning a reference to struct nf_conn, the verifier is extended to
+support reference tracking for PTR_TO_BTF_ID, and kfunc is extended with support
+for working as acquire/release functions, similar to existing BPF helpers. kfunc
+returning pointer (limited to PTR_TO_BTF_ID in the kernel) can also return a
+PTR_TO_BTF_ID_OR_NULL now, typically needed when acquiring a resource can fail.
+kfunc can also receive PTR_TO_CTX and PTR_TO_MEM (with some limitations) as
+arguments now. There is also support for passing a mem, len pair as argument
+to kfunc now. In such cases, passing pointer to unsized type (void) is also
+permitted.
 
-url:    https://github.com/0day-ci/linux/commits/Florian-Westphal/netfilter-nat-force-port-remap-to-prevent-shadowing-well-known-ports/20211216-232930
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
-config: arm-randconfig-r005-20211216 (https://download.01.org/0day-ci/archive/20211217/202112170757.knetsZWh-lkp@intel.com/config)
-compiler: clang version 14.0.0 (https://github.com/llvm/llvm-project dd245bab9fbb364faa1581e4f92ba3119a872fba)
-reproduce (this is a W=1 build):
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # install arm cross compiling tool for clang build
-        # apt-get install binutils-arm-linux-gnueabi
-        # https://github.com/0day-ci/linux/commit/cc216934b951862fcd3ea10c9bef2eecd84d8e6f
-        git remote add linux-review https://github.com/0day-ci/linux
-        git fetch --no-tags linux-review Florian-Westphal/netfilter-nat-force-port-remap-to-prevent-shadowing-well-known-ports/20211216-232930
-        git checkout cc216934b951862fcd3ea10c9bef2eecd84d8e6f
-        # save the config file to linux build tree
-        mkdir build_dir
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross W=1 O=build_dir ARCH=arm SHELL=/bin/bash net/netfilter/
+Please see individual commits for details.
 
-If you fix the issue, kindly add following tag as appropriate
-Reported-by: kernel test robot <lkp@intel.com>
+Note: BPF CI needs to add the following to config to test the set. I did update
+the selftests config in patch 8, but not sure if that is enough.
 
-All errors (new ones prefixed by >>):
+	CONFIG_NETFILTER=y
+	CONFIG_NF_DEFRAG_IPV4=y
+	CONFIG_NF_DEFRAG_IPV6=y
+	CONFIG_NF_CONNTRACK=y
 
->> net/netfilter/nf_nat_core.c:550:11: error: no member named 'local_origin' in 'struct nf_conn'
-               !ct->local_origin)
-                ~~  ^
-   1 error generated.
+Changelog:
+----------
+v3 -> v4:
+v3: https://lore.kernel.org/bpf/20211210130230.4128676-1-memxor@gmail.com
 
+ * Guard unstable CT helpers with CONFIG_DEBUG_INFO_BTF_MODULES
+ * Move addition of prog_test test kfuncs to selftest commit
+ * Move negative kfunc tests to test_verifier suite
+ * Limit struct nesting depth to 4, which should be enough for now
 
-vim +550 net/netfilter/nf_nat_core.c
+v2 -> v3:
+v2: https://lore.kernel.org/bpf/20211209170929.3485242-1-memxor@gmail.com
 
-   528	
-   529	/* Manipulate the tuple into the range given. For NF_INET_POST_ROUTING,
-   530	 * we change the source to map into the range. For NF_INET_PRE_ROUTING
-   531	 * and NF_INET_LOCAL_OUT, we change the destination to map into the
-   532	 * range. It might not be possible to get a unique tuple, but we try.
-   533	 * At worst (or if we race), we will end up with a final duplicate in
-   534	 * __nf_conntrack_confirm and drop the packet. */
-   535	static void
-   536	get_unique_tuple(struct nf_conntrack_tuple *tuple,
-   537			 const struct nf_conntrack_tuple *orig_tuple,
-   538			 const struct nf_nat_range2 *range,
-   539			 struct nf_conn *ct,
-   540			 enum nf_nat_manip_type maniptype)
-   541	{
-   542		bool random_port = range->flags & NF_NAT_RANGE_PROTO_RANDOM_ALL;
-   543		const struct nf_conntrack_zone *zone;
-   544		struct net *net = nf_ct_net(ct);
-   545	
-   546		zone = nf_ct_zone(ct);
-   547	
-   548		if (maniptype == NF_NAT_MANIP_SRC &&
-   549		    !random_port &&
- > 550		    !ct->local_origin)
-   551			random_port = tuple_force_port_remap(orig_tuple);
-   552	
-   553		/* 1) If this srcip/proto/src-proto-part is currently mapped,
-   554		 * and that same mapping gives a unique tuple within the given
-   555		 * range, use that.
-   556		 *
-   557		 * This is only required for source (ie. NAT/masq) mappings.
-   558		 * So far, we don't do local source mappings, so multiple
-   559		 * manips not an issue.
-   560		 */
-   561		if (maniptype == NF_NAT_MANIP_SRC && !random_port) {
-   562			/* try the original tuple first */
-   563			if (in_range(orig_tuple, range)) {
-   564				if (!nf_nat_used_tuple(orig_tuple, ct)) {
-   565					*tuple = *orig_tuple;
-   566					return;
-   567				}
-   568			} else if (find_appropriate_src(net, zone,
-   569							orig_tuple, tuple, range)) {
-   570				pr_debug("get_unique_tuple: Found current src map\n");
-   571				if (!nf_nat_used_tuple(tuple, ct))
-   572					return;
-   573			}
-   574		}
-   575	
-   576		/* 2) Select the least-used IP/proto combination in the given range */
-   577		*tuple = *orig_tuple;
-   578		find_best_ips_proto(zone, tuple, range, ct, maniptype);
-   579	
-   580		/* 3) The per-protocol part of the manip is made to map into
-   581		 * the range to make a unique tuple.
-   582		 */
-   583	
-   584		/* Only bother mapping if it's not already in range and unique */
-   585		if (!random_port) {
-   586			if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
-   587				if (!(range->flags & NF_NAT_RANGE_PROTO_OFFSET) &&
-   588				    l4proto_in_range(tuple, maniptype,
-   589				          &range->min_proto,
-   590				          &range->max_proto) &&
-   591				    (range->min_proto.all == range->max_proto.all ||
-   592				     !nf_nat_used_tuple(tuple, ct)))
-   593					return;
-   594			} else if (!nf_nat_used_tuple(tuple, ct)) {
-   595				return;
-   596			}
-   597		}
-   598	
-   599		/* Last chance: get protocol to try to obtain unique tuple. */
-   600		nf_nat_l4proto_unique_tuple(tuple, range, maniptype, ct);
-   601	}
-   602	
+ * Fix build error for !CONFIG_BPF_SYSCALL (Patchwork)
 
----
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+RFC v1 -> v2:
+v1: https://lore.kernel.org/bpf/20211030144609.263572-1-memxor@gmail.com
+
+ * Limit PTR_TO_MEM support to pointer to scalar, or struct with scalars (Alexei)
+ * Use btf_id_set for checking acquire, release, ret type null (Alexei)
+ * Introduce opts struct for CT helpers, move int err parameter to it
+ * Add l4proto as parameter to CT helper's opts, remove separate tcp/udp helpers
+ * Add support for mem, len argument pair to kfunc
+ * Allow void * as pointer type for mem, len argument pair
+ * Extend selftests to cover new additions to kfuncs
+ * Copy ref_obj_id to PTR_TO_BTF_ID dst_reg on btf_struct_access, test it
+ * Fix other misc nits, bugs, and expand commit messages
+
+Kumar Kartikeya Dwivedi (10):
+  bpf: Refactor bpf_check_mod_kfunc_call
+  bpf: Remove DEFINE_KFUNC_BTF_ID_SET
+  bpf: Extend kfunc with PTR_TO_CTX, PTR_TO_MEM argument support
+  bpf: Introduce mem, size argument pair support for kfunc
+  bpf: Add reference tracking support to kfunc
+  bpf: Track provenance for pointers formed from referenced
+    PTR_TO_BTF_ID
+  net/netfilter: Add unstable CT lookup helpers for XDP and TC-BPF
+  selftests/bpf: Add test for unstable CT lookup API
+  selftests/bpf: Add test_verifier support to fixup kfunc call insns
+  selftests/bpf: Extend kfunc selftests
+
+ include/linux/bpf.h                           |  27 +-
+ include/linux/bpf_verifier.h                  |  12 +
+ include/linux/btf.h                           |  46 ++-
+ kernel/bpf/btf.c                              | 216 ++++++++++++--
+ kernel/bpf/verifier.c                         | 232 +++++++++++----
+ net/bpf/test_run.c                            | 135 +++++++++
+ net/core/filter.c                             |  27 ++
+ net/core/net_namespace.c                      |   1 +
+ net/ipv4/tcp_bbr.c                            |   5 +-
+ net/ipv4/tcp_cubic.c                          |   5 +-
+ net/ipv4/tcp_dctcp.c                          |   5 +-
+ net/netfilter/nf_conntrack_core.c             | 278 ++++++++++++++++++
+ .../selftests/bpf/bpf_testmod/bpf_testmod.c   |   5 +-
+ tools/testing/selftests/bpf/config            |   4 +
+ .../testing/selftests/bpf/prog_tests/bpf_nf.c |  48 +++
+ .../selftests/bpf/prog_tests/kfunc_call.c     |   6 +
+ .../selftests/bpf/progs/kfunc_call_test.c     |  52 +++-
+ .../testing/selftests/bpf/progs/test_bpf_nf.c | 105 +++++++
+ tools/testing/selftests/bpf/test_verifier.c   |  28 ++
+ tools/testing/selftests/bpf/verifier/calls.c  |  75 +++++
+ .../selftests/bpf/verifier/ref_tracking.c     |  44 +++
+ 21 files changed, 1248 insertions(+), 108 deletions(-)
+ create mode 100644 tools/testing/selftests/bpf/prog_tests/bpf_nf.c
+ create mode 100644 tools/testing/selftests/bpf/progs/test_bpf_nf.c
+
+-- 
+2.34.1
+
