@@ -2,53 +2,53 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CAEAC4332F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Dec 2021 01:50:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05A6DC43217
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Dec 2021 01:50:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231388AbhLQBui (ORCPT
+        id S232088AbhLQBup (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Dec 2021 20:50:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33336 "EHLO
+        Thu, 16 Dec 2021 20:50:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33372 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229662AbhLQBui (ORCPT
+        with ESMTP id S230405AbhLQBuo (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Dec 2021 20:50:38 -0500
-Received: from mail-pj1-x1042.google.com (mail-pj1-x1042.google.com [IPv6:2607:f8b0:4864:20::1042])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0D74C061574;
-        Thu, 16 Dec 2021 17:50:37 -0800 (PST)
-Received: by mail-pj1-x1042.google.com with SMTP id co15so825976pjb.2;
-        Thu, 16 Dec 2021 17:50:37 -0800 (PST)
+        Thu, 16 Dec 2021 20:50:44 -0500
+Received: from mail-pl1-x644.google.com (mail-pl1-x644.google.com [IPv6:2607:f8b0:4864:20::644])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9548C061574;
+        Thu, 16 Dec 2021 17:50:43 -0800 (PST)
+Received: by mail-pl1-x644.google.com with SMTP id c6so541786plg.3;
+        Thu, 16 Dec 2021 17:50:43 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=qr2kcrgwOSbevMYO+WHv635g5JWPM5Czpfl1U7E6+Bc=;
-        b=bf26hw4WBW/Ojt79pBHr85SQ92nfGG/lcIlGojQwFN0DQucVL7fEiZIcr1lDOjfEhb
-         I+r0jbDeqpsrjCG/ofyrDIQ+IK10I5KdRxFqMVZ3/OHXosFGc/HsX1H1RvDrPHjPKW0q
-         LS2KabakVdHMNQyI/0hqUIUuBzgkNRx7FvaRX5pNF+u42QpfAIQjZ22mT/M8YbSsa9cq
-         iulXsEOpm6OiuaZFdSvXOWnYJAIFAkSt4P/z9EEGugVXK7T4xQOjXfU3mx/qFcv7mNpQ
-         hlbcy4g9A6LmhcRr0IUdoyDliFcgoTM5KikAwKyRJsFfFn1TnglE3U8vu/k1X9vrrFUk
-         BsNQ==
+        bh=/c42Tb1IT3hKwdoO6cfSfz5y7JB3ppN6xEVyti5JOns=;
+        b=kQ/WPxMQbiQaR29yPBiPraVRoSQsUIRtEyohQJ1zNfallV6IsRBDwSpKVva8/X8v0J
+         NprmsMtqDFLgFyTpBYdoehd79VvFOTDwBL+/GyZLz96o5ySjJzF5jK8QLNJjCjLl+LYP
+         9CBrdO1Zp3MEBOCxOPs25TM45ViMdbH5vSGjqelhwvplP2aCF7FDVL+SGxgtrKyzSkpF
+         hpquGABT6vMsPQhteydOzYpHck+25VDMT0PZVlmB327qk5RAzjYV5k4u2d9uMB1gvD3H
+         CFe152U7/qmAX1fhQi2pmZxGpt275SbSXMSD3cdJlC6m53ZmgdXwiyQEi3Rl+jIsOxdg
+         2S9Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=qr2kcrgwOSbevMYO+WHv635g5JWPM5Czpfl1U7E6+Bc=;
-        b=bYdo0ujLid4qye85fl5aPtoTys5MXvsGCaRYmGW7L/l7o5fFbCpnC8f5xGSQGm5glv
-         6C6snzdXYqTwyiUDTn9TLxmECW6N75UMEgb4AGDs74nXRF0cE8bSYUdAfArYeF/xgwC2
-         JBofp+mOG0mTy4c2nwrMwAxCrbWyl7WSP/WsGOEooANlBxzCBJg7t7QoBMy1u4vJvdon
-         BuNMsY/gMI2JDnIfI0uaSG951htCm9/5I684aptB+uMqHKR3GXWro+1Qn6OzJfCsXL8/
-         92eWYCb4DZXSuL1kcQxpH/ONhvDJO1d0Nbgs2ShGC0A3U8V1QC6y7EyTzgvla/dPo21m
-         7jgw==
-X-Gm-Message-State: AOAM5322e692iiHl2vD5MRsbI3wIGIvIm4nWgdINT0Ah3g+tIAVWfVGp
-        IRy0VJeGK6/oG6jdVlO+mY0t1W2eyqI=
-X-Google-Smtp-Source: ABdhPJwQJudODRGJYNZIx0XmvOSbBzmcaxC4H6olh0HSAU1BQqMlcoFWfOX4qMo+nY1BtCRYLeCUPw==
-X-Received: by 2002:a17:90a:8807:: with SMTP id s7mr1018923pjn.229.1639705837188;
-        Thu, 16 Dec 2021 17:50:37 -0800 (PST)
+        bh=/c42Tb1IT3hKwdoO6cfSfz5y7JB3ppN6xEVyti5JOns=;
+        b=QHeYFV10MTlzs9k65vbWa7vtQOq1MIFKhOHOAE/4Y9f0p0eU3gcMCD5W/nn6XG6cx4
+         lsVKMY3Xh1ECtbTI0/nfZ3Sc9jJIpFth/aDkaRJ+EvrUM899Q/X7txmtwU36aghNEsfo
+         N8t2iyigRNIiJ68EGIDrYEM5LdqCoAj2QbHE5WXd0VXdtHssEHP5UOvvP9uwHrpylkU7
+         ruVP6xJQvV8JFrJV7pyPcudhZw/zRCk25LA7mMy3JZ6oXyHUout5eOoaz8d770QITAX8
+         ixpCQo6iui230FPq8m+FKnoJR7GgCf5P1eqNumcM44HwoFCKYCPijsA5kUzG9CAoKXC8
+         qbUw==
+X-Gm-Message-State: AOAM532/9Bnvu/7N37J0cIClKRA83JrwC8VG7Vm02TMdEf3ROwWUZVjf
+        Gs/EAXHn325Tk9Qjmtk/a1OVuinHsR4=
+X-Google-Smtp-Source: ABdhPJxKSBpGI+zPwbU2Kkt5MBd1+NxSrgBze3/DCL1R10Us5Ih9JNOL/klotBhxMugK702ksTxJlQ==
+X-Received: by 2002:a17:902:e54f:b0:148:a2e7:fb2e with SMTP id n15-20020a170902e54f00b00148a2e7fb2emr605264plf.111.1639705842975;
+        Thu, 16 Dec 2021 17:50:42 -0800 (PST)
 Received: from localhost ([2405:201:6014:d064:3d4e:6265:800c:dc84])
-        by smtp.gmail.com with ESMTPSA id h8sm7802784pfh.10.2021.12.16.17.50.36
+        by smtp.gmail.com with ESMTPSA id h4sm7539961pfi.79.2021.12.16.17.50.42
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 16 Dec 2021 17:50:36 -0800 (PST)
+        Thu, 16 Dec 2021 17:50:42 -0800 (PST)
 From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
 To:     bpf@vger.kernel.org, netdev@vger.kernel.org,
         netfilter-devel@vger.kernel.org
@@ -63,122 +63,201 @@ Cc:     Alexei Starovoitov <ast@kernel.org>,
         Florian Westphal <fw@strlen.de>,
         Jesper Dangaard Brouer <brouer@redhat.com>,
         =?UTF-8?q?Toke=20H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
-Subject: [PATCH bpf-next v4 01/10] bpf: Refactor bpf_check_mod_kfunc_call
-Date:   Fri, 17 Dec 2021 07:20:22 +0530
-Message-Id: <20211217015031.1278167-2-memxor@gmail.com>
+Subject: [PATCH bpf-next v4 03/10] bpf: Extend kfunc with PTR_TO_CTX, PTR_TO_MEM argument support
+Date:   Fri, 17 Dec 2021 07:20:24 +0530
+Message-Id: <20211217015031.1278167-4-memxor@gmail.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20211217015031.1278167-1-memxor@gmail.com>
 References: <20211217015031.1278167-1-memxor@gmail.com>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=3649; h=from:subject; bh=LL+2pO42FBqGl5mH6a78USOP58BAKnND4s9qqli/aEs=; b=owEBbQKS/ZANAwAIAUzgyIZIvxHKAcsmYgBhu+vE0knFvDwuGiDut9WrvUun/kU8sprZosRkLpqJ yerqHemJAjMEAAEIAB0WIQRLvip+Buz51YI8YRFM4MiGSL8RygUCYbvrxAAKCRBM4MiGSL8RyokBD/ 9khGyZUOHE/H8XHKN4rWrs4gEAjuQrrpf878qZ7wbZMPR3wKSpXL2qWsmSS3eTvBIplnc3q3XCSMSq IZYgL6NS7ByMytCJDCuhAKE6r6mTp5ejR53sIQq9OUme5UBcnGKRGyEaqupjhUg+jiPfHT8SEyOOy1 ISz+c5ye0i/qkRG3qu88ETRW91QPCWDH/EHFNUn05AcMxmEQezLiHMnivnxujvvkjKMq5R1xkOIFRx 9yWPncHxOnVrCmhqcvYA46D4t4xdmY99wCVXIkbaT4R19xF7u08A6aiyAaJCUFHEdlGDyt4kroztyD WUeNCJeUL0awn2dViWRniL1yJmZof2oHsyIKDPIffS+6RjsMQYpVoSh0zDY+qK1zaKm+9qiRh4CkvF WOn9frGcVNmlYwUesBMmdaVwzCwam5o7VsyBJrRA0mvMvOrwiapViVgu0TbwivLcCSQj0pEU1ARBGZ W6S6IJ8T5tG5qXukwZPMqnbRRPb+7i5OGw1+PuqPbeLx/2wPKdcJoDViufZN0UglAUaVHSkZ74LrOh sdT1Tf+DYXTZjxi94KUjT2yU41Ss1qsBZI859AS3IpmgHGY2Wx8zmmlgTfAV+tHuCyJGSSErpR+0bk p/dPNp2qbQM1wgp9vTBQLL8dsL99CJITiV9nlbOXg58astsraaZB9NYAJx9Q==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=6507; h=from:subject; bh=P8VgMMf8SY/s78fid7fw9QNHmQEigqfdnWJ5UNx2TBI=; b=owEBbQKS/ZANAwAIAUzgyIZIvxHKAcsmYgBhu+vFPGPj4Ozv8OHhuBH1iLMDoPqXntq2jrXXTMEd z5dMlvmJAjMEAAEIAB0WIQRLvip+Buz51YI8YRFM4MiGSL8RygUCYbvrxQAKCRBM4MiGSL8RynhKD/ 9sVEfZoeU8A7Dr6soSxOMk27AnWFhhYoh6SvAsW6Dija4bq+6fEKGK1ZGpcKAR0OyfyqmMJYOo5zPX pGucdajtKDN6IBOsC3W+aGpg7Ib7cNPY17EWovQQA1tZ8OmYmJ8sz16+PuN0TFqTdyodu27MmtKYOG H5jnB/TA4vjXL2OJoXjzO1Rp+2WF5C1S0Y05/QUpr+k60dLEzy+FCExaIhRNaBpxPJb8/7OnEz4YGG xw+0J/HbNFtYvU1VYomJRopj8ZEtAGrfWWX7g3YowuRTmcycvszrBWRNQA8b23LTp+Le05Cux9THgw 3LoKma5GvQgIBhBrRZnWMTaxmP3+fEkYNqYWWYkLR0kFQ7k9tnX8iPD//hJ/q/A8pqc9c5/d5QIM53 eXlu7iqYu7Yt7VH/w5Zhje4WHAFWo/vi6XeK6r0/sIl0KwNhk9F6ezIcIGoV7EbmUB2nP7E85/UDvw pGvgdrraJuDi11my9ElN7LA6QhkdYPnYj3WqrDB9lAIq1BHQIYjPctXwTw4WL3tGx5toyiz8opU+pB 9I8Ek3GK/ZaJg2TJAslOIM57hemJ8oF9souXyFHiO22BgBW185jyzUVjmLKiIx8jSYRr88IKHix5SX WQAxLFDtc9NRJc0v0hU4meZFf0XHEtNKVZxN6XBULU6WQ33qhkvYxk8zXjxg==
 X-Developer-Key: i=memxor@gmail.com; a=openpgp; fpr=4BBE2A7E06ECF9D5823C61114CE0C88648BF11CA
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Future commits adding more callbacks will implement the same pattern of
-matching module owner of kfunc_btf_id_set, and then operating on more
-sets inside the struct. Instead of having to repeat the same code of
-walking over the list, lift code searching individual sets corresponding
-to a owner module out into a common helper, and index into sets array.
+Allow passing PTR_TO_CTX, if the kfunc expects a matching struct type,
+and punt to PTR_TO_MEM block if reg->type does not fall in one of
+PTR_TO_BTF_ID or PTR_TO_SOCK* types. This will be used by future commits
+to get access to XDP and TC PTR_TO_CTX, and pass various data (flags,
+l4proto, netns_id, etc.) encoded in opts struct passed as pointer to
+kfunc.
 
-While the btf_id_set 'set' member for check_kfunc_call wouldn't have
-been NULL so far, future commits introduce sets that are optional, hence
-the common code also checks whether the pointer is valid (i.e. not NULL).
+For PTR_TO_MEM support, arguments are currently limited to pointer to
+scalar, or pointer to struct composed of scalars. This is done so that
+unsafe scenarios (like passing PTR_TO_MEM where PTR_TO_BTF_ID of
+in-kernel valid structure is expected, which may have pointers) are
+avoided. Since the argument checking happens basd on argument register
+type, it is not easy to ascertain what the expected type is. In the
+future, support for PTR_TO_MEM for kfunc can be extended to serve other
+usecases. The struct type whose pointer is passed in may have maximum
+nesting depth of 4, all recursively composed of scalars or struct with
+scalars.
 
-Note that we must continue search on owner match and btf_id_set_contains
-returning false, since more entries may have same owner (since it can be
-NULL for built-in modules). To clarify this case, a comment is added, so
-that future commits don't regress the search, as it was fixed recently
-in commit b12f03104324 ("bpf: Fix bpf_check_mod_kfunc_call for built-in
-modules").
+Future commits will add negative tests that check whether these
+restrictions imposed for kfunc arguments are duly rejected by BPF
+verifier or not.
 
 Signed-off-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
 ---
- include/linux/btf.h | 15 +++++++++++++--
- kernel/bpf/btf.c    | 25 +++++++++++++++++++------
- 2 files changed, 32 insertions(+), 8 deletions(-)
+ kernel/bpf/btf.c | 96 +++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 75 insertions(+), 21 deletions(-)
 
-diff --git a/include/linux/btf.h b/include/linux/btf.h
-index 0c74348cbc9d..916da2efbea8 100644
---- a/include/linux/btf.h
-+++ b/include/linux/btf.h
-@@ -320,9 +320,19 @@ static inline const char *btf_name_by_offset(const struct btf *btf,
- }
- #endif
- 
-+enum kfunc_btf_id_set_type {
-+	BTF_SET_CHECK,
-+	__BTF_SET_MAX,
-+};
-+
- struct kfunc_btf_id_set {
- 	struct list_head list;
--	struct btf_id_set *set;
-+	union {
-+		struct btf_id_set *sets[__BTF_SET_MAX];
-+		struct {
-+			struct btf_id_set *set;
-+		};
-+	};
- 	struct module *owner;
- };
- 
-@@ -361,7 +371,8 @@ static struct kfunc_btf_id_list prog_test_kfunc_list __maybe_unused;
- #endif
- 
- #define DEFINE_KFUNC_BTF_ID_SET(set, name)                                     \
--	struct kfunc_btf_id_set name = { LIST_HEAD_INIT(name.list), (set),     \
-+	struct kfunc_btf_id_set name = { LIST_HEAD_INIT(name.list),            \
-+					 { { (set) } },                        \
- 					 THIS_MODULE }
- 
- #endif
 diff --git a/kernel/bpf/btf.c b/kernel/bpf/btf.c
-index a17de71abd2e..97f6729cf23c 100644
+index 575c6a344096..e5ba26367ed9 100644
 --- a/kernel/bpf/btf.c
 +++ b/kernel/bpf/btf.c
-@@ -6384,20 +6384,33 @@ void unregister_kfunc_btf_id_set(struct kfunc_btf_id_list *l,
- }
- EXPORT_SYMBOL_GPL(unregister_kfunc_btf_id_set);
+@@ -5574,12 +5574,56 @@ static u32 *reg2btf_ids[__BPF_REG_TYPE_MAX] = {
+ #endif
+ };
  
--bool bpf_check_mod_kfunc_call(struct kfunc_btf_id_list *klist, u32 kfunc_id,
--			      struct module *owner)
-+/* Caller must hold reference to module 'owner' */
-+static bool kfunc_btf_id_set_contains(struct kfunc_btf_id_list *klist,
-+				      u32 kfunc_id, struct module *owner,
-+				      enum kfunc_btf_id_set_type type)
- {
- 	struct kfunc_btf_id_set *s;
-+	bool ret = false;
- 
-+	if (type >= __BTF_SET_MAX)
++/* Returns true if struct is composed of scalars, 4 levels of nesting allowed */
++static bool __btf_type_is_scalar_struct(struct bpf_verifier_log *log,
++					const struct btf *btf,
++					const struct btf_type *t, int rec)
++{
++	const struct btf_type *member_type;
++	const struct btf_member *member;
++	u16 i;
++
++	if (rec == 4) {
++		bpf_log(log, "max struct nesting depth 4 exceeded\n");
 +		return false;
- 	mutex_lock(&klist->mutex);
- 	list_for_each_entry(s, &klist->list, list) {
--		if (s->owner == owner && btf_id_set_contains(s->set, kfunc_id)) {
--			mutex_unlock(&klist->mutex);
--			return true;
-+		if (s->owner == owner && s->sets[type] &&
-+		    btf_id_set_contains(s->sets[type], kfunc_id)) {
-+			ret = true;
-+			break;
- 		}
-+		/* continue search, since multiple sets may have same owner */
- 	}
- 	mutex_unlock(&klist->mutex);
--	return false;
-+	return ret;
++	}
++
++	if (!btf_type_is_struct(t))
++		return false;
++
++	for_each_member(i, t, member) {
++		const struct btf_array *array;
++
++		member_type = btf_type_skip_modifiers(btf, member->type, NULL);
++
++		if (btf_type_is_struct(member_type)) {
++			if (!__btf_type_is_scalar_struct(log, btf, member_type, rec + 1))
++				return false;
++			continue;
++		}
++		if (btf_type_is_array(member_type)) {
++			array = btf_type_array(member_type);
++			/* FAM */
++			if (!array->nelems)
++				return false;
++			member_type = btf_type_skip_modifiers(btf, array->type, NULL);
++			if (!btf_type_is_scalar(member_type))
++				return false;
++			continue;
++		}
++		if (!btf_type_is_scalar(member_type))
++			return false;
++	}
++	return true;
 +}
 +
-+bool bpf_check_mod_kfunc_call(struct kfunc_btf_id_list *klist, u32 kfunc_id,
-+			      struct module *owner)
-+{
-+	return kfunc_btf_id_set_contains(klist, kfunc_id, owner, BTF_SET_CHECK);
+ static int btf_check_func_arg_match(struct bpf_verifier_env *env,
+ 				    const struct btf *btf, u32 func_id,
+ 				    struct bpf_reg_state *regs,
+ 				    bool ptr_to_mem_ok)
+ {
+ 	struct bpf_verifier_log *log = &env->log;
++	bool is_kfunc = btf_is_kernel(btf);
+ 	const char *func_name, *ref_tname;
+ 	const struct btf_type *t, *ref_t;
+ 	const struct btf_param *args;
+@@ -5632,7 +5676,20 @@ static int btf_check_func_arg_match(struct bpf_verifier_env *env,
+ 
+ 		ref_t = btf_type_skip_modifiers(btf, t->type, &ref_id);
+ 		ref_tname = btf_name_by_offset(btf, ref_t->name_off);
+-		if (btf_is_kernel(btf)) {
++		if (btf_get_prog_ctx_type(log, btf, t,
++					  env->prog->type, i)) {
++			/* If function expects ctx type in BTF check that caller
++			 * is passing PTR_TO_CTX.
++			 */
++			if (reg->type != PTR_TO_CTX) {
++				bpf_log(log,
++					"arg#%d expected pointer to ctx, but got %s\n",
++					i, btf_type_str(t));
++				return -EINVAL;
++			}
++			if (check_ctx_reg(env, reg, regno))
++				return -EINVAL;
++		} else if (is_kfunc && (reg->type == PTR_TO_BTF_ID || reg2btf_ids[reg->type])) {
+ 			const struct btf_type *reg_ref_t;
+ 			const struct btf *reg_btf;
+ 			const char *reg_ref_tname;
+@@ -5648,14 +5705,9 @@ static int btf_check_func_arg_match(struct bpf_verifier_env *env,
+ 			if (reg->type == PTR_TO_BTF_ID) {
+ 				reg_btf = reg->btf;
+ 				reg_ref_id = reg->btf_id;
+-			} else if (reg2btf_ids[reg->type]) {
++			} else {
+ 				reg_btf = btf_vmlinux;
+ 				reg_ref_id = *reg2btf_ids[reg->type];
+-			} else {
+-				bpf_log(log, "kernel function %s args#%d expected pointer to %s %s but R%d is not a pointer to btf_id\n",
+-					func_name, i,
+-					btf_type_str(ref_t), ref_tname, regno);
+-				return -EINVAL;
+ 			}
+ 
+ 			reg_ref_t = btf_type_skip_modifiers(reg_btf, reg_ref_id,
+@@ -5671,23 +5723,23 @@ static int btf_check_func_arg_match(struct bpf_verifier_env *env,
+ 					reg_ref_tname);
+ 				return -EINVAL;
+ 			}
+-		} else if (btf_get_prog_ctx_type(log, btf, t,
+-						 env->prog->type, i)) {
+-			/* If function expects ctx type in BTF check that caller
+-			 * is passing PTR_TO_CTX.
+-			 */
+-			if (reg->type != PTR_TO_CTX) {
+-				bpf_log(log,
+-					"arg#%d expected pointer to ctx, but got %s\n",
+-					i, btf_type_str(t));
+-				return -EINVAL;
+-			}
+-			if (check_ctx_reg(env, reg, regno))
+-				return -EINVAL;
+ 		} else if (ptr_to_mem_ok) {
+ 			const struct btf_type *resolve_ret;
+ 			u32 type_size;
+ 
++			if (is_kfunc) {
++				/* Permit pointer to mem, but only when argument
++				 * type is pointer to scalar, or struct composed
++				 * (recursively) of scalars.
++				 */
++				if (!btf_type_is_scalar(ref_t) && !__btf_type_is_scalar_struct(log, btf, ref_t, 0)) {
++					bpf_log(log,
++						"arg#%d pointer type %s %s must point to scalar or struct with scalar\n",
++						i, btf_type_str(ref_t), ref_tname);
++					return -EINVAL;
++				}
++			}
++
+ 			resolve_ret = btf_resolve_size(btf, ref_t, &type_size);
+ 			if (IS_ERR(resolve_ret)) {
+ 				bpf_log(log,
+@@ -5700,6 +5752,8 @@ static int btf_check_func_arg_match(struct bpf_verifier_env *env,
+ 			if (check_mem_reg(env, reg, regno, type_size))
+ 				return -EINVAL;
+ 		} else {
++			bpf_log(log, "reg type unsupported for arg#%d %sfunction %s#%d\n", i,
++				is_kfunc ? "kernel " : "", func_name, func_id);
+ 			return -EINVAL;
+ 		}
+ 	}
+@@ -5749,7 +5803,7 @@ int btf_check_kfunc_arg_match(struct bpf_verifier_env *env,
+ 			      const struct btf *btf, u32 func_id,
+ 			      struct bpf_reg_state *regs)
+ {
+-	return btf_check_func_arg_match(env, btf, func_id, regs, false);
++	return btf_check_func_arg_match(env, btf, func_id, regs, true);
  }
  
- #define DEFINE_KFUNC_BTF_ID_LIST(name)                                         \
+ /* Convert BTF of a function into bpf_reg_state if possible
 -- 
 2.34.1
 
