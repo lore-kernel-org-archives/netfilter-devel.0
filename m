@@ -2,265 +2,102 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 337A7C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Dec 2021 19:37:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25548C433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Dec 2021 19:49:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236824AbhLQThl (ORCPT
+        id S232110AbhLQTtm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 Dec 2021 14:37:41 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:33406 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233082AbhLQThl (ORCPT
+        Fri, 17 Dec 2021 14:49:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33860 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229591AbhLQTtm (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Dec 2021 14:37:41 -0500
-Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 5FE2860082
-        for <netfilter-devel@vger.kernel.org>; Fri, 17 Dec 2021 20:35:09 +0100 (CET)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next,v3 5/5] netfilter: nf_tables: make counter support built-in
-Date:   Fri, 17 Dec 2021 20:37:34 +0100
-Message-Id: <20211217193734.15453-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Fri, 17 Dec 2021 14:49:42 -0500
+Received: from mail-lj1-x236.google.com (mail-lj1-x236.google.com [IPv6:2a00:1450:4864:20::236])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B0282C061574
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Dec 2021 11:49:41 -0800 (PST)
+Received: by mail-lj1-x236.google.com with SMTP id k23so5045100lje.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Dec 2021 11:49:41 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ns1.com; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=taxt8joDR2VHnKy739c08QHLkYMo9CrIn8Ni5B6rhZg=;
+        b=P1vcF4s0fw+swJXHIrRm40Ssr0gJ1FGSF37IjY9teF9+6QuZ7SvPp3s/1lz43Ba1MB
+         /lvxHKSyqDVbp8CYPg2VTKEhh52752hH5SgVNaLWjfW/EtNpQZg5wgEn0PUD5Q6OM10B
+         KukytPeFjqUtEeYGjrYjGp36Twwo4CF9MYrbkC0Po4rgiIDLsHZ0tCrm9tQfNEtUGL3g
+         qcoSoS0eDNB17xz1A4Xr5tb2KZgU+pPFbASwtHphNp5mUI9lncVCGCw7tctdfdSMDcui
+         q64LUziQQZFGQBMeg9zfCaBE3Vx4Xvdao4gaQkFlbyxigU4Rl1g9qgnyLs/UMQT8D566
+         Srxw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=taxt8joDR2VHnKy739c08QHLkYMo9CrIn8Ni5B6rhZg=;
+        b=TS17k/jMcC+zeT/HShGALRCjJ41r/txapqA+ZEriWQq1Gdt+JIMeGwqdPFIgzqZltj
+         1tVwlgDPckUGLXmf0xOdfoo5k4+Mfe5gknoFRSmR8MFM1TBligkKliyvsFyEuuJd4MgM
+         Cjp3ykvfzQpnurXtRV9k9m0V9v0g7/cILu/sfKHfUkUEpQ1+Ctqvsgg2EqVD6TxhaRKQ
+         BntDVAzN2oA7hzfl7ZjDoWL3VNqvlivTzZLzDqrUC0pIEn3ltmgMFN2yOio5abpRliNp
+         MeOl1NXNZfL8WW9QRVKJqzf/CzoKh3CMj4b9XHUeeekLXn4f2S5WI3BDaPSJ3WC02f0G
+         Klqg==
+X-Gm-Message-State: AOAM533KvPvyIsZiwZcAkwlGEm8RYT07PfclU9UMrNtP089+p9Fz6lUz
+        0yyDEiFGGlPZ1LKVbVVx+7bgUaVHmig3Y3HaDtJpthulQbrqIahH
+X-Google-Smtp-Source: ABdhPJzpEgY7ThUh4u0RRY749DWZQcsj2KADRsbUydXmNWbILv6Enm8klIIO0F8cytlA7kDZC4mj5XW8VKMHvFdEgf8=
+X-Received: by 2002:a05:651c:168a:: with SMTP id bd10mr3894367ljb.115.1639770579998;
+ Fri, 17 Dec 2021 11:49:39 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20211209163926.25563-1-fw@strlen.de> <CA+PiBLw3aUEd7X3yt5p7D6=-+EdL3EtFxiqSV8FDb5GuuyyxaQ@mail.gmail.com>
+ <20211209171152.GA26636@breakpoint.cc> <CA+PiBLzz6Y0_Ok_dKxK-OUneNu5gxOm6_e2049277NroYoWQmA@mail.gmail.com>
+ <CA+PiBLze0Qu-AdAeu_0K++HcHaaN+7p383drNyx3y0RdO2FCuA@mail.gmail.com> <20211217190417.GC17681@breakpoint.cc>
+In-Reply-To: <20211217190417.GC17681@breakpoint.cc>
+From:   Vitaly Zuevsky <vzuevsky@ns1.com>
+Date:   Fri, 17 Dec 2021 19:49:29 +0000
+Message-ID: <CA+PiBLzQ4HmFDVhxPwDc7fr58jbfQ0j-6GF67rdiVwq7k-A-og@mail.gmail.com>
+Subject: Re: [PATCH nf] netfilter: ctnetlink: remove expired entries first
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Make counter support built-in to allow for direct call in case of
-CONFIG_RETPOLINE.
+On Fri, Dec 17, 2021 at 7:04 PM Florian Westphal <fw@strlen.de> wrote:
+> Sure.  But the patch is for the kernel.
+> I already mentioned that this doesn't handle anything for non-nat case.
+>
+> > > > Maybe 'conntrack -L unconfirmed' or 'conntrack -L dying' show something?
+>
+> Still stands.
+>
+> Also, is there really a discrepancy? Please show output of
+>
+> conntrack -C
+> conntrack -L | wc -l
+> conntrack -C
+>
+> "conntrack -L" reclaims dead/timed-out entries, conntrack -C currently
+> does not.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Reported-by: kernel test robot <lkp@intel.com>
----
-v3: add #include <net/netfilter/nf_tables_core.h> to net/netfilter/nft_counter.c
-    report by Kbuild robot.
+Of course... It is an order of magnitude difference:
 
- include/net/netfilter/nf_tables_core.h |  6 +++
- net/netfilter/Kconfig                  |  6 ---
- net/netfilter/Makefile                 |  3 +-
- net/netfilter/nf_tables_core.c         |  5 +++
- net/netfilter/nft_counter.c            | 58 +++++++-------------------
- 5 files changed, 27 insertions(+), 51 deletions(-)
+# conntrack -L unconfirmed
+conntrack v1.4.4 (conntrack-tools): 0 flow entries have been shown.
 
-diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
-index 0fa5a6d98a00..b6fb1fdff9b2 100644
---- a/include/net/netfilter/nf_tables_core.h
-+++ b/include/net/netfilter/nf_tables_core.h
-@@ -7,6 +7,7 @@
- 
- extern struct nft_expr_type nft_imm_type;
- extern struct nft_expr_type nft_cmp_type;
-+extern struct nft_expr_type nft_counter_type;
- extern struct nft_expr_type nft_lookup_type;
- extern struct nft_expr_type nft_bitwise_type;
- extern struct nft_expr_type nft_byteorder_type;
-@@ -21,6 +22,7 @@ extern struct nft_expr_type nft_last_type;
- #ifdef CONFIG_NETWORK_SECMARK
- extern struct nft_object_type nft_secmark_obj_type;
- #endif
-+extern struct nft_object_type nft_counter_obj_type;
- 
- int nf_tables_core_module_init(void);
- void nf_tables_core_module_exit(void);
-@@ -120,6 +122,8 @@ bool nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
- bool nft_pipapo_avx2_lookup(const struct net *net, const struct nft_set *set,
- 			    const u32 *key, const struct nft_set_ext **ext);
- 
-+void nft_counter_init_seqcount(void);
-+
- struct nft_expr;
- struct nft_regs;
- struct nft_pktinfo;
-@@ -143,4 +147,6 @@ void nft_dynset_eval(const struct nft_expr *expr,
- 		     struct nft_regs *regs, const struct nft_pktinfo *pkt);
- void nft_rt_get_eval(const struct nft_expr *expr,
- 		     struct nft_regs *regs, const struct nft_pktinfo *pkt);
-+void nft_counter_eval(const struct nft_expr *expr, struct nft_regs *regs,
-+                      const struct nft_pktinfo *pkt);
- #endif /* _NET_NF_TABLES_CORE_H */
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 3646fc195e7d..ddc54b6d18ee 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -515,12 +515,6 @@ config NFT_FLOW_OFFLOAD
- 	  This option adds the "flow_offload" expression that you can use to
- 	  choose what flows are placed into the hardware.
- 
--config NFT_COUNTER
--	tristate "Netfilter nf_tables counter module"
--	help
--	  This option adds the "counter" expression that you can use to
--	  include packet and byte counters in a rule.
--
- config NFT_CONNLIMIT
- 	tristate "Netfilter nf_tables connlimit module"
- 	depends on NF_CONNTRACK
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index aab20e575ecd..a135b1a46014 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -75,7 +75,7 @@ nf_tables-objs := nf_tables_core.o nf_tables_api.o nft_chain_filter.o \
- 		  nf_tables_trace.o nft_immediate.o nft_cmp.o nft_range.o \
- 		  nft_bitwise.o nft_byteorder.o nft_payload.o nft_lookup.o \
- 		  nft_dynset.o nft_meta.o nft_rt.o nft_exthdr.o nft_last.o \
--		  nft_chain_route.o nf_tables_offload.o \
-+		  nft_counter.o nft_chain_route.o nf_tables_offload.o \
- 		  nft_set_hash.o nft_set_bitmap.o nft_set_rbtree.o \
- 		  nft_set_pipapo.o
- 
-@@ -100,7 +100,6 @@ obj-$(CONFIG_NFT_REJECT) 	+= nft_reject.o
- obj-$(CONFIG_NFT_REJECT_INET)	+= nft_reject_inet.o
- obj-$(CONFIG_NFT_REJECT_NETDEV)	+= nft_reject_netdev.o
- obj-$(CONFIG_NFT_TUNNEL)	+= nft_tunnel.o
--obj-$(CONFIG_NFT_COUNTER)	+= nft_counter.o
- obj-$(CONFIG_NFT_LOG)		+= nft_log.o
- obj-$(CONFIG_NFT_MASQ)		+= nft_masq.o
- obj-$(CONFIG_NFT_REDIR)		+= nft_redir.o
-diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index d2ada666d889..df5eda7c7554 100644
---- a/net/netfilter/nf_tables_core.c
-+++ b/net/netfilter/nf_tables_core.c
-@@ -169,6 +169,7 @@ static void expr_call_ops_eval(const struct nft_expr *expr,
- 
- 	X(e, nft_payload_eval);
- 	X(e, nft_cmp_eval);
-+	X(e, nft_counter_eval);
- 	X(e, nft_meta_get_eval);
- 	X(e, nft_lookup_eval);
- 	X(e, nft_range_eval);
-@@ -292,18 +293,22 @@ static struct nft_expr_type *nft_basic_types[] = {
- 	&nft_rt_type,
- 	&nft_exthdr_type,
- 	&nft_last_type,
-+	&nft_counter_type,
- };
- 
- static struct nft_object_type *nft_basic_objects[] = {
- #ifdef CONFIG_NETWORK_SECMARK
- 	&nft_secmark_obj_type,
- #endif
-+	&nft_counter_obj_type,
- };
- 
- int __init nf_tables_core_module_init(void)
- {
- 	int err, i, j = 0;
- 
-+	nft_counter_init_seqcount();
-+
- 	for (i = 0; i < ARRAY_SIZE(nft_basic_objects); i++) {
- 		err = nft_register_obj(nft_basic_objects[i]);
- 		if (err)
-diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
-index 8edd3b3c173d..f179e8c3b0ca 100644
---- a/net/netfilter/nft_counter.c
-+++ b/net/netfilter/nft_counter.c
-@@ -13,6 +13,7 @@
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables_core.h>
- #include <net/netfilter/nf_tables_offload.h>
- 
- struct nft_counter {
-@@ -174,7 +175,7 @@ static const struct nla_policy nft_counter_policy[NFTA_COUNTER_MAX + 1] = {
- 	[NFTA_COUNTER_BYTES]	= { .type = NLA_U64 },
- };
- 
--static struct nft_object_type nft_counter_obj_type;
-+struct nft_object_type nft_counter_obj_type;
- static const struct nft_object_ops nft_counter_obj_ops = {
- 	.type		= &nft_counter_obj_type,
- 	.size		= sizeof(struct nft_counter_percpu_priv),
-@@ -184,7 +185,7 @@ static const struct nft_object_ops nft_counter_obj_ops = {
- 	.dump		= nft_counter_obj_dump,
- };
- 
--static struct nft_object_type nft_counter_obj_type __read_mostly = {
-+struct nft_object_type nft_counter_obj_type __read_mostly = {
- 	.type		= NFT_OBJECT_COUNTER,
- 	.ops		= &nft_counter_obj_ops,
- 	.maxattr	= NFTA_COUNTER_MAX,
-@@ -192,9 +193,8 @@ static struct nft_object_type nft_counter_obj_type __read_mostly = {
- 	.owner		= THIS_MODULE,
- };
- 
--static void nft_counter_eval(const struct nft_expr *expr,
--			     struct nft_regs *regs,
--			     const struct nft_pktinfo *pkt)
-+void nft_counter_eval(const struct nft_expr *expr, struct nft_regs *regs,
-+		      const struct nft_pktinfo *pkt)
- {
- 	struct nft_counter_percpu_priv *priv = nft_expr_priv(expr);
- 
-@@ -275,7 +275,15 @@ static void nft_counter_offload_stats(struct nft_expr *expr,
- 	preempt_enable();
- }
- 
--static struct nft_expr_type nft_counter_type;
-+void nft_counter_init_seqcount(void)
-+{
-+	int cpu;
-+
-+	for_each_possible_cpu(cpu)
-+		seqcount_init(per_cpu_ptr(&nft_counter_seq, cpu));
-+}
-+
-+struct nft_expr_type nft_counter_type;
- static const struct nft_expr_ops nft_counter_ops = {
- 	.type		= &nft_counter_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_counter_percpu_priv)),
-@@ -289,7 +297,7 @@ static const struct nft_expr_ops nft_counter_ops = {
- 	.offload_stats	= nft_counter_offload_stats,
- };
- 
--static struct nft_expr_type nft_counter_type __read_mostly = {
-+struct nft_expr_type nft_counter_type __read_mostly = {
- 	.name		= "counter",
- 	.ops		= &nft_counter_ops,
- 	.policy		= nft_counter_policy,
-@@ -297,39 +305,3 @@ static struct nft_expr_type nft_counter_type __read_mostly = {
- 	.flags		= NFT_EXPR_STATEFUL,
- 	.owner		= THIS_MODULE,
- };
--
--static int __init nft_counter_module_init(void)
--{
--	int cpu, err;
--
--	for_each_possible_cpu(cpu)
--		seqcount_init(per_cpu_ptr(&nft_counter_seq, cpu));
--
--	err = nft_register_obj(&nft_counter_obj_type);
--	if (err < 0)
--		return err;
--
--	err = nft_register_expr(&nft_counter_type);
--	if (err < 0)
--		goto err1;
--
--	return 0;
--err1:
--	nft_unregister_obj(&nft_counter_obj_type);
--	return err;
--}
--
--static void __exit nft_counter_module_exit(void)
--{
--	nft_unregister_expr(&nft_counter_type);
--	nft_unregister_obj(&nft_counter_obj_type);
--}
--
--module_init(nft_counter_module_init);
--module_exit(nft_counter_module_exit);
--
--MODULE_LICENSE("GPL");
--MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
--MODULE_ALIAS_NFT_EXPR("counter");
--MODULE_ALIAS_NFT_OBJ(NFT_OBJECT_COUNTER);
--MODULE_DESCRIPTION("nftables counter rule support");
--- 
-2.30.2
+# conntrack -L dying
+conntrack v1.4.4 (conntrack-tools): 0 flow entries have been shown.
 
+# conntrack -C
+88064
+
+# conntrack -L | wc -l
+conntrack v1.4.4 (conntrack-tools): 7641 flow entries have been shown.
+7641
+
+# conntrack -C
+87706
+
+# cat /etc/lsb-release
+DISTRIB_ID=Ubuntu
+DISTRIB_RELEASE=18.04
+DISTRIB_CODENAME=bionic
+DISTRIB_DESCRIPTION="Ubuntu 18.04.5 LTS"
