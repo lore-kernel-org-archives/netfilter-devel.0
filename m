@@ -2,248 +2,128 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22C75C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Dec 2021 14:11:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9086C433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Dec 2021 16:40:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233217AbhLQOLD (ORCPT
+        id S239067AbhLQQkv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 Dec 2021 09:11:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38100 "EHLO
+        Fri, 17 Dec 2021 11:40:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46358 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229599AbhLQOLC (ORCPT
+        with ESMTP id S230396AbhLQQku (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Dec 2021 09:11:02 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 965A0C061574
-        for <netfilter-devel@vger.kernel.org>; Fri, 17 Dec 2021 06:11:02 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1myDwq-000714-JE; Fri, 17 Dec 2021 15:11:00 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: flowtable: remove ipv4/ipv6 modules
-Date:   Fri, 17 Dec 2021 15:10:55 +0100
-Message-Id: <20211217141055.15983-1-fw@strlen.de>
-X-Mailer: git-send-email 2.32.0
+        Fri, 17 Dec 2021 11:40:50 -0500
+Received: from mail-yb1-xb29.google.com (mail-yb1-xb29.google.com [IPv6:2607:f8b0:4864:20::b29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9462CC061574;
+        Fri, 17 Dec 2021 08:40:50 -0800 (PST)
+Received: by mail-yb1-xb29.google.com with SMTP id e136so8134552ybc.4;
+        Fri, 17 Dec 2021 08:40:50 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=VuKy97n+pvrEyUjjZtn/z+TPlDe4v1Gy7paYi8bS/OU=;
+        b=jGDSmYtynlqbfI6TP8Mmls1coEQw7yJ3JaKCbgoeinwDynTv09pmZGJne2SMbiT1N8
+         oLE6ne/9pf0INlQhXo/1pVCFC3hyFaAPFFzmNbgtE2l2Lrs/Df50zS/XpbayFQAplQ/l
+         s0OhPIQ4dGYBLMhgzGsBc7FqV2U8i0F3qfT0vKmRR3cL2GdmtlHHMO4KWlCbP9qxL66i
+         2dJIwWmatqouSWHHj6E/Gof3WCE1ITfV9BEwn2o5Niz2BPmNRlY+jQlxShXmtwhMjWOH
+         lQSNiu7Pu1aeJZcFF63ZfxO3o1UgXI01qfq/fxb+r8dkyce7KR33JxrMKZAR43OE2t8V
+         jyJg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=VuKy97n+pvrEyUjjZtn/z+TPlDe4v1Gy7paYi8bS/OU=;
+        b=AMMFklos2YJz08DHyr62rLN2neR0j0kv8ZrMU8HjAQujgAqZQgl57+X7Ugq/rvbWaB
+         ouTbuwGyCpXdR+FXtw17TbTP9qVnjiJE1ANJnxXghYPPYDPm0m/Chdv3gWCJQgbY3pBQ
+         QQEkS3x951pKOEIjglZjhkLblfBdBMAo/LYRp3aDPe6ivLo2LlUGk2jIckZC+RhDxRjw
+         3EtKfb8QZ+AJOPM5RY/4nAVwI9SWmvytXpVBeXGz1ewW8xI7wTQ8NqVuCmGObOMlubfV
+         M+al33Vr3IN+e0p0S8jbMQOqlYYbwUNd5cb6HWOqAnUvGE1A3lt63W4kqEETXwloX/1D
+         YiDw==
+X-Gm-Message-State: AOAM532FLrsHqZoTLWlDLlf3On8TPnu4VCq6Jx7Gr4odiSRjVVSQmLEa
+        BvCVbVhuamREWxQ+LQX8YCwYe13dkBcGvjoRMzHVEDAjxMISEA==
+X-Google-Smtp-Source: ABdhPJzXsLZIbf31G51Rgfg9SNwXjGvtFAEG48ip1lMq18fCEY79SBz7u0Jv9fZfDGPkw4LyFFUUtFnQgOFH4QJZ858=
+X-Received: by 2002:a25:4cc5:: with SMTP id z188mr5492967yba.248.1639759249767;
+ Fri, 17 Dec 2021 08:40:49 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20211217015031.1278167-1-memxor@gmail.com> <20211217093612.wfsftv4kuqzotkmn@apollo.legion>
+In-Reply-To: <20211217093612.wfsftv4kuqzotkmn@apollo.legion>
+From:   Andrii Nakryiko <andrii.nakryiko@gmail.com>
+Date:   Fri, 17 Dec 2021 08:40:38 -0800
+Message-ID: <CAEf4BzZzd7gzky1CJAFgG4m_VQ0nS05J_kSgEkcnBQiY0uuNOQ@mail.gmail.com>
+Subject: Re: [PATCH bpf-next v4 00/10] Introduce unstable CT lookup helpers
+To:     Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Cc:     bpf <bpf@vger.kernel.org>, Networking <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org,
+        Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Martin KaFai Lau <kafai@fb.com>,
+        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
+        John Fastabend <john.fastabend@gmail.com>,
+        Maxim Mikityanskiy <maximmi@nvidia.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Jesper Dangaard Brouer <brouer@redhat.com>,
+        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Just place the structs and registration in the inet module.
-nf_flow_table_ipv6, nf_flow_table_ipv4 and nf_flow_table_inet share
-same module dependencies: nf_flow_table, nf_tables.
+On Fri, Dec 17, 2021 at 1:36 AM Kumar Kartikeya Dwivedi
+<memxor@gmail.com> wrote:
+>
+> On Fri, Dec 17, 2021 at 07:20:21AM IST, Kumar Kartikeya Dwivedi wrote:
+> > This series adds unstable conntrack lookup helpers using BPF kfunc support.  The
+> > patch adding the lookup helper is based off of Maxim's recent patch to aid in
+> > rebasing their series on top of this, all adjusted to work with module kfuncs [0].
+> >
+> >   [0]: https://lore.kernel.org/bpf/20211019144655.3483197-8-maximmi@nvidia.com
+> >
+> > To enable returning a reference to struct nf_conn, the verifier is extended to
+> > support reference tracking for PTR_TO_BTF_ID, and kfunc is extended with support
+> > for working as acquire/release functions, similar to existing BPF helpers. kfunc
+> > returning pointer (limited to PTR_TO_BTF_ID in the kernel) can also return a
+> > PTR_TO_BTF_ID_OR_NULL now, typically needed when acquiring a resource can fail.
+> > kfunc can also receive PTR_TO_CTX and PTR_TO_MEM (with some limitations) as
+> > arguments now. There is also support for passing a mem, len pair as argument
+> > to kfunc now. In such cases, passing pointer to unsized type (void) is also
+> > permitted.
+> >
+> > Please see individual commits for details.
+> >
+> > Note: BPF CI needs to add the following to config to test the set. I did update
+> > the selftests config in patch 8, but not sure if that is enough.
+> >
+> >       CONFIG_NETFILTER=y
+> >       CONFIG_NF_DEFRAG_IPV4=y
+> >       CONFIG_NF_DEFRAG_IPV6=y
+> >       CONFIG_NF_CONNTRACK=y
+> >
+>
+> Hm, so this is not showing up in BPF CI, is it some mistake from my side? The
+> last couple of versions produced build time warnings in Patchwork, that I fixed,
+> which I suspected was the main cause.
 
-before:
-   text	   data	    bss	    dec	    hex	filename
-   2278	   1480	      0	   3758	    eae	nf_flow_table_inet.ko
-   1159	   1352	      0	   2511	    9cf	nf_flow_table_ipv6.ko
-   1154	   1352	      0	   2506	    9ca	nf_flow_table_ipv4.ko
+Not a mistake, for BPF CI there are separate configs that need to be
+updated manually:
+  - https://github.com/kernel-patches/vmtest/blob/master/.github/actions/vmtest/latest.config
+for kernel patches CI
+  - https://github.com/libbpf/libbpf/tree/master/travis-ci/vmtest/configs
+(there is x86-64 and s390x configs) for libbpf CI
 
-after:
-   2369	   1672	      0	   4041	    fc9	nf_flow_table_inet.ko
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/ipv4/netfilter/Kconfig              |  8 ++----
- net/ipv4/netfilter/Makefile             |  3 --
- net/ipv4/netfilter/nf_flow_table_ipv4.c | 37 ------------------------
- net/ipv6/netfilter/Kconfig              |  8 ++----
- net/ipv6/netfilter/nf_flow_table_ipv6.c | 38 -------------------------
- net/netfilter/nf_flow_table_inet.c      | 26 +++++++++++++++++
- 6 files changed, 30 insertions(+), 90 deletions(-)
-
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index 63cb953bd019..67087f95579f 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -59,12 +59,8 @@ config NF_TABLES_ARP
- endif # NF_TABLES
- 
- config NF_FLOW_TABLE_IPV4
--	tristate "Netfilter flow table IPv4 module"
--	depends on NF_FLOW_TABLE
--	help
--	  This option adds the flow table IPv4 support.
--
--	  To compile it as a module, choose M here.
-+	tristate
-+	select NF_FLOW_TABLE_INET
- 
- config NF_DUP_IPV4
- 	tristate "Netfilter IPv4 packet duplication to alternate destination"
-diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
-index f38fb1368ddb..93bad1184251 100644
---- a/net/ipv4/netfilter/Makefile
-+++ b/net/ipv4/netfilter/Makefile
-@@ -24,9 +24,6 @@ obj-$(CONFIG_NFT_REJECT_IPV4) += nft_reject_ipv4.o
- obj-$(CONFIG_NFT_FIB_IPV4) += nft_fib_ipv4.o
- obj-$(CONFIG_NFT_DUP_IPV4) += nft_dup_ipv4.o
- 
--# flow table support
--obj-$(CONFIG_NF_FLOW_TABLE_IPV4) += nf_flow_table_ipv4.o
--
- # generic IP tables
- obj-$(CONFIG_IP_NF_IPTABLES) += ip_tables.o
- 
-diff --git a/net/ipv4/netfilter/nf_flow_table_ipv4.c b/net/ipv4/netfilter/nf_flow_table_ipv4.c
-index aba65fe90345..e69de29bb2d1 100644
---- a/net/ipv4/netfilter/nf_flow_table_ipv4.c
-+++ b/net/ipv4/netfilter/nf_flow_table_ipv4.c
-@@ -1,37 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-only
--#include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/module.h>
--#include <linux/netfilter.h>
--#include <net/netfilter/nf_flow_table.h>
--#include <net/netfilter/nf_tables.h>
--
--static struct nf_flowtable_type flowtable_ipv4 = {
--	.family		= NFPROTO_IPV4,
--	.init		= nf_flow_table_init,
--	.setup		= nf_flow_table_offload_setup,
--	.action		= nf_flow_rule_route_ipv4,
--	.free		= nf_flow_table_free,
--	.hook		= nf_flow_offload_ip_hook,
--	.owner		= THIS_MODULE,
--};
--
--static int __init nf_flow_ipv4_module_init(void)
--{
--	nft_register_flowtable_type(&flowtable_ipv4);
--
--	return 0;
--}
--
--static void __exit nf_flow_ipv4_module_exit(void)
--{
--	nft_unregister_flowtable_type(&flowtable_ipv4);
--}
--
--module_init(nf_flow_ipv4_module_init);
--module_exit(nf_flow_ipv4_module_exit);
--
--MODULE_LICENSE("GPL");
--MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
--MODULE_ALIAS_NF_FLOWTABLE(AF_INET);
--MODULE_DESCRIPTION("Netfilter flow table support");
-diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-index f22233e44ee9..97d3d1b36dbc 100644
---- a/net/ipv6/netfilter/Kconfig
-+++ b/net/ipv6/netfilter/Kconfig
-@@ -48,12 +48,8 @@ endif # NF_TABLES_IPV6
- endif # NF_TABLES
- 
- config NF_FLOW_TABLE_IPV6
--	tristate "Netfilter flow table IPv6 module"
--	depends on NF_FLOW_TABLE
--	help
--	  This option adds the flow table IPv6 support.
--
--	  To compile it as a module, choose M here.
-+	tristate
-+	select NF_FLOW_TABLE_INET
- 
- config NF_DUP_IPV6
- 	tristate "Netfilter IPv6 packet duplication to alternate destination"
-diff --git a/net/ipv6/netfilter/nf_flow_table_ipv6.c b/net/ipv6/netfilter/nf_flow_table_ipv6.c
-index 667b8af2546a..e69de29bb2d1 100644
---- a/net/ipv6/netfilter/nf_flow_table_ipv6.c
-+++ b/net/ipv6/netfilter/nf_flow_table_ipv6.c
-@@ -1,38 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-only
--#include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/module.h>
--#include <linux/netfilter.h>
--#include <linux/rhashtable.h>
--#include <net/netfilter/nf_flow_table.h>
--#include <net/netfilter/nf_tables.h>
--
--static struct nf_flowtable_type flowtable_ipv6 = {
--	.family		= NFPROTO_IPV6,
--	.init		= nf_flow_table_init,
--	.setup		= nf_flow_table_offload_setup,
--	.action		= nf_flow_rule_route_ipv6,
--	.free		= nf_flow_table_free,
--	.hook		= nf_flow_offload_ipv6_hook,
--	.owner		= THIS_MODULE,
--};
--
--static int __init nf_flow_ipv6_module_init(void)
--{
--	nft_register_flowtable_type(&flowtable_ipv6);
--
--	return 0;
--}
--
--static void __exit nf_flow_ipv6_module_exit(void)
--{
--	nft_unregister_flowtable_type(&flowtable_ipv6);
--}
--
--module_init(nf_flow_ipv6_module_init);
--module_exit(nf_flow_ipv6_module_exit);
--
--MODULE_LICENSE("GPL");
--MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
--MODULE_ALIAS_NF_FLOWTABLE(AF_INET6);
--MODULE_DESCRIPTION("Netfilter flow table IPv6 module");
-diff --git a/net/netfilter/nf_flow_table_inet.c b/net/netfilter/nf_flow_table_inet.c
-index bc4126d8ef65..5c57ade6bd05 100644
---- a/net/netfilter/nf_flow_table_inet.c
-+++ b/net/netfilter/nf_flow_table_inet.c
-@@ -54,8 +54,30 @@ static struct nf_flowtable_type flowtable_inet = {
- 	.owner		= THIS_MODULE,
- };
- 
-+static struct nf_flowtable_type flowtable_ipv4 = {
-+	.family		= NFPROTO_IPV4,
-+	.init		= nf_flow_table_init,
-+	.setup		= nf_flow_table_offload_setup,
-+	.action		= nf_flow_rule_route_ipv4,
-+	.free		= nf_flow_table_free,
-+	.hook		= nf_flow_offload_ip_hook,
-+	.owner		= THIS_MODULE,
-+};
-+
-+static struct nf_flowtable_type flowtable_ipv6 = {
-+	.family		= NFPROTO_IPV6,
-+	.init		= nf_flow_table_init,
-+	.setup		= nf_flow_table_offload_setup,
-+	.action		= nf_flow_rule_route_ipv6,
-+	.free		= nf_flow_table_free,
-+	.hook		= nf_flow_offload_ipv6_hook,
-+	.owner		= THIS_MODULE,
-+};
-+
- static int __init nf_flow_inet_module_init(void)
- {
-+	nft_register_flowtable_type(&flowtable_ipv4);
-+	nft_register_flowtable_type(&flowtable_ipv6);
- 	nft_register_flowtable_type(&flowtable_inet);
- 
- 	return 0;
-@@ -64,6 +86,8 @@ static int __init nf_flow_inet_module_init(void)
- static void __exit nf_flow_inet_module_exit(void)
- {
- 	nft_unregister_flowtable_type(&flowtable_inet);
-+	nft_unregister_flowtable_type(&flowtable_ipv6);
-+	nft_unregister_flowtable_type(&flowtable_ipv4);
- }
- 
- module_init(nf_flow_inet_module_init);
-@@ -71,5 +95,7 @@ module_exit(nf_flow_inet_module_exit);
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
-+MODULE_ALIAS_NF_FLOWTABLE(AF_INET);
-+MODULE_ALIAS_NF_FLOWTABLE(AF_INET6);
- MODULE_ALIAS_NF_FLOWTABLE(1); /* NFPROTO_INET */
- MODULE_DESCRIPTION("Netfilter flow table mixed IPv4/IPv6 module");
--- 
-2.32.0
-
+>
+> There's still one coming from the last patch, but based on [0], I am not sure
+> whether I should be doing things any differently (and if I do fix it, it also
+> needs to be done for the functions added before). The warnings are from the 11
+> new kfuncs I added in net/bpf/test_run.c, for their missing declarations.
+>
+> Comments?
+>
+> [0]: https://lore.kernel.org/bpf/20200326235426.ei6ae2z5ek6uq3tt@ast-mbp
+>
+> > [...]
+>
+> --
+> Kartikeya
