@@ -2,105 +2,79 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FD1EC433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Dec 2021 10:48:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD080C4332F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Dec 2021 19:37:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231537AbhLUKsG (ORCPT
+        id S241808AbhLUThS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Dec 2021 05:48:06 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51276 "EHLO
+        Tue, 21 Dec 2021 14:37:18 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33870 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234984AbhLUKsF (ORCPT
+        with ESMTP id S241812AbhLUThQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Dec 2021 05:48:05 -0500
-X-Greylist: delayed 451 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 21 Dec 2021 02:48:05 PST
-Received: from mail.tintel.eu (mail.tintel.eu [IPv6:2001:41d0:a:6e77:0:ff:fe5c:6a54])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F646C061574
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Dec 2021 02:48:05 -0800 (PST)
-Received: from localhost (localhost [IPv6:::1])
-        by mail.tintel.eu (Postfix) with ESMTP id 3EEA144753F7
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Dec 2021 11:40:28 +0100 (CET)
-Received: from mail.tintel.eu ([IPv6:::1])
-        by localhost (mail.tintel.eu [IPv6:::1]) (amavisd-new, port 10032)
-        with ESMTP id BKEMqy2VOpt9 for <netfilter-devel@vger.kernel.org>;
-        Tue, 21 Dec 2021 11:40:27 +0100 (CET)
-Received: from localhost (localhost [IPv6:::1])
-        by mail.tintel.eu (Postfix) with ESMTP id DB33D4475416
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Dec 2021 11:40:27 +0100 (CET)
-DKIM-Filter: OpenDKIM Filter v2.10.3 mail.tintel.eu DB33D4475416
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux-ipv6.be;
-        s=502B7754-045F-11E5-BBC5-64595FD46BE8; t=1640083227;
-        bh=56FCWqVgZ3FoklWl69nVAq4jQWXnNZTyxfNVBroQZDI=;
-        h=From:To:Date:Message-Id:MIME-Version;
-        b=DpKWVshR2psXDHPyUNwDpTsFVikOv/6ymwbR0+hTgL9QaeGxJxmWJiK3DKPBTIK51
-         M3c7EueoIxR9cElDTK9IgHZ5Ri0asOkmQYQkQnjKzUdLa/2xFgXJvNx+FajWw+uHTR
-         lcMMbDh4TWcj+DHEcQYCgI73xLUJ51wO28nmuASQ=
-X-Virus-Scanned: amavisd-new at mail.tintel.eu
-Received: from mail.tintel.eu ([IPv6:::1])
-        by localhost (mail.tintel.eu [IPv6:::1]) (amavisd-new, port 10026)
-        with ESMTP id Cc8J5GvSv-hd for <netfilter-devel@vger.kernel.org>;
-        Tue, 21 Dec 2021 11:40:27 +0100 (CET)
-Received: from taz.sof.bg.adlevio.net (unknown [IPv6:2001:67c:21bc:20::10])
-        by mail.tintel.eu (Postfix) with ESMTPS id 3AAB1443B97C
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Dec 2021 11:40:27 +0100 (CET)
-From:   Stijn Tintel <stijn@linux-ipv6.be>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nftables] parser: allow quoted string in flowtable_expr_member
-Date:   Tue, 21 Dec 2021 12:40:25 +0200
-Message-Id: <20211221104025.2362302-1-stijn@linux-ipv6.be>
-X-Mailer: git-send-email 2.32.0
+        Tue, 21 Dec 2021 14:37:16 -0500
+Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C1C9C06173F
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Dec 2021 11:37:16 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=+lefcZ5U4pD4d7rkH7+80+jww5y/sFFK9Nd8XFSHgJk=; b=fojAcc+BMYRHYqIpOR5lZzuXi2
+        VMVExfPV+SegA+FVgljRABXw/eJs5YL5BqXB/l8vDC9a9/wyfr6wOM0HZLseQI3jFiApA8va4qIeF
+        Fz4RO+m0+Fw6mDYxyTn3ZKKrsZ0KCuTxwdEiGc+d+zb3xA90f/ouueHWF3rlF6gL3CSDwg58b11wI
+        h3OplJNf030ZD40gu2SG/U3uIf9vTVFE4ZeWkQURy7EoH2eH796cGdJ8ytvzNjPkHhNIzA9gGhh6I
+        6uzJbvEu1y3swb5pGodjzOG+8k0mDIF7e9yoVEqNxZYaf21D9hwfsh2Z52S3F19qfvv7sQloNzDAk
+        DCA7lQhg==;
+Received: from ulthar.dreamlands ([192.168.96.2] helo=ulthar.dreamlands.azazel.net)
+        by kadath.azazel.net with esmtp (Exim 4.94.2)
+        (envelope-from <jeremy@azazel.net>)
+        id 1mzkwj-0019T9-Kl
+        for netfilter-devel@vger.kernel.org; Tue, 21 Dec 2021 19:37:13 +0000
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [nft PATCH 01/11] tests: py: fix inet/sets.t netdev payload
+Date:   Tue, 21 Dec 2021 19:36:47 +0000
+Message-Id: <20211221193657.430866-2-jeremy@azazel.net>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20211221193657.430866-1-jeremy@azazel.net>
+References: <20211221193657.430866-1-jeremy@azazel.net>
 MIME-Version: 1.0
-X-Rspamd-Pre-Result: action=no action;
-        module=multimap;
-        Matched map: IP_WHITELIST
-X-Rspamd-Queue-Id: 3AAB1443B97C
-X-Rspamd-Pre-Result: action=no action;
-        module=multimap;
-        Matched map: IP_WHITELIST
-X-Spamd-Result: default: False [0.00 / 15.00];
-        ASN(0.00)[asn:200533, ipnet:2001:67c:21bc::/48, country:BG];
-        IP_WHITELIST(0.00)[2001:67c:21bc:20::10]
-X-Rspamd-Server: skulls
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 192.168.96.2
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Devices with interface names starting with a digit can not be configured
-in flowtables. Trying to do so throws the following error:
+The netdev payload for one of the inet/sets.t tests was cut-and-pasted
+from the inet payload without being properly updated.
 
-Error: syntax error, unexpected number, expecting comma or '}'
-devices =3D { eth0, 6in4-wan6 };
-
-This is however a perfectly valid interface name. Solve the issue by
-allowing the use of quoted strings.
-
-Suggested-by: Jo-Philipp Wich <jo@mein.io>
-Signed-off-by: Stijn Tintel <stijn@linux-ipv6.be>
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- src/parser_bison.y | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ tests/py/inet/sets.t.payload.netdev | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 16607bb7..1136ab91 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -2151,7 +2151,14 @@ flowtable_list_expr	:	flowtable_expr_member
- 			|	flowtable_list_expr	COMMA	opt_newline
- 			;
-=20
--flowtable_expr_member	:	STRING
-+flowtable_expr_member	:	QUOTED_STRING
-+			{
-+				$$ =3D constant_expr_alloc(&@$, &string_type,
-+							 BYTEORDER_HOST_ENDIAN,
-+							 strlen($1) * BITS_PER_BYTE, $1);
-+				xfree($1);
-+			}
-+			|	STRING
- 			{
- 				$$ =3D constant_expr_alloc(&@$, &string_type,
- 							 BYTEORDER_HOST_ENDIAN,
---=20
-2.32.0
+diff --git a/tests/py/inet/sets.t.payload.netdev b/tests/py/inet/sets.t.payload.netdev
+index 9d6f6bbd62b1..e31aeb9274e6 100644
+--- a/tests/py/inet/sets.t.payload.netdev
++++ b/tests/py/inet/sets.t.payload.netdev
+@@ -15,9 +15,9 @@ netdev test-netdev ingress
+   [ immediate reg 0 accept ]
+ 
+ # ip saddr . ip daddr . tcp dport @set3 accept
+-inet 
+-  [ meta load nfproto => reg 1 ]
+-  [ cmp eq reg 1 0x00000002 ]
++netdev
++  [ meta load protocol => reg 1 ]
++  [ cmp eq reg 1 0x00000008 ]
+   [ meta load l4proto => reg 1 ]
+   [ cmp eq reg 1 0x00000006 ]
+   [ payload load 4b @ network header + 12 => reg 1 ]
+-- 
+2.34.1
 
