@@ -2,69 +2,59 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DA91C433FE
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Dec 2021 10:35:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 669C4C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Dec 2021 13:38:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347739AbhLWKfL (ORCPT
+        id S243618AbhLWNil (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 Dec 2021 05:35:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49868 "EHLO
+        Thu, 23 Dec 2021 08:38:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34930 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347734AbhLWKfL (ORCPT
+        with ESMTP id S238660AbhLWNil (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Dec 2021 05:35:11 -0500
-Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1807AC061401;
-        Thu, 23 Dec 2021 02:35:11 -0800 (PST)
-Received: by a3.inai.de (Postfix, from userid 25121)
-        id 43E4F59A720B6; Thu, 23 Dec 2021 11:35:08 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-        by a3.inai.de (Postfix) with ESMTP id 3A81960C4AC90;
-        Thu, 23 Dec 2021 11:35:08 +0100 (CET)
-Date:   Thu, 23 Dec 2021 11:35:08 +0100 (CET)
-From:   Jan Engelhardt <jengelh@inai.de>
-To:     =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
-cc:     =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <maze@google.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Thu, 23 Dec 2021 08:38:41 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB863C061401;
+        Thu, 23 Dec 2021 05:38:40 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1n0OIf-0007lR-Bk; Thu, 23 Dec 2021 14:38:29 +0100
+Date:   Thu, 23 Dec 2021 14:38:29 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     Xin Xiong <xiongx18@fudan.edu.cn>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
-        Linux Network Development Mailing List 
-        <netdev@vger.kernel.org>,
-        Netfilter Development Mailing List 
-        <netfilter-devel@vger.kernel.org>,
-        Lorenzo Colitti <lorenzo@google.com>
-Subject: Re: [PATCH netfilter] netfilter: xt_owner: use sk->sk_uid for owner
- lookup
-In-Reply-To: <20211223070642.499278-1-zenczykowski@gmail.com>
-Message-ID: <1nrqq669-2r5o-qq5o-207r-p6pnr614s769@vanv.qr>
-References: <20211223070642.499278-1-zenczykowski@gmail.com>
-User-Agent: Alpine 2.25 (LSU 592 2021-09-18)
+        "David S . Miller" <davem@davemloft.net>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        David Ahern <dsahern@kernel.org>,
+        Jakub Kicinski <kuba@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        yuanxzhang@fudan.edu.cn, Xiyu Yang <xiyuyang19@fudan.edu.cn>,
+        Xin Tan <tanxin.ctf@gmail.com>
+Subject: Re: [PATCH] netfilter: ipt_CLUSTERIP: fix refcount leak in
+ clusterip_tg_check()
+Message-ID: <20211223133829.GA5287@breakpoint.cc>
+References: <20211223024811.4519-1-xiongx18@fudan.edu.cn>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20211223024811.4519-1-xiongx18@fudan.edu.cn>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Xin Xiong <xiongx18@fudan.edu.cn> wrote:
+> The issue takes place in one error path of clusterip_tg_check(). When
+> memcmp() returns nonzero, the function simply returns the error code,
+> forgetting to decrease the reference count of a clusterip_config
+> object, which is bumped earlier by clusterip_config_find_get(). This
+> may incur reference count leak.
+> 
+> Fix this issue by decrementing the refcount of the object in specific
+> error path.
 
-On Thursday 2021-12-23 08:06, Maciej Żenczykowski wrote:
+Fixes: 06aa151ad1fc74 ("netfilter: ipt_CLUSTERIP: check MAC address when duplicate config is set")
 
->diff --git a/net/netfilter/xt_owner.c b/net/netfilter/xt_owner.c
->index e85ce69924ae..3eebd9c7ea4b 100644
->--- a/net/netfilter/xt_owner.c
->+++ b/net/netfilter/xt_owner.c
->@@ -84,8 +84,8 @@ owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
-> 	if (info->match & XT_OWNER_UID) {
-> 		kuid_t uid_min = make_kuid(net->user_ns, info->uid_min);
-> 		kuid_t uid_max = make_kuid(net->user_ns, info->uid_max);
->-		if ((uid_gte(filp->f_cred->fsuid, uid_min) &&
->-		     uid_lte(filp->f_cred->fsuid, uid_max)) ^
->+		if ((uid_gte(sk->sk_uid, uid_min) &&
->+		     uid_lte(sk->sk_uid, uid_max)) ^
-
-I have a "déjà rencontré" moment about these lines...
-
-filp->f_cred->fsuid should be the EUID which performed the access (after
-peeling away the setfsuid(2) logic...), and sk_uid has a value that the
-original author of ipt_owner did not find useful. I think that was the
-motivation. listen(80) then drop privileges by set(e)uid. sk_uid would be 0,
-and thus not useful.
