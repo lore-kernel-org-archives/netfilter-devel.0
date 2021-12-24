@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EC76C4332F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D6C3C43217
 	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Dec 2021 15:44:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353093AbhLXPoD (ORCPT
+        id S1353091AbhLXPoD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Fri, 24 Dec 2021 10:44:03 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:44498 "EHLO
+Received: from mail.netfilter.org ([217.70.188.207]:44502 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1353090AbhLXPoC (ORCPT
+        with ESMTP id S1353080AbhLXPoD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 24 Dec 2021 10:44:02 -0500
+        Fri, 24 Dec 2021 10:44:03 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 9CF27607C4
-        for <netfilter-devel@vger.kernel.org>; Fri, 24 Dec 2021 16:41:24 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id B0F2C62BD8
+        for <netfilter-devel@vger.kernel.org>; Fri, 24 Dec 2021 16:41:25 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH conntrack 1/4] conntrack: add nfct_mnl_talk() and nfct_mnl_recv() helper functions
-Date:   Fri, 24 Dec 2021 16:43:48 +0100
-Message-Id: <20211224154351.360124-2-pablo@netfilter.org>
+Subject: [PATCH conntrack 3/4] conntrack: use libmnl to create entry
+Date:   Fri, 24 Dec 2021 16:43:50 +0100
+Message-Id: <20211224154351.360124-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20211224154351.360124-1-pablo@netfilter.org>
 References: <20211224154351.360124-1-pablo@netfilter.org>
@@ -30,104 +30,66 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add helper function to consolidate nfct_mnl_dump() and nfct_mnl_get().
+Use libmnl to create entries through the new nfct_mnl_create() helper
+function.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/conntrack.c | 54 +++++++++++++++++++++++++++++++------------------
- 1 file changed, 34 insertions(+), 20 deletions(-)
+ src/conntrack.c | 32 ++++++++++++++++++++++++++------
+ 1 file changed, 26 insertions(+), 6 deletions(-)
 
 diff --git a/src/conntrack.c b/src/conntrack.c
-index 5bd3cb56b641..067ae4156676 100644
+index 3f74fa12fba2..fe604ff2efd4 100644
 --- a/src/conntrack.c
 +++ b/src/conntrack.c
-@@ -2440,20 +2440,11 @@ static void nfct_mnl_socket_close(void)
- 	mnl_socket_close(sock.mnl);
+@@ -2505,6 +2505,24 @@ nfct_mnl_get(uint16_t subsys, uint16_t type, mnl_cb_t cb, uint8_t family)
+ 	return nfct_mnl_talk(nlh, cb);
  }
  
--static int
--nfct_mnl_dump(uint16_t subsys, uint16_t type, mnl_cb_t cb,
--	      struct ct_cmd *cmd, const struct nfct_filter_dump *filter_dump)
-+static int nfct_mnl_recv(const struct nlmsghdr *nlh, mnl_cb_t cb, void *data)
- {
--	uint8_t family = cmd ? cmd->family : AF_UNSPEC;
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
--	struct nlmsghdr *nlh;
- 	int res;
- 
--	nlh = nfct_mnl_nlmsghdr_put(buf, subsys, type, family);
--
--	if (filter_dump)
--		nfct_nlmsg_build_filter(nlh, filter_dump);
--
- 	res = mnl_socket_sendto(sock.mnl, nlh, nlh->nlmsg_len);
- 	if (res < 0)
- 		return res;
-@@ -2461,7 +2452,7 @@ nfct_mnl_dump(uint16_t subsys, uint16_t type, mnl_cb_t cb,
- 	res = mnl_socket_recvfrom(sock.mnl, buf, sizeof(buf));
- 	while (res > 0) {
- 		res = mnl_cb_run(buf, res, nlh->nlmsg_seq, sock.portid,
--				 cb, cmd);
-+				 cb, data);
- 		if (res <= MNL_CB_STOP)
- 			break;
- 
-@@ -2472,23 +2463,46 @@ nfct_mnl_dump(uint16_t subsys, uint16_t type, mnl_cb_t cb,
- }
- 
- static int
--nfct_mnl_get(uint16_t subsys, uint16_t type, mnl_cb_t cb, uint8_t family)
-+nfct_mnl_dump(uint16_t subsys, uint16_t type, mnl_cb_t cb,
-+	      struct ct_cmd *cmd, const struct nfct_filter_dump *filter_dump)
- {
-+	uint8_t family = cmd ? cmd->family : AF_UNSPEC;
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
- 	struct nlmsghdr *nlh;
--	int res;
- 
- 	nlh = nfct_mnl_nlmsghdr_put(buf, subsys, type, family);
- 
--	res = mnl_socket_sendto(sock.mnl, nlh, nlh->nlmsg_len);
--	if (res < 0)
--		return res;
-+	if (filter_dump)
-+		nfct_nlmsg_build_filter(nlh, filter_dump);
- 
--	res = mnl_socket_recvfrom(sock.mnl, buf, sizeof(buf));
--	if (res < 0)
--		return res;
-+	return nfct_mnl_recv(nlh, cb, cmd);
-+}
-+
-+static int nfct_mnl_talk(const struct nlmsghdr *nlh, mnl_cb_t cb)
-+{
-+	char buf[MNL_SOCKET_BUFFER_SIZE];
-+	int ret;
-+
-+	ret = mnl_socket_sendto(sock.mnl, nlh, nlh->nlmsg_len);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = mnl_socket_recvfrom(sock.mnl, buf, sizeof(buf));
-+	if (ret < 0)
-+		return ret;
-+
-+	return mnl_cb_run(buf, ret, nlh->nlmsg_seq, sock.portid, cb, NULL);
-+}
-+
 +static int
-+nfct_mnl_get(uint16_t subsys, uint16_t type, mnl_cb_t cb, uint8_t family)
++nfct_mnl_create(uint16_t subsys, uint16_t type, const struct nf_conntrack *ct)
 +{
 +	char buf[MNL_SOCKET_BUFFER_SIZE];
 +	struct nlmsghdr *nlh;
++	int err;
 +
-+	nlh = nfct_mnl_nlmsghdr_put(buf, subsys, type, family);
- 
--	return mnl_cb_run(buf, res, nlh->nlmsg_seq, sock.portid, cb, NULL);
-+	return nfct_mnl_talk(nlh, cb);
- }
- 
++	nlh = nfct_mnl_nlmsghdr_put(buf, subsys, type,
++				    NLM_F_CREATE | NLM_F_ACK | NLM_F_EXCL,
++				    nfct_get_attr_u8(ct, ATTR_ORIG_L3PROTO));
++
++	err = nfct_nlmsg_build(nlh, ct);
++	if (err < 0)
++		return err;
++
++	return nfct_mnl_talk(nlh, NULL, NULL);
++}
++
  #define UNKNOWN_STATS_NUM 4
+ 
+ static int nfct_stats_attr_cb(const struct nlattr *attr, void *data)
+@@ -3322,14 +3340,16 @@ static int do_command_ct(const char *progname, struct ct_cmd *cmd)
+ 			nfct_set_attr(cmd->tmpl.ct, ATTR_CONNLABELS,
+ 					xnfct_bitmask_clone(cmd->tmpl.label_modify));
+ 
+-		cth = nfct_open(CONNTRACK, 0);
+-		if (!cth)
+-			exit_error(OTHER_PROBLEM, "Can't open handler");
++		res = nfct_mnl_socket_open(0);
++		if (res < 0)
++			exit_error(OTHER_PROBLEM, "Can't open netlink socket");
+ 
+-		res = nfct_query(cth, NFCT_Q_CREATE, cmd->tmpl.ct);
+-		if (res != -1)
++		res = nfct_mnl_create(NFNL_SUBSYS_CTNETLINK, IPCTNL_MSG_CT_NEW,
++				      cmd->tmpl.ct);
++		if (res >= 0)
+ 			counter++;
+-		nfct_close(cth);
++
++		nfct_mnl_socket_close();
+ 		break;
+ 
+ 	case EXP_CREATE:
 -- 
 2.30.2
 
