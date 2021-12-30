@@ -2,107 +2,105 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 291EAC433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Dec 2021 03:04:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34976C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Dec 2021 06:31:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234909AbhL3DEQ (ORCPT
+        id S236428AbhL3Gbw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 29 Dec 2021 22:04:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58474 "EHLO
+        Thu, 30 Dec 2021 01:31:52 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46884 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231751AbhL3DEP (ORCPT
+        with ESMTP id S236346AbhL3Gbw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 29 Dec 2021 22:04:15 -0500
-Received: from mail-pg1-x541.google.com (mail-pg1-x541.google.com [IPv6:2607:f8b0:4864:20::541])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52B04C061574;
-        Wed, 29 Dec 2021 19:04:15 -0800 (PST)
-Received: by mail-pg1-x541.google.com with SMTP id f8so10223185pgf.8;
-        Wed, 29 Dec 2021 19:04:15 -0800 (PST)
+        Thu, 30 Dec 2021 01:31:52 -0500
+Received: from mail-qv1-xf2d.google.com (mail-qv1-xf2d.google.com [IPv6:2607:f8b0:4864:20::f2d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2CDCEC061574;
+        Wed, 29 Dec 2021 22:31:52 -0800 (PST)
+Received: by mail-qv1-xf2d.google.com with SMTP id kj16so21274193qvb.2;
+        Wed, 29 Dec 2021 22:31:52 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=Yo6JeoWvRH+ovlwbmL1s9hAJypLA4AJYicdWPLb+vPE=;
-        b=T/tLz7PtVOVFIrJ6+YvW7x1K6h14PPQYVKswJ66LR4V3xQq8T/Bnnvz/AVj6V2SJrk
-         TbtswT6JwBNSSPXILP7EhYtoiX7/WA5sPcBkvBJmejMISDYtoYXDN/lWFeIWgEIJotHb
-         iZaOBgrPVKztJYOpL66x4PIV4e0EL+bI4pGd2o159SjFSab8qIDtXUbDkbZtag5poQvY
-         M6wtci84nLFPAiDiFXNumT1Q5+gzSAF+vO3Rq65nFGyAAcjuOKCIVZoopZsuc2PFqMgJ
-         RzwkODMUoAKFp+dY5wpeIWEmtQ+bK2UymcbdyBcTggABHsGQ4p2xcXLqpb/KAGOuQ+uj
-         zLeA==
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=lPQYBcbN5m0grzdVg1oiL9bCyxWDGksMt+6y2rMrOVQ=;
+        b=fUKKdW+SvFcgTg+t+p1gVhRCCigBWsqqzK8awzXbFdqNFJwSCjwcEkjBeNmfxhORJs
+         X8mBDcS1eKorG/6rTbYR4lUuJpvQy4LSLr9hChre8AGj0kG67NkmStKNel+TWBy1guNS
+         05QTrJVnR5Z6yi80mcTKEEWtXTvWtN8ikLMgoon4pm0DP2QxoA6d8eNLokHHxbNRfeXs
+         +Q3COnUtZ/SZXyAbgRr13q5qIRCbcM/D/D2DX7lblOpSbYcH9BwuZgxYkoGUFzKUoeNh
+         oXFKhXy9SLCHPoC2wyKL7cOBjF2usZs6KnLU5eH0srzwiQ9JwdnD35EQEY5aVlm349H8
+         AMwA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=Yo6JeoWvRH+ovlwbmL1s9hAJypLA4AJYicdWPLb+vPE=;
-        b=6c2XXUp/XRTNJ5q6Z3bJ5RFUdR6tR6Wrio+Z3p/G96Wz9co2IKf5aCKnc2ujDGIX+f
-         q1FhyqTcXJ29zhDb2jYYkQLaoMVrjfwamuz1lgjFia4Xg8wDjdCzqCxiQIoh7SFdmwZ+
-         XyNZBBZOp94TOZxBEtmyL+jMNCKOjn4nZqw3pAcrJFuFbnNBCuuRdQ+JtQDA6Z2bEff/
-         ZVrnU8fOwcnPG3RnagmoGs85uoWuu3iw6Mb25XfqLd3PJnpxbGDJSRBGq/FzyogxnFE/
-         gn0K/hKLHUMJnFJ3TkToJSAjjpbZw+GOMkeT4YZofFw66VYy6kbaH7bcjvXUNmPQpsez
-         +GNQ==
-X-Gm-Message-State: AOAM5307Z3Lgmkan2ghlxyIXsrlNwlOHJFui4O8bvy2MyYIh3KNRXOiR
-        8Gd3qw7ADivp8kSAqaOUzuOKaaNh0kk=
-X-Google-Smtp-Source: ABdhPJwlbiweowUhWcevZtX3JRqqCasGsiuBrLwlt9+2QKTuF8j4FLssG78S535qv70jFLIeC45s1A==
-X-Received: by 2002:a62:6043:0:b0:4bb:d8d9:e9ec with SMTP id u64-20020a626043000000b004bbd8d9e9ecmr19199067pfb.7.1640833454679;
-        Wed, 29 Dec 2021 19:04:14 -0800 (PST)
-Received: from localhost ([2405:201:6014:d064:3d4e:6265:800c:dc84])
-        by smtp.gmail.com with ESMTPSA id y126sm24387823pfy.40.2021.12.29.19.04.13
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=lPQYBcbN5m0grzdVg1oiL9bCyxWDGksMt+6y2rMrOVQ=;
+        b=o53uerW3Hrkib7Sh1CRYGklW3caw1SmAwFH0exsiZcR1N0SXPnSbbxoPZ9stf3T8Gg
+         MvvuMDKrPEODp2gggZ93ctknMFPjhqS8Wuhi+x6nVxoajtRv0mJNh911iZNWizVx45Bf
+         iRYzM/ypEwjk5D10OXCBAn0WbM90ACJ7QpUXatiT3M+c5npS55nuT9Ch9IrFF0eblCVE
+         Ir55k9VA56pQieS6o5gas4C1Uonpt8W/ZmUmubma8blp0DvuB1w1v9jGO9A2RUSnm+tZ
+         KFm/sMjPN59MOLnOdUo0ezRaLwTy9gfKfEEcKALR/AQXZpz4t/wYB9k6M+1tvN3BWBku
+         J0Xw==
+X-Gm-Message-State: AOAM531K3k+wtC4XotgJmXD12zZwBck1s+eIoYVinOENmznDVXp8bj21
+        1EeKlUVeqpJlQijazckSu+k=
+X-Google-Smtp-Source: ABdhPJwFqLtITatUVGsBEEcp901TqmqMJs5VuDtvlIC4vts00CijsRRysOExL9A+EFqIu+CHb9/zRA==
+X-Received: by 2002:a05:6214:2a88:: with SMTP id jr8mr26433604qvb.125.1640845911261;
+        Wed, 29 Dec 2021 22:31:51 -0800 (PST)
+Received: from localhost.localdomain ([193.203.214.57])
+        by smtp.gmail.com with ESMTPSA id bi9sm18858219qkb.60.2021.12.29.22.31.48
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 29 Dec 2021 19:04:14 -0800 (PST)
-Date:   Thu, 30 Dec 2021 08:34:11 +0530
-From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
-To:     bpf@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-Cc:     Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Martin KaFai Lau <kafai@fb.com>,
-        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Maxim Mikityanskiy <maximmi@nvidia.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Wed, 29 Dec 2021 22:31:50 -0800 (PST)
+From:   cgel.zte@gmail.com
+X-Google-Original-From: luo.penghao@zte.com.cn
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
-Subject: Re: [PATCH bpf-next v5 0/9] Introduce unstable CT lookup helpers
-Message-ID: <20211230030411.7areovj3pz7pmmz2@apollo.legion>
-References: <20211230023705.3860970-1-memxor@gmail.com>
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        David Ahern <dsahern@kernel.org>,
+        Jakub Kicinski <kuba@kernel.org>,
+        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        luo penghao <luo.penghao@zte.com.cn>,
+        Zeal Robot <zealci@zte.com.cn>
+Subject: [PATCH linux] netfilter: Remove unnecessary ret assignment
+Date:   Thu, 30 Dec 2021 06:31:43 +0000
+Message-Id: <20211230063143.586220-1-luo.penghao@zte.com.cn>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20211230023705.3860970-1-memxor@gmail.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Dec 30, 2021 at 08:06:56AM IST, Kumar Kartikeya Dwivedi wrote:
-> This series adds unstable conntrack lookup helpers using BPF kfunc support.  The
-> patch adding the lookup helper is based off of Maxim's recent patch to aid in
-> rebasing their series on top of this, all adjusted to work with module kfuncs [0].
->
->   [0]: https://lore.kernel.org/bpf/20211019144655.3483197-8-maximmi@nvidia.com
->
-> To enable returning a reference to struct nf_conn, the verifier is extended to
-> support reference tracking for PTR_TO_BTF_ID, and kfunc is extended with support
-> for working as acquire/release functions, similar to existing BPF helpers. kfunc
-> returning pointer (limited to PTR_TO_BTF_ID in the kernel) can also return a
-> PTR_TO_BTF_ID_OR_NULL now, typically needed when acquiring a resource can fail.
-> kfunc can also receive PTR_TO_CTX and PTR_TO_MEM (with some limitations) as
-> arguments now. There is also support for passing a mem, len pair as argument
-> to kfunc now. In such cases, passing pointer to unsized type (void) is also
-> permitted.
->
-> Please see individual commits for details.
->
-> Changelog:
-> ----------
+From: luo penghao <luo.penghao@zte.com.cn>
 
-PR [0] and [1] are needed to make BPF CI green for this set.
+Regardless of whether the subsequent (copy_to_user(user, &info, *len) != 0)
+holds, the value of ret will be assigned a new value.
 
-[0]: https://github.com/kernel-patches/vmtest/pull/53
-[1]: https://github.com/libbpf/libbpf/pull/429
+The clang_analyzer complains as follows:
 
-> [...]
+net/ipv6/netfilter/ip6_tables.c:
 
---
-Kartikeya
+Value stored to 'ret' is never read
+
+Reported-by: Zeal Robot <zealci@zte.com.cn>
+Signed-off-by: luo penghao <luo.penghao@zte.com.cn>
+---
+ net/ipv6/netfilter/ip6_tables.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index a579ea1..92b90a2 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -986,7 +986,7 @@ static int get_info(struct net *net, void __user *user, const int *len)
+ 		struct xt_table_info tmp;
+ 
+ 		if (in_compat_syscall()) {
+-			ret = compat_table_info(private, &tmp);
++			compat_table_info(private, &tmp);
+ 			xt_compat_flush_offsets(AF_INET6);
+ 			private = &tmp;
+ 		}
+-- 
+2.15.2
+
+
