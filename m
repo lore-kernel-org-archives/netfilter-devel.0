@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8168C433EF
-	for <netfilter-devel@archiver.kernel.org>; Sun,  2 Jan 2022 22:15:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F03BC43219
+	for <netfilter-devel@archiver.kernel.org>; Sun,  2 Jan 2022 22:15:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230331AbiABWPF (ORCPT
+        id S230077AbiABWPG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 2 Jan 2022 17:15:05 -0500
+        Sun, 2 Jan 2022 17:15:06 -0500
 Received: from mail.netfilter.org ([217.70.188.207]:56142 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230150AbiABWPD (ORCPT
+        with ESMTP id S230333AbiABWPF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 2 Jan 2022 17:15:03 -0500
+        Sun, 2 Jan 2022 17:15:05 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id D737663F5E
-        for <netfilter-devel@vger.kernel.org>; Sun,  2 Jan 2022 23:12:18 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id CBBDA62BD8
+        for <netfilter-devel@vger.kernel.org>; Sun,  2 Jan 2022 23:12:19 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nftables,v2 5/7] optimize: merge rules with same selectors into a concatenation
-Date:   Sun,  2 Jan 2022 23:14:50 +0100
-Message-Id: <20220102221452.86469-6-pablo@netfilter.org>
+Subject: [PATCH nftables,v2 7/7] optimize: merge several selectors with different verdict into verdict map
+Date:   Sun,  2 Jan 2022 23:14:52 +0100
+Message-Id: <20220102221452.86469-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220102221452.86469-1-pablo@netfilter.org>
 References: <20220102221452.86469-1-pablo@netfilter.org>
@@ -30,106 +30,163 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch extends the ruleset optimization infrastructure to collapse
-several rules with the same selectors into a concatenation.
-
 Transform:
 
-  meta iifname eth1 ip saddr 1.1.1.1 ip daddr 2.2.2.3 accept
-  meta iifname eth1 ip saddr 1.1.1.2 ip daddr 2.2.2.5 accept
-  meta iifname eth2 ip saddr 1.1.1.3 ip daddr 2.2.2.6 accept
+  ip saddr 1.1.1.1 ip daddr 2.2.2.2 accept
+  ip saddr 2.2.2.2 ip daddr 3.3.3.3 drop
 
 into:
 
-  meta iifname . ip saddr . ip daddr { eth1 . 1.1.1.1 . 2.2.2.6, eth1 . 1.1.1.2 . 2.2.2.5 , eth1 . 1.1.1.3 . 2.2.2.6 } accept
+  ip saddr . ip daddr vmap { 1.1.1.1 . 2.2.2.2 : accept, 2.2.2.2 . 3.3.3.3 : drop }
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/optimize.c                                | 44 ++++++++++++++++++-
- .../dumps/merge_stmts_concat.nft              |  5 +++
- .../optimizations/merge_stmts_concat          | 13 ++++++
- 3 files changed, 61 insertions(+), 1 deletion(-)
- create mode 100644 tests/shell/testcases/optimizations/dumps/merge_stmts_concat.nft
- create mode 100755 tests/shell/testcases/optimizations/merge_stmts_concat
+ src/expression.c                              | 30 +++++++++-
+ src/optimize.c                                | 57 ++++++++++++++++++-
+ .../dumps/merge_stmts_concat_vmap.nft         |  5 ++
+ .../optimizations/merge_stmts_concat_vmap     | 13 +++++
+ 4 files changed, 102 insertions(+), 3 deletions(-)
+ create mode 100644 tests/shell/testcases/optimizations/dumps/merge_stmts_concat_vmap.nft
+ create mode 100755 tests/shell/testcases/optimizations/merge_stmts_concat_vmap
 
-diff --git a/src/optimize.c b/src/optimize.c
-index 5ccdbbdd491f..aaf29c88af75 100644
---- a/src/optimize.c
-+++ b/src/optimize.c
-@@ -266,6 +266,48 @@ static void merge_stmts(const struct optimize_ctx *ctx,
- 	stmt_a->expr->right = set;
+diff --git a/src/expression.c b/src/expression.c
+index 34e0880be470..ea999f2e546c 100644
+--- a/src/expression.c
++++ b/src/expression.c
+@@ -1185,14 +1185,40 @@ struct expr *mapping_expr_alloc(const struct location *loc,
+ 	return expr;
  }
  
-+static void merge_concat_stmts(const struct optimize_ctx *ctx,
-+			       uint32_t from, uint32_t to,
-+			       const struct merge *merge)
++static bool __set_expr_is_vmap(const struct expr *mappings)
 +{
-+	struct expr *concat, *elem, *set;
-+	struct stmt *stmt, *stmt_a;
-+	uint32_t i, k;
++	const struct expr *mapping;
 +
-+	stmt = ctx->stmt_matrix[from][merge->stmt[0]];
++	if (list_empty(&mappings->expressions))
++		return false;
++
++	mapping = list_first_entry(&mappings->expressions, struct expr, list);
++	if (mapping->etype == EXPR_MAPPING &&
++	    mapping->right->etype == EXPR_VERDICT)
++		return true;
++
++	return false;
++}
++
++static bool set_expr_is_vmap(const struct expr *expr)
++{
++
++	if (expr->mappings->etype == EXPR_SET)
++		return __set_expr_is_vmap(expr->mappings);
++
++	return false;
++}
++
+ static void map_expr_print(const struct expr *expr, struct output_ctx *octx)
+ {
+ 	expr_print(expr->map, octx);
+-	if (expr->mappings->etype == EXPR_SET_REF &&
+-	    expr->mappings->set->data->dtype->type == TYPE_VERDICT)
++	if ((expr->mappings->etype == EXPR_SET_REF &&
++	     expr->mappings->set->data->dtype->type == TYPE_VERDICT) ||
++	    set_expr_is_vmap(expr))
+ 		nft_print(octx, " vmap ");
+ 	else
+ 		nft_print(octx, " map ");
++
+ 	expr_print(expr->mappings, octx);
+ }
+ 
+diff --git a/src/optimize.c b/src/optimize.c
+index 1ca5e25e4337..b16fb5ec1b05 100644
+--- a/src/optimize.c
++++ b/src/optimize.c
+@@ -408,6 +408,61 @@ static void merge_stmts_vmap(const struct optimize_ctx *ctx,
+ 	stmt_free(verdict_a);
+ }
+ 
++static void merge_concat_stmts_vmap(const struct optimize_ctx *ctx,
++				    uint32_t from, uint32_t to,
++				    const struct merge *merge)
++{
++	struct stmt *orig_stmt = ctx->stmt_matrix[from][merge->stmt[0]];
++	struct expr *concat_a, *concat_b, *expr, *set;
++	struct stmt *stmt, *stmt_a, *stmt_b, *verdict;
++	uint32_t i, j;
++	int k;
++
++	k = stmt_verdict_find(ctx);
++	assert(k >= 0);
++
 +	/* build concatenation of selectors, eg. ifname . ip daddr . tcp dport */
-+	concat = concat_expr_alloc(&internal_location);
-+
-+	for (k = 0; k < merge->num_stmts; k++) {
-+		stmt_a = ctx->stmt_matrix[from][merge->stmt[k]];
-+		compound_expr_add(concat, expr_get(stmt_a->expr->left));
++	concat_a = concat_expr_alloc(&internal_location);
++	for (i = 0; i < merge->num_stmts; i++) {
++		stmt_a = ctx->stmt_matrix[from][merge->stmt[i]];
++		compound_expr_add(concat_a, expr_get(stmt_a->expr->left));
 +	}
-+	expr_free(stmt->expr->left);
-+	stmt->expr->left = concat;
 +
-+	/* build set data contenation, eg. { eth0 . 1.1.1.1 . 22 } */
++	/* build set data contenation, eg. { eth0 . 1.1.1.1 . 22 : accept } */
 +	set = set_expr_alloc(&internal_location, NULL);
 +	set->set_flags |= NFT_SET_ANONYMOUS;
 +
 +	for (i = from; i <= to; i++) {
-+		concat = concat_expr_alloc(&internal_location);
-+		for (k = 0; k < merge->num_stmts; k++) {
-+			stmt_a = ctx->stmt_matrix[i][merge->stmt[k]];
-+			compound_expr_add(concat, expr_get(stmt_a->expr->right));
++		concat_b = concat_expr_alloc(&internal_location);
++		for (j = 0; j < merge->num_stmts; j++) {
++			stmt_b = ctx->stmt_matrix[i][merge->stmt[j]];
++			expr = stmt_b->expr->right;
++			compound_expr_add(concat_b, expr_get(expr));
 +		}
-+		elem = set_elem_expr_alloc(&internal_location, concat);
-+		compound_expr_add(set, elem);
++		verdict = ctx->stmt_matrix[i][k];
++		build_verdict_map(concat_b, verdict, set);
++		expr_free(concat_b);
 +	}
-+	expr_free(stmt->expr->right);
-+	stmt->expr->right = set;
 +
-+	for (k = 1; k < merge->num_stmts; k++) {
-+		stmt_a = ctx->stmt_matrix[from][merge->stmt[k]];
++	expr = map_expr_alloc(&internal_location, concat_a, set);
++	stmt = verdict_stmt_alloc(&internal_location, expr);
++
++	remove_counter(ctx, from);
++	list_add(&stmt->list, &orig_stmt->list);
++	list_del(&orig_stmt->list);
++	stmt_free(orig_stmt);
++
++	for (i = 1; i < merge->num_stmts; i++) {
++		stmt_a = ctx->stmt_matrix[from][merge->stmt[i]];
 +		list_del(&stmt_a->list);
 +		stmt_free(stmt_a);
 +	}
++
++	verdict = ctx->stmt_matrix[from][k];
++	list_del(&verdict->list);
++	stmt_free(verdict);
 +}
 +
- static void rule_optimize_print(struct output_ctx *octx,
- 				const struct rule *rule)
+ static bool stmt_verdict_cmp(const struct optimize_ctx *ctx,
+ 			     uint32_t from, uint32_t to)
  {
-@@ -307,7 +349,7 @@ static void merge_rules(const struct optimize_ctx *ctx,
- 	uint32_t i;
- 
- 	if (merge->num_stmts > 1) {
--		return;
-+		merge_concat_stmts(ctx, from, to, merge);
+@@ -478,7 +533,7 @@ static void merge_rules(const struct optimize_ctx *ctx,
+ 		if (same_verdict)
+ 			merge_concat_stmts(ctx, from, to, merge);
+ 		else
+-			return;
++			merge_concat_stmts_vmap(ctx, from, to, merge);
  	} else {
- 		merge_stmts(ctx, from, to, merge);
- 	}
-diff --git a/tests/shell/testcases/optimizations/dumps/merge_stmts_concat.nft b/tests/shell/testcases/optimizations/dumps/merge_stmts_concat.nft
+ 		if (same_verdict)
+ 			merge_stmts(ctx, from, to, merge);
+diff --git a/tests/shell/testcases/optimizations/dumps/merge_stmts_concat_vmap.nft b/tests/shell/testcases/optimizations/dumps/merge_stmts_concat_vmap.nft
 new file mode 100644
-index 000000000000..6dbfff2e15fc
+index 000000000000..c0f9ce0ccb6c
 --- /dev/null
-+++ b/tests/shell/testcases/optimizations/dumps/merge_stmts_concat.nft
++++ b/tests/shell/testcases/optimizations/dumps/merge_stmts_concat_vmap.nft
 @@ -0,0 +1,5 @@
 +table ip x {
 +	chain y {
-+		iifname . ip saddr . ip daddr { "eth1" . 1.1.1.1 . 2.2.2.3, "eth1" . 1.1.1.2 . 2.2.2.4, "eth2" . 1.1.1.3 . 2.2.2.5 } accept
++		ip saddr . ip daddr vmap { 1.1.1.1 . 2.2.2.2 : accept, 2.2.2.2 . 3.3.3.3 : drop, 4.4.4.4 . 5.5.5.5 : accept }
 +	}
 +}
-diff --git a/tests/shell/testcases/optimizations/merge_stmts_concat b/tests/shell/testcases/optimizations/merge_stmts_concat
+diff --git a/tests/shell/testcases/optimizations/merge_stmts_concat_vmap b/tests/shell/testcases/optimizations/merge_stmts_concat_vmap
 new file mode 100755
-index 000000000000..941e9a5aa822
+index 000000000000..f1ab0288ab0d
 --- /dev/null
-+++ b/tests/shell/testcases/optimizations/merge_stmts_concat
++++ b/tests/shell/testcases/optimizations/merge_stmts_concat_vmap
 @@ -0,0 +1,13 @@
 +#!/bin/bash
 +
@@ -137,9 +194,9 @@ index 000000000000..941e9a5aa822
 +
 +RULESET="table ip x {
 +	chain y {
-+		meta iifname eth1 ip saddr 1.1.1.1 ip daddr 2.2.2.3 accept
-+		meta iifname eth1 ip saddr 1.1.1.2 ip daddr 2.2.2.4 accept
-+		meta iifname eth2 ip saddr 1.1.1.3 ip daddr 2.2.2.5 accept
++		ip saddr 1.1.1.1 ip daddr 2.2.2.2 accept
++		ip saddr 2.2.2.2 ip daddr 3.3.3.3 drop
++		ip saddr 4.4.4.4 ip daddr 5.5.5.5 accept
 +	}
 +}"
 +
