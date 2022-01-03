@@ -2,95 +2,84 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB08BC433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Jan 2022 13:33:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE123C433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Jan 2022 18:10:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230368AbiACNdd (ORCPT
+        id S234580AbiACSKS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 3 Jan 2022 08:33:33 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54814 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229534AbiACNdd (ORCPT
+        Mon, 3 Jan 2022 13:10:18 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:57456 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235234AbiACSKS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 3 Jan 2022 08:33:33 -0500
-Received: from mail-wr1-x42c.google.com (mail-wr1-x42c.google.com [IPv6:2a00:1450:4864:20::42c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 28F52C061761
-        for <netfilter-devel@vger.kernel.org>; Mon,  3 Jan 2022 05:33:32 -0800 (PST)
-Received: by mail-wr1-x42c.google.com with SMTP id e5so69934150wrc.5
-        for <netfilter-devel@vger.kernel.org>; Mon, 03 Jan 2022 05:33:32 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=6wind.com; s=google;
-        h=reply-to:subject:to:references:from:organization:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=J5pMq3Ww9R/LlJJYIk27KwbvZZ9RQNKj3zhwRyRMb5A=;
-        b=H23e9SiNCqJxNr/4HszDVQZI6Tqza1E3iBkXSX8Xv1znswpholMt+eiA6qDsTrPzgn
-         0gsx6D4slBCQotvqpX5l3/jl5Xa2H8UEebs9RC2cpWJ+wVIh2Y6NSl6VJch6QyCceLif
-         Kvmmv8vqILCCJ0t352fPZf2w4pZU03Au94FkspdXtWS9faGeg808MsSWu6SIkWUyXMlf
-         EohC9jesSbdISZUkQKAxFNYg8ZSueAg8cNo7l5zvxt+grxYzGwvd4/zjabZiVkHd8qGX
-         uG7f5lMlzR23gBR/RVX7lPRY9pAhiSnYq6sre1w6iUx0D+Pd6kwJdpozvHbUYmNWyjhw
-         lozg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:reply-to:subject:to:references:from:organization
-         :message-id:date:user-agent:mime-version:in-reply-to
-         :content-language:content-transfer-encoding;
-        bh=J5pMq3Ww9R/LlJJYIk27KwbvZZ9RQNKj3zhwRyRMb5A=;
-        b=a2Zb04kYunLIWwuzg4yirKFwNE03kqMnPC0w3vfyYP8XHYQaXrtPgVKVOHNbIUM78Q
-         1ko+QWK7YPjnzT6jy5z1L6Kqj7GGUu4CPSrT1p6yX48G39PtE3Y0hndxLOUUphbCGB1Y
-         xRG5YnRzl6oFjnBdaYgvXlfImXQz5jBsEulEfmnTmK8D/NphS+2TOiPC3NzksQRGWsHf
-         1pRLTkDIA3xz4kKg+u3cFmQgtPNGL+jOths0CLorRm65jTMYYsktv7HvIp3DlrIQz7mm
-         +SlCHG7XAcn6ZHZtadyjQ3WWfBRFIVVuWBifz1rloQG6PmDZo6x8B3+jPPGBhVSiJOTb
-         Y+lA==
-X-Gm-Message-State: AOAM531tRUCLl6V6fsaGci0dt+uUewpJjxO6fX/mMscRqgLI1YuZ0eZi
-        miYu3xwJ3Yj3V60R/riNXDa96NMQ2tgzvA==
-X-Google-Smtp-Source: ABdhPJz1RnIsWxS8Z4G2so5doEYzzlpI9bDJDpuqFGVuNemb8P2iaQoaZOzDxSwMqmgDF5gsDV//uQ==
-X-Received: by 2002:a5d:60c8:: with SMTP id x8mr40279555wrt.695.1641216810658;
-        Mon, 03 Jan 2022 05:33:30 -0800 (PST)
-Received: from ?IPv6:2a01:e0a:b41:c160:b97a:ae5f:e798:c587? ([2a01:e0a:b41:c160:b97a:ae5f:e798:c587])
-        by smtp.gmail.com with ESMTPSA id m21sm33276051wrb.2.2022.01.03.05.33.30
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 03 Jan 2022 05:33:30 -0800 (PST)
-Reply-To: nicolas.dichtel@6wind.com
-Subject: Re: [PATCH nftables,v2 0/7] ruleset optimization infrastructure
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20220102221452.86469-1-pablo@netfilter.org>
-From:   Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Organization: 6WIND
-Message-ID: <94b1dbf5-154a-dd41-83a3-dfc01f8f4836@6wind.com>
-Date:   Mon, 3 Jan 2022 14:33:30 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.14.0
+        Mon, 3 Jan 2022 13:10:18 -0500
+Received: from netfilter.org (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 71E8162BDB;
+        Mon,  3 Jan 2022 19:07:33 +0100 (CET)
+Date:   Mon, 3 Jan 2022 19:10:13 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jeremy Sowden <jeremy@azazel.net>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [ulogd2 PATCH v4 00/32] Fixes for compiler warnings
+Message-ID: <YdM8BYK5U+CMU+ow@salvia>
+References: <20211130105600.3103609-1-jeremy@azazel.net>
+ <Ya6MyhseW80+w0FY@salvia>
 MIME-Version: 1.0
-In-Reply-To: <20220102221452.86469-1-pablo@netfilter.org>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Disposition: inline
+In-Reply-To: <Ya6MyhseW80+w0FY@salvia>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Le 02/01/2022 à 23:14, Pablo Neira Ayuso a écrit :
-> Hi,
+On Mon, Dec 06, 2021 at 11:21:01PM +0100, Pablo Neira Ayuso wrote:
+> On Tue, Nov 30, 2021 at 10:55:28AM +0000, Jeremy Sowden wrote:
+> > This patch-set fixes all the warnings reported by gcc 11.
+> > 
+> > Most of the warnings concern fall-throughs in switches, possibly
+> > problematic uses of functions like `strncpy` and `strncat` and possible
+> > truncation of output by `sprintf` and its siblings.
+> > 
+> > Some of the patches fix bugs revealed by warnings, some tweak code to
+> > avoid warnings, others fix or improve things I noticed while looking at
+> > the warnings.
+> > 
+> > Changes since v3:
+> > 
+> >   * When publishing v3 I accidentally sent out two different versions of the
+> >     patch-set under one cover-letter.  There are no code-changes in v4: it just
+> >     omits the earlier superseded patches.
 > 
-> This patchset adds a new -o/--optimize option to enable ruleset
-> optimization. Two type of optimizations are supported in this batch:
-> 
-> * Use a set to compact several rules with the same selector using a set,
->   for example:
-> 
->       meta iifname eth1 ip saddr 1.1.1.1 ip daddr 2.2.2.3 accept
->       meta iifname eth1 ip saddr 1.1.1.2 ip daddr 2.2.2.5 accept
->       meta iifname eth2 ip saddr 1.1.1.3 ip daddr 2.2.2.6 accept
-> 
->    into:
-> 
->       meta iifname . ip saddr . ip daddr { eth1 . 1.1.1.1 . 2.2.2.6, eth1 . 1.1.1.2 . 2.2.2.5 , eth1 . 1.1.1.3 . 2.2.2.6 } accept
-nit: it would probably be better with this result ;-)
-meta iifname . ip saddr . ip daddr { eth1 . 1.1.1.1 . 2.2.2.3, eth1 . 1.1.1.2 .
-2.2.2.5 , eth2 . 1.1.1.3 . 2.2.2.6 } accept
+> Applied from 1 to 19 (all inclusive)
 
+Applied remaining patches with comments.
 
-Regards,
-Nicolas
+- Patch #20, #24 maybe consider conversion to snprintf at some point, not
+  your fault, this code is using sprintf in many spots. I think the
+  only problematic scenario which might trigger problems is the
+  configuration path using too long object names.
+
+- Patch #21, #22 and #25, maybe consolidate this database field from
+  _ to . in a common function.
+
+- Patch #27, tm_gmtoff mod 86400 is really required? tm_gmtoff can be
+  either -12/+12 * 60 * 60, simple assignment to integer should calm
+  down the compiler?
+
+- Patch #80, I guess you picked 80 just to provide a sufficiently
+  large buffer to calm down compiler.
+
+- Patch #31: I have replaced this patch with a check from .start and
+  .signal paths to validate the unix socket path. The signal path of
+  ulogd2 is problematic since configuration file errors should
+  likely stop the daemon. I'll post it after this email.
+
+- Patch #32: this IPFIX plugin was tested with wireshark according to
+  4f639231c83b ("IPFIX: Add IPFIX output plugin"), I wonder if this
+  attribute((packed)) is breaking anything, or maybe this was all
+  tested on 32-bit?
+
+Anyway, after this update it's probably better to look at using
+pkg-config in the build system.
+
+Thanks for fixing up these compiler warnings.
