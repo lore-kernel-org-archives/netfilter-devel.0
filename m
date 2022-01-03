@@ -2,84 +2,130 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE123C433F5
-	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Jan 2022 18:10:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10659C433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Jan 2022 18:11:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234580AbiACSKS (ORCPT
+        id S233305AbiACSLp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 3 Jan 2022 13:10:18 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:57456 "EHLO
+        Mon, 3 Jan 2022 13:11:45 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:57470 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235234AbiACSKS (ORCPT
+        with ESMTP id S232153AbiACSLo (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 3 Jan 2022 13:10:18 -0500
-Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 71E8162BDB;
-        Mon,  3 Jan 2022 19:07:33 +0100 (CET)
-Date:   Mon, 3 Jan 2022 19:10:13 +0100
+        Mon, 3 Jan 2022 13:11:44 -0500
+Received: from localhost.localdomain (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id E029C62BDB
+        for <netfilter-devel@vger.kernel.org>; Mon,  3 Jan 2022 19:08:58 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jeremy Sowden <jeremy@azazel.net>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [ulogd2 PATCH v4 00/32] Fixes for compiler warnings
-Message-ID: <YdM8BYK5U+CMU+ow@salvia>
-References: <20211130105600.3103609-1-jeremy@azazel.net>
- <Ya6MyhseW80+w0FY@salvia>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH ulogd2 1/2] output: JSON: fix possible truncation of socket path
+Date:   Mon,  3 Jan 2022 19:11:37 +0100
+Message-Id: <20220103181138.101880-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <Ya6MyhseW80+w0FY@salvia>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Dec 06, 2021 at 11:21:01PM +0100, Pablo Neira Ayuso wrote:
-> On Tue, Nov 30, 2021 at 10:55:28AM +0000, Jeremy Sowden wrote:
-> > This patch-set fixes all the warnings reported by gcc 11.
-> > 
-> > Most of the warnings concern fall-throughs in switches, possibly
-> > problematic uses of functions like `strncpy` and `strncat` and possible
-> > truncation of output by `sprintf` and its siblings.
-> > 
-> > Some of the patches fix bugs revealed by warnings, some tweak code to
-> > avoid warnings, others fix or improve things I noticed while looking at
-> > the warnings.
-> > 
-> > Changes since v3:
-> > 
-> >   * When publishing v3 I accidentally sent out two different versions of the
-> >     patch-set under one cover-letter.  There are no code-changes in v4: it just
-> >     omits the earlier superseded patches.
-> 
-> Applied from 1 to 19 (all inclusive)
+Verify that the path is shorter than 108 bytes (maximum unix socket path).
 
-Applied remaining patches with comments.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ output/ulogd_output_JSON.c | 48 +++++++++++++++++++++++++++++++-------
+ 1 file changed, 39 insertions(+), 9 deletions(-)
 
-- Patch #20, #24 maybe consider conversion to snprintf at some point, not
-  your fault, this code is using sprintf in many spots. I think the
-  only problematic scenario which might trigger problems is the
-  configuration path using too long object names.
+diff --git a/output/ulogd_output_JSON.c b/output/ulogd_output_JSON.c
+index 913dfb84c8e7..83ad03efa145 100644
+--- a/output/ulogd_output_JSON.c
++++ b/output/ulogd_output_JSON.c
+@@ -33,6 +33,10 @@
+ #include <ulogd/conffile.h>
+ #include <jansson.h>
+ 
++#ifndef UNIX_PATH_MAX
++#define UNIX_PATH_MAX 108
++#endif
++
+ #ifndef ULOGD_JSON_DEFAULT
+ #define ULOGD_JSON_DEFAULT	"/var/log/ulogd.json"
+ #endif
+@@ -146,23 +150,21 @@ static void close_socket(struct json_priv *op) {
+ 
+ static int _connect_socket_unix(struct ulogd_pluginstance *pi)
+ {
++	const char *socket_path = file_ce(pi->config_kset).u.string;
+ 	struct json_priv *op = (struct json_priv *) &pi->private;
+-	struct sockaddr_un u_addr;
++	struct sockaddr_un u_addr = { .sun_family = AF_UNIX };
+ 	int sfd;
+ 
+ 	close_socket(op);
+ 
+-	ulogd_log(ULOGD_DEBUG, "connecting to unix:%s\n",
+-		  file_ce(pi->config_kset).u.string);
++	ulogd_log(ULOGD_DEBUG, "connecting to unix:%s\n", socket_path);
++	strcpy(u_addr.sun_path, socket_path);
+ 
+ 	sfd = socket(AF_UNIX, SOCK_STREAM, 0);
+-	if (sfd == -1) {
++	if (sfd == -1)
+ 		return -1;
+-	}
+-	u_addr.sun_family = AF_UNIX;
+-	strncpy(u_addr.sun_path, file_ce(pi->config_kset).u.string,
+-		sizeof(u_addr.sun_path) - 1);
+-	if (connect(sfd, (struct sockaddr *) &u_addr, sizeof(struct sockaddr_un)) == -1) {
++
++	if (connect(sfd, (struct sockaddr *) &u_addr, sizeof(u_addr)) == -1) {
+ 		close(sfd);
+ 		return -1;
+ 	}
+@@ -430,9 +432,33 @@ static void reopen_file(struct ulogd_pluginstance *upi)
+ 	}
+ }
+ 
++static int validate_unix_socket(struct ulogd_pluginstance *upi)
++{
++	const char *socket_path = file_ce(upi->config_kset).u.string;
++
++	if (!socket_path[0]) {
++		ulogd_log(ULOGD_ERROR, "missing unix socket path");
++		return -1;
++	}
++	if (strlen(socket_path) >= UNIX_PATH_MAX) {
++		ulogd_log(ULOGD_ERROR, "unix socket path `%s' is longer than %u\n",
++			  file_ce(upi->config_kset).u.string, UNIX_PATH_MAX);
++		return -1;
++	}
++
++	return 0;
++}
++
+ static void reopen_socket(struct ulogd_pluginstance *upi)
+ {
++	struct json_priv *op = (struct json_priv *) &upi->private;
++
+ 	ulogd_log(ULOGD_NOTICE, "JSON: reopening socket\n");
++
++	if (op->mode == JSON_MODE_UNIX &&
++	    validate_unix_socket(upi) < 0)
++		return;
++
+ 	if (_connect_socket(upi) < 0) {
+ 		ulogd_log(ULOGD_ERROR, "can't open JSON "
+ 				       "socket: %s\n",
+@@ -510,6 +536,10 @@ static int json_init_socket(struct ulogd_pluginstance *upi)
+ 	if (port_ce(upi->config_kset).u.string == NULL)
+ 		return -1;
+ 
++	if (op->mode == JSON_MODE_UNIX &&
++	    validate_unix_socket(upi) < 0)
++		return -1;
++
+ 	op->sock = -1;
+ 	return _connect_socket(upi);
+ }
+-- 
+2.30.2
 
-- Patch #21, #22 and #25, maybe consolidate this database field from
-  _ to . in a common function.
-
-- Patch #27, tm_gmtoff mod 86400 is really required? tm_gmtoff can be
-  either -12/+12 * 60 * 60, simple assignment to integer should calm
-  down the compiler?
-
-- Patch #80, I guess you picked 80 just to provide a sufficiently
-  large buffer to calm down compiler.
-
-- Patch #31: I have replaced this patch with a check from .start and
-  .signal paths to validate the unix socket path. The signal path of
-  ulogd2 is problematic since configuration file errors should
-  likely stop the daemon. I'll post it after this email.
-
-- Patch #32: this IPFIX plugin was tested with wireshark according to
-  4f639231c83b ("IPFIX: Add IPFIX output plugin"), I wonder if this
-  attribute((packed)) is breaking anything, or maybe this was all
-  tested on 32-bit?
-
-Anyway, after this update it's probably better to look at using
-pkg-config in the build system.
-
-Thanks for fixing up these compiler warnings.
