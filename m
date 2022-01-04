@@ -2,58 +2,56 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0229DC433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Jan 2022 09:18:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 601A0C433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Jan 2022 11:02:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230026AbiADJSx (ORCPT
+        id S231235AbiADLCQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 4 Jan 2022 04:18:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39146 "EHLO
+        Tue, 4 Jan 2022 06:02:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34430 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230004AbiADJSw (ORCPT
+        with ESMTP id S231894AbiADLCQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 4 Jan 2022 04:18:52 -0500
-Received: from mail-yb1-xb2c.google.com (mail-yb1-xb2c.google.com [IPv6:2607:f8b0:4864:20::b2c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EBFE8C061761;
-        Tue,  4 Jan 2022 01:18:51 -0800 (PST)
-Received: by mail-yb1-xb2c.google.com with SMTP id o185so79156848ybo.12;
-        Tue, 04 Jan 2022 01:18:51 -0800 (PST)
+        Tue, 4 Jan 2022 06:02:16 -0500
+Received: from mail-yb1-xb2d.google.com (mail-yb1-xb2d.google.com [IPv6:2607:f8b0:4864:20::b2d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6082C061761;
+        Tue,  4 Jan 2022 03:02:15 -0800 (PST)
+Received: by mail-yb1-xb2d.google.com with SMTP id d1so86429435ybh.6;
+        Tue, 04 Jan 2022 03:02:15 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=mime-version:from:date:message-id:subject:to:cc;
-        bh=r9handxJtW6sURqRQUmbX3ifZhJWRYF6CaAkJIn/Ejc=;
-        b=JapFmm1XzYt3SdwUfwpMEalLQ+EiKmXNz3Z7zkR20eLHORobB8Fjww+fZI/iAwevAN
-         b/GBhx3Q16YGVAm0NsXkbZKbemncv5kJFAs0fmC4of1RgZ/44dzP/UmrbCFVVeYMuaWo
-         AD2q+DkS/w5hQ0nde9kTSMyaehzbwZqB8mWrFh7sNlnGMX/gopVxISfw8yplWeDbyCzj
-         G0lQr8gjRvbP2Ll4kMfIu1xkczRGP1qEbAwgZNWfYcg3N50n83Xxv54jxSScfzHnmAYQ
-         fld7tt7xWL1qZ75IrN7Nu6bTQ4LZBW8vu6RfIt92lkQpsAK6yQd3ooSpWdyyUciH8uHt
-         vgXg==
+        bh=mGlAodKEg9z1dZtJU5aJlKFvzAKcl398Jzhld4Dtd5E=;
+        b=GNFWdPWGPNUYky15a67mmVA9WmI5fM7o98lQpaRQDc9NbSfJNnsK3tCbTyNbETfNEW
+         EiYwLWU0nsff/aRuMx9tqKPG+320JpTkstf2z2aAJsK/W+Ow3QHcrgK49BlBeASgA0Or
+         lvDA9fU9fdbvpd+ukMi+QuHEkAPVgMVsreI1G/JymOw2KBpw3paY5q+IlopODc6ZF6BR
+         do41GEHFNE3AvJx5AevojzQzmEaunX2en4+Sr2cBQySo8NY0X+ZBIYihwOkBCr/OwqVp
+         teaLTuuzjbypGS5j8kvaIGNr1i/VRPK0b1E6oLFEY6NxUBM3xIHDCpmPd1n1Yvl9hL7r
+         WoUg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
-        bh=r9handxJtW6sURqRQUmbX3ifZhJWRYF6CaAkJIn/Ejc=;
-        b=mvuz9j/BoqpQHgDmix88jkdi4vt4qehnw8+hOwATTWJpSXqpiykAhcHRW+5TB4eAtS
-         /JfvWceXeh3aGFScbBcKOaiRouxTq7Fl6JvcMTlH/+fc374wPPRm9KLWYVD1FqwqoJ3P
-         bBG7xzqOQmrxZPY1IK8l/0PW0LnjLAoPW9nMvlcRaeLhC0nnihUc7R5x+2cnWdWGUiLi
-         Rot5lhQiqZShgWsjMKd0RThXQuZM9aWGLenqcR9sKyboX0Z89n8twpUyOfvd2mCQB5j7
-         +lHep56Ur0IzOEksLM+BWpEtHy73sw2iTtHUYQvWw2UBjIEBEAmT7cl+6HzjU7Xb2ofy
-         nB3g==
-X-Gm-Message-State: AOAM532alkgm9r2NYfFteuwNeN2U1Qm8TvESpjrStRDOoMXknx0ta4+y
-        ZJo/hajY4zSItlHT1DJaJHHLWNUUnEhRRadeCYU=
-X-Google-Smtp-Source: ABdhPJwMAoR5Glh2zoaBXWmguMjwQNhuxuitQZOclfRGIn3fClBrlDBxvRaPIb8Pdrswlc+OcZ46YyTI6aFbhJU4kos=
-X-Received: by 2002:a25:305:: with SMTP id 5mr55225203ybd.439.1641287930167;
- Tue, 04 Jan 2022 01:18:50 -0800 (PST)
+        bh=mGlAodKEg9z1dZtJU5aJlKFvzAKcl398Jzhld4Dtd5E=;
+        b=8NH8O37duV28NiNCTFX7SmYIllWFnFOQxcNrtx6VkdECfD2Akvt06T+jUeaQyNkjW/
+         W8Z7uqpd1zzmuIwqyZraV6F8pLaOJ4Gwyp+ELZ8t+oSiTwV5+KhrRj7/IsLlQMa4HWZZ
+         q7WdH9koCnoOIVdPcWSSPxz4DfD+lm7SxjczqQeKLJUGkk6Gc8ua6UA8R3eoyuIz/5qe
+         icIaGFH/saApRRo+v+zNKbWj1DO2KxOLV5YCxPr2FOHVyb8GUksq6f1Vuh+DgwMrpX0A
+         Vb1JP/sEFROmFkLRX/kfODLG6qeuwExB2EqEY0QxPKtVpv/jpzE5QAdRP+kTHSqJZjc/
+         5hrA==
+X-Gm-Message-State: AOAM531Hjj4VZTjOmYTQvLyAQcGXqmClfgHAp3XDK558lX3RCWSopg1D
+        6mDwNMyb4Oyrs2ujv+Dxw2AawrH/xa9bt6W0s2U=
+X-Google-Smtp-Source: ABdhPJywWjC6AePs/Xpa/YX+KZrj/fRL506wP9t7ck+4j4GfzWpuPCux3kmdAUTyzMW2ZHAFIVi+vG7Nhy3icpX+5v0=
+X-Received: by 2002:a25:3417:: with SMTP id b23mr53027951yba.91.1641294134140;
+ Tue, 04 Jan 2022 03:02:14 -0800 (PST)
 MIME-Version: 1.0
 From:   kvartet <xyru1999@gmail.com>
-Date:   Tue, 4 Jan 2022 17:18:39 +0800
-Message-ID: <CAFkrUshxTc5xFdpp_MPfdtisNgf3SRUO0vNTh8bzagZ6kNwC3A@mail.gmail.com>
-Subject: INFO: task hung in do_ip6t_get_ctl
+Date:   Tue, 4 Jan 2022 19:02:03 +0800
+Message-ID: <CAFkrUsjoPAdwRJemK2WK53xsp50PGBzYEVLoTv2itdxTd38JAw@mail.gmail.com>
+Subject: INFO: task hung in xt_find_match
 To:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
         "David S. Miller" <davem@davemloft.net>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        David Ahern <dsahern@kernel.org>,
         Jakub Kicinski <kuba@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
@@ -71,19 +69,19 @@ crash was triggered.
 
 HEAD commit: a7904a538933 Linux 5.16-rc6
 git tree: upstream
-console output: https://paste.ubuntu.com/p/BpKg5JbNvp/plain/
+console output: https://paste.ubuntu.com/p/hFxPCTYb5S/plain/
 kernel config: https://paste.ubuntu.com/p/FDDNHDxtwz/plain/
 
 Sorry, I don't have a reproducer for this crash, hope the symbolized
 report can help.
+
 If you fix this issue, please add the following tag to the commit:
 Reported-by: Yiru Xu <xyru1999@gmail.com>
 
-
-INFO: task syz-executor.0:6784 blocked for more than 143 seconds.
+INFO: task syz-executor.6:13081 blocked for more than 143 seconds.
       Not tainted 5.16.0-rc6 #9
 "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-task:syz-executor.0  state:D stack:23800 pid: 6784 ppid:  6775 flags:0x00000000
+task:syz-executor.6  state:D stack:28544 pid:13081 ppid:  6803 flags:0x00004004
 Call Trace:
  <TASK>
  context_switch kernel/sched/core.c:4972 [inline]
@@ -92,34 +90,39 @@ Call Trace:
  schedule_preempt_disabled+0xf/0x20 kernel/sched/core.c:6385
  __mutex_lock_common kernel/locking/mutex.c:680 [inline]
  __mutex_lock+0xc48/0x1610 kernel/locking/mutex.c:740
- xt_find_table_lock+0x147/0x690 net/netfilter/x_tables.c:1242
- get_entries net/ipv6/netfilter/ip6_tables.c:1037 [inline]
- do_ip6t_get_ctl+0x405/0x9b0 net/ipv6/netfilter/ip6_tables.c:1672
- nf_getsockopt+0x72/0xd0 net/netfilter/nf_sockopt.c:116
- ipv6_getsockopt net/ipv6/ipv6_sockglue.c:1495 [inline]
- ipv6_getsockopt+0x1f4/0x270 net/ipv6/ipv6_sockglue.c:1475
- tcp_getsockopt+0x86/0xd0 net/ipv4/tcp.c:4252
- __sys_getsockopt+0x21f/0x5f0 net/socket.c:2220
- __do_sys_getsockopt net/socket.c:2235 [inline]
- __se_sys_getsockopt net/socket.c:2232 [inline]
- __x64_sys_getsockopt+0xba/0x150 net/socket.c:2232
+ xt_find_match net/netfilter/x_tables.c:205 [inline]
+ xt_find_match+0xa1/0x270 net/netfilter/x_tables.c:197
+ xt_request_find_match net/netfilter/x_tables.c:235 [inline]
+ xt_request_find_match+0x88/0x120 net/netfilter/x_tables.c:228
+ find_check_match net/ipv6/netfilter/ip6_tables.c:500 [inline]
+ find_check_entry.isra.0+0x236/0x930 net/ipv6/netfilter/ip6_tables.c:558
+ translate_table+0xc99/0x16d0 net/ipv6/netfilter/ip6_tables.c:735
+ do_replace net/ipv6/netfilter/ip6_tables.c:1153 [inline]
+ do_ip6t_set_ctl+0x50e/0xb10 net/ipv6/netfilter/ip6_tables.c:1639
+ nf_setsockopt+0x83/0xe0 net/netfilter/nf_sockopt.c:101
+ ipv6_setsockopt+0x15f/0x190 net/ipv6/ipv6_sockglue.c:1017
+ sctp_setsockopt+0x149/0xa8d0 net/sctp/socket.c:4576
+ __sys_setsockopt+0x2db/0x610 net/socket.c:2176
+ __do_sys_setsockopt net/socket.c:2187 [inline]
+ __se_sys_setsockopt net/socket.c:2184 [inline]
+ __x64_sys_setsockopt+0xba/0x150 net/socket.c:2184
  do_syscall_x64 arch/x86/entry/common.c:50 [inline]
  do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
  entry_SYSCALL_64_after_hwframe+0x44/0xae
-RIP: 0033:0x7f49a729535e
-RSP: 002b:00007fffb529abb8 EFLAGS: 00000212 ORIG_RAX: 0000000000000037
-RAX: ffffffffffffffda RBX: 0000000000000029 RCX: 00007f49a729535e
-RDX: 0000000000000041 RSI: 0000000000000029 RDI: 0000000000000003
-RBP: 00007fffb529abe0 R08: 00007fffb529abdc R09: 00007fffb529b140
-R10: 00007fffb529ac40 R11: 0000000000000212 R12: 00007fffb529ac40
-R13: 0000000000000003 R14: 00007fffb529abdc R15: 00007f49a7385a40
+RIP: 0033:0x7f813396889d
+RSP: 002b:00007f81322d9c28 EFLAGS: 00000246 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 00007f8133a87f60 RCX: 00007f813396889d
+RDX: 0000000000000040 RSI: 0000000000000029 RDI: 0000000000000003
+RBP: 00007f81339d500d R08: 00000000000003c8 R09: 0000000000000000
+R10: 0000000020000340 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007ffea5194ecf R14: 00007f8133a87f60 R15: 00007f81322d9dc0
  </TASK>
 
 Showing all locks held in the system:
 2 locks held by systemd/1:
- #0: ffff88801ec99980 (mapping.invalidate_lock){++++}-{3:3}, at:
+ #0: ffff88801a675550 (mapping.invalidate_lock){++++}-{3:3}, at:
 filemap_invalidate_lock_shared include/linux/fs.h:838 [inline]
- #0: ffff88801ec99980 (mapping.invalidate_lock){++++}-{3:3}, at:
+ #0: ffff88801a675550 (mapping.invalidate_lock){++++}-{3:3}, at:
 filemap_fault+0x1537/0x2400 mm/filemap.c:3096
  #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
 mm/page_alloc.c:4585 [inline]
@@ -127,22 +130,21 @@ mm/page_alloc.c:4585 [inline]
 __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
  #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
 __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-1 lock held by khungtaskd/39:
+3 locks held by kworker/u8:1/10:
+1 lock held by khungtaskd/40:
  #0: ffffffff8bb80e20 (rcu_read_lock){....}-{1:2}, at:
 debug_show_all_locks+0x53/0x260 kernel/locking/lockdep.c:6458
-1 lock held by oom_reaper/40:
-2 locks held by kswapd1/124:
-2 locks held by systemd-journal/3057:
- #0: ffff888105e64460 (sb_writers#3){.+.+}-{0:0}, at: do_syscall_x64
-arch/x86/entry/common.c:50 [inline]
- #0: ffff888105e64460 (sb_writers#3){.+.+}-{0:0}, at:
-do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
- #1: ffffffff8c353758 (tomoyo_ss){....}-{0:0}, at:
-tomoyo_path_perm+0x1c1/0x420 security/tomoyo/file.c:847
-2 locks held by systemd-udevd/3067:
- #0: ffff888018b36940 (mapping.invalidate_lock){++++}-{3:3}, at:
+1 lock held by systemd-journal/3055:
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+2 locks held by systemd-udevd/3058:
+ #0: ffff88801a676940 (mapping.invalidate_lock){++++}-{3:3}, at:
 filemap_invalidate_lock_shared include/linux/fs.h:838 [inline]
- #0: ffff888018b36940 (mapping.invalidate_lock){++++}-{3:3}, at:
+ #0: ffff88801a676940 (mapping.invalidate_lock){++++}-{3:3}, at:
 filemap_fault+0x1537/0x2400 mm/filemap.c:3096
  #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
 mm/page_alloc.c:4585 [inline]
@@ -150,10 +152,10 @@ mm/page_alloc.c:4585 [inline]
 __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
  #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
 __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-2 locks held by systemd-timesyn/3122:
- #0: ffff888018b36940 (mapping.invalidate_lock){++++}-{3:3}, at:
+2 locks held by in:imklog/6770:
+ #0: ffff88802a735f48 (mapping.invalidate_lock){++++}-{3:3}, at:
 filemap_invalidate_lock_shared include/linux/fs.h:838 [inline]
- #0: ffff888018b36940 (mapping.invalidate_lock){++++}-{3:3}, at:
+ #0: ffff88802a735f48 (mapping.invalidate_lock){++++}-{3:3}, at:
 filemap_fault+0x1537/0x2400 mm/filemap.c:3096
  #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
 mm/page_alloc.c:4585 [inline]
@@ -161,253 +163,283 @@ mm/page_alloc.c:4585 [inline]
 __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
  #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
 __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-2 locks held by sd-resolve/3128:
- #0: ffff8880258b5550 (mapping.invalidate_lock){++++}-{3:3}, at:
-filemap_invalidate_lock_shared include/linux/fs.h:838 [inline]
- #0: ffff8880258b5550 (mapping.invalidate_lock){++++}-{3:3}, at:
-filemap_fault+0x1537/0x2400 mm/filemap.c:3096
- #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-2 locks held by in:imklog/6755:
- #0: ffff888018b36940 (mapping.invalidate_lock){++++}-{3:3}, at:
-filemap_invalidate_lock_shared include/linux/fs.h:838 [inline]
- #0: ffff888018b36940 (mapping.invalidate_lock){++++}-{3:3}, at:
-filemap_fault+0x1537/0x2400 mm/filemap.c:3096
- #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-2 locks held by rs:main Q:Reg/6756:
- #0: ffff8880258b6940 (mapping.invalidate_lock){++++}-{3:3}, at:
-filemap_invalidate_lock_shared include/linux/fs.h:838 [inline]
- #0: ffff8880258b6940 (mapping.invalidate_lock){++++}-{3:3}, at:
-filemap_fault+0x1537/0x2400 mm/filemap.c:3096
- #1:
-ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
-ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
-ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-1 lock held by cron/6333:
- #0: ffff88801ec98de8 (&type->i_mutex_dir_key#4){++++}-{3:3}, at:
-inode_lock_shared include/linux/fs.h:793 [inline]
- #0: ffff88801ec98de8 (&type->i_mutex_dir_key#4){++++}-{3:3}, at:
-lookup_slow fs/namei.c:1673 [inline]
- #0: ffff88801ec98de8 (&type->i_mutex_dir_key#4){++++}-{3:3}, at:
-walk_component+0x400/0x6a0 fs/namei.c:1970
-2 locks held by syz-fuzzer/6682:
- #0: ffff8880170af828 (&mm->mmap_lock#2){++++}-{3:3}
-, at: mmap_read_trylock include/linux/mmap_lock.h:136 [inline]
-, at: do_user_addr_fault+0x285/0x11c0 arch/x86/mm/fault.c:1338
- #1:
-ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
-ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
-ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-2 locks held by syz-fuzzer/6683:
- #0: ffff888106b7b768 (mapping.invalidate_lock){++++}-{3:3}, at:
-filemap_invalidate_lock_shared include/linux/fs.h:838 [inline]
- #0: ffff888106b7b768 (mapping.invalidate_lock){++++}-{3:3}, at:
-filemap_fault+0x1537/0x2400 mm/filemap.c:3096
- #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-2 locks held by syz-fuzzer/6684:
- #0: ffff888106b7b768 (mapping.invalidate_lock){++++}-{3:3}, at:
-filemap_invalidate_lock_shared include/linux/fs.h:838 [inline]
- #0: ffff888106b7b768 (mapping.invalidate_lock){++++}-{3:3}, at:
-filemap_fault+0x1537/0x2400 mm/filemap.c:3096
- #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-2 locks held by syz-fuzzer/6696:
- #0: ffff888106b7b768 (mapping.invalidate_lock){++++}-{3:3}, at:
-filemap_invalidate_lock_shared include/linux/fs.h:838 [inline]
- #0: ffff888106b7b768 (mapping.invalidate_lock){++++}-{3:3}, at:
-filemap_fault+0x1537/0x2400 mm/filemap.c:3096
- #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-2 locks held by syz-fuzzer/6774:
- #0:
-ffff888106b7b768
- (mapping.invalidate_lock){++++}-{3:3}, at:
-filemap_invalidate_lock_shared include/linux/fs.h:838 [inline]
- (mapping.invalidate_lock){++++}-{3:3}, at:
-filemap_fault+0x1537/0x2400 mm/filemap.c:3096
- #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-1 lock held by syz-executor.0/6784:
- #0: ffff8880201d0d88 (&xt[i].mutex){+.+.}-{3:3}, at:
-xt_find_table_lock+0x147/0x690 net/netfilter/x_tables.c:1242
-5 locks held by syz-executor.2/6785:
- #0: ffff88810ae62460 (sb_writers#5){.+.+}-{0:0}, at:
-do_unlinkat+0x17f/0x660 fs/namei.c:4146
- #1: ffff888055ef03f0 (&type->i_mutex_dir_key#4/1){+.+.}-{3:3}, at:
-inode_lock_nested include/linux/fs.h:818 [inline]
- #1: ffff888055ef03f0 (&type->i_mutex_dir_key#4/1){+.+.}-{3:3}, at:
-do_unlinkat+0x269/0x660 fs/namei.c:4150
- #2: ffff888055dde7a0 (&sb->s_type->i_mutex_key#10){++++}-{3:3}, at:
+4 locks held by rs:main Q:Reg/6771:
+ #0: ffff888018678af0 (&f->f_pos_lock){+.+.}-{3:3}, at:
+__fdget_pos+0xe9/0x100 fs/file.c:1034
+ #1: ffff888102a10460 (sb_writers#5){.+.+}-{0:0}, at:
+ksys_write+0x12d/0x250 fs/read_write.c:643
+ #2: ffff88802a49e7a0 (&sb->s_type->i_mutex_key#10){++++}-{3:3}, at:
 inode_lock include/linux/fs.h:783 [inline]
- #2: ffff888055dde7a0 (&sb->s_type->i_mutex_key#10){++++}-{3:3}, at:
-vfs_unlink+0xd0/0x770 fs/namei.c:4089
- #3: ffff88810ae66990 (jbd2_handle){++++}-{0:0}, at:
-start_this_handle+0xf58/0x1360 fs/jbd2/transaction.c:466
- #4: ffff888106ba0648 (&mapping->i_mmap_rwsem){++++}-{3:3}, at:
-i_mmap_lock_read include/linux/fs.h:513 [inline]
- #4: ffff888106ba0648 (&mapping->i_mmap_rwsem){++++}-{3:3}, at:
-rmap_walk_file+0x86d/0xc20 mm/rmap.c:2345
-2 locks held by syz-executor.4/6786:
- #0: ffff888106ba0590 (mapping.invalidate_lock){++++}-{3:3}, at:
+ #2: ffff88802a49e7a0 (&sb->s_type->i_mutex_key#10){++++}-{3:3}, at:
+ext4_buffered_write_iter+0xb8/0x360 fs/ext4/file.c:263
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+2 locks held by syz-fuzzer/6713:
+ #0: ffff8880286d8f88 (mapping.invalidate_lock){++++}-{3:3}, at:
 filemap_invalidate_lock_shared include/linux/fs.h:838 [inline]
- #0: ffff888106ba0590 (mapping.invalidate_lock){++++}-{3:3}, at:
+ #0: ffff8880286d8f88 (mapping.invalidate_lock){++++}-{3:3}, at:
 filemap_fault+0x1537/0x2400 mm/filemap.c:3096
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+2 locks held by syz-fuzzer/6714:
+ #0: ffff8880286d8f88 (mapping.invalidate_lock){++++}-{3:3}, at:
+filemap_invalidate_lock_shared include/linux/fs.h:838 [inline]
+ #0: ffff8880286d8f88 (mapping.invalidate_lock){++++}-{3:3}, at:
+filemap_fault+0x1537/0x2400 mm/filemap.c:3096
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+2 locks held by syz-fuzzer/6715:
+ #0: ffff8880286d8f88 (mapping.invalidate_lock){++++}-{3:3}, at:
+filemap_invalidate_lock_shared include/linux/fs.h:838 [inline]
+ #0: ffff8880286d8f88 (mapping.invalidate_lock){++++}-{3:3}, at:
+filemap_fault+0x1537/0x2400 mm/filemap.c:3096
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+2 locks held by syz-fuzzer/6727:
+ #0: ffff8880178ac028 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_read_trylock include/linux/mmap_lock.h:136 [inline]
+ #0: ffff8880178ac028 (&mm->mmap_lock#2){++++}-{3:3}, at:
+do_user_addr_fault+0x285/0x11c0 arch/x86/mm/fault.c:1338
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+2 locks held by syz-fuzzer/6786:
+ #0: ffff8880286d8f88 (mapping.invalidate_lock){++++}-{3:3}, at:
+filemap_invalidate_lock_shared include/linux/fs.h:838 [inline]
+ #0: ffff8880286d8f88 (mapping.invalidate_lock){++++}-{3:3}, at:
+filemap_fault+0x1537/0x2400 mm/filemap.c:3096
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+2 locks held by syz-executor.4/6796:
+ #0: ffff8880286d9980
+ (
+mapping.invalidate_lock){++++}-{3:3}
+, at: filemap_invalidate_lock_shared include/linux/fs.h:838 [inline]
+, at: filemap_fault+0x1537/0x2400 mm/filemap.c:3096
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+1 lock held by syz-executor.2/6799:
+ #0: ffff8880286d9980 (mapping.invalidate_lock){++++}-{3:3}, at:
+filemap_invalidate_lock_shared include/linux/fs.h:838 [inline]
+ #0: ffff8880286d9980 (mapping.invalidate_lock){++++}-{3:3}, at:
+page_cache_ra_unbounded+0x1bc/0x950 mm/readahead.c:194
+1 lock held by syz-executor.7/6800:
+ #0: ffff888015d04d88 (&xt[i].mutex){+.+.}-{3:3}, at:
+xt_find_table_lock+0x147/0x690 net/netfilter/x_tables.c:1242
+1 lock held by syz-executor.5/6802:
+ #0: ffff888015d04d88 (&xt[i].mutex){+.+.}-{3:3}, at:
+xt_find_table_lock+0x147/0x690 net/netfilter/x_tables.c:1242
+2 locks held by kworker/u8:6/11683:
+2 locks held by syz-executor.3/16727:
+ #0: ffff888015d04d88 (&xt[i].mutex){+.+.}-{3:3}, at:
+xt_find_table_lock+0x147/0x690 net/netfilter/x_tables.c:1242
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+1 lock held by syz-executor.0/10214:
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+3 locks held by kworker/0:0/12374:
+3 locks held by kworker/3:14/17038:
+2 locks held by syz-executor.1/8381:
+ #0: ffff8880286d9980 (mapping.invalidate_lock){++++}-{3:3}, at:
+filemap_invalidate_lock_shared include/linux/fs.h:838 [inline]
+ #0: ffff8880286d9980 (mapping.invalidate_lock){++++}-{3:3}, at:
+filemap_fault+0x1537/0x2400 mm/filemap.c:3096
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+2 locks held by kworker/2:20/8392:
+ #0: ffff888010c66138
+((wq_completion)events_freezable_power_){+.+.}-{0:0}, at:
+arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff888010c66138
+((wq_completion)events_freezable_power_){+.+.}-{0:0}, at:
+arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff888010c66138
+((wq_completion)events_freezable_power_){+.+.}-{0:0}, at:
+atomic_long_set include/linux/atomic/atomic-instrumented.h:1198
+[inline]
+ #0: ffff888010c66138
+((wq_completion)events_freezable_power_){+.+.}-{0:0}, at:
+set_work_data kernel/workqueue.c:635 [inline]
+ #0: ffff888010c66138
+((wq_completion)events_freezable_power_){+.+.}-{0:0}, at:
+set_work_pool_and_clear_pending kernel/workqueue.c:662 [inline]
+ #0: ffff888010c66138
+((wq_completion)events_freezable_power_){+.+.}-{0:0}, at:
+process_one_work+0x8c3/0x16d0 kernel/workqueue.c:2269
+ #1: ffffc90019bbfdc8
+((work_completion)(&(&ev->dwork)->work)){+.+.}-{0:0}, at:
+process_one_work+0x8f7/0x16d0 kernel/workqueue.c:2273
+4 locks held by syz-executor.4/11310:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888024074728 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888024074728 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888024074728 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880ba900828 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880ba900828 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880ba900828 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11313:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888024071d28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888024071d28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888024071d28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff888086b31628 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff888086b31628 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff888086b31628 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11315:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888054c37828 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888054c37828 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888054c37828 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880b254d528 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880b254d528 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880b254d528 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11316:
+ #0: ffffffff8bc53fd0
+ (dup_mmap_sem
+){.+.+}-{0:0}, at: dup_mmap kernel/fork.c:497 [inline]
+){.+.+}-{0:0}, at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
  #1:
-ffffffff8bca5140 (
-fs_reclaim){+.+.}-{0:0}
+ffff888024074028
+ (&mm->mmap_lock
+#2){++++}-{3:3}
+, at: mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+, at: dup_mmap kernel/fork.c:498 [inline]
+, at: dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880b18b3228 (
+&mm->mmap_lock
+/1
+){+.+.}-{3:3}
+, at: mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+, at: dup_mmap kernel/fork.c:507 [inline]
+, at: dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140
+ (fs_reclaim
+){+.+.}-{0:0}
 , at: __perform_reclaim mm/page_alloc.c:4585 [inline]
 , at: __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
 , at: __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-1 lock held by syz-executor.6/6787:
- #0: ffff8880201d0d88 (&xt[i].mutex){+.+.}-{3:3}, at:
-xt_find_table_lock+0x147/0x690 net/netfilter/x_tables.c:1242
-2 locks held by syz-executor.5/6788:
- #0: ffff8880201d0d88 (&xt[i].mutex){+.+.}-{3:3}, at:
-xt_find_table_lock+0x147/0x690 net/netfilter/x_tables.c:1242
- #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-2 locks held by kworker/u8:3/8500:
-4 locks held by kworker/u8:5/10342:
- #0: ffff8881000ad938 ((wq_completion)netns){+.+.}-{0:0}, at:
-arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
- #0: ffff8881000ad938 ((wq_completion)netns){+.+.}-{0:0}, at:
-arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
- #0: ffff8881000ad938 ((wq_completion)netns){+.+.}-{0:0}, at:
-atomic_long_set include/linux/atomic/atomic-instrumented.h:1198
-[inline]
- #0: ffff8881000ad938 ((wq_completion)netns){+.+.}-{0:0}, at:
-set_work_data kernel/workqueue.c:635 [inline]
- #0: ffff8881000ad938 ((wq_completion)netns){+.+.}-{0:0}, at:
-set_work_pool_and_clear_pending kernel/workqueue.c:662 [inline]
- #0: ffff8881000ad938 ((wq_completion)netns){+.+.}-{0:0}, at:
-process_one_work+0x8c3/0x16d0 kernel/workqueue.c:2269
- #1: ffffc9001a027dc8 (net_cleanup_work){+.+.}-{0:0}, at:
-process_one_work+0x8f7/0x16d0 kernel/workqueue.c:2273
- #2:
-ffffffff8d2eeb90 (pernet_ops_rwsem){++++}-{3:3}, at:
-cleanup_net+0x9b/0xa90 net/core/net_namespace.c:555
- #3: ffff8880201d0d88 (&xt[i].mutex){+.+.}-{3:3}, at:
-xt_find_table+0x12e/0x360 net/netfilter/x_tables.c:1221
-2 locks held by kworker/2:88/25111:
- #0: ffff888010c66138
-((wq_completion)events_freezable_power_){+.+.}-{0:0}, at:
-arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
- #0: ffff888010c66138
-((wq_completion)events_freezable_power_){+.+.}-{0:0}, at:
-arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
- #0: ffff888010c66138
-((wq_completion)events_freezable_power_){+.+.}-{0:0}, at:
-atomic_long_set include/linux/atomic/atomic-instrumented.h:1198
-[inline]
- #0: ffff888010c66138
-((wq_completion)events_freezable_power_){+.+.}-{0:0}, at:
-set_work_data kernel/workqueue.c:635 [inline]
- #0: ffff888010c66138
-((wq_completion)events_freezable_power_){+.+.}-{0:0}, at:
-set_work_pool_and_clear_pending kernel/workqueue.c:662 [inline]
- #0: ffff888010c66138
-((wq_completion)events_freezable_power_){+.+.}-{0:0}, at:
-process_one_work+0x8c3/0x16d0 kernel/workqueue.c:2269
- #1: ffffc90018df7dc8
-((work_completion)(&(&ev->dwork)->work)){+.+.}-{0:0}, at:
-process_one_work+0x8f7/0x16d0 kernel/workqueue.c:2273
-1 lock held by syz-executor.1/8118:
- #0: ffff8880201d0d88 (&xt[i].mutex){+.+.}-{3:3}, at:
-xt_find_table_lock+0x147/0x690 net/netfilter/x_tables.c:1242
-4 locks held by syz-executor.0/17374:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff8880522c2b28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff8880522c2b28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff8880522c2b28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff888099e08828 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff888099e08828 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff888099e08828 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17378:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff8880522c0828 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff8880522c0828 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff8880522c0828 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff888099c18128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff888099c18128 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff888099c18128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17380:
+4 locks held by syz-executor.4/11318:
  #0:
 ffffffff8bc53fd0
- (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap kernel/fork.c:497 [inline]
- (dup_mmap_sem){.+.+}-{0:0}, at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff8880522c0128 (&mm->mmap_lock#2){++++}-{3:3}, at:
+ (dup_mmap_sem
+){.+.+}-{0:0}
+, at: dup_mmap kernel/fork.c:497 [inline]
+, at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888024075528 (&mm->mmap_lock#2){++++}-{3:3}, at:
 mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff8880522c0128 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+ #1: ffff888024075528 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
 kernel/fork.c:498 [inline]
- #1: ffff8880522c0128 (&mm->mmap_lock#2){++++}-{3:3}, at:
+ #1: ffff888024075528 (&mm->mmap_lock#2){++++}-{3:3}, at:
 dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880a5401628
+ #2: ffff8880aabd7128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880aabd7128 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880aabd7128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11319:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888054c30128 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888054c30128 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888054c30128 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880a7d0f128
  (&mm->mmap_lock/1){+.+.}-{3:3}, at: mmap_write_lock_nested
 include/linux/mmap_lock.h:78 [inline]
  (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap kernel/fork.c:507 [inline]
@@ -418,22 +450,22 @@ mm/page_alloc.c:4585 [inline]
 __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
  #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
 __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17383:
+4 locks held by syz-executor.4/11321:
  #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
 kernel/fork.c:497 [inline]
  #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
 dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff8880522c6a28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+ #1: ffff888024074e28 (&mm->mmap_lock#2){++++}-{3:3}, at:
 mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff8880522c6a28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+ #1: ffff888024074e28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
 kernel/fork.c:498 [inline]
- #1: ffff8880522c6a28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+ #1: ffff888024074e28 (&mm->mmap_lock#2){++++}-{3:3}, at:
 dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880595a6a28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+ #2: ffff8880921c7128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
 mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880595a6a28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+ #2: ffff8880921c7128 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
 kernel/fork.c:507 [inline]
- #2: ffff8880595a6a28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+ #2: ffff8880921c7128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
 dup_mm+0x18a/0x13d0 kernel/fork.c:1450
  #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
 mm/page_alloc.c:4585 [inline]
@@ -441,44 +473,22 @@ mm/page_alloc.c:4585 [inline]
 __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
  #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
 __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17388:
- #0: ffffffff8bc53fd0 (dup_mmap_sem
-){.+.+}-{0:0}, at: dup_mmap kernel/fork.c:497 [inline]
-){.+.+}-{0:0}, at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff88804fe39d28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff88804fe39d28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff88804fe39d28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880b4a20f28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880b4a20f28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880b4a20f28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17389:
+4 locks held by syz-executor.4/11324:
  #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
 kernel/fork.c:497 [inline]
  #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
 dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff88804fe3c728 (&mm->mmap_lock#2){++++}-{3:3}, at:
+ #1: ffff888054c37128 (&mm->mmap_lock#2){++++}-{3:3}, at:
 mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff88804fe3c728 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+ #1: ffff888054c37128 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
 kernel/fork.c:498 [inline]
- #1: ffff88804fe3c728 (&mm->mmap_lock#2){++++}-{3:3}, at:
+ #1: ffff888054c37128 (&mm->mmap_lock#2){++++}-{3:3}, at:
 dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff888094e44028 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+ #2: ffff8880a1b35c28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
 mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff888094e44028 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+ #2: ffff8880a1b35c28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
 kernel/fork.c:507 [inline]
- #2: ffff888094e44028 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+ #2: ffff8880a1b35c28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
 dup_mm+0x18a/0x13d0 kernel/fork.c:1450
  #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
 mm/page_alloc.c:4585 [inline]
@@ -486,490 +496,45 @@ mm/page_alloc.c:4585 [inline]
 __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
  #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
 __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17390:
- #0: ffffffff8bc53fd0
- (
-dup_mmap_sem){.+.+}-{0:0}
-, at: dup_mmap kernel/fork.c:497 [inline]
-, at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff8880522c5528 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff8880522c5528 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff8880522c5528 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880b763e328 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880b763e328 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880b763e328 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17393:
- #0: ffffffff8bc53fd0
- (dup_mmap_sem
-){.+.+}-{0:0}
-, at: dup_mmap kernel/fork.c:497 [inline]
-, at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1:
-ffff8880522c0f28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
-ffff8880522c0f28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
-ffff8880522c0f28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff888094227128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff888094227128 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff888094227128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17394:
+4 locks held by syz-executor.4/11327:
  #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
 kernel/fork.c:497 [inline]
  #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
 dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff8880522c1d28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+ #1: ffff888054c36328 (&mm->mmap_lock#2){++++}-{3:3}, at:
 mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff8880522c1d28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+ #1: ffff888054c36328 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
 kernel/fork.c:498 [inline]
- #1: ffff8880522c1d28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+ #1: ffff888054c36328 (&mm->mmap_lock#2){++++}-{3:3}, at:
 dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff88809988b928 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+ #2: ffff8880a969e328 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
 mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff88809988b928 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+ #2: ffff8880a969e328 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
 kernel/fork.c:507 [inline]
- #2: ffff88809988b928 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17396:
- #0:
-ffffffff8bc53fd0 (
-dup_mmap_sem){.+.+}-{0:0}
-, at: dup_mmap kernel/fork.c:497 [inline]
-, at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff88804fe3ce28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff88804fe3ce28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff88804fe3ce28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff88812d49f828 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff88812d49f828 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff88812d49f828 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17397:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff8880522c7128 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff8880522c7128 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff8880522c7128 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880ac735528 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880ac735528 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880ac735528 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17399:
- #0:
-ffffffff8bc53fd0 (
-dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap kernel/fork.c:497 [inline]
-dup_mmap_sem){.+.+}-{0:0}, at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff8880629d2b28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff8880629d2b28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff8880629d2b28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880a46edc28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880a46edc28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880a46edc28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17400:
- #0:
-ffffffff8bc53fd0
- (
-dup_mmap_sem
-){.+.+}-{0:0}
-, at: dup_mmap kernel/fork.c:497 [inline]
-, at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1:
-ffff88804fe3f128
- (&mm->mmap_lock#2){++++}-{3:3}, at: mmap_write_lock_killable
-include/linux/mmap_lock.h:87 [inline]
- (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap kernel/fork.c:498 [inline]
- (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880b1980128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880b1980128 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880b1980128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17401:
- #0: ffffffff8bc53fd0 (
-dup_mmap_sem){.+.+}-{0:0}
-, at: dup_mmap kernel/fork.c:497 [inline]
-, at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff8880275bdc28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff8880275bdc28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff8880275bdc28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880a3737828 (&mm->mmap_lock
-/1){+.+.}-{3:3}
-, at: mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
-, at: dup_mmap kernel/fork.c:507 [inline]
-, at: dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17402:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff88804fe3a428 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff88804fe3a428 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff88804fe3a428 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880a82c0128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880a82c0128 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880a82c0128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim
-){+.+.}-{0:0}
-, at: __perform_reclaim mm/page_alloc.c:4585 [inline]
-, at: __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
-, at: __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17403:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff8880275ba428 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff8880275ba428 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff8880275ba428 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880b2412428 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880b2412428 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880b2412428 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17405:
- #0: ffffffff8bc53fd0 (dup_mmap_sem
-){.+.+}-{0:0}
-, at: dup_mmap kernel/fork.c:497 [inline]
-, at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff8880522c6328 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff8880522c6328 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff8880522c6328 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880b4684028 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880b4684028 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880b4684028 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17406:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff8880275bf828 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff8880275bf828 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff8880275bf828 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8881253a1d28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8881253a1d28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8881253a1d28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+ #2: ffff8880a969e328 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
 dup_mm+0x18a/0x13d0 kernel/fork.c:1450
  #3: ffffffff8bca5140
- (
-fs_reclaim){+.+.}-{0:0}
-, at: __perform_reclaim mm/page_alloc.c:4585 [inline]
-, at: __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
-, at: __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17407:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff8880275b9d28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff8880275b9d28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff8880275b9d28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff88809255ea28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff88809255ea28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff88809255ea28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17408:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}
-, at: dup_mmap kernel/fork.c:497 [inline]
-, at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff88801cbbea28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff88801cbbea28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff88801cbbea28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880a33c4728 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880a33c4728 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880a33c4728 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17409:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff88801cbb8f28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff88801cbb8f28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff88801cbb8f28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880a44cf128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880a44cf128 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880a44cf128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17410:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1:
-ffff88801cbb8828 (
-&mm->mmap_lock
-#2){++++}-{3:3}, at: mmap_write_lock_killable
-include/linux/mmap_lock.h:87 [inline]
-#2){++++}-{3:3}, at: dup_mmap kernel/fork.c:498 [inline]
-#2){++++}-{3:3}, at: dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff888087768828 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff888087768828 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff888087768828 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17411:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1:
-ffff88801fb43928 (&mm->mmap_lock
-#2
-){++++}-{3:3}, at: mmap_write_lock_killable
-include/linux/mmap_lock.h:87 [inline]
-){++++}-{3:3}, at: dup_mmap kernel/fork.c:498 [inline]
-){++++}-{3:3}, at: dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff888022a24e28
- (&mm->mmap_lock/1
-){+.+.}-{3:3}
-, at: mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
-, at: dup_mmap kernel/fork.c:507 [inline]
-, at: dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140
- (
-fs_reclaim
-){+.+.}-{0:0}
-, at: __perform_reclaim mm/page_alloc.c:4585 [inline]
-, at: __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
-, at: __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17412:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff8880170ad528 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff8880170ad528 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff8880170ad528 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880411dea28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880411dea28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880411dea28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17413:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff8880629d7128 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff8880629d7128 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff8880629d7128 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880a842f828 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880a842f828 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880a842f828 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17414:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff888062a60828 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff888062a60828 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff888062a60828 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880a232f828 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880a232f828 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880a232f828 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3:
-ffffffff8bca5140
  (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim mm/page_alloc.c:4585 [inline]
  (fs_reclaim){+.+.}-{0:0}, at: __alloc_pages_direct_reclaim
 mm/page_alloc.c:4609 [inline]
  (fs_reclaim){+.+.}-{0:0}, at:
 __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17415:
+4 locks held by syz-executor.4/11330:
  #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
 kernel/fork.c:497 [inline]
  #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
 dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff8880629d7828 (&mm->mmap_lock#2){++++}-{3:3}, at:
+ #1: ffff888083379d28 (&mm->mmap_lock#2){++++}-{3:3}, at:
 mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff8880629d7828 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+ #1: ffff888083379d28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
 kernel/fork.c:498 [inline]
- #1: ffff8880629d7828 (&mm->mmap_lock#2){++++}-{3:3}, at:
+ #1: ffff888083379d28 (&mm->mmap_lock#2){++++}-{3:3}, at:
 dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880a3ef9d28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+ #2: ffff8880b50d3228 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
 mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880a3ef9d28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+ #2: ffff8880b50d3228 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
 kernel/fork.c:507 [inline]
- #2: ffff8880a3ef9d28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+ #2: ffff8880b50d3228 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
 dup_mm+0x18a/0x13d0 kernel/fork.c:1450
  #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
 mm/page_alloc.c:4585 [inline]
@@ -977,43 +542,48 @@ mm/page_alloc.c:4585 [inline]
 __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
  #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
 __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17416:
- #0: ffffffff8bc53fd0
+4 locks held by syz-executor.4/11332:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1:
+ffff888024073228
+ (&mm->mmap_lock#2
+){++++}-{3:3}
+, at: mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+, at: dup_mmap kernel/fork.c:498 [inline]
+, at: dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2:
+ffff88809569c728
+ (&mm->mmap_lock
+/1
+){+.+.}-{3:3}
+, at: mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+, at: dup_mmap kernel/fork.c:507 [inline]
+, at: dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140
+ (fs_reclaim
+){+.+.}-{0:0}
+, at: __perform_reclaim mm/page_alloc.c:4585 [inline]
+, at: __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+, at: __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11333:
+ #0:
+ffffffff8bc53fd0
  (dup_mmap_sem
 ){.+.+}-{0:0}
 , at: dup_mmap kernel/fork.c:497 [inline]
 , at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff8880275bc728
- (&mm->mmap_lock#2){++++}-{3:3}, at: mmap_write_lock_killable
-include/linux/mmap_lock.h:87 [inline]
- (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap kernel/fork.c:498 [inline]
- (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff88804378e328 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff88804378e328 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff88804378e328 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17417:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff88801baed528 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff88801baed528 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff88801baed528 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff888045988128
- (
+ #1:
+ffff88808337e328 (
 &mm->mmap_lock
+#2){++++}-{3:3}
+, at: mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+, at: dup_mmap kernel/fork.c:498 [inline]
+, at: dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff88809168f128
+ (&mm->mmap_lock
 /1){+.+.}-{3:3}, at: mmap_write_lock_nested
 include/linux/mmap_lock.h:78 [inline]
 /1){+.+.}-{3:3}, at: dup_mmap kernel/fork.c:507 [inline]
@@ -1024,22 +594,22 @@ mm/page_alloc.c:4585 [inline]
 __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
  #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
 __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17418:
+4 locks held by syz-executor.4/11334:
  #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
 kernel/fork.c:497 [inline]
  #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
 dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff88801fb43228 (&mm->mmap_lock#2){++++}-{3:3}, at:
+ #1: ffff888083378828 (&mm->mmap_lock#2){++++}-{3:3}, at:
 mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff88801fb43228 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+ #1: ffff888083378828 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
 kernel/fork.c:498 [inline]
- #1: ffff88801fb43228 (&mm->mmap_lock#2){++++}-{3:3}, at:
+ #1: ffff888083378828 (&mm->mmap_lock#2){++++}-{3:3}, at:
 dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880549e2b28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+ #2: ffff888092abd528 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
 mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880549e2b28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+ #2: ffff888092abd528 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
 kernel/fork.c:507 [inline]
- #2: ffff8880549e2b28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+ #2: ffff888092abd528 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
 dup_mm+0x18a/0x13d0 kernel/fork.c:1450
  #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
 mm/page_alloc.c:4585 [inline]
@@ -1047,180 +617,79 @@ mm/page_alloc.c:4585 [inline]
 __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
  #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
 __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17419:
+4 locks held by syz-executor.4/11335:
  #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
 kernel/fork.c:497 [inline]
  #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
 dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff8880275be328 (&mm->mmap_lock#2){++++}-{3:3}, at:
+ #1: ffff888022fb9d28 (&mm->mmap_lock#2){++++}-{3:3}, at:
 mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff8880275be328 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+ #1: ffff888022fb9d28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
 kernel/fork.c:498 [inline]
- #1: ffff8880275be328 (&mm->mmap_lock#2){++++}-{3:3}, at:
+ #1: ffff888022fb9d28 (&mm->mmap_lock#2){++++}-{3:3}, at:
 dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880468b0128
+ #2: ffff8880921c2428 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880921c2428 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880921c2428 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11336:
+ #0:
+ffffffff8bc53fd0 (
+dup_mmap_sem){.+.+}-{0:0}
+, at: dup_mmap kernel/fork.c:497 [inline]
+, at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff88808337d528
  (&mm->mmap_lock
-/1
-){+.+.}-{3:3}, at: mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
-){+.+.}-{3:3}, at: dup_mmap kernel/fork.c:507 [inline]
-){+.+.}-{3:3}, at: dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17420:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff88801cbb8128 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff88801cbb8128 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff88801cbb8128 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880b4818128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880b4818128 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880b4818128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17421:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff8880275bb228 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff8880275bb228 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff8880275bb228 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880aead6328 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880aead6328 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880aead6328 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17422:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff8880275bc028 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff8880275bc028 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff8880275bc028 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff88805a296a28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff88805a296a28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff88805a296a28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}
-, at: __perform_reclaim mm/page_alloc.c:4585 [inline]
-, at: __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
-, at: __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17423:
- #0: ffffffff8bc53fd0
- (dup_mmap_sem
-){.+.+}-{0:0}, at: dup_mmap kernel/fork.c:497 [inline]
-){.+.+}-{0:0}, at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff8880275b9628 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff8880275b9628 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff8880275b9628 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880a45ece28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880a45ece28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880a45ece28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17424:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff88801fb47828
- (&mm->mmap_lock#2){++++}-{3:3}, at: mmap_write_lock_killable
-include/linux/mmap_lock.h:87 [inline]
- (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap kernel/fork.c:498 [inline]
- (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff888058cbea28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff888058cbea28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff888058cbea28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17426:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff8880170a9628 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff8880170a9628 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff8880170a9628 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880a1ab6328 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880a1ab6328 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880a1ab6328 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17427:
- #0: ffffffff8bc53fd0
- (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap kernel/fork.c:497 [inline]
- (dup_mmap_sem){.+.+}-{0:0}, at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1:
-ffff88801cbbb228 (
-&mm->mmap_lock
 #2
 ){++++}-{3:3}
 , at: mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
 , at: dup_mmap kernel/fork.c:498 [inline]
 , at: dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff888097c86328
- (
-&mm->mmap_lock
-/1
+ #2: ffff88809d807128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff88809d807128 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff88809d807128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+2 locks held by syz-executor.4/11337:
+ #0: ffff888024072b28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_read_trylock include/linux/mmap_lock.h:136 [inline]
+ #0: ffff888024072b28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+do_user_addr_fault+0x285/0x11c0 arch/x86/mm/fault.c:1338
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11339:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888029b2ce28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888029b2ce28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888029b2ce28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2:
+ffff88809e3a8828 (
+&mm->mmap_lock/1
 ){+.+.}-{3:3}
 , at: mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
 , at: dup_mmap kernel/fork.c:507 [inline]
@@ -1232,22 +701,578 @@ ffffffff8bca5140
 , at: __perform_reclaim mm/page_alloc.c:4585 [inline]
 , at: __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
 , at: __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17428:
+4 locks held by syz-executor.4/11340:
  #0:
-ffffffff8bc53fd0
- (
+ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mm+0x108/0x13d0
+kernel/fork.c:1450
+ #1: ffff888022fb8f28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888022fb8f28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888022fb8f28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff88808498ea28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff88808498ea28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff88808498ea28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11341:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888024076a28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888024076a28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888024076a28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff88809eecf128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff88809eecf128 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff88809eecf128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+2 locks held by syz-executor.4/11343:
+ #0: ffff888022fbf128 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_read_trylock include/linux/mmap_lock.h:136 [inline]
+ #0: ffff888022fbf128 (&mm->mmap_lock#2){++++}-{3:3}, at:
+do_user_addr_fault+0x285/0x11c0 arch/x86/mm/fault.c:1338
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+1 lock held by syz-executor.4/11348:
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11349:
+ #0: ffffffff8bc53fd0 (
 dup_mmap_sem){.+.+}-{0:0}
 , at: dup_mmap kernel/fork.c:497 [inline]
 , at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1:
-ffff88801cbba428 (
+ #1: ffff88812f2a4e28
+ (
 &mm->mmap_lock#2){++++}-{3:3}
 , at: mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
 , at: dup_mmap kernel/fork.c:498 [inline]
 , at: dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff888098654028
+ #2: ffff888092abea28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff888092abea28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff888092abea28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11350:
+ #0:
+ffffffff8bc53fd0
+ (dup_mmap_sem
+){.+.+}-{0:0}
+, at: dup_mmap kernel/fork.c:497 [inline]
+, at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1:
+ffff888025951628
  (&mm->mmap_lock
+#2){++++}-{3:3}, at: mmap_write_lock_killable
+include/linux/mmap_lock.h:87 [inline]
+#2){++++}-{3:3}, at: dup_mmap kernel/fork.c:498 [inline]
+#2){++++}-{3:3}, at: dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff88809db21628 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff88809db21628 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff88809db21628 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11351:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888029b2f828 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888029b2f828 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888029b2f828 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880a9720f28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880a9720f28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880a9720f28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+1 lock held by syz-executor.4/11352:
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11353:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem
+){.+.+}-{0:0}, at: dup_mmap kernel/fork.c:497 [inline]
+){.+.+}-{0:0}, at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888029b28128 (&mm->mmap_lock#2){++++}-{3:3}
+, at: mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+, at: dup_mmap kernel/fork.c:498 [inline]
+, at: dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880b71c0128 (&mm->mmap_lock
 /1
+){+.+.}-{3:3}, at: mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+){+.+.}-{3:3}, at: dup_mmap kernel/fork.c:507 [inline]
+){+.+.}-{3:3}, at: dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140
+ (fs_reclaim
+){+.+.}-{0:0}
+, at: __perform_reclaim mm/page_alloc.c:4585 [inline]
+, at: __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+, at: __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11354:
+ #0: ffffffff8bc53fd0
+ (dup_mmap_sem
+){.+.+}-{0:0}
+, at: dup_mmap kernel/fork.c:497 [inline]
+, at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888022fbb928
+ (&mm->mmap_lock
+#2){++++}-{3:3}
+, at: mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+, at: dup_mmap kernel/fork.c:498 [inline]
+, at: dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880af93ce28
+ (&mm->mmap_lock/1){+.+.}-{3:3}, at: mmap_write_lock_nested
+include/linux/mmap_lock.h:78 [inline]
+ (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap kernel/fork.c:507 [inline]
+ (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11355:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888029b29628 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888029b29628 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888029b29628 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880b18b5c28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880b18b5c28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880b18b5c28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11356:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888029b2b228 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888029b2b228 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888029b2b228 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880aaaa4728 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880aaaa4728 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880aaaa4728 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11357:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff88812f2a7828 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff88812f2a7828 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff88812f2a7828 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880aabd6a28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880aabd6a28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880aabd6a28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+1 lock held by syz-executor.4/11358:
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11359:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff88812f2a0828 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff88812f2a0828 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff88812f2a0828 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff88808337ab28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff88808337ab28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff88808337ab28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11361:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888029b2c728 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888029b2c728 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888029b2c728 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880ab892428 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880ab892428 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880ab892428 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11362:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff88812f2a4728 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff88812f2a4728 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff88812f2a4728 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2:
+ffff88809ff47128 (
+&mm->mmap_lock
+/1){+.+.}-{3:3}
+, at: mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+, at: dup_mmap kernel/fork.c:507 [inline]
+, at: dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+1 lock held by syz-executor.4/11364:
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11368:
+ #0: ffffffff8bc53fd0
+ (dup_mmap_sem){.+.+}-{0:0}
+, at: dup_mmap kernel/fork.c:497 [inline]
+, at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff88811f3c8128
+ (&mm->mmap_lock#2
+){++++}-{3:3}
+, at: mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+, at: dup_mmap kernel/fork.c:498 [inline]
+, at: dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880872bb228 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880872bb228 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880872bb228 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11369:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff88811f3ca428 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff88811f3ca428 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff88811f3ca428 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff88809db21d28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff88809db21d28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff88809db21d28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11370:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff88811f3cab28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff88811f3cab28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff88811f3cab28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880a9720128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880a9720128 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880a9720128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11371:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888025955528 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888025955528 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888025955528 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880a05d3228 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880a05d3228 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880a05d3228 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+1 lock held by syz-executor.4/11372:
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11373:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888024070128 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888024070128 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888024070128 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff888085ba5528 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff888085ba5528 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff888085ba5528 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11374:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888029b2ea28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888029b2ea28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888029b2ea28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880879a4728 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880879a4728 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880879a4728 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140
+ (fs_reclaim
+){+.+.}-{0:0}
+, at: __perform_reclaim mm/page_alloc.c:4585 [inline]
+, at: __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+, at: __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11375:
+ #0: ffffffff8bc53fd0 (
+dup_mmap_sem
+){.+.+}-{0:0}
+, at: dup_mmap kernel/fork.c:497 [inline]
+, at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff88812f2a2b28 (&mm->mmap_lock
+#2){++++}-{3:3}, at: mmap_write_lock_killable
+include/linux/mmap_lock.h:87 [inline]
+#2){++++}-{3:3}, at: dup_mmap kernel/fork.c:498 [inline]
+#2){++++}-{3:3}, at: dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880ab894728
+ (&mm->mmap_lock
+/1){+.+.}-{3:3}
+, at: mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+, at: dup_mmap kernel/fork.c:507 [inline]
+, at: dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3:
+ffffffff8bca5140 (fs_reclaim
+){+.+.}-{0:0}
+, at: __perform_reclaim mm/page_alloc.c:4585 [inline]
+, at: __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+, at: __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11376:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888029b2dc28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888029b2dc28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888029b2dc28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff888084934028
+ (&mm->mmap_lock/1){+.+.}-{3:3}, at: mmap_write_lock_nested
+include/linux/mmap_lock.h:78 [inline]
+ (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap kernel/fork.c:507 [inline]
+ (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11379:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888025954028 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888025954028 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888025954028 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880b2d21628 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880b2d21628 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880b2d21628 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+1 lock held by syz-executor.4/11380:
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11383:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff88812f2a3928 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff88812f2a3928 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff88812f2a3928 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2:
+ffff8880a1b33928 (&mm->mmap_lock/1
 ){+.+.}-{3:3}, at: mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
 ){+.+.}-{3:3}, at: dup_mmap kernel/fork.c:507 [inline]
 ){+.+.}-{3:3}, at: dup_mm+0x18a/0x13d0 kernel/fork.c:1450
@@ -1257,602 +1282,379 @@ mm/page_alloc.c:4585 [inline]
 __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
  #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
 __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17429:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff888062a63928 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff888062a63928 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff888062a63928 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880b88df828 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880b88df828 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880b88df828 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+2 locks held by syz-executor.4/11384:
+ #0: ffff888029b2f128 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_read_trylock include/linux/mmap_lock.h:136 [inline]
+ #0: ffff888029b2f128 (&mm->mmap_lock#2){++++}-{3:3}, at:
+do_user_addr_fault+0x285/0x11c0 arch/x86/mm/fault.c:1338
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
 mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
 __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
 __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17430:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff888042621d28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff888042621d28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff888042621d28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff888027b31d28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff888027b31d28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff888027b31d28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (
-fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim mm/page_alloc.c:4585 [inline]
-fs_reclaim){+.+.}-{0:0}, at: __alloc_pages_direct_reclaim
-mm/page_alloc.c:4609 [inline]
-fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17431:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff88801fb40128 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff88801fb40128 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff88801fb40128 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880a88c8128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880a88c8128 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880a88c8128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+2 locks held by syz-executor.4/11386:
+ #0: ffff88808fb24728 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_read_trylock include/linux/mmap_lock.h:136 [inline]
+ #0: ffff88808fb24728 (&mm->mmap_lock#2){++++}-{3:3}, at:
+do_user_addr_fault+0x285/0x11c0 arch/x86/mm/fault.c:1338
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
 mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
 __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
 __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17433:
- #0:
-ffffffff8bc53fd0
- (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap kernel/fork.c:497 [inline]
- (dup_mmap_sem){.+.+}-{0:0}, at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff888042622b28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff888042622b28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff888042622b28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880a7e57828 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880a7e57828 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880a7e57828 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17434:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff888042620828 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff888042620828 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff888042620828 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880b19b8f28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880b19b8f28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880b19b8f28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17435:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff88806188ce28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff88806188ce28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff88806188ce28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880969e9628 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880969e9628 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880969e9628 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17436:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff888042626a28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff888042626a28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff888042626a28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880a126f128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880a126f128 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880a126f128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17437:
- #0:
-ffffffff8bc53fd0 (dup_mmap_sem
+4 locks held by syz-executor.4/11388:
+ #0: ffffffff8bc53fd0
+ (dup_mmap_sem
 ){.+.+}-{0:0}
 , at: dup_mmap kernel/fork.c:497 [inline]
 , at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1:
-ffff88801baea428
- (&mm->mmap_lock
-#2){++++}-{3:3}, at: mmap_write_lock_killable
-include/linux/mmap_lock.h:87 [inline]
-#2){++++}-{3:3}, at: dup_mmap kernel/fork.c:498 [inline]
-#2){++++}-{3:3}, at: dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880b8597128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880b8597128 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880b8597128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17438:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff888042623928 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff888042623928 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff888042623928 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff888090a4c728 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff888090a4c728 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff888090a4c728 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17439:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff8881235b4728 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff8881235b4728 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff8881235b4728 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff888092246a28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff888092246a28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff888092246a28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17440:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff88806188f128 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff88806188f128 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff88806188f128 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff888095198f28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff888095198f28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff888095198f28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17441:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff888042620128 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff888042620128 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff888042620128 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff888092ba2428 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff888092ba2428 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff888092ba2428 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17443:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1:
-ffff8880587cc728 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
-ffff8880587cc728 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
-ffff8880587cc728 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff888092246328 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff888092246328 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff888092246328 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17444:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff888042626328 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff888042626328 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff888042626328 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880a2d0c028 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880a2d0c028 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880a2d0c028 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17445:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff88801baee328 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff88801baee328 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff88801baee328 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880b17e9628 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880b17e9628 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880b17e9628 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17446:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff88801fb44028 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff88801fb44028 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff88801fb44028 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880877d8128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880877d8128 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880877d8128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17447:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1:
-ffff8881235b7828
- (&mm->mmap_lock#2){++++}-{3:3}, at: mmap_write_lock_killable
-include/linux/mmap_lock.h:87 [inline]
- (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap kernel/fork.c:498 [inline]
- (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880a44cf828 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880a44cf828 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880a44cf828 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17448:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff888025441628 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff888025441628 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff888025441628 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff88813159ab28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff88813159ab28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff88813159ab28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17450:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff888025440128 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff888025440128 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff888025440128 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff88812229c728 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff88812229c728 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff88812229c728 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17451:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff888061888128 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff888061888128 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff888061888128 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880460d4e28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880460d4e28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880460d4e28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17452:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff8881235b0828 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff8881235b0828 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff8881235b0828 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880bafc0828 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880bafc0828 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880bafc0828 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17453:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff888025444728 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff888025444728 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff888025444728 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880b6f8e328 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880b6f8e328 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880b6f8e328 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17454:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff888042624e28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff888042624e28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff888042624e28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff888035137128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff888035137128 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff888035137128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3:
-ffffffff8bca5140
- (
-fs_reclaim){+.+.}-{0:0}
-, at: __perform_reclaim mm/page_alloc.c:4585 [inline]
-, at: __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
-, at: __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17455:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff88801fb40f28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff88801fb40f28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff88801fb40f28 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880a7e2c028 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880a7e2c028 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
-kernel/fork.c:507 [inline]
- #2: ffff8880a7e2c028 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
-dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17456:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}
-, at: dup_mmap kernel/fork.c:497 [inline]
-, at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff888025441d28
- (
-&mm->mmap_lock#2
+ #1: ffff888024071628
+ (&mm->mmap_lock#2
 ){++++}-{3:3}
 , at: mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
 , at: dup_mmap kernel/fork.c:498 [inline]
 , at: dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880b481b928
+ #2: ffff888127583228 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff888127583228 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff888127583228 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11390:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff88811f3cb228 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff88811f3cb228 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff88811f3cb228 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880b50d2b28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880b50d2b28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880b50d2b28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim
+){+.+.}-{0:0}, at: __perform_reclaim mm/page_alloc.c:4585 [inline]
+){+.+.}-{0:0}, at: __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+){+.+.}-{0:0}, at: __alloc_pages_slowpath.constprop.0+0x760/0x21b0
+mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11391:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff88811f3cdc28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff88811f3cdc28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff88811f3cdc28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff888098e78828 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff888098e78828 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff888098e78828 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11392:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888021a93928 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888021a93928 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888021a93928 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff888122f54028 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff888122f54028 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff888122f54028 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+2 locks held by syz-executor.4/11393:
+ #0: ffff88811f565c28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_read_trylock include/linux/mmap_lock.h:136 [inline]
+ #0: ffff88811f565c28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+do_user_addr_fault+0x285/0x11c0 arch/x86/mm/fault.c:1338
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11396:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff8880a9006a28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff8880a9006a28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff8880a9006a28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff888021355c28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff888021355c28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff888021355c28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3:
+ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}
+, at: __perform_reclaim mm/page_alloc.c:4585 [inline]
+, at: __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+, at: __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11397:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff8880a9004e28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff8880a9004e28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff8880a9004e28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2:
+ffff888092abb928 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ffff888092abb928 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ffff888092abb928 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11399:
+ #0:
+ffffffff8bc53fd0 (
+dup_mmap_sem
+){.+.+}-{0:0}, at: dup_mmap kernel/fork.c:497 [inline]
+){.+.+}-{0:0}, at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff88811f3cd528 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff88811f3cd528 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff88811f3cd528 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2:
+ffff8880a77f2b28
+ (&mm->mmap_lock
+/1){+.+.}-{3:3}
+, at: mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+, at: dup_mmap kernel/fork.c:507 [inline]
+, at: dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11400:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888025956328 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888025956328 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888025956328 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff888080e1b228 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff888080e1b228 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff888080e1b228 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11398:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff88811f567128 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff88811f567128 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff88811f567128 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff88809569ab28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff88809569ab28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff88809569ab28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11401:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff8880a9007828 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff8880a9007828 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff8880a9007828 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880aaaa2428 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880aaaa2428 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880aaaa2428 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11402:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff8880a9000f28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff8880a9000f28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff8880a9000f28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff88809dd7f828 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff88809dd7f828 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff88809dd7f828 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11404:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888084ab3228 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888084ab3228 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888084ab3228 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff888084af0f28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff888084af0f28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff888084af0f28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11403:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888021a96328 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888021a96328 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888021a96328 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880b2686328 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880b2686328 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880b2686328 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11405:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1:
+ffff8880606bf128
+ (&mm->mmap_lock#2){++++}-{3:3}, at: mmap_write_lock_killable
+include/linux/mmap_lock.h:87 [inline]
+ (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap kernel/fork.c:498 [inline]
+ (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2:
+ffff8880a7d0dc28
  (&mm->mmap_lock/1){+.+.}-{3:3}, at: mmap_write_lock_nested
 include/linux/mmap_lock.h:78 [inline]
  (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap kernel/fork.c:507 [inline]
  (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3:
-ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
 mm/page_alloc.c:4585 [inline]
-ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
 __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
-ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
 __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17459:
- #0:
-ffffffff8bc53fd0
- (
-dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap kernel/fork.c:497 [inline]
-dup_mmap_sem){.+.+}-{0:0}, at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff888025444e28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+4 locks held by syz-executor.4/11406:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff8880b27db228 (&mm->mmap_lock#2){++++}-{3:3}, at:
 mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff888025444e28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+ #1: ffff8880b27db228 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
 kernel/fork.c:498 [inline]
- #1: ffff888025444e28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+ #1: ffff8880b27db228 (&mm->mmap_lock#2){++++}-{3:3}, at:
 dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff888097c83928 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+ #2: ffff8880a8ce6328 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
 mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff888097c83928 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+ #2: ffff8880a8ce6328 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
 kernel/fork.c:507 [inline]
- #2: ffff888097c83928 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+ #2: ffff8880a8ce6328 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
 dup_mm+0x18a/0x13d0 kernel/fork.c:1450
  #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
 mm/page_alloc.c:4585 [inline]
@@ -1860,22 +1662,651 @@ mm/page_alloc.c:4585 [inline]
 __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
  #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
 __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17460:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}
+4 locks held by syz-executor.4/11409:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff8880a9003928 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff8880a9003928 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff8880a9003928 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880b2548128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880b2548128 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880b2548128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3:
+ffffffff8bca5140 (fs_reclaim
+){+.+.}-{0:0}
+, at: __perform_reclaim mm/page_alloc.c:4585 [inline]
+, at: __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+, at: __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11410:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff8880aefa8f28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff8880aefa8f28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff8880aefa8f28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880a1b34028 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880a1b34028 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880a1b34028 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11411:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff8880a9001628 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff8880a9001628 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff8880a9001628 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880a8ce5c28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880a8ce5c28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880a8ce5c28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11412:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff88811a772b28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff88811a772b28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff88811a772b28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880b653b228 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880b653b228 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880b653b228 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11413:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff8880aeface28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff8880aeface28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff8880aeface28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff88809fe3e328 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff88809fe3e328 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff88809fe3e328 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11414:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888127b5f128 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888127b5f128 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888127b5f128 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880b50d7828 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880b50d7828 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880b50d7828 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140
+ (
+fs_reclaim
+){+.+.}-{0:0}
+, at: __perform_reclaim mm/page_alloc.c:4585 [inline]
+, at: __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+, at: __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11415:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888049f73228 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888049f73228 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888049f73228 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff888092aace28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff888092aace28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff888092aace28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11416:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff8880b27da428 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff8880b27da428 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff8880b27da428 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880813c0128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880813c0128 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880813c0128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11417:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff88809b8df828 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff88809b8df828 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff88809b8df828 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880b33ef128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880b33ef128 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880b33ef128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+1 lock held by syz-executor.4/11418:
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11420:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff8880b27d8f28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff8880b27d8f28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff8880b27d8f28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880b2684728 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880b2684728 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880b2684728 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11421:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888025956a28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888025956a28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888025956a28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880b653c728 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880b653c728 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880b653c728 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11422:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff88808fb21628 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff88808fb21628 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff88808fb21628 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880b33eea28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880b33eea28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880b33eea28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11423:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff8880b3359d28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff8880b3359d28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff8880b3359d28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff88809dd7ce28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff88809dd7ce28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff88809dd7ce28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11424:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888021a90f28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888021a90f28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888021a90f28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2:
+ffff88809eecdc28 (&mm->mmap_lock
+/1){+.+.}-{3:3}, at: mmap_write_lock_nested
+include/linux/mmap_lock.h:78 [inline]
+/1){+.+.}-{3:3}, at: dup_mmap kernel/fork.c:507 [inline]
+/1){+.+.}-{3:3}, at: dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11425:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1:
+ffff88811a770128
+ (
+&mm->mmap_lock
+#2
+){++++}-{3:3}
+, at: mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+, at: dup_mmap kernel/fork.c:498 [inline]
+, at: dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880aca99628 (&mm->mmap_lock/1
+){+.+.}-{3:3}, at: mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+){+.+.}-{3:3}, at: dup_mmap kernel/fork.c:507 [inline]
+){+.+.}-{3:3}, at: dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}
+, at: __perform_reclaim mm/page_alloc.c:4585 [inline]
+, at: __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+, at: __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+2 locks held by syz-executor.4/11426:
+ #0:
+ffff888084ab0f28 (
+&mm->mmap_lock#2
+){++++}-{3:3}, at: mmap_read_trylock include/linux/mmap_lock.h:136 [inline]
+){++++}-{3:3}, at: do_user_addr_fault+0x285/0x11c0 arch/x86/mm/fault.c:1338
+ #1:
+ffffffff8bca5140 (fs_reclaim
+){+.+.}-{0:0}, at: __perform_reclaim mm/page_alloc.c:4585 [inline]
+){+.+.}-{0:0}, at: __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+){+.+.}-{0:0}, at: __alloc_pages_slowpath.constprop.0+0x760/0x21b0
+mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11427:
+ #0:
+ffffffff8bc53fd0 (
+dup_mmap_sem){.+.+}-{0:0}
 , at: dup_mmap kernel/fork.c:497 [inline]
 , at: dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff8880b3358f28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff8880b3358f28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff8880b3358f28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880ba906a28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880ba906a28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880ba906a28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11428:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888049f77128 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888049f77128 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888049f77128 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880b2685528 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880b2685528 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880b2685528 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11429:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff88809b8dc728 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff88809b8dc728 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff88809b8dc728 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880b33e8128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880b33e8128 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880b33e8128 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11430:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888126850f28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888126850f28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888126850f28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880879a6a28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880879a6a28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880879a6a28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11431:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888084ab4028 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888084ab4028 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888084ab4028 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff88809db20f28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff88809db20f28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff88809db20f28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11433:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888126854028 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888126854028 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888126854028 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880a969ab28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880a969ab28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880a969ab28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11435:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff888126854728 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888126854728 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888126854728 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880a248ea28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880a248ea28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880a248ea28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+1 lock held by syz-executor.4/11436:
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #0: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11437:
+4 locks held by syz-executor.4/11438:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff8880a9000128 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff8880a9000128 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff8880a9000128 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2:
+ffff88809e3af828
+ (&mm->mmap_lock/1){+.+.}-{3:3}, at: mmap_write_lock_nested
+include/linux/mmap_lock.h:78 [inline]
+ (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap kernel/fork.c:507 [inline]
+ (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+2 locks held by syz-executor.4/11439:
+ #0: ffff888126855528 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_read_trylock include/linux/mmap_lock.h:136 [inline]
+ #0: ffff888126855528 (&mm->mmap_lock#2){++++}-{3:3}, at:
+do_user_addr_fault+0x285/0x11c0 arch/x86/mm/fault.c:1338
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #1: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11440:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
+ #1: ffff8880b27d9d28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff8880b27d9d28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff8880b27d9d28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff88809eecc028 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff88809eecc028 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff88809eecc028 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
+mm/page_alloc.c:4585 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+ #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
+__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11441:
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
+dup_mm+0x108/0x13d0 kernel/fork.c:1450
  #1:
-ffff88801fb44728 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
-ffff88801fb44728 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
-ffff88801fb44728 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880b2411628 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+ffff88809b8db928
+ (&mm->mmap_lock
+#2
+){++++}-{3:3}
+, at: mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+, at: dup_mmap kernel/fork.c:498 [inline]
+, at: dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880b33edc28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
 mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880b2411628 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+ #2: ffff8880b33edc28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
 kernel/fork.c:507 [inline]
- #2: ffff8880b2411628 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+ #2: ffff8880b33edc28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+dup_mm+0x18a/0x13d0 kernel/fork.c:1450
+ #3: ffffffff8bca5140 (
+fs_reclaim){+.+.}-{0:0}
+, at: __perform_reclaim mm/page_alloc.c:4585 [inline]
+, at: __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+, at: __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+2 locks held by syz-executor.4/11442:
+ #0: ffff888021a91628 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_read_trylock include/linux/mmap_lock.h:136 [inline]
+ #0: ffff888021a91628 (&mm->mmap_lock#2){++++}-{3:3}, at:
+do_user_addr_fault+0x285/0x11c0 arch/x86/mm/fault.c:1338
+ #1:
+ffffffff8bca5140
+ (
+fs_reclaim
+){+.+.}-{0:0}
+, at: __perform_reclaim mm/page_alloc.c:4585 [inline]
+, at: __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+, at: __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11443:
+ #0:
+ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
+kernel/fork.c:497 [inline]
+ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mm+0x108/0x13d0
+kernel/fork.c:1450
+ #1: ffff888025952b28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #1: ffff888025952b28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+kernel/fork.c:498 [inline]
+ #1: ffff888025952b28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #2: ffff8880a7366a28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
+ #2: ffff8880a7366a28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+kernel/fork.c:507 [inline]
+ #2: ffff8880a7366a28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
 dup_mm+0x18a/0x13d0 kernel/fork.c:1450
  #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
 mm/page_alloc.c:4585 [inline]
@@ -1883,40 +2314,34 @@ mm/page_alloc.c:4585 [inline]
 __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
  #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
 __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17462:
+4 locks held by syz-executor.4/11444:
  #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
 kernel/fork.c:497 [inline]
  #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
 dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff888025442b28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+ #1: ffff88808337b928 (&mm->mmap_lock#2){++++}-{3:3}, at:
 mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff888025442b28 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
+ #1: ffff88808337b928 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
 kernel/fork.c:498 [inline]
- #1: ffff888025442b28 (&mm->mmap_lock#2){++++}-{3:3}, at:
+ #1: ffff88808337b928 (&mm->mmap_lock#2){++++}-{3:3}, at:
 dup_mm+0x12e/0x13d0 kernel/fork.c:1450
- #2: ffff8880a46ee328 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+ #2: ffff88809dd7ab28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
 mmap_write_lock_nested include/linux/mmap_lock.h:78 [inline]
- #2: ffff8880a46ee328 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
+ #2: ffff88809dd7ab28 (&mm->mmap_lock/1){+.+.}-{3:3}, at: dup_mmap
 kernel/fork.c:507 [inline]
- #2: ffff8880a46ee328 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
+ #2: ffff88809dd7ab28 (&mm->mmap_lock/1){+.+.}-{3:3}, at:
 dup_mm+0x18a/0x13d0 kernel/fork.c:1450
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim
-mm/page_alloc.c:4585 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
- #3: ffffffff8bca5140 (fs_reclaim){+.+.}-{0:0}, at:
-__alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
-4 locks held by syz-executor.0/17463:
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at: dup_mmap
-kernel/fork.c:497 [inline]
- #0: ffffffff8bc53fd0 (dup_mmap_sem){.+.+}-{0:0}, at:
-dup_mm+0x108/0x13d0 kernel/fork.c:1450
- #1: ffff888062a61628 (&mm->mmap_lock#2){++++}-{3:3}, at:
-mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
- #1: ffff888062a61628 (&mm->mmap_lock#2){++++}-{3:3}, at: dup_mmap
-kernel/fork.c:498 [inline]
- #1: ffff888062a61628 (&mm->mmap_lock#2){++++}-{3:3}, at:
-dup_mm+0x12e/0x13d0 kernel/fork.c:1450
+ #3:
+ffffffff8bca5140
+ (
+fs_reclaim
+){+.+.}-{0:0}
+, at: __perform_reclaim mm/page_alloc.c:4585 [inline]
+, at: __alloc_pages_direct_reclaim mm/page_alloc.c:4609 [inline]
+, at: __alloc_pages_slowpath.constprop.0+0x760/0x21b0 mm/page_alloc.c:5007
+4 locks held by syz-executor.4/11445:
+ #0:
+ffffffff8bc53fd0
 
 
 
