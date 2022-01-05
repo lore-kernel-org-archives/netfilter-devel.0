@@ -2,138 +2,132 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42F7AC433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Jan 2022 15:28:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40EA3C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Jan 2022 16:17:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241486AbiAEP2o (ORCPT
+        id S241890AbiAEQRv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 5 Jan 2022 10:28:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55900 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241463AbiAEP2m (ORCPT
+        Wed, 5 Jan 2022 11:17:51 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:33242 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S241888AbiAEQRt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 5 Jan 2022 10:28:42 -0500
-Received: from mail-ed1-x542.google.com (mail-ed1-x542.google.com [IPv6:2a00:1450:4864:20::542])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 021A1C061245;
-        Wed,  5 Jan 2022 07:28:42 -0800 (PST)
-Received: by mail-ed1-x542.google.com with SMTP id z29so163448454edl.7;
-        Wed, 05 Jan 2022 07:28:41 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:from:date:message-id:subject:to:cc;
-        bh=zdYBBqitcn4lE/SNNP4CgrCHxIY29UjU1zD3r0bjR+c=;
-        b=fz9Vjlkm/t8j6d+Dp7aKgznxKeyrqiigsRtcj6k6HdCkhvB5T8pnJ83HULWQl5X/ca
-         dB7xQowpf0AUu8057uaSkec6UIlPkaKi6OIutY+zfHpcWUXj8F64szsnfTasN8MAyg3F
-         vuhaX0BMiGeGbK4KeC6/ozPUyYrouV4p60h1duYC0Xgx91WDlAD84fB99gGA50na4cD5
-         P5TmGtxBo2HRS9Te31WWeoaBKfaCnkQ56kQVVDx06OWtfIqGidRzpTHZRaBwXb6ecspe
-         MuNlC6YfDNZc1jfROLnorLKPy+b7FIA0bwO32YWKQMYLRXJ1PP4x+Z/fB3XLQIEsl2oC
-         5cvw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
-        bh=zdYBBqitcn4lE/SNNP4CgrCHxIY29UjU1zD3r0bjR+c=;
-        b=UWn3WmwASGVKNXN7Tr02TItpBnMjBlVKKYcsM0XuEGouNCfJmF9a4K3w2K9gxBnMhh
-         KFWmvrXusUIjIj+CRsccmk+d+xbxCdMr/+OGaIlTCBXTLQ3Wqx+tja0vDOC8cMxSbduL
-         o8sPy2NRSVkfFb2TE8aMfCEuyfiBKx3h7AFcFEXAfEUIWyfXSQB3T5YhpnkduafGE3Xg
-         kEvfkUhaY/E6JJPGCZzzU+LmMAr/5gBWi4BqIUYbn7yj3PSjuzWXEc1avkphKdEKGTN0
-         YtI69CR0F7Ci6uLjzzLRpQRJg/td0AbBivxhP8PRaCNtZAqtH4Ki+xoK9P6OiEHDnEFa
-         EowA==
-X-Gm-Message-State: AOAM5324REgtYwr3wvAXv3fV2B3zWAf6EsgwmxoiFdevEsUM3CP5AJo4
-        DRju6b3Bz648qsCQnsxy6/dECcJWdobE92TSy4s=
-X-Google-Smtp-Source: ABdhPJyZcwh3lBlPuEJCe8785wDQ/0nVYF9M3nYIqJTe/NzYFNE9W6qWSz7cwQJVFdXTgGT2nePZzp4ZFNeJDrGZvzo=
-X-Received: by 2002:a17:907:7256:: with SMTP id ds22mr43216489ejc.556.1641396520459;
- Wed, 05 Jan 2022 07:28:40 -0800 (PST)
+        Wed, 5 Jan 2022 11:17:49 -0500
+Received: from netfilter.org (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 6A1746427C;
+        Wed,  5 Jan 2022 17:15:01 +0100 (CET)
+Date:   Wed, 5 Jan 2022 17:17:43 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Subject: Re: [libnftnl PATCH 3/7] set: Introduce NFTNL_SET_DESC_CONCAT_DATA
+Message-ID: <YdXEp0TLNzkk1tBF@salvia>
+References: <20211124172242.11402-1-phil@nwl.cc>
+ <20211124172242.11402-4-phil@nwl.cc>
+ <YaYrUvXHfPLBYskH@salvia>
+ <20211130174558.GF29413@orbyte.nwl.cc>
 MIME-Version: 1.0
-From:   "Sabri N. Ferreiro" <snferreiro1@gmail.com>
-Date:   Wed, 5 Jan 2022 23:28:29 +0800
-Message-ID: <CAKG+3NQu2qFNZFP7XFkt0gEKShjO2rMxo+1WTbejekdUeQLNwQ@mail.gmail.com>
-Subject: BUG: unable to handle kernel NULL pointer dereference in iptable_nat_table_init
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        David Ahern <dsahern@kernel.org>,
-        Jakub Kicinski <kuba@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc:     mosesfonscqf75@gmail.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20211130174558.GF29413@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+Hi Phil,
 
-When using Syzkaller to fuzz the Linux kernel, it triggers the following crash.
+Sorry for taking a while to catch up on this.
 
-HEAD commit: a7904a538933 Linux 5.16-rc6
-git tree: upstream
-console output:
-https://docs.google.com/document/d/1hfN-JPPEtV8aGF9OvIboVVu7XYgUp-tp9G7DVXWNJ6k/view
-kernel config: https://docs.google.com/document/d/1w94kqQ4ZSIE6BW-5WIhqp4_Zh7XTPH57L5OF2Xb6O6o/view
+On Tue, Nov 30, 2021 at 06:45:58PM +0100, Phil Sutter wrote:
+> Hi Pablo,
+> 
+> On Tue, Nov 30, 2021 at 02:46:58PM +0100, Pablo Neira Ayuso wrote:
+> > On Wed, Nov 24, 2021 at 06:22:38PM +0100, Phil Sutter wrote:
+> > > Analogous to NFTNL_SET_DESC_CONCAT, introduce a data structure
+> > > describing individual data lengths of elements' concatenated data
+> > > fields.
+> > > 
+> > > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> > > ---
+> > >  include/libnftnl/set.h | 1 +
+> > >  include/set.h          | 2 ++
+> > >  src/set.c              | 8 ++++++++
+> > >  3 files changed, 11 insertions(+)
+> > > 
+> > > diff --git a/include/libnftnl/set.h b/include/libnftnl/set.h
+> > > index 1ffb6c415260d..958bbc9065f67 100644
+> > > --- a/include/libnftnl/set.h
+> > > +++ b/include/libnftnl/set.h
+> > > @@ -33,6 +33,7 @@ enum nftnl_set_attr {
+> > >  	NFTNL_SET_EXPR,
+> > >  	NFTNL_SET_EXPRESSIONS,
+> > >  	NFTNL_SET_DESC_BYTEORDER,
+> > > +	NFTNL_SET_DESC_CONCAT_DATA,
+> > 
+> > This information is already encoded in NFTNL_SET_DATA_TYPE, the
+> > datatypes that are defined in libnftables have an explicit byteorder
+> > and length.
+> 
+> We don't define data types in libnftnl, merely expressions and (with
+> your patch) those define what byteorder the source/destination registers
+> are supposed to be.
 
-If you fix this issue, please add the following tag to the commit:
-Reported-by:  Yuheng Shen <mosesfonscqf75@gmail.com>
+OK.
 
-Sorry for my lack of this crash reproducer, I hope the symbolic report
-will help you.
+> > For concatenation, this information is stored in 6 bits (see
+> > TYPE_BITS). By parsing the NFTNL_SET_DATA_TYPE field you can extract
+> > both types (and byteorders) of the set definition.
+> 
+> For this to work, I would have to duplicate nftables' enum datatypes and
+> in addition to that add an array defining each type's byteorder. I had
+> considered this once, but didn't like the amount of duplication.
+> 
+> > For the typeof case, where a generic datatype such as integer is used,
+> > this information is stored in the SET_USERDATA area.
+> 
+> This does not work for concatenated elements, right? At least I see e.g.
+> NFTNL_UDATA_SET_KEYBYTEORDER being set to set->key->byteorder, so that's
+> just a single value, no?
+> 
+> > This update for libnftnl is adding a third way to describe the
+> > datatypes in the set, right?
+> 
+> Well, it extends the logic around NFTNL_SET_DESC_CONCAT to non-interval
+> sets and to maps (adding the same data for the target part).
+> 
+> Then there is the new NFTNL_SET_DESC_BYTEORDER which defines the
+> byteorder of each part of the key (and value in maps).
 
-audit: type=1400 audit(1641210298.987:9): avc:  denied  { module_load
-} for  pid=2094 comm="modprobe"
-path="/lib/modules/5.15.0-rc6/kernel/net/ipv4/netfilter/iptable_nat.ko"
-dev="sda" ino=429877 scontext=system_u:system_r:kernel_t:s0
-tcontext=system_u:object_r:unlabeled_t:s0 tclass=system permissive=1
-BUG: kernel NULL pointer dereference, address: 0000000000000000
-#PF: supervisor write access in kernel mode
-#PF: error_code(0x0002) - not-present page
-PGD 0 P4D 0
-Oops: 0002 [#1] SMP KASAN NOPTI
-CPU: 1 PID: 350 Comm: syz-executor.3 Not tainted 5.15.0-rc6 #10
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-2 04/01/2014
-RIP: 0010:iptable_nat_table_init+0xc9/0x150 [iptable_nat]
-Code: 00 00 49 89 c7 31 db 4d 89 67 10 4c 89 fe 48 89 ef e8 8b 0e 06
-f4 85 c0 75 30 83 c3 01 49 83 c7 28 83 fb 04 75 e1 48 8b 0c 24 <4c> 89
-31 4c 89 ef 89 04 24 e8 49 7b 66 f2 8b 04 24 48 83 c4 08 5b
-RSP: 0018:ffff8880039ef9a0 EFLAGS: 00010246
-RAX: 0000000000000000 RBX: 0000000000000004 RCX: 0000000000000000
-RDX: ffff888001daa180 RSI: 0000000000000000 RDI: ffff8880039ef8d0
-RBP: ffff888025150000 R08: 0000000000000001 R09: ffff8880039ef8d7
-R10: ffffed100073df1a R11: 0000000000000001 R12: ffff8880056f2000
-R13: ffff888001bdb800 R14: ffff888004ac7700 R15: ffff888004ac77a0
-FS:  0000555555766480(0000) GS:ffff88806d280000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000000000000 CR3: 0000000004654004 CR4: 0000000000770ee0
-PKRU: 55555554
-Call Trace:
- xt_find_table_lock+0x2a3/0x450
-root/fuzz/kernel/5.15/net/netfilter/x_tables.c:1259
- xt_request_find_table_lock+0x25/0xb0
-root/fuzz/kernel/5.15/net/netfilter/x_tables.c:1284
- get_info+0x133/0x4b0 root/fuzz/kernel/5.15/net/ipv6/netfilter/ip6_tables.c:981
- do_ipt_get_ctl+0x12f/0x850
-root/fuzz/kernel/5.15/net/ipv4/netfilter/ip_tables.c:1653
- nf_getsockopt+0x65/0xc0 root/fuzz/kernel/5.15/net/netfilter/nf_sockopt.c:116
- ip_getsockopt root/fuzz/kernel/5.15/net/ipv4/ip_sockglue.c:1777 [inline]
- ip_getsockopt+0x115/0x150 root/fuzz/kernel/5.15/net/ipv4/ip_sockglue.c:1756
- tcp_getsockopt+0x7e/0xc0 root/fuzz/kernel/5.15/net/ipv4/tcp.c:4254
- __sys_getsockopt+0x128/0x220 root/fuzz/kernel/5.15/net/socket.c:2220
- __do_sys_getsockopt root/fuzz/kernel/5.15/net/socket.c:2235 [inline]
- __se_sys_getsockopt root/fuzz/kernel/5.15/net/socket.c:2232 [inline]
- __x64_sys_getsockopt+0xba/0x150 root/fuzz/kernel/5.15/net/socket.c:2232
- do_syscall_x64 root/fuzz/kernel/5.15/arch/x86/entry/common.c:50 [inline]
- do_syscall_64+0x38/0x90 root/fuzz/kernel/5.15/arch/x86/entry/common.c:80
- entry_SYSCALL_64_after_hwframe+0x44/0xae
-RIP: 0033:0x7f56ab2736de
-Code: 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48 83 c8 ff c3 66 2e 0f 1f
-84 00 00 00 00 00 90 f3 0f 1e fa 49 89 ca b8 37 00 00 00 0f 05 <48> 3d
-01 f0 ff ff 73 01 c3 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007fff93e04eb8 EFLAGS: 00000246 ORIG_RAX: 0000000000000037
-RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f56ab2736de
-RDX: 0000000000000040 RSI: 0000000000000000 RDI: 0000000000000003
-RBP: 0000000000000003 R08: 00007fff93e04eec R09: 0000000000000278
-R10: 00007f56ab3662c8 R11: 0000000000000246 R12: 00007fff93e04eec
-R13: 00007f56ab2e52b5 R14: 00007f56ab3662c8 R15: 00007f56ab3662c0
-Modules linked in: iptable_nat
-CR2: 0000000000000000
----[ end trace e420cba137499491 ]---
+I think it would be good to skip these new NFTNL_SET_DESC_* attributes
+since they are not used to pass a description to the kernel to help it
+select the best set type. So, instead of nftnl_set_elem_snprintf_desc(),
+it should be possible to add:
+
+int nftnl_set_elem_snprintf2(char *buf, size_t size,
+                             const struct nftnl_set *s,
+                             const struct nftnl_set_elem *e,
+                             uint32_t type, uint32_t flags)
+
+(or pick a better name if you come up with any other alternative).
+
+So the nftnl_set object provides the byteorder notation to display the
+set element accordingly.
+
+This requires an extra conversion from struct set to struct nftnl_set
+for the debug case, that should be fine (--debug is slow path anyway).
+If this needs to be speed up later on, it should be possible to keep
+the nftnl_set object around as context.
+
+Then, there is already NFTNL_UDATA_SET_KEYBYTEORDER and
+NFTNL_UDATA_SET_DATABYTEORDER which store the byteorder for key and
+data. I'm going to have a look at the userdata API since to see if I
+can propose an easy API to set and to get userdata information (this
+is currently a blob using TLVs that are stored in the kernel, but they
+are not interpreted by the kernel, it's only useful context
+information for userspace which is included in netlink dumps). This
+should fill missing gap in my proposal.
+
+Looking at your series, I think it's better it's better to avoid the
+struct nftnl_set_desc definition that is exposed in the libnftnl
+header, this will not allow for future extensions without breaking
+binary compatibility. I understand your motivation is to avoid a
+duplicated definition in the libnftnl and nftables codebase.
