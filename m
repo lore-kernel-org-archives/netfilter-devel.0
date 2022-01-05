@@ -2,143 +2,117 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7251FC433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Jan 2022 23:22:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0A79C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Jan 2022 06:10:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235218AbiADXWq (ORCPT
+        id S234817AbiAEGKo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 4 Jan 2022 18:22:46 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.129.124]:36253 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S234152AbiADXWq (ORCPT
+        Wed, 5 Jan 2022 01:10:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41624 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229543AbiAEGKo (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 4 Jan 2022 18:22:46 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1641338556;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=APTNjtc/NVeYk8GhPpMv5eoWks1kKQ6Uvjyyq82/v/0=;
-        b=L/rpCF9B2XdxphFcSqpyxzTnRQeRsT0LpADTswx+ns4Pg+H92/4yyZZr8UsQwFEnLnHyNX
-        CrylSwfM3ReFp7wSMviSJw5Dtu018bMOKAqBRO+RH2gNFfq+X3STE5cjB9USWKf6vSiF1X
-        yXfMyYOX+LLPRBj4LDjN0NzijDc9nuI=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-307-3SAfBwgANTKBAVvPy3-d4w-1; Tue, 04 Jan 2022 18:22:35 -0500
-X-MC-Unique: 3SAfBwgANTKBAVvPy3-d4w-1
-Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 0DDE51023F4D;
-        Tue,  4 Jan 2022 23:22:34 +0000 (UTC)
-Received: from maya.cloud.tilaa.com (unknown [10.40.208.3])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id ACAB710246F4;
-        Tue,  4 Jan 2022 23:22:33 +0000 (UTC)
-Date:   Wed, 5 Jan 2022 00:22:22 +0100
-From:   Stefano Brivio <sbrivio@redhat.com>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     etkaar <lists.netfilter.org@prvy.eu>, netfilter@vger.kernel.org,
-        netfilter-devel <netfilter-devel@vger.kernel.org>
-Subject: Re: nftables >= 0.9.8: atomic update (nft -f ...) of a set not
- possible any more
-Message-ID: <20220105002222.6695b8f7@elisabeth>
-In-Reply-To: <20220104195728.GB938@breakpoint.cc>
-References: <5tg3b13w5.PCaY2G@prvy.eu>
-        <20220104195728.GB938@breakpoint.cc>
-Organization: Red Hat
+        Wed, 5 Jan 2022 01:10:44 -0500
+Received: from mail-pg1-x533.google.com (mail-pg1-x533.google.com [IPv6:2607:f8b0:4864:20::533])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DAA9CC061761;
+        Tue,  4 Jan 2022 22:10:43 -0800 (PST)
+Received: by mail-pg1-x533.google.com with SMTP id g2so34659574pgo.9;
+        Tue, 04 Jan 2022 22:10:43 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=c7gkEmC5tF+7d71r6EPg3NkvqUoiequVOGJzgTvDk+c=;
+        b=IoQhgL5UTwmFiWWTFwmdM/ZcX9KrhlOee5HY8XAFvwpx9KtdR3hJKzFdCNCtq5KOtJ
+         bt9oHS1KGB8EI2JRiWsuRTN19A6MZVyQFIlTjc/lAcwpBj15o+YLekcil2zEnmqk1W11
+         pIbDTQL8RaVmIy+5HdHDfqYkE8ZRq+3MnS0INWsSg+4dLIWuiiF12nLFjm7V4dhchtAj
+         VNghQ187pwtJ1EZTBplDq7htRknLl/7J4mjJEAjtRrSV0otnAk+R77jj3SVwdln0Vp36
+         3Tu9GHE3f3DWpLFZFCeTOkIIGTxJTUfNRnzT5cGrK1dHXSFXJNrjaZ51Vo1Avp5Z0yDn
+         kuwQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=c7gkEmC5tF+7d71r6EPg3NkvqUoiequVOGJzgTvDk+c=;
+        b=MavaoVRhBLsInTOV8TzmmaUMq7utJKpsOIHPpE825EdZ4aUlCv4p6V3Vx0f/U8aNIP
+         y4IPRe4tldqFB19Vv9TcxQtInq1jizb6bwf+7nGkkQyMMc46gcOHTMNTzYMSwJOvlU/0
+         0TviYJnGq8fuQoO2tWhGkp78etWZrNQ+2wgS3tZo6bBi+/692zla4IUfOGB2w9iR0AtI
+         AXk13fbo5rCYIse1qOLJJEMLOKrzmFdd9Rs+HLztsWBAVkmHCV5fKPHw5fTmP0CvFc1O
+         TI17XGM7bSdtxaAYuMotokvlFsQnjm1ezx7OVIkpFOMXwjBdhT1Afxnvlr/rs4wDS5dr
+         K5+A==
+X-Gm-Message-State: AOAM533uTd/1YfVtXmjedYbRRsn7P4718Ic3/D1syEpaqn1IliPo5ISV
+        GOAf9st9drvB5qXOuOzMhUQ=
+X-Google-Smtp-Source: ABdhPJyzZJacIPo/b67svzzDsjhSvPjeMM6e8PFo5exAA4ToVis09ZcyjZTAYpW4MA4DliZlFrT6Dg==
+X-Received: by 2002:a63:90c3:: with SMTP id a186mr46234178pge.323.1641363043318;
+        Tue, 04 Jan 2022 22:10:43 -0800 (PST)
+Received: from ast-mbp.dhcp.thefacebook.com ([2620:10d:c090:400::5:1a5b])
+        by smtp.gmail.com with ESMTPSA id o11sm44875071pfu.150.2022.01.04.22.10.41
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 04 Jan 2022 22:10:42 -0800 (PST)
+Date:   Tue, 4 Jan 2022 22:10:40 -0800
+From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
+To:     Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Cc:     bpf@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Andrii Nakryiko <andrii@kernel.org>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, Martin KaFai Lau <kafai@fb.com>,
+        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
+        John Fastabend <john.fastabend@gmail.com>,
+        Maxim Mikityanskiy <maximmi@nvidia.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Jesper Dangaard Brouer <brouer@redhat.com>,
+        Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
+Subject: Re: [PATCH bpf-next v6 02/11] bpf: Fix UAF due to race between
+ btf_try_get_module and load_module
+Message-ID: <20220105061040.snl7hqsogeqxxruo@ast-mbp.dhcp.thefacebook.com>
+References: <20220102162115.1506833-1-memxor@gmail.com>
+ <20220102162115.1506833-3-memxor@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220102162115.1506833-3-memxor@gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Florian,
+On Sun, Jan 02, 2022 at 09:51:06PM +0530, Kumar Kartikeya Dwivedi wrote:
+> 
+> diff --git a/kernel/bpf/btf.c b/kernel/bpf/btf.c
+> index 33bb8ae4a804..b5b423de53ab 100644
+> --- a/kernel/bpf/btf.c
+> +++ b/kernel/bpf/btf.c
+> @@ -6338,7 +6338,10 @@ struct module *btf_try_get_module(const struct btf *btf)
+>  		if (btf_mod->btf != btf)
+>  			continue;
+>  
+> -		if (try_module_get(btf_mod->module))
+> +		/* We must only consider module whose __init routine has
+> +		 * finished, hence use try_module_get_live.
+> +		 */
+> +		if (try_module_get_live(btf_mod->module))
 
-On Tue, 4 Jan 2022 20:57:28 +0100
-Florian Westphal <fw@strlen.de> wrote:
+Instead of patch 1 refactoring for this very specific case can we do:
+1.
+if (try_module_get(btf_mod->module)) {
+     if (btf_mod->module->state != MODULE_STATE_LIVE)
+        module_put(btf_mod->module);
+     else
+        res = btf_mod->module;
 
-> etkaar <lists.netfilter.org@prvy.eu> wrote:
->=20
-> [ CC Stefano ]
->=20
-> > Dear colleagues,
-> >=20
-> > given is following perfectly working ruleset (nft list ruleset), which =
-drops almost all of the IPv4 traffic, but grants access to port 22 (SSH) fo=
-r two IPv4 addresses provided by the set named 'whitelist_ipv4_tcp': =20
->=20
-> Thanks for reporting, I can reproduce this.
->=20
-> > +++
-> > table inet filter {
-> > 	set whitelist_ipv4_tcp {
-> > 		type inet_service . ipv4_addr
-> > 		flags interval
-> > 		elements =3D { 22 . 111.222.333.444,
-> > 			=C2=A0 =C2=A0 =C2=A022 . 555.666.777.888 }
-> > 	} =20
->=20
-> I can repro this, looks like missing scratchpad cloning in the set
-> backend.
->=20
-> I can see that after second 'nft -f', avx2_lookup takes the 'if (unlikely=
-(!scratch)) {' branch.
->=20
-> Can you try this (kernel) patch below?
->=20
-> As a workaround, you could try removing the 'interval' flag so that
-> kernel uses a hash table as set backend instead.
->=20
-> Stefano, does that patch make sense to you?
-> Thanks!
+2. 
+preempt_disable();
+if (btf_mod->module->state == MODULE_STATE_LIVE &&
+    try_module_get(btf_mod->module)) ...
+preempt_enable();
 
-Thanks for checking and fixing this!
+3. add
+case MODULE_STATE_LIVE:
+to btf_module_notify()
+and have an extra flag in struct btf_module to say that it's ready?
 
-Yes, it makes sense, a clone without a subsequent new insertion
-wouldn't have a scratchpad otherwise -- I wonder how I missed this.
-Just perhaps:
-
-> diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipap=
-o.c
-> --- a/net/netfilter/nft_set_pipapo.c
-> +++ b/net/netfilter/nft_set_pipapo.c
-> @@ -1271,7 +1271,7 @@ static struct nft_pipapo_match *pipapo_clone(struct=
- nft_pipapo_match *old)
->  {
->  	struct nft_pipapo_field *dst, *src;
->  	struct nft_pipapo_match *new;
-> -	int i;
-> +	int i, err;
-> =20
->  	new =3D kmalloc(sizeof(*new) + sizeof(*dst) * old->field_count,
->  		      GFP_KERNEL);
-> @@ -1291,6 +1291,14 @@ static struct nft_pipapo_match *pipapo_clone(struc=
-t nft_pipapo_match *old)
->  		goto out_scratch;
->  #endif
-> =20
-> +	err =3D pipapo_realloc_scratch(new, old->bsize_max);
-> +	if (err) {
-> +#ifdef NFT_PIPAPO_ALIGN
-> +		free_percpu(new->scratch_aligned);
-> +#endif
-
-I would use another label for this, "out_scratch_aligned", for
-consistency with the rest of the error handling, but it's not a strong
-preference.
-
-> +		goto out_scratch;
-> +	}
-> +
->  	rcu_head_init(&new->rcu);
-> =20
->  	src =3D old->f;
->=20
-
---=20
-Stefano
-
+I'm mainly concerned about:
+-EXPORT_SYMBOL(try_module_get);
++EXPORT_SYMBOL(__try_module_get);
+in the patch 1. Not that I care about out of tree modules,
+but we shouldn't be breaking them without a reason.
