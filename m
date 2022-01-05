@@ -2,87 +2,84 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 521EBC433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Jan 2022 06:20:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02E84C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Jan 2022 13:20:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230330AbiAEGUg (ORCPT
+        id S240105AbiAENUK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 5 Jan 2022 01:20:36 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44064 "EHLO
+        Wed, 5 Jan 2022 08:20:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54662 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229861AbiAEGUg (ORCPT
+        with ESMTP id S240089AbiAENUI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 5 Jan 2022 01:20:36 -0500
-Received: from mail-pj1-x102a.google.com (mail-pj1-x102a.google.com [IPv6:2607:f8b0:4864:20::102a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF422C061761;
-        Tue,  4 Jan 2022 22:20:35 -0800 (PST)
-Received: by mail-pj1-x102a.google.com with SMTP id c9-20020a17090a1d0900b001b2b54bd6c5so2479269pjd.1;
-        Tue, 04 Jan 2022 22:20:35 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=bNwe4oIcNb/8JXdCal8u+s4Xw1CuZ9aIVgP9glbDtco=;
-        b=dCyW8DOgj90bOP8wmVsBFogAWY9+gG/gsBtEmyMXXZCQF8yglSfQZAqDh15JS/ONWM
-         umaLiincH5L9pfRKkpxy+SPo/Nhuqk7IMSv9JLyI6BBSkYzZhw9rDkARjYsSFaF4ol7c
-         3ocftncsqPstC7UADU9xBf0k2p2DfHFDqxkRtBav8hqpcp9roR64NWqQ3y6BtqSI+FXB
-         UmfKsXGMwKgACq3phz1j25WaYDe4YVAHjEyMECr24OLNbN+1gQ0/Xg6Qvl3pQ7goYPl9
-         SIsfGQtQshq6CVyAonxoIRKDXKAJdFOJBknQkZVgF+DpDwNjUrfnGod5Rhr1XPieNA4T
-         H9jw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=bNwe4oIcNb/8JXdCal8u+s4Xw1CuZ9aIVgP9glbDtco=;
-        b=eA6clVsR0hJ9nMcOqa0lesoy/O5QcvV/YF/sNrlli4+rP+RLq536Xdmj9+DD+6AH2q
-         mUxl2kErUUr6DSb2bMZGm5U8seZYlKkOYQLaHrIt59t5rttEVOqN9ov0Mzv3pkM6VR1S
-         zoOypZHMpEhDWuAXP1Q9ooQOVIvoutaFS7Ad8GHy6AEgvRl7xpfxYKCUqjNNtPDxVVM6
-         uViJZK5F4yyQeUKE5Iw4gr5DlSbAmDR3GGuH3bukzosws9QRaBnyQIINOlUc/49JBSXS
-         iXlRpJYJ2ggRmWyJnvwSdNGKzUaLfjVo6HAUZedNQtb64mtnoBbfZA0K2HfB6SgNMhDz
-         saTA==
-X-Gm-Message-State: AOAM532Jhu7Ez8z3GVpmAk72/V133sdjLFIWbVidVSkaHUflKNOonRSk
-        giQCBce9kDcq8LYfX6+J75s=
-X-Google-Smtp-Source: ABdhPJxAeaPLqvLVQR8dKtSmvogxTaoXFFfUf/ptgt7BnA0OK2zlnTHbXhBgLs14AYYAQxTihcSxFg==
-X-Received: by 2002:a17:90b:1b0a:: with SMTP id nu10mr2359860pjb.198.1641363635306;
-        Tue, 04 Jan 2022 22:20:35 -0800 (PST)
-Received: from ast-mbp.dhcp.thefacebook.com ([2620:10d:c090:400::5:1a5b])
-        by smtp.gmail.com with ESMTPSA id r10sm42977627pff.120.2022.01.04.22.20.34
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 04 Jan 2022 22:20:35 -0800 (PST)
-Date:   Tue, 4 Jan 2022 22:20:33 -0800
-From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
-To:     Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Cc:     bpf@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Andrii Nakryiko <andrii@kernel.org>, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, Martin KaFai Lau <kafai@fb.com>,
-        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Maxim Mikityanskiy <maximmi@nvidia.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
-Subject: Re: [PATCH bpf-next v6 11/11] selftests/bpf: Add test for race in
- btf_try_get_module
-Message-ID: <20220105062033.lufu57xhpyou3sie@ast-mbp.dhcp.thefacebook.com>
-References: <20220102162115.1506833-1-memxor@gmail.com>
- <20220102162115.1506833-12-memxor@gmail.com>
+        Wed, 5 Jan 2022 08:20:08 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 73098C061785
+        for <netfilter-devel@vger.kernel.org>; Wed,  5 Jan 2022 05:20:08 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1n56D0-0002OP-0O; Wed, 05 Jan 2022 14:20:06 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     sbrivio@redhat.com, Florian Westphal <fw@strlen.de>,
+        etkaar <lists.netfilter.org@prvy.eu>
+Subject: [PATCH nf] netfilter: nft_set_pipapo: allocate pcpu scratch maps on clone
+Date:   Wed,  5 Jan 2022 14:19:54 +0100
+Message-Id: <20220105131954.23666-1-fw@strlen.de>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220102162115.1506833-12-memxor@gmail.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Jan 02, 2022 at 09:51:15PM +0530, Kumar Kartikeya Dwivedi wrote:
-> This adds a complete test case to ensure we never take references to
-> modules not in MODULE_STATE_LIVE, which can lead to UAF, and it also
-> ensures we never access btf->kfunc_set_tab in an inconsistent state.
-> 
-> The test uses userfaultfd to artifically widen the race.
+This is needed in case a new transaction is made that doesn't insert any
+new elements into an already existing set.
 
-Fancy!
-Does it have to use a different module?
-Can it be part of bpf_testmod somehow?
+Else, after second 'nft -f ruleset.txt', lookups in such a set will fail
+because ->lookup() encounters raw_cpu_ptr(m->scratch) == NULL.
+
+For the initial rule load, insertion of elements takes care of the
+allocation, but for rule reloads this isn't guaranteed: we might not
+have additions to the set.
+
+Fixes: 3c4287f62044a90e ("nf_tables: Add set type for arbitrary concatenation of ranges")
+Reported-by: etkaar <lists.netfilter.org@prvy.eu>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ Change since test patch:
+ handle 'out_scratch_realloc' error handling to free scratch maps
+ on errors.
+
+ net/netfilter/nft_set_pipapo.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index dce866d93fee..2c8051d8cca6 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -1290,6 +1290,11 @@ static struct nft_pipapo_match *pipapo_clone(struct nft_pipapo_match *old)
+ 	if (!new->scratch_aligned)
+ 		goto out_scratch;
+ #endif
++	for_each_possible_cpu(i)
++		*per_cpu_ptr(new->scratch, i) = NULL;
++
++	if (pipapo_realloc_scratch(new, old->bsize_max))
++		goto out_scratch_realloc;
+ 
+ 	rcu_head_init(&new->rcu);
+ 
+@@ -1334,6 +1339,9 @@ static struct nft_pipapo_match *pipapo_clone(struct nft_pipapo_match *old)
+ 		kvfree(dst->lt);
+ 		dst--;
+ 	}
++out_scratch_realloc:
++	for_each_possible_cpu(i)
++		kfree(*per_cpu_ptr(new->scratch, i));
+ #ifdef NFT_PIPAPO_ALIGN
+ 	free_percpu(new->scratch_aligned);
+ #endif
+-- 
+2.34.1
+
