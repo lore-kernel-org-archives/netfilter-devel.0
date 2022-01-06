@@ -2,26 +2,26 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC0BBC4332F
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Jan 2022 21:51:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 255E7C4321E
+	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Jan 2022 21:51:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244617AbiAFVvx (ORCPT
+        id S244647AbiAFVvy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 6 Jan 2022 16:51:53 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:36152 "EHLO
+        Thu, 6 Jan 2022 16:51:54 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:36178 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244610AbiAFVvv (ORCPT
+        with ESMTP id S244596AbiAFVvx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 Jan 2022 16:51:51 -0500
+        Thu, 6 Jan 2022 16:51:53 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 83CD46428B;
-        Thu,  6 Jan 2022 22:49:02 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 961156428F;
+        Thu,  6 Jan 2022 22:49:04 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 1/4] netfilter: ipt_CLUSTERIP: fix refcount leak in clusterip_tg_check()
-Date:   Thu,  6 Jan 2022 22:51:36 +0100
-Message-Id: <20220106215139.170824-2-pablo@netfilter.org>
+Subject: [PATCH net 4/4] netfilter: nft_set_pipapo: allocate pcpu scratch maps on clone
+Date:   Thu,  6 Jan 2022 22:51:39 +0100
+Message-Id: <20220106215139.170824-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220106215139.170824-1-pablo@netfilter.org>
 References: <20220106215139.170824-1-pablo@netfilter.org>
@@ -31,43 +31,53 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Xin Xiong <xiongx18@fudan.edu.cn>
+From: Florian Westphal <fw@strlen.de>
 
-The issue takes place in one error path of clusterip_tg_check(). When
-memcmp() returns nonzero, the function simply returns the error code,
-forgetting to decrease the reference count of a clusterip_config
-object, which is bumped earlier by clusterip_config_find_get(). This
-may incur reference count leak.
+This is needed in case a new transaction is made that doesn't insert any
+new elements into an already existing set.
 
-Fix this issue by decrementing the refcount of the object in specific
-error path.
+Else, after second 'nft -f ruleset.txt', lookups in such a set will fail
+because ->lookup() encounters raw_cpu_ptr(m->scratch) == NULL.
 
-Fixes: 06aa151ad1fc74 ("netfilter: ipt_CLUSTERIP: check MAC address when duplicate config is set")
-Signed-off-by: Xin Xiong <xiongx18@fudan.edu.cn>
-Signed-off-by: Xiyu Yang <xiyuyang19@fudan.edu.cn>
-Signed-off-by: Xin Tan <tanxin.ctf@gmail.com>
+For the initial rule load, insertion of elements takes care of the
+allocation, but for rule reloads this isn't guaranteed: we might not
+have additions to the set.
+
+Fixes: 3c4287f62044a90e ("nf_tables: Add set type for arbitrary concatenation of ranges")
+Reported-by: etkaar <lists.netfilter.org@prvy.eu>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/ipt_CLUSTERIP.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ net/netfilter/nft_set_pipapo.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index 8fd1aba8af31..b518f20c9a24 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -520,8 +520,11 @@ static int clusterip_tg_check(const struct xt_tgchk_param *par)
- 			if (IS_ERR(config))
- 				return PTR_ERR(config);
- 		}
--	} else if (memcmp(&config->clustermac, &cipinfo->clustermac, ETH_ALEN))
-+	} else if (memcmp(&config->clustermac, &cipinfo->clustermac, ETH_ALEN)) {
-+		clusterip_config_entry_put(config);
-+		clusterip_config_put(config);
- 		return -EINVAL;
-+	}
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index dce866d93fee..2c8051d8cca6 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -1290,6 +1290,11 @@ static struct nft_pipapo_match *pipapo_clone(struct nft_pipapo_match *old)
+ 	if (!new->scratch_aligned)
+ 		goto out_scratch;
+ #endif
++	for_each_possible_cpu(i)
++		*per_cpu_ptr(new->scratch, i) = NULL;
++
++	if (pipapo_realloc_scratch(new, old->bsize_max))
++		goto out_scratch_realloc;
  
- 	ret = nf_ct_netns_get(par->net, par->family);
- 	if (ret < 0) {
+ 	rcu_head_init(&new->rcu);
+ 
+@@ -1334,6 +1339,9 @@ static struct nft_pipapo_match *pipapo_clone(struct nft_pipapo_match *old)
+ 		kvfree(dst->lt);
+ 		dst--;
+ 	}
++out_scratch_realloc:
++	for_each_possible_cpu(i)
++		kfree(*per_cpu_ptr(new->scratch, i));
+ #ifdef NFT_PIPAPO_ALIGN
+ 	free_percpu(new->scratch_aligned);
+ #endif
 -- 
 2.30.2
 
