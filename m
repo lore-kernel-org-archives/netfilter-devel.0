@@ -2,160 +2,105 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23BE6C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Jan 2022 13:11:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCFB7C433FE
+	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Jan 2022 19:39:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239396AbiAFNLE (ORCPT
+        id S243384AbiAFTjQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 6 Jan 2022 08:11:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39480 "EHLO
+        Thu, 6 Jan 2022 14:39:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43368 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238990AbiAFNLD (ORCPT
+        with ESMTP id S243378AbiAFTjQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 Jan 2022 08:11:03 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14ED3C0611FF
-        for <netfilter-devel@vger.kernel.org>; Thu,  6 Jan 2022 05:11:02 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1n5SXi-0001Ny-J0; Thu, 06 Jan 2022 14:10:58 +0100
-Date:   Thu, 6 Jan 2022 14:10:58 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [libnftnl PATCH 3/7] set: Introduce NFTNL_SET_DESC_CONCAT_DATA
-Message-ID: <YdbqYswNOc+Me71m@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20211124172242.11402-1-phil@nwl.cc>
- <20211124172242.11402-4-phil@nwl.cc>
- <YaYrUvXHfPLBYskH@salvia>
- <20211130174558.GF29413@orbyte.nwl.cc>
- <YdXEp0TLNzkk1tBF@salvia>
+        Thu, 6 Jan 2022 14:39:16 -0500
+Received: from mail-io1-xd33.google.com (mail-io1-xd33.google.com [IPv6:2607:f8b0:4864:20::d33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7787C061245;
+        Thu,  6 Jan 2022 11:39:15 -0800 (PST)
+Received: by mail-io1-xd33.google.com with SMTP id x6so4347993iol.13;
+        Thu, 06 Jan 2022 11:39:15 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=2Ta/qPPLbIegMeyk44wXJPPazJMwHROpJTWS1AQ/mvc=;
+        b=LslgYxrTvXzwlynzwtXIOVQSAr/+bEM84i/DqusI8EmAPUrBTmdoXxTNNzgEF9tTsP
+         9Eq9RBiCXul4GaPekPhChtsFZ54yP+CilNhPkv1wkTcJAHTplhCQ00GTGRqB598f1aX6
+         533q6l0q/65935uHyqzqxmXtLy+HN+JAe9n7JqZwj3XLWhZ7G6ztzV+dtpzIchSwaTIB
+         W5ilgJJUsLK0eFngOAgkqEvJKc0JwXRm+21Yaw01/M4VASgs0JuD/cwjzqvXM1IG/giE
+         Lzo1w9Fob/lzdMWj4madf2k6udPi3GBWlSoPHhGQjaq6NEVNVw+A+W3zw2cJRjU86PbG
+         SgbQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=2Ta/qPPLbIegMeyk44wXJPPazJMwHROpJTWS1AQ/mvc=;
+        b=jGkNVDTyEJ8Z8VqbDwgWW+CitaVqbp4vBKRwRDpyzd69IZRHq1aYZ0bO+Dr3twJMQN
+         aRmJiHnVUqaDCney0YNVfVhzSVWQf334L/Ak8ZzBk1B6lAxdF1p1Mjq5byOW4n5xAgZ7
+         nHGyruH4JKEDWsXgi1CFvDC+UZnrbRfJoujhVOimZRnZSSev3Xr1AKGcFk14inMjrQEk
+         i75tYTqPugEVx0U2WprNLRO1G1eM3H0LAsV2vFiyC7PF+n7eZihlhheccZPdVJ9hEDlD
+         DOaOPrwG0/Cvr2fxj10CJUXdOeo99pPVQjYl6eLX1JKRL0gsCgMmZayvb32iF40kinRh
+         jxnA==
+X-Gm-Message-State: AOAM533egs9y8kwuFya7hTP+yMf3B7RTxAZOYkU1DuXxjY/YRGEltSa8
+        4Al7AjPdeBxaZDf+jtJRtUqoCOBtQD1K/vu1iHg=
+X-Google-Smtp-Source: ABdhPJxruaX0rHD+Z49e5KKfazUlOGeR/t1gW1Ajl6nWzn8ug6T5acRIRO1l5L0/hI9+JG8TGbbn1gRkcBHou7trq+I=
+X-Received: by 2002:a6b:3b51:: with SMTP id i78mr28375567ioa.63.1641497955241;
+ Thu, 06 Jan 2022 11:39:15 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YdXEp0TLNzkk1tBF@salvia>
-Sender:  <n0-1@orbyte.nwl.cc>
+References: <20220102162115.1506833-1-memxor@gmail.com> <20220102162115.1506833-12-memxor@gmail.com>
+ <20220105062033.lufu57xhpyou3sie@ast-mbp.dhcp.thefacebook.com> <20220106090400.6p34bempgv2wzocj@apollo.legion>
+In-Reply-To: <20220106090400.6p34bempgv2wzocj@apollo.legion>
+From:   Andrii Nakryiko <andrii.nakryiko@gmail.com>
+Date:   Thu, 6 Jan 2022 11:39:04 -0800
+Message-ID: <CAEf4BzYsVC0cOuxVB2A-WWv+zW7zEFNQGrD0WKWhhOWDbYw3PQ@mail.gmail.com>
+Subject: Re: [PATCH bpf-next v6 11/11] selftests/bpf: Add test for race in btf_try_get_module
+To:     Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Cc:     Alexei Starovoitov <alexei.starovoitov@gmail.com>,
+        bpf <bpf@vger.kernel.org>, Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Networking <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, Martin KaFai Lau <kafai@fb.com>,
+        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
+        John Fastabend <john.fastabend@gmail.com>,
+        Maxim Mikityanskiy <maximmi@nvidia.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Jesper Dangaard Brouer <brouer@redhat.com>,
+        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hey Pablo,
+On Thu, Jan 6, 2022 at 1:04 AM Kumar Kartikeya Dwivedi <memxor@gmail.com> wrote:
+>
+> On Wed, Jan 05, 2022 at 11:50:33AM IST, Alexei Starovoitov wrote:
+> > On Sun, Jan 02, 2022 at 09:51:15PM +0530, Kumar Kartikeya Dwivedi wrote:
+> > > This adds a complete test case to ensure we never take references to
+> > > modules not in MODULE_STATE_LIVE, which can lead to UAF, and it also
+> > > ensures we never access btf->kfunc_set_tab in an inconsistent state.
+> > >
+> > > The test uses userfaultfd to artifically widen the race.
+> >
+> > Fancy!
+> > Does it have to use a different module?
+> > Can it be part of bpf_testmod somehow?
+>
+> I was thinking of doing it with bpf_testmod, but then I realised it would be a
+> problem with parallel mode of test_progs, where another selftest in parallel may
+> rely on bpf_testmod (which this test would unload, load and make it fault, and
+> then fail the load before restoring it by loading again), so I went with
+> bpf_testmod.
+>
+> Maybe we can hardcode a list of tests to be executed serially in --workers=n > 1
+> mode? All serial tests are then executed in the beginning (or end), and then it
+> starts invoking others in parallel as usual.
 
-On Wed, Jan 05, 2022 at 05:17:43PM +0100, Pablo Neira Ayuso wrote:
-> Sorry for taking a while to catch up on this.
+you can mark test as serial with "serial_" prefix, grep for that, we
+have a bunch of tests like this. But if you are going to unload and
+reload bpf_testmod, you will be forcing any bpf_testmod-using test to
+be serial, which I'm not sure is such a great idea.
 
-No worries, thanks for looking into it.
-
-> On Tue, Nov 30, 2021 at 06:45:58PM +0100, Phil Sutter wrote:
-> > Hi Pablo,
-> > 
-> > On Tue, Nov 30, 2021 at 02:46:58PM +0100, Pablo Neira Ayuso wrote:
-> > > On Wed, Nov 24, 2021 at 06:22:38PM +0100, Phil Sutter wrote:
-> > > > Analogous to NFTNL_SET_DESC_CONCAT, introduce a data structure
-> > > > describing individual data lengths of elements' concatenated data
-> > > > fields.
-> > > > 
-> > > > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> > > > ---
-> > > >  include/libnftnl/set.h | 1 +
-> > > >  include/set.h          | 2 ++
-> > > >  src/set.c              | 8 ++++++++
-> > > >  3 files changed, 11 insertions(+)
-> > > > 
-> > > > diff --git a/include/libnftnl/set.h b/include/libnftnl/set.h
-> > > > index 1ffb6c415260d..958bbc9065f67 100644
-> > > > --- a/include/libnftnl/set.h
-> > > > +++ b/include/libnftnl/set.h
-> > > > @@ -33,6 +33,7 @@ enum nftnl_set_attr {
-> > > >  	NFTNL_SET_EXPR,
-> > > >  	NFTNL_SET_EXPRESSIONS,
-> > > >  	NFTNL_SET_DESC_BYTEORDER,
-> > > > +	NFTNL_SET_DESC_CONCAT_DATA,
-> > > 
-> > > This information is already encoded in NFTNL_SET_DATA_TYPE, the
-> > > datatypes that are defined in libnftables have an explicit byteorder
-> > > and length.
-> > 
-> > We don't define data types in libnftnl, merely expressions and (with
-> > your patch) those define what byteorder the source/destination registers
-> > are supposed to be.
-> 
-> OK.
-> 
-> > > For concatenation, this information is stored in 6 bits (see
-> > > TYPE_BITS). By parsing the NFTNL_SET_DATA_TYPE field you can extract
-> > > both types (and byteorders) of the set definition.
-> > 
-> > For this to work, I would have to duplicate nftables' enum datatypes and
-> > in addition to that add an array defining each type's byteorder. I had
-> > considered this once, but didn't like the amount of duplication.
-> > 
-> > > For the typeof case, where a generic datatype such as integer is used,
-> > > this information is stored in the SET_USERDATA area.
-> > 
-> > This does not work for concatenated elements, right? At least I see e.g.
-> > NFTNL_UDATA_SET_KEYBYTEORDER being set to set->key->byteorder, so that's
-> > just a single value, no?
-> > 
-> > > This update for libnftnl is adding a third way to describe the
-> > > datatypes in the set, right?
-> > 
-> > Well, it extends the logic around NFTNL_SET_DESC_CONCAT to non-interval
-> > sets and to maps (adding the same data for the target part).
-> > 
-> > Then there is the new NFTNL_SET_DESC_BYTEORDER which defines the
-> > byteorder of each part of the key (and value in maps).
-> 
-> I think it would be good to skip these new NFTNL_SET_DESC_* attributes
-> since they are not used to pass a description to the kernel to help it
-> select the best set type. So, instead of nftnl_set_elem_snprintf_desc(),
-> it should be possible to add:
-> 
-> int nftnl_set_elem_snprintf2(char *buf, size_t size,
->                              const struct nftnl_set *s,
->                              const struct nftnl_set_elem *e,
->                              uint32_t type, uint32_t flags)
-> 
-> (or pick a better name if you come up with any other alternative).
-> 
-> So the nftnl_set object provides the byteorder notation to display the
-> set element accordingly.
-
-This is not sufficient per se - my series adds attributes to nftnl_set
-to cover that. Passing the set itself is doable, I chose the
-nftnl_set_desc way as it appeared a bit cleaner to me.
-
-> This requires an extra conversion from struct set to struct nftnl_set
-> for the debug case, that should be fine (--debug is slow path anyway).
-> If this needs to be speed up later on, it should be possible to keep
-> the nftnl_set object around as context.
-> 
-> Then, there is already NFTNL_UDATA_SET_KEYBYTEORDER and
-> NFTNL_UDATA_SET_DATABYTEORDER which store the byteorder for key and
-> data. I'm going to have a look at the userdata API since to see if I
-> can propose an easy API to set and to get userdata information (this
-> is currently a blob using TLVs that are stored in the kernel, but they
-> are not interpreted by the kernel, it's only useful context
-> information for userspace which is included in netlink dumps). This
-> should fill missing gap in my proposal.
-
-The two attributes hold a single byteorder value each. In order to
-correctly print set elements, we need a value for each part of
-concatenated elements. So for both key and data (key_end is always
-identical to key), we need concat part length and byteorder.
-
-> Looking at your series, I think it's better it's better to avoid the
-> struct nftnl_set_desc definition that is exposed in the libnftnl
-> header, this will not allow for future extensions without breaking
-> binary compatibility. I understand your motivation is to avoid a
-> duplicated definition in the libnftnl and nftables codebase.
-
-I could introduce userdata attributes for the extra info to make things
-more flexible, but it would bloat the data in kernel. OTOH this would
-fix reverse path, when fetching data from kernel libnftnl lacks the
-extra info to correctly dump the elements.
-
-Cheers, Phil
+>
+> --
+> Kartikeya
