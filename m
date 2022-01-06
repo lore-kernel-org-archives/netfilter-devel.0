@@ -2,82 +2,83 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 255E7C4321E
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Jan 2022 21:51:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 055A6C433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Jan 2022 21:53:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244647AbiAFVvy (ORCPT
+        id S244736AbiAFVxw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 6 Jan 2022 16:51:54 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:36178 "EHLO
+        Thu, 6 Jan 2022 16:53:52 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:36242 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244596AbiAFVvx (ORCPT
+        with ESMTP id S239651AbiAFVxv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 Jan 2022 16:51:53 -0500
-Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 961156428F;
-        Thu,  6 Jan 2022 22:49:04 +0100 (CET)
+        Thu, 6 Jan 2022 16:53:51 -0500
+Received: from netfilter.org (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id B2EEE64287;
+        Thu,  6 Jan 2022 22:51:02 +0100 (CET)
+Date:   Thu, 6 Jan 2022 22:53:45 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 4/4] netfilter: nft_set_pipapo: allocate pcpu scratch maps on clone
-Date:   Thu,  6 Jan 2022 22:51:39 +0100
-Message-Id: <20220106215139.170824-5-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220106215139.170824-1-pablo@netfilter.org>
-References: <20220106215139.170824-1-pablo@netfilter.org>
+To:     zhang kai <zhangkaiheb@126.com>
+Cc:     kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
+        kuba@kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] netfilter: seqadj: check seq offset before update
+Message-ID: <Yddk6YFEJ/FOWYT3@salvia>
+References: <20211224023713.9260-1-zhangkaiheb@126.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20211224023713.9260-1-zhangkaiheb@126.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+On Fri, Dec 24, 2021 at 10:37:13AM +0800, zhang kai wrote:
+> if seq/ack offset is zero, don't update
 
-This is needed in case a new transaction is made that doesn't insert any
-new elements into an already existing set.
+Please, provide more details: explain the scenario that triggers and
+seq/ack offset adjustment of zero, describe the scenario that triggers
+the bug, etc.
 
-Else, after second 'nft -f ruleset.txt', lookups in such a set will fail
-because ->lookup() encounters raw_cpu_ptr(m->scratch) == NULL.
-
-For the initial rule load, insertion of elements takes care of the
-allocation, but for rule reloads this isn't guaranteed: we might not
-have additions to the set.
-
-Fixes: 3c4287f62044a90e ("nf_tables: Add set type for arbitrary concatenation of ranges")
-Reported-by: etkaar <lists.netfilter.org@prvy.eu>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_set_pipapo.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
-
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index dce866d93fee..2c8051d8cca6 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -1290,6 +1290,11 @@ static struct nft_pipapo_match *pipapo_clone(struct nft_pipapo_match *old)
- 	if (!new->scratch_aligned)
- 		goto out_scratch;
- #endif
-+	for_each_possible_cpu(i)
-+		*per_cpu_ptr(new->scratch, i) = NULL;
-+
-+	if (pipapo_realloc_scratch(new, old->bsize_max))
-+		goto out_scratch_realloc;
- 
- 	rcu_head_init(&new->rcu);
- 
-@@ -1334,6 +1339,9 @@ static struct nft_pipapo_match *pipapo_clone(struct nft_pipapo_match *old)
- 		kvfree(dst->lt);
- 		dst--;
- 	}
-+out_scratch_realloc:
-+	for_each_possible_cpu(i)
-+		kfree(*per_cpu_ptr(new->scratch, i));
- #ifdef NFT_PIPAPO_ALIGN
- 	free_percpu(new->scratch_aligned);
- #endif
--- 
-2.30.2
-
+> Signed-off-by: zhang kai <zhangkaiheb@126.com>
+> ---
+>  net/netfilter/nf_conntrack_seqadj.c | 15 ++++++++++-----
+>  1 file changed, 10 insertions(+), 5 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_conntrack_seqadj.c b/net/netfilter/nf_conntrack_seqadj.c
+> index 3066449f8bd8..d35e272a2e36 100644
+> --- a/net/netfilter/nf_conntrack_seqadj.c
+> +++ b/net/netfilter/nf_conntrack_seqadj.c
+> @@ -186,11 +186,13 @@ int nf_ct_seq_adjust(struct sk_buff *skb,
+>  	else
+>  		seqoff = this_way->offset_before;
+>  
+> -	newseq = htonl(ntohl(tcph->seq) + seqoff);
+> -	inet_proto_csum_replace4(&tcph->check, skb, tcph->seq, newseq, false);
+> -	pr_debug("Adjusting sequence number from %u->%u\n",
+> -		 ntohl(tcph->seq), ntohl(newseq));
+> -	tcph->seq = newseq;
+> +	if (seqoff) {
+> +		newseq = htonl(ntohl(tcph->seq) + seqoff);
+> +		inet_proto_csum_replace4(&tcph->check, skb, tcph->seq, newseq, false);
+> +		pr_debug("Adjusting sequence number from %u->%u\n",
+> +			 ntohl(tcph->seq), ntohl(newseq));
+> +		tcph->seq = newseq;
+> +	}
+>  
+>  	if (!tcph->ack)
+>  		goto out;
+> @@ -201,6 +203,9 @@ int nf_ct_seq_adjust(struct sk_buff *skb,
+>  	else
+>  		ackoff = other_way->offset_before;
+>  
+> +	if (!ackoff)
+> +		goto out;
+> +
+>  	newack = htonl(ntohl(tcph->ack_seq) - ackoff);
+>  	inet_proto_csum_replace4(&tcph->check, skb, tcph->ack_seq, newack,
+>  				 false);
+> -- 
+> 2.17.1
+> 
