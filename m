@@ -2,105 +2,90 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DCFB7C433FE
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Jan 2022 19:39:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 476C0C433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Jan 2022 21:00:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243384AbiAFTjQ (ORCPT
+        id S244040AbiAFVAQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 6 Jan 2022 14:39:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43368 "EHLO
+        Thu, 6 Jan 2022 16:00:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33494 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243378AbiAFTjQ (ORCPT
+        with ESMTP id S244010AbiAFVAQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 Jan 2022 14:39:16 -0500
-Received: from mail-io1-xd33.google.com (mail-io1-xd33.google.com [IPv6:2607:f8b0:4864:20::d33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7787C061245;
-        Thu,  6 Jan 2022 11:39:15 -0800 (PST)
-Received: by mail-io1-xd33.google.com with SMTP id x6so4347993iol.13;
-        Thu, 06 Jan 2022 11:39:15 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=2Ta/qPPLbIegMeyk44wXJPPazJMwHROpJTWS1AQ/mvc=;
-        b=LslgYxrTvXzwlynzwtXIOVQSAr/+bEM84i/DqusI8EmAPUrBTmdoXxTNNzgEF9tTsP
-         9Eq9RBiCXul4GaPekPhChtsFZ54yP+CilNhPkv1wkTcJAHTplhCQ00GTGRqB598f1aX6
-         533q6l0q/65935uHyqzqxmXtLy+HN+JAe9n7JqZwj3XLWhZ7G6ztzV+dtpzIchSwaTIB
-         W5ilgJJUsLK0eFngOAgkqEvJKc0JwXRm+21Yaw01/M4VASgs0JuD/cwjzqvXM1IG/giE
-         Lzo1w9Fob/lzdMWj4madf2k6udPi3GBWlSoPHhGQjaq6NEVNVw+A+W3zw2cJRjU86PbG
-         SgbQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=2Ta/qPPLbIegMeyk44wXJPPazJMwHROpJTWS1AQ/mvc=;
-        b=jGkNVDTyEJ8Z8VqbDwgWW+CitaVqbp4vBKRwRDpyzd69IZRHq1aYZ0bO+Dr3twJMQN
-         aRmJiHnVUqaDCney0YNVfVhzSVWQf334L/Ak8ZzBk1B6lAxdF1p1Mjq5byOW4n5xAgZ7
-         nHGyruH4JKEDWsXgi1CFvDC+UZnrbRfJoujhVOimZRnZSSev3Xr1AKGcFk14inMjrQEk
-         i75tYTqPugEVx0U2WprNLRO1G1eM3H0LAsV2vFiyC7PF+n7eZihlhheccZPdVJ9hEDlD
-         DOaOPrwG0/Cvr2fxj10CJUXdOeo99pPVQjYl6eLX1JKRL0gsCgMmZayvb32iF40kinRh
-         jxnA==
-X-Gm-Message-State: AOAM533egs9y8kwuFya7hTP+yMf3B7RTxAZOYkU1DuXxjY/YRGEltSa8
-        4Al7AjPdeBxaZDf+jtJRtUqoCOBtQD1K/vu1iHg=
-X-Google-Smtp-Source: ABdhPJxruaX0rHD+Z49e5KKfazUlOGeR/t1gW1Ajl6nWzn8ug6T5acRIRO1l5L0/hI9+JG8TGbbn1gRkcBHou7trq+I=
-X-Received: by 2002:a6b:3b51:: with SMTP id i78mr28375567ioa.63.1641497955241;
- Thu, 06 Jan 2022 11:39:15 -0800 (PST)
+        Thu, 6 Jan 2022 16:00:16 -0500
+Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96CCAC061245
+        for <netfilter-devel@vger.kernel.org>; Thu,  6 Jan 2022 13:00:15 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=fgJbugVlXZEsdIl48cvmhARBTU7RH5lkQ2hmcuGqt3c=; b=lX03w+zjkPS7px6awbtuC1jMaJ
+        S8Q1Rj3HHH7l+SI5JMyIBabG0NWOm2QXnQxIrluOySkkHc6BLS5z+h8DZbmuP2LoyQeJdtttM5dNv
+        uJpD2veH8P7eifo1m1QcanBs44xYSK1wiYmonmJJgufvqsByZb885hXqXO/Kbboss0zFTbB75OKa0
+        i0CKlrxEYiR4KuORNsbz12QmzIN7Pon0mMVpikrSI0ozN4InMvhdCmJqqbpkaXg/uggd5v0wrxpEF
+        Pv9chaW5UWeUdGLMYjLiTHyWgnroxqkp4Q+Ay7lqGJJEfZNjE4mmvndwyl8FuerMIHiYCIDuxZPgt
+        p/GWj9MQ==;
+Received: from celephais.dreamlands ([192.168.96.3] helo=azazel.net)
+        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <jeremy@azazel.net>)
+        id 1n5Zrp-00H0JN-2J; Thu, 06 Jan 2022 21:00:13 +0000
+Date:   Thu, 6 Jan 2022 21:00:11 +0000
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [ulogd2 PATCH v4 00/32] Fixes for compiler warnings
+Message-ID: <YddYW58sBFSs8S87@azazel.net>
+References: <20211130105600.3103609-1-jeremy@azazel.net>
+ <Ya6MyhseW80+w0FY@salvia>
+ <YdM8BYK5U+CMU+ow@salvia>
 MIME-Version: 1.0
-References: <20220102162115.1506833-1-memxor@gmail.com> <20220102162115.1506833-12-memxor@gmail.com>
- <20220105062033.lufu57xhpyou3sie@ast-mbp.dhcp.thefacebook.com> <20220106090400.6p34bempgv2wzocj@apollo.legion>
-In-Reply-To: <20220106090400.6p34bempgv2wzocj@apollo.legion>
-From:   Andrii Nakryiko <andrii.nakryiko@gmail.com>
-Date:   Thu, 6 Jan 2022 11:39:04 -0800
-Message-ID: <CAEf4BzYsVC0cOuxVB2A-WWv+zW7zEFNQGrD0WKWhhOWDbYw3PQ@mail.gmail.com>
-Subject: Re: [PATCH bpf-next v6 11/11] selftests/bpf: Add test for race in btf_try_get_module
-To:     Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Cc:     Alexei Starovoitov <alexei.starovoitov@gmail.com>,
-        bpf <bpf@vger.kernel.org>, Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Networking <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, Martin KaFai Lau <kafai@fb.com>,
-        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Maxim Mikityanskiy <maximmi@nvidia.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="gb6VBQ/I/O6cBuvo"
+Content-Disposition: inline
+In-Reply-To: <YdM8BYK5U+CMU+ow@salvia>
+X-SA-Exim-Connect-IP: 192.168.96.3
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Jan 6, 2022 at 1:04 AM Kumar Kartikeya Dwivedi <memxor@gmail.com> wrote:
->
-> On Wed, Jan 05, 2022 at 11:50:33AM IST, Alexei Starovoitov wrote:
-> > On Sun, Jan 02, 2022 at 09:51:15PM +0530, Kumar Kartikeya Dwivedi wrote:
-> > > This adds a complete test case to ensure we never take references to
-> > > modules not in MODULE_STATE_LIVE, which can lead to UAF, and it also
-> > > ensures we never access btf->kfunc_set_tab in an inconsistent state.
-> > >
-> > > The test uses userfaultfd to artifically widen the race.
-> >
-> > Fancy!
-> > Does it have to use a different module?
-> > Can it be part of bpf_testmod somehow?
->
-> I was thinking of doing it with bpf_testmod, but then I realised it would be a
-> problem with parallel mode of test_progs, where another selftest in parallel may
-> rely on bpf_testmod (which this test would unload, load and make it fault, and
-> then fail the load before restoring it by loading again), so I went with
-> bpf_testmod.
->
-> Maybe we can hardcode a list of tests to be executed serially in --workers=n > 1
-> mode? All serial tests are then executed in the beginning (or end), and then it
-> starts invoking others in parallel as usual.
 
-you can mark test as serial with "serial_" prefix, grep for that, we
-have a bunch of tests like this. But if you are going to unload and
-reload bpf_testmod, you will be forcing any bpf_testmod-using test to
-be serial, which I'm not sure is such a great idea.
+--gb6VBQ/I/O6cBuvo
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
->
-> --
-> Kartikeya
+On 2022-01-03, at 19:10:13 +0100, Pablo Neira Ayuso wrote:
+> Anyway, after this update it's probably better to look at using
+> pkg-config in the build system.
+
+Thought I'd already done this.  Hadn't posted the patches.  Will do
+that shortly.
+
+J.
+
+--gb6VBQ/I/O6cBuvo
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmHXWFUACgkQKYasCr3x
+BA1EtA//eii/TyJJqq6Ern97sy+ttz1hXSzSka+f123wrd1VMf/LJRn67ZUhh+6z
+Mqe23ixt09m98no5rt0U0LUtyY96yNmtBOP34LH3oPP62ku1hDKLNMi4xWV6i48z
+0j9VHzYzk8iNhnRMW8EY8Oy3lbrtbWXJ14bigHW91u/8gSSUHcUFxxaIhSbMi0OF
+AnMe1Mi0Cidsgga6MUPjuQcH68wSoQqDhE0tkQ6Xg/Kl4m+8BGOQzZzA/pFU3CcE
+yyJGsyGpONjiWED4XLAsoXF7tXn7/MN3qza8p0RwqmHKCZ/8B2wRs/+8gDx23vbF
+hrf7ReXSo0qtsCQHMHZ1wvq0Bfrq3Y/9+ETmbjxWZNUGc1w+0IFsSJ7aIyraVxLC
+s5rqIgSgQnFm5EeL0ZjWl49VBZnvfOJbTGJCdzYGhpnx0T+/BMaM4evXD1Uz5oo1
+cP2OJy96er0QoDSKcyW89W5HP/zHIoVzxWIGOIu+ue+2ahVyFHCUqFnxUynavHlI
+zPqGK9A/swAhpXb7N+W/DgKMS0dvelvrgblMpMRfDIJFXHr5521FXGXBzd43uk8A
+W/nzP9ijRUr9gdF0cCJFfv6llndquolxwBDKlmuwcFqW00RDZmdmTuj835ikmsZB
+xR2RxPGPvSg9etrLkTjpaaV6qJcsEZN1KHtyFNHfJTijf/oKmsw=
+=AcX0
+-----END PGP SIGNATURE-----
+
+--gb6VBQ/I/O6cBuvo--
