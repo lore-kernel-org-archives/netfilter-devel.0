@@ -2,123 +2,66 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14BC4C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Jan 2022 07:22:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D9E5C433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Jan 2022 14:46:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234957AbiAGHWy (ORCPT
+        id S1347793AbiAGOq1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 7 Jan 2022 02:22:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60770 "EHLO
+        Fri, 7 Jan 2022 09:46:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48346 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234952AbiAGHWv (ORCPT
+        with ESMTP id S239548AbiAGOq0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 7 Jan 2022 02:22:51 -0500
-Received: from mail-pf1-x442.google.com (mail-pf1-x442.google.com [IPv6:2607:f8b0:4864:20::442])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E5D7C061245;
-        Thu,  6 Jan 2022 23:22:51 -0800 (PST)
-Received: by mail-pf1-x442.google.com with SMTP id m1so4494732pfk.8;
-        Thu, 06 Jan 2022 23:22:51 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=/iKuZuECKdgKrRCy3kPaNIUdSvOv4DODSZrCc3vNZOM=;
-        b=Rjxgbu2/Wm6o0d0SP8O01j2vFBGuy+h9mgdXFLRL5ARMz8AevWEc7teyW/nXi0H4Zh
-         BKbFnb49MtMulRQryHddxCVEg+Q0B7zVnd6cf47iBvNtCvgyHJ1ttnmbUgMt7OifQJ0i
-         YQqXla94aMrCm/dk1hkiZzh2UPsy8Soyxzf4pxGY33HQ20w/thil7WMMm9tMr6GhjStF
-         flfz070nJg/M/QUQi/wfGmEqbXlkPFpmAa01i1T3PV6CbExShDKK34P+n1wa2K5fmNrY
-         33ijo03AUQjfukWOjW3fqkIAwkIHWNH+QmJ8gBQJxiKs5W3PZjX+Ege2UfucFtpYNYWS
-         cnOw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=/iKuZuECKdgKrRCy3kPaNIUdSvOv4DODSZrCc3vNZOM=;
-        b=KNvbyu8r74BorcRwAeNiXuShIsE8CFGt0ka0R70WP38mT0qd4y2cdJY14e5vILD484
-         6erj8XV+tfym1NLuV8KqiTpuu5515o26fQM07yMQrPTADMzSaLhy4uC0d4k9AWzECNe5
-         75y/BtfhvqAm10/2X+ZLz7S+6OvuFGPljrrKZDAqdsjWasJ698ZBC58+2e5eb1KYs2Mb
-         IelfQtecyjtQxKwkIfUffWaq56e8MUSQSWQJAegfv2+aAHFRvremZyv6gU2kFJoMjIiM
-         DvQZh30mz6SiZA9OmN6j4pTHoeUYKI20VV2bbgXenfWsBjtDwNiPPhbTxUulfcmU13cA
-         MRQQ==
-X-Gm-Message-State: AOAM5322G9oh5UIQrpQRgXGjbIqZpVlOKA2cvUhUYwJ8Vt6/VhnRcD68
-        vTW9J+G2okxikfFYbJmgWWg=
-X-Google-Smtp-Source: ABdhPJxndjXO/VYrAT8vaE3rI5nZ5nXObuFTnepGOuUBuIapKt1EKfg8ok4wDHRYRI7AWhVXK8jzXQ==
-X-Received: by 2002:a63:7b59:: with SMTP id k25mr491897pgn.190.1641540171040;
-        Thu, 06 Jan 2022 23:22:51 -0800 (PST)
-Received: from localhost ([14.96.13.220])
-        by smtp.gmail.com with ESMTPSA id y14sm3803535pgo.87.2022.01.06.23.22.49
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 06 Jan 2022 23:22:50 -0800 (PST)
-Date:   Fri, 7 Jan 2022 12:52:36 +0530
-From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
-To:     Andrii Nakryiko <andrii.nakryiko@gmail.com>
-Cc:     Alexei Starovoitov <alexei.starovoitov@gmail.com>,
-        bpf <bpf@vger.kernel.org>, Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Networking <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, Martin KaFai Lau <kafai@fb.com>,
-        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Maxim Mikityanskiy <maximmi@nvidia.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
-Subject: Re: [PATCH bpf-next v6 11/11] selftests/bpf: Add test for race in
- btf_try_get_module
-Message-ID: <20220107072236.ayhibs3bllcl4d6c@apollo.legion>
-References: <20220102162115.1506833-1-memxor@gmail.com>
- <20220102162115.1506833-12-memxor@gmail.com>
- <20220105062033.lufu57xhpyou3sie@ast-mbp.dhcp.thefacebook.com>
- <20220106090400.6p34bempgv2wzocj@apollo.legion>
- <CAEf4BzYsVC0cOuxVB2A-WWv+zW7zEFNQGrD0WKWhhOWDbYw3PQ@mail.gmail.com>
+        Fri, 7 Jan 2022 09:46:26 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7AF9AC061574
+        for <netfilter-devel@vger.kernel.org>; Fri,  7 Jan 2022 06:46:25 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1n5qVb-0007tb-B1; Fri, 07 Jan 2022 15:46:23 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: egress: avoid a lockdep splat
+Date:   Fri,  7 Jan 2022 15:46:16 +0100
+Message-Id: <20220107144616.4261-1-fw@strlen.de>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAEf4BzYsVC0cOuxVB2A-WWv+zW7zEFNQGrD0WKWhhOWDbYw3PQ@mail.gmail.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Jan 07, 2022 at 01:09:04AM IST, Andrii Nakryiko wrote:
-> On Thu, Jan 6, 2022 at 1:04 AM Kumar Kartikeya Dwivedi <memxor@gmail.com> wrote:
-> >
-> > On Wed, Jan 05, 2022 at 11:50:33AM IST, Alexei Starovoitov wrote:
-> > > On Sun, Jan 02, 2022 at 09:51:15PM +0530, Kumar Kartikeya Dwivedi wrote:
-> > > > This adds a complete test case to ensure we never take references to
-> > > > modules not in MODULE_STATE_LIVE, which can lead to UAF, and it also
-> > > > ensures we never access btf->kfunc_set_tab in an inconsistent state.
-> > > >
-> > > > The test uses userfaultfd to artifically widen the race.
-> > >
-> > > Fancy!
-> > > Does it have to use a different module?
-> > > Can it be part of bpf_testmod somehow?
-> >
-> > I was thinking of doing it with bpf_testmod, but then I realised it would be a
-> > problem with parallel mode of test_progs, where another selftest in parallel may
-> > rely on bpf_testmod (which this test would unload, load and make it fault, and
-> > then fail the load before restoring it by loading again), so I went with
-> > bpf_testmod.
-> >
-> > Maybe we can hardcode a list of tests to be executed serially in --workers=n > 1
-> > mode? All serial tests are then executed in the beginning (or end), and then it
-> > starts invoking others in parallel as usual.
->
-> you can mark test as serial with "serial_" prefix, grep for that, we
+include/linux/netfilter_netdev.h:97 suspicious rcu_dereference_check() usage!
+2 locks held by sd-resolve/1100:
+ 0: ..(rcu_read_lock_bh){1:3}, at: ip_finish_output2
+ 1: ..(rcu_read_lock_bh){1:3}, at: __dev_queue_xmit
+ __dev_queue_xmit+0 ..
 
-Thanks for pointing that out!
+The helper has two callers, one uses rcu_read_lock, the other
+rcu_read_lock_bh().  Annotate the dereference to reflect this.
 
-> have a bunch of tests like this. But if you are going to unload and
-> reload bpf_testmod, you will be forcing any bpf_testmod-using test to
-> be serial, which I'm not sure is such a great idea.
->
+Fixes: 42df6e1d221dd ("netfilter: Introduce egress hook")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ targetting -next since its only a wrong annotation.
 
-Didn't get the last part, based on my reading it will execute serial tests one
-by one (after finishing parallel tests), so if my serial test restores the
-loaded bpf_testmod after completing, it shouldn't really impact other tests,
-right? Did I miss something?
+ include/linux/netfilter_netdev.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---
-Kartikeya
+diff --git a/include/linux/netfilter_netdev.h b/include/linux/netfilter_netdev.h
+index b71b57a83bb4..b4dd96e4dc8d 100644
+--- a/include/linux/netfilter_netdev.h
++++ b/include/linux/netfilter_netdev.h
+@@ -94,7 +94,7 @@ static inline struct sk_buff *nf_hook_egress(struct sk_buff *skb, int *rc,
+ 		return skb;
+ #endif
+ 
+-	e = rcu_dereference(dev->nf_hooks_egress);
++	e = rcu_dereference_check(dev->nf_hooks_egress, rcu_read_lock_bh_held());
+ 	if (!e)
+ 		return skb;
+ 
+-- 
+2.34.1
+
