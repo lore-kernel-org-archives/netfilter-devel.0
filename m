@@ -2,151 +2,119 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E542C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Jan 2022 04:04:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20D10C433FE
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Jan 2022 06:27:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346014AbiAGEEC (ORCPT
+        id S231602AbiAGG07 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 6 Jan 2022 23:04:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45562 "EHLO
+        Fri, 7 Jan 2022 01:26:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48576 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346026AbiAGEEB (ORCPT
+        with ESMTP id S230354AbiAGG06 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 Jan 2022 23:04:01 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D275C061212;
-        Thu,  6 Jan 2022 20:04:01 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1n5gTu-0005PT-4o; Fri, 07 Jan 2022 05:03:58 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     <netdev@vger.kernel.org>, Florian Westphal <fw@strlen.de>,
-        Paul Blakey <paulb@mellanox.com>, dev@openvswitch.org
-Subject: [PATCH nf-next 5/5] net: prefer nf_ct_put instead of nf_conntrack_put
-Date:   Fri,  7 Jan 2022 05:03:26 +0100
-Message-Id: <20220107040326.28038-6-fw@strlen.de>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220107040326.28038-1-fw@strlen.de>
-References: <20220107040326.28038-1-fw@strlen.de>
+        Fri, 7 Jan 2022 01:26:58 -0500
+Received: from mail-pj1-x1041.google.com (mail-pj1-x1041.google.com [IPv6:2607:f8b0:4864:20::1041])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B8046C061245;
+        Thu,  6 Jan 2022 22:26:58 -0800 (PST)
+Received: by mail-pj1-x1041.google.com with SMTP id m13so4401807pji.3;
+        Thu, 06 Jan 2022 22:26:58 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=gPtCYtDNKh7VvsIap26OOmHVz9QTUZhglH+C/8cTVx8=;
+        b=MuxJwq57lZaQovLI/veUgOdI+6eYDBCgoICXxDyBxAkzkAhIbtubxvnhlmxXVMYn+2
+         gIw571Tc+agUWfjcsVvAVi+IkMEshfhdN8qgY5wPjK/bYz2y8+9ugQFCGVdaqCpltzsp
+         29VH+sbxgRMBON6ifXJx0k8KFMEFlFy8DPUnB6q19qym+hM8AyQI4dNzW6sviNPFpB9s
+         zgcq5GYdYGm517yuXA0U5Wny9GCa6NsII6qM4y6IufnSvPo1xCMgmokI5ktk4NZSiRir
+         f/aGw9EYf873aiPT9A8Wma6r6BU5KOQb58AdiyCITd0uBjrNsXd4AvACa2o5unbJNP7e
+         Jv2w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=gPtCYtDNKh7VvsIap26OOmHVz9QTUZhglH+C/8cTVx8=;
+        b=ulLNKXhA7LN97uqFwdy0uE/HYcsZeegQQ+3l/Y4+jXHgn4cS9QnQVDNoLA9Ilag1ik
+         b3hQsXmq4r7Vf49WOHF9/cYZ3rXuYb+DzM2Eq224MPaA9iYsaIAGSaXIuVeIpMSPPyBX
+         +tr3YZwKUVHi/rUkidMbF+DbE2LM5FAnbuzldF4tMvNW48siGYCSRcP/pwHTGJXxXgue
+         5NXP0LZYed/npD2zdqeWiEj/zqWq9zFXzW4/4GFN1GvhHQ0aqnAUv2yHTOSfMlmg4+lw
+         Q3nfdL5BZJUTFZ1ssN+NbeDls4aS27NGom8J2HY4Y0aW77NeXlmdUopo2hw9Cgc/1r0E
+         wVbQ==
+X-Gm-Message-State: AOAM530qkn+XrFpGxsbkJJlqs6oBdMkcKk74c1RmmLWhVm2Onua+0oIm
+        jp3w2qSImQTWYevDlnrGuy4=
+X-Google-Smtp-Source: ABdhPJwfd4RF4+BlYGdl1UAM1ihyoT93eN3d5oDX3ptvoZeNmRYm49nyzli+OEkoIOBaY2PEQhPlmw==
+X-Received: by 2002:a17:903:110d:b0:149:a908:16a2 with SMTP id n13-20020a170903110d00b00149a90816a2mr31811946plh.77.1641536818128;
+        Thu, 06 Jan 2022 22:26:58 -0800 (PST)
+Received: from localhost ([14.96.13.220])
+        by smtp.gmail.com with ESMTPSA id ko19sm6635563pjb.16.2022.01.06.22.26.57
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 06 Jan 2022 22:26:57 -0800 (PST)
+Date:   Fri, 7 Jan 2022 11:56:45 +0530
+From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
+To:     Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Cc:     bpf <bpf@vger.kernel.org>, Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Network Development <netdev@vger.kernel.org>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>,
+        Martin KaFai Lau <kafai@fb.com>,
+        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
+        John Fastabend <john.fastabend@gmail.com>,
+        Maxim Mikityanskiy <maximmi@nvidia.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Jesper Dangaard Brouer <brouer@redhat.com>,
+        Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
+Subject: Re: [PATCH bpf-next v6 03/11] bpf: Populate kfunc BTF ID sets in
+ struct btf
+Message-ID: <20220107062645.d5hdazzkvl4d2fhq@apollo.legion>
+References: <20220102162115.1506833-1-memxor@gmail.com>
+ <20220102162115.1506833-4-memxor@gmail.com>
+ <20220105061911.nzgzzvt2rpftcavi@ast-mbp.dhcp.thefacebook.com>
+ <20220106085906.3zeugweq3twnkwzh@apollo.legion>
+ <CAADnVQ+J+733_LU0QchkmpZz511_sCTeOAYi5MQ4YFMZQMygTA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAADnVQ+J+733_LU0QchkmpZz511_sCTeOAYi5MQ4YFMZQMygTA@mail.gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Its the same as nf_conntrack_put(), but without the
-need for an indirect call.  The downside is a module dependency on
-nf_conntrack, but all of these already depend on conntrack anyway.
+On Fri, Jan 07, 2022 at 05:10:56AM IST, Alexei Starovoitov wrote:
+> On Thu, Jan 6, 2022 at 12:59 AM Kumar Kartikeya Dwivedi
+> <memxor@gmail.com> wrote:
+> >
+> > I'm not insisting, but for vmlinux we will have multiple
+> > register_btf_kfunc_id_set calls for same hook, so we have to concat multiple
+> > sets into one, which may result in an unsorted set. It's ok to not sort for
+> > modules where only one register call per hook is allowed.
+> >
+> > Unless we switch to linear search for now (which is ok by me), we have to
+> > re-sort for vmlinux BTF, to make btf_id_set_contains (in
+> > btf_kfunc_id_set_contains) work.
+>
+> Could you give an example when it happens in vmlinux?
+> Is it when modules are built-in (like tcp_bbr.c, tcp_cubic.c) ?
+> But then they should go into struct btf of the module?
+> Or THIS_MODULE becomes vmlinux and everything goes there?
+> If that's the case then yeah, sorting is needed.
 
-Cc: Paul Blakey <paulb@mellanox.com>
-Cc: dev@openvswitch.org
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_conntrack_core.c |  4 ++--
- net/openvswitch/conntrack.c       | 14 ++++++++++----
- net/sched/act_ct.c                |  6 +++---
- 3 files changed, 15 insertions(+), 9 deletions(-)
+Yep, THIS_MODULE would be NULL, and it would pick vmlinux BTF for storing the
+set.
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 7a2063abae04..c74933a6039f 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -989,7 +989,7 @@ static int __nf_ct_resolve_clash(struct sk_buff *skb,
- 
- 		nf_ct_acct_merge(ct, ctinfo, loser_ct);
- 		nf_ct_add_to_dying_list(loser_ct);
--		nf_conntrack_put(&loser_ct->ct_general);
-+		nf_ct_put(loser_ct);
- 		nf_ct_set(skb, ct, ctinfo);
- 
- 		NF_CT_STAT_INC(net, clash_resolve);
-@@ -1921,7 +1921,7 @@ nf_conntrack_in(struct sk_buff *skb, const struct nf_hook_state *state)
- 		/* Invalid: inverse of the return code tells
- 		 * the netfilter core what to do */
- 		pr_debug("nf_conntrack_in: Can't track with proto module\n");
--		nf_conntrack_put(&ct->ct_general);
-+		nf_ct_put(ct);
- 		skb->_nfct = 0;
- 		NF_CT_STAT_INC_ATOMIC(state->net, invalid);
- 		if (ret == -NF_DROP)
-diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
-index 121664e52271..a921c5c00a1b 100644
---- a/net/openvswitch/conntrack.c
-+++ b/net/openvswitch/conntrack.c
-@@ -574,7 +574,7 @@ ovs_ct_expect_find(struct net *net, const struct nf_conntrack_zone *zone,
- 			struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
- 
- 			nf_ct_delete(ct, 0, 0);
--			nf_conntrack_put(&ct->ct_general);
-+			nf_ct_put(ct);
- 		}
- 	}
- 
-@@ -723,7 +723,7 @@ static bool skb_nfct_cached(struct net *net,
- 		if (nf_ct_is_confirmed(ct))
- 			nf_ct_delete(ct, 0, 0);
- 
--		nf_conntrack_put(&ct->ct_general);
-+		nf_ct_put(ct);
- 		nf_ct_set(skb, NULL, 0);
- 		return false;
- 	}
-@@ -967,7 +967,8 @@ static int __ovs_ct_lookup(struct net *net, struct sw_flow_key *key,
- 
- 		/* Associate skb with specified zone. */
- 		if (tmpl) {
--			nf_conntrack_put(skb_nfct(skb));
-+			ct = nf_ct_get(skb, &ctinfo);
-+			nf_ct_put(ct);
- 			nf_conntrack_get(&tmpl->ct_general);
- 			nf_ct_set(skb, tmpl, IP_CT_NEW);
- 		}
-@@ -1328,7 +1329,12 @@ int ovs_ct_execute(struct net *net, struct sk_buff *skb,
- 
- int ovs_ct_clear(struct sk_buff *skb, struct sw_flow_key *key)
- {
--	nf_conntrack_put(skb_nfct(skb));
-+	enum ip_conntrack_info ctinfo;
-+	struct nf_conn *ct;
-+
-+	ct = nf_ct_get(skb, &ctinfo);
-+
-+	nf_ct_put(ct);
- 	nf_ct_set(skb, NULL, IP_CT_UNTRACKED);
- 	ovs_ct_fill_key(skb, key, false);
- 
-diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
-index 3fa904cf8f27..9db291b45878 100644
---- a/net/sched/act_ct.c
-+++ b/net/sched/act_ct.c
-@@ -598,7 +598,7 @@ static bool tcf_ct_skb_nfct_cached(struct net *net, struct sk_buff *skb,
- 		if (nf_ct_is_confirmed(ct))
- 			nf_ct_kill(ct);
- 
--		nf_conntrack_put(&ct->ct_general);
-+		nf_ct_put(ct);
- 		nf_ct_set(skb, NULL, IP_CT_UNTRACKED);
- 
- 		return false;
-@@ -763,7 +763,7 @@ static void tcf_ct_params_free(struct rcu_head *head)
- 	tcf_ct_flow_table_put(params);
- 
- 	if (params->tmpl)
--		nf_conntrack_put(&params->tmpl->ct_general);
-+		nf_ct_put(params->tmpl);
- 	kfree(params);
- }
- 
-@@ -967,7 +967,7 @@ static int tcf_ct_act(struct sk_buff *skb, const struct tc_action *a,
- 		qdisc_skb_cb(skb)->post_ct = false;
- 		ct = nf_ct_get(skb, &ctinfo);
- 		if (ct) {
--			nf_conntrack_put(&ct->ct_general);
-+			nf_ct_put(ct);
- 			nf_ct_set(skb, NULL, IP_CT_UNTRACKED);
- 		}
- 
--- 
-2.34.1
+Your suggestion to do direct assignment for module case is also good, since we
+always ensure module refcount is held when looking into set, access to it should
+be safe.
 
+> Please make it clear in the comment and the commit log.
+> It should be clear to reviewers without having to grill the author
+> with questions.
+> Would certainly save time for both author and reviewer. Agree?
+
+Agreed, I'll add the comments and respin.
+
+Thanks for your review.
+
+--
+Kartikeya
