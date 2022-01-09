@@ -2,19 +2,19 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79B45C43219
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C768C433EF
 	for <netfilter-devel@archiver.kernel.org>; Sun,  9 Jan 2022 11:58:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233940AbiAIL6n (ORCPT
+        id S230113AbiAIL6n (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sun, 9 Jan 2022 06:58:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47122 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47118 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230466AbiAIL6m (ORCPT
+        with ESMTP id S230140AbiAIL6m (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Sun, 9 Jan 2022 06:58:42 -0500
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 551F3C061757
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F7DFC061751
         for <netfilter-devel@vger.kernel.org>; Sun,  9 Jan 2022 03:58:42 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
@@ -22,22 +22,22 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=naxPmTm/VC+HLMVUq8+MqXBgfHb09LsT5HHyEWfgihk=; b=gvPXF56nDgUgguAfAbdOaGfd82
-        QnlalvmQuFNDZsEJWHYx0brZLnZbsNXNnCUhWfYK3KC6G85jghru4xCm0pmKrdyhG7plZPga5Djdw
-        CDCbcU72J1GmUPo6wdTevWI4Wt5sgbw60lyStgFxu+QPhJnnxnZMfYBGrJy6KRQCjlbwakkuNhQFw
-        V1EF4yRoyRmf8fcTzgrbt5nLo/Syv8pd9iWcsNDSY2ah7/rT8me4XISEHBl3/+Wlq9xoWeG5z8QbK
-        n2rQDvsoxVy0rNhlv4d6inz1SEP/irtu4RUgxAwMK1fpMWONEb2w1Z47TVJTlH0htg43XuqXUwg1U
-        SDNXUwYw==;
+        bh=Q3GnT5EfuCB4cqWO6SFcTq4wEiN2Ah7LoBEEpf26Xm0=; b=YrRC1M2XbKGh6/p8ff64ZX93Ax
+        IljKHmmwlAnUSCoQV4Qmb0+FSvf5HjY8TKhKMR91DZMjdk60b0ddosGBNrssKPQCUUpVJHbmwN5af
+        cx/WKe0hTKPrnuC0fJ4U07YYpipEwjRjP0ERToPGXGm0zl4goU+Wm65emr+KMNWO1ApfKX2UdWelH
+        Fz7tGfRMPCTm2kIArmnKB5XxVRXay+Fb7DtOpw1f88OGCwLThH2YT24+fBzli3zlkkXDI0jJwfkRk
+        cZp9Tqj378E8LB83dyuuYrJ3wzqMl8zX8kundv53Evy4mo3lklOYuCvEc4S0dBjOLYg37HUTXrHa0
+        Sl4P0n5A==;
 Received: from ulthar.dreamlands ([192.168.96.2] helo=ulthar.dreamlands.azazel.net)
         by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1n6WqO-002BZm-LB
+        id 1n6WqO-002BZm-Ff
         for netfilter-devel@vger.kernel.org; Sun, 09 Jan 2022 11:58:40 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [ulogd2 PATCH v2 05/10] build: use pkg-config or pg_config for libpq
-Date:   Sun,  9 Jan 2022 11:57:48 +0000
-Message-Id: <20220109115753.1787915-6-jeremy@azazel.net>
+Subject: [ulogd2 PATCH v2 03/10] build: use pkg-config or mysql_config for libmysqlclient
+Date:   Sun,  9 Jan 2022 11:57:46 +0000
+Message-Id: <20220109115753.1787915-4-jeremy@azazel.net>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20220109115753.1787915-1-jeremy@azazel.net>
 References: <20220109115753.1787915-1-jeremy@azazel.net>
@@ -50,149 +50,172 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Recent versions of postgresql support pkg-config.  Use pkg-config if
-available, otherwise fall back to pg_config.
+Recent versions of mariadb and mysql support pkg-config.  Older versions
+provide a mysql_config script.  Use pkg-config if available, otherwise
+fall back to mysql_config.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- acinclude.m4             | 95 ----------------------------------------
- configure.ac             | 33 ++++++++++++--
- output/pgsql/Makefile.am |  4 +-
- 3 files changed, 31 insertions(+), 101 deletions(-)
- delete mode 100644 acinclude.m4
+ acinclude.m4             | 93 ----------------------------------------
+ configure.ac             | 53 +++++++++++++++++++++--
+ output/mysql/Makefile.am |  4 +-
+ 3 files changed, 51 insertions(+), 99 deletions(-)
 
 diff --git a/acinclude.m4 b/acinclude.m4
-deleted file mode 100644
-index 6d88c3a53cff..000000000000
+index c7a1c67280f7..a49ed316e65a 100644
 --- a/acinclude.m4
-+++ /dev/null
-@@ -1,95 +0,0 @@
--dnl @synopsis CT_CHECK_POSTGRES_DB
++++ b/acinclude.m4
+@@ -93,99 +93,6 @@ fi
+ 
+ ])
+ 
+-dnl @synopsis CT_CHECK_MYSQL_DB
 -dnl
--dnl This macro tries to find the headers and libraries for the
--dnl PostgreSQL database to build client applications.
+-dnl This macro tries to find the headers and librariess for the
+-dnl MySQL database to build client applications.
 -dnl
--dnl If includes are found, the variable PQINCPATH will be set. If
--dnl libraries are found, the variable PQLIBPATH will be set. if no check
+-dnl If includes are found, the variable MYSQL_INC will be set. If
+-dnl libraries are found, the variable MYSQL_LIB will be set. if no check
 -dnl was successful, the script exits with a error message.
 -dnl
 -dnl @category InstalledPackages
--dnl @author Christian Toepp <c.toepp@gmail.com>
--dnl @version 2005-12-30
+-dnl @author Harald Welte <laforge@gnumonks.org>
+-dnl @version 2006-01-07
 -dnl @license AllPermissive
 -
--AC_DEFUN([CT_CHECK_POSTGRES_DB], [
+-AC_DEFUN([CT_CHECK_MYSQL_DB], [
 -
--AC_ARG_WITH(pgsql,
--	[  --with-pgsql=PREFIX		Prefix of your PostgreSQL installation],
--	[pg_prefix=$withval], [pg_prefix=])
--AC_ARG_WITH(pgsql-inc,
--	[  --with-pgsql-inc=PATH		Path to the include directory of PostgreSQL],
--	[pg_inc=$withval], [pg_inc=])
--AC_ARG_WITH(pgsql-lib,
--	[  --with-pgsql-lib=PATH		Path to the libraries of PostgreSQL],
--	[pg_lib=$withval], [pg_lib=])
+-AC_ARG_WITH(mysql,
+-	[  --with-mysql=PREFIX		Prefix of your MySQL installation],
+-	[my_prefix=$withval], [my_prefix=])
+-AC_ARG_WITH(mysql-inc,
+-	[  --with-mysql-inc=PATH		Path to the include directory of MySQL],
+-	[my_inc=$withval], [my_inc=])
+-AC_ARG_WITH(mysql-lib,
+-	[  --with-mysql-lib=PATH		Path to the libraries of MySQL],
+-	[my_lib=$withval], [my_lib=])
 -
 -
--AC_SUBST(PQINCPATH)
--AC_SUBST(PQLIBPATH)
--AC_SUBST(PQLIBS)
--PQLIBS=-lpq
+-AC_SUBST(MYSQL_INC)
+-AC_SUBST(MYSQL_LIB)
 -
--if test "$pg_prefix" != "no"; then
+-if test "$my_prefix" != "no"; then
 -
--AC_MSG_CHECKING([for PostgreSQL pg_config program])
--for d in $pg_prefix/bin /usr/bin /usr/local/bin /usr/local/pgsql/bin /opt/pgsql/bin /opt/packages/pgsql/bin
+-AC_MSG_CHECKING([for MySQL mysql_config program])
+-for d in $my_prefix/bin /usr/bin /usr/local/bin /usr/local/mysql/bin /opt/mysql/bin /opt/packages/mysql/bin
 -do
--	if test -x $d/pg_config -a "$cross_compiling" = "no";
+-	if test -x $d/mysql_config -a "$cross_compiling" = "no";
 -	then
--		AC_MSG_RESULT(found pg_config in $d)
--		PQINCPATH=`$d/pg_config --includedir`
--		PQLIBPATH=`$d/pg_config --libdir`
+-		AC_MSG_RESULT(found mysql_config in $d)
+-		MYSQL_INC=`$d/mysql_config --include`
+-		MYSQL_LIB=`$d/mysql_config --libs`
 -		break
 -	fi
 -done
 -
--if test "$PQINCPATH" = ""; then
--   if test "$pg_prefix" != ""; then
--      AC_MSG_CHECKING([for PostgreSQL includes in $pg_prefix/include])
--      if test -f "$pg_prefix/include/libpq-fe.h" ; then
--         PQINCPATH="-I$pg_prefix/include"
+-if test "$MYSQL_INC" = ""; then
+-   if test "$my_prefix" != ""; then
+-      AC_MSG_CHECKING([for MySQL includes in $my_prefix/include])
+-      if test -f "$my_prefix/include/mysql.h" ; then
+-         MYSQL_INC="-I$my_prefix/include"
 -         AC_MSG_RESULT([yes])
 -      else
--         AC_MSG_WARN(libpq-fe.h not found)
+-         AC_MSG_WARN(mysql.h not found)
 -      fi
--      AC_MSG_CHECKING([for PostgreSQL libraries in $pg_prefix/lib])
--      if test -f "$pg_prefix/lib/libpq.so" ; then
--         PQLIBPATH="-L$pg_prefix/lib"
+-      AC_MSG_CHECKING([for MySQL libraries in $my_prefix/lib])
+-      if test -f "$my_prefix/lib/libmysql.so" ; then
+-         MYSQL_LIB="-L$my_prefix/lib -lmysqlclient"
 -         AC_MSG_RESULT([yes])
 -      else
--         AC_MSG_WARN(libpq.so not found)
+-         AC_MSG_WARN(libmysqlclient.so not found)
 -      fi
 -   else
--     if test "$pg_inc" != ""; then
--       AC_MSG_CHECKING([for PostgreSQL includes in $pg_inc])
--       if test -f "$pg_inc/libpq-fe.h" ; then
--         PQINCPATH="-I$pg_inc"
+-     if test "$my_inc" != ""; then
+-       AC_MSG_CHECKING([for MySQL includes in $my_inc])
+-       if test -f "$my_inc/mysql.h" ; then
+-         MYSQL_INC="-I$my_inc"
 -         AC_MSG_RESULT([yes])
 -       else
--         AC_MSG_WARN(libpq-fe.h not found)
+-         AC_MSG_WARN(mysql.h not found)
 -       fi
 -     fi
--     if test "$pg_lib" != ""; then
--       AC_MSG_CHECKING([for PostgreSQL libraries in $pg_lib])
--       if test -f "$pg_lib/libpq.so" ; then
--         PQLIBPATH="-L$pg_lib"
+-     if test "$my_lib" != ""; then
+-       AC_MSG_CHECKING([for MySQL libraries in $my_lib])
+-       if test -f "$my_lib/libmysqlclient.so" ; then
+-         MYSQL_LIB="-L$my_lib -lmysqlclient"
 -         AC_MSG_RESULT([yes])
 -       else
--         AC_MSG_WARN(libpq.so not found)
+-         AC_MSG_WARN(libmysqlclient.so not found)
 -       fi
 -     fi
 -   fi
 -fi
 -
--if test "$PQINCPATH" = "" ; then
--  AC_CHECK_HEADER([libpq-fe.h], [], AC_MSG_WARN(libpq-fe.h not found))
+-if test "$MYSQL_INC" = "" ; then
+-  AC_CHECK_HEADER([mysql.h], [], AC_MSG_WARN(mysql.h not found))
 -fi
--if test "$PQLIBPATH" = "" ; then
--  AC_CHECK_LIB(pq, PQconnectdb, [], AC_MSG_WARN(libpq.so not found))
+-if test "$MYSQL_LIB" = "" ; then
+-  AC_CHECK_LIB(mysqlclient, mysql_close, [], AC_MSG_WARN(libmysqlclient.so not found))
 -fi
 -
 -fi
 -
 -])
 -
+ dnl @synopsis CT_CHECK_PCAP
+ dnl
+ dnl This macro tries to find the headers and libraries for libpcap.
 diff --git a/configure.ac b/configure.ac
-index 6909ea4858bb..75764db8aec9 100644
+index a3ad198a1d33..bcdd2f8ed99f 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -80,10 +80,35 @@ AM_CONDITIONAL([BUILD_NFACCT], [test "x$enable_nfacct" = "xyes"])
+@@ -87,10 +87,55 @@ AM_CONDITIONAL([HAVE_PGSQL], [test "x$PQLIBPATH" != "x"])
  
- AC_ARG_ENABLE([pgsql],
-               [AS_HELP_STRING([--enable-pgsql], [Enable PostgreSQL output plugin [default=test]])])
--AS_IF([test "x$enable_pgsql" != "xno"],
--      [CT_CHECK_POSTGRES_DB()])
--AS_IF([test "x$PQLIBPATH" != "x"], [enable_pgsql=yes], [enable_pgsql=no])
--AM_CONDITIONAL([HAVE_PGSQL], [test "x$PQLIBPATH" != "x"])
-+AS_IF([test "x$enable_pgsql" != "xno"], [
+ AC_ARG_ENABLE([mysql],
+               [AS_HELP_STRING([--enable-mysql], [Enable MySQL output plugin [default=test]])])
+-AS_IF([test "x$enable_mysql" != "xno"],
+-      [CT_CHECK_MYSQL_DB()])
+-AS_IF([test "x$MYSQL_LIB" != "x"], [enable_mysql=yes], [enable_mysql=no])
+-AM_CONDITIONAL([HAVE_MYSQL], [test "x$MYSQL_LIB" != "x"])
++AS_IF([test "x$enable_mysql" != "xno"], [
 +
-+  PKG_CHECK_EXISTS([libpq], [PKG_CHECK_MODULES([libpq], [libpq])], [
++  PKG_CHECK_EXISTS([mysqlclient],
++                   [PKG_CHECK_MODULES([libmysqlclient], [mysqlclient])],
++                   [
 +
-+    AC_ARG_WITH([pg_config],
-+                [AS_HELP_STRING([--with-pg-config=PATH], [Path to the pg_config script])],
-+                [pg_config="$withval"], [pg_config=pg_config])
++    AC_ARG_WITH([mysql-config],
++                [AS_HELP_STRING([--with-mysql-config=PATH], [Path to the mysql_config script])],
++                [mysql_config="$withval"], [mysql_config=mysql_config])
 +
-+    AC_MSG_CHECKING([for pg_config])
++    AC_MSG_CHECKING([for mysql_config])
 +
-+    AS_IF([command -v "$pg_config" >/dev/null], [
++    AS_IF([command -v "$mysql_config" >/dev/null], [
 +
-+      libpq_CFLAGS="`$pg_config --includedir`"
-+      libpq_LIBS="`$pg_config --libdir` -lpq"
++      MYSQL_CLIENT_CFLAGS=`$mysql_config --cflags`
++      MYSQL_CLIENT_LIBS=`$mysql_config --libs`
 +
-+      AC_SUBST([libpq_CFLAGS])
-+      AC_SUBST([libpq_LIBS])
++      AC_SUBST([MYSQL_CLIENT_CFLAGS])
++      AC_SUBST([MYSQL_CLIENT_LIBS])
 +
-+      AC_MSG_RESULT([$pg_config])
++      AC_MSG_RESULT([$mysql_config])
++
++      dnl Some distro's don't put mysql_config in the same package as the
++      dnl headers and .so sym-links.  Therefore, it is possible that the former
++      dnl may be available, but the latter may not.  Hence, we check explicitly
++      dnl for mysql.h.
++
++      ulogd_save_CPPFLAGS="$CPPFLAGS"
++      CPPFLAGS="$MYSQL_CLIENT_CFLAGS"
++      AC_CHECK_HEADER([mysql.h], [
++
++        libmysqlclient_CFLAGS="$MYSQL_CLIENT_CFLAGS"
++        libmysqlclient_LIBS="$MYSQL_CLIENT_LIBS"
++
++        AC_SUBST([libmysqlclient_CFLAGS])
++        AC_SUBST([libmysqlclient_LIBS])
++
++      ])
++      CPPFLAGS="$ulogd_save_CPPFLAGS"
 +
 +    ], [
 +      AC_MSG_RESULT([no])
@@ -201,27 +224,27 @@ index 6909ea4858bb..75764db8aec9 100644
 +  ])
 +
 +])
-+AS_IF([test "x$libpq_LIBS" != "x"], [enable_pgsql=yes], [enable_pgsql=no])
-+AM_CONDITIONAL([HAVE_PGSQL], [test "x$libpq_LIBS" != "x"])
++AS_IF([test "x$libmysqlclient_LIBS" != "x"], [enable_mysql=yes], [enable_mysql=no])
++AM_CONDITIONAL([HAVE_MYSQL], [test "x$libmysqlclient_LIBS" != "x"])
  
- AC_ARG_ENABLE([mysql],
-               [AS_HELP_STRING([--enable-mysql], [Enable MySQL output plugin [default=test]])])
-diff --git a/output/pgsql/Makefile.am b/output/pgsql/Makefile.am
-index 9cdf22d7f765..c78a773d6f9f 100644
---- a/output/pgsql/Makefile.am
-+++ b/output/pgsql/Makefile.am
+ AC_ARG_ENABLE([sqlite3],
+               [AS_HELP_STRING([--enable-sqlite3], [Enable SQLITE3 output plugin [default=test]])])
+diff --git a/output/mysql/Makefile.am b/output/mysql/Makefile.am
+index 54abb9654eb7..69d983982cc9 100644
+--- a/output/mysql/Makefile.am
++++ b/output/mysql/Makefile.am
 @@ -1,9 +1,9 @@
  include $(top_srcdir)/Make_global.am
  
--AM_CPPFLAGS += -I$(PQINCPATH)
-+AM_CPPFLAGS += $(libpq_CFLAGS)
+-AM_CPPFLAGS += $(MYSQL_INC)
++AM_CPPFLAGS += $(libmysqlclient_CFLAGS)
  
- pkglib_LTLIBRARIES = ulogd_output_PGSQL.la
+ pkglib_LTLIBRARIES = ulogd_output_MYSQL.la
  
- ulogd_output_PGSQL_la_SOURCES = ulogd_output_PGSQL.c ../../util/db.c
--ulogd_output_PGSQL_la_LIBADD  = ${PQLIBS}
-+ulogd_output_PGSQL_la_LIBADD  = $(libpq_LIBS)
- ulogd_output_PGSQL_la_LDFLAGS = -avoid-version -module
+ ulogd_output_MYSQL_la_SOURCES = ulogd_output_MYSQL.c ../../util/db.c
+-ulogd_output_MYSQL_la_LIBADD  = ${MYSQL_LIB}
++ulogd_output_MYSQL_la_LIBADD  = $(libmysqlclient_LIBS)
+ ulogd_output_MYSQL_la_LDFLAGS = -avoid-version -module
 -- 
 2.34.1
 
