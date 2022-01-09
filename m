@@ -2,26 +2,26 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F27BC433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B928C43219
 	for <netfilter-devel@archiver.kernel.org>; Sun,  9 Jan 2022 23:16:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237385AbiAIXQy (ORCPT
+        id S237391AbiAIXQz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 9 Jan 2022 18:16:54 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:42112 "EHLO
+        Sun, 9 Jan 2022 18:16:55 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:42126 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237375AbiAIXQw (ORCPT
+        with ESMTP id S237378AbiAIXQx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 9 Jan 2022 18:16:52 -0500
+        Sun, 9 Jan 2022 18:16:53 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 1CCB964290;
-        Mon, 10 Jan 2022 00:14:00 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id B803E64690;
+        Mon, 10 Jan 2022 00:14:02 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 02/32] netfilter: nf_nat_masquerade: add netns refcount tracker to masq_dev_work
-Date:   Mon, 10 Jan 2022 00:16:10 +0100
-Message-Id: <20220109231640.104123-3-pablo@netfilter.org>
+Subject: [PATCH net-next 06/32] netfilter: nf_tables: replace WARN_ON by WARN_ON_ONCE for unknown verdicts
+Date:   Mon, 10 Jan 2022 00:16:14 +0100
+Message-Id: <20220109231640.104123-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220109231640.104123-1-pablo@netfilter.org>
 References: <20220109231640.104123-1-pablo@netfilter.org>
@@ -31,48 +31,26 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Eric Dumazet <edumazet@google.com>
+Bug might trigger warning for each packet, call WARN_ON_ONCE instead.
 
-If compiled with CONFIG_NET_NS_REFCNT_TRACKER=y,
-using put_net_track() in iterate_cleanup_work()
-and netns_tracker_alloc() in nf_nat_masq_schedule()
-might help us finding netns refcount imbalances.
-
-Signed-off-by: Eric Dumazet <edumazet@google.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_nat_masquerade.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ net/netfilter/nf_tables_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_nat_masquerade.c b/net/netfilter/nf_nat_masquerade.c
-index acd73f717a08..e32fac374608 100644
---- a/net/netfilter/nf_nat_masquerade.c
-+++ b/net/netfilter/nf_nat_masquerade.c
-@@ -12,6 +12,7 @@
- struct masq_dev_work {
- 	struct work_struct work;
- 	struct net *net;
-+	netns_tracker ns_tracker;
- 	union nf_inet_addr addr;
- 	int ifindex;
- 	int (*iter)(struct nf_conn *i, void *data);
-@@ -82,7 +83,7 @@ static void iterate_cleanup_work(struct work_struct *work)
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index d026890a9842..d2ada666d889 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -260,7 +260,7 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
+ 	case NFT_RETURN:
+ 		break;
+ 	default:
+-		WARN_ON(1);
++		WARN_ON_ONCE(1);
+ 	}
  
- 	nf_ct_iterate_cleanup_net(w->net, w->iter, (void *)w, 0, 0);
- 
--	put_net(w->net);
-+	put_net_track(w->net, &w->ns_tracker);
- 	kfree(w);
- 	atomic_dec(&masq_worker_count);
- 	module_put(THIS_MODULE);
-@@ -119,6 +120,7 @@ static void nf_nat_masq_schedule(struct net *net, union nf_inet_addr *addr,
- 		INIT_WORK(&w->work, iterate_cleanup_work);
- 		w->ifindex = ifindex;
- 		w->net = net;
-+		netns_tracker_alloc(net, &w->ns_tracker, gfp_flags);
- 		w->iter = iter;
- 		if (addr)
- 			w->addr = *addr;
+ 	if (stackptr > 0) {
 -- 
 2.30.2
 
