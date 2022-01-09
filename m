@@ -2,26 +2,26 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8571EC43219
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8B33C4167B
 	for <netfilter-devel@archiver.kernel.org>; Sun,  9 Jan 2022 23:17:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237395AbiAIXQ6 (ORCPT
+        id S237407AbiAIXQ7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 9 Jan 2022 18:16:58 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:42108 "EHLO
+        Sun, 9 Jan 2022 18:16:59 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:42126 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237381AbiAIXQy (ORCPT
+        with ESMTP id S237393AbiAIXQz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 9 Jan 2022 18:16:54 -0500
+        Sun, 9 Jan 2022 18:16:55 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 6AE8A607C1;
-        Mon, 10 Jan 2022 00:14:03 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id B702664290;
+        Mon, 10 Jan 2022 00:14:04 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 07/32] netfilter: nf_tables: make counter support built-in
-Date:   Mon, 10 Jan 2022 00:16:15 +0100
-Message-Id: <20220109231640.104123-8-pablo@netfilter.org>
+Subject: [PATCH net-next 09/32] netfilter: nat: force port remap to prevent shadowing well-known ports
+Date:   Mon, 10 Jan 2022 00:16:17 +0100
+Message-Id: <20220109231640.104123-10-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220109231640.104123-1-pablo@netfilter.org>
 References: <20220109231640.104123-1-pablo@netfilter.org>
@@ -31,235 +31,130 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Make counter support built-in to allow for direct call in case of
-CONFIG_RETPOLINE.
+From: Florian Westphal <fw@strlen.de>
 
+If destination port is above 32k and source port below 16k
+assume this might cause 'port shadowing' where a 'new' inbound
+connection matches an existing one, e.g.
+
+inbound X:41234 -> Y:53 matches existing conntrack entry
+        Z:53 -> X:4123, where Z got natted to X.
+
+In this case, new packet is natted to Z:53 which is likely
+unwanted.
+
+We avoid the rewrite for connections that originate from local host:
+port-shadowing is only possible with forwarded connections.
+
+Also adjust test case.
+
+v3: no need to call tuple_force_port_remap if already in random mode (Phil)
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Acked-by: Phil Sutter <phil@nwl.cc>
+Acked-by: Eric Garver <eric@garver.life>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables_core.h |  6 +++
- net/netfilter/Kconfig                  |  6 ---
- net/netfilter/Makefile                 |  3 +-
- net/netfilter/nf_tables_core.c         |  5 +++
- net/netfilter/nft_counter.c            | 58 +++++++-------------------
- 5 files changed, 27 insertions(+), 51 deletions(-)
+ net/netfilter/nf_nat_core.c                  | 43 ++++++++++++++++++--
+ tools/testing/selftests/netfilter/nft_nat.sh |  5 ++-
+ 2 files changed, 43 insertions(+), 5 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
-index 0fa5a6d98a00..b6fb1fdff9b2 100644
---- a/include/net/netfilter/nf_tables_core.h
-+++ b/include/net/netfilter/nf_tables_core.h
-@@ -7,6 +7,7 @@
- 
- extern struct nft_expr_type nft_imm_type;
- extern struct nft_expr_type nft_cmp_type;
-+extern struct nft_expr_type nft_counter_type;
- extern struct nft_expr_type nft_lookup_type;
- extern struct nft_expr_type nft_bitwise_type;
- extern struct nft_expr_type nft_byteorder_type;
-@@ -21,6 +22,7 @@ extern struct nft_expr_type nft_last_type;
- #ifdef CONFIG_NETWORK_SECMARK
- extern struct nft_object_type nft_secmark_obj_type;
- #endif
-+extern struct nft_object_type nft_counter_obj_type;
- 
- int nf_tables_core_module_init(void);
- void nf_tables_core_module_exit(void);
-@@ -120,6 +122,8 @@ bool nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
- bool nft_pipapo_avx2_lookup(const struct net *net, const struct nft_set *set,
- 			    const u32 *key, const struct nft_set_ext **ext);
- 
-+void nft_counter_init_seqcount(void);
-+
- struct nft_expr;
- struct nft_regs;
- struct nft_pktinfo;
-@@ -143,4 +147,6 @@ void nft_dynset_eval(const struct nft_expr *expr,
- 		     struct nft_regs *regs, const struct nft_pktinfo *pkt);
- void nft_rt_get_eval(const struct nft_expr *expr,
- 		     struct nft_regs *regs, const struct nft_pktinfo *pkt);
-+void nft_counter_eval(const struct nft_expr *expr, struct nft_regs *regs,
-+                      const struct nft_pktinfo *pkt);
- #endif /* _NET_NF_TABLES_CORE_H */
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 3646fc195e7d..ddc54b6d18ee 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -515,12 +515,6 @@ config NFT_FLOW_OFFLOAD
- 	  This option adds the "flow_offload" expression that you can use to
- 	  choose what flows are placed into the hardware.
- 
--config NFT_COUNTER
--	tristate "Netfilter nf_tables counter module"
--	help
--	  This option adds the "counter" expression that you can use to
--	  include packet and byte counters in a rule.
--
- config NFT_CONNLIMIT
- 	tristate "Netfilter nf_tables connlimit module"
- 	depends on NF_CONNTRACK
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index aab20e575ecd..a135b1a46014 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -75,7 +75,7 @@ nf_tables-objs := nf_tables_core.o nf_tables_api.o nft_chain_filter.o \
- 		  nf_tables_trace.o nft_immediate.o nft_cmp.o nft_range.o \
- 		  nft_bitwise.o nft_byteorder.o nft_payload.o nft_lookup.o \
- 		  nft_dynset.o nft_meta.o nft_rt.o nft_exthdr.o nft_last.o \
--		  nft_chain_route.o nf_tables_offload.o \
-+		  nft_counter.o nft_chain_route.o nf_tables_offload.o \
- 		  nft_set_hash.o nft_set_bitmap.o nft_set_rbtree.o \
- 		  nft_set_pipapo.o
- 
-@@ -100,7 +100,6 @@ obj-$(CONFIG_NFT_REJECT) 	+= nft_reject.o
- obj-$(CONFIG_NFT_REJECT_INET)	+= nft_reject_inet.o
- obj-$(CONFIG_NFT_REJECT_NETDEV)	+= nft_reject_netdev.o
- obj-$(CONFIG_NFT_TUNNEL)	+= nft_tunnel.o
--obj-$(CONFIG_NFT_COUNTER)	+= nft_counter.o
- obj-$(CONFIG_NFT_LOG)		+= nft_log.o
- obj-$(CONFIG_NFT_MASQ)		+= nft_masq.o
- obj-$(CONFIG_NFT_REDIR)		+= nft_redir.o
-diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index d2ada666d889..df5eda7c7554 100644
---- a/net/netfilter/nf_tables_core.c
-+++ b/net/netfilter/nf_tables_core.c
-@@ -169,6 +169,7 @@ static void expr_call_ops_eval(const struct nft_expr *expr,
- 
- 	X(e, nft_payload_eval);
- 	X(e, nft_cmp_eval);
-+	X(e, nft_counter_eval);
- 	X(e, nft_meta_get_eval);
- 	X(e, nft_lookup_eval);
- 	X(e, nft_range_eval);
-@@ -292,18 +293,22 @@ static struct nft_expr_type *nft_basic_types[] = {
- 	&nft_rt_type,
- 	&nft_exthdr_type,
- 	&nft_last_type,
-+	&nft_counter_type,
- };
- 
- static struct nft_object_type *nft_basic_objects[] = {
- #ifdef CONFIG_NETWORK_SECMARK
- 	&nft_secmark_obj_type,
- #endif
-+	&nft_counter_obj_type,
- };
- 
- int __init nf_tables_core_module_init(void)
- {
- 	int err, i, j = 0;
- 
-+	nft_counter_init_seqcount();
-+
- 	for (i = 0; i < ARRAY_SIZE(nft_basic_objects); i++) {
- 		err = nft_register_obj(nft_basic_objects[i]);
- 		if (err)
-diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
-index 8edd3b3c173d..f179e8c3b0ca 100644
---- a/net/netfilter/nft_counter.c
-+++ b/net/netfilter/nft_counter.c
-@@ -13,6 +13,7 @@
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables_core.h>
- #include <net/netfilter/nf_tables_offload.h>
- 
- struct nft_counter {
-@@ -174,7 +175,7 @@ static const struct nla_policy nft_counter_policy[NFTA_COUNTER_MAX + 1] = {
- 	[NFTA_COUNTER_BYTES]	= { .type = NLA_U64 },
- };
- 
--static struct nft_object_type nft_counter_obj_type;
-+struct nft_object_type nft_counter_obj_type;
- static const struct nft_object_ops nft_counter_obj_ops = {
- 	.type		= &nft_counter_obj_type,
- 	.size		= sizeof(struct nft_counter_percpu_priv),
-@@ -184,7 +185,7 @@ static const struct nft_object_ops nft_counter_obj_ops = {
- 	.dump		= nft_counter_obj_dump,
- };
- 
--static struct nft_object_type nft_counter_obj_type __read_mostly = {
-+struct nft_object_type nft_counter_obj_type __read_mostly = {
- 	.type		= NFT_OBJECT_COUNTER,
- 	.ops		= &nft_counter_obj_ops,
- 	.maxattr	= NFTA_COUNTER_MAX,
-@@ -192,9 +193,8 @@ static struct nft_object_type nft_counter_obj_type __read_mostly = {
- 	.owner		= THIS_MODULE,
- };
- 
--static void nft_counter_eval(const struct nft_expr *expr,
--			     struct nft_regs *regs,
--			     const struct nft_pktinfo *pkt)
-+void nft_counter_eval(const struct nft_expr *expr, struct nft_regs *regs,
-+		      const struct nft_pktinfo *pkt)
- {
- 	struct nft_counter_percpu_priv *priv = nft_expr_priv(expr);
- 
-@@ -275,7 +275,15 @@ static void nft_counter_offload_stats(struct nft_expr *expr,
- 	preempt_enable();
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index ab9f6c75524d..3dd130487b5b 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -494,6 +494,38 @@ static void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 	goto another_round;
  }
  
--static struct nft_expr_type nft_counter_type;
-+void nft_counter_init_seqcount(void)
++static bool tuple_force_port_remap(const struct nf_conntrack_tuple *tuple)
 +{
-+	int cpu;
++	u16 sp, dp;
 +
-+	for_each_possible_cpu(cpu)
-+		seqcount_init(per_cpu_ptr(&nft_counter_seq, cpu));
++	switch (tuple->dst.protonum) {
++	case IPPROTO_TCP:
++		sp = ntohs(tuple->src.u.tcp.port);
++		dp = ntohs(tuple->dst.u.tcp.port);
++		break;
++	case IPPROTO_UDP:
++	case IPPROTO_UDPLITE:
++		sp = ntohs(tuple->src.u.udp.port);
++		dp = ntohs(tuple->dst.u.udp.port);
++		break;
++	default:
++		return false;
++	}
++
++	/* IANA: System port range: 1-1023,
++	 *         user port range: 1024-49151,
++	 *      private port range: 49152-65535.
++	 *
++	 * Linux default ephemeral port range is 32768-60999.
++	 *
++	 * Enforce port remapping if sport is significantly lower
++	 * than dport to prevent NAT port shadowing, i.e.
++	 * accidental match of 'new' inbound connection vs.
++	 * existing outbound one.
++	 */
++	return sp < 16384 && dp >= 32768;
 +}
 +
-+struct nft_expr_type nft_counter_type;
- static const struct nft_expr_ops nft_counter_ops = {
- 	.type		= &nft_counter_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_counter_percpu_priv)),
-@@ -289,7 +297,7 @@ static const struct nft_expr_ops nft_counter_ops = {
- 	.offload_stats	= nft_counter_offload_stats,
- };
+ /* Manipulate the tuple into the range given. For NF_INET_POST_ROUTING,
+  * we change the source to map into the range. For NF_INET_PRE_ROUTING
+  * and NF_INET_LOCAL_OUT, we change the destination to map into the
+@@ -507,11 +539,17 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 		 struct nf_conn *ct,
+ 		 enum nf_nat_manip_type maniptype)
+ {
++	bool random_port = range->flags & NF_NAT_RANGE_PROTO_RANDOM_ALL;
+ 	const struct nf_conntrack_zone *zone;
+ 	struct net *net = nf_ct_net(ct);
  
--static struct nft_expr_type nft_counter_type __read_mostly = {
-+struct nft_expr_type nft_counter_type __read_mostly = {
- 	.name		= "counter",
- 	.ops		= &nft_counter_ops,
- 	.policy		= nft_counter_policy,
-@@ -297,39 +305,3 @@ static struct nft_expr_type nft_counter_type __read_mostly = {
- 	.flags		= NFT_EXPR_STATEFUL,
- 	.owner		= THIS_MODULE,
- };
--
--static int __init nft_counter_module_init(void)
--{
--	int cpu, err;
--
--	for_each_possible_cpu(cpu)
--		seqcount_init(per_cpu_ptr(&nft_counter_seq, cpu));
--
--	err = nft_register_obj(&nft_counter_obj_type);
--	if (err < 0)
--		return err;
--
--	err = nft_register_expr(&nft_counter_type);
--	if (err < 0)
--		goto err1;
--
--	return 0;
--err1:
--	nft_unregister_obj(&nft_counter_obj_type);
--	return err;
--}
--
--static void __exit nft_counter_module_exit(void)
--{
--	nft_unregister_expr(&nft_counter_type);
--	nft_unregister_obj(&nft_counter_obj_type);
--}
--
--module_init(nft_counter_module_init);
--module_exit(nft_counter_module_exit);
--
--MODULE_LICENSE("GPL");
--MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
--MODULE_ALIAS_NFT_EXPR("counter");
--MODULE_ALIAS_NFT_OBJ(NFT_OBJECT_COUNTER);
--MODULE_DESCRIPTION("nftables counter rule support");
+ 	zone = nf_ct_zone(ct);
+ 
++	if (maniptype == NF_NAT_MANIP_SRC &&
++	    !random_port &&
++	    !ct->local_origin)
++		random_port = tuple_force_port_remap(orig_tuple);
++
+ 	/* 1) If this srcip/proto/src-proto-part is currently mapped,
+ 	 * and that same mapping gives a unique tuple within the given
+ 	 * range, use that.
+@@ -520,8 +558,7 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 	 * So far, we don't do local source mappings, so multiple
+ 	 * manips not an issue.
+ 	 */
+-	if (maniptype == NF_NAT_MANIP_SRC &&
+-	    !(range->flags & NF_NAT_RANGE_PROTO_RANDOM_ALL)) {
++	if (maniptype == NF_NAT_MANIP_SRC && !random_port) {
+ 		/* try the original tuple first */
+ 		if (in_range(orig_tuple, range)) {
+ 			if (!nf_nat_used_tuple(orig_tuple, ct)) {
+@@ -545,7 +582,7 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 	 */
+ 
+ 	/* Only bother mapping if it's not already in range and unique */
+-	if (!(range->flags & NF_NAT_RANGE_PROTO_RANDOM_ALL)) {
++	if (!random_port) {
+ 		if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
+ 			if (!(range->flags & NF_NAT_RANGE_PROTO_OFFSET) &&
+ 			    l4proto_in_range(tuple, maniptype,
+diff --git a/tools/testing/selftests/netfilter/nft_nat.sh b/tools/testing/selftests/netfilter/nft_nat.sh
+index d88867d2fed7..349a319a9e51 100755
+--- a/tools/testing/selftests/netfilter/nft_nat.sh
++++ b/tools/testing/selftests/netfilter/nft_nat.sh
+@@ -880,8 +880,9 @@ EOF
+ 		return $ksft_skip
+ 	fi
+ 
+-	# test default behaviour. Packet from ns1 to ns0 is redirected to ns2.
+-	test_port_shadow "default" "CLIENT"
++	# test default behaviour. Packet from ns1 to ns0 is not redirected
++	# due to automatic port translation.
++	test_port_shadow "default" "ROUTER"
+ 
+ 	# test packet filter based mitigation: prevent forwarding of
+ 	# packets claiming to come from the service port.
 -- 
 2.30.2
 
