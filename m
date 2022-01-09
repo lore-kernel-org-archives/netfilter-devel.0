@@ -2,220 +2,83 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F103DC4167D
-	for <netfilter-devel@archiver.kernel.org>; Sat,  8 Jan 2022 22:26:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E165C433F5
+	for <netfilter-devel@archiver.kernel.org>; Sun,  9 Jan 2022 03:17:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233504AbiAHW0x (ORCPT
+        id S232482AbiAIDRA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 8 Jan 2022 17:26:53 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:40116 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233522AbiAHW0u (ORCPT
+        Sat, 8 Jan 2022 22:17:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48568 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232464AbiAIDQ7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 8 Jan 2022 17:26:50 -0500
-Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 4DCFE6468F
-        for <netfilter-devel@vger.kernel.org>; Sat,  8 Jan 2022 23:24:00 +0100 (CET)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next,v2 12/14] netfilter: nft_bitwise: track register operations
-Date:   Sat,  8 Jan 2022 23:26:36 +0100
-Message-Id: <20220108222638.36037-13-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220108222638.36037-1-pablo@netfilter.org>
-References: <20220108222638.36037-1-pablo@netfilter.org>
+        Sat, 8 Jan 2022 22:16:59 -0500
+Received: from mail-pj1-x102a.google.com (mail-pj1-x102a.google.com [IPv6:2607:f8b0:4864:20::102a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93EC6C06173F
+        for <netfilter-devel@vger.kernel.org>; Sat,  8 Jan 2022 19:16:59 -0800 (PST)
+Received: by mail-pj1-x102a.google.com with SMTP id lr15-20020a17090b4b8f00b001b19671cbebso12299902pjb.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 08 Jan 2022 19:16:59 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=sender:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=mCSSP5O7X41zzf82hZjs00+AGU7cDtFaTTQSY2VWgNc=;
+        b=n+p8lUeTBBtds4M3IUnnCtGCOg8DPwcm50gRWVmIsPcYz8eT+okf4RG2/D2NqD3lYF
+         LbvDhZS1hp8dZDilfjd/DSULwtVIsqXD7Vs5Ur1rlf7SMEE8gn6U2CtMZi/S6BppuUj7
+         c9h0yg+dEhYrAo5QyEQFM07Cc+ofl4qDVz96q6etZ4pGZyko9cIVicDqF44ABNmCbcI+
+         3oJVjHo7BmDKXgauzWjiHIiyHfUO5SKstlpUk5c4Yi28ic/OVs4l6hMZZSuQAFaMMNFC
+         zr6dOIDhH5P77ZjfOwtycm7r33fnFBQJ1DpRCmrbS7RPElgddM85ncHjkmI/BbSNCzWD
+         TNTA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
+         :mime-version:content-transfer-encoding;
+        bh=mCSSP5O7X41zzf82hZjs00+AGU7cDtFaTTQSY2VWgNc=;
+        b=Tz2BdLhzIpQQUJBgIQo8lSpLk4dx3Khw1HpGGClfA8Gkc63OGf+dgN3zTvEnzgA9bO
+         7RCq3YO8q/61Zi2HDLfEUSHvQ6a8YpQrLu6rW9ZbH8rBCrHNg6RWw9rj8P/jQdYmLVsp
+         N5g+aEoRbxcM59yS5L4YHVYjsg45nG0tUodeiTRZrw9pscJWWst5NltVWBZL0HiiglKq
+         qB7i+43+/Ad/kZpSU9QTFVpX10Om6B/J3v0xjQKpugR1qzq2tZ9LTX/X8CM0nnUPWlWD
+         ZO/v4sITUCgbCwsaOr4jQfNaFVubpdT3HHI5yx7k5EDjq3jQEycBejt5xYzbpmB2oy5i
+         cerw==
+X-Gm-Message-State: AOAM530/VNCzA6cBDfwrkeYkZQxlh/Js7pilkEsUtsqD6JO3F9Y/0Ymf
+        zjq+l9ZNWY44TLjz+JZCVHIcpUTYVUQ=
+X-Google-Smtp-Source: ABdhPJx/IBcSCMUEI0GBuOGDvRevmePN7Ezh7Wg+ANs2aIJkRCR+OVu2vb2RAAA5YaRN/MQf4Vu0tQ==
+X-Received: by 2002:a17:90a:b108:: with SMTP id z8mr23396485pjq.99.1641698218581;
+        Sat, 08 Jan 2022 19:16:58 -0800 (PST)
+Received: from slk1.local.net (n110-23-108-30.sun3.vic.optusnet.com.au. [110.23.108.30])
+        by smtp.gmail.com with ESMTPSA id me18sm3881864pjb.3.2022.01.08.19.16.56
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 08 Jan 2022 19:16:57 -0800 (PST)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH libnetfilter_queue v3 0/5] Speed-up
+Date:   Sun,  9 Jan 2022 14:16:48 +1100
+Message-Id: <20220109031653.23835-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.34.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Check if the destination register already contains the data that this
-bitwise expression performs. This allows to skip this redundant
-operation.
+This is a re-issue of the patch I submitted  18th May 2021, with some extras.
 
-If the destination contains a different bitwise operation, cancel the
-register tracking information. If the destination contains no bitwise
-operation, update the register tracking information.
+Patch #1 is the original patch, rebased
+Patch #2 is a new patch to get rid of a compiler warning
+Patch #3 is a new patch to rename 'struct qwerty' to something meaningful
+Patch #4 is a new patch to get rid of doxygen warnings
+Patch #5 is a new patch to expose 'struct pktbuff' (to simplify code,
+         since there is never a buffer tacked on the end of one any more)
 
-Update the payload and meta expression to check if this bitwise
-operation has been already performed on the register. Hence, both the
-payload/meta and the bitwise expressions are reduced.
+Duncan Roe (5):
+  Eliminate packet copy when constructing struct pkt_buff
+  src: Avoid compiler warning
+  src: Use more meaningful name in callback.c
+  build: doc: Eliminate doxygen warnings
+  src: struct pktbuff is no longer opaque
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_tables.h |  2 +
- net/netfilter/nft_bitwise.c       | 93 +++++++++++++++++++++++++++++++
- net/netfilter/nft_meta.c          |  2 +-
- net/netfilter/nft_payload.c       |  2 +-
- 4 files changed, 97 insertions(+), 2 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 1c37ce61daea..eaf55da9a205 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -358,6 +358,8 @@ int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src);
- void nft_expr_destroy(const struct nft_ctx *ctx, struct nft_expr *expr);
- int nft_expr_dump(struct sk_buff *skb, unsigned int attr,
- 		  const struct nft_expr *expr);
-+bool nft_expr_reduce_bitwise(struct nft_regs_track *track,
-+			     const struct nft_expr *expr);
- 
- struct nft_set_ext;
- 
-diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
-index 47b0dba95054..95855fa41ad7 100644
---- a/net/netfilter/nft_bitwise.c
-+++ b/net/netfilter/nft_bitwise.c
-@@ -278,12 +278,51 @@ static int nft_bitwise_offload(struct nft_offload_ctx *ctx,
- 	return 0;
- }
- 
-+static bool nft_bitwise_reduce(struct nft_regs_track *track,
-+			       const struct nft_expr *expr)
-+{
-+	const struct nft_bitwise *priv = nft_expr_priv(expr);
-+	const struct nft_bitwise *bitwise;
-+
-+	if (!track->regs[priv->dreg].selector)
-+		return false;
-+
-+	if (!track->regs[priv->dreg].bitwise) {
-+		track->regs[priv->dreg].bitwise = expr;
-+		return false;
-+	}
-+
-+	if (track->regs[priv->dreg].bitwise->ops != expr->ops) {
-+		track->regs[priv->dreg].selector = NULL;
-+		track->regs[priv->dreg].bitwise = NULL;
-+		return false;
-+	}
-+
-+	bitwise = nft_expr_priv(track->regs[priv->dreg].bitwise);
-+	if (memcmp(&priv->mask, &bitwise->mask, sizeof(priv->mask)) ||
-+	    memcmp(&priv->xor, &bitwise->xor, sizeof(priv->xor)) ||
-+	    memcmp(&priv->data, &bitwise->data, sizeof(priv->data)) ||
-+	    priv->len != bitwise->len ||
-+	    priv->op != bitwise->op ||
-+	    priv->sreg != bitwise->sreg ||
-+	    priv->dreg != bitwise->dreg) {
-+		track->regs[priv->dreg].selector = NULL;
-+		track->regs[priv->dreg].bitwise = NULL;
-+		return false;
-+	}
-+
-+	track->cur = expr;
-+
-+	return true;
-+}
-+
- static const struct nft_expr_ops nft_bitwise_ops = {
- 	.type		= &nft_bitwise_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_bitwise)),
- 	.eval		= nft_bitwise_eval,
- 	.init		= nft_bitwise_init,
- 	.dump		= nft_bitwise_dump,
-+	.reduce		= nft_bitwise_reduce,
- 	.offload	= nft_bitwise_offload,
- };
- 
-@@ -385,12 +424,48 @@ static int nft_bitwise_fast_offload(struct nft_offload_ctx *ctx,
- 	return 0;
- }
- 
-+static bool nft_bitwise_fast_reduce(struct nft_regs_track *track,
-+				    const struct nft_expr *expr)
-+{
-+	const struct nft_bitwise_fast_expr *priv = nft_expr_priv(expr);
-+	const struct nft_bitwise_fast_expr *bitwise;
-+
-+	if (!track->regs[priv->dreg].selector)
-+		return false;
-+
-+	if (!track->regs[priv->dreg].bitwise) {
-+		track->regs[priv->dreg].bitwise = expr;
-+		return false;
-+	}
-+
-+	if (track->regs[priv->dreg].bitwise->ops != expr->ops) {
-+		track->regs[priv->dreg].selector = NULL;
-+		track->regs[priv->dreg].bitwise = NULL;
-+		return false;
-+	}
-+
-+	bitwise = nft_expr_priv(track->regs[priv->dreg].bitwise);
-+	if (priv->mask != bitwise->mask ||
-+	    priv->xor != bitwise->xor ||
-+	    priv->sreg != bitwise->sreg ||
-+	    priv->dreg != bitwise->dreg) {
-+		track->regs[priv->dreg].selector = NULL;
-+		track->regs[priv->dreg].bitwise = NULL;
-+		return false;
-+	}
-+
-+	track->cur = expr;
-+
-+	return true;
-+}
-+
- const struct nft_expr_ops nft_bitwise_fast_ops = {
- 	.type		= &nft_bitwise_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_bitwise_fast_expr)),
- 	.eval		= NULL, /* inlined */
- 	.init		= nft_bitwise_fast_init,
- 	.dump		= nft_bitwise_fast_dump,
-+	.reduce		= nft_bitwise_fast_reduce,
- 	.offload	= nft_bitwise_fast_offload,
- };
- 
-@@ -427,3 +502,21 @@ struct nft_expr_type nft_bitwise_type __read_mostly = {
- 	.maxattr	= NFTA_BITWISE_MAX,
- 	.owner		= THIS_MODULE,
- };
-+
-+bool nft_expr_reduce_bitwise(struct nft_regs_track *track,
-+			     const struct nft_expr *expr)
-+{
-+	const struct nft_expr *last = track->last;
-+	const struct nft_expr *next;
-+
-+	if (expr == last)
-+		return false;
-+
-+	next = nft_expr_next(expr);
-+	if (next->ops == &nft_bitwise_ops)
-+		return nft_bitwise_reduce(track, next);
-+	else if (next->ops == &nft_bitwise_fast_ops)
-+		return nft_bitwise_fast_reduce(track, next);
-+
-+	return false;
-+}
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 430f40bc3cb4..40fe48fcf9d0 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -774,7 +774,7 @@ static bool nft_meta_get_reduce(struct nft_regs_track *track,
- 	if (!track->regs[priv->dreg].bitwise)
- 		return true;
- 
--	return false;
-+	return nft_expr_reduce_bitwise(track, expr);
- }
- 
- static const struct nft_expr_ops nft_meta_get_ops = {
-diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index b228fea0f263..b5a3c45727b3 100644
---- a/net/netfilter/nft_payload.c
-+++ b/net/netfilter/nft_payload.c
-@@ -235,7 +235,7 @@ static bool nft_payload_reduce(struct nft_regs_track *track,
- 	if (!track->regs[priv->dreg].bitwise)
- 		return true;
- 
--	return false;
-+	return nft_expr_reduce_bitwise(track, expr);
- }
- 
- static bool nft_payload_offload_mask(struct nft_offload_reg *reg,
 -- 
-2.30.2
+2.17.5
 
