@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56CCEC43217
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 404C2C433EF
 	for <netfilter-devel@archiver.kernel.org>; Sun,  9 Jan 2022 16:11:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235997AbiAIQLf (ORCPT
+        id S235996AbiAIQLf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sun, 9 Jan 2022 11:11:35 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:41384 "EHLO
+Received: from mail.netfilter.org ([217.70.188.207]:41386 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235990AbiAIQLe (ORCPT
+        with ESMTP id S235991AbiAIQLe (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Sun, 9 Jan 2022 11:11:34 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id DEDDE64291
-        for <netfilter-devel@vger.kernel.org>; Sun,  9 Jan 2022 17:08:43 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id E33456468F
+        for <netfilter-devel@vger.kernel.org>; Sun,  9 Jan 2022 17:08:44 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH 04/14] netfilter: nft_numgen: move stateful fields out of expression data
-Date:   Sun,  9 Jan 2022 17:11:16 +0100
-Message-Id: <20220109161126.83917-5-pablo@netfilter.org>
+Subject: [PATCH 08/14] netfilter: nf_tables: add NFT_REG32_NUM
+Date:   Sun,  9 Jan 2022 17:11:20 +0100
+Message-Id: <20220109161126.83917-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220109161126.83917-1-pablo@netfilter.org>
 References: <20220109161126.83917-1-pablo@netfilter.org>
@@ -30,95 +30,36 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-In preparation for the rule blob representation.
+Add a definition including the maximum number of 32-bits registers that
+are used a scratchpad memory area to store data.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_numgen.c | 34 ++++++++++++++++++++++++++++------
- 1 file changed, 28 insertions(+), 6 deletions(-)
+ include/net/netfilter/nf_tables.h | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nft_numgen.c b/net/netfilter/nft_numgen.c
-index 722cac1e90e0..1d378efd8823 100644
---- a/net/netfilter/nft_numgen.c
-+++ b/net/netfilter/nft_numgen.c
-@@ -18,7 +18,7 @@ static DEFINE_PER_CPU(struct rnd_state, nft_numgen_prandom_state);
- struct nft_ng_inc {
- 	u8			dreg;
- 	u32			modulus;
--	atomic_t		counter;
-+	atomic_t		*counter;
- 	u32			offset;
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 5a046b01bdab..515e5db97e01 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -105,6 +105,8 @@ struct nft_data {
+ 	};
+ } __attribute__((aligned(__alignof__(u64))));
+ 
++#define NFT_REG32_NUM		20
++
+ /**
+  *	struct nft_regs - nf_tables register set
+  *
+@@ -115,7 +117,7 @@ struct nft_data {
+  */
+ struct nft_regs {
+ 	union {
+-		u32			data[20];
++		u32			data[NFT_REG32_NUM];
+ 		struct nft_verdict	verdict;
+ 	};
  };
- 
-@@ -27,9 +27,9 @@ static u32 nft_ng_inc_gen(struct nft_ng_inc *priv)
- 	u32 nval, oval;
- 
- 	do {
--		oval = atomic_read(&priv->counter);
-+		oval = atomic_read(priv->counter);
- 		nval = (oval + 1 < priv->modulus) ? oval + 1 : 0;
--	} while (atomic_cmpxchg(&priv->counter, oval, nval) != oval);
-+	} while (atomic_cmpxchg(priv->counter, oval, nval) != oval);
- 
- 	return nval + priv->offset;
- }
-@@ -55,6 +55,7 @@ static int nft_ng_inc_init(const struct nft_ctx *ctx,
- 			   const struct nlattr * const tb[])
- {
- 	struct nft_ng_inc *priv = nft_expr_priv(expr);
-+	int err;
- 
- 	if (tb[NFTA_NG_OFFSET])
- 		priv->offset = ntohl(nla_get_be32(tb[NFTA_NG_OFFSET]));
-@@ -66,10 +67,22 @@ static int nft_ng_inc_init(const struct nft_ctx *ctx,
- 	if (priv->offset + priv->modulus - 1 < priv->offset)
- 		return -EOVERFLOW;
- 
--	atomic_set(&priv->counter, priv->modulus - 1);
-+	priv->counter = kmalloc(sizeof(*priv->counter), GFP_KERNEL);
-+	if (!priv->counter)
-+		return -ENOMEM;
- 
--	return nft_parse_register_store(ctx, tb[NFTA_NG_DREG], &priv->dreg,
--					NULL, NFT_DATA_VALUE, sizeof(u32));
-+	atomic_set(priv->counter, priv->modulus - 1);
-+
-+	err = nft_parse_register_store(ctx, tb[NFTA_NG_DREG], &priv->dreg,
-+				       NULL, NFT_DATA_VALUE, sizeof(u32));
-+	if (err < 0)
-+		goto err;
-+
-+	return 0;
-+err:
-+	kfree(priv->counter);
-+
-+	return err;
- }
- 
- static int nft_ng_dump(struct sk_buff *skb, enum nft_registers dreg,
-@@ -98,6 +111,14 @@ static int nft_ng_inc_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 			   priv->offset);
- }
- 
-+static void nft_ng_inc_destroy(const struct nft_ctx *ctx,
-+			       const struct nft_expr *expr)
-+{
-+	const struct nft_ng_inc *priv = nft_expr_priv(expr);
-+
-+	kfree(priv->counter);
-+}
-+
- struct nft_ng_random {
- 	u8			dreg;
- 	u32			modulus;
-@@ -157,6 +178,7 @@ static const struct nft_expr_ops nft_ng_inc_ops = {
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_ng_inc)),
- 	.eval		= nft_ng_inc_eval,
- 	.init		= nft_ng_inc_init,
-+	.destroy	= nft_ng_inc_destroy,
- 	.dump		= nft_ng_inc_dump,
- };
- 
 -- 
 2.30.2
 
