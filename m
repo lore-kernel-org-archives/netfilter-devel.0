@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7520CC433FE
-	for <netfilter-devel@archiver.kernel.org>; Sun,  9 Jan 2022 16:11:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 56CCEC43217
+	for <netfilter-devel@archiver.kernel.org>; Sun,  9 Jan 2022 16:11:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235993AbiAIQLe (ORCPT
+        id S235997AbiAIQLf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 9 Jan 2022 11:11:34 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:41380 "EHLO
+        Sun, 9 Jan 2022 11:11:35 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:41384 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234103AbiAIQLe (ORCPT
+        with ESMTP id S235990AbiAIQLe (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Sun, 9 Jan 2022 11:11:34 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 61D866428F
+        by mail.netfilter.org (Postfix) with ESMTPSA id DEDDE64291
         for <netfilter-devel@vger.kernel.org>; Sun,  9 Jan 2022 17:08:43 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH 02/14] netfilter: nft_last: move stateful fields out of expression data
-Date:   Sun,  9 Jan 2022 17:11:14 +0100
-Message-Id: <20220109161126.83917-3-pablo@netfilter.org>
+Subject: [PATCH 04/14] netfilter: nft_numgen: move stateful fields out of expression data
+Date:   Sun,  9 Jan 2022 17:11:16 +0100
+Message-Id: <20220109161126.83917-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220109161126.83917-1-pablo@netfilter.org>
 References: <20220109161126.83917-1-pablo@netfilter.org>
@@ -34,132 +34,89 @@ In preparation for the rule blob representation.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_last.c | 69 +++++++++++++++++++++++++++++-----------
- 1 file changed, 51 insertions(+), 18 deletions(-)
+ net/netfilter/nft_numgen.c | 34 ++++++++++++++++++++++++++++------
+ 1 file changed, 28 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/nft_last.c b/net/netfilter/nft_last.c
-index 304e33cbed9b..5ee33d0ccd4e 100644
---- a/net/netfilter/nft_last.c
-+++ b/net/netfilter/nft_last.c
-@@ -8,9 +8,13 @@
- #include <net/netfilter/nf_tables_core.h>
- #include <net/netfilter/nf_tables.h>
- 
-+struct nft_last {
-+	unsigned long	jiffies;
-+	unsigned int	set;
-+};
-+
- struct nft_last_priv {
--	unsigned long	last_jiffies;
--	unsigned int	last_set;
-+	struct nft_last	*last;
+diff --git a/net/netfilter/nft_numgen.c b/net/netfilter/nft_numgen.c
+index 722cac1e90e0..1d378efd8823 100644
+--- a/net/netfilter/nft_numgen.c
++++ b/net/netfilter/nft_numgen.c
+@@ -18,7 +18,7 @@ static DEFINE_PER_CPU(struct rnd_state, nft_numgen_prandom_state);
+ struct nft_ng_inc {
+ 	u8			dreg;
+ 	u32			modulus;
+-	atomic_t		counter;
++	atomic_t		*counter;
+ 	u32			offset;
  };
  
- static const struct nla_policy nft_last_policy[NFTA_LAST_MAX + 1] = {
-@@ -22,47 +26,55 @@ static int nft_last_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 			 const struct nlattr * const tb[])
+@@ -27,9 +27,9 @@ static u32 nft_ng_inc_gen(struct nft_ng_inc *priv)
+ 	u32 nval, oval;
+ 
+ 	do {
+-		oval = atomic_read(&priv->counter);
++		oval = atomic_read(priv->counter);
+ 		nval = (oval + 1 < priv->modulus) ? oval + 1 : 0;
+-	} while (atomic_cmpxchg(&priv->counter, oval, nval) != oval);
++	} while (atomic_cmpxchg(priv->counter, oval, nval) != oval);
+ 
+ 	return nval + priv->offset;
+ }
+@@ -55,6 +55,7 @@ static int nft_ng_inc_init(const struct nft_ctx *ctx,
+ 			   const struct nlattr * const tb[])
  {
- 	struct nft_last_priv *priv = nft_expr_priv(expr);
-+	struct nft_last *last;
- 	u64 last_jiffies;
--	u32 last_set = 0;
- 	int err;
+ 	struct nft_ng_inc *priv = nft_expr_priv(expr);
++	int err;
  
--	if (tb[NFTA_LAST_SET]) {
--		last_set = ntohl(nla_get_be32(tb[NFTA_LAST_SET]));
--		if (last_set == 1)
--			priv->last_set = 1;
--	}
-+	last = kzalloc(sizeof(*last), GFP_KERNEL);
-+	if (!last)
+ 	if (tb[NFTA_NG_OFFSET])
+ 		priv->offset = ntohl(nla_get_be32(tb[NFTA_NG_OFFSET]));
+@@ -66,10 +67,22 @@ static int nft_ng_inc_init(const struct nft_ctx *ctx,
+ 	if (priv->offset + priv->modulus - 1 < priv->offset)
+ 		return -EOVERFLOW;
+ 
+-	atomic_set(&priv->counter, priv->modulus - 1);
++	priv->counter = kmalloc(sizeof(*priv->counter), GFP_KERNEL);
++	if (!priv->counter)
 +		return -ENOMEM;
+ 
+-	return nft_parse_register_store(ctx, tb[NFTA_NG_DREG], &priv->dreg,
+-					NULL, NFT_DATA_VALUE, sizeof(u32));
++	atomic_set(priv->counter, priv->modulus - 1);
 +
-+	if (tb[NFTA_LAST_SET])
-+		last->set = ntohl(nla_get_be32(tb[NFTA_LAST_SET]));
- 
--	if (last_set && tb[NFTA_LAST_MSECS]) {
-+	if (last->set && tb[NFTA_LAST_MSECS]) {
- 		err = nf_msecs_to_jiffies64(tb[NFTA_LAST_MSECS], &last_jiffies);
- 		if (err < 0)
--			return err;
-+			goto err;
- 
--		priv->last_jiffies = jiffies - (unsigned long)last_jiffies;
-+		last->jiffies = jiffies - (unsigned long)last_jiffies;
- 	}
-+	priv->last = last;
- 
- 	return 0;
++	err = nft_parse_register_store(ctx, tb[NFTA_NG_DREG], &priv->dreg,
++				       NULL, NFT_DATA_VALUE, sizeof(u32));
++	if (err < 0)
++		goto err;
++
++	return 0;
 +err:
-+	kfree(last);
++	kfree(priv->counter);
 +
 +	return err;
  }
  
- static void nft_last_eval(const struct nft_expr *expr,
- 			  struct nft_regs *regs, const struct nft_pktinfo *pkt)
- {
- 	struct nft_last_priv *priv = nft_expr_priv(expr);
-+	struct nft_last *last = priv->last;
- 
--	if (READ_ONCE(priv->last_jiffies) != jiffies)
--		WRITE_ONCE(priv->last_jiffies, jiffies);
--	if (READ_ONCE(priv->last_set) == 0)
--		WRITE_ONCE(priv->last_set, 1);
-+	if (READ_ONCE(last->jiffies) != jiffies)
-+		WRITE_ONCE(last->jiffies, jiffies);
-+	if (READ_ONCE(last->set) == 0)
-+		WRITE_ONCE(last->set, 1);
+ static int nft_ng_dump(struct sk_buff *skb, enum nft_registers dreg,
+@@ -98,6 +111,14 @@ static int nft_ng_inc_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 			   priv->offset);
  }
  
- static int nft_last_dump(struct sk_buff *skb, const struct nft_expr *expr)
- {
- 	struct nft_last_priv *priv = nft_expr_priv(expr);
--	unsigned long last_jiffies = READ_ONCE(priv->last_jiffies);
--	u32 last_set = READ_ONCE(priv->last_set);
-+	struct nft_last *last = priv->last;
-+	unsigned long last_jiffies = READ_ONCE(last->jiffies);
-+	u32 last_set = READ_ONCE(last->set);
- 	__be64 msecs;
- 
- 	if (time_before(jiffies, last_jiffies)) {
--		WRITE_ONCE(priv->last_set, 0);
-+		WRITE_ONCE(last->set, 0);
- 		last_set = 0;
- 	}
- 
-@@ -81,11 +93,32 @@ static int nft_last_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 	return -1;
- }
- 
-+static void nft_last_destroy(const struct nft_ctx *ctx,
-+			     const struct nft_expr *expr)
++static void nft_ng_inc_destroy(const struct nft_ctx *ctx,
++			       const struct nft_expr *expr)
 +{
-+	struct nft_last_priv *priv = nft_expr_priv(expr);
++	const struct nft_ng_inc *priv = nft_expr_priv(expr);
 +
-+	kfree(priv->last);
++	kfree(priv->counter);
 +}
 +
-+static int nft_last_clone(struct nft_expr *dst, const struct nft_expr *src)
-+{
-+	struct nft_last_priv *priv_dst = nft_expr_priv(dst);
-+
-+	priv_dst->last = kzalloc(sizeof(*priv_dst->last), GFP_ATOMIC);
-+	if (priv_dst->last)
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+
- static const struct nft_expr_ops nft_last_ops = {
- 	.type		= &nft_last_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_last_priv)),
- 	.eval		= nft_last_eval,
- 	.init		= nft_last_init,
-+	.destroy	= nft_last_destroy,
-+	.clone		= nft_last_clone,
- 	.dump		= nft_last_dump,
+ struct nft_ng_random {
+ 	u8			dreg;
+ 	u32			modulus;
+@@ -157,6 +178,7 @@ static const struct nft_expr_ops nft_ng_inc_ops = {
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_ng_inc)),
+ 	.eval		= nft_ng_inc_eval,
+ 	.init		= nft_ng_inc_init,
++	.destroy	= nft_ng_inc_destroy,
+ 	.dump		= nft_ng_inc_dump,
  };
  
 -- 
