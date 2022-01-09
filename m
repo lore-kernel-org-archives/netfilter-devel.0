@@ -2,26 +2,26 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57431C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96F42C4321E
 	for <netfilter-devel@archiver.kernel.org>; Sun,  9 Jan 2022 23:17:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237406AbiAIXQ6 (ORCPT
+        id S237374AbiAIXQ6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sun, 9 Jan 2022 18:16:58 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:42108 "EHLO
+Received: from mail.netfilter.org ([217.70.188.207]:42112 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237389AbiAIXQ4 (ORCPT
+        with ESMTP id S237386AbiAIXQz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 9 Jan 2022 18:16:56 -0500
+        Sun, 9 Jan 2022 18:16:55 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 0BC3D64690;
-        Mon, 10 Jan 2022 00:14:06 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 0E0A46428F;
+        Mon, 10 Jan 2022 00:14:04 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 11/32] netfilter: nft_set_pipapo_avx2: remove redundant pointer lt
-Date:   Mon, 10 Jan 2022 00:16:19 +0100
-Message-Id: <20220109231640.104123-12-pablo@netfilter.org>
+Subject: [PATCH net-next 08/32] netfilter: conntrack: tag conntracks picked up in local out hook
+Date:   Mon, 10 Jan 2022 00:16:16 +0100
+Message-Id: <20220109231640.104123-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220109231640.104123-1-pablo@netfilter.org>
 References: <20220109231640.104123-1-pablo@netfilter.org>
@@ -31,34 +31,49 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Colin Ian King <colin.i.king@gmail.com>
+From: Florian Westphal <fw@strlen.de>
 
-The pointer lt is being assigned a value and then later
-updated but that value is never read. The pointer is
-redundant and can be removed.
+This allows to identify flows that originate from local machine
+in a followup patch.
 
-Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
+It would be possible to make this a ->status bit instead.
+For now I did not do that yet because I don't have a use-case for
+exposing this info to userspace.
+
+If one comes up the toggle can be replaced with a status bit.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_set_pipapo_avx2.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ include/net/netfilter/nf_conntrack.h | 1 +
+ net/netfilter/nf_conntrack_core.c    | 3 +++
+ 2 files changed, 4 insertions(+)
 
-diff --git a/net/netfilter/nft_set_pipapo_avx2.c b/net/netfilter/nft_set_pipapo_avx2.c
-index 6f4116e72958..52e0d026d30a 100644
---- a/net/netfilter/nft_set_pipapo_avx2.c
-+++ b/net/netfilter/nft_set_pipapo_avx2.c
-@@ -1048,11 +1048,9 @@ static int nft_pipapo_avx2_lookup_slow(unsigned long *map, unsigned long *fill,
- 					struct nft_pipapo_field *f, int offset,
- 					const u8 *pkt, bool first, bool last)
- {
--	unsigned long *lt = f->lt, bsize = f->bsize;
-+	unsigned long bsize = f->bsize;
- 	int i, ret = -1, b;
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index d24b0a34c8f0..871489df63c6 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -95,6 +95,7 @@ struct nf_conn {
+ 	unsigned long status;
  
--	lt += offset * NFT_PIPAPO_LONGS_PER_M256;
--
- 	if (first)
- 		memset(map, 0xff, bsize * sizeof(*map));
+ 	u16		cpu;
++	u16		local_origin:1;
+ 	possible_net_t ct_net;
+ 
+ #if IS_ENABLED(CONFIG_NF_NAT)
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index d7e313548066..bed0017cadb0 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1747,6 +1747,9 @@ resolve_normal_ct(struct nf_conn *tmpl,
+ 			return 0;
+ 		if (IS_ERR(h))
+ 			return PTR_ERR(h);
++
++		ct = nf_ct_tuplehash_to_ctrack(h);
++		ct->local_origin = state->hook == NF_INET_LOCAL_OUT;
+ 	}
+ 	ct = nf_ct_tuplehash_to_ctrack(h);
  
 -- 
 2.30.2
