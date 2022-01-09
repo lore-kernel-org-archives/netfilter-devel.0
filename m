@@ -2,26 +2,26 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46CD7C433EF
-	for <netfilter-devel@archiver.kernel.org>; Sun,  9 Jan 2022 23:16:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20A3BC433F5
+	for <netfilter-devel@archiver.kernel.org>; Sun,  9 Jan 2022 23:16:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237376AbiAIXQv (ORCPT
+        id S237387AbiAIXQy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 9 Jan 2022 18:16:51 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:42106 "EHLO
+        Sun, 9 Jan 2022 18:16:54 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:42124 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236098AbiAIXQu (ORCPT
+        with ESMTP id S237377AbiAIXQx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 9 Jan 2022 18:16:50 -0500
+        Sun, 9 Jan 2022 18:16:53 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 57AE26428F;
-        Mon, 10 Jan 2022 00:13:59 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 6CE806468E;
+        Mon, 10 Jan 2022 00:14:01 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 01/32] netfilter: nfnetlink: add netns refcount tracker to struct nfulnl_instance
-Date:   Mon, 10 Jan 2022 00:16:09 +0100
-Message-Id: <20220109231640.104123-2-pablo@netfilter.org>
+Subject: [PATCH net-next 04/32] netfilter: nft_payload: WARN_ON_ONCE instead of BUG
+Date:   Mon, 10 Jan 2022 00:16:12 +0100
+Message-Id: <20220109231640.104123-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220109231640.104123-1-pablo@netfilter.org>
 References: <20220109231640.104123-1-pablo@netfilter.org>
@@ -31,49 +31,37 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Eric Dumazet <edumazet@google.com>
+BUG() is too harsh for unknown payload base, use WARN_ON_ONCE() instead.
 
-If compiled with CONFIG_NET_NS_REFCNT_TRACKER=y,
-using put_net_track() in nfulnl_instance_free_rcu()
-and get_net_track() in instance_create()
-might help us finding netns refcount imbalances.
-
-Signed-off-by: Eric Dumazet <edumazet@google.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_log.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ net/netfilter/nft_payload.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 691ef4cffdd9..7a3a91fc7ffa 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -66,6 +66,7 @@ struct nfulnl_instance {
- 	struct sk_buff *skb;		/* pre-allocatd skb */
- 	struct timer_list timer;
- 	struct net *net;
-+	netns_tracker ns_tracker;
- 	struct user_namespace *peer_user_ns;	/* User namespace of the peer process */
- 	u32 peer_portid;		/* PORTID of the peer process */
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index bd689938a2e0..f2e65df32a06 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -157,7 +157,8 @@ void nft_payload_eval(const struct nft_expr *expr,
+ 			goto err;
+ 		break;
+ 	default:
+-		BUG();
++		WARN_ON_ONCE(1);
++		goto err;
+ 	}
+ 	offset += priv->offset;
  
-@@ -140,7 +141,7 @@ static void nfulnl_instance_free_rcu(struct rcu_head *head)
- 	struct nfulnl_instance *inst =
- 		container_of(head, struct nfulnl_instance, rcu);
+@@ -664,7 +665,8 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
+ 			goto err;
+ 		break;
+ 	default:
+-		BUG();
++		WARN_ON_ONCE(1);
++		goto err;
+ 	}
  
--	put_net(inst->net);
-+	put_net_track(inst->net, &inst->ns_tracker);
- 	kfree(inst);
- 	module_put(THIS_MODULE);
- }
-@@ -187,7 +188,7 @@ instance_create(struct net *net, u_int16_t group_num,
- 
- 	timer_setup(&inst->timer, nfulnl_timer, 0);
- 
--	inst->net = get_net(net);
-+	inst->net = get_net_track(net, &inst->ns_tracker, GFP_ATOMIC);
- 	inst->peer_user_ns = user_ns;
- 	inst->peer_portid = portid;
- 	inst->group_num = group_num;
+ 	csum_offset = offset + priv->csum_offset;
 -- 
 2.30.2
 
