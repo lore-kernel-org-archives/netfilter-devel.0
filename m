@@ -2,42 +2,42 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B496C4332F
-	for <netfilter-devel@archiver.kernel.org>; Sun,  9 Jan 2022 11:58:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70ED1C433EF
+	for <netfilter-devel@archiver.kernel.org>; Sun,  9 Jan 2022 12:13:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233947AbiAIL6n (ORCPT
+        id S229693AbiAIMNR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 9 Jan 2022 06:58:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47120 "EHLO
+        Sun, 9 Jan 2022 07:13:17 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50284 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230155AbiAIL6m (ORCPT
+        with ESMTP id S232800AbiAIMNQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 9 Jan 2022 06:58:42 -0500
+        Sun, 9 Jan 2022 07:13:16 -0500
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4FB86C061756
-        for <netfilter-devel@vger.kernel.org>; Sun,  9 Jan 2022 03:58:42 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A86E6C06173F
+        for <netfilter-devel@vger.kernel.org>; Sun,  9 Jan 2022 04:13:16 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=MSUs7MQCLpP518lzZg/FUWr6NCBypLIiFDmZ8aQqjr4=; b=d0gVjzyp3mNZdTKSRMPcBbuiJX
-        ZzGI6F1AGOwPcW3y2eU3wP/gWbSWK3vbuncSFgtdjor8kWeY4H5njh7irU1ArJKRCGFY/JtAyZ5XV
-        e2+cTYvX7q0vzmYv5eh9pNgb/W5tvYoCn3i3FaFDK9wIj6ZVYIMB5HfbEU3HDqSIV6bZa8zT2ICQu
-        rUkMYKQuFKcOOCQLMBTUEAz8YNIf3EJCfrkoN0otpCyl97ixjbmVMc7CQGYvca17NStnk1g/MXzAR
-        XxtJhWBmcLVIqVY3Fo5ppuzkiyGODYwxqB4SpPc2r0g5iUdQJ2sY7uss23r3oPIP+XISDY9S08op+
-        gwtsj00w==;
+        bh=LF8SpBWLwkgI627VsQY8rk7WTYkNFEt3s3j1MGC0J9M=; b=WGGb+0i8Aav+wOBEvHNKDa7gjV
+        hon40FmUUZ37OfnQ1orQgFLJgKORm3yV7i8Th4TjPNUMELwNpDqObzcT2uq8T0JpsFhCP4EjipAR/
+        7Upt6BDfRzZRP6MIxbBg2N7z6mx5drGyfNRrsLvjOlFqiyIlgNA/v1H0t+yMkryh3fZIv8Pcc6bOL
+        RYH4f2zDNc31fqiTlUn0brMfz6HUB+++3iZS5Nym2oOm62mYFyjYUjav+F4VQSc//Eq65Jav8jutO
+        Q3uUYusHVyoDplSKMPdy5mR9xU3j0O9twkG/DyA5+9hDHWWRdo8IvFgrPxzkFVT+cuvXkMRs8cXDy
+        qALBv9uQ==;
 Received: from ulthar.dreamlands ([192.168.96.2] helo=ulthar.dreamlands.azazel.net)
         by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1n6WqO-002BZm-IH
-        for netfilter-devel@vger.kernel.org; Sun, 09 Jan 2022 11:58:40 +0000
+        id 1n6WqP-002BZm-4E
+        for netfilter-devel@vger.kernel.org; Sun, 09 Jan 2022 11:58:41 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [ulogd2 PATCH v2 04/10] build: use pkg-config or pcap-config for libpcap
-Date:   Sun,  9 Jan 2022 11:57:47 +0000
-Message-Id: <20220109115753.1787915-5-jeremy@azazel.net>
+Subject: [ulogd2 PATCH v2 10/10] build: if `--enable-sqlite3` is `yes`, abort if libsqlite3 is not found
+Date:   Sun,  9 Jan 2022 11:57:53 +0000
+Message-Id: <20220109115753.1787915-11-jeremy@azazel.net>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20220109115753.1787915-1-jeremy@azazel.net>
 References: <20220109115753.1787915-1-jeremy@azazel.net>
@@ -50,157 +50,34 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Recent versions of libpcap support pkg-config.  Older versions provide a
-pcap-config script.  Use pkg-config if available, otherwise fall back to
-pcap-config.
+If SQLITE3 support has been explicitly requested, abort if it is not
+available.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- acinclude.m4            | 79 -----------------------------------------
- configure.ac            | 30 ++++++++++++++--
- output/pcap/Makefile.am |  2 ++
- 3 files changed, 29 insertions(+), 82 deletions(-)
+ configure.ac | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/acinclude.m4 b/acinclude.m4
-index a49ed316e65a..6d88c3a53cff 100644
---- a/acinclude.m4
-+++ b/acinclude.m4
-@@ -93,82 +93,3 @@ fi
- 
- ])
- 
--dnl @synopsis CT_CHECK_PCAP
--dnl
--dnl This macro tries to find the headers and libraries for libpcap.
--dnl
--dnl If includes are found, the variable PCAP_INC will be set. If
--dnl libraries are found, the variable PCAP_LIB will be set. if no check
--dnl was successful, the script exits with a error message.
--dnl
--dnl @category InstalledPackages
--dnl @author Harald Welte <laforge@gnumonks.org>
--dnl @version 2006-01-07
--dnl @license AllPermissive
--
--AC_DEFUN([CT_CHECK_PCAP], [
--
--AC_ARG_WITH(pcap,
--	[  --with-pcap=PREFIX		Prefix of your libpcap installation],
--	[pcap_prefix=$withval], [pcap_prefix=])
--AC_ARG_WITH(pcap-inc,
--	[  --with-pcap-inc=PATH		Path to the include directory of pcap],
--	[pcap_inc=$withval], [pcap_inc=/usr/include])
--AC_ARG_WITH(pcap-lib,
--	[  --with-pcap-lib=PATH		Path to the libraries of pcap],
--	[pcap_lib=$withval], [pcap_lib=/usr/lib])
--
--
--AC_SUBST(PCAP_INC)
--AC_SUBST(PCAP_LIB)
--AC_SUBST(HAVE_PCAP_LIB)
--
--if test "$pcap_prefix" != "no"; then
--
--if test "$pcap_prefix" != ""; then
--   AC_MSG_CHECKING([for libpcap includes in $pcap_prefix/include])
--   if test -f "$pcap_prefix/include/pcap.h" ; then
--      PCAP_INC="-I$pcap_prefix/include"
--      AC_MSG_RESULT([yes])
--   else
--      AC_MSG_WARN(pcap.h not found)
--   fi
--   AC_MSG_CHECKING([for libpcap in $pcap_prefix/lib])
--   if test -f "$pcap_prefix/lib/libpcap.so" ; then
--      PCAP_LIB="-L$pcap_prefix/lib -lpcap";
--      AC_MSG_RESULT([yes])
--   else
--      AC_MSG_WARN(libpcap.so not found)
--   fi
--else
--  if test "$pcap_inc" != ""; then
--    AC_MSG_CHECKING([for libpcap includes in $pcap_inc])
--    if test -f "$pcap_inc/pcap.h" ; then
--      PCAP_INC="-I$pcap_inc"
--      AC_MSG_RESULT([yes])
--    else
--      AC_MSG_WARN(pcap.h not found)
--    fi
--  fi
--  if test "$pcap_lib" != ""; then
--    AC_MSG_CHECKING([for libpcap in $pcap_lib])
--    if test -f "$pcap_lib/libpcap.so" ; then
--      PCAP_LIB="-L$pcap_lib -lpcap";
--      AC_MSG_RESULT([yes])
--    else
--      AC_MSG_WARN(libpcap.so not found)
--    fi
--  fi
--fi
--
--if test "$PCAP_INC" = "" ; then
--  AC_CHECK_HEADER([pcap.h], [], AC_MSG_WARN(pcap.h not found))
--fi
--if test "$PCAP_LIB" = "" ; then
--  AC_CHECK_LIB(pcap, pcap_close, [HAVE_PCAP_LIB="yes"], AC_MSG_WARN(libpcap.so not found))
--fi
--
--fi
--
--])
--
 diff --git a/configure.ac b/configure.ac
-index bcdd2f8ed99f..6909ea4858bb 100644
+index 62c43d630b29..5e90bb6365e9 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -153,9 +153,33 @@ AM_CONDITIONAL([HAVE_DBI], [test "x$libdbi_LIBS" != "x"])
+@@ -176,8 +176,13 @@ AM_CONDITIONAL([HAVE_MYSQL], [test "x$libmysqlclient_LIBS" != "x"])
  
- AC_ARG_ENABLE([pcap],
-               [AS_HELP_STRING([--enable-pcap], [Enable PCAP output plugin [default=test]])])
--AS_IF([test "x$enable_pcap" != "xno"],
--      [AC_SEARCH_LIBS([pcap_close], [pcap], [libpcap_LIBS="-lpcap"; LIBS=""])
--       AC_SUBST([libpcap_LIBS])])
-+AS_IF([test "x$enable_pcap" != "xno"], [
-+
-+  PKG_CHECK_EXISTS([libpcap], [PKG_CHECK_MODULES([libpcap], [libpcap])], [
-+
-+    AC_ARG_WITH([pcap-config],
-+                [AS_HELP_STRING([--with-pcap-config=PATH], [Path to the pcap-config script])],
-+                [pcap_config="$withval"], [pcap_config=pcap-config])
-+
-+    AC_MSG_CHECKING([for pcap-config])
-+
-+    AS_IF([command -v "$pcap_config" >/dev/null], [
-+
-+      libpcap_CFLAGS="`$pcap_config --cflags`"
-+      libpcap_LIBS="`$pcap_config --libs`"
-+
-+      AC_SUBST([libpcap_CFLAGS])
-+      AC_SUBST([libpcap_LIBS])
-+
-+      AC_MSG_RESULT([$pcap_config])
-+
-+    ], [
-+      AC_MSG_RESULT([no])
+ AC_ARG_ENABLE([sqlite3],
+               [AS_HELP_STRING([--enable-sqlite3], [Enable SQLITE3 output plugin [default=test]])])
+-AS_IF([test "x$enable_sqlite3" != "xno"],
+-      [PKG_CHECK_MODULES([libsqlite3], [sqlite3], [], [:])])
++AS_IF([test "x$enable_sqlite3" != "xno"], [
++  PKG_CHECK_MODULES([libsqlite3], [sqlite3], [], [
++    AS_IF([test "x$enable_sqlite3" = "xyes"], [
++      AC_MSG_ERROR([$libsqlite3_PKG_ERRORS])
 +    ])
-+
 +  ])
-+
 +])
- AS_IF([test "x$libpcap_LIBS" != "x"], [enable_pcap=yes], [enable_pcap=no])
- AM_CONDITIONAL([HAVE_PCAP], [test "x$libpcap_LIBS" != "x"])
+ AS_IF([test "x$libsqlite3_LIBS" != "x"], [enable_sqlite3=yes], [enable_sqlite3=no])
+ AM_CONDITIONAL([HAVE_SQLITE3], [test "x$libsqlite3_LIBS" != "x"])
  
-diff --git a/output/pcap/Makefile.am b/output/pcap/Makefile.am
-index 9b4b3dde3a9c..b5064eac9fd3 100644
---- a/output/pcap/Makefile.am
-+++ b/output/pcap/Makefile.am
-@@ -1,5 +1,7 @@
- include $(top_srcdir)/Make_global.am
- 
-+AM_CPPFLAGS += $(libpcap_CFLAGS)
-+
- pkglib_LTLIBRARIES = ulogd_output_PCAP.la
- 
- ulogd_output_PCAP_la_SOURCES = ulogd_output_PCAP.c
 -- 
 2.34.1
 
