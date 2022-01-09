@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7D15C4167E
-	for <netfilter-devel@archiver.kernel.org>; Sun,  9 Jan 2022 16:11:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D1B6C41535
+	for <netfilter-devel@archiver.kernel.org>; Sun,  9 Jan 2022 16:11:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235998AbiAIQLh (ORCPT
+        id S235991AbiAIQLi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 9 Jan 2022 11:11:37 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:41386 "EHLO
+        Sun, 9 Jan 2022 11:11:38 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:41390 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235990AbiAIQLg (ORCPT
+        with ESMTP id S235992AbiAIQLg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Sun, 9 Jan 2022 11:11:36 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 2873564690
-        for <netfilter-devel@vger.kernel.org>; Sun,  9 Jan 2022 17:08:45 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 3F50C6428E
+        for <netfilter-devel@vger.kernel.org>; Sun,  9 Jan 2022 17:08:47 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH 09/14] netfilter: nf_tables: add register tracking infrastructure
-Date:   Sun,  9 Jan 2022 17:11:21 +0100
-Message-Id: <20220109161126.83917-10-pablo@netfilter.org>
+Subject: [PATCH 14/14] netfilter: nft_meta: cancel register tracking after meta update
+Date:   Sun,  9 Jan 2022 17:11:26 +0100
+Message-Id: <20220109161126.83917-15-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220109161126.83917-1-pablo@netfilter.org>
 References: <20220109161126.83917-1-pablo@netfilter.org>
@@ -30,89 +30,93 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch adds new infrastructure to skip redundant selector store
-operations on the same register to achieve a performance boost from
-the packet path.
+The meta expression might mangle the packet metadata, cancel register
+tracking since any metadata in the registers is stale.
 
-This is particularly noticeable in pure linear rulesets but it also
-helps in rulesets which are already heaving relying in maps to avoid
-ruleset linear inspection.
-
-The idea is to keep data of the most recurrent store operations on
-register to reuse them with cmp and lookup expressions.
-
-This infrastructure allows for dynamic ruleset updates since the ruleset
-blob reduction happens from the kernel.
-
-Userspace still needs to be updated to maximize register utilization to
-cooperate to improve register data reuse / reduce number of store on
-register operations.
+Finer grain register tracking cancellation by inspecting the meta type
+on the register is also possible.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h | 12 ++++++++++++
- net/netfilter/nf_tables_api.c     | 11 +++++++++++
- 2 files changed, 23 insertions(+)
+ net/bridge/netfilter/nft_meta_bridge.c | 20 ++++++++++++++++++++
+ net/netfilter/nft_meta.c               | 20 ++++++++++++++++++++
+ 2 files changed, 40 insertions(+)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 515e5db97e01..1c37ce61daea 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -122,6 +122,16 @@ struct nft_regs {
- 	};
+diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
+index 97805ec424c1..c1ef9cc89b78 100644
+--- a/net/bridge/netfilter/nft_meta_bridge.c
++++ b/net/bridge/netfilter/nft_meta_bridge.c
+@@ -100,6 +100,25 @@ static const struct nft_expr_ops nft_meta_bridge_get_ops = {
+ 	.dump		= nft_meta_get_dump,
  };
  
-+struct nft_regs_track {
-+	struct {
-+		const struct nft_expr		*selector;
-+		const struct nft_expr		*bitwise;
-+	} regs[NFT_REG32_NUM];
++static bool nft_meta_bridge_set_reduce(struct nft_regs_track *track,
++				       const struct nft_expr *expr)
++{
++	int i;
 +
-+	const struct nft_expr			*cur;
-+	const struct nft_expr			*last;
-+};
++	for (i = 0; i < NFT_REG32_NUM; i++) {
++		if (!track->regs[i].selector)
++			continue;
 +
- /* Store/load an u8, u16 or u64 integer to/from the u32 data register.
-  *
-  * Note, when using concatenations, register allocation happens at 32-bit
-@@ -886,6 +896,8 @@ struct nft_expr_ops {
- 	int				(*validate)(const struct nft_ctx *ctx,
- 						    const struct nft_expr *expr,
- 						    const struct nft_data **data);
-+	bool				(*reduce)(struct nft_regs_track *track,
-+						  const struct nft_expr *expr);
- 	bool				(*gc)(struct net *net,
- 					      const struct nft_expr *expr);
- 	int				(*offload)(struct nft_offload_ctx *ctx,
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index af1128fe79e0..eb12fc9b803d 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -8259,6 +8259,7 @@ EXPORT_SYMBOL_GPL(nf_tables_trans_destroy_flush_work);
- static int nf_tables_commit_chain_prepare(struct net *net, struct nft_chain *chain)
- {
- 	const struct nft_expr *expr, *last;
-+	struct nft_regs_track track = {};
- 	unsigned int size, data_size;
- 	void *data, *data_boundary;
- 	struct nft_rule_dp *prule;
-@@ -8298,7 +8299,17 @@ static int nf_tables_commit_chain_prepare(struct net *net, struct nft_chain *cha
- 		if (WARN_ON_ONCE(data > data_boundary))
- 			return -ENOMEM;
++		if (track->regs[i].selector->ops != &nft_meta_bridge_get_ops)
++			continue;
++
++		track->regs[i].selector = NULL;
++		track->regs[i].bitwise = NULL;
++	}
++
++	return false;
++}
++
+ static const struct nft_expr_ops nft_meta_bridge_set_ops = {
+ 	.type		= &nft_meta_bridge_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_meta)),
+@@ -107,6 +126,7 @@ static const struct nft_expr_ops nft_meta_bridge_set_ops = {
+ 	.init		= nft_meta_set_init,
+ 	.destroy	= nft_meta_set_destroy,
+ 	.dump		= nft_meta_set_dump,
++	.reduce		= nft_meta_bridge_set_reduce,
+ 	.validate	= nft_meta_set_validate,
+ };
  
-+		size = 0;
-+		track.last = last;
- 		nft_rule_for_each_expr(expr, last, rule) {
-+			track.cur = expr;
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index 40fe48fcf9d0..5ab4df56c945 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -788,6 +788,25 @@ static const struct nft_expr_ops nft_meta_get_ops = {
+ 	.offload	= nft_meta_get_offload,
+ };
+ 
++static bool nft_meta_set_reduce(struct nft_regs_track *track,
++				const struct nft_expr *expr)
++{
++	int i;
 +
-+			if (expr->ops->reduce &&
-+			    expr->ops->reduce(&track, expr)) {
-+				expr = track.cur;
-+				continue;
-+			}
++	for (i = 0; i < NFT_REG32_NUM; i++) {
++		if (!track->regs[i].selector)
++			continue;
 +
- 			if (WARN_ON_ONCE(data + expr->ops->size > data_boundary))
- 				return -ENOMEM;
++		if (track->regs[i].selector->ops != &nft_meta_get_ops)
++			continue;
++
++		track->regs[i].selector = NULL;
++		track->regs[i].bitwise = NULL;
++	}
++
++	return false;
++}
++
+ static const struct nft_expr_ops nft_meta_set_ops = {
+ 	.type		= &nft_meta_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_meta)),
+@@ -795,6 +814,7 @@ static const struct nft_expr_ops nft_meta_set_ops = {
+ 	.init		= nft_meta_set_init,
+ 	.destroy	= nft_meta_set_destroy,
+ 	.dump		= nft_meta_set_dump,
++	.reduce		= nft_meta_set_reduce,
+ 	.validate	= nft_meta_set_validate,
+ };
  
 -- 
 2.30.2
