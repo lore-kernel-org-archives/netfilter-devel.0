@@ -2,26 +2,26 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11262C433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F27BC433FE
 	for <netfilter-devel@archiver.kernel.org>; Sun,  9 Jan 2022 23:16:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237382AbiAIXQy (ORCPT
+        id S237385AbiAIXQy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sun, 9 Jan 2022 18:16:54 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:42128 "EHLO
+Received: from mail.netfilter.org ([217.70.188.207]:42112 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236098AbiAIXQx (ORCPT
+        with ESMTP id S237375AbiAIXQw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 9 Jan 2022 18:16:53 -0500
+        Sun, 9 Jan 2022 18:16:52 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 19DFE6468F;
-        Mon, 10 Jan 2022 00:14:02 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 1CCB964290;
+        Mon, 10 Jan 2022 00:14:00 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 05/32] netfilter: nf_tables: consolidate rule verdict trace call
-Date:   Mon, 10 Jan 2022 00:16:13 +0100
-Message-Id: <20220109231640.104123-6-pablo@netfilter.org>
+Subject: [PATCH net-next 02/32] netfilter: nf_nat_masquerade: add netns refcount tracker to masq_dev_work
+Date:   Mon, 10 Jan 2022 00:16:10 +0100
+Message-Id: <20220109231640.104123-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220109231640.104123-1-pablo@netfilter.org>
 References: <20220109231640.104123-1-pablo@netfilter.org>
@@ -31,86 +31,48 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add function to consolidate verdict tracing.
+From: Eric Dumazet <edumazet@google.com>
 
+If compiled with CONFIG_NET_NS_REFCNT_TRACKER=y,
+using put_net_track() in iterate_cleanup_work()
+and netns_tracker_alloc() in nf_nat_masq_schedule()
+might help us finding netns refcount imbalances.
+
+Signed-off-by: Eric Dumazet <edumazet@google.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_core.c | 39 ++++++++++++++++++++++++++++------
- 1 file changed, 32 insertions(+), 7 deletions(-)
+ net/netfilter/nf_nat_masquerade.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index 41c7509955e6..d026890a9842 100644
---- a/net/netfilter/nf_tables_core.c
-+++ b/net/netfilter/nf_tables_core.c
-@@ -67,6 +67,36 @@ static void nft_cmp_fast_eval(const struct nft_expr *expr,
- 	regs->verdict.code = NFT_BREAK;
- }
+diff --git a/net/netfilter/nf_nat_masquerade.c b/net/netfilter/nf_nat_masquerade.c
+index acd73f717a08..e32fac374608 100644
+--- a/net/netfilter/nf_nat_masquerade.c
++++ b/net/netfilter/nf_nat_masquerade.c
+@@ -12,6 +12,7 @@
+ struct masq_dev_work {
+ 	struct work_struct work;
+ 	struct net *net;
++	netns_tracker ns_tracker;
+ 	union nf_inet_addr addr;
+ 	int ifindex;
+ 	int (*iter)(struct nf_conn *i, void *data);
+@@ -82,7 +83,7 @@ static void iterate_cleanup_work(struct work_struct *work)
  
-+static noinline void __nft_trace_verdict(struct nft_traceinfo *info,
-+					 const struct nft_chain *chain,
-+					 const struct nft_regs *regs)
-+{
-+	enum nft_trace_types type;
-+
-+	switch (regs->verdict.code) {
-+	case NFT_CONTINUE:
-+	case NFT_RETURN:
-+		type = NFT_TRACETYPE_RETURN;
-+		break;
-+	default:
-+		type = NFT_TRACETYPE_RULE;
-+		break;
-+	}
-+
-+	__nft_trace_packet(info, chain, type);
-+}
-+
-+static inline void nft_trace_verdict(struct nft_traceinfo *info,
-+				     const struct nft_chain *chain,
-+				     const struct nft_rule *rule,
-+				     const struct nft_regs *regs)
-+{
-+	if (static_branch_unlikely(&nft_trace_enabled)) {
-+		info->rule = rule;
-+		__nft_trace_verdict(info, chain, regs);
-+	}
-+}
-+
- static bool nft_payload_fast_eval(const struct nft_expr *expr,
- 				  struct nft_regs *regs,
- 				  const struct nft_pktinfo *pkt)
-@@ -205,13 +235,13 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
- 		break;
- 	}
+ 	nf_ct_iterate_cleanup_net(w->net, w->iter, (void *)w, 0, 0);
  
-+	nft_trace_verdict(&info, chain, rule, &regs);
-+
- 	switch (regs.verdict.code & NF_VERDICT_MASK) {
- 	case NF_ACCEPT:
- 	case NF_DROP:
- 	case NF_QUEUE:
- 	case NF_STOLEN:
--		nft_trace_packet(&info, chain, rule,
--				 NFT_TRACETYPE_RULE);
- 		return regs.verdict.code;
- 	}
- 
-@@ -224,15 +254,10 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
- 		stackptr++;
- 		fallthrough;
- 	case NFT_GOTO:
--		nft_trace_packet(&info, chain, rule,
--				 NFT_TRACETYPE_RULE);
--
- 		chain = regs.verdict.chain;
- 		goto do_chain;
- 	case NFT_CONTINUE:
- 	case NFT_RETURN:
--		nft_trace_packet(&info, chain, rule,
--				 NFT_TRACETYPE_RETURN);
- 		break;
- 	default:
- 		WARN_ON(1);
+-	put_net(w->net);
++	put_net_track(w->net, &w->ns_tracker);
+ 	kfree(w);
+ 	atomic_dec(&masq_worker_count);
+ 	module_put(THIS_MODULE);
+@@ -119,6 +120,7 @@ static void nf_nat_masq_schedule(struct net *net, union nf_inet_addr *addr,
+ 		INIT_WORK(&w->work, iterate_cleanup_work);
+ 		w->ifindex = ifindex;
+ 		w->net = net;
++		netns_tracker_alloc(net, &w->ns_tracker, gfp_flags);
+ 		w->iter = iter;
+ 		if (addr)
+ 			w->addr = *addr;
 -- 
 2.30.2
 
