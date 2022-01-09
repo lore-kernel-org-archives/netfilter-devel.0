@@ -2,26 +2,26 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D5EDC4167E
-	for <netfilter-devel@archiver.kernel.org>; Sun,  9 Jan 2022 23:17:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 350D7C4167B
+	for <netfilter-devel@archiver.kernel.org>; Sun,  9 Jan 2022 23:17:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237432AbiAIXRF (ORCPT
+        id S237470AbiAIXRO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 9 Jan 2022 18:17:05 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:42126 "EHLO
+        Sun, 9 Jan 2022 18:17:14 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:42124 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237420AbiAIXRB (ORCPT
+        with ESMTP id S237389AbiAIXRD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 9 Jan 2022 18:17:01 -0500
+        Sun, 9 Jan 2022 18:17:03 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id A9B1A64698;
-        Mon, 10 Jan 2022 00:14:10 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id E448064291;
+        Mon, 10 Jan 2022 00:14:11 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 18/32] netfilter: egress: avoid a lockdep splat
-Date:   Mon, 10 Jan 2022 00:16:26 +0100
-Message-Id: <20220109231640.104123-19-pablo@netfilter.org>
+Subject: [PATCH net-next 20/32] netfilter: nft_last: move stateful fields out of expression data
+Date:   Mon, 10 Jan 2022 00:16:28 +0100
+Message-Id: <20220109231640.104123-21-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220109231640.104123-1-pablo@netfilter.org>
 References: <20220109231640.104123-1-pablo@netfilter.org>
@@ -31,36 +31,137 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+In preparation for the rule blob representation.
 
-include/linux/netfilter_netdev.h:97 suspicious rcu_dereference_check() usage!
-2 locks held by sd-resolve/1100:
- 0: ..(rcu_read_lock_bh){1:3}, at: ip_finish_output2
- 1: ..(rcu_read_lock_bh){1:3}, at: __dev_queue_xmit
- __dev_queue_xmit+0 ..
-
-The helper has two callers, one uses rcu_read_lock, the other
-rcu_read_lock_bh().  Annotate the dereference to reflect this.
-
-Fixes: 42df6e1d221dd ("netfilter: Introduce egress hook")
-Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter_netdev.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nft_last.c | 69 +++++++++++++++++++++++++++++-----------
+ 1 file changed, 51 insertions(+), 18 deletions(-)
 
-diff --git a/include/linux/netfilter_netdev.h b/include/linux/netfilter_netdev.h
-index b71b57a83bb4..b4dd96e4dc8d 100644
---- a/include/linux/netfilter_netdev.h
-+++ b/include/linux/netfilter_netdev.h
-@@ -94,7 +94,7 @@ static inline struct sk_buff *nf_hook_egress(struct sk_buff *skb, int *rc,
- 		return skb;
- #endif
+diff --git a/net/netfilter/nft_last.c b/net/netfilter/nft_last.c
+index 304e33cbed9b..5ee33d0ccd4e 100644
+--- a/net/netfilter/nft_last.c
++++ b/net/netfilter/nft_last.c
+@@ -8,9 +8,13 @@
+ #include <net/netfilter/nf_tables_core.h>
+ #include <net/netfilter/nf_tables.h>
  
--	e = rcu_dereference(dev->nf_hooks_egress);
-+	e = rcu_dereference_check(dev->nf_hooks_egress, rcu_read_lock_bh_held());
- 	if (!e)
- 		return skb;
++struct nft_last {
++	unsigned long	jiffies;
++	unsigned int	set;
++};
++
+ struct nft_last_priv {
+-	unsigned long	last_jiffies;
+-	unsigned int	last_set;
++	struct nft_last	*last;
+ };
+ 
+ static const struct nla_policy nft_last_policy[NFTA_LAST_MAX + 1] = {
+@@ -22,47 +26,55 @@ static int nft_last_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 			 const struct nlattr * const tb[])
+ {
+ 	struct nft_last_priv *priv = nft_expr_priv(expr);
++	struct nft_last *last;
+ 	u64 last_jiffies;
+-	u32 last_set = 0;
+ 	int err;
+ 
+-	if (tb[NFTA_LAST_SET]) {
+-		last_set = ntohl(nla_get_be32(tb[NFTA_LAST_SET]));
+-		if (last_set == 1)
+-			priv->last_set = 1;
+-	}
++	last = kzalloc(sizeof(*last), GFP_KERNEL);
++	if (!last)
++		return -ENOMEM;
++
++	if (tb[NFTA_LAST_SET])
++		last->set = ntohl(nla_get_be32(tb[NFTA_LAST_SET]));
+ 
+-	if (last_set && tb[NFTA_LAST_MSECS]) {
++	if (last->set && tb[NFTA_LAST_MSECS]) {
+ 		err = nf_msecs_to_jiffies64(tb[NFTA_LAST_MSECS], &last_jiffies);
+ 		if (err < 0)
+-			return err;
++			goto err;
+ 
+-		priv->last_jiffies = jiffies - (unsigned long)last_jiffies;
++		last->jiffies = jiffies - (unsigned long)last_jiffies;
+ 	}
++	priv->last = last;
+ 
+ 	return 0;
++err:
++	kfree(last);
++
++	return err;
+ }
+ 
+ static void nft_last_eval(const struct nft_expr *expr,
+ 			  struct nft_regs *regs, const struct nft_pktinfo *pkt)
+ {
+ 	struct nft_last_priv *priv = nft_expr_priv(expr);
++	struct nft_last *last = priv->last;
+ 
+-	if (READ_ONCE(priv->last_jiffies) != jiffies)
+-		WRITE_ONCE(priv->last_jiffies, jiffies);
+-	if (READ_ONCE(priv->last_set) == 0)
+-		WRITE_ONCE(priv->last_set, 1);
++	if (READ_ONCE(last->jiffies) != jiffies)
++		WRITE_ONCE(last->jiffies, jiffies);
++	if (READ_ONCE(last->set) == 0)
++		WRITE_ONCE(last->set, 1);
+ }
+ 
+ static int nft_last_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ {
+ 	struct nft_last_priv *priv = nft_expr_priv(expr);
+-	unsigned long last_jiffies = READ_ONCE(priv->last_jiffies);
+-	u32 last_set = READ_ONCE(priv->last_set);
++	struct nft_last *last = priv->last;
++	unsigned long last_jiffies = READ_ONCE(last->jiffies);
++	u32 last_set = READ_ONCE(last->set);
+ 	__be64 msecs;
+ 
+ 	if (time_before(jiffies, last_jiffies)) {
+-		WRITE_ONCE(priv->last_set, 0);
++		WRITE_ONCE(last->set, 0);
+ 		last_set = 0;
+ 	}
+ 
+@@ -81,11 +93,32 @@ static int nft_last_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 	return -1;
+ }
+ 
++static void nft_last_destroy(const struct nft_ctx *ctx,
++			     const struct nft_expr *expr)
++{
++	struct nft_last_priv *priv = nft_expr_priv(expr);
++
++	kfree(priv->last);
++}
++
++static int nft_last_clone(struct nft_expr *dst, const struct nft_expr *src)
++{
++	struct nft_last_priv *priv_dst = nft_expr_priv(dst);
++
++	priv_dst->last = kzalloc(sizeof(*priv_dst->last), GFP_ATOMIC);
++	if (priv_dst->last)
++		return -ENOMEM;
++
++	return 0;
++}
++
+ static const struct nft_expr_ops nft_last_ops = {
+ 	.type		= &nft_last_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_last_priv)),
+ 	.eval		= nft_last_eval,
+ 	.init		= nft_last_init,
++	.destroy	= nft_last_destroy,
++	.clone		= nft_last_clone,
+ 	.dump		= nft_last_dump,
+ };
  
 -- 
 2.30.2
