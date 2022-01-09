@@ -2,26 +2,26 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA507C433F5
-	for <netfilter-devel@archiver.kernel.org>; Sun,  9 Jan 2022 23:17:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64AD3C433FE
+	for <netfilter-devel@archiver.kernel.org>; Sun,  9 Jan 2022 23:17:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237381AbiAIXRC (ORCPT
+        id S237428AbiAIXRD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 9 Jan 2022 18:17:02 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:42124 "EHLO
+        Sun, 9 Jan 2022 18:17:03 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:42174 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237405AbiAIXQ6 (ORCPT
+        with ESMTP id S237409AbiAIXQ7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 9 Jan 2022 18:16:58 -0500
+        Sun, 9 Jan 2022 18:16:59 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id EEB6864291;
-        Mon, 10 Jan 2022 00:14:07 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 61C9C64690;
+        Mon, 10 Jan 2022 00:14:09 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 14/32] netfilter: core: move ip_ct_attach indirection to struct nf_ct_hook
-Date:   Mon, 10 Jan 2022 00:16:22 +0100
-Message-Id: <20220109231640.104123-15-pablo@netfilter.org>
+Subject: [PATCH net-next 16/32] netfilter: conntrack: avoid useless indirection during conntrack destruction
+Date:   Mon, 10 Jan 2022 00:16:24 +0100
+Message-Id: <20220109231640.104123-17-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220109231640.104123-1-pablo@netfilter.org>
 References: <20220109231640.104123-1-pablo@netfilter.org>
@@ -33,101 +33,121 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-ip_ct_attach predates struct nf_ct_hook, we can place it there and
-remove the exported symbol.
+nf_ct_put() results in a usesless indirection:
+
+nf_ct_put -> nf_conntrack_put -> nf_conntrack_destroy -> rcu readlock +
+indirect call of ct_hooks->destroy().
+
+There are two _put helpers:
+nf_ct_put and nf_conntrack_put.  The latter is what should be used in
+code that MUST NOT cause a linker dependency on the conntrack module
+(e.g. calls from core network stack).
+
+Everyone else should call nf_ct_put() instead.
+
+A followup patch will convert a few nf_conntrack_put() calls to
+nf_ct_put(), in particular from modules that already have a conntrack
+dependency such as act_ct or even nf_conntrack itself.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter.h         |  2 +-
- net/netfilter/core.c              | 19 ++++++++-----------
- net/netfilter/nf_conntrack_core.c |  4 +---
- 3 files changed, 10 insertions(+), 15 deletions(-)
+ include/linux/netfilter/nf_conntrack_common.h |  2 ++
+ include/net/netfilter/nf_conntrack.h          |  8 ++++++--
+ net/netfilter/nf_conntrack_core.c             | 12 ++++++------
+ 3 files changed, 14 insertions(+), 8 deletions(-)
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 3fda1a508733..e0e3f3355ab1 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -440,7 +440,6 @@ nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, u_int8_t family)
- #if IS_ENABLED(CONFIG_NF_CONNTRACK)
- #include <linux/netfilter/nf_conntrack_zones_common.h>
- 
--extern void (*ip_ct_attach)(struct sk_buff *, const struct sk_buff *) __rcu;
- void nf_ct_attach(struct sk_buff *, const struct sk_buff *);
- struct nf_conntrack_tuple;
- bool nf_ct_get_tuple_skb(struct nf_conntrack_tuple *dst_tuple,
-@@ -463,6 +462,7 @@ struct nf_ct_hook {
- 	void (*destroy)(struct nf_conntrack *);
- 	bool (*get_tuple_skb)(struct nf_conntrack_tuple *,
- 			      const struct sk_buff *);
-+	void (*attach)(struct sk_buff *nskb, const struct sk_buff *skb);
+diff --git a/include/linux/netfilter/nf_conntrack_common.h b/include/linux/netfilter/nf_conntrack_common.h
+index a03f7a80b9ab..2770db2fa080 100644
+--- a/include/linux/netfilter/nf_conntrack_common.h
++++ b/include/linux/netfilter/nf_conntrack_common.h
+@@ -29,6 +29,8 @@ struct nf_conntrack {
  };
- extern struct nf_ct_hook __rcu *nf_ct_hook;
  
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 6dec9cd395f1..dc806dc9fe28 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -673,25 +673,22 @@ struct nf_ct_hook __rcu *nf_ct_hook __read_mostly;
- EXPORT_SYMBOL_GPL(nf_ct_hook);
- 
- #if IS_ENABLED(CONFIG_NF_CONNTRACK)
--/* This does not belong here, but locally generated errors need it if connection
--   tracking in use: without this, connection may not be in hash table, and hence
--   manufactured ICMP or RST packets will not be associated with it. */
--void (*ip_ct_attach)(struct sk_buff *, const struct sk_buff *)
--		__rcu __read_mostly;
--EXPORT_SYMBOL(ip_ct_attach);
--
- struct nf_nat_hook __rcu *nf_nat_hook __read_mostly;
- EXPORT_SYMBOL_GPL(nf_nat_hook);
- 
-+/* This does not belong here, but locally generated errors need it if connection
-+ * tracking in use: without this, connection may not be in hash table, and hence
-+ * manufactured ICMP or RST packets will not be associated with it.
-+ */
- void nf_ct_attach(struct sk_buff *new, const struct sk_buff *skb)
+ void nf_conntrack_destroy(struct nf_conntrack *nfct);
++
++/* like nf_ct_put, but without module dependency on nf_conntrack */
+ static inline void nf_conntrack_put(struct nf_conntrack *nfct)
  {
--	void (*attach)(struct sk_buff *, const struct sk_buff *);
-+	const struct nf_ct_hook *ct_hook;
- 
- 	if (skb->_nfct) {
- 		rcu_read_lock();
--		attach = rcu_dereference(ip_ct_attach);
--		if (attach)
--			attach(new, skb);
-+		ct_hook = rcu_dereference(nf_ct_hook);
-+		if (ct_hook)
-+			ct_hook->attach(new, skb);
- 		rcu_read_unlock();
- 	}
+ 	if (nfct && refcount_dec_and_test(&nfct->use))
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index a4a14f3a5e38..8731d5bcb47d 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -76,6 +76,8 @@ struct nf_conn {
+ 	 * Hint, SKB address this struct and refcnt via skb->_nfct and
+ 	 * helpers nf_conntrack_get() and nf_conntrack_put().
+ 	 * Helper nf_ct_put() equals nf_conntrack_put() by dec refcnt,
++	 * except that the latter uses internal indirection and does not
++	 * result in a conntrack module dependency.
+ 	 * beware nf_ct_get() is different and don't inc refcnt.
+ 	 */
+ 	struct nf_conntrack ct_general;
+@@ -170,11 +172,13 @@ nf_ct_get(const struct sk_buff *skb, enum ip_conntrack_info *ctinfo)
+ 	return (struct nf_conn *)(nfct & NFCT_PTRMASK);
  }
+ 
++void nf_ct_destroy(struct nf_conntrack *nfct);
++
+ /* decrement reference count on a conntrack */
+ static inline void nf_ct_put(struct nf_conn *ct)
+ {
+-	WARN_ON(!ct);
+-	nf_conntrack_put(&ct->ct_general);
++	if (ct && refcount_dec_and_test(&ct->ct_general.use))
++		nf_ct_destroy(&ct->ct_general);
+ }
+ 
+ /* Protocol module loading */
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 328d359fcabe..89f1e5f0090b 100644
+index cd3d07e418b5..7a2063abae04 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -2455,7 +2455,6 @@ static int kill_all(struct nf_conn *i, void *data)
- void nf_conntrack_cleanup_start(void)
- {
- 	conntrack_gc_work.exiting = true;
--	RCU_INIT_POINTER(ip_ct_attach, NULL);
+@@ -558,7 +558,7 @@ static void nf_ct_del_from_dying_or_unconfirmed_list(struct nf_conn *ct)
+ 
+ #define NFCT_ALIGN(len)	(((len) + NFCT_INFOMASK) & ~NFCT_INFOMASK)
+ 
+-/* Released via destroy_conntrack() */
++/* Released via nf_ct_destroy() */
+ struct nf_conn *nf_ct_tmpl_alloc(struct net *net,
+ 				 const struct nf_conntrack_zone *zone,
+ 				 gfp_t flags)
+@@ -612,12 +612,11 @@ static void destroy_gre_conntrack(struct nf_conn *ct)
+ #endif
  }
  
- void nf_conntrack_cleanup_end(void)
-@@ -2774,12 +2773,11 @@ static struct nf_ct_hook nf_conntrack_hook = {
+-static void
+-destroy_conntrack(struct nf_conntrack *nfct)
++void nf_ct_destroy(struct nf_conntrack *nfct)
+ {
+ 	struct nf_conn *ct = (struct nf_conn *)nfct;
+ 
+-	pr_debug("destroy_conntrack(%p)\n", ct);
++	pr_debug("%s(%p)\n", __func__, ct);
+ 	WARN_ON(refcount_read(&nfct->use) != 0);
+ 
+ 	if (unlikely(nf_ct_is_template(ct))) {
+@@ -643,9 +642,10 @@ destroy_conntrack(struct nf_conntrack *nfct)
+ 	if (ct->master)
+ 		nf_ct_put(ct->master);
+ 
+-	pr_debug("destroy_conntrack: returning ct=%p to slab\n", ct);
++	pr_debug("%s: returning ct=%p to slab\n", __func__, ct);
+ 	nf_conntrack_free(ct);
+ }
++EXPORT_SYMBOL(nf_ct_destroy);
+ 
+ static void nf_ct_delete_from_lists(struct nf_conn *ct)
+ {
+@@ -2771,7 +2771,7 @@ int nf_conntrack_init_start(void)
+ 
+ static const struct nf_ct_hook nf_conntrack_hook = {
  	.update		= nf_conntrack_update,
- 	.destroy	= destroy_conntrack,
+-	.destroy	= destroy_conntrack,
++	.destroy	= nf_ct_destroy,
  	.get_tuple_skb  = nf_conntrack_get_tuple_skb,
-+	.attach		= nf_conntrack_attach,
+ 	.attach		= nf_conntrack_attach,
  };
- 
- void nf_conntrack_init_end(void)
- {
--	/* For use by REJECT target */
--	RCU_INIT_POINTER(ip_ct_attach, nf_conntrack_attach);
- 	RCU_INIT_POINTER(nf_ct_hook, &nf_conntrack_hook);
- }
- 
 -- 
 2.30.2
 
