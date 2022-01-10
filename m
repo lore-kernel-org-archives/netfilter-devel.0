@@ -2,103 +2,88 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8937CC433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jan 2022 19:48:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55C08C433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jan 2022 21:26:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244444AbiAJTsY (ORCPT
+        id S1343970AbiAJV0I (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 10 Jan 2022 14:48:24 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:44508 "EHLO
+        Mon, 10 Jan 2022 16:26:08 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:44662 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244491AbiAJTsY (ORCPT
+        with ESMTP id S1344436AbiAJV0B (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Jan 2022 14:48:24 -0500
-Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 26AE662BD8;
-        Mon, 10 Jan 2022 20:45:32 +0100 (CET)
+        Mon, 10 Jan 2022 16:26:01 -0500
+Received: from netfilter.org (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 8BE2163F5A;
+        Mon, 10 Jan 2022 22:23:09 +0100 (CET)
+Date:   Mon, 10 Jan 2022 22:25:56 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
-        jwiedmann.dev@gmail.com
-Subject: [PATCH net-next] netfilter: nf_tables: typo NULL check in _clone() function
-Date:   Mon, 10 Jan 2022 20:48:17 +0100
-Message-Id: <20220110194817.53481-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+To:     Jeremy Sowden <jeremy@azazel.net>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [ulogd2 PATCH 00/10] Add pkg-config support
+Message-ID: <YdykZPrWzek+3P71@salvia>
+References: <20220109115753.1787915-1-jeremy@azazel.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20220109115753.1787915-1-jeremy@azazel.net>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This should check for NULL in case memory allocation fails.
+On Sun, Jan 09, 2022 at 11:57:43AM +0000, Jeremy Sowden wrote:
+> A number of third-party libraries have added pkg-config support over the
+> years.  This patch-set updates configure to make use of it where it is
+> available.  It also fixes some conflicting option definitions and adds
+> checks that cause configure to fail if a plugin has been explicitly
+> requested, but the related third-party library is not available.
+> 
+> Patch 1:      switch from `--with-XXX` to `--enable-XXX` for output
+>               plugins.
+> Patches 2-5:  use pkg-config for libdbi, libmysqlclient, libpcap and
+>               libpq if available.
+> Patches 6-10: abort configure when an output plugin has been explicitly
+>               enabled, but the related library is not available.
+> 
+> Changes since v1
+> 
+>   * Better commit messages.
+>   * Simpler mysql patch: remove the upstream m4 macro calls, and look
+>     for `mysql_config` the same way we do `pg_config` and `pcap-config`.
+>   * `AM_CPPFLAGS` fixes for mysql, pcap, and postgresql.
+>   * `LIBADD` fix for mysql.
+> 
+> Jeremy Sowden (10):
+>   build: use `--enable-XXX` options for output plugins
 
-Reported-by: Julian Wiedmann <jwiedmann.dev@gmail.com>
-Fixes: 3b9e2ea6c11b ("netfilter: nft_limit: move stateful fields out of expression data")
-Fixes: 37f319f37d90 ("netfilter: nft_connlimit: move stateful fields out of expression data")
-Fixes: 33a24de37e81 ("netfilter: nft_last: move stateful fields out of expression data")
-Fixes: ed0a0c60f0e5 ("netfilter: nft_quota: move stateful fields out of expression data")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-Please, directly apply to net-next, thanks
+I hesitate about this change from --with-XYZ to --enable-XYZ, it will
+force package maintainers to update their scripts.
 
- net/netfilter/nft_connlimit.c | 2 +-
- net/netfilter/nft_last.c      | 2 +-
- net/netfilter/nft_limit.c     | 2 +-
- net/netfilter/nft_quota.c     | 2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+Althought I agree after reading the documentation that --enable-XYZ
+might make more sense since the input plugins rely on netfilter
+libraries which are supposed to be "external software".
 
-diff --git a/net/netfilter/nft_connlimit.c b/net/netfilter/nft_connlimit.c
-index 58dcafe8bf79..7d00a1452b1d 100644
---- a/net/netfilter/nft_connlimit.c
-+++ b/net/netfilter/nft_connlimit.c
-@@ -206,7 +206,7 @@ static int nft_connlimit_clone(struct nft_expr *dst, const struct nft_expr *src)
- 	struct nft_connlimit *priv_src = nft_expr_priv(src);
- 
- 	priv_dst->list = kmalloc(sizeof(*priv_dst->list), GFP_ATOMIC);
--	if (priv_dst->list)
-+	if (!priv_dst->list)
- 		return -ENOMEM;
- 
- 	nf_conncount_list_init(priv_dst->list);
-diff --git a/net/netfilter/nft_last.c b/net/netfilter/nft_last.c
-index 5ee33d0ccd4e..4f745a409d34 100644
---- a/net/netfilter/nft_last.c
-+++ b/net/netfilter/nft_last.c
-@@ -106,7 +106,7 @@ static int nft_last_clone(struct nft_expr *dst, const struct nft_expr *src)
- 	struct nft_last_priv *priv_dst = nft_expr_priv(dst);
- 
- 	priv_dst->last = kzalloc(sizeof(*priv_dst->last), GFP_ATOMIC);
--	if (priv_dst->last)
-+	if (!priv_dst->last)
- 		return -ENOMEM;
- 
- 	return 0;
-diff --git a/net/netfilter/nft_limit.c b/net/netfilter/nft_limit.c
-index f04be5be73a0..c4f308460dd1 100644
---- a/net/netfilter/nft_limit.c
-+++ b/net/netfilter/nft_limit.c
-@@ -145,7 +145,7 @@ static int nft_limit_clone(struct nft_limit_priv *priv_dst,
- 	priv_dst->invert = priv_src->invert;
- 
- 	priv_dst->limit = kmalloc(sizeof(*priv_dst->limit), GFP_ATOMIC);
--	if (priv_dst->limit)
-+	if (!priv_dst->limit)
- 		return -ENOMEM;
- 
- 	spin_lock_init(&priv_dst->limit->lock);
-diff --git a/net/netfilter/nft_quota.c b/net/netfilter/nft_quota.c
-index 0484aef74273..f394a0b562f6 100644
---- a/net/netfilter/nft_quota.c
-+++ b/net/netfilter/nft_quota.c
-@@ -237,7 +237,7 @@ static int nft_quota_clone(struct nft_expr *dst, const struct nft_expr *src)
- 	struct nft_quota *priv_dst = nft_expr_priv(dst);
- 
- 	priv_dst->consumed = kmalloc(sizeof(*priv_dst->consumed), GFP_ATOMIC);
--	if (priv_dst->consumed)
-+	if (!priv_dst->consumed)
- 		return -ENOMEM;
- 
- 	atomic64_set(priv_dst->consumed, 0);
--- 
-2.30.2
-
+>   build: use pkg-config for libdbi
+>   build: use pkg-config or mysql_config for libmysqlclient
+>   build: use pkg-config or pcap-config for libpcap
+>   build: use pkg-config or pg_config for libpq
+>   build: if `--enable-dbi` is `yes`, abort if libdbi is not found
+>   build: if `--enable-mysql` is `yes`, abort if libmysqlclient is not
+>     found
+>   build: if `--enable-pcap` is `yes`, abort if libpcap is not found
+>   build: if `--enable-pgsql` is `yes`, abort if libpq is not found
+>   build: if `--enable-sqlite3` is `yes`, abort if libsqlite3 is not
+>     found
+> 
+>  acinclude.m4             | 351 ---------------------------------------
+>  configure.ac             | 192 +++++++++++++++++----
+>  output/dbi/Makefile.am   |   4 +-
+>  output/mysql/Makefile.am |   4 +-
+>  output/pcap/Makefile.am  |   2 +
+>  output/pgsql/Makefile.am |   4 +-
+>  6 files changed, 165 insertions(+), 392 deletions(-)
+>  delete mode 100644 acinclude.m4
+> 
+> -- 
+> 2.34.1
+> 
