@@ -2,81 +2,103 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E43FC433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jan 2022 19:25:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8937CC433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jan 2022 19:48:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242403AbiAJTZq (ORCPT
+        id S244444AbiAJTsY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 10 Jan 2022 14:25:46 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:44466 "EHLO
+        Mon, 10 Jan 2022 14:48:24 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:44508 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241847AbiAJTZp (ORCPT
+        with ESMTP id S244491AbiAJTsY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Jan 2022 14:25:45 -0500
-Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 8C3DB63F5A;
-        Mon, 10 Jan 2022 20:22:54 +0100 (CET)
-Date:   Mon, 10 Jan 2022 20:25:40 +0100
+        Mon, 10 Jan 2022 14:48:24 -0500
+Received: from localhost.localdomain (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 26AE662BD8;
+        Mon, 10 Jan 2022 20:45:32 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Julian Wiedmann <jwiedmann.dev@gmail.com>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org
-Subject: Re: [PATCH net-next 19/32] netfilter: nft_connlimit: move stateful
- fields out of expression data
-Message-ID: <YdyINIariflWgbCc@salvia>
-References: <20220109231640.104123-1-pablo@netfilter.org>
- <20220109231640.104123-20-pablo@netfilter.org>
- <077d6843-bf14-f528-d9cd-9c5245687be5@gmail.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        jwiedmann.dev@gmail.com
+Subject: [PATCH net-next] netfilter: nf_tables: typo NULL check in _clone() function
+Date:   Mon, 10 Jan 2022 20:48:17 +0100
+Message-Id: <20220110194817.53481-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <077d6843-bf14-f528-d9cd-9c5245687be5@gmail.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+This should check for NULL in case memory allocation fails.
 
-On Mon, Jan 10, 2022 at 08:20:47PM +0200, Julian Wiedmann wrote:
-> On 10.01.22 01:16, Pablo Neira Ayuso wrote:
-> > In preparation for the rule blob representation.
-> > 
-> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > ---
-> >  net/netfilter/nft_connlimit.c | 26 ++++++++++++++++++--------
-> >  1 file changed, 18 insertions(+), 8 deletions(-)
-> > 
-> > diff --git a/net/netfilter/nft_connlimit.c b/net/netfilter/nft_connlimit.c
-> > index 7d0761fad37e..58dcafe8bf79 100644
-> > --- a/net/netfilter/nft_connlimit.c
-> > +++ b/net/netfilter/nft_connlimit.c
-> 
-> [...]
-> 
-> >  
-> >  static int nft_connlimit_do_dump(struct sk_buff *skb,
-> > @@ -200,7 +205,11 @@ static int nft_connlimit_clone(struct nft_expr *dst, const struct nft_expr *src)
-> >  	struct nft_connlimit *priv_dst = nft_expr_priv(dst);
-> >  	struct nft_connlimit *priv_src = nft_expr_priv(src);
-> >  
-> > -	nf_conncount_list_init(&priv_dst->list);
-> > +	priv_dst->list = kmalloc(sizeof(*priv_dst->list), GFP_ATOMIC);
-> > +	if (priv_dst->list)
-> > +		return -ENOMEM;
-> > +
-> > +	nf_conncount_list_init(priv_dst->list);
-> >  	priv_dst->limit	 = priv_src->limit;
-> >  	priv_dst->invert = priv_src->invert;
-> >  
-> 
-> Hi Pablo,
-> 
-> Coverity (CID 1510697) spotted a typo in this NULL check, it should be
-> 
-> 	if (!priv_dst->list)
-> 		return -ENOMEM;
-> 
-> 
-> Looks like the following patches also have this bug.
+Reported-by: Julian Wiedmann <jwiedmann.dev@gmail.com>
+Fixes: 3b9e2ea6c11b ("netfilter: nft_limit: move stateful fields out of expression data")
+Fixes: 37f319f37d90 ("netfilter: nft_connlimit: move stateful fields out of expression data")
+Fixes: 33a24de37e81 ("netfilter: nft_last: move stateful fields out of expression data")
+Fixes: ed0a0c60f0e5 ("netfilter: nft_quota: move stateful fields out of expression data")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+Please, directly apply to net-next, thanks
 
-Thanks, I'll post a patchset to fix this.
+ net/netfilter/nft_connlimit.c | 2 +-
+ net/netfilter/nft_last.c      | 2 +-
+ net/netfilter/nft_limit.c     | 2 +-
+ net/netfilter/nft_quota.c     | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/net/netfilter/nft_connlimit.c b/net/netfilter/nft_connlimit.c
+index 58dcafe8bf79..7d00a1452b1d 100644
+--- a/net/netfilter/nft_connlimit.c
++++ b/net/netfilter/nft_connlimit.c
+@@ -206,7 +206,7 @@ static int nft_connlimit_clone(struct nft_expr *dst, const struct nft_expr *src)
+ 	struct nft_connlimit *priv_src = nft_expr_priv(src);
+ 
+ 	priv_dst->list = kmalloc(sizeof(*priv_dst->list), GFP_ATOMIC);
+-	if (priv_dst->list)
++	if (!priv_dst->list)
+ 		return -ENOMEM;
+ 
+ 	nf_conncount_list_init(priv_dst->list);
+diff --git a/net/netfilter/nft_last.c b/net/netfilter/nft_last.c
+index 5ee33d0ccd4e..4f745a409d34 100644
+--- a/net/netfilter/nft_last.c
++++ b/net/netfilter/nft_last.c
+@@ -106,7 +106,7 @@ static int nft_last_clone(struct nft_expr *dst, const struct nft_expr *src)
+ 	struct nft_last_priv *priv_dst = nft_expr_priv(dst);
+ 
+ 	priv_dst->last = kzalloc(sizeof(*priv_dst->last), GFP_ATOMIC);
+-	if (priv_dst->last)
++	if (!priv_dst->last)
+ 		return -ENOMEM;
+ 
+ 	return 0;
+diff --git a/net/netfilter/nft_limit.c b/net/netfilter/nft_limit.c
+index f04be5be73a0..c4f308460dd1 100644
+--- a/net/netfilter/nft_limit.c
++++ b/net/netfilter/nft_limit.c
+@@ -145,7 +145,7 @@ static int nft_limit_clone(struct nft_limit_priv *priv_dst,
+ 	priv_dst->invert = priv_src->invert;
+ 
+ 	priv_dst->limit = kmalloc(sizeof(*priv_dst->limit), GFP_ATOMIC);
+-	if (priv_dst->limit)
++	if (!priv_dst->limit)
+ 		return -ENOMEM;
+ 
+ 	spin_lock_init(&priv_dst->limit->lock);
+diff --git a/net/netfilter/nft_quota.c b/net/netfilter/nft_quota.c
+index 0484aef74273..f394a0b562f6 100644
+--- a/net/netfilter/nft_quota.c
++++ b/net/netfilter/nft_quota.c
+@@ -237,7 +237,7 @@ static int nft_quota_clone(struct nft_expr *dst, const struct nft_expr *src)
+ 	struct nft_quota *priv_dst = nft_expr_priv(dst);
+ 
+ 	priv_dst->consumed = kmalloc(sizeof(*priv_dst->consumed), GFP_ATOMIC);
+-	if (priv_dst->consumed)
++	if (!priv_dst->consumed)
+ 		return -ENOMEM;
+ 
+ 	atomic64_set(priv_dst->consumed, 0);
+-- 
+2.30.2
+
