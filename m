@@ -2,62 +2,76 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22ABAC43217
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jan 2022 11:50:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AEA7C433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jan 2022 12:28:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245003AbiAJLu1 (ORCPT
+        id S245450AbiAJM2i (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 10 Jan 2022 06:50:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53074 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245016AbiAJLtQ (ORCPT
+        Mon, 10 Jan 2022 07:28:38 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:43744 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S245449AbiAJM2f (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Jan 2022 06:49:16 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2CBB0C061748;
-        Mon, 10 Jan 2022 03:49:16 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1n6tAQ-0007FN-Bf; Mon, 10 Jan 2022 12:48:50 +0100
-Date:   Mon, 10 Jan 2022 12:48:50 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     syzbot <syzbot+e163f2ff7c3f7efd8203@syzkaller.appspotmail.com>
-Cc:     a@unstable.cc, alobakin@pm.me, andrii@kernel.org, ast@kernel.org,
-        atenart@kernel.org, b.a.t.m.a.n@lists.open-mesh.org,
-        bpf@vger.kernel.org, coreteam@netfilter.org, daniel@iogearbox.net,
-        davem@davemloft.net, fw@strlen.de, john.fastabend@gmail.com,
-        jonathan.lemon@gmail.com, kadlec@netfilter.org, kafai@fb.com,
-        kpsingh@kernel.org, kuba@kernel.org, linux-kernel@vger.kernel.org,
-        lukas@wunner.de, mareklindner@neomailbox.ch,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, songliubraving@fb.com, sven@narfation.org,
-        sw@simonwunderlich.de, syzkaller-bugs@googlegroups.com, yhs@fb.com
-Subject: Re: [syzbot] WARNING: suspicious RCU usage in __dev_queue_xmit
-Message-ID: <20220110114850.GD317@breakpoint.cc>
-References: <000000000000ca1d2005d537ebac@google.com>
+        Mon, 10 Jan 2022 07:28:35 -0500
+Received: from localhost.localdomain (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id E7A1C64291
+        for <netfilter-devel@vger.kernel.org>; Mon, 10 Jan 2022 13:25:42 +0100 (CET)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH net-next] netfilter: nf_tables: fix compile warnings
+Date:   Mon, 10 Jan 2022 13:28:08 +0100
+Message-Id: <20220110122808.272697-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <000000000000ca1d2005d537ebac@google.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot <syzbot+e163f2ff7c3f7efd8203@syzkaller.appspotmail.com> wrote:
-> Hello,
-> 
-> syzbot found the following issue on:
-> 
-> HEAD commit:    4c375272fb0b Merge branch 'net-add-preliminary-netdev-refc..
-> git tree:       net-next
-> console output: https://syzkaller.appspot.com/x/log.txt?x=164749a9b00000
-> kernel config:  https://syzkaller.appspot.com/x/.config?x=2b8e24e3a80e3875
-> dashboard link: https://syzkaller.appspot.com/bug?extid=e163f2ff7c3f7efd8203
-> compiler:       gcc (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.2
-> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=11493641b00000
-> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=11ac6aceb00000
+Remove unused variable and fix missing initialization.
 
-> include/linux/netfilter_netdev.h:97 suspicious rcu_dereference_check() usage!
+>> net/netfilter/nf_tables_api.c:8266:6: warning: variable 'i' set but not used [-Wunused-but-set-variable]
+           int i;
+               ^
+>> net/netfilter/nf_tables_api.c:8277:4: warning: variable 'data_size' is uninitialized when used here [-Wuninitialized]
+                           data_size += sizeof(*prule) + rule->dlen;
+                           ^~~~~~~~~
+   net/netfilter/nf_tables_api.c:8262:30: note: initialize the variable 'data_size' to silence this warning
+           unsigned int size, data_size;
 
-#syz fix: netfilter: egress: avoid a lockdep splat
+Fixes: 2c865a8a28a1 ("netfilter: nf_tables: add rule blob layout")
+Reported-by: kernel test robot <lkp@intel.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+Please, directly apply this fix to net-next.
+
+ net/netfilter/nf_tables_api.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index eb12fc9b803d..1f80a1fae63b 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -8260,18 +8260,16 @@ static int nf_tables_commit_chain_prepare(struct net *net, struct nft_chain *cha
+ {
+ 	const struct nft_expr *expr, *last;
+ 	struct nft_regs_track track = {};
+-	unsigned int size, data_size;
++	unsigned int size, data_size = 0;
+ 	void *data, *data_boundary;
+ 	struct nft_rule_dp *prule;
+ 	struct nft_rule *rule;
+-	int i;
+ 
+ 	/* already handled or inactive chain? */
+ 	if (chain->blob_next || !nft_is_active_next(net, chain))
+ 		return 0;
+ 
+ 	rule = list_entry(&chain->rules, struct nft_rule, list);
+-	i = 0;
+ 
+ 	list_for_each_entry_continue(rule, &chain->rules, list) {
+ 		if (nft_is_active_next(net, rule)) {
+-- 
+2.30.2
+
