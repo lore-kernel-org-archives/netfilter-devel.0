@@ -2,53 +2,53 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7241C433FE
-	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Jan 2022 18:06:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F07BDC43217
+	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Jan 2022 18:06:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350271AbiAKSGC (ORCPT
+        id S1345550AbiAKSGD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 11 Jan 2022 13:06:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51480 "EHLO
+        Tue, 11 Jan 2022 13:06:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51470 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1350298AbiAKSFL (ORCPT
+        with ESMTP id S1350277AbiAKSFL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 11 Jan 2022 13:05:11 -0500
 Received: from mail-pj1-x1042.google.com (mail-pj1-x1042.google.com [IPv6:2607:f8b0:4864:20::1042])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A6D2C061212;
-        Tue, 11 Jan 2022 10:05:09 -0800 (PST)
-Received: by mail-pj1-x1042.google.com with SMTP id y16-20020a17090a6c9000b001b13ffaa625so6771971pjj.2;
-        Tue, 11 Jan 2022 10:05:09 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A5486C06175D;
+        Tue, 11 Jan 2022 10:04:59 -0800 (PST)
+Received: by mail-pj1-x1042.google.com with SMTP id pf13so321121pjb.0;
+        Tue, 11 Jan 2022 10:04:59 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=WZy/SxBwLsYdG6mkY0Zc2dYIxmewH5Xd/7ypkgvEhtY=;
-        b=MRHkIXEv9BOjzxHMrZbSNtnzVYo8zSMtKnL7+QadESZCGpeT/pZIgYnQuNz1zoGZm0
-         s1/kRhGaUbFLo3m6irx6Ml10+H3H8zoaPXOu0Sw/Dp8sDHslG0kykdhXHHz9Gz9WW5fR
-         wX9wjbr4cYxYbhelQ8ehbX/bl6Cnf/cYxaMKudBm6RHBai1VPvRJcvI4ia7Wu68Pfp+C
-         dQh1nLUk5/Z65VfWyugmdq23XhxHdSPhxIARgw8uVO2EYTzttPjI9cqvdQlPjXw6RdvS
-         7lCmG6J9WPF3QbZeVUjBTRLy479dHaOIx8ID7xhSgIUQ2d7yd8rmEsnlOIx5Hn/wWBsm
-         lufQ==
+        bh=mzvRZKPPi+O4Z5nNliFs9pnbJZxkwJwBOoO6asYIWtU=;
+        b=V0culqn/B2uQY2ol/WHitRf/cd6MGb8HMvxXrVzhTgiZTDMeEBMIImW/mtohLvu5Uz
+         cgA1Me87BbqgOxtq1CCcbrBchWlQqxVtZXTgqxbgOdlHIDwjjWSPUyeUyRovKMXZqkMW
+         j8Dlic2KCzYDJCvq+nVnLGRzoRo8+PdLY4nOkrRr1jlbjtGk8bamHLDqJmoE8y+UdOTs
+         Eye/c2rLMWrEacBPbY47j/aZHVMlwRvOFbxWFin4xQOTA2x7MGtJtKUSfgNSVl+C5qzA
+         CT4NR5qkxhc3YAXhvNWOcGs+YIq8ufw5uULI20Hh11EnjX9xYecajXPU4vbBjFcvAugw
+         NXFA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=WZy/SxBwLsYdG6mkY0Zc2dYIxmewH5Xd/7ypkgvEhtY=;
-        b=yIGWzHCpP9e7gHUzUdZDVdjGepRnaAkDD4wUZdLS62OvDWJmI+CD+RbaoTc+0kMug2
-         f3VdQy4J0831UCPrlmY1LElviF0rRe61Ru/uh+X7eX98PkCrGHwR5wmicVbc8jtlYpHC
-         sPg30sq4bYSieCCYLwRtZfSf0W8mfkVXPLVj6dT9dmWLq/KTSiAjCuOW8HomDZ1o5A+Y
-         9r95CcNL3CkyfCqCPDbqQFtEeOrCpYK8fKElemgqU8w8OozzJuMGyzVE4qn1YansKa+6
-         oeEldYbNFwuToEF6Zyet+zJ9LiRmLbatLs07aXGVmxwjrq8sPeuU6Fpggq9QiI/Jqj9+
-         Db3A==
-X-Gm-Message-State: AOAM5305yc32Rn+PamPTDkcamO8rah5FZ/D5KxATwaO3CY5p/CEo9WB7
-        DZK3vE1Jlxq9654hM/36ebRkqI1WYmFB0g==
-X-Google-Smtp-Source: ABdhPJzkJsQoSwBsfyheFfutrKoNkuDhgaIfU1KQblSSLwsAoP6zghXvhcZzswbdZNQat34OXw63Bw==
-X-Received: by 2002:a63:f5a:: with SMTP id 26mr5137012pgp.613.1641924308280;
-        Tue, 11 Jan 2022 10:05:08 -0800 (PST)
+        bh=mzvRZKPPi+O4Z5nNliFs9pnbJZxkwJwBOoO6asYIWtU=;
+        b=GFBTWOF/hdkE9zKy8h/opVIsd5RXZr53uBUjGsTGjdDSD+VPi/3X7CMrZU7CoDImPz
+         CCDHdxmksAgwzUa4qarbXFsVX+vtm4uXlybjegsOBeZxw8dABMS/b/iMqHHKFuhGi43N
+         gxfdDMDFm74Hx4XuqU7Thmsr/jUJGlqMahpRB+2OQkgDUH5ihAkRaG65RKBTFq8UzeAX
+         QNv7I3DpEanW4HhAp74t3G2dprKcZZm61S1hGBg3fRRj//TBJozuv8uYeyDh69mijfNb
+         qKpbQjJUO2Oedui6asUU1qyt2/Uqj2g1dF77X9pujaA6aOxjsB+LqLrPBW9deJcJHQ1u
+         RD5w==
+X-Gm-Message-State: AOAM533ek1V70lv4yTxqS6df/I0zRW9hZKM2IFTQoW28m/8W+t1CR6kT
+        FQc5qNHJXEZdUGrPsCH6XAqyVcQRSIar+A==
+X-Google-Smtp-Source: ABdhPJwvzXzIdxaeFGhrJX/kbfP0UE1Wj6/S19acS+KFtP4WlPA9ZMJGqW9Sd+fB4Qufr2hVcgtwTw==
+X-Received: by 2002:a17:902:a404:b0:148:c0e0:423f with SMTP id p4-20020a170902a40400b00148c0e0423fmr5778226plq.90.1641924299019;
+        Tue, 11 Jan 2022 10:04:59 -0800 (PST)
 Received: from localhost ([2405:201:6014:d064:502e:73f4:8af1:9522])
-        by smtp.gmail.com with ESMTPSA id b4sm3119877pjh.44.2022.01.11.10.05.07
+        by smtp.gmail.com with ESMTPSA id t21sm3081474pjs.37.2022.01.11.10.04.58
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 11 Jan 2022 10:05:08 -0800 (PST)
+        Tue, 11 Jan 2022 10:04:58 -0800 (PST)
 From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
 To:     bpf@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
         Daniel Borkmann <daniel@iogearbox.net>,
@@ -62,293 +62,170 @@ Cc:     Martin KaFai Lau <kafai@fb.com>, Song Liu <songliubraving@fb.com>,
         Florian Westphal <fw@strlen.de>,
         Jesper Dangaard Brouer <brouer@redhat.com>,
         =?UTF-8?q?Toke=20H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
-Subject: [PATCH bpf-next v7 04/10] bpf: Introduce mem, size argument pair support for kfunc
-Date:   Tue, 11 Jan 2022 23:34:22 +0530
-Message-Id: <20220111180428.931466-5-memxor@gmail.com>
+Subject: [PATCH bpf-next v7 01/10] bpf: Fix UAF due to race between btf_try_get_module and load_module
+Date:   Tue, 11 Jan 2022 23:34:19 +0530
+Message-Id: <20220111180428.931466-2-memxor@gmail.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20220111180428.931466-1-memxor@gmail.com>
 References: <20220111180428.931466-1-memxor@gmail.com>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=10036; h=from:subject; bh=g31VGcMoJJ0vdw6gOUMJPC/1fEdzf0G3ukVh1oecyMk=; b=owEBbQKS/ZANAwAIAUzgyIZIvxHKAcsmYgBh3cajPXDEFQSiDXBE+oPK1YA6OBt5kGgoP46LwGNE Jk8QF8CJAjMEAAEIAB0WIQRLvip+Buz51YI8YRFM4MiGSL8RygUCYd3GowAKCRBM4MiGSL8Ryu+qD/ 40MiWX9qS2Hfey334H94YTBGJDTfaAPYK2MKb6qSMgHOussV4T2lDdHIhToj7bEkfd6EXD+UbA0HpP pUTDUq9lFUML+igpRRxtNA90HSfJGvSb2//06hai6ZBG48Z1c+bw5WH41gZwzy0X3aa5bApCbgnKEn /8hygJDpjFN6IXYSIGkK3irgsGfvCn/PdA8qsWR1mi2qztjWXKOkS7ahiIr5Uvo+as3NUap3eR3EXo O7qDfel/a10hidYHR2Q/P4MZp74mrbTicwyGdak6BERRaRCVVlpF5epdWJTcN5AUNnYs3ScqYi44YM tjERGK/jGJ4VY3wIl6GER741dW/0E1tysUQkctZnyUq085R+CTfQZz41PHrlEWGkY52UHxze4wPv89 NJRCOq03uFRWyUJSgxH+7zHJmxhjxDHsmOGgg3fW8l8Am7vhC/VfCSvQwEqwsSHrl6MBHPEjh882eO BLrTR/vaSdY6JY5su7XFrPTOZ1tNIzAT7VBTQtuzF9ONdV/nkpJEBGMSQkLZ9najw+EkgkkCnrFerS MCx6Z1rQ3r1S0uuPoeLWPCMgWheCZLJCnloevannspjGQcF2YSlXFhZsRweVD4ZTWbD5q9ajYR7GCM Jkunv2sSrRGJIT/dTYGXCM55XR3sdwyLLBtJhdny42qFH5s/vxC1oOvig1Aw==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=5792; h=from:subject; bh=FAX5enVSiuTRv8dFs2JqHzzpMfEKAf8m/iCPJxEYOoQ=; b=owEBbQKS/ZANAwAIAUzgyIZIvxHKAcsmYgBh3cajhSOO01rS7iHg4WP0GNEmBdSbx9T3OtXKWJ9u TKFYcIiJAjMEAAEIAB0WIQRLvip+Buz51YI8YRFM4MiGSL8RygUCYd3GowAKCRBM4MiGSL8RykdBD/ 9Fx8MINwyFirrx3B59Kuk4pCxHtJThth09kknw2CzW78gc+x98boBqPMSz5z9q9TgOmSk5xPyAu9gG AtzdShU0oQSIV6XHUvJ4wrXprxE0mQlKIPKTt/CWHNQQfgaytPMrEprptF4M/rWwxXK6ZeAIvCM6l0 0MgragZCFQxgkG/tUKbTB2LqWCcBuBAb2Gj80wAkhAcT0+Gvq+4GqdtCeMgjq03e0eLybdUNYOey7L edWsPalC1iEzz6xfciPpuCwcH32TJmhhE487VHxsWs3Hpp5q5SXBQVSCMi7a2/PLGQEMCJIhPYtny0 XOsNZxQ77c3+cdRzYFROzfvZKyIoMFQs4xD8sa/k0Isfm/I0eVAZKc+1/BQwBBx6EE/se6dSfevOLG mHUxgtsfufIeoGQ0k4PBuMz0upshWmqvoyaaZD6Gl1QiwBEGf3B2OcnFKIA3sqb3XMZ9qfTQQ/TBzq khhwZl5cbzFUGqoqDOLoXDTXzwh9dxzR4UCRGjvJ7oNM94jXHDFqpZ3aHvLwISWtG9hC0j01HF88B9 /O3aC+fBFquG/MbSAgVoD5lIwixzpRE9oBmYRHeXuaNx0Qj/5y8slv+Q8GUYLWUal5jNBL39AAaoFR 4ugIGTeUyxWMjzyWFbRv2QflA0TFiUz5bD63Ggjo6l7HTkmjyNGt72+/a4gA==
 X-Developer-Key: i=memxor@gmail.com; a=openpgp; fpr=4BBE2A7E06ECF9D5823C61114CE0C88648BF11CA
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-BPF helpers can associate two adjacent arguments together to pass memory
-of certain size, using ARG_PTR_TO_MEM and ARG_CONST_SIZE arguments.
-Since we don't use bpf_func_proto for kfunc, we need to leverage BTF to
-implement similar support.
+While working on code to populate kfunc BTF ID sets for module BTF from
+its initcall, I noticed that by the time the initcall is invoked, the
+module BTF can already be seen by userspace (and the BPF verifier). The
+existing btf_try_get_module calls try_module_get which only fails if
+mod->state == MODULE_STATE_GOING, i.e. it can increment module reference
+when module initcall is happening in parallel.
 
-The ARG_CONST_SIZE processing for helpers is refactored into a common
-check_mem_size_reg helper that is shared with kfunc as well. kfunc
-ptr_to_mem support follows logic similar to global functions, where
-verification is done as if pointer is not null, even when it may be
-null.
+Currently, BTF parsing happens from MODULE_STATE_COMING notifier
+callback. At this point, the module initcalls have not been invoked.
+The notifier callback parses and prepares the module BTF, allocates an
+ID, which publishes it to userspace, and then adds it to the btf_modules
+list allowing the kernel to invoke btf_try_get_module for the BTF.
 
-This leads to a simple to follow rule for writing kfunc: always check
-the argument pointer for NULL, except when it is PTR_TO_CTX. Also, the
-PTR_TO_CTX case is also only safe when the helper expecting pointer to
-program ctx is not exposed to other programs where same struct is not
-ctx type. In that case, the type check will fall through to other cases
-and would permit passing other types of pointers, possibly NULL at
-runtime.
+However, at this point, the module has not been fully initialized (i.e.
+its initcalls have not finished). The code in module.c can still fail
+and free the module, without caring for other users. However, nothing
+stops btf_try_get_module from succeeding between the state transition
+from MODULE_STATE_COMING to MODULE_STATE_LIVE.
 
-Currently, we require the size argument to be suffixed with "__sz" in
-the parameter name. This information is then recorded in kernel BTF and
-verified during function argument checking. In the future we can use BTF
-tagging instead, and modify the kernel function definitions. This will
-be a purely kernel-side change.
+This leads to a use-after-free issue when BPF program loads
+successfully in the state transition, load_module's do_init_module call
+fails and frees the module, and BPF program fd on close calls module_put
+for the freed module. Future patch has test case to verify we don't
+regress in this area in future.
 
-This allows us to have some form of backwards compatibility for
-structures that are passed in to the kernel function with their size,
-and allow variable length structures to be passed in if they are
-accompanied by a size parameter.
+There are multiple points after prepare_coming_module (in load_module)
+where failure can occur and module loading can return error. We
+illustrate and test for the race using the last point where it can
+practically occur (in module __init function).
 
+An illustration of the race:
+
+CPU 0                           CPU 1
+			  load_module
+			    notifier_call(MODULE_STATE_COMING)
+			      btf_parse_module
+			      btf_alloc_id	// Published to userspace
+			      list_add(&btf_mod->list, btf_modules)
+			    mod->init(...)
+...				^
+bpf_check		        |
+check_pseudo_btf_id             |
+  btf_try_get_module            |
+    returns true                |  ...
+...                             |  module __init in progress
+return prog_fd                  |  ...
+...                             V
+			    if (ret < 0)
+			      free_module(mod)
+			    ...
+close(prog_fd)
+ ...
+ bpf_prog_free_deferred
+  module_put(used_btf.mod) // use-after-free
+
+We fix this issue by setting a flag BTF_MODULE_F_LIVE, from the notifier
+callback when MODULE_STATE_LIVE state is reached for the module, so that
+we return NULL from btf_try_get_module for modules that are not fully
+formed. Since try_module_get already checks that module is not in
+MODULE_STATE_GOING state, and that is the only transition a live module
+can make before being removed from btf_modules list, this is enough to
+close the race and prevent the bug.
+
+A later selftest patch crafts the race condition artifically to verify
+that it has been fixed, and that verifier fails to load program (with
+ENXIO).
+
+Lastly, a couple of comments:
+
+ 1. Even if this race didn't exist, it seems more appropriate to only
+    access resources (ksyms and kfuncs) of a fully formed module which
+    has been initialized completely.
+
+ 2. This patch was born out of need for synchronization against module
+    initcall for the next patch, so it is needed for correctness even
+    without the aforementioned race condition. The BTF resources
+    initialized by module initcall are set up once and then only looked
+    up, so just waiting until the initcall has finished ensures correct
+    behavior.
+
+Fixes: 541c3bad8dc5 ("bpf: Support BPF ksym variables in kernel modules")
 Signed-off-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
 ---
- include/linux/bpf_verifier.h |   2 +
- kernel/bpf/btf.c             |  48 +++++++++++++-
- kernel/bpf/verifier.c        | 124 ++++++++++++++++++++++-------------
- 3 files changed, 126 insertions(+), 48 deletions(-)
+ kernel/bpf/btf.c | 26 ++++++++++++++++++++++++--
+ 1 file changed, 24 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/bpf_verifier.h b/include/linux/bpf_verifier.h
-index 143401d4c9d9..857fd687bdc2 100644
---- a/include/linux/bpf_verifier.h
-+++ b/include/linux/bpf_verifier.h
-@@ -521,6 +521,8 @@ bpf_prog_offload_remove_insns(struct bpf_verifier_env *env, u32 off, u32 cnt);
- 
- int check_ctx_reg(struct bpf_verifier_env *env,
- 		  const struct bpf_reg_state *reg, int regno);
-+int check_kfunc_mem_size_reg(struct bpf_verifier_env *env, struct bpf_reg_state *reg,
-+			     u32 regno);
- int check_mem_reg(struct bpf_verifier_env *env, struct bpf_reg_state *reg,
- 		   u32 regno, u32 mem_size);
- 
 diff --git a/kernel/bpf/btf.c b/kernel/bpf/btf.c
-index efc1415ae202..ed1b4792f505 100644
+index 33bb8ae4a804..f25bca59909d 100644
 --- a/kernel/bpf/btf.c
 +++ b/kernel/bpf/btf.c
-@@ -5647,6 +5647,32 @@ static bool __btf_type_is_scalar_struct(struct bpf_verifier_log *log,
- 	return true;
+@@ -6200,12 +6200,17 @@ bool btf_id_set_contains(const struct btf_id_set *set, u32 id)
+ 	return bsearch(&id, set->ids, set->cnt, sizeof(u32), btf_id_cmp_func) != NULL;
  }
  
-+static bool is_kfunc_arg_mem_size(const struct btf *btf,
-+				  const struct btf_param *arg,
-+				  const struct bpf_reg_state *reg)
-+{
-+	int len, sfx_len = sizeof("__sz") - 1;
-+	const struct btf_type *t;
-+	const char *param_name;
++enum {
++	BTF_MODULE_F_LIVE = (1 << 0),
++};
 +
-+	t = btf_type_skip_modifiers(btf, arg->type, NULL);
-+	if (!btf_type_is_scalar(t) || reg->type != SCALAR_VALUE)
-+		return false;
-+
-+	/* In the future, this can be ported to use BTF tagging */
-+	param_name = btf_name_by_offset(btf, arg->name_off);
-+	if (str_is_empty(param_name))
-+		return false;
-+	len = strlen(param_name);
-+	if (len < sfx_len)
-+		return false;
-+	param_name += len - sfx_len;
-+	if (strncmp(param_name, "__sz", sfx_len))
-+		return false;
-+
-+	return true;
-+}
-+
- static int btf_check_func_arg_match(struct bpf_verifier_env *env,
- 				    const struct btf *btf, u32 func_id,
- 				    struct bpf_reg_state *regs,
-@@ -5758,17 +5784,33 @@ static int btf_check_func_arg_match(struct bpf_verifier_env *env,
- 			u32 type_size;
+ #ifdef CONFIG_DEBUG_INFO_BTF_MODULES
+ struct btf_module {
+ 	struct list_head list;
+ 	struct module *module;
+ 	struct btf *btf;
+ 	struct bin_attribute *sysfs_attr;
++	int flags;
+ };
  
- 			if (is_kfunc) {
-+				bool arg_mem_size = i + 1 < nargs && is_kfunc_arg_mem_size(btf, &args[i + 1], &regs[regno + 1]);
-+
- 				/* Permit pointer to mem, but only when argument
- 				 * type is pointer to scalar, or struct composed
- 				 * (recursively) of scalars.
-+				 * When arg_mem_size is true, the pointer can be
-+				 * void *.
- 				 */
- 				if (!btf_type_is_scalar(ref_t) &&
--				    !__btf_type_is_scalar_struct(log, btf, ref_t, 0)) {
-+				    !__btf_type_is_scalar_struct(log, btf, ref_t, 0) &&
-+				    (arg_mem_size ? !btf_type_is_void(ref_t) : 1)) {
- 					bpf_log(log,
--						"arg#%d pointer type %s %s must point to scalar or struct with scalar\n",
--						i, btf_type_str(ref_t), ref_tname);
-+						"arg#%d pointer type %s %s must point to %sscalar, or struct with scalar\n",
-+						i, btf_type_str(ref_t), ref_tname, arg_mem_size ? "void, " : "");
- 					return -EINVAL;
- 				}
-+
-+				/* Check for mem, len pair */
-+				if (arg_mem_size) {
-+					if (check_kfunc_mem_size_reg(env, &regs[regno + 1], regno + 1)) {
-+						bpf_log(log, "arg#%d arg#%d memory, len pair leads to invalid memory access\n",
-+							i, i + 1);
-+						return -EINVAL;
-+					}
-+					i++;
-+					continue;
-+				}
- 			}
+ static LIST_HEAD(btf_modules);
+@@ -6233,7 +6238,8 @@ static int btf_module_notify(struct notifier_block *nb, unsigned long op,
+ 	int err = 0;
  
- 			resolve_ret = btf_resolve_size(btf, ref_t, &type_size);
-diff --git a/kernel/bpf/verifier.c b/kernel/bpf/verifier.c
-index ec07f4992253..f147b6963dd5 100644
---- a/kernel/bpf/verifier.c
-+++ b/kernel/bpf/verifier.c
-@@ -4865,6 +4865,62 @@ static int check_helper_mem_access(struct bpf_verifier_env *env, int regno,
- 	}
- }
+ 	if (mod->btf_data_size == 0 ||
+-	    (op != MODULE_STATE_COMING && op != MODULE_STATE_GOING))
++	    (op != MODULE_STATE_COMING && op != MODULE_STATE_LIVE &&
++	     op != MODULE_STATE_GOING))
+ 		goto out;
  
-+static int check_mem_size_reg(struct bpf_verifier_env *env,
-+			      struct bpf_reg_state *reg, u32 regno,
-+			      bool zero_size_allowed,
-+			      struct bpf_call_arg_meta *meta)
-+{
-+	int err;
+ 	switch (op) {
+@@ -6291,6 +6297,17 @@ static int btf_module_notify(struct notifier_block *nb, unsigned long op,
+ 			btf_mod->sysfs_attr = attr;
+ 		}
+ 
++		break;
++	case MODULE_STATE_LIVE:
++		mutex_lock(&btf_module_mutex);
++		list_for_each_entry_safe(btf_mod, tmp, &btf_modules, list) {
++			if (btf_mod->module != module)
++				continue;
 +
-+	/* This is used to refine r0 return value bounds for helpers
-+	 * that enforce this value as an upper bound on return values.
-+	 * See do_refine_retval_range() for helpers that can refine
-+	 * the return value. C type of helper is u32 so we pull register
-+	 * bound from umax_value however, if negative verifier errors
-+	 * out. Only upper bounds can be learned because retval is an
-+	 * int type and negative retvals are allowed.
-+	 */
-+	if (meta)
-+		meta->msize_max_value = reg->umax_value;
-+
-+	/* The register is SCALAR_VALUE; the access check
-+	 * happens using its boundaries.
-+	 */
-+	if (!tnum_is_const(reg->var_off))
-+		/* For unprivileged variable accesses, disable raw
-+		 * mode so that the program is required to
-+		 * initialize all the memory that the helper could
-+		 * just partially fill up.
++			btf_mod->flags |= BTF_MODULE_F_LIVE;
++			break;
++		}
++		mutex_unlock(&btf_module_mutex);
+ 		break;
+ 	case MODULE_STATE_GOING:
+ 		mutex_lock(&btf_module_mutex);
+@@ -6338,7 +6355,12 @@ struct module *btf_try_get_module(const struct btf *btf)
+ 		if (btf_mod->btf != btf)
+ 			continue;
+ 
+-		if (try_module_get(btf_mod->module))
++		/* We must only consider module whose __init routine has
++		 * finished, hence we must check for BTF_MODULE_F_LIVE flag,
++		 * which is set from the notifier callback for
++		 * MODULE_STATE_LIVE.
 +		 */
-+		meta = NULL;
-+
-+	if (reg->smin_value < 0) {
-+		verbose(env, "R%d min value is negative, either use unsigned or 'var &= const'\n",
-+			regno);
-+		return -EACCES;
-+	}
-+
-+	if (reg->umin_value == 0) {
-+		err = check_helper_mem_access(env, regno - 1, 0,
-+					      zero_size_allowed,
-+					      meta);
-+		if (err)
-+			return err;
-+	}
-+
-+	if (reg->umax_value >= BPF_MAX_VAR_SIZ) {
-+		verbose(env, "R%d unbounded memory access, use 'var &= const' or 'if (var < const)'\n",
-+			regno);
-+		return -EACCES;
-+	}
-+	err = check_helper_mem_access(env, regno - 1,
-+				      reg->umax_value,
-+				      zero_size_allowed, meta);
-+	if (!err)
-+		err = mark_chain_precision(env, regno);
-+	return err;
-+}
-+
- int check_mem_reg(struct bpf_verifier_env *env, struct bpf_reg_state *reg,
- 		   u32 regno, u32 mem_size)
- {
-@@ -4888,6 +4944,28 @@ int check_mem_reg(struct bpf_verifier_env *env, struct bpf_reg_state *reg,
- 	return check_helper_mem_access(env, regno, mem_size, true, NULL);
- }
++		if ((btf_mod->flags & BTF_MODULE_F_LIVE) && try_module_get(btf_mod->module))
+ 			res = btf_mod->module;
  
-+int check_kfunc_mem_size_reg(struct bpf_verifier_env *env, struct bpf_reg_state *reg,
-+			     u32 regno)
-+{
-+	struct bpf_reg_state *mem_reg = &cur_regs(env)[regno - 1];
-+	bool may_be_null = type_may_be_null(mem_reg->type);
-+	struct bpf_reg_state saved_reg;
-+	int err;
-+
-+	WARN_ON_ONCE(regno < BPF_REG_2 || regno > BPF_REG_5);
-+
-+	if (may_be_null) {
-+		saved_reg = *mem_reg;
-+		mark_ptr_not_null_reg(mem_reg);
-+	}
-+
-+	err = check_mem_size_reg(env, reg, regno, true, NULL);
-+
-+	if (may_be_null)
-+		*mem_reg = saved_reg;
-+	return err;
-+}
-+
- /* Implementation details:
-  * bpf_map_lookup returns PTR_TO_MAP_VALUE_OR_NULL
-  * Two bpf_map_lookups (even with the same key) will have different reg->id.
-@@ -5409,51 +5487,7 @@ static int check_func_arg(struct bpf_verifier_env *env, u32 arg,
- 	} else if (arg_type_is_mem_size(arg_type)) {
- 		bool zero_size_allowed = (arg_type == ARG_CONST_SIZE_OR_ZERO);
- 
--		/* This is used to refine r0 return value bounds for helpers
--		 * that enforce this value as an upper bound on return values.
--		 * See do_refine_retval_range() for helpers that can refine
--		 * the return value. C type of helper is u32 so we pull register
--		 * bound from umax_value however, if negative verifier errors
--		 * out. Only upper bounds can be learned because retval is an
--		 * int type and negative retvals are allowed.
--		 */
--		meta->msize_max_value = reg->umax_value;
--
--		/* The register is SCALAR_VALUE; the access check
--		 * happens using its boundaries.
--		 */
--		if (!tnum_is_const(reg->var_off))
--			/* For unprivileged variable accesses, disable raw
--			 * mode so that the program is required to
--			 * initialize all the memory that the helper could
--			 * just partially fill up.
--			 */
--			meta = NULL;
--
--		if (reg->smin_value < 0) {
--			verbose(env, "R%d min value is negative, either use unsigned or 'var &= const'\n",
--				regno);
--			return -EACCES;
--		}
--
--		if (reg->umin_value == 0) {
--			err = check_helper_mem_access(env, regno - 1, 0,
--						      zero_size_allowed,
--						      meta);
--			if (err)
--				return err;
--		}
--
--		if (reg->umax_value >= BPF_MAX_VAR_SIZ) {
--			verbose(env, "R%d unbounded memory access, use 'var &= const' or 'if (var < const)'\n",
--				regno);
--			return -EACCES;
--		}
--		err = check_helper_mem_access(env, regno - 1,
--					      reg->umax_value,
--					      zero_size_allowed, meta);
--		if (!err)
--			err = mark_chain_precision(env, regno);
-+		err = check_mem_size_reg(env, reg, regno, zero_size_allowed, meta);
- 	} else if (arg_type_is_alloc_size(arg_type)) {
- 		if (!tnum_is_const(reg->var_off)) {
- 			verbose(env, "R%d is not a known constant'\n",
+ 		break;
 -- 
 2.34.1
 
