@@ -2,60 +2,48 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 366A5C433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Jan 2022 09:32:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED5B1C433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Jan 2022 09:33:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349261AbiAKJcw (ORCPT
+        id S1349282AbiAKJdt (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 11 Jan 2022 04:32:52 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:45730 "EHLO
+        Tue, 11 Jan 2022 04:33:49 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:45750 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236995AbiAKJcw (ORCPT
+        with ESMTP id S236995AbiAKJdr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 11 Jan 2022 04:32:52 -0500
+        Tue, 11 Jan 2022 04:33:47 -0500
 Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 74FB9607C3;
-        Tue, 11 Jan 2022 10:29:59 +0100 (CET)
-Date:   Tue, 11 Jan 2022 10:32:43 +0100
+        by mail.netfilter.org (Postfix) with ESMTPSA id 08FCD607C3;
+        Tue, 11 Jan 2022 10:30:54 +0100 (CET)
+Date:   Tue, 11 Jan 2022 10:33:41 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org
-Subject: Re: [PATCH net-next] netfilter: nf_tables: fix compile warnings
-Message-ID: <Yd1OuyV3ztYc+jAl@salvia>
-References: <20220110221419.60994-1-pablo@netfilter.org>
- <20220110205755.5dd76c64@kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net>
+To:     Dan Carpenter <dan.carpenter@oracle.com>
+Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH v2] netfilter: nft_connlimit: fix nft clone() functions
+Message-ID: <Yd1O9RPFe3xlzztN@salvia>
+References: <20220111072115.GF11243@kili>
+ <20220111074505.GE1978@kadam>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20220110205755.5dd76c64@kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net>
+In-Reply-To: <20220111074505.GE1978@kadam>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jan 10, 2022 at 08:57:55PM -0800, Jakub Kicinski wrote:
-> On Mon, 10 Jan 2022 23:14:19 +0100 Pablo Neira Ayuso wrote:
-> > Remove unused variable and fix missing initialization.
+On Tue, Jan 11, 2022 at 10:45:05AM +0300, Dan Carpenter wrote:
+> On Tue, Jan 11, 2022 at 10:21:15AM +0300, Dan Carpenter wrote:
+> > These NULL checks are reversed so the clone() can never succeed.
 > > 
-> > >> net/netfilter/nf_tables_api.c:8266:6: warning: variable 'i' set but not used [-Wunused-but-set-variable]  
-> >            int i;
-> >                ^
-> > >> net/netfilter/nf_tables_api.c:8277:4: warning: variable 'data_size' is uninitialized when used here [-Wuninitialized]  
-> >                            data_size += sizeof(*prule) + rule->dlen;
-> >                            ^~~~~~~~~
-> >    net/netfilter/nf_tables_api.c:8262:30: note: initialize the variable 'data_size' to silence this warning
-> >            unsigned int size, data_size;
-> > 
-> > Fixes: 2c865a8a28a1 ("netfilter: nf_tables: add rule blob layout")
-> > Reported-by: kernel test robot <lkp@intel.com>
-> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > Fixes: 37f319f37d90 ("netfilter: nft_connlimit: move stateful fields out of expression data")
+> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 > > ---
-> > Please, directly apply to net-next, thanks. Otherwise let me know and
-> > I'll prepare a pull request with pending fixes once net-next gets merged
-> > into net.
+> > v2: fix a couple similar bugs
 > 
-> As you have probably seen Linus fixed this up himself.
-> 
-> You can take the fix for the other warning thru your tree.
+> Gar.  Nope.  Missed one still.
 
-That's fine, thanks.
+Already fixed in net-next
