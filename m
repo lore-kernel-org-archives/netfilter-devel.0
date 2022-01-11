@@ -2,135 +2,60 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BB09C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Jan 2022 09:01:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 366A5C433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Jan 2022 09:32:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236319AbiAKJBW (ORCPT
+        id S1349261AbiAKJcw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 11 Jan 2022 04:01:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37742 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349136AbiAKJBV (ORCPT
+        Tue, 11 Jan 2022 04:32:52 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:45730 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S236995AbiAKJcw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 11 Jan 2022 04:01:21 -0500
-Received: from laurent.telenet-ops.be (laurent.telenet-ops.be [IPv6:2a02:1800:110:4::f00:19])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE5F4C061751
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 Jan 2022 01:01:20 -0800 (PST)
-Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed20:21ee:483:c1e3:4013])
-        by laurent.telenet-ops.be with bizsmtp
-        id hM1H2600S0njLPq01M1HU9; Tue, 11 Jan 2022 10:01:18 +0100
-Received: from geert (helo=localhost)
-        by ramsan.of.borg with local-esmtp (Exim 4.93)
-        (envelope-from <geert@linux-m68k.org>)
-        id 1n7D1p-0095rS-9y; Tue, 11 Jan 2022 10:01:17 +0100
-Date:   Tue, 11 Jan 2022 10:01:17 +0100 (CET)
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-X-X-Sender: geert@ramsan.of.borg
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org,
-        linux-kernel@linux-m68k.org
-Subject: Re: [PATCH net-next 10/32] netfilter: flowtable: remove ipv4/ipv6
- modules
-In-Reply-To: <20220109231640.104123-11-pablo@netfilter.org>
-Message-ID: <alpine.DEB.2.22.394.2201110953410.2167203@ramsan.of.borg>
-References: <20220109231640.104123-1-pablo@netfilter.org> <20220109231640.104123-11-pablo@netfilter.org>
-User-Agent: Alpine 2.22 (DEB 394 2020-01-19)
+        Tue, 11 Jan 2022 04:32:52 -0500
+Received: from netfilter.org (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 74FB9607C3;
+        Tue, 11 Jan 2022 10:29:59 +0100 (CET)
+Date:   Tue, 11 Jan 2022 10:32:43 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jakub Kicinski <kuba@kernel.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org
+Subject: Re: [PATCH net-next] netfilter: nf_tables: fix compile warnings
+Message-ID: <Yd1OuyV3ztYc+jAl@salvia>
+References: <20220110221419.60994-1-pablo@netfilter.org>
+ <20220110205755.5dd76c64@kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20220110205755.5dd76c64@kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
- 	Hi Pablo, Florian,
-
-On Mon, 10 Jan 2022, Pablo Neira Ayuso wrote:
-> From: Florian Westphal <fw@strlen.de>
->
-> Just place the structs and registration in the inet module.
-> nf_flow_table_ipv6, nf_flow_table_ipv4 and nf_flow_table_inet share
-> same module dependencies: nf_flow_table, nf_tables.
->
-> before:
->   text	   data	    bss	    dec	    hex	filename
->   2278	   1480	      0	   3758	    eae	nf_flow_table_inet.ko
->   1159	   1352	      0	   2511	    9cf	nf_flow_table_ipv6.ko
->   1154	   1352	      0	   2506	    9ca	nf_flow_table_ipv4.ko
->
-> after:
->   2369	   1672	      0	   4041	    fc9	nf_flow_table_inet.ko
->
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-
-Thanks for your patch, which is now commit c42ba4290b2147aa
-("netfilter: flowtable: remove ipv4/ipv6 modules") upstream.
-
-> --- a/net/ipv4/netfilter/Kconfig
-> +++ b/net/ipv4/netfilter/Kconfig
-> @@ -59,12 +59,8 @@ config NF_TABLES_ARP
-> endif # NF_TABLES
->
-> config NF_FLOW_TABLE_IPV4
-> -	tristate "Netfilter flow table IPv4 module"
-> -	depends on NF_FLOW_TABLE
-> -	help
-> -	  This option adds the flow table IPv4 support.
-> -
-> -	  To compile it as a module, choose M here.
-> +	tristate
-> +	select NF_FLOW_TABLE_INET
-
-What is the point in keeping this symbol? It is invisble, selected
-by nothing (so it can no longer be enabled), and its last user is
-removed below.
-Is there a mistake, or should this symbol just be removed?
-
-> config NF_DUP_IPV4
-> 	tristate "Netfilter IPv4 packet duplication to alternate destination"
-
-> --- a/net/ipv4/netfilter/Makefile
-> +++ b/net/ipv4/netfilter/Makefile
-> @@ -24,9 +24,6 @@ obj-$(CONFIG_NFT_REJECT_IPV4) += nft_reject_ipv4.o
->  obj-$(CONFIG_NFT_FIB_IPV4) += nft_fib_ipv4.o
->  obj-$(CONFIG_NFT_DUP_IPV4) += nft_dup_ipv4.o
+On Mon, Jan 10, 2022 at 08:57:55PM -0800, Jakub Kicinski wrote:
+> On Mon, 10 Jan 2022 23:14:19 +0100 Pablo Neira Ayuso wrote:
+> > Remove unused variable and fix missing initialization.
+> > 
+> > >> net/netfilter/nf_tables_api.c:8266:6: warning: variable 'i' set but not used [-Wunused-but-set-variable]  
+> >            int i;
+> >                ^
+> > >> net/netfilter/nf_tables_api.c:8277:4: warning: variable 'data_size' is uninitialized when used here [-Wuninitialized]  
+> >                            data_size += sizeof(*prule) + rule->dlen;
+> >                            ^~~~~~~~~
+> >    net/netfilter/nf_tables_api.c:8262:30: note: initialize the variable 'data_size' to silence this warning
+> >            unsigned int size, data_size;
+> > 
+> > Fixes: 2c865a8a28a1 ("netfilter: nf_tables: add rule blob layout")
+> > Reported-by: kernel test robot <lkp@intel.com>
+> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > ---
+> > Please, directly apply to net-next, thanks. Otherwise let me know and
+> > I'll prepare a pull request with pending fixes once net-next gets merged
+> > into net.
 > 
-> -# flow table support
-> -obj-$(CONFIG_NF_FLOW_TABLE_IPV4) += nf_flow_table_ipv4.o
-> -
->  # generic IP tables
->  obj-$(CONFIG_IP_NF_IPTABLES) += ip_tables.o
+> As you have probably seen Linus fixed this up himself.
+> 
+> You can take the fix for the other warning thru your tree.
 
-> --- a/net/ipv6/netfilter/Kconfig
-> +++ b/net/ipv6/netfilter/Kconfig
-> @@ -48,12 +48,8 @@ endif # NF_TABLES_IPV6
-> endif # NF_TABLES
->
-> config NF_FLOW_TABLE_IPV6
-> -	tristate "Netfilter flow table IPv6 module"
-> -	depends on NF_FLOW_TABLE
-> -	help
-> -	  This option adds the flow table IPv6 support.
-> -
-> -	  To compile it as a module, choose M here.
-> +	tristate
-> +	select NF_FLOW_TABLE_INET
-
-Likewise, except that its last user was not removed:
-
-     net/ipv6/netfilter/Makefile:obj-$(CONFIG_NF_FLOW_TABLE_IPV6) += nf_flow_table_ipv6.o
-
-> config NF_DUP_IPV6
-> 	tristate "Netfilter IPv6 packet duplication to alternate destination"
-
-Gr{oetje,eeting}s,
-
- 						Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
- 							    -- Linus Torvalds
+That's fine, thanks.
