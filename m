@@ -2,58 +2,52 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B2C9C433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Jan 2022 11:31:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD367C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Jan 2022 11:32:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1352872AbiALLbo (ORCPT
+        id S239039AbiALLcT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 12 Jan 2022 06:31:44 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:48962 "EHLO
+        Wed, 12 Jan 2022 06:32:19 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:48976 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1352881AbiALLbj (ORCPT
+        with ESMTP id S236574AbiALLcR (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Jan 2022 06:31:39 -0500
-Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id C31B8605C6;
-        Wed, 12 Jan 2022 12:28:47 +0100 (CET)
+        Wed, 12 Jan 2022 06:32:17 -0500
+Received: from netfilter.org (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id A4EB2605C6;
+        Wed, 12 Jan 2022 12:29:24 +0100 (CET)
+Date:   Wed, 12 Jan 2022 12:32:11 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     dan.carpenter@oracle.com
-Subject: [PATCH nf] netfilter: nf_tables: set last expression in register tracking area
-Date:   Wed, 12 Jan 2022 12:31:34 +0100
-Message-Id: <20220112113134.340731-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+To:     Dan Carpenter <dan.carpenter@oracle.com>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [bug report] netfilter: nf_tables: add register tracking
+ infrastructure
+Message-ID: <Yd68O1lI+F5yUSGH@salvia>
+References: <20220112111608.GA3019@kili>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20220112111608.GA3019@kili>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-nft_rule_for_each_expr() sets on last to nft_rule_last(), however, this
-is coming after track.last field is set on.
+On Wed, Jan 12, 2022 at 02:16:08PM +0300, Dan Carpenter wrote:
+> Hello Pablo Neira Ayuso,
+> 
+> The patch 12e4ecfa244b: "netfilter: nf_tables: add register tracking
+> infrastructure" from Jan 9, 2022, leads to the following Smatch
+> static checker warning:
+> 
+> 	net/netfilter/nf_tables_api.c:8303 nf_tables_commit_chain_prepare()
+> 	error: uninitialized symbol 'last'.
+> 
+> net/netfilter/nf_tables_api.c
+>     8259 static int nf_tables_commit_chain_prepare(struct net *net, struct nft_chain *chain)
+>     8260 {
+>     8261         const struct nft_expr *expr, *last;
+>                                                ^^^^
 
-Use nft_expr_last() to set track.last accordingly.
+Thanks:
 
-Fixes: 12e4ecfa244b ("netfilter: nf_tables: add register tracking infrastructure")
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 1cde8cd0d1a7..cf454f8ca2b0 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -8299,7 +8299,7 @@ static int nf_tables_commit_chain_prepare(struct net *net, struct nft_chain *cha
- 			return -ENOMEM;
- 
- 		size = 0;
--		track.last = last;
-+		track.last = nft_expr_last(rule);
- 		nft_rule_for_each_expr(expr, last, rule) {
- 			track.cur = expr;
- 
--- 
-2.30.2
-
+https://patchwork.ozlabs.org/project/netfilter-devel/patch/20220112113134.340731-1-pablo@netfilter.org/
