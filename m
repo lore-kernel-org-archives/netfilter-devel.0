@@ -2,198 +2,214 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4025AC433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Jan 2022 07:46:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED402C433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Jan 2022 16:40:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239508AbiANHqs (ORCPT
+        id S243489AbiANQkl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 14 Jan 2022 02:46:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42230 "EHLO
+        Fri, 14 Jan 2022 11:40:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53690 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230403AbiANHqr (ORCPT
+        with ESMTP id S243490AbiANQkk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 14 Jan 2022 02:46:47 -0500
-Received: from mail-pf1-x441.google.com (mail-pf1-x441.google.com [IPv6:2607:f8b0:4864:20::441])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C22CC061574;
-        Thu, 13 Jan 2022 23:46:47 -0800 (PST)
-Received: by mail-pf1-x441.google.com with SMTP id 78so2064064pfu.10;
-        Thu, 13 Jan 2022 23:46:47 -0800 (PST)
+        Fri, 14 Jan 2022 11:40:40 -0500
+Received: from mail-pj1-x1043.google.com (mail-pj1-x1043.google.com [IPv6:2607:f8b0:4864:20::1043])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 492A2C061574;
+        Fri, 14 Jan 2022 08:40:40 -0800 (PST)
+Received: by mail-pj1-x1043.google.com with SMTP id l6-20020a17090a4d4600b001b44bb75a8bso2342874pjh.3;
+        Fri, 14 Jan 2022 08:40:40 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=z4KOJcQZQtvlKNXQ7dtsE282W/mN9HhhUFMJRCRUci0=;
-        b=TvpC2E0LgeoJZfDkvGeCylLHKDgDezVo4/mPCNJimYTokRBWeX5SZwR7Rnw2ySlehz
-         wa5t4hqeSLf/sPNY4CDicNU/l57bgvXLdTeK9P9dM4SsIsI7JM9l5NlX38Eu0RbkZY5A
-         ApabsLukabAVULm71b7d8XZGpAMmomJ9PHBmbeQOuall2+awbcVowg5nBWp/Uv8xtV3d
-         GkGXuNnkxbXJTgk/eCctJMblOXBDAZ1qpTmObb2e1Mq8mPYlmuMG2XAdM2wrE/4WYP2A
-         C7LvdGpLmrqRBR1ztypwCkfCkfLCG8tKp+Ee3lczo8jw2jfFzw3Bz7Dc4kTRMm0yEAU7
-         Ug1w==
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=rDznD3kPTrUrWGyo/lTDaUP2vve8plLKihHLXqkdBH8=;
+        b=MAqambvjX5v/TdOSizWxA2LOHJm75xiiplhtepnhw5EY0wxMMLV7hsn73Upvw/Kp4g
+         CzB95EsTiun1GZJkZk5Nbaf+NLFQW7+uZub0QxVYBmIElC70XCQ5JPtoHVY2HYUp1k2y
+         TU5Q0pvgNrvKuSf7xI4UoPfW47IK6QGPJmbACg6/VgiaRtl7VKJNkYfl2SvhxYb6uwA1
+         sS+NrpikdUS5GfEFbCWVidcqx4GZ5r57uak8VAwd+uMpB8HEd+78ylDgRGKhH7TDtRJa
+         V0pFYrPUOLWsb/aOD8HoW4JdxQK7azqfK8FJIr9l0uEDEMJT/V01nlOycD76t8Ch0NtY
+         1ndg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=z4KOJcQZQtvlKNXQ7dtsE282W/mN9HhhUFMJRCRUci0=;
-        b=QSu8hKwLM003UanAm9FUQL3xK3IAuG6C6Sp2P5vgGMXOGJ1gAp3zVH41mmsLMb1R4m
-         IEDfb/xnTTgi41QcQl4bAPECP855hSqGT7XMQcPUm7H4xFPvJM0VvtIiOP3FFPLL2Xot
-         rkf9qzF4iznM0ywLtJhI4dpxZU7ALBogrq1t+SU+yUmmxHRH3rDCoWXPzi1iGDiuuy/Q
-         Ywa/FmcDOYg/7yZ6aypkBu5syTn/o6SMabwvltLzBHf98EZQH9J5WRHwzewAhPJ8dmzx
-         cqbS90NL7QBzjHutv39KD27JDFfNdX27ThWO40oapA0VbkJiKL5rQ/KYIGb2ChKokPRz
-         /SnA==
-X-Gm-Message-State: AOAM531t8H6skvsQjWamFx4ouW9sR6PK0/rklWq0cVRCTjgiZtD9vvkh
-        /YnodwD+q5HyMM1XITovejk=
-X-Google-Smtp-Source: ABdhPJx8g6C2wcBT6ewZvdHiZnO2Fbdo9ZcD4wvMd+Kk+ezfRjcRxkTGrsTMeh+i7wX4Z6aPjiLXQg==
-X-Received: by 2002:a63:7156:: with SMTP id b22mr7087769pgn.288.1642146406755;
-        Thu, 13 Jan 2022 23:46:46 -0800 (PST)
-Received: from localhost ([2405:201:6014:d064:502e:73f4:8af1:9522])
-        by smtp.gmail.com with ESMTPSA id h5sm4541743pfi.46.2022.01.13.23.46.44
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=rDznD3kPTrUrWGyo/lTDaUP2vve8plLKihHLXqkdBH8=;
+        b=wTaXo5O32fkKcfxYfPBRG1ML539qBSDiAjAfxWcjSPKQ4UJuozBAtHUE0MQFI6ipHD
+         miqAUlbBuZd5hedDsx0wiBCJDj4yKVxKC0fW6tbEs/E9IDp/VjP3rWGfZ7f2L6JTheO8
+         5lsnvD5q5Fp/71sQYkfW4sTREd+wojuQ/+X6sZHFSrdmsy9JH6xn9XMUCXG/CTRFSYTW
+         XkTRqIr2JEPFrq4pXTBurevaYd98vefInm6VY7Gp4vfnrh1nXzjc2K3t3TLqxAdZyD20
+         W4tB5bPJf3pZJj8ru/BuWUjMuaDSz/zOXd24fe2Zqy5EnekcMMNaPzQU2/R6UmHwVhsn
+         aE8w==
+X-Gm-Message-State: AOAM5302DvLnxhattDumULW6tqryXoJPDkKu0vjnpZNdUcvXQs7sNS8R
+        wnFhh2nwu4R+NFEkcnXPT6MkyNtEfp80wQ==
+X-Google-Smtp-Source: ABdhPJwoWhVFbvqT9aLOVvhWrzS76MT+fjJq2FJ+B1iF6/gHD6BY5SPHLPSihVh2yn6V1IYeLi/xqQ==
+X-Received: by 2002:a17:90a:e454:: with SMTP id jp20mr21257226pjb.53.1642178439447;
+        Fri, 14 Jan 2022 08:40:39 -0800 (PST)
+Received: from localhost ([2405:201:6014:d064:3d4e:6265:800c:dc84])
+        by smtp.gmail.com with ESMTPSA id 7sm1828858pfm.25.2022.01.14.08.40.38
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 13 Jan 2022 23:46:45 -0800 (PST)
-Date:   Fri, 14 Jan 2022 13:16:01 +0530
+        Fri, 14 Jan 2022 08:40:39 -0800 (PST)
 From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
-To:     Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Cc:     bpf <bpf@vger.kernel.org>, Alexei Starovoitov <ast@kernel.org>,
+To:     bpf@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
         Daniel Borkmann <daniel@iogearbox.net>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Network Development <netdev@vger.kernel.org>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>,
-        Martin KaFai Lau <kafai@fb.com>,
-        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
+        Andrii Nakryiko <andrii@kernel.org>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+Cc:     Martin KaFai Lau <kafai@fb.com>, Song Liu <songliubraving@fb.com>,
+        Yonghong Song <yhs@fb.com>,
         John Fastabend <john.fastabend@gmail.com>,
         Maxim Mikityanskiy <maximmi@nvidia.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
         Jesper Dangaard Brouer <brouer@redhat.com>,
-        Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
-Subject: Re: [PATCH bpf-next v7 02/10] bpf: Populate kfunc BTF ID sets in
- struct btf
-Message-ID: <20220114074601.cncdpzrnfeu7gs3d@apollo.legion>
-References: <20220111180428.931466-1-memxor@gmail.com>
- <20220111180428.931466-3-memxor@gmail.com>
- <20220113223211.s2m5fkvafd6fk4tv@ast-mbp.dhcp.thefacebook.com>
- <20220114044950.24jr6juxbuzxskw2@apollo.legion>
- <20220114052129.dwx7tvdjrwokw5sc@apollo.legion>
- <CAADnVQ+0413hUaMpaO-xuXM68+yvECQ2U8Mrer6_rvaZhVP5TQ@mail.gmail.com>
+        =?UTF-8?q?Toke=20H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
+Subject: [PATCH bpf-next v8 00/10] Introduce unstable CT lookup helpers
+Date:   Fri, 14 Jan 2022 22:09:43 +0530
+Message-Id: <20220114163953.1455836-1-memxor@gmail.com>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAADnVQ+0413hUaMpaO-xuXM68+yvECQ2U8Mrer6_rvaZhVP5TQ@mail.gmail.com>
+X-Developer-Signature: v=1; a=openpgp-sha256; l=6976; h=from:subject; bh=LLyb7MwFXiu0NeC4HFn+sW59HPxMOfDccUp+CXTflkk=; b=owEBbQKS/ZANAwAIAUzgyIZIvxHKAcsmYgBh4acUmvQ66go/ZCb3BKQRsYySvINIOWALL4MceUps J50+7CaJAjMEAAEIAB0WIQRLvip+Buz51YI8YRFM4MiGSL8RygUCYeGnFAAKCRBM4MiGSL8RysOdD/ 9iO0DbuX85TSoVYkfHn3nhw0yksiK7VjR20CLkwdmCl3r5lgFP9mBEoTnr180NbbiPOkWyWaYQhMvN mMHvpZ239WnDP9gyATNHfhBGDlzQtRJd3OmRWEC9JPALDNyFReoGrqaDOkCil9zHQVY2Mk0JaPRNcP 7I7PnCEU4x51jWEqNmeng7p/esnGLeT0oTk8N6Z/gNhMkiwfAcsxA3BC6hJ7s+S6x2SjNh/VT8//p0 wwRJM2qgg+GTrWPabxQbIVF+iRFOhnycJjsS9wYUjH0xCIbdC/4OlmokX4Z62DhIrlLCdycfflBMRW R0ANKV3jcNCt2BTMdzX77QDp+EZr5NJll6gjZOifQ8LcqGtqPc/7mZVWb2BcvC69bXZG2DxahJzsk3 HAQ4b5wsg1nTim1BQHgHgTdebZ7u9atNK+jimhpeYwQT1b2qupjbN20KBDLYcAyMLGdVQKLegSt2nJ x7UiS6HMtENATNIY9u3++h4GR8tp6iyDlJweT/VAkG7aLwMs/JXcVlcqMEg5uLPzDbTN6aqsk905jJ WCQubqpBIlE1mxqld6jrdae3U9pQxCIzgPj9X1+BAaFSqO3WHtD2V8kbvpDSgH+G1oQvyYhxUMc2V9 JRDcL933snTfiwS+uGDdVPggdMzHgVCyQS+MXrupKAOcscAVA1cyGlRALStQ==
+X-Developer-Key: i=memxor@gmail.com; a=openpgp; fpr=4BBE2A7E06ECF9D5823C61114CE0C88648BF11CA
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Jan 14, 2022 at 12:22:29PM IST, Alexei Starovoitov wrote:
-> On Thu, Jan 13, 2022 at 9:22 PM Kumar Kartikeya Dwivedi
-> <memxor@gmail.com> wrote:
-> >
-> > On Fri, Jan 14, 2022 at 10:19:50AM IST, Kumar Kartikeya Dwivedi wrote:
-> > > On Fri, Jan 14, 2022 at 04:02:11AM IST, Alexei Starovoitov wrote:
-> > > > On Tue, Jan 11, 2022 at 11:34:20PM +0530, Kumar Kartikeya Dwivedi wrote:
-> > > > > [...]
-> > > > > + /* Make sure all updates are visible before we go to MODULE_STATE_LIVE,
-> > > > > +  * pairs with smp_rmb in btf_try_get_module (for success case).
-> > > > > +  *
-> > > > > +  * btf_populate_kfunc_set(...)
-> > > > > +  * smp_wmb()    <-----------.
-> > > > > +  * mod->state = LIVE        |           if (mod->state == LIVE)
-> > > > > +  *                          |             atomic_inc_nz(mod)
-> > > > > +  *                          `--------->   smp_rmb()
-> > > > > +  *                                        btf_kfunc_id_set_contains(...)
-> > > > > +  */
-> > > > > + smp_wmb();
-> > > >
-> > > > This comment somehow implies that mod->state = LIVE
-> > > > and if (mod->state == LIVE && try_mod_get) can race.
-> > > > That's not the case.
-> > > > The patch 1 closed the race.
-> > > > btf_kfunc_id_set_contains() will be called only on LIVE modules.
-> > > > At that point all __init funcs of the module including register_btf_kfunc_id_set()
-> > > > have completed.
-> > > > This smp_wmb/rmb pair serves no purpose.
-> > > > Unless I'm missing something?
-> > > >
-> > >
-> > > Right, I'm no expert on memory ordering, but even if we closed the race, to me
-> > > there seems to be no reason why the CPU cannot reorder the stores to tab (or its
-> > > hook/type slot) with mod->state = LIVE store.
-> > >
-> > > Usually, the visibility is handled by whatever lock is used to register the
-> > > module somewhere in some subsystem, as the next acquirer can see all updates
-> > > from the previous registration.
-> > >
-> > > In this case, we're directly assigning a pointer without holding any locks etc.
-> > > While it won't be concurrently accessed until module state is LIVE, it is
-> > > necessary to make all updates visible in the right order (that is, once state is
-> > > LIVE, everything stored previously in struct btf for module is also visible).
-> > >
-> > > Once mod->state = LIVE is visible, we will start accessing kfunc_set_tab, but if
-> > > previous stores to it were not visible by then, we'll access a badly-formed
-> > > kfunc_set_tab.
-> > >
-> > > For this particular case, you can think of mod->state = LIVE acting as a release
-> > > store, and the read for mod->state == LIVE acting as an acquire load.
-> > >
-> >
-> > Also, to be more precise, we're now synchronizing using btf_mod->flags, not
-> > mod->state, so I should atleast update the comment, but the idea is the same.
->
-> So the concern is that cpu can execute
-> mod->state = MODULE_STATE_LIVE;
-> from kernel/module.c
-> earlier than stores inside __btf_populate_kfunc_set
-> that are called from do_one_initcall()
-> couple lines earlier in kernel/module.c ?
-> Let's assume cpu is not Intel, since Intel never reorders stores.
-> (as far as I remember the only weak store ordering architecture
-> ever produced is Alpha).
-> But it's not mod->state, it's btf_mod->flags (as you said)
-> which is done under btf_module_mutex.
-> and btf_kfunc_id_set_contains() can only do that after
-> btf_try_get_module() succeeds which is under the same
-> btf_module_mutex.
-> So what is the race ?
-> I think it's important to be concerned about race
-> conditions, but they gotta be real.
-> So please spell out a precise scenario if you still believe it's there.
+This series adds unstable conntrack lookup helpers using BPF kfunc support.  The
+patch adding the lookup helper is based off of Maxim's recent patch to aid in
+rebasing their series on top of this, all adjusted to work with module kfuncs [0].
 
-Ah, indeed you're right, btf_module_mutex's unlock would prevent it now, so we
-can drop it. I should have revisited whether the barrier was still required.
+  [0]: https://lore.kernel.org/bpf/20211019144655.3483197-8-maximmi@nvidia.com
 
----
+To enable returning a reference to struct nf_conn, the verifier is extended to
+support reference tracking for PTR_TO_BTF_ID, and kfunc is extended with support
+for working as acquire/release functions, similar to existing BPF helpers. kfunc
+returning pointer (limited to PTR_TO_BTF_ID in the kernel) can also return a
+PTR_TO_BTF_ID_OR_NULL now, typically needed when acquiring a resource can fail.
+kfunc can also receive PTR_TO_CTX and PTR_TO_MEM (with some limitations) as
+arguments now. There is also support for passing a mem, len pair as argument
+to kfunc now. In such cases, passing pointer to unsized type (void) is also
+permitted.
 
-Just for the record, I was thinking about this case when adding it.
+Please see individual commits for details.
 
-do_one_initcall
-  register_btf_kfunc_id_set
-    btf_get_module_btf
-    btf->kfunc_set_tab = ...		// A
-    tab->sets[hook][type] = ...		// B
-mod->state = LIVE			// C
+Changelog:
+----------
+v7 -> v8:
+v7: https://lore.kernel.org/bpf/20220111180428.931466-1-memxor@gmail.com
 
-There was nothing preventing A and B to be visible after C (as per LKMM, maybe
-it isn't a problem on real architectures after all), so there was need for some
-ordering.
+ * Move enum btf_kfunc_hook to btf.c (Alexei)
+ * Drop verbose log for unlikely failure case in __find_kfunc_desc_btf (Alexei)
+ * Remove unnecessary barrier in register_btf_kfunc_id_set (Alexei)
+ * Switch macro in bpf_nf test to __always_inline function (Alexei)
 
-After the btf_mod->flags change, we would have:
+v6 -> v7:
+v6: https://lore.kernel.org/bpf/20220102162115.1506833-1-memxor@gmail.com
 
-do_one_initcall
-  register_btf_kfunc_id_set
-    btf_get_module_btf
-    btf->kfunc_set_tab = ...		// A
-    tab->sets[hook][type] = ...		// B
-mod->state = LIVE
-notifier_call
-  btf_module_notify
-  case MODULE_STATE_LIVE:
-    mutex_lock(btf_module_mutex)
-      btf_mod->flags |= LIVE		// C
-    mutex_unlock(btf_module_mutex)	// D
+ * Drop try_module_get_live patch, use flag in btf_module struct (Alexei)
+ * Add comments and expand commit message detailing why we have to concatenate
+   and sort vmlinux kfunc BTF ID sets (Alexei)
+ * Use bpf_testmod for testing btf_try_get_module race (Alexei)
+ * Use bpf_prog_type for both btf_kfunc_id_set_contains and
+   register_btf_kfunc_id_set calls (Alexei)
+ * In case of module set registration, directly assign set (Alexei)
+ * Add CONFIG_USERFAULTFD=y to selftest config
+ * Fix other nits
 
-Now we have A, B, and C that may be individually reordered, but when taking the
-mutex all will be visible due to the release in mutex_unlock (D), even though in
-the worst case A and B can seep into the critical section and reorder with C
-(again, perhaps only theoretically, as per LKMM), but next critical section
-should see everything.
+v5 -> v6:
+v5: https://lore.kernel.org/bpf/20211230023705.3860970-1-memxor@gmail.com
 
---
-Kartikeya
+ * Fix for a bug in btf_try_get_module leading to use-after-free
+ * Drop *kallsyms_on_each_symbol loop, reinstate register_btf_kfunc_id_set (Alexei)
+ * btf_free_kfunc_set_tab now takes struct btf, and handles resetting tab to NULL
+ * Check return value btf_name_by_offset for param_name
+ * Instead of using tmp_set, use btf->kfunc_set_tab directly, and simplify cleanup
+
+v4 -> v5:
+v4: https://lore.kernel.org/bpf/20211217015031.1278167-1-memxor@gmail.com
+
+ * Move nf_conntrack helpers code to its own separate file (Toke, Pablo)
+ * Remove verifier callbacks, put btf_id_sets in struct btf (Alexei)
+  * Convert the in-kernel users away from the old API
+ * Change len__ prefix convention to __sz suffix (Alexei)
+ * Drop parent_ref_obj_id patch (Alexei)
+
+v3 -> v4:
+v3: https://lore.kernel.org/bpf/20211210130230.4128676-1-memxor@gmail.com
+
+ * Guard unstable CT helpers with CONFIG_DEBUG_INFO_BTF_MODULES
+ * Move addition of prog_test test kfuncs to selftest commit
+ * Move negative kfunc tests to test_verifier suite
+ * Limit struct nesting depth to 4, which should be enough for now
+
+v2 -> v3:
+v2: https://lore.kernel.org/bpf/20211209170929.3485242-1-memxor@gmail.com
+
+ * Fix build error for !CONFIG_BPF_SYSCALL (Patchwork)
+
+RFC v1 -> v2:
+v1: https://lore.kernel.org/bpf/20211030144609.263572-1-memxor@gmail.com
+
+ * Limit PTR_TO_MEM support to pointer to scalar, or struct with scalars (Alexei)
+ * Use btf_id_set for checking acquire, release, ret type null (Alexei)
+ * Introduce opts struct for CT helpers, move int err parameter to it
+ * Add l4proto as parameter to CT helper's opts, remove separate tcp/udp helpers
+ * Add support for mem, len argument pair to kfunc
+ * Allow void * as pointer type for mem, len argument pair
+ * Extend selftests to cover new additions to kfuncs
+ * Copy ref_obj_id to PTR_TO_BTF_ID dst_reg on btf_struct_access, test it
+ * Fix other misc nits, bugs, and expand commit messages
+
+Kumar Kartikeya Dwivedi (10):
+  bpf: Fix UAF due to race between btf_try_get_module and load_module
+  bpf: Populate kfunc BTF ID sets in struct btf
+  bpf: Remove check_kfunc_call callback and old kfunc BTF ID API
+  bpf: Introduce mem, size argument pair support for kfunc
+  bpf: Add reference tracking support to kfunc
+  net/netfilter: Add unstable CT lookup helpers for XDP and TC-BPF
+  selftests/bpf: Add test for unstable CT lookup API
+  selftests/bpf: Add test_verifier support to fixup kfunc call insns
+  selftests/bpf: Extend kfunc selftests
+  selftests/bpf: Add test for race in btf_try_get_module
+
+ include/linux/bpf.h                           |   8 -
+ include/linux/bpf_verifier.h                  |   7 +
+ include/linux/btf.h                           |  75 ++--
+ include/linux/btf_ids.h                       |  13 +-
+ include/net/netfilter/nf_conntrack_bpf.h      |  23 ++
+ kernel/bpf/btf.c                              | 368 ++++++++++++++++--
+ kernel/bpf/verifier.c                         | 196 ++++++----
+ net/bpf/test_run.c                            | 150 ++++++-
+ net/core/filter.c                             |   1 -
+ net/core/net_namespace.c                      |   1 +
+ net/ipv4/bpf_tcp_ca.c                         |  22 +-
+ net/ipv4/tcp_bbr.c                            |  18 +-
+ net/ipv4/tcp_cubic.c                          |  17 +-
+ net/ipv4/tcp_dctcp.c                          |  18 +-
+ net/netfilter/Makefile                        |   5 +
+ net/netfilter/nf_conntrack_bpf.c              | 257 ++++++++++++
+ net/netfilter/nf_conntrack_core.c             |   8 +
+ .../selftests/bpf/bpf_testmod/bpf_testmod.c   |  21 +-
+ tools/testing/selftests/bpf/config            |   5 +
+ .../selftests/bpf/prog_tests/bpf_mod_race.c   | 230 +++++++++++
+ .../testing/selftests/bpf/prog_tests/bpf_nf.c |  48 +++
+ .../selftests/bpf/prog_tests/kfunc_call.c     |   6 +
+ .../selftests/bpf/progs/bpf_mod_race.c        | 100 +++++
+ .../selftests/bpf/progs/kfunc_call_race.c     |  14 +
+ .../selftests/bpf/progs/kfunc_call_test.c     |  52 ++-
+ tools/testing/selftests/bpf/progs/ksym_race.c |  13 +
+ .../testing/selftests/bpf/progs/test_bpf_nf.c | 109 ++++++
+ tools/testing/selftests/bpf/test_verifier.c   |  28 ++
+ tools/testing/selftests/bpf/verifier/calls.c  |  75 ++++
+ 29 files changed, 1674 insertions(+), 214 deletions(-)
+ create mode 100644 include/net/netfilter/nf_conntrack_bpf.h
+ create mode 100644 net/netfilter/nf_conntrack_bpf.c
+ create mode 100644 tools/testing/selftests/bpf/prog_tests/bpf_mod_race.c
+ create mode 100644 tools/testing/selftests/bpf/prog_tests/bpf_nf.c
+ create mode 100644 tools/testing/selftests/bpf/progs/bpf_mod_race.c
+ create mode 100644 tools/testing/selftests/bpf/progs/kfunc_call_race.c
+ create mode 100644 tools/testing/selftests/bpf/progs/ksym_race.c
+ create mode 100644 tools/testing/selftests/bpf/progs/test_bpf_nf.c
+
+-- 
+2.34.1
+
