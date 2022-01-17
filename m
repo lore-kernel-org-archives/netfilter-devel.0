@@ -2,86 +2,123 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D84DC433F5
-	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Jan 2022 10:41:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB2EBC433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Jan 2022 15:43:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238695AbiAQKk7 (ORCPT
+        id S234938AbiAQPnA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 17 Jan 2022 05:40:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42344 "EHLO
+        Mon, 17 Jan 2022 10:43:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55196 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238691AbiAQKk6 (ORCPT
+        with ESMTP id S240599AbiAQPm7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 Jan 2022 05:40:58 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 69315C061574
-        for <netfilter-devel@vger.kernel.org>; Mon, 17 Jan 2022 02:40:58 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1n9PRT-0007wI-0y; Mon, 17 Jan 2022 11:40:51 +0100
-Date:   Mon, 17 Jan 2022 11:40:51 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Jeremy Sowden <jeremy@azazel.net>,
-        Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH iptables v2 0/8] extensions: libxt_NFLOG: use nft
- back-end for iptables-nft
-Message-ID: <YeVHs4oOQki9FIgj@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Florian Westphal <fw@strlen.de>, Jeremy Sowden <jeremy@azazel.net>,
-        Netfilter Devel <netfilter-devel@vger.kernel.org>
-References: <20211001174142.1267726-1-jeremy@azazel.net>
- <YeQ0JeUznhEopHxI@azazel.net>
- <20220116190815.GB28638@breakpoint.cc>
+        Mon, 17 Jan 2022 10:42:59 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94E27C061574
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Jan 2022 07:42:59 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1n9U9p-0007GE-IN; Mon, 17 Jan 2022 16:42:57 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH conntrack-tools] conntrack: fix compiler warnings
+Date:   Mon, 17 Jan 2022 16:42:52 +0100
+Message-Id: <20220117154252.13420-1-fw@strlen.de>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220116190815.GB28638@breakpoint.cc>
-Sender:  <n0-1@orbyte.nwl.cc>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Jan 16, 2022 at 08:08:15PM +0100, Florian Westphal wrote:
-> Jeremy Sowden <jeremy@azazel.net> wrote:
-> > On 2021-10-01, at 18:41:34 +0100, Jeremy Sowden wrote:
-> > > nftables supports 128-character prefixes for nflog whereas legacy
-> > > iptables only supports 64 characters.  This patch series converts
-> > > iptables-nft to use the nft back-end in order to take advantage of the
-> > > longer prefixes.
-> > >
-> > >   * Patches 1-5 implement the conversion and update some related Python
-> > >     unit-tests.
-> > >   * Patch 6 fixes an minor bug in the output of nflog prefixes.
-> > >   * Patch 7 contains a couple of libtool updates.
-> > >   * Patch 8 fixes some typo's.
-> > 
-> > I note that Florian merged the first patch in this series recently.
-> 
-> Yes, because it was a cleanup not directly related to the rest.
-> I've now applied the last patch as well for the same reason.
-> 
-> > Feedback on the rest of it would be much appreciated.
-> 
-> THe patches look ok to me BUT there is the political issue
-> that we will now divert, afaict this means that you can now create
-> iptables-nft rulesets that won't ever work in iptables-legacy.
-> 
-> IMO its ok and preferrable to extending xt_(NF)LOG with a new revision,
-> but it does set some precedence, so I'm leaning towards just applying
-> the rest too.
-> 
-> Pablo, Phil, others -- what is your take?
+.... those do not indicate bugs, but they are distracting.
 
-I think the change is OK if existing rulesets will continue to
-work just as before and remain compatible with legacy. IMHO, new
-rulesets created using iptables-nft may become incompatible if users
-explicitly ask for it (e.g. by specifying an exceedingly long log
-prefix.
+'exp_filter_add' at filter.c:513:2:
+__builtin_strncpy specified bound 16 equals destination size [-Wstringop-truncation]
+read_config_yy.y:1625: warning: '__builtin_snprintf' output may be truncated before the last format character [-Wformat-truncation=]
+ 1625 |         snprintf(policy->name, CTD_HELPER_NAME_LEN, "%s", $2);
+read_config_yy.y:1399: warning: '__builtin_snprintf' output may be ...
+ 1399 |         snprintf(conf.stats.logfile, FILENAME_MAXLEN, "%s", $2);
+read_config_yy.y:707: warning: '__builtin_snprintf' output may be ...
+  707 |         snprintf(conf.local.path, UNIX_PATH_MAX, "%s", $2);
+read_config_yy.y:179: warning: '__builtin_snprintf' output may be ...
+  179 |         snprintf(conf.lockfile, FILENAME_MAXLEN, "%s", $2);
+read_config_yy.y:124: warning: '__builtin_snprintf' output may be ...
+  124 |         snprintf(conf.logfile, FILENAME_MAXLEN, "%s", $2);
 
-What about --nflog-range? This series seems to drop support for it, at
-least in the sense that ruleset dumps won't contain the option. In
-theory, users could depend on identifying a specific rule via nflog
-range value.
+... its because the _MAXLEN constants are one less than the output
+buffer size, i.e. could use either .._MAXLEN + 1 or sizeof, this uses
+sizeof().
 
-Cheers, Phil
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/filter.c         |  2 +-
+ src/read_config_yy.y | 10 +++++-----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/src/filter.c b/src/filter.c
+index 65771025308f..41f9bd793f03 100644
+--- a/src/filter.c
++++ b/src/filter.c
+@@ -510,7 +510,7 @@ int exp_filter_add(struct exp_filter *f, const char *helper_name)
+ 	if (item == NULL)
+ 		return -1;
+ 
+-	strncpy(item->helper_name, helper_name, NFCT_HELPER_NAME_MAX);
++	strncpy(item->helper_name, helper_name, NFCT_HELPER_NAME_MAX - 1);
+ 	list_add(&item->head, &f->list);
+ 	return 0;
+ }
+diff --git a/src/read_config_yy.y b/src/read_config_yy.y
+index 95845a19e768..070b349c5949 100644
+--- a/src/read_config_yy.y
++++ b/src/read_config_yy.y
+@@ -121,7 +121,7 @@ logfile_path : T_LOG T_PATH_VAL
+ 		     FILENAME_MAXLEN);
+ 		exit(EXIT_FAILURE);
+ 	}
+-	snprintf(conf.logfile, FILENAME_MAXLEN, "%s", $2);
++	snprintf(conf.logfile, sizeof(conf.logfile), "%s", $2);
+ 	free($2);
+ };
+ 
+@@ -176,7 +176,7 @@ lock : T_LOCK T_PATH_VAL
+ 		     FILENAME_MAXLEN);
+ 		exit(EXIT_FAILURE);
+ 	}
+-	snprintf(conf.lockfile, FILENAME_MAXLEN, "%s", $2);
++	snprintf(conf.lockfile, sizeof(conf.lockfile), "%s", $2);
+ 	free($2);
+ };
+ 
+@@ -704,7 +704,7 @@ unix_option : T_PATH T_PATH_VAL
+ 		     UNIX_PATH_MAX);
+ 		exit(EXIT_FAILURE);
+ 	}
+-	snprintf(conf.local.path, UNIX_PATH_MAX, "%s", $2);
++	snprintf(conf.local.path, sizeof(conf.local.path), "%s", $2);
+ 	free($2);
+ };
+ 
+@@ -1396,7 +1396,7 @@ stat_logfile_path : T_LOG T_PATH_VAL
+ 		     FILENAME_MAXLEN);
+ 		exit(EXIT_FAILURE);
+ 	}
+-	snprintf(conf.stats.logfile, FILENAME_MAXLEN, "%s", $2);
++	snprintf(conf.stats.logfile, sizeof(conf.stats.logfile), "%s", $2);
+ 	free($2);
+ };
+ 
+@@ -1622,7 +1622,7 @@ helper_type: T_HELPER_POLICY T_STRING '{' helper_policy_list '}'
+ 	}
+ 
+ 	policy = (struct ctd_helper_policy *) &e->data;
+-	snprintf(policy->name, CTD_HELPER_NAME_LEN, "%s", $2);
++	snprintf(policy->name, sizeof(policy->name), "%s", $2);
+ 	free($2);
+ 	/* Now object is complete. */
+ 	e->type = SYMBOL_HELPER_POLICY_EXPECT_ROOT;
+-- 
+2.34.1
+
