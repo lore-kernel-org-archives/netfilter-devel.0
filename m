@@ -2,169 +2,129 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A818C433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jan 2022 11:09:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55F6BC433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jan 2022 21:43:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353723AbiASLJm (ORCPT
+        id S234306AbiASVnZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Jan 2022 06:09:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55950 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1353333AbiASLJm (ORCPT
+        Wed, 19 Jan 2022 16:43:25 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:37052 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229778AbiASVnZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Jan 2022 06:09:42 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 059DAC061574
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Jan 2022 03:09:42 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1nA8qR-0004z4-Tm; Wed, 19 Jan 2022 12:09:39 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH conntrack-tools] conntrack: add --reliable option
-Date:   Wed, 19 Jan 2022 12:09:35 +0100
-Message-Id: <20220119110935.28543-1-fw@strlen.de>
-X-Mailer: git-send-email 2.34.1
+        Wed, 19 Jan 2022 16:43:25 -0500
+Received: from localhost.localdomain (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 5063560027
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Jan 2022 22:40:26 +0100 (CET)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] parser_bison: missing synproxy support in map declarations
+Date:   Wed, 19 Jan 2022 22:43:18 +0100
+Message-Id: <20220119214318.900947-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-To be used with connection tracking events: kernel will retry
-delivery of DESTROY event until userspace can receive the message.
+Update parser to allow for maps with synproxy.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: f44ab88b1088 ("src: add synproxy stateful object support")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/conntrack.h |  2 +-
- src/conntrack.c     | 58 +++++++++++++++++++++++++++++----------------
- 2 files changed, 39 insertions(+), 21 deletions(-)
+ src/parser_bison.y                             |  1 +
+ tests/shell/testcases/sets/0024named_objects_0 | 15 +++++++++++++++
+ .../sets/dumps/0024named_objects_0.nft         | 18 ++++++++++++++++++
+ 3 files changed, 34 insertions(+)
 
-diff --git a/include/conntrack.h b/include/conntrack.h
-index 1c1720e998ad..3083ad503b24 100644
---- a/include/conntrack.h
-+++ b/include/conntrack.h
-@@ -12,7 +12,7 @@
- #include <libnetfilter_conntrack/libnetfilter_conntrack.h>
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 1136ab911f0f..d67d16b8bc8c 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -1984,6 +1984,7 @@ map_block_obj_type	:	COUNTER	close_scope_counter { $$ = NFT_OBJECT_COUNTER; }
+ 			|	QUOTA	close_scope_quota { $$ = NFT_OBJECT_QUOTA; }
+ 			|	LIMIT	close_scope_limit { $$ = NFT_OBJECT_LIMIT; }
+ 			|	SECMARK close_scope_secmark { $$ = NFT_OBJECT_SECMARK; }
++			|	SYNPROXY { $$ = NFT_OBJECT_SYNPROXY; }
+ 			;
  
- #define NUMBER_OF_CMD   19
--#define NUMBER_OF_OPT   29
-+#define NUMBER_OF_OPT   30
+ map_block		:	/* empty */	{ $$ = $<set>-1; }
+diff --git a/tests/shell/testcases/sets/0024named_objects_0 b/tests/shell/testcases/sets/0024named_objects_0
+index 21200c3cca3c..6d21e3884da9 100755
+--- a/tests/shell/testcases/sets/0024named_objects_0
++++ b/tests/shell/testcases/sets/0024named_objects_0
+@@ -18,6 +18,15 @@ table inet x {
+ 	quota user124 {
+ 		over 2000 bytes
+ 	}
++	synproxy https-synproxy {
++		mss 1460
++		wscale 7
++		timestamp sack-perm
++	}
++	synproxy other-synproxy {
++		mss 1460
++		wscale 5
++	}
+ 	set y {
+ 		type ipv4_addr
+ 	}
+@@ -25,9 +34,15 @@ table inet x {
+ 		type ipv4_addr : quota
+ 		elements = { 192.168.2.2 : "user124", 192.168.2.3 : "user124"}
+ 	}
++	map test2 {
++		type ipv4_addr : synproxy
++		flags interval
++		elements = { 192.168.1.0/24 : "https-synproxy", 192.168.2.0/24 : "other-synproxy" }
++	}
+ 	chain y {
+ 		type filter hook input priority 0; policy accept;
+ 		counter name ip saddr map { 192.168.2.2 : "user123", 1.1.1.1 : "user123", 2.2.2.2 : "user123"}
++		synproxy name ip saddr map { 192.168.1.0/24 : "https-synproxy", 192.168.2.0/24 : "other-synproxy" }
+ 		quota name ip saddr map @test drop
+ 	}
+ }"
+diff --git a/tests/shell/testcases/sets/dumps/0024named_objects_0.nft b/tests/shell/testcases/sets/dumps/0024named_objects_0.nft
+index 2ffa4f2ff757..52d1bf64b686 100644
+--- a/tests/shell/testcases/sets/dumps/0024named_objects_0.nft
++++ b/tests/shell/testcases/sets/dumps/0024named_objects_0.nft
+@@ -15,6 +15,17 @@ table inet x {
+ 		over 2000 bytes
+ 	}
  
- struct nf_conntrack;
++	synproxy https-synproxy {
++		mss 1460
++		wscale 7
++		timestamp sack-perm
++	}
++
++	synproxy other-synproxy {
++		mss 1460
++		wscale 5
++	}
++
+ 	set y {
+ 		type ipv4_addr
+ 	}
+@@ -24,9 +35,16 @@ table inet x {
+ 		elements = { 192.168.2.2 : "user124", 192.168.2.3 : "user124" }
+ 	}
  
-diff --git a/src/conntrack.c b/src/conntrack.c
-index fe5574d205a6..55f59bcd581b 100644
---- a/src/conntrack.c
-+++ b/src/conntrack.c
-@@ -114,6 +114,7 @@ struct ct_cmd {
- 	int		options;
- 	int		family;
- 	int		protonum;
-+	bool		reliable_events;
- 	size_t		socketbuffersize;
- 	struct ct_tmpl	tmpl;
- };
-@@ -389,6 +390,7 @@ static struct option original_opts[] = {
- 	{"label-del", 2, 0, '>'},
- 	{"orig-zone", 1, 0, '('},
- 	{"reply-zone", 1, 0, ')'},
-+	{"reliable", 0, 0, 'R'},
- 	{0, 0, 0, 0}
- };
- 
-@@ -409,26 +411,26 @@ static const char *getopt_str = ":L::I::U::D::G::E::F::hVs:d:r:q:"
- static char commands_v_options[NUMBER_OF_CMD][NUMBER_OF_OPT] =
- /* Well, it's better than "Re: Linux vs FreeBSD" */
- {
--          /*   s d r q p t u z e [ ] { } a m i f n g o c b j w l < > ( ) */
--/*CT_LIST*/   {2,2,2,2,2,0,2,2,0,0,0,2,2,0,2,0,2,2,2,2,2,0,2,2,2,0,0,2,2},
--/*CT_CREATE*/ {3,3,3,3,1,1,2,0,0,0,0,0,0,2,2,0,0,2,2,0,0,0,0,2,0,2,0,2,2},
--/*CT_UPDATE*/ {2,2,2,2,2,2,2,0,0,0,0,2,2,0,2,2,2,2,2,2,0,0,0,0,2,2,2,0,0},
--/*CT_DELETE*/ {2,2,2,2,2,2,2,0,0,0,0,2,2,0,2,2,2,2,2,2,0,0,0,2,2,0,0,2,2},
--/*CT_GET*/    {3,3,3,3,1,0,0,0,0,0,0,0,0,0,0,2,0,0,0,2,0,0,0,0,2,0,0,0,0},
--/*CT_FLUSH*/  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0},
--/*CT_EVENT*/  {2,2,2,2,2,0,0,0,2,0,0,2,2,0,2,0,2,2,2,2,2,2,2,2,2,0,0,2,2},
--/*VERSION*/   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
--/*HELP*/      {0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
--/*EXP_LIST*/  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,2,0,0,0,0,0,0,0,0,0},
--/*EXP_CREATE*/{1,1,2,2,1,1,2,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
--/*EXP_DELETE*/{1,1,2,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
--/*EXP_GET*/   {1,1,2,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
--/*EXP_FLUSH*/ {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
--/*EXP_EVENT*/ {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0},
--/*CT_COUNT*/  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
--/*EXP_COUNT*/ {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
--/*CT_STATS*/  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
--/*EXP_STATS*/ {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-+          /*   s d r q p t u z e [ ] { } a m i f n g o c b j w l < > ( ) R*/
-+/*CT_LIST*/   {2,2,2,2,2,0,2,2,0,0,0,2,2,0,2,0,2,2,2,2,2,0,2,2,2,0,0,2,2,0},
-+/*CT_CREATE*/ {3,3,3,3,1,1,2,0,0,0,0,0,0,2,2,0,0,2,2,0,0,0,0,2,0,2,0,2,2,0},
-+/*CT_UPDATE*/ {2,2,2,2,2,2,2,0,0,0,0,2,2,0,2,2,2,2,2,2,0,0,0,0,2,2,2,0,0,0},
-+/*CT_DELETE*/ {2,2,2,2,2,2,2,0,0,0,0,2,2,0,2,2,2,2,2,2,0,0,0,2,2,0,0,2,2,0},
-+/*CT_GET*/    {3,3,3,3,1,0,0,0,0,0,0,0,0,0,0,2,0,0,0,2,0,0,0,0,2,0,0,0,0,0},
-+/*CT_FLUSH*/  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0},
-+/*CT_EVENT*/  {2,2,2,2,2,0,0,0,2,0,0,2,2,0,2,0,2,2,2,2,2,2,2,2,2,0,0,2,2,0},
-+/*VERSION*/   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2},
-+/*HELP*/      {0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-+/*EXP_LIST*/  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,2,0,0,0,0,0,0,0,0,0,0},
-+/*EXP_CREATE*/{1,1,2,2,1,1,2,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-+/*EXP_DELETE*/{1,1,2,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-+/*EXP_GET*/   {1,1,2,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-+/*EXP_FLUSH*/ {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-+/*EXP_EVENT*/ {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0},
-+/*CT_COUNT*/  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-+/*EXP_COUNT*/ {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-+/*CT_STATS*/  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-+/*EXP_STATS*/ {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
- };
- 
- static const int cmd2type[][2] = {
-@@ -2933,6 +2935,7 @@ static void do_parse(struct ct_cmd *ct_cmd, int argc, char *argv[])
- {
- 	unsigned int type = 0, event_mask = 0, l4flags = 0, status = 0;
- 	int protonum = 0, family = AF_UNSPEC;
-+	bool reliable_events = false;
- 	size_t socketbuffersize = 0;
- 	unsigned int command = 0;
- 	unsigned int options = 0;
-@@ -3175,6 +3178,9 @@ static void do_parse(struct ct_cmd *ct_cmd, int argc, char *argv[])
- 			socketbuffersize = atol(optarg);
- 			options |= CT_OPT_BUFFERSIZE;
- 			break;
-+		case 'R':
-+			reliable_events = true;
-+			break;
- 		case ':':
- 			exit_error(PARAMETER_PROBLEM,
- 				   "option `%s' requires an "
-@@ -3248,6 +3254,7 @@ static void do_parse(struct ct_cmd *ct_cmd, int argc, char *argv[])
- 	ct_cmd->protonum = protonum;
- 	ct_cmd->event_mask = event_mask;
- 	ct_cmd->socketbuffersize = socketbuffersize;
-+	ct_cmd->reliable_events = reliable_events;
++	map test2 {
++		type ipv4_addr : synproxy
++		flags interval
++		elements = { 192.168.1.0/24 : "https-synproxy", 192.168.2.0/24 : "other-synproxy" }
++	}
++
+ 	chain y {
+ 		type filter hook input priority filter; policy accept;
+ 		counter name ip saddr map { 1.1.1.1 : "user123", 2.2.2.2 : "user123", 192.168.2.2 : "user123" }
++		synproxy name ip saddr map { 192.168.1.0/24 : "https-synproxy", 192.168.2.0/24 : "other-synproxy" }
+ 		quota name ip saddr map @test drop
+ 	}
  }
- 
- static int do_command_ct(const char *progname, struct ct_cmd *cmd)
-@@ -3516,6 +3523,17 @@ static int do_command_ct(const char *progname, struct ct_cmd *cmd)
- 					socketbuffersize);
- 		}
- 
-+		if (cmd->reliable_events) {
-+			int on = 1;
-+
-+			mnl_socket_setsockopt(sock->mnl,
-+					     NETLINK_BROADCAST_SEND_ERROR,
-+					     &on, sizeof(int));
-+			mnl_socket_setsockopt(sock->mnl,
-+					     NETLINK_NO_ENOBUFS,
-+					     &on, sizeof(int));
-+		}
-+
- 		nfct_filter_init(cmd);
- 
- 		signal(SIGINT, event_sighandler);
 -- 
-2.34.1
+2.30.2
 
