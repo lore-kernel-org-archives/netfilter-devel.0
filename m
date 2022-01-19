@@ -2,94 +2,169 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC9E9C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jan 2022 22:53:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A818C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jan 2022 11:09:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350096AbiARWxA (ORCPT
+        id S1353723AbiASLJm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 18 Jan 2022 17:53:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60138 "EHLO
+        Wed, 19 Jan 2022 06:09:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55950 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1350089AbiARWww (ORCPT
+        with ESMTP id S1353333AbiASLJm (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Jan 2022 17:52:52 -0500
-Received: from mail-pl1-x632.google.com (mail-pl1-x632.google.com [IPv6:2607:f8b0:4864:20::632])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B055C061574;
-        Tue, 18 Jan 2022 14:52:52 -0800 (PST)
-Received: by mail-pl1-x632.google.com with SMTP id u11so308659plh.13;
-        Tue, 18 Jan 2022 14:52:52 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=PPT2Qt1/Su+U4kJvcZiKjiQCbHS9sJHOdDbLi+KIKCA=;
-        b=fVY0gxgJeuOCT6TC1+GSDHZgAUwcsLBsWG7qBMW4l3jYsvDLXpOD4szf5XLRYfKaTJ
-         FC/pwvcXrX+7oLPHGh0vjDML5k9qYPeg4+cvFNILrxednJ357MUWtKIzyKtMinzG0MBd
-         JHck2IrSfBv9P3ddnl4eLejWaj9xxLPCWbdc+AFndUHyyA8wNIbNBVd07s1ygjJaJrBl
-         Ml+2LpKIDlhT2zABVfE9BnXE/nzEwy87+JpgrmrrzvKCDqU9z2H6nmrfIeMcS8QVs8B6
-         2OXxECaJiebYldlgMsVvAPH/ZvCcabxCDNxiHagDn/qljdtxd/uW7UXQFfXSKlKAc2F7
-         kogw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=PPT2Qt1/Su+U4kJvcZiKjiQCbHS9sJHOdDbLi+KIKCA=;
-        b=BuGasdUqfOR5fMkzzYmF+rf0X9GVjGXpx69J8JdIL7U/ON1ZDMP4/EvdBI71/GVha+
-         3DXr1vY1iJ/aREkJqFV1HK0rcLg3o614timbOAbuB2q4pGyk+XuwO5qUZGzvSmMqovKr
-         BO0Q89r0Tp2o+lTGEO5Rr4F+ZjHOjD0uvjw6ZCN4vlnm5cyNbJt5wgtaQ/eHvqqeDuuE
-         OqGxmpy5TLDW5GDpbXfKjiu0jnUiLkq4/kQMXsdbhqok1H2y8BhSBfQ7oJQqZfcvodNw
-         /Z7ppHEDzzRmaoYElCO6Pd+FeLfiedh6gMEpXpewIu+lj6W65YO9TRK850QXsNUQ6/Pc
-         Sclw==
-X-Gm-Message-State: AOAM5315DP+xdx/9YqTutoZB0RfhDRL27l2KgptqfDHSYYVQQI0xU7ik
-        DA6InGYHWDPL5nRh8D8/RMqba5wAcf1FcTcYApE=
-X-Google-Smtp-Source: ABdhPJx3TqwiHsWjCdbqBwFxsG/SmBgq2d2iwQ4Vv6UECtd3ojmoLNnZpnzEGaJZe5Pr92vKuI1Gsozz2HXQnRkaqE8=
-X-Received: by 2002:a17:902:6502:b0:149:1162:f0b5 with SMTP id
- b2-20020a170902650200b001491162f0b5mr28631553plk.126.1642546371668; Tue, 18
- Jan 2022 14:52:51 -0800 (PST)
+        Wed, 19 Jan 2022 06:09:42 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 059DAC061574
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Jan 2022 03:09:42 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1nA8qR-0004z4-Tm; Wed, 19 Jan 2022 12:09:39 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH conntrack-tools] conntrack: add --reliable option
+Date:   Wed, 19 Jan 2022 12:09:35 +0100
+Message-Id: <20220119110935.28543-1-fw@strlen.de>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-References: <20220114163953.1455836-1-memxor@gmail.com> <20220114163953.1455836-11-memxor@gmail.com>
-In-Reply-To: <20220114163953.1455836-11-memxor@gmail.com>
-From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Date:   Tue, 18 Jan 2022 14:52:40 -0800
-Message-ID: <CAADnVQ+FuDDNZ=toHYtrQ=-u+ZSx2Xb2R-k0=grKoy5AfODkpw@mail.gmail.com>
-Subject: Re: [PATCH bpf-next v8 10/10] selftests/bpf: Add test for race in btf_try_get_module
-To:     Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Cc:     bpf <bpf@vger.kernel.org>, Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Network Development <netdev@vger.kernel.org>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>,
-        Martin KaFai Lau <kafai@fb.com>,
-        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Maxim Mikityanskiy <maximmi@nvidia.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Jan 14, 2022 at 8:41 AM Kumar Kartikeya Dwivedi
-<memxor@gmail.com> wrote:
->
-> This adds a complete test case to ensure we never take references to
-> modules not in MODULE_STATE_LIVE, which can lead to UAF, and it also
-> ensures we never access btf->kfunc_set_tab in an inconsistent state.
->
-> The test uses userfaultfd to artificially widen the race.
->
-> When run on an unpatched kernel, it leads to the following splat:
->
-> [root@(none) bpf]# ./test_progs -t bpf_mod_race/ksym
-> [   55.498171] BUG: unable to handle page fault for address: fffffbfff802548b                                                                      [   55.499206] #PF: supervisor read access in kernel mode
-> [   55.499855] #PF: error_code(0x0000) - not-present page
-> [   55.500555] PGD a4fa9067 P4D a4fa9067 PUD a4fa5067 PMD 1b44067 PTE 0
-> [   55.501499] Oops: 0000 [#1] PREEMPT SMP KASAN NOPTI
-> [   55.502195] CPU: 0 PID: 83 Comm: kworker/0:2 Tainted: G           OE     5.16.0-rc4+ #151                                                       [   55.503388] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS ArchLinux 1.15.0-1 04/01/2014
+To be used with connection tracking events: kernel will retry
+delivery of DESTROY event until userspace can receive the message.
 
-The commit log was messed up in a few places.
-I've cleaned it up while applying.
-Thanks!
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ include/conntrack.h |  2 +-
+ src/conntrack.c     | 58 +++++++++++++++++++++++++++++----------------
+ 2 files changed, 39 insertions(+), 21 deletions(-)
+
+diff --git a/include/conntrack.h b/include/conntrack.h
+index 1c1720e998ad..3083ad503b24 100644
+--- a/include/conntrack.h
++++ b/include/conntrack.h
+@@ -12,7 +12,7 @@
+ #include <libnetfilter_conntrack/libnetfilter_conntrack.h>
+ 
+ #define NUMBER_OF_CMD   19
+-#define NUMBER_OF_OPT   29
++#define NUMBER_OF_OPT   30
+ 
+ struct nf_conntrack;
+ 
+diff --git a/src/conntrack.c b/src/conntrack.c
+index fe5574d205a6..55f59bcd581b 100644
+--- a/src/conntrack.c
++++ b/src/conntrack.c
+@@ -114,6 +114,7 @@ struct ct_cmd {
+ 	int		options;
+ 	int		family;
+ 	int		protonum;
++	bool		reliable_events;
+ 	size_t		socketbuffersize;
+ 	struct ct_tmpl	tmpl;
+ };
+@@ -389,6 +390,7 @@ static struct option original_opts[] = {
+ 	{"label-del", 2, 0, '>'},
+ 	{"orig-zone", 1, 0, '('},
+ 	{"reply-zone", 1, 0, ')'},
++	{"reliable", 0, 0, 'R'},
+ 	{0, 0, 0, 0}
+ };
+ 
+@@ -409,26 +411,26 @@ static const char *getopt_str = ":L::I::U::D::G::E::F::hVs:d:r:q:"
+ static char commands_v_options[NUMBER_OF_CMD][NUMBER_OF_OPT] =
+ /* Well, it's better than "Re: Linux vs FreeBSD" */
+ {
+-          /*   s d r q p t u z e [ ] { } a m i f n g o c b j w l < > ( ) */
+-/*CT_LIST*/   {2,2,2,2,2,0,2,2,0,0,0,2,2,0,2,0,2,2,2,2,2,0,2,2,2,0,0,2,2},
+-/*CT_CREATE*/ {3,3,3,3,1,1,2,0,0,0,0,0,0,2,2,0,0,2,2,0,0,0,0,2,0,2,0,2,2},
+-/*CT_UPDATE*/ {2,2,2,2,2,2,2,0,0,0,0,2,2,0,2,2,2,2,2,2,0,0,0,0,2,2,2,0,0},
+-/*CT_DELETE*/ {2,2,2,2,2,2,2,0,0,0,0,2,2,0,2,2,2,2,2,2,0,0,0,2,2,0,0,2,2},
+-/*CT_GET*/    {3,3,3,3,1,0,0,0,0,0,0,0,0,0,0,2,0,0,0,2,0,0,0,0,2,0,0,0,0},
+-/*CT_FLUSH*/  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0},
+-/*CT_EVENT*/  {2,2,2,2,2,0,0,0,2,0,0,2,2,0,2,0,2,2,2,2,2,2,2,2,2,0,0,2,2},
+-/*VERSION*/   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+-/*HELP*/      {0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+-/*EXP_LIST*/  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,2,0,0,0,0,0,0,0,0,0},
+-/*EXP_CREATE*/{1,1,2,2,1,1,2,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+-/*EXP_DELETE*/{1,1,2,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+-/*EXP_GET*/   {1,1,2,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+-/*EXP_FLUSH*/ {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+-/*EXP_EVENT*/ {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0},
+-/*CT_COUNT*/  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+-/*EXP_COUNT*/ {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+-/*CT_STATS*/  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+-/*EXP_STATS*/ {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
++          /*   s d r q p t u z e [ ] { } a m i f n g o c b j w l < > ( ) R*/
++/*CT_LIST*/   {2,2,2,2,2,0,2,2,0,0,0,2,2,0,2,0,2,2,2,2,2,0,2,2,2,0,0,2,2,0},
++/*CT_CREATE*/ {3,3,3,3,1,1,2,0,0,0,0,0,0,2,2,0,0,2,2,0,0,0,0,2,0,2,0,2,2,0},
++/*CT_UPDATE*/ {2,2,2,2,2,2,2,0,0,0,0,2,2,0,2,2,2,2,2,2,0,0,0,0,2,2,2,0,0,0},
++/*CT_DELETE*/ {2,2,2,2,2,2,2,0,0,0,0,2,2,0,2,2,2,2,2,2,0,0,0,2,2,0,0,2,2,0},
++/*CT_GET*/    {3,3,3,3,1,0,0,0,0,0,0,0,0,0,0,2,0,0,0,2,0,0,0,0,2,0,0,0,0,0},
++/*CT_FLUSH*/  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0},
++/*CT_EVENT*/  {2,2,2,2,2,0,0,0,2,0,0,2,2,0,2,0,2,2,2,2,2,2,2,2,2,0,0,2,2,0},
++/*VERSION*/   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2},
++/*HELP*/      {0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
++/*EXP_LIST*/  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,2,0,0,0,0,0,0,0,0,0,0},
++/*EXP_CREATE*/{1,1,2,2,1,1,2,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
++/*EXP_DELETE*/{1,1,2,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
++/*EXP_GET*/   {1,1,2,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
++/*EXP_FLUSH*/ {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
++/*EXP_EVENT*/ {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0},
++/*CT_COUNT*/  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
++/*EXP_COUNT*/ {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
++/*CT_STATS*/  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
++/*EXP_STATS*/ {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+ };
+ 
+ static const int cmd2type[][2] = {
+@@ -2933,6 +2935,7 @@ static void do_parse(struct ct_cmd *ct_cmd, int argc, char *argv[])
+ {
+ 	unsigned int type = 0, event_mask = 0, l4flags = 0, status = 0;
+ 	int protonum = 0, family = AF_UNSPEC;
++	bool reliable_events = false;
+ 	size_t socketbuffersize = 0;
+ 	unsigned int command = 0;
+ 	unsigned int options = 0;
+@@ -3175,6 +3178,9 @@ static void do_parse(struct ct_cmd *ct_cmd, int argc, char *argv[])
+ 			socketbuffersize = atol(optarg);
+ 			options |= CT_OPT_BUFFERSIZE;
+ 			break;
++		case 'R':
++			reliable_events = true;
++			break;
+ 		case ':':
+ 			exit_error(PARAMETER_PROBLEM,
+ 				   "option `%s' requires an "
+@@ -3248,6 +3254,7 @@ static void do_parse(struct ct_cmd *ct_cmd, int argc, char *argv[])
+ 	ct_cmd->protonum = protonum;
+ 	ct_cmd->event_mask = event_mask;
+ 	ct_cmd->socketbuffersize = socketbuffersize;
++	ct_cmd->reliable_events = reliable_events;
+ }
+ 
+ static int do_command_ct(const char *progname, struct ct_cmd *cmd)
+@@ -3516,6 +3523,17 @@ static int do_command_ct(const char *progname, struct ct_cmd *cmd)
+ 					socketbuffersize);
+ 		}
+ 
++		if (cmd->reliable_events) {
++			int on = 1;
++
++			mnl_socket_setsockopt(sock->mnl,
++					     NETLINK_BROADCAST_SEND_ERROR,
++					     &on, sizeof(int));
++			mnl_socket_setsockopt(sock->mnl,
++					     NETLINK_NO_ENOBUFS,
++					     &on, sizeof(int));
++		}
++
+ 		nfct_filter_init(cmd);
+ 
+ 		signal(SIGINT, event_sighandler);
+-- 
+2.34.1
+
