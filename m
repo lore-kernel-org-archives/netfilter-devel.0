@@ -2,57 +2,80 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BB4AC433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jan 2022 12:40:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DB74C433FE
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jan 2022 12:52:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231391AbiATMkP (ORCPT
+        id S243942AbiATMwS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 20 Jan 2022 07:40:15 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:38690 "EHLO
+        Thu, 20 Jan 2022 07:52:18 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:38718 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230448AbiATMkO (ORCPT
+        with ESMTP id S243858AbiATMwS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Jan 2022 07:40:14 -0500
-Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 133AA6006E;
-        Thu, 20 Jan 2022 13:37:15 +0100 (CET)
-Date:   Thu, 20 Jan 2022 13:40:09 +0100
+        Thu, 20 Jan 2022 07:52:18 -0500
+Received: from localhost.localdomain (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 037BF6002B;
+        Thu, 20 Jan 2022 13:49:18 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH libnetfilter_queue v3 1-5/5] src: Speed-up
-Message-ID: <YelYKewDL7UkeQZf@salvia>
-References: <20220109031653.23835-1-duncan_roe@optusnet.com.au>
- <20220109031653.23835-6-duncan_roe@optusnet.com.au>
- <YeYClrLxYGDeD8ua@slk1.local.net>
- <YeYTzwpxiqLz8ulb@salvia>
- <YejdVZaoUz+t1qRU@slk1.local.net>
- <20220120120458.GF31905@breakpoint.cc>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
+Subject: [PATCH net 0/5] Netfilter fixes for net
+Date:   Thu, 20 Jan 2022 13:52:07 +0100
+Message-Id: <20220120125212.991271-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20220120120458.GF31905@breakpoint.cc>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Jan 20, 2022 at 01:04:58PM +0100, Florian Westphal wrote:
-> Duncan Roe <duncan_roe@optusnet.com.au> wrote:
-> > On Tue, Jan 18, 2022 at 02:11:43AM +0100, Pablo Neira Ayuso wrote:
-> > >
-> > > This patch have a number of showstoppers such as exposing structure
-> > > layout on the header files.
-> > >
-> > That's only in patch 5. You could apply 1-4. There are actually no other
-> > showstoppers, right?
-> 
-> Regarding patch 5, I think its ok except the pkt_buff layout freeze.
-> 
-> From a quick glance, there is no assumption that the data area resides
-> after the pktbuff head, so it should be possible to keep pkt_buff
-> private, allocate an empty packet and then associate a new buffer with
-> it.
+Hi,
 
-Or allocate pktbuff offline and recycle it (re-setup) on new packets
-coming from the kernel, it does not need to be allocated in the
-stack and exposing the layout is also therefore not requireed.
+The following patchset contains Netfilter fixes for net:
+
+1) Incorrect helper module alias in netbios_ns, from Florian Westphal.
+
+2) Remove unused variable in nf_tables.
+
+3) Uninitialized last expression in nf_tables register tracking.
+
+4) Memleak in nft_connlimit after moving stateful data out of the
+   expression data area.
+
+5) Bogus invalid stats update when NF_REPEAT is returned, from Florian.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 7d6019b602de660bfc6a542a68630006ace83b90:
+
+  Revert "net: vertexcom: default to disabled on kbuild" (2022-01-10 21:11:07 -0800)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
+
+for you to fetch changes up to 830af2eba40327abec64325a5b08b1e85c37a2e0:
+
+  netfilter: conntrack: don't increment invalid counter on NF_REPEAT (2022-01-16 00:55:27 +0100)
+
+----------------------------------------------------------------
+Florian Westphal (2):
+      netfilter: nf_conntrack_netbios_ns: fix helper module alias
+      netfilter: conntrack: don't increment invalid counter on NF_REPEAT
+
+Pablo Neira Ayuso (3):
+      netfilter: nf_tables: remove unused variable
+      netfilter: nf_tables: set last expression in register tracking area
+      netfilter: nft_connlimit: memleak if nf_ct_netns_get() fails
+
+ net/netfilter/nf_conntrack_core.c       |  8 +++++---
+ net/netfilter/nf_conntrack_netbios_ns.c |  5 +++--
+ net/netfilter/nf_tables_api.c           |  4 +---
+ net/netfilter/nft_connlimit.c           | 11 ++++++++++-
+ 4 files changed, 19 insertions(+), 9 deletions(-)
