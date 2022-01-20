@@ -2,94 +2,194 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44F1EC433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jan 2022 00:04:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BF43C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jan 2022 00:04:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230103AbiATAEJ (ORCPT
+        id S240240AbiATAEL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Jan 2022 19:04:09 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:37188 "EHLO
+        Wed, 19 Jan 2022 19:04:11 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:37194 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229853AbiATAEI (ORCPT
+        with ESMTP id S229853AbiATAEK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Jan 2022 19:04:08 -0500
+        Wed, 19 Jan 2022 19:04:10 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 43BC460027;
-        Thu, 20 Jan 2022 01:01:10 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id F1C5860027;
+        Thu, 20 Jan 2022 01:01:11 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     phil@nwl.cc
-Subject: [PATCH libnftnl 0/3] add description infrastructure
-Date:   Thu, 20 Jan 2022 01:03:59 +0100
-Message-Id: <20220120000402.916332-1-pablo@netfilter.org>
+Subject: [PATCH libnftnl 2/3] desc: add datatype description
+Date:   Thu, 20 Jan 2022 01:04:01 +0100
+Message-Id: <20220120000402.916332-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20220120000402.916332-1-pablo@netfilter.org>
+References: <20220120000402.916332-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Phil,
+Add a new object to describe a datatype. This allows to describe the
+set key when type is used to define the set.
 
-This is my proposal to address the snprintf data printing depending on
-the arch. The idea is to add description objects that can be used to
-build the userdata area as well as to parse the userdata to create the
-description object.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/desc.h          |  6 +++
+ include/libnftnl/desc.h | 19 ++++++++
+ src/desc.c              | 96 +++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 121 insertions(+)
 
-This is revisiting 6e48df5329ea ("src: add "typeof" build/parse/print
-support") in nftables which adds build and parse userdata callbacks to
-expression in libnftables. My proposal is to move this to libnftnl.
-
-This allows to consolidate codebase to address two different usecases:
-- you can pass the description object to the snprintf function.
-- it provides helpers to build and to parse the userdata area. The
-  userdata TLV attributes do not need to be exposed through
-  libnftnl/udata.h anymore, instead users can just rely on these helper
-  functions.
-
-The userdata area has been extended with new attributes, but it is still
-incomplete since it does not allow to represent a concatenation.
-
-Note that this will also allow us to deprecate NFTA_SET_DATA_TYPE at
-some point (this netlink attribute represents a concatenation using 6
-bits of the 32-bit integer, hence limiting concatenations to 5
-components at this stage).
-
-I'm afraid we'll also have to keep the existing userdata attributes
-added by 6e48df5329ea in nftables for a little while (at least the
-parser functions), so nftables does not break on updates since my
-userdata TLV coming in this patchset for libnftnl is different than the
-one available at 6e48df5329ea.
-
-Please also note that nftables needs to be updated to use this
-infrastructure.
-
-My proposal follows a longer route but it will allow to addressing a
-number of existing shortcomings in the set infrastrcture.
-
-This is compile-tested only.
-
-Pablo Neira Ayuso (3):
-  desc: add expression description
-  desc: add datatype description
-  desc: add set description
-
- include/Makefile.am          |   1 +
- include/desc.h               |  50 +++
- include/expr_ops.h           |  11 +
- include/internal.h           |   1 +
- include/libnftnl/Makefile.am |   1 +
- include/libnftnl/desc.h      | 107 +++++++
- include/libnftnl/udata.h     |  18 +-
- src/Makefile.am              |   1 +
- src/desc.c                   | 598 +++++++++++++++++++++++++++++++++++
- src/expr/payload.c           |  81 +++++
- src/expr_ops.c               |  13 +
- 11 files changed, 875 insertions(+), 7 deletions(-)
- create mode 100644 include/desc.h
- create mode 100644 include/libnftnl/desc.h
- create mode 100644 src/desc.c
-
+diff --git a/include/desc.h b/include/desc.h
+index d78af3528118..2f61a1e5963e 100644
+--- a/include/desc.h
++++ b/include/desc.h
+@@ -16,4 +16,10 @@ struct nftnl_expr_desc {
+ 	};
+ };
+ 
++struct nftnl_dtype_desc {
++	uint32_t	dtype;
++	uint32_t	byteorder;
++	uint32_t	len;
++};
++
+ #endif
+diff --git a/include/libnftnl/desc.h b/include/libnftnl/desc.h
+index 1202eb9ddf79..cb1cac91f934 100644
+--- a/include/libnftnl/desc.h
++++ b/include/libnftnl/desc.h
+@@ -50,6 +50,25 @@ int nftnl_expr_desc_build(struct nftnl_udata_buf *udbuf,
+ int nftnl_expr_desc_parse(const struct nftnl_udata *attr,
+ 			  struct nftnl_expr_desc *dexpr);
+ 
++enum nftnl_dtype_desc_types {
++	NFTNL_DESC_DTYPE_TYPE,
++	NFTNL_DESC_DTYPE_BYTEORDER,
++	NFTNL_DESC_DTYPE_LEN,
++	__NFTNL_DESC_DTYPE_MAX
++};
++#define NFTNL_DESC_DTYPE_MAX (__NFTNL_DESC_DTYPE_MAX - 1)
++
++struct nftnl_dtype_desc;
++
++struct nftnl_dtype_desc *nftnl_dtype_desc_alloc(void);
++void nftnl_dtype_desc_free(struct nftnl_dtype_desc *dtype);
++int nftnl_dtype_desc_set(struct nftnl_dtype_desc *dtype, uint8_t type,
++			 const void *data, uint32_t data_len);
++int nftnl_dtype_desc_build(struct nftnl_udata_buf *udbuf,
++			   const struct nftnl_dtype_desc *dtype);
++int nftnl_dtype_desc_parse(const struct nftnl_udata *attr,
++			    struct nftnl_dtype_desc *dtype);
++
+ #ifdef __cplusplus
+ } /* extern "C" */
+ #endif
+diff --git a/src/desc.c b/src/desc.c
+index d8566ba2ee38..f73e74c2c7d3 100644
+--- a/src/desc.c
++++ b/src/desc.c
+@@ -140,3 +140,99 @@ int nftnl_expr_desc_parse(const struct nftnl_udata *attr,
+ 
+ 	return err;
+ }
++
++EXPORT_SYMBOL(nftnl_dtype_desc_alloc);
++struct nftnl_dtype_desc *nftnl_dtype_desc_alloc(void)
++{
++	return calloc(1, sizeof(struct nftnl_dtype_desc));
++}
++
++EXPORT_SYMBOL(nftnl_dtype_desc_free);
++void nftnl_dtype_desc_free(struct nftnl_dtype_desc *dtype)
++{
++	free(dtype);
++}
++
++EXPORT_SYMBOL(nftnl_dtype_desc_set);
++int nftnl_dtype_desc_set(struct nftnl_dtype_desc *dtype, uint8_t type,
++			 const void *data, uint32_t data_len)
++{
++	int err = 0;
++
++	switch (type) {
++	case NFTNL_DESC_DTYPE_TYPE:
++		memcpy(&dtype->dtype, data, data_len);
++		break;
++	case NFTNL_DESC_DTYPE_BYTEORDER:
++		memcpy(&dtype->byteorder, data, data_len);
++		break;
++	case NFTNL_DESC_DTYPE_LEN:
++		memcpy(&dtype->len, data, data_len);
++		break;
++	default:
++		err = -1;
++		break;
++	}
++
++	return err;
++}
++
++#define NFTNL_UDATA_DTYPE_TYPE		0
++#define NFTNL_UDATA_DTYPE_BYTEORDER	1
++#define NFTNL_UDATA_DTYPE_LEN		2
++#define NFTNL_UDATA_DTYPE_MAX		3
++
++EXPORT_SYMBOL(nftnl_dtype_desc_build);
++int nftnl_dtype_desc_build(struct nftnl_udata_buf *udbuf,
++			   const struct nftnl_dtype_desc *dtype)
++{
++	nftnl_udata_put_u32(udbuf, NFTNL_UDATA_DTYPE_TYPE, dtype->dtype);
++	nftnl_udata_put_u32(udbuf, NFTNL_UDATA_DTYPE_BYTEORDER, dtype->byteorder);
++	nftnl_udata_put_u32(udbuf, NFTNL_UDATA_DTYPE_LEN, dtype->len);
++
++	return 0;
++}
++
++static int nftnl_dtype_desc_parse_nested(const struct nftnl_udata *attr, void *data)
++{
++	const struct nftnl_udata **ud = data;
++	uint8_t type = nftnl_udata_type(attr);
++	uint8_t len = nftnl_udata_len(attr);
++
++	switch (type) {
++	case NFTNL_UDATA_DTYPE_TYPE:
++	case NFTNL_UDATA_DTYPE_BYTEORDER:
++	case NFTNL_UDATA_DTYPE_LEN:
++		if (len != sizeof(uint32_t))
++			return -1;
++		break;
++	default:
++	        return 0;
++	}
++
++	ud[type] = attr;
++	return 0;
++}
++
++EXPORT_SYMBOL(nftnl_dtype_desc_parse);
++int nftnl_dtype_desc_parse(const struct nftnl_udata *attr,
++			   struct nftnl_dtype_desc *dtype)
++{
++	const struct nftnl_udata *ud[NFTNL_UDATA_DTYPE_MAX + 1] = {};
++	int err;
++
++	err = nftnl_udata_parse(nftnl_udata_get(attr), nftnl_udata_len(attr),
++				nftnl_dtype_desc_parse_nested, ud);
++	if (err < 0)
++		return -1;
++
++	err = 0;
++	if (ud[NFTNL_UDATA_DTYPE_TYPE])
++		dtype->dtype = nftnl_udata_get_u32(ud[NFTNL_UDATA_DTYPE_TYPE]);
++	if (ud[NFTNL_UDATA_DTYPE_BYTEORDER])
++		dtype->byteorder = nftnl_udata_get_u32(ud[NFTNL_UDATA_DTYPE_BYTEORDER]);
++	if (ud[NFTNL_UDATA_DTYPE_LEN])
++		dtype->len = nftnl_udata_get_u32(ud[NFTNL_UDATA_DTYPE_LEN]);
++
++	return err;
++}
 -- 
 2.30.2
 
