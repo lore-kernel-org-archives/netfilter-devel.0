@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF9C3C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jan 2022 12:07:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5E96C433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jan 2022 12:07:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232055AbiATMHW (ORCPT
+        id S231688AbiATMH0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 20 Jan 2022 07:07:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55842 "EHLO
+        Thu, 20 Jan 2022 07:07:26 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55858 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231688AbiATMHW (ORCPT
+        with ESMTP id S232127AbiATMH0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Jan 2022 07:07:22 -0500
+        Thu, 20 Jan 2022 07:07:26 -0500
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 003AAC061574
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Jan 2022 04:07:21 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C529C061574
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Jan 2022 04:07:26 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1nAWDo-0002kv-FK; Thu, 20 Jan 2022 13:07:20 +0100
+        id 1nAWDs-0002l4-LV; Thu, 20 Jan 2022 13:07:24 +0100
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 3/4] netfilter: conntrack: hande ->destroy hook via nat_ops instead
-Date:   Thu, 20 Jan 2022 13:07:01 +0100
-Message-Id: <20220120120702.15939-4-fw@strlen.de>
+Cc:     Florian Westphal <fw@strlen.de>, Paul Blakey <paulb@nvidia.com>
+Subject: [PATCH nf-next 4/4] netfilter: conntrack: remove extension register api
+Date:   Thu, 20 Jan 2022 13:07:02 +0100
+Message-Id: <20220120120702.15939-5-fw@strlen.de>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20220120120702.15939-1-fw@strlen.de>
 References: <20220120120702.15939-1-fw@strlen.de>
@@ -34,158 +34,673 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The nat module already exposes a few functions to the conntrack core.
-Move the nat extension destroy hook to it.
+These no longer register/unregister a meaningful structure so remove it.
 
-After this, no conntrack extension needs a destroy hook.
-'struct nf_ct_ext_type' and the register/unregister api can be removed
-in a followup patch.
-
+Cc: Paul Blakey <paulb@nvidia.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/linux/netfilter.h                   |  1 +
- include/net/netfilter/nf_conntrack_extend.h |  3 ---
- net/netfilter/nf_conntrack_core.c           | 14 ++++++++++++--
- net/netfilter/nf_conntrack_extend.c         | 21 ---------------------
- net/netfilter/nf_nat_core.c                 | 13 +++----------
- 5 files changed, 16 insertions(+), 36 deletions(-)
+ include/net/netfilter/nf_conntrack_acct.h     |  1 -
+ include/net/netfilter/nf_conntrack_ecache.h   | 13 ------
+ include/net/netfilter/nf_conntrack_extend.h   |  9 ----
+ include/net/netfilter/nf_conntrack_labels.h   |  3 --
+ include/net/netfilter/nf_conntrack_seqadj.h   |  3 --
+ include/net/netfilter/nf_conntrack_timeout.h  | 12 ------
+ .../net/netfilter/nf_conntrack_timestamp.h    | 13 ------
+ net/netfilter/nf_conntrack_acct.c             | 17 --------
+ net/netfilter/nf_conntrack_core.c             | 43 -------------------
+ net/netfilter/nf_conntrack_ecache.c           | 22 +---------
+ net/netfilter/nf_conntrack_extend.c           | 35 +--------------
+ net/netfilter/nf_conntrack_helper.c           | 15 -------
+ net/netfilter/nf_conntrack_labels.c           | 18 +-------
+ net/netfilter/nf_conntrack_seqadj.c           | 14 ------
+ net/netfilter/nf_conntrack_timeout.c          | 17 --------
+ net/netfilter/nf_conntrack_timestamp.c        | 18 --------
+ net/netfilter/nf_nat_core.c                   | 13 ------
+ net/netfilter/nf_synproxy_core.c              | 22 +---------
+ net/sched/act_ct.c                            | 11 -----
+ 19 files changed, 7 insertions(+), 292 deletions(-)
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 15e71bfff726..c2c6f332fb90 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -379,6 +379,7 @@ struct nf_nat_hook {
- 	unsigned int (*manip_pkt)(struct sk_buff *skb, struct nf_conn *ct,
- 				  enum nf_nat_manip_type mtype,
- 				  enum ip_conntrack_dir dir);
-+	void (*remove_nat_bysrc)(struct nf_conn *ct);
- };
+diff --git a/include/net/netfilter/nf_conntrack_acct.h b/include/net/netfilter/nf_conntrack_acct.h
+index 7f44a771530e..4b2b7f8914ea 100644
+--- a/include/net/netfilter/nf_conntrack_acct.h
++++ b/include/net/netfilter/nf_conntrack_acct.h
+@@ -78,7 +78,6 @@ static inline void nf_ct_acct_update(struct nf_conn *ct, u32 dir,
  
- extern const struct nf_nat_hook __rcu *nf_nat_hook;
-diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
-index 87d818414092..343f9194423a 100644
---- a/include/net/netfilter/nf_conntrack_extend.h
-+++ b/include/net/netfilter/nf_conntrack_extend.h
-@@ -79,9 +79,6 @@ void nf_ct_ext_destroy(struct nf_conn *ct);
- void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp);
+ void nf_conntrack_acct_pernet_init(struct net *net);
  
- struct nf_ct_ext_type {
--	/* Destroys relationships (can be NULL). */
--	void (*destroy)(struct nf_conn *ct);
+-int nf_conntrack_acct_init(void);
+ void nf_conntrack_acct_fini(void);
+ 
+ #endif /* _NF_CONNTRACK_ACCT_H */
+diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
+index d932e22edcb4..16bcff809b18 100644
+--- a/include/net/netfilter/nf_conntrack_ecache.h
++++ b/include/net/netfilter/nf_conntrack_ecache.h
+@@ -166,9 +166,6 @@ void nf_conntrack_ecache_work(struct net *net, enum nf_ct_ecache_state state);
+ void nf_conntrack_ecache_pernet_init(struct net *net);
+ void nf_conntrack_ecache_pernet_fini(struct net *net);
+ 
+-int nf_conntrack_ecache_init(void);
+-void nf_conntrack_ecache_fini(void);
 -
- 	enum nf_ct_ext_id id;
- };
- 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index e301227eabcb..e7530aba5680 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -593,7 +593,7 @@ EXPORT_SYMBOL_GPL(nf_ct_tmpl_alloc);
- 
- void nf_ct_tmpl_free(struct nf_conn *tmpl)
+ static inline bool nf_conntrack_ecache_dwork_pending(const struct net *net)
  {
--	nf_ct_ext_destroy(tmpl);
-+	kfree(tmpl->ext);
- 
- 	if (ARCH_KMALLOC_MINALIGN <= NFCT_INFOMASK)
- 		kfree((char *)tmpl - tmpl->proto.tmpl_padto);
-@@ -1596,7 +1596,17 @@ void nf_conntrack_free(struct nf_conn *ct)
- 	 */
- 	WARN_ON(refcount_read(&ct->ct_general.use) != 0);
- 
--	nf_ct_ext_destroy(ct);
-+	if (ct->status & IPS_SRC_NAT_DONE) {
-+		const struct nf_nat_hook *nat_hook;
-+
-+		rcu_read_lock();
-+		nat_hook = rcu_dereference(nf_nat_hook);
-+		if (nat_hook)
-+			nat_hook->remove_nat_bysrc(ct);
-+		rcu_read_unlock();
-+	}
-+
-+	kfree(ct->ext);
- 	kmem_cache_free(nf_conntrack_cachep, ct);
- 	cnet = nf_ct_pernet(net);
- 
-diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
-index 69a6cafcb045..6b772b804ee2 100644
---- a/net/netfilter/nf_conntrack_extend.c
-+++ b/net/netfilter/nf_conntrack_extend.c
-@@ -89,27 +89,6 @@ static __always_inline unsigned int total_extension_size(void)
- 	;
+ 	return net->ct.ecache_dwork_pending;
+@@ -194,16 +191,6 @@ static inline void nf_conntrack_ecache_pernet_init(struct net *net)
+ static inline void nf_conntrack_ecache_pernet_fini(struct net *net)
+ {
  }
- 
--void nf_ct_ext_destroy(struct nf_conn *ct)
+-
+-static inline int nf_conntrack_ecache_init(void)
 -{
--	unsigned int i;
--	struct nf_ct_ext_type *t;
--
--	for (i = 0; i < NF_CT_EXT_NUM; i++) {
--		rcu_read_lock();
--		t = rcu_dereference(nf_ct_ext_types[i]);
--
--		/* Here the nf_ct_ext_type might have been unregisterd.
--		 * I.e., it has responsible to cleanup private
--		 * area in all conntracks when it is unregisterd.
--		 */
--		if (t && t->destroy)
--			t->destroy(ct);
--		rcu_read_unlock();
--	}
--
--	kfree(ct->ext);
+-	return 0;
 -}
 -
- void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
- {
- 	unsigned int newlen, newoff, oldlen, alloc;
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 2ff20d6a5afb..8cc31d695e36 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -838,7 +838,7 @@ static int nf_nat_proto_remove(struct nf_conn *i, void *data)
- 	return i->status & IPS_NAT_MASK ? 1 : 0;
+-static inline void nf_conntrack_ecache_fini(void)
+-{
+-}
+-
+ static inline bool nf_conntrack_ecache_dwork_pending(const struct net *net) { return false; }
+ #endif /* CONFIG_NF_CONNTRACK_EVENTS */
+ #endif /*_NF_CONNTRACK_ECACHE_H*/
+diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
+index 343f9194423a..96635ad2acc7 100644
+--- a/include/net/netfilter/nf_conntrack_extend.h
++++ b/include/net/netfilter/nf_conntrack_extend.h
+@@ -72,16 +72,7 @@ static inline void *__nf_ct_ext_find(const struct nf_conn *ct, u8 id)
+ #define nf_ct_ext_find(ext, id)	\
+ 	((id##_TYPE *)__nf_ct_ext_find((ext), (id)))
+ 
+-/* Destroy all relationships */
+-void nf_ct_ext_destroy(struct nf_conn *ct);
+-
+ /* Add this type, returns pointer to data or NULL. */
+ void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp);
+ 
+-struct nf_ct_ext_type {
+-	enum nf_ct_ext_id id;
+-};
+-
+-int nf_ct_extend_register(const struct nf_ct_ext_type *type);
+-void nf_ct_extend_unregister(const struct nf_ct_ext_type *type);
+ #endif /* _NF_CONNTRACK_EXTEND_H */
+diff --git a/include/net/netfilter/nf_conntrack_labels.h b/include/net/netfilter/nf_conntrack_labels.h
+index ba916411c4e1..3c23298e68ca 100644
+--- a/include/net/netfilter/nf_conntrack_labels.h
++++ b/include/net/netfilter/nf_conntrack_labels.h
+@@ -45,12 +45,9 @@ int nf_connlabels_replace(struct nf_conn *ct,
+ 
+ #ifdef CONFIG_NF_CONNTRACK_LABELS
+ int nf_conntrack_labels_init(void);
+-void nf_conntrack_labels_fini(void);
+ int nf_connlabels_get(struct net *net, unsigned int bit);
+ void nf_connlabels_put(struct net *net);
+ #else
+-static inline int nf_conntrack_labels_init(void) { return 0; }
+-static inline void nf_conntrack_labels_fini(void) {}
+ static inline int nf_connlabels_get(struct net *net, unsigned int bit) { return 0; }
+ static inline void nf_connlabels_put(struct net *net) {}
+ #endif
+diff --git a/include/net/netfilter/nf_conntrack_seqadj.h b/include/net/netfilter/nf_conntrack_seqadj.h
+index 0a10b50537ae..883c414b768e 100644
+--- a/include/net/netfilter/nf_conntrack_seqadj.h
++++ b/include/net/netfilter/nf_conntrack_seqadj.h
+@@ -42,7 +42,4 @@ int nf_ct_seq_adjust(struct sk_buff *skb, struct nf_conn *ct,
+ 		     enum ip_conntrack_info ctinfo, unsigned int protoff);
+ s32 nf_ct_seq_offset(const struct nf_conn *ct, enum ip_conntrack_dir, u32 seq);
+ 
+-int nf_conntrack_seqadj_init(void);
+-void nf_conntrack_seqadj_fini(void);
+-
+ #endif /* _NF_CONNTRACK_SEQADJ_H */
+diff --git a/include/net/netfilter/nf_conntrack_timeout.h b/include/net/netfilter/nf_conntrack_timeout.h
+index 659b0ea25b4d..db507e4a65bb 100644
+--- a/include/net/netfilter/nf_conntrack_timeout.h
++++ b/include/net/netfilter/nf_conntrack_timeout.h
+@@ -89,23 +89,11 @@ static inline unsigned int *nf_ct_timeout_lookup(const struct nf_conn *ct)
  }
  
--static void __nf_nat_cleanup_conntrack(struct nf_conn *ct)
-+static void nf_nat_cleanup_conntrack(struct nf_conn *ct)
+ #ifdef CONFIG_NF_CONNTRACK_TIMEOUT
+-int nf_conntrack_timeout_init(void);
+-void nf_conntrack_timeout_fini(void);
+ void nf_ct_untimeout(struct net *net, struct nf_ct_timeout *timeout);
+ int nf_ct_set_timeout(struct net *net, struct nf_conn *ct, u8 l3num, u8 l4num,
+ 		      const char *timeout_name);
+ void nf_ct_destroy_timeout(struct nf_conn *ct);
+ #else
+-static inline int nf_conntrack_timeout_init(void)
+-{
+-        return 0;
+-}
+-
+-static inline void nf_conntrack_timeout_fini(void)
+-{
+-        return;
+-}
+-
+ static inline int nf_ct_set_timeout(struct net *net, struct nf_conn *ct,
+ 				    u8 l3num, u8 l4num,
+ 				    const char *timeout_name)
+diff --git a/include/net/netfilter/nf_conntrack_timestamp.h b/include/net/netfilter/nf_conntrack_timestamp.h
+index 820ea34b6029..57138d974a9f 100644
+--- a/include/net/netfilter/nf_conntrack_timestamp.h
++++ b/include/net/netfilter/nf_conntrack_timestamp.h
+@@ -40,21 +40,8 @@ struct nf_conn_tstamp *nf_ct_tstamp_ext_add(struct nf_conn *ct, gfp_t gfp)
+ 
+ #ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
+ void nf_conntrack_tstamp_pernet_init(struct net *net);
+-
+-int nf_conntrack_tstamp_init(void);
+-void nf_conntrack_tstamp_fini(void);
+ #else
+ static inline void nf_conntrack_tstamp_pernet_init(struct net *net) {}
+-
+-static inline int nf_conntrack_tstamp_init(void)
+-{
+-	return 0;
+-}
+-
+-static inline void nf_conntrack_tstamp_fini(void)
+-{
+-	return;
+-}
+ #endif /* CONFIG_NF_CONNTRACK_TIMESTAMP */
+ 
+ #endif /* _NF_CONNTRACK_TSTAMP_H */
+diff --git a/net/netfilter/nf_conntrack_acct.c b/net/netfilter/nf_conntrack_acct.c
+index 4b5048ee84f2..385a5f458aba 100644
+--- a/net/netfilter/nf_conntrack_acct.c
++++ b/net/netfilter/nf_conntrack_acct.c
+@@ -22,24 +22,7 @@ static bool nf_ct_acct __read_mostly;
+ module_param_named(acct, nf_ct_acct, bool, 0644);
+ MODULE_PARM_DESC(acct, "Enable connection tracking flow accounting.");
+ 
+-static const struct nf_ct_ext_type acct_extend = {
+-	.id	= NF_CT_EXT_ACCT,
+-};
+-
+ void nf_conntrack_acct_pernet_init(struct net *net)
  {
- 	unsigned int h;
+ 	net->ct.sysctl_acct = nf_ct_acct;
+ }
+-
+-int nf_conntrack_acct_init(void)
+-{
+-	int ret = nf_ct_extend_register(&acct_extend);
+-	if (ret < 0)
+-		pr_err("Unable to register extension\n");
+-	return ret;
+-}
+-
+-void nf_conntrack_acct_fini(void)
+-{
+-	nf_ct_extend_unregister(&acct_extend);
+-}
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index e7530aba5680..b11a7ba12dce 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -37,7 +37,6 @@
+ #include <net/netfilter/nf_conntrack_l4proto.h>
+ #include <net/netfilter/nf_conntrack_expect.h>
+ #include <net/netfilter/nf_conntrack_helper.h>
+-#include <net/netfilter/nf_conntrack_seqadj.h>
+ #include <net/netfilter/nf_conntrack_core.h>
+ #include <net/netfilter/nf_conntrack_extend.h>
+ #include <net/netfilter/nf_conntrack_acct.h>
+@@ -2474,13 +2473,7 @@ void nf_conntrack_cleanup_end(void)
+ 	kvfree(nf_conntrack_hash);
  
-@@ -860,7 +860,7 @@ static int nf_nat_proto_clean(struct nf_conn *ct, void *data)
- 	 * will delete entry from already-freed table.
- 	 */
- 	if (test_and_clear_bit(IPS_SRC_NAT_DONE_BIT, &ct->status))
--		__nf_nat_cleanup_conntrack(ct);
-+		nf_nat_cleanup_conntrack(ct);
+ 	nf_conntrack_proto_fini();
+-	nf_conntrack_seqadj_fini();
+-	nf_conntrack_labels_fini();
+ 	nf_conntrack_helper_fini();
+-	nf_conntrack_timeout_fini();
+-	nf_conntrack_ecache_fini();
+-	nf_conntrack_tstamp_fini();
+-	nf_conntrack_acct_fini();
+ 	nf_conntrack_expect_fini();
  
- 	/* don't delete conntrack.  Although that would make things a lot
- 	 * simpler, we'd end up flushing all conntracks on nat rmmod.
-@@ -868,15 +868,7 @@ static int nf_nat_proto_clean(struct nf_conn *ct, void *data)
+ 	kmem_cache_destroy(nf_conntrack_cachep);
+@@ -2686,34 +2679,10 @@ int nf_conntrack_init_start(void)
+ 	if (ret < 0)
+ 		goto err_expect;
+ 
+-	ret = nf_conntrack_acct_init();
+-	if (ret < 0)
+-		goto err_acct;
+-
+-	ret = nf_conntrack_tstamp_init();
+-	if (ret < 0)
+-		goto err_tstamp;
+-
+-	ret = nf_conntrack_ecache_init();
+-	if (ret < 0)
+-		goto err_ecache;
+-
+-	ret = nf_conntrack_timeout_init();
+-	if (ret < 0)
+-		goto err_timeout;
+-
+ 	ret = nf_conntrack_helper_init();
+ 	if (ret < 0)
+ 		goto err_helper;
+ 
+-	ret = nf_conntrack_labels_init();
+-	if (ret < 0)
+-		goto err_labels;
+-
+-	ret = nf_conntrack_seqadj_init();
+-	if (ret < 0)
+-		goto err_seqadj;
+-
+ 	ret = nf_conntrack_proto_init();
+ 	if (ret < 0)
+ 		goto err_proto;
+@@ -2724,20 +2693,8 @@ int nf_conntrack_init_start(void)
+ 	return 0;
+ 
+ err_proto:
+-	nf_conntrack_seqadj_fini();
+-err_seqadj:
+-	nf_conntrack_labels_fini();
+-err_labels:
+ 	nf_conntrack_helper_fini();
+ err_helper:
+-	nf_conntrack_timeout_fini();
+-err_timeout:
+-	nf_conntrack_ecache_fini();
+-err_ecache:
+-	nf_conntrack_tstamp_fini();
+-err_tstamp:
+-	nf_conntrack_acct_fini();
+-err_acct:
+ 	nf_conntrack_expect_fini();
+ err_expect:
+ 	kmem_cache_destroy(nf_conntrack_cachep);
+diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
+index 9ececc9b45f9..873908054f7f 100644
+--- a/net/netfilter/nf_conntrack_ecache.c
++++ b/net/netfilter/nf_conntrack_ecache.c
+@@ -304,10 +304,6 @@ void nf_conntrack_ecache_work(struct net *net, enum nf_ct_ecache_state state)
+ #define NF_CT_EVENTS_DEFAULT 1
+ static int nf_ct_events __read_mostly = NF_CT_EVENTS_DEFAULT;
+ 
+-static const struct nf_ct_ext_type event_extend = {
+-	.id	= NF_CT_EXT_ECACHE,
+-};
+-
+ void nf_conntrack_ecache_pernet_init(struct net *net)
+ {
+ 	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
+@@ -315,6 +311,8 @@ void nf_conntrack_ecache_pernet_init(struct net *net)
+ 	net->ct.sysctl_events = nf_ct_events;
+ 	cnet->ct_net = &net->ct;
+ 	INIT_DELAYED_WORK(&cnet->ecache_dwork, ecache_work);
++
++	BUILD_BUG_ON(__IPCT_MAX >= 16);	/* ctmask, missed use u16 */
+ }
+ 
+ void nf_conntrack_ecache_pernet_fini(struct net *net)
+@@ -323,19 +321,3 @@ void nf_conntrack_ecache_pernet_fini(struct net *net)
+ 
+ 	cancel_delayed_work_sync(&cnet->ecache_dwork);
+ }
+-
+-int nf_conntrack_ecache_init(void)
+-{
+-	int ret = nf_ct_extend_register(&event_extend);
+-	if (ret < 0)
+-		pr_err("Unable to register event extension\n");
+-
+-	BUILD_BUG_ON(__IPCT_MAX >= 16);	/* ctmask, missed use u16 */
+-
+-	return ret;
+-}
+-
+-void nf_conntrack_ecache_fini(void)
+-{
+-	nf_ct_extend_unregister(&event_extend);
+-}
+diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
+index 6b772b804ee2..1296fda54ac6 100644
+--- a/net/netfilter/nf_conntrack_extend.c
++++ b/net/netfilter/nf_conntrack_extend.c
+@@ -25,8 +25,6 @@
+ #include <net/netfilter/nf_conntrack_act_ct.h>
+ #include <net/netfilter/nf_nat.h>
+ 
+-static struct nf_ct_ext_type __rcu *nf_ct_ext_types[NF_CT_EXT_NUM];
+-static DEFINE_MUTEX(nf_ct_ext_type_mutex);
+ #define NF_CT_EXT_PREALLOC	128u /* conntrack events are on by default */
+ 
+ static const u8 nf_ct_ext_type_len[NF_CT_EXT_NUM] = {
+@@ -97,6 +95,8 @@ void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
+ 	/* Conntrack must not be confirmed to avoid races on reallocation. */
+ 	WARN_ON(nf_ct_is_confirmed(ct));
+ 
++	/* struct nf_ct_ext uses u8 to store offsets/size */
++	BUILD_BUG_ON(total_extension_size() > 255u);
+ 
+ 	if (ct->ext) {
+ 		const struct nf_ct_ext *old = ct->ext;
+@@ -127,34 +127,3 @@ void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
+ 	return (void *)new + newoff;
+ }
+ EXPORT_SYMBOL(nf_ct_ext_add);
+-
+-/* This MUST be called in process context. */
+-int nf_ct_extend_register(const struct nf_ct_ext_type *type)
+-{
+-	int ret = 0;
+-
+-	/* struct nf_ct_ext uses u8 to store offsets/size */
+-	BUILD_BUG_ON(total_extension_size() > 255u);
+-
+-	mutex_lock(&nf_ct_ext_type_mutex);
+-	if (nf_ct_ext_types[type->id]) {
+-		ret = -EBUSY;
+-		goto out;
+-	}
+-
+-	rcu_assign_pointer(nf_ct_ext_types[type->id], type);
+-out:
+-	mutex_unlock(&nf_ct_ext_type_mutex);
+-	return ret;
+-}
+-EXPORT_SYMBOL_GPL(nf_ct_extend_register);
+-
+-/* This MUST be called in process context. */
+-void nf_ct_extend_unregister(const struct nf_ct_ext_type *type)
+-{
+-	mutex_lock(&nf_ct_ext_type_mutex);
+-	RCU_INIT_POINTER(nf_ct_ext_types[type->id], NULL);
+-	mutex_unlock(&nf_ct_ext_type_mutex);
+-	synchronize_rcu();
+-}
+-EXPORT_SYMBOL_GPL(nf_ct_extend_unregister);
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index 6fe94f18a4ac..a97ddb1497aa 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -550,10 +550,6 @@ void nf_nat_helper_unregister(struct nf_conntrack_nat_helper *nat)
+ }
+ EXPORT_SYMBOL_GPL(nf_nat_helper_unregister);
+ 
+-static const struct nf_ct_ext_type helper_extend = {
+-	.id	= NF_CT_EXT_HELPER,
+-};
+-
+ void nf_conntrack_helper_pernet_init(struct net *net)
+ {
+ 	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
+@@ -563,28 +559,17 @@ void nf_conntrack_helper_pernet_init(struct net *net)
+ 
+ int nf_conntrack_helper_init(void)
+ {
+-	int ret;
+ 	nf_ct_helper_hsize = 1; /* gets rounded up to use one page */
+ 	nf_ct_helper_hash =
+ 		nf_ct_alloc_hashtable(&nf_ct_helper_hsize, 0);
+ 	if (!nf_ct_helper_hash)
+ 		return -ENOMEM;
+ 
+-	ret = nf_ct_extend_register(&helper_extend);
+-	if (ret < 0) {
+-		pr_err("nf_ct_helper: Unable to register helper extension.\n");
+-		goto out_extend;
+-	}
+-
+ 	INIT_LIST_HEAD(&nf_ct_nat_helpers);
+ 	return 0;
+-out_extend:
+-	kvfree(nf_ct_helper_hash);
+-	return ret;
+ }
+ 
+ void nf_conntrack_helper_fini(void)
+ {
+-	nf_ct_extend_unregister(&helper_extend);
+ 	kvfree(nf_ct_helper_hash);
+ }
+diff --git a/net/netfilter/nf_conntrack_labels.c b/net/netfilter/nf_conntrack_labels.c
+index 0cd99535122b..6e70e137a0a6 100644
+--- a/net/netfilter/nf_conntrack_labels.c
++++ b/net/netfilter/nf_conntrack_labels.c
+@@ -67,6 +67,8 @@ int nf_connlabels_get(struct net *net, unsigned int bits)
+ 	net->ct.labels_used++;
+ 	spin_unlock(&nf_connlabels_lock);
+ 
++	BUILD_BUG_ON(NF_CT_LABELS_MAX_SIZE / sizeof(long) >= U8_MAX);
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(nf_connlabels_get);
+@@ -78,19 +80,3 @@ void nf_connlabels_put(struct net *net)
+ 	spin_unlock(&nf_connlabels_lock);
+ }
+ EXPORT_SYMBOL_GPL(nf_connlabels_put);
+-
+-static const struct nf_ct_ext_type labels_extend = {
+-	.id     = NF_CT_EXT_LABELS,
+-};
+-
+-int nf_conntrack_labels_init(void)
+-{
+-	BUILD_BUG_ON(NF_CT_LABELS_MAX_SIZE / sizeof(long) >= U8_MAX);
+-
+-	return nf_ct_extend_register(&labels_extend);
+-}
+-
+-void nf_conntrack_labels_fini(void)
+-{
+-	nf_ct_extend_unregister(&labels_extend);
+-}
+diff --git a/net/netfilter/nf_conntrack_seqadj.c b/net/netfilter/nf_conntrack_seqadj.c
+index b9629916e53d..7ab2b25b57bc 100644
+--- a/net/netfilter/nf_conntrack_seqadj.c
++++ b/net/netfilter/nf_conntrack_seqadj.c
+@@ -232,17 +232,3 @@ s32 nf_ct_seq_offset(const struct nf_conn *ct,
+ 		 this_way->offset_after : this_way->offset_before;
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_seq_offset);
+-
+-static const struct nf_ct_ext_type nf_ct_seqadj_extend = {
+-	.id	= NF_CT_EXT_SEQADJ,
+-};
+-
+-int nf_conntrack_seqadj_init(void)
+-{
+-	return nf_ct_extend_register(&nf_ct_seqadj_extend);
+-}
+-
+-void nf_conntrack_seqadj_fini(void)
+-{
+-	nf_ct_extend_unregister(&nf_ct_seqadj_extend);
+-}
+diff --git a/net/netfilter/nf_conntrack_timeout.c b/net/netfilter/nf_conntrack_timeout.c
+index ac99a0083156..cd76ccca25e8 100644
+--- a/net/netfilter/nf_conntrack_timeout.c
++++ b/net/netfilter/nf_conntrack_timeout.c
+@@ -134,20 +134,3 @@ void nf_ct_destroy_timeout(struct nf_conn *ct)
+ 	rcu_read_unlock();
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_destroy_timeout);
+-
+-static const struct nf_ct_ext_type timeout_extend = {
+-	.id	= NF_CT_EXT_TIMEOUT,
+-};
+-
+-int nf_conntrack_timeout_init(void)
+-{
+-	int ret = nf_ct_extend_register(&timeout_extend);
+-	if (ret < 0)
+-		pr_err("nf_ct_timeout: Unable to register timeout extension.\n");
+-	return ret;
+-}
+-
+-void nf_conntrack_timeout_fini(void)
+-{
+-	nf_ct_extend_unregister(&timeout_extend);
+-}
+diff --git a/net/netfilter/nf_conntrack_timestamp.c b/net/netfilter/nf_conntrack_timestamp.c
+index c696ca19dcb1..9e43a0a59e73 100644
+--- a/net/netfilter/nf_conntrack_timestamp.c
++++ b/net/netfilter/nf_conntrack_timestamp.c
+@@ -19,25 +19,7 @@ static bool nf_ct_tstamp __read_mostly;
+ module_param_named(tstamp, nf_ct_tstamp, bool, 0644);
+ MODULE_PARM_DESC(tstamp, "Enable connection tracking flow timestamping.");
+ 
+-static const struct nf_ct_ext_type tstamp_extend = {
+-	.id	= NF_CT_EXT_TSTAMP,
+-};
+-
+ void nf_conntrack_tstamp_pernet_init(struct net *net)
+ {
+ 	net->ct.sysctl_tstamp = nf_ct_tstamp;
+ }
+-
+-int nf_conntrack_tstamp_init(void)
+-{
+-	int ret;
+-	ret = nf_ct_extend_register(&tstamp_extend);
+-	if (ret < 0)
+-		pr_err("Unable to register extension\n");
+-	return ret;
+-}
+-
+-void nf_conntrack_tstamp_fini(void)
+-{
+-	nf_ct_extend_unregister(&tstamp_extend);
+-}
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 8cc31d695e36..58c06ac10179 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -868,10 +868,6 @@ static int nf_nat_proto_clean(struct nf_conn *ct, void *data)
  	return 0;
  }
  
--/* No one using conntrack by the time this called. */
--static void nf_nat_cleanup_conntrack(struct nf_conn *ct)
--{
--	if (ct->status & IPS_SRC_NAT_DONE)
--		__nf_nat_cleanup_conntrack(ct);
--}
+-static struct nf_ct_ext_type nat_extend __read_mostly = {
+-	.id		= NF_CT_EXT_NAT,
+-};
 -
- static struct nf_ct_ext_type nat_extend __read_mostly = {
--	.destroy	= nf_nat_cleanup_conntrack,
- 	.id		= NF_CT_EXT_NAT,
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+ 
+ #include <linux/netfilter/nfnetlink.h>
+@@ -1179,19 +1175,11 @@ static int __init nf_nat_init(void)
+ 	if (!nf_nat_bysource)
+ 		return -ENOMEM;
+ 
+-	ret = nf_ct_extend_register(&nat_extend);
+-	if (ret < 0) {
+-		kvfree(nf_nat_bysource);
+-		pr_err("Unable to register extension\n");
+-		return ret;
+-	}
+-
+ 	for (i = 0; i < CONNTRACK_LOCKS; i++)
+ 		spin_lock_init(&nf_nat_locks[i]);
+ 
+ 	ret = register_pernet_subsys(&nat_net_ops);
+ 	if (ret < 0) {
+-		nf_ct_extend_unregister(&nat_extend);
+ 		kvfree(nf_nat_bysource);
+ 		return ret;
+ 	}
+@@ -1210,7 +1198,6 @@ static void __exit nf_nat_cleanup(void)
+ 
+ 	nf_ct_iterate_destroy(nf_nat_proto_clean, &clean);
+ 
+-	nf_ct_extend_unregister(&nat_extend);
+ 	nf_ct_helper_expectfn_unregister(&follow_master_nat);
+ 	RCU_INIT_POINTER(nf_nat_hook, NULL);
+ 
+diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
+index 6d328f7bb323..e479dd0561c5 100644
+--- a/net/netfilter/nf_synproxy_core.c
++++ b/net/netfilter/nf_synproxy_core.c
+@@ -236,10 +236,6 @@ synproxy_tstamp_adjust(struct sk_buff *skb, unsigned int protoff,
+ 	return 1;
+ }
+ 
+-static struct nf_ct_ext_type nf_ct_synproxy_extend __read_mostly = {
+-	.id		= NF_CT_EXT_SYNPROXY,
+-};
+-
+ #ifdef CONFIG_PROC_FS
+ static void *synproxy_cpu_seq_start(struct seq_file *seq, loff_t *pos)
+ {
+@@ -385,28 +381,12 @@ static struct pernet_operations synproxy_net_ops = {
+ 
+ static int __init synproxy_core_init(void)
+ {
+-	int err;
+-
+-	err = nf_ct_extend_register(&nf_ct_synproxy_extend);
+-	if (err < 0)
+-		goto err1;
+-
+-	err = register_pernet_subsys(&synproxy_net_ops);
+-	if (err < 0)
+-		goto err2;
+-
+-	return 0;
+-
+-err2:
+-	nf_ct_extend_unregister(&nf_ct_synproxy_extend);
+-err1:
+-	return err;
++	return register_pernet_subsys(&synproxy_net_ops);
+ }
+ 
+ static void __exit synproxy_core_exit(void)
+ {
+ 	unregister_pernet_subsys(&synproxy_net_ops);
+-	nf_ct_extend_unregister(&nf_ct_synproxy_extend);
+ }
+ 
+ module_init(synproxy_core_init);
+diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
+index 774e32fab5cf..7108e71ce4db 100644
+--- a/net/sched/act_ct.c
++++ b/net/sched/act_ct.c
+@@ -57,10 +57,6 @@ static const struct rhashtable_params zones_params = {
+ 	.automatic_shrinking = true,
  };
  
-@@ -1171,6 +1163,7 @@ static const struct nf_nat_hook nat_hook = {
- 	.decode_session		= __nf_nat_decode_session,
- #endif
- 	.manip_pkt		= nf_nat_manip_pkt,
-+	.remove_nat_bysrc	= nf_nat_cleanup_conntrack,
- };
+-static struct nf_ct_ext_type act_ct_extend __read_mostly = {
+-	.id		= NF_CT_EXT_ACT_CT,
+-};
+-
+ static struct flow_action_entry *
+ tcf_ct_flow_table_flow_action_get_next(struct flow_action *flow_action)
+ {
+@@ -1606,16 +1602,10 @@ static int __init ct_init_module(void)
+ 	if (err)
+ 		goto err_register;
  
- static int __init nf_nat_init(void)
+-	err = nf_ct_extend_register(&act_ct_extend);
+-	if (err)
+-		goto err_register_extend;
+-
+ 	static_branch_inc(&tcf_frag_xmit_count);
+ 
+ 	return 0;
+ 
+-err_register_extend:
+-	tcf_unregister_action(&act_ct_ops, &ct_net_ops);
+ err_register:
+ 	tcf_ct_flow_tables_uninit();
+ err_tbl_init:
+@@ -1626,7 +1616,6 @@ static int __init ct_init_module(void)
+ static void __exit ct_cleanup_module(void)
+ {
+ 	static_branch_dec(&tcf_frag_xmit_count);
+-	nf_ct_extend_unregister(&act_ct_extend);
+ 	tcf_unregister_action(&act_ct_ops, &ct_net_ops);
+ 	tcf_ct_flow_tables_uninit();
+ 	destroy_workqueue(act_ct_wq);
 -- 
 2.34.1
 
