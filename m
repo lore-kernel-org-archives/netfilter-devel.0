@@ -2,59 +2,74 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4FCEC433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jan 2022 12:05:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C81ECC433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jan 2022 12:07:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232012AbiATMFB (ORCPT
+        id S232001AbiATMHK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 20 Jan 2022 07:05:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55326 "EHLO
+        Thu, 20 Jan 2022 07:07:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55794 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232001AbiATMFA (ORCPT
+        with ESMTP id S231989AbiATMHJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Jan 2022 07:05:00 -0500
+        Thu, 20 Jan 2022 07:07:09 -0500
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 637E1C061574
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Jan 2022 04:05:00 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D069C061574
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Jan 2022 04:07:09 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1nAWBW-0002jQ-7j; Thu, 20 Jan 2022 13:04:58 +0100
-Date:   Thu, 20 Jan 2022 13:04:58 +0100
+        (envelope-from <fw@breakpoint.cc>)
+        id 1nAWDb-0002kA-PG; Thu, 20 Jan 2022 13:07:07 +0100
 From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH libnetfilter_queue v3 1-5/5] src: Speed-up
-Message-ID: <20220120120458.GF31905@breakpoint.cc>
-References: <20220109031653.23835-1-duncan_roe@optusnet.com.au>
- <20220109031653.23835-6-duncan_roe@optusnet.com.au>
- <YeYClrLxYGDeD8ua@slk1.local.net>
- <YeYTzwpxiqLz8ulb@salvia>
- <YejdVZaoUz+t1qRU@slk1.local.net>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next 0/4] netfilter: conntrack: remove extension register api
+Date:   Thu, 20 Jan 2022 13:06:58 +0100
+Message-Id: <20220120120702.15939-1-fw@strlen.de>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YejdVZaoUz+t1qRU@slk1.local.net>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Duncan Roe <duncan_roe@optusnet.com.au> wrote:
-> On Tue, Jan 18, 2022 at 02:11:43AM +0100, Pablo Neira Ayuso wrote:
-> >
-> > This patch have a number of showstoppers such as exposing structure
-> > layout on the header files.
-> >
-> That's only in patch 5. You could apply 1-4. There are actually no other
-> showstoppers, right?
+This starts to simplify the extension infra. Should have no impact
+on functionality.
 
-Regarding patch 5, I think its ok except the pkt_buff layout freeze.
+Extension IDs already need compile-time allocation, the dynamic
+registration isn't necessary, just place the sizes in the extension
+core and handle the only instance of the ->destroy hook manually.
 
-From a quick glance, there is no assumption that the data area resides
-after the pktbuff head, so it should be possible to keep pkt_buff
-private, allocate an empty packet and then associate a new buffer with
-it.
+Also avoids the ->destroy hook invocation during ct destruction if
+the conntrack wasn't added to the bysource hash list.
 
-I agree the memcpy needs to go, nfqueue uses should use F_GSO feature
-flag and memcpy'ing 60k big packets isn't ideal.
+Florian Westphal (4):
+  netfilter: conntrack: make all extensions 8-byte alignned
+  netfilter: conntrack: move extension sizes into core
+  netfilter: conntrack: hande ->destroy hook via nat_ops instead
+  netfilter: conntrack: remove extension register api
+
+ include/linux/netfilter.h                     |   1 +
+ include/net/netfilter/nf_conntrack_acct.h     |   1 -
+ include/net/netfilter/nf_conntrack_ecache.h   |  13 --
+ include/net/netfilter/nf_conntrack_extend.h   |  18 +--
+ include/net/netfilter/nf_conntrack_labels.h   |   3 -
+ include/net/netfilter/nf_conntrack_seqadj.h   |   3 -
+ include/net/netfilter/nf_conntrack_timeout.h  |  12 --
+ .../net/netfilter/nf_conntrack_timestamp.h    |  13 --
+ net/netfilter/nf_conntrack_acct.c             |  19 ---
+ net/netfilter/nf_conntrack_core.c             |  94 ++-----------
+ net/netfilter/nf_conntrack_ecache.c           |  24 +---
+ net/netfilter/nf_conntrack_extend.c           | 132 ++++++++++--------
+ net/netfilter/nf_conntrack_helper.c           |  17 ---
+ net/netfilter/nf_conntrack_labels.c           |  20 +--
+ net/netfilter/nf_conntrack_seqadj.c           |  16 ---
+ net/netfilter/nf_conntrack_timeout.c          |  19 ---
+ net/netfilter/nf_conntrack_timestamp.c        |  20 ---
+ net/netfilter/nf_nat_core.c                   |  28 +---
+ net/netfilter/nf_synproxy_core.c              |  24 +---
+ net/sched/act_ct.c                            |  13 --
+ 20 files changed, 95 insertions(+), 395 deletions(-)
+
+-- 
+2.34.1
+
