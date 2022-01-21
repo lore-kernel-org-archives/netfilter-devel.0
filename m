@@ -2,84 +2,112 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9814C433FE
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Jan 2022 06:00:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F73AC433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Jan 2022 16:57:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1378593AbiAUGAP (ORCPT
+        id S1381394AbiAUQ5I (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 21 Jan 2022 01:00:15 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:50988 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1378591AbiAUGAO (ORCPT
+        Fri, 21 Jan 2022 11:57:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49672 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1380361AbiAUQ46 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 21 Jan 2022 01:00:14 -0500
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4BC7D6165F;
-        Fri, 21 Jan 2022 06:00:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id A853FC340EB;
-        Fri, 21 Jan 2022 06:00:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1642744813;
-        bh=OkxqSMomD+eZSwlh0Qt8ft62eBo5XMh8yi1DQLm7R4A=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=QhjN3CI5wF5D7/9Rbh5m/a/0EeK2n6XGSXINhpcUbK1lnavq1ecZRWCVSMVknIgKI
-         Wf38Rv2369+3YcbEyW3Q2HKIS7JZ8wraLw9w6mG5IAdWUO/QXKSki5bK+tOgiDayrD
-         FEDwASpstSLygiIVsd8oQEKfpoR/4aImdUB4myRXfY7hyQdcUJoGcHXRmPWOK9tgOZ
-         Nx7FyhRTVuVtNs1Kv7xewFVkgQL1ORN2Y67tMmkuK56QXlYL3+rBzAtHWidztWfEOY
-         UIngWIL9UPLD0KHI3EniIJZ69XIpwlxXiavE68GX6sOsNMAXlyunaGyzXEMWGv5pKn
-         Bx6Jp1jIjSztQ==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 857A3F6079E;
-        Fri, 21 Jan 2022 06:00:13 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Fri, 21 Jan 2022 11:56:58 -0500
+Received: from mail-oi1-x22e.google.com (mail-oi1-x22e.google.com [IPv6:2607:f8b0:4864:20::22e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BA4DC061778;
+        Fri, 21 Jan 2022 08:55:55 -0800 (PST)
+Received: by mail-oi1-x22e.google.com with SMTP id s127so14386942oig.2;
+        Fri, 21 Jan 2022 08:55:55 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=X1prsGZ36V3LEOTvvkMgk2CqZfwnDb5j2wczkknGbpY=;
+        b=M7T75cltulYZ8dLhgYXj6Dqlc+gxskyEj1qidzGRzta8A7Ws3Zr9QSTdP2w/UtNCH7
+         1QfX8VMaNiOeO+aJ43N06CEVr1qHaj21QOWCh66A0Szq1y/o6Oho0NI9zlUO9u8pGT59
+         EtP8QRnBXkMWCZlGNXKyV/jcv7iIlxRmyq2P2drG6x93IlqH8s6xSoTS+N5MiAShuOnK
+         SlwWVtPdq0Td7Ppi3b0Y9dJHAl1tIlUGE7SGv5WstOM27x3MWNCgph2FW0eLWUqoCkHb
+         AHjTTNndE/ulSBROV/tV651tAmVP3ndCfgP7y8g9poS1Z2rpgmJo+BmCTYa/riabA7NJ
+         VVwA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=X1prsGZ36V3LEOTvvkMgk2CqZfwnDb5j2wczkknGbpY=;
+        b=pqq4I2WsK6LMCR52KFx3dYLimgloQDgMER59HG7/85zl9r0CumgBCR9XpWGYnxW04M
+         +LXHBkyU9no/epRg0UwbBmX2Osw93MMJQRUMJA22mQdry/HoFo/10nklRvmIHk8DQTVK
+         MYQXYzldlvZfHMkXSufHv172uwqOBuSIfZSPKcvPfw4OJwTflqLTsgx4jhQMkPqDmKeo
+         13dGJNjInHukhacbSnjanQLzhdAfdrWBqBDmUtafm9gxX2HnWHEgucQG/eaKoIpcdO2J
+         R8CAQhyFE9S9MLmdH/L+lCjSjfjZc2sgCKFTDTXlvRp10aY2dG0sXts4C7sYofjx5cwM
+         bKeQ==
+X-Gm-Message-State: AOAM532XaQykolbg6b6pXgEVh8HrGOJxLnrIJJV+/+RYZE6QvLO7WPzY
+        EMrGlN6Jl2ST5Z9P6i1Adm0=
+X-Google-Smtp-Source: ABdhPJz8BK3W/Oh4kBRyv2FuNLqsoZfq+UPcczheQf1w5dq3RrySWoTvNPIRVTRDXq4pSGHlxozTVA==
+X-Received: by 2002:a54:4097:: with SMTP id i23mr1255843oii.115.1642784154379;
+        Fri, 21 Jan 2022 08:55:54 -0800 (PST)
+Received: from thinkpad.localdomain ([2804:14d:5cd1:5d03:cf72:4317:3105:f6e5])
+        by smtp.gmail.com with ESMTPSA id y8sm1089271oou.23.2022.01.21.08.55.51
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 21 Jan 2022 08:55:54 -0800 (PST)
+From:   Luiz Sampaio <sampaio.ime@gmail.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>
+Cc:     linux-kernel@vger.kernel.org, Luiz Sampaio <sampaio.ime@gmail.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH 28/31] net: netfilter: changing LED_* from enum led_brightness to actual value
+Date:   Fri, 21 Jan 2022 13:54:33 -0300
+Message-Id: <20220121165436.30956-29-sampaio.ime@gmail.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20220121165436.30956-1-sampaio.ime@gmail.com>
+References: <20220121165436.30956-1-sampaio.ime@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/5] netfilter: nf_conntrack_netbios_ns: fix helper module
- alias
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <164274481354.1814.13819247077372009518.git-patchwork-notify@kernel.org>
-Date:   Fri, 21 Jan 2022 06:00:13 +0000
-References: <20220120125212.991271-2-pablo@netfilter.org>
-In-Reply-To: <20220120125212.991271-2-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+The enum led_brightness, which contains the declaration of LED_OFF,
+LED_ON, LED_HALF and LED_FULL is obsolete, as the led class now supports
+max_brightness.
+---
+ net/netfilter/xt_LED.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-This series was applied to netdev/net.git (master)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
-
-On Thu, 20 Jan 2022 13:52:08 +0100 you wrote:
-> From: Florian Westphal <fw@strlen.de>
-> 
-> The helper gets registered as 'netbios-ns', not netbios_ns.
-> Intentionally not adding a fixes-tag because i don't want this to go to
-> stable. This wasn't noticed for a very long time so no so no need to risk
-> regressions.
-> 
-> [...]
-
-Here is the summary with links:
-  - [net,1/5] netfilter: nf_conntrack_netbios_ns: fix helper module alias
-    https://git.kernel.org/netdev/net/c/0e906607b9c5
-  - [net,2/5] netfilter: nf_tables: remove unused variable
-    https://git.kernel.org/netdev/net/c/cf46eacbc156
-  - [net,3/5] netfilter: nf_tables: set last expression in register tracking area
-    https://git.kernel.org/netdev/net/c/fe75e84a8fe1
-  - [net,4/5] netfilter: nft_connlimit: memleak if nf_ct_netns_get() fails
-    https://git.kernel.org/netdev/net/c/7d70984a1ad4
-  - [net,5/5] netfilter: conntrack: don't increment invalid counter on NF_REPEAT
-    https://git.kernel.org/netdev/net/c/830af2eba403
-
-You are awesome, thank you!
+diff --git a/net/netfilter/xt_LED.c b/net/netfilter/xt_LED.c
+index 0371c387b0d1..eb66e12c7ff7 100644
+--- a/net/netfilter/xt_LED.c
++++ b/net/netfilter/xt_LED.c
+@@ -54,7 +54,7 @@ led_tg(struct sk_buff *skb, const struct xt_action_param *par)
+ 		led_trigger_blink_oneshot(&ledinternal->netfilter_led_trigger,
+ 					  &led_delay, &led_delay, 1);
+ 	else
+-		led_trigger_event(&ledinternal->netfilter_led_trigger, LED_FULL);
++		led_trigger_event(&ledinternal->netfilter_led_trigger, 255);
+ 
+ 	/* If there's a positive delay, start/update the timer */
+ 	if (ledinfo->delay > 0) {
+@@ -63,7 +63,7 @@ led_tg(struct sk_buff *skb, const struct xt_action_param *par)
+ 
+ 	/* Otherwise if there was no delay given, blink as fast as possible */
+ 	} else if (ledinfo->delay == 0) {
+-		led_trigger_event(&ledinternal->netfilter_led_trigger, LED_OFF);
++		led_trigger_event(&ledinternal->netfilter_led_trigger, 0);
+ 	}
+ 
+ 	/* else the delay is negative, which means switch on and stay on */
+@@ -76,7 +76,7 @@ static void led_timeout_callback(struct timer_list *t)
+ 	struct xt_led_info_internal *ledinternal = from_timer(ledinternal, t,
+ 							      timer);
+ 
+-	led_trigger_event(&ledinternal->netfilter_led_trigger, LED_OFF);
++	led_trigger_event(&ledinternal->netfilter_led_trigger, 0);
+ }
+ 
+ static struct xt_led_info_internal *led_trigger_lookup(const char *name)
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.34.1
 
