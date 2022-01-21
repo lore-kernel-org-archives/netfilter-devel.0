@@ -2,271 +2,93 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91B3BC433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jan 2022 15:09:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED877C433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Jan 2022 02:36:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1376490AbiATPJ0 (ORCPT
+        id S244394AbiAUCgl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 20 Jan 2022 10:09:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41454 "EHLO
+        Thu, 20 Jan 2022 21:36:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54582 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1376474AbiATPJZ (ORCPT
+        with ESMTP id S237288AbiAUCgk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Jan 2022 10:09:25 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 543B4C061574
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Jan 2022 07:09:25 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1nAZ3z-0003c7-BE; Thu, 20 Jan 2022 16:09:23 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: conntrack: pptp: use single option structure
-Date:   Thu, 20 Jan 2022 16:09:13 +0100
-Message-Id: <20220120150913.8719-1-fw@strlen.de>
-X-Mailer: git-send-email 2.34.1
+        Thu, 20 Jan 2022 21:36:40 -0500
+Received: from mail-pj1-x102e.google.com (mail-pj1-x102e.google.com [IPv6:2607:f8b0:4864:20::102e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59423C061574
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Jan 2022 18:36:40 -0800 (PST)
+Received: by mail-pj1-x102e.google.com with SMTP id z10-20020a17090acb0a00b001b520826011so3687875pjt.5
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Jan 2022 18:36:40 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=sender:from:date:to:cc:subject:message-id:reply-to:mail-followup-to
+         :references:mime-version:content-disposition:in-reply-to;
+        bh=Tjv97gxp2qjmJWODiC8BsWX49HRk79C8uQsjsHdRI+E=;
+        b=Pa7T5ssZTAyTeNGYgHjaH/XeFn8NH81Jaox/A1o+RtEE/hLWKEXiVL7UBa4nqtiIVf
+         EmhQudRzKI8XsftT2f3kkmoIBJe8pHjh9TW0VrIyS5962CiqPxfQBHLXfuFW/Mu7d4U5
+         JUGZoi+4pAtvtJp/pqN/XlWUYndLSrlX8kIt81dNo2elwRwnWQAandQ27dhrEE8ycfB9
+         73iGSK/q7E5oWWQvLCc0C580fgaLsIscz6vyc2WYMhqc7g677D5kwbu+N8ijh4AF+FEG
+         qywsbPLKK6+7FYcUIAs0/ElEfD6AjpMswZufdErPtYTfCDp1kOsr7O8Q04xXGNP8BFrT
+         7fdQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:sender:from:date:to:cc:subject:message-id
+         :reply-to:mail-followup-to:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=Tjv97gxp2qjmJWODiC8BsWX49HRk79C8uQsjsHdRI+E=;
+        b=pqEJ1tEJr++zL4A9kTaUHke1T3k5zy/jivzAXJ/8FKSuPzH9EAZpaBEkAPb7LSIfXL
+         o/nsutxJmrCr1LnbiVmV38l1z5dh0IzofJujOQUgFz9KX6W7gkwP3K6konqczNX/rllw
+         aL+an6YJoEIJXk2Bpw/TsBxgUVpYP2P40m69a7QccjS+bJ01ieApwVjfGBenUS8Mjjfh
+         03XkQIC8GnJXG07mbEcNNXPMR3RO2drW3HjoQSuwatIOxdcHjs3KMOxb1WQC0vXGt3JF
+         nMJsXw1hgAhbMSIg6kgA0hhM7DxwRueoGTDTA2JCfLe0dWvkIiKDFZXdloWwugHZg3vr
+         nSVg==
+X-Gm-Message-State: AOAM533f+Dl+ZFHFnNS0Nlo4zp0yM93EzVkXWv8ggfcCBxDVDAiG6jBt
+        Iv6LYvoXHlSAhntR3KFPlGQ=
+X-Google-Smtp-Source: ABdhPJxuG3MyGGPJZkbq7UC7HVyX8pkdVkDyBnFzsOwgcWArxRJ4SluaWiLE5snhfBReiYV+l4gZuQ==
+X-Received: by 2002:a17:902:bd4b:b0:148:fdda:e85b with SMTP id b11-20020a170902bd4b00b00148fddae85bmr1823425plx.116.1642732599899;
+        Thu, 20 Jan 2022 18:36:39 -0800 (PST)
+Received: from slk1.local.net (n110-23-108-30.sun3.vic.optusnet.com.au. [110.23.108.30])
+        by smtp.gmail.com with ESMTPSA id b2sm4862747pfv.134.2022.01.20.18.36.37
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 20 Jan 2022 18:36:39 -0800 (PST)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+X-Google-Original-From: Duncan Roe <dunc@slk1.local.net>
+Date:   Fri, 21 Jan 2022 13:36:34 +1100
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libnetfilter_queue v3 1-5/5] src: Speed-up
+Message-ID: <YeocMjUD45w2THPh@slk1.local.net>
+Reply-To: duncan_roe@optusnet.com.au
+Mail-Followup-To: Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <20220109031653.23835-1-duncan_roe@optusnet.com.au>
+ <20220109031653.23835-6-duncan_roe@optusnet.com.au>
+ <YeYClrLxYGDeD8ua@slk1.local.net>
+ <YeYTzwpxiqLz8ulb@salvia>
+ <YejdVZaoUz+t1qRU@slk1.local.net>
+ <20220120062725.GB31905@breakpoint.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220120062725.GB31905@breakpoint.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Instead of exposing the four hooks individually use a sinle hook ops
-structure.
+On Thu, Jan 20, 2022 at 07:27:25AM +0100, Florian Westphal wrote:
+> Duncan Roe <duncan_roe@optusnet.com.au> wrote:
+> > On Tue, Jan 18, 2022 at 02:11:43AM +0100, Pablo Neira Ayuso wrote:
+> > >
+> > > This patch have a number of showstoppers such as exposing structure
+> > > layout on the header files.
+> > >
+> > That's only in patch 5. You could apply 1-4. There are actually no other
+> > showstoppers, right?
+>
+> Why does patch 3 exist? Shouldn't that just get squashed into patch 1?
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/linux/netfilter/nf_conntrack_pptp.h | 38 ++++++-------
- net/ipv4/netfilter/nf_nat_pptp.c            | 24 ++++-----
- net/netfilter/nf_conntrack_pptp.c           | 60 +++++++--------------
- 3 files changed, 45 insertions(+), 77 deletions(-)
+Didn't think of that. I have a squashed version now.
 
-diff --git a/include/linux/netfilter/nf_conntrack_pptp.h b/include/linux/netfilter/nf_conntrack_pptp.h
-index a28aa289afdc..c3bdb4370938 100644
---- a/include/linux/netfilter/nf_conntrack_pptp.h
-+++ b/include/linux/netfilter/nf_conntrack_pptp.h
-@@ -300,26 +300,22 @@ union pptp_ctrl_union {
- 	struct PptpSetLinkInfo		setlink;
- };
- 
--extern int
--(*nf_nat_pptp_hook_outbound)(struct sk_buff *skb,
--			     struct nf_conn *ct, enum ip_conntrack_info ctinfo,
--			     unsigned int protoff,
--			     struct PptpControlHeader *ctlh,
--			     union pptp_ctrl_union *pptpReq);
--
--extern int
--(*nf_nat_pptp_hook_inbound)(struct sk_buff *skb,
--			    struct nf_conn *ct, enum ip_conntrack_info ctinfo,
--			    unsigned int protoff,
--			    struct PptpControlHeader *ctlh,
--			    union pptp_ctrl_union *pptpReq);
--
--extern void
--(*nf_nat_pptp_hook_exp_gre)(struct nf_conntrack_expect *exp_orig,
--			    struct nf_conntrack_expect *exp_reply);
--
--extern void
--(*nf_nat_pptp_hook_expectfn)(struct nf_conn *ct,
--			     struct nf_conntrack_expect *exp);
-+struct nf_nat_pptp_hook {
-+	int (*outbound)(struct sk_buff *skb,
-+			struct nf_conn *ct, enum ip_conntrack_info ctinfo,
-+			unsigned int protoff,
-+			struct PptpControlHeader *ctlh,
-+			union pptp_ctrl_union *pptpReq);
-+	int (*inbound)(struct sk_buff *skb,
-+		       struct nf_conn *ct, enum ip_conntrack_info ctinfo,
-+		       unsigned int protoff,
-+		       struct PptpControlHeader *ctlh,
-+		       union pptp_ctrl_union *pptpReq);
-+	void (*exp_gre)(struct nf_conntrack_expect *exp_orig,
-+			struct nf_conntrack_expect *exp_reply);
-+	void (*expectfn)(struct nf_conn *ct,
-+			 struct nf_conntrack_expect *exp);
-+};
- 
-+extern const struct nf_nat_pptp_hook __rcu *nf_nat_pptp_hook;
- #endif /* _NF_CONNTRACK_PPTP_H */
-diff --git a/net/ipv4/netfilter/nf_nat_pptp.c b/net/ipv4/netfilter/nf_nat_pptp.c
-index 3f248a19faa3..fab357cc8559 100644
---- a/net/ipv4/netfilter/nf_nat_pptp.c
-+++ b/net/ipv4/netfilter/nf_nat_pptp.c
-@@ -295,28 +295,24 @@ pptp_inbound_pkt(struct sk_buff *skb,
- 	return NF_ACCEPT;
- }
- 
-+static const struct nf_nat_pptp_hook pptp_hooks = {
-+	.outbound = pptp_outbound_pkt,
-+	.inbound = pptp_inbound_pkt,
-+	.exp_gre = pptp_exp_gre,
-+	.expectfn = pptp_nat_expected,
-+};
-+
- static int __init nf_nat_helper_pptp_init(void)
- {
--	BUG_ON(nf_nat_pptp_hook_outbound != NULL);
--	RCU_INIT_POINTER(nf_nat_pptp_hook_outbound, pptp_outbound_pkt);
--
--	BUG_ON(nf_nat_pptp_hook_inbound != NULL);
--	RCU_INIT_POINTER(nf_nat_pptp_hook_inbound, pptp_inbound_pkt);
--
--	BUG_ON(nf_nat_pptp_hook_exp_gre != NULL);
--	RCU_INIT_POINTER(nf_nat_pptp_hook_exp_gre, pptp_exp_gre);
-+	WARN_ON(nf_nat_pptp_hook != NULL);
-+	RCU_INIT_POINTER(nf_nat_pptp_hook, &pptp_hooks);
- 
--	BUG_ON(nf_nat_pptp_hook_expectfn != NULL);
--	RCU_INIT_POINTER(nf_nat_pptp_hook_expectfn, pptp_nat_expected);
- 	return 0;
- }
- 
- static void __exit nf_nat_helper_pptp_fini(void)
- {
--	RCU_INIT_POINTER(nf_nat_pptp_hook_expectfn, NULL);
--	RCU_INIT_POINTER(nf_nat_pptp_hook_exp_gre, NULL);
--	RCU_INIT_POINTER(nf_nat_pptp_hook_inbound, NULL);
--	RCU_INIT_POINTER(nf_nat_pptp_hook_outbound, NULL);
-+	RCU_INIT_POINTER(nf_nat_pptp_hook, NULL);
- 	synchronize_rcu();
- }
- 
-diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_conntrack_pptp.c
-index 7d5708b92138..f3fa367b455f 100644
---- a/net/netfilter/nf_conntrack_pptp.c
-+++ b/net/netfilter/nf_conntrack_pptp.c
-@@ -45,30 +45,8 @@ MODULE_ALIAS_NFCT_HELPER("pptp");
- 
- static DEFINE_SPINLOCK(nf_pptp_lock);
- 
--int
--(*nf_nat_pptp_hook_outbound)(struct sk_buff *skb,
--			     struct nf_conn *ct, enum ip_conntrack_info ctinfo,
--			     unsigned int protoff, struct PptpControlHeader *ctlh,
--			     union pptp_ctrl_union *pptpReq) __read_mostly;
--EXPORT_SYMBOL_GPL(nf_nat_pptp_hook_outbound);
--
--int
--(*nf_nat_pptp_hook_inbound)(struct sk_buff *skb,
--			    struct nf_conn *ct, enum ip_conntrack_info ctinfo,
--			    unsigned int protoff, struct PptpControlHeader *ctlh,
--			    union pptp_ctrl_union *pptpReq) __read_mostly;
--EXPORT_SYMBOL_GPL(nf_nat_pptp_hook_inbound);
--
--void
--(*nf_nat_pptp_hook_exp_gre)(struct nf_conntrack_expect *expect_orig,
--			    struct nf_conntrack_expect *expect_reply)
--			    __read_mostly;
--EXPORT_SYMBOL_GPL(nf_nat_pptp_hook_exp_gre);
--
--void
--(*nf_nat_pptp_hook_expectfn)(struct nf_conn *ct,
--			     struct nf_conntrack_expect *exp) __read_mostly;
--EXPORT_SYMBOL_GPL(nf_nat_pptp_hook_expectfn);
-+const struct nf_nat_pptp_hook *nf_nat_pptp_hook;
-+EXPORT_SYMBOL_GPL(nf_nat_pptp_hook);
- 
- #if defined(DEBUG) || defined(CONFIG_DYNAMIC_DEBUG)
- /* PptpControlMessageType names */
-@@ -111,8 +89,8 @@ EXPORT_SYMBOL(pptp_msg_name);
- static void pptp_expectfn(struct nf_conn *ct,
- 			 struct nf_conntrack_expect *exp)
- {
-+	const struct nf_nat_pptp_hook *hook;
- 	struct net *net = nf_ct_net(ct);
--	typeof(nf_nat_pptp_hook_expectfn) nf_nat_pptp_expectfn;
- 	pr_debug("increasing timeouts\n");
- 
- 	/* increase timeout of GRE data channel conntrack entry */
-@@ -122,9 +100,9 @@ static void pptp_expectfn(struct nf_conn *ct,
- 	/* Can you see how rusty this code is, compared with the pre-2.6.11
- 	 * one? That's what happened to my shiny newnat of 2002 ;( -HW */
- 
--	nf_nat_pptp_expectfn = rcu_dereference(nf_nat_pptp_hook_expectfn);
--	if (nf_nat_pptp_expectfn && ct->master->status & IPS_NAT_MASK)
--		nf_nat_pptp_expectfn(ct, exp);
-+	hook = rcu_dereference(nf_nat_pptp_hook);
-+	if (hook && ct->master->status & IPS_NAT_MASK)
-+		hook->expectfn(ct, exp);
- 	else {
- 		struct nf_conntrack_tuple inv_t;
- 		struct nf_conntrack_expect *exp_other;
-@@ -209,9 +187,9 @@ static void pptp_destroy_siblings(struct nf_conn *ct)
- static int exp_gre(struct nf_conn *ct, __be16 callid, __be16 peer_callid)
- {
- 	struct nf_conntrack_expect *exp_orig, *exp_reply;
-+	const struct nf_nat_pptp_hook *hook;
- 	enum ip_conntrack_dir dir;
- 	int ret = 1;
--	typeof(nf_nat_pptp_hook_exp_gre) nf_nat_pptp_exp_gre;
- 
- 	exp_orig = nf_ct_expect_alloc(ct);
- 	if (exp_orig == NULL)
-@@ -239,9 +217,9 @@ static int exp_gre(struct nf_conn *ct, __be16 callid, __be16 peer_callid)
- 			  IPPROTO_GRE, &callid, &peer_callid);
- 	exp_reply->expectfn = pptp_expectfn;
- 
--	nf_nat_pptp_exp_gre = rcu_dereference(nf_nat_pptp_hook_exp_gre);
--	if (nf_nat_pptp_exp_gre && ct->status & IPS_NAT_MASK)
--		nf_nat_pptp_exp_gre(exp_orig, exp_reply);
-+	hook = rcu_dereference(nf_nat_pptp_hook);
-+	if (hook && ct->status & IPS_NAT_MASK)
-+		hook->exp_gre(exp_orig, exp_reply);
- 	if (nf_ct_expect_related(exp_orig, 0) != 0)
- 		goto out_put_both;
- 	if (nf_ct_expect_related(exp_reply, 0) != 0)
-@@ -279,9 +257,9 @@ pptp_inbound_pkt(struct sk_buff *skb, unsigned int protoff,
- 		 enum ip_conntrack_info ctinfo)
- {
- 	struct nf_ct_pptp_master *info = nfct_help_data(ct);
-+	const struct nf_nat_pptp_hook *hook;
- 	u_int16_t msg;
- 	__be16 cid = 0, pcid = 0;
--	typeof(nf_nat_pptp_hook_inbound) nf_nat_pptp_inbound;
- 
- 	msg = ntohs(ctlh->messageType);
- 	pr_debug("inbound control message %s\n", pptp_msg_name(msg));
-@@ -383,10 +361,9 @@ pptp_inbound_pkt(struct sk_buff *skb, unsigned int protoff,
- 		goto invalid;
- 	}
- 
--	nf_nat_pptp_inbound = rcu_dereference(nf_nat_pptp_hook_inbound);
--	if (nf_nat_pptp_inbound && ct->status & IPS_NAT_MASK)
--		return nf_nat_pptp_inbound(skb, ct, ctinfo,
--					   protoff, ctlh, pptpReq);
-+	hook = rcu_dereference(nf_nat_pptp_hook);
-+	if (hook && ct->status & IPS_NAT_MASK)
-+		return hook->inbound(skb, ct, ctinfo, protoff, ctlh, pptpReq);
- 	return NF_ACCEPT;
- 
- invalid:
-@@ -407,9 +384,9 @@ pptp_outbound_pkt(struct sk_buff *skb, unsigned int protoff,
- 		  enum ip_conntrack_info ctinfo)
- {
- 	struct nf_ct_pptp_master *info = nfct_help_data(ct);
-+	const struct nf_nat_pptp_hook *hook;
- 	u_int16_t msg;
- 	__be16 cid = 0, pcid = 0;
--	typeof(nf_nat_pptp_hook_outbound) nf_nat_pptp_outbound;
- 
- 	msg = ntohs(ctlh->messageType);
- 	pr_debug("outbound control message %s\n", pptp_msg_name(msg));
-@@ -479,10 +456,9 @@ pptp_outbound_pkt(struct sk_buff *skb, unsigned int protoff,
- 		goto invalid;
- 	}
- 
--	nf_nat_pptp_outbound = rcu_dereference(nf_nat_pptp_hook_outbound);
--	if (nf_nat_pptp_outbound && ct->status & IPS_NAT_MASK)
--		return nf_nat_pptp_outbound(skb, ct, ctinfo,
--					    protoff, ctlh, pptpReq);
-+	hook = rcu_dereference(nf_nat_pptp_hook);
-+	if (hook && ct->status & IPS_NAT_MASK)
-+		return hook->outbound(skb, ct, ctinfo, protoff, ctlh, pptpReq);
- 	return NF_ACCEPT;
- 
- invalid:
--- 
-2.34.1
-
+Cheers ... Duncan.
