@@ -2,96 +2,84 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AAD51C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Jan 2022 03:19:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9814C433FE
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Jan 2022 06:00:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230085AbiAUDTm (ORCPT
+        id S1378593AbiAUGAP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 20 Jan 2022 22:19:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35566 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232670AbiAUDTh (ORCPT
+        Fri, 21 Jan 2022 01:00:15 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:50988 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1378591AbiAUGAO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Jan 2022 22:19:37 -0500
-Received: from mail-pf1-x42c.google.com (mail-pf1-x42c.google.com [IPv6:2607:f8b0:4864:20::42c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 999FBC061574
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Jan 2022 19:19:36 -0800 (PST)
-Received: by mail-pf1-x42c.google.com with SMTP id e28so3217861pfj.5
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Jan 2022 19:19:36 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=sender:from:date:to:cc:subject:message-id:reply-to:mail-followup-to
-         :references:mime-version:content-disposition:in-reply-to;
-        bh=HBTtahI4wH+Av92gdQEm+8IJagwpU23XoMsjACDdEG4=;
-        b=NgdPw9aL15PfHdpVXFXWKQpoub4DVEZkQJE/v3OJ5PBIE4/EVuGaykNsUJHXo+WlqF
-         kdAvsF9AWMBqqPZuKVKBhbJaRkz7f7rN3mjKNfUSxm3LuVvhXdjGPDIiNtvBKlEtnRw3
-         af4WuFIFXkGlhzHbKPb6BUC2oI6MABFZOKK5l54QzWjiWyWAWTfvmndzfjz78vSsmBMi
-         bp1GtA+YErOws0nDS8ZTCOLWJCdihce9KiPaZ8KSwHXz6EAAR8juNhv5s5/oUUOJ60mc
-         EvmBvi6k2OMgP5r6VSK/MH36RVA3XNZwpOJ/woSkcqFqe/ymXb6kyDgRH548oP9vza1K
-         tGnA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:sender:from:date:to:cc:subject:message-id
-         :reply-to:mail-followup-to:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=HBTtahI4wH+Av92gdQEm+8IJagwpU23XoMsjACDdEG4=;
-        b=H/74mnqg0tAfalPYNPOTYohx20qto/qWVDt+YtlX7jzKBZWgMdWe3nb5HGSqvTHYB0
-         ucVfYDq5iftBdZh3qfaHOFCcY2aScTVm4Jy+WXcLIo+dlQT3Gbdbm9n7wP/cEdyWO104
-         b0LX+Diyksbi0UWv2JOVJIRJKLXvDAYaZ67ze3MASob4sHAPqoQ32e8JXb2OiYf5Xrfa
-         3SxmhxHBGAMyNsyKUCevSUAC9h3pzWnH6BtqJVssCeF3m+RBZWTFEU82I3za5A8w3EJv
-         6RmdeGUXcbuIUeEv54HtuB7irpyt4OgHeiGyvFJswmF1mPmJXg/LlW2QTPkuUGAkoCKR
-         PSLw==
-X-Gm-Message-State: AOAM53045716jLxdy5IcOjeRD+n4135r5GBNYc6TyJcjIVpsccCmoOvj
-        F53IxxOuEtF3j2CLeOUud1WEE8CciDA=
-X-Google-Smtp-Source: ABdhPJwRbhgbtZkd1K1dAKlzph9TuUl6ZuwN9mkRplajUIcCGKHkKJ/2KaBvTVOsOR7bim2iFmajRQ==
-X-Received: by 2002:a63:af48:: with SMTP id s8mr1482810pgo.615.1642735176123;
-        Thu, 20 Jan 2022 19:19:36 -0800 (PST)
-Received: from slk1.local.net (n110-23-108-30.sun3.vic.optusnet.com.au. [110.23.108.30])
-        by smtp.gmail.com with ESMTPSA id m13sm3601144pjl.39.2022.01.20.19.19.34
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 20 Jan 2022 19:19:35 -0800 (PST)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-X-Google-Original-From: Duncan Roe <dunc@slk1.local.net>
-Date:   Fri, 21 Jan 2022 14:19:31 +1100
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH libnetfilter_queue v3 1-5/5] src: Speed-up
-Message-ID: <YeomQ68e9yjr9I51@slk1.local.net>
-Reply-To: duncan_roe@optusnet.com.au
-Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <20220109031653.23835-1-duncan_roe@optusnet.com.au>
- <20220109031653.23835-6-duncan_roe@optusnet.com.au>
- <YeYClrLxYGDeD8ua@slk1.local.net>
- <YeYTzwpxiqLz8ulb@salvia>
+        Fri, 21 Jan 2022 01:00:14 -0500
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4BC7D6165F;
+        Fri, 21 Jan 2022 06:00:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id A853FC340EB;
+        Fri, 21 Jan 2022 06:00:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1642744813;
+        bh=OkxqSMomD+eZSwlh0Qt8ft62eBo5XMh8yi1DQLm7R4A=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=QhjN3CI5wF5D7/9Rbh5m/a/0EeK2n6XGSXINhpcUbK1lnavq1ecZRWCVSMVknIgKI
+         Wf38Rv2369+3YcbEyW3Q2HKIS7JZ8wraLw9w6mG5IAdWUO/QXKSki5bK+tOgiDayrD
+         FEDwASpstSLygiIVsd8oQEKfpoR/4aImdUB4myRXfY7hyQdcUJoGcHXRmPWOK9tgOZ
+         Nx7FyhRTVuVtNs1Kv7xewFVkgQL1ORN2Y67tMmkuK56QXlYL3+rBzAtHWidztWfEOY
+         UIngWIL9UPLD0KHI3EniIJZ69XIpwlxXiavE68GX6sOsNMAXlyunaGyzXEMWGv5pKn
+         Bx6Jp1jIjSztQ==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 857A3F6079E;
+        Fri, 21 Jan 2022 06:00:13 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YeYTzwpxiqLz8ulb@salvia>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/5] netfilter: nf_conntrack_netbios_ns: fix helper module
+ alias
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <164274481354.1814.13819247077372009518.git-patchwork-notify@kernel.org>
+Date:   Fri, 21 Jan 2022 06:00:13 +0000
+References: <20220120125212.991271-2-pablo@netfilter.org>
+In-Reply-To: <20220120125212.991271-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jan 18, 2022 at 02:11:43AM +0100, Pablo Neira Ayuso wrote:
->
-> We should untagged as deprecated libnetfilter_queue old interface in
-> the documentation, it's fine to keep it there, it should be possible
-> to make it work over libmnl.
->
-Agreed. The question is, what to do instead.
+Hello:
 
-We need *some* form of tagging to show whih are old interface and which are new
-interface functions. You write a program using either old or new: they don't
-mix. It's an early design decision which to use so we need to make it as clear
-as we can.
+This series was applied to netdev/net.git (master)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-Perhaps tag every module as NEW or OLD, with an explanation near the top of the
-Main page as to what is the difference. Ideally would have libnetfilter_queue.7
-man page as well.
+On Thu, 20 Jan 2022 13:52:08 +0100 you wrote:
+> From: Florian Westphal <fw@strlen.de>
+> 
+> The helper gets registered as 'netbios-ns', not netbios_ns.
+> Intentionally not adding a fixes-tag because i don't want this to go to
+> stable. This wasn't noticed for a very long time so no so no need to risk
+> regressions.
+> 
+> [...]
 
-Suggestions welcome,
+Here is the summary with links:
+  - [net,1/5] netfilter: nf_conntrack_netbios_ns: fix helper module alias
+    https://git.kernel.org/netdev/net/c/0e906607b9c5
+  - [net,2/5] netfilter: nf_tables: remove unused variable
+    https://git.kernel.org/netdev/net/c/cf46eacbc156
+  - [net,3/5] netfilter: nf_tables: set last expression in register tracking area
+    https://git.kernel.org/netdev/net/c/fe75e84a8fe1
+  - [net,4/5] netfilter: nft_connlimit: memleak if nf_ct_netns_get() fails
+    https://git.kernel.org/netdev/net/c/7d70984a1ad4
+  - [net,5/5] netfilter: conntrack: don't increment invalid counter on NF_REPEAT
+    https://git.kernel.org/netdev/net/c/830af2eba403
 
-Cheers ... Duncan.
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
