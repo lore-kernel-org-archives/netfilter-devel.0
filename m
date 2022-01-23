@@ -2,112 +2,96 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F73AC433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Jan 2022 16:57:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64B52C433EF
+	for <netfilter-devel@archiver.kernel.org>; Sun, 23 Jan 2022 02:03:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1381394AbiAUQ5I (ORCPT
+        id S232248AbiAWCDo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 21 Jan 2022 11:57:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49672 "EHLO
+        Sat, 22 Jan 2022 21:03:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33014 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1380361AbiAUQ46 (ORCPT
+        with ESMTP id S232172AbiAWCDo (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 21 Jan 2022 11:56:58 -0500
-Received: from mail-oi1-x22e.google.com (mail-oi1-x22e.google.com [IPv6:2607:f8b0:4864:20::22e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BA4DC061778;
-        Fri, 21 Jan 2022 08:55:55 -0800 (PST)
-Received: by mail-oi1-x22e.google.com with SMTP id s127so14386942oig.2;
-        Fri, 21 Jan 2022 08:55:55 -0800 (PST)
+        Sat, 22 Jan 2022 21:03:44 -0500
+Received: from mail-pg1-x536.google.com (mail-pg1-x536.google.com [IPv6:2607:f8b0:4864:20::536])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49DEDC06173B
+        for <netfilter-devel@vger.kernel.org>; Sat, 22 Jan 2022 18:03:44 -0800 (PST)
+Received: by mail-pg1-x536.google.com with SMTP id f8so11656231pgf.8
+        for <netfilter-devel@vger.kernel.org>; Sat, 22 Jan 2022 18:03:44 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=X1prsGZ36V3LEOTvvkMgk2CqZfwnDb5j2wczkknGbpY=;
-        b=M7T75cltulYZ8dLhgYXj6Dqlc+gxskyEj1qidzGRzta8A7Ws3Zr9QSTdP2w/UtNCH7
-         1QfX8VMaNiOeO+aJ43N06CEVr1qHaj21QOWCh66A0Szq1y/o6Oho0NI9zlUO9u8pGT59
-         EtP8QRnBXkMWCZlGNXKyV/jcv7iIlxRmyq2P2drG6x93IlqH8s6xSoTS+N5MiAShuOnK
-         SlwWVtPdq0Td7Ppi3b0Y9dJHAl1tIlUGE7SGv5WstOM27x3MWNCgph2FW0eLWUqoCkHb
-         AHjTTNndE/ulSBROV/tV651tAmVP3ndCfgP7y8g9poS1Z2rpgmJo+BmCTYa/riabA7NJ
-         VVwA==
+        h=sender:from:date:to:cc:subject:message-id:reply-to:mail-followup-to
+         :references:mime-version:content-disposition:in-reply-to;
+        bh=yW99BXKbrW3jYCuhZbhELEpg61/Lmxo2WyLuXmu2f1c=;
+        b=iC/xrinwZ2zCuvNKsLjuG8k9fJRo8X4mY+5lsxDghFXlKn7elnsy5ckitbyj1G6DTH
+         LLkq1n6JNL6U0vpsfHSGFSAdD/vsIM3kn9b5YAm5ILQr8PxhzzVhF58o8hwD9yjG4W3Z
+         7UUe/v049zQrPeY5MuxMHs4LQTtYYx9RTHcpLZ47inV5fiN2CCaMfHGb84H26ZRLohmH
+         NxUyDIAcxy9hUOlI+t9KdnmQDMXQCzhFB0QG+LyEPqehUcopkkHNaBuQnZHGRd8ouyzp
+         x75QsmcUsjE1+JogB5BMlqJnC9tuh4vy6++APJ2x1/Bs5jWnRp2T1qfkIqd+buSRoPHU
+         /xSg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=X1prsGZ36V3LEOTvvkMgk2CqZfwnDb5j2wczkknGbpY=;
-        b=pqq4I2WsK6LMCR52KFx3dYLimgloQDgMER59HG7/85zl9r0CumgBCR9XpWGYnxW04M
-         +LXHBkyU9no/epRg0UwbBmX2Osw93MMJQRUMJA22mQdry/HoFo/10nklRvmIHk8DQTVK
-         MYQXYzldlvZfHMkXSufHv172uwqOBuSIfZSPKcvPfw4OJwTflqLTsgx4jhQMkPqDmKeo
-         13dGJNjInHukhacbSnjanQLzhdAfdrWBqBDmUtafm9gxX2HnWHEgucQG/eaKoIpcdO2J
-         R8CAQhyFE9S9MLmdH/L+lCjSjfjZc2sgCKFTDTXlvRp10aY2dG0sXts4C7sYofjx5cwM
-         bKeQ==
-X-Gm-Message-State: AOAM532XaQykolbg6b6pXgEVh8HrGOJxLnrIJJV+/+RYZE6QvLO7WPzY
-        EMrGlN6Jl2ST5Z9P6i1Adm0=
-X-Google-Smtp-Source: ABdhPJz8BK3W/Oh4kBRyv2FuNLqsoZfq+UPcczheQf1w5dq3RrySWoTvNPIRVTRDXq4pSGHlxozTVA==
-X-Received: by 2002:a54:4097:: with SMTP id i23mr1255843oii.115.1642784154379;
-        Fri, 21 Jan 2022 08:55:54 -0800 (PST)
-Received: from thinkpad.localdomain ([2804:14d:5cd1:5d03:cf72:4317:3105:f6e5])
-        by smtp.gmail.com with ESMTPSA id y8sm1089271oou.23.2022.01.21.08.55.51
+        h=x-gm-message-state:sender:from:date:to:cc:subject:message-id
+         :reply-to:mail-followup-to:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=yW99BXKbrW3jYCuhZbhELEpg61/Lmxo2WyLuXmu2f1c=;
+        b=pFGA1SOBipTXBBjA/yPG444NqQUMhVOSGuFyp+FvyxiebJ1L+qUZuhzJ+lXEFhclwq
+         NCb2Le2quMoW/UmAXjfrbd44JRz8GkYY3R6f9+V7umxZrKs/oBBmO399f/Sz6WPM41xM
+         eJUkcvXgUtRrTXNl/MXpJ+VIJbKyzMYBUjiDPM9MO1sj3USXjQuXgCwVD8M0tRHosY+z
+         +XUkN3J5jZDyEKkT2ii4SMS+Bua3lsFF3FQCYgJxJJNsGqwH5sOpUwXbY8+QjV2k3Frg
+         ac2ntVqD9nYM0dCo3tnPHBwbyzVEy+VEsJB3/vYU0AMqAEy09QU/44mbNvSWpzE14eA8
+         J8PQ==
+X-Gm-Message-State: AOAM531GAbM9gNg/QM2jwbLw5UwHvAdzqWCzzj3ClMtHkG1cdxFgMG//
+        2mXwA4ADIQzkRTsQKR1QN3jXsY1l+vU=
+X-Google-Smtp-Source: ABdhPJzYykkShL7UKnomk2NzcO+fjfNt8qbROyadPiXQ2Zy+TVprPuI9Pg0jvtQBXQvc9UFRI3Fs8A==
+X-Received: by 2002:a63:6906:: with SMTP id e6mr7463174pgc.170.1642903423652;
+        Sat, 22 Jan 2022 18:03:43 -0800 (PST)
+Received: from slk1.local.net (n110-23-108-30.sun3.vic.optusnet.com.au. [110.23.108.30])
+        by smtp.gmail.com with ESMTPSA id 17sm11496275pfl.175.2022.01.22.18.03.41
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 21 Jan 2022 08:55:54 -0800 (PST)
-From:   Luiz Sampaio <sampaio.ime@gmail.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>
-Cc:     linux-kernel@vger.kernel.org, Luiz Sampaio <sampaio.ime@gmail.com>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH 28/31] net: netfilter: changing LED_* from enum led_brightness to actual value
-Date:   Fri, 21 Jan 2022 13:54:33 -0300
-Message-Id: <20220121165436.30956-29-sampaio.ime@gmail.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220121165436.30956-1-sampaio.ime@gmail.com>
-References: <20220121165436.30956-1-sampaio.ime@gmail.com>
+        Sat, 22 Jan 2022 18:03:43 -0800 (PST)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+X-Google-Original-From: Duncan Roe <dunc@slk1.local.net>
+Date:   Sun, 23 Jan 2022 13:03:38 +1100
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libnetfilter_queue v3 1-5/5] src: Speed-up
+Message-ID: <Yey3ejkO5RKz30LA@slk1.local.net>
+Reply-To: duncan_roe@optusnet.com.au
+Mail-Followup-To: Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <20220109031653.23835-1-duncan_roe@optusnet.com.au>
+ <20220109031653.23835-6-duncan_roe@optusnet.com.au>
+ <YeYClrLxYGDeD8ua@slk1.local.net>
+ <YeYTzwpxiqLz8ulb@salvia>
+ <YejdVZaoUz+t1qRU@slk1.local.net>
+ <20220120062725.GB31905@breakpoint.cc>
+ <YeocMjUD45w2THPh@slk1.local.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <YeocMjUD45w2THPh@slk1.local.net>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The enum led_brightness, which contains the declaration of LED_OFF,
-LED_ON, LED_HALF and LED_FULL is obsolete, as the led class now supports
-max_brightness.
----
- net/netfilter/xt_LED.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/net/netfilter/xt_LED.c b/net/netfilter/xt_LED.c
-index 0371c387b0d1..eb66e12c7ff7 100644
---- a/net/netfilter/xt_LED.c
-+++ b/net/netfilter/xt_LED.c
-@@ -54,7 +54,7 @@ led_tg(struct sk_buff *skb, const struct xt_action_param *par)
- 		led_trigger_blink_oneshot(&ledinternal->netfilter_led_trigger,
- 					  &led_delay, &led_delay, 1);
- 	else
--		led_trigger_event(&ledinternal->netfilter_led_trigger, LED_FULL);
-+		led_trigger_event(&ledinternal->netfilter_led_trigger, 255);
- 
- 	/* If there's a positive delay, start/update the timer */
- 	if (ledinfo->delay > 0) {
-@@ -63,7 +63,7 @@ led_tg(struct sk_buff *skb, const struct xt_action_param *par)
- 
- 	/* Otherwise if there was no delay given, blink as fast as possible */
- 	} else if (ledinfo->delay == 0) {
--		led_trigger_event(&ledinternal->netfilter_led_trigger, LED_OFF);
-+		led_trigger_event(&ledinternal->netfilter_led_trigger, 0);
- 	}
- 
- 	/* else the delay is negative, which means switch on and stay on */
-@@ -76,7 +76,7 @@ static void led_timeout_callback(struct timer_list *t)
- 	struct xt_led_info_internal *ledinternal = from_timer(ledinternal, t,
- 							      timer);
- 
--	led_trigger_event(&ledinternal->netfilter_led_trigger, LED_OFF);
-+	led_trigger_event(&ledinternal->netfilter_led_trigger, 0);
- }
- 
- static struct xt_led_info_internal *led_trigger_lookup(const char *name)
--- 
-2.34.1
-
+On Fri, Jan 21, 2022 at 01:36:34PM +1100, Duncan Roe wrote:
+> On Thu, Jan 20, 2022 at 07:27:25AM +0100, Florian Westphal wrote:
+> > Duncan Roe <duncan_roe@optusnet.com.au> wrote:
+> > > On Tue, Jan 18, 2022 at 02:11:43AM +0100, Pablo Neira Ayuso wrote:
+> > > >
+> > > > This patch have a number of showstoppers such as exposing structure
+> > > > layout on the header files.
+> > > >
+> > > That's only in patch 5. You could apply 1-4. There are actually no other
+> > > showstoppers, right?
+> >
+> > Why does patch 3 exist? Shouldn't that just get squashed into patch 1?
+>
+> Didn't think of that. I have a squashed version now.
+>
+Also squashed patch 2 into patch 1
+Cheers ... Duncan.
