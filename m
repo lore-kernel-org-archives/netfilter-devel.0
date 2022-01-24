@@ -2,161 +2,235 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D31D4C433F5
-	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Jan 2022 13:16:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F15AC433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jan 2022 00:24:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243131AbiAXNQX (ORCPT
+        id S3408854AbiAYAYR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 24 Jan 2022 08:16:23 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47970 "EHLO
+        Mon, 24 Jan 2022 19:24:17 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45332 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243051AbiAXNQW (ORCPT
+        with ESMTP id S1588854AbiAXWyE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Jan 2022 08:16:22 -0500
-Received: from mail-pj1-x1042.google.com (mail-pj1-x1042.google.com [IPv6:2607:f8b0:4864:20::1042])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C4AEC06173B;
-        Mon, 24 Jan 2022 05:16:21 -0800 (PST)
-Received: by mail-pj1-x1042.google.com with SMTP id nn16-20020a17090b38d000b001b56b2bce31so5921760pjb.3;
-        Mon, 24 Jan 2022 05:16:21 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=ppg6e0FUc7/+T7KoOP2mY3oDf3knGfZ3sgY11AP0m8c=;
-        b=N5OpEeEZ2HG1lv9lhr/M0WNCOXjyW8crtPrGnqtEsi58aHeDVaonh/NC4L+/NAr7jA
-         1Au/zsIikA/hhJtAOy/Si8ivuFNx1hnQKBRgA2qw0GqeQY2IKv3k52SkBbLBaAKDznR9
-         jrEOQKcvWyqCAP7BoXZ2bih7m40BjApEvhdrNyV4yiBb++3LyIbtBXM4vXFHpn3nQilf
-         YF4/RSVA+GM3cDZ7i/WEFCWJEiEw2me/ekjvL3M4jRmrlQ4/mcLp649Mjz+cGpMZQyLb
-         yzeCQVHYhdT/wPs0FwtuZww57l9VZfgooDbnpp59W5lzDMtNjxNpmIEyF/GT3pCNk/X+
-         jLoA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=ppg6e0FUc7/+T7KoOP2mY3oDf3knGfZ3sgY11AP0m8c=;
-        b=QqsVU4C75YS+WaVCAnSJVq2TodjjoNMl1PpfJqmpUJIlgpMQ07yVTDTG19IPRvRSQl
-         8sWP7mR+Fr41fWjwC82u0kWU9sm1gFCGzgXvQaypTT48j39tg8Idy5vTlC0zjih1BA3X
-         KYWY9eI3qelOIkXiMLkUmm/P85q5IU7WzgtXqYD267rEASnCEOay0Z0TT0Yi2+V8N/8I
-         8Jgim2VZjeiHcaR/bfyvMrR4oCttFizds+k1Vgns2Al3qRUbGTD8N988BxtxCMIBKCpO
-         nS5CwPnfQ1xHYqD1rJ12D1FJKEPbTo+7w+NXnyu+KWoHn0kh59FmNWnn7N4rYPteGhNk
-         J8ew==
-X-Gm-Message-State: AOAM532GuMfNFN1+2hzm2+Ch4M985avV+KJJg0/Spn1+Ba5RYMTgKGR/
-        k60NXsW4m/C/cV6X8KGzkig=
-X-Google-Smtp-Source: ABdhPJxQNeH7Fa20w+9Hv2sUuwO57UWFPyWYTuKKQZ9D1pnJMIjizaXst04CmDMwtEPTRWhI7VmoYA==
-X-Received: by 2002:a17:903:32c1:b0:14b:3c0c:9118 with SMTP id i1-20020a17090332c100b0014b3c0c9118mr7867771plr.58.1643030181201;
-        Mon, 24 Jan 2022 05:16:21 -0800 (PST)
-Received: from localhost.localdomain ([43.132.141.9])
-        by smtp.gmail.com with ESMTPSA id j11sm16508806pfu.55.2022.01.24.05.16.17
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 24 Jan 2022 05:16:20 -0800 (PST)
-From:   menglong8.dong@gmail.com
-X-Google-Original-From: imagedong@tencent.com
-To:     kuba@kernel.org
-Cc:     rostedt@goodmis.org, mingo@redhat.com, davem@davemloft.net,
-        yoshfuji@linux-ipv6.org, dsahern@kernel.org, pablo@netfilter.org,
-        kadlec@netfilter.org, fw@strlen.de, imagedong@tencent.com,
-        edumazet@google.com, alobakin@pm.me, paulb@nvidia.com,
-        pabeni@redhat.com, talalahmad@google.com, haokexin@gmail.com,
-        keescook@chromium.org, memxor@gmail.com,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        cong.wang@bytedance.com
-Subject: [PATCH net-next 6/6] net: udp: use kfree_skb_reason() in __udp_queue_rcv_skb()
-Date:   Mon, 24 Jan 2022 21:15:38 +0800
-Message-Id: <20220124131538.1453657-7-imagedong@tencent.com>
-X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20220124131538.1453657-1-imagedong@tencent.com>
-References: <20220124131538.1453657-1-imagedong@tencent.com>
+        Mon, 24 Jan 2022 17:54:04 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27A72C061377
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Jan 2022 13:09:22 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1nC6aW-0002Kr-4u; Mon, 24 Jan 2022 22:09:20 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] selftests: netfilter: check stateless nat udp checksum fixup
+Date:   Mon, 24 Jan 2022 22:09:15 +0100
+Message-Id: <20220124210915.22530-1-fw@strlen.de>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Menglong Dong <imagedong@tencent.com>
+Add a test that sends large udp packet (which is fragmented)
+via a stateless nft nat rule, i.e. 'ip saddr set 10.2.3.4'
+and check that the datagram is received by peer.
 
-Replace kfree_skb() with kfree_skb_reason() in __udp_queue_rcv_skb().
-Following new drop reasons are introduced:
+On kernels without
+commit 4e1860a38637 ("netfilter: nft_payload: do not update layer 4 checksum when mangling fragments")',
+this will fail with:
 
-SKB_DROP_REASON_SOCKET_RCVBUFF
-SKB_DROP_REASON_PROTO_MEM
+cmp: EOF on /tmp/tmp.V1q0iXJyQF which is empty
+-rw------- 1 root root 4096 Jan 24 22:03 /tmp/tmp.Aaqnq4rBKS
+-rw------- 1 root root    0 Jan 24 22:03 /tmp/tmp.V1q0iXJyQF
+ERROR: in and output file mismatch when checking udp with stateless nat
+FAIL: nftables v1.0.0 (Fearless Fosdick #2)
 
-For example, following log will be printed by ftrace when udp socket
-receive buff overflow:
+On patched kernels, this will show:
+PASS: IP statless for ns2-PFp89amx
 
-> 3345.537796: kfree_skb: skbaddr=00000000f013dfb6 protocol=2048 location=00000000c74d2ddd reason: SOCKET_RCVBUFF
-> 3345.638805: kfree_skb: skbaddr=00000000cbc73bc7 protocol=2048 location=00000000c74d2ddd reason: SOCKET_RCVBUFF
-> 3345.739975: kfree_skb: skbaddr=00000000717f24bb protocol=2048 location=00000000c74d2ddd reason: SOCKET_RCVBUFF
-> 3345.841172: kfree_skb: skbaddr=00000000c62d20e9 protocol=2048 location=00000000c74d2ddd reason: SOCKET_RCVBUFF
-> 3345.941353: kfree_skb: skbaddr=000000007eea9d4d protocol=2048 location=00000000c74d2ddd reason: SOCKET_RCVBUFF
-> 3346.042610: kfree_skb: skbaddr=00000000c62d20e9 protocol=2048 location=00000000c74d2ddd reason: SOCKET_RCVBUFF
-> 3346.142723: kfree_skb: skbaddr=00000000717f24bb protocol=2048 location=00000000c74d2ddd reason: SOCKET_RCVBUFF
-> 3346.242785: kfree_skb: skbaddr=00000000cbc73bc7 protocol=2048 location=00000000c74d2ddd reason: SOCKET_RCVBUFF
-
-Signed-off-by: Menglong Dong <imagedong@tencent.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/linux/skbuff.h     |  5 +++++
- include/trace/events/skb.h |  2 ++
- net/ipv4/udp.c             | 10 +++++++---
- 3 files changed, 14 insertions(+), 3 deletions(-)
+ tools/testing/selftests/netfilter/nft_nat.sh | 152 +++++++++++++++++++
+ 1 file changed, 152 insertions(+)
 
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index dd64a4f2ff1d..723fc1cbbe3c 100644
---- a/include/linux/skbuff.h
-+++ b/include/linux/skbuff.h
-@@ -331,6 +331,11 @@ enum skb_drop_reason {
- 	SKB_DROP_REASON_XFRM_POLICY,
- 	SKB_DROP_REASON_IP_NOPROTO,
- 	SKB_DROP_REASON_UDP_FILTER,
-+	SKB_DROP_REASON_SOCKET_RCVBUFF,	/* socket receive buff is full */
-+	SKB_DROP_REASON_PROTO_MEM,	/* proto memory limition, such as
-+					 * udp packet drop out of
-+					 * udp_memory_allocated.
-+					 */
- 	SKB_DROP_REASON_MAX,
- };
+diff --git a/tools/testing/selftests/netfilter/nft_nat.sh b/tools/testing/selftests/netfilter/nft_nat.sh
+index 349a319a9e51..7c8a4d8bf894 100755
+--- a/tools/testing/selftests/netfilter/nft_nat.sh
++++ b/tools/testing/selftests/netfilter/nft_nat.sh
+@@ -899,6 +899,144 @@ EOF
+ 	ip netns exec "$ns0" nft delete table $family nat
+ }
  
-diff --git a/include/trace/events/skb.h b/include/trace/events/skb.h
-index 6db61ce4d6f5..0496bbb0fe08 100644
---- a/include/trace/events/skb.h
-+++ b/include/trace/events/skb.h
-@@ -28,6 +28,8 @@
- 	EM(SKB_DROP_REASON_XFRM_POLICY, XFRM_POLICY)		\
- 	EM(SKB_DROP_REASON_IP_NOPROTO, IP_NOPROTO)		\
- 	EM(SKB_DROP_REASON_UDP_FILTER, UDP_FILTER)		\
-+	EM(SKB_DROP_REASON_SOCKET_RCVBUFF, SOCKET_RCVBUFF)	\
-+	EM(SKB_DROP_REASON_PROTO_MEM, PROTO_MEM)		\
- 	EMe(SKB_DROP_REASON_MAX, MAX)
- 
- #undef EM
-diff --git a/net/ipv4/udp.c b/net/ipv4/udp.c
-index 57681e98e6bf..ca9ed24704ec 100644
---- a/net/ipv4/udp.c
-+++ b/net/ipv4/udp.c
-@@ -2093,16 +2093,20 @@ static int __udp_queue_rcv_skb(struct sock *sk, struct sk_buff *skb)
- 	rc = __udp_enqueue_schedule_skb(sk, skb);
- 	if (rc < 0) {
- 		int is_udplite = IS_UDPLITE(sk);
-+		int drop_reason;
- 
- 		/* Note that an ENOMEM error is charged twice */
--		if (rc == -ENOMEM)
-+		if (rc == -ENOMEM) {
- 			UDP_INC_STATS(sock_net(sk), UDP_MIB_RCVBUFERRORS,
- 					is_udplite);
--		else
-+			drop_reason = SKB_DROP_REASON_SOCKET_RCVBUFF;
-+		} else {
- 			UDP_INC_STATS(sock_net(sk), UDP_MIB_MEMERRORS,
- 				      is_udplite);
-+			drop_reason = SKB_DROP_REASON_PROTO_MEM;
++test_stateless_nat_ip()
++{
++	local lret=0
++
++	ip netns exec "$ns0" sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
++	ip netns exec "$ns0" sysctl net.ipv4.conf.veth1.forwarding=1 > /dev/null
++
++	ip netns exec "$ns2" ping -q -c 1 10.0.1.99 > /dev/null # ping ns2->ns1
++	if [ $? -ne 0 ] ; then
++		echo "ERROR: cannot ping $ns1 from $ns2 before loading stateless rules"
++		return 1
++	fi
++
++ip netns exec "$ns0" nft -f /dev/stdin <<EOF
++table ip stateless {
++	map xlate_in {
++		typeof meta iifname . ip saddr . ip daddr : ip daddr
++		elements = {
++			"veth1" . 10.0.2.99 . 10.0.1.99 : 10.0.2.2,
 +		}
- 		UDP_INC_STATS(sock_net(sk), UDP_MIB_INERRORS, is_udplite);
--		kfree_skb(skb);
-+		kfree_skb_reason(skb, drop_reason);
- 		trace_udp_fail_queue_rcv_skb(rc, sk);
- 		return -1;
- 	}
++	}
++	map xlate_out {
++		typeof meta iifname . ip saddr . ip daddr : ip daddr
++		elements = {
++			"veth0" . 10.0.1.99 . 10.0.2.2 : 10.0.2.99
++		}
++	}
++
++	chain prerouting {
++		type filter hook prerouting priority -400; policy accept;
++		ip saddr set meta iifname . ip saddr . ip daddr map @xlate_in
++		ip daddr set meta iifname . ip saddr . ip daddr map @xlate_out
++	}
++}
++EOF
++	if [ $? -ne 0 ]; then
++		echo "SKIP: Could not add ip statless rules"
++		return $ksft_skip
++	fi
++
++	reset_counters
++
++	ip netns exec "$ns2" ping -q -c 1 10.0.1.99 > /dev/null # ping ns2->ns1
++	if [ $? -ne 0 ] ; then
++		echo "ERROR: cannot ping $ns1 from $ns2 with stateless rules"
++		lret=1
++	fi
++
++	# ns1 should have seen packets from .2.2, due to stateless rewrite.
++	expect="packets 1 bytes 84"
++	cnt=$(ip netns exec "$ns1" nft list counter inet filter ns0insl | grep -q "$expect")
++	if [ $? -ne 0 ]; then
++		bad_counter "$ns1" ns0insl "$expect" "test_stateless 1"
++		lret=1
++	fi
++
++	for dir in "in" "out" ; do
++		cnt=$(ip netns exec "$ns2" nft list counter inet filter ns1${dir} | grep -q "$expect")
++		if [ $? -ne 0 ]; then
++			bad_counter "$ns2" ns1$dir "$expect" "test_stateless 2"
++			lret=1
++		fi
++	done
++
++	# ns1 should not have seen packets from ns2, due to masquerade
++	expect="packets 0 bytes 0"
++	for dir in "in" "out" ; do
++		cnt=$(ip netns exec "$ns1" nft list counter inet filter ns2${dir} | grep -q "$expect")
++		if [ $? -ne 0 ]; then
++			bad_counter "$ns1" ns0$dir "$expect" "test_stateless 3"
++			lret=1
++		fi
++
++		cnt=$(ip netns exec "$ns0" nft list counter inet filter ns1${dir} | grep -q "$expect")
++		if [ $? -ne 0 ]; then
++			bad_counter "$ns0" ns1$dir "$expect" "test_stateless 4"
++			lret=1
++		fi
++	done
++
++	reset_counters
++
++	socat -h > /dev/null 2>&1
++	if [ $? -ne 0 ];then
++		echo "SKIP: Could not run stateless nat frag test without socat tool"
++		if [ $lret -eq 0 ]; then
++			return $ksft_skip
++		fi
++
++		ip netns exec "$ns0" nft delete table ip stateless
++		return $lret
++	fi
++
++	local tmpfile=$(mktemp)
++	dd if=/dev/urandom of=$tmpfile bs=4096 count=1 2>/dev/null
++
++	local outfile=$(mktemp)
++	ip netns exec "$ns1" timeout 3 socat -u UDP4-RECV:4233 OPEN:$outfile < /dev/null &
++	sc_r=$!
++
++	sleep 1
++	# re-do with large ping -> ip fragmentation
++	ip netns exec "$ns2" timeout 3 socat - UDP4-SENDTO:"10.0.1.99:4233" < "$tmpfile" > /dev/null
++	if [ $? -ne 0 ] ; then
++		echo "ERROR: failed to test udp $ns1 to $ns2 with stateless ip nat" 1>&2
++		lret=1
++	fi
++
++	wait
++
++	cmp "$tmpfile" "$outfile"
++	if [ $? -ne 0 ]; then
++		ls -l "$tmpfile" "$outfile"
++		echo "ERROR: in and output file mismatch when checking udp with stateless nat" 1>&2
++		lret=1
++	fi
++
++	rm -f "$tmpfile" "$outfile"
++
++	# ns1 should have seen packets from 2.2, due to stateless rewrite.
++	expect="packets 3 bytes 4164"
++	cnt=$(ip netns exec "$ns1" nft list counter inet filter ns0insl | grep -q "$expect")
++	if [ $? -ne 0 ]; then
++		bad_counter "$ns1" ns0insl "$expect" "test_stateless 5"
++		lret=1
++	fi
++
++	ip netns exec "$ns0" nft delete table ip stateless
++	if [ $? -ne 0 ]; then
++		echo "ERROR: Could not delete table ip stateless" 1>&2
++		lret=1
++	fi
++
++	test $lret -eq 0 && echo "PASS: IP statless for $ns2"
++
++	return $lret
++}
++
+ # ip netns exec "$ns0" ping -c 1 -q 10.0.$i.99
+ for i in 0 1 2; do
+ ip netns exec ns$i-$sfx nft -f /dev/stdin <<EOF
+@@ -965,6 +1103,19 @@ table inet filter {
+ EOF
+ done
+ 
++# special case for stateless nat check, counter needs to
++# be done before (input) ip defragmentation
++ip netns exec ns1-$sfx nft -f /dev/stdin <<EOF
++table inet filter {
++	counter ns0insl {}
++
++	chain pre {
++		type filter hook prerouting priority -400; policy accept;
++		ip saddr 10.0.2.2 counter name "ns0insl"
++	}
++}
++EOF
++
+ sleep 3
+ # test basic connectivity
+ for i in 1 2; do
+@@ -1019,6 +1170,7 @@ $test_inet_nat && test_redirect inet
+ $test_inet_nat && test_redirect6 inet
+ 
+ test_port_shadowing
++test_stateless_nat_ip
+ 
+ if [ $ret -ne 0 ];then
+ 	echo -n "FAIL: "
 -- 
 2.34.1
 
