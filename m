@@ -2,106 +2,157 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88216C2BA4C
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jan 2022 15:28:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A722DC433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jan 2022 22:33:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242799AbiAZP2j (ORCPT
+        id S229814AbiAZWdU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 26 Jan 2022 10:28:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44812 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236282AbiAZP2j (ORCPT
+        Wed, 26 Jan 2022 17:33:20 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:58146 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229478AbiAZWdU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Jan 2022 10:28:39 -0500
-Received: from mail-io1-xd32.google.com (mail-io1-xd32.google.com [IPv6:2607:f8b0:4864:20::d32])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C47DC06161C;
-        Wed, 26 Jan 2022 07:28:39 -0800 (PST)
-Received: by mail-io1-xd32.google.com with SMTP id z199so13251982iof.10;
-        Wed, 26 Jan 2022 07:28:39 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=message-id:date:mime-version:user-agent:subject:content-language:to
-         :cc:references:from:in-reply-to:content-transfer-encoding;
-        bh=MHOjiZTG9hOHGojjon35CAoUOzYXCdywjYZDDVGOdvk=;
-        b=AZqQs1IVMv/KFA80lI3KJ8M1HXTeZozVCnSy7E6PBFFO8ZVwqpAJs21vpXn1WEZmCW
-         wAcucDHZaVff5aCnjzwKeNz+Mu6j//3Ryv3XJQKK/sYTh/92PDcRRGL1NWKQA3BWG9LU
-         xtsu19nGcl8dsdHdzMB6WFTGZmv2VBh1imE7oVaRhKPQswhwZ3112ne7jW/CzSBeHmy+
-         QFmVd47w2Be+ricbd0YMr4w7fE/MCFuJ2nglwAFycFqGMPuPHzhEcnPR2J+5rlHU9Ql6
-         jYfHh3v4zEpyQ2oXfGPByzN8MhuHrxpU/JSYklQquunk7P950XFu/jkvj9UmtcZGuRBE
-         o6Qg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:to:cc:references:from:in-reply-to
-         :content-transfer-encoding;
-        bh=MHOjiZTG9hOHGojjon35CAoUOzYXCdywjYZDDVGOdvk=;
-        b=AEawFQaxVsDpsEUmylqMnOxyoyKKgsEOJWQ50Bx7ENCakcAIOWOoIsczfeSRIRo24U
-         jJC2lNnNNyj8FBBQNp8mv0WboZpZRY4uJOKJ3FX9zFfq72vQ1kVmrjlepkS8D0Yb2JXn
-         DT6R35gMZwyh2ana1+ZkAaJ9kUjiopDcxUUVjWMRnivO5GhhI/eZd+kOx9SuOik2B0iR
-         122KSWzQ8d6kYrV+tY5Br0T/RlS5LeMB1S5KPNvpd+0bhGZ6Qad2KOEhtcdvLV5t0MB9
-         IgpnriyG4+NnDVPqTtEPBRgrJzGXU7tMkIlrbLHQM/l0sA33mB9Xrv/OJWDYYUkoaiWZ
-         sq/Q==
-X-Gm-Message-State: AOAM5338J6h2W/MCTklA70npVkdvqhlxxhHQeW8dLorsDJLBm/N8UeXk
-        q923j39sIKZBxLnmJIKgFvg=
-X-Google-Smtp-Source: ABdhPJxrkl2FWHrrFaamz9+OYHF3JUN98tDi38tRR8TEE7mhKYYciPFb0AxaO6xXUa8HoE2+VxBVWg==
-X-Received: by 2002:a02:b799:: with SMTP id f25mr7317183jam.217.1643210918657;
-        Wed, 26 Jan 2022 07:28:38 -0800 (PST)
-Received: from ?IPV6:2601:282:800:dc80:1502:2fac:6dee:881? ([2601:282:800:dc80:1502:2fac:6dee:881])
-        by smtp.googlemail.com with ESMTPSA id h16sm1369206ilj.13.2022.01.26.07.28.37
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 26 Jan 2022 07:28:38 -0800 (PST)
-Message-ID: <693a546d-8e34-5ada-5577-46dd11edef8e@gmail.com>
-Date:   Wed, 26 Jan 2022 08:28:36 -0700
+        Wed, 26 Jan 2022 17:33:20 -0500
+Received: from localhost.localdomain (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 92AD060256
+        for <netfilter-devel@vger.kernel.org>; Wed, 26 Jan 2022 23:30:16 +0100 (CET)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nftables 1/4] optimize: add __expr_cmp()
+Date:   Wed, 26 Jan 2022 23:33:11 +0100
+Message-Id: <20220126223314.297735-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20220126223314.297735-1-pablo@netfilter.org>
+References: <20220126223314.297735-1-pablo@netfilter.org>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
- Gecko/20100101 Thunderbird/91.5.1
-Subject: Re: [PATCH net-next 5/6] net: udp: use kfree_skb_reason() in
- udp_queue_rcv_one_skb()
-Content-Language: en-US
-To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     Menglong Dong <menglong8.dong@gmail.com>,
-        Steven Rostedt <rostedt@goodmis.org>, mingo@redhat.com,
-        David Miller <davem@davemloft.net>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        David Ahern <dsahern@kernel.org>, pablo@netfilter.org,
-        kadlec@netfilter.org, Florian Westphal <fw@strlen.de>,
-        Menglong Dong <imagedong@tencent.com>,
-        Eric Dumazet <edumazet@google.com>, alobakin@pm.me,
-        paulb@nvidia.com, Paolo Abeni <pabeni@redhat.com>,
-        talalahmad@google.com, haokexin@gmail.com,
-        Kees Cook <keescook@chromium.org>, memxor@gmail.com,
-        LKML <linux-kernel@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, Cong Wang <cong.wang@bytedance.com>
-References: <20220124131538.1453657-1-imagedong@tencent.com>
- <20220124131538.1453657-6-imagedong@tencent.com>
- <308b88bf-7874-4b04-47f7-51203fef4128@gmail.com>
- <CADxym3aFJcsz=fckaFx9SJh8B7=0Xv-EPz79bbUFW1wG_zNYbw@mail.gmail.com>
- <00b8e410-7162-2386-4ce9-d6a619474c30@gmail.com>
- <20220125192515.627cdaa5@kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net>
-From:   David Ahern <dsahern@gmail.com>
-In-Reply-To: <20220125192515.627cdaa5@kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 1/25/22 8:25 PM, Jakub Kicinski wrote:
-> On Tue, 25 Jan 2022 20:04:39 -0700 David Ahern wrote:
->>> I realized it, but SKB_DROP_REASON_TCP_FILTER was already
->>> introduced before. Besides, I think maybe  
->>
->> SKB_DROP_REASON_TCP_FILTER is not in a released kernel yet. If
->> Dave/Jakub are ok you can change SKB_DROP_REASON_TCP_FILTER to
->> SKB_DROP_REASON_SOCKET_FILTER in 'net' repository to make it usable in
->> both code paths.
-> 
-> SGTM, FWIW. 
-> 
-> What was the reason we went with separate CSUM values for TCP and UDP?
-> Should we coalesce those as well?
+Add helper function to compare expression to allow for reuse.
 
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/optimize.c | 98 ++++++++++++++++++++++++++------------------------
+ 1 file changed, 52 insertions(+), 46 deletions(-)
 
-To me those are good as independent reasons because the checksum is part
-of the protocol and visible in packets.
+diff --git a/src/optimize.c b/src/optimize.c
+index b5fb2c4179d0..c52966a86e2c 100644
+--- a/src/optimize.c
++++ b/src/optimize.c
+@@ -33,6 +33,57 @@ struct optimize_ctx {
+ 	uint32_t num_rules;
+ };
+ 
++static bool __expr_cmp(const struct expr *expr_a, const struct expr *expr_b)
++{
++	if (expr_a->etype != expr_b->etype)
++		return false;
++
++	switch (expr_a->etype) {
++	case EXPR_PAYLOAD:
++		if (expr_a->payload.desc != expr_b->payload.desc)
++			return false;
++		if (expr_a->payload.tmpl != expr_b->payload.tmpl)
++			return false;
++		break;
++	case EXPR_EXTHDR:
++		if (expr_a->exthdr.desc != expr_b->exthdr.desc)
++			return false;
++		if (expr_a->exthdr.tmpl != expr_b->exthdr.tmpl)
++			return false;
++		break;
++	case EXPR_META:
++		if (expr_a->meta.key != expr_b->meta.key)
++			return false;
++		if (expr_a->meta.base != expr_b->meta.base)
++			return false;
++		break;
++	case EXPR_CT:
++		if (expr_a->ct.key != expr_b->ct.key)
++			return false;
++		if (expr_a->ct.base != expr_b->ct.base)
++			return false;
++		if (expr_a->ct.direction != expr_b->ct.direction)
++			return false;
++		if (expr_a->ct.nfproto != expr_b->ct.nfproto)
++			return false;
++		break;
++	case EXPR_RT:
++		if (expr_a->rt.key != expr_b->rt.key)
++			return false;
++		break;
++	case EXPR_SOCKET:
++		if (expr_a->socket.key != expr_b->socket.key)
++			return false;
++		if (expr_a->socket.level != expr_b->socket.level)
++			return false;
++		break;
++	default:
++		return false;
++	}
++
++	return true;
++}
++
+ static bool __stmt_type_eq(const struct stmt *stmt_a, const struct stmt *stmt_b)
+ {
+ 	struct expr *expr_a, *expr_b;
+@@ -45,52 +96,7 @@ static bool __stmt_type_eq(const struct stmt *stmt_a, const struct stmt *stmt_b)
+ 		expr_a = stmt_a->expr;
+ 		expr_b = stmt_b->expr;
+ 
+-		if (expr_a->left->etype != expr_b->left->etype)
+-			return false;
+-
+-		switch (expr_a->left->etype) {
+-		case EXPR_PAYLOAD:
+-			if (expr_a->left->payload.desc != expr_b->left->payload.desc)
+-				return false;
+-			if (expr_a->left->payload.tmpl != expr_b->left->payload.tmpl)
+-				return false;
+-			break;
+-		case EXPR_EXTHDR:
+-			if (expr_a->left->exthdr.desc != expr_b->left->exthdr.desc)
+-				return false;
+-			if (expr_a->left->exthdr.tmpl != expr_b->left->exthdr.tmpl)
+-				return false;
+-			break;
+-		case EXPR_META:
+-			if (expr_a->left->meta.key != expr_b->left->meta.key)
+-				return false;
+-			if (expr_a->left->meta.base != expr_b->left->meta.base)
+-				return false;
+-			break;
+-		case EXPR_CT:
+-			if (expr_a->left->ct.key != expr_b->left->ct.key)
+-				return false;
+-			if (expr_a->left->ct.base != expr_b->left->ct.base)
+-				return false;
+-			if (expr_a->left->ct.direction != expr_b->left->ct.direction)
+-				return false;
+-			if (expr_a->left->ct.nfproto != expr_b->left->ct.nfproto)
+-				return false;
+-			break;
+-		case EXPR_RT:
+-			if (expr_a->left->rt.key != expr_b->left->rt.key)
+-				return false;
+-			break;
+-		case EXPR_SOCKET:
+-			if (expr_a->left->socket.key != expr_b->left->socket.key)
+-				return false;
+-			if (expr_a->left->socket.level != expr_b->left->socket.level)
+-				return false;
+-			break;
+-		default:
+-			return false;
+-		}
+-		break;
++		return __expr_cmp(expr_a->left, expr_b->left);
+ 	case STMT_COUNTER:
+ 	case STMT_NOTRACK:
+ 		break;
+-- 
+2.30.2
+
