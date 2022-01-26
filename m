@@ -2,59 +2,40 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CCC2FC5AC75
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jan 2022 00:51:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A0DDC3525A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jan 2022 01:11:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235429AbiAZAvw (ORCPT
+        id S235561AbiAZBLs (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 25 Jan 2022 19:51:52 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:46010 "EHLO
+        Tue, 25 Jan 2022 20:11:48 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:46144 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234910AbiAZAvw (ORCPT
+        with ESMTP id S231271AbiAZBLq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Jan 2022 19:51:52 -0500
+        Tue, 25 Jan 2022 20:11:46 -0500
 Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 9719B60254;
-        Wed, 26 Jan 2022 01:48:47 +0100 (CET)
-Date:   Wed, 26 Jan 2022 01:51:45 +0100
+        by mail.netfilter.org (Postfix) with ESMTPSA id AE2C760254;
+        Wed, 26 Jan 2022 02:08:43 +0100 (CET)
+Date:   Wed, 26 Jan 2022 02:11:41 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     menglong8.dong@gmail.com, rostedt@goodmis.org, mingo@redhat.com,
-        davem@davemloft.net, yoshfuji@linux-ipv6.org, dsahern@kernel.org,
-        kadlec@netfilter.org, fw@strlen.de, imagedong@tencent.com,
-        edumazet@google.com, alobakin@pm.me, paulb@nvidia.com,
-        pabeni@redhat.com, talalahmad@google.com, haokexin@gmail.com,
-        keescook@chromium.org, memxor@gmail.com,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        cong.wang@bytedance.com
-Subject: Re: [PATCH net-next 1/6] net: netfilter: use kfree_drop_reason() for
- NF_DROP
-Message-ID: <YfCbIWlhgAxCX1qp@salvia>
-References: <20220124131538.1453657-1-imagedong@tencent.com>
- <20220124131538.1453657-2-imagedong@tencent.com>
- <20220125153214.180d2c09@kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net>
+To:     Eugene Crosser <crosser@average.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft v2 1/2] Use abort() in case of netlink_abi_error
+Message-ID: <YfCfzfsZV4VzglWc@salvia>
+References: <20211209182607.18550-1-crosser@average.org>
+ <20211209182607.18550-2-crosser@average.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20220125153214.180d2c09@kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net>
+In-Reply-To: <20211209182607.18550-2-crosser@average.org>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jan 25, 2022 at 03:32:14PM -0800, Jakub Kicinski wrote:
-> On Mon, 24 Jan 2022 21:15:33 +0800 menglong8.dong@gmail.com wrote:
-> > From: Menglong Dong <imagedong@tencent.com>
-> > 
-> > Replace kfree_skb() with kfree_skb_reason() in nf_hook_slow() when
-> > skb is dropped by reason of NF_DROP.
-> 
-> Netfilter folks, does this look good enough to you?
-> 
-> Do you prefer to take the netfilter changes via your tree? I'm asking
-> because enum skb_drop_reason is probably going to be pretty hot so if
-> the patch is simple enough maybe no point dealing with merge conflicts.
+On Thu, Dec 09, 2021 at 07:26:06PM +0100, Eugene Crosser wrote:
+> Library functions should not use exit(), application that uses the
+> library may contain error handling path, that cannot be executed if
+> library functions calls exit(). For truly fatal errors, using abort() is
+> more acceptable than exit().
 
-I also think it's easier if you take it through net.git.
-
-Thanks for asking.
+Applied, thanks.
