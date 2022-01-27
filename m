@@ -2,99 +2,181 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8983C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jan 2022 15:39:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 684C3C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jan 2022 16:28:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237789AbiA0PjM (ORCPT
+        id S243630AbiA0Q2p (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 27 Jan 2022 10:39:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37842 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231590AbiA0PjL (ORCPT
+        Thu, 27 Jan 2022 11:28:45 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:39092 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229836AbiA0Q2p (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Jan 2022 10:39:11 -0500
-Received: from mail-io1-xd2e.google.com (mail-io1-xd2e.google.com [IPv6:2607:f8b0:4864:20::d2e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7EDF7C061714;
-        Thu, 27 Jan 2022 07:39:11 -0800 (PST)
-Received: by mail-io1-xd2e.google.com with SMTP id z199so4001046iof.10;
-        Thu, 27 Jan 2022 07:39:11 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=message-id:date:mime-version:user-agent:subject:content-language:to
-         :cc:references:from:in-reply-to:content-transfer-encoding;
-        bh=78e4n2ciJcS8eU8bfuJlxO2Papr5MMX9iCof5E4XjLk=;
-        b=CLtTaY7+Xxz9g0vrwdVDfgTVs9AQVK9BwNMpi5WHG+C5zMemZLgbiw9k02CTXo0skQ
-         tWjMZZ2/yPJcDx7ylT9SpYWXCBEIVUjqGjhF4J034Vuhmw+cM8TIz8LxToRq5TUqnPkK
-         etcv/4yZ2uyS1gXxjGIT/sY8zee4FGsYwIK/Ey4QN4yoARde/6c9ZM11C1LXxScupLTg
-         XG9888f46LSmvd2NZlv2vzN1JDiwWqykjNHJSfhhroQj2CbMHBadJRKuYPmoD24XmLLw
-         WZ2GuBwhgkQLOMZvrG6l0BMFEECISTe8Pye8K7TaZfjPVHiTf7VuIgQR2Q4o7q61PFJP
-         K8vw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:to:cc:references:from:in-reply-to
-         :content-transfer-encoding;
-        bh=78e4n2ciJcS8eU8bfuJlxO2Papr5MMX9iCof5E4XjLk=;
-        b=XxmSiheFWm2CGubTl/BBSSzw75jZbD2Fayl7yY9nfEhsBtNMBmHN/TsEQx0J33Bqv1
-         5w/wyHAa5PFC9qiHKcDIver+TO/8sWYoQV9E20wnh8Fp3JGJHYmYGdTd3Dhdn2WwQv7D
-         vrTRIqW2Uuln8geoltZHIscI1ogdDXiLTNiz5jXnyguB+O4PKNT5sQERyNQnnUhMyGF9
-         5VuxFwlAxDvtoO7vVXcGw9cAuterN4l9BdvgMeHYor/p9bLhxDB2SAURXAj7WSsMkOoi
-         huERb4uTWWUoCjPZeMScuAX81T92nRPIRsBzsiRSnk313P2M/2LCm103i4mnrCl+uoPh
-         ix3g==
-X-Gm-Message-State: AOAM532iJoGVLsD/Qe4xVRjl9sBMC5ss+GtSZtrvBvuBNSDkFJmDd/q9
-        PQPmLbOGAcxbO6PlrE9J9gs=
-X-Google-Smtp-Source: ABdhPJwAmatGJNuoWFlMMpgE9UV1ElC/u55vsOPVt+D8Ce2lXtnjtEnBciNZiS7L9Zy9iD7byHequQ==
-X-Received: by 2002:a02:6d11:: with SMTP id m17mr2035306jac.317.1643297950999;
-        Thu, 27 Jan 2022 07:39:10 -0800 (PST)
-Received: from ?IPV6:2601:282:800:dc80:182c:2e54:e650:90f5? ([2601:282:800:dc80:182c:2e54:e650:90f5])
-        by smtp.googlemail.com with ESMTPSA id g11sm11319478iom.45.2022.01.27.07.39.09
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 27 Jan 2022 07:39:10 -0800 (PST)
-Message-ID: <8621e28f-4849-dad7-e52d-8cdd7f290488@gmail.com>
-Date:   Thu, 27 Jan 2022 08:39:07 -0700
+        Thu, 27 Jan 2022 11:28:45 -0500
+Received: from netfilter.org (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 7F07960693;
+        Thu, 27 Jan 2022 17:25:39 +0100 (CET)
+Date:   Thu, 27 Jan 2022 17:28:39 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH] xshared: Fix response to unprivileged users
+Message-ID: <YfLINxzIDlCwej1X@salvia>
+References: <20220120101653.28280-1-phil@nwl.cc>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
- Gecko/20100101 Thunderbird/91.5.1
-Subject: Re: [PATCH v2 net-next 2/8] net: skb_drop_reason: add document for
- drop reasons
-Content-Language: en-US
-To:     menglong8.dong@gmail.com, dsahern@kernel.org, kuba@kernel.org
-Cc:     rostedt@goodmis.org, mingo@redhat.com, davem@davemloft.net,
-        yoshfuji@linux-ipv6.org, edumazet@google.com, pablo@netfilter.org,
-        kadlec@netfilter.org, fw@strlen.de, imagedong@tencent.com,
-        alobakin@pm.me, pabeni@redhat.com, cong.wang@bytedance.com,
-        talalahmad@google.com, haokexin@gmail.com, keescook@chromium.org,
-        memxor@gmail.com, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, mengensun@tencent.com
-References: <20220127091308.91401-1-imagedong@tencent.com>
- <20220127091308.91401-3-imagedong@tencent.com>
-From:   David Ahern <dsahern@gmail.com>
-In-Reply-To: <20220127091308.91401-3-imagedong@tencent.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="bYLCUCy61W6Ceuaw"
+Content-Disposition: inline
+In-Reply-To: <20220120101653.28280-1-phil@nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 1/27/22 2:13 AM, menglong8.dong@gmail.com wrote:
-> From: Menglong Dong <imagedong@tencent.com>
-> 
-> Add document for following existing drop reasons:
-> 
-> SKB_DROP_REASON_NOT_SPECIFIED
-> SKB_DROP_REASON_NO_SOCKET
-> SKB_DROP_REASON_PKT_TOO_SMALL
-> SKB_DROP_REASON_TCP_CSUM
-> SKB_DROP_REASON_SOCKET_FILTER
-> SKB_DROP_REASON_UDP_CSUM
-> 
-> Signed-off-by: Menglong Dong <imagedong@tencent.com>
-> ---
->  include/linux/skbuff.h | 12 ++++++------
->  1 file changed, 6 insertions(+), 6 deletions(-)
-> 
 
-Reviewed-by: David Ahern <dsahern@kernel.org>
+--bYLCUCy61W6Ceuaw
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
+Hi Phil,
 
+On Thu, Jan 20, 2022 at 11:16:53AM +0100, Phil Sutter wrote:
+> Expected behaviour in both variants is:
+> 
+> * Print help without error, append extension help if -m and/or -j
+>   options are present
+> * Indicate lack of permissions in an error message for anything else
+> 
+> With iptables-nft, this was broken basically from day 1. Shared use of
+> do_parse() then somewhat broke legacy: it started complaining about
+> inability to create a lock file.
+> 
+> Fix this by making iptables-nft assume extension revision 0 is present
+> if permissions don't allow to verify. This is consistent with legacy.
+> 
+> Second part is to exit directly after printing help - this avoids having
+> to make the following code "nop-aware" to prevent privileged actions.
+
+On top of this patch, it should be possible to allow for some
+nfnetlink command to be used from unpriviledged process.
+
+I'm attaching a sketch patch, it skips module autoload which is should
+not be triggered by an unpriviledged process.
+
+This should allow for better help with -m/-j if the module is present.
+
+--bYLCUCy61W6Ceuaw
+Content-Type: text/x-diff; charset=utf-8
+Content-Disposition: attachment; filename="x.patch"
+
+diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
+index 241e005f290a..1e10bf19af93 100644
+--- a/include/linux/netfilter/nfnetlink.h
++++ b/include/linux/netfilter/nfnetlink.h
+@@ -28,6 +28,7 @@ struct nfnl_callback {
+ 	const struct nla_policy	*policy;
+ 	enum nfnl_callback_type	type;
+ 	__u16			attr_count;
++	bool			unpriviledged;
+ };
+ 
+ enum nfnl_abort_action {
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 7e2c8dd01408..0f450c8a43ac 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -211,21 +211,24 @@ EXPORT_SYMBOL_GPL(nfnetlink_broadcast);
+ static int nfnetlink_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			     struct netlink_ext_ack *extack)
+ {
++	const struct nfnetlink_subsystem *ss;
+ 	struct net *net = sock_net(skb->sk);
+ 	const struct nfnl_callback *nc;
+-	const struct nfnetlink_subsystem *ss;
++	bool cap_net_admin;
+ 	int type, err;
+ 
+ 	/* All the messages must at least contain nfgenmsg */
+ 	if (nlmsg_len(nlh) < sizeof(struct nfgenmsg))
+ 		return 0;
+ 
++	cap_net_admin = netlink_net_capable(skb, CAP_NET_ADMIN);
++
+ 	type = nlh->nlmsg_type;
+ replay:
+ 	rcu_read_lock();
+ 
+ 	ss = nfnetlink_get_subsys(type);
+-	if (!ss) {
++	if (!ss && cap_net_admin) {
+ #ifdef CONFIG_MODULES
+ 		rcu_read_unlock();
+ 		request_module("nfnetlink-subsys-%d", NFNL_SUBSYS_ID(type));
+@@ -245,6 +248,11 @@ static int nfnetlink_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 		return -EINVAL;
+ 	}
+ 
++	if (cap_net_admin && !nc->unpriviledged) {
++		rcu_read_unlock();
++		return -EPERM;
++	}
++
+ 	{
+ 		int min_len = nlmsg_total_size(sizeof(struct nfgenmsg));
+ 		struct nfnl_net *nfnlnet = nfnl_pernet(net);
+@@ -607,6 +615,11 @@ static void nfnetlink_rcv_skb_batch(struct sk_buff *skb, struct nlmsghdr *nlh)
+ 	u32 gen_id = 0;
+ 	u16 res_id;
+ 
++	if (!netlink_net_capable(skb, CAP_NET_ADMIN)) {
++		netlink_ack(skb, nlh, -EPERM, NULL);
++		return;
++	}
++
+ 	msglen = NLMSG_ALIGN(nlh->nlmsg_len);
+ 	if (msglen > skb->len)
+ 		msglen = skb->len;
+@@ -643,11 +656,6 @@ static void nfnetlink_rcv(struct sk_buff *skb)
+ 	    skb->len < nlh->nlmsg_len)
+ 		return;
+ 
+-	if (!netlink_net_capable(skb, CAP_NET_ADMIN)) {
+-		netlink_ack(skb, nlh, -EPERM, NULL);
+-		return;
+-	}
+-
+ 	if (nlh->nlmsg_type == NFNL_MSG_BATCH_BEGIN)
+ 		nfnetlink_rcv_skb_batch(skb, nlh);
+ 	else
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index f69cc73c5813..a3a23707fcb3 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -677,10 +677,13 @@ static int nfnl_compat_get_rcu(struct sk_buff *skb,
+ 		return -EINVAL;
+ 
+ 	rcu_read_unlock();
+-	try_then_request_module(xt_find_revision(family, name, rev, target, &ret),
+-				fmt, name);
+-	if (ret < 0)
+-		goto out_put;
++	if (netlink_net_capable(skb, CAP_NET_ADMIN)) {
++		try_then_request_module(xt_find_revision(family, name, rev,
++							 target, &ret),
++					fmt, name);
++		if (ret < 0)
++			goto out_put;
++	}
+ 
+ 	skb2 = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
+ 	if (skb2 == NULL) {
+@@ -718,7 +721,8 @@ static const struct nfnl_callback nfnl_nft_compat_cb[NFNL_MSG_COMPAT_MAX] = {
+ 		.call		= nfnl_compat_get_rcu,
+ 		.type		= NFNL_CB_RCU,
+ 		.attr_count	= NFTA_COMPAT_MAX,
+-		.policy		= nfnl_compat_policy_get
++		.policy		= nfnl_compat_policy_get,
++		.unpriviledged	= true,
+ 	},
+ };
+ 
+
+--bYLCUCy61W6Ceuaw--
