@@ -2,26 +2,26 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 605B4C433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jan 2022 23:06:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 376E6C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jan 2022 23:52:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244702AbiA0XGf (ORCPT
+        id S1343624AbiA0Xwm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 27 Jan 2022 18:06:35 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:42778 "EHLO
+        Thu, 27 Jan 2022 18:52:42 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:42990 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233578AbiA0XGf (ORCPT
+        with ESMTP id S239508AbiA0Xwl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Jan 2022 18:06:35 -0500
+        Thu, 27 Jan 2022 18:52:41 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 8665C60702;
-        Fri, 28 Jan 2022 00:03:29 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 3CC3B60676;
+        Fri, 28 Jan 2022 00:49:35 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Cc:     crosser@average.org
-Subject: [PATCH nftables,v2] iface: handle EINTR case when creating the cache
-Date:   Fri, 28 Jan 2022 00:06:29 +0100
-Message-Id: <20220127230629.573287-1-pablo@netfilter.org>
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
+Subject: [PATCH net 0/8] Netfilter fixes for net
+Date:   Fri, 28 Jan 2022 00:52:27 +0100
+Message-Id: <20220127235235.656931-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -29,99 +29,77 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If interface netlink dump is interrupted, then retry.
+Hi,
 
-Before this patch, the netlink socket is reopened to drop stale dump
-messages, instead empty the netlink queue and retry.
+The following patchset contains Netfilter fixes for net:
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: immediately return on non-eintr error (instead of breaking the loop),
-    per Eugene Crosser.
+1) Remove leftovers from flowtable modules, from Geert Uytterhoeven.
 
- src/iface.c | 50 ++++++++++++++++++++++++++++++++++++++------------
- 1 file changed, 38 insertions(+), 12 deletions(-)
+2) Missing refcount increment of conntrack template in nft_ct,
+   from Florian Westphal.
 
-diff --git a/src/iface.c b/src/iface.c
-index d0e1834ca82f..c0642e0cc397 100644
---- a/src/iface.c
-+++ b/src/iface.c
-@@ -59,13 +59,13 @@ static int data_cb(const struct nlmsghdr *nlh, void *data)
- 	return MNL_CB_OK;
- }
- 
--void iface_cache_update(void)
-+static int iface_mnl_talk(struct mnl_socket *nl, uint32_t portid)
- {
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
--	struct mnl_socket *nl;
- 	struct nlmsghdr *nlh;
- 	struct rtgenmsg *rt;
--	uint32_t seq, portid;
-+	bool eintr = false;
-+	uint32_t seq;
- 	int ret;
- 
- 	nlh = mnl_nlmsg_put_header(buf);
-@@ -75,6 +75,38 @@ void iface_cache_update(void)
- 	rt = mnl_nlmsg_put_extra_header(nlh, sizeof(struct rtgenmsg));
- 	rt->rtgen_family = AF_PACKET;
- 
-+	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0)
-+		return -1;
-+
-+	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
-+	while (ret > 0) {
-+		ret = mnl_cb_run(buf, ret, seq, portid, data_cb, NULL);
-+		if (ret == 0)
-+			break;
-+		if (ret < 0) {
-+			if (errno != EINTR)
-+				return ret;
-+
-+			/* process all pending messages before reporting EINTR */
-+			eintr = true;
-+		}
-+		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
-+	}
-+
-+	if (eintr) {
-+		ret = -1;
-+		errno = EINTR;
-+	}
-+
-+	return ret;
-+}
-+
-+void iface_cache_update(void)
-+{
-+	struct mnl_socket *nl;
-+	uint32_t portid;
-+	int ret;
-+
- 	nl = mnl_socket_open(NETLINK_ROUTE);
- 	if (nl == NULL)
- 		netlink_init_error();
-@@ -84,16 +116,10 @@ void iface_cache_update(void)
- 
- 	portid = mnl_socket_get_portid(nl);
- 
--	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0)
--		netlink_init_error();
-+	do {
-+		ret = iface_mnl_talk(nl, portid);
-+	} while (ret < 0 && errno == EINTR);
- 
--	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
--	while (ret > 0) {
--		ret = mnl_cb_run(buf, ret, seq, portid, data_cb, NULL);
--		if (ret <= MNL_CB_STOP)
--			break;
--		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
--	}
- 	if (ret == -1)
- 		netlink_init_error();
- 
--- 
-2.30.2
+3) Reduce nft_zone selftest time, also from Florian.
 
+4) Add selftest to cover stateless NAT on fragments, from Florian Westphal.
+
+5) Do not set net_device when for reject packets from the bridge path,
+   from Phil Sutter.
+
+6) Cancel register tracking info on nft_byteorder operations.
+
+7) Extend nft_concat_range selftest to cover set reload with no elements,
+   from Florian Westphal.
+
+8) Remove useless update of pointer in chain blob builder, reported
+   by kbuild test robot.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 2f61353cd2f789a4229b6f5c1c24a40a613357bb:
+
+  net: hns3: handle empty unknown interrupt for VF (2022-01-25 13:08:05 +0000)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
+
+for you to fetch changes up to b07f413732549e5a96e891411fbb5980f2d8e5a1:
+
+  netfilter: nf_tables: remove assignment with no effect in chain blob builder (2022-01-27 17:50:56 +0100)
+
+----------------------------------------------------------------
+Florian Westphal (4):
+      netfilter: nft_ct: fix use after free when attaching zone template
+      selftests: netfilter: reduce zone stress test running time
+      selftests: netfilter: check stateless nat udp checksum fixup
+      selftests: nft_concat_range: add test for reload with no element add/del
+
+Geert Uytterhoeven (1):
+      netfilter: Remove flowtable relics
+
+Pablo Neira Ayuso (2):
+      netfilter: nft_byteorder: track register operations
+      netfilter: nf_tables: remove assignment with no effect in chain blob builder
+
+Phil Sutter (1):
+      netfilter: nft_reject_bridge: Fix for missing reply from prerouting
+
+ net/bridge/netfilter/nft_reject_bridge.c           |   8 +-
+ net/ipv4/netfilter/Kconfig                         |   4 -
+ net/ipv6/netfilter/Kconfig                         |   4 -
+ net/ipv6/netfilter/Makefile                        |   3 -
+ net/ipv6/netfilter/nf_flow_table_ipv6.c            |   0
+ net/netfilter/nf_tables_api.c                      |   1 -
+ net/netfilter/nft_byteorder.c                      |  12 ++
+ net/netfilter/nft_ct.c                             |   5 +-
+ .../selftests/netfilter/nft_concat_range.sh        |  72 +++++++++-
+ tools/testing/selftests/netfilter/nft_nat.sh       | 152 +++++++++++++++++++++
+ .../testing/selftests/netfilter/nft_zones_many.sh  |  12 +-
+ 11 files changed, 249 insertions(+), 24 deletions(-)
+ delete mode 100644 net/ipv6/netfilter/nf_flow_table_ipv6.c
