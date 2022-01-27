@@ -2,56 +2,73 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A793C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jan 2022 16:53:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DAF67C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jan 2022 17:08:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234331AbiA0QxJ (ORCPT
+        id S238770AbiA0RIf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 27 Jan 2022 11:53:09 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:39510 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244138AbiA0QxI (ORCPT
+        Thu, 27 Jan 2022 12:08:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58898 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S238767AbiA0RIe (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Jan 2022 11:53:08 -0500
-Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 19C2460693
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Jan 2022 17:50:04 +0100 (CET)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf] netfilter: nf_tables: remove assignment with no effect in chain blob builder
-Date:   Thu, 27 Jan 2022 17:53:04 +0100
-Message-Id: <20220127165304.510741-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Thu, 27 Jan 2022 12:08:34 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59C70C061714
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Jan 2022 09:08:34 -0800 (PST)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1nD8G7-0006qm-Tf; Thu, 27 Jan 2022 18:08:31 +0100
+Date:   Thu, 27 Jan 2022 18:08:31 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH] xshared: Fix response to unprivileged users
+Message-ID: <YfLRjynofXWBGFCo@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20220120101653.28280-1-phil@nwl.cc>
+ <YfLINxzIDlCwej1X@salvia>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <YfLINxzIDlCwej1X@salvia>
+Sender:  <n0-1@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-cppcheck possible warnings:
+Hi Pablo,
 
->> net/netfilter/nf_tables_api.c:2014:2: warning: Assignment of function parameter has no effect outside the function. Did you forget dereferencing it? [uselessAssignmentPtrArg]
-    ptr += offsetof(struct nft_rule_dp, data);
-    ^
+On Thu, Jan 27, 2022 at 05:28:39PM +0100, Pablo Neira Ayuso wrote:
+> On Thu, Jan 20, 2022 at 11:16:53AM +0100, Phil Sutter wrote:
+> > Expected behaviour in both variants is:
+> > 
+> > * Print help without error, append extension help if -m and/or -j
+> >   options are present
+> > * Indicate lack of permissions in an error message for anything else
+> > 
+> > With iptables-nft, this was broken basically from day 1. Shared use of
+> > do_parse() then somewhat broke legacy: it started complaining about
+> > inability to create a lock file.
+> > 
+> > Fix this by making iptables-nft assume extension revision 0 is present
+> > if permissions don't allow to verify. This is consistent with legacy.
+> > 
+> > Second part is to exit directly after printing help - this avoids having
+> > to make the following code "nop-aware" to prevent privileged actions.
+> 
+> On top of this patch, it should be possible to allow for some
+> nfnetlink command to be used from unpriviledged process.
+> 
+> I'm attaching a sketch patch, it skips module autoload which is should
+> not be triggered by an unpriviledged process.
+> 
+> This should allow for better help with -m/-j if the module is present.
 
-Reported-by: kernel test robot <yujie.liu@intel.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c | 1 -
- 1 file changed, 1 deletion(-)
+That's interesting. What's the use-case? With my patch, extension help
+text printing works fine as unprivileged user. Does it allow to drop the
+"revision == 0 && EPERM" hack?
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index cf454f8ca2b0..5fa16990da95 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2011,7 +2011,6 @@ static void nft_last_rule(struct nft_rule_blob *blob, const void *ptr)
- 
- 	prule = (struct nft_rule_dp *)ptr;
- 	prule->is_last = 1;
--	ptr += offsetof(struct nft_rule_dp, data);
- 	/* blob size does not include the trailer rule */
- }
- 
--- 
-2.30.2
-
+Thanks, Phil
