@@ -2,93 +2,124 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9421C433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jan 2022 03:00:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 568DCC433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jan 2022 07:33:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237025AbiA1DAQ (ORCPT
+        id S1346775AbiA1Hdq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 27 Jan 2022 22:00:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54010 "EHLO
+        Fri, 28 Jan 2022 02:33:46 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58760 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231668AbiA1DAQ (ORCPT
+        with ESMTP id S242692AbiA1Hdq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Jan 2022 22:00:16 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 57A48C061714;
-        Thu, 27 Jan 2022 19:00:16 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CFBCBB82441;
-        Fri, 28 Jan 2022 03:00:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 82726C340E5;
-        Fri, 28 Jan 2022 03:00:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1643338812;
-        bh=Jg9Hwyb79qyFvkk1RTbwP4cux8QEkrHRD4hGdyHxtrc=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=NpB5VG5q69E5WMHJ9eTCNQxmI3PLeYDaIAB+El67p8M3kjcuZXjD6q0JU6w+J0g2y
-         A5uP810DBtA0VaTTzHNzcAuB2YPFPd5qc+vrWSOrRc6syytWk2x/DOH8xoMKWFq2oR
-         Lj24Nd9pQ5HKsu6EtqiellqAAPUV393jaXyYMmDvUAnjwS+fwwQAhKOrJRJXKhYXro
-         Oy6dBHv+HMUHJrxpZbQ7ZZAZiFeaWx5yd8xBlwDhRWyJ37n7oMQf62kC7spAfDGMqj
-         wgk5IBgZCsW8cp+VYqoN5pAFM9oBC3SCp5/C4+JL4MuKflvQrVJlHRQHuabt3WvnpK
-         9Q/FipEp33iGw==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 6A8D4E5D089;
-        Fri, 28 Jan 2022 03:00:12 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Fri, 28 Jan 2022 02:33:46 -0500
+Received: from mail-pg1-x543.google.com (mail-pg1-x543.google.com [IPv6:2607:f8b0:4864:20::543])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 17B6AC061714;
+        Thu, 27 Jan 2022 23:33:46 -0800 (PST)
+Received: by mail-pg1-x543.google.com with SMTP id z131so4476623pgz.12;
+        Thu, 27 Jan 2022 23:33:46 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=B8tMpG+tnSHKk9q7aoQpG1aih0nJ6Wa+B2x2HTN3gO4=;
+        b=Ks3QwAahRU3Dvrq0QLU3Xr+lWweSjd0SnqGvlXxdHUQ+DODFkZzJgTUbBYeHvVk44n
+         qgVb+ENsLez5ygYFHclrwXTLtL3KLzQbvSmOYCyX70TG9+Ywzk4OGbYkohVewFbnw4Dq
+         b9Ve0AnrYGcwwFgqM67PYDOEE/FJU+xdiFjs8fBwIwSf8GP0OanonBpWi1K4PHUR5WUN
+         Zp5K/WazfsNaf+XoxUw+joWLu12Bv+74y8JaNpjxid8zmHd2tE7r5fNCOyB2WkVQFIRi
+         P+l3GopXDFYvoQ1xIw3ReGtJnAYDCaOsKJEUTwRb3FRTuAPvzTSJHftAR/6IClx4siM+
+         FAKA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=B8tMpG+tnSHKk9q7aoQpG1aih0nJ6Wa+B2x2HTN3gO4=;
+        b=riHCkwV4rDZvfkoH6zRw8Ng5tqEx/Rkc+PV+aQp8Y4ZypGEnZnFYuGiPqt7AAx0XP6
+         iDqOwXbD+9CELKwZb2XjKDtOztbL5CHCpwPsq32uI6d+OilP2XjIPIJ/PZyGOL8vv/gD
+         J/rNK+w7aEor4VxGTE5L4hTOLdeg7O+WkqM517A02LhxmzJTLTkidVTAYVHldpQ0bWHw
+         2nYR6tC/3HG2snGW5YCooM2DD+pFZdJENTmSaJDiYetVV+O1UeK9kSGXqGra3oCrufB2
+         JfShxAJQrT1zLcckmdufN9ZZ7oW0hGHzrHImiKlw9AdbeQ0lerJkpMhjpMyupbbbvPRa
+         XlTQ==
+X-Gm-Message-State: AOAM531bjD9KST9BLDukvLyFUQIvs1r+kPI9YpEIkbs9W7PI9qNAn6p8
+        wErxUbYKEWvJYrUWrT1i9LQ=
+X-Google-Smtp-Source: ABdhPJwlwbmWxqFhIfJnFbmHbX/vaSKE4miPmU9BRUFWQ+EB7kN3o7niGKVEWf7NpyX/RfYJ+Hn0Iw==
+X-Received: by 2002:a05:6a00:80d:: with SMTP id m13mr6838777pfk.48.1643355225635;
+        Thu, 27 Jan 2022 23:33:45 -0800 (PST)
+Received: from localhost.localdomain ([43.132.141.8])
+        by smtp.gmail.com with ESMTPSA id q17sm8548846pfu.160.2022.01.27.23.33.41
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 27 Jan 2022 23:33:45 -0800 (PST)
+From:   menglong8.dong@gmail.com
+X-Google-Original-From: imagedong@tencent.com
+To:     dsahern@kernel.org, kuba@kernel.org
+Cc:     rostedt@goodmis.org, mingo@redhat.com, davem@davemloft.net,
+        yoshfuji@linux-ipv6.org, pablo@netfilter.org, kadlec@netfilter.org,
+        fw@strlen.de, imagedong@tencent.com, edumazet@google.com,
+        alobakin@pm.me, paulb@nvidia.com, keescook@chromium.org,
+        talalahmad@google.com, haokexin@gmail.com, memxor@gmail.com,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        cong.wang@bytedance.com, mengensun@tencent.com
+Subject: [PATCH v3 net-next 0/7] net: use kfree_skb_reason() for ip/udp packet receive
+Date:   Fri, 28 Jan 2022 15:33:12 +0800
+Message-Id: <20220128073319.1017084-1-imagedong@tencent.com>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/8] netfilter: Remove flowtable relics
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <164333881243.25446.10078573263507923141.git-patchwork-notify@kernel.org>
-Date:   Fri, 28 Jan 2022 03:00:12 +0000
-References: <20220127235235.656931-2-pablo@netfilter.org>
-In-Reply-To: <20220127235235.656931-2-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+From: Menglong Dong <imagedong@tencent.com>
 
-This series was applied to netdev/net.git (master)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+In this series patches, kfree_skb() is replaced with kfree_skb_reason()
+during ipv4 and udp4 packet receiving path, and following drop reasons
+are introduced:
 
-On Fri, 28 Jan 2022 00:52:28 +0100 you wrote:
-> From: Geert Uytterhoeven <geert@linux-m68k.org>
-> 
-> NF_FLOW_TABLE_IPV4 and NF_FLOW_TABLE_IPV6 are invisble, selected by
-> nothing (so they can no longer be enabled), and their last real users
-> have been removed (nf_flow_table_ipv6.c is empty).
-> 
-> Clean up the leftovers.
-> 
-> [...]
+SKB_DROP_REASON_SOCKET_FILTER
+SKB_DROP_REASON_NETFILTER_DROP
+SKB_DROP_REASON_OTHERHOST
+SKB_DROP_REASON_IP_CSUM
+SKB_DROP_REASON_IP_INHDR
+SKB_DROP_REASON_IP_RPFILTER
+SKB_DROP_REASON_UNICAST_IN_L2_MULTICAST
+SKB_DROP_REASON_XFRM_POLICY
+SKB_DROP_REASON_IP_NOPROTO
+SKB_DROP_REASON_SOCKET_RCVBUFF
+SKB_DROP_REASON_PROTO_MEM
 
-Here is the summary with links:
-  - [net,1/8] netfilter: Remove flowtable relics
-    https://git.kernel.org/netdev/net/c/7355bfe0e0cc
-  - [net,2/8] netfilter: nft_ct: fix use after free when attaching zone template
-    https://git.kernel.org/netdev/net/c/34243b9ec856
-  - [net,3/8] selftests: netfilter: reduce zone stress test running time
-    https://git.kernel.org/netdev/net/c/c858620d2ae3
-  - [net,4/8] selftests: netfilter: check stateless nat udp checksum fixup
-    https://git.kernel.org/netdev/net/c/aad51ca71ad8
-  - [net,5/8] netfilter: nft_reject_bridge: Fix for missing reply from prerouting
-    https://git.kernel.org/netdev/net/c/aeac4554eb54
-  - [net,6/8] netfilter: nft_byteorder: track register operations
-    https://git.kernel.org/netdev/net/c/f459bfd4b979
-  - [net,7/8] selftests: nft_concat_range: add test for reload with no element add/del
-    https://git.kernel.org/netdev/net/c/eda0cf1202ac
-  - [net,8/8] netfilter: nf_tables: remove assignment with no effect in chain blob builder
-    https://git.kernel.org/netdev/net/c/b07f41373254
+TCP is more complex, so I left it in the next series.
 
-You are awesome, thank you!
+I just figure out how __print_symbolic() works. It doesn't base on the
+array index, but searching for symbols by loop. So I'm a little afraid
+it's performance.
+
+Changes since v2:
+- use SKB_DROP_REASON_PKT_TOO_SMALL for a path in ip_rcv_core()
+
+Changes since v1:
+- add document for all drop reasons, as David advised
+- remove unreleated cleanup
+- remove EARLY_DEMUX and IP_ROUTE_INPUT drop reason
+- replace {UDP, TCP}_FILTER with SOCKET_FILTER
+
+
+Menglong Dong (7):
+  net: skb_drop_reason: add document for drop reasons
+  net: netfilter: use kfree_drop_reason() for NF_DROP
+  net: ipv4: use kfree_skb_reason() in ip_rcv_core()
+  net: ipv4: use kfree_skb_reason() in ip_rcv_finish_core()
+  net: ipv4: use kfree_skb_reason() in ip_protocol_deliver_rcu()
+  net: udp: use kfree_skb_reason() in udp_queue_rcv_one_skb()
+  net: udp: use kfree_skb_reason() in __udp_queue_rcv_skb()
+
+ include/linux/skbuff.h     | 38 ++++++++++++++++++++++++++++++++------
+ include/trace/events/skb.h | 11 +++++++++++
+ net/ipv4/ip_input.c        | 31 +++++++++++++++++++++++--------
+ net/ipv4/udp.c             | 22 ++++++++++++++++------
+ net/netfilter/core.c       |  3 ++-
+ 5 files changed, 84 insertions(+), 21 deletions(-)
+
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.27.0
 
