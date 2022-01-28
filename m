@@ -2,161 +2,160 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D88BC433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jan 2022 20:37:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21086C433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jan 2022 20:37:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233513AbiA1UhL (ORCPT
+        id S233617AbiA1UhP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 28 Jan 2022 15:37:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43182 "EHLO
+        Fri, 28 Jan 2022 15:37:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43194 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230427AbiA1UhL (ORCPT
+        with ESMTP id S230427AbiA1UhO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 28 Jan 2022 15:37:11 -0500
+        Fri, 28 Jan 2022 15:37:14 -0500
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60CE8C061714
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 Jan 2022 12:37:11 -0800 (PST)
-Received: from localhost ([::1]:59154 helo=xic)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72004C061714
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Jan 2022 12:37:14 -0800 (PST)
+Received: from localhost ([::1]:59156 helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1nDXzX-000123-Fp; Fri, 28 Jan 2022 21:37:07 +0100
+        id 1nDXzc-00012D-QF; Fri, 28 Jan 2022 21:37:12 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 2/2] iptables-restore: Support for extra debug output
-Date:   Fri, 28 Jan 2022 21:37:00 +0100
-Message-Id: <20220128203700.27071-2-phil@nwl.cc>
+Subject: [iptables PATCH 1/2] nft: Use verbose flag to toggle debug output
+Date:   Fri, 28 Jan 2022 21:36:59 +0100
+Message-Id: <20220128203700.27071-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220128203700.27071-1-phil@nwl.cc>
-References: <20220128203700.27071-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Treat --verbose just like iptables itself, increasing debug level with
-number of invocations.
+Copy legacy iptables' behaviour, printing debug output if verbose flag
+is given more than once.
 
-To propagate the level into do_command() callback, insert virtual '-v'
-flags into rule lines.
-
-The only downside of this is that simple verbose output is changed and
-now also prints the rules as they are added - which would be useful if
-the lines contained the chain they apply to.
+Since nft debug output applies to netlink messages which are not created
+until nft_action() phase, carrying verbose value is non-trivial -
+introduce a field in struct nft_handle for that.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/iptables-restore.8.in                           | 1 +
- iptables/iptables-restore.c                              | 6 +++++-
- .../shell/testcases/ipt-restore/0014-verbose-restore_0   | 9 ++++++---
- iptables/xtables-restore.c                               | 6 +++++-
- 4 files changed, 17 insertions(+), 5 deletions(-)
+ iptables/nft-shared.h |  1 -
+ iptables/nft.c        | 38 ++++++++++++++++++++------------------
+ iptables/nft.h        |  1 +
+ iptables/xtables.c    |  1 +
+ 4 files changed, 22 insertions(+), 19 deletions(-)
 
-diff --git a/iptables/iptables-restore.8.in b/iptables/iptables-restore.8.in
-index b4b62f92740d1..883da998b0f7e 100644
---- a/iptables/iptables-restore.8.in
-+++ b/iptables/iptables-restore.8.in
-@@ -54,6 +54,7 @@ Only parse and construct the ruleset, but do not commit it.
- .TP
- \fB\-v\fP, \fB\-\-verbose\fP
- Print additional debug info during ruleset processing.
-+Specify multiple times to increase debug level.
- .TP
- \fB\-V\fP, \fB\-\-version\fP
- Print the program version number.
-diff --git a/iptables/iptables-restore.c b/iptables/iptables-restore.c
-index a3efb067d3d90..3c0a238917ecd 100644
---- a/iptables/iptables-restore.c
-+++ b/iptables/iptables-restore.c
-@@ -114,7 +114,7 @@ ip46tables_restore_main(const struct iptables_restore_cb *cb,
- 				counters = 1;
- 				break;
- 			case 'v':
--				verbose = 1;
-+				verbose++;
- 				break;
- 			case 'V':
- 				printf("%s v%s\n",
-@@ -317,11 +317,15 @@ ip46tables_restore_main(const struct iptables_restore_cb *cb,
- 			char *pcnt = NULL;
- 			char *bcnt = NULL;
- 			char *parsestart = buffer;
-+			int i;
+diff --git a/iptables/nft-shared.h b/iptables/nft-shared.h
+index c3241f4b8c726..d4222ae05adc3 100644
+--- a/iptables/nft-shared.h
++++ b/iptables/nft-shared.h
+@@ -13,7 +13,6 @@
+ #include "xshared.h"
  
- 			add_argv(&av_store, argv[0], 0);
- 			add_argv(&av_store, "-t", 0);
- 			add_argv(&av_store, curtable, 0);
+ #ifdef DEBUG
+-#define NLDEBUG
+ #define DEBUG_DEL
+ #endif
  
-+			for (i = 0; !noflush && i < verbose; i++)
-+				add_argv(&av_store, "-v", 0);
-+
- 			tokenize_rule_counters(&parsestart, &pcnt, &bcnt, line);
- 			if (counters && pcnt && bcnt) {
- 				add_argv(&av_store, "--set-counters", 0);
-diff --git a/iptables/tests/shell/testcases/ipt-restore/0014-verbose-restore_0 b/iptables/tests/shell/testcases/ipt-restore/0014-verbose-restore_0
-index fc8559c5bac9e..5daf7a78a5334 100755
---- a/iptables/tests/shell/testcases/ipt-restore/0014-verbose-restore_0
-+++ b/iptables/tests/shell/testcases/ipt-restore/0014-verbose-restore_0
-@@ -33,6 +33,7 @@ Flushing chain \`bar'
- Flushing chain \`foo'
- Deleting chain \`bar'
- Deleting chain \`foo'
-+ACCEPT  all opt -- in * out *  0.0.0.0/0  -> 0.0.0.0/0
- Flushing chain \`PREROUTING'
- Flushing chain \`INPUT'
- Flushing chain \`OUTPUT'
-@@ -41,6 +42,7 @@ Flushing chain \`natbar'
- Flushing chain \`natfoo'
- Deleting chain \`natbar'
- Deleting chain \`natfoo'
-+ACCEPT  all opt -- in * out *  0.0.0.0/0  -> 0.0.0.0/0
- Flushing chain \`PREROUTING'
- Flushing chain \`OUTPUT'
- Flushing chain \`rawfoo'
-@@ -58,9 +60,10 @@ Flushing chain \`OUTPUT'
- Flushing chain \`secfoo'
- Deleting chain \`secfoo'"
+diff --git a/iptables/nft.c b/iptables/nft.c
+index b5de687c5c4cd..ae41384fe8180 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -926,15 +926,16 @@ void nft_fini(struct nft_handle *h)
+ 	mnl_socket_close(h->nl);
+ }
  
--for ipt in iptables-restore ip6tables-restore; do
--	diff -u -Z <(echo "$EXPECT") <($XT_MULTI $ipt -v <<< "$DUMP")
--done
-+EXPECT6=$(sed -e 's/0\.0\.0\.0/::/g' -e 's/opt --/opt   /' <<< "$EXPECT")
-+
-+diff -u -Z <(echo "$EXPECT") <($XT_MULTI iptables-restore -v <<< "$DUMP")
-+diff -u -Z <(echo "$EXPECT6") <($XT_MULTI ip6tables-restore -v <<< "$DUMP")
+-static void nft_chain_print_debug(struct nftnl_chain *c, struct nlmsghdr *nlh)
++static void nft_chain_print_debug(struct nft_handle *h,
++				  struct nftnl_chain *c, struct nlmsghdr *nlh)
+ {
+-#ifdef NLDEBUG
+-	char tmp[1024];
+-
+-	nftnl_chain_snprintf(tmp, sizeof(tmp), c, 0, 0);
+-	printf("DEBUG: chain: %s\n", tmp);
+-	mnl_nlmsg_fprintf(stdout, nlh, nlh->nlmsg_len, sizeof(struct nfgenmsg));
+-#endif
++	if (h->verbose > 1) {
++		nftnl_chain_fprintf(stdout, c, 0, 0);
++		fprintf(stdout, "\n");
++	}
++	if (h->verbose > 2)
++		mnl_nlmsg_fprintf(stdout, nlh, nlh->nlmsg_len,
++				  sizeof(struct nfgenmsg));
+ }
  
- DUMP="*filter
- :baz - [0:0]
-diff --git a/iptables/xtables-restore.c b/iptables/xtables-restore.c
-index 8ca2abffa5d36..f5aabf3cc1944 100644
---- a/iptables/xtables-restore.c
-+++ b/iptables/xtables-restore.c
-@@ -206,11 +206,15 @@ static void xtables_restore_parse_line(struct nft_handle *h,
- 		char *pcnt = NULL;
- 		char *bcnt = NULL;
- 		char *parsestart = buffer;
-+		int i;
+ static struct nftnl_chain *nft_chain_new(struct nft_handle *h,
+@@ -1386,15 +1387,16 @@ int add_log(struct nftnl_rule *r, struct iptables_command_state *cs)
+ 	return 0;
+ }
  
- 		add_argv(&state->av_store, xt_params->program_name, 0);
- 		add_argv(&state->av_store, "-t", 0);
- 		add_argv(&state->av_store, state->curtable->name, 0);
+-static void nft_rule_print_debug(struct nftnl_rule *r, struct nlmsghdr *nlh)
++static void nft_rule_print_debug(struct nft_handle *h,
++				 struct nftnl_rule *r, struct nlmsghdr *nlh)
+ {
+-#ifdef NLDEBUG
+-	char tmp[1024];
+-
+-	nftnl_rule_snprintf(tmp, sizeof(tmp), r, 0, 0);
+-	printf("DEBUG: rule: %s\n", tmp);
+-	mnl_nlmsg_fprintf(stdout, nlh, nlh->nlmsg_len, sizeof(struct nfgenmsg));
+-#endif
++	if (h->verbose > 1) {
++		nftnl_rule_fprintf(stdout, r, 0, 0);
++		fprintf(stdout, "\n");
++	}
++	if (h->verbose > 2)
++		mnl_nlmsg_fprintf(stdout, nlh, nlh->nlmsg_len,
++				  sizeof(struct nfgenmsg));
+ }
  
-+		for (i = 0; !h->noflush && i < verbose; i++)
-+			add_argv(&state->av_store, "-v", 0);
-+
- 		tokenize_rule_counters(&parsestart, &pcnt, &bcnt, line);
- 		if (counters && pcnt && bcnt) {
- 			add_argv(&state->av_store, "--set-counters", 0);
-@@ -309,7 +313,7 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
- 				counters = 1;
- 				break;
- 			case 'v':
--				verbose = 1;
-+				verbose++;
- 				break;
- 			case 'V':
- 				printf("%s v%s\n", prog_name, prog_vers);
+ int add_counters(struct nftnl_rule *r, uint64_t packets, uint64_t bytes)
+@@ -2698,7 +2700,7 @@ static void nft_compat_chain_batch_add(struct nft_handle *h, uint16_t type,
+ 	nlh = nftnl_chain_nlmsg_build_hdr(nftnl_batch_buffer(h->batch),
+ 					type, h->family, flags, seq);
+ 	nftnl_chain_nlmsg_build_payload(nlh, chain);
+-	nft_chain_print_debug(chain, nlh);
++	nft_chain_print_debug(h, chain, nlh);
+ }
+ 
+ static void nft_compat_rule_batch_add(struct nft_handle *h, uint16_t type,
+@@ -2710,7 +2712,7 @@ static void nft_compat_rule_batch_add(struct nft_handle *h, uint16_t type,
+ 	nlh = nftnl_rule_nlmsg_build_hdr(nftnl_batch_buffer(h->batch),
+ 				       type, h->family, flags, seq);
+ 	nftnl_rule_nlmsg_build_payload(nlh, rule);
+-	nft_rule_print_debug(rule, nlh);
++	nft_rule_print_debug(h, rule, nlh);
+ }
+ 
+ static void batch_obj_del(struct nft_handle *h, struct obj_update *o)
+diff --git a/iptables/nft.h b/iptables/nft.h
+index 4c78f761e1c4b..fd116c2e3e198 100644
+--- a/iptables/nft.h
++++ b/iptables/nft.h
+@@ -109,6 +109,7 @@ struct nft_handle {
+ 	int8_t			config_done;
+ 	struct list_head	cmd_list;
+ 	bool			cache_init;
++	int			verbose;
+ 
+ 	/* meta data, for error reporting */
+ 	struct {
+diff --git a/iptables/xtables.c b/iptables/xtables.c
+index 051d5c7b7f98b..c44b39acdcd97 100644
+--- a/iptables/xtables.c
++++ b/iptables/xtables.c
+@@ -163,6 +163,7 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
+ 		h->ops->init_cs(&cs);
+ 
+ 	do_parse(argc, argv, &p, &cs, &args);
++	h->verbose = p.verbose;
+ 
+ 	if (!nft_table_builtin_find(h, p.table))
+ 		xtables_error(VERSION_PROBLEM,
 -- 
 2.34.1
 
