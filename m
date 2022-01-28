@@ -2,59 +2,93 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81ED5C433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jan 2022 23:52:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9421C433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jan 2022 03:00:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344047AbiA0Xww (ORCPT
+        id S237025AbiA1DAQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 27 Jan 2022 18:52:52 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:43012 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344042AbiA0Xwq (ORCPT
+        Thu, 27 Jan 2022 22:00:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54010 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231668AbiA1DAQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Jan 2022 18:52:46 -0500
-Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 6688860881;
-        Fri, 28 Jan 2022 00:49:40 +0100 (CET)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 8/8] netfilter: nf_tables: remove assignment with no effect in chain blob builder
-Date:   Fri, 28 Jan 2022 00:52:35 +0100
-Message-Id: <20220127235235.656931-9-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220127235235.656931-1-pablo@netfilter.org>
-References: <20220127235235.656931-1-pablo@netfilter.org>
+        Thu, 27 Jan 2022 22:00:16 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 57A48C061714;
+        Thu, 27 Jan 2022 19:00:16 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CFBCBB82441;
+        Fri, 28 Jan 2022 03:00:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 82726C340E5;
+        Fri, 28 Jan 2022 03:00:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1643338812;
+        bh=Jg9Hwyb79qyFvkk1RTbwP4cux8QEkrHRD4hGdyHxtrc=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=NpB5VG5q69E5WMHJ9eTCNQxmI3PLeYDaIAB+El67p8M3kjcuZXjD6q0JU6w+J0g2y
+         A5uP810DBtA0VaTTzHNzcAuB2YPFPd5qc+vrWSOrRc6syytWk2x/DOH8xoMKWFq2oR
+         Lj24Nd9pQ5HKsu6EtqiellqAAPUV393jaXyYMmDvUAnjwS+fwwQAhKOrJRJXKhYXro
+         Oy6dBHv+HMUHJrxpZbQ7ZZAZiFeaWx5yd8xBlwDhRWyJ37n7oMQf62kC7spAfDGMqj
+         wgk5IBgZCsW8cp+VYqoN5pAFM9oBC3SCp5/C4+JL4MuKflvQrVJlHRQHuabt3WvnpK
+         9Q/FipEp33iGw==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 6A8D4E5D089;
+        Fri, 28 Jan 2022 03:00:12 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/8] netfilter: Remove flowtable relics
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <164333881243.25446.10078573263507923141.git-patchwork-notify@kernel.org>
+Date:   Fri, 28 Jan 2022 03:00:12 +0000
+References: <20220127235235.656931-2-pablo@netfilter.org>
+In-Reply-To: <20220127235235.656931-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-cppcheck possible warnings:
+Hello:
 
->> net/netfilter/nf_tables_api.c:2014:2: warning: Assignment of function parameter has no effect outside the function. Did you forget dereferencing it? [uselessAssignmentPtrArg]
-    ptr += offsetof(struct nft_rule_dp, data);
-    ^
+This series was applied to netdev/net.git (master)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-Reported-by: kernel test robot <yujie.liu@intel.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c | 1 -
- 1 file changed, 1 deletion(-)
+On Fri, 28 Jan 2022 00:52:28 +0100 you wrote:
+> From: Geert Uytterhoeven <geert@linux-m68k.org>
+> 
+> NF_FLOW_TABLE_IPV4 and NF_FLOW_TABLE_IPV6 are invisble, selected by
+> nothing (so they can no longer be enabled), and their last real users
+> have been removed (nf_flow_table_ipv6.c is empty).
+> 
+> Clean up the leftovers.
+> 
+> [...]
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index cf454f8ca2b0..5fa16990da95 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2011,7 +2011,6 @@ static void nft_last_rule(struct nft_rule_blob *blob, const void *ptr)
- 
- 	prule = (struct nft_rule_dp *)ptr;
- 	prule->is_last = 1;
--	ptr += offsetof(struct nft_rule_dp, data);
- 	/* blob size does not include the trailer rule */
- }
- 
+Here is the summary with links:
+  - [net,1/8] netfilter: Remove flowtable relics
+    https://git.kernel.org/netdev/net/c/7355bfe0e0cc
+  - [net,2/8] netfilter: nft_ct: fix use after free when attaching zone template
+    https://git.kernel.org/netdev/net/c/34243b9ec856
+  - [net,3/8] selftests: netfilter: reduce zone stress test running time
+    https://git.kernel.org/netdev/net/c/c858620d2ae3
+  - [net,4/8] selftests: netfilter: check stateless nat udp checksum fixup
+    https://git.kernel.org/netdev/net/c/aad51ca71ad8
+  - [net,5/8] netfilter: nft_reject_bridge: Fix for missing reply from prerouting
+    https://git.kernel.org/netdev/net/c/aeac4554eb54
+  - [net,6/8] netfilter: nft_byteorder: track register operations
+    https://git.kernel.org/netdev/net/c/f459bfd4b979
+  - [net,7/8] selftests: nft_concat_range: add test for reload with no element add/del
+    https://git.kernel.org/netdev/net/c/eda0cf1202ac
+  - [net,8/8] netfilter: nf_tables: remove assignment with no effect in chain blob builder
+    https://git.kernel.org/netdev/net/c/b07f41373254
+
+You are awesome, thank you!
 -- 
-2.30.2
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
