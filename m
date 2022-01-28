@@ -2,72 +2,196 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC2BCC433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jan 2022 11:44:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 498B0C433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jan 2022 12:00:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244387AbiA1LoD (ORCPT
+        id S236271AbiA1MAp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 28 Jan 2022 06:44:03 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:49304 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244357AbiA1LoD (ORCPT
+        Fri, 28 Jan 2022 07:00:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35954 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230193AbiA1MAp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 28 Jan 2022 06:44:03 -0500
-Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 4AAF760676;
-        Fri, 28 Jan 2022 12:40:57 +0100 (CET)
-Date:   Fri, 28 Jan 2022 12:43:57 +0100
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     stable@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        Steffen Weinreich <steve@weinreich.org>
-Subject: Re: [PATCH 4.19.y] netfilter: nft_payload: do not update layer 4
- checksum when mangling fragments
-Message-ID: <YfPW/Y+MjU79d7V7@salvia>
-References: <20220128113821.7009-1-fw@strlen.de>
+        Fri, 28 Jan 2022 07:00:45 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD617C061714
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Jan 2022 04:00:44 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1nDPvn-000522-7Z; Fri, 28 Jan 2022 13:00:43 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2 nf-next] netfilter: exthdr: add support for tcp option removal
+Date:   Fri, 28 Jan 2022 13:00:36 +0100
+Message-Id: <20220128120036.13449-1-fw@strlen.de>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20220128113821.7009-1-fw@strlen.de>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Jan 28, 2022 at 12:38:21PM +0100, Florian Westphal wrote:
-> From: Pablo Neira Ayuso <pablo@netfilter.org>
-> 
-> commit 4e1860a3863707e8177329c006d10f9e37e097a8 upstream.
-> 
-> IP fragments do not come with the transport header, hence skip bogus
-> layer 4 checksum updates.
-> 
-> Fixes: 1814096980bb ("netfilter: nft_payload: layer 4 checksum adjustment for pseudoheader fields")
-> Reported-and-tested-by: Steffen Weinreich <steve@weinreich.org>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  This is already in the 5.y branches but 4.19 needs a minor
->  tweak as ->fragoff member resides in xt sub-struct.
+This allows to replace a tcp option with nop padding to selectively disable
+a particular tcp option.
 
-Thanks for taking care of this -stable submission.
+Optstrip mode is chosen when userspace passes the exthdr expression with
+neither a source nor a destination register attribute.
 
->  net/netfilter/nft_payload.c | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-> index b1a9f330a51f..fd87216bc0a9 100644
-> --- a/net/netfilter/nft_payload.c
-> +++ b/net/netfilter/nft_payload.c
-> @@ -194,6 +194,9 @@ static int nft_payload_l4csum_offset(const struct nft_pktinfo *pkt,
->  				     struct sk_buff *skb,
->  				     unsigned int *l4csum_offset)
->  {
-> +	if (pkt->xt.fragoff)
-> +		return -1;
-> +
->  	switch (pkt->tprot) {
->  	case IPPROTO_TCP:
->  		*l4csum_offset = offsetof(struct tcphdr, check);
-> -- 
-> 2.34.1
-> 
+This is identical to xtables TCPOPTSTRIP extension.
+The only difference is that TCPOPTSTRIP allows to pass in a bitmap
+of options to remove rather than a single number.
+
+Unlike TCPOPTSTRIP this expression can be used multiple times
+in the same rule to get the same effect.
+
+We could add a new nested attribute later on in case there is a
+use case for single-expression-multi-remove.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ Changes since last version: return DROP when we encounter malformed
+ options or when we can't make skb writeable.
+ Amended commit message to mention OPTSTRIP bitmap.
+
+ net/netfilter/nft_exthdr.c | 96 +++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 95 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
+index dbe1f2e7dd9e..dfc06cdb8fa2 100644
+--- a/net/netfilter/nft_exthdr.c
++++ b/net/netfilter/nft_exthdr.c
+@@ -308,6 +308,63 @@ static void nft_exthdr_tcp_set_eval(const struct nft_expr *expr,
+ 	regs->verdict.code = NFT_BREAK;
+ }
+ 
++static void nft_exthdr_tcp_strip_eval(const struct nft_expr *expr,
++				      struct nft_regs *regs,
++				      const struct nft_pktinfo *pkt)
++{
++	u8 buff[sizeof(struct tcphdr) + MAX_TCP_OPTION_SPACE];
++	struct nft_exthdr *priv = nft_expr_priv(expr);
++	unsigned int i, tcphdr_len, optl;
++	struct tcphdr *tcph;
++	u8 *opt;
++
++	tcph = nft_tcp_header_pointer(pkt, sizeof(buff), buff, &tcphdr_len);
++	if (!tcph)
++		goto err;
++
++	if (skb_ensure_writable(pkt->skb, nft_thoff(pkt) + tcphdr_len))
++		goto drop;
++
++	opt = (u8 *)nft_tcp_header_pointer(pkt, sizeof(buff), buff, &tcphdr_len);
++	if (!opt)
++		goto err;
++	for (i = sizeof(*tcph); i < tcphdr_len - 1; i += optl) {
++		unsigned int j;
++
++		optl = optlen(opt, i);
++		if (priv->type != opt[i])
++			continue;
++
++		if (i + optl > tcphdr_len)
++			goto drop;
++
++		for (j = 0; j < optl; ++j) {
++			u16 n = TCPOPT_NOP;
++			u16 o = opt[i+j];
++
++			if ((i + j) % 2 == 0) {
++				o <<= 8;
++				n <<= 8;
++			}
++			inet_proto_csum_replace2(&tcph->check, pkt->skb, htons(o),
++						 htons(n), false);
++		}
++		memset(opt + i, TCPOPT_NOP, optl);
++		return;
++	}
++
++	/* option not found, continue. This allows to do multiple
++	 * option removals per rule.
++	 */
++	return;
++err:
++	regs->verdict.code = NFT_BREAK;
++	return;
++drop:
++	/* can't remove, no choice but to drop */
++	regs->verdict.code = NF_DROP;
++}
++
+ static void nft_exthdr_sctp_eval(const struct nft_expr *expr,
+ 				 struct nft_regs *regs,
+ 				 const struct nft_pktinfo *pkt)
+@@ -457,6 +514,28 @@ static int nft_exthdr_tcp_set_init(const struct nft_ctx *ctx,
+ 				       priv->len);
+ }
+ 
++static int nft_exthdr_tcp_strip_init(const struct nft_ctx *ctx,
++				     const struct nft_expr *expr,
++				     const struct nlattr * const tb[])
++{
++	struct nft_exthdr *priv = nft_expr_priv(expr);
++
++	if (tb[NFTA_EXTHDR_SREG] ||
++	    tb[NFTA_EXTHDR_DREG] ||
++	    tb[NFTA_EXTHDR_FLAGS] ||
++	    tb[NFTA_EXTHDR_OFFSET] ||
++	    tb[NFTA_EXTHDR_LEN])
++		return -EINVAL;
++
++	if (!tb[NFTA_EXTHDR_TYPE])
++		return -EINVAL;
++
++	priv->type = nla_get_u8(tb[NFTA_EXTHDR_TYPE]);
++	priv->op = NFT_EXTHDR_OP_TCPOPT;
++
++	return 0;
++}
++
+ static int nft_exthdr_ipv4_init(const struct nft_ctx *ctx,
+ 				const struct nft_expr *expr,
+ 				const struct nlattr * const tb[])
+@@ -517,6 +596,13 @@ static int nft_exthdr_dump_set(struct sk_buff *skb, const struct nft_expr *expr)
+ 	return nft_exthdr_dump_common(skb, priv);
+ }
+ 
++static int nft_exthdr_dump_strip(struct sk_buff *skb, const struct nft_expr *expr)
++{
++	const struct nft_exthdr *priv = nft_expr_priv(expr);
++
++	return nft_exthdr_dump_common(skb, priv);
++}
++
+ static const struct nft_expr_ops nft_exthdr_ipv6_ops = {
+ 	.type		= &nft_exthdr_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_exthdr)),
+@@ -549,6 +635,14 @@ static const struct nft_expr_ops nft_exthdr_tcp_set_ops = {
+ 	.dump		= nft_exthdr_dump_set,
+ };
+ 
++static const struct nft_expr_ops nft_exthdr_tcp_strip_ops = {
++	.type		= &nft_exthdr_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_exthdr)),
++	.eval		= nft_exthdr_tcp_strip_eval,
++	.init		= nft_exthdr_tcp_strip_init,
++	.dump		= nft_exthdr_dump_strip,
++};
++
+ static const struct nft_expr_ops nft_exthdr_sctp_ops = {
+ 	.type		= &nft_exthdr_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_exthdr)),
+@@ -576,7 +670,7 @@ nft_exthdr_select_ops(const struct nft_ctx *ctx,
+ 			return &nft_exthdr_tcp_set_ops;
+ 		if (tb[NFTA_EXTHDR_DREG])
+ 			return &nft_exthdr_tcp_ops;
+-		break;
++		return &nft_exthdr_tcp_strip_ops;
+ 	case NFT_EXTHDR_OP_IPV6:
+ 		if (tb[NFTA_EXTHDR_DREG])
+ 			return &nft_exthdr_ipv6_ops;
+-- 
+2.34.1
+
