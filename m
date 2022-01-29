@@ -2,74 +2,103 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72A23C433EF
-	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Jan 2022 13:52:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0E54C433EF
+	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Jan 2022 16:13:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230487AbiA2NwM (ORCPT
+        id S243418AbiA2QNc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 29 Jan 2022 08:52:12 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:48584 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229587AbiA2NwL (ORCPT
+        Sat, 29 Jan 2022 11:13:32 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47378 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S240810AbiA2QNc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 29 Jan 2022 08:52:11 -0500
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 74963B82772;
-        Sat, 29 Jan 2022 13:52:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A839FC340E5;
-        Sat, 29 Jan 2022 13:52:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1643464329;
-        bh=jbC1G8zj9PfHRZhpdgdt8Yi/IsE/Dllp8L0x1k4vAaQ=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=vFwWYh+nEzdAi5cpMmdgOdc16/XQKPG8WOo6yVJU33hyfFPRIM+2K5it08yMzurkb
-         3HoytuL12NLD2HB8Zw17D2k/7+gmTqk60h6lgVqcnw21Xe9f8Yu8yx+57lWDFfmCO7
-         kvM9Fvpw+Qs6KfB95Sj9cSAqXGyGnryZj34IdutI=
-Date:   Sat, 29 Jan 2022 14:52:06 +0100
-From:   Greg KH <gregkh@linuxfoundation.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     stable@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Steffen Weinreich <steve@weinreich.org>
-Subject: Re: [PATCH 4.19.y] netfilter: nft_payload: do not update layer 4
- checksum when mangling fragments
-Message-ID: <YfVGhmlZMs6fH/cJ@kroah.com>
-References: <20220128113821.7009-1-fw@strlen.de>
- <YfUp/K7ZQoKcvfn+@kroah.com>
- <20220129120444.GJ25922@breakpoint.cc>
+        Sat, 29 Jan 2022 11:13:32 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 38881C061714
+        for <netfilter-devel@vger.kernel.org>; Sat, 29 Jan 2022 08:13:32 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1nDqLx-0003Qb-Kd; Sat, 29 Jan 2022 17:13:29 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: nft_payload: don't allow th access for fragments
+Date:   Sat, 29 Jan 2022 17:13:23 +0100
+Message-Id: <20220129161323.173737-1-fw@strlen.de>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220129120444.GJ25922@breakpoint.cc>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Jan 29, 2022 at 01:04:44PM +0100, Florian Westphal wrote:
-> Greg KH <gregkh@linuxfoundation.org> wrote:
-> > On Fri, Jan 28, 2022 at 12:38:21PM +0100, Florian Westphal wrote:
-> > > From: Pablo Neira Ayuso <pablo@netfilter.org>
-> > > 
-> > > commit 4e1860a3863707e8177329c006d10f9e37e097a8 upstream.
-> > > 
-> > > IP fragments do not come with the transport header, hence skip bogus
-> > > layer 4 checksum updates.
-> > > 
-> > > Fixes: 1814096980bb ("netfilter: nft_payload: layer 4 checksum adjustment for pseudoheader fields")
-> > > Reported-and-tested-by: Steffen Weinreich <steve@weinreich.org>
-> > > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > > Signed-off-by: Florian Westphal <fw@strlen.de>
-> > > ---
-> > >  This is already in the 5.y branches but 4.19 needs a minor
-> > >  tweak as ->fragoff member resides in xt sub-struct.
-> > 
-> > I don't see this commit in the 5.10 or 5.4 branches, am I missing
-> > something?
-> 
-> Oh, indeed.  Can you place this patch in 5.4 and 5.10 too?
+Loads relative to ->thoff naturally expect that this points to the
+transport header, but this is only true if pkt->fragoff == 0.
 
-Now done, and it was needed for 4.14.y, so I added it there too, thanks!
+This has little effect for rulesets with connection tracking/nat because
+these enable ip defra. For other rulesets this prevents false matches.
 
-greg k-h
+Fixes: 96518518cc41 ("netfilter: add nftables")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nft_exthdr.c  | 2 +-
+ net/netfilter/nft_payload.c | 9 +++++----
+ 2 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
+index dbe1f2e7dd9e..9e927ab4df15 100644
+--- a/net/netfilter/nft_exthdr.c
++++ b/net/netfilter/nft_exthdr.c
+@@ -167,7 +167,7 @@ nft_tcp_header_pointer(const struct nft_pktinfo *pkt,
+ {
+ 	struct tcphdr *tcph;
+ 
+-	if (pkt->tprot != IPPROTO_TCP)
++	if (pkt->tprot != IPPROTO_TCP || pkt->fragoff)
+ 		return NULL;
+ 
+ 	tcph = skb_header_pointer(pkt->skb, nft_thoff(pkt), sizeof(*tcph), buffer);
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index 940fed9a760b..5cc06aef4345 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -83,7 +83,7 @@ static int __nft_payload_inner_offset(struct nft_pktinfo *pkt)
+ {
+ 	unsigned int thoff = nft_thoff(pkt);
+ 
+-	if (!(pkt->flags & NFT_PKTINFO_L4PROTO))
++	if (!(pkt->flags & NFT_PKTINFO_L4PROTO) || pkt->fragoff)
+ 		return -1;
+ 
+ 	switch (pkt->tprot) {
+@@ -147,7 +147,7 @@ void nft_payload_eval(const struct nft_expr *expr,
+ 		offset = skb_network_offset(skb);
+ 		break;
+ 	case NFT_PAYLOAD_TRANSPORT_HEADER:
+-		if (!(pkt->flags & NFT_PKTINFO_L4PROTO))
++		if (!(pkt->flags & NFT_PKTINFO_L4PROTO) || pkt->fragoff)
+ 			goto err;
+ 		offset = nft_thoff(pkt);
+ 		break;
+@@ -688,7 +688,7 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
+ 		offset = skb_network_offset(skb);
+ 		break;
+ 	case NFT_PAYLOAD_TRANSPORT_HEADER:
+-		if (!(pkt->flags & NFT_PKTINFO_L4PROTO))
++		if (!(pkt->flags & NFT_PKTINFO_L4PROTO) || pkt->fragoff)
+ 			goto err;
+ 		offset = nft_thoff(pkt);
+ 		break;
+@@ -728,7 +728,8 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
+ 	if (priv->csum_type == NFT_PAYLOAD_CSUM_SCTP &&
+ 	    pkt->tprot == IPPROTO_SCTP &&
+ 	    skb->ip_summed != CHECKSUM_PARTIAL) {
+-		if (nft_payload_csum_sctp(skb, nft_thoff(pkt)))
++		if (pkt->fragoff == 0 &&
++		    nft_payload_csum_sctp(skb, nft_thoff(pkt)))
+ 			goto err;
+ 	}
+ 
+-- 
+2.34.1
+
