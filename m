@@ -2,54 +2,70 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B985C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Feb 2022 14:14:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FBAFC433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Feb 2022 16:49:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239062AbiBAOOr (ORCPT
+        id S238497AbiBAQs7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 1 Feb 2022 09:14:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49958 "EHLO
+        Tue, 1 Feb 2022 11:48:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57470 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239128AbiBAOOq (ORCPT
+        with ESMTP id S235246AbiBAQs7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 1 Feb 2022 09:14:46 -0500
+        Tue, 1 Feb 2022 11:48:59 -0500
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B96EC061714
-        for <netfilter-devel@vger.kernel.org>; Tue,  1 Feb 2022 06:14:46 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87D21C061714
+        for <netfilter-devel@vger.kernel.org>; Tue,  1 Feb 2022 08:48:58 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1nEtvg-0004bP-0g; Tue, 01 Feb 2022 15:14:44 +0100
-Date:   Tue, 1 Feb 2022 15:14:43 +0100
+        (envelope-from <fw@breakpoint.cc>)
+        id 1nEwKu-0005Mi-9F; Tue, 01 Feb 2022 17:48:56 +0100
 From:   Florian Westphal <fw@strlen.de>
-To:     Pham Thanh Tuyen <phamtyn@gmail.com>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>
-Subject: Re: PROBLEM: Injected conntrack lost helper
-Message-ID: <20220201141443.GC18351@breakpoint.cc>
-References: <f9fb5616-0b37-d76b-74e5-53751d473432@gmail.com>
- <3f416429-b1be-b51a-c4ef-6274def33258@iogearbox.net>
- <0f4edf58-7b4e-05e8-3f13-d34819b8d5db@gmail.com>
- <20220131112050.GQ25922@breakpoint.cc>
- <2ea7f9da-22be-17db-88d7-10738b95faf3@gmail.com>
- <YfkLnyQopoKnRU17@salvia>
- <20220201120454.GB18351@breakpoint.cc>
- <bca957db-0774-e337-fc3a-ada0c4325fe9@gmail.com>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: nft_compat: suppress comment match
+Date:   Tue,  1 Feb 2022 17:48:50 +0100
+Message-Id: <20220201164850.11918-1-fw@strlen.de>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <bca957db-0774-e337-fc3a-ada0c4325fe9@gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pham Thanh Tuyen <phamtyn@gmail.com> wrote:
-> Previously I also thought ct->status |= IPS_HELPER; is ok, but after
-> internal pointer assigning with RCU_INIT_POINTER() need external pointer
-> assigning with rcu_assign_pointer() in __nf_ct_try_assign_helper() function.
+No need to have the datapath call the always-true comment match stub.
 
-I'm not following.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nft_compat.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-__nf_ct_try_assign_helper() doesn't do anything once that flag is set,
-so how could the helper get lost later?
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index f69cc73c5813..5a46d8289d1d 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -731,6 +731,14 @@ static const struct nfnetlink_subsystem nfnl_compat_subsys = {
+ 
+ static struct nft_expr_type nft_match_type;
+ 
++static bool nft_match_reduce(struct nft_regs_track *track,
++			     const struct nft_expr *expr)
++{
++	const struct xt_match *match = expr->ops->data;
++
++	return strcmp(match->name, "comment") == 0;
++}
++
+ static const struct nft_expr_ops *
+ nft_match_select_ops(const struct nft_ctx *ctx,
+ 		     const struct nlattr * const tb[])
+@@ -773,6 +781,7 @@ nft_match_select_ops(const struct nft_ctx *ctx,
+ 	ops->dump = nft_match_dump;
+ 	ops->validate = nft_match_validate;
+ 	ops->data = match;
++	ops->reduce = nft_match_reduce;
+ 
+ 	matchsize = NFT_EXPR_SIZE(XT_ALIGN(match->matchsize));
+ 	if (matchsize > NFT_MATCH_LARGE_THRESH) {
+-- 
+2.34.1
+
