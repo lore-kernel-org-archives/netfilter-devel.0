@@ -2,95 +2,78 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 273AEC433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Feb 2022 11:01:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F4E1C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Feb 2022 11:48:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241264AbiBBLBD (ORCPT
+        id S232637AbiBBLsE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 2 Feb 2022 06:01:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50460 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232455AbiBBLBD (ORCPT
+        Wed, 2 Feb 2022 06:48:04 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:44100 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231623AbiBBLsD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 2 Feb 2022 06:01:03 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 25B37C061714
-        for <netfilter-devel@vger.kernel.org>; Wed,  2 Feb 2022 03:01:03 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1nFDNk-00029r-NI; Wed, 02 Feb 2022 12:01:00 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Pham Thanh Tuyen <phamtyn@gmail.com>
-Subject: [PATCH nf] netfilter: ctnetlink: disable helper autoassign
-Date:   Wed,  2 Feb 2022 12:00:56 +0100
-Message-Id: <20220202110056.22574-1-fw@strlen.de>
-X-Mailer: git-send-email 2.34.1
+        Wed, 2 Feb 2022 06:48:03 -0500
+Received: from netfilter.org (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 0754860184;
+        Wed,  2 Feb 2022 12:47:58 +0100 (CET)
+Date:   Wed, 2 Feb 2022 12:48:00 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Pham Thanh Tuyen <phamtyn@gmail.com>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>
+Subject: Re: PROBLEM: Injected conntrack lost helper
+Message-ID: <YfpvcDMUw6MJv8kr@salvia>
+References: <f9fb5616-0b37-d76b-74e5-53751d473432@gmail.com>
+ <3f416429-b1be-b51a-c4ef-6274def33258@iogearbox.net>
+ <0f4edf58-7b4e-05e8-3f13-d34819b8d5db@gmail.com>
+ <20220131112050.GQ25922@breakpoint.cc>
+ <2ea7f9da-22be-17db-88d7-10738b95faf3@gmail.com>
+ <YfkLnyQopoKnRU17@salvia>
+ <20220201120454.GB18351@breakpoint.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20220201120454.GB18351@breakpoint.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When userspace, e.g. conntrackd, inserts an entry with a specified helper,
-its possible that the helper is lost immediately after its added:
+On Tue, Feb 01, 2022 at 01:04:54PM +0100, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > On Tue, Feb 01, 2022 at 10:08:55AM +0700, Pham Thanh Tuyen wrote:
+> > > When the conntrack is created, the extension is created before the conntrack
+> > > is assigned confirmed and inserted into the hash table. But the function
+> > > ctnetlink_setup_nat() causes loss of helper in the mentioned situation. I
+> > > mention the template because it's seamless in the
+> > > __nf_ct_try_assign_helper() function. Please double check.
+> > 
+> > Conntrack entries that are created via ctnetlink as IPS_CONFIRMED always
+> > set on.
+> >
+> > The helper code is only exercised from the packet path for conntrack
+> > entries that are newly created.
+> 
+> I suspect this is the most simple fix, might make sense to also
+> update the comment of IPS_HELPER to say that it means 'explicitly
+> attached via ctnetlink or ruleset'.
+> 
+> diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+> --- a/net/netfilter/nf_conntrack_netlink.c
+> +++ b/net/netfilter/nf_conntrack_netlink.c
+> @@ -2313,6 +2313,9 @@ ctnetlink_create_conntrack(struct net *net,
+>  
+>  			/* not in hash table yet so not strictly necessary */
+>  			RCU_INIT_POINTER(help->helper, helper);
+> +
+> +			/* explicitly attached from userspace */
+> +			ct->status |= IPS_HELPER;
+>  		}
+>  	} else {
+>  		/* try an implicit helper assignation */
 
-ctnetlink_create_conntrack
-  -> nf_ct_helper_ext_add + assign helper
-    -> ctnetlink_setup_nat
-      -> ctnetlink_parse_nat_setup
-         -> parse_nat_setup -> nfnetlink_parse_nat_setup
-	                       -> nf_nat_setup_info
-                                 -> nf_conntrack_alter_reply
-                                   -> __nf_ct_try_assign_helper
+This also LGTM.
 
-... and __nf_ct_try_assign_helper will zero the helper again.
+I'd suggest you update the .h file to describe that ctnetlink also
+sets on this bit.
 
-Set IPS_HELPER bit to bypass auto-assign logic, its unwanted, just like
-when helper is assigned via ruleset.
-
-Dropped old 'not strictly necessary' comment, it referred to use of
-rcu_assign_pointer() before it got replaced by RCU_INIT_POINTER().
-
-NB: Fixes tag intentionally incorrect, this extends the referenced commit,
-but this change won't build without IPS_HELPER introduced there.
-
-Fixes: 6714cf5465d280 ("netfilter: nf_conntrack: fix explicit helper attachment and NAT")
-Reported-by: Pham Thanh Tuyen <phamtyn@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/uapi/linux/netfilter/nf_conntrack_common.h | 2 +-
- net/netfilter/nf_conntrack_netlink.c               | 3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h b/include/uapi/linux/netfilter/nf_conntrack_common.h
-index 4b3395082d15..26071021e986 100644
---- a/include/uapi/linux/netfilter/nf_conntrack_common.h
-+++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
-@@ -106,7 +106,7 @@ enum ip_conntrack_status {
- 	IPS_NAT_CLASH = IPS_UNTRACKED,
- #endif
- 
--	/* Conntrack got a helper explicitly attached via CT target. */
-+	/* Conntrack got a helper explicitly attached (ruleset, ctnetlink). */
- 	IPS_HELPER_BIT = 13,
- 	IPS_HELPER = (1 << IPS_HELPER_BIT),
- 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index ac438370f94a..7032402ffd33 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -2311,7 +2311,8 @@ ctnetlink_create_conntrack(struct net *net,
- 			if (helper->from_nlattr)
- 				helper->from_nlattr(helpinfo, ct);
- 
--			/* not in hash table yet so not strictly necessary */
-+			/* disable helper auto-assignment for this entry */
-+			ct->status |= IPS_HELPER;
- 			RCU_INIT_POINTER(help->helper, helper);
- 		}
- 	} else {
--- 
-2.34.1
-
+Thanks
