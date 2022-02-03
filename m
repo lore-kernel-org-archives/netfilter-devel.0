@@ -2,34 +2,34 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 044D4C4332F
-	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Feb 2022 20:38:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD544C4332F
+	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Feb 2022 20:38:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1355360AbiBCUiM (ORCPT
+        id S1354853AbiBCUi0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 3 Feb 2022 15:38:12 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:38162 "EHLO
+        Thu, 3 Feb 2022 15:38:26 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:38470 "EHLO
         ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1355484AbiBCUfz (ORCPT
+        with ESMTP id S1354849AbiBCUgX (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 3 Feb 2022 15:35:55 -0500
+        Thu, 3 Feb 2022 15:36:23 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 703C1B835A9;
-        Thu,  3 Feb 2022 20:35:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3C55C340F0;
-        Thu,  3 Feb 2022 20:35:51 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D2B83B835B7;
+        Thu,  3 Feb 2022 20:36:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63C5CC340F0;
+        Thu,  3 Feb 2022 20:36:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1643920553;
-        bh=IpJaUgCby7BfLwA8UIjAkqWSIcHsUn66qeLSJKTrifk=;
+        s=k20201202; t=1643920580;
+        bh=0/eDp2nBWO9L8+R0vTLdOVB2+1U1RS2jU2CCwJjXkUM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=uRRNfjFsuBEgEDuwd3ErkhR7mIgTrxFiRoCMdVYqdfGWf2rFD9NhzdQZFPGmy2g4A
-         2VLcjX9zeng2qsQob4sn40T5R/Ixn/79+FLMM5kyBjSkvqfx+/6OwBscSsTu0h+ubb
-         8FnQgOIzXRC8hKvOi+pw5yQu8kmk5ZERSbV9e1HX8ATjZDWEJ3eYBwLWQGhkM0fPEQ
-         2X7THXYx/nNvYsyyEKqHgmv6YHfKTuXmJwXIs0QR+Td/BBJB/l2msxJ6XZ1Vym5YaW
-         pljQE1z6Rtxz2EjugWTZAmUI3Sd4T2rIngdRUGkoou5ZhvJ1iZJxXOyH8/6qddpfTz
-         N3di4drq8ogHQ==
+        b=MAeDRsgpbaIwDlLTbYEM+QDCjqd7MwhUXY1BSde9sl9FiKSbD0N0kUx5CrmLsRA3m
+         FIFEbc5EGVbCow/qz/yrXxeYPKoznJ4h/fwy3tdVp6dJnOZlRMQRZaP48WcJorxcKP
+         EAbb/mgfj2YJwzub3L76XU8E4nY13+4KdearIPFrzQFB0KfwwSmw4ubFXfftoBi8hI
+         vRgxd7/KbhBBRzHG3rXJc603og3iz5LRe4Gdzxvh6pi115mYhKltmHYlTsr9GgI5d2
+         s3t67QjRex9ho+9T6LHjTpml8TeliwKM3TYMXCoAQStwaJPPS/sZDbKg/fTGxSjqaT
+         59tp69qkQyezg==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Florian Westphal <fw@strlen.de>, Yi Chen <yiche@redhat.com>,
@@ -38,12 +38,12 @@ Cc:     Florian Westphal <fw@strlen.de>, Yi Chen <yiche@redhat.com>,
         davem@davemloft.net, kuba@kernel.org,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 04/15] netfilter: nf_conntrack_netbios_ns: fix helper module alias
-Date:   Thu,  3 Feb 2022 15:35:34 -0500
-Message-Id: <20220203203545.3879-4-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 04/10] netfilter: nf_conntrack_netbios_ns: fix helper module alias
+Date:   Thu,  3 Feb 2022 15:36:07 -0500
+Message-Id: <20220203203613.4165-4-sashal@kernel.org>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220203203545.3879-1-sashal@kernel.org>
-References: <20220203203545.3879-1-sashal@kernel.org>
+In-Reply-To: <20220203203613.4165-1-sashal@kernel.org>
+References: <20220203203613.4165-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -70,10 +70,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/net/netfilter/nf_conntrack_netbios_ns.c b/net/netfilter/nf_conntrack_netbios_ns.c
-index 7f19ee2596090..55415f011943d 100644
+index bac5848f1c8ef..17bb71e7dcf06 100644
 --- a/net/netfilter/nf_conntrack_netbios_ns.c
 +++ b/net/netfilter/nf_conntrack_netbios_ns.c
-@@ -20,13 +20,14 @@
+@@ -24,13 +24,14 @@
  #include <net/netfilter/nf_conntrack_helper.h>
  #include <net/netfilter/nf_conntrack_expect.h>
  
@@ -89,7 +89,7 @@ index 7f19ee2596090..55415f011943d 100644
  
  static unsigned int timeout __read_mostly = 3;
  module_param(timeout, uint, 0400);
-@@ -44,7 +45,7 @@ static int netbios_ns_help(struct sk_buff *skb, unsigned int protoff,
+@@ -48,7 +49,7 @@ static int netbios_ns_help(struct sk_buff *skb, unsigned int protoff,
  }
  
  static struct nf_conntrack_helper helper __read_mostly = {
