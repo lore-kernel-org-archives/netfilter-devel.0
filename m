@@ -2,58 +2,60 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 172ABC433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Feb 2022 21:46:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74696C433FE
+	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Feb 2022 22:23:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1355482AbiBCVq1 (ORCPT
+        id S1355785AbiBCWXg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 3 Feb 2022 16:46:27 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:42152 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235095AbiBCVq0 (ORCPT
+        Thu, 3 Feb 2022 17:23:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56160 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229910AbiBCWXe (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 3 Feb 2022 16:46:26 -0500
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 8B680B835B0;
-        Thu,  3 Feb 2022 21:46:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF46FC340E8;
-        Thu,  3 Feb 2022 21:46:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1643924784;
-        bh=cz9F09un3prr+okQMRs9hSqR+JLzwF/3XyJjh6bMmq4=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=ss8fX1T2g1p/L/dzhXDdWiuuwWyp09UOTwgeXBU7cHN6RCDEJyg7BjikFC6ACtNg/
-         0KgAI1836esegwzxz4zqX5FvPxotk3ToSJbnobRXgwfDze4R2wxMbaG9dbakH6lNHz
-         l1RzxEJkQnv2q52uRTsK0qdqfg9UYnZzRf+87zp3BU4rWbDIz/Aw01gPjfItKXNpUS
-         wj/Vy1+ImLQgm2sEVcgm3FAJUyhBLQk49o3my0IU48M2XOgZLaVg2/dTGFBuCVYdI2
-         giq+NoJu/zuCrfHQqijNQyR8Da8h6YzGUTFsUEbhFvBrJEjKhtOfjaaVqyetNVwMZh
-         V4edHyUMvD16Q==
-Date:   Thu, 3 Feb 2022 13:46:22 -0800
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Sasha Levin <sashal@kernel.org>
-Cc:     linux-kernel@vger.kernel.org, stable@vger.kernel.org,
-        Florian Westphal <fw@strlen.de>, Yi Chen <yiche@redhat.com>,
+        Thu, 3 Feb 2022 17:23:34 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C16B1C061714;
+        Thu,  3 Feb 2022 14:23:33 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1nFkVb-000435-Qq; Thu, 03 Feb 2022 23:23:19 +0100
+Date:   Thu, 3 Feb 2022 23:23:19 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     Jakub Kicinski <kuba@kernel.org>
+Cc:     Sasha Levin <sashal@kernel.org>, linux-kernel@vger.kernel.org,
+        stable@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+        Yi Chen <yiche@redhat.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         kadlec@netfilter.org, davem@davemloft.net,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
 Subject: Re: [PATCH AUTOSEL 5.16 05/52] netfilter: nf_conntrack_netbios_ns:
  fix helper module alias
-Message-ID: <20220203134622.5964eb15@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <20220203202947.2304-5-sashal@kernel.org>
+Message-ID: <20220203222319.GB14142@breakpoint.cc>
 References: <20220203202947.2304-1-sashal@kernel.org>
-        <20220203202947.2304-5-sashal@kernel.org>
+ <20220203202947.2304-5-sashal@kernel.org>
+ <20220203134622.5964eb15@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220203134622.5964eb15@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu,  3 Feb 2022 15:28:59 -0500 Sasha Levin wrote:
-> Intentionally not adding a fixes-tag because i don't want this to go to
-> stable. 
+Jakub Kicinski <kuba@kernel.org> wrote:
+> On Thu,  3 Feb 2022 15:28:59 -0500 Sasha Levin wrote:
+> > Intentionally not adding a fixes-tag because i don't want this to go to
+> > stable. 
+> 
+> Ekhm. ;)
 
-Ekhm. ;)
+Seems there is no way to hide fixes from stable guys :-)
+
+Seriously, I don't think there is anything going to break here because
+'modinfo nfct-helper-netbios_ns' and 'modinfo nfct-helper-netbios-ns'
+return same module.
+
+OTOH, this was noticed by pure coincidence; I don't think its
+important to have it in stable.
