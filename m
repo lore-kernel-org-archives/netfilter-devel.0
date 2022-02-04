@@ -2,60 +2,50 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74696C433FE
-	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Feb 2022 22:23:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3253DC433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Feb 2022 04:40:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1355785AbiBCWXg (ORCPT
+        id S236289AbiBDEkc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 3 Feb 2022 17:23:36 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56160 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229910AbiBCWXe (ORCPT
+        Thu, 3 Feb 2022 23:40:32 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:48988 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231887AbiBDEkb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 3 Feb 2022 17:23:34 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C16B1C061714;
-        Thu,  3 Feb 2022 14:23:33 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1nFkVb-000435-Qq; Thu, 03 Feb 2022 23:23:19 +0100
-Date:   Thu, 3 Feb 2022 23:23:19 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     Sasha Levin <sashal@kernel.org>, linux-kernel@vger.kernel.org,
-        stable@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-        Yi Chen <yiche@redhat.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        kadlec@netfilter.org, davem@davemloft.net,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: Re: [PATCH AUTOSEL 5.16 05/52] netfilter: nf_conntrack_netbios_ns:
- fix helper module alias
-Message-ID: <20220203222319.GB14142@breakpoint.cc>
-References: <20220203202947.2304-1-sashal@kernel.org>
- <20220203202947.2304-5-sashal@kernel.org>
- <20220203134622.5964eb15@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+        Thu, 3 Feb 2022 23:40:31 -0500
+Received: from netfilter.org (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 9E08C60195;
+        Fri,  4 Feb 2022 05:40:25 +0100 (CET)
+Date:   Fri, 4 Feb 2022 05:40:27 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org,
+        Vivek Thrivikraman <vivek.thrivikraman@est.tech>
+Subject: Re: [PATCH nf] netfilter: conntrack: don't refresh sctp entries in
+ closed state
+Message-ID: <YfyuO0Gbwno661sl@salvia>
+References: <20220128121332.16103-1-fw@strlen.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20220203134622.5964eb15@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20220128121332.16103-1-fw@strlen.de>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Jakub Kicinski <kuba@kernel.org> wrote:
-> On Thu,  3 Feb 2022 15:28:59 -0500 Sasha Levin wrote:
-> > Intentionally not adding a fixes-tag because i don't want this to go to
-> > stable. 
+On Fri, Jan 28, 2022 at 01:13:32PM +0100, Florian Westphal wrote:
+> Vivek Thrivikraman reported:
+>  An SCTP server application which is accessed continuously by client
+>  application.
+>  When the session disconnects the client retries to establish a connection.
+>  After restart of SCTP server application the session is not established
+>  because of stale conntrack entry with connection state CLOSED as below.
 > 
-> Ekhm. ;)
+>  (removing this entry manually established new connection):
+> 
+>  sctp 9 CLOSED src=10.141.189.233 [..]  [ASSURED]
+> 
+> Just skip timeout update of closed entries, we don't want them to
+> stay around forever.
 
-Seems there is no way to hide fixes from stable guys :-)
-
-Seriously, I don't think there is anything going to break here because
-'modinfo nfct-helper-netbios_ns' and 'modinfo nfct-helper-netbios-ns'
-return same module.
-
-OTOH, this was noticed by pure coincidence; I don't think its
-important to have it in stable.
+Applied
