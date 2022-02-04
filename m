@@ -2,183 +2,144 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CFC7C433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Feb 2022 14:24:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E35AC433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Feb 2022 14:47:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1359257AbiBDOYy (ORCPT
+        id S1359344AbiBDOrK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 4 Feb 2022 09:24:54 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:50190 "EHLO
-        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234877AbiBDOYw (ORCPT
+        Fri, 4 Feb 2022 09:47:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51214 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231160AbiBDOrJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 4 Feb 2022 09:24:52 -0500
-Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id A76F960012;
-        Fri,  4 Feb 2022 15:24:45 +0100 (CET)
-Date:   Fri, 4 Feb 2022 15:24:48 +0100
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] selftests: netfilter: add synproxy test
-Message-ID: <Yf03MCnrLed4ALAD@salvia>
-References: <20220204130233.8207-1-fw@strlen.de>
+        Fri, 4 Feb 2022 09:47:09 -0500
+Received: from mail-ed1-x543.google.com (mail-ed1-x543.google.com [IPv6:2a00:1450:4864:20::543])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4FBBC061714;
+        Fri,  4 Feb 2022 06:47:08 -0800 (PST)
+Received: by mail-ed1-x543.google.com with SMTP id p7so13503460edc.12;
+        Fri, 04 Feb 2022 06:47:08 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=wWp3X4UPWd440tI67mwYFPhgiomADBgs/mNH8wZeAl0=;
+        b=LEwr1bXTEO7IJ5xySYVUPr4GVIobsHChXleOt11h2qgc2Tkuq3OGHj4TDLreM91l21
+         icK0ga6mf32oY5VFoRFHGib8jvlOupXXuBoz+oQFGTaCs0WT7+XOXLeCxh0EjfYrTS03
+         8DLhTocpVjeQWtjfLriI/3M1r5pxFlVeYIeB1hiXMhuRj89eCogVtjo+t0g7CFV5f2mY
+         3CBYpZHxJLNXxF23VmJcTa4nhRS6pMSoJUSaUW+A4K+dDq/ccCwiteEtcRRgYF+52VHk
+         4dWaE7CEW520+VXNrlPOZeYsyNI4j9avdIm+CmBKylas3bSkTbP0C0WuU5QbK+z3hkb6
+         V7KQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=wWp3X4UPWd440tI67mwYFPhgiomADBgs/mNH8wZeAl0=;
+        b=O15QorgvZcjvM6aalYc2LelU/l0e2NyipWTZSOjNCssdwt8nnKWT/RH8rBnkNne2ic
+         VppY1coIURXW/hY8geouceNSmcYzOuXoMWgIR1z7SbpqmyvuhNXBYmHG5TsE7gjSG5Hx
+         WKnOxfpsMYpSloR32oazlHEcyk4e9t3F9/E7DIj6UZGlH+75dm+1CX1rtEMgF3DSK74E
+         SjXhRrYj6UqJ1Hyy/SfUPZZ7yjeBzAn2BBML/ZPdKUUbwhddRgAdULcVg68g+sGGvmYA
+         yU9Ap+pLnBFv4t8hAIQo90/s1vY+LTwQSo6dBCjr/qJIJwyV9eSOdjnahsuoYE0P6RCI
+         JuLw==
+X-Gm-Message-State: AOAM533tO48H8aSdgviGNAWHjt9vnH7cKMHImJaHu7P5B3wcdSEKVS3B
+        DqXOFwlGO66NcPKbxljuwUmMj/B0Ph6lwjfigH4=
+X-Google-Smtp-Source: ABdhPJyRdZi/L+7DYPZuGYGq/RtrcK04EagQGt8iR9vlrUsBkiN76WUoLIX+WPMSXv2o1iAeVim89cLhDSFjt5WUoJg=
+X-Received: by 2002:a05:6402:5203:: with SMTP id s3mr3298814edd.389.1643986027368;
+ Fri, 04 Feb 2022 06:47:07 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20220204130233.8207-1-fw@strlen.de>
+References: <20220128073319.1017084-1-imagedong@tencent.com>
+ <20220128073319.1017084-4-imagedong@tencent.com> <16e8de51-6b56-3dfe-e9c4-524ab40cdea9@gmail.com>
+In-Reply-To: <16e8de51-6b56-3dfe-e9c4-524ab40cdea9@gmail.com>
+From:   Menglong Dong <menglong8.dong@gmail.com>
+Date:   Fri, 4 Feb 2022 22:42:13 +0800
+Message-ID: <CADxym3aB380ZSGTtJwi3xAahXHgBhG41ACoXZhheZ9qOarizKQ@mail.gmail.com>
+Subject: Re: [PATCH v3 net-next 3/7] net: ipv4: use kfree_skb_reason() in ip_rcv_core()
+To:     David Ahern <dsahern@gmail.com>
+Cc:     David Ahern <dsahern@kernel.org>, Jakub Kicinski <kuba@kernel.org>,
+        Steven Rostedt <rostedt@goodmis.org>, mingo@redhat.com,
+        David Miller <davem@davemloft.net>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        pablo@netfilter.org, kadlec@netfilter.org,
+        Florian Westphal <fw@strlen.de>,
+        Menglong Dong <imagedong@tencent.com>,
+        Eric Dumazet <edumazet@google.com>, alobakin@pm.me,
+        paulb@nvidia.com, Kees Cook <keescook@chromium.org>,
+        talalahmad@google.com, haokexin@gmail.com, memxor@gmail.com,
+        LKML <linux-kernel@vger.kernel.org>,
+        netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, Cong Wang <cong.wang@bytedance.com>,
+        Mengen Sun <mengensun@tencent.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Feb 04, 2022 at 02:02:33PM +0100, Florian Westphal wrote:
-> Simple test for synproxy feature, iperf3 should be intercepted
-> by synproxy netns, but connection should still succeed.
+On Tue, Feb 1, 2022 at 2:06 AM David Ahern <dsahern@gmail.com> wrote:
+>
+> On 1/28/22 12:33 AM, menglong8.dong@gmail.com wrote:
+> \> diff --git a/net/ipv4/ip_input.c b/net/ipv4/ip_input.c
+> > index 3a025c011971..627fad437593 100644
+> > --- a/net/ipv4/ip_input.c
+> > +++ b/net/ipv4/ip_input.c
+> > @@ -436,13 +436,18 @@ static int ip_rcv_finish(struct net *net, struct sock *sk, struct sk_buff *skb)
+> >  static struct sk_buff *ip_rcv_core(struct sk_buff *skb, struct net *net)
+> >  {
+> >       const struct iphdr *iph;
+> > +     int drop_reason;
+> >       u32 len;
+> >
+> > +     drop_reason = SKB_DROP_REASON_NOT_SPECIFIED;
+>
+> move this line down, right before:
+>
+>         if (!pskb_may_pull(skb, sizeof(struct iphdr)))
+>                 goto inhdr_error;
+>
+> > +
+> >       /* When the interface is in promisc. mode, drop all the crap
+> >        * that it receives, do not try to analyse it.
+> >        */
+> > -     if (skb->pkt_type == PACKET_OTHERHOST)
+> > +     if (skb->pkt_type == PACKET_OTHERHOST) {
+> > +             drop_reason = SKB_DROP_REASON_OTHERHOST;
+> >               goto drop;
+> > +     }
+> >
+> >       __IP_UPD_PO_STATS(net, IPSTATS_MIB_IN, skb->len);
+> >
+> > @@ -488,6 +493,7 @@ static struct sk_buff *ip_rcv_core(struct sk_buff *skb, struct net *net)
+> >
+> >       len = ntohs(iph->tot_len);
+> >       if (skb->len < len) {
+> > +             drop_reason = SKB_DROP_REASON_PKT_TOO_SMALL;
+> >               __IP_INC_STATS(net, IPSTATS_MIB_INTRUNCATEDPKTS);
+> >               goto drop;
+> >       } else if (len < (iph->ihl*4))
+> > @@ -516,11 +522,13 @@ static struct sk_buff *ip_rcv_core(struct sk_buff *skb, struct net *net)
+> >       return skb;
+> >
+> >  csum_error:
+> > +     drop_reason = SKB_DROP_REASON_IP_CSUM;
+> >       __IP_INC_STATS(net, IPSTATS_MIB_CSUMERRORS);
+> >  inhdr_error:
+> > +     drop_reason = drop_reason ?: SKB_DROP_REASON_IP_INHDR;
+>
+> That makes assumptions about the value of SKB_DROP_REASON_NOT_SPECIFIED.
+> Make that line:
+>         if (drop_reason != SKB_DROP_REASON_NOT_SPECIFIED)
+>                 drop_reason = SKB_DROP_REASON_IP_INHDR;
+>
 
-It would be great to have a test for synproxy map support too in a
-follow up patch.
+You are right, the assumptions here are unsuitable. But I guess it
+should be this?
 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  tools/testing/selftests/netfilter/Makefile    |   2 +-
->  .../selftests/netfilter/nft_synproxy.sh       | 115 ++++++++++++++++++
->  2 files changed, 116 insertions(+), 1 deletion(-)
->  create mode 100755 tools/testing/selftests/netfilter/nft_synproxy.sh
-> 
-> diff --git a/tools/testing/selftests/netfilter/Makefile b/tools/testing/selftests/netfilter/Makefile
-> index ffca314897c4..e4f845dd942b 100644
-> --- a/tools/testing/selftests/netfilter/Makefile
-> +++ b/tools/testing/selftests/netfilter/Makefile
-> @@ -6,7 +6,7 @@ TEST_PROGS := nft_trans_stress.sh nft_fib.sh nft_nat.sh bridge_brouter.sh \
->  	nft_concat_range.sh nft_conntrack_helper.sh \
->  	nft_queue.sh nft_meta.sh nf_nat_edemux.sh \
->  	ipip-conntrack-mtu.sh conntrack_tcp_unreplied.sh \
-> -	conntrack_vrf.sh
-> +	conntrack_vrf.sh nft_synproxy.sh
->  
->  LDLIBS = -lmnl
->  TEST_GEN_FILES =  nf-queue
-> diff --git a/tools/testing/selftests/netfilter/nft_synproxy.sh b/tools/testing/selftests/netfilter/nft_synproxy.sh
-> new file mode 100755
-> index 000000000000..09bb95c87198
-> --- /dev/null
-> +++ b/tools/testing/selftests/netfilter/nft_synproxy.sh
-> @@ -0,0 +1,115 @@
-> +#!/bin/bash
-> +# SPDX-License-Identifier: GPL-2.0
-> +#
-> +
-> +# Kselftest framework requirement - SKIP code is 4.
-> +ksft_skip=4
-> +ret=0
-> +
-> +rnd=$(mktemp -u XXXXXXXX)
-> +nsr="nsr-$rnd"	# synproxy machine
-> +ns1="ns1-$rnd"  # iperf client
-> +ns2="ns2-$rnd"  # iperf server
-> +
-> +checktool (){
-> +	if ! $1 > /dev/null 2>&1; then
-> +		echo "SKIP: Could not $2"
-> +		exit $ksft_skip
-> +	fi
-> +}
-> +
-> +checktool "nft --version" "run test without nft tool"
-> +checktool "ip -Version" "run test without ip tool"
-> +checktool "iperf3 --version" "run test without iperf3"
-> +checktool "ip netns add $nsr" "create net namespace"
-> +
-> +ip netns add $ns1
-> +ip netns add $ns2
-> +
-> +cleanup() {
-> +	ip netns pids $ns1 | xargs kill 2>/dev/null
-> +	ip netns pids $ns2 | xargs kill 2>/dev/null
-> +	ip netns del $ns1
-> +	ip netns del $ns2
-> +
-> +	ip netns del $nsr
-> +}
-> +
-> +trap cleanup EXIT
-> +
-> +ip link add veth0 netns $nsr type veth peer name eth0 netns $ns1
-> +ip link add veth1 netns $nsr type veth peer name eth0 netns $ns2
-> +
-> +for dev in lo veth0 veth1; do
-> +ip -net $nsr link set $dev up
-> +done
-> +
-> +ip -net $nsr addr add 10.0.1.1/24 dev veth0
-> +ip -net $nsr addr add 10.0.2.1/24 dev veth1
-> +
-> +ip netns exec $nsr sysctl -q net.ipv4.conf.veth0.forwarding=1
-> +ip netns exec $nsr sysctl -q net.ipv4.conf.veth1.forwarding=1
-> +ip netns exec $nsr sysctl -q net.netfilter.nf_conntrack_tcp_loose=0
-> +
-> +for n in $ns1 $ns2; do
-> +  ip -net $n link set lo up
-> +  ip -net $n link set eth0 up
-> +done
-> +ip -net $ns1 addr add 10.0.1.99/24 dev eth0
-> +ip -net $ns2 addr add 10.0.2.99/24 dev eth0
-> +ip -net $ns1 route add default via 10.0.1.1
-> +ip -net $ns2 route add default via 10.0.2.1
-> +
-> +# test basic connectivity
-> +if ! ip netns exec $ns1 ping -c 1 -q 10.0.2.99 > /dev/null; then
-> +  echo "ERROR: $ns1 cannot reach $ns2" 1>&2
-> +  exit 1
-> +fi
-> +
-> +if ! ip netns exec $ns2 ping -c 1 -q 10.0.1.99 > /dev/null; then
-> +  echo "ERROR: $ns2 cannot reach $ns1" 1>&2
-> +  exit 1
-> +fi
-> +
-> +ip netns exec $ns2 iperf3 -s > /dev/null 2>&1 &
-> +# ip netns exec $nsr tcpdump -vvv -n -i veth1 tcp | head -n 10 &
-> +
-> +sleep 1
-> +
-> +ip netns exec $nsr nft -f - <<EOF
-> +table inet filter {
-> +   chain prerouting {
-> +      type filter hook prerouting priority -300; policy accept;
-> +      meta iif veth0 tcp flags syn counter notrack
-> +   }
-> +
-> +  chain forward {
-> +      type filter hook forward priority 0; policy accept;
-> +
-> +      ct state new,established counter accept
-> +
-> +      meta iif veth0 meta l4proto tcp ct state untracked,invalid synproxy mss 1460 sack-perm timestamp
-> +
-> +      ct state invalid counter drop
-> +
-> +      # make ns2 unreachable w.o. tcp synproxy
-> +      tcp flags syn counter drop
-> +   }
-> +}
-> +EOF
-> +if [ $? -ne 0 ]; then
-> +	echo "SKIP: Cannot add nft synproxy"
-> +	exit $ksft_skip
-> +fi
-> +
-> +ip netns exec $ns1 timeout 5 iperf3 -c 10.0.2.99 -n $((1 * 1024 * 1024)) > /dev/null
-> +
-> +if [ $? -ne 0 ]; then
-> +	echo "FAIL: iperf3 returned an error" 1>&2
-> +	ret=$?
-> +	ip netns exec $nsr nft list ruleset
-> +else
-> +	echo "PASS: synproxy connection successful"
-> +fi
-> +
-> +exit $ret
-> -- 
-> 2.34.1
-> 
+         if (drop_reason == SKB_DROP_REASON_NOT_SPECIFIED)
+                 drop_reason = SKB_DROP_REASON_IP_INHDR;
+
+> >       __IP_INC_STATS(net, IPSTATS_MIB_INHDRERRORS);
+> >  drop:
+> > -     kfree_skb(skb);
+> > +     kfree_skb_reason(skb, drop_reason);
+> >  out:
+> >       return NULL;
+> >  }
+>
