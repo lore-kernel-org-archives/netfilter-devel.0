@@ -2,26 +2,26 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5791CC433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Feb 2022 15:19:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68104C43219
+	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Feb 2022 15:19:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1359621AbiBDPTN (ORCPT
+        id S1359608AbiBDPTP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 4 Feb 2022 10:19:13 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:50332 "EHLO
+        Fri, 4 Feb 2022 10:19:15 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:50354 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242172AbiBDPTJ (ORCPT
+        with ESMTP id S1359624AbiBDPTO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 4 Feb 2022 10:19:09 -0500
+        Fri, 4 Feb 2022 10:19:14 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 534536018E;
-        Fri,  4 Feb 2022 16:19:03 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id C55AF60187;
+        Fri,  4 Feb 2022 16:19:07 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 1/6] netfilter: conntrack: don't refresh sctp entries in closed state
-Date:   Fri,  4 Feb 2022 16:18:57 +0100
-Message-Id: <20220204151903.320786-2-pablo@netfilter.org>
+Subject: [PATCH net 2/6] netfilter: nft_payload: don't allow th access for fragments
+Date:   Fri,  4 Feb 2022 16:18:59 +0100
+Message-Id: <20220204151903.320786-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220204151903.320786-1-pablo@netfilter.org>
 References: <20220204151903.320786-1-pablo@netfilter.org>
@@ -33,48 +33,74 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-Vivek Thrivikraman reported:
- An SCTP server application which is accessed continuously by client
- application.
- When the session disconnects the client retries to establish a connection.
- After restart of SCTP server application the session is not established
- because of stale conntrack entry with connection state CLOSED as below.
+Loads relative to ->thoff naturally expect that this points to the
+transport header, but this is only true if pkt->fragoff == 0.
 
- (removing this entry manually established new connection):
+This has little effect for rulesets with connection tracking/nat because
+these enable ip defra. For other rulesets this prevents false matches.
 
- sctp 9 CLOSED src=10.141.189.233 [..]  [ASSURED]
-
-Just skip timeout update of closed entries, we don't want them to
-stay around forever.
-
-Reported-and-tested-by: Vivek Thrivikraman <vivek.thrivikraman@est.tech>
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1579
+Fixes: 96518518cc41 ("netfilter: add nftables")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_proto_sctp.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ net/netfilter/nft_exthdr.c  | 2 +-
+ net/netfilter/nft_payload.c | 9 +++++----
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index 2394238d01c9..5a936334b517 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -489,6 +489,15 @@ int nf_conntrack_sctp_packet(struct nf_conn *ct,
- 			pr_debug("Setting vtag %x for dir %d\n",
- 				 ih->init_tag, !dir);
- 			ct->proto.sctp.vtag[!dir] = ih->init_tag;
-+
-+			/* don't renew timeout on init retransmit so
-+			 * port reuse by client or NAT middlebox cannot
-+			 * keep entry alive indefinitely (incl. nat info).
-+			 */
-+			if (new_state == SCTP_CONNTRACK_CLOSED &&
-+			    old_state == SCTP_CONNTRACK_CLOSED &&
-+			    nf_ct_is_confirmed(ct))
-+				ignore = true;
- 		}
+diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
+index dbe1f2e7dd9e..9e927ab4df15 100644
+--- a/net/netfilter/nft_exthdr.c
++++ b/net/netfilter/nft_exthdr.c
+@@ -167,7 +167,7 @@ nft_tcp_header_pointer(const struct nft_pktinfo *pkt,
+ {
+ 	struct tcphdr *tcph;
  
- 		ct->proto.sctp.state = new_state;
+-	if (pkt->tprot != IPPROTO_TCP)
++	if (pkt->tprot != IPPROTO_TCP || pkt->fragoff)
+ 		return NULL;
+ 
+ 	tcph = skb_header_pointer(pkt->skb, nft_thoff(pkt), sizeof(*tcph), buffer);
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index 940fed9a760b..5cc06aef4345 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -83,7 +83,7 @@ static int __nft_payload_inner_offset(struct nft_pktinfo *pkt)
+ {
+ 	unsigned int thoff = nft_thoff(pkt);
+ 
+-	if (!(pkt->flags & NFT_PKTINFO_L4PROTO))
++	if (!(pkt->flags & NFT_PKTINFO_L4PROTO) || pkt->fragoff)
+ 		return -1;
+ 
+ 	switch (pkt->tprot) {
+@@ -147,7 +147,7 @@ void nft_payload_eval(const struct nft_expr *expr,
+ 		offset = skb_network_offset(skb);
+ 		break;
+ 	case NFT_PAYLOAD_TRANSPORT_HEADER:
+-		if (!(pkt->flags & NFT_PKTINFO_L4PROTO))
++		if (!(pkt->flags & NFT_PKTINFO_L4PROTO) || pkt->fragoff)
+ 			goto err;
+ 		offset = nft_thoff(pkt);
+ 		break;
+@@ -688,7 +688,7 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
+ 		offset = skb_network_offset(skb);
+ 		break;
+ 	case NFT_PAYLOAD_TRANSPORT_HEADER:
+-		if (!(pkt->flags & NFT_PKTINFO_L4PROTO))
++		if (!(pkt->flags & NFT_PKTINFO_L4PROTO) || pkt->fragoff)
+ 			goto err;
+ 		offset = nft_thoff(pkt);
+ 		break;
+@@ -728,7 +728,8 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
+ 	if (priv->csum_type == NFT_PAYLOAD_CSUM_SCTP &&
+ 	    pkt->tprot == IPPROTO_SCTP &&
+ 	    skb->ip_summed != CHECKSUM_PARTIAL) {
+-		if (nft_payload_csum_sctp(skb, nft_thoff(pkt)))
++		if (pkt->fragoff == 0 &&
++		    nft_payload_csum_sctp(skb, nft_thoff(pkt)))
+ 			goto err;
+ 	}
+ 
 -- 
 2.30.2
 
