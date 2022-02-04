@@ -2,58 +2,58 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EF40C433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Feb 2022 04:43:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB288C433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Feb 2022 05:09:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1356681AbiBDEnC (ORCPT
+        id S231537AbiBDFJN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 3 Feb 2022 23:43:02 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:49052 "EHLO
+        Fri, 4 Feb 2022 00:09:13 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:49090 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231887AbiBDEnB (ORCPT
+        with ESMTP id S229887AbiBDFJL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 3 Feb 2022 23:43:01 -0500
+        Fri, 4 Feb 2022 00:09:11 -0500
 Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 9B48660195;
-        Fri,  4 Feb 2022 05:42:55 +0100 (CET)
-Date:   Fri, 4 Feb 2022 05:42:58 +0100
+        by mail.netfilter.org (Postfix) with ESMTPSA id 8F45460198;
+        Fri,  4 Feb 2022 06:09:04 +0100 (CET)
+Date:   Fri, 4 Feb 2022 06:09:07 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org,
-        Pham Thanh Tuyen <phamtyn@gmail.com>
-Subject: Re: [PATCH nf] netfilter: ctnetlink: disable helper autoassign
-Message-ID: <Yfyu0n5us5SR9M4j@salvia>
-References: <20220202110056.22574-1-fw@strlen.de>
+To:     Kevin Mitchell <kevmitch@arista.com>
+Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/1] netfilter: conntrack: mark UDP zero checksum as
+ CHECKSUM_UNNECESSARY
+Message-ID: <Yfy08zMz6Duyz54/@salvia>
+References: <20220115040050.187972-1-kevmitch@arista.com>
+ <20220115040050.187972-2-kevmitch@arista.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20220202110056.22574-1-fw@strlen.de>
+In-Reply-To: <20220115040050.187972-2-kevmitch@arista.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Feb 02, 2022 at 12:00:56PM +0100, Florian Westphal wrote:
-> When userspace, e.g. conntrackd, inserts an entry with a specified helper,
-> its possible that the helper is lost immediately after its added:
+On Fri, Jan 14, 2022 at 08:00:50PM -0800, Kevin Mitchell wrote:
+> The udp_error function verifies the checksum of incoming UDP packets if
+> one is set. This has the desirable side effect of setting skb->ip_summed
+> to CHECKSUM_COMPLETE, signalling that this verification need not be
+> repeated further up the stack.
 > 
-> ctnetlink_create_conntrack
->   -> nf_ct_helper_ext_add + assign helper
->     -> ctnetlink_setup_nat
->       -> ctnetlink_parse_nat_setup
->          -> parse_nat_setup -> nfnetlink_parse_nat_setup
-> 	                       -> nf_nat_setup_info
->                                  -> nf_conntrack_alter_reply
->                                    -> __nf_ct_try_assign_helper
+> Conversely, when the UDP checksum is empty, which is perfectly legal (at least
+> inside IPv4), udp_error previously left no trace that the checksum had been
+> deemed acceptable.
 > 
-> ... and __nf_ct_try_assign_helper will zero the helper again.
+> This was a problem in particular for nf_reject_ipv4, which verifies the
+> checksum in nf_send_unreach() before sending ICMP_DEST_UNREACH. It makes
+> no accommodation for zero UDP checksums unless they are already marked
+> as CHECKSUM_UNNECESSARY.
 > 
-> Set IPS_HELPER bit to bypass auto-assign logic, its unwanted, just like
-> when helper is assigned via ruleset.
-> 
-> Dropped old 'not strictly necessary' comment, it referred to use of
-> rcu_assign_pointer() before it got replaced by RCU_INIT_POINTER().
-> 
-> NB: Fixes tag intentionally incorrect, this extends the referenced commit,
-> but this change won't build without IPS_HELPER introduced there.
+> This commit ensures packets with empty UDP checksum are marked as
+> CHECKSUM_UNNECESSARY, which is explicitly recommended in skbuff.h.
 
-Applied.
+Applied to nf-next
