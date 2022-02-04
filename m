@@ -2,26 +2,26 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3436C4332F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CCDABC43217
 	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Feb 2022 15:19:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1359635AbiBDPTV (ORCPT
+        id S1359630AbiBDPTV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Fri, 4 Feb 2022 10:19:21 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:50388 "EHLO
+Received: from mail.netfilter.org ([217.70.188.207]:50404 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1359624AbiBDPTR (ORCPT
+        with ESMTP id S1359633AbiBDPTS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 4 Feb 2022 10:19:17 -0500
+        Fri, 4 Feb 2022 10:19:18 -0500
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 7AD0E6019D;
-        Fri,  4 Feb 2022 16:19:10 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id A3B24601A3;
+        Fri,  4 Feb 2022 16:19:11 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 4/6] netfilter: conntrack: re-init state for retransmitted syn-ack
-Date:   Fri,  4 Feb 2022 16:19:01 +0100
-Message-Id: <20220204151903.320786-6-pablo@netfilter.org>
+Subject: [PATCH net 6/6] netfilter: ctnetlink: disable helper autoassign
+Date:   Fri,  4 Feb 2022 16:19:03 +0100
+Message-Id: <20220204151903.320786-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220204151903.320786-1-pablo@netfilter.org>
 References: <20220204151903.320786-1-pablo@netfilter.org>
@@ -33,76 +33,65 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-TCP conntrack assumes that a syn-ack retransmit is identical to the
-previous syn-ack.  This isn't correct and causes stuck 3whs in some more
-esoteric scenarios.  tcpdump to illustrate the problem:
+When userspace, e.g. conntrackd, inserts an entry with a specified helper,
+its possible that the helper is lost immediately after its added:
 
- client > server: Flags [S] seq 1365731894, win 29200, [mss 1460,sackOK,TS val 2083035583 ecr 0,wscale 7]
- server > client: Flags [S.] seq 145824453, ack 643160523, win 65535, [mss 8952,wscale 5,TS val 3215367629 ecr 2082921663]
+ctnetlink_create_conntrack
+  -> nf_ct_helper_ext_add + assign helper
+    -> ctnetlink_setup_nat
+      -> ctnetlink_parse_nat_setup
+         -> parse_nat_setup -> nfnetlink_parse_nat_setup
+	                       -> nf_nat_setup_info
+                                 -> nf_conntrack_alter_reply
+                                   -> __nf_ct_try_assign_helper
 
-Note the invalid/outdated synack ack number.
-Conntrack marks this syn-ack as out-of-window/invalid, but it did
-initialize the reply direction parameters based on this packets content.
+... and __nf_ct_try_assign_helper will zero the helper again.
 
- client > server: Flags [S] seq 1365731894, win 29200, [mss 1460,sackOK,TS val 2083036623 ecr 0,wscale 7]
+Set IPS_HELPER bit to bypass auto-assign logic, its unwanted, just like
+when helper is assigned via ruleset.
 
-... retransmit...
+Dropped old 'not strictly necessary' comment, it referred to use of
+rcu_assign_pointer() before it got replaced by RCU_INIT_POINTER().
 
- server > client: Flags [S.], seq 145824453, ack 643160523, win 65535, [mss 8952,wscale 5,TS val 3215368644 ecr 2082921663]
+NB: Fixes tag intentionally incorrect, this extends the referenced commit,
+but this change won't build without IPS_HELPER introduced there.
 
-and another bogus synack. This repeats, then client re-uses for a new
-attempt:
-
-client > server: Flags [S], seq 2375731741, win 29200, [mss 1460,sackOK,TS val 2083100223 ecr 0,wscale 7]
-server > client: Flags [S.], seq 145824453, ack 643160523, win 65535, [mss 8952,wscale 5,TS val 3215430754 ecr 2082921663]
-
-... but still gets a invalid syn-ack.
-
-This repeats until:
-
- server > client: Flags [S.], seq 145824453, ack 643160523, win 65535, [mss 8952,wscale 5,TS val 3215437785 ecr 2082921663]
- server > client: Flags [R.], seq 145824454, ack 643160523, win 65535, [mss 8952,wscale 5,TS val 3215443451 ecr 2082921663]
- client > server: Flags [S], seq 2375731741, win 29200, [mss 1460,sackOK,TS val 2083115583 ecr 0,wscale 7]
- server > client: Flags [S.], seq 162602410, ack 2375731742, win 65535, [mss 8952,wscale 5,TS val 3215445754 ecr 2083115583]
-
-This syn-ack has the correct ack number, but conntrack flags it as
-invalid: The internal state was created from the first syn-ack seen
-so the sequence number of the syn-ack is treated as being outside of
-the announced window.
-
-Don't assume that retransmitted syn-ack is identical to previous one.
-Treat it like the first syn-ack and reinit state.
-
+Fixes: 6714cf5465d280 ("netfilter: nf_conntrack: fix explicit helper attachment and NAT")
+Reported-by: Pham Thanh Tuyen <phamtyn@gmail.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
-Acked-by: Jozsef Kadlecsik <kadlec@netfilter.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_proto_tcp.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ include/uapi/linux/netfilter/nf_conntrack_common.h | 2 +-
+ net/netfilter/nf_conntrack_netlink.c               | 3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 88c89e97d8a2..d1582b888c0d 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -571,6 +571,18 @@ static bool tcp_in_window(struct nf_conn *ct,
- 		sender->td_maxwin = (win == 0 ? 1 : win);
+diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h b/include/uapi/linux/netfilter/nf_conntrack_common.h
+index 4b3395082d15..26071021e986 100644
+--- a/include/uapi/linux/netfilter/nf_conntrack_common.h
++++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
+@@ -106,7 +106,7 @@ enum ip_conntrack_status {
+ 	IPS_NAT_CLASH = IPS_UNTRACKED,
+ #endif
  
- 		tcp_options(skb, dataoff, tcph, sender);
-+	} else if (tcph->syn && dir == IP_CT_DIR_REPLY &&
-+		   state->state == TCP_CONNTRACK_SYN_SENT) {
-+		/* Retransmitted syn-ack, or syn (simultaneous open).
-+		 *
-+		 * Re-init state for this direction, just like for the first
-+		 * syn(-ack) reply, it might differ in seq, ack or tcp options.
-+		 */
-+		tcp_init_sender(sender, receiver,
-+				skb, dataoff, tcph,
-+				end, win);
-+		if (!tcph->ack)
-+			return true;
- 	}
+-	/* Conntrack got a helper explicitly attached via CT target. */
++	/* Conntrack got a helper explicitly attached (ruleset, ctnetlink). */
+ 	IPS_HELPER_BIT = 13,
+ 	IPS_HELPER = (1 << IPS_HELPER_BIT),
  
- 	if (!(tcph->ack)) {
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index ac438370f94a..7032402ffd33 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -2311,7 +2311,8 @@ ctnetlink_create_conntrack(struct net *net,
+ 			if (helper->from_nlattr)
+ 				helper->from_nlattr(helpinfo, ct);
+ 
+-			/* not in hash table yet so not strictly necessary */
++			/* disable helper auto-assignment for this entry */
++			ct->status |= IPS_HELPER;
+ 			RCU_INIT_POINTER(help->helper, helper);
+ 		}
+ 	} else {
 -- 
 2.30.2
 
