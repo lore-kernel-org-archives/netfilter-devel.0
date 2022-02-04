@@ -2,137 +2,112 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35CB1C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Feb 2022 17:00:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85C26C433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Feb 2022 17:00:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357523AbiBDRAQ (ORCPT
+        id S1352413AbiBDRAU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 4 Feb 2022 12:00:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53612 "EHLO
+        Fri, 4 Feb 2022 12:00:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53634 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233140AbiBDRAP (ORCPT
+        with ESMTP id S233140AbiBDRAU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 4 Feb 2022 12:00:15 -0500
+        Fri, 4 Feb 2022 12:00:20 -0500
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CAB10C061714
-        for <netfilter-devel@vger.kernel.org>; Fri,  4 Feb 2022 09:00:14 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 323FDC061714
+        for <netfilter-devel@vger.kernel.org>; Fri,  4 Feb 2022 09:00:20 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
-        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=sEM5KISJ69HloS3gbhsv9mwpysu3dbuiJCf6r0pj2R8=; b=P9U5E1JSOPUkada5GYgCrF8+ae
-        fSvmavKPHor94Yw9LwSzLD8WaMLR1gcFjFEFpe4vtwLsYAJc+v9X+5R6vAujE2S8/1sr6SxdSbcmu
-        i5OSMPYT3achG+DCGlA0KZP21ySDVMArruyYTmo8BO+rQadMmy1zNbARGlFRqsZyy1pqkorGot30l
-        7uteB3fn75BpxPVFStp1kBbdRihA7SdgqWdfL6goSLyIHbbeSmZSWoCn+CYxDJa5oBCnHnqThuh0j
-        6R0W06xf4gQ8Fuq1kmV041WkqdoExwVriF03v7N/+NhxZRKXGS2qGrTto76Z5cjhs56wm+rWmY+xm
-        puLTMEpg==;
+        bh=JCOu8CX295/h8YlMQANdu7omA0VvUoU2wMlhq0bDh/8=; b=LrZ4atQB+RAO2DpifITaSZcYyI
+        ZHBPAX2SCq4yhSkJ20c00e+YjQG6y1fj+HbrHGbHSGCoc0iqE/nm3FoO0/V2rcFPLTFwC1R7CnTyD
+        cCFharv/OaCcclnuJ6NDVr/ScvjQw93DtTICyMtmur4d3l17hpWpwCOc7+dMzlY5DVmIvPe+TNZ0x
+        VK0QhBMGXvwBD/f1ZIyhah3LGme+9d+exjBgMwuR2BiYGkNngCexE/xOuby/TsuPN0z2WerzZddxu
+        KNSwzsITCIPZyKXZoa6jznuvfOJTwDzhnK7fPj1f5F9Eklh9NUeoQN0ABQCog3VUHk7oShCbTFYWS
+        acqLL2Ig==;
 Received: from localhost ([::1] helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1nG1wT-00049T-6M; Fri, 04 Feb 2022 18:00:13 +0100
+        id 1nG1wY-0004A0-G6; Fri, 04 Feb 2022 18:00:18 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 1/4] nft: Set NFTNL_CHAIN_FAMILY in new chains
-Date:   Fri,  4 Feb 2022 17:59:58 +0100
-Message-Id: <20220204170001.27198-1-phil@nwl.cc>
+Subject: [iptables PATCH 4/4] nft: cache: Dump rules if debugging
+Date:   Fri,  4 Feb 2022 18:00:01 +0100
+Message-Id: <20220204170001.27198-4-phil@nwl.cc>
 X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20220204170001.27198-1-phil@nwl.cc>
+References: <20220204170001.27198-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Kernel doesn't need it, but debug output improves significantly. Before
-this patch:
-
-| # iptables-nft -vv -A INPUT
-| [...]
-| unknown filter INPUT use 0 type filter hook unknown prio 0 policy accept packets 0 bytes 0
-| [...]
-
-and after:
-
-| # iptables-nft -vv -A INPUT
-| [...]
-| ip filter INPUT use 0 type filter hook input prio 0 policy accept packets 0 bytes 0
-| [...]
-
-While being at it, make nft_chain_builtin_alloc() take only the builtin
-table's name as parameter - it's the only field it accesses.
+If verbose flag was given twice, dump rules while populating the cache.
+This not only applies to list commands, but all requiring a rule cache -
+e.g. insert with position.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/nft.c | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ iptables/nft-cache.c | 18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
-diff --git a/iptables/nft.c b/iptables/nft.c
-index 7cc6ca5258150..301d6c342f982 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -665,7 +665,7 @@ static int nft_table_builtin_add(struct nft_handle *h,
+diff --git a/iptables/nft-cache.c b/iptables/nft-cache.c
+index 43ac291ec84b2..608e42a7aa01b 100644
+--- a/iptables/nft-cache.c
++++ b/iptables/nft-cache.c
+@@ -538,9 +538,15 @@ static int fetch_chain_cache(struct nft_handle *h,
+ 	return ret;
  }
  
- static struct nftnl_chain *
--nft_chain_builtin_alloc(const struct builtin_table *table,
-+nft_chain_builtin_alloc(int family, const char *tname,
- 			const struct builtin_chain *chain, int policy)
++struct rule_list_cb_data {
++	struct nftnl_chain *chain;
++	int verbose;
++};
++
+ static int nftnl_rule_list_cb(const struct nlmsghdr *nlh, void *data)
  {
- 	struct nftnl_chain *c;
-@@ -674,7 +674,8 @@ nft_chain_builtin_alloc(const struct builtin_table *table,
- 	if (c == NULL)
- 		return NULL;
+-	struct nftnl_chain *c = data;
++	struct rule_list_cb_data *rld = data;
++	struct nftnl_chain *c = rld->chain;
+ 	struct nftnl_rule *r;
  
--	nftnl_chain_set_str(c, NFTNL_CHAIN_TABLE, table->name);
-+	nftnl_chain_set_u32(c, NFTNL_CHAIN_FAMILY, family);
-+	nftnl_chain_set_str(c, NFTNL_CHAIN_TABLE, tname);
- 	nftnl_chain_set_str(c, NFTNL_CHAIN_NAME, chain->name);
- 	nftnl_chain_set_u32(c, NFTNL_CHAIN_HOOKNUM, chain->hook);
- 	nftnl_chain_set_u32(c, NFTNL_CHAIN_PRIO, chain->prio);
-@@ -693,7 +694,7 @@ static void nft_chain_builtin_add(struct nft_handle *h,
+ 	r = nftnl_rule_alloc();
+@@ -552,6 +558,10 @@ static int nftnl_rule_list_cb(const struct nlmsghdr *nlh, void *data)
+ 		return MNL_CB_OK;
+ 	}
+ 
++	if (rld->verbose > 1) {
++		nftnl_rule_fprintf(stdout, r, 0, 0);
++		fprintf(stdout, "\n");
++	}
+ 	nftnl_chain_rule_add_tail(r, c);
+ 	return MNL_CB_OK;
+ }
+@@ -560,6 +570,10 @@ static int nft_rule_list_update(struct nft_chain *nc, void *data)
  {
- 	struct nftnl_chain *c;
+ 	struct nftnl_chain *c = nc->nftnl;
+ 	struct nft_handle *h = data;
++	struct rule_list_cb_data rld = {
++		.chain = c,
++		.verbose = h->verbose,
++	};
+ 	char buf[16536];
+ 	struct nlmsghdr *nlh;
+ 	struct nftnl_rule *rule;
+@@ -581,7 +595,7 @@ static int nft_rule_list_update(struct nft_chain *nc, void *data)
+ 					NLM_F_DUMP, h->seq);
+ 	nftnl_rule_nlmsg_build_payload(nlh, rule);
  
--	c = nft_chain_builtin_alloc(table, chain, NF_ACCEPT);
-+	c = nft_chain_builtin_alloc(h->family, table->name, chain, NF_ACCEPT);
- 	if (c == NULL)
- 		return;
+-	ret = mnl_talk(h, nlh, nftnl_rule_list_cb, c);
++	ret = mnl_talk(h, nlh, nftnl_rule_list_cb, &rld);
+ 	if (ret < 0 && errno == EINTR)
+ 		assert(nft_restart(h) >= 0);
  
-@@ -959,7 +960,7 @@ static struct nftnl_chain *nft_chain_new(struct nft_handle *h,
- 	_c = nft_chain_builtin_find(_t, chain);
- 	if (_c != NULL) {
- 		/* This is a built-in chain */
--		c = nft_chain_builtin_alloc(_t, _c, policy);
-+		c = nft_chain_builtin_alloc(h->family, _t->name, _c, policy);
- 		if (c == NULL)
- 			return NULL;
- 	} else {
-@@ -1999,6 +2000,7 @@ int nft_chain_user_add(struct nft_handle *h, const char *chain, const char *tabl
- 	if (c == NULL)
- 		return 0;
- 
-+	nftnl_chain_set_u32(c, NFTNL_CHAIN_FAMILY, h->family);
- 	nftnl_chain_set_str(c, NFTNL_CHAIN_TABLE, table);
- 	nftnl_chain_set_str(c, NFTNL_CHAIN_NAME, chain);
- 	if (h->family == NFPROTO_BRIDGE)
-@@ -2029,6 +2031,7 @@ int nft_chain_restore(struct nft_handle *h, const char *chain, const char *table
- 		if (!c)
- 			return 0;
- 
-+		nftnl_chain_set_u32(c, NFTNL_CHAIN_FAMILY, h->family);
- 		nftnl_chain_set_str(c, NFTNL_CHAIN_TABLE, table);
- 		nftnl_chain_set_str(c, NFTNL_CHAIN_NAME, chain);
- 		created = true;
-@@ -2190,6 +2193,7 @@ int nft_chain_user_rename(struct nft_handle *h,const char *chain,
- 	if (c == NULL)
- 		return 0;
- 
-+	nftnl_chain_set_u32(c, NFTNL_CHAIN_FAMILY, h->family);
- 	nftnl_chain_set_str(c, NFTNL_CHAIN_TABLE, table);
- 	nftnl_chain_set_str(c, NFTNL_CHAIN_NAME, newname);
- 	nftnl_chain_set_u64(c, NFTNL_CHAIN_HANDLE, handle);
 -- 
 2.34.1
 
