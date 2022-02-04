@@ -2,72 +2,195 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D37CEC433FE
-	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Feb 2022 13:27:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D20CCC433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Feb 2022 14:12:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235551AbiBDN1L (ORCPT
+        id S240677AbiBDOMG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 4 Feb 2022 08:27:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60766 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1358702AbiBDN1K (ORCPT
+        Fri, 4 Feb 2022 09:12:06 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:50136 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232803AbiBDOMG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 4 Feb 2022 08:27:10 -0500
-Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B16AC061714
-        for <netfilter-devel@vger.kernel.org>; Fri,  4 Feb 2022 05:27:10 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=g4uaHLQZryEV5VPYpeznUbdkB1ph2StM4U+RjpVDLZg=; b=qMPbxWrHf3rVGH/WfilrckubpM
-        qEYhOe9l23kSNZxRCwc/0G0zLxK6ooLZB1gbTI4qvngE66KNoX9zR9aFOHwp8/kT9R8aWqBAdR4Tv
-        be4W44m4jcmZwFSJHA9NxG3pa1UFDJW2nNwENiOZdXgkuPPUPM0pgh3MO3RYxxZHt/ZAwFZ1Wdcty
-        FEIFiSlN/+CR8vrvyuMTqvR+4H29b+OuG+hJ+qzdbe4UH++h2cI+FxzJxFA9UkniXetexoor8udwM
-        iiYBdCNBX0TUvoHyasedIBQObS53eCplAYxm0FLXGz4F2/12T0n1W7WYacOwW1CXoZc5upEJCYWvm
-        UxuCBY4g==;
-Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
-        by kadath.azazel.net with esmtp (Exim 4.94.2)
-        (envelope-from <jeremy@azazel.net>)
-        id 1nFycG-00BLdH-KR; Fri, 04 Feb 2022 13:27:08 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Jan Engelhardt <jengelh@inai.de>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [xtables-addons PATCH 2/2] build: bump supported kernel version to 5.17
-Date:   Fri,  4 Feb 2022 13:26:43 +0000
-Message-Id: <20220204132643.1212741-3-jeremy@azazel.net>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220204132643.1212741-1-jeremy@azazel.net>
-References: <20220204132643.1212741-1-jeremy@azazel.net>
+        Fri, 4 Feb 2022 09:12:06 -0500
+Received: from localhost.localdomain (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 638B46019D
+        for <netfilter-devel@vger.kernel.org>; Fri,  4 Feb 2022 15:12:00 +0100 (CET)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next] netfilter: nft_cmp: optimize comparison for up to 16-bytes
+Date:   Fri,  4 Feb 2022 15:12:00 +0100
+Message-Id: <20220204141200.319679-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- configure.ac | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Allow up to 16-byte comparisons with the cmp fast version. Use two
+64-bit words and calculate the mask representing the bits to be
+compared. Make sure the comparison is 64-bit aligned and avoid
+out-of-bound memory access.
 
-diff --git a/configure.ac b/configure.ac
-index 44148d2cf349..1670ab942098 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -59,7 +59,7 @@ AS_IF([test -n "$kbuilddir"], [
- 		yoff
- 	], [
- 		echo "$kmajor.$kminor.$kmicro.$kstable in $kbuilddir";
--		if test "$kmajor" -gt 5 -o "$kmajor" -eq 5 -a "$kminor" -gt 16; then
-+		if test "$kmajor" -gt 5 -o "$kmajor" -eq 5 -a "$kminor" -gt 17; then
- 			yon
- 			echo "WARNING: That kernel version is not officially supported yet. Continue at own luck.";
- 			yoff
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_tables_core.h |  4 +--
+ net/netfilter/nf_tables_core.c         |  6 +++-
+ net/netfilter/nft_cmp.c                | 48 +++++++++++++++++---------
+ 3 files changed, 38 insertions(+), 20 deletions(-)
+
+diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
+index b6fb1fdff9b2..52395e216ecc 100644
+--- a/include/net/netfilter/nf_tables_core.h
++++ b/include/net/netfilter/nf_tables_core.h
+@@ -35,8 +35,8 @@ struct nft_bitwise_fast_expr {
+ };
+ 
+ struct nft_cmp_fast_expr {
+-	u32			data;
+-	u32			mask;
++	struct nft_data		data;
++	struct nft_data		mask;
+ 	u8			sreg;
+ 	u8			len;
+ 	bool			inv;
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index 36e73f9828c5..000c598cbc13 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -61,8 +61,12 @@ static void nft_cmp_fast_eval(const struct nft_expr *expr,
+ 			      struct nft_regs *regs)
+ {
+ 	const struct nft_cmp_fast_expr *priv = nft_expr_priv(expr);
++	const u64 *reg_data = (const u64 *)&regs->data[priv->sreg];
++	const u64 *mask = (const u64 *)&priv->mask;
++	const u64 *data = (const u64 *)&priv->data;
+ 
+-	if (((regs->data[priv->sreg] & priv->mask) == priv->data) ^ priv->inv)
++	if (((reg_data[0] & mask[0]) == data[0] &&
++	    ((reg_data[1] & mask[1]) == data[1])) ^ priv->inv)
+ 		return;
+ 	regs->verdict.code = NFT_BREAK;
+ }
+diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
+index 47b6d05f1ae6..ea9dcb380cac 100644
+--- a/net/netfilter/nft_cmp.c
++++ b/net/netfilter/nft_cmp.c
+@@ -76,6 +76,7 @@ static int nft_cmp_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 	struct nft_data_desc desc;
+ 	int err;
+ 
++	memset(&priv->data, 0, sizeof(priv->data));
+ 	err = nft_data_init(NULL, &priv->data, sizeof(priv->data), &desc,
+ 			    tb[NFTA_CMP_DATA]);
+ 	if (err < 0)
+@@ -196,16 +197,32 @@ static const struct nft_expr_ops nft_cmp_ops = {
+ 	.offload	= nft_cmp_offload,
+ };
+ 
++static void nft_cmp16_fast_mask(struct nft_data *data, unsigned int bitlen)
++{
++	int len = bitlen / BITS_PER_BYTE;
++	int i, words = len / sizeof(u32);
++
++	for (i = 0; i < words; i++) {
++		data->data[i] = 0xffffffff;
++		bitlen -= sizeof(u32) * BITS_PER_BYTE;
++	}
++
++	if (len % sizeof(u32))
++		data->data[i++] = cpu_to_le32(~0U >> (sizeof(u32) * BITS_PER_BYTE - bitlen));
++
++	for (; i < 4; i++)
++		data->data[i] = 0;
++}
++
+ static int nft_cmp_fast_init(const struct nft_ctx *ctx,
+ 			     const struct nft_expr *expr,
+ 			     const struct nlattr * const tb[])
+ {
+ 	struct nft_cmp_fast_expr *priv = nft_expr_priv(expr);
+ 	struct nft_data_desc desc;
+-	struct nft_data data;
+ 	int err;
+ 
+-	err = nft_data_init(NULL, &data, sizeof(data), &desc,
++	err = nft_data_init(NULL, &priv->data, sizeof(priv->data), &desc,
+ 			    tb[NFTA_CMP_DATA]);
+ 	if (err < 0)
+ 		return err;
+@@ -214,12 +231,10 @@ static int nft_cmp_fast_init(const struct nft_ctx *ctx,
+ 	if (err < 0)
+ 		return err;
+ 
+-	desc.len *= BITS_PER_BYTE;
+-
+-	priv->mask = nft_cmp_fast_mask(desc.len);
+-	priv->data = data.data[0] & priv->mask;
+ 	priv->len  = desc.len;
+ 	priv->inv  = ntohl(nla_get_be32(tb[NFTA_CMP_OP])) != NFT_CMP_EQ;
++	nft_cmp16_fast_mask(&priv->mask, desc.len * BITS_PER_BYTE);
++
+ 	return 0;
+ }
+ 
+@@ -229,13 +244,9 @@ static int nft_cmp_fast_offload(struct nft_offload_ctx *ctx,
+ {
+ 	const struct nft_cmp_fast_expr *priv = nft_expr_priv(expr);
+ 	struct nft_cmp_expr cmp = {
+-		.data	= {
+-			.data	= {
+-				[0] = priv->data,
+-			},
+-		},
++		.data	= priv->data,
+ 		.sreg	= priv->sreg,
+-		.len	= priv->len / BITS_PER_BYTE,
++		.len	= priv->len,
+ 		.op	= priv->inv ? NFT_CMP_NEQ : NFT_CMP_EQ,
+ 	};
+ 
+@@ -246,16 +257,14 @@ static int nft_cmp_fast_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ {
+ 	const struct nft_cmp_fast_expr *priv = nft_expr_priv(expr);
+ 	enum nft_cmp_ops op = priv->inv ? NFT_CMP_NEQ : NFT_CMP_EQ;
+-	struct nft_data data;
+ 
+ 	if (nft_dump_register(skb, NFTA_CMP_SREG, priv->sreg))
+ 		goto nla_put_failure;
+ 	if (nla_put_be32(skb, NFTA_CMP_OP, htonl(op)))
+ 		goto nla_put_failure;
+ 
+-	data.data[0] = priv->data;
+-	if (nft_data_dump(skb, NFTA_CMP_DATA, &data,
+-			  NFT_DATA_VALUE, priv->len / BITS_PER_BYTE) < 0)
++	if (nft_data_dump(skb, NFTA_CMP_DATA, &priv->data,
++			  NFT_DATA_VALUE, priv->len) < 0)
+ 		goto nla_put_failure;
+ 	return 0;
+ 
+@@ -278,6 +287,7 @@ nft_cmp_select_ops(const struct nft_ctx *ctx, const struct nlattr * const tb[])
+ 	struct nft_data_desc desc;
+ 	struct nft_data data;
+ 	enum nft_cmp_ops op;
++	u8 sreg;
+ 	int err;
+ 
+ 	if (tb[NFTA_CMP_SREG] == NULL ||
+@@ -306,7 +316,11 @@ nft_cmp_select_ops(const struct nft_ctx *ctx, const struct nlattr * const tb[])
+ 	if (desc.type != NFT_DATA_VALUE)
+ 		goto err1;
+ 
+-	if (desc.len <= sizeof(u32) && (op == NFT_CMP_EQ || op == NFT_CMP_NEQ))
++	sreg = ntohl(nla_get_be32(tb[NFTA_CMP_SREG]));
++
++	if (sreg >= NFT_REG_1 && sreg <= NFT_REG32_12 &&
++	    (sreg <= NFT_REG_4 || sreg % 2 == 0) &&
++	    (op == NFT_CMP_EQ || op == NFT_CMP_NEQ))
+ 		return &nft_cmp_fast_ops;
+ 
+ 	return &nft_cmp_ops;
 -- 
-2.34.1
+2.30.2
 
