@@ -2,144 +2,87 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E35AC433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Feb 2022 14:47:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60703C433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Feb 2022 15:19:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1359344AbiBDOrK (ORCPT
+        id S1359601AbiBDPTI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 4 Feb 2022 09:47:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51214 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231160AbiBDOrJ (ORCPT
+        Fri, 4 Feb 2022 10:19:08 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:50326 "EHLO
+        mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S242172AbiBDPTI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 4 Feb 2022 09:47:09 -0500
-Received: from mail-ed1-x543.google.com (mail-ed1-x543.google.com [IPv6:2a00:1450:4864:20::543])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4FBBC061714;
-        Fri,  4 Feb 2022 06:47:08 -0800 (PST)
-Received: by mail-ed1-x543.google.com with SMTP id p7so13503460edc.12;
-        Fri, 04 Feb 2022 06:47:08 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=wWp3X4UPWd440tI67mwYFPhgiomADBgs/mNH8wZeAl0=;
-        b=LEwr1bXTEO7IJ5xySYVUPr4GVIobsHChXleOt11h2qgc2Tkuq3OGHj4TDLreM91l21
-         icK0ga6mf32oY5VFoRFHGib8jvlOupXXuBoz+oQFGTaCs0WT7+XOXLeCxh0EjfYrTS03
-         8DLhTocpVjeQWtjfLriI/3M1r5pxFlVeYIeB1hiXMhuRj89eCogVtjo+t0g7CFV5f2mY
-         3CBYpZHxJLNXxF23VmJcTa4nhRS6pMSoJUSaUW+A4K+dDq/ccCwiteEtcRRgYF+52VHk
-         4dWaE7CEW520+VXNrlPOZeYsyNI4j9avdIm+CmBKylas3bSkTbP0C0WuU5QbK+z3hkb6
-         V7KQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=wWp3X4UPWd440tI67mwYFPhgiomADBgs/mNH8wZeAl0=;
-        b=O15QorgvZcjvM6aalYc2LelU/l0e2NyipWTZSOjNCssdwt8nnKWT/RH8rBnkNne2ic
-         VppY1coIURXW/hY8geouceNSmcYzOuXoMWgIR1z7SbpqmyvuhNXBYmHG5TsE7gjSG5Hx
-         WKnOxfpsMYpSloR32oazlHEcyk4e9t3F9/E7DIj6UZGlH+75dm+1CX1rtEMgF3DSK74E
-         SjXhRrYj6UqJ1Hyy/SfUPZZ7yjeBzAn2BBML/ZPdKUUbwhddRgAdULcVg68g+sGGvmYA
-         yU9Ap+pLnBFv4t8hAIQo90/s1vY+LTwQSo6dBCjr/qJIJwyV9eSOdjnahsuoYE0P6RCI
-         JuLw==
-X-Gm-Message-State: AOAM533tO48H8aSdgviGNAWHjt9vnH7cKMHImJaHu7P5B3wcdSEKVS3B
-        DqXOFwlGO66NcPKbxljuwUmMj/B0Ph6lwjfigH4=
-X-Google-Smtp-Source: ABdhPJyRdZi/L+7DYPZuGYGq/RtrcK04EagQGt8iR9vlrUsBkiN76WUoLIX+WPMSXv2o1iAeVim89cLhDSFjt5WUoJg=
-X-Received: by 2002:a05:6402:5203:: with SMTP id s3mr3298814edd.389.1643986027368;
- Fri, 04 Feb 2022 06:47:07 -0800 (PST)
+        Fri, 4 Feb 2022 10:19:08 -0500
+Received: from localhost.localdomain (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id A364360187;
+        Fri,  4 Feb 2022 16:19:01 +0100 (CET)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
+Subject: [PATCH net 0/6] Netfilter fixes for net
+Date:   Fri,  4 Feb 2022 16:18:56 +0100
+Message-Id: <20220204151903.320786-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-References: <20220128073319.1017084-1-imagedong@tencent.com>
- <20220128073319.1017084-4-imagedong@tencent.com> <16e8de51-6b56-3dfe-e9c4-524ab40cdea9@gmail.com>
-In-Reply-To: <16e8de51-6b56-3dfe-e9c4-524ab40cdea9@gmail.com>
-From:   Menglong Dong <menglong8.dong@gmail.com>
-Date:   Fri, 4 Feb 2022 22:42:13 +0800
-Message-ID: <CADxym3aB380ZSGTtJwi3xAahXHgBhG41ACoXZhheZ9qOarizKQ@mail.gmail.com>
-Subject: Re: [PATCH v3 net-next 3/7] net: ipv4: use kfree_skb_reason() in ip_rcv_core()
-To:     David Ahern <dsahern@gmail.com>
-Cc:     David Ahern <dsahern@kernel.org>, Jakub Kicinski <kuba@kernel.org>,
-        Steven Rostedt <rostedt@goodmis.org>, mingo@redhat.com,
-        David Miller <davem@davemloft.net>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        pablo@netfilter.org, kadlec@netfilter.org,
-        Florian Westphal <fw@strlen.de>,
-        Menglong Dong <imagedong@tencent.com>,
-        Eric Dumazet <edumazet@google.com>, alobakin@pm.me,
-        paulb@nvidia.com, Kees Cook <keescook@chromium.org>,
-        talalahmad@google.com, haokexin@gmail.com, memxor@gmail.com,
-        LKML <linux-kernel@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, Cong Wang <cong.wang@bytedance.com>,
-        Mengen Sun <mengensun@tencent.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Feb 1, 2022 at 2:06 AM David Ahern <dsahern@gmail.com> wrote:
->
-> On 1/28/22 12:33 AM, menglong8.dong@gmail.com wrote:
-> \> diff --git a/net/ipv4/ip_input.c b/net/ipv4/ip_input.c
-> > index 3a025c011971..627fad437593 100644
-> > --- a/net/ipv4/ip_input.c
-> > +++ b/net/ipv4/ip_input.c
-> > @@ -436,13 +436,18 @@ static int ip_rcv_finish(struct net *net, struct sock *sk, struct sk_buff *skb)
-> >  static struct sk_buff *ip_rcv_core(struct sk_buff *skb, struct net *net)
-> >  {
-> >       const struct iphdr *iph;
-> > +     int drop_reason;
-> >       u32 len;
-> >
-> > +     drop_reason = SKB_DROP_REASON_NOT_SPECIFIED;
->
-> move this line down, right before:
->
->         if (!pskb_may_pull(skb, sizeof(struct iphdr)))
->                 goto inhdr_error;
->
-> > +
-> >       /* When the interface is in promisc. mode, drop all the crap
-> >        * that it receives, do not try to analyse it.
-> >        */
-> > -     if (skb->pkt_type == PACKET_OTHERHOST)
-> > +     if (skb->pkt_type == PACKET_OTHERHOST) {
-> > +             drop_reason = SKB_DROP_REASON_OTHERHOST;
-> >               goto drop;
-> > +     }
-> >
-> >       __IP_UPD_PO_STATS(net, IPSTATS_MIB_IN, skb->len);
-> >
-> > @@ -488,6 +493,7 @@ static struct sk_buff *ip_rcv_core(struct sk_buff *skb, struct net *net)
-> >
-> >       len = ntohs(iph->tot_len);
-> >       if (skb->len < len) {
-> > +             drop_reason = SKB_DROP_REASON_PKT_TOO_SMALL;
-> >               __IP_INC_STATS(net, IPSTATS_MIB_INTRUNCATEDPKTS);
-> >               goto drop;
-> >       } else if (len < (iph->ihl*4))
-> > @@ -516,11 +522,13 @@ static struct sk_buff *ip_rcv_core(struct sk_buff *skb, struct net *net)
-> >       return skb;
-> >
-> >  csum_error:
-> > +     drop_reason = SKB_DROP_REASON_IP_CSUM;
-> >       __IP_INC_STATS(net, IPSTATS_MIB_CSUMERRORS);
-> >  inhdr_error:
-> > +     drop_reason = drop_reason ?: SKB_DROP_REASON_IP_INHDR;
->
-> That makes assumptions about the value of SKB_DROP_REASON_NOT_SPECIFIED.
-> Make that line:
->         if (drop_reason != SKB_DROP_REASON_NOT_SPECIFIED)
->                 drop_reason = SKB_DROP_REASON_IP_INHDR;
->
+Hi,
 
-You are right, the assumptions here are unsuitable. But I guess it
-should be this?
+The following patchset contains Netfilter fixes for net:
 
-         if (drop_reason == SKB_DROP_REASON_NOT_SPECIFIED)
-                 drop_reason = SKB_DROP_REASON_IP_INHDR;
+1) Don't refresh timeout for SCTP flows in CLOSED state.
 
-> >       __IP_INC_STATS(net, IPSTATS_MIB_INHDRERRORS);
-> >  drop:
-> > -     kfree_skb(skb);
-> > +     kfree_skb_reason(skb, drop_reason);
-> >  out:
-> >       return NULL;
-> >  }
->
+2) Don't allow access to transport header if fragment offset is set on.
+
+3) Reinitialize internal conntrack state for retransmitted TCP
+   syn-ack packet.
+
+4) Update MAINTAINER file to add the Netfilter group tree. Moving
+   forward, Florian Westphal has access to this tree so he can also
+   send pull requests.
+
+5) Set on IPS_HELPER for entries created via ctnetlink, otherwise NAT
+   might zap it.
+
+All patches from Florian Westphal.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit ed14fc7a79ab43e9f2cb1fa9c1733fdc133bba30:
+
+  net: sparx5: Fix get_stat64 crash in tcpdump (2022-02-03 19:01:15 -0800)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git HEAD
+
+for you to fetch changes up to d1ca60efc53d665cf89ed847a14a510a81770b81:
+
+  netfilter: ctnetlink: disable helper autoassign (2022-02-04 05:39:57 +0100)
+
+----------------------------------------------------------------
+Florian Westphal (6):
+      netfilter: conntrack: don't refresh sctp entries in closed state
+      netfilter: nft_payload: don't allow th access for fragments
+      netfilter: conntrack: move synack init code to helper
+      netfilter: conntrack: re-init state for retransmitted syn-ack
+      MAINTAINERS: netfilter: update git links
+      netfilter: ctnetlink: disable helper autoassign
+
+ MAINTAINERS                                        |  4 +-
+ include/uapi/linux/netfilter/nf_conntrack_common.h |  2 +-
+ net/netfilter/nf_conntrack_netlink.c               |  3 +-
+ net/netfilter/nf_conntrack_proto_sctp.c            |  9 ++++
+ net/netfilter/nf_conntrack_proto_tcp.c             | 59 +++++++++++++++-------
+ net/netfilter/nft_exthdr.c                         |  2 +-
+ net/netfilter/nft_payload.c                        |  9 ++--
+ 7 files changed, 61 insertions(+), 27 deletions(-)
