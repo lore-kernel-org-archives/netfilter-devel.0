@@ -2,42 +2,45 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C19D9C433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Feb 2022 05:16:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DED8DC433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Feb 2022 05:19:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233787AbiBDFQb (ORCPT
+        id S231770AbiBDFTI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 4 Feb 2022 00:16:31 -0500
-Received: from mail.netfilter.org ([217.70.188.207]:49164 "EHLO
+        Fri, 4 Feb 2022 00:19:08 -0500
+Received: from mail.netfilter.org ([217.70.188.207]:49184 "EHLO
         mail.netfilter.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232647AbiBDFQa (ORCPT
+        with ESMTP id S231510AbiBDFTH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 4 Feb 2022 00:16:30 -0500
+        Fri, 4 Feb 2022 00:19:07 -0500
 Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 0296660198;
-        Fri,  4 Feb 2022 06:16:23 +0100 (CET)
-Date:   Fri, 4 Feb 2022 06:16:26 +0100
+        by mail.netfilter.org (Postfix) with ESMTPSA id B41DB60014;
+        Fri,  4 Feb 2022 06:19:01 +0100 (CET)
+Date:   Fri, 4 Feb 2022 06:19:03 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Cc:     fw@strlen.de, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org
-Subject: Re: [PATCH nf-next] nfqueue: enable to get skb->priority
-Message-ID: <Yfy2qiiYEeWLe8sI@salvia>
-References: <20220117205613.26153-1-nicolas.dichtel@6wind.com>
- <Yfy2YxiwvDLtLvTo@salvia>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next 0/4] netfilter: conntrack: remove extension
+ register api
+Message-ID: <Yfy3R7rtdo9pFsGa@salvia>
+References: <20220120120702.15939-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <Yfy2YxiwvDLtLvTo@salvia>
+In-Reply-To: <20220120120702.15939-1-fw@strlen.de>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Feb 04, 2022 at 06:15:20AM +0100, Pablo Neira Ayuso wrote:
-> On Mon, Jan 17, 2022 at 09:56:13PM +0100, Nicolas Dichtel wrote:
-> > This info could be useful to improve traffic analysis.
+On Thu, Jan 20, 2022 at 01:06:58PM +0100, Florian Westphal wrote:
+> This starts to simplify the extension infra. Should have no impact
+> on functionality.
 > 
-> Applied.
+> Extension IDs already need compile-time allocation, the dynamic
+> registration isn't necessary, just place the sizes in the extension
+> core and handle the only instance of the ->destroy hook manually.
+> 
+> Also avoids the ->destroy hook invocation during ct destruction if
+> the conntrack wasn't added to the bysource hash list.
 
-Maybe allow to update this skbuff field from the verdict path too?
-I don't remember any read-only field like this in nfqueue.
+Series applied.
