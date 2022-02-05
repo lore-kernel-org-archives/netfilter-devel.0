@@ -2,117 +2,115 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92E97C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Feb 2022 17:55:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A95D9C433F5
+	for <netfilter-devel@archiver.kernel.org>; Sat,  5 Feb 2022 01:18:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1376981AbiBDRz3 (ORCPT
+        id S1378864AbiBEBSI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 4 Feb 2022 12:55:29 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38318 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231603AbiBDRz3 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 4 Feb 2022 12:55:29 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A409C061714
-        for <netfilter-devel@vger.kernel.org>; Fri,  4 Feb 2022 09:55:29 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
-        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=XLwiHqXxsbBrX6zrcvUMepqU8ggmlhUJHjAZPsQLZTg=; b=FbcTcejV1hU7oGna+tEbr4RxW6
-        i/oSkntVbU6nIgCg54EwPn67+NIkpPttj29bHu94TT+7bRftxY2hnMhb0iwCik65Uz2ukX04YMAXt
-        VAvsRTjHtpWfc5Q/FxuhE8ekjexJsxaAsdJUXhDCKvxynIoNtlDrA1xqFhphZKaTiRXQKwInD15Js
-        Y3dZ0WN8WlNxaOC3trwPLqLfLJc29mtC9+yV6Wl29SdLGfvExSq/Ny3mB2yQbXBfcSJsdA1IwZ9s0
-        CUKHHDMlajd5s5MkRKkVzxWVAhK4d8ZaXC8wdAHkDd1cDUz8aEpBUfEiPnHsrndAVioZ6x0o3xViE
-        fN3gZBYg==;
-Received: from localhost ([::1] helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1nG2nu-0004iq-NX; Fri, 04 Feb 2022 18:55:26 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH] tests: iptables-test: Support variant deviation
-Date:   Fri,  4 Feb 2022 18:55:20 +0100
-Message-Id: <20220204175520.29755-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.34.1
+        Fri, 4 Feb 2022 20:18:08 -0500
+Received: from mga17.intel.com ([192.55.52.151]:9433 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1378852AbiBEBSI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 4 Feb 2022 20:18:08 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1644023888; x=1675559888;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=ip96Kk+B8NCtyuD3J6oy4zW0E5ywo/h2S31i9208Fr0=;
+  b=VWFOVeRqIWewKkHPYQ5+dIHA+QLgOYkY/iBjYuIYaWczYSAq+RQt8MfJ
+   AagBwEsbKhdSFiVMo248WKfsRFLtolts03tGFoSXaTCbJOm4Nb02yp4pJ
+   m3BlottUGyN9AIZFsf+ivgL5xgEELAMAI542aFzJCkue9Vzj8C3N0ME5N
+   NpiBJrkolJqk35koFumBYp30SIPiAi6V54O0yCci8+RvjOzvu+lwPZT+a
+   hXvRDn7EsuImtHwFDZ3NJG9maq9fPtbjnybgypHixomdgNxbsC5wxzti5
+   1/n1ulDo876EI0Pt7o/TOHwtJp5rBl1o3iYP6QIP/GJmwpDRSYvWI4K2v
+   g==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10248"; a="229122186"
+X-IronPort-AV: E=Sophos;i="5.88,344,1635231600"; 
+   d="scan'208";a="229122186"
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Feb 2022 17:18:06 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.88,344,1635231600"; 
+   d="scan'208";a="631867830"
+Received: from lkp-server01.sh.intel.com (HELO 276f1b88eecb) ([10.239.97.150])
+  by orsmga004.jf.intel.com with ESMTP; 04 Feb 2022 17:18:04 -0800
+Received: from kbuild by 276f1b88eecb with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1nG9iG-000YQ0-3d; Sat, 05 Feb 2022 01:18:04 +0000
+Date:   Sat, 5 Feb 2022 09:17:04 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Cc:     kbuild-all@lists.01.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org
+Subject: Re: [PATCH nf-next] netfilter: nft_cmp: optimize comparison for up
+ to 16-bytes
+Message-ID: <202202050944.nFxizuBh-lkp@intel.com>
+References: <20220204151903.320786-3-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220204151903.320786-3-pablo@netfilter.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Some test results are not consistent between variants:
+Hi Pablo,
 
-* CLUSTERIP is not supported with nft_compat, so all related tests fail
-  with iptables-nft.
-* iptables-legacy mandates TCPMSS be combined with SYN flag match,
-  iptables-nft does not care. (Or precisely, xt_TCPMSS.ko can't validate
-  match presence.)
+I love your patch! Perhaps something to improve:
 
-Avoid the expected failures by allowing "NFT" and "LGC" outcomes in
-addition to "OK" and "FAIL". They specify the variant with which given
-test should pass.
+[auto build test WARNING on nf-next/master]
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+url:    https://github.com/0day-ci/linux/commits/Pablo-Neira-Ayuso/netfilter-nft_cmp-optimize-comparison-for-up-to-16-bytes/20220204-232030
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
+config: x86_64-rhel-8.3-kselftests (https://download.01.org/0day-ci/archive/20220205/202202050944.nFxizuBh-lkp@intel.com/config)
+compiler: gcc-9 (Debian 9.3.0-22) 9.3.0
+reproduce:
+        # apt-get install sparse
+        # sparse version: v0.6.4-dirty
+        # https://github.com/0day-ci/linux/commit/91cb7a051c24382b5a7252e59fc5a6a6e2d62332
+        git remote add linux-review https://github.com/0day-ci/linux
+        git fetch --no-tags linux-review Pablo-Neira-Ayuso/netfilter-nft_cmp-optimize-comparison-for-up-to-16-bytes/20220204-232030
+        git checkout 91cb7a051c24382b5a7252e59fc5a6a6e2d62332
+        # save the config file to linux build tree
+        mkdir build_dir
+        make W=1 C=1 CF='-fdiagnostic-prefix -D__CHECK_ENDIAN__' O=build_dir ARCH=x86_64 SHELL=/bin/bash net/netfilter/
+
+If you fix the issue, kindly add following tag as appropriate
+Reported-by: kernel test robot <lkp@intel.com>
+
+
+sparse warnings: (new ones prefixed by >>)
+   net/netfilter/nft_cmp.c:129:31: sparse: sparse: cast to restricted __be16
+   net/netfilter/nft_cmp.c:132:31: sparse: sparse: cast to restricted __be32
+   net/netfilter/nft_cmp.c:135:31: sparse: sparse: cast to restricted __be64
+>> net/netfilter/nft_cmp.c:211:33: sparse: sparse: incorrect type in assignment (different base types) @@     expected unsigned int @@     got restricted __le32 [usertype] @@
+   net/netfilter/nft_cmp.c:211:33: sparse:     expected unsigned int
+   net/netfilter/nft_cmp.c:211:33: sparse:     got restricted __le32 [usertype]
+
+vim +211 net/netfilter/nft_cmp.c
+
+   199	
+   200	static void nft_cmp16_fast_mask(struct nft_data *data, unsigned int bitlen)
+   201	{
+   202		int len = bitlen / BITS_PER_BYTE;
+   203		int i, words = len / sizeof(u32);
+   204	
+   205		for (i = 0; i < words; i++) {
+   206			data->data[i] = 0xffffffff;
+   207			bitlen -= sizeof(u32) * BITS_PER_BYTE;
+   208		}
+   209	
+   210		if (len % sizeof(u32))
+ > 211			data->data[i++] = cpu_to_le32(~0U >> (sizeof(u32) * BITS_PER_BYTE - bitlen));
+   212	
+   213		for (; i < 4; i++)
+   214			data->data[i] = 0;
+   215	}
+   216	
+
 ---
- extensions/libipt_CLUSTERIP.t | 4 ++--
- extensions/libxt_TCPMSS.t     | 2 +-
- iptables-test.py              | 7 +++++--
- 3 files changed, 8 insertions(+), 5 deletions(-)
-
-diff --git a/extensions/libipt_CLUSTERIP.t b/extensions/libipt_CLUSTERIP.t
-index 5af555e005c1d..d3a2d6cbb1b2e 100644
---- a/extensions/libipt_CLUSTERIP.t
-+++ b/extensions/libipt_CLUSTERIP.t
-@@ -1,4 +1,4 @@
- :INPUT
- -d 10.31.3.236/32 -i lo -j CLUSTERIP --new --hashmode sourceip --clustermac 01:AA:7B:47:F7:D7 --total-nodes 2 --local-node 0 --hash-init 1;=;FAIL
---d 10.31.3.236/32 -i lo -j CLUSTERIP --new --hashmode sourceip --clustermac 01:AA:7B:47:F7:D7 --total-nodes 2 --local-node 1 --hash-init 1;=;OK
---d 10.31.3.236/32 -i lo -j CLUSTERIP --new --hashmode sourceip --clustermac 01:AA:7B:47:F7:D7 --total-nodes 2 --local-node 2 --hash-init 1;=;OK
-+-d 10.31.3.236/32 -i lo -j CLUSTERIP --new --hashmode sourceip --clustermac 01:AA:7B:47:F7:D7 --total-nodes 2 --local-node 1 --hash-init 1;=;LGC
-+-d 10.31.3.236/32 -i lo -j CLUSTERIP --new --hashmode sourceip --clustermac 01:AA:7B:47:F7:D7 --total-nodes 2 --local-node 2 --hash-init 1;=;LGC
-diff --git a/extensions/libxt_TCPMSS.t b/extensions/libxt_TCPMSS.t
-index 553a3452e4876..c3ee2de880826 100644
---- a/extensions/libxt_TCPMSS.t
-+++ b/extensions/libxt_TCPMSS.t
-@@ -1,6 +1,6 @@
- :FORWARD,OUTPUT,POSTROUTING
- *mangle
- -j TCPMSS;;FAIL
---p tcp -j TCPMSS --set-mss 42;;FAIL
-+-p tcp -j TCPMSS --set-mss 42;;NFT
- -p tcp -m tcp --tcp-flags FIN,SYN,RST,ACK SYN -j TCPMSS --set-mss 42;=;OK
- -p tcp -m tcp --tcp-flags FIN,SYN,RST,ACK SYN -j TCPMSS --clamp-mss-to-pmtu;=;OK
-diff --git a/iptables-test.py b/iptables-test.py
-index 95fa11b1475ca..be1b1a94decf4 100755
---- a/iptables-test.py
-+++ b/iptables-test.py
-@@ -91,8 +91,11 @@ def run_test(iptables, rule, rule_save, res, filename, lineno, netns):
-     #
-     # report failed test
-     #
-+    should_pass = (res == "OK") or \
-+                  (res == "NFT" and EXECUTABLE == "xtables-nft-multi") or \
-+                  (res == "LGC" and EXECUTABLE == "xtables-legacy-multi")
-     if ret:
--        if res == "OK":
-+        if should_pass:
-             reason = "cannot load: " + cmd
-             print_error(reason, filename, lineno)
-             return -1
-@@ -100,7 +103,7 @@ def run_test(iptables, rule, rule_save, res, filename, lineno, netns):
-             # do not report this error
-             return 0
-     else:
--        if res == "FAIL":
-+        if not should_pass:
-             reason = "should fail: " + cmd
-             print_error(reason, filename, lineno)
-             delete_rule(iptables, rule, filename, lineno)
--- 
-2.34.1
-
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
