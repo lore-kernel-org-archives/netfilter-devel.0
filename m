@@ -2,44 +2,54 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67DDAC433EF
-	for <netfilter-devel@archiver.kernel.org>; Sat,  5 Feb 2022 19:33:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7CD3C433EF
+	for <netfilter-devel@archiver.kernel.org>; Sat,  5 Feb 2022 22:34:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349079AbiBETdO (ORCPT
+        id S235523AbiBEWes (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 5 Feb 2022 14:33:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57208 "EHLO
+        Sat, 5 Feb 2022 17:34:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41550 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233594AbiBETdO (ORCPT
+        with ESMTP id S229894AbiBEWes (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 5 Feb 2022 14:33:14 -0500
-Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 78EF5C061348
-        for <netfilter-devel@vger.kernel.org>; Sat,  5 Feb 2022 11:33:11 -0800 (PST)
-Received: by a3.inai.de (Postfix, from userid 25121)
-        id 6F5A158730CF1; Sat,  5 Feb 2022 20:33:08 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-        by a3.inai.de (Postfix) with ESMTP id 693F460C2B6C5;
-        Sat,  5 Feb 2022 20:33:08 +0100 (CET)
-Date:   Sat, 5 Feb 2022 20:33:08 +0100 (CET)
-From:   Jan Engelhardt <jengelh@inai.de>
-To:     Jeremy Sowden <jeremy@azazel.net>
-cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [xtables-addons PATCH 0/2] 5.17 Kernel Support
-In-Reply-To: <20220204132643.1212741-1-jeremy@azazel.net>
-Message-ID: <77q0284q-572o-31n4-q47-o2ss27717351@vanv.qr>
-References: <20220204132643.1212741-1-jeremy@azazel.net>
-User-Agent: Alpine 2.25 (LSU 592 2021-09-18)
+        Sat, 5 Feb 2022 17:34:48 -0500
+Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A523DC061348
+        for <netfilter-devel@vger.kernel.org>; Sat,  5 Feb 2022 14:34:45 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20190108; h=Content-Type:MIME-Version:Message-ID:Subject:To:From:Date:
+        Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=KKAAUEqydp2WGxrqsL3H6WogXMDZ7cSnORMorqipxdc=; b=dwwI8yGWBMCrfayz48iOFQ7UKF
+        lc854opEk6C8fuVyuyuYfLSPWp8NV74szv4q9i4Ba3Is3xOKbdWwO5T3nTTr69QWBpqB+J+fxOn8W
+        Bm0z7w08hQ2o/ODbkma/S4HxgkoPlf6fl+wsG5sjiq/t+q1gWURchnNMrFdtyVqplMbBkMoOidsDl
+        ZBHsQntEJUFaHEelirPywk419BGty4IO3YuhvqK5hWBC79LsqL57sn4wkbimPCV/EIICuO9MWxAZe
+        7Is9TKVAIGmNPb9Lkf9WQcl2SRWOzX67FxzztaIrm4L93TELD3VeYg4rtijbZFNKKz/IjmzGbPR4h
+        BoKto2ew==;
+Received: from [2001:8b0:fb7d:d6d7:f47b:9ff:fe41:7a71] (helo=azazel.net)
+        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <jeremy@azazel.net>)
+        id 1nGTdi-00CW1P-G2
+        for netfilter-devel@vger.kernel.org; Sat, 05 Feb 2022 22:34:42 +0000
+Date:   Sat, 5 Feb 2022 22:34:41 +0000
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Time for a libnetfilter_conntrack release?
+Message-ID: <Yf77gYmezLTLrC+/@azazel.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:f47b:9ff:fe41:7a71
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Friday 2022-02-04 14:26, Jeremy Sowden wrote:
+It's been nearly two years since the last libnetfilter_conntrack release
+and there are a couple of dozen unreleased commits.  Time for 1.0.9?
 
->The `PDE_DATA` procfs function has been replaced by another function,
->`pde_data`, in 5.17.  The first patch adds support for this.  The second
->bumps the maximum supported kernel version to 5.17.
-
-Added, with some blank lines more removed.
+J.
