@@ -2,111 +2,79 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D3E0C433F5
-	for <netfilter-devel@archiver.kernel.org>; Sun,  6 Feb 2022 19:49:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E26B8C433FE
+	for <netfilter-devel@archiver.kernel.org>; Sun,  6 Feb 2022 22:25:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240210AbiBFTtG (ORCPT
+        id S1345288AbiBFWZK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 6 Feb 2022 14:49:06 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47138 "EHLO
+        Sun, 6 Feb 2022 17:25:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37316 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238605AbiBFTtG (ORCPT
+        with ESMTP id S238398AbiBFWZK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 6 Feb 2022 14:49:06 -0500
-Received: from mail-oi1-x233.google.com (mail-oi1-x233.google.com [IPv6:2607:f8b0:4864:20::233])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01DC6C06173B;
-        Sun,  6 Feb 2022 11:49:05 -0800 (PST)
-Received: by mail-oi1-x233.google.com with SMTP id t199so14900147oie.10;
-        Sun, 06 Feb 2022 11:49:05 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=message-id:date:mime-version:user-agent:subject:content-language:to
-         :cc:references:from:in-reply-to:content-transfer-encoding;
-        bh=xuH5LwjSVIt+LugVjeOkEcTu2jDeLj5HZjqsIfKe4BA=;
-        b=S2Bbf4aN8jx/xxrQtVbjJ2ghQeyY53ajzovnB+JEO6A8rLtG+FO7XDFmES+C7yxhJS
-         Q/SdQ95T/ngpglJQBcVi46FBobH3Do1bXrfw7Qv68odgpJMymG4lhojxyjAy8Hqgvi52
-         D99S8Asf2qYuxlaN13FjzPbDIg1iKZq2Z2nWt+tiXznpM7IIIhmx0WxFuXeIYe8px5R4
-         mSpsc2koSoMDOxGFGwCnAkl++SqhqADVnFO8aD+LkpbEkxzZ6eRJaO7mCmAlX/eGfnpi
-         twHVIMOWn7NMLTDxkzqbZPGc/tTR+qn+5lpKEIdEITaqM93ZXa1EXDVoasuOSWO0N+Bp
-         ErfQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:to:cc:references:from:in-reply-to
-         :content-transfer-encoding;
-        bh=xuH5LwjSVIt+LugVjeOkEcTu2jDeLj5HZjqsIfKe4BA=;
-        b=g+uQ2gjt0kt/UZo1Fgv5zh1APBPm/p/a0KKaP6KzxQwP6dXr7XD4jS1Nuvk737mrxe
-         WTwnf5E5vub1if+ckxHpg40xlnsvqKVET/CA8lvzoGsQRDWheC7ZwVbZc3TdMd2MiqM8
-         rzXDE4r67SqjBvF1WV05AKbP2eJ0d3NYrlZ/hyFFWwxqrFiJe+t7OnAbgrGQzWk3HoQ4
-         8wGpnetK0gKh+VquOizeUNlNzHFcnru2xyJCy+mHpPy/EjNfH+fjyTzO0S6+EcutUsvO
-         835Cre/zT2TpW0R4QOQh8h/r6kyBjRT5nYIvx9ns5ufEGaCaHC9Xr+PbO4i7L2FCgw7o
-         ncyw==
-X-Gm-Message-State: AOAM530QrXTSQydulp0tHv85eq6LpwdpqyfVRAFuCBewtQje/UU+Rxdd
-        5oTMEsAFOOb3JP8lPg8thWY=
-X-Google-Smtp-Source: ABdhPJz5mRLQNKL7AlkHq0WgVz0BNSpHW135n7KrqYzeFLpMxE36ZJC5sE651VJ6YS1a+fqDbbLQXA==
-X-Received: by 2002:a05:6808:1647:: with SMTP id az7mr5073891oib.148.1644176945192;
-        Sun, 06 Feb 2022 11:49:05 -0800 (PST)
-Received: from [172.16.0.2] ([8.48.134.58])
-        by smtp.googlemail.com with ESMTPSA id t25sm3122296otk.31.2022.02.06.11.49.03
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 06 Feb 2022 11:49:04 -0800 (PST)
-Message-ID: <0a561b4c-1ed2-4090-34a2-09bf7908c5b4@gmail.com>
-Date:   Sun, 6 Feb 2022 12:49:02 -0700
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
- Gecko/20100101 Thunderbird/91.5.1
-Subject: Re: [PATCH v4 net-next 3/7] net: ipv4: use kfree_skb_reason() in
- ip_rcv_core()
-Content-Language: en-US
-To:     menglong8.dong@gmail.com, dsahern@kernel.org, kuba@kernel.org
-Cc:     rostedt@goodmis.org, mingo@redhat.com, davem@davemloft.net,
-        yoshfuji@linux-ipv6.org, pablo@netfilter.org, kadlec@netfilter.org,
-        fw@strlen.de, edumazet@google.com, alobakin@pm.me, ast@kernel.org,
-        imagedong@tencent.com, pabeni@redhat.com, keescook@chromium.org,
-        talalahmad@google.com, haokexin@gmail.com,
-        ilias.apalodimas@linaro.org, memxor@gmail.com,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        Sun, 6 Feb 2022 17:25:10 -0500
+X-Greylist: delayed 469 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 06 Feb 2022 14:25:08 PST
+Received: from jabberwock.ucw.cz (jabberwock.ucw.cz [46.255.230.98])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1C0DC061348;
+        Sun,  6 Feb 2022 14:25:08 -0800 (PST)
+Received: by jabberwock.ucw.cz (Postfix, from userid 1017)
+        id 8173C1C0B79; Sun,  6 Feb 2022 23:17:16 +0100 (CET)
+Date:   Sun, 6 Feb 2022 23:17:15 +0100
+From:   Pavel Machek <pavel@ucw.cz>
+To:     Sasha Levin <sashal@kernel.org>
+Cc:     linux-kernel@vger.kernel.org, stable@vger.kernel.org,
+        Florian Westphal <fw@strlen.de>, Yi Chen <yiche@redhat.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        kadlec@netfilter.org, davem@davemloft.net, kuba@kernel.org,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        paulb@nvidia.com, cong.wang@bytedance.com, mengensun@tencent.com
-References: <20220205074739.543606-1-imagedong@tencent.com>
- <20220205074739.543606-4-imagedong@tencent.com>
-From:   David Ahern <dsahern@gmail.com>
-In-Reply-To: <20220205074739.543606-4-imagedong@tencent.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+        netdev@vger.kernel.org
+Subject: Re: [PATCH AUTOSEL 4.9 3/7] netfilter: nf_conntrack_netbios_ns: fix
+ helper module alias
+Message-ID: <20220206221715.GA19323@duo.ucw.cz>
+References: <20220203203651.5158-1-sashal@kernel.org>
+ <20220203203651.5158-3-sashal@kernel.org>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="J/dobhs11T7y2rNN"
+Content-Disposition: inline
+In-Reply-To: <20220203203651.5158-3-sashal@kernel.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2/5/22 12:47 AM, menglong8.dong@gmail.com wrote:
-> From: Menglong Dong <imagedong@tencent.com>
-> 
-> Replace kfree_skb() with kfree_skb_reason() in ip_rcv_core(). Three new
-> drop reasons are introduced:
-> 
-> SKB_DROP_REASON_OTHERHOST
-> SKB_DROP_REASON_IP_CSUM
-> SKB_DROP_REASON_IP_INHDR
-> 
-> Signed-off-by: Menglong Dong <imagedong@tencent.com>
-> ---
-> v4:
-> - stop making assumptions about the value of
->   SKB_DROP_REASON_NOT_SPECIFIED
-> 
-> v3:
-> - add a path to SKB_DROP_REASON_PKT_TOO_SMALL
-> 
-> v2:
-> - remove unrelated cleanup
-> - add document for introduced drop reasons
-> ---
->  include/linux/skbuff.h     |  9 +++++++++
->  include/trace/events/skb.h |  3 +++
->  net/ipv4/ip_input.c        | 12 ++++++++++--
->  3 files changed, 22 insertions(+), 2 deletions(-)
-> 
 
-Reviewed-by: David Ahern <dsahern@kernel.org>
+--J/dobhs11T7y2rNN
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+Hi!
 
+> From: Florian Westphal <fw@strlen.de>
+>=20
+> [ Upstream commit 0e906607b9c5ee22312c9af4d8adb45c617ea38a ]
+>=20
+> The helper gets registered as 'netbios-ns', not netbios_ns.
+> Intentionally not adding a fixes-tag because i don't want this to go to
+> stable. This wasn't noticed for a very long time so no so no need to risk
+> regressions.
+
+Commit log says this is not severe and probably should wait...
+
+Best regards,
+								Pavel
+--=20
+http://www.livejournal.com/~pavelmachek
+
+--J/dobhs11T7y2rNN
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iF0EABECAB0WIQRPfPO7r0eAhk010v0w5/Bqldv68gUCYgBI6wAKCRAw5/Bqldv6
+8iTtAJ94GJRrOT2RWUPA+LE7nd/0u7f6ZgCfabTxYSTEjKxvzPMx/qjGHfKIvOQ=
+=esSg
+-----END PGP SIGNATURE-----
+
+--J/dobhs11T7y2rNN--
