@@ -2,129 +2,285 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89542C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98469C433EF
 	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Feb 2022 18:03:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236058AbiBGSCc (ORCPT
+        id S235179AbiBGSCb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 7 Feb 2022 13:02:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39052 "EHLO
+        Mon, 7 Feb 2022 13:02:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37260 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243143AbiBGR75 (ORCPT
+        with ESMTP id S235002AbiBGR4c (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 7 Feb 2022 12:59:57 -0500
+        Mon, 7 Feb 2022 12:56:32 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 04061C0401DF
-        for <netfilter-devel@vger.kernel.org>; Mon,  7 Feb 2022 09:59:56 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 568A3C0401D9
+        for <netfilter-devel@vger.kernel.org>; Mon,  7 Feb 2022 09:56:31 -0800 (PST)
 Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 45E35601C0;
-        Mon,  7 Feb 2022 18:59:52 +0100 (CET)
-Date:   Mon, 7 Feb 2022 18:59:54 +0100
+        by mail.netfilter.org (Postfix) with ESMTPSA id 6BFE5601BA;
+        Mon,  7 Feb 2022 18:56:26 +0100 (CET)
+Date:   Mon, 7 Feb 2022 18:56:27 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH 1/4] nft: Set NFTNL_CHAIN_FAMILY in new chains
-Message-ID: <YgFeGpsoHO4wjGU0@salvia>
-References: <20220204170001.27198-1-phil@nwl.cc>
+To:     Toshiaki Makita <toshiaki.makita1@gmail.com>
+Cc:     "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Saeed Mahameed <saeedm@nvidia.com>,
+        Jamal Hadi Salim <jhs@mojatatu.com>,
+        Cong Wang <xiyou.wangcong@gmail.com>,
+        Jiri Pirko <jiri@resnulli.us>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Paul Blakey <paulb@nvidia.com>
+Subject: Re: [PATCH net-next 1/3] netfilter: flowtable: Support GRE
+Message-ID: <YgFdS0ak3LIR2waA@salvia>
+References: <20220203115941.3107572-1-toshiaki.makita1@gmail.com>
+ <20220203115941.3107572-2-toshiaki.makita1@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20220204170001.27198-1-phil@nwl.cc>
+In-Reply-To: <20220203115941.3107572-2-toshiaki.makita1@gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Series LGTM, thanks
-
-On Fri, Feb 04, 2022 at 05:59:58PM +0100, Phil Sutter wrote:
-> Kernel doesn't need it, but debug output improves significantly. Before
-> this patch:
+On Thu, Feb 03, 2022 at 08:59:39PM +0900, Toshiaki Makita wrote:
+> Support GREv0 without NAT.
 > 
-> | # iptables-nft -vv -A INPUT
-> | [...]
-> | unknown filter INPUT use 0 type filter hook unknown prio 0 policy accept packets 0 bytes 0
-> | [...]
-> 
-> and after:
-> 
-> | # iptables-nft -vv -A INPUT
-> | [...]
-> | ip filter INPUT use 0 type filter hook input prio 0 policy accept packets 0 bytes 0
-> | [...]
-> 
-> While being at it, make nft_chain_builtin_alloc() take only the builtin
-> table's name as parameter - it's the only field it accesses.
-> 
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> Signed-off-by: Toshiaki Makita <toshiaki.makita1@gmail.com>
 > ---
->  iptables/nft.c | 12 ++++++++----
->  1 file changed, 8 insertions(+), 4 deletions(-)
+>  net/netfilter/nf_flow_table_core.c    | 10 +++++--
+>  net/netfilter/nf_flow_table_ip.c      | 54 ++++++++++++++++++++++++++++-------
+>  net/netfilter/nf_flow_table_offload.c | 19 +++++++-----
+>  net/netfilter/nft_flow_offload.c      | 13 +++++++++
+>  4 files changed, 77 insertions(+), 19 deletions(-)
 > 
-> diff --git a/iptables/nft.c b/iptables/nft.c
-> index 7cc6ca5258150..301d6c342f982 100644
-> --- a/iptables/nft.c
-> +++ b/iptables/nft.c
-> @@ -665,7 +665,7 @@ static int nft_table_builtin_add(struct nft_handle *h,
+> diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+> index b90eca7..e66a375 100644
+> --- a/net/netfilter/nf_flow_table_core.c
+> +++ b/net/netfilter/nf_flow_table_core.c
+> @@ -39,8 +39,14 @@
+>  
+>  	ft->l3proto = ctt->src.l3num;
+>  	ft->l4proto = ctt->dst.protonum;
+> -	ft->src_port = ctt->src.u.tcp.port;
+> -	ft->dst_port = ctt->dst.u.tcp.port;
+> +
+> +	switch (ctt->dst.protonum) {
+> +	case IPPROTO_TCP:
+> +	case IPPROTO_UDP:
+> +		ft->src_port = ctt->src.u.tcp.port;
+> +		ft->dst_port = ctt->dst.u.tcp.port;
+> +		break;
+> +	}
 >  }
 >  
->  static struct nftnl_chain *
-> -nft_chain_builtin_alloc(const struct builtin_table *table,
-> +nft_chain_builtin_alloc(int family, const char *tname,
->  			const struct builtin_chain *chain, int policy)
->  {
->  	struct nftnl_chain *c;
-> @@ -674,7 +674,8 @@ nft_chain_builtin_alloc(const struct builtin_table *table,
->  	if (c == NULL)
->  		return NULL;
+>  struct flow_offload *flow_offload_alloc(struct nf_conn *ct)
+> diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+> index 889cf88..48e2f58 100644
+> --- a/net/netfilter/nf_flow_table_ip.c
+> +++ b/net/netfilter/nf_flow_table_ip.c
+> @@ -172,6 +172,7 @@ static int nf_flow_tuple_ip(struct sk_buff *skb, const struct net_device *dev,
+>  	struct flow_ports *ports;
+>  	unsigned int thoff;
+>  	struct iphdr *iph;
+> +	u8 ipproto;
+>
+>  	if (!pskb_may_pull(skb, sizeof(*iph) + offset))
+>  		return -1;
+> @@ -185,13 +186,19 @@ static int nf_flow_tuple_ip(struct sk_buff *skb, const struct net_device *dev,
 >  
-> -	nftnl_chain_set_str(c, NFTNL_CHAIN_TABLE, table->name);
-> +	nftnl_chain_set_u32(c, NFTNL_CHAIN_FAMILY, family);
-> +	nftnl_chain_set_str(c, NFTNL_CHAIN_TABLE, tname);
->  	nftnl_chain_set_str(c, NFTNL_CHAIN_NAME, chain->name);
->  	nftnl_chain_set_u32(c, NFTNL_CHAIN_HOOKNUM, chain->hook);
->  	nftnl_chain_set_u32(c, NFTNL_CHAIN_PRIO, chain->prio);
-> @@ -693,7 +694,7 @@ static void nft_chain_builtin_add(struct nft_handle *h,
->  {
->  	struct nftnl_chain *c;
+>  	thoff += offset;
 >  
-> -	c = nft_chain_builtin_alloc(table, chain, NF_ACCEPT);
-> +	c = nft_chain_builtin_alloc(h->family, table->name, chain, NF_ACCEPT);
->  	if (c == NULL)
->  		return;
+> -	switch (iph->protocol) {
+> +	ipproto = iph->protocol;
+> +	switch (ipproto) {
+>  	case IPPROTO_TCP:
+>  		*hdrsize = sizeof(struct tcphdr);
+>  		break;
+>  	case IPPROTO_UDP:
+>  		*hdrsize = sizeof(struct udphdr);
+>  		break;
+> +#ifdef CONFIG_NF_CT_PROTO_GRE
+> +	case IPPROTO_GRE:
+> +		*hdrsize = sizeof(struct gre_base_hdr);
+> +		break;
+> +#endif
+>  	default:
+>  		return -1;
+>  	}
+> @@ -202,15 +209,25 @@ static int nf_flow_tuple_ip(struct sk_buff *skb, const struct net_device *dev,
+>  	if (!pskb_may_pull(skb, thoff + *hdrsize))
+>  		return -1;
 >  
-> @@ -959,7 +960,7 @@ static struct nftnl_chain *nft_chain_new(struct nft_handle *h,
->  	_c = nft_chain_builtin_find(_t, chain);
->  	if (_c != NULL) {
->  		/* This is a built-in chain */
-> -		c = nft_chain_builtin_alloc(_t, _c, policy);
-> +		c = nft_chain_builtin_alloc(h->family, _t->name, _c, policy);
->  		if (c == NULL)
->  			return NULL;
->  	} else {
-> @@ -1999,6 +2000,7 @@ int nft_chain_user_add(struct nft_handle *h, const char *chain, const char *tabl
->  	if (c == NULL)
->  		return 0;
+> +	if (ipproto == IPPROTO_GRE) {
+
+No ifdef here? Maybe remove these ifdef everywhere?
+
+> +		struct gre_base_hdr *greh;
+> +
+> +		greh = (struct gre_base_hdr *)(skb_network_header(skb) + thoff);
+> +		if ((greh->flags & GRE_VERSION) != GRE_VERSION_0)
+> +			return -1;
+> +	}
+> +
+>  	iph = (struct iphdr *)(skb_network_header(skb) + offset);
+> -	ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
 >  
-> +	nftnl_chain_set_u32(c, NFTNL_CHAIN_FAMILY, h->family);
->  	nftnl_chain_set_str(c, NFTNL_CHAIN_TABLE, table);
->  	nftnl_chain_set_str(c, NFTNL_CHAIN_NAME, chain);
->  	if (h->family == NFPROTO_BRIDGE)
-> @@ -2029,6 +2031,7 @@ int nft_chain_restore(struct nft_handle *h, const char *chain, const char *table
->  		if (!c)
->  			return 0;
+>  	tuple->src_v4.s_addr	= iph->saddr;
+>  	tuple->dst_v4.s_addr	= iph->daddr;
+> -	tuple->src_port		= ports->source;
+> -	tuple->dst_port		= ports->dest;
+> +	if (ipproto == IPPROTO_TCP || ipproto == IPPROTO_UDP) {
+> +		ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
+> +		tuple->src_port		= ports->source;
+> +		tuple->dst_port		= ports->dest;
+> +	}
+
+maybe:
+
+        switch (ipproto) {
+        case IPPROTO_TCP:
+        case IPPROTO_UDP:
+                ...
+                break;
+        case IPPROTO_GRE:
+                break;
+        }
+
+?
+
+>  	tuple->l3proto		= AF_INET;
+> -	tuple->l4proto		= iph->protocol;
+> +	tuple->l4proto		= ipproto;
+>  	tuple->iifidx		= dev->ifindex;
+>  	nf_flow_tuple_encap(skb, tuple);
 >  
-> +		nftnl_chain_set_u32(c, NFTNL_CHAIN_FAMILY, h->family);
->  		nftnl_chain_set_str(c, NFTNL_CHAIN_TABLE, table);
->  		nftnl_chain_set_str(c, NFTNL_CHAIN_NAME, chain);
->  		created = true;
-> @@ -2190,6 +2193,7 @@ int nft_chain_user_rename(struct nft_handle *h,const char *chain,
->  	if (c == NULL)
->  		return 0;
+> @@ -521,6 +538,7 @@ static int nf_flow_tuple_ipv6(struct sk_buff *skb, const struct net_device *dev,
+>  	struct flow_ports *ports;
+>  	struct ipv6hdr *ip6h;
+>  	unsigned int thoff;
+> +	u8 nexthdr;
 >  
-> +	nftnl_chain_set_u32(c, NFTNL_CHAIN_FAMILY, h->family);
->  	nftnl_chain_set_str(c, NFTNL_CHAIN_TABLE, table);
->  	nftnl_chain_set_str(c, NFTNL_CHAIN_NAME, newname);
->  	nftnl_chain_set_u64(c, NFTNL_CHAIN_HANDLE, handle);
+>  	thoff = sizeof(*ip6h) + offset;
+>  	if (!pskb_may_pull(skb, thoff))
+> @@ -528,13 +546,19 @@ static int nf_flow_tuple_ipv6(struct sk_buff *skb, const struct net_device *dev,
+>  
+>  	ip6h = (struct ipv6hdr *)(skb_network_header(skb) + offset);
+>  
+> -	switch (ip6h->nexthdr) {
+> +	nexthdr = ip6h->nexthdr;
+> +	switch (nexthdr) {
+>  	case IPPROTO_TCP:
+>  		*hdrsize = sizeof(struct tcphdr);
+>  		break;
+>  	case IPPROTO_UDP:
+>  		*hdrsize = sizeof(struct udphdr);
+>  		break;
+> +#ifdef CONFIG_NF_CT_PROTO_GRE
+> +	case IPPROTO_GRE:
+> +		*hdrsize = sizeof(struct gre_base_hdr);
+> +		break;
+> +#endif
+>  	default:
+>  		return -1;
+>  	}
+> @@ -545,15 +569,25 @@ static int nf_flow_tuple_ipv6(struct sk_buff *skb, const struct net_device *dev,
+>  	if (!pskb_may_pull(skb, thoff + *hdrsize))
+>  		return -1;
+>  
+> +	if (nexthdr == IPPROTO_GRE) {
+> +		struct gre_base_hdr *greh;
+> +
+> +		greh = (struct gre_base_hdr *)(skb_network_header(skb) + thoff);
+> +		if ((greh->flags & GRE_VERSION) != GRE_VERSION_0)
+> +			return -1;
+> +	}
+> +
+>  	ip6h = (struct ipv6hdr *)(skb_network_header(skb) + offset);
+> -	ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
+>  
+>  	tuple->src_v6		= ip6h->saddr;
+>  	tuple->dst_v6		= ip6h->daddr;
+> -	tuple->src_port		= ports->source;
+> -	tuple->dst_port		= ports->dest;
+> +	if (nexthdr == IPPROTO_TCP || nexthdr == IPPROTO_UDP) {
+> +		ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
+> +		tuple->src_port		= ports->source;
+> +		tuple->dst_port		= ports->dest;
+> +	}
+>  	tuple->l3proto		= AF_INET6;
+> -	tuple->l4proto		= ip6h->nexthdr;
+> +	tuple->l4proto		= nexthdr;
+>  	tuple->iifidx		= dev->ifindex;
+>  	nf_flow_tuple_encap(skb, tuple);
+>  
+> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+> index b561e0a..9b81080 100644
+> --- a/net/netfilter/nf_flow_table_offload.c
+> +++ b/net/netfilter/nf_flow_table_offload.c
+> @@ -170,6 +170,7 @@ static int nf_flow_rule_match(struct nf_flow_match *match,
+>  		match->dissector.used_keys |= BIT(FLOW_DISSECTOR_KEY_TCP);
+>  		break;
+>  	case IPPROTO_UDP:
+> +	case IPPROTO_GRE:
+>  		break;
+>  	default:
+>  		return -EOPNOTSUPP;
+> @@ -178,15 +179,19 @@ static int nf_flow_rule_match(struct nf_flow_match *match,
+>  	key->basic.ip_proto = tuple->l4proto;
+>  	mask->basic.ip_proto = 0xff;
+>  
+> -	key->tp.src = tuple->src_port;
+> -	mask->tp.src = 0xffff;
+> -	key->tp.dst = tuple->dst_port;
+> -	mask->tp.dst = 0xffff;
+> -
+>  	match->dissector.used_keys |= BIT(FLOW_DISSECTOR_KEY_META) |
+>  				      BIT(FLOW_DISSECTOR_KEY_CONTROL) |
+> -				      BIT(FLOW_DISSECTOR_KEY_BASIC) |
+> -				      BIT(FLOW_DISSECTOR_KEY_PORTS);
+> +				      BIT(FLOW_DISSECTOR_KEY_BASIC);
+> +
+> +	if (tuple->l4proto == IPPROTO_TCP || tuple->l4proto == IPPROTO_UDP) {
+> +		key->tp.src = tuple->src_port;
+> +		mask->tp.src = 0xffff;
+> +		key->tp.dst = tuple->dst_port;
+> +		mask->tp.dst = 0xffff;
+> +
+> +		match->dissector.used_keys |= BIT(FLOW_DISSECTOR_KEY_PORTS);
+> +	}
+> +
+>  	return 0;
+>  }
+>  
+> diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+> index 0af34ad..731b5d8 100644
+> --- a/net/netfilter/nft_flow_offload.c
+> +++ b/net/netfilter/nft_flow_offload.c
+> @@ -298,6 +298,19 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+>  		break;
+>  	case IPPROTO_UDP:
+>  		break;
+> +#ifdef CONFIG_NF_CT_PROTO_GRE
+> +	case IPPROTO_GRE: {
+> +		struct nf_conntrack_tuple *tuple;
+> +
+> +		if (ct->status & IPS_NAT_MASK)
+> +			goto out;
+
+Why this NAT check?
+
+> +		tuple = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
+> +		/* No support for GRE v1 */
+> +		if (tuple->src.u.gre.key || tuple->dst.u.gre.key)
+> +			goto out;
+> +		break;
+> +	}
+> +#endif
+>  	default:
+>  		goto out;
+>  	}
 > -- 
-> 2.34.1
+> 1.8.3.1
 > 
