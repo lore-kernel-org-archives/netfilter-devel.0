@@ -2,44 +2,46 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 640BEC4167D
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A173C4167B
 	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Feb 2022 14:18:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233491AbiBGOSC (ORCPT
+        id S237570AbiBGOSC convert rfc822-to-8bit (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Mon, 7 Feb 2022 09:18:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60430 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50706 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1358969AbiBGONz (ORCPT
+        with ESMTP id S1390301AbiBGN5W (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 7 Feb 2022 09:13:55 -0500
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6BE37C0401C0
-        for <netfilter-devel@vger.kernel.org>; Mon,  7 Feb 2022 06:13:55 -0800 (PST)
-Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id ECDA66018C;
-        Mon,  7 Feb 2022 15:13:50 +0100 (CET)
-Date:   Mon, 7 Feb 2022 15:13:51 +0100
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jeremy Sowden <jeremy@azazel.net>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [libnetfilter_conntrack PATCH] build: update obsolete autoconf
- macros
-Message-ID: <YgEpH3hGEO6ak6Jg@salvia>
-References: <20220206094702.1513892-1-jeremy@azazel.net>
+        Mon, 7 Feb 2022 08:57:22 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3D2A7C03FEDE
+        for <netfilter-devel@vger.kernel.org>; Mon,  7 Feb 2022 05:57:02 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1nH4Vf-0007KN-2n; Mon, 07 Feb 2022 14:56:51 +0100
+Date:   Mon, 7 Feb 2022 14:56:51 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     Pierre Ducroquet <pducroquet@entrouvert.com>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [Patch] document nft statements undefine/redefine
+Message-ID: <20220207135651.GC25000@breakpoint.cc>
+References: <17129011.jtLeUFmENV@entrouvert-pierred>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220206094702.1513892-1-jeremy@azazel.net>
+Content-Transfer-Encoding: 8BIT
+In-Reply-To: <17129011.jtLeUFmENV@entrouvert-pierred>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Feb 06, 2022 at 09:47:02AM +0000, Jeremy Sowden wrote:
-> `AC_CONFIG_HEADER` has been superseded by `AC_CONFIG_HEADERS`.
+Pierre Ducroquet <pducroquet@entrouvert.com> wrote:
+> I found out that two statements, undefine and redefine, have been added to the 
+> nft language a while ago (2018) but not documented then.
+> Cf. https://patchwork.ozlabs.org/project/netfilter-devel/patch/
+> 3622208.jy4NlOniyd@voxel/
 > 
-> `AM_PROG_LIBTOOL` has been superseded by `LT_INIT`.
-> 
-> `AC_DISABLE_STATIC` can be replaced by an argument to `LT_INIT`.
+> The attached patch adds a basic documentation of this feature.
 
-Applied, thanks
+Applied, thanks.
