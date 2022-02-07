@@ -2,168 +2,238 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34627C433FE
-	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Feb 2022 18:11:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1C56C433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Feb 2022 18:31:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234029AbiBGSKb (ORCPT
+        id S232223AbiBGSbT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 7 Feb 2022 13:10:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40842 "EHLO
+        Mon, 7 Feb 2022 13:31:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51134 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1378369AbiBGSCl (ORCPT
+        with ESMTP id S242685AbiBGSZO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 7 Feb 2022 13:02:41 -0500
+        Mon, 7 Feb 2022 13:25:14 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 08031C0401E0
-        for <netfilter-devel@vger.kernel.org>; Mon,  7 Feb 2022 10:02:41 -0800 (PST)
-Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 4D639601C0;
-        Mon,  7 Feb 2022 19:02:36 +0100 (CET)
-Date:   Mon, 7 Feb 2022 19:02:37 +0100
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B8B8FC0401D9
+        for <netfilter-devel@vger.kernel.org>; Mon,  7 Feb 2022 10:25:13 -0800 (PST)
+Received: from localhost.localdomain (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id E997160183
+        for <netfilter-devel@vger.kernel.org>; Mon,  7 Feb 2022 19:25:08 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH 1/2] nft: Use verbose flag to toggle debug output
-Message-ID: <YgFevUBNBFagWjMx@salvia>
-References: <20220128203700.27071-1-phil@nwl.cc>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next,v3] netfilter: nft_cmp: optimize comparison for 16-bytes
+Date:   Mon,  7 Feb 2022 19:25:08 +0100
+Message-Id: <20220207182508.45415-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20220128203700.27071-1-phil@nwl.cc>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Jan 28, 2022 at 09:36:59PM +0100, Phil Sutter wrote:
-> Copy legacy iptables' behaviour, printing debug output if verbose flag
-> is given more than once.
-> 
-> Since nft debug output applies to netlink messages which are not created
-> until nft_action() phase, carrying verbose value is non-trivial -
-> introduce a field in struct nft_handle for that.
-> 
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
-> ---
->  iptables/nft-shared.h |  1 -
->  iptables/nft.c        | 38 ++++++++++++++++++++------------------
->  iptables/nft.h        |  1 +
->  iptables/xtables.c    |  1 +
->  4 files changed, 22 insertions(+), 19 deletions(-)
-> 
-> diff --git a/iptables/nft-shared.h b/iptables/nft-shared.h
-> index c3241f4b8c726..d4222ae05adc3 100644
-> --- a/iptables/nft-shared.h
-> +++ b/iptables/nft-shared.h
-> @@ -13,7 +13,6 @@
->  #include "xshared.h"
->  
->  #ifdef DEBUG
-> -#define NLDEBUG
->  #define DEBUG_DEL
->  #endif
->  
-> diff --git a/iptables/nft.c b/iptables/nft.c
-> index b5de687c5c4cd..ae41384fe8180 100644
-> --- a/iptables/nft.c
-> +++ b/iptables/nft.c
-> @@ -926,15 +926,16 @@ void nft_fini(struct nft_handle *h)
->  	mnl_socket_close(h->nl);
->  }
->  
-> -static void nft_chain_print_debug(struct nftnl_chain *c, struct nlmsghdr *nlh)
-> +static void nft_chain_print_debug(struct nft_handle *h,
-> +				  struct nftnl_chain *c, struct nlmsghdr *nlh)
->  {
-> -#ifdef NLDEBUG
-> -	char tmp[1024];
-> -
-> -	nftnl_chain_snprintf(tmp, sizeof(tmp), c, 0, 0);
-> -	printf("DEBUG: chain: %s\n", tmp);
-> -	mnl_nlmsg_fprintf(stdout, nlh, nlh->nlmsg_len, sizeof(struct nfgenmsg));
-> -#endif
-> +	if (h->verbose > 1) {
-> +		nftnl_chain_fprintf(stdout, c, 0, 0);
-> +		fprintf(stdout, "\n");
-> +	}
-> +	if (h->verbose > 2)
-> +		mnl_nlmsg_fprintf(stdout, nlh, nlh->nlmsg_len,
-> +				  sizeof(struct nfgenmsg));
+Allow up to 16-byte comparisons with a new cmp fast version. Use two
+64-bit words and calculate the mask representing the bits to be
+compared. Make sure the comparison is 64-bit aligned and avoid
+out-of-bound memory access.
 
-OK, so -v is netlink byte printing and -vv means print netlink message
-too. LGTM.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v3: add .len field to nft_cmp16_fast_expr to allow for < 16-byte comparison.
+    remove WARN_ON_ONCE in _init path of nft_cmp16_fast_init().
 
-I'd mention this in the commit description before applying.
+ include/net/netfilter/nf_tables_core.h |   9 +++
+ net/netfilter/nf_tables_core.c         |  16 ++++
+ net/netfilter/nft_cmp.c                | 102 ++++++++++++++++++++++++-
+ 3 files changed, 125 insertions(+), 2 deletions(-)
 
->  }
->  
->  static struct nftnl_chain *nft_chain_new(struct nft_handle *h,
-> @@ -1386,15 +1387,16 @@ int add_log(struct nftnl_rule *r, struct iptables_command_state *cs)
->  	return 0;
->  }
->  
-> -static void nft_rule_print_debug(struct nftnl_rule *r, struct nlmsghdr *nlh)
-> +static void nft_rule_print_debug(struct nft_handle *h,
-> +				 struct nftnl_rule *r, struct nlmsghdr *nlh)
->  {
-> -#ifdef NLDEBUG
-> -	char tmp[1024];
-> -
-> -	nftnl_rule_snprintf(tmp, sizeof(tmp), r, 0, 0);
-> -	printf("DEBUG: rule: %s\n", tmp);
-> -	mnl_nlmsg_fprintf(stdout, nlh, nlh->nlmsg_len, sizeof(struct nfgenmsg));
-> -#endif
-> +	if (h->verbose > 1) {
-> +		nftnl_rule_fprintf(stdout, r, 0, 0);
-> +		fprintf(stdout, "\n");
-> +	}
-> +	if (h->verbose > 2)
-> +		mnl_nlmsg_fprintf(stdout, nlh, nlh->nlmsg_len,
-> +				  sizeof(struct nfgenmsg));
->  }
->  
->  int add_counters(struct nftnl_rule *r, uint64_t packets, uint64_t bytes)
-> @@ -2698,7 +2700,7 @@ static void nft_compat_chain_batch_add(struct nft_handle *h, uint16_t type,
->  	nlh = nftnl_chain_nlmsg_build_hdr(nftnl_batch_buffer(h->batch),
->  					type, h->family, flags, seq);
->  	nftnl_chain_nlmsg_build_payload(nlh, chain);
-> -	nft_chain_print_debug(chain, nlh);
-> +	nft_chain_print_debug(h, chain, nlh);
->  }
->  
->  static void nft_compat_rule_batch_add(struct nft_handle *h, uint16_t type,
-> @@ -2710,7 +2712,7 @@ static void nft_compat_rule_batch_add(struct nft_handle *h, uint16_t type,
->  	nlh = nftnl_rule_nlmsg_build_hdr(nftnl_batch_buffer(h->batch),
->  				       type, h->family, flags, seq);
->  	nftnl_rule_nlmsg_build_payload(nlh, rule);
-> -	nft_rule_print_debug(rule, nlh);
-> +	nft_rule_print_debug(h, rule, nlh);
->  }
->  
->  static void batch_obj_del(struct nft_handle *h, struct obj_update *o)
-> diff --git a/iptables/nft.h b/iptables/nft.h
-> index 4c78f761e1c4b..fd116c2e3e198 100644
-> --- a/iptables/nft.h
-> +++ b/iptables/nft.h
-> @@ -109,6 +109,7 @@ struct nft_handle {
->  	int8_t			config_done;
->  	struct list_head	cmd_list;
->  	bool			cache_init;
-> +	int			verbose;
->  
->  	/* meta data, for error reporting */
->  	struct {
-> diff --git a/iptables/xtables.c b/iptables/xtables.c
-> index 051d5c7b7f98b..c44b39acdcd97 100644
-> --- a/iptables/xtables.c
-> +++ b/iptables/xtables.c
-> @@ -163,6 +163,7 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
->  		h->ops->init_cs(&cs);
->  
->  	do_parse(argc, argv, &p, &cs, &args);
-> +	h->verbose = p.verbose;
->  
->  	if (!nft_table_builtin_find(h, p.table))
->  		xtables_error(VERSION_PROBLEM,
-> -- 
-> 2.34.1
-> 
+diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
+index b6fb1fdff9b2..0ea7c55cea4d 100644
+--- a/include/net/netfilter/nf_tables_core.h
++++ b/include/net/netfilter/nf_tables_core.h
+@@ -42,6 +42,14 @@ struct nft_cmp_fast_expr {
+ 	bool			inv;
+ };
+ 
++struct nft_cmp16_fast_expr {
++	struct nft_data		data;
++	struct nft_data		mask;
++	u8			sreg;
++	u8			len;
++	bool			inv;
++};
++
+ struct nft_immediate_expr {
+ 	struct nft_data		data;
+ 	u8			dreg;
+@@ -59,6 +67,7 @@ static inline u32 nft_cmp_fast_mask(unsigned int len)
+ }
+ 
+ extern const struct nft_expr_ops nft_cmp_fast_ops;
++extern const struct nft_expr_ops nft_cmp16_fast_ops;
+ 
+ struct nft_payload {
+ 	enum nft_payload_bases	base:8;
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index 36e73f9828c5..c6c05b2412c4 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -67,6 +67,20 @@ static void nft_cmp_fast_eval(const struct nft_expr *expr,
+ 	regs->verdict.code = NFT_BREAK;
+ }
+ 
++static void nft_cmp16_fast_eval(const struct nft_expr *expr,
++				struct nft_regs *regs)
++{
++	const struct nft_cmp16_fast_expr *priv = nft_expr_priv(expr);
++	const u64 *reg_data = (const u64 *)&regs->data[priv->sreg];
++	const u64 *mask = (const u64 *)&priv->mask;
++	const u64 *data = (const u64 *)&priv->data;
++
++	if (((reg_data[0] & mask[0]) == data[0] &&
++	    ((reg_data[1] & mask[1]) == data[1])) ^ priv->inv)
++		return;
++	regs->verdict.code = NFT_BREAK;
++}
++
+ static noinline void __nft_trace_verdict(struct nft_traceinfo *info,
+ 					 const struct nft_chain *chain,
+ 					 const struct nft_regs *regs)
+@@ -225,6 +239,8 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
+ 		nft_rule_dp_for_each_expr(expr, last, rule) {
+ 			if (expr->ops == &nft_cmp_fast_ops)
+ 				nft_cmp_fast_eval(expr, &regs);
++			else if (expr->ops == &nft_cmp16_fast_ops)
++				nft_cmp16_fast_eval(expr, &regs);
+ 			else if (expr->ops == &nft_bitwise_fast_ops)
+ 				nft_bitwise_fast_eval(expr, &regs);
+ 			else if (expr->ops != &nft_payload_fast_ops ||
+diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
+index 47b6d05f1ae6..917072af09df 100644
+--- a/net/netfilter/nft_cmp.c
++++ b/net/netfilter/nft_cmp.c
+@@ -272,12 +272,103 @@ const struct nft_expr_ops nft_cmp_fast_ops = {
+ 	.offload	= nft_cmp_fast_offload,
+ };
+ 
++static u32 nft_cmp_mask(u32 bitlen)
++{
++	return (__force u32)cpu_to_le32(~0U >> (sizeof(u32) * BITS_PER_BYTE - bitlen));
++}
++
++static void nft_cmp16_fast_mask(struct nft_data *data, unsigned int bitlen)
++{
++	int len = bitlen / BITS_PER_BYTE;
++	int i, words = len / sizeof(u32);
++
++	for (i = 0; i < words; i++) {
++		data->data[i] = 0xffffffff;
++		bitlen -= sizeof(u32) * BITS_PER_BYTE;
++	}
++
++	if (len % sizeof(u32))
++		data->data[i++] = nft_cmp_mask(bitlen);
++
++	for (; i < 4; i++)
++		data->data[i] = 0;
++}
++
++static int nft_cmp16_fast_init(const struct nft_ctx *ctx,
++			       const struct nft_expr *expr,
++			       const struct nlattr * const tb[])
++{
++	struct nft_cmp16_fast_expr *priv = nft_expr_priv(expr);
++	struct nft_data_desc desc;
++	int err;
++
++	err = nft_data_init(NULL, &priv->data, sizeof(priv->data), &desc,
++			    tb[NFTA_CMP_DATA]);
++	if (err < 0)
++		return err;
++
++	err = nft_parse_register_load(tb[NFTA_CMP_SREG], &priv->sreg, desc.len);
++	if (err < 0)
++		return err;
++
++	nft_cmp16_fast_mask(&priv->mask, desc.len * BITS_PER_BYTE);
++	priv->inv = ntohl(nla_get_be32(tb[NFTA_CMP_OP])) != NFT_CMP_EQ;
++	priv->len = desc.len;
++
++	return 0;
++}
++
++static int nft_cmp16_fast_offload(struct nft_offload_ctx *ctx,
++				  struct nft_flow_rule *flow,
++				  const struct nft_expr *expr)
++{
++	const struct nft_cmp16_fast_expr *priv = nft_expr_priv(expr);
++	struct nft_cmp_expr cmp = {
++		.data	= priv->data,
++		.sreg	= priv->sreg,
++		.len	= priv->len,
++		.op	= priv->inv ? NFT_CMP_NEQ : NFT_CMP_EQ,
++	};
++
++	return __nft_cmp_offload(ctx, flow, &cmp);
++}
++
++static int nft_cmp16_fast_dump(struct sk_buff *skb, const struct nft_expr *expr)
++{
++	const struct nft_cmp16_fast_expr *priv = nft_expr_priv(expr);
++	enum nft_cmp_ops op = priv->inv ? NFT_CMP_NEQ : NFT_CMP_EQ;
++
++	if (nft_dump_register(skb, NFTA_CMP_SREG, priv->sreg))
++		goto nla_put_failure;
++	if (nla_put_be32(skb, NFTA_CMP_OP, htonl(op)))
++		goto nla_put_failure;
++
++	if (nft_data_dump(skb, NFTA_CMP_DATA, &priv->data,
++			  NFT_DATA_VALUE, priv->len) < 0)
++		goto nla_put_failure;
++	return 0;
++
++nla_put_failure:
++	return -1;
++}
++
++
++const struct nft_expr_ops nft_cmp16_fast_ops = {
++	.type		= &nft_cmp_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_cmp16_fast_expr)),
++	.eval		= NULL,	/* inlined */
++	.init		= nft_cmp16_fast_init,
++	.dump		= nft_cmp16_fast_dump,
++	.offload	= nft_cmp16_fast_offload,
++};
++
+ static const struct nft_expr_ops *
+ nft_cmp_select_ops(const struct nft_ctx *ctx, const struct nlattr * const tb[])
+ {
+ 	struct nft_data_desc desc;
+ 	struct nft_data data;
+ 	enum nft_cmp_ops op;
++	u8 sreg;
+ 	int err;
+ 
+ 	if (tb[NFTA_CMP_SREG] == NULL ||
+@@ -306,9 +397,16 @@ nft_cmp_select_ops(const struct nft_ctx *ctx, const struct nlattr * const tb[])
+ 	if (desc.type != NFT_DATA_VALUE)
+ 		goto err1;
+ 
+-	if (desc.len <= sizeof(u32) && (op == NFT_CMP_EQ || op == NFT_CMP_NEQ))
+-		return &nft_cmp_fast_ops;
++	sreg = ntohl(nla_get_be32(tb[NFTA_CMP_SREG]));
+ 
++	if (op == NFT_CMP_EQ || op == NFT_CMP_NEQ) {
++		if (desc.len <= sizeof(u32))
++			return &nft_cmp_fast_ops;
++		else if (desc.len <= sizeof(data) &&
++			 ((sreg >= NFT_REG_1 && sreg <= NFT_REG_4) ||
++			  (sreg >= NFT_REG32_00 && sreg <= NFT_REG32_12 && sreg % 2 == 0)))
++			return &nft_cmp16_fast_ops;
++	}
+ 	return &nft_cmp_ops;
+ err1:
+ 	nft_data_release(&data, desc.type);
+-- 
+2.30.2
+
