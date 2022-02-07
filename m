@@ -2,285 +2,168 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98469C433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Feb 2022 18:03:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34627C433FE
+	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Feb 2022 18:11:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235179AbiBGSCb (ORCPT
+        id S234029AbiBGSKb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 7 Feb 2022 13:02:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37260 "EHLO
+        Mon, 7 Feb 2022 13:10:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40842 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235002AbiBGR4c (ORCPT
+        with ESMTP id S1378369AbiBGSCl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 7 Feb 2022 12:56:32 -0500
+        Mon, 7 Feb 2022 13:02:41 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 568A3C0401D9
-        for <netfilter-devel@vger.kernel.org>; Mon,  7 Feb 2022 09:56:31 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 08031C0401E0
+        for <netfilter-devel@vger.kernel.org>; Mon,  7 Feb 2022 10:02:41 -0800 (PST)
 Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 6BFE5601BA;
-        Mon,  7 Feb 2022 18:56:26 +0100 (CET)
-Date:   Mon, 7 Feb 2022 18:56:27 +0100
+        by mail.netfilter.org (Postfix) with ESMTPSA id 4D639601C0;
+        Mon,  7 Feb 2022 19:02:36 +0100 (CET)
+Date:   Mon, 7 Feb 2022 19:02:37 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Toshiaki Makita <toshiaki.makita1@gmail.com>
-Cc:     "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Jamal Hadi Salim <jhs@mojatatu.com>,
-        Cong Wang <xiyou.wangcong@gmail.com>,
-        Jiri Pirko <jiri@resnulli.us>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        Paul Blakey <paulb@nvidia.com>
-Subject: Re: [PATCH net-next 1/3] netfilter: flowtable: Support GRE
-Message-ID: <YgFdS0ak3LIR2waA@salvia>
-References: <20220203115941.3107572-1-toshiaki.makita1@gmail.com>
- <20220203115941.3107572-2-toshiaki.makita1@gmail.com>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH 1/2] nft: Use verbose flag to toggle debug output
+Message-ID: <YgFevUBNBFagWjMx@salvia>
+References: <20220128203700.27071-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20220203115941.3107572-2-toshiaki.makita1@gmail.com>
+In-Reply-To: <20220128203700.27071-1-phil@nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Feb 03, 2022 at 08:59:39PM +0900, Toshiaki Makita wrote:
-> Support GREv0 without NAT.
+On Fri, Jan 28, 2022 at 09:36:59PM +0100, Phil Sutter wrote:
+> Copy legacy iptables' behaviour, printing debug output if verbose flag
+> is given more than once.
 > 
-> Signed-off-by: Toshiaki Makita <toshiaki.makita1@gmail.com>
+> Since nft debug output applies to netlink messages which are not created
+> until nft_action() phase, carrying verbose value is non-trivial -
+> introduce a field in struct nft_handle for that.
+> 
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
 > ---
->  net/netfilter/nf_flow_table_core.c    | 10 +++++--
->  net/netfilter/nf_flow_table_ip.c      | 54 ++++++++++++++++++++++++++++-------
->  net/netfilter/nf_flow_table_offload.c | 19 +++++++-----
->  net/netfilter/nft_flow_offload.c      | 13 +++++++++
->  4 files changed, 77 insertions(+), 19 deletions(-)
+>  iptables/nft-shared.h |  1 -
+>  iptables/nft.c        | 38 ++++++++++++++++++++------------------
+>  iptables/nft.h        |  1 +
+>  iptables/xtables.c    |  1 +
+>  4 files changed, 22 insertions(+), 19 deletions(-)
 > 
-> diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-> index b90eca7..e66a375 100644
-> --- a/net/netfilter/nf_flow_table_core.c
-> +++ b/net/netfilter/nf_flow_table_core.c
-> @@ -39,8 +39,14 @@
+> diff --git a/iptables/nft-shared.h b/iptables/nft-shared.h
+> index c3241f4b8c726..d4222ae05adc3 100644
+> --- a/iptables/nft-shared.h
+> +++ b/iptables/nft-shared.h
+> @@ -13,7 +13,6 @@
+>  #include "xshared.h"
 >  
->  	ft->l3proto = ctt->src.l3num;
->  	ft->l4proto = ctt->dst.protonum;
-> -	ft->src_port = ctt->src.u.tcp.port;
-> -	ft->dst_port = ctt->dst.u.tcp.port;
-> +
-> +	switch (ctt->dst.protonum) {
-> +	case IPPROTO_TCP:
-> +	case IPPROTO_UDP:
-> +		ft->src_port = ctt->src.u.tcp.port;
-> +		ft->dst_port = ctt->dst.u.tcp.port;
-> +		break;
-> +	}
+>  #ifdef DEBUG
+> -#define NLDEBUG
+>  #define DEBUG_DEL
+>  #endif
+>  
+> diff --git a/iptables/nft.c b/iptables/nft.c
+> index b5de687c5c4cd..ae41384fe8180 100644
+> --- a/iptables/nft.c
+> +++ b/iptables/nft.c
+> @@ -926,15 +926,16 @@ void nft_fini(struct nft_handle *h)
+>  	mnl_socket_close(h->nl);
 >  }
 >  
->  struct flow_offload *flow_offload_alloc(struct nf_conn *ct)
-> diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-> index 889cf88..48e2f58 100644
-> --- a/net/netfilter/nf_flow_table_ip.c
-> +++ b/net/netfilter/nf_flow_table_ip.c
-> @@ -172,6 +172,7 @@ static int nf_flow_tuple_ip(struct sk_buff *skb, const struct net_device *dev,
->  	struct flow_ports *ports;
->  	unsigned int thoff;
->  	struct iphdr *iph;
-> +	u8 ipproto;
->
->  	if (!pskb_may_pull(skb, sizeof(*iph) + offset))
->  		return -1;
-> @@ -185,13 +186,19 @@ static int nf_flow_tuple_ip(struct sk_buff *skb, const struct net_device *dev,
->  
->  	thoff += offset;
->  
-> -	switch (iph->protocol) {
-> +	ipproto = iph->protocol;
-> +	switch (ipproto) {
->  	case IPPROTO_TCP:
->  		*hdrsize = sizeof(struct tcphdr);
->  		break;
->  	case IPPROTO_UDP:
->  		*hdrsize = sizeof(struct udphdr);
->  		break;
-> +#ifdef CONFIG_NF_CT_PROTO_GRE
-> +	case IPPROTO_GRE:
-> +		*hdrsize = sizeof(struct gre_base_hdr);
-> +		break;
-> +#endif
->  	default:
->  		return -1;
->  	}
-> @@ -202,15 +209,25 @@ static int nf_flow_tuple_ip(struct sk_buff *skb, const struct net_device *dev,
->  	if (!pskb_may_pull(skb, thoff + *hdrsize))
->  		return -1;
->  
-> +	if (ipproto == IPPROTO_GRE) {
-
-No ifdef here? Maybe remove these ifdef everywhere?
-
-> +		struct gre_base_hdr *greh;
-> +
-> +		greh = (struct gre_base_hdr *)(skb_network_header(skb) + thoff);
-> +		if ((greh->flags & GRE_VERSION) != GRE_VERSION_0)
-> +			return -1;
-> +	}
-> +
->  	iph = (struct iphdr *)(skb_network_header(skb) + offset);
-> -	ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
->  
->  	tuple->src_v4.s_addr	= iph->saddr;
->  	tuple->dst_v4.s_addr	= iph->daddr;
-> -	tuple->src_port		= ports->source;
-> -	tuple->dst_port		= ports->dest;
-> +	if (ipproto == IPPROTO_TCP || ipproto == IPPROTO_UDP) {
-> +		ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
-> +		tuple->src_port		= ports->source;
-> +		tuple->dst_port		= ports->dest;
-> +	}
-
-maybe:
-
-        switch (ipproto) {
-        case IPPROTO_TCP:
-        case IPPROTO_UDP:
-                ...
-                break;
-        case IPPROTO_GRE:
-                break;
-        }
-
-?
-
->  	tuple->l3proto		= AF_INET;
-> -	tuple->l4proto		= iph->protocol;
-> +	tuple->l4proto		= ipproto;
->  	tuple->iifidx		= dev->ifindex;
->  	nf_flow_tuple_encap(skb, tuple);
->  
-> @@ -521,6 +538,7 @@ static int nf_flow_tuple_ipv6(struct sk_buff *skb, const struct net_device *dev,
->  	struct flow_ports *ports;
->  	struct ipv6hdr *ip6h;
->  	unsigned int thoff;
-> +	u8 nexthdr;
->  
->  	thoff = sizeof(*ip6h) + offset;
->  	if (!pskb_may_pull(skb, thoff))
-> @@ -528,13 +546,19 @@ static int nf_flow_tuple_ipv6(struct sk_buff *skb, const struct net_device *dev,
->  
->  	ip6h = (struct ipv6hdr *)(skb_network_header(skb) + offset);
->  
-> -	switch (ip6h->nexthdr) {
-> +	nexthdr = ip6h->nexthdr;
-> +	switch (nexthdr) {
->  	case IPPROTO_TCP:
->  		*hdrsize = sizeof(struct tcphdr);
->  		break;
->  	case IPPROTO_UDP:
->  		*hdrsize = sizeof(struct udphdr);
->  		break;
-> +#ifdef CONFIG_NF_CT_PROTO_GRE
-> +	case IPPROTO_GRE:
-> +		*hdrsize = sizeof(struct gre_base_hdr);
-> +		break;
-> +#endif
->  	default:
->  		return -1;
->  	}
-> @@ -545,15 +569,25 @@ static int nf_flow_tuple_ipv6(struct sk_buff *skb, const struct net_device *dev,
->  	if (!pskb_may_pull(skb, thoff + *hdrsize))
->  		return -1;
->  
-> +	if (nexthdr == IPPROTO_GRE) {
-> +		struct gre_base_hdr *greh;
-> +
-> +		greh = (struct gre_base_hdr *)(skb_network_header(skb) + thoff);
-> +		if ((greh->flags & GRE_VERSION) != GRE_VERSION_0)
-> +			return -1;
-> +	}
-> +
->  	ip6h = (struct ipv6hdr *)(skb_network_header(skb) + offset);
-> -	ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
->  
->  	tuple->src_v6		= ip6h->saddr;
->  	tuple->dst_v6		= ip6h->daddr;
-> -	tuple->src_port		= ports->source;
-> -	tuple->dst_port		= ports->dest;
-> +	if (nexthdr == IPPROTO_TCP || nexthdr == IPPROTO_UDP) {
-> +		ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
-> +		tuple->src_port		= ports->source;
-> +		tuple->dst_port		= ports->dest;
-> +	}
->  	tuple->l3proto		= AF_INET6;
-> -	tuple->l4proto		= ip6h->nexthdr;
-> +	tuple->l4proto		= nexthdr;
->  	tuple->iifidx		= dev->ifindex;
->  	nf_flow_tuple_encap(skb, tuple);
->  
-> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-> index b561e0a..9b81080 100644
-> --- a/net/netfilter/nf_flow_table_offload.c
-> +++ b/net/netfilter/nf_flow_table_offload.c
-> @@ -170,6 +170,7 @@ static int nf_flow_rule_match(struct nf_flow_match *match,
->  		match->dissector.used_keys |= BIT(FLOW_DISSECTOR_KEY_TCP);
->  		break;
->  	case IPPROTO_UDP:
-> +	case IPPROTO_GRE:
->  		break;
->  	default:
->  		return -EOPNOTSUPP;
-> @@ -178,15 +179,19 @@ static int nf_flow_rule_match(struct nf_flow_match *match,
->  	key->basic.ip_proto = tuple->l4proto;
->  	mask->basic.ip_proto = 0xff;
->  
-> -	key->tp.src = tuple->src_port;
-> -	mask->tp.src = 0xffff;
-> -	key->tp.dst = tuple->dst_port;
-> -	mask->tp.dst = 0xffff;
+> -static void nft_chain_print_debug(struct nftnl_chain *c, struct nlmsghdr *nlh)
+> +static void nft_chain_print_debug(struct nft_handle *h,
+> +				  struct nftnl_chain *c, struct nlmsghdr *nlh)
+>  {
+> -#ifdef NLDEBUG
+> -	char tmp[1024];
 > -
->  	match->dissector.used_keys |= BIT(FLOW_DISSECTOR_KEY_META) |
->  				      BIT(FLOW_DISSECTOR_KEY_CONTROL) |
-> -				      BIT(FLOW_DISSECTOR_KEY_BASIC) |
-> -				      BIT(FLOW_DISSECTOR_KEY_PORTS);
-> +				      BIT(FLOW_DISSECTOR_KEY_BASIC);
-> +
-> +	if (tuple->l4proto == IPPROTO_TCP || tuple->l4proto == IPPROTO_UDP) {
-> +		key->tp.src = tuple->src_port;
-> +		mask->tp.src = 0xffff;
-> +		key->tp.dst = tuple->dst_port;
-> +		mask->tp.dst = 0xffff;
-> +
-> +		match->dissector.used_keys |= BIT(FLOW_DISSECTOR_KEY_PORTS);
+> -	nftnl_chain_snprintf(tmp, sizeof(tmp), c, 0, 0);
+> -	printf("DEBUG: chain: %s\n", tmp);
+> -	mnl_nlmsg_fprintf(stdout, nlh, nlh->nlmsg_len, sizeof(struct nfgenmsg));
+> -#endif
+> +	if (h->verbose > 1) {
+> +		nftnl_chain_fprintf(stdout, c, 0, 0);
+> +		fprintf(stdout, "\n");
 > +	}
-> +
+> +	if (h->verbose > 2)
+> +		mnl_nlmsg_fprintf(stdout, nlh, nlh->nlmsg_len,
+> +				  sizeof(struct nfgenmsg));
+
+OK, so -v is netlink byte printing and -vv means print netlink message
+too. LGTM.
+
+I'd mention this in the commit description before applying.
+
+>  }
+>  
+>  static struct nftnl_chain *nft_chain_new(struct nft_handle *h,
+> @@ -1386,15 +1387,16 @@ int add_log(struct nftnl_rule *r, struct iptables_command_state *cs)
 >  	return 0;
 >  }
 >  
-> diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-> index 0af34ad..731b5d8 100644
-> --- a/net/netfilter/nft_flow_offload.c
-> +++ b/net/netfilter/nft_flow_offload.c
-> @@ -298,6 +298,19 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
->  		break;
->  	case IPPROTO_UDP:
->  		break;
-> +#ifdef CONFIG_NF_CT_PROTO_GRE
-> +	case IPPROTO_GRE: {
-> +		struct nf_conntrack_tuple *tuple;
-> +
-> +		if (ct->status & IPS_NAT_MASK)
-> +			goto out;
-
-Why this NAT check?
-
-> +		tuple = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
-> +		/* No support for GRE v1 */
-> +		if (tuple->src.u.gre.key || tuple->dst.u.gre.key)
-> +			goto out;
-> +		break;
+> -static void nft_rule_print_debug(struct nftnl_rule *r, struct nlmsghdr *nlh)
+> +static void nft_rule_print_debug(struct nft_handle *h,
+> +				 struct nftnl_rule *r, struct nlmsghdr *nlh)
+>  {
+> -#ifdef NLDEBUG
+> -	char tmp[1024];
+> -
+> -	nftnl_rule_snprintf(tmp, sizeof(tmp), r, 0, 0);
+> -	printf("DEBUG: rule: %s\n", tmp);
+> -	mnl_nlmsg_fprintf(stdout, nlh, nlh->nlmsg_len, sizeof(struct nfgenmsg));
+> -#endif
+> +	if (h->verbose > 1) {
+> +		nftnl_rule_fprintf(stdout, r, 0, 0);
+> +		fprintf(stdout, "\n");
 > +	}
-> +#endif
->  	default:
->  		goto out;
->  	}
+> +	if (h->verbose > 2)
+> +		mnl_nlmsg_fprintf(stdout, nlh, nlh->nlmsg_len,
+> +				  sizeof(struct nfgenmsg));
+>  }
+>  
+>  int add_counters(struct nftnl_rule *r, uint64_t packets, uint64_t bytes)
+> @@ -2698,7 +2700,7 @@ static void nft_compat_chain_batch_add(struct nft_handle *h, uint16_t type,
+>  	nlh = nftnl_chain_nlmsg_build_hdr(nftnl_batch_buffer(h->batch),
+>  					type, h->family, flags, seq);
+>  	nftnl_chain_nlmsg_build_payload(nlh, chain);
+> -	nft_chain_print_debug(chain, nlh);
+> +	nft_chain_print_debug(h, chain, nlh);
+>  }
+>  
+>  static void nft_compat_rule_batch_add(struct nft_handle *h, uint16_t type,
+> @@ -2710,7 +2712,7 @@ static void nft_compat_rule_batch_add(struct nft_handle *h, uint16_t type,
+>  	nlh = nftnl_rule_nlmsg_build_hdr(nftnl_batch_buffer(h->batch),
+>  				       type, h->family, flags, seq);
+>  	nftnl_rule_nlmsg_build_payload(nlh, rule);
+> -	nft_rule_print_debug(rule, nlh);
+> +	nft_rule_print_debug(h, rule, nlh);
+>  }
+>  
+>  static void batch_obj_del(struct nft_handle *h, struct obj_update *o)
+> diff --git a/iptables/nft.h b/iptables/nft.h
+> index 4c78f761e1c4b..fd116c2e3e198 100644
+> --- a/iptables/nft.h
+> +++ b/iptables/nft.h
+> @@ -109,6 +109,7 @@ struct nft_handle {
+>  	int8_t			config_done;
+>  	struct list_head	cmd_list;
+>  	bool			cache_init;
+> +	int			verbose;
+>  
+>  	/* meta data, for error reporting */
+>  	struct {
+> diff --git a/iptables/xtables.c b/iptables/xtables.c
+> index 051d5c7b7f98b..c44b39acdcd97 100644
+> --- a/iptables/xtables.c
+> +++ b/iptables/xtables.c
+> @@ -163,6 +163,7 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
+>  		h->ops->init_cs(&cs);
+>  
+>  	do_parse(argc, argv, &p, &cs, &args);
+> +	h->verbose = p.verbose;
+>  
+>  	if (!nft_table_builtin_find(h, p.table))
+>  		xtables_error(VERSION_PROBLEM,
 > -- 
-> 1.8.3.1
+> 2.34.1
 > 
