@@ -2,153 +2,119 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C45FC433FE
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Feb 2022 13:36:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9812AC433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Feb 2022 13:57:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234186AbiBINgt (ORCPT
+        id S234566AbiBIN5G (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Feb 2022 08:36:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53668 "EHLO
+        Wed, 9 Feb 2022 08:57:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54376 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234153AbiBINgc (ORCPT
+        with ESMTP id S233068AbiBIN5E (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Feb 2022 08:36:32 -0500
+        Wed, 9 Feb 2022 08:57:04 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 2700BC061355;
-        Wed,  9 Feb 2022 05:36:31 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6CADFC0613CA
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Feb 2022 05:57:08 -0800 (PST)
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 887E5601CD;
-        Wed,  9 Feb 2022 14:36:20 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 9B36060012
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Feb 2022 14:56:56 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 14/14] netfilter: ctnetlink: use dump structure instead of raw args
-Date:   Wed,  9 Feb 2022 14:36:16 +0100
-Message-Id: <20220209133616.165104-15-pablo@netfilter.org>
+Subject: [PATCH nf-next] netfilter: nft_ct: track register operations
+Date:   Wed,  9 Feb 2022 14:57:04 +0100
+Message-Id: <20220209135704.169088-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220209133616.165104-1-pablo@netfilter.org>
-References: <20220209133616.165104-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+Check if the destination register already contains the data that this
+ct store expression performs. This allows to skip this redundant
+operation. If the destination contains a different selector, update
+the register tracking information.
 
-netlink_dump structure has a union of 'long args[6]' and a context
-buffer as scratch space.
-
-Convert ctnetlink to use a structure, its easier to read than the
-raw 'args' usage which comes with no type checks and no readable names.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_netlink.c | 36 ++++++++++++++++++----------
- 1 file changed, 24 insertions(+), 12 deletions(-)
+ net/netfilter/nft_ct.c | 47 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index ac438370f94a..3d9f9ee50294 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -58,6 +58,12 @@
- 
- MODULE_LICENSE("GPL");
- 
-+struct ctnetlink_list_dump_ctx {
-+	struct nf_conn *last;
-+	unsigned int cpu;
-+	bool done;
-+};
-+
- static int ctnetlink_dump_tuples_proto(struct sk_buff *skb,
- 				const struct nf_conntrack_tuple *tuple,
- 				const struct nf_conntrack_l4proto *l4proto)
-@@ -1694,14 +1700,18 @@ static int ctnetlink_get_conntrack(struct sk_buff *skb,
- 
- static int ctnetlink_done_list(struct netlink_callback *cb)
- {
--	if (cb->args[1])
--		nf_ct_put((struct nf_conn *)cb->args[1]);
-+	struct ctnetlink_list_dump_ctx *ctx = (void *)cb->ctx;
-+
-+	if (ctx->last)
-+		nf_ct_put(ctx->last);
-+
- 	return 0;
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index 5adf8bb628a8..66ee49045d8e 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -677,6 +677,32 @@ static int nft_ct_get_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 	return -1;
  }
  
- static int
- ctnetlink_dump_list(struct sk_buff *skb, struct netlink_callback *cb, bool dying)
- {
-+	struct ctnetlink_list_dump_ctx *ctx = (void *)cb->ctx;
- 	struct nf_conn *ct, *last;
- 	struct nf_conntrack_tuple_hash *h;
- 	struct hlist_nulls_node *n;
-@@ -1712,12 +1722,12 @@ ctnetlink_dump_list(struct sk_buff *skb, struct netlink_callback *cb, bool dying
- 	struct hlist_nulls_head *list;
- 	struct net *net = sock_net(skb->sk);
- 
--	if (cb->args[2])
-+	if (ctx->done)
- 		return 0;
- 
--	last = (struct nf_conn *)cb->args[1];
-+	last = ctx->last;
- 
--	for (cpu = cb->args[0]; cpu < nr_cpu_ids; cpu++) {
-+	for (cpu = ctx->cpu; cpu < nr_cpu_ids; cpu++) {
- 		struct ct_pcpu *pcpu;
- 
- 		if (!cpu_possible(cpu))
-@@ -1731,10 +1741,10 @@ ctnetlink_dump_list(struct sk_buff *skb, struct netlink_callback *cb, bool dying
- 			ct = nf_ct_tuplehash_to_ctrack(h);
- 			if (l3proto && nf_ct_l3num(ct) != l3proto)
- 				continue;
--			if (cb->args[1]) {
-+			if (ctx->last) {
- 				if (ct != last)
- 					continue;
--				cb->args[1] = 0;
-+				ctx->last = NULL;
- 			}
- 
- 			/* We can't dump extension info for the unconfirmed
-@@ -1751,19 +1761,19 @@ ctnetlink_dump_list(struct sk_buff *skb, struct netlink_callback *cb, bool dying
- 			if (res < 0) {
- 				if (!refcount_inc_not_zero(&ct->ct_general.use))
- 					continue;
--				cb->args[0] = cpu;
--				cb->args[1] = (unsigned long)ct;
-+				ctx->cpu = cpu;
-+				ctx->last = ct;
- 				spin_unlock_bh(&pcpu->lock);
- 				goto out;
- 			}
- 		}
--		if (cb->args[1]) {
--			cb->args[1] = 0;
-+		if (ctx->last) {
-+			ctx->last = NULL;
- 			goto restart;
- 		}
- 		spin_unlock_bh(&pcpu->lock);
- 	}
--	cb->args[2] = 1;
-+	ctx->done = true;
- out:
- 	if (last)
- 		nf_ct_put(last);
-@@ -3877,6 +3887,8 @@ static int __init ctnetlink_init(void)
- {
- 	int ret;
- 
-+	BUILD_BUG_ON(sizeof(struct ctnetlink_list_dump_ctx) > sizeof_field(struct netlink_callback, ctx));
++static bool nft_ct_get_reduce(struct nft_regs_track *track,
++			      const struct nft_expr *expr)
++{
++	const struct nft_ct *priv = nft_expr_priv(expr);
++	const struct nft_ct *ct;
 +
- 	ret = nfnetlink_subsys_register(&ctnl_subsys);
- 	if (ret < 0) {
- 		pr_err("ctnetlink_init: cannot register with nfnetlink.\n");
++	if (!track->regs[priv->dreg].selector ||
++	    track->regs[priv->dreg].selector->ops != expr->ops) {
++		track->regs[priv->dreg].selector = expr;
++		track->regs[priv->dreg].bitwise = NULL;
++		return false;
++	}
++
++	ct = nft_expr_priv(track->regs[priv->dreg].selector);
++	if (priv->key != ct->key) {
++		track->regs[priv->dreg].selector = expr;
++		track->regs[priv->dreg].bitwise = NULL;
++		return false;
++	}
++
++	if (!track->regs[priv->dreg].bitwise)
++		return true;
++
++	return nft_expr_reduce_bitwise(track, expr);
++}
++
+ static int nft_ct_set_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ {
+ 	const struct nft_ct *priv = nft_expr_priv(expr);
+@@ -710,8 +736,28 @@ static const struct nft_expr_ops nft_ct_get_ops = {
+ 	.init		= nft_ct_get_init,
+ 	.destroy	= nft_ct_get_destroy,
+ 	.dump		= nft_ct_get_dump,
++	.reduce		= nft_ct_get_reduce,
+ };
+ 
++static bool nft_ct_set_reduce(struct nft_regs_track *track,
++			      const struct nft_expr *expr)
++{
++	int i;
++
++	for (i = 0; i < NFT_REG32_NUM; i++) {
++		if (!track->regs[i].selector)
++			continue;
++
++		if (track->regs[i].selector->ops != &nft_ct_get_ops)
++			continue;
++
++		track->regs[i].selector = NULL;
++		track->regs[i].bitwise = NULL;
++	}
++
++	return false;
++}
++
+ static const struct nft_expr_ops nft_ct_set_ops = {
+ 	.type		= &nft_ct_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_ct)),
+@@ -719,6 +765,7 @@ static const struct nft_expr_ops nft_ct_set_ops = {
+ 	.init		= nft_ct_set_init,
+ 	.destroy	= nft_ct_set_destroy,
+ 	.dump		= nft_ct_set_dump,
++	.reduce		= nft_ct_set_reduce,
+ };
+ 
+ #ifdef CONFIG_NF_CONNTRACK_ZONES
 -- 
 2.30.2
 
