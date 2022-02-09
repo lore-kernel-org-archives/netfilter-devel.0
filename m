@@ -2,128 +2,97 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB3C1C433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Feb 2022 16:01:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58B3DC433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Feb 2022 02:41:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243562AbiBHQBO (ORCPT
+        id S1344719AbiBIClm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Feb 2022 11:01:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39982 "EHLO
+        Tue, 8 Feb 2022 21:41:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40510 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239908AbiBHQBO (ORCPT
+        with ESMTP id S245267AbiBICau (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Feb 2022 11:01:14 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 398C8C061576
-        for <netfilter-devel@vger.kernel.org>; Tue,  8 Feb 2022 08:01:09 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
-        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=N3SeH6aAQj3gfBHiaqBK/ak55Mdh8FXCx7SBoW8Vy0o=; b=Wuko0OkG3DDLUY2ZaAkPBLhy37
-        GUFghKMRR8AWUC36WeG0q0PotnI/Q6HcrYtfrhpY5H8i/uwBnd0W+3/OhY+yGdIqMxmUGP4/ZcF43
-        ZTeTvQXNkAgFSTY+JRY+ezoQZ20n4IRzTaVvT3+2njZ5JHmEng3PAMN179ImCfiDTaebO8lZ322Iv
-        qkP3jyzZud4KJp7j+oyk2sdSmTingYZlIJ9Kya2NL3AIktZYA5ydA5Lvg6SfTM5Z3jPOT8kesupxo
-        l9LO5daI1Kwml30SVlOIXb6nIMuEZ3iQ72+k4LZPHctNz/Z4smPpZg0QL5xXDiFQOuZUzIcQpzfxy
-        mLLavasw==;
-Received: from localhost ([::1] helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1nHSvT-0006Va-9F; Tue, 08 Feb 2022 17:01:07 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [conntrack-tools PATCH] nfct: Support for non-lazy binding
-Date:   Tue,  8 Feb 2022 17:01:00 +0100
-Message-Id: <20220208160100.27527-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.34.1
+        Tue, 8 Feb 2022 21:30:50 -0500
+Received: from mail-pf1-x430.google.com (mail-pf1-x430.google.com [IPv6:2607:f8b0:4864:20::430])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A0BAC0613CC;
+        Tue,  8 Feb 2022 18:30:48 -0800 (PST)
+Received: by mail-pf1-x430.google.com with SMTP id z35so1792122pfw.2;
+        Tue, 08 Feb 2022 18:30:48 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=mD1SnWz+mm28COwt82p3ZgG8djCP25vnBK0i9FocLYY=;
+        b=U6XLe6hzqgsDhZgqdKyLFCHOHgRoghXVUG8AfW7ef4as6vSakuKfNbtrK5UAyqVouA
+         QIgkX0ngURoZFqQnnRH1A8N8QFLMKaq2kAiYUG6ysU8TBN6cUc95WU69M2XGNw222sAQ
+         i+cnC8qGhocVfiZsQDEpzKvpnICOfEg5kRmOIvWv6/CZsyXcgBQSexXAaTgiVThE9320
+         lpyXNc/1OKFDpPvDBMbk4+Os1IDbUND7jzxnNgseg6XK7VaAuvysN2S99aWMBTJzIN98
+         Tr9huh5CQXkzB9aavMeIvs8mcwSAmUPgMDpJ8rmMYRU2G/k4Lt+fDMX+2CUytUYepQx9
+         iDTw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=mD1SnWz+mm28COwt82p3ZgG8djCP25vnBK0i9FocLYY=;
+        b=MWshEMI1MarlSvRE5oXX26AtQzUwcKG4cCfVSH2kWn1kfhyGagJ2eK1fulYqGJV1ML
+         8kc6SmGDnv+IelOh50IdyMU4zsQZmO+7onBrLh2MSpHH1QtO6o3LneFXtVVhKmzyykNf
+         IGIAVz3ABtuSCdln8Eod71ao7KRwBE5Dj47TszOZYnJyyD4pFCzp52Vyic6vtaoRklGP
+         +SCHwvZVxSJ7pTD6AAIoCgvwlvXjjauXYEDvEYdH3o8v3dfK9GMB8+HN1idLo7wsRSeF
+         n8ifX2FlnMYcXfLJ6iknKrBd0jja/Bm/WfJFQKdz9etTWAX7QNsp+rwbIQLzer5ImkIl
+         ZWqw==
+X-Gm-Message-State: AOAM533rKEe6B4XBYj+cUnV5ooFr9HT3Z7Ae3cmMebc90yv+cHgbj3FD
+        2zOD3NloykJrCR7sVuYH3Ngzwp7AMPI=
+X-Google-Smtp-Source: ABdhPJxjxCschsOyb+AC2m6H7GQ3DFR4CzWd7yRdCAPddgWkqQxPLZdb1QRM7OFvq0IIg73dHHBs+g==
+X-Received: by 2002:a65:550a:: with SMTP id f10mr226800pgr.204.1644373847820;
+        Tue, 08 Feb 2022 18:30:47 -0800 (PST)
+Received: from edumazet1.svl.corp.google.com ([2620:15c:2c4:201:18f1:ac55:f426:b85d])
+        by smtp.gmail.com with ESMTPSA id pg2sm4674302pjb.54.2022.02.08.18.30.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 08 Feb 2022 18:30:47 -0800 (PST)
+From:   Eric Dumazet <eric.dumazet@gmail.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Eric Dumazet <eric.dumazet@gmail.com>
+Subject: [PATCH net] netfilter: xt_socket: fix a typo in socket_mt_destroy()
+Date:   Tue,  8 Feb 2022 18:30:43 -0800
+Message-Id: <20220209023043.3469254-1-eric.dumazet@gmail.com>
+X-Mailer: git-send-email 2.35.0.263.gb82422642f-goog
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-For security purposes, distributions might want to pass -Wl,-z,now
-linker flags to all builds, thereby disabling lazy binding globally.
+From: Eric Dumazet <edumazet@google.com>
 
-In the past, nfct relied upon lazy binding: It uses the helper objects'
-parsing functions without but doesn't provide all symbols the objects
-use.
+Calling nf_defrag_ipv4_disable() instead of nf_defrag_ipv6_disable()
+was probably not the intent.
 
-Add a --disable-lazy configure option to add those missing symbols to
-nfct so it may be used in those environments.
+I found this by code inspection, while chasing a possible issue in TPROXY.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Fixes: de8c12110a13 ("netfilter: disable defrag once its no longer needed")
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Cc: Florian Westphal <fw@strlen.de>
 ---
-This patch supersedes the previously submitted "Merge nfct tool into
-conntrackd", providing a solution which is a) optional and b) doesn't
-bloat nfct-only use-cases that much.
----
- configure.ac    | 12 ++++++++++--
- src/Makefile.am |  7 +++++++
- 2 files changed, 17 insertions(+), 2 deletions(-)
+ net/netfilter/xt_socket.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/configure.ac b/configure.ac
-index b12b722a3396d..43baf8244ad64 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -48,6 +48,9 @@ AC_ARG_ENABLE([cttimeout],
- AC_ARG_ENABLE([systemd],
-         AS_HELP_STRING([--enable-systemd], [Build systemd support]),
-         [enable_systemd="$enableval"], [enable_systemd="no"])
-+AC_ARG_ENABLE([lazy],
-+        AS_HELP_STRING([--disable-lazy], [Disable lazy binding in nfct]),
-+        [enable_lazy="$enableval"], [enable_lazy="yes"])
+diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
+index 5e6459e1160553c0a563a38b5060815e88998b4d..662e5eb1cc39e544191b3aab388c3762674d9251 100644
+--- a/net/netfilter/xt_socket.c
++++ b/net/netfilter/xt_socket.c
+@@ -221,7 +221,7 @@ static void socket_mt_destroy(const struct xt_mtdtor_param *par)
+ 	if (par->family == NFPROTO_IPV4)
+ 		nf_defrag_ipv4_disable(par->net);
+ 	else if (par->family == NFPROTO_IPV6)
+-		nf_defrag_ipv4_disable(par->net);
++		nf_defrag_ipv6_disable(par->net);
+ }
  
- AC_CHECK_HEADER([rpc/rpc_msg.h], [AC_SUBST([LIBTIRPC_CFLAGS],'')], [PKG_CHECK_MODULES([LIBTIRPC], [libtirpc])])
- 
-@@ -78,7 +81,11 @@ AC_CHECK_HEADERS(arpa/inet.h)
- AC_CHECK_FUNCS(inet_pton)
- 
- # Let nfct use dlopen() on helper libraries without resolving all symbols.
--AX_CHECK_LINK_FLAG([-Wl,-z,lazy], [AC_SUBST([LAZY_LDFLAGS], [-Wl,-z,lazy])])
-+AS_IF([test "x$enable_lazy" = "xyes"], [
-+	AX_CHECK_LINK_FLAG([-Wl,-z,lazy],
-+			   [AC_SUBST([LAZY_LDFLAGS], [-Wl,-z,lazy])])
-+])
-+AM_CONDITIONAL([HAVE_LAZY], [test "x$enable_lazy" = "xyes"])
- 
- if test ! -z "$libdir"; then
- 	MODULE_DIR="\\\"$libdir/conntrack-tools/\\\""
-@@ -92,4 +99,5 @@ echo "
- conntrack-tools configuration:
-   userspace conntrack helper support:	${enable_cthelper}
-   conntrack timeout support:		${enable_cttimeout}
--  systemd support:			${enable_systemd}"
-+  systemd support:			${enable_systemd}
-+  use lazy binding:                     ${enable_lazy}"
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 1d56394698a68..95cff7d528d44 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -18,6 +18,9 @@ nfct_SOURCES = nfct.c
- if HAVE_CTHELPER
- nfct_SOURCES += helpers.c			\
- 		nfct-extensions/helper.c
-+if !HAVE_LAZY
-+nfct_SOURCES += expect.c utils.c
-+endif
- endif
- 
- if HAVE_CTTIMEOUT
-@@ -33,6 +36,10 @@ endif
- 
- if HAVE_CTHELPER
- nfct_LDADD += ${LIBNETFILTER_CTHELPER_LIBS}
-+if !HAVE_LAZY
-+nfct_LDADD += ${LIBNETFILTER_CONNTRACK_LIBS} \
-+	      ${LIBNETFILTER_QUEUE_LIBS}
-+endif
- endif
- 
- nfct_LDFLAGS = -export-dynamic ${LAZY_LDFLAGS}
+ static struct xt_match socket_mt_reg[] __read_mostly = {
 -- 
-2.34.1
+2.35.0.263.gb82422642f-goog
 
