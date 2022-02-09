@@ -2,49 +2,45 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4B79C433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Feb 2022 11:55:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FF62C43217
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Feb 2022 11:55:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229761AbiBILzP (ORCPT
+        id S231234AbiBILzc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Feb 2022 06:55:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56936 "EHLO
+        Wed, 9 Feb 2022 06:55:32 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57232 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229745AbiBILzN (ORCPT
+        with ESMTP id S231298AbiBILzT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Feb 2022 06:55:13 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4DF44C004582
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Feb 2022 02:47:02 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1nHkV1-0002YM-Db; Wed, 09 Feb 2022 11:46:59 +0100
-Date:   Wed, 9 Feb 2022 11:46:59 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next] netfilter: ctnetlink: use dump structure instead
- of raw args
-Message-ID: <20220209104659.GF25000@breakpoint.cc>
-References: <20220204121145.3471-1-fw@strlen.de>
- <YgOawS6I8ldRk72Z@salvia>
+        Wed, 9 Feb 2022 06:55:19 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1E4EDC1036B3
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Feb 2022 02:49:17 -0800 (PST)
+Received: from netfilter.org (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id EB109601B3;
+        Wed,  9 Feb 2022 11:49:05 +0100 (CET)
+Date:   Wed, 9 Feb 2022 11:49:14 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next v2] netfilter: ecache: don't use nf_conn spinlock
+Message-ID: <YgOcKkflWY8sKCd+@salvia>
+References: <20220205120004.98531-1-fw@strlen.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <YgOawS6I8ldRk72Z@salvia>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20220205120004.98531-1-fw@strlen.de>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> >  static int ctnetlink_done_list(struct netlink_callback *cb)
-> >  {
-> > -	if (cb->args[1])
-> > -		nf_ct_put((struct nf_conn *)cb->args[1]);
-> > +	struct ctnetlink_list_dump_ctx *ctx = (void *)cb->ctx;
+On Sat, Feb 05, 2022 at 01:00:04PM +0100, Florian Westphal wrote:
+> For updating eache missed value we can use cmpxchg.
+> This also avoids need to disable BH.
 > 
-> Where is cb->ctx initialized?
+> kernel robot reported build failure on v1 because not all arches support
+> cmpxchg for u16, so extend this to u32.
+> 
+> This doesn't increase struct size, existing padding is used.
 
-Its zeroed in __netlink_dump_start, cb->ctx and cb->args are aliased
-via union inside netlink_callback struct.
+Applied, thanks
