@@ -2,97 +2,93 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58B3DC433FE
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Feb 2022 02:41:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB7A7C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Feb 2022 08:26:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344719AbiBIClm (ORCPT
+        id S237010AbiBII0C (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Feb 2022 21:41:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40510 "EHLO
+        Wed, 9 Feb 2022 03:26:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33820 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245267AbiBICau (ORCPT
+        with ESMTP id S235192AbiBII0B (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Feb 2022 21:30:50 -0500
-Received: from mail-pf1-x430.google.com (mail-pf1-x430.google.com [IPv6:2607:f8b0:4864:20::430])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A0BAC0613CC;
-        Tue,  8 Feb 2022 18:30:48 -0800 (PST)
-Received: by mail-pf1-x430.google.com with SMTP id z35so1792122pfw.2;
-        Tue, 08 Feb 2022 18:30:48 -0800 (PST)
+        Wed, 9 Feb 2022 03:26:01 -0500
+Received: from mail-pl1-x629.google.com (mail-pl1-x629.google.com [IPv6:2607:f8b0:4864:20::629])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E757C0613CA;
+        Wed,  9 Feb 2022 00:26:05 -0800 (PST)
+Received: by mail-pl1-x629.google.com with SMTP id x4so1595729plb.4;
+        Wed, 09 Feb 2022 00:26:05 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
-        bh=mD1SnWz+mm28COwt82p3ZgG8djCP25vnBK0i9FocLYY=;
-        b=U6XLe6hzqgsDhZgqdKyLFCHOHgRoghXVUG8AfW7ef4as6vSakuKfNbtrK5UAyqVouA
-         QIgkX0ngURoZFqQnnRH1A8N8QFLMKaq2kAiYUG6ysU8TBN6cUc95WU69M2XGNw222sAQ
-         i+cnC8qGhocVfiZsQDEpzKvpnICOfEg5kRmOIvWv6/CZsyXcgBQSexXAaTgiVThE9320
-         lpyXNc/1OKFDpPvDBMbk4+Os1IDbUND7jzxnNgseg6XK7VaAuvysN2S99aWMBTJzIN98
-         Tr9huh5CQXkzB9aavMeIvs8mcwSAmUPgMDpJ8rmMYRU2G/k4Lt+fDMX+2CUytUYepQx9
-         iDTw==
+        bh=qcjBJ/Ci2VT2f5f7cAYMgRpT1z1jkbGO0KryE5QWZ98=;
+        b=A0TRrw7fLJ9eVfA7MjdT8PplW2pF0Hf6og6tUjvIQYCx3+JMf7+sm3aEfqfxoFabm9
+         38aogAR6iprWXfy1WlExL0Sw23wuoV+nijCcodDj2eZG0odCpFxe7+aPMxIGJjLe03+J
+         WeC0h4fEqFCqt4BjJXfa1fTjj3IWGMOd9Y3up7+qmPeFh3j2OcgsE4pZdiS4We9BpsK+
+         2GVb77W/9kWHDzgFUPQWCmnJdojz79ZvPIih5mzbzkBOf9XBNRJ9BcFkSUpj3zCbz4UX
+         0BuFGgrg30C1SjIDVRSgbJcJuAMloX4/CGglyw7otIpaegntMTZEfR17l1UQ7+0KtFLD
+         4TAA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
-        bh=mD1SnWz+mm28COwt82p3ZgG8djCP25vnBK0i9FocLYY=;
-        b=MWshEMI1MarlSvRE5oXX26AtQzUwcKG4cCfVSH2kWn1kfhyGagJ2eK1fulYqGJV1ML
-         8kc6SmGDnv+IelOh50IdyMU4zsQZmO+7onBrLh2MSpHH1QtO6o3LneFXtVVhKmzyykNf
-         IGIAVz3ABtuSCdln8Eod71ao7KRwBE5Dj47TszOZYnJyyD4pFCzp52Vyic6vtaoRklGP
-         +SCHwvZVxSJ7pTD6AAIoCgvwlvXjjauXYEDvEYdH3o8v3dfK9GMB8+HN1idLo7wsRSeF
-         n8ifX2FlnMYcXfLJ6iknKrBd0jja/Bm/WfJFQKdz9etTWAX7QNsp+rwbIQLzer5ImkIl
-         ZWqw==
-X-Gm-Message-State: AOAM533rKEe6B4XBYj+cUnV5ooFr9HT3Z7Ae3cmMebc90yv+cHgbj3FD
-        2zOD3NloykJrCR7sVuYH3Ngzwp7AMPI=
-X-Google-Smtp-Source: ABdhPJxjxCschsOyb+AC2m6H7GQ3DFR4CzWd7yRdCAPddgWkqQxPLZdb1QRM7OFvq0IIg73dHHBs+g==
-X-Received: by 2002:a65:550a:: with SMTP id f10mr226800pgr.204.1644373847820;
-        Tue, 08 Feb 2022 18:30:47 -0800 (PST)
-Received: from edumazet1.svl.corp.google.com ([2620:15c:2c4:201:18f1:ac55:f426:b85d])
-        by smtp.gmail.com with ESMTPSA id pg2sm4674302pjb.54.2022.02.08.18.30.46
+        bh=qcjBJ/Ci2VT2f5f7cAYMgRpT1z1jkbGO0KryE5QWZ98=;
+        b=lZ7XT/oZApYv4gGbjFJ3uA0ThlZb87xzzaWi2JNR6UzzI5yNHHhPBD0ghUsaGpA/WX
+         p21vaAeGPU/jQ975IrifAijjlLMSWIRWU6r3ANZ58jIsA57UZ81OelhgwXhy9WyLS1/o
+         5gcFg10+hLMesnBErXCA9lh76jA09MBNiKD/2n6ys7N4g3dCGt6jqkPfE3wYdGu0yuMl
+         XtpTEdgze7NEQ62Cv+QqlN1mw/bJvTCT+RTqwSR1pQfsbpD5OfnQwZBcwibWZFJu2eqQ
+         pKSVODA+xRIU52/A06mjlqYe8vuX399F2AzoUBDxVjuAHK1uaQFSTSvAcMzjdLSWIQRf
+         T7pg==
+X-Gm-Message-State: AOAM530LyqgTEdxRx1zlVZGZJax1kL7x272VNvobkXJS1q+R2TZhgned
+        QC4GaAhiJs4CcCsU5tQsKHK0E8sXoe0=
+X-Google-Smtp-Source: ABdhPJyIHornEkMjATpC9q19n0/2gCr2JmRrsBk/zCu2Jz4jkkk7cfi1Ff6mYh+j/AwhXYHHg+5w4Q==
+X-Received: by 2002:a17:903:189:: with SMTP id z9mr1011269plg.71.1644395164335;
+        Wed, 09 Feb 2022 00:26:04 -0800 (PST)
+Received: from Laptop-X1.redhat.com ([209.132.188.80])
+        by smtp.gmail.com with ESMTPSA id nv13sm5641533pjb.17.2022.02.09.00.26.01
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 08 Feb 2022 18:30:47 -0800 (PST)
-From:   Eric Dumazet <eric.dumazet@gmail.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [PATCH net] netfilter: xt_socket: fix a typo in socket_mt_destroy()
-Date:   Tue,  8 Feb 2022 18:30:43 -0800
-Message-Id: <20220209023043.3469254-1-eric.dumazet@gmail.com>
-X-Mailer: git-send-email 2.35.0.263.gb82422642f-goog
+        Wed, 09 Feb 2022 00:26:03 -0800 (PST)
+From:   Hangbin Liu <liuhangbin@gmail.com>
+To:     netdev@vger.kernel.org
+Cc:     netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Stefano Brivio <sbrivio@redhat.com>,
+        Florian Westphal <fw@strlen.de>,
+        Hangbin Liu <liuhangbin@gmail.com>
+Subject: [PATCH nf] selftests: netfilter: fix exit value for nft_concat_range
+Date:   Wed,  9 Feb 2022 16:25:51 +0800
+Message-Id: <20220209082551.894541-1-liuhangbin@gmail.com>
+X-Mailer: git-send-email 2.31.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Eric Dumazet <edumazet@google.com>
+When the nft_concat_range test failed, it exit 1 in the code
+specifically.
 
-Calling nf_defrag_ipv4_disable() instead of nf_defrag_ipv6_disable()
-was probably not the intent.
+But when part of, or all of the test passed, it will failed the
+[ ${passed} -eq 0 ] check and thus exit with 1, which is the same
+exit value with failure result. Fix it by exit 0 when passed is not 0.
 
-I found this by code inspection, while chasing a possible issue in TPROXY.
-
-Fixes: de8c12110a13 ("netfilter: disable defrag once its no longer needed")
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Cc: Florian Westphal <fw@strlen.de>
+Fixes: 611973c1e06f ("selftests: netfilter: Introduce tests for sets with range concatenation")
+Signed-off-by: Hangbin Liu <liuhangbin@gmail.com>
 ---
- net/netfilter/xt_socket.c | 2 +-
+ tools/testing/selftests/netfilter/nft_concat_range.sh | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
-index 5e6459e1160553c0a563a38b5060815e88998b4d..662e5eb1cc39e544191b3aab388c3762674d9251 100644
---- a/net/netfilter/xt_socket.c
-+++ b/net/netfilter/xt_socket.c
-@@ -221,7 +221,7 @@ static void socket_mt_destroy(const struct xt_mtdtor_param *par)
- 	if (par->family == NFPROTO_IPV4)
- 		nf_defrag_ipv4_disable(par->net);
- 	else if (par->family == NFPROTO_IPV6)
--		nf_defrag_ipv4_disable(par->net);
-+		nf_defrag_ipv6_disable(par->net);
- }
+diff --git a/tools/testing/selftests/netfilter/nft_concat_range.sh b/tools/testing/selftests/netfilter/nft_concat_range.sh
+index df322e47a54f..b35010cc7f6a 100755
+--- a/tools/testing/selftests/netfilter/nft_concat_range.sh
++++ b/tools/testing/selftests/netfilter/nft_concat_range.sh
+@@ -1601,4 +1601,4 @@ for name in ${TESTS}; do
+ 	done
+ done
  
- static struct xt_match socket_mt_reg[] __read_mostly = {
+-[ ${passed} -eq 0 ] && exit ${KSELFTEST_SKIP}
++[ ${passed} -eq 0 ] && exit ${KSELFTEST_SKIP} || exit 0
 -- 
-2.35.0.263.gb82422642f-goog
+2.31.1
 
