@@ -2,80 +2,101 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FF00C433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Feb 2022 10:04:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79729C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Feb 2022 10:04:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230428AbiBIKEj (ORCPT
+        id S230451AbiBIKEu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Feb 2022 05:04:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47454 "EHLO
+        Wed, 9 Feb 2022 05:04:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48106 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230072AbiBIKEi (ORCPT
+        with ESMTP id S230440AbiBIKEt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Feb 2022 05:04:38 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 5532BE0F4282
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Feb 2022 02:04:34 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1644400665;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=YoAHclFfpdWOR3Rz2pjOqXwysYaFTuu6PzBf6Mjo0WA=;
-        b=CJkOQ3vMt/cwle6+BrJolftwhDxDl4HZett5Sf/1ubVxPnznhPvANcj1AlFCnv2qfJo0+Y
-        e2OA3lZWnD4ws9lDsIk8xE7HS6Vqx00WwjmtdSTkjmOka7ji7ukWZCR3FXL3GZ238toe6E
-        7ceJqtixg3QtEX7M4B2iIgdj0tWtpjM=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-513-0-7_EnN5OKuVEAklmvS8VA-1; Wed, 09 Feb 2022 04:57:42 -0500
-X-MC-Unique: 0-7_EnN5OKuVEAklmvS8VA-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 0FEB918B9EC3;
-        Wed,  9 Feb 2022 09:57:40 +0000 (UTC)
-Received: from maya.cloud.tilaa.com (unknown [10.40.208.3])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 12EC25BC4B;
-        Wed,  9 Feb 2022 09:57:38 +0000 (UTC)
-Date:   Wed, 9 Feb 2022 10:57:35 +0100
-From:   Stefano Brivio <sbrivio@redhat.com>
-To:     Hangbin Liu <liuhangbin@gmail.com>
-Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf] selftests: netfilter: fix exit value for
- nft_concat_range
-Message-ID: <20220209105735.5cefed1d@elisabeth>
-In-Reply-To: <20220209082551.894541-1-liuhangbin@gmail.com>
-References: <20220209082551.894541-1-liuhangbin@gmail.com>
-Organization: Red Hat
+        Wed, 9 Feb 2022 05:04:49 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 334BAE040AA1;
+        Wed,  9 Feb 2022 02:04:45 -0800 (PST)
+Received: from netfilter.org (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 01617601B3;
+        Wed,  9 Feb 2022 11:01:06 +0100 (CET)
+Date:   Wed, 9 Feb 2022 11:01:13 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Toshiaki Makita <toshiaki.makita1@gmail.com>
+Cc:     "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Saeed Mahameed <saeedm@nvidia.com>,
+        Jamal Hadi Salim <jhs@mojatatu.com>,
+        Cong Wang <xiyou.wangcong@gmail.com>,
+        Jiri Pirko <jiri@resnulli.us>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Paul Blakey <paulb@nvidia.com>
+Subject: Re: [PATCH net-next 1/3] netfilter: flowtable: Support GRE
+Message-ID: <YgOQ6a0itcJjQJqx@salvia>
+References: <20220203115941.3107572-1-toshiaki.makita1@gmail.com>
+ <20220203115941.3107572-2-toshiaki.makita1@gmail.com>
+ <YgFdS0ak3LIR2waA@salvia>
+ <9d4fd782-896d-4a44-b596-517c84d97d5a@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <9d4fd782-896d-4a44-b596-517c84d97d5a@gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed,  9 Feb 2022 16:25:51 +0800
-Hangbin Liu <liuhangbin@gmail.com> wrote:
-
-> When the nft_concat_range test failed, it exit 1 in the code
-> specifically.
+On Tue, Feb 08, 2022 at 11:30:03PM +0900, Toshiaki Makita wrote:
+> On 2022/02/08 2:56, Pablo Neira Ayuso wrote:
+> > On Thu, Feb 03, 2022 at 08:59:39PM +0900, Toshiaki Makita wrote:
+[...]
+> > > diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+> > > index 889cf88..48e2f58 100644
+> > > --- a/net/netfilter/nf_flow_table_ip.c
+> > > +++ b/net/netfilter/nf_flow_table_ip.c
+[...]
+> > > @@ -202,15 +209,25 @@ static int nf_flow_tuple_ip(struct sk_buff *skb, const struct net_device *dev,
+> > >   	if (!pskb_may_pull(skb, thoff + *hdrsize))
+> > >   		return -1;
+> > > +	if (ipproto == IPPROTO_GRE) {
+> > 
+> > No ifdef here? Maybe remove these ifdef everywhere?
 > 
-> But when part of, or all of the test passed, it will failed the
-> [ ${passed} -eq 0 ] check and thus exit with 1, which is the same
-> exit value with failure result. Fix it by exit 0 when passed is not 0.
+> I wanted to avoid adding many ifdefs and I expect this to be compiled out
+> when CONFIG_NF_CT_PROTO_GRE=n as this block is unreachable anyway. It rather
+> may have been unintuitive though.
+> 
+> Removing all of these ifdefs will cause inconsistent behavior between
+> CONFIG_NF_CT_PROTO_GRE=n/y.
+> When CONFIG_NF_CT_PROTO_GRE=n, conntrack cannot determine GRE version, thus
+> it will track GREv1 without key infomation, and the flow will be offloaded.
+> When CONFIG_NF_CT_PROTO_GRE=y, GREv1 will have key information and will not
+> be offloaded.
+> I wanted to just refuse offloading of GRE to avoid this inconsistency.
+> Anyway this kind of inconsistency seems to happen in software conntrack, so
+> if you'd like to remove ifdefs, I will do.
 
-Oops, right, thanks for fixing this!
- 
-> Fixes: 611973c1e06f ("selftests: netfilter: Introduce tests for sets with range concatenation")
-> Signed-off-by: Hangbin Liu <liuhangbin@gmail.com>
+Good point, thanks for explaining. LGTM.
 
-Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
+[...]
+> > > diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+> > > index 0af34ad..731b5d8 100644
+> > > --- a/net/netfilter/nft_flow_offload.c
+> > > +++ b/net/netfilter/nft_flow_offload.c
+> > > @@ -298,6 +298,19 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+> > >   		break;
+> > >   	case IPPROTO_UDP:
+> > >   		break;
+> > > +#ifdef CONFIG_NF_CT_PROTO_GRE
+> > > +	case IPPROTO_GRE: {
+> > > +		struct nf_conntrack_tuple *tuple;
+> > > +
+> > > +		if (ct->status & IPS_NAT_MASK)
+> > > +			goto out;
+> > 
+> > Why this NAT check?
+> 
+> NAT requires more work. I'd like to start with a minimal GRE support.
+> Maybe we can add NAT support later.
 
--- 
-Stefano
-
+Oh well, yes, no problem.
