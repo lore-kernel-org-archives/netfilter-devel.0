@@ -2,112 +2,99 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6568BC433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Feb 2022 03:32:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E65BC433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Feb 2022 05:12:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232603AbiBJDcT (ORCPT
+        id S233430AbiBJFME (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Feb 2022 22:32:19 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:57148 "EHLO
+        Thu, 10 Feb 2022 00:12:04 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:43242 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230059AbiBJDcS (ORCPT
+        with ESMTP id S231807AbiBJFMD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Feb 2022 22:32:18 -0500
-Received: from mail-pj1-x102e.google.com (mail-pj1-x102e.google.com [IPv6:2607:f8b0:4864:20::102e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 341D723BD9;
-        Wed,  9 Feb 2022 19:32:20 -0800 (PST)
-Received: by mail-pj1-x102e.google.com with SMTP id h14-20020a17090a130e00b001b88991a305so7170130pja.3;
-        Wed, 09 Feb 2022 19:32:20 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=j48+22ZByNM/hLovrTeV1WT75NKYqr7Fm/OV9vNHCNw=;
-        b=JlUWCJAPQI439U0lMs+OPOWWl3X1lSr2P7x4WylcZgyfHbYwq6YrPZ3Tu5o5HafJKo
-         fVHDurp6eQWq3TtiV6H+AX2hwcOb1kUUP+GFxY3kLz34H96bMRf+77VbH2GZz6+2XT67
-         pARFWY+Dye1DP+h45smS7Pz/Ric4pJfu63wjsEAqwO/wtqr+kZL1Br+k6qAdmo1u2gmb
-         cNFKvWDrB5Fbm58+cKvBB5CnpHs+Amo4RN0Zn5YatgJqAMood1vHixHJm7GqGlGQGaJm
-         RB7mIH3Fo9KfdD22SCA7yrMwInDtQBuaNsRUqbzBOJT3Csj3IXeaS5crfx8TQammNg07
-         hwBg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=j48+22ZByNM/hLovrTeV1WT75NKYqr7Fm/OV9vNHCNw=;
-        b=NGXlE2SEiAjE4H8Scv+eipkE1Rg2lF7klbmMGAW4LqYa+0ZfPPrRlv8TmJYvWy+rrH
-         fe+9+3RZUCzkbY3XPQvDzWpuve8UNUnSnxc7LBbpYRj8k6J/Zspe67UmlhBuNNQuj2HV
-         yFAXzFCEm3bHBDMFNVP+6JpscRK54tf2CwnC4/ejQ0zuVjdvBlzXq7z+/GdvWAN0x4GC
-         hTTKmWDpYRJvnZR7Hdn67XT5SQQEJTFfKWUbPO92sNdzmYDkk1mDU8WGK8FrPmXe01Pl
-         fDUvkH7jHUz89EZ85s7b685Hx9mhulhOOKWHgSzrEUnzXPQYplPKwMPPNn8WqqOk3X2l
-         YgCw==
-X-Gm-Message-State: AOAM531s6Zqv2+HECRVfqXa+AJ0ZV2p2gZNXzlDY0ipPloZo2kqO5Zhj
-        zPw1Lgk8qB2ZwGjMszlBErSa5yl4Ck8=
-X-Google-Smtp-Source: ABdhPJyo0+D8jUvlBqAmfE5CePl88jZnnBW8Ll4BK9L/VWpYynwKdcLU5UUEL1QpMQermI4wqHAdcA==
-X-Received: by 2002:a17:903:249:: with SMTP id j9mr5276607plh.39.1644463939513;
-        Wed, 09 Feb 2022 19:32:19 -0800 (PST)
-Received: from Laptop-X1.redhat.com ([209.132.188.80])
-        by smtp.gmail.com with ESMTPSA id s32sm14760483pfw.80.2022.02.09.19.32.16
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 09 Feb 2022 19:32:19 -0800 (PST)
-From:   Hangbin Liu <liuhangbin@gmail.com>
-To:     netdev@vger.kernel.org
-Cc:     netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Thu, 10 Feb 2022 00:12:03 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1F23E290;
+        Wed,  9 Feb 2022 21:12:06 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id ADAEF61BA3;
+        Thu, 10 Feb 2022 05:12:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30F7BC340E5;
+        Thu, 10 Feb 2022 05:12:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1644469925;
+        bh=LFqZdC12qnwe1Y76es8sEhk/QMcb0vADkit1XFNLr34=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=SLaXM7J9xK+YQ9Jr7kXvubbxpi3xl7gqfDPey6gwEBPx2hWZ12w9X7UbLDtyz6blr
+         mE0EImwRa46BGO201erGuYl1zMHxJ8M/TE0y/D/+vEClKv2CGXfC6zHqkotWC8sb5J
+         84yOu6sctQvK3e+L1YPK6ZS2PagBVB5+scs5nnrWly++bWRlTuZKZY8cnW5CCHO5ii
+         CVfxTzQWdfAqHrDQZIoOnqzOSMnCNAs67uFSV19RRniqAkTwG9z4d9awrgoXOOaiLK
+         4untIMC2Ku42zp5TFTnIejVV1xLvwlEj3Ttvkwg515y5TYwbT0HmOeprMyZa1SXwdG
+         EHLIz1eGtApcQ==
+Date:   Wed, 9 Feb 2022 21:12:02 -0800
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Menglong Dong <menglong8.dong@gmail.com>
+Cc:     David Ahern <dsahern@gmail.com>, David Ahern <dsahern@kernel.org>,
+        Steven Rostedt <rostedt@goodmis.org>, mingo@redhat.com,
+        David Miller <davem@davemloft.net>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        pablo@netfilter.org, kadlec@netfilter.org,
         Florian Westphal <fw@strlen.de>,
-        Hangbin Liu <liuhangbin@gmail.com>, Yi Chen <yiche@redhat.com>
-Subject: [PATCH nf] selftests: netfilter: disable rp_filter on router
-Date:   Thu, 10 Feb 2022 11:32:05 +0800
-Message-Id: <20220210033205.928458-1-liuhangbin@gmail.com>
-X-Mailer: git-send-email 2.31.1
+        Menglong Dong <imagedong@tencent.com>,
+        Eric Dumazet <edumazet@google.com>, alobakin@pm.me,
+        paulb@nvidia.com, Kees Cook <keescook@chromium.org>,
+        talalahmad@google.com, haokexin@gmail.com, memxor@gmail.com,
+        LKML <linux-kernel@vger.kernel.org>,
+        netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, Cong Wang <cong.wang@bytedance.com>
+Subject: Re: [PATCH v3 net-next 1/7] net: skb_drop_reason: add document for
+ drop reasons
+Message-ID: <20220209211202.7cddd337@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+In-Reply-To: <CADxym3akuxC_Cr07Vzvv+BD55XgMEx7nqU4qW8WHowGR0jeoOQ@mail.gmail.com>
+References: <20220128073319.1017084-1-imagedong@tencent.com>
+        <20220128073319.1017084-2-imagedong@tencent.com>
+        <0029e650-3f38-989b-74a3-58c512d63f6b@gmail.com>
+        <CADxym3akuxC_Cr07Vzvv+BD55XgMEx7nqU4qW8WHowGR0jeoOQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Some distros may enalbe rp_filter by default. After ns1 change addr to
-10.0.2.99 and set default router to 10.0.2.1, while the connected router
-address is still 10.0.1.1. The router will not reply the arp request
-from ns1. Fix it by setting the router's veth0 rp_filter to 0.
+On Thu, 10 Feb 2022 11:19:49 +0800 Menglong Dong wrote:
+> I'm doing the job of using kfree_skb_reason() for the TCP layer,
+> and I have some puzzles.
+> 
+> When collecting drop reason for tcp_v4_inbound_md5_hash() in
+> tcp_v4_rcv(), I come up with 2 ways:
+> 
+> First way: pass the address of reason to tcp_v4_inbound_md5_hash()
+> like this:
+> 
+>  static bool tcp_v4_inbound_md5_hash(const struct sock *sk,
+>                       const struct sk_buff *skb,
+> -                    int dif, int sdif)
+> +                    int dif, int sdif,
+> +                    enum skb_drop_reason *reason)
+> 
+> This can work, but many functions like tcp_v4_inbound_md5_hash()
+> need to do such a change.
+> 
+> Second way: introduce a 'drop_reason' field to 'struct sk_buff'. Therefore,
+> drop reason can be set by 'skb->drop_reason = SKB_DROP_REASON_XXX'
+> anywhere.
+> 
+> For TCP, there are many cases where you can't get a drop reason in
+> the place where skb is freed, so I think there needs to be a way to
+> deeply collect drop reasons. The second can resolve this problem
+> easily, but extra fields may have performance problems.
+> 
+> Do you have some better ideas?
 
-Before the fix:
-  # ./nft_fib.sh
-  PASS: fib expression did not cause unwanted packet drops
-  Netns nsrouter-HQkDORO2 fib counter doesn't match expected packet count of 1 for 1.1.1.1
-  table inet filter {
-          chain prerouting {
-                  type filter hook prerouting priority filter; policy accept;
-                  ip daddr 1.1.1.1 fib saddr . iif oif missing counter packets 0 bytes 0 drop
-                  ip6 daddr 1c3::c01d fib saddr . iif oif missing counter packets 0 bytes 0 drop
-          }
-  }
-
-After the fix:
-  # ./nft_fib.sh
-  PASS: fib expression did not cause unwanted packet drops
-  PASS: fib expression did drop packets for 1.1.1.1
-  PASS: fib expression did drop packets for 1c3::c01d
-
-Fixes: 82944421243e ("selftests: netfilter: add fib test case")
-Signed-off-by: Yi Chen <yiche@redhat.com>
-Signed-off-by: Hangbin Liu <liuhangbin@gmail.com>
----
- tools/testing/selftests/netfilter/nft_fib.sh | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/tools/testing/selftests/netfilter/nft_fib.sh b/tools/testing/selftests/netfilter/nft_fib.sh
-index 6caf6ac8c285..22c7feff8d48 100755
---- a/tools/testing/selftests/netfilter/nft_fib.sh
-+++ b/tools/testing/selftests/netfilter/nft_fib.sh
-@@ -174,6 +174,8 @@ test_ping() {
- ip netns exec ${nsrouter} sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
- ip netns exec ${nsrouter} sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
- ip netns exec ${nsrouter} sysctl net.ipv4.conf.veth1.forwarding=1 > /dev/null
-+ip netns exec ${nsrouter} sysctl net.ipv4.conf.veth0.rp_filter=0 > /dev/null
-+ip netns exec ${nsrouter} sysctl net.ipv4.conf.veth1.rp_filter=0 > /dev/null
- 
- sleep 3
- 
--- 
-2.31.1
-
+On a quick look tcp_v4_inbound_md5_hash() returns a drop / no drop
+decision, so you could just change the return type to enum
+skb_drop_reason. SKB_DROP_REASON_NOT_SPECIFIED is 0 is false, 
+so if (reason) goto drop; logic will hold up.
