@@ -2,61 +2,51 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7846C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Feb 2022 09:12:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FF3BC433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Feb 2022 09:13:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238269AbiBJJMD (ORCPT
+        id S238315AbiBJJNd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 10 Feb 2022 04:12:03 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:42238 "EHLO
+        Thu, 10 Feb 2022 04:13:33 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:43242 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237347AbiBJJMB (ORCPT
+        with ESMTP id S238312AbiBJJNb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Feb 2022 04:12:01 -0500
+        Thu, 10 Feb 2022 04:13:31 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 76DE910E9
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Feb 2022 01:11:56 -0800 (PST)
-Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id A6403601BA;
-        Thu, 10 Feb 2022 10:11:41 +0100 (CET)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0B922F1C;
+        Thu, 10 Feb 2022 01:13:32 -0800 (PST)
+Received: from netfilter.org (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 4A827601BA;
+        Thu, 10 Feb 2022 10:13:18 +0100 (CET)
+Date:   Thu, 10 Feb 2022 10:13:29 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     fw@strlen.de
-Subject: [PATCH nf] selftests: netfilter: synproxy test requires nf_conntrack
-Date:   Thu, 10 Feb 2022 10:11:52 +0100
-Message-Id: <20220210091152.174933-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+To:     Hangbin Liu <liuhangbin@gmail.com>
+Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Florian Westphal <fw@strlen.de>, Yi Chen <yiche@redhat.com>
+Subject: Re: [PATCH nf] selftests: netfilter: disable rp_filter on router
+Message-ID: <YgTXHziKmce/fzDY@salvia>
+References: <20220210033205.928458-1-liuhangbin@gmail.com>
+ <YgTQ5KS1b2CZWvnR@Laptop-X1>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <YgTQ5KS1b2CZWvnR@Laptop-X1>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Otherwise, this test does not find the sysctl entry in place:
+On Thu, Feb 10, 2022 at 04:46:28PM +0800, Hangbin Liu wrote:
+> Hi Pablo, Florian,
+> On Thu, Feb 10, 2022 at 11:32:05AM +0800, Hangbin Liu wrote:
+> > +ip netns exec ${nsrouter} sysctl net.ipv4.conf.veth0.rp_filter=0 > /dev/null
+> > +ip netns exec ${nsrouter} sysctl net.ipv4.conf.veth1.rp_filter=0 > /dev/null
+> 
+> Oh, disable rp_filter on veth0 is enough for the current testing. But for the
+> format and maybe a preparation for future testing. Disable veth1 rp_filter
+> should also be OK. If you think there is no need to do this on veth1.
+> I can send a v2 patch.
 
- sysctl: cannot stat /proc/sys/net/netfilter/nf_conntrack_tcp_loose: No existe el fichero o el di
- iperf3: error - unable to send control message: Bad file descriptor
- FAIL: iperf3 returned an error
+Send v2, I'll toss v1 patch.
 
-Fixes: 7152303cbec4 ("selftests: netfilter: add synproxy test")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- tools/testing/selftests/netfilter/nft_synproxy.sh | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/tools/testing/selftests/netfilter/nft_synproxy.sh b/tools/testing/selftests/netfilter/nft_synproxy.sh
-index 09bb95c87198..b62933b680d6 100755
---- a/tools/testing/selftests/netfilter/nft_synproxy.sh
-+++ b/tools/testing/selftests/netfilter/nft_synproxy.sh
-@@ -23,6 +23,8 @@ checktool "ip -Version" "run test without ip tool"
- checktool "iperf3 --version" "run test without iperf3"
- checktool "ip netns add $nsr" "create net namespace"
- 
-+modprobe -q nf_conntrack
-+
- ip netns add $ns1
- ip netns add $ns2
- 
--- 
-2.30.2
-
+Thanks.
