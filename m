@@ -2,71 +2,47 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D99DC433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Feb 2022 16:26:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25F22C433FE
+	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Feb 2022 01:56:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234055AbiBIQ0E (ORCPT
+        id S233089AbiBJB4W (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Feb 2022 11:26:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56302 "EHLO
+        Wed, 9 Feb 2022 20:56:22 -0500
+Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:33922 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237009AbiBIQ0B (ORCPT
+        with ESMTP id S233467AbiBJB4I (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Feb 2022 11:26:01 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA5BBC0613C9
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Feb 2022 08:26:04 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1nHpn9-0004bS-4R; Wed, 09 Feb 2022 17:26:03 +0100
-Date:   Wed, 9 Feb 2022 17:26:03 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next 0/7] metfilter: remove pcpu dying list
-Message-ID: <20220209162603.GA11480@breakpoint.cc>
-References: <20220209161057.30688-1-fw@strlen.de>
+        Wed, 9 Feb 2022 20:56:08 -0500
+X-Greylist: delayed 478 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 09 Feb 2022 17:55:25 PST
+Received: from mailgw14.onamae.ne.jp (mailgw14-251.onamae.ne.jp [150.95.219.251])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 467F02C0C0
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Feb 2022 17:55:24 -0800 (PST)
+Received: from www66.onamae.ne.jp (unknown [172.16.42.141])
+        by mailgw14.onamae.ne.jp (Postfix) with ESMTP id BE828BE571
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Feb 2022 10:47:25 +0900 (JST)
+Received: by www66.onamae.ne.jp (Postfix, from userid 11230)
+        id BDC686DB539; Thu, 10 Feb 2022 10:47:25 +0900 (JST)
+To:     netfilter-devel@vger.kernel.org
+Subject: =?UTF-8?B?5paw5bed5qCq5byP5Lya56S+ICJ6dXlxNXB0Ig==?=
+X-PHP-Script: shinkawa.tokyo/index.php for 45.153.160.131
+X-PHP-Filename: /home/r1517423/public_html/shinkawa.tokyo/index.php REMOTE_ADDR: 45.153.160.131
+Date:   Thu, 10 Feb 2022 01:47:25 +0000
+From:   =?UTF-8?B?5paw5bed5qCq5byP5Lya56S+?= <info@shinkawa.tokyo>
+Reply-To: netfilter-devel@vger.kernel.org
+Message-ID: <USuOhsIW8wfEJedV7dbf9aSEbIABymWSEnI9t6RChRQ@shinkawa.tokyo>
+X-Mailer: PHPMailer 6.5.3 (https://github.com/PHPMailer/PHPMailer)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220209161057.30688-1-fw@strlen.de>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Florian Westphal <fw@strlen.de> wrote:
-> This is part 1 of a series that aims to remove both the unconfirmed
-> and dying lists.
+差出人: ❤️ You have unread messages from Beryl (2)! Click Here: http://inx.lv/6c1i?2zk9t ❤️ <netfilter-devel@vger.kernel.org>
+題名: zuyq5pt
 
-The unconfirmed list is requirement only because some extensions place
-pointers to objects that reside in kernel modules without taking any
-references, e.g. the conntrack helpers or timeout policies.
+メッセージ本文:
+lu8s5rp3
 
-For normal conntracks, rmmod code path can walk the table and
-set the affected pointers in the extension to NULL.
-For the unconfirmed conntracks, this list gets used to flag those
-conntracks as dying so tehy won't get inserted into the table anymore.
-
-The replacement idea for the unconfirmed list is as follows (I have no
-code yet):
-
-1. add a generation id to the ct extension area, set at allocation
-   time.
-2. extend nf_ct_ext_find(): if conntrack is unconfirmed, only return
-   the extension area if ext->genid == global_id.
-3. at confirm time, delete the nf_conn entry if ext->genid != global_id.
-4. whenever a helper module is removed (or other problematic user such
-   as the timeout conntrack module), increment the global_id.
-   I.e. "walk unconfirmed list and flag entries as dying' becomes
-   'global_extid++'.
-
-This allows to detect conntracks that were not yet in the hashtable
-but might reference a (now stale) pointer to a removed helper/timeout
-policy object without the need to a special unconfirmed list.
-
-After these changes change, the percpu lists can be removed which avoids
-need for extra list insert/remove + spinlock at conntrack allocation
-time.
-
-Let me know if you spot a problem with the scheme above.
+-- 
+このメールは 新川株式会社 (https://shinkawa.tokyo) のお問い合わせフォームから送信されました
