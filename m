@@ -2,105 +2,52 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93E74C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Feb 2022 05:50:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19692C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Feb 2022 06:30:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234548AbiBJFuQ (ORCPT
+        id S235176AbiBJGas (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 10 Feb 2022 00:50:16 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:43972 "EHLO
+        Thu, 10 Feb 2022 01:30:48 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:35242 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234702AbiBJFuP (ORCPT
+        with ESMTP id S234026AbiBJGar (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Feb 2022 00:50:15 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 583EA1109;
-        Wed,  9 Feb 2022 21:50:15 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 257EECE2321;
-        Thu, 10 Feb 2022 05:50:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 4695AC340E5;
-        Thu, 10 Feb 2022 05:50:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1644472212;
-        bh=ldJp31AQ+gVj+gHSA2uNN9GtCrz5+WNNYYEDX2IAX3A=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=IBTDOQX9To8q6u4c+Gm/NRIipi/Y2q4dwbu6B0kUsJ/S8D9DQRSrtLcjWuvjr0VID
-         VD6Ct3GT1qrXQjPMKhPNSkkPMLqDSyeEVU7IYgBEniI2JoCHbnbp2J+kFMx5G0Co/+
-         2ispj/Evvcmb8f82GzQVS1A1fz2BpyoCW6zOCk7w8J2xSZDTop5DGwLCtZwcI7JSXK
-         9/62ONWF38lyujQvt6tR+LrV5ivwVQ+La7q2tgTAO65wgGudIMzWQ3IIhKcLZe3InQ
-         b/OGt2ZZvoZc/Z5OQClpJnvUGYHnaqlsgzE0ork6TJRjGP0e9I3a7r4BlLGgezzUDL
-         XS0uNekSl1n+w==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 34FC3E5D084;
-        Thu, 10 Feb 2022 05:50:12 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Thu, 10 Feb 2022 01:30:47 -0500
+X-Greylist: delayed 399 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 09 Feb 2022 22:30:47 PST
+Received: from nasueidensha.com (nasueidensha.com [1.33.173.111])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41A2BC4A
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Feb 2022 22:30:47 -0800 (PST)
+Received: (qmail 26841 invoked by SAV 20220209.019 by uid 35700001); 10 Feb 2022 15:24:06 +0900
+To:     netfilter-devel@vger.kernel.org
+Subject: =?ISO-2022-JP?B?GyRCIVobKEJQTEMbJEIlaiVXJWwhPCU5JS0lYyVzJVohPCVzIVskKkxkOWckOyQiJGokLCRIJCYkNCQ2JCQkXiQ3JD8hWjN0PDAycTxSMUlFRTxLGyhCIBskQkZhP1wxRDZIPWohWxsoQg==?=
+Date:   Thu, 10 Feb 2022 06:24:06 +0000
+From:   =?ISO-2022-JP?B?GyRCM3Q8MDJxPFIxSUVFPEsbKEIgGyRCRmE/XDFENkg9ahsoQg==?= 
+        <wordpress@nasueidensha.com>
+Message-ID: <4ee3c6e9c9a1cc8e8f4546539d86b94f@nasueidensha.com>
+X-Mailer: PHPMailer 5.2.14 (https://github.com/PHPMailer/PHPMailer)
+X-WPCF7-Content-Type: text/plain
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next 01/14] netfilter: conntrack: mark UDP zero checksum
- as CHECKSUM_UNNECESSARY
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <164447221221.5409.13974552264063226951.git-patchwork-notify@kernel.org>
-Date:   Thu, 10 Feb 2022 05:50:12 +0000
-References: <20220209133616.165104-2-pablo@netfilter.org>
-In-Reply-To: <20220209133616.165104-2-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org
+Content-Type: text/plain; charset=ISO-2022-JP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+?? You have unread messages from Phyllis (2)! Click Here: http://inx.lv/6ctG?ax20 ?? 様
 
-This series was applied to netdev/net-next.git (master)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+この度は株式会社栄電舎 那須営業所へお問い合わせいただき、ありがとうございました。
+３日以内に、弊社担当よりお返事させていただきます。
+いましばらくお待ちいただけますよう、よろしくお願いいたします。
 
-On Wed,  9 Feb 2022 14:36:03 +0100 you wrote:
-> From: Kevin Mitchell <kevmitch@arista.com>
-> 
-> The udp_error function verifies the checksum of incoming UDP packets if
-> one is set. This has the desirable side effect of setting skb->ip_summed
-> to CHECKSUM_COMPLETE, signalling that this verification need not be
-> repeated further up the stack.
-> 
-> [...]
+【お問合せ内容】
 
-Here is the summary with links:
-  - [net-next,01/14] netfilter: conntrack: mark UDP zero checksum as CHECKSUM_UNNECESSARY
-    https://git.kernel.org/netdev/net-next/c/5bed9f3f63f8
-  - [net-next,02/14] netfilter: nfqueue: enable to get skb->priority
-    https://git.kernel.org/netdev/net-next/c/8b5413647262
-  - [net-next,03/14] netfilter: conntrack: make all extensions 8-byte alignned
-    https://git.kernel.org/netdev/net-next/c/bb62a765b1b5
-  - [net-next,04/14] netfilter: conntrack: move extension sizes into core
-    https://git.kernel.org/netdev/net-next/c/5f31edc0676b
-  - [net-next,05/14] netfilter: conntrack: handle ->destroy hook via nat_ops instead
-    https://git.kernel.org/netdev/net-next/c/1bc91a5ddf3e
-  - [net-next,06/14] netfilter: conntrack: remove extension register api
-    https://git.kernel.org/netdev/net-next/c/1015c3de23ee
-  - [net-next,07/14] netfilter: conntrack: pptp: use single option structure
-    https://git.kernel.org/netdev/net-next/c/20ff32024624
-  - [net-next,08/14] netfilter: exthdr: add support for tcp option removal
-    https://git.kernel.org/netdev/net-next/c/7890cbea66e7
-  - [net-next,09/14] netfilter: nft_compat: suppress comment match
-    https://git.kernel.org/netdev/net-next/c/c828414ac935
-  - [net-next,10/14] netfilter: ecache: don't use nf_conn spinlock
-    https://git.kernel.org/netdev/net-next/c/8dd8678e42b5
-  - [net-next,11/14] netfilter: cttimeout: use option structure
-    https://git.kernel.org/netdev/net-next/c/7afa38831aee
-  - [net-next,12/14] netfilter: nft_cmp: optimize comparison for 16-bytes
-    https://git.kernel.org/netdev/net-next/c/23f68d462984
-  - [net-next,13/14] nfqueue: enable to set skb->priority
-    https://git.kernel.org/netdev/net-next/c/98eee88b8dec
-  - [net-next,14/14] netfilter: ctnetlink: use dump structure instead of raw args
-    https://git.kernel.org/netdev/net-next/c/5948ed297eef
+差出人：　?? You have unread messages from Phyllis (2)! Click Here: http://inx.lv/6ctG?ax20 ?? <netfilter-devel@vger.kernel.org>
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+会社名：　xfbobq
 
+電話番号：　959225253340
+
+メッセージ本文:　nmtj81n
+
+--
+このメールは 株式会社栄電舎 那須営業所 (http://nasueidensha.com) のお問い合わせフォームから送信されました
 
