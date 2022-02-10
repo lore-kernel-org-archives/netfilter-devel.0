@@ -2,99 +2,105 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E65BC433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Feb 2022 05:12:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93E74C433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Feb 2022 05:50:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233430AbiBJFME (ORCPT
+        id S234548AbiBJFuQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 10 Feb 2022 00:12:04 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:43242 "EHLO
+        Thu, 10 Feb 2022 00:50:16 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:43972 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231807AbiBJFMD (ORCPT
+        with ESMTP id S234702AbiBJFuP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Feb 2022 00:12:03 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1F23E290;
-        Wed,  9 Feb 2022 21:12:06 -0800 (PST)
+        Thu, 10 Feb 2022 00:50:15 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 583EA1109;
+        Wed,  9 Feb 2022 21:50:15 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id ADAEF61BA3;
-        Thu, 10 Feb 2022 05:12:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30F7BC340E5;
-        Thu, 10 Feb 2022 05:12:04 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 257EECE2321;
+        Thu, 10 Feb 2022 05:50:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 4695AC340E5;
+        Thu, 10 Feb 2022 05:50:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1644469925;
-        bh=LFqZdC12qnwe1Y76es8sEhk/QMcb0vADkit1XFNLr34=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=SLaXM7J9xK+YQ9Jr7kXvubbxpi3xl7gqfDPey6gwEBPx2hWZ12w9X7UbLDtyz6blr
-         mE0EImwRa46BGO201erGuYl1zMHxJ8M/TE0y/D/+vEClKv2CGXfC6zHqkotWC8sb5J
-         84yOu6sctQvK3e+L1YPK6ZS2PagBVB5+scs5nnrWly++bWRlTuZKZY8cnW5CCHO5ii
-         CVfxTzQWdfAqHrDQZIoOnqzOSMnCNAs67uFSV19RRniqAkTwG9z4d9awrgoXOOaiLK
-         4untIMC2Ku42zp5TFTnIejVV1xLvwlEj3Ttvkwg515y5TYwbT0HmOeprMyZa1SXwdG
-         EHLIz1eGtApcQ==
-Date:   Wed, 9 Feb 2022 21:12:02 -0800
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Menglong Dong <menglong8.dong@gmail.com>
-Cc:     David Ahern <dsahern@gmail.com>, David Ahern <dsahern@kernel.org>,
-        Steven Rostedt <rostedt@goodmis.org>, mingo@redhat.com,
-        David Miller <davem@davemloft.net>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        pablo@netfilter.org, kadlec@netfilter.org,
-        Florian Westphal <fw@strlen.de>,
-        Menglong Dong <imagedong@tencent.com>,
-        Eric Dumazet <edumazet@google.com>, alobakin@pm.me,
-        paulb@nvidia.com, Kees Cook <keescook@chromium.org>,
-        talalahmad@google.com, haokexin@gmail.com, memxor@gmail.com,
-        LKML <linux-kernel@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, Cong Wang <cong.wang@bytedance.com>
-Subject: Re: [PATCH v3 net-next 1/7] net: skb_drop_reason: add document for
- drop reasons
-Message-ID: <20220209211202.7cddd337@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <CADxym3akuxC_Cr07Vzvv+BD55XgMEx7nqU4qW8WHowGR0jeoOQ@mail.gmail.com>
-References: <20220128073319.1017084-1-imagedong@tencent.com>
-        <20220128073319.1017084-2-imagedong@tencent.com>
-        <0029e650-3f38-989b-74a3-58c512d63f6b@gmail.com>
-        <CADxym3akuxC_Cr07Vzvv+BD55XgMEx7nqU4qW8WHowGR0jeoOQ@mail.gmail.com>
+        s=k20201202; t=1644472212;
+        bh=ldJp31AQ+gVj+gHSA2uNN9GtCrz5+WNNYYEDX2IAX3A=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=IBTDOQX9To8q6u4c+Gm/NRIipi/Y2q4dwbu6B0kUsJ/S8D9DQRSrtLcjWuvjr0VID
+         VD6Ct3GT1qrXQjPMKhPNSkkPMLqDSyeEVU7IYgBEniI2JoCHbnbp2J+kFMx5G0Co/+
+         2ispj/Evvcmb8f82GzQVS1A1fz2BpyoCW6zOCk7w8J2xSZDTop5DGwLCtZwcI7JSXK
+         9/62ONWF38lyujQvt6tR+LrV5ivwVQ+La7q2tgTAO65wgGudIMzWQ3IIhKcLZe3InQ
+         b/OGt2ZZvoZc/Z5OQClpJnvUGYHnaqlsgzE0ork6TJRjGP0e9I3a7r4BlLGgezzUDL
+         XS0uNekSl1n+w==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 34FC3E5D084;
+        Thu, 10 Feb 2022 05:50:12 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next 01/14] netfilter: conntrack: mark UDP zero checksum
+ as CHECKSUM_UNNECESSARY
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <164447221221.5409.13974552264063226951.git-patchwork-notify@kernel.org>
+Date:   Thu, 10 Feb 2022 05:50:12 +0000
+References: <20220209133616.165104-2-pablo@netfilter.org>
+In-Reply-To: <20220209133616.165104-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, 10 Feb 2022 11:19:49 +0800 Menglong Dong wrote:
-> I'm doing the job of using kfree_skb_reason() for the TCP layer,
-> and I have some puzzles.
-> 
-> When collecting drop reason for tcp_v4_inbound_md5_hash() in
-> tcp_v4_rcv(), I come up with 2 ways:
-> 
-> First way: pass the address of reason to tcp_v4_inbound_md5_hash()
-> like this:
-> 
->  static bool tcp_v4_inbound_md5_hash(const struct sock *sk,
->                       const struct sk_buff *skb,
-> -                    int dif, int sdif)
-> +                    int dif, int sdif,
-> +                    enum skb_drop_reason *reason)
-> 
-> This can work, but many functions like tcp_v4_inbound_md5_hash()
-> need to do such a change.
-> 
-> Second way: introduce a 'drop_reason' field to 'struct sk_buff'. Therefore,
-> drop reason can be set by 'skb->drop_reason = SKB_DROP_REASON_XXX'
-> anywhere.
-> 
-> For TCP, there are many cases where you can't get a drop reason in
-> the place where skb is freed, so I think there needs to be a way to
-> deeply collect drop reasons. The second can resolve this problem
-> easily, but extra fields may have performance problems.
-> 
-> Do you have some better ideas?
+Hello:
 
-On a quick look tcp_v4_inbound_md5_hash() returns a drop / no drop
-decision, so you could just change the return type to enum
-skb_drop_reason. SKB_DROP_REASON_NOT_SPECIFIED is 0 is false, 
-so if (reason) goto drop; logic will hold up.
+This series was applied to netdev/net-next.git (master)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
+
+On Wed,  9 Feb 2022 14:36:03 +0100 you wrote:
+> From: Kevin Mitchell <kevmitch@arista.com>
+> 
+> The udp_error function verifies the checksum of incoming UDP packets if
+> one is set. This has the desirable side effect of setting skb->ip_summed
+> to CHECKSUM_COMPLETE, signalling that this verification need not be
+> repeated further up the stack.
+> 
+> [...]
+
+Here is the summary with links:
+  - [net-next,01/14] netfilter: conntrack: mark UDP zero checksum as CHECKSUM_UNNECESSARY
+    https://git.kernel.org/netdev/net-next/c/5bed9f3f63f8
+  - [net-next,02/14] netfilter: nfqueue: enable to get skb->priority
+    https://git.kernel.org/netdev/net-next/c/8b5413647262
+  - [net-next,03/14] netfilter: conntrack: make all extensions 8-byte alignned
+    https://git.kernel.org/netdev/net-next/c/bb62a765b1b5
+  - [net-next,04/14] netfilter: conntrack: move extension sizes into core
+    https://git.kernel.org/netdev/net-next/c/5f31edc0676b
+  - [net-next,05/14] netfilter: conntrack: handle ->destroy hook via nat_ops instead
+    https://git.kernel.org/netdev/net-next/c/1bc91a5ddf3e
+  - [net-next,06/14] netfilter: conntrack: remove extension register api
+    https://git.kernel.org/netdev/net-next/c/1015c3de23ee
+  - [net-next,07/14] netfilter: conntrack: pptp: use single option structure
+    https://git.kernel.org/netdev/net-next/c/20ff32024624
+  - [net-next,08/14] netfilter: exthdr: add support for tcp option removal
+    https://git.kernel.org/netdev/net-next/c/7890cbea66e7
+  - [net-next,09/14] netfilter: nft_compat: suppress comment match
+    https://git.kernel.org/netdev/net-next/c/c828414ac935
+  - [net-next,10/14] netfilter: ecache: don't use nf_conn spinlock
+    https://git.kernel.org/netdev/net-next/c/8dd8678e42b5
+  - [net-next,11/14] netfilter: cttimeout: use option structure
+    https://git.kernel.org/netdev/net-next/c/7afa38831aee
+  - [net-next,12/14] netfilter: nft_cmp: optimize comparison for 16-bytes
+    https://git.kernel.org/netdev/net-next/c/23f68d462984
+  - [net-next,13/14] nfqueue: enable to set skb->priority
+    https://git.kernel.org/netdev/net-next/c/98eee88b8dec
+  - [net-next,14/14] netfilter: ctnetlink: use dump structure instead of raw args
+    https://git.kernel.org/netdev/net-next/c/5948ed297eef
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
