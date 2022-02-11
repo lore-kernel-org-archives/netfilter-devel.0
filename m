@@ -2,89 +2,80 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EC55C433FE
-	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Feb 2022 12:10:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2352CC4332F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Feb 2022 14:42:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349843AbiBKMKS (ORCPT
+        id S1350950AbiBKOmB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 11 Feb 2022 07:10:18 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:53382 "EHLO
+        Fri, 11 Feb 2022 09:42:01 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:41646 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349837AbiBKMKR (ORCPT
+        with ESMTP id S240287AbiBKOmB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 11 Feb 2022 07:10:17 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94CAAE64;
-        Fri, 11 Feb 2022 04:10:15 -0800 (PST)
+        Fri, 11 Feb 2022 09:42:01 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B214188;
+        Fri, 11 Feb 2022 06:41:59 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 077E6B8295F;
-        Fri, 11 Feb 2022 12:10:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 8A54FC340EE;
-        Fri, 11 Feb 2022 12:10:10 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1926961F5F;
+        Fri, 11 Feb 2022 14:41:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 528B0C340E9;
+        Fri, 11 Feb 2022 14:41:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1644581410;
-        bh=Pk5PRi9RMQEl6Jmn1/2va44sErBkUvmmUbVsCCAGOIY=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=KvfcgGIttFRNsQrnhDPgAvV0kN9U70nqniUTXxK/xNUQxX3IhYpEt2r9+pYnlvFgm
-         pfl06CeMM3hQbHlUQlI6GEakHXdZvHF+7djTHjPxSsyVADsqIwFoHoNvzIKw3rkD1L
-         1T5cj69bJhEO++fUG3h1Tr/cripqB7baoMJA6qE9qcGNC1J9c0KxzYIh0cqiN0UxNY
-         /c4q+4gNdQ/WOswrpC0RGw9L6JnXr5TgPz9eXOon60kroNFdSfDOL6R3aK7vDvjXEX
-         1RpZmVzf1DrRxaakW7Z0nKNT0tW9X9LjkTRGHBINwSdmuJlrLHVobg3NsguKVz573U
-         9MQr6IYkW416g==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 6CA73E5D09D;
-        Fri, 11 Feb 2022 12:10:10 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        s=k20201202; t=1644590518;
+        bh=RY+RiJqGo1HMpzgN9TFSdlD9X2lbkG4RDXWfubFeNzQ=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=COnpToWE0ntRobHtXfkns9r+udoebeeWlHmKqECJGBNny/lQbM8vqpX+8MArBTpcw
+         uIhq4YjX0NSm0345Iq8RK+8+hsL/PbFkCIWq27Rdh9iSi5JA+u0GkiIk8XqP/SEhjk
+         LBsIAx6hEt0zq2IF3iC6kGZx6phCVX2s/LVyWccUwRFoIkUOp5/exo3BJmLr/xbX2N
+         zdffmTh95iNgWDI+0Nk7Ttjpq5I4o2fb/2Ii+u6XPHKhP5nW1uvpOVzBEFdRMGzXRR
+         MokPDO2UuCRjjyj9LD2AbCtK0KqBGKEvr3KzoDvGqhU67nMlBnblLU0bqiRx38HKEQ
+         B1e/PVDvASN9w==
+Date:   Fri, 11 Feb 2022 09:41:57 -0500
+From:   Sasha Levin <sashal@kernel.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Jakub Kicinski <kuba@kernel.org>, linux-kernel@vger.kernel.org,
+        stable@vger.kernel.org, Yi Chen <yiche@redhat.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        kadlec@netfilter.org, davem@davemloft.net,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: Re: [PATCH AUTOSEL 5.16 05/52] netfilter: nf_conntrack_netbios_ns:
+ fix helper module alias
+Message-ID: <YgZ1tYtQ4jdb7Z4I@sashalap>
+References: <20220203202947.2304-1-sashal@kernel.org>
+ <20220203202947.2304-5-sashal@kernel.org>
+ <20220203134622.5964eb15@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+ <20220203222319.GB14142@breakpoint.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/6] selftests: netfilter: add synproxy test
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <164458141044.22011.8395736107258519318.git-patchwork-notify@kernel.org>
-Date:   Fri, 11 Feb 2022 12:10:10 +0000
-References: <20220210231021.204488-2-pablo@netfilter.org>
-In-Reply-To: <20220210231021.204488-2-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <20220203222319.GB14142@breakpoint.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+On Thu, Feb 03, 2022 at 11:23:19PM +0100, Florian Westphal wrote:
+>Jakub Kicinski <kuba@kernel.org> wrote:
+>> On Thu,  3 Feb 2022 15:28:59 -0500 Sasha Levin wrote:
+>> > Intentionally not adding a fixes-tag because i don't want this to go to
+>> > stable.
+>>
+>> Ekhm. ;)
+>
+>Seems there is no way to hide fixes from stable guys :-)
+>
+>Seriously, I don't think there is anything going to break here because
+>'modinfo nfct-helper-netbios_ns' and 'modinfo nfct-helper-netbios-ns'
+>return same module.
+>
+>OTOH, this was noticed by pure coincidence; I don't think its
+>important to have it in stable.
 
-This series was applied to netdev/net.git (master)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+I'll drop it, thanks :)
 
-On Fri, 11 Feb 2022 00:10:16 +0100 you wrote:
-> From: Florian Westphal <fw@strlen.de>
-> 
-> Simple test for synproxy feature, iperf3 should be intercepted
-> by synproxy netns, but connection should still succeed.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> 
-> [...]
-
-Here is the summary with links:
-  - [net,1/6] selftests: netfilter: add synproxy test
-    https://git.kernel.org/netdev/net/c/7152303cbec4
-  - [net,2/6] netfilter: xt_socket: fix a typo in socket_mt_destroy()
-    https://git.kernel.org/netdev/net/c/75063c9294fb
-  - [net,3/6] selftests: netfilter: fix exit value for nft_concat_range
-    https://git.kernel.org/netdev/net/c/2e71ec1a725a
-  - [net,4/6] netfilter: nft_synproxy: unregister hooks on init error path
-    https://git.kernel.org/netdev/net/c/2b4e5fb4d377
-  - [net,5/6] selftests: netfilter: synproxy test requires nf_conntrack
-    https://git.kernel.org/netdev/net/c/249749c88906
-  - [net,6/6] selftests: netfilter: disable rp_filter on router
-    https://git.kernel.org/netdev/net/c/bbe4c0896d25
-
-You are awesome, thank you!
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+Thanks,
+Sasha
