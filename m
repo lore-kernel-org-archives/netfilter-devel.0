@@ -2,83 +2,89 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82B05C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Feb 2022 23:10:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C91EC433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Feb 2022 08:54:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345379AbiBJXKb (ORCPT
+        id S238367AbiBKIyu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 10 Feb 2022 18:10:31 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:59394 "EHLO
+        Fri, 11 Feb 2022 03:54:50 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:44118 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345468AbiBJXKa (ORCPT
+        with ESMTP id S234120AbiBKIyt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Feb 2022 18:10:30 -0500
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8D5F91105;
-        Thu, 10 Feb 2022 15:10:30 -0800 (PST)
-Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 8FF49601D9;
-        Fri, 11 Feb 2022 00:10:13 +0100 (CET)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 6/6] selftests: netfilter: disable rp_filter on router
-Date:   Fri, 11 Feb 2022 00:10:21 +0100
-Message-Id: <20220210231021.204488-7-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220210231021.204488-1-pablo@netfilter.org>
-References: <20220210231021.204488-1-pablo@netfilter.org>
+        Fri, 11 Feb 2022 03:54:49 -0500
+Received: from mail-ej1-x642.google.com (mail-ej1-x642.google.com [IPv6:2a00:1450:4864:20::642])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 18022E7F;
+        Fri, 11 Feb 2022 00:54:48 -0800 (PST)
+Received: by mail-ej1-x642.google.com with SMTP id a8so21346774ejc.8;
+        Fri, 11 Feb 2022 00:54:48 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=puoZXfWx2DTZk4F00wSFE37CTpFITbctZ1aAVvE89vI=;
+        b=X4Gg1UAhzor8SsWPhDCtxTM/nM7nUCuAI9eD4KFWeeqrF7VRHtLINQhxv/1LOU8zPC
+         HgNr7pbl8ZAtBgOgZ5DXV5+cHW28IvQOw0dbTfOLcJPqVTgN5iJp2zgx7L4oDjQQmabv
+         Drx95HJJ6LUCTOH4ZXXvHoGZZqwgB10k+HrBxSvph+aHplhj/I9jnVRgDneIl+qQMraa
+         pSVRttcWGc/5tyv5dOdz/njJux5AnWO0cC9xEeaYHjCtF6bgXvrQVPZo8A/ek6GdV5mz
+         EnRazfUZeimdnmbGHpDA8sPyxf13W16nF1mj0YIJwK7bf7n/I18p1wAfonVfESMAzYXi
+         obdw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=puoZXfWx2DTZk4F00wSFE37CTpFITbctZ1aAVvE89vI=;
+        b=lfy3W59dONol6dyL609KwV5u1MBtuNXvOzkMfsPkBAjyB+W8Q0a02oKw8o1VSbx2KK
+         HyPEP26IJLP8kllG+Stm92PuZD8TWnvjUEPCUBeRQoq93tD9iXL0++sp5h0k5cBXiM1R
+         sCjGHJuOjCEvdrf/tAVHdk+b+WZwrPTgePu5+O0I1Ytn2AEwaVaAks8fpbKFzGk6JNZX
+         MIg6f1bl0v4aNtNPXoBcC5RttRPD1wlkdf/TSnObJNKWVPQPuKXBjTkHK4jGE6IgOh7U
+         dVSV/uiNpEvCf00Gg7J08TBO89ipwESwgIyNG8SFsKAPkmLWVr67ilmuDGr2rxOSMiUG
+         9RQA==
+X-Gm-Message-State: AOAM533CeSjHxs9HLrbnz+FKjhZlRZKUvZS8/cSusdCAzVfLs/3mD2FL
+        UoOmjj4t8drQUeaokT/2LNe3RrCYW+hCxpw22ik=
+X-Google-Smtp-Source: ABdhPJxgs6s2LbMQhDJ87YLKj7uqQY+ce9jhiEVY4StztvWPplSwzOi9SgtbdmhW4Up2me4QRjzDTYSTdMHArB8qeRQ=
+X-Received: by 2002:a17:907:1689:: with SMTP id hc9mr536327ejc.348.1644569686553;
+ Fri, 11 Feb 2022 00:54:46 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20220128073319.1017084-1-imagedong@tencent.com>
+ <20220128073319.1017084-2-imagedong@tencent.com> <0029e650-3f38-989b-74a3-58c512d63f6b@gmail.com>
+ <CADxym3akuxC_Cr07Vzvv+BD55XgMEx7nqU4qW8WHowGR0jeoOQ@mail.gmail.com>
+ <20220209211202.7cddd337@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+ <CADxym3ZajjCV2EHF6+2xa5ewZuVqxwk6bSqF0KuA+J6sGnShbQ@mail.gmail.com> <20220210081322.566488f6@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+In-Reply-To: <20220210081322.566488f6@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+From:   Menglong Dong <menglong8.dong@gmail.com>
+Date:   Fri, 11 Feb 2022 16:49:50 +0800
+Message-ID: <CADxym3b-D-08P_YzQSSP-YdrTcw981MRyAmxNcXrdorWYcJniQ@mail.gmail.com>
+Subject: Re: [PATCH v3 net-next 1/7] net: skb_drop_reason: add document for
+ drop reasons
+To:     Jakub Kicinski <kuba@kernel.org>
+Cc:     David Ahern <dsahern@gmail.com>, David Ahern <dsahern@kernel.org>,
+        Steven Rostedt <rostedt@goodmis.org>, mingo@redhat.com,
+        David Miller <davem@davemloft.net>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        pablo@netfilter.org, kadlec@netfilter.org,
+        Florian Westphal <fw@strlen.de>,
+        Menglong Dong <imagedong@tencent.com>,
+        Eric Dumazet <edumazet@google.com>, alobakin@pm.me,
+        paulb@nvidia.com, Kees Cook <keescook@chromium.org>,
+        talalahmad@google.com, haokexin@gmail.com, memxor@gmail.com,
+        LKML <linux-kernel@vger.kernel.org>,
+        netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, Cong Wang <cong.wang@bytedance.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Hangbin Liu <liuhangbin@gmail.com>
+On Fri, Feb 11, 2022 at 12:13 AM Jakub Kicinski <kuba@kernel.org> wrote:
+>
+> On Thu, 10 Feb 2022 21:42:14 +0800 Menglong Dong wrote:
+> > How about introducing a field to 'struct sock' for drop reasons? As sk is
+> > locked during the packet process in tcp_v4_do_rcv(), this seems to work.
+>
+> I find adding temporary storage to persistent data structures awkward.
+> You can put a structure on the stack and pass it thru the call chain,
+> that's just my subjective preference, tho, others may have better ideas.
 
-Some distros may enable rp_filter by default. After ns1 change addr to
-10.0.2.99 and set default router to 10.0.2.1, while the connected router
-address is still 10.0.1.1. The router will not reply the arp request
-from ns1. Fix it by setting the router's veth0 rp_filter to 0.
-
-Before the fix:
-  # ./nft_fib.sh
-  PASS: fib expression did not cause unwanted packet drops
-  Netns nsrouter-HQkDORO2 fib counter doesn't match expected packet count of 1 for 1.1.1.1
-  table inet filter {
-          chain prerouting {
-                  type filter hook prerouting priority filter; policy accept;
-                  ip daddr 1.1.1.1 fib saddr . iif oif missing counter packets 0 bytes 0 drop
-                  ip6 daddr 1c3::c01d fib saddr . iif oif missing counter packets 0 bytes 0 drop
-          }
-  }
-
-After the fix:
-  # ./nft_fib.sh
-  PASS: fib expression did not cause unwanted packet drops
-  PASS: fib expression did drop packets for 1.1.1.1
-  PASS: fib expression did drop packets for 1c3::c01d
-
-Fixes: 82944421243e ("selftests: netfilter: add fib test case")
-Signed-off-by: Yi Chen <yiche@redhat.com>
-Signed-off-by: Hangbin Liu <liuhangbin@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- tools/testing/selftests/netfilter/nft_fib.sh | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/tools/testing/selftests/netfilter/nft_fib.sh b/tools/testing/selftests/netfilter/nft_fib.sh
-index 6caf6ac8c285..695a1958723f 100755
---- a/tools/testing/selftests/netfilter/nft_fib.sh
-+++ b/tools/testing/selftests/netfilter/nft_fib.sh
-@@ -174,6 +174,7 @@ test_ping() {
- ip netns exec ${nsrouter} sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
- ip netns exec ${nsrouter} sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
- ip netns exec ${nsrouter} sysctl net.ipv4.conf.veth1.forwarding=1 > /dev/null
-+ip netns exec ${nsrouter} sysctl net.ipv4.conf.veth0.rp_filter=0 > /dev/null
- 
- sleep 3
- 
--- 
-2.30.2
-
+Yes, I also feel it is awkward. I'll try to do this job by passing drop reasons
+through the call chain. Thanks for your help :)
