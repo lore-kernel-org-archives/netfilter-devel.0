@@ -2,103 +2,105 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C467AC433F5
-	for <netfilter-devel@archiver.kernel.org>; Sat, 12 Feb 2022 02:52:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7072BC433F5
+	for <netfilter-devel@archiver.kernel.org>; Sat, 12 Feb 2022 16:58:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230400AbiBLCwO (ORCPT
+        id S236958AbiBLQ7B (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 11 Feb 2022 21:52:14 -0500
-Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:55192 "EHLO
+        Sat, 12 Feb 2022 11:59:01 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:35884 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229541AbiBLCwN (ORCPT
+        with ESMTP id S235563AbiBLQ7B (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 11 Feb 2022 21:52:13 -0500
-Received: from mail-pf1-x434.google.com (mail-pf1-x434.google.com [IPv6:2607:f8b0:4864:20::434])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3AD6A2E095
-        for <netfilter-devel@vger.kernel.org>; Fri, 11 Feb 2022 18:52:11 -0800 (PST)
-Received: by mail-pf1-x434.google.com with SMTP id y5so19421186pfe.4
-        for <netfilter-devel@vger.kernel.org>; Fri, 11 Feb 2022 18:52:11 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=message-id:date:mime-version:user-agent:subject:content-language:to
-         :cc:references:from:in-reply-to:content-transfer-encoding;
-        bh=/2em7yd3KJuiYs+UL39zrRw0YtQtwDWfyommQWzAoBs=;
-        b=Ytg0pF2tV7J2/7kAy7DuPI7XJCVHUsBTSx7UIZRoUAvXbL2YSEEOPBQVkEIGeCxozh
-         /+cgdPl1YNYhcdyLjDnTFzGAsQJX+MuTHKKH7o5zzT2JemBv8qU1zFyl7pJNDndT5bCF
-         tKxQKopMyPu1SoItRxwVHcD4e9+fA6QEOWwlbZnnY6fh/MUJJS1v8Sufg3lPMfODcP7o
-         XEp6RO5bRC6ntpKC9rhZe8+2yg3ywtiT3uxj9y2mS9BqykVmlTbcwX5sW9Qx4o+9x9yN
-         7vKPLLaGxI/o35g2ygh3SctTPZZDTf35yuSLG+YaI3CnKmBHV6rqaDq8X5kwXiOgo3VL
-         4l3Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:to:cc:references:from:in-reply-to
-         :content-transfer-encoding;
-        bh=/2em7yd3KJuiYs+UL39zrRw0YtQtwDWfyommQWzAoBs=;
-        b=kxw9sVd272ddOGxTwtRc9GH+RNFnk8zaL1ZhzzWFri7rwWHHaVdwLkV+oh65uQXVTv
-         kJGqT491VQfkPk13cHOHzMI7bboR+vSVQo864Zmr8ZYJTZozRJLOvsk4/BW8/Z9L3vZo
-         cjWVe7LDpD85eHMIQPkkkZ9NUbIPcu9LBELOAD+VtyDFtxRExrh1btkAGkg8aNHAkul6
-         GkQoFDT1YAggLRpJwV5LX95QcMzWtpC47LQ8RVRO5L7FMpJof2TCGV+XYcqTFqC5M21E
-         D5utWZ4r8NW5Lpg4JcyUoVXhjWYc1X1SquptLIkJTE/oPEJbXo5I9AcEz4HQv6vKqNwl
-         gE/g==
-X-Gm-Message-State: AOAM530wWKUo6lqZPXGOctPJM6dNfTwW42ZlWTYthv0Jp8pZk47EbwBu
-        rNnJ9dF3Pn9IUWRpiYjb2AQ=
-X-Google-Smtp-Source: ABdhPJzRCNMXQ9sgVZ6PNv4cM1Oe6mCeEp33iIZLzQ6DEmTqoyP1eC97PK+2ap2i4uejQgJEu/4Chw==
-X-Received: by 2002:a63:6f45:: with SMTP id k66mr3711232pgc.511.1644634330742;
-        Fri, 11 Feb 2022 18:52:10 -0800 (PST)
-Received: from [192.168.86.21] (c-73-241-150-58.hsd1.ca.comcast.net. [73.241.150.58])
-        by smtp.gmail.com with ESMTPSA id c14sm27075404pfm.169.2022.02.11.18.52.09
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 11 Feb 2022 18:52:10 -0800 (PST)
-Message-ID: <84a8a825-f6b6-53a2-607e-e579b3b6d733@gmail.com>
-Date:   Fri, 11 Feb 2022 18:52:08 -0800
+        Sat, 12 Feb 2022 11:59:01 -0500
+Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3EABB240A0
+        for <netfilter-devel@vger.kernel.org>; Sat, 12 Feb 2022 08:58:56 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=13pX//UZEYhK0YkSWP9HaA4DiHcFUGg/o/QQFvLxOEs=; b=c6g7thVLP2Pa18S/LX4a+mQWF+
+        MgytH1HOPVTR5o+2G00BSMyJWruVyjnfqRFAalFmA4abD21OKdocOgd+8hWlf2jyuIbzECKSiuvHL
+        tmr4iCGCLehQHGI+0U1tvKgZVI8miCKyxgMh7mlzUaTtwRkGeW5cLthSFlG7FiH2/UOQReVg6UN9w
+        p/rb4Du7N9gaOCMCyFSpyubFFmqfXcIyCjg+FEk0Vh2FzTgSmj7VuVEgTSgOjJeFw9/Rz6Y7czD/R
+        Po8pa8Nr+L1KlhUs84jUQNQXZRYXRgC90GtIKHBGvtOKl+G2A83J0MdH0H8LR5NS26It5yC4QTJST
+        LvdFJJ+A==;
+Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
+        by kadath.azazel.net with esmtp (Exim 4.94.2)
+        (envelope-from <jeremy@azazel.net>)
+        id 1nIvjZ-001xVU-8H
+        for netfilter-devel@vger.kernel.org; Sat, 12 Feb 2022 16:58:53 +0000
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [iptables PATCH 1/4] tests: iptables-test: rename variable
+Date:   Sat, 12 Feb 2022 16:58:29 +0000
+Message-Id: <20220212165832.2452695-2-jeremy@azazel.net>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20220212165832.2452695-1-jeremy@azazel.net>
+References: <20220212165832.2452695-1-jeremy@azazel.net>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.5.0
-Subject: Re: [PATCH nf] netfilter: xt_socket: missing ifdef
- CONFIG_IP6_NF_IPTABLES dependency
-Content-Language: en-US
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Cc:     fw@strlen.de
-References: <20220211235609.218507-1-pablo@netfilter.org>
-From:   Eric Dumazet <eric.dumazet@gmail.com>
-In-Reply-To: <20220211235609.218507-1-pablo@netfilter.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+"Splitted" hasn't been current since the seventeenth century.  Replace it with
+"tokens".
 
-On 2/11/22 15:56, Pablo Neira Ayuso wrote:
-> nf_defrag_ipv6_disable() requires CONFIG_IP6_NF_IPTABLES.
->
-> Fixes: 75063c9294fb ("netfilter: xt_socket: fix a typo in socket_mt_destroy()")
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->   net/netfilter/xt_socket.c | 2 ++
->   1 file changed, 2 insertions(+)
->
-> diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
-> index 662e5eb1cc39..7013f55f05d1 100644
-> --- a/net/netfilter/xt_socket.c
-> +++ b/net/netfilter/xt_socket.c
-> @@ -220,8 +220,10 @@ static void socket_mt_destroy(const struct xt_mtdtor_param *par)
->   {
->   	if (par->family == NFPROTO_IPV4)
->   		nf_defrag_ipv4_disable(par->net);
-> +#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
->   	else if (par->family == NFPROTO_IPV6)
->   		nf_defrag_ipv6_disable(par->net);
-> +#endif
->   }
->   
->   static struct xt_match socket_mt_reg[] __read_mostly = {
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+ iptables-test.py | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-
-Thanks for the fix.
-
-Reviewed-by: Eric Dumazet<edumazet@google.com>
-
+diff --git a/iptables-test.py b/iptables-test.py
+index b49afcab3c40..91c77e3dc0e0 100755
+--- a/iptables-test.py
++++ b/iptables-test.py
+@@ -107,20 +107,20 @@ def run_test(iptables, rule, rule_save, res, filename, lineno, netns):
+             return -1
+ 
+     matching = 0
+-    splitted = iptables.split(" ")
+-    if len(splitted) == 2:
+-        if splitted[1] == '-4':
++    tokens = iptables.split(" ")
++    if len(tokens) == 2:
++        if tokens[1] == '-4':
+             command = IPTABLES_SAVE
+-        elif splitted[1] == '-6':
++        elif tokens[1] == '-6':
+             command = IP6TABLES_SAVE
+-    elif len(splitted) == 1:
+-        if splitted[0] == IPTABLES:
++    elif len(tokens) == 1:
++        if tokens[0] == IPTABLES:
+             command = IPTABLES_SAVE
+-        elif splitted[0] == IP6TABLES:
++        elif tokens[0] == IP6TABLES:
+             command = IP6TABLES_SAVE
+-        elif splitted[0] == ARPTABLES:
++        elif tokens[0] == ARPTABLES:
+             command = ARPTABLES_SAVE
+-        elif splitted[0] == EBTABLES:
++        elif tokens[0] == EBTABLES:
+             command = EBTABLES_SAVE
+ 
+     command = EXECUTABLE + " " + command
+@@ -128,7 +128,7 @@ def run_test(iptables, rule, rule_save, res, filename, lineno, netns):
+     if netns:
+             command = "ip netns exec ____iptables-container-test " + command
+ 
+-    args = splitted[1:]
++    args = tokens[1:]
+     proc = subprocess.Popen(command, shell=True,
+                             stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+-- 
+2.34.1
 
