@@ -2,37 +2,37 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 075AFC43219
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Feb 2022 15:35:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6845DC433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Feb 2022 15:36:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240548AbiBOPfe (ORCPT
+        id S240757AbiBOPgl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 15 Feb 2022 10:35:34 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:46182 "EHLO
+        Tue, 15 Feb 2022 10:36:41 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:41098 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240637AbiBOPfE (ORCPT
+        with ESMTP id S240651AbiBOPf2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Feb 2022 10:35:04 -0500
+        Tue, 15 Feb 2022 10:35:28 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D06AC0876;
-        Tue, 15 Feb 2022 07:30:49 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58646C1C9D;
+        Tue, 15 Feb 2022 07:31:15 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2F421B81AF7;
-        Tue, 15 Feb 2022 15:30:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89116C340F2;
-        Tue, 15 Feb 2022 15:30:45 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id ADDA9B81A9A;
+        Tue, 15 Feb 2022 15:31:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F903C340F2;
+        Tue, 15 Feb 2022 15:31:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1644939046;
-        bh=0x6i4OlwnfiUrwgKFWTgJ7ebyVDAj1Ju/6rNnIfShrw=;
+        s=k20201202; t=1644939072;
+        bh=OjeT7xbUg1MBVFOFUc1x+gta//Ub/1+0ZP9aLZZxhhc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ucgiqVi8oo2o+ra/wz0brBenEiKiqpXKtyI/FZTN64W1BTc/y2YIu9KioNDIFC3P5
-         AAKg8Ml06BO0T6AlV/iIfYrinn4DKIPtVWCCdcnr7CGqYDzNUuKZv/2t0e1I3H1Zwv
-         PZNxFuZNEol0RKGJ57DMBx0HOwzw9UkJYZpV/VuFIMKZCL1IEK6d4SNB7KgAl1PxPz
-         98wAmPZ03P6GzCI22FBBm2OFXkdqP7B/CLa6HyRLFI3vGOPCp4Gp7RgKfLJqSrgdGE
-         MXKlOxxnF8i3I4kL5Ku239UJl3QYkIeWUAeSou2xvwawOTz8J5APGN7rqCeRkc3/BF
-         Q7/8wmXqvJc7A==
+        b=BmtEPydHNyILagPR/KQaNExbyP6KVF77vYnApXBAYpy+QjqqEpKOWLpgOAbu2X2sy
+         Mbd4r7ETqSDAjZz9N4MM0oFLacv/OEw4JZMstoTu6P0jrKbFpBw1762XviV5HAmoKB
+         OAU12d1bC4Qp8MxQR5A5kyjE6So6i3/tQ9ZVBsFyPyyfnQ9mDEW7Va3zrv/Ecyyfsg
+         hSapRfSXH18u4Y2HWSt6lSdBRADjQSDPGYzKagB4lVYHnSAO59yQk7BQbYYtwyioxl
+         IN6h2KsczxK5LKZ7GB2z8NsDA6qgu2WRP4WBukaILLHU3g3GDTZPbe/89yhUVcALXt
+         DEYZ8tOzBKzAA==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Florian Westphal <fw@strlen.de>,
@@ -42,12 +42,12 @@ Cc:     Florian Westphal <fw@strlen.de>,
         davem@davemloft.net, kuba@kernel.org,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 05/17] netfilter: conntrack: don't refresh sctp entries in closed state
-Date:   Tue, 15 Feb 2022 10:30:25 -0500
-Message-Id: <20220215153037.581579-5-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 04/11] netfilter: conntrack: don't refresh sctp entries in closed state
+Date:   Tue, 15 Feb 2022 10:30:57 -0500
+Message-Id: <20220215153104.581786-4-sashal@kernel.org>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220215153037.581579-1-sashal@kernel.org>
-References: <20220215153037.581579-1-sashal@kernel.org>
+In-Reply-To: <20220215153104.581786-1-sashal@kernel.org>
+References: <20220215153104.581786-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -84,10 +84,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 9 insertions(+)
 
 diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index 810cca24b3990..7626f3e1c70a7 100644
+index a937d4f75613f..8cb62805fd684 100644
 --- a/net/netfilter/nf_conntrack_proto_sctp.c
 +++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -489,6 +489,15 @@ int nf_conntrack_sctp_packet(struct nf_conn *ct,
+@@ -394,6 +394,15 @@ static int sctp_packet(struct nf_conn *ct,
  			pr_debug("Setting vtag %x for dir %d\n",
  				 ih->init_tag, !dir);
  			ct->proto.sctp.vtag[!dir] = ih->init_tag;
