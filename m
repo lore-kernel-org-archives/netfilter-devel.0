@@ -2,60 +2,60 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A9AEC433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Feb 2022 18:59:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E36CEC433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Feb 2022 18:59:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233352AbiBPS7d (ORCPT
+        id S236508AbiBPS7f (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 16 Feb 2022 13:59:33 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:58462 "EHLO
+        Wed, 16 Feb 2022 13:59:35 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:58598 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233108AbiBPS7d (ORCPT
+        with ESMTP id S233108AbiBPS7f (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 16 Feb 2022 13:59:33 -0500
-Received: from mail-ed1-x52a.google.com (mail-ed1-x52a.google.com [IPv6:2a00:1450:4864:20::52a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B1792AD677
-        for <netfilter-devel@vger.kernel.org>; Wed, 16 Feb 2022 10:59:20 -0800 (PST)
-Received: by mail-ed1-x52a.google.com with SMTP id u18so5548263edt.6
-        for <netfilter-devel@vger.kernel.org>; Wed, 16 Feb 2022 10:59:20 -0800 (PST)
+        Wed, 16 Feb 2022 13:59:35 -0500
+Received: from mail-ed1-x52e.google.com (mail-ed1-x52e.google.com [IPv6:2a00:1450:4864:20::52e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 285B62AD677
+        for <netfilter-devel@vger.kernel.org>; Wed, 16 Feb 2022 10:59:22 -0800 (PST)
+Received: by mail-ed1-x52e.google.com with SMTP id b13so5651769edn.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 16 Feb 2022 10:59:22 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ionos.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=4dpLP6PDSzzpB4LSGv/1IQpTBV62dzfCuyzoMucloco=;
-        b=ZlszMg6L57PDnvf5QZVK35wj4TPImB+lwc+ZKTgUBMDhFMDtDDi/fq4kgfbDDfSNh5
-         /dFRCboN0UdKmF5XQCFxsJ7K+yQq+ijqw6qcv7+qlAH3yX6s3h6DYO/Rp5WwTkDKNHsu
-         nwUpGctGaLe+y+wqPfxwoBv2FpIAGa424h9hH4UewuowgHZGN82c1E7Htf90sv0Hvaxm
-         01CGy2aanlI3CISwi3fBeNx62HxEDanJa6MwshInfx4j/zk06BPbrSCXeg6eWqndhSrw
-         KIaSbLLoRnvUrqwQPWcmXL/0md00Yyh8M+ei2ON+q7h1N7ABuybfNO3iWw1waNMCH7jq
-         QtJg==
+        bh=EZ7ytmr6CisnyWZjF/ZgmMPc4mI9elGEaPH+Ed56cJQ=;
+        b=PkWaZPx6VRAZSTTw5HkF4BtxvJSMq/s66PzsWUoQOrg0c7tPtydzX9ngy5oSVjhN0H
+         7VbSlHs0vGvQ+sq6iWZI2dYwr4qFa6ZtoDJ7+skgBNGgdiwsEUnB20M9jxiF5lgqwIvv
+         Dxood/f8MbKCbcireI9YlC7Oys/gfrSQ8mR6Unh47v3F54Hu+JGX01e+4B8Ch/0zpWI6
+         mfGOu1TW4+/0m1VlF//OK/1edN9iLAY7iJcUw7XYI2rL4LwoOQ4GLvfMGcAKW+fawoy2
+         hCi8kHeN7o6+fOfIoPw5IjkhlufO8CWFhMPImz0rVzReOMrRujq2a0hgWpygCfc55ISS
+         hTrA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=4dpLP6PDSzzpB4LSGv/1IQpTBV62dzfCuyzoMucloco=;
-        b=60+PJhIFYEO252NF+FiJB1t+hKItSNSWph19VBJk7jYCrk2cNYJq30tc1uwCezGLKB
-         Vp9yoVV/EQRr6ej47wS1DjCpNeO1y4+GweLIqTMEfDVZmI0gVPCQmg1fQn+kdIyHdbAI
-         R8EgxHO8VC14d+7gPRoL25dCGiBvVJYbcC9eQxE6WKtxzZJymhxYpxJPLqOPASmSvAhv
-         He9ae+iC3JSFUEaTKcqLRzY2dnfYy/TJyw99rzdZCdjTNtpqAU0P+HBptSFESnKO0uuj
-         wuK87xZhtqKESFwCyBE8gLatwYmM1m+xhZgazfCM0gqBpIU8yX/U0cCpx7hDjA/POK4S
-         TG0A==
-X-Gm-Message-State: AOAM530Dbhkh2T0ZWFWqrHLFeh+LBqKJG5J5dlgg9oySwJ+WCgn0hO2q
-        7GjaO1v50MCKtshsDswMCtLvelAQmpCnfQ==
-X-Google-Smtp-Source: ABdhPJxVicNYFiaTFd9nn8mJcgtq3isEC7Jm/mn2HS8gG5v4qK1JpBWl1cgz5CEnQgTEnsmBElWOWA==
-X-Received: by 2002:a05:6402:4495:b0:410:a171:4444 with SMTP id er21-20020a056402449500b00410a1714444mr4605618edb.20.1645037958728;
-        Wed, 16 Feb 2022 10:59:18 -0800 (PST)
+        bh=EZ7ytmr6CisnyWZjF/ZgmMPc4mI9elGEaPH+Ed56cJQ=;
+        b=4oyj4/nZ3p6ZY/Ufom1QucR64y1puVF1/ss8aKkl+UggwLRLf2hryxO2M4q59xaUCm
+         Tdoh+2asexH2bI6Q0oUyD/OSEREB+nCLaIX/ssB9v/bTBL15ZwskusIQAZPkDS3Dt4LB
+         rWWDfLxw2oYEwyU7exYl+ETltkyRZtfp+7bJakxi3xNCHgst5HsaYIyRWiomRx9QZDID
+         EuCqqUKvgiIXsfvgM+7vk20sbnxDo/3h/j0ruQrWDwL7o7mOeoBmbNepIK6hylj1lMCi
+         b61uNscH2LpmFIV+E/ivrCvaqCh38anX/bF0+0271YY5vkLJtNPwODZ9CInjVq9dtpdS
+         WATA==
+X-Gm-Message-State: AOAM5300yOINW08mkXSIbcMPIWKhq4/1gvFChnoj//5wBfd8Yiqrqjaq
+        V1LWE/BczX6A9TsPephPl/CG0a16QBrryg==
+X-Google-Smtp-Source: ABdhPJxij8nDepNLkFAUug1e/gwSJxGHOlLd8NJGJ0PaVrnyRnDkku4TAxkhD/k0iM6OTKcAudS+UA==
+X-Received: by 2002:aa7:d49a:0:b0:410:875c:e21b with SMTP id b26-20020aa7d49a000000b00410875ce21bmr4462092edr.357.1645037960212;
+        Wed, 16 Feb 2022 10:59:20 -0800 (PST)
 Received: from msennikovskii4.fkb.profitbricks.net (ip5f5bf784.dynamic.kabel-deutschland.de. [95.91.247.132])
-        by smtp.gmail.com with ESMTPSA id dz8sm2156167edb.96.2022.02.16.10.59.17
+        by smtp.gmail.com with ESMTPSA id dz8sm2156167edb.96.2022.02.16.10.59.18
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 16 Feb 2022 10:59:17 -0800 (PST)
+        Wed, 16 Feb 2022 10:59:19 -0800 (PST)
 From:   Mikhail Sennikovsky <mikhail.sennikovskii@ionos.com>
 To:     netfilter-devel@vger.kernel.org, pablo@netfilter.org,
         mikhail.sennikovsky@gmail.com
 Cc:     Mikhail Sennikovsky <mikhail.sennikovskii@ionos.com>
-Subject: [PATCH v2 1/3] conntrack: use libmnl for updating conntrack table
-Date:   Wed, 16 Feb 2022 19:58:24 +0100
-Message-Id: <20220216185826.48218-2-mikhail.sennikovskii@ionos.com>
+Subject: [PATCH v2 2/3] conntrack: use libmnl for ct entries deletion
+Date:   Wed, 16 Feb 2022 19:58:25 +0100
+Message-Id: <20220216185826.48218-3-mikhail.sennikovskii@ionos.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20220216185826.48218-1-mikhail.sennikovskii@ionos.com>
 References: <20220216185826.48218-1-mikhail.sennikovskii@ionos.com>
@@ -65,48 +65,52 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Use libmnl and libnetfilter_conntrack mnl helpers to update the conntrack
-table entries.
+Use libmnl and libnetfilter_conntrack mnl helpers to delete
+the conntrack table entries.
 
 Signed-off-by: Mikhail Sennikovsky <mikhail.sennikovskii@ionos.com>
 ---
- src/conntrack.c | 268 +++++++++++++++++++++++++++++-------------------
- 1 file changed, 163 insertions(+), 105 deletions(-)
+ src/conntrack.c | 109 ++++++++++++++++++++++++++----------------------
+ 1 file changed, 60 insertions(+), 49 deletions(-)
 
 diff --git a/src/conntrack.c b/src/conntrack.c
-index fe5574d..161e6a5 100644
+index 161e6a5..8cd760b 100644
 --- a/src/conntrack.c
 +++ b/src/conntrack.c
-@@ -68,10 +68,13 @@
- #include <linux/netfilter/nf_conntrack_common.h>
- #include <libnetfilter_conntrack/libnetfilter_conntrack.h>
+@@ -608,7 +608,7 @@ static const char usage_parameters[] =
  
--static struct nfct_mnl_socket {
-+struct nfct_mnl_socket {
- 	struct mnl_socket	*mnl;
- 	uint32_t		portid;
--} _sock;
-+};
-+
-+static struct nfct_mnl_socket _sock;
-+static struct nfct_mnl_socket _modifier_sock;
+ #define OPTION_OFFSET 256
  
- struct u32_mask {
- 	uint32_t value;
-@@ -2073,33 +2076,6 @@ done:
+-static struct nfct_handle *cth, *ith;
++static struct nfct_handle *cth;
+ static struct option *opts = original_opts;
+ static unsigned int global_option_offset = 0;
+ 
+@@ -2036,46 +2036,6 @@ done:
  	return NFCT_CB_CONTINUE;
  }
  
--static int print_cb(enum nf_conntrack_msg_type type,
--		    struct nf_conntrack *ct,
--		    void *data)
+-static int delete_cb(enum nf_conntrack_msg_type type,
+-		     struct nf_conntrack *ct,
+-		     void *data)
 -{
--	char buf[1024];
 -	unsigned int op_type = NFCT_O_DEFAULT;
 -	unsigned int op_flags = 0;
+-	struct ct_cmd *cmd = data;
+-	char buf[1024];
+-	int res;
+-
+-	if (nfct_filter(cmd, ct, cur_tmpl))
+-		return NFCT_CB_CONTINUE;
+-
+-	res = nfct_query(ith, NFCT_Q_DESTROY, ct);
+-	if (res < 0)
+-		exit_error(OTHER_PROBLEM,
+-			   "Operation failed: %s",
+-			   err2str(errno, CT_DELETE));
 -
 -	if (output_mask & _O_SAVE) {
--		ct_save_snprintf(buf, sizeof(buf), ct, labelmap, NFCT_T_NEW);
+-		ct_save_snprintf(buf, sizeof(buf), ct, labelmap, NFCT_T_DESTROY);
 -		goto done;
 -	}
 -
@@ -117,9 +121,11 @@ index fe5574d..161e6a5 100644
 -	if (output_mask & _O_ID)
 -		op_flags |= NFCT_OF_ID;
 -
--	nfct_snprintf_labels(buf, sizeof(buf), ct, NFCT_T_UNKNOWN, op_type, op_flags, labelmap);
+-	nfct_snprintf(buf, sizeof(buf), ct, NFCT_T_UNKNOWN, op_type, op_flags);
 -done:
 -	printf("%s\n", buf);
+-
+-	counter++;
 -
 -	return NFCT_CB_CONTINUE;
 -}
@@ -127,136 +133,19 @@ index fe5574d..161e6a5 100644
  static void copy_mark(const struct ct_cmd *cmd, struct nf_conntrack *tmp,
  		      const struct nf_conntrack *ct,
  		      const struct u32_mask *m)
-@@ -2190,73 +2166,6 @@ static void copy_label(const struct ct_cmd *cmd, struct nf_conntrack *tmp,
- 	}
- }
- 
--static int update_cb(enum nf_conntrack_msg_type type,
--		     struct nf_conntrack *ct,
--		     void *data)
--{
--	struct ct_cmd *cmd = data;
--	struct nf_conntrack *obj = cmd->tmpl.ct, *tmp;
--	int res;
--
--	if (filter_nat(cmd, ct) ||
--	    filter_label(ct, cur_tmpl) ||
--	    filter_network(cmd, ct))
--		return NFCT_CB_CONTINUE;
--
--	if (nfct_attr_is_set(obj, ATTR_ID) && nfct_attr_is_set(ct, ATTR_ID) &&
--	    nfct_get_attr_u32(obj, ATTR_ID) != nfct_get_attr_u32(ct, ATTR_ID))
--	    	return NFCT_CB_CONTINUE;
--
--	if (cmd->options & CT_OPT_TUPLE_ORIG &&
--	    !nfct_cmp(obj, ct, NFCT_CMP_ORIG))
--		return NFCT_CB_CONTINUE;
--	if (cmd->options & CT_OPT_TUPLE_REPL &&
--	    !nfct_cmp(obj, ct, NFCT_CMP_REPL))
--		return NFCT_CB_CONTINUE;
--
--	tmp = nfct_new();
--	if (tmp == NULL)
--		exit_error(OTHER_PROBLEM, "out of memory");
--
--	nfct_copy(tmp, ct, NFCT_CP_ORIG);
--	nfct_copy(tmp, obj, NFCT_CP_META);
--	copy_mark(cmd, tmp, ct, &cur_tmpl->mark);
--	copy_status(cmd, tmp, ct);
--	copy_label(cmd, tmp, ct, cur_tmpl);
--
--	/* do not send NFCT_Q_UPDATE if ct appears unchanged */
--	if (nfct_cmp(tmp, ct, NFCT_CMP_ALL | NFCT_CMP_MASK)) {
--		nfct_destroy(tmp);
--		return NFCT_CB_CONTINUE;
--	}
--
--	res = nfct_query(ith, NFCT_Q_UPDATE, tmp);
--	if (res < 0)
--		fprintf(stderr,
--			   "Operation failed: %s\n",
--			   err2str(errno, CT_UPDATE));
--	nfct_callback_register(ith, NFCT_T_ALL, print_cb, NULL);
--
--	res = nfct_query(ith, NFCT_Q_GET, tmp);
--	if (res < 0) {
--		nfct_destroy(tmp);
--		/* the entry has vanish in middle of the update */
--		if (errno == ENOENT) {
--			nfct_callback_unregister(ith);
--			return NFCT_CB_CONTINUE;
--		}
--		exit_error(OTHER_PROBLEM,
--			   "Operation failed: %s",
--			   err2str(errno, CT_UPDATE));
--	}
--	nfct_destroy(tmp);
--	nfct_callback_unregister(ith);
--
--	counter++;
--
--	return NFCT_CB_CONTINUE;
--}
--
- static int dump_exp_cb(enum nf_conntrack_msg_type type,
- 		      struct nf_expect *exp,
- 		      void *data)
-@@ -2529,6 +2438,45 @@ nfct_mnl_create(struct nfct_mnl_socket *sock, uint16_t subsys, uint16_t type,
- 	return nfct_mnl_talk(sock, nlh, NULL);
- }
- 
-+static int
-+nfct_mnl_set_ct(struct nfct_mnl_socket *sock,
-+		uint16_t subsys, uint16_t type, const struct nf_conntrack *ct)
-+{
-+	char buf[MNL_SOCKET_BUFFER_SIZE];
-+	struct nlmsghdr *nlh;
-+	int res;
-+
-+	nlh = nfct_mnl_nlmsghdr_put(buf, subsys, type,
-+				    NLM_F_ACK,
-+				    nfct_get_attr_u8(ct, ATTR_ORIG_L3PROTO));
-+
-+	res = nfct_nlmsg_build(nlh, ct);
-+	if (res < 0)
-+		return res;
-+
-+	return nfct_mnl_talk(sock, nlh, NULL);
-+}
-+
-+static int
-+nfct_mnl_request(struct nfct_mnl_socket *sock,
-+		uint16_t subsys, uint16_t type, const struct nf_conntrack *ct,
-+		mnl_cb_t cb)
-+{
-+	char buf[MNL_SOCKET_BUFFER_SIZE];
-+	struct nlmsghdr *nlh;
-+	int res;
-+
-+	nlh = nfct_mnl_nlmsghdr_put(buf, subsys, type,
-+				    NLM_F_ACK,
-+				    nfct_get_attr_u8(ct, ATTR_ORIG_L3PROTO));
-+
-+	res = nfct_nlmsg_build(nlh, ct);
-+	if (res < 0)
-+		return res;
-+
-+	return nfct_mnl_recv(sock, nlh, cb, NULL);
-+}
-+
- #define UNKNOWN_STATS_NUM 4
- 
- static int nfct_stats_attr_cb(const struct nlattr *attr, void *data)
-@@ -2717,6 +2665,116 @@ done:
+@@ -2775,6 +2735,57 @@ destroy_ok:
  	return MNL_CB_OK;
  }
  
-+static int mnl_nfct_print_cb(const struct nlmsghdr *nlh, void *data)
++static int mnl_nfct_delete_cb(const struct nlmsghdr *nlh, void *data)
 +{
-+	char buf[1024];
 +	unsigned int op_type = NFCT_O_DEFAULT;
 +	unsigned int op_flags = 0;
++	struct ct_cmd *cmd = data;
++	char buf[1024];
++	int res;
 +	struct nf_conntrack *ct;
++	struct nfct_mnl_socket *modifier_sock = &_modifier_sock;
 +
 +	ct = nfct_new();
 +	if (ct == NULL)
@@ -264,8 +153,20 @@ index fe5574d..161e6a5 100644
 +
 +	nfct_nlmsg_parse(nlh, ct);
 +
++	if (nfct_filter(cmd, ct, cur_tmpl))
++		goto destroy_ok;
++
++	res = nfct_mnl_set_ct(modifier_sock,
++			      NFNL_SUBSYS_CTNETLINK,
++			      IPCTNL_MSG_CT_DELETE,
++			      ct);
++	if (res < 0)
++		exit_error(OTHER_PROBLEM,
++			   "Operation failed: %s",
++			   err2str(errno, CT_DELETE));
++
 +	if (output_mask & _O_SAVE) {
-+		ct_save_snprintf(buf, sizeof(buf), ct, labelmap, NFCT_T_NEW);
++		ct_save_snprintf(buf, sizeof(buf), ct, labelmap, NFCT_T_DESTROY);
 +		goto done;
 +	}
 +
@@ -276,108 +177,25 @@ index fe5574d..161e6a5 100644
 +	if (output_mask & _O_ID)
 +		op_flags |= NFCT_OF_ID;
 +
-+	nfct_snprintf_labels(buf, sizeof(buf), ct, NFCT_T_UNKNOWN, op_type, op_flags, labelmap);
++	nfct_snprintf(buf, sizeof(buf), ct, NFCT_T_UNKNOWN, op_type, op_flags);
 +done:
 +	printf("%s\n", buf);
-+
-+	nfct_destroy(ct);
-+
-+	return MNL_CB_OK;
-+}
-+
-+static int mnl_nfct_update_cb(const struct nlmsghdr *nlh, void *data)
-+{
-+	struct ct_cmd *cmd = data;
-+	struct nfct_mnl_socket *modifier_sock = &_modifier_sock;
-+	struct nf_conntrack *ct, *obj = cmd->tmpl.ct, *tmp = NULL;
-+	int res;
-+
-+	ct = nfct_new();
-+	if (ct == NULL)
-+		return MNL_CB_OK;
-+
-+	nfct_nlmsg_parse(nlh, ct);
-+
-+	if (filter_nat(cmd, ct) ||
-+	    filter_label(ct, cur_tmpl) ||
-+	    filter_network(cmd, ct))
-+		goto destroy_ok;
-+
-+	if (nfct_attr_is_set(obj, ATTR_ID) && nfct_attr_is_set(ct, ATTR_ID) &&
-+	    nfct_get_attr_u32(obj, ATTR_ID) != nfct_get_attr_u32(ct, ATTR_ID))
-+		goto destroy_ok;
-+
-+	if (cmd->options & CT_OPT_TUPLE_ORIG &&
-+	    !nfct_cmp(obj, ct, NFCT_CMP_ORIG))
-+		goto destroy_ok;
-+	if (cmd->options & CT_OPT_TUPLE_REPL &&
-+	    !nfct_cmp(obj, ct, NFCT_CMP_REPL))
-+		goto destroy_ok;
-+
-+	tmp = nfct_new();
-+	if (tmp == NULL)
-+		exit_error(OTHER_PROBLEM, "out of memory");
-+
-+	nfct_copy(tmp, ct, NFCT_CP_ORIG);
-+	nfct_copy(tmp, obj, NFCT_CP_META);
-+	copy_mark(cmd, tmp, ct, &cur_tmpl->mark);
-+	copy_status(cmd, tmp, ct);
-+	copy_label(cmd, tmp, ct, cur_tmpl);
-+
-+	/* do not send NFCT_Q_UPDATE if ct appears unchanged */
-+	if (nfct_cmp(tmp, ct, NFCT_CMP_ALL | NFCT_CMP_MASK))
-+		goto destroy_ok;
-+
-+	res = nfct_mnl_set_ct(modifier_sock,
-+			      NFNL_SUBSYS_CTNETLINK,
-+			      IPCTNL_MSG_CT_NEW,
-+			      tmp);
-+	if (res < 0)
-+		fprintf(stderr,
-+			"Operation failed: %s\n",
-+			err2str(errno, CT_UPDATE));
-+
-+	res = nfct_mnl_request(modifier_sock,
-+			     NFNL_SUBSYS_CTNETLINK,
-+			     IPCTNL_MSG_CT_GET,
-+			     tmp,
-+			     mnl_nfct_print_cb);
-+	if (res < 0) {
-+		/* the entry has vanish in middle of the update */
-+		if (errno == ENOENT)
-+			goto destroy_ok;
-+		exit_error(OTHER_PROBLEM,
-+			   "Operation failed: %s",
-+			   err2str(errno, CT_UPDATE));
-+	}
 +
 +	counter++;
 +
 +destroy_ok:
-+	if (tmp)
-+		nfct_destroy(tmp);
 +	nfct_destroy(ct);
-+
 +	return MNL_CB_OK;
 +}
 +
  static struct ctproto_handler *h;
  
  static void labelmap_init(void)
-@@ -3253,6 +3311,7 @@ static void do_parse(struct ct_cmd *ct_cmd, int argc, char *argv[])
- static int do_command_ct(const char *progname, struct ct_cmd *cmd)
- {
- 	struct nfct_mnl_socket *sock = &_sock;
-+	struct nfct_mnl_socket *modifier_sock = &_modifier_sock;
- 	struct nfct_filter_dump *filter_dump;
- 	int res = 0;
- 
-@@ -3373,19 +3432,18 @@ static int do_command_ct(const char *progname, struct ct_cmd *cmd)
+@@ -3447,15 +3458,12 @@ static int do_command_ct(const char *progname, struct ct_cmd *cmd)
  		break;
  
- 	case CT_UPDATE:
+ 	case CT_DELETE:
 -		cth = nfct_open(CONNTRACK, 0);
--		/* internal handler for delete_cb, otherwise we hit EILSEQ */
 -		ith = nfct_open(CONNTRACK, 0);
 -		if (!cth || !ith)
 +		if (nfct_mnl_socket_open(sock, 0) < 0
@@ -386,20 +204,30 @@ index fe5574d..161e6a5 100644
  
  		nfct_filter_init(cmd);
  
--		nfct_callback_register(cth, NFCT_T_ALL, update_cb, cmd);
+-		nfct_callback_register(cth, NFCT_T_ALL, delete_cb, cmd);
 -
--		res = nfct_query(cth, NFCT_Q_DUMP, &cmd->family);
--		nfct_close(ith);
--		nfct_close(cth);
+ 		filter_dump = nfct_filter_dump_create();
+ 		if (filter_dump == NULL)
+ 			exit_error(OTHER_PROBLEM, "OOM");
+@@ -3469,12 +3477,15 @@ static int do_command_ct(const char *progname, struct ct_cmd *cmd)
+ 					     NFCT_FILTER_DUMP_L3NUM,
+ 					     cmd->family);
+ 
+-		res = nfct_query(cth, NFCT_Q_DUMP_FILTER, filter_dump);
 +		res = nfct_mnl_dump(sock,
 +				    NFNL_SUBSYS_CTNETLINK,
 +				    IPCTNL_MSG_CT_GET,
-+				    mnl_nfct_update_cb, cmd, NULL);
++				    mnl_nfct_delete_cb, cmd, filter_dump);
+ 
+ 		nfct_filter_dump_destroy(filter_dump);
+ 
+-		nfct_close(ith);
+-		nfct_close(cth);
 +		nfct_mnl_socket_close(modifier_sock);
 +		nfct_mnl_socket_close(sock);
  		break;
  
- 	case CT_DELETE:
+ 	case EXP_DELETE:
 -- 
 2.25.1
 
