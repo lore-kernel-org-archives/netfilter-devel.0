@@ -2,138 +2,111 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59696C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Feb 2022 13:55:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 962FCC433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Feb 2022 15:44:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241412AbiBQNzt (ORCPT
+        id S242664AbiBQPol (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 17 Feb 2022 08:55:49 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:42576 "EHLO
+        Thu, 17 Feb 2022 10:44:41 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:46762 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241413AbiBQNzq (ORCPT
+        with ESMTP id S242677AbiBQPog (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 17 Feb 2022 08:55:46 -0500
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id AC408273753;
-        Thu, 17 Feb 2022 05:55:31 -0800 (PST)
-Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 0B4806019B;
-        Thu, 17 Feb 2022 14:54:49 +0100 (CET)
-Date:   Thu, 17 Feb 2022 14:55:27 +0100
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Paul Blakey <paulb@nvidia.com>
-Cc:     dev@openvswitch.org, netdev@vger.kernel.org,
-        Jamal Hadi Salim <jhs@mojatatu.com>, davem@davemloft.net,
-        Jiri Pirko <jiri@nvidia.com>,
-        Cong Wang <xiyou.wangcong@gmail.com>,
+        Thu, 17 Feb 2022 10:44:36 -0500
+Received: from pegase2.c-s.fr (pegase2.c-s.fr [93.17.235.10])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14B9C2B1025;
+        Thu, 17 Feb 2022 07:44:21 -0800 (PST)
+Received: from localhost (mailhub3.si.c-s.fr [172.26.127.67])
+        by localhost (Postfix) with ESMTP id 4Jzzdp0n13z9sSQ;
+        Thu, 17 Feb 2022 16:44:14 +0100 (CET)
+X-Virus-Scanned: amavisd-new at c-s.fr
+Received: from pegase2.c-s.fr ([172.26.127.65])
+        by localhost (pegase2.c-s.fr [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id YORT1PJT__e6; Thu, 17 Feb 2022 16:44:14 +0100 (CET)
+Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
+        by pegase2.c-s.fr (Postfix) with ESMTP id 4Jzzdn72n8z9sQx;
+        Thu, 17 Feb 2022 16:44:13 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+        by messagerie.si.c-s.fr (Postfix) with ESMTP id D9A6A8B77C;
+        Thu, 17 Feb 2022 16:44:13 +0100 (CET)
+X-Virus-Scanned: amavisd-new at c-s.fr
+Received: from messagerie.si.c-s.fr ([127.0.0.1])
+        by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
+        with ESMTP id EOIxpR6cf71e; Thu, 17 Feb 2022 16:44:13 +0100 (CET)
+Received: from PO20335.IDSI0.si.c-s.fr (unknown [192.168.6.239])
+        by messagerie.si.c-s.fr (Postfix) with ESMTP id A8D7D8B763;
+        Thu, 17 Feb 2022 16:44:13 +0100 (CET)
+Received: from PO20335.IDSI0.si.c-s.fr (localhost [127.0.0.1])
+        by PO20335.IDSI0.si.c-s.fr (8.17.1/8.16.1) with ESMTPS id 21HFi4WD603563
+        (version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
+        Thu, 17 Feb 2022 16:44:04 +0100
+Received: (from chleroy@localhost)
+        by PO20335.IDSI0.si.c-s.fr (8.17.1/8.17.1/Submit) id 21HFi2uT603562;
+        Thu, 17 Feb 2022 16:44:02 +0100
+X-Authentication-Warning: PO20335.IDSI0.si.c-s.fr: chleroy set sender to christophe.leroy@csgroup.eu using -f
+From:   Christophe Leroy <christophe.leroy@csgroup.eu>
+To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
-        netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Oz Shlomo <ozsh@nvidia.com>, Vlad Buslov <vladbu@nvidia.com>,
-        Roi Dayan <roid@nvidia.com>,
-        Ariel Levkovich <lariel@nvidia.com>, coreteam@netfilter.org
-Subject: Re: [PATCH net 1/1] net/sched: act_ct: Fix flow table lookup failure
- with no originating ifindex
-Message-ID: <Yg5Tz5ucVAI3zOTs@salvia>
-References: <20220217093424.23601-1-paulb@nvidia.com>
+        Florian Westphal <fw@strlen.de>
+Cc:     Christophe Leroy <christophe.leroy@csgroup.eu>,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: [PATCH net-next v1] net: Use csum_replace_... and csum_sub() helpers instead of opencoding
+Date:   Thu, 17 Feb 2022 16:43:55 +0100
+Message-Id: <fe60030b6f674d9bf41f56426a4b0a8a9db0d20f.1645112415.git.christophe.leroy@csgroup.eu>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20220217093424.23601-1-paulb@nvidia.com>
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1645112634; l=1582; s=20211009; h=from:subject:message-id; bh=qDaGxyd/pqGG9s1E0j72Fi43hJ/XYgHZbSIbmrxq7S0=; b=aKRMITAt6QN7aUpMRIAs5kbGVOO1OkfwH/B12QUYMkgfwVp4huQwNbORsqVKepw3y6j8zXnWa9a9 9pHC23uNA0ruYXBUcQZ/+bEpYn3OqXO9TCCKlDT2+/gN74V6ylxF
+X-Developer-Key: i=christophe.leroy@csgroup.eu; a=ed25519; pk=HIzTzUj91asvincQGOFx6+ZF5AoUuP9GdOtQChs7Mm0=
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Feb 17, 2022 at 11:34:24AM +0200, Paul Blakey wrote:
-> After cited commit optimizted hw insertion, flow table entries are
-> populated with ifindex information which was intended to only be used
-> for HW offload. This tuple ifindex is hashed in the flow table key, so
-> it must be filled for lookup to be successful. But tuple ifindex is only
-> relevant for the netfilter flowtables (nft), so it's not filled in
-> act_ct flow table lookup, resulting in lookup failure, and no SW
-> offload and no offload teardown for TCP connection FIN/RST packets.
-> 
-> To fix this, allow flow tables that don't hash the ifindex.
-> Netfilter flow tables will keep using ifindex for a more specific
-> offload, while act_ct will not.
+In a couple places, open coded calculation can be avoided
+and replaced by the equivalent csum_replace4() and
+csum_replace_by_diff().
 
-Using iif == zero should be enough to specify not set?
+There's also one place where csum_sub() should be used instead of
+csum_add().
 
-> Fixes: 9795ded7f924 ("net/sched: act_ct: Fill offloading tupledx")
-> Signed-off-by: Paul Blakey <paulb@nvidia.com>
-> ---
->  include/net/netfilter/nf_flow_table.h | 8 ++++----
->  net/netfilter/nf_flow_table_core.c    | 6 ++++++
->  net/sched/act_ct.c                    | 3 ++-
->  3 files changed, 12 insertions(+), 5 deletions(-)
-> 
-> diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-> index a3647fadf1cc..9b474414a936 100644
-> --- a/include/net/netfilter/nf_flow_table.h
-> +++ b/include/net/netfilter/nf_flow_table.h
-> @@ -64,8 +64,9 @@ struct nf_flowtable_type {
->  };
->  
->  enum nf_flowtable_flags {
-> -	NF_FLOWTABLE_HW_OFFLOAD		= 0x1,	/* NFT_FLOWTABLE_HW_OFFLOAD */
-> -	NF_FLOWTABLE_COUNTER		= 0x2,	/* NFT_FLOWTABLE_COUNTER */
-> +	NF_FLOWTABLE_HW_OFFLOAD			= 0x1,	/* NFT_FLOWTABLE_HW_OFFLOAD */
-> +	NF_FLOWTABLE_COUNTER			= 0x2,	/* NFT_FLOWTABLE_COUNTER */
-> +	NF_FLOWTABLE_NO_IFINDEX_FILTERING	= 0x4,	/* Only used by act_ct */
->  };
->  
->  struct nf_flowtable {
-> @@ -114,8 +115,6 @@ struct flow_offload_tuple {
->  		__be16			dst_port;
->  	};
->  
-> -	int				iifidx;
-> -
->  	u8				l3proto;
->  	u8				l4proto;
->  	struct {
-> @@ -126,6 +125,7 @@ struct flow_offload_tuple {
->  	/* All members above are keys for lookups, see flow_offload_hash(). */
->  	struct { }			__hash;
->  
-> +	int				iifidx;
->  	u8				dir:2,
->  					xmit_type:2,
->  					encap_num:2,
-> diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-> index b90eca7a2f22..f0cb2c7075c0 100644
-> --- a/net/netfilter/nf_flow_table_core.c
-> +++ b/net/netfilter/nf_flow_table_core.c
-> @@ -254,9 +254,15 @@ static u32 flow_offload_hash_obj(const void *data, u32 len, u32 seed)
->  static int flow_offload_hash_cmp(struct rhashtable_compare_arg *arg,
->  					const void *ptr)
->  {
-> +	const struct nf_flowtable *flow_table = container_of(arg->ht, struct nf_flowtable,
-> +							     rhashtable);
->  	const struct flow_offload_tuple *tuple = arg->key;
->  	const struct flow_offload_tuple_rhash *x = ptr;
->  
-> +	if (!(flow_table->flags & NF_FLOWTABLE_NO_IFINDEX_FILTERING) &&
-> +	    x->tuple.iifidx != tuple->iifidx)
-> +		return 1;
-> +
->  	if (memcmp(&x->tuple, tuple, offsetof(struct flow_offload_tuple, __hash)))
->  		return 1;
->  
-> diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
-> index f99247fc6468..22cd32ec9889 100644
-> --- a/net/sched/act_ct.c
-> +++ b/net/sched/act_ct.c
-> @@ -305,7 +305,8 @@ static int tcf_ct_flow_table_get(struct tcf_ct_params *params)
->  
->  	ct_ft->nf_ft.type = &flowtable_ct;
->  	ct_ft->nf_ft.flags |= NF_FLOWTABLE_HW_OFFLOAD |
-> -			      NF_FLOWTABLE_COUNTER;
-> +			      NF_FLOWTABLE_COUNTER |
-> +			      NF_FLOWTABLE_NO_IFINDEX_FILTERING;
->  	err = nf_flow_table_init(&ct_ft->nf_ft);
->  	if (err)
->  		goto err_init;
-> -- 
-> 2.30.1
-> 
+Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+---
+ net/core/utils.c            | 4 ++--
+ net/netfilter/nft_payload.c | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/net/core/utils.c b/net/core/utils.c
+index 1f31a39236d5..938495bc1d34 100644
+--- a/net/core/utils.c
++++ b/net/core/utils.c
+@@ -476,9 +476,9 @@ void inet_proto_csum_replace_by_diff(__sum16 *sum, struct sk_buff *skb,
+ 				     __wsum diff, bool pseudohdr)
+ {
+ 	if (skb->ip_summed != CHECKSUM_PARTIAL) {
+-		*sum = csum_fold(csum_add(diff, ~csum_unfold(*sum)));
++		csum_replace_by_diff(sum, diff);
+ 		if (skb->ip_summed == CHECKSUM_COMPLETE && pseudohdr)
+-			skb->csum = ~csum_add(diff, ~skb->csum);
++			skb->csum = ~csum_sub(diff, skb->csum);
+ 	} else if (pseudohdr) {
+ 		*sum = ~csum_fold(csum_add(diff, csum_unfold(*sum)));
+ 	}
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index 5cc06aef4345..b6cfd0759bc5 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -557,7 +557,7 @@ const struct nft_expr_ops nft_payload_fast_ops = {
+ 
+ static inline void nft_csum_replace(__sum16 *sum, __wsum fsum, __wsum tsum)
+ {
+-	*sum = csum_fold(csum_add(csum_sub(~csum_unfold(*sum), fsum), tsum));
++	csum_replace4(sum, fsum, tsum);
+ 	if (*sum == 0)
+ 		*sum = CSUM_MANGLED_0;
+ }
+-- 
+2.34.1
+
