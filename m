@@ -2,111 +2,67 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 962FCC433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Feb 2022 15:44:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B8B8C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Feb 2022 16:55:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242664AbiBQPol (ORCPT
+        id S235442AbiBQQz1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 17 Feb 2022 10:44:41 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:46762 "EHLO
+        Thu, 17 Feb 2022 11:55:27 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:57288 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242677AbiBQPog (ORCPT
+        with ESMTP id S230436AbiBQQz1 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 17 Feb 2022 10:44:36 -0500
-Received: from pegase2.c-s.fr (pegase2.c-s.fr [93.17.235.10])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14B9C2B1025;
-        Thu, 17 Feb 2022 07:44:21 -0800 (PST)
-Received: from localhost (mailhub3.si.c-s.fr [172.26.127.67])
-        by localhost (Postfix) with ESMTP id 4Jzzdp0n13z9sSQ;
-        Thu, 17 Feb 2022 16:44:14 +0100 (CET)
-X-Virus-Scanned: amavisd-new at c-s.fr
-Received: from pegase2.c-s.fr ([172.26.127.65])
-        by localhost (pegase2.c-s.fr [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id YORT1PJT__e6; Thu, 17 Feb 2022 16:44:14 +0100 (CET)
-Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
-        by pegase2.c-s.fr (Postfix) with ESMTP id 4Jzzdn72n8z9sQx;
-        Thu, 17 Feb 2022 16:44:13 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-        by messagerie.si.c-s.fr (Postfix) with ESMTP id D9A6A8B77C;
-        Thu, 17 Feb 2022 16:44:13 +0100 (CET)
-X-Virus-Scanned: amavisd-new at c-s.fr
-Received: from messagerie.si.c-s.fr ([127.0.0.1])
-        by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
-        with ESMTP id EOIxpR6cf71e; Thu, 17 Feb 2022 16:44:13 +0100 (CET)
-Received: from PO20335.IDSI0.si.c-s.fr (unknown [192.168.6.239])
-        by messagerie.si.c-s.fr (Postfix) with ESMTP id A8D7D8B763;
-        Thu, 17 Feb 2022 16:44:13 +0100 (CET)
-Received: from PO20335.IDSI0.si.c-s.fr (localhost [127.0.0.1])
-        by PO20335.IDSI0.si.c-s.fr (8.17.1/8.16.1) with ESMTPS id 21HFi4WD603563
-        (version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-        Thu, 17 Feb 2022 16:44:04 +0100
-Received: (from chleroy@localhost)
-        by PO20335.IDSI0.si.c-s.fr (8.17.1/8.17.1/Submit) id 21HFi2uT603562;
-        Thu, 17 Feb 2022 16:44:02 +0100
-X-Authentication-Warning: PO20335.IDSI0.si.c-s.fr: chleroy set sender to christophe.leroy@csgroup.eu using -f
-From:   Christophe Leroy <christophe.leroy@csgroup.eu>
-To:     "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
+        Thu, 17 Feb 2022 11:55:27 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2F362B3551;
+        Thu, 17 Feb 2022 08:55:12 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 555D8B821AE;
+        Thu, 17 Feb 2022 16:55:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72679C340E8;
+        Thu, 17 Feb 2022 16:55:09 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1645116910;
+        bh=DKw7A7VZqiMKEV24XPr8gsA6RRZcD4t308cI8Q4UvaY=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=jBe+Iv+THaAw99Gz0yZjBVXP1cfxHgsBDQX4e3sL5a0VhRrGFkTcp2VHfusabaMX/
+         RFGHSWV7JHwDRfwSowXbnPmYxlN/gkFQdqbJpkW1NiK80CaqyjxBQ9mOWz/3qrzyLu
+         ClUSJ2yGaR9zbMk69Eex1PSgUewL8N69AOiqWk8gBMFfIr2Y4ngJzYtmY6btFhgi0v
+         TG/VvYI+nF60bQjoo2EzxhBWHIxrKgpqPAjNHrbWaSg+6zLuU9hC/FajxZ6Y+1veaa
+         lfLajqJD9HRtSSqWPHGjzT/9Rr9ZgENhtRasBQTW5qYgUuOqofw6/M+XJLoBG7ul5l
+         eRxUfeYlEt0Rg==
+Date:   Thu, 17 Feb 2022 08:55:08 -0800
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Paul Blakey <paulb@nvidia.com>
+Cc:     <dev@openvswitch.org>, <netdev@vger.kernel.org>,
+        Jamal Hadi Salim <jhs@mojatatu.com>, <davem@davemloft.net>,
+        Jiri Pirko <jiri@nvidia.com>,
+        Cong Wang <xiyou.wangcong@gmail.com>,
+        <netfilter-devel@vger.kernel.org>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Cc:     Christophe Leroy <christophe.leroy@csgroup.eu>,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: [PATCH net-next v1] net: Use csum_replace_... and csum_sub() helpers instead of opencoding
-Date:   Thu, 17 Feb 2022 16:43:55 +0100
-Message-Id: <fe60030b6f674d9bf41f56426a4b0a8a9db0d20f.1645112415.git.christophe.leroy@csgroup.eu>
-X-Mailer: git-send-email 2.34.1
+        Oz Shlomo <ozsh@nvidia.com>, Vlad Buslov <vladbu@nvidia.com>,
+        Roi Dayan <roid@nvidia.com>,
+        Ariel Levkovich <lariel@nvidia.com>, <coreteam@netfilter.org>
+Subject: Re: [PATCH net 1/1] net/sched: act_ct: Fix flow table lookup
+ failure with no originating ifindex
+Message-ID: <20220217085508.0788d154@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+In-Reply-To: <20220217093424.23601-1-paulb@nvidia.com>
+References: <20220217093424.23601-1-paulb@nvidia.com>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1645112634; l=1582; s=20211009; h=from:subject:message-id; bh=qDaGxyd/pqGG9s1E0j72Fi43hJ/XYgHZbSIbmrxq7S0=; b=aKRMITAt6QN7aUpMRIAs5kbGVOO1OkfwH/B12QUYMkgfwVp4huQwNbORsqVKepw3y6j8zXnWa9a9 9pHC23uNA0ruYXBUcQZ/+bEpYn3OqXO9TCCKlDT2+/gN74V6ylxF
-X-Developer-Key: i=christophe.leroy@csgroup.eu; a=ed25519; pk=HIzTzUj91asvincQGOFx6+ZF5AoUuP9GdOtQChs7Mm0=
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-In a couple places, open coded calculation can be avoided
-and replaced by the equivalent csum_replace4() and
-csum_replace_by_diff().
+On Thu, 17 Feb 2022 11:34:24 +0200 Paul Blakey wrote:
+> Fixes: 9795ded7f924 ("net/sched: act_ct: Fill offloading tupledx")
 
-There's also one place where csum_sub() should be used instead of
-csum_add().
-
-Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
----
- net/core/utils.c            | 4 ++--
- net/netfilter/nft_payload.c | 2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/net/core/utils.c b/net/core/utils.c
-index 1f31a39236d5..938495bc1d34 100644
---- a/net/core/utils.c
-+++ b/net/core/utils.c
-@@ -476,9 +476,9 @@ void inet_proto_csum_replace_by_diff(__sum16 *sum, struct sk_buff *skb,
- 				     __wsum diff, bool pseudohdr)
- {
- 	if (skb->ip_summed != CHECKSUM_PARTIAL) {
--		*sum = csum_fold(csum_add(diff, ~csum_unfold(*sum)));
-+		csum_replace_by_diff(sum, diff);
- 		if (skb->ip_summed == CHECKSUM_COMPLETE && pseudohdr)
--			skb->csum = ~csum_add(diff, ~skb->csum);
-+			skb->csum = ~csum_sub(diff, skb->csum);
- 	} else if (pseudohdr) {
- 		*sum = ~csum_fold(csum_add(diff, csum_unfold(*sum)));
- 	}
-diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index 5cc06aef4345..b6cfd0759bc5 100644
---- a/net/netfilter/nft_payload.c
-+++ b/net/netfilter/nft_payload.c
-@@ -557,7 +557,7 @@ const struct nft_expr_ops nft_payload_fast_ops = {
- 
- static inline void nft_csum_replace(__sum16 *sum, __wsum fsum, __wsum tsum)
- {
--	*sum = csum_fold(csum_add(csum_sub(~csum_unfold(*sum), fsum), tsum));
-+	csum_replace4(sum, fsum, tsum);
- 	if (*sum == 0)
- 		*sum = CSUM_MANGLED_0;
- }
--- 
-2.34.1
-
+Fixes tag: Fixes: 9795ded7f924 ("net/sched: act_ct: Fill offloading tupledx")
+Has these problem(s):
+	- Subject does not match target commit subject
+	  Just use
+		git log -1 --format='Fixes: %h ("%s")'
