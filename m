@@ -2,76 +2,176 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AC25C433FE
-	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Feb 2022 18:55:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98B93C433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Feb 2022 22:58:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232007AbiBQSz2 (ORCPT
+        id S229530AbiBQW6v (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 17 Feb 2022 13:55:28 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:47574 "EHLO
+        Thu, 17 Feb 2022 17:58:51 -0500
+Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:38290 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244807AbiBQSzU (ORCPT
+        with ESMTP id S229471AbiBQW6u (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 17 Feb 2022 13:55:20 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8655035DD7;
-        Thu, 17 Feb 2022 10:54:05 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2DB9561BA2;
-        Thu, 17 Feb 2022 18:54:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C209C340E8;
-        Thu, 17 Feb 2022 18:54:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1645124044;
-        bh=MbQrC0DuaWykssEif2K4UqZMoBje0xkc2CHA1AW/mCQ=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=NjSS2Q5EN57kgvz4emp31Dem8VSFUDRlJbHR0ti3/oFEUsBIeMZvaqtXfrmtKxtvL
-         /iDhzP9teLQ/OyQsD0/BRt6wdmeZT6As3aJKyWMuHqHXlqDrZXE8MS+5CCiLhCKsPP
-         QPA2K4/9E5TNxWY3B/SONimiUDq1p2kZ62jUB5+kXmsmpI7S+HDI1TLTpnMaydEHgB
-         T4VHNAOD8W6wWRAR8YZSpO4IP5q+HFUvcGGlWKYbtuquILJ5zUTxburt6tb5YFwdq8
-         gmt7e647ISqChh7af6TPp0QuC4g2c6SBegOQWxeMVA1KomMkfP0f6Na1ukFJMnOzt3
-         zA0AJhgSr3vXQ==
-Date:   Thu, 17 Feb 2022 10:54:02 -0800
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc:     "David S. Miller" <davem@davemloft.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "coreteam@netfilter.org" <coreteam@netfilter.org>
-Subject: Re: [PATCH net-next v1] net: Use csum_replace_... and csum_sub()
- helpers instead of opencoding
-Message-ID: <20220217105402.302a2d20@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <a7fe3817-a9ed-fb48-c3ab-1d17e8961e7f@csgroup.eu>
-References: <fe60030b6f674d9bf41f56426a4b0a8a9db0d20f.1645112415.git.christophe.leroy@csgroup.eu>
-        <20220217092442.4948b48c@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-        <13805dc8-4f96-9621-3b8b-4ec5ea6aeffe@csgroup.eu>
-        <20220217101442.0a2805b6@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-        <a7fe3817-a9ed-fb48-c3ab-1d17e8961e7f@csgroup.eu>
+        Thu, 17 Feb 2022 17:58:50 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 11152277918
+        for <netfilter-devel@vger.kernel.org>; Thu, 17 Feb 2022 14:58:32 -0800 (PST)
+Received: from localhost.localdomain (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id AEDA3601EB;
+        Thu, 17 Feb 2022 23:57:48 +0100 (CET)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Nick.Gregory@Sophos.com
+Subject: [PATCH nf] netfilter: nf_tables_offload: incorrect flow offload action array size
+Date:   Thu, 17 Feb 2022 23:58:26 +0100
+Message-Id: <20220217225826.2722097-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, 17 Feb 2022 18:39:07 +0000 Christophe Leroy wrote:
-> Le 17/02/2022 =C3=A0 19:14, Jakub Kicinski a =C3=A9crit=C2=A0:
-> > On Thu, 17 Feb 2022 18:11:58 +0000 Christophe Leroy wrote: =20
-> >> Looks like csum_replace4() expects __be32 inputs, I'll look at it but
-> >> I'm not inclined at adding force cast, so will probably leave
-> >> nft_csum_replace() as is. =20
-> >=20
-> > That may imply also leaving it in your tree.. =20
->=20
-> By "leave as is" I meant I'll drop the change.
->=20
-> I'll send v2 without this hunk.
+immediate verdict expression needs to allocate one slot in the flow offload
+action array, however, immediate data expression does not need to do so.
 
-Thanks, sorry for the snarky comment, I read it as "take it or leave
-it". I've heard too many of those lately.
+fwd and dup expression need to allocate one slot, this is missing.
+
+Add a new offload_action interface to report if this expression needs to
+allocate one slot in the flow offload action array.
+
+Fixes: be2861dc36d7 ("netfilter: nft_{fwd,dup}_netdev: add offload support")
+Reported-by: Nick Gregory <Nick.Gregory@Sophos.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_tables.h         |  2 +-
+ include/net/netfilter/nf_tables_offload.h |  2 --
+ net/netfilter/nf_tables_offload.c         |  3 ++-
+ net/netfilter/nft_dup_netdev.c            |  6 ++++++
+ net/netfilter/nft_fwd_netdev.c            |  6 ++++++
+ net/netfilter/nft_immediate.c             | 12 +++++++++++-
+ 6 files changed, 26 insertions(+), 5 deletions(-)
+
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index eaf55da9a205..c4c0861deac1 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -905,9 +905,9 @@ struct nft_expr_ops {
+ 	int				(*offload)(struct nft_offload_ctx *ctx,
+ 						   struct nft_flow_rule *flow,
+ 						   const struct nft_expr *expr);
++	bool				(*offload_action)(const struct nft_expr *expr);
+ 	void				(*offload_stats)(struct nft_expr *expr,
+ 							 const struct flow_stats *stats);
+-	u32				offload_flags;
+ 	const struct nft_expr_type	*type;
+ 	void				*data;
+ };
+diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
+index f9d95ff82df8..797147843958 100644
+--- a/include/net/netfilter/nf_tables_offload.h
++++ b/include/net/netfilter/nf_tables_offload.h
+@@ -67,8 +67,6 @@ struct nft_flow_rule {
+ 	struct flow_rule	*rule;
+ };
+ 
+-#define NFT_OFFLOAD_F_ACTION	(1 << 0)
+-
+ void nft_flow_rule_set_addr_type(struct nft_flow_rule *flow,
+ 				 enum flow_dissector_key_id addr_type);
+ 
+diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+index 9656c1646222..2d36952b1392 100644
+--- a/net/netfilter/nf_tables_offload.c
++++ b/net/netfilter/nf_tables_offload.c
+@@ -94,7 +94,8 @@ struct nft_flow_rule *nft_flow_rule_create(struct net *net,
+ 
+ 	expr = nft_expr_first(rule);
+ 	while (nft_expr_more(rule, expr)) {
+-		if (expr->ops->offload_flags & NFT_OFFLOAD_F_ACTION)
++		if (expr->ops->offload_action &&
++		    expr->ops->offload_action(expr))
+ 			num_actions++;
+ 
+ 		expr = nft_expr_next(expr);
+diff --git a/net/netfilter/nft_dup_netdev.c b/net/netfilter/nft_dup_netdev.c
+index bbf3fcba3df4..5b5c607fbf83 100644
+--- a/net/netfilter/nft_dup_netdev.c
++++ b/net/netfilter/nft_dup_netdev.c
+@@ -67,6 +67,11 @@ static int nft_dup_netdev_offload(struct nft_offload_ctx *ctx,
+ 	return nft_fwd_dup_netdev_offload(ctx, flow, FLOW_ACTION_MIRRED, oif);
+ }
+ 
++static bool nft_dup_netdev_offload_action(const struct nft_expr *expr)
++{
++	return true;
++}
++
+ static struct nft_expr_type nft_dup_netdev_type;
+ static const struct nft_expr_ops nft_dup_netdev_ops = {
+ 	.type		= &nft_dup_netdev_type,
+@@ -75,6 +80,7 @@ static const struct nft_expr_ops nft_dup_netdev_ops = {
+ 	.init		= nft_dup_netdev_init,
+ 	.dump		= nft_dup_netdev_dump,
+ 	.offload	= nft_dup_netdev_offload,
++	.offload_action	= nft_dup_netdev_offload_action,
+ };
+ 
+ static struct nft_expr_type nft_dup_netdev_type __read_mostly = {
+diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
+index fa9301ca6033..619e394a91de 100644
+--- a/net/netfilter/nft_fwd_netdev.c
++++ b/net/netfilter/nft_fwd_netdev.c
+@@ -79,6 +79,11 @@ static int nft_fwd_netdev_offload(struct nft_offload_ctx *ctx,
+ 	return nft_fwd_dup_netdev_offload(ctx, flow, FLOW_ACTION_REDIRECT, oif);
+ }
+ 
++static bool nft_fwd_netdev_offload_action(const struct nft_expr *expr)
++{
++	return true;
++}
++
+ struct nft_fwd_neigh {
+ 	u8			sreg_dev;
+ 	u8			sreg_addr;
+@@ -222,6 +227,7 @@ static const struct nft_expr_ops nft_fwd_netdev_ops = {
+ 	.dump		= nft_fwd_netdev_dump,
+ 	.validate	= nft_fwd_validate,
+ 	.offload	= nft_fwd_netdev_offload,
++	.offload_action	= nft_fwd_netdev_offload_action,
+ };
+ 
+ static const struct nft_expr_ops *
+diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
+index 90c64d27ae53..d0f67d325bdf 100644
+--- a/net/netfilter/nft_immediate.c
++++ b/net/netfilter/nft_immediate.c
+@@ -213,6 +213,16 @@ static int nft_immediate_offload(struct nft_offload_ctx *ctx,
+ 	return 0;
+ }
+ 
++static bool nft_immediate_offload_action(const struct nft_expr *expr)
++{
++	const struct nft_immediate_expr *priv = nft_expr_priv(expr);
++
++	if (priv->dreg == NFT_REG_VERDICT)
++		return true;
++
++	return false;
++}
++
+ static const struct nft_expr_ops nft_imm_ops = {
+ 	.type		= &nft_imm_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_immediate_expr)),
+@@ -224,7 +234,7 @@ static const struct nft_expr_ops nft_imm_ops = {
+ 	.dump		= nft_immediate_dump,
+ 	.validate	= nft_immediate_validate,
+ 	.offload	= nft_immediate_offload,
+-	.offload_flags	= NFT_OFFLOAD_F_ACTION,
++	.offload_action	= nft_immediate_offload_action,
+ };
+ 
+ struct nft_expr_type nft_imm_type __read_mostly = {
+-- 
+2.30.2
+
