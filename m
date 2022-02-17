@@ -2,176 +2,101 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98B93C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Feb 2022 22:58:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FCEDC433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Feb 2022 23:20:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229530AbiBQW6v (ORCPT
+        id S229613AbiBQXVG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 17 Feb 2022 17:58:51 -0500
-Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:38290 "EHLO
+        Thu, 17 Feb 2022 18:21:06 -0500
+Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:47762 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229471AbiBQW6u (ORCPT
+        with ESMTP id S229755AbiBQXVF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 17 Feb 2022 17:58:50 -0500
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 11152277918
-        for <netfilter-devel@vger.kernel.org>; Thu, 17 Feb 2022 14:58:32 -0800 (PST)
-Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id AEDA3601EB;
-        Thu, 17 Feb 2022 23:57:48 +0100 (CET)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Nick.Gregory@Sophos.com
-Subject: [PATCH nf] netfilter: nf_tables_offload: incorrect flow offload action array size
-Date:   Thu, 17 Feb 2022 23:58:26 +0100
-Message-Id: <20220217225826.2722097-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Thu, 17 Feb 2022 18:21:05 -0500
+Received: from mail-oi1-x229.google.com (mail-oi1-x229.google.com [IPv6:2607:f8b0:4864:20::229])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE96C3BF97;
+        Thu, 17 Feb 2022 15:20:41 -0800 (PST)
+Received: by mail-oi1-x229.google.com with SMTP id ay7so1239964oib.8;
+        Thu, 17 Feb 2022 15:20:41 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=ai+S7fak2GpHEP1+ZJ/XH67hAGPIunh/6iFam+VXIR4=;
+        b=WXnldF+HgnpqmattPhjw2ozOwOwXqg+UG24zGFcMh2/wj2hlG6s+uSSVdrH6frdUZy
+         uPV0eqRWMURcfnRIOaTUiKGmPFYgrIp90xMvylOhiKSagB88BKtZWtYBu8ZTp5mZa3/e
+         4U5oSPpE8XJZP9Pc7cETJZ1djXKf8nW3UMHsHEhrfcIkEG5DxSO3Z7czsaMYt/F5Ucgx
+         ifFYhMzPvVt85Yb9eWT20o1DdFnHQNx3DII3TlfF6JKY8kjmpEIEDy/IoInCLrmT7IP4
+         XKetc8U8aIILQoUF8F3KDAfMAof8Wp/7+K3nCRtBNmk4yc8sUCRZkQ0EmX8KXjGmA/ox
+         wRMg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=ai+S7fak2GpHEP1+ZJ/XH67hAGPIunh/6iFam+VXIR4=;
+        b=JGBHcUbn5wN7AR/2HDjbmF2IYJmafGqTX1i9qYVdg+lyLTcggVWe9P3ggRdk7xiubR
+         APj0D+E3RfKjGHzGbBnFG6DFNSItedZSWR2oE55c18rF/9Ug9i9IU3tZX5uq+W2MXKAT
+         7hezY01MI27pyMTXfn4MB8NVJvo0Wt03UmGKlUzNOl2OX/jTLtjO7Y3KmMmgMWLHrSvV
+         NqZUe6QMKBK2ll9nTH5Wqsj2IeXtFE16MhbG28MU8VNZKYhGsVFRuWOEXIVTbeJl7a3/
+         XT+k6pCzT1PWzdIsQRex7X/Zyy4plGa5d6WYxtiWm594Lwdt0BUOmeD6Q3J6pcj5B8SL
+         ssRA==
+X-Gm-Message-State: AOAM5301TtaHO1t+tX2JSnsT/iA1mHx8DYkl3tOPWqrEemfxNQ5Lzc10
+        i9cIb+KmYskZe1yApZrEqwA=
+X-Google-Smtp-Source: ABdhPJyjnm7RIpIuDLtW/Zrc/iR4QXpNLAqEnc2xzQSkzhEl+KuaCtR2gMStX0JbQhRNZMvTaSaMxA==
+X-Received: by 2002:aca:eb41:0:b0:2ce:6a75:b7fe with SMTP id j62-20020acaeb41000000b002ce6a75b7femr2151058oih.197.1645139766519;
+        Thu, 17 Feb 2022 15:16:06 -0800 (PST)
+Received: from t14s.localdomain ([177.220.172.100])
+        by smtp.gmail.com with ESMTPSA id q4sm598911otk.39.2022.02.17.15.16.05
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 17 Feb 2022 15:16:06 -0800 (PST)
+Received: by t14s.localdomain (Postfix, from userid 1000)
+        id 0143F16773D; Thu, 17 Feb 2022 20:16:03 -0300 (-03)
+Date:   Thu, 17 Feb 2022 20:16:03 -0300
+From:   Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+To:     Paul Blakey <paulb@nvidia.com>
+Cc:     dev@openvswitch.org, netdev@vger.kernel.org,
+        Jamal Hadi Salim <jhs@mojatatu.com>, davem@davemloft.net,
+        Jiri Pirko <jiri@nvidia.com>,
+        Cong Wang <xiyou.wangcong@gmail.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Oz Shlomo <ozsh@nvidia.com>, Vlad Buslov <vladbu@nvidia.com>,
+        Roi Dayan <roid@nvidia.com>,
+        Ariel Levkovich <lariel@nvidia.com>, coreteam@netfilter.org
+Subject: Re: [PATCH net 1/1] net/sched: act_ct: Fix flow table lookup failure
+ with no originating ifindex
+Message-ID: <20220217231603.st6tjefagkp636vq@t14s.localdomain>
+References: <20220217093424.23601-1-paulb@nvidia.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220217093424.23601-1-paulb@nvidia.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-immediate verdict expression needs to allocate one slot in the flow offload
-action array, however, immediate data expression does not need to do so.
+On Thu, Feb 17, 2022 at 11:34:24AM +0200, Paul Blakey wrote:
+> After cited commit optimizted hw insertion, flow table entries are
+> populated with ifindex information which was intended to only be used
+> for HW offload. This tuple ifindex is hashed in the flow table key, so
+> it must be filled for lookup to be successful. But tuple ifindex is only
+> relevant for the netfilter flowtables (nft), so it's not filled in
+> act_ct flow table lookup, resulting in lookup failure, and no SW
+> offload and no offload teardown for TCP connection FIN/RST packets.
+> 
+> To fix this, allow flow tables that don't hash the ifindex.
+> Netfilter flow tables will keep using ifindex for a more specific
+> offload, while act_ct will not.
+> 
+> Fixes: 9795ded7f924 ("net/sched: act_ct: Fill offloading tupledx")
 
-fwd and dup expression need to allocate one slot, this is missing.
+The fixes tag got corrupted. It should have been:
+Fixes: 9795ded7f924 ("net/sched: act_ct: Fill offloading tuple iifidx")
 
-Add a new offload_action interface to report if this expression needs to
-allocate one slot in the flow offload action array.
+Not sure if it needs a respin or not, but:
+Reviewed-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
 
-Fixes: be2861dc36d7 ("netfilter: nft_{fwd,dup}_netdev: add offload support")
-Reported-by: Nick Gregory <Nick.Gregory@Sophos.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_tables.h         |  2 +-
- include/net/netfilter/nf_tables_offload.h |  2 --
- net/netfilter/nf_tables_offload.c         |  3 ++-
- net/netfilter/nft_dup_netdev.c            |  6 ++++++
- net/netfilter/nft_fwd_netdev.c            |  6 ++++++
- net/netfilter/nft_immediate.c             | 12 +++++++++++-
- 6 files changed, 26 insertions(+), 5 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index eaf55da9a205..c4c0861deac1 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -905,9 +905,9 @@ struct nft_expr_ops {
- 	int				(*offload)(struct nft_offload_ctx *ctx,
- 						   struct nft_flow_rule *flow,
- 						   const struct nft_expr *expr);
-+	bool				(*offload_action)(const struct nft_expr *expr);
- 	void				(*offload_stats)(struct nft_expr *expr,
- 							 const struct flow_stats *stats);
--	u32				offload_flags;
- 	const struct nft_expr_type	*type;
- 	void				*data;
- };
-diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
-index f9d95ff82df8..797147843958 100644
---- a/include/net/netfilter/nf_tables_offload.h
-+++ b/include/net/netfilter/nf_tables_offload.h
-@@ -67,8 +67,6 @@ struct nft_flow_rule {
- 	struct flow_rule	*rule;
- };
- 
--#define NFT_OFFLOAD_F_ACTION	(1 << 0)
--
- void nft_flow_rule_set_addr_type(struct nft_flow_rule *flow,
- 				 enum flow_dissector_key_id addr_type);
- 
-diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-index 9656c1646222..2d36952b1392 100644
---- a/net/netfilter/nf_tables_offload.c
-+++ b/net/netfilter/nf_tables_offload.c
-@@ -94,7 +94,8 @@ struct nft_flow_rule *nft_flow_rule_create(struct net *net,
- 
- 	expr = nft_expr_first(rule);
- 	while (nft_expr_more(rule, expr)) {
--		if (expr->ops->offload_flags & NFT_OFFLOAD_F_ACTION)
-+		if (expr->ops->offload_action &&
-+		    expr->ops->offload_action(expr))
- 			num_actions++;
- 
- 		expr = nft_expr_next(expr);
-diff --git a/net/netfilter/nft_dup_netdev.c b/net/netfilter/nft_dup_netdev.c
-index bbf3fcba3df4..5b5c607fbf83 100644
---- a/net/netfilter/nft_dup_netdev.c
-+++ b/net/netfilter/nft_dup_netdev.c
-@@ -67,6 +67,11 @@ static int nft_dup_netdev_offload(struct nft_offload_ctx *ctx,
- 	return nft_fwd_dup_netdev_offload(ctx, flow, FLOW_ACTION_MIRRED, oif);
- }
- 
-+static bool nft_dup_netdev_offload_action(const struct nft_expr *expr)
-+{
-+	return true;
-+}
-+
- static struct nft_expr_type nft_dup_netdev_type;
- static const struct nft_expr_ops nft_dup_netdev_ops = {
- 	.type		= &nft_dup_netdev_type,
-@@ -75,6 +80,7 @@ static const struct nft_expr_ops nft_dup_netdev_ops = {
- 	.init		= nft_dup_netdev_init,
- 	.dump		= nft_dup_netdev_dump,
- 	.offload	= nft_dup_netdev_offload,
-+	.offload_action	= nft_dup_netdev_offload_action,
- };
- 
- static struct nft_expr_type nft_dup_netdev_type __read_mostly = {
-diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
-index fa9301ca6033..619e394a91de 100644
---- a/net/netfilter/nft_fwd_netdev.c
-+++ b/net/netfilter/nft_fwd_netdev.c
-@@ -79,6 +79,11 @@ static int nft_fwd_netdev_offload(struct nft_offload_ctx *ctx,
- 	return nft_fwd_dup_netdev_offload(ctx, flow, FLOW_ACTION_REDIRECT, oif);
- }
- 
-+static bool nft_fwd_netdev_offload_action(const struct nft_expr *expr)
-+{
-+	return true;
-+}
-+
- struct nft_fwd_neigh {
- 	u8			sreg_dev;
- 	u8			sreg_addr;
-@@ -222,6 +227,7 @@ static const struct nft_expr_ops nft_fwd_netdev_ops = {
- 	.dump		= nft_fwd_netdev_dump,
- 	.validate	= nft_fwd_validate,
- 	.offload	= nft_fwd_netdev_offload,
-+	.offload_action	= nft_fwd_netdev_offload_action,
- };
- 
- static const struct nft_expr_ops *
-diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
-index 90c64d27ae53..d0f67d325bdf 100644
---- a/net/netfilter/nft_immediate.c
-+++ b/net/netfilter/nft_immediate.c
-@@ -213,6 +213,16 @@ static int nft_immediate_offload(struct nft_offload_ctx *ctx,
- 	return 0;
- }
- 
-+static bool nft_immediate_offload_action(const struct nft_expr *expr)
-+{
-+	const struct nft_immediate_expr *priv = nft_expr_priv(expr);
-+
-+	if (priv->dreg == NFT_REG_VERDICT)
-+		return true;
-+
-+	return false;
-+}
-+
- static const struct nft_expr_ops nft_imm_ops = {
- 	.type		= &nft_imm_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_immediate_expr)),
-@@ -224,7 +234,7 @@ static const struct nft_expr_ops nft_imm_ops = {
- 	.dump		= nft_immediate_dump,
- 	.validate	= nft_immediate_validate,
- 	.offload	= nft_immediate_offload,
--	.offload_flags	= NFT_OFFLOAD_F_ACTION,
-+	.offload_action	= nft_immediate_offload_action,
- };
- 
- struct nft_expr_type nft_imm_type __read_mostly = {
--- 
-2.30.2
-
+> Signed-off-by: Paul Blakey <paulb@nvidia.com>
+> ---
