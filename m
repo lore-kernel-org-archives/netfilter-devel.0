@@ -2,96 +2,123 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E79EC43219
-	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Feb 2022 00:06:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7762EC433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Feb 2022 07:44:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229869AbiBRAGO (ORCPT
+        id S231208AbiBRHok (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 17 Feb 2022 19:06:14 -0500
-Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:49102 "EHLO
+        Fri, 18 Feb 2022 02:44:40 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:55060 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230153AbiBRAFz (ORCPT
+        with ESMTP id S229750AbiBRHok (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 17 Feb 2022 19:05:55 -0500
-Received: from mail-yb1-xb31.google.com (mail-yb1-xb31.google.com [IPv6:2607:f8b0:4864:20::b31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E25750479;
-        Thu, 17 Feb 2022 16:05:35 -0800 (PST)
-Received: by mail-yb1-xb31.google.com with SMTP id j12so16270300ybh.8;
-        Thu, 17 Feb 2022 16:05:35 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=1b3R4PmIE+LoqveblWnosi/2gsm7ieCpBCaquGk7eNc=;
-        b=O1ReGt6OyItd0l+2qzTdz4kjQFiranmvYkSI3ZhAHafP6xRDLnGiej9iriSvjmciaY
-         tEV3eynvsB/i1iaGw88QyezIC8yeThET2ReI3GlEWuouGHFFBfsjjqjfzlofaRk1EPAr
-         mnJn9OfCOAousRt1IEsUA80HDubQXDVTYAM6uHGqgFm6ctgdL8iePgFgVw2vk8sNFBBt
-         rxeJBQInrc9mTdKvH3LldXZJZ4TO+hpdCknVpdK7Cgnk4hlufEcCovZOxQtZCMLWPIch
-         SI8DdA29VyFrpOVPd2nOe7syGnw3nRzeElm2OggVbcTfM9MODh4vdEq6qtuOvCPGPKzu
-         SaEA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=1b3R4PmIE+LoqveblWnosi/2gsm7ieCpBCaquGk7eNc=;
-        b=NuqfyHFY3PP0NX6mDB+LsXqd9+f4ceCK0WVuCEVCdk8UGkHr3rbUJPop3EeK7OFvUg
-         7Do1NsZJ8h0MxO2f/9Dy6xnnr2E2/ZBz5AAa/qbs3LqTvEnFlE7doTQrdqUuzf/ZgaiQ
-         aU7k9nFKTaRx9ocTuiy/0ePGfAdlFl01kf2HGuh3pDC7ivaIYFSus111arMVIXYMm8KF
-         xlI+jpnDYHZHwCKcTNSqkCJXFEWjZDUkrkfjEJnPiuU5hxlE3jzHQR1O/FMOvMgNdVdl
-         jFbFyfqtaSgnjekkb9uwGAhQrl080EvVPanOl6d2S1LIi2KMUlKWjYqrMy6684f2URB1
-         liOw==
-X-Gm-Message-State: AOAM531N9owIhMbe7uKNszVBUN20yyy5gJv/6HTyL9kuo9shuNOrwFLB
-        bpv13wfSQTB0Rd4sD5E39kPSIxq9aLlrWw==
-X-Google-Smtp-Source: ABdhPJxuYnWRcjSVo5eCzjBJ8ZbOKPwkzHK1nDvdX0f0//7KxEmvGgVF/YSamCN2Ll7BfjsuIaD5Ng==
-X-Received: by 2002:a9d:198d:0:b0:5ad:bbb:682e with SMTP id k13-20020a9d198d000000b005ad0bbb682emr1749413otk.360.1645140430411;
-        Thu, 17 Feb 2022 15:27:10 -0800 (PST)
-Received: from t14s.localdomain ([2001:1284:f016:d388:56d5:efed:1209:97f5])
-        by smtp.gmail.com with ESMTPSA id o15sm362992ooi.31.2022.02.17.15.27.09
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 17 Feb 2022 15:27:10 -0800 (PST)
-Received: by t14s.localdomain (Postfix, from userid 1000)
-        id 86D50167748; Thu, 17 Feb 2022 20:27:08 -0300 (-03)
-Date:   Thu, 17 Feb 2022 20:27:08 -0300
-From:   Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Paul Blakey <paulb@nvidia.com>, dev@openvswitch.org,
-        netdev@vger.kernel.org, Jamal Hadi Salim <jhs@mojatatu.com>,
-        davem@davemloft.net, Jiri Pirko <jiri@nvidia.com>,
-        Cong Wang <xiyou.wangcong@gmail.com>,
+        Fri, 18 Feb 2022 02:44:40 -0500
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6FBE2369F4;
+        Thu, 17 Feb 2022 23:44:22 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1645170264; x=1676706264;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=osuNt80955OU32o0J/qG3+OwLv2mluxGXSTdoAxLuyg=;
+  b=iIp4L3FwoET+R83VnREbCSU994EeM5uroK/zpMDDhTLItrCV8vghjlUn
+   rIog4CeD1Irl2w9Rg5beS0rNrb9YLuDMlcf77YZD9J7RM19K798T9RYUn
+   dOYekMvlzqMfm3A5w+2ayzaCTGH9Iq9j4ST20X4R5kr1Ibp0tss1i5nFf
+   CbnvXRNntVldQbbDKgeUIgdQGfag2CXTNR+LUMY67mfxSL3/DQkIzXlUq
+   lLW4sjSHxQT0dpMbW1cL1ZVulMD/XTOcd3vwjMEXoh8pchGOecZ+s7ScC
+   RPCTNkjz4KU8E6Tz81gygYr9Y163aNw1qckXHin3YbvcFIITX5v/ho/v6
+   A==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10261"; a="250830003"
+X-IronPort-AV: E=Sophos;i="5.88,378,1635231600"; 
+   d="scan'208";a="250830003"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Feb 2022 23:44:20 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.88,378,1635231600"; 
+   d="scan'208";a="635601194"
+Received: from lkp-server01.sh.intel.com (HELO 6f05bf9e3301) ([10.239.97.150])
+  by fmsmga002.fm.intel.com with ESMTP; 17 Feb 2022 23:44:17 -0800
+Received: from kbuild by 6f05bf9e3301 with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1nKxw8-00015I-KY; Fri, 18 Feb 2022 07:44:16 +0000
+Date:   Fri, 18 Feb 2022 15:43:30 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Christophe Leroy <christophe.leroy@csgroup.eu>,
+        "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
-        netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Oz Shlomo <ozsh@nvidia.com>, Vlad Buslov <vladbu@nvidia.com>,
-        Roi Dayan <roid@nvidia.com>,
-        Ariel Levkovich <lariel@nvidia.com>, coreteam@netfilter.org
-Subject: Re: [PATCH net 1/1] net/sched: act_ct: Fix flow table lookup failure
- with no originating ifindex
-Message-ID: <20220217232708.yhigtv2ssrlfsexs@t14s.localdomain>
-References: <20220217093424.23601-1-paulb@nvidia.com>
- <Yg5Tz5ucVAI3zOTs@salvia>
+        Florian Westphal <fw@strlen.de>
+Cc:     kbuild-all@lists.01.org, netdev@vger.kernel.org,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
+Subject: Re: [PATCH net-next v1] net: Use csum_replace_... and csum_sub()
+ helpers instead of opencoding
+Message-ID: <202202181535.l3nA3dto-lkp@intel.com>
+References: <fe60030b6f674d9bf41f56426a4b0a8a9db0d20f.1645112415.git.christophe.leroy@csgroup.eu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <Yg5Tz5ucVAI3zOTs@salvia>
+In-Reply-To: <fe60030b6f674d9bf41f56426a4b0a8a9db0d20f.1645112415.git.christophe.leroy@csgroup.eu>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Feb 17, 2022 at 02:55:27PM +0100, Pablo Neira Ayuso wrote:
-> On Thu, Feb 17, 2022 at 11:34:24AM +0200, Paul Blakey wrote:
-> > After cited commit optimizted hw insertion, flow table entries are
-> > populated with ifindex information which was intended to only be used
-> > for HW offload. This tuple ifindex is hashed in the flow table key, so
-> > it must be filled for lookup to be successful. But tuple ifindex is only
-> > relevant for the netfilter flowtables (nft), so it's not filled in
-> > act_ct flow table lookup, resulting in lookup failure, and no SW
-> > offload and no offload teardown for TCP connection FIN/RST packets.
-> > 
-> > To fix this, allow flow tables that don't hash the ifindex.
-> > Netfilter flow tables will keep using ifindex for a more specific
-> > offload, while act_ct will not.
-> 
-> Using iif == zero should be enough to specify not set?
+Hi Christophe,
 
-You mean, when searching, if search input iif == zero, to simply not
-check it? That seems dangerous somehow.
+I love your patch! Perhaps something to improve:
+
+[auto build test WARNING on net-next/master]
+
+url:    https://github.com/0day-ci/linux/commits/Christophe-Leroy/net-Use-csum_replace_-and-csum_sub-helpers-instead-of-opencoding/20220217-234555
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.git c8b441d2fbd0e005541c7363fd5346971b6febcb
+config: x86_64-rhel-8.3-kselftests (https://download.01.org/0day-ci/archive/20220218/202202181535.l3nA3dto-lkp@intel.com/config)
+compiler: gcc-9 (Debian 9.3.0-22) 9.3.0
+reproduce:
+        # apt-get install sparse
+        # sparse version: v0.6.4-dirty
+        # https://github.com/0day-ci/linux/commit/cec9ed7cf59fe6dafcec0a30811024d22fad8cbd
+        git remote add linux-review https://github.com/0day-ci/linux
+        git fetch --no-tags linux-review Christophe-Leroy/net-Use-csum_replace_-and-csum_sub-helpers-instead-of-opencoding/20220217-234555
+        git checkout cec9ed7cf59fe6dafcec0a30811024d22fad8cbd
+        # save the config file to linux build tree
+        mkdir build_dir
+        make W=1 C=1 CF='-fdiagnostic-prefix -D__CHECK_ENDIAN__' O=build_dir ARCH=x86_64 SHELL=/bin/bash
+
+If you fix the issue, kindly add following tag as appropriate
+Reported-by: kernel test robot <lkp@intel.com>
+
+
+sparse warnings: (new ones prefixed by >>)
+   net/netfilter/nft_payload.c: note: in included file (through include/net/sctp/sctp.h, include/net/sctp/checksum.h):
+   include/net/sctp/structs.h:335:41: sparse: sparse: array of flexible structures
+>> net/netfilter/nft_payload.c:560:28: sparse: sparse: incorrect type in argument 2 (different base types) @@     expected restricted __be32 [usertype] from @@     got restricted __wsum [usertype] fsum @@
+   net/netfilter/nft_payload.c:560:28: sparse:     expected restricted __be32 [usertype] from
+   net/netfilter/nft_payload.c:560:28: sparse:     got restricted __wsum [usertype] fsum
+>> net/netfilter/nft_payload.c:560:34: sparse: sparse: incorrect type in argument 3 (different base types) @@     expected restricted __be32 [usertype] to @@     got restricted __wsum [usertype] tsum @@
+   net/netfilter/nft_payload.c:560:34: sparse:     expected restricted __be32 [usertype] to
+   net/netfilter/nft_payload.c:560:34: sparse:     got restricted __wsum [usertype] tsum
+>> net/netfilter/nft_payload.c:560:28: sparse: sparse: incorrect type in argument 2 (different base types) @@     expected restricted __be32 [usertype] from @@     got restricted __wsum [usertype] fsum @@
+   net/netfilter/nft_payload.c:560:28: sparse:     expected restricted __be32 [usertype] from
+   net/netfilter/nft_payload.c:560:28: sparse:     got restricted __wsum [usertype] fsum
+>> net/netfilter/nft_payload.c:560:34: sparse: sparse: incorrect type in argument 3 (different base types) @@     expected restricted __be32 [usertype] to @@     got restricted __wsum [usertype] tsum @@
+   net/netfilter/nft_payload.c:560:34: sparse:     expected restricted __be32 [usertype] to
+   net/netfilter/nft_payload.c:560:34: sparse:     got restricted __wsum [usertype] tsum
+
+vim +560 net/netfilter/nft_payload.c
+
+   557	
+   558	static inline void nft_csum_replace(__sum16 *sum, __wsum fsum, __wsum tsum)
+   559	{
+ > 560		csum_replace4(sum, fsum, tsum);
+   561		if (*sum == 0)
+   562			*sum = CSUM_MANGLED_0;
+   563	}
+   564	
+
+---
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
