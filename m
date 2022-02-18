@@ -2,135 +2,133 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66EF8C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Feb 2022 21:34:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A9D1C433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Feb 2022 22:20:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239903AbiBRVen (ORCPT
+        id S240114AbiBRWUj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 18 Feb 2022 16:34:43 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:34900 "EHLO
+        Fri, 18 Feb 2022 17:20:39 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:57492 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239900AbiBRVen (ORCPT
+        with ESMTP id S240110AbiBRWUh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 18 Feb 2022 16:34:43 -0500
-Received: from mail-io1-f70.google.com (mail-io1-f70.google.com [209.85.166.70])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C99EB5BD04
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Feb 2022 13:34:24 -0800 (PST)
-Received: by mail-io1-f70.google.com with SMTP id q5-20020a0566022f0500b00638278a161fso5217674iow.11
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Feb 2022 13:34:24 -0800 (PST)
+        Fri, 18 Feb 2022 17:20:37 -0500
+Received: from mail-pg1-x543.google.com (mail-pg1-x543.google.com [IPv6:2607:f8b0:4864:20::543])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E69F1B6BD4;
+        Fri, 18 Feb 2022 14:20:20 -0800 (PST)
+Received: by mail-pg1-x543.google.com with SMTP id w37so2630321pga.7;
+        Fri, 18 Feb 2022 14:20:20 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=spKeknQ9pe+LaczsQGMgqzOrOzdIo9JsxnZq6u+F2ec=;
+        b=L9Fv5ju1Wux73eHYSQheruU0VK34UnKCcL698tNEUV4d1mjQSe0z7iEfwjBDOgcIxl
+         h70PkScsrdK+ffrZ5V9W6CY+akredDx5gHwo6O4hAa4Sg/WMtAN4+xu/XYevdCVyFJDR
+         p9Kxu8VfX3PVq8KgDUVfanzVWRSxLymuBBF5Pzb3EOVU2eJ96YJTNWef+tsgmCtzh6DX
+         hsQ1aHVIwpiZ94h+sRFySJLD9e/ZlkY9iiVxMQ6Ry01krc2eRR3xF2i2iGBGCD+ERU5+
+         boFzY6hjau2fFMzZmjLlxGwr5r5Qvoa8gQiFBnBEpMWSmbj1yAevUBf08+Fp13n280tn
+         KFZg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
-         :from:to;
-        bh=ESDhSXcBKMjopPYZv2w9C93Fs32sPD81EnUFCwe47Z8=;
-        b=eKGpbclsyPU2TqikQvAKWig6SzEB5ZgQiCuzUEkH48Hsi3V8zQMwlgGzlefbAhqqOc
-         EHZGjdul8AksA7Uhlk7LuQ8QyxDsHIJDEcBjB2Ui5O1fQZPZRDMi36JupyLl78bAMdL7
-         tHXjhOLF012OrjBR9DuF3AoGGtZraXeNYVOONVQC+/PHDP3FtUV3xdrGx1MBxmmNIz0u
-         RZmK+OPlfxCQ1PiisGs6/Lfpupi2asVI2QTtvnH2RmHAAmGmSep/uVRxytxMpvjvj5X+
-         2cDxJcCpIhWvdVu3FevCVzValNr0ks9xtylKKDjjMohQnMuA6zJNw00UIgJGOw4wCWLv
-         7k6A==
-X-Gm-Message-State: AOAM532X8U9EdYdA0b2+yuYxFlER1s8IW13aATxhG9L4OfAkbER4zBxk
-        LZI/1hKBMzJScuLD7i3Uxqs9qeAbOA22fdMbhKmNKXT9KpUE
-X-Google-Smtp-Source: ABdhPJwijr18CZvtR9XxK1PvZnkcu5gmF2lHkJyrHt3O3Z8dSibn5LNQzbfbLx58lPYXLyq/i7hG87TE3BFNHiMto1TlRjnzLNL0
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=spKeknQ9pe+LaczsQGMgqzOrOzdIo9JsxnZq6u+F2ec=;
+        b=3265sHlUc/3USwRiBIsyMVYLOyk4Y2QNycMjD+VZc2K+4+xKBKm/65s6XJVWkz3NGK
+         y+5z5m2TonD8btf6IVBLP7sZoqsdXECU55tEQs7HlTA3beL4tm3NtY3HOc1C7xStbGRu
+         dRgVQizhCzzTum+989Ds0rA1W91Ijn7sYIq1xBbySdjtR6svjo6LwMTDNr9uliJgDgjU
+         QOh4qv1rWK/2e+2KVPnKs3xnm5MO1+LfxK2ZG9QadRqQeHwN622GQxitkVZGVkwyqjCV
+         vMKlhxr/NI7fasWs9cIC3mmBnpwCu1JTc5DzrGP0XiSbD8Dse4wMkxyIzmKZagHTRu5w
+         wg4g==
+X-Gm-Message-State: AOAM533trDBlntgUNV4GI5t+0dEx8HYm2G6Q6v7Ex46KVL+aMIOO0uaJ
+        EjkznTy92/bzPcStaxtNFBE=
+X-Google-Smtp-Source: ABdhPJy318HejoB3GaLgZqXptJghFMAXyAzC/+W4/M1wtvDfj6wFyzhu+evE2knVZwCmH/hO/UM2lA==
+X-Received: by 2002:aa7:8819:0:b0:4e7:8ca4:6820 with SMTP id c25-20020aa78819000000b004e78ca46820mr6224030pfo.14.1645222819955;
+        Fri, 18 Feb 2022 14:20:19 -0800 (PST)
+Received: from localhost ([2405:201:6014:d0c0:6243:316e:a9e1:adda])
+        by smtp.gmail.com with ESMTPSA id q21sm4116146pfu.188.2022.02.18.14.20.19
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 18 Feb 2022 14:20:19 -0800 (PST)
+Date:   Sat, 19 Feb 2022 03:50:17 +0530
+From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
+To:     Alexander Egorenkov <Alexander.Egorenkov@ibm.com>
+Cc:     andrii@kernel.org, ast@kernel.org, bpf@vger.kernel.org,
+        brouer@redhat.com, daniel@iogearbox.net, fw@strlen.de,
+        john.fastabend@gmail.com, kafai@fb.com, maximmi@nvidia.com,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        pablo@netfilter.org, songliubraving@fb.com, toke@redhat.com,
+        yhs@fb.com, Ilya Leoshkevich <iii@linux.ibm.com>
+Subject: Re: [PATCH bpf-next v8 00/10] Introduce unstable CT lookup helpers
+Message-ID: <20220218222017.czshdolesamkqv4j@apollo.legion>
+References: <20220114163953.1455836-1-memxor@gmail.com>
+ <87y228q66f.fsf@oc8242746057.ibm.com>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:190e:b0:2bf:ac1e:b5b7 with SMTP id
- w14-20020a056e02190e00b002bfac1eb5b7mr6853634ilu.304.1645220064174; Fri, 18
- Feb 2022 13:34:24 -0800 (PST)
-Date:   Fri, 18 Feb 2022 13:34:24 -0800
-In-Reply-To: <0000000000003118ba05d500cce1@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <00000000000080aa2705d851a531@google.com>
-Subject: Re: [syzbot] KMSAN: uninit-value in nf_nat_setup_info (2)
-From:   syzbot <syzbot+cbcd154fce7c6d953d1c@syzkaller.appspotmail.com>
-To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        glider@google.com, kadlec@netfilter.org, kuba@kernel.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <87y228q66f.fsf@oc8242746057.ibm.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot has found a reproducer for the following issue on:
+On Sat, Feb 19, 2022 at 01:49:04AM IST, Alexander Egorenkov wrote:
+>
+> Hi,
+>
+> we are having a problem loading nf_conntrack on linux-next:
+>
+> # modprobe nf_conntrack
+> modprobe: ERROR: could not insert 'nf_conntrack': Unknown symbol in module, or unknown parameter (see dmesg)
+> modprobe: ERROR: Error running install command '/sbin/modprobe --ignore-install nf_conntrack  && /sbin/sysctl --quiet --pattern 'net[.]netfilter[.]nf_conntrack.*' --system' for module nf_conntrack: retcode 1
+> modprobe: ERROR: could not insert 'nf_conntrack': Invalid argument
+>
+> # dmesg
+> [ 3728.188969] missing module BTF, cannot register kfuncs
+> [ 3748.208674] missing module BTF, cannot register kfuncs
+> [ 3748.567123] missing module BTF, cannot register kfuncs
+> [ 3873.597276] missing module BTF, cannot register kfuncs
+> [ 3874.017125] missing module BTF, cannot register kfuncs
+> [ 3882.637097] missing module BTF, cannot register kfuncs
+> [ 3883.507213] missing module BTF, cannot register kfuncs
+> [ 3883.876878] missing module BTF, cannot register kfuncs
+>
+> # zgrep BTF /proc/config.gz
+> CONFIG_DEBUG_INFO_BTF=y
+> CONFIG_PAHOLE_HAS_SPLIT_BTF=y
+> CONFIG_DEBUG_INFO_BTF_MODULES=y
+>
+> It seems that nf_conntrack.ko is missing a .BTF section
+> which is present in debuginfo within
+> /usr/lib/debug/lib/modules/*/kernel/net/netfilter/nf_conntrack.ko.debug instead.
+>
+> Am i correct in assuming that this is not supported (yet) ?
+>
+> We use pahole 1.22 and build linux-next on Fedora 35 as a set of custom
+> packages. Architecture is s390x.
+>
 
-HEAD commit:    724946410067 x86: kmsan: enable KMSAN builds for x86
-git tree:       https://github.com/google/kmsan.git master
-console output: https://syzkaller.appspot.com/x/log.txt?x=17b02532700000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=76f99026248b24e4
-dashboard link: https://syzkaller.appspot.com/bug?extid=cbcd154fce7c6d953d1c
-compiler:       clang version 14.0.0 (/usr/local/google/src/llvm-git-monorepo 2b554920f11c8b763cd9ed9003f4e19b919b8e1f), GNU ld (GNU Binutils for Debian) 2.35.2
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1659ab4c700000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1621cbf2700000
++Cc Ilya
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+cbcd154fce7c6d953d1c@syzkaller.appspotmail.com
+Thanks for the report, Alex.
 
-=====================================================
-BUG: KMSAN: uninit-value in get_unique_tuple net/netfilter/nf_nat_core.c:548 [inline]
-BUG: KMSAN: uninit-value in nf_nat_setup_info+0x628/0x4a40 net/netfilter/nf_nat_core.c:642
- get_unique_tuple net/netfilter/nf_nat_core.c:548 [inline]
- nf_nat_setup_info+0x628/0x4a40 net/netfilter/nf_nat_core.c:642
- nfnetlink_parse_nat_setup+0xb86/0xcf0
- ctnetlink_parse_nat_setup+0xde/0x390 net/netfilter/nf_conntrack_netlink.c:1845
- ctnetlink_setup_nat net/netfilter/nf_conntrack_netlink.c:1920 [inline]
- ctnetlink_create_conntrack net/netfilter/nf_conntrack_netlink.c:2325 [inline]
- ctnetlink_new_conntrack+0x1d5d/0x4240 net/netfilter/nf_conntrack_netlink.c:2452
- nfnetlink_rcv_msg+0xe0a/0xf80 net/netfilter/nfnetlink.c:296
- netlink_rcv_skb+0x40c/0x7e0 net/netlink/af_netlink.c:2494
- nfnetlink_rcv+0x667/0x4740 net/netfilter/nfnetlink.c:654
- netlink_unicast_kernel net/netlink/af_netlink.c:1317 [inline]
- netlink_unicast+0x1093/0x1360 net/netlink/af_netlink.c:1343
- netlink_sendmsg+0x14d9/0x1720 net/netlink/af_netlink.c:1919
- sock_sendmsg_nosec net/socket.c:705 [inline]
- sock_sendmsg net/socket.c:725 [inline]
- ____sys_sendmsg+0xe11/0x12c0 net/socket.c:2413
- ___sys_sendmsg net/socket.c:2467 [inline]
- __sys_sendmsg+0x704/0x840 net/socket.c:2496
- __do_sys_sendmsg net/socket.c:2505 [inline]
- __se_sys_sendmsg net/socket.c:2503 [inline]
- __x64_sys_sendmsg+0xe2/0x120 net/socket.c:2503
- do_syscall_x64 arch/x86/entry/common.c:51 [inline]
- do_syscall_64+0x54/0xd0 arch/x86/entry/common.c:82
- entry_SYSCALL_64_after_hwframe+0x44/0xae
+My assumption was that if DEBUG_INFO_BTF options was enabled, and BTF was not
+present, it is a problem, but it seems it can happen even when the options are
+enabled.
 
-Uninit was created at:
- __alloc_pages+0xbbf/0x1090 mm/page_alloc.c:5429
- alloc_pages+0xa08/0xd50
- alloc_slab_page mm/slub.c:1816 [inline]
- allocate_slab+0x29e/0x1b00 mm/slub.c:1961
- new_slab mm/slub.c:2021 [inline]
- ___slab_alloc+0xb52/0x1da0 mm/slub.c:3035
- __slab_alloc mm/slub.c:3122 [inline]
- slab_alloc_node mm/slub.c:3213 [inline]
- slab_alloc mm/slub.c:3255 [inline]
- kmem_cache_alloc+0xbb3/0x11c0 mm/slub.c:3260
- __nf_conntrack_alloc+0x232/0x7f0 net/netfilter/nf_conntrack_core.c:1553
- init_conntrack+0x29b/0x24c0 net/netfilter/nf_conntrack_core.c:1634
- resolve_normal_ct net/netfilter/nf_conntrack_core.c:1745 [inline]
- nf_conntrack_in+0x1abc/0x3130 net/netfilter/nf_conntrack_core.c:1903
- ipv4_conntrack_in+0x68/0x80 net/netfilter/nf_conntrack_proto.c:191
- nf_hook_entry_hookfn include/linux/netfilter.h:142 [inline]
- nf_hook_slow net/netfilter/core.c:619 [inline]
- nf_hook_slow_list+0x358/0xb40 net/netfilter/core.c:657
- NF_HOOK_LIST include/linux/netfilter.h:343 [inline]
- ip_sublist_rcv+0x1411/0x14a0 net/ipv4/ip_input.c:607
- ip_list_rcv+0x930/0x970 net/ipv4/ip_input.c:644
- __netif_receive_skb_list_ptype net/core/dev.c:5394 [inline]
- __netif_receive_skb_list_core+0xdf9/0x11f0 net/core/dev.c:5442
- __netif_receive_skb_list+0x7e3/0x940 net/core/dev.c:5494
- netif_receive_skb_list_internal+0x848/0xdc0 net/core/dev.c:5585
- gro_normal_list include/net/gro.h:425 [inline]
- napi_complete_done+0x579/0xdc0 net/core/dev.c:5932
- virtqueue_napi_complete drivers/net/virtio_net.c:339 [inline]
- virtnet_poll+0x17a4/0x2340 drivers/net/virtio_net.c:1554
- __napi_poll+0x14c/0xc00 net/core/dev.c:6365
- napi_poll net/core/dev.c:6432 [inline]
- net_rx_action+0x7e2/0x1820 net/core/dev.c:6519
- __do_softirq+0x1ee/0x7c5 kernel/softirq.c:558
+I guess if .BTF section isn't supported/emitted on s390x, we have to relax the
+error and print a warning and ignore it, but I am not sure. Ilya would probably
+know the current status.
 
-CPU: 1 PID: 3471 Comm: syz-executor142 Not tainted 5.17.0-rc4-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-=====================================================
+We have already relaxed it once in (bpf-next):
 
+c446fdacb10d ("bpf: fix register_btf_kfunc_id_set for !CONFIG_DEBUG_INFO_BTF")
+
+If this doesn't work on s390x, we should probably just print a warning when
+CONFIG_DEBUG_INFO_BTF is enabled and btf == NULL, and return 0.
+
+> Thanks
+> Regards
+> Alex
+>
+
+--
+Kartikeya
