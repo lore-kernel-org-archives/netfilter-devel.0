@@ -2,124 +2,135 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9D68C433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Feb 2022 20:19:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66EF8C433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Feb 2022 21:34:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239168AbiBRUTy (ORCPT
+        id S239903AbiBRVen (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 18 Feb 2022 15:19:54 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:43144 "EHLO
+        Fri, 18 Feb 2022 16:34:43 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:34900 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238139AbiBRUTx (ORCPT
+        with ESMTP id S239900AbiBRVen (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 18 Feb 2022 15:19:53 -0500
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CDBA512AA8;
-        Fri, 18 Feb 2022 12:19:36 -0800 (PST)
-Received: from pps.filterd (m0098410.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 21IJBnfM011227;
-        Fri, 18 Feb 2022 20:19:10 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : cc :
- subject : in-reply-to : in-reply-to : date : message-id : mime-version :
- content-type; s=pp1; bh=dWoLYEztVqtFEjEmwzCNIPrr8BRdAZWSR6a77aO+F7k=;
- b=a/OouFi+tVjEUIogG4CGyT5q6Ura9qK1wDhCqqiHQDu5Y3W+/VJ5pgIM3949EJ41OF+k
- IkZO6Nv8z8nMlHf+gSdRmE9jfv7tdAYzdkQa3eq25zFFZ9bqZw5GSSP8J8UFKtB2FjvQ
- /ocwHAlret6H4tZfe2lRWTgm5yXfF+Qw7G+hUKPHKKt8kTNEMIVwBZP0exGuV7mT2gRH
- o8xjnQJWh4E68sw0nLN69CznFgo4cDKVSvKtOSoN4zCUQ1xZ+k5TnJUjpndZLj/2B3QF
- wAPmSGR1+t0OK3TstqTOv12L7B5RxzITChs+lSrGrOor1BflVLANkcr4Z3f2RTUshZTe Nw== 
-Received: from pps.reinject (localhost [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 3eahd81he4-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Fri, 18 Feb 2022 20:19:10 +0000
-Received: from m0098410.ppops.net (m0098410.ppops.net [127.0.0.1])
-        by pps.reinject (8.16.0.43/8.16.0.43) with SMTP id 21IJsGTb018251;
-        Fri, 18 Feb 2022 20:19:09 GMT
-Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 3eahd81hdg-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Fri, 18 Feb 2022 20:19:09 +0000
-Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
-        by ppma03ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 21IKE5SA015730;
-        Fri, 18 Feb 2022 20:19:07 GMT
-Received: from b06cxnps4075.portsmouth.uk.ibm.com (d06relay12.portsmouth.uk.ibm.com [9.149.109.197])
-        by ppma03ams.nl.ibm.com with ESMTP id 3e64hav7hs-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Fri, 18 Feb 2022 20:19:07 +0000
-Received: from d06av21.portsmouth.uk.ibm.com (d06av21.portsmouth.uk.ibm.com [9.149.105.232])
-        by b06cxnps4075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 21IKJ49I46072150
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Fri, 18 Feb 2022 20:19:04 GMT
-Received: from d06av21.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id CE0DC5204F;
-        Fri, 18 Feb 2022 20:19:04 +0000 (GMT)
-Received: from localhost (unknown [9.171.19.251])
-        by d06av21.portsmouth.uk.ibm.com (Postfix) with ESMTP id AD7BE5204E;
-        Fri, 18 Feb 2022 20:19:04 +0000 (GMT)
-From:   Alexander Egorenkov <Alexander.Egorenkov@ibm.com>
-To:     memxor@gmail.com
-Cc:     andrii@kernel.org, ast@kernel.org, bpf@vger.kernel.org,
-        brouer@redhat.com, daniel@iogearbox.net, fw@strlen.de,
-        john.fastabend@gmail.com, kafai@fb.com, maximmi@nvidia.com,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, songliubraving@fb.com, toke@redhat.com,
-        yhs@fb.com
-Subject: Re: [PATCH bpf-next v8 00/10] Introduce unstable CT lookup helpers
-In-Reply-To: <20220114163953.1455836-1-memxor@gmail.com>
-In-Reply-To: 
-Date:   Fri, 18 Feb 2022 21:19:04 +0100
-Message-ID: <87y228q66f.fsf@oc8242746057.ibm.com>
+        Fri, 18 Feb 2022 16:34:43 -0500
+Received: from mail-io1-f70.google.com (mail-io1-f70.google.com [209.85.166.70])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C99EB5BD04
+        for <netfilter-devel@vger.kernel.org>; Fri, 18 Feb 2022 13:34:24 -0800 (PST)
+Received: by mail-io1-f70.google.com with SMTP id q5-20020a0566022f0500b00638278a161fso5217674iow.11
+        for <netfilter-devel@vger.kernel.org>; Fri, 18 Feb 2022 13:34:24 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
+         :from:to;
+        bh=ESDhSXcBKMjopPYZv2w9C93Fs32sPD81EnUFCwe47Z8=;
+        b=eKGpbclsyPU2TqikQvAKWig6SzEB5ZgQiCuzUEkH48Hsi3V8zQMwlgGzlefbAhqqOc
+         EHZGjdul8AksA7Uhlk7LuQ8QyxDsHIJDEcBjB2Ui5O1fQZPZRDMi36JupyLl78bAMdL7
+         tHXjhOLF012OrjBR9DuF3AoGGtZraXeNYVOONVQC+/PHDP3FtUV3xdrGx1MBxmmNIz0u
+         RZmK+OPlfxCQ1PiisGs6/Lfpupi2asVI2QTtvnH2RmHAAmGmSep/uVRxytxMpvjvj5X+
+         2cDxJcCpIhWvdVu3FevCVzValNr0ks9xtylKKDjjMohQnMuA6zJNw00UIgJGOw4wCWLv
+         7k6A==
+X-Gm-Message-State: AOAM532X8U9EdYdA0b2+yuYxFlER1s8IW13aATxhG9L4OfAkbER4zBxk
+        LZI/1hKBMzJScuLD7i3Uxqs9qeAbOA22fdMbhKmNKXT9KpUE
+X-Google-Smtp-Source: ABdhPJwijr18CZvtR9XxK1PvZnkcu5gmF2lHkJyrHt3O3Z8dSibn5LNQzbfbLx58lPYXLyq/i7hG87TE3BFNHiMto1TlRjnzLNL0
 MIME-Version: 1.0
-Content-Type: text/plain
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: q2_JNrD740B6SxTKVCCClWOnps0ppJT3
-X-Proofpoint-GUID: k7ymj4nEborQ3HFmzCFJ5UAQe6Me-811
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.205,Aquarius:18.0.816,Hydra:6.0.425,FMLib:17.11.62.513
- definitions=2022-02-18_09,2022-02-18_01,2021-12-02_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 malwarescore=0 bulkscore=0
- suspectscore=0 clxscore=1011 priorityscore=1501 lowpriorityscore=0
- mlxscore=0 impostorscore=0 adultscore=0 spamscore=0 mlxlogscore=999
- phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2201110000 definitions=main-2202180123
+X-Received: by 2002:a05:6e02:190e:b0:2bf:ac1e:b5b7 with SMTP id
+ w14-20020a056e02190e00b002bfac1eb5b7mr6853634ilu.304.1645220064174; Fri, 18
+ Feb 2022 13:34:24 -0800 (PST)
+Date:   Fri, 18 Feb 2022 13:34:24 -0800
+In-Reply-To: <0000000000003118ba05d500cce1@google.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <00000000000080aa2705d851a531@google.com>
+Subject: Re: [syzbot] KMSAN: uninit-value in nf_nat_setup_info (2)
+From:   syzbot <syzbot+cbcd154fce7c6d953d1c@syzkaller.appspotmail.com>
+To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
+        glider@google.com, kadlec@netfilter.org, kuba@kernel.org,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+syzbot has found a reproducer for the following issue on:
 
-Hi,
+HEAD commit:    724946410067 x86: kmsan: enable KMSAN builds for x86
+git tree:       https://github.com/google/kmsan.git master
+console output: https://syzkaller.appspot.com/x/log.txt?x=17b02532700000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=76f99026248b24e4
+dashboard link: https://syzkaller.appspot.com/bug?extid=cbcd154fce7c6d953d1c
+compiler:       clang version 14.0.0 (/usr/local/google/src/llvm-git-monorepo 2b554920f11c8b763cd9ed9003f4e19b919b8e1f), GNU ld (GNU Binutils for Debian) 2.35.2
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1659ab4c700000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1621cbf2700000
 
-we are having a problem loading nf_conntrack on linux-next:
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+cbcd154fce7c6d953d1c@syzkaller.appspotmail.com
 
-# modprobe nf_conntrack
-modprobe: ERROR: could not insert 'nf_conntrack': Unknown symbol in module, or unknown parameter (see dmesg)
-modprobe: ERROR: Error running install command '/sbin/modprobe --ignore-install nf_conntrack  && /sbin/sysctl --quiet --pattern 'net[.]netfilter[.]nf_conntrack.*' --system' for module nf_conntrack: retcode 1
-modprobe: ERROR: could not insert 'nf_conntrack': Invalid argument
+=====================================================
+BUG: KMSAN: uninit-value in get_unique_tuple net/netfilter/nf_nat_core.c:548 [inline]
+BUG: KMSAN: uninit-value in nf_nat_setup_info+0x628/0x4a40 net/netfilter/nf_nat_core.c:642
+ get_unique_tuple net/netfilter/nf_nat_core.c:548 [inline]
+ nf_nat_setup_info+0x628/0x4a40 net/netfilter/nf_nat_core.c:642
+ nfnetlink_parse_nat_setup+0xb86/0xcf0
+ ctnetlink_parse_nat_setup+0xde/0x390 net/netfilter/nf_conntrack_netlink.c:1845
+ ctnetlink_setup_nat net/netfilter/nf_conntrack_netlink.c:1920 [inline]
+ ctnetlink_create_conntrack net/netfilter/nf_conntrack_netlink.c:2325 [inline]
+ ctnetlink_new_conntrack+0x1d5d/0x4240 net/netfilter/nf_conntrack_netlink.c:2452
+ nfnetlink_rcv_msg+0xe0a/0xf80 net/netfilter/nfnetlink.c:296
+ netlink_rcv_skb+0x40c/0x7e0 net/netlink/af_netlink.c:2494
+ nfnetlink_rcv+0x667/0x4740 net/netfilter/nfnetlink.c:654
+ netlink_unicast_kernel net/netlink/af_netlink.c:1317 [inline]
+ netlink_unicast+0x1093/0x1360 net/netlink/af_netlink.c:1343
+ netlink_sendmsg+0x14d9/0x1720 net/netlink/af_netlink.c:1919
+ sock_sendmsg_nosec net/socket.c:705 [inline]
+ sock_sendmsg net/socket.c:725 [inline]
+ ____sys_sendmsg+0xe11/0x12c0 net/socket.c:2413
+ ___sys_sendmsg net/socket.c:2467 [inline]
+ __sys_sendmsg+0x704/0x840 net/socket.c:2496
+ __do_sys_sendmsg net/socket.c:2505 [inline]
+ __se_sys_sendmsg net/socket.c:2503 [inline]
+ __x64_sys_sendmsg+0xe2/0x120 net/socket.c:2503
+ do_syscall_x64 arch/x86/entry/common.c:51 [inline]
+ do_syscall_64+0x54/0xd0 arch/x86/entry/common.c:82
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
 
-# dmesg
-[ 3728.188969] missing module BTF, cannot register kfuncs
-[ 3748.208674] missing module BTF, cannot register kfuncs
-[ 3748.567123] missing module BTF, cannot register kfuncs
-[ 3873.597276] missing module BTF, cannot register kfuncs
-[ 3874.017125] missing module BTF, cannot register kfuncs
-[ 3882.637097] missing module BTF, cannot register kfuncs
-[ 3883.507213] missing module BTF, cannot register kfuncs
-[ 3883.876878] missing module BTF, cannot register kfuncs
+Uninit was created at:
+ __alloc_pages+0xbbf/0x1090 mm/page_alloc.c:5429
+ alloc_pages+0xa08/0xd50
+ alloc_slab_page mm/slub.c:1816 [inline]
+ allocate_slab+0x29e/0x1b00 mm/slub.c:1961
+ new_slab mm/slub.c:2021 [inline]
+ ___slab_alloc+0xb52/0x1da0 mm/slub.c:3035
+ __slab_alloc mm/slub.c:3122 [inline]
+ slab_alloc_node mm/slub.c:3213 [inline]
+ slab_alloc mm/slub.c:3255 [inline]
+ kmem_cache_alloc+0xbb3/0x11c0 mm/slub.c:3260
+ __nf_conntrack_alloc+0x232/0x7f0 net/netfilter/nf_conntrack_core.c:1553
+ init_conntrack+0x29b/0x24c0 net/netfilter/nf_conntrack_core.c:1634
+ resolve_normal_ct net/netfilter/nf_conntrack_core.c:1745 [inline]
+ nf_conntrack_in+0x1abc/0x3130 net/netfilter/nf_conntrack_core.c:1903
+ ipv4_conntrack_in+0x68/0x80 net/netfilter/nf_conntrack_proto.c:191
+ nf_hook_entry_hookfn include/linux/netfilter.h:142 [inline]
+ nf_hook_slow net/netfilter/core.c:619 [inline]
+ nf_hook_slow_list+0x358/0xb40 net/netfilter/core.c:657
+ NF_HOOK_LIST include/linux/netfilter.h:343 [inline]
+ ip_sublist_rcv+0x1411/0x14a0 net/ipv4/ip_input.c:607
+ ip_list_rcv+0x930/0x970 net/ipv4/ip_input.c:644
+ __netif_receive_skb_list_ptype net/core/dev.c:5394 [inline]
+ __netif_receive_skb_list_core+0xdf9/0x11f0 net/core/dev.c:5442
+ __netif_receive_skb_list+0x7e3/0x940 net/core/dev.c:5494
+ netif_receive_skb_list_internal+0x848/0xdc0 net/core/dev.c:5585
+ gro_normal_list include/net/gro.h:425 [inline]
+ napi_complete_done+0x579/0xdc0 net/core/dev.c:5932
+ virtqueue_napi_complete drivers/net/virtio_net.c:339 [inline]
+ virtnet_poll+0x17a4/0x2340 drivers/net/virtio_net.c:1554
+ __napi_poll+0x14c/0xc00 net/core/dev.c:6365
+ napi_poll net/core/dev.c:6432 [inline]
+ net_rx_action+0x7e2/0x1820 net/core/dev.c:6519
+ __do_softirq+0x1ee/0x7c5 kernel/softirq.c:558
 
-# zgrep BTF /proc/config.gz
-CONFIG_DEBUG_INFO_BTF=y
-CONFIG_PAHOLE_HAS_SPLIT_BTF=y
-CONFIG_DEBUG_INFO_BTF_MODULES=y
+CPU: 1 PID: 3471 Comm: syz-executor142 Not tainted 5.17.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+=====================================================
 
-It seems that nf_conntrack.ko is missing a .BTF section
-which is present in debuginfo within
-/usr/lib/debug/lib/modules/*/kernel/net/netfilter/nf_conntrack.ko.debug instead.
-
-Am i correct in assuming that this is not supported (yet) ?
-
-We use pahole 1.22 and build linux-next on Fedora 35 as a set of custom
-packages. Architecture is s390x.
-
-Thanks
-Regards
-Alex
- 
