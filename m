@@ -2,42 +2,42 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84DACC433F5
-	for <netfilter-devel@archiver.kernel.org>; Sat, 19 Feb 2022 13:29:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17D0AC433EF
+	for <netfilter-devel@archiver.kernel.org>; Sat, 19 Feb 2022 13:29:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238780AbiBSNaG (ORCPT
+        id S240255AbiBSNaM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 19 Feb 2022 08:30:06 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:42764 "EHLO
+        Sat, 19 Feb 2022 08:30:12 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:43262 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238414AbiBSNaG (ORCPT
+        with ESMTP id S238175AbiBSNaL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 19 Feb 2022 08:30:06 -0500
+        Sat, 19 Feb 2022 08:30:11 -0500
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96AAA88B32
-        for <netfilter-devel@vger.kernel.org>; Sat, 19 Feb 2022 05:29:47 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1A6788B32
+        for <netfilter-devel@vger.kernel.org>; Sat, 19 Feb 2022 05:29:52 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
         s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=GRe0coO4we9AhjI+LC/byJ0vY4AKLeIW09hAH1qrIPY=; b=aCgWSb1Gd9z4E5RRpC52SYyygs
-        YzDvMyvonZ1EdbYJJwDprNJYoE29DvuLwDntGN02rduuwjQHNVyzV0QEy4hRP+oGyJVW6j73DY5G7
-        VrEnmBoNd9KxX2+5nkdHtNB8l4TvjyE3OuBuDQzp4ZVEAQrl5prK5SKYlJlAG+jXgXBnGAQQPBW3M
-        oeMlQBEzE4p/UkYU/qNOUu+F+6ZQXqRZpt4TaeaIXV0uIbX1KjWLM0hGDeQ/xtSnH3SHIoz0MkTIU
-        HxOWv112gcefhB6gnNiuNy8RPr82rMC5G58fpBW7pPJU21QapF7yegp3HGRx58spG4umGe5PbYVh+
-        tdXKyYXA==;
+        bh=C6ANBZZTIGRON+3RKNNe56+sE+P2nD5nTK9HmRxJdS0=; b=J4/MYEaTqXbdh5pXCHWvVZEgVx
+        1Jrw9AwGuEfz+WztnXgdiJbraCI1sD4n94euJu53daCfE56AF/euM+mSls3vmkDWj7Xl86YumpeJC
+        +JvWCLrxKf3diWuYieYRjBrzkFjw+7JG5qq/D+sAO+cArNuExO4vBH8qdOxFi12Ofz92BUsShvzPA
+        da98FzkmYJeGcwwdvNoXNAeWSXbGSpBW1uIYxCQyHjZTBFGXsovPh4eyTOoVT+H3JvKJVRzIasDjM
+        jQxepaOTwWkYYRtectj59EbXbesxjlz/Kn8WjK8bjqpiq+KN+tEaHs1GqLLBmpBRepoJ9YHDBNuYC
+        ZZ6fU4Iw==;
 Received: from localhost ([::1] helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1nLPo2-0002ae-2R; Sat, 19 Feb 2022 14:29:46 +0100
+        id 1nLPo7-0002ax-CM; Sat, 19 Feb 2022 14:29:51 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 22/26] scanner: policy: move to own scope
-Date:   Sat, 19 Feb 2022 14:28:10 +0100
-Message-Id: <20220219132814.30823-23-phil@nwl.cc>
+Subject: [nft PATCH 10/26] scanner: udp{,lite}: Move to own scope
+Date:   Sat, 19 Feb 2022 14:27:58 +0100
+Message-Id: <20220219132814.30823-11-phil@nwl.cc>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20220219132814.30823-1-phil@nwl.cc>
 References: <20220219132814.30823-1-phil@nwl.cc>
@@ -47,94 +47,113 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Isolate 'performance' and 'memory' keywords.
+All used keywords are shared with others, so no separation for now apart
+from 'csumcov' which was actually missing from scanner.l.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- include/parser.h   | 1 +
- src/parser_bison.y | 7 ++++---
- src/scanner.l      | 9 ++++++---
- 3 files changed, 11 insertions(+), 6 deletions(-)
+ include/parser.h   |  2 ++
+ src/parser_bison.y | 12 +++++++-----
+ src/scanner.l      |  9 +++++++--
+ 3 files changed, 16 insertions(+), 7 deletions(-)
 
 diff --git a/include/parser.h b/include/parser.h
-index 57f1fcc56bd54..79eadc0d7e52f 100644
+index c16f210121040..e80a7753ea715 100644
 --- a/include/parser.h
 +++ b/include/parser.h
-@@ -40,6 +40,7 @@ enum startcond_type {
- 	PARSER_SC_IP,
- 	PARSER_SC_IP6,
- 	PARSER_SC_LIMIT,
-+	PARSER_SC_POLICY,
- 	PARSER_SC_QUOTA,
- 	PARSER_SC_SCTP,
- 	PARSER_SC_SECMARK,
+@@ -54,6 +54,8 @@ enum startcond_type {
+ 	PARSER_SC_EXPR_RT,
+ 	PARSER_SC_EXPR_SCTP_CHUNK,
+ 	PARSER_SC_EXPR_SOCKET,
++	PARSER_SC_EXPR_UDP,
++	PARSER_SC_EXPR_UDPLITE,
+ 
+ 	PARSER_SC_STMT_LOG,
+ 	PARSER_SC_STMT_SYNPROXY,
 diff --git a/src/parser_bison.y b/src/parser_bison.y
-index af31f72fd6c99..eca51617e1713 100644
+index 7a02eaf88a58f..39789b30f41ab 100644
 --- a/src/parser_bison.y
 +++ b/src/parser_bison.y
-@@ -954,6 +954,7 @@ close_scope_mh		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_MH); };
- close_scope_monitor	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_CMD_MONITOR); };
- close_scope_numgen	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_NUMGEN); };
- close_scope_osf		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_OSF); };
-+close_scope_policy	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_POLICY); };
- close_scope_quota	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_QUOTA); };
- close_scope_queue	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_QUEUE); };
- close_scope_reject	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_STMT_REJECT); };
-@@ -2098,7 +2099,7 @@ map_block		:	/* empty */	{ $$ = $<set>-1; }
- 			|	map_block	set_mechanism	stmt_separator
+@@ -950,6 +950,8 @@ close_scope_sctp_chunk	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_S
+ close_scope_secmark	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_SECMARK); };
+ close_scope_socket	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_SOCKET); }
+ close_scope_tcp		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_TCP); };
++close_scope_udp		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_UDP); };
++close_scope_udplite	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_UDPLITE); };
+ 
+ close_scope_log		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_STMT_LOG); }
+ close_scope_synproxy	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_STMT_SYNPROXY); }
+@@ -4485,7 +4487,7 @@ ct_cmd_type		:	HELPERS		{ $$ = CMD_OBJ_CT_HELPERS; }
  			;
  
--set_mechanism		:	POLICY		set_policy_spec
-+set_mechanism		:	POLICY		set_policy_spec	close_scope_policy
- 			{
- 				$<set>0->policy = $2;
- 			}
-@@ -2516,7 +2517,7 @@ flags_spec		:	FLAGS		OFFLOAD	close_scope_flags
- 			}
+ ct_l4protoname		:	TCP	close_scope_tcp	{ $$ = IPPROTO_TCP; }
+-			|	UDP	{ $$ = IPPROTO_UDP; }
++			|	UDP	close_scope_udp	{ $$ = IPPROTO_UDP; }
  			;
  
--policy_spec		:	POLICY		policy_expr
-+policy_spec		:	POLICY		policy_expr	close_scope_policy
- 			{
- 				if ($<chain>0->policy) {
- 					erec_queue(error(&@$, "you cannot set chain policy twice"),
-@@ -4563,7 +4564,7 @@ ct_timeout_config	:	PROTOCOL	ct_l4protoname	stmt_separator
- 				ct = &$<obj>0->ct_timeout;
- 				ct->l4proto = l4proto;
+ ct_helper_config		:	TYPE	QUOTED_STRING	PROTOCOL	ct_l4protoname	stmt_separator
+@@ -4765,14 +4767,14 @@ primary_rhs_expr	:	symbol_expr		{ $$ = $1; }
+ 							 BYTEORDER_HOST_ENDIAN,
+ 							 sizeof(data) * BITS_PER_BYTE, &data);
  			}
--			|	POLICY 	'=' 	'{' 	timeout_states 	'}'	 stmt_separator
-+			|	POLICY 	'=' 	'{' 	timeout_states 	'}'	 stmt_separator	close_scope_policy
+-			|	UDP
++			|	UDP	close_scope_udp
  			{
- 				struct ct_timeout *ct;
+ 				uint8_t data = IPPROTO_UDP;
+ 				$$ = constant_expr_alloc(&@$, &inet_protocol_type,
+ 							 BYTEORDER_HOST_ENDIAN,
+ 							 sizeof(data) * BITS_PER_BYTE, &data);
+ 			}
+-			|	UDPLITE
++			|	UDPLITE	close_scope_udplite
+ 			{
+ 				uint8_t data = IPPROTO_UDPLITE;
+ 				$$ = constant_expr_alloc(&@$, &inet_protocol_type,
+@@ -5476,7 +5478,7 @@ comp_hdr_field		:	NEXTHDR		{ $$ = COMPHDR_NEXTHDR; }
+ 			|	CPI		{ $$ = COMPHDR_CPI; }
+ 			;
  
+-udp_hdr_expr		:	UDP	udp_hdr_field
++udp_hdr_expr		:	UDP	udp_hdr_field	close_scope_udp
+ 			{
+ 				$$ = payload_expr_alloc(&@$, &proto_udp, $2);
+ 			}
+@@ -5488,7 +5490,7 @@ udp_hdr_field		:	SPORT		{ $$ = UDPHDR_SPORT; }
+ 			|	CHECKSUM	{ $$ = UDPHDR_CHECKSUM; }
+ 			;
+ 
+-udplite_hdr_expr	:	UDPLITE	udplite_hdr_field
++udplite_hdr_expr	:	UDPLITE	udplite_hdr_field	close_scope_udplite
+ 			{
+ 				$$ = payload_expr_alloc(&@$, &proto_udplite, $2);
+ 			}
 diff --git a/src/scanner.l b/src/scanner.l
-index 608471b39898d..b885f84523b97 100644
+index a27df6c7e3915..d6fb91bd102b2 100644
 --- a/src/scanner.l
 +++ b/src/scanner.l
-@@ -206,6 +206,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- %s SCANSTATE_IP
- %s SCANSTATE_IP6
- %s SCANSTATE_LIMIT
-+%s SCANSTATE_POLICY
- %s SCANSTATE_QUOTA
- %s SCANSTATE_SCTP
- %s SCANSTATE_SECMARK
-@@ -370,10 +371,12 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "elements"		{ return ELEMENTS; }
- "expires"		{ return EXPIRES; }
+@@ -220,6 +220,8 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ %s SCANSTATE_EXPR_RT
+ %s SCANSTATE_EXPR_SCTP_CHUNK
+ %s SCANSTATE_EXPR_SOCKET
++%s SCANSTATE_EXPR_UDP
++%s SCANSTATE_EXPR_UDPLITE
  
--"policy"		{ return POLICY; }
-+"policy"		{ scanner_push_start_cond(yyscanner, SCANSTATE_POLICY); return POLICY; }
- "size"			{ return SIZE; }
--"performance"		{ return PERFORMANCE; }
--"memory"		{ return MEMORY; }
-+<SCANSTATE_POLICY>{
-+	"performance"		{ return PERFORMANCE; }
-+	"memory"		{ return MEMORY; }
+ %s SCANSTATE_STMT_LOG
+ %s SCANSTATE_STMT_SYNPROXY
+@@ -551,8 +553,11 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ }
+ "flags"			{ return FLAGS; }
+ 
+-"udp"			{ return UDP; }
+-"udplite"		{ return UDPLITE; }
++"udp"			{ scanner_push_start_cond(yyscanner, SCANSTATE_EXPR_UDP); return UDP; }
++"udplite"		{ scanner_push_start_cond(yyscanner, SCANSTATE_EXPR_UDPLITE); return UDPLITE; }
++<SCANSTATE_EXPR_UDPLITE>{
++	"csumcov"	{ return CSUMCOV; }
 +}
- 
- "flow"			{ return FLOW; }
- "offload"		{ return OFFLOAD; }
+ "sport"			{ return SPORT; }
+ "dport"			{ return DPORT; }
+ "port"			{ return PORT; }
 -- 
 2.34.1
 
