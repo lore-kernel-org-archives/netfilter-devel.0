@@ -2,121 +2,96 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5675AC433F5
-	for <netfilter-devel@archiver.kernel.org>; Sat, 19 Feb 2022 12:51:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1A4AC433F5
+	for <netfilter-devel@archiver.kernel.org>; Sat, 19 Feb 2022 13:20:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242255AbiBSMwC (ORCPT
+        id S229809AbiBSNUz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 19 Feb 2022 07:52:02 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:57712 "EHLO
+        Sat, 19 Feb 2022 08:20:55 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:37388 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233494AbiBSMwB (ORCPT
+        with ESMTP id S229685AbiBSNUz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 19 Feb 2022 07:52:01 -0500
-Received: from mail-pf1-x42b.google.com (mail-pf1-x42b.google.com [IPv6:2607:f8b0:4864:20::42b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3EA7224587;
-        Sat, 19 Feb 2022 04:51:43 -0800 (PST)
-Received: by mail-pf1-x42b.google.com with SMTP id g1so4629171pfv.1;
-        Sat, 19 Feb 2022 04:51:43 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=message-id:date:mime-version:user-agent:subject:content-language
-         :from:to:cc:references:in-reply-to:content-transfer-encoding;
-        bh=IMJgWx7dxr7dZx5sJ73qfcNpld1JI4tT0p225zF6cG0=;
-        b=dU/T2yqk+TgCmfiFg32eSwNa84h7ucHYxp5k0GjToJPUGg8v7ZihB1stJ++D67aQ3W
-         awd9XD+tPTro0CV5GOLHn0rUksImEBCRzv9NXCWW2tqzKuu1MQF7z6B6ZLcDmtBYzdWo
-         oUMVr57B7QWpLDosa6OWHGxNRc48/OoPNT0v9oG5u6cmzq9SkNzdadnRivYFHHOjb2rA
-         Jr0eyhUnHBkDjshM6OCuEk+YezSUQN8X+5oho8uBnZjDAPO38uIkHrG/gsGzswnRjegK
-         VIcV5EF5vGdYs7CopG20Pc9MYDG/GHtXQXF1tQsbPq4EltMLXC3nOHshSjY1ItkN0xrc
-         6A+A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:from:to:cc:references:in-reply-to
-         :content-transfer-encoding;
-        bh=IMJgWx7dxr7dZx5sJ73qfcNpld1JI4tT0p225zF6cG0=;
-        b=mbkfqW03MeY0t+wpbvudVW6BXzRawQcGkjWjLbA5RaJCNAL/Vl+jo6vwgNv6bdPsWl
-         E2SXUqnfcLuIN/D/g+sOi0PKGXRp4Q+Nmlqd/lRt6uYEqvLw+n0agWQCY9iuE/nmW7Dv
-         R4QZYXtBZHC4RPYypv2f4mOSak3vwFEZJYQmyz0j8D20fRiyYV5OjaLvR6ku1BZuC0FU
-         vSEkdF+vuiIWgyENUi5muOvpzLwo69J4fvzCh7IVxaXm4rmttB6jldFR6cZ12qQPkWMX
-         zC05LUCifQ7PC1AdmjNAS9TqYslYSXQZyLadAfeKjxWsk/QzbjIauIJLvi6T0o5yKvC2
-         Db9w==
-X-Gm-Message-State: AOAM532YOhXKe5DrWj64OSSzZnSS+RoTJgvDhRIpprdUtnS47s5x279s
-        KKWp9EKfSg35nbj0tGd3pPA=
-X-Google-Smtp-Source: ABdhPJwO8xMzwzBLV7r4jxRlT9diEn26HFgySlHax5JoawxF3lfofBhUPh7s2vAQrZR/TVeGrJVCPA==
-X-Received: by 2002:a05:6a00:b41:b0:4e1:3a1:50a7 with SMTP id p1-20020a056a000b4100b004e103a150a7mr12427960pfo.30.1645275102690;
-        Sat, 19 Feb 2022 04:51:42 -0800 (PST)
-Received: from [192.168.99.7] (i220-99-138-239.s42.a013.ap.plala.or.jp. [220.99.138.239])
-        by smtp.googlemail.com with ESMTPSA id v20sm2181201pju.9.2022.02.19.04.51.38
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sat, 19 Feb 2022 04:51:42 -0800 (PST)
-Message-ID: <24910a58-5d23-a97c-650f-7b53030dd40d@gmail.com>
-Date:   Sat, 19 Feb 2022 21:51:37 +0900
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.6.0
-Subject: Re: [PATCH net-next 1/3] netfilter: flowtable: Support GRE
-Content-Language: en-US
-From:   Toshiaki Makita <toshiaki.makita1@gmail.com>
+        Sat, 19 Feb 2022 08:20:55 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 55E2D65409
+        for <netfilter-devel@vger.kernel.org>; Sat, 19 Feb 2022 05:20:36 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=4MI4QUtZiYbB18K9/hz7sgkZn25T0nNpDY1xGkirbsk=; b=Oe4K1tx6tc0ccyyh4GgMPoh2qz
+        aia5IqKZnCuj1CCX/1y5G5IHO6Ok5POJYUqc4TMvUFx3YBXAAqFBnFVgJeVGFuxgmj0qRQ9QJsfEl
+        0wJgJjEG+vnWb/7Sk2TwFlA1+02LHYiDeIehrUVrkHHiLnLNYM/7LN7LHckdRL+iCzT2zP+/NoNw7
+        3xPUlbVddn0Qr44utc/cpQ4XqnMNGgqUX5u7XLsYuU8xREmyC/ASLH73CQnuYwgZBMRDEBQ1hBKro
+        /Ny0Fs072g6tBD/21G4bG/1aLQ6xGWGb20KIjFYO8UXz9H5NaTacx5uY3bazG+rWFu2+xHK6vPHBv
+        0zWK7kzw==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1nLPf7-0002S3-6A; Sat, 19 Feb 2022 14:20:33 +0100
+From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Jamal Hadi Salim <jhs@mojatatu.com>,
-        Cong Wang <xiyou.wangcong@gmail.com>,
-        Jiri Pirko <jiri@resnulli.us>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        Paul Blakey <paulb@nvidia.com>
-References: <20220203115941.3107572-1-toshiaki.makita1@gmail.com>
- <20220203115941.3107572-2-toshiaki.makita1@gmail.com>
- <YgFdS0ak3LIR2waA@salvia> <9d4fd782-896d-4a44-b596-517c84d97d5a@gmail.com>
- <YgOQ6a0itcJjQJqx@salvia> <8309e037-840d-0a7d-26c1-f07fda9ba744@gmail.com>
-In-Reply-To: <8309e037-840d-0a7d-26c1-f07fda9ba744@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: [nf-next PATCH] netfilter: conntrack: Relax helper auto-assignment warning for nftables
+Date:   Sat, 19 Feb 2022 14:20:24 +0100
+Message-Id: <20220219132024.29328-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.34.1
+MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Ping, Pablo?
+With nftables, no template is being used and instead helper assignment
+happens after conntrack initialization. With helper auto assignment
+being disabled by default, this leads to this spurious kernel log
+suggesting to use iptables CT target.
 
-On 2022/02/12 10:54, Toshiaki Makita wrote:
-> On 2022/02/09 19:01, Pablo Neira Ayuso wrote:
->> On Tue, Feb 08, 2022 at 11:30:03PM +0900, Toshiaki Makita wrote:
->>> On 2022/02/08 2:56, Pablo Neira Ayuso wrote:
->>>> On Thu, Feb 03, 2022 at 08:59:39PM +0900, Toshiaki Makita wrote:
->> [...]
->>>>> diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
->>>>> index 889cf88..48e2f58 100644
->>>>> --- a/net/netfilter/nf_flow_table_ip.c
->>>>> +++ b/net/netfilter/nf_flow_table_ip.c
->> [...]
->>>>> @@ -202,15 +209,25 @@ static int nf_flow_tuple_ip(struct sk_buff *skb, const 
->>>>> struct net_device *dev,
->>>>>        if (!pskb_may_pull(skb, thoff + *hdrsize))
->>>>>            return -1;
->>>>> +    if (ipproto == IPPROTO_GRE) {
->>>>
->>>> No ifdef here? Maybe remove these ifdef everywhere?
->>>
->>> I wanted to avoid adding many ifdefs and I expect this to be compiled out
->>> when CONFIG_NF_CT_PROTO_GRE=n as this block is unreachable anyway. It rather
->>> may have been unintuitive though.
->>>
->>> Removing all of these ifdefs will cause inconsistent behavior between
->>> CONFIG_NF_CT_PROTO_GRE=n/y.
->>> When CONFIG_NF_CT_PROTO_GRE=n, conntrack cannot determine GRE version, thus
->>> it will track GREv1 without key infomation, and the flow will be offloaded.
->>> When CONFIG_NF_CT_PROTO_GRE=y, GREv1 will have key information and will not
->>> be offloaded.
->>> I wanted to just refuse offloading of GRE to avoid this inconsistency.
->>> Anyway this kind of inconsistency seems to happen in software conntrack, so
->>> if you'd like to remove ifdefs, I will do.
->>
->> Good point, thanks for explaining. LGTM.
-> 
-> Let me confirm, did you agree to keep ifdefs, or delete them?
-> 
-> Toshiaki Makita
+To avoid the bogus and confusing message, check helper's refcount: It is
+initialized to 1 by nf_conntrack_helper_register() and incremented by
+nf_conntrack_helper_try_module_get() during nft_ct_helper_obj_init(). So
+if its value is larger than 1, it must be in use *somewhere*.
+
+This approach is not perfect since there is no guarantee the helper will
+actually be assigned to the packet's flow. Yet it should still cover the
+intended use-case of merely loading the module.
+
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ net/netfilter/nf_conntrack_helper.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index ae4488a13c70c..828957f1802d8 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -213,11 +213,13 @@ static struct nf_conntrack_helper *
+ nf_ct_lookup_helper(struct nf_conn *ct, struct net *net)
+ {
+ 	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
++	struct nf_conntrack_helper *helper =
++		__nf_ct_helper_find(&ct->tuplehash[IP_CT_DIR_REPLY].tuple);
+ 
+ 	if (!cnet->sysctl_auto_assign_helper) {
+ 		if (cnet->auto_assign_helper_warned)
+ 			return NULL;
+-		if (!__nf_ct_helper_find(&ct->tuplehash[IP_CT_DIR_REPLY].tuple))
++		if (!helper || refcount_read(&helper->refcnt) > 1)
+ 			return NULL;
+ 		pr_info("nf_conntrack: default automatic helper assignment "
+ 			"has been turned off for security reasons and CT-based "
+@@ -227,7 +229,7 @@ nf_ct_lookup_helper(struct nf_conn *ct, struct net *net)
+ 		return NULL;
+ 	}
+ 
+-	return __nf_ct_helper_find(&ct->tuplehash[IP_CT_DIR_REPLY].tuple);
++	return helper;
+ }
+ 
+ int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
+-- 
+2.34.1
+
