@@ -2,117 +2,121 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 718FEC433F5
-	for <netfilter-devel@archiver.kernel.org>; Sat, 19 Feb 2022 08:20:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5675AC433F5
+	for <netfilter-devel@archiver.kernel.org>; Sat, 19 Feb 2022 12:51:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234840AbiBSIVB (ORCPT
+        id S242255AbiBSMwC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 19 Feb 2022 03:21:01 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:49706 "EHLO
+        Sat, 19 Feb 2022 07:52:02 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:57712 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234815AbiBSIVA (ORCPT
+        with ESMTP id S233494AbiBSMwB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 19 Feb 2022 03:21:00 -0500
-Received: from mail-pj1-x1044.google.com (mail-pj1-x1044.google.com [IPv6:2607:f8b0:4864:20::1044])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6F4F257DF2;
-        Sat, 19 Feb 2022 00:20:41 -0800 (PST)
-Received: by mail-pj1-x1044.google.com with SMTP id gf13-20020a17090ac7cd00b001bbfb9d760eso712062pjb.2;
-        Sat, 19 Feb 2022 00:20:41 -0800 (PST)
+        Sat, 19 Feb 2022 07:52:01 -0500
+Received: from mail-pf1-x42b.google.com (mail-pf1-x42b.google.com [IPv6:2607:f8b0:4864:20::42b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3EA7224587;
+        Sat, 19 Feb 2022 04:51:43 -0800 (PST)
+Received: by mail-pf1-x42b.google.com with SMTP id g1so4629171pfv.1;
+        Sat, 19 Feb 2022 04:51:43 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=m3jQLh0YdNXPEEyUOw44K4g0oe8/hf0ulZgcHgLx9jo=;
-        b=UDdeMpHb+ADZ1YRZdlHnorm5vg3KjI6D8ZHlPa0iN+84+m50PCRconsHLP/sV4tAVX
-         PQn4Y3jHjbEcUp5x+v+zKxxn/IRuP1EyGj9FZSKh04jV0WgKiN6XoMhiWVEHhJivdQBt
-         Iwmbx7hsnvOVtDCCepSGHZjGLxmz1BwvyKx0vConYCjNt5ln9KDAkOi0vcVuj3cO2JLm
-         SJ0FZm3BqUmOLM4gBgWrBbQ8j504fIcLmWJD/Dj8R9a/+ST5lkvUoucGXtrfzz/05cfR
-         suTlci4yIZH5XX++xp/wHPwh8OtkZxkfCW1+vuIulMUbYkL0p2yQ/ZawndaIW7APQ1AM
-         N9zw==
+        h=message-id:date:mime-version:user-agent:subject:content-language
+         :from:to:cc:references:in-reply-to:content-transfer-encoding;
+        bh=IMJgWx7dxr7dZx5sJ73qfcNpld1JI4tT0p225zF6cG0=;
+        b=dU/T2yqk+TgCmfiFg32eSwNa84h7ucHYxp5k0GjToJPUGg8v7ZihB1stJ++D67aQ3W
+         awd9XD+tPTro0CV5GOLHn0rUksImEBCRzv9NXCWW2tqzKuu1MQF7z6B6ZLcDmtBYzdWo
+         oUMVr57B7QWpLDosa6OWHGxNRc48/OoPNT0v9oG5u6cmzq9SkNzdadnRivYFHHOjb2rA
+         Jr0eyhUnHBkDjshM6OCuEk+YezSUQN8X+5oho8uBnZjDAPO38uIkHrG/gsGzswnRjegK
+         VIcV5EF5vGdYs7CopG20Pc9MYDG/GHtXQXF1tQsbPq4EltMLXC3nOHshSjY1ItkN0xrc
+         6A+A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=m3jQLh0YdNXPEEyUOw44K4g0oe8/hf0ulZgcHgLx9jo=;
-        b=e4yg8phJXVjLi2lwzFkJizsPN32HjiGPxhAB2vE8CyBBAWxWnenna/C/JnIGkRz4jm
-         BqDrZ53P2T+feV8uWbWk+LUu32rN/sw2ESwXlSowlul7Dnc4OAQtC9fx9hDsuQ7y8aCZ
-         SohTDHpaOS7AfO6tXOBjx3GA1grQGZLA6X3T53qWUimV+XqgG1JKvrMQZkUrgBx/e/Q0
-         k9pWtAUUfu7b1oSDML6IedikVDvk3JkGMpSp22ZWWwJUR+/Ra5lucRaSMsdGnQeYnLuh
-         /DaHmx87mTp44VG4z/y+bvxKsGJQzY+3olH/OSwjoC8yhCEOB/lwsZAlxvmuo3+fnaOX
-         L53w==
-X-Gm-Message-State: AOAM532T1QJNuCh+SzE4+pC5U4mpGiQyWOrcJ+YfF41WXMTTP+GAI2D7
-        bJjEmjW03vYbBH6C8zxnI9E=
-X-Google-Smtp-Source: ABdhPJyYGDpwbJKEdSs7arN9a0InB6ZHc0+YocdZM3abeAQBnq49MFYK+Lh+n6LuEC38NUCDl5vMxA==
-X-Received: by 2002:a17:902:ce87:b0:14d:743f:513d with SMTP id f7-20020a170902ce8700b0014d743f513dmr10645864plg.27.1645258841316;
-        Sat, 19 Feb 2022 00:20:41 -0800 (PST)
-Received: from localhost ([2405:201:6014:d0c0:6243:316e:a9e1:adda])
-        by smtp.gmail.com with ESMTPSA id rj3sm1504546pjb.49.2022.02.19.00.20.39
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 19 Feb 2022 00:20:40 -0800 (PST)
-Date:   Sat, 19 Feb 2022 13:50:37 +0530
-From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
-To:     Alexander Egorenkov <egorenar@linux.ibm.com>
-Cc:     Alexander.Egorenkov@ibm.com, andrii@kernel.org, ast@kernel.org,
-        bpf@vger.kernel.org, brouer@redhat.com, daniel@iogearbox.net,
-        fw@strlen.de, iii@linux.ibm.com, john.fastabend@gmail.com,
-        kafai@fb.com, maximmi@nvidia.com, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        songliubraving@fb.com, toke@redhat.com, yhs@fb.com
-Subject: Re: [PATCH bpf-next v8 00/10] Introduce unstable CT lookup helpers
-Message-ID: <20220219082037.ow2kbq5brktf4f2u@apollo.legion>
-References: <20220218222017.czshdolesamkqv4j@apollo.legion>
- <878ru7qp98.fsf@oc8242746057.ibm.com>
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
+         :content-language:from:to:cc:references:in-reply-to
+         :content-transfer-encoding;
+        bh=IMJgWx7dxr7dZx5sJ73qfcNpld1JI4tT0p225zF6cG0=;
+        b=mbkfqW03MeY0t+wpbvudVW6BXzRawQcGkjWjLbA5RaJCNAL/Vl+jo6vwgNv6bdPsWl
+         E2SXUqnfcLuIN/D/g+sOi0PKGXRp4Q+Nmlqd/lRt6uYEqvLw+n0agWQCY9iuE/nmW7Dv
+         R4QZYXtBZHC4RPYypv2f4mOSak3vwFEZJYQmyz0j8D20fRiyYV5OjaLvR6ku1BZuC0FU
+         vSEkdF+vuiIWgyENUi5muOvpzLwo69J4fvzCh7IVxaXm4rmttB6jldFR6cZ12qQPkWMX
+         zC05LUCifQ7PC1AdmjNAS9TqYslYSXQZyLadAfeKjxWsk/QzbjIauIJLvi6T0o5yKvC2
+         Db9w==
+X-Gm-Message-State: AOAM532YOhXKe5DrWj64OSSzZnSS+RoTJgvDhRIpprdUtnS47s5x279s
+        KKWp9EKfSg35nbj0tGd3pPA=
+X-Google-Smtp-Source: ABdhPJwO8xMzwzBLV7r4jxRlT9diEn26HFgySlHax5JoawxF3lfofBhUPh7s2vAQrZR/TVeGrJVCPA==
+X-Received: by 2002:a05:6a00:b41:b0:4e1:3a1:50a7 with SMTP id p1-20020a056a000b4100b004e103a150a7mr12427960pfo.30.1645275102690;
+        Sat, 19 Feb 2022 04:51:42 -0800 (PST)
+Received: from [192.168.99.7] (i220-99-138-239.s42.a013.ap.plala.or.jp. [220.99.138.239])
+        by smtp.googlemail.com with ESMTPSA id v20sm2181201pju.9.2022.02.19.04.51.38
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sat, 19 Feb 2022 04:51:42 -0800 (PST)
+Message-ID: <24910a58-5d23-a97c-650f-7b53030dd40d@gmail.com>
+Date:   Sat, 19 Feb 2022 21:51:37 +0900
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <878ru7qp98.fsf@oc8242746057.ibm.com>
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.6.0
+Subject: Re: [PATCH net-next 1/3] netfilter: flowtable: Support GRE
+Content-Language: en-US
+From:   Toshiaki Makita <toshiaki.makita1@gmail.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Saeed Mahameed <saeedm@nvidia.com>,
+        Jamal Hadi Salim <jhs@mojatatu.com>,
+        Cong Wang <xiyou.wangcong@gmail.com>,
+        Jiri Pirko <jiri@resnulli.us>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Paul Blakey <paulb@nvidia.com>
+References: <20220203115941.3107572-1-toshiaki.makita1@gmail.com>
+ <20220203115941.3107572-2-toshiaki.makita1@gmail.com>
+ <YgFdS0ak3LIR2waA@salvia> <9d4fd782-896d-4a44-b596-517c84d97d5a@gmail.com>
+ <YgOQ6a0itcJjQJqx@salvia> <8309e037-840d-0a7d-26c1-f07fda9ba744@gmail.com>
+In-Reply-To: <8309e037-840d-0a7d-26c1-f07fda9ba744@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Feb 19, 2022 at 01:09:15PM IST, Alexander Egorenkov wrote:
->
-> Hi Kartikeya,
->
-> sorry if i wasn't clear in my first message but just to be sure
-> we have no misunderstandings :)
->
-> .BTF sections work on s390x with linux-next and nf_conntrack as well if
-> the corresponding .BTF section is a part of the kernel module itself.
-> I tested it myself by building a linux-next kernel and testing it with a
-> KVM guest, i'm able to load nf_conntrack and it works.
->
-> In contrast, in the case where the corresponding .BTF section is separate
-> from the kernel module nf_conntrack, it fails with the message i
-> provided in the first email.
->
-> Therefore, my question is, does BTF for kernel modules work if the
-> corresponding BTF section is NOT a part of the kernel module but instead
-> is stored within the corresponding debuginfo file
-> /usr/lib/debug/lib/modules/*/kernel/net/netfilter/nf_conntrack.ko.debug ?
->
+Ping, Pablo?
 
-Ah, I see, thanks for the clarification.
-
-Currently module BTF is parsed during module load, so unless we can extend the
-kernel to pass BTF from a separate debuginfo during modprobe, and associate it
-with the loaded module, it won't work. You also won't be able to make the kfunc
-call from BPF program, as it would require module BTF fd during prog load.
-
-Still, we can probably remove the error and return 0 when btf == NULL, even if
-Kconfig option CONFIG_DEBUG_INFO_BTF is set. I was assuming it would never be
-the case that the option is set and btf is not available after successful
-parsing, but clearly that is wrong.
-
-If the BPF maintainers agree this is ok, feel free to send a fix to remove the
-error.
-
-> Thanks
-> Regards
-> Alex
->
->
->
-
---
-Kartikeya
+On 2022/02/12 10:54, Toshiaki Makita wrote:
+> On 2022/02/09 19:01, Pablo Neira Ayuso wrote:
+>> On Tue, Feb 08, 2022 at 11:30:03PM +0900, Toshiaki Makita wrote:
+>>> On 2022/02/08 2:56, Pablo Neira Ayuso wrote:
+>>>> On Thu, Feb 03, 2022 at 08:59:39PM +0900, Toshiaki Makita wrote:
+>> [...]
+>>>>> diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+>>>>> index 889cf88..48e2f58 100644
+>>>>> --- a/net/netfilter/nf_flow_table_ip.c
+>>>>> +++ b/net/netfilter/nf_flow_table_ip.c
+>> [...]
+>>>>> @@ -202,15 +209,25 @@ static int nf_flow_tuple_ip(struct sk_buff *skb, const 
+>>>>> struct net_device *dev,
+>>>>>        if (!pskb_may_pull(skb, thoff + *hdrsize))
+>>>>>            return -1;
+>>>>> +    if (ipproto == IPPROTO_GRE) {
+>>>>
+>>>> No ifdef here? Maybe remove these ifdef everywhere?
+>>>
+>>> I wanted to avoid adding many ifdefs and I expect this to be compiled out
+>>> when CONFIG_NF_CT_PROTO_GRE=n as this block is unreachable anyway. It rather
+>>> may have been unintuitive though.
+>>>
+>>> Removing all of these ifdefs will cause inconsistent behavior between
+>>> CONFIG_NF_CT_PROTO_GRE=n/y.
+>>> When CONFIG_NF_CT_PROTO_GRE=n, conntrack cannot determine GRE version, thus
+>>> it will track GREv1 without key infomation, and the flow will be offloaded.
+>>> When CONFIG_NF_CT_PROTO_GRE=y, GREv1 will have key information and will not
+>>> be offloaded.
+>>> I wanted to just refuse offloading of GRE to avoid this inconsistency.
+>>> Anyway this kind of inconsistency seems to happen in software conntrack, so
+>>> if you'd like to remove ifdefs, I will do.
+>>
+>> Good point, thanks for explaining. LGTM.
+> 
+> Let me confirm, did you agree to keep ifdefs, or delete them?
+> 
+> Toshiaki Makita
