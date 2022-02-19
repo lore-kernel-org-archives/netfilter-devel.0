@@ -2,64 +2,52 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C883C433F5
-	for <netfilter-devel@archiver.kernel.org>; Sat, 19 Feb 2022 13:39:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C3AFC433EF
+	for <netfilter-devel@archiver.kernel.org>; Sat, 19 Feb 2022 13:42:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239565AbiBSNj3 (ORCPT
+        id S242349AbiBSNmU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 19 Feb 2022 08:39:29 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:53382 "EHLO
+        Sat, 19 Feb 2022 08:42:20 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:35098 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231447AbiBSNj2 (ORCPT
+        with ESMTP id S231447AbiBSNmU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 19 Feb 2022 08:39:28 -0500
+        Sat, 19 Feb 2022 08:42:20 -0500
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 656FF132954
-        for <netfilter-devel@vger.kernel.org>; Sat, 19 Feb 2022 05:39:09 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 740AA6557
+        for <netfilter-devel@vger.kernel.org>; Sat, 19 Feb 2022 05:42:01 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1nLPx5-0007aB-V1; Sat, 19 Feb 2022 14:39:07 +0100
+        (envelope-from <fw@strlen.de>)
+        id 1nLPzr-0007ae-QK; Sat, 19 Feb 2022 14:41:59 +0100
+Date:   Sat, 19 Feb 2022 14:41:59 +0100
 From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH libnftnl] exthdr: tcp option reset support
-Date:   Sat, 19 Feb 2022 14:39:04 +0100
-Message-Id: <20220219133904.13465-1-fw@strlen.de>
-X-Mailer: git-send-email 2.35.1
+To:     Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [nf-next PATCH] netfilter: conntrack: Relax helper
+ auto-assignment warning for nftables
+Message-ID: <20220219134159.GB27537@breakpoint.cc>
+References: <20220219132024.29328-1-phil@nwl.cc>
+ <20220219132547.GA27537@breakpoint.cc>
+ <YhDxiXjhNrPLW9Oc@orbyte.nwl.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <YhDxiXjhNrPLW9Oc@orbyte.nwl.cc>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Adds print debug support for tcp reset feature.
+Phil Sutter <phil@nwl.cc> wrote:
+> I tried, but nf_ct_pernet() is not usable from module context, or
+> actually symbol nf_conntrack_net_id. So I had to introduce a routine to
+> set the value. On the other hand I didn't like the fact that it would
+> permanently disable the warning even after 'nft flush ruleset'
+> (nit-picking).
+> I can recover that approach and send a v2 if you think (re-)using refcnt
+> is a bad idea here.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- src/expr/exthdr.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+I think its a good idea to add a helper function disable the warning.
 
-diff --git a/src/expr/exthdr.c b/src/expr/exthdr.c
-index 1b813b1e47c4..625dd5d3d0a4 100644
---- a/src/expr/exthdr.c
-+++ b/src/expr/exthdr.c
-@@ -247,10 +247,15 @@ nftnl_expr_exthdr_snprintf(char *buf, size_t len,
- 				exthdr->offset,
- 				exthdr->flags & NFT_EXTHDR_F_PRESENT ? " present" : "",
- 				exthdr->dreg);
--	else
-+	else if (e->flags & (1 << NFTNL_EXPR_EXTHDR_SREG))
- 		return snprintf(buf, len, "write%s reg %u => %ub @ %u + %u ",
- 				op2str(exthdr->op), exthdr->sreg, exthdr->len, exthdr->type,
- 				exthdr->offset);
-+	else if (exthdr->op == NFT_EXTHDR_OP_TCPOPT && exthdr->len == 0)
-+		return snprintf(buf, len, "reset tcpopt %u ", exthdr->type);
-+	else
-+		return snprintf(buf, len, "op %u len %u type %u offset %u ",
-+				exthdr->op, exthdr->len, exthdr->type, exthdr->offset);
- 
- }
- 
--- 
-2.35.1
-
+We can also call it from xt_CT.c.
