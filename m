@@ -2,42 +2,42 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 672AAC433F5
-	for <netfilter-devel@archiver.kernel.org>; Sat, 19 Feb 2022 13:29:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3374C433F5
+	for <netfilter-devel@archiver.kernel.org>; Sat, 19 Feb 2022 13:29:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231440AbiBSN3k (ORCPT
+        id S234333AbiBSN3p (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 19 Feb 2022 08:29:40 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:40806 "EHLO
+        Sat, 19 Feb 2022 08:29:45 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:41176 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234333AbiBSN3j (ORCPT
+        with ESMTP id S234261AbiBSN3o (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 19 Feb 2022 08:29:39 -0500
+        Sat, 19 Feb 2022 08:29:44 -0500
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3AEA670CCF
-        for <netfilter-devel@vger.kernel.org>; Sat, 19 Feb 2022 05:29:20 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 83ED975C0D
+        for <netfilter-devel@vger.kernel.org>; Sat, 19 Feb 2022 05:29:25 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
         s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=EGqj2mfkIpy4JEQZtah0+CSAkB9QLxMNv/gVkQWJ5X8=; b=fVFK8PlsgzI+ViMZJN+1GjzDoo
-        nc+dkZ85F1zENumvMh9kuwv6FRXyzC2H93Py873E7N1vNQHCW18/hbHoRRXX0X77OEBLeoUCEefYC
-        Dpu0l94lJxVUI6iQv7Q2OYi26Z/BODEI9PwhuMGd+5jvhkoKB16zvwlXBLm3foAQvzEaVOHrfdvwB
-        pi+WxSJX6p6TcygLtCTDjMGg9ushQU8xsmdahMA1jLmr4tLq1go0jGh0oa1We2j/duovXaB+3Jwk9
-        RwmpSmG1tJ4ZaxQK2JBI/KO+eJVMX/q6tE9bK7+kyIoNIg4bLQrZ9DkB2nWK7UK4xYJ5COB/ZHwYr
-        C0bpelxA==;
+        bh=b91L/O3MBiY2awj9yu2j53rBo1oJiQBHNQXmsdQEqL0=; b=LDXjL9B2QUiqxJUj8BBMUVBeW+
+        Myq9iwJeuA1wCfp30aKB3HzCoGz3nh98K4iq+w7BnhiB5o5ZBTYuMo8CtPg1Kg2aHCSjqj30Sgrn/
+        7ZSzARpueXrayw30SsLl/ifRoXIu+GyMv/LNNp12HdXZ2nSo05miYtFQiR66vCkrw3vSCnl9ogCRB
+        ufzGx4UDOOeU6vZ82zr5KRrfjKV3IDIDQdetp15e7kZpD6Q8EWq7XiELFvlK+YyTYhi5j9Fvl3nz9
+        2bKV1q/+0Zus6C5yRGTa9/fzqHE8/3ZDEhjJTjGeeSMTK0G4MKiVO/Wmos2orhPJV2ec3Ssb81C66
+        to5PhEdQ==;
 Received: from localhost ([::1] helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1nLPna-0002Yf-MW; Sat, 19 Feb 2022 14:29:18 +0100
+        id 1nLPng-0002Z7-0I; Sat, 19 Feb 2022 14:29:24 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 26/26] scanner: dup, fwd, tproxy: Move to own scopes
-Date:   Sat, 19 Feb 2022 14:28:14 +0100
-Message-Id: <20220219132814.30823-27-phil@nwl.cc>
+Subject: [nft PATCH 07/26] scanner: tcp: Move to own scope
+Date:   Sat, 19 Feb 2022 14:27:55 +0100
+Message-Id: <20220219132814.30823-8-phil@nwl.cc>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20220219132814.30823-1-phil@nwl.cc>
 References: <20220219132814.30823-1-phil@nwl.cc>
@@ -47,124 +47,124 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-With these three scopes in place, keyword 'to' may be isolated.
+Apart from header fields, this isolates TCP option types and
+fields, too.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- include/parser.h   |  3 +++
- src/parser_bison.y |  9 ++++++---
- src/scanner.l      | 11 +++++++----
- 3 files changed, 16 insertions(+), 7 deletions(-)
+ src/parser_bison.y |  2 +-
+ src/scanner.l      | 60 +++++++++++++++++++++++++++-------------------
+ 2 files changed, 36 insertions(+), 26 deletions(-)
 
-diff --git a/include/parser.h b/include/parser.h
-index bc42229c1a83b..f32154cca44d3 100644
---- a/include/parser.h
-+++ b/include/parser.h
-@@ -75,10 +75,13 @@ enum startcond_type {
- 	PARSER_SC_EXPR_UDP,
- 	PARSER_SC_EXPR_UDPLITE,
- 
-+	PARSER_SC_STMT_DUP,
-+	PARSER_SC_STMT_FWD,
- 	PARSER_SC_STMT_LOG,
- 	PARSER_SC_STMT_NAT,
- 	PARSER_SC_STMT_REJECT,
- 	PARSER_SC_STMT_SYNPROXY,
-+	PARSER_SC_STMT_TPROXY,
- };
- 
- struct mnl_socket;
 diff --git a/src/parser_bison.y b/src/parser_bison.y
-index cd6f22ef8e915..7856b3f222780 100644
+index 6340bda6cc585..55f3b2bc35bec 100644
 --- a/src/parser_bison.y
 +++ b/src/parser_bison.y
-@@ -934,12 +934,14 @@ close_scope_ct		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_CT); };
- close_scope_counter	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_COUNTER); };
- close_scope_dccp	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_DCCP); };
- close_scope_dst		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_DST); };
-+close_scope_dup		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_STMT_DUP); };
- close_scope_esp		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_ESP); };
- close_scope_eth		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_ETH); };
- close_scope_export	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_CMD_EXPORT); };
- close_scope_fib		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_FIB); };
- close_scope_flags	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_FLAGS); };
- close_scope_frag	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_FRAG); };
-+close_scope_fwd		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_STMT_FWD); };
- close_scope_hash	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_HASH); };
- close_scope_hbh		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_HBH); };
- close_scope_ip		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_IP); };
-@@ -968,6 +970,7 @@ close_scope_sctp_chunk	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_S
+@@ -942,13 +942,13 @@ close_scope_list	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_CMD_LIST); }
+ close_scope_limit	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_LIMIT); };
+ close_scope_numgen	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_NUMGEN); };
+ close_scope_quota	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_QUOTA); };
+-close_scope_tcp		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_TCP); }
+ close_scope_queue	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_QUEUE); };
+ close_scope_rt		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_RT); };
+ close_scope_sctp	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_SCTP); };
+ close_scope_sctp_chunk	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_SCTP_CHUNK); };
  close_scope_secmark	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_SECMARK); };
  close_scope_socket	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_SOCKET); }
- close_scope_tcp		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_TCP); };
-+close_scope_tproxy	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_STMT_TPROXY); };
- close_scope_type	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_TYPE); };
- close_scope_th		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_TH); };
- close_scope_udp		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_UDP); };
-@@ -2843,13 +2846,13 @@ stmt			:	verdict_stmt
- 			|	log_stmt	close_scope_log
- 			|	reject_stmt	close_scope_reject
- 			|	nat_stmt	close_scope_nat
--			|	tproxy_stmt
-+			|	tproxy_stmt	close_scope_tproxy
- 			|	queue_stmt
- 			|	ct_stmt
- 			|	masq_stmt	close_scope_nat
- 			|	redir_stmt	close_scope_nat
--			|	dup_stmt
--			|	fwd_stmt
-+			|	dup_stmt	close_scope_dup
-+			|	fwd_stmt	close_scope_fwd
- 			|	set_stmt
- 			|	map_stmt
- 			|	synproxy_stmt	close_scope_synproxy
++close_scope_tcp		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_TCP); };
+ 
+ close_scope_log		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_STMT_LOG); }
+ 
 diff --git a/src/scanner.l b/src/scanner.l
-index be01c6f3b3bc6..fd1cf059a608f 100644
+index a584b5fba39b4..95dcd0330bd3e 100644
 --- a/src/scanner.l
 +++ b/src/scanner.l
-@@ -241,10 +241,13 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- %s SCANSTATE_EXPR_UDP
- %s SCANSTATE_EXPR_UDPLITE
+@@ -468,30 +468,46 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
  
-+%s SCANSTATE_STMT_DUP
-+%s SCANSTATE_STMT_FWD
- %s SCANSTATE_STMT_LOG
- %s SCANSTATE_STMT_NAT
- %s SCANSTATE_STMT_REJECT
- %s SCANSTATE_STMT_SYNPROXY
-+%s SCANSTATE_STMT_TPROXY
- 
- %%
- 
-@@ -328,7 +331,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- 	"cgroupv2"		{ return CGROUPV2; }
- 	"level"			{ return LEVEL; }
+ 	"ptr"			{ return PTR; }
+ 	"value"			{ return VALUE; }
++
++	"option"		{ return OPTION; }
++	"options"		{ return OPTIONS; }
  }
--"tproxy"		{ return TPROXY; }
-+"tproxy"		{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_TPROXY); return TPROXY; }
  
- "accept"		{ return ACCEPT; }
- "drop"			{ return DROP; }
-@@ -336,7 +339,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "jump"			{ return JUMP; }
- "goto"			{ return GOTO; }
- "return"		{ return RETURN; }
--"to"			{ return TO; }
-+<SCANSTATE_EXPR_QUEUE,SCANSTATE_STMT_DUP,SCANSTATE_STMT_FWD,SCANSTATE_STMT_NAT,SCANSTATE_STMT_TPROXY,SCANSTATE_FLAGS,SCANSTATE_IP,SCANSTATE_IP6>"to"			{ return TO; } /* XXX: SCANSTATE_FLAGS and SCANSTATE_IP here are workarounds */
+ <SCANSTATE_TCP>{
+-"echo"			{ return ECHO; }
+-"eol"			{ return EOL; }
+-"fastopen"		{ return FASTOPEN; }
+-"mptcp"			{ return MPTCP; }
+-"md5sig"		{ return MD5SIG; }
+-"subtype"		{ return SUBTYPE; }
+-"nop"			{ return NOP; }
+-"noop"			{ return NOP; }
+-"sack"			{ return SACK; }
+-"sack0"			{ return SACK0; }
+-"sack1"			{ return SACK1; }
+-"sack2"			{ return SACK2; }
+-"sack3"			{ return SACK3; }
+-"time"			{ return TIME; }
++	/* tcp header fields */
++	"ackseq"		{ return ACKSEQ; }
++	"doff"			{ return DOFF; }
++	"window"		{ return WINDOW; }
++	"urgptr"		{ return URGPTR; }
++
++	/* tcp option types */
++	"echo"			{ return ECHO; }
++	"eol"			{ return EOL; }
++	"maxseg"		{ return MSS; }
++	"mss"			{ return MSS; }
++	"nop"			{ return NOP; }
++	"noop"			{ return NOP; }
++	"sack"			{ return SACK; }
++	"sack0"			{ return SACK0; }
++	"sack1"			{ return SACK1; }
++	"sack2"			{ return SACK2; }
++	"sack3"			{ return SACK3; }
++	"fastopen"		{ return FASTOPEN; }
++	"mptcp"			{ return MPTCP; }
++	"md5sig"		{ return MD5SIG; }
++
++	/* tcp option fields */
++	"left"			{ return LEFT; }
++	"right"			{ return RIGHT; }
++	"count"			{ return COUNT; }
++	"tsval"			{ return TSVAL; }
++	"tsecr"			{ return TSECR; }
++	"subtype"		{ return SUBTYPE; }
  
- "inet"			{ return INET; }
- "netdev"		{ return NETDEV; }
-@@ -759,8 +762,8 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- 	"mod"		{ return MOD; }
- 	"offset"	{ return OFFSET; }
+-"count"			{ return COUNT; }
+-"left"			{ return LEFT; }
+-"right"			{ return RIGHT; }
+-"tsval"			{ return TSVAL; }
+-"tsecr"			{ return TSECR; }
++	"options"		{ return OPTIONS; }
++	"option"		{ return OPTION; }
  }
--"dup"			{ return DUP; }
--"fwd"			{ return FWD; }
-+"dup"			{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_DUP); return DUP; }
-+"fwd"			{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_FWD); return FWD; }
++"time"			{ return TIME; }
+ "maxseg"		{ return MSS; }
+ "mss"			{ return MSS; }
+ "sack-permitted"	{ return SACK_PERM; }
+@@ -540,11 +556,6 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "port"			{ return PORT; }
  
- "fib"			{ scanner_push_start_cond(yyscanner, SCANSTATE_EXPR_FIB); return FIB; }
+ "tcp"			{ scanner_push_start_cond(yyscanner, SCANSTATE_TCP); return TCP; }
+-"ackseq"		{ return ACKSEQ; }
+-"doff"			{ return DOFF; }
+-"window"		{ return WINDOW; }
+-"urgptr"		{ return URGPTR; }
+-"option"		{ return OPTION; }
  
+ "dccp"			{ return DCCP; }
+ 
+@@ -688,7 +699,6 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ 
+ "notrack"		{ return NOTRACK; }
+ 
+-"options"		{ return OPTIONS; }
+ "all"			{ return ALL; }
+ 
+ "xml"			{ return XML; }
 -- 
 2.34.1
 
