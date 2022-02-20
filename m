@@ -2,59 +2,128 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DEAFBC433EF
-	for <netfilter-devel@archiver.kernel.org>; Sat, 19 Feb 2022 14:02:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F139BC4332F
+	for <netfilter-devel@archiver.kernel.org>; Sun, 20 Feb 2022 00:30:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231447AbiBSODQ (ORCPT
+        id S241848AbiBTAa6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 19 Feb 2022 09:03:16 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:54960 "EHLO
+        Sat, 19 Feb 2022 19:30:58 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:52208 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229626AbiBSODP (ORCPT
+        with ESMTP id S241666AbiBTAa5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 19 Feb 2022 09:03:15 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 62FE75AEF5
-        for <netfilter-devel@vger.kernel.org>; Sat, 19 Feb 2022 06:02:56 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1nLQK6-0002z7-7Y; Sat, 19 Feb 2022 15:02:54 +0100
-Date:   Sat, 19 Feb 2022 15:02:54 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [nf-next PATCH] netfilter: conntrack: Relax helper
- auto-assignment warning for nftables
-Message-ID: <YhD4jmfJE1MSdnzg@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20220219132024.29328-1-phil@nwl.cc>
- <20220219132547.GA27537@breakpoint.cc>
- <YhDxiXjhNrPLW9Oc@orbyte.nwl.cc>
- <20220219134159.GB27537@breakpoint.cc>
+        Sat, 19 Feb 2022 19:30:57 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8F1C742A12
+        for <netfilter-devel@vger.kernel.org>; Sat, 19 Feb 2022 16:30:37 -0800 (PST)
+Received: from localhost.localdomain (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 13A1B60212
+        for <netfilter-devel@vger.kernel.org>; Sun, 20 Feb 2022 01:29:46 +0100 (CET)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft,v2 1/5] src: add EXPR_F_KERNEL to identify expression in the kernel
+Date:   Sun, 20 Feb 2022 01:30:20 +0100
+Message-Id: <20220220003024.23317-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220219134159.GB27537@breakpoint.cc>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Feb 19, 2022 at 02:41:59PM +0100, Florian Westphal wrote:
-> Phil Sutter <phil@nwl.cc> wrote:
-> > I tried, but nf_ct_pernet() is not usable from module context, or
-> > actually symbol nf_conntrack_net_id. So I had to introduce a routine to
-> > set the value. On the other hand I didn't like the fact that it would
-> > permanently disable the warning even after 'nft flush ruleset'
-> > (nit-picking).
-> > I can recover that approach and send a v2 if you think (re-)using refcnt
-> > is a bad idea here.
-> 
-> I think its a good idea to add a helper function disable the warning.
-> 
-> We can also call it from xt_CT.c.
+This allows to identify the set elements that reside in the kernel.
 
-OK, I'll prepare a v2. Thanks!
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: no changes
+
+ include/expression.h |  2 ++
+ src/netlink.c        |  1 +
+ src/segtree.c        | 10 ++++++++--
+ 3 files changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/include/expression.h b/include/expression.h
+index 742fcdd7bf75..09393f9c2372 100644
+--- a/include/expression.h
++++ b/include/expression.h
+@@ -190,6 +190,7 @@ const struct expr_ops *expr_ops_by_type(enum expr_types etype);
+  * @EXPR_F_INTERVAL_END:	set member ends an open interval
+  * @EXPR_F_BOOLEAN:		expression is boolean (set by relational expr on LHS)
+  * @EXPR_F_INTERVAL:		expression describes a interval
++ * @EXPR_F_KERNEL:		expression resides in the kernel
+  */
+ enum expr_flags {
+ 	EXPR_F_CONSTANT		= 0x1,
+@@ -198,6 +199,7 @@ enum expr_flags {
+ 	EXPR_F_INTERVAL_END	= 0x8,
+ 	EXPR_F_BOOLEAN		= 0x10,
+ 	EXPR_F_INTERVAL		= 0x20,
++	EXPR_F_KERNEL		= 0x40,
+ };
+ 
+ #include <payload.h>
+diff --git a/src/netlink.c b/src/netlink.c
+index ac73e96f9d24..642c28773b98 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -1273,6 +1273,7 @@ key_end:
+ 	}
+ 
+ 	expr = set_elem_expr_alloc(&netlink_location, key);
++	expr->flags |= EXPR_F_KERNEL;
+ 
+ 	if (nftnl_set_elem_is_set(nlse, NFTNL_SET_ELEM_TIMEOUT))
+ 		expr->timeout	 = nftnl_set_elem_get_u64(nlse, NFTNL_SET_ELEM_TIMEOUT);
+diff --git a/src/segtree.c b/src/segtree.c
+index a61ea3d2854a..832bc7dd1402 100644
+--- a/src/segtree.c
++++ b/src/segtree.c
+@@ -1060,9 +1060,10 @@ void interval_map_decompose(struct expr *set)
+ 
+ 		mpz_and(p, expr_value(low)->value, range);
+ 
+-		if (!mpz_cmp_ui(range, 0))
++		if (!mpz_cmp_ui(range, 0)) {
++			low->flags |= EXPR_F_KERNEL;
+ 			compound_expr_add(set, expr_get(low));
+-		else if ((!range_is_prefix(range) ||
++		} else if ((!range_is_prefix(range) ||
+ 			  !(i->dtype->flags & DTYPE_F_PREFIX)) ||
+ 			 mpz_cmp_ui(p, 0)) {
+ 			struct expr *tmp;
+@@ -1087,6 +1088,7 @@ void interval_map_decompose(struct expr *set)
+ 			} else {
+ 				interval_expr_copy(tmp, low);
+ 			}
++			tmp->flags |= EXPR_F_KERNEL;
+ 
+ 			compound_expr_add(set, tmp);
+ 		} else {
+@@ -1109,6 +1111,7 @@ void interval_map_decompose(struct expr *set)
+ 			} else {
+ 				interval_expr_copy(prefix, low);
+ 			}
++			prefix->flags |= EXPR_F_KERNEL;
+ 
+ 			compound_expr_add(set, prefix);
+ 		}
+@@ -1134,6 +1137,7 @@ void interval_map_decompose(struct expr *set)
+ 		i = range_expr_alloc(&low->location,
+ 				     expr_clone(expr_value(low)), i);
+ 		i = set_elem_expr_alloc(&low->location, i);
++
+ 		if (low->etype == EXPR_MAPPING) {
+ 			i = mapping_expr_alloc(&i->location, i,
+ 					       expr_clone(low->right));
+@@ -1141,6 +1145,8 @@ void interval_map_decompose(struct expr *set)
+ 		} else {
+ 			interval_expr_copy(i, low);
+ 		}
++		i->flags |= EXPR_F_KERNEL;
++
+ 		expr_free(low);
+ 	}
+ 
+-- 
+2.30.2
+
