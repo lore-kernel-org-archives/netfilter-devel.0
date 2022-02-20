@@ -2,53 +2,53 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1745C43219
-	for <netfilter-devel@archiver.kernel.org>; Sun, 20 Feb 2022 13:48:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9432C433EF
+	for <netfilter-devel@archiver.kernel.org>; Sun, 20 Feb 2022 13:48:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243904AbiBTNtO (ORCPT
+        id S243905AbiBTNtQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 20 Feb 2022 08:49:14 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:49780 "EHLO
+        Sun, 20 Feb 2022 08:49:16 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:50520 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243889AbiBTNtD (ORCPT
+        with ESMTP id S243916AbiBTNtP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 20 Feb 2022 08:49:03 -0500
-Received: from mail-pf1-x442.google.com (mail-pf1-x442.google.com [IPv6:2607:f8b0:4864:20::442])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C8B0921813;
-        Sun, 20 Feb 2022 05:48:41 -0800 (PST)
-Received: by mail-pf1-x442.google.com with SMTP id i21so6403317pfd.13;
-        Sun, 20 Feb 2022 05:48:41 -0800 (PST)
+        Sun, 20 Feb 2022 08:49:15 -0500
+Received: from mail-pg1-x544.google.com (mail-pg1-x544.google.com [IPv6:2607:f8b0:4864:20::544])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D511653732;
+        Sun, 20 Feb 2022 05:48:53 -0800 (PST)
+Received: by mail-pg1-x544.google.com with SMTP id s16so12001635pgs.13;
+        Sun, 20 Feb 2022 05:48:53 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=pIC5+WXrEeyIxvYSwThdX0RKAIalXL8BJkc2S7tcfKw=;
-        b=U09A3aHEWLcSZtIQs1bZGdvaq6QvKB6EcaoJk8Il0kaUMuCnQgG3EeKbHAL0uZhhgu
-         81fImhEsABSb++rzCwIsZUrGFdrl/w3WkH58rxYcxTHxdOOLneZg3YAr++e7fjJA0tJH
-         0u3yuMB6QmBL/UxZ7jqUzaBaZeCpv618APzpMfkreTuY7D4BJvmDTDqu/s3axFgKRQkh
-         yzUoV8tDWTs0KGisddQlB24bP/RFJuxCjoX6XN+Kl3e28cuyIKbMa2V+kAdId/AF/VaL
-         ylyltQqaGBF4vjOHiYi28Q3tidValepLrB0eN5fOv2Kdj2r25D0NkHEwRxVsmMIg8N7e
-         U8og==
+        bh=v7r7FHu3QAUhr3+7QG+/dRRC3q80hrKg8AEc1n+/igo=;
+        b=kHV+QJWieq0jGqRzueAF4rk9YMSlkJUsWMJ3wTg9+D5mbEVNh9ZjZKV2OOgbZJrdSS
+         0ZMivsWI1P3+twe5PtEM56UQJE6a8tpF50RdHFXMvCYuL5bmLxmxYrkba9Z8s5ZJ9J0b
+         jO0wrxgeYgiJzktjgdjzjWdXHlPpUMlOsK3vktXyFyuHitM1wq3rvJ2L1OgFOoOFJV21
+         /3WdnPWA4WS4WhyZksbJHHjmBSLZSNEw407pTHU++Z1dc8s5uC4510c4MZw0/LPTmCql
+         C2MyQgHK3S+W7Gefgabgfvqn+6wTmV1/uiMmn1kCAet8cub2h8qEhXhuTuryw7dggfXt
+         LWZA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=pIC5+WXrEeyIxvYSwThdX0RKAIalXL8BJkc2S7tcfKw=;
-        b=hsdMdzQ9S2zSW6h23c/hF7VQDVnSgVNJweKUkZwVOqFKDRKF9IIwpSByYLf0vM6PjL
-         r6+0KSNHrjIPucJ3j+5qmlDjCcPMCSAtMQFDJK1ZwkjymWNcUvm2PaEekKsOAWZ8vVgZ
-         fUVZri7AJTSDV22/o4mwN8pcnfPIkPUjaJg/q1t9rJvB2kWQOrZkwRrFhPA47n3J4f5z
-         49Vb7S/Mypdq4wPn3GI04z3G5mwqctPmOmWaUihuUxg92XfLDemxRlVFdye21EnOotBm
-         3326xMa3f3OGqHhxZo1Xikp1/SDO/NBMwgusUYVuylpatv8GNAiCbM7ynJCfBOxZj1jv
-         kOqQ==
-X-Gm-Message-State: AOAM5312p5QxXCOmfQ1I2eelFG9kQSuLL7YMylf60qoHjjExU5t277DS
-        lypIjTJrW4BaSiaYnh4DJSQTneCmsTk=
-X-Google-Smtp-Source: ABdhPJzVaiY8SWSJqGrRIImmIAebrxfjydSNtUMRtokoWlWFgeHPxDXgj6g2I+oEAcAkY8wnUxAEGw==
-X-Received: by 2002:a65:4c0f:0:b0:373:f389:b7e0 with SMTP id u15-20020a654c0f000000b00373f389b7e0mr7104280pgq.411.1645364921086;
-        Sun, 20 Feb 2022 05:48:41 -0800 (PST)
+        bh=v7r7FHu3QAUhr3+7QG+/dRRC3q80hrKg8AEc1n+/igo=;
+        b=ThBUZ51Ar44Py30x7qmynSpBSTILQ5VjW+Jia20sdZogjELv73f+5ul5cnRuuIHoZC
+         +B+5nV9llOQqzluSi6X1XRnG/otviqtUCat51d/viQAZtteqGCALXsj+rRXizFUZ1xn4
+         LImzlLTmTI/cGYa6f+c0f8Yg405dQIeS2jywdSEykegWxeMQHT7Bbn44A/ce3gKQiCHF
+         +5e22J6YF25cNMUbsxKOXOzss6Kv5Krp1q3l6NC2w0UlHz3vOKtIMZgwY8nwaY0Cnz32
+         SCf1IDjfq/oCrDLcw8Nx+C2m21bthPIlRFv4+0AIvLct7U5Duo0p5mc0lSBkmSMqv2zm
+         7fCA==
+X-Gm-Message-State: AOAM5313IfAF0QVsJJyH8MYZEc08UuBMuDCZrQvRHKeM7YnSHxb7xHl4
+        KsEMjt1zidzEfH8+3F+MfvGsUuZWdm8=
+X-Google-Smtp-Source: ABdhPJzK6kwqZpGGf6MnW/pEFOYgmd5WWEWPXLCg7HUqFdLFyn7nGenJJvSrroh8qdfi6ANthhc8vg==
+X-Received: by 2002:a05:6a00:124b:b0:4f0:eaa7:4677 with SMTP id u11-20020a056a00124b00b004f0eaa74677mr11208398pfi.85.1645364933191;
+        Sun, 20 Feb 2022 05:48:53 -0800 (PST)
 Received: from localhost ([2405:201:6014:d0c0:6243:316e:a9e1:adda])
-        by smtp.gmail.com with ESMTPSA id g20sm9526597pfj.64.2022.02.20.05.48.40
+        by smtp.gmail.com with ESMTPSA id v13sm10118464pfu.196.2022.02.20.05.48.52
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 20 Feb 2022 05:48:40 -0800 (PST)
+        Sun, 20 Feb 2022 05:48:52 -0800 (PST)
 From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
 To:     bpf@vger.kernel.org
 Cc:     Alexei Starovoitov <ast@kernel.org>,
@@ -57,183 +57,284 @@ Cc:     Alexei Starovoitov <ast@kernel.org>,
         =?UTF-8?q?Toke=20H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>,
         Jesper Dangaard Brouer <hawk@kernel.org>,
         netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: [PATCH bpf-next v1 08/15] bpf: Adapt copy_map_value for multiple offset case
-Date:   Sun, 20 Feb 2022 19:18:06 +0530
-Message-Id: <20220220134813.3411982-9-memxor@gmail.com>
+Subject: [PATCH bpf-next v1 12/15] net/netfilter: Add bpf_ct_kptr_get helper
+Date:   Sun, 20 Feb 2022 19:18:10 +0530
+Message-Id: <20220220134813.3411982-13-memxor@gmail.com>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220220134813.3411982-1-memxor@gmail.com>
 References: <20220220134813.3411982-1-memxor@gmail.com>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=5506; h=from:subject; bh=QC3eOPhRZ70Vfv0ZVgnLYlIXFjYgOARRsEoQm0vCP0c=; b=owEBbQKS/ZANAwAIAUzgyIZIvxHKAcsmYgBiEkZX8enrcy5zjuM51gXuZUW/extU3HrWA0LHh0RX sZCmGKKJAjMEAAEIAB0WIQRLvip+Buz51YI8YRFM4MiGSL8RygUCYhJGVwAKCRBM4MiGSL8RyudYD/ 4+0UiSISVfkfKRAa6IDsSX+iz6hWQgpXqBpxv2NMjJbQrxDmhk8/89wG/4gfFXl0WH8uLHalZsgbzs ttYc3Pi+/Hve9coTHxnli32ex5dQzRwpl7YbZJDKcwgr2zL/dSxLp4wl5RNrCpRZC8LNI4FMBbNLhB CwOz4Xv5HRvqTidT9lEFP4qAs2bI+FdC/U1ZabHtOXOMiLly77NXPIZkUI/sCdJ/L2fWUMk6XuWGDJ 4Pc7z/wCXTaIwsAvS2RlnhCT9aroZU5PXTolVL8ok/DgJLlVEwsdAud8Jlp0tZnSZotni2V1CqYQhH i3Q6zrQJHOhJ3b0FNEs6LluKjqmxjjzhxsns3yy81t2LW2w+xhrvOEVVf3KhDsVQ4vdRIEzgNoPP2c sDhKYVMCks9ViyZ8fMzFFXx5xGqPhFVmHe8Otuvc7UbcBNrBuyozNsKzi9VxSZxOx4TAVUb7ddeUKd cGZTtGQdleE4gYPr/SbkOMB+rtcfWB3ZhxrepvVwRHpoinTZTqcb5YRC53sgOGfKsYxcP98ePqEarD SWY3wTAwyvg93CrMgTfSL5m2GVUC1yhtmixv62g777r+13GHA8DIlQbImXTlIBc1Oxd2jY9zJJ1TZv wN264PZEcjPRZ0CTmqdbUTazUWarPGIKuyvvERrGyIdo9c9d4m2jMHOCqsNQ==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=9318; h=from:subject; bh=fN4g0NsdFmVTHRi7ezE3E/ZN+uig0L4IYC7S4pnjH60=; b=owEBbQKS/ZANAwAIAUzgyIZIvxHKAcsmYgBiEkZYTo+bmM8pp/rh3EIrMhbhLK9xV6cJ7gRXpSif /qkFJgeJAjMEAAEIAB0WIQRLvip+Buz51YI8YRFM4MiGSL8RygUCYhJGWAAKCRBM4MiGSL8Ryja/D/ 9QSz/4px2Q7U+6712nl2OxXmGQk+k6QbEWUab0LPdANl+E6B9qn/rybtXi7o013DzRB+X2wAye9dkc QGiIwqvlbdQSumKkzI4kk1t6lW2IIzLdCkA8wXOC3vw2xzQaaMDnVQJvM41WCyagf5JN4X/DciOjx8 pbjfaVJRR6hhndngIMVkI1bEJFbscK0Urd+KBPqUO1rXxMo/nvfv2/OOdD7G/azw/GDRGzAh0jVCxW tiZdjCUs9lWy1018/xSVNWZLOIBD3H1sym5sEXkjqAA8XIlGGeU+oPD4X0mVrsrJWupOwODKPEwkwY FvkKKE9PPI7mqj7/Lu3vh8SbxOpV/CegFg0W9VrNR7o/IIdG4ts/8Wy+o4hjZzFHFABTXW6ZWY965g k/IAJP9CvJHKpclaJjDv9OSEZfjpkApQdpwYcUeCi9AgmdaT1+rOfFYqHWrjio6v7V7dyM3TlqMWxT uolP00ZVzdZGf6MQKcJfXORxMa5JzQTl4SWxPUWJBl37YdPQ5/3MP/BvMOeQe39os/pTsM5WVfZi9Q Mcudx0rqjkEa6c/na54Bqh8/WeXvD/ytDpcvJSsZCHWBkZGv/VRzkJsAW3CqdT1qOg+4l70Gbd6ooH BclvVppaI4Tsu/P8G+Ht7A0gpDlQDJQN3TamXrc4jhdI+W2QeYVtq2wTcmKA==
 X-Developer-Key: i=memxor@gmail.com; a=openpgp; fpr=4BBE2A7E06ECF9D5823C61114CE0C88648BF11CA
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The changes in this patch deserve closer look, so it has been split into
-its own independent patch. While earlier we just had to skip two objects
-at most while copying in and out of map, now we have potentially many
-objects (at most 8 + 2 = 10, due to the BPF_MAP_VALUE_OFF_MAX limit).
-
-Hence, divide the copy_map_value function into an inlined fast path and
-function call to slowpath. The slowpath handles the case of > 3 offsets,
-while we handle the most common cases (0, 1, 2, or 3 offsets) in the
-inline function itself.
-
-In copy_map_value_slow, we use 11 offsets, just to make the for loop
-that copies the value free of edge cases for the last offset, by using
-map->value_size as final offset to subtract remaining area to copy from.
+Require some more feedback on whether this is OK, before refactoring
+netfilter functions to share code to increment reference and match the
+tuple. Also probably need to work on allowing taking reference to struct
+net * to save another lookup inside this function.
 
 Signed-off-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
 ---
- include/linux/bpf.h  | 43 +++++++++++++++++++++++++++++++---
- kernel/bpf/syscall.c | 55 ++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 95 insertions(+), 3 deletions(-)
+ include/net/netfilter/nf_conntrack_core.h |  17 +++
+ net/netfilter/nf_conntrack_bpf.c          | 132 +++++++++++++++++-----
+ net/netfilter/nf_conntrack_core.c         |  17 ---
+ 3 files changed, 119 insertions(+), 47 deletions(-)
 
-diff --git a/include/linux/bpf.h b/include/linux/bpf.h
-index ae599aaf8d4c..5d845ca02eba 100644
---- a/include/linux/bpf.h
-+++ b/include/linux/bpf.h
-@@ -253,12 +253,22 @@ static inline void check_and_init_map_value(struct bpf_map *map, void *dst)
- 		memset(dst + map->spin_lock_off, 0, sizeof(struct bpf_spin_lock));
- 	if (unlikely(map_value_has_timer(map)))
- 		memset(dst + map->timer_off, 0, sizeof(struct bpf_timer));
-+	if (unlikely(map_value_has_ptr_to_btf_id(map))) {
-+		struct bpf_map_value_off *tab = map->ptr_off_tab;
-+		int i;
-+
-+		for (i = 0; i < tab->nr_off; i++)
-+			*(u64 *)(dst + tab->off[i].offset) = 0;
-+	}
- }
+diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+index 13807ea94cd2..09389769dce3 100644
+--- a/include/net/netfilter/nf_conntrack_core.h
++++ b/include/net/netfilter/nf_conntrack_core.h
+@@ -51,6 +51,23 @@ nf_conntrack_find_get(struct net *net,
  
-+void copy_map_value_slow(struct bpf_map *map, void *dst, void *src, u32 s_off,
-+			 u32 s_sz, u32 t_off, u32 t_sz);
-+
- /* copy everything but bpf_spin_lock and bpf_timer. There could be one of each. */
- static inline void copy_map_value(struct bpf_map *map, void *dst, void *src)
- {
--	u32 s_off = 0, s_sz = 0, t_off = 0, t_sz = 0;
-+	u32 s_off = 0, s_sz = 0, t_off = 0, t_sz = 0, p_off = 0, p_sz = 0;
+ int __nf_conntrack_confirm(struct sk_buff *skb);
  
- 	if (unlikely(map_value_has_spin_lock(map))) {
- 		s_off = map->spin_lock_off;
-@@ -268,13 +278,40 @@ static inline void copy_map_value(struct bpf_map *map, void *dst, void *src)
- 		t_off = map->timer_off;
- 		t_sz = sizeof(struct bpf_timer);
- 	}
-+	/* Multiple offset case is slow, offload to function */
-+	if (unlikely(map_value_has_ptr_to_btf_id(map))) {
-+		struct bpf_map_value_off *tab = map->ptr_off_tab;
-+
-+		/* Inline the likely common case */
-+		if (likely(tab->nr_off == 1)) {
-+			p_off = tab->off[0].offset;
-+			p_sz = sizeof(u64);
-+		} else {
-+			copy_map_value_slow(map, dst, src, s_off, s_sz, t_off, t_sz);
-+			return;
-+		}
-+	}
-+
-+	if (unlikely(s_sz || t_sz || p_sz)) {
-+		/* The order is p_off, t_off, s_off, use insertion sort */
- 
--	if (unlikely(s_sz || t_sz)) {
-+		if (t_off < p_off || !t_sz) {
-+			swap(t_off, p_off);
-+			swap(t_sz, p_sz);
-+		}
- 		if (s_off < t_off || !s_sz) {
- 			swap(s_off, t_off);
- 			swap(s_sz, t_sz);
-+			if (t_off < p_off || !t_sz) {
-+				swap(t_off, p_off);
-+				swap(t_sz, p_sz);
-+			}
- 		}
--		memcpy(dst, src, t_off);
-+
-+		memcpy(dst, src, p_off);
-+		memcpy(dst + p_off + p_sz,
-+		       src + p_off + p_sz,
-+		       t_off - p_off - p_sz);
- 		memcpy(dst + t_off + t_sz,
- 		       src + t_off + t_sz,
- 		       s_off - t_off - t_sz);
-diff --git a/kernel/bpf/syscall.c b/kernel/bpf/syscall.c
-index beb96866f34d..83d71d6912f5 100644
---- a/kernel/bpf/syscall.c
-+++ b/kernel/bpf/syscall.c
-@@ -30,6 +30,7 @@
- #include <linux/pgtable.h>
- #include <linux/bpf_lsm.h>
- #include <linux/poll.h>
-+#include <linux/sort.h>
- #include <linux/bpf-netns.h>
- #include <linux/rcupdate_trace.h>
- #include <linux/memcontrol.h>
-@@ -230,6 +231,60 @@ static int bpf_map_update_value(struct bpf_map *map, struct fd f, void *key,
- 	return err;
- }
- 
-+static int copy_map_value_cmp(const void *_a, const void *_b)
++static inline bool
++nf_ct_key_equal(struct nf_conntrack_tuple_hash *h,
++		const struct nf_conntrack_tuple *tuple,
++		const struct nf_conntrack_zone *zone,
++		const struct net *net)
 +{
-+	const u32 a = *(const u32 *)_a;
-+	const u32 b = *(const u32 *)_b;
++	struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
 +
-+	/* We only need to sort based on offset */
-+	if (a < b)
-+		return -1;
-+	else if (a > b)
-+		return 1;
++	/* A conntrack can be recreated with the equal tuple,
++	 * so we need to check that the conntrack is confirmed
++	 */
++	return nf_ct_tuple_equal(tuple, &h->tuple) &&
++	       nf_ct_zone_equal(ct, zone, NF_CT_DIRECTION(h)) &&
++	       nf_ct_is_confirmed(ct) &&
++	       net_eq(net, nf_ct_net(ct));
++}
++
+ /* Confirm a connection: returns NF_DROP if packet must be dropped. */
+ static inline int nf_conntrack_confirm(struct sk_buff *skb)
+ {
+diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrack_bpf.c
+index 8ad3f52579f3..26211a5ec0c4 100644
+--- a/net/netfilter/nf_conntrack_bpf.c
++++ b/net/netfilter/nf_conntrack_bpf.c
+@@ -52,6 +52,30 @@ enum {
+ 	NF_BPF_CT_OPTS_SZ = 12,
+ };
+ 
++static int bpf_fill_nf_tuple(struct nf_conntrack_tuple *tuple,
++			     struct bpf_sock_tuple *bpf_tuple, u32 tuple_len)
++{
++	switch (tuple_len) {
++	case sizeof(bpf_tuple->ipv4):
++		tuple->src.l3num = AF_INET;
++		tuple->src.u3.ip = bpf_tuple->ipv4.saddr;
++		tuple->src.u.tcp.port = bpf_tuple->ipv4.sport;
++		tuple->dst.u3.ip = bpf_tuple->ipv4.daddr;
++		tuple->dst.u.tcp.port = bpf_tuple->ipv4.dport;
++		break;
++	case sizeof(bpf_tuple->ipv6):
++		tuple->src.l3num = AF_INET6;
++		memcpy(tuple->src.u3.ip6, bpf_tuple->ipv6.saddr, sizeof(bpf_tuple->ipv6.saddr));
++		tuple->src.u.tcp.port = bpf_tuple->ipv6.sport;
++		memcpy(tuple->dst.u3.ip6, bpf_tuple->ipv6.daddr, sizeof(bpf_tuple->ipv6.daddr));
++		tuple->dst.u.tcp.port = bpf_tuple->ipv6.dport;
++		break;
++	default:
++		return -EAFNOSUPPORT;
++	}
 +	return 0;
 +}
 +
-+void copy_map_value_slow(struct bpf_map *map, void *dst, void *src, u32 s_off,
-+			 u32 s_sz, u32 t_off, u32 t_sz)
+ static struct nf_conn *__bpf_nf_ct_lookup(struct net *net,
+ 					  struct bpf_sock_tuple *bpf_tuple,
+ 					  u32 tuple_len, u8 protonum,
+@@ -59,6 +83,7 @@ static struct nf_conn *__bpf_nf_ct_lookup(struct net *net,
+ {
+ 	struct nf_conntrack_tuple_hash *hash;
+ 	struct nf_conntrack_tuple tuple;
++	int ret;
+ 
+ 	if (unlikely(protonum != IPPROTO_TCP && protonum != IPPROTO_UDP))
+ 		return ERR_PTR(-EPROTO);
+@@ -66,25 +91,9 @@ static struct nf_conn *__bpf_nf_ct_lookup(struct net *net,
+ 		return ERR_PTR(-EINVAL);
+ 
+ 	memset(&tuple, 0, sizeof(tuple));
+-	switch (tuple_len) {
+-	case sizeof(bpf_tuple->ipv4):
+-		tuple.src.l3num = AF_INET;
+-		tuple.src.u3.ip = bpf_tuple->ipv4.saddr;
+-		tuple.src.u.tcp.port = bpf_tuple->ipv4.sport;
+-		tuple.dst.u3.ip = bpf_tuple->ipv4.daddr;
+-		tuple.dst.u.tcp.port = bpf_tuple->ipv4.dport;
+-		break;
+-	case sizeof(bpf_tuple->ipv6):
+-		tuple.src.l3num = AF_INET6;
+-		memcpy(tuple.src.u3.ip6, bpf_tuple->ipv6.saddr, sizeof(bpf_tuple->ipv6.saddr));
+-		tuple.src.u.tcp.port = bpf_tuple->ipv6.sport;
+-		memcpy(tuple.dst.u3.ip6, bpf_tuple->ipv6.daddr, sizeof(bpf_tuple->ipv6.daddr));
+-		tuple.dst.u.tcp.port = bpf_tuple->ipv6.dport;
+-		break;
+-	default:
+-		return ERR_PTR(-EAFNOSUPPORT);
+-	}
+-
++	ret = bpf_fill_nf_tuple(&tuple, bpf_tuple, tuple_len);
++	if (ret < 0)
++		return ERR_PTR(ret);
+ 	tuple.dst.protonum = protonum;
+ 
+ 	if (netns_id >= 0) {
+@@ -208,50 +217,113 @@ void bpf_ct_release(struct nf_conn *nfct)
+ 	nf_ct_put(nfct);
+ }
+ 
++/* TODO: Just a PoC, need to reuse code in __nf_conntrack_find_get for this */
++struct nf_conn *bpf_ct_kptr_get(struct nf_conn **ptr, struct bpf_sock_tuple *bpf_tuple,
++				u32 tuple__sz, u8 protonum, u8 direction)
 +{
-+	struct bpf_map_value_off *tab = map->ptr_off_tab; /* already set to non-NULL */
-+	/* 3 = 2 for bpf_timer, bpf_spin_lock, 1 for map->value_size sentinel */
-+	struct {
-+		u32 off;
-+		u32 sz;
-+	} off_arr[BPF_MAP_VALUE_OFF_MAX + 3];
-+	int i, cnt = 0;
++	struct nf_conntrack_tuple tuple;
++	struct nf_conn *nfct;
++	struct net *net;
++	u64 *nfct_p;
++	int ret;
 +
-+	/* Reconsider stack usage when bumping BPF_MAP_VALUE_OFF_MAX */
-+	BUILD_BUG_ON(sizeof(off_arr) != 88);
++	WARN_ON_ONCE(!rcu_read_lock_held());
 +
-+	for (i = 0; i < tab->nr_off; i++) {
-+		off_arr[cnt].off = tab->off[i].offset;
-+		off_arr[cnt++].sz = sizeof(u64);
-+	}
-+	if (s_sz) {
-+		off_arr[cnt].off = s_off;
-+		off_arr[cnt++].sz = s_sz;
-+	}
-+	if (t_sz) {
-+		off_arr[cnt].off = t_off;
-+		off_arr[cnt++].sz = t_sz;
-+	}
-+	off_arr[cnt].off = map->value_size;
++	if ((protonum != IPPROTO_TCP && protonum != IPPROTO_UDP) ||
++	    (direction != IP_CT_DIR_ORIGINAL && direction != IP_CT_DIR_REPLY))
++		return NULL;
 +
-+	sort(off_arr, cnt, sizeof(off_arr[0]), copy_map_value_cmp, NULL);
++	/* ptr is actually pointer to u64 having address, hence recast u64 load
++	 * to native pointer width.
++	 */
++	nfct_p = (u64 *)ptr;
++	nfct = (struct nf_conn *)READ_ONCE(*nfct_p);
++	if (!nfct || unlikely(!refcount_inc_not_zero(&nfct->ct_general.use)))
++		return NULL;
 +
-+	/* There is always at least one element */
-+	memcpy(dst, src, off_arr[0].off);
-+	/* Copy the rest, while skipping other regions */
-+	for (i = 1; i < cnt; i++) {
-+		u32 curr_off = off_arr[i - 1].off + off_arr[i - 1].sz;
-+		u32 next_off = off_arr[i].off;
++	memset(&tuple, 0, sizeof(tuple));
++	ret = bpf_fill_nf_tuple(&tuple, bpf_tuple, tuple__sz);
++	if (ret < 0)
++		goto end;
++	tuple.dst.protonum = protonum;
 +
-+		memcpy(dst + curr_off, src + curr_off, next_off - curr_off);
-+	}
++	/* XXX: Need to allow passing in struct net *, or take netns_id, this is non-sense */
++	net = nf_ct_net(nfct);
++	if (!nf_ct_key_equal(&nfct->tuplehash[direction], &tuple,
++			     &nf_ct_zone_dflt, nf_ct_net(nfct)))
++		goto end;
++	return nfct;
++end:
++	nf_ct_put(nfct);
++	return NULL;
 +}
 +
- static int bpf_map_copy_value(struct bpf_map *map, void *key, void *value,
- 			      __u64 flags)
+ __diag_pop()
+ 
+ BTF_SET_START(nf_ct_xdp_check_kfunc_ids)
+ BTF_ID(func, bpf_xdp_ct_lookup)
++BTF_ID(func, bpf_ct_kptr_get)
+ BTF_ID(func, bpf_ct_release)
+ BTF_SET_END(nf_ct_xdp_check_kfunc_ids)
+ 
+ BTF_SET_START(nf_ct_tc_check_kfunc_ids)
+ BTF_ID(func, bpf_skb_ct_lookup)
++BTF_ID(func, bpf_ct_kptr_get)
+ BTF_ID(func, bpf_ct_release)
+ BTF_SET_END(nf_ct_tc_check_kfunc_ids)
+ 
+ BTF_SET_START(nf_ct_acquire_kfunc_ids)
+ BTF_ID(func, bpf_xdp_ct_lookup)
+ BTF_ID(func, bpf_skb_ct_lookup)
++BTF_ID(func, bpf_ct_kptr_get)
+ BTF_SET_END(nf_ct_acquire_kfunc_ids)
+ 
+ BTF_SET_START(nf_ct_release_kfunc_ids)
+ BTF_ID(func, bpf_ct_release)
+ BTF_SET_END(nf_ct_release_kfunc_ids)
+ 
++BTF_SET_START(nf_ct_kptr_acquire_kfunc_ids)
++BTF_ID(func, bpf_ct_kptr_get)
++BTF_SET_END(nf_ct_kptr_acquire_kfunc_ids)
++
+ /* Both sets are identical */
+ #define nf_ct_ret_null_kfunc_ids nf_ct_acquire_kfunc_ids
+ 
+ static const struct btf_kfunc_id_set nf_conntrack_xdp_kfunc_set = {
+-	.owner        = THIS_MODULE,
+-	.check_set    = &nf_ct_xdp_check_kfunc_ids,
+-	.acquire_set  = &nf_ct_acquire_kfunc_ids,
+-	.release_set  = &nf_ct_release_kfunc_ids,
+-	.ret_null_set = &nf_ct_ret_null_kfunc_ids,
++	.owner            = THIS_MODULE,
++	.check_set        = &nf_ct_xdp_check_kfunc_ids,
++	.acquire_set      = &nf_ct_acquire_kfunc_ids,
++	.release_set      = &nf_ct_release_kfunc_ids,
++	.ret_null_set     = &nf_ct_ret_null_kfunc_ids,
++	.kptr_acquire_set = &nf_ct_kptr_acquire_kfunc_ids,
+ };
+ 
+ static const struct btf_kfunc_id_set nf_conntrack_tc_kfunc_set = {
+-	.owner        = THIS_MODULE,
+-	.check_set    = &nf_ct_tc_check_kfunc_ids,
+-	.acquire_set  = &nf_ct_acquire_kfunc_ids,
+-	.release_set  = &nf_ct_release_kfunc_ids,
+-	.ret_null_set = &nf_ct_ret_null_kfunc_ids,
++	.owner            = THIS_MODULE,
++	.check_set        = &nf_ct_tc_check_kfunc_ids,
++	.acquire_set      = &nf_ct_acquire_kfunc_ids,
++	.release_set      = &nf_ct_release_kfunc_ids,
++	.ret_null_set     = &nf_ct_ret_null_kfunc_ids,
++	.kptr_acquire_set = &nf_ct_kptr_acquire_kfunc_ids,
+ };
+ 
++BTF_ID_LIST(nf_conntrack_dtor_kfunc_ids)
++BTF_ID(struct, nf_conn)
++BTF_ID(func, bpf_ct_release)
++
+ int register_nf_conntrack_bpf(void)
+ {
++	const struct btf_id_dtor_kfunc nf_conntrack_dtor_kfunc[] = {
++		{
++			.btf_id       = nf_conntrack_dtor_kfunc_ids[0],
++			.kfunc_btf_id = nf_conntrack_dtor_kfunc_ids[1],
++		}
++	};
+ 	int ret;
+ 
+-	ret = register_btf_kfunc_id_set(BPF_PROG_TYPE_XDP, &nf_conntrack_xdp_kfunc_set);
++	ret = register_btf_id_dtor_kfuncs(nf_conntrack_dtor_kfunc,
++					  ARRAY_SIZE(nf_conntrack_dtor_kfunc),
++					  THIS_MODULE);
++	ret = ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_XDP, &nf_conntrack_xdp_kfunc_set);
+ 	return ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_SCHED_CLS, &nf_conntrack_tc_kfunc_set);
+ }
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 9b7f9c966f73..0aae98f60769 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -710,23 +710,6 @@ bool nf_ct_delete(struct nf_conn *ct, u32 portid, int report)
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_delete);
+ 
+-static inline bool
+-nf_ct_key_equal(struct nf_conntrack_tuple_hash *h,
+-		const struct nf_conntrack_tuple *tuple,
+-		const struct nf_conntrack_zone *zone,
+-		const struct net *net)
+-{
+-	struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
+-
+-	/* A conntrack can be recreated with the equal tuple,
+-	 * so we need to check that the conntrack is confirmed
+-	 */
+-	return nf_ct_tuple_equal(tuple, &h->tuple) &&
+-	       nf_ct_zone_equal(ct, zone, NF_CT_DIRECTION(h)) &&
+-	       nf_ct_is_confirmed(ct) &&
+-	       net_eq(net, nf_ct_net(ct));
+-}
+-
+ static inline bool
+ nf_ct_match(const struct nf_conn *ct1, const struct nf_conn *ct2)
  {
 -- 
 2.35.1
