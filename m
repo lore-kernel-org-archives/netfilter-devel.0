@@ -2,269 +2,216 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FBE6C433EF
-	for <netfilter-devel@archiver.kernel.org>; Sun, 20 Feb 2022 13:10:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DD5BC433F5
+	for <netfilter-devel@archiver.kernel.org>; Sun, 20 Feb 2022 13:48:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231664AbiBTNK7 (ORCPT
+        id S236142AbiBTNsj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 20 Feb 2022 08:10:59 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:49418 "EHLO
+        Sun, 20 Feb 2022 08:48:39 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:48204 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229450AbiBTNK6 (ORCPT
+        with ESMTP id S229884AbiBTNsi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 20 Feb 2022 08:10:58 -0500
-Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 901704ECD8
-        for <netfilter-devel@vger.kernel.org>; Sun, 20 Feb 2022 05:10:36 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=pnANegpXG+voO89BNg7r+6qX6Uv5GkdsveSLbc+qoEw=; b=OIsEaOk4p9Okv3PS06WRc/eTcN
-        aVRtIkpppvCcxCdm1KBqudX0vLcyKn2s+wygn9ZgwnWHK8wC1pfOZ6PPganayRdIEXl3R/Fgq4fwb
-        CI9R8qmuv+khKpDJpTBVxlXD/zO29AtxVcrxDtHJ3RlZSkvd7I3zRXUWifsJ02YuPRbrIsTnQIbRE
-        u7XHWSkVFHeLJw1oMGQqR20jpQW3mpGuOBiseuXZ2+ErI5fP0ODArsGeJDmWwo7d0gwEcWl9yvzZI
-        7hzprZnZM+dhXs5WQW/nBMviOVLnClG4nAi4vf/19r5NB8IaPcbTefI2+H6g6+Tn7WkRmzsoKOKe1
-        G4j7zmfw==;
-Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] helo=ulthar.dreamlands)
-        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <jeremy@azazel.net>)
-        id 1nLlz0-00A8HF-7h; Sun, 20 Feb 2022 13:10:34 +0000
-Date:   Sun, 20 Feb 2022 13:10:29 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [iptables PATCH 2/4] tests: add `NOMATCH` test result
-Message-ID: <YhI9xcXbHhjkc+ya@ulthar.dreamlands>
-References: <20220212165832.2452695-1-jeremy@azazel.net>
- <20220212165832.2452695-3-jeremy@azazel.net>
- <YgooaU4M6ju9++Cy@orbyte.nwl.cc>
+        Sun, 20 Feb 2022 08:48:38 -0500
+Received: from mail-pl1-x644.google.com (mail-pl1-x644.google.com [IPv6:2607:f8b0:4864:20::644])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5029921813;
+        Sun, 20 Feb 2022 05:48:17 -0800 (PST)
+Received: by mail-pl1-x644.google.com with SMTP id ay3so2024504plb.1;
+        Sun, 20 Feb 2022 05:48:17 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=tyzdp/jbfseg65ev0g7jdUi8Rfi1IKTDUUpRhEM4lag=;
+        b=iVoZO2+UF6GzmTL25SzJseUqI1wWLCFh/Z2RVawQD2XqnyGgzZLOaezd054PX/z7Xz
+         hgm1pd40El7Ih3O1zC8i8nqLbpkf5U+9reursUW2Ckv+pIl65gGLkMBLBgStX/p/YuQ1
+         mQtWgwO0nTIBNy3wW76fSHECg2qCA1dT8ovs54GmpKZV1ujsyBGftYeRC77u0801eeWn
+         c/w5YgbfM/IJ5qI/Lz0DlzlLfVKktXnryeaHHRtKwDgpO+fnHN/p4+nspUT8KMR54zp2
+         glOHU95aZEN+Z3bhyzxxEwVXD+kvFukBU0CqCWrsHv09M39FYFCGFpuTlDG4dk5Qhl/t
+         McNg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=tyzdp/jbfseg65ev0g7jdUi8Rfi1IKTDUUpRhEM4lag=;
+        b=7uvyViZL4j4VNWd1fTHstoPD7DUjQj6B1dSshYJvspr55O7PCOvZPH+IPrmDUyihe9
+         HZ3e2XZ1I9R8ZfN9uASBi81nzKsbnMg77F2aCuzQq1dMdPBxk15MVkz8Yd/MOu/0+SAL
+         OlY3dWDEfRR8E7jqC0zIEIFrwRXYWcg4V6IGxq7+JylMjZkA73TuvhMuC4R+VShDyp5D
+         j2jnN2Pika9gtJ6lXLD5V0oX33V924L0vAoVsDhgY5t5OXCzaeSQj2Tzbl4EiC3HVdMJ
+         eIhORZMFTJql4AASkLfeO3Ay0sZT9kSdZy5HPv8koLczOnLafZXLXZ5M0qmA3UdXtgte
+         1M1A==
+X-Gm-Message-State: AOAM5317Si+aILImez/o42N8eZXiRGKSXVNE8li1caXyAiYwIfbM2uTD
+        mS0ZBob+4zUy3XzWrRD/fk8SMdLPNrc=
+X-Google-Smtp-Source: ABdhPJz7yDAir3Pp7By8EcC8ZsQw2erTXsUCZA0TU/KByTGLho+tTGXn2BM3gGGFlS2Emyr1Ejhl3A==
+X-Received: by 2002:a17:902:a412:b0:14f:9c99:1690 with SMTP id p18-20020a170902a41200b0014f9c991690mr4863165plq.142.1645364896576;
+        Sun, 20 Feb 2022 05:48:16 -0800 (PST)
+Received: from localhost ([2405:201:6014:d0c0:6243:316e:a9e1:adda])
+        by smtp.gmail.com with ESMTPSA id d8sm10057328pfv.84.2022.02.20.05.48.15
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 20 Feb 2022 05:48:16 -0800 (PST)
+From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
+To:     bpf@vger.kernel.org
+Cc:     Alexei Starovoitov <ast@kernel.org>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        =?UTF-8?q?Toke=20H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>,
+        Jesper Dangaard Brouer <hawk@kernel.org>,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Subject: [PATCH bpf-next v1 00/15] Introduce typed pointer support in BPF maps
+Date:   Sun, 20 Feb 2022 19:17:58 +0530
+Message-Id: <20220220134813.3411982-1-memxor@gmail.com>
+X-Mailer: git-send-email 2.35.1
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="iO0qgNPX2KzgqlFU"
-Content-Disposition: inline
-In-Reply-To: <YgooaU4M6ju9++Cy@orbyte.nwl.cc>
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+X-Developer-Signature: v=1; a=openpgp-sha256; l=7134; h=from:subject; bh=gN4hB4C2rirVwlB4suNXTjjGmsF7Zx1ocsK735GCqhc=; b=owEBbQKS/ZANAwAIAUzgyIZIvxHKAcsmYgBiEkZXvZi6e1cepTHG/wb9O2j8RRGbgYNvn+RnMikn t4Y8pfWJAjMEAAEIAB0WIQRLvip+Buz51YI8YRFM4MiGSL8RygUCYhJGVwAKCRBM4MiGSL8RysOWEA Cb9H6Jy3z7PjK/6K3Hdc6YLgBrZAxD9yjsEkW/XyA69O73Z2hS4XiN76Ilx/3PSDzZcv7u6DIuiXH1 F0IiyXA928mequyQfB3wJI1AKLD2eRYkUr8SIdCtxRuat/8aaTfucI7oVJXHn6JjJIb7GIt6vYxJ+h clbKFcLc+6YIx20MhvxiiHdV1ECr/8YDf/gnjAOcV0lPc/98Uy90QeUTHJ8kNmjjxwEchevJgXD72E ddZEqZJcJbAkcqm+7qyYhke0wgC6Y/EFOPwsTTLc4hPPKZgNs+Pd+UHLGrCZkvTXPwQjJlCxJD3Pqd r+h7kRLT/gRILcA8Ngk8xz8CcMrrCo6TYu9WyshYRn1EaLjoRkjj8t2QpxOvK1f1iU7W+Ga7DZToFQ B4A1ELMDrZSJjHxz3XSq8RmevwjX/RHcELsCvo9s+PSDmPy1MUwLFoj6v/MB4hCgrbKDK1sdgrSfh5 37hMaCmQveHKk7TwV1bbFFD3t3HKJ74x4RKweiiY1Pl+X2+G2GnfOsrUcno3ZXJapABkIUNaag+9k4 BLWG4AuoaEbka2Q5kqnILIlCFS1D+Fg+QXJdYxj3xOpvrvcbYwnMFmUl5Wsy+w3TBus/zIkFeuCJR0 Rytyss0ySbdBMdnxyyxq1hGUQBENMU9Yx/aBeII5UgGSmX+RbRnzq1IhvmCA==
+X-Developer-Key: i=memxor@gmail.com; a=openpgp; fpr=4BBE2A7E06ECF9D5823C61114CE0C88648BF11CA
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Introduction
+------------
 
---iO0qgNPX2KzgqlFU
-Content-Type: multipart/mixed; boundary="BRcjVxCWkv1Eu0/Y"
-Content-Disposition: inline
+This set enables storing pointers of a certain type in BPF map, and extends the
+verifier to enforce type safety and lifetime correctness properties.
 
+The infrastructure being added is generic enough for allowing storing any kind
+of pointers whose type is available using BTF (user or kernel) in the future
+(e.g. strongly typed memory allocation in BPF program), which are internally
+tracked in the verifier as PTR_TO_BTF_ID, but for now the series limits them to
+four kinds of pointers obtained from the kernel.
 
---BRcjVxCWkv1Eu0/Y
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Obviously, use of this feature depends on map BTF.
 
-On 2022-02-14, at 11:01:13 +0100, Phil Sutter wrote:
-> On Sat, Feb 12, 2022 at 04:58:30PM +0000, Jeremy Sowden wrote:
-> > Currently, there are two supported test results: `OK` and `FAIL`.
-> > It is expected that either the iptables command fails, or it
-> > succeeds and dumping the rule has the correct output.  However, it
-> > is possible that the command may succeed but the output may not be
-> > correct.  Add a `NOMATCH` result to cover this outcome.
->
-> Hmm. Wouldn't it make sense to extend the scope of LEGACY/NFT keywords
-> to output checks as well instead of introducing a new one? I think we
-> could cover expected output that way by duplicating the test case with
-> different expected output instead of marking it as unspecific "may
-> produce garbage".
+1. Unreferenced kernel pointer
 
-Something like the following?  One reason why I went with the `NOMATCH`
-result is that in the two divergent test-cases, there is no -nft output
-to match.  We can make that work by just using the empty string as the
-alternative output since that will match anything.  I don't think it's
-ideal, but it's simpler than overhauling the matching code for what is a
-rare corner case.
+In this case, there are very few restrictions. The pointer type being stored
+must match the type declared in the map value. However, such a pointer when
+loaded from the map can only be dereferenced, but not passed to any in-kernel
+helpers or kernel functions available to the program. This is because while the
+verifier's exception handling mechanism coverts BPF_LDX to PROBE_MEM loads,
+which are then handled specially by the JIT implementation, the same liberty is
+not available to accesses inside the kernel. The pointer by the time it is
+passed into a helper has no lifetime related guarantees about the object it is
+pointing to, and may well be referencing invalid memory.
 
-J.
+2. Referenced kernel pointer
 
---BRcjVxCWkv1Eu0/Y
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline;
-	filename="v2-0001-tests-specify-non-matching-output-instead-of-NOMA.patch"
-Content-Transfer-Encoding: quoted-printable
+This case imposes a lot of restrictions on the programmer, to ensure safety. To
+transfer the ownership of a reference in the BPF program to the map, the user
+must use the BPF_XCHG instruction, which returns the old pointer contained in
+the map, as an acquired reference, and releases verifier state for the
+referenced pointer being exchanged, as it moves into the map.
 
-=46rom a18fa07425f82d71a46846e4f3656ec65155fd0c Mon Sep 17 00:00:00 2001
-=46rom: Jeremy Sowden <jeremy@azazel.net>
-Date: Sun, 20 Feb 2022 12:49:23 +0000
-Subject: [iptables PATCH v2] tests: specify non-matching output instead of
- `NOMATCH` test result
+This a normal PTR_TO_BTF_ID that can be used with in-kernel helpers and kernel
+functions callable by the program.
 
-Recently, we introduced a new test result `NOMATCH` to cover the case
-where the test succeeds for both -legacy and -nft, but the two variants
-do not have the same output.  This patch does away with the new result
-in favour of specifying the alternative output.  For example, instead of
+However, if BPF_LDX is used to load a referenced pointer from the map, it is
+still not permitted to pass it to in-kernel helpers or kernel functions. To
+obtain a reference usable with helpers, the user must invoke a kfunc helper
+which returns a usable reference (which also must be eventually released before
+BPF_EXIT, or moved into a map).
 
-  -j EXAMPLE-TARGET --example-option;=3D;OK;LEGACY;NOMATCH
+Since the load of the pointer (preserving data dependency ordering) must happen
+inside the RCU read section, the kfunc helper will take a pointer to the map
+value, which must point to the actual pointer of the object whose reference is
+to be raised. The type will be verified from the BTF information of the kfunc,
+as the prototype must be:
 
-which specifies that the test passes for -legacy with the output
-matching the rule, but for -nft it passes with output which does not
-match the rule, we specify the test as:
+	T *func(T **, ... /* other arguments */);
 
-  -j EXAMPLE-TARGET --example-option;=3D;OK;LEGACY;-j EXAMPLE-TARGET --nft-=
-option
+Then, the verifier checks whether pointer at offset of the map value points to
+the type T, and permits the call.
 
-which specifies that the test passes for -legacy with the output
-matching the rule, but for -nft it passes with the different output
-given in the last field.
+This convention is followed so that such helpers may also be called from
+sleepable BPF programs, where RCU read lock is not necessarily held in the BPF
+program context, hence necessiating the need to pass in a pointer to the actual
+pointer to perform the load inside the RCU read section.
 
-In the case of tests which have no output to match, we leave the last
-field empty:
+3. per-CPU kernel pointer
 
-  -j EXAMPLE-TARGET --example-option;=3D;OK;LEGACY;
+These have very little restrictions. The user can store a PTR_TO_PERCPU_BTF_ID
+into the map, and when loading from the map, they must NULL check it before use,
+because while a non-zero value stored into the map should always be valid, it can
+still be reset to zero on updates. After checking it to be non-NULL, it can be
+passed to bpf_per_cpu_ptr and bpf_this_cpu_ptr helpers to obtain a PTR_TO_BTF_ID
+to underlying per-CPU object.
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- extensions/libxt_NFLOG.t |  4 ++--
- iptables-test.py         | 50 ++++++++++++++++++++++++++++++----------
- 2 files changed, 40 insertions(+), 14 deletions(-)
+It is also permitted to write 0 and reset the value.
 
-diff --git a/extensions/libxt_NFLOG.t b/extensions/libxt_NFLOG.t
-index 25f332ae16b6..b3241f51b153 100644
---- a/extensions/libxt_NFLOG.t
-+++ b/extensions/libxt_NFLOG.t
-@@ -5,8 +5,8 @@
- -j NFLOG --nflog-group 0;-j NFLOG;OK
- # `--nflog-range` is broken and only supported by xtables-legacy.
- # It has been superseded by `--nflog--group`.
---j NFLOG --nflog-range 1;=3D;OK;LEGACY;NOMATCH
---j NFLOG --nflog-range 4294967295;=3D;OK;LEGACY;NOMATCH
-+-j NFLOG --nflog-range 1;=3D;OK;LEGACY;
-+-j NFLOG --nflog-range 4294967295;=3D;OK;LEGACY;
- -j NFLOG --nflog-range 4294967296;;FAIL
- -j NFLOG --nflog-range -1;;FAIL
- -j NFLOG --nflog-size 0;=3D;OK
-diff --git a/iptables-test.py b/iptables-test.py
-index 6acaa82228fa..763e5b449ca5 100755
---- a/iptables-test.py
-+++ b/iptables-test.py
-@@ -192,17 +192,18 @@ def execute_cmd(cmd, filename, lineno):
-     return ret
-=20
-=20
--def variant_res(res, variant, alt_res=3DNone):
-+def variant_res(res, variant, alt_rule_save):
-     '''
-     Adjust expected result with given variant
-=20
-     If expected result is scoped to a variant, the other one yields a diff=
-erent
--    result. Therefore map @res to itself if given variant is current, use =
-the
--    alternate result, @alt_res, if specified, invert @res otherwise.
-+    result or different output. Therefore map @res to itself if given vari=
-ant is
-+    current, use "OK" if the expected result is "OK" but the other variant=
- yields
-+    different output, invert @res otherwise.
-=20
--    :param res: expected result from test spec ("OK", "FAIL" or "NOMATCH")
-+    :param res: expected result from test spec ("OK" or "FAIL")
-     :param variant: variant @res is scoped to by test spec ("NFT" or "LEGA=
-CY")
--    :param alt_res: optional expected result for the alternate variant.
-+    :param alt_rule_save: alternative output if the variants have differen=
-t output
-     '''
-     variant_executable =3D {
-         "NFT": "xtables-nft-multi",
-@@ -210,17 +211,40 @@ def variant_res(res, variant, alt_res=3DNone):
-     }
-     res_inverse =3D {
-         "OK": "FAIL",
--        "FAIL": "OK",
--        "NOMATCH": "OK"
-+        "FAIL": "OK"
-     }
-=20
-     if variant_executable[variant] =3D=3D EXECUTABLE:
-         return res
--    if alt_res is not None:
--        return alt_res
-+    if res =3D=3D "OK" and alt_rule_save is not None:
-+        return res
-     return res_inverse[res]
-=20
-=20
-+def variant_rule_save(rule_save, variant, alt_rule_save):
-+    '''
-+    Adjust expected output with given variant
-+
-+    If expected output is scoped to a variant, the other one yields differ=
-ent
-+    output. Therefore map @rule_save to itself if given variant is current=
-, use the
-+    alternate output, @alt_rule_save otherwise.
-+
-+    :param rule_save: expected output if variant matches test spec
-+    :param variant: variant given in test spec
-+    :param alt_rule_save: expected output if the variant does not match the
-+                          test spec
-+    '''
-+    variant_executable =3D {
-+        "NFT": "xtables-nft-multi",
-+        "LEGACY": "xtables-legacy-multi"
-+    }
-+
-+    if variant_executable[variant] =3D=3D EXECUTABLE:
-+        return rule_save
-+    else:
-+        return alt_rule_save
-+
-+
- def run_test_file(filename, netns):
-     '''
-     Runs a test file
-@@ -317,10 +341,12 @@ def run_test_file(filename, netns):
-             if len(item) > 3:
-                 variant =3D item[3].rstrip()
-                 if len(item) > 4:
--                    alt_res =3D item[4].rstrip()
-+                    alt_rule_save =3D item[4].rstrip()
-                 else:
--                    alt_res =3D None
--                res =3D variant_res(res, variant, alt_res)
-+                    alt_rule_save =3D None
-+
-+                res =3D variant_res(res, variant, alt_rule_save)
-+                rule_save =3D variant_rule_save(rule_save, variant, alt_ru=
-le_save)
-=20
-             ret =3D run_test(iptables, rule, rule_save,
-                            res, filename, lineno + 1, netns)
---=20
-2.34.1
+4. Userspace pointer
 
+The verifier recently gained support for annotating BTF with __user type tag.
+This indicates pointers pointing to memory which must be read using the
+bpf_probe_read_user helper to ensure correct results. The set also permits
+storing them into the BPF map, and ensures user pointer cannot be stored
+into other kinds of pointers mentioned above.
 
---BRcjVxCWkv1Eu0/Y--
+When loaded from the map, the only thing that can be done is to pass this
+pointer to bpf_probe_read_user. No dereference is allowed.
 
---iO0qgNPX2KzgqlFU
-Content-Type: application/pgp-signature; name="signature.asc"
+Notes
+-----
 
------BEGIN PGP SIGNATURE-----
+This set requires the following LLVM fix to pass the BPF CI:
 
-iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmISPb4ACgkQKYasCr3x
-BA2dlg/8CjAuFivnvSjAQ8QhcG6xFsqBFeyyVgzHdYTE1a1q1z7bmMSnqj9J/+p1
-koRs+Pa9tjUcn86DpL0kl/w4G0vWwx9VgtJnXf8IKwg9MaoEKWPK8+rJ4lLPgpsa
-f7gKHPPrZ5SwhBk+h9rhDfHzKUgqdj9bkPOQ1D6Dhky/aLa4OwlIaBZ2QGtnHsox
-MVqkwQt4J70CTyw7GpfzZJxpL2Im3WmB5GCK6AV81dQYk1xBZBTtJ9U+8iEfaDEX
-sLExxx5j7ASNbnppvL9KRWtOnL1ZKHuZWp79eX5CleziYfavO/4Ax1SeAIMsHd+i
-5TVcxz4YbLhtu8gSp5rk/mLK+VDyrTyYXjX1pcp2AAxJ9sckcrvy8y4woZjRMeSq
-ciB6qMIyAUti6j2jiXgA4pRpzK8D5HOgBm3vBqxvU50GqbqXCntCQwCCDAucBBBa
-HyjH4MF2ye53yMgy8Z06jhVS2/aQkLotq40wV1Aghhw73irSBflbp3+8pwLn3v4e
-+a9iQgACTpAtnT7h7eoLQ5NeAx1ZcuZoHxKPSfKBd0KWKlascGJAQHYtq2Co9gWC
-WvLcYWzq0eFZAsy+o2kwMtpQUEkCKmHWHcbJQcxoNk/eya1MTDJNoQ4LBEBR/VEz
-xF22VqgHcdw9m1vJJa0mTikIs7VQxkpvXDYUMskd3YKKDjp/ORE=
-=riMC
------END PGP SIGNATURE-----
+  https://reviews.llvm.org/D119799
 
---iO0qgNPX2KzgqlFU--
+Also, I applied Alexei's suggestion of removing callback for btf_find_field, but
+that 'ugly' is still required, since bad offset alignment etc. can return an
+error, and we don't want to leave a partial ptr_off_tab around in that case. The
+other option is freeing inside btf_find_field, but that would be more code
+conditional on BTF_FIELD_KPTR, when the caller can do it based on ret < 0.
+
+TODO
+----
+
+Needs a lot more testing, especially for stuff apart from verifier correctness.
+Will work on that in parallel during v1 review. The idea was to get a little
+more feedback (esp. for kptr_get stuff) before moving forward with adding more
+tests. Posting it now to just get discussion started. The verifier tests fairly
+comprehensively test many edge cases I could think of.
+
+Kumar Kartikeya Dwivedi (15):
+  bpf: Factor out fd returning from bpf_btf_find_by_name_kind
+  bpf: Make btf_find_field more generic
+  bpf: Allow storing PTR_TO_BTF_ID in map
+  bpf: Allow storing referenced PTR_TO_BTF_ID in map
+  bpf: Allow storing PTR_TO_PERCPU_BTF_ID in map
+  bpf: Allow storing __user PTR_TO_BTF_ID in map
+  bpf: Prevent escaping of pointers loaded from maps
+  bpf: Adapt copy_map_value for multiple offset case
+  bpf: Populate pairs of btf_id and destructor kfunc in btf
+  bpf: Wire up freeing of referenced PTR_TO_BTF_ID in map
+  bpf: Teach verifier about kptr_get style kfunc helpers
+  net/netfilter: Add bpf_ct_kptr_get helper
+  libbpf: Add __kptr* macros to bpf_helpers.h
+  selftests/bpf: Add C tests for PTR_TO_BTF_ID in map
+  selftests/bpf: Add verifier tests for PTR_TO_BTF_ID in map
+
+ include/linux/bpf.h                           |  90 ++-
+ include/linux/btf.h                           |  24 +
+ include/net/netfilter/nf_conntrack_core.h     |  17 +
+ kernel/bpf/arraymap.c                         |  13 +-
+ kernel/bpf/btf.c                              | 565 ++++++++++++++--
+ kernel/bpf/hashtab.c                          |  27 +-
+ kernel/bpf/map_in_map.c                       |   5 +-
+ kernel/bpf/syscall.c                          | 227 ++++++-
+ kernel/bpf/verifier.c                         | 311 ++++++++-
+ net/bpf/test_run.c                            |  17 +-
+ net/netfilter/nf_conntrack_bpf.c              | 132 +++-
+ net/netfilter/nf_conntrack_core.c             |  17 -
+ tools/lib/bpf/bpf_helpers.h                   |   4 +
+ .../selftests/bpf/prog_tests/map_btf_ptr.c    |  13 +
+ .../testing/selftests/bpf/progs/map_btf_ptr.c | 105 +++
+ .../testing/selftests/bpf/progs/test_bpf_nf.c |  31 +
+ tools/testing/selftests/bpf/test_verifier.c   |  57 +-
+ .../selftests/bpf/verifier/map_btf_ptr.c      | 624 ++++++++++++++++++
+ 18 files changed, 2144 insertions(+), 135 deletions(-)
+ create mode 100644 tools/testing/selftests/bpf/prog_tests/map_btf_ptr.c
+ create mode 100644 tools/testing/selftests/bpf/progs/map_btf_ptr.c
+ create mode 100644 tools/testing/selftests/bpf/verifier/map_btf_ptr.c
+
+-- 
+2.35.1
+
