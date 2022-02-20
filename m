@@ -2,56 +2,113 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6CDAC433F5
-	for <netfilter-devel@archiver.kernel.org>; Sun, 20 Feb 2022 00:46:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B69F0C433F5
+	for <netfilter-devel@archiver.kernel.org>; Sun, 20 Feb 2022 01:13:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243289AbiBTAq3 (ORCPT
+        id S231523AbiBTBNx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 19 Feb 2022 19:46:29 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:54958 "EHLO
+        Sat, 19 Feb 2022 20:13:53 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:54856 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241636AbiBTAq2 (ORCPT
+        with ESMTP id S230096AbiBTBNw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 19 Feb 2022 19:46:28 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3EC835621D
-        for <netfilter-devel@vger.kernel.org>; Sat, 19 Feb 2022 16:46:09 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1nLaMZ-0000TY-Nf; Sun, 20 Feb 2022 01:46:07 +0100
-Date:   Sun, 20 Feb 2022 01:46:07 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH 00/26] scanner: Some fixes, many new scopes
-Message-ID: <YhGPT+Nbz9vZuKQO@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20220219132814.30823-1-phil@nwl.cc>
- <YhGMiKReUjPCyAai@salvia>
+        Sat, 19 Feb 2022 20:13:52 -0500
+Received: from mail-il1-x12c.google.com (mail-il1-x12c.google.com [IPv6:2607:f8b0:4864:20::12c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D35323A185;
+        Sat, 19 Feb 2022 17:13:31 -0800 (PST)
+Received: by mail-il1-x12c.google.com with SMTP id d3so7431027ilr.10;
+        Sat, 19 Feb 2022 17:13:31 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=MHmeZaIgkSm3ycZ7IymMzdu/DGYdydfC+srKFRrUzGw=;
+        b=eX5cX5upyd+aBVEMTwur3X0kB35IYsUH24FDRYt06449k/MSLDQogHJeJCOoA7CBPV
+         MvlKP9aNBOtcS+qTpNBUNABSvTSngdSwH2UF+3YAfAY6DYQXN5j6zaUNyowRIJQIRxIt
+         A/yc2e7I1EbVoE4fzz/NjYtr3HlDoUX/QMNt9wFcLYVfggs2LhoAqFCgh02jw3QLps2z
+         QsvN+AU/k/zPcSRYU49q8wrDK0rqGNN8si4T2feRsGuLIGnY/+QB7xeA66wYx3AdJIf5
+         P6NO+3n8Cripgd1UMc1A7+S8sWCsEiSkOdIqX+kmULE6eA7HNwxGNGvPMiO7Mdktruau
+         3wWg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=MHmeZaIgkSm3ycZ7IymMzdu/DGYdydfC+srKFRrUzGw=;
+        b=HRIxpbgmjClU8E8h9GWwBk1gzJoK8S22tw+QtNhzebb1J9VnnNFLTXoPRlMKwBNfDZ
+         xKV/BX9ejfnmHs/Ri6lrla9CYm43/M5POhgu9Jey4zVYLCnPx1QBmi9olhPzEb66gXuG
+         +7WK4k6dGf/+sGCKvyLJGWQChRAuFoo13Wa8doiS02nMhRUSTKuH10FOgcoo2RFY2HEX
+         b0PYmRqY1NtBts2vMILTaROxzZDYees4F8ModeZqYY4gKv/Uad+cmFilBm041kfBRjtv
+         UVkTU3DKjI4Bu1H3O6Td76+ewLwZksNrn62U5Yzk0HjcwNsu36LQDJEcWopDyM2rnqTo
+         lGEA==
+X-Gm-Message-State: AOAM533SCpQPNJwiep6AhPZxdk7nbCEvbU8VmgrvEZQtxCJJkkwJwDhX
+        8F5u8z9sBHXNZpCyEYUjIn/qf4Y2lb4n+v60Oz3a0pQoQCs=
+X-Google-Smtp-Source: ABdhPJyXGu8XOEJsmn7Sj+TXQMH/Gy/gWFWNPTm5dCy8cTMzuH1MZlt/jjNq9G8gwrl+cvJdPqJFocoocb1ASFAz7Us=
+X-Received: by 2002:a05:6e02:1a88:b0:2be:a472:90d9 with SMTP id
+ k8-20020a056e021a8800b002bea47290d9mr10779088ilv.239.1645319611219; Sat, 19
+ Feb 2022 17:13:31 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YhGMiKReUjPCyAai@salvia>
+References: <20220218222017.czshdolesamkqv4j@apollo.legion> <878ru7qp98.fsf@oc8242746057.ibm.com>
+In-Reply-To: <878ru7qp98.fsf@oc8242746057.ibm.com>
+From:   Andrii Nakryiko <andrii.nakryiko@gmail.com>
+Date:   Sat, 19 Feb 2022 17:13:20 -0800
+Message-ID: <CAEf4BzZMYP0qL=OanY5fv3CPghG5AciY5j2RnVrnjcJ0cF5eUA@mail.gmail.com>
+Subject: Re: [PATCH bpf-next v8 00/10] Introduce unstable CT lookup helpers
+To:     Alexander Egorenkov <egorenar@linux.ibm.com>
+Cc:     Kumar Kartikeya Dwivedi <memxor@gmail.com>,
+        Alexander.Egorenkov@ibm.com, Andrii Nakryiko <andrii@kernel.org>,
+        Alexei Starovoitov <ast@kernel.org>, bpf <bpf@vger.kernel.org>,
+        Jesper Dangaard Brouer <brouer@redhat.com>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Florian Westphal <fw@strlen.de>,
+        Ilya Leoshkevich <iii@linux.ibm.com>,
+        john fastabend <john.fastabend@gmail.com>,
+        Martin Lau <kafai@fb.com>,
+        Maxim Mikityanskiy <maximmi@nvidia.com>,
+        Networking <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Song Liu <songliubraving@fb.com>,
+        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>,
+        Yonghong Song <yhs@fb.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Feb 20, 2022 at 01:34:16AM +0100, Pablo Neira Ayuso wrote:
-> On Sat, Feb 19, 2022 at 02:27:48PM +0100, Phil Sutter wrote:
-> > Patch 1 adds a test for 'ct count' statement, patches 2 and 3 fix some
-> > keywords' scope, bulk scope introduction in the remaining ones.
-> 
-> Could you just push out the fixes in this batch?
+On Fri, Feb 18, 2022 at 11:39 PM Alexander Egorenkov
+<egorenar@linux.ibm.com> wrote:
+>
+>
+> Hi Kartikeya,
+>
+> sorry if i wasn't clear in my first message but just to be sure
+> we have no misunderstandings :)
+>
+> .BTF sections work on s390x with linux-next and nf_conntrack as well if
+> the corresponding .BTF section is a part of the kernel module itself.
+> I tested it myself by building a linux-next kernel and testing it with a
+> KVM guest, i'm able to load nf_conntrack and it works.
+>
+> In contrast, in the case where the corresponding .BTF section is separate
+> from the kernel module nf_conntrack, it fails with the message i
+> provided in the first email.
+>
+> Therefore, my question is, does BTF for kernel modules work if the
+> corresponding BTF section is NOT a part of the kernel module but instead
+> is stored within the corresponding debuginfo file
+> /usr/lib/debug/lib/modules/*/kernel/net/netfilter/nf_conntrack.ko.debug ?
 
-Sure!
+No, it doesn't. .BTF has to be part of the module's .ko ELF file.
+DWARF can be stripped out, it's only needed for generating BTF during
+the build process.
 
-> My proposal is to release 1.0.2 with accumulated changes in master,
-> then we follow up with more updates after the release.
-> 
-> I'd also like to push my automerge after the release too.
+It actually would be great to have an option to generate BTF without
+leaving any DWARF, but that's a separate topic.
 
-OK, cool. I'll push the fixes now and keep the scope bulk add for later.
-
-Thanks, Phil
+>
+> Thanks
+> Regards
+> Alex
+>
+>
+>
