@@ -2,149 +2,144 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6359C433EF
-	for <netfilter-devel@archiver.kernel.org>; Sun, 20 Feb 2022 18:04:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9ECD6C433F5
+	for <netfilter-devel@archiver.kernel.org>; Sun, 20 Feb 2022 20:40:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244423AbiBTSFJ (ORCPT
+        id S244941AbiBTUlQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 20 Feb 2022 13:05:09 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:59798 "EHLO
+        Sun, 20 Feb 2022 15:41:16 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:37866 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238456AbiBTSFH (ORCPT
+        with ESMTP id S244868AbiBTUlP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 20 Feb 2022 13:05:07 -0500
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 36BD4527FA;
-        Sun, 20 Feb 2022 10:04:41 -0800 (PST)
-Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 204EB60212;
-        Sun, 20 Feb 2022 19:03:47 +0100 (CET)
-Date:   Sun, 20 Feb 2022 19:04:38 +0100
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Paul Blakey <paulb@nvidia.com>
-Cc:     dev@openvswitch.org, netdev@vger.kernel.org,
-        Jamal Hadi Salim <jhs@mojatatu.com>, davem@davemloft.net,
-        Jiri Pirko <jiri@nvidia.com>,
-        Cong Wang <xiyou.wangcong@gmail.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        netfilter-devel@vger.kernel.org,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Oz Shlomo <ozsh@nvidia.com>, Vlad Buslov <vladbu@nvidia.com>,
-        Roi Dayan <roid@nvidia.com>,
-        Ariel Levkovich <lariel@nvidia.com>, coreteam@netfilter.org
-Subject: Re: [PATCH net v2 1/1] net/sched: act_ct: Fix flow table lookup
- failure with no originating ifindex
-Message-ID: <YhKCtlpgJlliT9Bc@salvia>
-References: <20220220093226.15042-1-paulb@nvidia.com>
+        Sun, 20 Feb 2022 15:41:15 -0500
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D3DF4504D;
+        Sun, 20 Feb 2022 12:40:54 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1645389654; x=1676925654;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=s0jR3gPRePi1saHMkP1Sa718UVGScDkx6b1DLwyOMlo=;
+  b=bTXVls4J39vlsKJv2ytQcKh682Izhu1JUoaq93Rsko+gZajLsvhdLSor
+   u7/H6dPZi4+MElE0M7uHEqK7vdihs8lcBPefFii39RvyKsefS64TVB9i1
+   ksdVQD9SHsA8vrst4jvuYoBu37MWmORXdykDTxC8mnTiXmfPms7iY9joZ
+   EXvWTKYj6tfKWOhFOGA7iFjOlbqpiR1aMlZY+c8+mP9s08L7JUS3gB6pS
+   MqEdogTzHJYbzdqpPwSUPvcHbY/tSJkNPVZgbtdVHIC5RmjItGyKXvlf+
+   jxXSNb3EG3nNvXX9ApmRWaRPR/Vhbj3X83R59KXPLnpmUQ7w2hAbD2Bf0
+   g==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10264"; a="251347924"
+X-IronPort-AV: E=Sophos;i="5.88,384,1635231600"; 
+   d="scan'208";a="251347924"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Feb 2022 12:40:53 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.88,384,1635231600"; 
+   d="scan'208";a="683014185"
+Received: from lkp-server01.sh.intel.com (HELO da3212ac2f54) ([10.239.97.150])
+  by fmsmga001.fm.intel.com with ESMTP; 20 Feb 2022 12:40:51 -0800
+Received: from kbuild by da3212ac2f54 with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1nLt0k-0000jT-DX; Sun, 20 Feb 2022 20:40:50 +0000
+Date:   Mon, 21 Feb 2022 04:40:35 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Kumar Kartikeya Dwivedi <memxor@gmail.com>, bpf@vger.kernel.org
+Cc:     kbuild-all@lists.01.org, Hao Luo <haoluo@google.com>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Toke =?iso-8859-1?Q?H=F8iland-J=F8rgensen?= <toke@redhat.com>,
+        Jesper Dangaard Brouer <hawk@kernel.org>,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [PATCH bpf-next v1 05/15] bpf: Allow storing
+ PTR_TO_PERCPU_BTF_ID in map
+Message-ID: <202202210444.8UyLf80r-lkp@intel.com>
+References: <20220220134813.3411982-6-memxor@gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="Yv3p7b7MXYtnjMmu"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220220093226.15042-1-paulb@nvidia.com>
-User-Agent: Alpine 2.23 (DEB 453 2020-06-18)
+In-Reply-To: <20220220134813.3411982-6-memxor@gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi Kumar,
 
---Yv3p7b7MXYtnjMmu
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Thank you for the patch! Perhaps something to improve:
 
-Hi Paul,
+[auto build test WARNING on next-20220217]
+[cannot apply to bpf-next/master bpf/master linus/master v5.17-rc4 v5.17-rc3 v5.17-rc2 v5.17-rc4]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch]
 
-On Sun, Feb 20, 2022 at 11:32:26AM +0200, Paul Blakey wrote:
-> After cited commit optimizted hw insertion, flow table entries are
-> populated with ifindex information which was intended to only be used
-> for HW offload. This tuple ifindex is hashed in the flow table key, so
-> it must be filled for lookup to be successful. But tuple ifindex is only
-> relevant for the netfilter flowtables (nft), so it's not filled in
-> act_ct flow table lookup, resulting in lookup failure, and no SW
-> offload and no offload teardown for TCP connection FIN/RST packets.
-> 
-> To fix this, remove ifindex from hash, and allow lookup without
-> the ifindex. Act ct will lookup without the ifindex filled.
+url:    https://github.com/0day-ci/linux/commits/Kumar-Kartikeya-Dwivedi/Introduce-typed-pointer-support-in-BPF-maps/20220220-215105
+base:    3c30cf91b5ecc7272b3d2942ae0505dd8320b81c
+config: openrisc-randconfig-s032-20220220 (https://download.01.org/0day-ci/archive/20220221/202202210444.8UyLf80r-lkp@intel.com/config)
+compiler: or1k-linux-gcc (GCC) 11.2.0
+reproduce:
+        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        # apt-get install sparse
+        # sparse version: v0.6.4-dirty
+        # https://github.com/0day-ci/linux/commit/255d8431d2cae10fb3ac6abd44b1bf73f15dd060
+        git remote add linux-review https://github.com/0day-ci/linux
+        git fetch --no-tags linux-review Kumar-Kartikeya-Dwivedi/Introduce-typed-pointer-support-in-BPF-maps/20220220-215105
+        git checkout 255d8431d2cae10fb3ac6abd44b1bf73f15dd060
+        # save the config file to linux build tree
+        mkdir build_dir
+        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-11.2.0 make.cross C=1 CF='-fdiagnostic-prefix -D__CHECK_ENDIAN__' O=build_dir ARCH=openrisc SHELL=/bin/bash kernel/bpf/
 
-I think it is good to add FLOW_OFFLOAD_XMIT_TC (instead of relying on
-FLOW_OFFLOAD_XMIT_UNSPEC), this allows for more tc specific fields in
-the future.
+If you fix the issue, kindly add following tag as appropriate
+Reported-by: kernel test robot <lkp@intel.com>
 
-See attached patch.
 
-Thanks.
+sparse warnings: (new ones prefixed by >>)
+>> kernel/bpf/verifier.c:1568:39: sparse: sparse: mixing different enum types:
+>> kernel/bpf/verifier.c:1568:39: sparse:    unsigned int enum bpf_reg_type
+>> kernel/bpf/verifier.c:1568:39: sparse:    unsigned int enum bpf_type_flag
+   kernel/bpf/verifier.c:13916:38: sparse: sparse: subtraction of functions? Share your drugs
+   kernel/bpf/verifier.c: note: in included file (through include/linux/bpf.h, include/linux/bpf-cgroup.h):
+   include/linux/bpfptr.h:52:47: sparse: sparse: cast to non-scalar
+   include/linux/bpfptr.h:52:47: sparse: sparse: cast from non-scalar
+   include/linux/bpfptr.h:63:40: sparse: sparse: cast to non-scalar
+   include/linux/bpfptr.h:63:40: sparse: sparse: cast from non-scalar
+   include/linux/bpfptr.h:52:47: sparse: sparse: cast to non-scalar
+   include/linux/bpfptr.h:52:47: sparse: sparse: cast from non-scalar
+   include/linux/bpfptr.h:63:40: sparse: sparse: cast to non-scalar
+   include/linux/bpfptr.h:63:40: sparse: sparse: cast from non-scalar
+   include/linux/bpfptr.h:52:47: sparse: sparse: cast to non-scalar
+   include/linux/bpfptr.h:52:47: sparse: sparse: cast from non-scalar
+   include/linux/bpfptr.h:63:40: sparse: sparse: cast to non-scalar
+   include/linux/bpfptr.h:63:40: sparse: sparse: cast from non-scalar
+   include/linux/bpfptr.h:52:47: sparse: sparse: cast to non-scalar
+   include/linux/bpfptr.h:52:47: sparse: sparse: cast from non-scalar
+   include/linux/bpfptr.h:52:47: sparse: sparse: cast to non-scalar
+   include/linux/bpfptr.h:52:47: sparse: sparse: cast from non-scalar
 
---Yv3p7b7MXYtnjMmu
-Content-Type: text/x-diff; charset=utf-8
-Content-Disposition: attachment; filename="x.patch"
+vim +1568 kernel/bpf/verifier.c
 
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index a3647fadf1cc..97bc24efe744 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -96,6 +96,7 @@ enum flow_offload_xmit_type {
- 	FLOW_OFFLOAD_XMIT_NEIGH,
- 	FLOW_OFFLOAD_XMIT_XFRM,
- 	FLOW_OFFLOAD_XMIT_DIRECT,
-+	FLOW_OFFLOAD_XMIT_TC,
- };
- 
- #define NF_FLOW_TABLE_ENCAP_MAX		2
-@@ -142,6 +143,9 @@ struct flow_offload_tuple {
- 			u8		h_source[ETH_ALEN];
- 			u8		h_dest[ETH_ALEN];
- 		} out;
-+		struct {
-+			u32		iifidx;
-+		} tc;
- 	};
- };
- 
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index b561e0a44a45..fc4265acd9c4 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -110,7 +110,11 @@ static int nf_flow_rule_match(struct nf_flow_match *match,
- 		nf_flow_rule_lwt_match(match, tun_info);
- 	}
- 
--	key->meta.ingress_ifindex = tuple->iifidx;
-+	if (tuple->xmit_type == FLOW_OFFLOAD_XMIT_TC)
-+		key->meta.ingress_ifindex = tuple->tc.iifidx;
-+	else
-+		key->meta.ingress_ifindex = tuple->iifidx;
-+
- 	mask->meta.ingress_ifindex = 0xffffffff;
- 
- 	if (tuple->encap_num > 0 && !(tuple->in_vlan_ingress & BIT(0)) &&
-diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
-index f99247fc6468..d6bbce68c957 100644
---- a/net/sched/act_ct.c
-+++ b/net/sched/act_ct.c
-@@ -361,6 +361,13 @@ static void tcf_ct_flow_table_put(struct tcf_ct_params *params)
- 	}
- }
- 
-+static void tcf_ct_flow_tc_ifidx(struct flow_offload *entry,
-+				 struct nf_conn_act_ct_ext *act_ct_ext, u8 dir)
-+{
-+	entry->entry->tuplehash[dir].tuple->xmit_type = FLOW_OFFLOAD_XMIT_TC;
-+	entry->tuplehash[dir].tuple.tc.iifidx = act_ct_ext->ifindex[dir];
-+}
-+
- static void tcf_ct_flow_table_add(struct tcf_ct_flow_table *ct_ft,
- 				  struct nf_conn *ct,
- 				  bool tcp)
-@@ -385,10 +392,8 @@ static void tcf_ct_flow_table_add(struct tcf_ct_flow_table *ct_ft,
- 
- 	act_ct_ext = nf_conn_act_ct_ext_find(ct);
- 	if (act_ct_ext) {
--		entry->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.iifidx =
--			act_ct_ext->ifindex[IP_CT_DIR_ORIGINAL];
--		entry->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.iifidx =
--			act_ct_ext->ifindex[IP_CT_DIR_REPLY];
-+		tcf_ct_flow_tc_ifidx(entry, act_ct_ext, FLOW_OFFLOAD_DIR_ORIGINAL);
-+		tcf_ct_flow_tc_ifidx(entry, act_ct_ext, FLOW_OFFLOAD_DIR_REPLY);
- 	}
- 
- 	err = flow_offload_add(&ct_ft->nf_ft, entry);
+  1555	
+  1556	static void mark_btf_ld_reg(struct bpf_verifier_env *env,
+  1557				    struct bpf_reg_state *regs, u32 regno,
+  1558				    enum bpf_reg_type reg_type,
+  1559				    struct btf *btf, u32 btf_id,
+  1560				    enum bpf_type_flag flag)
+  1561	{
+  1562		if (reg_type == SCALAR_VALUE ||
+  1563		    WARN_ON_ONCE(reg_type != PTR_TO_BTF_ID && reg_type != PTR_TO_PERCPU_BTF_ID)) {
+  1564			mark_reg_unknown(env, regs, regno);
+  1565			return;
+  1566		}
+  1567		mark_reg_known_zero(env, regs, regno);
+> 1568		regs[regno].type = reg_type | flag;
+  1569		regs[regno].btf = btf;
+  1570		regs[regno].btf_id = btf_id;
+  1571	}
+  1572	
 
---Yv3p7b7MXYtnjMmu--
+---
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
