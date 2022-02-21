@@ -2,116 +2,87 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04243C433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Feb 2022 21:15:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BB70C433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Feb 2022 22:24:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234298AbiBUVPk (ORCPT
+        id S233188AbiBUWY7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 21 Feb 2022 16:15:40 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:41048 "EHLO
+        Mon, 21 Feb 2022 17:24:59 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:43918 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234293AbiBUVPj (ORCPT
+        with ESMTP id S232440AbiBUWY7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 21 Feb 2022 16:15:39 -0500
-Received: from mail-yb1-xb2a.google.com (mail-yb1-xb2a.google.com [IPv6:2607:f8b0:4864:20::b2a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE8FC23BF4
-        for <netfilter-devel@vger.kernel.org>; Mon, 21 Feb 2022 13:15:12 -0800 (PST)
-Received: by mail-yb1-xb2a.google.com with SMTP id g6so15552810ybe.12
-        for <netfilter-devel@vger.kernel.org>; Mon, 21 Feb 2022 13:15:12 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=uFeSUMQXvI58Rc5ptIDkWKszPED1nBAKaDSflKyhul4=;
-        b=RZzEj0T6lR2oZmD5sYJSaQ09IIO8ejkvKQAG9qZzjgkjCIH9iWqDgiv+dWWWGPIiYW
-         686aLRQ6B4JKAqKr+FWZxUROgLNcq3AWKzOWY4A8nzyP31hDxzY5Ho7Fawb+USO6W/X8
-         Fp85k64JrvF8FiKClxEzE2QYxcYFMEl8vuck2D2eTz8RSlX3i4G4HPDKNC1fu1sUW3di
-         aw8VEKHIUEb3H+z8a+hqPWT58k790b/43E07DCjt11lJkgxmOb3E0PGGEewkFAvji1nZ
-         ZHbMTTBZPWvacQG41hoiJ45mBOQ9SJD8mBDM2QZfF/rp0l7ryMiwqrYuOCXsJfJH4+Mb
-         Mf6g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=uFeSUMQXvI58Rc5ptIDkWKszPED1nBAKaDSflKyhul4=;
-        b=8JLnNBWM8Y4ZfqNgGrRodocV5evitQq9Qs/gBX4uhOdDbT0/uESX0r+cntVO3VEn/l
-         M0k2xlVBkm6OXWfl8ByWXkBT5lexk7yLE35Jg+twh9aly+CBm7Nq4/EoVzqH0la16xvd
-         fianxpF3/Cnq3iNS9dLNdrm+myLC8VT8+uoTg0yeJ587fuEbcdhT4kPfAj5/aBs4MSXa
-         i5ZWKSJvXMvNcfjYfFu3GaKpzi3Y+/92w6AoYKhJ2D43spi3iDImUmVLOXBUUTrtDj8S
-         88JXc/n8FErNYg8oKJESIDyy4iYvcU0j4I30vdIuN9+o2e1tyqLeNQkv+UV+H+5zi/EM
-         vtLA==
-X-Gm-Message-State: AOAM530Metm+6hpK8ODzZVFf7dELtqYom+6v5tiUlAEUARknkFhZyKgL
-        3vOa5j5p3TR+YRNvPl6b+e/WsxZtkVqGV4xJQ9YS0w==
-X-Google-Smtp-Source: ABdhPJzi5i7MHEsd7FI5A+sSoNSiFoNL2xxPH4uFsyOtnvsQbIQX0VSEbJlqGDAm9gwGzWnn0YPBkySUqRu7Zbm9OsQ=
-X-Received: by 2002:a25:c304:0:b0:623:e017:8e15 with SMTP id
- t4-20020a25c304000000b00623e0178e15mr20592189ybf.592.1645478111630; Mon, 21
- Feb 2022 13:15:11 -0800 (PST)
+        Mon, 21 Feb 2022 17:24:59 -0500
+Received: from nautica.notk.org (ipv6.notk.org [IPv6:2001:41d0:1:7a93::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 61C6F23BE4;
+        Mon, 21 Feb 2022 14:24:34 -0800 (PST)
+Received: by nautica.notk.org (Postfix, from userid 108)
+        id 3D732C01C; Mon, 21 Feb 2022 23:24:30 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=codewreck.org; s=2;
+        t=1645482270; bh=YIY6TJhRnXEVzCDf5M3a63Q44e12FNrwl3WIohQXR6I=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=PZ1I+PfvzXczBl8nwUrmsd0FLqkROaXt/6wl55kJmu37yoy/rQwiwmnDxg39pmrLp
+         d5J5YLkBNvrUQfagkvm/Fzt8mpKGT8+7EKGo++HeTBrfks8FAaY/6SrmIn5684/1+5
+         1YVzSrAnXR6a7syeny4j/rbgKhXlyIZsgzTFVL0XVZ4WFF2wdHVbECZ73WSOTKmFSv
+         H5sfOvKlHLX0U1Z+ZCsm5pS3jWD5A/KhyXarpSgH0dP41iCnTQp6o0bjEgyZgYRqiw
+         /AmTyyBUSB70Zu/Vl/DIv6Ei/NLEJto9o8l9LRUwRgzJm6fYXzKAd0lcOyinYqyHBl
+         doSF2otKJ0A5A==
+Received: from odin.codewreck.org (localhost [127.0.0.1])
+        by nautica.notk.org (Postfix) with ESMTPS id 08083C009;
+        Mon, 21 Feb 2022 23:24:27 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=codewreck.org; s=2;
+        t=1645482269; bh=YIY6TJhRnXEVzCDf5M3a63Q44e12FNrwl3WIohQXR6I=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=KGbTalYgnx0afizMcFdjhLMVpS/+ImEnTco4kas/K98wbkYpeZPvEYQyM1Fbp8WBo
+         WzhdhGUx5dJFirSA9nS0Goo6rN3l2LTWDXQ79n+LNY4u9KqCaWv5Q1aXjQTqV8L4hX
+         nMv++5Hvq+OsaCodqNTJfRoEMjHGs9d7rjxpQW15RHqDm1fsZeSeAO1wTTo0mVvMmQ
+         hcpefH2E3NDrZ+TCUkV68kixPAdG1r9jApkhACcclHCcl5L08MBMx8dpZLYMigDPmb
+         nE8eDWunlF/ihThAkcRYZitIcbul9S9qeuYJSNQVJkeVqY62Xncru0F6jQMryqasfu
+         Wk3ySpEhglltA==
+Received: from localhost (odin.codewreck.org [local])
+        by odin.codewreck.org (OpenSMTPD) with ESMTPA id 80620b33;
+        Mon, 21 Feb 2022 22:24:24 +0000 (UTC)
+Date:   Tue, 22 Feb 2022 07:24:09 +0900
+From:   Dominique Martinet <asmadeus@codewreck.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org
+Subject: Re: [PATCH nf 2/5] netfilter: nf_tables_offload: incorrect flow
+ offload action array size
+Message-ID: <YhQRCVqtBfiHxChp@codewreck.org>
+References: <20220221161757.250801-1-pablo@netfilter.org>
+ <20220221161757.250801-3-pablo@netfilter.org>
 MIME-Version: 1.0
-References: <20220221084934.836145070@linuxfoundation.org>
-In-Reply-To: <20220221084934.836145070@linuxfoundation.org>
-From:   Naresh Kamboju <naresh.kamboju@linaro.org>
-Date:   Tue, 22 Feb 2022 02:44:59 +0530
-Message-ID: <CA+G9fYsELVHqtz6KV8UWvOHJY=F3YD-DQ7_hoauhHUtrV7GHKQ@mail.gmail.com>
-Subject: Re: [PATCH 5.16 000/227] 5.16.11-rc1 review
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Eric Dumazet <edumazet@google.com>
-Cc:     linux-kernel@vger.kernel.org, stable@vger.kernel.org,
-        torvalds@linux-foundation.org, akpm@linux-foundation.org,
-        linux@roeck-us.net, shuah@kernel.org, patches@kernelci.org,
-        lkft-triage@lists.linaro.org, pavel@denx.de, jonathanh@nvidia.com,
-        f.fainelli@gmail.com, sudipm.mukherjee@gmail.com,
-        slade@sladewatkins.com, Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20220221161757.250801-3-pablo@netfilter.org>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, 21 Feb 2022 at 14:46, Greg Kroah-Hartman
-<gregkh@linuxfoundation.org> wrote:
->
-> This is the start of the stable review cycle for the 5.16.11 release.
-> There are 227 patches in this series, all will be posted as a response
-> to this one.  If anyone has any issues with these being applied, please
-> let me know.
->
-> Responses should be made by Wed, 23 Feb 2022 08:48:58 +0000.
-> Anything received after that time might be too late.
->
-> The whole patch series can be found in one patch at:
->         https://www.kernel.org/pub/linux/kernel/v5.x/stable-review/patch-=
-5.16.11-rc1.gz
-> or in the git tree and branch at:
->         git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable=
--rc.git linux-5.16.y
-> and the diffstat can be found below.
->
-> thanks,
->
-> greg k-h
+Pablo Neira Ayuso wrote on Mon, Feb 21, 2022 at 05:17:54PM +0100:
+> immediate verdict expression needs to allocate one slot in the flow offload
+> action array, however, immediate data expression does not need to do so.
+> 
+> fwd and dup expression need to allocate one slot, this is missing.
+> 
+> Add a new offload_action interface to report if this expression needs to
+> allocate one slot in the flow offload action array.
+> 
+> Fixes: be2861dc36d7 ("netfilter: nft_{fwd,dup}_netdev: add offload support")
+> Reported-and-tested-by: Nick Gregory <Nick.Gregory@Sophos.com>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Results from Linaro=E2=80=99s test farm.
-Regressions on mips for following build errors /warnings.
+FYI this patch has been reported as fixing an arbitrary oob write on
+oss-security just now:
+https://www.openwall.com/lists/oss-security/2022/02/21/2
 
-mips build log:
-  - gcc-10-malta_defconfig
-  - gcc-8-malta_defconfig
-net/netfilter/xt_socket.c: In function 'socket_mt_destroy':
-net/netfilter/xt_socket.c:224:3: error: implicit declaration of
-function 'nf_defrag_ipv6_disable'; did you mean
-'nf_defrag_ipv4_disable'? [-Werror=3Dimplicit-function-declaration]
-   nf_defrag_ipv6_disable(par->net);
-   ^~~~~~~~~~~~~~~~~~~~~~
-   nf_defrag_ipv4_disable
-cc1: some warnings being treated as errors
+So it might make sense to send it quickly to Linus and linux-stable for
+immediate backport as it will get some attention...
+The poster didn't say anything about coordinating this with security
+handling people so it's safe to assume that wasn't done.
 
-Reported-by: Linux Kernel Functional Testing <lkft@linaro.org>
 
-Build links,
-  - https://builds.tuxbuild.com/25PhCYlLyigpYcPp4pVZrKxXo4C/
-
---
-Linaro LKFT
-https://lkft.linaro.org
+Thanks,
+-- 
+Dominique
