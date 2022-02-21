@@ -2,153 +2,161 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A851C433F5
-	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Feb 2022 04:36:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83C14C433FE
+	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Feb 2022 11:06:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343895AbiBUEgi (ORCPT
+        id S231143AbiBULHS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 20 Feb 2022 23:36:38 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:39752 "EHLO
+        Mon, 21 Feb 2022 06:07:18 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:36684 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343853AbiBUEgc (ORCPT
+        with ESMTP id S1355925AbiBULGH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 20 Feb 2022 23:36:32 -0500
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C30F940E4E;
-        Sun, 20 Feb 2022 20:36:09 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1645418169; x=1676954169;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=+Pq+xpA3IEK4JrCzqW93Y+vVzfUMjxuVojVzAftO/+E=;
-  b=EzlP5eH+wtdj5vuOGhRLlszhWiks/Frqcfd8v400TeMUl68X65bvElNq
-   vlje8QW6Red2AqDsgABua17V3moDb05CDkSpZakQfauXluRvegQo3XbWe
-   rw24Kfjki0Id1LaaV+FqhZYKoUqYy7HUI8sQ67SQ/P/8f2+ne1hXqegbR
-   I4PX0dJEgtJSZ7x5qj8qTWdgbFZTOkVtdC8hANi9+TOM7+toEIr6MIZCk
-   0gEttfpFGTThSlQLerJoCNb+QtNDchaIKJZ5N8oIyWoV96Jgp7YRCTkF3
-   OO8tN0xJrx15f66PIGVL5j7rT1BJyI48g45WpRlbMir6llBehdlYGlnTo
-   A==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10264"; a="276023745"
-X-IronPort-AV: E=Sophos;i="5.88,384,1635231600"; 
-   d="scan'208";a="276023745"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Feb 2022 20:36:09 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.88,384,1635231600"; 
-   d="scan'208";a="547173186"
-Received: from lkp-server01.sh.intel.com (HELO da3212ac2f54) ([10.239.97.150])
-  by orsmga008.jf.intel.com with ESMTP; 20 Feb 2022 20:36:06 -0800
-Received: from kbuild by da3212ac2f54 with local (Exim 4.92)
-        (envelope-from <lkp@intel.com>)
-        id 1nM0Qf-0001Jm-Te; Mon, 21 Feb 2022 04:36:05 +0000
-Date:   Mon, 21 Feb 2022 12:35:45 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Kumar Kartikeya Dwivedi <memxor@gmail.com>, bpf@vger.kernel.org
-Cc:     kbuild-all@lists.01.org, Alexei Starovoitov <ast@kernel.org>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Toke =?iso-8859-1?Q?H=F8iland-J=F8rgensen?= <toke@redhat.com>,
-        Jesper Dangaard Brouer <hawk@kernel.org>,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH bpf-next v1 12/15] net/netfilter: Add bpf_ct_kptr_get
- helper
-Message-ID: <202202211228.CO4wFX0Q-lkp@intel.com>
-References: <20220220134813.3411982-13-memxor@gmail.com>
+        Mon, 21 Feb 2022 06:06:07 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id AC3CB37031
+        for <netfilter-devel@vger.kernel.org>; Mon, 21 Feb 2022 02:34:06 -0800 (PST)
+Received: from netfilter.org (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 61B266021B;
+        Mon, 21 Feb 2022 11:33:08 +0100 (CET)
+Date:   Mon, 21 Feb 2022 11:34:01 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org,
+        Fernando Fernandez Mancera <ffmancera@riseup.net>
+Subject: Re: [PATCH v2 nf] netfilter: nf_tables: fix memory leak during
+ stateful obj update
+Message-ID: <YhNqmSBAt2IRbYx6@salvia>
+References: <20220220111850.87378-1-fw@strlen.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="pANdPOM7e9+z0cre"
 Content-Disposition: inline
-In-Reply-To: <20220220134813.3411982-13-memxor@gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20220220111850.87378-1-fw@strlen.de>
+User-Agent: Alpine 2.23 (DEB 453 2020-06-18)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Kumar,
 
-Thank you for the patch! Perhaps something to improve:
+--pANdPOM7e9+z0cre
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-[auto build test WARNING on next-20220217]
-[cannot apply to bpf-next/master bpf/master linus/master v5.17-rc4 v5.17-rc3 v5.17-rc2 v5.17-rc5]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch]
+Hi Florian,
 
-url:    https://github.com/0day-ci/linux/commits/Kumar-Kartikeya-Dwivedi/Introduce-typed-pointer-support-in-BPF-maps/20220220-215105
-base:    3c30cf91b5ecc7272b3d2942ae0505dd8320b81c
-config: s390-defconfig (https://download.01.org/0day-ci/archive/20220221/202202211228.CO4wFX0Q-lkp@intel.com/config)
-compiler: s390-linux-gcc (GCC) 11.2.0
-reproduce (this is a W=1 build):
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # https://github.com/0day-ci/linux/commit/79e35d4e4ee33a7692f0612065012307a361cd56
-        git remote add linux-review https://github.com/0day-ci/linux
-        git fetch --no-tags linux-review Kumar-Kartikeya-Dwivedi/Introduce-typed-pointer-support-in-BPF-maps/20220220-215105
-        git checkout 79e35d4e4ee33a7692f0612065012307a361cd56
-        # save the config file to linux build tree
-        mkdir build_dir
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-11.2.0 make.cross O=build_dir ARCH=s390 SHELL=/bin/bash net/netfilter/
+On Sun, Feb 20, 2022 at 12:18:50PM +0100, Florian Westphal wrote:
+> stateful objects can be updated from the control plane.
+> The transaction logic allocates a temporary object for this purpose.
+> 
+> This object has to be released via nft_obj_destroy, not kfree, since
+> the ->init function was called and it can have side effects beyond
+> memory allocation.
+> 
+> Unlike normal NEWOBJ path, the objects module refcount isn't
+> incremented, so add nft_newobj_destroy and use that.
 
-If you fix the issue, kindly add following tag as appropriate
-Reported-by: kernel test robot <lkp@intel.com>
+Probably this? .udata and .key is NULL for the update path so kfree
+should be fine.
 
-All warnings (new ones prefixed by >>):
+--pANdPOM7e9+z0cre
+Content-Type: text/x-diff; charset=utf-8
+Content-Disposition: attachment;
+	filename="0001-netfilter-nf_tables-fix-memory-leak-during-stateful-.patch"
 
-   net/netfilter/nf_conntrack_bpf.c: In function 'bpf_ct_kptr_get':
->> net/netfilter/nf_conntrack_bpf.c:226:21: warning: variable 'net' set but not used [-Wunused-but-set-variable]
-     226 |         struct net *net;
-         |                     ^~~
-   net/netfilter/nf_conntrack_bpf.c: At top level:
-   net/netfilter/nf_conntrack_bpf.c:314:5: warning: no previous prototype for 'register_nf_conntrack_bpf' [-Wmissing-prototypes]
-     314 | int register_nf_conntrack_bpf(void)
-         |     ^~~~~~~~~~~~~~~~~~~~~~~~~
+From 909c4c67deadbc674fcadd081c32c0781eb8e26f Mon Sep 17 00:00:00 2001
+From: Florian Westphal <fw@strlen.de>
+Date: Sun, 20 Feb 2022 12:18:50 +0100
+Subject: [PATCH] netfilter: nf_tables: fix memory leak during stateful obj
+ update
 
+stateful objects can be updated from the control plane.
+The transaction logic allocates a temporary object for this purpose.
 
-vim +/net +226 net/netfilter/nf_conntrack_bpf.c
+This object has to be released via nft_obj_destroy, not kfree, since
+the ->init function was called and it can have side effects beyond
+memory allocation.
 
-   219	
-   220	/* TODO: Just a PoC, need to reuse code in __nf_conntrack_find_get for this */
-   221	struct nf_conn *bpf_ct_kptr_get(struct nf_conn **ptr, struct bpf_sock_tuple *bpf_tuple,
-   222					u32 tuple__sz, u8 protonum, u8 direction)
-   223	{
-   224		struct nf_conntrack_tuple tuple;
-   225		struct nf_conn *nfct;
- > 226		struct net *net;
-   227		u64 *nfct_p;
-   228		int ret;
-   229	
-   230		WARN_ON_ONCE(!rcu_read_lock_held());
-   231	
-   232		if ((protonum != IPPROTO_TCP && protonum != IPPROTO_UDP) ||
-   233		    (direction != IP_CT_DIR_ORIGINAL && direction != IP_CT_DIR_REPLY))
-   234			return NULL;
-   235	
-   236		/* ptr is actually pointer to u64 having address, hence recast u64 load
-   237		 * to native pointer width.
-   238		 */
-   239		nfct_p = (u64 *)ptr;
-   240		nfct = (struct nf_conn *)READ_ONCE(*nfct_p);
-   241		if (!nfct || unlikely(!refcount_inc_not_zero(&nfct->ct_general.use)))
-   242			return NULL;
-   243	
-   244		memset(&tuple, 0, sizeof(tuple));
-   245		ret = bpf_fill_nf_tuple(&tuple, bpf_tuple, tuple__sz);
-   246		if (ret < 0)
-   247			goto end;
-   248		tuple.dst.protonum = protonum;
-   249	
-   250		/* XXX: Need to allow passing in struct net *, or take netns_id, this is non-sense */
-   251		net = nf_ct_net(nfct);
-   252		if (!nf_ct_key_equal(&nfct->tuplehash[direction], &tuple,
-   253				     &nf_ct_zone_dflt, nf_ct_net(nfct)))
-   254			goto end;
-   255		return nfct;
-   256	end:
-   257		nf_ct_put(nfct);
-   258		return NULL;
-   259	}
-   260	
+Unlike normal NEWOBJ path, the objects module refcount isn't
+incremented, so extend nft_obj_destroy to specify if this is an update.
 
+Fixes: d62d0ba97b58 ("netfilter: nf_tables: Introduce stateful object update operation")
+Cc: Fernando Fernandez Mancera <ffmancera@riseup.net>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+ net/netfilter/nf_tables_api.c | 18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 3081c4399f10..7982268d0001 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -6909,12 +6909,16 @@ static int nf_tables_getobj(struct sk_buff *skb, const struct nfnl_info *info,
+ 	return err;
+ }
+ 
+-static void nft_obj_destroy(const struct nft_ctx *ctx, struct nft_object *obj)
++static void nft_obj_destroy(const struct nft_ctx *ctx, struct nft_object *obj,
++			    bool update)
+ {
+ 	if (obj->ops->destroy)
+ 		obj->ops->destroy(ctx, obj);
+ 
+-	module_put(obj->ops->type->owner);
++	/* nf_tables_updobj does not increment module refcount */
++	if (!update)
++		module_put(obj->ops->type->owner);
++
+ 	kfree(obj->key.name);
+ 	kfree(obj->udata);
+ 	kfree(obj);
+@@ -8185,7 +8189,7 @@ static void nft_obj_commit_update(struct nft_trans *trans)
+ 	if (obj->ops->update)
+ 		obj->ops->update(obj, newobj);
+ 
+-	kfree(newobj);
++	nft_obj_destroy(&trans->ctx, newobj, true);
+ }
+ 
+ static void nft_commit_release(struct nft_trans *trans)
+@@ -8213,7 +8217,7 @@ static void nft_commit_release(struct nft_trans *trans)
+ 					   nft_trans_elem(trans).priv);
+ 		break;
+ 	case NFT_MSG_DELOBJ:
+-		nft_obj_destroy(&trans->ctx, nft_trans_obj(trans));
++		nft_obj_destroy(&trans->ctx, nft_trans_obj(trans), false);
+ 		break;
+ 	case NFT_MSG_DELFLOWTABLE:
+ 		if (nft_trans_flowtable_update(trans))
+@@ -8853,7 +8857,7 @@ static void nf_tables_abort_release(struct nft_trans *trans)
+ 				     nft_trans_elem(trans).priv, true);
+ 		break;
+ 	case NFT_MSG_NEWOBJ:
+-		nft_obj_destroy(&trans->ctx, nft_trans_obj(trans));
++		nft_obj_destroy(&trans->ctx, nft_trans_obj(trans), false);
+ 		break;
+ 	case NFT_MSG_NEWFLOWTABLE:
+ 		if (nft_trans_flowtable_update(trans))
+@@ -8976,7 +8980,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 			break;
+ 		case NFT_MSG_NEWOBJ:
+ 			if (nft_trans_obj_update(trans)) {
+-				kfree(nft_trans_obj_newobj(trans));
++				nft_obj_destroy(&trans->ctx, nft_trans_obj_newobj(trans), true);
+ 				nft_trans_destroy(trans);
+ 			} else {
+ 				trans->ctx.table->use--;
+@@ -9693,7 +9697,7 @@ static void __nft_release_table(struct net *net, struct nft_table *table)
+ 	list_for_each_entry_safe(obj, ne, &table->objects, list) {
+ 		nft_obj_del(obj);
+ 		table->use--;
+-		nft_obj_destroy(&ctx, obj);
++		nft_obj_destroy(&ctx, obj, false);
+ 	}
+ 	list_for_each_entry_safe(chain, nc, &table->chains, list) {
+ 		ctx.chain = chain;
+-- 
+2.30.2
+
+
+--pANdPOM7e9+z0cre--
