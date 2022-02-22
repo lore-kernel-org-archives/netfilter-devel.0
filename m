@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BF5CC433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68451C433EF
 	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Feb 2022 07:33:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231213AbiBVHds (ORCPT
+        id S231217AbiBVHdt (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 22 Feb 2022 02:33:48 -0500
-Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:42770 "EHLO
+        Tue, 22 Feb 2022 02:33:49 -0500
+Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:42904 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231182AbiBVHdp (ORCPT
+        with ESMTP id S231195AbiBVHdq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 22 Feb 2022 02:33:45 -0500
+        Tue, 22 Feb 2022 02:33:46 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6CCD8D3AFB;
-        Mon, 21 Feb 2022 23:33:19 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 08F89D4C88;
+        Mon, 21 Feb 2022 23:33:20 -0800 (PST)
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 44C0864389;
-        Tue, 22 Feb 2022 08:32:19 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 477926438B;
+        Tue, 22 Feb 2022 08:32:20 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 3/5] netfilter: nf_tables: unregister flowtable hooks on netns exit
-Date:   Tue, 22 Feb 2022 08:33:10 +0100
-Message-Id: <20220222073312.308406-4-pablo@netfilter.org>
+Subject: [PATCH net 5/5] netfilter: nf_tables: fix memory leak during stateful obj update
+Date:   Tue, 22 Feb 2022 08:33:12 +0100
+Message-Id: <20220222073312.308406-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220222073312.308406-1-pablo@netfilter.org>
 References: <20220222073312.308406-1-pablo@netfilter.org>
@@ -34,67 +34,77 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Unregister flowtable hooks before they are releases via
-nf_tables_flowtable_destroy() otherwise hook core reports UAF.
+From: Florian Westphal <fw@strlen.de>
 
-BUG: KASAN: use-after-free in nf_hook_entries_grow+0x5a7/0x700 net/netfilter/core.c:142 net/netfilter/core.c:142
-Read of size 4 at addr ffff8880736f7438 by task syz-executor579/3666
+stateful objects can be updated from the control plane.
+The transaction logic allocates a temporary object for this purpose.
 
-CPU: 0 PID: 3666 Comm: syz-executor579 Not tainted 5.16.0-rc5-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:88 [inline]
- __dump_stack lib/dump_stack.c:88 [inline] lib/dump_stack.c:106
- dump_stack_lvl+0x1dc/0x2d8 lib/dump_stack.c:106 lib/dump_stack.c:106
- print_address_description+0x65/0x380 mm/kasan/report.c:247 mm/kasan/report.c:247
- __kasan_report mm/kasan/report.c:433 [inline]
- __kasan_report mm/kasan/report.c:433 [inline] mm/kasan/report.c:450
- kasan_report+0x19a/0x1f0 mm/kasan/report.c:450 mm/kasan/report.c:450
- nf_hook_entries_grow+0x5a7/0x700 net/netfilter/core.c:142 net/netfilter/core.c:142
- __nf_register_net_hook+0x27e/0x8d0 net/netfilter/core.c:429 net/netfilter/core.c:429
- nf_register_net_hook+0xaa/0x180 net/netfilter/core.c:571 net/netfilter/core.c:571
- nft_register_flowtable_net_hooks+0x3c5/0x730 net/netfilter/nf_tables_api.c:7232 net/netfilter/nf_tables_api.c:7232
- nf_tables_newflowtable+0x2022/0x2cf0 net/netfilter/nf_tables_api.c:7430 net/netfilter/nf_tables_api.c:7430
- nfnetlink_rcv_batch net/netfilter/nfnetlink.c:513 [inline]
- nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:634 [inline]
- nfnetlink_rcv_batch net/netfilter/nfnetlink.c:513 [inline] net/netfilter/nfnetlink.c:652
- nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:634 [inline] net/netfilter/nfnetlink.c:652
- nfnetlink_rcv+0x10e6/0x2550 net/netfilter/nfnetlink.c:652 net/netfilter/nfnetlink.c:652
+The ->init function was called for this object, so plain kfree() leaks
+resources. We must call ->destroy function of the object.
 
-__nft_release_hook() calls nft_unregister_flowtable_net_hooks() which
-only unregisters the hooks, then after RCU grace period, it is
-guaranteed that no packets add new entries to the flowtable (no flow
-offload rules and flowtable hooks are reachable from packet path), so it
-is safe to call nf_flow_table_free() which cleans up the remaining
-entries from the flowtable (both software and hardware) and it unbinds
-the flow_block.
+nft_obj_destroy does this, but it also decrements the module refcount,
+but the update path doesn't increment it.
 
-Fixes: ff4bf2f42a40 ("netfilter: nf_tables: add nft_unregister_flowtable_hook()")
-Reported-by: syzbot+e918523f77e62790d6d9@syzkaller.appspotmail.com
+To avoid special-casing the update object release, do module_get for
+the update case too and release it via nft_obj_destroy().
+
+Fixes: d62d0ba97b58 ("netfilter: nf_tables: Introduce stateful object update operation")
+Cc: Fernando Fernandez Mancera <ffmancera@riseup.net>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 3 +++
- 1 file changed, 3 insertions(+)
+ net/netfilter/nf_tables_api.c | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 5fa16990da95..3081c4399f10 100644
+index 3081c4399f10..9cd1d7a62804 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -9636,10 +9636,13 @@ EXPORT_SYMBOL_GPL(__nft_release_basechain);
- 
- static void __nft_release_hook(struct net *net, struct nft_table *table)
+@@ -6551,12 +6551,15 @@ static int nf_tables_updobj(const struct nft_ctx *ctx,
  {
-+	struct nft_flowtable *flowtable;
- 	struct nft_chain *chain;
+ 	struct nft_object *newobj;
+ 	struct nft_trans *trans;
+-	int err;
++	int err = -ENOMEM;
++
++	if (!try_module_get(type->owner))
++		return -ENOENT;
  
- 	list_for_each_entry(chain, &table->chains, list)
- 		nf_tables_unregister_hook(net, table, chain);
-+	list_for_each_entry(flowtable, &table->flowtables, list)
-+		nft_unregister_flowtable_net_hooks(net, &flowtable->hook_list);
+ 	trans = nft_trans_alloc(ctx, NFT_MSG_NEWOBJ,
+ 				sizeof(struct nft_trans_obj));
+ 	if (!trans)
+-		return -ENOMEM;
++		goto err_trans;
+ 
+ 	newobj = nft_obj_init(ctx, type, attr);
+ 	if (IS_ERR(newobj)) {
+@@ -6573,6 +6576,8 @@ static int nf_tables_updobj(const struct nft_ctx *ctx,
+ 
+ err_free_trans:
+ 	kfree(trans);
++err_trans:
++	module_put(type->owner);
+ 	return err;
  }
  
- static void __nft_release_hooks(struct net *net)
+@@ -8185,7 +8190,7 @@ static void nft_obj_commit_update(struct nft_trans *trans)
+ 	if (obj->ops->update)
+ 		obj->ops->update(obj, newobj);
+ 
+-	kfree(newobj);
++	nft_obj_destroy(&trans->ctx, newobj);
+ }
+ 
+ static void nft_commit_release(struct nft_trans *trans)
+@@ -8976,7 +8981,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 			break;
+ 		case NFT_MSG_NEWOBJ:
+ 			if (nft_trans_obj_update(trans)) {
+-				kfree(nft_trans_obj_newobj(trans));
++				nft_obj_destroy(&trans->ctx, nft_trans_obj_newobj(trans));
+ 				nft_trans_destroy(trans);
+ 			} else {
+ 				trans->ctx.table->use--;
 -- 
 2.30.2
 
