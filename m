@@ -2,243 +2,98 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A963EC433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Feb 2022 08:21:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 859FEC433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Feb 2022 10:10:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229741AbiBVIV6 (ORCPT
+        id S231124AbiBVKKp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 22 Feb 2022 03:21:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45524 "EHLO
+        Tue, 22 Feb 2022 05:10:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38730 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229447AbiBVIV6 (ORCPT
+        with ESMTP id S230445AbiBVKKX (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 22 Feb 2022 03:21:58 -0500
-Received: from mail-pj1-x1041.google.com (mail-pj1-x1041.google.com [IPv6:2607:f8b0:4864:20::1041])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9CB1F55BC2;
-        Tue, 22 Feb 2022 00:21:32 -0800 (PST)
-Received: by mail-pj1-x1041.google.com with SMTP id t4-20020a17090a3b4400b001bc40b548f9so1715497pjf.0;
-        Tue, 22 Feb 2022 00:21:32 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=ASqSsrhSJTPhhRTmHJa6rLZ0juV1bYbfnhOAxny8cKg=;
-        b=JEL6s72nsNb2b0zG2g+1J0ABzkFbDLmW+aVp4wVgJXvZmtjfei313oIbiLJJ3Ombal
-         Laho50ihOG87T7/aclTDNKjk7LZ9Q7S8azfcoLphndzoCJBEZ+FrVdW+VN60rbQKctVl
-         SKXklWVKUiKkS79XorY0Hkj1g630PIa/xtyCba4cw6mPvjpFWj7AM2FgtIcE0PHg12Ed
-         OXDHdjg41Xz7EcwBTewRuVBscdeNaADJnzsiU7vuL9nfJguuk/1TKwa/xJ/Vw+oyd6rQ
-         0cVZL4qOQ+lr96G/mkvEF08poVhhrMccOg8ONk7FVC6HCpVP8Xl++Xv58AgxqvWWEkel
-         lP6g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=ASqSsrhSJTPhhRTmHJa6rLZ0juV1bYbfnhOAxny8cKg=;
-        b=YZxTAgfAMIaf4eAdCaLVriWSVpWgQvXK2HzE2C2mnf9LLhnDMZh8jNjHc8b7YT+3Pn
-         EDVPjExHA4e2kpEciR0OLvFeqJyUBe3yD67YCSqptST486VDmad3BPHQLiUhl0Lv2QZn
-         H8As8ZrNKgD3ik0FlIv/CFihFpdkhbQkOPHyiLamNyd1zxtZlJeMBiwIzX5bOoLI+jhN
-         mFg4h/PPBTR0vrNutY6UzAWXYIp1oB/M6zGnCu1PHMzbW2YWbxrNl0yLfGyesYZELHJX
-         bu4gidMqDN9szkui1dPY8vBs6m975n/efFasFewuF0thyX9M1sg9Jj2CXL9SLvH8adiP
-         Wkiw==
-X-Gm-Message-State: AOAM532lbIhuWryntlw1TihOLDSHjWA9AWDcU5ZrLDFQFJkQPZ/Eu4vB
-        L7cBdi5HjyRXAb4RrAxN6n4=
-X-Google-Smtp-Source: ABdhPJxEvV3wZ3qLeNbr+UAbHlAP19jNeARyMtuZyYmO4QxKO8JWlPqPXEySJkag4FLRKH0rO8e6dw==
-X-Received: by 2002:a17:903:40ca:b0:14e:8885:1f29 with SMTP id t10-20020a17090340ca00b0014e88851f29mr22088310pld.137.1645518091903;
-        Tue, 22 Feb 2022 00:21:31 -0800 (PST)
-Received: from localhost ([2405:201:6014:d0c0:6243:316e:a9e1:adda])
-        by smtp.gmail.com with ESMTPSA id q9sm16792446pfk.31.2022.02.22.00.21.31
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 22 Feb 2022 00:21:31 -0800 (PST)
-Date:   Tue, 22 Feb 2022 13:51:29 +0530
-From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
-To:     Song Liu <song@kernel.org>
-Cc:     bpf <bpf@vger.kernel.org>, Alexei Starovoitov <ast@kernel.org>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>,
-        Jesper Dangaard Brouer <hawk@kernel.org>,
-        netfilter-devel@vger.kernel.org,
-        Networking <netdev@vger.kernel.org>
-Subject: Re: [PATCH bpf-next v1 00/15] Introduce typed pointer support in BPF
- maps
-Message-ID: <20220222082129.yivvpm6yo3474dp3@apollo.legion>
-References: <20220220134813.3411982-1-memxor@gmail.com>
- <CAPhsuW53epuRQ3X5bYeoxRUL9sdEm7MUQ8bUoQCsf=C7k3hQ8A@mail.gmail.com>
+        Tue, 22 Feb 2022 05:10:23 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53C4A128DC5
+        for <netfilter-devel@vger.kernel.org>; Tue, 22 Feb 2022 02:09:39 -0800 (PST)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1nMS6z-0000p6-6U; Tue, 22 Feb 2022 11:09:37 +0100
+Date:   Tue, 22 Feb 2022 11:09:37 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Jeremy Sowden <jeremy@azazel.net>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [iptables PATCH 2/4] tests: add `NOMATCH` test result
+Message-ID: <YhS2YfX3LduDhIFS@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Jeremy Sowden <jeremy@azazel.net>,
+        Netfilter Devel <netfilter-devel@vger.kernel.org>
+References: <20220212165832.2452695-1-jeremy@azazel.net>
+ <20220212165832.2452695-3-jeremy@azazel.net>
+ <YgooaU4M6ju9++Cy@orbyte.nwl.cc>
+ <YhI9xcXbHhjkc+ya@ulthar.dreamlands>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAPhsuW53epuRQ3X5bYeoxRUL9sdEm7MUQ8bUoQCsf=C7k3hQ8A@mail.gmail.com>
+In-Reply-To: <YhI9xcXbHhjkc+ya@ulthar.dreamlands>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Feb 22, 2022 at 11:35:14AM IST, Song Liu wrote:
-> On Sun, Feb 20, 2022 at 5:48 AM Kumar Kartikeya Dwivedi
-> <memxor@gmail.com> wrote:
-> >
-> > Introduction
-> > ------------
-> >
-> > This set enables storing pointers of a certain type in BPF map, and extends the
-> > verifier to enforce type safety and lifetime correctness properties.
-> >
-> > The infrastructure being added is generic enough for allowing storing any kind
-> > of pointers whose type is available using BTF (user or kernel) in the future
-> > (e.g. strongly typed memory allocation in BPF program), which are internally
-> > tracked in the verifier as PTR_TO_BTF_ID, but for now the series limits them to
-> > four kinds of pointers obtained from the kernel.
-> >
-> > Obviously, use of this feature depends on map BTF.
-> >
-> > 1. Unreferenced kernel pointer
-> >
-> > In this case, there are very few restrictions. The pointer type being stored
-> > must match the type declared in the map value. However, such a pointer when
-> > loaded from the map can only be dereferenced, but not passed to any in-kernel
-> > helpers or kernel functions available to the program. This is because while the
-> > verifier's exception handling mechanism coverts BPF_LDX to PROBE_MEM loads,
-> > which are then handled specially by the JIT implementation, the same liberty is
-> > not available to accesses inside the kernel. The pointer by the time it is
-> > passed into a helper has no lifetime related guarantees about the object it is
-> > pointing to, and may well be referencing invalid memory.
-> >
-> > 2. Referenced kernel pointer
-> >
-> > This case imposes a lot of restrictions on the programmer, to ensure safety. To
-> > transfer the ownership of a reference in the BPF program to the map, the user
-> > must use the BPF_XCHG instruction, which returns the old pointer contained in
-> > the map, as an acquired reference, and releases verifier state for the
-> > referenced pointer being exchanged, as it moves into the map.
-> >
-> > This a normal PTR_TO_BTF_ID that can be used with in-kernel helpers and kernel
-> > functions callable by the program.
-> >
-> > However, if BPF_LDX is used to load a referenced pointer from the map, it is
-> > still not permitted to pass it to in-kernel helpers or kernel functions. To
-> > obtain a reference usable with helpers, the user must invoke a kfunc helper
-> > which returns a usable reference (which also must be eventually released before
-> > BPF_EXIT, or moved into a map).
-> >
-> > Since the load of the pointer (preserving data dependency ordering) must happen
-> > inside the RCU read section, the kfunc helper will take a pointer to the map
-> > value, which must point to the actual pointer of the object whose reference is
-> > to be raised. The type will be verified from the BTF information of the kfunc,
-> > as the prototype must be:
-> >
-> >         T *func(T **, ... /* other arguments */);
-> >
-> > Then, the verifier checks whether pointer at offset of the map value points to
-> > the type T, and permits the call.
-> >
-> > This convention is followed so that such helpers may also be called from
-> > sleepable BPF programs, where RCU read lock is not necessarily held in the BPF
-> > program context, hence necessiating the need to pass in a pointer to the actual
-> > pointer to perform the load inside the RCU read section.
-> >
-> > 3. per-CPU kernel pointer
-> >
-> > These have very little restrictions. The user can store a PTR_TO_PERCPU_BTF_ID
-> > into the map, and when loading from the map, they must NULL check it before use,
-> > because while a non-zero value stored into the map should always be valid, it can
-> > still be reset to zero on updates. After checking it to be non-NULL, it can be
-> > passed to bpf_per_cpu_ptr and bpf_this_cpu_ptr helpers to obtain a PTR_TO_BTF_ID
-> > to underlying per-CPU object.
-> >
-> > It is also permitted to write 0 and reset the value.
-> >
-> > 4. Userspace pointer
-> >
-> > The verifier recently gained support for annotating BTF with __user type tag.
-> > This indicates pointers pointing to memory which must be read using the
-> > bpf_probe_read_user helper to ensure correct results. The set also permits
-> > storing them into the BPF map, and ensures user pointer cannot be stored
-> > into other kinds of pointers mentioned above.
-> >
-> > When loaded from the map, the only thing that can be done is to pass this
-> > pointer to bpf_probe_read_user. No dereference is allowed.
-> >
->
-> I guess I missed some context here. Could you please provide some reference
-> to the use cases of these features?
->
+Hi Jeremy,
 
-The common usecase is caching references to objects inside BPF maps, to avoid
-costly lookups, and being able to raise it once for the duration of program
-invocation when passing it to multiple helpers (to avoid further re-lookups).
-Storing references also allows you to control object lifetime.
+On Sun, Feb 20, 2022 at 01:10:29PM +0000, Jeremy Sowden wrote:
+> On 2022-02-14, at 11:01:13 +0100, Phil Sutter wrote:
+> > On Sat, Feb 12, 2022 at 04:58:30PM +0000, Jeremy Sowden wrote:
+> > > Currently, there are two supported test results: `OK` and `FAIL`.
+> > > It is expected that either the iptables command fails, or it
+> > > succeeds and dumping the rule has the correct output.  However, it
+> > > is possible that the command may succeed but the output may not be
+> > > correct.  Add a `NOMATCH` result to cover this outcome.
+> >
+> > Hmm. Wouldn't it make sense to extend the scope of LEGACY/NFT keywords
+> > to output checks as well instead of introducing a new one? I think we
+> > could cover expected output that way by duplicating the test case with
+> > different expected output instead of marking it as unspecific "may
+> > produce garbage".
+> 
+> Something like the following?  One reason why I went with the `NOMATCH`
+> result is that in the two divergent test-cases, there is no -nft output
+> to match.  We can make that work by just using the empty string as the
+> alternative output since that will match anything.  I don't think it's
+> ideal, but it's simpler than overhauling the matching code for what is a
+> rare corner case.
 
-One other use case is enabling xdp_frame queueing in XDP using this, but that
-still needs some integration work after this lands, so it's a bit early to
-comment on the specifics.
+Thanks for compiling the patch. What I had in mind was to merge result
+checks of failing rule with output mismatch, but I realize this would
+likely turn into a mess.
 
-Other than that, I think Alexei already mentioned this could be easily extended
-to do memory allocation returning a PTR_TO_BTF_ID in a BPF program [0] in the
-future.
+[...]
+> In the case of tests which have no output to match, we leave the last
+> field empty:
+> 
+>   -j EXAMPLE-TARGET --example-option;=;OK;LEGACY;
 
-  [0]: https://lore.kernel.org/bpf/20220216230615.po6huyrgkswk7u67@ast-mbp.dhcp.thefacebook.com
+A non-empty rule leading to empty output is a bug, IMHO.
 
-> For Unreferenced kernel pointer and userspace pointer, it seems that there is
-> no guarantee the pointer will still be valid during access (we only know it is
-> valid when it is stored in the map). Is this correct?
->
+[...]
+> --- a/extensions/libxt_NFLOG.t
+> +++ b/extensions/libxt_NFLOG.t
+> @@ -5,8 +5,8 @@
+>  -j NFLOG --nflog-group 0;-j NFLOG;OK
+>  # `--nflog-range` is broken and only supported by xtables-legacy.
+>  # It has been superseded by `--nflog--group`.
+> --j NFLOG --nflog-range 1;=;OK;LEGACY;NOMATCH
+> --j NFLOG --nflog-range 4294967295;=;OK;LEGACY;NOMATCH
+> +-j NFLOG --nflog-range 1;=;OK;LEGACY;
+> +-j NFLOG --nflog-range 4294967295;=;OK;LEGACY;
 
-That is correct. In the case of unreferenced and referenced kernel pointers,
-when you do a BPF_LDX, both are marked as PTR_UNTRUSTED, and it is not allowed
-to pass them into helpers or kfuncs, because from that point onwards we cannot
-claim that the object is still alive when pointer is used later. Still,
-dereference is permitted because verifier handles faults for bad accesses using
-PROBE_MEM conversion for PTR_TO_BTF_ID loads in convert_ctx_accesses (which is
-then later detected by JIT to build exception table used by exception handler).
+The crucial detail here is that an expected output of "-j NFLOG" is
+trivial and str::find() won't complain about extra output.
 
-In case of reading unreferenced pointer, in some cases you know that the pointer
-will stay valid, so you can just store it in the map and load and directly
-access it, it imposes very little restrictions.
+Given that we're discussing corner cases and what I had in mind has its
+own downsides, I guess the status quo is fine at least for now. Sorry
+for the fuss!
 
-For the referenced case, and BPF_LDX marking it as PTR_UNTRUSTED, you could say
-that this makes it a lot less useful, because if BPF program already holds
-reference, just to make sure I _read valid data_, I still have to use the
-kptr_get style helper to raise and put reference to ensure the object is alive
-when it is accessed.
+Cheers, Phil
 
-So in that case, for RCU protected objects, it should still wait for BPF program
-to hit BPF_EXIT before the actual release, but for other cases like the case of
-sleepable programs, or objects where refcount alone manages lifetime, you can
-also detect writer presence of the other BPF program (to detect if pointer
-during our access was xchg'd out) using a seqlock style scheme:
-
-	v = bpf_map_lookup_elem(&map, ...);
-	if (!v)
-		return 0;
-	seq_begin = v->seq;
-	atomic_thread_fence(memory_order_acquire); // A
-	<do access>
-	atomic_thread_fence(memory_order_acquire); // B
-	seq_end = v->seq;
-	if (seq_begin & 1 || seq_begin != seq_end)
-		goto bad_read;
-	<use data>
-
-Ofcourse, barriers are not yet in BPF, but you get the idea (it should work on
-x86). The updater BPF program will increment v->seq before and after xchg,
-ensuring proper ordering. v->seq starts as 0, so odd seq indicates writer update
-is in progress.
-
-This would allow you to not raise refcount, while still ensuring that as long as
-object was accessed, it was still valid between A and B. Even if raising
-uncontended refcount is cheap, this is much cheaper.
-
-The case of userspace pointer is different, it sets the MEM_USER flag, so the
-only useful thing to do is calling bpf_probe_read_user, you can't even
-dereference it. You are right that in most cases that userspace pointer won't be
-useful, but for some cooperative cases between BPF program and userspace thread,
-it can act as a way to share certain thread local areas/userspace memory that
-the BPF program can then store keyed by the task_struct *, where using a BPF map
-to share memory is not always possible.
-
-> Thanks,
-> Song
->
-> [...]
-
---
-Kartikeya
