@@ -2,135 +2,161 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65224C4332F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Feb 2022 05:28:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1E80C4332F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Feb 2022 05:28:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229510AbiBVF2I (ORCPT
+        id S229540AbiBVF2l (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 22 Feb 2022 00:28:08 -0500
-Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:46260 "EHLO
+        Tue, 22 Feb 2022 00:28:41 -0500
+Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:48216 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229497AbiBVF2A (ORCPT
+        with ESMTP id S229538AbiBVF2j (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 22 Feb 2022 00:28:00 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 825AC64EE;
-        Mon, 21 Feb 2022 21:27:33 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D0D55B80E58;
-        Tue, 22 Feb 2022 04:58:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EF0EC340E8;
-        Tue, 22 Feb 2022 04:58:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1645505921;
-        bh=lz7d+ajv2glqcSs4dUUHQK532fSPLIuatPETj6QhqmM=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=GIyY7Eo5EOu0P+JyIfROzmSCQuMMpYhHAuNuqd7Q/fG+LiM7e/r0vu41xyHJO7q87
-         0vpcD45iwitBrJtpFhxHUKgqdjgvmkw/rxXyI5ulBKi7Jh2IIZ9I39wc/ENYLU50SZ
-         XcZLlU3mKVTWy6P/RttLpi6MfGN6braSjrHxipPoclktO3BaWiKO6N8N3C3amV4Xnh
-         Yjydt5h79nusyiHd6u0ry8EK2kM/VDJ0e5+qRUgdzc7grpIA9dh4jT/MU4Oq31c+Mp
-         OVu+GIErg1PjD2zV4N8OUXGZ17t/mkoQPYnCIYIyKT4Fhh/b9FSAW2WVseeLGxWPd/
-         l28rMFpvCnc+Q==
-Date:   Mon, 21 Feb 2022 20:58:40 -0800
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf 5/5] netfilter: nf_tables: fix memory leak during
- stateful obj update
-Message-ID: <20220221205840.08110cab@kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net>
-In-Reply-To: <20220221161757.250801-6-pablo@netfilter.org>
-References: <20220221161757.250801-1-pablo@netfilter.org>
-        <20220221161757.250801-6-pablo@netfilter.org>
+        Tue, 22 Feb 2022 00:28:39 -0500
+Received: from mail-pj1-x102d.google.com (mail-pj1-x102d.google.com [IPv6:2607:f8b0:4864:20::102d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BEE546322;
+        Mon, 21 Feb 2022 21:28:14 -0800 (PST)
+Received: by mail-pj1-x102d.google.com with SMTP id b8so17257165pjb.4;
+        Mon, 21 Feb 2022 21:28:14 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=7UhZLEQ2XwIqOLzkoLoLaWERjJej97HqulPmb+JFKyk=;
+        b=KbI3gIv2Z+hOLzG4/L3p48NZnN2ubLvv1y1ICdglmma75nL96TBUSRZJdJS6qSneCI
+         9O8jbQ7MboYgYIBSx+orRKzLdosMaejVR48Ypv+wMRnA4MM7jn32e/bMwYsFXDK+VZXV
+         UTQ2ZKl41sQqNdrUwYnVfkF7esBtTdpkIG7rFOjQkrjka/UPiMhy0ME+/oU8WSMBFFf0
+         HEstuVEGWw5PFr7Id+aMVV5aM/WpRmLX6KmWjlzF2YShum9GuCkmtruCWqlrgXs7IdoT
+         9AIHLhOA3Ko5dvFr1dhCjupXtARQHr3LICCprGogoQ/+iNua3UAT4qNlWkp+TIM+sru2
+         WGag==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=7UhZLEQ2XwIqOLzkoLoLaWERjJej97HqulPmb+JFKyk=;
+        b=J8Fk7oZiwxZW9OZN+iGIHCC06d15Ihp/Z3n65Iz9d8AsmRSZ1bctBQERyet9AwZPIi
+         36vR3g/WJ1zYBpn93v1aRRWCBVrmdY0C1IQc/KhoDIOCTm8i0ofjie0njkmrmI9mjvsf
+         it9JCqz1VmhdY7NMTR7pjPUMop/qAknPJky/7py7v6XjwcGvMR0cGIUlDponEnag0Vr3
+         4sm3TQWOr6zKhIgbWGYkCwgegD56+BhWUwd+5fhmhbMAitSQrdVA7TXX8zBSWhGscTan
+         DP05Yg5RRLv/vYf5iVhJtosVe8LZyRTfqBQ+BKu71DYcNqFqUinHukJiDU/ms3V2DW4M
+         vwzg==
+X-Gm-Message-State: AOAM533QXBDB2yky0lWAAhMHqk46gql1eiWqFWAy5l6VH0v4K/s3MGzG
+        DGTEv4eg+pjWR+hz2W7NfW8=
+X-Google-Smtp-Source: ABdhPJweLiL3Ygk8pSxgE6seCLAzt6XCOv4VgXvHdRUCMO1jo1Iy0b0dqfl4NxvlH04uoY3ZoZb7yQ==
+X-Received: by 2002:a17:90b:4f4b:b0:1b9:3798:85f8 with SMTP id pj11-20020a17090b4f4b00b001b9379885f8mr2417410pjb.139.1645507694191;
+        Mon, 21 Feb 2022 21:28:14 -0800 (PST)
+Received: from ast-mbp.dhcp.thefacebook.com ([2620:10d:c090:400::5:e2d6])
+        by smtp.gmail.com with ESMTPSA id s5sm14253230pfd.66.2022.02.21.21.28.12
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 21 Feb 2022 21:28:13 -0800 (PST)
+Date:   Mon, 21 Feb 2022 21:28:11 -0800
+From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
+To:     Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Cc:     bpf@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>,
+        Jesper Dangaard Brouer <hawk@kernel.org>,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [PATCH bpf-next v1 01/15] bpf: Factor out fd returning from
+ bpf_btf_find_by_name_kind
+Message-ID: <20220222052811.4633snvrqrcy4riq@ast-mbp.dhcp.thefacebook.com>
+References: <20220220134813.3411982-1-memxor@gmail.com>
+ <20220220134813.3411982-2-memxor@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220220134813.3411982-2-memxor@gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, 21 Feb 2022 17:17:57 +0100 Pablo Neira Ayuso wrote:
-> From: Florian Westphal <fw@strlen.de>
+On Sun, Feb 20, 2022 at 07:17:59PM +0530, Kumar Kartikeya Dwivedi wrote:
+> In next few patches, we need a helper that searches all kernel BTFs
+> (vmlinux and module BTFs), and finds the type denoted by 'name' and
+> 'kind'. Turns out bpf_btf_find_by_name_kind already does the same thing,
+> but it instead returns a BTF ID and optionally fd (if module BTF). This
+> is used for relocating ksyms in BPF loader code (bpftool gen skel -L).
 > 
-> stateful objects can be updated from the control plane.
-> The transaction logic allocates a temporary object for this purpose.
+> We extract the core code out into a new helper
+> btf_find_by_name_kind_all, which returns the BTF ID and BTF pointer in
+> an out parameter. The reference for the returned BTF pointer is only
+> bumped if it is a module BTF, this needs to be kept in mind when using
+> this helper.
 > 
-> The ->init function was called for this object, so plain kfree() leaks
-> resources. We must call ->destroy function of the object.
+> Hence, the user must release the BTF reference iff btf_is_module is
+> true, otherwise transfer the ownership to e.g. an fd.
 > 
-> nft_obj_destroy does this, but it also decrements the module refcount,
-> but the update path doesn't increment it.
+> In case of the helper, the fd is only allocated for module BTFs, so no
+> extra handling for btf_vmlinux case is required.
 > 
-> To avoid special-casing the update object release, do module_get for
-> the update case too and release it via nft_obj_destroy().
-> 
-> Fixes: d62d0ba97b58 ("netfilter: nf_tables: Introduce stateful object update operation")
-> Cc: Fernando Fernandez Mancera <ffmancera@riseup.net>
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> Signed-off-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
 > ---
->  net/netfilter/nf_tables_api.c | 11 ++++++++---
->  1 file changed, 8 insertions(+), 3 deletions(-)
+>  kernel/bpf/btf.c | 47 +++++++++++++++++++++++++++++++----------------
+>  1 file changed, 31 insertions(+), 16 deletions(-)
 > 
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index 3081c4399f10..49060f281342 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
-> @@ -6553,10 +6553,13 @@ static int nf_tables_updobj(const struct nft_ctx *ctx,
->  	struct nft_trans *trans;
->  	int err;
->  
-> +	if (!try_module_get(type->owner))
-> +		return -ENOENT;
-> +
->  	trans = nft_trans_alloc(ctx, NFT_MSG_NEWOBJ,
->  				sizeof(struct nft_trans_obj));
->  	if (!trans)
-> -		return -ENOMEM;
-> +		goto err_trans;
->  
->  	newobj = nft_obj_init(ctx, type, attr);
->  	if (IS_ERR(newobj)) {
-> @@ -6573,6 +6576,8 @@ static int nf_tables_updobj(const struct nft_ctx *ctx,
->  
->  err_free_trans:
->  	kfree(trans);
-> +err_trans:
-> +	module_put(type->owner);
->  	return err;
+> diff --git a/kernel/bpf/btf.c b/kernel/bpf/btf.c
+> index 2c4c5dbe2abe..3645d8c14a18 100644
+> --- a/kernel/bpf/btf.c
+> +++ b/kernel/bpf/btf.c
+> @@ -6545,16 +6545,10 @@ static struct btf *btf_get_module_btf(const struct module *module)
+>  	return btf;
 >  }
 >  
-> @@ -8185,7 +8190,7 @@ static void nft_obj_commit_update(struct nft_trans *trans)
->  	if (obj->ops->update)
->  		obj->ops->update(obj, newobj);
->  
-> -	kfree(newobj);
-> +	nft_obj_destroy(&trans->ctx, newobj);
->  }
->  
->  static void nft_commit_release(struct nft_trans *trans)
-> @@ -8976,7 +8981,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
->  			break;
->  		case NFT_MSG_NEWOBJ:
->  			if (nft_trans_obj_update(trans)) {
-> -				kfree(nft_trans_obj_newobj(trans));
-> +				nft_obj_destroy(&trans->ctx, nft_trans_obj_newobj(trans));
->  				nft_trans_destroy(trans);
->  			} else {
->  				trans->ctx.table->use--;
+> -BPF_CALL_4(bpf_btf_find_by_name_kind, char *, name, int, name_sz, u32, kind, int, flags)
+> +static s32 btf_find_by_name_kind_all(const char *name, u32 kind, struct btf **btfp)
 
-net/netfilter/nf_tables_api.c:6561:6: warning: variable 'err' is used uninitialized whenever 'if' condition is true [-Wsometimes-uninitialized]
-        if (!trans)
-            ^~~~~~
-net/netfilter/nf_tables_api.c:6581:9: note: uninitialized use occurs here
-        return err;
-               ^~~
-net/netfilter/nf_tables_api.c:6561:2: note: remove the 'if' if its condition is always false
-        if (!trans)
-        ^~~~~~~~~~~
-net/netfilter/nf_tables_api.c:6554:9: note: initialize the variable 'err' to silence this warning
-        int err;
-               ^
-                = 0
+The name is getting too long.
+How about bpf_find_btf_id() ?
+
+>  {
+>  	struct btf *btf;
+> -	long ret;
+> -
+> -	if (flags)
+> -		return -EINVAL;
+> -
+> -	if (name_sz <= 1 || name[name_sz - 1])
+> -		return -EINVAL;
+> +	s32 ret;
+>  
+>  	btf = bpf_get_btf_vmlinux();
+>  	if (IS_ERR(btf))
+> @@ -6580,19 +6574,40 @@ BPF_CALL_4(bpf_btf_find_by_name_kind, char *, name, int, name_sz, u32, kind, int
+>  			spin_unlock_bh(&btf_idr_lock);
+>  			ret = btf_find_by_name_kind(mod_btf, name, kind);
+>  			if (ret > 0) {
+> -				int btf_obj_fd;
+> -
+> -				btf_obj_fd = __btf_new_fd(mod_btf);
+> -				if (btf_obj_fd < 0) {
+> -					btf_put(mod_btf);
+> -					return btf_obj_fd;
+> -				}
+> -				return ret | (((u64)btf_obj_fd) << 32);
+> +				*btfp = mod_btf;
+> +				return ret;
+>  			}
+>  			spin_lock_bh(&btf_idr_lock);
+>  			btf_put(mod_btf);
+>  		}
+>  		spin_unlock_bh(&btf_idr_lock);
+> +	} else {
+> +		*btfp = btf;
+> +	}
+
+Since we're refactoring let's drop the indent.
+How about
+  if (ret > 0) {
+    *btfp = btf;
+    return ret;
+  }
+  idr_for_each_entry().
+
+and move the func right after btf_find_by_name_kind(),
+so that later patch doesn't need to do:
+static s32 bpf_find_btf_id();
+Eventually this helper might become global with this name.
+
+Also may be do btf_get() for vmlinux_btf too?
+In case it reduces 'if (btf_is_module())' checks.
