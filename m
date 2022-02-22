@@ -2,43 +2,91 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EBA3C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Feb 2022 07:29:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94F0CC433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Feb 2022 07:33:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231176AbiBVH3d (ORCPT
+        id S229479AbiBVHdm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 22 Feb 2022 02:29:33 -0500
-Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:53820 "EHLO
+        Tue, 22 Feb 2022 02:33:42 -0500
+Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:42440 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231157AbiBVH3c (ORCPT
+        with ESMTP id S229539AbiBVHdm (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 22 Feb 2022 02:29:32 -0500
+        Tue, 22 Feb 2022 02:33:42 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0981897B90
-        for <netfilter-devel@vger.kernel.org>; Mon, 21 Feb 2022 23:29:07 -0800 (PST)
-Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 0671F64384;
-        Tue, 22 Feb 2022 08:28:07 +0100 (CET)
-Date:   Tue, 22 Feb 2022 08:29:03 +0100
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id ABE26D3ADE;
+        Mon, 21 Feb 2022 23:33:16 -0800 (PST)
+Received: from localhost.localdomain (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id F0D1364384;
+        Tue, 22 Feb 2022 08:32:16 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, kernel test robot <lkp@intel.com>
-Subject: Re: [PATCH nf] netfilter: nf_tables: make sure err is initialised to
- sane value
-Message-ID: <YhSQvyHEt4gHWGSp@salvia>
-References: <20220221210423.28805-1-fw@strlen.de>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
+Subject: [PATCH net 0/5,v2] Netfilter fixes for net
+Date:   Tue, 22 Feb 2022 08:33:07 +0100
+Message-Id: <20220222073312.308406-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20220221210423.28805-1-fw@strlen.de>
-User-Agent: Alpine 2.23 (DEB 453 2020-06-18)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Feb 21, 2022 at 10:04:23PM +0100, Florian Westphal wrote:
-> All warnings (new ones prefixed by >>):
-> 
-> net/netfilter/nf_tables_api.c:6561:6: warning: variable 'err' is used uninitialized whenever 'if' condition is true
+This is fixing up the use without proper initialization in patch 5/5
 
-I have collapsed this to the original patch, thanks!
+-o-
+
+Hi,
+
+The following patchset contains Netfilter fixes for net:
+
+1) Missing #ifdef CONFIG_IP6_NF_IPTABLES in recent xt_socket fix.
+
+2) Fix incorrect flow action array size in nf_tables.
+
+3) Unregister flowtable hooks from netns exit path.
+
+4) Fix missing limit object release, from Florian Westphal.
+
+5) Memleak in nf_tables object update path, also from Florian.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git
+
+Thank you
+
+----------------------------------------------------------------
+
+The following changes since commit 143de8d97d79316590475dc2a84513c63c863ddf:
+
+  tipc: fix a bit overflow in tipc_crypto_key_rcv() (2022-02-13 12:12:25 +0000)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git HEAD
+
+for you to fetch changes up to dad3bdeef45f81a6e90204bcc85360bb76eccec7:
+
+  netfilter: nf_tables: fix memory leak during stateful obj update (2022-02-22 08:28:04 +0100)
+
+----------------------------------------------------------------
+Florian Westphal (2):
+      netfilter: nft_limit: fix stateful object memory leak
+      netfilter: nf_tables: fix memory leak during stateful obj update
+
+Pablo Neira Ayuso (3):
+      netfilter: xt_socket: missing ifdef CONFIG_IP6_NF_IPTABLES dependency
+      netfilter: nf_tables_offload: incorrect flow offload action array size
+      netfilter: nf_tables: unregister flowtable hooks on netns exit
+
+ include/net/netfilter/nf_tables.h         |  2 +-
+ include/net/netfilter/nf_tables_offload.h |  2 --
+ net/netfilter/nf_tables_api.c             | 16 ++++++++++++----
+ net/netfilter/nf_tables_offload.c         |  3 ++-
+ net/netfilter/nft_dup_netdev.c            |  6 ++++++
+ net/netfilter/nft_fwd_netdev.c            |  6 ++++++
+ net/netfilter/nft_immediate.c             | 12 +++++++++++-
+ net/netfilter/nft_limit.c                 | 18 ++++++++++++++++++
+ net/netfilter/xt_socket.c                 |  2 ++
+ 9 files changed, 58 insertions(+), 9 deletions(-)
