@@ -2,109 +2,67 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68451C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Feb 2022 07:33:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9975DC433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Feb 2022 07:41:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231217AbiBVHdt (ORCPT
+        id S229931AbiBVHmD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 22 Feb 2022 02:33:49 -0500
-Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:42904 "EHLO
+        Tue, 22 Feb 2022 02:42:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38982 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231195AbiBVHdq (ORCPT
+        with ESMTP id S229889AbiBVHmD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 22 Feb 2022 02:33:46 -0500
+        Tue, 22 Feb 2022 02:42:03 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 08F89D4C88;
-        Mon, 21 Feb 2022 23:33:20 -0800 (PST)
-Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 477926438B;
-        Tue, 22 Feb 2022 08:32:20 +0100 (CET)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id F1548D5F6B
+        for <netfilter-devel@vger.kernel.org>; Mon, 21 Feb 2022 23:35:00 -0800 (PST)
+Received: from netfilter.org (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 5BCBC64384;
+        Tue, 22 Feb 2022 08:34:01 +0100 (CET)
+Date:   Tue, 22 Feb 2022 08:34:57 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 5/5] netfilter: nf_tables: fix memory leak during stateful obj update
-Date:   Tue, 22 Feb 2022 08:33:12 +0100
-Message-Id: <20220222073312.308406-6-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220222073312.308406-1-pablo@netfilter.org>
-References: <20220222073312.308406-1-pablo@netfilter.org>
+To:     Jan Engelhardt <jengelh@inai.de>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] build: add missing AM_CPPFLAGS to examples/
+Message-ID: <YhSSIanp3mA+F8R9@salvia>
+References: <20220222044643.25214-1-jengelh@inai.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20220222044643.25214-1-jengelh@inai.de>
+User-Agent: Alpine 2.23 (DEB 453 2020-06-18)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+On Tue, Feb 22, 2022 at 05:46:43AM +0100, Jan Engelhardt wrote:
+> examples$ make V=1
+> depbase=`echo nft-buffer.o | sed 's|[^/]*$|.deps/&|;s|\.o$||'`;\
+> gcc -DHAVE_CONFIG_H -I. -I..     -g -O2 -MT nft-buffer.o -MD -MP -MF $depbase.Tpo -c -o nft-buffer.o nft-buffer.c &&\
+> mv -f $depbase.Tpo $depbase.Po
+> nft-buffer.c:3:10: fatal error: nftables/libnftables.h: No such file or directory
 
-stateful objects can be updated from the control plane.
-The transaction logic allocates a temporary object for this purpose.
+Right. I also moved the compilation of these example out of the
+standard build path.
 
-The ->init function was called for this object, so plain kfree() leaks
-resources. We must call ->destroy function of the object.
+https://patchwork.ozlabs.org/project/netfilter-devel/patch/20220222000049.303303-1-pablo@netfilter.org/
 
-nft_obj_destroy does this, but it also decrements the module refcount,
-but the update path doesn't increment it.
-
-To avoid special-casing the update object release, do module_get for
-the update case too and release it via nft_obj_destroy().
-
-Fixes: d62d0ba97b58 ("netfilter: nf_tables: Introduce stateful object update operation")
-Cc: Fernando Fernandez Mancera <ffmancera@riseup.net>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c | 13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 3081c4399f10..9cd1d7a62804 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -6551,12 +6551,15 @@ static int nf_tables_updobj(const struct nft_ctx *ctx,
- {
- 	struct nft_object *newobj;
- 	struct nft_trans *trans;
--	int err;
-+	int err = -ENOMEM;
-+
-+	if (!try_module_get(type->owner))
-+		return -ENOENT;
- 
- 	trans = nft_trans_alloc(ctx, NFT_MSG_NEWOBJ,
- 				sizeof(struct nft_trans_obj));
- 	if (!trans)
--		return -ENOMEM;
-+		goto err_trans;
- 
- 	newobj = nft_obj_init(ctx, type, attr);
- 	if (IS_ERR(newobj)) {
-@@ -6573,6 +6576,8 @@ static int nf_tables_updobj(const struct nft_ctx *ctx,
- 
- err_free_trans:
- 	kfree(trans);
-+err_trans:
-+	module_put(type->owner);
- 	return err;
- }
- 
-@@ -8185,7 +8190,7 @@ static void nft_obj_commit_update(struct nft_trans *trans)
- 	if (obj->ops->update)
- 		obj->ops->update(obj, newobj);
- 
--	kfree(newobj);
-+	nft_obj_destroy(&trans->ctx, newobj);
- }
- 
- static void nft_commit_release(struct nft_trans *trans)
-@@ -8976,7 +8981,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 			break;
- 		case NFT_MSG_NEWOBJ:
- 			if (nft_trans_obj_update(trans)) {
--				kfree(nft_trans_obj_newobj(trans));
-+				nft_obj_destroy(&trans->ctx, nft_trans_obj_newobj(trans));
- 				nft_trans_destroy(trans);
- 			} else {
- 				trans->ctx.table->use--;
--- 
-2.30.2
-
+> Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+> ---
+>  nftables 1.0.2 would not build successfully by default.
+> 
+>  examples/Makefile.am | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/examples/Makefile.am b/examples/Makefile.am
+> index c972170d..d7234ce4 100644
+> --- a/examples/Makefile.am
+> +++ b/examples/Makefile.am
+> @@ -1,3 +1,4 @@
+> +AM_CPPFLAGS = -I$(top_srcdir)/include
+>  noinst_PROGRAMS	= nft-buffer		\
+>  		  nft-json-file
+>  
+> -- 
+> 2.35.1
+> 
