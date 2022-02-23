@@ -2,93 +2,165 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4175C433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Feb 2022 20:07:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BFBCC433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Feb 2022 03:04:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235396AbiBVUHo (ORCPT
+        id S237836AbiBWDFW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 22 Feb 2022 15:07:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58036 "EHLO
+        Tue, 22 Feb 2022 22:05:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43962 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235417AbiBVUHn (ORCPT
+        with ESMTP id S237814AbiBWDFS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 22 Feb 2022 15:07:43 -0500
-Received: from mail-yb1-xb33.google.com (mail-yb1-xb33.google.com [IPv6:2607:f8b0:4864:20::b33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0869B54D6
-        for <netfilter-devel@vger.kernel.org>; Tue, 22 Feb 2022 12:07:17 -0800 (PST)
-Received: by mail-yb1-xb33.google.com with SMTP id j2so43751769ybu.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 22 Feb 2022 12:07:17 -0800 (PST)
+        Tue, 22 Feb 2022 22:05:18 -0500
+Received: from mail-pj1-x1044.google.com (mail-pj1-x1044.google.com [IPv6:2607:f8b0:4864:20::1044])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AEEE0580D8;
+        Tue, 22 Feb 2022 19:04:51 -0800 (PST)
+Received: by mail-pj1-x1044.google.com with SMTP id m22so1487326pja.0;
+        Tue, 22 Feb 2022 19:04:51 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=AjnaX+96lqe7LijU9Rl3ogEW4Pg0WWxDUtU2eg0y22Q=;
-        b=QuoRQZ9xGDd3kLv1UUcnSJ9VydU7KPF/+yLCDpnbT/rhn9N5skeK0Uwk/vTAPcHOF6
-         dggaAIrCWnQ+DQNgV/C0wa1ceLRh7yja3OlPfN2nFrH0aO9CoZh004ZvMl02D02FNWOx
-         BQa7fX3eh+iN7b4FB+vR3WV8O91Shcs/uUeTws3cwD0GajmB7X9SBLxxVJMe33vwC2kS
-         I9FMIr67qG4hJjpCnnk4V/YL6rb0sPZgceIt4EQdY7FQfV4fOlBsQu8B+d2CE6XHPIsn
-         YKR9VGOaNlmQPb5V4m9O57OavxUaYnY9A8fQo4OpAO2jDVQhTrv8Eg/9sPuMCjKrNuMc
-         E2gw==
+        d=gmail.com; s=20210112;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=PMrqZxiS0watDAe+/4XF02fqh0CK2tKMQlLPhoYf6Wk=;
+        b=RhfYAbkpylmxjsosh7CayJki71YjYufxvC0SOraaF/Pr5EafQw4/WwtjukFtYCh4zh
+         mKfGU+yLEXMJOTyYNYN/CgkfnqGkh2Kycq9xG+GkksnFypeoGuwrwwySBvjV0U63GE6R
+         f98iIRQSVH6J1oZ5bC9Y00oMd8ZtYbghu+semUI9tN4pEpKYRQiWyJWRNQq1syEa/xnL
+         fDchZClr19TnP3w2UPtuSjVfySRXFBzdIgD2ii0Own6yo0gfPK+2iOWe+fE26Mh701Zi
+         nY5nU6KMC0cWf72G+n7vlzqo7mJZpnc+0nTbwfFGzdXwtRqxbGUvQzCAoIQsyXXdBGKh
+         Ylow==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=AjnaX+96lqe7LijU9Rl3ogEW4Pg0WWxDUtU2eg0y22Q=;
-        b=yi93fW0FjkPS16q1DkCPAF8v5o/ZoLi4tXRqqWdzoYYoag/BHFWEomNDU2qvOh6NZz
-         5AIw6zHvHzFqikK3T6ur3jSwMNcZXlu4le32W0FPBPyiPcvbRZmDXWxku68auFEmBrIz
-         7eJWSDwqT2p8qEL9AjN3L4SU4cBmuq3CxhN6qbRtclOTFfXWGWh/J+GCa1g0uoHhq+w8
-         G6iAWJF3leQqPuFCIQQU0/B+7xaPBbn8615HT7ocrQ9AUl3bWndU2TRR710LBUYlby1G
-         ssXCqGIE1obUjV6jDfx/T7BmqWFaj/oAgVxBxNcmCP46jFMtfsOSzuutBCS/L+cvzMBD
-         8afg==
-X-Gm-Message-State: AOAM533+hI6TJDmG3HaPLmNLMrrfjPLB1yvevd/i4fCYG/XTZqEfRpmt
-        +ec+oFUGtYyRx5wStna2r5JMsldL3t+eegpTrb9GLGxqdUb2msp6q+I=
-X-Google-Smtp-Source: ABdhPJwMkyFR0SUCG3KBZfZtk+rrGhU5lYfT5M5/nEf1SdaEERKaPV5W4dz9u31w/k5niv2/ZjHpFspIWGGLvAfupWs=
-X-Received: by 2002:a25:f441:0:b0:611:4f60:aab1 with SMTP id
- p1-20020a25f441000000b006114f60aab1mr25228544ybe.598.1645560436619; Tue, 22
- Feb 2022 12:07:16 -0800 (PST)
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=PMrqZxiS0watDAe+/4XF02fqh0CK2tKMQlLPhoYf6Wk=;
+        b=BtxxXxoj3abASvR/CAnM3ziT6oO9Ta5HWLZp2GvAQsDCPkl7laRyvvQn3e4sAsjoQH
+         faBvY08s1wnftRhfBPr4IWxhSvAznPR8TR5N/DlG2foQy6/HaLQl5TjVOm9sP00MnXLr
+         JR1UNlMt/+NuW0A/f0hDKWE7xctO5poELhLKSD15osqMMbg08plneN7lEHlIJwf2vJcN
+         X6fAN8wVcRgCZ26WH2eZJJ0ab4ukPlwPVcIEui6FAfL4ohSrQp1cS/pg0WmYcdKKZ3fw
+         E1hKzGNEbT3aHWNLhetX4GmSMyr+7i8f9xel7ZpwJz7Aen50LSJeD8zlDe4lUPnZFEbj
+         yxdw==
+X-Gm-Message-State: AOAM530h/K5NGx2+votqVfHqSJFgXWbpA+rx8Eo6dzuPmLiehFbcadKJ
+        vzHF9T8Z7n1tZd1A8dkynW3g99OLNkc=
+X-Google-Smtp-Source: ABdhPJxbDw7Bez87vV6FICxachpNlnKU/haGTEcSoVfBdJ+Ztxo4A87pKcslU09O/i6eZaDFeuP4Bg==
+X-Received: by 2002:a17:90b:47c4:b0:1b9:b213:5f7b with SMTP id kc4-20020a17090b47c400b001b9b2135f7bmr7158689pjb.86.1645585491104;
+        Tue, 22 Feb 2022 19:04:51 -0800 (PST)
+Received: from localhost ([2405:201:6014:d0c0:6243:316e:a9e1:adda])
+        by smtp.gmail.com with ESMTPSA id lt8-20020a17090b354800b001bc509e0085sm1056316pjb.21.2022.02.22.19.04.49
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 22 Feb 2022 19:04:50 -0800 (PST)
+Date:   Wed, 23 Feb 2022 08:34:47 +0530
+From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
+To:     Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Cc:     bpf <bpf@vger.kernel.org>, Alexei Starovoitov <ast@kernel.org>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>,
+        Jesper Dangaard Brouer <hawk@kernel.org>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>,
+        Network Development <netdev@vger.kernel.org>
+Subject: Re: [PATCH bpf-next v1 04/15] bpf: Allow storing referenced
+ PTR_TO_BTF_ID in map
+Message-ID: <20220223030447.ugwjlfjiqynntbgj@apollo.legion>
+References: <20220220134813.3411982-1-memxor@gmail.com>
+ <20220220134813.3411982-5-memxor@gmail.com>
+ <20220222065349.ladxy5cqfpdklk3a@ast-mbp.dhcp.thefacebook.com>
+ <20220222071026.fqdjmd5fhjbl56xl@apollo.legion>
+ <CAADnVQLba_X7fZczY774+1GGrGcC5sopD5pzMaDK_O8P+Aeyig@mail.gmail.com>
 MIME-Version: 1.0
-References: <20220222181331.811085-1-eric.dumazet@gmail.com> <20220222194605.GA28705@breakpoint.cc>
-In-Reply-To: <20220222194605.GA28705@breakpoint.cc>
-From:   Eric Dumazet <edumazet@google.com>
-Date:   Tue, 22 Feb 2022 12:07:05 -0800
-Message-ID: <CANn89iLz4yML_RktHUadAkU966h9QCRJQ=cMPVzUDU7dHXg0sw@mail.gmail.com>
-Subject: Re: [PATCH net] netfilter: nf_tables: prefer kfree_rcu(ptr, rcu) variant
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Eric Dumazet <eric.dumazet@gmail.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAADnVQLba_X7fZczY774+1GGrGcC5sopD5pzMaDK_O8P+Aeyig@mail.gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Feb 22, 2022 at 11:46 AM Florian Westphal <fw@strlen.de> wrote:
->
-> Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> > From: Eric Dumazet <edumazet@google.com>
+On Tue, Feb 22, 2022 at 09:50:00PM IST, Alexei Starovoitov wrote:
+> On Mon, Feb 21, 2022 at 11:10 PM Kumar Kartikeya Dwivedi
+> <memxor@gmail.com> wrote:
 > >
-> > While kfree_rcu(ptr) _is_ supported, it has some limitations.
+> > On Tue, Feb 22, 2022 at 12:23:49PM IST, Alexei Starovoitov wrote:
+> > > On Sun, Feb 20, 2022 at 07:18:02PM +0530, Kumar Kartikeya Dwivedi wrote:
+> > > >  static int check_mem_access(struct bpf_verifier_env *env, int insn_idx, u32 regno,
+> > > >                         int off, int bpf_size, enum bpf_access_type t,
+> > > > -                       int value_regno, bool strict_alignment_once)
+> > > > +                       int value_regno, bool strict_alignment_once,
+> > > > +                       struct bpf_reg_state *atomic_load_reg)
+> > >
+> > > No new side effects please.
+> > > value_regno is not pretty already.
+> > > At least its known ugliness that we need to clean up one day.
+> > >
+> > > >  static int check_atomic(struct bpf_verifier_env *env, int insn_idx, struct bpf_insn *insn)
+> > > >  {
+> > > > +   struct bpf_reg_state atomic_load_reg;
+> > > >     int load_reg;
+> > > >     int err;
+> > > >
+> > > > +   __mark_reg_unknown(env, &atomic_load_reg);
+> > > > +
+> > > >     switch (insn->imm) {
+> > > >     case BPF_ADD:
+> > > >     case BPF_ADD | BPF_FETCH:
+> > > > @@ -4813,6 +4894,7 @@ static int check_atomic(struct bpf_verifier_env *env, int insn_idx, struct bpf_i
+> > > >             else
+> > > >                     load_reg = insn->src_reg;
+> > > >
+> > > > +           atomic_load_reg = *reg_state(env, load_reg);
+> > > >             /* check and record load of old value */
+> > > >             err = check_reg_arg(env, load_reg, DST_OP);
+> > > >             if (err)
+> > > > @@ -4825,20 +4907,21 @@ static int check_atomic(struct bpf_verifier_env *env, int insn_idx, struct bpf_i
+> > > >     }
+> > > >
+> > > >     /* Check whether we can read the memory, with second call for fetch
+> > > > -    * case to simulate the register fill.
+> > > > +    * case to simulate the register fill, which also triggers checks
+> > > > +    * for manipulation of BTF ID pointers embedded in BPF maps.
+> > > >      */
+> > > >     err = check_mem_access(env, insn_idx, insn->dst_reg, insn->off,
+> > > > -                          BPF_SIZE(insn->code), BPF_READ, -1, true);
+> > > > +                          BPF_SIZE(insn->code), BPF_READ, -1, true, NULL);
+> > > >     if (!err && load_reg >= 0)
+> > > >             err = check_mem_access(env, insn_idx, insn->dst_reg, insn->off,
+> > > >                                    BPF_SIZE(insn->code), BPF_READ, load_reg,
+> > > > -                                  true);
+> > > > +                                  true, load_reg >= 0 ? &atomic_load_reg : NULL);
+> > >
+> > > Special xchg logic should be down outside of check_mem_access()
+> > > instead of hidden by layers of calls.
 > >
-> > Given that 99.99% of kfree_rcu() users [1] use the legacy
-> > two parameters variant, and @catchall objects do have an rcu head,
-> > simply use it.
+> > Right, it's ugly, but if we don't capture the reg state before that
+> > check_reg_arg(env, load_reg, DST_OP), it's not possible to see the actual
+> > PTR_TO_BTF_ID being moved into the map, since check_reg_arg will do a
+> > mark_reg_unknown for value_regno. Any other ideas on what I can do?
 > >
-> > Choice of kfree_rcu(ptr) variant was probably not intentional.
+> > 37086bfdc737 ("bpf: Propagate stack bounds to registers in atomics w/ BPF_FETCH")
+> > changed the order of check_mem_access and DST_OP check_reg_arg.
 >
-> In case someone wondered, this causes expensive
-> sycnhronize_rcu + kfree for each removal operation.
+> That highlights my point that side effects are bad.
+> That commit tries to work around that behavior and makes things
+> harder to extend like you found out with xchg logic.
+> Another option would be to add bpf_kptr_xchg() helper
+> instead of dealing with insn. It will be tiny bit slower,
+> but it will work on all architectures. While xchg bpf jit is
+> on x86,s390,mips so far.
 
-This fallback to synchronize_rcu() only happens if kvfree_call_rcu() has been
-unable to allocate a new block of memory.
+Right, but kfunc is currently limited to x86, which is required to obtain a
+refcounted PTR_TO_BTF_ID that you can move into the map, so it wouldn't make
+much of a difference.
 
-But yes, I guess I would add a Fixes: tag, because we can easily avoid
-this potential issue.
+> We need to think more on how to refactor check_mem_acess without
+> digging ourselves into an even bigger hole.
 
-Pablo, if not too late:
+So I'm ok with working on untangling check_mem_access as a follow up, but for
+now should we go forward with how it is? Just looking at it yesterday makes me
+think it's going to require a fair amount of refactoring and discussion.
 
-Fixes: aaa31047a6d2 ("netfilter: nftables: add catch-all set element support")
+Also, do you have any ideas on how to change it? Do you want it to work like how
+is_valid_access callbacks work? So passing something like a bpf_insn_access_aux
+into the call, where it sets how it'd like to update the register, and then
+actual updates take place in caller context?
 
->
-> Reviewed-by: Florian Westphal <fw@strlen.de>
->
+--
+Kartikeya
