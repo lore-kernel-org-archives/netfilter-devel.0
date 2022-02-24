@@ -2,41 +2,45 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 610B4C433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Feb 2022 14:18:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8480FC433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Feb 2022 14:58:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234067AbiBXOSx (ORCPT
+        id S235350AbiBXO7I (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 24 Feb 2022 09:18:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58520 "EHLO
+        Thu, 24 Feb 2022 09:59:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40560 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233212AbiBXOSx (ORCPT
+        with ESMTP id S231255AbiBXO7I (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Feb 2022 09:18:53 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AFEA9294FFF
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Feb 2022 06:18:23 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1nNEwn-0004lA-Sa; Thu, 24 Feb 2022 15:18:21 +0100
-Date:   Thu, 24 Feb 2022 15:18:21 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Robert Marko <robimarko@gmail.com>
+        Thu, 24 Feb 2022 09:59:08 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id A103919D74F
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Feb 2022 06:58:37 -0800 (PST)
+Received: from netfilter.org (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id A4352642F2;
+        Thu, 24 Feb 2022 15:57:28 +0100 (CET)
+Date:   Thu, 24 Feb 2022 15:58:33 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH v2] conntrack: fix build with kernel 5.15 and musl
-Message-ID: <20220224141821.GE28705@breakpoint.cc>
-References: <20220224140111.2011488-1-robimarko@gmail.com>
+Subject: Re: [PATCH nf] netfilter: nf_queue: don't assume sk is full socket
+Message-ID: <YhedGbZ/1HfA498r@salvia>
+References: <20220223201004.30615-1-fw@strlen.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20220224140111.2011488-1-robimarko@gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20220223201004.30615-1-fw@strlen.de>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Robert Marko <robimarko@gmail.com> wrote:
-> Currently, with kernel 5.15 headers and musl building is failing with
-> redefinition errors due to a conflict between the kernel and musl headers.
+On Wed, Feb 23, 2022 at 09:10:04PM +0100, Florian Westphal wrote:
+> There is no guarantee that state->sk refers to a full socket.
+> 
+> If refcount transitions to 0, sock_put calls sk_free which then ends up
+> with garbage fields.
+> 
+> I'd like to thank Oleksandr Natalenko and Jiri Benc for considerable
+> debug work and pointing out state->sk oddities.
 
-Applied to libnetfilter-conntrack, thanks.
+Applied, thanks
