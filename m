@@ -2,49 +2,58 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ECC88C433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Feb 2022 16:53:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D98A0C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Feb 2022 19:46:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229478AbiBXQx7 (ORCPT
+        id S232230AbiBXTql (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 24 Feb 2022 11:53:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59754 "EHLO
+        Thu, 24 Feb 2022 14:46:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36768 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229484AbiBXQx6 (ORCPT
+        with ESMTP id S230043AbiBXTql (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Feb 2022 11:53:58 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE35F199D54
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Feb 2022 08:53:28 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1nNGmE-0005Ud-L2; Thu, 24 Feb 2022 17:15:34 +0100
-Date:   Thu, 24 Feb 2022 17:15:34 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next 0/7] metfilter: remove pcpu dying list
-Message-ID: <20220224161534.GH28705@breakpoint.cc>
-References: <20220209161057.30688-1-fw@strlen.de>
- <Yhesc6YcUBrl27HX@salvia>
+        Thu, 24 Feb 2022 14:46:41 -0500
+Received: from smtp.gentoo.org (smtp.gentoo.org [IPv6:2001:470:ea4a:1:5054:ff:fec7:86e4])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60789227581
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Feb 2022 11:46:10 -0800 (PST)
+From:   Sam James <sam@gentoo.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Sam James <sam@gentoo.org>
+Subject: [PATCH 1/2] libnftables.map: export new nft_ctx_{get,set}_optimize API
+Date:   Thu, 24 Feb 2022 19:45:42 +0000
+Message-Id: <20220224194543.59581-1-sam@gentoo.org>
+X-Mailer: git-send-email 2.35.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <Yhesc6YcUBrl27HX@salvia>
-User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> net/netfilter/nf_conntrack_ecache.c:48:19: error: ‘nf_conn_retrans_list_head’ undeclared here (not in a function)
-> 
-> related to patch ("netfilter: conntrack: include ecache dying list in
-> dumps")
-> 
-> I don't find the declaration in this patchset.
+Without this, we're not explicitly saying this is part of the public
+API.
 
-Sorry, I will send a v2.  This is supposed to export the function above,
-not the nf_conn_retrans_list_head, which only existed in a earlier, not
-sent, version of this patchset.
+This new API was added in 1.0.2 and is used by e.g. the main
+nft binary. Noticed when fixing the version-script option
+(separate patch) which picked up this problem when .map
+was missing symbols (related to when symbol visibility
+options get set).
+
+Signed-off-by: Sam James <sam@gentoo.org>
+---
+ src/libnftables.map | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/libnftables.map b/src/libnftables.map
+index a511dd78..f8cf05dc 100644
+--- a/src/libnftables.map
++++ b/src/libnftables.map
+@@ -32,4 +32,6 @@ LIBNFTABLES_2 {
+ LIBNFTABLES_3 {
+   nft_set_optimize;
+   nft_get_optimize;
++  nft_ctx_set_optimize;
++  nft_ctx_get_optimize;
+ } LIBNFTABLES_2;
+-- 
+2.35.1
+
