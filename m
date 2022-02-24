@@ -2,94 +2,75 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0462C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Feb 2022 21:46:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D5D5C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Feb 2022 22:17:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230375AbiBXVqj (ORCPT
+        id S233778AbiBXWSD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 24 Feb 2022 16:46:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49316 "EHLO
+        Thu, 24 Feb 2022 17:18:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43394 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231430AbiBXVqj (ORCPT
+        with ESMTP id S232032AbiBXWSC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Feb 2022 16:46:39 -0500
-Received: from smtp.gentoo.org (mail.gentoo.org [IPv6:2001:470:ea4a:1:5054:ff:fec7:86e4])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 85DF322A24F
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Feb 2022 13:46:08 -0800 (PST)
-From:   Sam James <sam@gentoo.org>
-Content-Type: multipart/signed;
-        boundary="Apple-Mail=_B02697E6-1798-41D1-A30F-E71071CF4541";
-        protocol="application/pgp-signature";
-        micalg=pgp-sha512
-Mime-Version: 1.0 (Mac OS X Mail 15.0 \(3693.60.0.1.1\))
-Subject: Re: [PATCH 1/2] libnftables.map: export new
- nft_ctx_{get,set}_optimize API
-Date:   Thu, 24 Feb 2022 21:46:03 +0000
-References: <20220224194543.59581-1-sam@gentoo.org>
- <4B1D8E2C-F3F6-44B7-8C98-E896C1C406C6@gentoo.org>
-To:     netfilter-devel@vger.kernel.org
-In-Reply-To: <4B1D8E2C-F3F6-44B7-8C98-E896C1C406C6@gentoo.org>
-Message-Id: <B61ECA27-2B31-4833-A2EF-0F499B9699B6@gentoo.org>
-X-Mailer: Apple Mail (2.3693.60.0.1.1)
+        Thu, 24 Feb 2022 17:18:02 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 10593186BB4;
+        Thu, 24 Feb 2022 14:17:31 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1nNMQS-0007G8-Vd; Thu, 24 Feb 2022 23:17:29 +0100
+Date:   Thu, 24 Feb 2022 23:17:28 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     netfilter-devel <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>, kbuild-all@lists.01.org,
+        linux-kernel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [netfilter-nf:master 47/47] nf_queue.c:undefined reference to
+ `sock_gen_put'
+Message-ID: <20220224221728.GI28705@breakpoint.cc>
+References: <202202250551.bHhoyNSe-lkp@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <202202250551.bHhoyNSe-lkp@intel.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+kernel test robot <lkp@intel.com> wrote:
 
---Apple-Mail=_B02697E6-1798-41D1-A30F-E71071CF4541
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain;
-	charset=us-ascii
+[ cc nf-devel ]
 
+> tree:   git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git master
+> head:   661c8ec0381915e9a2b0f9dcc03a5bd70ba5e3dd
+> commit: 661c8ec0381915e9a2b0f9dcc03a5bd70ba5e3dd [47/47] netfilter: nf_queue: don't assume sk is full socket
+> config: arm-randconfig-c002-20220223 (https://download.01.org/0day-ci/archive/20220225/202202250551.bHhoyNSe-lkp@intel.com/config)
+> compiler: arm-linux-gnueabi-gcc (GCC) 11.2.0
+> reproduce (this is a W=1 build):
+>         wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+>         chmod +x ~/bin/make.cross
+>         # https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git/commit/?id=661c8ec0381915e9a2b0f9dcc03a5bd70ba5e3dd
+>         git remote add netfilter-nf git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git
+>         git fetch --no-tags netfilter-nf master
+>         git checkout 661c8ec0381915e9a2b0f9dcc03a5bd70ba5e3dd
+>         # save the config file to linux build tree
+>         mkdir build_dir
+>         COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-11.2.0 make.cross O=build_dir ARCH=arm SHELL=/bin/bash
+> 
+> If you fix the issue, kindly add following tag as appropriate
+> Reported-by: kernel test robot <lkp@intel.com>
+> 
+> All errors (new ones prefixed by >>):
+> 
+>    arm-linux-gnueabi-ld: net/netfilter/nf_queue.o: in function `nf_queue_entry_release_refs':
+> >> nf_queue.c:(.text+0x60): undefined reference to `sock_gen_put'
 
+CONFIG_NETFILTER=y
+CONFIG_DECNET=y
+CONFIG_INET=n
 
-> On 24 Feb 2022, at 21:39, Sam James <sam@gentoo.org> wrote:
->=20
->=20
->=20
->> On 24 Feb 2022, at 19:45, Sam James <sam@gentoo.org> wrote:
->>=20
->> Without this, we're not explicitly saying this is part of the public
->> API.
->>=20
->> This new API was added in 1.0.2 and is used by e.g. the main
->> nft binary. Noticed when fixing the version-script option
->> (separate patch) which picked up this problem when .map
->> was missing symbols (related to when symbol visibility
->> options get set).
->>=20
->=20
-> Actually, I'm wondering if we need way more?
-> [snip]
-> AFAIK none of these are internal so we I think want the whole context =
-API.
->=20
+I could add ugly ifdef to use sock_put() like before for !INET case.
+OTOH, the entire nfqueue infra is doubtful in this config.
 
-Sorry, disregard this last email. The patches stand as per the original =
-series :)
-
-Bit frazzled today.
-
---Apple-Mail=_B02697E6-1798-41D1-A30F-E71071CF4541
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename=signature.asc
-Content-Type: application/pgp-signature;
-	name=signature.asc
-Content-Description: Message signed with OpenPGP
-
------BEGIN PGP SIGNATURE-----
-
-iQGTBAEBCgB9FiEEYOpPv/uDUzOcqtTy9JIoEO6gSDsFAmIX/JtfFIAAAAAALgAo
-aXNzdWVyLWZwckBub3RhdGlvbnMub3BlbnBncC5maWZ0aGhvcnNlbWFuLm5ldDYw
-RUE0RkJGRkI4MzUzMzM5Q0FBRDRGMkY0OTIyODEwRUVBMDQ4M0IACgkQ9JIoEO6g
-SDtR2gf+L7WbA4tA2rHqZBwFLtr6begtDvyBY6G8TKTYZPzB2kDpzapBVArY7dDC
-eqktkp47gcBJ3myAHfB66Hr3Iz3d2xeZMpvFhgGu0K9ue3EGAf4THL53aEih3wCx
-WFlBtWJuEcwacsoH/ixGknGVDKLnefTGtUlmKTWeQR75yfkmyEzTdiUMCUAHJAvM
-FXsVu+7PR+HZpe15GH/er0z7BYrffEeXQDA8jnQUy0Y9URcShoZHNeLULpgFWteV
-cDrZ547ihCIYUY/e+IY8nB4OlsDnyvhkOGnJWF9DrjarJOC475QDc0EBPRIlZA3F
-/0Xefx3ZLHk9YPeXWHr2EwCoqxdpaQ==
-=ZDZs
------END PGP SIGNATURE-----
-
---Apple-Mail=_B02697E6-1798-41D1-A30F-E71071CF4541--
+Maybe elide that completely?  Any advice/preferred solution?
