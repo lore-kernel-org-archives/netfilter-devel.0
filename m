@@ -2,130 +2,72 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 219E6C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Feb 2022 11:58:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E753C433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Feb 2022 12:30:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240360AbiBYL66 (ORCPT
+        id S236770AbiBYMbF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 25 Feb 2022 06:58:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35184 "EHLO
+        Fri, 25 Feb 2022 07:31:05 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48236 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240359AbiBYL6z (ORCPT
+        with ESMTP id S234513AbiBYMbE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 25 Feb 2022 06:58:55 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E4B1223532E
-        for <netfilter-devel@vger.kernel.org>; Fri, 25 Feb 2022 03:58:23 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1645790303;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=XQgbrcsjCANxz/Of//gf2z45aVY1hxYCVO9u5dn2lAg=;
-        b=ZB2qUdLLIXk0p+o0zZLCZyFviMDuNgRZO9VX3Idg8jmEEOQu/LSBv3v6/pAjqfL7RW0h1x
-        hoju9KcWPpQTzH60FOCbFFNvuW23X6+EgrqCOnsE2QGs7g8mSi6o8873Y+3ielR3CWdTUn
-        9n4oMOgqMh4u9VA+5XmLpa+R8Hg9oBY=
-Received: from mail-wr1-f69.google.com (mail-wr1-f69.google.com
- [209.85.221.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-463-hyzuOIzCPte2i5b4CoZCyQ-1; Fri, 25 Feb 2022 06:58:22 -0500
-X-MC-Unique: hyzuOIzCPte2i5b4CoZCyQ-1
-Received: by mail-wr1-f69.google.com with SMTP id k20-20020adfc714000000b001e305cd1597so796724wrg.19
-        for <netfilter-devel@vger.kernel.org>; Fri, 25 Feb 2022 03:58:21 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:organization
-         :in-reply-to:references:mime-version:content-transfer-encoding;
-        bh=XQgbrcsjCANxz/Of//gf2z45aVY1hxYCVO9u5dn2lAg=;
-        b=wC3SyPUD4tR2qiIm5A0vvQZCffNRyvekoODOnMAWCgui9G97ZixGduEducXwla6EA2
-         aUljW1bMglZsYMAPy7WTkDj4IZHnLvGj+gAGGYBWZdOti9UdX5k2WqnJorqf1CZhMAiM
-         gjLuOAe8eqhR073RWXnV4EeusnWwQLHZEWPLQWqk6Wjt1JzgmOGqfiPUlNl+uC6Q5R8e
-         xEKMU2W/lCqsrkGlexrO3SP7E8XCgaB45/yfZxw/DVT32OOoCdjWy2Bk0F39PofUndxH
-         bLCoTlK0LMDFPFWmis5nct560PN33vNCQz7B6FSo/3/WoT9nmrZdd1GL2PbI3Emvd7xl
-         Yf5A==
-X-Gm-Message-State: AOAM532XmBdDD44qhqemL7iTVY/OLxbKmaNaOMmoSrK6PYJyrQT4PnH1
-        uAGgT94MLg92hTXdg9ofXO1mZ2j79VaXU4y8WOC+suZGEUyU+rXfOxM4pVz9KlR3/aIfEnRJBes
-        tuHHZxIDIsNc04YCgdL5YGGa0O/dYuwCMJf8QK2p3ltNbhuD56+zKldfveYlFRpe8iODTUhShmL
-        trmlszbg==
-X-Received: by 2002:a7b:c192:0:b0:380:fa7a:4f7d with SMTP id y18-20020a7bc192000000b00380fa7a4f7dmr2396140wmi.119.1645790300669;
-        Fri, 25 Feb 2022 03:58:20 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJyr9r7yux0Nk1L74WVrM7Qm+Ht43rlU8sEVZ2SOOUk+kg1tXhoK57dPICBP3WqOmBDzdasY1g==
-X-Received: by 2002:a7b:c192:0:b0:380:fa7a:4f7d with SMTP id y18-20020a7bc192000000b00380fa7a4f7dmr2396116wmi.119.1645790300333;
-        Fri, 25 Feb 2022 03:58:20 -0800 (PST)
-Received: from butterfly.localnet ([83.148.33.151])
-        by smtp.gmail.com with ESMTPSA id x5-20020adfec05000000b001e58cc95affsm2034003wrn.38.2022.02.25.03.58.19
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 25 Feb 2022 03:58:19 -0800 (PST)
-From:   Oleksandr Natalenko <oleksandr@redhat.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf] netfilter: nf_queue: don't assume sk is full socket
-Date:   Fri, 25 Feb 2022 12:58:19 +0100
-Message-ID: <2216610.mTzm8X9j6q@redhat.com>
-Organization: Red Hat
-In-Reply-To: <20220223201004.30615-1-fw@strlen.de>
-References: <20220223201004.30615-1-fw@strlen.de>
+        Fri, 25 Feb 2022 07:31:04 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE5762177C0
+        for <netfilter-devel@vger.kernel.org>; Fri, 25 Feb 2022 04:30:32 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1nNZjy-0002Xh-TN; Fri, 25 Feb 2022 13:30:30 +0100
+Date:   Fri, 25 Feb 2022 13:30:30 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     netfilter-devel <netfilter-devel@vger.kernel.org>
+Cc:     pablo@netfilter.org, kadlec@netfilter.org, hmmsjan@kpnplanet.nl
+Subject: TCP connection fails in a asymmetric routing situation
+Message-ID: <20220225123030.GK28705@breakpoint.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello.
+https://bugzilla.redhat.com/show_bug.cgi?id=2051413
 
-On st=C5=99eda 23. =C3=BAnora 2022 21:10:04 CET Florian Westphal wrote:
-> There is no guarantee that state->sk refers to a full socket.
->=20
-> If refcount transitions to 0, sock_put calls sk_free which then ends up
-> with garbage fields.
->=20
-> I'd like to thank Oleksandr Natalenko and Jiri Benc for considerable
-> debug work and pointing out state->sk oddities.
+Gist is:
+as of 878aed8db324bec64f3c3f956e64d5ae7375a5de
+(" netfilter: nat: force port remap to prevent shadowing well-known
+ port"), tcp connections won't get established with asymmetric routing
+setups.
 
-No thank you for spotting the exact issue.
+Workaround: Block conntrack for  LAN-LAN2 traffic by
+iptables  -t raw -A PREROUTING -j CT --notrack
+Or: echo 0 > /proc/sys/net/netfilter/nf_conntrack_tcp_loose
 
-> Fixes: ca6fb0651883 ("tcp: attach SYNACK messages to request sockets inst=
-ead of listener")
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+I'd guess that is because conntrack picks up the flow on syn-ack rather
+than syn, snat check then thinks that source port is < 16384 and dest
+port is large, so we do port rewrite but we do it on syn-ack and
+connection cannot complete because client and server have different
+views of the source ports involved.
 
-Tested-by: Oleksandr Natalenko <oleksandr@redhat.com>
+Question is on how this can be prevented. I see a few solutions:
 
-> ---
->  No reproducer, so there is a chance that the reported crash is caused by
->  something else. That said, I don't see how sock_put use is safe here.
+1. Change ct->local_origin to "ct->no_srcremap" (or a new status bit)
+that indicates that this should not have src remap done, just like we
+do for locally generated connections.
 
-Using your reproducer from [1] I could trigger the issue on unpatched kerne=
-l and couldn't trigger the issue on patched kernel with the patch from belo=
-w applied.
+2. Add a new "mid-stream" status bit, then bypass the entire -t nat
+logic if its set. nf_nat_core would create a null binding for the
+flow, this also bypasses the "src remap" code.
 
-[1] https://patchwork.ozlabs.org/project/netfilter-devel/patch/202202241521=
-18.20619-1-fw@strlen.de/
+3. Simpler version: from tcp conntrack, set the nat-done status bits
+if its a mid-stream pickup.
 
->=20
->  net/netfilter/nf_queue.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-> index 6d12afabfe8a..178742a110d9 100644
-> --- a/net/netfilter/nf_queue.c
-> +++ b/net/netfilter/nf_queue.c
-> @@ -54,7 +54,7 @@ static void nf_queue_entry_release_refs(struct nf_queue=
-_entry *entry)
->  	dev_put(state->in);
->  	dev_put(state->out);
->  	if (state->sk)
-> -		sock_put(state->sk);
-> +		sock_gen_put(state->sk);
-> =20
->  #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
->  	dev_put(entry->physin);
->=20
+Downside: nat engine (as-is) won't create a null binding, so connection
+will not be known to nat engine for masquerade source port clash
+detection.
 
+I would go for 2) unless you have a better suggestion/idea.
 
-=2D-=20
-Oleksandr Natalenko (post-factum)
-Principal Software Maintenance Engineer
-
-
+Thanks!
