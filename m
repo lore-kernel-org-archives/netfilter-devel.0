@@ -2,53 +2,53 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87484C433FE
-	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Feb 2022 01:54:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF9A2C433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Feb 2022 01:54:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235205AbiBYByo (ORCPT
+        id S236575AbiBYByp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 24 Feb 2022 20:54:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57470 "EHLO
+        Thu, 24 Feb 2022 20:54:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57484 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234235AbiBYByn (ORCPT
+        with ESMTP id S234235AbiBYByp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Feb 2022 20:54:43 -0500
-Received: from mail-pl1-x62f.google.com (mail-pl1-x62f.google.com [IPv6:2607:f8b0:4864:20::62f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 57B492763F1
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Feb 2022 17:54:11 -0800 (PST)
-Received: by mail-pl1-x62f.google.com with SMTP id n15so1244426plf.4
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Feb 2022 17:54:11 -0800 (PST)
+        Thu, 24 Feb 2022 20:54:45 -0500
+Received: from mail-pl1-x635.google.com (mail-pl1-x635.google.com [IPv6:2607:f8b0:4864:20::635])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65CAD2763F1
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Feb 2022 17:54:14 -0800 (PST)
+Received: by mail-pl1-x635.google.com with SMTP id bd1so3467560plb.13
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Feb 2022 17:54:14 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=UgIC+6yXO5bdJSlGz1P5mjPZgJVQnaa50T9Ofqgzt6s=;
-        b=GKktsy26iRKssStahn68KBnWM3+54HUcCr0IxT7L47T2K1c4iAgyJuxHSxTEEOaws9
-         9QbFXTzCnc8vFOE6QU7R0rK0ZvXUmM8n3jcpgxLhhuCcm9CIiayptdqFjSKzbSngpV6O
-         GGGEQAursaQarzhgRVApK2WSW9QMFceK4vMjJ5+BPwD/P32k+n522iZquwhL9uSqdMfh
-         gHOVqcylJJFFxwmuaK5s6XpPg3ACSUS6gX+oQ2TKLDtzkmT9xnGwPEDNzpMDFsssWnud
-         Lgs6Z7G+15h+yaN+kkkmefV80aKrTi6i8h2f4BLt6lBdM4gPVlRdbT19D2KCxTslk0d2
-         8U+A==
+        bh=Xhh8kK72AweAOeZD6K411eN/3kt1qDqLRoh7XJh6hhU=;
+        b=T3zMW29RS4aSxDj7C/HG31P8HjbKTHjK0l2dhG+Sm2V9NwH2JWqx/+H98xpilcQlB3
+         XoXKoBe/7FCvBxF7qI58a+rAxoXzAoMmO+Ur2rxtWhfFVsVwP15VsKfWa7v6RefVGE4B
+         y1O33xKbpja+tOhOk9QQa55gxWJdElZTSpUtoRMhzTy44GpRNhgXaXyP3oFo8gYi7fU4
+         FaqXi1MHlVnVzyLkwMyXODzZK+7rEybv/J3+b3EO7edZr1GFkHzytwivtcrs6OlLRXdW
+         4vHNvdFwUGLWol1K58JYLo/uaKEn+mA4ge9r1uljzfVz/FGCemjOAZXSm+PnBA8u0D4X
+         hqYg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=UgIC+6yXO5bdJSlGz1P5mjPZgJVQnaa50T9Ofqgzt6s=;
-        b=55mdwGXs/UgUrW8PkDAyZJDUa3rqFPUx+oGZtrM7G/Cv+33mZiH4R7qtlBCJUkyr91
-         zhdGEUhoCjxEhxCT9HlWjc46ZAMMNyaCM6vAJ90pxS6Rvq9kqoQziaFlhdcPwI4dsalJ
-         VW0fdd0uiVbmRrqd3Suvwv214CkYhAyVsLCwvw8ofinZJ8oCrIs5rOs8wD7ZFvW9WrJ1
-         TegVbk0i6ZX7slXdT2Hry6U6p2wn2vLYv7wN/yEQSrFjaIiNyMMuVHPDxccmSy55Jlmy
-         TEOHUgcBz2qkJYg4tlLOtoXTGBMD1e47bOu5Uqmc7qC4g/GUfcuMunOqPgzG6Apwl+YM
-         rUjA==
-X-Gm-Message-State: AOAM531JZSI6GMbSf0bIbqkjcN38qBDWVuRXx7A9NIvviMntdF18HLGP
-        5nmE2Y62j1iG3tZXUEbdgjA=
-X-Google-Smtp-Source: ABdhPJxqgObdqinP98wJWzmuJYU3//k882+ehOrOiC9YNG07/QYQCP8tep9hwHX+JqQfmz211UvyIg==
-X-Received: by 2002:a17:902:860a:b0:14b:341e:5ffb with SMTP id f10-20020a170902860a00b0014b341e5ffbmr5180807plo.6.1645754050887;
-        Thu, 24 Feb 2022 17:54:10 -0800 (PST)
+        bh=Xhh8kK72AweAOeZD6K411eN/3kt1qDqLRoh7XJh6hhU=;
+        b=IP6aGFUWcUluXnVBewAMcFed+KNkDb+BrTvSlmFF1UocO20N+iq2Owoxi85biK9tXT
+         BbXEYCDe3+9eK5fvMzc3Htkt2nTxAmFc9+VOh7DdJUkD1m11P2L4viizr56VkWg4adxt
+         eR8w+84fCRRSYYqA8bsrSsTWLH/9wX7NNctgXXVm5q9vuZtaWAptQ39SMWQ301S5Tduo
+         xH3wfYb2RoVSq6DzZqEizaYUse8UTXGkb/xhBSbp2Qe78Tr4y5ZZIl4tOztT5YOe84Qp
+         5tpUJXFiQMUfuVU59gvnxuiMloV2nLTnPJMaGpzMXgMEwyMrIim+yDQyC9tsNKHjWTzn
+         8yFA==
+X-Gm-Message-State: AOAM532tkH3Xn65mw9AXvUrNCR/BaPErvlVyLQgsR1y8tmTaxwlYbL1w
+        yoZGFX95TtfYhkVAd85/Txc=
+X-Google-Smtp-Source: ABdhPJxmfyNIQaF0ZIr/Rkiv3dQVkfBS3wTiB3MS5IvI+oZw1lidVmyoIrp1Hp0ci7XFAc+6BGj4JA==
+X-Received: by 2002:a17:902:e88e:b0:150:25e3:739c with SMTP id w14-20020a170902e88e00b0015025e3739cmr1723444plg.13.1645754053977;
+        Thu, 24 Feb 2022 17:54:13 -0800 (PST)
 Received: from e30-rocky8.kern.oss.ntt.co.jp ([222.151.198.97])
-        by smtp.gmail.com with ESMTPSA id a15-20020a637f0f000000b00372e075b2efsm710980pgd.30.2022.02.24.17.54.08
+        by smtp.gmail.com with ESMTPSA id a15-20020a637f0f000000b00372e075b2efsm710980pgd.30.2022.02.24.17.54.11
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 24 Feb 2022 17:54:10 -0800 (PST)
+        Thu, 24 Feb 2022 17:54:13 -0800 (PST)
 From:   Toshiaki Makita <toshiaki.makita1@gmail.com>
 To:     "Saeed Mahameed" <saeedm@nvidia.com>,
         "Jamal Hadi Salim" <jhs@mojatatu.com>,
@@ -60,9 +60,9 @@ To:     "Saeed Mahameed" <saeedm@nvidia.com>,
 Cc:     Toshiaki Makita <toshiaki.makita1@gmail.com>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         Paul Blakey <paulb@nvidia.com>
-Subject: [PATCH nf-next v2 1/3] netfilter: flowtable: Support GRE
-Date:   Fri, 25 Feb 2022 10:53:07 +0900
-Message-Id: <20220225015309.2576980-2-toshiaki.makita1@gmail.com>
+Subject: [PATCH nf-next v2 2/3] act_ct: Support GRE offload
+Date:   Fri, 25 Feb 2022 10:53:08 +0900
+Message-Id: <20220225015309.2576980-3-toshiaki.makita1@gmail.com>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20220225015309.2576980-1-toshiaki.makita1@gmail.com>
 References: <20220225015309.2576980-1-toshiaki.makita1@gmail.com>
@@ -75,211 +75,16 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 Support GREv0 without NAT.
 
 Signed-off-by: Toshiaki Makita <toshiaki.makita1@gmail.com>
+Acked-by: Paul Blakey <paulb@nvidia.com>
 ---
- net/netfilter/nf_flow_table_core.c    | 10 ++++--
- net/netfilter/nf_flow_table_ip.c      | 62 +++++++++++++++++++++++++++++------
- net/netfilter/nf_flow_table_offload.c | 22 +++++++++----
- net/netfilter/nft_flow_offload.c      | 13 ++++++++
- 4 files changed, 88 insertions(+), 19 deletions(-)
+ net/sched/act_ct.c | 115 ++++++++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 91 insertions(+), 24 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index b90eca7..e66a375 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -39,8 +39,14 @@
- 
- 	ft->l3proto = ctt->src.l3num;
- 	ft->l4proto = ctt->dst.protonum;
--	ft->src_port = ctt->src.u.tcp.port;
--	ft->dst_port = ctt->dst.u.tcp.port;
-+
-+	switch (ctt->dst.protonum) {
-+	case IPPROTO_TCP:
-+	case IPPROTO_UDP:
-+		ft->src_port = ctt->src.u.tcp.port;
-+		ft->dst_port = ctt->dst.u.tcp.port;
-+		break;
-+	}
- }
- 
- struct flow_offload *flow_offload_alloc(struct nf_conn *ct)
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index 889cf88..6e9cacf 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -172,6 +172,7 @@ static int nf_flow_tuple_ip(struct sk_buff *skb, const struct net_device *dev,
- 	struct flow_ports *ports;
- 	unsigned int thoff;
- 	struct iphdr *iph;
-+	u8 ipproto;
- 
- 	if (!pskb_may_pull(skb, sizeof(*iph) + offset))
- 		return -1;
-@@ -185,13 +186,19 @@ static int nf_flow_tuple_ip(struct sk_buff *skb, const struct net_device *dev,
- 
- 	thoff += offset;
- 
--	switch (iph->protocol) {
-+	ipproto = iph->protocol;
-+	switch (ipproto) {
- 	case IPPROTO_TCP:
- 		*hdrsize = sizeof(struct tcphdr);
- 		break;
- 	case IPPROTO_UDP:
- 		*hdrsize = sizeof(struct udphdr);
- 		break;
-+#ifdef CONFIG_NF_CT_PROTO_GRE
-+	case IPPROTO_GRE:
-+		*hdrsize = sizeof(struct gre_base_hdr);
-+		break;
-+#endif
- 	default:
- 		return -1;
- 	}
-@@ -202,15 +209,29 @@ static int nf_flow_tuple_ip(struct sk_buff *skb, const struct net_device *dev,
- 	if (!pskb_may_pull(skb, thoff + *hdrsize))
- 		return -1;
- 
-+	switch (ipproto) {
-+	case IPPROTO_TCP:
-+	case IPPROTO_UDP:
-+		ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
-+		tuple->src_port		= ports->source;
-+		tuple->dst_port		= ports->dest;
-+		break;
-+	case IPPROTO_GRE: {
-+		struct gre_base_hdr *greh;
-+
-+		greh = (struct gre_base_hdr *)(skb_network_header(skb) + thoff);
-+		if ((greh->flags & GRE_VERSION) != GRE_VERSION_0)
-+			return -1;
-+		break;
-+	}
-+	}
-+
- 	iph = (struct iphdr *)(skb_network_header(skb) + offset);
--	ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
- 
- 	tuple->src_v4.s_addr	= iph->saddr;
- 	tuple->dst_v4.s_addr	= iph->daddr;
--	tuple->src_port		= ports->source;
--	tuple->dst_port		= ports->dest;
- 	tuple->l3proto		= AF_INET;
--	tuple->l4proto		= iph->protocol;
-+	tuple->l4proto		= ipproto;
- 	tuple->iifidx		= dev->ifindex;
- 	nf_flow_tuple_encap(skb, tuple);
- 
-@@ -521,6 +542,7 @@ static int nf_flow_tuple_ipv6(struct sk_buff *skb, const struct net_device *dev,
- 	struct flow_ports *ports;
- 	struct ipv6hdr *ip6h;
- 	unsigned int thoff;
-+	u8 nexthdr;
- 
- 	thoff = sizeof(*ip6h) + offset;
- 	if (!pskb_may_pull(skb, thoff))
-@@ -528,13 +550,19 @@ static int nf_flow_tuple_ipv6(struct sk_buff *skb, const struct net_device *dev,
- 
- 	ip6h = (struct ipv6hdr *)(skb_network_header(skb) + offset);
- 
--	switch (ip6h->nexthdr) {
-+	nexthdr = ip6h->nexthdr;
-+	switch (nexthdr) {
- 	case IPPROTO_TCP:
- 		*hdrsize = sizeof(struct tcphdr);
- 		break;
- 	case IPPROTO_UDP:
- 		*hdrsize = sizeof(struct udphdr);
- 		break;
-+#ifdef CONFIG_NF_CT_PROTO_GRE
-+	case IPPROTO_GRE:
-+		*hdrsize = sizeof(struct gre_base_hdr);
-+		break;
-+#endif
- 	default:
- 		return -1;
- 	}
-@@ -545,15 +573,29 @@ static int nf_flow_tuple_ipv6(struct sk_buff *skb, const struct net_device *dev,
- 	if (!pskb_may_pull(skb, thoff + *hdrsize))
- 		return -1;
- 
-+	switch (nexthdr) {
-+	case IPPROTO_TCP:
-+	case IPPROTO_UDP:
-+		ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
-+		tuple->src_port		= ports->source;
-+		tuple->dst_port		= ports->dest;
-+		break;
-+	case IPPROTO_GRE: {
-+		struct gre_base_hdr *greh;
-+
-+		greh = (struct gre_base_hdr *)(skb_network_header(skb) + thoff);
-+		if ((greh->flags & GRE_VERSION) != GRE_VERSION_0)
-+			return -1;
-+		break;
-+	}
-+	}
-+
- 	ip6h = (struct ipv6hdr *)(skb_network_header(skb) + offset);
--	ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
- 
- 	tuple->src_v6		= ip6h->saddr;
- 	tuple->dst_v6		= ip6h->daddr;
--	tuple->src_port		= ports->source;
--	tuple->dst_port		= ports->dest;
- 	tuple->l3proto		= AF_INET6;
--	tuple->l4proto		= ip6h->nexthdr;
-+	tuple->l4proto		= nexthdr;
- 	tuple->iifidx		= dev->ifindex;
- 	nf_flow_tuple_encap(skb, tuple);
- 
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index b561e0a..99f6db3 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -170,6 +170,7 @@ static int nf_flow_rule_match(struct nf_flow_match *match,
- 		match->dissector.used_keys |= BIT(FLOW_DISSECTOR_KEY_TCP);
- 		break;
- 	case IPPROTO_UDP:
-+	case IPPROTO_GRE:
- 		break;
- 	default:
- 		return -EOPNOTSUPP;
-@@ -178,15 +179,22 @@ static int nf_flow_rule_match(struct nf_flow_match *match,
- 	key->basic.ip_proto = tuple->l4proto;
- 	mask->basic.ip_proto = 0xff;
- 
--	key->tp.src = tuple->src_port;
--	mask->tp.src = 0xffff;
--	key->tp.dst = tuple->dst_port;
--	mask->tp.dst = 0xffff;
--
- 	match->dissector.used_keys |= BIT(FLOW_DISSECTOR_KEY_META) |
- 				      BIT(FLOW_DISSECTOR_KEY_CONTROL) |
--				      BIT(FLOW_DISSECTOR_KEY_BASIC) |
--				      BIT(FLOW_DISSECTOR_KEY_PORTS);
-+				      BIT(FLOW_DISSECTOR_KEY_BASIC);
-+
-+	switch (tuple->l4proto) {
-+	case IPPROTO_TCP:
-+	case IPPROTO_UDP:
-+		key->tp.src = tuple->src_port;
-+		mask->tp.src = 0xffff;
-+		key->tp.dst = tuple->dst_port;
-+		mask->tp.dst = 0xffff;
-+
-+		match->dissector.used_keys |= BIT(FLOW_DISSECTOR_KEY_PORTS);
-+		break;
-+	}
-+
- 	return 0;
- }
- 
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index 0af34ad..731b5d8 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -298,6 +298,19 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
+index 7108e71..3fe36d1 100644
+--- a/net/sched/act_ct.c
++++ b/net/sched/act_ct.c
+@@ -415,6 +415,19 @@ static void tcf_ct_flow_table_process_conn(struct tcf_ct_flow_table *ct_ft,
  		break;
  	case IPPROTO_UDP:
  		break;
@@ -288,17 +93,169 @@ index 0af34ad..731b5d8 100644
 +		struct nf_conntrack_tuple *tuple;
 +
 +		if (ct->status & IPS_NAT_MASK)
-+			goto out;
++			return;
 +		tuple = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
 +		/* No support for GRE v1 */
 +		if (tuple->src.u.gre.key || tuple->dst.u.gre.key)
-+			goto out;
++			return;
 +		break;
 +	}
 +#endif
  	default:
- 		goto out;
+ 		return;
  	}
+@@ -434,6 +447,8 @@ static void tcf_ct_flow_table_process_conn(struct tcf_ct_flow_table *ct_ft,
+ 	struct flow_ports *ports;
+ 	unsigned int thoff;
+ 	struct iphdr *iph;
++	size_t hdrsize;
++	u8 ipproto;
+ 
+ 	if (!pskb_network_may_pull(skb, sizeof(*iph)))
+ 		return false;
+@@ -445,29 +460,54 @@ static void tcf_ct_flow_table_process_conn(struct tcf_ct_flow_table *ct_ft,
+ 	    unlikely(thoff != sizeof(struct iphdr)))
+ 		return false;
+ 
+-	if (iph->protocol != IPPROTO_TCP &&
+-	    iph->protocol != IPPROTO_UDP)
++	ipproto = iph->protocol;
++	switch (ipproto) {
++	case IPPROTO_TCP:
++		hdrsize = sizeof(struct tcphdr);
++		break;
++	case IPPROTO_UDP:
++		hdrsize = sizeof(*ports);
++		break;
++#ifdef CONFIG_NF_CT_PROTO_GRE
++	case IPPROTO_GRE:
++		hdrsize = sizeof(struct gre_base_hdr);
++		break;
++#endif
++	default:
+ 		return false;
++	}
+ 
+ 	if (iph->ttl <= 1)
+ 		return false;
+ 
+-	if (!pskb_network_may_pull(skb, iph->protocol == IPPROTO_TCP ?
+-					thoff + sizeof(struct tcphdr) :
+-					thoff + sizeof(*ports)))
++	if (!pskb_network_may_pull(skb, thoff + hdrsize))
+ 		return false;
+ 
+-	iph = ip_hdr(skb);
+-	if (iph->protocol == IPPROTO_TCP)
++	switch (ipproto) {
++	case IPPROTO_TCP:
+ 		*tcph = (void *)(skb_network_header(skb) + thoff);
++		fallthrough;
++	case IPPROTO_UDP:
++		ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
++		tuple->src_port = ports->source;
++		tuple->dst_port = ports->dest;
++		break;
++	case IPPROTO_GRE: {
++		struct gre_base_hdr *greh;
++
++		greh = (struct gre_base_hdr *)(skb_network_header(skb) + thoff);
++		if ((greh->flags & GRE_VERSION) != GRE_VERSION_0)
++			return false;
++		break;
++	}
++	}
++
++	iph = ip_hdr(skb);
+ 
+-	ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
+ 	tuple->src_v4.s_addr = iph->saddr;
+ 	tuple->dst_v4.s_addr = iph->daddr;
+-	tuple->src_port = ports->source;
+-	tuple->dst_port = ports->dest;
+ 	tuple->l3proto = AF_INET;
+-	tuple->l4proto = iph->protocol;
++	tuple->l4proto = ipproto;
+ 
+ 	return true;
+ }
+@@ -480,36 +520,63 @@ static void tcf_ct_flow_table_process_conn(struct tcf_ct_flow_table *ct_ft,
+ 	struct flow_ports *ports;
+ 	struct ipv6hdr *ip6h;
+ 	unsigned int thoff;
++	size_t hdrsize;
++	u8 nexthdr;
+ 
+ 	if (!pskb_network_may_pull(skb, sizeof(*ip6h)))
+ 		return false;
+ 
+ 	ip6h = ipv6_hdr(skb);
++	thoff = sizeof(*ip6h);
+ 
+-	if (ip6h->nexthdr != IPPROTO_TCP &&
+-	    ip6h->nexthdr != IPPROTO_UDP)
+-		return false;
++	nexthdr = ip6h->nexthdr;
++	switch (nexthdr) {
++	case IPPROTO_TCP:
++		hdrsize = sizeof(struct tcphdr);
++		break;
++	case IPPROTO_UDP:
++		hdrsize = sizeof(*ports);
++		break;
++#ifdef CONFIG_NF_CT_PROTO_GRE
++	case IPPROTO_GRE:
++		hdrsize = sizeof(struct gre_base_hdr);
++		break;
++#endif
++	default:
++		return -1;
++	}
+ 
+ 	if (ip6h->hop_limit <= 1)
+ 		return false;
+ 
+-	thoff = sizeof(*ip6h);
+-	if (!pskb_network_may_pull(skb, ip6h->nexthdr == IPPROTO_TCP ?
+-					thoff + sizeof(struct tcphdr) :
+-					thoff + sizeof(*ports)))
++	if (!pskb_network_may_pull(skb, thoff + hdrsize))
+ 		return false;
+ 
+-	ip6h = ipv6_hdr(skb);
+-	if (ip6h->nexthdr == IPPROTO_TCP)
++	switch (nexthdr) {
++	case IPPROTO_TCP:
+ 		*tcph = (void *)(skb_network_header(skb) + thoff);
++		fallthrough;
++	case IPPROTO_UDP:
++		ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
++		tuple->src_port = ports->source;
++		tuple->dst_port = ports->dest;
++		break;
++	case IPPROTO_GRE: {
++		struct gre_base_hdr *greh;
++
++		greh = (struct gre_base_hdr *)(skb_network_header(skb) + thoff);
++		if ((greh->flags & GRE_VERSION) != GRE_VERSION_0)
++			return false;
++		break;
++	}
++	}
++
++	ip6h = ipv6_hdr(skb);
+ 
+-	ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
+ 	tuple->src_v6 = ip6h->saddr;
+ 	tuple->dst_v6 = ip6h->daddr;
+-	tuple->src_port = ports->source;
+-	tuple->dst_port = ports->dest;
+ 	tuple->l3proto = AF_INET6;
+-	tuple->l4proto = ip6h->nexthdr;
++	tuple->l4proto = nexthdr;
+ 
+ 	return true;
+ }
 -- 
 1.8.3.1
 
