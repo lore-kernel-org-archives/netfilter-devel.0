@@ -2,52 +2,50 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 459EBC433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Feb 2022 21:35:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9916AC433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Feb 2022 21:40:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230417AbiB1Vf6 (ORCPT
+        id S230409AbiB1Vkr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 28 Feb 2022 16:35:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50138 "EHLO
+        Mon, 28 Feb 2022 16:40:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36734 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230216AbiB1Vf5 (ORCPT
+        with ESMTP id S230402AbiB1Vkq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 28 Feb 2022 16:35:57 -0500
+        Mon, 28 Feb 2022 16:40:46 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 919D113CEEC;
-        Mon, 28 Feb 2022 13:35:18 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 01FDB14AC9C
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Feb 2022 13:40:07 -0800 (PST)
 Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 1DC3B60201;
-        Mon, 28 Feb 2022 22:33:54 +0100 (CET)
-Date:   Mon, 28 Feb 2022 22:35:15 +0100
+        by mail.netfilter.org (Postfix) with ESMTPSA id 8185460743;
+        Mon, 28 Feb 2022 22:38:42 +0100 (CET)
+Date:   Mon, 28 Feb 2022 22:40:03 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Eric Dumazet <eric.dumazet@gmail.com>
-Cc:     Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        syzbot <syzkaller@googlegroups.com>
-Subject: Re: [PATCH nf] netfilter: fix use-after-free in
- __nf_register_net_hook()
-Message-ID: <Yh1AEzg4OHvcCECE@salvia>
-References: <20220227180141.931857-1-eric.dumazet@gmail.com>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH 00/26] scanner: Some fixes, many new scopes
+Message-ID: <Yh1BMz9cW/yb6CR7@salvia>
+References: <20220219132814.30823-1-phil@nwl.cc>
+ <YhGMiKReUjPCyAai@salvia>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20220227180141.931857-1-eric.dumazet@gmail.com>
+In-Reply-To: <YhGMiKReUjPCyAai@salvia>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Feb 27, 2022 at 10:01:41AM -0800, Eric Dumazet wrote:
-> From: Eric Dumazet <edumazet@google.com>
+On Sun, Feb 20, 2022 at 01:34:20AM +0100, Pablo Neira Ayuso wrote:
+> On Sat, Feb 19, 2022 at 02:27:48PM +0100, Phil Sutter wrote:
+> > Patch 1 adds a test for 'ct count' statement, patches 2 and 3 fix some
+> > keywords' scope, bulk scope introduction in the remaining ones.
 > 
-> We must not dereference @new_hooks after nf_hook_mutex has been released,
-> because other threads might have freed our allocated hooks already.
+> Could you just push out the fixes in this batch?
 > 
-> BUG: KASAN: use-after-free in nf_hook_entries_get_hook_ops include/linux/netfilter.h:130 [inline]
-> BUG: KASAN: use-after-free in hooks_validate net/netfilter/core.c:171 [inline]
-> BUG: KASAN: use-after-free in __nf_register_net_hook+0x77a/0x820 net/netfilter/core.c:438
-> Read of size 2 at addr ffff88801c1a8000 by task syz-executor237/4430
+> My proposal is to release 1.0.2 with accumulated changes in master,
+> then we follow up with more updates after the release.
 
-Applied, thanks.
+I think it's fine to merge this to master now that 1.0.2 has been
+released.
+
+Thanks.
