@@ -2,161 +2,119 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B601C433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Feb 2022 16:29:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62AEDC433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Feb 2022 19:02:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231972AbiB1QaI (ORCPT
+        id S229853AbiB1TDD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 28 Feb 2022 11:30:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51098 "EHLO
+        Mon, 28 Feb 2022 14:03:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59100 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229809AbiB1QaH (ORCPT
+        with ESMTP id S229943AbiB1TDD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 28 Feb 2022 11:30:07 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06E2B4B1D3
-        for <netfilter-devel@vger.kernel.org>; Mon, 28 Feb 2022 08:29:26 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1nOito-0002ob-FR; Mon, 28 Feb 2022 17:29:24 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>, Joe Stringer <joe@cilium.io>,
-        Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [PATCH nf] netfilter: nf_queue: be more careful with sk refcounts
-Date:   Mon, 28 Feb 2022 17:29:18 +0100
-Message-Id: <20220228162918.23327-1-fw@strlen.de>
-X-Mailer: git-send-email 2.34.1
+        Mon, 28 Feb 2022 14:03:03 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id DA35A369DA
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Feb 2022 11:02:23 -0800 (PST)
+Received: from localhost.localdomain (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id F339E60205;
+        Mon, 28 Feb 2022 20:00:58 +0100 (CET)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     kadlec@netfilter.org, fe@dev.tdt.de
+Subject: [PATCH ipset] Fix IPv6 sets nftables translation
+Date:   Mon, 28 Feb 2022 20:02:17 +0100
+Message-Id: <20220228190217.2256371-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Eric Dumazet says:
-  The sock_hold() side seems suspect, because there is no guarantee
-  that sk_refcnt is not already 0.
+The parser assumes the set is an IPv4 ipset because IPSET_OPT_FAMILY is
+not set.
 
-Also, there is a way to wire up skb->sk in a way that skb doesn't hold
-a reference on the socket, so we need to check for that as well.
+ # ipset-translate restore < ./ipset-mwan3_set_connected_ipv6.dump
+ add table inet global
+ add set inet global mwan3_connected_v6 { type ipv6_addr; flags interval; }
+ flush set inet global mwan3_connected_v6
+ ipset v7.15: Error in line 4: Syntax error: '64' is out of range 0-32
 
-For refcount-less skb->sk case, try to increment the reference count
-and then override the destructor.
+Remove ipset_xlate_type_get(), call ipset_xlate_set_get() instead to
+obtain the set type and family.
 
-On failure, we cannot queue the packet and need to indicate an
-error.  THe packet will be dropped by the caller.
-
-Cc: Joe Stringer <joe@cilium.io>
-Fixes: 271b72c7fa82c ("udp: RCU handling for Unicast packets.")
-Reported-by: Eric Dumazet <eric.dumazet@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Reported-by: Florian Eckert <fe@dev.tdt.de>
+Fixes: 325af556cd3a ("add ipset to nftables translation infrastructure")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- Eric, does that look sane to you?
- Joe, it would be nice if you could check the 'skb_sk_is_prefetched' part.
+ lib/ipset.c             | 24 ++++++++++--------------
+ tests/xlate/xlate.t     |  2 ++
+ tests/xlate/xlate.t.nft |  2 ++
+ 3 files changed, 14 insertions(+), 14 deletions(-)
 
- Thanks!
-
- include/net/netfilter/nf_queue.h |  2 +-
- net/netfilter/nf_queue.c         | 25 +++++++++++++++++++++----
- net/netfilter/nfnetlink_queue.c  | 12 +++++++++---
- 3 files changed, 31 insertions(+), 8 deletions(-)
-
-diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
-index 9eed51e920e8..980daa6e1e3a 100644
---- a/include/net/netfilter/nf_queue.h
-+++ b/include/net/netfilter/nf_queue.h
-@@ -37,7 +37,7 @@ void nf_register_queue_handler(const struct nf_queue_handler *qh);
- void nf_unregister_queue_handler(void);
- void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict);
- 
--void nf_queue_entry_get_refs(struct nf_queue_entry *entry);
-+bool nf_queue_entry_get_refs(struct nf_queue_entry *entry);
- void nf_queue_entry_free(struct nf_queue_entry *entry);
- 
- static inline void init_hashrandom(u32 *jhash_initval)
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index 5ab0680db445..63d1516816b1 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -96,19 +96,21 @@ static void __nf_queue_entry_init_physdevs(struct nf_queue_entry *entry)
+diff --git a/lib/ipset.c b/lib/ipset.c
+index 73e67db88e0d..50f86aee045b 100644
+--- a/lib/ipset.c
++++ b/lib/ipset.c
+@@ -949,18 +949,6 @@ ipset_xlate_set_get(struct ipset *ipset, const char *name)
+ 	return NULL;
  }
  
- /* Bump dev refs so they don't vanish while packet is out */
--void nf_queue_entry_get_refs(struct nf_queue_entry *entry)
-+bool nf_queue_entry_get_refs(struct nf_queue_entry *entry)
+-static const struct ipset_type *ipset_xlate_type_get(struct ipset *ipset,
+-						     const char *name)
+-{
+-	const struct ipset_xlate_set *set;
+-
+-	set = ipset_xlate_set_get(ipset, name);
+-	if (!set)
+-		return NULL;
+-
+-	return set->type;
+-}
+-
+ static int
+ ipset_parser(struct ipset *ipset, int oargc, char *oargv[])
  {
- 	struct nf_hook_state *state = &entry->state;
- 
-+	if (state->sk && !refcount_inc_not_zero(&state->sk->sk_refcnt))
-+		return false;
+@@ -1282,8 +1270,16 @@ ipset_parser(struct ipset *ipset, int oargc, char *oargv[])
+ 		if (!ipset->xlate) {
+ 			type = ipset_type_get(session, cmd);
+ 		} else {
+-			type = ipset_xlate_type_get(ipset, arg0);
+-			ipset_session_data_set(session, IPSET_OPT_TYPE, type);
++			const struct ipset_xlate_set *xlate_set;
 +
- 	dev_hold(state->in);
- 	dev_hold(state->out);
--	if (state->sk)
--		sock_hold(state->sk);
- 
- #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
- 	dev_hold(entry->physin);
- 	dev_hold(entry->physout);
- #endif
-+	return true;
- }
- EXPORT_SYMBOL_GPL(nf_queue_entry_get_refs);
- 
-@@ -178,6 +180,18 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
- 		break;
- 	}
- 
-+	if (skb_sk_is_prefetched(skb)) {
-+		struct sock *sk = skb->sk;
-+
-+		if (!sk_is_refcounted(sk)) {
-+			if (!refcount_inc_not_zero(&sk->sk_refcnt))
-+				return -ENOTCONN;
-+
-+			/* drop refcount on skb_orphan */
-+			skb->destructor = sock_edemux;
-+		}
-+	}
-+
- 	entry = kmalloc(sizeof(*entry) + route_key_size, GFP_ATOMIC);
- 	if (!entry)
- 		return -ENOMEM;
-@@ -196,7 +210,10 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
- 
- 	__nf_queue_entry_init_physdevs(entry);
- 
--	nf_queue_entry_get_refs(entry);
-+	if (!nf_queue_entry_get_refs(entry)) {
-+		kfree(entry);
-+		return -ENOTCONN;
-+	}
- 
- 	switch (entry->state.pf) {
- 	case AF_INET:
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index ea2d9c2a44cf..64a6acb6aeae 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -710,9 +710,15 @@ static struct nf_queue_entry *
- nf_queue_entry_dup(struct nf_queue_entry *e)
- {
- 	struct nf_queue_entry *entry = kmemdup(e, e->size, GFP_ATOMIC);
--	if (entry)
--		nf_queue_entry_get_refs(entry);
--	return entry;
-+
-+	if (!entry)
-+		return NULL;
-+
-+	if (nf_queue_entry_get_refs(entry))
-+		return entry;
-+
-+	kfree(entry);
-+	return NULL;
- }
- 
- #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
++			xlate_set = ipset_xlate_set_get(ipset, arg0);
++			if (xlate_set) {
++				ipset_session_data_set(session, IPSET_OPT_TYPE,
++						       xlate_set->type);
++				ipset_session_data_set(session, IPSET_OPT_FAMILY,
++						       &xlate_set->family);
++				type = xlate_set->type;
++			}
+ 		}
+ 		if (type == NULL)
+ 			return ipset->standard_error(ipset, p);
+diff --git a/tests/xlate/xlate.t b/tests/xlate/xlate.t
+index b1e7d288e2a9..f09cb202bb6c 100644
+--- a/tests/xlate/xlate.t
++++ b/tests/xlate/xlate.t
+@@ -53,3 +53,5 @@ create bp1 bitmap:port range 1-1024
+ add bp1 22
+ create bim1 bitmap:ip,mac range 1.1.1.0/24
+ add bim1 1.1.1.1,aa:bb:cc:dd:ee:ff
++create hn6 hash:net family inet6
++add hn6 fe80::/64
+diff --git a/tests/xlate/xlate.t.nft b/tests/xlate/xlate.t.nft
+index 96eba3b0175e..0152a3081125 100644
+--- a/tests/xlate/xlate.t.nft
++++ b/tests/xlate/xlate.t.nft
+@@ -54,3 +54,5 @@ add set inet global bp1 { type inet_service; }
+ add element inet global bp1 { 22 }
+ add set inet global bim1 { type ipv4_addr . ether_addr; }
+ add element inet global bim1 { 1.1.1.1 . aa:bb:cc:dd:ee:ff }
++add set inet global hn6 { type ipv6_addr; flags interval; }
++add element inet global hn6 { fe80::/64 }
 -- 
-2.34.1
+2.30.2
 
