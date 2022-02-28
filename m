@@ -2,56 +2,68 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2BDAC433F5
-	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Feb 2022 03:10:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CBACC433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Feb 2022 03:18:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230315AbiB1DLS (ORCPT
+        id S232405AbiB1DTA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 27 Feb 2022 22:11:18 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48506 "EHLO
+        Sun, 27 Feb 2022 22:19:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43426 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232763AbiB1DLS (ORCPT
+        with ESMTP id S232908AbiB1DS4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 27 Feb 2022 22:11:18 -0500
+        Sun, 27 Feb 2022 22:18:56 -0500
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 376F43EBAD
-        for <netfilter-devel@vger.kernel.org>; Sun, 27 Feb 2022 19:10:40 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C3312AC62
+        for <netfilter-devel@vger.kernel.org>; Sun, 27 Feb 2022 19:18:18 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1nOWQo-0007Ta-Bx; Mon, 28 Feb 2022 04:10:38 +0100
-Date:   Mon, 28 Feb 2022 04:10:38 +0100
+        (envelope-from <fw@breakpoint.cc>)
+        id 1nOWYD-0007Xr-27; Mon, 28 Feb 2022 04:18:17 +0100
 From:   Florian Westphal <fw@strlen.de>
-To:     Eric Dumazet <eric.dumazet@gmail.com>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-        Oleksandr Natalenko <oleksandr@redhat.com>
-Subject: Re: [PATCH v2 nf] netfilter: nf_queue: don't assume sk is full socket
-Message-ID: <20220228031038.GB26547@breakpoint.cc>
-References: <20220225130241.14357-1-fw@strlen.de>
- <8cd10394-ae9c-a727-2b33-dd89516ac5b9@gmail.com>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Eric Dumazet <eric.dumazet@gmail.com>
+Subject: [PATCH nf] netfilter: egress: silence egress hook lockdep splats
+Date:   Mon, 28 Feb 2022 04:18:05 +0100
+Message-Id: <20220228031805.32347-1-fw@strlen.de>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <8cd10394-ae9c-a727-2b33-dd89516ac5b9@gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> > +		nf_queue_sock_put(state->sk);
-> >   #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-> >   	dev_put(entry->physin);
-> 
-> 
-> OK but it looks like there might be an orthogonal bug.
-> 
-> The sock_hold() side seems suspect, because there is no guarantee
-> 
-> that sk_refcnt is not already 0.
+Netfilter assumes its called with rcu_read_lock held, but in egress
+hook case it may be called with BH readlock.
 
-Ugh.  Looks like we also need skb_sk_is_prefetched() check and then
-take care of skb->sk too if its not owned by skb destructor.
+This triggers lockdep splat.
 
-> Not sure how netfilter would react with stats->sk set to NULL ?
+In order to avoid to change all rcu_dereference() to
+rcu_dereference_check(..., rcu_read_lock_bh_held()), wrap nf_hook_slow
+with read lock/unlock pair.
 
-Its passed as arg to dst_output() later so I think its fine.
+Reported-by: Eric Dumazet <eric.dumazet@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ include/linux/netfilter_netdev.h | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/include/linux/netfilter_netdev.h b/include/linux/netfilter_netdev.h
+index b4dd96e4dc8d..e6487a691136 100644
+--- a/include/linux/netfilter_netdev.h
++++ b/include/linux/netfilter_netdev.h
+@@ -101,7 +101,11 @@ static inline struct sk_buff *nf_hook_egress(struct sk_buff *skb, int *rc,
+ 	nf_hook_state_init(&state, NF_NETDEV_EGRESS,
+ 			   NFPROTO_NETDEV, dev, NULL, NULL,
+ 			   dev_net(dev), NULL);
++
++	/* nf assumes rcu_read_lock, not just read_lock_bh */
++	rcu_read_lock();
+ 	ret = nf_hook_slow(skb, &state, e, 0);
++	rcu_read_unlock();
+ 
+ 	if (ret == 1) {
+ 		return skb;
+-- 
+2.34.1
+
