@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1DD4C4332F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F39FC433F5
 	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Mar 2022 21:53:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238539AbiCAVy3 (ORCPT
+        id S238618AbiCAVy2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 1 Mar 2022 16:54:29 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49770 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238292AbiCAVy2 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 1 Mar 2022 16:54:28 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49664 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S237932AbiCAVy1 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 1 Mar 2022 16:54:27 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 19C597E090;
-        Tue,  1 Mar 2022 13:53:46 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C9E6D63BCE;
+        Tue,  1 Mar 2022 13:53:44 -0800 (PST)
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id AE255625DD;
-        Tue,  1 Mar 2022 22:52:17 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id F069B608F4;
+        Tue,  1 Mar 2022 22:52:15 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 5/8] selftests: netfilter: add nfqueue TCP_NEW_SYN_RECV socket race test
-Date:   Tue,  1 Mar 2022 22:53:34 +0100
-Message-Id: <20220301215337.378405-6-pablo@netfilter.org>
+Subject: [PATCH net 2/8] netfilter: fix use-after-free in __nf_register_net_hook()
+Date:   Tue,  1 Mar 2022 22:53:31 +0100
+Message-Id: <20220301215337.378405-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220301215337.378405-1-pablo@netfilter.org>
 References: <20220301215337.378405-1-pablo@netfilter.org>
@@ -34,232 +34,141 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Eric Dumazet <edumazet@google.com>
 
-causes:
-BUG: KASAN: slab-out-of-bounds in sk_free+0x25/0x80
-Write of size 4 at addr ffff888106df0284 by task nf-queue/1459
- sk_free+0x25/0x80
- nf_queue_entry_release_refs+0x143/0x1a0
- nf_reinject+0x233/0x770
+We must not dereference @new_hooks after nf_hook_mutex has been released,
+because other threads might have freed our allocated hooks already.
 
-... without 'netfilter: nf_queue: don't assume sk is full socket'.
+BUG: KASAN: use-after-free in nf_hook_entries_get_hook_ops include/linux/netfilter.h:130 [inline]
+BUG: KASAN: use-after-free in hooks_validate net/netfilter/core.c:171 [inline]
+BUG: KASAN: use-after-free in __nf_register_net_hook+0x77a/0x820 net/netfilter/core.c:438
+Read of size 2 at addr ffff88801c1a8000 by task syz-executor237/4430
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+CPU: 1 PID: 4430 Comm: syz-executor237 Not tainted 5.17.0-rc5-syzkaller-00306-g2293be58d6a1 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_address_description.constprop.0.cold+0x8d/0x336 mm/kasan/report.c:255
+ __kasan_report mm/kasan/report.c:442 [inline]
+ kasan_report.cold+0x83/0xdf mm/kasan/report.c:459
+ nf_hook_entries_get_hook_ops include/linux/netfilter.h:130 [inline]
+ hooks_validate net/netfilter/core.c:171 [inline]
+ __nf_register_net_hook+0x77a/0x820 net/netfilter/core.c:438
+ nf_register_net_hook+0x114/0x170 net/netfilter/core.c:571
+ nf_register_net_hooks+0x59/0xc0 net/netfilter/core.c:587
+ nf_synproxy_ipv6_init+0x85/0xe0 net/netfilter/nf_synproxy_core.c:1218
+ synproxy_tg6_check+0x30d/0x560 net/ipv6/netfilter/ip6t_SYNPROXY.c:81
+ xt_check_target+0x26c/0x9e0 net/netfilter/x_tables.c:1038
+ check_target net/ipv6/netfilter/ip6_tables.c:530 [inline]
+ find_check_entry.constprop.0+0x7f1/0x9e0 net/ipv6/netfilter/ip6_tables.c:573
+ translate_table+0xc8b/0x1750 net/ipv6/netfilter/ip6_tables.c:735
+ do_replace net/ipv6/netfilter/ip6_tables.c:1153 [inline]
+ do_ip6t_set_ctl+0x56e/0xb90 net/ipv6/netfilter/ip6_tables.c:1639
+ nf_setsockopt+0x83/0xe0 net/netfilter/nf_sockopt.c:101
+ ipv6_setsockopt+0x122/0x180 net/ipv6/ipv6_sockglue.c:1024
+ rawv6_setsockopt+0xd3/0x6a0 net/ipv6/raw.c:1084
+ __sys_setsockopt+0x2db/0x610 net/socket.c:2180
+ __do_sys_setsockopt net/socket.c:2191 [inline]
+ __se_sys_setsockopt net/socket.c:2188 [inline]
+ __x64_sys_setsockopt+0xba/0x150 net/socket.c:2188
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f65a1ace7d9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 71 15 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f65a1a7f308 EFLAGS: 00000246 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 0000000000000006 RCX: 00007f65a1ace7d9
+RDX: 0000000000000040 RSI: 0000000000000029 RDI: 0000000000000003
+RBP: 00007f65a1b574c8 R08: 0000000000000001 R09: 0000000000000000
+R10: 0000000020000000 R11: 0000000000000246 R12: 00007f65a1b55130
+R13: 00007f65a1b574c0 R14: 00007f65a1b24090 R15: 0000000000022000
+ </TASK>
+
+The buggy address belongs to the page:
+page:ffffea0000706a00 refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x1c1a8
+flags: 0xfff00000000000(node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000000 ffffea0001c1b108 ffffea000046dd08 0000000000000000
+raw: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as freed
+page last allocated via order 2, migratetype Unmovable, gfp_mask 0x52dc0(GFP_KERNEL|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_ZERO), pid 4430, ts 1061781545818, free_ts 1061791488993
+ prep_new_page mm/page_alloc.c:2434 [inline]
+ get_page_from_freelist+0xa72/0x2f50 mm/page_alloc.c:4165
+ __alloc_pages+0x1b2/0x500 mm/page_alloc.c:5389
+ __alloc_pages_node include/linux/gfp.h:572 [inline]
+ alloc_pages_node include/linux/gfp.h:595 [inline]
+ kmalloc_large_node+0x62/0x130 mm/slub.c:4438
+ __kmalloc_node+0x35a/0x4a0 mm/slub.c:4454
+ kmalloc_node include/linux/slab.h:604 [inline]
+ kvmalloc_node+0x97/0x100 mm/util.c:580
+ kvmalloc include/linux/slab.h:731 [inline]
+ kvzalloc include/linux/slab.h:739 [inline]
+ allocate_hook_entries_size net/netfilter/core.c:61 [inline]
+ nf_hook_entries_grow+0x140/0x780 net/netfilter/core.c:128
+ __nf_register_net_hook+0x144/0x820 net/netfilter/core.c:429
+ nf_register_net_hook+0x114/0x170 net/netfilter/core.c:571
+ nf_register_net_hooks+0x59/0xc0 net/netfilter/core.c:587
+ nf_synproxy_ipv6_init+0x85/0xe0 net/netfilter/nf_synproxy_core.c:1218
+ synproxy_tg6_check+0x30d/0x560 net/ipv6/netfilter/ip6t_SYNPROXY.c:81
+ xt_check_target+0x26c/0x9e0 net/netfilter/x_tables.c:1038
+ check_target net/ipv6/netfilter/ip6_tables.c:530 [inline]
+ find_check_entry.constprop.0+0x7f1/0x9e0 net/ipv6/netfilter/ip6_tables.c:573
+ translate_table+0xc8b/0x1750 net/ipv6/netfilter/ip6_tables.c:735
+ do_replace net/ipv6/netfilter/ip6_tables.c:1153 [inline]
+ do_ip6t_set_ctl+0x56e/0xb90 net/ipv6/netfilter/ip6_tables.c:1639
+ nf_setsockopt+0x83/0xe0 net/netfilter/nf_sockopt.c:101
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1352 [inline]
+ free_pcp_prepare+0x374/0x870 mm/page_alloc.c:1404
+ free_unref_page_prepare mm/page_alloc.c:3325 [inline]
+ free_unref_page+0x19/0x690 mm/page_alloc.c:3404
+ kvfree+0x42/0x50 mm/util.c:613
+ rcu_do_batch kernel/rcu/tree.c:2527 [inline]
+ rcu_core+0x7b1/0x1820 kernel/rcu/tree.c:2778
+ __do_softirq+0x29b/0x9c2 kernel/softirq.c:558
+
+Memory state around the buggy address:
+ ffff88801c1a7f00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff88801c1a7f80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff88801c1a8000: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                   ^
+ ffff88801c1a8080: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff88801c1a8100: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+
+Fixes: 2420b79f8c18 ("netfilter: debug: check for sorted array")
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Reported-by: syzbot <syzkaller@googlegroups.com>
+Acked-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- tools/testing/selftests/netfilter/.gitignore  |   1 +
- tools/testing/selftests/netfilter/Makefile    |   2 +-
- .../selftests/netfilter/connect_close.c       | 136 ++++++++++++++++++
- .../testing/selftests/netfilter/nft_queue.sh  |  19 +++
- 4 files changed, 157 insertions(+), 1 deletion(-)
- create mode 100644 tools/testing/selftests/netfilter/connect_close.c
+ net/netfilter/core.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/tools/testing/selftests/netfilter/.gitignore b/tools/testing/selftests/netfilter/.gitignore
-index 8448f74adfec..4cb887b57413 100644
---- a/tools/testing/selftests/netfilter/.gitignore
-+++ b/tools/testing/selftests/netfilter/.gitignore
-@@ -1,2 +1,3 @@
- # SPDX-License-Identifier: GPL-2.0-only
- nf-queue
-+connect_close
-diff --git a/tools/testing/selftests/netfilter/Makefile b/tools/testing/selftests/netfilter/Makefile
-index e4f845dd942b..7e81c9a7fff9 100644
---- a/tools/testing/selftests/netfilter/Makefile
-+++ b/tools/testing/selftests/netfilter/Makefile
-@@ -9,6 +9,6 @@ TEST_PROGS := nft_trans_stress.sh nft_fib.sh nft_nat.sh bridge_brouter.sh \
- 	conntrack_vrf.sh nft_synproxy.sh
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 354cb472f386..8a77a3fd69bc 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -428,14 +428,15 @@ static int __nf_register_net_hook(struct net *net, int pf,
+ 	p = nf_entry_dereference(*pp);
+ 	new_hooks = nf_hook_entries_grow(p, reg);
  
- LDLIBS = -lmnl
--TEST_GEN_FILES =  nf-queue
-+TEST_GEN_FILES =  nf-queue connect_close
- 
- include ../lib.mk
-diff --git a/tools/testing/selftests/netfilter/connect_close.c b/tools/testing/selftests/netfilter/connect_close.c
-new file mode 100644
-index 000000000000..1c3b0add54c4
---- /dev/null
-+++ b/tools/testing/selftests/netfilter/connect_close.c
-@@ -0,0 +1,136 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <fcntl.h>
-+#include <string.h>
-+#include <unistd.h>
-+#include <signal.h>
-+
-+#include <arpa/inet.h>
-+#include <sys/socket.h>
-+
-+#define PORT 12345
-+#define RUNTIME 10
-+
-+static struct {
-+	unsigned int timeout;
-+	unsigned int port;
-+} opts = {
-+	.timeout = RUNTIME,
-+	.port = PORT,
-+};
-+
-+static void handler(int sig)
-+{
-+	_exit(sig == SIGALRM ? 0 : 1);
-+}
-+
-+static void set_timeout(void)
-+{
-+	struct sigaction action = {
-+		.sa_handler = handler,
-+	};
-+
-+	sigaction(SIGALRM, &action, NULL);
-+
-+	alarm(opts.timeout);
-+}
-+
-+static void do_connect(const struct sockaddr_in *dst)
-+{
-+	int s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-+
-+	if (s >= 0)
-+		fcntl(s, F_SETFL, O_NONBLOCK);
-+
-+	connect(s, (struct sockaddr *)dst, sizeof(*dst));
-+	close(s);
-+}
-+
-+static void do_accept(const struct sockaddr_in *src)
-+{
-+	int c, one = 1, s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-+
-+	if (s < 0)
-+		return;
-+
-+	setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
-+	setsockopt(s, SOL_SOCKET, SO_REUSEPORT, &one, sizeof(one));
-+
-+	bind(s, (struct sockaddr *)src, sizeof(*src));
-+
-+	listen(s, 16);
-+
-+	c = accept(s, NULL, NULL);
-+	if (c >= 0)
-+		close(c);
-+
-+	close(s);
-+}
-+
-+static int accept_loop(void)
-+{
-+	struct sockaddr_in src = {
-+		.sin_family = AF_INET,
-+		.sin_port = htons(opts.port),
-+	};
-+
-+	inet_pton(AF_INET, "127.0.0.1", &src.sin_addr);
-+
-+	set_timeout();
-+
-+	for (;;)
-+		do_accept(&src);
-+
-+	return 1;
-+}
-+
-+static int connect_loop(void)
-+{
-+	struct sockaddr_in dst = {
-+		.sin_family = AF_INET,
-+		.sin_port = htons(opts.port),
-+	};
-+
-+	inet_pton(AF_INET, "127.0.0.1", &dst.sin_addr);
-+
-+	set_timeout();
-+
-+	for (;;)
-+		do_connect(&dst);
-+
-+	return 1;
-+}
-+
-+static void parse_opts(int argc, char **argv)
-+{
-+	int c;
-+
-+	while ((c = getopt(argc, argv, "t:p:")) != -1) {
-+		switch (c) {
-+		case 't':
-+			opts.timeout = atoi(optarg);
-+			break;
-+		case 'p':
-+			opts.port = atoi(optarg);
-+			break;
-+		}
+-	if (!IS_ERR(new_hooks))
++	if (!IS_ERR(new_hooks)) {
++		hooks_validate(new_hooks);
+ 		rcu_assign_pointer(*pp, new_hooks);
 +	}
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	pid_t p;
-+
-+	parse_opts(argc, argv);
-+
-+	p = fork();
-+	if (p < 0)
-+		return 111;
-+
-+	if (p > 0)
-+		return accept_loop();
-+
-+	return connect_loop();
-+}
-diff --git a/tools/testing/selftests/netfilter/nft_queue.sh b/tools/testing/selftests/netfilter/nft_queue.sh
-index 7d27f1f3bc01..e12729753351 100755
---- a/tools/testing/selftests/netfilter/nft_queue.sh
-+++ b/tools/testing/selftests/netfilter/nft_queue.sh
-@@ -113,6 +113,7 @@ table inet $name {
- 	chain output {
- 		type filter hook output priority $prio; policy accept;
- 		tcp dport 12345 queue num 3
-+		tcp sport 23456 queue num 3
- 		jump nfq
- 	}
- 	chain post {
-@@ -296,6 +297,23 @@ test_tcp_localhost()
- 	wait 2>/dev/null
- }
  
-+test_tcp_localhost_connectclose()
-+{
-+	tmpfile=$(mktemp) || exit 1
-+
-+	ip netns exec ${nsrouter} ./connect_close -p 23456 -t $timeout &
-+
-+	ip netns exec ${nsrouter} ./nf-queue -q 3 -t $timeout &
-+	local nfqpid=$!
-+
-+	sleep 1
-+	rm -f "$tmpfile"
-+
-+	wait $rpid
-+	[ $? -eq 0 ] && echo "PASS: tcp via loopback with connect/close"
-+	wait 2>/dev/null
-+}
-+
- test_tcp_localhost_requeue()
- {
- ip netns exec ${nsrouter} nft -f /dev/stdin <<EOF
-@@ -424,6 +442,7 @@ test_queue 20
+ 	mutex_unlock(&nf_hook_mutex);
+ 	if (IS_ERR(new_hooks))
+ 		return PTR_ERR(new_hooks);
  
- test_tcp_forward
- test_tcp_localhost
-+test_tcp_localhost_connectclose
- test_tcp_localhost_requeue
- test_icmp_vrf
- 
+-	hooks_validate(new_hooks);
+ #ifdef CONFIG_NETFILTER_INGRESS
+ 	if (nf_ingress_hook(reg, pf))
+ 		net_inc_ingress_queue();
 -- 
 2.30.2
 
