@@ -2,59 +2,106 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 996B2C433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Mar 2022 21:08:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76FB1C433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Mar 2022 21:53:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237877AbiCAVJc (ORCPT
+        id S230285AbiCAVyY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 1 Mar 2022 16:09:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44992 "EHLO
+        Tue, 1 Mar 2022 16:54:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49438 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233375AbiCAVJb (ORCPT
+        with ESMTP id S230144AbiCAVyY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 1 Mar 2022 16:09:31 -0500
+        Tue, 1 Mar 2022 16:54:24 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 835BB2C13F;
-        Tue,  1 Mar 2022 13:08:49 -0800 (PST)
-Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 4B7BE60745;
-        Tue,  1 Mar 2022 22:07:21 +0100 (CET)
-Date:   Tue, 1 Mar 2022 22:08:45 +0100
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id AAB635F4DD;
+        Tue,  1 Mar 2022 13:53:42 -0800 (PST)
+Received: from localhost.localdomain (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 4DA2F60201;
+        Tue,  1 Mar 2022 22:52:14 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Paul Blakey <paulb@nvidia.com>
-Cc:     dev@openvswitch.org, netdev@vger.kernel.org,
-        Jamal Hadi Salim <jhs@mojatatu.com>, davem@davemloft.net,
-        Jiri Pirko <jiri@nvidia.com>,
-        Cong Wang <xiyou.wangcong@gmail.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        netfilter-devel@vger.kernel.org,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Oz Shlomo <ozsh@nvidia.com>, Vlad Buslov <vladbu@nvidia.com>,
-        Roi Dayan <roid@nvidia.com>,
-        Ariel Levkovich <lariel@nvidia.com>, coreteam@netfilter.org
-Subject: Re: [PATCH net v4 1/1] net/sched: act_ct: Fix flow table lookup
- failure with no originating ifindex
-Message-ID: <Yh6LXZnvax25PL8F@salvia>
-References: <20220228092349.3605-1-paulb@nvidia.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
+Subject: [PATCH net 0/8] Netfilter fixes for net
+Date:   Tue,  1 Mar 2022 22:53:29 +0100
+Message-Id: <20220301215337.378405-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20220228092349.3605-1-paulb@nvidia.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Feb 28, 2022 at 11:23:49AM +0200, Paul Blakey wrote:
-> After cited commit optimizted hw insertion, flow table entries are
-> populated with ifindex information which was intended to only be used
-> for HW offload. This tuple ifindex is hashed in the flow table key, so
-> it must be filled for lookup to be successful. But tuple ifindex is only
-> relevant for the netfilter flowtables (nft), so it's not filled in
-> act_ct flow table lookup, resulting in lookup failure, and no SW
-> offload and no offload teardown for TCP connection FIN/RST packets.
-> 
-> To fix this, add new tc ifindex field to tuple, which will
-> only be used for offloading, not for lookup, as it will not be
-> part of the tuple hash.
+Hi,
 
-Applied, thanks Paul.
+The following patchset contains Netfilter fixes for net:
+
+1) Use kfree_rcu(ptr, rcu) variant, using kfree_rcu(ptr) was not
+   intentional. From Eric Dumazet.
+
+2) Use-after-free in netfilter hook core, from Eric Dumazet.
+
+3) Missing rcu read lock side for netfilter egress hook,
+   from Florian Westphal.
+
+4) nf_queue assume state->sk is full socket while it might not be.
+   Invoke sock_gen_put(), from Florian Westphal.
+
+5) Add selftest to exercise the reported KASAN splat in 4)
+
+6) Fix possible use-after-free in nf_queue in case sk_refcnt is 0.
+   Also from Florian.
+
+7) Use input interface index only for hardware offload, not for
+   the software plane. This breaks tc ct action. Patch from Paul Blakey.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 277f2bb14361790a70e4b3c649e794b75a91a597:
+
+  ibmvnic: schedule failover only if vioctl fails (2022-02-22 17:06:27 -0800)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git HEAD
+
+for you to fetch changes up to db6140e5e35a48405e669353bd54042c1d4c3841:
+
+  net/sched: act_ct: Fix flow table lookup failure with no originating ifindex (2022-03-01 22:08:31 +0100)
+
+----------------------------------------------------------------
+Eric Dumazet (2):
+      netfilter: nf_tables: prefer kfree_rcu(ptr, rcu) variant
+      netfilter: fix use-after-free in __nf_register_net_hook()
+
+Florian Westphal (5):
+      netfilter: egress: silence egress hook lockdep splats
+      netfilter: nf_queue: don't assume sk is full socket
+      selftests: netfilter: add nfqueue TCP_NEW_SYN_RECV socket race test
+      netfilter: nf_queue: fix possible use-after-free
+      netfilter: nf_queue: handle socket prefetch
+
+Paul Blakey (1):
+      net/sched: act_ct: Fix flow table lookup failure with no originating ifindex
+
+ include/linux/netfilter_netdev.h                  |   4 +
+ include/net/netfilter/nf_flow_table.h             |   6 +-
+ include/net/netfilter/nf_queue.h                  |   2 +-
+ net/netfilter/core.c                              |   5 +-
+ net/netfilter/nf_flow_table_offload.c             |   6 +-
+ net/netfilter/nf_queue.c                          |  36 +++++-
+ net/netfilter/nf_tables_api.c                     |   4 +-
+ net/netfilter/nfnetlink_queue.c                   |  12 +-
+ net/sched/act_ct.c                                |  13 ++-
+ tools/testing/selftests/netfilter/.gitignore      |   1 +
+ tools/testing/selftests/netfilter/Makefile        |   2 +-
+ tools/testing/selftests/netfilter/connect_close.c | 136 ++++++++++++++++++++++
+ tools/testing/selftests/netfilter/nft_queue.sh    |  19 +++
+ 13 files changed, 226 insertions(+), 20 deletions(-)
+ create mode 100644 tools/testing/selftests/netfilter/connect_close.c
