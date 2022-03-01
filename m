@@ -2,140 +2,94 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E0ADC433FE
-	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Mar 2022 21:53:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05BC3C433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Mar 2022 23:30:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238339AbiCAVyb (ORCPT
+        id S235268AbiCAXa4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 1 Mar 2022 16:54:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49940 "EHLO
+        Tue, 1 Mar 2022 18:30:56 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55260 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238622AbiCAVy3 (ORCPT
+        with ESMTP id S237634AbiCAXaz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 1 Mar 2022 16:54:29 -0500
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D237E7DE19;
-        Tue,  1 Mar 2022 13:53:47 -0800 (PST)
-Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 4D763625FE;
-        Tue,  1 Mar 2022 22:52:19 +0100 (CET)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 8/8] net/sched: act_ct: Fix flow table lookup failure with no originating ifindex
-Date:   Tue,  1 Mar 2022 22:53:37 +0100
-Message-Id: <20220301215337.378405-9-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220301215337.378405-1-pablo@netfilter.org>
-References: <20220301215337.378405-1-pablo@netfilter.org>
+        Tue, 1 Mar 2022 18:30:55 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C9F85E77B;
+        Tue,  1 Mar 2022 15:30:13 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E67A3614C4;
+        Tue,  1 Mar 2022 23:30:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 40724C340F1;
+        Tue,  1 Mar 2022 23:30:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1646177412;
+        bh=Nk9jdq+V5/7aJfn04TEEkO508Hs8UlxP6etnQSUs/ck=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=plQIQ9YFS4wXeMLlZCB5gkuTEj532P6ZzldXIFQ6c5p9QwybSLx8+CrK+ctIEcL2a
+         rXUIfl9TzdLwfiEzDV9EXXJRMelKmC0iCn+o+TJIh9JhoF3TyzRkZpmYv3oR41qfGp
+         1NzX2czx1ZSuNf61Hi7VKzbHyr5WqvCokMhhweLj9GHXXLjp9G9e+6tJRDIDED0RGn
+         MfJsKIHxVMf9tXfKomU5n3qxbIesngdH3PQZnHoz3PczZShtovN4DT/IQ6Rz0cDVia
+         8FtT93CZRoQxMigRS+IhvdMOxQ5qPO8PXWY4CMTp24BCYAadAm8/OEpzBpFdAmunpu
+         +rpGDrG7+Ls4w==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 242FAE6D4BB;
+        Tue,  1 Mar 2022 23:30:12 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/8] netfilter: nf_tables: prefer kfree_rcu(ptr,
+ rcu) variant
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <164617741214.25603.717853332136466469.git-patchwork-notify@kernel.org>
+Date:   Tue, 01 Mar 2022 23:30:12 +0000
+References: <20220301215337.378405-2-pablo@netfilter.org>
+In-Reply-To: <20220301215337.378405-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Paul Blakey <paulb@nvidia.com>
+Hello:
 
-After cited commit optimizted hw insertion, flow table entries are
-populated with ifindex information which was intended to only be used
-for HW offload. This tuple ifindex is hashed in the flow table key, so
-it must be filled for lookup to be successful. But tuple ifindex is only
-relevant for the netfilter flowtables (nft), so it's not filled in
-act_ct flow table lookup, resulting in lookup failure, and no SW
-offload and no offload teardown for TCP connection FIN/RST packets.
+This series was applied to netdev/net.git (master)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-To fix this, add new tc ifindex field to tuple, which will
-only be used for offloading, not for lookup, as it will not be
-part of the tuple hash.
+On Tue,  1 Mar 2022 22:53:30 +0100 you wrote:
+> From: Eric Dumazet <edumazet@google.com>
+> 
+> While kfree_rcu(ptr) _is_ supported, it has some limitations.
+> 
+> Given that 99.99% of kfree_rcu() users [1] use the legacy
+> two parameters variant, and @catchall objects do have an rcu head,
+> simply use it.
+> 
+> [...]
 
-Fixes: 9795ded7f924 ("net/sched: act_ct: Fill offloading tuple iifidx")
-Signed-off-by: Paul Blakey <paulb@nvidia.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_flow_table.h |  6 +++++-
- net/netfilter/nf_flow_table_offload.c |  6 +++++-
- net/sched/act_ct.c                    | 13 +++++++++----
- 3 files changed, 19 insertions(+), 6 deletions(-)
+Here is the summary with links:
+  - [net,1/8] netfilter: nf_tables: prefer kfree_rcu(ptr, rcu) variant
+    https://git.kernel.org/netdev/net/c/ae089831ff28
+  - [net,2/8] netfilter: fix use-after-free in __nf_register_net_hook()
+    https://git.kernel.org/netdev/net/c/56763f12b0f0
+  - [net,3/8] netfilter: egress: silence egress hook lockdep splats
+    https://git.kernel.org/netdev/net/c/17a8f31bba7b
+  - [net,4/8] netfilter: nf_queue: don't assume sk is full socket
+    https://git.kernel.org/netdev/net/c/747670fd9a2d
+  - [net,5/8] selftests: netfilter: add nfqueue TCP_NEW_SYN_RECV socket race test
+    https://git.kernel.org/netdev/net/c/2e78855d311c
+  - [net,6/8] netfilter: nf_queue: fix possible use-after-free
+    https://git.kernel.org/netdev/net/c/c3873070247d
+  - [net,7/8] netfilter: nf_queue: handle socket prefetch
+    https://git.kernel.org/netdev/net/c/3b836da4081f
+  - [net,8/8] net/sched: act_ct: Fix flow table lookup failure with no originating ifindex
+    https://git.kernel.org/netdev/net/c/db6140e5e35a
 
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index a3647fadf1cc..bd59e950f4d6 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -96,6 +96,7 @@ enum flow_offload_xmit_type {
- 	FLOW_OFFLOAD_XMIT_NEIGH,
- 	FLOW_OFFLOAD_XMIT_XFRM,
- 	FLOW_OFFLOAD_XMIT_DIRECT,
-+	FLOW_OFFLOAD_XMIT_TC,
- };
- 
- #define NF_FLOW_TABLE_ENCAP_MAX		2
-@@ -127,7 +128,7 @@ struct flow_offload_tuple {
- 	struct { }			__hash;
- 
- 	u8				dir:2,
--					xmit_type:2,
-+					xmit_type:3,
- 					encap_num:2,
- 					in_vlan_ingress:2;
- 	u16				mtu;
-@@ -142,6 +143,9 @@ struct flow_offload_tuple {
- 			u8		h_source[ETH_ALEN];
- 			u8		h_dest[ETH_ALEN];
- 		} out;
-+		struct {
-+			u32		iifidx;
-+		} tc;
- 	};
- };
- 
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index b561e0a44a45..fc4265acd9c4 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -110,7 +110,11 @@ static int nf_flow_rule_match(struct nf_flow_match *match,
- 		nf_flow_rule_lwt_match(match, tun_info);
- 	}
- 
--	key->meta.ingress_ifindex = tuple->iifidx;
-+	if (tuple->xmit_type == FLOW_OFFLOAD_XMIT_TC)
-+		key->meta.ingress_ifindex = tuple->tc.iifidx;
-+	else
-+		key->meta.ingress_ifindex = tuple->iifidx;
-+
- 	mask->meta.ingress_ifindex = 0xffffffff;
- 
- 	if (tuple->encap_num > 0 && !(tuple->in_vlan_ingress & BIT(0)) &&
-diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
-index 33e70d60f0bf..ec19f625863a 100644
---- a/net/sched/act_ct.c
-+++ b/net/sched/act_ct.c
-@@ -361,6 +361,13 @@ static void tcf_ct_flow_table_put(struct tcf_ct_params *params)
- 	}
- }
- 
-+static void tcf_ct_flow_tc_ifidx(struct flow_offload *entry,
-+				 struct nf_conn_act_ct_ext *act_ct_ext, u8 dir)
-+{
-+	entry->tuplehash[dir].tuple.xmit_type = FLOW_OFFLOAD_XMIT_TC;
-+	entry->tuplehash[dir].tuple.tc.iifidx = act_ct_ext->ifindex[dir];
-+}
-+
- static void tcf_ct_flow_table_add(struct tcf_ct_flow_table *ct_ft,
- 				  struct nf_conn *ct,
- 				  bool tcp)
-@@ -385,10 +392,8 @@ static void tcf_ct_flow_table_add(struct tcf_ct_flow_table *ct_ft,
- 
- 	act_ct_ext = nf_conn_act_ct_ext_find(ct);
- 	if (act_ct_ext) {
--		entry->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.iifidx =
--			act_ct_ext->ifindex[IP_CT_DIR_ORIGINAL];
--		entry->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.iifidx =
--			act_ct_ext->ifindex[IP_CT_DIR_REPLY];
-+		tcf_ct_flow_tc_ifidx(entry, act_ct_ext, FLOW_OFFLOAD_DIR_ORIGINAL);
-+		tcf_ct_flow_tc_ifidx(entry, act_ct_ext, FLOW_OFFLOAD_DIR_REPLY);
- 	}
- 
- 	err = flow_offload_add(&ct_ft->nf_ft, entry);
+You are awesome, thank you!
 -- 
-2.30.2
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
