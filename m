@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72693C43219
-	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Mar 2022 21:53:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E0ADC433FE
+	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Mar 2022 21:53:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238615AbiCAVya (ORCPT
+        id S238339AbiCAVyb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 1 Mar 2022 16:54:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49772 "EHLO
+        Tue, 1 Mar 2022 16:54:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49940 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238339AbiCAVy2 (ORCPT
+        with ESMTP id S238622AbiCAVy3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 1 Mar 2022 16:54:28 -0500
+        Tue, 1 Mar 2022 16:54:29 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4EE888090E;
-        Tue,  1 Mar 2022 13:53:46 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D237E7DE19;
+        Tue,  1 Mar 2022 13:53:47 -0800 (PST)
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 33BA5625E5;
-        Tue,  1 Mar 2022 22:52:18 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 4D763625FE;
+        Tue,  1 Mar 2022 22:52:19 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 6/8] netfilter: nf_queue: fix possible use-after-free
-Date:   Tue,  1 Mar 2022 22:53:35 +0100
-Message-Id: <20220301215337.378405-7-pablo@netfilter.org>
+Subject: [PATCH net 8/8] net/sched: act_ct: Fix flow table lookup failure with no originating ifindex
+Date:   Tue,  1 Mar 2022 22:53:37 +0100
+Message-Id: <20220301215337.378405-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220301215337.378405-1-pablo@netfilter.org>
 References: <20220301215337.378405-1-pablo@netfilter.org>
@@ -34,104 +34,108 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Paul Blakey <paulb@nvidia.com>
 
-Eric Dumazet says:
-  The sock_hold() side seems suspect, because there is no guarantee
-  that sk_refcnt is not already 0.
+After cited commit optimizted hw insertion, flow table entries are
+populated with ifindex information which was intended to only be used
+for HW offload. This tuple ifindex is hashed in the flow table key, so
+it must be filled for lookup to be successful. But tuple ifindex is only
+relevant for the netfilter flowtables (nft), so it's not filled in
+act_ct flow table lookup, resulting in lookup failure, and no SW
+offload and no offload teardown for TCP connection FIN/RST packets.
 
-On failure, we cannot queue the packet and need to indicate an
-error.  The packet will be dropped by the caller.
+To fix this, add new tc ifindex field to tuple, which will
+only be used for offloading, not for lookup, as it will not be
+part of the tuple hash.
 
-v2: split skb prefetch hunk into separate change
-
-Fixes: 271b72c7fa82c ("udp: RCU handling for Unicast packets.")
-Reported-by: Eric Dumazet <eric.dumazet@gmail.com>
-Reviewed-by: Eric Dumazet <edumazet@google.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 9795ded7f924 ("net/sched: act_ct: Fill offloading tuple iifidx")
+Signed-off-by: Paul Blakey <paulb@nvidia.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_queue.h |  2 +-
- net/netfilter/nf_queue.c         | 13 +++++++++----
- net/netfilter/nfnetlink_queue.c  | 12 +++++++++---
- 3 files changed, 19 insertions(+), 8 deletions(-)
+ include/net/netfilter/nf_flow_table.h |  6 +++++-
+ net/netfilter/nf_flow_table_offload.c |  6 +++++-
+ net/sched/act_ct.c                    | 13 +++++++++----
+ 3 files changed, 19 insertions(+), 6 deletions(-)
 
-diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
-index 9eed51e920e8..980daa6e1e3a 100644
---- a/include/net/netfilter/nf_queue.h
-+++ b/include/net/netfilter/nf_queue.h
-@@ -37,7 +37,7 @@ void nf_register_queue_handler(const struct nf_queue_handler *qh);
- void nf_unregister_queue_handler(void);
- void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict);
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index a3647fadf1cc..bd59e950f4d6 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -96,6 +96,7 @@ enum flow_offload_xmit_type {
+ 	FLOW_OFFLOAD_XMIT_NEIGH,
+ 	FLOW_OFFLOAD_XMIT_XFRM,
+ 	FLOW_OFFLOAD_XMIT_DIRECT,
++	FLOW_OFFLOAD_XMIT_TC,
+ };
  
--void nf_queue_entry_get_refs(struct nf_queue_entry *entry);
-+bool nf_queue_entry_get_refs(struct nf_queue_entry *entry);
- void nf_queue_entry_free(struct nf_queue_entry *entry);
+ #define NF_FLOW_TABLE_ENCAP_MAX		2
+@@ -127,7 +128,7 @@ struct flow_offload_tuple {
+ 	struct { }			__hash;
  
- static inline void init_hashrandom(u32 *jhash_initval)
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index 5ab0680db445..e39549c55945 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -96,19 +96,21 @@ static void __nf_queue_entry_init_physdevs(struct nf_queue_entry *entry)
+ 	u8				dir:2,
+-					xmit_type:2,
++					xmit_type:3,
+ 					encap_num:2,
+ 					in_vlan_ingress:2;
+ 	u16				mtu;
+@@ -142,6 +143,9 @@ struct flow_offload_tuple {
+ 			u8		h_source[ETH_ALEN];
+ 			u8		h_dest[ETH_ALEN];
+ 		} out;
++		struct {
++			u32		iifidx;
++		} tc;
+ 	};
+ };
+ 
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index b561e0a44a45..fc4265acd9c4 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -110,7 +110,11 @@ static int nf_flow_rule_match(struct nf_flow_match *match,
+ 		nf_flow_rule_lwt_match(match, tun_info);
+ 	}
+ 
+-	key->meta.ingress_ifindex = tuple->iifidx;
++	if (tuple->xmit_type == FLOW_OFFLOAD_XMIT_TC)
++		key->meta.ingress_ifindex = tuple->tc.iifidx;
++	else
++		key->meta.ingress_ifindex = tuple->iifidx;
++
+ 	mask->meta.ingress_ifindex = 0xffffffff;
+ 
+ 	if (tuple->encap_num > 0 && !(tuple->in_vlan_ingress & BIT(0)) &&
+diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
+index 33e70d60f0bf..ec19f625863a 100644
+--- a/net/sched/act_ct.c
++++ b/net/sched/act_ct.c
+@@ -361,6 +361,13 @@ static void tcf_ct_flow_table_put(struct tcf_ct_params *params)
+ 	}
  }
  
- /* Bump dev refs so they don't vanish while packet is out */
--void nf_queue_entry_get_refs(struct nf_queue_entry *entry)
-+bool nf_queue_entry_get_refs(struct nf_queue_entry *entry)
- {
- 	struct nf_hook_state *state = &entry->state;
- 
-+	if (state->sk && !refcount_inc_not_zero(&state->sk->sk_refcnt))
-+		return false;
++static void tcf_ct_flow_tc_ifidx(struct flow_offload *entry,
++				 struct nf_conn_act_ct_ext *act_ct_ext, u8 dir)
++{
++	entry->tuplehash[dir].tuple.xmit_type = FLOW_OFFLOAD_XMIT_TC;
++	entry->tuplehash[dir].tuple.tc.iifidx = act_ct_ext->ifindex[dir];
++}
 +
- 	dev_hold(state->in);
- 	dev_hold(state->out);
--	if (state->sk)
--		sock_hold(state->sk);
+ static void tcf_ct_flow_table_add(struct tcf_ct_flow_table *ct_ft,
+ 				  struct nf_conn *ct,
+ 				  bool tcp)
+@@ -385,10 +392,8 @@ static void tcf_ct_flow_table_add(struct tcf_ct_flow_table *ct_ft,
  
- #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
- 	dev_hold(entry->physin);
- 	dev_hold(entry->physout);
- #endif
-+	return true;
- }
- EXPORT_SYMBOL_GPL(nf_queue_entry_get_refs);
+ 	act_ct_ext = nf_conn_act_ct_ext_find(ct);
+ 	if (act_ct_ext) {
+-		entry->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.iifidx =
+-			act_ct_ext->ifindex[IP_CT_DIR_ORIGINAL];
+-		entry->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.iifidx =
+-			act_ct_ext->ifindex[IP_CT_DIR_REPLY];
++		tcf_ct_flow_tc_ifidx(entry, act_ct_ext, FLOW_OFFLOAD_DIR_ORIGINAL);
++		tcf_ct_flow_tc_ifidx(entry, act_ct_ext, FLOW_OFFLOAD_DIR_REPLY);
+ 	}
  
-@@ -196,7 +198,10 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
- 
- 	__nf_queue_entry_init_physdevs(entry);
- 
--	nf_queue_entry_get_refs(entry);
-+	if (!nf_queue_entry_get_refs(entry)) {
-+		kfree(entry);
-+		return -ENOTCONN;
-+	}
- 
- 	switch (entry->state.pf) {
- 	case AF_INET:
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index ea2d9c2a44cf..64a6acb6aeae 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -710,9 +710,15 @@ static struct nf_queue_entry *
- nf_queue_entry_dup(struct nf_queue_entry *e)
- {
- 	struct nf_queue_entry *entry = kmemdup(e, e->size, GFP_ATOMIC);
--	if (entry)
--		nf_queue_entry_get_refs(entry);
--	return entry;
-+
-+	if (!entry)
-+		return NULL;
-+
-+	if (nf_queue_entry_get_refs(entry))
-+		return entry;
-+
-+	kfree(entry);
-+	return NULL;
- }
- 
- #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+ 	err = flow_offload_add(&ct_ft->nf_ft, entry);
 -- 
 2.30.2
 
