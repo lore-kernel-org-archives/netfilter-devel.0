@@ -2,52 +2,58 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0342FC433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Mar 2022 09:39:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 065D3C433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Mar 2022 17:24:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233915AbiCAJjj (ORCPT
+        id S231881AbiCARZg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 1 Mar 2022 04:39:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43408 "EHLO
+        Tue, 1 Mar 2022 12:25:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37094 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231645AbiCAJji (ORCPT
+        with ESMTP id S230007AbiCARZg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 1 Mar 2022 04:39:38 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC3591C92C;
-        Tue,  1 Mar 2022 01:38:57 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1nOyxu-0000OC-Cj; Tue, 01 Mar 2022 10:38:42 +0100
-Date:   Tue, 1 Mar 2022 10:38:42 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     cgel.zte@gmail.com
-Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
-        davem@davemloft.net, kuba@kernel.org, ast@kernel.org,
-        daniel@iogearbox.net, andrii@kernel.org, kafai@fb.com,
-        songliubraving@fb.com, yhs@fb.com, john.fastabend@gmail.com,
-        kpsingh@kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        bpf@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Minghao Chi <chi.minghao@zte.com.cn>,
-        Zeal Robot <zealci@zte.com.cn>
-Subject: Re: [PATCH] net/netfilter: use memset avoid infoleaks
-Message-ID: <20220301093842.GE12167@breakpoint.cc>
-References: <20220301081824.2053310-1-chi.minghao@zte.com.cn>
+        Tue, 1 Mar 2022 12:25:36 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7560753706
+        for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2022 09:24:54 -0800 (PST)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1nP6F1-0007mP-7u; Tue, 01 Mar 2022 18:24:51 +0100
+Date:   Tue, 1 Mar 2022 18:24:51 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH 00/26] scanner: Some fixes, many new scopes
+Message-ID: <Yh5W42dNE1YxTi2s@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20220219132814.30823-1-phil@nwl.cc>
+ <YhGMiKReUjPCyAai@salvia>
+ <Yh1BMz9cW/yb6CR7@salvia>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220301081824.2053310-1-chi.minghao@zte.com.cn>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <Yh1BMz9cW/yb6CR7@salvia>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-cgel.zte@gmail.com <cgel.zte@gmail.com> wrote:
-> From: Minghao Chi (CGEL ZTE) <chi.minghao@zte.com.cn>
+On Mon, Feb 28, 2022 at 10:40:03PM +0100, Pablo Neira Ayuso wrote:
+> On Sun, Feb 20, 2022 at 01:34:20AM +0100, Pablo Neira Ayuso wrote:
+> > On Sat, Feb 19, 2022 at 02:27:48PM +0100, Phil Sutter wrote:
+> > > Patch 1 adds a test for 'ct count' statement, patches 2 and 3 fix some
+> > > keywords' scope, bulk scope introduction in the remaining ones.
+> > 
+> > Could you just push out the fixes in this batch?
+> > 
+> > My proposal is to release 1.0.2 with accumulated changes in master,
+> > then we follow up with more updates after the release.
 > 
-> Use memset to initialize structs to preventing infoleaks
-> in __bpf_mt_check_bytecode
+> I think it's fine to merge this to master now that 1.0.2 has been
+> released.
 
-What infoleak, care to elaborate?  I don't see where this gets
-returned to userspace, its on-stack struct?
+Pushed the series after a rebase and successful py testsuite run for
+sanity. Thanks for the heads-up!
+
+Cheers, Phil
