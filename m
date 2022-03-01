@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FB69C4321E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72693C43219
 	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Mar 2022 21:53:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238623AbiCAVya (ORCPT
+        id S238615AbiCAVya (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Tue, 1 Mar 2022 16:54:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49776 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49772 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238409AbiCAVy2 (ORCPT
+        with ESMTP id S238339AbiCAVy2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 1 Mar 2022 16:54:28 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8694688B37;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4EE888090E;
         Tue,  1 Mar 2022 13:53:46 -0800 (PST)
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 2578C6244C;
-        Tue,  1 Mar 2022 22:52:17 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 33BA5625E5;
+        Tue,  1 Mar 2022 22:52:18 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 4/8] netfilter: nf_queue: don't assume sk is full socket
-Date:   Tue,  1 Mar 2022 22:53:33 +0100
-Message-Id: <20220301215337.378405-5-pablo@netfilter.org>
+Subject: [PATCH net 6/8] netfilter: nf_queue: fix possible use-after-free
+Date:   Tue,  1 Mar 2022 22:53:35 +0100
+Message-Id: <20220301215337.378405-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220301215337.378405-1-pablo@netfilter.org>
 References: <20220301215337.378405-1-pablo@netfilter.org>
@@ -36,50 +36,102 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-There is no guarantee that state->sk refers to a full socket.
+Eric Dumazet says:
+  The sock_hold() side seems suspect, because there is no guarantee
+  that sk_refcnt is not already 0.
 
-If refcount transitions to 0, sock_put calls sk_free which then ends up
-with garbage fields.
+On failure, we cannot queue the packet and need to indicate an
+error.  The packet will be dropped by the caller.
 
-I'd like to thank Oleksandr Natalenko and Jiri Benc for considerable
-debug work and pointing out state->sk oddities.
+v2: split skb prefetch hunk into separate change
 
-Fixes: ca6fb0651883 ("tcp: attach SYNACK messages to request sockets instead of listener")
-Tested-by: Oleksandr Natalenko <oleksandr@redhat.com>
+Fixes: 271b72c7fa82c ("udp: RCU handling for Unicast packets.")
+Reported-by: Eric Dumazet <eric.dumazet@gmail.com>
+Reviewed-by: Eric Dumazet <edumazet@google.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_queue.c | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ include/net/netfilter/nf_queue.h |  2 +-
+ net/netfilter/nf_queue.c         | 13 +++++++++----
+ net/netfilter/nfnetlink_queue.c  | 12 +++++++++---
+ 3 files changed, 19 insertions(+), 8 deletions(-)
 
+diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
+index 9eed51e920e8..980daa6e1e3a 100644
+--- a/include/net/netfilter/nf_queue.h
++++ b/include/net/netfilter/nf_queue.h
+@@ -37,7 +37,7 @@ void nf_register_queue_handler(const struct nf_queue_handler *qh);
+ void nf_unregister_queue_handler(void);
+ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict);
+ 
+-void nf_queue_entry_get_refs(struct nf_queue_entry *entry);
++bool nf_queue_entry_get_refs(struct nf_queue_entry *entry);
+ void nf_queue_entry_free(struct nf_queue_entry *entry);
+ 
+ static inline void init_hashrandom(u32 *jhash_initval)
 diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index 6d12afabfe8a..5ab0680db445 100644
+index 5ab0680db445..e39549c55945 100644
 --- a/net/netfilter/nf_queue.c
 +++ b/net/netfilter/nf_queue.c
-@@ -46,6 +46,15 @@ void nf_unregister_queue_handler(void)
+@@ -96,19 +96,21 @@ static void __nf_queue_entry_init_physdevs(struct nf_queue_entry *entry)
  }
- EXPORT_SYMBOL(nf_unregister_queue_handler);
  
-+static void nf_queue_sock_put(struct sock *sk)
-+{
-+#ifdef CONFIG_INET
-+	sock_gen_put(sk);
-+#else
-+	sock_put(sk);
-+#endif
-+}
-+
- static void nf_queue_entry_release_refs(struct nf_queue_entry *entry)
+ /* Bump dev refs so they don't vanish while packet is out */
+-void nf_queue_entry_get_refs(struct nf_queue_entry *entry)
++bool nf_queue_entry_get_refs(struct nf_queue_entry *entry)
  {
  	struct nf_hook_state *state = &entry->state;
-@@ -54,7 +63,7 @@ static void nf_queue_entry_release_refs(struct nf_queue_entry *entry)
- 	dev_put(state->in);
- 	dev_put(state->out);
- 	if (state->sk)
--		sock_put(state->sk);
-+		nf_queue_sock_put(state->sk);
+ 
++	if (state->sk && !refcount_inc_not_zero(&state->sk->sk_refcnt))
++		return false;
++
+ 	dev_hold(state->in);
+ 	dev_hold(state->out);
+-	if (state->sk)
+-		sock_hold(state->sk);
  
  #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
- 	dev_put(entry->physin);
+ 	dev_hold(entry->physin);
+ 	dev_hold(entry->physout);
+ #endif
++	return true;
+ }
+ EXPORT_SYMBOL_GPL(nf_queue_entry_get_refs);
+ 
+@@ -196,7 +198,10 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
+ 
+ 	__nf_queue_entry_init_physdevs(entry);
+ 
+-	nf_queue_entry_get_refs(entry);
++	if (!nf_queue_entry_get_refs(entry)) {
++		kfree(entry);
++		return -ENOTCONN;
++	}
+ 
+ 	switch (entry->state.pf) {
+ 	case AF_INET:
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index ea2d9c2a44cf..64a6acb6aeae 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -710,9 +710,15 @@ static struct nf_queue_entry *
+ nf_queue_entry_dup(struct nf_queue_entry *e)
+ {
+ 	struct nf_queue_entry *entry = kmemdup(e, e->size, GFP_ATOMIC);
+-	if (entry)
+-		nf_queue_entry_get_refs(entry);
+-	return entry;
++
++	if (!entry)
++		return NULL;
++
++	if (nf_queue_entry_get_refs(entry))
++		return entry;
++
++	kfree(entry);
++	return NULL;
+ }
+ 
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
 -- 
 2.30.2
 
