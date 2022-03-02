@@ -2,49 +2,44 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E676C433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Mar 2022 23:47:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CA7FC433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Mar 2022 00:02:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229600AbiCBXsY (ORCPT
+        id S230019AbiCCADI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 2 Mar 2022 18:48:24 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34978 "EHLO
+        Wed, 2 Mar 2022 19:03:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58802 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229628AbiCBXsV (ORCPT
+        with ESMTP id S229940AbiCCADH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 2 Mar 2022 18:48:21 -0500
+        Wed, 2 Mar 2022 19:03:07 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id AF4DC80918
-        for <netfilter-devel@vger.kernel.org>; Wed,  2 Mar 2022 15:47:23 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 596BCC30
+        for <netfilter-devel@vger.kernel.org>; Wed,  2 Mar 2022 16:02:22 -0800 (PST)
 Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 9ED7462FE6;
-        Thu,  3 Mar 2022 00:28:04 +0100 (CET)
-Date:   Thu, 3 Mar 2022 00:29:33 +0100
+        by mail.netfilter.org (Postfix) with ESMTPSA id 19B68625FE;
+        Thu,  3 Mar 2022 00:24:49 +0100 (CET)
+Date:   Thu, 3 Mar 2022 00:26:17 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Toshiaki Makita <toshiaki.makita1@gmail.com>
-Cc:     Saeed Mahameed <saeedm@nvidia.com>,
-        Jamal Hadi Salim <jhs@mojatatu.com>,
-        Cong Wang <xiyou.wangcong@gmail.com>,
-        Jiri Pirko <jiri@resnulli.us>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        Paul Blakey <paulb@nvidia.com>
-Subject: Re: [PATCH nf-next v2 0/3] Conntrack GRE offload
-Message-ID: <Yh/93TOu7at8428k@salvia>
-References: <20220225015309.2576980-1-toshiaki.makita1@gmail.com>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+Subject: Re: [nf-next PATCH v3] netfilter: nf_tables: Reject tables of
+ unsupported family
+Message-ID: <Yh/9GfhyZ346OMBk@salvia>
+References: <20220216145538.19070-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20220225015309.2576980-1-toshiaki.makita1@gmail.com>
+In-Reply-To: <20220216145538.19070-1-phil@nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Feb 25, 2022 at 10:53:06AM +0900, Toshiaki Makita wrote:
-> Conntrack offload currently only supports TCP and UDP.
-> Thus TC/nftables/OVS cannot offload GRE packets.
+On Wed, Feb 16, 2022 at 03:55:38PM +0100, Phil Sutter wrote:
+> An nftables family is merely a hollow container, its family just a
+> number and such not reliant on compile-time options other than nftables
+> support itself. Add an artificial check so attempts at using a family
+> the kernel can't support fail as early as possible. This helps user
+> space detect kernels which lack e.g. NFPROTO_INET.
 
-Series applied to nf-next, thanks
-
-If you prefer to route this through different tree, just let me know.
+Applied, thanks
