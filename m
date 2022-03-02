@@ -2,81 +2,66 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B1EDC433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Mar 2022 11:32:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BDC45C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Mar 2022 13:30:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233951AbiCBLdP (ORCPT
+        id S242228AbiCBNbU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 2 Mar 2022 06:33:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39372 "EHLO
+        Wed, 2 Mar 2022 08:31:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45620 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236912AbiCBLdO (ORCPT
+        with ESMTP id S242246AbiCBNbT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 2 Mar 2022 06:33:14 -0500
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 96398205E2
-        for <netfilter-devel@vger.kernel.org>; Wed,  2 Mar 2022 03:32:29 -0800 (PST)
-Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 0B657625DD;
-        Wed,  2 Mar 2022 12:30:57 +0100 (CET)
-Date:   Wed, 2 Mar 2022 12:32:24 +0100
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel <netfilter-devel@vger.kernel.org>,
+        Wed, 2 Mar 2022 08:31:19 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 28D6AC4E3B
+        for <netfilter-devel@vger.kernel.org>; Wed,  2 Mar 2022 05:30:33 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1nPP3m-0002tm-6b; Wed, 02 Mar 2022 14:30:30 +0100
+Date:   Wed, 2 Mar 2022 14:30:30 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Florian Westphal <fw@strlen.de>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>,
         kadlec@netfilter.org, hmmsjan@kpnplanet.nl
 Subject: Re: TCP connection fails in a asymmetric routing situation
-Message-ID: <Yh9VyPluvrmNQWUz@salvia>
+Message-ID: <20220302133030.GA8249@breakpoint.cc>
 References: <20220225123030.GK28705@breakpoint.cc>
+ <Yh9VyPluvrmNQWUz@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220225123030.GK28705@breakpoint.cc>
+In-Reply-To: <Yh9VyPluvrmNQWUz@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Florian,
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Conntrack needs to see traffic in both directions, otherwise it is
+> pickup the state from the middle from time to time (part of the
+> history is lost for us).
+> 
+> What am I missing here?
 
-On Fri, Feb 25, 2022 at 01:30:30PM +0100, Florian Westphal wrote:
-> https://bugzilla.redhat.com/show_bug.cgi?id=2051413
-> 
-> Gist is:
-> as of 878aed8db324bec64f3c3f956e64d5ae7375a5de
-> (" netfilter: nat: force port remap to prevent shadowing well-known
->  port"), tcp connections won't get established with asymmetric routing
-> setups.
-> 
-> Workaround: Block conntrack for  LAN-LAN2 traffic by
-> iptables  -t raw -A PREROUTING -j CT --notrack
-> Or: echo 0 > /proc/sys/net/netfilter/nf_conntrack_tcp_loose
-> 
-> I'd guess that is because conntrack picks up the flow on syn-ack rather
-> than syn, snat check then thinks that source port is < 16384 and dest
-> port is large, so we do port rewrite but we do it on syn-ack and
-> connection cannot complete because client and server have different
-> views of the source ports involved.
-> 
-> Question is on how this can be prevented. I see a few solutions:
-> 
-> 1. Change ct->local_origin to "ct->no_srcremap" (or a new status bit)
-> that indicates that this should not have src remap done, just like we
-> do for locally generated connections.
-> 
-> 2. Add a new "mid-stream" status bit, then bypass the entire -t nat
-> logic if its set. nf_nat_core would create a null binding for the
-> flow, this also bypasses the "src remap" code.
-> 
-> 3. Simpler version: from tcp conntrack, set the nat-done status bits
-> if its a mid-stream pickup.
-> 
-> Downside: nat engine (as-is) won't create a null binding, so connection
-> will not be known to nat engine for masquerade source port clash
-> detection.
-> 
-> I would go for 2) unless you have a better suggestion/idea.
+Connectivity breaks.
 
-Conntrack needs to see traffic in both directions, otherwise it is
-pickup the state from the middle from time to time (part of the
-history is lost for us).
+First packet that conntrack picks up is the syn-ack, this results in
+following sequence:
 
-What am I missing here?
+1. SYN    x:12345 -> y -> 443 // sent by initiator, receiverd by responder
+2. SYNACK y:443 -> x:12345 // First packet seen by conntrack, as sent by responder
+3. tuple_force_port_remap() gets called, sees:
+  'tcp from 443 to port 12345 NAT' -> pick a new source port, inititor receives
+4. SYNACK y:$RANDOM -> x:12345   // connection is never established
+
+This needs:
+1. conntrack + nat enabled
+2. connection is forwarded between two different machines
+3. SYN packet is sent by a different route so conntrack only
+sees return traffic.
+
+This broke before as well if you would e.g. add 'masquerade random'
+rule, but now the nat core does that automatically due to the 'port
+shadow avoidance' change.
