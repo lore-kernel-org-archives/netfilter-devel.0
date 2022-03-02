@@ -2,100 +2,49 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7ED9EC433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Mar 2022 21:03:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E676C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Mar 2022 23:47:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236496AbiCBVDn (ORCPT
+        id S229600AbiCBXsY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 2 Mar 2022 16:03:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51416 "EHLO
+        Wed, 2 Mar 2022 18:48:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34978 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242007AbiCBVDm (ORCPT
+        with ESMTP id S229628AbiCBXsV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 2 Mar 2022 16:03:42 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C887614094
-        for <netfilter-devel@vger.kernel.org>; Wed,  2 Mar 2022 13:02:58 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
-        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=Cbt2U0UoprMvcgvfJDlY4d8lRyayQfqiLUhCCbDerew=; b=iY5/nmCiig8916AH+mLhgkLhcW
-        MleDk8+zG2yJZ/drKuR95xJxvls7lRB03Y7pMr4QHHDhjLGYL/LSGeUAGmgO8JCOEt0DLjO/qRtLJ
-        y7q9ZR4IJFsRXalgio0HkdtfzOlWww6QwbQh+re1jlCz3exwdVOTLLOf7COOcELvv21eWaHNrKLHT
-        dx8W5efIJ0CUOGxjUlS+KS6MgQ6v446oP3rjxDDPlfVwRE70G4DithXR8XV99puLmn7NoNiT4yZfU
-        4OKK6QD6soYS9oa5cylUocMe7qpQ1ZnqyLyOtJE2QIYp0kobfxnkZCJk3VhA0yz2bMtfQO4Ape3ls
-        SYNWxUjQ==;
-Received: from localhost ([::1] helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1nPW7c-0006hF-Up; Wed, 02 Mar 2022 22:02:56 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-Subject: [nf-next PATCH] netfilter: conntrack: Add and use nf_ct_set_auto_assign_helper_warned()
-Date:   Wed,  2 Mar 2022 22:02:55 +0100
-Message-Id: <20220302210255.10177-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.34.1
+        Wed, 2 Mar 2022 18:48:21 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id AF4DC80918
+        for <netfilter-devel@vger.kernel.org>; Wed,  2 Mar 2022 15:47:23 -0800 (PST)
+Received: from netfilter.org (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 9ED7462FE6;
+        Thu,  3 Mar 2022 00:28:04 +0100 (CET)
+Date:   Thu, 3 Mar 2022 00:29:33 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Toshiaki Makita <toshiaki.makita1@gmail.com>
+Cc:     Saeed Mahameed <saeedm@nvidia.com>,
+        Jamal Hadi Salim <jhs@mojatatu.com>,
+        Cong Wang <xiyou.wangcong@gmail.com>,
+        Jiri Pirko <jiri@resnulli.us>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Paul Blakey <paulb@nvidia.com>
+Subject: Re: [PATCH nf-next v2 0/3] Conntrack GRE offload
+Message-ID: <Yh/93TOu7at8428k@salvia>
+References: <20220225015309.2576980-1-toshiaki.makita1@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20220225015309.2576980-1-toshiaki.makita1@gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The function sets the pernet boolean to avoid the spurious warning from
-nf_ct_lookup_helper() when assigning conntrack helpers via nftables.
+On Fri, Feb 25, 2022 at 10:53:06AM +0900, Toshiaki Makita wrote:
+> Conntrack offload currently only supports TCP and UDP.
+> Thus TC/nftables/OVS cannot offload GRE packets.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- include/net/netfilter/nf_conntrack_helper.h | 1 +
- net/netfilter/nf_conntrack_helper.c         | 6 ++++++
- net/netfilter/nft_ct.c                      | 3 +++
- 3 files changed, 10 insertions(+)
+Series applied to nf-next, thanks
 
-diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-index 37f0fbefb060f..9939c366f720d 100644
---- a/include/net/netfilter/nf_conntrack_helper.h
-+++ b/include/net/netfilter/nf_conntrack_helper.h
-@@ -177,4 +177,5 @@ void nf_nat_helper_unregister(struct nf_conntrack_nat_helper *nat);
- int nf_nat_helper_try_module_get(const char *name, u16 l3num,
- 				 u8 protonum);
- void nf_nat_helper_put(struct nf_conntrack_helper *helper);
-+void nf_ct_set_auto_assign_helper_warned(struct net *net);
- #endif /*_NF_CONNTRACK_HELPER_H*/
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index a97ddb1497aa5..8dec42ec603ef 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -550,6 +550,12 @@ void nf_nat_helper_unregister(struct nf_conntrack_nat_helper *nat)
- }
- EXPORT_SYMBOL_GPL(nf_nat_helper_unregister);
- 
-+void nf_ct_set_auto_assign_helper_warned(struct net *net)
-+{
-+	nf_ct_pernet(net)->auto_assign_helper_warned = true;
-+}
-+EXPORT_SYMBOL_GPL(nf_ct_set_auto_assign_helper_warned);
-+
- void nf_conntrack_helper_pernet_init(struct net *net)
- {
- 	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index 5adf8bb628a80..9c7472af9e4a1 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -1041,6 +1041,9 @@ static int nft_ct_helper_obj_init(const struct nft_ctx *ctx,
- 	if (err < 0)
- 		goto err_put_helper;
- 
-+	/* Avoid the bogus warning, helper will be assigned after CT init */
-+	nf_ct_set_auto_assign_helper_warned(ctx->net);
-+
- 	return 0;
- 
- err_put_helper:
--- 
-2.34.1
-
+If you prefer to route this through different tree, just let me know.
