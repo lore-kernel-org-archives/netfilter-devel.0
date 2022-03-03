@@ -2,127 +2,111 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6A56C433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Mar 2022 04:51:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 466EEC433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Mar 2022 11:36:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229679AbiCCEvs (ORCPT
+        id S232453AbiCCLhE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 2 Mar 2022 23:51:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46512 "EHLO
+        Thu, 3 Mar 2022 06:37:04 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50528 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229662AbiCCEvo (ORCPT
+        with ESMTP id S233108AbiCCLg6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 2 Mar 2022 23:51:44 -0500
-Received: from mail-io1-xd42.google.com (mail-io1-xd42.google.com [IPv6:2607:f8b0:4864:20::d42])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D3721480D2;
-        Wed,  2 Mar 2022 20:51:00 -0800 (PST)
-Received: by mail-io1-xd42.google.com with SMTP id q8so4499843iod.2;
-        Wed, 02 Mar 2022 20:51:00 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=OpA4Tn4BdbASjtkdITkEnpeatMSnicVhaMI+Ia6lyaQ=;
-        b=qzP2yBpi0W620+AMAYAxQpATXWfh/oQgeA8CUJMWUPV6pFewMt/tnr+dDc70eyGmCp
-         7uHJfk/+umK/Bffg0w/EF5I2B05sE4BVSEwmn04wdG7z1ulItbDuwUcS/A0FIMnJzFBG
-         vvxgr6RLm5fDu+13IzGX+LCmMi7CeQ2BhzGHxvl+PTR8y1/V5Vaz3w8+E20ojM+gw/N4
-         7uZ5oFGwocuufFiqYmIcqH5FWCxNsUCucvnld31pnA5ShreAYNbI9+CU4cH3MM7pq3wJ
-         pn0yylJjVs+9qOyEqkOEaxW0lLjiFWamVmZ1zzTyc3DWFh0HNiMJ6CuUwbj0gYFHs+/m
-         JZkg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=OpA4Tn4BdbASjtkdITkEnpeatMSnicVhaMI+Ia6lyaQ=;
-        b=HHIqQ9Xoe6mFjiaLCjuMGAOrqOc8BwFyX7ARSf2u+T1UL/nYzUsKyYpfBx1qgtqeYC
-         jz0vHJSWfCzDEANAoSuM1rqtDXKgasztnBI9oVFuUJIdrekOib4K0M6SoK48B02Yq65T
-         yc8VEXMutleVZMzdFbDBsgM57yRT5u4UPFVfD0cnBWQnH4Lr95LiwcMESICLeqlDSe4m
-         B6m6FfDiI4yN721OLmLnFpv4z5V3xjfRwQr92kD1/jLgfCBKBlo3Er4rDcSMpvacwqJJ
-         AbKRUayy2lPCrnTvWYP6cJIRz50VkCpapHm1+u/kO3URD18m16Qbk1RqNjR9wEJfIkxg
-         Ealw==
-X-Gm-Message-State: AOAM532R0Avl0E8xtovUZAHPJ5E86gHbjmBTn0vscV4opSJzs4KqkqDx
-        TggS0gJ5fzRmdvRowXA2LaWN90PrBAk=
-X-Google-Smtp-Source: ABdhPJxo6VNiNhWNfX+Ap4hGQnqL5MFsIMywISq0zdRjxQUXtgNWpu1Z6GK43SWvya4uiHTiwVCa6w==
-X-Received: by 2002:a02:9305:0:b0:313:f281:cb5d with SMTP id d5-20020a029305000000b00313f281cb5dmr27190313jah.278.1646283059450;
-        Wed, 02 Mar 2022 20:50:59 -0800 (PST)
-Received: from localhost ([2405:201:6014:d0c0:6243:316e:a9e1:adda])
-        by smtp.gmail.com with ESMTPSA id r9-20020a056e0219c900b002c5ffafa701sm706612ill.79.2022.03.02.20.50.58
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 02 Mar 2022 20:50:59 -0800 (PST)
-From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
-To:     bpf@vger.kernel.org
-Cc:     Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        netfilter-devel@vger.kernel.org
-Subject: [PATCH bpf-next v2 7/8] bpf: Replace __diag_ignore with unified __diag_ignore_all
-Date:   Thu,  3 Mar 2022 10:20:28 +0530
-Message-Id: <20220303045029.2645297-8-memxor@gmail.com>
-X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20220303045029.2645297-1-memxor@gmail.com>
-References: <20220303045029.2645297-1-memxor@gmail.com>
+        Thu, 3 Mar 2022 06:36:58 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3D241F72
+        for <netfilter-devel@vger.kernel.org>; Thu,  3 Mar 2022 03:35:56 -0800 (PST)
+Received: from localhost.localdomain (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id AA391625D9
+        for <netfilter-devel@vger.kernel.org>; Thu,  3 Mar 2022 12:34:21 +0100 (CET)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] optimize: fix vmap with anonymous sets
+Date:   Thu,  3 Mar 2022 12:35:52 +0100
+Message-Id: <20220303113552.493957-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2204; h=from:subject; bh=43ZTQRgaSQ039xdZjNAT/HKUOnjmRZaQgT2bLcV3jBE=; b=owEBbQKS/ZANAwAIAUzgyIZIvxHKAcsmYgBiIEj/sCrbgGVbPjIlmvNDTlnlFsfB/PVyfDLIpeQ+ h+4CO6aJAjMEAAEIAB0WIQRLvip+Buz51YI8YRFM4MiGSL8RygUCYiBI/wAKCRBM4MiGSL8RygrBD/ 9gKnljlm+wDuDLBaz8FMgbaWXeg0kCHGJ4U4VC9epo6hEfdc5KhP3WNCF8XE48+SLam8Nir0P+sOlL M6nKwGR5QyqP43N8JKwUYFXIKixz/TporcIY9cV3zaLTwbNs1cVk/iySfhLfJRsktJ54SLgLwlhwjo I77CzXsAU9vUQsg9VmGhU3WJk0U32YyQuqsZ5yTSVzAU1cQ723R1Dev4KBwluozOfr40C17+4sCSKB +KV+blIA9OPT9nDvcLcgEppEL4qvf7wTz4hA0dN/k7l5nDiOq6YpN6VV3bMo0m7MqrT2muBBu1YAc9 3cMSjZwakamL/YyWavaMh6GcBIJMTiqbyI+ddQBJuV2L9lZ9ykeV05nJ1KPXcf2yzza0EgP5IblsND v8o0j7cI75I4KGNOuQo61tUX/DopT0GGRKBMAHs4anU0btegq6VfRKR5oADWP7SFQlTQV9K9hfu14b vkebtCMI0KWRGiGst2ZyopC8sbzP2sbgrUK8tjN+979aBS3rdYtK3CE8KnHQ/Vnim6w+SHpQs6RP4m IlBjqqVEiF1WTEjLehOpmFnO55LedvT1uOc8u4CN30IixTYBXHOkqPNMWY+4CYR58hmty0DaIJkT1X L0nITSqHsamP1Z3lxVsxMjeiGoEKzwy9Fw897x9BrYkEOiphCrwp46SauBuw==
-X-Developer-Key: i=memxor@gmail.com; a=openpgp; fpr=4BBE2A7E06ECF9D5823C61114CE0C88648BF11CA
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Currently, -Wmissing-prototypes warning is ignored for GCC, but not
-clang. This leads to clang builds warning on W=1 mode. Since the flag
-used by both compilers is same, we can use the unified __diag_ignore_all
-macro that works for all supported versions and compilers which have
-__diag macro support (currently GCC >= 8.0, and Clang >= 11.0).
+The following example ruleset crashes:
 
-Also add nf_conntrack_bpf.h include to prevent missing prototype warning
-for register_nf_conntrack_bpf.
+ table inet a {
+        chain b {
+                tcp dport { 1 } accept
+                tcp dport 2-3 drop
+        }
+ }
 
-Cc: netfilter-devel@vger.kernel.org
-Signed-off-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
+because handling for EXPR_SET is missing.
+
+Fixes: 1542082e259b ("optimize: merge same selector with different verdict into verdict map")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/bpf/test_run.c               | 4 ++--
- net/netfilter/nf_conntrack_bpf.c | 5 +++--
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ src/optimize.c                                            | 8 ++++++--
+ .../testcases/optimizations/dumps/merge_stmts_vmap.nft    | 4 ++++
+ tests/shell/testcases/optimizations/merge_stmts_vmap      | 4 ++++
+ 3 files changed, 14 insertions(+), 2 deletions(-)
 
-diff --git a/net/bpf/test_run.c b/net/bpf/test_run.c
-index eb129e48f90b..fcc83017cd03 100644
---- a/net/bpf/test_run.c
-+++ b/net/bpf/test_run.c
-@@ -201,8 +201,8 @@ static int bpf_test_finish(const union bpf_attr *kattr,
-  * future.
-  */
- __diag_push();
--__diag_ignore(GCC, 8, "-Wmissing-prototypes",
--	      "Global functions as their definitions will be in vmlinux BTF");
-+__diag_ignore_all("-Wmissing-prototypes",
-+		  "Global functions as their definitions will be in vmlinux BTF");
- int noinline bpf_fentry_test1(int a)
+diff --git a/src/optimize.c b/src/optimize.c
+index 04523edb795b..64c0a4dbe764 100644
+--- a/src/optimize.c
++++ b/src/optimize.c
+@@ -435,18 +435,22 @@ static void build_verdict_map(struct expr *expr, struct stmt *verdict, struct ex
  {
- 	return a + 1;
-diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrack_bpf.c
-index 8ad3f52579f3..fe98673dd5ac 100644
---- a/net/netfilter/nf_conntrack_bpf.c
-+++ b/net/netfilter/nf_conntrack_bpf.c
-@@ -12,6 +12,7 @@
- #include <linux/btf_ids.h>
- #include <linux/net_namespace.h>
- #include <net/netfilter/nf_conntrack.h>
-+#include <net/netfilter/nf_conntrack_bpf.h>
- #include <net/netfilter/nf_conntrack_core.h>
+ 	struct expr *item, *elem, *mapping;
  
- /* bpf_ct_opts - Options for CT lookup helpers
-@@ -102,8 +103,8 @@ static struct nf_conn *__bpf_nf_ct_lookup(struct net *net,
+-	if (expr->etype == EXPR_LIST) {
++	switch (expr->etype) {
++	case EXPR_LIST:
++	case EXPR_SET:
+ 		list_for_each_entry(item, &expr->expressions, list) {
+ 			elem = set_elem_expr_alloc(&internal_location, expr_get(item));
+ 			mapping = mapping_expr_alloc(&internal_location, elem,
+ 						     expr_get(verdict->expr));
+ 			compound_expr_add(set, mapping);
+ 		}
+-	} else {
++		break;
++	default:
+ 		elem = set_elem_expr_alloc(&internal_location, expr_get(expr));
+ 		mapping = mapping_expr_alloc(&internal_location, elem,
+ 					     expr_get(verdict->expr));
+ 		compound_expr_add(set, mapping);
++		break;
+ 	}
  }
  
- __diag_push();
--__diag_ignore(GCC, 8, "-Wmissing-prototypes",
--	      "Global functions as their definitions will be in nf_conntrack BTF");
-+__diag_ignore_all("-Wmissing-prototypes",
-+		  "Global functions as their definitions will be in nf_conntrack BTF");
+diff --git a/tests/shell/testcases/optimizations/dumps/merge_stmts_vmap.nft b/tests/shell/testcases/optimizations/dumps/merge_stmts_vmap.nft
+index 9fa19afcb783..427572954a18 100644
+--- a/tests/shell/testcases/optimizations/dumps/merge_stmts_vmap.nft
++++ b/tests/shell/testcases/optimizations/dumps/merge_stmts_vmap.nft
+@@ -2,4 +2,8 @@ table ip x {
+ 	chain y {
+ 		ct state vmap { invalid : drop, established : accept, related : accept }
+ 	}
++
++	chain z {
++		tcp dport vmap { 1 : accept, 2-3 : drop }
++	}
+ }
+diff --git a/tests/shell/testcases/optimizations/merge_stmts_vmap b/tests/shell/testcases/optimizations/merge_stmts_vmap
+index f838fcfed70b..6511c7b20cb6 100755
+--- a/tests/shell/testcases/optimizations/merge_stmts_vmap
++++ b/tests/shell/testcases/optimizations/merge_stmts_vmap
+@@ -7,6 +7,10 @@ RULESET="table ip x {
+ 		ct state invalid drop
+ 		ct state established,related accept
+ 	}
++	chain z {
++		tcp dport { 1 } accept
++		tcp dport 2-3 drop
++	}
+ }"
  
- /* bpf_xdp_ct_lookup - Lookup CT entry for the given tuple, and acquire a
-  *		       reference to it
+ $NFT -o -f - <<< $RULESET
 -- 
-2.35.1
+2.30.2
 
