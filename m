@@ -2,139 +2,127 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73ECCC433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Mar 2022 22:21:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58FD1C433FE
+	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Mar 2022 00:05:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235938AbiCCWVp (ORCPT
+        id S232192AbiCDAGX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 3 Mar 2022 17:21:45 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57174 "EHLO
+        Thu, 3 Mar 2022 19:06:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53148 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233740AbiCCWVp (ORCPT
+        with ESMTP id S232170AbiCDAGU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 3 Mar 2022 17:21:45 -0500
-Received: from mail-io1-xd35.google.com (mail-io1-xd35.google.com [IPv6:2607:f8b0:4864:20::d35])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 71C6E65DE
-        for <netfilter-devel@vger.kernel.org>; Thu,  3 Mar 2022 14:20:59 -0800 (PST)
-Received: by mail-io1-xd35.google.com with SMTP id r7so7553702iot.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 03 Mar 2022 14:20:59 -0800 (PST)
+        Thu, 3 Mar 2022 19:06:20 -0500
+Received: from mail-pl1-x641.google.com (mail-pl1-x641.google.com [IPv6:2607:f8b0:4864:20::641])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 81B47ECB3A;
+        Thu,  3 Mar 2022 16:05:34 -0800 (PST)
+Received: by mail-pl1-x641.google.com with SMTP id e2so6238710pls.10;
+        Thu, 03 Mar 2022 16:05:34 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linuxfoundation.org; s=google;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=VBkt6m9LITkn++JGkO1ATzV9oKt4/whQ3jS4HjOvbjY=;
-        b=E/qaOd662MgY3tCHS/0oI3+UZv6QenjXIpbFU8+3oufy/C1cLxAww/MMsdrx4fpnRe
-         h/52IgeNVh12CA4WCd1qqls6kE0A24yNGsZ9MkJgSP7o9Vk4Pql39Upxla6HfUhb+H3o
-         GvG4KNzVhxzsD2om+P82ly6OfbKl53BcMDygI=
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=MHxvOvsF+Ys03+6wrkcWWXn79qRVd5rUbUqEe5lmuak=;
+        b=ot7Y9R3GpTl98F0GYEXRKj9CviCbwuglvAK+a6EQu9zHWMkDb+Fq+YOl1SpYLULOuv
+         FPWe+wEpeK7r5Xz6fAApG3TX/1V2y7kG60ZvVJ5NAzh/tIY4ly4qxbTYGSRJv/CE7bAn
+         L/e8k26X4sMQoyYjEaJgsyksNhnEyJKmuLV8NcIwEkxXvMlsf2t/C3CEtFDSMkoEbGB4
+         U/DZwqcAAClEKGyWzzviKWhXcBNZShr5nHniCQKX4zfXt+Nc15ecyV53SMT89S6okSF9
+         4lkpu95v/dVnUXSh1A+ZHrpz76TTrOCk6yvzAD3CFuCYFGndbBBlxBbs4Sxgnjs9OaQR
+         FDqA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=VBkt6m9LITkn++JGkO1ATzV9oKt4/whQ3jS4HjOvbjY=;
-        b=jfSkqwyUSNV6B0ViDJs5X3cy3OBC7kK8R5J6D0JkoWHjHnc0LQOxevCJFRdR/iMoi7
-         VGWmcsKMzV4Q02HhuJxQFITjpdaWyoLvr8vVJ5cG6mazIEcDyqDswPKzBaxTydR1mjmc
-         ab4eveWEBR67b7vA//cJDdqMCqfPIn+zehpqMhBtZdNqGQndI4siYG37HywQD290LC/h
-         evp610cArnSBQ305B5Az4EuI8JqKjYcfObAAYG3uCAoblWr6M4KYIjsci9hWXdTYCs+F
-         k9JTF9CnAmTzrRUP0A33ZN1pIXsD7yrSfqdS0oQv6o7iM8jafaAtf71pmXl8SNeJF7gC
-         ubtQ==
-X-Gm-Message-State: AOAM530zu/AFSDl56WB+3EP+BBnsfmNRZivoVhCZi0DSW4kU/llnrjj6
-        5c7Tpn3yEYt6LPx23g6a+nSMNQ==
-X-Google-Smtp-Source: ABdhPJx3VuKiHfWWx8r9qbf1hxEuZ/ORapgZH72gzhQLghnV3ArpSlo+D8U8zVmhdFVTr5D9boDiFA==
-X-Received: by 2002:a5d:984f:0:b0:63d:a956:cdbc with SMTP id p15-20020a5d984f000000b0063da956cdbcmr28299695ios.37.1646346058516;
-        Thu, 03 Mar 2022 14:20:58 -0800 (PST)
-Received: from [192.168.1.128] ([71.205.29.0])
-        by smtp.gmail.com with ESMTPSA id m1-20020a056e021c2100b002c2ec1c8012sm3799828ilh.53.2022.03.03.14.20.57
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 03 Mar 2022 14:20:58 -0800 (PST)
-Subject: Re: [PATCH v2] selftests: netfilter: fix a build error on openSUSE
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Geliang Tang <geliang.tang@suse.com>,
-        Shuah Khan <shuah@kernel.org>, linux-kselftest@vger.kernel.org,
-        Kai Liu <kai.liu@suse.com>, netfilter-devel@vger.kernel.org,
-        Shuah Khan <skhan@linuxfoundation.org>
-References: <5ee95e93a11a239df8e09d059da25a4eaa5725ba.1646198836.git.geliang.tang@suse.com>
- <8cbf1231-0da5-c8a0-d66b-1488633d9895@linuxfoundation.org>
- <Yh+wulh/nIkFeFmz@salvia>
- <c2318ebe-beaa-64b8-6c6c-ee552cb35e0f@linuxfoundation.org>
-From:   Shuah Khan <skhan@linuxfoundation.org>
-Message-ID: <3618874c-b3bb-8423-0c16-38c52712a36d@linuxfoundation.org>
-Date:   Thu, 3 Mar 2022 15:20:57 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.8.1
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=MHxvOvsF+Ys03+6wrkcWWXn79qRVd5rUbUqEe5lmuak=;
+        b=RWTjwRrQU2ZxXBorHtftUs59BbOJcl697c/GF6MMGm6zPDsG5RO9UloEeYq3NyN6ZI
+         nr4j5zvbajA+JR4+JWwXPbwuqWx7ix45J1/UVdhTadx3Y1jULdDkmExXOUWC5J1/brz2
+         gsJYC2rLAmaGjiyjIWJWCKncEhlpfDNDMy+zYOvg3VJVUFhmVTvxBJyc6I0seFOjqsT7
+         lS1CWdJKwR8KSoNmP7CP0d1n/YtoS26hVhctLoJuYLQyzLFbYFrRygGgXFAECdQ/r6xX
+         78vwDChESdaJXb9CVQUbMTZqBen9IIjgg8gbCi6xNOiVla0QnZydmYZIHJ7w/AeOp8ka
+         XkxA==
+X-Gm-Message-State: AOAM530eiyP2e4MgQzl8x46dcjoywoAb52uqoB4l8GKw3O6TtPEoCM+Z
+        6KPEgh8qZxgoHUv1PoJ/P1GLuCW6AYU=
+X-Google-Smtp-Source: ABdhPJzZGrcyIt5m+UYpPs9N3ajwisofHy2+7u3B/UVCSdvw4i24wq303tUfXc7e0QDlRU/OQURW3g==
+X-Received: by 2002:a17:90a:9292:b0:1bd:1bf0:30e6 with SMTP id n18-20020a17090a929200b001bd1bf030e6mr7893750pjo.73.1646352333867;
+        Thu, 03 Mar 2022 16:05:33 -0800 (PST)
+Received: from localhost ([2405:201:6014:d0c0:6243:316e:a9e1:adda])
+        by smtp.gmail.com with ESMTPSA id q12-20020a17090aa00c00b001bc6f1baaaesm9179637pjp.39.2022.03.03.16.05.33
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 03 Mar 2022 16:05:33 -0800 (PST)
+From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
+To:     bpf@vger.kernel.org
+Cc:     Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        netfilter-devel@vger.kernel.org
+Subject: [PATCH bpf-next v3 7/8] bpf: Replace __diag_ignore with unified __diag_ignore_all
+Date:   Fri,  4 Mar 2022 05:35:07 +0530
+Message-Id: <20220304000508.2904128-8-memxor@gmail.com>
+X-Mailer: git-send-email 2.35.1
+In-Reply-To: <20220304000508.2904128-1-memxor@gmail.com>
+References: <20220304000508.2904128-1-memxor@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <c2318ebe-beaa-64b8-6c6c-ee552cb35e0f@linuxfoundation.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2203; h=from:subject; bh=/N0nS7sRMuholm5Xm4LDpnIHKIDwW8B47uKsPJl8FD0=; b=owEBbQKS/ZANAwAIAUzgyIZIvxHKAcsmYgBiIVd/tKHZfX8qLJG2j506OZBp1p0zlMK3RCT4IUEl VIceAWuJAjMEAAEIAB0WIQRLvip+Buz51YI8YRFM4MiGSL8RygUCYiFXfwAKCRBM4MiGSL8RyuY5EA CgCNo1ra1deMLlb8fJNc1smMJQEldSd/kI6IuI0KzNBJabRBALERBjPUh3j/Cjm8vdcPqWu612diQP jmPIZq+EmSiQjQz8MMdsvE1Irb6oBpDgb3w0NbQHNXeCc0liIps95Ni0lXpu/78T69X63/dbVlamde Q6+dglNPXjrWeX9zU/al3HlSvH8APcNsn6Os+aNrO2qP/GJN0whQJUIZQjcdgNYPid6gjhzugFh0Q3 PeoI6/VpGLhRCxfhTa5bzYTzyclcTUatxxse7qRxtqrx1kHlf5bop4ODHLOpoweU491XAoohEc8Moj FzWg/Tizn6TJlZaWGiGSNcM5q7hoKrOJGfLLOMbmQyZaseKjp68ldIlBX4EZBoQagTxbZDfqE2ssi0 kxnDYGpxX+hweJsX9yEyBUU/al286sKBSkif3s6zCwsrzELne+6vyWuNTo97Y2RMVgRnifTAQIgPsp hmPJflscpayLRNGNPv1Lzv0Dm7hJLJS7leU8oMhEVY290CGLwF9+MGGD4Croicib7xZPwFB4SZSLxJ s5g7kBr+ffVnd+iXe9rwsg9h4v3+ze2teO44oSsUVU1oASNPYZAdhATTHsQ5hM6531BY7Q3Qj50TYj fyYQopnM2TGXobmheQP6m3uolYA/+V5e7IkGPnhN1VjX9cWgY1VnosTTjsrA==
+X-Developer-Key: i=memxor@gmail.com; a=openpgp; fpr=4BBE2A7E06ECF9D5823C61114CE0C88648BF11CA
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 3/3/22 12:10 PM, Shuah Khan wrote:
-> On 3/2/22 11:00 AM, Pablo Neira Ayuso wrote:
->> On Wed, Mar 02, 2022 at 10:11:11AM -0700, Shuah Khan wrote:
->>> On 3/1/22 10:29 PM, Geliang Tang wrote:
->>>> This patch fixed the following build error on openSUSE Leap 15.3:
->>>>
->>>> =======================================================================
->>>>    gcc     nf-queue.c -lmnl -o tools/testing/selftests/netfilter/nf-queue
->>>>    nf-queue.c:13:10: fatal error: libmnl/libmnl.h: No such file or directory
->>>>     #include <libmnl/libmnl.h>
->>>>              ^~~~~~~~~~~~~~~~~
->>>>    compilation terminated.
->>>> =======================================================================
->>>>
->>>> It is because libmnl.h is put in the directory of
->>>> "/usr/include/libmnl/libmnl/" on openSUSE, not "/usr/include/libmnl/":
->>>>
->>>>    > rpm -ql libmnl-devel
->>>>    /usr/include/libmnl
->>>>    /usr/include/libmnl/libmnl
->>>>    /usr/include/libmnl/libmnl/libmnl.h
->>>>    /usr/lib64/libmnl.so
->>>>    /usr/lib64/pkgconfig/libmnl.pc
->>>>
->>>> Suggested-by: Kai Liu <kai.liu@suse.com>
->>>> Signed-off-by: Geliang Tang <geliang.tang@suse.com>
->>>> ---
->>>> v2:
->>>>    - use pkg-config
->>>> ---
->>>>    tools/testing/selftests/netfilter/Makefile | 1 +
->>>>    1 file changed, 1 insertion(+)
->>>>
->>>> diff --git a/tools/testing/selftests/netfilter/Makefile b/tools/testing/selftests/netfilter/Makefile
->>>> index e4f845dd942b..8136c1fab7ab 100644
->>>> --- a/tools/testing/selftests/netfilter/Makefile
->>>> +++ b/tools/testing/selftests/netfilter/Makefile
->>>> @@ -8,6 +8,7 @@ TEST_PROGS := nft_trans_stress.sh nft_fib.sh nft_nat.sh bridge_brouter.sh \
->>>>        ipip-conntrack-mtu.sh conntrack_tcp_unreplied.sh \
->>>>        conntrack_vrf.sh nft_synproxy.sh
->>>> +CFLAGS += $(shell pkg-config --cflags libmnl 2>/dev/null || echo "-I/usr/include/libmnl")
->>>>    LDLIBS = -lmnl
->>>>    TEST_GEN_FILES =  nf-queue
->>>>
->>>
->>> Adding Pablo to the thread.
->>>
->>> Pablo,
->>>
->>> This looks good to me. I can take this through linux-kselftest tree.
->>> Let me know either way.
->>>
->>> Or if it is going through netfilter tree:
->>> Reviewed-by: Shuah Khan <skhan@linuxfoundation.org>
->>
->> If this does not cause any issue when running tests in any other
->> distros, then it is fine with me.
->>
-> 
-> I tested this on Ubuntu 21.10 and worked for me. I will apply this for
-> Linux 5.18-rc1 then.
-> 
+Currently, -Wmissing-prototypes warning is ignored for GCC, but not
+clang. This leads to clang build warning in W=1 mode. Since the flag
+used by both compilers is same, we can use the unified __diag_ignore_all
+macro that works for all supported versions and compilers which have
+__diag macro support (currently GCC >= 8.0, and Clang >= 11.0).
 
-Applied to linux-kselftest next for Linux 5.18-rc1.
+Also add nf_conntrack_bpf.h include to prevent missing prototype warning
+for register_nf_conntrack_bpf.
 
-thanks,
--- Shuah
+Cc: netfilter-devel@vger.kernel.org
+Signed-off-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
+---
+ net/bpf/test_run.c               | 4 ++--
+ net/netfilter/nf_conntrack_bpf.c | 5 +++--
+ 2 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/net/bpf/test_run.c b/net/bpf/test_run.c
+index eb129e48f90b..fcc83017cd03 100644
+--- a/net/bpf/test_run.c
++++ b/net/bpf/test_run.c
+@@ -201,8 +201,8 @@ static int bpf_test_finish(const union bpf_attr *kattr,
+  * future.
+  */
+ __diag_push();
+-__diag_ignore(GCC, 8, "-Wmissing-prototypes",
+-	      "Global functions as their definitions will be in vmlinux BTF");
++__diag_ignore_all("-Wmissing-prototypes",
++		  "Global functions as their definitions will be in vmlinux BTF");
+ int noinline bpf_fentry_test1(int a)
+ {
+ 	return a + 1;
+diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrack_bpf.c
+index 8ad3f52579f3..fe98673dd5ac 100644
+--- a/net/netfilter/nf_conntrack_bpf.c
++++ b/net/netfilter/nf_conntrack_bpf.c
+@@ -12,6 +12,7 @@
+ #include <linux/btf_ids.h>
+ #include <linux/net_namespace.h>
+ #include <net/netfilter/nf_conntrack.h>
++#include <net/netfilter/nf_conntrack_bpf.h>
+ #include <net/netfilter/nf_conntrack_core.h>
+ 
+ /* bpf_ct_opts - Options for CT lookup helpers
+@@ -102,8 +103,8 @@ static struct nf_conn *__bpf_nf_ct_lookup(struct net *net,
+ }
+ 
+ __diag_push();
+-__diag_ignore(GCC, 8, "-Wmissing-prototypes",
+-	      "Global functions as their definitions will be in nf_conntrack BTF");
++__diag_ignore_all("-Wmissing-prototypes",
++		  "Global functions as their definitions will be in nf_conntrack BTF");
+ 
+ /* bpf_xdp_ct_lookup - Lookup CT entry for the given tuple, and acquire a
+  *		       reference to it
+-- 
+2.35.1
+
