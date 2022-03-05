@@ -2,128 +2,102 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE76BC433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Mar 2022 22:47:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 965CEC433F5
+	for <netfilter-devel@archiver.kernel.org>; Sat,  5 Mar 2022 18:09:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230099AbiCDWsD (ORCPT
+        id S231574AbiCESJ7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 4 Mar 2022 17:48:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56868 "EHLO
+        Sat, 5 Mar 2022 13:09:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47008 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230093AbiCDWr7 (ORCPT
+        with ESMTP id S231737AbiCESJ6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 4 Mar 2022 17:47:59 -0500
-Received: from mail-pj1-x1042.google.com (mail-pj1-x1042.google.com [IPv6:2607:f8b0:4864:20::1042])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8862DBB0B8;
-        Fri,  4 Mar 2022 14:47:11 -0800 (PST)
-Received: by mail-pj1-x1042.google.com with SMTP id ge19-20020a17090b0e1300b001bcca16e2e7so11730419pjb.3;
-        Fri, 04 Mar 2022 14:47:11 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=MHxvOvsF+Ys03+6wrkcWWXn79qRVd5rUbUqEe5lmuak=;
-        b=Zs2jGUpuKyD47+ozBZmJfjgVUkO3Ka+XeByj7VbPTol7u6BxyBhUEWQagOz5Zy5BtT
-         h/D6C7eROHjk+i148weYsSTXqAM3FaZM1cP6yvLSP0Mps3aaOfRAOPXSnFYB+1go0c17
-         k3W6SH6fVpfJTqpx/VajEJRfLlj1Yf3q8R60Lnn5C0o1EPvMcTlmaca3wFwyeEBPrt/I
-         kPuD2sAioDtN0KSfPTvqWI81RjOrFj1FJKKkmK+nmvcgGDB/Qv4b7YT5uD57kwxdY1YK
-         nVmWZ8YludAuPALlVKFPwLt+xOT24FWWOTQsIrR7+nLJXwafZkSj5XRJPVWjWIkhUfv9
-         QT5A==
+        Sat, 5 Mar 2022 13:09:58 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 5EE423DDF3
+        for <netfilter-devel@vger.kernel.org>; Sat,  5 Mar 2022 10:09:08 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1646503747;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=Gi/sdentGCwJJGJ5wrqkGxtQ+g48o6zHIXuxsk4d4Og=;
+        b=Ej+74qS6Blxr1HPxx7es8uxjv+lpCZ6aUZHW5Ek+uXxhicG3SFr7XL+JvSLaveqkqvPj+I
+        af+lGr16CUJ8tGTjRhxmBSW+S7FnkO+JrVBf01mpEXE6rkAjzLhgZY6dPycMa1skfaERsv
+        8ELzG6ljFs2ik5/bNDKYiahWedzccGI=
+Received: from mail-qv1-f72.google.com (mail-qv1-f72.google.com
+ [209.85.219.72]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-647-7qbBZYdSNAakaeYXplSTTg-1; Sat, 05 Mar 2022 13:09:06 -0500
+X-MC-Unique: 7qbBZYdSNAakaeYXplSTTg-1
+Received: by mail-qv1-f72.google.com with SMTP id fq2-20020a056214258200b0042c39c09e5dso9622626qvb.18
+        for <netfilter-devel@vger.kernel.org>; Sat, 05 Mar 2022 10:09:06 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=MHxvOvsF+Ys03+6wrkcWWXn79qRVd5rUbUqEe5lmuak=;
-        b=gNG+5cFTYWqRxiqnKvM7WLF3OrxjVDP4cBVTJTPBq28o/TH0LJ+FDW4bl5Tt/gzeOL
-         qwp39LtSCAeIeI6dpMCthz7VgSPYMry9B2ttLTS3YwtL3a9S6oZvs76qWjvnZ0lYECUD
-         Aiz3ND6/fw33xuQQBEKAgptIasjsUSh74cev/qX1gpGUIsFWKiBhiCFfFRNjkyNK4wsq
-         V/npOVZlk5qaZyYtRbbOQikUF9a5bD0TbCwMCma7eLO7RCmkdMxc9m0XaE2HNoLV1fxJ
-         84GmwgLzFhbHWdfwqpo0qPyZQyN3QDLHzRpTgGj8gk9jUaLpYDNfYO0TlA4XBTci1sru
-         4FPQ==
-X-Gm-Message-State: AOAM531KLwKKJEhZKK7onRWBNYgHMQNkeLdZfgz+idYYUaEdTOfH1DWN
-        EJwnOOS1gjcqkW+vW+GpiLm5zkdKAFM=
-X-Google-Smtp-Source: ABdhPJwyYcT/6aOfAzbHyLjUNStEwpya6O4BkUGISUk5NFfds5HAUzGSaBlpXR+vEAADMDAhHlTj8A==
-X-Received: by 2002:a17:902:d50e:b0:151:b8a4:2a84 with SMTP id b14-20020a170902d50e00b00151b8a42a84mr560633plg.17.1646434030890;
-        Fri, 04 Mar 2022 14:47:10 -0800 (PST)
-Received: from localhost ([2405:201:6014:d0c0:6243:316e:a9e1:adda])
-        by smtp.gmail.com with ESMTPSA id a5-20020a621a05000000b004e1cb7632a7sm7205381pfa.64.2022.03.04.14.47.10
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=Gi/sdentGCwJJGJ5wrqkGxtQ+g48o6zHIXuxsk4d4Og=;
+        b=ICHzLqPysMMHynZByvk1pOqC21HNIt+YR5Ph0R182lh1DvHZOY0anycUWFq4TAarcO
+         BebaGYZ8frewf2MajXzn6mgBz/Ks3032ToslprZjHp2yYW7OHZknyE5xA6oGV43ZDTsP
+         KF/XKqJYCIe0ZON03tyiCiM3Yqc81mdHSZEvb4N3wZFl0VQOj64xMjofUCrtbMGZHGDu
+         rGEzF3XXgyjSBleV7pJKN91dycA4ZTA4OXODki+Cj1nIPhLDNF6HHa4hlrN2E/cKGcGt
+         lgpoqyTriIInaNcRnYAFaVXNvfW/ljVw9agFr8XaFVkzBEu4FK63SrKmS0YjyqtIgSKq
+         eIwg==
+X-Gm-Message-State: AOAM532NKQww2rwFUBCXRHk7fRvs9QX10+nhhQJje9VCfNH+5UyVZHN4
+        W+Sf78qYimdluvJMboixbb5FytPZ6I3mHQfyIwF4fE4CW0wA5C59NQ3PDcFRjsoQdAYzzvAaRu8
+        3d41+Lv2FdWL7FVMt/UeSrs1sBGmM
+X-Received: by 2002:a05:620a:1720:b0:634:1cd4:5e5b with SMTP id az32-20020a05620a172000b006341cd45e5bmr2608688qkb.558.1646503745729;
+        Sat, 05 Mar 2022 10:09:05 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJxGQ5mlxFSBTdBgddKAUdV2p2Ns+ucnV6BHi6nFkEtU3qBjVYOOUXVkuI6oaIaGKt74fm3AZQ==
+X-Received: by 2002:a05:620a:1720:b0:634:1cd4:5e5b with SMTP id az32-20020a05620a172000b006341cd45e5bmr2608676qkb.558.1646503745526;
+        Sat, 05 Mar 2022 10:09:05 -0800 (PST)
+Received: from localhost.localdomain.com (024-205-208-113.res.spectrum.com. [24.205.208.113])
+        by smtp.gmail.com with ESMTPSA id x6-20020ac86b46000000b002e02be9c0easm5175904qts.69.2022.03.05.10.09.02
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 04 Mar 2022 14:47:10 -0800 (PST)
-From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
-To:     bpf@vger.kernel.org
-Cc:     Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Martin KaFai Lau <kafai@fb.com>,
-        netfilter-devel@vger.kernel.org
-Subject: [PATCH bpf-next v4 7/8] bpf: Replace __diag_ignore with unified __diag_ignore_all
-Date:   Sat,  5 Mar 2022 04:16:44 +0530
-Message-Id: <20220304224645.3677453-8-memxor@gmail.com>
-X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20220304224645.3677453-1-memxor@gmail.com>
-References: <20220304224645.3677453-1-memxor@gmail.com>
+        Sat, 05 Mar 2022 10:09:05 -0800 (PST)
+From:   trix@redhat.com
+To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net, kuba@kernel.org
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Tom Rix <trix@redhat.com>
+Subject: [PATCH] netfilter: conditionally use ct and ctinfo
+Date:   Sat,  5 Mar 2022 10:08:53 -0800
+Message-Id: <20220305180853.696640-1-trix@redhat.com>
+X-Mailer: git-send-email 2.26.3
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2203; h=from:subject; bh=/N0nS7sRMuholm5Xm4LDpnIHKIDwW8B47uKsPJl8FD0=; b=owEBbQKS/ZANAwAIAUzgyIZIvxHKAcsmYgBiIpastKHZfX8qLJG2j506OZBp1p0zlMK3RCT4IUEl VIceAWuJAjMEAAEIAB0WIQRLvip+Buz51YI8YRFM4MiGSL8RygUCYiKWrAAKCRBM4MiGSL8RyhubD/ 4hSJZeDFT9+IHlq5w8BhYEIAOz0F9X46oRuTFxBtADuO+9mSWrifaIrve/HX4kD+F9ASt9edWTBCuZ Q1vO6VqnpTcOpKzdfCAL6BKjWzAjAP1greJftRRjw0aXN9xVuDkpubIiAduGnsJc9sxvWHV72F6Q5j pHXIZcNoCEOoDnVOnamgMf6BSNOEd1sccgo1pcSaj2RxZLgxs7aBOkkbXrp2QoKmb3X/DMRny+Dlh9 2ltwOkANm8qv+FwAsscH42F2B8++qxZ/Tf5omHaGETQoG4Gf0s7EEI8bC7Yzn7lw5VuaU2oBDiu18Z v28Spqdpeq3aiZwoefNX65tFiHtzo6EP+aOQuTztqb+dWacH1VhiTlf2QsxiQeOUt5qRj1JKraP1z4 4ixEf1hfCV8UVS9lIXRvkDhvrjKsT4rV2ePaNK7PghCAjO4lf5G4ge3kwQIMRfrWEw0z7zbQWAPTSD dNUoP8BDzCLueCwlgE9xlqyd/ALnCzcBi/bDz3HbwdHA7jrLwreqhT1R3zgoO6woujZry/zCoy5x/Z ZFZmcXiY38gvol/PDHI1tG7Ns09FJ1ausP3mrAxUKYlx/Q1eQFWU+rM+As9pS1/dQBterpLdDtguov vT2fbnXac2xuvTNwdUD/69OqGzJP+DiGoTD5v+faJr3874MGq+3mo5Vhz/xQ==
-X-Developer-Key: i=memxor@gmail.com; a=openpgp; fpr=4BBE2A7E06ECF9D5823C61114CE0C88648BF11CA
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Currently, -Wmissing-prototypes warning is ignored for GCC, but not
-clang. This leads to clang build warning in W=1 mode. Since the flag
-used by both compilers is same, we can use the unified __diag_ignore_all
-macro that works for all supported versions and compilers which have
-__diag macro support (currently GCC >= 8.0, and Clang >= 11.0).
+From: Tom Rix <trix@redhat.com>
 
-Also add nf_conntrack_bpf.h include to prevent missing prototype warning
-for register_nf_conntrack_bpf.
+The setting ct and ctinfo are controlled by
+CONF_NF_CONNTRACK.  So their use should also
+be controlled.
 
-Cc: netfilter-devel@vger.kernel.org
-Signed-off-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Signed-off-by: Tom Rix <trix@redhat.com>
 ---
- net/bpf/test_run.c               | 4 ++--
- net/netfilter/nf_conntrack_bpf.c | 5 +++--
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ net/netfilter/nfnetlink_log.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/net/bpf/test_run.c b/net/bpf/test_run.c
-index eb129e48f90b..fcc83017cd03 100644
---- a/net/bpf/test_run.c
-+++ b/net/bpf/test_run.c
-@@ -201,8 +201,8 @@ static int bpf_test_finish(const union bpf_attr *kattr,
-  * future.
-  */
- __diag_push();
--__diag_ignore(GCC, 8, "-Wmissing-prototypes",
--	      "Global functions as their definitions will be in vmlinux BTF");
-+__diag_ignore_all("-Wmissing-prototypes",
-+		  "Global functions as their definitions will be in vmlinux BTF");
- int noinline bpf_fentry_test1(int a)
- {
- 	return a + 1;
-diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrack_bpf.c
-index 8ad3f52579f3..fe98673dd5ac 100644
---- a/net/netfilter/nf_conntrack_bpf.c
-+++ b/net/netfilter/nf_conntrack_bpf.c
-@@ -12,6 +12,7 @@
- #include <linux/btf_ids.h>
- #include <linux/net_namespace.h>
- #include <net/netfilter/nf_conntrack.h>
-+#include <net/netfilter/nf_conntrack_bpf.h>
- #include <net/netfilter/nf_conntrack_core.h>
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index d97eb280cb2e8..141e0ebf4bc23 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -629,9 +629,11 @@ __build_packet_message(struct nfnl_log_net *log,
+ 			 htonl(atomic_inc_return(&log->global_seq))))
+ 		goto nla_put_failure;
  
- /* bpf_ct_opts - Options for CT lookup helpers
-@@ -102,8 +103,8 @@ static struct nf_conn *__bpf_nf_ct_lookup(struct net *net,
- }
++#if IS_ENABLED(CONFIG_NF_CONNTRACK)
+ 	if (ct && nfnl_ct->build(inst->skb, ct, ctinfo,
+ 				 NFULA_CT, NFULA_CT_INFO) < 0)
+ 		goto nla_put_failure;
++#endif
  
- __diag_push();
--__diag_ignore(GCC, 8, "-Wmissing-prototypes",
--	      "Global functions as their definitions will be in nf_conntrack BTF");
-+__diag_ignore_all("-Wmissing-prototypes",
-+		  "Global functions as their definitions will be in nf_conntrack BTF");
- 
- /* bpf_xdp_ct_lookup - Lookup CT entry for the given tuple, and acquire a
-  *		       reference to it
+ 	if ((pf == NFPROTO_NETDEV || pf == NFPROTO_BRIDGE) &&
+ 	    nfulnl_put_bridge(inst, skb) < 0)
 -- 
-2.35.1
+2.26.3
 
