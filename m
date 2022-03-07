@@ -2,105 +2,85 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37FA8C433F5
-	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Mar 2022 21:08:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C939C433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Mar 2022 21:09:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232860AbiCGVJu (ORCPT
+        id S235194AbiCGVKl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 7 Mar 2022 16:09:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56438 "EHLO
+        Mon, 7 Mar 2022 16:10:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59920 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232405AbiCGVJt (ORCPT
+        with ESMTP id S232405AbiCGVKk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 7 Mar 2022 16:09:49 -0500
+        Mon, 7 Mar 2022 16:10:40 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 33EE85A148
-        for <netfilter-devel@vger.kernel.org>; Mon,  7 Mar 2022 13:08:53 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3368B69CF8
+        for <netfilter-devel@vger.kernel.org>; Mon,  7 Mar 2022 13:09:45 -0800 (PST)
 Received: from netfilter.org (unknown [87.190.248.243])
-        by mail.netfilter.org (Postfix) with ESMTPSA id EC1E963002;
-        Mon,  7 Mar 2022 22:07:00 +0100 (CET)
-Date:   Mon, 7 Mar 2022 22:08:47 +0100
+        by mail.netfilter.org (Postfix) with ESMTPSA id 7258E63002;
+        Mon,  7 Mar 2022 22:07:54 +0100 (CET)
+Date:   Mon, 7 Mar 2022 22:09:41 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH] misspell: Avoid segfault with anonymous chains
-Message-ID: <YiZz9PkLxH/MTQoq@salvia>
-References: <20220304103711.23355-1-phil@nwl.cc>
- <YiHz+bNsLvFjkPit@salvia>
- <YiIC/zbFfMTcsuNb@orbyte.nwl.cc>
+To:     Vlad Buslov <vladbu@nvidia.com>
+Cc:     netfilter-devel@vger.kernel.org, kadlec@netfilter.org,
+        fw@strlen.de, ozsh@nvidia.com, paulb@nvidia.com
+Subject: Re: [PATCH net-next 1/8] net/sched: act_ct: set 'net' pointer when
+ creating new nf_flow_table
+Message-ID: <YiZ0lRpxdD8lkO5F@salvia>
+References: <20220222151003.2136934-1-vladbu@nvidia.com>
+ <20220222151003.2136934-2-vladbu@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <YiIC/zbFfMTcsuNb@orbyte.nwl.cc>
+In-Reply-To: <20220222151003.2136934-2-vladbu@nvidia.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Mar 04, 2022 at 01:15:59PM +0100, Phil Sutter wrote:
-> On Fri, Mar 04, 2022 at 12:11:53PM +0100, Pablo Neira Ayuso wrote:
-> > Hi Phil,
-> > 
-> > On Fri, Mar 04, 2022 at 11:37:11AM +0100, Phil Sutter wrote:
-> > > When trying to add a rule which contains an anonymous chain to a
-> > > non-existent chain, string_misspell_update() is called with a NULL
-> > > string because the anonymous chain has no name. Avoid this by making the
-> > > function NULL-pointer tolerant.
-> > > 
-> > > c330152b7f777 ("src: support for implicit chain bindings")
-> > > 
-> > > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> > > ---
-> > >  src/misspell.c | 4 ++--
-> > >  1 file changed, 2 insertions(+), 2 deletions(-)
-> > > 
-> > > diff --git a/src/misspell.c b/src/misspell.c
-> > > index 6536d7557a445..f213a240005e6 100644
-> > > --- a/src/misspell.c
-> > > +++ b/src/misspell.c
-> > > @@ -80,8 +80,8 @@ int string_misspell_update(const char *a, const char *b,
-> > >  {
-> > >  	unsigned int len_a, len_b, max_len, min_len, distance, threshold;
-> > >  
-> > > -	len_a = strlen(a);
-> > > -	len_b = strlen(b);
-> > > +	len_a = a ? strlen(a) : 0;
-> > > +	len_b = b ? strlen(b) : 0;
-> > 
-> > string_distance() assumes non-NULL too.
+On Tue, Feb 22, 2022 at 05:09:56PM +0200, Vlad Buslov wrote:
+> Following patches in series use the pointer to access flow table offload
+> debug variables.
 > 
-> Which is called from string_misspell_update() only which with my patch
-> returns early due to 'max_len <= 1'.
+> Signed-off-by: Vlad Buslov <vladbu@nvidia.com>
+> Signed-off-by: Oz Shlomo <ozsh@nvidia.com>
+> Reviewed-by: Paul Blakey <paulb@nvidia.com>
+
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+
+> ---
+>  net/sched/act_ct.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
 > 
-> > probably shortcircuit chain_lookup_fuzzy() earlier since h->chain.name
-> > is always NULL, to avoid the useless loop.
+> diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
+> index 7108e71ce4db..a2624f6c4d92 100644
+> --- a/net/sched/act_ct.c
+> +++ b/net/sched/act_ct.c
+> @@ -277,7 +277,7 @@ static struct nf_flowtable_type flowtable_ct = {
+>  	.owner		= THIS_MODULE,
+>  };
+>  
+> -static int tcf_ct_flow_table_get(struct tcf_ct_params *params)
+> +static int tcf_ct_flow_table_get(struct net *net, struct tcf_ct_params *params)
+>  {
+>  	struct tcf_ct_flow_table *ct_ft;
+>  	int err = -ENOMEM;
+> @@ -303,6 +303,7 @@ static int tcf_ct_flow_table_get(struct tcf_ct_params *params)
+>  	err = nf_flow_table_init(&ct_ft->nf_ft);
+>  	if (err)
+>  		goto err_init;
+> +	write_pnet(&ct_ft->nf_ft.net, net);
+>  
+>  	__module_get(THIS_MODULE);
+>  out_unlock:
+> @@ -1321,7 +1322,7 @@ static int tcf_ct_init(struct net *net, struct nlattr *nla,
+>  	if (err)
+>  		goto cleanup;
+>  
+> -	err = tcf_ct_flow_table_get(params);
+> +	err = tcf_ct_flow_table_get(net, params);
+>  	if (err)
+>  		goto cleanup;
+>  
+> -- 
+> 2.31.1
 > 
-> Fine with me, too! What about allocating a name for the anonymous chain
-> instead?
-
-A dummy name could be allocated, but the kernel does not need the
-chain name at this stage (it uses the ephemeral 32-bit chain ID
-instead which is only valid in the netlink batch).
-
-Probably set_lookup_fuzzy() should also short-circuit early the
-misspell logic for anonymous sets.
-
-> I guess similar treatment as with sets would make sense. Might
-> also help with netlink debug output:
->
-> | # nft --debug=netlink insert rule inet x y 'goto { accept; }'
-> | inet (null) (null) use 0
-
-# nft add table x
-# nft --debug=netlink add chain x y
-ip (null) (null) use 0
-
-table is null, at least this one should be set on, but this is
-a partially different issue.
-
-> | inet x
-> |   [ immediate reg 0 accept ]
-> | 
-> |   inet x y
-> |     [ immediate reg 0 goto ]
-> | [...]
-> 
-> Thanks, Phil
