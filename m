@@ -2,103 +2,105 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F44BC433F5
-	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Mar 2022 13:39:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37FA8C433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Mar 2022 21:08:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237004AbiCGNku (ORCPT
+        id S232860AbiCGVJu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 7 Mar 2022 08:40:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60982 "EHLO
+        Mon, 7 Mar 2022 16:09:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56438 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235471AbiCGNkt (ORCPT
+        with ESMTP id S232405AbiCGVJt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 7 Mar 2022 08:40:49 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 62CBB85BE4
-        for <netfilter-devel@vger.kernel.org>; Mon,  7 Mar 2022 05:39:55 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1646660394;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=CtoXzlWdMjEaTdkHRpRbjU16+CzIWpJ5Gk6mnrIwGKc=;
-        b=YL3HMcElSneMp/r9xt782uwEf6IPZUCxf8TnqHY1xWWFpEMDy1yiQqL5Sq5nCsfU3gy/SF
-        99h6K5K8WgFTGA50z1K3TJ+mGa/CPvW+Xl600+5rjMIPsx9tt7Bm+kkIYK+MzrjMc5v1Pl
-        6mSS/1B+we3FTbexyYFEgQAXTTzEWeg=
-Received: from mail-ot1-f72.google.com (mail-ot1-f72.google.com
- [209.85.210.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-356-zhm1tJpiNE2sYZU6PyyHyw-1; Mon, 07 Mar 2022 08:39:53 -0500
-X-MC-Unique: zhm1tJpiNE2sYZU6PyyHyw-1
-Received: by mail-ot1-f72.google.com with SMTP id t16-20020a9d7290000000b005b24005289dso777053otj.11
-        for <netfilter-devel@vger.kernel.org>; Mon, 07 Mar 2022 05:39:53 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-transfer-encoding
-         :content-language;
-        bh=CtoXzlWdMjEaTdkHRpRbjU16+CzIWpJ5Gk6mnrIwGKc=;
-        b=O6GYHc4UvFW3cvWrzGV7YIMg4TyfXqVVLv8Jqw7f+8P72stJNUqoBAHDjUTLCcVhPn
-         UkR68PBsra9AaRpA7MzFCUZb5PEgyS5uBHTQax67ID4uE7/bg3izhhpx/gv30tUuJovi
-         CT2BlJguXFr5YK1c2fCh1D7YDuZ202j5W9wKSqeiwkU2D0jSV2sxG/P2GJ5zE+MZYUEI
-         8O1+CcWX30o4PGkthoHEgsnjYIK0JbVhCgHmAvOnitsduZSMrkdQ6fnFpwmWBGT+NncZ
-         Y97k6NibfF9PyRJsgUwAwuQemIxdUQwGTgqzDLpYuiiD5j1FPZnjJF6stYFCSrkhfEZs
-         F7bA==
-X-Gm-Message-State: AOAM530uoeJA60uylKDRJODwh3TxkIgXPHi78mn0zk/tb5wWPeMrFMDq
-        mzRtzUUOEDkLPA7ECQ9+UTh4orll9+UyV7XX5SeztPa6e8jvHkmT32Lo5yevbvAL4g8D7pgKWOa
-        x2gH7CfGsGc0VH8E1BFuRZBh3y1Y2
-X-Received: by 2002:a05:6830:2646:b0:5b0:29e9:b623 with SMTP id f6-20020a056830264600b005b029e9b623mr5525176otu.266.1646660392492;
-        Mon, 07 Mar 2022 05:39:52 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJzGLrIi2ki38vAlN8pwDU2wa+0EYJY5++5iZgmYWGYscX8JZBaezJHnxs4oMV1319QYnLYyHA==
-X-Received: by 2002:a05:6830:2646:b0:5b0:29e9:b623 with SMTP id f6-20020a056830264600b005b029e9b623mr5525166otu.266.1646660392286;
-        Mon, 07 Mar 2022 05:39:52 -0800 (PST)
-Received: from localhost.localdomain (024-205-208-113.res.spectrum.com. [24.205.208.113])
-        by smtp.gmail.com with ESMTPSA id m26-20020a05680806da00b002d797266870sm6326213oih.9.2022.03.07.05.39.51
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 07 Mar 2022 05:39:51 -0800 (PST)
-Subject: Re: [PATCH] netfilter: conditionally use ct and ctinfo
-To:     Florian Westphal <fw@strlen.de>
-Cc:     pablo@netfilter.org, kadlec@netfilter.org, davem@davemloft.net,
-        kuba@kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <20220305180853.696640-1-trix@redhat.com>
- <20220307124652.GB21350@breakpoint.cc>
-From:   Tom Rix <trix@redhat.com>
-Message-ID: <b795685f-6cdb-5493-8280-75749ddb0f6f@redhat.com>
-Date:   Mon, 7 Mar 2022 05:39:49 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.10.1
+        Mon, 7 Mar 2022 16:09:49 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 33EE85A148
+        for <netfilter-devel@vger.kernel.org>; Mon,  7 Mar 2022 13:08:53 -0800 (PST)
+Received: from netfilter.org (unknown [87.190.248.243])
+        by mail.netfilter.org (Postfix) with ESMTPSA id EC1E963002;
+        Mon,  7 Mar 2022 22:07:00 +0100 (CET)
+Date:   Mon, 7 Mar 2022 22:08:47 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH] misspell: Avoid segfault with anonymous chains
+Message-ID: <YiZz9PkLxH/MTQoq@salvia>
+References: <20220304103711.23355-1-phil@nwl.cc>
+ <YiHz+bNsLvFjkPit@salvia>
+ <YiIC/zbFfMTcsuNb@orbyte.nwl.cc>
 MIME-Version: 1.0
-In-Reply-To: <20220307124652.GB21350@breakpoint.cc>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <YiIC/zbFfMTcsuNb@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+On Fri, Mar 04, 2022 at 01:15:59PM +0100, Phil Sutter wrote:
+> On Fri, Mar 04, 2022 at 12:11:53PM +0100, Pablo Neira Ayuso wrote:
+> > Hi Phil,
+> > 
+> > On Fri, Mar 04, 2022 at 11:37:11AM +0100, Phil Sutter wrote:
+> > > When trying to add a rule which contains an anonymous chain to a
+> > > non-existent chain, string_misspell_update() is called with a NULL
+> > > string because the anonymous chain has no name. Avoid this by making the
+> > > function NULL-pointer tolerant.
+> > > 
+> > > c330152b7f777 ("src: support for implicit chain bindings")
+> > > 
+> > > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> > > ---
+> > >  src/misspell.c | 4 ++--
+> > >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > > 
+> > > diff --git a/src/misspell.c b/src/misspell.c
+> > > index 6536d7557a445..f213a240005e6 100644
+> > > --- a/src/misspell.c
+> > > +++ b/src/misspell.c
+> > > @@ -80,8 +80,8 @@ int string_misspell_update(const char *a, const char *b,
+> > >  {
+> > >  	unsigned int len_a, len_b, max_len, min_len, distance, threshold;
+> > >  
+> > > -	len_a = strlen(a);
+> > > -	len_b = strlen(b);
+> > > +	len_a = a ? strlen(a) : 0;
+> > > +	len_b = b ? strlen(b) : 0;
+> > 
+> > string_distance() assumes non-NULL too.
+> 
+> Which is called from string_misspell_update() only which with my patch
+> returns early due to 'max_len <= 1'.
+> 
+> > probably shortcircuit chain_lookup_fuzzy() earlier since h->chain.name
+> > is always NULL, to avoid the useless loop.
+> 
+> Fine with me, too! What about allocating a name for the anonymous chain
+> instead?
 
-On 3/7/22 4:46 AM, Florian Westphal wrote:
-> trix@redhat.com <trix@redhat.com> wrote:
->> From: Tom Rix <trix@redhat.com>
->>
->> The setting ct and ctinfo are controlled by
->> CONF_NF_CONNTRACK.  So their use should also
->> be controlled.
-> Any reason for this change?
+A dummy name could be allocated, but the kernel does not need the
+chain name at this stage (it uses the ephemeral 32-bit chain ID
+instead which is only valid in the netlink batch).
 
-Define and use are connected. Doing something to one without doing 
-something to the other doesn't make sense.
+Probably set_lookup_fuzzy() should also short-circuit early the
+misspell logic for anonymous sets.
 
-Could removing the CONF_NF_CONNTRACK be done for the define side ?
-
-Tom
-
-> We try to avoid ifdef where possible, unless it avoids a compiler
-> warning/build/linker issue.
+> I guess similar treatment as with sets would make sense. Might
+> also help with netlink debug output:
 >
-> This doesn't change generated code for me (NF_CONNTRACK=n) either.
->
+> | # nft --debug=netlink insert rule inet x y 'goto { accept; }'
+> | inet (null) (null) use 0
 
+# nft add table x
+# nft --debug=netlink add chain x y
+ip (null) (null) use 0
+
+table is null, at least this one should be set on, but this is
+a partially different issue.
+
+> | inet x
+> |   [ immediate reg 0 accept ]
+> | 
+> |   inet x y
+> |     [ immediate reg 0 goto ]
+> | [...]
+> 
+> Thanks, Phil
