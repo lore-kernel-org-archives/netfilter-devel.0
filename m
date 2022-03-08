@@ -2,212 +2,189 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 018B8C433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Mar 2022 22:49:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F2F7C433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Mar 2022 10:24:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231643AbiCGWuJ (ORCPT
+        id S238768AbiCHKY4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 7 Mar 2022 17:50:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59866 "EHLO
+        Tue, 8 Mar 2022 05:24:56 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34650 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236071AbiCGWuI (ORCPT
+        with ESMTP id S234017AbiCHKYz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 7 Mar 2022 17:50:08 -0500
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 62A626565
-        for <netfilter-devel@vger.kernel.org>; Mon,  7 Mar 2022 14:49:13 -0800 (PST)
-Received: from netfilter.org (unknown [87.190.248.243])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 2068B625F9;
-        Mon,  7 Mar 2022 23:47:22 +0100 (CET)
-Date:   Mon, 7 Mar 2022 23:49:09 +0100
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Vlad Buslov <vladbu@nvidia.com>
-Cc:     netfilter-devel@vger.kernel.org, kadlec@netfilter.org,
-        fw@strlen.de, ozsh@nvidia.com, paulb@nvidia.com
-Subject: Re: [PATCH net-next 8/8] netfilter: flowtable: add hardware offload
- tracepoints
-Message-ID: <YiaL5a8akGHoIXLE@salvia>
-References: <20220222151003.2136934-1-vladbu@nvidia.com>
- <20220222151003.2136934-9-vladbu@nvidia.com>
+        Tue, 8 Mar 2022 05:24:55 -0500
+X-Greylist: delayed 61 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 08 Mar 2022 02:23:58 PST
+Received: from ewsoutbound.kpnmail.nl (ewsoutbound.kpnmail.nl [195.121.94.170])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D52A3403D8
+        for <netfilter-devel@vger.kernel.org>; Tue,  8 Mar 2022 02:23:58 -0800 (PST)
+X-KPN-MessageId: b2494ed1-9ec9-11ec-8147-005056ab378f
+Received: from smtp.kpnmail.nl (unknown [10.31.155.38])
+        by ewsoutbound.so.kpn.org (Halon) with ESMTPS
+        id b2494ed1-9ec9-11ec-8147-005056ab378f;
+        Tue, 08 Mar 2022 11:22:45 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=kpnplanet.nl; s=kpnplanet01;
+        h=content-type:from:to:subject:mime-version:date:message-id;
+        bh=hmRoX+zMRGqmxDRFTNsXO5Y17dSyv9Ug+p5/Uuh5hvw=;
+        b=DGmBLYu1WCjt0mxgrz44MnDtlVtlJbWzkMihka5hgDksmu77AT/CB9/aghxruJ1wnL3oNWucuXt8A
+         vjSN7tkdA4u57KsZqJfFepD02wEyFL/pMXm6DzbfqjYZAla8X1TvyD5NqhjWewhQ4xvMQi7rtBp7LL
+         ABKegrfG/Omu29s0=
+X-KPN-MID: 33|wEWbeEnpQSy6798Ny4InAkJVH2rzhJLc/iqR3dodnzAhJxowKNGEb53XdNF0rje
+ KSB/p7vOdlv8F0ULLA7ioagu0S42CV2NsA2XhHXEpbEM=
+X-KPN-VerifiedSender: No
+X-CMASSUN: 33|Pes/mcH9uSfxi3uXeCKwPHaHnOLYXNUK8k+B5z0gAVt01Xzl7GPcuATc/H3pQ/L
+ qW2Zts/TR1N0DJN06UdVoFw==
+X-Originating-IP: 62.131.27.220
+Received: from [192.168.2.9] (62-131-27-220.fixed.kpn.net [62.131.27.220])
+        by smtp.kpnmail.nl (Halon) with ESMTPSA
+        id b786041d-9ec9-11ec-9256-005056abf0db;
+        Tue, 08 Mar 2022 11:22:55 +0100 (CET)
+Message-ID: <0a2b7783-53b8-dbf5-010d-d97acfc465fe@kpnplanet.nl>
+Date:   Tue, 8 Mar 2022 11:22:54 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20220222151003.2136934-9-vladbu@nvidia.com>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.5.0
+Reply-To: hmmsjan@kpnplanet.nl
+Subject: Re: TCP connection fails in a asymmetric routing situation
+Content-Language: en-US
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel <netfilter-devel@vger.kernel.org>,
+        pablo@netfilter.org, kadlec@netfilter.org
+References: <20220225123030.GK28705@breakpoint.cc>
+ <20220302105908.GA5852@breakpoint.cc>
+From:   "H.Janssen" <hmmsjan@kpnplanet.nl>
+Organization: Privat
+In-Reply-To: <20220302105908.GA5852@breakpoint.cc>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Feb 22, 2022 at 05:10:03PM +0200, Vlad Buslov wrote:
-> Add tracepoints to trace creation and start of execution of flowtable
-> hardware offload 'add', 'del' and 'stats' tasks. Move struct
-> flow_offload_work from source into header file to allow access to structure
-> fields from tracepoint code.
+Dear Mr. Westphal,
 
-This patch, I would prefer to keep it back and explore exposing trace
-infrastructure for the flowtable through netlink.
+The problem seems to be solved with the patch below in kernel 
+5.16.12-200.fc35.x86_64. Few lines offset during patch, but it patches 
+and compiles.
 
-> Signed-off-by: Vlad Buslov <vladbu@nvidia.com>
-> Signed-off-by: Oz Shlomo <ozsh@nvidia.com>
-> Reviewed-by: Paul Blakey <paulb@nvidia.com>
-> ---
->  include/net/netfilter/nf_flow_table.h       |  9 ++++
->  net/netfilter/nf_flow_table_offload.c       | 20 +++++----
->  net/netfilter/nf_flow_table_offload_trace.h | 48 +++++++++++++++++++++
->  3 files changed, 68 insertions(+), 9 deletions(-)
->  create mode 100644 net/netfilter/nf_flow_table_offload_trace.h
-> 
-> diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-> index a3647fadf1cc..5e2aef34acaa 100644
-> --- a/include/net/netfilter/nf_flow_table.h
-> +++ b/include/net/netfilter/nf_flow_table.h
-> @@ -174,6 +174,15 @@ struct flow_offload {
->  	struct rcu_head				rcu_head;
->  };
->  
-> +struct flow_offload_work {
-> +	struct list_head list;
-> +	enum flow_cls_command cmd;
-> +	int priority;
-> +	struct nf_flowtable *flowtable;
-> +	struct flow_offload *flow;
-> +	struct work_struct work;
-> +};
+No idea about possible side effects, but ports are no longer manipulated..
+
+contrack -E --dst 192.168.10.12
+
+     [NEW] tcp      6 300 ESTABLISHED src=192.168.1.47 dst=192.168.10.12 
+sport=80 dport=52044 [UNREPLIED] src=192.168.10.12 dst=192.168.1.47 
+sport=52044 dport=80
+  [UPDATE] tcp      6 120 FIN_WAIT src=192.168.1.47 dst=192.168.10.12 
+sport=80 dport=52044 [UNREPLIED] src=192.168.10.12 dst=192.168.1.47 
+sport=52044 dport=80
+[DESTROY] tcp      6 FIN_WAIT src=192.168.1.47 dst=192.168.10.12 
+sport=80 dport=52040 [UNREPLIED] src=192.168.10.12 dst=192.168.1.47 
+sport=52040 dport=80
+[DESTROY] tcp      6 FIN_WAIT src=192.168.1.47 dst=192.168.10.12 
+sport=80 dport=52042 [UNREPLIED] src=192.168.10.12 dst=192.168.1.47 
+sport=52042 dport=80
+
+Thanks and kind regards
+
+
+
+
+
+On 3/2/22 11:59, Florian Westphal wrote:
+> Florian Westphal <fw@strlen.de> wrote:
+>> 1. Change ct->local_origin to "ct->no_srcremap" (or a new status bit)
+>> that indicates that this should not have src remap done, just like we
+>> do for locally generated connections.
+>>
+>> 2. Add a new "mid-stream" status bit, then bypass the entire -t nat
+>> logic if its set. nf_nat_core would create a null binding for the
+>> flow, this also bypasses the "src remap" code.
+>>
+>> 3. Simpler version: from tcp conntrack, set the nat-done status bits
+>> if its a mid-stream pickup.
+>>
+>> Downside: nat engine (as-is) won't create a null binding, so connection
+>> will not be known to nat engine for masquerade source port clash
+>> detection.
+>>
+>> I would go for 2) unless you have a better suggestion/idea.
+> Something like this:
+>
+> diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h b/include/uapi/linux/netfilter/nf_conntrack_common.h
+> --- a/include/uapi/linux/netfilter/nf_conntrack_common.h
+> +++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
+> @@ -118,15 +118,19 @@ enum ip_conntrack_status {
+>   	IPS_HW_OFFLOAD_BIT = 15,
+>   	IPS_HW_OFFLOAD = (1 << IPS_HW_OFFLOAD_BIT),
+>   
+> +	/* Connection started mid-transfer, origin/reply might be inversed */
+> +	IPS_MID_STREAM_BIT = 16,
+> +	IPS_MID_STREAM = (1 << IPS_MID_STREAM_BIT),
 > +
->  #define NF_FLOW_TIMEOUT (30 * HZ)
->  #define nf_flowtable_time_stamp	(u32)jiffies
->  
-> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-> index ff52d903aad9..bf94050d5b54 100644
-> --- a/net/netfilter/nf_flow_table_offload.c
-> +++ b/net/netfilter/nf_flow_table_offload.c
-> @@ -12,20 +12,13 @@
->  #include <net/netfilter/nf_conntrack_acct.h>
->  #include <net/netfilter/nf_conntrack_core.h>
->  #include <net/netfilter/nf_conntrack_tuple.h>
-> +#define CREATE_TRACE_POINTS
-> +#include "nf_flow_table_offload_trace.h"
->  
->  static struct workqueue_struct *nf_flow_offload_add_wq;
->  static struct workqueue_struct *nf_flow_offload_del_wq;
->  static struct workqueue_struct *nf_flow_offload_stats_wq;
->  
-> -struct flow_offload_work {
-> -	struct list_head	list;
-> -	enum flow_cls_command	cmd;
-> -	int			priority;
-> -	struct nf_flowtable	*flowtable;
-> -	struct flow_offload	*flow;
-> -	struct work_struct	work;
-> -};
-> -
->  #define NF_FLOW_DISSECTOR(__match, __type, __field)	\
->  	(__match)->dissector.offset[__type] =		\
->  		offsetof(struct nf_flow_key, __field)
-> @@ -895,6 +888,8 @@ static void flow_offload_work_add(struct flow_offload_work *offload)
->  	struct nf_flow_rule *flow_rule[FLOW_OFFLOAD_DIR_MAX];
->  	int err;
->  
-> +	trace_flow_offload_work_add(offload);
+>   	/* Be careful here, modifying these bits can make things messy,
+>   	 * so don't let users modify them directly.
+>   	 */
+>   	IPS_UNCHANGEABLE_MASK = (IPS_NAT_DONE_MASK | IPS_NAT_MASK |
+>   				 IPS_EXPECTED | IPS_CONFIRMED | IPS_DYING |
+>   				 IPS_SEQ_ADJUST | IPS_TEMPLATE | IPS_UNTRACKED |
+> -				 IPS_OFFLOAD | IPS_HW_OFFLOAD),
+> +				 IPS_OFFLOAD | IPS_HW_OFFLOAD | IPS_MID_STREAM_BIT),
+>   
+> -	__IPS_MAX_BIT = 16,
+> +	__IPS_MAX_BIT = 17,
+>   };
+>   
+>   /* Connection tracking event types */
+> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+> --- a/net/netfilter/nf_conntrack_proto_tcp.c
+> +++ b/net/netfilter/nf_conntrack_proto_tcp.c
+> @@ -537,6 +537,8 @@ static bool tcp_in_window(struct nf_conn *ct,
+>   			 * its history is lost for us.
+>   			 * Let's try to use the data from the packet.
+>   			 */
+> +			set_bit(IPS_MID_STREAM_BIT, &ct->status);
 > +
->  	err = nf_flow_offload_alloc(offload, flow_rule);
->  	if (err < 0)
->  		return;
-> @@ -911,6 +906,8 @@ static void flow_offload_work_add(struct flow_offload_work *offload)
->  
->  static void flow_offload_work_del(struct flow_offload_work *offload)
->  {
-> +	trace_flow_offload_work_del(offload);
+>   			sender->td_end = end;
+>   			swin = win << sender->td_scale;
+>   			sender->td_maxwin = (swin == 0 ? 1 : swin);
+> @@ -816,6 +818,8 @@ static noinline bool tcp_new(struct nf_conn *ct, const struct sk_buff *skb,
+>   		 * its history is lost for us.
+>   		 * Let's try to use the data from the packet.
+>   		 */
+> +		set_bit(IPS_MID_STREAM_BIT, &ct->status);
 > +
->  	clear_bit(IPS_HW_OFFLOAD_BIT, &offload->flow->ct->status);
->  	flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_ORIGINAL);
->  	flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_REPLY);
-> @@ -931,6 +928,8 @@ static void flow_offload_work_stats(struct flow_offload_work *offload)
->  	struct flow_stats stats[FLOW_OFFLOAD_DIR_MAX] = {};
->  	u64 lastused;
->  
-> +	trace_flow_offload_work_stats(offload);
+>   		ct->proto.tcp.seen[0].td_end =
+>   			segment_seq_plus_len(ntohl(th->seq), skb->len,
+>   					     dataoff, th);
+> diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+> --- a/net/netfilter/nf_nat_core.c
+> +++ b/net/netfilter/nf_nat_core.c
+> @@ -545,6 +545,12 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
+>   
+>   	zone = nf_ct_zone(ct);
+>   
+> +	if (unlikely(test_bit(IPS_MID_STREAM_BIT, &ct->status))) {
+> +		/* Can't NAT if connection was picked up mid-stream (e.g. tcp) */
+> +		*tuple = *orig_tuple;
+> +		return;
+> +	}
 > +
->  	flow_offload_tuple_stats(offload, FLOW_OFFLOAD_DIR_ORIGINAL, &stats[0]);
->  	flow_offload_tuple_stats(offload, FLOW_OFFLOAD_DIR_REPLY, &stats[1]);
->  
-> @@ -1034,6 +1033,7 @@ void nf_flow_offload_add(struct nf_flowtable *flowtable,
->  		return;
->  	}
->  
-> +	trace_flow_offload_add(offload);
->  	flow_offload_queue_work(offload);
->  }
->  
-> @@ -1048,6 +1048,7 @@ void nf_flow_offload_del(struct nf_flowtable *flowtable,
->  		return;
->  
->  	atomic_inc(&net->nft.count_wq_del);
-> +	trace_flow_offload_del(offload);
->  	set_bit(NF_FLOW_HW_DYING, &flow->flags);
->  	flow_offload_queue_work(offload);
->  }
-> @@ -1068,6 +1069,7 @@ void nf_flow_offload_stats(struct nf_flowtable *flowtable,
->  		return;
->  
->  	atomic_inc(&net->nft.count_wq_stats);
-> +	trace_flow_offload_stats(offload);
->  	flow_offload_queue_work(offload);
->  }
->  
-> diff --git a/net/netfilter/nf_flow_table_offload_trace.h b/net/netfilter/nf_flow_table_offload_trace.h
-> new file mode 100644
-> index 000000000000..49cfbc2ec35d
-> --- /dev/null
-> +++ b/net/netfilter/nf_flow_table_offload_trace.h
-> @@ -0,0 +1,48 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
-> +
-> +#undef TRACE_SYSTEM
-> +#define TRACE_SYSTEM nf
-> +
-> +#if !defined(_NF_FLOW_TABLE_OFFLOAD_TRACE_) || defined(TRACE_HEADER_MULTI_READ)
-> +#define _NF_FLOW_TABLE_OFFLOAD_TRACE_
-> +
-> +#include <linux/tracepoint.h>
-> +#include <net/netfilter/nf_tables.h>
-> +
-> +DECLARE_EVENT_CLASS(
-> +	nf_flow_offload_work_template,
-> +	TP_PROTO(struct flow_offload_work *w),
-> +	TP_ARGS(w),
-> +	TP_STRUCT__entry(
-> +		__field(void *, work)
-> +		__field(void *, flowtable)
-> +		__field(void *, flow)
-> +	),
-> +	TP_fast_assign(
-> +		__entry->work = w;
-> +		__entry->flowtable = w->flowtable;
-> +		__entry->flow = w->flow;
-> +	),
-> +	TP_printk("work=%p flowtable=%p flow=%p",
-> +		  __entry->work, __entry->flowtable, __entry->flow)
-> +);
-> +
-> +#define DEFINE_NF_FLOW_OFFLOAD_WORK_EVENT(name)				\
-> +	DEFINE_EVENT(nf_flow_offload_work_template, name,		\
-> +		     TP_PROTO(struct flow_offload_work *w), TP_ARGS(w))
-> +
-> +DEFINE_NF_FLOW_OFFLOAD_WORK_EVENT(flow_offload_add);
-> +DEFINE_NF_FLOW_OFFLOAD_WORK_EVENT(flow_offload_work_add);
-> +DEFINE_NF_FLOW_OFFLOAD_WORK_EVENT(flow_offload_del);
-> +DEFINE_NF_FLOW_OFFLOAD_WORK_EVENT(flow_offload_work_del);
-> +DEFINE_NF_FLOW_OFFLOAD_WORK_EVENT(flow_offload_stats);
-> +DEFINE_NF_FLOW_OFFLOAD_WORK_EVENT(flow_offload_work_stats);
-> +
-> +#endif
-> +
-> +/* This part must be outside protection */
-> +#undef TRACE_INCLUDE_PATH
-> +#define TRACE_INCLUDE_PATH ../../net/netfilter
-> +#undef TRACE_INCLUDE_FILE
-> +#define TRACE_INCLUDE_FILE nf_flow_table_offload_trace
-> +#include <trace/define_trace.h>
-> -- 
-> 2.31.1
-> 
+>   	if (maniptype == NF_NAT_MANIP_SRC &&
+>   	    !random_port &&
+>   	    !ct->local_origin)
+> @@ -781,7 +787,7 @@ nf_nat_inet_fn(void *priv, struct sk_buff *skb,
+>   			unsigned int ret;
+>   			int i;
+>   
+> -			if (!e)
+> +			if (!e || unlikely(test_bit(IPS_MID_STREAM_BIT, &ct->status)))
+>   				goto null_bind;
+>   
+>   			for (i = 0; i < e->num_hook_entries; i++) {
+
+-- 
+H.Janssen
+Lekerwaard 36
+1824HC Alkmaar
+06-58971047
+
