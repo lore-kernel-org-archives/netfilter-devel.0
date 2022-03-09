@@ -2,96 +2,130 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 553D2C43217
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Mar 2022 09:12:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61A49C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Mar 2022 09:55:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231909AbiCIJNG (ORCPT
+        id S231864AbiCIJ4A (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Mar 2022 04:13:06 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54748 "EHLO
+        Wed, 9 Mar 2022 04:56:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40674 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231871AbiCIJNG (ORCPT
+        with ESMTP id S230522AbiCIJz7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Mar 2022 04:13:06 -0500
-X-Greylist: delayed 546 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 09 Mar 2022 01:12:06 PST
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::48])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E364216BF9F
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Mar 2022 01:12:06 -0800 (PST)
-Received: from localhost (localhost [127.0.0.1])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 464F7CC0108;
-        Wed,  9 Mar 2022 10:02:55 +0100 (CET)
-X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
-        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Wed,  9 Mar 2022 10:02:53 +0100 (CET)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-        by smtp2.kfki.hu (Postfix) with ESMTP id F1185CC0100;
-        Wed,  9 Mar 2022 10:02:52 +0100 (CET)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id EBACB340D76; Wed,  9 Mar 2022 10:02:52 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-        by blackhole.kfki.hu (Postfix) with ESMTP id E9B27340D74;
-        Wed,  9 Mar 2022 10:02:52 +0100 (CET)
-Date:   Wed, 9 Mar 2022 10:02:52 +0100 (CET)
-From:   Jozsef Kadlecsik <kadlec@netfilter.org>
-To:     Ian Pilcher <arequipeno@gmail.com>
-cc:     netfilter-devel@vger.kernel.org
-Subject: Re: Looking for info on ipset set type revisions
-In-Reply-To: <32c1b5d3-59f9-8bf2-ee22-f4b6708d57be@gmail.com>
-Message-ID: <ffa9a4f-d09b-302b-3df6-89d33d88c8f@netfilter.org>
-References: <32c1b5d3-59f9-8bf2-ee22-f4b6708d57be@gmail.com>
+        Wed, 9 Mar 2022 04:55:59 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0283D1168C5
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Mar 2022 01:54:55 -0800 (PST)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1nRt1w-0000ay-Vs; Wed, 09 Mar 2022 10:54:53 +0100
+Date:   Wed, 9 Mar 2022 10:54:52 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [conntrack-tools PATCH] nfct: Support for non-lazy binding
+Message-ID: <Yih5bGelyiS/F3ll@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20220208160100.27527-1-phil@nwl.cc>
+ <YievMLRYJJZ24kNp@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <YievMLRYJJZ24kNp@salvia>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Ian,
+Hi,
 
-On Tue, 8 Mar 2022, Ian Pilcher wrote:
-
-> I am working on a C program that uses libmnl to do some basic ipset 
-> manipulation - namely create a set of type hash:ip,port and then add 
-> entries.
+On Tue, Mar 08, 2022 at 08:32:00PM +0100, Pablo Neira Ayuso wrote:
+> On Tue, Feb 08, 2022 at 05:01:00PM +0100, Phil Sutter wrote:
+> > For security purposes, distributions might want to pass -Wl,-z,now
+> > linker flags to all builds, thereby disabling lazy binding globally.
+> > 
+> > In the past, nfct relied upon lazy binding: It uses the helper objects'
+> > parsing functions without but doesn't provide all symbols the objects
+> > use.
+> > 
+> > Add a --disable-lazy configure option to add those missing symbols to
+> > nfct so it may be used in those environments.
+> > 
+> > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> > ---
+> > This patch supersedes the previously submitted "Merge nfct tool into
+> > conntrackd", providing a solution which is a) optional and b) doesn't
+> > bloat nfct-only use-cases that much.
+> > ---
+> >  configure.ac    | 12 ++++++++++--
+> >  src/Makefile.am |  7 +++++++
+> >  2 files changed, 17 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/configure.ac b/configure.ac
+> > index b12b722a3396d..43baf8244ad64 100644
+> > --- a/configure.ac
+> > +++ b/configure.ac
+> > @@ -48,6 +48,9 @@ AC_ARG_ENABLE([cttimeout],
+> >  AC_ARG_ENABLE([systemd],
+> >          AS_HELP_STRING([--enable-systemd], [Build systemd support]),
+> >          [enable_systemd="$enableval"], [enable_systemd="no"])
+> > +AC_ARG_ENABLE([lazy],
+> > +        AS_HELP_STRING([--disable-lazy], [Disable lazy binding in nfct]),
+> > +        [enable_lazy="$enableval"], [enable_lazy="yes"])
+> >  
+> >  AC_CHECK_HEADER([rpc/rpc_msg.h], [AC_SUBST([LIBTIRPC_CFLAGS],'')], [PKG_CHECK_MODULES([LIBTIRPC], [libtirpc])])
+> >  
+> > @@ -78,7 +81,11 @@ AC_CHECK_HEADERS(arpa/inet.h)
+> >  AC_CHECK_FUNCS(inet_pton)
+> >  
+> >  # Let nfct use dlopen() on helper libraries without resolving all symbols.
+> > -AX_CHECK_LINK_FLAG([-Wl,-z,lazy], [AC_SUBST([LAZY_LDFLAGS], [-Wl,-z,lazy])])
+> > +AS_IF([test "x$enable_lazy" = "xyes"], [
+> > +	AX_CHECK_LINK_FLAG([-Wl,-z,lazy],
+> > +			   [AC_SUBST([LAZY_LDFLAGS], [-Wl,-z,lazy])])
+> > +])
+> > +AM_CONDITIONAL([HAVE_LAZY], [test "x$enable_lazy" = "xyes"])
+> >  
+> >  if test ! -z "$libdir"; then
+> >  	MODULE_DIR="\\\"$libdir/conntrack-tools/\\\""
+> > @@ -92,4 +99,5 @@ echo "
+> >  conntrack-tools configuration:
+> >    userspace conntrack helper support:	${enable_cthelper}
+> >    conntrack timeout support:		${enable_cttimeout}
+> > -  systemd support:			${enable_systemd}"
+> > +  systemd support:			${enable_systemd}
+> > +  use lazy binding:                     ${enable_lazy}"
+> > diff --git a/src/Makefile.am b/src/Makefile.am
+> > index 1d56394698a68..95cff7d528d44 100644
+> > --- a/src/Makefile.am
+> > +++ b/src/Makefile.am
+> > @@ -18,6 +18,9 @@ nfct_SOURCES = nfct.c
+> >  if HAVE_CTHELPER
+> >  nfct_SOURCES += helpers.c			\
+> >  		nfct-extensions/helper.c
+> > +if !HAVE_LAZY
+> > +nfct_SOURCES += expect.c utils.c
+> > +endif
 > 
-> The best technique I've found to figure out the exact messages required 
-> is to use strace with the ipset command.  strace does a pretty good job 
-> of decoding the netlink messages, and I can generally figure out the 
-> significance and meaning of other constants by looking at the various 
-> header files.
-> 
-> The one thing that I haven't yet been able to figure out is set type
-> revisions.  When I use ipset to create a hash:ip,port set, I see that
-> it is passing 6 as the IPSET_ATTR_REVISION.  I can also that 6 is the
-> latest revision in lib/ipset_hash_ipportip.c, which is fine when using
-> the ipset command or calling libipset.
-> 
-> What about programs that don't use libipset?  How can an application
-> determine the latest/correct revision of a particular set type?  
+> If the problem are the symbols in these two files, could you just
+> build them always into nfct? No need for the extra --disable-lazy at
+> ./configure time.
 
-You can query the kernel about the highest revision number it supports for 
-a given set type by sending an IPSET_CMD_TYPE message. There's a tiny 
-documentation about the messages and their format in lib/PROTOCOL. 
-However, not relying on libipset then you have to know which features are 
-available in the given revision.
+Not just them, the remaining patch is required also:
 
-> I haven't been able to find anything in any of the header files that 
-> seems relevant, nor do I see any way for an application to discover this 
-> information at runtime.
-> 
-> Should I just hardcode 6?
+[...]
+> >  if HAVE_CTHELPER
+> >  nfct_LDADD += ${LIBNETFILTER_CTHELPER_LIBS}
+> > +if !HAVE_LAZY
+> > +nfct_LDADD += ${LIBNETFILTER_CONNTRACK_LIBS} \
+> > +	      ${LIBNETFILTER_QUEUE_LIBS}
+> > +endif
+> >  endif
 
-You can hardcode the highest revision number for a given set type from 
-libipset. I don't plan new revisions to introduce and even if that would 
-happen, the only downside of hardcoding the number is that you won't be 
-able to use new features introduced in higher revisions.
+Without the extra libraries, expect.c fails linking, also dlopen() will
+fail without lazy binding. If you consider the extra 10k binary size and
+the extra library dependencies negligible, that's fine with me. I'll
+then resubmit after dropping the whole HAVE_LAZY logic.
 
-The kernel part always provides backward compatibility.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Cheers, Phil
