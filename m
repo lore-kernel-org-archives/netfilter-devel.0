@@ -2,36 +2,36 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 633E2C43217
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Mar 2022 13:46:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71FF8C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Mar 2022 13:46:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233330AbiCINrB (ORCPT
+        id S233346AbiCINrC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Mar 2022 08:47:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43032 "EHLO
+        Wed, 9 Mar 2022 08:47:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43592 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232881AbiCINqj (ORCPT
+        with ESMTP id S232996AbiCINqp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Mar 2022 08:46:39 -0500
+        Wed, 9 Mar 2022 08:46:45 -0500
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E01B417C400;
-        Wed,  9 Mar 2022 05:45:26 -0800 (PST)
-Received: from fraeml704-chm.china.huawei.com (unknown [172.18.147.201])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4KDD1k3PFDz6H7L5;
-        Wed,  9 Mar 2022 21:43:54 +0800 (CST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 98B9317C40E;
+        Wed,  9 Mar 2022 05:45:29 -0800 (PST)
+Received: from fraeml704-chm.china.huawei.com (unknown [172.18.147.226])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4KDD1n16wNz6H76Z;
+        Wed,  9 Mar 2022 21:43:57 +0800 (CST)
 Received: from mscphispre00059.huawei.com (10.123.71.64) by
  fraeml704-chm.china.huawei.com (10.206.15.53) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2308.21; Wed, 9 Mar 2022 14:45:24 +0100
+ 15.1.2308.21; Wed, 9 Mar 2022 14:45:27 +0100
 From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
 To:     <mic@digikod.net>
 CC:     <willemdebruijn.kernel@gmail.com>,
         <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
         <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
         <artem.kuzin@huawei.com>, <anton.sirazetdinov@huawei.com>
-Subject: [RFC PATCH v4 12/15] seltest/landlock: connect() with AF_UNSPEC tests
-Date:   Wed, 9 Mar 2022 21:44:56 +0800
-Message-ID: <20220309134459.6448-13-konstantin.meskhidze@huawei.com>
+Subject: [RFC PATCH v4 14/15] seltest/landlock: ruleset expanding test
+Date:   Wed, 9 Mar 2022 21:44:58 +0800
+Message-ID: <20220309134459.6448-15-konstantin.meskhidze@huawei.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20220309134459.6448-1-konstantin.meskhidze@huawei.com>
 References: <20220309134459.6448-1-konstantin.meskhidze@huawei.com>
@@ -46,129 +46,181 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Adds two selftests for connect() action with
-AF_UNSPEC family flag.
-The one is with no landlock restrictions
-allows to disconnect already conneted socket
-with connect(..., AF_UNSPEC, ...):
-    - connect_afunspec_no_restictions;
-The second one refuses landlocked process
-to disconnect already connected socket:
-    - connect_afunspec_with_restictions;
+This patch adds expanding rulesets in which
+rules are gradually added one by one, restricting
+sockets' connections.
 
 Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
 ---
 
 Changes since v3:
-* Add connect_afunspec_no_restictions test.
-* Add connect_afunspec_with_restictions test.
+* Add ruleset_expanding test.
 
 ---
- .../testing/selftests/landlock/network_test.c | 94 +++++++++++++++++++
- 1 file changed, 94 insertions(+)
+ .../testing/selftests/landlock/network_test.c | 153 ++++++++++++++++++
+ 1 file changed, 153 insertions(+)
 
 diff --git a/tools/testing/selftests/landlock/network_test.c b/tools/testing/selftests/landlock/network_test.c
-index 20f2d94d6d85..6fce31cad368 100644
+index e1f219fd9f31..8fa2a349329c 100644
 --- a/tools/testing/selftests/landlock/network_test.c
 +++ b/tools/testing/selftests/landlock/network_test.c
-@@ -312,4 +312,98 @@ TEST_F_FORK(socket, connect_with_restrictions) {
- 	ASSERT_EQ(EXIT_SUCCESS, WEXITSTATUS(status));
+@@ -457,4 +457,157 @@ TEST_F_FORK(socket, ruleset_overlap) {
+ 	ASSERT_EQ(0, close(sockfd));
  }
 
-+TEST_F_FORK(socket, connect_afunspec_no_restictions) {
++TEST_F_FORK(socket, ruleset_expanding) {
 +
-+	int sockfd;
-+	pid_t child;
-+	int status;
++	int sockfd_1, sockfd_2;
 +
-+	/* Creates a server socket 1 */
-+	sockfd = create_socket(_metadata);
-+	ASSERT_LE(0, sockfd);
++	struct landlock_ruleset_attr ruleset_attr_1 = {
++		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP,
++	};
++	struct landlock_net_service_attr net_service_1 = {
++		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
++
++		.port = port[0],
++	};
++
++	const int ruleset_fd_1 = landlock_create_ruleset(&ruleset_attr_1,
++					sizeof(ruleset_attr_1), 0);
++	ASSERT_LE(0, ruleset_fd_1);
++
++	/* Adds rule to port[0] socket */
++	ASSERT_EQ(0, landlock_add_rule(ruleset_fd_1, LANDLOCK_RULE_NET_SERVICE,
++				       &net_service_1, 0));
++
++	/* Enforces the ruleset. */
++	enforce_ruleset(_metadata, ruleset_fd_1);
++	ASSERT_EQ(0, close(ruleset_fd_1));
++
++	/* Creates a socket 1 */
++	sockfd_1 = create_socket(_metadata);
++	ASSERT_LE(0, sockfd_1);
 +
 +	/* Binds the socket 1 to address with port[0] */
-+	ASSERT_EQ(0, bind(sockfd, (struct sockaddr *)&addr[0], sizeof(addr[0])));
++	ASSERT_EQ(0, bind(sockfd_1, (struct sockaddr *)&addr[0], sizeof(addr[0])));
 +
-+	/* Makes connection to socket with port[0] */
-+	ASSERT_EQ(0, connect(sockfd, (struct sockaddr *)&addr[0],
++	/* Makes connection to socket 1 with port[0] */
++	ASSERT_EQ(0, connect(sockfd_1, (struct sockaddr *)&addr[0],
 +						   sizeof(addr[0])));
 +
-+	child = fork();
-+	ASSERT_LE(0, child);
-+	if (child == 0) {
-+		struct sockaddr addr_unspec = {.sa_family = AF_UNSPEC};
++	/* Closes socket 1 */
++	ASSERT_EQ(0, close(sockfd_1));
 +
-+		/* Child tries to disconnect already connected socket */
-+		ASSERT_EQ(0, connect(sockfd, (struct sockaddr *)&addr_unspec,
-+						sizeof(addr_unspec)));
-+		_exit(_metadata->passed ? EXIT_SUCCESS : EXIT_FAILURE);
-+		return;
-+	}
-+	/* Closes listening socket 1 for the parent*/
-+	ASSERT_EQ(0, close(sockfd));
++	/* Creates a socket 2 */
++	sockfd_2 = create_socket(_metadata);
++	ASSERT_LE(0, sockfd_2);
 +
-+	ASSERT_EQ(child, waitpid(child, &status, 0));
-+	ASSERT_EQ(1, WIFEXITED(status));
-+	ASSERT_EQ(EXIT_SUCCESS, WEXITSTATUS(status));
-+}
++	/*
++	 * Forbids to bind the socket 2 to address with port[1],
++	 * cause there is no rule with bind() access for port[1].
++	 */
++	ASSERT_EQ(-1, bind(sockfd_2, (struct sockaddr *)&addr[1], sizeof(addr[1])));
++	ASSERT_EQ(EACCES, errno);
 +
-+TEST_F_FORK(socket, connect_afunspec_with_restictions) {
-+
-+	int sockfd;
-+	pid_t child;
-+	int status;
-+
-+	struct landlock_ruleset_attr ruleset_attr = {
++	/* Expands network mask */
++	struct landlock_ruleset_attr ruleset_attr_2 = {
 +		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
 +				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
 +	};
-+	struct landlock_net_service_attr net_service_1 = {
++
++	/* Adds connect() access to port[0] */
++	struct landlock_net_service_attr net_service_2 = {
 +		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
 +				  LANDLOCK_ACCESS_NET_CONNECT_TCP,
 +
 +		.port = port[0],
 +	};
++	/* Adds bind() access to port[1] */
++	struct landlock_net_service_attr net_service_3 = {
++		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
 +
-+	const int ruleset_fd = landlock_create_ruleset(&ruleset_attr,
-+					sizeof(ruleset_attr), 0);
-+	ASSERT_LE(0, ruleset_fd);
++		.port = port[1],
++	};
 +
-+	/* Allows connect and bind operations to the port[0] socket */
-+	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
-+				       &net_service_1, 0));
++	const int ruleset_fd_2 = landlock_create_ruleset(&ruleset_attr_2,
++					sizeof(ruleset_attr_2), 0);
++	ASSERT_LE(0, ruleset_fd_2);
++
++	/* Adds rule to port[0] socket */
++	ASSERT_EQ(0, landlock_add_rule(ruleset_fd_2, LANDLOCK_RULE_NET_SERVICE,
++				       &net_service_2, 0));
++	/* Adds rule to port[1] socket */
++	ASSERT_EQ(0, landlock_add_rule(ruleset_fd_2, LANDLOCK_RULE_NET_SERVICE,
++				       &net_service_3, 0));
 +
 +	/* Enforces the ruleset. */
-+	enforce_ruleset(_metadata, ruleset_fd);
++	enforce_ruleset(_metadata, ruleset_fd_2);
++	ASSERT_EQ(0, close(ruleset_fd_2));
 +
-+	/* Creates a server socket 1 */
-+	sockfd = create_socket(_metadata);
-+	ASSERT_LE(0, sockfd);
++	/* Creates a socket 1 */
++	sockfd_1 = create_socket(_metadata);
++	ASSERT_LE(0, sockfd_1);
 +
 +	/* Binds the socket 1 to address with port[0] */
-+	ASSERT_EQ(0, bind(sockfd, (struct sockaddr *)&addr[0], sizeof(addr[0])));
++	ASSERT_EQ(0, bind(sockfd_1, (struct sockaddr *)&addr[0], sizeof(addr[0])));
 +
-+	/* Makes connection to socket with port[0] */
-+	ASSERT_EQ(0, connect(sockfd, (struct sockaddr *)&addr[0],
++	/* Makes connection to socket 1 with port[0] */
++	ASSERT_EQ(0, connect(sockfd_1, (struct sockaddr *)&addr[0],
 +						   sizeof(addr[0])));
++	/* Closes socket 1 */
++	ASSERT_EQ(0, close(sockfd_1));
 +
-+	child = fork();
-+	ASSERT_LE(0, child);
-+	if (child == 0) {
-+		struct sockaddr addr_unspec = {.sa_family = AF_UNSPEC};
++	/* Creates a socket 2 */
++	sockfd_2 = create_socket(_metadata);
++	ASSERT_LE(0, sockfd_2);
 +
-+		/* Child tries to disconnect already connected socket */
-+		ASSERT_EQ(-1, connect(sockfd, (struct sockaddr *)&addr_unspec,
-+						sizeof(addr_unspec)));
-+		ASSERT_EQ(EACCES, errno);
-+		_exit(_metadata->passed ? EXIT_SUCCESS : EXIT_FAILURE);
-+		return;
-+	}
-+	/* Closes listening socket 1 for the parent*/
-+	ASSERT_EQ(0, close(sockfd));
++	/*
++	 * Forbids to bind the socket 2 to address with port[1],
++	 * cause just one layer has bind() access rule.
++	 */
++	ASSERT_EQ(-1, bind(sockfd_2, (struct sockaddr *)&addr[1], sizeof(addr[1])));
++	ASSERT_EQ(EACCES, errno);
 +
-+	ASSERT_EQ(child, waitpid(child, &status, 0));
-+	ASSERT_EQ(1, WIFEXITED(status));
-+	ASSERT_EQ(EXIT_SUCCESS, WEXITSTATUS(status));
++	/* Expands network mask */
++	struct landlock_ruleset_attr ruleset_attr_3 = {
++		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
++				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
++	};
++
++	/* Restricts connect() access to port[0] */
++	struct landlock_net_service_attr net_service_4 = {
++		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
++
++		.port = port[0],
++	};
++
++	const int ruleset_fd_3 = landlock_create_ruleset(&ruleset_attr_3,
++					sizeof(ruleset_attr_3), 0);
++	ASSERT_LE(0, ruleset_fd_3);
++
++	/* Adds rule to port[0] socket */
++	ASSERT_EQ(0, landlock_add_rule(ruleset_fd_3, LANDLOCK_RULE_NET_SERVICE,
++				       &net_service_4, 0));
++
++	/* Enforces the ruleset. */
++	enforce_ruleset(_metadata, ruleset_fd_3);
++	ASSERT_EQ(0, close(ruleset_fd_3));
++
++	/* Creates a socket 1 */
++	sockfd_1 = create_socket(_metadata);
++	ASSERT_LE(0, sockfd_1);
++
++	/* Binds the socket 1 to address with port[0] */
++	ASSERT_EQ(0, bind(sockfd_1, (struct sockaddr *)&addr[0], sizeof(addr[0])));
++
++	/*
++	 * Forbids to bind the socket 1 to address with port[0],
++	 * cause just one layer has connect() access rule.
++	 */
++	ASSERT_EQ(-1, connect(sockfd_1, (struct sockaddr *)&addr[0],
++						   sizeof(addr[0])));
++	ASSERT_EQ(EACCES, errno);
++
++	/* Closes socket 1 */
++	ASSERT_EQ(0, close(sockfd_1));
 +}
++
  TEST_HARNESS_MAIN
 --
 2.25.1
