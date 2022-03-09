@@ -2,127 +2,95 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C458C433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Mar 2022 13:46:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6BA4C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Mar 2022 16:25:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233020AbiCINrI (ORCPT
+        id S234927AbiCIQ0O (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Mar 2022 08:47:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44450 "EHLO
+        Wed, 9 Mar 2022 11:26:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49228 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232343AbiCINrA (ORCPT
+        with ESMTP id S238120AbiCIQVT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Mar 2022 08:47:00 -0500
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B972E17C41E;
-        Wed,  9 Mar 2022 05:45:30 -0800 (PST)
-Received: from fraeml704-chm.china.huawei.com (unknown [172.18.147.201])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4KDD310cfvz67bVT;
-        Wed,  9 Mar 2022 21:45:01 +0800 (CST)
-Received: from mscphispre00059.huawei.com (10.123.71.64) by
- fraeml704-chm.china.huawei.com (10.206.15.53) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2308.21; Wed, 9 Mar 2022 14:45:28 +0100
-From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-To:     <mic@digikod.net>
-CC:     <willemdebruijn.kernel@gmail.com>,
-        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-        <artem.kuzin@huawei.com>, <anton.sirazetdinov@huawei.com>
-Subject: [RFC PATCH v4 15/15] seltest/landlock: invalid user input data test
-Date:   Wed, 9 Mar 2022 21:44:59 +0800
-Message-ID: <20220309134459.6448-16-konstantin.meskhidze@huawei.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20220309134459.6448-1-konstantin.meskhidze@huawei.com>
-References: <20220309134459.6448-1-konstantin.meskhidze@huawei.com>
+        Wed, 9 Mar 2022 11:21:19 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C64691520E1;
+        Wed,  9 Mar 2022 08:18:56 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6377D615F1;
+        Wed,  9 Mar 2022 16:18:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D015C340E8;
+        Wed,  9 Mar 2022 16:18:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1646842735;
+        bh=yv24BEIQB2Wa9G21wq5trSJnLc3FQVzB/HOeXIspnWk=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=l19KADzZvjJH/kZ4pJpMw0pHtWPr6vwS0mk+NN3BHpzZiufSxCruRKbHWLnuFAqYi
+         h22e4VVXv2gXjMALPHk2c6fZzB2NDJUys44OgUVHJIUs95HxQF66bhUjXiVt/8wqhB
+         zqBxu0k4XrkK6uA67lUtODJZsi0BKhe7wmqSkPFwBrxVcP/YjFzBtimuaFe6UJJGKl
+         QYqjAn8pzXiCxyPJl1apxPM2xRp1jjOxaBwST1utsTVQHZnnfYhb9j+aafDT+52PUw
+         s+4rXYji73igRwBrfaWnXfkvISIGa6bwR1KfgunxMPGbjEXBZ3L3BI0kxBlRmWp5Ei
+         BgVPktjXNI/9w==
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Florian Westphal <fw@strlen.de>,
+        Eric Dumazet <eric.dumazet@gmail.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sasha Levin <sashal@kernel.org>, kadlec@netfilter.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: [PATCH AUTOSEL 5.16 18/27] netfilter: egress: silence egress hook lockdep splats
+Date:   Wed,  9 Mar 2022 11:16:55 -0500
+Message-Id: <20220309161711.135679-18-sashal@kernel.org>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20220309161711.135679-1-sashal@kernel.org>
+References: <20220309161711.135679-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.123.71.64]
-X-ClientProxiedBy: mscpeml500001.china.huawei.com (7.188.26.142) To
- fraeml704-chm.china.huawei.com (10.206.15.53)
-X-CFilter-Loop: Reflected
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch adds rules with invalid user space
-supplied data:
-    - unhandled allowed access;
-    - zero port value;
-    - zero access value;
+From: Florian Westphal <fw@strlen.de>
 
-Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+[ Upstream commit 17a8f31bba7bac8cce4bd12bab50697da96e7710 ]
+
+Netfilter assumes its called with rcu_read_lock held, but in egress
+hook case it may be called with BH readlock.
+
+This triggers lockdep splat.
+
+In order to avoid to change all rcu_dereference() to
+rcu_dereference_check(..., rcu_read_lock_bh_held()), wrap nf_hook_slow
+with read lock/unlock pair.
+
+Reported-by: Eric Dumazet <eric.dumazet@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
+ include/linux/netfilter_netdev.h | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Changes since v3:
-* Add inval test.
-
----
- .../testing/selftests/landlock/network_test.c | 52 +++++++++++++++++++
- 1 file changed, 52 insertions(+)
-
-diff --git a/tools/testing/selftests/landlock/network_test.c b/tools/testing/selftests/landlock/network_test.c
-index 8fa2a349329c..f06b9d02128a 100644
---- a/tools/testing/selftests/landlock/network_test.c
-+++ b/tools/testing/selftests/landlock/network_test.c
-@@ -610,4 +610,56 @@ TEST_F_FORK(socket, ruleset_expanding) {
- 	ASSERT_EQ(0, close(sockfd_1));
- }
-
-+TEST_F_FORK(socket, inval) {
+diff --git a/include/linux/netfilter_netdev.h b/include/linux/netfilter_netdev.h
+index b4dd96e4dc8d..e6487a691136 100644
+--- a/include/linux/netfilter_netdev.h
++++ b/include/linux/netfilter_netdev.h
+@@ -101,7 +101,11 @@ static inline struct sk_buff *nf_hook_egress(struct sk_buff *skb, int *rc,
+ 	nf_hook_state_init(&state, NF_NETDEV_EGRESS,
+ 			   NFPROTO_NETDEV, dev, NULL, NULL,
+ 			   dev_net(dev), NULL);
 +
-+	struct landlock_ruleset_attr ruleset_attr = {
-+		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP
-+	};
-+	struct landlock_net_service_attr net_service_1 = {
-+		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
-+				  LANDLOCK_ACCESS_NET_CONNECT_TCP,
-+		.port = port[0],
-+	};
-+	struct landlock_net_service_attr net_service_2 = {
-+		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-+		.port = 0,
-+	};
-+	struct landlock_net_service_attr net_service_3 = {
-+		.allowed_access = 0,
-+		.port = port[1],
-+	};
-+	struct landlock_net_service_attr net_service_4 = {
-+		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-+		.port = port[2],
-+	};
-+
-+	/* Gets ruleset. */
-+	const int ruleset_fd = landlock_create_ruleset(&ruleset_attr,
-+			sizeof(ruleset_attr), 0);
-+	ASSERT_LE(0, ruleset_fd);
-+
-+	/* Checks unhandled allowed_access. */
-+	ASSERT_EQ(-1, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
-+					&net_service_1, 0));
-+	ASSERT_EQ(EINVAL, errno);
-+
-+	/* Checks zero port value. */
-+	ASSERT_EQ(-1, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
-+					&net_service_2, 0));
-+	ASSERT_EQ(ENOENT, errno);
-+
-+	/* Checks zero access value. */
-+	ASSERT_EQ(-1, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
-+					&net_service_3, 0));
-+	ASSERT_EQ(ENOMSG, errno);
-+
-+	/* Adds with legitimate values. */
-+	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
-+					&net_service_4, 0));
-+
-+	/* Enforces the ruleset. */
-+	enforce_ruleset(_metadata, ruleset_fd);
-+	ASSERT_EQ(0, close(ruleset_fd));
-+}
-+
- TEST_HARNESS_MAIN
---
-2.25.1
++	/* nf assumes rcu_read_lock, not just read_lock_bh */
++	rcu_read_lock();
+ 	ret = nf_hook_slow(skb, &state, e, 0);
++	rcu_read_unlock();
+ 
+ 	if (ret == 1) {
+ 		return skb;
+-- 
+2.34.1
 
