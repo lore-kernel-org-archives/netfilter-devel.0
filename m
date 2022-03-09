@@ -2,36 +2,36 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D52A2C4321E
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Mar 2022 13:45:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4229C4167E
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Mar 2022 13:45:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232743AbiCINqT (ORCPT
+        id S232866AbiCINqT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Wed, 9 Mar 2022 08:46:19 -0500
 Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41324 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232717AbiCINqS (ORCPT
+        with ESMTP id S232835AbiCINqS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Wed, 9 Mar 2022 08:46:18 -0500
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C61417B8A8;
-        Wed,  9 Mar 2022 05:45:16 -0800 (PST)
-Received: from fraeml704-chm.china.huawei.com (unknown [172.18.147.201])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4KDD2k2p0gz67bVT;
-        Wed,  9 Mar 2022 21:44:46 +0800 (CST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CAE4D17B8B8;
+        Wed,  9 Mar 2022 05:45:18 -0800 (PST)
+Received: from fraeml704-chm.china.huawei.com (unknown [172.18.147.200])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4KDD1Z3HVNz6H6mm;
+        Wed,  9 Mar 2022 21:43:46 +0800 (CST)
 Received: from mscphispre00059.huawei.com (10.123.71.64) by
  fraeml704-chm.china.huawei.com (10.206.15.53) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2308.21; Wed, 9 Mar 2022 14:45:13 +0100
+ 15.1.2308.21; Wed, 9 Mar 2022 14:45:16 +0100
 From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
 To:     <mic@digikod.net>
 CC:     <willemdebruijn.kernel@gmail.com>,
         <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
         <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
         <artem.kuzin@huawei.com>, <anton.sirazetdinov@huawei.com>
-Subject: [RFC PATCH v4 04/15] landlock: merge and inherit function refactoring
-Date:   Wed, 9 Mar 2022 21:44:48 +0800
-Message-ID: <20220309134459.6448-5-konstantin.meskhidze@huawei.com>
+Subject: [RFC PATCH v4 06/15] landlock: landlock_add_rule syscall refactoring
+Date:   Wed, 9 Mar 2022 21:44:50 +0800
+Message-ID: <20220309134459.6448-7-konstantin.meskhidze@huawei.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20220309134459.6448-1-konstantin.meskhidze@huawei.com>
 References: <20220309134459.6448-1-konstantin.meskhidze@huawei.com>
@@ -46,246 +46,141 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Merge_ruleset() and inherit_ruleset() functions were
-refactored to support new rule types. This patch adds
-tree_merge() and tree_copy() helpers. Each has
-rule_type argument to choose a particular rb_tree
-structure in a ruleset.
+Landlock_add_rule syscall was refactored to support new
+rule types in future Landlock versions. Add_rule_path_beneath()
+helper was added to support current filesystem rules. It is called
+by the switch case.
 
 Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
 ---
 
 Changes since v3:
 * Split commit.
-* Refactoring functions:
-	-insert_rule.
-	-merge_ruleset.
-	-tree_merge.
-	-inherit_ruleset.
-	-tree_copy.
-	-free_rule.
+* Refactoring landlock_add_rule syscall.
 
 ---
- security/landlock/ruleset.c | 141 +++++++++++++++++++++++++-----------
- 1 file changed, 97 insertions(+), 44 deletions(-)
+ security/landlock/syscalls.c | 95 ++++++++++++++++++++----------------
+ 1 file changed, 53 insertions(+), 42 deletions(-)
 
-diff --git a/security/landlock/ruleset.c b/security/landlock/ruleset.c
-index 971685c48641..f2baa1c96b16 100644
---- a/security/landlock/ruleset.c
-+++ b/security/landlock/ruleset.c
-@@ -125,12 +125,16 @@ static struct landlock_rule *create_rule(
- 	return new_rule;
- }
-
--static void free_rule(struct landlock_rule *const rule)
-+static void free_rule(struct landlock_rule *const rule, const u16 rule_type)
- {
- 	might_sleep();
- 	if (!rule)
- 		return;
--	landlock_put_object(rule->object.ptr);
-+	switch (rule_type) {
-+	case LANDLOCK_RULE_PATH_BENEATH:
-+		landlock_put_object(rule->object.ptr);
-+		break;
-+	}
- 	kfree(rule);
- }
-
-@@ -233,12 +237,12 @@ static int insert_rule(struct landlock_ruleset *const ruleset,
- 		case LANDLOCK_RULE_PATH_BENEATH:
- 			new_rule = create_rule(object_ptr, 0, &this->layers, this->num_layers,
- 					       &(*layers)[0], rule_type);
-+			if (IS_ERR(new_rule))
-+				return PTR_ERR(new_rule);
-+			rb_replace_node(&this->node, &new_rule->node, &ruleset->root_inode);
-+			free_rule(this, rule_type);
- 			break;
- 		}
--		if (IS_ERR(new_rule))
--			return PTR_ERR(new_rule);
--		rb_replace_node(&this->node, &new_rule->node, &ruleset->root_inode);
--		free_rule(this);
- 		return 0;
- 	}
-
-@@ -249,13 +253,13 @@ static int insert_rule(struct landlock_ruleset *const ruleset,
- 	switch (rule_type) {
- 	case LANDLOCK_RULE_PATH_BENEATH:
- 		new_rule = create_rule(object_ptr, 0, layers, num_layers, NULL, rule_type);
-+		if (IS_ERR(new_rule))
-+			return PTR_ERR(new_rule);
-+		rb_link_node(&new_rule->node, parent_node, walker_node);
-+		rb_insert_color(&new_rule->node, &ruleset->root_inode);
-+		ruleset->num_rules++;
- 		break;
- 	}
--	if (IS_ERR(new_rule))
--		return PTR_ERR(new_rule);
--	rb_link_node(&new_rule->node, parent_node, walker_node);
--	rb_insert_color(&new_rule->node, &ruleset->root_inode);
--	ruleset->num_rules++;
- 	return 0;
- }
-
-@@ -303,10 +307,53 @@ static void put_hierarchy(struct landlock_hierarchy *hierarchy)
- 	}
- }
-
-+static int tree_merge(struct landlock_ruleset *const src,
-+		struct landlock_ruleset *const dst, u16 rule_type)
-+{
-+	struct landlock_rule *walker_rule, *next_rule;
-+	struct rb_root *src_root;
-+	int err = 0;
-+
-+	/* Choose rb_tree structure depending on a rule type */
-+	switch (rule_type) {
-+	case LANDLOCK_RULE_PATH_BENEATH:
-+		src_root = &src->root_inode;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	/* Merges the @src tree. */
-+	rbtree_postorder_for_each_entry_safe(walker_rule, next_rule,
-+					     src_root, node) {
-+		struct landlock_layer layers[] = {{
-+			.level = dst->num_layers,
-+		}};
-+
-+		if (WARN_ON_ONCE(walker_rule->num_layers != 1)) {
-+			err = -EINVAL;
-+			return err;
-+		}
-+		if (WARN_ON_ONCE(walker_rule->layers[0].level != 0)) {
-+			err = -EINVAL;
-+			return err;
-+		}
-+		layers[0].access = walker_rule->layers[0].access;
-+
-+		switch (rule_type) {
-+		case LANDLOCK_RULE_PATH_BENEATH:
-+			err = insert_rule(dst, walker_rule->object.ptr, 0, &layers,
-+				ARRAY_SIZE(layers), rule_type);
-+			break;
-+		}
-+		if (err)
-+			return err;
-+	}
-+	return err;
-+}
-+
- static int merge_ruleset(struct landlock_ruleset *const dst,
- 		struct landlock_ruleset *const src)
- {
--	struct landlock_rule *walker_rule, *next_rule;
- 	int err = 0;
-
- 	might_sleep();
-@@ -328,27 +375,10 @@ static int merge_ruleset(struct landlock_ruleset *const dst,
- 	}
- 	dst->access_masks[dst->num_layers - 1] = src->access_masks[0];
-
--	/* Merges the @src tree. */
--	rbtree_postorder_for_each_entry_safe(walker_rule, next_rule,
--			&src->root_inode, node) {
--		struct landlock_layer layers[] = {{
--			.level = dst->num_layers,
--		}};
--
--		if (WARN_ON_ONCE(walker_rule->num_layers != 1)) {
--			err = -EINVAL;
--			goto out_unlock;
--		}
--		if (WARN_ON_ONCE(walker_rule->layers[0].level != 0)) {
--			err = -EINVAL;
--			goto out_unlock;
--		}
--		layers[0].access = walker_rule->layers[0].access;
--		err = insert_rule(dst, walker_rule->object.ptr, 0, &layers,
--				ARRAY_SIZE(layers), LANDLOCK_RULE_PATH_BENEATH);
--		if (err)
--			goto out_unlock;
--	}
-+	/* Merges the @src inode tree. */
-+	err = tree_merge(src, dst, LANDLOCK_RULE_PATH_BENEATH);
-+	if (err)
-+		goto out_unlock;
-
- out_unlock:
- 	mutex_unlock(&src->lock);
-@@ -356,12 +386,40 @@ static int merge_ruleset(struct landlock_ruleset *const dst,
+diff --git a/security/landlock/syscalls.c b/security/landlock/syscalls.c
+index 5931b666321d..8c0f6165fe3a 100644
+--- a/security/landlock/syscalls.c
++++ b/security/landlock/syscalls.c
+@@ -274,54 +274,13 @@ static int get_path_from_fd(const s32 fd, struct path *const path)
  	return err;
  }
 
-+static int tree_copy(struct landlock_ruleset *const parent,
-+		struct landlock_ruleset *const child, u16 rule_type)
-+{
-+	struct landlock_rule *walker_rule, *next_rule;
-+	struct rb_root *parent_root;
-+	int err = 0;
+-/**
+- * sys_landlock_add_rule - Add a new rule to a ruleset
+- *
+- * @ruleset_fd: File descriptor tied to the ruleset that should be extended
+- *		with the new rule.
+- * @rule_type: Identify the structure type pointed to by @rule_attr (only
+- *             LANDLOCK_RULE_PATH_BENEATH for now).
+- * @rule_attr: Pointer to a rule (only of type &struct
+- *             landlock_path_beneath_attr for now).
+- * @flags: Must be 0.
+- *
+- * This system call enables to define a new rule and add it to an existing
+- * ruleset.
+- *
+- * Possible returned errors are:
+- *
+- * - EOPNOTSUPP: Landlock is supported by the kernel but disabled at boot time;
+- * - EINVAL: @flags is not 0, or inconsistent access in the rule (i.e.
+- *   &landlock_path_beneath_attr.allowed_access is not a subset of the rule's
+- *   accesses);
+- * - ENOMSG: Empty accesses (e.g. &landlock_path_beneath_attr.allowed_access);
+- * - EBADF: @ruleset_fd is not a file descriptor for the current thread, or a
+- *   member of @rule_attr is not a file descriptor as expected;
+- * - EBADFD: @ruleset_fd is not a ruleset file descriptor, or a member of
+- *   @rule_attr is not the expected file descriptor type (e.g. file open
+- *   without O_PATH);
+- * - EPERM: @ruleset_fd has no write access to the underlying ruleset;
+- * - EFAULT: @rule_attr inconsistency.
+- */
+-SYSCALL_DEFINE4(landlock_add_rule,
+-		const int, ruleset_fd, const enum landlock_rule_type, rule_type,
+-		const void __user *const, rule_attr, const __u32, flags)
++static int add_rule_path_beneath(const int ruleset_fd, const void *const rule_attr)
+ {
+ 	struct landlock_path_beneath_attr path_beneath_attr;
+ 	struct path path;
+ 	struct landlock_ruleset *ruleset;
+ 	int res, err;
 
-+	/* Choose rb_tree structure depending on a rule type */
+-	if (!landlock_initialized)
+-		return -EOPNOTSUPP;
+-
+-	/* No flag for now. */
+-	if (flags)
+-		return -EINVAL;
+-
+-	if (rule_type != LANDLOCK_RULE_PATH_BENEATH)
+-		return -EINVAL;
+-
+ 	/* Copies raw user space buffer, only one type for now. */
+ 	res = copy_from_user(&path_beneath_attr, rule_attr,
+ 			sizeof(path_beneath_attr));
+@@ -367,6 +326,58 @@ SYSCALL_DEFINE4(landlock_add_rule,
+ 	return err;
+ }
+
++/**
++ * sys_landlock_add_rule - Add a new rule to a ruleset
++ *
++ * @ruleset_fd: File descriptor tied to the ruleset that should be extended
++ *		with the new rule.
++ * @rule_type: Identify the structure type pointed to by @rule_attr (only
++ *             LANDLOCK_RULE_PATH_BENEATH for now).
++ * @rule_attr: Pointer to a rule (only of type &struct
++ *             landlock_path_beneath_attr for now).
++ * @flags: Must be 0.
++ *
++ * This system call enables to define a new rule and add it to an existing
++ * ruleset.
++ *
++ * Possible returned errors are:
++ *
++ * - EOPNOTSUPP: Landlock is supported by the kernel but disabled at boot time;
++ * - EINVAL: @flags is not 0, or inconsistent access in the rule (i.e.
++ *   &landlock_path_beneath_attr.allowed_access is not a subset of the rule's
++ *   accesses);
++ * - ENOMSG: Empty accesses (e.g. &landlock_path_beneath_attr.allowed_access);
++ * - EBADF: @ruleset_fd is not a file descriptor for the current thread, or a
++ *   member of @rule_attr is not a file descriptor as expected;
++ * - EBADFD: @ruleset_fd is not a ruleset file descriptor, or a member of
++ *   @rule_attr is not the expected file descriptor type (e.g. file open
++ *   without O_PATH);
++ * - EPERM: @ruleset_fd has no write access to the underlying ruleset;
++ * - EFAULT: @rule_attr inconsistency.
++ */
++SYSCALL_DEFINE4(landlock_add_rule,
++		const int, ruleset_fd, const enum landlock_rule_type, rule_type,
++		const void __user *const, rule_attr, const __u32, flags)
++{
++	int err;
++
++	if (!landlock_initialized)
++		return -EOPNOTSUPP;
++
++	/* No flag for now. */
++	if (flags)
++		return -EINVAL;
++
 +	switch (rule_type) {
 +	case LANDLOCK_RULE_PATH_BENEATH:
-+		parent_root = &parent->root_inode;
++		err = add_rule_path_beneath(ruleset_fd, rule_attr);
 +		break;
 +	default:
-+		return -EINVAL;
-+	}
-+	/* Copies the @parent inode tree. */
-+	rbtree_postorder_for_each_entry_safe(walker_rule, next_rule,
-+					     parent_root, node) {
-+		switch (rule_type) {
-+		case LANDLOCK_RULE_PATH_BENEATH:
-+			err = insert_rule(child, walker_rule->object.ptr, 0,
-+				  &walker_rule->layers, walker_rule->num_layers,
-+				  rule_type);
-+			break;
-+		}
-+		if (err)
-+			return err;
++		err = -EINVAL;
 +	}
 +	return err;
 +}
++
+ /* Enforcement */
 
- static int inherit_ruleset(struct landlock_ruleset *const parent,
- 		struct landlock_ruleset *const child)
- {
--	struct landlock_rule *walker_rule, *next_rule;
- 	int err = 0;
-
- 	might_sleep();
-@@ -372,15 +430,10 @@ static int inherit_ruleset(struct landlock_ruleset *const parent,
- 	mutex_lock(&child->lock);
- 	mutex_lock_nested(&parent->lock, SINGLE_DEPTH_NESTING);
-
--	/* Copies the @parent tree. */
--	rbtree_postorder_for_each_entry_safe(walker_rule, next_rule,
--			&parent->root_inode, node) {
--		err = insert_rule(child, walker_rule->object.ptr, 0,
--				&walker_rule->layers, walker_rule->num_layers,
--				LANDLOCK_RULE_PATH_BENEATH);
--		if (err)
--			goto out_unlock;
--	}
-+	/* Copies the @parent inode tree. */
-+	err = tree_copy(parent, child, LANDLOCK_RULE_PATH_BENEATH);
-+	if (err)
-+		goto out_unlock;
-
- 	if (WARN_ON_ONCE(child->num_layers <= parent->num_layers)) {
- 		err = -EINVAL;
-@@ -410,7 +463,7 @@ static void free_ruleset(struct landlock_ruleset *const ruleset)
- 	might_sleep();
- 	rbtree_postorder_for_each_entry_safe(freeme, next, &ruleset->root_inode,
- 			node)
--		free_rule(freeme);
-+		free_rule(freeme, LANDLOCK_RULE_PATH_BENEATH);
- 	put_hierarchy(ruleset->hierarchy);
- 	kfree(ruleset);
- }
+ /**
 --
 2.25.1
 
