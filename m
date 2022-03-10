@@ -2,159 +2,94 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3D12C433FE
-	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Mar 2022 16:40:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4389C433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Mar 2022 22:37:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241352AbiCJQlq (ORCPT
+        id S1344397AbiCJWiz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 10 Mar 2022 11:41:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42736 "EHLO
+        Thu, 10 Mar 2022 17:38:55 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37242 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239583AbiCJQlp (ORCPT
+        with ESMTP id S237358AbiCJWit (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Mar 2022 11:41:45 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A787194162
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Mar 2022 08:40:44 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1nSLqE-0005Uz-QX; Thu, 10 Mar 2022 17:40:42 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     kadlec@netfilter.org, Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 4/4] netfilter: conntrack: remove unneeded indent level
-Date:   Thu, 10 Mar 2022 17:40:17 +0100
-Message-Id: <20220310164017.7317-5-fw@strlen.de>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220310164017.7317-1-fw@strlen.de>
-References: <20220310164017.7317-1-fw@strlen.de>
+        Thu, 10 Mar 2022 17:38:49 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B4BB5B2387
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Mar 2022 14:37:45 -0800 (PST)
+Received: from localhost.localdomain (unknown [46.222.150.172])
+        by mail.netfilter.org (Postfix) with ESMTPSA id AB95460022;
+        Thu, 10 Mar 2022 23:35:40 +0100 (CET)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     fw@strlen.de
+Subject: [PATCH nf] netfilter: nf_tables: cancel register tracking if .reduce is not defined
+Date:   Thu, 10 Mar 2022 23:37:37 +0100
+Message-Id: <20220310223737.5261-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-After previous patch, the conditional branch is obsolete, reformat it.
-gcc generates same code as before this change.
+Cancel all register tracking if the the reduce function is not defined.
+Add missing reduce function to cmp since this is a read-only operation.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+This unbreaks selftests/netfilter/nft_nat_zones.sh.
+
+Fixes: 12e4ecfa244b ("netfilter: nf_tables: add register tracking infrastructure")
+Suggested-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_proto_tcp.c | 100 +++++++++++--------------
- 1 file changed, 45 insertions(+), 55 deletions(-)
+ net/netfilter/nf_tables_api.c | 2 ++
+ net/netfilter/nft_cmp.c       | 8 ++++++++
+ 2 files changed, 10 insertions(+)
 
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index edfbbfa3ad3c..793e84f78e3f 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -644,63 +644,53 @@ tcp_in_window(struct nf_conn *ct, enum ip_conntrack_dir dir,
- 					  "ignored ACK under lower bound %u (possible overly delayed)",
- 					  receiver->td_end - MAXACKWINDOW(sender) - 1);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index c86748b3873b..861a3a36024a 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -8311,6 +8311,8 @@ static int nf_tables_commit_chain_prepare(struct net *net, struct nft_chain *cha
+ 			    expr->ops->reduce(&track, expr)) {
+ 				expr = track.cur;
+ 				continue;
++			} else if (expr->ops->reduce == NULL) {
++				memset(track.regs, 0, sizeof(track.regs));
+ 			}
  
--
--	if (1) {
--		/*
--		 * Take into account window scaling (RFC 1323).
--		 */
--		if (!tcph->syn)
--			win <<= sender->td_scale;
--
--		/*
--		 * Update sender data.
--		 */
--		swin = win + (sack - ack);
--		if (sender->td_maxwin < swin)
--			sender->td_maxwin = swin;
--		if (after(end, sender->td_end)) {
--			sender->td_end = end;
--			sender->flags |= IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED;
--		}
--		if (tcph->ack) {
--			if (!(sender->flags & IP_CT_TCP_FLAG_MAXACK_SET)) {
--				sender->td_maxack = ack;
--				sender->flags |= IP_CT_TCP_FLAG_MAXACK_SET;
--			} else if (after(ack, sender->td_maxack))
--				sender->td_maxack = ack;
--		}
--
--		/*
--		 * Update receiver data.
--		 */
--		if (receiver->td_maxwin != 0 && after(end, sender->td_maxend))
--			receiver->td_maxwin += end - sender->td_maxend;
--		if (after(sack + win, receiver->td_maxend - 1)) {
--			receiver->td_maxend = sack + win;
--			if (win == 0)
--				receiver->td_maxend++;
-+	/* Take into account window scaling (RFC 1323). */
-+	if (!tcph->syn)
-+		win <<= sender->td_scale;
-+
-+	/* Update sender data. */
-+	swin = win + (sack - ack);
-+	if (sender->td_maxwin < swin)
-+		sender->td_maxwin = swin;
-+	if (after(end, sender->td_end)) {
-+		sender->td_end = end;
-+		sender->flags |= IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED;
-+	}
-+	if (tcph->ack) {
-+		if (!(sender->flags & IP_CT_TCP_FLAG_MAXACK_SET)) {
-+			sender->td_maxack = ack;
-+			sender->flags |= IP_CT_TCP_FLAG_MAXACK_SET;
-+		} else if (after(ack, sender->td_maxack)) {
-+			sender->td_maxack = ack;
- 		}
--		if (ack == receiver->td_end)
--			receiver->flags &= ~IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED;
-+	}
+ 			if (WARN_ON_ONCE(data + expr->ops->size > data_boundary))
+diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
+index 47b6d05f1ae6..23bef7df48f1 100644
+--- a/net/netfilter/nft_cmp.c
++++ b/net/netfilter/nft_cmp.c
+@@ -187,12 +187,19 @@ static int nft_cmp_offload(struct nft_offload_ctx *ctx,
+ 	return __nft_cmp_offload(ctx, flow, priv);
+ }
  
--		/*
--		 * Check retransmissions.
--		 */
--		if (index == TCP_ACK_SET) {
--			if (state->last_dir == dir
--			    && state->last_seq == seq
--			    && state->last_ack == ack
--			    && state->last_end == end
--			    && state->last_win == win_raw)
--				state->retrans++;
--			else {
--				state->last_dir = dir;
--				state->last_seq = seq;
--				state->last_ack = ack;
--				state->last_end = end;
--				state->last_win = win_raw;
--				state->retrans = 0;
--			}
-+	/* Update receiver data. */
-+	if (receiver->td_maxwin != 0 && after(end, sender->td_maxend))
-+		receiver->td_maxwin += end - sender->td_maxend;
-+	if (after(sack + win, receiver->td_maxend - 1)) {
-+		receiver->td_maxend = sack + win;
-+		if (win == 0)
-+			receiver->td_maxend++;
-+	}
-+	if (ack == receiver->td_end)
-+		receiver->flags &= ~IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED;
++static bool nft_cmp_reduce(struct nft_regs_track *track,
++			   const struct nft_expr *expr)
++{
++	return false;
++}
 +
-+	/* Check retransmissions. */
-+	if (index == TCP_ACK_SET) {
-+		if (state->last_dir == dir &&
-+		    state->last_seq == seq &&
-+		    state->last_ack == ack &&
-+		    state->last_end == end &&
-+		    state->last_win == win_raw) {
-+			state->retrans++;
-+		} else {
-+			state->last_dir = dir;
-+			state->last_seq = seq;
-+			state->last_ack = ack;
-+			state->last_end = end;
-+			state->last_win = win_raw;
-+			state->retrans = 0;
- 		}
- 	}
+ static const struct nft_expr_ops nft_cmp_ops = {
+ 	.type		= &nft_cmp_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_cmp_expr)),
+ 	.eval		= nft_cmp_eval,
+ 	.init		= nft_cmp_init,
+ 	.dump		= nft_cmp_dump,
++	.reduce		= nft_cmp_reduce,
+ 	.offload	= nft_cmp_offload,
+ };
+ 
+@@ -269,6 +276,7 @@ const struct nft_expr_ops nft_cmp_fast_ops = {
+ 	.eval		= NULL,	/* inlined */
+ 	.init		= nft_cmp_fast_init,
+ 	.dump		= nft_cmp_fast_dump,
++	.reduce		= nft_cmp_reduce,
+ 	.offload	= nft_cmp_fast_offload,
+ };
  
 -- 
-2.34.1
+2.30.2
 
