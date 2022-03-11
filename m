@@ -2,203 +2,84 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52947C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Mar 2022 06:59:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 156DDC433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Mar 2022 10:53:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233049AbiCKHAq (ORCPT
+        id S240051AbiCKKyj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 11 Mar 2022 02:00:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44850 "EHLO
+        Fri, 11 Mar 2022 05:54:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55486 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233023AbiCKHAp (ORCPT
+        with ESMTP id S231485AbiCKKyi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 11 Mar 2022 02:00:45 -0500
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id DDECF19D624
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Mar 2022 22:59:42 -0800 (PST)
-Received: from localhost.localdomain (unknown [31.221.131.6])
-        by mail.netfilter.org (Postfix) with ESMTPSA id E34C9601DC;
-        Fri, 11 Mar 2022 07:57:38 +0100 (CET)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     fw@strlen.de
-Subject: [PATCH nf,v4] netfilter: nf_tables: cancel register tracking if .reduce is not defined
-Date:   Fri, 11 Mar 2022 07:59:35 +0100
-Message-Id: <20220311065935.8401-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Fri, 11 Mar 2022 05:54:38 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D28CA16BCE2
+        for <netfilter-devel@vger.kernel.org>; Fri, 11 Mar 2022 02:53:35 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1nSctp-0002DQ-R2; Fri, 11 Mar 2022 11:53:33 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: nft_lookup: only cancel tracking for clobbered dregs
+Date:   Fri, 11 Mar 2022 11:53:24 +0100
+Message-Id: <20220311105324.11980-1-fw@strlen.de>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Cancel all register tracking if the reduce function is not defined. Add
-missing reduce function to cmp, immediate, counter and compat since
-these are read-only register.
+In most cases, nft_lookup will be read-only, i.e. won't clobber
+registers.  In case of map, we need to cancel the registers that will
+see stores.
 
-This patch unbreaks selftests/netfilter/nft_nat_zones.sh.
-
-Fixes: 12e4ecfa244b ("netfilter: nf_tables: add register tracking infrastructure")
-Suggested-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
-v4: verdict through immediate might also cancel tracking.
+ net/netfilter/nft_lookup.c | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
- net/netfilter/nf_tables_api.c |  2 ++
- net/netfilter/nft_cmp.c       |  8 ++++++++
- net/netfilter/nft_compat.c    | 14 ++++++++++++++
- net/netfilter/nft_counter.c   |  7 +++++++
- net/netfilter/nft_immediate.c | 14 ++++++++++++++
- 5 files changed, 45 insertions(+)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index c86748b3873b..861a3a36024a 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -8311,6 +8311,8 @@ static int nf_tables_commit_chain_prepare(struct net *net, struct nft_chain *cha
- 			    expr->ops->reduce(&track, expr)) {
- 				expr = track.cur;
- 				continue;
-+			} else if (expr->ops->reduce == NULL) {
-+				memset(track.regs, 0, sizeof(track.regs));
- 			}
- 
- 			if (WARN_ON_ONCE(data + expr->ops->size > data_boundary))
-diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
-index 47b6d05f1ae6..23bef7df48f1 100644
---- a/net/netfilter/nft_cmp.c
-+++ b/net/netfilter/nft_cmp.c
-@@ -187,12 +187,19 @@ static int nft_cmp_offload(struct nft_offload_ctx *ctx,
- 	return __nft_cmp_offload(ctx, flow, priv);
+diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
+index 90becbf5bff3..f2242fb08bca 100644
+--- a/net/netfilter/nft_lookup.c
++++ b/net/netfilter/nft_lookup.c
+@@ -253,6 +253,26 @@ static int nft_lookup_validate(const struct nft_ctx *ctx,
+ 	return 0;
  }
  
-+static bool nft_cmp_reduce(struct nft_regs_track *track,
-+			   const struct nft_expr *expr)
-+{
-+	return false;
-+}
-+
- static const struct nft_expr_ops nft_cmp_ops = {
- 	.type		= &nft_cmp_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_cmp_expr)),
- 	.eval		= nft_cmp_eval,
- 	.init		= nft_cmp_init,
- 	.dump		= nft_cmp_dump,
-+	.reduce		= nft_cmp_reduce,
- 	.offload	= nft_cmp_offload,
- };
- 
-@@ -269,6 +276,7 @@ const struct nft_expr_ops nft_cmp_fast_ops = {
- 	.eval		= NULL,	/* inlined */
- 	.init		= nft_cmp_fast_init,
- 	.dump		= nft_cmp_fast_dump,
-+	.reduce		= nft_cmp_reduce,
- 	.offload	= nft_cmp_fast_offload,
- };
- 
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index f69cc73c5813..404cc806d12b 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -731,6 +731,12 @@ static const struct nfnetlink_subsystem nfnl_compat_subsys = {
- 
- static struct nft_expr_type nft_match_type;
- 
-+static bool nft_match_reduce(struct nft_regs_track *track,
-+			     const struct nft_expr *expr)
-+{
-+	return false;
-+}
-+
- static const struct nft_expr_ops *
- nft_match_select_ops(const struct nft_ctx *ctx,
- 		     const struct nlattr * const tb[])
-@@ -773,6 +779,7 @@ nft_match_select_ops(const struct nft_ctx *ctx,
- 	ops->dump = nft_match_dump;
- 	ops->validate = nft_match_validate;
- 	ops->data = match;
-+	ops->reduce = nft_match_reduce;
- 
- 	matchsize = NFT_EXPR_SIZE(XT_ALIGN(match->matchsize));
- 	if (matchsize > NFT_MATCH_LARGE_THRESH) {
-@@ -811,6 +818,12 @@ static struct nft_expr_type nft_match_type __read_mostly = {
- 
- static struct nft_expr_type nft_target_type;
- 
-+static bool nft_target_reduce(struct nft_regs_track *track,
++static bool nft_lookup_reduce(struct nft_regs_track *track,
 +			      const struct nft_expr *expr)
 +{
-+	return false;
-+}
++	const struct nft_lookup *priv = nft_expr_priv(expr);
 +
- static const struct nft_expr_ops *
- nft_target_select_ops(const struct nft_ctx *ctx,
- 		      const struct nlattr * const tb[])
-@@ -862,6 +875,7 @@ nft_target_select_ops(const struct nft_ctx *ctx,
- 	ops->dump = nft_target_dump;
- 	ops->validate = nft_target_validate;
- 	ops->data = target;
-+	ops->reduce = nft_target_reduce;
- 
- 	if (family == NFPROTO_BRIDGE)
- 		ops->eval = nft_target_eval_bridge;
-diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
-index f179e8c3b0ca..cd923c030353 100644
---- a/net/netfilter/nft_counter.c
-+++ b/net/netfilter/nft_counter.c
-@@ -283,6 +283,12 @@ void nft_counter_init_seqcount(void)
- 		seqcount_init(per_cpu_ptr(&nft_counter_seq, cpu));
- }
- 
-+static bool nft_counter_reduce(struct nft_regs_track *track,
-+			       const struct nft_expr *expr)
-+{
-+	return false;
-+}
++	if (priv->set->flags & NFT_SET_MAP) {
++		unsigned int regcount, i, dreg = priv->dreg;
 +
- struct nft_expr_type nft_counter_type;
- static const struct nft_expr_ops nft_counter_ops = {
- 	.type		= &nft_counter_type,
-@@ -293,6 +299,7 @@ static const struct nft_expr_ops nft_counter_ops = {
- 	.destroy_clone	= nft_counter_destroy,
- 	.dump		= nft_counter_dump,
- 	.clone		= nft_counter_clone,
-+	.reduce		= nft_counter_reduce,
- 	.offload	= nft_counter_offload,
- 	.offload_stats	= nft_counter_offload_stats,
- };
-diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
-index d0f67d325bdf..45b14af3c523 100644
---- a/net/netfilter/nft_immediate.c
-+++ b/net/netfilter/nft_immediate.c
-@@ -223,6 +223,19 @@ static bool nft_immediate_offload_action(const struct nft_expr *expr)
- 	return false;
- }
- 
-+static bool nft_immediate_reduce(struct nft_regs_track *track,
-+				 const struct nft_expr *expr)
-+{
-+	const struct nft_immediate_expr *priv = nft_expr_priv(expr);
++		regcount = DIV_ROUND_UP(priv->set->dlen, NFT_REG32_SIZE);
 +
-+	if (priv->dreg != NFT_REG_VERDICT) {
-+		track->regs[priv->dreg].selector = NULL;
-+		track->regs[priv->dreg].bitwise = NULL;
++		/* reset registers that were clobbered */
++		for (i = 0; i < regcount; i++, dreg++) {
++			track->regs[dreg].selector = NULL;
++			track->regs[dreg].bitwise = NULL;
++		}
 +	}
 +
 +	return false;
 +}
 +
- static const struct nft_expr_ops nft_imm_ops = {
- 	.type		= &nft_imm_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_immediate_expr)),
-@@ -233,6 +246,7 @@ static const struct nft_expr_ops nft_imm_ops = {
- 	.destroy	= nft_immediate_destroy,
- 	.dump		= nft_immediate_dump,
- 	.validate	= nft_immediate_validate,
-+	.reduce		= nft_immediate_reduce,
- 	.offload	= nft_immediate_offload,
- 	.offload_action	= nft_immediate_offload_action,
+ static const struct nft_expr_ops nft_lookup_ops = {
+ 	.type		= &nft_lookup_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_lookup)),
+@@ -263,6 +283,7 @@ static const struct nft_expr_ops nft_lookup_ops = {
+ 	.destroy	= nft_lookup_destroy,
+ 	.dump		= nft_lookup_dump,
+ 	.validate	= nft_lookup_validate,
++	.reduce		= nft_lookup_reduce,
  };
+ 
+ struct nft_expr_type nft_lookup_type __read_mostly = {
 -- 
-2.30.2
+2.34.1
 
