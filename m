@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7390C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Mar 2022 06:51:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52947C433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Mar 2022 06:59:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244836AbiCKGwM (ORCPT
+        id S233049AbiCKHAq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 11 Mar 2022 01:52:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53886 "EHLO
+        Fri, 11 Mar 2022 02:00:46 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44850 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236833AbiCKGwL (ORCPT
+        with ESMTP id S233023AbiCKHAp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 11 Mar 2022 01:52:11 -0500
+        Fri, 11 Mar 2022 02:00:45 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 720AF1A9491
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Mar 2022 22:51:06 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id DDECF19D624
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Mar 2022 22:59:42 -0800 (PST)
 Received: from localhost.localdomain (unknown [31.221.131.6])
-        by mail.netfilter.org (Postfix) with ESMTPSA id D2827601D9;
-        Fri, 11 Mar 2022 07:49:00 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id E34C9601DC;
+        Fri, 11 Mar 2022 07:57:38 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     fw@strlen.de
-Subject: [PATCH nf,v3] netfilter: nf_tables: cancel register tracking if .reduce is not defined
-Date:   Fri, 11 Mar 2022 07:50:57 +0100
-Message-Id: <20220311065057.4610-1-pablo@netfilter.org>
+Subject: [PATCH nf,v4] netfilter: nf_tables: cancel register tracking if .reduce is not defined
+Date:   Fri, 11 Mar 2022 07:59:35 +0100
+Message-Id: <20220311065935.8401-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -33,8 +33,8 @@ List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 Cancel all register tracking if the reduce function is not defined. Add
-missing reduce function to cmp, counter and compat since these are
-read-only register.
+missing reduce function to cmp, immediate, counter and compat since
+these are read-only register.
 
 This patch unbreaks selftests/netfilter/nft_nat_zones.sh.
 
@@ -42,13 +42,14 @@ Fixes: 12e4ecfa244b ("netfilter: nf_tables: add register tracking infrastructure
 Suggested-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v3: do not cancel register tracking for counter expressions.
+v4: verdict through immediate might also cancel tracking.
 
  net/netfilter/nf_tables_api.c |  2 ++
  net/netfilter/nft_cmp.c       |  8 ++++++++
  net/netfilter/nft_compat.c    | 14 ++++++++++++++
  net/netfilter/nft_counter.c   |  7 +++++++
- 4 files changed, 31 insertions(+)
+ net/netfilter/nft_immediate.c | 14 ++++++++++++++
+ 5 files changed, 45 insertions(+)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
 index c86748b3873b..861a3a36024a 100644
@@ -165,6 +166,38 @@ index f179e8c3b0ca..cd923c030353 100644
 +	.reduce		= nft_counter_reduce,
  	.offload	= nft_counter_offload,
  	.offload_stats	= nft_counter_offload_stats,
+ };
+diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
+index d0f67d325bdf..45b14af3c523 100644
+--- a/net/netfilter/nft_immediate.c
++++ b/net/netfilter/nft_immediate.c
+@@ -223,6 +223,19 @@ static bool nft_immediate_offload_action(const struct nft_expr *expr)
+ 	return false;
+ }
+ 
++static bool nft_immediate_reduce(struct nft_regs_track *track,
++				 const struct nft_expr *expr)
++{
++	const struct nft_immediate_expr *priv = nft_expr_priv(expr);
++
++	if (priv->dreg != NFT_REG_VERDICT) {
++		track->regs[priv->dreg].selector = NULL;
++		track->regs[priv->dreg].bitwise = NULL;
++	}
++
++	return false;
++}
++
+ static const struct nft_expr_ops nft_imm_ops = {
+ 	.type		= &nft_imm_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_immediate_expr)),
+@@ -233,6 +246,7 @@ static const struct nft_expr_ops nft_imm_ops = {
+ 	.destroy	= nft_immediate_destroy,
+ 	.dump		= nft_immediate_dump,
+ 	.validate	= nft_immediate_validate,
++	.reduce		= nft_immediate_reduce,
+ 	.offload	= nft_immediate_offload,
+ 	.offload_action	= nft_immediate_offload_action,
  };
 -- 
 2.30.2
