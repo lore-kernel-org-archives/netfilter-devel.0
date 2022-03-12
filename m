@@ -2,28 +2,28 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FA84C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58E50C4332F
 	for <netfilter-devel@archiver.kernel.org>; Sat, 12 Mar 2022 15:48:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232095AbiCLPt3 (ORCPT
+        id S232091AbiCLPt3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sat, 12 Mar 2022 10:49:29 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45262 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45288 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232091AbiCLPt0 (ORCPT
+        with ESMTP id S229483AbiCLPt0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Sat, 12 Mar 2022 10:49:26 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 70B548BE1B
-        for <netfilter-devel@vger.kernel.org>; Sat, 12 Mar 2022 07:48:20 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6FC2C8BE3A
+        for <netfilter-devel@vger.kernel.org>; Sat, 12 Mar 2022 07:48:21 -0800 (PST)
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 9B51662FF3
-        for <netfilter-devel@vger.kernel.org>; Sat, 12 Mar 2022 16:46:11 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 9720D608F7
+        for <netfilter-devel@vger.kernel.org>; Sat, 12 Mar 2022 16:46:12 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next 6/9] netfilter: nft_numgen: cancel register tracking
-Date:   Sat, 12 Mar 2022 16:48:08 +0100
-Message-Id: <20220312154811.68611-7-pablo@netfilter.org>
+Subject: [PATCH nf-next 9/9] netfilter: nft_immediate: cancel register tracking for data destination register
+Date:   Sat, 12 Mar 2022 16:48:11 +0100
+Message-Id: <20220312154811.68611-10-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220312154811.68611-1-pablo@netfilter.org>
 References: <20220312154811.68611-1-pablo@netfilter.org>
@@ -33,68 +33,44 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Random and increment are stateful, each invocation results in fresh output.
-Cancel register tracking for these two expressions.
+The immediate expression might clobber existing data on the registers,
+cancel register tracking for the destination register.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_numgen.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ net/netfilter/nft_immediate.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/net/netfilter/nft_numgen.c b/net/netfilter/nft_numgen.c
-index 1d378efd8823..81b40c663d86 100644
---- a/net/netfilter/nft_numgen.c
-+++ b/net/netfilter/nft_numgen.c
-@@ -85,6 +85,16 @@ static int nft_ng_inc_init(const struct nft_ctx *ctx,
- 	return err;
+diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
+index d0f67d325bdf..daf1463ccdcb 100644
+--- a/net/netfilter/nft_immediate.c
++++ b/net/netfilter/nft_immediate.c
+@@ -223,6 +223,17 @@ static bool nft_immediate_offload_action(const struct nft_expr *expr)
+ 	return false;
  }
  
-+static bool nft_ng_inc_reduce(struct nft_regs_track *track,
++static bool nft_immediate_reduce(struct nft_regs_track *track,
 +				 const struct nft_expr *expr)
 +{
-+	const struct nft_ng_inc *priv = nft_expr_priv(expr);
++	const struct nft_immediate_expr *priv = nft_expr_priv(expr);
 +
-+	nft_reg_track_cancel(track, priv->dreg, NFT_REG32_SIZE);
++	if (priv->dreg != NFT_REG_VERDICT)
++		__nft_reg_track_cancel(track, priv->dreg);
 +
 +	return false;
 +}
 +
- static int nft_ng_dump(struct sk_buff *skb, enum nft_registers dreg,
- 		       u32 modulus, enum nft_ng_types type, u32 offset)
- {
-@@ -172,6 +182,16 @@ static int nft_ng_random_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 			   priv->offset);
- }
- 
-+static bool nft_ng_random_reduce(struct nft_regs_track *track,
-+				 const struct nft_expr *expr)
-+{
-+	const struct nft_ng_random *priv = nft_expr_priv(expr);
-+
-+	nft_reg_track_cancel(track, priv->dreg, NFT_REG32_SIZE);
-+
-+	return false;
-+}
-+
- static struct nft_expr_type nft_ng_type;
- static const struct nft_expr_ops nft_ng_inc_ops = {
- 	.type		= &nft_ng_type,
-@@ -180,6 +200,7 @@ static const struct nft_expr_ops nft_ng_inc_ops = {
- 	.init		= nft_ng_inc_init,
- 	.destroy	= nft_ng_inc_destroy,
- 	.dump		= nft_ng_inc_dump,
-+	.reduce		= nft_ng_inc_reduce,
+ static const struct nft_expr_ops nft_imm_ops = {
+ 	.type		= &nft_imm_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_immediate_expr)),
+@@ -233,6 +244,7 @@ static const struct nft_expr_ops nft_imm_ops = {
+ 	.destroy	= nft_immediate_destroy,
+ 	.dump		= nft_immediate_dump,
+ 	.validate	= nft_immediate_validate,
++	.reduce		= nft_immediate_reduce,
+ 	.offload	= nft_immediate_offload,
+ 	.offload_action	= nft_immediate_offload_action,
  };
- 
- static const struct nft_expr_ops nft_ng_random_ops = {
-@@ -188,6 +209,7 @@ static const struct nft_expr_ops nft_ng_random_ops = {
- 	.eval		= nft_ng_random_eval,
- 	.init		= nft_ng_random_init,
- 	.dump		= nft_ng_random_dump,
-+	.reduce		= nft_ng_random_reduce,
- };
- 
- static const struct nft_expr_ops *
 -- 
 2.30.2
 
