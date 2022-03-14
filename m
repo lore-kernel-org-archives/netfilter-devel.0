@@ -2,28 +2,28 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56B7DC433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36CA1C433EF
 	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Mar 2022 17:23:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243329AbiCNRYf (ORCPT
+        id S243271AbiCNRYd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 14 Mar 2022 13:24:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42788 "EHLO
+        Mon, 14 Mar 2022 13:24:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42786 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243112AbiCNRYb (ORCPT
+        with ESMTP id S242255AbiCNRYb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 14 Mar 2022 13:24:31 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 51C1A2AE13
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Mar 2022 10:23:21 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id AEACF28E14
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Mar 2022 10:23:20 -0700 (PDT)
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id C429F62FEA
+        by mail.netfilter.org (Postfix) with ESMTPSA id 2BA83625F9
         for <netfilter-devel@vger.kernel.org>; Mon, 14 Mar 2022 18:21:04 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next,v3 03/14] netfilter: nft_ct: track register operations
-Date:   Mon, 14 Mar 2022 18:23:02 +0100
-Message-Id: <20220314172313.63348-4-pablo@netfilter.org>
+Subject: [PATCH nf-next,v3 02/14] netfilter: nf_tables: cancel tracking for clobbered destination registers
+Date:   Mon, 14 Mar 2022 18:23:01 +0100
+Message-Id: <20220314172313.63348-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220314172313.63348-1-pablo@netfilter.org>
 References: <20220314172313.63348-1-pablo@netfilter.org>
@@ -33,133 +33,332 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Check if the destination register already contains the data that this ct
-expression performs. This allows to skip this redundant operation. If
-the destination contains a different selector, update the register
-tracking information.
+Output of expressions might be larger than one single register, this might
+clobber existing data. Reset tracking for all destination registers that
+required to store the expression output.
 
-Export nft_expr_reduce_bitwise as a symbol since nft_ct might be
-compiled as a module.
+This patch adds three new helper functions:
+
+- nft_reg_track_update: cancel previous register tracking and update it.
+- nft_reg_track_cancel: cancel any previous register tracking info.
+- __nft_reg_track_cancel: cancel only one single register tracking info.
+
+Partial register clobbering detection is also supported by checking the
+.num_reg field which describes the number of register that are used.
+
+This patch updates the following expressions:
+
+- meta_bridge
+- bitwise
+- byteorder
+- meta
+- payload
+
+to use these helper functions.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v3: no changes
+v3: remove if (len <= 0) check in nft_reg_track_cancel (never happens)
 
- net/netfilter/nft_bitwise.c |  1 +
- net/netfilter/nft_ct.c      | 47 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 48 insertions(+)
+ include/net/netfilter/nf_tables.h      | 14 +++++++
+ include/net/netfilter/nft_meta.h       |  1 +
+ net/bridge/netfilter/nft_meta_bridge.c |  4 +-
+ net/netfilter/nf_tables_api.c          | 52 ++++++++++++++++++++++++++
+ net/netfilter/nft_bitwise.c            | 23 ++++++++----
+ net/netfilter/nft_byteorder.c          |  3 +-
+ net/netfilter/nft_meta.c               | 14 +++----
+ net/netfilter/nft_payload.c            | 12 ++----
+ 8 files changed, 95 insertions(+), 28 deletions(-)
 
-diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
-index dffda6612369..38caa66632b4 100644
---- a/net/netfilter/nft_bitwise.c
-+++ b/net/netfilter/nft_bitwise.c
-@@ -529,3 +529,4 @@ bool nft_expr_reduce_bitwise(struct nft_regs_track *track,
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index edabfb9e97ce..20af9d3557b9 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -126,6 +126,7 @@ struct nft_regs_track {
+ 	struct {
+ 		const struct nft_expr		*selector;
+ 		const struct nft_expr		*bitwise;
++		u8				num_reg;
+ 	} regs[NFT_REG32_NUM];
  
- 	return false;
+ 	const struct nft_expr			*cur;
+@@ -1641,4 +1642,17 @@ static inline bool nft_reduce_is_readonly(const struct nft_expr *expr)
+ 	return expr->ops->reduce == NFT_REDUCE_READONLY;
  }
-+EXPORT_SYMBOL_GPL(nft_expr_reduce_bitwise);
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index 98e361185503..b719574ce980 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -26,6 +26,7 @@
- struct nft_ct {
- 	enum nft_ct_keys	key:8;
- 	enum ip_conntrack_dir	dir:8;
+ 
++void nft_reg_track_update(struct nft_regs_track *track,
++			  const struct nft_expr *expr, u8 dreg, u8 len);
++void nft_reg_track_cancel(struct nft_regs_track *track, u8 dreg, u8 len);
++void __nft_reg_track_cancel(struct nft_regs_track *track, u8 dreg);
++
++static inline bool nft_reg_track_cmp(struct nft_regs_track *track,
++				     const struct nft_expr *expr, u8 dreg)
++{
++	return track->regs[dreg].selector &&
++	       track->regs[dreg].selector->ops == expr->ops &&
++	       track->regs[dreg].num_reg == 0;
++}
++
+ #endif /* _NET_NF_TABLES_H */
+diff --git a/include/net/netfilter/nft_meta.h b/include/net/netfilter/nft_meta.h
+index 2dce55c736f4..246fd023dcf4 100644
+--- a/include/net/netfilter/nft_meta.h
++++ b/include/net/netfilter/nft_meta.h
+@@ -6,6 +6,7 @@
+ 
+ struct nft_meta {
+ 	enum nft_meta_keys	key:8;
 +	u8			len;
  	union {
  		u8		dreg;
  		u8		sreg;
-@@ -500,6 +501,7 @@ static int nft_ct_get_init(const struct nft_ctx *ctx,
- 		}
+diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
+index c1ef9cc89b78..380a31ebf840 100644
+--- a/net/bridge/netfilter/nft_meta_bridge.c
++++ b/net/bridge/netfilter/nft_meta_bridge.c
+@@ -87,6 +87,7 @@ static int nft_meta_bridge_get_init(const struct nft_ctx *ctx,
+ 		return nft_meta_get_init(ctx, expr, tb);
  	}
  
 +	priv->len = len;
- 	err = nft_parse_register_store(ctx, tb[NFTA_CT_DREG], &priv->dreg, NULL,
- 				       NFT_DATA_VALUE, len);
- 	if (err < 0)
-@@ -608,6 +610,7 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
- 		}
+ 	return nft_parse_register_store(ctx, tb[NFTA_META_DREG], &priv->dreg,
+ 					NULL, NFT_DATA_VALUE, len);
+ }
+@@ -112,8 +113,7 @@ static bool nft_meta_bridge_set_reduce(struct nft_regs_track *track,
+ 		if (track->regs[i].selector->ops != &nft_meta_bridge_get_ops)
+ 			continue;
+ 
+-		track->regs[i].selector = NULL;
+-		track->regs[i].bitwise = NULL;
++		__nft_reg_track_cancel(track, i);
  	}
  
-+	priv->len = len;
- 	err = nft_parse_register_load(tb[NFTA_CT_SREG], &priv->sreg, len);
- 	if (err < 0)
- 		goto err1;
-@@ -677,6 +680,29 @@ static int nft_ct_get_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 	return -1;
+ 	return false;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index e5ddff24d31f..ce97b4308b62 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -550,6 +550,58 @@ static int nft_delflowtable(struct nft_ctx *ctx,
+ 	return err;
  }
  
-+static bool nft_ct_get_reduce(struct nft_regs_track *track,
-+			      const struct nft_expr *expr)
-+{
-+	const struct nft_ct *priv = nft_expr_priv(expr);
-+	const struct nft_ct *ct;
-+
-+	if (!nft_reg_track_cmp(track, expr, priv->dreg)) {
-+		nft_reg_track_update(track, expr, priv->dreg, priv->len);
-+		return false;
-+	}
-+
-+	ct = nft_expr_priv(track->regs[priv->dreg].selector);
-+	if (priv->key != ct->key) {
-+		nft_reg_track_update(track, expr, priv->dreg, priv->len);
-+		return false;
-+	}
-+
-+	if (!track->regs[priv->dreg].bitwise)
-+		return true;
-+
-+	return nft_expr_reduce_bitwise(track, expr);
-+}
-+
- static int nft_ct_set_dump(struct sk_buff *skb, const struct nft_expr *expr)
- {
- 	const struct nft_ct *priv = nft_expr_priv(expr);
-@@ -710,8 +736,27 @@ static const struct nft_expr_ops nft_ct_get_ops = {
- 	.init		= nft_ct_get_init,
- 	.destroy	= nft_ct_get_destroy,
- 	.dump		= nft_ct_get_dump,
-+	.reduce		= nft_ct_get_reduce,
- };
- 
-+static bool nft_ct_set_reduce(struct nft_regs_track *track,
-+			      const struct nft_expr *expr)
++static void __nft_reg_track_clobber(struct nft_regs_track *track, u8 dreg)
 +{
 +	int i;
 +
-+	for (i = 0; i < NFT_REG32_NUM; i++) {
-+		if (!track->regs[i].selector)
-+			continue;
-+
-+		if (track->regs[i].selector->ops != &nft_ct_get_ops)
-+			continue;
-+
-+		__nft_reg_track_cancel(track, i);
-+	}
-+
-+	return false;
++	for (i = track->regs[dreg].num_reg; i > 0; i--)
++		__nft_reg_track_cancel(track, dreg - i);
 +}
 +
- static const struct nft_expr_ops nft_ct_set_ops = {
- 	.type		= &nft_ct_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_ct)),
-@@ -719,6 +764,7 @@ static const struct nft_expr_ops nft_ct_set_ops = {
- 	.init		= nft_ct_set_init,
- 	.destroy	= nft_ct_set_destroy,
- 	.dump		= nft_ct_set_dump,
-+	.reduce		= nft_ct_set_reduce,
- };
++static void __nft_reg_track_update(struct nft_regs_track *track,
++				   const struct nft_expr *expr,
++				   u8 dreg, u8 num_reg)
++{
++	track->regs[dreg].selector = expr;
++	track->regs[dreg].bitwise = NULL;
++	track->regs[dreg].num_reg = num_reg;
++}
++
++void nft_reg_track_update(struct nft_regs_track *track,
++			  const struct nft_expr *expr, u8 dreg, u8 len)
++{
++	unsigned int regcount;
++	int i;
++
++	__nft_reg_track_clobber(track, dreg);
++
++	regcount = DIV_ROUND_UP(len, NFT_REG32_SIZE);
++	for (i = 0; i < regcount; i++, dreg++)
++		__nft_reg_track_update(track, expr, dreg, i);
++}
++EXPORT_SYMBOL_GPL(nft_reg_track_update);
++
++void nft_reg_track_cancel(struct nft_regs_track *track, u8 dreg, u8 len)
++{
++	unsigned int regcount;
++	int i;
++
++	__nft_reg_track_clobber(track, dreg);
++
++	regcount = DIV_ROUND_UP(len, NFT_REG32_SIZE);
++	for (i = 0; i < regcount; i++, dreg++)
++		__nft_reg_track_cancel(track, dreg);
++}
++EXPORT_SYMBOL_GPL(nft_reg_track_cancel);
++
++void __nft_reg_track_cancel(struct nft_regs_track *track, u8 dreg)
++{
++	track->regs[dreg].selector = NULL;
++	track->regs[dreg].bitwise = NULL;
++	track->regs[dreg].num_reg = 0;
++}
++EXPORT_SYMBOL_GPL(__nft_reg_track_cancel);
++
+ /*
+  * Tables
+  */
+diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
+index 7b727d3ebf9d..dffda6612369 100644
+--- a/net/netfilter/nft_bitwise.c
++++ b/net/netfilter/nft_bitwise.c
+@@ -283,12 +283,16 @@ static bool nft_bitwise_reduce(struct nft_regs_track *track,
+ {
+ 	const struct nft_bitwise *priv = nft_expr_priv(expr);
+ 	const struct nft_bitwise *bitwise;
++	unsigned int regcount;
++	u8 dreg;
++	int i;
  
- #ifdef CONFIG_NF_CONNTRACK_ZONES
-@@ -729,6 +775,7 @@ static const struct nft_expr_ops nft_ct_set_zone_ops = {
- 	.init		= nft_ct_set_init,
- 	.destroy	= nft_ct_set_destroy,
- 	.dump		= nft_ct_set_dump,
-+	.reduce		= nft_ct_set_reduce,
- };
- #endif
+ 	if (!track->regs[priv->sreg].selector)
+ 		return false;
  
+ 	bitwise = nft_expr_priv(expr);
+ 	if (track->regs[priv->sreg].selector == track->regs[priv->dreg].selector &&
++	    track->regs[priv->sreg].num_reg == 0 &&
+ 	    track->regs[priv->dreg].bitwise &&
+ 	    track->regs[priv->dreg].bitwise->ops == expr->ops &&
+ 	    priv->sreg == bitwise->sreg &&
+@@ -302,17 +306,21 @@ static bool nft_bitwise_reduce(struct nft_regs_track *track,
+ 		return true;
+ 	}
+ 
+-	if (track->regs[priv->sreg].bitwise) {
+-		track->regs[priv->dreg].selector = NULL;
+-		track->regs[priv->dreg].bitwise = NULL;
++	if (track->regs[priv->sreg].bitwise ||
++	    track->regs[priv->sreg].num_reg != 0) {
++		nft_reg_track_cancel(track, priv->dreg, priv->len);
+ 		return false;
+ 	}
+ 
+ 	if (priv->sreg != priv->dreg) {
+-		track->regs[priv->dreg].selector =
+-			track->regs[priv->sreg].selector;
++		nft_reg_track_update(track, track->regs[priv->sreg].selector,
++				     priv->dreg, priv->len);
+ 	}
+-	track->regs[priv->dreg].bitwise = expr;
++
++	dreg = priv->dreg;
++	regcount = DIV_ROUND_UP(priv->len, NFT_REG32_SIZE);
++	for (i = 0; i < regcount; i++, dreg++)
++		track->regs[priv->dreg].bitwise = expr;
+ 
+ 	return false;
+ }
+@@ -447,8 +455,7 @@ static bool nft_bitwise_fast_reduce(struct nft_regs_track *track,
+ 	}
+ 
+ 	if (track->regs[priv->sreg].bitwise) {
+-		track->regs[priv->dreg].selector = NULL;
+-		track->regs[priv->dreg].bitwise = NULL;
++		nft_reg_track_cancel(track, priv->dreg, NFT_REG32_SIZE);
+ 		return false;
+ 	}
+ 
+diff --git a/net/netfilter/nft_byteorder.c b/net/netfilter/nft_byteorder.c
+index e646e9ee4a98..d77609144b26 100644
+--- a/net/netfilter/nft_byteorder.c
++++ b/net/netfilter/nft_byteorder.c
+@@ -172,8 +172,7 @@ static bool nft_byteorder_reduce(struct nft_regs_track *track,
+ {
+ 	struct nft_byteorder *priv = nft_expr_priv(expr);
+ 
+-	track->regs[priv->dreg].selector = NULL;
+-	track->regs[priv->dreg].bitwise = NULL;
++	nft_reg_track_cancel(track, priv->dreg, priv->len);
+ 
+ 	return false;
+ }
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index 5ab4df56c945..482eed7c7bbf 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -539,6 +539,7 @@ int nft_meta_get_init(const struct nft_ctx *ctx,
+ 		return -EOPNOTSUPP;
+ 	}
+ 
++	priv->len = len;
+ 	return nft_parse_register_store(ctx, tb[NFTA_META_DREG], &priv->dreg,
+ 					NULL, NFT_DATA_VALUE, len);
+ }
+@@ -664,6 +665,7 @@ int nft_meta_set_init(const struct nft_ctx *ctx,
+ 		return -EOPNOTSUPP;
+ 	}
+ 
++	priv->len = len;
+ 	err = nft_parse_register_load(tb[NFTA_META_SREG], &priv->sreg, len);
+ 	if (err < 0)
+ 		return err;
+@@ -756,18 +758,15 @@ static bool nft_meta_get_reduce(struct nft_regs_track *track,
+ 	const struct nft_meta *priv = nft_expr_priv(expr);
+ 	const struct nft_meta *meta;
+ 
+-	if (!track->regs[priv->dreg].selector ||
+-	    track->regs[priv->dreg].selector->ops != expr->ops) {
+-		track->regs[priv->dreg].selector = expr;
+-		track->regs[priv->dreg].bitwise = NULL;
++	if (!nft_reg_track_cmp(track, expr, priv->dreg)) {
++		nft_reg_track_update(track, expr, priv->dreg, priv->len);
+ 		return false;
+ 	}
+ 
+ 	meta = nft_expr_priv(track->regs[priv->dreg].selector);
+ 	if (priv->key != meta->key ||
+ 	    priv->dreg != meta->dreg) {
+-		track->regs[priv->dreg].selector = expr;
+-		track->regs[priv->dreg].bitwise = NULL;
++		nft_reg_track_update(track, expr, priv->dreg, priv->len);
+ 		return false;
+ 	}
+ 
+@@ -800,8 +799,7 @@ static bool nft_meta_set_reduce(struct nft_regs_track *track,
+ 		if (track->regs[i].selector->ops != &nft_meta_get_ops)
+ 			continue;
+ 
+-		track->regs[i].selector = NULL;
+-		track->regs[i].bitwise = NULL;
++		__nft_reg_track_cancel(track, i);
+ 	}
+ 
+ 	return false;
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index 5cc06aef4345..2e7ac007cb30 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -216,10 +216,8 @@ static bool nft_payload_reduce(struct nft_regs_track *track,
+ 	const struct nft_payload *priv = nft_expr_priv(expr);
+ 	const struct nft_payload *payload;
+ 
+-	if (!track->regs[priv->dreg].selector ||
+-	    track->regs[priv->dreg].selector->ops != expr->ops) {
+-		track->regs[priv->dreg].selector = expr;
+-		track->regs[priv->dreg].bitwise = NULL;
++	if (!nft_reg_track_cmp(track, expr, priv->dreg)) {
++		nft_reg_track_update(track, expr, priv->dreg, priv->len);
+ 		return false;
+ 	}
+ 
+@@ -227,8 +225,7 @@ static bool nft_payload_reduce(struct nft_regs_track *track,
+ 	if (priv->base != payload->base ||
+ 	    priv->offset != payload->offset ||
+ 	    priv->len != payload->len) {
+-		track->regs[priv->dreg].selector = expr;
+-		track->regs[priv->dreg].bitwise = NULL;
++		nft_reg_track_update(track, expr, priv->dreg, priv->len);
+ 		return false;
+ 	}
+ 
+@@ -815,8 +812,7 @@ static bool nft_payload_set_reduce(struct nft_regs_track *track,
+ 		    track->regs[i].selector->ops != &nft_payload_fast_ops)
+ 			continue;
+ 
+-		track->regs[i].selector = NULL;
+-		track->regs[i].bitwise = NULL;
++		__nft_reg_track_cancel(track, i);
+ 	}
+ 
+ 	return false;
 -- 
 2.30.2
 
