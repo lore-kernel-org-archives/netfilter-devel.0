@@ -2,66 +2,164 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 889EBC433EF
-	for <netfilter-devel@archiver.kernel.org>; Sun, 13 Mar 2022 09:23:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AEE44C433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Mar 2022 00:54:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234127AbiCMJZD (ORCPT
+        id S235748AbiCNAzg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 13 Mar 2022 05:25:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58084 "EHLO
+        Sun, 13 Mar 2022 20:55:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51876 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231891AbiCMJZD (ORCPT
+        with ESMTP id S235726AbiCNAzf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 13 Mar 2022 05:25:03 -0400
-X-Greylist: delayed 463 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 13 Mar 2022 01:23:55 PST
-Received: from nodachi.mjopr.nl (nodachi.mjopr.nl [31.210.16.215])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65BBA10216E
-        for <netfilter-devel@vger.kernel.org>; Sun, 13 Mar 2022 01:23:55 -0800 (PST)
-Received: from [192.168.2.164] (unknown [143.176.158.61])
-        (using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
-        (No client certificate requested)
-        (Authenticated sender: sander)
-        by nodachi.mjopr.nl (Postfix) with ESMTPSA id E6CF71FF5C
-        for <netfilter-devel@vger.kernel.org>; Sun, 13 Mar 2022 10:16:10 +0100 (CET)
-Message-ID: <b054d06e-4d79-27d9-cbeb-5c9822453ba7@users.sourceforge.net>
-Date:   Sun, 13 Mar 2022 10:16:09 +0100
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.5.0
-Content-Language: en-US
+        Sun, 13 Mar 2022 20:55:35 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E28F23524A
+        for <netfilter-devel@vger.kernel.org>; Sun, 13 Mar 2022 17:54:24 -0700 (PDT)
+Received: from localhost.localdomain (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 8649B62FFE
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Mar 2022 01:52:10 +0100 (CET)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-From:   Pander <pander@users.sourceforge.net>
-Subject: Xtables-addons URL issues
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Subject: [PATCH nf-next 03/12,v2] netfilter: nft_ct: track register operations
+Date:   Mon, 14 Mar 2022 01:54:08 +0100
+Message-Id: <20220314005417.315832-4-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20220314005417.315832-1-pablo@netfilter.org>
+References: <20220314005417.315832-1-pablo@netfilter.org>
+MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi all, ej,
+Check if the destination register already contains the data that this ct
+expression performs. This allows to skip this redundant operation. If
+the destination contains a different selector, update the register
+tracking information.
 
-Here are some URL issues for xtables-addons. Page 
-https://inai.de/projects/xtables-addons/geoip.php
+Export nft_expr_reduce_bitwise as a symbol since nft_ct might be
+compiled as a module.
 
-1) Has link 
-https://build.opensuse.org/package/files?package=xtables-geoip&project=security%3Anetfilter 
-which is broken, please fix if possible.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: use nft_reg_track_cmp().
 
-2) Link http://marc.info/?l=netfilter&m=130375362317626&w=2 redirects to 
-https://marc.info/?l=netfilter&m=130375362317626&w=2 so better use that 
-link as  it is HTTPS.
+ net/netfilter/nft_bitwise.c |  1 +
+ net/netfilter/nft_ct.c      | 47 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 48 insertions(+)
 
-3) Link https://inai.de/about redirects to https://inai.de/about/ which 
-is a minor fix. This is in the footer and applies to all pages for this 
-website.
-
-4) Link http://people.netfilter.org/acidfu/geoip/howto/ redirects to 
-https://people.netfilter.org/acidfu/geoip/howto/ so also better to use.
-
-See also 
-https://validator.w3.org/checklink?uri=https%3A%2F%2Finai.de%2Fprojects%2Fxtables-addons%2Fgeoip.php
-
-Thanks,
-
-Pander
+diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
+index dffda6612369..38caa66632b4 100644
+--- a/net/netfilter/nft_bitwise.c
++++ b/net/netfilter/nft_bitwise.c
+@@ -529,3 +529,4 @@ bool nft_expr_reduce_bitwise(struct nft_regs_track *track,
+ 
+ 	return false;
+ }
++EXPORT_SYMBOL_GPL(nft_expr_reduce_bitwise);
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index 98e361185503..b719574ce980 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -26,6 +26,7 @@
+ struct nft_ct {
+ 	enum nft_ct_keys	key:8;
+ 	enum ip_conntrack_dir	dir:8;
++	u8			len;
+ 	union {
+ 		u8		dreg;
+ 		u8		sreg;
+@@ -500,6 +501,7 @@ static int nft_ct_get_init(const struct nft_ctx *ctx,
+ 		}
+ 	}
+ 
++	priv->len = len;
+ 	err = nft_parse_register_store(ctx, tb[NFTA_CT_DREG], &priv->dreg, NULL,
+ 				       NFT_DATA_VALUE, len);
+ 	if (err < 0)
+@@ -608,6 +610,7 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
+ 		}
+ 	}
+ 
++	priv->len = len;
+ 	err = nft_parse_register_load(tb[NFTA_CT_SREG], &priv->sreg, len);
+ 	if (err < 0)
+ 		goto err1;
+@@ -677,6 +680,29 @@ static int nft_ct_get_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 	return -1;
+ }
+ 
++static bool nft_ct_get_reduce(struct nft_regs_track *track,
++			      const struct nft_expr *expr)
++{
++	const struct nft_ct *priv = nft_expr_priv(expr);
++	const struct nft_ct *ct;
++
++	if (!nft_reg_track_cmp(track, expr, priv->dreg)) {
++		nft_reg_track_update(track, expr, priv->dreg, priv->len);
++		return false;
++	}
++
++	ct = nft_expr_priv(track->regs[priv->dreg].selector);
++	if (priv->key != ct->key) {
++		nft_reg_track_update(track, expr, priv->dreg, priv->len);
++		return false;
++	}
++
++	if (!track->regs[priv->dreg].bitwise)
++		return true;
++
++	return nft_expr_reduce_bitwise(track, expr);
++}
++
+ static int nft_ct_set_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ {
+ 	const struct nft_ct *priv = nft_expr_priv(expr);
+@@ -710,8 +736,27 @@ static const struct nft_expr_ops nft_ct_get_ops = {
+ 	.init		= nft_ct_get_init,
+ 	.destroy	= nft_ct_get_destroy,
+ 	.dump		= nft_ct_get_dump,
++	.reduce		= nft_ct_get_reduce,
+ };
+ 
++static bool nft_ct_set_reduce(struct nft_regs_track *track,
++			      const struct nft_expr *expr)
++{
++	int i;
++
++	for (i = 0; i < NFT_REG32_NUM; i++) {
++		if (!track->regs[i].selector)
++			continue;
++
++		if (track->regs[i].selector->ops != &nft_ct_get_ops)
++			continue;
++
++		__nft_reg_track_cancel(track, i);
++	}
++
++	return false;
++}
++
+ static const struct nft_expr_ops nft_ct_set_ops = {
+ 	.type		= &nft_ct_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_ct)),
+@@ -719,6 +764,7 @@ static const struct nft_expr_ops nft_ct_set_ops = {
+ 	.init		= nft_ct_set_init,
+ 	.destroy	= nft_ct_set_destroy,
+ 	.dump		= nft_ct_set_dump,
++	.reduce		= nft_ct_set_reduce,
+ };
+ 
+ #ifdef CONFIG_NF_CONNTRACK_ZONES
+@@ -729,6 +775,7 @@ static const struct nft_expr_ops nft_ct_set_zone_ops = {
+ 	.init		= nft_ct_set_init,
+ 	.destroy	= nft_ct_set_destroy,
+ 	.dump		= nft_ct_set_dump,
++	.reduce		= nft_ct_set_reduce,
+ };
+ #endif
+ 
+-- 
+2.30.2
 
