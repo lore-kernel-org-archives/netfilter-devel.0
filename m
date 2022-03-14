@@ -2,28 +2,28 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D38CAC4167B
-	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Mar 2022 17:23:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AE14C43217
+	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Mar 2022 17:23:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243245AbiCNRYj (ORCPT
+        id S243274AbiCNRYj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Mon, 14 Mar 2022 13:24:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43128 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42976 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243313AbiCNRYf (ORCPT
+        with ESMTP id S243277AbiCNRYg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 14 Mar 2022 13:24:35 -0400
+        Mon, 14 Mar 2022 13:24:36 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 09B1D31DE3
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Mar 2022 10:23:25 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 2C7AD34BBD
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Mar 2022 10:23:26 -0700 (PDT)
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id C3A1C60868
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Mar 2022 18:21:08 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id DA3C863000
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Mar 2022 18:21:09 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next,v3 11/14] netfilter: nft_xfrm: track register operations
-Date:   Mon, 14 Mar 2022 18:23:10 +0100
-Message-Id: <20220314172313.63348-12-pablo@netfilter.org>
+Subject: [PATCH nf-next,v3 14/14] netfilter: nft_exthdr: add reduce support
+Date:   Mon, 14 Mar 2022 18:23:13 +0100
+Message-Id: <20220314172313.63348-15-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220314172313.63348-1-pablo@netfilter.org>
 References: <20220314172313.63348-1-pablo@netfilter.org>
@@ -33,58 +33,44 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Check if the destination register already contains the data that this
-xfrm expression performs. This allows to skip this redundant operation.
-If the destination contains a different selector, update the register
-tracking information.
+From: Florian Westphal <fw@strlen.de>
 
+Check if we can elide the load. Cancel if the new candidate
+isn't identical to previous store.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v3: no changes
+v3: new in this series
 
- net/netfilter/nft_xfrm.c | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ net/netfilter/nft_exthdr.c | 33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
 
-diff --git a/net/netfilter/nft_xfrm.c b/net/netfilter/nft_xfrm.c
-index cbbbc4ecad3a..becb88fa4e9b 100644
---- a/net/netfilter/nft_xfrm.c
-+++ b/net/netfilter/nft_xfrm.c
-@@ -27,6 +27,7 @@ struct nft_xfrm {
- 	u8			dreg;
- 	u8			dir;
- 	u8			spnum;
-+	u8			len;
- };
- 
- static int nft_xfrm_get_init(const struct nft_ctx *ctx,
-@@ -86,6 +87,7 @@ static int nft_xfrm_get_init(const struct nft_ctx *ctx,
- 
- 	priv->spnum = spnum;
- 
-+	priv->len = len;
- 	return nft_parse_register_store(ctx, tb[NFTA_XFRM_DREG], &priv->dreg,
- 					NULL, NFT_DATA_VALUE, len);
- }
-@@ -252,6 +254,31 @@ static int nft_xfrm_validate(const struct nft_ctx *ctx, const struct nft_expr *e
- 	return nft_chain_validate_hooks(ctx->chain, hooks);
+diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
+index d2b9378164bb..22c3e05b52db 100644
+--- a/net/netfilter/nft_exthdr.c
++++ b/net/netfilter/nft_exthdr.c
+@@ -603,12 +603,40 @@ static int nft_exthdr_dump_strip(struct sk_buff *skb, const struct nft_expr *exp
+ 	return nft_exthdr_dump_common(skb, priv);
  }
  
-+static bool nft_xfrm_reduce(struct nft_regs_track *track,
-+			    const struct nft_expr *expr)
++static bool nft_exthdr_reduce(struct nft_regs_track *track,
++			       const struct nft_expr *expr)
 +{
-+	const struct nft_xfrm *priv = nft_expr_priv(expr);
-+	const struct nft_xfrm *xfrm;
++	const struct nft_exthdr *priv = nft_expr_priv(expr);
++	const struct nft_exthdr *exthdr;
 +
 +	if (!nft_reg_track_cmp(track, expr, priv->dreg)) {
 +		nft_reg_track_update(track, expr, priv->dreg, priv->len);
 +		return false;
 +	}
 +
-+	xfrm = nft_expr_priv(track->regs[priv->dreg].selector);
-+	if (priv->key != xfrm->key ||
-+	    priv->dreg != xfrm->dreg ||
-+	    priv->dir != xfrm->dir ||
-+	    priv->spnum != xfrm->spnum) {
++	exthdr = nft_expr_priv(track->regs[priv->dreg].selector);
++	if (priv->type != exthdr->type ||
++	    priv->op != exthdr->op ||
++	    priv->flags != exthdr->flags ||
++	    priv->offset != exthdr->offset ||
++	    priv->len != exthdr->len) {
 +		nft_reg_track_update(track, expr, priv->dreg, priv->len);
 +		return false;
 +	}
@@ -94,17 +80,57 @@ index cbbbc4ecad3a..becb88fa4e9b 100644
 +
 +	return nft_expr_reduce_bitwise(track, expr);
 +}
- 
- static struct nft_expr_type nft_xfrm_type;
- static const struct nft_expr_ops nft_xfrm_get_ops = {
-@@ -261,6 +288,7 @@ static const struct nft_expr_ops nft_xfrm_get_ops = {
- 	.init		= nft_xfrm_get_init,
- 	.dump		= nft_xfrm_get_dump,
- 	.validate	= nft_xfrm_validate,
-+	.reduce		= nft_xfrm_reduce,
++
+ static const struct nft_expr_ops nft_exthdr_ipv6_ops = {
+ 	.type		= &nft_exthdr_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_exthdr)),
+ 	.eval		= nft_exthdr_ipv6_eval,
+ 	.init		= nft_exthdr_init,
+ 	.dump		= nft_exthdr_dump,
++	.reduce		= nft_exthdr_reduce,
  };
  
- static struct nft_expr_type nft_xfrm_type __read_mostly = {
+ static const struct nft_expr_ops nft_exthdr_ipv4_ops = {
+@@ -617,6 +645,7 @@ static const struct nft_expr_ops nft_exthdr_ipv4_ops = {
+ 	.eval		= nft_exthdr_ipv4_eval,
+ 	.init		= nft_exthdr_ipv4_init,
+ 	.dump		= nft_exthdr_dump,
++	.reduce		= nft_exthdr_reduce,
+ };
+ 
+ static const struct nft_expr_ops nft_exthdr_tcp_ops = {
+@@ -625,6 +654,7 @@ static const struct nft_expr_ops nft_exthdr_tcp_ops = {
+ 	.eval		= nft_exthdr_tcp_eval,
+ 	.init		= nft_exthdr_init,
+ 	.dump		= nft_exthdr_dump,
++	.reduce		= nft_exthdr_reduce,
+ };
+ 
+ static const struct nft_expr_ops nft_exthdr_tcp_set_ops = {
+@@ -633,6 +663,7 @@ static const struct nft_expr_ops nft_exthdr_tcp_set_ops = {
+ 	.eval		= nft_exthdr_tcp_set_eval,
+ 	.init		= nft_exthdr_tcp_set_init,
+ 	.dump		= nft_exthdr_dump_set,
++	.reduce		= NFT_REDUCE_READONLY,
+ };
+ 
+ static const struct nft_expr_ops nft_exthdr_tcp_strip_ops = {
+@@ -641,6 +672,7 @@ static const struct nft_expr_ops nft_exthdr_tcp_strip_ops = {
+ 	.eval		= nft_exthdr_tcp_strip_eval,
+ 	.init		= nft_exthdr_tcp_strip_init,
+ 	.dump		= nft_exthdr_dump_strip,
++	.reduce		= NFT_REDUCE_READONLY,
+ };
+ 
+ static const struct nft_expr_ops nft_exthdr_sctp_ops = {
+@@ -649,6 +681,7 @@ static const struct nft_expr_ops nft_exthdr_sctp_ops = {
+ 	.eval		= nft_exthdr_sctp_eval,
+ 	.init		= nft_exthdr_init,
+ 	.dump		= nft_exthdr_dump,
++	.reduce		= nft_exthdr_reduce,
+ };
+ 
+ static const struct nft_expr_ops *
 -- 
 2.30.2
 
