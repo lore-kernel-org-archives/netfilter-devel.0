@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC380C433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Mar 2022 17:09:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BF89C433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Mar 2022 17:48:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245225AbiCORKz (ORCPT
+        id S233491AbiCORtL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 15 Mar 2022 13:10:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46606 "EHLO
+        Tue, 15 Mar 2022 13:49:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41560 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244021AbiCORKy (ORCPT
+        with ESMTP id S1350713AbiCORtK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Mar 2022 13:10:54 -0400
-X-Greylist: delayed 441 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 15 Mar 2022 10:09:42 PDT
-Received: from smtp-190f.mail.infomaniak.ch (smtp-190f.mail.infomaniak.ch [IPv6:2001:1600:3:17::190f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A154580E5
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2022 10:09:41 -0700 (PDT)
-Received: from smtp-2-0001.mail.infomaniak.ch (unknown [10.5.36.108])
-        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4KJ07s4xPFzMppPQ;
-        Tue, 15 Mar 2022 18:02:17 +0100 (CET)
+        Tue, 15 Mar 2022 13:49:10 -0400
+X-Greylist: delayed 2733 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 15 Mar 2022 10:47:56 PDT
+Received: from smtp-190d.mail.infomaniak.ch (smtp-190d.mail.infomaniak.ch [185.125.25.13])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5903E0E6
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2022 10:47:54 -0700 (PDT)
+Received: from smtp-2-0000.mail.infomaniak.ch (unknown [10.5.36.107])
+        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4KJ18S40CszMqF1r;
+        Tue, 15 Mar 2022 18:47:52 +0100 (CET)
 Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
-        by smtp-2-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4KJ07r6wTCzljsTq;
-        Tue, 15 Mar 2022 18:02:16 +0100 (CET)
-Message-ID: <c9333349-5e05-de95-85da-f6a0cd836162@digikod.net>
-Date:   Tue, 15 Mar 2022 18:02:49 +0100
+        by smtp-2-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4KJ18R6lG0zlhSMB;
+        Tue, 15 Mar 2022 18:47:51 +0100 (CET)
+Message-ID: <a28c8bec-3671-2613-9107-2b911305c274@digikod.net>
+Date:   Tue, 15 Mar 2022 18:48:24 +0100
 MIME-Version: 1.0
 User-Agent: 
 Content-Language: en-US
@@ -34,116 +34,199 @@ Cc:     willemdebruijn.kernel@gmail.com,
         netfilter-devel@vger.kernel.org, yusongping@huawei.com,
         artem.kuzin@huawei.com, anton.sirazetdinov@huawei.com
 References: <20220309134459.6448-1-konstantin.meskhidze@huawei.com>
+ <20220309134459.6448-3-konstantin.meskhidze@huawei.com>
 From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-Subject: Re: [RFC PATCH v4 00/15] Landlock LSM
-In-Reply-To: <20220309134459.6448-1-konstantin.meskhidze@huawei.com>
+Subject: Re: [RFC PATCH v4 02/15] landlock: filesystem access mask helpers
+In-Reply-To: <20220309134459.6448-3-konstantin.meskhidze@huawei.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Konstantin,
-
-This series looks good! Thanks for the split in multiple patches.
-
+This patch should be squashed with the previous one. They both refactor 
+FS access masks in a complementary way.
 
 On 09/03/2022 14:44, Konstantin Meskhidze wrote:
-> Hi,
-> This is a new V4 bunch of RFC patches related to Landlock LSM network confinement.
-> It brings deep refactirong and commit splitting of previous version V3.
-> Also added additional selftests.
+> This patch adds filesystem helper functions
+> to set and get filesystem mask. Also the modification
+> adds a helper structure landlock_access_mask to
+> support managing multiple access mask.
 > 
-> This patch series can be applied on top of v5.17-rc3.
+> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+> ---
 > 
-> All test were run in QEMU evironment and compiled with
->   -static flag.
->   1. network_test: 9/9 tests passed.
-
-I get a kernel warning running the network tests.
-
->   2. base_test: 8/8 tests passed.
->   3. fs_test: 46/46 tests passed.
->   4. ptrace_test: 4/8 tests passed.
-
-Does your test machine use Yama? That would explain the 4/8. You can 
-disable it with the appropriate sysctl.
-
+> Changes since v3:
+> * Split commit.
+> * Add get_mask, set_mask helpers for filesystem.
+> * Add new struct landlock_access_mask.
 > 
-> Tests were also launched for Landlock version without
-> v4 patch:
->   1. base_test: 8/8 tests passed.
->   2. fs_test: 46/46 tests passed.
->   3. ptrace_test: 4/8 tests passed.
+> ---
+>   security/landlock/fs.c       |  4 ++--
+>   security/landlock/ruleset.c  | 20 +++++++++++++++++---
+>   security/landlock/ruleset.h  | 19 ++++++++++++++++++-
+>   security/landlock/syscalls.c |  9 ++++++---
+>   4 files changed, 43 insertions(+), 9 deletions(-)
 > 
-> Could not provide test coverage cause had problems with tests
-> on VM (no -static flag the tests compiling, no v4 patch applied):
-
-You can build statically-linked tests with:
-make -C tools/testing/selftests/landlock CFLAGS=-static
-
-> 1. base_test: 7/8 tests passed.
->   Error:
->   # Starting 8 tests from 1 test cases.
->   #  RUN           global.inconsistent_attr ...
->   # base_test.c:51:inconsistent_attr:Expected ENOMSG (42) == errno (22)
-
-This looks like a bug in the syscall argument checks.
-
->   # inconsistent_attr: Test terminated by assertion
-> 2. fs_test: 0 / 46 tests passed
->   Error for all tests:
->   # common.h:126:no_restriction:Expected -1 (-1) != cap_set_proc(cap_p) (-1)
->   # common.h:127:no_restriction:Failed to cap_set_proc: Operation not permitted
->   # fs_test.c:106:no_restriction:Expected 0 (0) == mkdir(path, 0700) (-1)
->   # fs_test.c:107:no_restriction:Failed to create directory "tmp": File exists
-
-You need to run these tests as root.
-
-> 3. ptrace_test: 4 / 8 tests passed.
+> diff --git a/security/landlock/fs.c b/security/landlock/fs.c
+> index d727bdab7840..97f5c455f5a7 100644
+> --- a/security/landlock/fs.c
+> +++ b/security/landlock/fs.c
+> @@ -163,7 +163,7 @@ int landlock_append_fs_rule(struct landlock_ruleset *const ruleset,
+>   		return -EINVAL;
 > 
-> Previous versions:
-> v3: https://lore.kernel.org/linux-security-module/20220124080215.265538-1-konstantin.meskhidze@huawei.com/
-> v2: https://lore.kernel.org/linux-security-module/20211228115212.703084-1-konstantin.meskhidze@huawei.com/
-> v1: https://lore.kernel.org/linux-security-module/20211210072123.386713-1-konstantin.meskhidze@huawei.com/
+>   	/* Transforms relative access rights to absolute ones. */
+> -	access_rights |= LANDLOCK_MASK_ACCESS_FS & ~ruleset->access_masks[0];
+> +	access_rights |= LANDLOCK_MASK_ACCESS_FS & ~landlock_get_fs_access_mask(ruleset, 0);
+>   	object = get_inode_object(d_backing_inode(path->dentry));
+>   	if (IS_ERR(object))
+>   		return PTR_ERR(object);
+> @@ -252,7 +252,7 @@ static int check_access_path(const struct landlock_ruleset *const domain,
+>   	/* Saves all layers handling a subset of requested accesses. */
+>   	layer_mask = 0;
+>   	for (i = 0; i < domain->num_layers; i++) {
+> -		if (domain->access_masks[i] & access_request)
+> +		if (landlock_get_fs_access_mask(domain, i) & access_request)
+>   			layer_mask |= BIT_ULL(i);
+>   	}
+>   	/* An access request not handled by the domain is allowed. */
+> diff --git a/security/landlock/ruleset.c b/security/landlock/ruleset.c
+> index 78341a0538de..a6212b752549 100644
+> --- a/security/landlock/ruleset.c
+> +++ b/security/landlock/ruleset.c
+> @@ -44,16 +44,30 @@ static struct landlock_ruleset *create_ruleset(const u32 num_layers)
+>   	return new_ruleset;
+>   }
+> 
+> -struct landlock_ruleset *landlock_create_ruleset(const u32 access_mask)
+> +/* A helper function to set a filesystem mask */
+> +void landlock_set_fs_access_mask(struct landlock_ruleset *ruleset,
 
-Nice to have this history!
+struct landlock_ruleset *const ruleset
 
+Please use const as much as possible even in function arguments: e.g. 
+access_masks_set, mask_level…
+
+> +				 const struct landlock_access_mask *access_mask_set,
+
+nit: no need for "_set" suffix.
+
+Why do you need a struct landlock_access_mask and not just u16 (which 
+will probably become a subset of access_mask_t, see [1])? 
+landlock_create_ruleset() could just take two masks as argument instead.
+
+[1] https://lore.kernel.org/all/20220221212522.320243-2-mic@digikod.net/
+
+> +				 u16 mask_level)
+> +{
+> +	ruleset->access_masks[mask_level] = access_mask_set->fs;
+> +}
+> +
+> +/* A helper function to get a filesystem mask */
+> +u32 landlock_get_fs_access_mask(const struct landlock_ruleset *ruleset, u16 mask_level)
+> +{
+> +	return ruleset->access_masks[mask_level];
+> +}
+
+You can move these two helpers to ruleset.h and make them static inline.
+
+> +
+> +struct landlock_ruleset *landlock_create_ruleset(const struct landlock_access_mask *access_mask_set)
+>   {
+>   	struct landlock_ruleset *new_ruleset;
 > 
-> Konstantin Meskhidze (15):
->    landlock: access mask renaming
->    landlock: filesystem access mask helpers
->    landlock: landlock_find/insert_rule refactoring
->    landlock: merge and inherit function refactoring
->    landlock: unmask_layers() function refactoring
->    landlock: landlock_add_rule syscall refactoring
->    landlock: user space API network support
->    landlock: add support network rules
->    landlock: TCP network hooks implementation
->    seltest/landlock: add tests for bind() hooks
->    seltest/landlock: add tests for connect() hooks
->    seltest/landlock: connect() with AF_UNSPEC tests
->    seltest/landlock: rules overlapping test
->    seltest/landlock: ruleset expanding test
->    seltest/landlock: invalid user input data test
+>   	/* Informs about useless ruleset. */
+> -	if (!access_mask)
+> +	if (!access_mask_set->fs)
+>   		return ERR_PTR(-ENOMSG);
+>   	new_ruleset = create_ruleset(1);
+>   	if (!IS_ERR(new_ruleset))
+> -		new_ruleset->access_masks[0] = access_mask;
+> +		landlock_set_fs_access_mask(new_ruleset, access_mask_set, 0);
+>   	return new_ruleset;
+>   }
 > 
->   include/uapi/linux/landlock.h                 |  48 ++
->   security/landlock/Kconfig                     |   1 +
->   security/landlock/Makefile                    |   2 +-
->   security/landlock/fs.c                        |  72 +-
->   security/landlock/limits.h                    |   6 +
->   security/landlock/net.c                       | 180 +++++
->   security/landlock/net.h                       |  22 +
->   security/landlock/ruleset.c                   | 383 ++++++++--
->   security/landlock/ruleset.h                   |  72 +-
->   security/landlock/setup.c                     |   2 +
->   security/landlock/syscalls.c                  | 176 +++--
->   .../testing/selftests/landlock/network_test.c | 665 ++++++++++++++++++
->   12 files changed, 1434 insertions(+), 195 deletions(-)
->   create mode 100644 security/landlock/net.c
->   create mode 100644 security/landlock/net.h
->   create mode 100644 tools/testing/selftests/landlock/network_test.c
+> diff --git a/security/landlock/ruleset.h b/security/landlock/ruleset.h
+> index 32d90ce72428..bc87e5f787f7 100644
+> --- a/security/landlock/ruleset.h
+> +++ b/security/landlock/ruleset.h
+> @@ -16,6 +16,16 @@
 > 
+>   #include "object.h"
+> 
+> +/**
+> + * struct landlock_access_mask - A helper structure to handle different mask types
+> + */
+> +struct landlock_access_mask {
+> +	/**
+> +	 * @fs: Filesystem access mask.
+> +	 */
+> +	u16 fs;
+> +};
+
+Removing this struct would simplify the code.
+
+> +
+>   /**
+>    * struct landlock_layer - Access rights for a given layer
+>    */
+> @@ -140,7 +150,8 @@ struct landlock_ruleset {
+>   	};
+>   };
+> 
+> -struct landlock_ruleset *landlock_create_ruleset(const u32 access_mask);
+> +struct landlock_ruleset *landlock_create_ruleset(const struct landlock_access_mask
+> +									*access_mask_set);
+> 
+>   void landlock_put_ruleset(struct landlock_ruleset *const ruleset);
+>   void landlock_put_ruleset_deferred(struct landlock_ruleset *const ruleset);
+> @@ -162,4 +173,10 @@ static inline void landlock_get_ruleset(struct landlock_ruleset *const ruleset)
+>   		refcount_inc(&ruleset->usage);
+>   }
+> 
+> +void landlock_set_fs_access_mask(struct landlock_ruleset *ruleset,
+> +				 const struct landlock_access_mask *access_mask_set,
+> +				 u16 mask_level);
+> +
+> +u32 landlock_get_fs_access_mask(const struct landlock_ruleset *ruleset, u16 mask_level);
+> +
+>   #endif /* _SECURITY_LANDLOCK_RULESET_H */
+> diff --git a/security/landlock/syscalls.c b/security/landlock/syscalls.c
+> index f1d86311df7e..5931b666321d 100644
+> --- a/security/landlock/syscalls.c
+> +++ b/security/landlock/syscalls.c
+> @@ -159,6 +159,7 @@ SYSCALL_DEFINE3(landlock_create_ruleset,
+>   {
+>   	struct landlock_ruleset_attr ruleset_attr;
+>   	struct landlock_ruleset *ruleset;
+> +	struct landlock_access_mask access_mask_set = {.fs = 0};
+>   	int err, ruleset_fd;
+> 
+>   	/* Build-time checks. */
+> @@ -185,9 +186,10 @@ SYSCALL_DEFINE3(landlock_create_ruleset,
+>   	if ((ruleset_attr.handled_access_fs | LANDLOCK_MASK_ACCESS_FS) !=
+>   			LANDLOCK_MASK_ACCESS_FS)
+>   		return -EINVAL;
+> +	access_mask_set.fs = ruleset_attr.handled_access_fs;
+> 
+>   	/* Checks arguments and transforms to kernel struct. */
+> -	ruleset = landlock_create_ruleset(ruleset_attr.handled_access_fs);
+> +	ruleset = landlock_create_ruleset(&access_mask_set);
+>   	if (IS_ERR(ruleset))
+>   		return PTR_ERR(ruleset);
+> 
+> @@ -343,8 +345,9 @@ SYSCALL_DEFINE4(landlock_add_rule,
+>   	 * Checks that allowed_access matches the @ruleset constraints
+>   	 * (ruleset->access_masks[0] is automatically upgraded to 64-bits).
+>   	 */
+> -	if ((path_beneath_attr.allowed_access | ruleset->access_masks[0]) !=
+> -			ruleset->access_masks[0]) {
+> +
+> +	if ((path_beneath_attr.allowed_access | landlock_get_fs_access_mask(ruleset, 0)) !=
+> +						landlock_get_fs_access_mask(ruleset, 0)) {
+>   		err = -EINVAL;
+>   		goto out_put_ruleset;
+>   	}
 > --
 > 2.25.1
 > 
