@@ -2,66 +2,66 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D4B4C433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Mar 2022 16:24:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52447C433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Mar 2022 16:35:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234677AbiCOQZO (ORCPT
+        id S1350108AbiCOQgz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 15 Mar 2022 12:25:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59892 "EHLO
+        Tue, 15 Mar 2022 12:36:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59572 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233862AbiCOQZN (ORCPT
+        with ESMTP id S1350106AbiCOQgz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Mar 2022 12:25:13 -0400
-Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12on2073.outbound.protection.outlook.com [40.107.237.73])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E24B313DD7
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2022 09:24:00 -0700 (PDT)
+        Tue, 15 Mar 2022 12:36:55 -0400
+Received: from NAM12-DM6-obe.outbound.protection.outlook.com (mail-dm6nam12on2075.outbound.protection.outlook.com [40.107.243.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B404C5005F
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2022 09:35:42 -0700 (PDT)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=RF7DnsJ2MlZ6gWaXz1wsL4cIH65hmVjWRIXXk1dCKPiSpT8fw72cr2DIjMwEReLHCMdD/TBKKVWaz0AZBbHxDTLnkO0kbFaxuoqHg6R0C4yp/qr09Vb5OSuAFelJxrB6OasLyDUMIzQi+0x8FEIs4mHbqfGxTfZX+2CgI+w2O8+IPxB2O6+967bYvrZw3p4KP5UYIfMxv0PLcvf93+XOtfR5l/5pNTjdfiBAi9zID3Y2KCtteAIBnqEzMvdibtCilXIBd41N7b3KbMXrRI9/HiajwxoR8lcQ3Arg8ePg8cRBei3Vo1dZcJZoptfnekKWGUrqZSqKfeRfydY1GpP6iA==
+ b=dgm9CscvwloDOupT2Pzzq73FJUPzl0QbXtxRzvlAzexT5EJJ8X0hFbaxpPD23I/9hggzG3smETSS1gJieSMu9wq6tGDVF5d5ACuQjOMvsnD8qKTRB0Tbz/RXKlg+zRnhtHJNfslsmYRuVEX4eLjnbJZYg3B2NGAFKaMwdt8wYmBO6Tjz3NaFis+G7qHK1Cz/nwNpuunbX9pdjVwPbd2Iu7zE8eL1RmImmrNZLHRN3FqwZfCSLqcFi+KeyDG7WMeAwPoAj6zbsBYr+C16a12y6v8ghOUt0fOHsQk5djp7yv6zxYdixLUqx7k7c0/yMYTboIOiZ+ZhFy23cZmqrfYLpw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=NhEKjmy64Xz40XO2wCPPDpZs1J0dm4cjZ+aXLYxq00s=;
- b=fcNjnMm5kwqTeNeH1tovGbSvCsemr7s6n1iJcaRMZ7YFp/i8CDhUdgQZXSTMmM0DJCz/hCXKCobVG16kgk8zTe4Ea6ymTkh021d2LmHpauS5BS55IL48TVpEbFihrhX1PCUFQMj+PTs9kH/ocQ2vwfZaDohQAW+/i8suGh2QPZtM4WsSLTW7YFy+Lr92SP3A5uTDWbRQjZFtrP0gsG8p1zMqvFN5LKFPUKKxNuZ5qUxla4Bve2IowmyFEzj+vA0K4w3qmQwiBFQZ9uHJiHUjp/rY5bnSpEwEZHuFsYlHNUy/WtuCj369l/t2yYm2lVJzDcbSGRTfSh/PhF0qVchK0g==
+ bh=w37QUbcvs7YlHK6hMpDEQTyLaBHBLXdlcCHM043ABmg=;
+ b=PlnYMg+a9oSUf/ghjvl9evp5jSxLOI88LjVXg14d0K0I0U5Z4eU2R4YP7xSKIQ2I/qELr5o11F4WkYek3kk7oYI/Z6IN//mV164fP5l7sWatjf2g4iLHUs3nFZ1CKjxOm6fuLq9OCUae2C/HZAqMr3nPnVTbmV/p+71u6a0wxiBFHqc18PMQqylBPLf9RhSbcMM2aWx+pKaVF0Y3NcouXaQUjPvHcuBI0J+3gTmiZe6U4pmQXvEJBWurLdLo5bEZKp1YKaARH9F6nrWm6qKlq9NRWQPAGuvaTPD2Mddw31TzrUnJxdNaG/QAWh2l0x1fLdG4p6IWuYsXV6XxNn9k8g==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 12.22.5.238) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=nvidia.com;
+ 12.22.5.236) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
  dkim=none (message not signed); arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=NhEKjmy64Xz40XO2wCPPDpZs1J0dm4cjZ+aXLYxq00s=;
- b=rx1A2xeMeX9OhNJNwjHP0/hYBAIcuuK0K2EDYyCA1bB6SnYJBL+cz6KEvRdjcbXPCZjV0QXOEVcL7Flf6bILN0r7rGxlkIbmbVGp4B6eAYFc3HbVa7Ng4J8UssEcnJ5e3iGjIKJbtl0k3zoyWLjFjR9eX0h6nQMs9KsQ7jRkd0Hv/bCAPz76ivdeghSy5i44Sfn7ePvG0/NetmHtRvkmurwUe0ACd/NX4qMYHiFwpcuU2Oi6jUODzNZVNX/lXEpCxP2N8WQyptLzSVkeH31U/XpxQVlGD0UjQwln+eax72ZcyJQ87CRvqhTlICAF2OLHxbck5U288xju5vmMUn3S8Q==
-Received: from BN9PR03CA0115.namprd03.prod.outlook.com (2603:10b6:408:fd::30)
- by CH0PR12MB5204.namprd12.prod.outlook.com (2603:10b6:610:bb::11) with
+ bh=w37QUbcvs7YlHK6hMpDEQTyLaBHBLXdlcCHM043ABmg=;
+ b=J+1Y7uXTLnfnLexRU3j6c4iiayeXhk+sCAxXo5mFa8o+XbBEcOIZ+ipkp9O+P6l0cf/4su2LOh3qsPI2WskG6ovX2yicvOy1BqcM02MLLOFiYwLkFu13oZNMrhetUqd/guhGdHN1uf9d95mWi5dXcBf2Dje5pnrb2lQ3NwAw1bIWeXiWA7fPwEG8hGKfy9PUH6/IC2NrzudS7rVr3yJN5dh++iy9e3FSGD11IcZjIn+MY3Df3+TlBkOK4PqAs18RulfGUsWD8SvT2+Sjj9x+WKjVo7+LaDHxznuZLjfikKuO9v1B8YHB/FvbefTMaFaChVYVw79PHwosmm5/YgNuDg==
+Received: from MW4P222CA0007.NAMP222.PROD.OUTLOOK.COM (2603:10b6:303:114::12)
+ by DM6PR12MB4316.namprd12.prod.outlook.com (2603:10b6:5:21a::18) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5061.24; Tue, 15 Mar
- 2022 16:23:59 +0000
-Received: from BN8NAM11FT019.eop-nam11.prod.protection.outlook.com
- (2603:10b6:408:fd:cafe::c) by BN9PR03CA0115.outlook.office365.com
- (2603:10b6:408:fd::30) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5061.26 via Frontend
- Transport; Tue, 15 Mar 2022 16:23:59 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 12.22.5.238)
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5081.14; Tue, 15 Mar
+ 2022 16:35:41 +0000
+Received: from CO1NAM11FT044.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:303:114:cafe::1f) by MW4P222CA0007.outlook.office365.com
+ (2603:10b6:303:114::12) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5061.20 via Frontend
+ Transport; Tue, 15 Mar 2022 16:35:40 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 12.22.5.236)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
 Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 12.22.5.238 as permitted sender) receiver=protection.outlook.com;
- client-ip=12.22.5.238; helo=mail.nvidia.com;
-Received: from mail.nvidia.com (12.22.5.238) by
- BN8NAM11FT019.mail.protection.outlook.com (10.13.176.158) with Microsoft SMTP
+ 12.22.5.236 as permitted sender) receiver=protection.outlook.com;
+ client-ip=12.22.5.236; helo=mail.nvidia.com;
+Received: from mail.nvidia.com (12.22.5.236) by
+ CO1NAM11FT044.mail.protection.outlook.com (10.13.175.188) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- 15.20.5061.22 via Frontend Transport; Tue, 15 Mar 2022 16:23:58 +0000
-Received: from rnnvmail201.nvidia.com (10.129.68.8) by DRHQMAIL105.nvidia.com
- (10.27.9.14) with Microsoft SMTP Server (TLS) id 15.0.1497.32; Tue, 15 Mar
- 2022 16:23:58 +0000
+ 15.20.5061.22 via Frontend Transport; Tue, 15 Mar 2022 16:35:40 +0000
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by DRHQMAIL109.nvidia.com
+ (10.27.9.19) with Microsoft SMTP Server (TLS) id 15.0.1497.32; Tue, 15 Mar
+ 2022 16:35:40 +0000
 Received: from fedora.nvidia.com (10.126.231.35) by rnnvmail201.nvidia.com
  (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.22; Tue, 15 Mar
- 2022 09:23:54 -0700
+ 2022 09:35:36 -0700
 References: <20220222151003.2136934-1-vladbu@nvidia.com>
- <20220222151003.2136934-3-vladbu@nvidia.com> <YiZ9fQ8oMSOn5Su2@salvia>
- <87o82bug3d.fsf@nvidia.com> <YjBpFDc+rOqhSPrW@salvia>
+ <20220222151003.2136934-3-vladbu@nvidia.com> <YiZ/j6kYidLRYkRh@salvia>
+ <87fsnnuenw.fsf@nvidia.com> <YjBtTdcYk0lJqsYw@salvia>
 User-agent: mu4e 1.6.6; emacs 27.2
 From:   Vlad Buslov <vladbu@nvidia.com>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
@@ -69,9 +69,9 @@ CC:     <netfilter-devel@vger.kernel.org>, <kadlec@netfilter.org>,
         <fw@strlen.de>, <ozsh@nvidia.com>, <paulb@nvidia.com>
 Subject: Re: [PATCH net-next 2/8] netfilter: introduce total count of hw
  offloaded flow table entries
-Date:   Tue, 15 Mar 2022 18:18:17 +0200
-In-Reply-To: <YjBpFDc+rOqhSPrW@salvia>
-Message-ID: <87tubztca0.fsf@nvidia.com>
+Date:   Tue, 15 Mar 2022 18:34:36 +0200
+In-Reply-To: <YjBtTdcYk0lJqsYw@salvia>
+Message-ID: <87pmmntbqi.fsf@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.126.231.35]
@@ -79,110 +79,84 @@ X-ClientProxiedBy: rnnvmail201.nvidia.com (10.129.68.8) To
  rnnvmail201.nvidia.com (10.129.68.8)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: aebd551a-439a-4d91-b2a6-08da06a035a9
-X-MS-TrafficTypeDiagnostic: CH0PR12MB5204:EE_
-X-Microsoft-Antispam-PRVS: <CH0PR12MB52049EA8CD99FE578D61A90EA0109@CH0PR12MB5204.namprd12.prod.outlook.com>
+X-MS-Office365-Filtering-Correlation-Id: b6e976fb-c219-4118-2887-08da06a1d7f3
+X-MS-TrafficTypeDiagnostic: DM6PR12MB4316:EE_
+X-Microsoft-Antispam-PRVS: <DM6PR12MB4316FBDB640068287E7E3BF1A0109@DM6PR12MB4316.namprd12.prod.outlook.com>
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: RSjSsa7kZkmE67mTtVd16CHzIFO34LU8IMUwaLWrf0RgQathIakLT7DMORTzJV183CEA48lhJAUk9lG13B1FGcpK9zaS7nWZe3+DL9+2eenROV9tVVX+CcKw26ffubXQeKdaYG0c6xeuGb830AWK5Age1sTHXnRHUfcama/LQ5Aqs69Z4biTAZYZekP5sRMgfz3nogxtOLg0Ymt9QjOl4VsEeEOF1igsBqEMFbATkcp4Tc5GktIr9lmNdzsaZLdvt0sRu/rAwctiSZT3BPEOOrMiKPaeGQ1MmgvdlurdphdDCHyTKo5NzeZC3Zx5nwqCX2fXho+I9G6HU9S46l7WflQ8SeA4AvAbnIDEYvkMLsaU0/sOdxk0bXWIppQQG0SLgyemKWRT88X6O+RwRanYIVVVCK1qciQtK3rhvPrz9KDE+2EhHpPCfSu9EK5C1j0y1nsPby4XYZqWsfZz9IpR8diyVUZWNYxBRVw2ZSto02chnnW7QELcVLvQrBBmLn8yrj7CsyDlcGctSto9+8EAp5Mp8Th4lFHjqp866fHtLzCtJ2tWlLi3Kr7GA0Obxkzo6hr1rFCzq5inSbvKreQJI1Hung5rtMNM+nOQCmwoNuC+YiUpDjN5UEL9oR2PuNl3TTWTWMCIqNd1tOqIAr3Zwj5QWmVjxcjMOOiU29qJOo15xCJOdfvFgSzD1D8STjhBoLgopMZRIyrh14CPLWY58w==
-X-Forefront-Antispam-Report: CIP:12.22.5.238;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:mail.nvidia.com;PTR:InfoNoRecords;CAT:NONE;SFS:(13230001)(4636009)(40470700004)(46966006)(36840700001)(186003)(81166007)(26005)(356005)(107886003)(426003)(336012)(82310400004)(16526019)(86362001)(6666004)(2906002)(7696005)(2616005)(508600001)(47076005)(36756003)(4326008)(8676002)(5660300002)(70206006)(70586007)(36860700001)(8936002)(83380400001)(40460700003)(6916009)(54906003)(316002)(36900700001);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: A2iKf1rgwl6uqrEWfo5YK0T/6PqpB4Ruy+YQSnWBiFlY9g1/T5+9IeE/8OREQMjXS6JZzGWUQ3/b6x/QkcMsx59mcLn6POUw0J9OrfV0HhEI7W3b6hTOmbtGOsHma0YgnDuB7DKlCmIYs7GEuafVhUx8N6sfS2/yVethKLfRewAVYefROHNYjZzANadiR5uIdVC0M4pzn3/hSZDXvPL8ew8Mv1e9imbDwOM1+xPHT+TjT7yGVfraMaW8HbBH29Pj/MZbE2QqkUF3STxXrDboHxsf6YRdYrWKfUFsOVQbWZnohmbx4hqdjMGdLcKs5fqqA+4N2D45zB4y7jRHrc6IRlbf9b5kKebjph9O1PhW9bj5UFy+l0BIGN6KsgdEIDHKGSIIGA6Uf7PwpX11D9THbHULFAn1J2aY7ZP7qOzK+3cfKgCgBP36l2lSm1pPwN65byoxp5rZpphR9wIcBXHWrfUOrvT/H++KFTi88QLzsqeOjI34f1Js3HLKCWaX0L2q+zJWFq6jbk2zjRdwMaX3024l6ajDh+s/uDaaGJjDM9M9CpQdMji2v4EgPVVIW/IlV2t9emxKYXooJbfqv+2Aro5TEZIdfLo57Dg8P9JXkPCQmJzPShODWvb3bnV2FloIegGguSn8nBaYgLlh62KXC3iVAmrsRx4P+645mJ6TSxwpb0sxCrMtmnUkJWcBgR8BgVD3U6BJB8EYT3q4BVX/UQ==
+X-Forefront-Antispam-Report: CIP:12.22.5.236;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:mail.nvidia.com;PTR:InfoNoRecords;CAT:NONE;SFS:(13230001)(4636009)(46966006)(36840700001)(40470700004)(36860700001)(5660300002)(2616005)(81166007)(8936002)(107886003)(508600001)(356005)(26005)(186003)(47076005)(316002)(40460700003)(2906002)(36756003)(426003)(336012)(54906003)(6916009)(83380400001)(70206006)(82310400004)(70586007)(8676002)(7696005)(86362001)(4326008)(16526019)(36900700001);DIR:OUT;SFP:1101;
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Mar 2022 16:23:58.9475
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Mar 2022 16:35:40.7634
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: aebd551a-439a-4d91-b2a6-08da06a035a9
+X-MS-Exchange-CrossTenant-Network-Message-Id: b6e976fb-c219-4118-2887-08da06a1d7f3
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[12.22.5.238];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource: BN8NAM11FT019.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[12.22.5.236];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource: CO1NAM11FT044.eop-nam11.prod.protection.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH0PR12MB5204
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4316
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue 15 Mar 2022 at 11:23, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Sat, Mar 12, 2022 at 08:56:49PM +0200, Vlad Buslov wrote:
-> [...]
->> Hi Pablo,
+On Tue 15 Mar 2022 at 11:41, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Sat, Mar 12, 2022 at 09:51:45PM +0200, Vlad Buslov wrote:
 >> 
->> Thanks for reviewing my code and sorry for the late reply.
+>> On Mon 07 Mar 2022 at 22:56, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>> > On Tue, Feb 22, 2022 at 05:09:57PM +0200, Vlad Buslov wrote:
+>> >> To improve hardware offload debuggability and allow capping total amount of
+>> >> offloaded entries in following patch extend struct netns_nftables with
+>> >> 'count_hw' counter and expose it to userspace as 'nf_flowtable_count_hw'
+>> >> sysctl entry. Increment the counter together with setting NF_FLOW_HW flag
+>> >> when scheduling offload add task on workqueue and decrement it after
+>> >> successfully scheduling offload del task.
+>> >> 
+>> >> Signed-off-by: Vlad Buslov <vladbu@nvidia.com>
+>> >> Signed-off-by: Oz Shlomo <ozsh@nvidia.com>
+>> >> Reviewed-by: Paul Blakey <paulb@nvidia.com>
+>> >> ---
+>> >>  include/net/netns/nftables.h            |  1 +
+>> >>  net/netfilter/nf_conntrack_standalone.c | 12 ++++++++++++
+>> >>  net/netfilter/nf_flow_table_core.c      | 12 ++++++++++--
+>> >>  3 files changed, 23 insertions(+), 2 deletions(-)
+>> >> 
+>> >> diff --git a/include/net/netns/nftables.h b/include/net/netns/nftables.h
+>> >> index 8c77832d0240..262b8b3213cb 100644
+>> >> --- a/include/net/netns/nftables.h
+>> >> +++ b/include/net/netns/nftables.h
+>> >> @@ -6,6 +6,7 @@
+>> >>  
+>> >>  struct netns_nftables {
+>> >>  	u8			gencursor;
+>> >> +	atomic_t		count_hw;
+>> >
+>> > In addition to the previous comments: I'd suggest to use
+>> > register_pernet_subsys() and register the sysctl from the
+>> > nf_flow_table_offload.c through nf_flow_table_offload_init()
+>> > file instead of using the conntrack nf_ct_sysctl_table[].
+>> >
+>> > That would require a bit more work though.
 >> 
->> We explored the approach you propose and found several issues with it.
->> First, the nice benefit of implementation in this patch is that having
->> counter increment in flow_offload_add() (and test in following patch)
->> completely avoids spamming the workqueue when the limit is reached which
->> is an important concern for slower embedded DPU cores. Second, it is not
->> possible to change it when IPS_HW_OFFLOAD_BIT is set at the very end of
->> flow_offload_work_add() function because in following patch we need to
->> verify that counter is in user-specified limit before attempting
->> offload. Third, changing the counter in wq tasks makes it hard to
->> balance correctly. Consider following cases:
->> 
->> - flow_offload_work_add() can be called arbitrary amount of times per
->>   flow due to refresh logic. However, any such flow is still deleted
->>   only once.
->> 
->> - flow_offload_work_del() can be called for flows that were never
->>   actually offloaded (it is called for flows that have NF_FLOW_HW bit
->>   that is unconditionally set before attempting to schedule offload task
->>   on wq).
->>
->> Counter balancing issues could maybe be solved by carefully
->> conditionally changing it based on current value IPS_HW_OFFLOAD_BIT, but
->> spamming the workqueue can't be prevented for such design.
->>
->> > That also moves the atomic would be away from the packet path.
->> 
->> I understand your concern. However, note that this atomic is normally
->> changed once for adding offloaded flow and once for removing it. The
->> code path is only executed per-packet in error cases where flow has
->> failed to offload and refresh is called repeatedly for same flow.
+>> I added the new sysctl in ct because there is already similar-ish
+>> NF_SYSCTL_CT_PROTO_TIMEOUT_UDP_OFFLOAD that is also part of ct sysctl
+>> but is actually used by flow table code. I'll implement dedicated sysctl
+>> table for nf_flow_table_* code, if you suggest it is warranted for this
+>> change.
 >
-> Thanks for explaining.
+> IIRC, that was removed.
 >
-> There used to be in the code a list of pending flows to be offloaded.
+> commit 4592ee7f525c4683ec9e290381601fdee50ae110
+> Author: Florian Westphal <fw@strlen.de>
+> Date:   Wed Aug 4 15:02:15 2021 +0200
 >
-> I think it would be possible to restore such list and make it per-cpu,
-> the idea is to add a new field to the flow_offload structure to
-> annotate the cpu that needs to deal with this flow (same cpu deals
-> with add/del/stats). The cpu field is set at flow creation time.
+>     netfilter: conntrack: remove offload_pickup sysctl again
+>
+> I think it's good if we start having a dedicated sysctl for the
+> flowtable, yes.
+>
+> Thanks.
 
-What would be the algorithm to assign the cpu field? Some simple
-algorithm like round-robin will not take into account CPU load of
-unrelated tasks (for example, OvS which is also CPU-intensive) and
-offload tasks on contested cores will get less CPU time, which will
-result unbalanced occupancy where some cores are idle and other have
-long list of offload tasks. Any advanced algorithm will be hard to
-implement since we don't have access to scheduler internal data. Also,
-in my experience not all offload tasks take same amount of CPU time (for
-example, offloading complex flows with tunnels takes longer than simple
-flows and deletes take less time than adds), so having access to just
-the current lists sizes doesn't directly translate to list processing
-time.
+Got it. Will move these sysctls into dedicated namespace in v2.
 
->
-> Once there is one item, add work to the workqueue to that cpu.
-> Meanwhile the workqueue does not have a chance, we keep adding more
-> items to the workqueue.
->
-> The workqueue handler then zaps the list of pending flows to be
-> offloaded, it might have more than one single item in the list.
-
-I understand the proposal but I'm missing the benefit it provides over
-existing workqueue approach. Both standard kernel linked list and
-workqueue are unbounded and don't count their elements which means we
-would still have to implement approach similar to what is proposed in
-existing series - add atomic to manually count the size and reject new
-elements over some maximum (including, in case of unified list, flow
-deletions that we don't really want to skip).
-
->
-> So instead of three workqueues, we only have one. Scalability is
-> achieved by fanning out flows over CPUs.
-
-But existing nf_ft_offload_* wokrqueues are already parallel and
-unbound, so they already fan out tasks over CPU cores and probably also
-do it better than any custom algorithm that we can come up with since
-threads are scheduled by the system scheduler that takes into account
-current CPU load.
