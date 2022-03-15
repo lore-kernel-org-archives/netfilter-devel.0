@@ -2,98 +2,225 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A8A4C43217
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Mar 2022 09:15:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C781C433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Mar 2022 09:15:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346426AbiCOJQf (ORCPT
+        id S1346384AbiCOJQe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 15 Mar 2022 05:16:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40994 "EHLO
+        Tue, 15 Mar 2022 05:16:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40998 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346117AbiCOJQd (ORCPT
+        with ESMTP id S1346265AbiCOJQd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 15 Mar 2022 05:16:33 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 405564BBAF;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 984A64DF67;
         Tue, 15 Mar 2022 02:15:21 -0700 (PDT)
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 431D862FFF;
-        Tue, 15 Mar 2022 10:12:58 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 650E263014;
+        Tue, 15 Mar 2022 10:13:02 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH nf-next 0/6] Netfilter updates for net-next
-Date:   Tue, 15 Mar 2022 10:15:07 +0100
-Message-Id: <20220315091513.66544-1-pablo@netfilter.org>
+Subject: [PATCH nf-next 4/6] act_ct: Support GRE offload
+Date:   Tue, 15 Mar 2022 10:15:11 +0100
+Message-Id: <20220315091513.66544-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20220315091513.66544-1-pablo@netfilter.org>
+References: <20220315091513.66544-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+From: Toshiaki Makita <toshiaki.makita1@gmail.com>
 
-The following patchset contains Netfilter updates for net-next:
+Support GREv0 without NAT.
 
-1) Revert CHECKSUM_UNNECESSARY for UDP packet from conntrack.
+Signed-off-by: Toshiaki Makita <toshiaki.makita1@gmail.com>
+Acked-by: Paul Blakey <paulb@nvidia.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/sched/act_ct.c | 115 +++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 91 insertions(+), 24 deletions(-)
 
-2) Reject unsupported families when creating tables, from Phil Sutter.
+diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
+index 5234e8bcc764..bed0b100dd0c 100644
+--- a/net/sched/act_ct.c
++++ b/net/sched/act_ct.c
+@@ -415,6 +415,19 @@ static void tcf_ct_flow_table_process_conn(struct tcf_ct_flow_table *ct_ft,
+ 		break;
+ 	case IPPROTO_UDP:
+ 		break;
++#ifdef CONFIG_NF_CT_PROTO_GRE
++	case IPPROTO_GRE: {
++		struct nf_conntrack_tuple *tuple;
++
++		if (ct->status & IPS_NAT_MASK)
++			return;
++		tuple = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
++		/* No support for GRE v1 */
++		if (tuple->src.u.gre.key || tuple->dst.u.gre.key)
++			return;
++		break;
++	}
++#endif
+ 	default:
+ 		return;
+ 	}
+@@ -434,6 +447,8 @@ tcf_ct_flow_table_fill_tuple_ipv4(struct sk_buff *skb,
+ 	struct flow_ports *ports;
+ 	unsigned int thoff;
+ 	struct iphdr *iph;
++	size_t hdrsize;
++	u8 ipproto;
+ 
+ 	if (!pskb_network_may_pull(skb, sizeof(*iph)))
+ 		return false;
+@@ -445,29 +460,54 @@ tcf_ct_flow_table_fill_tuple_ipv4(struct sk_buff *skb,
+ 	    unlikely(thoff != sizeof(struct iphdr)))
+ 		return false;
+ 
+-	if (iph->protocol != IPPROTO_TCP &&
+-	    iph->protocol != IPPROTO_UDP)
++	ipproto = iph->protocol;
++	switch (ipproto) {
++	case IPPROTO_TCP:
++		hdrsize = sizeof(struct tcphdr);
++		break;
++	case IPPROTO_UDP:
++		hdrsize = sizeof(*ports);
++		break;
++#ifdef CONFIG_NF_CT_PROTO_GRE
++	case IPPROTO_GRE:
++		hdrsize = sizeof(struct gre_base_hdr);
++		break;
++#endif
++	default:
+ 		return false;
++	}
+ 
+ 	if (iph->ttl <= 1)
+ 		return false;
+ 
+-	if (!pskb_network_may_pull(skb, iph->protocol == IPPROTO_TCP ?
+-					thoff + sizeof(struct tcphdr) :
+-					thoff + sizeof(*ports)))
++	if (!pskb_network_may_pull(skb, thoff + hdrsize))
+ 		return false;
+ 
+-	iph = ip_hdr(skb);
+-	if (iph->protocol == IPPROTO_TCP)
++	switch (ipproto) {
++	case IPPROTO_TCP:
+ 		*tcph = (void *)(skb_network_header(skb) + thoff);
++		fallthrough;
++	case IPPROTO_UDP:
++		ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
++		tuple->src_port = ports->source;
++		tuple->dst_port = ports->dest;
++		break;
++	case IPPROTO_GRE: {
++		struct gre_base_hdr *greh;
++
++		greh = (struct gre_base_hdr *)(skb_network_header(skb) + thoff);
++		if ((greh->flags & GRE_VERSION) != GRE_VERSION_0)
++			return false;
++		break;
++	}
++	}
++
++	iph = ip_hdr(skb);
+ 
+-	ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
+ 	tuple->src_v4.s_addr = iph->saddr;
+ 	tuple->dst_v4.s_addr = iph->daddr;
+-	tuple->src_port = ports->source;
+-	tuple->dst_port = ports->dest;
+ 	tuple->l3proto = AF_INET;
+-	tuple->l4proto = iph->protocol;
++	tuple->l4proto = ipproto;
+ 
+ 	return true;
+ }
+@@ -480,36 +520,63 @@ tcf_ct_flow_table_fill_tuple_ipv6(struct sk_buff *skb,
+ 	struct flow_ports *ports;
+ 	struct ipv6hdr *ip6h;
+ 	unsigned int thoff;
++	size_t hdrsize;
++	u8 nexthdr;
+ 
+ 	if (!pskb_network_may_pull(skb, sizeof(*ip6h)))
+ 		return false;
+ 
+ 	ip6h = ipv6_hdr(skb);
++	thoff = sizeof(*ip6h);
+ 
+-	if (ip6h->nexthdr != IPPROTO_TCP &&
+-	    ip6h->nexthdr != IPPROTO_UDP)
+-		return false;
++	nexthdr = ip6h->nexthdr;
++	switch (nexthdr) {
++	case IPPROTO_TCP:
++		hdrsize = sizeof(struct tcphdr);
++		break;
++	case IPPROTO_UDP:
++		hdrsize = sizeof(*ports);
++		break;
++#ifdef CONFIG_NF_CT_PROTO_GRE
++	case IPPROTO_GRE:
++		hdrsize = sizeof(struct gre_base_hdr);
++		break;
++#endif
++	default:
++		return -1;
++	}
+ 
+ 	if (ip6h->hop_limit <= 1)
+ 		return false;
+ 
+-	thoff = sizeof(*ip6h);
+-	if (!pskb_network_may_pull(skb, ip6h->nexthdr == IPPROTO_TCP ?
+-					thoff + sizeof(struct tcphdr) :
+-					thoff + sizeof(*ports)))
++	if (!pskb_network_may_pull(skb, thoff + hdrsize))
+ 		return false;
+ 
+-	ip6h = ipv6_hdr(skb);
+-	if (ip6h->nexthdr == IPPROTO_TCP)
++	switch (nexthdr) {
++	case IPPROTO_TCP:
+ 		*tcph = (void *)(skb_network_header(skb) + thoff);
++		fallthrough;
++	case IPPROTO_UDP:
++		ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
++		tuple->src_port = ports->source;
++		tuple->dst_port = ports->dest;
++		break;
++	case IPPROTO_GRE: {
++		struct gre_base_hdr *greh;
++
++		greh = (struct gre_base_hdr *)(skb_network_header(skb) + thoff);
++		if ((greh->flags & GRE_VERSION) != GRE_VERSION_0)
++			return false;
++		break;
++	}
++	}
++
++	ip6h = ipv6_hdr(skb);
+ 
+-	ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
+ 	tuple->src_v6 = ip6h->saddr;
+ 	tuple->dst_v6 = ip6h->daddr;
+-	tuple->src_port = ports->source;
+-	tuple->dst_port = ports->dest;
+ 	tuple->l3proto = AF_INET6;
+-	tuple->l4proto = ip6h->nexthdr;
++	tuple->l4proto = nexthdr;
+ 
+ 	return true;
+ }
+-- 
+2.30.2
 
-3) GRE support for the flowtable, from Toshiaki Makita.
-
-4) Add GRE offload support for act_ct, also from Toshiaki.
-
-5) Update mlx5 driver to support for GRE flowtable offload,
-   from Toshiaki Makita.
-
-6) Oneliner to clean up incorrect indentation in nf_conntrack_bridge,
-   from Jiapeng Chong.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git
-
-Special request of mine: Would it be possible to merge net into net-next?
-
-Many thanks
-
-----------------------------------------------------------------
-
-The following changes since commit ef132dc40a28e07ba10b707b505781ffca46b97f:
-
-  Merge branch 'nfc-llcp-cleanups' (2022-03-03 10:43:37 +0000)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git HEAD
-
-for you to fetch changes up to 334ff12284fc56bdc5af6d310c6381d96906f5a0:
-
-  netfilter: bridge: clean up some inconsistent indenting (2022-03-07 12:42:37 +0100)
-
-----------------------------------------------------------------
-Florian Westphal (1):
-      Revert "netfilter: conntrack: mark UDP zero checksum as CHECKSUM_UNNECESSARY"
-
-Jiapeng Chong (1):
-      netfilter: bridge: clean up some inconsistent indenting
-
-Phil Sutter (1):
-      netfilter: nf_tables: Reject tables of unsupported family
-
-Toshiaki Makita (3):
-      netfilter: flowtable: Support GRE
-      act_ct: Support GRE offload
-      net/mlx5: Support GRE conntrack offload
-
- drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c |  21 ++--
- net/bridge/netfilter/nf_conntrack_bridge.c         |   2 +-
- net/netfilter/nf_conntrack_proto_udp.c             |   4 +-
- net/netfilter/nf_flow_table_core.c                 |  10 +-
- net/netfilter/nf_flow_table_ip.c                   |  62 +++++++++--
- net/netfilter/nf_flow_table_offload.c              |  22 ++--
- net/netfilter/nf_tables_api.c                      |  27 +++++
- net/netfilter/nft_flow_offload.c                   |  13 +++
- net/sched/act_ct.c                                 | 115 ++++++++++++++++-----
- 9 files changed, 223 insertions(+), 53 deletions(-)
