@@ -2,91 +2,88 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07F1BC433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Mar 2022 19:00:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42874C433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Mar 2022 20:05:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351192AbiCOTB2 (ORCPT
+        id S1351541AbiCOUHK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 15 Mar 2022 15:01:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53706 "EHLO
+        Tue, 15 Mar 2022 16:07:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44010 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343730AbiCOTB1 (ORCPT
+        with ESMTP id S1351439AbiCOUHJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Mar 2022 15:01:27 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5EDC650E34;
-        Tue, 15 Mar 2022 12:00:15 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 195ECB81803;
-        Tue, 15 Mar 2022 19:00:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id AFFF1C340F5;
-        Tue, 15 Mar 2022 19:00:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1647370812;
-        bh=vl4DMROik9qe1jQlUAwzgpIIvuCAozFHv1U0EdAVlJc=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=uWHqaekxJ2ElgNSffoOQJUvup5d5rKxmQdcqH8+c+TnQ0N3niWJK28YUFTkwtMno4
-         RU5/96sh6f2eqpZ6F+L6qjEZDZtYRaQxD9AU7cdxfi8sjX5zRoG58hPlFZLvlphC4D
-         I+HEJ4LH6p2VOcvHtIsnvv1MUu7I6eQKDddcx8otvJLKSQfKQOAceuh7NHZNmGO/xs
-         xrrkfyuc0jxdxImAyEs+WAPOSRNq6X/JG/LvI6GWR3KR2KSINoUgHJfCJwneK+c308
-         cVVdpBt5wOLQ9ln3xJS/ZVp194QRyJ9i9rhAGq0eIQIZBzYwiYMSQzReJPUAY2723E
-         o+IYNEsOgctsA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 84E9FE6D44B;
-        Tue, 15 Mar 2022 19:00:12 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Tue, 15 Mar 2022 16:07:09 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9BEFB56234;
+        Tue, 15 Mar 2022 13:05:56 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1nUDQX-000536-Ey; Tue, 15 Mar 2022 21:05:53 +0100
+Date:   Tue, 15 Mar 2022 21:05:53 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Jakub Kicinski <kuba@kernel.org>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org
+Subject: Re: [PATCH nf-next 2/6] netfilter: nf_tables: Reject tables of
+ unsupported family
+Message-ID: <YjDxoXbCfnPVrxT2@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org
+References: <20220315091513.66544-1-pablo@netfilter.org>
+ <20220315091513.66544-3-pablo@netfilter.org>
+ <20220315115644.66fab74b@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH nf-next 1/6] Revert "netfilter: conntrack: mark UDP zero
- checksum as CHECKSUM_UNNECESSARY"
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <164737081254.13795.2158434995988219572.git-patchwork-notify@kernel.org>
-Date:   Tue, 15 Mar 2022 19:00:12 +0000
-References: <20220315091513.66544-2-pablo@netfilter.org>
-In-Reply-To: <20220315091513.66544-2-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220315115644.66fab74b@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+Hi Jakub,
 
-This series was applied to netdev/net-next.git (master)
-by Florian Westphal <fw@strlen.de>:
-
-On Tue, 15 Mar 2022 10:15:08 +0100 you wrote:
-> From: Florian Westphal <fw@strlen.de>
+On Tue, Mar 15, 2022 at 11:56:44AM -0700, Jakub Kicinski wrote:
+> On Tue, 15 Mar 2022 10:15:09 +0100 Pablo Neira Ayuso wrote:
+> > +	return false
+> > +#ifdef CONFIG_NF_TABLES_INET
+> > +		|| family == NFPROTO_INET
+> > +#endif
+> > +#ifdef CONFIG_NF_TABLES_IPV4
+> > +		|| family == NFPROTO_IPV4
+> > +#endif
+> > +#ifdef CONFIG_NF_TABLES_ARP
+> > +		|| family == NFPROTO_ARP
+> > +#endif
+> > +#ifdef CONFIG_NF_TABLES_NETDEV
+> > +		|| family == NFPROTO_NETDEV
+> > +#endif
+> > +#if IS_ENABLED(CONFIG_NF_TABLES_BRIDGE)
 > 
-> This reverts commit 5bed9f3f63f8f9d2b1758c24640cbf77b5377511.
+> is there a reason this one is IS_ENABLED() and everything else is ifdef?
+
+I based my patch on the existing ifdefs in nft_chain_filter.c where
+these config symbols are checked exactly like above. Looking at git
+history, the check was changed from a simple ifdef in commit
+dfee0e99bcff7 ("netfilter: bridge: make NF_TABLES_BRIDGE tristate").
+
+> > +		|| family == NFPROTO_BRIDGE
+> > +#endif
+> > +#ifdef CONFIG_NF_TABLES_IPV6
+> > +		|| family == NFPROTO_IPV6
+> > +#endif
+> > +		;
 > 
-> Gal Presman says:
->  this patch broke geneve tunnels, or possibly all udp tunnels?
->  A simple test that creates two geneve tunnels and runs tcp iperf fails
->  and results in checksum errors (TcpInCsumErrors).
+> 	return (IS_ENABLED(CONFIG_NF_TABLES_INET) && family == NFPROTO_INET)) ||
+> 	       (IS_ENABLED(CONFIG_NF_TABLES_IPV4) && family == NFPROTO_IPV4)) ||
+> 		...
 > 
-> [...]
+> would have also been an option, for future reference.
 
-Here is the summary with links:
-  - [nf-next,1/6] Revert "netfilter: conntrack: mark UDP zero checksum as CHECKSUM_UNNECESSARY"
-    https://git.kernel.org/netdev/net-next/c/bbfbf7a5e77e
-  - [nf-next,2/6] netfilter: nf_tables: Reject tables of unsupported family
-    https://git.kernel.org/netdev/net-next/c/f1082dd31fe4
-  - [nf-next,3/6] netfilter: flowtable: Support GRE
-    https://git.kernel.org/netdev/net-next/c/4e8d9584d154
-  - [nf-next,4/6] act_ct: Support GRE offload
-    https://git.kernel.org/netdev/net-next/c/fcb6aa86532c
-  - [nf-next,5/6] net/mlx5: Support GRE conntrack offload
-    https://git.kernel.org/netdev/net-next/c/1918ace1382d
-  - [nf-next,6/6] netfilter: bridge: clean up some inconsistent indenting
-    https://git.kernel.org/netdev/net-next/c/334ff12284fc
+Yes, that is indeed much cleaner. I wasn't aware of this possibility
+using IS_ENABLED. What do you think, worth a follow-up?
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+Thanks, Phil
