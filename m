@@ -2,33 +2,33 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A66C5C3527D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Mar 2022 19:20:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3CC2C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Mar 2022 19:20:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357906AbiCPTVp (ORCPT
+        id S1357912AbiCPTVp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Wed, 16 Mar 2022 15:21:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51054 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51026 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236552AbiCPTVh (ORCPT
+        with ESMTP id S231927AbiCPTVh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Wed, 16 Mar 2022 15:21:37 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C52A7606CA;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7029C40A3F;
         Wed, 16 Mar 2022 12:20:20 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
         MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
         :Reply-To:Content-Type:Content-ID:Content-Description;
-        bh=eCnVY7uQehwpOm+/i+ja6QzAKTO0vo8Gbh+yXOb+Gg8=; b=m6A+Wfto0x/+asj1wMXe6zUSoZ
-        VW5gB9LD8p4BZS/fH+G1DjKRf3HJg9qcRbrRBBDIf4xPZl6DdNvFnd6c68IC5/fMVAQFBK3WmkBZA
-        b1YgQZgXNEa2sjTW4NsgVsBFL+UlE4F6iZn8e9REQQmC6G1ejP6tabyS/AVW/K/MUTr/tJFQ04Tm3
-        7t6qa5bO1NyCGn3r6ypp7kK+AgAqgg4M8dV9+q06bvu0XOTlt5wUoD3YAbcznwzzHiizxoy8balfP
-        1W/HSRRJTvQsHB24y9B/CI3cWIlYos50+150upEuzFMLrTvzpxBYw0wPNMtDbdaVK0lksct7M2Hah
-        I/B++NZA==;
+        bh=zlk0pYgeFrBRJtw/N83n4t+jmPWdRVlr1V46qxOWdnE=; b=OWH0M3YCDaaUvZNoeBhNPzIFL8
+        1mOFKNuRVgUQ5Iogx2eIIw9Mj4dmnKQHT/rvRLaYy7YEu6qwyj9iN55WNZ72jUQfmwyzy+g3ArdCm
+        oAlJIiC2gYZhXLC3XI/4G2V7k/3WrVQQ9xcFl2aKGM3A7RWgmcYT7G0VSZg8WJdKy0+mxV2KWtRsb
+        ktMgcdtXuN9OVRcoh5mBRUTWlMiuU5Qx+f4y4gp+RBIP8e7Iy76TUNOOuokZ0LmtPn+WZG5E5NN0r
+        p36ObkoHZue3Sl2dvNTwt8OBP6UCI2pSUL01GUxoDuJWsfMKFSZ0CcV2BnY/gDeVhh+wmf2T+ajBI
+        rw5JcjiA==;
 Received: from [2601:1c0:6280:3f0::aa0b] (helo=bombadil.infradead.org)
         by bombadil.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1nUZC0-00EArp-6Y; Wed, 16 Mar 2022 19:20:20 +0000
+        id 1nUZBw-00EArp-Ge; Wed, 16 Mar 2022 19:20:16 +0000
 From:   Randy Dunlap <rdunlap@infradead.org>
 To:     linux-kernel@vger.kernel.org
 Cc:     Randy Dunlap <rdunlap@infradead.org>,
@@ -75,9 +75,9 @@ Cc:     Randy Dunlap <rdunlap@infradead.org>,
         linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org,
         linux-usb@vger.kernel.org, nouveau@lists.freedesktop.org,
         virtualization@lists.linux-foundation.org, x86@kernel.org
-Subject: [PATCH 3/9] net: mlx5: eliminate anonymous module_init & module_exit
-Date:   Wed, 16 Mar 2022 12:20:04 -0700
-Message-Id: <20220316192010.19001-4-rdunlap@infradead.org>
+Subject: [PATCH 1/9] virtio_blk: eliminate anonymous module_init & module_exit
+Date:   Wed, 16 Mar 2022 12:20:02 -0700
+Message-Id: <20220316192010.19001-2-rdunlap@infradead.org>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20220316192010.19001-1-rdunlap@infradead.org>
 References: <20220316192010.19001-1-rdunlap@infradead.org>
@@ -107,42 +107,45 @@ Example 2: (initcall_debug log)
  calling  init+0x0/0x9a @ 1
  initcall init+0x0/0x9a returned 0 after 74 usecs
 
-Fixes: e126ba97dba9 ("mlx5: Add driver for Mellanox Connect-IB adapters")
+Fixes: e467cde23818 ("Block driver using virtio.")
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Eli Cohen <eli@mellanox.com>
-Cc: Saeed Mahameed <saeedm@nvidia.com>
-Cc: netdev@vger.kernel.org
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: linux-rdma@vger.kernel.org
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Stefan Hajnoczi <stefanha@redhat.com>
+Cc: virtualization@lists.linux-foundation.org
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: linux-block@vger.kernel.org
 ---
- drivers/net/ethernet/mellanox/mlx5/core/main.c |    8 ++++----
+ drivers/block/virtio_blk.c |    8 ++++----
  1 file changed, 4 insertions(+), 4 deletions(-)
 
---- lnx-517-rc8.orig/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ lnx-517-rc8/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -1893,7 +1893,7 @@ static void mlx5_core_verify_params(void
- 	}
- }
+--- lnx-517-rc8.orig/drivers/block/virtio_blk.c
++++ lnx-517-rc8/drivers/block/virtio_blk.c
+@@ -1058,7 +1058,7 @@ static struct virtio_driver virtio_blk =
+ #endif
+ };
  
 -static int __init init(void)
-+static int __init mlx5_init(void)
++static int __init virtio_blk_init(void)
  {
- 	int err;
+ 	int error;
  
-@@ -1929,7 +1929,7 @@ err_debug:
- 	return err;
+@@ -1084,14 +1084,14 @@ out_destroy_workqueue:
+ 	return error;
  }
  
--static void __exit cleanup(void)
-+static void __exit mlx5_cleanup(void)
+-static void __exit fini(void)
++static void __exit virtio_blk_fini(void)
  {
- 	mlx5e_cleanup();
- 	mlx5_sf_driver_unregister();
-@@ -1937,5 +1937,5 @@ static void __exit cleanup(void)
- 	mlx5_unregister_debugfs();
+ 	unregister_virtio_driver(&virtio_blk);
+ 	unregister_blkdev(major, "virtblk");
+ 	destroy_workqueue(virtblk_wq);
  }
- 
 -module_init(init);
--module_exit(cleanup);
-+module_init(mlx5_init);
-+module_exit(mlx5_cleanup);
+-module_exit(fini);
++module_init(virtio_blk_init);
++module_exit(virtio_blk_fini);
+ 
+ MODULE_DEVICE_TABLE(virtio, id_table);
+ MODULE_DESCRIPTION("Virtio block driver");
