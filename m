@@ -2,106 +2,112 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB537C433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Mar 2022 11:48:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3451BC433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Mar 2022 12:18:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240853AbiCPLtY (ORCPT
+        id S238513AbiCPMUE convert rfc822-to-8bit (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 16 Mar 2022 07:49:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55172 "EHLO
+        Wed, 16 Mar 2022 08:20:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37286 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239920AbiCPLtX (ORCPT
+        with ESMTP id S238166AbiCPMUD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 16 Mar 2022 07:49:23 -0400
-Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A6BDFD05
-        for <netfilter-devel@vger.kernel.org>; Wed, 16 Mar 2022 04:48:08 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=rYkHlzxRIvJPb76rSwJidTsKG4XPeDO7bbMLIE+mGvI=; b=BZCpwVwtJX1aoGHyHZ4DRAi6UY
-        4PmZ8TzeVuDPJPf3GDVaDfFLc+S981uLuBks6zcJDg73dRt7L81xO/KjTKLX6/7lNUG1zWXXTs1MN
-        J3Tf0P1/3shdb6yNDfImg+sqdkZkJhPEZLhmJExwE6h/KnB2wEpa2qAFlbE/3MEKj+vt9VXb87quD
-        tsaJ2ip8jifDNUMQY9bdHRrIb2MVjg5A9eDTrko8ayUzbCNwskKQCO19PJJkHnG5UWiZximtp3Q3b
-        9JHXGDW64mZBgFMaIrWzpgHd2G+Echf15f8GYyIMGhiOmDC4yA4ZSxwEC7M/aLj0PU8vBphuDiXo1
-        7AiQyepA==;
-Received: from [2001:8b0:fb7d:d6d7:f47b:9ff:fe41:7a71] (helo=azazel.net)
-        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <jeremy@azazel.net>)
-        id 1nUS8L-0024KP-NM; Wed, 16 Mar 2022 11:48:05 +0000
-Date:   Wed, 16 Mar 2022 11:48:04 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Kevin 'ldir' Darbyshire-Bryant <ldir@darbyshire-bryant.me.uk>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: Feature Request: nft: support non-immediate second operand
-Message-ID: <YjHOdHNWINuMcQky@azazel.net>
-References: <5893CB79-E204-42CA-98A1-7D3C2FCCE532@darbyshire-bryant.me.uk>
+        Wed, 16 Mar 2022 08:20:03 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7A80540E65
+        for <netfilter-devel@vger.kernel.org>; Wed, 16 Mar 2022 05:18:48 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1nUSc2-0005Y4-2D; Wed, 16 Mar 2022 13:18:46 +0100
+Date:   Wed, 16 Mar 2022 13:18:46 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Florian Westphal <fw@strlen.de>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [RFC] conntrack event framework speedup
+Message-ID: <20220316121846.GD9936@breakpoint.cc>
+References: <20220315120538.GB16569@breakpoint.cc>
+ <YjEFXmDfNN6k63+H@salvia>
+ <20220315214121.GA9936@breakpoint.cc>
+ <YjEK9RsgJuONGyTI@salvia>
+ <20220315220748.GC9936@breakpoint.cc>
+ <YjGp7pPqw8EzACDL@salvia>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="TRpYZIAKrcoZkkUQ"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <5893CB79-E204-42CA-98A1-7D3C2FCCE532@darbyshire-bryant.me.uk>
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:f47b:9ff:fe41:7a71
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+Content-Transfer-Encoding: 8BIT
+In-Reply-To: <YjGp7pPqw8EzACDL@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > Hmmm, I don't think that will work.  The -j CT thing can be used to
+> > enable event reporting (including the event type) for particular flows
+> > only.
+> 
+> IIRC, it allows to filter what events are of your interest in a global
+> fashion.
+> 
+> > E.g. users might do:
+> > 
+> > nf_conntrack_events=0
+> > and then only enable destroy events for tcp traffic on port 22, 80, 443
+> > (arbitrary example).
+> > 
+> > If I bump the listen-count, then they will see event reports for
+> > for udp timeouts and everything else.
+> 
+> Are you sure? -j CT sets on the event mask. The explicit -j CT rules
+> means userspace want to listen to events, but only those that you
+> specified. So it is the same as having a userspace process to listen,
+> but the global filtering applies.
 
---TRpYZIAKrcoZkkUQ
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The filtering isn't global, its per flow.  Provided
+nf_conntrack_events=0, then only flows where the first packet matched
+a -j CT rule will generate events, AND only those events that were
+specified in its event mask.
 
-On 2022-03-15, at 21:15:58 +0000, Kevin 'ldir' Darbyshire-Bryant wrote:
-> I=E2=80=99m trying to migrate to using nftables and hitting some good thi=
-ngs
-> but also a bad thing.  I have a firewall that makes use of conntrack
-> marks that get bit-wise manipulated by iptables.  I don=E2=80=99t appear =
-to be
-> able to get the same functionality in nftables.  eg:
->=20
-> The following stores the DSCP into the conntrack mark and sets another
-> bit as a flag.  Unfortunately it destroys any prior value stored in
-> say the upper 16 bits.
->=20
-> meta nfproto ipv4 ct mark set @nh,8,6 or 0x200 counter
->=20
-> What I=E2=80=99d like to do instead is something more like:
->=20
-> meta nfproto ipv4 ct mark set ct mark or @nh,8,6 ct mark set ct mark or 0=
-x200 counter
+So, flows that did not match any CT rule never generate an event, and,
+therefore, changes to the kernel should not auto-add the extension for
+them.
 
-Funnily enough, I picked the work I did on this two years ago recently.
-I was going to post it again last month when I noticed there was a bug
-in the ipv6 delinearization.  I'll see if I can fix it this week-end.
-If not, I'll post the patches as an RFC to get some feedback at least.
+I don't see how that mechanism can be preserved without the ability to
+set nf_conntrack_events=0.
 
-J.
+When a new conntrack is generated, the test is (in current kernels):
 
---TRpYZIAKrcoZkkUQ
-Content-Type: application/pgp-signature; name="signature.asc"
+'add the event cache extension if the template has an event cache
+ extension OR if the sysctl is enabled'.
 
------BEGIN PGP SIGNATURE-----
+So, changing it to
+'add the event cache extension if the template has an event cache
+ extension OR if we have a listener' is not the same, unfortunately.
 
-iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmIxzl4ACgkQKYasCr3x
-BA2Tiw//TEeHQrPeHDof465UwC3KESBa3IJJuFjD2N5zbRWGbgFUQ20r+92AqWAW
-7l6G1jRrLlDetv3a8JW7SSZZhGrlCA4CBZkkYsm3YB3rmtCxL8QbVaHugjftp16g
-jwJphlp0incS2nVOa5j5J98KsB17no2NDOgJgpiNMZgVsEfdp4Jc0zFHD+uR5L9N
-UX8GFL9brj7xtAPZgCBPfhRaobVzZ+MvYqSn9rYxLOJ6diKgIU0A1junt1KqGMZo
-cO32p63w4A5M683AJ9c96z2jlYYQAShpY6tz+axTc7+8IvNiLuBm3feVvWwY0mRt
-FnoB4xqgMcIY1rb/6ZUMDOsb4Wdx2u2De4f11aw9vhK35GZDNLp+76pyP0NMnfYB
-58yklfVRGdkbkpD+ilzI56eSvr0K+C5greXUmBBqmAKLCKHymTPEPiqSO+l3dWIr
-dP7B0ruQUv5aDGMLm5ddvb0z8OxR6H+X95pgJUb+m43Lsf6sF0r51npIZOYNYlW2
-lsHtm3rCo9rormcMHB0lbPpdPz36RMXBBhNb8zrUsZR7c4DuwbrFBDmYv6nlbbOF
-HjJ8O/CwGPYVasCXyFZufxP3QAFECvv+p6nvtcefQjUIIjn/nf12LZrPagF20jq1
-yGlmsC959BEJI1y7mhCHJ1cd092csH6SWCmauqDiY9505GsZ3DI=
-=mvQx
------END PGP SIGNATURE-----
+> My understanding is that the listen-count tells that packets should
+> follow ct netlink event path.
 
---TRpYZIAKrcoZkkUQ--
+Yes, thats correct, it tells kernel there is an active subscriber for
+events.
+
+> What am I missing?
+
+I can't tell the following two cases apart:
+
+1. templates are active and user wants events ONLY for the chosen flow,
+   e.g. tcp.
+2. templates are active and user wants only particular events for the
+   chosen flows, but all events for the rest.
+
+
+1) is done by templates + setting the sysctl to 0.
+2) is done by templates + setting the sysctl to 1.
+
+With 'assume 1 if listener active', we can only provide functionality of 2).
+
+I finished testing of a prototype and it appears that functionality is ok,
+I've pushed this here:
+https://git.breakpoint.cc/cgit/fw/nf-next.git/log/?h=nf_ct_events_02
+
+(only the top-most 4 changes are relevant).
