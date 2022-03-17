@@ -2,63 +2,63 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C28D0C433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Mar 2022 03:26:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9425DC433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Mar 2022 03:26:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229747AbiCQD1a (ORCPT
+        id S230245AbiCQD2F (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 16 Mar 2022 23:27:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44346 "EHLO
+        Wed, 16 Mar 2022 23:28:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44972 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229983AbiCQD12 (ORCPT
+        with ESMTP id S233084AbiCQD14 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 16 Mar 2022 23:27:28 -0400
+        Wed, 16 Mar 2022 23:27:56 -0400
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id DD12E31DE2
-        for <netfilter-devel@vger.kernel.org>; Wed, 16 Mar 2022 20:26:08 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 239F233E30
+        for <netfilter-devel@vger.kernel.org>; Wed, 16 Mar 2022 20:26:40 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1647487567;
+        s=mimecast20190719; t=1647487599;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          in-reply-to:in-reply-to:references:references;
-        bh=v2SLUI2o5WSRk9a3lKvJBCeORiM/sUU5CpB7omPJTl4=;
-        b=RFzoaWd6gtjxhDoPT2qu1BOaIm0bDmOYI+We9hh9V3iC/Yxip6vkEgDMfM5ZXWee/1DAUN
-        9c0q/nojXdM192HTGEiRz0oh3yIdwVCax+kkGdwtfUgnxIGUWN/qUM83av4Toe0iX7n+w4
-        /ZTpemV15IoeCvstL+sFtGOmYkTueX0=
-Received: from mail-lj1-f199.google.com (mail-lj1-f199.google.com
- [209.85.208.199]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=VdUR6nzOC/8O0v+PINEYQA8hLCMnHSUIAPMWwkW08rs=;
+        b=Wyfm3m60PtMDs9J980olZsBlkeVIRdwuebiXZVqR/xCw2kGY60wv6+aE80qaAaiMFwEGDM
+        7YRqS4nHgBrBPJ+pBHMKwcrRNiUoG52KtSnMdK0lsMRTr0fNEcoYGSXhHXgyBofffJUzFa
+        tIGbVspPUaqcrKVF86iqziLojiuccKA=
+Received: from mail-lj1-f200.google.com (mail-lj1-f200.google.com
+ [209.85.208.200]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-520-_XkApSQdMkuFnzK5tuKXMA-1; Wed, 16 Mar 2022 23:26:06 -0400
-X-MC-Unique: _XkApSQdMkuFnzK5tuKXMA-1
-Received: by mail-lj1-f199.google.com with SMTP id 185-20020a2e05c2000000b002463aff775aso1599663ljf.17
-        for <netfilter-devel@vger.kernel.org>; Wed, 16 Mar 2022 20:26:06 -0700 (PDT)
+ us-mta-582-srvKtkThOu-lNrvKEUy2qw-1; Wed, 16 Mar 2022 23:26:38 -0400
+X-MC-Unique: srvKtkThOu-lNrvKEUy2qw-1
+Received: by mail-lj1-f200.google.com with SMTP id t10-20020a2e2d0a000000b002496423e4adso71917ljt.16
+        for <netfilter-devel@vger.kernel.org>; Wed, 16 Mar 2022 20:26:37 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=v2SLUI2o5WSRk9a3lKvJBCeORiM/sUU5CpB7omPJTl4=;
-        b=hiXwpPTOC8RNDsMRm/CualM9JdrGTT3vowoP141mmxq4qc7qWkETsS+xItAnkCEvFy
-         goBiHpBFg6Fn8ysxGpv25HKY0DBvpKy1uRNzWKPX0x1ErcNwHOUBLlkn6HNxSzAmISAr
-         CzAlLCUl/1d9cCbJb5/Jq5aqDcJ9DaYWu0kCNtFHVcgbYpv8VkdzHnC0Q5y10GJAYjkw
-         sajuJ9WCor+r+bQhexeOpTrm3ZxYftoWR978C/dKTqE43Yrak3H1eh2YWNyKbyk8f3LH
-         DDFr9i8lj8/30yeb/CnuoGSIF4VZt9LUoBXNVPrkUqW5FkyKJaiRkXO4vaNmf2l774LM
-         wwJg==
-X-Gm-Message-State: AOAM532b4pawHeUDhW24LxN7qbB/GOuokD6qLvcqH5E6vpkPpPMEonp3
-        y/nL9B4Qsa/r5mESjLCkzVwusL1sJk1tCgpjbCQEcYhCEhu3rqVOqqlI2eLJkp0fDOrwSRmNa25
-        VmNRvn4KF7zhf/Dr0GOOLXVy47J9Il2OtqIfazKyQBLss
-X-Received: by 2002:ac2:4189:0:b0:448:bc2b:e762 with SMTP id z9-20020ac24189000000b00448bc2be762mr1484751lfh.471.1647487564800;
-        Wed, 16 Mar 2022 20:26:04 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJwXgM3TrKtjE8JRO+JLQ4gZHrItL2DfPkyIFRVyKVrsUjNu6z7Jg/bAU90mtxG6avLG14+uPzJmzqIeygxmack=
-X-Received: by 2002:ac2:4189:0:b0:448:bc2b:e762 with SMTP id
- z9-20020ac24189000000b00448bc2be762mr1484712lfh.471.1647487564603; Wed, 16
- Mar 2022 20:26:04 -0700 (PDT)
+        bh=VdUR6nzOC/8O0v+PINEYQA8hLCMnHSUIAPMWwkW08rs=;
+        b=eSKNGrBoYGrp6ApdosrunrjIGSMEZetmO04+LZKeSKKZjW9joFy2TNBQ5cifc100IQ
+         f1MdAYFy9HvyYHaww3p0e1hlzn0E6m/R+UGogikJxBeWWSdoTc48ADrezK59vnOtQz5e
+         qFZQeQRBDeiMi866Ay3T+PvoYibH61nVvKwMNkSgYskZhm5fBY96V3JSGo5vLZ+PtMlb
+         sPFOFSnxSo4iIPKcWagJXAv+PABaRDhtmCoe2DhW4fZraBXQfs6IwHa7/LKm4mEcjiFD
+         KEo6ke3WFofoeCAu7El1R3nHY7lO9eHpF73quh3Z0wACpNkg8OchqOHw2b5mgFaJLIio
+         STPw==
+X-Gm-Message-State: AOAM530pDhKUVgeUJQ7rmQoyIJ78NZv0aRvuMTSPwYjIu6LePhxFPQJo
+        7TeyTLLE1JGfJrhfeTQuaF+ycfqGqx9m6gnhXx7i1LDj++GQd/jcTNE6dv+N0A4Gr4p322qm55D
+        aKpZRXTZuHwUQqGOoNkNmjVLER2k6cegmlos9pbZQpFg5
+X-Received: by 2002:a2e:a490:0:b0:248:8f0:e4ee with SMTP id h16-20020a2ea490000000b0024808f0e4eemr1585885lji.97.1647487596373;
+        Wed, 16 Mar 2022 20:26:36 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJxodJS4+oPuUw6/FJlLdS1DOlRDugHlSvT6drTv1PuTs0XvDj5DTLTyLGxZOhq4kq4IHrWqpfNVV0chS1q08S4=
+X-Received: by 2002:a2e:a490:0:b0:248:8f0:e4ee with SMTP id
+ h16-20020a2ea490000000b0024808f0e4eemr1585821lji.97.1647487596075; Wed, 16
+ Mar 2022 20:26:36 -0700 (PDT)
 MIME-Version: 1.0
-References: <20220316192010.19001-1-rdunlap@infradead.org> <20220316192010.19001-6-rdunlap@infradead.org>
-In-Reply-To: <20220316192010.19001-6-rdunlap@infradead.org>
+References: <20220316192010.19001-1-rdunlap@infradead.org> <20220316192010.19001-2-rdunlap@infradead.org>
+In-Reply-To: <20220316192010.19001-2-rdunlap@infradead.org>
 From:   Jason Wang <jasowang@redhat.com>
-Date:   Thu, 17 Mar 2022 11:25:53 +0800
-Message-ID: <CACGkMEsX4bS+wmmOE=L5COZxsdFCZmbLTnCe4fZs58MZRx+tQQ@mail.gmail.com>
-Subject: Re: [PATCH 5/9] virtio-scsi: eliminate anonymous module_init & module_exit
+Date:   Thu, 17 Mar 2022 11:26:24 +0800
+Message-ID: <CACGkMEtg6uCNfP-ncXEEWn+EeGLe1-KxbYu45g1-7vR_JHr7hg@mail.gmail.com>
+Subject: Re: [PATCH 1/9] virtio_blk: eliminate anonymous module_init & module_exit
 To:     Randy Dunlap <rdunlap@infradead.org>
 Cc:     linux-kernel <linux-kernel@vger.kernel.org>,
         "Michael S. Tsirkin" <mst@redhat.com>,
@@ -110,7 +110,7 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Mar 17, 2022 at 3:24 AM Randy Dunlap <rdunlap@infradead.org> wrote:
+On Thu, Mar 17, 2022 at 3:25 AM Randy Dunlap <rdunlap@infradead.org> wrote:
 >
 > Eliminate anonymous module_init() and module_exit(), which can lead to
 > confusion or ambiguity when reading System.map, crashes/oops/bugs,
@@ -132,51 +132,50 @@ On Thu, Mar 17, 2022 at 3:24 AM Randy Dunlap <rdunlap@infradead.org> wrote:
 >  calling  init+0x0/0x9a @ 1
 >  initcall init+0x0/0x9a returned 0 after 74 usecs
 >
-> Fixes: 4fe74b1cb051 ("[SCSI] virtio-scsi: SCSI driver for QEMU based virtual machines")
+> Fixes: e467cde23818 ("Block driver using virtio.")
 > Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 > Cc: "Michael S. Tsirkin" <mst@redhat.com>
 > Cc: Jason Wang <jasowang@redhat.com>
 > Cc: Paolo Bonzini <pbonzini@redhat.com>
 > Cc: Stefan Hajnoczi <stefanha@redhat.com>
-> Cc: "James E.J. Bottomley" <jejb@linux.ibm.com>
-> Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
-> Cc: linux-scsi@vger.kernel.org
 > Cc: virtualization@lists.linux-foundation.org
+> Cc: Jens Axboe <axboe@kernel.dk>
+> Cc: linux-block@vger.kernel.org
+> ---
 
 Acked-by: Jason Wang <jasowang@redhat.com>
 
-> ---
->  drivers/scsi/virtio_scsi.c |    8 ++++----
+>  drivers/block/virtio_blk.c |    8 ++++----
 >  1 file changed, 4 insertions(+), 4 deletions(-)
 >
-> --- lnx-517-rc8.orig/drivers/scsi/virtio_scsi.c
-> +++ lnx-517-rc8/drivers/scsi/virtio_scsi.c
-> @@ -988,7 +988,7 @@ static struct virtio_driver virtio_scsi_
->         .remove = virtscsi_remove,
+> --- lnx-517-rc8.orig/drivers/block/virtio_blk.c
+> +++ lnx-517-rc8/drivers/block/virtio_blk.c
+> @@ -1058,7 +1058,7 @@ static struct virtio_driver virtio_blk =
+>  #endif
 >  };
 >
 > -static int __init init(void)
-> +static int __init virtio_scsi_init(void)
+> +static int __init virtio_blk_init(void)
 >  {
->         int ret = -ENOMEM;
+>         int error;
 >
-> @@ -1020,14 +1020,14 @@ error:
->         return ret;
+> @@ -1084,14 +1084,14 @@ out_destroy_workqueue:
+>         return error;
 >  }
 >
 > -static void __exit fini(void)
-> +static void __exit virtio_scsi_fini(void)
+> +static void __exit virtio_blk_fini(void)
 >  {
->         unregister_virtio_driver(&virtio_scsi_driver);
->         mempool_destroy(virtscsi_cmd_pool);
->         kmem_cache_destroy(virtscsi_cmd_cache);
+>         unregister_virtio_driver(&virtio_blk);
+>         unregister_blkdev(major, "virtblk");
+>         destroy_workqueue(virtblk_wq);
 >  }
 > -module_init(init);
 > -module_exit(fini);
-> +module_init(virtio_scsi_init);
-> +module_exit(virtio_scsi_fini);
+> +module_init(virtio_blk_init);
+> +module_exit(virtio_blk_fini);
 >
 >  MODULE_DEVICE_TABLE(virtio, id_table);
->  MODULE_DESCRIPTION("Virtio SCSI HBA driver");
+>  MODULE_DESCRIPTION("Virtio block driver");
 >
 
