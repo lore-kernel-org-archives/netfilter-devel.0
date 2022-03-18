@@ -2,114 +2,62 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB673C433FE
-	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Mar 2022 12:11:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EEF79C433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Mar 2022 14:50:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236042AbiCRMM6 (ORCPT
+        id S232401AbiCROva (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 18 Mar 2022 08:12:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39936 "EHLO
+        Fri, 18 Mar 2022 10:51:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36650 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236046AbiCRMMs (ORCPT
+        with ESMTP id S237676AbiCROvX (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 18 Mar 2022 08:12:48 -0400
+        Fri, 18 Mar 2022 10:51:23 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 032C71FAA18
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Mar 2022 05:11:28 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 26FAE85BDA
+        for <netfilter-devel@vger.kernel.org>; Fri, 18 Mar 2022 07:49:51 -0700 (PDT)
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 1DBF360743
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Mar 2022 13:08:58 +0100 (CET)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 9C73560743;
+        Fri, 18 Mar 2022 15:47:11 +0100 (CET)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next 2/2] netfilter: flowtable: pass flowtable to nf_flow_table_iterate()
-Date:   Fri, 18 Mar 2022 13:11:24 +0100
-Message-Id: <20220318121124.67894-2-pablo@netfilter.org>
+Cc:     fw@strlen.de
+Subject: [PATCH nf-next] netfilter: nf_conntrack_tcp: skip tracking for offloaded packets
+Date:   Fri, 18 Mar 2022 15:49:39 +0100
+Message-Id: <20220318144939.69465-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220318121124.67894-1-pablo@netfilter.org>
-References: <20220318121124.67894-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The flowtable object is already passed as argument to
-nf_flow_table_iterate(), do use not data pointer to pass flowtable.
+Sometimes flowtable datapath passes up packets to classic forwarding
+path, eg. mtu exceeded case. Skip TCP tracking otherwise these packets
+are considered invalid by conntrack.
 
+Fixes: ac2a66665e23 ("netfilter: add generic flow table infrastructure")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_core.c | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+This is a fix, but I'm routing it through nf-next at this stage.
 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index e66a375075c9..3db256da919b 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -405,7 +405,8 @@ EXPORT_SYMBOL_GPL(flow_offload_lookup);
+ net/netfilter/nf_conntrack_proto_tcp.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index d1582b888c0d..e0a1f86910ec 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -889,6 +889,9 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
+ 	if (!nf_ct_is_confirmed(ct) && !tcp_new(ct, skb, dataoff, th))
+ 		return -NF_ACCEPT;
  
- static int
- nf_flow_table_iterate(struct nf_flowtable *flow_table,
--		      void (*iter)(struct flow_offload *flow, void *data),
-+		      void (*iter)(struct nf_flowtable *flowtable,
-+				   struct flow_offload *flow, void *data),
- 		      void *data)
- {
- 	struct flow_offload_tuple_rhash *tuplehash;
-@@ -429,7 +430,7 @@ nf_flow_table_iterate(struct nf_flowtable *flow_table,
- 
- 		flow = container_of(tuplehash, struct flow_offload, tuplehash[0]);
- 
--		iter(flow, data);
-+		iter(flow_table, flow, data);
- 	}
- 	rhashtable_walk_stop(&hti);
- 	rhashtable_walk_exit(&hti);
-@@ -457,10 +458,9 @@ static bool nf_flow_has_stale_dst(struct flow_offload *flow)
- 	       flow_offload_stale_dst(&flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple);
- }
- 
--static void nf_flow_offload_gc_step(struct flow_offload *flow, void *data)
-+static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
-+				    struct flow_offload *flow, void *data)
- {
--	struct nf_flowtable *flow_table = data;
--
- 	if (nf_flow_has_expired(flow) ||
- 	    nf_ct_is_dying(flow->ct) ||
- 	    nf_flow_has_stale_dst(flow))
-@@ -485,7 +485,7 @@ static void nf_flow_offload_work_gc(struct work_struct *work)
- 	struct nf_flowtable *flow_table;
- 
- 	flow_table = container_of(work, struct nf_flowtable, gc_work.work);
--	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, flow_table);
-+	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, NULL);
- 	queue_delayed_work(system_power_efficient_wq, &flow_table->gc_work, HZ);
- }
- 
-@@ -601,7 +601,8 @@ int nf_flow_table_init(struct nf_flowtable *flowtable)
- }
- EXPORT_SYMBOL_GPL(nf_flow_table_init);
- 
--static void nf_flow_table_do_cleanup(struct flow_offload *flow, void *data)
-+static void nf_flow_table_do_cleanup(struct nf_flowtable *flow_table,
-+				     struct flow_offload *flow, void *data)
- {
- 	struct net_device *dev = data;
- 
-@@ -643,11 +644,10 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
- 
- 	cancel_delayed_work_sync(&flow_table->gc_work);
- 	nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
--	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, flow_table);
-+	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, NULL);
- 	nf_flow_table_offload_flush(flow_table);
- 	if (nf_flowtable_hw_offload(flow_table))
--		nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step,
--				      flow_table);
-+		nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, NULL);
- 	rhashtable_destroy(&flow_table->rhashtable);
- }
- EXPORT_SYMBOL_GPL(nf_flow_table_free);
++	if (unlikely(test_bit(IPS_OFFLOAD_BIT, &ct->status)))
++		return NF_ACCEPT;
++
+ 	spin_lock_bh(&ct->lock);
+ 	old_state = ct->proto.tcp.state;
+ 	dir = CTINFO2DIR(ctinfo);
 -- 
 2.30.2
 
