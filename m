@@ -2,106 +2,92 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EBB8C433F5
-	for <netfilter-devel@archiver.kernel.org>; Sat, 19 Mar 2022 20:25:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48A38C433EF
+	for <netfilter-devel@archiver.kernel.org>; Sat, 19 Mar 2022 22:30:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244129AbiCSU1L (ORCPT
+        id S236315AbiCSWbX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 19 Mar 2022 16:27:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35442 "EHLO
+        Sat, 19 Mar 2022 18:31:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50504 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244130AbiCSU1L (ORCPT
+        with ESMTP id S234421AbiCSWbW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 19 Mar 2022 16:27:11 -0400
-Received: from mail-ed1-x52a.google.com (mail-ed1-x52a.google.com [IPv6:2a00:1450:4864:20::52a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D0B835DFE;
-        Sat, 19 Mar 2022 13:25:49 -0700 (PDT)
-Received: by mail-ed1-x52a.google.com with SMTP id m12so13846997edc.12;
-        Sat, 19 Mar 2022 13:25:49 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=UOoYNkWbn3lmrKEsG1YOHnatThAIgskfCdr/GMzc900=;
-        b=FMHp5b8Oreenx13Q81cuS53VAtjTKHzEOymx+hJeJ58vvMQW7Tzk/rbarGHHFANROV
-         JEah+MBLJs9WIBok57cgluQ2hZ5Wae16wCUlihEYanNw96OZksh9xJxNfr86IPwPAzyc
-         m4AczSJoEbiYsvGvgOWCf1YFCM6LancgKC72Ml5HlAmzBUatdOdtOSv61+tNSgLWbMbh
-         0hR//Yr6zP5p3d3ukoNa8TL6QJgHojMJQ2K8BOdLp+c0pq/nmodWvjAMEMapM65ztzqT
-         2NvPSNlkI9l73SxQ9FJ4DteCc9ftS4c2Sfh1a+GIm01q+F8lFogP1BvIZUPIsZBhv2Yo
-         Z0rw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=UOoYNkWbn3lmrKEsG1YOHnatThAIgskfCdr/GMzc900=;
-        b=UIEC2epbpHk/WE39sSGAwhhPXKxVTGJZ2VHgS4ajz7LQEmxndgYbtMZvQ7IDC2qpJ/
-         6CL+Ya19DljD8iSJwVuAcoXQKbGiA6mFWaJMJmSUXBygyJhC4SAxF7S4nVAXvDd6fr5M
-         7Ck5VBQ+nMvhMYjhdyX+3w+o1Wr3ilepgsjGbK9ZpNhGEpflJGteC+7xQVa9gKNfC4DQ
-         2YiYQ/myuvEyKRZMUSSMFjVz+61SMyka/ZrfFET5nNaKlZf4PImamIC8Gj/fTjwbqWBJ
-         UI6QRwY/Qum6x0TfsCrPqXb03pvPub/DFBxknsyTEmzklDJY9snnWNRdoDTP1xiwC2I5
-         IEeA==
-X-Gm-Message-State: AOAM530AZuH4YJtGupvzcZzlutItApnaIdQ3wQ9B+sEGvCy0jnwmJJ75
-        dkpmXxaLXFiaqKbIeDSWH98=
-X-Google-Smtp-Source: ABdhPJzRWWxkZjo8KpR/DyRgICpiuH6OzWnV5AJcws63ScJIbsO4Zcilfric4wFhqebc4++F7D2ImA==
-X-Received: by 2002:a05:6402:3590:b0:415:c162:f3d6 with SMTP id y16-20020a056402359000b00415c162f3d6mr16023255edc.124.1647721547808;
-        Sat, 19 Mar 2022 13:25:47 -0700 (PDT)
-Received: from localhost.localdomain (i130160.upc-i.chello.nl. [62.195.130.160])
-        by smtp.googlemail.com with ESMTPSA id d23-20020aa7d5d7000000b00418f7b2f1dbsm4471945eds.71.2022.03.19.13.25.47
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 19 Mar 2022 13:25:47 -0700 (PDT)
-From:   Jakob Koschel <jakobkoschel@gmail.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Jakob Koschel <jakobkoschel@gmail.com>,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Mike Rapoport <rppt@kernel.org>,
-        "Brian Johannesmeyer" <bjohannesmeyer@gmail.com>,
-        Cristiano Giuffrida <c.giuffrida@vu.nl>,
-        "Bos, H.J." <h.j.bos@vu.nl>
-Subject: [PATCH] netfilter: nf_tables: replace unnecessary use of list_for_each_entry_continue()
-Date:   Sat, 19 Mar 2022 21:25:26 +0100
-Message-Id: <20220319202526.2527974-1-jakobkoschel@gmail.com>
-X-Mailer: git-send-email 2.25.1
+        Sat, 19 Mar 2022 18:31:22 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1BDEE44A38
+        for <netfilter-devel@vger.kernel.org>; Sat, 19 Mar 2022 15:29:57 -0700 (PDT)
+Received: from netfilter.org (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id 7890060743;
+        Sat, 19 Mar 2022 23:27:19 +0100 (CET)
+Date:   Sat, 19 Mar 2022 23:29:52 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+Subject: Re: [nf-next PATCH] netfilter: conntrack: Add and use
+ nf_ct_set_auto_assign_helper_warned()
+Message-ID: <YjZZYCNd0juT1gAc@salvia>
+References: <20220302210255.10177-1-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="1YyPHQkbaOCQyNcj"
+Content-Disposition: inline
+In-Reply-To: <20220302210255.10177-1-phil@nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Since there is no way for the previous list_for_each_entry() to exit
-early, this call to list_for_each_entry_continue() is always guaranteed
-to start with the first element of the list and can therefore be
-replaced with a call to list_for_each_entry().
 
-In preparation to limit the scope of the list iterator to the list
-traversal loop, the list iterator variable 'rule' should not be used
-past the loop.
+--1YyPHQkbaOCQyNcj
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-Signed-off-by: Jakob Koschel <jakobkoschel@gmail.com>
+Hi Phil,
+
+On Wed, Mar 02, 2022 at 10:02:55PM +0100, Phil Sutter wrote:
+> The function sets the pernet boolean to avoid the spurious warning from
+> nf_ct_lookup_helper() when assigning conntrack helpers via nftables.
+
+I'm going to apply this alternative patch, based on yours. No need to
+expose a symbol to access the pernet area. I have also added the Fixes: tag.
+
+Thanks.
+
+--1YyPHQkbaOCQyNcj
+Content-Type: text/x-diff; charset=utf-8
+Content-Disposition: attachment;
+	filename="0001-netfilter-nft_ct-spurious-warning-when-assigning-con.patch"
+
+From 292d6870c88cf855f1ccc72975974a50edd80720 Mon Sep 17 00:00:00 2001
+From: Phil Sutter <phil@nwl.cc>
+Date: Wed, 2 Mar 2022 22:02:55 +0100
+Subject: [PATCH] netfilter: nft_ct: spurious warning when assigning conntrack
+ helpers
+
+The function sets the pernet boolean to avoid the spurious warning from
+nf_ct_lookup_helper() when assigning conntrack helpers via nftables.
+
+Fixes: 1a64edf54f55 ("netfilter: nft_ct: add helper set support")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nft_ct.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index d71a33ae39b3..bdd80136ef1d 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -8299,7 +8299,7 @@ static int nf_tables_commit_chain_prepare(struct net *net, struct nft_chain *cha
- 	data_boundary = data + data_size;
- 	size = 0;
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index 5adf8bb628a8..2a6dcbd06590 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -1041,6 +1041,9 @@ static int nft_ct_helper_obj_init(const struct nft_ctx *ctx,
+ 	if (err < 0)
+ 		goto err_put_helper;
  
--	list_for_each_entry_continue(rule, &chain->rules, list) {
-+	list_for_each_entry(rule, &chain->rules, list) {
- 		if (!nft_is_active_next(net, rule))
- 			continue;
++	/* Avoid the bogus warning, helper will be assigned after CT init */
++	nf_ct_pernet(ctx->net)->auto_assign_helper_warned = true;
++
+ 	return 0;
  
-
-base-commit: 34e047aa16c0123bbae8e2f6df33e5ecc1f56601
+ err_put_helper:
 -- 
-2.25.1
+2.30.2
 
+
+--1YyPHQkbaOCQyNcj--
