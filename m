@@ -2,98 +2,106 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D90BC433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Mar 2022 22:59:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EBB8C433F5
+	for <netfilter-devel@archiver.kernel.org>; Sat, 19 Mar 2022 20:25:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241437AbiCRXBJ (ORCPT
+        id S244129AbiCSU1L (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 18 Mar 2022 19:01:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34498 "EHLO
+        Sat, 19 Mar 2022 16:27:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35442 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234425AbiCRXBI (ORCPT
+        with ESMTP id S244130AbiCSU1L (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 18 Mar 2022 19:01:08 -0400
-Received: from mail-yw1-x114a.google.com (mail-yw1-x114a.google.com [IPv6:2607:f8b0:4864:20::114a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F2AB2F24E8
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Mar 2022 15:59:49 -0700 (PDT)
-Received: by mail-yw1-x114a.google.com with SMTP id 00721157ae682-2e5b04a061cso69097567b3.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Mar 2022 15:59:49 -0700 (PDT)
+        Sat, 19 Mar 2022 16:27:11 -0400
+Received: from mail-ed1-x52a.google.com (mail-ed1-x52a.google.com [IPv6:2a00:1450:4864:20::52a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D0B835DFE;
+        Sat, 19 Mar 2022 13:25:49 -0700 (PDT)
+Received: by mail-ed1-x52a.google.com with SMTP id m12so13846997edc.12;
+        Sat, 19 Mar 2022 13:25:49 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
-        h=date:message-id:mime-version:subject:from:to:cc;
-        bh=f9XqNuMtAJq6peRXnBYbULVZWg52SSEUatTaPuvImmA=;
-        b=oAt92nlHF4fZtvodroicLi8vNNWeldPUL72a+VPigUzfvXav6C7T++brIVWU1tTYLh
-         wWA3yVLiQmc4Gd//Bs/hZviFiQCCcNCUQhWLkLY9egxQjioI7GnGHEWgBrTWHSGwJUv1
-         pYK1UDCjbVCD16tkvWXQmrZwhErYHOOxFh5Gl7l5wUWRXQdkbtfOKune9l9fU6+yxplr
-         vdqUc/QNzWocW3zYnDNHjBaS+oJVWrKeSV4zcXb6hFQ/h2irlqrqWJG/vALITjFeZvIS
-         ET4j08VP+UIt/Yy5tmkU4QeUWkcf0I6GLorwS8jt02/CNVydLpImtn0FbH6XV3kKynzp
-         sPQg==
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=UOoYNkWbn3lmrKEsG1YOHnatThAIgskfCdr/GMzc900=;
+        b=FMHp5b8Oreenx13Q81cuS53VAtjTKHzEOymx+hJeJ58vvMQW7Tzk/rbarGHHFANROV
+         JEah+MBLJs9WIBok57cgluQ2hZ5Wae16wCUlihEYanNw96OZksh9xJxNfr86IPwPAzyc
+         m4AczSJoEbiYsvGvgOWCf1YFCM6LancgKC72Ml5HlAmzBUatdOdtOSv61+tNSgLWbMbh
+         0hR//Yr6zP5p3d3ukoNa8TL6QJgHojMJQ2K8BOdLp+c0pq/nmodWvjAMEMapM65ztzqT
+         2NvPSNlkI9l73SxQ9FJ4DteCc9ftS4c2Sfh1a+GIm01q+F8lFogP1BvIZUPIsZBhv2Yo
+         Z0rw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:message-id:mime-version:subject:from:to:cc;
-        bh=f9XqNuMtAJq6peRXnBYbULVZWg52SSEUatTaPuvImmA=;
-        b=HXIpE9weQnoj+5PA5cCfjCLRhfEj2f1eWUgzT5NJ2kvDWR5Goy1OSgmEVzxXKf1jRZ
-         616n7CuUbGIrJwt1gRfGlCaVPm1pI8WPsHYf0e0QEFOKbEgHr57PR7yj/jB1PferFzq3
-         FSCvvpUs+R9ElWvS3I2I/1Mh0Zmbvelv0mpgSKjfAIp5XovRmx/RfRhunPIsXqvAH4po
-         dANMDPC/DwZL3u0X1oLINCRDRfh0KHDyfovmbd9QqB5nCxGkwj6i+DGi79bH9xXSstYd
-         axqLPBAFW+lDjCinu2ZnEf7H+H7P4FD6YabSLAn5gRXk0PoMLgXKjX1cTsDnv+typMeL
-         0QWw==
-X-Gm-Message-State: AOAM533S5EQk57Hwp2lzY5wZQgIGJQ1rODkIAYPeYYLESfV+YvPEyLHg
-        ATo7NW03pPx6V66FNHaMQqI+RvNVeCviZKWtKOUBxgZvNMkkuR9K3NBpm0BmmF+hWlXD6D7wM3m
-        LTV8OZzgHkuVRnYLHKkNdnxEfH4jk/vy4gj01kw6k8AKcZbS6VkFJE/ZzOEQEEJAgtq7eZ99hMW
-        4gWxYMkxIzWA==
-X-Google-Smtp-Source: ABdhPJyk8beqs/ckanB7Cap5KNckrc6i09Tsi0iCm9tr6FJd/GHYmSoUzyYDj9+Wf2tzekEATQ1OYpacksNL99HoAA==
-X-Received: from rkolchmeyer.c.googlers.com ([fda3:e722:ac3:cc00:20:ed76:c0a8:7f04])
- (user=rkolchmeyer job=sendgmr) by 2002:a25:2e08:0:b0:628:b22e:1e95 with SMTP
- id u8-20020a252e08000000b00628b22e1e95mr12525708ybu.281.1647644388184; Fri,
- 18 Mar 2022 15:59:48 -0700 (PDT)
-Date:   Fri, 18 Mar 2022 15:58:54 -0700
-Message-Id: <20220318225854.619325-1-rkolchmeyer@google.com>
-Mime-Version: 1.0
-X-Mailer: git-send-email 2.35.1.894.gb6a874cedc-goog
-Subject: [PATCH] ebtables: fix the 'static' build target
-From:   Robert Kolchmeyer <rkolchmeyer@google.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Robert Kolchmeyer <rkolchmeyer@google.com>
-Content-Type: text/plain; charset="UTF-8"
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=UOoYNkWbn3lmrKEsG1YOHnatThAIgskfCdr/GMzc900=;
+        b=UIEC2epbpHk/WE39sSGAwhhPXKxVTGJZ2VHgS4ajz7LQEmxndgYbtMZvQ7IDC2qpJ/
+         6CL+Ya19DljD8iSJwVuAcoXQKbGiA6mFWaJMJmSUXBygyJhC4SAxF7S4nVAXvDd6fr5M
+         7Ck5VBQ+nMvhMYjhdyX+3w+o1Wr3ilepgsjGbK9ZpNhGEpflJGteC+7xQVa9gKNfC4DQ
+         2YiYQ/myuvEyKRZMUSSMFjVz+61SMyka/ZrfFET5nNaKlZf4PImamIC8Gj/fTjwbqWBJ
+         UI6QRwY/Qum6x0TfsCrPqXb03pvPub/DFBxknsyTEmzklDJY9snnWNRdoDTP1xiwC2I5
+         IEeA==
+X-Gm-Message-State: AOAM530AZuH4YJtGupvzcZzlutItApnaIdQ3wQ9B+sEGvCy0jnwmJJ75
+        dkpmXxaLXFiaqKbIeDSWH98=
+X-Google-Smtp-Source: ABdhPJzRWWxkZjo8KpR/DyRgICpiuH6OzWnV5AJcws63ScJIbsO4Zcilfric4wFhqebc4++F7D2ImA==
+X-Received: by 2002:a05:6402:3590:b0:415:c162:f3d6 with SMTP id y16-20020a056402359000b00415c162f3d6mr16023255edc.124.1647721547808;
+        Sat, 19 Mar 2022 13:25:47 -0700 (PDT)
+Received: from localhost.localdomain (i130160.upc-i.chello.nl. [62.195.130.160])
+        by smtp.googlemail.com with ESMTPSA id d23-20020aa7d5d7000000b00418f7b2f1dbsm4471945eds.71.2022.03.19.13.25.47
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 19 Mar 2022 13:25:47 -0700 (PDT)
+From:   Jakob Koschel <jakobkoschel@gmail.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Jakob Koschel <jakobkoschel@gmail.com>,
+        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Mike Rapoport <rppt@kernel.org>,
+        "Brian Johannesmeyer" <bjohannesmeyer@gmail.com>,
+        Cristiano Giuffrida <c.giuffrida@vu.nl>,
+        "Bos, H.J." <h.j.bos@vu.nl>
+Subject: [PATCH] netfilter: nf_tables: replace unnecessary use of list_for_each_entry_continue()
+Date:   Sat, 19 Mar 2022 21:25:26 +0100
+Message-Id: <20220319202526.2527974-1-jakobkoschel@gmail.com>
+X-Mailer: git-send-email 2.25.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Currently, `make static` results in the following error:
+Since there is no way for the previous list_for_each_entry() to exit
+early, this call to list_for_each_entry_continue() is always guaranteed
+to start with the first element of the list and can therefore be
+replaced with a call to list_for_each_entry().
 
-  undefined reference to `main'
+In preparation to limit the scope of the list iterator to the list
+traversal loop, the list iterator variable 'rule' should not be used
+past the loop.
 
-I took a guess at what 'static' is supposed to produce, and thought it
-would make sense to use the main definition from ebtables-standalone.c.
-
-Also, producing 'static' by linking against a libebtc.a results in a
-non-functional program (immediate segmentation fault). This is because
-the initialization functions defined in libebtc.a aren't linked into
-the result program. I ran into issues trying to use the --whole-archive
-linker option with libtool, so I figured linking in the libebtc object
-files directly was the simplest approach.
-
-Signed-off-by: Robert Kolchmeyer <rkolchmeyer@google.com>
+Signed-off-by: Jakob Koschel <jakobkoschel@gmail.com>
 ---
- Makefile.am | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ net/netfilter/nf_tables_api.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index 6181003..b246064 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -50,9 +50,8 @@ ebtables_legacy_LDADD = libebtc.la
- ebtablesd_LDADD = libebtc.la
- ebtables_legacy_restore_SOURCES = ebtables-restore.c
- ebtables_legacy_restore_LDADD = libebtc.la
--static_SOURCES = ebtables.c
-+static_SOURCES = ebtables-standalone.c $(libebtc_la_SOURCES)
- static_LDFLAGS = -static
--static_LDADD = libebtc.la
- examples_ulog_test_ulog_SOURCES = examples/ulog/test_ulog.c getethertype.c
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index d71a33ae39b3..bdd80136ef1d 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -8299,7 +8299,7 @@ static int nf_tables_commit_chain_prepare(struct net *net, struct nft_chain *cha
+ 	data_boundary = data + data_size;
+ 	size = 0;
  
- daemon: ebtablesd ebtablesu
+-	list_for_each_entry_continue(rule, &chain->rules, list) {
++	list_for_each_entry(rule, &chain->rules, list) {
+ 		if (!nft_is_active_next(net, rule))
+ 			continue;
+ 
+
+base-commit: 34e047aa16c0123bbae8e2f6df33e5ecc1f56601
 -- 
-2.35.1.894.gb6a874cedc-goog
+2.25.1
 
