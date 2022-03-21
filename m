@@ -2,115 +2,117 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0694DC433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Mar 2022 12:31:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B947C433FE
+	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Mar 2022 13:20:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347424AbiCUMck (ORCPT
+        id S1347823AbiCUNVm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 21 Mar 2022 08:32:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54122 "EHLO
+        Mon, 21 Mar 2022 09:21:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60338 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347408AbiCUMcf (ORCPT
+        with ESMTP id S244257AbiCUNVl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 21 Mar 2022 08:32:35 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id A297985BE1;
-        Mon, 21 Mar 2022 05:31:07 -0700 (PDT)
-Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 99C456303E;
-        Mon, 21 Mar 2022 13:28:25 +0100 (CET)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 19/19] netfilter: flowtable: pass flowtable to nf_flow_table_iterate()
-Date:   Mon, 21 Mar 2022 13:30:52 +0100
-Message-Id: <20220321123052.70553-20-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220321123052.70553-1-pablo@netfilter.org>
-References: <20220321123052.70553-1-pablo@netfilter.org>
+        Mon, 21 Mar 2022 09:21:41 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE56B66213;
+        Mon, 21 Mar 2022 06:20:16 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 34AD5B815E6;
+        Mon, 21 Mar 2022 13:20:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id A7E9BC340ED;
+        Mon, 21 Mar 2022 13:20:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1647868813;
+        bh=34o4Z0zxKc26j8YymcKkPc0hqxgfQpRNySRnkifWdWs=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=N1/xbhDN+JfelvbjRFwaXfOr/iWMj1AdfUaMYNySMeQQDU4wXc7Zy7YOrKgqdU2Sw
+         nPdtcP7x2gi/jkZfXcLZw6ihK9GFieDsuMrHZBeu55WU8tWLMO67T0RVwMYBrGefVp
+         Lk30JBIVTVPCkZA8Gkzsokz0Km7WYSi4tonzFOTXQU9ZsR5bEtQTZch1MoCsycXcNJ
+         HmlMv+p7/JNJGLE73ZyzL6H3chi5IoqDo3ngyz5KU+60NRMtiAgAvWN9cJpIBQ+TOM
+         gxa7mdynzXPXn5K2M4xHZ044YSzlahjMsjOKBbwqBmGVLUoXe1fDwYEJ3wI61Qt4Jl
+         rqx4HKHvV4eoA==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 8E78FE6D44B;
+        Mon, 21 Mar 2022 13:20:13 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next 01/19] netfilter: conntrack: revisit gc autotuning
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <164786881358.18835.770956245099655767.git-patchwork-notify@kernel.org>
+Date:   Mon, 21 Mar 2022 13:20:13 +0000
+References: <20220321123052.70553-2-pablo@netfilter.org>
+In-Reply-To: <20220321123052.70553-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The flowtable object is already passed as argument to
-nf_flow_table_iterate(), do use not data pointer to pass flowtable.
+Hello:
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_flow_table_core.c | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+This series was applied to netdev/net-next.git (master)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index e66a375075c9..3db256da919b 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -405,7 +405,8 @@ EXPORT_SYMBOL_GPL(flow_offload_lookup);
- 
- static int
- nf_flow_table_iterate(struct nf_flowtable *flow_table,
--		      void (*iter)(struct flow_offload *flow, void *data),
-+		      void (*iter)(struct nf_flowtable *flowtable,
-+				   struct flow_offload *flow, void *data),
- 		      void *data)
- {
- 	struct flow_offload_tuple_rhash *tuplehash;
-@@ -429,7 +430,7 @@ nf_flow_table_iterate(struct nf_flowtable *flow_table,
- 
- 		flow = container_of(tuplehash, struct flow_offload, tuplehash[0]);
- 
--		iter(flow, data);
-+		iter(flow_table, flow, data);
- 	}
- 	rhashtable_walk_stop(&hti);
- 	rhashtable_walk_exit(&hti);
-@@ -457,10 +458,9 @@ static bool nf_flow_has_stale_dst(struct flow_offload *flow)
- 	       flow_offload_stale_dst(&flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple);
- }
- 
--static void nf_flow_offload_gc_step(struct flow_offload *flow, void *data)
-+static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
-+				    struct flow_offload *flow, void *data)
- {
--	struct nf_flowtable *flow_table = data;
--
- 	if (nf_flow_has_expired(flow) ||
- 	    nf_ct_is_dying(flow->ct) ||
- 	    nf_flow_has_stale_dst(flow))
-@@ -485,7 +485,7 @@ static void nf_flow_offload_work_gc(struct work_struct *work)
- 	struct nf_flowtable *flow_table;
- 
- 	flow_table = container_of(work, struct nf_flowtable, gc_work.work);
--	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, flow_table);
-+	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, NULL);
- 	queue_delayed_work(system_power_efficient_wq, &flow_table->gc_work, HZ);
- }
- 
-@@ -601,7 +601,8 @@ int nf_flow_table_init(struct nf_flowtable *flowtable)
- }
- EXPORT_SYMBOL_GPL(nf_flow_table_init);
- 
--static void nf_flow_table_do_cleanup(struct flow_offload *flow, void *data)
-+static void nf_flow_table_do_cleanup(struct nf_flowtable *flow_table,
-+				     struct flow_offload *flow, void *data)
- {
- 	struct net_device *dev = data;
- 
-@@ -643,11 +644,10 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
- 
- 	cancel_delayed_work_sync(&flow_table->gc_work);
- 	nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
--	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, flow_table);
-+	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, NULL);
- 	nf_flow_table_offload_flush(flow_table);
- 	if (nf_flowtable_hw_offload(flow_table))
--		nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step,
--				      flow_table);
-+		nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, NULL);
- 	rhashtable_destroy(&flow_table->rhashtable);
- }
- EXPORT_SYMBOL_GPL(nf_flow_table_free);
+On Mon, 21 Mar 2022 13:30:34 +0100 you wrote:
+> From: Florian Westphal <fw@strlen.de>
+> 
+> as of commit 4608fdfc07e1
+> ("netfilter: conntrack: collect all entries in one cycle")
+> conntrack gc was changed to run every 2 minutes.
+> 
+> On systems where conntrack hash table is set to large value, most evictions
+> happen from gc worker rather than the packet path due to hash table
+> distribution.
+> 
+> [...]
+
+Here is the summary with links:
+  - [net-next,01/19] netfilter: conntrack: revisit gc autotuning
+    https://git.kernel.org/netdev/net-next/c/2cfadb761d3d
+  - [net-next,02/19] netfilter: conntrack: Add and use nf_ct_set_auto_assign_helper_warned()
+    https://git.kernel.org/netdev/net-next/c/31d0bb9763ef
+  - [net-next,03/19] netfilter: nf_tables: do not reduce read-only expressions
+    https://git.kernel.org/netdev/net-next/c/b2d306542ff9
+  - [net-next,04/19] netfilter: nf_tables: cancel tracking for clobbered destination registers
+    https://git.kernel.org/netdev/net-next/c/34cc9e52884a
+  - [net-next,05/19] netfilter: nft_ct: track register operations
+    https://git.kernel.org/netdev/net-next/c/03858af0135f
+  - [net-next,06/19] netfilter: nft_lookup: only cancel tracking for clobbered dregs
+    https://git.kernel.org/netdev/net-next/c/e50ae445fb70
+  - [net-next,07/19] netfilter: nft_meta: extend reduce support to bridge family
+    https://git.kernel.org/netdev/net-next/c/aaa7b20bd4d6
+  - [net-next,08/19] netfilter: nft_numgen: cancel register tracking
+    https://git.kernel.org/netdev/net-next/c/4e2b29d88168
+  - [net-next,09/19] netfilter: nft_osf: track register operations
+    https://git.kernel.org/netdev/net-next/c/ffe6488e624e
+  - [net-next,10/19] netfilter: nft_hash: track register operations
+    https://git.kernel.org/netdev/net-next/c/5da03b566626
+  - [net-next,11/19] netfilter: nft_immediate: cancel register tracking for data destination register
+    https://git.kernel.org/netdev/net-next/c/71ef842d73f6
+  - [net-next,12/19] netfilter: nft_socket: track register operations
+    https://git.kernel.org/netdev/net-next/c/d77a721d212d
+  - [net-next,13/19] netfilter: nft_xfrm: track register operations
+    https://git.kernel.org/netdev/net-next/c/48f1910326ea
+  - [net-next,14/19] netfilter: nft_tunnel: track register operations
+    https://git.kernel.org/netdev/net-next/c/611580d2df1f
+  - [net-next,15/19] netfilter: nft_fib: add reduce support
+    https://git.kernel.org/netdev/net-next/c/3c1eb413a45b
+  - [net-next,16/19] netfilter: nft_exthdr: add reduce support
+    https://git.kernel.org/netdev/net-next/c/e86dbdb9d461
+  - [net-next,17/19] netfilter: nf_nat_h323: eliminate anonymous module_init & module_exit
+    https://git.kernel.org/netdev/net-next/c/fd4213929053
+  - [net-next,18/19] netfilter: flowtable: remove redundant field in flow_offload_work struct
+    https://git.kernel.org/netdev/net-next/c/bb321ed6bbaa
+  - [net-next,19/19] netfilter: flowtable: pass flowtable to nf_flow_table_iterate()
+    https://git.kernel.org/netdev/net-next/c/217cff36e885
+
+You are awesome, thank you!
 -- 
-2.30.2
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
