@@ -2,117 +2,137 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B947C433FE
-	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Mar 2022 13:20:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9173EC433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Mar 2022 16:14:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347823AbiCUNVm (ORCPT
+        id S237860AbiCUQQG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 21 Mar 2022 09:21:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60338 "EHLO
+        Mon, 21 Mar 2022 12:16:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53404 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244257AbiCUNVl (ORCPT
+        with ESMTP id S1350998AbiCUQQB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 21 Mar 2022 09:21:41 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE56B66213;
-        Mon, 21 Mar 2022 06:20:16 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 34AD5B815E6;
-        Mon, 21 Mar 2022 13:20:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id A7E9BC340ED;
-        Mon, 21 Mar 2022 13:20:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1647868813;
-        bh=34o4Z0zxKc26j8YymcKkPc0hqxgfQpRNySRnkifWdWs=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=N1/xbhDN+JfelvbjRFwaXfOr/iWMj1AdfUaMYNySMeQQDU4wXc7Zy7YOrKgqdU2Sw
-         nPdtcP7x2gi/jkZfXcLZw6ihK9GFieDsuMrHZBeu55WU8tWLMO67T0RVwMYBrGefVp
-         Lk30JBIVTVPCkZA8Gkzsokz0Km7WYSi4tonzFOTXQU9ZsR5bEtQTZch1MoCsycXcNJ
-         HmlMv+p7/JNJGLE73ZyzL6H3chi5IoqDo3ngyz5KU+60NRMtiAgAvWN9cJpIBQ+TOM
-         gxa7mdynzXPXn5K2M4xHZ044YSzlahjMsjOKBbwqBmGVLUoXe1fDwYEJ3wI61Qt4Jl
-         rqx4HKHvV4eoA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 8E78FE6D44B;
-        Mon, 21 Mar 2022 13:20:13 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Mon, 21 Mar 2022 12:16:01 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DAE12187B8B
+        for <netfilter-devel@vger.kernel.org>; Mon, 21 Mar 2022 09:14:16 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1nWKfe-0006No-4q; Mon, 21 Mar 2022 17:14:14 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] evaluate: copy field_count for anonymous object maps as well
+Date:   Mon, 21 Mar 2022 17:14:07 +0100
+Message-Id: <20220321161407.17690-1-fw@strlen.de>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next 01/19] netfilter: conntrack: revisit gc autotuning
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <164786881358.18835.770956245099655767.git-patchwork-notify@kernel.org>
-Date:   Mon, 21 Mar 2022 13:20:13 +0000
-References: <20220321123052.70553-2-pablo@netfilter.org>
-In-Reply-To: <20220321123052.70553-2-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+test fails without this:
+W: [FAILED]     tests/shell/testcases/maps/anon_objmap_concat: got 134
+BUG: invalid range expression type concat
+nft: expression.c:1452: range_expr_value_low: Assertion `0' failed.
 
-This series was applied to netdev/net-next.git (master)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/evaluate.c                                | 28 +++++++++++--------
+ tests/shell/testcases/maps/anon_objmap_concat |  6 ++++
+ .../maps/dumps/anon_objmap_concat.nft         | 16 +++++++++++
+ 3 files changed, 39 insertions(+), 11 deletions(-)
+ create mode 100755 tests/shell/testcases/maps/anon_objmap_concat
+ create mode 100644 tests/shell/testcases/maps/dumps/anon_objmap_concat.nft
 
-On Mon, 21 Mar 2022 13:30:34 +0100 you wrote:
-> From: Florian Westphal <fw@strlen.de>
-> 
-> as of commit 4608fdfc07e1
-> ("netfilter: conntrack: collect all entries in one cycle")
-> conntrack gc was changed to run every 2 minutes.
-> 
-> On systems where conntrack hash table is set to large value, most evictions
-> happen from gc worker rather than the packet path due to hash table
-> distribution.
-> 
-> [...]
-
-Here is the summary with links:
-  - [net-next,01/19] netfilter: conntrack: revisit gc autotuning
-    https://git.kernel.org/netdev/net-next/c/2cfadb761d3d
-  - [net-next,02/19] netfilter: conntrack: Add and use nf_ct_set_auto_assign_helper_warned()
-    https://git.kernel.org/netdev/net-next/c/31d0bb9763ef
-  - [net-next,03/19] netfilter: nf_tables: do not reduce read-only expressions
-    https://git.kernel.org/netdev/net-next/c/b2d306542ff9
-  - [net-next,04/19] netfilter: nf_tables: cancel tracking for clobbered destination registers
-    https://git.kernel.org/netdev/net-next/c/34cc9e52884a
-  - [net-next,05/19] netfilter: nft_ct: track register operations
-    https://git.kernel.org/netdev/net-next/c/03858af0135f
-  - [net-next,06/19] netfilter: nft_lookup: only cancel tracking for clobbered dregs
-    https://git.kernel.org/netdev/net-next/c/e50ae445fb70
-  - [net-next,07/19] netfilter: nft_meta: extend reduce support to bridge family
-    https://git.kernel.org/netdev/net-next/c/aaa7b20bd4d6
-  - [net-next,08/19] netfilter: nft_numgen: cancel register tracking
-    https://git.kernel.org/netdev/net-next/c/4e2b29d88168
-  - [net-next,09/19] netfilter: nft_osf: track register operations
-    https://git.kernel.org/netdev/net-next/c/ffe6488e624e
-  - [net-next,10/19] netfilter: nft_hash: track register operations
-    https://git.kernel.org/netdev/net-next/c/5da03b566626
-  - [net-next,11/19] netfilter: nft_immediate: cancel register tracking for data destination register
-    https://git.kernel.org/netdev/net-next/c/71ef842d73f6
-  - [net-next,12/19] netfilter: nft_socket: track register operations
-    https://git.kernel.org/netdev/net-next/c/d77a721d212d
-  - [net-next,13/19] netfilter: nft_xfrm: track register operations
-    https://git.kernel.org/netdev/net-next/c/48f1910326ea
-  - [net-next,14/19] netfilter: nft_tunnel: track register operations
-    https://git.kernel.org/netdev/net-next/c/611580d2df1f
-  - [net-next,15/19] netfilter: nft_fib: add reduce support
-    https://git.kernel.org/netdev/net-next/c/3c1eb413a45b
-  - [net-next,16/19] netfilter: nft_exthdr: add reduce support
-    https://git.kernel.org/netdev/net-next/c/e86dbdb9d461
-  - [net-next,17/19] netfilter: nf_nat_h323: eliminate anonymous module_init & module_exit
-    https://git.kernel.org/netdev/net-next/c/fd4213929053
-  - [net-next,18/19] netfilter: flowtable: remove redundant field in flow_offload_work struct
-    https://git.kernel.org/netdev/net-next/c/bb321ed6bbaa
-  - [net-next,19/19] netfilter: flowtable: pass flowtable to nf_flow_table_iterate()
-    https://git.kernel.org/netdev/net-next/c/217cff36e885
-
-You are awesome, thank you!
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 07a4b0ad19b0..04d42b800103 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1513,6 +1513,20 @@ static int expr_evaluate_set(struct eval_ctx *ctx, struct expr **expr)
+ }
+ 
+ static int binop_transfer(struct eval_ctx *ctx, struct expr **expr);
++
++static void map_set_concat_info(struct expr *map)
++{
++	map->mappings->set->flags |= map->mappings->set->init->set_flags;
++
++	if (map->mappings->set->flags & NFT_SET_INTERVAL &&
++	    map->map->etype == EXPR_CONCAT) {
++		memcpy(&map->mappings->set->desc.field_len, &map->map->field_len,
++		       sizeof(map->mappings->set->desc.field_len));
++		map->mappings->set->desc.field_count = map->map->field_count;
++		map->mappings->flags |= NFT_SET_CONCAT;
++	}
++}
++
+ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
+ {
+ 	struct expr_ctx ectx = ctx->ectx;
+@@ -1580,15 +1594,8 @@ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
+ 		ctx->set->key->len = ctx->ectx.len;
+ 		ctx->set = NULL;
+ 		map = *expr;
+-		map->mappings->set->flags |= map->mappings->set->init->set_flags;
+-
+-		if (map->mappings->set->flags & NFT_SET_INTERVAL &&
+-		    map->map->etype == EXPR_CONCAT) {
+-			memcpy(&map->mappings->set->desc.field_len, &map->map->field_len,
+-			       sizeof(map->mappings->set->desc.field_len));
+-			map->mappings->set->desc.field_count = map->map->field_count;
+-			map->mappings->flags |= NFT_SET_CONCAT;
+-		}
++
++		map_set_concat_info(map);
+ 		break;
+ 	case EXPR_SYMBOL:
+ 		if (expr_evaluate(ctx, &map->mappings) < 0)
+@@ -3751,8 +3758,7 @@ static int stmt_evaluate_objref_map(struct eval_ctx *ctx, struct stmt *stmt)
+ 			return -1;
+ 		ctx->set = NULL;
+ 
+-		map->mappings->set->flags |=
+-			map->mappings->set->init->set_flags;
++		map_set_concat_info(map);
+ 		/* fall through */
+ 	case EXPR_SYMBOL:
+ 		if (expr_evaluate(ctx, &map->mappings) < 0)
+diff --git a/tests/shell/testcases/maps/anon_objmap_concat b/tests/shell/testcases/maps/anon_objmap_concat
+new file mode 100755
+index 000000000000..07820b7c4fdd
+--- /dev/null
++++ b/tests/shell/testcases/maps/anon_objmap_concat
+@@ -0,0 +1,6 @@
++#!/bin/bash
++
++set -e
++dumpfile=$(dirname $0)/dumps/$(basename $0).nft
++
++$NFT -f "$dumpfile"
+diff --git a/tests/shell/testcases/maps/dumps/anon_objmap_concat.nft b/tests/shell/testcases/maps/dumps/anon_objmap_concat.nft
+new file mode 100644
+index 000000000000..23aca0a2d988
+--- /dev/null
++++ b/tests/shell/testcases/maps/dumps/anon_objmap_concat.nft
+@@ -0,0 +1,16 @@
++table inet filter {
++	ct helper sip-5060u {
++		type "sip" protocol udp
++		l3proto ip
++	}
++
++	ct helper sip-5060t {
++		type "sip" protocol tcp
++		l3proto ip
++	}
++
++	chain input {
++		type filter hook input priority filter; policy accept;
++		ct helper set ip protocol . th dport map { udp . 10000-20000 : "sip-5060u", tcp . 10000-20000 : "sip-5060t" }
++	}
++}
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.34.1
 
