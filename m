@@ -2,155 +2,86 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 668BDC433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Mar 2022 13:23:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36AECC4332F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Mar 2022 14:26:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235473AbiCVNZU (ORCPT
+        id S237711AbiCVO14 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 22 Mar 2022 09:25:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50438 "EHLO
+        Tue, 22 Mar 2022 10:27:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44466 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235494AbiCVNZT (ORCPT
+        with ESMTP id S241343AbiCVO1I (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 22 Mar 2022 09:25:19 -0400
-Received: from smtp-bc0c.mail.infomaniak.ch (smtp-bc0c.mail.infomaniak.ch [IPv6:2001:1600:4:17::bc0c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D86236AA54
-        for <netfilter-devel@vger.kernel.org>; Tue, 22 Mar 2022 06:23:50 -0700 (PDT)
-Received: from smtp-3-0001.mail.infomaniak.ch (unknown [10.4.36.108])
-        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4KNByX54ljzMq0qg;
-        Tue, 22 Mar 2022 14:23:48 +0100 (CET)
-Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
-        by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4KNByX0fZMzlhMSK;
-        Tue, 22 Mar 2022 14:23:47 +0100 (CET)
-Message-ID: <90a20548-39f6-6e84-efb1-8ef3ad992255@digikod.net>
-Date:   Tue, 22 Mar 2022 14:24:54 +0100
+        Tue, 22 Mar 2022 10:27:08 -0400
+Received: from mail-ed1-x531.google.com (mail-ed1-x531.google.com [IPv6:2a00:1450:4864:20::531])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B14BD24BF0
+        for <netfilter-devel@vger.kernel.org>; Tue, 22 Mar 2022 07:25:40 -0700 (PDT)
+Received: by mail-ed1-x531.google.com with SMTP id c62so2371192edf.5
+        for <netfilter-devel@vger.kernel.org>; Tue, 22 Mar 2022 07:25:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ionos.com; s=google;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=vgwXNK50+akv3a8fFATpQWX1R9jgdLrmZ/94oCAi9kA=;
+        b=Q0wTJ0AMu1liHiDvYWx1QMGsAyAOywUw0h4l4pd8m86YoM9ojmmrSP3YT8gimoQFqL
+         z0TDLZBoww9W2k5cmA6U5bP+3MpSfrTXNcPAGEV3XCzODlHVOcjV3is1RuCnpH/Y++za
+         UDaj2CFW9XAeDMGDn3jDWlQ+2xgc3rubwfTJWUnHxwVHraDPDSAV22AxCM1SsVfcwBA5
+         SGeZaOlWvx+PHm43p55rvNkVRHqW4N3bbxgiI++bUYMyLJ19FfS98EZhZ+P0uNfzV1LH
+         mYbDubb8WFzHXrysJK0a/IYY3qqIGK5iGXBYo1lGkRpjDGBBfa+xyHPuU6v+ANApep9i
+         SmRg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=vgwXNK50+akv3a8fFATpQWX1R9jgdLrmZ/94oCAi9kA=;
+        b=oACgRIl26+7nL6pI59lcbyuo/j/uQXyb837N99AsflRFdeYOjwjBUJr+qvxu21kM01
+         1gchz+RNc+53+tWJ3shZYDu9Bq4PoSEnMsoE5z7X59LWAaJQkB2+SEAmsBRvPnuUalqw
+         9k6SXQwFWjP5OatBsdlMcOrZe51r3ou+GAWD3mLc3LTKPvagPboqg2D5H7K1UQOAQCh3
+         up5HTU2LsApmpDRCXxOfN940JHzKWyxTd3trCuaLLwTeerFdGoSOUIw2mWutLV7JFLkW
+         1spQXFUl45EL9XaAiS7U1styADV7MsxccS7Kh01k9sFvZeolFgcFLhxmMWs6qJNebVsF
+         KVyA==
+X-Gm-Message-State: AOAM532DC3qF3dpVuTyOAB738mI/IauzqnwEnRCy13MHvS+pGgvAo2Rq
+        Lir7Sl74bzouPc88stNugir0SKtPgXCCvg==
+X-Google-Smtp-Source: ABdhPJyGStmwirexgQMIoudGG31da43HQed5JzbC2KDpbVGCO4C0dgvzvNqYS3yYEceaQelEy+4TSA==
+X-Received: by 2002:a05:6402:2553:b0:418:ff6a:ca66 with SMTP id l19-20020a056402255300b00418ff6aca66mr26049478edb.273.1647959138764;
+        Tue, 22 Mar 2022 07:25:38 -0700 (PDT)
+Received: from msennikovskii4.fkb.profitbricks.net (ip5f5bd42e.dynamic.kabel-deutschland.de. [95.91.212.46])
+        by smtp.gmail.com with ESMTPSA id k12-20020aa7c38c000000b0041939d9ccd0sm3351465edq.81.2022.03.22.07.25.37
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 22 Mar 2022 07:25:37 -0700 (PDT)
+From:   Mikhail Sennikovsky <mikhail.sennikovskii@ionos.com>
+To:     netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        mikhail.sennikovsky@gmail.com
+Cc:     Mikhail Sennikovsky <mikhail.sennikovskii@ionos.com>
+Subject: [PATCH 0/1] Reusing mnl socket for bulk ct loads
+Date:   Tue, 22 Mar 2022 15:25:23 +0100
+Message-Id: <20220322142524.35109-1-mikhail.sennikovskii@ionos.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-User-Agent: 
-Content-Language: en-US
-To:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>,
-        willemdebruijn.kernel@gmail.com
-Cc:     linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
-        artem.kuzin@huawei.com, anton.sirazetdinov@huawei.com
-References: <20220309134459.6448-1-konstantin.meskhidze@huawei.com>
- <20220309134459.6448-4-konstantin.meskhidze@huawei.com>
- <bc44f11f-0eaa-a5f6-c5dc-1d36570f1be1@digikod.net>
- <6535183b-5fad-e3a9-1350-d22122205be6@huawei.com>
- <92d498f0-c598-7413-6b7c-d19c5aec6cab@digikod.net>
- <cb30248d-a8ae-c366-2c9f-2ab0fe44cc9a@huawei.com>
-From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-Subject: Re: [RFC PATCH v4 03/15] landlock: landlock_find/insert_rule
- refactoring
-In-Reply-To: <cb30248d-a8ae-c366-2c9f-2ab0fe44cc9a@huawei.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi Pablo & all,
 
-On 22/03/2022 13:33, Konstantin Meskhidze wrote:
-> 
-> 
-> 3/18/2022 9:33 PM, Mickaël Salaün пишет:
->>
->> On 17/03/2022 15:29, Konstantin Meskhidze wrote:
->>>
->>>
->>> 3/16/2022 11:27 AM, Mickaël Salaün пишет:
->>>>
->>>> On 09/03/2022 14:44, Konstantin Meskhidze wrote:
->>>>> A new object union added to support a socket port
->>>>> rule type. To support it landlock_insert_rule() and
->>>>> landlock_find_rule() were refactored. Now adding
->>>>> or searching a rule in a ruleset depends on a
->>>>> rule_type argument provided in refactored
->>>>> functions mentioned above.
->>>>>
->>>>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
->>>>> ---
+As we discussed, as a follow-up to the recent adjustments
+of the conntrack code to use libmnl, I'm sending the updated patch
+for using the same mnl socket for all operation in bulk ct loads
+to increase performance of such loads.
 
-[...]
+Any feedback/suggestions are welcome as always.
 
->>>>> @@ -156,26 +166,38 @@ static void build_check_ruleset(void)
->>>>>    * access rights.
->>>>>    */
->>>>>   static int insert_rule(struct landlock_ruleset *const ruleset,
->>>>> -        struct landlock_object *const object,
->>>>> +        struct landlock_object *const object_ptr,
->>>>> +        const uintptr_t object_data,
->>
->> Can you move rule_type here for this function and similar ones? It 
->> makes sense to group object-related arguments.
-> 
->   Just to group them together, not putting rule_type in the end?
+Regards,
+Mikhail
 
-Yes
 
-[...]
+Mikhail Sennikovsky (1):
+  conntrack: use same mnl socket for bulk operations
 
->>>>> @@ -465,20 +501,28 @@ struct landlock_ruleset *landlock_merge_ruleset(
->>>>>    */
->>>>>   const struct landlock_rule *landlock_find_rule(
->>>>>           const struct landlock_ruleset *const ruleset,
->>>>> -        const struct landlock_object *const object)
->>>>> +        const uintptr_t object_data, const u16 rule_type)
->>>>>   {
->>>>>       const struct rb_node *node;
->>>>>
->>>>> -    if (!object)
->>>>> +    if (!object_data)
->>>>
->>>> object_data can be 0. You need to add a test with such value.
->>>>
->>>> We need to be sure that this change cannot affect the current FS code.
->>>
->>>   I got it. I will refactor it.
->>
->> Well, 0 means a port 0, which might not be correct, but this check 
->> should not be performed by landlock_merge_ruleset().
->>
->   Do you mean landlock_find_rule()?? Cause this check is not
->   performed in landlock_merge_ruleset().
+ src/conntrack.c | 70 +++++++++++++++++++++++++++----------------------
+ 1 file changed, 39 insertions(+), 31 deletions(-)
 
-Yes, I was thinking about landlock_find_rule(). If you run your tests 
-with the patch I proposed, you'll see that one of these tests will fail 
-(when port equal 0). When creating a new network rule, 
-add_rule_net_service() should check if the port value is valid. However, 
-the above `if (!object_data)` is not correct anymore.
+-- 
+2.25.1
 
-The remaining question is: should we need to accept 0 as a valid TCP 
-port? Can it be used? How does the kernel handle it?
-
-> 
->>
->>>>
->>>>
->>>>>           return NULL;
->>>>> -    node = ruleset->root.rb_node;
->>>>> +
->>>>> +    switch (rule_type) {
->>>>> +    case LANDLOCK_RULE_PATH_BENEATH:
->>>>> +        node = ruleset->root_inode.rb_node;
->>>>> +        break;
->>>>> +    default:
->>>>> +        return ERR_PTR(-EINVAL);
->>>>
->>>> This is a bug. There is no check for such value. You need to check 
->>>> and update all call sites to catch such errors. Same for all new use 
->>>> of ERR_PTR().
->>>
->>> Sorry, I did not get your point.
->>> Do you mean I should check the correctness of rule_type in above 
->>> function which calls landlock_find_rule() ??? Why can't I add such 
->>> check here?
->>
->> landlock_find_rule() only returns NULL or a valid pointer, not an error.
-> 
->    What about incorrect rule_type?? Return NULL? Or final rule_checl 
-> must be in upper function?
-
-This case should never happen anyway. You should return NULL and call 
-WARN_ON_ONCE(1) just before. The same kind of WARN_ON_ONCE(1) call 
-should be part of all switch/cases of rule_type (except the two valid 
-values of course).
