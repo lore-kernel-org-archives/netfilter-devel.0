@@ -2,121 +2,50 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A40B7C433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Mar 2022 10:58:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97A20C433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Mar 2022 11:30:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233755AbiCVLAU (ORCPT
+        id S231718AbiCVLbe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 22 Mar 2022 07:00:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41074 "EHLO
+        Tue, 22 Mar 2022 07:31:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45198 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231140AbiCVLAU (ORCPT
+        with ESMTP id S231540AbiCVLbd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 22 Mar 2022 07:00:20 -0400
-Received: from mail-ej1-x632.google.com (mail-ej1-x632.google.com [IPv6:2a00:1450:4864:20::632])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 531D657163;
-        Tue, 22 Mar 2022 03:58:53 -0700 (PDT)
-Received: by mail-ej1-x632.google.com with SMTP id bi12so35403728ejb.3;
-        Tue, 22 Mar 2022 03:58:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=6eTie8pN9DOlF868bn+y4zBjLnv2GLhQ4xR2n+oPB4o=;
-        b=QzvTPalSltc1H2yWkF7TA/9e8Udp1ApWJdjNySe8TcsiL2zt3+USc7xlja6WIms09q
-         j7Oac21kyr1Ue9ryUmmWZXJUwmgEjcfqOsczHxYoJrErWgb31lsHM0N/jlrR2Kkv3HE3
-         ugKYnoHgOte8xlT3opFPTr39L/c24oQp8YHr7oojZPCXf4Phj3PX8a/LEathe2YlnxGD
-         7D2dC5en8o51c6mBvB38CkZJZD/HwHvMjPLGCDEr8I51RpTYvQwRlE2xSQDwRxRVbC/R
-         8Ma/wmPsDJM9xvdx1Galp5ZxfHuyYmfAdOJx33Dq0TkNs1vv1ViIPVC+kKhdbMO4JeM3
-         1/dw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=6eTie8pN9DOlF868bn+y4zBjLnv2GLhQ4xR2n+oPB4o=;
-        b=guSRRA2HDYsjQvhsqAhUE1V7+NrvQiXH/R6YCfjCqpsHJ6rdEbRJiFKgere2WnMq1r
-         q2B+Xf5IZmZvkzOZCx7OjBiHa7Lh/jkqdDxs9QuJd1mgCVAaUnrhXqLtAHqlZD8fQIRq
-         xFLPscVd6zRAcr1ZKrBvPl/1tB3dDLynGLfM1bXkkhGaSo1llgyh85cdwnwCirytBmAA
-         +rIwJMA828Q1IOnPVwmIWAk/xWKEpjN5CQZnS38diNeFiUODnjETby6/3vtbcaAKtuDf
-         yVqP64+XpaAmH9NtV5QGhAt8UlgrBDrP2s0vrfzq2Q5cRhOZlotPsyg2KnPmIYhg7NMS
-         TOyQ==
-X-Gm-Message-State: AOAM530OS6P3uQhp823rMrQopA7FmfSzFhRAPaFXEWaA9ikYUJHKYoch
-        SXDZuihTNcaLQVwWXPiKV0jWriE0c+Y=
-X-Google-Smtp-Source: ABdhPJyazF0uGyLpbtzXM77PFzEF7PotXeqSwSX5ULFhQ7tu8+unt2hSIdsJNfpHLou/gGNVbk9Zrg==
-X-Received: by 2002:a17:906:e87:b0:6df:8602:5801 with SMTP id p7-20020a1709060e8700b006df86025801mr25367980ejf.140.1647946731535;
-        Tue, 22 Mar 2022 03:58:51 -0700 (PDT)
-Received: from localhost.localdomain (i130160.upc-i.chello.nl. [62.195.130.160])
-        by smtp.googlemail.com with ESMTPSA id da19-20020a056402177300b00413583e0996sm9227623edb.14.2022.03.22.03.58.50
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 22 Mar 2022 03:58:51 -0700 (PDT)
-From:   Jakob Koschel <jakobkoschel@gmail.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Jakob Koschel <jakobkoschel@gmail.com>,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Mike Rapoport <rppt@kernel.org>,
-        "Brian Johannesmeyer" <bjohannesmeyer@gmail.com>,
-        Cristiano Giuffrida <c.giuffrida@vu.nl>,
-        "Bos, H.J." <h.j.bos@vu.nl>
-Subject: [PATCH v2] netfilter: nf_tables: replace unnecessary use of list_for_each_entry_continue()
-Date:   Tue, 22 Mar 2022 11:56:44 +0100
-Message-Id: <20220322105645.3667322-1-jakobkoschel@gmail.com>
-X-Mailer: git-send-email 2.25.1
+        Tue, 22 Mar 2022 07:31:33 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B453E7EB2B
+        for <netfilter-devel@vger.kernel.org>; Tue, 22 Mar 2022 04:30:06 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1nWciD-00035V-4P; Tue, 22 Mar 2022 12:30:05 +0100
+Date:   Tue, 22 Mar 2022 12:30:05 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     Jakob Koschel <jakobkoschel@gmail.com>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v2] netfilter: nf_tables: replace unnecessary use of
+ list_for_each_entry_continue()
+Message-ID: <20220322113005.GE24574@breakpoint.cc>
+References: <20220322105645.3667322-1-jakobkoschel@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220322105645.3667322-1-jakobkoschel@gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Since there is no way for list_for_each_entry_continue() to start
-interating in the middle of the list they can be replaced with a call
-to list_for_each_entry().
+Jakob Koschel <jakobkoschel@gmail.com> wrote:
 
-In preparation to limit the scope of the list iterator to the list
-traversal loop, the list iterator variable 'rule' should not be used
-past the loop.
+[ trimmed CC ]
 
-v1->v2:
-- also replace first usage of list_for_each_entry_continue() (Florian
-Westphal)
+> Since there is no way for list_for_each_entry_continue() to start
+> interating in the middle of the list they can be replaced with a call
+> to list_for_each_entry().
+> 
+> In preparation to limit the scope of the list iterator to the list
+> traversal loop, the list iterator variable 'rule' should not be used
+> past the loop.
 
-Signed-off-by: Jakob Koschel <jakobkoschel@gmail.com>
----
- net/netfilter/nf_tables_api.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index d71a33ae39b3..6a8239b25a66 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -8279,10 +8279,8 @@ static int nf_tables_commit_chain_prepare(struct net *net, struct nft_chain *cha
- 	if (chain->blob_next || !nft_is_active_next(net, chain))
- 		return 0;
-
--	rule = list_entry(&chain->rules, struct nft_rule, list);
--
- 	data_size = 0;
--	list_for_each_entry_continue(rule, &chain->rules, list) {
-+	list_for_each_entry(rule, &chain->rules, list) {
- 		if (nft_is_active_next(net, rule)) {
- 			data_size += sizeof(*prule) + rule->dlen;
- 			if (data_size > INT_MAX)
-@@ -8299,7 +8297,7 @@ static int nf_tables_commit_chain_prepare(struct net *net, struct nft_chain *cha
- 	data_boundary = data + data_size;
- 	size = 0;
-
--	list_for_each_entry_continue(rule, &chain->rules, list) {
-+	list_for_each_entry(rule, &chain->rules, list) {
- 		if (!nft_is_active_next(net, rule))
- 			continue;
-
-
-base-commit: f443e374ae131c168a065ea1748feac6b2e76613
---
-2.25.1
-
+Reviewed-by: Florian Westphal <fw@strlen.de>
