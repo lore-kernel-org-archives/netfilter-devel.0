@@ -2,57 +2,69 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09D0CC433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Mar 2022 05:11:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50520C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Mar 2022 06:21:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232456AbiCWFNH (ORCPT
+        id S241950AbiCWGWr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 23 Mar 2022 01:13:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51756 "EHLO
+        Wed, 23 Mar 2022 02:22:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50312 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229696AbiCWFNG (ORCPT
+        with ESMTP id S240189AbiCWGWp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 23 Mar 2022 01:13:06 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E503146172;
-        Tue, 22 Mar 2022 22:11:36 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5E9B2615C4;
-        Wed, 23 Mar 2022 05:11:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50812C340E8;
-        Wed, 23 Mar 2022 05:11:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1648012295;
-        bh=twJa8z2WuTuCCTXplZkeqyLcJT4YJH1ALfCTJg9asGw=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=GZYbLIC2YT2wIpJW5DQR0JXtC2S6yUPpwmr8PqeJMgGgfhEAE8+2ji9EogfpFkp++
-         sixVLYm9hAeDBtr1IZO4wyTDRNvr44E3BenK6OspKpTIXUY1T4/txuwyhkHbx+DZqI
-         Go199aUs+HrcR7tEw49lV/DOYUY9B1MntWAx1ac9Ytt0qreK+OeJ83JwDZmAfYRP0O
-         io0Q+QzIVCASK7NmWyUOxKAzce2jju1Mgv5vFYkuUjS9xP8HL2FS64Dv5qxsRUREJx
-         n/E674ufMXx2BNfYHpEvvmrKVmPMuFSSZl1AFMi/PGO9fL5uZk5xuvbr7a3NZKOcdq
-         Yx25hoeVMq/BA==
-Date:   Tue, 22 Mar 2022 22:11:33 -0700
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Haowen Bai <baihaowen@meizu.com>
-Cc:     <pablo@netfilter.org>, <kadlec@netfilter.org>, <fw@strlen.de>,
-        <davem@davemloft.net>, <netfilter-devel@vger.kernel.org>,
-        <coreteam@netfilter.org>, <netdev@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] netfilter: ipset: Fix duplicate included
+        Wed, 23 Mar 2022 02:22:45 -0400
+Received: from mail.meizu.com (unknown [14.29.68.187])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BFA976E8F4;
+        Tue, 22 Mar 2022 23:21:12 -0700 (PDT)
+Received: from IT-EXMB-1-123.meizu.com (172.16.1.123) by mz-mail04.meizu.com
+ (172.16.1.16) with Microsoft SMTP Server (TLS) id 14.3.487.0; Wed, 23 Mar
+ 2022 14:21:14 +0800
+Received: from IT-EXMB-1-125.meizu.com (172.16.1.125) by
+ IT-EXMB-1-123.meizu.com (172.16.1.123) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.20; Wed, 23 Mar 2022 14:21:10 +0800
+Received: from IT-EXMB-1-125.meizu.com ([fe80::7481:7d92:3801:4575]) by
+ IT-EXMB-1-125.meizu.com ([fe80::7481:7d92:3801:4575%3]) with mapi id
+ 15.01.2308.014; Wed, 23 Mar 2022 14:21:10 +0800
+From:   =?gb2312?B?sNe6xs7E?= <baihaowen@meizu.com>
+To:     Jakub Kicinski <kuba@kernel.org>
+CC:     "pablo@netfilter.org" <pablo@netfilter.org>,
+        "kadlec@netfilter.org" <kadlec@netfilter.org>,
+        "fw@strlen.de" <fw@strlen.de>,
+        "davem@davemloft.net" <davem@davemloft.net>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "coreteam@netfilter.org" <coreteam@netfilter.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: =?gb2312?B?tPC4tDogW1BBVENIXSBuZXRmaWx0ZXI6IGlwc2V0OiBGaXggZHVwbGljYXRl?=
+ =?gb2312?B?IGluY2x1ZGVkIGlwX3NldF9oYXNoX2dlbi5o?=
+Thread-Topic: [PATCH] netfilter: ipset: Fix duplicate included
  ip_set_hash_gen.h
-Message-ID: <20220322221133.7475f708@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <1648005894-28708-1-git-send-email-baihaowen@meizu.com>
-References: <1648005894-28708-1-git-send-email-baihaowen@meizu.com>
+Thread-Index: AQHYPmWRr8jWS7XIQEWQhhdkMvav8azL5gWAgACZQxA=
+Date:   Wed, 23 Mar 2022 06:21:09 +0000
+Message-ID: <269af0be3a144707b6df47c3ecb7e54f@meizu.com>
+References: <1648005894-28708-1-git-send-email-baihaowen@meizu.com>,<20220322221133.7475f708@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+In-Reply-To: <20220322221133.7475f708@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+Accept-Language: zh-CN, en-US
+Content-Language: zh-CN
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [172.16.137.70]
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, 23 Mar 2022 11:24:54 +0800 Haowen Bai wrote:
-> No functional change.
-
-In some deeply philosophical sense? This patch does not build.
+U29ycnkgZm9yIG15IGZhdWx0IGFuZCBtaXN0YWtlbi4NCl9fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18NCreivP7IyzogSmFrdWIgS2ljaW5za2kgPGt1YmFAa2VybmVsLm9y
+Zz4NCreiy83KsbzkOiAyMDIyxOoz1MIyM8jVIDEzOjExOjMzDQrK1bz+yMs6ILDXusbOxA0Ks63L
+zTogcGFibG9AbmV0ZmlsdGVyLm9yZzsga2FkbGVjQG5ldGZpbHRlci5vcmc7IGZ3QHN0cmxlbi5k
+ZTsgZGF2ZW1AZGF2ZW1sb2Z0Lm5ldDsgbmV0ZmlsdGVyLWRldmVsQHZnZXIua2VybmVsLm9yZzsg
+Y29yZXRlYW1AbmV0ZmlsdGVyLm9yZzsgbmV0ZGV2QHZnZXIua2VybmVsLm9yZzsgbGludXgta2Vy
+bmVsQHZnZXIua2VybmVsLm9yZw0K1vfM4jogUmU6IFtQQVRDSF0gbmV0ZmlsdGVyOiBpcHNldDog
+Rml4IGR1cGxpY2F0ZSBpbmNsdWRlZCBpcF9zZXRfaGFzaF9nZW4uaA0KDQpPbiBXZWQsIDIzIE1h
+ciAyMDIyIDExOjI0OjU0ICswODAwIEhhb3dlbiBCYWkgd3JvdGU6DQo+IE5vIGZ1bmN0aW9uYWwg
+Y2hhbmdlLg0KDQpJbiBzb21lIGRlZXBseSBwaGlsb3NvcGhpY2FsIHNlbnNlPyBUaGlzIHBhdGNo
+IGRvZXMgbm90IGJ1aWxkLg0K
