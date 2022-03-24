@@ -2,233 +2,207 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13D72C433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Mar 2022 16:30:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 817E3C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Mar 2022 07:52:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233643AbiCWQcM (ORCPT
+        id S229626AbiCXHyL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 23 Mar 2022 12:32:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51810 "EHLO
+        Thu, 24 Mar 2022 03:54:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34216 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230519AbiCWQcK (ORCPT
+        with ESMTP id S1348748AbiCXHyJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 23 Mar 2022 12:32:10 -0400
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 894C2694BB;
-        Wed, 23 Mar 2022 09:30:39 -0700 (PDT)
-Received: from fraeml704-chm.china.huawei.com (unknown [172.18.147.201])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4KNv2K24S7z67Ywb;
-        Thu, 24 Mar 2022 00:29:29 +0800 (CST)
-Received: from [10.122.132.241] (10.122.132.241) by
- fraeml704-chm.china.huawei.com (10.206.15.53) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2375.24; Wed, 23 Mar 2022 17:30:35 +0100
-Message-ID: <b367c8c6-adfc-9ec1-a898-f9aa13815ca5@huawei.com>
-Date:   Wed, 23 Mar 2022 19:30:31 +0300
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.4.1
-Subject: Re: [RFC PATCH v4 00/15] Landlock LSM
-Content-Language: ru
-To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-CC:     <willemdebruijn.kernel@gmail.com>,
-        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-        <artem.kuzin@huawei.com>, <anton.sirazetdinov@huawei.com>
-References: <20220309134459.6448-1-konstantin.meskhidze@huawei.com>
- <c9333349-5e05-de95-85da-f6a0cd836162@digikod.net>
- <29244d4d-70cc-9c4f-6d0f-e3ce3beb2623@huawei.com>
- <ef128eed-65a3-1617-d630-275f3cfa8220@digikod.net>
-From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-In-Reply-To: <ef128eed-65a3-1617-d630-275f3cfa8220@digikod.net>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.122.132.241]
-X-ClientProxiedBy: lhreml754-chm.china.huawei.com (10.201.108.204) To
- fraeml704-chm.china.huawei.com (10.206.15.53)
-X-CFilter-Loop: Reflected
+        Thu, 24 Mar 2022 03:54:09 -0400
+Received: from mail-ej1-x632.google.com (mail-ej1-x632.google.com [IPv6:2a00:1450:4864:20::632])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1BBD699686;
+        Thu, 24 Mar 2022 00:52:37 -0700 (PDT)
+Received: by mail-ej1-x632.google.com with SMTP id dr20so7439057ejc.6;
+        Thu, 24 Mar 2022 00:52:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=mime-version:subject:from:in-reply-to:date:cc
+         :content-transfer-encoding:message-id:references:to;
+        bh=KLLeo4LszK5mKM9gvwQ86fwffJ82iNHFXheNCrZ6MPg=;
+        b=Sel29aJsin6ZEl/540tmDB3k1Byhb+vLDP1FQ1yHxDmY4x0JKE34Kp8a35oNkCnDKe
+         MrM705EirsIJGb6Odikxl2znuQ9y9ZK0Df4BaIpj+fGiKPrRXm+pls/CmVCqXtdSVM1H
+         sw1upCwo/6burE1iFsf1RYSwy+LevH7IDZkNM99dGHn3I7jSl2/z71ITZ3dQ4/Y2g/ta
+         +tIz3jvGED5FudInLIpKq8hoB0FDQN5gWqlWJg2lFya2skDLqguVGA+moTdvAKFXdoor
+         NNlYODkDIHQI0wqWmfESr6qJcDuNZoO9U/eML4Du84eRvYufIfbBvWPsb57tVrNfIyXN
+         yLnw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:subject:from:in-reply-to:date:cc
+         :content-transfer-encoding:message-id:references:to;
+        bh=KLLeo4LszK5mKM9gvwQ86fwffJ82iNHFXheNCrZ6MPg=;
+        b=nT1jdasWhrDHjlgSh63yjrX/ED8SSIj+IUQDDbbQjalLLf1ax2t6IJOwa0ZOoPOzmQ
+         fkdfim2SwDFr2eFgnVU/EpAkRmoqgqCOGfclYHMoRc0Fi6Rug8N1bhC+04qb2JqIQ/hc
+         wvAoxpz6CABRmXm1x3n8Ol9X7/wMhK8wZuKSEVpKxnMhAPL/YRSKvI4bfFs5DIwBaDm7
+         HkRm1ksZ6xCTzwiX4+PwQ4kgJ9LRjIJDx/wCSjDog1YzhTmQH8AQqfe4euVjIyzvEdtM
+         Le35EoNwJZUTXldbPbYPooO7OJ2mV4UocPxVzSdBNe82Ia1jxgsjGESgTQ1zv1wJy7Hq
+         Ru6g==
+X-Gm-Message-State: AOAM531j3RSro9DmfrcWPXQ3yX2rrUJJRG7KIIJG+5w/8TW3UtQhDyTa
+        e55vPHU5ayt3iz1dW6CZjUbduOCQDJE=
+X-Google-Smtp-Source: ABdhPJwZsrmJE7Cle7eIPigFkCOJqSSUsWccm/nJLtJXtVTFLDn9LSGvul4FFQNZZuIpPiwY7gY7Hw==
+X-Received: by 2002:a17:906:7945:b0:6e0:19:5f7c with SMTP id l5-20020a170906794500b006e000195f7cmr4476264ejo.458.1648108355425;
+        Thu, 24 Mar 2022 00:52:35 -0700 (PDT)
+Received: from smtpclient.apple ([178.254.237.20])
+        by smtp.gmail.com with ESMTPSA id m19-20020a1709062ad300b006d1289becc7sm793033eje.167.2022.03.24.00.52.34
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 24 Mar 2022 00:52:34 -0700 (PDT)
+Content-Type: text/plain;
+        charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 14.0 \(3654.120.0.1.13\))
+Subject: Re: bug report and future request 
+From:   Martin Zaharinov <micron10@gmail.com>
+In-Reply-To: <04C4931B-553E-4FEA-85D4-B3E186520EE5@gmail.com>
+Date:   Thu, 24 Mar 2022 09:52:33 +0200
+Cc:     netfilter <netfilter@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <FE0EEED5-48C9-412F-81BA-0028818C2EE8@gmail.com>
+References: <AE6DAC96-EC3E-43C9-A95A-B230842DD7B1@gmail.com>
+ <20220321212750.GB24574@breakpoint.cc>
+ <4B0C8933-C7D8-49BA-B7F2-29625B0865C1@gmail.com>
+ <20220322103203.GD24574@breakpoint.cc>
+ <04C4931B-553E-4FEA-85D4-B3E186520EE5@gmail.com>
+To:     Florian Westphal <fw@strlen.de>
+X-Mailer: Apple Mail (2.3654.120.0.1.13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+HI all
+
+One more after switch to all rule and use only nft (remove qdisc from =
+kernel config, and remove all iptables tables) in perf top see =
+nft_do_chain is up to 3-4% on all core and if isolate with perf top -C X =
+i see on one core is up to 10-15% :
+
+  31.26%  [pppoe]                  [k] pppoe_rcv
+     3.19%  [nf_tables]              [k] nft_do_chain
+     2.46%  [kernel]                 [k] =
+__netif_receive_skb_core.constprop.0
+     2.18%  [kernel]                 [k] fib_table_lookup
+     2.07%  [i40e]                   [k] i40e_clean_rx_irq
+     1.51%  [kernel]                 [k] __dev_queue_xmit
+     1.23%  [kernel]                 [k] dev_queue_xmit_nit
+     1.23%  [nf_conntrack]           [k] __nf_conntrack_find_get.isra.0
+     1.20%  [kernel]                 [k] __copy_skb_header
+     1.19%  [kernel]                 [k] kmem_cache_free
+     1.17%  [kernel]                 [k] skb_release_data
+     1.06%  [nf_tables]              [k] nft_rhash_lookup=20
 
 
-3/17/2022 8:26 PM, Mickaël Salaün пишет:
-> 
-> On 17/03/2022 14:01, Konstantin Meskhidze wrote:
->>
->>
->> 3/15/2022 8:02 PM, Mickaël Salaün пишет:
->>> Hi Konstantin,
->>>
->>> This series looks good! Thanks for the split in multiple patches.
->>>
->>   Thanks. I follow your recommendations.
->>>
->>> On 09/03/2022 14:44, Konstantin Meskhidze wrote:
->>>> Hi,
->>>> This is a new V4 bunch of RFC patches related to Landlock LSM 
->>>> network confinement.
->>>> It brings deep refactirong and commit splitting of previous version V3.
->>>> Also added additional selftests.
->>>>
->>>> This patch series can be applied on top of v5.17-rc3.
->>>>
->>>> All test were run in QEMU evironment and compiled with
->>>>   -static flag.
->>>>   1. network_test: 9/9 tests passed.
->>>
->>> I get a kernel warning running the network tests.
->>
->>    What kind of warning? Can you provide it please?
-> 
-> You really need to get a setup that gives you such kernel warning. When 
-> running network_test you should get:
-> WARNING: CPU: 3 PID: 742 at security/landlock/ruleset.c:218 
-> insert_rule+0x220/0x270
-> 
-> Before sending new patches, please make sure you're able to catch such 
-> issues.
-> 
-> 
->>>
->>>>   2. base_test: 8/8 tests passed.
->>>>   3. fs_test: 46/46 tests passed.
->>>>   4. ptrace_test: 4/8 tests passed.
->>>
->>> Does your test machine use Yama? That would explain the 4/8. You can 
->>> disable it with the appropriate sysctl.
-> 
-> Can you answer this question?
-> 
-> 
->>>
->>>>
->>>> Tests were also launched for Landlock version without
->>>> v4 patch:
->>>>   1. base_test: 8/8 tests passed.
->>>>   2. fs_test: 46/46 tests passed.
->>>>   3. ptrace_test: 4/8 tests passed.
->>>>
->>>> Could not provide test coverage cause had problems with tests
->>>> on VM (no -static flag the tests compiling, no v4 patch applied):
->>>
-    Hi, Mickaёl!
-    I tried to get base test coverage without v4 patch applied.
+Is have options to optimize work of nft rule set.
 
-    1. Kernel configuration :
-	- CONFIG_DEBUG_FS=y
-	- CONFIG_GCOV_KERNEL=y
-	- CONFIG_ARCH_HAS_GCOV_PROFILE_ALL=y
-    2. Added GCOV_PROFILE := y in security/landlock/Makefile
-    3. Compiled kernel  and rebooted VM with the new one.
-    4. Run landlock selftests as root user:
-	$ cd tools/testing/selftests/landlock
-	$ ./base_test
-	$ ./fs_test
-	$ ./ptrace_test
-    5. Copied GCOV data to some folder :
-       $ cp -r 
-/sys/kernel/debug/gcov/<source-dir>/linux/security/landlock/ /gcov-before
-       $ cd /gcov-before
-       $ lcov -c -d ./landlock -o lcov.info && genhtml -o html lcov.info
+and for second question is it posible to make work this limiter in flow =
+table rule set :=20
 
-I got the next result:
-" Capturing coverage data from ./landlock
-Found gcov version: 9.4.0
-Using intermediate gcov format
-Scanning ./landlock for .gcda files ...
-Found 7 data files in ./landlock
-Processing landlock/setup.gcda
-/home/kmeskhidze/work/src/gcov_before/landlock/setup.gcda:cannot open 
-data file, assuming not executed
-Processing landlock/object.gcda
-/home/kmeskhidze/work/src/gcov_before/landlock/object.gcda:cannot open 
-data file, assuming not executed
-Processing landlock/cred.gcda
-/home/kmeskhidze/work/src/gcov_before/landlock/cred.gcda:cannot open 
-data file, assuming not executed
-Processing landlock/ruleset.gcda
-/home/kmeskhidze/work/src/gcov_before/landlock/ruleset.gcda:cannot open 
-data file, assuming not executed
-Processing landlock/syscalls.gcda
-/home/kmeskhidze/work/src/gcov_before/landlock/syscalls.gcda:cannot open 
-data file, assuming not executed
-Processing landlock/fs.gcda
-/home/kmeskhidze/work/src/gcov_before/landlock/fs.gcda:cannot open data 
-file, assuming not executed
-Processing landlock/ptrace.gcda
-/home/kmeskhidze/work/src/gcov_before/landlock/ptrace.gcda:cannot open 
-data file, assuming not executed
-Finished .info-file creation
-Reading data file lcov.info
-Found 38 entries.
-Found common filename prefix "/home/kmeskhidze/work/src/linux_5.13_landlock"
-Writing .css and .png files.
-Generating output.
-Processing file arch/x86/include/asm/atomic64_64.h
-Processing file arch/x86/include/asm/bitops.h
-Processing file arch/x86/include/asm/atomic.h
-Processing file arch/x86/include/asm/current.h
-Processing file include/asm-generic/getorder.h
-Processing file include/asm-generic/bitops/instrumented-non-atomic.h
-Processing file include/linux/fs.h
-Processing file include/linux/refcount.h
-Processing file include/linux/kernel.h
-Processing file include/linux/list.h
-Processing file include/linux/sched.h
-Processing file include/linux/overflow.h
-Processing file include/linux/dcache.h
-Processing file include/linux/spinlock.h
-Processing file include/linux/file.h
-Processing file include/linux/rcupdate.h
-Processing file include/linux/err.h
-Processing file include/linux/workqueue.h
-Processing file include/linux/fortify-string.h
-Processing file include/linux/slab.h
-Processing file include/linux/instrumented.h
-Processing file include/linux/uaccess.h
-Processing file include/linux/thread_info.h
-Processing file include/linux/rbtree.h
-Processing file include/linux/log2.h
-Processing file include/linux/atomic/atomic-instrumented.h
-Processing file include/linux/atomic/atomic-long.h
-Processing file security/landlock/fs.c
-Processing file security/landlock/ruleset.h
-Processing file security/landlock/ruleset.c
-Processing file security/landlock/ptrace.c
-Processing file security/landlock/object.h
-Processing file security/landlock/syscalls.c
-Processing file security/landlock/setup.c
-Processing file security/landlock/cred.c
-Processing file security/landlock/object.c
-Processing file security/landlock/fs.h
-Processing file security/landlock/cred.h
-Writing directory view page.
-Overall coverage rate:
-   lines......: 0.0% (0 of 937 lines)
-   functions..: 0.0% (0 of 67 functions) "
+#table inet filter {
+#        flowtable fastnat {
+#                hook ingress priority 0; devices =3D { eth0, eth1 };
+#        }
+#
+#        chain forward {
+#                type filter hook forward priority 0; policy accept;
+#                ip protocol { tcp , udp } flow offload @fastnat;
+#        }
+#}
 
-Looks like .gcda files were not executed.
-Maybe I did miss something. Any thoughts?
+Like this and if have options to make devices list dynamic to add device =
+automatic or to add device with *=20
+If limiter work in flow table will make offload traffic and reduce cpu =
+load
 
->>> You can build statically-linked tests with:
->>> make -C tools/testing/selftests/landlock CFLAGS=-static
->>
->>   Ok. I will try. Thanks.
->>>
->>>> 1. base_test: 7/8 tests passed.
->>>>   Error:
->>>>   # Starting 8 tests from 1 test cases.
->>>>   #  RUN           global.inconsistent_attr ...
->>>>   # base_test.c:51:inconsistent_attr:Expected ENOMSG (42) == errno (22)
->>>
->>> This looks like a bug in the syscall argument checks.
->>
->>    This bug I just get when don't use -static option. With -static 
->> base test passes 8/8.
-> 
-> Weird, I'd like to know what is the cause of this issue. What disto and 
-> version do you use as host and guest VM? Do you have some warning when 
-> compiling?
-> .
+Martin
+
+> On 23 Mar 2022, at 0:55, Martin Zaharinov <micron10@gmail.com> wrote:
+>=20
+> Hi Florian
+>=20
+> yes now work perfect
+> i will test with 1-4k ips to see performance vs qdisc or iptables.
+>=20
+> for second offload question:
+>=20
+> is it possible to make limiter work in offload mode and ia it posible =
+to add dynamic interface like ppp* or vlan* or other type.
+>=20
+>=20
+>=20
+> P.S.
+>=20
+> thanks for fast reply for first part!
+>=20
+> P.S.2=20
+>=20
+> resend mail to netfilter group
+>=20
+> Martin
+>=20
+>> On 22 Mar 2022, at 12:32, Florian Westphal <fw@strlen.de> wrote:
+>>=20
+>> Martin Zaharinov <micron10@gmail.com> wrote:
+>>> Hi Florian
+>>>=20
+>>> Look good this config but not work after set user not limit by =
+speed.
+>>=20
+>> Works for me.  Before:
+>> [ ID] Interval           Transfer     Bitrate         Retr
+>> [  5]   0.00-10.00  sec  5.09 GBytes  4.37 Gbits/sec    0 sender
+>> [  5]   0.00-10.00  sec  5.08 GBytes  4.36 Gbits/sec receiver
+>>=20
+>> After:
+>> [  5]   0.00-10.00  sec  62.9 MBytes  52.7 Mbits/sec    0 sender
+>> [  5]   0.00-10.00  sec  59.8 MBytes  50.1 Mbits/sec receiver
+>>=20
+>>> table inet nft-qos-static {
+>>>       set limit_ul {
+>>>               typeof ip saddr
+>>>               flags dynamic
+>>>               elements =3D { 10.0.0.1 limit rate over 5 =
+mbytes/second burst 6000 kbytes, 10.0.0.254 limit rate over 12 =
+mbytes/second burst 6000 kbytes }
+>>>       }
+>>> 		set limit_dl {
+>>>               typeof ip saddr
+>>>               flags dynamic
+>>>               elements =3D { 10.0.0.1 limit rate over 5 =
+mbytes/second burst 6000 kbytes, 10.0.0.254 limit rate over 12 =
+mbytes/second burst 6000 kbytes }
+>>>      }
+>>>=20
+>>>       chain upload {
+>>> 			type filter hook postrouting priority filter; =
+policy accept;
+>>> 			ip saddr @limit_ul drop
+>>>       }
+>>> 		chain download {
+>>> 			type filter hook prerouting priority filter; =
+policy accept;
+>>> 			ip saddr @limit_dl drop
+>>> 		}
+>>=20
+>> daddr?
+>>=20
+>>> With this config user with ip 10.0.0.1 not limited to 5 mbytes ,=20
+>>=20
+>>> When back to this config :
+>>>=20
+>>> table inet nft-qos-static {
+>>> 	chain upload {
+>>> 		type filter hook postrouting priority filter; policy =
+accept;
+>>> 		ip saddr 10.0.0.1 limit rate over 5 mbytes/second burst =
+6000 kbytes drop
+>>> 	}
+>>>=20
+>>> 	chain download {
+>>> 		type filter hook prerouting priority filter; policy =
+accept;
+>>> 		ip daddr 10.0.0.1 limit rate over 5 mbytes/second burst =
+6000 kbytes drop
+>> 	           ~~~~~
+>=20
+
