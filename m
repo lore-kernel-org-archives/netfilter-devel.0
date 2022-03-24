@@ -2,168 +2,117 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47B19C433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Mar 2022 15:30:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 744D8C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Mar 2022 15:34:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351302AbiCXPbq (ORCPT
+        id S1351298AbiCXPf7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 24 Mar 2022 11:31:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47316 "EHLO
+        Thu, 24 Mar 2022 11:35:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55760 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1351291AbiCXPbm (ORCPT
+        with ESMTP id S1349339AbiCXPf7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Mar 2022 11:31:42 -0400
-Received: from smtp-42ab.mail.infomaniak.ch (smtp-42ab.mail.infomaniak.ch [IPv6:2001:1600:3:17::42ab])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9AE3F7090E
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Mar 2022 08:30:09 -0700 (PDT)
-Received: from smtp-3-0001.mail.infomaniak.ch (unknown [10.4.36.108])
-        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4KPTgM6bF6zMqD8Z;
-        Thu, 24 Mar 2022 16:30:07 +0100 (CET)
-Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
-        by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4KPTgM2Kh5zlhMBl;
-        Thu, 24 Mar 2022 16:30:06 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1648135807;
-        bh=DnGdupf64FbGtSysBMYsaPFemm+rYaXuOpzst2MJ8nU=;
-        h=Date:To:Cc:References:From:Subject:In-Reply-To:From;
-        b=MZboME/hahYBWkPEL4nL90uI9BbTvPSgMIM9rBY6RhLGulEcfhoAqhbE/BF/7afB7
-         i8KlZxH0FOb2PlwUTL5py5XYWLAYtRo0WEiXOa8AJF/bvuUsVtW9S/mGl+V06lreQG
-         jS3Etkq0XuDKv+tHAxIo2Oib/OK2eP7NMQOla7Yw=
-Message-ID: <3a33baf2-3de7-fecd-29d3-715500e3631f@digikod.net>
-Date:   Thu, 24 Mar 2022 16:30:10 +0100
+        Thu, 24 Mar 2022 11:35:59 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D34A24833C
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Mar 2022 08:34:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=X1p1mprM6dVne8DCTj1T/gmImIAAxQ9fXAGZM3A9hRQ=; b=c1REQxUOW7cWXXNe4EbS7APtij
+        73NLamiNsuniQt3dPHCAGZYkW2JlcAp5YEhTza7jqPTaHijP4j00cHAqRaHi3eebNDOIS0qk+hpkP
+        AkS/TlVDUVDspBokKO8tFb3LeE/UZ5tKoxzJl6VnjEv8kHJFlVmz1xI0/4Tbje9eRicqIugBCcTAy
+        mLHMpRrF2HL+hue6nsTKFhcgsLWM7k9K79WdTl/BbgF+weQfBFpXdvjOtjD5g63BGsuu6lc7TdZAW
+        cNxMSTrmYoiyfzGYYaCllthlknlQGtIOlwA3/fBbihPIzPl77VrU/gBKO0m83iHx+BgsIB3VQYT+z
+        d4UxzRxA==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1nXPTk-0004Ey-0Z; Thu, 24 Mar 2022 16:34:24 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+Subject: [nf-next PATCH] netfilter: nf_log_syslog: Consolidate entry checks
+Date:   Thu, 24 Mar 2022 16:34:22 +0100
+Message-Id: <20220324153422.8497-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-User-Agent: 
-Content-Language: en-US
-To:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-Cc:     willemdebruijn.kernel@gmail.com,
-        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
-        artem.kuzin@huawei.com, anton.sirazetdinov@huawei.com
-References: <20220309134459.6448-1-konstantin.meskhidze@huawei.com>
- <c9333349-5e05-de95-85da-f6a0cd836162@digikod.net>
- <29244d4d-70cc-9c4f-6d0f-e3ce3beb2623@huawei.com>
- <ef128eed-65a3-1617-d630-275f3cfa8220@digikod.net>
- <b367c8c6-adfc-9ec1-a898-f9aa13815ca5@huawei.com>
- <59923702-3a1f-e018-c9b4-7a53f97b1791@digikod.net>
- <621efd5b-6f01-e616-8bb3-e8f0d31402a9@huawei.com>
-From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-Subject: Re: [RFC PATCH v4 00/15] Landlock LSM
-In-Reply-To: <621efd5b-6f01-e616-8bb3-e8f0d31402a9@huawei.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Every syslog logging callback has to perform the same check to cover for
+rogue containers, introduce a helper for clarity. Drop the FIXME as
+there is a viable solution since commit 2851940ffee31 ("netfilter: allow
+logging from non-init namespaces").
 
+Suggested-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ net/netfilter/nf_log_syslog.c | 18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-On 24/03/2022 14:34, Konstantin Meskhidze wrote:
-> 
-> 
-> 3/24/2022 3:27 PM, Mickaël Salaün пишет:
->>
->> On 23/03/2022 17:30, Konstantin Meskhidze wrote:
->>>
->>>
->>> 3/17/2022 8:26 PM, Mickaël Salaün пишет:
->>>>
->>>> On 17/03/2022 14:01, Konstantin Meskhidze wrote:
->>>>>
->>>>>
->>>>> 3/15/2022 8:02 PM, Mickaël Salaün пишет:
->>>>>> Hi Konstantin,
->>>>>>
->>>>>> This series looks good! Thanks for the split in multiple patches.
->>>>>>
->>>>>   Thanks. I follow your recommendations.
->>>>>>
->>>>>> On 09/03/2022 14:44, Konstantin Meskhidze wrote:
->>>>>>> Hi,
->>>>>>> This is a new V4 bunch of RFC patches related to Landlock LSM 
->>>>>>> network confinement.
->>>>>>> It brings deep refactirong and commit splitting of previous 
->>>>>>> version V3.
->>>>>>> Also added additional selftests.
->>>>>>>
->>>>>>> This patch series can be applied on top of v5.17-rc3.
->>>>>>>
->>>>>>> All test were run in QEMU evironment and compiled with
->>>>>>>   -static flag.
->>>>>>>   1. network_test: 9/9 tests passed.
->>>>>>
->>>>>> I get a kernel warning running the network tests.
->>>>>
->>>>>    What kind of warning? Can you provide it please?
->>>>
->>>> You really need to get a setup that gives you such kernel warning. 
->>>> When running network_test you should get:
->>>> WARNING: CPU: 3 PID: 742 at security/landlock/ruleset.c:218 
->>>> insert_rule+0x220/0x270
->>>>
->>>> Before sending new patches, please make sure you're able to catch 
->>>> such issues.
->>>>
->>>>
->>>>>>
->>>>>>>   2. base_test: 8/8 tests passed.
->>>>>>>   3. fs_test: 46/46 tests passed.
->>>>>>>   4. ptrace_test: 4/8 tests passed.
->>>>>>
->>>>>> Does your test machine use Yama? That would explain the 4/8. You 
->>>>>> can disable it with the appropriate sysctl.
->>>>
->>>> Can you answer this question?
->>>>
->>>>
->>>>>>
->>>>>>>
->>>>>>> Tests were also launched for Landlock version without
->>>>>>> v4 patch:
->>>>>>>   1. base_test: 8/8 tests passed.
->>>>>>>   2. fs_test: 46/46 tests passed.
->>>>>>>   3. ptrace_test: 4/8 tests passed.
->>>>>>>
->>>>>>> Could not provide test coverage cause had problems with tests
->>>>>>> on VM (no -static flag the tests compiling, no v4 patch applied):
->>>>>>
->>>     Hi, Mickaёl!
->>>     I tried to get base test coverage without v4 patch applied.
->>>
->>>     1. Kernel configuration :
->>>      - CONFIG_DEBUG_FS=y
->>>      - CONFIG_GCOV_KERNEL=y
->>>      - CONFIG_ARCH_HAS_GCOV_PROFILE_ALL=y
->>>     2. Added GCOV_PROFILE := y in security/landlock/Makefile
->>
->> I think this is useless because of CONFIG_ARCH_HAS_GCOV_PROFILE_ALL=y. 
->> I don't add GCOV_PROFILE anyway.
->>
->>
->>>     3. Compiled kernel  and rebooted VM with the new one.
->>>     4. Run landlock selftests as root user:
->>>      $ cd tools/testing/selftests/landlock
->>>      $ ./base_test
->>>      $ ./fs_test
->>>      $ ./ptrace_test
->>>     5. Copied GCOV data to some folder :
->>>        $ cp -r 
->>> /sys/kernel/debug/gcov/<source-dir>/linux/security/landlock/ 
->>> /gcov-before
->>>        $ cd /gcov-before
->>>        $ lcov -c -d ./landlock -o lcov.info && genhtml -o html lcov.info
->>
->> I do this step on my host but that should work as long as you have the 
->> kernel sources in the same directory. I guess this is not the case. I 
->> think you also need GCC >= 4.8 .
->>    I found the reason why .gcda files were not executed :
->        "lcov -c -d ./landlock -o lcov.info && genhtml -o html lcov.info" 
-> was run not under ROOT user.
->    Running lcov by ROOT one solved the issue. I will provide network test
->    coverage in RFC patch V5.
->    Thanks for help anyway.
+diff --git a/net/netfilter/nf_log_syslog.c b/net/netfilter/nf_log_syslog.c
+index a7ff6fdbafc94..77bcb10fc586a 100644
+--- a/net/netfilter/nf_log_syslog.c
++++ b/net/netfilter/nf_log_syslog.c
+@@ -40,6 +40,12 @@ struct arppayload {
+ 	unsigned char ip_dst[4];
+ };
+ 
++/* Guard against containers flooding syslog. */
++static bool nf_log_allowed(const struct net *net)
++{
++	return net_eq(net, &init_net) || sysctl_nf_log_all_netns;
++}
++
+ static void nf_log_dump_vlan(struct nf_log_buf *m, const struct sk_buff *skb)
+ {
+ 	u16 vid;
+@@ -133,8 +139,7 @@ static void nf_log_arp_packet(struct net *net, u_int8_t pf,
+ {
+ 	struct nf_log_buf *m;
+ 
+-	/* FIXME: Disabled from containers until syslog ns is supported */
+-	if (!net_eq(net, &init_net) && !sysctl_nf_log_all_netns)
++	if (!nf_log_allowed(net))
+ 		return;
+ 
+ 	m = nf_log_buf_open();
+@@ -831,8 +836,7 @@ static void nf_log_ip_packet(struct net *net, u_int8_t pf,
+ {
+ 	struct nf_log_buf *m;
+ 
+-	/* FIXME: Disabled from containers until syslog ns is supported */
+-	if (!net_eq(net, &init_net) && !sysctl_nf_log_all_netns)
++	if (!nf_log_allowed(net))
+ 		return;
+ 
+ 	m = nf_log_buf_open();
+@@ -867,8 +871,7 @@ static void nf_log_ip6_packet(struct net *net, u_int8_t pf,
+ {
+ 	struct nf_log_buf *m;
+ 
+-	/* FIXME: Disabled from containers until syslog ns is supported */
+-	if (!net_eq(net, &init_net) && !sysctl_nf_log_all_netns)
++	if (!nf_log_allowed(net))
+ 		return;
+ 
+ 	m = nf_log_buf_open();
+@@ -904,8 +907,7 @@ static void nf_log_unknown_packet(struct net *net, u_int8_t pf,
+ {
+ 	struct nf_log_buf *m;
+ 
+-	/* FIXME: Disabled from containers until syslog ns is supported */
+-	if (!net_eq(net, &init_net) && !sysctl_nf_log_all_netns)
++	if (!nf_log_allowed(net))
+ 		return;
+ 
+ 	m = nf_log_buf_open();
+-- 
+2.34.1
 
-I run lcov as a normal user with kernel source access.
-
-I'll review the other patches soon. But for the next series, please 
-don't reuse "Landlock LSM" as a cover letter subject, something like 
-"Network support for Landlock" would fit better. ;)
