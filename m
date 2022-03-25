@@ -2,92 +2,132 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47DC8C433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Mar 2022 10:50:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 374FBC433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Mar 2022 14:48:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350532AbiCYKwW (ORCPT
+        id S1348126AbiCYOtr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 25 Mar 2022 06:52:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59408 "EHLO
+        Fri, 25 Mar 2022 10:49:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47796 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1350623AbiCYKwV (ORCPT
+        with ESMTP id S1359371AbiCYOtq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 25 Mar 2022 06:52:21 -0400
+        Fri, 25 Mar 2022 10:49:46 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A356CC527
-        for <netfilter-devel@vger.kernel.org>; Fri, 25 Mar 2022 03:50:48 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4FF8F654D
+        for <netfilter-devel@vger.kernel.org>; Fri, 25 Mar 2022 07:48:11 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=a8nqq7Hysg+kbBp1hoJnYHEtbG4N5bBlPRy5AkGClNA=; b=W6Kbpf4Tq3cERBjMWaPCL8WbLN
-        WfrcNF9/gVxc+5I7YcwHOmrAeJw0AxtJeCeR3NeYyishUE9xhU73kEkYMvtpXFxMBRlb4vVGOoW8m
-        zfE1DgiXDqelvWxeGvRNDz3xuZemPZTEbFIXihOV4ptI1LUssVxbll9/SM+9+peCXHYkaV6O+9aPh
-        0gEFNkJc96v6TdA4ovDkYaiOBm4sqmYmXLK37Owi8F3vd+YeNFFOJMhY0ZwxENLZxP6vQjPR4X5R3
-        Kg9hQm2uof6RGYFS4wM07bO7GtfLVLpCUvyOaIa9uPW8W9B88mnr3s0Df9R21jO01GZ4ynoRIU8i5
-        cJP+tOZQ==;
+        bh=xr7pi1wh/5hc+kw8bQG71V9e+8Z63nWzhpowcH0ULbw=; b=nRNboA+XaHhpWITg/1zYcclwa0
+        Qhmw5OOQEcnPGpS8TMWcS+xCIVg0szLN0/WGp3AFr64h+Kj1yT7rgqFzPq7W2b5Z1YfBewgife7s3
+        hznxev7IhCw7Bk6MXygfQzF3oth5hoAh9x51gG91NEIDH9NyYi5ycQV7rr7ual0vUO1n3p0RMDn5c
+        34lFuTG30MovNcNhrwvDZdngiyxXBUkGrKWDKHXRoBVJeSCHFPDNFq2w9eb0ssZUq+vPRo41bgfGu
+        fj2s/3n3+8PPUzLw3mAmdoJ9mE4rgCzsbzG+9XHfjhwKUAv5yH3W6G3mf0JVrTGZijJE9EHCRTglu
+        vBT8XeCA==;
 Received: from localhost ([::1] helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1nXhWo-00081D-P2; Fri, 25 Mar 2022 11:50:46 +0100
+        id 1nXlEW-0002VX-MH; Fri, 25 Mar 2022 15:48:08 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [conntrack-tools PATCH 3/8] Fix potential buffer overrun in snprintf() calls
-Date:   Fri, 25 Mar 2022 11:49:58 +0100
-Message-Id: <20220325105003.26621-4-phil@nwl.cc>
+Subject: [libnetfilter_conntrack PATCH] expect/conntrack: Avoid spurious covscan overrun warning
+Date:   Fri, 25 Mar 2022 15:48:07 +0100
+Message-Id: <20220325144807.18049-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220325105003.26621-1-phil@nwl.cc>
-References: <20220325105003.26621-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When consecutively printing into the same buffer at increasing offset,
-reduce buffer size passed to snprintf() to not defeat its size checking.
+It doesn't like how memset() is called for a struct nfnlhdr pointer with
+large size value. Pass void pointers instead. This also removes the call
+from __build_{expect,conntrack}() which is duplicate in
+__build_query_{exp,ct}() code-path.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/process.c | 2 +-
- src/queue.c   | 4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ src/conntrack/api.c   | 4 +++-
+ src/conntrack/build.c | 2 --
+ src/expect/api.c      | 4 +++-
+ src/expect/build.c    | 2 --
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/src/process.c b/src/process.c
-index 3ddad5ffa7959..08598eeae84de 100644
---- a/src/process.c
-+++ b/src/process.c
-@@ -84,7 +84,7 @@ void fork_process_dump(int fd)
- 	int size = 0;
+diff --git a/src/conntrack/api.c b/src/conntrack/api.c
+index b7f64fb43ce83..7f72d07f2e7f6 100644
+--- a/src/conntrack/api.c
++++ b/src/conntrack/api.c
+@@ -779,6 +779,8 @@ int nfct_build_conntrack(struct nfnl_subsys_handle *ssh,
+ 	assert(req != NULL);
+ 	assert(ct != NULL);
  
- 	list_for_each_entry(this, &process_list, head) {
--		size += snprintf(buf+size, sizeof(buf),
-+		size += snprintf(buf + size, sizeof(buf) - size,
- 				 "PID=%u type=%s\n",
- 				 this->pid,
- 				 this->type < CTD_PROC_MAX ?
-diff --git a/src/queue.c b/src/queue.c
-index 76425b18495b5..e94dc7c45d1fd 100644
---- a/src/queue.c
-+++ b/src/queue.c
-@@ -69,12 +69,12 @@ void queue_stats_show(int fd)
- 	int size = 0;
- 	char buf[512];
++	memset(req, 0, size);
++
+ 	return __build_conntrack(ssh, req, size, type, flags, ct);
+ }
  
--	size += snprintf(buf+size, sizeof(buf),
-+	size += snprintf(buf + size, sizeof(buf) - size,
- 			 "allocated queue nodes:\t\t%12u\n\n",
- 			 qobjects_num);
+@@ -812,7 +814,7 @@ __build_query_ct(struct nfnl_subsys_handle *ssh,
+ 	assert(data != NULL);
+ 	assert(req != NULL);
  
- 	list_for_each_entry(this, &queue_list, list) {
--		size += snprintf(buf+size, sizeof(buf),
-+		size += snprintf(buf + size, sizeof(buf) - size,
- 				 "queue %s:\n"
- 				 "current elements:\t\t%12u\n"
- 				 "maximum elements:\t\t%12u\n"
+-	memset(req, 0, size);
++	memset(buffer, 0, size);
+ 
+ 	switch(qt) {
+ 	case NFCT_Q_CREATE:
+diff --git a/src/conntrack/build.c b/src/conntrack/build.c
+index b5a7061d53698..f80cfc12d5e38 100644
+--- a/src/conntrack/build.c
++++ b/src/conntrack/build.c
+@@ -27,8 +27,6 @@ int __build_conntrack(struct nfnl_subsys_handle *ssh,
+ 		return -1;
+ 	}
+ 
+-	memset(req, 0, size);
+-
+ 	buf = (char *)&req->nlh;
+ 	nlh = mnl_nlmsg_put_header(buf);
+ 	nlh->nlmsg_type = (NFNL_SUBSYS_CTNETLINK << 8) | type;
+diff --git a/src/expect/api.c b/src/expect/api.c
+index 39cd09249684c..b100c72ded50e 100644
+--- a/src/expect/api.c
++++ b/src/expect/api.c
+@@ -513,6 +513,8 @@ int nfexp_build_expect(struct nfnl_subsys_handle *ssh,
+ 	assert(req != NULL);
+ 	assert(exp != NULL);
+ 
++	memset(req, 0, size);
++
+ 	return __build_expect(ssh, req, size, type, flags, exp);
+ }
+ 
+@@ -546,7 +548,7 @@ __build_query_exp(struct nfnl_subsys_handle *ssh,
+ 	assert(data != NULL);
+ 	assert(req != NULL);
+ 
+-	memset(req, 0, size);
++	memset(buffer, 0, size);
+ 
+ 	switch(qt) {
+ 	case NFCT_Q_CREATE:
+diff --git a/src/expect/build.c b/src/expect/build.c
+index 2e0f968f36dad..1807adce26f62 100644
+--- a/src/expect/build.c
++++ b/src/expect/build.c
+@@ -29,8 +29,6 @@ int __build_expect(struct nfnl_subsys_handle *ssh,
+ 	else
+ 		return -1;
+ 
+-	memset(req, 0, size);
+-
+ 	buf = (char *)&req->nlh;
+ 	nlh = mnl_nlmsg_put_header(buf);
+ 	nlh->nlmsg_type = (NFNL_SUBSYS_CTNETLINK_EXP << 8) | type;
 -- 
 2.34.1
 
