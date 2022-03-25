@@ -2,85 +2,76 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 244D3C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Mar 2022 17:39:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B8BAC433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Mar 2022 19:35:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230058AbiCYRlE (ORCPT
+        id S229977AbiCYTgx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 25 Mar 2022 13:41:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33618 "EHLO
+        Fri, 25 Mar 2022 15:36:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59488 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230049AbiCYRlE (ORCPT
+        with ESMTP id S230371AbiCYTgU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 25 Mar 2022 13:41:04 -0400
+        Fri, 25 Mar 2022 15:36:20 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4804D12926D
-        for <netfilter-devel@vger.kernel.org>; Fri, 25 Mar 2022 10:39:21 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC3282E51A0
+        for <netfilter-devel@vger.kernel.org>; Fri, 25 Mar 2022 12:09:38 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=ijQt67gp01YJPbklirLcr/P/dRJObkSi+s2WAnuuPJA=; b=GiMuU08XKXiOtP86U5NGdpMoKM
-        wcC/JbWr9Z7OhpnVNPFjKGYYHeMt7CIXqtZ36UKB2guvC9/edJ/9ibYULjHNtxAnJH/hMfpNOyx9w
-        hcjMaK6Xsme6ttQ0Ey3iCAofh6OBD9NAUT53eUhjA2ub3HS5Arn6i4URoivyA7oDn2CsrvhypPR0x
-        ldImuyacrWPS1eclvcq4xmMQjIgJ7+4/nZ9XhlFcQMEIXSgukwP4tM0y/IbKlca2I7ckcuN5TTLWf
-        JWWOLl9RpVUzLA7EAvRL8Dq55MjmKUWNnyCNv/UZ394FnDC/nxLr5p9N/o8XVXlrMnLssi7SJbTxm
-        /42DdFfA==;
+        bh=brdocWpQkRDSZM2eunBJxrRxuydrXyho6N3sUEw5AJE=; b=AMo/4Y1CDGZKCuOjYsWIcuDI7m
+        4riFQqvDCwq2CSaMrMi1BY0j/oeXJ6tmsNEk46EVefbpcy4y7/qV/kaB4nINOqMtQ3azryPs6T3hx
+        q29wU0phEvXvzcmShnU21taIw0Al6L44fQ4IXjQgTFZW1VzP37wUbE/OOLXpUx5S0/zIQOQR9InIb
+        znlSbsg4W/mXbdwvZRej9qdVUJrC3LJr7o9Ovwx5qA1EDpZbce+eqPvvz9KgvWDW9zDIhQfAcqLzv
+        klTyuwDNB/I+uYBfdCAA0j+rvwd12duAQV41rduLIJJqycSzViHCNvxBLG5h1EqOg5fn3FvyUiDwq
+        vNq2FjBA==;
 Received: from localhost ([::1] helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1nXnpU-0004M8-8C; Fri, 25 Mar 2022 18:34:28 +0100
+        id 1nXnpZ-0004MF-IJ; Fri, 25 Mar 2022 18:34:33 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [libnfnetlink PATCH 2/2] libnfnetlink: Check getsockname() return code
-Date:   Fri, 25 Mar 2022 18:34:26 +0100
-Message-Id: <20220325173426.11493-2-phil@nwl.cc>
+Subject: [libnfnetlink PATCH 1/2] include: Silence gcc warning in linux_list.h
+Date:   Fri, 25 Mar 2022 18:34:25 +0100
+Message-Id: <20220325173426.11493-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220325173426.11493-1-phil@nwl.cc>
-References: <20220325173426.11493-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The function may return -1 (and set errno). Assume it will leave
-addr_len value unchanged, so checking is necessary to not hide the
-error.
+Compiler complained about empty prefetch() macro:
 
-Fixes: 4248314d40187 ("nfnl: fix compilation warning with gcc-4.7")
+| ../include/linux_list.h:385:66: warning: right-hand operand of comma expression has no effect [-Wunused-value]
+|   385 |         for (pos = list_entry((head)->next, typeof(*pos), member),      \
+|       |                                                                  ^
+
+Use nftables' variant instead which gcc seems to like more.
+
+Fixes: 36d2ed3de20a3 ("major cleanup of index2name infrastructure: use linux list (and fix leak in the nlif_close path)")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/libnfnetlink.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux_list.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/libnfnetlink.c b/src/libnfnetlink.c
-index 1cb6a820fee3d..667e5ef8f82a5 100644
---- a/src/libnfnetlink.c
-+++ b/src/libnfnetlink.c
-@@ -210,7 +210,8 @@ struct nfnl_handle *nfnl_open(void)
- 	nfnlh->peer.nl_family = AF_NETLINK;
+diff --git a/include/linux_list.h b/include/linux_list.h
+index de182a4764706..cf71837f18347 100644
+--- a/include/linux_list.h
++++ b/include/linux_list.h
+@@ -29,7 +29,7 @@
+ 	1; \
+ })
  
- 	addr_len = sizeof(nfnlh->local);
--	getsockname(nfnlh->fd, (struct sockaddr *)&nfnlh->local, &addr_len);
-+	if (getsockname(nfnlh->fd, (struct sockaddr *)&nfnlh->local, &addr_len))
-+		goto err_close;
- 	if (addr_len != sizeof(nfnlh->local)) {
- 		errno = EINVAL;
- 		goto err_close;
-@@ -231,7 +232,8 @@ struct nfnl_handle *nfnl_open(void)
+-#define prefetch(x)		1
++#define prefetch(x) ((void)0)
  
- 	/* use getsockname to get the netlink pid that the kernel assigned us */
- 	addr_len = sizeof(nfnlh->local);
--	getsockname(nfnlh->fd, (struct sockaddr *)&nfnlh->local, &addr_len);
-+	if (getsockname(nfnlh->fd, (struct sockaddr *)&nfnlh->local, &addr_len))
-+		goto err_close;
- 	if (addr_len != sizeof(nfnlh->local)) {
- 		errno = EINVAL;
- 		goto err_close;
+ /* empty define to make this work in userspace -HW */
+ #ifndef smp_wmb
 -- 
 2.34.1
 
