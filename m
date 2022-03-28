@@ -2,80 +2,84 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35654C4332F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Mar 2022 15:05:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FA7AC433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Mar 2022 16:00:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244185AbiC1PHS (ORCPT
+        id S240598AbiC1QB5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 28 Mar 2022 11:07:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45658 "EHLO
+        Mon, 28 Mar 2022 12:01:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36146 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244181AbiC1PHR (ORCPT
+        with ESMTP id S235079AbiC1QB4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 28 Mar 2022 11:07:17 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4E3C54E3A1
-        for <netfilter-devel@vger.kernel.org>; Mon, 28 Mar 2022 08:05:36 -0700 (PDT)
-Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id C4E3962FFE;
-        Mon, 28 Mar 2022 17:02:26 +0200 (CEST)
-Date:   Mon, 28 Mar 2022 17:05:30 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Topi Miettinen <toiwoton@gmail.com>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: Support for loading firewall rules with cgroup(v2) expressions
- early
-Message-ID: <YkHOuprHwwuXjWrm@salvia>
-References: <fabde324-383a-622c-7e69-32c9b2d06191@gmail.com>
- <YkDXwaPwYf8NgKT+@salvia>
- <418f6461-4504-4707-5ec2-61227af2ad27@gmail.com>
+        Mon, 28 Mar 2022 12:01:56 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53F7926ADF;
+        Mon, 28 Mar 2022 09:00:14 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id F12FBB8115F;
+        Mon, 28 Mar 2022 16:00:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 82A2AC340F3;
+        Mon, 28 Mar 2022 16:00:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1648483211;
+        bh=dEcILtGw+9X7ohrkAcFU2ski0Oskh/hbYv28iHFh0v4=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=akFw0ZyTBtNP1FzMslPBPPMSmB/mnIR7dLomSsy0jkJ9c/rdn8XFiNzmquqFEaenJ
+         GNwKDqE0GaJZBZKFzsIy1MA2JFiYFeNofiI33x8ONH4tjpOeddBesNA82bMe+gg8/9
+         woYz/7nlsBSZH30CkayKbwzZ9KrY2nFc1lZS6iQXHhbBzK06nFJLqGfcoN0BMkgBb2
+         MynN9PNDrWCOgEnMp7Y2nmYwAmkzVawy84LAjG31+j4MOl7DdqtQfSgpZs/riM5Lqg
+         QrIbT0pwcf9T1ss/5s7GJZmxlkx/Wq57mrOnj78OtPdBcEBEc/nGUOBFmRc+GzFUjd
+         QVuUaRfp6cLBA==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 690B9F03848;
+        Mon, 28 Mar 2022 16:00:11 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <418f6461-4504-4707-5ec2-61227af2ad27@gmail.com>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/3] netfilter: egress: Report interface as outgoing
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <164848321142.11751.9110855831733710740.git-patchwork-notify@kernel.org>
+Date:   Mon, 28 Mar 2022 16:00:11 +0000
+References: <20220328082022.636423-2-pablo@netfilter.org>
+In-Reply-To: <20220328082022.636423-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Mar 28, 2022 at 05:08:32PM +0300, Topi Miettinen wrote:
-> On 28.3.2022 0.31, Pablo Neira Ayuso wrote:
-> > On Sat, Mar 26, 2022 at 12:09:26PM +0200, Topi Miettinen wrote:
-[...]
-> > > Another possibility would be to hook into cgroup directory creation logic in
-> > > kernel so that when the cgroup is created, part of the path checks are
-> > > performed or something else which would allow non-existent cgroups to be
-> > > used. Then the NFT syntax would not need changing, but the expressions would
-> > > "just work" even when loaded early.
-> > 
-> > Could you use inotify/dnotify/eventfd to track these updates from
-> > userspace and update the nftables sets accordingly? AFAIK, this is
-> > available to cgroupsv2.
+Hello:
+
+This series was applied to netdev/net.git (master)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
+
+On Mon, 28 Mar 2022 10:20:20 +0200 you wrote:
+> From: Phil Sutter <phil@nwl.cc>
 > 
-> It's possible, there's for example:
-> https://github.com/mk-fg/systemd-cgroup-nftables-policy-manager
+> Otherwise packets in egress chains seem like they are being received by
+> the interface, not sent out via it.
+> 
+> Fixes: 42df6e1d221dd ("netfilter: Introduce egress hook")
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> 
+> [...]
 
-This one seems to be adding one rule per cgroupv2, it would be better
-to use a map for this purpose for scalability reasons.
+Here is the summary with links:
+  - [net,1/3] netfilter: egress: Report interface as outgoing
+    https://git.kernel.org/netdev/net/c/d645552e9bd9
+  - [net,2/3] netfilter: nf_conntrack_tcp: preserve liberal flag in tcp options
+    https://git.kernel.org/netdev/net/c/f2dd495a8d58
+  - [net,3/3] memcg: enable accounting for nft objects
+    https://git.kernel.org/netdev/net/c/33758c891479
 
-> https://github.com/helsinki-systems/nft_cgroupv2/
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-This approach above takes us back to the linear ruleset evaluation
-problem, this is basically looking like iptables, this does not scale up.
 
-> But I think that with this approach, depending on system load, there could
-> be a vulnerable time window where the rules aren't loaded yet but the
-> process which is supposed to be protected by the rules has already started
-> running. This isn't desirable for firewalls, so I'd like to have a way for
-> loading the firewall rules as early as possible.
-
-You could define a static ruleset which creates the table, basechain
-and the cgroupv2 verdict map. Then, systemd updates this map with new
-entries to match on cgroupsv2 and apply the corresponding policy for
-this process, and delete it when not needed anymore. You have to
-define one non-basechain for each cgroupv2 policy.
-
-To address the vulnerable time window, the static ruleset defines a
-default policy to allow nothing until an explicit policy based on
-cgroupv2 for this process is in place.
-
-The cgroupv2 support for nftables was designed to be used with maps.
