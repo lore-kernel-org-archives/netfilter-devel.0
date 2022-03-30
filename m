@@ -2,91 +2,178 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19922C433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 30 Mar 2022 20:57:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AA13C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 30 Mar 2022 21:47:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351162AbiC3U7O (ORCPT
+        id S243733AbiC3VtG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 30 Mar 2022 16:59:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41844 "EHLO
+        Wed, 30 Mar 2022 17:49:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50406 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1351174AbiC3U7N (ORCPT
+        with ESMTP id S243390AbiC3VtF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 30 Mar 2022 16:59:13 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB93541637
-        for <netfilter-devel@vger.kernel.org>; Wed, 30 Mar 2022 13:57:26 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1nZfNb-0007N1-Rg; Wed, 30 Mar 2022 22:57:23 +0200
-Date:   Wed, 30 Mar 2022 22:57:23 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Jan Engelhardt <jengelh@inai.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH 9/9] extensions: DNAT: Support service names in
- all spots
-Message-ID: <YkTEM8r6tv+fkOOK@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Jan Engelhardt <jengelh@inai.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20220330155851.13249-1-phil@nwl.cc>
- <20220330155851.13249-10-phil@nwl.cc>
- <89qp85o0-704s-5280-sqp6-s71so14n7487@vanv.qr>
+        Wed, 30 Mar 2022 17:49:05 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D6C08BCBF
+        for <netfilter-devel@vger.kernel.org>; Wed, 30 Mar 2022 14:47:18 -0700 (PDT)
+Received: from netfilter.org (unknown [78.30.32.163])
+        by mail.netfilter.org (Postfix) with ESMTPSA id AFB5A63049;
+        Wed, 30 Mar 2022 23:44:00 +0200 (CEST)
+Date:   Wed, 30 Mar 2022 23:47:15 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Topi Miettinen <toiwoton@gmail.com>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: Support for loading firewall rules with cgroup(v2) expressions
+ early
+Message-ID: <YkTP40PPDCJSObeH@salvia>
+References: <fabde324-383a-622c-7e69-32c9b2d06191@gmail.com>
+ <YkDXwaPwYf8NgKT+@salvia>
+ <418f6461-4504-4707-5ec2-61227af2ad27@gmail.com>
+ <YkHOuprHwwuXjWrm@salvia>
+ <5b850d67-92c1-9ece-99d2-390e8a5731b3@gmail.com>
+ <YkOF0LyDSqKX6ERe@salvia>
+ <35c20ae1-fc79-9488-8a42-a405424d1e53@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <89qp85o0-704s-5280-sqp6-s71so14n7487@vanv.qr>
+In-Reply-To: <35c20ae1-fc79-9488-8a42-a405424d1e53@gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Jan,
-
-On Wed, Mar 30, 2022 at 08:38:28PM +0200, Jan Engelhardt wrote:
+On Wed, Mar 30, 2022 at 07:37:00PM +0300, Topi Miettinen wrote:
+> On 30.3.2022 1.25, Pablo Neira Ayuso wrote:
+> > On Tue, Mar 29, 2022 at 09:20:25PM +0300, Topi Miettinen wrote:
+> > > On 28.3.2022 18.05, Pablo Neira Ayuso wrote:
+> > > > On Mon, Mar 28, 2022 at 05:08:32PM +0300, Topi Miettinen wrote:
+> > > > > On 28.3.2022 0.31, Pablo Neira Ayuso wrote:
+> > > > > > On Sat, Mar 26, 2022 at 12:09:26PM +0200, Topi Miettinen wrote:
+> > > > [...]
+> > > > > But I think that with this approach, depending on system load, there could
+> > > > > be a vulnerable time window where the rules aren't loaded yet but the
+> > > > > process which is supposed to be protected by the rules has already started
+> > > > > running. This isn't desirable for firewalls, so I'd like to have a way for
+> > > > > loading the firewall rules as early as possible.
+> > > > 
+> > > > You could define a static ruleset which creates the table, basechain
+> > > > and the cgroupv2 verdict map. Then, systemd updates this map with new
+> > > > entries to match on cgroupsv2 and apply the corresponding policy for
+> > > > this process, and delete it when not needed anymore. You have to
+> > > > define one non-basechain for each cgroupv2 policy.
+> > > 
+> > > Actually this seems to work:
+> > > 
+> > > table inet filter {
+> > >          set cg {
+> > >                  typeof socket cgroupv2 level 0
+> > >          }
+> > > 
+> > >          chain y {
+> > >                  socket cgroupv2 level 2 @cg accept
+> > > 		counter drop
+> > >          }
+> > > }
+> > > 
+> > > Simulating systemd adding the cgroup of a service to the set:
+> > > # nft add element inet filter cg "system.slice/systemd-resolved.service"
+> > > 
+> > > Cgroup ID (inode number of the cgroup) has been successfully added:
+> > > # nft list set inet filter cg
+> > >          set cg {
+> > >                  typeof socket cgroupv2 level 0
+> > >                  elements = { 6032 }
+> > >          }
+> > > # ls -id /sys/fs/cgroup/system.slice/systemd-resolved.service
+> > > 6032 /sys/fs/cgroup/system.slice/systemd-resolved.service/
+> > 
+> > You could define a ruleset that describes the policy following the
+> > cgroupsv2 hierarchy. Something like this:
+> > 
+> >   table inet filter {
+> >          map dict_cgroup_level_1 {
+> >                  type cgroupsv2 : verdict;
+> >                  elements = { "system.slice" : jump system_slice }
+> >          }
+> > 
+> >          map dict_cgroup_level_2 {
+> >                  type cgroupsv2 : verdict;
+> >                  elements = { "system.slice/systemd-timesyncd.service" : jump systemd_timesyncd }
+> >          }
+> > 
+> >          chain systemd_timesyncd {
+> >                  # systemd-timesyncd policy
+> >          }
+> > 
+> >          chain system_slice {
+> >                  socket cgroupv2 level 2 vmap @dict_cgroup_level_2
+> >                  # policy for system.slice process
+> >          }
+> > 
+> >          chain input {
+> >                  type filter hook input priority filter; policy drop;
+> >                  socket cgroupv2 level 1 vmap @dict_cgroup_level_1
+> >          }
+> >   }
+> > 
+> > The dictionaries per level allows you to mimic the cgroupsv2 tree
+> > hierarchy
+> > 
+> > This allows you to attach a default policy for processes that belong
+> > to the "system_slice" (at level 1). This might also be useful in case
+> > that there is a process in the group "system_slice" which does not yet
+> > have an explicit level 2 policy, so level 1 policy applies in such
+> > case.
+> > 
+> > You might want to apply the level 1 policy before the level 2 policy
+> > (ie. aggregate policies per level as you move searching for an exact
+> > cgroup match), or instead you might prefer to search for an exact
+> > match at level 2, otherwise backtrack to closest matching cgroupsv2
+> > for this process.
 > 
-> On Wednesday 2022-03-30 17:58, Phil Sutter wrote:
+> Nice ideas, but the rules can't be loaded before the cgroups are realized at
+> early boot:
 > 
-> >When parsing (parts of) a port spec, if it doesn't start with a digit,
-> >try to find the largest substring getservbyname() accepts.
+> Mar 30 19:14:45 systemd[1]: Starting nftables...
+> Mar 30 19:14:46 nft[1018]: /etc/nftables.conf:305:5-44: Error: cgroupv2 path
+> fails: Permission denied
+> Mar 30 19:14:46 nft[1018]: "system.slice/systemd-timesyncd.service" : jump
+> systemd_timesyncd
+> Mar 30 19:14:46 nft[1018]: ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> Mar 30 19:14:46 systemd[1]: nftables.service: Main process exited,
+> code=exited, status=1/FAILURE
+> Mar 30 19:14:46 systemd[1]: nftables.service: Failed with result
+> 'exit-code'.
+> Mar 30 19:14:46 systemd[1]: Failed to start nftables.
+
+I guess this unit file performs nft -f on cgroupsv2 that do not exist
+yet.
+
+Could you just load the base policy with empty dictionaries instead,
+then track and register the cgroups into the ruleset as they are being
+created/removed?
+
+> > There is also the jump and goto semantics for chains that can be
+> > combined in this chain tree.
+> > 
+> > BTW, what nftables version are you using? My listing does not show
+> > i-nodes, instead it shows the path.
 > 
-> > -p tcp -j DNAT --to-destination 1.1.1.1:1000-2000/65536;;FAIL
-> > -p tcp -j DNAT --to-destination 1.1.1.1:ssh;-p tcp -j DNAT --to-destination 1.1.1.1:22;OK
-> > -p tcp -j DNAT --to-destination 1.1.1.1:ftp-data;-p tcp -j DNAT --to-destination 1.1.1.1:20;OK
-> >+-p tcp -j DNAT --to-destination 1.1.1.1:ftp-data-ssh;-p tcp -j DNAT --to-destination 1.1.1.1:20-22;OK
-> >+-p tcp -j DNAT --to-destination 1.1.1.1:echo-ftp-data;-p tcp -j DNAT --to-destination 1.1.1.1:7-20;OK
-> >+-p tcp -j DNAT --to-destination 1.1.1.1:ftp-data-ssh/echo;-p tcp -j DNAT --to-destination 1.1.1.1:20-22/7;OK
-> >+-p tcp -j DNAT --to-destination 1.1.1.1:echo-ftp-data/ssh;-p tcp -j DNAT --to-destination 1.1.1.1:7-20/22;OK
-> > -j DNAT;;FAIL
+> Debian version: 1.0.2-1. The inode numbers seem to be caused by my SELinux
+> policy. Disabling it shows the paths:
 > 
-> This looks dangerous. It is why I originally never allowed service names in
-> port ranges that use dash as the range character. a-b-c could mean a..b-c
-> today, and could mean a-b..c tomorrow, either because someone managed to
-> inject a-b into the service list.
+>         map dict_cgroup_level_2_sys {
+>                 type cgroupsv2 : verdict
+>                 elements = { 5132 : jump systemd_timesyncd }
+>         }
+> 
+>         map dict_cgroup_level_1 {
+>                 type cgroupsv2 : verdict
+>                 elements = { "system.slice" : jump system_slice,
+>                              "user.slice" : jump user_slice }
+>         }
+> 
+> Above "system.slice/systemd-timesyncd.service" is a number because the
+> cgroup ID became stale when I restarted the service. I think the policy
+> doesn't work then anymore.
 
-Yes, it is a rather sloppy solution. I could at least do a shortest
-substring first search in addition to check if the input is ambiguous.
-
-Guess if someone is able to manipulate /etc/services, any service names
-are problematic, not just in ranges.
-
-Another potential problem I didn't have in mind though is that 'a-b'
-could mean [a; b] or [a-b] assuming that all three exist. But I haven't
-found a valid example in my /etc/services, yet. :)
-
-> The "solution" would be to use : as the range character, but that would require
-> a new --dport option for reasons of command-line compatibility.
-
-Well, we could allow both (a-b with numeric a and b only) and use it in
-output only if non-numeric was requested.
-
-Maybe also just limit service names in DNAT to non-ranges. I wanted to
-write "like with REDIRECT before the merge", but it looks like it
-accepted them as upper boundary, e.g. '10-ftp-data'.
-
-Hmm. I also noticed my series drops support for port 0 from REDIRECT
-which commit 84d758b3bc312 ("extensions: REDIRECT: fix --to-ports
-parser") explicitly allowed.
-
-Thanks, Phil
+Yes, you have to refresh your policy on cgroupsv2 updates.
