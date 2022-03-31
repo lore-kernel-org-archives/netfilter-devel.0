@@ -2,90 +2,212 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ECC6EC433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Mar 2022 15:21:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF614C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Mar 2022 18:45:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238182AbiCaPXp (ORCPT
+        id S236760AbiCaSrg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 31 Mar 2022 11:23:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39960 "EHLO
+        Thu, 31 Mar 2022 14:47:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34258 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238170AbiCaPXo (ORCPT
+        with ESMTP id S236815AbiCaSrf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 31 Mar 2022 11:23:44 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2D6F220FD9;
-        Thu, 31 Mar 2022 08:21:55 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1nZwcP-000211-AT; Thu, 31 Mar 2022 17:21:49 +0200
-Date:   Thu, 31 Mar 2022 17:21:49 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Vincent Pelletier <plr.vincent@gmail.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org,
-        Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH net 2/5] netfilter: conntrack: sanitize table size
- default settings
-Message-ID: <20220331152149.GA5024@breakpoint.cc>
-References: <20210903163020.13741-1-pablo@netfilter.org>
- <20210903163020.13741-3-pablo@netfilter.org>
- <20220331145909.085a0f30@gmail.com>
+        Thu, 31 Mar 2022 14:47:35 -0400
+Received: from out0.migadu.com (out0.migadu.com [IPv6:2001:41d0:2:267::])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6AD9A2335F8;
+        Thu, 31 Mar 2022 11:45:47 -0700 (PDT)
+Date:   Thu, 31 Mar 2022 11:45:39 -0700
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+        t=1648752345;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=lec1hd5ookT38BpjO46aUl2BmuDZn/r1njoU+y+QByQ=;
+        b=wpJ/2gA3GgxjfYWOybRPV0FGQI5lh0L0UaFtEGqaVtWHPvRvc+NqrFVsZl/2fSspA2yoZM
+        rZagewvC2zuXGJZn/pgpJ+6sS++qhA89ZDzOhJ3tn2ZJ1+gRBs5JfpDp8SkntqMipU12MF
+        JAZOzsQ1YfKZr30dbZjmcvdc2AvhWQM=
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From:   Roman Gushchin <roman.gushchin@linux.dev>
+To:     Vasily Averin <vasily.averin@linux.dev>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>, kernel@openvz.org,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH nft] nft: memcg accounting for dynamically allocated
+ objects
+Message-ID: <YkX200lPSHpw8rt8@carbon.dhcp.thefacebook.com>
+References: <bf4b8fe3-6dd6-4f3a-12f4-1b5bf2e45783@linux.dev>
+ <e730480d-9396-6486-ab98-67ecb683e819@linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220331145909.085a0f30@gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <e730480d-9396-6486-ab98-67ecb683e819@linux.dev>
+X-Migadu-Flow: FLOW_OUT
+X-Migadu-Auth-User: linux.dev
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Vincent Pelletier <plr.vincent@gmail.com> wrote:
-> On Fri,  3 Sep 2021 18:30:17 +0200, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > From: Florian Westphal <fw@strlen.de>
-> > 
-> > conntrack has two distinct table size settings:
-> > nf_conntrack_max and nf_conntrack_buckets.
-> > 
-> > The former limits how many conntrack objects are allowed to exist
-> > in each namespace.
-> > 
-> > The second sets the size of the hashtable.
-> > 
-> > As all entries are inserted twice (once for original direction, once for
-> > reply), there should be at least twice as many buckets in the table than
-> > the maximum number of conntrack objects that can exist at the same time.
-> > 
-> > Change the default multiplier to 1 and increase the chosen bucket sizes.
-> > This results in the same nf_conntrack_max settings as before but reduces
-> > the average bucket list length.
-> [...]
-> >  		nf_conntrack_htable_size
-> >  			= (((nr_pages << PAGE_SHIFT) / 16384)
-> >  			   / sizeof(struct hlist_head));
-> > -		if (nr_pages > (4 * (1024 * 1024 * 1024 / PAGE_SIZE)))
-> > -			nf_conntrack_htable_size = 65536;
-> > +		if (BITS_PER_LONG >= 64 &&
-> > +		    nr_pages > (4 * (1024 * 1024 * 1024 / PAGE_SIZE)))
-> > +			nf_conntrack_htable_size = 262144;
-> >  		else if (nr_pages > (1024 * 1024 * 1024 / PAGE_SIZE))
-> > -			nf_conntrack_htable_size = 16384;
-> [...]
-> > +			nf_conntrack_htable_size = 65536;
+On Thu, Mar 31, 2022 at 11:40:23AM +0300, Vasily Averin wrote:
+> nft_*.c files whose NFT_EXPR_STATEFUL flag is set on need to
+> use __GFP_ACCOUNT flag for objects that are dynamically
+> allocated from the packet path.
 > 
-> With this formula, there seems to be a discontinuity between the
-> proportional and fixed regimes:
-> 64bits: 4GB/16k/8 = 32k, which gets bumped to 256k
-> 32bits: 1GB/16k/4 = 16k, which gets bumped to 64k
+> Such objects are allocated inside .init() or .clone() callbacks
+> of struct nft_expr_ops executed in task context while processing
+> netlink messages.
 > 
-> Is this intentional ?
+> In addition, this patch adds accounting to nft_set_elem_expr_clone()
+> used for the same purposes.
 
-There is no science here.  This tries to pick a sane default setting,
-thats all. Its not possible to pick one that works for everyone and everything.
+The patch looks good to me. The only concern I have is a potential
+performance regression. Are any of these allocations happening on really
+hot paths? From a very brief look it seems like the answer is no,
+but I'm not well familiar with the netfilter code. Would be nice to
+have a confirmation from somebody working on the netfilter.
+We are roughly talking about x2 slower memory allocations, which
+is usually not a problem at all, given that allocations are still
+very cheap.
 
-32bit kernel can't access more than 1GB so I did not want to
-increase that too much.
+Please, feel free to add my
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
 
-These are default settings, users should be free to pick any value they
-like/need.
+Thanks!
+
+> 
+> Signed-off-by: Vasily Averin <vvs@openvz.org>
+> ---
+>  net/netfilter/nf_tables_api.c | 2 +-
+>  net/netfilter/nft_connlimit.c | 4 ++--
+>  net/netfilter/nft_counter.c   | 4 ++--
+>  net/netfilter/nft_last.c      | 4 ++--
+>  net/netfilter/nft_limit.c     | 4 ++--
+>  net/netfilter/nft_quota.c     | 4 ++--
+>  6 files changed, 11 insertions(+), 11 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index 04be94236a34..e01241151ef7 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -5447,7 +5447,7 @@ int nft_set_elem_expr_clone(const struct nft_ctx *ctx, struct nft_set *set,
+>  	int err, i, k;
+>  
+>  	for (i = 0; i < set->num_exprs; i++) {
+> -		expr = kzalloc(set->exprs[i]->ops->size, GFP_KERNEL);
+> +		expr = kzalloc(set->exprs[i]->ops->size, GFP_KERNEL_ACCOUNT);
+>  		if (!expr)
+>  			goto err_expr;
+>  
+> diff --git a/net/netfilter/nft_connlimit.c b/net/netfilter/nft_connlimit.c
+> index 3362417ebfdb..9c2146aac59e 100644
+> --- a/net/netfilter/nft_connlimit.c
+> +++ b/net/netfilter/nft_connlimit.c
+> @@ -77,7 +77,7 @@ static int nft_connlimit_do_init(const struct nft_ctx *ctx,
+>  			invert = true;
+>  	}
+>  
+> -	priv->list = kmalloc(sizeof(*priv->list), GFP_KERNEL);
+> +	priv->list = kmalloc(sizeof(*priv->list), GFP_KERNEL_ACCOUNT);
+>  	if (!priv->list)
+>  		return -ENOMEM;
+>  
+> @@ -214,7 +214,7 @@ static int nft_connlimit_clone(struct nft_expr *dst, const struct nft_expr *src)
+>  	struct nft_connlimit *priv_dst = nft_expr_priv(dst);
+>  	struct nft_connlimit *priv_src = nft_expr_priv(src);
+>  
+> -	priv_dst->list = kmalloc(sizeof(*priv_dst->list), GFP_ATOMIC);
+> +	priv_dst->list = kmalloc(sizeof(*priv_dst->list), GFP_ATOMIC | __GFP_ACCOUNT);
+>  	if (!priv_dst->list)
+>  		return -ENOMEM;
+>  
+> diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
+> index f179e8c3b0ca..040a697d96b3 100644
+> --- a/net/netfilter/nft_counter.c
+> +++ b/net/netfilter/nft_counter.c
+> @@ -62,7 +62,7 @@ static int nft_counter_do_init(const struct nlattr * const tb[],
+>  	struct nft_counter __percpu *cpu_stats;
+>  	struct nft_counter *this_cpu;
+>  
+> -	cpu_stats = alloc_percpu(struct nft_counter);
+> +	cpu_stats = alloc_percpu_gfp(struct nft_counter, GFP_KERNEL_ACCOUNT);
+>  	if (cpu_stats == NULL)
+>  		return -ENOMEM;
+>  
+> @@ -235,7 +235,7 @@ static int nft_counter_clone(struct nft_expr *dst, const struct nft_expr *src)
+>  
+>  	nft_counter_fetch(priv, &total);
+>  
+> -	cpu_stats = alloc_percpu_gfp(struct nft_counter, GFP_ATOMIC);
+> +	cpu_stats = alloc_percpu_gfp(struct nft_counter, GFP_ATOMIC | __GFP_ACCOUNT);
+>  	if (cpu_stats == NULL)
+>  		return -ENOMEM;
+>  
+> diff --git a/net/netfilter/nft_last.c b/net/netfilter/nft_last.c
+> index 4f745a409d34..4cf4f6349855 100644
+> --- a/net/netfilter/nft_last.c
+> +++ b/net/netfilter/nft_last.c
+> @@ -30,7 +30,7 @@ static int nft_last_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+>  	u64 last_jiffies;
+>  	int err;
+>  
+> -	last = kzalloc(sizeof(*last), GFP_KERNEL);
+> +	last = kzalloc(sizeof(*last), GFP_KERNEL_ACCOUNT);
+>  	if (!last)
+>  		return -ENOMEM;
+>  
+> @@ -105,7 +105,7 @@ static int nft_last_clone(struct nft_expr *dst, const struct nft_expr *src)
+>  {
+>  	struct nft_last_priv *priv_dst = nft_expr_priv(dst);
+>  
+> -	priv_dst->last = kzalloc(sizeof(*priv_dst->last), GFP_ATOMIC);
+> +	priv_dst->last = kzalloc(sizeof(*priv_dst->last), GFP_ATOMIC | __GFP_ACCOUNT);
+>  	if (!priv_dst->last)
+>  		return -ENOMEM;
+>  
+> diff --git a/net/netfilter/nft_limit.c b/net/netfilter/nft_limit.c
+> index a726b623963d..d7779d5f3cbb 100644
+> --- a/net/netfilter/nft_limit.c
+> +++ b/net/netfilter/nft_limit.c
+> @@ -90,7 +90,7 @@ static int nft_limit_init(struct nft_limit_priv *priv,
+>  				 priv->rate);
+>  	}
+>  
+> -	priv->limit = kmalloc(sizeof(*priv->limit), GFP_KERNEL);
+> +	priv->limit = kmalloc(sizeof(*priv->limit), GFP_KERNEL_ACCOUNT);
+>  	if (!priv->limit)
+>  		return -ENOMEM;
+>  
+> @@ -144,7 +144,7 @@ static int nft_limit_clone(struct nft_limit_priv *priv_dst,
+>  	priv_dst->burst = priv_src->burst;
+>  	priv_dst->invert = priv_src->invert;
+>  
+> -	priv_dst->limit = kmalloc(sizeof(*priv_dst->limit), GFP_ATOMIC);
+> +	priv_dst->limit = kmalloc(sizeof(*priv_dst->limit), GFP_ATOMIC | __GFP_ACCOUNT);
+>  	if (!priv_dst->limit)
+>  		return -ENOMEM;
+>  
+> diff --git a/net/netfilter/nft_quota.c b/net/netfilter/nft_quota.c
+> index f394a0b562f6..2def4d92a170 100644
+> --- a/net/netfilter/nft_quota.c
+> +++ b/net/netfilter/nft_quota.c
+> @@ -90,7 +90,7 @@ static int nft_quota_do_init(const struct nlattr * const tb[],
+>  			return -EOPNOTSUPP;
+>  	}
+>  
+> -	priv->consumed = kmalloc(sizeof(*priv->consumed), GFP_KERNEL);
+> +	priv->consumed = kmalloc(sizeof(*priv->consumed), GFP_KERNEL_ACCOUNT);
+>  	if (!priv->consumed)
+>  		return -ENOMEM;
+>  
+> @@ -236,7 +236,7 @@ static int nft_quota_clone(struct nft_expr *dst, const struct nft_expr *src)
+>  {
+>  	struct nft_quota *priv_dst = nft_expr_priv(dst);
+>  
+> -	priv_dst->consumed = kmalloc(sizeof(*priv_dst->consumed), GFP_ATOMIC);
+> +	priv_dst->consumed = kmalloc(sizeof(*priv_dst->consumed), GFP_ATOMIC | __GFP_ACCOUNT);
+>  	if (!priv_dst->consumed)
+>  		return -ENOMEM;
+>  
+> -- 
+> 2.31.1
+> 
