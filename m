@@ -2,117 +2,90 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CCDA1C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Mar 2022 15:21:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ECC6EC433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Mar 2022 15:21:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238175AbiCaPXX (ORCPT
+        id S238182AbiCaPXp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 31 Mar 2022 11:23:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38500 "EHLO
+        Thu, 31 Mar 2022 11:23:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39960 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238170AbiCaPXX (ORCPT
+        with ESMTP id S238170AbiCaPXo (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 31 Mar 2022 11:23:23 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 02A4E217C4F
-        for <netfilter-devel@vger.kernel.org>; Thu, 31 Mar 2022 08:21:36 -0700 (PDT)
-Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 8599963052;
-        Thu, 31 Mar 2022 17:18:15 +0200 (CEST)
-Date:   Thu, 31 Mar 2022 17:21:32 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     fw@strlen.de
-Subject: Re: [PATCH nf-next,v2] netfilter: nft_fib: reverse path filter for
- policy-based routing on iif
-Message-ID: <YkXG/NNU8vz0c63t@salvia>
-References: <20220331151447.12074-1-pablo@netfilter.org>
+        Thu, 31 Mar 2022 11:23:44 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2D6F220FD9;
+        Thu, 31 Mar 2022 08:21:55 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1nZwcP-000211-AT; Thu, 31 Mar 2022 17:21:49 +0200
+Date:   Thu, 31 Mar 2022 17:21:49 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Vincent Pelletier <plr.vincent@gmail.com>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org,
+        Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH net 2/5] netfilter: conntrack: sanitize table size
+ default settings
+Message-ID: <20220331152149.GA5024@breakpoint.cc>
+References: <20210903163020.13741-1-pablo@netfilter.org>
+ <20210903163020.13741-3-pablo@netfilter.org>
+ <20220331145909.085a0f30@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220331151447.12074-1-pablo@netfilter.org>
+In-Reply-To: <20220331145909.085a0f30@gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Mar 31, 2022 at 05:14:47PM +0200, Pablo Neira Ayuso wrote:
-> If policy-based routing using the iif selector is used, then the fib
-> expression fails to look up for the reverse path from the prerouting
-> hook because the input interface cannot be inferred. In order to support
-> this scenario, extend the fib expression to allow to use after the route
-> lookup, from the input and forward hooks.
+Vincent Pelletier <plr.vincent@gmail.com> wrote:
+> On Fri,  3 Sep 2021 18:30:17 +0200, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > From: Florian Westphal <fw@strlen.de>
+> > 
+> > conntrack has two distinct table size settings:
+> > nf_conntrack_max and nf_conntrack_buckets.
+> > 
+> > The former limits how many conntrack objects are allowed to exist
+> > in each namespace.
+> > 
+> > The second sets the size of the hashtable.
+> > 
+> > As all entries are inserted twice (once for original direction, once for
+> > reply), there should be at least twice as many buckets in the table than
+> > the maximum number of conntrack objects that can exist at the same time.
+> > 
+> > Change the default multiplier to 1 and increase the chosen bucket sizes.
+> > This results in the same nf_conntrack_max settings as before but reduces
+> > the average bucket list length.
+> [...]
+> >  		nf_conntrack_htable_size
+> >  			= (((nr_pages << PAGE_SHIFT) / 16384)
+> >  			   / sizeof(struct hlist_head));
+> > -		if (nr_pages > (4 * (1024 * 1024 * 1024 / PAGE_SIZE)))
+> > -			nf_conntrack_htable_size = 65536;
+> > +		if (BITS_PER_LONG >= 64 &&
+> > +		    nr_pages > (4 * (1024 * 1024 * 1024 / PAGE_SIZE)))
+> > +			nf_conntrack_htable_size = 262144;
+> >  		else if (nr_pages > (1024 * 1024 * 1024 / PAGE_SIZE))
+> > -			nf_conntrack_htable_size = 16384;
+> [...]
+> > +			nf_conntrack_htable_size = 65536;
 > 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> v2: allow to use it from the input hook too.
-
-This is for usability reasons.
-
-For this use-case, you have to move the rule from prerouting to
-forward.
-
-So if you still want to perform the reverse path check for the input
-case, you have to add a rule there.
-
-Simplify allowing input if sufficient, in this case flowi4_iif with
-loopback is fine.
-
-I'll send a v3 amending the description to detail why input is needed
-(for different reasons).
-
->  net/ipv4/netfilter/nft_fib_ipv4.c | 4 ++++
->  net/ipv6/netfilter/nft_fib_ipv6.c | 4 ++++
->  net/netfilter/nft_fib.c           | 4 ++++
->  3 files changed, 12 insertions(+)
+> With this formula, there seems to be a discontinuity between the
+> proportional and fixed regimes:
+> 64bits: 4GB/16k/8 = 32k, which gets bumped to 256k
+> 32bits: 1GB/16k/4 = 16k, which gets bumped to 64k
 > 
-> diff --git a/net/ipv4/netfilter/nft_fib_ipv4.c b/net/ipv4/netfilter/nft_fib_ipv4.c
-> index 4151eb1262dd..b75cac69bd7e 100644
-> --- a/net/ipv4/netfilter/nft_fib_ipv4.c
-> +++ b/net/ipv4/netfilter/nft_fib_ipv4.c
-> @@ -112,6 +112,10 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
->  		fl4.daddr = iph->daddr;
->  		fl4.saddr = get_saddr(iph->saddr);
->  	} else {
-> +		if (nft_hook(pkt) == NF_INET_FORWARD &&
+> Is this intentional ?
 
-So there is no need to add NF_INET_LOCAL_IN here.
+There is no science here.  This tries to pick a sane default setting,
+thats all. Its not possible to pick one that works for everyone and everything.
 
-> +		    priv->flags & NFTA_FIB_F_IIF)
-> +			fl4.flowi4_iif = nft_out(pkt)->ifindex;
-> +
->  		fl4.daddr = iph->saddr;
->  		fl4.saddr = get_saddr(iph->daddr);
->  	}
-> diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
-> index b3f163b40c2b..8970d0b4faeb 100644
-> --- a/net/ipv6/netfilter/nft_fib_ipv6.c
-> +++ b/net/ipv6/netfilter/nft_fib_ipv6.c
-> @@ -30,6 +30,10 @@ static int nft_fib6_flowi_init(struct flowi6 *fl6, const struct nft_fib *priv,
->  		fl6->daddr = iph->daddr;
->  		fl6->saddr = iph->saddr;
->  	} else {
-> +		if (nft_hook(pkt) == NF_INET_FORWARD &&
-> +		    priv->flags & NFTA_FIB_F_IIF)
-> +			fl6->flowi6_iif = nft_out(pkt)->ifindex;
-> +
->  		fl6->daddr = iph->saddr;
->  		fl6->saddr = iph->daddr;
->  	}
-> diff --git a/net/netfilter/nft_fib.c b/net/netfilter/nft_fib.c
-> index f198f2d9ef90..1f12d7ade606 100644
-> --- a/net/netfilter/nft_fib.c
-> +++ b/net/netfilter/nft_fib.c
-> @@ -35,6 +35,10 @@ int nft_fib_validate(const struct nft_ctx *ctx, const struct nft_expr *expr,
->  	case NFT_FIB_RESULT_OIF:
->  	case NFT_FIB_RESULT_OIFNAME:
->  		hooks = (1 << NF_INET_PRE_ROUTING);
-> +		if (priv->flags & NFTA_FIB_F_IIF) {
-> +			hooks |= (1 << NF_INET_LOCAL_IN) |
-> +				 (1 << NF_INET_FORWARD);
-> +		}
->  		break;
->  	case NFT_FIB_RESULT_ADDRTYPE:
->  		if (priv->flags & NFTA_FIB_F_IIF)
-> -- 
-> 2.30.2
-> 
+32bit kernel can't access more than 1GB so I did not want to
+increase that too much.
+
+These are default settings, users should be free to pick any value they
+like/need.
