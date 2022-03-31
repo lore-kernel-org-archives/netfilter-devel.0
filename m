@@ -2,92 +2,108 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 273AEC433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 30 Mar 2022 22:27:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 305A7C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Mar 2022 00:19:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346666AbiC3W3F (ORCPT
+        id S1350985AbiCaAVk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 30 Mar 2022 18:29:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60028 "EHLO
+        Wed, 30 Mar 2022 20:21:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39322 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236716AbiC3W3E (ORCPT
+        with ESMTP id S229567AbiCaAVk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 30 Mar 2022 18:29:04 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D68A9574BF
-        for <netfilter-devel@vger.kernel.org>; Wed, 30 Mar 2022 15:27:17 -0700 (PDT)
-Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 08C1D6304A;
-        Thu, 31 Mar 2022 00:24:00 +0200 (CEST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     fw@strlen.de
-Subject: [PATCH nf-next] netfilter: nft_fib: reverse path filter for policy-based routing on iif
-Date:   Thu, 31 Mar 2022 00:27:13 +0200
-Message-Id: <20220330222713.867-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Wed, 30 Mar 2022 20:21:40 -0400
+Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 75E061FCD1
+        for <netfilter-devel@vger.kernel.org>; Wed, 30 Mar 2022 17:19:53 -0700 (PDT)
+Received: by a3.inai.de (Postfix, from userid 25121)
+        id A2EE75896D01B; Thu, 31 Mar 2022 02:19:51 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by a3.inai.de (Postfix) with ESMTP id A09AB60D3344D;
+        Thu, 31 Mar 2022 02:19:51 +0200 (CEST)
+Date:   Thu, 31 Mar 2022 02:19:51 +0200 (CEST)
+From:   Jan Engelhardt <jengelh@inai.de>
+To:     Phil Sutter <phil@nwl.cc>
+cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH 9/9] extensions: DNAT: Support service names in
+ all spots
+In-Reply-To: <YkTEM8r6tv+fkOOK@orbyte.nwl.cc>
+Message-ID: <935op3q3-s38p-674r-1n2n-8spr98o7s37@vanv.qr>
+References: <20220330155851.13249-1-phil@nwl.cc> <20220330155851.13249-10-phil@nwl.cc> <89qp85o0-704s-5280-sqp6-s71so14n7487@vanv.qr> <YkTEM8r6tv+fkOOK@orbyte.nwl.cc>
+User-Agent: Alpine 2.25 (LSU 592 2021-09-18)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If policy-based routing using the iif selector is used, then the fib
-expression fails to look up for the reverse path from the prerouting
-hook because the input interface cannot be inferred. In order to support
-this scenario, extend the fib expression to allow to use after the route
-lookup, from the forward chain.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/ipv4/netfilter/nft_fib_ipv4.c | 4 ++++
- net/ipv6/netfilter/nft_fib_ipv6.c | 4 ++++
- net/netfilter/nft_fib.c           | 2 ++
- 3 files changed, 10 insertions(+)
+On Wednesday 2022-03-30 22:57, Phil Sutter wrote:
+>> >+-p tcp -j DNAT --to-destination 1.1.1.1:echo-ftp-data/ssh;-p tcp -j DNAT --to-destination 1.1.1.1:7-20/22;OK
+>> 
+>> This looks dangerous. It is why I originally never allowed service names in
+>> port ranges that use dash as the range character.
+>
+>Guess if someone is able to manipulate /etc/services, any service names
+>are problematic, not just in ranges.
 
-diff --git a/net/ipv4/netfilter/nft_fib_ipv4.c b/net/ipv4/netfilter/nft_fib_ipv4.c
-index 4151eb1262dd..b75cac69bd7e 100644
---- a/net/ipv4/netfilter/nft_fib_ipv4.c
-+++ b/net/ipv4/netfilter/nft_fib_ipv4.c
-@@ -112,6 +112,10 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
- 		fl4.daddr = iph->daddr;
- 		fl4.saddr = get_saddr(iph->saddr);
- 	} else {
-+		if (nft_hook(pkt) == NF_INET_FORWARD &&
-+		    priv->flags & NFTA_FIB_F_IIF)
-+			fl4.flowi4_iif = nft_out(pkt)->ifindex;
-+
- 		fl4.daddr = iph->saddr;
- 		fl4.saddr = get_saddr(iph->daddr);
- 	}
-diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
-index b3f163b40c2b..8970d0b4faeb 100644
---- a/net/ipv6/netfilter/nft_fib_ipv6.c
-+++ b/net/ipv6/netfilter/nft_fib_ipv6.c
-@@ -30,6 +30,10 @@ static int nft_fib6_flowi_init(struct flowi6 *fl6, const struct nft_fib *priv,
- 		fl6->daddr = iph->daddr;
- 		fl6->saddr = iph->saddr;
- 	} else {
-+		if (nft_hook(pkt) == NF_INET_FORWARD &&
-+		    priv->flags & NFTA_FIB_F_IIF)
-+			fl6->flowi6_iif = nft_out(pkt)->ifindex;
-+
- 		fl6->daddr = iph->saddr;
- 		fl6->saddr = iph->daddr;
- 	}
-diff --git a/net/netfilter/nft_fib.c b/net/netfilter/nft_fib.c
-index f198f2d9ef90..7689051654bf 100644
---- a/net/netfilter/nft_fib.c
-+++ b/net/netfilter/nft_fib.c
-@@ -35,6 +35,8 @@ int nft_fib_validate(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	case NFT_FIB_RESULT_OIF:
- 	case NFT_FIB_RESULT_OIFNAME:
- 		hooks = (1 << NF_INET_PRE_ROUTING);
-+		if (priv->flags & NFTA_FIB_F_IIF)
-+			hooks |= (1 << NF_INET_FORWARD);
- 		break;
- 	case NFT_FIB_RESULT_ADDRTYPE:
- 		if (priv->flags & NFTA_FIB_F_IIF)
--- 
-2.30.2
+Well, pretty much anyone has a shot at manipulating this file. File a
+port registration with IANA, and when your distro updates the file,
+eventually there is a chance of messing up firewall configs,
+worldwide.
 
+Other than that, thanks to nsswitch, the service list can also be in
+LDAP or so, and then all that's needed is a disgruntled LDAP admin
+who dislikes the firewall admin.
+
+>Another potential problem I didn't have in mind though is that 'a-b'
+>could mean [a; b] or [a-b] assuming that all three exist. But I haven't
+>found a valid example in my /etc/services, yet. :)
+
+I found 25 at once!
+
+914c :: 914c-g :: g-talk
+ads :: ads-s :: s-openmail
+bctp :: bctp-server :: server-find
+cis :: cis-secure :: secure-mqtt
+connect :: connect-server :: server-find
+docker :: docker-s :: s-openmail
+documentum :: documentum-s :: s-openmail
+domain :: domain-s :: s-openmail
+dtp :: dtp-net :: net-device
+genie :: genie-lm :: lm-mon
+linktest :: linktest-s :: s-openmail
+mailbox :: mailbox-lm :: lm-mon
+mbap :: mbap-s :: s-openmail
+ns :: ns-server :: server-find
+plato :: plato-lm :: lm-mon
+rmonitor :: rmonitor-secure :: secure-mqtt
+sentinel :: sentinel-lm :: lm-mon
+sitewatch :: sitewatch-s :: s-openmail
+spss :: spss-lm :: lm-mon
+sql :: sql-net :: net-device
+tacacs :: tacacs-ds :: ds-slp
+tl1 :: tl1-lv :: lv-auth
+trim :: trim-ice :: ice-router
+wnn6 :: wnn6-ds :: ds-slp
+wsdapi :: wsdapi-s :: s-openmail
+
+To be read as: "wsdapi-s-openmail" is ambiguous, because
+it allows for two interpretations (and all four port names are in
+/etc/services):
+
+	[wsdapi]-[s-openmail]
+	[wsdapi-s]-[openmail]
+
+
+>> The "solution" would be to use : as the range character, but that would require
+>> a new --dport option for reasons of command-line compatibility.
+>
+>Well, we could allow both (a-b with numeric a and b only) and use it in
+>output only if non-numeric was requested.
+
+Given I'm seeing "914c" in the IANA list (leading digits always stand
+out from the crowd, e.g. you don't normally see them in UNIX
+usernames either), I won't hold my breath that no one would try to
+register "914-915".
