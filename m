@@ -2,138 +2,226 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73CCEC433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Mar 2022 14:59:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B092FC433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Mar 2022 15:10:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233106AbiCaPBB (ORCPT
+        id S235444AbiCaPMO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 31 Mar 2022 11:01:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57742 "EHLO
+        Thu, 31 Mar 2022 11:12:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32944 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234358AbiCaPBA (ORCPT
+        with ESMTP id S234757AbiCaPMN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 31 Mar 2022 11:01:00 -0400
-Received: from mail-pj1-x102b.google.com (mail-pj1-x102b.google.com [IPv6:2607:f8b0:4864:20::102b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 447A6DCA9E;
-        Thu, 31 Mar 2022 07:59:13 -0700 (PDT)
-Received: by mail-pj1-x102b.google.com with SMTP id mp11-20020a17090b190b00b001c79aa8fac4so3306932pjb.0;
-        Thu, 31 Mar 2022 07:59:13 -0700 (PDT)
+        Thu, 31 Mar 2022 11:12:13 -0400
+Received: from mail-lf1-x12c.google.com (mail-lf1-x12c.google.com [IPv6:2a00:1450:4864:20::12c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E85912738
+        for <netfilter-devel@vger.kernel.org>; Thu, 31 Mar 2022 08:10:23 -0700 (PDT)
+Received: by mail-lf1-x12c.google.com with SMTP id h7so42079160lfl.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 31 Mar 2022 08:10:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=date:from:to:cc:subject:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=bD8rMGk/tZWxT71BF804kfMU81gRaeK1q4kG+IQas9w=;
-        b=XgLNnLcqnqgbtibLMmxAs2TBoL9T87JQhU9eBVwGCSBiTNFiR1f+bXSMdcTp03JpVf
-         sDc8BUBUlV6L/KNvZP71IY4VwMMyIB/UbZaX2YmNxzmgvz/0s/toMGNqiZ1lXDp8q8CI
-         n9HmNIx6CXG19lBD28SEyoNNYtvocxuUQnlSXVkywIdCVP0IInXrY/LNFxdcns03+AwH
-         3LkcO9XXiWP05EJbebrWVAHhWRmbPDFWbLPVNXds+ffXdSyYdbxFLCmyzWJEtIQXeR9N
-         wPu+H3IIVOMcKQNTJ+MzqP6TPWLU9nPiAbjBUZdOtzVJowB//YAjWj+fMCGgEpzo1MFd
-         lC0g==
+        h=message-id:date:mime-version:user-agent:subject:content-language:to
+         :cc:references:from:in-reply-to:content-transfer-encoding;
+        bh=NbAEEjrOvTUQd+DT/jMZiu7rbo0ewCkB/6rW8HrIrmM=;
+        b=jZJSQ278oFU4K5PdgCTqxPTfVeRpFvHTFRqfRZAeeXuS84I4M084y3es6KMD48j2yK
+         NjxGzmrI9go/FIPel2XO7nQylGQrhP0/dsDcmwCONiVS+e8ACIMp7S1UgfTi9zE0Nk0X
+         UJzcPs1vRYx167F0G+d/8a9/MLrF1HT+LjVKr5cgiAW4N8hcWEHwqJwdXYe9kkDu3pdy
+         J+6mxtgzwFqnskSNcnPJe6HufO2U/2fJYuXH6XJKPH3X8QwtWU6g1/rOVUlhBPk4bM1U
+         ShEjLDRGLhjb892KPAmfSfTCbSu3qm5RJyqdk/bdQLLza1jMm7I6YroaIevXvFzlCBjl
+         UxWQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=bD8rMGk/tZWxT71BF804kfMU81gRaeK1q4kG+IQas9w=;
-        b=8GWFbKFcJvsHKxubYXzhlAU7II5ajwNmrvnsowm6mLBx1r2azezbsN4JB1z05gTgXG
-         3eGOienc1Q3/isPQG65Zucf9DIEwWRm2tmIO15kZ+6An/M87U/Pw4rnujHc35o7CHIWO
-         6d86MS22vhFhRDKGwJ0H5C4gAspFgUbLtsfLv4Z//GWKjg6WFhhAW5kEFcaSmimhINBw
-         p0Nd8vfqcFycEkakTZO+iNLrO1jepkkWErPEBLbY8YwSiEe0k3XQITwvhtGRzM7O1oxX
-         K+Km1TijBSu/o+GO0yi0AMInxQYIagtvKCxF33fOGIm1cv0EmHPVpWE8X4ZESM+d5Bhb
-         4drg==
-X-Gm-Message-State: AOAM531kgK2g+LMvbDrQS92db1i+w/6ZbLAuxQbmR2UOsjoarEebnXCW
-        buybYm+ZscZAVbanuNdBn2w=
-X-Google-Smtp-Source: ABdhPJwzKetAlW05Y8IjshZGFfJZJU3IDJvLbDV2zSFkLYo3ZNm3VeGHM7hZaz+yZj1haqAX3hi5AA==
-X-Received: by 2002:a17:90b:3e8c:b0:1c7:462c:af6b with SMTP id rj12-20020a17090b3e8c00b001c7462caf6bmr6596432pjb.150.1648738752645;
-        Thu, 31 Mar 2022 07:59:12 -0700 (PDT)
-Received: from localhost.lan (p9254142-ipngn10701marunouchi.tokyo.ocn.ne.jp. [180.57.16.142])
-        by smtp.gmail.com with ESMTPSA id a17-20020a62e211000000b004faa5233213sm26458352pfi.101.2022.03.31.07.59.11
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 31 Mar 2022 07:59:12 -0700 (PDT)
-Received: from localhost (localhost [IPv6:::1])
-        by localhost.lan (Postfix) with ESMTPSA id 1A017900EF4;
-        Thu, 31 Mar 2022 14:59:10 +0000 (GMT)
-Date:   Thu, 31 Mar 2022 14:59:09 +0000
-From:   Vincent Pelletier <plr.vincent@gmail.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org,
-        Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH net 2/5] netfilter: conntrack: sanitize table size
- default settings
-Message-ID: <20220331145909.085a0f30@gmail.com>
-In-Reply-To: <20210903163020.13741-3-pablo@netfilter.org>
-References: <20210903163020.13741-1-pablo@netfilter.org>
-        <20210903163020.13741-3-pablo@netfilter.org>
-X-Mailer: Claws Mail 4.0.0 (GTK+ 3.24.33; x86_64-pc-linux-gnu)
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
+         :content-language:to:cc:references:from:in-reply-to
+         :content-transfer-encoding;
+        bh=NbAEEjrOvTUQd+DT/jMZiu7rbo0ewCkB/6rW8HrIrmM=;
+        b=C7QDKa3CCIW7G1pLWUXZU6HOJPM6RYSU0Dp9nt/OaAr7VKEsWocJnNJQYUNFbeRBzJ
+         jqkC09QqW0DU5gcDseilqVFspyBl185yQ1Zz20aAEdDAtkc5moOUBvsYHCUfavLf9Hgy
+         htWr8KO8Page6Sh/1pXbKWgWfn7uhGwmDh8KwbHlFgUyj+zq51DYikfoyhdp9ooqJmdQ
+         G813B7Pcs/5QPyMIfK/jh6pouZF3DGX9OT2MqEvLf8bu8L6aACG3cGHT/CDwMBHh+1uk
+         XYJyIZhWVsOYaVcZ+JjDgPG/DYWnG47G6WbGI97Kjp2dsxP0QW3ZfrrRrrwL5qSxbTO4
+         5ryQ==
+X-Gm-Message-State: AOAM5302l04A88YTmtkw4FverzUdiyqF7YcowpGM2VmGojwSzcc9a3Aa
+        SEOHI0ECVlc314WmnD9x0GrDk4Gqkv0=
+X-Google-Smtp-Source: ABdhPJyOB2TobU6UB9Uox1p95dxWmz1zBvnH/5SIxI/lbcVgbCyy1ctXNccoMD1QGtDeLnrx15sU9A==
+X-Received: by 2002:a05:6512:281f:b0:44a:5aa0:5b88 with SMTP id cf31-20020a056512281f00b0044a5aa05b88mr11163756lfb.444.1648739421385;
+        Thu, 31 Mar 2022 08:10:21 -0700 (PDT)
+Received: from [192.168.1.38] (91-159-150-194.elisa-laajakaista.fi. [91.159.150.194])
+        by smtp.gmail.com with ESMTPSA id m24-20020a194358000000b0044a3851f193sm2696918lfj.83.2022.03.31.08.10.20
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 31 Mar 2022 08:10:20 -0700 (PDT)
+Message-ID: <dbbe9ff4-4ec8-b979-9a35-7f79b3fbb9cb@gmail.com>
+Date:   Thu, 31 Mar 2022 18:10:19 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.7.0
+Subject: Re: Support for loading firewall rules with cgroup(v2) expressions
+ early
+Content-Language: en-US
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+References: <fabde324-383a-622c-7e69-32c9b2d06191@gmail.com>
+ <YkDXwaPwYf8NgKT+@salvia> <418f6461-4504-4707-5ec2-61227af2ad27@gmail.com>
+ <YkHOuprHwwuXjWrm@salvia> <5b850d67-92c1-9ece-99d2-390e8a5731b3@gmail.com>
+ <YkOF0LyDSqKX6ERe@salvia> <35c20ae1-fc79-9488-8a42-a405424d1e53@gmail.com>
+ <YkTP40PPDCJSObeH@salvia>
+From:   Topi Miettinen <toiwoton@gmail.com>
+In-Reply-To: <YkTP40PPDCJSObeH@salvia>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello,
-
-On Fri,  3 Sep 2021 18:30:17 +0200, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> From: Florian Westphal <fw@strlen.de>
+On 31.3.2022 0.47, Pablo Neira Ayuso wrote:
+> On Wed, Mar 30, 2022 at 07:37:00PM +0300, Topi Miettinen wrote:
+>> On 30.3.2022 1.25, Pablo Neira Ayuso wrote:
+>>> On Tue, Mar 29, 2022 at 09:20:25PM +0300, Topi Miettinen wrote:
+>>>> On 28.3.2022 18.05, Pablo Neira Ayuso wrote:
+>>>>> On Mon, Mar 28, 2022 at 05:08:32PM +0300, Topi Miettinen wrote:
+>>>>>> On 28.3.2022 0.31, Pablo Neira Ayuso wrote:
+>>>>>>> On Sat, Mar 26, 2022 at 12:09:26PM +0200, Topi Miettinen wrote:
+>>>>> [...]
+>>>>>> But I think that with this approach, depending on system load, there could
+>>>>>> be a vulnerable time window where the rules aren't loaded yet but the
+>>>>>> process which is supposed to be protected by the rules has already started
+>>>>>> running. This isn't desirable for firewalls, so I'd like to have a way for
+>>>>>> loading the firewall rules as early as possible.
+>>>>>
+>>>>> You could define a static ruleset which creates the table, basechain
+>>>>> and the cgroupv2 verdict map. Then, systemd updates this map with new
+>>>>> entries to match on cgroupsv2 and apply the corresponding policy for
+>>>>> this process, and delete it when not needed anymore. You have to
+>>>>> define one non-basechain for each cgroupv2 policy.
+>>>>
+>>>> Actually this seems to work:
+>>>>
+>>>> table inet filter {
+>>>>           set cg {
+>>>>                   typeof socket cgroupv2 level 0
+>>>>           }
+>>>>
+>>>>           chain y {
+>>>>                   socket cgroupv2 level 2 @cg accept
+>>>> 		counter drop
+>>>>           }
+>>>> }
+>>>>
+>>>> Simulating systemd adding the cgroup of a service to the set:
+>>>> # nft add element inet filter cg "system.slice/systemd-resolved.service"
+>>>>
+>>>> Cgroup ID (inode number of the cgroup) has been successfully added:
+>>>> # nft list set inet filter cg
+>>>>           set cg {
+>>>>                   typeof socket cgroupv2 level 0
+>>>>                   elements = { 6032 }
+>>>>           }
+>>>> # ls -id /sys/fs/cgroup/system.slice/systemd-resolved.service
+>>>> 6032 /sys/fs/cgroup/system.slice/systemd-resolved.service/
+>>>
+>>> You could define a ruleset that describes the policy following the
+>>> cgroupsv2 hierarchy. Something like this:
+>>>
+>>>    table inet filter {
+>>>           map dict_cgroup_level_1 {
+>>>                   type cgroupsv2 : verdict;
+>>>                   elements = { "system.slice" : jump system_slice }
+>>>           }
+>>>
+>>>           map dict_cgroup_level_2 {
+>>>                   type cgroupsv2 : verdict;
+>>>                   elements = { "system.slice/systemd-timesyncd.service" : jump systemd_timesyncd }
+>>>           }
+>>>
+>>>           chain systemd_timesyncd {
+>>>                   # systemd-timesyncd policy
+>>>           }
+>>>
+>>>           chain system_slice {
+>>>                   socket cgroupv2 level 2 vmap @dict_cgroup_level_2
+>>>                   # policy for system.slice process
+>>>           }
+>>>
+>>>           chain input {
+>>>                   type filter hook input priority filter; policy drop;
+>>>                   socket cgroupv2 level 1 vmap @dict_cgroup_level_1
+>>>           }
+>>>    }
+>>>
+>>> The dictionaries per level allows you to mimic the cgroupsv2 tree
+>>> hierarchy
+>>>
+>>> This allows you to attach a default policy for processes that belong
+>>> to the "system_slice" (at level 1). This might also be useful in case
+>>> that there is a process in the group "system_slice" which does not yet
+>>> have an explicit level 2 policy, so level 1 policy applies in such
+>>> case.
+>>>
+>>> You might want to apply the level 1 policy before the level 2 policy
+>>> (ie. aggregate policies per level as you move searching for an exact
+>>> cgroup match), or instead you might prefer to search for an exact
+>>> match at level 2, otherwise backtrack to closest matching cgroupsv2
+>>> for this process.
+>>
+>> Nice ideas, but the rules can't be loaded before the cgroups are realized at
+>> early boot:
+>>
+>> Mar 30 19:14:45 systemd[1]: Starting nftables...
+>> Mar 30 19:14:46 nft[1018]: /etc/nftables.conf:305:5-44: Error: cgroupv2 path
+>> fails: Permission denied
+>> Mar 30 19:14:46 nft[1018]: "system.slice/systemd-timesyncd.service" : jump
+>> systemd_timesyncd
+>> Mar 30 19:14:46 nft[1018]: ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>> Mar 30 19:14:46 systemd[1]: nftables.service: Main process exited,
+>> code=exited, status=1/FAILURE
+>> Mar 30 19:14:46 systemd[1]: nftables.service: Failed with result
+>> 'exit-code'.
+>> Mar 30 19:14:46 systemd[1]: Failed to start nftables.
 > 
-> conntrack has two distinct table size settings:
-> nf_conntrack_max and nf_conntrack_buckets.
+> I guess this unit file performs nft -f on cgroupsv2 that do not exist
+> yet.
+
+Yes, that's the case. Being able to do so with for example 
+"cgroupsv2name" would be nice.
+
+> Could you just load the base policy with empty dictionaries instead,
+> then track and register the cgroups into the ruleset as they are being
+> created/removed?
+
+That's possible and I'll probably make a PR for systemd for such a 
+feature. But I don't think that's the best solution: if the NFT rules 
+are loaded from initrd and systemd is not running (initrd is not built 
+by dracut), rules won't work, even top level "system.slice" and 
+"user.slice". Then network connectivity in initrd could be a problem. 
+Also I don't know if that model would scale to unprivileged user 
+services or containers. Userspace daemon feeding kernel information that 
+it already knows seems a bit inelegant.
+
+-Topi
+
+>>> There is also the jump and goto semantics for chains that can be
+>>> combined in this chain tree.
+>>>
+>>> BTW, what nftables version are you using? My listing does not show
+>>> i-nodes, instead it shows the path.
+>>
+>> Debian version: 1.0.2-1. The inode numbers seem to be caused by my SELinux
+>> policy. Disabling it shows the paths:
+>>
+>>          map dict_cgroup_level_2_sys {
+>>                  type cgroupsv2 : verdict
+>>                  elements = { 5132 : jump systemd_timesyncd }
+>>          }
+>>
+>>          map dict_cgroup_level_1 {
+>>                  type cgroupsv2 : verdict
+>>                  elements = { "system.slice" : jump system_slice,
+>>                               "user.slice" : jump user_slice }
+>>          }
+>>
+>> Above "system.slice/systemd-timesyncd.service" is a number because the
+>> cgroup ID became stale when I restarted the service. I think the policy
+>> doesn't work then anymore.
 > 
-> The former limits how many conntrack objects are allowed to exist
-> in each namespace.
-> 
-> The second sets the size of the hashtable.
-> 
-> As all entries are inserted twice (once for original direction, once for
-> reply), there should be at least twice as many buckets in the table than
-> the maximum number of conntrack objects that can exist at the same time.
-> 
-> Change the default multiplier to 1 and increase the chosen bucket sizes.
-> This results in the same nf_conntrack_max settings as before but reduces
-> the average bucket list length.
-[...]
->  		nf_conntrack_htable_size
->  			= (((nr_pages << PAGE_SHIFT) / 16384)
->  			   / sizeof(struct hlist_head));
-> -		if (nr_pages > (4 * (1024 * 1024 * 1024 / PAGE_SIZE)))
-> -			nf_conntrack_htable_size = 65536;
-> +		if (BITS_PER_LONG >= 64 &&
-> +		    nr_pages > (4 * (1024 * 1024 * 1024 / PAGE_SIZE)))
-> +			nf_conntrack_htable_size = 262144;
->  		else if (nr_pages > (1024 * 1024 * 1024 / PAGE_SIZE))
-> -			nf_conntrack_htable_size = 16384;
-[...]
-> +			nf_conntrack_htable_size = 65536;
+> Yes, you have to refresh your policy on cgroupsv2 updates.
 
-With this formula, there seems to be a discontinuity between the
-proportional and fixed regimes:
-64bits: 4GB/16k/8 = 32k, which gets bumped to 256k
-32bits: 1GB/16k/4 = 16k, which gets bumped to 64k
-
-Is this intentional ?
-
-The background for my interest in this formula comes from OpenWRT:
-low-RAM devices intended to handle a lot of connections, which led
-OpenWRT to use sysctl to increase the maximum number of entries in this
-hash table compared to what this formula produces.
-Unfortunately, the result is that not-so-low-RAM devices running
-OpenWRT get the same limit as low-RAM devices, so I am trying to tweak
-the divisor in the first expression and getting rid of the sysctl call.
-But then I am failing to see how I should adapt the expressions in
-these "if"s blocks.
-
-If they were maximum sizes (say, something like
-nf_conntrack_htable_size = max(nf_conntrack_htable_size, 256k)), I
-would understand, but I find this discontinuity surprising.
-
-Am I missing something ?
-
-For reference, this change is
-  commit d532bcd0b2699d84d71a0c71d37157ac6eb3be25
-in Linus' tree.
-
-Regards,
--- 
-Vincent Pelletier
-GPG fingerprint 983A E8B7 3B91 1598 7A92 3845 CAC9 3691 4257 B0C1
