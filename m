@@ -2,128 +2,261 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B965DC433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Apr 2022 12:03:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D16EC433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Apr 2022 14:37:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344176AbiDAMFi (ORCPT
+        id S245130AbiDAOiz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 1 Apr 2022 08:05:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41996 "EHLO
+        Fri, 1 Apr 2022 10:38:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57962 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345187AbiDAMFg (ORCPT
+        with ESMTP id S1348468AbiDAOe3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 1 Apr 2022 08:05:36 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8ADAB5F68;
-        Fri,  1 Apr 2022 05:03:45 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1naG0E-0007M7-Ag; Fri, 01 Apr 2022 14:03:42 +0200
-Date:   Fri, 1 Apr 2022 14:03:42 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Vasily Averin <vasily.averin@linux.dev>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>, kernel@openvz.org,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Roman Gushchin <roman.gushchin@linux.dev>
-Subject: Re: [PATCH nft] nft: memcg accounting for dynamically allocated
- objects
-Message-ID: <20220401120342.GC9545@breakpoint.cc>
-References: <bf4b8fe3-6dd6-4f3a-12f4-1b5bf2e45783@linux.dev>
- <e730480d-9396-6486-ab98-67ecb683e819@linux.dev>
+        Fri, 1 Apr 2022 10:34:29 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F3675BC7;
+        Fri,  1 Apr 2022 07:32:39 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A7A92B82507;
+        Fri,  1 Apr 2022 14:32:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97D25C340EE;
+        Fri,  1 Apr 2022 14:32:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1648823557;
+        bh=WavI65MpFwEQGdn/j9IXFin7URnvZ2VluOujiSBnhx4=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=YWw3W69L/2KT8xt5rogRPtmXru3E9iYUuuBsn2oVWwYyXGdDcDvx5w+yet+iTcTZF
+         F9ZKtt/V0yEpU0yn8i8N/2BSa1u7PnduaLb6AzP9KBQpSiUQ/Sj+j6BsOQH4+yg7hk
+         uu0DucVGAN4eHRIddaNa920hDLPEG+6wbL0PPYqQVP+WGWvj9NdN3lB5xs8RNTT29L
+         HA54DceESGyVdnBOs9U//Hjj8Id7OOZbFlfnxo110PRsAD846wCD1aeZDdQ75t9YNn
+         Zhb+D8newc/3ibYyFo2rqLLDYVu7auSsCA1bgpAKGxt0/JiPbhShLTT3KHBwl0e+/u
+         Uhp8I0cvuHJpA==
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Florian Westphal <fw@strlen.de>, Karel Rericha <karel@maxtel.cz>,
+        Shmulik Ladkani <shmulik.ladkani@gmail.com>,
+        Eyal Birger <eyal.birger@gmail.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sasha Levin <sashal@kernel.org>, kadlec@netfilter.org,
+        davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.17 143/149] netfilter: conntrack: revisit gc autotuning
+Date:   Fri,  1 Apr 2022 10:25:30 -0400
+Message-Id: <20220401142536.1948161-143-sashal@kernel.org>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20220401142536.1948161-1-sashal@kernel.org>
+References: <20220401142536.1948161-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <e730480d-9396-6486-ab98-67ecb683e819@linux.dev>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Vasily Averin <vasily.averin@linux.dev> wrote:
-> nft_*.c files whose NFT_EXPR_STATEFUL flag is set on need to
-> use __GFP_ACCOUNT flag for objects that are dynamically
-> allocated from the packet path.
-> 
-> Such objects are allocated inside .init() or .clone() callbacks
-> of struct nft_expr_ops executed in task context while processing
-> netlink messages.
+From: Florian Westphal <fw@strlen.de>
 
-They can also be called from packet path.
+[ Upstream commit 2cfadb761d3d0219412fd8150faea60c7e863833 ]
 
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index 04be94236a34..e01241151ef7 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
-> @@ -5447,7 +5447,7 @@ int nft_set_elem_expr_clone(const struct nft_ctx *ctx, struct nft_set *set,
->  	int err, i, k;
->  
->  	for (i = 0; i < set->num_exprs; i++) {
-> -		expr = kzalloc(set->exprs[i]->ops->size, GFP_KERNEL);
-> +		expr = kzalloc(set->exprs[i]->ops->size, GFP_KERNEL_ACCOUNT);
->  		if (!expr)
->  			goto err_expr;
+as of commit 4608fdfc07e1
+("netfilter: conntrack: collect all entries in one cycle")
+conntrack gc was changed to run every 2 minutes.
 
-This is ok.
+On systems where conntrack hash table is set to large value, most evictions
+happen from gc worker rather than the packet path due to hash table
+distribution.
 
-> diff --git a/net/netfilter/nft_connlimit.c b/net/netfilter/nft_connlimit.c
-> index 3362417ebfdb..9c2146aac59e 100644
-> --- a/net/netfilter/nft_connlimit.c
-> +++ b/net/netfilter/nft_connlimit.c
-> @@ -77,7 +77,7 @@ static int nft_connlimit_do_init(const struct nft_ctx *ctx,
->  			invert = true;
->  	}
->  
-> -	priv->list = kmalloc(sizeof(*priv->list), GFP_KERNEL);
-> +	priv->list = kmalloc(sizeof(*priv->list), GFP_KERNEL_ACCOUNT);
->  	if (!priv->list)
->  		return -ENOMEM;
+This causes netlink event overflows when events are collected.
 
-Same.
+This change collects average expiry of scanned entries and
+reschedules to the average remaining value, within 1 to 60 second interval.
 
-> @@ -214,7 +214,7 @@ static int nft_connlimit_clone(struct nft_expr *dst, const struct nft_expr *src)
->  	struct nft_connlimit *priv_dst = nft_expr_priv(dst);
->  	struct nft_connlimit *priv_src = nft_expr_priv(src);
->  
-> -	priv_dst->list = kmalloc(sizeof(*priv_dst->list), GFP_ATOMIC);
-> +	priv_dst->list = kmalloc(sizeof(*priv_dst->list), GFP_ATOMIC | __GFP_ACCOUNT);
+To avoid event overflows, reschedule after each bucket and add a
+limit for both run time and number of evictions per run.
 
-This can be called from packet path, via nft_dynset.c.
+If more entries have to be evicted, reschedule and restart 1 jiffy
+into the future.
 
-nft_do_chain -> nft_dynset_eval -> nft_dynset_new ->
-nft_dynset_expr_setup -> nft_expr_clone -> src->ops->clone()
+Reported-by: Karel Rericha <karel@maxtel.cz>
+Cc: Shmulik Ladkani <shmulik.ladkani@gmail.com>
+Cc: Eyal Birger <eyal.birger@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/netfilter/nf_conntrack_core.c | 85 ++++++++++++++++++++++++-------
+ 1 file changed, 68 insertions(+), 17 deletions(-)
 
-> diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
-> index f179e8c3b0ca..040a697d96b3 100644
-> --- a/net/netfilter/nft_counter.c
-> +++ b/net/netfilter/nft_counter.c
-> @@ -62,7 +62,7 @@ static int nft_counter_do_init(const struct nlattr * const tb[],
->  	struct nft_counter __percpu *cpu_stats;
->  	struct nft_counter *this_cpu;
->  
-> -	cpu_stats = alloc_percpu(struct nft_counter);
-> +	cpu_stats = alloc_percpu_gfp(struct nft_counter, GFP_KERNEL_ACCOUNT);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index bf1e17c678f1..7552e1e9fd62 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -67,6 +67,8 @@ EXPORT_SYMBOL_GPL(nf_conntrack_hash);
+ struct conntrack_gc_work {
+ 	struct delayed_work	dwork;
+ 	u32			next_bucket;
++	u32			avg_timeout;
++	u32			start_time;
+ 	bool			exiting;
+ 	bool			early_drop;
+ };
+@@ -78,8 +80,19 @@ static __read_mostly bool nf_conntrack_locks_all;
+ /* serialize hash resizes and nf_ct_iterate_cleanup */
+ static DEFINE_MUTEX(nf_conntrack_mutex);
+ 
+-#define GC_SCAN_INTERVAL	(120u * HZ)
++#define GC_SCAN_INTERVAL_MAX	(60ul * HZ)
++#define GC_SCAN_INTERVAL_MIN	(1ul * HZ)
++
++/* clamp timeouts to this value (TCP unacked) */
++#define GC_SCAN_INTERVAL_CLAMP	(300ul * HZ)
++
++/* large initial bias so that we don't scan often just because we have
++ * three entries with a 1s timeout.
++ */
++#define GC_SCAN_INTERVAL_INIT	INT_MAX
++
+ #define GC_SCAN_MAX_DURATION	msecs_to_jiffies(10)
++#define GC_SCAN_EXPIRED_MAX	(64000u / HZ)
+ 
+ #define MIN_CHAINLEN	8u
+ #define MAX_CHAINLEN	(32u - MIN_CHAINLEN)
+@@ -1421,16 +1434,28 @@ static bool gc_worker_can_early_drop(const struct nf_conn *ct)
+ 
+ static void gc_worker(struct work_struct *work)
+ {
+-	unsigned long end_time = jiffies + GC_SCAN_MAX_DURATION;
+ 	unsigned int i, hashsz, nf_conntrack_max95 = 0;
+-	unsigned long next_run = GC_SCAN_INTERVAL;
++	u32 end_time, start_time = nfct_time_stamp;
+ 	struct conntrack_gc_work *gc_work;
++	unsigned int expired_count = 0;
++	unsigned long next_run;
++	s32 delta_time;
++
+ 	gc_work = container_of(work, struct conntrack_gc_work, dwork.work);
+ 
+ 	i = gc_work->next_bucket;
+ 	if (gc_work->early_drop)
+ 		nf_conntrack_max95 = nf_conntrack_max / 100u * 95u;
+ 
++	if (i == 0) {
++		gc_work->avg_timeout = GC_SCAN_INTERVAL_INIT;
++		gc_work->start_time = start_time;
++	}
++
++	next_run = gc_work->avg_timeout;
++
++	end_time = start_time + GC_SCAN_MAX_DURATION;
++
+ 	do {
+ 		struct nf_conntrack_tuple_hash *h;
+ 		struct hlist_nulls_head *ct_hash;
+@@ -1447,6 +1472,7 @@ static void gc_worker(struct work_struct *work)
+ 
+ 		hlist_nulls_for_each_entry_rcu(h, n, &ct_hash[i], hnnode) {
+ 			struct nf_conntrack_net *cnet;
++			unsigned long expires;
+ 			struct net *net;
+ 
+ 			tmp = nf_ct_tuplehash_to_ctrack(h);
+@@ -1456,11 +1482,29 @@ static void gc_worker(struct work_struct *work)
+ 				continue;
+ 			}
+ 
++			if (expired_count > GC_SCAN_EXPIRED_MAX) {
++				rcu_read_unlock();
++
++				gc_work->next_bucket = i;
++				gc_work->avg_timeout = next_run;
++
++				delta_time = nfct_time_stamp - gc_work->start_time;
++
++				/* re-sched immediately if total cycle time is exceeded */
++				next_run = delta_time < (s32)GC_SCAN_INTERVAL_MAX;
++				goto early_exit;
++			}
++
+ 			if (nf_ct_is_expired(tmp)) {
+ 				nf_ct_gc_expired(tmp);
++				expired_count++;
+ 				continue;
+ 			}
+ 
++			expires = clamp(nf_ct_expires(tmp), GC_SCAN_INTERVAL_MIN, GC_SCAN_INTERVAL_CLAMP);
++			next_run += expires;
++			next_run /= 2u;
++
+ 			if (nf_conntrack_max95 == 0 || gc_worker_skip_ct(tmp))
+ 				continue;
+ 
+@@ -1478,8 +1522,10 @@ static void gc_worker(struct work_struct *work)
+ 				continue;
+ 			}
+ 
+-			if (gc_worker_can_early_drop(tmp))
++			if (gc_worker_can_early_drop(tmp)) {
+ 				nf_ct_kill(tmp);
++				expired_count++;
++			}
+ 
+ 			nf_ct_put(tmp);
+ 		}
+@@ -1492,33 +1538,38 @@ static void gc_worker(struct work_struct *work)
+ 		cond_resched();
+ 		i++;
+ 
+-		if (time_after(jiffies, end_time) && i < hashsz) {
++		delta_time = nfct_time_stamp - end_time;
++		if (delta_time > 0 && i < hashsz) {
++			gc_work->avg_timeout = next_run;
+ 			gc_work->next_bucket = i;
+ 			next_run = 0;
+-			break;
++			goto early_exit;
+ 		}
+ 	} while (i < hashsz);
+ 
++	gc_work->next_bucket = 0;
++
++	next_run = clamp(next_run, GC_SCAN_INTERVAL_MIN, GC_SCAN_INTERVAL_MAX);
++
++	delta_time = max_t(s32, nfct_time_stamp - gc_work->start_time, 1);
++	if (next_run > (unsigned long)delta_time)
++		next_run -= delta_time;
++	else
++		next_run = 1;
++
++early_exit:
+ 	if (gc_work->exiting)
+ 		return;
+ 
+-	/*
+-	 * Eviction will normally happen from the packet path, and not
+-	 * from this gc worker.
+-	 *
+-	 * This worker is only here to reap expired entries when system went
+-	 * idle after a busy period.
+-	 */
+-	if (next_run) {
++	if (next_run)
+ 		gc_work->early_drop = false;
+-		gc_work->next_bucket = 0;
+-	}
++
+ 	queue_delayed_work(system_power_efficient_wq, &gc_work->dwork, next_run);
+ }
+ 
+ static void conntrack_gc_work_init(struct conntrack_gc_work *gc_work)
+ {
+-	INIT_DEFERRABLE_WORK(&gc_work->dwork, gc_worker);
++	INIT_DELAYED_WORK(&gc_work->dwork, gc_worker);
+ 	gc_work->exiting = false;
+ }
+ 
+-- 
+2.34.1
 
-This is ok.
-
-> @@ -235,7 +235,7 @@ static int nft_counter_clone(struct nft_expr *dst, const struct nft_expr *src)
->  
->  	nft_counter_fetch(priv, &total);
->  
-> -	cpu_stats = alloc_percpu_gfp(struct nft_counter, GFP_ATOMIC);
-> +	cpu_stats = alloc_percpu_gfp(struct nft_counter, GFP_ATOMIC | __GFP_ACCOUNT);
->  	if (cpu_stats == NULL)
->  		return -ENOMEM;
-
-Same problem as connlimit, can be called from packet path.
-Basically all GFP_ATOMIC are suspicious.
-
-Not sure how to resolve this, similar mechanics in iptables world (e.g.
-connlimit or SET target) don't use memcg accounting.
-
-Perhaps for now resend with only the GFP_KERNEL parts converted?
-Those are safe.
-
-Insertion from packet path is limited by set->size (element count) only
-at this time.
