@@ -2,81 +2,128 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 351C9C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Apr 2022 10:40:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B965DC433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Apr 2022 12:03:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344953AbiDAKmp (ORCPT
+        id S1344176AbiDAMFi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 1 Apr 2022 06:42:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59052 "EHLO
+        Fri, 1 Apr 2022 08:05:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41996 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344948AbiDAKmp (ORCPT
+        with ESMTP id S1345187AbiDAMFg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 1 Apr 2022 06:42:45 -0400
-Received: from mail-wr1-x432.google.com (mail-wr1-x432.google.com [IPv6:2a00:1450:4864:20::432])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE20C103DA0;
-        Fri,  1 Apr 2022 03:40:55 -0700 (PDT)
-Received: by mail-wr1-x432.google.com with SMTP id a1so3591582wrh.10;
-        Fri, 01 Apr 2022 03:40:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=to:cc:from:subject:message-id:date:user-agent:mime-version
-         :content-language:content-transfer-encoding;
-        bh=ZXjr35ZteUA9cEWV/UbslxEAKr8SJWVJnre3hF4Zsy8=;
-        b=pS02gleyzkk52m7GJzgAvR71BKhIiY3DOZA9DyxvHiaxSKl3OiXMoIzU9u8Jnx+HoJ
-         8BDlRnbTRE5pDnlCbRtoyTFQb8hd1l9m7hjoRr8E1dKYOHbDOUszeduAm9eVkgzl6g2j
-         8Ew7XzfyywsmEQ0zgQTaUMh0pempKiXYa36wciogXdpQQ9as9ZUBA0gMLsausv8wB10G
-         UC/RbBVHlZIahiSQ+t02ptZL9YSsd3RQfoQGFq4wuKzFD0zWZjgWKVEoIvJJT9CxNMYv
-         fLucQGIJW65EphtowK67ARL6RDwswTJi+vgTzzWqhKwvkjIpknUh4lfWXfGpZcmjMnor
-         PUFw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:to:cc:from:subject:message-id:date:user-agent
-         :mime-version:content-language:content-transfer-encoding;
-        bh=ZXjr35ZteUA9cEWV/UbslxEAKr8SJWVJnre3hF4Zsy8=;
-        b=xvw5RVyEvTekoSYli9wkTpVRQFC3S/jUT+58zd/+Cz76Tqn+B6uwweBROlTXDmokvF
-         f16ak0VUWGSe6JbiFk6XPdZheKFlh2JQ9KVgraWCcV5nKDFjL8Lbl+SzO3HDDtEZqD3f
-         6IHc+5yNCXKBi4OBIaeWDwWD//ejvJDLrDfw/TmsfvmPFm+eREFZejQVmfXHqMHApIIq
-         YnxI78JmD3WZKs8FuG/ZCVVwmtJ533lr6h8bot7j1U4wumGOih5FMvp0lBHTx7c9WyZl
-         fKQDqgVj7H0X8qiYcIAlnxYJa1Fe8lVSo9cMO+buVoZVKdaQ/lod/5cE4Q0dr9Ub/Y9P
-         D9iA==
-X-Gm-Message-State: AOAM533TABDaEVr168b6hnG7p2g/wmHNdJmdyVpRaPdDPsb1qcyl8ySp
-        PX+y144lNFjXtnv+uEywZagJ6S2diGOqtZYm
-X-Google-Smtp-Source: ABdhPJwLvfh11SzHH2AVZnsm5e1A1We8PDM/qM/tKhCFQgTKooaSX3XUb//GflIVqmuUDHd7Br7C5A==
-X-Received: by 2002:a05:6000:186c:b0:205:3479:ad85 with SMTP id d12-20020a056000186c00b002053479ad85mr7434568wri.54.1648809654253;
-        Fri, 01 Apr 2022 03:40:54 -0700 (PDT)
-Received: from [192.168.1.122] (cpc159313-cmbg20-2-0-cust161.5-4.cable.virginm.net. [82.0.78.162])
-        by smtp.gmail.com with ESMTPSA id j17-20020a05600c1c1100b0038e389ab62esm10053958wms.9.2022.04.01.03.40.53
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 01 Apr 2022 03:40:53 -0700 (PDT)
-To:     pablo@netfilter.org
-Cc:     Network Development <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org
-From:   Edward Cree <ecree.xilinx@gmail.com>
-Subject: Conntrack offload and ingress_ifindex
-Message-ID: <e4ba278d-3308-ada8-d4ab-4d3a6c489216@gmail.com>
-Date:   Fri, 1 Apr 2022 11:40:52 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.5.0
+        Fri, 1 Apr 2022 08:05:36 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8ADAB5F68;
+        Fri,  1 Apr 2022 05:03:45 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1naG0E-0007M7-Ag; Fri, 01 Apr 2022 14:03:42 +0200
+Date:   Fri, 1 Apr 2022 14:03:42 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Vasily Averin <vasily.averin@linux.dev>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>, kernel@openvz.org,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Roman Gushchin <roman.gushchin@linux.dev>
+Subject: Re: [PATCH nft] nft: memcg accounting for dynamically allocated
+ objects
+Message-ID: <20220401120342.GC9545@breakpoint.cc>
+References: <bf4b8fe3-6dd6-4f3a-12f4-1b5bf2e45783@linux.dev>
+ <e730480d-9396-6486-ab98-67ecb683e819@linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <e730480d-9396-6486-ab98-67ecb683e819@linux.dev>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo,
+Vasily Averin <vasily.averin@linux.dev> wrote:
+> nft_*.c files whose NFT_EXPR_STATEFUL flag is set on need to
+> use __GFP_ACCOUNT flag for objects that are dynamically
+> allocated from the packet path.
+> 
+> Such objects are allocated inside .init() or .clone() callbacks
+> of struct nft_expr_ops executed in task context while processing
+> netlink messages.
 
-When developing a conntrack offload driver, I was quite surprised to find
- that CT entries passed to the driver's flow-block callback (as registered
- with nf_flow_table_offload_add_cb()) include a match on ingress_ifindex,
- with mask 0xffffffff and key 0.  This is especially confusing as AIUI 0 is
- not a valid ifindex.
-From reading the calling code, looking at git logs etc, I can't determine
- the intended semantics of this match; could you clarify what (if anything)
- drivers are expected to do with it?
-(Looking at other drivers it appears that e.g. mlx5e simply ignores it, as
- its test for `key & mask` in mlx5_tc_ct_set_tuple_match() will be false.)
+They can also be called from packet path.
 
--ed
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index 04be94236a34..e01241151ef7 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -5447,7 +5447,7 @@ int nft_set_elem_expr_clone(const struct nft_ctx *ctx, struct nft_set *set,
+>  	int err, i, k;
+>  
+>  	for (i = 0; i < set->num_exprs; i++) {
+> -		expr = kzalloc(set->exprs[i]->ops->size, GFP_KERNEL);
+> +		expr = kzalloc(set->exprs[i]->ops->size, GFP_KERNEL_ACCOUNT);
+>  		if (!expr)
+>  			goto err_expr;
+
+This is ok.
+
+> diff --git a/net/netfilter/nft_connlimit.c b/net/netfilter/nft_connlimit.c
+> index 3362417ebfdb..9c2146aac59e 100644
+> --- a/net/netfilter/nft_connlimit.c
+> +++ b/net/netfilter/nft_connlimit.c
+> @@ -77,7 +77,7 @@ static int nft_connlimit_do_init(const struct nft_ctx *ctx,
+>  			invert = true;
+>  	}
+>  
+> -	priv->list = kmalloc(sizeof(*priv->list), GFP_KERNEL);
+> +	priv->list = kmalloc(sizeof(*priv->list), GFP_KERNEL_ACCOUNT);
+>  	if (!priv->list)
+>  		return -ENOMEM;
+
+Same.
+
+> @@ -214,7 +214,7 @@ static int nft_connlimit_clone(struct nft_expr *dst, const struct nft_expr *src)
+>  	struct nft_connlimit *priv_dst = nft_expr_priv(dst);
+>  	struct nft_connlimit *priv_src = nft_expr_priv(src);
+>  
+> -	priv_dst->list = kmalloc(sizeof(*priv_dst->list), GFP_ATOMIC);
+> +	priv_dst->list = kmalloc(sizeof(*priv_dst->list), GFP_ATOMIC | __GFP_ACCOUNT);
+
+This can be called from packet path, via nft_dynset.c.
+
+nft_do_chain -> nft_dynset_eval -> nft_dynset_new ->
+nft_dynset_expr_setup -> nft_expr_clone -> src->ops->clone()
+
+> diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
+> index f179e8c3b0ca..040a697d96b3 100644
+> --- a/net/netfilter/nft_counter.c
+> +++ b/net/netfilter/nft_counter.c
+> @@ -62,7 +62,7 @@ static int nft_counter_do_init(const struct nlattr * const tb[],
+>  	struct nft_counter __percpu *cpu_stats;
+>  	struct nft_counter *this_cpu;
+>  
+> -	cpu_stats = alloc_percpu(struct nft_counter);
+> +	cpu_stats = alloc_percpu_gfp(struct nft_counter, GFP_KERNEL_ACCOUNT);
+
+This is ok.
+
+> @@ -235,7 +235,7 @@ static int nft_counter_clone(struct nft_expr *dst, const struct nft_expr *src)
+>  
+>  	nft_counter_fetch(priv, &total);
+>  
+> -	cpu_stats = alloc_percpu_gfp(struct nft_counter, GFP_ATOMIC);
+> +	cpu_stats = alloc_percpu_gfp(struct nft_counter, GFP_ATOMIC | __GFP_ACCOUNT);
+>  	if (cpu_stats == NULL)
+>  		return -ENOMEM;
+
+Same problem as connlimit, can be called from packet path.
+Basically all GFP_ATOMIC are suspicious.
+
+Not sure how to resolve this, similar mechanics in iptables world (e.g.
+connlimit or SET target) don't use memcg accounting.
+
+Perhaps for now resend with only the GFP_KERNEL parts converted?
+Those are safe.
+
+Insertion from packet path is limited by set->size (element count) only
+at this time.
