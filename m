@@ -2,108 +2,69 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4B3DC433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Apr 2022 18:56:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E8C6C433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Apr 2022 19:32:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351434AbiDAS6W (ORCPT
+        id S1345984AbiDATdx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 1 Apr 2022 14:58:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38206 "EHLO
+        Fri, 1 Apr 2022 15:33:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52654 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1351435AbiDAS6V (ORCPT
+        with ESMTP id S233893AbiDATdw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 1 Apr 2022 14:58:21 -0400
-Received: from out1.migadu.com (out1.migadu.com [91.121.223.63])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A142C1820CB;
-        Fri,  1 Apr 2022 11:56:30 -0700 (PDT)
-Message-ID: <7bfa2e2e-b22d-7561-661b-41ef7714caf5@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1648839388;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=R3k8fi4T311KT50tlpF6UO8/BI3+eJ+YR/Vc5gwSxgA=;
-        b=j3QWdD8BpelClcotn9PxiOT7q9qwL9wa/pM1ZegEjEiSEprSrzMKZtvMjIxcH7F7KHvXe2
-        kQZCsGmP3ViKpGmvPFax+Q16WuvUrO3Cq6xUavupSXb59dsSCeD8gMYvKe+3jdecLAxilF
-        6R6Dad+1HoxZLXBFzrqVd2RdGbH2sWk=
-Date:   Fri, 1 Apr 2022 21:56:26 +0300
-MIME-Version: 1.0
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From:   Vasily Averin <vasily.averin@linux.dev>
-Subject: Re: [PATCH nft] nft: memcg accounting for dynamically allocated
- objects
-Content-Language: en-US
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>, kernel@openvz.org,
+        Fri, 1 Apr 2022 15:33:52 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D9E63176654;
+        Fri,  1 Apr 2022 12:32:02 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1naN03-0001hH-O7; Fri, 01 Apr 2022 21:31:59 +0200
+Date:   Fri, 1 Apr 2022 21:31:59 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Vasily Averin <vasily.averin@linux.dev>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>, kernel@openvz.org,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
         Roman Gushchin <roman.gushchin@linux.dev>
+Subject: Re: [PATCH nft] nft: memcg accounting for dynamically allocated
+ objects
+Message-ID: <20220401193159.GB28321@breakpoint.cc>
 References: <bf4b8fe3-6dd6-4f3a-12f4-1b5bf2e45783@linux.dev>
  <e730480d-9396-6486-ab98-67ecb683e819@linux.dev>
  <20220401120342.GC9545@breakpoint.cc>
-In-Reply-To: <20220401120342.GC9545@breakpoint.cc>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-Migadu-Flow: FLOW_OUT
-X-Migadu-Auth-User: linux.dev
+ <7bfa2e2e-b22d-7561-661b-41ef7714caf5@linux.dev>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <7bfa2e2e-b22d-7561-661b-41ef7714caf5@linux.dev>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 4/1/22 15:03, Florian Westphal wrote:
-> Vasily Averin <vasily.averin@linux.dev> wrote:
->> nft_*.c files whose NFT_EXPR_STATEFUL flag is set on need to
->> use __GFP_ACCOUNT flag for objects that are dynamically
->> allocated from the packet path.
->>
->> Such objects are allocated inside .init() or .clone() callbacks
->> of struct nft_expr_ops executed in task context while processing
->> netlink messages.
+Vasily Averin <vasily.averin@linux.dev> wrote:
+> > Same problem as connlimit, can be called from packet path.
+> > Basically all GFP_ATOMIC are suspicious.
+> > 
+> > Not sure how to resolve this, similar mechanics in iptables world (e.g.
+> > connlimit or SET target) don't use memcg accounting.
+> > 
+> > Perhaps for now resend with only the GFP_KERNEL parts converted?
+> > Those are safe.
 > 
-> They can also be called from packet path.
+> It is safe for packet path too, _ACCOUNT allocation will not be able to find memcg
+> in case of "!in_task()" context.
+> On the other hand any additional checks on such path will affect performance.
 
->> @@ -214,7 +214,7 @@ static int nft_connlimit_clone(struct nft_expr *dst, const struct nft_expr *src)
->>  	struct nft_connlimit *priv_dst = nft_expr_priv(dst);
->>  	struct nft_connlimit *priv_src = nft_expr_priv(src);
->>  
->> -	priv_dst->list = kmalloc(sizeof(*priv_dst->list), GFP_ATOMIC);
->> +	priv_dst->list = kmalloc(sizeof(*priv_dst->list), GFP_ATOMIC | __GFP_ACCOUNT);
-> 
-> This can be called from packet path, via nft_dynset.c.
-> 
-> nft_do_chain -> nft_dynset_eval -> nft_dynset_new ->
-> nft_dynset_expr_setup -> nft_expr_clone -> src->ops->clone()
-> 
+I'm not sure this works with ksoftirqd serving network stack?
 
-Thank you, I noticed this case but did not understand that it is related to packet path.
+> Could you please estimate how often is this code used in the case of nft vs packet path?
 
->> @@ -235,7 +235,7 @@ static int nft_counter_clone(struct nft_expr *dst, const struct nft_expr *src)
->>  
->>  	nft_counter_fetch(priv, &total);
->>  
->> -	cpu_stats = alloc_percpu_gfp(struct nft_counter, GFP_ATOMIC);
->> +	cpu_stats = alloc_percpu_gfp(struct nft_counter, GFP_ATOMIC | __GFP_ACCOUNT);
->>  	if (cpu_stats == NULL)
->>  		return -ENOMEM;
-> 
-> Same problem as connlimit, can be called from packet path.
-> Basically all GFP_ATOMIC are suspicious.
-> 
-> Not sure how to resolve this, similar mechanics in iptables world (e.g.
-> connlimit or SET target) don't use memcg accounting.
-> 
-> Perhaps for now resend with only the GFP_KERNEL parts converted?
-> Those are safe.
+It depends on user configuration.
+Update from packet path is used for things like port knocking or other
+dyanamic filter lists, or somehing like Limiting connections to x-per-address/subnet and so on.
 
-It is safe for packet path too, _ACCOUNT allocation will not be able to find memcg
-in case of "!in_task()" context.
-On the other hand any additional checks on such path will affect performance.
+> If the opposite is the case, then I can add __GFP_ACCOUNT flag depending on in_task() check.
 
-Could you please estimate how often is this code used in the case of nft vs packet path?
-
-If packet path is rare case I think we can keep current code as is.
-If the opposite is the case, then I can add __GFP_ACCOUNT flag depending on in_task() check. 
-
-Thank you,
-	Vasily Averin
+But what task/memcg is used for the accounting in that case?
