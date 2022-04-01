@@ -2,265 +2,108 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 27C75C433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Apr 2022 16:54:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4B3DC433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Apr 2022 18:56:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236061AbiDAQzt (ORCPT
+        id S1351434AbiDAS6W (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 1 Apr 2022 12:55:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56554 "EHLO
+        Fri, 1 Apr 2022 14:58:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38206 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349953AbiDAQze (ORCPT
+        with ESMTP id S1351435AbiDAS6V (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 1 Apr 2022 12:55:34 -0400
-Received: from smtp-190e.mail.infomaniak.ch (smtp-190e.mail.infomaniak.ch [185.125.25.14])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 24DA446B12
-        for <netfilter-devel@vger.kernel.org>; Fri,  1 Apr 2022 09:52:50 -0700 (PDT)
-Received: from smtp-3-0000.mail.infomaniak.ch (unknown [10.4.36.107])
-        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4KVR743lNMzMptNX;
-        Fri,  1 Apr 2022 18:52:48 +0200 (CEST)
-Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
-        by smtp-3-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4KVR7372mVzlhRV1;
-        Fri,  1 Apr 2022 18:52:47 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1648831968;
-        bh=4mWNn2ZfPJI13XAqwdzuRcIOvkzyqPDODO+txhiCeSw=;
-        h=Date:From:To:Cc:References:Subject:In-Reply-To:From;
-        b=zJyFvupXFdiGpyEmv24F6WNk5HUwzsaRSGNBK3bQoRVSZPjMi6FX0Frp8cJ4Huzkx
-         U663fBXqX2pJMVYSfwJPtILjiC7uxwsBq8A4dhsh+O7NHCsGwSLIIg43x0QtXaKvzJ
-         KQTpwk7THHx8Oi4/hubS/ZZvkYafXvBuAls1kiKk=
-Message-ID: <d3340ed0-fe61-3f00-d7ba-44ece235a319@digikod.net>
-Date:   Fri, 1 Apr 2022 18:52:53 +0200
+        Fri, 1 Apr 2022 14:58:21 -0400
+Received: from out1.migadu.com (out1.migadu.com [91.121.223.63])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A142C1820CB;
+        Fri,  1 Apr 2022 11:56:30 -0700 (PDT)
+Message-ID: <7bfa2e2e-b22d-7561-661b-41ef7714caf5@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+        t=1648839388;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=R3k8fi4T311KT50tlpF6UO8/BI3+eJ+YR/Vc5gwSxgA=;
+        b=j3QWdD8BpelClcotn9PxiOT7q9qwL9wa/pM1ZegEjEiSEprSrzMKZtvMjIxcH7F7KHvXe2
+        kQZCsGmP3ViKpGmvPFax+Q16WuvUrO3Cq6xUavupSXb59dsSCeD8gMYvKe+3jdecLAxilF
+        6R6Dad+1HoxZLXBFzrqVd2RdGbH2sWk=
+Date:   Fri, 1 Apr 2022 21:56:26 +0300
 MIME-Version: 1.0
-User-Agent: 
-From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-To:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-Cc:     willemdebruijn.kernel@gmail.com,
-        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
-        artem.kuzin@huawei.com, anton.sirazetdinov@huawei.com
-References: <20220309134459.6448-1-konstantin.meskhidze@huawei.com>
- <20220309134459.6448-11-konstantin.meskhidze@huawei.com>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From:   Vasily Averin <vasily.averin@linux.dev>
+Subject: Re: [PATCH nft] nft: memcg accounting for dynamically allocated
+ objects
 Content-Language: en-US
-Subject: Re: [RFC PATCH v4 10/15] seltest/landlock: add tests for bind() hooks
-In-Reply-To: <20220309134459.6448-11-konstantin.meskhidze@huawei.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>, kernel@openvz.org,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Roman Gushchin <roman.gushchin@linux.dev>
+References: <bf4b8fe3-6dd6-4f3a-12f4-1b5bf2e45783@linux.dev>
+ <e730480d-9396-6486-ab98-67ecb683e819@linux.dev>
+ <20220401120342.GC9545@breakpoint.cc>
+In-Reply-To: <20220401120342.GC9545@breakpoint.cc>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
+X-Migadu-Flow: FLOW_OUT
+X-Migadu-Auth-User: linux.dev
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-You need to update tools/testing/selftests/landlock/config to enable 
-CONFIG_NET and CONFIG_INET.
-
-
-On 09/03/2022 14:44, Konstantin Meskhidze wrote:
-> Adds two selftests for bind socket action.
-> The one is with no landlock restrictions:
->      - bind_no_restrictions;
-> The second one is with mixed landlock rules:
->      - bind_with_restrictions;
-
-Some typos (that propagated to all selftest patches):
-
-selftest/landlock: Add tests for bind hook
-
-Add two tests for bind socket actions:
-- bind_no_restrictions
-- bind_with_restrictions
-
-
-
+On 4/1/22 15:03, Florian Westphal wrote:
+> Vasily Averin <vasily.averin@linux.dev> wrote:
+>> nft_*.c files whose NFT_EXPR_STATEFUL flag is set on need to
+>> use __GFP_ACCOUNT flag for objects that are dynamically
+>> allocated from the packet path.
+>>
+>> Such objects are allocated inside .init() or .clone() callbacks
+>> of struct nft_expr_ops executed in task context while processing
+>> netlink messages.
 > 
-> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-> ---
+> They can also be called from packet path.
+
+>> @@ -214,7 +214,7 @@ static int nft_connlimit_clone(struct nft_expr *dst, const struct nft_expr *src)
+>>  	struct nft_connlimit *priv_dst = nft_expr_priv(dst);
+>>  	struct nft_connlimit *priv_src = nft_expr_priv(src);
+>>  
+>> -	priv_dst->list = kmalloc(sizeof(*priv_dst->list), GFP_ATOMIC);
+>> +	priv_dst->list = kmalloc(sizeof(*priv_dst->list), GFP_ATOMIC | __GFP_ACCOUNT);
 > 
-> Changes since v3:
-> * Split commit.
-> * Add helper create_socket.
-> * Add FIXTURE_SETUP.
+> This can be called from packet path, via nft_dynset.c.
 > 
-> ---
->   .../testing/selftests/landlock/network_test.c | 153 ++++++++++++++++++
->   1 file changed, 153 insertions(+)
->   create mode 100644 tools/testing/selftests/landlock/network_test.c
-> 
-> diff --git a/tools/testing/selftests/landlock/network_test.c b/tools/testing/selftests/landlock/network_test.c
-> new file mode 100644
-> index 000000000000..4c60f6d973a8
-> --- /dev/null
-> +++ b/tools/testing/selftests/landlock/network_test.c
-
-For consistency, please rename to net_test.c
-
-> @@ -0,0 +1,153 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * Landlock tests - Network
-> + *
-> + * Copyright (C) 2022 Huawei Tech. Co., Ltd.
-> + * Author: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-> + *
-> + */
-> +
-> +#define _GNU_SOURCE
-> +#include <arpa/inet.h>
-> +#include <errno.h>
-> +#include <fcntl.h>
-> +#include <linux/landlock.h>
-> +#include <netinet/in.h>
-> +#include <string.h>
-> +#include <sys/prctl.h>
-> +#include <sys/socket.h>
-> +#include <sys/types.h>
-> +
-> +#include "common.h"
-> +
-> +#define MAX_SOCKET_NUM 10
-> +
-> +#define SOCK_PORT_START 3470
-> +#define SOCK_PORT_ADD 10
-> +
-> +#define IP_ADDRESS "127.0.0.1"
-> +
-> +uint port[MAX_SOCKET_NUM];
-> +struct sockaddr_in addr[MAX_SOCKET_NUM];
-> +
-> +const int one = 1;
-> +
-> +/* Number pending connections queue to be hold */
-> +#define BACKLOG 10
-> +
-> +static int create_socket(struct __test_metadata *const _metadata)
-> +{
-> +
-> +		int sockfd;
-> +
-> +		sockfd = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
-> +		ASSERT_LE(0, sockfd);
-> +		/* Allows to reuse of local address */
-> +		ASSERT_EQ(0, setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)));
-
-Why is it required?
-
-> +
-> +		return sockfd;
-> +}
-> +
-> +static void enforce_ruleset(struct __test_metadata *const _metadata,
-> +		const int ruleset_fd)
-> +{
-> +	ASSERT_EQ(0, prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0));
-> +	ASSERT_EQ(0, landlock_restrict_self(ruleset_fd, 0)) {
-> +		TH_LOG("Failed to enforce ruleset: %s", strerror(errno));
-> +	}
-> +}
-> +
-> +FIXTURE(socket) { };
-
-You should pick another more meaningful name.
-
-> +
-> +FIXTURE_SETUP(socket)
-> +{
-> +	int i;
-> +	/* Creates socket addresses */
-> +	for (i = 0; i < MAX_SOCKET_NUM; i++) {
-> +		port[i] = SOCK_PORT_START + SOCK_PORT_ADD*i;
-> +		addr[i].sin_family = AF_INET;
-> +		addr[i].sin_port = htons(port[i]);
-> +		addr[i].sin_addr.s_addr = inet_addr(IP_ADDRESS);
-> +		memset(&(addr[i].sin_zero), '\0', 8);
-> +	}
-
-This is the right place to set up network namespace. It will make tests 
-non-flaky.
-
-> +}
-> +
-> +FIXTURE_TEARDOWN(socket)
-> +{ }
-> +
-> +TEST_F_FORK(socket, bind_no_restrictions) {
-> +
-> +	int sockfd;
-> +
-> +	sockfd = create_socket(_metadata);
-> +	ASSERT_LE(0, sockfd);
-> +
-> +	/* Binds a socket to port[0] */
-> +	ASSERT_EQ(0, bind(sockfd, (struct sockaddr *)&addr[0], sizeof(addr[0])));
-> +
-> +	ASSERT_EQ(0, close(sockfd));
-> +}
-> +
-> +TEST_F_FORK(socket, bind_with_restrictions) {
-> +
-> +	int sockfd_1, sockfd_2, sockfd_3;
-
-Do you really need to have 3 opened socket at the same time?
-
-> +
-> +	struct landlock_ruleset_attr ruleset_attr = {
-> +		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
-> +				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +	};
-> +	struct landlock_net_service_attr net_service_1 = {
-> +		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
-> +				  LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +		.port = port[0],
-> +	};
-> +	struct landlock_net_service_attr net_service_2 = {
-> +		.allowed_access = LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +		.port = port[1],
-> +	};
-> +	struct landlock_net_service_attr net_service_3 = {
-> +		.allowed_access = 0,
-> +		.port = port[2],
-> +	};
-> +
-> +	const int ruleset_fd = landlock_create_ruleset(&ruleset_attr,
-> +			sizeof(ruleset_attr), 0);
-> +	ASSERT_LE(0, ruleset_fd);
-> +
-> +	/* Allows connect and bind operations to the port[0] socket. */
-> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
-> +				&net_service_1, 0));
-> +	/* Allows connect and deny bind operations to the port[1] socket. */
-> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
-> +				&net_service_2, 0));
-> +	/* Empty allowed_access (i.e. deny rules) are ignored in network actions
-> +	 * for port[2] socket.
-> +	 */
-> +	ASSERT_EQ(-1, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
-> +				&net_service_3, 0));
-> +	ASSERT_EQ(ENOMSG, errno);
-> +
-> +	/* Enforces the ruleset. */
-> +	enforce_ruleset(_metadata, ruleset_fd);
-> +
-> +	sockfd_1 = create_socket(_metadata);
-> +	ASSERT_LE(0, sockfd_1);
-> +	/* Binds a socket to port[0] */
-> +	ASSERT_EQ(0, bind(sockfd_1, (struct sockaddr  *)&addr[0], sizeof(addr[0])));
-> +
-> +	/* Close bounded socket*/
-> +	ASSERT_EQ(0, close(sockfd_1));
-> +
-> +	sockfd_2 = create_socket(_metadata);
-> +	ASSERT_LE(0, sockfd_2);
-> +	/* Binds a socket to port[1] */
-> +	ASSERT_EQ(-1, bind(sockfd_2, (struct sockaddr *)&addr[1], sizeof(addr[1])));
-> +	ASSERT_EQ(EACCES, errno);
-> +
-> +	sockfd_3 = create_socket(_metadata);
-> +	ASSERT_LE(0, sockfd_3);
-> +	/* Binds a socket to port[2] */
-> +	ASSERT_EQ(-1, bind(sockfd_3, (struct sockaddr *)&addr[2], sizeof(addr[2])));
-> +	ASSERT_EQ(EACCES, errno);
-> +}
-> +TEST_HARNESS_MAIN
-> --
-> 2.25.1
+> nft_do_chain -> nft_dynset_eval -> nft_dynset_new ->
+> nft_dynset_expr_setup -> nft_expr_clone -> src->ops->clone()
 > 
 
+Thank you, I noticed this case but did not understand that it is related to packet path.
+
+>> @@ -235,7 +235,7 @@ static int nft_counter_clone(struct nft_expr *dst, const struct nft_expr *src)
+>>  
+>>  	nft_counter_fetch(priv, &total);
+>>  
+>> -	cpu_stats = alloc_percpu_gfp(struct nft_counter, GFP_ATOMIC);
+>> +	cpu_stats = alloc_percpu_gfp(struct nft_counter, GFP_ATOMIC | __GFP_ACCOUNT);
+>>  	if (cpu_stats == NULL)
+>>  		return -ENOMEM;
+> 
+> Same problem as connlimit, can be called from packet path.
+> Basically all GFP_ATOMIC are suspicious.
+> 
+> Not sure how to resolve this, similar mechanics in iptables world (e.g.
+> connlimit or SET target) don't use memcg accounting.
+> 
+> Perhaps for now resend with only the GFP_KERNEL parts converted?
+> Those are safe.
+
+It is safe for packet path too, _ACCOUNT allocation will not be able to find memcg
+in case of "!in_task()" context.
+On the other hand any additional checks on such path will affect performance.
+
+Could you please estimate how often is this code used in the case of nft vs packet path?
+
+If packet path is rare case I think we can keep current code as is.
+If the opposite is the case, then I can add __GFP_ACCOUNT flag depending on in_task() check. 
+
+Thank you,
+	Vasily Averin
