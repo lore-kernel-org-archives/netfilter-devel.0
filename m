@@ -2,153 +2,86 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71420C433EF
-	for <netfilter-devel@archiver.kernel.org>; Sat,  2 Apr 2022 09:50:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FC45C433F5
+	for <netfilter-devel@archiver.kernel.org>; Sat,  2 Apr 2022 10:33:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234805AbiDBJwf (ORCPT
+        id S235601AbiDBKfk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 2 Apr 2022 05:52:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38614 "EHLO
+        Sat, 2 Apr 2022 06:35:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40212 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232727AbiDBJwf (ORCPT
+        with ESMTP id S229630AbiDBKfj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 2 Apr 2022 05:52:35 -0400
-Received: from out2.migadu.com (out2.migadu.com [IPv6:2001:41d0:2:aacc::])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BBD86580C5;
-        Sat,  2 Apr 2022 02:50:42 -0700 (PDT)
-Message-ID: <121a6930-9ebd-e488-e109-273a403a93cb@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1648893038;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=4vKOjx/Vt8DqRqzPiULw6+4zObfqOlUna1mMji8AreA=;
-        b=GCDVvvldK54YpIP+KOfOQhHpt69SxANUSlLD/C34pER3EBbkJbNBWXHDBjT2RDteFFsMqo
-        UyDy4L5mksUO6f84JTm1nd74N1tUkhUfSM4WMiHV6O/RUcnvdmU9k46FC/ICR/bcWVrIx8
-        LgQTzM/jAcNRA6vukrkKok3P6GDoFLM=
-Date:   Sat, 2 Apr 2022 12:50:37 +0300
+        Sat, 2 Apr 2022 06:35:39 -0400
+Received: from mail-lj1-x232.google.com (mail-lj1-x232.google.com [IPv6:2a00:1450:4864:20::232])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 590E962A1F
+        for <netfilter-devel@vger.kernel.org>; Sat,  2 Apr 2022 03:33:47 -0700 (PDT)
+Received: by mail-lj1-x232.google.com with SMTP id a30so6828594ljq.13
+        for <netfilter-devel@vger.kernel.org>; Sat, 02 Apr 2022 03:33:47 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=openvz-org.20210112.gappssmtp.com; s=20210112;
+        h=message-id:date:mime-version:user-agent:content-language:to:cc:from
+         :subject:content-transfer-encoding;
+        bh=BPUGpiwpI3NqosV0Ck3zGpzbEEIoP/GpERHMuUJv26c=;
+        b=XTgRAzA06DdKiM3mHBTtSGAK1yF3qAq2EkVVUYowtUi8/Y8rsOyqX7kVu0HkwyF81V
+         2apxPKg+poKzvqI0zUjeoh/76zdEwoVt5AnRRfwBUCRoZhPq/76h6Ykdp+EOuBfZNexv
+         x6GFK88q640ouSQW9/jON5JsmmsDC+e6AfRqQYm4NEe+14rC9qqxTqz2CNOB0dmhBBKs
+         vPCCJ5DyZJZtx+GkuRSRc32AAU9KuVhiVMmiaktCjnwM7Lm8pxLd9rdrITYtZB7mGRJZ
+         3X3TDx60lg97HxAeMIG7ASwLMF/6CElUkZ0psAyllV4ayzgtpQJPfOkbZUJmD7dRcy1I
+         7knA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:message-id:date:mime-version:user-agent
+         :content-language:to:cc:from:subject:content-transfer-encoding;
+        bh=BPUGpiwpI3NqosV0Ck3zGpzbEEIoP/GpERHMuUJv26c=;
+        b=2y4dcuiYjr6w7foLEHohO1pSlCGymZzwNbuYFDHkE9/1BUqm+xe+zULTJ+tnGDjROf
+         OMbSZ1/8ZhDXlgRGdeoaUew+o04PMtC+0Tr+UCWdmUup33XYZsiOTgU3D+fodpGfw5Oy
+         cXx0LZZsFzrk80K9//fMFJoL5nbdYrEZlewjtUt/Y7uKWs+34M6DWVDFMC60llhheOF9
+         e0OC6ZmvvRSgFMYJsAP5i3+35aE0RlQakUxZ4fTliCTlXxl+XsGkR9boCk093YI4RNZC
+         QzOi/GadsOgBeFvXyhYqrW4iXj5OO3y4XteWJE2rsFc7A2t8Cm+p0WQUo1XY1c5SuCJi
+         6DwA==
+X-Gm-Message-State: AOAM530fArGR11abR8C6yIr/Bd9RUeFocVXkiMrObhMvk7XBwMxBT5nj
+        JnF7idWXRofuuHXsXSU+/z0beWZavTnxxUU+
+X-Google-Smtp-Source: ABdhPJyWK5M6HhquzMON8QqOQEM1VPREVT2rL1nPNBNuOIO2g49L4b9/eR/I9BjGYkIaiHxVBt6MiQ==
+X-Received: by 2002:a2e:b054:0:b0:24b:108d:3792 with SMTP id d20-20020a2eb054000000b0024b108d3792mr652741ljl.444.1648895625570;
+        Sat, 02 Apr 2022 03:33:45 -0700 (PDT)
+Received: from [192.168.1.65] ([46.188.121.177])
+        by smtp.gmail.com with ESMTPSA id u12-20020a19600c000000b0044a2e4ce20esm483448lfb.193.2022.04.02.03.33.44
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sat, 02 Apr 2022 03:33:45 -0700 (PDT)
+Message-ID: <de70cc55-6c11-d772-8b08-e8994fd934a0@openvz.org>
+Date:   Sat, 2 Apr 2022 13:33:44 +0300
 MIME-Version: 1.0
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From:   Vasily Averin <vasily.averin@linux.dev>
-Subject: [PATCH v2] nft: memcg accounting for dynamically allocated objects
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.7.0
+Content-Language: en-US
 To:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Florian Westphal <fw@strlen.de>
-Cc:     kernel@openvz.org, Jozsef Kadlecsik <kadlec@netfilter.org>,
-        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Roman Gushchin <roman.gushchin@linux.dev>
-References: <935e4270-9e0e-4cd0-ffb4-9c1eb3d9c56e@linux.dev>
-Content-Language: en-US
-In-Reply-To: <935e4270-9e0e-4cd0-ffb4-9c1eb3d9c56e@linux.dev>
+Cc:     netfilter-devel@vger.kernel.org, kernel@openvz.org
+From:   Vasily Averin <vvs@openvz.org>
+Subject: troubles caused by conntrack overlimit in init_netns
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-Migadu-Flow: FLOW_OUT
-X-Migadu-Auth-User: linux.dev
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-nft_*.c files whose NFT_EXPR_STATEFUL flag is set on need to
-use __GFP_ACCOUNT flag for objects that are dynamically
-allocated from the packet path.
+Pablo, Florian,
 
-Such objects are allocated inside nft_expr_ops->init() callbacks
-executed in task context while processing netlink messages.
+There is an old issue with conntrack limit on multi-netns (read container) nodes.
 
-In addition, this patch adds accounting to nft_set_elem_expr_clone()
-used for the same purposes.
+Any connection to containers hosted on the node creates a conntrack in init_netns.
+If the number of conntrack in init_netns reaches the limit, the whole node becomes
+unavailable.
 
-Signed-off-by: Vasily Averin <vvs@openvz.org>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
----
-v2: removed accounting in nft_expr_ops->clone() callbacks
----
- net/netfilter/nf_tables_api.c | 2 +-
- net/netfilter/nft_connlimit.c | 2 +-
- net/netfilter/nft_counter.c   | 2 +-
- net/netfilter/nft_last.c      | 2 +-
- net/netfilter/nft_limit.c     | 2 +-
- net/netfilter/nft_quota.c     | 2 +-
- 6 files changed, 6 insertions(+), 6 deletions(-)
+To avoid it OpenVz had special patches disabled conntracks on init_ns on openvz nodes, 
+but this automatically limits the functionality of host's firewall.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 04be94236a34..e01241151ef7 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5447,7 +5447,7 @@ int nft_set_elem_expr_clone(const struct nft_ctx *ctx, struct nft_set *set,
- 	int err, i, k;
- 
- 	for (i = 0; i < set->num_exprs; i++) {
--		expr = kzalloc(set->exprs[i]->ops->size, GFP_KERNEL);
-+		expr = kzalloc(set->exprs[i]->ops->size, GFP_KERNEL_ACCOUNT);
- 		if (!expr)
- 			goto err_expr;
- 
-diff --git a/net/netfilter/nft_connlimit.c b/net/netfilter/nft_connlimit.c
-index 3362417ebfdb..f5df535bcbd0 100644
---- a/net/netfilter/nft_connlimit.c
-+++ b/net/netfilter/nft_connlimit.c
-@@ -77,7 +77,7 @@ static int nft_connlimit_do_init(const struct nft_ctx *ctx,
- 			invert = true;
- 	}
- 
--	priv->list = kmalloc(sizeof(*priv->list), GFP_KERNEL);
-+	priv->list = kmalloc(sizeof(*priv->list), GFP_KERNEL_ACCOUNT);
- 	if (!priv->list)
- 		return -ENOMEM;
- 
-diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
-index f179e8c3b0ca..7691e42f6bbe 100644
---- a/net/netfilter/nft_counter.c
-+++ b/net/netfilter/nft_counter.c
-@@ -62,7 +62,7 @@ static int nft_counter_do_init(const struct nlattr * const tb[],
- 	struct nft_counter __percpu *cpu_stats;
- 	struct nft_counter *this_cpu;
- 
--	cpu_stats = alloc_percpu(struct nft_counter);
-+	cpu_stats = alloc_percpu_gfp(struct nft_counter, GFP_KERNEL_ACCOUNT);
- 	if (cpu_stats == NULL)
- 		return -ENOMEM;
- 
-diff --git a/net/netfilter/nft_last.c b/net/netfilter/nft_last.c
-index 4f745a409d34..97d0d09d48d3 100644
---- a/net/netfilter/nft_last.c
-+++ b/net/netfilter/nft_last.c
-@@ -30,7 +30,7 @@ static int nft_last_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	u64 last_jiffies;
- 	int err;
- 
--	last = kzalloc(sizeof(*last), GFP_KERNEL);
-+	last = kzalloc(sizeof(*last), GFP_KERNEL_ACCOUNT);
- 	if (!last)
- 		return -ENOMEM;
- 
-diff --git a/net/netfilter/nft_limit.c b/net/netfilter/nft_limit.c
-index a726b623963d..c1f7e8bb33e6 100644
---- a/net/netfilter/nft_limit.c
-+++ b/net/netfilter/nft_limit.c
-@@ -90,7 +90,7 @@ static int nft_limit_init(struct nft_limit_priv *priv,
- 				 priv->rate);
- 	}
- 
--	priv->limit = kmalloc(sizeof(*priv->limit), GFP_KERNEL);
-+	priv->limit = kmalloc(sizeof(*priv->limit), GFP_KERNEL_ACCOUNT);
- 	if (!priv->limit)
- 		return -ENOMEM;
- 
-diff --git a/net/netfilter/nft_quota.c b/net/netfilter/nft_quota.c
-index f394a0b562f6..0d2f55900f7b 100644
---- a/net/netfilter/nft_quota.c
-+++ b/net/netfilter/nft_quota.c
-@@ -90,7 +90,7 @@ static int nft_quota_do_init(const struct nlattr * const tb[],
- 			return -EOPNOTSUPP;
- 	}
- 
--	priv->consumed = kmalloc(sizeof(*priv->consumed), GFP_KERNEL);
-+	priv->consumed = kmalloc(sizeof(*priv->consumed), GFP_KERNEL_ACCOUNT);
- 	if (!priv->consumed)
- 		return -ENOMEM;
- 
--- 
-2.31.1
+This has been our specific pain for many years, however, containers are now 
+being used much more widely than before, and the severity of the described problem
+is growing more and more.
 
+Do you know perhaps some alternative solution?
+
+Thank you,
+	Vasily Averin
