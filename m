@@ -2,42 +2,42 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E763DC433F5
-	for <netfilter-devel@archiver.kernel.org>; Mon,  4 Apr 2022 12:28:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36250C433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon,  4 Apr 2022 12:28:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344310AbiDDMaU (ORCPT
+        id S1344081AbiDDMaX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 4 Apr 2022 08:30:20 -0400
+        Mon, 4 Apr 2022 08:30:23 -0400
 Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50580 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344528AbiDDMaM (ORCPT
+        with ESMTP id S1344755AbiDDMaT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 4 Apr 2022 08:30:12 -0400
+        Mon, 4 Apr 2022 08:30:19 -0400
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2079A3D1DB
-        for <netfilter-devel@vger.kernel.org>; Mon,  4 Apr 2022 05:28:16 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0F863D1DB
+        for <netfilter-devel@vger.kernel.org>; Mon,  4 Apr 2022 05:28:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=fQTUbiFVmKB2fUp9toOez0Ypq+tsxfWnV4ALUlUJMDw=; b=JWJhiTN74J8z43CTwQqgDZTu4z
-        7GV3S8mebq5N1/dBfCG7O3kGrld8sFYUMxWReENdzJ3BL2snYm9vMjBhsB/i+bzOnas7c7SNLFTRs
-        vtgFw8yElUWjuwCoOS3zcJitowqWEWb+yf74ScvpajPAfefZdt4nezQbAgcgOccie1v6omItlN7CE
-        zwQyMyBVJlJkEta+uvlH5iNUPf3qOh1zf4p3IB8wvVtc91FB4mUDEaflmCmlsFhj+0cH1nFMWadUL
-        iRyirWayOAda4y2Xe7AJhxxBBK1NcsHSA8Ra6OvSANyEMwfzaZh1TWgbF3Z7PJjg+pwUGGETLzhnX
-        h4WKt55Q==;
+        bh=nmShUkBOrJUFAxnCKqqWvOadVjEjYOtLkrRiPiMBxkA=; b=tR4dIP6MWWhATusSwN7+D5KtL5
+        fgVkjSPCJ2luseX9UzVG4etxENtsBJsKYUfgr/4ZPR0pX/tuTDVVKsziR7vEMdKBLlUib6B/tOsfP
+        8JX31vPOZD0yBkFvJGIQr9Gj8EC9I9GKZA/3Tuwh9GVBT9ZnRakECQreV474RlFWZv+RXcif5w3+Z
+        dC8EiSTrGJ5lXxDsKlp82k/PEOsPrPZCQA2PKBB+cgvzm7QrPo1gfzgycAyAeeiR1UJvA+n4JXO0A
+        ktBlMMjuskk/2Res438g+LrCdU+Dnu0v0YEkgQ3eyUg+WxdwKdNO6+8/2XoIjloml5nXQr0h/Cr2G
+        bPdhc0RQ==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
         by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1nbLbJ-007FTC-WE; Mon, 04 Apr 2022 13:14:30 +0100
+        id 1nbLbK-007FTC-GU; Mon, 04 Apr 2022 13:14:30 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
 Cc:     Kevin Darbyshire-Bryant <ldir@darbyshire-bryant.me.uk>
-Subject: [nft PATCH v4 16/32] tests: shell: add test-cases for ct and packet mark payload expressions
-Date:   Mon,  4 Apr 2022 13:13:54 +0100
-Message-Id: <20220404121410.188509-17-jeremy@azazel.net>
+Subject: [nft PATCH v4 21/32] evaluate: don't clobber binop lengths
+Date:   Mon,  4 Apr 2022 13:13:59 +0100
+Message-Id: <20220404121410.188509-22-jeremy@azazel.net>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220404121410.188509-1-jeremy@azazel.net>
 References: <20220404121410.188509-1-jeremy@azazel.net>
@@ -50,277 +50,67 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add new test-cases to verify that defining a rule that sets the ct or
-packet mark to a value derived from a payload works correctly.
+Binops with variable RHS operands will make it possible to do thing like
+this:
+
+  nft add rule t c ip dscp set ip dscp and 0xc
+
+However, the netlink dump reveals a problem:
+
+  [ payload load 2b @ network header + 0 => reg 1 ]
+  [ bitwise reg 1 = ( reg 1 & 0x000003ff ) ^ 0x00000000 ]
+  [ payload load 1b @ network header + 1 => reg 2 ]
+  [ bitwise reg 2 = ( reg 2 & 0x0000003c ) ^ 0x00000000 ]
+  [ bitwise reg 2 = ( reg 2 >> 0x00000002 ) ]
+  [ bitwise reg 2 = ( reg 2 & 0x0000000c ) ^ 0x00000000 ]
+  [ bitwise reg 2 = ( reg 2 << 0x00000002 ) ]
+  [ bitwise reg 1 = ( reg 1 ^ reg 2 ) ]
+  [ payload write reg 1 => 2b @ network header + 0 csum_type 1 csum_off 10 csum_flags 0x0 ]
+
+The mask at line 4 should be 0xfc, not 0x3c.
+
+Evaluation of the payload expression munges it from `ip dscp` to
+`(ip dscp & 0xfc) >> 2`, because although `ip dscp` is only 6 bits long,
+those 6 bits are the top bits in a byte, and to make the arithmetic
+simpler when we perform comparisons and assignments, we mask and shift
+the field.  When the AND expression is allocated, its length is
+correctly set to 8.  However, when a binop is evaluated, it is assumed
+that the length has not been set and it always set to the length of the
+left operand, incorrectly to 6 in this case.  When the bitwise netlink
+expression is generated, the length of the AND is used to generate the
+mask, 0x3f, used in combining the binop's.  The upshot of this is that
+the original mask gets mangled to 0x3c.
+
+We can fix this by changing the evaluation of binops only to set the
+op's length if it is not already set.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- tests/shell/testcases/chains/0040mark_binop_2         | 11 +++++++++++
- tests/shell/testcases/chains/0040mark_binop_3         | 11 +++++++++++
- tests/shell/testcases/chains/0040mark_binop_4         | 11 +++++++++++
- tests/shell/testcases/chains/0040mark_binop_5         | 11 +++++++++++
- tests/shell/testcases/chains/0040mark_binop_6         | 11 +++++++++++
- tests/shell/testcases/chains/0040mark_binop_7         | 11 +++++++++++
- tests/shell/testcases/chains/0040mark_binop_8         | 11 +++++++++++
- tests/shell/testcases/chains/0040mark_binop_9         | 11 +++++++++++
- .../shell/testcases/chains/dumps/0040mark_binop_2.nft |  6 ++++++
- .../shell/testcases/chains/dumps/0040mark_binop_3.nft |  6 ++++++
- .../shell/testcases/chains/dumps/0040mark_binop_4.nft |  6 ++++++
- .../shell/testcases/chains/dumps/0040mark_binop_5.nft |  6 ++++++
- .../shell/testcases/chains/dumps/0040mark_binop_6.nft |  6 ++++++
- .../shell/testcases/chains/dumps/0040mark_binop_7.nft |  6 ++++++
- .../shell/testcases/chains/dumps/0040mark_binop_8.nft |  6 ++++++
- .../shell/testcases/chains/dumps/0040mark_binop_9.nft |  6 ++++++
- 16 files changed, 136 insertions(+)
- create mode 100755 tests/shell/testcases/chains/0040mark_binop_2
- create mode 100755 tests/shell/testcases/chains/0040mark_binop_3
- create mode 100755 tests/shell/testcases/chains/0040mark_binop_4
- create mode 100755 tests/shell/testcases/chains/0040mark_binop_5
- create mode 100755 tests/shell/testcases/chains/0040mark_binop_6
- create mode 100755 tests/shell/testcases/chains/0040mark_binop_7
- create mode 100755 tests/shell/testcases/chains/0040mark_binop_8
- create mode 100755 tests/shell/testcases/chains/0040mark_binop_9
- create mode 100644 tests/shell/testcases/chains/dumps/0040mark_binop_2.nft
- create mode 100644 tests/shell/testcases/chains/dumps/0040mark_binop_3.nft
- create mode 100644 tests/shell/testcases/chains/dumps/0040mark_binop_4.nft
- create mode 100644 tests/shell/testcases/chains/dumps/0040mark_binop_5.nft
- create mode 100644 tests/shell/testcases/chains/dumps/0040mark_binop_6.nft
- create mode 100644 tests/shell/testcases/chains/dumps/0040mark_binop_7.nft
- create mode 100644 tests/shell/testcases/chains/dumps/0040mark_binop_8.nft
- create mode 100644 tests/shell/testcases/chains/dumps/0040mark_binop_9.nft
+ src/evaluate.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/tests/shell/testcases/chains/0040mark_binop_2 b/tests/shell/testcases/chains/0040mark_binop_2
-new file mode 100755
-index 000000000000..94ebe976c987
---- /dev/null
-+++ b/tests/shell/testcases/chains/0040mark_binop_2
-@@ -0,0 +1,11 @@
-+#!/bin/bash
-+
-+set -e
-+
-+RULESET="
-+  add table t
-+  add chain t c { type filter hook output priority filter; }
-+  add rule t c ct mark set ip dscp lshift 2 or 0x10
-+"
-+
-+$NFT -f - <<< "$RULESET"
-diff --git a/tests/shell/testcases/chains/0040mark_binop_3 b/tests/shell/testcases/chains/0040mark_binop_3
-new file mode 100755
-index 000000000000..b491565ca573
---- /dev/null
-+++ b/tests/shell/testcases/chains/0040mark_binop_3
-@@ -0,0 +1,11 @@
-+#!/bin/bash
-+
-+set -e
-+
-+RULESET="
-+  add table t
-+  add chain t c { type filter hook input priority filter; }
-+  add rule t c meta mark set ip dscp lshift 2 or 0x10
-+"
-+
-+$NFT -f - <<< "$RULESET"
-diff --git a/tests/shell/testcases/chains/0040mark_binop_4 b/tests/shell/testcases/chains/0040mark_binop_4
-new file mode 100755
-index 000000000000..adc5f25ba930
---- /dev/null
-+++ b/tests/shell/testcases/chains/0040mark_binop_4
-@@ -0,0 +1,11 @@
-+#!/bin/bash
-+
-+set -e
-+
-+RULESET="
-+  add table t
-+  add chain t c { type filter hook output priority filter; }
-+  add rule t c ct mark set ip dscp lshift 26 or 0x10
-+"
-+
-+$NFT -f - <<< "$RULESET"
-diff --git a/tests/shell/testcases/chains/0040mark_binop_5 b/tests/shell/testcases/chains/0040mark_binop_5
-new file mode 100755
-index 000000000000..286b7b1fc7f9
---- /dev/null
-+++ b/tests/shell/testcases/chains/0040mark_binop_5
-@@ -0,0 +1,11 @@
-+#!/bin/bash
-+
-+set -e
-+
-+RULESET="
-+  add table t
-+  add chain t c { type filter hook input priority filter; }
-+  add rule t c meta mark set ip dscp lshift 26 or 0x10
-+"
-+
-+$NFT -f - <<< "$RULESET"
-diff --git a/tests/shell/testcases/chains/0040mark_binop_6 b/tests/shell/testcases/chains/0040mark_binop_6
-new file mode 100755
-index 000000000000..9ea82952ef24
---- /dev/null
-+++ b/tests/shell/testcases/chains/0040mark_binop_6
-@@ -0,0 +1,11 @@
-+#!/bin/bash
-+
-+set -e
-+
-+RULESET="
-+  add table ip6 t
-+  add chain ip6 t c { type filter hook output priority filter; }
-+  add rule ip6 t c ct mark set ip6 dscp lshift 2 or 0x10
-+"
-+
-+$NFT -f - <<< "$RULESET"
-diff --git a/tests/shell/testcases/chains/0040mark_binop_7 b/tests/shell/testcases/chains/0040mark_binop_7
-new file mode 100755
-index 000000000000..ff9cfb55ac3e
---- /dev/null
-+++ b/tests/shell/testcases/chains/0040mark_binop_7
-@@ -0,0 +1,11 @@
-+#!/bin/bash
-+
-+set -e
-+
-+RULESET="
-+  add table ip6 t
-+  add chain ip6 t c { type filter hook input priority filter; }
-+  add rule ip6 t c meta mark set ip6 dscp lshift 2 or 0x10
-+"
-+
-+$NFT -f - <<< "$RULESET"
-diff --git a/tests/shell/testcases/chains/0040mark_binop_8 b/tests/shell/testcases/chains/0040mark_binop_8
-new file mode 100755
-index 000000000000..b348ee9367df
---- /dev/null
-+++ b/tests/shell/testcases/chains/0040mark_binop_8
-@@ -0,0 +1,11 @@
-+#!/bin/bash
-+
-+set -e
-+
-+RULESET="
-+  add table ip6 t
-+  add chain ip6 t c { type filter hook output priority filter; }
-+  add rule ip6 t c ct mark set ip6 dscp lshift 26 or 0x10
-+"
-+
-+$NFT -f - <<< "$RULESET"
-diff --git a/tests/shell/testcases/chains/0040mark_binop_9 b/tests/shell/testcases/chains/0040mark_binop_9
-new file mode 100755
-index 000000000000..d19447d42b22
---- /dev/null
-+++ b/tests/shell/testcases/chains/0040mark_binop_9
-@@ -0,0 +1,11 @@
-+#!/bin/bash
-+
-+set -e
-+
-+RULESET="
-+  add table ip6 t
-+  add chain ip6 t c { type filter hook input priority filter; }
-+  add rule ip6 t c meta mark set ip6 dscp lshift 26 or 0x10
-+"
-+
-+$NFT -f - <<< "$RULESET"
-diff --git a/tests/shell/testcases/chains/dumps/0040mark_binop_2.nft b/tests/shell/testcases/chains/dumps/0040mark_binop_2.nft
-new file mode 100644
-index 000000000000..7dc274f4e6a3
---- /dev/null
-+++ b/tests/shell/testcases/chains/dumps/0040mark_binop_2.nft
-@@ -0,0 +1,6 @@
-+table ip t {
-+	chain c {
-+		type filter hook output priority filter; policy accept;
-+		ct mark set ip dscp << 2 | 16
-+	}
-+}
-diff --git a/tests/shell/testcases/chains/dumps/0040mark_binop_3.nft b/tests/shell/testcases/chains/dumps/0040mark_binop_3.nft
-new file mode 100644
-index 000000000000..c484f7a54948
---- /dev/null
-+++ b/tests/shell/testcases/chains/dumps/0040mark_binop_3.nft
-@@ -0,0 +1,6 @@
-+table ip t {
-+	chain c {
-+		type filter hook input priority filter; policy accept;
-+		meta mark set ip dscp << 2 | 16
-+	}
-+}
-diff --git a/tests/shell/testcases/chains/dumps/0040mark_binop_4.nft b/tests/shell/testcases/chains/dumps/0040mark_binop_4.nft
-new file mode 100644
-index 000000000000..1bebea1683bc
---- /dev/null
-+++ b/tests/shell/testcases/chains/dumps/0040mark_binop_4.nft
-@@ -0,0 +1,6 @@
-+table ip t {
-+	chain c {
-+		type filter hook output priority filter; policy accept;
-+		ct mark set ip dscp << 26 | 16
-+	}
-+}
-diff --git a/tests/shell/testcases/chains/dumps/0040mark_binop_5.nft b/tests/shell/testcases/chains/dumps/0040mark_binop_5.nft
-new file mode 100644
-index 000000000000..787c6cdd9231
---- /dev/null
-+++ b/tests/shell/testcases/chains/dumps/0040mark_binop_5.nft
-@@ -0,0 +1,6 @@
-+table ip t {
-+	chain c {
-+		type filter hook input priority filter; policy accept;
-+		meta mark set ip dscp << 26 | 16
-+	}
-+}
-diff --git a/tests/shell/testcases/chains/dumps/0040mark_binop_6.nft b/tests/shell/testcases/chains/dumps/0040mark_binop_6.nft
-new file mode 100644
-index 000000000000..53940eaf2ea4
---- /dev/null
-+++ b/tests/shell/testcases/chains/dumps/0040mark_binop_6.nft
-@@ -0,0 +1,6 @@
-+table ip6 t {
-+	chain c {
-+		type filter hook output priority filter; policy accept;
-+		ct mark set ip6 dscp << 2 | 16
-+	}
-+}
-diff --git a/tests/shell/testcases/chains/dumps/0040mark_binop_7.nft b/tests/shell/testcases/chains/dumps/0040mark_binop_7.nft
-new file mode 100644
-index 000000000000..35e12a0af66d
---- /dev/null
-+++ b/tests/shell/testcases/chains/dumps/0040mark_binop_7.nft
-@@ -0,0 +1,6 @@
-+table ip6 t {
-+	chain c {
-+		type filter hook input priority filter; policy accept;
-+		meta mark set ip6 dscp << 2 | 16
-+	}
-+}
-diff --git a/tests/shell/testcases/chains/dumps/0040mark_binop_8.nft b/tests/shell/testcases/chains/dumps/0040mark_binop_8.nft
-new file mode 100644
-index 000000000000..f9f16c2491d4
---- /dev/null
-+++ b/tests/shell/testcases/chains/dumps/0040mark_binop_8.nft
-@@ -0,0 +1,6 @@
-+table ip6 t {
-+	chain c {
-+		type filter hook output priority filter; policy accept;
-+		ct mark set ip6 dscp << 26 | 16
-+	}
-+}
-diff --git a/tests/shell/testcases/chains/dumps/0040mark_binop_9.nft b/tests/shell/testcases/chains/dumps/0040mark_binop_9.nft
-new file mode 100644
-index 000000000000..03c69c3f7cd2
---- /dev/null
-+++ b/tests/shell/testcases/chains/dumps/0040mark_binop_9.nft
-@@ -0,0 +1,6 @@
-+table ip6 t {
-+	chain c {
-+		type filter hook input priority filter; policy accept;
-+		meta mark set ip6 dscp << 26 | 16
-+	}
-+}
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 3f697eb1dd43..e19f6300fe2c 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1121,7 +1121,7 @@ static int expr_evaluate_shift(struct eval_ctx *ctx, struct expr **expr)
+ {
+ 	struct expr *op = *expr, *left = op->left, *right = op->right;
+ 	unsigned int shift = mpz_get_uint32(right->value);
+-	unsigned int op_len = left->len;
++	unsigned int op_len = op->len ? : left->len;
+ 
+ 	if (shift >= op_len) {
+ 		if (shift >= ctx->ectx.len)
+@@ -1158,7 +1158,7 @@ static int expr_evaluate_bitwise(struct eval_ctx *ctx, struct expr **expr)
+ 
+ 	op->dtype     = left->dtype;
+ 	op->byteorder = left->byteorder;
+-	op->len	      = left->len;
++	op->len	      = op->len ? : left->len;
+ 
+ 	if (expr_is_constant(left))
+ 		return constant_binop_simplify(ctx, expr);
 -- 
 2.35.1
 
