@@ -2,42 +2,42 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65A28C433F5
-	for <netfilter-devel@archiver.kernel.org>; Mon,  4 Apr 2022 12:30:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59C0BC433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon,  4 Apr 2022 12:30:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344900AbiDDMb6 (ORCPT
+        id S1344971AbiDDMcB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 4 Apr 2022 08:31:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57096 "EHLO
+        Mon, 4 Apr 2022 08:32:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57296 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344971AbiDDMb4 (ORCPT
+        with ESMTP id S1345118AbiDDMb7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 4 Apr 2022 08:31:56 -0400
+        Mon, 4 Apr 2022 08:31:59 -0400
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BBDAE25280
-        for <netfilter-devel@vger.kernel.org>; Mon,  4 Apr 2022 05:29:59 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 436B62529A
+        for <netfilter-devel@vger.kernel.org>; Mon,  4 Apr 2022 05:30:02 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=GVghsi+gNpZBXcGueEUJn7tkCrxKGtUX3ww9Ns1WA+c=; b=Au1TdiRDiJAYhkdzDI8JL0s+K1
-        YyaYcFV4DUJ0N1Ur1F94JyzbxmBHkY/M5/SaH0uR6Yyl6xUfro/YmDeHXk1aRxYNWTR3mLkRVt8Yt
-        tdT3MYFQmsZWm4JUlZdK17gfaXAMHz1JXDFO8zp1aaJmYA30iCcavxnTpqV3OI9+FNMmuQl6WOM3z
-        66J0tSHex8Yp1f/C9sJ8kIwvK3YpJ6Wr9paMlqM7YXJI4VvRnGuHStbapwNCZe7tfWS8YSScFLac8
-        XqztaPoVOlxGH5gsKX+nhs3e+GDdw8bTqRjn6kBurD+ChcTtnDABNmNBDBacU9a/Q35yqbWtcK52b
-        k+rhl4OA==;
+        bh=WfV1SGtGk5R4tCCmJjmmMmgfNFwAHsSFPDC1ZWHZH+A=; b=XlNSDFzHpTb2q1ZjnBh7weA5QJ
+        +EDVnlbFsHX8R5stJCTveprVPD+fdX4qJmcYB9Nh4/jZ9UwhwVo3dpcW07TjJSDNk3qSJZmSm0VZ+
+        xwR+Efvhx+eFj5m/beUioETHPr/1ktz5rBeA99g7mcDADaIb/pbpyDZEckz1VLrwUMEM4UzdI5VMK
+        BMgyccicUww2ZGtH884F8EKOFp3+9W/X7e9WOd7Fwubi/zSCeJVk7MsrB1k4yTfmccbiCFLUO4jbY
+        MSiKS7Tn7ou0QQ0iYsNVC5bMIyz98J9FhrRDbeuXZLQwB3IG6VNy8G0WBGw4sBt18mcvoTOk+Nd+j
+        jopVwBSA==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
         by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1nbLbK-007FTC-J5; Mon, 04 Apr 2022 13:14:30 +0100
+        id 1nbLbJ-007FTC-Nl; Mon, 04 Apr 2022 13:14:29 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
 Cc:     Kevin Darbyshire-Bryant <ldir@darbyshire-bryant.me.uk>
-Subject: [nft PATCH v4 22/32] evaluate: insert byte-order conversions for expressions between 9 and 15 bits
-Date:   Mon,  4 Apr 2022 13:14:00 +0100
-Message-Id: <20220404121410.188509-23-jeremy@azazel.net>
+Subject: [nft PATCH v4 14/32] evaluate: relax type-checking for integer arguments in mark statements
+Date:   Mon,  4 Apr 2022 13:13:52 +0100
+Message-Id: <20220404121410.188509-15-jeremy@azazel.net>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220404121410.188509-1-jeremy@azazel.net>
 References: <20220404121410.188509-1-jeremy@azazel.net>
@@ -50,72 +50,36 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Round up expression lengths when determining whether to insert a
-byte-order conversion.  For example, if one is masking a network header
-which spans a byte boundary, the mask will span two bytes and so it will
-need to be in NBO.
+In order to be able to set ct and meta marks to values derived from
+payload expressions, we need to relax the requirement that the type of
+the statement argument must match that of the statement key.  Instead,
+we require that the base-type of the argument is integer and that the
+argument is small enough to fit.
 
-Fixes: bb03cbcd18a1 ("evaluate: no need to swap byte-order for values of fewer than 16 bits.")
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- src/evaluate.c              | 2 +-
- tests/py/ip6/ct.t.payload   | 2 ++
- tests/py/ip6/meta.t.payload | 2 ++
- 3 files changed, 5 insertions(+), 1 deletion(-)
+ src/evaluate.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/src/evaluate.c b/src/evaluate.c
-index e19f6300fe2c..6b1e295d216a 100644
+index ee4da5a2b889..f975dd197de3 100644
 --- a/src/evaluate.c
 +++ b/src/evaluate.c
-@@ -158,7 +158,7 @@ static int byteorder_conversion(struct eval_ctx *ctx, struct expr **expr,
- 				  byteorder_names[byteorder],
- 				  byteorder_names[(*expr)->byteorder]);
- 
--	if (expr_is_constant(*expr) || (*expr)->len / BITS_PER_BYTE < 2)
-+	if (expr_is_constant(*expr) || div_round_up((*expr)->len, BITS_PER_BYTE) < 2)
- 		(*expr)->byteorder = byteorder;
- 	else {
- 		op = byteorder_conversion_op(*expr, byteorder);
-diff --git a/tests/py/ip6/ct.t.payload b/tests/py/ip6/ct.t.payload
-index 580c8d8d5712..a0565d14e15e 100644
---- a/tests/py/ip6/ct.t.payload
-+++ b/tests/py/ip6/ct.t.payload
-@@ -3,6 +3,7 @@ ip6 test-ip6 output
-   [ payload load 2b @ network header + 0 => reg 1 ]
-   [ bitwise reg 1 = ( reg 1 & 0x0000c00f ) ^ 0x00000000 ]
-   [ bitwise reg 1 = ( reg 1 >> 0x00000006 ) ]
-+  [ byteorder reg 1 = ntoh(reg 1, 2, 1) ]
-   [ bitwise reg 1 = ( reg 1 << 0x00000002 ) ]
-   [ bitwise reg 1 = ( reg 1 & 0x00000fef ) ^ 0x00000010 ]
-   [ ct set mark with reg 1 ]
-@@ -12,6 +13,7 @@ ip6 test-ip6 output
-   [ payload load 2b @ network header + 0 => reg 1 ]
-   [ bitwise reg 1 = ( reg 1 & 0x0000c00f ) ^ 0x00000000 ]
-   [ bitwise reg 1 = ( reg 1 >> 0x00000006 ) ]
-+  [ byteorder reg 1 = ntoh(reg 1, 2, 1) ]
-   [ bitwise reg 1 = ( reg 1 << 0x0000001a ) ]
-   [ bitwise reg 1 = ( reg 1 & 0xffffffef ) ^ 0x00000010 ]
-   [ ct set mark with reg 1 ]
-diff --git a/tests/py/ip6/meta.t.payload b/tests/py/ip6/meta.t.payload
-index 49d7b42b0179..3cb0a587a5e7 100644
---- a/tests/py/ip6/meta.t.payload
-+++ b/tests/py/ip6/meta.t.payload
-@@ -66,6 +66,7 @@ ip6 test-ip6 input
-   [ payload load 2b @ network header + 0 => reg 1 ]
-   [ bitwise reg 1 = ( reg 1 & 0x0000c00f ) ^ 0x00000000 ]
-   [ bitwise reg 1 = ( reg 1 >> 0x00000006 ) ]
-+  [ byteorder reg 1 = ntoh(reg 1, 2, 1) ]
-   [ bitwise reg 1 = ( reg 1 << 0x00000002 ) ]
-   [ bitwise reg 1 = ( reg 1 & 0x00000fef ) ^ 0x00000010 ]
-   [ meta set mark with reg 1 ]
-@@ -75,6 +76,7 @@ ip6 test-ip6 input
-   [ payload load 2b @ network header + 0 => reg 1 ]
-   [ bitwise reg 1 = ( reg 1 & 0x0000c00f ) ^ 0x00000000 ]
-   [ bitwise reg 1 = ( reg 1 >> 0x00000006 ) ]
-+  [ byteorder reg 1 = ntoh(reg 1, 2, 1) ]
-   [ bitwise reg 1 = ( reg 1 << 0x0000001a ) ]
-   [ bitwise reg 1 = ( reg 1 & 0xffffffef ) ^ 0x00000010 ]
-   [ meta set mark with reg 1 ]
+@@ -2393,8 +2393,12 @@ static int __stmt_evaluate_arg(struct eval_ctx *ctx, struct stmt *stmt,
+ 					 "expression has type %s with length %d",
+ 					 dtype->desc, (*expr)->dtype->desc,
+ 					 (*expr)->len);
+-	else if ((*expr)->dtype->type != TYPE_INTEGER &&
+-		 !datatype_equal((*expr)->dtype, dtype))
++
++	if ((dtype->type == TYPE_MARK &&
++	     !datatype_equal(datatype_basetype(dtype), datatype_basetype((*expr)->dtype))) ||
++	    (dtype->type != TYPE_MARK &&
++	     (*expr)->dtype->type != TYPE_INTEGER &&
++	     !datatype_equal((*expr)->dtype, dtype)))
+ 		return stmt_binary_error(ctx, *expr, stmt,		/* verdict vs invalid? */
+ 					 "datatype mismatch: expected %s, "
+ 					 "expression has type %s",
 -- 
 2.35.1
 
