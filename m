@@ -2,19 +2,19 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FA6DC433F5
-	for <netfilter-devel@archiver.kernel.org>; Mon,  4 Apr 2022 12:14:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 587BAC433FE
+	for <netfilter-devel@archiver.kernel.org>; Mon,  4 Apr 2022 12:14:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242228AbiDDMQf (ORCPT
+        id S242407AbiDDMQf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Mon, 4 Apr 2022 08:16:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56720 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56722 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242407AbiDDMQb (ORCPT
+        with ESMTP id S242560AbiDDMQb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 4 Apr 2022 08:16:31 -0400
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF2BD13D43
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF54213DC1
         for <netfilter-devel@vger.kernel.org>; Mon,  4 Apr 2022 05:14:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
@@ -22,22 +22,22 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=P2f+wC1M2JRL8r3nyGaLcYjmx+gCj7V+d9tdnWG9i0Y=; b=AD5qelBLgZDuD+iADj7uDwHTRc
-        YnCWfZ9olaHBMT2K/xkZmBDlEK8wEojQCmHsGV9MRKWcAq/iH19ikyCgRDIzXpfsOtxgDYFwyTL23
-        V+DJ095msrvzLPSUhYGVTjSB7Ie2KUypA4DHoxkbn6RxxbBWZKz0B3IMao9elOz7p3fSPm3ZEb24m
-        JGwkYtUXD0bOj0lVOOe/wzUSkXEqjTKaS+JV8W4hsdc7hNiFHYwLYWQ8FvoocLM/v6lmX83jvvdS4
-        d6mbbIF5sFUhFL/B1vGSxqN4Y5DlPlecrOW8xVG4bv1Ns6U+9YMcYMSit7KJtFtcr29KqiIV9+lx+
-        bzC1IV9w==;
+        bh=YVmbkuqi1rc0xTLDE/DAbxz4qh95O7ki9swpcRbb7N4=; b=JNpBlXPcN5xfGHEi86aYz41iRA
+        Hk0Zh99Lsp5dQRFhl46sJoE7U34ivGQdOAgRhOXgx6onCLphg3rEasYancKcHUCKlySnf2GLsQwpA
+        O/92oHNAeMz/YFOqlxpCQfBYlsnH7j3vCivRzPUjSgOGi07tQEBYC+BPX9xns/wlQNQVdBNLtuauu
+        z8WBBD36tCZ3IlZwdPNZpELe3noQS+lB7/Sq/ytgbKUfGhVINgxyU3VrjBhKlUPxltsmnT6Dv1SF8
+        IREuYAQuWEPPGQLuaVkG3KAPhlxH5OPPM9of2HaDXchU+hOxBhYQRD9P++6WygOkpwELixCZpHmCb
+        5N2yPmxQ==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
         by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1nbLbI-007FTC-QH; Mon, 04 Apr 2022 13:14:28 +0100
+        id 1nbLbJ-007FTC-4q; Mon, 04 Apr 2022 13:14:29 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
 Cc:     Kevin Darbyshire-Bryant <ldir@darbyshire-bryant.me.uk>
-Subject: [nft PATCH v4 04/32] datatype: support `NULL` symbol-tables when printing constants
-Date:   Mon,  4 Apr 2022 13:13:42 +0100
-Message-Id: <20220404121410.188509-5-jeremy@azazel.net>
+Subject: [nft PATCH v4 08/32] netlink: send bit-length of bitwise binops to kernel
+Date:   Mon,  4 Apr 2022 13:13:46 +0100
+Message-Id: <20220404121410.188509-9-jeremy@azazel.net>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220404121410.188509-1-jeremy@azazel.net>
 References: <20220404121410.188509-1-jeremy@azazel.net>
@@ -50,47 +50,77 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If the symbol-table passed to `symbol_constant_print` is `NULL`, fall
-back to printing the expression's base-type.
+Some bitwise operations are generated when munging paylod expressions.
+During delinearization, we attempt to eliminate these operations.
+However, this is done before deducing the byte-order or the correct
+length in bits of the operands, which means that we don't always handle
+multi-byte host-endian operations correctly.  Therefore, pass the
+bit-length of these expressions to the kernel in order to have it
+available during delinearization.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- src/datatype.c | 14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ src/netlink_delinearize.c | 14 ++++++++++++--
+ src/netlink_linearize.c   |  2 ++
+ 2 files changed, 14 insertions(+), 2 deletions(-)
 
-diff --git a/src/datatype.c b/src/datatype.c
-index b2e667cef2c6..668823b6c7b1 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -185,7 +185,7 @@ void symbolic_constant_print(const struct symbol_table *tbl,
- 			     struct output_ctx *octx)
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index a1b00dee209a..733977bc526d 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -451,20 +451,28 @@ static struct expr *netlink_parse_bitwise_bool(struct netlink_parse_ctx *ctx,
+ 					       const struct nftnl_expr *nle,
+ 					       enum nft_registers sreg,
+ 					       struct expr *left)
+-
  {
- 	unsigned int len = div_round_up(expr->len, BITS_PER_BYTE);
--	const struct symbolic_constant *s;
-+	const struct symbolic_constant *s = NULL;
- 	uint64_t val = 0;
+ 	struct nft_data_delinearize nld;
+ 	struct expr *expr, *mask, *xor, *or;
++	unsigned int nbits;
+ 	mpz_t m, x, o;
  
- 	/* Export the data in the correct byteorder for comparison */
-@@ -193,12 +193,14 @@ void symbolic_constant_print(const struct symbol_table *tbl,
- 	mpz_export_data(constant_data_ptr(val, expr->len), expr->value,
- 			expr->byteorder, len);
+ 	expr = left;
  
--	for (s = tbl->symbols; s->identifier != NULL; s++) {
--		if (val == s->value)
--			break;
--	}
-+	if (tbl != NULL)
-+		for (s = tbl->symbols; s->identifier != NULL; s++) {
-+			if (val == s->value)
-+				break;
-+		}
++	nbits = nftnl_expr_get_u32(nle, NFTNL_EXPR_BITWISE_NBITS);
++	if (nbits > 0)
++		expr->len = nbits;
++
+ 	nld.value = nftnl_expr_get(nle, NFTNL_EXPR_BITWISE_MASK, &nld.len);
+ 	mask = netlink_alloc_value(loc, &nld);
++	if (nbits > 0)
++		mpz_switch_byteorder(mask->value, div_round_up(nbits, BITS_PER_BYTE));
+ 	mpz_init_set(m, mask->value);
  
--	if (s->identifier == NULL || nft_output_numeric_symbol(octx))
-+	if (s == NULL || s->identifier == NULL ||
-+	    nft_output_numeric_symbol(octx))
- 		return expr_basetype(expr)->print(expr, octx);
+ 	nld.value = nftnl_expr_get(nle, NFTNL_EXPR_BITWISE_XOR, &nld.len);
+-	xor  = netlink_alloc_value(loc, &nld);
++	xor = netlink_alloc_value(loc, &nld);
++	if (nbits > 0)
++		mpz_switch_byteorder(xor->value, div_round_up(nbits, BITS_PER_BYTE));
+ 	mpz_init_set(x, xor->value);
  
- 	nft_print(octx, quotes ? "\"%s\"" : "%s", s->identifier);
+ 	mpz_init_set_ui(o, 0);
+@@ -500,6 +508,8 @@ static struct expr *netlink_parse_bitwise_bool(struct netlink_parse_ctx *ctx,
+ 
+ 		or = netlink_alloc_value(loc, &nld);
+ 		mpz_set(or->value, o);
++		if (nbits > 0)
++			mpz_switch_byteorder(or->value, div_round_up(nbits, BITS_PER_BYTE));
+ 		expr = binop_expr_alloc(loc, OP_OR, expr, or);
+ 		expr->len = left->len;
+ 	}
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index c8bbcb7452b0..4793f3853bee 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -677,6 +677,8 @@ static void netlink_gen_bitwise(struct netlink_linearize_ctx *ctx,
+ 	netlink_put_register(nle, NFTNL_EXPR_BITWISE_DREG, dreg);
+ 	nftnl_expr_set_u32(nle, NFTNL_EXPR_BITWISE_OP, NFT_BITWISE_BOOL);
+ 	nftnl_expr_set_u32(nle, NFTNL_EXPR_BITWISE_LEN, len);
++	if (expr->byteorder == BYTEORDER_HOST_ENDIAN)
++		nftnl_expr_set_u32(nle, NFTNL_EXPR_BITWISE_NBITS, expr->len);
+ 
+ 	netlink_gen_raw_data(mask, expr->byteorder, len, &nld);
+ 	nftnl_expr_set(nle, NFTNL_EXPR_BITWISE_MASK, nld.value, nld.len);
 -- 
 2.35.1
 
