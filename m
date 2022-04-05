@@ -2,56 +2,52 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0676C3527D
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Apr 2022 11:32:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F76DC35295
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Apr 2022 11:32:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241410AbiDEL0S (ORCPT
+        id S242156AbiDEL02 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 5 Apr 2022 07:26:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53462 "EHLO
+        Tue, 5 Apr 2022 07:26:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36196 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1356773AbiDELPn (ORCPT
+        with ESMTP id S1354210AbiDEKMP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 5 Apr 2022 07:15:43 -0400
+        Tue, 5 Apr 2022 06:12:15 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4E5AC98F54;
-        Tue,  5 Apr 2022 03:36:24 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7947F5548E;
+        Tue,  5 Apr 2022 02:58:52 -0700 (PDT)
 Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 5706460196;
-        Tue,  5 Apr 2022 12:32:45 +0200 (CEST)
-Date:   Tue, 5 Apr 2022 12:36:20 +0200
+        by mail.netfilter.org (Postfix) with ESMTPSA id 7C5DF6303B;
+        Tue,  5 Apr 2022 11:55:13 +0200 (CEST)
+Date:   Tue, 5 Apr 2022 11:58:48 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jakob Koschel <jakobkoschel@gmail.com>
-Cc:     linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
+To:     Vasily Averin <vasily.averin@linux.dev>
+Cc:     Florian Westphal <fw@strlen.de>, kernel@openvz.org,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Mike Rapoport <rppt@kernel.org>,
-        Brian Johannesmeyer <bjohannesmeyer@gmail.com>,
-        Cristiano Giuffrida <c.giuffrida@vu.nl>,
-        "Bos, H.J." <h.j.bos@vu.nl>
-Subject: Re: [PATCH v2] netfilter: nf_tables: replace unnecessary use of
- list_for_each_entry_continue()
-Message-ID: <YkwbpEU25LR/42xx@salvia>
-References: <20220322105645.3667322-1-jakobkoschel@gmail.com>
+        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Roman Gushchin <roman.gushchin@linux.dev>
+Subject: Re: [PATCH v2] nft: memcg accounting for dynamically allocated
+ objects
+Message-ID: <YkwS2F0ZrE73KONJ@salvia>
+References: <935e4270-9e0e-4cd0-ffb4-9c1eb3d9c56e@linux.dev>
+ <121a6930-9ebd-e488-e109-273a403a93cb@linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20220322105645.3667322-1-jakobkoschel@gmail.com>
+In-Reply-To: <121a6930-9ebd-e488-e109-273a403a93cb@linux.dev>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Mar 22, 2022 at 11:56:44AM +0100, Jakob Koschel wrote:
-> Since there is no way for list_for_each_entry_continue() to start
-> interating in the middle of the list they can be replaced with a call
-> to list_for_each_entry().
+On Sat, Apr 02, 2022 at 12:50:37PM +0300, Vasily Averin wrote:
+> nft_*.c files whose NFT_EXPR_STATEFUL flag is set on need to
+> use __GFP_ACCOUNT flag for objects that are dynamically
+> allocated from the packet path.
 > 
-> In preparation to limit the scope of the list iterator to the list
-> traversal loop, the list iterator variable 'rule' should not be used
-> past the loop.
+> Such objects are allocated inside nft_expr_ops->init() callbacks
+> executed in task context while processing netlink messages.
+> 
+> In addition, this patch adds accounting to nft_set_elem_expr_clone()
+> used for the same purposes.
 
-Applied to nf-next, thanks
+Applied to nf, thanks
