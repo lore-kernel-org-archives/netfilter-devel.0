@@ -2,41 +2,127 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D1CBC433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Apr 2022 14:07:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FAC4C433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Apr 2022 14:07:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236118AbiDEOJ0 (ORCPT
+        id S236876AbiDEOJb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 5 Apr 2022 10:09:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43140 "EHLO
+        Tue, 5 Apr 2022 10:09:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40972 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1382661AbiDEMQZ (ORCPT
+        with ESMTP id S239661AbiDENyn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 5 Apr 2022 08:16:25 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C26F4D370E
-        for <netfilter-devel@vger.kernel.org>; Tue,  5 Apr 2022 04:26:14 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1nbhK9-0004F6-Cv; Tue, 05 Apr 2022 13:26:13 +0200
-Date:   Tue, 5 Apr 2022 13:26:13 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Jeremy Sowden <jeremy@azazel.net>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>,
-        Kevin Darbyshire-Bryant <ldir@darbyshire-bryant.me.uk>
-Subject: Re: [nft PATCH v4 01/32] examples: add .gitignore file
-Message-ID: <20220405112613.GD12048@breakpoint.cc>
-References: <20220404121410.188509-1-jeremy@azazel.net>
- <20220404121410.188509-2-jeremy@azazel.net>
+        Tue, 5 Apr 2022 09:54:43 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADE7BBD2CD;
+        Tue,  5 Apr 2022 05:55:50 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1nbiiq-0003dp-DO; Tue, 05 Apr 2022 14:55:48 +0200
+Date:   Tue, 5 Apr 2022 14:55:48 +0200
+From:   Phil Sutter <phil@netfilter.org>
+To:     netfilter <netfilter@vger.kernel.org>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>
+Cc:     netdev@vger.kernel.org, netfilter-announce@lists.netfilter.org,
+        lwn@lwn.net
+Subject: [ANNOUNCE] libmnl 1.0.5 release
+Message-ID: <Ykw8VBenlUgEVPvl@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@netfilter.org>,
+        netfilter <netfilter@vger.kernel.org>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-announce@lists.netfilter.org,
+        lwn@lwn.net
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="FgAyCt4XeABDY93x"
 Content-Disposition: inline
-In-Reply-To: <20220404121410.188509-2-jeremy@azazel.net>
-User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Jeremy Sowden <jeremy@azazel.net> wrote:
 
-Applied this one and the next, will go over this series later today.
+--FgAyCt4XeABDY93x
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi!
+
+The Netfilter project proudly presents:
+
+        libmnl 1.0.5
+
+This release contains new features:
+
+* Two new examples:
+  * rtnl-neigh-dump, dumping ARP cache
+  * rtnl-addr-add, adding an IP address to an interface
+* MNL_SOCKET_DUMP_SIZE define, holding a recommended buffer size for
+  netlink dumps
+
+... and fixes:
+
+* nfct-daemon example compile error with musl libc
+* Compiler warning when passing a const 'cb_ctl_array' to mnl_cb_run2()
+* Typo in rtnl-addr-dump example
+* Valgrind warnings due to uninitialized padding in netlink messages
+* Misc fixes in doxygen documentation
+* Misc build system fixes
+
+You can download this new release from:
+
+https://netfilter.org/projects/libmnl/downloads.html#libmnl-1.0.5
+
+Check out the doxygen documentation at:
+
+https://netfilter.org/projects/libmnl/doxygen/html/
+
+In case of bugs and feature requests, file them via:
+
+* https://bugzilla.netfilter.org
+
+Happy firewalling!
+
+--FgAyCt4XeABDY93x
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="changes-libmnl-1.0.5.txt"
+
+Duncan Roe (5):
+      nlmsg: Fix a missing doxygen section trailer
+      build: doc: "make" builds & installs a full set of man pages
+      build: doc: get rid of the need for manual updating of Makefile
+      build: If doxygen is not available, be sure to report "doxygen: no" to ./configure
+      src: doc: Fix messed-up Netlink message batch diagram
+
+Fernando Fernandez Mancera (1):
+      src: fix doxygen function documentation
+
+Florian Westphal (1):
+      libmnl: zero attribute padding
+
+Guillaume Nault (1):
+      callback: mark cb_ctl_array 'const' in mnl_cb_run2()
+
+Kylie McClain (1):
+      examples: nfct-daemon: Fix test building on musl libc
+
+Laura Garcia Liebana (4):
+      examples: add arp cache dump example
+      examples: fix neigh max attributes
+      examples: fix print line format
+      examples: reduce LOCs during neigh attributes validation
+
+Pablo Neira Ayuso (3):
+      doxygen: remove EXPORT_SYMBOL from the output
+      include: add MNL_SOCKET_DUMP_SIZE definition
+      build: libmnl 1.0.5 release
+
+Petr Vorel (1):
+      examples: Add rtnl-addr-add.c
+
+Stephen Hemminger (1):
+      examples: rtnl-addr-dump: fix typo
+
+igo95862 (1):
+      doxygen: Fixed link to the git source tree on the website.
+
+
+--FgAyCt4XeABDY93x--
