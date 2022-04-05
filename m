@@ -2,44 +2,44 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7621CC433FE
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Apr 2022 14:07:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AA2FC433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Apr 2022 14:07:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237060AbiDEOI6 (ORCPT
+        id S236247AbiDEOJE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 5 Apr 2022 10:08:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49452 "EHLO
+        Tue, 5 Apr 2022 10:09:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46410 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1381431AbiDEMya (ORCPT
+        with ESMTP id S1356652AbiDELzk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 5 Apr 2022 08:54:30 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6F15F2A25E
-        for <netfilter-devel@vger.kernel.org>; Tue,  5 Apr 2022 04:58:27 -0700 (PDT)
-Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 27F3F60196;
-        Tue,  5 Apr 2022 13:54:48 +0200 (CEST)
-Date:   Tue, 5 Apr 2022 13:58:24 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Lukas Straub <lukasstraub2@web.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] meta time: use uint64_t instead of time_t
-Message-ID: <Ykwu4PnorVaAG1Op@salvia>
-References: <20220405101016.855221490@web.de>
- <20220405101026.867817071@web.de>
+        Tue, 5 Apr 2022 07:55:40 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE2FC262E
+        for <netfilter-devel@vger.kernel.org>; Tue,  5 Apr 2022 04:15:48 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1nbhA1-0003zR-U7; Tue, 05 Apr 2022 13:15:45 +0200
+Date:   Tue, 5 Apr 2022 13:15:45 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Jeremy Sowden <jeremy@azazel.net>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>,
+        Kevin Darbyshire-Bryant <ldir@darbyshire-bryant.me.uk>
+Subject: Re: [nft PATCH v4 05/32] ct: support `NULL` symbol-tables when
+ looking up labels
+Message-ID: <20220405111545.GA12048@breakpoint.cc>
+References: <20220404121410.188509-1-jeremy@azazel.net>
+ <20220404121410.188509-6-jeremy@azazel.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220405101026.867817071@web.de>
+In-Reply-To: <20220404121410.188509-6-jeremy@azazel.net>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Apr 05, 2022 at 10:41:14AM +0000, Lukas Straub wrote:
-> time_t may be 32 bit on some platforms and thus can't fit a timestamp
-> with nanoseconds resolution. This causes overflows and ultimatively
-> breaks meta time expressions on such platforms.
-> 
-> Fix this by using uint64_t instead.
+Jeremy Sowden <jeremy@azazel.net> wrote:
+> If the symbol-table passed to `ct_label2str` is `NULL`, return `NULL`.
 
-Applied, thanks
+It would be nice to describe why, not what.
+Does this fix a crash when the label file is missing?
