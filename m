@@ -2,97 +2,68 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A91EC433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Apr 2022 09:03:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E8BAC433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Apr 2022 14:39:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233816AbiDFJCY (ORCPT
+        id S235015AbiDFOlI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 6 Apr 2022 05:02:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37316 "EHLO
+        Wed, 6 Apr 2022 10:41:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57136 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1453494AbiDFI6x (ORCPT
+        with ESMTP id S235046AbiDFOks (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 Apr 2022 04:58:53 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E894ABF61
-        for <netfilter-devel@vger.kernel.org>; Tue,  5 Apr 2022 20:12:46 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1nbw68-0002jM-Nf; Wed, 06 Apr 2022 05:12:44 +0200
-Date:   Wed, 6 Apr 2022 05:12:44 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Jeremy Sowden <jeremy@azazel.net>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [nf-next PATCH v2 1/5] netfilter: bitwise: keep track of
- bit-length of expressions
-Message-ID: <20220406031244.GA18470@breakpoint.cc>
-References: <20220404120417.188410-1-jeremy@azazel.net>
- <20220404120417.188410-2-jeremy@azazel.net>
- <20220405112850.GE12048@breakpoint.cc>
- <Ykyq+JE0/nTM/de0@azazel.net>
+        Wed, 6 Apr 2022 10:40:48 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6496E307648
+        for <netfilter-devel@vger.kernel.org>; Wed,  6 Apr 2022 04:06:16 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1nc3UL-0007L9-H3; Wed, 06 Apr 2022 13:06:13 +0200
+Date:   Wed, 6 Apr 2022 13:06:13 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH libnftnl 0/3] add description infrastructure
+Message-ID: <Yk10JYXS/uGGqsxe@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20220120000402.916332-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <Ykyq+JE0/nTM/de0@azazel.net>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20220120000402.916332-1-pablo@netfilter.org>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Jeremy Sowden <jeremy@azazel.net> wrote:
-> It wouldn't be straightforward.  Expression udata might make more sense
-> than adding a new bitwise attribute, but that doesn't currently exist.
-> Would it be worth adding?  I seem to recall considering something along
-> those lines for passing type information with expressions as a way to
-> implement casting.
+Hi Pablo,
 
-Had not thought of casting, good point.
-Given bitwise needs to be touched anyway to get the second register
-operations I think the proposed patch isn't too bad.
+On Thu, Jan 20, 2022 at 01:03:59AM +0100, Pablo Neira Ayuso wrote:
+> This is my proposal to address the snprintf data printing depending on
+> the arch. The idea is to add description objects that can be used to
+> build the userdata area as well as to parse the userdata to create the
+> description object.
+> 
+> This is revisiting 6e48df5329ea ("src: add "typeof" build/parse/print
+> support") in nftables which adds build and parse userdata callbacks to
+> expression in libnftables. My proposal is to move this to libnftnl.
 
-For casts and other use cases (including bitlen), I think its
-not needed to add special udata for expressions, as userspace can't
-zap them selectively.
+Looking at your PoC again, I assume it was meant for use by applications
+to create and populate an nftnl_set_desc object and serialize it into
+nftnl_set's userdata using nftnl_set_desc_build_udata(). Since the
+information is needed within libnftnl though, the whole API does not
+make sense anymore and nftnl_set_desc must be serialized by libnftnl
+itself. This in turn means one may just integrate the data structure
+into nftnl_set's 'desc' field directly and extend nftnl_set_set_data()
+to allow populating the new fields, plus
+nftnl_set_desc_add_{expr,datatype}() I guess.
 
-We already do something similar for sets (to embed 'typeof' info
-for key and data).
+Am I on the right track there?
 
-Probably extend nftnl_udata_rule_types in libnftnl to add a
-NFTNL_UDATA_RULE_EXPR_INFO.
+Maybe it's quicker for me to add the missing bits to my stuff instead of
+adjusting it to your series after making it work for the intended
+purpose. Especially since I'm not quite sure what goal we're trying to
+achieve.
 
-NFTNL_UDATA_RULE_EXPR_INFO would be nested and contain
-expression specific (nested) attributes.
-
-i.e., if you have something like
-
-meta mark -> reg 1
-binop reg1 &= 0x0000ffff
-ct mark -> reg 2
-binop and reg1 &= reg2  // ulen 16
-
-Then rule udata would have:
-NFTNL_UDATA_RULE_EXPR_INFO (nested)
-   type 4 (nested, 4 refers to the last expression above,
- 	   type '0' is reserved).
-      type 1 // nla_u32  -> for binop, 1 is 'len', it would be
-               defined privately in src/bitwise.c
-END
-
-because only expression 4 needs annotations, so we don't waste
-space for expressions that do not need extra data.
-
-We could reserve a few nested numbers for things that might make sense
-for all (or many) expresssions, e.g. 'cast to type x'.
-
-We could of course place expr specific structs in there too but so
-far we managed to avoid this and it would be not-so-nice to break
-nft userspace when listing a ruleset added by an older version.
-
-Probably could extend struct netlink_linearize_ctx with a memory
-blob pointer that netlink_linearize_rule()/netlink_gen_stmt() can use
-to add extra data.
-
-My problem is that its a lot of (userspace) code for something that can
-easily be done by a small kernel patch such as this one and so far we
-don't have a real need for something like this.
+Cheers, Phil
