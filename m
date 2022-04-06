@@ -2,106 +2,215 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28878C433FE
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Apr 2022 16:41:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21993C433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Apr 2022 16:47:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237491AbiDFQnR (ORCPT
+        id S238033AbiDFQtx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 6 Apr 2022 12:43:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43832 "EHLO
+        Wed, 6 Apr 2022 12:49:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33152 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238566AbiDFQm7 (ORCPT
+        with ESMTP id S238054AbiDFQtj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 Apr 2022 12:42:59 -0400
-Received: from mail-lj1-x230.google.com (mail-lj1-x230.google.com [IPv6:2a00:1450:4864:20::230])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A71A12D3112
-        for <netfilter-devel@vger.kernel.org>; Wed,  6 Apr 2022 07:02:42 -0700 (PDT)
-Received: by mail-lj1-x230.google.com with SMTP id c15so3333745ljr.9
-        for <netfilter-devel@vger.kernel.org>; Wed, 06 Apr 2022 07:02:42 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=message-id:date:mime-version:user-agent:subject:content-language:to
-         :cc:references:from:in-reply-to:content-transfer-encoding;
-        bh=zPRNJlwIRkZQxaOZIHl/TKLOdowLXCXaal/as6LhPMc=;
-        b=XqS9Gqc6pxEoKBqsU4cD1ZOJBWZAaxkzD2x8mIy9XfxtyO710o2Cd6brWHWMOB/ey3
-         +/1Zu4J0LiqeLWvtwVIHio3DEZDVguWFTmJHubO6am560kf51bo3qYCSEULvMt4OwOBE
-         1n/1gJNhPiRi3YURomqJd7AYotktKBNK4HGFY1252mFCGw1/xM/TRKqJN4IKUU+dMPD+
-         cdkiGTu4//IiPV1V6wrBscpaBra3FbspScb0h3zPIN7UT9mmhrWPvBE7cGSfJkWwK+l7
-         UrFl0y3P3D/FNXHn5cv8qwwPCZrn8VHIq5AMRGHYZ2K3dMFWd3ICnircQj9sX3SUAgZL
-         Ir6g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:to:cc:references:from:in-reply-to
-         :content-transfer-encoding;
-        bh=zPRNJlwIRkZQxaOZIHl/TKLOdowLXCXaal/as6LhPMc=;
-        b=YerWUPPAnVEZsOC4Ii81wxvSp+guAgX/AUho3rIeNqIHa7yGsPs/MjZF096nwvzrzU
-         FuXgRmtoZR+ascdQcWfmFCu26eMwAhlokhhQcyTiVKx0D4ooRUWWbXKnLQ2bguLNf7Dt
-         JDhHJprTHsxI13E3y/Fu5P9oSAC/GFY9B8Sfcei/6cyl9ysc77nVUHysBswHZpvK881Y
-         DbeZinZsvLYqjSUJMHo993ii1AdTeusoG+2kzwPVnnDC0aJlIVRYBvm0FMTuTBlTd+zJ
-         ejHufZDSCTz1pYeB/YwVM53Bdo7pSvuy/AYoBYrnWh19F8igO/yJr+h9Q0qM4y853jr0
-         hxHg==
-X-Gm-Message-State: AOAM531BCVYQi55iNFF+G1G6KevTA0xHF1/cAlyWjNFGVdYAyInwdv5a
-        hAFiKNDxgYH62T1NgEMFWnkC9h6lzCE=
-X-Google-Smtp-Source: ABdhPJx6fEQ6RGquqJAJtHMsMmFVObXtbCw7JKVmyjzE+YiLcM+Bi3XpEtzcukqNrIgx3OmuYNozcA==
-X-Received: by 2002:a2e:2ac2:0:b0:24a:fcf1:7f3a with SMTP id q185-20020a2e2ac2000000b0024afcf17f3amr5290206ljq.2.1649253760660;
-        Wed, 06 Apr 2022 07:02:40 -0700 (PDT)
-Received: from [192.168.1.38] (91-159-150-194.elisa-laajakaista.fi. [91.159.150.194])
-        by smtp.gmail.com with ESMTPSA id z14-20020a2e7e0e000000b0024ac33571fbsm1583550ljc.62.2022.04.06.07.02.39
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 06 Apr 2022 07:02:40 -0700 (PDT)
-Message-ID: <598a0640-724a-8277-c314-d54923d7a42b@gmail.com>
-Date:   Wed, 6 Apr 2022 17:02:38 +0300
+        Wed, 6 Apr 2022 12:49:39 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4BFEE1E9622;
+        Wed,  6 Apr 2022 07:12:07 -0700 (PDT)
+Received: from fraeml704-chm.china.huawei.com (unknown [172.18.147.206])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4KYRFv5ClGz67Nl1;
+        Wed,  6 Apr 2022 22:09:07 +0800 (CST)
+Received: from [10.122.132.241] (10.122.132.241) by
+ fraeml704-chm.china.huawei.com (10.206.15.53) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.2375.24; Wed, 6 Apr 2022 16:12:04 +0200
+Message-ID: <2958392e-ba3e-453e-415b-c3869523ea25@huawei.com>
+Date:   Wed, 6 Apr 2022 17:12:00 +0300
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.7.0
-Subject: Re: Support for loading firewall rules with cgroup(v2) expressions
- early
-Content-Language: en-US
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-References: <fabde324-383a-622c-7e69-32c9b2d06191@gmail.com>
- <YkDXwaPwYf8NgKT+@salvia> <418f6461-4504-4707-5ec2-61227af2ad27@gmail.com>
- <YkHOuprHwwuXjWrm@salvia> <5b850d67-92c1-9ece-99d2-390e8a5731b3@gmail.com>
- <YkOF0LyDSqKX6ERe@salvia> <35c20ae1-fc79-9488-8a42-a405424d1e53@gmail.com>
- <YkTP40PPDCJSObeH@salvia> <dbbe9ff4-4ec8-b979-9a35-7f79b3fbb9cb@gmail.com>
- <YkzAIUEmsxebKj8l@salvia>
-From:   Topi Miettinen <toiwoton@gmail.com>
-In-Reply-To: <YkzAIUEmsxebKj8l@salvia>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.1
+Subject: Re: [RFC PATCH v4 10/15] seltest/landlock: add tests for bind() hooks
+Content-Language: ru
+To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+CC:     <willemdebruijn.kernel@gmail.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+        <artem.kuzin@huawei.com>, <anton.sirazetdinov@huawei.com>
+References: <20220309134459.6448-1-konstantin.meskhidze@huawei.com>
+ <20220309134459.6448-11-konstantin.meskhidze@huawei.com>
+ <d3340ed0-fe61-3f00-d7ba-44ece235a319@digikod.net>
+ <491d6e96-4bfb-ed97-7eb8-fb18aa144d64@huawei.com>
+ <6f631d7c-a2e3-20b3-997e-6b533b748767@digikod.net>
+From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+In-Reply-To: <6f631d7c-a2e3-20b3-997e-6b533b748767@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.122.132.241]
+X-ClientProxiedBy: lhreml751-chm.china.huawei.com (10.201.108.201) To
+ fraeml704-chm.china.huawei.com (10.206.15.53)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 6.4.2022 1.18, Pablo Neira Ayuso wrote:
-> On Thu, Mar 31, 2022 at 06:10:19PM +0300, Topi Miettinen wrote:
->> On 31.3.2022 0.47, Pablo Neira Ayuso wrote:
->>> On Wed, Mar 30, 2022 at 07:37:00PM +0300, Topi Miettinen wrote:
-> [...]
->>>> Nice ideas, but the rules can't be loaded before the cgroups are realized at
->>>> early boot:
->>>>
->>>> Mar 30 19:14:45 systemd[1]: Starting nftables...
->>>> Mar 30 19:14:46 nft[1018]: /etc/nftables.conf:305:5-44: Error: cgroupv2 path
->>>> fails: Permission denied
->>>> Mar 30 19:14:46 nft[1018]: "system.slice/systemd-timesyncd.service" : jump
->>>> systemd_timesyncd
->>>> Mar 30 19:14:46 nft[1018]: ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
->>>> Mar 30 19:14:46 systemd[1]: nftables.service: Main process exited,
->>>> code=exited, status=1/FAILURE
->>>> Mar 30 19:14:46 systemd[1]: nftables.service: Failed with result
->>>> 'exit-code'.
->>>> Mar 30 19:14:46 systemd[1]: Failed to start nftables.
->>>
->>> I guess this unit file performs nft -f on cgroupsv2 that do not exist
->>> yet.
->>
->> Yes, that's the case. Being able to do so with for example "cgroupsv2name"
->> would be nice.
+
+
+4/4/2022 12:44 PM, Mickaël Salaün пишет:
 > 
-> Cgroupsv2 names might be arbitrarily large, correct? ie. PATH_MAX.
+> On 04/04/2022 10:28, Konstantin Meskhidze wrote:
+>>
+>>
+>> 4/1/2022 7:52 PM, Mickaël Salaün пишет:
+> 
+> [...]
+> 
+>>>> +static int create_socket(struct __test_metadata *const _metadata)
+>>>> +{
+>>>> +
+>>>> +        int sockfd;
+>>>> +
+>>>> +        sockfd = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
+>>>> +        ASSERT_LE(0, sockfd);
+>>>> +        /* Allows to reuse of local address */
+>>>> +        ASSERT_EQ(0, setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, 
+>>>> &one, sizeof(one)));
+>>>
+>>> Why is it required?
+>>
+>>    Without SO_REUSEADDR there is an error that a socket's port is in use.
+> 
+> I'm sure there is, but why is this port reused? I think this means that 
+> there is an issue in the tests and that could hide potential issue with 
+> the tests (and then with the kernel code). Could you investigate and 
+> find the problem? This would make these tests reliable.
+   The next scenario is possible here:
+   "In order for a network connection to close, both ends have to send 
+FIN (final) packets, which indicate they will not send any additional 
+data, and both ends must ACK (acknowledge) each other's FIN packets. The 
+FIN packets are initiated by the application performing a close(), a 
+shutdown(), or an exit(). The ACKs are handled by the kernel after the 
+close() has completed. Because of this, it is possible for the process 
+to complete before the kernel has released the associated network 
+resource, and this port cannot be bound to another process until the 
+kernel has decided that it is done."
+https://hea-www.harvard.edu/~fine/Tech/addrinuse.html.
 
-I think so, could this be a problem?
+So in this case we have busy port in network selfttest and one of the 
+solution is to set SO_REUSEADDR socket option, "which explicitly allows 
+a process to bind to a port which remains in TIME_WAIT (it still only 
+allows a single process to be bound to that port). This is the both the 
+simplest and the most effective option for reducing the "address already 
+in use" error".
+> 
+> Without removing the need to find this issue, the next series should use 
+> a network namespace per test, which will confine such issue from other 
+> tests and the host.
 
--Topi
+   So there are 2 options here:
+	1. Using SO_REUSEADDR option
+	2. Using network namespace.
+
+I prefer the first option - "the simplest and the most effective one"
+
+> 
+> [...]
+> 
+>>>> +TEST_F_FORK(socket, bind_with_restrictions) {
+>>>> +
+>>>> +    int sockfd_1, sockfd_2, sockfd_3;
+>>>
+>>> Do you really need to have 3 opened socket at the same time?
+>>
+>>    I just wanted to "kill two birds with one stone" in this test.
+>>    It possible to split it in 3 tests and open just one socket in each 
+>> one.
+> 
+> I wanted to point out that these three variables could be replaced with 
+> only one (taking into account that successful opened socket are closed 
+> before the variable is reused).
+> 
+> It may not be obvious if we need to split a test into multiple. The 
+> rules I try to follow are:
+> - use a consistent Landlock rule setup, with potentially nested rules, 
+> to test specific edge cases;
+> - don't tamper the context of a test (e.g. with FS topology/layout 
+> modification or network used port) unless it is clearly documented and 
+> easy to spot, but be careful about the dependent tests;
+> - don't make tests too long unless it makes sense for a specific scenario.
+> 
+   Ok. I got your point here. Thanks.
+> 
+>>>
+>>>> +
+>>>> +    struct landlock_ruleset_attr ruleset_attr = {
+>>>> +        .handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
+>>>> +                      LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>>>> +    };
+>>>> +    struct landlock_net_service_attr net_service_1 = {
+>>>> +        .allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
+>>>> +                  LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>>>> +        .port = port[0],
+>>>> +    };
+>>>> +    struct landlock_net_service_attr net_service_2 = {
+>>>> +        .allowed_access = LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>>>> +        .port = port[1],
+>>>> +    };
+>>>> +    struct landlock_net_service_attr net_service_3 = {
+>>>> +        .allowed_access = 0,
+>>>> +        .port = port[2],
+>>>> +    };
+>>>> +
+>>>> +    const int ruleset_fd = landlock_create_ruleset(&ruleset_attr,
+>>>> +            sizeof(ruleset_attr), 0);
+>>>> +    ASSERT_LE(0, ruleset_fd);
+>>>> +
+>>>> +    /* Allows connect and bind operations to the port[0] socket. */
+>>>> +    ASSERT_EQ(0, landlock_add_rule(ruleset_fd, 
+>>>> LANDLOCK_RULE_NET_SERVICE,
+>>>> +                &net_service_1, 0));
+>>>> +    /* Allows connect and deny bind operations to the port[1] 
+>>>> socket. */
+>>>> +    ASSERT_EQ(0, landlock_add_rule(ruleset_fd, 
+>>>> LANDLOCK_RULE_NET_SERVICE,
+>>>> +                &net_service_2, 0));
+>>>> +    /* Empty allowed_access (i.e. deny rules) are ignored in 
+>>>> network actions
+>>>> +     * for port[2] socket.
+>>>> +     */
+>>>> +    ASSERT_EQ(-1, landlock_add_rule(ruleset_fd, 
+>>>> LANDLOCK_RULE_NET_SERVICE,
+>>>> +                &net_service_3, 0));
+>>>> +    ASSERT_EQ(ENOMSG, errno);
+>>>> +
+>>>> +    /* Enforces the ruleset. */
+>>>> +    enforce_ruleset(_metadata, ruleset_fd);
+>>>> +
+>>>> +    sockfd_1 = create_socket(_metadata);
+>>>> +    ASSERT_LE(0, sockfd_1);
+>>>> +    /* Binds a socket to port[0] */
+>>>> +    ASSERT_EQ(0, bind(sockfd_1, (struct sockaddr  *)&addr[0], 
+>>>> sizeof(addr[0])));
+>>>> +
+>>>> +    /* Close bounded socket*/
+>>>> +    ASSERT_EQ(0, close(sockfd_1));
+>>>> +
+>>>> +    sockfd_2 = create_socket(_metadata);
+>>>> +    ASSERT_LE(0, sockfd_2);
+>>>> +    /* Binds a socket to port[1] */
+>>>> +    ASSERT_EQ(-1, bind(sockfd_2, (struct sockaddr *)&addr[1], 
+>>>> sizeof(addr[1])));
+>>>> +    ASSERT_EQ(EACCES, errno);
+>>>> +
+>>>> +    sockfd_3 = create_socket(_metadata);
+>>>> +    ASSERT_LE(0, sockfd_3);
+>>>> +    /* Binds a socket to port[2] */
+>>>> +    ASSERT_EQ(-1, bind(sockfd_3, (struct sockaddr *)&addr[2], 
+>>>> sizeof(addr[2])));
+>>>> +    ASSERT_EQ(EACCES, errno);
+>>>> +}
+>>>> +TEST_HARNESS_MAIN
+>>>> -- 
+>>>> 2.25.1
+>>>>
+>>>
+>>> .
+> .
