@@ -2,97 +2,97 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA17AC433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Apr 2022 04:53:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A91EC433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Apr 2022 09:03:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235708AbiDFEuG (ORCPT
+        id S233816AbiDFJCY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 6 Apr 2022 00:50:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49462 "EHLO
+        Wed, 6 Apr 2022 05:02:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37316 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1850367AbiDFCwO (ORCPT
+        with ESMTP id S1453494AbiDFI6x (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 5 Apr 2022 22:52:14 -0400
-Received: from mail-wm1-x362.google.com (mail-wm1-x362.google.com [IPv6:2a00:1450:4864:20::362])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8196B179B12
-        for <netfilter-devel@vger.kernel.org>; Tue,  5 Apr 2022 16:52:09 -0700 (PDT)
-Received: by mail-wm1-x362.google.com with SMTP id bi13-20020a05600c3d8d00b0038c2c33d8f3so2585373wmb.4
-        for <netfilter-devel@vger.kernel.org>; Tue, 05 Apr 2022 16:52:09 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:dkim-signature:from:to:cc:subject:date
-         :message-id:content-transfer-encoding;
-        bh=tjab0l+xfYR0aZEj5soCABbrSjfcWfiSiNw5bb6ADcc=;
-        b=6jO2aSMSmK9A/p10aL67j5dpThrj7xNgjXytOoXduLDhiveuNv/6iWf7F9OH4AEQ8m
-         nMgt8ZXVBmxylvGh8utqy00DfZmUWKIC4BcSJkDneu9SsTBy0OlDJ92DwhJgC8kxtHd9
-         SMmjgI/2ycPH1Qqw/k0xxn1Lv+kxR/wcnf0h2PKzRyz6R5iHr+SApVITsOtgPTQ8XWrf
-         jefGIrFZp6ehHbv6cowT5AnSzM30l+NErkwLJaUygnLy0YHYJe4in6b0gSbXR50Gz2IJ
-         U+54Euqq8g0RFy5N88LONR/kWiFcFD0CPdwvOK+CyllvTbh2WMG8ZfU9U9jzblg6NauG
-         ubwA==
-X-Gm-Message-State: AOAM530ZsSwLK2mW6BzwcA/+JNDwt0xjIzYhy3//6YlkZ/8TPE0X9dI7
-        gnLXhC9DUoh5V3RFi2GYe7+HwKHzF3MHzcCC99DTQJUi/vqy
-X-Google-Smtp-Source: ABdhPJzjXl9lYXef6+e9Ggc2Y85pcIUJDGm5uhvKfava0TB3KoHRk4M3HKy4QO+yz963G18cVxs/3dEmP3Ap
-X-Received: by 2002:a7b:c381:0:b0:37b:e01f:c1c0 with SMTP id s1-20020a7bc381000000b0037be01fc1c0mr5174267wmj.98.1649202721448;
-        Tue, 05 Apr 2022 16:52:01 -0700 (PDT)
-Received: from smtp.aristanetworks.com (smtp.aristanetworks.com. [52.0.43.43])
-        by smtp-relay.gmail.com with ESMTPS id f13-20020a05600c4e8d00b0038c994092fbsm439961wmq.0.2022.04.05.16.52.01
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 05 Apr 2022 16:52:01 -0700 (PDT)
-X-Relaying-Domain: arista.com
-Received: from chmeee (unknown [10.95.70.41])
-        by smtp.aristanetworks.com (Postfix) with ESMTPS id 28C603002D04;
-        Tue,  5 Apr 2022 16:52:00 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arista.com;
-        s=Arista-A; t=1649202720;
-        bh=tjab0l+xfYR0aZEj5soCABbrSjfcWfiSiNw5bb6ADcc=;
-        h=From:To:Cc:Subject:Date:From;
-        b=woP9fF3qZzunKXrRcPgDSyac21eIvuWWbeTXc12/yEUdySijANk8sRKdptJl6l5cV
-         iLcWQenoSPX2Ua0bGFCFKIClIsbbT65yMydGSEo0ET6l5uKpuHqFK61RohyHNSI0Kq
-         N+MjUi8fnrUaLZTjxB92POD5qaaEiDgFmSq4TIzgFSShKcjV2p+U/2HajpkGw7oVwX
-         Xbnd+gf0pkHohKyV6TZIsm4APNq+F+u8GWZm4iBIUbO2G1UxNT0QdN6rOWgHAL3CD+
-         qbi6ht0AIfArtaytZm0+cEir6F5+2bHfzNrmyt+2AcBxSrm/nEmbNJqmeleAy7LBGo
-         xAWf0YU6uw5RQ==
-Received: from kevmitch by chmeee with local (Exim 4.95)
-        (envelope-from <kevmitch@chmeee>)
-        id 1nbsxp-00188V-Sp;
-        Tue, 05 Apr 2022 16:51:57 -0700
-From:   Kevin Mitchell <kevmitch@arista.com>
-Cc:     kevmitch@arista.com, gal@nvidia.com,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Roopa Prabhu <roopa@nvidia.com>,
-        Nikolay Aleksandrov <nikolay@nvidia.com>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        bridge@lists.linux-foundation.org
-Subject: [PATCH v2 0/1] UDP traceroute packets with no checksum
-Date:   Tue,  5 Apr 2022 16:51:15 -0700
-Message-Id: <20220405235117.269511-1-kevmitch@arista.com>
-Content-Transfer-Encoding: 8bit
-To:     unlisted-recipients:; (no To-header on input)
+        Wed, 6 Apr 2022 04:58:53 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E894ABF61
+        for <netfilter-devel@vger.kernel.org>; Tue,  5 Apr 2022 20:12:46 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1nbw68-0002jM-Nf; Wed, 06 Apr 2022 05:12:44 +0200
+Date:   Wed, 6 Apr 2022 05:12:44 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Jeremy Sowden <jeremy@azazel.net>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [nf-next PATCH v2 1/5] netfilter: bitwise: keep track of
+ bit-length of expressions
+Message-ID: <20220406031244.GA18470@breakpoint.cc>
+References: <20220404120417.188410-1-jeremy@azazel.net>
+ <20220404120417.188410-2-jeremy@azazel.net>
+ <20220405112850.GE12048@breakpoint.cc>
+ <Ykyq+JE0/nTM/de0@azazel.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Ykyq+JE0/nTM/de0@azazel.net>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This is v2 of https://lkml.org/lkml/2022/1/14/1060
+Jeremy Sowden <jeremy@azazel.net> wrote:
+> It wouldn't be straightforward.  Expression udata might make more sense
+> than adding a new bitwise attribute, but that doesn't currently exist.
+> Would it be worth adding?  I seem to recall considering something along
+> those lines for passing type information with expressions as a way to
+> implement casting.
 
-That patch was discovered to cause problems with UDP tunnels as
-described here:
+Had not thought of casting, good point.
+Given bitwise needs to be touched anyway to get the second register
+operations I think the proposed patch isn't too bad.
 
-https://lore.kernel.org/netdev/7eed8111-42d7-63e1-d289-346a596fc933@nvidia.com/
+For casts and other use cases (including bitlen), I think its
+not needed to add special udata for expressions, as userspace can't
+zap them selectively.
 
-This version addresses the issue by instead explicitly handling zero UDP
-checksum in the nf_reject_verify_csum() helper function.
+We already do something similar for sets (to embed 'typeof' info
+for key and data).
 
-Unlike the previous patch, this one only allows zero UDP checksum in
-IPv4. I discovered that the non-netfilter IPv6 path would indeed drop
-zero UDP checksum packets, so it's probably best to remain consistent.
+Probably extend nftnl_udata_rule_types in libnftnl to add a
+NFTNL_UDATA_RULE_EXPR_INFO.
 
--- 
-2.35.1
+NFTNL_UDATA_RULE_EXPR_INFO would be nested and contain
+expression specific (nested) attributes.
 
+i.e., if you have something like
+
+meta mark -> reg 1
+binop reg1 &= 0x0000ffff
+ct mark -> reg 2
+binop and reg1 &= reg2  // ulen 16
+
+Then rule udata would have:
+NFTNL_UDATA_RULE_EXPR_INFO (nested)
+   type 4 (nested, 4 refers to the last expression above,
+ 	   type '0' is reserved).
+      type 1 // nla_u32  -> for binop, 1 is 'len', it would be
+               defined privately in src/bitwise.c
+END
+
+because only expression 4 needs annotations, so we don't waste
+space for expressions that do not need extra data.
+
+We could reserve a few nested numbers for things that might make sense
+for all (or many) expresssions, e.g. 'cast to type x'.
+
+We could of course place expr specific structs in there too but so
+far we managed to avoid this and it would be not-so-nice to break
+nft userspace when listing a ruleset added by an older version.
+
+Probably could extend struct netlink_linearize_ctx with a memory
+blob pointer that netlink_linearize_rule()/netlink_gen_stmt() can use
+to add extra data.
+
+My problem is that its a lot of (userspace) code for something that can
+easily be done by a small kernel patch such as this one and so far we
+don't have a real need for something like this.
