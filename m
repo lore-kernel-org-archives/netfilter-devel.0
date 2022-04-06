@@ -2,166 +2,166 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5817C433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Apr 2022 16:37:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76E3DC433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Apr 2022 16:37:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238052AbiDFQju (ORCPT
+        id S238018AbiDFQjv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 6 Apr 2022 12:39:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52044 "EHLO
+        Wed, 6 Apr 2022 12:39:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40832 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237865AbiDFQjo (ORCPT
+        with ESMTP id S237942AbiDFQjp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 Apr 2022 12:39:44 -0400
-Received: from mail-lf1-x129.google.com (mail-lf1-x129.google.com [IPv6:2a00:1450:4864:20::129])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B0A93324683
-        for <netfilter-devel@vger.kernel.org>; Wed,  6 Apr 2022 06:58:03 -0700 (PDT)
-Received: by mail-lf1-x129.google.com with SMTP id h7so4283159lfl.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 06 Apr 2022 06:58:03 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=message-id:date:mime-version:user-agent:subject:content-language:to
-         :cc:references:from:in-reply-to:content-transfer-encoding;
-        bh=SKqLobU5fdjugkB1SH8i0KmWNtgGvyifMU+pElZkY0I=;
-        b=RueCV3JRUZw3vNpUHTR+77hMD89uZW92IXoOVJHjH0gvEuvwzKmgZl1JY+B0kgYPg7
-         43rSHlq+P9My8CmyaZ/Lvj/j5oCJL9AZzKF/gEhcnyr2AGsINv/xQjUtbkq5uycsZShJ
-         5Rc5zcQGsYYlZGEes6skZI8bwQ3mN/wr6AdgqyUzBpYDHeAb4QF0gaAEj/f9i32iY8Zy
-         KNvqB/p0D6aYQjAjoHvSzHDLblflYMUpLuJiFo7qFrSPio5JezFp4FicNLZiaujPSyPE
-         BVi608SEL+3KO6bqxNgCMucGkQB6/eOjSRqFEZFimeRA+9Q5yeE/e5vb34fHvwXcMGQr
-         L5yA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:to:cc:references:from:in-reply-to
-         :content-transfer-encoding;
-        bh=SKqLobU5fdjugkB1SH8i0KmWNtgGvyifMU+pElZkY0I=;
-        b=XQETFGinnFHidewRcPqOJ5XF8qHSsoyGok+Jxuky9nARfbrl425LzU7k98E/A29H4X
-         BrEv521L0ivt3WjcK7Fzl+fMqNdfjSrqbDgstoHyFS3YCY1EekQrSsl6TLS9WTB3QFQv
-         3rdgiwENvSU15ayuWHwaX9fpLC8vto1xk2PA+LPlxzROL3XfZ7wvjlDMgSuiifofsMei
-         WiM+MMWUWYuFJe1AdTu2GfXcHGSrOEYCOdEG5fuLm97tc+BLPCboS3nLDOELd8JsuRiQ
-         3dK0LoCyuz11zblNon2L+CjgjQzTkv76yapw43JIQClxgw61Xo51R/T5T/7B/f53/SZ6
-         XzPg==
-X-Gm-Message-State: AOAM533RPrF6r8uZ4ImBIhrlUBxTGd/ylOHD+eupkVmuOp3Kz6Ooh6Qf
-        gpP8mvI1lrZieGCQrdxiEiXqcd7pZn4=
-X-Google-Smtp-Source: ABdhPJxCbmwODueJaLh+wcq2BEu866m9hBBpJnn9oEyopu9vSx2eF5xKL2TlXpxZw5fR8Pu8LnxeZQ==
-X-Received: by 2002:a05:6512:108b:b0:44a:6dc2:ffeb with SMTP id j11-20020a056512108b00b0044a6dc2ffebmr6211188lfg.184.1649253480064;
-        Wed, 06 Apr 2022 06:58:00 -0700 (PDT)
-Received: from [192.168.1.38] (91-159-150-194.elisa-laajakaista.fi. [91.159.150.194])
-        by smtp.gmail.com with ESMTPSA id p27-20020a056512313b00b0044a315f262csm1843786lfd.102.2022.04.06.06.57.58
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 06 Apr 2022 06:57:59 -0700 (PDT)
-Message-ID: <0f7eaf21-9241-8a42-d2ec-c2b34ff06142@gmail.com>
-Date:   Wed, 6 Apr 2022 16:57:58 +0300
+        Wed, 6 Apr 2022 12:39:45 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E67A3024D9;
+        Wed,  6 Apr 2022 06:58:11 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1nc6Ah-0005QG-9l; Wed, 06 Apr 2022 15:58:07 +0200
+Date:   Wed, 6 Apr 2022 15:58:07 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Neal Cardwell <ncardwell@google.com>
+Cc:     Eric Dumazet <edumazet@google.com>, Jaco Kroon <jaco@uls.co.za>,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        kadlec@netfilter.org
+Subject: Re: linux 5.17.1 disregarding ACK values resulting in stalled TCP
+ connections
+Message-ID: <20220406135807.GA16047@breakpoint.cc>
+References: <e0bc0c7f-5e47-ddb7-8e24-ad5fb750e876@uls.co.za>
+ <CANn89i+Dqtrm-7oW+D6EY+nVPhRH07GXzDXt93WgzxZ1y9_tJA@mail.gmail.com>
+ <CADVnQyn=VfcqGgWXO_9h6QTkMn5ZxPbNRTnMFAxwQzKpMRvH3A@mail.gmail.com>
+ <5f1bbeb2-efe4-0b10-bc76-37eff30ea905@uls.co.za>
+ <CADVnQymPoyY+AX_P7k+NcRWabJZrb7UCJdDZ=FOkvWguiTPVyQ@mail.gmail.com>
+ <CADVnQy=GX0J_QbMJXogGzPwD=f0diKDDxLiHV0gzrb4bo=4FjA@mail.gmail.com>
+ <429dd56b-8a6c-518f-ccb4-fa5beae30953@uls.co.za>
+ <CADVnQynGT7pGBT4PJ=vYg-bj9gnHTsKYHMU_6W0RFZb2FOoxiw@mail.gmail.com>
+ <CANn89iJqKmjvJGtRHVumfP0T_SSa1uioFLgUvW+MF2ov2Ec2vQ@mail.gmail.com>
+ <CADVnQykexgJ+NEUojiKrt=HTomF0nL8CncF401+mEFkvuge7Rg@mail.gmail.com>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.7.0
-Subject: Re: Support for loading firewall rules with cgroup(v2) expressions
- early
-Content-Language: en-US
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-References: <fabde324-383a-622c-7e69-32c9b2d06191@gmail.com>
- <YkDXwaPwYf8NgKT+@salvia> <418f6461-4504-4707-5ec2-61227af2ad27@gmail.com>
- <YkHOuprHwwuXjWrm@salvia> <5b850d67-92c1-9ece-99d2-390e8a5731b3@gmail.com>
- <YkOF0LyDSqKX6ERe@salvia> <YkPGJRUAuaLKrA0I@salvia>
- <bcb8f1c4-177a-c9a4-4da4-cc594ca91f91@gmail.com>
- <6786df44-49de-3d35-2c16-030e6290d19d@gmail.com> <Yky787OF8/FdnIPr@salvia>
-From:   Topi Miettinen <toiwoton@gmail.com>
-In-Reply-To: <Yky787OF8/FdnIPr@salvia>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CADVnQykexgJ+NEUojiKrt=HTomF0nL8CncF401+mEFkvuge7Rg@mail.gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 6.4.2022 1.00, Pablo Neira Ayuso wrote:
-> On Sun, Apr 03, 2022 at 09:32:11PM +0300, Topi Miettinen wrote:
->> On 2.4.2022 11.12, Topi Miettinen wrote:
->>> On 30.3.2022 5.53, Pablo Neira Ayuso wrote:
->>>> On Wed, Mar 30, 2022 at 12:25:25AM +0200, Pablo Neira Ayuso wrote:
->>>>> On Tue, Mar 29, 2022 at 09:20:25PM +0300, Topi Miettinen wrote:
->>>> [...]
->>>>> You could define a ruleset that describes the policy following the
->>>>> cgroupsv2 hierarchy. Something like this:
->>>>>
->>>>>    table inet filter {
->>>>>           map dict_cgroup_level_1 {
->>>>>                   type cgroupsv2 : verdict;
->>>>>                   elements = { "system.slice" : jump system_slice }
->>>>>           }
->>>>>
->>>>>           map dict_cgroup_level_2 {
->>>>>                   type cgroupsv2 : verdict;
->>>>>                   elements = {
->>>>> "system.slice/systemd-timesyncd.service" : jump
->>>>> systemd_timesyncd }
->>>>>           }
->>>>>
->>>>>           chain systemd_timesyncd {
->>>>>                   # systemd-timesyncd policy
->>>>>           }
->>>>>
->>>>>           chain system_slice {
->>>>>                   socket cgroupv2 level 2 vmap @dict_cgroup_level_2
->>>>>                   # policy for system.slice process
->>>>>           }
->>>>>
->>>>>           chain input {
->>>>>                   type filter hook input priority filter; policy drop;
->>>>
->>>> This example should use the output chain instead:
->>>>
->>>>             chain output {
->>>>                     type filter hook output priority filter; policy drop;
->>>>
->>>>   From the input chain, the packet relies on early demux to have access
->>>> to the socket.
->>>>
->>>> The idea would be to filter out outgoing traffic and rely on conntrack
->>>> for (established) input traffic.
->>>
->>> Is it really so that 'socket cgroupv2' can't be used on input side at
->>> all? At least 'ss' can display the cgroup for listening sockets
->>> correctly, so the cgroup information should be available somewhere:
->>>
->>> $ ss -lt --cgroup
->>> State    Recv-Q   Send-Q       Local Address:Port       Peer
->>> Address:Port   Process
->>> LISTEN   0        4096                  *%lo:ssh                   *:*
->>>       cgroup:/system.slice/ssh.socket
->>
->> Also 'meta skuid' doesn't seem to work in input filters. It would have been
->> simple to use 'meta skuid < 1000' to simulate 'system.slice' vs.
->> 'user.slice' cgroups.
->>
->> If this is intentional, the manual page should make this much clearer.
-> 
-> It is not yet described in nft(8) unfortunately, but
-> iptables-extensions(8) says:
-> 
->   IMPORTANT: when being used in the INPUT chain, the cgroup matcher is currently only
->         of limited functionality, meaning it will only match on packets that are processed
->         for local sockets through early socket demuxing. Therefore, general usage on the INPUT
->         chain is not advised unless the implications are well understood.
+Neal Cardwell <ncardwell@google.com> wrote:
 
-Something like this would be nice to add to nft(8). The concept of 
-'early socket demuxing' isn't very obvious (at least to me). Could the 
-user of nft be able to control somehow, like force early demuxing with a 
-sysctl?
+[ trimmed CCs, add Jozsef and nf-devel ]
 
--Topi
+Neal, Eric, thanks for debugging this problem.
 
+> On Sat, Apr 2, 2022 at 12:32 PM Eric Dumazet <edumazet@google.com> wrote:
+> > On Sat, Apr 2, 2022 at 9:29 AM Neal Cardwell <ncardwell@google.com> wrote:
+> > > FWIW those log entries indicate netfilter on the mail client machine
+> > > dropping consecutive outbound skbs with 2*MSS of payload. So that
+> > > explains the large consecutive losses of client data packets to the
+> > > e-mail server. That seems to confirm my earlier hunch that those drops
+> > > of consecutive client data packets "do not look like normal congestive
+> > > packet loss".
+> >
+> > This also explains why we have all these tiny 2-MSS packets in the pcap.
+> > Under normal conditions, autocorking should kick in, allowing TCP to
+> > build bigger TSO packets.
 > 
->> There's no warning and the kernel doesn't reject the useless input rules.
->>
->> I think it should be possible to do filtering on input side based on the
->> socket properties (UID, GID, cgroup). Especially with UDP, it should be
->> possible to drop all packets if the listening process is not OK.
+> I have not looked at the conntrack code before today, but AFAICT this
+> is the buggy section of  nf_conntrack_proto_tcp.c:
 > 
-> Everything is possible, it's not yet implemented though.
+>         } else if (((state->state == TCP_CONNTRACK_SYN_SENT
+>                      && dir == IP_CT_DIR_ORIGINAL)
+>                    || (state->state == TCP_CONNTRACK_SYN_RECV
+>                      && dir == IP_CT_DIR_REPLY))
+>                    && after(end, sender->td_end)) {
+>                 /*
+>                  * RFC 793: "if a TCP is reinitialized ... then it need
+>                  * not wait at all; it must only be sure to use sequence
+>                  * numbers larger than those recently used."
+>                  */
+>                 sender->td_end =
+>                 sender->td_maxend = end;
+>                 sender->td_maxwin = (win == 0 ? 1 : win);
 > 
->> My use case is that I need to open ports for Steam games (TCP and UDP ports
->> 27015-27030) but I don't want to make them available for system services or
->> any other apps besides Steam games. SELinux SECMARKs and TE rules for
->> sockets help me here but there are other problems.
+>                 tcp_options(skb, dataoff, tcph, sender);
+> 
+> Note that the tcp_options() function implicitly assumes it is being
+> called on a SYN, because it sets state->td_scale to 0 and only sets
+> state->td_scale to something non-zero if it sees a wscale option. So
+> if we ever call that on an skb that's not a SYN, we will forget that
+> the connection is using the wscale option.
+>
+> But at this point in the code it is calling tcp_options() without
+> first checking that this is a SYN.
 
+Yes, thats the bug, tcp_options() must not be called if syn bit is not
+set.
+
+> For this TFO scenario like the one in the trace, where the server
+> sends its first data packet after the SYNACK packet and before the
+> client's first ACK, presumably the conntrack state machine is
+> (correctly) SYN_RECV, and then (incorrectly) executes this code,
+
+Right.  Jozsef, for context, sequence is in trace is:
+
+S > C Flags [S], seq 3451342529, win 62580, options [mss 8940,sackOK,TS val 331187616 ecr 0,nop,wscale 7,tfo [|tcp]>
+C > S Flags [S.], seq 2699962254, ack 3451342530, win 65535, options [mss 1440,sackOK,TS val 1206542770 ecr 331187616,nop,wscale 8], length 0
+C > S Flags [P.], seq 1:89, ack 1, win 256, options [nop,nop,TS val 1206542772 ecr 331187616], length 88: SMTP [|smtp]
+
+Normally, 3rd packet would be S > C, but this one is C > S.
+
+So, packet #3 hits the 'reinit' branch which zaps wscale option.
+
+> Someone more familiar with conntrack may have a good idea about how to
+> best fix this?
+
+Jozsef, does this look sane to you?
+It fixes the TFO capture and still passes the test case i made for
+82b72cb94666b3dbd7152bb9f441b068af7a921b
+("netfilter: conntrack: re-init state for retransmitted syn-ack").
+
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 8ec55cd72572..90ad1c0f23b1 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -556,33 +556,24 @@ static bool tcp_in_window(struct nf_conn *ct,
+ 			}
+ 
+ 		}
+-	} else if (((state->state == TCP_CONNTRACK_SYN_SENT
+-		     && dir == IP_CT_DIR_ORIGINAL)
+-		   || (state->state == TCP_CONNTRACK_SYN_RECV
+-		     && dir == IP_CT_DIR_REPLY))
+-		   && after(end, sender->td_end)) {
++	} else if (tcph->syn &&
++		   after(end, sender->td_end) &&
++		   (state->state == TCP_CONNTRACK_SYN_SENT ||
++		    state->state == TCP_CONNTRACK_SYN_RECV)) {
+ 		/*
+ 		 * RFC 793: "if a TCP is reinitialized ... then it need
+ 		 * not wait at all; it must only be sure to use sequence
+ 		 * numbers larger than those recently used."
+-		 */
+-		sender->td_end =
+-		sender->td_maxend = end;
+-		sender->td_maxwin = (win == 0 ? 1 : win);
+-
+-		tcp_options(skb, dataoff, tcph, sender);
+-	} else if (tcph->syn && dir == IP_CT_DIR_REPLY &&
+-		   state->state == TCP_CONNTRACK_SYN_SENT) {
+-		/* Retransmitted syn-ack, or syn (simultaneous open).
+ 		 *
++		 * also check for retransmitted syn-ack, or syn (simultaneous open).
+ 		 * Re-init state for this direction, just like for the first
+ 		 * syn(-ack) reply, it might differ in seq, ack or tcp options.
++		 *
++		 * Check for invalid syn-ack in original direction was already done.
+ 		 */
+ 		tcp_init_sender(sender, receiver,
+ 				skb, dataoff, tcph,
+ 				end, win);
+-		if (!tcph->ack)
+-			return true;
+ 	}
+ 
+ 	if (!(tcph->ack)) {
