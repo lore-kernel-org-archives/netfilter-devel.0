@@ -2,166 +2,106 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76E3DC433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Apr 2022 16:37:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28878C433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Apr 2022 16:41:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238018AbiDFQjv (ORCPT
+        id S237491AbiDFQnR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 6 Apr 2022 12:39:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40832 "EHLO
+        Wed, 6 Apr 2022 12:43:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43832 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237942AbiDFQjp (ORCPT
+        with ESMTP id S238566AbiDFQm7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 Apr 2022 12:39:45 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E67A3024D9;
-        Wed,  6 Apr 2022 06:58:11 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1nc6Ah-0005QG-9l; Wed, 06 Apr 2022 15:58:07 +0200
-Date:   Wed, 6 Apr 2022 15:58:07 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Neal Cardwell <ncardwell@google.com>
-Cc:     Eric Dumazet <edumazet@google.com>, Jaco Kroon <jaco@uls.co.za>,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        kadlec@netfilter.org
-Subject: Re: linux 5.17.1 disregarding ACK values resulting in stalled TCP
- connections
-Message-ID: <20220406135807.GA16047@breakpoint.cc>
-References: <e0bc0c7f-5e47-ddb7-8e24-ad5fb750e876@uls.co.za>
- <CANn89i+Dqtrm-7oW+D6EY+nVPhRH07GXzDXt93WgzxZ1y9_tJA@mail.gmail.com>
- <CADVnQyn=VfcqGgWXO_9h6QTkMn5ZxPbNRTnMFAxwQzKpMRvH3A@mail.gmail.com>
- <5f1bbeb2-efe4-0b10-bc76-37eff30ea905@uls.co.za>
- <CADVnQymPoyY+AX_P7k+NcRWabJZrb7UCJdDZ=FOkvWguiTPVyQ@mail.gmail.com>
- <CADVnQy=GX0J_QbMJXogGzPwD=f0diKDDxLiHV0gzrb4bo=4FjA@mail.gmail.com>
- <429dd56b-8a6c-518f-ccb4-fa5beae30953@uls.co.za>
- <CADVnQynGT7pGBT4PJ=vYg-bj9gnHTsKYHMU_6W0RFZb2FOoxiw@mail.gmail.com>
- <CANn89iJqKmjvJGtRHVumfP0T_SSa1uioFLgUvW+MF2ov2Ec2vQ@mail.gmail.com>
- <CADVnQykexgJ+NEUojiKrt=HTomF0nL8CncF401+mEFkvuge7Rg@mail.gmail.com>
+        Wed, 6 Apr 2022 12:42:59 -0400
+Received: from mail-lj1-x230.google.com (mail-lj1-x230.google.com [IPv6:2a00:1450:4864:20::230])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A71A12D3112
+        for <netfilter-devel@vger.kernel.org>; Wed,  6 Apr 2022 07:02:42 -0700 (PDT)
+Received: by mail-lj1-x230.google.com with SMTP id c15so3333745ljr.9
+        for <netfilter-devel@vger.kernel.org>; Wed, 06 Apr 2022 07:02:42 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=message-id:date:mime-version:user-agent:subject:content-language:to
+         :cc:references:from:in-reply-to:content-transfer-encoding;
+        bh=zPRNJlwIRkZQxaOZIHl/TKLOdowLXCXaal/as6LhPMc=;
+        b=XqS9Gqc6pxEoKBqsU4cD1ZOJBWZAaxkzD2x8mIy9XfxtyO710o2Cd6brWHWMOB/ey3
+         +/1Zu4J0LiqeLWvtwVIHio3DEZDVguWFTmJHubO6am560kf51bo3qYCSEULvMt4OwOBE
+         1n/1gJNhPiRi3YURomqJd7AYotktKBNK4HGFY1252mFCGw1/xM/TRKqJN4IKUU+dMPD+
+         cdkiGTu4//IiPV1V6wrBscpaBra3FbspScb0h3zPIN7UT9mmhrWPvBE7cGSfJkWwK+l7
+         UrFl0y3P3D/FNXHn5cv8qwwPCZrn8VHIq5AMRGHYZ2K3dMFWd3ICnircQj9sX3SUAgZL
+         Ir6g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
+         :content-language:to:cc:references:from:in-reply-to
+         :content-transfer-encoding;
+        bh=zPRNJlwIRkZQxaOZIHl/TKLOdowLXCXaal/as6LhPMc=;
+        b=YerWUPPAnVEZsOC4Ii81wxvSp+guAgX/AUho3rIeNqIHa7yGsPs/MjZF096nwvzrzU
+         FuXgRmtoZR+ascdQcWfmFCu26eMwAhlokhhQcyTiVKx0D4ooRUWWbXKnLQ2bguLNf7Dt
+         JDhHJprTHsxI13E3y/Fu5P9oSAC/GFY9B8Sfcei/6cyl9ysc77nVUHysBswHZpvK881Y
+         DbeZinZsvLYqjSUJMHo993ii1AdTeusoG+2kzwPVnnDC0aJlIVRYBvm0FMTuTBlTd+zJ
+         ejHufZDSCTz1pYeB/YwVM53Bdo7pSvuy/AYoBYrnWh19F8igO/yJr+h9Q0qM4y853jr0
+         hxHg==
+X-Gm-Message-State: AOAM531BCVYQi55iNFF+G1G6KevTA0xHF1/cAlyWjNFGVdYAyInwdv5a
+        hAFiKNDxgYH62T1NgEMFWnkC9h6lzCE=
+X-Google-Smtp-Source: ABdhPJx6fEQ6RGquqJAJtHMsMmFVObXtbCw7JKVmyjzE+YiLcM+Bi3XpEtzcukqNrIgx3OmuYNozcA==
+X-Received: by 2002:a2e:2ac2:0:b0:24a:fcf1:7f3a with SMTP id q185-20020a2e2ac2000000b0024afcf17f3amr5290206ljq.2.1649253760660;
+        Wed, 06 Apr 2022 07:02:40 -0700 (PDT)
+Received: from [192.168.1.38] (91-159-150-194.elisa-laajakaista.fi. [91.159.150.194])
+        by smtp.gmail.com with ESMTPSA id z14-20020a2e7e0e000000b0024ac33571fbsm1583550ljc.62.2022.04.06.07.02.39
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 06 Apr 2022 07:02:40 -0700 (PDT)
+Message-ID: <598a0640-724a-8277-c314-d54923d7a42b@gmail.com>
+Date:   Wed, 6 Apr 2022 17:02:38 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CADVnQykexgJ+NEUojiKrt=HTomF0nL8CncF401+mEFkvuge7Rg@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.7.0
+Subject: Re: Support for loading firewall rules with cgroup(v2) expressions
+ early
+Content-Language: en-US
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+References: <fabde324-383a-622c-7e69-32c9b2d06191@gmail.com>
+ <YkDXwaPwYf8NgKT+@salvia> <418f6461-4504-4707-5ec2-61227af2ad27@gmail.com>
+ <YkHOuprHwwuXjWrm@salvia> <5b850d67-92c1-9ece-99d2-390e8a5731b3@gmail.com>
+ <YkOF0LyDSqKX6ERe@salvia> <35c20ae1-fc79-9488-8a42-a405424d1e53@gmail.com>
+ <YkTP40PPDCJSObeH@salvia> <dbbe9ff4-4ec8-b979-9a35-7f79b3fbb9cb@gmail.com>
+ <YkzAIUEmsxebKj8l@salvia>
+From:   Topi Miettinen <toiwoton@gmail.com>
+In-Reply-To: <YkzAIUEmsxebKj8l@salvia>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Neal Cardwell <ncardwell@google.com> wrote:
-
-[ trimmed CCs, add Jozsef and nf-devel ]
-
-Neal, Eric, thanks for debugging this problem.
-
-> On Sat, Apr 2, 2022 at 12:32 PM Eric Dumazet <edumazet@google.com> wrote:
-> > On Sat, Apr 2, 2022 at 9:29 AM Neal Cardwell <ncardwell@google.com> wrote:
-> > > FWIW those log entries indicate netfilter on the mail client machine
-> > > dropping consecutive outbound skbs with 2*MSS of payload. So that
-> > > explains the large consecutive losses of client data packets to the
-> > > e-mail server. That seems to confirm my earlier hunch that those drops
-> > > of consecutive client data packets "do not look like normal congestive
-> > > packet loss".
-> >
-> > This also explains why we have all these tiny 2-MSS packets in the pcap.
-> > Under normal conditions, autocorking should kick in, allowing TCP to
-> > build bigger TSO packets.
+On 6.4.2022 1.18, Pablo Neira Ayuso wrote:
+> On Thu, Mar 31, 2022 at 06:10:19PM +0300, Topi Miettinen wrote:
+>> On 31.3.2022 0.47, Pablo Neira Ayuso wrote:
+>>> On Wed, Mar 30, 2022 at 07:37:00PM +0300, Topi Miettinen wrote:
+> [...]
+>>>> Nice ideas, but the rules can't be loaded before the cgroups are realized at
+>>>> early boot:
+>>>>
+>>>> Mar 30 19:14:45 systemd[1]: Starting nftables...
+>>>> Mar 30 19:14:46 nft[1018]: /etc/nftables.conf:305:5-44: Error: cgroupv2 path
+>>>> fails: Permission denied
+>>>> Mar 30 19:14:46 nft[1018]: "system.slice/systemd-timesyncd.service" : jump
+>>>> systemd_timesyncd
+>>>> Mar 30 19:14:46 nft[1018]: ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>>>> Mar 30 19:14:46 systemd[1]: nftables.service: Main process exited,
+>>>> code=exited, status=1/FAILURE
+>>>> Mar 30 19:14:46 systemd[1]: nftables.service: Failed with result
+>>>> 'exit-code'.
+>>>> Mar 30 19:14:46 systemd[1]: Failed to start nftables.
+>>>
+>>> I guess this unit file performs nft -f on cgroupsv2 that do not exist
+>>> yet.
+>>
+>> Yes, that's the case. Being able to do so with for example "cgroupsv2name"
+>> would be nice.
 > 
-> I have not looked at the conntrack code before today, but AFAICT this
-> is the buggy section of  nf_conntrack_proto_tcp.c:
-> 
->         } else if (((state->state == TCP_CONNTRACK_SYN_SENT
->                      && dir == IP_CT_DIR_ORIGINAL)
->                    || (state->state == TCP_CONNTRACK_SYN_RECV
->                      && dir == IP_CT_DIR_REPLY))
->                    && after(end, sender->td_end)) {
->                 /*
->                  * RFC 793: "if a TCP is reinitialized ... then it need
->                  * not wait at all; it must only be sure to use sequence
->                  * numbers larger than those recently used."
->                  */
->                 sender->td_end =
->                 sender->td_maxend = end;
->                 sender->td_maxwin = (win == 0 ? 1 : win);
-> 
->                 tcp_options(skb, dataoff, tcph, sender);
-> 
-> Note that the tcp_options() function implicitly assumes it is being
-> called on a SYN, because it sets state->td_scale to 0 and only sets
-> state->td_scale to something non-zero if it sees a wscale option. So
-> if we ever call that on an skb that's not a SYN, we will forget that
-> the connection is using the wscale option.
->
-> But at this point in the code it is calling tcp_options() without
-> first checking that this is a SYN.
+> Cgroupsv2 names might be arbitrarily large, correct? ie. PATH_MAX.
 
-Yes, thats the bug, tcp_options() must not be called if syn bit is not
-set.
+I think so, could this be a problem?
 
-> For this TFO scenario like the one in the trace, where the server
-> sends its first data packet after the SYNACK packet and before the
-> client's first ACK, presumably the conntrack state machine is
-> (correctly) SYN_RECV, and then (incorrectly) executes this code,
-
-Right.  Jozsef, for context, sequence is in trace is:
-
-S > C Flags [S], seq 3451342529, win 62580, options [mss 8940,sackOK,TS val 331187616 ecr 0,nop,wscale 7,tfo [|tcp]>
-C > S Flags [S.], seq 2699962254, ack 3451342530, win 65535, options [mss 1440,sackOK,TS val 1206542770 ecr 331187616,nop,wscale 8], length 0
-C > S Flags [P.], seq 1:89, ack 1, win 256, options [nop,nop,TS val 1206542772 ecr 331187616], length 88: SMTP [|smtp]
-
-Normally, 3rd packet would be S > C, but this one is C > S.
-
-So, packet #3 hits the 'reinit' branch which zaps wscale option.
-
-> Someone more familiar with conntrack may have a good idea about how to
-> best fix this?
-
-Jozsef, does this look sane to you?
-It fixes the TFO capture and still passes the test case i made for
-82b72cb94666b3dbd7152bb9f441b068af7a921b
-("netfilter: conntrack: re-init state for retransmitted syn-ack").
-
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 8ec55cd72572..90ad1c0f23b1 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -556,33 +556,24 @@ static bool tcp_in_window(struct nf_conn *ct,
- 			}
- 
- 		}
--	} else if (((state->state == TCP_CONNTRACK_SYN_SENT
--		     && dir == IP_CT_DIR_ORIGINAL)
--		   || (state->state == TCP_CONNTRACK_SYN_RECV
--		     && dir == IP_CT_DIR_REPLY))
--		   && after(end, sender->td_end)) {
-+	} else if (tcph->syn &&
-+		   after(end, sender->td_end) &&
-+		   (state->state == TCP_CONNTRACK_SYN_SENT ||
-+		    state->state == TCP_CONNTRACK_SYN_RECV)) {
- 		/*
- 		 * RFC 793: "if a TCP is reinitialized ... then it need
- 		 * not wait at all; it must only be sure to use sequence
- 		 * numbers larger than those recently used."
--		 */
--		sender->td_end =
--		sender->td_maxend = end;
--		sender->td_maxwin = (win == 0 ? 1 : win);
--
--		tcp_options(skb, dataoff, tcph, sender);
--	} else if (tcph->syn && dir == IP_CT_DIR_REPLY &&
--		   state->state == TCP_CONNTRACK_SYN_SENT) {
--		/* Retransmitted syn-ack, or syn (simultaneous open).
- 		 *
-+		 * also check for retransmitted syn-ack, or syn (simultaneous open).
- 		 * Re-init state for this direction, just like for the first
- 		 * syn(-ack) reply, it might differ in seq, ack or tcp options.
-+		 *
-+		 * Check for invalid syn-ack in original direction was already done.
- 		 */
- 		tcp_init_sender(sender, receiver,
- 				skb, dataoff, tcph,
- 				end, win);
--		if (!tcph->ack)
--			return true;
- 	}
- 
- 	if (!(tcph->ack)) {
+-Topi
