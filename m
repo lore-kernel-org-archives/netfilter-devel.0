@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21993C433FE
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Apr 2022 16:47:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F094C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Apr 2022 16:52:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238033AbiDFQtx (ORCPT
+        id S238124AbiDFQyG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 6 Apr 2022 12:49:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33152 "EHLO
+        Wed, 6 Apr 2022 12:54:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42108 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238054AbiDFQtj (ORCPT
+        with ESMTP id S238247AbiDFQxw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 Apr 2022 12:49:39 -0400
+        Wed, 6 Apr 2022 12:53:52 -0400
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4BFEE1E9622;
-        Wed,  6 Apr 2022 07:12:07 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 18B083CF48C;
+        Wed,  6 Apr 2022 07:17:53 -0700 (PDT)
 Received: from fraeml704-chm.china.huawei.com (unknown [172.18.147.206])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4KYRFv5ClGz67Nl1;
-        Wed,  6 Apr 2022 22:09:07 +0800 (CST)
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4KYRPw0hZMz67wqg;
+        Wed,  6 Apr 2022 22:16:04 +0800 (CST)
 Received: from [10.122.132.241] (10.122.132.241) by
  fraeml704-chm.china.huawei.com (10.206.15.53) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2375.24; Wed, 6 Apr 2022 16:12:04 +0200
-Message-ID: <2958392e-ba3e-453e-415b-c3869523ea25@huawei.com>
-Date:   Wed, 6 Apr 2022 17:12:00 +0300
+ 15.1.2375.24; Wed, 6 Apr 2022 16:17:50 +0200
+Message-ID: <e1835aeb-8fe3-a8d7-9d36-69ce8e989291@huawei.com>
+Date:   Wed, 6 Apr 2022 17:17:47 +0300
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
  Thunderbird/91.4.1
@@ -37,11 +37,9 @@ CC:     <willemdebruijn.kernel@gmail.com>,
         <artem.kuzin@huawei.com>, <anton.sirazetdinov@huawei.com>
 References: <20220309134459.6448-1-konstantin.meskhidze@huawei.com>
  <20220309134459.6448-11-konstantin.meskhidze@huawei.com>
- <d3340ed0-fe61-3f00-d7ba-44ece235a319@digikod.net>
- <491d6e96-4bfb-ed97-7eb8-fb18aa144d64@huawei.com>
- <6f631d7c-a2e3-20b3-997e-6b533b748767@digikod.net>
+ <c2bc5ccf-8942-ab5e-c071-6f6c6e6b2d9d@digikod.net>
 From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-In-Reply-To: <6f631d7c-a2e3-20b3-997e-6b533b748767@digikod.net>
+In-Reply-To: <c2bc5ccf-8942-ab5e-c071-6f6c6e6b2d9d@digikod.net>
 Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
 X-Originating-IP: [10.122.132.241]
@@ -54,163 +52,112 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
 
-4/4/2022 12:44 PM, Mickaël Salaün пишет:
+4/4/2022 9:32 PM, Mickaël Salaün пишет:
 > 
-> On 04/04/2022 10:28, Konstantin Meskhidze wrote:
+> On 09/03/2022 14:44, Konstantin Meskhidze wrote:
+>> Adds two selftests for bind socket action.
+>> The one is with no landlock restrictions:
+>>      - bind_no_restrictions;
+>> The second one is with mixed landlock rules:
+>>      - bind_with_restrictions;
 >>
+>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+>> ---
 >>
->> 4/1/2022 7:52 PM, Mickaël Salaün пишет:
+>> Changes since v3:
+>> * Split commit.
+>> * Add helper create_socket.
+>> * Add FIXTURE_SETUP.
+>>
+>> ---
+>>   .../testing/selftests/landlock/network_test.c | 153 ++++++++++++++++++
+>>   1 file changed, 153 insertions(+)
+>>   create mode 100644 tools/testing/selftests/landlock/network_test.c
+>>
+>> diff --git a/tools/testing/selftests/landlock/network_test.c 
+>> b/tools/testing/selftests/landlock/network_test.c
+>> new file mode 100644
+>> index 000000000000..4c60f6d973a8
+>> --- /dev/null
+>> +++ b/tools/testing/selftests/landlock/network_test.c
 > 
 > [...]
 > 
->>>> +static int create_socket(struct __test_metadata *const _metadata)
->>>> +{
->>>> +
->>>> +        int sockfd;
->>>> +
->>>> +        sockfd = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
->>>> +        ASSERT_LE(0, sockfd);
->>>> +        /* Allows to reuse of local address */
->>>> +        ASSERT_EQ(0, setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, 
->>>> &one, sizeof(one)));
->>>
->>> Why is it required?
->>
->>    Without SO_REUSEADDR there is an error that a socket's port is in use.
+>> +
+>> +uint port[MAX_SOCKET_NUM];
+>> +struct sockaddr_in addr[MAX_SOCKET_NUM];
 > 
-> I'm sure there is, but why is this port reused? I think this means that 
-> there is an issue in the tests and that could hide potential issue with 
-> the tests (and then with the kernel code). Could you investigate and 
-> find the problem? This would make these tests reliable.
-   The next scenario is possible here:
-   "In order for a network connection to close, both ends have to send 
-FIN (final) packets, which indicate they will not send any additional 
-data, and both ends must ACK (acknowledge) each other's FIN packets. The 
-FIN packets are initiated by the application performing a close(), a 
-shutdown(), or an exit(). The ACKs are handled by the kernel after the 
-close() has completed. Because of this, it is possible for the process 
-to complete before the kernel has released the associated network 
-resource, and this port cannot be bound to another process until the 
-kernel has decided that it is done."
-https://hea-www.harvard.edu/~fine/Tech/addrinuse.html.
-
-So in this case we have busy port in network selfttest and one of the 
-solution is to set SO_REUSEADDR socket option, "which explicitly allows 
-a process to bind to a port which remains in TIME_WAIT (it still only 
-allows a single process to be bound to that port). This is the both the 
-simplest and the most effective option for reducing the "address already 
-in use" error".
+> You should not change global variables, it is a source of issue. Instead 
+> use FIXTURE local variables accessible through self->X.
 > 
-> Without removing the need to find this issue, the next series should use 
-> a network namespace per test, which will confine such issue from other 
-> tests and the host.
+   Sorry. Did not get your point here.
+>> +
+>> +const int one = 1;
+> 
+> This doesn't need to be global.
 
-   So there are 2 options here:
-	1. Using SO_REUSEADDR option
-	2. Using network namespace.
-
-I prefer the first option - "the simplest and the most effective one"
-
+    Ok. Got it.
 > 
 > [...]
 > 
->>>> +TEST_F_FORK(socket, bind_with_restrictions) {
->>>> +
->>>> +    int sockfd_1, sockfd_2, sockfd_3;
->>>
->>> Do you really need to have 3 opened socket at the same time?
->>
->>    I just wanted to "kill two birds with one stone" in this test.
->>    It possible to split it in 3 tests and open just one socket in each 
->> one.
+>> +
+>> +static void enforce_ruleset(struct __test_metadata *const _metadata,
+>> +        const int ruleset_fd)
+>> +{
+>> +    ASSERT_EQ(0, prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0));
+>> +    ASSERT_EQ(0, landlock_restrict_self(ruleset_fd, 0)) {
+>> +        TH_LOG("Failed to enforce ruleset: %s", strerror(errno));
+>> +    }
+>> +}
 > 
-> I wanted to point out that these three variables could be replaced with 
-> only one (taking into account that successful opened socket are closed 
-> before the variable is reused).
+> You should move the same helper from fs_base.c to common.h (see caps 
+> helpers) and reuse it here.
 > 
-> It may not be obvious if we need to split a test into multiple. The 
-> rules I try to follow are:
-> - use a consistent Landlock rule setup, with potentially nested rules, 
-> to test specific edge cases;
-> - don't tamper the context of a test (e.g. with FS topology/layout 
-> modification or network used port) unless it is clearly documented and 
-> easy to spot, but be careful about the dependent tests;
-> - don't make tests too long unless it makes sense for a specific scenario.
+   Ok. Thanks.
 > 
-   Ok. I got your point here. Thanks.
+>> +
+>> +FIXTURE(socket) { };
+>> +
+>> +FIXTURE_SETUP(socket)
+>> +{
+>> +    int i;
 > 
->>>
->>>> +
->>>> +    struct landlock_ruleset_attr ruleset_attr = {
->>>> +        .handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
->>>> +                      LANDLOCK_ACCESS_NET_CONNECT_TCP,
->>>> +    };
->>>> +    struct landlock_net_service_attr net_service_1 = {
->>>> +        .allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
->>>> +                  LANDLOCK_ACCESS_NET_CONNECT_TCP,
->>>> +        .port = port[0],
->>>> +    };
->>>> +    struct landlock_net_service_attr net_service_2 = {
->>>> +        .allowed_access = LANDLOCK_ACCESS_NET_CONNECT_TCP,
->>>> +        .port = port[1],
->>>> +    };
->>>> +    struct landlock_net_service_attr net_service_3 = {
->>>> +        .allowed_access = 0,
->>>> +        .port = port[2],
->>>> +    };
->>>> +
->>>> +    const int ruleset_fd = landlock_create_ruleset(&ruleset_attr,
->>>> +            sizeof(ruleset_attr), 0);
->>>> +    ASSERT_LE(0, ruleset_fd);
->>>> +
->>>> +    /* Allows connect and bind operations to the port[0] socket. */
->>>> +    ASSERT_EQ(0, landlock_add_rule(ruleset_fd, 
->>>> LANDLOCK_RULE_NET_SERVICE,
->>>> +                &net_service_1, 0));
->>>> +    /* Allows connect and deny bind operations to the port[1] 
->>>> socket. */
->>>> +    ASSERT_EQ(0, landlock_add_rule(ruleset_fd, 
->>>> LANDLOCK_RULE_NET_SERVICE,
->>>> +                &net_service_2, 0));
->>>> +    /* Empty allowed_access (i.e. deny rules) are ignored in 
->>>> network actions
->>>> +     * for port[2] socket.
->>>> +     */
->>>> +    ASSERT_EQ(-1, landlock_add_rule(ruleset_fd, 
->>>> LANDLOCK_RULE_NET_SERVICE,
->>>> +                &net_service_3, 0));
->>>> +    ASSERT_EQ(ENOMSG, errno);
->>>> +
->>>> +    /* Enforces the ruleset. */
->>>> +    enforce_ruleset(_metadata, ruleset_fd);
->>>> +
->>>> +    sockfd_1 = create_socket(_metadata);
->>>> +    ASSERT_LE(0, sockfd_1);
->>>> +    /* Binds a socket to port[0] */
->>>> +    ASSERT_EQ(0, bind(sockfd_1, (struct sockaddr  *)&addr[0], 
->>>> sizeof(addr[0])));
->>>> +
->>>> +    /* Close bounded socket*/
->>>> +    ASSERT_EQ(0, close(sockfd_1));
->>>> +
->>>> +    sockfd_2 = create_socket(_metadata);
->>>> +    ASSERT_LE(0, sockfd_2);
->>>> +    /* Binds a socket to port[1] */
->>>> +    ASSERT_EQ(-1, bind(sockfd_2, (struct sockaddr *)&addr[1], 
->>>> sizeof(addr[1])));
->>>> +    ASSERT_EQ(EACCES, errno);
->>>> +
->>>> +    sockfd_3 = create_socket(_metadata);
->>>> +    ASSERT_LE(0, sockfd_3);
->>>> +    /* Binds a socket to port[2] */
->>>> +    ASSERT_EQ(-1, bind(sockfd_3, (struct sockaddr *)&addr[2], 
->>>> sizeof(addr[2])));
->>>> +    ASSERT_EQ(EACCES, errno);
->>>> +}
->>>> +TEST_HARNESS_MAIN
->>>> -- 
->>>> 2.25.1
->>>>
->>>
->>> .
+> Please add a new line between declaration and actual code (everywhere).
+
+   Ok. Got it. Will be refactored.
+> 
+>> +    /* Creates socket addresses */
+>> +    for (i = 0; i < MAX_SOCKET_NUM; i++) {
+> 
+> Use ARRAY_SIZE() instead of MAY_SOCKET_NUM.
+> 
+   Ok. I got it.
+> 
+>> +        port[i] = SOCK_PORT_START + SOCK_PORT_ADD*i;
+> 
+> Use self->port[i] and self->addr[i] instead.
+> 
+
+   Do you mean to add it in FIXTURE variables?
+
+>> +        addr[i].sin_family = AF_INET;
+>> +        addr[i].sin_port = htons(port[i]);
+>> +        addr[i].sin_addr.s_addr = inet_addr(IP_ADDRESS);
+>> +        memset(&(addr[i].sin_zero), '\0', 8);
+>> +    }
+>> +}
+> 
+> [...]
+> 
+>> +    /* Allows connect and deny bind operations to the port[1] socket. */
+>> +    ASSERT_EQ(0, landlock_add_rule(ruleset_fd, 
+>> LANDLOCK_RULE_NET_SERVICE,
+>> +                &net_service_2, 0));
+>> +    /* Empty allowed_access (i.e. deny rules) are ignored in network 
+>> actions
+> 
+> The kernel coding style says to start a multi-line comments with a "/*" 
+> and a new line.
+
+   I missed it here. Thanks.
 > .
