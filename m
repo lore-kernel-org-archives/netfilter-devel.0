@@ -2,82 +2,95 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CFD29C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Apr 2022 10:27:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E454C433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Apr 2022 12:48:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244216AbiDGK3E (ORCPT
+        id S245433AbiDGMup (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 7 Apr 2022 06:29:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36786 "EHLO
+        Thu, 7 Apr 2022 08:50:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35754 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244230AbiDGK3C (ORCPT
+        with ESMTP id S244128AbiDGMuj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 7 Apr 2022 06:29:02 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DFD4685950;
-        Thu,  7 Apr 2022 03:27:00 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1ncPLt-0003a3-PO; Thu, 07 Apr 2022 12:26:57 +0200
-Date:   Thu, 7 Apr 2022 12:26:57 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Neal Cardwell <ncardwell@google.com>,
+        Thu, 7 Apr 2022 08:50:39 -0400
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::48])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A03792D38;
+        Thu,  7 Apr 2022 05:48:37 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by smtp2.kfki.hu (Postfix) with ESMTP id D2C4DCC00FF;
+        Thu,  7 Apr 2022 14:48:35 +0200 (CEST)
+X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP; Thu,  7 Apr 2022 14:48:33 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
+        by smtp2.kfki.hu (Postfix) with ESMTP id 4AF82CC00FD;
+        Thu,  7 Apr 2022 14:48:33 +0200 (CEST)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+        id 3F373340D76; Thu,  7 Apr 2022 14:48:33 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by blackhole.kfki.hu (Postfix) with ESMTP id 3DB1C340D60;
+        Thu,  7 Apr 2022 14:48:33 +0200 (CEST)
+Date:   Thu, 7 Apr 2022 14:48:33 +0200 (CEST)
+From:   Jozsef Kadlecsik <kadlec@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+cc:     Neal Cardwell <ncardwell@google.com>,
         Eric Dumazet <edumazet@google.com>,
         Jaco Kroon <jaco@uls.co.za>, netfilter-devel@vger.kernel.org,
         netdev@vger.kernel.org
 Subject: Re: linux 5.17.1 disregarding ACK values resulting in stalled TCP
  connections
-Message-ID: <20220407102657.GB16047@breakpoint.cc>
-References: <CADVnQyn=VfcqGgWXO_9h6QTkMn5ZxPbNRTnMFAxwQzKpMRvH3A@mail.gmail.com>
- <5f1bbeb2-efe4-0b10-bc76-37eff30ea905@uls.co.za>
- <CADVnQymPoyY+AX_P7k+NcRWabJZrb7UCJdDZ=FOkvWguiTPVyQ@mail.gmail.com>
- <CADVnQy=GX0J_QbMJXogGzPwD=f0diKDDxLiHV0gzrb4bo=4FjA@mail.gmail.com>
- <429dd56b-8a6c-518f-ccb4-fa5beae30953@uls.co.za>
- <CADVnQynGT7pGBT4PJ=vYg-bj9gnHTsKYHMU_6W0RFZb2FOoxiw@mail.gmail.com>
- <CANn89iJqKmjvJGtRHVumfP0T_SSa1uioFLgUvW+MF2ov2Ec2vQ@mail.gmail.com>
- <CADVnQykexgJ+NEUojiKrt=HTomF0nL8CncF401+mEFkvuge7Rg@mail.gmail.com>
- <20220406135807.GA16047@breakpoint.cc>
- <726cf53c-f6aa-38a9-71c4-52fb2457f818@netfilter.org>
+In-Reply-To: <20220407102657.GB16047@breakpoint.cc>
+Message-ID: <9c6d2d7-70b-bd12-ee14-7923664afb1@netfilter.org>
+References: <CADVnQyn=VfcqGgWXO_9h6QTkMn5ZxPbNRTnMFAxwQzKpMRvH3A@mail.gmail.com> <5f1bbeb2-efe4-0b10-bc76-37eff30ea905@uls.co.za> <CADVnQymPoyY+AX_P7k+NcRWabJZrb7UCJdDZ=FOkvWguiTPVyQ@mail.gmail.com> <CADVnQy=GX0J_QbMJXogGzPwD=f0diKDDxLiHV0gzrb4bo=4FjA@mail.gmail.com>
+ <429dd56b-8a6c-518f-ccb4-fa5beae30953@uls.co.za> <CADVnQynGT7pGBT4PJ=vYg-bj9gnHTsKYHMU_6W0RFZb2FOoxiw@mail.gmail.com> <CANn89iJqKmjvJGtRHVumfP0T_SSa1uioFLgUvW+MF2ov2Ec2vQ@mail.gmail.com> <CADVnQykexgJ+NEUojiKrt=HTomF0nL8CncF401+mEFkvuge7Rg@mail.gmail.com>
+ <20220406135807.GA16047@breakpoint.cc> <726cf53c-f6aa-38a9-71c4-52fb2457f818@netfilter.org> <20220407102657.GB16047@breakpoint.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <726cf53c-f6aa-38a9-71c4-52fb2457f818@netfilter.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
-> I'd merge the two conditions so that it'd cover both original condition 
-> branches:
+On Thu, 7 Apr 2022, Florian Westphal wrote:
+
+> Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
+> > I'd merge the two conditions so that it'd cover both original condition 
+> > branches:
+> > 
+> > diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+> > index 8ec55cd72572..87375ce2f995 100644
+> > --- a/net/netfilter/nf_conntrack_proto_tcp.c
+> > +++ b/net/netfilter/nf_conntrack_proto_tcp.c
+> > @@ -556,33 +556,26 @@ static bool tcp_in_window(struct nf_conn *ct,
+> >  			}
+> >  
+> >  		}
+> > -	} else if (((state->state == TCP_CONNTRACK_SYN_SENT
+> > -		     && dir == IP_CT_DIR_ORIGINAL)
+> > -		   || (state->state == TCP_CONNTRACK_SYN_RECV
+> > -		     && dir == IP_CT_DIR_REPLY))
+> > -		   && after(end, sender->td_end)) {
+> > +	} else if (tcph->syn &&
+> > +		   ((after(end, sender->td_end) &&
+> > +		     (state->state == TCP_CONNTRACK_SYN_SENT ||
+> > +		      state->state == TCP_CONNTRACK_SYN_RECV)) ||
+> > +		    (dir == IP_CT_DIR_REPLY &&
+> > +		     state->state == TCP_CONNTRACK_SYN_SENT))) {
 > 
-> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-> index 8ec55cd72572..87375ce2f995 100644
-> --- a/net/netfilter/nf_conntrack_proto_tcp.c
-> +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-> @@ -556,33 +556,26 @@ static bool tcp_in_window(struct nf_conn *ct,
->  			}
->  
->  		}
-> -	} else if (((state->state == TCP_CONNTRACK_SYN_SENT
-> -		     && dir == IP_CT_DIR_ORIGINAL)
-> -		   || (state->state == TCP_CONNTRACK_SYN_RECV
-> -		     && dir == IP_CT_DIR_REPLY))
-> -		   && after(end, sender->td_end)) {
-> +	} else if (tcph->syn &&
-> +		   ((after(end, sender->td_end) &&
-> +		     (state->state == TCP_CONNTRACK_SYN_SENT ||
-> +		      state->state == TCP_CONNTRACK_SYN_RECV)) ||
-> +		    (dir == IP_CT_DIR_REPLY &&
-> +		     state->state == TCP_CONNTRACK_SYN_SENT))) {
+> Thats what I did as well, I merged the two branches but I made the
+> 2nd clause stricter to also consider the after() test; it would no
+> longer re-init for syn-acks when sequence did not advance.
 
-Thats what I did as well, I merged the two branches but I made the
-2nd clause stricter to also consider the after() test; it would no
-longer re-init for syn-acks when sequence did not advance.
+That's perfectly fine.
 
-Then, dir == IP_CT_DIR_REPLY && state == SYN_SENT is already covered
-by earlier test and can be elided.
+But what about simultaneous syn? The TCP state is zeroed in the REPLY 
+direction, so the after() test can easily be false and the state wouldn't 
+be picked up. Therefore I extended the condition.
 
-I'm fine with your version though, will you submit a patch?
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics
+          H-1525 Budapest 114, POB. 49, Hungary
