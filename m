@@ -2,30 +2,30 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CDFB0C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Apr 2022 10:09:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B295C433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Apr 2022 10:12:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230480AbiDHKLR (ORCPT
+        id S233878AbiDHKOH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 8 Apr 2022 06:11:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54018 "EHLO
+        Fri, 8 Apr 2022 06:14:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38736 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229565AbiDHKLR (ORCPT
+        with ESMTP id S233630AbiDHKOG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 8 Apr 2022 06:11:17 -0400
+        Fri, 8 Apr 2022 06:14:06 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3320B3BA50
-        for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2022 03:09:14 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9E230AC042
+        for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2022 03:11:59 -0700 (PDT)
 Received: from netfilter.org (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 50F8D64398;
-        Fri,  8 Apr 2022 12:05:24 +0200 (CEST)
-Date:   Fri, 8 Apr 2022 12:09:10 +0200
+        by mail.netfilter.org (Postfix) with ESMTPSA id 50C0F6439C;
+        Fri,  8 Apr 2022 12:08:09 +0200 (CEST)
+Date:   Fri, 8 Apr 2022 12:11:55 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Florian Westphal <fw@strlen.de>
 Cc:     netfilter-devel@vger.kernel.org
 Subject: Re: [PATCH nf-next v3 00/16] netfilter: conntrack: remove percpu
  lists
-Message-ID: <YlAJxhoncbhpfXzR@salvia>
+Message-ID: <YlAKayJf6mBKS7HP@salvia>
 References: <20220323132214.6700-1-fw@strlen.de>
  <YlAGgQVDv9wBS1+7@salvia>
  <YlAHnE2pGW6qdAeA@salvia>
@@ -73,4 +73,4 @@ On Fri, Apr 08, 2022 at 12:05:38PM +0200, Pablo Neira Ayuso wrote:
 > 
 > So we can avoid the stash trick in nfnetlink too?
 
-So I'm taking 3, 5 and 8 at this stage.
+Forget this idea, we can't, this event handler is again global.
