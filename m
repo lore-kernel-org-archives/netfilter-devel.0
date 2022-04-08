@@ -2,134 +2,86 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3A31C433FE
-	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Apr 2022 16:42:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89B50C433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Apr 2022 19:34:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233277AbiDHQoC (ORCPT
+        id S232447AbiDHTgW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 8 Apr 2022 12:44:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57142 "EHLO
+        Fri, 8 Apr 2022 15:36:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58392 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233092AbiDHQoB (ORCPT
+        with ESMTP id S229457AbiDHTgU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 8 Apr 2022 12:44:01 -0400
-Received: from smtp-190c.mail.infomaniak.ch (smtp-190c.mail.infomaniak.ch [IPv6:2001:1600:4:17::190c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 30927120B8
-        for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2022 09:41:55 -0700 (PDT)
-Received: from smtp-2-0000.mail.infomaniak.ch (unknown [10.5.36.107])
-        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4KZkYG2P0pzMprsG;
-        Fri,  8 Apr 2022 18:41:54 +0200 (CEST)
-Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
-        by smtp-2-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4KZkYF5TZDzlhSLv;
-        Fri,  8 Apr 2022 18:41:53 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1649436114;
-        bh=8xizND76wRObJpb8aCVKF4BbKb864GvEqQKNfgg74Ms=;
-        h=Date:To:Cc:References:From:Subject:In-Reply-To:From;
-        b=oiQ0KZUK0B445T/NDDrfFHEawqQAYLdl19DKK7nQbFoTUf5LqbrpRpM93R/SSojCS
-         DWDXm8L6r9Ads5FR+dHu27xrbNZBWKBDauJ5k00BRGCxojxcaZ56HmPqgyud0G1j+q
-         ECNKn4fUewzaeIdW++WotPYHnS1b1L9C+xqd07EM=
-Message-ID: <0b0ddf78-12fa-ab52-ba3a-c819ed9d2ccd@digikod.net>
-Date:   Fri, 8 Apr 2022 18:41:52 +0200
+        Fri, 8 Apr 2022 15:36:20 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E2C576281
+        for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2022 12:34:15 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1ncuN3-000475-KY; Fri, 08 Apr 2022 21:34:13 +0200
+Date:   Fri, 8 Apr 2022 21:34:13 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, fw@strlen.de
+Subject: Re: [PATCH nf-next RFC 2/2] netfilter: conntrack: skip event
+ delivery for the netns exit path
+Message-ID: <20220408193413.GC7920@breakpoint.cc>
+References: <20220408125837.221673-1-pablo@netfilter.org>
+ <20220408125837.221673-2-pablo@netfilter.org>
 MIME-Version: 1.0
-User-Agent: 
-Content-Language: en-US
-To:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-Cc:     willemdebruijn.kernel@gmail.com,
-        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
-        artem.kuzin@huawei.com, anton.sirazetdinov@huawei.com
-References: <20220309134459.6448-1-konstantin.meskhidze@huawei.com>
- <20220309134459.6448-11-konstantin.meskhidze@huawei.com>
- <d3340ed0-fe61-3f00-d7ba-44ece235a319@digikod.net>
- <491d6e96-4bfb-ed97-7eb8-fb18aa144d64@huawei.com>
- <6f631d7c-a2e3-20b3-997e-6b533b748767@digikod.net>
- <2958392e-ba3e-453e-415b-c3869523ea25@huawei.com>
-From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-Subject: Re: [RFC PATCH v4 10/15] seltest/landlock: add tests for bind() hooks
-In-Reply-To: <2958392e-ba3e-453e-415b-c3869523ea25@huawei.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220408125837.221673-2-pablo@netfilter.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
-On 06/04/2022 16:12, Konstantin Meskhidze wrote:
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> 70e9942f17a6 ("netfilter: nf_conntrack: make event callback registration
+> per-netns") introduced a per-netns callback for events to workaround a
+> crash when delivering conntrack events on a stale per-netns nfnetlink
+> kernel socket.
 > 
+> This patch adds a new flag to the nf_ct_iter_data object to skip event
+> delivery from the netns cleanup path to address this issue.
 > 
-> 4/4/2022 12:44 PM, Mickaël Salaün пишет:
->>
->> On 04/04/2022 10:28, Konstantin Meskhidze wrote:
->>>
->>>
->>> 4/1/2022 7:52 PM, Mickaël Salaün пишет:
->>
->> [...]
->>
->>>>> +static int create_socket(struct __test_metadata *const _metadata)
->>>>> +{
->>>>> +
->>>>> +        int sockfd;
->>>>> +
->>>>> +        sockfd = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
->>>>> +        ASSERT_LE(0, sockfd);
->>>>> +        /* Allows to reuse of local address */
->>>>> +        ASSERT_EQ(0, setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, 
->>>>> &one, sizeof(one)));
->>>>
->>>> Why is it required?
->>>
->>>    Without SO_REUSEADDR there is an error that a socket's port is in 
->>> use.
->>
->> I'm sure there is, but why is this port reused? I think this means 
->> that there is an issue in the tests and that could hide potential 
->> issue with the tests (and then with the kernel code). Could you 
->> investigate and find the problem? This would make these tests reliable.
->    The next scenario is possible here:
->    "In order for a network connection to close, both ends have to send 
-> FIN (final) packets, which indicate they will not send any additional 
-> data, and both ends must ACK (acknowledge) each other's FIN packets. The 
-> FIN packets are initiated by the application performing a close(), a 
-> shutdown(), or an exit(). The ACKs are handled by the kernel after the 
-> close() has completed. Because of this, it is possible for the process 
-> to complete before the kernel has released the associated network 
-> resource, and this port cannot be bound to another process until the 
-> kernel has decided that it is done."
-> https://hea-www.harvard.edu/~fine/Tech/addrinuse.html.
-> 
-> So in this case we have busy port in network selfttest and one of the 
-> solution is to set SO_REUSEADDR socket option, "which explicitly allows 
-> a process to bind to a port which remains in TIME_WAIT (it still only 
-> allows a single process to be bound to that port). This is the both the 
-> simplest and the most effective option for reducing the "address already 
-> in use" error".
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+> compiled tested only.
+> @Florian: Maybe this helps to remove the per-netns nf_conntrack_event_cb
+> callback without having to update nfnetlink to deal with this corner case?
 
-In know what this option does, but I'm wondering what do you need it for 
-these tests: which specific line requires it and why? Isn't it a side 
-effect of running partial tests? I'm worried that this hides some issues 
-in the tests that may make them flaky.
+Old crash recipe is (from your changelog of the 'make it pernet' change):
 
+ 0) make sure nf_conntrack_netlink and nf_conntrack_ipv4 are loaded.
+ 1) container is started.
+ 2) connect to it via lxc-console.
+ 3) generate some traffic with the container to create some conntrack
+    entries in its table.
+ 4) stop the container: you hit one oops because the conntrack table
+    cleanup tries to report the destroy event to user-space but the
+    per-netns nfnetlink socket has already gone (as the nfnetlink
+    socket is per-netns but event callback registration is global).
 
->>
->> Without removing the need to find this issue, the next series should 
->> use a network namespace per test, which will confine such issue from 
->> other tests and the host.
-> 
->    So there are 2 options here:
->      1. Using SO_REUSEADDR option
->      2. Using network namespace.
-> 
-> I prefer the first option - "the simplest and the most effective one"
+Pernet exit handlers are called in reverse order of the module load
+order, so normally this means:
 
-If SO_REUSEADDR is really required (and justified), then it should be 
-used. Either it is required or not, we should use a dedicated network 
-namespace for each test anyway. This enables to not mess with the host 
-and not be impacted by it neither (e.g. if some process already use such 
-ports).
+ctnetlink exit handlers
+nfnetlink_net_exit_batch, removes nfnl socket
+nf_conntrack_pernet_exit(), removes entries,
 
+Because callback is pernet atm this prevents crash after nfntlink sk
+has been closed.
 
-> 
->>
->> [...]
+If thats no longer the case, we need some other way to suppress
+calls with stale nfnl sk.
+
+With the proposed patch series its still possible that we end up
+in nfnetlink via  the ctnl event handler.
+
+E.g. gc worker could evit at the right time, or some kfree_skb call
+ends up dropping last reference.
+
+If you really dislike the nfnl changes I will respin without this
+and will keep the pernet ctnetlink callback.
