@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EBCFC433EF
-	for <netfilter-devel@archiver.kernel.org>; Sat,  9 Apr 2022 13:59:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB4D4C433F5
+	for <netfilter-devel@archiver.kernel.org>; Sat,  9 Apr 2022 13:59:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242286AbiDIOBI (ORCPT
+        id S242288AbiDIOBM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 9 Apr 2022 10:01:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49116 "EHLO
+        Sat, 9 Apr 2022 10:01:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49464 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236016AbiDIOBH (ORCPT
+        with ESMTP id S236016AbiDIOBM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 9 Apr 2022 10:01:07 -0400
+        Sat, 9 Apr 2022 10:01:12 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B53B2DF2B
-        for <netfilter-devel@vger.kernel.org>; Sat,  9 Apr 2022 06:59:00 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 335C0DF2B
+        for <netfilter-devel@vger.kernel.org>; Sat,  9 Apr 2022 06:59:05 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1ndBcB-0008LX-9G; Sat, 09 Apr 2022 15:58:59 +0200
+        id 1ndBcF-0008Ln-Kh; Sat, 09 Apr 2022 15:59:03 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nftables 5/9] src: make interval sets work with string datatypes
-Date:   Sat,  9 Apr 2022 15:58:28 +0200
-Message-Id: <20220409135832.17401-6-fw@strlen.de>
+Subject: [PATCH nftables 6/9] segtree: add string "range" reversal support
+Date:   Sat,  9 Apr 2022 15:58:29 +0200
+Message-Id: <20220409135832.17401-7-fw@strlen.de>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220409135832.17401-1-fw@strlen.de>
 References: <20220409135832.17401-1-fw@strlen.de>
@@ -34,110 +34,95 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Allows to interface names in interval sets:
+Previous commits allows to use set key as a range, i.e.
 
-table inet filter {
-        set s {
-                type ifname
-                flags interval
-                elements = { eth*, foo }
-        }
+	key ifname
+	flags interval
+	elements = { eth* }
 
-Concatenations are not yet supported, also, listing is broken,
-those strings will not be printed back because the values will remain
-in big-endian order.  Followup patch will extend segtree to translate
-this back to host byte order.
+and then have it match on any interface starting with 'eth'.
+
+Listing is broken however, we need to reverse-translate the (128bit)
+number back to a string.
+
+'eth*' is stored as interval
+00687465 0000000 ..  00697465 0000000, i.e. "eth-eti",
+this adds the needed endianess fixups.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/expression.c |  8 ++++++--
- src/segtree.c    | 30 ++++++++++++++++++++++++++----
- 2 files changed, 32 insertions(+), 6 deletions(-)
+ src/segtree.c | 47 +++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 41 insertions(+), 6 deletions(-)
 
-diff --git a/src/expression.c b/src/expression.c
-index deb649e1847b..5d879b535990 100644
---- a/src/expression.c
-+++ b/src/expression.c
-@@ -1442,7 +1442,11 @@ void range_expr_value_low(mpz_t rop, const struct expr *expr)
- {
- 	switch (expr->etype) {
- 	case EXPR_VALUE:
--		return mpz_set(rop, expr->value);
-+		mpz_set(rop, expr->value);
-+		if (expr->byteorder == BYTEORDER_HOST_ENDIAN &&
-+		    expr_basetype(expr)->type == TYPE_STRING)
-+			mpz_switch_byteorder(rop, expr->len / BITS_PER_BYTE);
-+		return;
- 	case EXPR_PREFIX:
- 		return range_expr_value_low(rop, expr->prefix);
- 	case EXPR_RANGE:
-@@ -1462,7 +1466,7 @@ void range_expr_value_high(mpz_t rop, const struct expr *expr)
- 
- 	switch (expr->etype) {
- 	case EXPR_VALUE:
--		return mpz_set(rop, expr->value);
-+		return range_expr_value_low(rop, expr);
- 	case EXPR_PREFIX:
- 		range_expr_value_low(rop, expr->prefix);
- 		assert(expr->len >= expr->prefix_len);
 diff --git a/src/segtree.c b/src/segtree.c
-index 188cafedce45..b4e76bf530d6 100644
+index b4e76bf530d6..bed8bbcf0c8e 100644
 --- a/src/segtree.c
 +++ b/src/segtree.c
-@@ -70,12 +70,30 @@ struct elementary_interval {
- 	struct expr			*expr;
- };
- 
-+static enum byteorder get_key_byteorder(const struct expr *e)
-+{
-+	enum datatypes basetype = expr_basetype(e)->type;
-+
-+	switch (basetype) {
-+	case TYPE_INTEGER:
-+		/* For ranges, integers MUST be in BYTEORDER_BIG_ENDIAN.
-+		 * If the LHS (lookup key, e.g. 'meta mark', is host endian,
-+		 * a byteorder expression is injected to convert the register
-+		 * content before lookup.
-+		 */
-+		return BYTEORDER_BIG_ENDIAN;
-+	case TYPE_STRING:
-+		return BYTEORDER_HOST_ENDIAN;
-+	default:
-+		break;
-+	}
-+
-+	return BYTEORDER_INVALID;
-+}
-+
- static void seg_tree_init(struct seg_tree *tree, const struct set *set,
- 			  struct expr *init, unsigned int debug_mask)
- {
--	struct expr *first;
--
--	first = list_entry(init->expressions.next, struct expr, list);
- 	tree->root	= RB_ROOT;
- 	tree->keytype	= set->key->dtype;
- 	tree->keylen	= set->key->len;
-@@ -85,7 +103,8 @@ static void seg_tree_init(struct seg_tree *tree, const struct set *set,
- 		tree->datatype	= set->data->dtype;
- 		tree->datalen	= set->data->len;
- 	}
--	tree->byteorder	= first->byteorder;
-+
-+	tree->byteorder = get_key_byteorder(set->key);
- 	tree->debug_mask = debug_mask;
+@@ -1032,6 +1032,33 @@ static struct expr *interval_to_prefix(struct expr *low, struct expr *i, const m
+ 	return __expr_to_set_elem(low, prefix);
  }
  
-@@ -608,6 +627,9 @@ static void set_insert_interval(struct expr *set, struct seg_tree *tree,
- 	expr = constant_expr_alloc(&internal_location, tree->keytype,
- 				   tree->byteorder, tree->keylen, NULL);
- 	mpz_set(expr->value, ei->left);
-+	if (tree->byteorder == BYTEORDER_HOST_ENDIAN)
-+		mpz_switch_byteorder(expr->value, expr->len / BITS_PER_BYTE);
++static struct expr *interval_to_string(struct expr *low, struct expr *i, const mpz_t range)
++{
++	unsigned int len = div_round_up(i->len, BITS_PER_BYTE);
++	unsigned int prefix_len, str_len;
++	char data[len + 2];
++	struct expr *expr;
 +
- 	expr = set_elem_expr_alloc(&internal_location, expr);
++	prefix_len = expr_value(i)->len - mpz_scan0(range, 0);
++
++	if (prefix_len > i->len || prefix_len % BITS_PER_BYTE)
++		return interval_to_prefix(low, i, range);
++
++	mpz_export_data(data, expr_value(low)->value, BYTEORDER_BIG_ENDIAN, len);
++
++	str_len = strnlen(data, len);
++	if (str_len >= len || str_len == 0)
++		return interval_to_prefix(low, i, range);
++
++	data[str_len] = '*';
++
++	expr = constant_expr_alloc(&low->location, low->dtype,
++				   BYTEORDER_HOST_ENDIAN,
++				   (str_len + 1) * BITS_PER_BYTE, data);
++
++	return __expr_to_set_elem(low, expr);
++}
++
+ static struct expr *interval_to_range(struct expr *low, struct expr *i, mpz_t range)
+ {
+ 	struct expr *tmp;
+@@ -1130,16 +1157,24 @@ void interval_map_decompose(struct expr *set)
  
- 	if (ei->expr != NULL) {
+ 		mpz_and(p, expr_value(low)->value, range);
+ 
+-		if (!mpz_cmp_ui(range, 0))
++		if (!mpz_cmp_ui(range, 0)) {
++			if (expr_basetype(low)->type == TYPE_STRING)
++				mpz_switch_byteorder(expr_value(low)->value, low->len / BITS_PER_BYTE);
++
+ 			compound_expr_add(set, expr_get(low));
+-		else if ((!range_is_prefix(range) ||
+-			  !(i->dtype->flags & DTYPE_F_PREFIX)) ||
+-			 mpz_cmp_ui(p, 0)) {
+-			struct expr *expr = interval_to_range(low, i, range);
++		} else if (range_is_prefix(range) && !mpz_cmp_ui(p, 0)) {
++			struct expr *expr;
++
++			if (i->dtype->flags & DTYPE_F_PREFIX)
++				expr = interval_to_prefix(low, i, range);
++			else if (expr_basetype(i)->type == TYPE_STRING)
++				expr = interval_to_string(low, i, range);
++			else
++				expr = interval_to_range(low, i, range);
+ 
+ 			compound_expr_add(set, expr);
+ 		} else {
+-			struct expr *expr = interval_to_prefix(low, i, range);
++			struct expr *expr = interval_to_range(low, i, range);
+ 
+ 			compound_expr_add(set, expr);
+ 		}
 -- 
 2.35.1
 
