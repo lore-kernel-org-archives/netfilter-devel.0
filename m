@@ -2,67 +2,58 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 539DFC433FE
-	for <netfilter-devel@archiver.kernel.org>; Sat,  9 Apr 2022 09:51:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DF1AC433EF
+	for <netfilter-devel@archiver.kernel.org>; Sat,  9 Apr 2022 09:58:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232347AbiDIJyB (ORCPT
+        id S233894AbiDIKAM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 9 Apr 2022 05:54:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39180 "EHLO
+        Sat, 9 Apr 2022 06:00:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35234 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231248AbiDIJyB (ORCPT
+        with ESMTP id S232630AbiDIKAK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 9 Apr 2022 05:54:01 -0400
+        Sat, 9 Apr 2022 06:00:10 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC973E0C9
-        for <netfilter-devel@vger.kernel.org>; Sat,  9 Apr 2022 02:51:53 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72186C0E
+        for <netfilter-devel@vger.kernel.org>; Sat,  9 Apr 2022 02:58:04 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@strlen.de>)
-        id 1nd7l2-0007O8-51; Sat, 09 Apr 2022 11:51:52 +0200
-Date:   Sat, 9 Apr 2022 11:51:52 +0200
+        id 1nd7r0-0007Ra-S5; Sat, 09 Apr 2022 11:58:02 +0200
+Date:   Sat, 9 Apr 2022 11:58:02 +0200
 From:   Florian Westphal <fw@strlen.de>
-To:     Topi Miettinen <toiwoton@gmail.com>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] doc: Document that kernel may accept unimplemented
- expressions
-Message-ID: <20220409095152.GA19371@breakpoint.cc>
-References: <20220409094402.22567-1-toiwoton@gmail.com>
+To:     Jeremy Sowden <jeremy@azazel.net>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [nf-next PATCH v2 1/5] netfilter: bitwise: keep track of
+ bit-length of expressions
+Message-ID: <20220409095802.GC19371@breakpoint.cc>
+References: <20220404120417.188410-1-jeremy@azazel.net>
+ <20220404120417.188410-2-jeremy@azazel.net>
+ <20220408232703.GG7920@breakpoint.cc>
+ <YlFUBZg+983PofgH@azazel.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220409094402.22567-1-toiwoton@gmail.com>
+In-Reply-To: <YlFUBZg+983PofgH@azazel.net>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Topi Miettinen <toiwoton@gmail.com> wrote:
-> Kernel silently accepts input chain filters using meta skuid, meta
-> skgid, meta cgroup or socket cgroupv2 expressions but they don't work
-> yet. Warn the users of this possibility.
+Jeremy Sowden <jeremy@azazel.net> wrote:
+> Good point.  I imagine I copied and pasted the types from `len`, which
+> also has `NLA_U32` and `u8`.  It, however, is parsed correctly:
 > 
-> Signed-off-by: Topi Miettinen <toiwoton@gmail.com>
-> ---
->  doc/nft.txt | 5 +++++
->  1 file changed, 5 insertions(+)
+>   err = nft_parse_u32_check(tb[NFTA_BITWISE_LEN], U8_MAX, &len);
+>   if (err < 0)
+>     return err;
 > 
-> diff --git a/doc/nft.txt b/doc/nft.txt
-> index f7a53ac9..4820b4ae 100644
-> --- a/doc/nft.txt
-> +++ b/doc/nft.txt
-> @@ -932,6 +932,11 @@ filter output oif wlan0
->  ^^^^^^^^^^^^^^^^^^^^^^^
->  ---------------------------------
->  
-> +Note that the kernel may accept expressions without errors even if it
-> +doesn't implement the feature. For example, input chain filters using
-> +*meta skuid*, *meta skgid*, *meta cgroup* or *socket cgroupv2*
-> +expressions are silently accepted but they don't work yet.
+> Since `len` is `u8`, `nbits` will need to be `u16`.  My inclination is
+> to leave the netlink type as NLA_U32 and parse it as follows:
+> 
+>   err = nft_parse_u32_check(tb[NFTA_BITWISE_NBITS], U8_MAX * BITS_PER_BYTE,
+>                             &nbits);
+>   if (err < 0)
+>     return err;
 
-Thats not correct.
-
-Those expressions load values from skb->sk, i.e. the socket associated
-with the packet.
-
-In input, such socket may exist, either because of tproxy rules, early
-demux, or bpf programs.
+Yes, thats fine as well.
