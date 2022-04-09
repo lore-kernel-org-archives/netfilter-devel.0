@@ -2,112 +2,105 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2BE0C433F5
-	for <netfilter-devel@archiver.kernel.org>; Sat,  9 Apr 2022 12:57:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1378FC433EF
+	for <netfilter-devel@archiver.kernel.org>; Sat,  9 Apr 2022 13:01:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239770AbiDIM7N (ORCPT
+        id S234330AbiDINED (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 9 Apr 2022 08:59:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47148 "EHLO
+        Sat, 9 Apr 2022 09:04:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38164 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229641AbiDIM7M (ORCPT
+        with ESMTP id S239112AbiDINEB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 9 Apr 2022 08:59:12 -0400
-Received: from mail-qt1-x829.google.com (mail-qt1-x829.google.com [IPv6:2607:f8b0:4864:20::829])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D782455BC
-        for <netfilter-devel@vger.kernel.org>; Sat,  9 Apr 2022 05:57:04 -0700 (PDT)
-Received: by mail-qt1-x829.google.com with SMTP id z19so12735968qtw.2
-        for <netfilter-devel@vger.kernel.org>; Sat, 09 Apr 2022 05:57:04 -0700 (PDT)
+        Sat, 9 Apr 2022 09:04:01 -0400
+Received: from mail-lf1-x12c.google.com (mail-lf1-x12c.google.com [IPv6:2a00:1450:4864:20::12c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D0292A5490
+        for <netfilter-devel@vger.kernel.org>; Sat,  9 Apr 2022 06:01:52 -0700 (PDT)
+Received: by mail-lf1-x12c.google.com with SMTP id k21so19279184lfe.4
+        for <netfilter-devel@vger.kernel.org>; Sat, 09 Apr 2022 06:01:52 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=date:from:to:subject:message-id:user-agent:mime-version
-         :content-transfer-encoding;
-        bh=7RPIHz2qKOuF67JDJ952LKg2Ge2u0RlRY9USX0iB12w=;
-        b=JZIbQ+vnRoQQPmcRfpUGFkiDhou9VCU9m8C7aVc+PhMXO0PFvprC6d1fuofaEG4tcY
-         bkiuu+IH59t711ulLNEkvBGX3bR2S/6kmz4O43GrWc1Yc+mXNqY96zGfVvjZ4G3g+QdY
-         ie7pFvAPTaGZ+Fxz2T8eULaOP39EwluSsofV7Vbfy4Vw2ux7W9d+t6dCYz6mWxXtI1+l
-         BAqW8BlxI9OaNVMlvRCZUdXYggRIL7w3WlJ98yvMV2oAaFjuaEyqKKKXVHDrL/YCSZyJ
-         W+/kCMcsBe7eL+u8ZbZyfpAWrp+ohvH/3frE27zIr97oZKGtkJrkKUtIEUEoiQDHxjAy
-         TjKQ==
+        h=message-id:date:mime-version:user-agent:subject:content-language:to
+         :cc:references:from:in-reply-to:content-transfer-encoding;
+        bh=sPchgaxnfSyXEXR9AVPYGRPwIotpOS2AIb9QbaROQN0=;
+        b=iuCCDvI3uvtSHbNStVxgb4gfeWatquG2AjjTi8Nkysbs3rc5n/CwbAq+zymO0z00XT
+         GuR3j14fVubKkY6geZH9i6zwXpolq03L/zR44ma+5t+p9iTp2gmrHlD6VW1qoXC3Th/f
+         nk5IvPdprcKjacF1prLiXkTnD10oMGYti2yVvogCsLmPnYriukZN/Yt5ocv21dtpD0zI
+         ZpNWsocWk8W3WJan93KNWZLRJ+Kazpj+Kh1/xEBGNcapVS28F4XGJ96xddG40oDT0/jv
+         vPWT1FRZb/jEw22aaQLq5a17zK/KilYQbwMuyE5e26wHiIP1LKjaON7zwVgvNdJi0D0M
+         qq1g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:subject:message-id:user-agent
-         :mime-version:content-transfer-encoding;
-        bh=7RPIHz2qKOuF67JDJ952LKg2Ge2u0RlRY9USX0iB12w=;
-        b=q7gyRHDHlG7zvvjwIrhnnF9G//CL7MeGMRRl+kciSfDBeoDbMQ49S35sFw05xrLoPR
-         MLBsTw1VngSSPNcO9FjnA7+v1N1BK+Ic49UiYlfsiwC9VaUFyGuVG5DpOipe+SMbLr8W
-         2qWVmD2dFHjyyTXMGQt2EDkBjyWfQkJMKrvBAAmNdFB0Nh893sEMlGwmCWet/wTI040X
-         hVUtkzBLCw8K4o8x4Yl9C3VAwZuFVxqNyMwSA4A4mjtBPXCbfI7dkgPjUobAqDmvGZiN
-         qYk726uzguHXe/y36tbxEGqEkmQ1v0irEA5L5rr4klQoqezzvl8lkaEz0cRdrBT6pJYy
-         wWwQ==
-X-Gm-Message-State: AOAM533i3WPnhNRNb5CG6uF/+k+6Lf3Ro/odrqs4KWWpO2z71YSBoCGb
-        lZUzs3+KbW8OTxggJQzktOVQqblvetl3jw==
-X-Google-Smtp-Source: ABdhPJyZb3BGHiGWv/4DsmOHZCYoCMbMPQyft2z7FirHeuRXzOgj4dKqvs2T/5ZDgS3ED8lY699AVw==
-X-Received: by 2002:a05:622a:1a97:b0:2e0:62b2:4507 with SMTP id s23-20020a05622a1a9700b002e062b24507mr19903815qtc.328.1649509023788;
-        Sat, 09 Apr 2022 05:57:03 -0700 (PDT)
-Received: from fedora (bras-base-cmbypq1103w-grc-23-184-144-170-53.dsl.bell.ca. [184.144.170.53])
-        by smtp.gmail.com with ESMTPSA id v7-20020a379307000000b0069c0a2afc55sm169749qkd.123.2022.04.09.05.57.03
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 09 Apr 2022 05:57:03 -0700 (PDT)
-Date:   Sat, 09 Apr 2022 08:57:02 -0400
-From:   Martin Gignac <martin.gignac@gmail.com>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] tests: py: Add meta time tests without 'meta' keyword
-Message-ID: <6251829e.xNu4VrF13GQsRBbt%martin.gignac@gmail.com>
-User-Agent: Heirloom mailx 12.5 7/5/10
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
+         :content-language:to:cc:references:from:in-reply-to
+         :content-transfer-encoding;
+        bh=sPchgaxnfSyXEXR9AVPYGRPwIotpOS2AIb9QbaROQN0=;
+        b=ZD7RXveYShrSVqXXvp1s4GAbz8mXSdMkhglKz85xJvsKMLOQy6h7DPWdizzN7M9cN3
+         Fls2170FQsgkkqehwpD5IaxQVFQcJznmDIzDtqq9Rl9hCy4/PpjN/hEs3brTulRPxXE/
+         3aCRLqLsXeQOXMdrZTHvR29di5iCN2byC3c7eihvEH3+sRuvNSxDzpchnJqSmOcfX5zr
+         jCAKZhYIAyLuQl4TaX7QsRelmNSxezsBUhm9dtY6z9zx4UXpjTzhPIexL0u8dBXGYRXE
+         DZ8cAoc3NF0+edYdwI2EQejzUeGTTF9GSmjAlMk8XxWhlW6PIQzxHQah/viq+0XiaLSn
+         C4Zw==
+X-Gm-Message-State: AOAM531aHaukbTx57AqcsDrEtquBNXXoMBcoy9OgH3TPFcBp150/gw3E
+        d7rsTepCBel+NjTK6i1Rdt1eAN5fnrQ=
+X-Google-Smtp-Source: ABdhPJxy13o3E7orBcjfOVUClfr1pRRJBr2VcpZj8n4hEwZD7+jQssKcI25D3jXhFAR5mn7g1Y2Nxw==
+X-Received: by 2002:a05:6512:3082:b0:44a:6dc3:3 with SMTP id z2-20020a056512308200b0044a6dc30003mr14647458lfd.663.1649509310411;
+        Sat, 09 Apr 2022 06:01:50 -0700 (PDT)
+Received: from [192.168.1.38] (91-159-150-194.elisa-laajakaista.fi. [91.159.150.194])
+        by smtp.gmail.com with ESMTPSA id be31-20020a05651c171f00b0024b50f426c3sm438499ljb.17.2022.04.09.06.01.49
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sat, 09 Apr 2022 06:01:49 -0700 (PDT)
+Message-ID: <430e61df-8126-f18e-0ecd-6c946dd54229@gmail.com>
+Date:   Sat, 9 Apr 2022 16:01:48 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.7.0
+Subject: Re: [PATCH] doc: Document that kernel may accept unimplemented
+ expressions
+Content-Language: en-US
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+References: <20220409094402.22567-1-toiwoton@gmail.com>
+ <20220409095152.GA19371@breakpoint.cc>
+ <9277ac40-4175-62b3-d777-bdfa9434d187@gmail.com>
+ <20220409102216.GF19371@breakpoint.cc>
+ <f926a231-6224-f6ca-841f-8a56531b33f8@gmail.com>
+ <20220409114240.GG19371@breakpoint.cc>
+From:   Topi Miettinen <toiwoton@gmail.com>
+In-Reply-To: <20220409114240.GG19371@breakpoint.cc>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-v1.0.2 of 'nft' fails on 'time < "2022-07-01 11:00:00"' but succeeds
-when 'meta' is specified ('meta time < "2022-07-01 11:00:00"'). This
-extends coverage by testing 'time' without 'meta'.
+On 9.4.2022 14.42, Florian Westphal wrote:
+> Topi Miettinen <toiwoton@gmail.com> wrote:
+>> Would it be possible to add such checks in the future?
+> 
+> We could add socket skuid, socket skgid, its not hard.
 
-Signed-off-by: Martin Gignac <martin.gignac@gmail.com>
----
- tests/py/any/meta.t         |  2 ++
- tests/py/any/meta.t.payload | 14 ++++++++++++++
- 2 files changed, 16 insertions(+)
+That would be nice. Could the syntax still remain 'meta skuid' even 
+though the credentials come from a socket for compatibility?
 
-diff --git a/tests/py/any/meta.t b/tests/py/any/meta.t
-index e3beea2e..12fabb79 100644
---- a/tests/py/any/meta.t
-+++ b/tests/py/any/meta.t
-@@ -218,6 +218,8 @@ meta hour "17:00:00" drop;ok;meta hour "17:00" drop
- meta hour "17:00:01" drop;ok
- meta hour "00:00" drop;ok
- meta hour "00:01" drop;ok
-+time < "2022-07-01 11:00:00" accept;ok;meta time < "2022-07-01 11:00:00" accept
-+time > "2022-07-01 11:00:00" accept;ok;meta time > "2022-07-01 11:00:00" accept
- 
- meta time "meh";fail
- meta hour "24:00" drop;fail
-diff --git a/tests/py/any/meta.t.payload b/tests/py/any/meta.t.payload
-index 15439062..16dc1211 100644
---- a/tests/py/any/meta.t.payload
-+++ b/tests/py/any/meta.t.payload
-@@ -1058,3 +1058,17 @@ ip meta-test input
-   [ meta load hour => reg 1 ]
-   [ cmp eq reg 1 0x0001359c ]
-   [ immediate reg 0 drop ]
-+
-+# time < "2022-07-01 11:00:00" accept
-+ip test-ip4 input
-+  [ meta load time => reg 1 ]
-+  [ byteorder reg 1 = hton(reg 1, 8, 8) ]
-+  [ cmp lt reg 1 0xf3a8fd16 0x00a07719 ]
-+  [ immediate reg 0 accept ]
-+
-+# time > "2022-07-01 11:00:00" accept
-+ip test-ip4 input
-+  [ meta load time => reg 1 ]
-+  [ byteorder reg 1 = hton(reg 1, 8, 8) ]
-+  [ cmp gt reg 1 0xf3a8fd16 0x00a07719 ]
-+  [ immediate reg 0 accept ]
--- 
-2.35.1
+>> Note that the kernel may accept expressions without errors even if it
+>> doesn't implement the feature. For example, input chain filters using
+>> expressions such as *meta skuid*, *meta skgid*, *meta cgroup* or
+> 
+> Those can not be made to work.
+> 
+>> *socket cgroupv2* are silently accepted but they don't work reliably
+> 
+> socket should work, at least for tcp and udp.
+> The cgroupv2 is buggy.  I sent a patch, feel free to test it.
 
+Once the patch is applied, the warnings in manual page wrt. cgroupv2 
+would only apply to old kernels. How about the following:
+
+Note that different kernel versions may accept expressions without 
+errors even if they don't implement the feature. For example, input 
+chain filters using expressions such as *meta skuid*, *meta skgid*, 
+*meta cgroup* or *socket cgroupv2* are silently accepted but they may 
+not work reliably or at all.
+
+-Topi
