@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 559A8C433FE
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Apr 2022 10:27:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58009C433FE
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Apr 2022 10:27:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240659AbiDKKaE (ORCPT
+        id S1345498AbiDKKaJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 11 Apr 2022 06:30:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43798 "EHLO
+        Mon, 11 Apr 2022 06:30:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43846 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232344AbiDKKaD (ORCPT
+        with ESMTP id S1344899AbiDKKaF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 11 Apr 2022 06:30:03 -0400
+        Mon, 11 Apr 2022 06:30:05 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3C9C42B258;
-        Mon, 11 Apr 2022 03:27:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D9FA639169;
+        Mon, 11 Apr 2022 03:27:51 -0700 (PDT)
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id CD0E1625E1;
-        Mon, 11 Apr 2022 12:23:48 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 4B2326302B;
+        Mon, 11 Apr 2022 12:23:50 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 01/11] netfilter: nf_tables: replace unnecessary use of list_for_each_entry_continue()
-Date:   Mon, 11 Apr 2022 12:27:34 +0200
-Message-Id: <20220411102744.282101-2-pablo@netfilter.org>
+Subject: [PATCH net-next 03/11] netfilter: conntrack: split inner loop of list dumping to own function
+Date:   Mon, 11 Apr 2022 12:27:36 +0200
+Message-Id: <20220411102744.282101-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220411102744.282101-1-pablo@netfilter.org>
 References: <20220411102744.282101-1-pablo@netfilter.org>
@@ -34,52 +34,115 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Jakob Koschel <jakobkoschel@gmail.com>
+From: Florian Westphal <fw@strlen.de>
 
-Since there is no way for list_for_each_entry_continue() to start
-interating in the middle of the list they can be replaced with a call
-to list_for_each_entry().
+This allows code re-use in the followup patch.
+No functional changes intended.
 
-In preparation to limit the scope of the list iterator to the list
-traversal loop, the list iterator variable 'rule' should not be used
-past the loop.
-
-v1->v2:
-- also replace first usage of list_for_each_entry_continue() (Florian
-Westphal)
-
-Signed-off-by: Jakob Koschel <jakobkoschel@gmail.com>
-Reviewed-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ net/netfilter/nf_conntrack_netlink.c | 68 ++++++++++++++++++----------
+ 1 file changed, 43 insertions(+), 25 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 5ddfdb2adaf1..060aa56e54d9 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -8367,10 +8367,8 @@ static int nf_tables_commit_chain_prepare(struct net *net, struct nft_chain *cha
- 	if (chain->blob_next || !nft_is_active_next(net, chain))
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 1ea2ad732d57..924d766e6c53 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -1708,6 +1708,47 @@ static int ctnetlink_done_list(struct netlink_callback *cb)
+ 	return 0;
+ }
+ 
++static int ctnetlink_dump_one_entry(struct sk_buff *skb,
++				    struct netlink_callback *cb,
++				    struct nf_conn *ct,
++				    bool dying)
++{
++	struct ctnetlink_list_dump_ctx *ctx = (void *)cb->ctx;
++	struct nfgenmsg *nfmsg = nlmsg_data(cb->nlh);
++	u8 l3proto = nfmsg->nfgen_family;
++	int res;
++
++	if (l3proto && nf_ct_l3num(ct) != l3proto)
++		return 0;
++
++	if (ctx->last) {
++		if (ct != ctx->last)
++			return 0;
++
++		ctx->last = NULL;
++	}
++
++	/* We can't dump extension info for the unconfirmed
++	 * list because unconfirmed conntracks can have
++	 * ct->ext reallocated (and thus freed).
++	 *
++	 * In the dying list case ct->ext can't be free'd
++	 * until after we drop pcpu->lock.
++	 */
++	res = ctnetlink_fill_info(skb, NETLINK_CB(cb->skb).portid,
++				  cb->nlh->nlmsg_seq,
++				  NFNL_MSG_TYPE(cb->nlh->nlmsg_type),
++				  ct, dying, 0);
++	if (res < 0) {
++		if (!refcount_inc_not_zero(&ct->ct_general.use))
++			return 0;
++
++		ctx->last = ct;
++	}
++
++	return res;
++}
++
+ static int
+ ctnetlink_dump_list(struct sk_buff *skb, struct netlink_callback *cb, bool dying)
+ {
+@@ -1715,12 +1756,9 @@ ctnetlink_dump_list(struct sk_buff *skb, struct netlink_callback *cb, bool dying
+ 	struct nf_conn *ct, *last;
+ 	struct nf_conntrack_tuple_hash *h;
+ 	struct hlist_nulls_node *n;
+-	struct nfgenmsg *nfmsg = nlmsg_data(cb->nlh);
+-	u_int8_t l3proto = nfmsg->nfgen_family;
+-	int res;
+-	int cpu;
+ 	struct hlist_nulls_head *list;
+ 	struct net *net = sock_net(skb->sk);
++	int res, cpu;
+ 
+ 	if (ctx->done)
  		return 0;
+@@ -1739,30 +1777,10 @@ ctnetlink_dump_list(struct sk_buff *skb, struct netlink_callback *cb, bool dying
+ restart:
+ 		hlist_nulls_for_each_entry(h, n, list, hnnode) {
+ 			ct = nf_ct_tuplehash_to_ctrack(h);
+-			if (l3proto && nf_ct_l3num(ct) != l3proto)
+-				continue;
+-			if (ctx->last) {
+-				if (ct != last)
+-					continue;
+-				ctx->last = NULL;
+-			}
  
--	rule = list_entry(&chain->rules, struct nft_rule, list);
--
- 	data_size = 0;
--	list_for_each_entry_continue(rule, &chain->rules, list) {
-+	list_for_each_entry(rule, &chain->rules, list) {
- 		if (nft_is_active_next(net, rule)) {
- 			data_size += sizeof(*prule) + rule->dlen;
- 			if (data_size > INT_MAX)
-@@ -8387,7 +8385,7 @@ static int nf_tables_commit_chain_prepare(struct net *net, struct nft_chain *cha
- 	data_boundary = data + data_size;
- 	size = 0;
- 
--	list_for_each_entry_continue(rule, &chain->rules, list) {
-+	list_for_each_entry(rule, &chain->rules, list) {
- 		if (!nft_is_active_next(net, rule))
- 			continue;
- 
+-			/* We can't dump extension info for the unconfirmed
+-			 * list because unconfirmed conntracks can have
+-			 * ct->ext reallocated (and thus freed).
+-			 *
+-			 * In the dying list case ct->ext can't be free'd
+-			 * until after we drop pcpu->lock.
+-			 */
+-			res = ctnetlink_fill_info(skb, NETLINK_CB(cb->skb).portid,
+-						  cb->nlh->nlmsg_seq,
+-						  NFNL_MSG_TYPE(cb->nlh->nlmsg_type),
+-						  ct, dying, 0);
++			res = ctnetlink_dump_one_entry(skb, cb, ct, dying);
+ 			if (res < 0) {
+-				if (!refcount_inc_not_zero(&ct->ct_general.use))
+-					continue;
+ 				ctx->cpu = cpu;
+-				ctx->last = ct;
+ 				spin_unlock_bh(&pcpu->lock);
+ 				goto out;
+ 			}
 -- 
 2.30.2
 
