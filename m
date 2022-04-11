@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 246F2C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 951F4C4332F
 	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Apr 2022 10:28:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345507AbiDKKaM (ORCPT
+        id S1345513AbiDKKaM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Mon, 11 Apr 2022 06:30:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43968 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43974 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345489AbiDKKaJ (ORCPT
+        with ESMTP id S1345493AbiDKKaJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 11 Apr 2022 06:30:09 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9170642A1B;
-        Mon, 11 Apr 2022 03:27:53 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 91560433B5;
+        Mon, 11 Apr 2022 03:27:54 -0700 (PDT)
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 7FC646304A;
-        Mon, 11 Apr 2022 12:23:52 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 5455063050;
+        Mon, 11 Apr 2022 12:23:53 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 08/11] netfilter: bitwise: replace hard-coded size with `sizeof` expression
-Date:   Mon, 11 Apr 2022 12:27:41 +0200
-Message-Id: <20220411102744.282101-9-pablo@netfilter.org>
+Subject: [PATCH net-next 10/11] netfilter: nft_fib: reverse path filter for policy-based routing on iif
+Date:   Mon, 11 Apr 2022 12:27:43 +0200
+Message-Id: <20220411102744.282101-11-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220411102744.282101-1-pablo@netfilter.org>
 References: <20220411102744.282101-1-pablo@netfilter.org>
@@ -34,30 +34,71 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Jeremy Sowden <jeremy@azazel.net>
+If policy-based routing using the iif selector is used, then the fib
+expression fails to look up for the reverse path from the prerouting
+hook because the input interface cannot be inferred. In order to support
+this scenario, extend the fib expression to allow to use after the route
+lookup, from the forward hook.
 
-When calculating the length of an array, use the appropriate `sizeof`
-expression for its type, rather than an integer literal.
+This patch also adds support for the input hook for usability reasons.
+Since the prerouting hook cannot be used for the scenario described
+above, users need two rules: one for the forward chain and another rule
+for the input chain to check for the reverse path check for locally
+targeted traffic.
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Acked-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_bitwise.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/ipv4/netfilter/nft_fib_ipv4.c | 4 ++++
+ net/ipv6/netfilter/nft_fib_ipv6.c | 4 ++++
+ net/netfilter/nft_fib.c           | 4 ++++
+ 3 files changed, 12 insertions(+)
 
-diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
-index 38caa66632b4..dc5759fac5b6 100644
---- a/net/netfilter/nft_bitwise.c
-+++ b/net/netfilter/nft_bitwise.c
-@@ -30,7 +30,7 @@ static void nft_bitwise_eval_bool(u32 *dst, const u32 *src,
- {
- 	unsigned int i;
- 
--	for (i = 0; i < DIV_ROUND_UP(priv->len, 4); i++)
-+	for (i = 0; i < DIV_ROUND_UP(priv->len, sizeof(u32)); i++)
- 		dst[i] = (src[i] & priv->mask.data[i]) ^ priv->xor.data[i];
- }
- 
+diff --git a/net/ipv4/netfilter/nft_fib_ipv4.c b/net/ipv4/netfilter/nft_fib_ipv4.c
+index 4151eb1262dd..b75cac69bd7e 100644
+--- a/net/ipv4/netfilter/nft_fib_ipv4.c
++++ b/net/ipv4/netfilter/nft_fib_ipv4.c
+@@ -112,6 +112,10 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 		fl4.daddr = iph->daddr;
+ 		fl4.saddr = get_saddr(iph->saddr);
+ 	} else {
++		if (nft_hook(pkt) == NF_INET_FORWARD &&
++		    priv->flags & NFTA_FIB_F_IIF)
++			fl4.flowi4_iif = nft_out(pkt)->ifindex;
++
+ 		fl4.daddr = iph->saddr;
+ 		fl4.saddr = get_saddr(iph->daddr);
+ 	}
+diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
+index b3f163b40c2b..8970d0b4faeb 100644
+--- a/net/ipv6/netfilter/nft_fib_ipv6.c
++++ b/net/ipv6/netfilter/nft_fib_ipv6.c
+@@ -30,6 +30,10 @@ static int nft_fib6_flowi_init(struct flowi6 *fl6, const struct nft_fib *priv,
+ 		fl6->daddr = iph->daddr;
+ 		fl6->saddr = iph->saddr;
+ 	} else {
++		if (nft_hook(pkt) == NF_INET_FORWARD &&
++		    priv->flags & NFTA_FIB_F_IIF)
++			fl6->flowi6_iif = nft_out(pkt)->ifindex;
++
+ 		fl6->daddr = iph->saddr;
+ 		fl6->saddr = iph->daddr;
+ 	}
+diff --git a/net/netfilter/nft_fib.c b/net/netfilter/nft_fib.c
+index f198f2d9ef90..1f12d7ade606 100644
+--- a/net/netfilter/nft_fib.c
++++ b/net/netfilter/nft_fib.c
+@@ -35,6 +35,10 @@ int nft_fib_validate(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 	case NFT_FIB_RESULT_OIF:
+ 	case NFT_FIB_RESULT_OIFNAME:
+ 		hooks = (1 << NF_INET_PRE_ROUTING);
++		if (priv->flags & NFTA_FIB_F_IIF) {
++			hooks |= (1 << NF_INET_LOCAL_IN) |
++				 (1 << NF_INET_FORWARD);
++		}
+ 		break;
+ 	case NFT_FIB_RESULT_ADDRTYPE:
+ 		if (priv->flags & NFTA_FIB_F_IIF)
 -- 
 2.30.2
 
