@@ -2,243 +2,345 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF4E5C433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Apr 2022 11:47:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3A40C433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Apr 2022 13:44:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240921AbiDKLtj (ORCPT
+        id S1346672AbiDKNrD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 11 Apr 2022 07:49:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60070 "EHLO
+        Mon, 11 Apr 2022 09:47:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51924 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244255AbiDKLti (ORCPT
+        with ESMTP id S1346679AbiDKNrB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 11 Apr 2022 07:49:38 -0400
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::48])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E42E145AD0;
-        Mon, 11 Apr 2022 04:47:23 -0700 (PDT)
-Received: from localhost (localhost [127.0.0.1])
-        by smtp2.kfki.hu (Postfix) with ESMTP id BA850CC010D;
-        Mon, 11 Apr 2022 13:47:21 +0200 (CEST)
-X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
-        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Mon, 11 Apr 2022 13:47:19 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 0186FCC010C;
-        Mon, 11 Apr 2022 13:47:18 +0200 (CEST)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id DE08D343156; Mon, 11 Apr 2022 13:47:18 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by blackhole.kfki.hu (Postfix) with ESMTP id DC44A343155;
-        Mon, 11 Apr 2022 13:47:18 +0200 (CEST)
-Date:   Mon, 11 Apr 2022 13:47:18 +0200 (CEST)
-From:   Jozsef Kadlecsik <kadlec@netfilter.org>
-To:     Thorsten Leemhuis <regressions@leemhuis.info>
-cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org,
-        "U'ren, Aaron" <Aaron.U'ren@sony.com>,
-        "Brown, Russell" <Russell.Brown@sony.com>,
-        "Rueger, Manuel" <manuel.rueger@sony.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "regressions@lists.linux.dev" <regressions@lists.linux.dev>,
-        Florian Westphal <fw@strlen.de>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "McLean, Patrick" <Patrick.Mclean@sony.com>
-Subject: Re: Intermittent performance regression related to ipset between
- 5.10 and 5.15
-In-Reply-To: <c28ed507-168e-e725-dddd-b81fadaf6aa5@leemhuis.info>
-Message-ID: <b1bfbc2f-2a91-9d20-434d-395491994de@netfilter.org>
-References: <BY5PR13MB3604D24C813A042A114B639DEE109@BY5PR13MB3604.namprd13.prod.outlook.com> <5e56c644-2311-c094-e099-cfe0d574703b@leemhuis.info> <c28ed507-168e-e725-dddd-b81fadaf6aa5@leemhuis.info>
+        Mon, 11 Apr 2022 09:47:01 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5503613F4C;
+        Mon, 11 Apr 2022 06:44:39 -0700 (PDT)
+Received: from fraeml704-chm.china.huawei.com (unknown [172.18.147.200])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4KcVQp6tvhz67m0C;
+        Mon, 11 Apr 2022 21:42:26 +0800 (CST)
+Received: from [10.122.132.241] (10.122.132.241) by
+ fraeml704-chm.china.huawei.com (10.206.15.53) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.2375.24; Mon, 11 Apr 2022 15:44:35 +0200
+Message-ID: <8e279be2-5092-ad34-2f8d-ca77ee5a10fd@huawei.com>
+Date:   Mon, 11 Apr 2022 16:44:35 +0300
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="110363376-1045859346-1649677638=:2782"
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.1
+Subject: Re: [RFC PATCH v4 08/15] landlock: add support network rules
+Content-Language: ru
+To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+CC:     <willemdebruijn.kernel@gmail.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+        <artem.kuzin@huawei.com>, <anton.sirazetdinov@huawei.com>
+References: <20220309134459.6448-1-konstantin.meskhidze@huawei.com>
+ <20220309134459.6448-9-konstantin.meskhidze@huawei.com>
+ <06f9ca1f-6e92-9d71-4097-e43b2f77b937@digikod.net>
+From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+In-Reply-To: <06f9ca1f-6e92-9d71-4097-e43b2f77b937@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.122.132.241]
+X-ClientProxiedBy: lhreml754-chm.china.huawei.com (10.201.108.204) To
+ fraeml704-chm.china.huawei.com (10.206.15.53)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
---110363376-1045859346-1649677638=:2782
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
 
-Hi,
+4/8/2022 7:30 PM, Mickaël Salaün пишет:
+> 
+> On 09/03/2022 14:44, Konstantin Meskhidze wrote:
+>> This modification adds network rules support
+>> in internal landlock functions (presented in ruleset.c)
+>> and landlock_create_ruleset syscall.
+>>
+>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+>> ---
+>>
+>> Changes since v3:
+>> * Split commit.
+>> * Add network rule support for internal landlock functions.
+>> * Add set_masks and get_masks for network.
+>> * Add rb_root root_net_port.
+>>
+>> ---
+>>   security/landlock/fs.c       |  2 +-
+>>   security/landlock/limits.h   |  6 +++
+>>   security/landlock/ruleset.c  | 88 +++++++++++++++++++++++++++++++++---
+>>   security/landlock/ruleset.h  | 14 +++++-
+>>   security/landlock/syscalls.c | 10 +++-
+>>   5 files changed, 109 insertions(+), 11 deletions(-)
+>>
+>> diff --git a/security/landlock/fs.c b/security/landlock/fs.c
+>> index 75ebdce5cd16..5cd339061cdb 100644
+>> --- a/security/landlock/fs.c
+>> +++ b/security/landlock/fs.c
+>> @@ -231,7 +231,7 @@ static int check_access_path(const struct 
+>> landlock_ruleset *const domain,
+>>
+>>               inode = d_backing_inode(walker_path.dentry);
+>>               object_ptr = landlock_inode(inode)->object;
+>> -            layer_mask = landlock_unmask_layers(domain, object_ptr,
+>> +            layer_mask = landlock_unmask_layers(domain, object_ptr, 0,
+>>                               access_request, layer_mask,
+>>                               LANDLOCK_RULE_PATH_BENEATH);
+>>               if (layer_mask == 0) {
+>> diff --git a/security/landlock/limits.h b/security/landlock/limits.h
+>> index 2a0a1095ee27..fdbef85e4de0 100644
+>> --- a/security/landlock/limits.h
+>> +++ b/security/landlock/limits.h
+>> @@ -18,4 +18,10 @@
+>>   #define LANDLOCK_LAST_ACCESS_FS        LANDLOCK_ACCESS_FS_MAKE_SYM
+>>   #define LANDLOCK_MASK_ACCESS_FS        ((LANDLOCK_LAST_ACCESS_FS << 
+>> 1) - 1)
+>>
+>> +#define LANDLOCK_LAST_ACCESS_NET    LANDLOCK_ACCESS_NET_CONNECT_TCP
+>> +#define LANDLOCK_MASK_ACCESS_NET    ((LANDLOCK_LAST_ACCESS_NET << 1) 
+>> - 1)
+>> +#define LANDLOCK_MASK_SHIFT_NET        16
+>> +
+>> +#define LANDLOCK_RULE_TYPE_NUM        LANDLOCK_RULE_NET_SERVICE
+>> +
+>>   #endif /* _SECURITY_LANDLOCK_LIMITS_H */
+>> diff --git a/security/landlock/ruleset.c b/security/landlock/ruleset.c
+>> index 7179b10f3538..1cecca59a942 100644
+>> --- a/security/landlock/ruleset.c
+>> +++ b/security/landlock/ruleset.c
+>> @@ -35,6 +35,7 @@ static struct landlock_ruleset *create_ruleset(const 
+>> u32 num_layers)
+>>       refcount_set(&new_ruleset->usage, 1);
+>>       mutex_init(&new_ruleset->lock);
+>>       new_ruleset->root_inode = RB_ROOT;
+>> +    new_ruleset->root_net_port = RB_ROOT;
+>>       new_ruleset->num_layers = num_layers;
+>>       /*
+>>        * hierarchy = NULL
+>> @@ -58,16 +59,32 @@ u32 landlock_get_fs_access_mask(const struct 
+>> landlock_ruleset *ruleset, u16 mask
+>>       return ruleset->access_masks[mask_level];
+>>   }
+>>
+>> +/* A helper function to set a network mask */
+>> +void landlock_set_net_access_mask(struct landlock_ruleset *ruleset,
+>> +                  const struct landlock_access_mask *access_mask_set,
+>> +                  u16 mask_level)
+>> +{
+>> +    ruleset->access_masks[mask_level] |= (access_mask_set->net << 
+>> LANDLOCK_MASK_SHIFT_NET);
+>> +}
+>> +
+>> +/* A helper function to get a network mask */
+>> +u32 landlock_get_net_access_mask(const struct landlock_ruleset 
+>> *ruleset, u16 mask_level)
+>> +{
+>> +    return (ruleset->access_masks[mask_level] >> 
+>> LANDLOCK_MASK_SHIFT_NET);
+>> +}
+> 
+> Both these helpers should be "static inline" and moved in net.h
 
-On Mon, 11 Apr 2022, Thorsten Leemhuis wrote:
+   I got it. Ok.
+> 
+> 
+>> +
+>>   struct landlock_ruleset *landlock_create_ruleset(const struct 
+>> landlock_access_mask *access_mask_set)
+>>   {
+>>       struct landlock_ruleset *new_ruleset;
+>>
+>>       /* Informs about useless ruleset. */
+>> -    if (!access_mask_set->fs)
+>> +    if (!access_mask_set->fs && !access_mask_set->net)
+>>           return ERR_PTR(-ENOMSG);
+>>       new_ruleset = create_ruleset(1);
+>> -    if (!IS_ERR(new_ruleset))
+> 
+> This is better:
+> 
+> if (IS_ERR(new_ruleset))
+>      return new_ruleset;
+> if (access_mask_set->fs)
+> ...
 
-> On 16.03.22 10:17, Thorsten Leemhuis wrote:
-> > [TLDR: I'm adding the regression report below to regzbot, the Linux
-> > kernel regression tracking bot; all text you find below is compiled f=
-rom
-> > a few templates paragraphs you might have encountered already already
-> > from similar mails.]
-> >=20
-> > On 16.03.22 00:15, McLean, Patrick wrote:
->
-> >> When we upgraded from the 5.10 (5.10.61) series to the 5.15 (5.15.16=
-)=20
-> >> series, we encountered an intermittent performance regression that=20
-> >> appears to be related to iptables / ipset. This regression was=20
-> >> noticed on Kubernetes hosts that run kube-router and experience a=20
-> >> high amount of churn to both iptables and ipsets. Specifically, when=
-=20
-> >> we run the nftables (iptables-1.8.7 / nftables-1.0.0) iptables=20
-> >> wrapper xtables-nft-multi on the 5.15 series kernel, we end up=20
-> >> getting extremely laggy response times when iptables attempts to=20
-> >> lookup information on the ipsets that are used in the iptables=20
-> >> definition. This issue isn=E2=80=99t reproducible on all hosts. Howe=
-ver, our=20
-> >> experience has been that across a fleet of ~50 hosts we experienced=20
-> >> this issue on ~40% of the hosts. When the problem evidences, the tim=
-e=20
-> >> that it takes to run unrestricted iptables list commands like=20
-> >> iptables -L or iptables-save gradually increases over the course of=20
-> >> about 1 - 2 hours. Growing from less than a second to run, to takin
->  g sometimes over 2 minutes to run. After that 2 hour mark it seems to=20
->  plateau and not grow any longer. Flushing tables or ipsets doesn=E2=80=
-=99t seem=20
->  to have any affect on the issue. However, rebooting the host does rese=
-t=20
->  the issue. Occasionally, a machine that was evidencing the problem may=
-=20
->  no longer evidence it after being rebooted.
-> >>
-> >> We did try to debug this to find a root cause, but ultimately ran=20
-> >> short on time. We were not able to perform a set of bisects to=20
-> >> hopefully narrow down the issue as the problem isn=E2=80=99t consist=
-ently=20
-> >> reproducible. We were able to get some straces where it appears that=
-=20
-> >> most of the time is spent on getsockopt() operations. It appears tha=
-t=20
-> >> during iptables operations, it attempts to do some work to resolve=20
-> >> the ipsets that are linked to the iptables definitions (perhaps=20
-> >> getting the names of the ipsets themselves?). Slowly that getsockopt=
-=20
-> >> request takes more and more time on affected hosts. Here is an=20
-> >> example strace of the operation in question:
+   I dont get this condition. Do you mean that we return new_ruleset
+anyway no matter what the masks's values are? So its possible to have 0 
+masks values, is't it?
+> 
+> 
+>> +    if (!IS_ERR(new_ruleset) && access_mask_set->fs)
+>>           landlock_set_fs_access_mask(new_ruleset, access_mask_set, 0);
+>> +    if (!IS_ERR(new_ruleset) && access_mask_set->net)
+>> +        landlock_set_net_access_mask(new_ruleset, access_mask_set, 0);
+>>       return new_ruleset;
+>>   }
+>>
+>> @@ -111,6 +128,9 @@ static struct landlock_rule *create_rule(
+>>           landlock_get_object(object_ptr);
+>>           new_rule->object.ptr = object_ptr;
+>>           break;
+>> +    case LANDLOCK_RULE_NET_SERVICE:
+>> +        new_rule->object.data = object_data;
+>> +        break;
+>>       default:
+>>           return ERR_PTR(-EINVAL);
+>>       }
+>> @@ -145,10 +165,12 @@ static void build_check_ruleset(void)
+>>           .num_layers = ~0,
+>>       };
+>>       typeof(ruleset.access_masks[0]) fs_access_mask = ~0;
+>> +    typeof(ruleset.access_masks[0]) net_access_mask = ~0;
+>>
+>>       BUILD_BUG_ON(ruleset.num_rules < LANDLOCK_MAX_NUM_RULES);
+>>       BUILD_BUG_ON(ruleset.num_layers < LANDLOCK_MAX_NUM_LAYERS);
+>>       BUILD_BUG_ON(fs_access_mask < LANDLOCK_MASK_ACCESS_FS);
+>> +    BUILD_BUG_ON(net_access_mask < LANDLOCK_MASK_ACCESS_NET);
+>>   }
+>>
+>>   /**
+>> @@ -191,6 +213,12 @@ static int insert_rule(struct landlock_ruleset 
+>> *const ruleset,
+> 
+> Already reviewed.
+> 
+> [...]
+> 
+> 
+>> @@ -319,6 +363,9 @@ static int tree_merge(struct landlock_ruleset 
+>> *const src,
+>>       case LANDLOCK_RULE_PATH_BENEATH:
+>>           src_root = &src->root_inode;
+>>           break;
+>> +    case LANDLOCK_RULE_NET_SERVICE:
+>> +        src_root = &src->root_net_port;
+>> +        break;
+>>       default:
+>>           return -EINVAL;
+>>       }
+>> @@ -338,11 +385,14 @@ static int tree_merge(struct landlock_ruleset 
+>> *const src,
+>>               return err;
+>>           }
+>>           layers[0].access = walker_rule->layers[0].access;
+>> -
+> 
+> nit: Please keep this empty line.
+> 
+> 
+>>           switch (rule_type) {
+>>           case LANDLOCK_RULE_PATH_BENEATH:
+>>               err = insert_rule(dst, walker_rule->object.ptr, 0, &layers,
+>> -                ARRAY_SIZE(layers), rule_type);
+>> +                    ARRAY_SIZE(layers), rule_type);
+> 
+> Please don't insert this kind of formatting in unrelated patches.
+> 
+> 
+>> +            break;
+>> +        case LANDLOCK_RULE_NET_SERVICE:
+>> +            err = insert_rule(dst, NULL, walker_rule->object.data, 
+>> &layers,
+>> +                    ARRAY_SIZE(layers), rule_type);
+>>               break;
+>>           }
+>>           if (err)
+>> @@ -379,6 +429,10 @@ static int merge_ruleset(struct landlock_ruleset 
+>> *const dst,
+>>       err = tree_merge(src, dst, LANDLOCK_RULE_PATH_BENEATH);
+>>       if (err)
+>>           goto out_unlock;
+>> +    /* Merges the @src network tree. */
+>> +    err = tree_merge(src, dst, LANDLOCK_RULE_NET_SERVICE);
+>> +    if (err)
+>> +        goto out_unlock;
+>>
+>>   out_unlock:
+>>       mutex_unlock(&src->lock);
+>> @@ -398,6 +452,9 @@ static int tree_copy(struct landlock_ruleset 
+>> *const parent,
+>>       case LANDLOCK_RULE_PATH_BENEATH:
+>>           parent_root = &parent->root_inode;
+>>           break;
+>> +    case LANDLOCK_RULE_NET_SERVICE:
+>> +        parent_root = &parent->root_net_port;
+>> +        break;
+>>       default:
+>>           return -EINVAL;
+>>       }
+>> @@ -410,6 +467,11 @@ static int tree_copy(struct landlock_ruleset 
+>> *const parent,
+>>                     &walker_rule->layers, walker_rule->num_layers,
+>>                     rule_type);
+>>               break;
+>> +        case LANDLOCK_RULE_NET_SERVICE:
+>> +            err = insert_rule(child, NULL, walker_rule->object.data,
+>> +                  &walker_rule->layers, walker_rule->num_layers,
+>> +                  rule_type);
+>> +            break;
+>>           }
+>>           if (err)
+>>               return err;
+>> @@ -432,6 +494,10 @@ static int inherit_ruleset(struct 
+>> landlock_ruleset *const parent,
+>>
+>>       /* Copies the @parent inode tree. */
+>>       err = tree_copy(parent, child, LANDLOCK_RULE_PATH_BENEATH);
+>> +    if (err)
+>> +        goto out_unlock;
+>> +    /* Copies the @parent inode tree. */
+>> +    err = tree_copy(parent, child, LANDLOCK_RULE_NET_SERVICE);
+>>       if (err)
+>>           goto out_unlock;
+>>
+>> @@ -464,6 +530,9 @@ static void free_ruleset(struct landlock_ruleset 
+>> *const ruleset)
+>>       rbtree_postorder_for_each_entry_safe(freeme, next, 
+>> &ruleset->root_inode,
+>>               node)
+>>           free_rule(freeme, LANDLOCK_RULE_PATH_BENEATH);
+>> +    rbtree_postorder_for_each_entry_safe(freeme, next, 
+>> &ruleset->root_net_port,
+>> +            node)
+>> +        free_rule(freeme, LANDLOCK_RULE_NET_SERVICE);
+>>       put_hierarchy(ruleset->hierarchy);
+>>       kfree(ruleset);
+>>   }
+>> @@ -565,6 +634,9 @@ const struct landlock_rule *landlock_find_rule(
+>>       case LANDLOCK_RULE_PATH_BENEATH:
+>>           node = ruleset->root_inode.rb_node;
+>>           break;
+>> +    case LANDLOCK_RULE_NET_SERVICE:
+>> +        node = ruleset->root_net_port.rb_node;
+>> +        break;
+>>       default:
+>>           return ERR_PTR(-EINVAL);
+>>       }
+>> @@ -586,8 +658,8 @@ const struct landlock_rule *landlock_find_rule(
+>>   /* Access-control management */
+>>   u64 landlock_unmask_layers(const struct landlock_ruleset *const domain,
+>>                  const struct landlock_object *object_ptr,
+>> -               const u32 access_request, u64 layer_mask,
+>> -               const u16 rule_type)
+>> +               const u16 port, const u32 access_request,
+>> +               u64 layer_mask, const u16 rule_type)
+>>   {
+>>       const struct landlock_rule *rule;
+>>       size_t i;
+>> @@ -600,6 +672,10 @@ u64 landlock_unmask_layers(const struct 
+>> landlock_ruleset *const domain,
+>>               LANDLOCK_RULE_PATH_BENEATH);
+>>           rcu_read_unlock();
+>>           break;
+>> +    case LANDLOCK_RULE_NET_SERVICE:
+>> +        rule = landlock_find_rule(domain, (uintptr_t)port,
+> 
+> Type casting should not be required.
 
-Yes, iptables list/save have to get the names of the referenced sets and=20
-that is performed via getsockopt() calls.
-
-I went through all of the ipset related patches between 5.10.6 (copy&past=
-e=20
-error but just the range is larger) and 5.15.16 and as far as I see none=20
-of them can be responsible for the regression. More data is required to=20
-locate the source of the slowdown.
-
-Best regards,
-Jozsef
-
-> >>
-> >> 0.000074 newfstatat(AT_FDCWD, "/etc/nsswitch.conf", {st_mode=3DS_IFR=
-EG|0644, st_size=3D539, ...}, 0) =3D 0 <0.000017>
-> >> 0.000064 openat(AT_FDCWD, "/var/db/protocols.db", O_RDONLY|O_CLOEXEC=
-) =3D -1 ENOENT (No such file or directory) <0.000017>
-> >> 0.000057 openat(AT_FDCWD, "/etc/protocols", O_RDONLY|O_CLOEXEC) =3D =
-4 <0.000013>
-> >> 0.000034 newfstatat(4, "", {st_mode=3DS_IFREG|0644, st_size=3D6108, =
-...}, AT_EMPTY_PATH) =3D 0 <0.000009>
-> >> 0.000032 lseek(4, 0, SEEK_SET)     =3D 0 <0.000008>
-> >> 0.000025 read(4, "# /etc/protocols\n#\n# Internet (I"..., 4096) =3D =
-4096 <0.000010>
-> >> 0.000036 close(4)                  =3D 0 <0.000008>
-> >> 0.000028 write(1, "ANGME7BF25 - [0:0]\n:KUBE-POD-FW-"..., 4096) =3D =
-4096 <0.000028>
-> >> 0.000049 socket(AF_INET, SOCK_RAW, IPPROTO_RAW) =3D 4 <0.000015>
-> >> 0.000032 fcntl(4, F_SETFD, FD_CLOEXEC) =3D 0 <0.000008>
-> >> 0.000024 getsockopt(4, SOL_IP, 0x53 /* IP_??? */, "\0\1\0\0\7\0\0\0"=
-, [8]) =3D 0 <0.000024>
-> >> 0.000046 getsockopt(4, SOL_IP, 0x53 /* IP_??? */, "\7\0\0\0\7\0\0\0K=
-UBE-DST-VBH27M7NWLDOZIE"..., [40]) =3D 0 <0.109384>
-> >> 0.109456 close(4)                  =3D 0 <0.000022>
-> >>
-> >> On a host that is not evidencing the performance regression we=20
-> >> normally see that operation take ~ 0.00001 as opposed to=20
-> >> 0.109384.Additionally, hosts that were evidencing the problem we als=
-o=20
-> >> saw high lock times with `klockstat` (unfortunately at the time we=20
-> >> did not know about or run echo "0" > /proc/sys/kernel/kptr_restrict=20
-> >> to get the callers of the below commands).
-> >>
-> >> klockstat -i 5 -n 10 (on a host experiencing the problem)
-> >> Caller   Avg Hold  Count   Max hold Total hold
-> >> b'[unknown]'  118490772     83  179899470 9834734132
-> >> b'[unknown]'  118416941     83  179850047 9828606138
-> >> # or somewhere later while iptables -vnL was running:
-> >> Caller   Avg Hold  Count   Max hold Total hold
-> >> b'[unknown]'  496466236     46 17919955720 22837446860
-> >> b'[unknown]'  496391064     46 17919893843 22833988950
-> >>
-> >> klockstat -i 5 -n 10 (on a host not experiencing the problem)
-> >> Caller   Avg Hold  Count   Max hold Total hold
-> >> b'[unknown]'     120316   1510   85537797  181677885
-> >> b'[unknown]'    7119070     24   85527251  170857690
-> >=20
-> > Hi, this is your Linux kernel regression tracker.
-> >=20
-> > Thanks for the report.
-> >=20
-> > CCing the regression mailing list, as it should be in the loop for al=
-l
-> > regressions, as explained here:
-> > https://www.kernel.org/doc/html/latest/admin-guide/reporting-issues.h=
-tml
-> >=20
-> > To be sure below issue doesn't fall through the cracks unnoticed, I'm
-> > adding it to regzbot, my Linux kernel regression tracking bot:
-> >=20
-> > #regzbot ^introduced v5.10..v5.15
-> > #regzbot title net: netfilter: Intermittent performance regression
-> > related to ipset
-> > #regzbot ignore-activity
-> >=20
-> > If it turns out this isn't a regression, free free to remove it from =
-the
-> > tracking by sending a reply to this thread containing a paragraph lik=
-e
-> > "#regzbot invalid: reason why this is invalid" (without the quotes).
-> >=20
-> > Reminder for developers: when fixing the issue, please add a 'Link:'
-> > tags pointing to the report (the mail quoted above) using
-> > lore.kernel.org/r/, as explained in
-> > 'Documentation/process/submitting-patches.rst' and
-> > 'Documentation/process/5.Posting.rst'. Regzbot needs them to
-> > automatically connect reports with fixes, but they are useful in
-> > general, too.
-> >=20
-> > I'm sending this to everyone that got the initial report, to make
-> > everyone aware of the tracking. I also hope that messages like this
-> > motivate people to directly get at least the regression mailing list =
-and
-> > ideally even regzbot involved when dealing with regressions, as messa=
-ges
-> > like this wouldn't be needed then. And don't worry, if I need to send
-> > other mails regarding this regression only relevant for regzbot I'll
-> > send them to the regressions lists only (with a tag in the subject so
-> > people can filter them away). With a bit of luck no such messages wil=
-l
-> > be needed anyway.
-> >=20
-> > Ciao, Thorsten (wearing his 'the Linux kernel's regression tracker' h=
-at)
-> >=20
-> > P.S.: As the Linux kernel's regression tracker I'm getting a lot of
-> > reports on my table. I can only look briefly into most of them and la=
-ck
-> > knowledge about most of the areas they concern. I thus unfortunately
-> > will sometimes get things wrong or miss something important. I hope
-> > that's not the case here; if you think it is, don't hesitate to tell =
-me
-> > in a public reply, it's in everyone's interest to set the public reco=
-rd
-> > straight.
-> >=20
->=20
-
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics
-          H-1525 Budapest 114, POB. 49, Hungary
---110363376-1045859346-1649677638=:2782--
+  Ok. I got it.
+> 
+> [...]
+> .
