@@ -2,67 +2,127 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B86D4C433F5
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Apr 2022 03:44:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E631C433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Apr 2022 08:17:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240770AbiDKDqp (ORCPT
+        id S1343658AbiDKIT0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 10 Apr 2022 23:46:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58376 "EHLO
+        Mon, 11 Apr 2022 04:19:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50152 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243967AbiDKDql (ORCPT
+        with ESMTP id S1343647AbiDKITW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 10 Apr 2022 23:46:41 -0400
-Received: from mail-lf1-x135.google.com (mail-lf1-x135.google.com [IPv6:2a00:1450:4864:20::135])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 657C91CD
-        for <netfilter-devel@vger.kernel.org>; Sun, 10 Apr 2022 20:44:28 -0700 (PDT)
-Received: by mail-lf1-x135.google.com with SMTP id u19so4228504lff.4
-        for <netfilter-devel@vger.kernel.org>; Sun, 10 Apr 2022 20:44:28 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to;
-        bh=7gPGBjBRj/6MkRvreHilhwceVSIhf690rJ9qycmoDDA=;
-        b=cRwXEkFAkPcLqmMG0IZgELaSjTay0cydhcBWouoFwUsMUcgiWG9o2OvoGxquzBfZS7
-         UjFTWsnWmCmbJL8gLokTqd7q0XaauSKdkVKAhy3709ff8cKgKSE9Zqsk/EbNNOIIXCBQ
-         3yhD2ff/Cb6taJEXF23CC/fUeeTEgi4/dJAIs/r5VmD6U/QHsvmvcNITgJADF6z/Op7L
-         L72hRPA1rECih3yahr/Pwrg2tacAgWdU4XPd2oWBbgmrdD+KfFv/jMYZZKQgZY5Xen/g
-         NVO/NZX8KmEevt4rJIAabFUtZOY5cNXnyT2yVkBvgdiWYwCSpAv3aL9UeuOoqIlKyfAK
-         PkMQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to;
-        bh=7gPGBjBRj/6MkRvreHilhwceVSIhf690rJ9qycmoDDA=;
-        b=XyxGi047nFxhxY2tOH4Snw3d7vgXvH/GNrYDK1v4bIQ/QDvNJEqLN8t6TbHnYK7wfG
-         8jCjJD4EvDibmwoOa4+IRiDMTAJrLO2x0FcJIhUogUiUu6hHUgN2Dz9CX+VsZvkyTU26
-         YZCfn1A5oVipEucJekPFGNLXhuFsEntccMg+RYP8HapHOqsE7l0kxor+p6Exb82dQvnb
-         kHW22UERtOIFoCxmnFvQtWhYEjYCytp67HGvK9DRKygBwBl9JfuVFHZVNQ9xbgCqDwP/
-         LNtu1jgv0b9SZy+sun7gCTCBMJwp1mtNZClbStg0IY2MlYpsnq/cZIDz3kPKhsr5NHiL
-         t0ag==
-X-Gm-Message-State: AOAM530Sn54jflf9iUa2VbejQj1QV47eHHs3FssuvymfRnqUm6x8N6rw
-        NbKAt6d+rYtVcVgLDNCPzeXeKkYXXOlZXFKJcLLSUmyZKqg=
-X-Google-Smtp-Source: ABdhPJw/5Vqq0ZZfJmhTmSGFzMCX3l55xtuRh/o7KYku7uIb/MAKFGwYhjJY6NgLRnzEmNugYTw+OFMHRT+giUCdcyg=
-X-Received: by 2002:ac2:521b:0:b0:46b:82a9:b888 with SMTP id
- a27-20020ac2521b000000b0046b82a9b888mr10039676lfl.578.1649648666543; Sun, 10
- Apr 2022 20:44:26 -0700 (PDT)
-MIME-Version: 1.0
-References: <6251829e.xNu4VrF13GQsRBbt%martin.gignac@gmail.com> <YlL1yuSN6cFbK3SN@salvia>
-In-Reply-To: <YlL1yuSN6cFbK3SN@salvia>
-From:   Martin Gignac <martin.gignac@gmail.com>
-Date:   Sun, 10 Apr 2022 23:43:50 -0400
-Message-ID: <CANf9dFOZSwFyoT+LfoRf5sf4kCjg6-G9L+t=Dmov9O8Fpbf7fA@mail.gmail.com>
-Subject: Re: [PATCH nft] tests: py: Add meta time tests without 'meta' keyword
+        Mon, 11 Apr 2022 04:19:22 -0400
+X-Greylist: delayed 509 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 11 Apr 2022 01:17:07 PDT
+Received: from mxout01.bytecamp.net (mxout01.bytecamp.net [212.204.60.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C272A33A05
+        for <netfilter-devel@vger.kernel.org>; Mon, 11 Apr 2022 01:17:07 -0700 (PDT)
+Received: by mxout01.bytecamp.net (Postfix, from userid 1001)
+        id 6B4B82F7AC; Mon, 11 Apr 2022 10:08:36 +0200 (CEST)
+Received: from mail.bytecamp.net (mail.bytecamp.net [212.204.60.9])
+        by mxout01.bytecamp.net (Postfix) with ESMTP id 2F1C92F7AA
+        for <netfilter-devel@vger.kernel.org>; Mon, 11 Apr 2022 10:08:36 +0200 (CEST)
+Received: (qmail 67755 invoked from network); 11 Apr 2022 10:08:36 +0200
+Received: from unknown (HELO j7.lan) (jo%wwsnet.net@77.22.166.48)
+  by mail.bytecamp.net with ESMTPS (DHE-RSA-AES256-GCM-SHA384 encrypted); 11 Apr 2022 10:08:36 +0200
+From:   Jo-Philipp Wich <jo@mein.io>
 To:     netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Cc:     Jo-Philipp Wich <jo@mein.io>
+Subject: [RFC PATCH] datatype: accept abbrevs and ignore case on parsing symbolic constants
+Date:   Mon, 11 Apr 2022 10:08:22 +0200
+Message-Id: <20220411080822.1801117-1-jo@mein.io>
+X-Mailer: git-send-email 2.35.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-> I extended it to cover the json codebase too (./nft-test -j).
+Currently nftables does not accept abbreviated or lowercased weekday
+names as claimed in the nftables wiki [1]. This is due to the fact that
+symbolic_constant_parse() performs a strict equality check of the given
+constant value against the list of potential choices.
 
-I had originally included a similar JSON diff in the patch as well,
-but then noticed that it made no difference to the output of the test
-whether it was there or not, so I mistakenly concluded that it didn't
-matter. The README didn't mention the '-j' flag, and I didn't search
-in the Python code long enough to understand the relevance of
-including the JSON diff. Thanks for adding it.
+In order to implement the behaviour described by the wiki - which seems
+useful and intuitive in general - adjust the constant parsing function
+to to perform a case-insensitive prefix match of the user supplied value
+against the choice list.
+
+The modified code does not check uniqueness of the prefix value, it will
+simply return the first matching item, but it will ensure to reject an
+empty string value.
+
+1: https://wiki.nftables.org/wiki-nftables/index.php/Matching_packet_metainformation#Matching_by_time
+
+Signed-off-by: Jo-Philipp Wich <jo@mein.io>
+---
+ src/datatype.c              |  5 +++--
+ tests/py/any/meta.t         |  4 ++++
+ tests/py/any/meta.t.payload | 18 ++++++++++++++++++
+ 3 files changed, 25 insertions(+), 2 deletions(-)
+
+diff --git a/src/datatype.c b/src/datatype.c
+index 2e31c858..ce4a8aa8 100644
+--- a/src/datatype.c
++++ b/src/datatype.c
+@@ -149,9 +149,10 @@ struct error_record *symbolic_constant_parse(struct parse_ctx *ctx,
+ 	const struct symbolic_constant *s;
+ 	const struct datatype *dtype;
+ 	struct error_record *erec;
++	size_t idlen;
+ 
+-	for (s = tbl->symbols; s->identifier != NULL; s++) {
+-		if (!strcmp(sym->identifier, s->identifier))
++	for (s = tbl->symbols, idlen = strlen(sym->identifier); s->identifier != NULL; s++) {
++		if (idlen > 0 && !strncasecmp(sym->identifier, s->identifier, idlen))
+ 			break;
+ 	}
+ 
+diff --git a/tests/py/any/meta.t b/tests/py/any/meta.t
+index 12fabb79..4f130e7d 100644
+--- a/tests/py/any/meta.t
++++ b/tests/py/any/meta.t
+@@ -212,7 +212,11 @@ meta time < "2022-07-01 11:00:00" accept;ok
+ meta time > "2022-07-01 11:00:00" accept;ok
+ meta day "Saturday" drop;ok
+ meta day 6 drop;ok;meta day "Saturday" drop
++meta day "saturday" drop;ok;meta day "Saturday" drop
++meta day "Sat" drop;ok;meta day "Saturday" drop
++meta day "sat" drop;ok;meta day "Saturday" drop
+ meta day "Satturday" drop;fail
++meta day "" drop;fail
+ meta hour "17:00" drop;ok
+ meta hour "17:00:00" drop;ok;meta hour "17:00" drop
+ meta hour "17:00:01" drop;ok
+diff --git a/tests/py/any/meta.t.payload b/tests/py/any/meta.t.payload
+index 16dc1211..b43c43c4 100644
+--- a/tests/py/any/meta.t.payload
++++ b/tests/py/any/meta.t.payload
+@@ -1023,6 +1023,24 @@ ip test-ip4 input
+   [ cmp eq reg 1 0x00000006 ]
+   [ immediate reg 0 drop ]
+ 
++# meta day "saturday" drop
++ip test-ip4 input
++  [ meta load day => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ immediate reg 0 drop ]
++
++# meta day "Sat" drop
++ip test-ip4 input
++  [ meta load day => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ immediate reg 0 drop ]
++
++# meta day "sat" drop
++ip test-ip4 input
++  [ meta load day => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ immediate reg 0 drop ]
++
+ # meta day 6 drop
+ ip test-ip4 input
+   [ meta load day => reg 1 ]
+-- 
+2.35.1
+
