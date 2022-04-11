@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CEA0C433F5
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Apr 2022 10:27:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 079FDC43219
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Apr 2022 10:28:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344899AbiDKKaJ (ORCPT
+        id S1345511AbiDKKaL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 11 Apr 2022 06:30:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43844 "EHLO
+        Mon, 11 Apr 2022 06:30:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43892 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345471AbiDKKaF (ORCPT
+        with ESMTP id S1345483AbiDKKaG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 11 Apr 2022 06:30:05 -0400
+        Mon, 11 Apr 2022 06:30:06 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 163F12CCB1;
-        Mon, 11 Apr 2022 03:27:51 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E34E43EF35;
+        Mon, 11 Apr 2022 03:27:52 -0700 (PDT)
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id A927E63004;
-        Mon, 11 Apr 2022 12:23:49 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id C32ED63046;
+        Mon, 11 Apr 2022 12:23:51 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 02/11] netfilter: ecache: move to separate structure
-Date:   Mon, 11 Apr 2022 12:27:35 +0200
-Message-Id: <20220411102744.282101-3-pablo@netfilter.org>
+Subject: [PATCH net-next 06/11] netfilter: nf_log_syslog: Don't ignore unknown protocols
+Date:   Mon, 11 Apr 2022 12:27:39 +0200
+Message-Id: <20220411102744.282101-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220411102744.282101-1-pablo@netfilter.org>
 References: <20220411102744.282101-1-pablo@netfilter.org>
@@ -34,103 +34,66 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Phil Sutter <phil@nwl.cc>
 
-This makes it easier for a followup patch to only expose ecache
-related parts of nf_conntrack_net structure.
+With netdev and bridge nfprotos, loggers may see arbitrary ethernet
+frames. Print at least basic info like interfaces and MAC header data.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack.h |  8 ++++++--
- net/netfilter/nf_conntrack_ecache.c  | 19 ++++++++++---------
- 2 files changed, 16 insertions(+), 11 deletions(-)
+ net/netfilter/nf_log_syslog.c | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index b08b70989d2c..69e6c6a218be 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -43,6 +43,11 @@ union nf_conntrack_expect_proto {
- 	/* insert expect proto private data here */
+diff --git a/net/netfilter/nf_log_syslog.c b/net/netfilter/nf_log_syslog.c
+index d1dcf36545d7..a7ff6fdbafc9 100644
+--- a/net/netfilter/nf_log_syslog.c
++++ b/net/netfilter/nf_log_syslog.c
+@@ -894,6 +894,33 @@ static struct nf_logger nf_ip6_logger __read_mostly = {
+ 	.me		= THIS_MODULE,
  };
  
-+struct nf_conntrack_net_ecache {
-+	struct delayed_work dwork;
-+	struct netns_ct *ct_net;
-+};
++static void nf_log_unknown_packet(struct net *net, u_int8_t pf,
++				  unsigned int hooknum,
++				  const struct sk_buff *skb,
++				  const struct net_device *in,
++				  const struct net_device *out,
++				  const struct nf_loginfo *loginfo,
++				  const char *prefix)
++{
++	struct nf_log_buf *m;
 +
- struct nf_conntrack_net {
- 	/* only used when new connection is allocated: */
- 	atomic_t count;
-@@ -58,8 +63,7 @@ struct nf_conntrack_net {
- 	struct ctl_table_header	*sysctl_header;
- #endif
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
--	struct delayed_work ecache_dwork;
--	struct netns_ct *ct_net;
-+	struct nf_conntrack_net_ecache ecache;
- #endif
- };
- 
-diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
-index 07e65b4e92f8..0cb2da0a759a 100644
---- a/net/netfilter/nf_conntrack_ecache.c
-+++ b/net/netfilter/nf_conntrack_ecache.c
-@@ -96,8 +96,8 @@ static enum retry_state ecache_work_evict_list(struct ct_pcpu *pcpu)
- 
- static void ecache_work(struct work_struct *work)
- {
--	struct nf_conntrack_net *cnet = container_of(work, struct nf_conntrack_net, ecache_dwork.work);
--	struct netns_ct *ctnet = cnet->ct_net;
-+	struct nf_conntrack_net *cnet = container_of(work, struct nf_conntrack_net, ecache.dwork.work);
-+	struct netns_ct *ctnet = cnet->ecache.ct_net;
- 	int cpu, delay = -1;
- 	struct ct_pcpu *pcpu;
- 
-@@ -127,7 +127,7 @@ static void ecache_work(struct work_struct *work)
- 
- 	ctnet->ecache_dwork_pending = delay > 0;
- 	if (delay >= 0)
--		schedule_delayed_work(&cnet->ecache_dwork, delay);
-+		schedule_delayed_work(&cnet->ecache.dwork, delay);
- }
- 
- static int __nf_conntrack_eventmask_report(struct nf_conntrack_ecache *e,
-@@ -293,12 +293,12 @@ void nf_conntrack_ecache_work(struct net *net, enum nf_ct_ecache_state state)
- 	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
- 
- 	if (state == NFCT_ECACHE_DESTROY_FAIL &&
--	    !delayed_work_pending(&cnet->ecache_dwork)) {
--		schedule_delayed_work(&cnet->ecache_dwork, HZ);
-+	    !delayed_work_pending(&cnet->ecache.dwork)) {
-+		schedule_delayed_work(&cnet->ecache.dwork, HZ);
- 		net->ct.ecache_dwork_pending = true;
- 	} else if (state == NFCT_ECACHE_DESTROY_SENT) {
- 		net->ct.ecache_dwork_pending = false;
--		mod_delayed_work(system_wq, &cnet->ecache_dwork, 0);
-+		mod_delayed_work(system_wq, &cnet->ecache.dwork, 0);
++	/* FIXME: Disabled from containers until syslog ns is supported */
++	if (!net_eq(net, &init_net) && !sysctl_nf_log_all_netns)
++		return;
++
++	m = nf_log_buf_open();
++
++	if (!loginfo)
++		loginfo = &default_loginfo;
++
++	nf_log_dump_packet_common(m, pf, hooknum, skb, in, out, loginfo,
++				  prefix);
++
++	dump_mac_header(m, loginfo, skb);
++
++	nf_log_buf_close(m);
++}
++
+ static void nf_log_netdev_packet(struct net *net, u_int8_t pf,
+ 				 unsigned int hooknum,
+ 				 const struct sk_buff *skb,
+@@ -913,6 +940,10 @@ static void nf_log_netdev_packet(struct net *net, u_int8_t pf,
+ 	case htons(ETH_P_RARP):
+ 		nf_log_arp_packet(net, pf, hooknum, skb, in, out, loginfo, prefix);
+ 		break;
++	default:
++		nf_log_unknown_packet(net, pf, hooknum, skb,
++				      in, out, loginfo, prefix);
++		break;
  	}
  }
  
-@@ -310,8 +310,9 @@ void nf_conntrack_ecache_pernet_init(struct net *net)
- 	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
- 
- 	net->ct.sysctl_events = nf_ct_events;
--	cnet->ct_net = &net->ct;
--	INIT_DELAYED_WORK(&cnet->ecache_dwork, ecache_work);
-+
-+	cnet->ecache.ct_net = &net->ct;
-+	INIT_DELAYED_WORK(&cnet->ecache.dwork, ecache_work);
- 
- 	BUILD_BUG_ON(__IPCT_MAX >= 16);	/* e->ctmask is u16 */
- }
-@@ -320,5 +321,5 @@ void nf_conntrack_ecache_pernet_fini(struct net *net)
- {
- 	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
- 
--	cancel_delayed_work_sync(&cnet->ecache_dwork);
-+	cancel_delayed_work_sync(&cnet->ecache.dwork);
- }
 -- 
 2.30.2
 
