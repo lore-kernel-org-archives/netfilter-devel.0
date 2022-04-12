@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FB33C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Apr 2022 10:46:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 56BB4C433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Apr 2022 10:54:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1356458AbiDLKtG (ORCPT
+        id S1345189AbiDLK4m (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 Apr 2022 06:49:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48806 "EHLO
+        Tue, 12 Apr 2022 06:56:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49338 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1356915AbiDLKpm (ORCPT
+        with ESMTP id S1356912AbiDLKpm (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 12 Apr 2022 06:45:42 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6E56B517DB;
-        Tue, 12 Apr 2022 02:42:57 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7E9D413F7F;
+        Tue, 12 Apr 2022 02:42:55 -0700 (PDT)
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 65FC8625B2;
-        Tue, 12 Apr 2022 11:38:52 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 73F8D625B1;
+        Tue, 12 Apr 2022 11:38:50 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 2/2] netfilter: nf_tables: nft_parse_register can return a negative value
-Date:   Tue, 12 Apr 2022 11:42:46 +0200
-Message-Id: <20220412094246.448055-3-pablo@netfilter.org>
+Subject: [PATCH net 1/2] netfilter: nft_socket: make cgroup match work in input too
+Date:   Tue, 12 Apr 2022 11:42:45 +0200
+Message-Id: <20220412094246.448055-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220412094246.448055-1-pablo@netfilter.org>
 References: <20220412094246.448055-1-pablo@netfilter.org>
@@ -34,32 +34,51 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Antoine Tenart <atenart@kernel.org>
+From: Florian Westphal <fw@strlen.de>
 
-Since commit 6e1acfa387b9 ("netfilter: nf_tables: validate registers
-coming from userspace.") nft_parse_register can return a negative value,
-but the function prototype is still returning an unsigned int.
+cgroupv2 helper function ignores the already-looked up sk
+and uses skb->sk instead.
 
-Fixes: 6e1acfa387b9 ("netfilter: nf_tables: validate registers coming from userspace.")
-Signed-off-by: Antoine Tenart <atenart@kernel.org>
+Just pass sk from the calling function instead; this will
+make cgroup matching work for udp and tcp in input even when
+edemux did not set skb->sk already.
+
+Fixes: e0bb96db96f8 ("netfilter: nft_socket: add support for cgroupsv2")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Tested-by: Topi Miettinen <toiwoton@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nft_socket.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 128ee3b300d6..16c3a39689f4 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -9363,7 +9363,7 @@ int nft_parse_u32_check(const struct nlattr *attr, int max, u32 *dest)
- }
- EXPORT_SYMBOL_GPL(nft_parse_u32_check);
+diff --git a/net/netfilter/nft_socket.c b/net/netfilter/nft_socket.c
+index bd3792f080ed..6d9e8e0a3a7d 100644
+--- a/net/netfilter/nft_socket.c
++++ b/net/netfilter/nft_socket.c
+@@ -37,12 +37,11 @@ static void nft_socket_wildcard(const struct nft_pktinfo *pkt,
  
--static unsigned int nft_parse_register(const struct nlattr *attr, u32 *preg)
-+static int nft_parse_register(const struct nlattr *attr, u32 *preg)
+ #ifdef CONFIG_SOCK_CGROUP_DATA
+ static noinline bool
+-nft_sock_get_eval_cgroupv2(u32 *dest, const struct nft_pktinfo *pkt, u32 level)
++nft_sock_get_eval_cgroupv2(u32 *dest, struct sock *sk, const struct nft_pktinfo *pkt, u32 level)
  {
- 	unsigned int reg;
+-	struct sock *sk = skb_to_full_sk(pkt->skb);
+ 	struct cgroup *cgrp;
  
+-	if (!sk || !sk_fullsock(sk) || !net_eq(nft_net(pkt), sock_net(sk)))
++	if (!sk_fullsock(sk))
+ 		return false;
+ 
+ 	cgrp = sock_cgroup_ptr(&sk->sk_cgrp_data);
+@@ -109,7 +108,7 @@ static void nft_socket_eval(const struct nft_expr *expr,
+ 		break;
+ #ifdef CONFIG_SOCK_CGROUP_DATA
+ 	case NFT_SOCKET_CGROUPV2:
+-		if (!nft_sock_get_eval_cgroupv2(dest, pkt, priv->level)) {
++		if (!nft_sock_get_eval_cgroupv2(dest, sk, pkt, priv->level)) {
+ 			regs->verdict.code = NFT_BREAK;
+ 			return;
+ 		}
 -- 
 2.30.2
 
