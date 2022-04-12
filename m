@@ -2,71 +2,64 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D9A2C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Apr 2022 10:46:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FB33C433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Apr 2022 10:46:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1359259AbiDLKtE (ORCPT
+        id S1356458AbiDLKtG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 Apr 2022 06:49:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48654 "EHLO
+        Tue, 12 Apr 2022 06:49:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48806 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1356873AbiDLKpk (ORCPT
+        with ESMTP id S1356915AbiDLKpm (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 Apr 2022 06:45:40 -0400
+        Tue, 12 Apr 2022 06:45:42 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 64FA813E84;
-        Tue, 12 Apr 2022 02:42:54 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6E56B517DB;
+        Tue, 12 Apr 2022 02:42:57 -0700 (PDT)
 Received: from localhost.localdomain (unknown [78.30.32.163])
-        by mail.netfilter.org (Postfix) with ESMTPSA id 3C1D0608FA;
-        Tue, 12 Apr 2022 11:38:49 +0200 (CEST)
+        by mail.netfilter.org (Postfix) with ESMTPSA id 65FC8625B2;
+        Tue, 12 Apr 2022 11:38:52 +0200 (CEST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 0/2] Netfilter fixes for net
-Date:   Tue, 12 Apr 2022 11:42:44 +0200
-Message-Id: <20220412094246.448055-1-pablo@netfilter.org>
+Subject: [PATCH net 2/2] netfilter: nf_tables: nft_parse_register can return a negative value
+Date:   Tue, 12 Apr 2022 11:42:46 +0200
+Message-Id: <20220412094246.448055-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20220412094246.448055-1-pablo@netfilter.org>
+References: <20220412094246.448055-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+From: Antoine Tenart <atenart@kernel.org>
 
-The following patchset contains Netfilter fixes for net:
+Since commit 6e1acfa387b9 ("netfilter: nf_tables: validate registers
+coming from userspace.") nft_parse_register can return a negative value,
+but the function prototype is still returning an unsigned int.
 
-1) Fix cgroupv2 from the input path, from Florian Westphal.
-
-2) Fix incorrect return value of nft_parse_register(), from Antoine Tenart.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit e8a64bbaaad1f6548cec5508297bc6d45e8ab69e:
-
-  net/sched: taprio: Check if socket flags are valid (2022-04-11 10:51:00 +0100)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git HEAD
-
-for you to fetch changes up to 6c6f9f31ecd47dce1d0dafca4bec8805f9bc97cd:
-
-  netfilter: nf_tables: nft_parse_register can return a negative value (2022-04-12 11:36:37 +0200)
-
-----------------------------------------------------------------
-Antoine Tenart (1):
-      netfilter: nf_tables: nft_parse_register can return a negative value
-
-Florian Westphal (1):
-      netfilter: nft_socket: make cgroup match work in input too
-
+Fixes: 6e1acfa387b9 ("netfilter: nf_tables: validate registers coming from userspace.")
+Signed-off-by: Antoine Tenart <atenart@kernel.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
  net/netfilter/nf_tables_api.c | 2 +-
- net/netfilter/nft_socket.c    | 7 +++----
- 2 files changed, 4 insertions(+), 5 deletions(-)
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 128ee3b300d6..16c3a39689f4 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -9363,7 +9363,7 @@ int nft_parse_u32_check(const struct nlattr *attr, int max, u32 *dest)
+ }
+ EXPORT_SYMBOL_GPL(nft_parse_u32_check);
+ 
+-static unsigned int nft_parse_register(const struct nlattr *attr, u32 *preg)
++static int nft_parse_register(const struct nlattr *attr, u32 *preg)
+ {
+ 	unsigned int reg;
+ 
+-- 
+2.30.2
+
