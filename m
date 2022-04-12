@@ -2,86 +2,78 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DC6DC43217
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Apr 2022 10:10:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBF6CC433FE
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Apr 2022 10:10:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236198AbiDLKMK (ORCPT
+        id S1353594AbiDLKMJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 Apr 2022 06:12:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47152 "EHLO
+        Tue, 12 Apr 2022 06:12:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34030 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1384051AbiDLIjB (ORCPT
+        with ESMTP id S1357517AbiDLJ7S (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 Apr 2022 04:39:01 -0400
-X-Greylist: delayed 600 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 12 Apr 2022 01:04:28 PDT
-Received: from mail.strongswan.org (sitav-80046.hsr.ch [152.96.80.46])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 47C201208C;
-        Tue, 12 Apr 2022 01:04:27 -0700 (PDT)
-Received: from think.wlp.is (unknown [185.12.128.225])
-        by mail.strongswan.org (Postfix) with ESMTPSA id D1830404C0;
-        Tue, 12 Apr 2022 09:46:45 +0200 (CEST)
-From:   Martin Willi <martin@strongswan.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Tue, 12 Apr 2022 05:59:18 -0400
+Received: from zg8tmty1ljiyny4xntqumjca.icoremail.net (zg8tmty1ljiyny4xntqumjca.icoremail.net [165.227.154.27])
+        by lindbergh.monkeyblade.net (Postfix) with SMTP id 7E17744760;
+        Tue, 12 Apr 2022 02:02:02 -0700 (PDT)
+Received: from 102.localdomain (unknown [59.61.78.232])
+        by app1 (Coremail) with SMTP id xjNnewBHTPjGP1ViXEIHAA--.194S2;
+        Tue, 12 Apr 2022 17:00:55 +0800 (CST)
+From:   Pengcheng Yang <yangpc@wangsu.com>
+To:     Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
+        lvs-devel@vger.kernel.org
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
-        David Ahern <dsahern@kernel.org>
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: [PATCH nf] netfilter: Update ip6_route_me_harder to consider L3 domain
-Date:   Tue, 12 Apr 2022 09:46:39 +0200
-Message-Id: <20220412074639.1963131-1-martin@strongswan.org>
-X-Mailer: git-send-email 2.25.1
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        netfilter-devel@vger.kernel.org, Pengcheng Yang <yangpc@wangsu.com>
+Subject: [PATCH nf] ipvs: correctly print the memory size of ip_vs_conn_tab
+Date:   Tue, 12 Apr 2022 17:00:31 +0800
+Message-Id: <1649754031-18627-1-git-send-email-yangpc@wangsu.com>
+X-Mailer: git-send-email 1.8.3.1
+X-CM-TRANSID: xjNnewBHTPjGP1ViXEIHAA--.194S2
+X-Coremail-Antispam: 1UD129KBjvdXoW7Gr4kWrWDKF13tF43KFWUXFb_yoWfCwb_ZF
+        9FvF1Ygr48ZrWDAw15Zan3XFWkJw48AFn3XF97XFWUt34UGw1I9as7Xr9Y9r43Kw4DtryU
+        C3yktry3u342gjkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+        9fnUUIcSsGvfJTRUUUbsxFc2x0x2IEx4CE42xK8VAvwI8IcIk0rVWrJVCq3wA2ocxC64kI
+        II0Yj41l84x0c7CEw4AK67xGY2AK021l84ACjcxK6xIIjxv20xvE14v26w1j6s0DM28EF7
+        xvwVC0I7IYx2IY6xkF7I0E14v26F4UJVW0owA2z4x0Y4vEx4A2jsIE14v26rxl6s0DM28E
+        F7xvwVC2z280aVCY1x0267AKxVW0oVCq3wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F4
+        0EFcxC0VAKzVAqx4xG6I80ewAv7VACjcxG62k0Y48FwI0_Cr0_Gr1UMcIj6x8ErcxFaVAv
+        8VW8GwAv7VCY1x0262k0Y48FwI0_Gr1j6F4UJwAm72CE4IkC6x0Yz7v_Jr0_Gr1lF7xvr2
+        IYc2Ij64vIr41lF7I21c0EjII2zVCS5cI20VAGYxC7MxkIecxEwVAFwVW8uwCF04k20xvY
+        0x0EwIxGrwCF04k20xvE74AGY7Cv6cx26ryUZr1UJr1l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr
+        1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE
+        14v26r1q6r43MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7
+        IYx2IY6xkF7I0E14v26r1j6r4UMIIF0xvE42xK8VAvwI8IcIk0rVWUJVWUCwCI42IY6I8E
+        87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv6xkF7I0E14v26r1j6r4UYxBIdaVFxhVjvjDU0x
+        ZFpf9x0JU_PE-UUUUU=
+X-CM-SenderInfo: p1dqw1nf6zt0xjvxhudrp/
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The commit referenced below fixed packet re-routing if Netfilter mangles
-a routing key property of a packet and the packet is routed in a VRF L3
-domain. The fix, however, addressed IPv4 re-routing, only.
+The memory size of ip_vs_conn_tab changed after we use hlist
+instead of list.
 
-This commit applies the same behavior for IPv6. While at it, untangle
-the nested ternary operator to make the code more readable.
-
-Fixes: 6d8b49c3a3a3 ("netfilter: Update ip_route_me_harder to consider L3 domain")
-Signed-off-by: Martin Willi <martin@strongswan.org>
+Fixes: 731109e78415 ("ipvs: use hlist instead of list")
+Signed-off-by: Pengcheng Yang <yangpc@wangsu.com>
 ---
- net/ipv6/netfilter.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ net/netfilter/ipvs/ip_vs_conn.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index 1da332450d98..8ce60ab89015 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -24,14 +24,13 @@ int ip6_route_me_harder(struct net *net, struct sock *sk_partial, struct sk_buff
- {
- 	const struct ipv6hdr *iph = ipv6_hdr(skb);
- 	struct sock *sk = sk_to_full_sk(sk_partial);
-+	struct net_device *dev = skb_dst(skb)->dev;
- 	struct flow_keys flkeys;
- 	unsigned int hh_len;
- 	struct dst_entry *dst;
- 	int strict = (ipv6_addr_type(&iph->daddr) &
- 		      (IPV6_ADDR_MULTICAST | IPV6_ADDR_LINKLOCAL));
- 	struct flowi6 fl6 = {
--		.flowi6_oif = sk && sk->sk_bound_dev_if ? sk->sk_bound_dev_if :
--			strict ? skb_dst(skb)->dev->ifindex : 0,
- 		.flowi6_mark = skb->mark,
- 		.flowi6_uid = sock_net_uid(net, sk),
- 		.daddr = iph->daddr,
-@@ -39,6 +38,13 @@ int ip6_route_me_harder(struct net *net, struct sock *sk_partial, struct sk_buff
- 	};
- 	int err;
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index 2c467c4..e886c74 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -1495,7 +1495,7 @@ int __init ip_vs_conn_init(void)
+ 	pr_info("Connection hash table configured "
+ 		"(size=%d, memory=%ldKbytes)\n",
+ 		ip_vs_conn_tab_size,
+-		(long)(ip_vs_conn_tab_size*sizeof(struct list_head))/1024);
++		(long)(ip_vs_conn_tab_size*sizeof(struct hlist_head))/1024);
+ 	IP_VS_DBG(0, "Each connection entry needs %zd bytes at least\n",
+ 		  sizeof(struct ip_vs_conn));
  
-+	if (sk && sk->sk_bound_dev_if)
-+		fl6.flowi6_oif = sk->sk_bound_dev_if;
-+	else if (strict)
-+		fl6.flowi6_oif = dev->ifindex;
-+	else
-+		fl6.flowi6_oif = l3mdev_master_ifindex(dev);
-+
- 	fib6_rules_early_flow_dissect(net, skb, &fl6, &flkeys);
- 	dst = ip6_route_output(net, sk, &fl6);
- 	err = dst->error;
 -- 
-2.25.1
+1.8.3.1
 
