@@ -2,77 +2,137 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BAC6C433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Apr 2022 23:17:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3EC6C433FE
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Apr 2022 23:22:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229588AbiDLXTb (ORCPT
+        id S229942AbiDLXY4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 Apr 2022 19:19:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52248 "EHLO
+        Tue, 12 Apr 2022 19:24:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38782 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229587AbiDLXTT (ORCPT
+        with ESMTP id S229947AbiDLXY0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 Apr 2022 19:19:19 -0400
+        Tue, 12 Apr 2022 19:24:26 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D6E26554B8
-        for <netfilter-devel@vger.kernel.org>; Tue, 12 Apr 2022 16:08:16 -0700 (PDT)
-Date:   Wed, 13 Apr 2022 01:08:13 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 2F176D0AAC
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 Apr 2022 15:11:37 -0700 (PDT)
+Date:   Wed, 13 Apr 2022 00:11:32 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
+To:     Jo-Philipp Wich <jo@mein.io>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nftables 0/9] nftables: add support for wildcard string
- as set keys
-Message-ID: <YlYGXSrxnspdBzr5@salvia>
-References: <20220409135832.17401-1-fw@strlen.de>
- <YlX6gfgq4SFPTU+B@salvia>
- <20220412224335.GB10279@breakpoint.cc>
+Subject: Re: [RFC PATCH] datatype: accept abbrevs and ignore case on parsing
+ symbolic constants
+Message-ID: <YlX5FJaOOyYHUpbg@salvia>
+References: <20220411080822.1801117-1-jo@mein.io>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20220412224335.GB10279@breakpoint.cc>
+In-Reply-To: <20220411080822.1801117-1-jo@mein.io>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Apr 13, 2022 at 12:43:35AM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Sat, Apr 09, 2022 at 03:58:23PM +0200, Florian Westphal wrote:
-> > > Allow to match something like
-> > > 
-> > > meta iifname { eth0, ppp* }.
-> > 
-> > This series LGTM, thanks for working on this.
-> > 
-> > > Set ranges or concatenations are not yet supported.
-> > > Test passes on x86_64 and s390 (bigendian), however, the test fails dump
-> > > validation:
-> > > 
-> > > -  iifname { "eth0", "abcdef0" } counter packets 0 bytes 0
-> > > +  iifname { "abcdef0", "eth0" } counter packets 0 bytes 0
-> > 
-> > Hm. Is it reordering the listing?
+Hi,
+
+On Mon, Apr 11, 2022 at 10:08:22AM +0200, Jo-Philipp Wich wrote:
+> Currently nftables does not accept abbreviated or lowercased weekday
+> names as claimed in the nftables wiki [1]. This is due to the fact that
+> symbolic_constant_parse() performs a strict equality check of the given
+> constant value against the list of potential choices.
 > 
-> Yes, but its like this also before my patch, there are several
-> test failures on s390 with nft master.
-
-Why is the listing being reordered?
-
-> I will have a look, so far I only checked that my patch
-> series does not cause any additional test failures, and the only
-> reason why the new test fails is the output reorder on s390.
-
-This is also related to the set description patchset that Phil posted,
-correct?
-
-> > > I wil try to get string range support working and will
-> > > then ook into concat set support.
-> >
-> > OK, so then this is a WIP?
+> In order to implement the behaviour described by the wiki - which seems
+> useful and intuitive in general - adjust the constant parsing function
+> to to perform a case-insensitive prefix match of the user supplied value
+> against the choice list.
 > 
-> If you want all at once then yes, but do you think thats needed?
+> The modified code does not check uniqueness of the prefix value, it will
+> simply return the first matching item, but it will ensure to reject an
+> empty string value.
+> 
+> 1: https://wiki.nftables.org/wiki-nftables/index.php/Matching_packet_metainformation#Matching_by_time
+> 
+> Signed-off-by: Jo-Philipp Wich <jo@mein.io>
+> ---
+>  src/datatype.c              |  5 +++--
+>  tests/py/any/meta.t         |  4 ++++
+>  tests/py/any/meta.t.payload | 18 ++++++++++++++++++
+>  3 files changed, 25 insertions(+), 2 deletions(-)
+> 
+> diff --git a/src/datatype.c b/src/datatype.c
+> index 2e31c858..ce4a8aa8 100644
+> --- a/src/datatype.c
+> +++ b/src/datatype.c
+> @@ -149,9 +149,10 @@ struct error_record *symbolic_constant_parse(struct parse_ctx *ctx,
+>  	const struct symbolic_constant *s;
+>  	const struct datatype *dtype;
+>  	struct error_record *erec;
+> +	size_t idlen;
+>  
+> -	for (s = tbl->symbols; s->identifier != NULL; s++) {
+> -		if (!strcmp(sym->identifier, s->identifier))
 
-If you consider that adding remaining features is feasible,
-incrementally should be fine.
+I'd suggest to add a flag for this:
 
-> I have not looked at EXPR_RANGE or concat-with-wildcard yet and
-> I don't know when I will be able to do so.
+DTYPE_F_ICASE
+
+and set it on for the time datatype, I'd prefer to narrow down this
+feature to this specific case and extend it to more usecases
+progressively.
+
+Would you send another patch version?
+
+Thanks!
+
+> +	for (s = tbl->symbols, idlen = strlen(sym->identifier); s->identifier != NULL; s++) {
+> +		if (idlen > 0 && !strncasecmp(sym->identifier, s->identifier, idlen))
+>  			break;
+>  	}
+>  
+> diff --git a/tests/py/any/meta.t b/tests/py/any/meta.t
+> index 12fabb79..4f130e7d 100644
+> --- a/tests/py/any/meta.t
+> +++ b/tests/py/any/meta.t
+> @@ -212,7 +212,11 @@ meta time < "2022-07-01 11:00:00" accept;ok
+>  meta time > "2022-07-01 11:00:00" accept;ok
+>  meta day "Saturday" drop;ok
+>  meta day 6 drop;ok;meta day "Saturday" drop
+> +meta day "saturday" drop;ok;meta day "Saturday" drop
+> +meta day "Sat" drop;ok;meta day "Saturday" drop
+> +meta day "sat" drop;ok;meta day "Saturday" drop
+>  meta day "Satturday" drop;fail
+> +meta day "" drop;fail
+>  meta hour "17:00" drop;ok
+>  meta hour "17:00:00" drop;ok;meta hour "17:00" drop
+>  meta hour "17:00:01" drop;ok
+> diff --git a/tests/py/any/meta.t.payload b/tests/py/any/meta.t.payload
+> index 16dc1211..b43c43c4 100644
+> --- a/tests/py/any/meta.t.payload
+> +++ b/tests/py/any/meta.t.payload
+> @@ -1023,6 +1023,24 @@ ip test-ip4 input
+>    [ cmp eq reg 1 0x00000006 ]
+>    [ immediate reg 0 drop ]
+>  
+> +# meta day "saturday" drop
+> +ip test-ip4 input
+> +  [ meta load day => reg 1 ]
+> +  [ cmp eq reg 1 0x00000006 ]
+> +  [ immediate reg 0 drop ]
+> +
+> +# meta day "Sat" drop
+> +ip test-ip4 input
+> +  [ meta load day => reg 1 ]
+> +  [ cmp eq reg 1 0x00000006 ]
+> +  [ immediate reg 0 drop ]
+> +
+> +# meta day "sat" drop
+> +ip test-ip4 input
+> +  [ meta load day => reg 1 ]
+> +  [ cmp eq reg 1 0x00000006 ]
+> +  [ immediate reg 0 drop ]
+> +
+>  # meta day 6 drop
+>  ip test-ip4 input
+>    [ meta load day => reg 1 ]
+> -- 
+> 2.35.1
+> 
