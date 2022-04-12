@@ -2,35 +2,35 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1438C433FE
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Apr 2022 12:09:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97B36C4332F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Apr 2022 12:19:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351725AbiDLMLd (ORCPT
+        id S1354417AbiDLMVf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 Apr 2022 08:11:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56670 "EHLO
+        Tue, 12 Apr 2022 08:21:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58988 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354716AbiDLMKV (ORCPT
+        with ESMTP id S1355385AbiDLMTA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 Apr 2022 08:10:21 -0400
-Received: from smtp-bc08.mail.infomaniak.ch (smtp-bc08.mail.infomaniak.ch [IPv6:2001:1600:4:17::bc08])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7308982D36
-        for <netfilter-devel@vger.kernel.org>; Tue, 12 Apr 2022 04:12:32 -0700 (PDT)
-Received: from smtp-3-0001.mail.infomaniak.ch (unknown [10.4.36.108])
-        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4Kd33L5xM1zMprpV;
-        Tue, 12 Apr 2022 13:12:30 +0200 (CEST)
+        Tue, 12 Apr 2022 08:19:00 -0400
+Received: from smtp-bc0a.mail.infomaniak.ch (smtp-bc0a.mail.infomaniak.ch [IPv6:2001:1600:4:17::bc0a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 389528CCE3
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 Apr 2022 04:21:20 -0700 (PDT)
+Received: from smtp-2-0000.mail.infomaniak.ch (unknown [10.5.36.107])
+        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4Kd3FW2FPGzMq00y;
+        Tue, 12 Apr 2022 13:21:19 +0200 (CEST)
 Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
-        by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4Kd33L2CSkzlhMCQ;
-        Tue, 12 Apr 2022 13:12:30 +0200 (CEST)
+        by smtp-2-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4Kd3FV5Cj0zlhSMn;
+        Tue, 12 Apr 2022 13:21:18 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1649761950;
-        bh=bZYdW/tm5O312A9NSRRHYt/TwJO5MHrCuiyBeQhEYJs=;
+        s=20191114; t=1649762479;
+        bh=rm7a8rabVO5Lb6X8RYrfyMkwRDPX4KxWPPKKY4ubdY4=;
         h=Date:To:Cc:References:From:Subject:In-Reply-To:From;
-        b=IvnE3N6f00aDiZ2pmCgA763PDaKbUTjgpp1nKbskBjmK7gMVauHaApwNTQLYS32qO
-         fcykJwt363hiwwd9xd6niS3L21iGgnb/49pOa1rvcQTvX89me3JnLLRvVD6deuUhJe
-         y0Q2hIVUveb5nBJ5xmIYlQkH0qBd4aqgj3i4CZl8=
-Message-ID: <638ae3c4-09cd-2eaf-858b-4909f2a9cdcc@digikod.net>
-Date:   Tue, 12 Apr 2022 13:12:48 +0200
+        b=09gLwqKl5nZSYLhNLonAbaTdkPCwlmWvSEmvsrrRAKFPfrzMmD6swTKDvniKI/c8a
+         9duU285iQR+h6m4FSerzjPmn88Ow8bD1j1S3Ju372SysJCA2JYitmR7P28tq+r8i/4
+         bmghbm9gWZzyd2VX2xJKCX7YZo2cJqx24FBwtkfo=
+Message-ID: <d4724117-167d-00b0-1f10-749b35bffc2f@digikod.net>
+Date:   Tue, 12 Apr 2022 13:21:36 +0200
 MIME-Version: 1.0
 User-Agent: 
 Content-Language: en-US
@@ -40,11 +40,10 @@ Cc:     willemdebruijn.kernel@gmail.com,
         netfilter-devel@vger.kernel.org, yusongping@huawei.com,
         artem.kuzin@huawei.com, anton.sirazetdinov@huawei.com
 References: <20220309134459.6448-1-konstantin.meskhidze@huawei.com>
- <20220309134459.6448-7-konstantin.meskhidze@huawei.com>
+ <20220309134459.6448-8-konstantin.meskhidze@huawei.com>
 From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-Subject: Re: [RFC PATCH v4 06/15] landlock: landlock_add_rule syscall
- refactoring
-In-Reply-To: <20220309134459.6448-7-konstantin.meskhidze@huawei.com>
+Subject: Re: [RFC PATCH v4 07/15] landlock: user space API network support
+In-Reply-To: <20220309134459.6448-8-konstantin.meskhidze@huawei.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
@@ -53,146 +52,133 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
 On 09/03/2022 14:44, Konstantin Meskhidze wrote:
-> Landlock_add_rule syscall was refactored to support new
-> rule types in future Landlock versions. Add_rule_path_beneath()
-> helper was added to support current filesystem rules. It is called
-> by the switch case.
+> User space API was refactored to support
+> network actions. New network access flags,
+> network rule and network attributes were
+> added.
 > 
 > Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
 > ---
 > 
 > Changes since v3:
 > * Split commit.
-> * Refactoring landlock_add_rule syscall.
+> * Refactoring User API for network rule type.
 > 
 > ---
->   security/landlock/syscalls.c | 95 ++++++++++++++++++++----------------
->   1 file changed, 53 insertions(+), 42 deletions(-)
+>   include/uapi/linux/landlock.h | 48 +++++++++++++++++++++++++++++++++++
+>   security/landlock/syscalls.c  |  5 ++--
+>   2 files changed, 51 insertions(+), 2 deletions(-)
 > 
-> diff --git a/security/landlock/syscalls.c b/security/landlock/syscalls.c
-> index 5931b666321d..8c0f6165fe3a 100644
-> --- a/security/landlock/syscalls.c
-> +++ b/security/landlock/syscalls.c
-> @@ -274,54 +274,13 @@ static int get_path_from_fd(const s32 fd, struct path *const path)
->   	return err;
->   }
+> diff --git a/include/uapi/linux/landlock.h b/include/uapi/linux/landlock.h
+> index b3d952067f59..4fc6c793fdf4 100644
+> --- a/include/uapi/linux/landlock.h
+> +++ b/include/uapi/linux/landlock.h
+> @@ -25,6 +25,13 @@ struct landlock_ruleset_attr {
+>   	 * compatibility reasons.
+>   	 */
+>   	__u64 handled_access_fs;
+> +
+> +	/**
+> +	 * @handled_access_net: Bitmask of actions (cf. `Network flags`_)
+> +	 * that is handled by this ruleset and should then be forbidden if no
+> +	 * rule explicitly allow them.
+> +	 */
+> +	__u64 handled_access_net;
+>   };
 > 
-> -/**
-> - * sys_landlock_add_rule - Add a new rule to a ruleset
-> - *
-> - * @ruleset_fd: File descriptor tied to the ruleset that should be extended
-> - *		with the new rule.
-> - * @rule_type: Identify the structure type pointed to by @rule_attr (only
-> - *             LANDLOCK_RULE_PATH_BENEATH for now).
-> - * @rule_attr: Pointer to a rule (only of type &struct
-> - *             landlock_path_beneath_attr for now).
-> - * @flags: Must be 0.
-> - *
-> - * This system call enables to define a new rule and add it to an existing
-> - * ruleset.
-> - *
-> - * Possible returned errors are:
-> - *
-> - * - EOPNOTSUPP: Landlock is supported by the kernel but disabled at boot time;
-> - * - EINVAL: @flags is not 0, or inconsistent access in the rule (i.e.
-> - *   &landlock_path_beneath_attr.allowed_access is not a subset of the rule's
-> - *   accesses);
-> - * - ENOMSG: Empty accesses (e.g. &landlock_path_beneath_attr.allowed_access);
-> - * - EBADF: @ruleset_fd is not a file descriptor for the current thread, or a
-> - *   member of @rule_attr is not a file descriptor as expected;
-> - * - EBADFD: @ruleset_fd is not a ruleset file descriptor, or a member of
-> - *   @rule_attr is not the expected file descriptor type (e.g. file open
-> - *   without O_PATH);
-> - * - EPERM: @ruleset_fd has no write access to the underlying ruleset;
-> - * - EFAULT: @rule_attr inconsistency.
-> - */
-> -SYSCALL_DEFINE4(landlock_add_rule,
-> -		const int, ruleset_fd, const enum landlock_rule_type, rule_type,
-> -		const void __user *const, rule_attr, const __u32, flags)
-> +static int add_rule_path_beneath(const int ruleset_fd, const void *const rule_attr)
->   {
->   	struct landlock_path_beneath_attr path_beneath_attr;
->   	struct path path;
->   	struct landlock_ruleset *ruleset;
->   	int res, err;
-> 
-> -	if (!landlock_initialized)
-> -		return -EOPNOTSUPP;
-> -
-> -	/* No flag for now. */
-> -	if (flags)
-> -		return -EINVAL;
-> -
-> -	if (rule_type != LANDLOCK_RULE_PATH_BENEATH)
-> -		return -EINVAL;
-> -
->   	/* Copies raw user space buffer, only one type for now. */
->   	res = copy_from_user(&path_beneath_attr, rule_attr,
->   			sizeof(path_beneath_attr));
-> @@ -367,6 +326,58 @@ SYSCALL_DEFINE4(landlock_add_rule,
->   	return err;
->   }
-> 
-> +/**
-> + * sys_landlock_add_rule - Add a new rule to a ruleset
-> + *
-> + * @ruleset_fd: File descriptor tied to the ruleset that should be extended
-> + *		with the new rule.
-> + * @rule_type: Identify the structure type pointed to by @rule_attr (only
-> + *             LANDLOCK_RULE_PATH_BENEATH for now).
-> + * @rule_attr: Pointer to a rule (only of type &struct
-> + *             landlock_path_beneath_attr for now).
-> + * @flags: Must be 0.
-> + *
-> + * This system call enables to define a new rule and add it to an existing
-> + * ruleset.
-> + *
-> + * Possible returned errors are:
-> + *
-> + * - EOPNOTSUPP: Landlock is supported by the kernel but disabled at boot time;
-> + * - EINVAL: @flags is not 0, or inconsistent access in the rule (i.e.
-> + *   &landlock_path_beneath_attr.allowed_access is not a subset of the rule's
-> + *   accesses);
-> + * - ENOMSG: Empty accesses (e.g. &landlock_path_beneath_attr.allowed_access);
-> + * - EBADF: @ruleset_fd is not a file descriptor for the current thread, or a
-> + *   member of @rule_attr is not a file descriptor as expected;
-> + * - EBADFD: @ruleset_fd is not a ruleset file descriptor, or a member of
-> + *   @rule_attr is not the expected file descriptor type (e.g. file open
-> + *   without O_PATH);
-> + * - EPERM: @ruleset_fd has no write access to the underlying ruleset;
-> + * - EFAULT: @rule_attr inconsistency.
-> + */
-> +SYSCALL_DEFINE4(landlock_add_rule,
-> +		const int, ruleset_fd, const enum landlock_rule_type, rule_type,
-> +		const void __user *const, rule_attr, const __u32, flags)
-> +{
-> +	int err;
-> +
-> +	if (!landlock_initialized)
-> +		return -EOPNOTSUPP;
-> +
-> +	/* No flag for now. */
-> +	if (flags)
-> +		return -EINVAL;
-
-As you can see in my yesterday patch, the get_ruleset_from_fd() call 
-should be here.
-
-
-> +
-> +	switch (rule_type) {
-> +	case LANDLOCK_RULE_PATH_BENEATH:
-> +		err = add_rule_path_beneath(ruleset_fd, rule_attr);
-> +		break;
-> +	default:
-> +		err = -EINVAL;
-> +	}
-> +	return err;
-> +}
-> +
->   /* Enforcement */
+>   /*
+> @@ -46,6 +53,11 @@ enum landlock_rule_type {
+>   	 * landlock_path_beneath_attr .
+>   	 */
+>   	LANDLOCK_RULE_PATH_BENEATH = 1,
+> +	/**
+> +	 * @LANDLOCK_RULE_NET_SERVICE: Type of a &struct
+> +	 * landlock_net_service_attr .
+> +	 */
+> +	LANDLOCK_RULE_NET_SERVICE = 2,
+>   };
 > 
 >   /**
+> @@ -70,6 +82,24 @@ struct landlock_path_beneath_attr {
+>   	 */
+>   } __attribute__((packed));
+> 
+> +/**
+> + * struct landlock_net_service_attr - TCP subnet definition
+> + *
+> + * Argument of sys_landlock_add_rule().
+> + */
+> +struct landlock_net_service_attr {
+> +	/**
+> +	 * @allowed_access: Bitmask of allowed access network for services
+> +	 * (cf. `Network flags`_).
+> +	 */
+> +	__u64 allowed_access;
+> +	/**
+> +	 * @port: Network port
+> +	 */
+> +	__u16 port;
+> +
+> +} __attribute__((packed));
+> +
+>   /**
+>    * DOC: fs_access
+>    *
+> @@ -134,4 +164,22 @@ struct landlock_path_beneath_attr {
+>   #define LANDLOCK_ACCESS_FS_MAKE_BLOCK			(1ULL << 11)
+>   #define LANDLOCK_ACCESS_FS_MAKE_SYM			(1ULL << 12)
+> 
+> +/**
+> + * DOC: net_access
+> + *
+> + * Network flags
+> + * ~~~~~~~~~~~~~~~~
+> + *
+> + * These flags enable to restrict a sandboxed process to a set of network
+> + * actions.
+> + *
+> + * TCP sockets with allowed actions:
+> + *
+> + * - %LANDLOCK_ACCESS_NET_BIND_TCP: Bind a TCP socket to a local port.
+> + * - %LANDLOCK_ACCESS_NET_CONNECT_TCP: Connect an active TCP socket to
+> + *   a remote port.
+> + */
+> +#define LANDLOCK_ACCESS_NET_BIND_TCP			(1ULL << 0)
+> +#define LANDLOCK_ACCESS_NET_CONNECT_TCP			(1ULL << 1)
+> +
+>   #endif /* _UAPI_LINUX_LANDLOCK_H */
+> diff --git a/security/landlock/syscalls.c b/security/landlock/syscalls.c
+> index 8c0f6165fe3a..fcbce83d64ef 100644
+> --- a/security/landlock/syscalls.c
+> +++ b/security/landlock/syscalls.c
+> @@ -81,8 +81,9 @@ static void build_check_abi(void)
+>   	 * struct size.
+>   	 */
+>   	ruleset_size = sizeof(ruleset_attr.handled_access_fs);
+> +	ruleset_size += sizeof(ruleset_attr.handled_access_net);
+>   	BUILD_BUG_ON(sizeof(ruleset_attr) != ruleset_size);
+> -	BUILD_BUG_ON(sizeof(ruleset_attr) != 8);
+> +	BUILD_BUG_ON(sizeof(ruleset_attr) != 16);
+> 
+>   	path_beneath_size = sizeof(path_beneath_attr.allowed_access);
+>   	path_beneath_size += sizeof(path_beneath_attr.parent_fd);
+> @@ -184,7 +185,7 @@ SYSCALL_DEFINE3(landlock_create_ruleset,
+> 
+>   	/* Checks content (and 32-bits cast). */
+>   	if ((ruleset_attr.handled_access_fs | LANDLOCK_MASK_ACCESS_FS) !=
+> -			LANDLOCK_MASK_ACCESS_FS)
+> +			 LANDLOCK_MASK_ACCESS_FS)
+
+Don't add cosmetic changes. FYI, I'm relying on the way Vim does line 
+cuts, which is mostly tabs. Please try to do the same.
+
+
+>   		return -EINVAL;
+>   	access_mask_set.fs = ruleset_attr.handled_access_fs;
+> 
 > --
 > 2.25.1
 > 
+
+You need to also update Documentation/userspace-api/landlock.rst 
+accordingly. You can check you changes by building the HTML doc.
