@@ -2,75 +2,77 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59392C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Apr 2022 18:28:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BAC6C433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Apr 2022 23:17:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236905AbiDLSan convert rfc822-to-8bit (ORCPT
+        id S229588AbiDLXTb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 Apr 2022 14:30:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38202 "EHLO
+        Tue, 12 Apr 2022 19:19:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52248 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231543AbiDLSan (ORCPT
+        with ESMTP id S229587AbiDLXTT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 Apr 2022 14:30:43 -0400
-X-Greylist: delayed 607 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 12 Apr 2022 11:28:24 PDT
-Received: from localhost.localdomain (mail.redfish-solutions.com [45.33.216.244])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFF2851331
-        for <netfilter-devel@vger.kernel.org>; Tue, 12 Apr 2022 11:28:24 -0700 (PDT)
-Received: from smtpclient.apple (macbook3.redfish-solutions.com [192.168.3.4])
-        (authenticated bits=0)
-        by localhost.localdomain (8.16.1/8.16.1) with ESMTPSA id 23CIIA1g721895
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 12 Apr 2022 12:18:10 -0600
-Content-Type: text/plain;
-        charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3696.80.82.1.1\))
-Subject: Re: [PATCH v2 1/1] xt_ECHO, xt_TARPIT: make properly conditional on
- IPv6
-From:   Philip Prindeville <philipp_subx@redfish-solutions.com>
-In-Reply-To: <E3987215-778D-416E-B692-4C0C5C6FE536@redfish-solutions.com>
-Date:   Tue, 12 Apr 2022 12:18:09 -0600
-Cc:     Jeremy Sowden <jeremy@azazel.net>, netfilter-devel@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <6B9350FD-9052-460F-8AA2-7211B1DF3DAF@redfish-solutions.com>
-References: <20210926195734.702772-1-philipp@redfish-solutions.com>
- <5s32r847-4op5-70s2-7o9n-4968n7rso321@vanv.qr>
- <05A51779-4B94-49BA-B1B8-6CA5BE695D80@redfish-solutions.com>
- <Yfe48T7Nxpzp20wL@azazel.net>
- <E7F7FB17-246B-4EFF-9449-FE1764F9816E@redfish-solutions.com>
- <Yfgq6qWKgTV9NEkg@azazel.net>
- <6961516B-8252-404F-B302-33E39EEBC9F3@redfish-solutions.com>
- <o9236r6-q17s-4p97-r8o0-rnr66543s30@vanv.qr>
- <E3987215-778D-416E-B692-4C0C5C6FE536@redfish-solutions.com>
-To:     Jan Engelhardt <jengelh@inai.de>
-X-Mailer: Apple Mail (2.3696.80.82.1.1)
-X-Scanned-By: MIMEDefang 2.85 on 192.168.4.3
+        Tue, 12 Apr 2022 19:19:19 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D6E26554B8
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 Apr 2022 16:08:16 -0700 (PDT)
+Date:   Wed, 13 Apr 2022 01:08:13 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nftables 0/9] nftables: add support for wildcard string
+ as set keys
+Message-ID: <YlYGXSrxnspdBzr5@salvia>
+References: <20220409135832.17401-1-fw@strlen.de>
+ <YlX6gfgq4SFPTU+B@salvia>
+ <20220412224335.GB10279@breakpoint.cc>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20220412224335.GB10279@breakpoint.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+On Wed, Apr 13, 2022 at 12:43:35AM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > On Sat, Apr 09, 2022 at 03:58:23PM +0200, Florian Westphal wrote:
+> > > Allow to match something like
+> > > 
+> > > meta iifname { eth0, ppp* }.
+> > 
+> > This series LGTM, thanks for working on this.
+> > 
+> > > Set ranges or concatenations are not yet supported.
+> > > Test passes on x86_64 and s390 (bigendian), however, the test fails dump
+> > > validation:
+> > > 
+> > > -  iifname { "eth0", "abcdef0" } counter packets 0 bytes 0
+> > > +  iifname { "abcdef0", "eth0" } counter packets 0 bytes 0
+> > 
+> > Hm. Is it reordering the listing?
+> 
+> Yes, but its like this also before my patch, there are several
+> test failures on s390 with nft master.
 
+Why is the listing being reordered?
 
-> On Feb 1, 2022, at 11:22 AM, Philip Prindeville <philipp_subx@redfish-solutions.com> wrote:
-> 
-> 
-> 
->> On Feb 1, 2022, at 10:32 AM, Jan Engelhardt <jengelh@inai.de> wrote:
->> 
->> 
->> On Monday 2022-01-31 19:35, Philip Prindeville wrote:
->>> 
->>> That would do it.
->>> When is 3.19 or 4.0 due out?
->> 
->> No particular plans, therefore I tagged 3.19 for your enjoyment.
-> 
-> 
-> Cheers.
-> 
-> Rebuilding the packaging for openwrt now.
-> 
+> I will have a look, so far I only checked that my patch
+> series does not cause any additional test failures, and the only
+> reason why the new test fails is the output reorder on s390.
 
+This is also related to the set description patchset that Phil posted,
+correct?
 
-Update: stalled on getting the package maintainer for openwrt to approve my version bump PR.
+> > > I wil try to get string range support working and will
+> > > then ook into concat set support.
+> >
+> > OK, so then this is a WIP?
+> 
+> If you want all at once then yes, but do you think thats needed?
 
+If you consider that adding remaining features is feasible,
+incrementally should be fine.
+
+> I have not looked at EXPR_RANGE or concat-with-wildcard yet and
+> I don't know when I will be able to do so.
