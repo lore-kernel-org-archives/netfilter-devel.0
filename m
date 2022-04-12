@@ -2,80 +2,197 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 129D8C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Apr 2022 12:04:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1438C433FE
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Apr 2022 12:09:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351710AbiDLMGr (ORCPT
+        id S1351725AbiDLMLd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 Apr 2022 08:06:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43398 "EHLO
+        Tue, 12 Apr 2022 08:11:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56670 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354049AbiDLMEU (ORCPT
+        with ESMTP id S1354716AbiDLMKV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 Apr 2022 08:04:20 -0400
-Received: from zg8tmty1ljiyny4xntqumjca.icoremail.net (zg8tmty1ljiyny4xntqumjca.icoremail.net [165.227.154.27])
-        by lindbergh.monkeyblade.net (Postfix) with SMTP id 93B8422B34;
-        Tue, 12 Apr 2022 04:06:40 -0700 (PDT)
-Received: from 102.wangsu.com (unknown [59.61.78.232])
-        by app1 (Coremail) with SMTP id xjNnewAn2DE2XVViqY4HAA--.413S2;
-        Tue, 12 Apr 2022 19:06:31 +0800 (CST)
-From:   Pengcheng Yang <yangpc@wangsu.com>
-To:     Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
-        lvs-devel@vger.kernel.org
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        netfilter-devel@vger.kernel.org, Pengcheng Yang <yangpc@wangsu.com>
-Subject: [PATCH nf,v2] ipvs: correctly print the memory size of ip_vs_conn_tab
-Date:   Tue, 12 Apr 2022 19:05:45 +0800
-Message-Id: <1649761545-1864-1-git-send-email-yangpc@wangsu.com>
-X-Mailer: git-send-email 1.8.3.1
-X-CM-TRANSID: xjNnewAn2DE2XVViqY4HAA--.413S2
-X-Coremail-Antispam: 1UD129KBjvdXoW7Gr4kWrWDKF13tr48KF4UJwb_yoWDJrc_ZF
-        92vF1Ygw48ZrWDAw45Zan3XFWkJ348AFn3XF97XFWDt34UGw17uas7Xr9Y9r43Kw4qqryU
-        C3ykKry3u342gjkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-        9fnUUIcSsGvfJTRUUUbskFc2x0x2IEx4CE42xK8VAvwI8IcIk0rVWrJVCq3wA2ocxC64kI
-        II0Yj41l84x0c7CEw4AK67xGY2AK021l84ACjcxK6xIIjxv20xvE14v26w1j6s0DM28EF7
-        xvwVC0I7IYx2IY6xkF7I0E14v26r4UJVWxJr1l84ACjcxK6I8E87Iv67AKxVW0oVCq3wA2
-        z4x0Y4vEx4A2jsIEc7CjxVAFwI0_GcCE3s1le2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4
-        xG64xvF2IEw4CE5I8CrVC2j2WlYx0EF7xvrVAajcxG14v26r4j6F4UMcIj6x8ErcxFaVAv
-        8VW8GwAv7VCY1x0262k0Y48FwI0_Gr1j6F4UJwAm72CE4IkC6x0Yz7v_Jr0_Gr1lF7xvr2
-        IYc2Ij64vIr41lF7I21c0EjII2zVCS5cI20VAGYxC7MxkIecxEwVAFwVW8KwCF04k20xvY
-        0x0EwIxGrwCF04k20xvE74AGY7Cv6cx26ryUZr1UJr1l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr
-        1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE
-        14v26r1q6r43MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7
-        IYx2IY6xkF7I0E14v26r1j6r4UMIIF0xvE42xK8VAvwI8IcIk0rVWUJVWUCwCI42IY6I8E
-        87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv6xkF7I0E14v26r4j6r4UJbIYCTnIWIevJa73Uj
-        IFyTuYvjfUo18BUUUUU
-X-CM-SenderInfo: p1dqw1nf6zt0xjvxhudrp/
+        Tue, 12 Apr 2022 08:10:21 -0400
+Received: from smtp-bc08.mail.infomaniak.ch (smtp-bc08.mail.infomaniak.ch [IPv6:2001:1600:4:17::bc08])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7308982D36
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 Apr 2022 04:12:32 -0700 (PDT)
+Received: from smtp-3-0001.mail.infomaniak.ch (unknown [10.4.36.108])
+        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4Kd33L5xM1zMprpV;
+        Tue, 12 Apr 2022 13:12:30 +0200 (CEST)
+Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
+        by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4Kd33L2CSkzlhMCQ;
+        Tue, 12 Apr 2022 13:12:30 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
+        s=20191114; t=1649761950;
+        bh=bZYdW/tm5O312A9NSRRHYt/TwJO5MHrCuiyBeQhEYJs=;
+        h=Date:To:Cc:References:From:Subject:In-Reply-To:From;
+        b=IvnE3N6f00aDiZ2pmCgA763PDaKbUTjgpp1nKbskBjmK7gMVauHaApwNTQLYS32qO
+         fcykJwt363hiwwd9xd6niS3L21iGgnb/49pOa1rvcQTvX89me3JnLLRvVD6deuUhJe
+         y0Q2hIVUveb5nBJ5xmIYlQkH0qBd4aqgj3i4CZl8=
+Message-ID: <638ae3c4-09cd-2eaf-858b-4909f2a9cdcc@digikod.net>
+Date:   Tue, 12 Apr 2022 13:12:48 +0200
+MIME-Version: 1.0
+User-Agent: 
+Content-Language: en-US
+To:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+Cc:     willemdebruijn.kernel@gmail.com,
+        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
+        artem.kuzin@huawei.com, anton.sirazetdinov@huawei.com
+References: <20220309134459.6448-1-konstantin.meskhidze@huawei.com>
+ <20220309134459.6448-7-konstantin.meskhidze@huawei.com>
+From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+Subject: Re: [RFC PATCH v4 06/15] landlock: landlock_add_rule syscall
+ refactoring
+In-Reply-To: <20220309134459.6448-7-konstantin.meskhidze@huawei.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The memory size of ip_vs_conn_tab changed after we use hlist
-instead of list.
 
-Fixes: 731109e78415 ("ipvs: use hlist instead of list")
-Signed-off-by: Pengcheng Yang <yangpc@wangsu.com>
----
-v2: use pointer dereference instead of struct types
+On 09/03/2022 14:44, Konstantin Meskhidze wrote:
+> Landlock_add_rule syscall was refactored to support new
+> rule types in future Landlock versions. Add_rule_path_beneath()
+> helper was added to support current filesystem rules. It is called
+> by the switch case.
+> 
+> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+> ---
+> 
+> Changes since v3:
+> * Split commit.
+> * Refactoring landlock_add_rule syscall.
+> 
+> ---
+>   security/landlock/syscalls.c | 95 ++++++++++++++++++++----------------
+>   1 file changed, 53 insertions(+), 42 deletions(-)
+> 
+> diff --git a/security/landlock/syscalls.c b/security/landlock/syscalls.c
+> index 5931b666321d..8c0f6165fe3a 100644
+> --- a/security/landlock/syscalls.c
+> +++ b/security/landlock/syscalls.c
+> @@ -274,54 +274,13 @@ static int get_path_from_fd(const s32 fd, struct path *const path)
+>   	return err;
+>   }
+> 
+> -/**
+> - * sys_landlock_add_rule - Add a new rule to a ruleset
+> - *
+> - * @ruleset_fd: File descriptor tied to the ruleset that should be extended
+> - *		with the new rule.
+> - * @rule_type: Identify the structure type pointed to by @rule_attr (only
+> - *             LANDLOCK_RULE_PATH_BENEATH for now).
+> - * @rule_attr: Pointer to a rule (only of type &struct
+> - *             landlock_path_beneath_attr for now).
+> - * @flags: Must be 0.
+> - *
+> - * This system call enables to define a new rule and add it to an existing
+> - * ruleset.
+> - *
+> - * Possible returned errors are:
+> - *
+> - * - EOPNOTSUPP: Landlock is supported by the kernel but disabled at boot time;
+> - * - EINVAL: @flags is not 0, or inconsistent access in the rule (i.e.
+> - *   &landlock_path_beneath_attr.allowed_access is not a subset of the rule's
+> - *   accesses);
+> - * - ENOMSG: Empty accesses (e.g. &landlock_path_beneath_attr.allowed_access);
+> - * - EBADF: @ruleset_fd is not a file descriptor for the current thread, or a
+> - *   member of @rule_attr is not a file descriptor as expected;
+> - * - EBADFD: @ruleset_fd is not a ruleset file descriptor, or a member of
+> - *   @rule_attr is not the expected file descriptor type (e.g. file open
+> - *   without O_PATH);
+> - * - EPERM: @ruleset_fd has no write access to the underlying ruleset;
+> - * - EFAULT: @rule_attr inconsistency.
+> - */
+> -SYSCALL_DEFINE4(landlock_add_rule,
+> -		const int, ruleset_fd, const enum landlock_rule_type, rule_type,
+> -		const void __user *const, rule_attr, const __u32, flags)
+> +static int add_rule_path_beneath(const int ruleset_fd, const void *const rule_attr)
+>   {
+>   	struct landlock_path_beneath_attr path_beneath_attr;
+>   	struct path path;
+>   	struct landlock_ruleset *ruleset;
+>   	int res, err;
+> 
+> -	if (!landlock_initialized)
+> -		return -EOPNOTSUPP;
+> -
+> -	/* No flag for now. */
+> -	if (flags)
+> -		return -EINVAL;
+> -
+> -	if (rule_type != LANDLOCK_RULE_PATH_BENEATH)
+> -		return -EINVAL;
+> -
+>   	/* Copies raw user space buffer, only one type for now. */
+>   	res = copy_from_user(&path_beneath_attr, rule_attr,
+>   			sizeof(path_beneath_attr));
+> @@ -367,6 +326,58 @@ SYSCALL_DEFINE4(landlock_add_rule,
+>   	return err;
+>   }
+> 
+> +/**
+> + * sys_landlock_add_rule - Add a new rule to a ruleset
+> + *
+> + * @ruleset_fd: File descriptor tied to the ruleset that should be extended
+> + *		with the new rule.
+> + * @rule_type: Identify the structure type pointed to by @rule_attr (only
+> + *             LANDLOCK_RULE_PATH_BENEATH for now).
+> + * @rule_attr: Pointer to a rule (only of type &struct
+> + *             landlock_path_beneath_attr for now).
+> + * @flags: Must be 0.
+> + *
+> + * This system call enables to define a new rule and add it to an existing
+> + * ruleset.
+> + *
+> + * Possible returned errors are:
+> + *
+> + * - EOPNOTSUPP: Landlock is supported by the kernel but disabled at boot time;
+> + * - EINVAL: @flags is not 0, or inconsistent access in the rule (i.e.
+> + *   &landlock_path_beneath_attr.allowed_access is not a subset of the rule's
+> + *   accesses);
+> + * - ENOMSG: Empty accesses (e.g. &landlock_path_beneath_attr.allowed_access);
+> + * - EBADF: @ruleset_fd is not a file descriptor for the current thread, or a
+> + *   member of @rule_attr is not a file descriptor as expected;
+> + * - EBADFD: @ruleset_fd is not a ruleset file descriptor, or a member of
+> + *   @rule_attr is not the expected file descriptor type (e.g. file open
+> + *   without O_PATH);
+> + * - EPERM: @ruleset_fd has no write access to the underlying ruleset;
+> + * - EFAULT: @rule_attr inconsistency.
+> + */
+> +SYSCALL_DEFINE4(landlock_add_rule,
+> +		const int, ruleset_fd, const enum landlock_rule_type, rule_type,
+> +		const void __user *const, rule_attr, const __u32, flags)
+> +{
+> +	int err;
+> +
+> +	if (!landlock_initialized)
+> +		return -EOPNOTSUPP;
+> +
+> +	/* No flag for now. */
+> +	if (flags)
+> +		return -EINVAL;
 
- net/netfilter/ipvs/ip_vs_conn.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+As you can see in my yesterday patch, the get_ruleset_from_fd() call 
+should be here.
 
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 2c467c4..fb67f1c 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -1495,7 +1495,7 @@ int __init ip_vs_conn_init(void)
- 	pr_info("Connection hash table configured "
- 		"(size=%d, memory=%ldKbytes)\n",
- 		ip_vs_conn_tab_size,
--		(long)(ip_vs_conn_tab_size*sizeof(struct list_head))/1024);
-+		(long)(ip_vs_conn_tab_size*sizeof(*ip_vs_conn_tab))/1024);
- 	IP_VS_DBG(0, "Each connection entry needs %zd bytes at least\n",
- 		  sizeof(struct ip_vs_conn));
- 
--- 
-1.8.3.1
 
+> +
+> +	switch (rule_type) {
+> +	case LANDLOCK_RULE_PATH_BENEATH:
+> +		err = add_rule_path_beneath(ruleset_fd, rule_attr);
+> +		break;
+> +	default:
+> +		err = -EINVAL;
+> +	}
+> +	return err;
+> +}
+> +
+>   /* Enforcement */
+> 
+>   /**
+> --
+> 2.25.1
+> 
