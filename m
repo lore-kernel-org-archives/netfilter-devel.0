@@ -2,81 +2,103 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C24B1C433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Apr 2022 13:42:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B724BC433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Apr 2022 14:02:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235886AbiDMNo7 (ORCPT
+        id S234074AbiDMOFJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 13 Apr 2022 09:44:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53370 "EHLO
+        Wed, 13 Apr 2022 10:05:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41194 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235890AbiDMNo4 (ORCPT
+        with ESMTP id S232972AbiDMOFI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 13 Apr 2022 09:44:56 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 11BDC6006F
-        for <netfilter-devel@vger.kernel.org>; Wed, 13 Apr 2022 06:42:34 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     phil@nwl.cc
-Subject: [PATCH nft] intervals: unset EXPR_F_KERNEL for adjusted elements
-Date:   Wed, 13 Apr 2022 15:42:30 +0200
-Message-Id: <20220413134230.488620-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Wed, 13 Apr 2022 10:05:08 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC2BB55203
+        for <netfilter-devel@vger.kernel.org>; Wed, 13 Apr 2022 07:02:46 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1neda1-0001pq-0u; Wed, 13 Apr 2022 16:02:45 +0200
+Date:   Wed, 13 Apr 2022 16:02:45 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft,v4 7/7] intervals: support to partial deletion with
+ automerge
+Message-ID: <YlbYBfBmt3Ahptoc@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20220412144711.93354-1-pablo@netfilter.org>
+ <20220412144711.93354-8-pablo@netfilter.org>
+ <YlbICmqkYDsWN7NY@orbyte.nwl.cc>
+ <YlbMeumfFKKM23ZV@salvia>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <YlbMeumfFKKM23ZV@salvia>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This element is adjusted, hence it is new and it is purged from the
-kernel.
+On Wed, Apr 13, 2022 at 03:13:30PM +0200, Pablo Neira Ayuso wrote:
+> On Wed, Apr 13, 2022 at 02:54:34PM +0200, Phil Sutter wrote:
+[...]
+> > > +static void __adjust_elem_left(struct set *set, struct expr *prev, struct expr *i,
+> > > +			       struct expr *init)
+> > > +{
+> > > +	prev->flags &= EXPR_F_KERNEL;
+> > 
+> > This looks odd. You're intentionally stripping all flags other than
+> > EXPR_F_KERNEL (if set)?
+> > IIUC, you're just dropping EXPR_F_REMOVE if set. If so, explicit
+> > 'prev->flags &= ~EXPR_F_REMOVE' is more clear, no?
+> > Maybe it's also irrelevant after all WRT above question.
+> 
+> Yes, this should be prev->flags &= ~EXPR_F_KERNEL, I'll fix it.
 
-The existing list of elements in the kernel is spliced to the elements
-to be removed, then merge-sorted. EXPR_F_REMOVE flag specifies that this
-element represents a deletion.
+Ah, OK!
 
-The EXPR_F_REMOVE and EXPR_F_KERNEL allows to track objects: whether
-element is in the kernel (EXPR_F_KERNEL), element is new (no flag) or
-element represents a removal (EXPR_F_REMOVE).
+> This element is moved to the list of elements to be added. This flag
+> is irrelevant though at this stage, but in case you look at the list
+> of elements to be added, you should not see EXPR_F_KERNEL there.
 
-Reported-by: Phil Sutter <phil@nwl.cc>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/intervals.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+I guess none of the flags are relevant at this point anymore since your
+code cleared them all and apparently passed testing? Or none of the
+relevant ones were set, which is my suspicion with EXPR_F_REMOVE.
 
-diff --git a/src/intervals.c b/src/intervals.c
-index 451bc4dd4dd4..cdda9e38ca5e 100644
---- a/src/intervals.c
-+++ b/src/intervals.c
-@@ -279,7 +279,7 @@ static void remove_elem(struct expr *prev, struct set *set, struct expr *purge)
- static void __adjust_elem_left(struct set *set, struct expr *prev, struct expr *i,
- 			       struct expr *add)
- {
--	prev->flags &= EXPR_F_KERNEL;
-+	prev->flags &= ~EXPR_F_KERNEL;
- 	expr_free(prev->key->left);
- 	prev->key->left = expr_get(i->key->right);
- 	mpz_add_ui(prev->key->left->value, prev->key->left->value, 1);
-@@ -304,7 +304,7 @@ static void adjust_elem_left(struct set *set, struct expr *prev, struct expr *i,
- static void __adjust_elem_right(struct set *set, struct expr *prev, struct expr *i,
- 				struct expr *add)
- {
--	prev->flags &= EXPR_F_KERNEL;
-+	prev->flags &= ~EXPR_F_KERNEL;
- 	expr_free(prev->key->right);
- 	prev->key->right = expr_get(i->key->left);
- 	mpz_sub_ui(prev->key->right->value, prev->key->right->value, 1);
-@@ -334,7 +334,7 @@ static void split_range(struct set *set, struct expr *prev, struct expr *i,
- 	clone = expr_clone(prev);
- 	list_move_tail(&clone->list, &purge->expressions);
- 
--	prev->flags &= EXPR_F_KERNEL;
-+	prev->flags &= ~EXPR_F_KERNEL;
- 	clone = expr_clone(prev);
- 	expr_free(clone->key->left);
- 	clone->key->left = expr_get(i->key->right);
--- 
-2.30.2
+[...]
+> > > +	list_for_each_entry_safe(i, next, &elems->expressions, list) {
+> > > +		if (i->key->etype == EXPR_SET_ELEM_CATCHALL)
+> > > +			continue;
+> > > +
+> > > +		range_expr_value_low(range.low, i);
+> > > +		range_expr_value_high(range.high, i);
+> > > +
+> > > +		if (!prev && i->flags & EXPR_F_REMOVE) {
+> > > +			expr_error(msgs, i, "element does not exist");
+> > > +			err = -1;
+> > > +			goto err;
+> > > +		}
+> > > +
+> > > +		if (!(i->flags & EXPR_F_REMOVE)) {
+> > > +			prev = i;
+> > > +			mpz_set(prev_range.low, range.low);
+> > > +			mpz_set(prev_range.high, range.high);
+> > > +			continue;
+> > > +		}
+> > 
+> > The loop assigns to 'prev' only if EXPR_F_REMOVE is not set.
+> 
+> Yes, this annotates is a element candidate to be removed.
+> 
+> The list of elements is merged-sorted, coming the element with
+> EXPR_F_REMOVE before the element that needs to be removed.
 
+The one with EXPR_F_REMOVE comes *after* the one to be removed, right?
+
+My question again: Is it possible for 'prev' to have EXPR_F_REMOVE set?
+Maybe I miss something, but to me it looks like not although the code
+expects it.
+
+Cheers, Phil
