@@ -2,78 +2,144 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA42AC433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Apr 2022 09:05:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 233CFC433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Apr 2022 12:54:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234177AbiDMJHq (ORCPT
+        id S235662AbiDMM5B (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 13 Apr 2022 05:07:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46132 "EHLO
+        Wed, 13 Apr 2022 08:57:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58238 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229960AbiDMJHq (ORCPT
+        with ESMTP id S235680AbiDMM5A (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 13 Apr 2022 05:07:46 -0400
-Received: from mail.strongswan.org (sitav-80046.hsr.ch [152.96.80.46])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D6DE129CAA;
-        Wed, 13 Apr 2022 02:05:24 -0700 (PDT)
-Received: from think.home (67.36.7.85.dynamic.wline.res.cust.swisscom.ch [85.7.36.67])
-        by mail.strongswan.org (Postfix) with ESMTPSA id CB9ED40260;
-        Wed, 13 Apr 2022 11:05:22 +0200 (CEST)
-Message-ID: <5572c06750a388056001d1b460d5e67c18fa2836.camel@strongswan.org>
-Subject: Re: [PATCH nf] netfilter: Update ip6_route_me_harder to consider L3
- domain
-From:   Martin Willi <martin@strongswan.org>
-To:     David Ahern <dsahern@kernel.org>,
+        Wed, 13 Apr 2022 08:57:00 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 565E1255B3
+        for <netfilter-devel@vger.kernel.org>; Wed, 13 Apr 2022 05:54:36 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1necW2-0001CB-6j; Wed, 13 Apr 2022 14:54:34 +0200
+Date:   Wed, 13 Apr 2022 14:54:34 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft,v4 7/7] intervals: support to partial deletion with
+ automerge
+Message-ID: <YlbICmqkYDsWN7NY@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Date:   Wed, 13 Apr 2022 11:05:22 +0200
-In-Reply-To: <a64e1342-c953-40c5-2afb-0e9654e7d002@kernel.org>
-References: <20220412074639.1963131-1-martin@strongswan.org>
-         <a64e1342-c953-40c5-2afb-0e9654e7d002@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.36.5-0ubuntu1 
+        netfilter-devel@vger.kernel.org
+References: <20220412144711.93354-1-pablo@netfilter.org>
+ <20220412144711.93354-8-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220412144711.93354-8-pablo@netfilter.org>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi David,
+Hi Pablo,
 
-> > @@ -39,6 +38,13 @@ int ip6_route_me_harder(struct net *net, struct
-> > sock *sk_partial, struct sk_buff
-> >  	};
-> >  	int err;
-> >  
-> > +	if (sk && sk->sk_bound_dev_if)
-> > +		fl6.flowi6_oif = sk->sk_bound_dev_if;
-> > +	else if (strict)
-> > +		fl6.flowi6_oif = dev->ifindex;
-> > +	else
-> > +		fl6.flowi6_oif = l3mdev_master_ifindex(dev);
-> 
-> For top of tree, this is now fl6.flowi6_l3mdev
+On Tue, Apr 12, 2022 at 04:47:11PM +0200, Pablo Neira Ayuso wrote:
+[...]
+> diff --git a/src/intervals.c b/src/intervals.c
+> index 16debf9cd4be..65e0531765a6 100644
+> --- a/src/intervals.c
+> +++ b/src/intervals.c
+> @@ -255,6 +255,262 @@ int set_automerge(struct list_head *msgs, struct cmd *cmd, struct set *set,
+>  	return 0;
+>  }
+>  
+> +static void remove_elem(struct expr *prev, struct set *set, struct expr *purge)
+> +{
+> +	struct expr *clone;
+> +
+> +	if (!(prev->flags & EXPR_F_REMOVE)) {
 
-Ah, I see, missed that.
+Does prev->flags ever contain EXPR_F_REMOVE? (See below.)
 
-Given that IPv4 should be converted to flowi4_l3mdev as well (?), what
-about:
+> +		if (prev->flags & EXPR_F_KERNEL) {
+> +			clone = expr_clone(prev);
+> +			list_move_tail(&clone->list, &purge->expressions);
+> +		} else {
+> +			list_del(&prev->list);
+> +			expr_free(prev);
+> +		}
+> +	}
+> +}
+> +
+> +static void __adjust_elem_left(struct set *set, struct expr *prev, struct expr *i,
+> +			       struct expr *init)
+> +{
+> +	prev->flags &= EXPR_F_KERNEL;
 
- * Keep the IPv6 patch in this form, as this allows stable to pick it
-   up as-is
- * I'll add a follow-up patch, which converts both to flowi[46]_l3mdev
+This looks odd. You're intentionally stripping all flags other than
+EXPR_F_KERNEL (if set)?
+IIUC, you're just dropping EXPR_F_REMOVE if set. If so, explicit
+'prev->flags &= ~EXPR_F_REMOVE' is more clear, no?
+Maybe it's also irrelevant after all WRT above question.
 
-This would avoid some noise for a separate stable patch, but let me
-know what you prefer.
+> +	expr_free(prev->key->left);
+> +	prev->key->left = expr_get(i->key->right);
+> +	mpz_add_ui(prev->key->left->value, prev->key->left->value, 1);
+> +	list_move(&prev->list, &init->expressions);
+> +}
+[...]
+> +static int setelem_delete(struct list_head *msgs, struct set *set,
+> +			  struct expr *init, struct expr *purge,
+> +			  struct expr *elems, unsigned int debug_mask)
+> +{
+> +	struct expr *i, *next, *prev = NULL;
+> +	struct range range, prev_range;
+> +	int err = 0;
+> +	mpz_t rop;
+> +
+> +	mpz_init(prev_range.low);
+> +	mpz_init(prev_range.high);
+> +	mpz_init(range.low);
+> +	mpz_init(range.high);
+> +	mpz_init(rop);
+> +
+> +	list_for_each_entry_safe(i, next, &elems->expressions, list) {
+> +		if (i->key->etype == EXPR_SET_ELEM_CATCHALL)
+> +			continue;
+> +
+> +		range_expr_value_low(range.low, i);
+> +		range_expr_value_high(range.high, i);
+> +
+> +		if (!prev && i->flags & EXPR_F_REMOVE) {
+> +			expr_error(msgs, i, "element does not exist");
+> +			err = -1;
+> +			goto err;
+> +		}
+> +
+> +		if (!(i->flags & EXPR_F_REMOVE)) {
+> +			prev = i;
+> +			mpz_set(prev_range.low, range.low);
+> +			mpz_set(prev_range.high, range.high);
+> +			continue;
+> +		}
 
->  and dev is only needed here so make this:
-> 	fl6.flowi6_l3mdev = l3mdev_master_ifindex(skb_dst(skb)->dev);
+The loop assigns to 'prev' only if EXPR_F_REMOVE is not set.
+> +
+> +		if (mpz_cmp(prev_range.low, range.low) == 0 &&
+> +		    mpz_cmp(prev_range.high, range.high) == 0) {
+> +			if (!(prev->flags & EXPR_F_REMOVE) &&
+> +			    i->flags & EXPR_F_REMOVE) {
+> +				list_move_tail(&prev->list, &purge->expressions);
+> +				list_del(&i->list);
+> +				expr_free(i);
+> +			}
+> +		} else if (set->automerge &&
+> +			   setelem_adjust(set, init, purge, &prev_range, &range, prev, i) < 0) {
+> +			expr_error(msgs, i, "element does not exist");
+> +			err = -1;
+> +			goto err;
+> +		}
+> +		prev = NULL;
 
-Actually it is used in that "strict" branch, this is why I've added
-"dev" as a local variable. I guess that is still needed
-with flowi6_l3mdev?
+The code above may set EXPR_F_REMOVE in 'prev', but AFAICT 'prev' is not
+revisited within and cleared before next iteration.
 
-Thanks,
-Martin
-
+Cheers, Phil
