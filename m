@@ -2,26 +2,26 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4242CC433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Apr 2022 14:45:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8249C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Apr 2022 14:47:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234521AbiDMOsM (ORCPT
+        id S234526AbiDMOt3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 13 Apr 2022 10:48:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38232 "EHLO
+        Wed, 13 Apr 2022 10:49:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39628 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236226AbiDMOsK (ORCPT
+        with ESMTP id S229891AbiDMOt3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 13 Apr 2022 10:48:10 -0400
+        Wed, 13 Apr 2022 10:49:29 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 23A1E63BCE
-        for <netfilter-devel@vger.kernel.org>; Wed, 13 Apr 2022 07:45:49 -0700 (PDT)
-Date:   Wed, 13 Apr 2022 16:45:46 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id A4CD963BC6
+        for <netfilter-devel@vger.kernel.org>; Wed, 13 Apr 2022 07:47:07 -0700 (PDT)
+Date:   Wed, 13 Apr 2022 16:47:04 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
 Subject: Re: [PATCH nft,v4 7/7] intervals: support to partial deletion with
  automerge
-Message-ID: <YlbiGoMYaUo6W+x7@salvia>
+Message-ID: <YlbiaMsD63Hr5hmM@salvia>
 References: <20220412144711.93354-1-pablo@netfilter.org>
  <20220412144711.93354-8-pablo@netfilter.org>
  <YlbICmqkYDsWN7NY@orbyte.nwl.cc>
@@ -52,35 +52,13 @@ On Wed, Apr 13, 2022 at 04:38:02PM +0200, Phil Sutter wrote:
 > 
 > So below change should be fine?
 
-Yes, setelem_adjust() always checks for if (!(prev->flags & EXPR_F_REMOVE))
-
-Your patch looks correct to me.
+Wait.
 
 > diff --git a/src/intervals.c b/src/intervals.c
 > index 451bc4dd4dd45..c0077c06880ff 100644
 > --- a/src/intervals.c
 > +++ b/src/intervals.c
-> @@ -265,14 +265,12 @@ static void remove_elem(struct expr *prev, struct set *set, struct expr *purge)
->  {
->  	struct expr *clone;
->  
-> -	if (!(prev->flags & EXPR_F_REMOVE)) {
-> -		if (prev->flags & EXPR_F_KERNEL) {
-> -			clone = expr_clone(prev);
-> -			list_move_tail(&clone->list, &purge->expressions);
-> -		} else {
-> -			list_del(&prev->list);
-> -			expr_free(prev);
-> -		}
-> +	if (prev->flags & EXPR_F_KERNEL) {
-> +		clone = expr_clone(prev);
-> +		list_move_tail(&clone->list, &purge->expressions);
-> +	} else {
-> +		list_del(&prev->list);
-> +		expr_free(prev);
->  	}
->  }
->  
+[...]
 > @@ -360,18 +358,15 @@ static int setelem_adjust(struct set *set, struct expr *add, struct expr *purge,
 >  {
 >  	if (mpz_cmp(prev_range->low, range->low) == 0 &&
@@ -88,28 +66,11 @@ Your patch looks correct to me.
 > -		if (!(prev->flags & EXPR_F_REMOVE) &&
 > -		    i->flags & EXPR_F_REMOVE)
 > +		if (i->flags & EXPR_F_REMOVE)
->  			adjust_elem_left(set, prev, i, add, purge);
->  	} else if (mpz_cmp(prev_range->low, range->low) < 0 &&
->  		   mpz_cmp(prev_range->high, range->high) == 0) {
-> -		if (!(prev->flags & EXPR_F_REMOVE) &&
-> -		    i->flags & EXPR_F_REMOVE)
-> +		if (i->flags & EXPR_F_REMOVE)
->  			adjust_elem_right(set, prev, i, add, purge);
->  	} else if (mpz_cmp(prev_range->low, range->low) < 0 &&
->  		   mpz_cmp(prev_range->high, range->high) > 0) {
-> -		if (!(prev->flags & EXPR_F_REMOVE) &&
-> -		    i->flags & EXPR_F_REMOVE)
-> +		if (i->flags & EXPR_F_REMOVE)
->  			split_range(set, prev, i, add, purge);
->  	} else {
->  		return -1;
-> @@ -417,8 +412,7 @@ static int setelem_delete(struct list_head *msgs, struct set *set,
->  
->  		if (mpz_cmp(prev_range.low, range.low) == 0 &&
->  		    mpz_cmp(prev_range.high, range.high) == 0) {
-> -			if (!(prev->flags & EXPR_F_REMOVE) &&
-> -			    i->flags & EXPR_F_REMOVE) {
-> +			if (i->flags & EXPR_F_REMOVE) {
->  				list_move_tail(&prev->list, &purge->expressions);
->  				list_del(&i->list);
->  				expr_free(i);
+
+This chunk is not correct.
+
+User might ask to delete an element which does not exist.
+
+Then, you might find two consecutive EXPR_F_REMOVE.
+
+Only the initial chunk in this patch is fine.
