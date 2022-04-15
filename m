@@ -2,236 +2,91 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE0C6C4332F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Apr 2022 09:43:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5A32C433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Apr 2022 13:28:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345471AbiDOJpl (ORCPT
+        id S1353988AbiDONay (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 15 Apr 2022 05:45:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34440 "EHLO
+        Fri, 15 Apr 2022 09:30:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39682 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243176AbiDOJpk (ORCPT
+        with ESMTP id S1353991AbiDONaw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 15 Apr 2022 05:45:40 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0DCF4B1A88
-        for <netfilter-devel@vger.kernel.org>; Fri, 15 Apr 2022 02:43:12 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft,v2 3/3] intervals: build list of elements to be added from cache
-Date:   Fri, 15 Apr 2022 11:43:06 +0200
-Message-Id: <20220415094306.642207-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220415094306.642207-1-pablo@netfilter.org>
-References: <20220415094306.642207-1-pablo@netfilter.org>
+        Fri, 15 Apr 2022 09:30:52 -0400
+X-Greylist: delayed 325 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 15 Apr 2022 06:28:23 PDT
+Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id DDBD8ABF6C
+        for <netfilter-devel@vger.kernel.org>; Fri, 15 Apr 2022 06:28:23 -0700 (PDT)
+Received: from mg.ssi.bg (localhost [127.0.0.1])
+        by mg.ssi.bg (Proxmox) with ESMTP id AC1E223F8B;
+        Fri, 15 Apr 2022 16:22:57 +0300 (EEST)
+Received: from ink.ssi.bg (unknown [193.238.174.40])
+        by mg.ssi.bg (Proxmox) with ESMTP id 7A42223F8A;
+        Fri, 15 Apr 2022 16:22:55 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [178.16.129.10])
+        by ink.ssi.bg (Postfix) with ESMTPS id BBF8D3C0332;
+        Fri, 15 Apr 2022 16:22:49 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.16.1/8.16.1) with ESMTP id 23FDMlEo057935;
+        Fri, 15 Apr 2022 16:22:49 +0300
+Date:   Fri, 15 Apr 2022 16:22:47 +0300 (EEST)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     Pengcheng Yang <yangpc@wangsu.com>
+cc:     Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf,v2] ipvs: correctly print the memory size of
+ ip_vs_conn_tab
+In-Reply-To: <1649761545-1864-1-git-send-email-yangpc@wangsu.com>
+Message-ID: <dd2f82a6-bf70-2b10-46e0-9d81e4dde6@ssi.bg>
+References: <1649761545-1864-1-git-send-email-yangpc@wangsu.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Loop over the set cache and add elements that have no EXPR_F_KERNEL,
-meaning that these are new elements in the set that have resulted
-from adjusting/split existing ranges.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: new in this series.
+	Hello,
 
- src/intervals.c | 70 +++++++++++++++++++++----------------------------
- 1 file changed, 30 insertions(+), 40 deletions(-)
+On Tue, 12 Apr 2022, Pengcheng Yang wrote:
 
-diff --git a/src/intervals.c b/src/intervals.c
-index e66501c571ab..584c69d5189b 100644
---- a/src/intervals.c
-+++ b/src/intervals.c
-@@ -274,58 +274,46 @@ static void remove_elem(struct expr *prev, struct set *set, struct expr *purge)
- 	}
- }
- 
--static void __adjust_elem_left(struct set *set, struct expr *prev, struct expr *i,
--			       struct expr *add)
-+static void __adjust_elem_left(struct set *set, struct expr *prev, struct expr *i)
- {
- 	prev->flags &= ~EXPR_F_KERNEL;
- 	expr_free(prev->key->left);
- 	prev->key->left = expr_get(i->key->right);
- 	mpz_add_ui(prev->key->left->value, prev->key->left->value, 1);
--	list_move(&prev->list, &add->expressions);
-+	list_move(&prev->list, &set->existing_set->init->expressions);
- }
- 
- static void adjust_elem_left(struct set *set, struct expr *prev, struct expr *i,
--			     struct expr *add, struct expr *purge)
-+			     struct expr *purge)
- {
--	struct expr *clone;
--
- 	remove_elem(prev, set, purge);
--	__adjust_elem_left(set, prev, i, add);
-+	__adjust_elem_left(set, prev, i);
- 
- 	list_del(&i->list);
- 	expr_free(i);
--
--	clone = expr_clone(prev);
--	list_add_tail(&clone->list, &set->existing_set->init->expressions);
- }
- 
--static void __adjust_elem_right(struct set *set, struct expr *prev, struct expr *i,
--				struct expr *add)
-+static void __adjust_elem_right(struct set *set, struct expr *prev, struct expr *i)
- {
- 	prev->flags &= ~EXPR_F_KERNEL;
- 	expr_free(prev->key->right);
- 	prev->key->right = expr_get(i->key->left);
- 	mpz_sub_ui(prev->key->right->value, prev->key->right->value, 1);
--	list_move(&prev->list, &add->expressions);
-+	list_move(&prev->list, &set->existing_set->init->expressions);
- }
- 
- static void adjust_elem_right(struct set *set, struct expr *prev, struct expr *i,
--			      struct expr *add, struct expr *purge)
-+			      struct expr *purge)
- {
--	struct expr *clone;
--
- 	remove_elem(prev, set, purge);
--	__adjust_elem_right(set, prev, i, add);
-+	__adjust_elem_right(set, prev, i);
- 
- 	list_del(&i->list);
- 	expr_free(i);
--
--	clone = expr_clone(prev);
--	list_add_tail(&clone->list, &set->existing_set->init->expressions);
- }
- 
- static void split_range(struct set *set, struct expr *prev, struct expr *i,
--			struct expr *add, struct expr *purge)
-+			struct expr *purge)
- {
- 	struct expr *clone;
- 
-@@ -339,37 +327,33 @@ static void split_range(struct set *set, struct expr *prev, struct expr *i,
- 	expr_free(clone->key->left);
- 	clone->key->left = expr_get(i->key->right);
- 	mpz_add_ui(clone->key->left->value, i->key->right->value, 1);
--	list_move(&clone->list, &add->expressions);
--	clone = expr_clone(clone);
- 	list_add_tail(&clone->list, &set->existing_set->init->expressions);
- 
- 	expr_free(prev->key->right);
- 	prev->key->right = expr_get(i->key->left);
- 	mpz_sub_ui(prev->key->right->value, i->key->left->value, 1);
--	list_move(&prev->list, &add->expressions);
--	clone = expr_clone(prev);
--	list_add_tail(&clone->list, &set->existing_set->init->expressions);
-+	list_move(&prev->list, &set->existing_set->init->expressions);
- 
- 	list_del(&i->list);
- 	expr_free(i);
- }
- 
--static int setelem_adjust(struct set *set, struct expr *add, struct expr *purge,
-+static int setelem_adjust(struct set *set, struct expr *purge,
- 			  struct range *prev_range, struct range *range,
- 			  struct expr *prev, struct expr *i)
- {
- 	if (mpz_cmp(prev_range->low, range->low) == 0 &&
- 	    mpz_cmp(prev_range->high, range->high) > 0) {
- 		if (i->flags & EXPR_F_REMOVE)
--			adjust_elem_left(set, prev, i, add, purge);
-+			adjust_elem_left(set, prev, i, purge);
- 	} else if (mpz_cmp(prev_range->low, range->low) < 0 &&
- 		   mpz_cmp(prev_range->high, range->high) == 0) {
- 		if (i->flags & EXPR_F_REMOVE)
--			adjust_elem_right(set, prev, i, add, purge);
-+			adjust_elem_right(set, prev, i, purge);
- 	} else if (mpz_cmp(prev_range->low, range->low) < 0 &&
- 		   mpz_cmp(prev_range->high, range->high) > 0) {
- 		if (i->flags & EXPR_F_REMOVE)
--			split_range(set, prev, i, add, purge);
-+			split_range(set, prev, i, purge);
- 	} else {
- 		return -1;
- 	}
-@@ -378,8 +362,8 @@ static int setelem_adjust(struct set *set, struct expr *add, struct expr *purge,
- }
- 
- static int setelem_delete(struct list_head *msgs, struct set *set,
--			  struct expr *add, struct expr *purge,
--			  struct expr *elems, unsigned int debug_mask)
-+			  struct expr *purge, struct expr *elems,
-+			  unsigned int debug_mask)
- {
- 	struct expr *i, *next, *prev = NULL;
- 	struct range range, prev_range;
-@@ -422,7 +406,7 @@ static int setelem_delete(struct list_head *msgs, struct set *set,
- 				expr_free(i);
- 			}
- 		} else if (set->automerge &&
--			   setelem_adjust(set, add, purge, &prev_range, &range, prev, i) < 0) {
-+			   setelem_adjust(set, purge, &prev_range, &range, prev, i) < 0) {
- 			expr_error(msgs, i, "element does not exist");
- 			err = -1;
- 			goto err;
-@@ -455,14 +439,14 @@ static void automerge_delete(struct list_head *msgs, struct set *set,
- }
- 
- static int __set_delete(struct list_head *msgs, struct expr *i,	struct set *set,
--			struct expr *add, struct expr *init,
--			struct set *existing_set, unsigned int debug_mask)
-+			struct expr *init, struct set *existing_set,
-+			unsigned int debug_mask)
- {
- 	i->flags |= EXPR_F_REMOVE;
- 	list_move(&i->list, &existing_set->init->expressions);
- 	list_expr_sort(&existing_set->init->expressions);
- 
--	return setelem_delete(msgs, set, add, init, existing_set->init, debug_mask);
-+	return setelem_delete(msgs, set, init, existing_set->init, debug_mask);
- }
- 
- /* detection for unexisting intervals already exists in Linux kernels >= 5.7. */
-@@ -470,7 +454,7 @@ int set_delete(struct list_head *msgs, struct cmd *cmd, struct set *set,
- 	       struct expr *init, unsigned int debug_mask)
- {
- 	struct set *existing_set = set->existing_set;
--	struct expr *i, *next, *add;
-+	struct expr *i, *next, *add, *clone;
- 	struct handle h = {};
- 	struct cmd *add_cmd;
- 	LIST_HEAD(del_list);
-@@ -481,19 +465,25 @@ int set_delete(struct list_head *msgs, struct cmd *cmd, struct set *set,
- 		automerge_delete(msgs, set, init, debug_mask);
- 
- 	set_to_range(existing_set->init);
--	add = set_expr_alloc(&internal_location, set);
- 
- 	list_splice_init(&init->expressions, &del_list);
- 
- 	list_for_each_entry_safe(i, next, &del_list, list) {
--		err = __set_delete(msgs, i, set, add, init, existing_set, debug_mask);
-+		err = __set_delete(msgs, i, set, init, existing_set, debug_mask);
- 		if (err < 0) {
- 			list_splice(&del_list, &init->expressions);
--			expr_free(add);
- 			return err;
- 		}
- 	}
- 
-+	add = set_expr_alloc(&internal_location, set);
-+	list_for_each_entry(i, &existing_set->init->expressions, list) {
-+		if (!(i->flags & EXPR_F_KERNEL)) {
-+			clone = expr_clone(i);
-+			list_add_tail(&clone->list, &add->expressions);
-+		}
-+	}
-+
- 	if (debug_mask & NFT_DEBUG_SEGTREE) {
- 		list_for_each_entry(i, &init->expressions, list)
- 			gmp_printf("remove: [%Zx-%Zx]\n",
--- 
-2.30.2
+> The memory size of ip_vs_conn_tab changed after we use hlist
+> instead of list.
+> 
+> Fixes: 731109e78415 ("ipvs: use hlist instead of list")
+> Signed-off-by: Pengcheng Yang <yangpc@wangsu.com>
+> ---
+
+	v2 looks better to me for nf-next, thanks!
+
+Acked-by: Julian Anastasov <ja@ssi.bg>
+
+> v2: use pointer dereference instead of struct types
+> 
+>  net/netfilter/ipvs/ip_vs_conn.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+> index 2c467c4..fb67f1c 100644
+> --- a/net/netfilter/ipvs/ip_vs_conn.c
+> +++ b/net/netfilter/ipvs/ip_vs_conn.c
+> @@ -1495,7 +1495,7 @@ int __init ip_vs_conn_init(void)
+>  	pr_info("Connection hash table configured "
+>  		"(size=%d, memory=%ldKbytes)\n",
+>  		ip_vs_conn_tab_size,
+> -		(long)(ip_vs_conn_tab_size*sizeof(struct list_head))/1024);
+> +		(long)(ip_vs_conn_tab_size*sizeof(*ip_vs_conn_tab))/1024);
+>  	IP_VS_DBG(0, "Each connection entry needs %zd bytes at least\n",
+>  		  sizeof(struct ip_vs_conn));
+>  
+> -- 
+> 1.8.3.1
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
 
