@@ -2,104 +2,77 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A80BC433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Apr 2022 16:51:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E12FC433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Apr 2022 07:21:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231757AbiDNQxu (ORCPT
+        id S1350986AbiDOHYT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 14 Apr 2022 12:53:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42586 "EHLO
+        Fri, 15 Apr 2022 03:24:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56212 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245208AbiDNQw6 (ORCPT
+        with ESMTP id S1348207AbiDOHYS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 14 Apr 2022 12:52:58 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 33DC5139AE3
-        for <netfilter-devel@vger.kernel.org>; Thu, 14 Apr 2022 09:22:02 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 2/2] intervals: fix deletion of multiple ranges with automerge
-Date:   Thu, 14 Apr 2022 18:21:58 +0200
-Message-Id: <20220414162158.636939-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220414162158.636939-1-pablo@netfilter.org>
-References: <20220414162158.636939-1-pablo@netfilter.org>
+        Fri, 15 Apr 2022 03:24:18 -0400
+Received: from zeeaster.vergenet.net (zeeaster.vergenet.net [206.189.110.174])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABCFA9D052;
+        Fri, 15 Apr 2022 00:21:49 -0700 (PDT)
+Received: from madeliefje.horms.nl (2a02-a44a-2918-403-201-8eff-fe22-8fea.fixed6.kpn.net [IPv6:2a02:a44a:2918:403:201:8eff:fe22:8fea])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by zeeaster.vergenet.net (Postfix) with ESMTPSA id 35DA1200CD;
+        Fri, 15 Apr 2022 07:21:48 +0000 (UTC)
+Received: by madeliefje.horms.nl (Postfix, from userid 7100)
+        id EA12335A8; Fri, 15 Apr 2022 09:21:47 +0200 (CEST)
+Date:   Fri, 15 Apr 2022 09:21:47 +0200
+From:   Simon Horman <horms@verge.net.au>
+To:     Pengcheng Yang <yangpc@wangsu.com>
+Cc:     Julian Anastasov <ja@ssi.bg>, lvs-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf] ipvs: correctly print the memory size of
+ ip_vs_conn_tab
+Message-ID: <YlkdC1/AnuRCdhnv@vergenet.net>
+References: <1649754031-18627-1-git-send-email-yangpc@wangsu.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1649754031-18627-1-git-send-email-yangpc@wangsu.com>
+Organisation: Horms Solutions BV
+X-Virus-Scanned: clamav-milter 0.103.5 at zeeaster
+X-Virus-Status: Clean
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Iterate over the list of elements to be deleted, then splice one
-EXPR_F_REMOVE element at a time to update the list of existing sets
-incrementally.
+On Tue, Apr 12, 2022 at 05:00:31PM +0800, Pengcheng Yang wrote:
+> The memory size of ip_vs_conn_tab changed after we use hlist
+> instead of list.
+> 
+> Fixes: 731109e78415 ("ipvs: use hlist instead of list")
+> Signed-off-by: Pengcheng Yang <yangpc@wangsu.com>
 
-Fixes: 3e8d934e4f722 ("intervals: support to partial deletion with automerge")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/intervals.c | 33 +++++++++++++++++++++------------
- 1 file changed, 21 insertions(+), 12 deletions(-)
+Acked-by: Simon Horman <horms@verge.net.au>
 
-diff --git a/src/intervals.c b/src/intervals.c
-index 590a2967c0f3..7254a23ccf7c 100644
---- a/src/intervals.c
-+++ b/src/intervals.c
-@@ -454,34 +454,43 @@ static void automerge_delete(struct list_head *msgs, struct set *set,
- 	expr_free(ctx.purge);
- }
- 
-+static int __set_delete(struct list_head *msgs, struct expr *i,	struct set *set,
-+			struct expr *add, struct expr *init,
-+			struct set *existing_set, unsigned int debug_mask)
-+{
-+	i->flags |= EXPR_F_REMOVE;
-+	list_move(&i->list, &existing_set->init->expressions);
-+	list_expr_sort(&existing_set->init->expressions);
-+
-+	return setelem_delete(msgs, set, add, init, existing_set->init, debug_mask);
-+}
-+
- /* detection for unexisting intervals already exists in Linux kernels >= 5.7. */
- int set_delete(struct list_head *msgs, struct cmd *cmd, struct set *set,
- 	       struct expr *init, unsigned int debug_mask)
- {
- 	struct set *existing_set = set->existing_set;
--	struct expr *i, *add;
-+	struct expr *i, *next, *add;
- 	struct handle h = {};
- 	struct cmd *add_cmd;
-+	LIST_HEAD(del_list);
- 	int err;
- 
- 	set_to_range(init);
- 	if (set->automerge)
- 		automerge_delete(msgs, set, init, debug_mask);
- 
--	list_for_each_entry(i, &init->expressions, list)
--		i->flags |= EXPR_F_REMOVE;
--
- 	set_to_range(existing_set->init);
--	list_splice_init(&init->expressions, &existing_set->init->expressions);
--
--	list_expr_sort(&existing_set->init->expressions);
--
- 	add = set_expr_alloc(&internal_location, set);
- 
--	err = setelem_delete(msgs, set, add, init, existing_set->init, debug_mask);
--	if (err < 0) {
--		expr_free(add);
--		return err;
-+	list_splice_init(&init->expressions, &del_list);
-+
-+	list_for_each_entry_safe(i, next, &del_list, list) {
-+		err = __set_delete(msgs, i, set, add, init, existing_set, debug_mask);
-+		if (err < 0) {
-+			expr_free(add);
-+			return err;
-+		}
- 	}
- 
- 	if (debug_mask & NFT_DEBUG_SEGTREE) {
--- 
-2.30.2
-
+> ---
+>  net/netfilter/ipvs/ip_vs_conn.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+> index 2c467c4..e886c74 100644
+> --- a/net/netfilter/ipvs/ip_vs_conn.c
+> +++ b/net/netfilter/ipvs/ip_vs_conn.c
+> @@ -1495,7 +1495,7 @@ int __init ip_vs_conn_init(void)
+>  	pr_info("Connection hash table configured "
+>  		"(size=%d, memory=%ldKbytes)\n",
+>  		ip_vs_conn_tab_size,
+> -		(long)(ip_vs_conn_tab_size*sizeof(struct list_head))/1024);
+> +		(long)(ip_vs_conn_tab_size*sizeof(struct hlist_head))/1024);
+>  	IP_VS_DBG(0, "Each connection entry needs %zd bytes at least\n",
+>  		  sizeof(struct ip_vs_conn));
+>  
+> -- 
+> 1.8.3.1
+> 
