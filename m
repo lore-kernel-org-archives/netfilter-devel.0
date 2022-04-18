@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 525B6C433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Apr 2022 10:09:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 346A1C433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Apr 2022 10:09:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237321AbiDRKMT (ORCPT
+        id S236280AbiDRKMU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 18 Apr 2022 06:12:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54920 "EHLO
+        Mon, 18 Apr 2022 06:12:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54944 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237597AbiDRKMS (ORCPT
+        with ESMTP id S237602AbiDRKMS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 18 Apr 2022 06:12:18 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9706917AAB
-        for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2022 03:09:34 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B639D17E30
+        for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2022 03:09:37 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1ngOK5-0008Qc-1j; Mon, 18 Apr 2022 12:09:33 +0200
+        id 1ngOK8-0008Qp-8C; Mon, 18 Apr 2022 12:09:36 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 1/2] src: allow use of base integer types as set keys in concatenations
-Date:   Mon, 18 Apr 2022 12:09:23 +0200
-Message-Id: <20220418100924.5669-2-fw@strlen.de>
+Subject: [PATCH nft 2/2] tests: add concat test case with integer base type subkey
+Date:   Mon, 18 Apr 2022 12:09:24 +0200
+Message-Id: <20220418100924.5669-3-fw@strlen.de>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220418100924.5669-1-fw@strlen.de>
 References: <20220418100924.5669-1-fw@strlen.de>
@@ -34,101 +34,111 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-"typeof ip saddr . ipsec in reqid" won't work because reqid uses
-integer type, i.e. dtype->size is 0.
-
-With "typeof", the size can be derived from the expression length,
-via set->key.
-
-This computes the concat length based either on dtype->size or
-expression length.
-
-It also updates concat evaluation to permit a zero datatype size
-if the subkey expression has nonzero length (i.e., typeof was used).
-
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/evaluate.c | 24 +++++++++++++++++-------
- 1 file changed, 17 insertions(+), 7 deletions(-)
+ tests/shell/testcases/maps/dumps/typeof_maps_0.nft | 6 ++++++
+ tests/shell/testcases/maps/typeof_maps_0           | 6 ++++++
+ tests/shell/testcases/sets/dumps/typeof_sets_0.nft | 9 +++++++++
+ tests/shell/testcases/sets/typeof_sets_0           | 9 +++++++++
+ 4 files changed, 30 insertions(+)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 503b4f036655..b5f74d2f5051 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1270,7 +1270,8 @@ static int expr_evaluate_concat(struct eval_ctx *ctx, struct expr **expr)
+diff --git a/tests/shell/testcases/maps/dumps/typeof_maps_0.nft b/tests/shell/testcases/maps/dumps/typeof_maps_0.nft
+index ea411335cbd4..a5c0a60927a7 100644
+--- a/tests/shell/testcases/maps/dumps/typeof_maps_0.nft
++++ b/tests/shell/testcases/maps/dumps/typeof_maps_0.nft
+@@ -20,11 +20,17 @@ table inet t {
+ 		elements = { "eth0" . tcp . 22 : accept }
  	}
  
- 	list_for_each_entry_safe(i, next, &(*expr)->expressions, list) {
--		unsigned dsize_bytes;
-+		enum byteorder bo = BYTEORDER_INVALID;
-+		unsigned dsize_bytes, dsize = 0;
- 
- 		if (i->etype == EXPR_CT &&
- 		    (i->ct.key == NFT_CT_SRC ||
-@@ -1286,14 +1287,18 @@ static int expr_evaluate_concat(struct eval_ctx *ctx, struct expr **expr)
- 
- 		if (key) {
- 			tmp = key->dtype;
-+			dsize = key->len;
-+			bo = key->byteorder;
- 			off--;
- 		} else if (dtype == NULL) {
- 			tmp = datatype_lookup(TYPE_INVALID);
- 		} else {
- 			tmp = concat_subtype_lookup(type, --off);
-+			dsize = tmp->size;
-+			bo = tmp->byteorder;
- 		}
- 
--		expr_set_context(&ctx->ectx, tmp, tmp->size);
-+		__expr_set_context(&ctx->ectx, tmp, bo, dsize, 0);
- 
- 		if (list_member_evaluate(ctx, &i) < 0)
- 			return -1;
-@@ -1315,12 +1320,14 @@ static int expr_evaluate_concat(struct eval_ctx *ctx, struct expr **expr)
- 						 "data types (%s) in concat "
- 						 "expressions",
- 						 i->dtype->name);
-+		if (dsize == 0) /* reload after evaluation or clone above */
-+			dsize = i->dtype->size;
- 
- 		ntype = concat_subtype_add(ntype, i->dtype->type);
- 
--		dsize_bytes = div_round_up(i->dtype->size, BITS_PER_BYTE);
-+		dsize_bytes = div_round_up(dsize, BITS_PER_BYTE);
- 		(*expr)->field_len[(*expr)->field_count++] = dsize_bytes;
--		size += netlink_padded_len(i->dtype->size);
-+		size += netlink_padded_len(dsize);
- 		if (key)
- 			key = list_next_entry(key, list);
- 	}
-@@ -4046,20 +4053,23 @@ static int set_expr_evaluate_concat(struct eval_ctx *ctx, struct expr **expr)
- 			i->dtype = dtype;
- 		}
- 
--		if (i->dtype->size == 0)
-+		if (i->dtype->size == 0 && i->len == 0)
- 			return expr_binary_error(ctx->msgs, i, *expr,
- 						 "can not use variable sized "
- 						 "data types (%s) in concat "
- 						 "expressions",
- 						 i->dtype->name);
- 
-+		if (i->dtype->size)
-+			assert(i->len == i->dtype->size);
++	map m5 {
++		typeof ipsec in reqid . iifname : verdict
++		elements = { 23 . "eth0" : accept }
++	}
 +
- 		flags &= i->flags;
- 
- 		ntype = concat_subtype_add(ntype, i->dtype->type);
- 
--		dsize_bytes = div_round_up(i->dtype->size, BITS_PER_BYTE);
-+		dsize_bytes = div_round_up(i->len, BITS_PER_BYTE);
- 		(*expr)->field_len[(*expr)->field_count++] = dsize_bytes;
--		size += netlink_padded_len(i->dtype->size);
-+		size += netlink_padded_len(i->len);
+ 	chain c {
+ 		ct mark set osf name map @m1
+ 		meta mark set vlan id map @m2
+ 		meta mark set ip saddr . ip daddr map @m3
+ 		iifname . ip protocol . th dport vmap @m4
+ 		iifname . ip protocol . th dport vmap { "eth0" . tcp . 22 : accept, "eth1" . udp . 67 : drop }
++		ipsec in reqid . iifname vmap @m5
+ 	}
+ }
+diff --git a/tests/shell/testcases/maps/typeof_maps_0 b/tests/shell/testcases/maps/typeof_maps_0
+index 1014d8115fd9..5cf5dddeb1d6 100755
+--- a/tests/shell/testcases/maps/typeof_maps_0
++++ b/tests/shell/testcases/maps/typeof_maps_0
+@@ -27,12 +27,18 @@ EXPECTED="table inet t {
+ 		elements = { eth0 . tcp . 22 : accept }
  	}
  
- 	(*expr)->flags |= flags;
++	map m5 {
++		typeof ipsec in reqid . meta iifname : verdict
++		elements = { 23 . eth0 : accept }
++	}
++
+ 	chain c {
+ 		ct mark set osf name map @m1
+ 		ether type vlan meta mark set vlan id map @m2
+ 		meta mark set ip saddr . ip daddr map @m3
+ 		iifname . ip protocol . th dport vmap @m4
+ 		iifname . ip protocol . th dport vmap { \"eth0\" . tcp . 22 : accept, \"eth1\" . udp . 67 : drop }
++		ipsec in reqid . meta iifname vmap @m5
+ 	}
+ }"
+ 
+diff --git a/tests/shell/testcases/sets/dumps/typeof_sets_0.nft b/tests/shell/testcases/sets/dumps/typeof_sets_0.nft
+index e397a6345462..68b4dcc56e9a 100644
+--- a/tests/shell/testcases/sets/dumps/typeof_sets_0.nft
++++ b/tests/shell/testcases/sets/dumps/typeof_sets_0.nft
+@@ -45,6 +45,11 @@ table inet t {
+ 			     15 }
+ 	}
+ 
++	set s10 {
++		typeof iifname . ip saddr . ipsec in reqid
++		elements = { "eth0" . 10.1.1.2 . 42 }
++	}
++
+ 	chain c1 {
+ 		osf name @s1 accept
+ 	}
+@@ -76,4 +81,8 @@ table inet t {
+ 	chain c9 {
+ 		ip hdrlength @s9 accept
+ 	}
++
++	chain c10 {
++		iifname . ip saddr . ipsec in reqid @s10 accept
++	}
+ }
+diff --git a/tests/shell/testcases/sets/typeof_sets_0 b/tests/shell/testcases/sets/typeof_sets_0
+index be906cdcc842..5fc6a1214729 100755
+--- a/tests/shell/testcases/sets/typeof_sets_0
++++ b/tests/shell/testcases/sets/typeof_sets_0
+@@ -50,6 +50,11 @@ EXPECTED="table inet t {
+ 		elements = { 0, 1, 2, 3, 4, 15 }
+ 	}
+ 
++	set s10 {
++		typeof meta iifname . ip saddr . ipsec in reqid
++		elements = { \"eth0\" . 10.1.1.2 . 42 }
++	}
++
+ 	chain c1 {
+ 		osf name @s1 accept
+ 	}
+@@ -81,6 +86,10 @@ EXPECTED="table inet t {
+ 	chain c9 {
+ 		ip hdrlength @s9 accept
+ 	}
++
++	chain c10 {
++		meta iifname . ip saddr . ipsec in reqid @s10 accept
++	}
+ }"
+ 
+ set -e
 -- 
 2.35.1
 
