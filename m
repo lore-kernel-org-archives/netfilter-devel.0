@@ -2,53 +2,53 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7CB4C433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Apr 2022 20:05:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8CE1C433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Apr 2022 20:06:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1356495AbiDSUIX (ORCPT
+        id S1356655AbiDSUJN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 19 Apr 2022 16:08:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58082 "EHLO
+        Tue, 19 Apr 2022 16:09:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58456 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1355603AbiDSUIW (ORCPT
+        with ESMTP id S1355603AbiDSUJN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 19 Apr 2022 16:08:22 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 111C512603;
-        Tue, 19 Apr 2022 13:05:39 -0700 (PDT)
+        Tue, 19 Apr 2022 16:09:13 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 969EB38798;
+        Tue, 19 Apr 2022 13:06:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9DA2861698;
-        Tue, 19 Apr 2022 20:05:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96C7DC385A7;
-        Tue, 19 Apr 2022 20:05:37 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4238CB81BE5;
+        Tue, 19 Apr 2022 20:06:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0727C385A7;
+        Tue, 19 Apr 2022 20:06:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1650398738;
-        bh=uho8PuTiwfdn/y6WfbCZOVjYCV1gkGfBjh/CNH8W0M8=;
+        s=k20201202; t=1650398787;
+        bh=4+lTB5YmUjN+zF2yL00arevxemxnjWYzr3VBboPIBu4=;
         h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=iKm6ayet0TSvP8VR6TFA6ZfpCYbZZ8bUS8Vfv0+Tomx07NXbqQnIF8FoNrF9Bks6g
-         hrrcQxYS2tpORqfqbIN0xzw3Wzxm8JhGFSMxvVUu1iNteDuajM7FUIv9hHTyOoFdZy
-         HhQm2smIQubmGQs+tYOXXLW3XQqxosZ0Ei5MK7cr8ZREPuHNc6lXBdjH9MNv9jD7vY
-         jbgWM0YGBdIEPVipf9cOB9rQ1id556YPusBaabr+cdhisqywDMajKGKPNtZNUWMD6u
-         0LXpy87DQLBNq7PE2WawukXOB10z4USdDSckTIo0iq2zPOkpZLkC2Nm84LHSJjUqYE
-         QBzYbWaW08Bkg==
-Message-ID: <b7de43c3-104b-f76e-5a5b-773946d0781f@kernel.org>
-Date:   Tue, 19 Apr 2022 14:05:34 -0600
+        b=sqwqTu7PvFwEJxCvnz1nOX1kl6fvoSMq11rmkgo+1zwATi3M0b6sDoijk7leRI3to
+         dELkCT0y8ekge9c6ORcBaer0wR0f+aOYGq1X41dhYjvfmFDUIkuEvppvsOL/OexIjE
+         8lyD5qQYroidDoztCRMk1d9Twuk24O0272lI7fvRAEJU/+xPauG3jBT9dmtusRFBex
+         c051cbOfKbidbKPDR5cf2ehnheH2bu9T5x4jUPClflhjPFqnI5AYjarsdBfv77Cqh2
+         +GIHZZUrSxRtXDtKhjzNSt7qzOKJDMZ4z0fY9nD+wLIfAy4GIGBJXoUYnN7G4Syaa5
+         0vodi6rfal54w==
+Message-ID: <1941bfc8-fa2a-16f6-a70b-df3b7d963dd7@kernel.org>
+Date:   Tue, 19 Apr 2022 14:06:23 -0600
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
  Gecko/20100101 Thunderbird/91.8.0
-Subject: Re: [PATCH nf v2 1/2] netfilter: Update ip6_route_me_harder to
- consider L3 domain
+Subject: Re: [PATCH nf v2 2/2] netfilter: Use l3mdev flow key when re-routing
+ mangled packets
 Content-Language: en-US
 To:     Martin Willi <martin@strongswan.org>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Florian Westphal <fw@strlen.de>
 Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 References: <20220419134701.153090-1-martin@strongswan.org>
- <20220419134701.153090-2-martin@strongswan.org>
+ <20220419134701.153090-3-martin@strongswan.org>
 From:   David Ahern <dsahern@kernel.org>
-In-Reply-To: <20220419134701.153090-2-martin@strongswan.org>
+In-Reply-To: <20220419134701.153090-3-martin@strongswan.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
@@ -56,20 +56,24 @@ List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 On 4/19/22 7:47 AM, Martin Willi wrote:
-> The commit referenced below fixed packet re-routing if Netfilter mangles
-> a routing key property of a packet and the packet is routed in a VRF L3
-> domain. The fix, however, addressed IPv4 re-routing, only.
+> Commit 40867d74c374 ("net: Add l3mdev index to flow struct and avoid oif
+> reset for port devices") introduces a flow key specific for layer 3
+> domains, such as a VRF master device. This allows for explicit VRF domain
+> selection instead of abusing the oif flow key.
 > 
-> This commit applies the same behavior for IPv6. While at it, untangle
-> the nested ternary operator to make the code more readable.
+> Update ip[6]_route_me_harder() to make use of that new key when re-routing
+> mangled packets within VRFs instead of setting the flow oif, making it
+> consistent with other users.
 > 
-> Fixes: 6d8b49c3a3a3 ("netfilter: Update ip_route_me_harder to consider L3 domain")
-> Cc: stable@vger.kernel.org
 > Signed-off-by: Martin Willi <martin@strongswan.org>
 > ---
->  net/ipv6/netfilter.c | 10 ++++++++--
->  1 file changed, 8 insertions(+), 2 deletions(-)
+>  net/ipv4/netfilter.c | 3 +--
+>  net/ipv6/netfilter.c | 3 +--
+>  2 files changed, 2 insertions(+), 4 deletions(-)
 > 
+>
+
+This one will go to -next
 
 Reviewed-by: David Ahern <dsahern@kernel.org>
 
