@@ -2,79 +2,69 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8CE1C433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Apr 2022 20:06:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64C41C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Apr 2022 02:54:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1356655AbiDSUJN (ORCPT
+        id S241926AbiDTC4s (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 19 Apr 2022 16:09:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58456 "EHLO
+        Tue, 19 Apr 2022 22:56:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53662 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1355603AbiDSUJN (ORCPT
+        with ESMTP id S237337AbiDTC4s (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 19 Apr 2022 16:09:13 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 969EB38798;
-        Tue, 19 Apr 2022 13:06:29 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4238CB81BE5;
-        Tue, 19 Apr 2022 20:06:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0727C385A7;
-        Tue, 19 Apr 2022 20:06:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1650398787;
-        bh=4+lTB5YmUjN+zF2yL00arevxemxnjWYzr3VBboPIBu4=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=sqwqTu7PvFwEJxCvnz1nOX1kl6fvoSMq11rmkgo+1zwATi3M0b6sDoijk7leRI3to
-         dELkCT0y8ekge9c6ORcBaer0wR0f+aOYGq1X41dhYjvfmFDUIkuEvppvsOL/OexIjE
-         8lyD5qQYroidDoztCRMk1d9Twuk24O0272lI7fvRAEJU/+xPauG3jBT9dmtusRFBex
-         c051cbOfKbidbKPDR5cf2ehnheH2bu9T5x4jUPClflhjPFqnI5AYjarsdBfv77Cqh2
-         +GIHZZUrSxRtXDtKhjzNSt7qzOKJDMZ4z0fY9nD+wLIfAy4GIGBJXoUYnN7G4Syaa5
-         0vodi6rfal54w==
-Message-ID: <1941bfc8-fa2a-16f6-a70b-df3b7d963dd7@kernel.org>
-Date:   Tue, 19 Apr 2022 14:06:23 -0600
+        Tue, 19 Apr 2022 22:56:48 -0400
+X-Greylist: delayed 914 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 19 Apr 2022 19:54:01 PDT
+Received: from mail-m971.mail.163.com (mail-m971.mail.163.com [123.126.97.1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D93F136B6B
+        for <netfilter-devel@vger.kernel.org>; Tue, 19 Apr 2022 19:54:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=g8PQp
+        STV8COHj1YBXIG7zGSs5B/bzL/E2H3NRoKIaZE=; b=d0npGDG7/cGuB6Nv4Exvr
+        5tsyyPTTmpN+Edn9Ub+mkLsR8S+KpV4+y/Z7hQsKFK4Rx/GOsHKwOK74k9LF/bbs
+        JelLiPSc6U5uqnQ4v/9CQoxd5PtLkZvApNZ68NMK1JwbkruPGYtSV89QCLLuKSI+
+        VTDCd4fwcFm9rwucQnLPTw=
+Received: from localhost.localdomain (unknown [116.128.244.169])
+        by smtp1 (Coremail) with SMTP id GdxpCgCXXb4ucl9itd0oCA--.3059S2;
+        Wed, 20 Apr 2022 10:38:39 +0800 (CST)
+From:   clement wei <clementwei90@163.com>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org, xiaolinkui@kylinos.cn,
+        Rongguang Wei <weirongguang@kylinos.cn>
+Subject: [PATCH v1] netfilter: Remove the empty file
+Date:   Wed, 20 Apr 2022 10:38:04 +0800
+Message-Id: <20220420023804.2018968-1-clementwei90@163.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
- Gecko/20100101 Thunderbird/91.8.0
-Subject: Re: [PATCH nf v2 2/2] netfilter: Use l3mdev flow key when re-routing
- mangled packets
-Content-Language: en-US
-To:     Martin Willi <martin@strongswan.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-References: <20220419134701.153090-1-martin@strongswan.org>
- <20220419134701.153090-3-martin@strongswan.org>
-From:   David Ahern <dsahern@kernel.org>
-In-Reply-To: <20220419134701.153090-3-martin@strongswan.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID: GdxpCgCXXb4ucl9itd0oCA--.3059S2
+X-Coremail-Antispam: 1Uf129KBjvdXoW7Xw1xJrWxWr1fWw4kJFyrJFb_yoWxAFc_Gr
+        Wktw1kKFWrJF93Cw47Cr4rJF1rKry7CFyfAa4xXFWDt345Jw40vrZ7ZFyv9r93Cwsrury5
+        Ar1ktas7A3y29jkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+        9fnUUvcSsGvfC2KfnxnUUI43ZEXa7IUejZX7UUUUU==
+X-Originating-IP: [116.128.244.169]
+X-CM-SenderInfo: 5fohzv5qwzvxizq6il2tof0z/1tbiXAHoa1Xl2UBiTQACsa
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 4/19/22 7:47 AM, Martin Willi wrote:
-> Commit 40867d74c374 ("net: Add l3mdev index to flow struct and avoid oif
-> reset for port devices") introduces a flow key specific for layer 3
-> domains, such as a VRF master device. This allows for explicit VRF domain
-> selection instead of abusing the oif flow key.
-> 
-> Update ip[6]_route_me_harder() to make use of that new key when re-routing
-> mangled packets within VRFs instead of setting the flow oif, making it
-> consistent with other users.
-> 
-> Signed-off-by: Martin Willi <martin@strongswan.org>
-> ---
->  net/ipv4/netfilter.c | 3 +--
->  net/ipv6/netfilter.c | 3 +--
->  2 files changed, 2 insertions(+), 4 deletions(-)
-> 
->
+From: Rongguang Wei <weirongguang@kylinos.cn>
 
-This one will go to -next
+CONFIG_NF_FLOW_TABLE_IPV4 is already removed and the real user is also
+removed(nf_flow_table_ipv4.c is empty).
 
-Reviewed-by: David Ahern <dsahern@kernel.org>
+Fixes: c42ba4290b2147aa ("netfilter: flowtable: remove ipv4/ipv6 modules")
+---
+ net/ipv4/netfilter/nf_flow_table_ipv4.c | 0
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ delete mode 100644 net/ipv4/netfilter/nf_flow_table_ipv4.c
 
+diff --git a/net/ipv4/netfilter/nf_flow_table_ipv4.c b/net/ipv4/netfilter/nf_flow_table_ipv4.c
+deleted file mode 100644
+index e69de29bb2d1..000000000000
+-- 
+2.25.1
+
+
+No virus found
+		Checked by Hillstone Network AntiVirus
 
