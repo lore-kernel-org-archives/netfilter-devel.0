@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52149C43219
-	for <netfilter-devel@archiver.kernel.org>; Sun, 24 Apr 2022 21:56:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16A33C4321E
+	for <netfilter-devel@archiver.kernel.org>; Sun, 24 Apr 2022 21:56:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239694AbiDXV72 (ORCPT
+        id S239697AbiDXV72 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sun, 24 Apr 2022 17:59:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50468 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50568 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239695AbiDXV71 (ORCPT
+        with ESMTP id S239695AbiDXV72 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 24 Apr 2022 17:59:27 -0400
+        Sun, 24 Apr 2022 17:59:28 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id A8F3D396A2
-        for <netfilter-devel@vger.kernel.org>; Sun, 24 Apr 2022 14:56:23 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9FAFB393F7
+        for <netfilter-devel@vger.kernel.org>; Sun, 24 Apr 2022 14:56:25 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH iptables 4/7] nft: pass handle to helper functions to build netlink payload
-Date:   Sun, 24 Apr 2022 23:56:10 +0200
-Message-Id: <20220424215613.106165-5-pablo@netfilter.org>
+Subject: [PATCH iptables 7/7] nft: support for dynamic register allocation
+Date:   Sun, 24 Apr 2022 23:56:13 +0200
+Message-Id: <20220424215613.106165-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220424215613.106165-1-pablo@netfilter.org>
 References: <20220424215613.106165-1-pablo@netfilter.org>
@@ -30,503 +30,735 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pass struct nft_handle to helper functions in preparation for the
-dynamic register allocation.
+Starting Linux kernel 5.18-rc, operations on registers that already
+contain the expected data are turned into noop.
+
+Track operation on registers to use the same register through
+payload_get_register() and meta_get_register(). This patch introduces an
+LRU eviction strategy when all the registers are in used.
+
+get_register() is used to allocate a register as scratchpad area: no
+tracking is performed in this case. This is used for concatenations,
+eg. ebt_among.
+
+Using samples/pktgen/pktgen_bench_xmit_mode_netif_receive.sh
+
+Benchmark #1: match on IPv6 address list
+
+ *raw
+ :PREROUTING DROP [9:2781]
+ :OUTPUT ACCEPT [0:0]
+ -A PREROUTING -d aaaa::bbbb -j DROP
+ [... 98 times same rule above to trigger mismatch ...]
+ -A PREROUTING -d fd00::1 -j DROP			# matching rule
+
+ iptables-legacy	798Mb
+ iptables-nft		801Mb (+0.37)
+
+Benchmark #2: match on layer 4 protocol + port list
+
+ *raw
+ :PREROUTING DROP [9:2781]
+ :OUTPUT ACCEPT [0:0]
+ -A PREROUTING -p tcp --dport 23 -j DROP
+ [... 98 times same rule above to trigger mismatch ...]
+ -A PREROUTING -p udp --dport 9 -j DROP 		# matching rule
+
+ iptables-legacy	648Mb
+ iptables-nft		892Mb (+37.65%)
+
+Benchmark #3: match on mark
+
+ *raw
+ :PREROUTING DROP [9:2781]
+ :OUTPUT ACCEPT [0:0]
+ -A PREROUTING -m mark --mark 100 -j DROP
+ [... 98 times same rule above to trigger mismatch ...]
+ -A PREROUTING -d 198.18.0.42/32 -j DROP		# matching rule
+
+ iptables-legacy	255Mb
+ iptables-nft		865Mb (+239.21%)
+
+In these cases, iptables-nft generates netlink bytecode which uses the
+native expressions, ie. payload + cmp and meta + cmp.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- iptables/nft-arp.c    | 22 +++++++++++-----------
- iptables/nft-bridge.c | 24 +++++++++++++-----------
- iptables/nft-ipv4.c   | 12 ++++++------
- iptables/nft-ipv6.c   | 10 +++++-----
- iptables/nft-shared.c | 31 ++++++++++++++++++-------------
- iptables/nft-shared.h | 14 +++++++-------
- iptables/nft.c        | 26 +++++++++++++-------------
- 7 files changed, 73 insertions(+), 66 deletions(-)
+ iptables/Makefile.am                          |   2 +-
+ iptables/nft-regs.c                           | 191 ++++++++++++++++++
+ iptables/nft-regs.h                           |   9 +
+ iptables/nft-shared.c                         |  10 +-
+ iptables/nft.c                                |  20 +-
+ iptables/nft.h                                |  25 +++
+ .../nft-only/0009-needless-bitwise_0          | 180 ++++++++---------
+ 7 files changed, 335 insertions(+), 102 deletions(-)
+ create mode 100644 iptables/nft-regs.c
+ create mode 100644 iptables/nft-regs.h
 
-diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
-index 89e6413441e2..8c5ce3525dd5 100644
---- a/iptables/nft-arp.c
-+++ b/iptables/nft-arp.c
-@@ -63,18 +63,18 @@ static int nft_arp_add(struct nft_handle *h, struct nftnl_rule *r,
- 
- 	if (fw->arp.iniface[0] != '\0') {
- 		op = nft_invflags2cmp(fw->arp.invflags, IPT_INV_VIA_IN);
--		add_iniface(r, fw->arp.iniface, op);
-+		add_iniface(h, r, fw->arp.iniface, op);
- 	}
- 
- 	if (fw->arp.outiface[0] != '\0') {
- 		op = nft_invflags2cmp(fw->arp.invflags, IPT_INV_VIA_OUT);
--		add_outiface(r, fw->arp.outiface, op);
-+		add_outiface(h, r, fw->arp.outiface, op);
- 	}
- 
- 	if (fw->arp.arhrd != 0 ||
- 	    fw->arp.invflags & IPT_INV_ARPHRD) {
- 		op = nft_invflags2cmp(fw->arp.invflags, IPT_INV_ARPHRD);
--		add_payload(r, offsetof(struct arphdr, ar_hrd), 2,
-+		add_payload(h, r, offsetof(struct arphdr, ar_hrd), 2,
- 			    NFT_PAYLOAD_NETWORK_HEADER);
- 		add_cmp_u16(r, fw->arp.arhrd, op);
- 	}
-@@ -82,7 +82,7 @@ static int nft_arp_add(struct nft_handle *h, struct nftnl_rule *r,
- 	if (fw->arp.arpro != 0 ||
- 	    fw->arp.invflags & IPT_INV_PROTO) {
- 		op = nft_invflags2cmp(fw->arp.invflags, IPT_INV_PROTO);
--	        add_payload(r, offsetof(struct arphdr, ar_pro), 2,
-+	        add_payload(h, r, offsetof(struct arphdr, ar_pro), 2,
- 			    NFT_PAYLOAD_NETWORK_HEADER);
- 		add_cmp_u16(r, fw->arp.arpro, op);
- 	}
-@@ -90,23 +90,23 @@ static int nft_arp_add(struct nft_handle *h, struct nftnl_rule *r,
- 	if (fw->arp.arhln != 0 ||
- 	    fw->arp.invflags & IPT_INV_ARPHLN) {
- 		op = nft_invflags2cmp(fw->arp.invflags, IPT_INV_ARPHLN);
--		add_proto(r, offsetof(struct arphdr, ar_hln), 1,
-+		add_proto(h, r, offsetof(struct arphdr, ar_hln), 1,
- 			  fw->arp.arhln, op);
- 	}
- 
--	add_proto(r, offsetof(struct arphdr, ar_pln), 1, 4, NFT_CMP_EQ);
-+	add_proto(h, r, offsetof(struct arphdr, ar_pln), 1, 4, NFT_CMP_EQ);
- 
- 	if (fw->arp.arpop != 0 ||
- 	    fw->arp.invflags & IPT_INV_ARPOP) {
- 		op = nft_invflags2cmp(fw->arp.invflags, IPT_INV_ARPOP);
--		add_payload(r, offsetof(struct arphdr, ar_op), 2,
-+		add_payload(h, r, offsetof(struct arphdr, ar_op), 2,
- 			    NFT_PAYLOAD_NETWORK_HEADER);
- 		add_cmp_u16(r, fw->arp.arpop, op);
- 	}
- 
- 	if (need_devaddr(&fw->arp.src_devaddr)) {
- 		op = nft_invflags2cmp(fw->arp.invflags, IPT_INV_SRCDEVADDR);
--		add_addr(r, NFT_PAYLOAD_NETWORK_HEADER,
-+		add_addr(h, r, NFT_PAYLOAD_NETWORK_HEADER,
- 			 sizeof(struct arphdr),
- 			 &fw->arp.src_devaddr.addr,
- 			 &fw->arp.src_devaddr.mask,
-@@ -118,7 +118,7 @@ static int nft_arp_add(struct nft_handle *h, struct nftnl_rule *r,
- 	    fw->arp.smsk.s_addr != 0 ||
- 	    fw->arp.invflags & IPT_INV_SRCIP) {
- 		op = nft_invflags2cmp(fw->arp.invflags, IPT_INV_SRCIP);
--		add_addr(r, NFT_PAYLOAD_NETWORK_HEADER,
-+		add_addr(h, r, NFT_PAYLOAD_NETWORK_HEADER,
- 			 sizeof(struct arphdr) + fw->arp.arhln,
- 			 &fw->arp.src.s_addr, &fw->arp.smsk.s_addr,
- 			 sizeof(struct in_addr), op);
-@@ -127,7 +127,7 @@ static int nft_arp_add(struct nft_handle *h, struct nftnl_rule *r,
- 
- 	if (need_devaddr(&fw->arp.tgt_devaddr)) {
- 		op = nft_invflags2cmp(fw->arp.invflags, IPT_INV_TGTDEVADDR);
--		add_addr(r, NFT_PAYLOAD_NETWORK_HEADER,
-+		add_addr(h, r, NFT_PAYLOAD_NETWORK_HEADER,
- 			 sizeof(struct arphdr) + fw->arp.arhln + sizeof(struct in_addr),
- 			 &fw->arp.tgt_devaddr.addr,
- 			 &fw->arp.tgt_devaddr.mask,
-@@ -138,7 +138,7 @@ static int nft_arp_add(struct nft_handle *h, struct nftnl_rule *r,
- 	    fw->arp.tmsk.s_addr != 0 ||
- 	    fw->arp.invflags & IPT_INV_DSTIP) {
- 		op = nft_invflags2cmp(fw->arp.invflags, IPT_INV_DSTIP);
--		add_addr(r, NFT_PAYLOAD_NETWORK_HEADER,
-+		add_addr(h, r, NFT_PAYLOAD_NETWORK_HEADER,
- 			 sizeof(struct arphdr) + fw->arp.arhln + sizeof(struct in_addr) + fw->arp.arhln,
- 			 &fw->arp.tgt.s_addr, &fw->arp.tmsk.s_addr,
- 			 sizeof(struct in_addr), op);
-diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
-index 097ef6e16827..888d4b6baa57 100644
---- a/iptables/nft-bridge.c
-+++ b/iptables/nft-bridge.c
-@@ -65,26 +65,28 @@ static void ebt_print_mac_and_mask(const unsigned char *mac, const unsigned char
- 		xtables_print_mac_and_mask(mac, mask);
- }
- 
--static void add_logical_iniface(struct nftnl_rule *r, char *iface, uint32_t op)
-+static void add_logical_iniface(struct nft_handle *h, struct nftnl_rule *r,
-+				char *iface, uint32_t op)
- {
- 	int iface_len;
- 
- 	iface_len = strlen(iface);
- 
--	add_meta(r, NFT_META_BRI_IIFNAME);
-+	add_meta(h, r, NFT_META_BRI_IIFNAME);
- 	if (iface[iface_len - 1] == '+')
- 		add_cmp_ptr(r, op, iface, iface_len - 1);
- 	else
- 		add_cmp_ptr(r, op, iface, iface_len + 1);
- }
- 
--static void add_logical_outiface(struct nftnl_rule *r, char *iface, uint32_t op)
-+static void add_logical_outiface(struct nft_handle *h, struct nftnl_rule *r,
-+				 char *iface, uint32_t op)
- {
- 	int iface_len;
- 
- 	iface_len = strlen(iface);
- 
--	add_meta(r, NFT_META_BRI_OIFNAME);
-+	add_meta(h, r, NFT_META_BRI_OIFNAME);
- 	if (iface[iface_len - 1] == '+')
- 		add_cmp_ptr(r, op, iface, iface_len - 1);
- 	else
-@@ -106,41 +108,41 @@ static int nft_bridge_add(struct nft_handle *h,
- 
- 	if (fw->in[0] != '\0') {
- 		op = nft_invflags2cmp(fw->invflags, EBT_IIN);
--		add_iniface(r, fw->in, op);
-+		add_iniface(h, r, fw->in, op);
- 	}
- 
- 	if (fw->out[0] != '\0') {
- 		op = nft_invflags2cmp(fw->invflags, EBT_IOUT);
--		add_outiface(r, fw->out, op);
-+		add_outiface(h, r, fw->out, op);
- 	}
- 
- 	if (fw->logical_in[0] != '\0') {
- 		op = nft_invflags2cmp(fw->invflags, EBT_ILOGICALIN);
--		add_logical_iniface(r, fw->logical_in, op);
-+		add_logical_iniface(h, r, fw->logical_in, op);
- 	}
- 
- 	if (fw->logical_out[0] != '\0') {
- 		op = nft_invflags2cmp(fw->invflags, EBT_ILOGICALOUT);
--		add_logical_outiface(r, fw->logical_out, op);
-+		add_logical_outiface(h, r, fw->logical_out, op);
- 	}
- 
- 	if (fw->bitmask & EBT_ISOURCE) {
- 		op = nft_invflags2cmp(fw->invflags, EBT_ISOURCE);
--		add_addr(r, NFT_PAYLOAD_LL_HEADER,
-+		add_addr(h, r, NFT_PAYLOAD_LL_HEADER,
- 			 offsetof(struct ethhdr, h_source),
- 			 fw->sourcemac, fw->sourcemsk, ETH_ALEN, op);
- 	}
- 
- 	if (fw->bitmask & EBT_IDEST) {
- 		op = nft_invflags2cmp(fw->invflags, EBT_IDEST);
--		add_addr(r, NFT_PAYLOAD_LL_HEADER,
-+		add_addr(h, r, NFT_PAYLOAD_LL_HEADER,
- 			 offsetof(struct ethhdr, h_dest),
- 			 fw->destmac, fw->destmsk, ETH_ALEN, op);
- 	}
- 
- 	if ((fw->bitmask & EBT_NOPROTO) == 0) {
- 		op = nft_invflags2cmp(fw->invflags, EBT_IPROTO);
--		add_payload(r, offsetof(struct ethhdr, h_proto), 2,
-+		add_payload(h, r, offsetof(struct ethhdr, h_proto), 2,
- 			    NFT_PAYLOAD_LL_HEADER);
- 		add_cmp_u16(r, fw->ethproto, op);
- 	}
-diff --git a/iptables/nft-ipv4.c b/iptables/nft-ipv4.c
-index cf03edfae9ac..76a0e0de378c 100644
---- a/iptables/nft-ipv4.c
-+++ b/iptables/nft-ipv4.c
-@@ -35,35 +35,35 @@ static int nft_ipv4_add(struct nft_handle *h, struct nftnl_rule *r,
- 
- 	if (cs->fw.ip.iniface[0] != '\0') {
- 		op = nft_invflags2cmp(cs->fw.ip.invflags, IPT_INV_VIA_IN);
--		add_iniface(r, cs->fw.ip.iniface, op);
-+		add_iniface(h, r, cs->fw.ip.iniface, op);
- 	}
- 
- 	if (cs->fw.ip.outiface[0] != '\0') {
- 		op = nft_invflags2cmp(cs->fw.ip.invflags, IPT_INV_VIA_OUT);
--		add_outiface(r, cs->fw.ip.outiface, op);
-+		add_outiface(h, r, cs->fw.ip.outiface, op);
- 	}
- 
- 	if (cs->fw.ip.proto != 0) {
- 		op = nft_invflags2cmp(cs->fw.ip.invflags, XT_INV_PROTO);
--		add_l4proto(r, cs->fw.ip.proto, op);
-+		add_l4proto(h, r, cs->fw.ip.proto, op);
- 	}
- 
- 	if (cs->fw.ip.src.s_addr || cs->fw.ip.smsk.s_addr || cs->fw.ip.invflags & IPT_INV_SRCIP) {
- 		op = nft_invflags2cmp(cs->fw.ip.invflags, IPT_INV_SRCIP);
--		add_addr(r, NFT_PAYLOAD_NETWORK_HEADER,
-+		add_addr(h, r, NFT_PAYLOAD_NETWORK_HEADER,
- 			 offsetof(struct iphdr, saddr),
- 			 &cs->fw.ip.src.s_addr, &cs->fw.ip.smsk.s_addr,
- 			 sizeof(struct in_addr), op);
- 	}
- 	if (cs->fw.ip.dst.s_addr || cs->fw.ip.dmsk.s_addr || cs->fw.ip.invflags & IPT_INV_DSTIP) {
- 		op = nft_invflags2cmp(cs->fw.ip.invflags, IPT_INV_DSTIP);
--		add_addr(r, NFT_PAYLOAD_NETWORK_HEADER,
-+		add_addr(h, r, NFT_PAYLOAD_NETWORK_HEADER,
- 			 offsetof(struct iphdr, daddr),
- 			 &cs->fw.ip.dst.s_addr, &cs->fw.ip.dmsk.s_addr,
- 			 sizeof(struct in_addr), op);
- 	}
- 	if (cs->fw.ip.flags & IPT_F_FRAG) {
--		add_payload(r, offsetof(struct iphdr, frag_off), 2,
-+		add_payload(h, r, offsetof(struct iphdr, frag_off), 2,
- 			    NFT_PAYLOAD_NETWORK_HEADER);
- 		/* get the 13 bits that contain the fragment offset */
- 		add_bitwise_u16(r, htons(0x1fff), 0);
-diff --git a/iptables/nft-ipv6.c b/iptables/nft-ipv6.c
-index 5b767a4059e6..9a29d18bc215 100644
---- a/iptables/nft-ipv6.c
-+++ b/iptables/nft-ipv6.c
-@@ -34,24 +34,24 @@ static int nft_ipv6_add(struct nft_handle *h, struct nftnl_rule *r,
- 
- 	if (cs->fw6.ipv6.iniface[0] != '\0') {
- 		op = nft_invflags2cmp(cs->fw6.ipv6.invflags, IPT_INV_VIA_IN);
--		add_iniface(r, cs->fw6.ipv6.iniface, op);
-+		add_iniface(h, r, cs->fw6.ipv6.iniface, op);
- 	}
- 
- 	if (cs->fw6.ipv6.outiface[0] != '\0') {
- 		op = nft_invflags2cmp(cs->fw6.ipv6.invflags, IPT_INV_VIA_OUT);
--		add_outiface(r, cs->fw6.ipv6.outiface, op);
-+		add_outiface(h, r, cs->fw6.ipv6.outiface, op);
- 	}
- 
- 	if (cs->fw6.ipv6.proto != 0) {
- 		op = nft_invflags2cmp(cs->fw6.ipv6.invflags, XT_INV_PROTO);
--		add_l4proto(r, cs->fw6.ipv6.proto, op);
-+		add_l4proto(h, r, cs->fw6.ipv6.proto, op);
- 	}
- 
- 	if (!IN6_IS_ADDR_UNSPECIFIED(&cs->fw6.ipv6.src) ||
- 	    !IN6_IS_ADDR_UNSPECIFIED(&cs->fw6.ipv6.smsk) ||
- 	    (cs->fw6.ipv6.invflags & IPT_INV_SRCIP)) {
- 		op = nft_invflags2cmp(cs->fw6.ipv6.invflags, IPT_INV_SRCIP);
--		add_addr(r, NFT_PAYLOAD_NETWORK_HEADER,
-+		add_addr(h, r, NFT_PAYLOAD_NETWORK_HEADER,
- 			 offsetof(struct ip6_hdr, ip6_src),
- 			 &cs->fw6.ipv6.src, &cs->fw6.ipv6.smsk,
- 			 sizeof(struct in6_addr), op);
-@@ -60,7 +60,7 @@ static int nft_ipv6_add(struct nft_handle *h, struct nftnl_rule *r,
- 	    !IN6_IS_ADDR_UNSPECIFIED(&cs->fw6.ipv6.dmsk) ||
- 	    (cs->fw6.ipv6.invflags & IPT_INV_DSTIP)) {
- 		op = nft_invflags2cmp(cs->fw6.ipv6.invflags, IPT_INV_DSTIP);
--		add_addr(r, NFT_PAYLOAD_NETWORK_HEADER,
-+		add_addr(h, r, NFT_PAYLOAD_NETWORK_HEADER,
- 			 offsetof(struct ip6_hdr, ip6_dst),
- 			 &cs->fw6.ipv6.dst, &cs->fw6.ipv6.dmsk,
- 			 sizeof(struct in6_addr), op);
+diff --git a/iptables/Makefile.am b/iptables/Makefile.am
+index 0258264c4c70..2f8fe107cb05 100644
+--- a/iptables/Makefile.am
++++ b/iptables/Makefile.am
+@@ -35,7 +35,7 @@ endif
+ xtables_nft_multi_CFLAGS  += -DENABLE_NFTABLES -DENABLE_IPV4 -DENABLE_IPV6
+ xtables_nft_multi_SOURCES += xtables-save.c xtables-restore.c \
+ 				xtables-standalone.c xtables.c nft.c \
+-				nft-shared.c nft-ipv4.c nft-ipv6.c nft-arp.c \
++				nft-shared.c nft-regs.c nft-ipv4.c nft-ipv6.c nft-arp.c \
+ 				xtables-monitor.c nft-cache.c \
+ 				xtables-arp.c \
+ 				nft-bridge.c nft-cmd.c nft-chain.c \
+diff --git a/iptables/nft-regs.c b/iptables/nft-regs.c
+new file mode 100644
+index 000000000000..bfc762e4186f
+--- /dev/null
++++ b/iptables/nft-regs.c
+@@ -0,0 +1,191 @@
++/*
++ * (C) 2012-2022 by Pablo Neira Ayuso <pablo@netfilter.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++/* Funded through the NGI0 PET Fund established by NLnet (https://nlnet.nl)
++ * with support from the European Commission's Next Generation Internet
++ * programme.
++ */
++
++#include <string.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <stdbool.h>
++#include <errno.h>
++#include <assert.h>
++
++#include "nft.h"
++#include "nft-regs.h"
++
++static uint64_t reg_genid(struct nft_handle *h)
++{
++	return ++h->reg_genid;
++}
++
++struct nft_reg_ctx {
++	uint64_t	genid;
++	int		reg;
++	int		evict;
++};
++
++static int reg_space(int i)
++{
++	return sizeof(uint32_t) * 16 - sizeof(uint32_t) * i;
++}
++
++static void register_track(const struct nft_handle *h,
++			   struct nft_reg_ctx *ctx, int i, int len)
++{
++	if (ctx->reg >= 0 || h->regs[i].word || reg_space(i) < len)
++		return;
++
++	if (h->regs[i].type == NFT_REG_UNSPEC) {
++		ctx->genid = h->reg_genid;
++		ctx->reg = i;
++	} else if (h->regs[i].genid < ctx->genid) {
++		ctx->genid = h->regs[i].genid;
++		ctx->evict = i;
++	} else if (h->regs[i].len == len) {
++		ctx->evict = i;
++		ctx->genid = 0;
++	}
++}
++
++static void register_evict(struct nft_reg_ctx *ctx, int i)
++{
++	if (ctx->reg < 0) {
++		assert(ctx->evict >= 0);
++		ctx->reg = ctx->evict;
++	}
++}
++
++static void __register_update(struct nft_handle *h, uint8_t reg,
++			      int type, uint32_t len, uint8_t word,
++			      uint64_t genid)
++{
++	h->regs[reg].type = type;
++	h->regs[reg].genid = genid;
++	h->regs[reg].len = len;
++	h->regs[reg].word = word;
++}
++
++static void register_cancel(struct nft_handle *h, struct nft_reg_ctx *ctx)
++{
++	int plen = h->regs[ctx->reg].len, i;
++
++	for (i = ctx->reg; plen > 0; i++, plen -= sizeof(uint32_t)) {
++		h->regs[i].type = NFT_REG_UNSPEC;
++		h->regs[i].word = 0;
++	}
++
++	while (h->regs[i].word != 0) {
++		h->regs[i].type = NFT_REG_UNSPEC;
++		h->regs[i].word = 0;
++		i++;
++	}
++}
++
++static void register_update(struct nft_handle *h, struct nft_reg_ctx *ctx,
++			    int type, uint32_t len, uint64_t genid)
++{
++	register_cancel(h, ctx);
++	__register_update(h, ctx->reg, type, len, 0, genid);
++}
++
++uint8_t meta_get_register(struct nft_handle *h, enum nft_meta_keys key)
++{
++	struct nft_reg_ctx ctx = {
++		.reg	= -1,
++		.evict	= -1,
++		.genid	= UINT64_MAX,
++	};
++	uint64_t genid;
++	int i;
++
++	for (i = 0; i < 16; i++) {
++		register_track(h, &ctx, i, sizeof(uint32_t));
++
++		if (h->regs[i].type != NFT_REG_META)
++			continue;
++
++		if (h->regs[i].meta.key == key &&
++		    h->regs[i].len == sizeof(uint32_t)) {
++			h->regs[i].genid = reg_genid(h);
++			return i + NFT_REG32_00;
++		}
++	}
++
++	register_evict(&ctx, i);
++
++	genid = reg_genid(h);
++	register_update(h, &ctx, NFT_REG_META, sizeof(uint32_t), genid);
++	h->regs[ctx.reg].meta.key = key;
++
++	return ctx.reg + NFT_REG32_00;
++}
++
++uint8_t payload_get_register(struct nft_handle *h, enum nft_payload_bases base,
++			    uint32_t offset, uint32_t len)
++{
++	struct nft_reg_ctx ctx = {
++		.reg	= -1,
++		.evict	= -1,
++		.genid	= UINT64_MAX,
++	};
++	int i, j, plen = len;
++	uint64_t genid;
++
++	for (i = 0; i < 16; i++) {
++		register_track(h, &ctx, i, len);
++
++		if (h->regs[i].type != NFT_REG_PAYLOAD)
++			continue;
++
++		if (h->regs[i].payload.base == base &&
++		    h->regs[i].payload.offset == offset &&
++		    h->regs[i].len >= plen) {
++			h->regs[i].genid = reg_genid(h);
++			return i + NFT_REG32_00;
++		}
++	}
++
++	register_evict(&ctx, i);
++
++	genid = reg_genid(h);
++	register_update(h, &ctx, NFT_REG_PAYLOAD, len, genid);
++	h->regs[ctx.reg].payload.base = base;
++	h->regs[ctx.reg].payload.offset = offset;
++
++	plen -= sizeof(uint32_t);
++	j = 1;
++	for (i = ctx.reg + 1; plen > 0; i++, plen -= sizeof(uint32_t)) {
++		__register_update(h, i, NFT_REG_PAYLOAD, len, j++, genid);
++		h->regs[i].payload.base = base;
++		h->regs[i].payload.offset = offset;
++	}
++
++	return ctx.reg + NFT_REG32_00;
++}
++
++uint8_t get_register(struct nft_handle *h, uint8_t len)
++{
++	struct nft_reg_ctx ctx = {
++		.reg	= -1,
++		.evict	= -1,
++		.genid	= UINT64_MAX,
++	};
++	int i;
++
++	for (i = 0; i < 16; i++)
++		register_track(h, &ctx, i, len);
++
++	register_evict(&ctx, i);
++	register_cancel(h, &ctx);
++
++	return ctx.reg + NFT_REG32_00;
++}
+diff --git a/iptables/nft-regs.h b/iptables/nft-regs.h
+new file mode 100644
+index 000000000000..3953eae9f217
+--- /dev/null
++++ b/iptables/nft-regs.h
+@@ -0,0 +1,9 @@
++#ifndef _NFT_REGS_H_
++#define _NFT_REGS_H_
++
++uint8_t payload_get_register(struct nft_handle *h, enum nft_payload_bases base,
++			     uint32_t offset, uint32_t len);
++uint8_t meta_get_register(struct nft_handle *h, enum nft_meta_keys key);
++uint8_t get_register(struct nft_handle *h, uint8_t len);
++
++#endif /* _NFT_REGS_H_ */
 diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
-index 54a911801639..52821684445b 100644
+index 27e95c1ae4f3..ad5361942093 100644
 --- a/iptables/nft-shared.c
 +++ b/iptables/nft-shared.c
-@@ -40,7 +40,7 @@ extern struct nft_family_ops nft_family_ops_ipv6;
- extern struct nft_family_ops nft_family_ops_arp;
- extern struct nft_family_ops nft_family_ops_bridge;
+@@ -32,6 +32,7 @@
  
--void add_meta(struct nftnl_rule *r, uint32_t key)
-+void add_meta(struct nft_handle *h, struct nftnl_rule *r, uint32_t key)
- {
- 	struct nftnl_expr *expr;
+ #include "nft-shared.h"
+ #include "nft-bridge.h"
++#include "nft-regs.h"
+ #include "xshared.h"
+ #include "nft.h"
  
-@@ -54,7 +54,8 @@ void add_meta(struct nftnl_rule *r, uint32_t key)
+@@ -50,7 +51,7 @@ void add_meta(struct nft_handle *h, struct nftnl_rule *r, uint32_t key,
+ 	if (expr == NULL)
+ 		return;
+ 
+-	reg = NFT_REG_1;
++	reg = meta_get_register(h, key);
+ 	nftnl_expr_set_u32(expr, NFTNL_EXPR_META_KEY, key);
+ 	nftnl_expr_set_u32(expr, NFTNL_EXPR_META_DREG, reg);
  	nftnl_rule_add_expr(r, expr);
- }
+@@ -68,7 +69,7 @@ void add_payload(struct nft_handle *h, struct nftnl_rule *r,
+ 	if (expr == NULL)
+ 		return;
  
--void add_payload(struct nftnl_rule *r, int offset, int len, uint32_t base)
-+void add_payload(struct nft_handle *h, struct nftnl_rule *r,
-+		 int offset, int len, uint32_t base)
+-	reg = NFT_REG_1;
++	reg = payload_get_register(h, base, offset, len);
+ 	nftnl_expr_set_u32(expr, NFTNL_EXPR_PAYLOAD_BASE, base);
+ 	nftnl_expr_set_u32(expr, NFTNL_EXPR_PAYLOAD_DREG, reg);
+ 	nftnl_expr_set_u32(expr, NFTNL_EXPR_PAYLOAD_OFFSET, offset);
+@@ -89,7 +90,7 @@ void add_bitwise_u16(struct nft_handle *h, struct nftnl_rule *r,
+ 	if (expr == NULL)
+ 		return;
+ 
+-	reg = NFT_REG_1;
++	reg = get_register(h, sizeof(uint32_t));
+ 	nftnl_expr_set_u32(expr, NFTNL_EXPR_BITWISE_SREG, sreg);
+ 	nftnl_expr_set_u32(expr, NFTNL_EXPR_BITWISE_DREG, reg);
+ 	nftnl_expr_set_u32(expr, NFTNL_EXPR_BITWISE_LEN, sizeof(uint16_t));
+@@ -105,12 +106,13 @@ void add_bitwise(struct nft_handle *h, struct nftnl_rule *r,
  {
  	struct nftnl_expr *expr;
+ 	uint32_t xor[4] = { 0 };
+-	uint8_t reg = *dreg;
++	uint8_t reg;
  
-@@ -136,13 +137,14 @@ void add_cmp_u32(struct nftnl_rule *r, uint32_t val, uint32_t op)
- 	add_cmp_ptr(r, op, &val, sizeof(val));
- }
+ 	expr = nftnl_expr_alloc("bitwise");
+ 	if (expr == NULL)
+ 		return;
  
--void add_iniface(struct nftnl_rule *r, char *iface, uint32_t op)
-+void add_iniface(struct nft_handle *h, struct nftnl_rule *r,
-+		 char *iface, uint32_t op)
- {
- 	int iface_len;
- 
- 	iface_len = strlen(iface);
- 
--	add_meta(r, NFT_META_IIFNAME);
-+	add_meta(h, r, NFT_META_IIFNAME);
- 	if (iface[iface_len - 1] == '+') {
- 		if (iface_len > 1)
- 			add_cmp_ptr(r, op, iface, iface_len - 1);
-@@ -150,13 +152,14 @@ void add_iniface(struct nftnl_rule *r, char *iface, uint32_t op)
- 		add_cmp_ptr(r, op, iface, iface_len + 1);
- }
- 
--void add_outiface(struct nftnl_rule *r, char *iface, uint32_t op)
-+void add_outiface(struct nft_handle *h, struct nftnl_rule *r,
-+		  char *iface, uint32_t op)
- {
- 	int iface_len;
- 
- 	iface_len = strlen(iface);
- 
--	add_meta(r, NFT_META_OIFNAME);
-+	add_meta(h, r, NFT_META_OIFNAME);
- 	if (iface[iface_len - 1] == '+') {
- 		if (iface_len > 1)
- 			add_cmp_ptr(r, op, iface, iface_len - 1);
-@@ -164,7 +167,8 @@ void add_outiface(struct nftnl_rule *r, char *iface, uint32_t op)
- 		add_cmp_ptr(r, op, iface, iface_len + 1);
- }
- 
--void add_addr(struct nftnl_rule *r, enum nft_payload_bases base, int offset,
-+void add_addr(struct nft_handle *h, struct nftnl_rule *r,
-+	      enum nft_payload_bases base, int offset,
- 	      void *data, void *mask, size_t len, uint32_t op)
- {
- 	const unsigned char *m = mask;
-@@ -183,7 +187,7 @@ void add_addr(struct nftnl_rule *r, enum nft_payload_bases base, int offset,
- 	if (!bitwise)
- 		len = i;
- 
--	add_payload(r, offset, len, base);
-+	add_payload(h, r, offset, len, base);
- 
- 	if (bitwise)
- 		add_bitwise(r, mask, len);
-@@ -191,16 +195,17 @@ void add_addr(struct nftnl_rule *r, enum nft_payload_bases base, int offset,
- 	add_cmp_ptr(r, op, data, len);
- }
- 
--void add_proto(struct nftnl_rule *r, int offset, size_t len,
--	       uint8_t proto, uint32_t op)
-+void add_proto(struct nft_handle *h, struct nftnl_rule *r,
-+	       int offset, size_t len, uint8_t proto, uint32_t op)
- {
--	add_payload(r, offset, len, NFT_PAYLOAD_NETWORK_HEADER);
-+	add_payload(h, r, offset, len, NFT_PAYLOAD_NETWORK_HEADER);
- 	add_cmp_u8(r, proto, op);
- }
- 
--void add_l4proto(struct nftnl_rule *r, uint8_t proto, uint32_t op)
-+void add_l4proto(struct nft_handle *h, struct nftnl_rule *r,
-+		 uint8_t proto, uint32_t op)
- {
--	add_meta(r, NFT_META_L4PROTO);
-+	add_meta(h, r, NFT_META_L4PROTO);
- 	add_cmp_u8(r, proto, op);
- }
- 
-diff --git a/iptables/nft-shared.h b/iptables/nft-shared.h
-index 092958cd67fa..0bdb6848d853 100644
---- a/iptables/nft-shared.h
-+++ b/iptables/nft-shared.h
-@@ -132,21 +132,21 @@ struct nft_family_ops {
- 			     int rulenum);
- };
- 
--void add_meta(struct nftnl_rule *r, uint32_t key);
--void add_payload(struct nftnl_rule *r, int offset, int len, uint32_t base);
-+void add_meta(struct nft_handle *h, struct nftnl_rule *r, uint32_t key);
-+void add_payload(struct nft_handle *h, struct nftnl_rule *r, int offset, int len, uint32_t base);
- void add_bitwise(struct nftnl_rule *r, uint8_t *mask, size_t len);
- void add_bitwise_u16(struct nftnl_rule *r, uint16_t mask, uint16_t xor);
- void add_cmp_ptr(struct nftnl_rule *r, uint32_t op, void *data, size_t len);
- void add_cmp_u8(struct nftnl_rule *r, uint8_t val, uint32_t op);
- void add_cmp_u16(struct nftnl_rule *r, uint16_t val, uint32_t op);
- void add_cmp_u32(struct nftnl_rule *r, uint32_t val, uint32_t op);
--void add_iniface(struct nftnl_rule *r, char *iface, uint32_t op);
--void add_outiface(struct nftnl_rule *r, char *iface, uint32_t op);
--void add_addr(struct nftnl_rule *r, enum nft_payload_bases base, int offset,
-+void add_iniface(struct nft_handle *h, struct nftnl_rule *r, char *iface, uint32_t op);
-+void add_outiface(struct nft_handle *h, struct nftnl_rule *r, char *iface, uint32_t op);
-+void add_addr(struct nft_handle *h, struct nftnl_rule *r, enum nft_payload_bases base, int offset,
- 	      void *data, void *mask, size_t len, uint32_t op);
--void add_proto(struct nftnl_rule *r, int offset, size_t len,
-+void add_proto(struct nft_handle *h, struct nftnl_rule *r, int offset, size_t len,
- 	       uint8_t proto, uint32_t op);
--void add_l4proto(struct nftnl_rule *r, uint8_t proto, uint32_t op);
-+void add_l4proto(struct nft_handle *h, struct nftnl_rule *r, uint8_t proto, uint32_t op);
- void add_compat(struct nftnl_rule *r, uint32_t proto, bool inv);
- 
- bool is_same_interfaces(const char *a_iniface, const char *a_outiface,
++	reg = get_register(h, len);
+ 	nftnl_expr_set_u32(expr, NFTNL_EXPR_BITWISE_SREG, sreg);
+ 	nftnl_expr_set_u32(expr, NFTNL_EXPR_BITWISE_DREG, reg);
+ 	nftnl_expr_set_u32(expr, NFTNL_EXPR_BITWISE_LEN, len);
 diff --git a/iptables/nft.c b/iptables/nft.c
-index a629aeff98b0..987b3c957b98 100644
+index 07653ee1a3d6..48330f285703 100644
 --- a/iptables/nft.c
 +++ b/iptables/nft.c
-@@ -1216,7 +1216,7 @@ static int add_nft_among(struct nft_handle *h,
- 	    (data->dst.cnt && data->dst.ip)) {
- 		uint16_t eth_p_ip = htons(ETH_P_IP);
+@@ -56,6 +56,7 @@
+ #include <arpa/inet.h>
  
--		add_meta(r, NFT_META_PROTOCOL);
-+		add_meta(h, r, NFT_META_PROTOCOL);
- 		add_cmp_ptr(r, NFT_CMP_EQ, &eth_p_ip, 2);
+ #include "nft.h"
++#include "nft-regs.h"
+ #include "xshared.h" /* proto_to_name */
+ #include "nft-cache.h"
+ #include "nft-shared.h"
+@@ -1112,7 +1113,7 @@ gen_payload(struct nft_handle *h, uint32_t base, uint32_t offset, uint32_t len,
+ 	struct nftnl_expr *e;
+ 	uint8_t reg;
+ 
+-	reg = NFT_REG_1;
++	reg = payload_get_register(h, base, offset, len);
+ 	e = __gen_payload(base, offset, len, reg);
+ 	*dreg = reg;
+ 
+@@ -1157,10 +1158,10 @@ static int __add_nft_among(struct nft_handle *h, const char *table,
+ 		offsetof(struct iphdr, saddr),
+ 		offsetof(struct iphdr, daddr)
+ 	};
++	uint8_t reg, concat_len;
+ 	struct nftnl_expr *e;
+ 	struct nftnl_set *s;
+ 	uint32_t flags = 0;
+-	uint8_t reg;
+ 	int idx = 0;
+ 
+ 	if (ip) {
+@@ -1201,21 +1202,26 @@ static int __add_nft_among(struct nft_handle *h, const char *table,
+ 		nftnl_set_elem_add(s, elem);
  	}
  
-@@ -1263,11 +1263,9 @@ static int expr_gen_range_cmp16(struct nftnl_rule *r,
- 	return 0;
- }
+-	e = gen_payload(h, NFT_PAYLOAD_LL_HEADER,
+-			eth_addr_off[dst], ETH_ALEN, &reg);
++	concat_len = ETH_ALEN;
++	if (ip)
++		concat_len += sizeof(struct in_addr);
++
++	reg = get_register(h, concat_len);
++	e = __gen_payload(NFT_PAYLOAD_LL_HEADER,
++			  eth_addr_off[dst], ETH_ALEN, reg);
+ 	if (!e)
+ 		return -ENOMEM;
+ 	nftnl_rule_add_expr(r, e);
  
--static int add_nft_tcpudp(struct nftnl_rule *r,
--			  uint16_t src[2],
--			  bool invert_src,
--			  uint16_t dst[2],
--			  bool invert_dst)
-+static int add_nft_tcpudp(struct nft_handle *h,struct nftnl_rule *r,
-+			  uint16_t src[2], bool invert_src,
-+			  uint16_t dst[2], bool invert_dst)
- {
- 	struct nftnl_expr *expr;
- 	uint8_t op = NFT_CMP_EQ;
-@@ -1332,7 +1330,8 @@ static bool udp_all_zero(const struct xt_udp *u)
- 	return memcmp(u, &zero, sizeof(*u)) == 0;
- }
- 
--static int add_nft_udp(struct nftnl_rule *r, struct xt_entry_match *m)
-+static int add_nft_udp(struct nft_handle *h, struct nftnl_rule *r,
-+		       struct xt_entry_match *m)
- {
- 	struct xt_udp *udp = (void *)m->data;
- 
-@@ -1346,7 +1345,7 @@ static int add_nft_udp(struct nftnl_rule *r, struct xt_entry_match *m)
- 		return ret;
+ 	if (ip) {
+-		e = gen_payload(h, NFT_PAYLOAD_NETWORK_HEADER, ip_addr_off[dst],
+-				sizeof(struct in_addr), &reg);
++		e = __gen_payload(NFT_PAYLOAD_NETWORK_HEADER, ip_addr_off[dst],
++				  sizeof(struct in_addr), reg + 2);
+ 		if (!e)
+ 			return -ENOMEM;
+ 		nftnl_rule_add_expr(r, e);
  	}
  
--	return add_nft_tcpudp(r, udp->spts, udp->invflags & XT_UDP_INV_SRCPT,
-+	return add_nft_tcpudp(h, r, udp->spts, udp->invflags & XT_UDP_INV_SRCPT,
- 			      udp->dpts, udp->invflags & XT_UDP_INV_DSTPT);
- }
+-	reg = NFT_REG_1;
++	reg = get_register(h, sizeof(uint32_t));
+ 	e = gen_lookup(reg, "__set%d", set_id, inv);
+ 	if (!e)
+ 		return -ENOMEM;
+diff --git a/iptables/nft.h b/iptables/nft.h
+index 68b0910c8e18..3dc907b188ce 100644
+--- a/iptables/nft.h
++++ b/iptables/nft.h
+@@ -85,6 +85,28 @@ struct nft_cache_req {
+ 	struct list_head	chain_list;
+ };
  
-@@ -1380,7 +1379,8 @@ static bool tcp_all_zero(const struct xt_tcp *t)
- 	return memcmp(t, &zero, sizeof(*t)) == 0;
- }
++enum nft_reg_type {
++	NFT_REG_UNSPEC	= 0,
++	NFT_REG_PAYLOAD,
++	NFT_REG_META,
++};
++
++struct nft_regs {
++	enum nft_reg_type			type;
++	uint32_t				len;
++	uint64_t				genid;
++	uint8_t					word;
++	union {
++		struct {
++			enum nft_meta_keys	key;
++		} meta;
++		struct {
++			enum nft_payload_bases	base;
++			uint32_t		offset;
++		} payload;
++	};
++};
++
+ struct nft_handle {
+ 	int			family;
+ 	struct mnl_socket	*nl;
+@@ -111,6 +133,9 @@ struct nft_handle {
+ 	bool			cache_init;
+ 	int			verbose;
  
--static int add_nft_tcp(struct nftnl_rule *r, struct xt_entry_match *m)
-+static int add_nft_tcp(struct nft_handle *h, struct nftnl_rule *r,
-+		       struct xt_entry_match *m)
- {
- 	static const uint8_t supported = XT_TCP_INV_SRCPT | XT_TCP_INV_DSTPT | XT_TCP_INV_FLAGS;
- 	struct xt_tcp *tcp = (void *)m->data;
-@@ -1403,7 +1403,7 @@ static int add_nft_tcp(struct nftnl_rule *r, struct xt_entry_match *m)
- 			return ret;
- 	}
++	struct nft_regs		regs[20];
++	uint64_t		reg_genid;
++
+ 	/* meta data, for error reporting */
+ 	struct {
+ 		unsigned int	lineno;
+diff --git a/iptables/tests/shell/testcases/nft-only/0009-needless-bitwise_0 b/iptables/tests/shell/testcases/nft-only/0009-needless-bitwise_0
+index 41588a10863e..34987b239d35 100755
+--- a/iptables/tests/shell/testcases/nft-only/0009-needless-bitwise_0
++++ b/iptables/tests/shell/testcases/nft-only/0009-needless-bitwise_0
+@@ -64,8 +64,8 @@ ip filter OUTPUT 5 4
  
--	return add_nft_tcpudp(r, tcp->spts, tcp->invflags & XT_TCP_INV_SRCPT,
-+	return add_nft_tcpudp(h, r, tcp->spts, tcp->invflags & XT_TCP_INV_SRCPT,
- 			      tcp->dpts, tcp->invflags & XT_TCP_INV_DSTPT);
- }
+ ip filter OUTPUT 6 5
+   [ payload load 4b @ network header + 16 => reg 1 ]
+-  [ bitwise reg 1 = ( reg 1 & 0xfcffffff ) ^ 0x00000000 ]
+-  [ cmp eq reg 1 0x0002010a ]
++  [ bitwise reg 9 = ( reg 1 & 0xfcffffff ) ^ 0x00000000 ]
++  [ cmp eq reg 9 0x0002010a ]
+   [ counter pkts 0 bytes 0 ]
  
-@@ -1413,7 +1413,7 @@ static int add_nft_mark(struct nft_handle *h, struct nftnl_rule *r,
- 	struct xt_mark_mtinfo1 *mark = (void *)m->data;
- 	int op;
+ ip filter OUTPUT 7 6
+@@ -98,8 +98,8 @@ ip6 filter OUTPUT 5 4
  
--	add_meta(r, NFT_META_MARK);
-+	add_meta(h, r, NFT_META_MARK);
- 	if (mark->mask != 0xffffffff)
- 		add_bitwise(r, (uint8_t *)&mark->mask, sizeof(uint32_t));
+ ip6 filter OUTPUT 6 5
+   [ payload load 16b @ network header + 24 => reg 1 ]
+-  [ bitwise reg 1 = ( reg 1 & 0xffffffff 0xffffffff 0xffffffff 0xf0ffffff ) ^ 0x00000000 0x00000000 0x00000000 0x00000000 ]
+-  [ cmp eq reg 1 0xffc0edfe 0x020100ee 0x06050403 0x00090807 ]
++  [ bitwise reg 2 = ( reg 1 & 0xffffffff 0xffffffff 0xffffffff 0xf0ffffff ) ^ 0x00000000 0x00000000 0x00000000 0x00000000 ]
++  [ cmp eq reg 2 0xffc0edfe 0x020100ee 0x06050403 0x00090807 ]
+   [ counter pkts 0 bytes 0 ]
  
-@@ -1438,9 +1438,9 @@ int add_match(struct nft_handle *h,
- 	else if (!strcmp(m->u.user.name, "among"))
- 		return add_nft_among(h, r, m);
- 	else if (!strcmp(m->u.user.name, "udp"))
--		return add_nft_udp(r, m);
-+		return add_nft_udp(h, r, m);
- 	else if (!strcmp(m->u.user.name, "tcp"))
--		return add_nft_tcp(r, m);
-+		return add_nft_tcp(h, r, m);
- 	else if (!strcmp(m->u.user.name, "mark"))
- 		return add_nft_mark(h, r, m);
+ ip6 filter OUTPUT 7 6
+@@ -148,155 +148,155 @@ ip6 filter OUTPUT 15 14
+ arp filter OUTPUT 3
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
+-  [ payload load 4b @ network header + 24 => reg 1 ]
+-  [ cmp eq reg 1 0x0302010a ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
++  [ payload load 4b @ network header + 24 => reg 11 ]
++  [ cmp eq reg 11 0x0302010a ]
+   [ counter pkts 0 bytes 0 ]
  
+ arp filter OUTPUT 4 3
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
+-  [ payload load 4b @ network header + 24 => reg 1 ]
+-  [ cmp eq reg 1 0x0302010a ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
++  [ payload load 4b @ network header + 24 => reg 11 ]
++  [ cmp eq reg 11 0x0302010a ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ arp filter OUTPUT 5 4
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
+-  [ payload load 4b @ network header + 24 => reg 1 ]
+-  [ bitwise reg 1 = ( reg 1 & 0xfcffffff ) ^ 0x00000000 ]
+-  [ cmp eq reg 1 0x0002010a ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
++  [ payload load 4b @ network header + 24 => reg 11 ]
++  [ bitwise reg 2 = ( reg 11 & 0xfcffffff ) ^ 0x00000000 ]
++  [ cmp eq reg 2 0x0002010a ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ arp filter OUTPUT 6 5
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
+-  [ payload load 3b @ network header + 24 => reg 1 ]
+-  [ cmp eq reg 1 0x0002010a ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
++  [ payload load 3b @ network header + 24 => reg 11 ]
++  [ cmp eq reg 11 0x0002010a ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ arp filter OUTPUT 7 6
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
+-  [ payload load 2b @ network header + 24 => reg 1 ]
+-  [ cmp eq reg 1 0x0000010a ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
++  [ payload load 2b @ network header + 24 => reg 11 ]
++  [ cmp eq reg 11 0x0000010a ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ arp filter OUTPUT 8 7
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
+-  [ payload load 1b @ network header + 24 => reg 1 ]
+-  [ cmp eq reg 1 0x0000000a ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
++  [ payload load 1b @ network header + 24 => reg 11 ]
++  [ cmp eq reg 11 0x0000000a ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ arp filter OUTPUT 9 8
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ arp filter OUTPUT 10 9
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
+-  [ payload load 6b @ network header + 18 => reg 1 ]
+-  [ cmp eq reg 1 0xc000edfe 0x0000eeff ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
++  [ payload load 6b @ network header + 18 => reg 2 ]
++  [ cmp eq reg 2 0xc000edfe 0x0000eeff ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ arp filter OUTPUT 11 10
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
+-  [ payload load 6b @ network header + 18 => reg 1 ]
+-  [ bitwise reg 1 = ( reg 1 & 0xffffffff 0x0000f0ff ) ^ 0x00000000 0x00000000 ]
+-  [ cmp eq reg 1 0xc000edfe 0x0000e0ff ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
++  [ payload load 6b @ network header + 18 => reg 2 ]
++  [ bitwise reg 14 = ( reg 2 & 0xffffffff 0x0000f0ff ) ^ 0x00000000 0x00000000 ]
++  [ cmp eq reg 14 0xc000edfe 0x0000e0ff ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ arp filter OUTPUT 12 11
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
+-  [ payload load 5b @ network header + 18 => reg 1 ]
+-  [ cmp eq reg 1 0xc000edfe 0x000000ff ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
++  [ payload load 5b @ network header + 18 => reg 2 ]
++  [ cmp eq reg 2 0xc000edfe 0x000000ff ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ arp filter OUTPUT 13 12
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
+-  [ payload load 4b @ network header + 18 => reg 1 ]
+-  [ cmp eq reg 1 0xc000edfe ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
++  [ payload load 4b @ network header + 18 => reg 2 ]
++  [ cmp eq reg 2 0xc000edfe ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ arp filter OUTPUT 14 13
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
+-  [ payload load 3b @ network header + 18 => reg 1 ]
+-  [ cmp eq reg 1 0x0000edfe ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
++  [ payload load 3b @ network header + 18 => reg 2 ]
++  [ cmp eq reg 2 0x0000edfe ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ arp filter OUTPUT 15 14
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
+-  [ payload load 2b @ network header + 18 => reg 1 ]
+-  [ cmp eq reg 1 0x0000edfe ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
++  [ payload load 2b @ network header + 18 => reg 2 ]
++  [ cmp eq reg 2 0x0000edfe ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ arp filter OUTPUT 16 15
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
+-  [ payload load 1b @ network header + 18 => reg 1 ]
+-  [ cmp eq reg 1 0x000000fe ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
++  [ payload load 1b @ network header + 18 => reg 2 ]
++  [ cmp eq reg 2 0x000000fe ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ bridge filter OUTPUT 4
+@@ -306,8 +306,8 @@ bridge filter OUTPUT 4
+ 
+ bridge filter OUTPUT 5 4
+   [ payload load 6b @ link header + 0 => reg 1 ]
+-  [ bitwise reg 1 = ( reg 1 & 0xffffffff 0x0000f0ff ) ^ 0x00000000 0x00000000 ]
+-  [ cmp eq reg 1 0xc000edfe 0x0000e0ff ]
++  [ bitwise reg 10 = ( reg 1 & 0xffffffff 0x0000f0ff ) ^ 0x00000000 0x00000000 ]
++  [ cmp eq reg 10 0xc000edfe 0x0000e0ff ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ bridge filter OUTPUT 6 5
 -- 
 2.30.2
 
