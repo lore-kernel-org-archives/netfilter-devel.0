@@ -2,123 +2,132 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1508DC433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Apr 2022 11:49:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B425C433EF
+	for <netfilter-devel@archiver.kernel.org>; Sun, 24 Apr 2022 21:56:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1447178AbiDVLv7 (ORCPT
+        id S239690AbiDXV70 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 22 Apr 2022 07:51:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52242 "EHLO
+        Sun, 24 Apr 2022 17:59:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50330 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345685AbiDVLv6 (ORCPT
+        with ESMTP id S236417AbiDXV7Z (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 22 Apr 2022 07:51:58 -0400
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C80D56411;
-        Fri, 22 Apr 2022 04:49:05 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1650628145; x=1682164145;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=P8V+nwtbjH2d63rlunKLb90J3pF9jlzTPbzeYVpv6mQ=;
-  b=Hwivak+QVFdkj56XtNmTZtwc9sdJ6bdnHYAH/2Jo2qRbx874LJDq4Ocn
-   zMDGimR17vE+2BujR060dUYNXuEf4xovyyLOnAgzqZiB103QgWE+l/DAx
-   1hM49HO86mdeFzvwySvNJBjbCcpM7EjVD++vietZZ+uJ6NpjruB57W/kc
-   nC1HWN+A7qnSNYlBvUjW6GGXR1qzQUwhqXQyJE/bL3jqytvlHeX7EeXpn
-   +nffj/1jEhXF4ggk21a+K5UbSS6ncDxW2ULfgvxEUtENKAhO3DoX2BhXO
-   L+4AR4LU2HHuKoAN849HNQH4qFoN8cmMB51n0bdQ1XP4FM7ZG/7nxltTe
-   w==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10324"; a="327571427"
-X-IronPort-AV: E=Sophos;i="5.90,281,1643702400"; 
-   d="scan'208";a="327571427"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Apr 2022 04:49:05 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.90,281,1643702400"; 
-   d="scan'208";a="534204064"
-Received: from lkp-server01.sh.intel.com (HELO 3abc53900bec) ([10.239.97.150])
-  by orsmga002.jf.intel.com with ESMTP; 22 Apr 2022 04:49:02 -0700
-Received: from kbuild by 3abc53900bec with local (Exim 4.95)
-        (envelope-from <lkp@intel.com>)
-        id 1nhrmX-000A45-Jv;
-        Fri, 22 Apr 2022 11:49:01 +0000
-Date:   Fri, 22 Apr 2022 19:48:55 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Christophe Leroy <christophe.leroy@csgroup.eu>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Cc:     kbuild-all@lists.01.org, netdev@vger.kernel.org,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-Subject: Re: [PATCH net-next v1] net: Use csum_replace_... and csum_sub()
- helpers instead of opencoding
-Message-ID: <202204221937.SbSpkzXW-lkp@intel.com>
-References: <fe60030b6f674d9bf41f56426a4b0a8a9db0d20f.1645112415.git.christophe.leroy@csgroup.eu>
+        Sun, 24 Apr 2022 17:59:25 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id A58DE393E6
+        for <netfilter-devel@vger.kernel.org>; Sun, 24 Apr 2022 14:56:22 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH iptables 2/7] nft: pass struct nft_xt_ctx to parse_meta()
+Date:   Sun, 24 Apr 2022 23:56:08 +0200
+Message-Id: <20220424215613.106165-3-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20220424215613.106165-1-pablo@netfilter.org>
+References: <20220424215613.106165-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <fe60030b6f674d9bf41f56426a4b0a8a9db0d20f.1645112415.git.christophe.leroy@csgroup.eu>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Christophe,
+In preparation for native mark match support.
 
-I love your patch! Perhaps something to improve:
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ iptables/nft-arp.c    | 2 +-
+ iptables/nft-bridge.c | 2 +-
+ iptables/nft-ipv4.c   | 2 +-
+ iptables/nft-ipv6.c   | 2 +-
+ iptables/nft-shared.c | 6 +++---
+ iptables/nft-shared.h | 6 +++---
+ 6 files changed, 10 insertions(+), 10 deletions(-)
 
-[auto build test WARNING on net-next/master]
-
-url:    https://github.com/intel-lab-lkp/linux/commits/Christophe-Leroy/net-Use-csum_replace_-and-csum_sub-helpers-instead-of-opencoding/20220217-234555
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.git c8b441d2fbd0e005541c7363fd5346971b6febcb
-config: x86_64-rhel-8.3-kselftests (https://download.01.org/0day-ci/archive/20220422/202204221937.SbSpkzXW-lkp@intel.com/config)
-compiler: gcc-9 (Debian 9.3.0-22) 9.3.0
-reproduce:
-        # apt-get install sparse
-        # sparse version: v0.6.4-dirty
-        # https://github.com/intel-lab-lkp/linux/commit/cec9ed7cf59fe6dafcec0a30811024d22fad8cbd
-        git remote add linux-review https://github.com/intel-lab-lkp/linux
-        git fetch --no-tags linux-review Christophe-Leroy/net-Use-csum_replace_-and-csum_sub-helpers-instead-of-opencoding/20220217-234555
-        git checkout cec9ed7cf59fe6dafcec0a30811024d22fad8cbd
-        # save the config file
-        mkdir build_dir && cp config build_dir/.config
-        make W=1 C=1 CF='-fdiagnostic-prefix -D__CHECK_ENDIAN__' O=build_dir ARCH=x86_64 SHELL=/bin/bash
-
-If you fix the issue, kindly add following tag as appropriate
-Reported-by: kernel test robot <lkp@intel.com>
-
-
-sparse warnings: (new ones prefixed by >>)
-   net/netfilter/nft_payload.c: note: in included file (through include/net/sctp/sctp.h, include/net/sctp/checksum.h):
-   include/net/sctp/structs.h:335:41: sparse: sparse: array of flexible structures
->> net/netfilter/nft_payload.c:560:28: sparse: sparse: incorrect type in argument 2 (different base types) @@     expected restricted __be32 [usertype] from @@     got restricted __wsum [usertype] fsum @@
-   net/netfilter/nft_payload.c:560:28: sparse:     expected restricted __be32 [usertype] from
-   net/netfilter/nft_payload.c:560:28: sparse:     got restricted __wsum [usertype] fsum
->> net/netfilter/nft_payload.c:560:34: sparse: sparse: incorrect type in argument 3 (different base types) @@     expected restricted __be32 [usertype] to @@     got restricted __wsum [usertype] tsum @@
-   net/netfilter/nft_payload.c:560:34: sparse:     expected restricted __be32 [usertype] to
-   net/netfilter/nft_payload.c:560:34: sparse:     got restricted __wsum [usertype] tsum
->> net/netfilter/nft_payload.c:560:28: sparse: sparse: incorrect type in argument 2 (different base types) @@     expected restricted __be32 [usertype] from @@     got restricted __wsum [usertype] fsum @@
-   net/netfilter/nft_payload.c:560:28: sparse:     expected restricted __be32 [usertype] from
-   net/netfilter/nft_payload.c:560:28: sparse:     got restricted __wsum [usertype] fsum
->> net/netfilter/nft_payload.c:560:34: sparse: sparse: incorrect type in argument 3 (different base types) @@     expected restricted __be32 [usertype] to @@     got restricted __wsum [usertype] tsum @@
-   net/netfilter/nft_payload.c:560:34: sparse:     expected restricted __be32 [usertype] to
-   net/netfilter/nft_payload.c:560:34: sparse:     got restricted __wsum [usertype] tsum
-
-vim +560 net/netfilter/nft_payload.c
-
-   557	
-   558	static inline void nft_csum_replace(__sum16 *sum, __wsum fsum, __wsum tsum)
-   559	{
- > 560		csum_replace4(sum, fsum, tsum);
-   561		if (*sum == 0)
-   562			*sum = CSUM_MANGLED_0;
-   563	}
-   564	
-
+diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
+index 028b06a608e4..89e6413441e2 100644
+--- a/iptables/nft-arp.c
++++ b/iptables/nft-arp.c
+@@ -174,7 +174,7 @@ static void nft_arp_parse_meta(struct nft_xt_ctx *ctx, struct nftnl_expr *e,
+ 	struct arpt_entry *fw = &cs->arp;
+ 	uint8_t flags = 0;
+ 
+-	parse_meta(e, ctx->meta.key, fw->arp.iniface, fw->arp.iniface_mask,
++	parse_meta(ctx, e, ctx->meta.key, fw->arp.iniface, fw->arp.iniface_mask,
+ 		   fw->arp.outiface, fw->arp.outiface_mask,
+ 		   &flags);
+ 
+diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
+index d4b66a25c740..097ef6e16827 100644
+--- a/iptables/nft-bridge.c
++++ b/iptables/nft-bridge.c
+@@ -171,7 +171,7 @@ static void nft_bridge_parse_meta(struct nft_xt_ctx *ctx,
+ 	uint8_t invflags = 0;
+ 	char iifname[IFNAMSIZ] = {}, oifname[IFNAMSIZ] = {};
+ 
+-	parse_meta(e, ctx->meta.key, iifname, NULL, oifname, NULL, &invflags);
++	parse_meta(ctx, e, ctx->meta.key, iifname, NULL, oifname, NULL, &invflags);
+ 
+ 	switch (ctx->meta.key) {
+ 	case NFT_META_BRI_IIFNAME:
+diff --git a/iptables/nft-ipv4.c b/iptables/nft-ipv4.c
+index af3d0c98b798..cf03edfae9ac 100644
+--- a/iptables/nft-ipv4.c
++++ b/iptables/nft-ipv4.c
+@@ -144,7 +144,7 @@ static void nft_ipv4_parse_meta(struct nft_xt_ctx *ctx, struct nftnl_expr *e,
+ 		break;
+ 	}
+ 
+-	parse_meta(e, ctx->meta.key, cs->fw.ip.iniface, cs->fw.ip.iniface_mask,
++	parse_meta(ctx, e, ctx->meta.key, cs->fw.ip.iniface, cs->fw.ip.iniface_mask,
+ 		   cs->fw.ip.outiface, cs->fw.ip.outiface_mask,
+ 		   &cs->fw.ip.invflags);
+ }
+diff --git a/iptables/nft-ipv6.c b/iptables/nft-ipv6.c
+index 892a48541593..5b767a4059e6 100644
+--- a/iptables/nft-ipv6.c
++++ b/iptables/nft-ipv6.c
+@@ -117,7 +117,7 @@ static void nft_ipv6_parse_meta(struct nft_xt_ctx *ctx, struct nftnl_expr *e,
+ 		break;
+ 	}
+ 
+-	parse_meta(e, ctx->meta.key, cs->fw6.ipv6.iniface,
++	parse_meta(ctx, e, ctx->meta.key, cs->fw6.ipv6.iniface,
+ 		   cs->fw6.ipv6.iniface_mask, cs->fw6.ipv6.outiface,
+ 		   cs->fw6.ipv6.outiface_mask, &cs->fw6.ipv6.invflags);
+ }
+diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
+index b3993211c79d..5b13b29c9844 100644
+--- a/iptables/nft-shared.c
++++ b/iptables/nft-shared.c
+@@ -261,9 +261,9 @@ static void parse_ifname(const char *name, unsigned int len, char *dst, unsigned
+ 		memset(mask, 0xff, len - 2);
+ }
+ 
+-int parse_meta(struct nftnl_expr *e, uint8_t key, char *iniface,
+-		unsigned char *iniface_mask, char *outiface,
+-		unsigned char *outiface_mask, uint8_t *invflags)
++int parse_meta(struct nft_xt_ctx *ctx, struct nftnl_expr *e, uint8_t key,
++	       char *iniface, unsigned char *iniface_mask,
++	       char *outiface, unsigned char *outiface_mask, uint8_t *invflags)
+ {
+ 	uint32_t value;
+ 	const void *ifname;
+diff --git a/iptables/nft-shared.h b/iptables/nft-shared.h
+index 7b337943836a..092958cd67fa 100644
+--- a/iptables/nft-shared.h
++++ b/iptables/nft-shared.h
+@@ -156,9 +156,9 @@ bool is_same_interfaces(const char *a_iniface, const char *a_outiface,
+ 			unsigned const char *b_iniface_mask,
+ 			unsigned const char *b_outiface_mask);
+ 
+-int parse_meta(struct nftnl_expr *e, uint8_t key, char *iniface,
+-		unsigned char *iniface_mask, char *outiface,
+-		unsigned char *outiface_mask, uint8_t *invflags);
++int parse_meta(struct nft_xt_ctx *ctx, struct nftnl_expr *e, uint8_t key,
++	       char *iniface, unsigned char *iniface_mask, char *outiface,
++	       unsigned char *outiface_mask, uint8_t *invflags);
+ void get_cmp_data(struct nftnl_expr *e, void *data, size_t dlen, bool *inv);
+ void nft_rule_to_iptables_command_state(struct nft_handle *h,
+ 					const struct nftnl_rule *r,
 -- 
-0-DAY CI Kernel Test Service
-https://01.org/lkp
+2.30.2
+
