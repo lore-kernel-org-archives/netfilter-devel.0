@@ -2,154 +2,194 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50B34C433F5
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Apr 2022 13:41:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8278AC433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Apr 2022 14:29:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231402AbiDYNo0 (ORCPT
+        id S238286AbiDYOci (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 25 Apr 2022 09:44:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60632 "EHLO
+        Mon, 25 Apr 2022 10:32:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42414 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242133AbiDYNoZ (ORCPT
+        with ESMTP id S236007AbiDYOc2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 25 Apr 2022 09:44:25 -0400
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::48])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 61EC64990D
-        for <netfilter-devel@vger.kernel.org>; Mon, 25 Apr 2022 06:41:19 -0700 (PDT)
-Received: from localhost (localhost [127.0.0.1])
-        by smtp2.kfki.hu (Postfix) with ESMTP id ADB45CC00FF;
-        Mon, 25 Apr 2022 15:41:13 +0200 (CEST)
-X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
-        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Mon, 25 Apr 2022 15:41:11 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-        by smtp2.kfki.hu (Postfix) with ESMTP id C76F9CC00FC;
-        Mon, 25 Apr 2022 15:41:10 +0200 (CEST)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id BBC5B343156; Mon, 25 Apr 2022 15:41:10 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by blackhole.kfki.hu (Postfix) with ESMTP id BA443343155;
-        Mon, 25 Apr 2022 15:41:10 +0200 (CEST)
-Date:   Mon, 25 Apr 2022 15:41:10 +0200 (CEST)
-From:   Jozsef Kadlecsik <kadlec@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-cc:     netfilter-devel@vger.kernel.org, edumazet@google.com,
-        ncardwell@google.com, Jaco Kroon <jaco@uls.co.za>
-Subject: Re: [PATCH nf] netfilter: nf_conntrack_tcp: re-init for syn packets
- only
-In-Reply-To: <20220425094711.6255-1-fw@strlen.de>
-Message-ID: <b46b713f-6ba8-38ab-bb22-d3fd9c6c8ec9@netfilter.org>
-References: <20220425094711.6255-1-fw@strlen.de>
+        Mon, 25 Apr 2022 10:32:28 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B72A34BB8;
+        Mon, 25 Apr 2022 07:29:23 -0700 (PDT)
+Received: from fraeml704-chm.china.huawei.com (unknown [172.18.147.207])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Kn6lb1Wj2z686wt;
+        Mon, 25 Apr 2022 22:26:51 +0800 (CST)
+Received: from [10.122.132.241] (10.122.132.241) by
+ fraeml704-chm.china.huawei.com (10.206.15.53) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.2375.24; Mon, 25 Apr 2022 16:29:19 +0200
+Message-ID: <3809fa82-8484-744b-a491-f8a5f7eda861@huawei.com>
+Date:   Mon, 25 Apr 2022 17:29:18 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.1
+Subject: Re: [RFC PATCH v4 07/15] landlock: user space API network support
+Content-Language: ru
+To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+CC:     <willemdebruijn.kernel@gmail.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+        <artem.kuzin@huawei.com>, <anton.sirazetdinov@huawei.com>
+References: <20220309134459.6448-1-konstantin.meskhidze@huawei.com>
+ <20220309134459.6448-8-konstantin.meskhidze@huawei.com>
+ <d4724117-167d-00b0-1f10-749b35bffc2f@digikod.net>
+From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+In-Reply-To: <d4724117-167d-00b0-1f10-749b35bffc2f@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.122.132.241]
+X-ClientProxiedBy: lhreml753-chm.china.huawei.com (10.201.108.203) To
+ fraeml704-chm.china.huawei.com (10.206.15.53)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, 25 Apr 2022, Florian Westphal wrote:
 
-> Jaco Kroon reported tcp problems that Eric Dumazet and Neal Cardwell
-> pinpointed to nf_conntrack tcp_in_window() bug.
-> 
-> tcp trace shows following sequence:
-> 
-> I > R Flags [S], seq 3451342529, win 62580, options [.. tfo [|tcp]>
-> R > I Flags [S.], seq 2699962254, ack 3451342530, win 65535, options [..]
-> R > I Flags [P.], seq 1:89, ack 1, [..]
-> 
-> Note 3rd ACK is from responder to initiator so following branch is taken:
->     } else if (((state->state == TCP_CONNTRACK_SYN_SENT
->                && dir == IP_CT_DIR_ORIGINAL)
->                || (state->state == TCP_CONNTRACK_SYN_RECV
->                && dir == IP_CT_DIR_REPLY))
->                && after(end, sender->td_end)) {
-> 
-> ... because state == TCP_CONNTRACK_SYN_RECV and dir is REPLY.
-> This causes the scaling factor to be reset to 0: window scale option
-> is only present in syn(ack) packets.  This in turn makes nf_conntrack
-> mark valid packets as out-of-window.
-> 
-> This was always broken, it exists even in original commit where
-> window tracking was added to ip_conntrack (nf_conntrack predecessor)
-> in 2.6.9-rc1 kernel.
-> 
-> Restrict to 'tcph->syn', just like the 3rd condtional added in
-> commit 82b72cb94666 ("netfilter: conntrack: re-init state for retransmitted syn-ack").
-> 
-> Upon closer look, those conditionals/branches can be merged:
-> 
-> Because earlier checks prevent syn-ack from showing up in
-> original direction, the 'dir' checks in the conditional quoted above are
-> redundant, remove them. Return early for pure syn retransmitted in reply
-> direction (simultaneous open).
-> 
-> Fixes: 9fb9cbb1082d ("[NETFILTER]: Add nf_conntrack subsystem.")
-> Reported-by: Jaco Kroon <jaco@uls.co.za>
-> Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
-> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-Acked-by: Jozsef Kadlecsik <kadlec@netfilter.org>
-
-[Sorry, I was away whole last week as well.]
-
-Best regards,
-Jozsef
-
-> ---
->  net/netfilter/nf_conntrack_proto_tcp.c | 21 ++++++---------------
->  1 file changed, 6 insertions(+), 15 deletions(-)
+4/12/2022 2:21 PM, Mickaël Salaün пишет:
 > 
-> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-> index 8ec55cd72572..204a5cdff5b1 100644
-> --- a/net/netfilter/nf_conntrack_proto_tcp.c
-> +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-> @@ -556,24 +556,14 @@ static bool tcp_in_window(struct nf_conn *ct,
->  			}
->  
->  		}
-> -	} else if (((state->state == TCP_CONNTRACK_SYN_SENT
-> -		     && dir == IP_CT_DIR_ORIGINAL)
-> -		   || (state->state == TCP_CONNTRACK_SYN_RECV
-> -		     && dir == IP_CT_DIR_REPLY))
-> -		   && after(end, sender->td_end)) {
-> +	} else if (tcph->syn &&
-> +		   after(end, sender->td_end) &&
-> +		   (state->state == TCP_CONNTRACK_SYN_SENT ||
-> +		    state->state == TCP_CONNTRACK_SYN_RECV)) {
->  		/*
->  		 * RFC 793: "if a TCP is reinitialized ... then it need
->  		 * not wait at all; it must only be sure to use sequence
->  		 * numbers larger than those recently used."
-> -		 */
-> -		sender->td_end =
-> -		sender->td_maxend = end;
-> -		sender->td_maxwin = (win == 0 ? 1 : win);
-> -
-> -		tcp_options(skb, dataoff, tcph, sender);
-> -	} else if (tcph->syn && dir == IP_CT_DIR_REPLY &&
-> -		   state->state == TCP_CONNTRACK_SYN_SENT) {
-> -		/* Retransmitted syn-ack, or syn (simultaneous open).
->  		 *
->  		 * Re-init state for this direction, just like for the first
->  		 * syn(-ack) reply, it might differ in seq, ack or tcp options.
-> @@ -581,7 +571,8 @@ static bool tcp_in_window(struct nf_conn *ct,
->  		tcp_init_sender(sender, receiver,
->  				skb, dataoff, tcph,
->  				end, win);
-> -		if (!tcph->ack)
-> +
-> +		if (dir == IP_CT_DIR_REPLY && !tcph->ack)
->  			return true;
->  	}
->  
-> -- 
-> 2.35.1
+> On 09/03/2022 14:44, Konstantin Meskhidze wrote:
+>> User space API was refactored to support
+>> network actions. New network access flags,
+>> network rule and network attributes were
+>> added.
+>>
+>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+>> ---
+>>
+>> Changes since v3:
+>> * Split commit.
+>> * Refactoring User API for network rule type.
+>>
+>> ---
+>>   include/uapi/linux/landlock.h | 48 +++++++++++++++++++++++++++++++++++
+>>   security/landlock/syscalls.c  |  5 ++--
+>>   2 files changed, 51 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/include/uapi/linux/landlock.h 
+>> b/include/uapi/linux/landlock.h
+>> index b3d952067f59..4fc6c793fdf4 100644
+>> --- a/include/uapi/linux/landlock.h
+>> +++ b/include/uapi/linux/landlock.h
+>> @@ -25,6 +25,13 @@ struct landlock_ruleset_attr {
+>>        * compatibility reasons.
+>>        */
+>>       __u64 handled_access_fs;
+>> +
+>> +    /**
+>> +     * @handled_access_net: Bitmask of actions (cf. `Network flags`_)
+>> +     * that is handled by this ruleset and should then be forbidden 
+>> if no
+>> +     * rule explicitly allow them.
+>> +     */
+>> +    __u64 handled_access_net;
+>>   };
+>>
+>>   /*
+>> @@ -46,6 +53,11 @@ enum landlock_rule_type {
+>>        * landlock_path_beneath_attr .
+>>        */
+>>       LANDLOCK_RULE_PATH_BENEATH = 1,
+>> +    /**
+>> +     * @LANDLOCK_RULE_NET_SERVICE: Type of a &struct
+>> +     * landlock_net_service_attr .
+>> +     */
+>> +    LANDLOCK_RULE_NET_SERVICE = 2,
+>>   };
+>>
+>>   /**
+>> @@ -70,6 +82,24 @@ struct landlock_path_beneath_attr {
+>>        */
+>>   } __attribute__((packed));
+>>
+>> +/**
+>> + * struct landlock_net_service_attr - TCP subnet definition
+>> + *
+>> + * Argument of sys_landlock_add_rule().
+>> + */
+>> +struct landlock_net_service_attr {
+>> +    /**
+>> +     * @allowed_access: Bitmask of allowed access network for services
+>> +     * (cf. `Network flags`_).
+>> +     */
+>> +    __u64 allowed_access;
+>> +    /**
+>> +     * @port: Network port
+>> +     */
+>> +    __u16 port;
+>> +
+>> +} __attribute__((packed));
+>> +
+>>   /**
+>>    * DOC: fs_access
+>>    *
+>> @@ -134,4 +164,22 @@ struct landlock_path_beneath_attr {
+>>   #define LANDLOCK_ACCESS_FS_MAKE_BLOCK            (1ULL << 11)
+>>   #define LANDLOCK_ACCESS_FS_MAKE_SYM            (1ULL << 12)
+>>
+>> +/**
+>> + * DOC: net_access
+>> + *
+>> + * Network flags
+>> + * ~~~~~~~~~~~~~~~~
+>> + *
+>> + * These flags enable to restrict a sandboxed process to a set of 
+>> network
+>> + * actions.
+>> + *
+>> + * TCP sockets with allowed actions:
+>> + *
+>> + * - %LANDLOCK_ACCESS_NET_BIND_TCP: Bind a TCP socket to a local port.
+>> + * - %LANDLOCK_ACCESS_NET_CONNECT_TCP: Connect an active TCP socket to
+>> + *   a remote port.
+>> + */
+>> +#define LANDLOCK_ACCESS_NET_BIND_TCP            (1ULL << 0)
+>> +#define LANDLOCK_ACCESS_NET_CONNECT_TCP            (1ULL << 1)
+>> +
+>>   #endif /* _UAPI_LINUX_LANDLOCK_H */
+>> diff --git a/security/landlock/syscalls.c b/security/landlock/syscalls.c
+>> index 8c0f6165fe3a..fcbce83d64ef 100644
+>> --- a/security/landlock/syscalls.c
+>> +++ b/security/landlock/syscalls.c
+>> @@ -81,8 +81,9 @@ static void build_check_abi(void)
+>>        * struct size.
+>>        */
+>>       ruleset_size = sizeof(ruleset_attr.handled_access_fs);
+>> +    ruleset_size += sizeof(ruleset_attr.handled_access_net);
+>>       BUILD_BUG_ON(sizeof(ruleset_attr) != ruleset_size);
+>> -    BUILD_BUG_ON(sizeof(ruleset_attr) != 8);
+>> +    BUILD_BUG_ON(sizeof(ruleset_attr) != 16);
+>>
+>>       path_beneath_size = sizeof(path_beneath_attr.allowed_access);
+>>       path_beneath_size += sizeof(path_beneath_attr.parent_fd);
+>> @@ -184,7 +185,7 @@ SYSCALL_DEFINE3(landlock_create_ruleset,
+>>
+>>       /* Checks content (and 32-bits cast). */
+>>       if ((ruleset_attr.handled_access_fs | LANDLOCK_MASK_ACCESS_FS) !=
+>> -            LANDLOCK_MASK_ACCESS_FS)
+>> +             LANDLOCK_MASK_ACCESS_FS)
 > 
+> Don't add cosmetic changes. FYI, I'm relying on the way Vim does line 
+> cuts, which is mostly tabs. Please try to do the same.
 > 
+   Ok. I'm using VsCode as an editor. It also could be set up to 
+different code styles.
+> 
+>>           return -EINVAL;
+>>       access_mask_set.fs = ruleset_attr.handled_access_fs;
+>>
+>> -- 
+>> 2.25.1
+>>
+> 
+> You need to also update Documentation/userspace-api/landlock.rst 
+> accordingly. You can check you changes by building the HTML doc.
 
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+   OK. I got it. Thnaks for the comment.
+> .
