@@ -2,95 +2,308 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 27C2FC433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Apr 2022 08:11:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0979C433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Apr 2022 08:40:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234449AbiDYIOh (ORCPT
+        id S231977AbiDYInz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 25 Apr 2022 04:14:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56620 "EHLO
+        Mon, 25 Apr 2022 04:43:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46938 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234333AbiDYIOd (ORCPT
+        with ESMTP id S236883AbiDYInx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 25 Apr 2022 04:14:33 -0400
-Received: from mail-pl1-x631.google.com (mail-pl1-x631.google.com [IPv6:2607:f8b0:4864:20::631])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B1B041985
-        for <netfilter-devel@vger.kernel.org>; Mon, 25 Apr 2022 01:11:29 -0700 (PDT)
-Received: by mail-pl1-x631.google.com with SMTP id h12so21578170plf.12
-        for <netfilter-devel@vger.kernel.org>; Mon, 25 Apr 2022 01:11:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=t+tpa5UCYuc64vAh/xMILdTd158zKxTnE8LNTVUTafM=;
-        b=YtuaRRzjgP7XvwRrw4XY2UEe72GUbRQ8Bh8I39n+yWQiehLfjLyLhdVN6GdonS2lwK
-         csxt5dwBSdUy/4iLLGg1JBT4PmHICSkJvRWyClmlcVwbNV325sexnFFqAN6CDjfTlAU0
-         ZknpVN893KbnehAS3aFMzlYSms6yu5HNcUy6ZK9INm+NkZd+KR7bX37rNGIH1HjpP13Q
-         3UcE47B0qsgY/MWCU9GXBrm4D3wv7hT66Kmxlreqe49qiGSf3ol0IwdP5WVNVAacP1PO
-         +ayQ+7gxRa6Jwk0ocqV2/S/WcOCsRIsx16bP8wP9Zg1nMPfqERQqlGF9Ae80TlH49fHT
-         8DxQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=t+tpa5UCYuc64vAh/xMILdTd158zKxTnE8LNTVUTafM=;
-        b=DThT3SpZBUlJBN9zO+Wzvq7Bd0klo3wZXOXsHNagwfBqVM/412HbxQ1gMXVEN2L6s6
-         FDG9W4puqXq/kgorwfZeAgZY9pdCVZMsynH7abcPWSerzkYlQZzGRE6MVig+eI26C+TK
-         cdkVel41GsI37dXb7SXsytQaAEPewyc6BvPEhDfJGULXvIm5UBTT5A0UkOViNOGlyvmI
-         wy0A+vKAjIwQXSNZ/A7uxU+V6udrHKUJjBzbWg+Zg8T+ibruLTnSqcV9sfBB2Rqo06TV
-         CnsocNHTKpSDpIuHz1jmdBlokbUJcnaHUsNPQatyFoZ3Ba2gdoXS+jBv1HwMKZdB4KmM
-         N0cg==
-X-Gm-Message-State: AOAM5312NZgyq6jrs9QT/lesKk0AsSKKJEDLjklYnOIBEfW0rMSD8bIO
-        Xb0iZPMrUWjIkRsGeUo5vDnrwbKp4fk=
-X-Google-Smtp-Source: ABdhPJyCu5XAEbe+/RmicRXi39Loz+FvVPjXzyWk/Z0QC7H7CxgzoQdd4ctTrWC7u2SUa+d8ffFVCw==
-X-Received: by 2002:a17:902:d714:b0:153:2e9:3bcc with SMTP id w20-20020a170902d71400b0015302e93bccmr16990200ply.83.1650874288565;
-        Mon, 25 Apr 2022 01:11:28 -0700 (PDT)
-Received: from SX14.u-tokyo.ac.jp ([157.82.194.10])
-        by smtp.gmail.com with ESMTPSA id o34-20020a634e62000000b0039cc4376415sm8824915pgl.63.2022.04.25.01.11.26
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 25 Apr 2022 01:11:27 -0700 (PDT)
-From:   Ritaro Takenaka <ritarot634@gmail.com>
+        Mon, 25 Apr 2022 04:43:53 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3F5357B128
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 Apr 2022 01:40:48 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Cc:     Ritaro Takenaka <ritarot634@gmail.com>
-Subject: [PATCH] nf_flowtable: ensure dst.dev is not blackhole
-Date:   Mon, 25 Apr 2022 17:08:38 +0900
-Message-Id: <20220425080835.5765-1-ritarot634@gmail.com>
-X-Mailer: git-send-email 2.25.1
+Subject: [PATCH nf-next] netfilter: conntrack: add nf_ct_iter_data object for nf_ct_iterate_cleanup*()
+Date:   Mon, 25 Apr 2022 10:40:45 +0200
+Message-Id: <20220425084045.107931-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Fixes sporadic IPv6 packet loss when flow offloading is enabled.
-IPv6 route GC calls dst_dev_put() which makes dst.dev blackhole_netdev
-even if dst is cached in flow offload. If a packet passes through this
-invalid flow, packet loss will occur.
-This is from Commit 227e1e4d0d6c (netfilter: nf_flowtable: skip device
-lookup from interface index), as outdev was cached independently before.
-Packet loss is reported on OpenWrt with Linux 5.4 and later.
+This patch adds a structure to collect all the context data that is
+passed to the cleanup iterator.
 
-Signed-off-by: Ritaro Takenaka <ritarot634@gmail.com>
+ struct nf_ct_iter_data {
+       struct net *net;
+       void *data;
+       u32 portid;
+       int report;
+ };
+
+There is a netns field that allows to clean up conntrack entries
+specifically owned by the specified netns.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_ip.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ include/net/netfilter/nf_conntrack.h | 12 ++++--
+ net/netfilter/nf_conntrack_core.c    | 56 +++++++++++-----------------
+ net/netfilter/nf_conntrack_netlink.c | 10 ++++-
+ net/netfilter/nf_conntrack_proto.c   | 10 +++--
+ net/netfilter/nf_conntrack_timeout.c |  7 +++-
+ net/netfilter/nf_nat_masquerade.c    |  5 ++-
+ 6 files changed, 56 insertions(+), 44 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index 32c0eb1b4..12f81661d 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -624,6 +624,11 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 	if (nf_flow_state_check(flow, ip6h->nexthdr, skb, thoff))
- 		return NF_ACCEPT;
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index 3ce9a5b42fe5..a32be8aa7ed2 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -236,10 +236,16 @@ static inline bool nf_ct_kill(struct nf_conn *ct)
+ 	return nf_ct_delete(ct, 0, 0);
+ }
  
-+	if (unlikely(tuplehash->tuple.dst_cache->dev == blackhole_netdev)) {
-+		flow_offload_teardown(flow);
-+		return NF_ACCEPT;
-+	}
++struct nf_ct_iter_data {
++	struct net *net;
++	void *data;
++	u32 portid;
++	int report;
++};
 +
- 	if (skb_try_make_writable(skb, thoff + hdrsize))
- 		return NF_DROP;
+ /* Iterate over all conntracks: if iter returns true, it's deleted. */
+-void nf_ct_iterate_cleanup_net(struct net *net,
+-			       int (*iter)(struct nf_conn *i, void *data),
+-			       void *data, u32 portid, int report);
++void nf_ct_iterate_cleanup_net(int (*iter)(struct nf_conn *i, void *data),
++			       const struct nf_ct_iter_data *iter_data);
  
+ /* also set unconfirmed conntracks as dying. Only use in module exit path. */
+ void nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data),
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 6e59a35a29b9..d3ffdfbe4dd9 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -2338,7 +2338,7 @@ static bool nf_conntrack_get_tuple_skb(struct nf_conntrack_tuple *dst_tuple,
+ /* Bring out ya dead! */
+ static struct nf_conn *
+ get_next_corpse(int (*iter)(struct nf_conn *i, void *data),
+-		void *data, unsigned int *bucket)
++		const struct nf_ct_iter_data *iter_data, unsigned int *bucket)
+ {
+ 	struct nf_conntrack_tuple_hash *h;
+ 	struct nf_conn *ct;
+@@ -2369,7 +2369,12 @@ get_next_corpse(int (*iter)(struct nf_conn *i, void *data),
+ 			 * tuple while iterating.
+ 			 */
+ 			ct = nf_ct_tuplehash_to_ctrack(h);
+-			if (iter(ct, data))
++
++			if (iter_data->net &&
++			    !net_eq(iter_data->net, nf_ct_net(ct)))
++				continue;
++
++			if (iter(ct, iter_data->data))
+ 				goto found;
+ 		}
+ 		spin_unlock(lockp);
+@@ -2386,7 +2391,7 @@ get_next_corpse(int (*iter)(struct nf_conn *i, void *data),
+ }
+ 
+ static void nf_ct_iterate_cleanup(int (*iter)(struct nf_conn *i, void *data),
+-				  void *data, u32 portid, int report)
++				  const struct nf_ct_iter_data *iter_data)
+ {
+ 	unsigned int bucket = 0;
+ 	struct nf_conn *ct;
+@@ -2394,49 +2399,28 @@ static void nf_ct_iterate_cleanup(int (*iter)(struct nf_conn *i, void *data),
+ 	might_sleep();
+ 
+ 	mutex_lock(&nf_conntrack_mutex);
+-	while ((ct = get_next_corpse(iter, data, &bucket)) != NULL) {
++	while ((ct = get_next_corpse(iter, iter_data, &bucket)) != NULL) {
+ 		/* Time to push up daises... */
+ 
+-		nf_ct_delete(ct, portid, report);
++		nf_ct_delete(ct, iter_data->portid, iter_data->report);
+ 		nf_ct_put(ct);
+ 		cond_resched();
+ 	}
+ 	mutex_unlock(&nf_conntrack_mutex);
+ }
+ 
+-struct iter_data {
+-	int (*iter)(struct nf_conn *i, void *data);
+-	void *data;
+-	struct net *net;
+-};
+-
+-static int iter_net_only(struct nf_conn *i, void *data)
+-{
+-	struct iter_data *d = data;
+-
+-	if (!net_eq(d->net, nf_ct_net(i)))
+-		return 0;
+-
+-	return d->iter(i, d->data);
+-}
+-
+-void nf_ct_iterate_cleanup_net(struct net *net,
+-			       int (*iter)(struct nf_conn *i, void *data),
+-			       void *data, u32 portid, int report)
++void nf_ct_iterate_cleanup_net(int (*iter)(struct nf_conn *i, void *data),
++			       const struct nf_ct_iter_data *iter_data)
+ {
++	struct net *net = iter_data->net;
+ 	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
+-	struct iter_data d;
+ 
+ 	might_sleep();
+ 
+ 	if (atomic_read(&cnet->count) == 0)
+ 		return;
+ 
+-	d.iter = iter;
+-	d.data = data;
+-	d.net = net;
+-
+-	nf_ct_iterate_cleanup(iter_net_only, &d, portid, report);
++	nf_ct_iterate_cleanup(iter, iter_data);
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_iterate_cleanup_net);
+ 
+@@ -2454,6 +2438,7 @@ EXPORT_SYMBOL_GPL(nf_ct_iterate_cleanup_net);
+ void
+ nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data), void *data)
+ {
++	struct nf_ct_iter_data iter_data = {};
+ 	struct net *net;
+ 
+ 	down_read(&net_rwsem);
+@@ -2481,7 +2466,8 @@ nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data), void *data)
+ 	synchronize_net();
+ 
+ 	nf_ct_ext_bump_genid();
+-	nf_ct_iterate_cleanup(iter, data, 0, 0);
++	iter_data.data = data;
++	nf_ct_iterate_cleanup(iter, &iter_data);
+ 
+ 	/* Another cpu might be in a rcu read section with
+ 	 * rcu protected pointer cleared in iter callback
+@@ -2495,7 +2481,7 @@ EXPORT_SYMBOL_GPL(nf_ct_iterate_destroy);
+ 
+ static int kill_all(struct nf_conn *i, void *data)
+ {
+-	return net_eq(nf_ct_net(i), data);
++	return 1;
+ }
+ 
+ void nf_conntrack_cleanup_start(void)
+@@ -2530,8 +2516,9 @@ void nf_conntrack_cleanup_net(struct net *net)
+ 
+ void nf_conntrack_cleanup_net_list(struct list_head *net_exit_list)
+ {
+-	int busy;
++	struct nf_ct_iter_data iter_data = {};
+ 	struct net *net;
++	int busy;
+ 
+ 	/*
+ 	 * This makes sure all current packets have passed through
+@@ -2544,7 +2531,8 @@ void nf_conntrack_cleanup_net_list(struct list_head *net_exit_list)
+ 	list_for_each_entry(net, net_exit_list, exit_list) {
+ 		struct nf_conntrack_net *cnet = nf_ct_pernet(net);
+ 
+-		nf_ct_iterate_cleanup(kill_all, net, 0, 0);
++		iter_data.net = net;
++		nf_ct_iterate_cleanup_net(kill_all, &iter_data);
+ 		if (atomic_read(&cnet->count) != 0)
+ 			busy = 1;
+ 	}
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index eafe640b3387..e768f59741a6 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -1559,6 +1559,11 @@ static int ctnetlink_flush_conntrack(struct net *net,
+ 				     u32 portid, int report, u8 family)
+ {
+ 	struct ctnetlink_filter *filter = NULL;
++	struct nf_ct_iter_data iter = {
++		.net		= net,
++		.portid		= portid,
++		.report		= report,
++	};
+ 
+ 	if (ctnetlink_needs_filter(family, cda)) {
+ 		if (cda[CTA_FILTER])
+@@ -1567,10 +1572,11 @@ static int ctnetlink_flush_conntrack(struct net *net,
+ 		filter = ctnetlink_alloc_filter(cda, family);
+ 		if (IS_ERR(filter))
+ 			return PTR_ERR(filter);
++
++		iter.data = filter;
+ 	}
+ 
+-	nf_ct_iterate_cleanup_net(net, ctnetlink_flush_iterate, filter,
+-				  portid, report);
++	nf_ct_iterate_cleanup_net(ctnetlink_flush_iterate, &iter);
+ 	kfree(filter);
+ 
+ 	return 0;
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+index d1f2d3c8d2b1..895b09cbd7cf 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -538,9 +538,13 @@ static int nf_ct_netns_do_get(struct net *net, u8 nfproto)
+  out_unlock:
+ 	mutex_unlock(&nf_ct_proto_mutex);
+ 
+-	if (fixup_needed)
+-		nf_ct_iterate_cleanup_net(net, nf_ct_tcp_fixup,
+-					  (void *)(unsigned long)nfproto, 0, 0);
++	if (fixup_needed) {
++		struct nf_ct_iter_data iter_data = {
++			.net	= net,
++			.data	= (void *)(unsigned long)nfproto,
++		};
++		nf_ct_iterate_cleanup_net(nf_ct_tcp_fixup, &iter_data);
++	}
+ 
+ 	return err;
+ }
+diff --git a/net/netfilter/nf_conntrack_timeout.c b/net/netfilter/nf_conntrack_timeout.c
+index cec166ecba77..0f828d05ea60 100644
+--- a/net/netfilter/nf_conntrack_timeout.c
++++ b/net/netfilter/nf_conntrack_timeout.c
+@@ -38,7 +38,12 @@ static int untimeout(struct nf_conn *ct, void *timeout)
+ 
+ void nf_ct_untimeout(struct net *net, struct nf_ct_timeout *timeout)
+ {
+-	nf_ct_iterate_cleanup_net(net, untimeout, timeout, 0, 0);
++	struct nf_ct_iter_data iter_data = {
++		.net	= net,
++		.data	= timeout,
++	};
++
++	nf_ct_iterate_cleanup_net(untimeout, &iter_data);
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_untimeout);
+ 
+diff --git a/net/netfilter/nf_nat_masquerade.c b/net/netfilter/nf_nat_masquerade.c
+index e32fac374608..1a506b0c6511 100644
+--- a/net/netfilter/nf_nat_masquerade.c
++++ b/net/netfilter/nf_nat_masquerade.c
+@@ -77,11 +77,14 @@ EXPORT_SYMBOL_GPL(nf_nat_masquerade_ipv4);
+ 
+ static void iterate_cleanup_work(struct work_struct *work)
+ {
++	struct nf_ct_iter_data iter_data = {};
+ 	struct masq_dev_work *w;
+ 
+ 	w = container_of(work, struct masq_dev_work, work);
+ 
+-	nf_ct_iterate_cleanup_net(w->net, w->iter, (void *)w, 0, 0);
++	iter_data.net = w->net;
++	iter_data.data = (void *)w;
++	nf_ct_iterate_cleanup_net(w->iter, &iter_data);
+ 
+ 	put_net_track(w->net, &w->ns_tracker);
+ 	kfree(w);
 -- 
-2.25.1
+2.30.2
 
