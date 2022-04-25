@@ -2,89 +2,66 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2900CC433FE
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Apr 2022 09:50:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B44D0C433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Apr 2022 13:15:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240554AbiDYJx2 (ORCPT
+        id S232347AbiDYNS5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 25 Apr 2022 05:53:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44872 "EHLO
+        Mon, 25 Apr 2022 09:18:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35896 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239910AbiDYJx0 (ORCPT
+        with ESMTP id S229774AbiDYNS4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 25 Apr 2022 05:53:26 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC35D3EA9B;
-        Mon, 25 Apr 2022 02:50:15 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7A831B811A2;
-        Mon, 25 Apr 2022 09:50:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 425BDC385AD;
-        Mon, 25 Apr 2022 09:50:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1650880213;
-        bh=80RRtGvuoBRD9GGXSdxDFqx1jir+bG1S+DXWe53k7rs=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=P/XKjDilWy/XrgAbdMrQjkuTa5vOIYJT9e+wjzNWdyzDxYApEUrcqGpdh9nJEoNk9
-         8J0gmZSLnPwgQADdDoDvNslFwMT0Ersa1rCe9NbYYGySFdX/B4PJBbbTxBVYyeP1Dv
-         Yw2KkbDbn1LKM0shWrlJbIrGHiBrRyOm9XFN/7ktEqeHg689RFS1YFvMq+IU5dqbMT
-         swbiMXozYIrI9okM9mK015S4O13Fwi42EL2lEMe8rVxcINx42xFsb83Nzive+RfZgc
-         UcUdGq9ved+WRRp0VrggskNPmo563Y04NMt4i7lo4kCSBBZ/GQl9Pjka344l/IANJA
-         wOxUGMMCFtcQA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 29FC2F0383D;
-        Mon, 25 Apr 2022 09:50:13 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Mon, 25 Apr 2022 09:18:56 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6533817E0A
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 Apr 2022 06:15:52 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1niyZC-00045B-Ej; Mon, 25 Apr 2022 15:15:50 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next 0/4] netfilter: conntrack: avoid eache extension allocation
+Date:   Mon, 25 Apr 2022 15:15:40 +0200
+Message-Id: <20220425131544.27860-1-fw@strlen.de>
+X-Mailer: git-send-email 2.35.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/4] ipvs: correctly print the memory size of
- ip_vs_conn_tab
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <165088021316.12536.3526307693945776005.git-patchwork-notify@kernel.org>
-Date:   Mon, 25 Apr 2022 09:50:13 +0000
-References: <20220425091631.109320-2-pablo@netfilter.org>
-In-Reply-To: <20220425091631.109320-2-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+This patch series changes ecache infra to no longer allocate the
+extension by default.
 
-This series was applied to netdev/net.git (master)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+After this series, the default behaviour is to allocate the
+extension if either a conntrack template has been set to configure event
+masks via nft/iptables ruleset, the syctl 'nf_conntrack_events' is set
+to 1, or if a userspace program has subscribed to one of the ctnetlink
+event groups.
 
-On Mon, 25 Apr 2022 11:16:28 +0200 you wrote:
-> From: Pengcheng Yang <yangpc@wangsu.com>
-> 
-> The memory size of ip_vs_conn_tab changed after we use hlist
-> instead of list.
-> 
-> Fixes: 731109e78415 ("ipvs: use hlist instead of list")
-> Signed-off-by: Pengcheng Yang <yangpc@wangsu.com>
-> Acked-by: Julian Anastasov <ja@ssi.bg>
-> Acked-by: Simon Horman <horms@verge.net.au>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> 
-> [...]
+This has advantages in case the events are not used:
+1. Conntrack allocation/free avoids extra kmalloc/kfree call.
+2. nf_confirm hook doesn't perform an indirect call into ctnetlink
+   only to discover that there is nothing to do.
 
-Here is the summary with links:
-  - [net,1/4] ipvs: correctly print the memory size of ip_vs_conn_tab
-    https://git.kernel.org/netdev/net/c/eba1a872cb73
-  - [net,2/4] netfilter: nft_set_rbtree: overlap detection with element re-addition after deletion
-    https://git.kernel.org/netdev/net/c/babc3dc9524f
-  - [net,3/4] netfilter: flowtable: Remove the empty file
-    https://git.kernel.org/netdev/net/c/b9b1e0da5800
-  - [net,4/4] netfilter: Update ip6_route_me_harder to consider L3 domain
-    https://git.kernel.org/netdev/net/c/8ddffdb9442a
+Florian Westphal (4):
+  netfilter: nfnetlink: allow to detect if ctnetlink listeners exist
+  netfilter: conntrack: un-inline nf_ct_ecache_ext_add
+  netfilter: conntrack: add nf_conntrack_events autodetect mode
+  netfilter: prefer extension check to pointer check
 
-You are awesome, thank you!
+ .../networking/nf_conntrack-sysctl.rst        |  5 +-
+ include/net/netfilter/nf_conntrack_core.h     |  2 +-
+ include/net/netfilter/nf_conntrack_ecache.h   | 49 ++++++-------------
+ include/net/netns/conntrack.h                 |  1 +
+ net/netfilter/nf_conntrack_core.c             | 15 ++++--
+ net/netfilter/nf_conntrack_ecache.c           | 39 ++++++++++++++-
+ net/netfilter/nf_conntrack_standalone.c       |  2 +-
+ net/netfilter/nfnetlink.c                     | 40 +++++++++++++--
+ 8 files changed, 108 insertions(+), 45 deletions(-)
+
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.35.1
 
