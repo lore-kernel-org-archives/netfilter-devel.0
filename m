@@ -2,124 +2,89 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D68B2C433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Apr 2022 09:47:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2900CC433FE
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Apr 2022 09:50:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239416AbiDYJuj (ORCPT
+        id S240554AbiDYJx2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 25 Apr 2022 05:50:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39104 "EHLO
+        Mon, 25 Apr 2022 05:53:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44872 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233456AbiDYJui (ORCPT
+        with ESMTP id S239910AbiDYJx0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 25 Apr 2022 05:50:38 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2426E1B7B2
-        for <netfilter-devel@vger.kernel.org>; Mon, 25 Apr 2022 02:47:35 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1nivJd-00034c-9Y; Mon, 25 Apr 2022 11:47:33 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     edumazet@google.com, ncardwell@google.com,
-        Florian Westphal <fw@strlen.de>, Jaco Kroon <jaco@uls.co.za>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>
-Subject: [PATCH nf] netfilter: nf_conntrack_tcp: re-init for syn packets only
-Date:   Mon, 25 Apr 2022 11:47:11 +0200
-Message-Id: <20220425094711.6255-1-fw@strlen.de>
-X-Mailer: git-send-email 2.35.1
+        Mon, 25 Apr 2022 05:53:26 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC35D3EA9B;
+        Mon, 25 Apr 2022 02:50:15 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7A831B811A2;
+        Mon, 25 Apr 2022 09:50:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 425BDC385AD;
+        Mon, 25 Apr 2022 09:50:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1650880213;
+        bh=80RRtGvuoBRD9GGXSdxDFqx1jir+bG1S+DXWe53k7rs=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=P/XKjDilWy/XrgAbdMrQjkuTa5vOIYJT9e+wjzNWdyzDxYApEUrcqGpdh9nJEoNk9
+         8J0gmZSLnPwgQADdDoDvNslFwMT0Ersa1rCe9NbYYGySFdX/B4PJBbbTxBVYyeP1Dv
+         Yw2KkbDbn1LKM0shWrlJbIrGHiBrRyOm9XFN/7ktEqeHg689RFS1YFvMq+IU5dqbMT
+         swbiMXozYIrI9okM9mK015S4O13Fwi42EL2lEMe8rVxcINx42xFsb83Nzive+RfZgc
+         UcUdGq9ved+WRRp0VrggskNPmo563Y04NMt4i7lo4kCSBBZ/GQl9Pjka344l/IANJA
+         wOxUGMMCFtcQA==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 29FC2F0383D;
+        Mon, 25 Apr 2022 09:50:13 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/4] ipvs: correctly print the memory size of
+ ip_vs_conn_tab
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <165088021316.12536.3526307693945776005.git-patchwork-notify@kernel.org>
+Date:   Mon, 25 Apr 2022 09:50:13 +0000
+References: <20220425091631.109320-2-pablo@netfilter.org>
+In-Reply-To: <20220425091631.109320-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Jaco Kroon reported tcp problems that Eric Dumazet and Neal Cardwell
-pinpointed to nf_conntrack tcp_in_window() bug.
+Hello:
 
-tcp trace shows following sequence:
+This series was applied to netdev/net.git (master)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-I > R Flags [S], seq 3451342529, win 62580, options [.. tfo [|tcp]>
-R > I Flags [S.], seq 2699962254, ack 3451342530, win 65535, options [..]
-R > I Flags [P.], seq 1:89, ack 1, [..]
+On Mon, 25 Apr 2022 11:16:28 +0200 you wrote:
+> From: Pengcheng Yang <yangpc@wangsu.com>
+> 
+> The memory size of ip_vs_conn_tab changed after we use hlist
+> instead of list.
+> 
+> Fixes: 731109e78415 ("ipvs: use hlist instead of list")
+> Signed-off-by: Pengcheng Yang <yangpc@wangsu.com>
+> Acked-by: Julian Anastasov <ja@ssi.bg>
+> Acked-by: Simon Horman <horms@verge.net.au>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> 
+> [...]
 
-Note 3rd ACK is from responder to initiator so following branch is taken:
-    } else if (((state->state == TCP_CONNTRACK_SYN_SENT
-               && dir == IP_CT_DIR_ORIGINAL)
-               || (state->state == TCP_CONNTRACK_SYN_RECV
-               && dir == IP_CT_DIR_REPLY))
-               && after(end, sender->td_end)) {
+Here is the summary with links:
+  - [net,1/4] ipvs: correctly print the memory size of ip_vs_conn_tab
+    https://git.kernel.org/netdev/net/c/eba1a872cb73
+  - [net,2/4] netfilter: nft_set_rbtree: overlap detection with element re-addition after deletion
+    https://git.kernel.org/netdev/net/c/babc3dc9524f
+  - [net,3/4] netfilter: flowtable: Remove the empty file
+    https://git.kernel.org/netdev/net/c/b9b1e0da5800
+  - [net,4/4] netfilter: Update ip6_route_me_harder to consider L3 domain
+    https://git.kernel.org/netdev/net/c/8ddffdb9442a
 
-... because state == TCP_CONNTRACK_SYN_RECV and dir is REPLY.
-This causes the scaling factor to be reset to 0: window scale option
-is only present in syn(ack) packets.  This in turn makes nf_conntrack
-mark valid packets as out-of-window.
-
-This was always broken, it exists even in original commit where
-window tracking was added to ip_conntrack (nf_conntrack predecessor)
-in 2.6.9-rc1 kernel.
-
-Restrict to 'tcph->syn', just like the 3rd condtional added in
-commit 82b72cb94666 ("netfilter: conntrack: re-init state for retransmitted syn-ack").
-
-Upon closer look, those conditionals/branches can be merged:
-
-Because earlier checks prevent syn-ack from showing up in
-original direction, the 'dir' checks in the conditional quoted above are
-redundant, remove them. Return early for pure syn retransmitted in reply
-direction (simultaneous open).
-
-Fixes: 9fb9cbb1082d ("[NETFILTER]: Add nf_conntrack subsystem.")
-Reported-by: Jaco Kroon <jaco@uls.co.za>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_conntrack_proto_tcp.c | 21 ++++++---------------
- 1 file changed, 6 insertions(+), 15 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 8ec55cd72572..204a5cdff5b1 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -556,24 +556,14 @@ static bool tcp_in_window(struct nf_conn *ct,
- 			}
- 
- 		}
--	} else if (((state->state == TCP_CONNTRACK_SYN_SENT
--		     && dir == IP_CT_DIR_ORIGINAL)
--		   || (state->state == TCP_CONNTRACK_SYN_RECV
--		     && dir == IP_CT_DIR_REPLY))
--		   && after(end, sender->td_end)) {
-+	} else if (tcph->syn &&
-+		   after(end, sender->td_end) &&
-+		   (state->state == TCP_CONNTRACK_SYN_SENT ||
-+		    state->state == TCP_CONNTRACK_SYN_RECV)) {
- 		/*
- 		 * RFC 793: "if a TCP is reinitialized ... then it need
- 		 * not wait at all; it must only be sure to use sequence
- 		 * numbers larger than those recently used."
--		 */
--		sender->td_end =
--		sender->td_maxend = end;
--		sender->td_maxwin = (win == 0 ? 1 : win);
--
--		tcp_options(skb, dataoff, tcph, sender);
--	} else if (tcph->syn && dir == IP_CT_DIR_REPLY &&
--		   state->state == TCP_CONNTRACK_SYN_SENT) {
--		/* Retransmitted syn-ack, or syn (simultaneous open).
- 		 *
- 		 * Re-init state for this direction, just like for the first
- 		 * syn(-ack) reply, it might differ in seq, ack or tcp options.
-@@ -581,7 +571,8 @@ static bool tcp_in_window(struct nf_conn *ct,
- 		tcp_init_sender(sender, receiver,
- 				skb, dataoff, tcph,
- 				end, win);
--		if (!tcph->ack)
-+
-+		if (dir == IP_CT_DIR_REPLY && !tcph->ack)
- 			return true;
- 	}
- 
+You are awesome, thank you!
 -- 
-2.35.1
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
