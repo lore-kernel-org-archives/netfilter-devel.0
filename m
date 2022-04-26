@@ -2,51 +2,48 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42BA8C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Apr 2022 09:54:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9A92C433FE
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Apr 2022 10:11:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345127AbiDZJ5q (ORCPT
+        id S1348576AbiDZKOg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 26 Apr 2022 05:57:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53464 "EHLO
+        Tue, 26 Apr 2022 06:14:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44002 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1348051AbiDZJ5h (ORCPT
+        with ESMTP id S1348524AbiDZKNW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 26 Apr 2022 05:57:37 -0400
+        Tue, 26 Apr 2022 06:13:22 -0400
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1CCE275DC;
-        Tue, 26 Apr 2022 02:15:41 -0700 (PDT)
-Received: from fraeml704-chm.china.huawei.com (unknown [172.18.147.201])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Knbkv4bynz67X5R;
-        Tue, 26 Apr 2022 17:12:55 +0800 (CST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE38422815E;
+        Tue, 26 Apr 2022 02:36:04 -0700 (PDT)
+Received: from fraeml704-chm.china.huawei.com (unknown [172.18.147.206])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4KncBQ6f6Cz6GD0N;
+        Tue, 26 Apr 2022 17:33:18 +0800 (CST)
 Received: from [10.122.132.241] (10.122.132.241) by
  fraeml704-chm.china.huawei.com (10.206.15.53) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2375.24; Tue, 26 Apr 2022 11:15:37 +0200
-Message-ID: <900bcd7c-bca2-7855-211a-dfc8c37b236c@huawei.com>
-Date:   Tue, 26 Apr 2022 12:15:36 +0300
+ 15.1.2375.24; Tue, 26 Apr 2022 11:36:00 +0200
+Message-ID: <fa5f59e9-0abf-3238-87f5-55a8f3a22131@huawei.com>
+Date:   Tue, 26 Apr 2022 12:35:59 +0300
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
  Thunderbird/91.4.1
-Subject: Re: [RFC PATCH v4 03/15] landlock: landlock_find/insert_rule
- refactoring (TCP port 0)
+Subject: Re: [RFC PATCH v4 10/15] seltest/landlock: add tests for bind() hooks
 Content-Language: ru
-To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>,
-        <willemdebruijn.kernel@gmail.com>
-CC:     <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+CC:     <willemdebruijn.kernel@gmail.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
         <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
         <artem.kuzin@huawei.com>, <anton.sirazetdinov@huawei.com>
 References: <20220309134459.6448-1-konstantin.meskhidze@huawei.com>
- <20220309134459.6448-4-konstantin.meskhidze@huawei.com>
- <bc44f11f-0eaa-a5f6-c5dc-1d36570f1be1@digikod.net>
- <6535183b-5fad-e3a9-1350-d22122205be6@huawei.com>
- <92d498f0-c598-7413-6b7c-d19c5aec6cab@digikod.net>
- <cb30248d-a8ae-c366-2c9f-2ab0fe44cc9a@huawei.com>
- <90a20548-39f6-6e84-efb1-8ef3ad992255@digikod.net>
- <212ac1b3-b78b-4030-1f3d-f5cd1001bb7d@huawei.com>
- <0e5afeaf-0569-d0b5-b701-0f611d103732@digikod.net>
+ <20220309134459.6448-11-konstantin.meskhidze@huawei.com>
+ <d3340ed0-fe61-3f00-d7ba-44ece235a319@digikod.net>
+ <491d6e96-4bfb-ed97-7eb8-fb18aa144d64@huawei.com>
+ <6f631d7c-a2e3-20b3-997e-6b533b748767@digikod.net>
+ <2958392e-ba3e-453e-415b-c3869523ea25@huawei.com>
+ <0b0ddf78-12fa-ab52-ba3a-c819ed9d2ccd@digikod.net>
 From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-In-Reply-To: <0e5afeaf-0569-d0b5-b701-0f611d103732@digikod.net>
+In-Reply-To: <0b0ddf78-12fa-ab52-ba3a-c819ed9d2ccd@digikod.net>
 Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
 X-Originating-IP: [10.122.132.241]
@@ -59,41 +56,88 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
 
-4/12/2022 2:07 PM, Mickaël Salaün пишет:
+4/8/2022 7:41 PM, Mickaël Salaün пишет:
 > 
-> On 23/03/2022 09:41, Konstantin Meskhidze wrote:
+> On 06/04/2022 16:12, Konstantin Meskhidze wrote:
 >>
 >>
->> 3/22/2022 4:24 PM, Mickaël Salaün пишет:
+>> 4/4/2022 12:44 PM, Mickaël Salaün пишет:
 >>>
-> 
-> [...]
->>> The remaining question is: should we need to accept 0 as a valid TCP 
->>> port? Can it be used? How does the kernel handle it?
+>>> On 04/04/2022 10:28, Konstantin Meskhidze wrote:
+>>>>
+>>>>
+>>>> 4/1/2022 7:52 PM, Mickaël Salaün пишет:
+>>>
+>>> [...]
+>>>
+>>>>>> +static int create_socket(struct __test_metadata *const _metadata)
+>>>>>> +{
+>>>>>> +
+>>>>>> +        int sockfd;
+>>>>>> +
+>>>>>> +        sockfd = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
+>>>>>> +        ASSERT_LE(0, sockfd);
+>>>>>> +        /* Allows to reuse of local address */
+>>>>>> +        ASSERT_EQ(0, setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, 
+>>>>>> &one, sizeof(one)));
+>>>>>
+>>>>> Why is it required?
+>>>>
+>>>>    Without SO_REUSEADDR there is an error that a socket's port is in 
+>>>> use.
+>>>
+>>> I'm sure there is, but why is this port reused? I think this means 
+>>> that there is an issue in the tests and that could hide potential 
+>>> issue with the tests (and then with the kernel code). Could you 
+>>> investigate and find the problem? This would make these tests reliable.
+>>    The next scenario is possible here:
+>>    "In order for a network connection to close, both ends have to send 
+>> FIN (final) packets, which indicate they will not send any additional 
+>> data, and both ends must ACK (acknowledge) each other's FIN packets. 
+>> The FIN packets are initiated by the application performing a close(), 
+>> a shutdown(), or an exit(). The ACKs are handled by the kernel after 
+>> the close() has completed. Because of this, it is possible for the 
+>> process to complete before the kernel has released the associated 
+>> network resource, and this port cannot be bound to another process 
+>> until the kernel has decided that it is done."
+>> https://hea-www.harvard.edu/~fine/Tech/addrinuse.html.
 >>
->>   I agree that must be a check for port 0 in add_rule_net_service(), 
->> cause unlike most port numbers, port 0 is a reserved port in TCP/IP 
->> networking, meaning that it should not be used in TCP or UDP messages.
->> Also network traffic sent across the internet to hosts listening on 
->> port 0 might be generated from network attackers or accidentally by 
->> applications programmed incorrectly.
->> Source: https://www.lifewire.com/port-0-in-tcp-and-udp-818145
+>> So in this case we have busy port in network selfttest and one of the 
+>> solution is to set SO_REUSEADDR socket option, "which explicitly 
+>> allows a process to bind to a port which remains in TIME_WAIT (it 
+>> still only allows a single process to be bound to that port). This is 
+>> the both the simplest and the most effective option for reducing the 
+>> "address already in use" error".
 > 
-> OK, so denying this port by default without a way to allow it should not 
-> be an issue. I guess an -EINVAL error would make sense when trying to 
-> allow this port. This should be documented in a comment (with a link to 
-> the RFC/section) and a dedicated test should check that behavior.
+> In know what this option does, but I'm wondering what do you need it for 
+> these tests: which specific line requires it and why? Isn't it a side 
+> effect of running partial tests? I'm worried that this hides some issues 
+> in the tests that may make them flaky.
 > 
-> What is the behavior of firewalls (e.g. Netfiler) when trying to filter 
-> port 0?
-
-To be honest I don't know. I'm trying to check it.
->  
-> This doesn't seem to be settle though: 
-> https://www.austingroupbugs.net/view.php?id=1068
+   I need it cause we have a possibility here that process (launching 
+tests) has to wait the kernel's releasing the associated network socket 
+after closing it.
 > 
-> Interesting article: 
-> https://z3r0trust.medium.com/socket-programming-the-bizarre-tcp-ip-port-0-saga-fcfbc0e0a276 
-  Thanks. I will check.
+>>>
+>>> Without removing the need to find this issue, the next series should 
+>>> use a network namespace per test, which will confine such issue from 
+>>> other tests and the host.
+>>
+>>    So there are 2 options here:
+>>      1. Using SO_REUSEADDR option
+>>      2. Using network namespace.
+>>
+>> I prefer the first option - "the simplest and the most effective one"
 > 
+> If SO_REUSEADDR is really required (and justified), then it should be 
+> used. Either it is required or not, we should use a dedicated network 
+> namespace for each test anyway. This enables to not mess with the host 
+> and not be impacted by it neither (e.g. if some process already use such 
+> ports).
+> 
+   Ok. I update the code.
+> 
+>>
+>>>
+>>> [...]
 > .
