@@ -2,33 +2,33 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9A92C433FE
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Apr 2022 10:11:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 812B6C433FE
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Apr 2022 10:33:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348576AbiDZKOg (ORCPT
+        id S1349216AbiDZKgL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 26 Apr 2022 06:14:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44002 "EHLO
+        Tue, 26 Apr 2022 06:36:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33912 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1348524AbiDZKNW (ORCPT
+        with ESMTP id S1349039AbiDZKgF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 26 Apr 2022 06:13:22 -0400
+        Tue, 26 Apr 2022 06:36:05 -0400
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE38422815E;
-        Tue, 26 Apr 2022 02:36:04 -0700 (PDT)
-Received: from fraeml704-chm.china.huawei.com (unknown [172.18.147.206])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4KncBQ6f6Cz6GD0N;
-        Tue, 26 Apr 2022 17:33:18 +0800 (CST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B93B7890D;
+        Tue, 26 Apr 2022 03:17:17 -0700 (PDT)
+Received: from fraeml704-chm.china.huawei.com (unknown [172.18.147.207])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Knd6C69yQz68568;
+        Tue, 26 Apr 2022 18:14:43 +0800 (CST)
 Received: from [10.122.132.241] (10.122.132.241) by
  fraeml704-chm.china.huawei.com (10.206.15.53) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2375.24; Tue, 26 Apr 2022 11:36:00 +0200
-Message-ID: <fa5f59e9-0abf-3238-87f5-55a8f3a22131@huawei.com>
-Date:   Tue, 26 Apr 2022 12:35:59 +0300
+ 15.1.2375.24; Tue, 26 Apr 2022 12:17:13 +0200
+Message-ID: <fbb03199-a953-90f0-451d-bce90b25c7fb@huawei.com>
+Date:   Tue, 26 Apr 2022 13:17:11 +0300
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
  Thunderbird/91.4.1
-Subject: Re: [RFC PATCH v4 10/15] seltest/landlock: add tests for bind() hooks
+Subject: Re: [RFC PATCH v4 07/15] landlock: user space API network support
 Content-Language: ru
 To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
 CC:     <willemdebruijn.kernel@gmail.com>,
@@ -36,18 +36,17 @@ CC:     <willemdebruijn.kernel@gmail.com>,
         <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
         <artem.kuzin@huawei.com>, <anton.sirazetdinov@huawei.com>
 References: <20220309134459.6448-1-konstantin.meskhidze@huawei.com>
- <20220309134459.6448-11-konstantin.meskhidze@huawei.com>
- <d3340ed0-fe61-3f00-d7ba-44ece235a319@digikod.net>
- <491d6e96-4bfb-ed97-7eb8-fb18aa144d64@huawei.com>
- <6f631d7c-a2e3-20b3-997e-6b533b748767@digikod.net>
- <2958392e-ba3e-453e-415b-c3869523ea25@huawei.com>
- <0b0ddf78-12fa-ab52-ba3a-c819ed9d2ccd@digikod.net>
+ <20220309134459.6448-8-konstantin.meskhidze@huawei.com>
+ <d4724117-167d-00b0-1f10-749b35bffc2f@digikod.net>
+ <1b1c5aaa-9d9a-e38e-42b4-bb0509eba4b5@digikod.net>
+ <6db0b12b-aeaa-12b6-bf50-33f138a52360@huawei.com>
+ <dbe702e7-ee63-c665-a989-255b0c1212cc@digikod.net>
 From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-In-Reply-To: <0b0ddf78-12fa-ab52-ba3a-c819ed9d2ccd@digikod.net>
+In-Reply-To: <dbe702e7-ee63-c665-a989-255b0c1212cc@digikod.net>
 Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
 X-Originating-IP: [10.122.132.241]
-X-ClientProxiedBy: lhreml752-chm.china.huawei.com (10.201.108.202) To
+X-ClientProxiedBy: lhreml753-chm.china.huawei.com (10.201.108.203) To
  fraeml704-chm.china.huawei.com (10.206.15.53)
 X-CFilter-Loop: Reflected
 Precedence: bulk
@@ -56,88 +55,61 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
 
-4/8/2022 7:41 PM, Mickaël Salaün пишет:
+4/12/2022 7:10 PM, Mickaël Salaün пишет:
 > 
-> On 06/04/2022 16:12, Konstantin Meskhidze wrote:
+> On 12/04/2022 16:05, Konstantin Meskhidze wrote:
 >>
 >>
->> 4/4/2022 12:44 PM, Mickaël Salaün пишет:
+>> 4/12/2022 4:48 PM, Mickaël Salaün пишет:
 >>>
->>> On 04/04/2022 10:28, Konstantin Meskhidze wrote:
+>>> On 12/04/2022 13:21, Mickaël Salaün wrote:
 >>>>
->>>>
->>>> 4/1/2022 7:52 PM, Mickaël Salaün пишет:
+>>>> On 09/03/2022 14:44, Konstantin Meskhidze wrote:
 >>>
 >>> [...]
 >>>
->>>>>> +static int create_socket(struct __test_metadata *const _metadata)
->>>>>> +{
->>>>>> +
->>>>>> +        int sockfd;
->>>>>> +
->>>>>> +        sockfd = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
->>>>>> +        ASSERT_LE(0, sockfd);
->>>>>> +        /* Allows to reuse of local address */
->>>>>> +        ASSERT_EQ(0, setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, 
->>>>>> &one, sizeof(one)));
+>>>>> @@ -184,7 +185,7 @@ SYSCALL_DEFINE3(landlock_create_ruleset,
 >>>>>
->>>>> Why is it required?
+>>>>>       /* Checks content (and 32-bits cast). */
+>>>>>       if ((ruleset_attr.handled_access_fs | 
+>>>>> LANDLOCK_MASK_ACCESS_FS) !=
+>>>>> -            LANDLOCK_MASK_ACCESS_FS)
+>>>>> +             LANDLOCK_MASK_ACCESS_FS)
 >>>>
->>>>    Without SO_REUSEADDR there is an error that a socket's port is in 
->>>> use.
+>>>> Don't add cosmetic changes. FYI, I'm relying on the way Vim does 
+>>>> line cuts, which is mostly tabs. Please try to do the same.
 >>>
->>> I'm sure there is, but why is this port reused? I think this means 
->>> that there is an issue in the tests and that could hide potential 
->>> issue with the tests (and then with the kernel code). Could you 
->>> investigate and find the problem? This would make these tests reliable.
->>    The next scenario is possible here:
->>    "In order for a network connection to close, both ends have to send 
->> FIN (final) packets, which indicate they will not send any additional 
->> data, and both ends must ACK (acknowledge) each other's FIN packets. 
->> The FIN packets are initiated by the application performing a close(), 
->> a shutdown(), or an exit(). The ACKs are handled by the kernel after 
->> the close() has completed. Because of this, it is possible for the 
->> process to complete before the kernel has released the associated 
->> network resource, and this port cannot be bound to another process 
->> until the kernel has decided that it is done."
->> https://hea-www.harvard.edu/~fine/Tech/addrinuse.html.
+>>> Well, let's make it simple and avoid tacit rules. I'll update most of 
+>>> the existing Landlock code and tests to be formatted with 
+>>> clang-format (-i *.[ch]), and I'll update the landlock-wip branch so 
+>>> that you can base your next patch series on it. There should be some 
+>>> exceptions that need customization but we'll see that in the next 
+>>> series. Anyway, don't worry too much, just make sure you don't have 
+>>> style-only changes in your patches.
 >>
->> So in this case we have busy port in network selfttest and one of the 
->> solution is to set SO_REUSEADDR socket option, "which explicitly 
->> allows a process to bind to a port which remains in TIME_WAIT (it 
->> still only allows a single process to be bound to that port). This is 
->> the both the simplest and the most effective option for reducing the 
->> "address already in use" error".
+>>    I have already rebased my next patch series on your landlock-wip 
+>> branch. So I will wait for your changes meanwhile refactoring my v5 
+>> patch series according your comments.
 > 
-> In know what this option does, but I'm wondering what do you need it for 
-> these tests: which specific line requires it and why? Isn't it a side 
-> effect of running partial tests? I'm worried that this hides some issues 
-> in the tests that may make them flaky.
-> 
-   I need it cause we have a possibility here that process (launching 
-tests) has to wait the kernel's releasing the associated network socket 
-after closing it.
-> 
->>>
->>> Without removing the need to find this issue, the next series should 
->>> use a network namespace per test, which will confine such issue from 
->>> other tests and the host.
->>
->>    So there are 2 options here:
->>      1. Using SO_REUSEADDR option
->>      2. Using network namespace.
->>
->> I prefer the first option - "the simplest and the most effective one"
-> 
-> If SO_REUSEADDR is really required (and justified), then it should be 
-> used. Either it is required or not, we should use a dedicated network 
-> namespace for each test anyway. This enables to not mess with the host 
-> and not be impacted by it neither (e.g. if some process already use such 
-> ports).
-> 
-   Ok. I update the code.
+> Good.
 > 
 >>
->>>
->>> [...]
+>> Also I want to discuss adding demo in sandboxer.c to show how landlock
+>> supports network sandboxing:
+>>
+>>      - Add additional args like "LL_NET_BIND=port1:...:portN"
+>>      - Add additional args like "LL_NET_CONNECT=port1:...:portN"
+>>      - execv 2 bash procceses:
+>>          1. first bash listens in loop - $ nc -l -k -p <port1> -v
+>>          2. second bash to connects the first one - $ nc <ip> <port>
+>>
+>> What do you think? its possible to present this demo in the next v5 
+>> patch series.
+> 
+> This looks good! I think LL_TCP_BIND and LL_TCP_CONNECT would fit better 
+> though.
+>   Got it. Thanks
+> I'm not sure if I already said that, but please remove the "RFC " part 
+> for the next series.
+   Ok.
 > .
