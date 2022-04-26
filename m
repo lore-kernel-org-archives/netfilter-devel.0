@@ -2,114 +2,88 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 812B6C433FE
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Apr 2022 10:33:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D14B0C433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Apr 2022 10:38:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349216AbiDZKgL (ORCPT
+        id S242288AbiDZKlV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 26 Apr 2022 06:36:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33912 "EHLO
+        Tue, 26 Apr 2022 06:41:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51160 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349039AbiDZKgF (ORCPT
+        with ESMTP id S1350028AbiDZKjy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 26 Apr 2022 06:36:05 -0400
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B93B7890D;
-        Tue, 26 Apr 2022 03:17:17 -0700 (PDT)
-Received: from fraeml704-chm.china.huawei.com (unknown [172.18.147.207])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Knd6C69yQz68568;
-        Tue, 26 Apr 2022 18:14:43 +0800 (CST)
-Received: from [10.122.132.241] (10.122.132.241) by
- fraeml704-chm.china.huawei.com (10.206.15.53) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2375.24; Tue, 26 Apr 2022 12:17:13 +0200
-Message-ID: <fbb03199-a953-90f0-451d-bce90b25c7fb@huawei.com>
-Date:   Tue, 26 Apr 2022 13:17:11 +0300
+        Tue, 26 Apr 2022 06:39:54 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BCA4A33A29
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Apr 2022 03:29:43 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1njIRw-0002cz-Ej; Tue, 26 Apr 2022 12:29:40 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] src: fix always-true assertions
+Date:   Tue, 26 Apr 2022 12:29:35 +0200
+Message-Id: <20220426102935.14950-1-fw@strlen.de>
+X-Mailer: git-send-email 2.35.1
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.4.1
-Subject: Re: [RFC PATCH v4 07/15] landlock: user space API network support
-Content-Language: ru
-To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-CC:     <willemdebruijn.kernel@gmail.com>,
-        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-        <artem.kuzin@huawei.com>, <anton.sirazetdinov@huawei.com>
-References: <20220309134459.6448-1-konstantin.meskhidze@huawei.com>
- <20220309134459.6448-8-konstantin.meskhidze@huawei.com>
- <d4724117-167d-00b0-1f10-749b35bffc2f@digikod.net>
- <1b1c5aaa-9d9a-e38e-42b4-bb0509eba4b5@digikod.net>
- <6db0b12b-aeaa-12b6-bf50-33f138a52360@huawei.com>
- <dbe702e7-ee63-c665-a989-255b0c1212cc@digikod.net>
-From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-In-Reply-To: <dbe702e7-ee63-c665-a989-255b0c1212cc@digikod.net>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.122.132.241]
-X-ClientProxiedBy: lhreml753-chm.china.huawei.com (10.201.108.203) To
- fraeml704-chm.china.huawei.com (10.206.15.53)
-X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+assert(1) is a no-op, this should be assert(0). Use BUG() instead.
+Add missing CATCHALL to avoid BUG().
 
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/evaluate.c  | 2 +-
+ src/intervals.c | 5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-4/12/2022 7:10 PM, Mickaël Salaün пишет:
-> 
-> On 12/04/2022 16:05, Konstantin Meskhidze wrote:
->>
->>
->> 4/12/2022 4:48 PM, Mickaël Salaün пишет:
->>>
->>> On 12/04/2022 13:21, Mickaël Salaün wrote:
->>>>
->>>> On 09/03/2022 14:44, Konstantin Meskhidze wrote:
->>>
->>> [...]
->>>
->>>>> @@ -184,7 +185,7 @@ SYSCALL_DEFINE3(landlock_create_ruleset,
->>>>>
->>>>>       /* Checks content (and 32-bits cast). */
->>>>>       if ((ruleset_attr.handled_access_fs | 
->>>>> LANDLOCK_MASK_ACCESS_FS) !=
->>>>> -            LANDLOCK_MASK_ACCESS_FS)
->>>>> +             LANDLOCK_MASK_ACCESS_FS)
->>>>
->>>> Don't add cosmetic changes. FYI, I'm relying on the way Vim does 
->>>> line cuts, which is mostly tabs. Please try to do the same.
->>>
->>> Well, let's make it simple and avoid tacit rules. I'll update most of 
->>> the existing Landlock code and tests to be formatted with 
->>> clang-format (-i *.[ch]), and I'll update the landlock-wip branch so 
->>> that you can base your next patch series on it. There should be some 
->>> exceptions that need customization but we'll see that in the next 
->>> series. Anyway, don't worry too much, just make sure you don't have 
->>> style-only changes in your patches.
->>
->>    I have already rebased my next patch series on your landlock-wip 
->> branch. So I will wait for your changes meanwhile refactoring my v5 
->> patch series according your comments.
-> 
-> Good.
-> 
->>
->> Also I want to discuss adding demo in sandboxer.c to show how landlock
->> supports network sandboxing:
->>
->>      - Add additional args like "LL_NET_BIND=port1:...:portN"
->>      - Add additional args like "LL_NET_CONNECT=port1:...:portN"
->>      - execv 2 bash procceses:
->>          1. first bash listens in loop - $ nc -l -k -p <port1> -v
->>          2. second bash to connects the first one - $ nc <ip> <port>
->>
->> What do you think? its possible to present this demo in the next v5 
->> patch series.
-> 
-> This looks good! I think LL_TCP_BIND and LL_TCP_CONNECT would fit better 
-> though.
->   Got it. Thanks
-> I'm not sure if I already said that, but please remove the "RFC " part 
-> for the next series.
-   Ok.
-> .
+diff --git a/src/evaluate.c b/src/evaluate.c
+index b5f74d2f5051..1447a4c28aee 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1499,7 +1499,7 @@ static int interval_set_eval(struct eval_ctx *ctx, struct set *set,
+ 	case CMD_GET:
+ 		break;
+ 	default:
+-		assert(1);
++		BUG("unhandled op %d\n", ctx->cmd->op);
+ 		break;
+ 	}
+ 
+diff --git a/src/intervals.c b/src/intervals.c
+index a74238525d8d..85ec59eda36a 100644
+--- a/src/intervals.c
++++ b/src/intervals.c
+@@ -20,6 +20,7 @@ static void setelem_expr_to_range(struct expr *expr)
+ 	assert(expr->etype == EXPR_SET_ELEM);
+ 
+ 	switch (expr->key->etype) {
++	case EXPR_SET_ELEM_CATCHALL:
+ 	case EXPR_RANGE:
+ 		break;
+ 	case EXPR_PREFIX:
+@@ -53,7 +54,7 @@ static void setelem_expr_to_range(struct expr *expr)
+ 		expr->key = key;
+ 		break;
+ 	default:
+-		assert(1);
++		BUG("unhandled key type %d\n", expr->key->etype);
+ 	}
+ }
+ 
+@@ -185,7 +186,7 @@ static struct expr *interval_expr_key(struct expr *i)
+ 		elem = i;
+ 		break;
+ 	default:
+-		assert(1);
++		BUG("unhandled expression type %d\n", i->etype);
+ 		return NULL;
+ 	}
+ 
+-- 
+2.35.1
+
