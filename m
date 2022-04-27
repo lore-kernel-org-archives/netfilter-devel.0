@@ -2,31 +2,26 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79D8BC433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Apr 2022 15:28:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93AE5C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Apr 2022 15:30:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239823AbiD0Pby (ORCPT
+        id S239691AbiD0PeG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Apr 2022 11:31:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47094 "EHLO
+        Wed, 27 Apr 2022 11:34:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56192 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239819AbiD0Pbx (ORCPT
+        with ESMTP id S239777AbiD0Pd5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Apr 2022 11:31:53 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 400C144937C
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Apr 2022 08:28:41 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1njjao-00034I-Cv; Wed, 27 Apr 2022 17:28:38 +0200
-Date:   Wed, 27 Apr 2022 17:28:38 +0200
-From:   Florian Westphal <fw@strlen.de>
+        Wed, 27 Apr 2022 11:33:57 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7476B46D440
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Apr 2022 08:30:45 -0700 (PDT)
+Date:   Wed, 27 Apr 2022 17:30:42 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Topi Miettinen <toiwoton@gmail.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
 Subject: Re: [PATCH] netfilter: nft_socket: socket expressions for GID & UID
-Message-ID: <20220427152838.GC9849@breakpoint.cc>
+Message-ID: <YmlhokhnOxG8tD7R@salvia>
 References: <20220420185447.10199-1-toiwoton@gmail.com>
  <5a292abd-7f2e-728f-5594-86d85fbd1c00@gmail.com>
  <20220425223421.GA14400@breakpoint.cc>
@@ -35,15 +30,19 @@ References: <20220420185447.10199-1-toiwoton@gmail.com>
  <YmjqN7KtWFMGbiJ9@salvia>
  <b0389581-cf28-13fe-6444-0840958b757a@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="sSQKQG6NCInfg5CF"
 Content-Disposition: inline
 In-Reply-To: <b0389581-cf28-13fe-6444-0840958b757a@gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Topi Miettinen <toiwoton@gmail.com> wrote:
+
+--sSQKQG6NCInfg5CF
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+
+On Wed, Apr 27, 2022 at 06:00:49PM +0300, Topi Miettinen wrote:
 > On 27.4.2022 10.01, Pablo Neira Ayuso wrote:
 > > On Wed, Apr 27, 2022 at 07:48:20AM +0200, Florian Westphal wrote:
 > > > Topi Miettinen <toiwoton@gmail.com> wrote:
@@ -87,7 +86,7 @@ Topi Miettinen <toiwoton@gmail.com> wrote:
 > no match for nf_sk_lookup_slow_v6+0x45b/0x590
 > $ faddr2line vmlinux nf_sk_lookup_slow_v6+0x45b/0x590
 > no match for nf_sk_lookup_slow_v6+0x45b/0x590
-> 
+>
 > > > > net/ipv6/netfilter/nf_socket_ipv6.c:
 > > > > 
 > > > > static struct sock *
@@ -108,9 +107,98 @@ Topi Miettinen <toiwoton@gmail.com> wrote:
 > > > available, seems like a bug in existing code?
 > > 
 > > nft_socket_eval() assumes it always run from input path.
+> > 
+> > @Topi: How does you test ruleset look like?
+> 
+> Here's a reproducer:
+> #!/usr/sbin/nft -f
+> 
+> table inet mangle {
+>         chain output {
+>                 type route hook output priority mangle; policy accept;
+> 
+>                 socket uid != 0 reject with icmpx type admin-prohibited
+>         }
+> }
+> 
+> Start nc -6l 1 as root
+> 
+> Try 'telnet ::1 1' as root, press enter and close the connection. After 1-3
+> tries, system hangs and Caps Lock starts blinking.
 
-Oof, there is no restriction.
-I don't think we can make it illegal now, so probably best to check for
-indev != NULL first.
+Looks like skb->sk is NULL? Patch attached.
 
-I'll send a patch.
+--sSQKQG6NCInfg5CF
+Content-Type: text/x-diff; charset=utf-8
+Content-Disposition: attachment; filename="fix-nft-socket.patch"
+
+diff --git a/net/netfilter/nft_socket.c b/net/netfilter/nft_socket.c
+index 6d9e8e0a3a7d..d6da68a3b739 100644
+--- a/net/netfilter/nft_socket.c
++++ b/net/netfilter/nft_socket.c
+@@ -59,21 +59,27 @@ static void nft_socket_eval(const struct nft_expr *expr,
+ 			    const struct nft_pktinfo *pkt)
+ {
+ 	const struct nft_socket *priv = nft_expr_priv(expr);
++	u32 *dest = &regs->data[priv->dreg];
+ 	struct sk_buff *skb = pkt->skb;
++	const struct net_device *dev;
+ 	struct sock *sk = skb->sk;
+-	u32 *dest = &regs->data[priv->dreg];
+ 
+ 	if (sk && !net_eq(nft_net(pkt), sock_net(sk)))
+ 		sk = NULL;
+ 
+-	if (!sk)
++	if (nft_hook(pkt) == NF_INET_LOCAL_OUT)
++		dev = nft_out(pkt);
++	else
++		dev = nft_in(pkt);
++
++	if (!sk) {
+ 		switch(nft_pf(pkt)) {
+ 		case NFPROTO_IPV4:
+-			sk = nf_sk_lookup_slow_v4(nft_net(pkt), skb, nft_in(pkt));
++			sk = nf_sk_lookup_slow_v4(nft_net(pkt), skb, dev);
+ 			break;
+ #if IS_ENABLED(CONFIG_NF_TABLES_IPV6)
+ 		case NFPROTO_IPV6:
+-			sk = nf_sk_lookup_slow_v6(nft_net(pkt), skb, nft_in(pkt));
++			sk = nf_sk_lookup_slow_v6(nft_net(pkt), skb, dev);
+ 			break;
+ #endif
+ 		default:
+@@ -81,6 +87,7 @@ static void nft_socket_eval(const struct nft_expr *expr,
+ 			regs->verdict.code = NFT_BREAK;
+ 			return;
+ 		}
++	}
+ 
+ 	if (!sk) {
+ 		regs->verdict.code = NFT_BREAK;
+@@ -184,6 +191,15 @@ static int nft_socket_init(const struct nft_ctx *ctx,
+ 					NULL, NFT_DATA_VALUE, len);
+ }
+ 
++static int nft_socket_validate(const struct nft_ctx *ctx,
++			       const struct nft_expr *expr,
++			       const struct nft_data **data)
++{
++	return nft_chain_validate_hooks(ctx->chain, (1 << NF_INET_PRE_ROUTING) |
++						    (1 << NF_INET_LOCAL_IN) |
++						    (1 << NF_INET_LOCAL_OUT));
++}
++
+ static int nft_socket_dump(struct sk_buff *skb,
+ 			   const struct nft_expr *expr)
+ {
+@@ -230,6 +246,7 @@ static const struct nft_expr_ops nft_socket_ops = {
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_socket)),
+ 	.eval		= nft_socket_eval,
+ 	.init		= nft_socket_init,
++	.validate	= nft_socket_validate,
+ 	.dump		= nft_socket_dump,
+ 	.reduce		= nft_socket_reduce,
+ };
+
+--sSQKQG6NCInfg5CF--
