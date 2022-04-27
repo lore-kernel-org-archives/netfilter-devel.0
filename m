@@ -2,72 +2,56 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB72DC433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Apr 2022 13:49:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B02D5C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Apr 2022 13:49:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236304AbiD0NwW (ORCPT
+        id S236558AbiD0Nw7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Apr 2022 09:52:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59536 "EHLO
+        Wed, 27 Apr 2022 09:52:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34526 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236554AbiD0NwT (ORCPT
+        with ESMTP id S236704AbiD0Nw6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Apr 2022 09:52:19 -0400
+        Wed, 27 Apr 2022 09:52:58 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 09061532FE
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Apr 2022 06:49:07 -0700 (PDT)
-Date:   Wed, 27 Apr 2022 15:49:02 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0DE4F527DC;
+        Wed, 27 Apr 2022 06:49:40 -0700 (PDT)
+Date:   Wed, 27 Apr 2022 15:49:36 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, edumazet@google.com,
-        ncardwell@google.com, Jaco Kroon <jaco@uls.co.za>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>
-Subject: Re: [PATCH nf] netfilter: nf_conntrack_tcp: re-init for syn packets
- only
-Message-ID: <YmlJzj82mBl77rCR@salvia>
-References: <20220425094711.6255-1-fw@strlen.de>
+To:     Volodymyr Mytnyk <volodymyr.mytnyk@plvision.eu>
+Cc:     netdev@vger.kernel.org, Taras Chornyi <taras.chornyi@plvision.eu>,
+        Serhiy Pshyk <serhiy.pshyk@plvision.eu>,
+        Oz Shlomo <ozsh@nvidia.com>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Paul Blakey <paulb@nvidia.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net] netfilter: conn: fix udp offload timeout sysctl
+Message-ID: <YmlJ8Oa1mjwUHpfl@salvia>
+References: <1651057740-12713-1-git-send-email-volodymyr.mytnyk@plvision.eu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20220425094711.6255-1-fw@strlen.de>
+In-Reply-To: <1651057740-12713-1-git-send-email-volodymyr.mytnyk@plvision.eu>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Apr 25, 2022 at 11:47:11AM +0200, Florian Westphal wrote:
-> Jaco Kroon reported tcp problems that Eric Dumazet and Neal Cardwell
-> pinpointed to nf_conntrack tcp_in_window() bug.
+On Wed, Apr 27, 2022 at 02:09:00PM +0300, Volodymyr Mytnyk wrote:
+> `nf_flowtable_udp_timeout` sysctl option is available only
+> if CONFIG_NFT_FLOW_OFFLOAD enabled. But infra for this flow
+> offload UDP timeout was added under CONFIG_NF_FLOW_TABLE
+> config option. So, if you have CONFIG_NFT_FLOW_OFFLOAD
+> disabled and CONFIG_NF_FLOW_TABLE enabled, the
+> `nf_flowtable_udp_timeout` is not present in sysfs.
+> Please note, that TCP flow offload timeout sysctl option
+> is present even CONFIG_NFT_FLOW_OFFLOAD is disabled.
 > 
-> tcp trace shows following sequence:
-> 
-> I > R Flags [S], seq 3451342529, win 62580, options [.. tfo [|tcp]>
-> R > I Flags [S.], seq 2699962254, ack 3451342530, win 65535, options [..]
-> R > I Flags [P.], seq 1:89, ack 1, [..]
-> 
-> Note 3rd ACK is from responder to initiator so following branch is taken:
->     } else if (((state->state == TCP_CONNTRACK_SYN_SENT
->                && dir == IP_CT_DIR_ORIGINAL)
->                || (state->state == TCP_CONNTRACK_SYN_RECV
->                && dir == IP_CT_DIR_REPLY))
->                && after(end, sender->td_end)) {
-> 
-> ... because state == TCP_CONNTRACK_SYN_RECV and dir is REPLY.
-> This causes the scaling factor to be reset to 0: window scale option
-> is only present in syn(ack) packets.  This in turn makes nf_conntrack
-> mark valid packets as out-of-window.
-> 
-> This was always broken, it exists even in original commit where
-> window tracking was added to ip_conntrack (nf_conntrack predecessor)
-> in 2.6.9-rc1 kernel.
-> 
-> Restrict to 'tcph->syn', just like the 3rd condtional added in
-> commit 82b72cb94666 ("netfilter: conntrack: re-init state for retransmitted syn-ack").
-> 
-> Upon closer look, those conditionals/branches can be merged:
-> 
-> Because earlier checks prevent syn-ack from showing up in
-> original direction, the 'dir' checks in the conditional quoted above are
-> redundant, remove them. Return early for pure syn retransmitted in reply
-> direction (simultaneous open).
+> I suppose it was a typo in commit that adds UDP flow offload
+> timeout and CONFIG_NF_FLOW_TABLE should be used instead.
 
 Applied, thanks
