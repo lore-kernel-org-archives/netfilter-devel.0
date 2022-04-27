@@ -2,93 +2,158 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC46EC433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Apr 2022 14:37:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CFFBC433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Apr 2022 15:00:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238311AbiD0Okk (ORCPT
+        id S238879AbiD0PEH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Apr 2022 10:40:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59144 "EHLO
+        Wed, 27 Apr 2022 11:04:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45016 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238299AbiD0Oki (ORCPT
+        with ESMTP id S238868AbiD0PEG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Apr 2022 10:40:38 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 2E53832981;
-        Wed, 27 Apr 2022 07:37:08 -0700 (PDT)
-Date:   Wed, 27 Apr 2022 16:36:49 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Kevin Mitchell <kevmitch@arista.com>
-Cc:     gal@nvidia.com, Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        David Ahern <dsahern@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH nf-next v2 1/1] netfilter: conntrack: skip verification
- of zero UDP checksum
-Message-ID: <YmlVAXceuasAJjnN@salvia>
-References: <20220405234739.269371-2-kevmitch@arista.com>
- <20220408043341.416219-1-kevmitch@arista.com>
+        Wed, 27 Apr 2022 11:04:06 -0400
+Received: from mail-lj1-x235.google.com (mail-lj1-x235.google.com [IPv6:2a00:1450:4864:20::235])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 39FB52715D0
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Apr 2022 08:00:54 -0700 (PDT)
+Received: by mail-lj1-x235.google.com with SMTP id s27so3031509ljd.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Apr 2022 08:00:53 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=message-id:date:mime-version:user-agent:subject:content-language:to
+         :cc:references:from:in-reply-to:content-transfer-encoding;
+        bh=cqPvQO3nvr14PSgq5iF8J05P5Y31SBLrmAZyNjHN7bU=;
+        b=hKII8xRMNL2s+OdFPZSZEdOEpS/i+Lsv3hB6WzCR+/wRB4RCZUga2nV13CNFVHtUnm
+         iMQy4oS1rrGlzuU07cXJrQKnlVxblloyd1KNhj28YxN3Y7o2PFivsixdE9M0u29gaBf2
+         YxPdlMmV62Ka2dWjYDEupAB+FGfVMJLBbBV8ep8/ReVoMwd7Mwpj2gLhIqiKN+L53oj+
+         eQa0zLRSBvnNH3C1aH83fqEg7/XSygohdoiDBhi7G4FANUXqWTiw3O8l1BGd4hJZpxRQ
+         0REq70uQGELlUaFGT2VHVIF0tsR6Y28LQwE56i6DkVXpwyfJJgHIIQlicLEdVh4CJ14K
+         +jMA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
+         :content-language:to:cc:references:from:in-reply-to
+         :content-transfer-encoding;
+        bh=cqPvQO3nvr14PSgq5iF8J05P5Y31SBLrmAZyNjHN7bU=;
+        b=DqT5TYTmSCnwqN4kQDfg5lr5T3FQiq+AxTvBhc45ulC3gbS2hL28aj/93OHjKaWdco
+         CjaEpGtmNJxzc70JhPM+199uFToBBgOUR8eKDWc6Oovz/10juK4AiSktyF/IHK6K3qKN
+         w5zKTrx4a1BWxOeSCWYB950LkqOtSSl9WD5ecZsMRYdcNruT+CEY3/kFUW1/LZlis4oF
+         DSIliAGJ6hZhHS09xo9aZ64N+FV/KTrlaOKqy+30lGfNbCmObZvZ8q7zc2gV6V4BWCmj
+         N6DOw2oes5emWX+5/zMeByNJ9g3QXFA8F9hnyhutptovErk9FuAcfVRBhXRWmyMhnvlk
+         cgAw==
+X-Gm-Message-State: AOAM532FRH6NmygNCWWjOqGjMlKh4c5r/l66ptC69ZFU+6hUjUMFDz6h
+        NXYW6ROAu7kmMzzuuDAXNWo=
+X-Google-Smtp-Source: ABdhPJy0cUJu0gDMKX4hXASpi6nTqZyDCDJApUAMSHAoztEG6ZutlurVv+QbVZvl0wIpkbxTQXGsJg==
+X-Received: by 2002:a2e:9e4b:0:b0:24e:e97d:6ba9 with SMTP id g11-20020a2e9e4b000000b0024ee97d6ba9mr18596217ljk.92.1651071652222;
+        Wed, 27 Apr 2022 08:00:52 -0700 (PDT)
+Received: from [192.168.1.38] (91-159-150-194.elisa-laajakaista.fi. [91.159.150.194])
+        by smtp.gmail.com with ESMTPSA id s22-20020a195e16000000b00471fe476a26sm1448308lfb.41.2022.04.27.08.00.51
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 27 Apr 2022 08:00:51 -0700 (PDT)
+Message-ID: <b0389581-cf28-13fe-6444-0840958b757a@gmail.com>
+Date:   Wed, 27 Apr 2022 18:00:49 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20220408043341.416219-1-kevmitch@arista.com>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.8.0
+Subject: Re: [PATCH] netfilter: nft_socket: socket expressions for GID & UID
+Content-Language: en-US
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+References: <20220420185447.10199-1-toiwoton@gmail.com>
+ <5a292abd-7f2e-728f-5594-86d85fbd1c00@gmail.com>
+ <20220425223421.GA14400@breakpoint.cc>
+ <ab7923f2-d1e7-ce61-5df8-c05778ef3ebd@gmail.com>
+ <20220427054820.GB9849@breakpoint.cc> <YmjqN7KtWFMGbiJ9@salvia>
+From:   Topi Miettinen <toiwoton@gmail.com>
+In-Reply-To: <YmjqN7KtWFMGbiJ9@salvia>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Apr 07, 2022 at 09:33:40PM -0700, Kevin Mitchell wrote:
-> The checksum is optional for UDP packets in IPv4. However nf_reject
-> would previously require a valid checksum to elicit a response such as
-> ICMP_DEST_UNREACH.
+On 27.4.2022 10.01, Pablo Neira Ayuso wrote:
+> On Wed, Apr 27, 2022 at 07:48:20AM +0200, Florian Westphal wrote:
+>> Topi Miettinen <toiwoton@gmail.com> wrote:
+>>> On 26.4.2022 1.34, Florian Westphal wrote:
+>>>> Topi Miettinen <toiwoton@gmail.com> wrote:
+>>>>> On 20.4.2022 21.54, Topi Miettinen wrote:
+>>>>>> Add socket expressions for checking GID or UID of the originating
+>>>>>> socket. These work also on input side, unlike meta skuid/skgid.
+>>>>>
+>>>>> Unfortunately, there's a reproducible kernel BUG when closing a local
+>>>>> connection:
+>>>>>
+>>>>> Apr 25 21:18:13 kernel:
+>>>>> ==================================================================
+>>>>> Apr 25 21:18:13 kernel: BUG: KASAN: null-ptr-deref in
+>>>>> nf_sk_lookup_slow_v6+0x45b/0x590 [nf_socket_ipv6]
+>>>>
+>>>> You can pass this to scripts/faddr2line to get the location of the null deref.
+>>>
+>>> Didn't work,
+>>
+>> ?
+>>
+>> You pass the object file and the nf_sk_lookup_slow_v6+0x45b/0x590 info.
+>> I can't do it for you because I lack the object file and the exact
+>> source code.
+>>
+
+$ faddr2line nf_socket_ipv6.ko nf_sk_lookup_slow_v6+0x45b/0x590
+bad symbol size: base: 0x0000000000000000 end: 0x0000000000000000
+$ faddr2line nf_socket_ipv6.o nf_sk_lookup_slow_v6+0x45b/0x590
+bad symbol size: base: 0x0000000000000000 end: 0x0000000000000000
+$ faddr2line nf_socket_ipv6.mod nf_sk_lookup_slow_v6+0x45b/0x590
+readelf: Error: nf_socket_ipv6.mod: Failed to read file header
+size: nf_socket_ipv6.mod: file format not recognized
+nm: nf_socket_ipv6.mod: file format not recognized
+size: nf_socket_ipv6.mod: file format not recognized
+nm: nf_socket_ipv6.mod: file format not recognized
+no match for nf_sk_lookup_slow_v6+0x45b/0x590
+$ faddr2line nf_socket_ipv6.mod.o nf_sk_lookup_slow_v6+0x45b/0x590
+no match for nf_sk_lookup_slow_v6+0x45b/0x590
+$ faddr2line vmlinux nf_sk_lookup_slow_v6+0x45b/0x590
+no match for nf_sk_lookup_slow_v6+0x45b/0x590
+
+>>> net/ipv6/netfilter/nf_socket_ipv6.c:
+>>>
+>>> static struct sock *
+>>> nf_socket_get_sock_v6(struct net *net, struct sk_buff *skb, int doff,
+>>>                        const u8 protocol,
+>>>                        const struct in6_addr *saddr, const struct in6_addr
+>>> *daddr,
+>>>                        const __be16 sport, const __be16 dport,
+>>>                        const struct net_device *in)
+>>> {
+>>>          switch (protocol) {
+>>>          case IPPROTO_TCP:
+>>>                  return inet6_lookup(net, &tcp_hashinfo, skb, doff,
+>>>                                      saddr, sport, daddr, dport,
+>>>                                      in->ifindex);
+>>
+>> What does that rule look like?  Seems like no input interface is
+>> available, seems like a bug in existing code?
 > 
-> Add some logic to nf_reject_verify_csum to determine if a UDP packet has
-> a zero checksum and should therefore not be verified. Explicitly require
-> a valid checksum for IPv6 consistent RFC 2460 and with the non-netfilter
-> stack (see udp6_csum_zero_error).
->
-> Signed-off-by: Kevin Mitchell <kevmitch@arista.com>
-> ---
->  include/net/netfilter/nf_reject.h   | 27 +++++++++++++++++++++++----
->  net/ipv4/netfilter/nf_reject_ipv4.c | 10 +++++++---
->  net/ipv6/netfilter/nf_reject_ipv6.c |  4 ++--
->  3 files changed, 32 insertions(+), 9 deletions(-)
+> nft_socket_eval() assumes it always run from input path.
 > 
-> diff --git a/include/net/netfilter/nf_reject.h b/include/net/netfilter/nf_reject.h
-> index 9051c3a0c8e7..f248c1ff8b22 100644
-> --- a/include/net/netfilter/nf_reject.h
-> +++ b/include/net/netfilter/nf_reject.h
-> @@ -5,12 +5,34 @@
->  #include <linux/types.h>
->  #include <uapi/linux/in.h>
->  
-> -static inline bool nf_reject_verify_csum(__u8 proto)
-> +static inline bool nf_reject_verify_csum(struct sk_buff *skb, int dataoff,
-> +					  __u8 proto)
->  {
->  	/* Skip protocols that don't use 16-bit one's complement checksum
->  	 * of the entire payload.
->  	 */
->  	switch (proto) {
-> +		/* Protocols with optional checksums. */
-> +		case IPPROTO_UDP: {
-> +			const struct udphdr *udp_hdr;
-> +			struct udphdr _udp_hdr;
-> +
-> +			/* Checksum is required in IPv6
-> +			 * see RFC 2460 section 8.1
-> +			 */
+> @Topi: How does you test ruleset look like?
 
-Right, but follow up work say otherwise?
+Here's a reproducer:
+#!/usr/sbin/nft -f
 
-https://www.rfc-editor.org/rfc/rfc6935
-https://www.rfc-editor.org/rfc/rfc6936
+table inet mangle {
+         chain output {
+                 type route hook output priority mangle; policy accept;
 
-Moreover, conntrack and NAT already allow for UDP zero checksum in IPv6.
+                 socket uid != 0 reject with icmpx type admin-prohibited
+         }
+}
 
-I'm inclined to stick to the existing behaviour for consistency, ie.
-allow for zero checksum in IPv6 UDP.
+Start nc -6l 1 as root
+
+Try 'telnet ::1 1' as root, press enter and close the connection. After 
+1-3 tries, system hangs and Caps Lock starts blinking.
+
+-Topi
