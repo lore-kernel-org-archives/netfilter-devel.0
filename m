@@ -2,149 +2,103 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91204C433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Apr 2022 16:27:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF628C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Apr 2022 16:31:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242049AbiD0Qam (ORCPT
+        id S242895AbiD0Qec (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Apr 2022 12:30:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48554 "EHLO
+        Wed, 27 Apr 2022 12:34:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49780 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242991AbiD0Q2p (ORCPT
+        with ESMTP id S243168AbiD0Qdz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Apr 2022 12:28:45 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 66A7655BF
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Apr 2022 09:23:08 -0700 (PDT)
-Date:   Wed, 27 Apr 2022 18:23:05 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH iptables 7/7] nft: support for dynamic register allocation
-Message-ID: <Ymlt6QWWy4xUag2x@salvia>
-References: <20220424215613.106165-1-pablo@netfilter.org>
- <20220424215613.106165-8-pablo@netfilter.org>
- <YmgYkZE7hZFVL0D4@orbyte.nwl.cc>
+        Wed, 27 Apr 2022 12:33:55 -0400
+Received: from chinatelecom.cn (prt-mail.chinatelecom.cn [42.123.76.222])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9F7225A15B
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Apr 2022 09:30:33 -0700 (PDT)
+HMM_SOURCE_IP: 172.18.0.218:57790.29048770
+HMM_ATTACHE_NUM: 0000
+HMM_SOURCE_TYPE: SMTP
+Received: from clientip-101.229.163.22 (unknown [172.18.0.218])
+        by chinatelecom.cn (HERMES) with SMTP id 84D802800B1;
+        Thu, 28 Apr 2022 00:30:24 +0800 (CST)
+X-189-SAVE-TO-SEND: wenxu@chinatelecom.cn
+Received: from  ([172.18.0.218])
+        by app0025 with ESMTP id 67ebe97e88784fe7828638a70c8c1286 for pablo@netfilter.org;
+        Thu, 28 Apr 2022 00:30:25 CST
+X-Transaction-ID: 67ebe97e88784fe7828638a70c8c1286
+X-Real-From: wenxu@chinatelecom.cn
+X-Receive-IP: 172.18.0.218
+X-MEDUSA-Status: 0
+Sender: wenxu@chinatelecom.cn
+Message-ID: <63fdb211-60f9-9d16-44c2-b65a0921b8f8@chinatelecom.cn>
+Date:   Thu, 28 Apr 2022 00:30:20 +0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <YmgYkZE7hZFVL0D4@orbyte.nwl.cc>
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.7.0
+Subject: Re: [PATCH nf-next] nf_flow_table_offload: offload the vlan encap in
+ the flowtable
+Content-Language: en-US
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+References: <1649169515-4337-1-git-send-email-wenx05124561@163.com>
+ <YmlO009uqhJNnBq7@salvia>
+ <42afa9bb-e265-33e7-c0dc-75d40689ade1@chinatelecom.cn>
+ <YmlnaJ2ELDhALNz8@salvia>
+From:   wenxu <wenxu@chinatelecom.cn>
+In-Reply-To: <YmlnaJ2ELDhALNz8@salvia>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Apr 26, 2022 at 06:06:41PM +0200, Phil Sutter wrote:
-> On Sun, Apr 24, 2022 at 11:56:13PM +0200, Pablo Neira Ayuso wrote:
-[...]
-> > +
-> > +static int reg_space(int i)
-> > +{
-> > +	return sizeof(uint32_t) * 16 - sizeof(uint32_t) * i;
-> > +}
-> > +
-> > +static void register_track(const struct nft_handle *h,
-> > +			   struct nft_reg_ctx *ctx, int i, int len)
-> > +{
-> > +	if (ctx->reg >= 0 || h->regs[i].word || reg_space(i) < len)
-> > +		return;
-> 
-> Since ctx->reg is not reset in callers' loops and reg_space(i) is
-> monotonic, maybe make those loop exit conditions by returning false from
-> register_track() in those cases?
 
-you mean:
+On 2022/4/27 23:55, Pablo Neira Ayuso wrote:
+> On Wed, Apr 27, 2022 at 11:28:16PM +0800, wenxu wrote:
+>> On 2022/4/27 22:10, Pablo Neira Ayuso wrote:
+>>> On Tue, Apr 05, 2022 at 10:38:35AM -0400, wenx05124561@163.com wrote:
+>>>> From: wenxu <wenxu@chinatelecom.cn>
+>>>>
+>>>> This patch put the vlan dev process in the FLOW_OFFLOAD_XMIT_DIRECT
+>>>> mode. Xmit the packet with vlan can offload to the real dev directly.
+>>>>
+>>>> It can support all kinds of VLAN dev path:
+>>>> br0.100-->br0(vlan filter enable)-->eth
+>>>> br0(vlan filter enable)-->eth
+>>>> br0(vlan filter disable)-->eth.100-->eth
+>>> I assume this eth is a bridge port.
+>> Yes it is. And it also can support the case without bridge as following.
+>>
+>> eth.100-->eth.
+>>
+>>>> The packet xmit and recv offload to the 'eth' in both original and
+>>>> reply direction.
+>>> This is an enhancement or fix?
+>> It's an enhancement and  it make the vlan packet can offload through the real dev.
+> What's the benefit from the existing approach?
 
-        if (!register_track(...))
-                continue;
+For the simplest case
 
-?
+eth.100 base on eth
 
-That defeats the check for a matching register already storing the
-data I need, ie.
 
-        if (h->regs[i].type != NFT_REG_META)
-                continue;
-        ...
+eth.100  and ethx are route interface.
 
-> > +	if (h->regs[i].type == NFT_REG_UNSPEC) {
-> > +		ctx->genid = h->reg_genid;
-> 
-> Is ctx->genid used in this case?
+Without this patch.
 
-It used to shortcircuit the logic to evict a register (no eviction
-needed case), but that is not needed anymore since ctx->reg >= 0
-already prevents this.
+The packet outgoing path from eth   --- >  ethx
 
-> > +		ctx->reg = i;
-> > +	} else if (h->regs[i].genid < ctx->genid) {
-> > +		ctx->genid = h->regs[i].genid;
-> > +		ctx->evict = i;
-> 
-> What if the oldest reg is too small?
+The packet incoming path from ethx ---->  eth.100---> eth
 
-The reg_space(i) < len check prevents this?
+ With this patch
 
-> > +	} else if (h->regs[i].len == len) {
-> > +		ctx->evict = i;
-> > +		ctx->genid = 0;
-> 
-> Why prefer regs of same size over older ones?
+The packet incoming path from ethx   (direct to)---> eth, it is the same with outgoing.
 
-this was an early optimization. An Ipv6 address might evict up four
-registers, if n stores old data, then n+1, n+2, n+3 store recent data,
-n+1, n+2, n+3 would be unfairly evicted.
-
-I can remove this case: it is probably an early optimization. This is
-the initial version of the dynamic register allocation infra. It
-should be possible to catch for more suboptimal situations with real
-rulesets, by incrementally reviewing generated bytecode.
-
-[...]
-> > +uint8_t meta_get_register(struct nft_handle *h, enum nft_meta_keys key)
-> 
-> Accept a uint32_t len parameter and replace all the sizeof(uint32_t)
-> below with it? Not needed but consistent with payload_get_register() and
-> less hard-coded values.
-
-Actually NFT_META_TIME_NS uses 64 bits, assuming 32-bits for meta is
-indeed not correct.
-
-[...]
-> > @@ -1201,21 +1202,26 @@ static int __add_nft_among(struct nft_handle *h, const char *table,
-> >  		nftnl_set_elem_add(s, elem);
-> >  	}
-> >  
-> > -	e = gen_payload(h, NFT_PAYLOAD_LL_HEADER,
-> > -			eth_addr_off[dst], ETH_ALEN, &reg);
-> > +	concat_len = ETH_ALEN;
-> > +	if (ip)
-> > +		concat_len += sizeof(struct in_addr);
-> > +
-> > +	reg = get_register(h, concat_len);
-> > +	e = __gen_payload(NFT_PAYLOAD_LL_HEADER,
-> > +			  eth_addr_off[dst], ETH_ALEN, reg);
-> >  	if (!e)
-> >  		return -ENOMEM;
-> >  	nftnl_rule_add_expr(r, e);
-> >  
-> >  	if (ip) {
-> > -		e = gen_payload(h, NFT_PAYLOAD_NETWORK_HEADER, ip_addr_off[dst],
-> > -				sizeof(struct in_addr), &reg);
-> > +		e = __gen_payload(NFT_PAYLOAD_NETWORK_HEADER, ip_addr_off[dst],
-> > +				  sizeof(struct in_addr), reg + 2);
-> 
-> With a respective macro, this could be 'reg + REG_ALIGN(ETH_ALEN)'.
-
-that's feasible.
-
-> >  struct nft_handle {
-> >  	int			family;
-> >  	struct mnl_socket	*nl;
-> > @@ -111,6 +133,9 @@ struct nft_handle {
-> >  	bool			cache_init;
-> >  	int			verbose;
-> >  
-> > +	struct nft_regs		regs[20];
-> 
-> Why 20? Ain't 16 enough?
-
-Yes, this should be 16.
+>
+>>> Is this going to work for VLAN + PPP?
+>>>
+>>> Would you update tools/testing/selftests/netfilter/nft_flowtable.sh to
+>>> cover bridge filtering usecase? It could be done in a follow up patch.
+>> I will do for both  if this patch reivew ok .
+> OK.
