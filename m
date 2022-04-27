@@ -2,72 +2,112 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CCF04C433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Apr 2022 15:56:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6465FC433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Apr 2022 16:02:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240477AbiD0P7T (ORCPT
+        id S241391AbiD0QF7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Apr 2022 11:59:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33988 "EHLO
+        Wed, 27 Apr 2022 12:05:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43174 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241341AbiD0P7H (ORCPT
+        with ESMTP id S243370AbiD0QFw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Apr 2022 11:59:07 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4FE487A9BF
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Apr 2022 08:55:48 -0700 (PDT)
-Date:   Wed, 27 Apr 2022 17:55:20 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     wenxu <wenxu@chinatelecom.cn>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next] nf_flow_table_offload: offload the vlan encap in
- the flowtable
-Message-ID: <YmlnaJ2ELDhALNz8@salvia>
-References: <1649169515-4337-1-git-send-email-wenx05124561@163.com>
- <YmlO009uqhJNnBq7@salvia>
- <42afa9bb-e265-33e7-c0dc-75d40689ade1@chinatelecom.cn>
+        Wed, 27 Apr 2022 12:05:52 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4962A3C1982
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Apr 2022 09:02:28 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1njk7W-0003S3-I7; Wed, 27 Apr 2022 18:02:26 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Topi Miettinen <toiwoton@gmail.com>
+Subject: [PATCH nf] netfilter: nft_socket: only do sk lookup when indev is available
+Date:   Wed, 27 Apr 2022 18:02:18 +0200
+Message-Id: <20220427160218.9997-1-fw@strlen.de>
+X-Mailer: git-send-email 2.35.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <42afa9bb-e265-33e7-c0dc-75d40689ade1@chinatelecom.cn>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Apr 27, 2022 at 11:28:16PM +0800, wenxu wrote:
-> 
-> On 2022/4/27 22:10, Pablo Neira Ayuso wrote:
-> > On Tue, Apr 05, 2022 at 10:38:35AM -0400, wenx05124561@163.com wrote:
-> >> From: wenxu <wenxu@chinatelecom.cn>
-> >>
-> >> This patch put the vlan dev process in the FLOW_OFFLOAD_XMIT_DIRECT
-> >> mode. Xmit the packet with vlan can offload to the real dev directly.
-> >>
-> >> It can support all kinds of VLAN dev path:
-> >> br0.100-->br0(vlan filter enable)-->eth
-> >> br0(vlan filter enable)-->eth
-> >> br0(vlan filter disable)-->eth.100-->eth
-> > I assume this eth is a bridge port.
-> 
-> Yes it is. And it also can support the case without bridge as following.
-> 
-> eth.100-->eth.
-> 
-> >
-> >> The packet xmit and recv offload to the 'eth' in both original and
-> >> reply direction.
-> > This is an enhancement or fix?
->
-> It's an enhancement and  it make the vlan packet can offload through the real dev.
+nft_socket lacks .validate hooks to restrict its use to the prerouting
+and input chains.
 
-What's the benefit from the existing approach?
+Adding such restriction now may break existing setups, also, if skb
+has a socket attached to it, nft_socket will work fine.
 
-> > Is this going to work for VLAN + PPP?
-> >
-> > Would you update tools/testing/selftests/netfilter/nft_flowtable.sh to
-> > cover bridge filtering usecase? It could be done in a follow up patch.
->
-> I will do for both  if this patch reivew ok .
+Therefore, check if the incoming interface is available and NFT_BREAK
+in case neither skb->sk nor input device are set.
 
-OK.
+Reported-by: Topi Miettinen <toiwoton@gmail.com>
+Fixes: 554ced0a6e29 ("netfilter: nf_tables: add support for native socket matching")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nft_socket.c | 41 +++++++++++++++++++++++++-------------
+ 1 file changed, 27 insertions(+), 14 deletions(-)
+
+diff --git a/net/netfilter/nft_socket.c b/net/netfilter/nft_socket.c
+index 6d9e8e0a3a7d..cbd1e4523ace 100644
+--- a/net/netfilter/nft_socket.c
++++ b/net/netfilter/nft_socket.c
+@@ -54,6 +54,32 @@ nft_sock_get_eval_cgroupv2(u32 *dest, struct sock *sk, const struct nft_pktinfo
+ }
+ #endif
+ 
++static struct sock *nft_socket_do_lookup(const struct nft_pktinfo *pkt)
++{
++	const struct net_device *indev = nft_in(pkt);
++	const struct sk_buff *skb = pkt->skb;
++	struct sock *sk = NULL;
++
++	if (!indev)
++		return NULL;
++
++	switch(nft_pf(pkt)) {
++	case NFPROTO_IPV4:
++		sk = nf_sk_lookup_slow_v4(nft_net(pkt), skb, indev);
++		break;
++#if IS_ENABLED(CONFIG_NF_TABLES_IPV6)
++	case NFPROTO_IPV6:
++		sk = nf_sk_lookup_slow_v6(nft_net(pkt), skb, indev);
++		break;
++#endif
++	default:
++		WARN_ON_ONCE(1);
++		break;
++	}
++
++	return sk;
++}
++
+ static void nft_socket_eval(const struct nft_expr *expr,
+ 			    struct nft_regs *regs,
+ 			    const struct nft_pktinfo *pkt)
+@@ -67,20 +93,7 @@ static void nft_socket_eval(const struct nft_expr *expr,
+ 		sk = NULL;
+ 
+ 	if (!sk)
+-		switch(nft_pf(pkt)) {
+-		case NFPROTO_IPV4:
+-			sk = nf_sk_lookup_slow_v4(nft_net(pkt), skb, nft_in(pkt));
+-			break;
+-#if IS_ENABLED(CONFIG_NF_TABLES_IPV6)
+-		case NFPROTO_IPV6:
+-			sk = nf_sk_lookup_slow_v6(nft_net(pkt), skb, nft_in(pkt));
+-			break;
+-#endif
+-		default:
+-			WARN_ON_ONCE(1);
+-			regs->verdict.code = NFT_BREAK;
+-			return;
+-		}
++		sk = nft_socket_do_lookup(pkt);
+ 
+ 	if (!sk) {
+ 		regs->verdict.code = NFT_BREAK;
+-- 
+2.35.1
+
