@@ -2,131 +2,93 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DEC3C433FE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Apr 2022 14:10:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC46EC433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Apr 2022 14:37:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237404AbiD0ONn (ORCPT
+        id S238311AbiD0Okk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Apr 2022 10:13:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59252 "EHLO
+        Wed, 27 Apr 2022 10:40:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59144 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237329AbiD0ONm (ORCPT
+        with ESMTP id S238299AbiD0Oki (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Apr 2022 10:13:42 -0400
+        Wed, 27 Apr 2022 10:40:38 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B9FF15004E
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Apr 2022 07:10:30 -0700 (PDT)
-Date:   Wed, 27 Apr 2022 16:10:27 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 2E53832981;
+        Wed, 27 Apr 2022 07:37:08 -0700 (PDT)
+Date:   Wed, 27 Apr 2022 16:36:49 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     wenxu@chinatelecom.cn
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next] nf_flow_table_offload: offload the vlan encap in
- the flowtable
-Message-ID: <YmlO009uqhJNnBq7@salvia>
-References: <1649169515-4337-1-git-send-email-wenx05124561@163.com>
+To:     Kevin Mitchell <kevmitch@arista.com>
+Cc:     gal@nvidia.com, Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        David Ahern <dsahern@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH nf-next v2 1/1] netfilter: conntrack: skip verification
+ of zero UDP checksum
+Message-ID: <YmlVAXceuasAJjnN@salvia>
+References: <20220405234739.269371-2-kevmitch@arista.com>
+ <20220408043341.416219-1-kevmitch@arista.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <1649169515-4337-1-git-send-email-wenx05124561@163.com>
+In-Reply-To: <20220408043341.416219-1-kevmitch@arista.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Apr 05, 2022 at 10:38:35AM -0400, wenx05124561@163.com wrote:
-> From: wenxu <wenxu@chinatelecom.cn>
+On Thu, Apr 07, 2022 at 09:33:40PM -0700, Kevin Mitchell wrote:
+> The checksum is optional for UDP packets in IPv4. However nf_reject
+> would previously require a valid checksum to elicit a response such as
+> ICMP_DEST_UNREACH.
 > 
-> This patch put the vlan dev process in the FLOW_OFFLOAD_XMIT_DIRECT
-> mode. Xmit the packet with vlan can offload to the real dev directly.
-> 
-> It can support all kinds of VLAN dev path:
-> br0.100-->br0(vlan filter enable)-->eth
-> br0(vlan filter enable)-->eth
-> br0(vlan filter disable)-->eth.100-->eth
-
-I assume this eth is a bridge port.
-
-> The packet xmit and recv offload to the 'eth' in both original and
-> reply direction.
-
-This is an enhancement or fix?
-
-Is this going to work for VLAN + PPP?
-
-Would you update tools/testing/selftests/netfilter/nft_flowtable.sh to
-cover bridge filtering usecase? It could be done in a follow up patch.
-
-> Signed-off-by: wenxu <wenxu@chinatelecom.cn>
+> Add some logic to nf_reject_verify_csum to determine if a UDP packet has
+> a zero checksum and should therefore not be verified. Explicitly require
+> a valid checksum for IPv6 consistent RFC 2460 and with the non-netfilter
+> stack (see udp6_csum_zero_error).
+>
+> Signed-off-by: Kevin Mitchell <kevmitch@arista.com>
 > ---
->  net/netfilter/nf_flow_table_ip.c | 19 +++++++++++++++++++
->  net/netfilter/nft_flow_offload.c |  7 +++++--
->  2 files changed, 24 insertions(+), 2 deletions(-)
+>  include/net/netfilter/nf_reject.h   | 27 +++++++++++++++++++++++----
+>  net/ipv4/netfilter/nf_reject_ipv4.c | 10 +++++++---
+>  net/ipv6/netfilter/nf_reject_ipv6.c |  4 ++--
+>  3 files changed, 32 insertions(+), 9 deletions(-)
 > 
-> diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-> index 32c0eb1..99ae2550 100644
-> --- a/net/netfilter/nf_flow_table_ip.c
-> +++ b/net/netfilter/nf_flow_table_ip.c
-> @@ -282,6 +282,23 @@ static bool nf_flow_skb_encap_protocol(const struct sk_buff *skb, __be16 proto,
->  	return false;
->  }
+> diff --git a/include/net/netfilter/nf_reject.h b/include/net/netfilter/nf_reject.h
+> index 9051c3a0c8e7..f248c1ff8b22 100644
+> --- a/include/net/netfilter/nf_reject.h
+> +++ b/include/net/netfilter/nf_reject.h
+> @@ -5,12 +5,34 @@
+>  #include <linux/types.h>
+>  #include <uapi/linux/in.h>
 >  
-> +static void nf_flow_encap_push(struct sk_buff *skb,
-> +			       struct flow_offload_tuple_rhash *tuplehash)
-> +{
-> +	int i;
-> +
-> +	for (i = 0; i < tuplehash->tuple.encap_num; i++) {
-> +		switch (tuplehash->tuple.encap[i].proto) {
-> +		case htons(ETH_P_8021Q):
-> +		case htons(ETH_P_8021AD):
-> +			skb_vlan_push(skb,
-> +				      tuplehash->tuple.encap[i].proto,
-> +				      tuplehash->tuple.encap[i].id);
-> +			break;
-> +		}
-> +	}
-> +}
-> +
->  static void nf_flow_encap_pop(struct sk_buff *skb,
->  			      struct flow_offload_tuple_rhash *tuplehash)
+> -static inline bool nf_reject_verify_csum(__u8 proto)
+> +static inline bool nf_reject_verify_csum(struct sk_buff *skb, int dataoff,
+> +					  __u8 proto)
 >  {
-> @@ -403,6 +420,7 @@ static unsigned int nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
->  		ret = NF_STOLEN;
->  		break;
->  	case FLOW_OFFLOAD_XMIT_DIRECT:
-> +		nf_flow_encap_push(skb, &flow->tuplehash[!dir]);
->  		ret = nf_flow_queue_xmit(state->net, skb, tuplehash, ETH_P_IP);
->  		if (ret == NF_DROP)
->  			flow_offload_teardown(flow);
-> @@ -659,6 +677,7 @@ static int nf_flow_tuple_ipv6(struct sk_buff *skb, const struct net_device *dev,
->  		ret = NF_STOLEN;
->  		break;
->  	case FLOW_OFFLOAD_XMIT_DIRECT:
-> +		nf_flow_encap_push(skb, &flow->tuplehash[!dir]);
->  		ret = nf_flow_queue_xmit(state->net, skb, tuplehash, ETH_P_IPV6);
->  		if (ret == NF_DROP)
->  			flow_offload_teardown(flow);
-> diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-> index 900d48c..f9837c9 100644
-> --- a/net/netfilter/nft_flow_offload.c
-> +++ b/net/netfilter/nft_flow_offload.c
-> @@ -119,12 +119,15 @@ static void nft_dev_path_info(const struct net_device_path_stack *stack,
->  				info->indev = NULL;
->  				break;
->  			}
-> -			info->outdev = path->dev;
->  			info->encap[info->num_encaps].id = path->encap.id;
->  			info->encap[info->num_encaps].proto = path->encap.proto;
->  			info->num_encaps++;
-> -			if (path->type == DEV_PATH_PPPOE)
-> +			if (path->type == DEV_PATH_PPPOE) {
-> +				info->outdev = path->dev;
->  				memcpy(info->h_dest, path->encap.h_dest, ETH_ALEN);
-> +			}
-> +			if (path->type == DEV_PATH_VLAN)
-> +				info->xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
->  			break;
->  		case DEV_PATH_BRIDGE:
->  			if (is_zero_ether_addr(info->h_source))
-> -- 
-> 1.8.3.1
-> 
+>  	/* Skip protocols that don't use 16-bit one's complement checksum
+>  	 * of the entire payload.
+>  	 */
+>  	switch (proto) {
+> +		/* Protocols with optional checksums. */
+> +		case IPPROTO_UDP: {
+> +			const struct udphdr *udp_hdr;
+> +			struct udphdr _udp_hdr;
+> +
+> +			/* Checksum is required in IPv6
+> +			 * see RFC 2460 section 8.1
+> +			 */
+
+Right, but follow up work say otherwise?
+
+https://www.rfc-editor.org/rfc/rfc6935
+https://www.rfc-editor.org/rfc/rfc6936
+
+Moreover, conntrack and NAT already allow for UDP zero checksum in IPv6.
+
+I'm inclined to stick to the existing behaviour for consistency, ie.
+allow for zero checksum in IPv6 UDP.
