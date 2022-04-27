@@ -2,187 +2,152 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D728BC433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Apr 2022 18:07:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10272C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Apr 2022 18:10:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244559AbiD0SK1 (ORCPT
+        id S231532AbiD0SNo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Apr 2022 14:10:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33860 "EHLO
+        Wed, 27 Apr 2022 14:13:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46390 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230308AbiD0SKZ (ORCPT
+        with ESMTP id S231285AbiD0SNn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Apr 2022 14:10:25 -0400
-Received: from mail-lf1-x12d.google.com (mail-lf1-x12d.google.com [IPv6:2a00:1450:4864:20::12d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 309C842A25
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Apr 2022 11:07:12 -0700 (PDT)
-Received: by mail-lf1-x12d.google.com with SMTP id bq30so4564412lfb.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Apr 2022 11:07:12 -0700 (PDT)
+        Wed, 27 Apr 2022 14:13:43 -0400
+Received: from mail-lf1-x12f.google.com (mail-lf1-x12f.google.com [IPv6:2a00:1450:4864:20::12f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79E52DFEB
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Apr 2022 11:10:31 -0700 (PDT)
+Received: by mail-lf1-x12f.google.com with SMTP id bu29so4633110lfb.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Apr 2022 11:10:31 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=message-id:date:mime-version:user-agent:subject:content-language:to
-         :cc:references:from:in-reply-to:content-transfer-encoding;
-        bh=UDAQdaBGEP/l0pi13DdxlhQBFBIXN5BLxsaE3JAVn8Q=;
-        b=hD/Cg5Fq7xg+e+eXtGJz8N/OBw/9eg+eCnGz98hGZ5jBRTGK6SSC3cFeUlwB20CMUX
-         RG+SmZh6AqNgziOzktotjbeHieWZdsmIvm6aWg857MnOpxHBvMzEARIbDP/jP/Z50ujQ
-         f14K5HWf+Y6P2FUH/aYtjEJ096kySkakS7u8ZZ9arbROGrqEAWf3l7KXS0hdj7XJClzI
-         A6lr3nwU18BGNl6mr7Z5l47mdE7I+cm2H4pCIzGVthg6R0SNZETv4dSgv3gIxGrVfBCH
-         UcPMuHS1UIwUjBFGfXe1ZnS4Be2gx7CFgTZQgmRJYzM8u8wJYX5lWIyn1Af/hcw7P/o+
-         AP5Q==
+         :references:from:in-reply-to:content-transfer-encoding;
+        bh=80PrWU4Gt1uCt35DdC+XHqx47ZpIzXkofMoBem5NUrQ=;
+        b=kisjsm3VlSQZAkZv9ZNLvwbfb1gYIt7IaeS4Bgs9ArDV4clKqs8YCi6/DoJ3uv17k8
+         v8naHNMgi2htiYcEW05JcKE0Gb+YoLbYwQtzNFTAZa8LWr4ct6228Qh1ZrR3vC/vPCpN
+         8viBXKlXB250PTn/8W82uvCT2ex3wF00DJzR8k+upIiI1RsXXMQM5bN6DbmVGNL/WC3E
+         JYntHISOz2Kx/RYldljXiBPrgorQTsjYhoFQDDsAEL5tyQ5vQbsCfmV5cXb4y+O43ZHQ
+         pnazo1ktiT/hjbOlwLN9UdC2oANyFsmzj/c/pcGnwJZl/ZcQ3fyfj+5lnyXxC+D2KI2+
+         D/lw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:to:cc:references:from:in-reply-to
+         :content-language:to:references:from:in-reply-to
          :content-transfer-encoding;
-        bh=UDAQdaBGEP/l0pi13DdxlhQBFBIXN5BLxsaE3JAVn8Q=;
-        b=muWVgRi1qeJzXahpnxI7d7dAnsV3p5Cav8GU/+dUS7NKaoOnFBfmKIurV4Osom5uP+
-         5nXACPxRCFwfuqInLvmU1EbwkIwCvIQHf3nJ7mfAHvbqxdMzalUvjDJpp/JHpayxAqmQ
-         Gm0y/GPi9Fgun/GFNC8KMhSZm6T/7QZfnLFvAflGBpfH2I+8GUMa7ytDf/aPCxQc5SBa
-         wdiS6H1OfJOc9kyVPsHPL1E6syIR3XnOVMdGdIiC1mA5msh5myeZquki+UVtf+5tylgf
-         sT59JxtJRYw2WfWK13gGgvXPGmDObPH7Zdqkg/2xTpEe7n1Ei7eWBj+tADj1Z563Gpyn
-         RxvA==
-X-Gm-Message-State: AOAM532CGZd4bLZRw4bwAddCSNRu3o5esbAC8me9T1UuzNtjxUMuMR7c
-        AG+IsjGUerQRQcJMAf4qE0aDQ0ibcJMh5A==
-X-Google-Smtp-Source: ABdhPJzmNwYkcpwotiJgTS2GeEHR6IZS0yPGGy6V5EFXq5cfZQa9NW/2J5DrL1uYcbeuw7h6GPp90A==
-X-Received: by 2002:a05:6512:1107:b0:472:25d9:d25f with SMTP id l7-20020a056512110700b0047225d9d25fmr4120112lfg.329.1651082830242;
-        Wed, 27 Apr 2022 11:07:10 -0700 (PDT)
+        bh=80PrWU4Gt1uCt35DdC+XHqx47ZpIzXkofMoBem5NUrQ=;
+        b=pNJevMxo0WLSiqP3qcNm+aj1J0W/C4mAQM/3AGl4PU0VN79EybxdScuXTuJsQOi3tg
+         S+dCR8LWYl5Iy59o5Vzf+SvEA7rx/8isoi29UKhTKE5FZ/QOoJMy5sZh7bvksMG0Zs4U
+         BWvZHayqBPnu3TNwx7xtUuAvRR1NtZ77WUDnvt1W5HOEjinsqfdp4MHMKkUL718/4bZp
+         fyauWrLWrnLoSRTTykBNpWPz64jmz7+nvrWhMttQOGf1ybLykwlKMSIBDpA1L0sFwWRK
+         lqZH5E+wx63T64PpsR7IptSnUI1V4FwUH7kSyGZzfty28baeONWEi1cc7JrKel1It2aw
+         ++gg==
+X-Gm-Message-State: AOAM530P4ui3HBf5oPiNmdxu0E255QOOv27dAwr18qW6DWRWWWJOW8WN
+        nrOrA1cIHd12cD7ArN1PbNmoKonNfA5gsQ==
+X-Google-Smtp-Source: ABdhPJzj83R6sm1lJP1CYd42K3JahXTsAJSaAl3GDpjeJzX6mQNJGQPJk7e2zQjPoN3g1S2Q/hSJYg==
+X-Received: by 2002:ac2:5f84:0:b0:471:fd0f:a6e7 with SMTP id r4-20020ac25f84000000b00471fd0fa6e7mr15033074lfe.41.1651083029480;
+        Wed, 27 Apr 2022 11:10:29 -0700 (PDT)
 Received: from [192.168.1.38] (91-159-150-194.elisa-laajakaista.fi. [91.159.150.194])
-        by smtp.gmail.com with ESMTPSA id m17-20020a197111000000b0046d0f737777sm2126599lfc.178.2022.04.27.11.07.09
+        by smtp.gmail.com with ESMTPSA id t10-20020a2e780a000000b0024f0ea282acsm1157727ljc.100.2022.04.27.11.10.28
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 27 Apr 2022 11:07:09 -0700 (PDT)
-Message-ID: <755d90d5-6f52-456d-8e1a-2e42c0896e97@gmail.com>
-Date:   Wed, 27 Apr 2022 21:07:07 +0300
+        Wed, 27 Apr 2022 11:10:28 -0700 (PDT)
+Message-ID: <2810eacb-5940-0c96-2996-74742365da5e@gmail.com>
+Date:   Wed, 27 Apr 2022 21:10:27 +0300
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
  Thunderbird/91.8.1
-Subject: Re: [PATCH] netfilter: nft_socket: socket expressions for GID & UID
+Subject: Re: [PATCH nf] netfilter: nft_socket: only do sk lookup when indev is
+ available
 Content-Language: en-US
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org
-References: <20220420185447.10199-1-toiwoton@gmail.com>
- <6s7r50n6-r8qs-2295-sq7p-p46qoop97ssn@vanv.qr>
- <42cc8c5d-5874-79a2-61b6-e238c5a1a18f@gmail.com> <Ymheglo+kQ/Hr7oT@salvia>
- <YmhfE/3VzM3vNRbs@salvia>
+To:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+References: <20220427160218.9997-1-fw@strlen.de>
 From:   Topi Miettinen <toiwoton@gmail.com>
-In-Reply-To: <YmhfE/3VzM3vNRbs@salvia>
+In-Reply-To: <20220427160218.9997-1-fw@strlen.de>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 27.4.2022 0.07, Pablo Neira Ayuso wrote:
-> On Tue, Apr 26, 2022 at 11:05:09PM +0200, Pablo Neira Ayuso wrote:
->> On Thu, Apr 21, 2022 at 07:35:06PM +0300, Topi Miettinen wrote:
->>> On 21.4.2022 0.15, Jan Engelhardt wrote:
->>>>
->>>> On Wednesday 2022-04-20 20:54, Topi Miettinen wrote:
->>>>
->>>>> Add socket expressions for checking GID or UID of the originating
->>>>> socket. These work also on input side, unlike meta skuid/skgid.
->>>>
->>>> Why exactly is it that meta skuid does not work?
->>>> Because of the skb_to_full_sk() call in nft_meta_get_eval_skugid()?
->>>
->>> I don't know the details, but early demux isn't reliable and filters aren't
->>> run after final demux. In my case, something like "ct state new meta skuid <
->>> 1000 drop" as part of input filter doesn't do anything. Making "meta skuid"
->>> 100% reliable would be of course preferable to adding a new expression.
->>
->> Could you give a try to this kernel patch?
->>
->> This patch adds a new socket hook for inet layer 4 protocols, it is
->> coming after the NF_LOCAL_IN hook, where the socket information is
->> available for all cases.
->>
->> You also need a small patch for userspace nft.
+On 27.4.2022 19.02, Florian Westphal wrote:
+> nft_socket lacks .validate hooks to restrict its use to the prerouting
+> and input chains.
 > 
-> Quickly tested it with:
+> Adding such restriction now may break existing setups, also, if skb
+> has a socket attached to it, nft_socket will work fine.
 > 
->   table inet x {
->          chain y {
->                  type filter hook socket priority 0; policy accept;
->                  counter
->          }
+> Therefore, check if the incoming interface is available and NFT_BREAK
+> in case neither skb->sk nor input device are set.
+> 
+> Reported-by: Topi Miettinen <toiwoton@gmail.com>
+> Fixes: 554ced0a6e29 ("netfilter: nf_tables: add support for native socket matching")
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+
+Thanks. After applying this patch, my test case which triggered a BUG in 
+a few tries, doesn't do it anymore with 25 attempts.
+
+Tested-by: Topi Miettinen <toiwoton@gmail.com>
+
+> ---
+>   net/netfilter/nft_socket.c | 41 +++++++++++++++++++++++++-------------
+>   1 file changed, 27 insertions(+), 14 deletions(-)
+> 
+> diff --git a/net/netfilter/nft_socket.c b/net/netfilter/nft_socket.c
+> index 6d9e8e0a3a7d..cbd1e4523ace 100644
+> --- a/net/netfilter/nft_socket.c
+> +++ b/net/netfilter/nft_socket.c
+> @@ -54,6 +54,32 @@ nft_sock_get_eval_cgroupv2(u32 *dest, struct sock *sk, const struct nft_pktinfo
 >   }
+>   #endif
+>   
+> +static struct sock *nft_socket_do_lookup(const struct nft_pktinfo *pkt)
+> +{
+> +	const struct net_device *indev = nft_in(pkt);
+> +	const struct sk_buff *skb = pkt->skb;
+> +	struct sock *sk = NULL;
+> +
+> +	if (!indev)
+> +		return NULL;
+> +
+> +	switch(nft_pf(pkt)) {
+> +	case NFPROTO_IPV4:
+> +		sk = nf_sk_lookup_slow_v4(nft_net(pkt), skb, indev);
+> +		break;
+> +#if IS_ENABLED(CONFIG_NF_TABLES_IPV6)
+> +	case NFPROTO_IPV6:
+> +		sk = nf_sk_lookup_slow_v6(nft_net(pkt), skb, indev);
+> +		break;
+> +#endif
+> +	default:
+> +		WARN_ON_ONCE(1);
+> +		break;
+> +	}
+> +
+> +	return sk;
+> +}
+> +
+>   static void nft_socket_eval(const struct nft_expr *expr,
+>   			    struct nft_regs *regs,
+>   			    const struct nft_pktinfo *pkt)
+> @@ -67,20 +93,7 @@ static void nft_socket_eval(const struct nft_expr *expr,
+>   		sk = NULL;
+>   
+>   	if (!sk)
+> -		switch(nft_pf(pkt)) {
+> -		case NFPROTO_IPV4:
+> -			sk = nf_sk_lookup_slow_v4(nft_net(pkt), skb, nft_in(pkt));
+> -			break;
+> -#if IS_ENABLED(CONFIG_NF_TABLES_IPV6)
+> -		case NFPROTO_IPV6:
+> -			sk = nf_sk_lookup_slow_v6(nft_net(pkt), skb, nft_in(pkt));
+> -			break;
+> -#endif
+> -		default:
+> -			WARN_ON_ONCE(1);
+> -			regs->verdict.code = NFT_BREAK;
+> -			return;
+> -		}
+> +		sk = nft_socket_do_lookup(pkt);
+>   
+>   	if (!sk) {
+>   		regs->verdict.code = NFT_BREAK;
 
-Thanks. Assuming that this makes the 'meta skuid' and 'meta cgroupv2' 
-always usable, I'd prefer this approach to new 'socket uid'.
-
-I changed the hook of my input and output filters to 'socket' but then 
-there are lots of errors:
-
-/etc/nftables.conf:411:3-67: Error: Could not process rule: Operation 
-not supported
-                 ct state new socket cgroupv2 level 1 vmap 
-@dict_cgroup_level_1_in
- 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/etc/nftables.conf:412:3-79: Error: Could not process rule: Operation 
-not supported
-                 ct state new meta skuid < 1000 meta l4proto vmap { tcp 
-: jump tcp_input_sys }
- 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/etc/nftables.conf:413:3-108: Error: Could not process rule: Operation 
-not supported
-                 ct state new meta skuid >= 1000 meta l4proto vmap { tcp 
-: jump tcp_input_user, udp : jump udp_input_user }
- 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/etc/nftables.conf:417:3-36: Error: Could not process rule: Operation 
-not supported
-                 icmpv6 type 144-147 counter accept
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/etc/nftables.conf:418:3-56: Error: Could not process rule: Operation 
-not supported
-                 meta l4proto { icmp, icmpv6 } counter jump icmp_common
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/etc/nftables.conf:423:3-51: Error: Could not process rule: Operation 
-not supported
-                 counter log prefix "[inet-input] " flags all drop
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/etc/nftables.conf:429:3-53: Error: Could not process rule: Operation 
-not supported
-                 counter log prefix "[inet-forward] " flags all drop
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/etc/nftables.conf:435:3-100: Error: Could not process rule: Operation 
-not supported
-                 rt type 0 counter log prefix "[inet-output-rt] " flags 
-all reject with icmpx type admin-prohibited
- 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/etc/nftables.conf:436:3-122: Error: Could not process rule: Operation 
-not supported
-                 meta protocol != { ip, ip6 } counter log prefix 
-"[inet-output-proto] " flags all reject with icmpx type admin-prohibited
- 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/etc/nftables.conf:437:3-78: Error: Could not process rule: Operation 
-not supported
-                 meta l4proto != { icmp, icmpv6, tcp, udp } counter jump 
-log_bad_proto_output
- 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/etc/nftables.conf:438:3-50: Error: Could not process rule: Operation 
-not supported
-                 ct state { established, related } counter accept
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/etc/nftables.conf:441:3-68: Error: Could not process rule: Operation 
-not supported
-                 ct state new socket cgroupv2 level 1 vmap 
-@dict_cgroup_level_1_out
- 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/etc/nftables.conf:443:3-56: Error: Could not process rule: Operation 
-not supported
-                 meta l4proto { icmp, icmpv6 } counter jump icmp_common
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/etc/nftables.conf:448:3-87: Error: Could not process rule: Operation 
-not supported
-                 counter log prefix "[inet-output] " flags all reject 
-with icmpx type admin-prohibited
- 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
--Topi
