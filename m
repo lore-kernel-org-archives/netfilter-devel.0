@@ -2,140 +2,162 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD767C433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Apr 2022 07:39:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0FB8C433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Apr 2022 10:13:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232974AbiD1Hmq (ORCPT
+        id S232406AbiD1KQy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 28 Apr 2022 03:42:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55928 "EHLO
+        Thu, 28 Apr 2022 06:16:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34676 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232526AbiD1Hmq (ORCPT
+        with ESMTP id S232559AbiD1KQ1 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 Apr 2022 03:42:46 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB1419BAFD
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Apr 2022 00:39:31 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1njykL-00081Y-EY; Thu, 28 Apr 2022 09:39:29 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Topi Miettinen <toiwoton@gmail.com>
-Subject: [PATCH v2 nf] netfilter: nft_socket: only do sk lookups when indev is available
-Date:   Thu, 28 Apr 2022 09:39:21 +0200
-Message-Id: <20220428073921.14483-1-fw@strlen.de>
-X-Mailer: git-send-email 2.35.1
+        Thu, 28 Apr 2022 06:16:27 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 025C1B18B7
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Apr 2022 03:07:23 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1nk13R-00012j-MV; Thu, 28 Apr 2022 12:07:21 +0200
+Date:   Thu, 28 Apr 2022 12:07:21 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH iptables 7/7] nft: support for dynamic register allocation
+Message-ID: <YmpnWV3kBTSk5TvC@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20220424215613.106165-1-pablo@netfilter.org>
+ <20220424215613.106165-8-pablo@netfilter.org>
+ <YmgYkZE7hZFVL0D4@orbyte.nwl.cc>
+ <Ymlt6QWWy4xUag2x@salvia>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Ymlt6QWWy4xUag2x@salvia>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Check if the incoming interface is available and NFT_BREAK
-in case neither skb->sk nor input device are set.
+On Wed, Apr 27, 2022 at 06:23:05PM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Apr 26, 2022 at 06:06:41PM +0200, Phil Sutter wrote:
+> > On Sun, Apr 24, 2022 at 11:56:13PM +0200, Pablo Neira Ayuso wrote:
+> [...]
+> > > +
+> > > +static int reg_space(int i)
+> > > +{
+> > > +	return sizeof(uint32_t) * 16 - sizeof(uint32_t) * i;
+> > > +}
+> > > +
+> > > +static void register_track(const struct nft_handle *h,
+> > > +			   struct nft_reg_ctx *ctx, int i, int len)
+> > > +{
+> > > +	if (ctx->reg >= 0 || h->regs[i].word || reg_space(i) < len)
+> > > +		return;
+> > 
+> > Since ctx->reg is not reset in callers' loops and reg_space(i) is
+> > monotonic, maybe make those loop exit conditions by returning false from
+> > register_track() in those cases?
+> 
+> you mean:
+> 
+>         if (!register_track(...))
+>                 continue;
+> 
+> ?
+> 
+> That defeats the check for a matching register already storing the
+> data I need, ie.
+> 
+>         if (h->regs[i].type != NFT_REG_META)
+>                 continue;
+>         ...
 
-Because nf_sk_lookup_slow*() assume packet headers are in the
-'in' direction, use in postrouting is not going to yield a meaningful
-result.  Same is true for the forward chain, so restrict the use
-to prerouting, input and output.
+Oh, indeed! It still holds for the 'reg_space(i) < len' case but it's
+a corner case and not worth it.
 
-Use in output work if a socket is already attached to the skb.
+> > > +	if (h->regs[i].type == NFT_REG_UNSPEC) {
+> > > +		ctx->genid = h->reg_genid;
+> > 
+> > Is ctx->genid used in this case?
+> 
+> It used to shortcircuit the logic to evict a register (no eviction
+> needed case), but that is not needed anymore since ctx->reg >= 0
+> already prevents this.
+> 
+> > > +		ctx->reg = i;
+> > > +	} else if (h->regs[i].genid < ctx->genid) {
+> > > +		ctx->genid = h->regs[i].genid;
+> > > +		ctx->evict = i;
+> > 
+> > What if the oldest reg is too small?
+> 
+> The reg_space(i) < len check prevents this?
 
-Reported-by: Topi Miettinen <toiwoton@gmail.com>
-Fixes: 554ced0a6e29 ("netfilter: nf_tables: add support for native socket matching")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- v2: add .validate, very similar to Pablos patch, but also permit OUTPUT
-     chain, no other changes.
+Ah, I missed the fact that consecutive regs are simply overwritten in
+the evict case. What I had in mind was something like this:
 
- net/netfilter/nft_socket.c | 51 +++++++++++++++++++++++++++-----------
- 1 file changed, 37 insertions(+), 14 deletions(-)
+reg#	genid	size
+--------------------
+0	6	4
+1	5	16
+2	4	4
+3	3	4
+4	2	4
+5	1	4
 
-diff --git a/net/netfilter/nft_socket.c b/net/netfilter/nft_socket.c
-index 6d9e8e0a3a7d..a33557d7f350 100644
---- a/net/netfilter/nft_socket.c
-+++ b/net/netfilter/nft_socket.c
-@@ -54,6 +54,32 @@ nft_sock_get_eval_cgroupv2(u32 *dest, struct sock *sk, const struct nft_pktinfo
- }
- #endif
- 
-+static struct sock *nft_socket_do_lookup(const struct nft_pktinfo *pkt)
-+{
-+	const struct net_device *indev = nft_in(pkt);
-+	const struct sk_buff *skb = pkt->skb;
-+	struct sock *sk = NULL;
-+
-+	if (!indev)
-+		return NULL;
-+
-+	switch (nft_pf(pkt)) {
-+	case NFPROTO_IPV4:
-+		sk = nf_sk_lookup_slow_v4(nft_net(pkt), skb, indev);
-+		break;
-+#if IS_ENABLED(CONFIG_NF_TABLES_IPV6)
-+	case NFPROTO_IPV6:
-+		sk = nf_sk_lookup_slow_v6(nft_net(pkt), skb, indev);
-+		break;
-+#endif
-+	default:
-+		WARN_ON_ONCE(1);
-+		break;
-+	}
-+
-+	return sk;
-+}
-+
- static void nft_socket_eval(const struct nft_expr *expr,
- 			    struct nft_regs *regs,
- 			    const struct nft_pktinfo *pkt)
-@@ -67,20 +93,7 @@ static void nft_socket_eval(const struct nft_expr *expr,
- 		sk = NULL;
- 
- 	if (!sk)
--		switch(nft_pf(pkt)) {
--		case NFPROTO_IPV4:
--			sk = nf_sk_lookup_slow_v4(nft_net(pkt), skb, nft_in(pkt));
--			break;
--#if IS_ENABLED(CONFIG_NF_TABLES_IPV6)
--		case NFPROTO_IPV6:
--			sk = nf_sk_lookup_slow_v6(nft_net(pkt), skb, nft_in(pkt));
--			break;
--#endif
--		default:
--			WARN_ON_ONCE(1);
--			regs->verdict.code = NFT_BREAK;
--			return;
--		}
-+		sk = nft_socket_do_lookup(pkt);
- 
- 	if (!sk) {
- 		regs->verdict.code = NFT_BREAK;
-@@ -224,6 +237,15 @@ static bool nft_socket_reduce(struct nft_regs_track *track,
- 	return nft_expr_reduce_bitwise(track, expr);
- }
- 
-+static int nft_socket_validate(const struct nft_ctx *ctx,
-+			       const struct nft_expr *expr,
-+			       const struct nft_data **data)
-+{
-+	return nft_chain_validate_hooks(ctx->chain, (1 << NF_INET_PRE_ROUTING) |
-+					(1 << NF_INET_LOCAL_IN) |
-+					(1 << NF_INET_LOCAL_OUT));
-+}
-+
- static struct nft_expr_type nft_socket_type;
- static const struct nft_expr_ops nft_socket_ops = {
- 	.type		= &nft_socket_type,
-@@ -231,6 +253,7 @@ static const struct nft_expr_ops nft_socket_ops = {
- 	.eval		= nft_socket_eval,
- 	.init		= nft_socket_init,
- 	.dump		= nft_socket_dump,
-+	.validate	= nft_socket_validate,
- 	.reduce		= nft_socket_reduce,
- };
- 
--- 
-2.35.1
+If that's all the space there is and we want to store 16 bytes, the
+algorithm would evict reg2 and all the following while it could just
+evict reg1 and preserve the others. I just realize this is the
+optimization you're talking about here:
 
+> > > +	} else if (h->regs[i].len == len) {
+> > > +		ctx->evict = i;
+> > > +		ctx->genid = 0;
+> > 
+> > Why prefer regs of same size over older ones?
+> 
+> this was an early optimization. An Ipv6 address might evict up four
+> registers, if n stores old data, then n+1, n+2, n+3 store recent data,
+> n+1, n+2, n+3 would be unfairly evicted.
+> 
+> I can remove this case: it is probably an early optimization. This is
+> the initial version of the dynamic register allocation infra. It
+> should be possible to catch for more suboptimal situations with real
+> rulesets, by incrementally reviewing generated bytecode.
+
+Sounds reasonable. I think there are more pitfalls regarding suboptimal
+register choice in NFT_REG_UNSPEC case as it doesn't consider available
+space either.
+
+Anyway, the size consideration being done only for regs with same genid
+as the last one being chosen for eviction seems wrong. Preferring a same
+sized reg over older ones does not seem ideal to me, either. What do you
+think about this:
+
+| static void register_track(const struct nft_handle *h,
+|                            struct nft_reg_ctx *ctx, int i, int len)
+| {
+|         if (ctx->reg >= 0 || h->regs[i].word || reg_space(i) < len)
+|                 return;
+| 
+|         if (h->regs[i].type == NFT_REG_UNSPEC) {
+|                 ctx->reg = i;
+|         } else if (ctx->evict < 0 ||
+|                    h->regs[ctx->evict].len < len ||
+|                    (h->regs[i].len >= len &&
+|                     h->regs[i].genid < ctx->genid)) {
+|                 ctx->genid = h->regs[i].genid;
+|                 ctx->evict = i;
+|         }
+| }
+
+- If given register is free, use it and be done
+- If there's no candidate for eviction, mark it as such
+- If eviction candidate size is too small, prefer the current one
+  (regardless of size)
+- if both eviction candidate and current sizes are sufficient, prefer
+  the older one
+
+Cheers, Phil
