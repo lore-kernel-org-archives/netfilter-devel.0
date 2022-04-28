@@ -2,139 +2,86 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C205C433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Apr 2022 14:21:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F140DC433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Apr 2022 15:22:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348265AbiD1OYf (ORCPT
+        id S232313AbiD1PZw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 28 Apr 2022 10:24:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60526 "EHLO
+        Thu, 28 Apr 2022 11:25:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34352 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1348261AbiD1OYa (ORCPT
+        with ESMTP id S231640AbiD1PZv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 Apr 2022 10:24:30 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 64C7AAFB22;
-        Thu, 28 Apr 2022 07:21:16 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net 3/3] netfilter: nft_socket: only do sk lookups when indev is available
-Date:   Thu, 28 Apr 2022 16:21:09 +0200
-Message-Id: <20220428142109.38726-4-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220428142109.38726-1-pablo@netfilter.org>
-References: <20220428142109.38726-1-pablo@netfilter.org>
+        Thu, 28 Apr 2022 11:25:51 -0400
+Received: from wout1-smtp.messagingengine.com (wout1-smtp.messagingengine.com [64.147.123.24])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C18ECB6E4E
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Apr 2022 08:22:36 -0700 (PDT)
+Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
+        by mailout.west.internal (Postfix) with ESMTP id 0214532009A3
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Apr 2022 11:22:35 -0400 (EDT)
+Received: from mailfrontend1 ([10.202.2.162])
+  by compute5.internal (MEProxy); Thu, 28 Apr 2022 11:22:36 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=sbrecher.com; h=
+        cc:content-transfer-encoding:content-type:date:date:from:from
+        :in-reply-to:message-id:mime-version:reply-to:sender:subject
+        :subject:to:to; s=fm1; t=1651159355; x=1651245755; bh=EGKGQ0wc69
+        2IyyyVZ8GA/+rRRHrmuhwsV3CBQG3cHCQ=; b=BZvcEAXZFi0lb/UsCOngw5Duum
+        s7QhdMQ3/TRRwqqSkecPW64xdFlHEiqxeJGvj7ZzRQlx7KarXaXFITqEZhVjkJs0
+        j6pb+C+PKBZB4nIwwb+aRd7j60Rd1xXwAnwT4Qbpxe4du8+OmJT2B6XupqSmjyw2
+        E5jXfLW8BC7d4kZHp3tjSmAefWAdWo+KXXwId4vwf1pZZDYP47Bu/npO3HW0jMSI
+        /IJmDZH5b8de/Sna/sYGTAOW2QL/0qq0+uI9s4MaZqNEVHEx5XEp0pIjCwbKPFLI
+        vXMH/8dcfbp0EjLtSqP3hSskUE802B/u/gUmopb9mcow+/oMfCarp+P9a2vQ==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:content-transfer-encoding:content-type
+        :date:date:from:from:in-reply-to:message-id:mime-version
+        :reply-to:sender:subject:subject:to:to:x-me-proxy:x-me-proxy
+        :x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=1651159355; x=
+        1651245755; bh=EGKGQ0wc692IyyyVZ8GA/+rRRHrmuhwsV3CBQG3cHCQ=; b=u
+        Am8azeehgpF4B8wiaJWW6vbe7UBZrkcuxzkmdblAyWjNQp5F27YbVs9auTcW+GKp
+        q5F4GOeiYgK2jYI6+J5KH2DEXRA0wOC6biwRRAuZ2LgAh2MuEbOgSYn8fJb9brZn
+        ytmxk60jyRwp9kssVZRRZyokHeQHo9+AUK9bUOa4cykPP/HTNMsAwHuaVVoWbaQj
+        72HkEkQ8mAorE0T8kzZKKGx7fHuzg+3GRAtl9VdgRJHKLt7WmR963ypTaRgfHpNP
+        Qc8pktfLFKiOm3PDExKyvEkk68qIsmaqqUu+6klX/t6Dr6FL+gW2Pqz51NFr/7Bh
+        aeBro5Yzlg1MZpMHNK5EQ==
+X-ME-Sender: <xms:O7FqYsnd2456zNI6GzeetwP0-WL1hjR3O6raCqAZlmyj1YRazsOuXQ>
+    <xme:O7FqYr0gImgj6NRYjumP25ZuwtTRxXcchaCddpm1XpPUr9v04VUZzSbn28TuLQ4gy
+    7pUGp22wyVCmrMZGfs>
+X-ME-Received: <xmr:O7FqYqoWjgs0VaYregGhbdpQGz7nvdtSqN1FAx1Qx4pamv-022TwttaxQ1ZuvIDOlGBxL8wDP7NPF7i2nWMrImyhHyFZku2KXmU>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvfedrudejgdekkecutefuodetggdotefrodftvf
+    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
+    uegrihhlohhuthemuceftddtnecunecujfgurhepkfffgggfvffhufgtgfesthejredttd
+    efjeenucfhrhhomhepufhtvghvvgcuuehrvggthhgvrhcuoehsthgvvhgvsehssghrvggt
+    hhgvrhdrtghomheqnecuggftrfgrthhtvghrnhepffekgfduvdfgieefheeftefhleegfe
+    etgfegffeggfefteeutdehledtvdfggeeknecuvehluhhsthgvrhfuihiivgeptdenucfr
+    rghrrghmpehmrghilhhfrhhomhepshhtvghvvgesshgsrhgvtghhvghrrdgtohhm
+X-ME-Proxy: <xmx:O7FqYonOdyktjdAktH3Stj8S9Tt44CGsRPRfRK4V-vi8VU7Q9CFphg>
+    <xmx:O7FqYq3KIbxLowQIM26hf7wpxhukId9EhtihiU42IMREQ4oiJh63Lw>
+    <xmx:O7FqYvtV3dTHeyfkCErqVGo3LN2S-2nOW0xPpiCnpDxEcXClleJIgQ>
+    <xmx:O7FqYjjO0CxUr1MOffWO0itYVerok1TVGFEm8xEoAMtSDfjQuI-PKQ>
+Received: by mail.messagingengine.com (Postfix) with ESMTPA for
+ <netfilter-devel@vger.kernel.org>; Thu,
+ 28 Apr 2022 11:22:34 -0400 (EDT)
+Message-ID: <f7f0656d-4634-caad-c562-3121756f5afb@sbrecher.com>
+Date:   Thu, 28 Apr 2022 08:22:34 -0700
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
+ Gecko/20100101 Thunderbird/91.8.0
+To:     netfilter-devel@vger.kernel.org
+Content-Language: en-US
+From:   Steve Brecher <steve@sbrecher.com>
+Subject: Minor issue in iptables(8) man page
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+Hi,
 
-Check if the incoming interface is available and NFT_BREAK
-in case neither skb->sk nor input device are set.
+The 4th section of the page, Tables, begins, "There are currently three 
+independent tables ..." but lists four tables (filter, nat, mangle, and raw).
 
-Because nf_sk_lookup_slow*() assume packet headers are in the
-'in' direction, use in postrouting is not going to yield a meaningful
-result.  Same is true for the forward chain, so restrict the use
-to prerouting, input and output.
+Steve
 
-Use in output work if a socket is already attached to the skb.
-
-Fixes: 554ced0a6e29 ("netfilter: nf_tables: add support for native socket matching")
-Reported-and-tested-by: Topi Miettinen <toiwoton@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_socket.c | 52 ++++++++++++++++++++++++++++----------
- 1 file changed, 38 insertions(+), 14 deletions(-)
-
-diff --git a/net/netfilter/nft_socket.c b/net/netfilter/nft_socket.c
-index 6d9e8e0a3a7d..05ae5a338b6f 100644
---- a/net/netfilter/nft_socket.c
-+++ b/net/netfilter/nft_socket.c
-@@ -54,6 +54,32 @@ nft_sock_get_eval_cgroupv2(u32 *dest, struct sock *sk, const struct nft_pktinfo
- }
- #endif
- 
-+static struct sock *nft_socket_do_lookup(const struct nft_pktinfo *pkt)
-+{
-+	const struct net_device *indev = nft_in(pkt);
-+	const struct sk_buff *skb = pkt->skb;
-+	struct sock *sk = NULL;
-+
-+	if (!indev)
-+		return NULL;
-+
-+	switch (nft_pf(pkt)) {
-+	case NFPROTO_IPV4:
-+		sk = nf_sk_lookup_slow_v4(nft_net(pkt), skb, indev);
-+		break;
-+#if IS_ENABLED(CONFIG_NF_TABLES_IPV6)
-+	case NFPROTO_IPV6:
-+		sk = nf_sk_lookup_slow_v6(nft_net(pkt), skb, indev);
-+		break;
-+#endif
-+	default:
-+		WARN_ON_ONCE(1);
-+		break;
-+	}
-+
-+	return sk;
-+}
-+
- static void nft_socket_eval(const struct nft_expr *expr,
- 			    struct nft_regs *regs,
- 			    const struct nft_pktinfo *pkt)
-@@ -67,20 +93,7 @@ static void nft_socket_eval(const struct nft_expr *expr,
- 		sk = NULL;
- 
- 	if (!sk)
--		switch(nft_pf(pkt)) {
--		case NFPROTO_IPV4:
--			sk = nf_sk_lookup_slow_v4(nft_net(pkt), skb, nft_in(pkt));
--			break;
--#if IS_ENABLED(CONFIG_NF_TABLES_IPV6)
--		case NFPROTO_IPV6:
--			sk = nf_sk_lookup_slow_v6(nft_net(pkt), skb, nft_in(pkt));
--			break;
--#endif
--		default:
--			WARN_ON_ONCE(1);
--			regs->verdict.code = NFT_BREAK;
--			return;
--		}
-+		sk = nft_socket_do_lookup(pkt);
- 
- 	if (!sk) {
- 		regs->verdict.code = NFT_BREAK;
-@@ -224,6 +237,16 @@ static bool nft_socket_reduce(struct nft_regs_track *track,
- 	return nft_expr_reduce_bitwise(track, expr);
- }
- 
-+static int nft_socket_validate(const struct nft_ctx *ctx,
-+			       const struct nft_expr *expr,
-+			       const struct nft_data **data)
-+{
-+	return nft_chain_validate_hooks(ctx->chain,
-+					(1 << NF_INET_PRE_ROUTING) |
-+					(1 << NF_INET_LOCAL_IN) |
-+					(1 << NF_INET_LOCAL_OUT));
-+}
-+
- static struct nft_expr_type nft_socket_type;
- static const struct nft_expr_ops nft_socket_ops = {
- 	.type		= &nft_socket_type,
-@@ -231,6 +254,7 @@ static const struct nft_expr_ops nft_socket_ops = {
- 	.eval		= nft_socket_eval,
- 	.init		= nft_socket_init,
- 	.dump		= nft_socket_dump,
-+	.validate	= nft_socket_validate,
- 	.reduce		= nft_socket_reduce,
- };
- 
--- 
-2.30.2
-
+--
+steve@sbrecher.com (Steve Brecher)
