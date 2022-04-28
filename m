@@ -2,162 +2,46 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0FB8C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Apr 2022 10:13:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A74E2C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Apr 2022 14:15:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232406AbiD1KQy (ORCPT
+        id S1348220AbiD1OSi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 28 Apr 2022 06:16:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34676 "EHLO
+        Thu, 28 Apr 2022 10:18:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42908 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232559AbiD1KQ1 (ORCPT
+        with ESMTP id S230216AbiD1OSh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 Apr 2022 06:16:27 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 025C1B18B7
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Apr 2022 03:07:23 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1nk13R-00012j-MV; Thu, 28 Apr 2022 12:07:21 +0200
-Date:   Thu, 28 Apr 2022 12:07:21 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH iptables 7/7] nft: support for dynamic register allocation
-Message-ID: <YmpnWV3kBTSk5TvC@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20220424215613.106165-1-pablo@netfilter.org>
- <20220424215613.106165-8-pablo@netfilter.org>
- <YmgYkZE7hZFVL0D4@orbyte.nwl.cc>
- <Ymlt6QWWy4xUag2x@salvia>
+        Thu, 28 Apr 2022 10:18:37 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E021985673
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Apr 2022 07:15:22 -0700 (PDT)
+Date:   Thu, 28 Apr 2022 16:15:17 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org,
+        Topi Miettinen <toiwoton@gmail.com>
+Subject: Re: [PATCH v2 nf] netfilter: nft_socket: only do sk lookups when
+ indev is available
+Message-ID: <YmqhdQjqndZXVee8@salvia>
+References: <20220428073921.14483-1-fw@strlen.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <Ymlt6QWWy4xUag2x@salvia>
+In-Reply-To: <20220428073921.14483-1-fw@strlen.de>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Apr 27, 2022 at 06:23:05PM +0200, Pablo Neira Ayuso wrote:
-> On Tue, Apr 26, 2022 at 06:06:41PM +0200, Phil Sutter wrote:
-> > On Sun, Apr 24, 2022 at 11:56:13PM +0200, Pablo Neira Ayuso wrote:
-> [...]
-> > > +
-> > > +static int reg_space(int i)
-> > > +{
-> > > +	return sizeof(uint32_t) * 16 - sizeof(uint32_t) * i;
-> > > +}
-> > > +
-> > > +static void register_track(const struct nft_handle *h,
-> > > +			   struct nft_reg_ctx *ctx, int i, int len)
-> > > +{
-> > > +	if (ctx->reg >= 0 || h->regs[i].word || reg_space(i) < len)
-> > > +		return;
-> > 
-> > Since ctx->reg is not reset in callers' loops and reg_space(i) is
-> > monotonic, maybe make those loop exit conditions by returning false from
-> > register_track() in those cases?
+On Thu, Apr 28, 2022 at 09:39:21AM +0200, Florian Westphal wrote:
+> Check if the incoming interface is available and NFT_BREAK
+> in case neither skb->sk nor input device are set.
 > 
-> you mean:
+> Because nf_sk_lookup_slow*() assume packet headers are in the
+> 'in' direction, use in postrouting is not going to yield a meaningful
+> result.  Same is true for the forward chain, so restrict the use
+> to prerouting, input and output.
 > 
->         if (!register_track(...))
->                 continue;
-> 
-> ?
-> 
-> That defeats the check for a matching register already storing the
-> data I need, ie.
-> 
->         if (h->regs[i].type != NFT_REG_META)
->                 continue;
->         ...
+> Use in output work if a socket is already attached to the skb.
 
-Oh, indeed! It still holds for the 'reg_space(i) < len' case but it's
-a corner case and not worth it.
-
-> > > +	if (h->regs[i].type == NFT_REG_UNSPEC) {
-> > > +		ctx->genid = h->reg_genid;
-> > 
-> > Is ctx->genid used in this case?
-> 
-> It used to shortcircuit the logic to evict a register (no eviction
-> needed case), but that is not needed anymore since ctx->reg >= 0
-> already prevents this.
-> 
-> > > +		ctx->reg = i;
-> > > +	} else if (h->regs[i].genid < ctx->genid) {
-> > > +		ctx->genid = h->regs[i].genid;
-> > > +		ctx->evict = i;
-> > 
-> > What if the oldest reg is too small?
-> 
-> The reg_space(i) < len check prevents this?
-
-Ah, I missed the fact that consecutive regs are simply overwritten in
-the evict case. What I had in mind was something like this:
-
-reg#	genid	size
---------------------
-0	6	4
-1	5	16
-2	4	4
-3	3	4
-4	2	4
-5	1	4
-
-If that's all the space there is and we want to store 16 bytes, the
-algorithm would evict reg2 and all the following while it could just
-evict reg1 and preserve the others. I just realize this is the
-optimization you're talking about here:
-
-> > > +	} else if (h->regs[i].len == len) {
-> > > +		ctx->evict = i;
-> > > +		ctx->genid = 0;
-> > 
-> > Why prefer regs of same size over older ones?
-> 
-> this was an early optimization. An Ipv6 address might evict up four
-> registers, if n stores old data, then n+1, n+2, n+3 store recent data,
-> n+1, n+2, n+3 would be unfairly evicted.
-> 
-> I can remove this case: it is probably an early optimization. This is
-> the initial version of the dynamic register allocation infra. It
-> should be possible to catch for more suboptimal situations with real
-> rulesets, by incrementally reviewing generated bytecode.
-
-Sounds reasonable. I think there are more pitfalls regarding suboptimal
-register choice in NFT_REG_UNSPEC case as it doesn't consider available
-space either.
-
-Anyway, the size consideration being done only for regs with same genid
-as the last one being chosen for eviction seems wrong. Preferring a same
-sized reg over older ones does not seem ideal to me, either. What do you
-think about this:
-
-| static void register_track(const struct nft_handle *h,
-|                            struct nft_reg_ctx *ctx, int i, int len)
-| {
-|         if (ctx->reg >= 0 || h->regs[i].word || reg_space(i) < len)
-|                 return;
-| 
-|         if (h->regs[i].type == NFT_REG_UNSPEC) {
-|                 ctx->reg = i;
-|         } else if (ctx->evict < 0 ||
-|                    h->regs[ctx->evict].len < len ||
-|                    (h->regs[i].len >= len &&
-|                     h->regs[i].genid < ctx->genid)) {
-|                 ctx->genid = h->regs[i].genid;
-|                 ctx->evict = i;
-|         }
-| }
-
-- If given register is free, use it and be done
-- If there's no candidate for eviction, mark it as such
-- If eviction candidate size is too small, prefer the current one
-  (regardless of size)
-- if both eviction candidate and current sizes are sufficient, prefer
-  the older one
-
-Cheers, Phil
+Applied to nf.git, thanks
