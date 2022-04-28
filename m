@@ -2,94 +2,83 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33426C433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Apr 2022 16:27:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0251C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Apr 2022 17:00:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236230AbiD1QbG (ORCPT
+        id S233670AbiD1RDb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 28 Apr 2022 12:31:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46152 "EHLO
+        Thu, 28 Apr 2022 13:03:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51164 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236309AbiD1QbF (ORCPT
+        with ESMTP id S1350450AbiD1RD3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 Apr 2022 12:31:05 -0400
-Received: from wout1-smtp.messagingengine.com (wout1-smtp.messagingengine.com [64.147.123.24])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84701AAE1B
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Apr 2022 09:27:50 -0700 (PDT)
-Received: from compute3.internal (compute3.nyi.internal [10.202.2.43])
-        by mailout.west.internal (Postfix) with ESMTP id D7D153200905;
-        Thu, 28 Apr 2022 12:27:49 -0400 (EDT)
-Received: from mailfrontend1 ([10.202.2.162])
-  by compute3.internal (MEProxy); Thu, 28 Apr 2022 12:27:50 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=sbrecher.com; h=
-        cc:cc:content-transfer-encoding:content-type:date:date:from:from
-        :in-reply-to:in-reply-to:message-id:mime-version:references
-        :reply-to:sender:subject:subject:to:to; s=fm1; t=1651163268; x=
-        1651249668; bh=NgCblYd4NLTYF1abXq5VNtB2Yv0EKYqs6qQsleNlAZ8=; b=j
-        gSfbZEcnyHR1I1lm6R8mFXIki+LTF7N/GWirm8zCDAYXJQrktOWlXfEKSjQBmjRN
-        nDzw+6MJ+fxqIbDejXpenH4lq0KiBBev2EkUsWgmpkcYOrabZRdhNE4siguJA6pk
-        K+fqB0ncX8j+4xdWXhRQ9kL2Wgr5bpjJMVNK66Y6Dj2HycXGkYaZt4CnP22O9NDH
-        lURDvOcoOn98+JDUD5NsIEXmOQV6S7KfuKqoSc1Oda6khmvAoDvJnZPpMrNCIz0p
-        j21U84nOMcMrH3XMvJZDY79ZK5uNtDRg8/peg7Ymkvze6ZQlLuNrpWccsEgigGlG
-        du+Ow83pi0JRYRFpbDVWg==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-transfer-encoding
-        :content-type:date:date:from:from:in-reply-to:in-reply-to
-        :message-id:mime-version:references:reply-to:sender:subject
-        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm1; t=1651163268; x=1651249668; bh=NgCblYd4NLTYF
-        1abXq5VNtB2Yv0EKYqs6qQsleNlAZ8=; b=xHjx2+iah2jppB4xTolw+nO9wjfHJ
-        hi14KlW4lbXrdT/WcX42YWAL3ldISvkj35Nj5ozV6WqCgmo1W+XSBZ5cElxfkRWs
-        TIrIuELy95JZB/MneDq+fQ0JJYMaFkazT2o2Q4LyfJDlAIkiQuGHLkM19vXkvm17
-        +9gp8dzoVTWG3FfucshfWTPwUXrNG92yJpJZI2xPaJyyrqSw82/bn+ramSojjQLL
-        bfUwAfukpFLr5rmrG7Z1ckxDAZmTbpds/oD/ZUIlLyM6n+kCOfx0uvhZLdRk7Q8Z
-        4ZGFFuuidmODlWzAWCM6Bz5FX4VQTZQXTaDjFiX7r9yPMbk+mweYwsk2A==
-X-ME-Sender: <xms:hMBqYpfNA07sFsRajQKOZ4Zb5g5_RvzDxM3uBBNQiKqMd_n6E0sIAw>
-    <xme:hMBqYnNPfmOJAJMQEVsMFh-AF9KyqSXyVY8NhjJed9nOOuQsgOQXOxVzvl72IUpoc
-    pKh8FzP7nuokqnqxxE>
-X-ME-Received: <xmr:hMBqYih-jccXBUe__Hnnhq4GVtUpkAMihd5JQW5x6hRNLU9e01k3nyX8SLUoRXwShTbFkjAO9CM6IcSboPPkGSmOs_HZppcO-Pc>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvfedrudejgddutddvucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepkfffgggfuffvvehfhfgjtgfgsehtjeertddtfeejnecuhfhrohhmpefuthgv
-    vhgvuceurhgvtghhvghruceoshhtvghvvgesshgsrhgvtghhvghrrdgtohhmqeenucggtf
-    frrghtthgvrhhnpeehveekheffgefhfeeiheeihfetueeuleevudejgfefledukeejgfei
-    tdevtefgheenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhroh
-    hmpehsthgvvhgvsehssghrvggthhgvrhdrtghomh
-X-ME-Proxy: <xmx:hMBqYi8TWlgidGoEYdYYwX68yCcLW8e6LMtuc8v_DjPUkk3vX15gNw>
-    <xmx:hMBqYlspLjnheNorTng7WN0S-FG0bAe_-VKMR0dPvZgHrr180dkusA>
-    <xmx:hMBqYhH6mVyiPgkmzP3u6MkssKVrCY8YXMNW0B3JkPfv__4JCDGuYw>
-    <xmx:hMBqYj04rdYnNLQR2-2COrvj7VYIix7FxeIU2Z6XbHNurSRzX03rmw>
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
- 28 Apr 2022 12:27:47 -0400 (EDT)
-Message-ID: <e8cc8710-488e-14fc-be89-10d562739595@sbrecher.com>
-Date:   Thu, 28 Apr 2022 09:27:46 -0700
+        Thu, 28 Apr 2022 13:03:29 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D653662F1;
+        Thu, 28 Apr 2022 10:00:13 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 742D6620F8;
+        Thu, 28 Apr 2022 17:00:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id C7BAEC385AA;
+        Thu, 28 Apr 2022 17:00:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1651165212;
+        bh=cCtrgjgusVEBkTAX3hK6ikV2bq1QG8oodSSC/P5hisk=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=B2PW4ThI1NgppRwHKqCPAqxOxFFF8XRwmU7tbhWcsQddTbpwo2vSRfKy58l7b2FpS
+         okgjPoPYPgDeF9IV2mMoZMA5C9EwiKnsUdylwTFZEf9NaHIT7pw5sR/8PCriUkuZZ2
+         /5TZWwimyW/UId8Hk91xUW1DTraAVR8IwMjof3OthgjcTV77V3rGbVYTa3hOc+jXKG
+         YQTuB3Q3slp9Pd4WQXQNU8NutqamG4NlcCkAvExvHIpEiqu+lBUAZAWOh/LcZ1opq6
+         ptBtixiLWUJ9I38J3qdoD/GDPTQ+ZhT/a6Z6DOXIw9P8VyDlfEJydCJzLJED+fRtdp
+         5Q81E99If21vA==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id A27ECF03840;
+        Thu, 28 Apr 2022 17:00:12 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
- Gecko/20100101 Thunderbird/91.8.0
-Subject: Re: Minor issue in iptables(8) man page
-Content-Language: en-US
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-References: <f7f0656d-4634-caad-c562-3121756f5afb@sbrecher.com>
- <20220428161246.GG9849@breakpoint.cc>
-From:   Steve Brecher <steve@sbrecher.com>
-In-Reply-To: <20220428161246.GG9849@breakpoint.cc>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/3] netfilter: nf_conntrack_tcp: re-init for syn packets
+ only
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <165116521266.24173.17359123747982099697.git-patchwork-notify@kernel.org>
+Date:   Thu, 28 Apr 2022 17:00:12 +0000
+References: <20220428142109.38726-2-pablo@netfilter.org>
+In-Reply-To: <20220428142109.38726-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Ah, sorry! New rule for me: never trust a man page on the web. I see, based 
-on an actual implementation, that we're up to (at least) *five*.
+Hello:
 
-Florian Westphal wrote on 2022/04/28 09:12 AM:
-> Steve Brecher <steve@sbrecher.com> wrote:
->> Hi,
->>
->> The 4th section of the page, Tables, begins, "There are currently three
->> independent tables ..." but lists four tables (filter, nat, mangle, and
->> raw).
+This series was applied to netdev/net.git (master)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
+
+On Thu, 28 Apr 2022 16:21:07 +0200 you wrote:
+> From: Florian Westphal <fw@strlen.de>
 > 
-> Update :-)  This was fixed in 2013.
+> Jaco Kroon reported tcp problems that Eric Dumazet and Neal Cardwell
+> pinpointed to nf_conntrack tcp_in_window() bug.
+> 
+> tcp trace shows following sequence:
+> 
+> [...]
+
+Here is the summary with links:
+  - [net,1/3] netfilter: nf_conntrack_tcp: re-init for syn packets only
+    https://git.kernel.org/netdev/net/c/c7aab4f17021
+  - [net,2/3] netfilter: conntrack: fix udp offload timeout sysctl
+    https://git.kernel.org/netdev/net/c/626873c446f7
+  - [net,3/3] netfilter: nft_socket: only do sk lookups when indev is available
+    https://git.kernel.org/netdev/net/c/743b83f15d40
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
