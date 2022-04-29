@@ -2,83 +2,107 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0251C433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Apr 2022 17:00:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EF46C433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Apr 2022 11:14:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233670AbiD1RDb (ORCPT
+        id S1351132AbiD2LRv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 28 Apr 2022 13:03:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51164 "EHLO
+        Fri, 29 Apr 2022 07:17:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39350 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1350450AbiD1RD3 (ORCPT
+        with ESMTP id S1358155AbiD2LRq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 Apr 2022 13:03:29 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D653662F1;
-        Thu, 28 Apr 2022 10:00:13 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 742D6620F8;
-        Thu, 28 Apr 2022 17:00:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id C7BAEC385AA;
-        Thu, 28 Apr 2022 17:00:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1651165212;
-        bh=cCtrgjgusVEBkTAX3hK6ikV2bq1QG8oodSSC/P5hisk=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=B2PW4ThI1NgppRwHKqCPAqxOxFFF8XRwmU7tbhWcsQddTbpwo2vSRfKy58l7b2FpS
-         okgjPoPYPgDeF9IV2mMoZMA5C9EwiKnsUdylwTFZEf9NaHIT7pw5sR/8PCriUkuZZ2
-         /5TZWwimyW/UId8Hk91xUW1DTraAVR8IwMjof3OthgjcTV77V3rGbVYTa3hOc+jXKG
-         YQTuB3Q3slp9Pd4WQXQNU8NutqamG4NlcCkAvExvHIpEiqu+lBUAZAWOh/LcZ1opq6
-         ptBtixiLWUJ9I38J3qdoD/GDPTQ+ZhT/a6Z6DOXIw9P8VyDlfEJydCJzLJED+fRtdp
-         5Q81E99If21vA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id A27ECF03840;
-        Thu, 28 Apr 2022 17:00:12 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/3] netfilter: nf_conntrack_tcp: re-init for syn packets
- only
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <165116521266.24173.17359123747982099697.git-patchwork-notify@kernel.org>
-Date:   Thu, 28 Apr 2022 17:00:12 +0000
-References: <20220428142109.38726-2-pablo@netfilter.org>
-In-Reply-To: <20220428142109.38726-2-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org
+        Fri, 29 Apr 2022 07:17:46 -0400
+Received: from chinatelecom.cn (prt-mail.chinatelecom.cn [42.123.76.226])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C5125C6177
+        for <netfilter-devel@vger.kernel.org>; Fri, 29 Apr 2022 04:14:26 -0700 (PDT)
+HMM_SOURCE_IP: 172.18.0.188:45792.1794189647
+HMM_ATTACHE_NUM: 0000
+HMM_SOURCE_TYPE: SMTP
+Received: from clientip-101.229.163.227 (unknown [172.18.0.188])
+        by chinatelecom.cn (HERMES) with SMTP id 12354280221;
+        Fri, 29 Apr 2022 19:14:21 +0800 (CST)
+X-189-SAVE-TO-SEND: wenxu@chinatelecom.cn
+Received: from  ([172.18.0.188])
+        by app0023 with ESMTP id e03e7f9d05b245d5ab7b6dd22d77d378 for pablo@netfilter.org;
+        Fri, 29 Apr 2022 19:14:22 CST
+X-Transaction-ID: e03e7f9d05b245d5ab7b6dd22d77d378
+X-Real-From: wenxu@chinatelecom.cn
+X-Receive-IP: 172.18.0.188
+X-MEDUSA-Status: 0
+Sender: wenxu@chinatelecom.cn
+From:   wenxu@chinatelecom.cn
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next] selftests: netfilter: flowtable vlan filtering bridge support
+Date:   Fri, 29 Apr 2022 07:14:08 -0400
+Message-Id: <1651230848-14402-1-git-send-email-wenxu@chinatelecom.cn>
+X-Mailer: git-send-email 1.8.3.1
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+From: wenxu <wenxu@chinatelecom.cn>
 
-This series was applied to netdev/net.git (master)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+Add vlan_filtering enabled bridge and vlan case.
+Add a vlan_filtering bridge device to the Router1 (nsr1) container
+and attach the veth0 device to the bridge. Set the IP address to
+the bridge device to exercise the bridge forwarding path.
+The veth0 add in the vlan 10 domain and the br0 also add in the
+vlan 10 domain with untaged.
 
-On Thu, 28 Apr 2022 16:21:07 +0200 you wrote:
-> From: Florian Westphal <fw@strlen.de>
-> 
-> Jaco Kroon reported tcp problems that Eric Dumazet and Neal Cardwell
-> pinpointed to nf_conntrack tcp_in_window() bug.
-> 
-> tcp trace shows following sequence:
-> 
-> [...]
+Signed-off-by: wenxu <wenxu@chinatelecom.cn>
+---
+ tools/testing/selftests/netfilter/nft_flowtable.sh | 25 ++++++++++++++++++++--
+ 1 file changed, 23 insertions(+), 2 deletions(-)
 
-Here is the summary with links:
-  - [net,1/3] netfilter: nf_conntrack_tcp: re-init for syn packets only
-    https://git.kernel.org/netdev/net/c/c7aab4f17021
-  - [net,2/3] netfilter: conntrack: fix udp offload timeout sysctl
-    https://git.kernel.org/netdev/net/c/626873c446f7
-  - [net,3/3] netfilter: nft_socket: only do sk lookups when indev is available
-    https://git.kernel.org/netdev/net/c/743b83f15d40
-
-You are awesome, thank you!
+diff --git a/tools/testing/selftests/netfilter/nft_flowtable.sh b/tools/testing/selftests/netfilter/nft_flowtable.sh
+index d4ffebb..5882982 100755
+--- a/tools/testing/selftests/netfilter/nft_flowtable.sh
++++ b/tools/testing/selftests/netfilter/nft_flowtable.sh
+@@ -37,6 +37,7 @@ checktool "nft --version" "run test without nft tool"
+ checktool "ip -Version" "run test without ip tool"
+ checktool "which nc" "run test without nc (netcat)"
+ checktool "ip netns add nsr1" "create net namespace"
++checktool "bridge -Version" "run test without bridge tool"
+ 
+ ip netns add ns1
+ ip netns add ns2
+@@ -431,12 +432,32 @@ else
+ 	ret=1
+ fi
+ 
+-# restore test topology (remove bridge and VLAN)
+-ip -net nsr1 link set veth0 nomaster
++# Another test:
++# Add vlan filtering bridge interface br0 to Router1, with NAT and VLAN.
++ip -net nsr1 link set veth0.10 nomaster
+ ip -net nsr1 link set veth0 down
+ ip -net nsr1 link set veth0.10 down
+ ip -net nsr1 link delete veth0.10 type vlan
+ ip -net nsr1 link delete br0 type bridge
++ip -net nsr1 link add name br0 type bridge vlan_filtering 1
++ip -net nsr1 link set up dev veth0
++ip -net nsr1 link set veth0 master br0
++ip -net nsr1 addr add 10.0.1.1/24 dev br0
++bridge -n nsr1 vlan add dev veth0 vid 10 pvid
++bridge -n nsr1 vlan add dev br0 vid 10 pvid untagged self
++
++if test_tcp_forwarding_nat ns1 ns2; then
++	echo "PASS: flow offloaded for ns1/ns2 with vlan filtering bridge NAT and VLAN"
++else
++	echo "FAIL: flow offload for ns1/ns2 with vlan filtering bridge NAT and VLAN" 1>&2
++	ip netns exec nsr1 nft list ruleset
++	ret=1
++fi
++
++# restore test topology (remove bridge and VLAN)
++ip -net nsr1 link set veth0 nomaster
++ip -net nsr1 link set veth0 down
++ip -net nsr1 link delete br0 type bridge
+ ip -net ns1 addr flush dev eth0.10
+ ip -net ns1 link set eth0.10 down
+ ip -net ns1 link set eth0 down
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+1.8.3.1
 
