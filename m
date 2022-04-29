@@ -2,107 +2,55 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EF46C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Apr 2022 11:14:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2C5AC433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Apr 2022 18:32:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351132AbiD2LRv (ORCPT
+        id S1378022AbiD2SgH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 29 Apr 2022 07:17:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39350 "EHLO
+        Fri, 29 Apr 2022 14:36:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48292 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1358155AbiD2LRq (ORCPT
+        with ESMTP id S237744AbiD2SgG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 29 Apr 2022 07:17:46 -0400
-Received: from chinatelecom.cn (prt-mail.chinatelecom.cn [42.123.76.226])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C5125C6177
-        for <netfilter-devel@vger.kernel.org>; Fri, 29 Apr 2022 04:14:26 -0700 (PDT)
-HMM_SOURCE_IP: 172.18.0.188:45792.1794189647
-HMM_ATTACHE_NUM: 0000
-HMM_SOURCE_TYPE: SMTP
-Received: from clientip-101.229.163.227 (unknown [172.18.0.188])
-        by chinatelecom.cn (HERMES) with SMTP id 12354280221;
-        Fri, 29 Apr 2022 19:14:21 +0800 (CST)
-X-189-SAVE-TO-SEND: wenxu@chinatelecom.cn
-Received: from  ([172.18.0.188])
-        by app0023 with ESMTP id e03e7f9d05b245d5ab7b6dd22d77d378 for pablo@netfilter.org;
-        Fri, 29 Apr 2022 19:14:22 CST
-X-Transaction-ID: e03e7f9d05b245d5ab7b6dd22d77d378
-X-Real-From: wenxu@chinatelecom.cn
-X-Receive-IP: 172.18.0.188
-X-MEDUSA-Status: 0
-Sender: wenxu@chinatelecom.cn
-From:   wenxu@chinatelecom.cn
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next] selftests: netfilter: flowtable vlan filtering bridge support
-Date:   Fri, 29 Apr 2022 07:14:08 -0400
-Message-Id: <1651230848-14402-1-git-send-email-wenxu@chinatelecom.cn>
-X-Mailer: git-send-email 1.8.3.1
+        Fri, 29 Apr 2022 14:36:06 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB23ED4C90
+        for <netfilter-devel@vger.kernel.org>; Fri, 29 Apr 2022 11:32:46 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1nkVQ4-0001se-Ex; Fri, 29 Apr 2022 20:32:44 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft 0/3] nftables: add support for wildcard interfaces
+Date:   Fri, 29 Apr 2022 20:32:36 +0200
+Message-Id: <20220429183239.5569-1-fw@strlen.de>
+X-Mailer: git-send-email 2.35.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: wenxu <wenxu@chinatelecom.cn>
+First patch is needed so kernel doesn't think end is before start,
+second patch allows to dump "x .foo*" correctly, without this
+nft tries to represent the start/end "name" with a range.
+This doesn't work well because end range uses \ff padding.
 
-Add vlan_filtering enabled bridge and vlan case.
-Add a vlan_filtering bridge device to the Router1 (nsr1) container
-and attach the veth0 device to the bridge. Set the IP address to
-the bridge device to exercise the bridge forwarding path.
-The veth0 add in the vlan 10 domain and the br0 also add in the
-vlan 10 domain with untaged.
+Patch 3 adds tests.
 
-Signed-off-by: wenxu <wenxu@chinatelecom.cn>
----
- tools/testing/selftests/netfilter/nft_flowtable.sh | 25 ++++++++++++++++++++--
- 1 file changed, 23 insertions(+), 2 deletions(-)
+Florian Westphal (3):
+  netlink: swap byteorder for host-endian concat data
+  segtree: add pretty-print support for wildcard strings in concatenated
+    sets
+  sets_with_ifnames: add test case for concatenated range
 
-diff --git a/tools/testing/selftests/netfilter/nft_flowtable.sh b/tools/testing/selftests/netfilter/nft_flowtable.sh
-index d4ffebb..5882982 100755
---- a/tools/testing/selftests/netfilter/nft_flowtable.sh
-+++ b/tools/testing/selftests/netfilter/nft_flowtable.sh
-@@ -37,6 +37,7 @@ checktool "nft --version" "run test without nft tool"
- checktool "ip -Version" "run test without ip tool"
- checktool "which nc" "run test without nc (netcat)"
- checktool "ip netns add nsr1" "create net namespace"
-+checktool "bridge -Version" "run test without bridge tool"
- 
- ip netns add ns1
- ip netns add ns2
-@@ -431,12 +432,32 @@ else
- 	ret=1
- fi
- 
--# restore test topology (remove bridge and VLAN)
--ip -net nsr1 link set veth0 nomaster
-+# Another test:
-+# Add vlan filtering bridge interface br0 to Router1, with NAT and VLAN.
-+ip -net nsr1 link set veth0.10 nomaster
- ip -net nsr1 link set veth0 down
- ip -net nsr1 link set veth0.10 down
- ip -net nsr1 link delete veth0.10 type vlan
- ip -net nsr1 link delete br0 type bridge
-+ip -net nsr1 link add name br0 type bridge vlan_filtering 1
-+ip -net nsr1 link set up dev veth0
-+ip -net nsr1 link set veth0 master br0
-+ip -net nsr1 addr add 10.0.1.1/24 dev br0
-+bridge -n nsr1 vlan add dev veth0 vid 10 pvid
-+bridge -n nsr1 vlan add dev br0 vid 10 pvid untagged self
-+
-+if test_tcp_forwarding_nat ns1 ns2; then
-+	echo "PASS: flow offloaded for ns1/ns2 with vlan filtering bridge NAT and VLAN"
-+else
-+	echo "FAIL: flow offload for ns1/ns2 with vlan filtering bridge NAT and VLAN" 1>&2
-+	ip netns exec nsr1 nft list ruleset
-+	ret=1
-+fi
-+
-+# restore test topology (remove bridge and VLAN)
-+ip -net nsr1 link set veth0 nomaster
-+ip -net nsr1 link set veth0 down
-+ip -net nsr1 link delete br0 type bridge
- ip -net ns1 addr flush dev eth0.10
- ip -net ns1 link set eth0.10 down
- ip -net ns1 link set eth0 down
+ src/netlink.c                                 |  4 +
+ src/segtree.c                                 | 38 +++++++-
+ .../sets/dumps/sets_with_ifnames.nft          | 25 ++++-
+ tests/shell/testcases/sets/sets_with_ifnames  | 93 ++++++++++++++-----
+ 4 files changed, 134 insertions(+), 26 deletions(-)
+
 -- 
-1.8.3.1
+2.35.1
 
