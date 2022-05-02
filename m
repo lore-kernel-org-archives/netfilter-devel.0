@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C3AFC433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 May 2022 11:07:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0524EC433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 May 2022 11:11:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231356AbiEBLLS (ORCPT
+        id S232050AbiEBLPM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 2 May 2022 07:11:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45906 "EHLO
+        Mon, 2 May 2022 07:15:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50686 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230421AbiEBLLR (ORCPT
+        with ESMTP id S1350043AbiEBLPB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 May 2022 07:11:17 -0400
+        Mon, 2 May 2022 07:15:01 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 798DA10FC0
-        for <netfilter-devel@vger.kernel.org>; Mon,  2 May 2022 04:07:48 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D4892BCB9
+        for <netfilter-devel@vger.kernel.org>; Mon,  2 May 2022 04:11:31 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH libnftnl] src: add dynamic register allocation infrastructure
-Date:   Mon,  2 May 2022 13:07:44 +0200
-Message-Id: <20220502110744.113720-1-pablo@netfilter.org>
+Subject: [PATCH iptables,v2] nft: support for dynamic register allocation
+Date:   Mon,  2 May 2022 13:11:28 +0200
+Message-Id: <20220502111128.113816-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -31,477 +31,508 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 Starting Linux kernel 5.18-rc, operations on registers that already
 contain the expected data are turned into noop.
 
-Track operation on registers to use the same register through
-nftnl_reg_get(). This patch introduces an LRU eviction strategy when all
-the registers are in used.
+Use libnftnl dynamic register allocation infrastructure to select
+the registers to be used for payload and meta expressions.
 
-nftnl_reg_get_scratch() is used to allocate a register as scratchpad
-area: no tracking is performed in this case, although register eviction
-might occur.
+Using samples/pktgen/pktgen_bench_xmit_mode_netif_receive.sh
+
+Benchmark #1: match on IPv6 address list
+
+ *raw
+ :PREROUTING DROP [9:2781]
+ :OUTPUT ACCEPT [0:0]
+ -A PREROUTING -d aaaa::bbbb -j DROP
+ [... 98 times same rule above to trigger mismatch ...]
+ -A PREROUTING -d fd00::1 -j DROP			# matching rule
+
+ iptables-legacy	798Mb
+ iptables-nft		801Mb (+0.37)
+
+Benchmark #2: match on layer 4 protocol + port list
+
+ *raw
+ :PREROUTING DROP [9:2781]
+ :OUTPUT ACCEPT [0:0]
+ -A PREROUTING -p tcp --dport 23 -j DROP
+ [... 98 times same rule above to trigger mismatch ...]
+ -A PREROUTING -p udp --dport 9 -j DROP 		# matching rule
+
+ iptables-legacy	648Mb
+ iptables-nft		892Mb (+37.65%)
+
+Benchmark #3: match on mark
+
+ *raw
+ :PREROUTING DROP [9:2781]
+ :OUTPUT ACCEPT [0:0]
+ -A PREROUTING -m mark --mark 100 -j DROP
+ [... 98 times same rule above to trigger mismatch ...]
+ -A PREROUTING -d 198.18.0.42/32 -j DROP		# matching rule
+
+ iptables-legacy	255Mb
+ iptables-nft		865Mb (+239.21%)
+
+In all of these cases above, iptables-nft generates netlink bytecode
+which uses the native expressions, ie. payload + cmp and meta + cmp.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/expr_ops.h           |   6 +
- include/internal.h           |   1 +
- include/libnftnl/Makefile.am |   1 +
- include/regs.h               |  32 ++++++
- src/Makefile.am              |   1 +
- src/expr/meta.c              |  44 +++++++
- src/expr/payload.c           |  31 +++++
- src/libnftnl.map             |   7 ++
- src/regs.c                   | 216 +++++++++++++++++++++++++++++++++++
- 9 files changed, 339 insertions(+)
- create mode 100644 include/regs.h
- create mode 100644 src/regs.c
+v2: now based on libnftnl.
 
-diff --git a/include/expr_ops.h b/include/expr_ops.h
-index 7a6aa23f9bd1..01f6fefd6f3a 100644
---- a/include/expr_ops.h
-+++ b/include/expr_ops.h
-@@ -7,6 +7,7 @@
- struct nlattr;
- struct nlmsghdr;
- struct nftnl_expr;
-+struct nftnl_reg;
- 
- struct expr_ops {
- 	const char *name;
-@@ -19,6 +20,11 @@ struct expr_ops {
- 	int 	(*parse)(struct nftnl_expr *e, struct nlattr *attr);
- 	void	(*build)(struct nlmsghdr *nlh, const struct nftnl_expr *e);
- 	int	(*snprintf)(char *buf, size_t len, uint32_t flags, const struct nftnl_expr *e);
-+	struct {
-+		int	(*len)(const struct nftnl_expr *e);
-+		bool	(*cmp)(const struct nftnl_reg *reg, const struct nftnl_expr *e);
-+		void	(*update)(struct nftnl_reg *reg, const struct nftnl_expr *e);
-+	} reg;
- };
- 
- struct expr_ops *nftnl_expr_ops_lookup(const char *name);
-diff --git a/include/internal.h b/include/internal.h
-index 1f96731589c0..9f88828f9039 100644
---- a/include/internal.h
-+++ b/include/internal.h
-@@ -12,5 +12,6 @@
- #include "expr.h"
- #include "expr_ops.h"
- #include "rule.h"
-+#include "regs.h"
- 
- #endif /* _LIBNFTNL_INTERNAL_H_ */
-diff --git a/include/libnftnl/Makefile.am b/include/libnftnl/Makefile.am
-index d846a574f438..186f758ab97e 100644
---- a/include/libnftnl/Makefile.am
-+++ b/include/libnftnl/Makefile.am
-@@ -3,6 +3,7 @@ pkginclude_HEADERS = batch.h		\
- 		     trace.h		\
- 		     chain.h		\
- 		     object.h		\
-+		     regs.h		\
- 		     rule.h		\
- 		     expr.h		\
- 		     set.h		\
-diff --git a/include/regs.h b/include/regs.h
-new file mode 100644
-index 000000000000..5312f607f692
---- /dev/null
-+++ b/include/regs.h
-@@ -0,0 +1,32 @@
-+#ifndef _LIBNFTNL_REGS_INTERNAL_H_
-+#define _LIBNFTNL_REGS_INTERNAL_H_
-+
-+enum nftnl_expr_type {
-+	NFT_EXPR_UNSPEC	= 0,
-+	NFT_EXPR_PAYLOAD,
-+	NFT_EXPR_META,
-+};
-+
-+struct nftnl_reg {
-+	enum nftnl_expr_type				type;
-+	uint32_t					len;
-+	uint64_t					genid;
-+	uint8_t						word;
-+	union {
-+		struct {
-+			enum nft_meta_keys		key;
-+		} meta;
-+		struct {
-+			enum nft_payload_bases		base;
-+			uint32_t			offset;
-+		} payload;
-+	};
-+};
-+
-+struct nftnl_regs {
-+	uint32_t		num_regs;
-+	struct nftnl_reg	*reg;
-+	uint64_t		genid;
-+};
-+
-+#endif
-diff --git a/src/Makefile.am b/src/Makefile.am
-index c3b0ab974bd2..2a26d24ce3e3 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -14,6 +14,7 @@ libnftnl_la_SOURCES = utils.c		\
- 		      trace.c		\
- 		      chain.c		\
- 		      object.c		\
-+		      regs.c		\
- 		      rule.c		\
- 		      set.c		\
- 		      set_elem.c	\
-diff --git a/src/expr/meta.c b/src/expr/meta.c
-index 34fbb9bb63c0..601248f3a710 100644
---- a/src/expr/meta.c
-+++ b/src/expr/meta.c
-@@ -14,6 +14,7 @@
- #include <string.h>
- #include <arpa/inet.h>
- #include <errno.h>
-+#include <net/if.h>
- #include <linux/netfilter/nf_tables.h>
- 
- #include "internal.h"
-@@ -132,6 +133,44 @@ nftnl_expr_meta_parse(struct nftnl_expr *e, struct nlattr *attr)
- 	return 0;
- }
- 
-+static int nftnl_meta_reg_len(const struct nftnl_expr *e)
-+{
-+	const struct nftnl_expr_meta *meta = nftnl_expr_data(e);
-+
-+	switch (meta->key) {
-+	case NFT_META_IIFNAME:
-+	case NFT_META_OIFNAME:
-+	case NFT_META_IIFKIND:
-+	case NFT_META_OIFKIND:
-+	case NFT_META_SDIFNAME:
-+	case NFT_META_BRI_IIFNAME:
-+	case NFT_META_BRI_OIFNAME:
-+		return IFNAMSIZ;
-+	case NFT_META_TIME_NS:
-+		return sizeof(uint64_t);
-+	default:
-+		break;
-+	}
-+
-+	return sizeof(uint32_t);
-+}
-+
-+static bool nftnl_meta_reg_cmp(const struct nftnl_reg *reg,
-+			       const struct nftnl_expr *e)
-+{
-+	const struct nftnl_expr_meta *meta = nftnl_expr_data(e);
-+
-+	return reg->meta.key == meta->key;
-+}
-+
-+static void nftnl_meta_reg_update(struct nftnl_reg *reg,
-+				  const struct nftnl_expr *e)
-+{
-+	const struct nftnl_expr_meta *meta = nftnl_expr_data(e);
-+
-+	reg->meta.key = meta->key;
-+}
-+
- static const char *meta_key2str_array[NFT_META_MAX] = {
- 	[NFT_META_LEN]		= "len",
- 	[NFT_META_PROTOCOL]	= "protocol",
-@@ -217,4 +256,9 @@ struct expr_ops expr_ops_meta = {
- 	.parse		= nftnl_expr_meta_parse,
- 	.build		= nftnl_expr_meta_build,
- 	.snprintf	= nftnl_expr_meta_snprintf,
-+	.reg		= {
-+		.len	= nftnl_meta_reg_len,
-+		.cmp	= nftnl_meta_reg_cmp,
-+		.update	= nftnl_meta_reg_update,
-+	},
- };
-diff --git a/src/expr/payload.c b/src/expr/payload.c
-index 82747ec8994f..8b41a9d06a26 100644
---- a/src/expr/payload.c
-+++ b/src/expr/payload.c
-@@ -203,6 +203,32 @@ nftnl_expr_payload_parse(struct nftnl_expr *e, struct nlattr *attr)
- 	return 0;
- }
- 
-+static int nftnl_payload_reg_len(const struct nftnl_expr *expr)
-+{
-+	const struct nftnl_expr_payload *payload = nftnl_expr_data(expr);
-+
-+	return payload->len;
-+}
-+
-+static bool nftnl_payload_reg_cmp(const struct nftnl_reg *reg,
-+				  const struct nftnl_expr *e)
-+{
-+	const struct nftnl_expr_payload *payload = nftnl_expr_data(e);
-+
-+	return reg->payload.base == payload->base &&
-+	       reg->payload.offset == payload->offset &&
-+	       reg->len >= payload->len;
-+}
-+
-+static void nftnl_payload_reg_update(struct nftnl_reg *reg,
-+				     const struct nftnl_expr *e)
-+{
-+	const struct nftnl_expr_payload *payload = nftnl_expr_data(e);
-+
-+	reg->payload.base = payload->base;
-+	reg->payload.offset = payload->offset;
-+}
-+
- static const char *base2str_array[NFT_PAYLOAD_INNER_HEADER + 1] = {
- 	[NFT_PAYLOAD_LL_HEADER]		= "link",
- 	[NFT_PAYLOAD_NETWORK_HEADER] 	= "network",
-@@ -260,4 +286,9 @@ struct expr_ops expr_ops_payload = {
- 	.parse		= nftnl_expr_payload_parse,
- 	.build		= nftnl_expr_payload_build,
- 	.snprintf	= nftnl_expr_payload_snprintf,
-+	.reg		= {
-+		.len	= nftnl_payload_reg_len,
-+		.cmp	= nftnl_payload_reg_cmp,
-+		.update	= nftnl_payload_reg_update,
-+	},
- };
-diff --git a/src/libnftnl.map b/src/libnftnl.map
-index ad8f2af060ae..3a85325216aa 100644
---- a/src/libnftnl.map
-+++ b/src/libnftnl.map
-@@ -387,3 +387,10 @@ LIBNFTNL_16 {
- LIBNFTNL_17 {
-   nftnl_set_elem_nlmsg_build;
- } LIBNFTNL_16;
-+
-+LIBNFTNL_18 {
-+  nftnl_regs_alloc;
-+  nftnl_regs_free;
-+  nftnl_reg_get;
-+  nftnl_reg_get_scratch;
-+} LIBNFTNL_17;
-diff --git a/src/regs.c b/src/regs.c
-new file mode 100644
-index 000000000000..ff4948521064
---- /dev/null
-+++ b/src/regs.c
-@@ -0,0 +1,216 @@
-+/*
-+ * (C) 2012-2022 by Pablo Neira Ayuso <pablo@netfilter.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+/* Funded through the NGI0 PET Fund established by NLnet (https://nlnet.nl)
-+ * with support from the European Commission's Next Generation Internet
-+ * programme.
-+ */
-+
-+#include <string.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <stdbool.h>
-+#include <errno.h>
-+#include <assert.h>
-+
+ iptables/nft-shared.c                         |  12 +-
+ iptables/nft.c                                |  37 +++-
+ iptables/nft.h                                |   2 +
+ .../nft-only/0009-needless-bitwise_0          | 180 +++++++++---------
+ 4 files changed, 127 insertions(+), 104 deletions(-)
+
+diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
+index 27e95c1ae4f3..49e0b05c4314 100644
+--- a/iptables/nft-shared.c
++++ b/iptables/nft-shared.c
+@@ -29,6 +29,7 @@
+ #include <libmnl/libmnl.h>
+ #include <libnftnl/rule.h>
+ #include <libnftnl/expr.h>
 +#include <libnftnl/regs.h>
+ 
+ #include "nft-shared.h"
+ #include "nft-bridge.h"
+@@ -50,8 +51,8 @@ void add_meta(struct nft_handle *h, struct nftnl_rule *r, uint32_t key,
+ 	if (expr == NULL)
+ 		return;
+ 
+-	reg = NFT_REG_1;
+ 	nftnl_expr_set_u32(expr, NFTNL_EXPR_META_KEY, key);
++	reg = nftnl_reg_get(h->regs, expr);
+ 	nftnl_expr_set_u32(expr, NFTNL_EXPR_META_DREG, reg);
+ 	nftnl_rule_add_expr(r, expr);
+ 
+@@ -68,11 +69,11 @@ void add_payload(struct nft_handle *h, struct nftnl_rule *r,
+ 	if (expr == NULL)
+ 		return;
+ 
+-	reg = NFT_REG_1;
+ 	nftnl_expr_set_u32(expr, NFTNL_EXPR_PAYLOAD_BASE, base);
+-	nftnl_expr_set_u32(expr, NFTNL_EXPR_PAYLOAD_DREG, reg);
+ 	nftnl_expr_set_u32(expr, NFTNL_EXPR_PAYLOAD_OFFSET, offset);
+ 	nftnl_expr_set_u32(expr, NFTNL_EXPR_PAYLOAD_LEN, len);
++	reg = nftnl_reg_get(h->regs, expr);
++	nftnl_expr_set_u32(expr, NFTNL_EXPR_PAYLOAD_DREG, reg);
+ 	nftnl_rule_add_expr(r, expr);
+ 
+ 	*dreg = reg;
+@@ -89,7 +90,7 @@ void add_bitwise_u16(struct nft_handle *h, struct nftnl_rule *r,
+ 	if (expr == NULL)
+ 		return;
+ 
+-	reg = NFT_REG_1;
++	reg = nftnl_reg_get_scratch(h->regs, sizeof(uint32_t));
+ 	nftnl_expr_set_u32(expr, NFTNL_EXPR_BITWISE_SREG, sreg);
+ 	nftnl_expr_set_u32(expr, NFTNL_EXPR_BITWISE_DREG, reg);
+ 	nftnl_expr_set_u32(expr, NFTNL_EXPR_BITWISE_LEN, sizeof(uint16_t));
+@@ -105,12 +106,13 @@ void add_bitwise(struct nft_handle *h, struct nftnl_rule *r,
+ {
+ 	struct nftnl_expr *expr;
+ 	uint32_t xor[4] = { 0 };
+-	uint8_t reg = *dreg;
++	uint8_t reg;
+ 
+ 	expr = nftnl_expr_alloc("bitwise");
+ 	if (expr == NULL)
+ 		return;
+ 
++	reg = nftnl_reg_get_scratch(h->regs, len);
+ 	nftnl_expr_set_u32(expr, NFTNL_EXPR_BITWISE_SREG, sreg);
+ 	nftnl_expr_set_u32(expr, NFTNL_EXPR_BITWISE_DREG, reg);
+ 	nftnl_expr_set_u32(expr, NFTNL_EXPR_BITWISE_LEN, len);
+diff --git a/iptables/nft.c b/iptables/nft.c
+index 07653ee1a3d6..3d2a6ee97769 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -49,6 +49,7 @@
+ #include <libnftnl/rule.h>
+ #include <libnftnl/expr.h>
+ #include <libnftnl/set.h>
++#include <libnftnl/regs.h>
+ #include <libnftnl/udata.h>
+ #include <libnftnl/batch.h>
+ 
+@@ -904,6 +905,12 @@ int nft_init(struct nft_handle *h, int family)
+ 	h->cache = &h->__cache[0];
+ 	h->family = family;
+ 
++	h->regs = nftnl_regs_alloc(16);
++	if (!h->regs) {
++		mnl_socket_close(h->nl);
++		return -1;
++	}
 +
-+#include "internal.h"
-+
-+EXPORT_SYMBOL(nftnl_regs_alloc);
-+struct nftnl_regs *nftnl_regs_alloc(uint32_t num_regs)
-+{
-+	struct nftnl_regs *regs;
-+
-+	if (num_regs < 16)
-+		num_regs = 16;
-+
-+	regs = calloc(1, sizeof(struct nftnl_regs));
-+	if (!regs)
+ 	INIT_LIST_HEAD(&h->obj_list);
+ 	INIT_LIST_HEAD(&h->err_list);
+ 	INIT_LIST_HEAD(&h->cmd_list);
+@@ -926,6 +933,7 @@ void nft_fini(struct nft_handle *h)
+ 		mnl_err_list_free(list_entry(pos, struct mnl_err, head));
+ 
+ 	nft_release_cache(h);
++	nftnl_regs_free(h->regs);
+ 	mnl_socket_close(h->nl);
+ }
+ 
+@@ -1109,11 +1117,17 @@ static struct nftnl_expr *
+ gen_payload(struct nft_handle *h, uint32_t base, uint32_t offset, uint32_t len,
+ 	    uint8_t *dreg)
+ {
+-	struct nftnl_expr *e;
++	struct nftnl_expr *e = nftnl_expr_alloc("payload");
+ 	uint8_t reg;
+ 
+-	reg = NFT_REG_1;
+-	e = __gen_payload(base, offset, len, reg);
++	if (!e)
 +		return NULL;
 +
-+	regs->reg = calloc(num_regs, sizeof(struct nftnl_reg));
-+	if (!regs->reg) {
-+		free(regs->reg);
-+		return NULL;
-+	}
++	nftnl_expr_set_u32(e, NFTNL_EXPR_PAYLOAD_BASE, base);
++	nftnl_expr_set_u32(e, NFTNL_EXPR_PAYLOAD_OFFSET, offset);
++	nftnl_expr_set_u32(e, NFTNL_EXPR_PAYLOAD_LEN, len);
++	reg = nftnl_reg_get(h->regs, e);
++	nftnl_expr_set_u32(e, NFTNL_EXPR_PAYLOAD_DREG, reg);
+ 	*dreg = reg;
+ 
+ 	return e;
+@@ -1157,10 +1171,10 @@ static int __add_nft_among(struct nft_handle *h, const char *table,
+ 		offsetof(struct iphdr, saddr),
+ 		offsetof(struct iphdr, daddr)
+ 	};
++	uint8_t reg, concat_len;
+ 	struct nftnl_expr *e;
+ 	struct nftnl_set *s;
+ 	uint32_t flags = 0;
+-	uint8_t reg;
+ 	int idx = 0;
+ 
+ 	if (ip) {
+@@ -1201,21 +1215,26 @@ static int __add_nft_among(struct nft_handle *h, const char *table,
+ 		nftnl_set_elem_add(s, elem);
+ 	}
+ 
+-	e = gen_payload(h, NFT_PAYLOAD_LL_HEADER,
+-			eth_addr_off[dst], ETH_ALEN, &reg);
++	concat_len = ETH_ALEN;
++	if (ip)
++		concat_len += sizeof(struct in_addr);
 +
-+	regs->num_regs = num_regs;
++	reg = nftnl_reg_get_scratch(h->regs, concat_len);
++	e = __gen_payload(NFT_PAYLOAD_LL_HEADER,
++			  eth_addr_off[dst], ETH_ALEN, reg);
+ 	if (!e)
+ 		return -ENOMEM;
+ 	nftnl_rule_add_expr(r, e);
+ 
+ 	if (ip) {
+-		e = gen_payload(h, NFT_PAYLOAD_NETWORK_HEADER, ip_addr_off[dst],
+-				sizeof(struct in_addr), &reg);
++		e = __gen_payload(NFT_PAYLOAD_NETWORK_HEADER, ip_addr_off[dst],
++				  sizeof(struct in_addr), reg + 2);
+ 		if (!e)
+ 			return -ENOMEM;
+ 		nftnl_rule_add_expr(r, e);
+ 	}
+ 
+-	reg = NFT_REG_1;
++	reg = nftnl_reg_get_scratch(h->regs, sizeof(uint32_t));
+ 	e = gen_lookup(reg, "__set%d", set_id, inv);
+ 	if (!e)
+ 		return -ENOMEM;
+diff --git a/iptables/nft.h b/iptables/nft.h
+index 68b0910c8e18..09214db961f3 100644
+--- a/iptables/nft.h
++++ b/iptables/nft.h
+@@ -111,6 +111,8 @@ struct nft_handle {
+ 	bool			cache_init;
+ 	int			verbose;
+ 
++	struct nftnl_regs	*regs;
 +
-+	return regs;
-+}
-+
-+EXPORT_SYMBOL(nftnl_regs_free);
-+void nftnl_regs_free(const struct nftnl_regs *regs)
-+{
-+	xfree(regs->reg);
-+	xfree(regs);
-+}
-+
-+static enum nftnl_expr_type nftnl_expr_type(const struct nftnl_expr *expr)
-+{
-+	if (!strcmp(expr->ops->name, "meta"))
-+		return NFT_EXPR_META;
-+	else if (!strcmp(expr->ops->name, "payload"))
-+		return NFT_EXPR_PAYLOAD;
-+
-+	assert(0);
-+	return NFT_EXPR_UNSPEC;
-+}
-+
-+static int nftnl_expr_reg_len(const struct nftnl_expr *expr)
-+{
-+	return expr->ops->reg.len(expr);
-+}
-+
-+static bool nftnl_expr_reg_cmp(const struct nftnl_regs *regs,
-+			       const struct nftnl_expr *expr, int i)
-+{
-+	if (regs->reg[i].type != nftnl_expr_type(expr))
-+		return false;
-+
-+	return expr->ops->reg.cmp(&regs->reg[i], expr);
-+}
-+
-+static void nft_expr_reg_update(struct nftnl_regs *regs,
-+				const struct nftnl_expr *expr, int i)
-+{
-+	return expr->ops->reg.update(&regs->reg[i], expr);
-+}
-+
-+
-+static int reg_space(int i)
-+{
-+	return sizeof(uint32_t) * 16 - sizeof(uint32_t) * i;
-+}
-+
-+struct nftnl_reg_ctx {
-+	uint64_t	genid;
-+	int		reg;
-+	int		evict;
-+};
-+
-+static void register_track(struct nftnl_reg_ctx *ctx,
-+			   const struct nftnl_regs *regs, int i, int len)
-+{
-+	if (ctx->reg >= 0 || regs->reg[i].word || reg_space(i) < len)
-+		return;
-+
-+	if (regs->reg[i].type == NFT_EXPR_UNSPEC) {
-+		ctx->genid = regs->genid;
-+		ctx->reg = i;
-+	} else if (regs->reg[i].genid < ctx->genid) {
-+		ctx->genid = regs->reg[i].genid;
-+		ctx->evict = i;
-+	}
-+}
-+
-+static void register_evict(struct nftnl_reg_ctx *ctx)
-+{
-+	if (ctx->reg < 0) {
-+		assert(ctx->evict >= 0);
-+		ctx->reg = ctx->evict;
-+	}
-+}
-+
-+static void __register_update(struct nftnl_regs *regs, uint8_t reg,
-+			      int type, uint32_t len, uint8_t word,
-+			      uint64_t genid, const struct nftnl_expr *expr)
-+{
-+	regs->reg[reg].type = type;
-+	regs->reg[reg].genid = genid;
-+	regs->reg[reg].len = len;
-+	regs->reg[reg].word = word;
-+	nft_expr_reg_update(regs, expr, reg);
-+}
-+
-+static void register_cancel(struct nftnl_reg_ctx *ctx, struct nftnl_regs *regs)
-+{
-+	int len = regs->reg[ctx->reg].len, i;
-+
-+	for (i = ctx->reg; len > 0; i++, len -= sizeof(uint32_t)) {
-+		regs->reg[i].type = NFT_EXPR_UNSPEC;
-+		regs->reg[i].word = 0;
-+	}
-+
-+	while (regs->reg[i].word != 0) {
-+		regs->reg[i].type = NFT_EXPR_UNSPEC;
-+		regs->reg[i].word = 0;
-+		i++;
-+	}
-+}
-+
-+static void register_update(struct nftnl_reg_ctx *ctx, struct nftnl_regs *regs,
-+			    int type, uint32_t len, uint64_t genid,
-+			    const struct nftnl_expr *expr)
-+{
-+	register_cancel(ctx, regs);
-+	__register_update(regs, ctx->reg, type, len, 0, genid, expr);
-+}
-+
-+static uint64_t reg_genid(struct nftnl_regs *regs)
-+{
-+	return ++regs->genid;
-+}
-+
-+EXPORT_SYMBOL(nftnl_reg_get);
-+uint32_t nftnl_reg_get(struct nftnl_regs *regs, const struct nftnl_expr *expr)
-+{
-+	struct nftnl_reg_ctx ctx = {
-+		.reg	= -1,
-+		.evict	= -1,
-+		.genid	= UINT64_MAX,
-+	};
-+	enum nftnl_expr_type type;
-+	uint64_t genid;
-+	int i, j, len;
-+
-+	type = nftnl_expr_type(expr);
-+	len = nftnl_expr_reg_len(expr);
-+
-+	for (i = 0; i < 16; i++) {
-+		register_track(&ctx, regs, i, len);
-+
-+		if (!nftnl_expr_reg_cmp(regs, expr, i))
-+			continue;
-+
-+		regs->reg[i].genid = reg_genid(regs);
-+		return i + NFT_REG32_00;
-+	}
-+
-+	register_evict(&ctx);
-+	genid = reg_genid(regs);
-+	register_update(&ctx, regs, type, len, genid, expr);
-+
-+	len -= sizeof(uint32_t);
-+	j = 1;
-+	for (i = ctx.reg + 1; len > 0; i++, len -= sizeof(uint32_t))
-+		__register_update(regs, i, type, len, j++, genid, expr);
-+
-+	return ctx.reg + NFT_REG32_00;
-+}
-+
-+EXPORT_SYMBOL(nftnl_reg_get_scratch);
-+uint32_t nftnl_reg_get_scratch(struct nftnl_regs *regs, uint32_t len)
-+{
-+	struct nftnl_reg_ctx ctx = {
-+		.reg	= -1,
-+		.evict	= -1,
-+		.genid	= UINT64_MAX,
-+	};
-+	int i;
-+
-+	for (i = 0; i < 16; i++)
-+		register_track(&ctx, regs, i, len);
-+
-+	register_evict(&ctx);
-+	register_cancel(&ctx, regs);
-+
-+	return ctx.reg + NFT_REG32_00;
-+}
+ 	/* meta data, for error reporting */
+ 	struct {
+ 		unsigned int	lineno;
+diff --git a/iptables/tests/shell/testcases/nft-only/0009-needless-bitwise_0 b/iptables/tests/shell/testcases/nft-only/0009-needless-bitwise_0
+index 41588a10863e..34987b239d35 100755
+--- a/iptables/tests/shell/testcases/nft-only/0009-needless-bitwise_0
++++ b/iptables/tests/shell/testcases/nft-only/0009-needless-bitwise_0
+@@ -64,8 +64,8 @@ ip filter OUTPUT 5 4
+ 
+ ip filter OUTPUT 6 5
+   [ payload load 4b @ network header + 16 => reg 1 ]
+-  [ bitwise reg 1 = ( reg 1 & 0xfcffffff ) ^ 0x00000000 ]
+-  [ cmp eq reg 1 0x0002010a ]
++  [ bitwise reg 9 = ( reg 1 & 0xfcffffff ) ^ 0x00000000 ]
++  [ cmp eq reg 9 0x0002010a ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ ip filter OUTPUT 7 6
+@@ -98,8 +98,8 @@ ip6 filter OUTPUT 5 4
+ 
+ ip6 filter OUTPUT 6 5
+   [ payload load 16b @ network header + 24 => reg 1 ]
+-  [ bitwise reg 1 = ( reg 1 & 0xffffffff 0xffffffff 0xffffffff 0xf0ffffff ) ^ 0x00000000 0x00000000 0x00000000 0x00000000 ]
+-  [ cmp eq reg 1 0xffc0edfe 0x020100ee 0x06050403 0x00090807 ]
++  [ bitwise reg 2 = ( reg 1 & 0xffffffff 0xffffffff 0xffffffff 0xf0ffffff ) ^ 0x00000000 0x00000000 0x00000000 0x00000000 ]
++  [ cmp eq reg 2 0xffc0edfe 0x020100ee 0x06050403 0x00090807 ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ ip6 filter OUTPUT 7 6
+@@ -148,155 +148,155 @@ ip6 filter OUTPUT 15 14
+ arp filter OUTPUT 3
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
+-  [ payload load 4b @ network header + 24 => reg 1 ]
+-  [ cmp eq reg 1 0x0302010a ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
++  [ payload load 4b @ network header + 24 => reg 11 ]
++  [ cmp eq reg 11 0x0302010a ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ arp filter OUTPUT 4 3
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
+-  [ payload load 4b @ network header + 24 => reg 1 ]
+-  [ cmp eq reg 1 0x0302010a ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
++  [ payload load 4b @ network header + 24 => reg 11 ]
++  [ cmp eq reg 11 0x0302010a ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ arp filter OUTPUT 5 4
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
+-  [ payload load 4b @ network header + 24 => reg 1 ]
+-  [ bitwise reg 1 = ( reg 1 & 0xfcffffff ) ^ 0x00000000 ]
+-  [ cmp eq reg 1 0x0002010a ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
++  [ payload load 4b @ network header + 24 => reg 11 ]
++  [ bitwise reg 2 = ( reg 11 & 0xfcffffff ) ^ 0x00000000 ]
++  [ cmp eq reg 2 0x0002010a ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ arp filter OUTPUT 6 5
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
+-  [ payload load 3b @ network header + 24 => reg 1 ]
+-  [ cmp eq reg 1 0x0002010a ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
++  [ payload load 3b @ network header + 24 => reg 11 ]
++  [ cmp eq reg 11 0x0002010a ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ arp filter OUTPUT 7 6
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
+-  [ payload load 2b @ network header + 24 => reg 1 ]
+-  [ cmp eq reg 1 0x0000010a ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
++  [ payload load 2b @ network header + 24 => reg 11 ]
++  [ cmp eq reg 11 0x0000010a ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ arp filter OUTPUT 8 7
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
+-  [ payload load 1b @ network header + 24 => reg 1 ]
+-  [ cmp eq reg 1 0x0000000a ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
++  [ payload load 1b @ network header + 24 => reg 11 ]
++  [ cmp eq reg 11 0x0000000a ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ arp filter OUTPUT 9 8
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ arp filter OUTPUT 10 9
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
+-  [ payload load 6b @ network header + 18 => reg 1 ]
+-  [ cmp eq reg 1 0xc000edfe 0x0000eeff ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
++  [ payload load 6b @ network header + 18 => reg 2 ]
++  [ cmp eq reg 2 0xc000edfe 0x0000eeff ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ arp filter OUTPUT 11 10
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
+-  [ payload load 6b @ network header + 18 => reg 1 ]
+-  [ bitwise reg 1 = ( reg 1 & 0xffffffff 0x0000f0ff ) ^ 0x00000000 0x00000000 ]
+-  [ cmp eq reg 1 0xc000edfe 0x0000e0ff ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
++  [ payload load 6b @ network header + 18 => reg 2 ]
++  [ bitwise reg 14 = ( reg 2 & 0xffffffff 0x0000f0ff ) ^ 0x00000000 0x00000000 ]
++  [ cmp eq reg 14 0xc000edfe 0x0000e0ff ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ arp filter OUTPUT 12 11
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
+-  [ payload load 5b @ network header + 18 => reg 1 ]
+-  [ cmp eq reg 1 0xc000edfe 0x000000ff ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
++  [ payload load 5b @ network header + 18 => reg 2 ]
++  [ cmp eq reg 2 0xc000edfe 0x000000ff ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ arp filter OUTPUT 13 12
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
+-  [ payload load 4b @ network header + 18 => reg 1 ]
+-  [ cmp eq reg 1 0xc000edfe ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
++  [ payload load 4b @ network header + 18 => reg 2 ]
++  [ cmp eq reg 2 0xc000edfe ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ arp filter OUTPUT 14 13
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
+-  [ payload load 3b @ network header + 18 => reg 1 ]
+-  [ cmp eq reg 1 0x0000edfe ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
++  [ payload load 3b @ network header + 18 => reg 2 ]
++  [ cmp eq reg 2 0x0000edfe ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ arp filter OUTPUT 15 14
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
+-  [ payload load 2b @ network header + 18 => reg 1 ]
+-  [ cmp eq reg 1 0x0000edfe ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
++  [ payload load 2b @ network header + 18 => reg 2 ]
++  [ cmp eq reg 2 0x0000edfe ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ arp filter OUTPUT 16 15
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ cmp eq reg 1 0x00000100 ]
+-  [ payload load 1b @ network header + 4 => reg 1 ]
+-  [ cmp eq reg 1 0x00000006 ]
+-  [ payload load 1b @ network header + 5 => reg 1 ]
+-  [ cmp eq reg 1 0x00000004 ]
+-  [ payload load 1b @ network header + 18 => reg 1 ]
+-  [ cmp eq reg 1 0x000000fe ]
++  [ payload load 1b @ network header + 4 => reg 9 ]
++  [ cmp eq reg 9 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 10 ]
++  [ cmp eq reg 10 0x00000004 ]
++  [ payload load 1b @ network header + 18 => reg 2 ]
++  [ cmp eq reg 2 0x000000fe ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ bridge filter OUTPUT 4
+@@ -306,8 +306,8 @@ bridge filter OUTPUT 4
+ 
+ bridge filter OUTPUT 5 4
+   [ payload load 6b @ link header + 0 => reg 1 ]
+-  [ bitwise reg 1 = ( reg 1 & 0xffffffff 0x0000f0ff ) ^ 0x00000000 0x00000000 ]
+-  [ cmp eq reg 1 0xc000edfe 0x0000e0ff ]
++  [ bitwise reg 10 = ( reg 1 & 0xffffffff 0x0000f0ff ) ^ 0x00000000 0x00000000 ]
++  [ cmp eq reg 10 0xc000edfe 0x0000e0ff ]
+   [ counter pkts 0 bytes 0 ]
+ 
+ bridge filter OUTPUT 6 5
 -- 
 2.30.2
 
