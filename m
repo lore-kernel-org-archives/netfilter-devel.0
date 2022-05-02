@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9DCAC433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 May 2022 14:42:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 764C7C433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 May 2022 15:31:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238193AbiEBOqK (ORCPT
+        id S1353125AbiEBPfY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 2 May 2022 10:46:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53578 "EHLO
+        Mon, 2 May 2022 11:35:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40944 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233988AbiEBOqK (ORCPT
+        with ESMTP id S1352619AbiEBPfY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 May 2022 10:46:10 -0400
+        Mon, 2 May 2022 11:35:24 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D625ADCA
-        for <netfilter-devel@vger.kernel.org>; Mon,  2 May 2022 07:42:39 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 5CE356340
+        for <netfilter-devel@vger.kernel.org>; Mon,  2 May 2022 08:31:54 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH libnftnl,v2] src: add dynamic register allocation infrastructure
-Date:   Mon,  2 May 2022 16:42:16 +0200
-Message-Id: <20220502144216.137780-1-pablo@netfilter.org>
+Subject: [PATCH libnftnl,v3] src: add dynamic register allocation infrastructure
+Date:   Mon,  2 May 2022 17:31:49 +0200
+Message-Id: <20220502153149.173228-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -41,7 +41,7 @@ might occur.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: fix buggy register cancel logic.
+v3: fix out-of-bound mem access to regs->reg[] in register_cancel()
 
  include/expr_ops.h           |   6 +
  include/internal.h           |   1 +
@@ -284,7 +284,7 @@ index ad8f2af060ae..3a85325216aa 100644
 +} LIBNFTNL_17;
 diff --git a/src/regs.c b/src/regs.c
 new file mode 100644
-index 000000000000..544ff816c4c0
+index 000000000000..d796117630f1
 --- /dev/null
 +++ b/src/regs.c
 @@ -0,0 +1,226 @@
@@ -440,7 +440,7 @@ index 000000000000..544ff816c4c0
 +		__register_cancel(regs, i);
 +	}
 +
-+	while (regs->reg[i].word != 0) {
++	while (i < regs->num_regs && regs->reg[i].word != 0) {
 +		__register_cancel(regs, i);
 +		i++;
 +	}
