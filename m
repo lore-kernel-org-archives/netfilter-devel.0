@@ -2,63 +2,64 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C09AC433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 May 2022 14:29:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01782C433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 May 2022 16:07:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237064AbiECOdL (ORCPT
+        id S239153AbiECQLU convert rfc822-to-8bit (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 3 May 2022 10:33:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59196 "EHLO
+        Tue, 3 May 2022 12:11:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52140 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234523AbiECOdK (ORCPT
+        with ESMTP id S239139AbiECQLT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 3 May 2022 10:33:10 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E18C231513
-        for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2022 07:29:37 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1nltWx-0005ik-Kv; Tue, 03 May 2022 16:29:35 +0200
-Date:   Tue, 3 May 2022 16:29:35 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH libnftnl,v3] src: add dynamic register allocation
- infrastructure
-Message-ID: <YnE8T8ppW0BpxSFv@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20220502153149.173228-1-pablo@netfilter.org>
+        Tue, 3 May 2022 12:11:19 -0400
+Received: from mail.77msk.ru (mail.77msk.ru [84.204.203.133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 2921025C6F
+        for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2022 09:07:47 -0700 (PDT)
+Received: from mail.77msk.ru (proxysrv.domain007.com [192.168.2.20])
+        by hermes.domain007.com (Postfix) with ESMTP id 509DCD5E888
+        for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2022 18:23:03 +0300 (MSK)
+Received: from asda.co.uk (unknown [20.97.211.134])
+        by gatekeeper.domain007.com (Postfix) with ESMTPSA id DFB7A3200A4
+        for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2022 18:23:02 +0300 (MSK)
+Reply-To: sales@asdaa.uk
+From:   ASDA Stores Limited <Hanes.Thomas44@asda.co.uk>
+To:     netfilter-devel@vger.kernel.org
+Subject: ASDA Procurement order
+Date:   03 May 2022 15:23:01 +0000
+Message-ID: <20220503141530.03CEF539D560A1EF@asda.co.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220502153149.173228-1-pablo@netfilter.org>
+Content-Type: text/plain;
+        charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+X-Virus-Scanned: clamav-milter 0.102.4 at hermes
+X-Virus-Status: Clean
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+Dear netfilter-devel
 
-On Mon, May 02, 2022 at 05:31:49PM +0200, Pablo Neira Ayuso wrote:
-> Starting Linux kernel 5.18-rc, operations on registers that already
-> contain the expected data are turned into noop.
-> 
-> Track operation on registers to use the same register through
-> nftnl_reg_get(). This patch introduces an LRU eviction strategy when all
-> the registers are in used.
-> 
-> nftnl_reg_get_scratch() is used to allocate a register as scratchpad
-> area: no tracking is performed in this case, although register eviction
-> might occur.
-> 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-
-This relies upon calling nftnl_reg_get() for supported expressions (meta
-and payload) only, right?
-
-Apart from that:
-
-Acked-by: Phil Sutter <phil@nwl.cc>
-
-Thanks, Phil
+We are interested in having some of your hot selling product in 
+our stores and outlets spread all over United Kingdom, Northern 
+Island and Africa. ASDA Stores Limited is one of the highest-
+ranking Wholesale & Retail outlets in the United Kingdom. 
+  
+We shall furnish our detailed company profile in our next 
+correspondent. However, it would be appreciated if you can send 
+us your catalog through email to learn more about your company's 
+products and wholesale quote. It is hopeful that we can start a 
+viable long-lasting business relationship (partnership) with you.  
+  
+  
+Your prompt response would be delightfully appreciated. 
+  
+Best Wishes 
+  
+  
+Hanes S. Thomas 
+Procurement Office. 
+ASDA Stores Limited 
+Tel:  + 44 - 7451271650 
+WhatsApp: + 44 – 7441440360 
+Website: www.asda.co.uk
