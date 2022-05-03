@@ -2,160 +2,164 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EC41C433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 May 2022 16:29:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88C24C433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 May 2022 21:52:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239587AbiECQdA (ORCPT
+        id S234537AbiECV4Y (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 3 May 2022 12:33:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46594 "EHLO
+        Tue, 3 May 2022 17:56:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41250 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238949AbiECQc7 (ORCPT
+        with ESMTP id S230021AbiECV4W (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 3 May 2022 12:32:59 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0314435A9B;
-        Tue,  3 May 2022 09:29:27 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 99CE16170F;
-        Tue,  3 May 2022 16:29:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0D88C385A9;
-        Tue,  3 May 2022 16:29:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1651595366;
-        bh=viFM4mh/Ezbm3iuW18ly6fZxpFHVtOopDssABTfamuA=;
-        h=From:To:Cc:Subject:Date:From;
-        b=n0sAsNsIFEZYCBOWbUzrrpqt8BQppIWjx+s49bgSRD/y4O91L4yjM7p8qnKI4NwGx
-         P0jwz7IuL2Dns1vtILbs4WESk/vDoD2hCGcM3pNbmDKpwuYiuly+FWjeUFcxtuHE08
-         xfBTHs6qJOgHqoNZixk3l9HP6tgplBflZM6f3uqr2jQNGwUmY9UtDtL3YwdnOh9Q2c
-         aDrQMq2A9DCdz3ONPKqXcWnQWuyDrSjnEpjP2RaowDEE21VUoi9xLtM1gNoj/WT7we
-         0p+NK/qOwX5FSOvHqxVYHrSn6HsT76A69RmBbAwBaMtFTwgJwlzdKa6jSvSSW0HhuD
-         A6Asp8tqrmR9g==
-From:   Lorenzo Bianconi <lorenzo@kernel.org>
-To:     bpf@vger.kernel.org
-Cc:     netdev@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
-        andrii@kernel.org, davem@davemloft.net, kuba@kernel.org,
-        pabeni@redhat.com, pablo@netfilter.org, fw@strlen.de,
-        netfilter-devel@vger.kernel.org, lorenzo.bianconi@redhat.com,
-        brouer@redhat.com, toke@redhat.com, memxor@gmail.com
-Subject: [PATCH bpf-next] net: netfilter: add kfunc helper to update ct timeout
-Date:   Tue,  3 May 2022 18:29:14 +0200
-Message-Id: <1327f8f5696ff2bc60400e8f3b79047914ccc837.1651595019.git.lorenzo@kernel.org>
-X-Mailer: git-send-email 2.35.1
+        Tue, 3 May 2022 17:56:22 -0400
+Received: from mail-pg1-x533.google.com (mail-pg1-x533.google.com [IPv6:2607:f8b0:4864:20::533])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 627523A731
+        for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2022 14:52:48 -0700 (PDT)
+Received: by mail-pg1-x533.google.com with SMTP id q76so11973984pgq.10
+        for <netfilter-devel@vger.kernel.org>; Tue, 03 May 2022 14:52:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=0y39QTxVkxEvhd0aRDakleJkJCfhBIdtoYr0OZYCOQA=;
+        b=jEACdNcU+SBJrsIO9PJUWqcM+ywrbzAYxey+poVeB5X7v3yUvQuTv+EqOSFrh5m8/r
+         xC7vokjaKxoUBgxv2Qq7sMkbHrJexpH9MY+8IZyqx9e4OtdBhMDd1qP5nD1NxlSB/tbi
+         bP+g4sj0APiU7ohbGLAuBanPxtiMW004Z+420CiSLrTl+wv4Wxv/0Ovs1ELSv3nsT1ZO
+         UyZXVqbfI/dpr0LMebWq9RK4EGRvHxY1DKyNqTKeMgkm8C3qAsg//dMW9t4y6jM/RxkF
+         S/nddT5pFF73YrGLOuzcqnyn1VcXdEYmfuC2ZTtHuefathO/azReHycVsYojk8cuQZM8
+         gAyQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=0y39QTxVkxEvhd0aRDakleJkJCfhBIdtoYr0OZYCOQA=;
+        b=0VLaYnIT4Nq5jdbl1MGzHtem2C7Hdy+uTdOnaTwyW2fXEp+Q+nc9BP2Mqa9OgSZUcr
+         n8hvfhGzxteLHJhmYDvy8n/VUsBG/2bGrCiOLQEDDwZH1F8GRk9d2nM6uvMCyLylgW8b
+         vwncNHS1HdKnTDU5L24wXZcURMXxw8IiGUNjMlW/Q2cWaWvWey/Xcx9il4obCARl0FWc
+         k93NQ6R+JfG2fOjQBw358421N7/CXNx+GtCNJBGNg2EHHTbsvNs1tfdnxg/UIoR0OIF9
+         AVMzmovy3vo8V4ujCiNlTEicfOIMYcqiIm4vzBsBGBMuWUMI8ZBC0fsuqy2Og3eMmt5w
+         lW/A==
+X-Gm-Message-State: AOAM5307HWrGGpXyP0NfZ9UJ5/MqiYx2ZD10O9SEwBIJ6vGLtr/CdJ9o
+        CJX9fDRilo2CYAA0w5+8PECNMjbbcTg=
+X-Google-Smtp-Source: ABdhPJyutv2tmry75ImZkSpZrN/mVEuo5bTOpJEnyE59BLLlxAJn/r/NwD+fNy6841ibYZ1qDQznWQ==
+X-Received: by 2002:a63:34cd:0:b0:3ab:a3e8:7b48 with SMTP id b196-20020a6334cd000000b003aba3e87b48mr15635880pga.524.1651614767504;
+        Tue, 03 May 2022 14:52:47 -0700 (PDT)
+Received: from tuc-a02.vmware.com.com (c-67-160-105-174.hsd1.wa.comcast.net. [67.160.105.174])
+        by smtp.gmail.com with ESMTPSA id x186-20020a6363c3000000b003c14af505f6sm13211523pgb.14.2022.05.03.14.52.46
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 03 May 2022 14:52:46 -0700 (PDT)
+From:   William Tu <u9012063@gmail.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     fw@strlen.de, Yifeng Sun <pkusunyifeng@gmail.com>,
+        Greg Rose <gvrose8192@gmail.com>
+Subject: [PATCH] netfilter: nf_conncount: reduce unnecessary GC
+Date:   Tue,  3 May 2022 14:52:37 -0700
+Message-Id: <20220503215237.98485-1-u9012063@gmail.com>
+X-Mailer: git-send-email 2.30.1 (Apple Git-130)
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Introduce bpf_ct_refresh_timeout kfunc helper in order to update time
-nf_conn lifetime. Move timeout update logic in nf_ct_refresh_timeout
-utility routine.
+Currently nf_conncount can trigger garbage collection (GC)
+at multiple places. Each GC process takes a spin_lock_bh
+to traverse the nf_conncount_list. We found that when testing
+port scanning use two parallel nmap, because the number of
+connection increase fast, the nf_conncount_count and its
+subsequent call to __nf_conncount_add take too much time,
+causing several CPU lockup. This happens when user set the
+conntrack limit to +20,000, because the larger the limit,
+the longer the list that GC has to traverse.
 
-Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+The patch mitigate the performance issue by avoiding unnecessary
+GC with a timestamp. Whenever nf_conncount has done a GC,
+a timestamp is updated, and beforce the next time GC is
+triggered, we make sure it's more than a jiffies.
+By doin this we can greatly reduce the CPU cycles and
+avoid the softirq lockup.
+
+To reproduce it in OVS,
+$ ovs-appctl dpctl/ct-set-limits zone=1,limit=20000
+$ ovs-appctl dpctl/ct-get-limits
+
+At another machine, runs two nmap
+$ nmap -p1- <IP>
+$ nmap -p1- <IP>
+
+Signed-off-by: William Tu <u9012063@gmail.com>
+Co-authored-by: Yifeng Sun <pkusunyifeng@gmail.com>
+Reported-by: Greg Rose <gvrose8192@gmail.com>
+Suggested-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_conntrack.h |  1 +
- net/netfilter/nf_conntrack_bpf.c     | 20 ++++++++++++++++++++
- net/netfilter/nf_conntrack_core.c    | 21 +++++++++++++--------
- 3 files changed, 34 insertions(+), 8 deletions(-)
+ include/net/netfilter/nf_conntrack_count.h |  1 +
+ net/netfilter/nf_conncount.c               | 12 ++++++++++++
+ 2 files changed, 13 insertions(+)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 69e6c6a218be..02b7115b92d0 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -205,6 +205,7 @@ bool nf_ct_get_tuplepr(const struct sk_buff *skb, unsigned int nhoff,
- 		       u_int16_t l3num, struct net *net,
- 		       struct nf_conntrack_tuple *tuple);
+diff --git a/include/net/netfilter/nf_conntrack_count.h b/include/net/netfilter/nf_conntrack_count.h
+index 9645b47fa7e4..f39070d3e17f 100644
+--- a/include/net/netfilter/nf_conntrack_count.h
++++ b/include/net/netfilter/nf_conntrack_count.h
+@@ -12,6 +12,7 @@ struct nf_conncount_list {
+ 	spinlock_t list_lock;
+ 	struct list_head head;	/* connections with the same filtering key */
+ 	unsigned int count;	/* length of list */
++	unsigned long last_gc;	/* jiffies at most recent gc */
+ };
  
-+void nf_ct_refresh_timeout(struct nf_conn *ct, u32 extra_jiffies);
- void __nf_ct_refresh_acct(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
- 			  const struct sk_buff *skb,
- 			  u32 extra_jiffies, bool do_acct);
-diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrack_bpf.c
-index bc4d5cd63a94..d6dcadf0e016 100644
---- a/net/netfilter/nf_conntrack_bpf.c
-+++ b/net/netfilter/nf_conntrack_bpf.c
-@@ -217,16 +217,36 @@ void bpf_ct_release(struct nf_conn *nfct)
- 	nf_ct_put(nfct);
+ struct nf_conncount_data *nf_conncount_init(struct net *net, unsigned int family,
+diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
+index 82f36beb2e76..6480711ecd44 100644
+--- a/net/netfilter/nf_conncount.c
++++ b/net/netfilter/nf_conncount.c
+@@ -134,6 +134,9 @@ static int __nf_conncount_add(struct net *net,
+ 
+ 	/* check the saved connections */
+ 	list_for_each_entry_safe(conn, conn_n, &list->head, node) {
++		if (time_after_eq(list->last_gc, jiffies))
++			break;
++
+ 		if (collect > CONNCOUNT_GC_MAX_NODES)
+ 			break;
+ 
+@@ -190,6 +193,7 @@ static int __nf_conncount_add(struct net *net,
+ 	conn->jiffies32 = (u32)jiffies;
+ 	list_add_tail(&conn->node, &list->head);
+ 	list->count++;
++	list->last_gc = jiffies;
+ 	return 0;
  }
  
-+/* bpf_ct_refresh_timeout - Refresh nf_conn object
-+ *
-+ * Refresh timeout associated to the provided connection tracking entry.
-+ * This must be invoked for referenced PTR_TO_BTF_ID.
-+ *
-+ * Parameters:
-+ * @nf_conn      - Pointer to referenced nf_conn object, obtained using
-+ *		   bpf_xdp_ct_lookup or bpf_skb_ct_lookup.
-+ * @timeout      - delta time in msecs used to increase the ct entry lifetime.
-+ */
-+void bpf_ct_refresh_timeout(struct nf_conn *nfct, u32 timeout)
-+{
-+	if (!nfct)
-+		return;
-+
-+	nf_ct_refresh_timeout(nfct, msecs_to_jiffies(timeout));
-+}
-+
- __diag_pop()
- 
- BTF_SET_START(nf_ct_xdp_check_kfunc_ids)
- BTF_ID(func, bpf_xdp_ct_lookup)
- BTF_ID(func, bpf_ct_release)
-+BTF_ID(func, bpf_ct_refresh_timeout);
- BTF_SET_END(nf_ct_xdp_check_kfunc_ids)
- 
- BTF_SET_START(nf_ct_tc_check_kfunc_ids)
- BTF_ID(func, bpf_skb_ct_lookup)
- BTF_ID(func, bpf_ct_release)
-+BTF_ID(func, bpf_ct_refresh_timeout);
- BTF_SET_END(nf_ct_tc_check_kfunc_ids)
- 
- BTF_SET_START(nf_ct_acquire_kfunc_ids)
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 0164e5f522e8..f43e743728bd 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -2030,16 +2030,11 @@ void nf_conntrack_alter_reply(struct nf_conn *ct,
+@@ -214,6 +218,7 @@ void nf_conncount_list_init(struct nf_conncount_list *list)
+ 	spin_lock_init(&list->list_lock);
+ 	INIT_LIST_HEAD(&list->head);
+ 	list->count = 0;
++	list->last_gc = jiffies;
  }
- EXPORT_SYMBOL_GPL(nf_conntrack_alter_reply);
+ EXPORT_SYMBOL_GPL(nf_conncount_list_init);
  
--/* Refresh conntrack for this many jiffies and do accounting if do_acct is 1 */
--void __nf_ct_refresh_acct(struct nf_conn *ct,
--			  enum ip_conntrack_info ctinfo,
--			  const struct sk_buff *skb,
--			  u32 extra_jiffies,
--			  bool do_acct)
-+void nf_ct_refresh_timeout(struct nf_conn *ct, u32 extra_jiffies)
- {
- 	/* Only update if this is not a fixed timeout */
- 	if (test_bit(IPS_FIXED_TIMEOUT_BIT, &ct->status))
--		goto acct;
-+		return;
+@@ -231,6 +236,12 @@ bool nf_conncount_gc_list(struct net *net,
+ 	if (!spin_trylock(&list->list_lock))
+ 		return false;
  
- 	/* If not in hash table, timer will not be active yet */
- 	if (nf_ct_is_confirmed(ct))
-@@ -2047,7 +2042,17 @@ void __nf_ct_refresh_acct(struct nf_conn *ct,
- 
- 	if (READ_ONCE(ct->timeout) != extra_jiffies)
- 		WRITE_ONCE(ct->timeout, extra_jiffies);
--acct:
-+}
++	/* don't bother if we just done GC */
++	if (time_after_eq(list->last_gc, jiffies)) {
++		spin_unlock(&list->list_lock);
++		return false;
++	}
 +
-+/* Refresh conntrack for this many jiffies and do accounting if do_acct is 1 */
-+void __nf_ct_refresh_acct(struct nf_conn *ct,
-+			  enum ip_conntrack_info ctinfo,
-+			  const struct sk_buff *skb,
-+			  u32 extra_jiffies,
-+			  bool do_acct)
-+{
-+	nf_ct_refresh_timeout(ct, extra_jiffies);
-+
- 	if (do_acct)
- 		nf_ct_acct_update(ct, CTINFO2DIR(ctinfo), skb->len);
- }
+ 	list_for_each_entry_safe(conn, conn_n, &list->head, node) {
+ 		found = find_or_evict(net, list, conn);
+ 		if (IS_ERR(found)) {
+@@ -258,6 +269,7 @@ bool nf_conncount_gc_list(struct net *net,
+ 
+ 	if (!list->count)
+ 		ret = true;
++	list->last_gc = jiffies;
+ 	spin_unlock(&list->list_lock);
+ 
+ 	return ret;
 -- 
-2.35.1
+2.30.1 (Apple Git-130)
 
