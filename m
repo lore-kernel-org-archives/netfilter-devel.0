@@ -2,48 +2,48 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D09AC433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 May 2022 03:50:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86BF8C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 May 2022 04:02:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236582AbiEDDyR (ORCPT
+        id S1344443AbiEDEGR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 3 May 2022 23:54:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52986 "EHLO
+        Wed, 4 May 2022 00:06:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59690 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236361AbiEDDyQ (ORCPT
+        with ESMTP id S229379AbiEDEGQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 3 May 2022 23:54:16 -0400
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D66A17AA0;
-        Tue,  3 May 2022 20:50:41 -0700 (PDT)
+        Wed, 4 May 2022 00:06:16 -0400
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C02861A396;
+        Tue,  3 May 2022 21:02:41 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1651636241; x=1683172241;
+  t=1651636961; x=1683172961;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=LwV2LNP2LJPn7gTFJuk+IeErW5GWz1kXbWwP9v9zaF8=;
-  b=KoCLdxYvl2r2fGyhtlu9LXHpW7qVM19n9x4AGDShz9C+bwPPm4kMimP+
-   0zDwbU13R7nULRwgpIgN5sUx3gBWlZHSLpNkmVKKzWMioRx+7w/elTfhe
-   lUiMY4KaO1EeHCJPtZ9sUqejYD+kUrDub86jJoMAPqsulPvAiLZ9/3cmC
-   MIZ0OsfnPB7EEhcaCKh3B1IYVl16maX6cjb9rDKoVEz97ii8R8j1XohfU
-   BHozTbq1ztj8Tn6WK8QcK9/xRz8d/yXKd7hJmCzpNqQjw3J7dGpLOPzry
-   rE8JJ/UgEHNAu9onICV3kdXi8yyiqV4lhAckYlj45QP0NEwymMSPmf35H
-   Q==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10336"; a="266498179"
+  bh=ckh2B3G/pTVLFtGJOv5T4bNsOnAzGDa8qxR2Bi3Txpc=;
+  b=LvRgUPT/o7Jb8s0R8aWbNmP4fDofN7LhvI8AKOhSFbdLqshyxZklksl5
+   wshoMyCwkbUYGdsL7845wSP9ijWWDFEQMIy0leGVa2GMjj4Mcio2wxtxk
+   sQ7S6/a2pyO7RLhV20WE7zJH/xDXEOUp+MOuSMr7zPxb4LhibDfYFXUMT
+   kMDb47Y9RGu/FrLTPGvJKBrmls6HJc9iCmthACCtA8uJWqpUa0tvwFcTq
+   JFSv4ALY5yEvRDqbCXO35kIHFYSsLwRKPn2Q51OVNU62M7DvRWEZoeyMp
+   geQz2EGQnOMvwvN6eLYdUwjVMMmKbUhiPqTsz9anjK8GD6XI6Whucv7uz
+   w==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10336"; a="267251979"
 X-IronPort-AV: E=Sophos;i="5.91,196,1647327600"; 
-   d="scan'208";a="266498179"
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 May 2022 20:50:41 -0700
+   d="scan'208";a="267251979"
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 May 2022 21:02:41 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.91,196,1647327600"; 
-   d="scan'208";a="889769095"
+   d="scan'208";a="693144489"
 Received: from lkp-server01.sh.intel.com (HELO 5056e131ad90) ([10.239.97.150])
-  by fmsmga005.fm.intel.com with ESMTP; 03 May 2022 20:50:37 -0700
+  by orsmga004.jf.intel.com with ESMTP; 03 May 2022 21:02:37 -0700
 Received: from kbuild by 5056e131ad90 with local (Exim 4.95)
         (envelope-from <lkp@intel.com>)
-        id 1nm628-000B2l-Gj;
-        Wed, 04 May 2022 03:50:36 +0000
-Date:   Wed, 4 May 2022 11:50:14 +0800
+        id 1nm6Dk-000B35-NM;
+        Wed, 04 May 2022 04:02:36 +0000
+Date:   Wed, 4 May 2022 12:01:44 +0800
 From:   kernel test robot <lkp@intel.com>
 To:     Lorenzo Bianconi <lorenzo@kernel.org>, bpf@vger.kernel.org
 Cc:     kbuild-all@lists.01.org, netdev@vger.kernel.org, ast@kernel.org,
@@ -52,36 +52,48 @@ Cc:     kbuild-all@lists.01.org, netdev@vger.kernel.org, ast@kernel.org,
         fw@strlen.de, netfilter-devel@vger.kernel.org,
         lorenzo.bianconi@redhat.com, brouer@redhat.com, toke@redhat.com,
         memxor@gmail.com
-Subject: [RFC PATCH] net: netfilter: bpf_ct_refresh_timeout() can be static
-Message-ID: <YnH39sfvRu/GUJIB@640551eb7a4c>
+Subject: Re: [PATCH bpf-next] net: netfilter: add kfunc helper to update ct
+ timeout
+Message-ID: <202205041143.5PZf1J9F-lkp@intel.com>
 References: <1327f8f5696ff2bc60400e8f3b79047914ccc837.1651595019.git.lorenzo@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <1327f8f5696ff2bc60400e8f3b79047914ccc837.1651595019.git.lorenzo@kernel.org>
-X-Patchwork-Hint: ignore
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-net/netfilter/nf_conntrack_bpf.c:230:6: warning: symbol 'bpf_ct_refresh_timeout' was not declared. Should it be static?
+Hi Lorenzo,
 
+I love your patch! Perhaps something to improve:
+
+[auto build test WARNING on bpf-next/master]
+
+url:    https://github.com/intel-lab-lkp/linux/commits/Lorenzo-Bianconi/net-netfilter-add-kfunc-helper-to-update-ct-timeout/20220504-003234
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf-next.git master
+config: x86_64-rhel-8.3-kselftests (https://download.01.org/0day-ci/archive/20220504/202205041143.5PZf1J9F-lkp@intel.com/config)
+compiler: gcc-11 (Debian 11.2.0-20) 11.2.0
+reproduce:
+        # apt-get install sparse
+        # sparse version: v0.6.4-dirty
+        # https://github.com/intel-lab-lkp/linux/commit/a184a0a4e28e8af16232b4ccd899f7ae976f7f64
+        git remote add linux-review https://github.com/intel-lab-lkp/linux
+        git fetch --no-tags linux-review Lorenzo-Bianconi/net-netfilter-add-kfunc-helper-to-update-ct-timeout/20220504-003234
+        git checkout a184a0a4e28e8af16232b4ccd899f7ae976f7f64
+        # save the config file
+        mkdir build_dir && cp config build_dir/.config
+        make W=1 C=1 CF='-fdiagnostic-prefix -D__CHECK_ENDIAN__' O=build_dir ARCH=x86_64 SHELL=/bin/bash
+
+If you fix the issue, kindly add following tag as appropriate
 Reported-by: kernel test robot <lkp@intel.com>
-Signed-off-by: kernel test robot <lkp@intel.com>
----
- net/netfilter/nf_conntrack_bpf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrack_bpf.c
-index d6dcadf0e0166..02d2578d4bb89 100644
---- a/net/netfilter/nf_conntrack_bpf.c
-+++ b/net/netfilter/nf_conntrack_bpf.c
-@@ -227,7 +227,7 @@ void bpf_ct_release(struct nf_conn *nfct)
-  *		   bpf_xdp_ct_lookup or bpf_skb_ct_lookup.
-  * @timeout      - delta time in msecs used to increase the ct entry lifetime.
-  */
--void bpf_ct_refresh_timeout(struct nf_conn *nfct, u32 timeout)
-+static void bpf_ct_refresh_timeout(struct nf_conn *nfct, u32 timeout)
- {
- 	if (!nfct)
- 		return;
+
+sparse warnings: (new ones prefixed by >>)
+>> net/netfilter/nf_conntrack_bpf.c:230:6: sparse: sparse: symbol 'bpf_ct_refresh_timeout' was not declared. Should it be static?
+
+Please review and possibly fold the followup patch.
+
+-- 
+0-DAY CI Kernel Test Service
+https://01.org/lkp
