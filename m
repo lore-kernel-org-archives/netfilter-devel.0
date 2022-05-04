@@ -2,52 +2,74 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BA5DC433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 May 2022 06:07:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50B6FC433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 May 2022 10:17:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239823AbiEDGLW (ORCPT
+        id S236531AbiEDKUt (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 4 May 2022 02:11:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41470 "EHLO
+        Wed, 4 May 2022 06:20:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33824 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232965AbiEDGLV (ORCPT
+        with ESMTP id S229778AbiEDKUr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 May 2022 02:11:21 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2EE9D14006
-        for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2022 23:07:47 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1nm8Ar-0002Ua-2T; Wed, 04 May 2022 08:07:45 +0200
-Date:   Wed, 4 May 2022 08:07:45 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     William Tu <u9012063@gmail.com>
-Cc:     netfilter-devel@vger.kernel.org, fw@strlen.de,
-        Yifeng Sun <pkusunyifeng@gmail.com>,
-        Greg Rose <gvrose8192@gmail.com>
-Subject: Re: [PATCH] netfilter: nf_conncount: reduce unnecessary GC
-Message-ID: <20220504060745.GB32684@breakpoint.cc>
-References: <20220503215237.98485-1-u9012063@gmail.com>
+        Wed, 4 May 2022 06:20:47 -0400
+X-Greylist: delayed 657 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 04 May 2022 03:17:09 PDT
+Received: from mail.aperture-lab.de (mail.aperture-lab.de [IPv6:2a01:4f8:c2c:665b::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC0CA1EACB;
+        Wed,  4 May 2022 03:17:09 -0700 (PDT)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id E10F54116B;
+        Wed,  4 May 2022 12:06:02 +0200 (CEST)
+Date:   Wed, 4 May 2022 12:06:00 +0200
+From:   Linus =?utf-8?Q?L=C3=BCssing?= <linus.luessing@c0d3.blue>
+To:     Kevin Mitchell <kevmitch@arista.com>
+Cc:     Matthias Schiffer <mschiffer@universe-factory.net>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        netdev@vger.kernel.org, gal@nvidia.com,
+        bridge@lists.linux-foundation.org, Florian Westphal <fw@strlen.de>,
+        linux-kernel@vger.kernel.org,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
+        Nikolay Aleksandrov <nikolay@nvidia.com>,
+        Roopa Prabhu <roopa@nvidia.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        "David S. Miller" <davem@davemloft.net>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [Bridge] [PATCH v2 0/1] UDP traceroute packets with no checksum
+Message-ID: <YnJQCIKgriI3kjFc@sellars>
+References: <20220405235117.269511-1-kevmitch@arista.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20220503215237.98485-1-u9012063@gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20220405235117.269511-1-kevmitch@arista.com>
+X-Last-TLS-Session-Version: TLSv1.3
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-William Tu <u9012063@gmail.com> wrote:
-> @@ -231,6 +236,12 @@ bool nf_conncount_gc_list(struct net *net,
->  	if (!spin_trylock(&list->list_lock))
->  		return false;
->  
-> +	/* don't bother if we just done GC */
-> +	if (time_after_eq(list->last_gc, jiffies)) {
-> +		spin_unlock(&list->list_lock);
+On Tue, Apr 05, 2022 at 04:51:15PM -0700, Kevin Mitchell via Bridge wrote:
+> This is v2 of https://lkml.org/lkml/2022/1/14/1060
+> 
+> That patch was discovered to cause problems with UDP tunnels as
+> described here:
+> 
+> https://lore.kernel.org/netdev/7eed8111-42d7-63e1-d289-346a596fc933@nvidia.com/
+> 
+> This version addresses the issue by instead explicitly handling zero UDP
+> checksum in the nf_reject_verify_csum() helper function.
+> 
+> Unlike the previous patch, this one only allows zero UDP checksum in
+> IPv4. I discovered that the non-netfilter IPv6 path would indeed drop
+> zero UDP checksum packets, so it's probably best to remain consistent.
 
-Minor nit, I think you could place the time_after_eq test before
-the spin_trylock if you do wrap the list->last_gc read with READ_ONCE().
+Are you sure that a UDP zero checksum is not working for IPv6
+packets? We are using it here without any issues with VXLAN
+tunnels.
 
-You could also check if changing last_gc to u32 and placing it after
-the "list_lock" member prevents growth of the list structure.
+Yes, the original RFC did not allow UDP zero checksums in IPv6
+packets, but I believe this has changed:
+
+https://www.rfc-editor.org/rfc/rfc6936
+(https://www.ietf.org/archive/id/draft-ietf-6man-udpzero-01.html)
+
+Regards, Linus
