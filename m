@@ -2,211 +2,181 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A7F65C433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 May 2022 13:15:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29C08C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 May 2022 15:36:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344623AbiEDNSr (ORCPT
+        id S236890AbiEDPjo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 4 May 2022 09:18:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59368 "EHLO
+        Wed, 4 May 2022 11:39:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34850 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232915AbiEDNSo (ORCPT
+        with ESMTP id S1352227AbiEDPjo (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 May 2022 09:18:44 -0400
-Received: from wp530.webpack.hosteurope.de (wp530.webpack.hosteurope.de [IPv6:2a01:488:42:1000:50ed:8234::])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A1811DA79;
-        Wed,  4 May 2022 06:15:06 -0700 (PDT)
-Received: from [2a02:8108:963f:de38:eca4:7d19:f9a2:22c5]; authenticated
-        by wp530.webpack.hosteurope.de running ExIM with esmtpsa (TLS1.3:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        id 1nmEqL-0006Bi-QF; Wed, 04 May 2022 15:15:01 +0200
-Message-ID: <96e12c14-eb6d-ae07-916b-7785f9558c67@leemhuis.info>
-Date:   Wed, 4 May 2022 15:14:58 +0200
+        Wed, 4 May 2022 11:39:44 -0400
+Received: from mail-pj1-x1030.google.com (mail-pj1-x1030.google.com [IPv6:2607:f8b0:4864:20::1030])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 98C5F15739
+        for <netfilter-devel@vger.kernel.org>; Wed,  4 May 2022 08:36:05 -0700 (PDT)
+Received: by mail-pj1-x1030.google.com with SMTP id j8-20020a17090a060800b001cd4fb60dccso1552873pjj.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 04 May 2022 08:36:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=pkxrHygfEKJKJx+Pka4Sp5z+QSkICosHCCoCE4DENSU=;
+        b=jLNgPv4J6YsytAo6OgFyjdwainPpXg3ouHkMmPAyB44z7qcY7b94W62o7BITNYjTnn
+         6V2K//ITM7UQ3fzm6mvLcQXvIiRDwU+EmYYIHbmN2rKhgfXTdjwrFPU9VoaSWQMxWfCU
+         HYq3ObT6/AQeGTmo69wY276N0skFKtuIvQYSKd7msa596Nq42gocY+C11uaq45ig7ZdH
+         pp3lVCl3LaRobdp0aswCx6dOkTjSnQQjFRbBkzIkbFq3TDQYdsq4SSbSPLwzt313Ay3r
+         F6uDjzqmYzvYgPeyI1F8Fg7XXT0bRQHJa2RirRb2GrRMgDodm81jGR0+/fS+89QqUqpa
+         urxQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=pkxrHygfEKJKJx+Pka4Sp5z+QSkICosHCCoCE4DENSU=;
+        b=qfC6APLsp13PVrW3qfmc5a1o7ewdo0mbTlVQYWiwnq0u/IUzXFiGcusNb9nZiAaV2/
+         QDwnAJnVqjFzJTNk42IYGyixBeSlDYWRcYf0xYIfJZtFLRiZaIP0l8S4XUBAsMJCydGz
+         VtJ4O9io5CK1xG9GKxLJQGxCl3PbpjBgMThdqOWDLBc+MF4WCkdtTHTjqqlc3A6JxtBc
+         rSiOHfF/1iAdBe+6SJH/MEfsMblE9MFoA8sQw2g62cfXT7r9USguqLm3ffCnwOU9UeGh
+         yUTMGWUgBC9LgOn8idYWEJ1nusdnzWs4rZWFVNkVoBkWfljYZCGtwosNmr+e6C/1ITOi
+         vEBA==
+X-Gm-Message-State: AOAM530eOAC8XIKbP39aZaRR9ost8sas+44NoZICLDhKpmswLfgKuS1y
+        Ammc80oyqmNW+XORexJwK3msaLTk/jmE0Q==
+X-Google-Smtp-Source: ABdhPJwiyfx2WXKZed0eA2BuvxOrgw8567mI8RS6ez1HF1zvf8vRLo+T+Sllno8K9XSBz1T3LccXOQ==
+X-Received: by 2002:a17:902:f28b:b0:15c:5c21:dc15 with SMTP id k11-20020a170902f28b00b0015c5c21dc15mr22492467plc.16.1651678564613;
+        Wed, 04 May 2022 08:36:04 -0700 (PDT)
+Received: from tuc-a02.vmware.com.com (c-67-160-105-174.hsd1.wa.comcast.net. [67.160.105.174])
+        by smtp.gmail.com with ESMTPSA id c8-20020a170903234800b0015e8d4eb296sm2754045plh.224.2022.05.04.08.36.02
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 04 May 2022 08:36:03 -0700 (PDT)
+From:   William Tu <u9012063@gmail.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Yifeng Sun <pkusunyifeng@gmail.com>,
+        Greg Rose <gvrose8192@gmail.com>,
+        Florian Westphal <fw@strlen.de>
+Subject: [PATCHv2] netfilter: nf_conncount: reduce unnecessary GC
+Date:   Wed,  4 May 2022 08:35:59 -0700
+Message-Id: <20220504153559.74263-1-u9012063@gmail.com>
+X-Mailer: git-send-email 2.30.1 (Apple Git-130)
+In-Reply-To: <20220504010903.24090-1-u9012063@gmail.com>
+References: <20220504010903.24090-1-u9012063@gmail.com>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.8.0
-Subject: Re: Intermittent performance regression related to ipset between 5.10
- and 5.15
-Content-Language: en-US
-To:     "McLean, Patrick" <Patrick.Mclean@sony.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org,
-        "U'ren, Aaron" <Aaron.U'ren@sony.com>,
-        "Brown, Russell" <Russell.Brown@sony.com>,
-        "Rueger, Manuel" <manuel.rueger@sony.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "regressions@lists.linux.dev" <regressions@lists.linux.dev>,
-        Florian Westphal <fw@strlen.de>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>
-References: <BY5PR13MB3604D24C813A042A114B639DEE109@BY5PR13MB3604.namprd13.prod.outlook.com>
- <5e56c644-2311-c094-e099-cfe0d574703b@leemhuis.info>
- <c28ed507-168e-e725-dddd-b81fadaf6aa5@leemhuis.info>
- <b1bfbc2f-2a91-9d20-434d-395491994de@netfilter.org>
-From:   Thorsten Leemhuis <regressions@leemhuis.info>
-In-Reply-To: <b1bfbc2f-2a91-9d20-434d-395491994de@netfilter.org>
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-bounce-key: webpack.hosteurope.de;regressions@leemhuis.info;1651670107;fcdbf9e4;
-X-HE-SMSGID: 1nmEqL-0006Bi-QF
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi, this is your Linux kernel regression tracker. Top-posting for once,
-to make this easily accessible to everyone.
+Currently nf_conncount can trigger garbage collection (GC)
+at multiple places. Each GC process takes a spin_lock_bh
+to traverse the nf_conncount_list. We found that when testing
+port scanning use two parallel nmap, because the number of
+connection increase fast, the nf_conncount_count and its
+subsequent call to __nf_conncount_add take too much time,
+causing several CPU lockup. This happens when user set the
+conntrack limit to +20,000, because the larger the limit,
+the longer the list that GC has to traverse.
 
-Patrick, did you see the comment from Jozsef? Are you having trouble
-providing additional data or what's the status here from your side? Or
-is that something we can forget?
+The patch mitigate the performance issue by avoiding unnecessary
+GC with a timestamp. Whenever nf_conncount has done a GC,
+a timestamp is updated, and beforce the next time GC is
+triggered, we make sure it's more than a jiffies.
+By doin this we can greatly reduce the CPU cycles and
+avoid the softirq lockup.
 
-Ciao, Thorsten
+To reproduce it in OVS,
+$ ovs-appctl dpctl/ct-set-limits zone=1,limit=20000
+$ ovs-appctl dpctl/ct-get-limits
 
-#regzbot poke
+At another machine, runs two nmap
+$ nmap -p1- <IP>
+$ nmap -p1- <IP>
 
-On 11.04.22 13:47, Jozsef Kadlecsik wrote:
-> Hi,
-> 
-> On Mon, 11 Apr 2022, Thorsten Leemhuis wrote:
-> 
->> On 16.03.22 10:17, Thorsten Leemhuis wrote:
->>> [TLDR: I'm adding the regression report below to regzbot, the Linux
->>> kernel regression tracking bot; all text you find below is compiled from
->>> a few templates paragraphs you might have encountered already already
->>> from similar mails.]
->>>
->>> On 16.03.22 00:15, McLean, Patrick wrote:
->>
->>>> When we upgraded from the 5.10 (5.10.61) series to the 5.15 (5.15.16) 
->>>> series, we encountered an intermittent performance regression that 
->>>> appears to be related to iptables / ipset. This regression was 
->>>> noticed on Kubernetes hosts that run kube-router and experience a 
->>>> high amount of churn to both iptables and ipsets. Specifically, when 
->>>> we run the nftables (iptables-1.8.7 / nftables-1.0.0) iptables 
->>>> wrapper xtables-nft-multi on the 5.15 series kernel, we end up 
->>>> getting extremely laggy response times when iptables attempts to 
->>>> lookup information on the ipsets that are used in the iptables 
->>>> definition. This issue isn’t reproducible on all hosts. However, our 
->>>> experience has been that across a fleet of ~50 hosts we experienced 
->>>> this issue on ~40% of the hosts. When the problem evidences, the time 
->>>> that it takes to run unrestricted iptables list commands like 
->>>> iptables -L or iptables-save gradually increases over the course of 
->>>> about 1 - 2 hours. Growing from less than a second to run, to takin
->>  g sometimes over 2 minutes to run. After that 2 hour mark it seems to 
->>  plateau and not grow any longer. Flushing tables or ipsets doesn’t seem 
->>  to have any affect on the issue. However, rebooting the host does reset 
->>  the issue. Occasionally, a machine that was evidencing the problem may 
->>  no longer evidence it after being rebooted.
->>>>
->>>> We did try to debug this to find a root cause, but ultimately ran 
->>>> short on time. We were not able to perform a set of bisects to 
->>>> hopefully narrow down the issue as the problem isn’t consistently 
->>>> reproducible. We were able to get some straces where it appears that 
->>>> most of the time is spent on getsockopt() operations. It appears that 
->>>> during iptables operations, it attempts to do some work to resolve 
->>>> the ipsets that are linked to the iptables definitions (perhaps 
->>>> getting the names of the ipsets themselves?). Slowly that getsockopt 
->>>> request takes more and more time on affected hosts. Here is an 
->>>> example strace of the operation in question:
-> 
-> Yes, iptables list/save have to get the names of the referenced sets and 
-> that is performed via getsockopt() calls.
-> 
-> I went through all of the ipset related patches between 5.10.6 (copy&paste 
-> error but just the range is larger) and 5.15.16 and as far as I see none 
-> of them can be responsible for the regression. More data is required to 
-> locate the source of the slowdown.
-> 
-> Best regards,
-> Jozsef
-> 
->>>>
->>>> 0.000074 newfstatat(AT_FDCWD, "/etc/nsswitch.conf", {st_mode=S_IFREG|0644, st_size=539, ...}, 0) = 0 <0.000017>
->>>> 0.000064 openat(AT_FDCWD, "/var/db/protocols.db", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory) <0.000017>
->>>> 0.000057 openat(AT_FDCWD, "/etc/protocols", O_RDONLY|O_CLOEXEC) = 4 <0.000013>
->>>> 0.000034 newfstatat(4, "", {st_mode=S_IFREG|0644, st_size=6108, ...}, AT_EMPTY_PATH) = 0 <0.000009>
->>>> 0.000032 lseek(4, 0, SEEK_SET)     = 0 <0.000008>
->>>> 0.000025 read(4, "# /etc/protocols\n#\n# Internet (I"..., 4096) = 4096 <0.000010>
->>>> 0.000036 close(4)                  = 0 <0.000008>
->>>> 0.000028 write(1, "ANGME7BF25 - [0:0]\n:KUBE-POD-FW-"..., 4096) = 4096 <0.000028>
->>>> 0.000049 socket(AF_INET, SOCK_RAW, IPPROTO_RAW) = 4 <0.000015>
->>>> 0.000032 fcntl(4, F_SETFD, FD_CLOEXEC) = 0 <0.000008>
->>>> 0.000024 getsockopt(4, SOL_IP, 0x53 /* IP_??? */, "\0\1\0\0\7\0\0\0", [8]) = 0 <0.000024>
->>>> 0.000046 getsockopt(4, SOL_IP, 0x53 /* IP_??? */, "\7\0\0\0\7\0\0\0KUBE-DST-VBH27M7NWLDOZIE"..., [40]) = 0 <0.109384>
->>>> 0.109456 close(4)                  = 0 <0.000022>
->>>>
->>>> On a host that is not evidencing the performance regression we 
->>>> normally see that operation take ~ 0.00001 as opposed to 
->>>> 0.109384.Additionally, hosts that were evidencing the problem we also 
->>>> saw high lock times with `klockstat` (unfortunately at the time we 
->>>> did not know about or run echo "0" > /proc/sys/kernel/kptr_restrict 
->>>> to get the callers of the below commands).
->>>>
->>>> klockstat -i 5 -n 10 (on a host experiencing the problem)
->>>> Caller   Avg Hold  Count   Max hold Total hold
->>>> b'[unknown]'  118490772     83  179899470 9834734132
->>>> b'[unknown]'  118416941     83  179850047 9828606138
->>>> # or somewhere later while iptables -vnL was running:
->>>> Caller   Avg Hold  Count   Max hold Total hold
->>>> b'[unknown]'  496466236     46 17919955720 22837446860
->>>> b'[unknown]'  496391064     46 17919893843 22833988950
->>>>
->>>> klockstat -i 5 -n 10 (on a host not experiencing the problem)
->>>> Caller   Avg Hold  Count   Max hold Total hold
->>>> b'[unknown]'     120316   1510   85537797  181677885
->>>> b'[unknown]'    7119070     24   85527251  170857690
->>>
->>> Hi, this is your Linux kernel regression tracker.
->>>
->>> Thanks for the report.
->>>
->>> CCing the regression mailing list, as it should be in the loop for all
->>> regressions, as explained here:
->>> https://www.kernel.org/doc/html/latest/admin-guide/reporting-issues.html
->>>
->>> To be sure below issue doesn't fall through the cracks unnoticed, I'm
->>> adding it to regzbot, my Linux kernel regression tracking bot:
->>>
->>> #regzbot ^introduced v5.10..v5.15
->>> #regzbot title net: netfilter: Intermittent performance regression
->>> related to ipset
->>> #regzbot ignore-activity
->>>
->>> If it turns out this isn't a regression, free free to remove it from the
->>> tracking by sending a reply to this thread containing a paragraph like
->>> "#regzbot invalid: reason why this is invalid" (without the quotes).
->>>
->>> Reminder for developers: when fixing the issue, please add a 'Link:'
->>> tags pointing to the report (the mail quoted above) using
->>> lore.kernel.org/r/, as explained in
->>> 'Documentation/process/submitting-patches.rst' and
->>> 'Documentation/process/5.Posting.rst'. Regzbot needs them to
->>> automatically connect reports with fixes, but they are useful in
->>> general, too.
->>>
->>> I'm sending this to everyone that got the initial report, to make
->>> everyone aware of the tracking. I also hope that messages like this
->>> motivate people to directly get at least the regression mailing list and
->>> ideally even regzbot involved when dealing with regressions, as messages
->>> like this wouldn't be needed then. And don't worry, if I need to send
->>> other mails regarding this regression only relevant for regzbot I'll
->>> send them to the regressions lists only (with a tag in the subject so
->>> people can filter them away). With a bit of luck no such messages will
->>> be needed anyway.
->>>
->>> Ciao, Thorsten (wearing his 'the Linux kernel's regression tracker' hat)
->>>
->>> P.S.: As the Linux kernel's regression tracker I'm getting a lot of
->>> reports on my table. I can only look briefly into most of them and lack
->>> knowledge about most of the areas they concern. I thus unfortunately
->>> will sometimes get things wrong or miss something important. I hope
->>> that's not the case here; if you think it is, don't hesitate to tell me
->>> in a public reply, it's in everyone's interest to set the public record
->>> straight.
->>>
->>
-> 
-> -
-> E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-> PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-> Address : Wigner Research Centre for Physics
->           H-1525 Budapest 114, POB. 49, Hungary
+Signed-off-by: William Tu <u9012063@gmail.com>
+Co-authored-by: Yifeng Sun <pkusunyifeng@gmail.com>
+Reported-by: Greg Rose <gvrose8192@gmail.com>
+Suggested-by: Florian Westphal <fw@strlen.de>
+---
+v2:
+- use u32 jiffies in struct nf_conncount_list
+  now its 4-byte list_lock followed by 4-byte last_ct
+- move the timestamp check before lock at
+  nf_conncount_gc_list and use READ_ONCE
+- move the timestamp check out of list for each loop
+  in __nf_conncount_add
+---
+ include/net/netfilter/nf_conntrack_count.h |  1 +
+ net/netfilter/nf_conncount.c               | 11 +++++++++++
+ 2 files changed, 12 insertions(+)
+
+diff --git a/include/net/netfilter/nf_conntrack_count.h b/include/net/netfilter/nf_conntrack_count.h
+index 9645b47fa7e4..e227d997fc71 100644
+--- a/include/net/netfilter/nf_conntrack_count.h
++++ b/include/net/netfilter/nf_conntrack_count.h
+@@ -10,6 +10,7 @@ struct nf_conncount_data;
+ 
+ struct nf_conncount_list {
+ 	spinlock_t list_lock;
++	u32 last_gc;		/* jiffies at most recent gc */
+ 	struct list_head head;	/* connections with the same filtering key */
+ 	unsigned int count;	/* length of list */
+ };
+diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
+index 82f36beb2e76..5d8ed6c90b7e 100644
+--- a/net/netfilter/nf_conncount.c
++++ b/net/netfilter/nf_conncount.c
+@@ -132,6 +132,9 @@ static int __nf_conncount_add(struct net *net,
+ 	struct nf_conn *found_ct;
+ 	unsigned int collect = 0;
+ 
++	if (time_is_after_eq_jiffies((unsigned long)list->last_gc))
++		goto add_new_node;
++
+ 	/* check the saved connections */
+ 	list_for_each_entry_safe(conn, conn_n, &list->head, node) {
+ 		if (collect > CONNCOUNT_GC_MAX_NODES)
+@@ -177,6 +180,7 @@ static int __nf_conncount_add(struct net *net,
+ 		nf_ct_put(found_ct);
+ 	}
+ 
++add_new_node:
+ 	if (WARN_ON_ONCE(list->count > INT_MAX))
+ 		return -EOVERFLOW;
+ 
+@@ -190,6 +194,7 @@ static int __nf_conncount_add(struct net *net,
+ 	conn->jiffies32 = (u32)jiffies;
+ 	list_add_tail(&conn->node, &list->head);
+ 	list->count++;
++	list->last_gc = (u32)jiffies;
+ 	return 0;
+ }
+ 
+@@ -214,6 +219,7 @@ void nf_conncount_list_init(struct nf_conncount_list *list)
+ 	spin_lock_init(&list->list_lock);
+ 	INIT_LIST_HEAD(&list->head);
+ 	list->count = 0;
++	list->last_gc = (u32)jiffies;
+ }
+ EXPORT_SYMBOL_GPL(nf_conncount_list_init);
+ 
+@@ -227,6 +233,10 @@ bool nf_conncount_gc_list(struct net *net,
+ 	unsigned int collected = 0;
+ 	bool ret = false;
+ 
++	/* don't bother if we just did GC */
++	if (time_is_after_eq_jiffies((unsigned long)READ_ONCE(list->last_gc)))
++		return false;
++
+ 	/* don't bother if other cpu is already doing GC */
+ 	if (!spin_trylock(&list->list_lock))
+ 		return false;
+@@ -258,6 +268,7 @@ bool nf_conncount_gc_list(struct net *net,
+ 
+ 	if (!list->count)
+ 		ret = true;
++	list->last_gc = (u32)jiffies;
+ 	spin_unlock(&list->list_lock);
+ 
+ 	return ret;
+-- 
+2.30.1 (Apple Git-130)
+
