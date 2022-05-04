@@ -2,60 +2,60 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88C24C433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 May 2022 21:52:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9E18C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 May 2022 01:10:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234537AbiECV4Y (ORCPT
+        id S233133AbiEDBNg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 3 May 2022 17:56:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41250 "EHLO
+        Tue, 3 May 2022 21:13:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44736 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230021AbiECV4W (ORCPT
+        with ESMTP id S245082AbiEDBNY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 3 May 2022 17:56:22 -0400
-Received: from mail-pg1-x533.google.com (mail-pg1-x533.google.com [IPv6:2607:f8b0:4864:20::533])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 627523A731
-        for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2022 14:52:48 -0700 (PDT)
-Received: by mail-pg1-x533.google.com with SMTP id q76so11973984pgq.10
-        for <netfilter-devel@vger.kernel.org>; Tue, 03 May 2022 14:52:48 -0700 (PDT)
+        Tue, 3 May 2022 21:13:24 -0400
+Received: from mail-pj1-x1033.google.com (mail-pj1-x1033.google.com [IPv6:2607:f8b0:4864:20::1033])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E3504507B
+        for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2022 18:09:12 -0700 (PDT)
+Received: by mail-pj1-x1033.google.com with SMTP id fv2so16833205pjb.4
+        for <netfilter-devel@vger.kernel.org>; Tue, 03 May 2022 18:09:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
         bh=0y39QTxVkxEvhd0aRDakleJkJCfhBIdtoYr0OZYCOQA=;
-        b=jEACdNcU+SBJrsIO9PJUWqcM+ywrbzAYxey+poVeB5X7v3yUvQuTv+EqOSFrh5m8/r
-         xC7vokjaKxoUBgxv2Qq7sMkbHrJexpH9MY+8IZyqx9e4OtdBhMDd1qP5nD1NxlSB/tbi
-         bP+g4sj0APiU7ohbGLAuBanPxtiMW004Z+420CiSLrTl+wv4Wxv/0Ovs1ELSv3nsT1ZO
-         UyZXVqbfI/dpr0LMebWq9RK4EGRvHxY1DKyNqTKeMgkm8C3qAsg//dMW9t4y6jM/RxkF
-         S/nddT5pFF73YrGLOuzcqnyn1VcXdEYmfuC2ZTtHuefathO/azReHycVsYojk8cuQZM8
-         gAyQ==
+        b=pCdbhR1JdAJ68iceolL+V3nE3BY02syoqZMpUPxM5Uu+20KR9ZuofSsPjb4aB+oVEU
+         jn4olqUZ8YTjVuf36khReQWOSYwtvK8ZrAJ3f7aSomxSZ4uKD6JlaBojeF0a6Sl6O441
+         ZD/LG44rYzpvfwLcq7NfPbhQYjHubg8DJmuverZos51WwnhZjjJ/qYeik1ShWSPGhLNQ
+         2MCNS27my+c0SNWq5vFQ5fm9zxfaPY79d7/jRAtHGynLfSI+CwlCyXb5LQCBDLcdZgCz
+         uGwAKtXV+ERFr01fk3tIiF31nc6dQUXP12513Ze5f047ScV20IYa9AGGoIQ7U7G4NjTr
+         61ZA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
         bh=0y39QTxVkxEvhd0aRDakleJkJCfhBIdtoYr0OZYCOQA=;
-        b=0VLaYnIT4Nq5jdbl1MGzHtem2C7Hdy+uTdOnaTwyW2fXEp+Q+nc9BP2Mqa9OgSZUcr
-         n8hvfhGzxteLHJhmYDvy8n/VUsBG/2bGrCiOLQEDDwZH1F8GRk9d2nM6uvMCyLylgW8b
-         vwncNHS1HdKnTDU5L24wXZcURMXxw8IiGUNjMlW/Q2cWaWvWey/Xcx9il4obCARl0FWc
-         k93NQ6R+JfG2fOjQBw358421N7/CXNx+GtCNJBGNg2EHHTbsvNs1tfdnxg/UIoR0OIF9
-         AVMzmovy3vo8V4ujCiNlTEicfOIMYcqiIm4vzBsBGBMuWUMI8ZBC0fsuqy2Og3eMmt5w
-         lW/A==
-X-Gm-Message-State: AOAM5307HWrGGpXyP0NfZ9UJ5/MqiYx2ZD10O9SEwBIJ6vGLtr/CdJ9o
-        CJX9fDRilo2CYAA0w5+8PECNMjbbcTg=
-X-Google-Smtp-Source: ABdhPJyutv2tmry75ImZkSpZrN/mVEuo5bTOpJEnyE59BLLlxAJn/r/NwD+fNy6841ibYZ1qDQznWQ==
-X-Received: by 2002:a63:34cd:0:b0:3ab:a3e8:7b48 with SMTP id b196-20020a6334cd000000b003aba3e87b48mr15635880pga.524.1651614767504;
-        Tue, 03 May 2022 14:52:47 -0700 (PDT)
-Received: from tuc-a02.vmware.com.com (c-67-160-105-174.hsd1.wa.comcast.net. [67.160.105.174])
-        by smtp.gmail.com with ESMTPSA id x186-20020a6363c3000000b003c14af505f6sm13211523pgb.14.2022.05.03.14.52.46
+        b=AiqaEtMyOJTCZNtNJeGgRqW2LaCjEKpFcPiLKuZMng5kwjeyJefDCl9167u64gf9th
+         ZfPYp6rtmUzCNJnq5BMfj/r8nrKQogUgNSR78GodWH2Px4YZiwZ2nHjPXVTbCP1UfcbC
+         77MFaKBha6niQTysOSS8gypZZP1IaFGQm3ggxnUj1124X+hi1Sl8MvRSM863tNAWCsSm
+         3mL+Ehg/U6xMbJ/0mVUo9U/vzVoWerhWD6UhCy+2nhwsCVId9Kft9kMjTGc5J5c1NLuC
+         matoFmjqUZk/bPI4DRxyR9ZvG4DEqhz+qTspUSCd0xYggzdI/SJBBl+qObvOmMwzG9bd
+         08nA==
+X-Gm-Message-State: AOAM530mvAEyVuwDw0xzap/bSOG93GPFIHvJu+HPRPybp2cWT6u2MWdY
+        uafTBVrEHFHzhvb4Q1zu2qrduEqxF09VHg==
+X-Google-Smtp-Source: ABdhPJw5m/cD40DlKkiz7/zBfyvg96OcX3YLZtdDv1651G0jbyQjpLa2eE3FoXwDxpa3cpdjtiAUSQ==
+X-Received: by 2002:a17:902:f789:b0:156:5f56:ddff with SMTP id q9-20020a170902f78900b001565f56ddffmr19615148pln.116.1651626548398;
+        Tue, 03 May 2022 18:09:08 -0700 (PDT)
+Received: from localhost.localdomain (c-67-160-105-174.hsd1.wa.comcast.net. [67.160.105.174])
+        by smtp.gmail.com with ESMTPSA id d3-20020aa78143000000b0050dc76281b0sm6893100pfn.138.2022.05.03.18.09.06
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 03 May 2022 14:52:46 -0700 (PDT)
+        Tue, 03 May 2022 18:09:07 -0700 (PDT)
 From:   William Tu <u9012063@gmail.com>
 To:     netfilter-devel@vger.kernel.org
 Cc:     fw@strlen.de, Yifeng Sun <pkusunyifeng@gmail.com>,
         Greg Rose <gvrose8192@gmail.com>
 Subject: [PATCH] netfilter: nf_conncount: reduce unnecessary GC
-Date:   Tue,  3 May 2022 14:52:37 -0700
-Message-Id: <20220503215237.98485-1-u9012063@gmail.com>
+Date:   Tue,  3 May 2022 18:09:03 -0700
+Message-Id: <20220504010903.24090-1-u9012063@gmail.com>
 X-Mailer: git-send-email 2.30.1 (Apple Git-130)
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
