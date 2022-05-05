@@ -2,104 +2,98 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF6FBC433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 May 2022 20:17:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C19CC433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 May 2022 11:46:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1355085AbiEDUVD (ORCPT
+        id S1347605AbiEELts (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 4 May 2022 16:21:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53464 "EHLO
+        Thu, 5 May 2022 07:49:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54094 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1351588AbiEDUVD (ORCPT
+        with ESMTP id S236235AbiEELtq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 May 2022 16:21:03 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 189AF4552B
-        for <netfilter-devel@vger.kernel.org>; Wed,  4 May 2022 13:17:25 -0700 (PDT)
-Date:   Wed, 4 May 2022 22:17:21 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH 4/4] nft: Fix EPERM handling for extensions
- without rev 0
-Message-ID: <YnLfUU8V2G9pY1H7@salvia>
-References: <20220504103416.19712-1-phil@nwl.cc>
- <20220504103416.19712-5-phil@nwl.cc>
+        Thu, 5 May 2022 07:49:46 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B94B35418C;
+        Thu,  5 May 2022 04:46:03 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1nmZvk-00074M-Bt; Thu, 05 May 2022 13:46:00 +0200
+Date:   Thu, 5 May 2022 13:46:00 +0200
+From:   Phil Sutter <phil@netfilter.org>
+To:     netfilter <netfilter@vger.kernel.org>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-announce@lists.netfilter.org,
+        lwn@lwn.net
+Subject: [ANNOUNCE] libnetfilter_cthelper 1.0.1 release
+Message-ID: <YnO4+K+GhiQ4sKU8@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@netfilter.org>,
+        netfilter <netfilter@vger.kernel.org>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-announce@lists.netfilter.org,
+        lwn@lwn.net
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: multipart/mixed; boundary="rWWChI9JZTcReYjR"
 Content-Disposition: inline
-In-Reply-To: <20220504103416.19712-5-phil@nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, May 04, 2022 at 12:34:16PM +0200, Phil Sutter wrote:
-> Treating revision 0 as compatible in EPERM case works fine as long as
-> there is a revision 0 of that extension defined in DSO. Fix the code for
-> others: Extend the EPERM handling to all revisions and keep the existing
-> warning for revision 0.
-> 
-> Fixes: 17534cb18ed0a ("Improve error messages for unsupported extensions")
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
-> ---
->  iptables/nft.c                                     | 14 ++++++++++----
->  .../shell/testcases/iptables/0008-unprivileged_0   |  6 ++++++
->  2 files changed, 16 insertions(+), 4 deletions(-)
-> 
-> diff --git a/iptables/nft.c b/iptables/nft.c
-> index 33813ce1b9202..95e6c222682c0 100644
-> --- a/iptables/nft.c
-> +++ b/iptables/nft.c
-> @@ -3510,15 +3510,21 @@ int nft_compatible_revision(const char *name, uint8_t rev, int opt)
->  err:
->  	mnl_socket_close(nl);
->  
-> -	/* pretend revision 0 is valid -
-> +	/* ignore EPERM and errors for revision 0 -
->  	 * this is required for printing extension help texts as user, also
->  	 * helps error messaging on unavailable kernel extension */
-> -	if (ret < 0 && rev == 0) {
-> -		if (errno != EPERM)
-> +	if (ret < 0) {
-> +		if (errno == EPERM) {
-> +			fprintf(stderr,
-> +				"%s: Could not determine whether revision %u is supported, assuming it is.\n",
 
-I'm not sure the user can do much about this error message, to me the
-revisions concept are developer-only, I don't think we expose this
-implementation detail in the documentation.
+--rWWChI9JZTcReYjR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Why warn users in this case?
+Hi!
 
-> +				name, rev);
-> +			return 1;
-> +		} else if (rev == 0) {
->  			fprintf(stderr,
->  				"Warning: Extension %s revision 0 not supported, missing kernel module?\n",
->  				name);
-> -		return 1;
-> +			return 1;
-> +		}
->  	}
->  
->  	return ret < 0 ? 0 : 1;
-> diff --git a/iptables/tests/shell/testcases/iptables/0008-unprivileged_0 b/iptables/tests/shell/testcases/iptables/0008-unprivileged_0
-> index 43e3bc8721dbd..983531fef4720 100755
-> --- a/iptables/tests/shell/testcases/iptables/0008-unprivileged_0
-> +++ b/iptables/tests/shell/testcases/iptables/0008-unprivileged_0
-> @@ -35,6 +35,12 @@ let "rc+=$?"
->  grep_or_rc "DNAT target options:" <<< "$out"
->  let "rc+=$?"
->  
-> +# TEE has no revision 0
-> +out=$(run $XT_MULTI iptables -j TEE --help)
-> +let "rc+=$?"
-> +grep_or_rc "TEE target options:" <<< "$out"
-> +let "rc+=$?"
-> +
->  out=$(run $XT_MULTI iptables -p tcp -j DNAT --help)
->  let "rc+=$?"
->  grep_or_rc "tcp match options:" <<< "$out"
-> -- 
-> 2.34.1
-> 
+The Netfilter project proudly presents:
+
+        libnetfilter_cthelper 1.0.1
+
+This release contains only fixes:
+
+* Allow build on uclinux
+* Use after free in nfct_helper_free()
+* Double free in nfct-helper-add example
+* Invalid argument error in nftc-helper-add
+* Incorrect netlink message building with multiple nfct helper policies
+
+You can download the new release from:
+
+https://netfilter.org/projects/libnetfilter_cthelper/downloads.html#libnetfilter_cthelper-1.0.1
+
+In case of bugs, file them via:
+
+* https://bugzilla.netfilter.org
+
+Happy firewalling!
+
+--rWWChI9JZTcReYjR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment;
+	filename="changes-libnetfilter_cthelper-1.0.1.txt"
+
+Christopher Horler (1):
+  src: fix use after free
+
+Felix Janda (1):
+  include: Sync with kernel headers
+
+Gustavo Zacarias (1):
+  configure: uclinux is also linux
+
+Jan Engelhardt (2):
+  build: resolve automake-1.12 warnings
+  Update .gitignore
+
+Kevin Cernekee (1):
+  Use __EXPORTED rather than EXPORT_SYMBOL
+
+Liping Zhang (3):
+  examples: fix double free in nftc-helper-add
+  examples: kill the "invalid argument" error in nftc-helper-add
+  src: fix incorrect building and parsing of the NFCTH_POLICY_SETX
+    attribute
+
+
+--rWWChI9JZTcReYjR--
