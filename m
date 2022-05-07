@@ -2,110 +2,74 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4818AC433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  6 May 2022 11:43:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82CDDC433FE
+	for <netfilter-devel@archiver.kernel.org>; Sat,  7 May 2022 11:59:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1389129AbiEFLrW (ORCPT
+        id S1356300AbiEGMD1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 6 May 2022 07:47:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45116 "EHLO
+        Sat, 7 May 2022 08:03:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48676 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379127AbiEFLrV (ORCPT
+        with ESMTP id S1446308AbiEGMD0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 6 May 2022 07:47:21 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1DBB958E40
-        for <netfilter-devel@vger.kernel.org>; Fri,  6 May 2022 04:43:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Sat, 7 May 2022 08:03:26 -0400
+Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE54148392
+        for <netfilter-devel@vger.kernel.org>; Sat,  7 May 2022 04:59:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=MVeGn8L9996nMM545lU0kubnBepYVB6e9n/mjKfpYEY=; b=HBI7GGWYxWI4gSktyMkty69jl4
-        YXt53+5gbIoimQutYoApnmn9dG5Q3qXYEvlFsZQMXWBD5HTumUGVQyBqJM1SIrj6k4vN4ZRL9HO7Z
-        8ftX2NxI+lDrLF9+/XP6n9Gworp5qqv3lyeg8Fvsv7+haxswhRhinueJCuOu8R042VWz1rLfJwzag
-        c+A1URuxzjmXmztf0XfJgWZ4zar6KMj69MfwMbuIgmUH9vUuPDE6kJKePqJZUTHoRWIAaoF6cHg4o
-        807Pv/QtqXxaZKTMyLTdopVZId5bJfgIG6LngVaoDjQkzOIuamO6pzSlKFMZ7rijdfT9bV4WLNoRA
-        A3xOxsHg==;
-Received: from localhost ([::1] helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1nmwMz-0005sS-H6; Fri, 06 May 2022 13:43:37 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH v2 4/4] nft: Fix EPERM handling for extensions without rev 0
-Date:   Fri,  6 May 2022 13:43:28 +0200
-Message-Id: <20220506114328.9739-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220504103416.19712-5-phil@nwl.cc>
-References: <20220504103416.19712-5-phil@nwl.cc>
+        bh=OH5eW8fChFjGrrbXYrkxOX+TG4u/umeq7/Uy9YqY0mI=; b=l72Vk8FVlxVUD101uGYKRZds9k
+        KwFiv3Nl6hHFUGaa027pyRXXLwjgMop98OYIkqDeExYW8LG7psEj4r0S0DeWjXtyIAoQ7TTym6qDr
+        ALnRWOiNRAFxp1uCJy0NR06JT7zAuiOFSVPQRC+dT8gM/2RacYubNsjuVCS6HVHQbaAHX/VMtvtZC
+        IhLk0pe6ZXkSYJNmCiIFQz2cGWrYATNuH3/lWJwIbpi9pCvOxWPMjlgbq4oc0AdTgX7AToHbhWbaY
+        nJKNTjcxKJJl5y0NsY598wA/uGMZxxlLjTn2fQynwdP9aGuIbxeZEcbvpfzan9ItGn9YW+5KcmICF
+        X/eeKbAA==;
+Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
+        by kadath.azazel.net with esmtp (Exim 4.94.2)
+        (envelope-from <jeremy@azazel.net>)
+        id 1nnJ60-0025Kn-Pw; Sat, 07 May 2022 12:59:36 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Jan Engelhardt <jengelh@inai.de>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH xtables-addons 2/2] doc: fix typo in help
+Date:   Sat,  7 May 2022 12:59:24 +0100
+Message-Id: <20220507115924.3590034-2-jeremy@azazel.net>
+X-Mailer: git-send-email 2.35.1
+In-Reply-To: <20220507115924.3590034-1-jeremy@azazel.net>
+References: <20220507115924.3590034-1-jeremy@azazel.net>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Treating revision 0 as compatible in EPERM case works fine as long as
-there is a revision 0 of that extension defined in DSO. Fix the code for
-others: Extend the EPERM handling to all revisions and keep the existing
-warning for revision 0.
+libxt_psd.c: 'threshhold' -> 'threshold'
 
-Fixes: 17534cb18ed0a ("Improve error messages for unsupported extensions")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
-Changes since v1:
-- Drop useless error message.
----
- iptables/nft.c                                        | 11 +++++++----
- .../shell/testcases/iptables/0008-unprivileged_0      |  6 ++++++
- 2 files changed, 13 insertions(+), 4 deletions(-)
+ extensions/libxt_psd.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/iptables/nft.c b/iptables/nft.c
-index 4ab59b12d00b1..21dfbd32540e0 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -3551,15 +3551,18 @@ int nft_compatible_revision(const char *name, uint8_t rev, int opt)
- err:
- 	mnl_socket_close(nl);
- 
--	/* pretend revision 0 is valid -
-+	/* ignore EPERM and errors for revision 0 -
- 	 * this is required for printing extension help texts as user, also
- 	 * helps error messaging on unavailable kernel extension */
--	if (ret < 0 && rev == 0) {
--		if (errno != EPERM)
-+	if (ret < 0) {
-+		if (errno == EPERM)
-+			return 1;
-+		if (rev == 0) {
- 			fprintf(stderr,
- 				"Warning: Extension %s revision 0 not supported, missing kernel module?\n",
- 				name);
--		return 1;
-+			return 1;
-+		}
- 	}
- 
- 	return ret < 0 ? 0 : 1;
-diff --git a/iptables/tests/shell/testcases/iptables/0008-unprivileged_0 b/iptables/tests/shell/testcases/iptables/0008-unprivileged_0
-index 43e3bc8721dbd..983531fef4720 100755
---- a/iptables/tests/shell/testcases/iptables/0008-unprivileged_0
-+++ b/iptables/tests/shell/testcases/iptables/0008-unprivileged_0
-@@ -35,6 +35,12 @@ let "rc+=$?"
- grep_or_rc "DNAT target options:" <<< "$out"
- let "rc+=$?"
- 
-+# TEE has no revision 0
-+out=$(run $XT_MULTI iptables -j TEE --help)
-+let "rc+=$?"
-+grep_or_rc "TEE target options:" <<< "$out"
-+let "rc+=$?"
-+
- out=$(run $XT_MULTI iptables -p tcp -j DNAT --help)
- let "rc+=$?"
- grep_or_rc "tcp match options:" <<< "$out"
+diff --git a/extensions/libxt_psd.c b/extensions/libxt_psd.c
+index 05940e7187b9..1f7992973e0f 100644
+--- a/extensions/libxt_psd.c
++++ b/extensions/libxt_psd.c
+@@ -36,7 +36,7 @@
+ static void psd_mt_help(void) {
+ 	printf(
+ 		"psd match options:\n"
+-		" --psd-weight-threshold threshhold  Portscan detection weight threshold\n"
++		" --psd-weight-threshold threshold   Portscan detection weight threshold\n"
+ 		" --psd-delay-threshold  delay       Portscan detection delay threshold\n"
+ 		" --psd-lo-ports-weight  lo          Privileged ports weight\n"
+ 		" --psd-hi-ports-weight  hi          High ports weight\n\n");
 -- 
-2.34.1
+2.35.1
 
