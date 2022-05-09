@@ -2,149 +2,183 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E4F9C433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 May 2022 17:11:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 743EAC433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 May 2022 18:25:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239358AbiEIRPt (ORCPT
+        id S240184AbiEIS3i (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 9 May 2022 13:15:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49144 "EHLO
+        Mon, 9 May 2022 14:29:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51814 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231344AbiEIRPs (ORCPT
+        with ESMTP id S240122AbiEIS3f (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 9 May 2022 13:15:48 -0400
-Received: from EUR01-VE1-obe.outbound.protection.outlook.com (mail-eopbgr140121.outbound.protection.outlook.com [40.107.14.121])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A0CD716D12C
-        for <netfilter-devel@vger.kernel.org>; Mon,  9 May 2022 10:11:53 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Vt2NREWHjMA6RLGlETjm5GdVLwCEEz4z3jGzRXE+PuotdlM3d9VUjBCR2A2Y+ft7qhxcEbF8mVJSVLceQSUg29BG23jRqL3dg8GiGnJDRCZGr2aycbvuKyllr8HgUD9DStvOaVBRYf3BNc37IappQlqyfxghswQ6+HBO6lbbIrcc4C1uNbhK7kwWcUz2USph4d0yGiUTor5ZoYxfZgFKZvPkkkVRCEzYx/c/A3SwdyM40Ty0VI8CKTPYvSeu5Tjs6vn8LO6T7qM0BEGZHl+KiIsGsx7maTBdk6ONvHngzwjZpi50KMgGEyetg4OGl0MyFXM0KfvHXA0LpPHmu53qsw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=uUAfgQa2UL8A8d7t6rgrQQk6YCBtXBdUfCIGjQnqUf0=;
- b=KfaaY/msXlyYYtdgRqy+nE6ioX9tjsiqAnfiNTu6W9vzZ4P8t4k5O6lgXA6FwdMg9vzphIU4hiy8UQEAcyfxaM33iO2G9MIMEm59oCvRgZSjAtxbEqvZKmA1ACJ2P5eoL9P851CBWGNEy9vLdrUQmS8o80Z1TcBAs+x9riERM7W2Wt2MmTkgebAgKArIY9D5/owFpTTy++cLU5XsE67PmDdW91woxqYkjfM1bF08xC3js/dxxJsxg540eP+/adw4I+yqsYhH98nsN0Rp7DVLdQ44az9EmsCg3/I4HVYTH7qVFHEDc1sBZJLpI4VR4hwIwFHynlWrJcHAdemexCPbiA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=voleatech.de; dmarc=pass action=none header.from=voleatech.de;
- dkim=pass header.d=voleatech.de; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=voleatech.de;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=uUAfgQa2UL8A8d7t6rgrQQk6YCBtXBdUfCIGjQnqUf0=;
- b=CikBGoFGQD4W+ttiUw/Cw1f7X+Hwh7eTFW5rEE7q1+6kM5gYFqGsOtUXa9D7vlpmlyWUrRMJu3Hj6csqnK8ODKUM0fnOog6J4hknE4CyqV37Nh9WgfGtXODIh+3Sg/zAMDzaKc6AvRWjDYkXqaXSy39IE5LEgduCDAPneO6PbAo=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=voleatech.de;
-Received: from PA4PR05MB8996.eurprd05.prod.outlook.com (2603:10a6:102:2a7::10)
- by DB8PR05MB6650.eurprd05.prod.outlook.com (2603:10a6:10:142::23) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5227.21; Mon, 9 May
- 2022 17:11:50 +0000
-Received: from PA4PR05MB8996.eurprd05.prod.outlook.com
- ([fe80::c4b9:8da4:3f97:a2c6]) by PA4PR05MB8996.eurprd05.prod.outlook.com
- ([fe80::c4b9:8da4:3f97:a2c6%5]) with mapi id 15.20.5186.021; Mon, 9 May 2022
- 17:11:49 +0000
-Date:   Mon, 9 May 2022 19:11:44 +0200
-From:   Sven Auhagen <sven.auhagen@voleatech.de>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, pablo@netfilter.org, nbd@nbd.name,
-        paulb@nvidia.com, ozsh@nvidia.com
-Subject: Re: [PATCH] nf_flowtable: teardown fix race condition
-Message-ID: <20220509171144.32oms7zygfkjypd6@svensmacbookpro.sven.lan>
-References: <20220509093132.fmxxhhogq7jhhpks@SvensMacbookPro.hq.voleatech.com>
- <20220509164733.GA12438@breakpoint.cc>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220509164733.GA12438@breakpoint.cc>
-X-ClientProxiedBy: AS9PR06CA0551.eurprd06.prod.outlook.com
- (2603:10a6:20b:485::12) To PA4PR05MB8996.eurprd05.prod.outlook.com
- (2603:10a6:102:2a7::10)
+        Mon, 9 May 2022 14:29:35 -0400
+X-Greylist: delayed 479 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 09 May 2022 11:25:37 PDT
+Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 5124A1E5EFB;
+        Mon,  9 May 2022 11:25:34 -0700 (PDT)
+Received: from mg.ssi.bg (localhost [127.0.0.1])
+        by mg.ssi.bg (Proxmox) with ESMTP id 345551AD70;
+        Mon,  9 May 2022 21:17:37 +0300 (EEST)
+Received: from ink.ssi.bg (unknown [193.238.174.40])
+        by mg.ssi.bg (Proxmox) with ESMTP id 982F01AEBC;
+        Mon,  9 May 2022 21:17:35 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [178.16.129.10])
+        by ink.ssi.bg (Postfix) with ESMTPS id 18DCD3C07D1;
+        Mon,  9 May 2022 21:17:31 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.16.1/8.16.1) with ESMTP id 249IHPlO074453;
+        Mon, 9 May 2022 21:17:28 +0300
+Date:   Mon, 9 May 2022 21:17:25 +0300 (EEST)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     menglong8.dong@gmail.com
+cc:     Simon Horman <horms@verge.net.au>, pablo@netfilter.org,
+        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org,
+        Menglong Dong <imagedong@tencent.com>
+Subject: Re: [PATCH net-next] net: ipvs: random start for RR scheduler
+In-Reply-To: <20220509122213.19508-1-imagedong@tencent.com>
+Message-ID: <cb8eaad0-83c5-a150-d830-e078682ba18b@ssi.bg>
+References: <20220509122213.19508-1-imagedong@tencent.com>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: d3059342-6ed4-4245-d6ed-08da31df0150
-X-MS-TrafficTypeDiagnostic: DB8PR05MB6650:EE_
-X-Microsoft-Antispam-PRVS: <DB8PR05MB66506E4FEFE28F300BC90D56EFC69@DB8PR05MB6650.eurprd05.prod.outlook.com>
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: KLODx2ApCPZV0r9i64cBhuGZ4AWFvkPJxNggEsHC2HILLOQ5scJxqFsFbhmNA4R6Dn6Ko1Pdb+1gfuPoKS0N1jAZajB9D9tM1sabDuZiWFm43NIAAexZRr5FRMWAt+g8ncZ26UNKwTmf1pNtl45Zo3LR8UChRXciloaKXdjeH7wtgYkWoLR5a5Ep8H0ZbsadcRznj7uXqJB+dT1+XTHJjlRX5/NNpJ9OEj9XQ+9F0wCkYr6qu5wN36TuB66XulfXGnKlcWvxiVpLarK7entFJkKvQs2mDhgyvmMnWk6vq+m4pcYmH4uOUjwsWHt/IvXXz64QM/nH4VayrNeWv7Hf8ybzkQbadjnO5VUyizWUFI6/gMypmaemJ5u5bDOgKao7K5wlAcnq+uRATARMCnnxUd8zgKwFQYkBCah6oEKGltnh6wSB4jZ/1enJdr5FthrsrRdL6Sz6dK6NS9vUwVl8pqntfWuxQy5pQZ8unElU+Wq4Z3l/AbFZ5QniquMaPtgMRLUZlfXrzPEm25Md8C4idXz/ktmrvsQPAtYVArNpvlh1TK1brQZaxhlwt81xrMua/maetWE3YpJtA7x8jgJ00DDcGnYE/tJd184hVE8XzoXRioIApi4/vDIJfrb/pKOY7XKQ5+z4LrYEH2Ifmj8zhQ==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PA4PR05MB8996.eurprd05.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(4636009)(376002)(366004)(39830400003)(396003)(136003)(346002)(6486002)(508600001)(38100700002)(316002)(6916009)(26005)(66946007)(66556008)(86362001)(66476007)(6666004)(5660300002)(6512007)(8676002)(9686003)(4326008)(6506007)(2906002)(186003)(44832011)(83380400001)(1076003)(8936002);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?o39jg47qjdQledP4QVgT/fS5NCEcugI/0whDdLzumbi9/YuqQJJIr36OaTWE?=
- =?us-ascii?Q?6FNnitiEjygWEZkjYGlTt/7ysiRjLvPTo+cQQ9ZDdvwnPWADIw4B73zJy4R8?=
- =?us-ascii?Q?GSQM//W49cBT0ig8CROOyobWj5aHwMKmvsVw4hjdfGNzvGnsQxqH81xzY/vG?=
- =?us-ascii?Q?AWSp43tUZWjzck42mQXVgFZaIy035JtPodu2kSl3qs3KvHd3JdU0o7ApE2IC?=
- =?us-ascii?Q?EUXhyZIxH2KqNZQuac/Tyo87xtRpm1Y/aSgXZVuGHL9tyWCJGUOsM6gWC6ab?=
- =?us-ascii?Q?KBd8NXavzEHioqExfjxObbz2XVxuq+M0DITwntf2GicJZ5gPN3yvU2W63a3j?=
- =?us-ascii?Q?qDKtWo3jnH4YajWQrCPuMUgdBHKym/XRv7lWJzkExaxIXzqorXOk5ckuoM0O?=
- =?us-ascii?Q?u/QwQ2M9jp2LbpUhzeFTxTJehb4fcleySlV/HNz21mFvUJF8glo82LEbQ8xz?=
- =?us-ascii?Q?gjIThPj2GqZKa+Zfa8IEl5Lxi76JtSbnwmSfOu3wIrATzcT3ezZC68HWGQiX?=
- =?us-ascii?Q?7U/sCg0n4Y8zogyKhxbFcMNV4itzX/HAiZqTrySm6oUZ/SiDKWoMu7px5MQx?=
- =?us-ascii?Q?o1Uj7JX/szOLs78TDrgpIkLzirJo/QCVFkZ9REVWi9mXmB7beSj8iyZE9tne?=
- =?us-ascii?Q?q+vk2y8j1IXQqw8oEJJiG0ERYlghbJZmDgsCOenpAdTJ7vKmCEb+/3Ge+zS/?=
- =?us-ascii?Q?UqHFBl8GzSD27orEwuF5zvQkBAXe45YfP2iaNS5ZC+PVKIweU0zurvO31gWL?=
- =?us-ascii?Q?7NGfASeaa/vrdUKW5ruJg3ddwqQncNvxp6vC8RLzIbrEtPrHscI4YYKKeApG?=
- =?us-ascii?Q?fRPaEs9zXuwTh0oFcFR3kk78dr12yvY+hLSoY8mOwmPSFJ7R/sQwLlXaffZ8?=
- =?us-ascii?Q?GmEqrjeVo7wG5vHVz+fQLySI1jRldwqRRGET9XwzavfBO6pPllNPz2RVMQ8T?=
- =?us-ascii?Q?V6VXKWrpChdKsQ70gelLlvesWVwfBhECe1eQaI15rU77rxSUlR4Dg0FEOkXv?=
- =?us-ascii?Q?jDYsp4hxCMgeJ8wu1uH2W1B++pVW87/CbkIowvzw+gL+qAsOxeYkUOMoQWtz?=
- =?us-ascii?Q?XR5r+X46lSTltz4czn9BrMCuAjpcCebTME9azoQJhTd4/1ET2k8CqyIKlarE?=
- =?us-ascii?Q?i9T13W0Yh3PLWTkfoNjExvSEqWVzAQbimeDjr+uNApwVSeyHeK0MtPm0j5H6?=
- =?us-ascii?Q?/ZDkAVLIIeULWjbRbDQ/Dn5R+ICNIJteS/9jalOXHvKesj9IQa5uCyxGF4Pp?=
- =?us-ascii?Q?UnoeBZkxbDOZ5vOLgSQlwOwe0nLP7taYo3ryV5PPTlLYDDWo6XWI0heplMYT?=
- =?us-ascii?Q?F/4hX2lFz0sL/SmT29kgpULVVXVqlrHpZ2OptPr9koPaMwhZ7UoQ3FptEbwl?=
- =?us-ascii?Q?JqH+7oq1Y0GPI/tZORMvlemgUct0iUq7oPQilAGX+JDY8HW2y3WSsDHtJfGF?=
- =?us-ascii?Q?KvkW42W6+erHAm509kZLfORc9FiMooVnmaiOtuQZ64tdftZhhTPSu9JJJs7T?=
- =?us-ascii?Q?p3Nz+8UA5HViya9CeD1XfkaaVAB+fDPWKgq6x+BQ5FI3+a4h+Qs5w8zVESTY?=
- =?us-ascii?Q?b0RyvYz7rxu7risqecygnOTViDVWTVKgrROAYbW4omVX66GRjv6ljj2ovw4H?=
- =?us-ascii?Q?3vrQtEAMD02zpELZH3qCGMwPm21DbwCMnWMgm/I1gvLYRZrenT92PuMfpwZD?=
- =?us-ascii?Q?wV5i+iQGPFvSsOXNKD5TgBZo14AwJGNOiB+eeo/Cdw+awbGsTrye/bPTfx96?=
- =?us-ascii?Q?5yGHyZ+a5zENL31FKTksw8vxlpQl9fQ=3D?=
-X-OriginatorOrg: voleatech.de
-X-MS-Exchange-CrossTenant-Network-Message-Id: d3059342-6ed4-4245-d6ed-08da31df0150
-X-MS-Exchange-CrossTenant-AuthSource: PA4PR05MB8996.eurprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 May 2022 17:11:49.8858
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: b82a99f6-7981-4a72-9534-4d35298f847b
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 9/GbYT7k60wntDD+DAEP2xP2CYteu4l8vW/zN/ZbHKLWBdLke8CYj6u4tNsPPemG3jZgGb8y8G/hLdAOZaTi+hH7AQnbImEI4k5yye1JCqI=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DB8PR05MB6650
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, May 09, 2022 at 06:47:33PM +0200, Florian Westphal wrote:
-> Sven Auhagen <Sven.Auhagen@voleatech.de> wrote:
-> > +	if (unlikely(!test_bit(IPS_ASSURED_BIT, &flow->ct->status))) {
-> > +		spin_lock_bh(&flow->ct->lock);
-> > +		flow->ct->proto.tcp.state = TCP_CONNTRACK_ESTABLISHED;
-> > +		spin_unlock_bh(&flow->ct->lock);
-> > +		set_bit(IPS_ASSURED_BIT, &flow->ct->status);
+
+	Hello,
+
+On Mon, 9 May 2022, menglong8.dong@gmail.com wrote:
+
+> From: Menglong Dong <imagedong@tencent.com>
 > 
-> Uh. Whats going on here?  ASSURED bit prevents early-eviction,
-> it should not be set at random.
+> For now, the start of the RR scheduler is in the order of dest
+> service added, it will result in imbalance if the load balance
 
-It is not set at random but when the TCP state is set to established.
-The problem with the flow offload code at the moment is that it
-is setting the TCP state to established on flow teardown disregarding
-the current TCP state which might be CLOSED or FIN WAIT and therefore
-creating a lot of long living dead state entries.
+	...order of added destinations,...
 
-I need the tcp state to be ESTABLISHED at this point to distinguish
-the right cases at flow teardown, because the TCP state at
-flow creation is SYN_RECV and it will most likely stay like that
-during offload.
-It can transition to a different state though if the flow offload code
-bumps up a packet to the nftables slow path in case of a processing
-error or after flow teardown and before flow delete, because there is
-a race condition at the moment.
+> is done in client side and long connect is used.
 
-After talking to Oz today, he rightfully mentioned that the offload
-should not be allocated if the TCP state is not established to avoid
-the hack here.
+	..."long connections are used". Is this a case where
+small number of connections are used? And the two connections
+relatively overload the real servers?
 
-I will send a v2 with that implementation.
+> For example, we have client1, client2, ..., client5 and real service
+> service1, service2, service3. All clients have the same ipvs config,
+> and each of them will create 2 long TCP connect to the virtual
+> service. Therefore, all the clients will connect to service1 and
+> service2, leaving service3 free.
 
-Best
-Sven
+	You mean, there are many IPVS directors with same
+config and each director gets 2 connections? Third connection
+will get real server #3, right ? Also, are the clients local
+to the director?
+
+> Fix this by randomize the start of dest service to RR scheduler when
+
+	..."randomizing the starting destination when"
+
+> IP_VS_SVC_F_SCHED_RR_RANDOM is set.
+> 
+> Signed-off-by: Menglong Dong <imagedong@tencent.com>
+> ---
+>  include/uapi/linux/ip_vs.h    |  2 ++
+>  net/netfilter/ipvs/ip_vs_rr.c | 25 ++++++++++++++++++++++++-
+>  2 files changed, 26 insertions(+), 1 deletion(-)
+> 
+> diff --git a/include/uapi/linux/ip_vs.h b/include/uapi/linux/ip_vs.h
+> index 4102ddcb4e14..7f74bafd3211 100644
+> --- a/include/uapi/linux/ip_vs.h
+> +++ b/include/uapi/linux/ip_vs.h
+> @@ -28,6 +28,8 @@
+>  #define IP_VS_SVC_F_SCHED_SH_FALLBACK	IP_VS_SVC_F_SCHED1 /* SH fallback */
+>  #define IP_VS_SVC_F_SCHED_SH_PORT	IP_VS_SVC_F_SCHED2 /* SH use port */
+>  
+> +#define IP_VS_SVC_F_SCHED_RR_RANDOM	IP_VS_SVC_F_SCHED1 /* random start */
+> +
+>  /*
+>   *      Destination Server Flags
+>   */
+> diff --git a/net/netfilter/ipvs/ip_vs_rr.c b/net/netfilter/ipvs/ip_vs_rr.c
+> index 38495c6f6c7c..e309d97bdd08 100644
+> --- a/net/netfilter/ipvs/ip_vs_rr.c
+> +++ b/net/netfilter/ipvs/ip_vs_rr.c
+> @@ -22,13 +22,36 @@
+>  
+>  #include <net/ip_vs.h>
+>  
+> +static void ip_vs_rr_random_start(struct ip_vs_service *svc)
+> +{
+> +	struct list_head *cur;
+> +	u32 start;
+> +
+> +	if (!(svc->flags | IP_VS_SVC_F_SCHED_RR_RANDOM) ||
+
+	| -> &
+
+> +	    svc->num_dests <= 1)
+> +		return;
+> +
+> +	spin_lock_bh(&svc->sched_lock);
+> +	start = get_random_u32() % svc->num_dests;
+
+	May be prandom is more appropriate for non-crypto purposes. 
+Also, not sure if it is a good idea to limit the number of steps,
+eg. to 128...
+
+	start = prandom_u32_max(min(svc->num_dests, 128U));
+
+	or just use
+
+	start = prandom_u32_max(svc->num_dests);
+
+	Also, this line can be before the spin_lock_bh.
+
+> +	cur = &svc->destinations;
+
+	cur = svc->sched_data;
+
+	... and to start from current svc->sched_data because
+we are called for every added dest. Better to jump 0..127 steps
+ahead, to avoid delay with long lists?
+
+> +	while (start--)
+> +		cur = cur->next;
+> +	svc->sched_data = cur;
+> +	spin_unlock_bh(&svc->sched_lock);
+> +}
+>  
+>  static int ip_vs_rr_init_svc(struct ip_vs_service *svc)
+>  {
+>  	svc->sched_data = &svc->destinations;
+> +	ip_vs_rr_random_start(svc);
+>  	return 0;
+>  }
+>  
+> +static int ip_vs_rr_add_dest(struct ip_vs_service *svc, struct ip_vs_dest *dest)
+> +{
+> +	ip_vs_rr_random_start(svc);
+> +	return 0;
+> +}
+>  
+>  static int ip_vs_rr_del_dest(struct ip_vs_service *svc, struct ip_vs_dest *dest)
+>  {
+> @@ -104,7 +127,7 @@ static struct ip_vs_scheduler ip_vs_rr_scheduler = {
+>  	.module =		THIS_MODULE,
+>  	.n_list =		LIST_HEAD_INIT(ip_vs_rr_scheduler.n_list),
+>  	.init_service =		ip_vs_rr_init_svc,
+> -	.add_dest =		NULL,
+> +	.add_dest =		ip_vs_rr_add_dest,
+>  	.del_dest =		ip_vs_rr_del_dest,
+>  	.schedule =		ip_vs_rr_schedule,
+>  };
+> -- 
+> 2.36.0
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
 
