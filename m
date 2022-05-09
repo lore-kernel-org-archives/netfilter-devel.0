@@ -2,107 +2,69 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFF08C4321E
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 May 2022 06:33:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF0E3C4321E
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 May 2022 06:43:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230454AbiEIGfl (ORCPT
+        id S229628AbiEIGqa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 9 May 2022 02:35:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48518 "EHLO
+        Mon, 9 May 2022 02:46:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53690 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235103AbiEIGaI (ORCPT
+        with ESMTP id S235581AbiEIGgp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 9 May 2022 02:30:08 -0400
+        Mon, 9 May 2022 02:36:45 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id ADDCC183AE;
-        Sun,  8 May 2022 23:26:12 -0700 (PDT)
-Date:   Mon, 9 May 2022 08:26:08 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 841441498C3
+        for <netfilter-devel@vger.kernel.org>; Sun,  8 May 2022 23:32:52 -0700 (PDT)
+Date:   Mon, 9 May 2022 08:32:49 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Felix Fietkau <nbd@nbd.name>
-Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH 2/4] netfilter: nft_flow_offload: skip dst neigh lookup
- for ppp devices
-Message-ID: <Yni0AIc06fBELtXz@salvia>
-References: <20220506131841.3177-1-nbd@nbd.name>
- <20220506131841.3177-2-nbd@nbd.name>
+To:     Ritaro Takenaka <ritarot634@gmail.com>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] nf_flowtable: ensure dst.dev is not blackhole
+Message-ID: <Yni1kVGBEBbK1PRX@salvia>
+References: <20220425080835.5765-1-ritarot634@gmail.com>
+ <YmfVpecE2UuiP6p8@salvia>
+ <04e2c223-7936-481d-0032-0a55a21dca7a@gmail.com>
+ <Ymlc+vl4TUE57Q3+@salvia>
+ <801f6e3a-77c5-0f6f-5aeb-84e76ffea03d@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20220506131841.3177-2-nbd@nbd.name>
+In-Reply-To: <801f6e3a-77c5-0f6f-5aeb-84e76ffea03d@gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Series LGTM.
-
-Would you repost adding Fixes: tag and target nf tree?
-
-Thanks.
-
-On Fri, May 06, 2022 at 03:18:39PM +0200, Felix Fietkau wrote:
-> The dst entry does not contain a valid hardware address, so skip the lookup
-> in order to avoid running into errors here.
-> The proper hardware address is filled in from nft_dev_path_info
+On Sun, May 01, 2022 at 02:23:55AM +0900, Ritaro Takenaka wrote:
+> On 2022/04/28 0:10, Pablo Neira Ayuso wrote:> On Tue, Apr 26, 2022 at 09:28:13PM +0900, Ritaro Takenaka wrote:
+> >> Thanks for your reply.
+> >>
+> >>> In 5.4, this check is only enabled for xfrm.
+> >> Packet loss occurs with xmit (xfrm is not confirmed).
+> >> I also experienced packet loss with 5.10, which runs dst_check periodically.
+> >> Route GC and flowtable GC are not synchronized, so it is
+> >> necessary to check each packet.
+> >>
+> >>> dst_check() should deal with this.
+> >> When dst_check is used, the performance degradation is not negligible.
+> >> From 900 Mbps to 700 Mbps with QCA9563 simple firewall.
+> > 
+> > You mention 5.10 above.
+> > 
+> > Starting 5.12, dst_check() uses INDIRECT_CALL_INET.
+> > 
+> > Is dst_check() still slow with >= 5.12?
+> > 
+> > Asking this because my understanding (at this stage) is that this
+> > check for blackhole_netdev is a faster way to check for stale cached
+> > routes.
 > 
-> Signed-off-by: Felix Fietkau <nbd@nbd.name>
-> ---
->  net/netfilter/nft_flow_offload.c | 22 +++++++++++++---------
->  1 file changed, 13 insertions(+), 9 deletions(-)
+> I did the performance tests with 5.15, confirmed dst_check() is not slower
+> than checking for blackhole_netdev.
 > 
-> diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-> index 900d48c810a1..d88de26aad75 100644
-> --- a/net/netfilter/nft_flow_offload.c
-> +++ b/net/netfilter/nft_flow_offload.c
-> @@ -36,6 +36,15 @@ static void nft_default_forward_path(struct nf_flow_route *route,
->  	route->tuple[dir].xmit_type	= nft_xmit_type(dst_cache);
->  }
->  
-> +static bool nft_is_valid_ether_device(const struct net_device *dev)
-> +{
-> +	if (!dev || (dev->flags & IFF_LOOPBACK) || dev->type != ARPHRD_ETHER ||
-> +	    dev->addr_len != ETH_ALEN || !is_valid_ether_addr(dev->dev_addr))
-> +		return false;
-> +
-> +	return true;
-> +}
-> +
->  static int nft_dev_fill_forward_path(const struct nf_flow_route *route,
->  				     const struct dst_entry *dst_cache,
->  				     const struct nf_conn *ct,
-> @@ -47,6 +56,9 @@ static int nft_dev_fill_forward_path(const struct nf_flow_route *route,
->  	struct neighbour *n;
->  	u8 nud_state;
->  
-> +	if (!nft_is_valid_ether_device(dev))
-> +		goto out;
-> +
->  	n = dst_neigh_lookup(dst_cache, daddr);
->  	if (!n)
->  		return -1;
-> @@ -60,6 +72,7 @@ static int nft_dev_fill_forward_path(const struct nf_flow_route *route,
->  	if (!(nud_state & NUD_VALID))
->  		return -1;
->  
-> +out:
->  	return dev_fill_forward_path(dev, ha, stack);
->  }
->  
-> @@ -78,15 +91,6 @@ struct nft_forward_info {
->  	enum flow_offload_xmit_type xmit_type;
->  };
->  
-> -static bool nft_is_valid_ether_device(const struct net_device *dev)
-> -{
-> -	if (!dev || (dev->flags & IFF_LOOPBACK) || dev->type != ARPHRD_ETHER ||
-> -	    dev->addr_len != ETH_ALEN || !is_valid_ether_addr(dev->dev_addr))
-> -		return false;
-> -
-> -	return true;
-> -}
-> -
->  static void nft_dev_path_info(const struct net_device_path_stack *stack,
->  			      struct nft_forward_info *info,
->  			      unsigned char *ha, struct nf_flowtable *flowtable)
-> -- 
-> 2.35.1
+> Good, dst_check() can be used.
 > 
+> Then, stale routes check should be moved from nf_flow_offload_gc_step() to
+> nf_flow_offload(_ipv6)_hook(). Is it correct?
+
+Then, the check from packet path needs to be restored.
