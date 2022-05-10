@@ -2,26 +2,26 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D0F9C433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 May 2022 12:22:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83BF5C433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 May 2022 12:22:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241291AbiEJM0U (ORCPT
+        id S241729AbiEJM0W (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 10 May 2022 08:26:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48962 "EHLO
+        Tue, 10 May 2022 08:26:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48958 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241672AbiEJMZ4 (ORCPT
+        with ESMTP id S241671AbiEJMZ4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 10 May 2022 08:25:56 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id EBAF9972E6;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C122595A05;
         Tue, 10 May 2022 05:21:58 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 05/17] netfilter: remove nf_ct_unconfirmed_destroy helper
-Date:   Tue, 10 May 2022 14:21:38 +0200
-Message-Id: <20220510122150.92533-6-pablo@netfilter.org>
+Subject: [PATCH net-next 04/17] netfilter: cttimeout: decouple unlink and free on netns destruction
+Date:   Tue, 10 May 2022 14:21:37 +0200
+Message-Id: <20220510122150.92533-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220510122150.92533-1-pablo@netfilter.org>
 References: <20220510122150.92533-1-pablo@netfilter.org>
@@ -33,79 +33,110 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-This helper tags connections not yet in the conntrack table as
-dying.  These nf_conn entries will be dropped instead when the
-core attempts to insert them from the input or postrouting
-'confirm' hook.
+Make it so netns pre_exit unlinks the objects from the pernet list, so
+they cannot be found anymore.
 
-After the previous change, the entries get unlinked from the
-list earlier, so that by the time the actual exit hook runs,
-new connections no longer have a timeout policy assigned.
+netns core issues a synchronize_rcu() before calling the exit hooks so
+any the time the exit hooks run unconfirmed nf_conn entries have been
+free'd or they have been committed to the hashtable.
 
-Its enough to walk the hashtable instead.
+The exit hook still tags unconfirmed entries as dying, this can
+now be removed in a followup change.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack.h |  3 ---
- net/netfilter/nf_conntrack_core.c    | 14 --------------
- net/netfilter/nfnetlink_cttimeout.c  |  4 +++-
- 3 files changed, 3 insertions(+), 18 deletions(-)
+ include/net/netfilter/nf_conntrack_timeout.h |  8 ------
+ net/netfilter/nfnetlink_cttimeout.c          | 30 ++++++++++++++++++--
+ 2 files changed, 28 insertions(+), 10 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 28672a944499..f60212244b13 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -237,9 +237,6 @@ static inline bool nf_ct_kill(struct nf_conn *ct)
- 	return nf_ct_delete(ct, 0, 0);
- }
+diff --git a/include/net/netfilter/nf_conntrack_timeout.h b/include/net/netfilter/nf_conntrack_timeout.h
+index 3ea94f6f3844..fea258983d23 100644
+--- a/include/net/netfilter/nf_conntrack_timeout.h
++++ b/include/net/netfilter/nf_conntrack_timeout.h
+@@ -17,14 +17,6 @@ struct nf_ct_timeout {
+ 	char			data[];
+ };
  
--/* Set all unconfirmed conntrack as dying */
--void nf_ct_unconfirmed_destroy(struct net *);
+-struct ctnl_timeout {
+-	struct list_head	head;
+-	struct rcu_head		rcu_head;
+-	refcount_t		refcnt;
+-	char			name[CTNL_TIMEOUT_NAME_MAX];
+-	struct nf_ct_timeout	timeout;
+-};
 -
- /* Iterate over all conntracks: if iter returns true, it's deleted. */
- void nf_ct_iterate_cleanup_net(struct net *net,
- 			       int (*iter)(struct nf_conn *i, void *data),
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 9010b6e5a072..b3cc318ceb45 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -2431,20 +2431,6 @@ __nf_ct_unconfirmed_destroy(struct net *net)
- 	}
- }
- 
--void nf_ct_unconfirmed_destroy(struct net *net)
--{
--	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
--
--	might_sleep();
--
--	if (atomic_read(&cnet->count) > 0) {
--		__nf_ct_unconfirmed_destroy(net);
--		nf_queue_nf_hook_drop(net);
--		synchronize_net();
--	}
--}
--EXPORT_SYMBOL_GPL(nf_ct_unconfirmed_destroy);
--
- void nf_ct_iterate_cleanup_net(struct net *net,
- 			       int (*iter)(struct nf_conn *i, void *data),
- 			       void *data, u32 portid, int report)
+ struct nf_conn_timeout {
+ 	struct nf_ct_timeout __rcu *timeout;
+ };
 diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-index 83fa15c4193c..f366b8187915 100644
+index eea486f32971..83fa15c4193c 100644
 --- a/net/netfilter/nfnetlink_cttimeout.c
 +++ b/net/netfilter/nfnetlink_cttimeout.c
-@@ -608,7 +608,9 @@ static void __net_exit cttimeout_net_exit(struct net *net)
- 	struct nfct_timeout_pernet *pernet = nfct_timeout_pernet(net);
- 	struct ctnl_timeout *cur, *tmp;
+@@ -33,8 +33,19 @@
  
--	nf_ct_unconfirmed_destroy(net);
-+	if (list_empty(&pernet->nfct_timeout_freelist))
-+		return;
+ static unsigned int nfct_timeout_id __read_mostly;
+ 
++struct ctnl_timeout {
++	struct list_head	head;
++	struct rcu_head		rcu_head;
++	refcount_t		refcnt;
++	char			name[CTNL_TIMEOUT_NAME_MAX];
++	struct nf_ct_timeout	timeout;
 +
++	struct list_head	free_head;
++};
++
+ struct nfct_timeout_pernet {
+ 	struct list_head	nfct_timeout_list;
++	struct list_head	nfct_timeout_freelist;
+ };
+ 
+ MODULE_LICENSE("GPL");
+@@ -574,10 +585,24 @@ static int __net_init cttimeout_net_init(struct net *net)
+ 	struct nfct_timeout_pernet *pernet = nfct_timeout_pernet(net);
+ 
+ 	INIT_LIST_HEAD(&pernet->nfct_timeout_list);
++	INIT_LIST_HEAD(&pernet->nfct_timeout_freelist);
+ 
+ 	return 0;
+ }
+ 
++static void __net_exit cttimeout_net_pre_exit(struct net *net)
++{
++	struct nfct_timeout_pernet *pernet = nfct_timeout_pernet(net);
++	struct ctnl_timeout *cur, *tmp;
++
++	list_for_each_entry_safe(cur, tmp, &pernet->nfct_timeout_list, head) {
++		list_del_rcu(&cur->head);
++		list_add(&cur->free_head, &pernet->nfct_timeout_freelist);
++	}
++
++	/* core calls synchronize_rcu() after this */
++}
++
+ static void __net_exit cttimeout_net_exit(struct net *net)
+ {
+ 	struct nfct_timeout_pernet *pernet = nfct_timeout_pernet(net);
+@@ -586,8 +611,8 @@ static void __net_exit cttimeout_net_exit(struct net *net)
+ 	nf_ct_unconfirmed_destroy(net);
  	nf_ct_untimeout(net, NULL);
  
- 	list_for_each_entry_safe(cur, tmp, &pernet->nfct_timeout_freelist, head) {
+-	list_for_each_entry_safe(cur, tmp, &pernet->nfct_timeout_list, head) {
+-		list_del_rcu(&cur->head);
++	list_for_each_entry_safe(cur, tmp, &pernet->nfct_timeout_freelist, head) {
++		list_del(&cur->free_head);
+ 
+ 		if (refcount_dec_and_test(&cur->refcnt))
+ 			kfree_rcu(cur, rcu_head);
+@@ -596,6 +621,7 @@ static void __net_exit cttimeout_net_exit(struct net *net)
+ 
+ static struct pernet_operations cttimeout_ops = {
+ 	.init	= cttimeout_net_init,
++	.pre_exit = cttimeout_net_pre_exit,
+ 	.exit	= cttimeout_net_exit,
+ 	.id     = &nfct_timeout_id,
+ 	.size   = sizeof(struct nfct_timeout_pernet),
 -- 
 2.30.2
 
