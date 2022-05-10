@@ -2,56 +2,56 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CFA64C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 May 2022 02:56:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A2CFC433FE
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 May 2022 03:21:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232754AbiEJDAM (ORCPT
+        id S234844AbiEJDZ2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 9 May 2022 23:00:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46734 "EHLO
+        Mon, 9 May 2022 23:25:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49944 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231519AbiEJDAI (ORCPT
+        with ESMTP id S232678AbiEJDZ2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 9 May 2022 23:00:08 -0400
-Received: from mail-ed1-x543.google.com (mail-ed1-x543.google.com [IPv6:2a00:1450:4864:20::543])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77AC0179092;
-        Mon,  9 May 2022 19:56:12 -0700 (PDT)
-Received: by mail-ed1-x543.google.com with SMTP id p18so18363226edr.7;
-        Mon, 09 May 2022 19:56:12 -0700 (PDT)
+        Mon, 9 May 2022 23:25:28 -0400
+Received: from mail-ej1-x641.google.com (mail-ej1-x641.google.com [IPv6:2a00:1450:4864:20::641])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A440B252BC;
+        Mon,  9 May 2022 20:21:30 -0700 (PDT)
+Received: by mail-ej1-x641.google.com with SMTP id i19so30306418eja.11;
+        Mon, 09 May 2022 20:21:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=jxQ4FfNifoAJnZ9RmrNs5f5NM/VT87rpdDF11Jk1btA=;
-        b=SIoRNBBruUGqvs1gFylAGuQkpK43TNtybVWSF7483tLUz8XioL7cLwS6mWSdNif4Zl
-         yejzbF09bGelUNpFCzxixRshQf/uzmkyxlfCZvjeLamGQmHU0Q3d+opBLK+gKS4xAs20
-         jsI15Y3sgjWwvSP33vRuKK2KVsruIu+TDuHtgalnAMsgUOr5YKLKzVxiu1Vua32lKgIC
-         FQxU8Tf4Hy5FpwlZTbLCtVShnNA/LDfBA950XwR3dXRo90sC28amqEoq/LFtm6KwAawz
-         o38cKjw0EEerDpWthWTlbTHEcXoUNrohxAzXn2Dr3+VCz6o//Po7D/c0ytcMWK8fN/6E
-         1JVA==
+        bh=W6hg8xZDlvVbV0yxBFJp6M3i2By/uzGhIKuyQsM88v4=;
+        b=P+wESGRbK7UrpgEo0WHOiYGsdzWzZ8+u3MZXUDBD4YdLv0BOKi/E+XbjkFcw6DoRaN
+         LenQnO42u8tz5dMfezSlUYh7mWdgCucKAr1fPOYcuPBvBQp4xQiCsNPZyCL+LxgPhrrf
+         veBicKCnUjsb4wSJjmvW+1gbMijZcgobY0wy5gqSBHsLiZJi6QFk1owyvBeCAcSL1S36
+         TVJ3B318oVs8ampqE+l+C6rWHg8nWxfmg8BhUGb6gqo2W498Bo+vfxGsE9pOMhyvAc8X
+         MwQJyuatuyH/Pe7rZDYhDlFYKFbSvx3LU4SUdCXn4Q7gK0ZFCplpHbfthTj3SECxSJFR
+         snqg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=jxQ4FfNifoAJnZ9RmrNs5f5NM/VT87rpdDF11Jk1btA=;
-        b=xtAeunBzKz4cLMi7uyLeF8n7BikeOcrtUi/XXKrNGANoKMkPYYgSMjwHKINYdl/6B4
-         MMDgucahMq6rsKEk6jhdRlR2VxmTOkE/yr+mF1Ip/pGE/hdtfANTw2r/uPFeFt/g3ZPs
-         uWR06crA0jwb3kuM8f5Qs6RhiwzHtZjVUcS2ktQXDQZkIwcaoW3CdwViguXHK9kqRpj6
-         2KksQsvIjbRtcmI0Z5eTurNyfqESJzTn++NGFVAxif7wsiYhv0CE1zVEpJRb7fr5guCC
-         6uhSGjkx4umOJ5cL2UTk8tlK89PJFVScZ12kVkS3NCRykdNbGR+oMx3nqrtT04VjoMj8
-         ayOA==
-X-Gm-Message-State: AOAM530341f0yDE9EaAbwDO/M9Q77alEqFkzVcYBvJCE8048eQ022MaV
-        2NGL4tzJtg+LHovSXppWyXFQGbIu2m1ZrnQttmQ=
-X-Google-Smtp-Source: ABdhPJwwHna8gv/y3VblXwcs6HxkUVCt3J+24Nkru1QGmlBwI8NbhBJjNhhh5sfy1uEWmTb35kbjxHOkM6S/PTqBx/U=
-X-Received: by 2002:a05:6402:3326:b0:426:4883:60a with SMTP id
- e38-20020a056402332600b004264883060amr20183055eda.310.1652151370936; Mon, 09
- May 2022 19:56:10 -0700 (PDT)
+        bh=W6hg8xZDlvVbV0yxBFJp6M3i2By/uzGhIKuyQsM88v4=;
+        b=t5X6kE/0bh7zr9jDchgv9KeXZ1S7hhqCsY2HH4/tb2AAgp1NWS1ck6U9bdiWsq/5Qi
+         uGw3+RGssfmSH+qRDTLucuSRceXcnuNzpntZKFwydKqdnb1veq9WKL0ge2XPy1AsYhYX
+         sPNFOkD8XZ6H/PVv9TywjAqfHJoG2MN14QCEAev0JBUV1JNiOTRi5Zz1PZgJvsUwiUUC
+         R+x37qFWxFVhi4kNmzWjzdILmhFyydGJDO4OR/2iv9NPPM5fB9wRJRfm770/4u0shKqQ
+         8TH4chTmnnhzKi+UnWkyfKvEwq5VOG18yrUy7jvCbiwR4rV+wuZTZjFGb6F5SxZUZueP
+         +cVA==
+X-Gm-Message-State: AOAM530a4vLvckO1awVyLE6lstKNE6cP1iSNzurLGQNBBOqyCC+DP9J/
+        10fDxR3Ml9hIllIoM8zSMHBeEbCHo8/LsElyHFeuJJrD1D6m1A==
+X-Google-Smtp-Source: ABdhPJwIr5oMdwzvHgt4e/5Aa9fSbNcXke+HDO7hTgH8FBfuwfgQdcUn+FngDnm8/mfyzKtDJRcj1i6vBDj5PVGLXSU=
+X-Received: by 2002:a17:906:3144:b0:6ce:de5d:5e3b with SMTP id
+ e4-20020a170906314400b006cede5d5e3bmr17816104eje.689.1652152889158; Mon, 09
+ May 2022 20:21:29 -0700 (PDT)
 MIME-Version: 1.0
 References: <20220509122213.19508-1-imagedong@tencent.com> <cb8eaad0-83c5-a150-d830-e078682ba18b@ssi.bg>
 In-Reply-To: <cb8eaad0-83c5-a150-d830-e078682ba18b@ssi.bg>
 From:   Menglong Dong <menglong8.dong@gmail.com>
-Date:   Tue, 10 May 2022 10:55:59 +0800
-Message-ID: <CADxym3YH_76+5g29QF4Xp4gXJz5bwdQXD_gXv3esAVTgNGkXyg@mail.gmail.com>
+Date:   Tue, 10 May 2022 11:21:17 +0800
+Message-ID: <CADxym3bgR9xfHgoAwWeEQvLUnwrUxee3gK4SkRqcS+TmmfWUGw@mail.gmail.com>
 Subject: Re: [PATCH net-next] net: ipvs: random start for RR scheduler
 To:     Julian Anastasov <ja@ssi.bg>
 Cc:     Simon Horman <horms@verge.net.au>,
@@ -96,13 +96,17 @@ On Tue, May 10, 2022 at 2:17 AM Julian Anastasov <ja@ssi.bg> wrote:
 > will get real server #3, right ? Also, are the clients local
 > to the director?
 >
+
+Sorry to have missed your message here. Yeah, this is what I mean.
+And in my case, the directors are local the to client, and each client
+only have 2 connections. If the 3th connection happens, it will get #3
+real server. And all directors connected to #1 and #2 real servers,
+resulting in overload.
+
 > > Fix this by randomize the start of dest service to RR scheduler when
 >
 >         ..."randomizing the starting destination when"
 >
-
-Nice description :/
-
 > > IP_VS_SVC_F_SCHED_RR_RANDOM is set.
 > >
 > > Signed-off-by: Menglong Dong <imagedong@tencent.com>
@@ -153,9 +157,6 @@ Nice description :/
 >
 >         start = prandom_u32_max(min(svc->num_dests, 128U));
 >
-
-Yeah, prandom_u32_max is a good choice, I'll use it instead.
-
 >         or just use
 >
 >         start = prandom_u32_max(svc->num_dests);
@@ -170,15 +171,41 @@ Yeah, prandom_u32_max is a good choice, I'll use it instead.
 > we are called for every added dest. Better to jump 0..127 steps
 > ahead, to avoid delay with long lists?
 >
-
-I'm a little afraid that the 'steps' may make the starting dest not
-absolutely random, in terms of probability. For example, we have
-256 services, and will the services in the middle have more chances
-to be chosen as the start? It's just a feeling, I'm not good at
-Probability :/
-
-The delay that ip_vs_wrr_gcd_weight() caused is much more than
-this case, so maybe the delay here can be ignored?
-
-Thanks!
-Menglong Dong
+> > +     while (start--)
+> > +             cur = cur->next;
+> > +     svc->sched_data = cur;
+> > +     spin_unlock_bh(&svc->sched_lock);
+> > +}
+> >
+> >  static int ip_vs_rr_init_svc(struct ip_vs_service *svc)
+> >  {
+> >       svc->sched_data = &svc->destinations;
+> > +     ip_vs_rr_random_start(svc);
+> >       return 0;
+> >  }
+> >
+> > +static int ip_vs_rr_add_dest(struct ip_vs_service *svc, struct ip_vs_dest *dest)
+> > +{
+> > +     ip_vs_rr_random_start(svc);
+> > +     return 0;
+> > +}
+> >
+> >  static int ip_vs_rr_del_dest(struct ip_vs_service *svc, struct ip_vs_dest *dest)
+> >  {
+> > @@ -104,7 +127,7 @@ static struct ip_vs_scheduler ip_vs_rr_scheduler = {
+> >       .module =               THIS_MODULE,
+> >       .n_list =               LIST_HEAD_INIT(ip_vs_rr_scheduler.n_list),
+> >       .init_service =         ip_vs_rr_init_svc,
+> > -     .add_dest =             NULL,
+> > +     .add_dest =             ip_vs_rr_add_dest,
+> >       .del_dest =             ip_vs_rr_del_dest,
+> >       .schedule =             ip_vs_rr_schedule,
+> >  };
+> > --
+> > 2.36.0
+>
+> Regards
+>
+> --
+> Julian Anastasov <ja@ssi.bg>
+>
