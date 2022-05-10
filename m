@@ -2,76 +2,145 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A512C433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 May 2022 09:58:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6291BC433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 May 2022 12:21:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239417AbiEJKCv (ORCPT
+        id S241518AbiEJMZx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 10 May 2022 06:02:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56610 "EHLO
+        Tue, 10 May 2022 08:25:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48510 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239413AbiEJKCs (ORCPT
+        with ESMTP id S241291AbiEJMZw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 10 May 2022 06:02:48 -0400
+        Tue, 10 May 2022 08:25:52 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 190311668A9;
-        Tue, 10 May 2022 02:58:48 -0700 (PDT)
-Date:   Tue, 10 May 2022 11:58:45 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9BC3F8E1BC;
+        Tue, 10 May 2022 05:21:55 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     kernel test robot <oliver.sang@intel.com>
-Cc:     Sven Auhagen <Sven.Auhagen@voleatech.de>,
-        0day robot <lkp@intel.com>,
-        LKML <linux-kernel@vger.kernel.org>, lkp@lists.01.org,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [nf_flowtable]  2cd764935d:
- kernel-selftests.netfilter.nft_flowtable.sh.ipsec_tunnel_mode_for_ns1/ns2.fail
-Message-ID: <Yno3VXOUEzAOSdDe@salvia>
-References: <20220427071515.qfgqbs6uzoowwnkg@SvensMacbookPro.hq.voleatech.com>
- <20220510092803.GA3969@xsang-OptiPlex-9020>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
+Subject: [PATCH net-next 00/17] Netfilter updates for net-next
+Date:   Tue, 10 May 2022 14:21:33 +0200
+Message-Id: <20220510122150.92533-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20220510092803.GA3969@xsang-OptiPlex-9020>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 Hi,
 
-On Tue, May 10, 2022 at 05:28:03PM +0800, kernel test robot wrote:
-[...] 
-> # selftests: netfilter: nft_flowtable.sh
-> # PASS: netns routing/connectivity: ns1 can reach ns2
-> # FAIL: file mismatch for ns1 -> ns2
-> # -rw------- 1 root root 227328 May  8 22:05 /tmp/tmp.fnnwOCWcA4
-> # -rw------- 1 root root 99388 May  8 22:05 /tmp/tmp.LL8ohakyGQ
-> # FAIL: file mismatch for ns1 <- ns2
-> # -rw------- 1 root root 296960 May  8 22:05 /tmp/tmp.1DlwdJLSUX
-> # -rw------- 1 root root 15584 May  8 22:05 /tmp/tmp.HnObAriWng
-> # FAIL: flow offload for ns1/ns2:
-> # table inet filter {
-> # 	flowtable f1 {
-> # 		hook ingress priority 0
-> # 		devices = { veth0, veth1 }
-> # 	}
-> # 
-> # 	chain forward {
-> # 		type filter hook forward priority 0; policy drop;
-> # 		oif "veth1" tcp dport 12345 flow offload @f1 counter packets 0 bytes 0
-> # 		tcp dport 12345 meta length > 200 ct mark set 0x00000001 counter packets 14 bytes 103660
-> # 		tcp flags fin,rst ct mark set 0x00000000 accept
-> # 		meta length > 1500 accept comment "something-to-grep-for"
-> # 		tcp sport 12345 ct mark 0x00000001 counter packets 57 bytes 8220 log prefix "mark failure " drop
-> # 		ct state established,related accept
-> # 		meta length < 200 oif "veth1" tcp dport 12345 counter packets 1 bytes 60 accept
-> # 		meta l4proto icmp accept
-> # 		meta l4proto ipv6-icmp accept
-> # 	}
-> # }
-> # /dev/stdin:4:73-74: Error: syntax error, unexpected to, expecting newline or semicolon
-> #       meta iif "veth0" ip daddr 10.6.6.6 tcp dport 1666 counter dnat ip to 10.0.2.99:12345
-> #                                                                         ^^
+The following patchset contains Netfilter updates for net-next,
+mostly updates to conntrack from Florian Westphal:
 
-What nftables userspace version is kbuild robot using?
+1) Add a dedicated list for conntrack event redelivery.
 
-It seems this rule fails to load, looks like a unrelated issue?
+2) Include event redelivery list in conntrack dumps of dying type.
+
+3) Remove per-cpu dying list for event redelivery, not used anymore.
+
+4) Add netns .pre_exit to cttimeout to zap timeout objects before
+   synchronize_rcu() call.
+
+5) Remove nf_ct_unconfirmed_destroy.
+
+6) Add generation id for conntrack extensions for conntrack
+   timeout and helpers.
+
+7) Detach timeout policy from conntrack on cttimeout module removal.
+
+8) Remove __nf_ct_unconfirmed_destroy.
+
+9) Remove unconfirmed list.
+
+10) Remove unconditional local_bh_disable in init_conntrack().
+
+11) Consolidate conntrack iterator nf_ct_iterate_cleanup().
+
+12) Detect if ctnetlink listeners exist to short-circuit event
+    path early.
+
+13) Un-inline nf_ct_ecache_ext_add().
+
+14) Add nf_conntrack_events autodetect ctnetlink listener mode
+    and make it default.
+
+15) Add nf_ct_ecache_exist() to check for event cache extension.
+
+16) Extend flowtable reverse route lookup to include source, iif,
+    tos and mark, from Sven Auhagen.
+
+17) Do not verify zero checksum UDP packets in nf_reject,
+    from Kevin Mitchell.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit a997157e42e3119b13c644549a3d8381a1d825d6:
+
+  docs: net: dsa: describe issues with checksum offload (2022-04-18 13:29:02 +0100)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git HEAD
+
+for you to fetch changes up to 69e21978509140d837881bcd87a1135905cd9cc6:
+
+  netfilter: conntrack: skip verification of zero UDP checksum (2022-05-09 08:21:08 +0200)
+
+----------------------------------------------------------------
+Florian Westphal (14):
+      netfilter: ecache: use dedicated list for event redelivery
+      netfilter: conntrack: include ecache dying list in dumps
+      netfilter: conntrack: remove the percpu dying list
+      netfilter: cttimeout: decouple unlink and free on netns destruction
+      netfilter: remove nf_ct_unconfirmed_destroy helper
+      netfilter: extensions: introduce extension genid count
+      netfilter: cttimeout: decouple unlink and free on netns destruction
+      netfilter: conntrack: remove __nf_ct_unconfirmed_destroy
+      netfilter: conntrack: remove unconfirmed list
+      netfilter: conntrack: avoid unconditional local_bh_disable
+      netfilter: nfnetlink: allow to detect if ctnetlink listeners exist
+      netfilter: conntrack: un-inline nf_ct_ecache_ext_add
+      netfilter: conntrack: add nf_conntrack_events autodetect mode
+      netfilter: prefer extension check to pointer check
+
+Kevin Mitchell (1):
+      netfilter: conntrack: skip verification of zero UDP checksum
+
+Pablo Neira Ayuso (1):
+      netfilter: conntrack: add nf_ct_iter_data object for nf_ct_iterate_cleanup*()
+
+Sven Auhagen (1):
+      netfilter: flowtable: nft_flow_route use more data for reverse route
+
+ Documentation/networking/nf_conntrack-sysctl.rst |   5 +-
+ include/net/netfilter/nf_conntrack.h             |  17 +-
+ include/net/netfilter/nf_conntrack_core.h        |   2 +-
+ include/net/netfilter/nf_conntrack_ecache.h      |  53 ++--
+ include/net/netfilter/nf_conntrack_extend.h      |  31 +--
+ include/net/netfilter/nf_conntrack_labels.h      |  10 +-
+ include/net/netfilter/nf_conntrack_timeout.h     |   8 -
+ include/net/netfilter/nf_reject.h                |  21 +-
+ include/net/netns/conntrack.h                    |   8 +-
+ net/ipv4/netfilter/nf_reject_ipv4.c              |  10 +-
+ net/ipv6/netfilter/nf_reject_ipv6.c              |   4 +-
+ net/netfilter/nf_conntrack_core.c                | 301 ++++++++++-------------
+ net/netfilter/nf_conntrack_ecache.c              | 166 ++++++++-----
+ net/netfilter/nf_conntrack_extend.c              |  32 ++-
+ net/netfilter/nf_conntrack_helper.c              |   5 -
+ net/netfilter/nf_conntrack_netlink.c             |  86 ++++---
+ net/netfilter/nf_conntrack_proto.c               |  10 +-
+ net/netfilter/nf_conntrack_standalone.c          |   2 +-
+ net/netfilter/nf_conntrack_timeout.c             |   7 +-
+ net/netfilter/nf_nat_masquerade.c                |   5 +-
+ net/netfilter/nfnetlink.c                        |  40 ++-
+ net/netfilter/nfnetlink_cttimeout.c              |  47 +++-
+ net/netfilter/nft_flow_offload.c                 |   8 +
+ 23 files changed, 495 insertions(+), 383 deletions(-)
