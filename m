@@ -2,26 +2,26 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14A09C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 May 2022 12:24:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DFA0C43219
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 May 2022 12:24:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241745AbiEJM2A (ORCPT
+        id S241677AbiEJM2E (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 10 May 2022 08:28:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49272 "EHLO
+        Tue, 10 May 2022 08:28:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49578 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241685AbiEJMZ6 (ORCPT
+        with ESMTP id S241708AbiEJM0B (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 10 May 2022 08:25:58 -0400
+        Tue, 10 May 2022 08:26:01 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 2BBD19859D;
-        Tue, 10 May 2022 05:22:01 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D1465AFAFD;
+        Tue, 10 May 2022 05:22:04 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 10/17] netfilter: conntrack: avoid unconditional local_bh_disable
-Date:   Tue, 10 May 2022 14:21:43 +0200
-Message-Id: <20220510122150.92533-11-pablo@netfilter.org>
+Subject: [PATCH net-next 17/17] netfilter: conntrack: skip verification of zero UDP checksum
+Date:   Tue, 10 May 2022 14:21:50 +0200
+Message-Id: <20220510122150.92533-18-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220510122150.92533-1-pablo@netfilter.org>
 References: <20220510122150.92533-1-pablo@netfilter.org>
@@ -31,51 +31,138 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Kevin Mitchell <kevmitch@arista.com>
 
-Now that the conntrack entry isn't placed on the pcpu list anymore the
-bh only needs to be disabled in the 'expectation present' case.
+The checksum is optional for UDP packets. However nf_reject would
+previously require a valid checksum to elicit a response such as
+ICMP_DEST_UNREACH.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Add some logic to nf_reject_verify_csum to determine if a UDP packet has
+a zero checksum and should therefore not be verified.
+
+Signed-off-by: Kevin Mitchell <kevmitch@arista.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_core.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ include/net/netfilter/nf_reject.h   | 21 +++++++++++++++++----
+ net/ipv4/netfilter/nf_reject_ipv4.c | 10 +++++++---
+ net/ipv6/netfilter/nf_reject_ipv6.c |  4 ++--
+ 3 files changed, 26 insertions(+), 9 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index c8d58d6d5b87..6e59a35a29b9 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1739,10 +1739,9 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
- 				 ecache ? ecache->expmask : 0,
- 			     GFP_ATOMIC);
+diff --git a/include/net/netfilter/nf_reject.h b/include/net/netfilter/nf_reject.h
+index 9051c3a0c8e7..7c669792fb9c 100644
+--- a/include/net/netfilter/nf_reject.h
++++ b/include/net/netfilter/nf_reject.h
+@@ -5,12 +5,28 @@
+ #include <linux/types.h>
+ #include <uapi/linux/in.h>
  
--	local_bh_disable();
- 	cnet = nf_ct_pernet(net);
- 	if (cnet->expect_count) {
--		spin_lock(&nf_conntrack_expect_lock);
-+		spin_lock_bh(&nf_conntrack_expect_lock);
- 		exp = nf_ct_find_expectation(net, zone, tuple);
- 		if (exp) {
- 			pr_debug("expectation arrives ct=%p exp=%p\n",
-@@ -1765,7 +1764,7 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
- #endif
- 			NF_CT_STAT_INC(net, expect_new);
- 		}
--		spin_unlock(&nf_conntrack_expect_lock);
-+		spin_unlock_bh(&nf_conntrack_expect_lock);
- 	}
- 	if (!exp)
- 		__nf_ct_try_assign_helper(ct, tmpl, GFP_ATOMIC);
-@@ -1773,8 +1772,6 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
- 	/* Now it is going to be associated with an sk_buff, set refcount to 1. */
- 	refcount_set(&ct->ct_general.use, 1);
- 
--	local_bh_enable();
+-static inline bool nf_reject_verify_csum(__u8 proto)
++static inline bool nf_reject_verify_csum(struct sk_buff *skb, int dataoff,
++					  __u8 proto)
+ {
+ 	/* Skip protocols that don't use 16-bit one's complement checksum
+ 	 * of the entire payload.
+ 	 */
+ 	switch (proto) {
++		/* Protocols with optional checksums. */
++		case IPPROTO_UDP: {
++			const struct udphdr *udp_hdr;
++			struct udphdr _udp_hdr;
++
++			udp_hdr = skb_header_pointer(skb, dataoff,
++						     sizeof(_udp_hdr),
++						     &_udp_hdr);
++			if (!udp_hdr || udp_hdr->check)
++				return true;
++
++			return false;
++		}
++		case IPPROTO_GRE:
++
+ 		/* Protocols with other integrity checks. */
+ 		case IPPROTO_AH:
+ 		case IPPROTO_ESP:
+@@ -19,9 +35,6 @@ static inline bool nf_reject_verify_csum(__u8 proto)
+ 		/* Protocols with partial checksums. */
+ 		case IPPROTO_UDPLITE:
+ 		case IPPROTO_DCCP:
 -
- 	if (exp) {
- 		if (exp->expectfn)
- 			exp->expectfn(ct, exp);
+-		/* Protocols with optional checksums. */
+-		case IPPROTO_GRE:
+ 			return false;
+ 	}
+ 	return true;
+diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
+index 4eed5afca392..918c61fda0f3 100644
+--- a/net/ipv4/netfilter/nf_reject_ipv4.c
++++ b/net/ipv4/netfilter/nf_reject_ipv4.c
+@@ -80,6 +80,7 @@ struct sk_buff *nf_reject_skb_v4_unreach(struct net *net,
+ 	struct iphdr *niph;
+ 	struct icmphdr *icmph;
+ 	unsigned int len;
++	int dataoff;
+ 	__wsum csum;
+ 	u8 proto;
+ 
+@@ -99,10 +100,11 @@ struct sk_buff *nf_reject_skb_v4_unreach(struct net *net,
+ 	if (pskb_trim_rcsum(oldskb, ntohs(ip_hdr(oldskb)->tot_len)))
+ 		return NULL;
+ 
++	dataoff = ip_hdrlen(oldskb);
+ 	proto = ip_hdr(oldskb)->protocol;
+ 
+ 	if (!skb_csum_unnecessary(oldskb) &&
+-	    nf_reject_verify_csum(proto) &&
++	    nf_reject_verify_csum(oldskb, dataoff, proto) &&
+ 	    nf_ip_checksum(oldskb, hook, ip_hdrlen(oldskb), proto))
+ 		return NULL;
+ 
+@@ -311,6 +313,7 @@ EXPORT_SYMBOL_GPL(nf_send_reset);
+ void nf_send_unreach(struct sk_buff *skb_in, int code, int hook)
+ {
+ 	struct iphdr *iph = ip_hdr(skb_in);
++	int dataoff = ip_hdrlen(skb_in);
+ 	u8 proto = iph->protocol;
+ 
+ 	if (iph->frag_off & htons(IP_OFFSET))
+@@ -320,12 +323,13 @@ void nf_send_unreach(struct sk_buff *skb_in, int code, int hook)
+ 	    nf_reject_fill_skb_dst(skb_in) < 0)
+ 		return;
+ 
+-	if (skb_csum_unnecessary(skb_in) || !nf_reject_verify_csum(proto)) {
++	if (skb_csum_unnecessary(skb_in) ||
++	    !nf_reject_verify_csum(skb_in, dataoff, proto)) {
+ 		icmp_send(skb_in, ICMP_DEST_UNREACH, code, 0);
+ 		return;
+ 	}
+ 
+-	if (nf_ip_checksum(skb_in, hook, ip_hdrlen(skb_in), proto) == 0)
++	if (nf_ip_checksum(skb_in, hook, dataoff, proto) == 0)
+ 		icmp_send(skb_in, ICMP_DEST_UNREACH, code, 0);
+ }
+ EXPORT_SYMBOL_GPL(nf_send_unreach);
+diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
+index dffeaaaadcde..f61d4f18e1cf 100644
+--- a/net/ipv6/netfilter/nf_reject_ipv6.c
++++ b/net/ipv6/netfilter/nf_reject_ipv6.c
+@@ -31,7 +31,7 @@ static bool nf_reject_v6_csum_ok(struct sk_buff *skb, int hook)
+ 	if (thoff < 0 || thoff >= skb->len || (fo & htons(~0x7)) != 0)
+ 		return false;
+ 
+-	if (!nf_reject_verify_csum(proto))
++	if (!nf_reject_verify_csum(skb, thoff, proto))
+ 		return true;
+ 
+ 	return nf_ip6_checksum(skb, hook, thoff, proto) == 0;
+@@ -388,7 +388,7 @@ static bool reject6_csum_ok(struct sk_buff *skb, int hook)
+ 	if (thoff < 0 || thoff >= skb->len || (fo & htons(~0x7)) != 0)
+ 		return false;
+ 
+-	if (!nf_reject_verify_csum(proto))
++	if (!nf_reject_verify_csum(skb, thoff, proto))
+ 		return true;
+ 
+ 	return nf_ip6_checksum(skb, hook, thoff, proto) == 0;
 -- 
 2.30.2
 
