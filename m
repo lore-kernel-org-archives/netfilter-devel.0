@@ -2,82 +2,66 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DFD6C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 May 2022 20:27:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F2C4C433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 May 2022 20:53:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232317AbiEJU1t (ORCPT
+        id S229728AbiEJUxl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 10 May 2022 16:27:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52566 "EHLO
+        Tue, 10 May 2022 16:53:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55164 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231903AbiEJU1s (ORCPT
+        with ESMTP id S229532AbiEJUxk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 10 May 2022 16:27:48 -0400
-Received: from nbd.name (nbd.name [IPv6:2a01:4f8:221:3d45::2])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F3F71A830;
-        Tue, 10 May 2022 13:27:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nbd.name;
-         s=20160729; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject
-        :Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=YZxChS9o5Wo4/jqgk+/OkB7b4K/AQ5LajGIkh2b6wG0=; b=TUqErr/SLHfftPF8xuuZ41edGc
-        sv5aoLny7nmEg5bGgqeEjNPe/c5sG29/o1OXhJNVb2gMLlYICbK1oiFOtDPxdN7JjJFTELK94aARr
-        +NiCqwCRYdPsZ93j/szkbyjdnL/6rFextUVQ3yhcGwY0qQTUeBdHFxrxO0yEp8i6mk6o=;
-Received: from p200300daa70ef200adfdb724d8b39c56.dip0.t-ipconnect.de ([2003:da:a70e:f200:adfd:b724:d8b3:9c56] helo=Maecks.lan)
-        by ds12 with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        (Exim 4.89)
-        (envelope-from <nbd@nbd.name>)
-        id 1noWSO-00067p-5j; Tue, 10 May 2022 22:27:44 +0200
-From:   Felix Fietkau <nbd@nbd.name>
-To:     netfilter-devel@vger.kernel.org
-Cc:     netdev@vger.kernel.org, pablo@netfilter.org,
-        Jo-Philipp Wich <jo@mein.io>
-Subject: [RFC] netfilter: nf_tables: ignore errors on flowtable device hw offload setup
-Date:   Tue, 10 May 2022 22:27:39 +0200
-Message-Id: <20220510202739.67068-1-nbd@nbd.name>
-X-Mailer: git-send-email 2.36.1
+        Tue, 10 May 2022 16:53:40 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F9485A145
+        for <netfilter-devel@vger.kernel.org>; Tue, 10 May 2022 13:53:38 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1noWrP-0007Ml-PZ; Tue, 10 May 2022 22:53:35 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: conntrack: do not disable bh during destruction
+Date:   Tue, 10 May 2022 22:53:24 +0200
+Message-Id: <20220510205324.10160-1-fw@strlen.de>
+X-Mailer: git-send-email 2.35.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-In many cases, it's not easily possible for user space to know, which
-devices properly support hardware offload. Even if a device supports hardware
-flow offload, it is not guaranteed that it will actually be able to handle
-the flows for which hardware offload is requested.
+After commit
+12b0b21dc2241 ("netfilter: conntrack: remove unconfirmed list")
+the extra local_bh disable/enable pair is no longer needed.
 
-Ignoring errors on the FLOW_BLOCK_BIND makes it a lot easier to set up
-configurations that use hardware offload where possible and gracefully
-fall back to software offload for everything else.
-
-Cc: Jo-Philipp Wich <jo@mein.io>
-Signed-off-by: Felix Fietkau <nbd@nbd.name>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_tables_api.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ net/netfilter/nf_conntrack_core.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 16c3a39689f4..9d4528f0aa12 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -7323,11 +7323,9 @@ static int nft_register_flowtable_net_hooks(struct net *net,
- 			}
- 		}
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 0db9c5c94b5b..082a2fd8d85b 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -596,7 +596,6 @@ void nf_ct_destroy(struct nf_conntrack *nfct)
+ 	if (unlikely(nf_ct_protonum(ct) == IPPROTO_GRE))
+ 		destroy_gre_conntrack(ct);
  
--		err = flowtable->data.type->setup(&flowtable->data,
--						  hook->ops.dev,
--						  FLOW_BLOCK_BIND);
--		if (err < 0)
--			goto err_unregister_net_hooks;
-+		flowtable->data.type->setup(&flowtable->data,
-+					    hook->ops.dev,
-+					    FLOW_BLOCK_BIND);
+-	local_bh_disable();
+ 	/* Expectations will have been removed in clean_from_lists,
+ 	 * except TFTP can create an expectation on the first packet,
+ 	 * before connection is in the list, so we need to clean here,
+@@ -604,8 +603,6 @@ void nf_ct_destroy(struct nf_conntrack *nfct)
+ 	 */
+ 	nf_ct_remove_expectations(ct);
  
- 		err = nf_register_net_hook(net, &hook->ops);
- 		if (err < 0) {
+-	local_bh_enable();
+-
+ 	if (ct->master)
+ 		nf_ct_put(ct->master);
+ 
 -- 
-2.36.1
+2.35.1
 
