@@ -2,66 +2,70 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5767BC433FE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 11 May 2022 02:20:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BC94C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 11 May 2022 05:46:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241120AbiEKCU1 (ORCPT
+        id S235403AbiEKFqp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 10 May 2022 22:20:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42190 "EHLO
+        Wed, 11 May 2022 01:46:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41110 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241104AbiEKCUZ (ORCPT
+        with ESMTP id S240481AbiEKFqp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 10 May 2022 22:20:25 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 189471F7E03;
-        Tue, 10 May 2022 19:20:24 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C8D1BB820C2;
-        Wed, 11 May 2022 02:20:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EFDEC385D8;
-        Wed, 11 May 2022 02:20:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1652235621;
-        bh=0Oktqdyo/WA/sFzulpP5olHWG1Z+Sf0H9udzHf6YJ/c=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=Jxu0lUvVjjhg7ytrUYQA9YCgt8W0XckTvBijUTQ6kpoSCDlBWNG6K4aXF+iEkFl7F
-         9mPurwzxlj3y84mqEDAE7COznS+nPj1Ar6BMrjq4A+ytxlKUhekUqfgiwEl3Uj/RxN
-         SkByBQk6iikIfuu4vde5e0IRr03F609D2sdfTsNQrqhBENzIeXJQ1pMCrvFHRSUKzM
-         zJjEECoMYMJXE3CeURMdOLT7czy3OmJAhF6tGnCfaFKgMYX63gRc6dYXrd3cHh/shR
-         Q7LvwNsZIU5d5UPzFbFinHgFhpTUAYyXVhE+GEm2OTXm+WtWSp6UkkIMPPNW42BHwg
-         uzMszseHsiVzg==
-Date:   Tue, 10 May 2022 19:20:19 -0700
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        Wed, 11 May 2022 01:46:45 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 109F76C0D9;
+        Tue, 10 May 2022 22:46:42 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1nofBC-0001IU-Jy; Wed, 11 May 2022 07:46:34 +0200
+Date:   Wed, 11 May 2022 07:46:34 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Jakub Kicinski <kuba@kernel.org>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, davem@davemloft.net,
         netdev@vger.kernel.org
-Subject: Re: [PATCH net-next 01/17] netfilter: ecache: use dedicated list
- for event redelivery
-Message-ID: <20220510192019.2f02057b@kernel.org>
-In-Reply-To: <20220510122150.92533-2-pablo@netfilter.org>
+Subject: Re: [PATCH net-next 01/17] netfilter: ecache: use dedicated list for
+ event redelivery
+Message-ID: <20220511054634.GA4873@breakpoint.cc>
 References: <20220510122150.92533-1-pablo@netfilter.org>
-        <20220510122150.92533-2-pablo@netfilter.org>
+ <20220510122150.92533-2-pablo@netfilter.org>
+ <20220510192019.2f02057b@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220510192019.2f02057b@kernel.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, 10 May 2022 14:21:34 +0200 Pablo Neira Ayuso wrote:
-> +next:
-> +	sent = 0;
-> +	spin_lock_bh(&cnet->ecache.dying_lock);
-> +
-> +	hlist_nulls_for_each_entry_safe(h, n, &cnet->ecache.dying_list, hnnode) {
-...
-> +		if (sent++ > 16) {
-> +			spin_unlock_bh(&cnet->ecache.dying_lock);
-> +			cond_resched();
-> +			spin_lock_bh(&cnet->ecache.dying_lock);
-> +			goto next;
+Jakub Kicinski <kuba@kernel.org> wrote:
+> On Tue, 10 May 2022 14:21:34 +0200 Pablo Neira Ayuso wrote:
+> > +next:
+> > +	sent = 0;
+> > +	spin_lock_bh(&cnet->ecache.dying_lock);
+> > +
+> > +	hlist_nulls_for_each_entry_safe(h, n, &cnet->ecache.dying_list, hnnode) {
+> ...
+> > +		if (sent++ > 16) {
+> > +			spin_unlock_bh(&cnet->ecache.dying_lock);
+> > +			cond_resched();
+> > +			spin_lock_bh(&cnet->ecache.dying_lock);
+> > +			goto next;
+> 
+> sparse seems right, the looking looks off in this function
 
-sparse seems right, the looking looks off in this function
+Pablo, its probably best to squash this, what do you think?
+
+diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
+--- a/net/netfilter/nf_conntrack_ecache.c
++++ b/net/netfilter/nf_conntrack_ecache.c
+@@ -75,7 +75,6 @@ static enum retry_state ecache_work_evict_list(struct nf_conntrack_net *cnet)
+ 		if (sent++ > 16) {
+ 			spin_unlock_bh(&cnet->ecache.dying_lock);
+ 			cond_resched();
+-			spin_lock_bh(&cnet->ecache.dying_lock);
+ 			goto next;
+ 		}
+ 	}
