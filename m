@@ -2,96 +2,81 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25900C433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 12 May 2022 13:19:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E00EAC433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 12 May 2022 13:27:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353697AbiELNTu (ORCPT
+        id S238625AbiELN14 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 12 May 2022 09:19:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37310 "EHLO
+        Thu, 12 May 2022 09:27:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34998 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354268AbiELNTu (ORCPT
+        with ESMTP id S1354467AbiELN1q (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 12 May 2022 09:19:50 -0400
-Received: from mail-oa1-x29.google.com (mail-oa1-x29.google.com [IPv6:2001:4860:4864:20::29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6136250EBC
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 May 2022 06:19:46 -0700 (PDT)
-Received: by mail-oa1-x29.google.com with SMTP id 586e51a60fabf-ee1e7362caso6553204fac.10
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 May 2022 06:19:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=rnW1lNdXaHOrseNx+8VZQkCoh4hVp7eYD17JDIqBNtY=;
-        b=oi7x1SH011n4JulssPJJ4GDfjqKYhSYQ0T1tiXB9tvhOy5Mdy+Z2PCzNAsF/7iEFCB
-         ukYsBCXrB1SmnFjtouzUbdnGqEvBkCgNZ6K2pDdf9JUPG+14CPagbSXalfyEgPFuJ4Bq
-         mXBGFNv1v8gnl+euHb+kBd3WEpGNNxHVvhWTyHlBXlUdlUsadWCM/Y6QowcbTg+Ijk7U
-         rJVnJVj8st0ixwA+ZgS20uf/eDSDjA/9RKZXa8/aFYaMNnd/cdcNMU+eXVXdez2BFjaO
-         adWE499AXKAD9+6tdp+EsvjFRq0Gtr3Ctt7xvI4uC8zJ9UXKQYgVs00vMMHTwynaf55c
-         RNcQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=rnW1lNdXaHOrseNx+8VZQkCoh4hVp7eYD17JDIqBNtY=;
-        b=W1NoKQ2Nkia7v5n+UoklqVbYedqex3cYkgDai0qUkn/JEBWZ6MM573+NMlr6h1e05y
-         DbueVbWqSfFawDnVcpM+BSSRF5idESHAqnVprUr/fOxQN3qGfvzjDTbobOFA0vwfnQtq
-         SJBmEGJ7dG7hdo/llXYZkjo/DphtZXSeO1en+hmGOE0jqAErcVeT9ggpkdUdEBZDq45u
-         KFfLGcVB6tpMaaI96X/VogokGveCX9rz4ttDy5JVY/09QGcUppwod6TjoentBg8WxOCG
-         F2izOloDloRW34Kahakgu5vJFYXLryvfQyrekMJpVUK0TTwFKJhqUb8vMSHHmYO4AG4/
-         Aw5g==
-X-Gm-Message-State: AOAM530ZjR3tIDoQy+bKmYg8nnkFkQeQ/Gw6YHO9RsAEccfUOUL+ycgr
-        27FP+QWJzdWYCgQxi5RKwnFgejAWXbAMgRodIYrYzA==
-X-Google-Smtp-Source: ABdhPJzJ9UCZzyIr9uCRxfqtNYldmP9u2JwxV1+G+hxFwMYyTA5WI0Koxn2yjLH38Pjz4Dugu1UDn8pxJ9yV+0b+L+A=
-X-Received: by 2002:a05:6870:b61e:b0:ec:a426:bab5 with SMTP id
- cm30-20020a056870b61e00b000eca426bab5mr5478149oab.163.1652361585876; Thu, 12
- May 2022 06:19:45 -0700 (PDT)
+        Thu, 12 May 2022 09:27:46 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8020E53707
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 May 2022 06:27:20 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1np8qc-0001nI-Sa; Thu, 12 May 2022 15:27:18 +0200
+Date:   Thu, 12 May 2022 15:27:18 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [nf-next PATCH v2 1/2] netfilter: nf_tables: Introduce
+ expression flags
+Message-ID: <Yn0LNg9/HK6IWTdH@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20220512123003.29903-1-phil@nwl.cc>
+ <20220512123003.29903-2-phil@nwl.cc>
+ <Ynz+wzEIfokNqi0B@salvia>
 MIME-Version: 1.0
-References: <0000000000004c57c005b0fc4114@google.com> <000000000000b15b3505d7d9e8ca@google.com>
-In-Reply-To: <000000000000b15b3505d7d9e8ca@google.com>
-From:   Dmitry Vyukov <dvyukov@google.com>
-Date:   Thu, 12 May 2022 15:19:34 +0200
-Message-ID: <CACT4Y+YOJU91CLaNhFosG7koHPpz8U38nurXyboXb_9gGw=Fgg@mail.gmail.com>
-Subject: Re: [syzbot] INFO: task hung in usb_get_descriptor
-To:     syzbot <syzbot+31ae6d17d115e980fd14@syzkaller.appspotmail.com>
-Cc:     brouer@redhat.com, coreteam@netfilter.org, davem@davemloft.net,
-        edumazet@google.com, eman.mohamed@rofaidarealestate.com,
-        gregkh@linuxfoundation.org, gustavoars@kernel.org,
-        hdanton@sina.com, ingrassia@epigenesys.com, johan@kernel.org,
-        kaber@trash.net, kadlec@blackhole.kfki.hu,
-        linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org,
-        mathias.nyman@linux.intel.com, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        skhan@linuxfoundation.org, stern@rowland.harvard.edu,
-        syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Ynz+wzEIfokNqi0B@salvia>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, 12 Feb 2022 at 23:43, syzbot
-<syzbot+31ae6d17d115e980fd14@syzkaller.appspotmail.com> wrote:
->
-> syzbot suspects this issue was fixed by commit:
->
-> commit 363eaa3a450abb4e63bd6e3ad79d1f7a0f717814
-> Author: Shuah Khan <skhan@linuxfoundation.org>
-> Date:   Tue Mar 30 01:36:51 2021 +0000
->
->     usbip: synchronize event handler with sysfs code paths
->
-> bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=1616e872700000
-> start commit:   4fa56ad0d12e Merge tag 'for-linus' of git://git.kernel.org..
-> git tree:       upstream
-> kernel config:  https://syzkaller.appspot.com/x/.config?x=144ecdb0be3abc07
-> dashboard link: https://syzkaller.appspot.com/bug?extid=31ae6d17d115e980fd14
-> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=12548d11d00000
-> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=13ec77e9d00000
->
-> If the result looks correct, please mark the issue as fixed by replying with:
->
-> #syz fix: usbip: synchronize event handler with sysfs code paths
+On Thu, May 12, 2022 at 02:34:11PM +0200, Pablo Neira Ayuso wrote:
+> On Thu, May 12, 2022 at 02:30:02PM +0200, Phil Sutter wrote:
+> > Allow dumping some info bits about expressions to user space.
+> > 
+> > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> > ---
+> >  include/net/netfilter/nf_tables.h        | 1 +
+> >  include/uapi/linux/netfilter/nf_tables.h | 1 +
+> >  net/netfilter/nf_tables_api.c            | 4 ++++
+> >  3 files changed, 6 insertions(+)
+> > 
+> > diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+> > index 20af9d3557b9d..78db54737de00 100644
+> > --- a/include/net/netfilter/nf_tables.h
+> > +++ b/include/net/netfilter/nf_tables.h
+> > @@ -346,6 +346,7 @@ struct nft_set_estimate {
+> >   */
+> >  struct nft_expr {
+> >  	const struct nft_expr_ops	*ops;
+> > +	u32				flags;
+> 
+> Could you add a new structure? Add struct nft_expr_dp and use it from
+> nft_rule_dp, so it is only the control plan representation that stores
+> this flag.
+> 
+> It will be a bit more work, but I think it is worth to keep the size
+> of the datapath representation as small as possible.
 
-Based on subsystem and commit subject looks legit:
+Sounds reasonable, but will get ugly: expr->ops->size includes struct
+nft_expr size already, also real per-expr size is aligned to that
+struct's size.
 
-#syz fix: usbip: synchronize event handler with sysfs code paths
+We could make expr->ops->size the real (unaligned) size value and change
+size calculation in nf_tables_newrule() to add struct and alignment.
+Then nf_tables_commit_chain_prepare() could iterate over the rule's
+expressions and do its own size calculation for chain->blob_next size.
+
+Do you see a better way to solve this?
+
+Thanks, Phil
