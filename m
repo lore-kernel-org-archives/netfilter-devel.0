@@ -2,280 +2,226 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDE45C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 12 May 2022 18:28:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7BFEC433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 12 May 2022 18:34:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1356464AbiELS2k (ORCPT
+        id S1357706AbiELSe1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 12 May 2022 14:28:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51396 "EHLO
+        Thu, 12 May 2022 14:34:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39932 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245317AbiELS2j (ORCPT
+        with ESMTP id S1357607AbiELSe0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 12 May 2022 14:28:39 -0400
-Received: from NAM11-DM6-obe.outbound.protection.outlook.com (mail-dm6nam11on2064.outbound.protection.outlook.com [40.107.223.64])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 55DBD246D88;
-        Thu, 12 May 2022 11:28:38 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Zi7yH240/QUW2y0n09JuAHS4r3QOBSTSrlrzg6OgDYkpa2vBkhJllDj2FFkO8b0FEY03KltbHz1u7D5zGtDHAlJN43wk9vow8HZ2AU7vfSElmKp44ga70PdhXVlG510XFlDwYtoL/oEMDRtDsCrzXUT3xlmZSCSVyyUxtdcmd+egkQucuczoJSPU7XgVbLMkojaUWcx1yUZJQ1tsuItOTmP7Vz3HRHfTMB4mQngxEcuE/2H1xvkFwjqwlGgWqzbC+XCCRrmcf5/dratzrIJBUfF7dR9Nk0pgP7h5o3we5PdxXGS0U4hRBQBH+mcxWRex7yO0WQ+ScBBubHuiHgUXkg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=0gQpyH3bauStaXBVgygbwylngXGKt4RdO2u6Rx+vZvo=;
- b=oetdg7ORLBuUYgWG8wtatObRs3j2caibcoS5gW94n7zoFL4iOThURNcKK8zbFJhc31i7RCw4OjQOl7qAgvtJUWRloBtjUU8c+KCqQlcT0S9U1G1TIHZP5swsig9+Ur21Q4GixfkWPrLu6JaZCM1IyQiLHdVS6hL0dKD8qBqbxFIrQXX6wnjm4FRUeIkg78So3KHxRBeq2/5aYEihpuIoWV99no2KFx4YdO7mBmxZA7l+RzLw5jaZoCgohICrpGufG8YcUoqlbaH/BQ3/f4kc9q5yu1/fK87TRE3ibm/npi2c7CLOWNYG1NwE43V+DB+3K6LgKJWqAOgy1nS7SqCd/w==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 12.22.5.234) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=0gQpyH3bauStaXBVgygbwylngXGKt4RdO2u6Rx+vZvo=;
- b=tqbC6tYw7RrBDtOWuU9C7aoJXU0cgmR3OYe/kvpGVQYd0mhRsE/4kXLiKHLc88UE27WBmEqdAlq3KL4jLRiHMCKWSucP6tV17IOgfYqhwHiBR46ZkZv7ZjO0FSzMcJoSaO7+gcsvVqhRojCncj3ilzwCLrXbJDVlsBJArLD5T9wCBbwASj9sFDzSYaexGAFFnL9s+FEtu++PN+gTEauDLaNdcmzoiSdeCnigeCNlD2IE93ZlpwTmStdzKaKhv9ghRCiMnnnEUjpnXTdyeSkHo0hstp9r8tjNUr8f38M4lZd09OpzOGqsizKKtHSPQkKsE+tcpoyCvQ7RIUtohTIH6w==
-Received: from BN9PR03CA0498.namprd03.prod.outlook.com (2603:10b6:408:130::23)
- by DM6PR12MB4372.namprd12.prod.outlook.com (2603:10b6:5:2af::14) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5250.14; Thu, 12 May
- 2022 18:28:36 +0000
-Received: from BN8NAM11FT032.eop-nam11.prod.protection.outlook.com
- (2603:10b6:408:130:cafe::e3) by BN9PR03CA0498.outlook.office365.com
- (2603:10b6:408:130::23) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5250.14 via Frontend
- Transport; Thu, 12 May 2022 18:28:36 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 12.22.5.234)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 12.22.5.234 as permitted sender) receiver=protection.outlook.com;
- client-ip=12.22.5.234; helo=mail.nvidia.com;
-Received: from mail.nvidia.com (12.22.5.234) by
- BN8NAM11FT032.mail.protection.outlook.com (10.13.177.88) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- 15.20.5250.13 via Frontend Transport; Thu, 12 May 2022 18:28:36 +0000
-Received: from rnnvmail202.nvidia.com (10.129.68.7) by DRHQMAIL101.nvidia.com
- (10.27.9.10) with Microsoft SMTP Server (TLS) id 15.0.1497.32; Thu, 12 May
- 2022 18:28:35 +0000
-Received: from rnnvmail204.nvidia.com (10.129.68.6) by rnnvmail202.nvidia.com
- (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.22; Thu, 12 May
- 2022 11:28:34 -0700
-Received: from reg-r-vrt-019-180.mtr.labs.mlnx (10.127.8.11) by
- mail.nvidia.com (10.129.68.6) with Microsoft SMTP Server id 15.2.986.22 via
- Frontend Transport; Thu, 12 May 2022 11:28:31 -0700
-From:   Oz Shlomo <ozsh@nvidia.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sven Auhagen <sven.auhagen@voleatech.de>,
-        Felix Fietkau <nbd@nbd.name>
-CC:     <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
-        "Florian Westphal" <fw@strlen.de>, Paul Blakey <paulb@nvidia.com>,
-        Oz Shlomo <ozsh@nvidia.com>
-Subject: [PATCH net v2] netfilter: nf_flow_table: fix teardown flow timeout
-Date:   Thu, 12 May 2022 21:28:03 +0300
-Message-ID: <20220512182803.6353-1-ozsh@nvidia.com>
-X-Mailer: git-send-email 2.30.1
+        Thu, 12 May 2022 14:34:26 -0400
+X-Greylist: delayed 597 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 12 May 2022 11:34:24 PDT
+Received: from maja (passt.top [88.198.0.164])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52C1566AFE
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 May 2022 11:34:23 -0700 (PDT)
+Received: by maja (Postfix, from userid 1000)
+        id E28F25A0796; Thu, 12 May 2022 20:34:21 +0200 (CEST)
+From:   Stefano Brivio <sbrivio@redhat.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf] nft_set_rbtree: Move clauses for expired nodes, last active node as leaf
+Date:   Thu, 12 May 2022 20:34:21 +0200
+Message-Id: <20220512183421.712556-1-sbrivio@redhat.com>
+X-Mailer: git-send-email 2.35.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 262a4f78-aaa2-4c73-8322-08da34453a4b
-X-MS-TrafficTypeDiagnostic: DM6PR12MB4372:EE_
-X-Microsoft-Antispam-PRVS: <DM6PR12MB4372E9460ADB5C6CFA3117C2A6CB9@DM6PR12MB4372.namprd12.prod.outlook.com>
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: avf+4+35AYtGsFSwJCiRmp/o3tHtuJGXTCWtFIod4XBbXVcOHEDz7B+nyjWfrVotZKwJvxY1q2dP5+BSA2eUaNVyCARS61vJw0ILUwzHwtJU/DlfHBKjEOr5oGyV71bp9rKu2FIoEq7tZMVROCI0k/irL24BJcqsgpxyWWOz87WoeXuqG0zxHgz2vDHAs/RLRmF3HBBVaPl41JSJNLn/8lA1gIBxlA29R74UWx89IfArUP3SIW9M1ooYmiTcIEgTbgp2gU+/7w4kHxy68gAqJxZNM+oMLgAAPQavNje6eNSBH2U+dLc24zHjEwNVm+pEacYt2W2ishCosMUgviWxtROjnU3HMfpsfFHH1PaoJurC3LDbjatZoy/L8kJD+JHIJ5V3QJsjql8u7LRuc3vdaBlkBiA+hQp/baiyyyYxg745UBj2FQMyuEnH0h5FQNPTK9RlO17s9kQdL/GdvcdiApkB+zy/ZnOknGHSwCmBfNwFOKg95CJ/9/1QTZNqxEzV/LFxXLdC6p8hXTg1pk33OxllJhT9Klglwwct//N6GMtEGjltAS5BhDBrDgEiWyp2+oqm1jFlT8uHyc/1i7D9m9Lk6DochlTGdWhZn56XL3TpJlB0RQEnaeXniza42UVT3tpTYnuEqbzz6H3WH6MA3yqoHT712gHpLCl0oiH+mYZtYLq+1U9OhEQe4dM1ET0s3ROhCAIHQbT6QcT9HVuv6w==
-X-Forefront-Antispam-Report: CIP:12.22.5.234;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:InfoNoRecords;CAT:NONE;SFS:(13230001)(4636009)(36840700001)(46966006)(40470700004)(81166007)(2906002)(54906003)(110136005)(316002)(8936002)(5660300002)(70206006)(356005)(4326008)(8676002)(70586007)(83380400001)(107886003)(508600001)(26005)(336012)(40460700003)(1076003)(426003)(47076005)(186003)(2616005)(6666004)(36860700001)(82310400005)(36756003)(86362001)(36900700001);DIR:OUT;SFP:1101;
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 May 2022 18:28:36.0042
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 262a4f78-aaa2-4c73-8322-08da34453a4b
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[12.22.5.234];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource: BN8NAM11FT032.eop-nam11.prod.protection.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4372
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Connections leaving the established state (due to RST / FIN TCP packets)
-set the flow table teardown flag. The packet path continues to set lower
-timeout value as per the new TCP state but the offload flag remains set.
-Hence, the conntrack garbage collector may race to undo the timeout
-adjustment of the packet path, leaving the conntrack entry in place with
-the internal offload timeout (one day).
+In the overlap detection performed as part of the insertion operation,
+we have to skip nodes that are not active in the current generation or
+expired. This was done by adding several conditions in overlap decision
+clauses, which made it hard to check for correctness, and debug the
+actual issue this patch is fixing.
 
-Avoid ct gc timeout overwrite by flagging teared down flowtable
-connections.
+Consolidate these conditions into a single clause, so that we can
+proceed with debugging and fixing the following issue.
 
-On the nftables side we only need to allow established TCP connections to
-create a flow offload entry. Since we can not guaruantee that
-flow_offload_teardown is called by a TCP FIN packet we also need to make
-sure that flow_offload_fixup_ct is also called in flow_offload_del
-and only fixes up established TCP connections.
+Case b3. described in comments covers the insertion of a start
+element after an existing end, as a leaf. If all the descendants of
+a given element are inactive, functionally, for the purposes of
+overlap detection, we still have to treat this as a leaf, but we don't.
 
-Fixes: 1e5b2471bcc4 ("netfilter: nf_flow_table: teardown flow timeout race")
-Signed-off-by: Oz Shlomo <ozsh@nvidia.com>
-Signed-off-by: Sven Auhagen <sven.auhagen@voleatech.de>
+If, in the same transaction, we remove a start element to the right,
+remove an end element to the left, and add a start element to the right
+of an existing, active end element, we don't hit case b3. For example:
 
-------------
+- existing intervals: 1-2, 3-5, 6-7
+- transaction: delete 3-5, insert 4-5
 
-v1 -> v2 changes
-- Add flow_teardown flag
-- Add nftables handling
-- Fixup timeout according to the current ct state
+node traversal might happen as follows:
+- 2 (active end)
+- 5 (inactive end)
+- 3 (inactive start)
+
+when we add 4 as start element, we should simply consider 2 as
+preceding end, and consider it as a leaf, because interval 3-5 has been
+deleted. If we don't, we'll report an overlap because we forgot about
+this.
+
+Add an additional flag which is set as we find an active end, and reset
+it if we find an active start (to the left). If we finish the traversal
+with this flag set, it means we need to functionally consider the
+previous active end as a leaf, and allow insertion instead of reporting
+overlap.
+
+Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes: 7c84d41416d8 ("netfilter: nft_set_rbtree: Detect partial overlaps on insertion")
+Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
 ---
- include/uapi/linux/netfilter/nf_conntrack_common.h |  6 +++-
- net/netfilter/nf_conntrack_core.c                  |  3 +-
- net/netfilter/nf_flow_table_core.c                 | 42 +++++++++-------------
- net/netfilter/nft_flow_offload.c                   |  2 ++
- 4 files changed, 25 insertions(+), 28 deletions(-)
+ net/netfilter/nft_set_rbtree.c | 92 ++++++++++++++++++++--------------
+ 1 file changed, 54 insertions(+), 38 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h b/include/uapi/linux/netfilter/nf_conntrack_common.h
-index 26071021e986..bb06202a4965 100644
---- a/include/uapi/linux/netfilter/nf_conntrack_common.h
-+++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
-@@ -118,6 +118,10 @@ enum ip_conntrack_status {
- 	IPS_HW_OFFLOAD_BIT = 15,
- 	IPS_HW_OFFLOAD = (1 << IPS_HW_OFFLOAD_BIT),
- 
-+	/* offloaded conntrack entry is marked for deletion. */
-+	IPS_OFFLOAD_TEARDOWN_BIT = 16,
-+	IPS_OFFLOAD_TEARDOWN = (1 << IPS_OFFLOAD_TEARDOWN_BIT),
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 7325bee7d144..dc2184bbe722 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -222,6 +222,7 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 	bool overlap = false, dup_end_left = false, dup_end_right = false;
+ 	struct nft_rbtree *priv = nft_set_priv(set);
+ 	u8 genmask = nft_genmask_next(net);
++	bool last_left_node_is_end = false;
+ 	struct nft_rbtree_elem *rbe;
+ 	struct rb_node *parent, **p;
+ 	int d;
+@@ -287,80 +288,95 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 		d = memcmp(nft_set_ext_key(&rbe->ext),
+ 			   nft_set_ext_key(&new->ext),
+ 			   set->klen);
+-		if (d < 0) {
 +
- 	/* Be careful here, modifying these bits can make things messy,
- 	 * so don't let users modify them directly.
- 	 */
-@@ -126,7 +130,7 @@ enum ip_conntrack_status {
- 				 IPS_SEQ_ADJUST | IPS_TEMPLATE | IPS_UNTRACKED |
- 				 IPS_OFFLOAD | IPS_HW_OFFLOAD),
++		if (d < 0)
+ 			p = &parent->rb_left;
++		else if (d > 0)
++			p = &parent->rb_right;
++		else if (nft_rbtree_interval_end(rbe))
++			p = &parent->rb_left;
++		else
++			p = &parent->rb_right;
  
--	__IPS_MAX_BIT = 16,
-+	__IPS_MAX_BIT = 17,
- };
++		/* There might be inactive elements in the tree: ignore them by
++		 * traversing them without affecting flags.
++		 *
++		 * We need to reset the dup_end_left and dup_end_right flags,
++		 * though, because those only apply to adjacent nodes.
++		 */
++		if (!nft_set_elem_active(&rbe->ext, genmask) ||
++		    nft_set_elem_expired(&rbe->ext)) {
++			dup_end_left = dup_end_right = false;
++			continue;
++		}
++
++		if (d < 0) {
+ 			if (nft_rbtree_interval_start(new)) {
+-				if (nft_rbtree_interval_end(rbe) &&
+-				    nft_set_elem_active(&rbe->ext, genmask) &&
+-				    !nft_set_elem_expired(&rbe->ext) && !*p)
+-					overlap = false;
++				/* See case b3. described above.
++				 *
++				 * If this is not a leaf, but all nodes below
++				 * this one are inactive, except for a leaf, we
++				 * still have to consider it a leaf for the
++				 * purposes of overlap detection.
++				 *
++				 * Set last_left_node_is_end if this is not a
++				 * leaf and an active end element, and reset it
++				 * if we find an active start element to the
++				 * left.
++				 *
++				 * If we end the traversal with this flag set,
++				 * this node is a leaf for the purposes of case
++				 * b3., and no overlap will be reported.
++				 */
++				if (nft_rbtree_interval_end(rbe)) {
++					if (!*p)
++						overlap = false;
++					else
++						last_left_node_is_end = true;
++				} else {
++					last_left_node_is_end = false;
++				}
+ 			} else {
++
+ 				if (dup_end_left && !*p)
+ 					return -ENOTEMPTY;
  
- /* Connection tracking event types */
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 0164e5f522e8..324fdb62c08b 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1477,7 +1477,8 @@ static void gc_worker(struct work_struct *work)
- 			tmp = nf_ct_tuplehash_to_ctrack(h);
- 
- 			if (test_bit(IPS_OFFLOAD_BIT, &tmp->status)) {
--				nf_ct_offload_timeout(tmp);
-+				if (!test_bit(IPS_OFFLOAD_TEARDOWN_BIT, &tmp->status))
-+					nf_ct_offload_timeout(tmp);
- 				continue;
+-				overlap = nft_rbtree_interval_end(rbe) &&
+-					  nft_set_elem_active(&rbe->ext,
+-							      genmask) &&
+-					  !nft_set_elem_expired(&rbe->ext);
+-
++				overlap = nft_rbtree_interval_end(rbe);
+ 				if (overlap) {
+ 					dup_end_right = true;
+ 					continue;
+ 				}
  			}
- 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 3db256da919b..aaed1a244013 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -177,14 +177,8 @@ int flow_offload_route_init(struct flow_offload *flow,
- }
- EXPORT_SYMBOL_GPL(flow_offload_route_init);
- 
--static void flow_offload_fixup_tcp(struct ip_ct_tcp *tcp)
--{
--	tcp->state = TCP_CONNTRACK_ESTABLISHED;
--	tcp->seen[0].td_maxwin = 0;
--	tcp->seen[1].td_maxwin = 0;
--}
- 
--static void flow_offload_fixup_ct_timeout(struct nf_conn *ct)
-+static void flow_offload_fixup_ct(struct nf_conn *ct)
- {
- 	struct net *net = nf_ct_net(ct);
- 	int l4num = nf_ct_protonum(ct);
-@@ -192,8 +186,12 @@ static void flow_offload_fixup_ct_timeout(struct nf_conn *ct)
- 
- 	if (l4num == IPPROTO_TCP) {
- 		struct nf_tcp_net *tn = nf_tcp_pernet(net);
-+		struct ip_ct_tcp *tcp = &ct->proto.tcp;
-+
-+		tcp->seen[0].td_maxwin = 0;
-+		tcp->seen[1].td_maxwin = 0;
- 
--		timeout = tn->timeouts[TCP_CONNTRACK_ESTABLISHED];
-+		timeout = tn->timeouts[ct->proto.tcp.state];
- 		timeout -= tn->offload_timeout;
- 	} else if (l4num == IPPROTO_UDP) {
- 		struct nf_udp_net *tn = nf_udp_pernet(net);
-@@ -211,18 +209,6 @@ static void flow_offload_fixup_ct_timeout(struct nf_conn *ct)
- 		WRITE_ONCE(ct->timeout, nfct_time_stamp + timeout);
- }
- 
--static void flow_offload_fixup_ct_state(struct nf_conn *ct)
--{
--	if (nf_ct_protonum(ct) == IPPROTO_TCP)
--		flow_offload_fixup_tcp(&ct->proto.tcp);
--}
+ 		} else if (d > 0) {
+-			p = &parent->rb_right;
 -
--static void flow_offload_fixup_ct(struct nf_conn *ct)
--{
--	flow_offload_fixup_ct_state(ct);
--	flow_offload_fixup_ct_timeout(ct);
--}
+ 			if (nft_rbtree_interval_end(new)) {
+ 				if (dup_end_right && !*p)
+ 					return -ENOTEMPTY;
+ 
+-				overlap = nft_rbtree_interval_end(rbe) &&
+-					  nft_set_elem_active(&rbe->ext,
+-							      genmask) &&
+-					  !nft_set_elem_expired(&rbe->ext);
 -
- static void flow_offload_route_release(struct flow_offload *flow)
- {
- 	nft_flow_dst_release(flow, FLOW_OFFLOAD_DIR_ORIGINAL);
-@@ -353,6 +339,10 @@ static inline bool nf_flow_has_expired(const struct flow_offload *flow)
- static void flow_offload_del(struct nf_flowtable *flow_table,
- 			     struct flow_offload *flow)
- {
-+	struct nf_conn *ct = flow->ct;
-+
-+	set_bit(IPS_OFFLOAD_TEARDOWN_BIT, &flow->ct->status);
-+
- 	rhashtable_remove_fast(&flow_table->rhashtable,
- 			       &flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].node,
- 			       nf_flow_offload_rhash_params);
-@@ -360,12 +350,11 @@ static void flow_offload_del(struct nf_flowtable *flow_table,
- 			       &flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].node,
- 			       nf_flow_offload_rhash_params);
- 
--	clear_bit(IPS_OFFLOAD_BIT, &flow->ct->status);
++				overlap = nft_rbtree_interval_end(rbe);
+ 				if (overlap) {
+ 					dup_end_left = true;
+ 					continue;
+ 				}
+-			} else if (nft_set_elem_active(&rbe->ext, genmask) &&
+-				   !nft_set_elem_expired(&rbe->ext)) {
++			} else {
+ 				overlap = nft_rbtree_interval_end(rbe);
+ 			}
+ 		} else {
+ 			if (nft_rbtree_interval_end(rbe) &&
+ 			    nft_rbtree_interval_start(new)) {
+-				p = &parent->rb_left;
 -
- 	if (nf_flow_has_expired(flow))
--		flow_offload_fixup_ct(flow->ct);
--	else
--		flow_offload_fixup_ct_timeout(flow->ct);
-+		flow_offload_fixup_ct(ct);
-+
-+	clear_bit(IPS_OFFLOAD_BIT, &ct->status);
-+	clear_bit(IPS_OFFLOAD_TEARDOWN_BIT, &ct->status);
+-				if (nft_set_elem_active(&rbe->ext, genmask) &&
+-				    !nft_set_elem_expired(&rbe->ext))
+-					overlap = false;
++				overlap = false;
+ 			} else if (nft_rbtree_interval_start(rbe) &&
+ 				   nft_rbtree_interval_end(new)) {
+-				p = &parent->rb_right;
+-
+-				if (nft_set_elem_active(&rbe->ext, genmask) &&
+-				    !nft_set_elem_expired(&rbe->ext))
+-					overlap = false;
+-			} else if (nft_set_elem_active(&rbe->ext, genmask) &&
+-				   !nft_set_elem_expired(&rbe->ext)) {
++				overlap = false;
++			} else {
+ 				*ext = &rbe->ext;
+ 				return -EEXIST;
+-			} else {
+-				overlap = false;
+-				if (nft_rbtree_interval_end(rbe))
+-					p = &parent->rb_left;
+-				else
+-					p = &parent->rb_right;
+ 			}
+ 		}
  
- 	flow_offload_free(flow);
- }
-@@ -373,8 +362,9 @@ static void flow_offload_del(struct nf_flowtable *flow_table,
- void flow_offload_teardown(struct flow_offload *flow)
- {
- 	set_bit(NF_FLOW_TEARDOWN, &flow->flags);
-+	set_bit(IPS_OFFLOAD_TEARDOWN_BIT, &flow->ct->status);
+ 		dup_end_left = dup_end_right = false;
+ 	}
  
--	flow_offload_fixup_ct_state(flow->ct);
-+	flow_offload_fixup_ct(flow->ct);
- }
- EXPORT_SYMBOL_GPL(flow_offload_teardown);
+-	if (overlap)
++	if (overlap && !last_left_node_is_end)
+ 		return -ENOTEMPTY;
  
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index 900d48c810a1..9cc3ea08eb3a 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -295,6 +295,8 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
- 					  sizeof(_tcph), &_tcph);
- 		if (unlikely(!tcph || tcph->fin || tcph->rst))
- 			goto out;
-+		if (unlikely(!nf_conntrack_tcp_established(ct)))
-+			goto out;
- 		break;
- 	case IPPROTO_UDP:
- 		break;
+ 	rb_link_node_rcu(&new->node, parent, p);
 -- 
-1.8.3.1
+2.35.1
 
