@@ -2,54 +2,54 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A640C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 12 May 2022 01:40:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6085DC433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 12 May 2022 03:02:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233622AbiELBkG (ORCPT
+        id S239931AbiELDCU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 11 May 2022 21:40:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42350 "EHLO
+        Wed, 11 May 2022 23:02:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56072 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233418AbiELBkG (ORCPT
+        with ESMTP id S239781AbiELDCT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 11 May 2022 21:40:06 -0400
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A8C991BDDAB
-        for <netfilter-devel@vger.kernel.org>; Wed, 11 May 2022 18:40:03 -0700 (PDT)
+        Wed, 11 May 2022 23:02:19 -0400
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D1E56668A
+        for <netfilter-devel@vger.kernel.org>; Wed, 11 May 2022 20:02:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1652319603; x=1683855603;
+  t=1652324538; x=1683860538;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=f8P69KupjwRzTuQNrmiBYiVPOIKlovqE/J+ffkEbhQ0=;
-  b=EzitOVXRSL+OMQyc9V/KsABMnwbWDVhNq/JTo2/fL/K/lmRvbDIGCAjS
-   1XY4MYWluG2bjqXWerhbr0rCg/0iTux/o1NH3qtkOWjyvFFjExOogm1eT
-   SIBVB8mqdrgMldco5QCAEQyE6LvMJdalliiryA/H4W8kPFNruRtv7T56f
-   /2pBigkeyxllNNifFIu/3lI0K1VCq6XJIvP/lx/oKnm/kbpgtHnq805na
-   fent4DdM8cP0Roezryl0QvSRpGqYeZhK+YiK+8OJnlu71kgcZdyP73hbZ
-   X+/ABDybKZi4Rb3tJb5Q2MPnhB5x3eAJcMbWI5q5DEk+6oB8reNZFn8/Z
-   w==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10344"; a="295105318"
+  bh=TBdm/n3yvnCycU3u2aGA6zvT0utzAIYlcX+801Pl9jo=;
+  b=XF5XV3mWFfB7fSvYdh3JQ4estw5dzFvOvla02qhi+ympb58+93GHnjcE
+   k7RIv5ErmUx3/9iIVWBosY408CPoDf5vSdOlMsxubMSIPQhbgAqjrDSEH
+   0WgfpqsPNKgZZ/aR+LEIRgYNMhVGIkKSwqWBGv73HbdbpOMKxk+qKFyEl
+   daBR2KqfaUnXOOczMJuxu83Qtl7gX6LvF9Sw0dRvr0Wd/MRnKalFBNc5g
+   y5cidBQFnuXJ3asy9X3y3xz2ftTGGxOQ/F4LxhC6bQVLaIh+zbsbkK5Mt
+   jKH8OrnIhBs0Szk3GaijquMP8pamkgrl5epHoPCdLgxumJxQKZgypGN2V
+   A==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10344"; a="257421153"
 X-IronPort-AV: E=Sophos;i="5.91,218,1647327600"; 
-   d="scan'208";a="295105318"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 May 2022 18:40:03 -0700
+   d="scan'208";a="257421153"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 May 2022 20:02:18 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.91,218,1647327600"; 
-   d="scan'208";a="624192423"
+   d="scan'208";a="895610659"
 Received: from lkp-server01.sh.intel.com (HELO 5056e131ad90) ([10.239.97.150])
-  by fmsmga008.fm.intel.com with ESMTP; 11 May 2022 18:40:01 -0700
+  by fmsmga005.fm.intel.com with ESMTP; 11 May 2022 20:02:16 -0700
 Received: from kbuild by 5056e131ad90 with local (Exim 4.95)
         (envelope-from <lkp@intel.com>)
-        id 1noxo9-000Jo2-8w;
-        Thu, 12 May 2022 01:40:01 +0000
-Date:   Thu, 12 May 2022 09:39:57 +0800
+        id 1noz5j-000Jsq-LB;
+        Thu, 12 May 2022 03:02:15 +0000
+Date:   Thu, 12 May 2022 11:01:58 +0800
 From:   kernel test robot <lkp@intel.com>
 To:     Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     kbuild-all@lists.01.org, netfilter-devel@vger.kernel.org
 Subject: Re: [nf-next PATCH 2/2] netfilter: nf_tables: Annotate reduced
  expressions
-Message-ID: <202205120906.nNquMTSm-lkp@intel.com>
+Message-ID: <202205121018.gtq8d3pp-lkp@intel.com>
 References: <20220511165453.22425-3-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -67,35 +67,32 @@ Thank you for the patch! Perhaps something to improve:
 
 url:    https://github.com/intel-lab-lkp/linux/commits/Phil-Sutter/nf_tables-Export-rule-optimizer-results-to-user-space/20220512-005642
 base:   https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
-config: m68k-allyesconfig (https://download.01.org/0day-ci/archive/20220512/202205120906.nNquMTSm-lkp@intel.com/config)
-compiler: m68k-linux-gcc (GCC) 11.3.0
-reproduce (this is a W=1 build):
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
+config: x86_64-randconfig-s021-20220509 (https://download.01.org/0day-ci/archive/20220512/202205121018.gtq8d3pp-lkp@intel.com/config)
+compiler: gcc-11 (Debian 11.2.0-20) 11.2.0
+reproduce:
+        # apt-get install sparse
+        # sparse version: v0.6.4-dirty
         # https://github.com/intel-lab-lkp/linux/commit/831b99f09285d0cc3a4fb0fcb6fd7c74aaea988a
         git remote add linux-review https://github.com/intel-lab-lkp/linux
         git fetch --no-tags linux-review Phil-Sutter/nf_tables-Export-rule-optimizer-results-to-user-space/20220512-005642
         git checkout 831b99f09285d0cc3a4fb0fcb6fd7c74aaea988a
         # save the config file
         mkdir build_dir && cp config build_dir/.config
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-11.3.0 make.cross W=1 O=build_dir ARCH=m68k SHELL=/bin/bash net/netfilter/
+        make W=1 C=1 CF='-fdiagnostic-prefix -D__CHECK_ENDIAN__' O=build_dir ARCH=x86_64 SHELL=/bin/bash
 
 If you fix the issue, kindly add following tag as appropriate
 Reported-by: kernel test robot <lkp@intel.com>
 
-All warnings (new ones prefixed by >>):
 
-   net/netfilter/nft_bitwise.c: In function 'nft_bitwise_reduce':
->> net/netfilter/nft_bitwise.c:306:28: warning: assignment discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
-     306 |                 track->cur = expr;
-         |                            ^
-   net/netfilter/nft_bitwise.c: In function 'nft_bitwise_fast_reduce':
-   net/netfilter/nft_bitwise.c:454:28: warning: assignment discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
-     454 |                 track->cur = expr;
-         |                            ^
+sparse warnings: (new ones prefixed by >>)
+>> net/netfilter/nft_bitwise.c:306:28: sparse: sparse: incorrect type in assignment (different modifiers) @@     expected struct nft_expr *cur @@     got struct nft_expr const *expr @@
+   net/netfilter/nft_bitwise.c:306:28: sparse:     expected struct nft_expr *cur
+   net/netfilter/nft_bitwise.c:306:28: sparse:     got struct nft_expr const *expr
+   net/netfilter/nft_bitwise.c:454:28: sparse: sparse: incorrect type in assignment (different modifiers) @@     expected struct nft_expr *cur @@     got struct nft_expr const *expr @@
+   net/netfilter/nft_bitwise.c:454:28: sparse:     expected struct nft_expr *cur
+   net/netfilter/nft_bitwise.c:454:28: sparse:     got struct nft_expr const *expr
 
-
-vim +/const +306 net/netfilter/nft_bitwise.c
+vim +306 net/netfilter/nft_bitwise.c
 
 bd8699e9e29287 Pablo Neira Ayuso 2019-07-30  281  
 be5650f8f47e8c Pablo Neira Ayuso 2022-01-09  282  static bool nft_bitwise_reduce(struct nft_regs_track *track,
