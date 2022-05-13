@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62081C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 May 2022 21:43:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 906F1C433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 May 2022 21:43:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1384740AbiEMVnw (ORCPT
+        id S1384744AbiEMVnx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 May 2022 17:43:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59166 "EHLO
+        Fri, 13 May 2022 17:43:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59238 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1384713AbiEMVnr (ORCPT
+        with ESMTP id S1384724AbiEMVnt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 May 2022 17:43:47 -0400
+        Fri, 13 May 2022 17:43:49 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 562E92DD77;
-        Fri, 13 May 2022 14:43:43 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 72AF72EA1C;
+        Fri, 13 May 2022 14:43:47 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com
-Subject: [PATCH net-next 01/17] netfilter: ecache: use dedicated list for event redelivery
-Date:   Fri, 13 May 2022 23:43:13 +0200
-Message-Id: <20220513214329.1136459-2-pablo@netfilter.org>
+Subject: [PATCH net-next 06/17] netfilter: extensions: introduce extension genid count
+Date:   Fri, 13 May 2022 23:43:18 +0200
+Message-Id: <20220513214329.1136459-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220513214329.1136459-1-pablo@netfilter.org>
 References: <20220513214329.1136459-1-pablo@netfilter.org>
@@ -34,322 +34,300 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-This disentangles event redelivery and the percpu dying list.
+Multiple netfilter extensions store pointers to external data
+in their extension area struct.
 
-Because entries are now stored on a dedicated list, all
-entries are in NFCT_ECACHE_DESTROY_FAIL state and all entries
-still have confirmed bit set -- the reference count is at least 1.
+Examples:
+1. Timeout policies
+2. Connection tracking helpers.
 
-The 'struct net' back-pointer can be removed as well.
+No references are taken for these.
 
-The pcpu dying list will be removed eventually, it has no functionality.
+When a helper or timeout policy is removed, the conntrack table gets
+traversed and affected extensions are cleared.
+
+Conntrack entries not yet in the hashtable are referenced via a special
+list, the unconfirmed list.
+
+On removal of a policy or connection tracking helper, the unconfirmed
+list gets traversed an all entries are marked as dying, this prevents
+them from getting committed to the table at insertion time: core checks
+for dying bit, if set, the conntrack entry gets destroyed at confirm
+time.
+
+The disadvantage is that each new conntrack has to be added to the percpu
+unconfirmed list, and each insertion needs to remove it from this list.
+The list is only ever needed when a policy or helper is removed -- a rare
+occurrence.
+
+Add a generation ID count: Instead of adding to the list and then
+traversing that list on policy/helper removal, increment a counter
+that is stored in the extension area.
+
+For unconfirmed conntracks, the extension has the genid valid at ct
+allocation time.
+
+Removal of a helper/policy etc. increments the counter.
+At confirmation time, validate that ext->genid == global_id.
+
+If the stored number is not the same, do not allow the conntrack
+insertion, just like as if a confirmed-list traversal would have flagged
+the entry as dying.
+
+After insertion, the genid is no longer relevant (conntrack entries
+are now reachable via the conntrack table iterators and is set to 0.
+
+This allows removal of the percpu unconfirmed list.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack.h        |   3 +-
- include/net/netfilter/nf_conntrack_ecache.h |   2 -
- net/netfilter/nf_conntrack_core.c           |  33 +++++-
- net/netfilter/nf_conntrack_ecache.c         | 117 +++++++++-----------
- 4 files changed, 82 insertions(+), 73 deletions(-)
+ include/net/netfilter/nf_conntrack_extend.h | 31 ++++++------
+ include/net/netfilter/nf_conntrack_labels.h | 10 +++-
+ net/netfilter/nf_conntrack_core.c           | 55 +++++++++++++++++++++
+ net/netfilter/nf_conntrack_extend.c         | 32 +++++++++++-
+ 4 files changed, 111 insertions(+), 17 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 69e6c6a218be..28672a944499 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -45,7 +45,8 @@ union nf_conntrack_expect_proto {
- 
- struct nf_conntrack_net_ecache {
- 	struct delayed_work dwork;
--	struct netns_ct *ct_net;
-+	spinlock_t dying_lock;
-+	struct hlist_nulls_head dying_list;
+diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
+index 96635ad2acc7..0b247248b032 100644
+--- a/include/net/netfilter/nf_conntrack_extend.h
++++ b/include/net/netfilter/nf_conntrack_extend.h
+@@ -34,21 +34,11 @@ enum nf_ct_ext_id {
+ 	NF_CT_EXT_NUM,
  };
  
- struct nf_conntrack_net {
-diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
-index 6c4c490a3e34..a6135b5030dd 100644
---- a/include/net/netfilter/nf_conntrack_ecache.h
-+++ b/include/net/netfilter/nf_conntrack_ecache.h
-@@ -14,7 +14,6 @@
- #include <net/netfilter/nf_conntrack_extend.h>
+-#define NF_CT_EXT_HELPER_TYPE struct nf_conn_help
+-#define NF_CT_EXT_NAT_TYPE struct nf_conn_nat
+-#define NF_CT_EXT_SEQADJ_TYPE struct nf_conn_seqadj
+-#define NF_CT_EXT_ACCT_TYPE struct nf_conn_acct
+-#define NF_CT_EXT_ECACHE_TYPE struct nf_conntrack_ecache
+-#define NF_CT_EXT_TSTAMP_TYPE struct nf_conn_tstamp
+-#define NF_CT_EXT_TIMEOUT_TYPE struct nf_conn_timeout
+-#define NF_CT_EXT_LABELS_TYPE struct nf_conn_labels
+-#define NF_CT_EXT_SYNPROXY_TYPE struct nf_conn_synproxy
+-#define NF_CT_EXT_ACT_CT_TYPE struct nf_conn_act_ct_ext
+-
+ /* Extensions: optional stuff which isn't permanently in struct. */
+ struct nf_ct_ext {
+ 	u8 offset[NF_CT_EXT_NUM];
+ 	u8 len;
++	unsigned int gen_id;
+ 	char data[] __aligned(8);
+ };
  
- enum nf_ct_ecache_state {
--	NFCT_ECACHE_UNKNOWN,		/* destroy event not sent */
- 	NFCT_ECACHE_DESTROY_FAIL,	/* tried but failed to send destroy event */
- 	NFCT_ECACHE_DESTROY_SENT,	/* sent destroy event after failure */
+@@ -62,17 +52,28 @@ static inline bool nf_ct_ext_exist(const struct nf_conn *ct, u8 id)
+ 	return (ct->ext && __nf_ct_ext_exist(ct->ext, id));
+ }
+ 
+-static inline void *__nf_ct_ext_find(const struct nf_conn *ct, u8 id)
++void *__nf_ct_ext_find(const struct nf_ct_ext *ext, u8 id);
++
++static inline void *nf_ct_ext_find(const struct nf_conn *ct, u8 id)
+ {
+-	if (!nf_ct_ext_exist(ct, id))
++	struct nf_ct_ext *ext = ct->ext;
++
++	if (!ext || !__nf_ct_ext_exist(ext, id))
+ 		return NULL;
+ 
++	if (unlikely(ext->gen_id))
++		return __nf_ct_ext_find(ext, id);
++
+ 	return (void *)ct->ext + ct->ext->offset[id];
+ }
+-#define nf_ct_ext_find(ext, id)	\
+-	((id##_TYPE *)__nf_ct_ext_find((ext), (id)))
+ 
+ /* Add this type, returns pointer to data or NULL. */
+ void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp);
+ 
++/* ext genid.  if ext->id != ext_genid, extensions cannot be used
++ * anymore unless conntrack has CONFIRMED bit set.
++ */
++extern atomic_t nf_conntrack_ext_genid;
++void nf_ct_ext_bump_genid(void);
++
+ #endif /* _NF_CONNTRACK_EXTEND_H */
+diff --git a/include/net/netfilter/nf_conntrack_labels.h b/include/net/netfilter/nf_conntrack_labels.h
+index 3c23298e68ca..66bab6c60d12 100644
+--- a/include/net/netfilter/nf_conntrack_labels.h
++++ b/include/net/netfilter/nf_conntrack_labels.h
+@@ -17,10 +17,18 @@ struct nf_conn_labels {
+ 	unsigned long bits[NF_CT_LABELS_MAX_SIZE / sizeof(long)];
  };
-@@ -23,7 +22,6 @@ struct nf_conntrack_ecache {
- 	unsigned long cache;		/* bitops want long */
- 	u16 ctmask;			/* bitmask of ct events to be delivered */
- 	u16 expmask;			/* bitmask of expect events to be delivered */
--	enum nf_ct_ecache_state state:8;/* ecache state */
- 	u32 missed;			/* missed events */
- 	u32 portid;			/* netlink portid of destroyer */
- };
+ 
++/* Can't use nf_ct_ext_find(), flow dissector cannot use symbols
++ * exported by nf_conntrack module.
++ */
+ static inline struct nf_conn_labels *nf_ct_labels_find(const struct nf_conn *ct)
+ {
+ #ifdef CONFIG_NF_CONNTRACK_LABELS
+-	return nf_ct_ext_find(ct, NF_CT_EXT_LABELS);
++	struct nf_ct_ext *ext = ct->ext;
++
++	if (!ext || !__nf_ct_ext_exist(ext, NF_CT_EXT_LABELS))
++		return NULL;
++
++	return (void *)ct->ext + ct->ext->offset[NF_CT_EXT_LABELS];
+ #else
+ 	return NULL;
+ #endif
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 0164e5f522e8..ca1d1d105163 100644
+index b3cc318ceb45..76310940cbd7 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -660,15 +660,12 @@ void nf_ct_destroy(struct nf_conntrack *nfct)
+@@ -876,6 +876,33 @@ static void __nf_conntrack_hash_insert(struct nf_conn *ct,
+ 			   &nf_conntrack_hash[reply_hash]);
  }
- EXPORT_SYMBOL(nf_ct_destroy);
  
--static void nf_ct_delete_from_lists(struct nf_conn *ct)
-+static void __nf_ct_delete_from_lists(struct nf_conn *ct)
++static bool nf_ct_ext_valid_pre(const struct nf_ct_ext *ext)
++{
++	/* if ext->gen_id is not equal to nf_conntrack_ext_genid, some extensions
++	 * may contain stale pointers to e.g. helper that has been removed.
++	 *
++	 * The helper can't clear this because the nf_conn object isn't in
++	 * any hash and synchronize_rcu() isn't enough because associated skb
++	 * might sit in a queue.
++	 */
++	return !ext || ext->gen_id == atomic_read(&nf_conntrack_ext_genid);
++}
++
++static bool nf_ct_ext_valid_post(struct nf_ct_ext *ext)
++{
++	if (!ext)
++		return true;
++
++	if (ext->gen_id != atomic_read(&nf_conntrack_ext_genid))
++		return false;
++
++	/* inserted into conntrack table, nf_ct_iterate_cleanup()
++	 * will find it.  Disable nf_ct_ext_find() id check.
++	 */
++	WRITE_ONCE(ext->gen_id, 0);
++	return true;
++}
++
+ int
+ nf_conntrack_hash_check_insert(struct nf_conn *ct)
  {
- 	struct net *net = nf_ct_net(ct);
- 	unsigned int hash, reply_hash;
- 	unsigned int sequence;
+@@ -891,6 +918,11 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
  
--	nf_ct_helper_destroy(ct);
--
--	local_bh_disable();
+ 	zone = nf_ct_zone(ct);
+ 
++	if (!nf_ct_ext_valid_pre(ct->ext)) {
++		NF_CT_STAT_INC(net, insert_failed);
++		return -ETIMEDOUT;
++	}
++
+ 	local_bh_disable();
  	do {
  		sequence = read_seqcount_begin(&nf_conntrack_generation);
- 		hash = hash_conntrack(net,
-@@ -681,12 +678,33 @@ static void nf_ct_delete_from_lists(struct nf_conn *ct)
- 
- 	clean_from_lists(ct);
+@@ -931,6 +963,13 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
  	nf_conntrack_double_unlock(hash, reply_hash);
-+}
- 
-+static void nf_ct_delete_from_lists(struct nf_conn *ct)
-+{
-+	nf_ct_helper_destroy(ct);
-+	local_bh_disable();
-+
-+	__nf_ct_delete_from_lists(ct);
- 	nf_ct_add_to_dying_list(ct);
- 
+ 	NF_CT_STAT_INC(net, insert);
  	local_bh_enable();
++
++	if (!nf_ct_ext_valid_post(ct->ext)) {
++		nf_ct_kill(ct);
++		NF_CT_STAT_INC(net, drop);
++		return -ETIMEDOUT;
++	}
++
+ 	return 0;
+ chaintoolong:
+ 	NF_CT_STAT_INC(net, chaintoolong);
+@@ -1198,6 +1237,11 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+ 		return NF_DROP;
+ 	}
+ 
++	if (!nf_ct_ext_valid_pre(ct->ext)) {
++		NF_CT_STAT_INC(net, insert_failed);
++		goto dying;
++	}
++
+ 	pr_debug("Confirming conntrack %p\n", ct);
+ 	/* We have to check the DYING flag after unlink to prevent
+ 	 * a race against nf_ct_get_next_corpse() possibly called from
+@@ -1254,6 +1298,16 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+ 	nf_conntrack_double_unlock(hash, reply_hash);
+ 	local_bh_enable();
+ 
++	/* ext area is still valid (rcu read lock is held,
++	 * but will go out of scope soon, we need to remove
++	 * this conntrack again.
++	 */
++	if (!nf_ct_ext_valid_post(ct->ext)) {
++		nf_ct_kill(ct);
++		NF_CT_STAT_INC(net, drop);
++		return NF_DROP;
++	}
++
+ 	help = nfct_help(ct);
+ 	if (help && help->helper)
+ 		nf_conntrack_event_cache(IPCT_HELPER, ct);
+@@ -2491,6 +2545,7 @@ nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data), void *data)
+ 	 */
+ 	synchronize_net();
+ 
++	nf_ct_ext_bump_genid();
+ 	nf_ct_iterate_cleanup(iter, data, 0, 0);
  }
+ EXPORT_SYMBOL_GPL(nf_ct_iterate_destroy);
+diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
+index 1296fda54ac6..0b513f7bf9f3 100644
+--- a/net/netfilter/nf_conntrack_extend.c
++++ b/net/netfilter/nf_conntrack_extend.c
+@@ -27,6 +27,8 @@
  
-+static void nf_ct_add_to_ecache_list(struct nf_conn *ct)
-+{
-+#ifdef CONFIG_NF_CONNTRACK_EVENTS
-+	struct nf_conntrack_net *cnet = nf_ct_pernet(nf_ct_net(ct));
+ #define NF_CT_EXT_PREALLOC	128u /* conntrack events are on by default */
+ 
++atomic_t nf_conntrack_ext_genid __read_mostly = ATOMIC_INIT(1);
 +
-+	spin_lock(&cnet->ecache.dying_lock);
-+	hlist_nulls_add_head_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode,
-+				 &cnet->ecache.dying_list);
-+	spin_unlock(&cnet->ecache.dying_lock);
-+#else
-+	nf_ct_add_to_dying_list(ct);
-+#endif
-+}
-+
- bool nf_ct_delete(struct nf_conn *ct, u32 portid, int report)
- {
- 	struct nf_conn_tstamp *tstamp;
-@@ -709,7 +727,12 @@ bool nf_ct_delete(struct nf_conn *ct, u32 portid, int report)
- 		/* destroy event was not delivered. nf_ct_put will
- 		 * be done by event cache worker on redelivery.
- 		 */
--		nf_ct_delete_from_lists(ct);
-+		nf_ct_helper_destroy(ct);
-+		local_bh_disable();
-+		__nf_ct_delete_from_lists(ct);
-+		nf_ct_add_to_ecache_list(ct);
-+		local_bh_enable();
-+
- 		nf_conntrack_ecache_work(nf_ct_net(ct), NFCT_ECACHE_DESTROY_FAIL);
- 		return false;
- 	}
-diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
-index 0cb2da0a759a..2752859479b2 100644
---- a/net/netfilter/nf_conntrack_ecache.c
-+++ b/net/netfilter/nf_conntrack_ecache.c
-@@ -16,7 +16,6 @@
- #include <linux/vmalloc.h>
- #include <linux/stddef.h>
- #include <linux/err.h>
--#include <linux/percpu.h>
- #include <linux/kernel.h>
- #include <linux/netdevice.h>
- #include <linux/slab.h>
-@@ -29,8 +28,9 @@
+ static const u8 nf_ct_ext_type_len[NF_CT_EXT_NUM] = {
+ 	[NF_CT_EXT_HELPER] = sizeof(struct nf_conn_help),
+ #if IS_ENABLED(CONFIG_NF_NAT)
+@@ -116,8 +118,10 @@ void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
+ 	if (!new)
+ 		return NULL;
  
- static DEFINE_MUTEX(nf_ct_ecache_mutex);
- 
--#define ECACHE_RETRY_WAIT (HZ/10)
--#define ECACHE_STACK_ALLOC (256 / sizeof(void *))
-+#define DYING_NULLS_VAL			((1 << 30) + 1)
-+#define ECACHE_MAX_JIFFIES		msecs_to_jiffies(10)
-+#define ECACHE_RETRY_JIFFIES		msecs_to_jiffies(10)
- 
- enum retry_state {
- 	STATE_CONGESTED,
-@@ -38,58 +38,58 @@ enum retry_state {
- 	STATE_DONE,
- };
- 
--static enum retry_state ecache_work_evict_list(struct ct_pcpu *pcpu)
-+static enum retry_state ecache_work_evict_list(struct nf_conntrack_net *cnet)
- {
--	struct nf_conn *refs[ECACHE_STACK_ALLOC];
-+	unsigned long stop = jiffies + ECACHE_MAX_JIFFIES;
-+	struct hlist_nulls_head evicted_list;
- 	enum retry_state ret = STATE_DONE;
- 	struct nf_conntrack_tuple_hash *h;
- 	struct hlist_nulls_node *n;
--	unsigned int evicted = 0;
-+	unsigned int sent;
- 
--	spin_lock(&pcpu->lock);
-+	INIT_HLIST_NULLS_HEAD(&evicted_list, DYING_NULLS_VAL);
- 
--	hlist_nulls_for_each_entry(h, n, &pcpu->dying, hnnode) {
-+next:
-+	sent = 0;
-+	spin_lock_bh(&cnet->ecache.dying_lock);
-+
-+	hlist_nulls_for_each_entry_safe(h, n, &cnet->ecache.dying_list, hnnode) {
- 		struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
--		struct nf_conntrack_ecache *e;
--
--		if (!nf_ct_is_confirmed(ct))
--			continue;
--
--		/* This ecache access is safe because the ct is on the
--		 * pcpu dying list and we hold the spinlock -- the entry
--		 * cannot be free'd until after the lock is released.
--		 *
--		 * This is true even if ct has a refcount of 0: the
--		 * cpu that is about to free the entry must remove it
--		 * from the dying list and needs the lock to do so.
--		 */
--		e = nf_ct_ecache_find(ct);
--		if (!e || e->state != NFCT_ECACHE_DESTROY_FAIL)
--			continue;
- 
--		/* ct is in NFCT_ECACHE_DESTROY_FAIL state, this means
--		 * the worker owns this entry: the ct will remain valid
--		 * until the worker puts its ct reference.
-+		/* The worker owns all entries, ct remains valid until nf_ct_put
-+		 * in the loop below.
- 		 */
- 		if (nf_conntrack_event(IPCT_DESTROY, ct)) {
- 			ret = STATE_CONGESTED;
- 			break;
- 		}
- 
--		e->state = NFCT_ECACHE_DESTROY_SENT;
--		refs[evicted] = ct;
-+		hlist_nulls_del_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode);
-+		hlist_nulls_add_head(&ct->tuplehash[IP_CT_DIR_REPLY].hnnode, &evicted_list);
- 
--		if (++evicted >= ARRAY_SIZE(refs)) {
-+		if (time_after(stop, jiffies)) {
- 			ret = STATE_RESTART;
- 			break;
- 		}
-+
-+		if (sent++ > 16) {
-+			spin_unlock_bh(&cnet->ecache.dying_lock);
-+			cond_resched();
-+			goto next;
-+		}
- 	}
- 
--	spin_unlock(&pcpu->lock);
-+	spin_unlock_bh(&cnet->ecache.dying_lock);
- 
--	/* can't _put while holding lock */
--	while (evicted)
--		nf_ct_put(refs[--evicted]);
-+	hlist_nulls_for_each_entry_safe(h, n, &evicted_list, hnnode) {
-+		struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
-+
-+		hlist_nulls_add_fake(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode);
-+		hlist_nulls_del_rcu(&ct->tuplehash[IP_CT_DIR_REPLY].hnnode);
-+		nf_ct_put(ct);
-+
-+		cond_resched();
+-	if (!ct->ext)
++	if (!ct->ext) {
+ 		memset(new->offset, 0, sizeof(new->offset));
++		new->gen_id = atomic_read(&nf_conntrack_ext_genid);
 +	}
  
- 	return ret;
+ 	new->offset[id] = newoff;
+ 	new->len = newlen;
+@@ -127,3 +131,29 @@ void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
+ 	return (void *)new + newoff;
  }
-@@ -97,35 +97,20 @@ static enum retry_state ecache_work_evict_list(struct ct_pcpu *pcpu)
- static void ecache_work(struct work_struct *work)
- {
- 	struct nf_conntrack_net *cnet = container_of(work, struct nf_conntrack_net, ecache.dwork.work);
--	struct netns_ct *ctnet = cnet->ecache.ct_net;
--	int cpu, delay = -1;
--	struct ct_pcpu *pcpu;
--
--	local_bh_disable();
--
--	for_each_possible_cpu(cpu) {
--		enum retry_state ret;
--
--		pcpu = per_cpu_ptr(ctnet->pcpu_lists, cpu);
--
--		ret = ecache_work_evict_list(pcpu);
--
--		switch (ret) {
--		case STATE_CONGESTED:
--			delay = ECACHE_RETRY_WAIT;
--			goto out;
--		case STATE_RESTART:
--			delay = 0;
--			break;
--		case STATE_DONE:
--			break;
--		}
-+	int ret, delay = -1;
+ EXPORT_SYMBOL(nf_ct_ext_add);
 +
-+	ret = ecache_work_evict_list(cnet);
-+	switch (ret) {
-+	case STATE_CONGESTED:
-+		delay = ECACHE_RETRY_JIFFIES;
-+		break;
-+	case STATE_RESTART:
-+		delay = 0;
-+		break;
-+	case STATE_DONE:
-+		break;
- 	}
- 
-- out:
--	local_bh_enable();
--
--	ctnet->ecache_dwork_pending = delay > 0;
- 	if (delay >= 0)
- 		schedule_delayed_work(&cnet->ecache.dwork, delay);
- }
-@@ -199,7 +184,6 @@ int nf_conntrack_eventmask_report(unsigned int events, struct nf_conn *ct,
- 		 */
- 		if (e->portid == 0 && portid != 0)
- 			e->portid = portid;
--		e->state = NFCT_ECACHE_DESTROY_FAIL;
- 	}
- 
- 	return ret;
-@@ -297,8 +281,10 @@ void nf_conntrack_ecache_work(struct net *net, enum nf_ct_ecache_state state)
- 		schedule_delayed_work(&cnet->ecache.dwork, HZ);
- 		net->ct.ecache_dwork_pending = true;
- 	} else if (state == NFCT_ECACHE_DESTROY_SENT) {
--		net->ct.ecache_dwork_pending = false;
--		mod_delayed_work(system_wq, &cnet->ecache.dwork, 0);
-+		if (!hlist_nulls_empty(&cnet->ecache.dying_list))
-+			mod_delayed_work(system_wq, &cnet->ecache.dwork, 0);
-+		else
-+			net->ct.ecache_dwork_pending = false;
- 	}
- }
- 
-@@ -311,8 +297,9 @@ void nf_conntrack_ecache_pernet_init(struct net *net)
- 
- 	net->ct.sysctl_events = nf_ct_events;
- 
--	cnet->ecache.ct_net = &net->ct;
- 	INIT_DELAYED_WORK(&cnet->ecache.dwork, ecache_work);
-+	INIT_HLIST_NULLS_HEAD(&cnet->ecache.dying_list, DYING_NULLS_VAL);
-+	spin_lock_init(&cnet->ecache.dying_lock);
- 
- 	BUILD_BUG_ON(__IPCT_MAX >= 16);	/* e->ctmask is u16 */
- }
++/* Use nf_ct_ext_find wrapper. This is only useful for unconfirmed entries. */
++void *__nf_ct_ext_find(const struct nf_ct_ext *ext, u8 id)
++{
++	unsigned int gen_id = atomic_read(&nf_conntrack_ext_genid);
++	unsigned int this_id = READ_ONCE(ext->gen_id);
++
++	if (!__nf_ct_ext_exist(ext, id))
++		return NULL;
++
++	if (this_id == 0 || ext->gen_id == gen_id)
++		return (void *)ext + ext->offset[id];
++
++	return NULL;
++}
++EXPORT_SYMBOL(__nf_ct_ext_find);
++
++void nf_ct_ext_bump_genid(void)
++{
++	unsigned int value = atomic_inc_return(&nf_conntrack_ext_genid);
++
++	if (value == UINT_MAX)
++		atomic_set(&nf_conntrack_ext_genid, 1);
++
++	msleep(HZ);
++}
 -- 
 2.30.2
 
