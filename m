@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7719AC4332F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 May 2022 21:44:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6F5CC433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 May 2022 21:44:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1384764AbiEMVoA (ORCPT
+        id S1384769AbiEMVoB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 May 2022 17:44:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59344 "EHLO
+        Fri, 13 May 2022 17:44:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59410 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1384739AbiEMVnv (ORCPT
+        with ESMTP id S1384742AbiEMVnw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 May 2022 17:43:51 -0400
+        Fri, 13 May 2022 17:43:52 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 86D392DD77;
-        Fri, 13 May 2022 14:43:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 082512ED5A;
+        Fri, 13 May 2022 14:43:52 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com
-Subject: [PATCH net-next 13/17] netfilter: conntrack: un-inline nf_ct_ecache_ext_add
-Date:   Fri, 13 May 2022 23:43:25 +0200
-Message-Id: <20220513214329.1136459-14-pablo@netfilter.org>
+Subject: [PATCH net-next 15/17] netfilter: prefer extension check to pointer check
+Date:   Fri, 13 May 2022 23:43:27 +0200
+Message-Id: <20220513214329.1136459-16-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220513214329.1136459-1-pablo@netfilter.org>
 References: <20220513214329.1136459-1-pablo@netfilter.org>
@@ -34,151 +34,93 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-Only called when new ct is allocated or the extension isn't present.
-This function will be extended, place this in the conntrack module
-instead of inlining.
+The pointer check usually results in a 'false positive': its likely
+that the ctnetlink module is loaded but no event monitoring is enabled.
 
-The callers already depend on nf_conntrack module.
-Return value is changed to bool, noone used the returned pointer.
+After recent change to autodetect ctnetlink usage and only allocate
+the ecache extension if a listener is active, check if the extension
+is present on a given conntrack.
 
-Make sure that the core drops the newly allocated conntrack
-if the extension is requested but can't be added.
-This makes it necessary to ifdef the section, as the stub
-always returns false we'd drop every new conntrack if the
-the ecache extension is disabled in kconfig.
-
-Add from data path (xt_CT, nft_ct) is unchanged.
+If its not there, there is nothing to report and calls to the
+notification framework can be elided.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack_ecache.h | 30 ++++-----------------
- net/netfilter/nf_conntrack_core.c           | 14 +++++++---
- net/netfilter/nf_conntrack_ecache.c         | 22 +++++++++++++++
- 3 files changed, 38 insertions(+), 28 deletions(-)
+ include/net/netfilter/nf_conntrack_core.h   |  2 +-
+ include/net/netfilter/nf_conntrack_ecache.h | 31 ++++++++++-----------
+ 2 files changed, 16 insertions(+), 17 deletions(-)
 
+diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+index 13807ea94cd2..6406cfee34c2 100644
+--- a/include/net/netfilter/nf_conntrack_core.h
++++ b/include/net/netfilter/nf_conntrack_core.h
+@@ -60,7 +60,7 @@ static inline int nf_conntrack_confirm(struct sk_buff *skb)
+ 	if (ct) {
+ 		if (!nf_ct_is_confirmed(ct))
+ 			ret = __nf_conntrack_confirm(skb);
+-		if (likely(ret == NF_ACCEPT))
++		if (ret == NF_ACCEPT && nf_ct_ecache_exist(ct))
+ 			nf_ct_deliver_cached_events(ct);
+ 	}
+ 	return ret;
 diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
-index b57d73785e4d..2e3d58439e34 100644
+index 2e3d58439e34..0c1dac318e02 100644
 --- a/include/net/netfilter/nf_conntrack_ecache.h
 +++ b/include/net/netfilter/nf_conntrack_ecache.h
-@@ -36,31 +36,6 @@ nf_ct_ecache_find(const struct nf_conn *ct)
+@@ -36,6 +36,15 @@ nf_ct_ecache_find(const struct nf_conn *ct)
  #endif
  }
  
--static inline struct nf_conntrack_ecache *
--nf_ct_ecache_ext_add(struct nf_conn *ct, u16 ctmask, u16 expmask, gfp_t gfp)
--{
--#ifdef CONFIG_NF_CONNTRACK_EVENTS
--	struct net *net = nf_ct_net(ct);
--	struct nf_conntrack_ecache *e;
--
--	if (!ctmask && !expmask && net->ct.sysctl_events) {
--		ctmask = ~0;
--		expmask = ~0;
--	}
--	if (!ctmask && !expmask)
--		return NULL;
--
--	e = nf_ct_ext_add(ct, NF_CT_EXT_ECACHE, gfp);
--	if (e) {
--		e->ctmask  = ctmask;
--		e->expmask = expmask;
--	}
--	return e;
--#else
--	return NULL;
--#endif
--}
--
++static inline bool nf_ct_ecache_exist(const struct nf_conn *ct)
++{
++#ifdef CONFIG_NF_CONNTRACK_EVENTS
++	return nf_ct_ext_exist(ct, NF_CT_EXT_ECACHE);
++#else
++	return false;
++#endif
++}
++
  #ifdef CONFIG_NF_CONNTRACK_EVENTS
  
  /* This structure is passed to event handler */
-@@ -89,6 +64,7 @@ void nf_ct_deliver_cached_events(struct nf_conn *ct);
- int nf_conntrack_eventmask_report(unsigned int eventmask, struct nf_conn *ct,
- 				  u32 portid, int report);
- 
-+bool nf_ct_ecache_ext_add(struct nf_conn *ct, u16 ctmask, u16 expmask, gfp_t gfp);
- #else
- 
- static inline void nf_ct_deliver_cached_events(const struct nf_conn *ct)
-@@ -103,6 +79,10 @@ static inline int nf_conntrack_eventmask_report(unsigned int eventmask,
- 	return 0;
- }
- 
-+static inline bool nf_ct_ecache_ext_add(struct nf_conn *ct, u16 ctmask, u16 expmask, gfp_t gfp)
-+{
-+	return false;
-+}
+@@ -108,30 +117,20 @@ nf_conntrack_event_report(enum ip_conntrack_events event, struct nf_conn *ct,
+ 			  u32 portid, int report)
+ {
+ #ifdef CONFIG_NF_CONNTRACK_EVENTS
+-	const struct net *net = nf_ct_net(ct);
+-
+-	if (!rcu_access_pointer(net->ct.nf_conntrack_event_cb))
+-		return 0;
+-
+-	return nf_conntrack_eventmask_report(1 << event, ct, portid, report);
+-#else
+-	return 0;
++	if (nf_ct_ecache_exist(ct))
++		return nf_conntrack_eventmask_report(1 << event, ct, portid, report);
  #endif
- 
- static inline void
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index efbfd67d5c3d..7b078ec1f923 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1698,7 +1698,9 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
- 	struct nf_conn *ct;
- 	struct nf_conn_help *help;
- 	struct nf_conntrack_tuple repl_tuple;
-+#ifdef CONFIG_NF_CONNTRACK_EVENTS
- 	struct nf_conntrack_ecache *ecache;
-+#endif
- 	struct nf_conntrack_expect *exp = NULL;
- 	const struct nf_conntrack_zone *zone;
- 	struct nf_conn_timeout *timeout_ext;
-@@ -1731,10 +1733,16 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
- 	nf_ct_tstamp_ext_add(ct, GFP_ATOMIC);
- 	nf_ct_labels_ext_add(ct);
- 
-+#ifdef CONFIG_NF_CONNTRACK_EVENTS
- 	ecache = tmpl ? nf_ct_ecache_find(tmpl) : NULL;
--	nf_ct_ecache_ext_add(ct, ecache ? ecache->ctmask : 0,
--				 ecache ? ecache->expmask : 0,
--			     GFP_ATOMIC);
-+
-+	if (!nf_ct_ecache_ext_add(ct, ecache ? ecache->ctmask : 0,
-+				  ecache ? ecache->expmask : 0,
-+				  GFP_ATOMIC)) {
-+		nf_conntrack_free(ct);
-+		return ERR_PTR(-ENOMEM);
-+	}
-+#endif
- 
- 	cnet = nf_ct_pernet(net);
- 	if (cnet->expect_count) {
-diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
-index 7472c544642f..2f0b52fdcbfa 100644
---- a/net/netfilter/nf_conntrack_ecache.c
-+++ b/net/netfilter/nf_conntrack_ecache.c
-@@ -297,6 +297,28 @@ void nf_conntrack_ecache_work(struct net *net, enum nf_ct_ecache_state state)
- 	}
++	return 0;
  }
  
-+bool nf_ct_ecache_ext_add(struct nf_conn *ct, u16 ctmask, u16 expmask, gfp_t gfp)
-+{
-+	struct net *net = nf_ct_net(ct);
-+	struct nf_conntrack_ecache *e;
-+
-+	if (!ctmask && !expmask && net->ct.sysctl_events) {
-+		ctmask = ~0;
-+		expmask = ~0;
-+	}
-+	if (!ctmask && !expmask)
-+		return false;
-+
-+	e = nf_ct_ext_add(ct, NF_CT_EXT_ECACHE, gfp);
-+	if (e) {
-+		e->ctmask  = ctmask;
-+		e->expmask = expmask;
-+	}
-+
-+	return e != NULL;
-+}
-+EXPORT_SYMBOL_GPL(nf_ct_ecache_ext_add);
-+
- #define NF_CT_EVENTS_DEFAULT 1
- static int nf_ct_events __read_mostly = NF_CT_EVENTS_DEFAULT;
+ static inline int
+ nf_conntrack_event(enum ip_conntrack_events event, struct nf_conn *ct)
+ {
+ #ifdef CONFIG_NF_CONNTRACK_EVENTS
+-	const struct net *net = nf_ct_net(ct);
+-
+-	if (!rcu_access_pointer(net->ct.nf_conntrack_event_cb))
+-		return 0;
+-
+-	return nf_conntrack_eventmask_report(1 << event, ct, 0, 0);
+-#else
+-	return 0;
++	if (nf_ct_ecache_exist(ct))
++		return nf_conntrack_eventmask_report(1 << event, ct, 0, 0);
+ #endif
++	return 0;
+ }
  
+ #ifdef CONFIG_NF_CONNTRACK_EVENTS
 -- 
 2.30.2
 
