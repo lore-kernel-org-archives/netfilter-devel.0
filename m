@@ -2,81 +2,89 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89049C433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 12 May 2022 22:24:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F8CBC433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 May 2022 07:50:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1356948AbiELWYH (ORCPT
+        id S1377893AbiEMHuC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 12 May 2022 18:24:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39080 "EHLO
+        Fri, 13 May 2022 03:50:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37202 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236178AbiELWYG (ORCPT
+        with ESMTP id S1377899AbiEMHt5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 12 May 2022 18:24:06 -0400
-Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 2E710281348
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 May 2022 15:24:06 -0700 (PDT)
-Received: from mg.ssi.bg (localhost [127.0.0.1])
-        by mg.ssi.bg (Proxmox) with ESMTP id 8197E13C5D
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 May 2022 01:24:05 +0300 (EEST)
-Received: from ink.ssi.bg (unknown [193.238.174.40])
-        by mg.ssi.bg (Proxmox) with ESMTP id 65D0013C58
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 May 2022 01:24:04 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [178.16.129.10])
-        by ink.ssi.bg (Postfix) with ESMTPS id 8CABF3C07C8;
-        Fri, 13 May 2022 01:23:58 +0300 (EEST)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.16.1/8.16.1) with ESMTP id 24CMNqMj161753;
-        Fri, 13 May 2022 01:23:54 +0300
-Date:   Fri, 13 May 2022 01:23:52 +0300 (EEST)
-From:   Julian Anastasov <ja@ssi.bg>
-To:     Menglong Dong <menglong8.dong@gmail.com>
-cc:     Simon Horman <horms@verge.net.au>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        Menglong Dong <imagedong@tencent.com>
-Subject: Re: [PATCH net-next] net: ipvs: random start for RR scheduler
-In-Reply-To: <b8bf73ea-2ce9-2726-fde1-bd47d3b7a5d@ssi.bg>
-Message-ID: <7e7b6a1-8d52-7274-e4b4-9b8ce3ddc4f9@ssi.bg>
-References: <20220509122213.19508-1-imagedong@tencent.com> <cb8eaad0-83c5-a150-d830-e078682ba18b@ssi.bg> <CADxym3YH_76+5g29QF4Xp4gXJz5bwdQXD_gXv3esAVTgNGkXyg@mail.gmail.com> <b8bf73ea-2ce9-2726-fde1-bd47d3b7a5d@ssi.bg>
+        Fri, 13 May 2022 03:49:57 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 05A1B154F81;
+        Fri, 13 May 2022 00:49:55 -0700 (PDT)
+Date:   Fri, 13 May 2022 09:49:51 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Felix Fietkau <nbd@nbd.name>
+Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        Jo-Philipp Wich <jo@mein.io>
+Subject: Re: [RFC] netfilter: nf_tables: ignore errors on flowtable device hw
+ offload setup
+Message-ID: <Yn4NnwAkoVryQtCK@salvia>
+References: <20220510202739.67068-1-nbd@nbd.name>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20220510202739.67068-1-nbd@nbd.name>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi,
 
-	Hello,
+On Tue, May 10, 2022 at 10:27:39PM +0200, Felix Fietkau wrote:
+> In many cases, it's not easily possible for user space to know, which
+> devices properly support hardware offload.
 
-On Tue, 10 May 2022, Julian Anastasov wrote:
+Then, it is a matter of extending the netlink interface to expose this
+feature? Probably add a FLOW_BLOCK_PROBE or similar which allow to
+consult if this feature is available?
 
-> 	What I see is that the value 128 is good but using
-> 32 (MAX_STEP in the test) gives good enough results (3% diff).
+> Even if a device supports hardware flow offload, it is not
+> guaranteed that it will actually be able to handle the flows for
+> which hardware offload is requested.
 
-	Looks like I forgot to add this example how to
-reduce code under lock because add/del dest can run in
-parallel with scheduling, something that is a drawback
-in this solution:
+When might this happen?
 
-+static void ip_vs_rr_random_start(struct ip_vs_service *svc)
-+{
-+	struct list_head *old = READ_ONCE(svc->sched_data), *cur = old;
-+	u32 start;
-+
-+	if (!(svc->flags & IP_VS_SVC_F_SCHED_RR_RANDOM) ||
-+		svc->num_dests <= 1)   
-+		return;
-+
-+	start = prandom_u32_max(min(svc->num_dests, 32U));
-+	while (start--)
-+		cur = cur->next;
-+	spin_lock_bh(&svc->sched_lock);
-+	cmpxchg(&svc->sched_data, old, cur);
-+	spin_unlock_bh(&svc->sched_lock);
-+}
+> Ignoring errors on the FLOW_BLOCK_BIND makes it a lot easier to set up
+> configurations that use hardware offload where possible and gracefully
+> fall back to software offload for everything else.
 
-Regards
+I understand this might be useful from userspace perspective, because
+forcing the user to re-try is silly.
 
---
-Julian Anastasov <ja@ssi.bg>
+However, on the other hand, the user should have some way to know from
+the control plane that the feature (hardware offload) that they
+request is not available for their setup.
 
+> Cc: Jo-Philipp Wich <jo@mein.io>
+> Signed-off-by: Felix Fietkau <nbd@nbd.name>
+> ---
+>  net/netfilter/nf_tables_api.c | 8 +++-----
+>  1 file changed, 3 insertions(+), 5 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index 16c3a39689f4..9d4528f0aa12 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -7323,11 +7323,9 @@ static int nft_register_flowtable_net_hooks(struct net *net,
+>  			}
+>  		}
+>  
+> -		err = flowtable->data.type->setup(&flowtable->data,
+> -						  hook->ops.dev,
+> -						  FLOW_BLOCK_BIND);
+> -		if (err < 0)
+> -			goto err_unregister_net_hooks;
+> +		flowtable->data.type->setup(&flowtable->data,
+> +					    hook->ops.dev,
+> +					    FLOW_BLOCK_BIND);
+>  
+>  		err = nf_register_net_hook(net, &hook->ops);
+>  		if (err < 0) {
+> -- 
+> 2.36.1
+> 
