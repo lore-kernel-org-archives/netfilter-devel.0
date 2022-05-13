@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D30B7C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 May 2022 21:44:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FCD4C433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 May 2022 21:44:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1384754AbiEMVoE (ORCPT
+        id S1384772AbiEMVoH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 May 2022 17:44:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59330 "EHLO
+        Fri, 13 May 2022 17:44:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59480 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1384738AbiEMVnv (ORCPT
+        with ESMTP id S1384749AbiEMVny (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 May 2022 17:43:51 -0400
+        Fri, 13 May 2022 17:43:54 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 31DB6289A5;
-        Fri, 13 May 2022 14:43:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 33C212F006;
+        Fri, 13 May 2022 14:43:53 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com
-Subject: [PATCH net-next 12/17] netfilter: nfnetlink: allow to detect if ctnetlink listeners exist
-Date:   Fri, 13 May 2022 23:43:24 +0200
-Message-Id: <20220513214329.1136459-13-pablo@netfilter.org>
+Subject: [PATCH net-next 17/17] netfilter: conntrack: skip verification of zero UDP checksum
+Date:   Fri, 13 May 2022 23:43:29 +0200
+Message-Id: <20220513214329.1136459-18-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220513214329.1136459-1-pablo@netfilter.org>
 References: <20220513214329.1136459-1-pablo@netfilter.org>
@@ -32,123 +32,138 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Kevin Mitchell <kevmitch@arista.com>
 
-At this time, every new conntrack gets the 'event cache extension'
-enabled for it.
+The checksum is optional for UDP packets. However nf_reject would
+previously require a valid checksum to elicit a response such as
+ICMP_DEST_UNREACH.
 
-This is because the 'net.netfilter.nf_conntrack_events' sysctl defaults
-to 1.
+Add some logic to nf_reject_verify_csum to determine if a UDP packet has
+a zero checksum and should therefore not be verified.
 
-Changing the default to 0 means that commands that rely on the event
-notification extension, e.g. 'conntrack -E' or conntrackd, stop working.
-
-We COULD detect if there is a listener by means of
-'nfnetlink_has_listeners()' and only add the extension if this is true.
-
-The downside is a dependency from conntrack module to nfnetlink module.
-
-This adds a different way: inc/dec a counter whenever a ctnetlink group
-is being (un)subscribed and toggle a flag in struct net.
-
-Next patches will take advantage of this and will only add the event
-extension if the flag is set.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Kevin Mitchell <kevmitch@arista.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netns/conntrack.h |  1 +
- net/netfilter/nfnetlink.c     | 40 ++++++++++++++++++++++++++++++++---
- 2 files changed, 38 insertions(+), 3 deletions(-)
+ include/net/netfilter/nf_reject.h   | 21 +++++++++++++++++----
+ net/ipv4/netfilter/nf_reject_ipv4.c | 10 +++++++---
+ net/ipv6/netfilter/nf_reject_ipv6.c |  4 ++--
+ 3 files changed, 26 insertions(+), 9 deletions(-)
 
-diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
-index a71cfd4e2f21..0677cd3de034 100644
---- a/include/net/netns/conntrack.h
-+++ b/include/net/netns/conntrack.h
-@@ -95,6 +95,7 @@ struct nf_ip_net {
+diff --git a/include/net/netfilter/nf_reject.h b/include/net/netfilter/nf_reject.h
+index 9051c3a0c8e7..7c669792fb9c 100644
+--- a/include/net/netfilter/nf_reject.h
++++ b/include/net/netfilter/nf_reject.h
+@@ -5,12 +5,28 @@
+ #include <linux/types.h>
+ #include <uapi/linux/in.h>
  
- struct netns_ct {
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
-+	bool ctnetlink_has_listener;
- 	bool ecache_dwork_pending;
- #endif
- 	u8			sysctl_log_invalid; /* Log invalid packets */
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index 7e2c8dd01408..ad3bbe34ca88 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -45,6 +45,7 @@ MODULE_DESCRIPTION("Netfilter messages via netlink socket");
- static unsigned int nfnetlink_pernet_id __read_mostly;
- 
- struct nfnl_net {
-+	unsigned int ctnetlink_listeners;
- 	struct sock *nfnl;
- };
- 
-@@ -654,7 +655,6 @@ static void nfnetlink_rcv(struct sk_buff *skb)
- 		netlink_rcv_skb(skb, nfnetlink_rcv_msg);
- }
- 
--#ifdef CONFIG_MODULES
- static int nfnetlink_bind(struct net *net, int group)
+-static inline bool nf_reject_verify_csum(__u8 proto)
++static inline bool nf_reject_verify_csum(struct sk_buff *skb, int dataoff,
++					  __u8 proto)
  {
- 	const struct nfnetlink_subsystem *ss;
-@@ -670,9 +670,44 @@ static int nfnetlink_bind(struct net *net, int group)
- 	rcu_read_unlock();
- 	if (!ss)
- 		request_module_nowait("nfnetlink-subsys-%d", type);
+ 	/* Skip protocols that don't use 16-bit one's complement checksum
+ 	 * of the entire payload.
+ 	 */
+ 	switch (proto) {
++		/* Protocols with optional checksums. */
++		case IPPROTO_UDP: {
++			const struct udphdr *udp_hdr;
++			struct udphdr _udp_hdr;
 +
-+#ifdef CONFIG_NF_CONNTRACK_EVENTS
-+	if (type == NFNL_SUBSYS_CTNETLINK) {
-+		struct nfnl_net *nfnlnet = nfnl_pernet(net);
++			udp_hdr = skb_header_pointer(skb, dataoff,
++						     sizeof(_udp_hdr),
++						     &_udp_hdr);
++			if (!udp_hdr || udp_hdr->check)
++				return true;
 +
-+		nfnl_lock(NFNL_SUBSYS_CTNETLINK);
-+
-+		if (WARN_ON_ONCE(nfnlnet->ctnetlink_listeners == UINT_MAX)) {
-+			nfnl_unlock(NFNL_SUBSYS_CTNETLINK);
-+			return -EOVERFLOW;
++			return false;
 +		}
++		case IPPROTO_GRE:
 +
-+		nfnlnet->ctnetlink_listeners++;
-+		if (nfnlnet->ctnetlink_listeners == 1)
-+			WRITE_ONCE(net->ct.ctnetlink_has_listener, true);
-+		nfnl_unlock(NFNL_SUBSYS_CTNETLINK);
-+	}
-+#endif
- 	return 0;
- }
-+
-+static void nfnetlink_unbind(struct net *net, int group)
-+{
-+#ifdef CONFIG_NF_CONNTRACK_EVENTS
-+	int type = nfnl_group2type[group];
-+
-+	if (type == NFNL_SUBSYS_CTNETLINK) {
-+		struct nfnl_net *nfnlnet = nfnl_pernet(net);
-+
-+		nfnl_lock(NFNL_SUBSYS_CTNETLINK);
-+		WARN_ON_ONCE(nfnlnet->ctnetlink_listeners == 0);
-+		nfnlnet->ctnetlink_listeners--;
-+		if (nfnlnet->ctnetlink_listeners == 0)
-+			WRITE_ONCE(net->ct.ctnetlink_has_listener, false);
-+		nfnl_unlock(NFNL_SUBSYS_CTNETLINK);
-+	}
- #endif
-+}
+ 		/* Protocols with other integrity checks. */
+ 		case IPPROTO_AH:
+ 		case IPPROTO_ESP:
+@@ -19,9 +35,6 @@ static inline bool nf_reject_verify_csum(__u8 proto)
+ 		/* Protocols with partial checksums. */
+ 		case IPPROTO_UDPLITE:
+ 		case IPPROTO_DCCP:
+-
+-		/* Protocols with optional checksums. */
+-		case IPPROTO_GRE:
+ 			return false;
+ 	}
+ 	return true;
+diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
+index 4eed5afca392..918c61fda0f3 100644
+--- a/net/ipv4/netfilter/nf_reject_ipv4.c
++++ b/net/ipv4/netfilter/nf_reject_ipv4.c
+@@ -80,6 +80,7 @@ struct sk_buff *nf_reject_skb_v4_unreach(struct net *net,
+ 	struct iphdr *niph;
+ 	struct icmphdr *icmph;
+ 	unsigned int len;
++	int dataoff;
+ 	__wsum csum;
+ 	u8 proto;
  
- static int __net_init nfnetlink_net_init(struct net *net)
+@@ -99,10 +100,11 @@ struct sk_buff *nf_reject_skb_v4_unreach(struct net *net,
+ 	if (pskb_trim_rcsum(oldskb, ntohs(ip_hdr(oldskb)->tot_len)))
+ 		return NULL;
+ 
++	dataoff = ip_hdrlen(oldskb);
+ 	proto = ip_hdr(oldskb)->protocol;
+ 
+ 	if (!skb_csum_unnecessary(oldskb) &&
+-	    nf_reject_verify_csum(proto) &&
++	    nf_reject_verify_csum(oldskb, dataoff, proto) &&
+ 	    nf_ip_checksum(oldskb, hook, ip_hdrlen(oldskb), proto))
+ 		return NULL;
+ 
+@@ -311,6 +313,7 @@ EXPORT_SYMBOL_GPL(nf_send_reset);
+ void nf_send_unreach(struct sk_buff *skb_in, int code, int hook)
  {
-@@ -680,9 +715,8 @@ static int __net_init nfnetlink_net_init(struct net *net)
- 	struct netlink_kernel_cfg cfg = {
- 		.groups	= NFNLGRP_MAX,
- 		.input	= nfnetlink_rcv,
--#ifdef CONFIG_MODULES
- 		.bind	= nfnetlink_bind,
--#endif
-+		.unbind	= nfnetlink_unbind,
- 	};
+ 	struct iphdr *iph = ip_hdr(skb_in);
++	int dataoff = ip_hdrlen(skb_in);
+ 	u8 proto = iph->protocol;
  
- 	nfnlnet->nfnl = netlink_kernel_create(net, NETLINK_NETFILTER, &cfg);
+ 	if (iph->frag_off & htons(IP_OFFSET))
+@@ -320,12 +323,13 @@ void nf_send_unreach(struct sk_buff *skb_in, int code, int hook)
+ 	    nf_reject_fill_skb_dst(skb_in) < 0)
+ 		return;
+ 
+-	if (skb_csum_unnecessary(skb_in) || !nf_reject_verify_csum(proto)) {
++	if (skb_csum_unnecessary(skb_in) ||
++	    !nf_reject_verify_csum(skb_in, dataoff, proto)) {
+ 		icmp_send(skb_in, ICMP_DEST_UNREACH, code, 0);
+ 		return;
+ 	}
+ 
+-	if (nf_ip_checksum(skb_in, hook, ip_hdrlen(skb_in), proto) == 0)
++	if (nf_ip_checksum(skb_in, hook, dataoff, proto) == 0)
+ 		icmp_send(skb_in, ICMP_DEST_UNREACH, code, 0);
+ }
+ EXPORT_SYMBOL_GPL(nf_send_unreach);
+diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
+index dffeaaaadcde..f61d4f18e1cf 100644
+--- a/net/ipv6/netfilter/nf_reject_ipv6.c
++++ b/net/ipv6/netfilter/nf_reject_ipv6.c
+@@ -31,7 +31,7 @@ static bool nf_reject_v6_csum_ok(struct sk_buff *skb, int hook)
+ 	if (thoff < 0 || thoff >= skb->len || (fo & htons(~0x7)) != 0)
+ 		return false;
+ 
+-	if (!nf_reject_verify_csum(proto))
++	if (!nf_reject_verify_csum(skb, thoff, proto))
+ 		return true;
+ 
+ 	return nf_ip6_checksum(skb, hook, thoff, proto) == 0;
+@@ -388,7 +388,7 @@ static bool reject6_csum_ok(struct sk_buff *skb, int hook)
+ 	if (thoff < 0 || thoff >= skb->len || (fo & htons(~0x7)) != 0)
+ 		return false;
+ 
+-	if (!nf_reject_verify_csum(proto))
++	if (!nf_reject_verify_csum(skb, thoff, proto))
+ 		return true;
+ 
+ 	return nf_ip6_checksum(skb, hook, thoff, proto) == 0;
 -- 
 2.30.2
 
