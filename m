@@ -2,69 +2,149 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8962C433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 May 2022 17:01:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46381C433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 May 2022 21:43:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351939AbiEMRB4 (ORCPT
+        id S1384722AbiEMVns (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 May 2022 13:01:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44174 "EHLO
+        Fri, 13 May 2022 17:43:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59140 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1382643AbiEMRAp (ORCPT
+        with ESMTP id S1378197AbiEMVnr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 May 2022 13:00:45 -0400
+        Fri, 13 May 2022 17:43:47 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id A66FA546A0
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 May 2022 10:00:43 -0700 (PDT)
-Date:   Fri, 13 May 2022 19:00:40 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id F25169FF6;
+        Fri, 13 May 2022 14:43:41 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next] netfilter: conntrack: do not disable bh during
- destruction
-Message-ID: <Yn6OuIAJpz23ns75@salvia>
-References: <20220510205324.10160-1-fw@strlen.de>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        pabeni@redhat.com
+Subject: [PATCH net-next 00/17] Netfilter updates for net-next
+Date:   Fri, 13 May 2022 23:43:12 +0200
+Message-Id: <20220513214329.1136459-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20220510205324.10160-1-fw@strlen.de>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, May 10, 2022 at 10:53:24PM +0200, Florian Westphal wrote:
-> After commit
-> 12b0b21dc2241 ("netfilter: conntrack: remove unconfirmed list")
-> the extra local_bh disable/enable pair is no longer needed.
+Hi,
 
-Squashed into original commit.
+This is v2 including deadlock fix in conntrack ecache rework
+reported by Jakub Kicinski.
 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  net/netfilter/nf_conntrack_core.c | 3 ---
->  1 file changed, 3 deletions(-)
-> 
-> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-> index 0db9c5c94b5b..082a2fd8d85b 100644
-> --- a/net/netfilter/nf_conntrack_core.c
-> +++ b/net/netfilter/nf_conntrack_core.c
-> @@ -596,7 +596,6 @@ void nf_ct_destroy(struct nf_conntrack *nfct)
->  	if (unlikely(nf_ct_protonum(ct) == IPPROTO_GRE))
->  		destroy_gre_conntrack(ct);
->  
-> -	local_bh_disable();
->  	/* Expectations will have been removed in clean_from_lists,
->  	 * except TFTP can create an expectation on the first packet,
->  	 * before connection is in the list, so we need to clean here,
-> @@ -604,8 +603,6 @@ void nf_ct_destroy(struct nf_conntrack *nfct)
->  	 */
->  	nf_ct_remove_expectations(ct);
->  
-> -	local_bh_enable();
-> -
->  	if (ct->master)
->  		nf_ct_put(ct->master);
->  
-> -- 
-> 2.35.1
-> 
+The following patchset contains Netfilter updates for net-next,
+mostly updates to conntrack from Florian Westphal.
+
+1) Add a dedicated list for conntrack event redelivery.
+
+2) Include event redelivery list in conntrack dumps of dying type.
+
+3) Remove per-cpu dying list for event redelivery, not used anymore.
+
+4) Add netns .pre_exit to cttimeout to zap timeout objects before
+   synchronize_rcu() call.
+
+5) Remove nf_ct_unconfirmed_destroy.
+
+6) Add generation id for conntrack extensions for conntrack
+   timeout and helpers.
+
+7) Detach timeout policy from conntrack on cttimeout module removal.
+
+8) Remove __nf_ct_unconfirmed_destroy.
+
+9) Remove unconfirmed list.
+
+10) Remove unconditional local_bh_disable in init_conntrack().
+
+11) Consolidate conntrack iterator nf_ct_iterate_cleanup().
+
+12) Detect if ctnetlink listeners exist to short-circuit event
+    path early.
+
+13) Un-inline nf_ct_ecache_ext_add().
+
+14) Add nf_conntrack_events autodetect ctnetlink listener mode
+    and make it default.
+
+15) Add nf_ct_ecache_exist() to check for event cache extension.
+
+16) Extend flowtable reverse route lookup to include source, iif,
+    tos and mark, from Sven Auhagen.
+
+17) Do not verify zero checksum UDP packets in nf_reject,
+    from Kevin Mitchell.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit a997157e42e3119b13c644549a3d8381a1d825d6:
+
+  docs: net: dsa: describe issues with checksum offload (2022-04-18 13:29:02 +0100)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git HEAD
+
+for you to fetch changes up to 4f9bd53084d18c2f9f1ec68fa56587b99a2cef00:
+
+  netfilter: conntrack: skip verification of zero UDP checksum (2022-05-13 18:56:28 +0200)
+
+----------------------------------------------------------------
+Florian Westphal (14):
+      netfilter: ecache: use dedicated list for event redelivery
+      netfilter: conntrack: include ecache dying list in dumps
+      netfilter: conntrack: remove the percpu dying list
+      netfilter: cttimeout: decouple unlink and free on netns destruction
+      netfilter: remove nf_ct_unconfirmed_destroy helper
+      netfilter: extensions: introduce extension genid count
+      netfilter: cttimeout: decouple unlink and free on netns destruction
+      netfilter: conntrack: remove __nf_ct_unconfirmed_destroy
+      netfilter: conntrack: remove unconfirmed list
+      netfilter: conntrack: avoid unconditional local_bh_disable
+      netfilter: nfnetlink: allow to detect if ctnetlink listeners exist
+      netfilter: conntrack: un-inline nf_ct_ecache_ext_add
+      netfilter: conntrack: add nf_conntrack_events autodetect mode
+      netfilter: prefer extension check to pointer check
+
+Kevin Mitchell (1):
+      netfilter: conntrack: skip verification of zero UDP checksum
+
+Pablo Neira Ayuso (1):
+      netfilter: conntrack: add nf_ct_iter_data object for nf_ct_iterate_cleanup*()
+
+Sven Auhagen (1):
+      netfilter: flowtable: nft_flow_route use more data for reverse route
+
+ Documentation/networking/nf_conntrack-sysctl.rst |   5 +-
+ include/net/netfilter/nf_conntrack.h             |  17 +-
+ include/net/netfilter/nf_conntrack_core.h        |   2 +-
+ include/net/netfilter/nf_conntrack_ecache.h      |  53 ++--
+ include/net/netfilter/nf_conntrack_extend.h      |  31 +--
+ include/net/netfilter/nf_conntrack_labels.h      |  10 +-
+ include/net/netfilter/nf_conntrack_timeout.h     |   8 -
+ include/net/netfilter/nf_reject.h                |  21 +-
+ include/net/netns/conntrack.h                    |   8 +-
+ net/ipv4/netfilter/nf_reject_ipv4.c              |  10 +-
+ net/ipv6/netfilter/nf_reject_ipv6.c              |   4 +-
+ net/netfilter/nf_conntrack_core.c                | 304 ++++++++++-------------
+ net/netfilter/nf_conntrack_ecache.c              | 165 +++++++-----
+ net/netfilter/nf_conntrack_extend.c              |  32 ++-
+ net/netfilter/nf_conntrack_helper.c              |   5 -
+ net/netfilter/nf_conntrack_netlink.c             |  86 ++++---
+ net/netfilter/nf_conntrack_proto.c               |  10 +-
+ net/netfilter/nf_conntrack_standalone.c          |   2 +-
+ net/netfilter/nf_conntrack_timeout.c             |   7 +-
+ net/netfilter/nf_nat_masquerade.c                |   5 +-
+ net/netfilter/nfnetlink.c                        |  40 ++-
+ net/netfilter/nfnetlink_cttimeout.c              |  47 +++-
+ net/netfilter/nft_flow_offload.c                 |   8 +
+ 23 files changed, 494 insertions(+), 386 deletions(-)
