@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DAEFC433FE
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 May 2022 21:43:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B387C433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 May 2022 21:43:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1384707AbiEMVnu (ORCPT
+        id S1384736AbiEMVnv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 May 2022 17:43:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59176 "EHLO
+        Fri, 13 May 2022 17:43:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59202 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1384718AbiEMVnr (ORCPT
+        with ESMTP id S1384720AbiEMVns (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 May 2022 17:43:47 -0400
+        Fri, 13 May 2022 17:43:48 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9CBA22E08A;
-        Fri, 13 May 2022 14:43:44 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7A5819FF6;
+        Fri, 13 May 2022 14:43:47 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com
-Subject: [PATCH net-next 03/17] netfilter: conntrack: remove the percpu dying list
-Date:   Fri, 13 May 2022 23:43:15 +0200
-Message-Id: <20220513214329.1136459-4-pablo@netfilter.org>
+Subject: [PATCH net-next 05/17] netfilter: remove nf_ct_unconfirmed_destroy helper
+Date:   Fri, 13 May 2022 23:43:17 +0200
+Message-Id: <20220513214329.1136459-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220513214329.1136459-1-pablo@netfilter.org>
 References: <20220513214329.1136459-1-pablo@netfilter.org>
@@ -34,257 +34,79 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-Its no longer needed. Entries that need event redelivery are placed
-on the new pernet dying list.
+This helper tags connections not yet in the conntrack table as
+dying.  These nf_conn entries will be dropped instead when the
+core attempts to insert them from the input or postrouting
+'confirm' hook.
 
-The advantage is that there is no need to take additional spinlock on
-conntrack removal unless event redelivery failed or the conntrack entry
-was never added to the table in the first place (confirmed bit not set).
+After the previous change, the entries get unlinked from the
+list earlier, so that by the time the actual exit hook runs,
+new connections no longer have a timeout policy assigned.
 
-The IPS_CONFIRMED bit now needs to be set as soon as the entry has been
-unlinked from the unconfirmed list, else the destroy function may
-attempt to unlink it a second time.
+Its enough to walk the hashtable instead.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netns/conntrack.h        |  1 -
- net/netfilter/nf_conntrack_core.c    | 35 +++++-----------------------
- net/netfilter/nf_conntrack_ecache.c  |  1 -
- net/netfilter/nf_conntrack_netlink.c | 23 ++++++------------
- 4 files changed, 13 insertions(+), 47 deletions(-)
+ include/net/netfilter/nf_conntrack.h |  3 ---
+ net/netfilter/nf_conntrack_core.c    | 14 --------------
+ net/netfilter/nfnetlink_cttimeout.c  |  4 +++-
+ 3 files changed, 3 insertions(+), 18 deletions(-)
 
-diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
-index 0294f3d473af..e985a3010b89 100644
---- a/include/net/netns/conntrack.h
-+++ b/include/net/netns/conntrack.h
-@@ -96,7 +96,6 @@ struct nf_ip_net {
- struct ct_pcpu {
- 	spinlock_t		lock;
- 	struct hlist_nulls_head unconfirmed;
--	struct hlist_nulls_head dying;
- };
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index 28672a944499..f60212244b13 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -237,9 +237,6 @@ static inline bool nf_ct_kill(struct nf_conn *ct)
+ 	return nf_ct_delete(ct, 0, 0);
+ }
  
- struct netns_ct {
+-/* Set all unconfirmed conntrack as dying */
+-void nf_ct_unconfirmed_destroy(struct net *);
+-
+ /* Iterate over all conntracks: if iter returns true, it's deleted. */
+ void nf_ct_iterate_cleanup_net(struct net *net,
+ 			       int (*iter)(struct nf_conn *i, void *data),
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index ca1d1d105163..9010b6e5a072 100644
+index 9010b6e5a072..b3cc318ceb45 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -525,21 +525,6 @@ clean_from_lists(struct nf_conn *ct)
- 	nf_ct_remove_expectations(ct);
- }
- 
--/* must be called with local_bh_disable */
--static void nf_ct_add_to_dying_list(struct nf_conn *ct)
--{
--	struct ct_pcpu *pcpu;
--
--	/* add this conntrack to the (per cpu) dying list */
--	ct->cpu = smp_processor_id();
--	pcpu = per_cpu_ptr(nf_ct_net(ct)->ct.pcpu_lists, ct->cpu);
--
--	spin_lock(&pcpu->lock);
--	hlist_nulls_add_head(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode,
--			     &pcpu->dying);
--	spin_unlock(&pcpu->lock);
--}
--
- /* must be called with local_bh_disable */
- static void nf_ct_add_to_unconfirmed_list(struct nf_conn *ct)
- {
-@@ -556,11 +541,11 @@ static void nf_ct_add_to_unconfirmed_list(struct nf_conn *ct)
- }
- 
- /* must be called with local_bh_disable */
--static void nf_ct_del_from_dying_or_unconfirmed_list(struct nf_conn *ct)
-+static void nf_ct_del_from_unconfirmed_list(struct nf_conn *ct)
- {
- 	struct ct_pcpu *pcpu;
- 
--	/* We overload first tuple to link into unconfirmed or dying list.*/
-+	/* We overload first tuple to link into unconfirmed list.*/
- 	pcpu = per_cpu_ptr(nf_ct_net(ct)->ct.pcpu_lists, ct->cpu);
- 
- 	spin_lock(&pcpu->lock);
-@@ -648,7 +633,8 @@ void nf_ct_destroy(struct nf_conntrack *nfct)
- 	 */
- 	nf_ct_remove_expectations(ct);
- 
--	nf_ct_del_from_dying_or_unconfirmed_list(ct);
-+	if (unlikely(!nf_ct_is_confirmed(ct)))
-+		nf_ct_del_from_unconfirmed_list(ct);
- 
- 	local_bh_enable();
- 
-@@ -686,7 +672,6 @@ static void nf_ct_delete_from_lists(struct nf_conn *ct)
- 	local_bh_disable();
- 
- 	__nf_ct_delete_from_lists(ct);
--	nf_ct_add_to_dying_list(ct);
- 
- 	local_bh_enable();
- }
-@@ -700,8 +685,6 @@ static void nf_ct_add_to_ecache_list(struct nf_conn *ct)
- 	hlist_nulls_add_head_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode,
- 				 &cnet->ecache.dying_list);
- 	spin_unlock(&cnet->ecache.dying_lock);
--#else
--	nf_ct_add_to_dying_list(ct);
- #endif
- }
- 
-@@ -995,7 +978,6 @@ static void __nf_conntrack_insert_prepare(struct nf_conn *ct)
- 	struct nf_conn_tstamp *tstamp;
- 
- 	refcount_inc(&ct->ct_general.use);
--	ct->status |= IPS_CONFIRMED;
- 
- 	/* set conntrack timestamp, if enabled. */
- 	tstamp = nf_conn_tstamp_find(ct);
-@@ -1024,7 +1006,6 @@ static int __nf_ct_resolve_clash(struct sk_buff *skb,
- 		nf_conntrack_get(&ct->ct_general);
- 
- 		nf_ct_acct_merge(ct, ctinfo, loser_ct);
--		nf_ct_add_to_dying_list(loser_ct);
- 		nf_ct_put(loser_ct);
- 		nf_ct_set(skb, ct, ctinfo);
- 
-@@ -1157,7 +1138,6 @@ nf_ct_resolve_clash(struct sk_buff *skb, struct nf_conntrack_tuple_hash *h,
- 		return ret;
- 
- drop:
--	nf_ct_add_to_dying_list(loser_ct);
- 	NF_CT_STAT_INC(net, drop);
- 	NF_CT_STAT_INC(net, insert_failed);
- 	return NF_DROP;
-@@ -1224,10 +1204,10 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 	 * user context, else we insert an already 'dead' hash, blocking
- 	 * further use of that particular connection -JM.
- 	 */
--	nf_ct_del_from_dying_or_unconfirmed_list(ct);
-+	nf_ct_del_from_unconfirmed_list(ct);
-+	ct->status |= IPS_CONFIRMED;
- 
- 	if (unlikely(nf_ct_is_dying(ct))) {
--		nf_ct_add_to_dying_list(ct);
- 		NF_CT_STAT_INC(net, insert_failed);
- 		goto dying;
+@@ -2431,20 +2431,6 @@ __nf_ct_unconfirmed_destroy(struct net *net)
  	}
-@@ -1251,7 +1231,6 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 			goto out;
- 		if (chainlen++ > max_chainlen) {
- chaintoolong:
--			nf_ct_add_to_dying_list(ct);
- 			NF_CT_STAT_INC(net, chaintoolong);
- 			NF_CT_STAT_INC(net, insert_failed);
- 			ret = NF_DROP;
-@@ -2800,7 +2779,6 @@ void nf_conntrack_init_end(void)
-  * We need to use special "null" values, not used in hash table
-  */
- #define UNCONFIRMED_NULLS_VAL	((1<<30)+0)
--#define DYING_NULLS_VAL		((1<<30)+1)
- 
- int nf_conntrack_init_net(struct net *net)
- {
-@@ -2821,7 +2799,6 @@ int nf_conntrack_init_net(struct net *net)
- 
- 		spin_lock_init(&pcpu->lock);
- 		INIT_HLIST_NULLS_HEAD(&pcpu->unconfirmed, UNCONFIRMED_NULLS_VAL);
--		INIT_HLIST_NULLS_HEAD(&pcpu->dying, DYING_NULLS_VAL);
- 	}
- 
- 	net->ct.stat = alloc_percpu(struct ip_conntrack_stat);
-diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
-index 334b2b4e5e8b..7472c544642f 100644
---- a/net/netfilter/nf_conntrack_ecache.c
-+++ b/net/netfilter/nf_conntrack_ecache.c
-@@ -94,7 +94,6 @@ static enum retry_state ecache_work_evict_list(struct nf_conntrack_net *cnet)
- 	hlist_nulls_for_each_entry_safe(h, n, &evicted_list, hnnode) {
- 		struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
- 
--		hlist_nulls_add_fake(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode);
- 		hlist_nulls_del_rcu(&ct->tuplehash[IP_CT_DIR_REPLY].hnnode);
- 		nf_ct_put(ct);
- 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index a4ec2aad2187..2e9c8183e4a2 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -62,7 +62,6 @@ struct ctnetlink_list_dump_ctx {
- 	struct nf_conn *last;
- 	unsigned int cpu;
- 	bool done;
--	bool retrans_done;
- };
- 
- static int ctnetlink_dump_tuples_proto(struct sk_buff *skb,
-@@ -1751,13 +1750,12 @@ static int ctnetlink_dump_one_entry(struct sk_buff *skb,
  }
  
- static int
--ctnetlink_dump_list(struct sk_buff *skb, struct netlink_callback *cb, bool dying)
-+ctnetlink_dump_unconfirmed(struct sk_buff *skb, struct netlink_callback *cb)
- {
- 	struct ctnetlink_list_dump_ctx *ctx = (void *)cb->ctx;
- 	struct nf_conn *ct, *last;
- 	struct nf_conntrack_tuple_hash *h;
- 	struct hlist_nulls_node *n;
--	struct hlist_nulls_head *list;
- 	struct net *net = sock_net(skb->sk);
- 	int res, cpu;
- 
-@@ -1774,12 +1772,11 @@ ctnetlink_dump_list(struct sk_buff *skb, struct netlink_callback *cb, bool dying
- 
- 		pcpu = per_cpu_ptr(net->ct.pcpu_lists, cpu);
- 		spin_lock_bh(&pcpu->lock);
--		list = dying ? &pcpu->dying : &pcpu->unconfirmed;
- restart:
--		hlist_nulls_for_each_entry(h, n, list, hnnode) {
-+		hlist_nulls_for_each_entry(h, n, &pcpu->unconfirmed, hnnode) {
- 			ct = nf_ct_tuplehash_to_ctrack(h);
- 
--			res = ctnetlink_dump_one_entry(skb, cb, ct, dying);
-+			res = ctnetlink_dump_one_entry(skb, cb, ct, false);
- 			if (res < 0) {
- 				ctx->cpu = cpu;
- 				spin_unlock_bh(&pcpu->lock);
-@@ -1812,8 +1809,8 @@ ctnetlink_dump_dying(struct sk_buff *skb, struct netlink_callback *cb)
- 	struct hlist_nulls_node *n;
- #endif
- 
--	if (ctx->retrans_done)
--		return ctnetlink_dump_list(skb, cb, true);
-+	if (ctx->done)
-+		return 0;
- 
- 	ctx->last = NULL;
- 
-@@ -1842,10 +1839,10 @@ ctnetlink_dump_dying(struct sk_buff *skb, struct netlink_callback *cb)
- 
- 	spin_unlock_bh(&ecache_net->dying_lock);
- #endif
-+	ctx->done = true;
- 	nf_ct_put(last);
--	ctx->retrans_done = true;
- 
--	return ctnetlink_dump_list(skb, cb, true);
-+	return skb->len;
- }
- 
- static int ctnetlink_get_ct_dying(struct sk_buff *skb,
-@@ -1863,12 +1860,6 @@ static int ctnetlink_get_ct_dying(struct sk_buff *skb,
- 	return -EOPNOTSUPP;
- }
- 
--static int
--ctnetlink_dump_unconfirmed(struct sk_buff *skb, struct netlink_callback *cb)
+-void nf_ct_unconfirmed_destroy(struct net *net)
 -{
--	return ctnetlink_dump_list(skb, cb, false);
--}
+-	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
 -
- static int ctnetlink_get_ct_unconfirmed(struct sk_buff *skb,
- 					const struct nfnl_info *info,
- 					const struct nlattr * const cda[])
+-	might_sleep();
+-
+-	if (atomic_read(&cnet->count) > 0) {
+-		__nf_ct_unconfirmed_destroy(net);
+-		nf_queue_nf_hook_drop(net);
+-		synchronize_net();
+-	}
+-}
+-EXPORT_SYMBOL_GPL(nf_ct_unconfirmed_destroy);
+-
+ void nf_ct_iterate_cleanup_net(struct net *net,
+ 			       int (*iter)(struct nf_conn *i, void *data),
+ 			       void *data, u32 portid, int report)
+diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
+index 83fa15c4193c..f366b8187915 100644
+--- a/net/netfilter/nfnetlink_cttimeout.c
++++ b/net/netfilter/nfnetlink_cttimeout.c
+@@ -608,7 +608,9 @@ static void __net_exit cttimeout_net_exit(struct net *net)
+ 	struct nfct_timeout_pernet *pernet = nfct_timeout_pernet(net);
+ 	struct ctnl_timeout *cur, *tmp;
+ 
+-	nf_ct_unconfirmed_destroy(net);
++	if (list_empty(&pernet->nfct_timeout_freelist))
++		return;
++
+ 	nf_ct_untimeout(net, NULL);
+ 
+ 	list_for_each_entry_safe(cur, tmp, &pernet->nfct_timeout_freelist, head) {
 -- 
 2.30.2
 
