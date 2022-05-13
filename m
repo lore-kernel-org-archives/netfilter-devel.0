@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EB0AC433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 May 2022 21:44:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7719AC4332F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 May 2022 21:44:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1384762AbiEMVn7 (ORCPT
+        id S1384764AbiEMVoA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 May 2022 17:43:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59320 "EHLO
+        Fri, 13 May 2022 17:44:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59344 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1384737AbiEMVnv (ORCPT
+        with ESMTP id S1384739AbiEMVnv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 13 May 2022 17:43:51 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6119C9FF6;
-        Fri, 13 May 2022 14:43:49 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 86D392DD77;
+        Fri, 13 May 2022 14:43:50 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com
-Subject: [PATCH net-next 11/17] netfilter: conntrack: add nf_ct_iter_data object for nf_ct_iterate_cleanup*()
-Date:   Fri, 13 May 2022 23:43:23 +0200
-Message-Id: <20220513214329.1136459-12-pablo@netfilter.org>
+Subject: [PATCH net-next 13/17] netfilter: conntrack: un-inline nf_ct_ecache_ext_add
+Date:   Fri, 13 May 2022 23:43:25 +0200
+Message-Id: <20220513214329.1136459-14-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220513214329.1136459-1-pablo@netfilter.org>
 References: <20220513214329.1136459-1-pablo@netfilter.org>
@@ -32,282 +32,153 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch adds a structure to collect all the context data that is
-passed to the cleanup iterator.
+From: Florian Westphal <fw@strlen.de>
 
- struct nf_ct_iter_data {
-       struct net *net;
-       void *data;
-       u32 portid;
-       int report;
- };
+Only called when new ct is allocated or the extension isn't present.
+This function will be extended, place this in the conntrack module
+instead of inlining.
 
-There is a netns field that allows to clean up conntrack entries
-specifically owned by the specified netns.
+The callers already depend on nf_conntrack module.
+Return value is changed to bool, noone used the returned pointer.
 
+Make sure that the core drops the newly allocated conntrack
+if the extension is requested but can't be added.
+This makes it necessary to ifdef the section, as the stub
+always returns false we'd drop every new conntrack if the
+the ecache extension is disabled in kconfig.
+
+Add from data path (xt_CT, nft_ct) is unchanged.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack.h | 12 ++++--
- net/netfilter/nf_conntrack_core.c    | 56 +++++++++++-----------------
- net/netfilter/nf_conntrack_netlink.c | 10 ++++-
- net/netfilter/nf_conntrack_proto.c   | 10 +++--
- net/netfilter/nf_conntrack_timeout.c |  7 +++-
- net/netfilter/nf_nat_masquerade.c    |  5 ++-
- 6 files changed, 56 insertions(+), 44 deletions(-)
+ include/net/netfilter/nf_conntrack_ecache.h | 30 ++++-----------------
+ net/netfilter/nf_conntrack_core.c           | 14 +++++++---
+ net/netfilter/nf_conntrack_ecache.c         | 22 +++++++++++++++
+ 3 files changed, 38 insertions(+), 28 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 3ce9a5b42fe5..a32be8aa7ed2 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -236,10 +236,16 @@ static inline bool nf_ct_kill(struct nf_conn *ct)
- 	return nf_ct_delete(ct, 0, 0);
+diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
+index b57d73785e4d..2e3d58439e34 100644
+--- a/include/net/netfilter/nf_conntrack_ecache.h
++++ b/include/net/netfilter/nf_conntrack_ecache.h
+@@ -36,31 +36,6 @@ nf_ct_ecache_find(const struct nf_conn *ct)
+ #endif
  }
  
-+struct nf_ct_iter_data {
-+	struct net *net;
-+	void *data;
-+	u32 portid;
-+	int report;
-+};
-+
- /* Iterate over all conntracks: if iter returns true, it's deleted. */
--void nf_ct_iterate_cleanup_net(struct net *net,
--			       int (*iter)(struct nf_conn *i, void *data),
--			       void *data, u32 portid, int report);
-+void nf_ct_iterate_cleanup_net(int (*iter)(struct nf_conn *i, void *data),
-+			       const struct nf_ct_iter_data *iter_data);
- 
- /* also set unconfirmed conntracks as dying. Only use in module exit path. */
- void nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data),
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 22492f7eb819..efbfd67d5c3d 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -2335,7 +2335,7 @@ static bool nf_conntrack_get_tuple_skb(struct nf_conntrack_tuple *dst_tuple,
- /* Bring out ya dead! */
- static struct nf_conn *
- get_next_corpse(int (*iter)(struct nf_conn *i, void *data),
--		void *data, unsigned int *bucket)
-+		const struct nf_ct_iter_data *iter_data, unsigned int *bucket)
- {
- 	struct nf_conntrack_tuple_hash *h;
- 	struct nf_conn *ct;
-@@ -2366,7 +2366,12 @@ get_next_corpse(int (*iter)(struct nf_conn *i, void *data),
- 			 * tuple while iterating.
- 			 */
- 			ct = nf_ct_tuplehash_to_ctrack(h);
--			if (iter(ct, data))
-+
-+			if (iter_data->net &&
-+			    !net_eq(iter_data->net, nf_ct_net(ct)))
-+				continue;
-+
-+			if (iter(ct, iter_data->data))
- 				goto found;
- 		}
- 		spin_unlock(lockp);
-@@ -2383,7 +2388,7 @@ get_next_corpse(int (*iter)(struct nf_conn *i, void *data),
- }
- 
- static void nf_ct_iterate_cleanup(int (*iter)(struct nf_conn *i, void *data),
--				  void *data, u32 portid, int report)
-+				  const struct nf_ct_iter_data *iter_data)
- {
- 	unsigned int bucket = 0;
- 	struct nf_conn *ct;
-@@ -2391,49 +2396,28 @@ static void nf_ct_iterate_cleanup(int (*iter)(struct nf_conn *i, void *data),
- 	might_sleep();
- 
- 	mutex_lock(&nf_conntrack_mutex);
--	while ((ct = get_next_corpse(iter, data, &bucket)) != NULL) {
-+	while ((ct = get_next_corpse(iter, iter_data, &bucket)) != NULL) {
- 		/* Time to push up daises... */
- 
--		nf_ct_delete(ct, portid, report);
-+		nf_ct_delete(ct, iter_data->portid, iter_data->report);
- 		nf_ct_put(ct);
- 		cond_resched();
- 	}
- 	mutex_unlock(&nf_conntrack_mutex);
- }
- 
--struct iter_data {
--	int (*iter)(struct nf_conn *i, void *data);
--	void *data;
--	struct net *net;
--};
--
--static int iter_net_only(struct nf_conn *i, void *data)
+-static inline struct nf_conntrack_ecache *
+-nf_ct_ecache_ext_add(struct nf_conn *ct, u16 ctmask, u16 expmask, gfp_t gfp)
 -{
--	struct iter_data *d = data;
+-#ifdef CONFIG_NF_CONNTRACK_EVENTS
+-	struct net *net = nf_ct_net(ct);
+-	struct nf_conntrack_ecache *e;
 -
--	if (!net_eq(d->net, nf_ct_net(i)))
--		return 0;
+-	if (!ctmask && !expmask && net->ct.sysctl_events) {
+-		ctmask = ~0;
+-		expmask = ~0;
+-	}
+-	if (!ctmask && !expmask)
+-		return NULL;
 -
--	return d->iter(i, d->data);
+-	e = nf_ct_ext_add(ct, NF_CT_EXT_ECACHE, gfp);
+-	if (e) {
+-		e->ctmask  = ctmask;
+-		e->expmask = expmask;
+-	}
+-	return e;
+-#else
+-	return NULL;
+-#endif
 -}
 -
--void nf_ct_iterate_cleanup_net(struct net *net,
--			       int (*iter)(struct nf_conn *i, void *data),
--			       void *data, u32 portid, int report)
-+void nf_ct_iterate_cleanup_net(int (*iter)(struct nf_conn *i, void *data),
-+			       const struct nf_ct_iter_data *iter_data)
- {
-+	struct net *net = iter_data->net;
- 	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
--	struct iter_data d;
+ #ifdef CONFIG_NF_CONNTRACK_EVENTS
  
- 	might_sleep();
+ /* This structure is passed to event handler */
+@@ -89,6 +64,7 @@ void nf_ct_deliver_cached_events(struct nf_conn *ct);
+ int nf_conntrack_eventmask_report(unsigned int eventmask, struct nf_conn *ct,
+ 				  u32 portid, int report);
  
- 	if (atomic_read(&cnet->count) == 0)
- 		return;
++bool nf_ct_ecache_ext_add(struct nf_conn *ct, u16 ctmask, u16 expmask, gfp_t gfp);
+ #else
  
--	d.iter = iter;
--	d.data = data;
--	d.net = net;
--
--	nf_ct_iterate_cleanup(iter_net_only, &d, portid, report);
-+	nf_ct_iterate_cleanup(iter, iter_data);
- }
- EXPORT_SYMBOL_GPL(nf_ct_iterate_cleanup_net);
- 
-@@ -2451,6 +2435,7 @@ EXPORT_SYMBOL_GPL(nf_ct_iterate_cleanup_net);
- void
- nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data), void *data)
- {
-+	struct nf_ct_iter_data iter_data = {};
- 	struct net *net;
- 
- 	down_read(&net_rwsem);
-@@ -2478,7 +2463,8 @@ nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data), void *data)
- 	synchronize_net();
- 
- 	nf_ct_ext_bump_genid();
--	nf_ct_iterate_cleanup(iter, data, 0, 0);
-+	iter_data.data = data;
-+	nf_ct_iterate_cleanup(iter, &iter_data);
- 
- 	/* Another cpu might be in a rcu read section with
- 	 * rcu protected pointer cleared in iter callback
-@@ -2492,7 +2478,7 @@ EXPORT_SYMBOL_GPL(nf_ct_iterate_destroy);
- 
- static int kill_all(struct nf_conn *i, void *data)
- {
--	return net_eq(nf_ct_net(i), data);
-+	return 1;
- }
- 
- void nf_conntrack_cleanup_start(void)
-@@ -2527,8 +2513,9 @@ void nf_conntrack_cleanup_net(struct net *net)
- 
- void nf_conntrack_cleanup_net_list(struct list_head *net_exit_list)
- {
--	int busy;
-+	struct nf_ct_iter_data iter_data = {};
- 	struct net *net;
-+	int busy;
- 
- 	/*
- 	 * This makes sure all current packets have passed through
-@@ -2541,7 +2528,8 @@ void nf_conntrack_cleanup_net_list(struct list_head *net_exit_list)
- 	list_for_each_entry(net, net_exit_list, exit_list) {
- 		struct nf_conntrack_net *cnet = nf_ct_pernet(net);
- 
--		nf_ct_iterate_cleanup(kill_all, net, 0, 0);
-+		iter_data.net = net;
-+		nf_ct_iterate_cleanup_net(kill_all, &iter_data);
- 		if (atomic_read(&cnet->count) != 0)
- 			busy = 1;
- 	}
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index eafe640b3387..e768f59741a6 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1559,6 +1559,11 @@ static int ctnetlink_flush_conntrack(struct net *net,
- 				     u32 portid, int report, u8 family)
- {
- 	struct ctnetlink_filter *filter = NULL;
-+	struct nf_ct_iter_data iter = {
-+		.net		= net,
-+		.portid		= portid,
-+		.report		= report,
-+	};
- 
- 	if (ctnetlink_needs_filter(family, cda)) {
- 		if (cda[CTA_FILTER])
-@@ -1567,10 +1572,11 @@ static int ctnetlink_flush_conntrack(struct net *net,
- 		filter = ctnetlink_alloc_filter(cda, family);
- 		if (IS_ERR(filter))
- 			return PTR_ERR(filter);
-+
-+		iter.data = filter;
- 	}
- 
--	nf_ct_iterate_cleanup_net(net, ctnetlink_flush_iterate, filter,
--				  portid, report);
-+	nf_ct_iterate_cleanup_net(ctnetlink_flush_iterate, &iter);
- 	kfree(filter);
- 
+ static inline void nf_ct_deliver_cached_events(const struct nf_conn *ct)
+@@ -103,6 +79,10 @@ static inline int nf_conntrack_eventmask_report(unsigned int eventmask,
  	return 0;
-diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-index d1f2d3c8d2b1..895b09cbd7cf 100644
---- a/net/netfilter/nf_conntrack_proto.c
-+++ b/net/netfilter/nf_conntrack_proto.c
-@@ -538,9 +538,13 @@ static int nf_ct_netns_do_get(struct net *net, u8 nfproto)
-  out_unlock:
- 	mutex_unlock(&nf_ct_proto_mutex);
- 
--	if (fixup_needed)
--		nf_ct_iterate_cleanup_net(net, nf_ct_tcp_fixup,
--					  (void *)(unsigned long)nfproto, 0, 0);
-+	if (fixup_needed) {
-+		struct nf_ct_iter_data iter_data = {
-+			.net	= net,
-+			.data	= (void *)(unsigned long)nfproto,
-+		};
-+		nf_ct_iterate_cleanup_net(nf_ct_tcp_fixup, &iter_data);
-+	}
- 
- 	return err;
  }
-diff --git a/net/netfilter/nf_conntrack_timeout.c b/net/netfilter/nf_conntrack_timeout.c
-index cec166ecba77..0f828d05ea60 100644
---- a/net/netfilter/nf_conntrack_timeout.c
-+++ b/net/netfilter/nf_conntrack_timeout.c
-@@ -38,7 +38,12 @@ static int untimeout(struct nf_conn *ct, void *timeout)
  
- void nf_ct_untimeout(struct net *net, struct nf_ct_timeout *timeout)
- {
--	nf_ct_iterate_cleanup_net(net, untimeout, timeout, 0, 0);
-+	struct nf_ct_iter_data iter_data = {
-+		.net	= net,
-+		.data	= timeout,
-+	};
++static inline bool nf_ct_ecache_ext_add(struct nf_conn *ct, u16 ctmask, u16 expmask, gfp_t gfp)
++{
++	return false;
++}
+ #endif
+ 
+ static inline void
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index efbfd67d5c3d..7b078ec1f923 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1698,7 +1698,9 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+ 	struct nf_conn *ct;
+ 	struct nf_conn_help *help;
+ 	struct nf_conntrack_tuple repl_tuple;
++#ifdef CONFIG_NF_CONNTRACK_EVENTS
+ 	struct nf_conntrack_ecache *ecache;
++#endif
+ 	struct nf_conntrack_expect *exp = NULL;
+ 	const struct nf_conntrack_zone *zone;
+ 	struct nf_conn_timeout *timeout_ext;
+@@ -1731,10 +1733,16 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+ 	nf_ct_tstamp_ext_add(ct, GFP_ATOMIC);
+ 	nf_ct_labels_ext_add(ct);
+ 
++#ifdef CONFIG_NF_CONNTRACK_EVENTS
+ 	ecache = tmpl ? nf_ct_ecache_find(tmpl) : NULL;
+-	nf_ct_ecache_ext_add(ct, ecache ? ecache->ctmask : 0,
+-				 ecache ? ecache->expmask : 0,
+-			     GFP_ATOMIC);
 +
-+	nf_ct_iterate_cleanup_net(untimeout, &iter_data);
++	if (!nf_ct_ecache_ext_add(ct, ecache ? ecache->ctmask : 0,
++				  ecache ? ecache->expmask : 0,
++				  GFP_ATOMIC)) {
++		nf_conntrack_free(ct);
++		return ERR_PTR(-ENOMEM);
++	}
++#endif
+ 
+ 	cnet = nf_ct_pernet(net);
+ 	if (cnet->expect_count) {
+diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
+index 7472c544642f..2f0b52fdcbfa 100644
+--- a/net/netfilter/nf_conntrack_ecache.c
++++ b/net/netfilter/nf_conntrack_ecache.c
+@@ -297,6 +297,28 @@ void nf_conntrack_ecache_work(struct net *net, enum nf_ct_ecache_state state)
+ 	}
  }
- EXPORT_SYMBOL_GPL(nf_ct_untimeout);
  
-diff --git a/net/netfilter/nf_nat_masquerade.c b/net/netfilter/nf_nat_masquerade.c
-index e32fac374608..1a506b0c6511 100644
---- a/net/netfilter/nf_nat_masquerade.c
-+++ b/net/netfilter/nf_nat_masquerade.c
-@@ -77,11 +77,14 @@ EXPORT_SYMBOL_GPL(nf_nat_masquerade_ipv4);
++bool nf_ct_ecache_ext_add(struct nf_conn *ct, u16 ctmask, u16 expmask, gfp_t gfp)
++{
++	struct net *net = nf_ct_net(ct);
++	struct nf_conntrack_ecache *e;
++
++	if (!ctmask && !expmask && net->ct.sysctl_events) {
++		ctmask = ~0;
++		expmask = ~0;
++	}
++	if (!ctmask && !expmask)
++		return false;
++
++	e = nf_ct_ext_add(ct, NF_CT_EXT_ECACHE, gfp);
++	if (e) {
++		e->ctmask  = ctmask;
++		e->expmask = expmask;
++	}
++
++	return e != NULL;
++}
++EXPORT_SYMBOL_GPL(nf_ct_ecache_ext_add);
++
+ #define NF_CT_EVENTS_DEFAULT 1
+ static int nf_ct_events __read_mostly = NF_CT_EVENTS_DEFAULT;
  
- static void iterate_cleanup_work(struct work_struct *work)
- {
-+	struct nf_ct_iter_data iter_data = {};
- 	struct masq_dev_work *w;
- 
- 	w = container_of(work, struct masq_dev_work, work);
- 
--	nf_ct_iterate_cleanup_net(w->net, w->iter, (void *)w, 0, 0);
-+	iter_data.net = w->net;
-+	iter_data.data = (void *)w;
-+	nf_ct_iterate_cleanup_net(w->iter, &iter_data);
- 
- 	put_net_track(w->net, &w->ns_tracker);
- 	kfree(w);
 -- 
 2.30.2
 
