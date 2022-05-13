@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19E6DC433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 May 2022 21:44:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D30B7C433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 May 2022 21:44:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1384765AbiEMVoD (ORCPT
+        id S1384754AbiEMVoE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 May 2022 17:44:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59386 "EHLO
+        Fri, 13 May 2022 17:44:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59330 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1384741AbiEMVnw (ORCPT
+        with ESMTP id S1384738AbiEMVnv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 May 2022 17:43:52 -0400
+        Fri, 13 May 2022 17:43:51 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 691D22EA1C;
-        Fri, 13 May 2022 14:43:51 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 31DB6289A5;
+        Fri, 13 May 2022 14:43:50 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com
-Subject: [PATCH net-next 14/17] netfilter: conntrack: add nf_conntrack_events autodetect mode
-Date:   Fri, 13 May 2022 23:43:26 +0200
-Message-Id: <20220513214329.1136459-15-pablo@netfilter.org>
+Subject: [PATCH net-next 12/17] netfilter: nfnetlink: allow to detect if ctnetlink listeners exist
+Date:   Fri, 13 May 2022 23:43:24 +0200
+Message-Id: <20220513214329.1136459-13-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220513214329.1136459-1-pablo@netfilter.org>
 References: <20220513214329.1136459-1-pablo@netfilter.org>
@@ -34,118 +34,121 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-This adds the new nf_conntrack_events=2 mode and makes it the
-default.
+At this time, every new conntrack gets the 'event cache extension'
+enabled for it.
 
-This leverages the earlier flag in struct net to allow to avoid
-the event extension as long as no event listener is active in
-the namespace.
+This is because the 'net.netfilter.nf_conntrack_events' sysctl defaults
+to 1.
 
-This avoids, for most cases, allocation of ct->ext area.
-A followup patch will take further advantage of this by avoiding
-calls down into the event framework if the extension isn't present.
+Changing the default to 0 means that commands that rely on the event
+notification extension, e.g. 'conntrack -E' or conntrackd, stop working.
+
+We COULD detect if there is a listener by means of
+'nfnetlink_has_listeners()' and only add the extension if this is true.
+
+The downside is a dependency from conntrack module to nfnetlink module.
+
+This adds a different way: inc/dec a counter whenever a ctnetlink group
+is being (un)subscribed and toggle a flag in struct net.
+
+Next patches will take advantage of this and will only add the event
+extension if the flag is set.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- .../networking/nf_conntrack-sysctl.rst        |  5 +++-
- net/netfilter/nf_conntrack_core.c             |  3 ++-
- net/netfilter/nf_conntrack_ecache.c           | 27 ++++++++++++++-----
- net/netfilter/nf_conntrack_standalone.c       |  2 +-
- 4 files changed, 28 insertions(+), 9 deletions(-)
+ include/net/netns/conntrack.h |  1 +
+ net/netfilter/nfnetlink.c     | 40 ++++++++++++++++++++++++++++++++---
+ 2 files changed, 38 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/networking/nf_conntrack-sysctl.rst b/Documentation/networking/nf_conntrack-sysctl.rst
-index 311128abb768..834945ebc4cd 100644
---- a/Documentation/networking/nf_conntrack-sysctl.rst
-+++ b/Documentation/networking/nf_conntrack-sysctl.rst
-@@ -34,10 +34,13 @@ nf_conntrack_count - INTEGER (read-only)
+diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
+index a71cfd4e2f21..0677cd3de034 100644
+--- a/include/net/netns/conntrack.h
++++ b/include/net/netns/conntrack.h
+@@ -95,6 +95,7 @@ struct nf_ip_net {
  
- nf_conntrack_events - BOOLEAN
- 	- 0 - disabled
--	- not 0 - enabled (default)
-+	- 1 - enabled
-+	- 2 - auto (default)
- 
- 	If this option is enabled, the connection tracking code will
- 	provide userspace with connection tracking events via ctnetlink.
-+	The default allocates the extension if a userspace program is
-+	listening to ctnetlink events.
- 
- nf_conntrack_expect_max - INTEGER
- 	Maximum size of expectation table.  Default value is
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 7b078ec1f923..082a2fd8d85b 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1736,7 +1736,8 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+ struct netns_ct {
  #ifdef CONFIG_NF_CONNTRACK_EVENTS
- 	ecache = tmpl ? nf_ct_ecache_find(tmpl) : NULL;
- 
--	if (!nf_ct_ecache_ext_add(ct, ecache ? ecache->ctmask : 0,
-+	if ((ecache || net->ct.sysctl_events) &&
-+	    !nf_ct_ecache_ext_add(ct, ecache ? ecache->ctmask : 0,
- 				  ecache ? ecache->expmask : 0,
- 				  GFP_ATOMIC)) {
- 		nf_conntrack_free(ct);
-diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
-index 2f0b52fdcbfa..8698b3424646 100644
---- a/net/netfilter/nf_conntrack_ecache.c
-+++ b/net/netfilter/nf_conntrack_ecache.c
-@@ -302,12 +302,27 @@ bool nf_ct_ecache_ext_add(struct nf_conn *ct, u16 ctmask, u16 expmask, gfp_t gfp
- 	struct net *net = nf_ct_net(ct);
- 	struct nf_conntrack_ecache *e;
- 
--	if (!ctmask && !expmask && net->ct.sysctl_events) {
--		ctmask = ~0;
--		expmask = ~0;
-+	switch (net->ct.sysctl_events) {
-+	case 0:
-+		 /* assignment via template / ruleset? ignore sysctl. */
-+		if (ctmask || expmask)
-+			break;
-+		return true;
-+	case 2: /* autodetect: no event listener, don't allocate extension. */
-+		if (!READ_ONCE(net->ct.ctnetlink_has_listener))
-+			return true;
-+		fallthrough;
-+	case 1:
-+		/* always allocate an extension. */
-+		if (!ctmask && !expmask) {
-+			ctmask = ~0;
-+			expmask = ~0;
-+		}
-+		break;
-+	default:
-+		WARN_ON_ONCE(1);
-+		return true;
- 	}
--	if (!ctmask && !expmask)
--		return false;
- 
- 	e = nf_ct_ext_add(ct, NF_CT_EXT_ECACHE, gfp);
- 	if (e) {
-@@ -319,7 +334,7 @@ bool nf_ct_ecache_ext_add(struct nf_conn *ct, u16 ctmask, u16 expmask, gfp_t gfp
- }
- EXPORT_SYMBOL_GPL(nf_ct_ecache_ext_add);
- 
--#define NF_CT_EVENTS_DEFAULT 1
-+#define NF_CT_EVENTS_DEFAULT 2
- static int nf_ct_events __read_mostly = NF_CT_EVENTS_DEFAULT;
- 
- void nf_conntrack_ecache_pernet_init(struct net *net)
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index 3e1afd10a9b6..948884deaca5 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -693,7 +693,7 @@ static struct ctl_table nf_ct_sysctl_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= proc_dou8vec_minmax,
- 		.extra1 	= SYSCTL_ZERO,
--		.extra2 	= SYSCTL_ONE,
-+		.extra2		= SYSCTL_TWO,
- 	},
++	bool ctnetlink_has_listener;
+ 	bool ecache_dwork_pending;
  #endif
- #ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
+ 	u8			sysctl_log_invalid; /* Log invalid packets */
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 7e2c8dd01408..ad3bbe34ca88 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -45,6 +45,7 @@ MODULE_DESCRIPTION("Netfilter messages via netlink socket");
+ static unsigned int nfnetlink_pernet_id __read_mostly;
+ 
+ struct nfnl_net {
++	unsigned int ctnetlink_listeners;
+ 	struct sock *nfnl;
+ };
+ 
+@@ -654,7 +655,6 @@ static void nfnetlink_rcv(struct sk_buff *skb)
+ 		netlink_rcv_skb(skb, nfnetlink_rcv_msg);
+ }
+ 
+-#ifdef CONFIG_MODULES
+ static int nfnetlink_bind(struct net *net, int group)
+ {
+ 	const struct nfnetlink_subsystem *ss;
+@@ -670,9 +670,44 @@ static int nfnetlink_bind(struct net *net, int group)
+ 	rcu_read_unlock();
+ 	if (!ss)
+ 		request_module_nowait("nfnetlink-subsys-%d", type);
++
++#ifdef CONFIG_NF_CONNTRACK_EVENTS
++	if (type == NFNL_SUBSYS_CTNETLINK) {
++		struct nfnl_net *nfnlnet = nfnl_pernet(net);
++
++		nfnl_lock(NFNL_SUBSYS_CTNETLINK);
++
++		if (WARN_ON_ONCE(nfnlnet->ctnetlink_listeners == UINT_MAX)) {
++			nfnl_unlock(NFNL_SUBSYS_CTNETLINK);
++			return -EOVERFLOW;
++		}
++
++		nfnlnet->ctnetlink_listeners++;
++		if (nfnlnet->ctnetlink_listeners == 1)
++			WRITE_ONCE(net->ct.ctnetlink_has_listener, true);
++		nfnl_unlock(NFNL_SUBSYS_CTNETLINK);
++	}
++#endif
+ 	return 0;
+ }
++
++static void nfnetlink_unbind(struct net *net, int group)
++{
++#ifdef CONFIG_NF_CONNTRACK_EVENTS
++	int type = nfnl_group2type[group];
++
++	if (type == NFNL_SUBSYS_CTNETLINK) {
++		struct nfnl_net *nfnlnet = nfnl_pernet(net);
++
++		nfnl_lock(NFNL_SUBSYS_CTNETLINK);
++		WARN_ON_ONCE(nfnlnet->ctnetlink_listeners == 0);
++		nfnlnet->ctnetlink_listeners--;
++		if (nfnlnet->ctnetlink_listeners == 0)
++			WRITE_ONCE(net->ct.ctnetlink_has_listener, false);
++		nfnl_unlock(NFNL_SUBSYS_CTNETLINK);
++	}
+ #endif
++}
+ 
+ static int __net_init nfnetlink_net_init(struct net *net)
+ {
+@@ -680,9 +715,8 @@ static int __net_init nfnetlink_net_init(struct net *net)
+ 	struct netlink_kernel_cfg cfg = {
+ 		.groups	= NFNLGRP_MAX,
+ 		.input	= nfnetlink_rcv,
+-#ifdef CONFIG_MODULES
+ 		.bind	= nfnetlink_bind,
+-#endif
++		.unbind	= nfnetlink_unbind,
+ 	};
+ 
+ 	nfnlnet->nfnl = netlink_kernel_create(net, NETLINK_NETFILTER, &cfg);
 -- 
 2.30.2
 
