@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CAC6AC4332F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 May 2022 21:44:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19E6DC433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 May 2022 21:44:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1384753AbiEMVoC (ORCPT
+        id S1384765AbiEMVoD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 May 2022 17:44:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59464 "EHLO
+        Fri, 13 May 2022 17:44:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59386 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1384745AbiEMVnx (ORCPT
+        with ESMTP id S1384741AbiEMVnw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 May 2022 17:43:53 -0400
+        Fri, 13 May 2022 17:43:52 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9B1792ED6F;
-        Fri, 13 May 2022 14:43:52 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 691D22EA1C;
+        Fri, 13 May 2022 14:43:51 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com
-Subject: [PATCH net-next 16/17] netfilter: flowtable: nft_flow_route use more data for reverse route
-Date:   Fri, 13 May 2022 23:43:28 +0200
-Message-Id: <20220513214329.1136459-17-pablo@netfilter.org>
+Subject: [PATCH net-next 14/17] netfilter: conntrack: add nf_conntrack_events autodetect mode
+Date:   Fri, 13 May 2022 23:43:26 +0200
+Message-Id: <20220513214329.1136459-15-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220513214329.1136459-1-pablo@netfilter.org>
 References: <20220513214329.1136459-1-pablo@netfilter.org>
@@ -32,46 +32,120 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Sven Auhagen <Sven.Auhagen@voleatech.de>
+From: Florian Westphal <fw@strlen.de>
 
-When creating a flow table entry, the reverse route is looked
-up based on the current packet.
-There can be scenarios where the user creates a custom ip rule
-to route the traffic differently.
-In order to support those scenarios, the lookup needs to add
-more information based on the current packet.
-The patch adds multiple new information to the route lookup.
+This adds the new nf_conntrack_events=2 mode and makes it the
+default.
 
-Signed-off-by: Sven Auhagen <sven.auhagen@voleatech.de>
+This leverages the earlier flag in struct net to allow to avoid
+the event extension as long as no event listener is active in
+the namespace.
+
+This avoids, for most cases, allocation of ct->ext area.
+A followup patch will take further advantage of this by avoiding
+calls down into the event framework if the extension isn't present.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_flow_offload.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ .../networking/nf_conntrack-sysctl.rst        |  5 +++-
+ net/netfilter/nf_conntrack_core.c             |  3 ++-
+ net/netfilter/nf_conntrack_ecache.c           | 27 ++++++++++++++-----
+ net/netfilter/nf_conntrack_standalone.c       |  2 +-
+ 4 files changed, 28 insertions(+), 9 deletions(-)
 
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index 900d48c810a1..50991ab1e2d2 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -227,11 +227,19 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
- 	switch (nft_pf(pkt)) {
- 	case NFPROTO_IPV4:
- 		fl.u.ip4.daddr = ct->tuplehash[dir].tuple.src.u3.ip;
-+		fl.u.ip4.saddr = ct->tuplehash[dir].tuple.dst.u3.ip;
- 		fl.u.ip4.flowi4_oif = nft_in(pkt)->ifindex;
-+		fl.u.ip4.flowi4_iif = this_dst->dev->ifindex;
-+		fl.u.ip4.flowi4_tos = RT_TOS(ip_hdr(pkt->skb)->tos);
-+		fl.u.ip4.flowi4_mark = pkt->skb->mark;
- 		break;
- 	case NFPROTO_IPV6:
- 		fl.u.ip6.daddr = ct->tuplehash[dir].tuple.src.u3.in6;
-+		fl.u.ip6.saddr = ct->tuplehash[dir].tuple.dst.u3.in6;
- 		fl.u.ip6.flowi6_oif = nft_in(pkt)->ifindex;
-+		fl.u.ip6.flowi6_iif = this_dst->dev->ifindex;
-+		fl.u.ip6.flowlabel = ip6_flowinfo(ipv6_hdr(pkt->skb));
-+		fl.u.ip6.flowi6_mark = pkt->skb->mark;
- 		break;
- 	}
+diff --git a/Documentation/networking/nf_conntrack-sysctl.rst b/Documentation/networking/nf_conntrack-sysctl.rst
+index 311128abb768..834945ebc4cd 100644
+--- a/Documentation/networking/nf_conntrack-sysctl.rst
++++ b/Documentation/networking/nf_conntrack-sysctl.rst
+@@ -34,10 +34,13 @@ nf_conntrack_count - INTEGER (read-only)
  
+ nf_conntrack_events - BOOLEAN
+ 	- 0 - disabled
+-	- not 0 - enabled (default)
++	- 1 - enabled
++	- 2 - auto (default)
+ 
+ 	If this option is enabled, the connection tracking code will
+ 	provide userspace with connection tracking events via ctnetlink.
++	The default allocates the extension if a userspace program is
++	listening to ctnetlink events.
+ 
+ nf_conntrack_expect_max - INTEGER
+ 	Maximum size of expectation table.  Default value is
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 7b078ec1f923..082a2fd8d85b 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1736,7 +1736,8 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+ #ifdef CONFIG_NF_CONNTRACK_EVENTS
+ 	ecache = tmpl ? nf_ct_ecache_find(tmpl) : NULL;
+ 
+-	if (!nf_ct_ecache_ext_add(ct, ecache ? ecache->ctmask : 0,
++	if ((ecache || net->ct.sysctl_events) &&
++	    !nf_ct_ecache_ext_add(ct, ecache ? ecache->ctmask : 0,
+ 				  ecache ? ecache->expmask : 0,
+ 				  GFP_ATOMIC)) {
+ 		nf_conntrack_free(ct);
+diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
+index 2f0b52fdcbfa..8698b3424646 100644
+--- a/net/netfilter/nf_conntrack_ecache.c
++++ b/net/netfilter/nf_conntrack_ecache.c
+@@ -302,12 +302,27 @@ bool nf_ct_ecache_ext_add(struct nf_conn *ct, u16 ctmask, u16 expmask, gfp_t gfp
+ 	struct net *net = nf_ct_net(ct);
+ 	struct nf_conntrack_ecache *e;
+ 
+-	if (!ctmask && !expmask && net->ct.sysctl_events) {
+-		ctmask = ~0;
+-		expmask = ~0;
++	switch (net->ct.sysctl_events) {
++	case 0:
++		 /* assignment via template / ruleset? ignore sysctl. */
++		if (ctmask || expmask)
++			break;
++		return true;
++	case 2: /* autodetect: no event listener, don't allocate extension. */
++		if (!READ_ONCE(net->ct.ctnetlink_has_listener))
++			return true;
++		fallthrough;
++	case 1:
++		/* always allocate an extension. */
++		if (!ctmask && !expmask) {
++			ctmask = ~0;
++			expmask = ~0;
++		}
++		break;
++	default:
++		WARN_ON_ONCE(1);
++		return true;
+ 	}
+-	if (!ctmask && !expmask)
+-		return false;
+ 
+ 	e = nf_ct_ext_add(ct, NF_CT_EXT_ECACHE, gfp);
+ 	if (e) {
+@@ -319,7 +334,7 @@ bool nf_ct_ecache_ext_add(struct nf_conn *ct, u16 ctmask, u16 expmask, gfp_t gfp
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_ecache_ext_add);
+ 
+-#define NF_CT_EVENTS_DEFAULT 1
++#define NF_CT_EVENTS_DEFAULT 2
+ static int nf_ct_events __read_mostly = NF_CT_EVENTS_DEFAULT;
+ 
+ void nf_conntrack_ecache_pernet_init(struct net *net)
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 3e1afd10a9b6..948884deaca5 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -693,7 +693,7 @@ static struct ctl_table nf_ct_sysctl_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dou8vec_minmax,
+ 		.extra1 	= SYSCTL_ZERO,
+-		.extra2 	= SYSCTL_ONE,
++		.extra2		= SYSCTL_TWO,
+ 	},
+ #endif
+ #ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
 -- 
 2.30.2
 
