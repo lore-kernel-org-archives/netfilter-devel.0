@@ -2,59 +2,40 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86813C433EF
-	for <netfilter-devel@archiver.kernel.org>; Sat, 14 May 2022 02:34:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8D5EC433FE
+	for <netfilter-devel@archiver.kernel.org>; Sat, 14 May 2022 10:40:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229759AbiENCeJ (ORCPT
+        id S231748AbiENKkL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 May 2022 22:34:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51440 "EHLO
+        Sat, 14 May 2022 06:40:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34306 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229481AbiENCeJ (ORCPT
+        with ESMTP id S230011AbiENKkK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 May 2022 22:34:09 -0400
-Received: from mail-qk1-x72c.google.com (mail-qk1-x72c.google.com [IPv6:2607:f8b0:4864:20::72c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7400C3320A2;
-        Fri, 13 May 2022 17:35:02 -0700 (PDT)
-Received: by mail-qk1-x72c.google.com with SMTP id k8so8585165qki.8;
-        Fri, 13 May 2022 17:35:02 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=s1kbN3Mmp5+Lk+oKdZJFTs+4qDj5+hrlbzkKJ/sOC7Q=;
-        b=L4Eo5SzXtcXZ1ZqgmcB3pFT6peaQuEjTQW8XHbdAPbGuRrJ32T+9GFmpLfV3NZzuMU
-         R4NTESVE2tQ31Tn/FKWcyQ6npgdqmzNHSaMiQIHmXy0EXJT488qBHi2PkEmYH/32GN82
-         IesAw3ivYOxpYN7Ae9P8fd3fkLZ3VQk5LwgdRZCgKTaLXsNR5/pMkZbbQ97uqyvXa99D
-         aYGzwgrr4jcXKVlQnlGPKWsEEANe0HAIbzGJPCFy0lnhdcBXXz4tCUbzrCFT2KXSlLpf
-         yrrRAAC7mzN7FGJ1nT3fOT3w0Jou5QvjaToBuSXvXU7Nmj2EbESLRuEMPClKMUI/sH/y
-         H5kw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=s1kbN3Mmp5+Lk+oKdZJFTs+4qDj5+hrlbzkKJ/sOC7Q=;
-        b=TUypximYlx4uioOsq+3JVPw+FGCpnX5OF33vkA9i4WBTx91qWmMgPB+5/JpY7ZuWLC
-         sek5tla4hHfglgXO8tkfE/v8mdmGj8uLrIF9Q7EEnFj8wmIPS2MglQbgy/iuu3It4cHV
-         eZvImiOOCYP+2+WZqTvvpcZC092DdpB2px4yGg2Fjk0jP1f9LjqjM5cryWPnEYp2mG2g
-         eoHcROlw2HQe9jwK9zkUR+dp0t70FpAODi6z/GZTCvsLjz/n1vqLkLi7we05MBk2Vt12
-         n5o0lM8s1byuMNi+cDtTxjlqQkN4WgRErGkOvWzZt1EFHFtBdttSM6iVsvnnwzkOLTw8
-         MJyg==
-X-Gm-Message-State: AOAM531nyZ6BeLcsOMtwP7YwIBeTpKbJPh3DqiPPas5NZlJ3/PsBq+Sa
-        tNYKE20HPk0k/5lBXcu0MOwfiPQs3FTFSmWy9cuQ9bynuPc=
-X-Google-Smtp-Source: ABdhPJwfXOPE01/yRywnhBxbSsxVVjM3bYlxPufGQhDRtonP1eQsYBGqhDjggwn/0i+bSSSXMd+uK6TB9UbVmkSUHEE=
-X-Received: by 2002:ac8:570f:0:b0:2f3:db0a:4c37 with SMTP id
- 15-20020ac8570f000000b002f3db0a4c37mr6930864qtw.471.1652487707423; Fri, 13
- May 2022 17:21:47 -0700 (PDT)
-MIME-Version: 1.0
-References: <cover.1652372970.git.lorenzo@kernel.org> <4841edea5de2ce5898092c057f61d45dec3d9a34.1652372970.git.lorenzo@kernel.org>
-In-Reply-To: <4841edea5de2ce5898092c057f61d45dec3d9a34.1652372970.git.lorenzo@kernel.org>
-From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Date:   Fri, 13 May 2022 17:21:36 -0700
-Message-ID: <CAADnVQKys77rY+FLkGJwdmdww+h2pGosx08RxVvYwwkjZLSwEQ@mail.gmail.com>
-Subject: Re: [PATCH v2 bpf-next 2/2] selftests/bpf: add selftest for
- bpf_ct_refresh_timeout kfunc
-To:     Lorenzo Bianconi <lorenzo@kernel.org>
+        Sat, 14 May 2022 06:40:10 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 364152EE;
+        Sat, 14 May 2022 03:40:09 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B8C3860DE0;
+        Sat, 14 May 2022 10:40:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91419C340EE;
+        Sat, 14 May 2022 10:40:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1652524808;
+        bh=4B87Dg5JEAiRvyLZbJTaN/WeL9pNY+QGuStUoeJtY1g=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=dPtKMtXNytmIKKo1oUxAIsPREfJ317GRHL/kAOcQykFNOokYbXVLJvD2DUKO7kNFj
+         +RJGfPYl5sJzSAPS7UoKXXQjuvLA9DvNdJRzmjqlJUTMEVp8z4R/9rVP0d1u2jNU08
+         4vmzlBI41/Plw1krjFHj/HxjUzM3DFQZ7v9jjtojXs9GX91Z7+9izAO9Fm8rAmoqG9
+         F9QSguVrQnfuhtcvXxV9Oryu0EcudMhy7JUeIJcboLnIfyP4l8yCmvzDEuefoQsNnq
+         jAqt/FfHwvCAyJ1GRWrHb8fixqWaHB8rrGtPVJTjs/pEzNu87MpkW9/dvXgIujuCkC
+         JyNhlBi3g5Pjg==
+Date:   Sat, 14 May 2022 12:40:04 +0200
+From:   Lorenzo Bianconi <lorenzo@kernel.org>
+To:     Alexei Starovoitov <alexei.starovoitov@gmail.com>
 Cc:     bpf <bpf@vger.kernel.org>,
         Network Development <netdev@vger.kernel.org>,
         Alexei Starovoitov <ast@kernel.org>,
@@ -68,22 +49,65 @@ Cc:     bpf <bpf@vger.kernel.org>,
         netfilter-devel <netfilter-devel@vger.kernel.org>,
         Lorenzo Bianconi <lorenzo.bianconi@redhat.com>,
         Jesper Dangaard Brouer <brouer@redhat.com>,
-        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>,
+        Toke =?iso-8859-1?Q?H=F8iland-J=F8rgensen?= <toke@redhat.com>,
         Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH v2 bpf-next 2/2] selftests/bpf: add selftest for
+ bpf_ct_refresh_timeout kfunc
+Message-ID: <Yn+HBKbo5eoYBPzj@lore-desk>
+References: <cover.1652372970.git.lorenzo@kernel.org>
+ <4841edea5de2ce5898092c057f61d45dec3d9a34.1652372970.git.lorenzo@kernel.org>
+ <CAADnVQKys77rY+FLkGJwdmdww+h2pGosx08RxVvYwwkjZLSwEQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="4yjOvuKC16P+H2Ce"
+Content-Disposition: inline
+In-Reply-To: <CAADnVQKys77rY+FLkGJwdmdww+h2pGosx08RxVvYwwkjZLSwEQ@mail.gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, May 12, 2022 at 9:34 AM Lorenzo Bianconi <lorenzo@kernel.org> wrote:
->
-> Install a new ct entry in order to perform a successful lookup and
-> test bpf_ct_refresh_timeout kfunc helper.
->
-> Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
 
-CI is failing:
-test_bpf_nf_ct:FAIL:flush ct entries unexpected error: 32512 (errno 2)
-test_bpf_nf_ct:FAIL:create ct entry unexpected error: 32512 (errno 2)
+--4yjOvuKC16P+H2Ce
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Please follow the links from patchwork for details.
+> On Thu, May 12, 2022 at 9:34 AM Lorenzo Bianconi <lorenzo@kernel.org> wro=
+te:
+> >
+> > Install a new ct entry in order to perform a successful lookup and
+> > test bpf_ct_refresh_timeout kfunc helper.
+> >
+> > Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+>=20
+> CI is failing:
+> test_bpf_nf_ct:FAIL:flush ct entries unexpected error: 32512 (errno 2)
+> test_bpf_nf_ct:FAIL:create ct entry unexpected error: 32512 (errno 2)
+>=20
+> Please follow the links from patchwork for details.
+
+Hi Alexei,
+
+tests failed because conntrack is not installed on the system:
+
+2022-05-14T00:12:09.0799053Z sh: line 1: conntrack: command not found
+
+Is it ok to just skip the test if conntrack is not installed on the system
+or do you prefer to directly send netlink messages to ct in order to add a
+new ct entry?
+
+Regards,
+Lorenzo
+
+--4yjOvuKC16P+H2Ce
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCYn+HAwAKCRA6cBh0uS2t
+rKTbAP9DKc0/cw1Wwk0okYUArRS3CB76jUusRG+O1E/vh6PHwgD/U4jnv/4OqKe/
+I2lAS247dHiSVbyUHgdqAqdNvs+FfQU=
+=jA6b
+-----END PGP SIGNATURE-----
+
+--4yjOvuKC16P+H2Ce--
