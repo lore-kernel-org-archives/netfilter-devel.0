@@ -2,72 +2,75 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9502AC433EF
-	for <netfilter-devel@archiver.kernel.org>; Sat, 14 May 2022 16:42:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 996C1C433F5
+	for <netfilter-devel@archiver.kernel.org>; Sat, 14 May 2022 16:42:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234305AbiENQmi (ORCPT
+        id S232727AbiENQmj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 14 May 2022 12:42:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60132 "EHLO
+        Sat, 14 May 2022 12:42:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60324 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232727AbiENQmh (ORCPT
+        with ESMTP id S234299AbiENQmh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Sat, 14 May 2022 12:42:37 -0400
-X-Greylist: delayed 536 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sat, 14 May 2022 09:42:32 PDT
 Received: from mail1.systemli.org (mail1.systemli.org [IPv6:2a11:7980:3::36])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B04ACBC90
-        for <netfilter-devel@vger.kernel.org>; Sat, 14 May 2022 09:42:31 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D196EDF2C
+        for <netfilter-devel@vger.kernel.org>; Sat, 14 May 2022 09:42:36 -0700 (PDT)
 From:   Nick Hainke <vincent@systemli.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=systemli.org;
-        s=default; t=1652546012;
-        bh=6TAVRkpkmPtc5PFEsIJF/CNoa4h4IDdK4CtPfIVRcBo=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=JxMCj2XzCfWYfYHVgy6TSW0H73clO+u8RxABlWGb25v/3rZ+VRFz7LKoye1NYnLUQ
-         P0tCu3WbHAARIR/91OQJpP0pIAbWwpUU0xmEp+W1NTovpNmrRSW9G+uVBzi2mflKrQ
-         E1+Y0BXZXJLkZosILDlhXaiRX8EEEMDB9OWvCUciPjH3rhzOoFB/1/PVlxIDtSyqNN
-         G8WVA8NpnQPLKp+o4OuIG/5Js3oGU0FbfbFVU7KW+X6/Q6E7udBp1yk2gH8V9s1dDa
-         hzb/eJFZtrmBiVrAbUYWs9ThK+/d/0xDKUo7p1Xw0x3f/u6AwAnfY9DlFmAV6W5toF
-         qVwykaeFCqd2w==
+        s=default; t=1652546011;
+        bh=X4H17jH84dYJuM3OAWRba5KEFaDj6w9pcvgLkWroFfI=;
+        h=From:To:Cc:Subject:Date:From;
+        b=EsVSoPFc7lEewz8NrT/IamGN76K0mvAcUOeUp2gE8j8llvwxBI15uStek79u+B5zR
+         jGnirqyxQhzwmiB9T/LjVQFpvAW/8L5leIApfxw43JkGlulfraHVg0k56VcG2mReVL
+         l4NZ4cIRuhoFId1tkMjABuVi0YQXy/rVsZEnpyUPbxQIzGPrG4l91R5gOx4qcBzPut
+         nJRuNSO78UkCbWLlJpJ14WxCXcE5o61dCLk6KM/SKjZKJIAdoySDU9x8uS+jMKCz/J
+         KLiodhSsIlAzskyNNcHPJWv9J9AruvF8D0Yup3Zk0M7Ghkz3VHh+BQplI0DfOurVT9
+         EsmeLelVbp2rQ==
 To:     netfilter-devel@vger.kernel.org
 Cc:     Nick Hainke <vincent@systemli.org>
-Subject: [PATCH iptables 2/2] xshared: fix compilation with musl
-Date:   Sat, 14 May 2022 18:33:25 +0200
-Message-Id: <20220514163325.54266-2-vincent@systemli.org>
-In-Reply-To: <20220514163325.54266-1-vincent@systemli.org>
-References: <20220514163325.54266-1-vincent@systemli.org>
+Subject: [PATCH iptables 1/2] xtables: fix compilation with musl
+Date:   Sat, 14 May 2022 18:33:24 +0200
+Message-Id: <20220514163325.54266-1-vincent@systemli.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Gcc complains about missing types. Include <sys/types.h> to fix it.
+Only include <linux/if_ether.h> if glibc is used.
 
 Fixes errors in the form of:
-In file included from xtables-legacy-multi.c:5:
-xshared.h:83:56: error: unknown type name 'u_int16_t'; did you mean 'uint16_t'?
-   83 | set_option(unsigned int *options, unsigned int option, u_int16_t *invflg,
-      |                                                        ^~~~~~~~~
-      |                                                        uint16_t
-make[6]: *** [Makefile:712: xtables_legacy_multi-xtables-legacy-multi.o] Error 1
+In file included from /home/nick/openwrt/staging_dir/toolchain-aarch64_cortex-a53_gcc-11.2.0_musl/include/netinet/ether.h:8,
+                 from xtables.c:2238:
+/home/nick/openwrt/staging_dir/toolchain-aarch64_cortex-a53_gcc-11.2.0_musl/include/netinet/if_ether.h:115:8: error: redefinition of 'struct ethhdr'
+  115 | struct ethhdr {
+      |        ^~~~~~
+In file included from xtables.c:48:
+/home/nick/openwrt/build_dir/target-aarch64_cortex-a53_musl/linux-mediatek_mt7622/linux-5.15.38/user_headers/include/linux/if_ether.h:168:8: note: originally defined here
+  168 | struct ethhdr {
+      |        ^~~~~~
+make[5]: *** [Makefile:471: libxtables_la-xtables.lo] Error 1
 
 Signed-off-by: Nick Hainke <vincent@systemli.org>
 ---
- iptables/xshared.h | 1 +
- 1 file changed, 1 insertion(+)
+ libxtables/xtables.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/iptables/xshared.h b/iptables/xshared.h
-index 14568bb0..9d2fef90 100644
---- a/iptables/xshared.h
-+++ b/iptables/xshared.h
-@@ -4,6 +4,7 @@
- #include <limits.h>
- #include <stdbool.h>
- #include <stdint.h>
-+#include <sys/types.h>
- #include <netinet/in.h>
- #include <net/if.h>
- #include <linux/netfilter_arp/arp_tables.h>
+diff --git a/libxtables/xtables.c b/libxtables/xtables.c
+index 96fd783a..1eb22209 100644
+--- a/libxtables/xtables.c
++++ b/libxtables/xtables.c
+@@ -45,7 +45,9 @@
+ 
+ #include <xtables.h>
+ #include <limits.h> /* INT_MAX in ip_tables.h/ip6_tables.h */
++#if defined(__GLIBC__)
+ #include <linux/if_ether.h> /* ETH_ALEN */
++#endif
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ #include <linux/netfilter_ipv6/ip6_tables.h>
+ #include <libiptc/libxtc.h>
 -- 
 2.36.1
 
