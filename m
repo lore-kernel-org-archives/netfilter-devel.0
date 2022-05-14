@@ -2,168 +2,88 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FCD4C433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 May 2022 21:44:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86813C433EF
+	for <netfilter-devel@archiver.kernel.org>; Sat, 14 May 2022 02:34:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1384772AbiEMVoH (ORCPT
+        id S229759AbiENCeJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 May 2022 17:44:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59480 "EHLO
+        Fri, 13 May 2022 22:34:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51440 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1384749AbiEMVny (ORCPT
+        with ESMTP id S229481AbiENCeJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 May 2022 17:43:54 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 33C212F006;
-        Fri, 13 May 2022 14:43:53 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
-        pabeni@redhat.com
-Subject: [PATCH net-next 17/17] netfilter: conntrack: skip verification of zero UDP checksum
-Date:   Fri, 13 May 2022 23:43:29 +0200
-Message-Id: <20220513214329.1136459-18-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220513214329.1136459-1-pablo@netfilter.org>
-References: <20220513214329.1136459-1-pablo@netfilter.org>
+        Fri, 13 May 2022 22:34:09 -0400
+Received: from mail-qk1-x72c.google.com (mail-qk1-x72c.google.com [IPv6:2607:f8b0:4864:20::72c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7400C3320A2;
+        Fri, 13 May 2022 17:35:02 -0700 (PDT)
+Received: by mail-qk1-x72c.google.com with SMTP id k8so8585165qki.8;
+        Fri, 13 May 2022 17:35:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=s1kbN3Mmp5+Lk+oKdZJFTs+4qDj5+hrlbzkKJ/sOC7Q=;
+        b=L4Eo5SzXtcXZ1ZqgmcB3pFT6peaQuEjTQW8XHbdAPbGuRrJ32T+9GFmpLfV3NZzuMU
+         R4NTESVE2tQ31Tn/FKWcyQ6npgdqmzNHSaMiQIHmXy0EXJT488qBHi2PkEmYH/32GN82
+         IesAw3ivYOxpYN7Ae9P8fd3fkLZ3VQk5LwgdRZCgKTaLXsNR5/pMkZbbQ97uqyvXa99D
+         aYGzwgrr4jcXKVlQnlGPKWsEEANe0HAIbzGJPCFy0lnhdcBXXz4tCUbzrCFT2KXSlLpf
+         yrrRAAC7mzN7FGJ1nT3fOT3w0Jou5QvjaToBuSXvXU7Nmj2EbESLRuEMPClKMUI/sH/y
+         H5kw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=s1kbN3Mmp5+Lk+oKdZJFTs+4qDj5+hrlbzkKJ/sOC7Q=;
+        b=TUypximYlx4uioOsq+3JVPw+FGCpnX5OF33vkA9i4WBTx91qWmMgPB+5/JpY7ZuWLC
+         sek5tla4hHfglgXO8tkfE/v8mdmGj8uLrIF9Q7EEnFj8wmIPS2MglQbgy/iuu3It4cHV
+         eZvImiOOCYP+2+WZqTvvpcZC092DdpB2px4yGg2Fjk0jP1f9LjqjM5cryWPnEYp2mG2g
+         eoHcROlw2HQe9jwK9zkUR+dp0t70FpAODi6z/GZTCvsLjz/n1vqLkLi7we05MBk2Vt12
+         n5o0lM8s1byuMNi+cDtTxjlqQkN4WgRErGkOvWzZt1EFHFtBdttSM6iVsvnnwzkOLTw8
+         MJyg==
+X-Gm-Message-State: AOAM531nyZ6BeLcsOMtwP7YwIBeTpKbJPh3DqiPPas5NZlJ3/PsBq+Sa
+        tNYKE20HPk0k/5lBXcu0MOwfiPQs3FTFSmWy9cuQ9bynuPc=
+X-Google-Smtp-Source: ABdhPJwfXOPE01/yRywnhBxbSsxVVjM3bYlxPufGQhDRtonP1eQsYBGqhDjggwn/0i+bSSSXMd+uK6TB9UbVmkSUHEE=
+X-Received: by 2002:ac8:570f:0:b0:2f3:db0a:4c37 with SMTP id
+ 15-20020ac8570f000000b002f3db0a4c37mr6930864qtw.471.1652487707423; Fri, 13
+ May 2022 17:21:47 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <cover.1652372970.git.lorenzo@kernel.org> <4841edea5de2ce5898092c057f61d45dec3d9a34.1652372970.git.lorenzo@kernel.org>
+In-Reply-To: <4841edea5de2ce5898092c057f61d45dec3d9a34.1652372970.git.lorenzo@kernel.org>
+From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Date:   Fri, 13 May 2022 17:21:36 -0700
+Message-ID: <CAADnVQKys77rY+FLkGJwdmdww+h2pGosx08RxVvYwwkjZLSwEQ@mail.gmail.com>
+Subject: Re: [PATCH v2 bpf-next 2/2] selftests/bpf: add selftest for
+ bpf_ct_refresh_timeout kfunc
+To:     Lorenzo Bianconi <lorenzo@kernel.org>
+Cc:     bpf <bpf@vger.kernel.org>,
+        Network Development <netdev@vger.kernel.org>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>,
+        Lorenzo Bianconi <lorenzo.bianconi@redhat.com>,
+        Jesper Dangaard Brouer <brouer@redhat.com>,
+        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>,
+        Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Kevin Mitchell <kevmitch@arista.com>
+On Thu, May 12, 2022 at 9:34 AM Lorenzo Bianconi <lorenzo@kernel.org> wrote:
+>
+> Install a new ct entry in order to perform a successful lookup and
+> test bpf_ct_refresh_timeout kfunc helper.
+>
+> Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
 
-The checksum is optional for UDP packets. However nf_reject would
-previously require a valid checksum to elicit a response such as
-ICMP_DEST_UNREACH.
+CI is failing:
+test_bpf_nf_ct:FAIL:flush ct entries unexpected error: 32512 (errno 2)
+test_bpf_nf_ct:FAIL:create ct entry unexpected error: 32512 (errno 2)
 
-Add some logic to nf_reject_verify_csum to determine if a UDP packet has
-a zero checksum and should therefore not be verified.
-
-Signed-off-by: Kevin Mitchell <kevmitch@arista.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_reject.h   | 21 +++++++++++++++++----
- net/ipv4/netfilter/nf_reject_ipv4.c | 10 +++++++---
- net/ipv6/netfilter/nf_reject_ipv6.c |  4 ++--
- 3 files changed, 26 insertions(+), 9 deletions(-)
-
-diff --git a/include/net/netfilter/nf_reject.h b/include/net/netfilter/nf_reject.h
-index 9051c3a0c8e7..7c669792fb9c 100644
---- a/include/net/netfilter/nf_reject.h
-+++ b/include/net/netfilter/nf_reject.h
-@@ -5,12 +5,28 @@
- #include <linux/types.h>
- #include <uapi/linux/in.h>
- 
--static inline bool nf_reject_verify_csum(__u8 proto)
-+static inline bool nf_reject_verify_csum(struct sk_buff *skb, int dataoff,
-+					  __u8 proto)
- {
- 	/* Skip protocols that don't use 16-bit one's complement checksum
- 	 * of the entire payload.
- 	 */
- 	switch (proto) {
-+		/* Protocols with optional checksums. */
-+		case IPPROTO_UDP: {
-+			const struct udphdr *udp_hdr;
-+			struct udphdr _udp_hdr;
-+
-+			udp_hdr = skb_header_pointer(skb, dataoff,
-+						     sizeof(_udp_hdr),
-+						     &_udp_hdr);
-+			if (!udp_hdr || udp_hdr->check)
-+				return true;
-+
-+			return false;
-+		}
-+		case IPPROTO_GRE:
-+
- 		/* Protocols with other integrity checks. */
- 		case IPPROTO_AH:
- 		case IPPROTO_ESP:
-@@ -19,9 +35,6 @@ static inline bool nf_reject_verify_csum(__u8 proto)
- 		/* Protocols with partial checksums. */
- 		case IPPROTO_UDPLITE:
- 		case IPPROTO_DCCP:
--
--		/* Protocols with optional checksums. */
--		case IPPROTO_GRE:
- 			return false;
- 	}
- 	return true;
-diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
-index 4eed5afca392..918c61fda0f3 100644
---- a/net/ipv4/netfilter/nf_reject_ipv4.c
-+++ b/net/ipv4/netfilter/nf_reject_ipv4.c
-@@ -80,6 +80,7 @@ struct sk_buff *nf_reject_skb_v4_unreach(struct net *net,
- 	struct iphdr *niph;
- 	struct icmphdr *icmph;
- 	unsigned int len;
-+	int dataoff;
- 	__wsum csum;
- 	u8 proto;
- 
-@@ -99,10 +100,11 @@ struct sk_buff *nf_reject_skb_v4_unreach(struct net *net,
- 	if (pskb_trim_rcsum(oldskb, ntohs(ip_hdr(oldskb)->tot_len)))
- 		return NULL;
- 
-+	dataoff = ip_hdrlen(oldskb);
- 	proto = ip_hdr(oldskb)->protocol;
- 
- 	if (!skb_csum_unnecessary(oldskb) &&
--	    nf_reject_verify_csum(proto) &&
-+	    nf_reject_verify_csum(oldskb, dataoff, proto) &&
- 	    nf_ip_checksum(oldskb, hook, ip_hdrlen(oldskb), proto))
- 		return NULL;
- 
-@@ -311,6 +313,7 @@ EXPORT_SYMBOL_GPL(nf_send_reset);
- void nf_send_unreach(struct sk_buff *skb_in, int code, int hook)
- {
- 	struct iphdr *iph = ip_hdr(skb_in);
-+	int dataoff = ip_hdrlen(skb_in);
- 	u8 proto = iph->protocol;
- 
- 	if (iph->frag_off & htons(IP_OFFSET))
-@@ -320,12 +323,13 @@ void nf_send_unreach(struct sk_buff *skb_in, int code, int hook)
- 	    nf_reject_fill_skb_dst(skb_in) < 0)
- 		return;
- 
--	if (skb_csum_unnecessary(skb_in) || !nf_reject_verify_csum(proto)) {
-+	if (skb_csum_unnecessary(skb_in) ||
-+	    !nf_reject_verify_csum(skb_in, dataoff, proto)) {
- 		icmp_send(skb_in, ICMP_DEST_UNREACH, code, 0);
- 		return;
- 	}
- 
--	if (nf_ip_checksum(skb_in, hook, ip_hdrlen(skb_in), proto) == 0)
-+	if (nf_ip_checksum(skb_in, hook, dataoff, proto) == 0)
- 		icmp_send(skb_in, ICMP_DEST_UNREACH, code, 0);
- }
- EXPORT_SYMBOL_GPL(nf_send_unreach);
-diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
-index dffeaaaadcde..f61d4f18e1cf 100644
---- a/net/ipv6/netfilter/nf_reject_ipv6.c
-+++ b/net/ipv6/netfilter/nf_reject_ipv6.c
-@@ -31,7 +31,7 @@ static bool nf_reject_v6_csum_ok(struct sk_buff *skb, int hook)
- 	if (thoff < 0 || thoff >= skb->len || (fo & htons(~0x7)) != 0)
- 		return false;
- 
--	if (!nf_reject_verify_csum(proto))
-+	if (!nf_reject_verify_csum(skb, thoff, proto))
- 		return true;
- 
- 	return nf_ip6_checksum(skb, hook, thoff, proto) == 0;
-@@ -388,7 +388,7 @@ static bool reject6_csum_ok(struct sk_buff *skb, int hook)
- 	if (thoff < 0 || thoff >= skb->len || (fo & htons(~0x7)) != 0)
- 		return false;
- 
--	if (!nf_reject_verify_csum(proto))
-+	if (!nf_reject_verify_csum(skb, thoff, proto))
- 		return true;
- 
- 	return nf_ip6_checksum(skb, hook, thoff, proto) == 0;
--- 
-2.30.2
-
+Please follow the links from patchwork for details.
