@@ -2,124 +2,80 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDD3BC433EF
-	for <netfilter-devel@archiver.kernel.org>; Sun, 15 May 2022 12:05:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C7C5C433F5
+	for <netfilter-devel@archiver.kernel.org>; Sun, 15 May 2022 12:16:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233034AbiEOMFJ (ORCPT
+        id S233800AbiEOMQj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 15 May 2022 08:05:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49452 "EHLO
+        Sun, 15 May 2022 08:16:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40850 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232000AbiEOMFI (ORCPT
+        with ESMTP id S232000AbiEOMQi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 15 May 2022 08:05:08 -0400
+        Sun, 15 May 2022 08:16:38 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1CC5E1C92F
-        for <netfilter-devel@vger.kernel.org>; Sun, 15 May 2022 05:05:03 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C84BEDF
+        for <netfilter-devel@vger.kernel.org>; Sun, 15 May 2022 05:16:36 -0700 (PDT)
 Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
         (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1nqCzc-00006m-HU; Sun, 15 May 2022 14:05:00 +0200
-Date:   Sun, 15 May 2022 14:05:00 +0200
+        id 1nqDAp-0000DI-21; Sun, 15 May 2022 14:16:35 +0200
+Date:   Sun, 15 May 2022 14:16:35 +0200
 From:   Phil Sutter <phil@nwl.cc>
-To:     Maciej =?utf-8?Q?=C5=BBenczykowski?= <maze@google.com>
-Cc:     Nick Hainke <vincent@systemli.org>,
-        Netfilter Development Mailing List 
-        <netfilter-devel@vger.kernel.org>,
-        Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Subject: Re: [PATCH iptables 1/2] xtables: fix compilation with musl
-Message-ID: <YoDsbC/hwY9mPLR+@orbyte.nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH libnftnl] src: add dynamic register allocation
+ infrastructure
+Message-ID: <YoDvI2Wq+2YY7NOZ@orbyte.nwl.cc>
 Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Maciej =?utf-8?Q?=C5=BBenczykowski?= <maze@google.com>,
-        Nick Hainke <vincent@systemli.org>,
-        Netfilter Development Mailing List <netfilter-devel@vger.kernel.org>,
-        Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>
-References: <20220514163325.54266-1-vincent@systemli.org>
- <Yn/hMODAkEEbzQno@orbyte.nwl.cc>
- <CANP3RGfP4Et8PCviNLLUJNHBCbo-B53UkaZfZJyqHBu_Ccs3Ow@mail.gmail.com>
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20220502110744.113720-1-pablo@netfilter.org>
+ <Yn/dnyORrGtf7t8E@orbyte.nwl.cc>
+ <YoAtWOcCusBi4tR7@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CANP3RGfP4Et8PCviNLLUJNHBCbo-B53UkaZfZJyqHBu_Ccs3Ow@mail.gmail.com>
+In-Reply-To: <YoAtWOcCusBi4tR7@salvia>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Maciej,
-
-On Sat, May 14, 2022 at 12:14:27PM -0700, Maciej Żenczykowski wrote:
-> On Sat, May 14, 2022 at 10:04 AM Phil Sutter <phil@nwl.cc> wrote:
-> > On Sat, May 14, 2022 at 06:33:24PM +0200, Nick Hainke wrote:
-> > > Only include <linux/if_ether.h> if glibc is used.
-> >
-> > This looks like a bug in musl? OTOH explicit include of linux/if_ether.h
-> > was added in commit c5d9a723b5159 ("fix build for missing ETH_ALEN
-> > definition"), despite netinet/ether.h being included in line 2248 of
-> > libxtables/xtables.c. So maybe *also* a bug in bionic?!
+On Sun, May 15, 2022 at 12:29:44AM +0200, Pablo Neira Ayuso wrote:
+> On Sat, May 14, 2022 at 06:49:35PM +0200, Phil Sutter wrote:
+> > On Mon, May 02, 2022 at 01:07:44PM +0200, Pablo Neira Ayuso wrote:
+> > > Starting Linux kernel 5.18-rc, operations on registers that already
+> > > contain the expected data are turned into noop.
+> > > 
+> > > Track operation on registers to use the same register through
+> > > nftnl_reg_get(). This patch introduces an LRU eviction strategy when all
+> > > the registers are in used.
+> > > 
+> > > nftnl_reg_get_scratch() is used to allocate a register as scratchpad
+> > > area: no tracking is performed in this case, although register eviction
+> > > might occur.
+> > > 
+> > > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > > ---
+> > >  include/expr_ops.h           |   6 +
+> > >  include/internal.h           |   1 +
+> > >  include/libnftnl/Makefile.am |   1 +
+> > >  include/regs.h               |  32 ++++++
+> > >  src/Makefile.am              |   1 +
+> > >  src/expr/meta.c              |  44 +++++++
+> > >  src/expr/payload.c           |  31 +++++
+> > >  src/libnftnl.map             |   7 ++
+> > >  src/regs.c                   | 216 +++++++++++++++++++++++++++++++++++
+> > >  9 files changed, 339 insertions(+)
+> > >  create mode 100644 include/regs.h
+> > >  create mode 100644 src/regs.c
+> > 
+> > Did you forget to add include/libnftnl/regs.h to this patch? It is
+> > referenced from src/regs.c and build fails.
 > 
-> You stripped the email you're replying to, and while I'm on lkml and
-> netdev - with my personal account - I'm not (apparently) subscribed to
-> netfilter-devel (or I'm not subscribed from work account).
-
-Oh, sorry for the caused inconvenience.
-
-> Either way, if my search-fu is correct you're replying to
-> https://marc.info/?l=netfilter-devel&m=165254651011397&w=2
+> Yes, this is fixed here:
 > 
-> +#if defined(__GLIBC__)
->  #include <linux/if_ether.h> /* ETH_ALEN */
-> +#endif
-> 
-> and you're presumably CC'ing me due to
-> 
-> https://git.netfilter.org/iptables/commit/libxtables/xtables.c?id=c5d9a723b5159a28f547b577711787295a14fd84
-> 
-> which added the include in the first place...:
+> http://git.netfilter.org/libnftnl/commit/?id=e549f5b3239c19f78af2f7c7a582fe5616403ca8
 
-That's correct. I assumed that you added the include for a reason and
-it's breaking Nick's use-case, the two of you want to have a word with
-each other. :)
+Thanks for the quick fix!
 
-> fix build for missing ETH_ALEN definition
-> (this is needed at least with bionic)
-> 
-> +#include <linux/if_ether.h> /* ETH_ALEN */
-> 
-> Based on the above, clearly adding an 'if defined GLIBC' wrapper will
-> break bionic...
-> and presumably glibc doesn't care whether the #include is done one way
-> or the other?
-
-With glibc, netinet/ether.h includes netinet/if_ether.h which in turn
-includes linux/if_ether.h where finally ETH_ALEN is defined.
-
-In xtables.c we definitely need netinet/ether.h for ether_aton()
-declaration.
-
-> Obviously it could be '#if !defined MUSL' instead...
-
-Could ...
-
-> As for the fix?  And whether glibc or musl or bionic are wrong or not...
-> Utterly uncertain...
-> 
-> Though, I will point out #include's 2000 lines into a .c file are kind of funky.
-
-ACK!
-
-> Ultimately I find
-> https://android.git.corp.google.com/platform/external/iptables/+/7608e136bd495fe734ad18a6897dd4425e1a633b%5E%21/
-> 
-> +#ifdef __BIONIC__
-> +#include <linux/if_ether.h> /* ETH_ALEN */
-> +#endif
-
-While I think musl not catching the "double" include is a bug, I'd
-prefer the ifdef __BIONIC__ solution since it started the "but my libc
-needs this" game.
-
-Nick, if the above change fixes musl builds for you, would you mind
-submitting it formally along with a move of the netinet/ether.h include
-from mid-file to top?
-
-Thanks, Phil
+Cheers, Phil
