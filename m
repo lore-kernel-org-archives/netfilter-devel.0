@@ -2,155 +2,152 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16232C433EF
-	for <netfilter-devel@archiver.kernel.org>; Sun, 15 May 2022 13:41:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29CC8C433F5
+	for <netfilter-devel@archiver.kernel.org>; Sun, 15 May 2022 13:47:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236970AbiEONlT (ORCPT
+        id S235290AbiEONrh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 15 May 2022 09:41:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52736 "EHLO
+        Sun, 15 May 2022 09:47:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60376 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237011AbiEONlK (ORCPT
+        with ESMTP id S230160AbiEONre (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 15 May 2022 09:41:10 -0400
-Received: from mail-io1-xd36.google.com (mail-io1-xd36.google.com [IPv6:2607:f8b0:4864:20::d36])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFB5F2BEF
-        for <netfilter-devel@vger.kernel.org>; Sun, 15 May 2022 06:41:03 -0700 (PDT)
-Received: by mail-io1-xd36.google.com with SMTP id f4so13491812iov.2
-        for <netfilter-devel@vger.kernel.org>; Sun, 15 May 2022 06:41:03 -0700 (PDT)
+        Sun, 15 May 2022 09:47:34 -0400
+Received: from mail-ej1-x641.google.com (mail-ej1-x641.google.com [IPv6:2a00:1450:4864:20::641])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46044266B;
+        Sun, 15 May 2022 06:47:32 -0700 (PDT)
+Received: by mail-ej1-x641.google.com with SMTP id kq17so24156713ejb.4;
+        Sun, 15 May 2022 06:47:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
+        d=gmail.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :content-transfer-encoding;
-        bh=F3JXdHD2dHhfx3/BDlJmlDBG6cDsMkvko5tTJzDUSeo=;
-        b=Jmne2gcUrYun7dMdVkarqiCYgpv1ETKkiON0wA6trSZ/zuh9c1EZsn6MiMunrmW38Q
-         Ve/z6tTaukg3Fr9DufNwvSmTIx2cJ5WiY5tH/QdOKRGmYay4AHxCF8M8yGOY0E/pakw8
-         9hqyKJWLAMxnDNaU4latulUApZhAkEPuNUyVc21lmvczn1Ph79w4mlf/ymOB9qhB+ged
-         FsnDBcC3AN69aVDb0SXJoP7Q9LsW9u+W1BP6OXzooMSkqrutJ9Be5lwaWjQ+lCqKSLTb
-         JN78CUOxVY6V2gDJPtg/1tTM9QiRWxt+wza9ByJ0eSwncZMjsEr+85XvFyS+zk/tUB2+
-         6n0A==
+         :cc;
+        bh=1+Fy9hqr0kRsZUGm3c2sW0uPgcK/zLLVX8crSmNBvLA=;
+        b=NSXiVbCoEuViKntMJPVbDFsTBn8mhesbr5gxiAgVw2sWuZyeaxhitNtJEkmru1BBbR
+         0hNot1HiIbCffSWB+F00EhkslcGFOsJcvR5AqQGYOj/nQsakGYBx4f1bDx8Ou67/BaFg
+         +FZX2Kx/M6eOisLVbImgThzbjeV84KmjH/lnA+trRH+LUkXPPFqBi5UNq0ss/0oH+KlF
+         4UCyUrFjqE3u0yB0cGq6g80BMkO67hbx4jwofMJFHCWiLq+qtLva1hNahAcEhAIWAfqv
+         mSwf03wcqfRVZK534MHgQDOiJCBge9jn1oau4vua77eG3epMLcb3uGM13PpjruIRGF2D
+         iS+g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:content-transfer-encoding;
-        bh=F3JXdHD2dHhfx3/BDlJmlDBG6cDsMkvko5tTJzDUSeo=;
-        b=KwNQDEpfslYE2QPZx+IWeZhlXYfTFSb9YKQqIz/Yp0kt+JVd2OwwCXFrd0Hv1H9lPj
-         Fsh+uyCq1rbIGA+C5hur9ktDZ9OUTU/Bel9obYJY+SuhgDv5GEhqDyaT0yOx7X0pmhXn
-         aczXXtqg5C2T5TEM4qPZiaK7i4+kl1QuiuqB4fQzaCnse6iOCG2rp40/7H/LNwYasmyW
-         KNW1atpjNiQYn/ii5S6vSAbnoOHLWmHS93+zDfjvVYbGl3Fltt0v42am/Wx3zNLgI8sf
-         pCehrrZO5jS3dvD9NrnTtcqhZ2eTRwY+M9sifOAzb9jWO9IjOU/MuiY5b0dhXwjuv3EL
-         9TYQ==
-X-Gm-Message-State: AOAM532qF6x9H1P1QfgqCPPai353JaDS+3DRoNLk9xkY2MvBwH7fmFQV
-        GF69yG6AlkOasPQsv660tWbFwiH3oYKIGTFC3Yr4cA==
-X-Google-Smtp-Source: ABdhPJygcaCVfkno8sR+fJD1oFCrjODxSdnGs2sXO9tl9C6BJ/rYxDXF0Y/H2nA80nChugVO9NOfuAxFp3C8czthS8M=
-X-Received: by 2002:a05:6638:24d5:b0:32b:983a:bfc4 with SMTP id
- y21-20020a05663824d500b0032b983abfc4mr7314622jat.85.1652622063160; Sun, 15
- May 2022 06:41:03 -0700 (PDT)
+         :message-id:subject:to:cc;
+        bh=1+Fy9hqr0kRsZUGm3c2sW0uPgcK/zLLVX8crSmNBvLA=;
+        b=qwhIGZyGvMsQauhoCWDtaY1sd+cmf6kIcAMqn/erFByZMIXGWgjkMcbF6xuM8YWcTe
+         U6ZYnuqJWEVaQ7KbsAQTqzU4KlDdM694wK+DIAzjA5wMKEdCEZbHqQWoWOuZyQPVkLRk
+         o4qgMfNHtQq5iPh5M8WKL4hziwuBs1uGzSSFo2fy1OLFFAEYve7pj6x2ECRi+tYuY25H
+         Iht3tWRr8Jm4d8ia97s7FHlt2LYNjV2GQEJkvHZGyRHL+2vcEOK0DnEpmGCySLLuA+Mx
+         JAny0EC0ZgtKf88Q5+Vm1FNJirectaN7uOj/emzZax7ktHA+GM266GyPqOfXgClq9Zj4
+         J8ow==
+X-Gm-Message-State: AOAM5312kQOU0cogf55iDYTRs81FlIq1C/NWB82sTdH4pXiAY+rZDIkv
+        t2yShAufkJSSSbmPMJ87hcSyuZWJPegQyTSPI/8=
+X-Google-Smtp-Source: ABdhPJwUjQA8W2nIOPHkKuQcei8/J5jaAqHVeHk4d7T877SLYqq0Wus7HGD5pjk19muwX+U8FrkPMmmyiKPtwdveDtQ=
+X-Received: by 2002:a17:906:2314:b0:6f4:d3d0:9ede with SMTP id
+ l20-20020a170906231400b006f4d3d09edemr11337154eja.765.1652622450778; Sun, 15
+ May 2022 06:47:30 -0700 (PDT)
 MIME-Version: 1.0
-References: <20220514163325.54266-1-vincent@systemli.org> <Yn/hMODAkEEbzQno@orbyte.nwl.cc>
- <CANP3RGfP4Et8PCviNLLUJNHBCbo-B53UkaZfZJyqHBu_Ccs3Ow@mail.gmail.com> <YoDsbC/hwY9mPLR+@orbyte.nwl.cc>
-In-Reply-To: <YoDsbC/hwY9mPLR+@orbyte.nwl.cc>
-From:   =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <maze@google.com>
-Date:   Sun, 15 May 2022 06:40:51 -0700
-Message-ID: <CANP3RGeEnEZUJtUQbjukSUC-6KBoHPF5dTD72b73Rev3hfp7MQ@mail.gmail.com>
-Subject: Re: [PATCH iptables 1/2] xtables: fix compilation with musl
-To:     Phil Sutter <phil@nwl.cc>,
-        =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <maze@google.com>,
-        Nick Hainke <vincent@systemli.org>,
-        Netfilter Development Mailing List 
-        <netfilter-devel@vger.kernel.org>,
-        =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+References: <20220510074301.480941-1-imagedong@tencent.com>
+ <8983fedf-5095-59a4-b4b3-83f1864be055@ssi.bg> <CADxym3aREm=ZPucm=C6ZRnPbQJMvCxkcnKge2EAcy-Rs0CTtfg@mail.gmail.com>
+ <bb1d68e0-de27-985f-19b-208fb546a0b1@ssi.bg>
+In-Reply-To: <bb1d68e0-de27-985f-19b-208fb546a0b1@ssi.bg>
+From:   Menglong Dong <menglong8.dong@gmail.com>
+Date:   Sun, 15 May 2022 21:47:19 +0800
+Message-ID: <CADxym3YVOKH4zhwchwYB9_gvpjmu1SnNYvrXCNhpHNv3zCO-aA@mail.gmail.com>
+Subject: Re: [PATCH net-next v2] net: ipvs: randomize starting destination of
+ RR/WRR scheduler
+To:     Julian Anastasov <ja@ssi.bg>
+Cc:     Simon Horman <horms@verge.net.au>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Menglong Dong <imagedong@tencent.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, May 15, 2022 at 5:05 AM Phil Sutter <phil@nwl.cc> wrote:
+On Thu, May 12, 2022 at 6:33 PM Julian Anastasov <ja@ssi.bg> wrote:
 >
-> Hi Maciej,
 >
-> On Sat, May 14, 2022 at 12:14:27PM -0700, Maciej =C5=BBenczykowski wrote:
-> > On Sat, May 14, 2022 at 10:04 AM Phil Sutter <phil@nwl.cc> wrote:
-> > > On Sat, May 14, 2022 at 06:33:24PM +0200, Nick Hainke wrote:
-> > > > Only include <linux/if_ether.h> if glibc is used.
-> > >
-> > > This looks like a bug in musl? OTOH explicit include of linux/if_ethe=
-r.h
-> > > was added in commit c5d9a723b5159 ("fix build for missing ETH_ALEN
-> > > definition"), despite netinet/ether.h being included in line 2248 of
-> > > libxtables/xtables.c. So maybe *also* a bug in bionic?!
+>         Hello,
+>
+> On Thu, 12 May 2022, Menglong Dong wrote:
+>
+> > Yeah, WLC and MH are excellent schedulers. As for SH, my
+> > fellows' feedback says that it doesn't work well. In fact, it's their
+> > fault, they just forget to enable port hash and just use the
+> > default ip hash. With my direction, this case is solved by sh.
 > >
-> > You stripped the email you're replying to, and while I'm on lkml and
-> > netdev - with my personal account - I'm not (apparently) subscribed to
-> > netfilter-devel (or I'm not subscribed from work account).
+> > Now, I'm not sure if this feature is necessary. Maybe someone
+> > needs it? Such as someone, who need RR/WRR and a random
+> > start......
 >
-> Oh, sorry for the caused inconvenience.
+>         If there is some more clever way to add randomness.
+> The problem is that random start should be applied after
+> initial configuration only. But there is no clear point between
+> where configuration is completed and when service starts.
+> This is not bad for RR but is bad for WRR.
 >
-> > Either way, if my search-fu is correct you're replying to
-> > https://marc.info/?l=3Dnetfilter-devel&m=3D165254651011397&w=3D2
-> >
-> > +#if defined(__GLIBC__)
-> >  #include <linux/if_ether.h> /* ETH_ALEN */
-> > +#endif
-> >
-> > and you're presumably CC'ing me due to
-> >
-> > https://git.netfilter.org/iptables/commit/libxtables/xtables.c?id=3Dc5d=
-9a723b5159a28f547b577711787295a14fd84
-> >
-> > which added the include in the first place...:
->
-> That's correct. I assumed that you added the include for a reason and
-> it's breaking Nick's use-case, the two of you want to have a word with
-> each other. :)
->
-> > fix build for missing ETH_ALEN definition
-> > (this is needed at least with bionic)
-> >
-> > +#include <linux/if_ether.h> /* ETH_ALEN */
-> >
-> > Based on the above, clearly adding an 'if defined GLIBC' wrapper will
-> > break bionic...
-> > and presumably glibc doesn't care whether the #include is done one way
-> > or the other?
->
-> With glibc, netinet/ether.h includes netinet/if_ether.h which in turn
-> includes linux/if_ether.h where finally ETH_ALEN is defined.
->
-> In xtables.c we definitely need netinet/ether.h for ether_aton()
-> declaration.
->
-> > Obviously it could be '#if !defined MUSL' instead...
->
-> Could ...
->
-> > As for the fix?  And whether glibc or musl or bionic are wrong or not..=
-.
-> > Utterly uncertain...
-> >
-> > Though, I will point out #include's 2000 lines into a .c file are kind =
-of funky.
->
-> ACK!
->
-> > Ultimately I find
-> > https://android.git.corp.google.com/platform/external/iptables/+/7608e1=
-36bd495fe734ad18a6897dd4425e1a633b%5E%21/
-> >
-> > +#ifdef __BIONIC__
-> > +#include <linux/if_ether.h> /* ETH_ALEN */
-> > +#endif
->
-> While I think musl not catching the "double" include is a bug, I'd
-> prefer the ifdef __BIONIC__ solution since it started the "but my libc
-> needs this" game.
->
-> Nick, if the above change fixes musl builds for you, would you mind
-> submitting it formally along with a move of the netinet/ether.h include
-> from mid-file to top?
->
-> Thanks, Phil
 
-Any thoughts about the rest of my email - wrt. #define __USE_BSD
-- do you know how that is supposed to work?
+Yes, we need a more nice way to do this work. It's easy for RR,
+but a little complex for WRR, after I figure out how WRR works.
+
+>         One way would be the user tool to add dests in random
+> order. IIRC, this should not affect setups with backup servers
+> as long as they share the same set of real servers, i.e.
+> order in svc->destinations does not matter for SYNC but
+> the real servers should be present in all directors.
+>
+>         Another option would be __ip_vs_update_dest() to
+> use list_add_rcu() or list_add_tail_rcu() per dest depending
+> on some switch that enables random ordering for the svc.
+> But it will affect only schedulers that do not order
+> later the dests. So, it should help for RR, WRR (random
+> order per same weight). In this case, scheduler's code
+> is not affected.
+>
+>         For RR, the scheduler does not use weights and
+> dests are usually not updated. But for WRR the weights
+> can be changed and this affects order of selection without
+> changing the order in svc->destinations.
+>
+>         OTOH, WRR is a scheduler that can support frequent
+> update of dest weights. This is not true for MH which can
+> easily change only between 0 and some fixed weight without
+> changing its table. As result, ip_vs_wrr_dest_changed()
+> can be called frequently even after the initial configuration,
+> at the same time while packets are scheduled.
+>
+
+Using a user tool to add dests in random order is an option, which
+I thought about before. But it needs users to make some extra
+changes.
+
+Thanks for your explanation. The options you mentioned are mature
+and significant. I'll make them together and try to find the best way,
+after I dig into the ipvs code deeper.
+
+>         When you mentioned that ip_vs_wrr_gcd_weight() is
+> slow, I see that ip_vs_wrr_dest_changed() can be improved
+> to reduce the time while holding the lock. May be
+> in separate patch we can call ip_vs_wrr_gcd_weight() and
+> ip_vs_wrr_max_weight() before the spin_lock_bh() by using
+> two new tmp vars.
+>
+
+Yeah, it seems that the range of the lock can be reduced. I
+think I'm able to handle it.
+
+
+
+> > Anyway, I have made a V3 according to your advice. I can
+> > send it with any positive reply :/
+>
+>         You can use [RFC tag] for this, so that we can
+> at least review it and further decide what can be done.
+>
+> Regards
+>
+> --
+> Julian Anastasov <ja@ssi.bg>
+>
