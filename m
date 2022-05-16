@@ -2,43 +2,158 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A410C433FE
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 May 2022 11:10:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11ADCC433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 May 2022 11:14:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235298AbiEPLKZ (ORCPT
+        id S233410AbiEPLOB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 16 May 2022 07:10:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43694 "EHLO
+        Mon, 16 May 2022 07:14:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51930 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234751AbiEPLKY (ORCPT
+        with ESMTP id S229952AbiEPLN7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 May 2022 07:10:24 -0400
+        Mon, 16 May 2022 07:13:59 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 937302F004
-        for <netfilter-devel@vger.kernel.org>; Mon, 16 May 2022 04:10:22 -0700 (PDT)
-Date:   Mon, 16 May 2022 13:10:19 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 024B030579
+        for <netfilter-devel@vger.kernel.org>; Mon, 16 May 2022 04:13:58 -0700 (PDT)
+Date:   Mon, 16 May 2022 13:13:55 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next] netfilter: conntrack: remove pr_debug callsites
- from tcp tracker
-Message-ID: <YoIxGyVSYTxoX2Ll@salvia>
-References: <20220512150847.22858-1-fw@strlen.de>
+To:     wenxu@chinatelecom.cn
+Cc:     netfilter-devel@vger.kernel.org, Felix Fietkau <nbd@nbd.name>
+Subject: Re: [nf-next PATCH] nf_flow_table_offload: offload the PPPoE encap
+ in the flowtable
+Message-ID: <YoIx8zglMHjb4Gi7@salvia>
+References: <1652189176-49750-1-git-send-email-wenxu@chinatelecom.cn>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20220512150847.22858-1-fw@strlen.de>
+In-Reply-To: <1652189176-49750-1-git-send-email-wenxu@chinatelecom.cn>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, May 12, 2022 at 05:08:47PM +0200, Florian Westphal wrote:
-> They are either obsolete or useless.
-> 
-> Those in the normal processing path cannot be enabled on a production
-> system; they generate too much noise.
-> 
-> One pr_debug call resides in an error path and does provide useful info,
-> merge it with the existing nf_log_invalid().
+Hi,
 
-Applied, thanks
+This is likely clashing with Felix's fixes:
+
+https://patchwork.ozlabs.org/project/netfilter-devel/patch/20220509122616.65449-1-nbd@nbd.name/
+https://patchwork.ozlabs.org/project/netfilter-devel/patch/20220509122616.65449-2-nbd@nbd.name/
+https://patchwork.ozlabs.org/project/netfilter-devel/patch/20220509122616.65449-3-nbd@nbd.name/
+https://patchwork.ozlabs.org/project/netfilter-devel/patch/20220509122616.65449-4-nbd@nbd.name/
+
+On Tue, May 10, 2022 at 09:26:16AM -0400, wenxu@chinatelecom.cn wrote:
+> From: wenxu <wenxu@chinatelecom.cn>
+> 
+> This patch put the pppoe process in the FLOW_OFFLOAD_XMIT_DIRECT
+> mode. Xmit the packet with PPPoE can offload to the underlay device
+> directly.
+> 
+> It can support all kinds of VLAN dev path:
+> pppoe-->eth
+> pppoe-->br0.100-->br0(vlan filter enable)-->eth
+> pppoe-->eth.100-->eth
+> 
+> The packet xmit and recv offload to the 'eth' in both original and
+> reply direction.
+> 
+> Signed-off-by: wenxu <wenxu@chinatelecom.cn>
+> ---
+> This patch based on the following one: nf_flow_table_offload: offload the vlan encap in the flowtable
+> http://patchwork.ozlabs.org/project/netfilter-devel/patch/1649169515-4337-1-git-send-email-wenx05124561@163.com/
+> 
+>  include/net/netfilter/nf_flow_table.h | 34 ++++++++++++++++++++++++++++++++++
+>  net/netfilter/nf_flow_table_ip.c      |  3 +++
+>  net/netfilter/nft_flow_offload.c      | 10 +++-------
+>  3 files changed, 40 insertions(+), 7 deletions(-)
+> 
+> diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+> index 64daafd..8be369c 100644
+> --- a/include/net/netfilter/nf_flow_table.h
+> +++ b/include/net/netfilter/nf_flow_table.h
+> @@ -319,6 +319,40 @@ int nf_flow_rule_route_ipv6(struct net *net, const struct flow_offload *flow,
+>  int nf_flow_table_offload_init(void);
+>  void nf_flow_table_offload_exit(void);
+>  
+> +static inline int nf_flow_ppoe_push(struct sk_buff *skb, u16 id)
+> +{
+> +	struct ppp_hdr {
+> +		struct pppoe_hdr hdr;
+> +		__be16 proto;
+> +	} *ph;
+> +	int data_len = skb->len + 2;
+> +	__be16 proto;
+> +
+> +	if (skb_cow_head(skb, PPPOE_SES_HLEN))
+> +		return -1;
+> +
+> +	if (skb->protocol == htons(ETH_P_IP))
+> +		proto = htons(PPP_IP);
+> +	else if (skb->protocol == htons(ETH_P_IPV6))
+> +		proto = htons(PPP_IPV6);
+> +	else
+> +		return -1;
+> +
+> +	__skb_push(skb, PPPOE_SES_HLEN);
+> +	skb_reset_network_header(skb);
+> +
+> +	ph = (struct ppp_hdr *)(skb->data);
+> +	ph->hdr.ver  = 1;
+> +	ph->hdr.type = 1;
+> +	ph->hdr.code = 0;
+> +	ph->hdr.sid  = htons(id);
+> +	ph->hdr.length = htons(data_len);
+> +	ph->proto = proto;
+> +	skb->protocol = htons(ETH_P_PPP_SES);
+> +
+> +	return 0;
+> +}
+> +
+>  static inline __be16 nf_flow_pppoe_proto(const struct sk_buff *skb)
+>  {
+>  	__be16 proto;
+> diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+> index 99ae2550..d1c0d95 100644
+> --- a/net/netfilter/nf_flow_table_ip.c
+> +++ b/net/netfilter/nf_flow_table_ip.c
+> @@ -295,6 +295,9 @@ static void nf_flow_encap_push(struct sk_buff *skb,
+>  				      tuplehash->tuple.encap[i].proto,
+>  				      tuplehash->tuple.encap[i].id);
+>  			break;
+> +		case htons(ETH_P_PPP_SES):
+> +			nf_flow_ppoe_push(skb, tuplehash->tuple.encap[i].id);
+> +			break;
+>  		}
+>  	}
+>  }
+> diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+> index f9837c9..eea8637 100644
+> --- a/net/netfilter/nft_flow_offload.c
+> +++ b/net/netfilter/nft_flow_offload.c
+> @@ -122,12 +122,9 @@ static void nft_dev_path_info(const struct net_device_path_stack *stack,
+>  			info->encap[info->num_encaps].id = path->encap.id;
+>  			info->encap[info->num_encaps].proto = path->encap.proto;
+>  			info->num_encaps++;
+> -			if (path->type == DEV_PATH_PPPOE) {
+> -				info->outdev = path->dev;
+> +			if (path->type == DEV_PATH_PPPOE)
+>  				memcpy(info->h_dest, path->encap.h_dest, ETH_ALEN);
+> -			}
+> -			if (path->type == DEV_PATH_VLAN)
+> -				info->xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
+> +			info->xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
+>  			break;
+>  		case DEV_PATH_BRIDGE:
+>  			if (is_zero_ether_addr(info->h_source))
+> @@ -155,8 +152,7 @@ static void nft_dev_path_info(const struct net_device_path_stack *stack,
+>  			break;
+>  		}
+>  	}
+> -	if (!info->outdev)
+> -		info->outdev = info->indev;
+> +	info->outdev = info->indev;
+>  
+>  	info->hw_outdev = info->indev;
+>  
+> -- 
+> 1.8.3.1
+> 
