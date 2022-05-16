@@ -2,36 +2,36 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50495C43217
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 May 2022 15:21:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24980C433FE
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 May 2022 15:21:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245197AbiEPPVX (ORCPT
+        id S245203AbiEPPVZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 16 May 2022 11:21:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58272 "EHLO
+        Mon, 16 May 2022 11:21:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57740 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245227AbiEPPVF (ORCPT
+        with ESMTP id S245186AbiEPPUz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 May 2022 11:21:05 -0400
+        Mon, 16 May 2022 11:20:55 -0400
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABE613BF81;
-        Mon, 16 May 2022 08:20:57 -0700 (PDT)
-Received: from fraeml704-chm.china.huawei.com (unknown [172.18.147.206])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4L22t25XvXz67Klm;
-        Mon, 16 May 2022 23:17:14 +0800 (CST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3FF02393D1;
+        Mon, 16 May 2022 08:20:53 -0700 (PDT)
+Received: from fraeml704-chm.china.huawei.com (unknown [172.18.147.207])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4L22y82WxJz67wkW;
+        Mon, 16 May 2022 23:20:48 +0800 (CST)
 Received: from mscphispre00059.huawei.com (10.123.71.64) by
  fraeml704-chm.china.huawei.com (10.206.15.53) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2375.24; Mon, 16 May 2022 17:20:54 +0200
+ 15.1.2375.24; Mon, 16 May 2022 17:20:51 +0200
 From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
 To:     <mic@digikod.net>
 CC:     <willemdebruijn.kernel@gmail.com>,
         <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
         <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
         <anton.sirazetdinov@huawei.com>
-Subject: [PATCH v5 06/15] landlock: user space API network support
-Date:   Mon, 16 May 2022 23:20:29 +0800
-Message-ID: <20220516152038.39594-7-konstantin.meskhidze@huawei.com>
+Subject: [PATCH v5 03/15] landlock: merge and inherit function refactoring
+Date:   Mon, 16 May 2022 23:20:26 +0800
+Message-ID: <20220516152038.39594-4-konstantin.meskhidze@huawei.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20220516152038.39594-1-konstantin.meskhidze@huawei.com>
 References: <20220516152038.39594-1-konstantin.meskhidze@huawei.com>
@@ -46,119 +46,250 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-User space API was refactored to support
-network actions. New network access flags,
-network rule and network attributes were
-added.
+Merge_ruleset() and inherit_ruleset() functions were
+refactored to support new rule types. This patch adds
+tree_merge() and tree_copy() helpers. Each has
+rule_type argument to choose a particular rb_tree
+structure in a ruleset.
 
 Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
 ---
 
 Changes since v3:
 * Split commit.
-* Refactoring User API for network rule type.
+* Refactoring functions:
+	-insert_rule.
+	-merge_ruleset.
+	-tree_merge.
+	-inherit_ruleset.
+	-tree_copy.
+	-free_rule.
 
 Changes since v4:
 * None
 
 ---
- include/uapi/linux/landlock.h | 48 +++++++++++++++++++++++++++++++++++
- security/landlock/syscalls.c  |  3 ++-
- 2 files changed, 50 insertions(+), 1 deletion(-)
+ security/landlock/ruleset.c | 144 ++++++++++++++++++++++++------------
+ 1 file changed, 98 insertions(+), 46 deletions(-)
 
-diff --git a/include/uapi/linux/landlock.h b/include/uapi/linux/landlock.h
-index 23df4e0e8ace..91d6cb359bf8 100644
---- a/include/uapi/linux/landlock.h
-+++ b/include/uapi/linux/landlock.h
-@@ -31,6 +31,13 @@ struct landlock_ruleset_attr {
- 	 * this access right.
- 	 */
- 	__u64 handled_access_fs;
+diff --git a/security/landlock/ruleset.c b/security/landlock/ruleset.c
+index f079a2a320f1..4b4c9953bb32 100644
+--- a/security/landlock/ruleset.c
++++ b/security/landlock/ruleset.c
+@@ -112,12 +112,16 @@ static struct landlock_rule *create_rule(
+ 	return new_rule;
+ }
+
+-static void free_rule(struct landlock_rule *const rule)
++static void free_rule(struct landlock_rule *const rule, const u16 rule_type)
+ {
+ 	might_sleep();
+ 	if (!rule)
+ 		return;
+-	landlock_put_object(rule->object.ptr);
++	switch (rule_type) {
++	case LANDLOCK_RULE_PATH_BENEATH:
++		landlock_put_object(rule->object.ptr);
++		break;
++	}
+ 	kfree(rule);
+ }
+
+@@ -227,12 +231,12 @@ static int insert_rule(struct landlock_ruleset *const ruleset,
+ 			new_rule = create_rule(object_ptr, 0, &this->layers,
+ 					       this->num_layers,
+ 					       &(*layers)[0]);
++			if (IS_ERR(new_rule))
++				return PTR_ERR(new_rule);
++			rb_replace_node(&this->node, &new_rule->node, &ruleset->root_inode);
++			free_rule(this, rule_type);
+ 			break;
+ 		}
+-		if (IS_ERR(new_rule))
+-			return PTR_ERR(new_rule);
+-		rb_replace_node(&this->node, &new_rule->node, &ruleset->root_inode);
+-		free_rule(this);
+ 		return 0;
+ 	}
+
+@@ -243,13 +247,12 @@ static int insert_rule(struct landlock_ruleset *const ruleset,
+ 	switch (rule_type) {
+ 	case LANDLOCK_RULE_PATH_BENEATH:
+ 		new_rule = create_rule(object_ptr, 0, layers, num_layers, NULL);
++		if (IS_ERR(new_rule))
++			return PTR_ERR(new_rule);
++		rb_link_node(&new_rule->node, parent_node, walker_node);
++		rb_insert_color(&new_rule->node, &ruleset->root_inode);
+ 		break;
+ 	}
+-	if (IS_ERR(new_rule))
+-		return PTR_ERR(new_rule);
+-	rb_link_node(&new_rule->node, parent_node, walker_node);
+-	rb_insert_color(&new_rule->node, &ruleset->root_inode);
+-	ruleset->num_rules++;
+ 	return 0;
+ }
+
+@@ -298,10 +301,53 @@ static void put_hierarchy(struct landlock_hierarchy *hierarchy)
+ 	}
+ }
+
++static int tree_merge(struct landlock_ruleset *const src,
++		struct landlock_ruleset *const dst, u16 rule_type)
++{
++	struct landlock_rule *walker_rule, *next_rule;
++	struct rb_root *src_root;
++	int err = 0;
 +
-+	/**
-+	 * @handled_access_net: Bitmask of actions (cf. `Network flags`_)
-+	 * that is handled by this ruleset and should then be forbidden if no
-+	 * rule explicitly allow them.
-+	 */
-+	__u64 handled_access_net;
- };
-
- /*
-@@ -54,6 +61,11 @@ enum landlock_rule_type {
- 	 * landlock_path_beneath_attr .
- 	 */
- 	LANDLOCK_RULE_PATH_BENEATH = 1,
-+	/**
-+	 * @LANDLOCK_RULE_NET_SERVICE: Type of a &struct
-+	 * landlock_net_service_attr .
-+	 */
-+	LANDLOCK_RULE_NET_SERVICE = 2,
- };
-
- /**
-@@ -79,6 +91,24 @@ struct landlock_path_beneath_attr {
- 	 */
- } __attribute__((packed));
-
-+/**
-+ * struct landlock_net_service_attr - TCP subnet definition
-+ *
-+ * Argument of sys_landlock_add_rule().
-+ */
-+struct landlock_net_service_attr {
-+	/**
-+	 * @allowed_access: Bitmask of allowed access network for services
-+	 * (cf. `Network flags`_).
-+	 */
-+	__u64 allowed_access;
-+	/**
-+	 * @port: Network port
-+	 */
-+	__u16 port;
++	/* Choose rb_tree structure depending on a rule type */
++	switch (rule_type) {
++	case LANDLOCK_RULE_PATH_BENEATH:
++		src_root = &src->root_inode;
++		break;
++	default:
++		return -EINVAL;
++	}
++	/* Merges the @src tree. */
++	rbtree_postorder_for_each_entry_safe(walker_rule, next_rule,
++					     src_root, node) {
++		struct landlock_layer layers[] = {{
++			.level = dst->num_layers,
++		}};
 +
-+} __attribute__((packed));
++		if (WARN_ON_ONCE(walker_rule->num_layers != 1)) {
++			err = -EINVAL;
++			return err;
++		}
++		if (WARN_ON_ONCE(walker_rule->layers[0].level != 0)) {
++			err = -EINVAL;
++			return err;
++		}
++		layers[0].access = walker_rule->layers[0].access;
 +
- /**
-  * DOC: fs_access
-  *
-@@ -162,4 +192,22 @@ struct landlock_path_beneath_attr {
- #define LANDLOCK_ACCESS_FS_REFER			(1ULL << 13)
- /* clang-format on */
-
-+/**
-+ * DOC: net_access
-+ *
-+ * Network flags
-+ * ~~~~~~~~~~~~~~~~
-+ *
-+ * These flags enable to restrict a sandboxed process to a set of network
-+ * actions.
-+ *
-+ * TCP sockets with allowed actions:
-+ *
-+ * - %LANDLOCK_ACCESS_NET_BIND_TCP: Bind a TCP socket to a local port.
-+ * - %LANDLOCK_ACCESS_NET_CONNECT_TCP: Connect an active TCP socket to
-+ *   a remote port.
-+ */
-+#define LANDLOCK_ACCESS_NET_BIND_TCP			(1ULL << 0)
-+#define LANDLOCK_ACCESS_NET_CONNECT_TCP			(1ULL << 1)
++		switch (rule_type) {
++		case LANDLOCK_RULE_PATH_BENEATH:
++			err = insert_rule(dst, walker_rule->object.ptr, 0, rule_type,
++					  &layers, ARRAY_SIZE(layers));
++			break;
++		}
++		if (err)
++			return err;
++	}
++	return err;
++}
 +
- #endif /* _UAPI_LINUX_LANDLOCK_H */
-diff --git a/security/landlock/syscalls.c b/security/landlock/syscalls.c
-index 412ced6c512f..31f9facec123 100644
---- a/security/landlock/syscalls.c
-+++ b/security/landlock/syscalls.c
-@@ -82,8 +82,9 @@ static void build_check_abi(void)
- 	 * struct size.
- 	 */
- 	ruleset_size = sizeof(ruleset_attr.handled_access_fs);
-+	ruleset_size += sizeof(ruleset_attr.handled_access_net);
- 	BUILD_BUG_ON(sizeof(ruleset_attr) != ruleset_size);
--	BUILD_BUG_ON(sizeof(ruleset_attr) != 8);
-+	BUILD_BUG_ON(sizeof(ruleset_attr) != 16);
+ static int merge_ruleset(struct landlock_ruleset *const dst,
+ 			 struct landlock_ruleset *const src)
+ {
+-	struct landlock_rule *walker_rule, *next_rule;
+ 	int err = 0;
 
- 	path_beneath_size = sizeof(path_beneath_attr.allowed_access);
- 	path_beneath_size += sizeof(path_beneath_attr.parent_fd);
+ 	might_sleep();
+@@ -323,29 +369,10 @@ static int merge_ruleset(struct landlock_ruleset *const dst,
+ 	}
+ 	dst->access_masks[dst->num_layers - 1] = src->access_masks[0];
+
+-	/* Merges the @src tree. */
+-	rbtree_postorder_for_each_entry_safe(walker_rule, next_rule,
+-			&src->root_inode, node) {
+-		struct landlock_layer layers[] = {{
+-			.level = dst->num_layers,
+-		} };
+-
+-		if (WARN_ON_ONCE(walker_rule->num_layers != 1)) {
+-			err = -EINVAL;
+-			goto out_unlock;
+-		}
+-		if (WARN_ON_ONCE(walker_rule->layers[0].level != 0)) {
+-			err = -EINVAL;
+-			goto out_unlock;
+-		}
+-		layers[0].access = walker_rule->layers[0].access;
+-
+-		err = insert_rule(dst, walker_rule->object.ptr, 0,
+-				  LANDLOCK_RULE_PATH_BENEATH, &layers,
+-				  ARRAY_SIZE(layers));
+-		if (err)
+-			goto out_unlock;
+-	}
++	/* Merges the @src inode tree. */
++	err = tree_merge(src, dst, LANDLOCK_RULE_PATH_BENEATH);
++	if (err)
++		goto out_unlock;
+
+ out_unlock:
+ 	mutex_unlock(&src->lock);
+@@ -353,10 +380,40 @@ static int merge_ruleset(struct landlock_ruleset *const dst,
+ 	return err;
+ }
+
++static int tree_copy(struct landlock_ruleset *const parent,
++		struct landlock_ruleset *const child, u16 rule_type)
++{
++	struct landlock_rule *walker_rule, *next_rule;
++	struct rb_root *parent_root;
++	int err = 0;
++
++	/* Choose rb_tree structure depending on a rule type */
++	switch (rule_type) {
++	case LANDLOCK_RULE_PATH_BENEATH:
++		parent_root = &parent->root_inode;
++		break;
++	default:
++		return -EINVAL;
++	}
++	/* Copies the @parent inode tree. */
++	rbtree_postorder_for_each_entry_safe(walker_rule, next_rule,
++					     parent_root, node) {
++		switch (rule_type) {
++		case LANDLOCK_RULE_PATH_BENEATH:
++			err = insert_rule(child, walker_rule->object.ptr, 0,
++					  rule_type, &walker_rule->layers,
++					  walker_rule->num_layers);
++			break;
++		}
++		if (err)
++			return err;
++	}
++	return err;
++}
++
+ static int inherit_ruleset(struct landlock_ruleset *const parent,
+ 			   struct landlock_ruleset *const child)
+ {
+-	struct landlock_rule *walker_rule, *next_rule;
+ 	int err = 0;
+
+ 	might_sleep();
+@@ -367,15 +424,10 @@ static int inherit_ruleset(struct landlock_ruleset *const parent,
+ 	mutex_lock(&child->lock);
+ 	mutex_lock_nested(&parent->lock, SINGLE_DEPTH_NESTING);
+
+-	/* Copies the @parent tree. */
+-	rbtree_postorder_for_each_entry_safe(walker_rule, next_rule,
+-			&parent->root_inode, node) {
+-		err = insert_rule(child, walker_rule->object.ptr, 0,
+-				LANDLOCK_RULE_PATH_BENEATH, &walker_rule->layers,
+-				walker_rule->num_layers);
+-		if (err)
+-			goto out_unlock;
+-	}
++	/* Copies the @parent inode tree. */
++	err = tree_copy(parent, child, LANDLOCK_RULE_PATH_BENEATH);
++	if (err)
++		goto out_unlock;
+
+ 	if (WARN_ON_ONCE(child->num_layers <= parent->num_layers)) {
+ 		err = -EINVAL;
+@@ -405,7 +457,7 @@ static void free_ruleset(struct landlock_ruleset *const ruleset)
+ 	might_sleep();
+ 	rbtree_postorder_for_each_entry_safe(freeme, next, &ruleset->root_inode,
+ 			node)
+-		free_rule(freeme);
++		free_rule(freeme, LANDLOCK_RULE_PATH_BENEATH);
+ 	put_hierarchy(ruleset->hierarchy);
+ 	kfree(ruleset);
+ }
 --
 2.25.1
 
