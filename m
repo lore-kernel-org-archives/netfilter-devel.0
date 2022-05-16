@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DDB1C433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 May 2022 19:11:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A855C433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 May 2022 19:11:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231552AbiEPTLR (ORCPT
+        id S232372AbiEPTLS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 16 May 2022 15:11:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55608 "EHLO
+        Mon, 16 May 2022 15:11:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55626 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345370AbiEPTLB (ORCPT
+        with ESMTP id S1345373AbiEPTLB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 16 May 2022 15:11:01 -0400
-Received: from NAM11-DM6-obe.outbound.protection.outlook.com (mail-dm6nam11on2045.outbound.protection.outlook.com [40.107.223.45])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2EE5C1D320
+Received: from NAM11-BN8-obe.outbound.protection.outlook.com (mail-bn8nam11on2076.outbound.protection.outlook.com [40.107.236.76])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C366C25E83
         for <netfilter-devel@vger.kernel.org>; Mon, 16 May 2022 12:11:00 -0700 (PDT)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=XY/qlAMjbyDuXVscdC646zQPEXSfmL/owRpiVVD5c8sySYNWp66gJNRJZPmn+4beMnO4hNnxpWKPM4VCM20hNGURiLMFccPz0DeJjbqnRt08G1qFnxznoiglod/cLIfXgxO1a6LWC5y2Zt1PyE58ZdqSXggPUkRkzNusdt45VU2oTxeAXFo7BOYxw/dljrJq+o3PQunoD/Wj2ca59L3SjB4TxPll4umBkybgCJXvB6tIJSLULs9RHKXztr/KJ1pM0EyTr38WTN/FkDdqtxvfdSqkCJuA2UEi6wcVKmUBRUiZ0Gm9FPutq82EwIPLZn78zoLaOXP4RkM1jcx+HoSqOg==
+ b=FX413iQBrlL9HHtFJ6wfgsMC1Hgs1vdr4Q3FXbBhQCHkdVPxYN5egJYvgXynomLoImQ/YfkLxmb/9/Uz7M6T8d/CyH2ebx/KevR/VcF4Lws0yiWfrfMsZ4TCA8hJJWKp+riRiA3ZndxbGd5QsKQRHakEeG9nSycJtigpEpVFHvmB5j03OlKJLVhx8NEqyTMpYWaWEgKjxws4aMPaYeXCvhgZQb453wae57kykNCoje2gloPrSYiD4Q3hanc5pJCa7MXAnUnxc2TJzF2qXeX3ERwdkqdZCy1WJP1X7mrgh2sjpqbll1/kMrIYpPn4vSVG1bfPbkfOkO3rOC4MT/mHag==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=uH4U+P0DCox8SDUjSLDH68SlTn73ZahIwvhwEmJSZOM=;
- b=kx5wgsAvSgVodVIX0YoALR2hCM12JSADy+2GHYMkPd+Ja0uPQFUmzUayCZUDXvhmg6OziMLjLkXT36r3iG6JyQFX/KcZ2yU4snDKisUPCCSTcpizFlNM7A+qH5npng7CLdqKXCCiUoQ6al7j3zEfk3SuofB87Np/tB+StSbR1Ti6Np/7JmY9hjcBhlhPkSMfT0ctEByjs3g6CGUriKqkWHTV861++a9QeVt3fwyXO6lSC29lRtFe9gJEVEPH/uEA/XYRtFqUIMg/vIdCVOy4zTCafB9alnKuL7tEaXax3Dps2udWouUY0TuR/JSxAWq0xEf/m4KOID9zeINL0RrrZA==
+ bh=gZ3p+ha0TK8dMC9qoW+7YKbjfYW1eP3cnXPnZhvtOtw=;
+ b=ZEFb/tD2qIVK6KrPUSDlRuU0oGU0yt7PEF/4wg3TZaTTO2KtYDZdFuznplDd0MGJKPUWXdqTTIZEyMH0Zg0VTgi+2dkXTTJp4wj2A6GIACshbTaCSQnfAM6nkGpxQnn9Kw9UUXh+PTm+h1DBdhDmeeDUJ55bURRwypuxeOQo9a/UxXQ5UEILNNaWc8vpq8Nn5UyHIO39wcGsxH84NR21a6ZB5lUUD+ea/PuxkkT4KZFHnRu8DPKl2Bv2WUR3GAjRGOp+MQhS4Jntm6ookOo+8DHVsGV5lXQf8u8aTw4WTkbm20RSIwIVrz3FFSHVKkXuXrsIO/YgU+Ii+ehaRzsZyg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  12.22.5.236) smtp.rcpttodomain=netfilter.org smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
@@ -30,18 +30,17 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=uH4U+P0DCox8SDUjSLDH68SlTn73ZahIwvhwEmJSZOM=;
- b=Fw2/d8iwLXL9fENjzArFHuX9g7fffmHXNlTpC6q4sYbMtGMnPQrs+3ukm7Kn2YFBsFD6t7ADY7owGLx7Ggtyy2w42qH4/bHhv2IQH/muMEw+Txo/n6fyAf0v0AR51651JODlM+hpqFybwc64aFrEihYfVikNGPy5VCuR08F5561ZPFDrQ2pwpZpCoUYAV7Odo+kE0LIvP72JZWvv9q8enb+89kwg/m5nzS9hYrxnbcL4UDI3ueye0vm59rG/nZUh9mfSCabIIhlcweKnEfQ8WyfOcsWeQ71Leye/G6q6Wy+M//mcpa2C0tjwsVWzqK7OTRz/AEuvIgEL+bKoBZyulA==
-Received: from DM5PR07CA0119.namprd07.prod.outlook.com (2603:10b6:4:ae::48) by
- IA1PR12MB6043.namprd12.prod.outlook.com (2603:10b6:208:3d5::20) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5250.18; Mon, 16 May
- 2022 19:10:58 +0000
+ bh=gZ3p+ha0TK8dMC9qoW+7YKbjfYW1eP3cnXPnZhvtOtw=;
+ b=cXZmQzC3X5QjyUGsFEany0zabaFHELN5HfQ9J0LunXIxfJtUpMQ7eJWgvJpDVFNnv15+kIpuWGZIqJF/imXo4XaCXKP63jv2caO87w3ooIOHXhbl+b3Jh6AERA6oQHvmLnVq348Oi369PcFalJHI9tIOOQACnzJZdVVKbVDXMEUBn8XaKD1vszr1Yu0My7hqE6OzB+PllpuAv1YA3Rnv7f8xN0TqHLRJ2oA/a/l7fblVizMJtk/PIBeJXh2vZNfR1JmJHZUpi+WFbVT04P+fnPzbxVbtZ8K0uITK7OYSRxyNOf398MXXxJxARR780NpZFvIm6MroNppLCyvu8bxQ3Q==
+Received: from DM5PR07CA0107.namprd07.prod.outlook.com (2603:10b6:4:ae::36) by
+ DM6PR12MB2697.namprd12.prod.outlook.com (2603:10b6:5:49::18) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.5250.18; Mon, 16 May 2022 19:10:59 +0000
 Received: from DM6NAM11FT066.eop-nam11.prod.protection.outlook.com
- (2603:10b6:4:ae:cafe::25) by DM5PR07CA0119.outlook.office365.com
- (2603:10b6:4:ae::48) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5250.15 via Frontend
- Transport; Mon, 16 May 2022 19:10:58 +0000
+ (2603:10b6:4:ae:cafe::6f) by DM5PR07CA0107.outlook.office365.com
+ (2603:10b6:4:ae::36) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5250.18 via Frontend
+ Transport; Mon, 16 May 2022 19:10:59 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 12.22.5.236)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
@@ -51,96 +50,94 @@ Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
 Received: from mail.nvidia.com (12.22.5.236) by
  DM6NAM11FT066.mail.protection.outlook.com (10.13.173.179) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- 15.20.5250.13 via Frontend Transport; Mon, 16 May 2022 19:10:57 +0000
-Received: from drhqmail201.nvidia.com (10.126.190.180) by
+ 15.20.5250.13 via Frontend Transport; Mon, 16 May 2022 19:10:58 +0000
+Received: from drhqmail203.nvidia.com (10.126.190.182) by
  DRHQMAIL109.nvidia.com (10.27.9.19) with Microsoft SMTP Server (TLS) id
- 15.0.1497.32; Mon, 16 May 2022 19:10:51 +0000
+ 15.0.1497.32; Mon, 16 May 2022 19:10:53 +0000
 Received: from drhqmail201.nvidia.com (10.126.190.180) by
- drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
+ drhqmail203.nvidia.com (10.126.190.182) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.986.22; Mon, 16 May 2022 12:10:50 -0700
+ 15.2.986.22; Mon, 16 May 2022 12:10:53 -0700
 Received: from vdi.nvidia.com (10.127.8.14) by mail.nvidia.com
  (10.126.190.180) with Microsoft SMTP Server id 15.2.986.22 via Frontend
- Transport; Mon, 16 May 2022 12:10:49 -0700
+ Transport; Mon, 16 May 2022 12:10:51 -0700
 From:   Vlad Buslov <vladbu@nvidia.com>
 To:     <netfilter-devel@vger.kernel.org>
 CC:     <pablo@netfilter.org>, <kadlec@netfilter.org>, <fw@strlen.de>,
         <ozsh@nvidia.com>, <paulb@nvidia.com>,
         Vlad Buslov <vladbu@nvidia.com>
-Subject: [PATCH net-next v2 0/3] Conntrack offload debuggability improvements
-Date:   Mon, 16 May 2022 22:10:29 +0300
-Message-ID: <20220516191032.340243-1-vladbu@nvidia.com>
+Subject: [PATCH net-next v2 1/3] net/sched: act_ct: set 'net' pointer when creating new nf_flow_table
+Date:   Mon, 16 May 2022 22:10:30 +0300
+Message-ID: <20220516191032.340243-2-vladbu@nvidia.com>
 X-Mailer: git-send-email 2.31.1
+In-Reply-To: <20220516191032.340243-1-vladbu@nvidia.com>
+References: <20220516191032.340243-1-vladbu@nvidia.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: b637c34b-ffca-42e8-44a2-08da376fcf02
-X-MS-TrafficTypeDiagnostic: IA1PR12MB6043:EE_
-X-Microsoft-Antispam-PRVS: <IA1PR12MB60433C9C94965B0E623F7A43A0CF9@IA1PR12MB6043.namprd12.prod.outlook.com>
+X-MS-Office365-Filtering-Correlation-Id: e6099c70-2494-4512-fecd-08da376fcfa1
+X-MS-TrafficTypeDiagnostic: DM6PR12MB2697:EE_
+X-Microsoft-Antispam-PRVS: <DM6PR12MB26972F687CE1F91695CDDF80A0CF9@DM6PR12MB2697.namprd12.prod.outlook.com>
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: H9rZH82tzAZt1WE/TSZOGhm9Z+fBgHzXwxlfjDeOvGPl6d6+/COQdHnNBe9VwnQ3UqGF3KdGgQ9EeetL1FNgo+Xo31DHm2CWdfM8Td7IeRLa4e11UYvMN5VQQ7hmW7ajku2Xnd4KnYAeO4MDw2tM0UeNwEkBHfvvg+dopdwTkvLCVqhOTdIfzDU6au3Le4FHoTMQzWiOVuxfbqZaRhyld6TyInEI6AM0MHGOQfNCOtEWuB/EvhfGwKSgBhD4RE889R43iVcZfrTjDg3O2JAdEO7DbkDGUu6SsI/cjzt+Ac/yCmPUgDeUWRcDzEbeTS4VtED54waTKuxhhadXida8ImiycipGniB5loscyPOJ1YpbDGqgYte+Ie4YzTEW6SfJVVLSgNd49MAAC++zt8kXq5/eZ1o20IetSG9yddPbuCqvGBnSPBYaNXWlP0JacYDYUjRwN+p0uFnmx0ikhoKHMqsO7KTjYS0fvc+jjNtjCt+Nqw5QRazgfUTsyYpXEcsZ64m9Lj0onI34O7BB3l6eeD64HPvjLuF1uSmjRzYtFE/HxnJFUCDILfB40hjeRKARF7BDMuQUgrhEGRGjYYkwTfy+SBjS0i/nWiy+8jjeo+kLvFzg4zmlWl96EYhH+B0z7+7dW33EW6OEcBfzvDTayVzbNGFl4Ex9ZRqnhVOVDorDbik1UE9Br1JTEeV3LAgEIv2oaSSzV1tBySDM9pNTgg==
-X-Forefront-Antispam-Report: CIP:12.22.5.236;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:InfoNoRecords;CAT:NONE;SFS:(13230001)(4636009)(46966006)(40470700004)(36840700001)(4326008)(70586007)(70206006)(36860700001)(8676002)(82310400005)(81166007)(1076003)(26005)(36756003)(6916009)(54906003)(40460700003)(316002)(2906002)(47076005)(2616005)(186003)(356005)(8936002)(7696005)(83380400001)(6666004)(86362001)(5660300002)(426003)(336012)(107886003)(508600001)(36900700001);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: gL6GKnBiFxMozJzCrtkZZoH+O/aEqrZ4dUD06HgnTeZW/HHBMyjMV58lQS/0SOoeHCAhByvQgBn2t16LlyXCpCUQVcrIymj0APytrG59Gxnp7g4VWv2E0H/9LjNnSmVLxKT2v/0JeVyscDa+cn5/TKDhGLEyJLCMyUmf7zyt2mDU8/CID2VL1ojh1huiq5wmgvpuiovU0Hem6PCsMxAtBsCK0A1FTB7ffVcmw37hvCmg3bI8rA14qc/0k+RSrhnWZcY8IRUmwS65xzZMfpsF3cjycwMCvNIr9LGeo7ai5xZaqMnVAafQ/5IVvqqJbGfQIHUMkc0ybC9wMeWlDohyF2nVe7wF9gjp3P7dD//satalPVSW/FA6Fw05Pq7ZgKJs6GvFxCBaOoXLBlkgjaamO3um0eGtGEjWq/lzXv9ZyoERcIdYqF/N2sW8Bxd4crqa5d34my5BzXV29gLmeKTK9NwFVhEtUFIbTjQXpQTXZqoxxPuJbGRmRFdnx7GJEs4CDwImpmOzXPnzmPOhTgfvAAx6cZThmw9waB5qew/B3wjFww4xy3mXqF5e4wu2zAJAx1GGE+s+4/uX1zMiKncDZ6RPb33saW8SgiyPvretIFexPOIeIze7n14/PP2kUFhrvUHDtgiOgQYC0DND11ttPC5UfimxSRczmEJSpQJP54wNkJ0mtUQpWF/d9tFLEknwawYNQmrzkaq6OvUnS3GFiQ==
+X-Forefront-Antispam-Report: CIP:12.22.5.236;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:InfoNoRecords;CAT:NONE;SFS:(13230001)(4636009)(46966006)(36840700001)(40470700004)(186003)(81166007)(1076003)(5660300002)(2616005)(356005)(36756003)(47076005)(2906002)(54906003)(336012)(6916009)(40460700003)(36860700001)(82310400005)(6666004)(8936002)(70206006)(83380400001)(8676002)(70586007)(316002)(107886003)(86362001)(4326008)(26005)(508600001)(7696005)(426003)(36900700001);DIR:OUT;SFP:1101;
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 May 2022 19:10:57.9182
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 May 2022 19:10:58.9494
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: b637c34b-ffca-42e8-44a2-08da376fcf02
+X-MS-Exchange-CrossTenant-Network-Message-Id: e6099c70-2494-4512-fecd-08da376fcfa1
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[12.22.5.236];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource: DM6NAM11FT066.eop-nam11.prod.protection.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6043
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB2697
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Current conntrack offload implementation doesn't provide much visibility
-and control over offload code. The code just tries to offload new flows,
-even if current amount of flows is beyond what can be reasonably
-processed by target hardware. On top of that there is no way to
-determine current load on workqueues that process the offload tasks
-which makes it hard to debug the cases where offload is significantly
-delayed due to rate of new connections being higher than driver or
-hardware offload rate.
+Following patches in series use the pointer to access flow table offload
+debug variables.
 
-Improve the debuggability situation by implementing following new
-functionality:
+Signed-off-by: Vlad Buslov <vladbu@nvidia.com>
+Signed-off-by: Oz Shlomo <ozsh@nvidia.com>
+---
+ net/sched/act_ct.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-- Sysctls for current total count of offloaded flow and
-  user-configurable maximum. Capping the amount of offloaded flows can
-  be useful for the allocations of hardware resources. Note that the
-  flow can still be offloaded afterwards via 'refresh' mechanism if
-  total hardware count.
-
-- Procfs for current total of workqueue tasks for nf_ft_offload_add,
-  nf_ft_offload_del and nf_ft_offload_stats queues. This allows
-  visibility for flow offload delay due to system scheduling offload
-  tasks faster than driver/hardware can process them.
-
-Vlad Buslov (3):
-  net/sched: act_ct: set 'net' pointer when creating new nf_flow_table
-  netfilter: nf_flow_table: count and limit hw offloaded entries
-  netfilter: nf_flow_table: count pending offload workqueue tasks
-
- .../networking/nf_flowtable-sysctl.rst        |  17 ++
- include/net/net_namespace.h                   |   6 +
- include/net/netfilter/nf_flow_table.h         |  35 ++++
- include/net/netns/flow_table.h                |  14 ++
- net/netfilter/Kconfig                         |   8 +
- net/netfilter/Makefile                        |   3 +-
- net/netfilter/nf_flow_table_core.c            |  89 ++++++++-
- net/netfilter/nf_flow_table_offload.c         |  53 +++++-
- net/netfilter/nf_flow_table_sysctl.c          | 171 ++++++++++++++++++
- net/sched/act_ct.c                            |   5 +-
- 10 files changed, 387 insertions(+), 14 deletions(-)
- create mode 100644 Documentation/networking/nf_flowtable-sysctl.rst
- create mode 100644 include/net/netns/flow_table.h
- create mode 100644 net/netfilter/nf_flow_table_sysctl.c
-
+diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
+index 8af9d6e5ba61..58e0dfed22c6 100644
+--- a/net/sched/act_ct.c
++++ b/net/sched/act_ct.c
+@@ -277,7 +277,7 @@ static struct nf_flowtable_type flowtable_ct = {
+ 	.owner		= THIS_MODULE,
+ };
+ 
+-static int tcf_ct_flow_table_get(struct tcf_ct_params *params)
++static int tcf_ct_flow_table_get(struct net *net, struct tcf_ct_params *params)
+ {
+ 	struct tcf_ct_flow_table *ct_ft;
+ 	int err = -ENOMEM;
+@@ -303,6 +303,7 @@ static int tcf_ct_flow_table_get(struct tcf_ct_params *params)
+ 	err = nf_flow_table_init(&ct_ft->nf_ft);
+ 	if (err)
+ 		goto err_init;
++	write_pnet(&ct_ft->nf_ft.net, net);
+ 
+ 	__module_get(THIS_MODULE);
+ out_unlock:
+@@ -1391,7 +1392,7 @@ static int tcf_ct_init(struct net *net, struct nlattr *nla,
+ 	if (err)
+ 		goto cleanup;
+ 
+-	err = tcf_ct_flow_table_get(params);
++	err = tcf_ct_flow_table_get(net, params);
+ 	if (err)
+ 		goto cleanup;
+ 
 -- 
 2.31.1
 
