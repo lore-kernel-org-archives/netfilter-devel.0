@@ -2,227 +2,93 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3016BC433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 May 2022 15:21:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09BC0C4332F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 May 2022 15:39:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245208AbiEPPVx (ORCPT
+        id S245419AbiEPPjN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 16 May 2022 11:21:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58084 "EHLO
+        Mon, 16 May 2022 11:39:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43870 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245199AbiEPPVE (ORCPT
+        with ESMTP id S245407AbiEPPjM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 May 2022 11:21:04 -0400
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE31E3BA74;
-        Mon, 16 May 2022 08:20:55 -0700 (PDT)
-Received: from fraeml704-chm.china.huawei.com (unknown [172.18.147.207])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4L22yB6mHvz6H6sk;
-        Mon, 16 May 2022 23:20:50 +0800 (CST)
-Received: from mscphispre00059.huawei.com (10.123.71.64) by
- fraeml704-chm.china.huawei.com (10.206.15.53) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2375.24; Mon, 16 May 2022 17:20:53 +0200
-From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-To:     <mic@digikod.net>
-CC:     <willemdebruijn.kernel@gmail.com>,
-        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-        <anton.sirazetdinov@huawei.com>
-Subject: [PATCH v5 05/15] landlock: landlock_add_rule syscall refactoring
-Date:   Mon, 16 May 2022 23:20:28 +0800
-Message-ID: <20220516152038.39594-6-konstantin.meskhidze@huawei.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20220516152038.39594-1-konstantin.meskhidze@huawei.com>
-References: <20220516152038.39594-1-konstantin.meskhidze@huawei.com>
+        Mon, 16 May 2022 11:39:12 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 123C33C721
+        for <netfilter-devel@vger.kernel.org>; Mon, 16 May 2022 08:39:09 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1nqcoN-0002Xo-6X; Mon, 16 May 2022 17:39:07 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH conntrack-tools] conntrack: remove -o userspace
+Date:   Mon, 16 May 2022 17:39:01 +0200
+Message-Id: <20220516153901.173460-1-fw@strlen.de>
+X-Mailer: git-send-email 2.35.3
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.123.71.64]
-X-ClientProxiedBy: mscpeml500001.china.huawei.com (7.188.26.142) To
- fraeml704-chm.china.huawei.com (10.206.15.53)
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Landlock_add_rule syscall was refactored to support new
-rule types in future Landlock versions. Add_rule_path_beneath()
-helper was added to support current filesystem rules. It is called
-by the switch case.
+This flag makes life a lot harder because lack of the flag hides
+very useful information.  Remove it and always tag events triggered
+by userspace flush.
 
-Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+Option is still parsed for backwards compatibility sake.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
+ conntrack.8     | 2 +-
+ src/conntrack.c | 7 +++----
+ 2 files changed, 4 insertions(+), 5 deletions(-)
 
-Changes since v3:
-* Split commit.
-* Refactoring landlock_add_rule syscall.
-
-Changes since v4:
-* Refactoring add_rule_path_beneath() and landlock_add_rule() functions
-to optimize code usage.
-* Refactoring base_test.c seltest: adds LANDLOCK_RULE_PATH_BENEATH
-rule type in landlock_add_rule() call.
-
----
- security/landlock/syscalls.c                 | 105 ++++++++++---------
- tools/testing/selftests/landlock/base_test.c |   4 +-
- 2 files changed, 59 insertions(+), 50 deletions(-)
-
-diff --git a/security/landlock/syscalls.c b/security/landlock/syscalls.c
-index 1db799d1a50b..412ced6c512f 100644
---- a/security/landlock/syscalls.c
-+++ b/security/landlock/syscalls.c
-@@ -274,67 +274,23 @@ static int get_path_from_fd(const s32 fd, struct path *const path)
- 	return err;
- }
-
--/**
-- * sys_landlock_add_rule - Add a new rule to a ruleset
-- *
-- * @ruleset_fd: File descriptor tied to the ruleset that should be extended
-- *		with the new rule.
-- * @rule_type: Identify the structure type pointed to by @rule_attr (only
-- *             LANDLOCK_RULE_PATH_BENEATH for now).
-- * @rule_attr: Pointer to a rule (only of type &struct
-- *             landlock_path_beneath_attr for now).
-- * @flags: Must be 0.
-- *
-- * This system call enables to define a new rule and add it to an existing
-- * ruleset.
-- *
-- * Possible returned errors are:
-- *
-- * - EOPNOTSUPP: Landlock is supported by the kernel but disabled at boot time;
-- * - EINVAL: @flags is not 0, or inconsistent access in the rule (i.e.
-- *   &landlock_path_beneath_attr.allowed_access is not a subset of the
-- *   ruleset handled accesses);
-- * - ENOMSG: Empty accesses (e.g. &landlock_path_beneath_attr.allowed_access);
-- * - EBADF: @ruleset_fd is not a file descriptor for the current thread, or a
-- *   member of @rule_attr is not a file descriptor as expected;
-- * - EBADFD: @ruleset_fd is not a ruleset file descriptor, or a member of
-- *   @rule_attr is not the expected file descriptor type;
-- * - EPERM: @ruleset_fd has no write access to the underlying ruleset;
-- * - EFAULT: @rule_attr inconsistency.
-- */
--SYSCALL_DEFINE4(landlock_add_rule, const int, ruleset_fd,
--		const enum landlock_rule_type, rule_type,
--		const void __user *const, rule_attr, const __u32, flags)
-+static int add_rule_path_beneath(const int ruleset_fd, const void *const rule_attr)
- {
- 	struct landlock_path_beneath_attr path_beneath_attr;
- 	struct path path;
- 	struct landlock_ruleset *ruleset;
- 	int res, err;
-
--	if (!landlock_initialized)
--		return -EOPNOTSUPP;
--
--	/* No flag for now. */
--	if (flags)
--		return -EINVAL;
--
- 	/* Gets and checks the ruleset. */
- 	ruleset = get_ruleset_from_fd(ruleset_fd, FMODE_CAN_WRITE);
- 	if (IS_ERR(ruleset))
- 		return PTR_ERR(ruleset);
-
--	if (rule_type != LANDLOCK_RULE_PATH_BENEATH) {
--		err = -EINVAL;
--		goto out_put_ruleset;
--	}
--
- 	/* Copies raw user space buffer, only one type for now. */
- 	res = copy_from_user(&path_beneath_attr, rule_attr,
--			     sizeof(path_beneath_attr));
--	if (res) {
--		err = -EFAULT;
--		goto out_put_ruleset;
--	}
-+				sizeof(path_beneath_attr));
-+	if (res)
-+		return -EFAULT;
-
- 	/*
- 	 * Informs about useless rule: empty allowed_access (i.e. deny rules)
-@@ -370,6 +326,59 @@ SYSCALL_DEFINE4(landlock_add_rule, const int, ruleset_fd,
- 	return err;
- }
-
-+/**
-+ * sys_landlock_add_rule - Add a new rule to a ruleset
-+ *
-+ * @ruleset_fd: File descriptor tied to the ruleset that should be extended
-+ *		with the new rule.
-+ * @rule_type: Identify the structure type pointed to by @rule_attr (only
-+ *             LANDLOCK_RULE_PATH_BENEATH for now).
-+ * @rule_attr: Pointer to a rule (only of type &struct
-+ *             landlock_path_beneath_attr for now).
-+ * @flags: Must be 0.
-+ *
-+ * This system call enables to define a new rule and add it to an existing
-+ * ruleset.
-+ *
-+ * Possible returned errors are:
-+ *
-+ * - EOPNOTSUPP: Landlock is supported by the kernel but disabled at boot time;
-+ * - EINVAL: @flags is not 0, or inconsistent access in the rule (i.e.
-+ *   &landlock_path_beneath_attr.allowed_access is not a subset of the rule's
-+ *   accesses);
-+ * - ENOMSG: Empty accesses (e.g. &landlock_path_beneath_attr.allowed_access);
-+ * - EBADF: @ruleset_fd is not a file descriptor for the current thread, or a
-+ *   member of @rule_attr is not a file descriptor as expected;
-+ * - EBADFD: @ruleset_fd is not a ruleset file descriptor, or a member of
-+ *   @rule_attr is not the expected file descriptor type (e.g. file open
-+ *   without O_PATH);
-+ * - EPERM: @ruleset_fd has no write access to the underlying ruleset;
-+ * - EFAULT: @rule_attr inconsistency.
-+ */
-+SYSCALL_DEFINE4(landlock_add_rule,
-+		const int, ruleset_fd, const enum landlock_rule_type, rule_type,
-+		const void __user *const, rule_attr, const __u32, flags)
-+{
-+	int err;
-+
-+	if (!landlock_initialized)
-+		return -EOPNOTSUPP;
-+
-+	/* No flag for now. */
-+	if (flags)
-+		return -EINVAL;
-+
-+	switch (rule_type) {
-+	case LANDLOCK_RULE_PATH_BENEATH:
-+		err = add_rule_path_beneath(ruleset_fd, rule_attr);
-+		break;
-+	default:
-+		err = -EINVAL;
-+		break;
-+	}
-+	return err;
-+}
-+
- /* Enforcement */
-
- /**
-diff --git a/tools/testing/selftests/landlock/base_test.c b/tools/testing/selftests/landlock/base_test.c
-index da9290817866..0c4c3a538d54 100644
---- a/tools/testing/selftests/landlock/base_test.c
-+++ b/tools/testing/selftests/landlock/base_test.c
-@@ -156,11 +156,11 @@ TEST(add_rule_checks_ordering)
- 	ASSERT_LE(0, ruleset_fd);
-
- 	/* Checks invalid flags. */
--	ASSERT_EQ(-1, landlock_add_rule(-1, 0, NULL, 1));
-+	ASSERT_EQ(-1, landlock_add_rule(-1, LANDLOCK_RULE_PATH_BENEATH, NULL, 1));
- 	ASSERT_EQ(EINVAL, errno);
-
- 	/* Checks invalid ruleset FD. */
--	ASSERT_EQ(-1, landlock_add_rule(-1, 0, NULL, 0));
-+	ASSERT_EQ(-1, landlock_add_rule(-1, LANDLOCK_RULE_PATH_BENEATH, NULL, 0));
- 	ASSERT_EQ(EBADF, errno);
-
- 	/* Checks invalid rule type. */
---
-2.25.1
+diff --git a/conntrack.8 b/conntrack.8
+index c3214ee0c886..0db427b7b9ea 100644
+--- a/conntrack.8
++++ b/conntrack.8
+@@ -114,7 +114,7 @@ Load entries from a given file. To read from stdin, "\-" should be specified.
+ Atomically zero counters after reading them.  This option is only valid in
+ combination with the "\-L, \-\-dump" command options.
+ .TP
+-.BI "-o, --output [extended,xml,save,timestamp,id,ktimestamp,labels,userspace] "
++.BI "-o, --output [extended,xml,save,timestamp,id,ktimestamp,labels] "
+ Display output in a certain format. With the extended output option, this tool
+ displays the layer 3 information. With ktimestamp, it displays the in-kernel
+ timestamp available since 2.6.38 (you can enable it via the \fBsysctl(8)\fP
+diff --git a/src/conntrack.c b/src/conntrack.c
+index a77354344290..bd02b139dc97 100644
+--- a/src/conntrack.c
++++ b/src/conntrack.c
+@@ -1128,8 +1128,7 @@ enum {
+ 	_O_ID	= (1 << 3),
+ 	_O_KTMS	= (1 << 4),
+ 	_O_CL	= (1 << 5),
+-	_O_US	= (1 << 6),
+-	_O_SAVE	= (1 << 7),
++	_O_SAVE	= (1 << 6),
+ };
+ 
+ enum {
+@@ -1149,7 +1148,7 @@ static struct parse_parameter {
+ 	{ {"ALL", "NEW", "UPDATES", "DESTROY"}, 4,
+ 	  { CT_EVENT_F_ALL, CT_EVENT_F_NEW, CT_EVENT_F_UPD, CT_EVENT_F_DEL } },
+ 	{ {"xml", "extended", "timestamp", "id", "ktimestamp", "labels", "userspace", "save"}, 8,
+-	  { _O_XML, _O_EXT, _O_TMS, _O_ID, _O_KTMS, _O_CL, _O_US, _O_SAVE },
++	  { _O_XML, _O_EXT, _O_TMS, _O_ID, _O_KTMS, _O_CL, 0, _O_SAVE },
+ 	},
+ };
+ 
+@@ -1978,7 +1977,7 @@ static int event_cb(const struct nlmsghdr *nlh, void *data)
+ 
+ 	nfct_snprintf_labels(buf, sizeof(buf), ct, type, op_type, op_flags, labelmap);
+ done:
+-	if ((output_mask & _O_US) && nlh->nlmsg_pid) {
++	if (nlh->nlmsg_pid) {
+ 		char *prog = get_progname(nlh->nlmsg_pid);
+ 
+ 		if (prog)
+-- 
+2.35.3
 
