@@ -2,430 +2,490 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1FB5C433FE
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 May 2022 19:11:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7ABAC433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 May 2022 21:15:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345305AbiEPTLe (ORCPT
+        id S1348512AbiEPVPr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 16 May 2022 15:11:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57016 "EHLO
+        Mon, 16 May 2022 17:15:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49102 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231625AbiEPTLb (ORCPT
+        with ESMTP id S1349353AbiEPVPZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 May 2022 15:11:31 -0400
-Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12on2046.outbound.protection.outlook.com [40.107.237.46])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36A612B242
-        for <netfilter-devel@vger.kernel.org>; Mon, 16 May 2022 12:11:30 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=m0skd+gyMDkYlWsMhoKQccgMR6G+wONmxUSWaT5E7XLtIsm1u6c7qBYPBH9xW75nqAISv5PfQUnZAcZbDELKOtaGLg2jlWDrheUg3K8oJPD6oQpWD7TyEg7iKTLGdJG6rq1k0JbNvlT8eIkKMdYCNhEE298lqSgiWNfhsxQKBdTjDS5xM4vZf2R0WYzOruQlCitdZ87Us67unueEw2UagOVnio8hMMc4KQEe/QGQhBlk7MvITCg1dyrl0cD8V9MJuq8BBCXa4GVoIicn47IjiJp3hd0OkBWYLEq+oxNEx3O6TNqBmoDfzwqTO+/Sy0fO9fTfnGhsA/lfZR39iJFG1A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=giEjGIb2uxzH1akldeDlwLRazfMPcolUji4Okbul/iM=;
- b=AhwIPJZRHmCewArWEoaEnAOK7e5oV1tbSDTv8HNI/4p0vxc/emAU7ZK1e8xrZmEJj0GRrAFtvV2cn+rhHz55xePuslPqoroH+Ow82MeTjMjZTeUY8mQvOoz4mw/nOprsePHOiaUMRFp3+G5Xd0ta0VrYn4iDEKu1LglckiH+w64TVeoekhlindMBZld6mtnQZwYZmM9V8mWonfL7Nl8eLan/DL8+BROKQ5llgd9uYpsDxa14tVn76PkzLWWZTblQPD6PFPtp4zkbiQVHMQz6MZyWzv5XoKKSuL+mLGSfJjoPNahJvDQGqP5iSYhPRj7lBajV6kDXcPXj418khWLtmw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 12.22.5.235) smtp.rcpttodomain=netfilter.org smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=giEjGIb2uxzH1akldeDlwLRazfMPcolUji4Okbul/iM=;
- b=ubIYLoyAuK+SWz9ko5L56M5BsaEU+wRiOnfUyLIZuSp9x6OGsmi1uMIOnJpidrtLWaNoZP5HbdaTyGpt4xrIjOIJI2nZWC5b+T06RCcqQJpCmRJVH34QYbP5eIvGx7R1n5TiRw93hHaFayNMYwoKwoKDj03Gfjvvzz0aG8UazAT1nM8k1T+Egj4M6E+evE4ae5N9TgMQFVvukOkV1Vgc2wSTv84Nc2YkK/QHfQXuVCACNgJDrXLarVUjRqsepyydaMtHf2MNqsIIVL1UNAiWxl+10cc2Ei8aTZUtWkm3vrpJlWuNCWEcybZX/3e9X7UoLiVXzV8mPJeLH4gijTfbLQ==
-Received: from BN0PR07CA0016.namprd07.prod.outlook.com (2603:10b6:408:141::21)
- by MN2PR12MB4534.namprd12.prod.outlook.com (2603:10b6:208:24f::10) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5250.14; Mon, 16 May
- 2022 19:11:28 +0000
-Received: from BN8NAM11FT064.eop-nam11.prod.protection.outlook.com
- (2603:10b6:408:141:cafe::c3) by BN0PR07CA0016.outlook.office365.com
- (2603:10b6:408:141::21) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5250.14 via Frontend
- Transport; Mon, 16 May 2022 19:11:28 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 12.22.5.235)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 12.22.5.235 as permitted sender) receiver=protection.outlook.com;
- client-ip=12.22.5.235; helo=mail.nvidia.com;
-Received: from mail.nvidia.com (12.22.5.235) by
- BN8NAM11FT064.mail.protection.outlook.com (10.13.176.160) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- 15.20.5250.13 via Frontend Transport; Mon, 16 May 2022 19:11:28 +0000
-Received: from drhqmail201.nvidia.com (10.126.190.180) by
- DRHQMAIL107.nvidia.com (10.27.9.16) with Microsoft SMTP Server (TLS) id
- 15.0.1497.32; Mon, 16 May 2022 19:10:58 +0000
-Received: from drhqmail201.nvidia.com (10.126.190.180) by
- drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.986.22; Mon, 16 May 2022 12:10:57 -0700
-Received: from vdi.nvidia.com (10.127.8.14) by mail.nvidia.com
- (10.126.190.180) with Microsoft SMTP Server id 15.2.986.22 via Frontend
- Transport; Mon, 16 May 2022 12:10:56 -0700
-From:   Vlad Buslov <vladbu@nvidia.com>
-To:     <netfilter-devel@vger.kernel.org>
-CC:     <pablo@netfilter.org>, <kadlec@netfilter.org>, <fw@strlen.de>,
-        <ozsh@nvidia.com>, <paulb@nvidia.com>,
-        Vlad Buslov <vladbu@nvidia.com>
-Subject: [PATCH net-next v2 3/3] netfilter: nf_flow_table: count pending offload workqueue tasks
-Date:   Mon, 16 May 2022 22:10:32 +0300
-Message-ID: <20220516191032.340243-4-vladbu@nvidia.com>
-X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20220516191032.340243-1-vladbu@nvidia.com>
-References: <20220516191032.340243-1-vladbu@nvidia.com>
+        Mon, 16 May 2022 17:15:25 -0400
+Received: from smtp-190d.mail.infomaniak.ch (smtp-190d.mail.infomaniak.ch [185.125.25.13])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7DAC101CA;
+        Mon, 16 May 2022 14:11:19 -0700 (PDT)
+Received: from smtp-2-0000.mail.infomaniak.ch (unknown [10.5.36.107])
+        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4L2BkY5yTZzMqDV8;
+        Mon, 16 May 2022 23:11:17 +0200 (CEST)
+Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
+        by smtp-2-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4L2BkY1zfdzlhSM4;
+        Mon, 16 May 2022 23:11:17 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
+        s=20191114; t=1652735477;
+        bh=+aizXfOogFD6GMJsxLgVAZuyJL+LhtFd42iQMnz6KS4=;
+        h=Date:To:Cc:References:From:Subject:In-Reply-To:From;
+        b=ZBe7cabD3KbMedo1wXKRX7fRpd92yNodY3j5XQtsBUzVtIhmEM0ZHvliBj/LhxIs0
+         kXpAeHxvmN6v5PfbjunNb5XpF3Qp49eJaypvBhRVJDEFGellPFdQmoEw1Skyv0Okcs
+         ZGVoEeMAhaKIJCEvbcXs8Xv0mGcky/C9Se/0nRd0=
+Message-ID: <eaa4cc8f-4c4a-350d-6b96-551f32156e3d@digikod.net>
+Date:   Mon, 16 May 2022 23:11:16 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 6fd077bb-2a89-4fea-4760-08da376fe12e
-X-MS-TrafficTypeDiagnostic: MN2PR12MB4534:EE_
-X-Microsoft-Antispam-PRVS: <MN2PR12MB45347AF008B96A1E99AEC9AEA0CF9@MN2PR12MB4534.namprd12.prod.outlook.com>
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: pulsBVtf9CQBr9hig4ICl+KLYaTqZ6iQN6nDUoaQlxt4n7KcrY1QcYIW7/qYlBpTunTAu+8hznGCqGeNBtntSCfWTzS+h/bwJSHEFMqmlcpzh8k3E1IvUZgHlD64b2hl+wpsOqtAXb55KKoy71bfK/K4SNEOas5j+g5KfCmzw4ZkvCi/PHXVe2hL5UERrrjTnNzJMVA1Hnp7IOFqSHeQPAEQeE4sZB8IL3GYgfsgqpQtkvpxcnNh02X216Is1i1cVLa8e3quLx0xzMPR9+qorSERW8syuMAZ2yXguk4ZQdFN55qoL1kFBbMxKRK5vepj8mJtlczrjsxWXD2TdwrOpb69JAQ3hPBOIqNLP/czr6+yL190re7zeKZzqyezPXwRwd3R+I+WiWyv5/qZ2dRbo7/UNwhd04+AyeOWj4Eklb4gS4VBiwJji8rUmWzxgRO7CiJS/4ccHvCrMcAX56JhmgIKeE3CRVFtOspY6f2TUYHGmVz3DFfIXPODhnwvTFyYQB6OnrFtuVoftoi9n0LbHMV5tAcR/v6AD5j8plxMRubb8Y9I9ikedLGLPLc++hHuaJM1Dn1UC+kOKxKJxND8eXRHKgnJQIZIduL9F5bIJeCO8K08LYh2NQ61YCZKy783w0L9wbO8CWY9NMDdkGJGDOXGPVEIgfccXBVyYU5Y5tJqm6x9zLoOamqggDBGeHfbopuiVlJuE/T3n3PP8wHcvg==
-X-Forefront-Antispam-Report: CIP:12.22.5.235;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:InfoNoRecords;CAT:NONE;SFS:(13230001)(4636009)(40470700004)(36840700001)(46966006)(81166007)(26005)(4326008)(8676002)(70586007)(70206006)(86362001)(508600001)(8936002)(1076003)(7696005)(356005)(186003)(336012)(6916009)(5660300002)(36860700001)(2906002)(6666004)(2616005)(316002)(107886003)(83380400001)(36756003)(47076005)(426003)(82310400005)(40460700003)(54906003)(36900700001);DIR:OUT;SFP:1101;
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 May 2022 19:11:28.3431
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 6fd077bb-2a89-4fea-4760-08da376fe12e
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[12.22.5.235];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource: BN8NAM11FT064.eop-nam11.prod.protection.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR12MB4534
+User-Agent: 
+Content-Language: en-US
+To:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+Cc:     willemdebruijn.kernel@gmail.com,
+        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
+        anton.sirazetdinov@huawei.com
+References: <20220516152038.39594-1-konstantin.meskhidze@huawei.com>
+ <20220516152038.39594-10-konstantin.meskhidze@huawei.com>
+From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+Subject: Re: [PATCH v5 09/15] seltests/landlock: add tests for bind() hooks
+In-Reply-To: <20220516152038.39594-10-konstantin.meskhidze@huawei.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-To improve hardware offload debuggability count pending 'add', 'del' and
-'stats' flow_table offload workqueue tasks. Counters are incremented before
-scheduling new task and decremented when workqueue handler finishes
-executing. These counters allow user to diagnose congestion on hardware
-offload workqueues that can happen when either CPU is starved and workqueue
-jobs are executed at lower rate than new ones are added or when
-hardware/driver can't keep up with the rate.
 
-Implement the described counters as percpu counters inside new struct
-netns_ft which is stored inside struct net. Expose them via new procfs file
-'/proc/net/stats/nf_flowtable' that is similar to existing 'nf_conntrack'
-file.
+On 16/05/2022 17:20, Konstantin Meskhidze wrote:
+> Adds selftests for bind socket action.
+> The first is with no landlock restrictions:
+>      - bind_no_restrictions_ip4;
+>      - bind_no_restrictions_ip6;
+> The second ones is with mixed landlock rules:
+>      - bind_with_restrictions_ip4;
+>      - bind_with_restrictions_ip6;
+> 
+> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+> ---
+> 
+> Changes since v3:
+> * Split commit.
+> * Add helper create_socket.
+> * Add FIXTURE_SETUP.
+> 
+> Changes since v4:
+> * Adds port[MAX_SOCKET_NUM], struct sockaddr_in addr4
+> and struct sockaddr_in addr6 in FIXTURE.
+> * Refactoring FIXTURE_SETUP:
+>      - initializing self->port, self->addr4 and self->addr6.
+>      - adding network namespace.
+> * Refactoring code with self->port, self->addr4 and
+> self->addr6 variables.
+> * Adds selftests for IP6 family:
+>      - bind_no_restrictions_ip6.
+>      - bind_with_restrictions_ip6.
+> * Refactoring selftests/landlock/config
+> * Moves enforce_ruleset() into common.h
+> 
+> ---
+>   tools/testing/selftests/landlock/common.h   |   9 +
+>   tools/testing/selftests/landlock/config     |   5 +-
+>   tools/testing/selftests/landlock/fs_test.c  |  10 -
+>   tools/testing/selftests/landlock/net_test.c | 237 ++++++++++++++++++++
+>   4 files changed, 250 insertions(+), 11 deletions(-)
+>   create mode 100644 tools/testing/selftests/landlock/net_test.c
+> 
+> diff --git a/tools/testing/selftests/landlock/common.h b/tools/testing/selftests/landlock/common.h
+> index 7ba18eb23783..c5381e641dfd 100644
+> --- a/tools/testing/selftests/landlock/common.h
+> +++ b/tools/testing/selftests/landlock/common.h
+> @@ -102,6 +102,15 @@ static inline int landlock_restrict_self(const int ruleset_fd,
+>   }
+>   #endif
+> 
+> +static void enforce_ruleset(struct __test_metadata *const _metadata,
+> +		const int ruleset_fd)
+> +{
+> +	ASSERT_EQ(0, prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0));
+> +	ASSERT_EQ(0, landlock_restrict_self(ruleset_fd, 0)) {
+> +		TH_LOG("Failed to enforce ruleset: %s", strerror(errno));
+> +	}
+> +}
+> +
 
-Signed-off-by: Vlad Buslov <vladbu@nvidia.com>
-Signed-off-by: Oz Shlomo <ozsh@nvidia.com>
----
+Please create a commit which moves all the needed code for all network 
+tests. I think there is only this helper though.
 
-Notes:
-    Changes V1 -> V2:
-    
-    - Combine patches that expose add, del, stats tasks.
-    
-    - Use percpu stats to count pending workqueue tasks instead of atomics.
-    
-    - Expose the stats via /proc/net/stats/nf_flowtable file instead of
-    sysctls.
 
- include/net/net_namespace.h           |  6 ++
- include/net/netfilter/nf_flow_table.h | 10 +++
- include/net/netns/flow_table.h        | 14 +++++
- net/netfilter/Kconfig                 |  8 +++
- net/netfilter/nf_flow_table_core.c    | 38 +++++++++++-
- net/netfilter/nf_flow_table_offload.c | 17 +++++-
- net/netfilter/nf_flow_table_sysctl.c  | 88 +++++++++++++++++++++++++++
- 7 files changed, 176 insertions(+), 5 deletions(-)
- create mode 100644 include/net/netns/flow_table.h
+>   static void _init_caps(struct __test_metadata *const _metadata, bool drop_all)
+>   {
+>   	cap_t cap_p;
+> diff --git a/tools/testing/selftests/landlock/config b/tools/testing/selftests/landlock/config
+> index 0f0a65287bac..b56f3274d3f5 100644
+> --- a/tools/testing/selftests/landlock/config
+> +++ b/tools/testing/selftests/landlock/config
+> @@ -1,7 +1,10 @@
+> +CONFIG_INET=y
+> +CONFIG_IPV6=y
+> +CONFIG_NET=y
+>   CONFIG_OVERLAY_FS=y
+>   CONFIG_SECURITY_LANDLOCK=y
+>   CONFIG_SECURITY_PATH=y
+>   CONFIG_SECURITY=y
+>   CONFIG_SHMEM=y
+>   CONFIG_TMPFS_XATTR=y
+> -CONFIG_TMPFS=y
+> +CONFIG_TMPFS=y
+> \ No newline at end of file
 
-diff --git a/include/net/net_namespace.h b/include/net/net_namespace.h
-index c4f5601f6e32..bf770c13e19b 100644
---- a/include/net/net_namespace.h
-+++ b/include/net/net_namespace.h
-@@ -26,6 +26,9 @@
- #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- #include <net/netns/conntrack.h>
- #endif
-+#if IS_ENABLED(CONFIG_NF_FLOW_TABLE)
-+#include <net/netns/flow_table.h>
-+#endif
- #include <net/netns/nftables.h>
- #include <net/netns/xfrm.h>
- #include <net/netns/mpls.h>
-@@ -140,6 +143,9 @@ struct net {
- #if defined(CONFIG_NF_TABLES) || defined(CONFIG_NF_TABLES_MODULE)
- 	struct netns_nftables	nft;
- #endif
-+#if IS_ENABLED(CONFIG_NF_FLOW_TABLE)
-+	struct netns_ft ft;
-+#endif
- #endif
- #ifdef CONFIG_WEXT_CORE
- 	struct sk_buff_head	wext_nlevents;
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index e09c29fa034e..94606c04b6fe 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -360,4 +360,14 @@ static inline struct nf_ft_net *nf_ft_pernet_get(struct nf_flowtable *flow_table
- int nf_flow_table_init_sysctl(struct net *net);
- void nf_flow_table_fini_sysctl(struct net *net);
- 
-+#define NF_FLOW_TABLE_STAT_INC(net, count) __this_cpu_inc((net)->ft.stat->count)
-+#define NF_FLOW_TABLE_STAT_DEC(net, count) __this_cpu_dec((net)->ft.stat->count)
-+#define NF_FLOW_TABLE_STAT_INC_ATOMIC(net, count)	\
-+	this_cpu_inc((net)->ft.stat->count)
-+#define NF_FLOW_TABLE_STAT_DEC_ATOMIC(net, count)	\
-+	this_cpu_dec((net)->ft.stat->count)
-+
-+int nf_flow_table_init_proc(struct net *net);
-+void nf_flow_table_fini_proc(struct net *net);
-+
- #endif /* _NF_FLOW_TABLE_H */
-diff --git a/include/net/netns/flow_table.h b/include/net/netns/flow_table.h
-new file mode 100644
-index 000000000000..1c5fc657e267
---- /dev/null
-+++ b/include/net/netns/flow_table.h
-@@ -0,0 +1,14 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef __NETNS_FLOW_TABLE_H
-+#define __NETNS_FLOW_TABLE_H
-+
-+struct nf_flow_table_stat {
-+	unsigned int count_wq_add;
-+	unsigned int count_wq_del;
-+	unsigned int count_wq_stats;
-+};
-+
-+struct netns_ft {
-+	struct nf_flow_table_stat __percpu *stat;
-+};
-+#endif
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index ddc54b6d18ee..c8fc5c7ef04a 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -734,6 +734,14 @@ config NF_FLOW_TABLE
- 
- 	  To compile it as a module, choose M here.
- 
-+config NF_FLOW_TABLE_PROCFS
-+	bool "Supply flow table statistics in procfs"
-+	default y
-+	depends on PROC_FS
-+	help
-+	  This option enables for the flow table offload statistics
-+	  to be shown in procfs under net/netfilter/nf_flowtable.
-+
- config NETFILTER_XTABLES
- 	tristate "Netfilter Xtables support (required for ip_tables)"
- 	default m if NETFILTER_ADVANCED=n
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index e2598f98017c..c86dd627ef42 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -662,17 +662,51 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
- }
- EXPORT_SYMBOL_GPL(nf_flow_table_free);
- 
-+static int nf_flow_table_init_net(struct net *net)
-+{
-+	net->ft.stat = alloc_percpu(struct nf_flow_table_stat);
-+	return net->ft.stat ? 0 : -ENOMEM;
-+}
-+
-+static void nf_flow_table_fini_net(struct net *net)
-+{
-+	free_percpu(net->ft.stat);
-+}
-+
- static int nf_flow_table_pernet_init(struct net *net)
- {
--	return nf_flow_table_init_sysctl(net);
-+	int ret;
-+
-+	ret = nf_flow_table_init_net(net);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = nf_flow_table_init_sysctl(net);
-+	if (ret < 0)
-+		goto out_sysctl;
-+
-+	ret = nf_flow_table_init_proc(net);
-+	if (ret < 0)
-+		goto out_proc;
-+
-+	return 0;
-+
-+out_proc:
-+	nf_flow_table_fini_sysctl(net);
-+out_sysctl:
-+	nf_flow_table_fini_net(net);
-+	return ret;
- }
- 
- static void nf_flow_table_pernet_exit(struct list_head *net_exit_list)
- {
- 	struct net *net;
- 
--	list_for_each_entry(net, net_exit_list, exit_list)
-+	list_for_each_entry(net, net_exit_list, exit_list) {
-+		nf_flow_table_fini_proc(net);
- 		nf_flow_table_fini_sysctl(net);
-+		nf_flow_table_fini_net(net);
-+	}
- }
- 
- unsigned int nf_ft_net_id __read_mostly;
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index a6e763901eb9..381bd598a16f 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -993,17 +993,22 @@ static void flow_offload_work_stats(struct flow_offload_work *offload)
- static void flow_offload_work_handler(struct work_struct *work)
- {
- 	struct flow_offload_work *offload;
-+	struct net *net;
- 
- 	offload = container_of(work, struct flow_offload_work, work);
-+	net = read_pnet(&offload->flowtable->net);
- 	switch (offload->cmd) {
- 		case FLOW_CLS_REPLACE:
- 			flow_offload_work_add(offload);
-+			NF_FLOW_TABLE_STAT_DEC_ATOMIC(net, count_wq_add);
- 			break;
- 		case FLOW_CLS_DESTROY:
- 			flow_offload_work_del(offload);
-+			NF_FLOW_TABLE_STAT_DEC_ATOMIC(net, count_wq_del);
- 			break;
- 		case FLOW_CLS_STATS:
- 			flow_offload_work_stats(offload);
-+			NF_FLOW_TABLE_STAT_DEC_ATOMIC(net, count_wq_stats);
- 			break;
- 		default:
- 			WARN_ON_ONCE(1);
-@@ -1015,12 +1020,18 @@ static void flow_offload_work_handler(struct work_struct *work)
- 
- static void flow_offload_queue_work(struct flow_offload_work *offload)
- {
--	if (offload->cmd == FLOW_CLS_REPLACE)
-+	struct net *net = read_pnet(&offload->flowtable->net);
-+
-+	if (offload->cmd == FLOW_CLS_REPLACE) {
-+		NF_FLOW_TABLE_STAT_INC(net, count_wq_add);
- 		queue_work(nf_flow_offload_add_wq, &offload->work);
--	else if (offload->cmd == FLOW_CLS_DESTROY)
-+	} else if (offload->cmd == FLOW_CLS_DESTROY) {
-+		NF_FLOW_TABLE_STAT_INC(net, count_wq_del);
- 		queue_work(nf_flow_offload_del_wq, &offload->work);
--	else
-+	} else {
-+		NF_FLOW_TABLE_STAT_INC(net, count_wq_stats);
- 		queue_work(nf_flow_offload_stats_wq, &offload->work);
-+	}
- }
- 
- static struct flow_offload_work *
-diff --git a/net/netfilter/nf_flow_table_sysctl.c b/net/netfilter/nf_flow_table_sysctl.c
-index ce8c0a2c4bdb..2aefd7542527 100644
---- a/net/netfilter/nf_flow_table_sysctl.c
-+++ b/net/netfilter/nf_flow_table_sysctl.c
-@@ -1,7 +1,95 @@
- // SPDX-License-Identifier: GPL-2.0-only
- #include <linux/kernel.h>
-+#include <linux/proc_fs.h>
- #include <net/netfilter/nf_flow_table.h>
- 
-+#ifdef CONFIG_NF_FLOW_TABLE_PROCFS
-+static void *nf_flow_table_cpu_seq_start(struct seq_file *seq, loff_t *pos)
-+{
-+	struct net *net = seq_file_net(seq);
-+	int cpu;
-+
-+	if (*pos == 0)
-+		return SEQ_START_TOKEN;
-+
-+	for (cpu = *pos - 1; cpu < nr_cpu_ids; ++cpu) {
-+		if (!cpu_possible(cpu))
-+			continue;
-+		*pos = cpu + 1;
-+		return per_cpu_ptr(net->ft.stat, cpu);
-+	}
-+
-+	return NULL;
-+}
-+
-+static void *nf_flow_table_cpu_seq_next(struct seq_file *seq, void *v, loff_t *pos)
-+{
-+	struct net *net = seq_file_net(seq);
-+	int cpu;
-+
-+	for (cpu = *pos; cpu < nr_cpu_ids; ++cpu) {
-+		if (!cpu_possible(cpu))
-+			continue;
-+		*pos = cpu + 1;
-+		return per_cpu_ptr(net->ft.stat, cpu);
-+	}
-+	(*pos)++;
-+	return NULL;
-+}
-+
-+static void nf_flow_table_cpu_seq_stop(struct seq_file *seq, void *v)
-+{
-+}
-+
-+static int nf_flow_table_cpu_seq_show(struct seq_file *seq, void *v)
-+{
-+	const struct nf_flow_table_stat *st = v;
-+
-+	if (v == SEQ_START_TOKEN) {
-+		seq_puts(seq, "wq_add   wq_del   wq_stats\n");
-+		return 0;
-+	}
-+
-+	seq_printf(seq, "%8d %8d %8d\n",
-+		   st->count_wq_add,
-+		   st->count_wq_del,
-+		   st->count_wq_stats
-+		);
-+	return 0;
-+}
-+
-+static const struct seq_operations nf_flow_table_cpu_seq_ops = {
-+	.start	= nf_flow_table_cpu_seq_start,
-+	.next	= nf_flow_table_cpu_seq_next,
-+	.stop	= nf_flow_table_cpu_seq_stop,
-+	.show	= nf_flow_table_cpu_seq_show,
-+};
-+
-+int nf_flow_table_init_proc(struct net *net)
-+{
-+	struct proc_dir_entry *pde;
-+
-+	pde = proc_create_net("nf_flowtable", 0444, net->proc_net_stat,
-+			      &nf_flow_table_cpu_seq_ops,
-+			      sizeof(struct seq_net_private));
-+	return pde ? 0 : -ENOMEM;
-+}
-+
-+void nf_flow_table_fini_proc(struct net *net)
-+{
-+	remove_proc_entry("nf_flowtable", net->proc_net_stat);
-+}
-+#else
-+int nf_flow_table_init_proc(struct net *net)
-+{
-+	return 0;
-+}
-+
-+void nf_flow_table_fini_proc(struct net *net)
-+{
-+}
-+#endif /* CONFIG_NF_FLOW_TABLE_PROCFS */
-+
- unsigned int nf_ft_hw_max __read_mostly;
- 
- #ifdef CONFIG_SYSCTL
--- 
-2.31.1
+You add whitespace changes.
 
+
+> diff --git a/tools/testing/selftests/landlock/fs_test.c b/tools/testing/selftests/landlock/fs_test.c
+> index 21a2ce8fa739..036dd6f8f9ea 100644
+> --- a/tools/testing/selftests/landlock/fs_test.c
+> +++ b/tools/testing/selftests/landlock/fs_test.c
+> @@ -551,16 +551,6 @@ static int create_ruleset(struct __test_metadata *const _metadata,
+>   	return ruleset_fd;
+>   }
+> 
+> -static void enforce_ruleset(struct __test_metadata *const _metadata,
+> -			    const int ruleset_fd)
+> -{
+> -	ASSERT_EQ(0, prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0));
+> -	ASSERT_EQ(0, landlock_restrict_self(ruleset_fd, 0))
+> -	{
+> -		TH_LOG("Failed to enforce ruleset: %s", strerror(errno));
+> -	}
+> -}
+> -
+>   TEST_F_FORK(layout1, proc_nsfs)
+>   {
+>   	const struct rule rules[] = {
+> diff --git a/tools/testing/selftests/landlock/net_test.c b/tools/testing/selftests/landlock/net_test.c
+> new file mode 100644
+> index 000000000000..478ef2eff559
+> --- /dev/null
+> +++ b/tools/testing/selftests/landlock/net_test.c
+> @@ -0,0 +1,237 @@
+> +// SPDX-License-Identifier: GPL-2.0-only
+> +/*
+> + * Landlock tests - Network
+> + *
+> + * Copyright (C) 2022 Huawei Tech. Co., Ltd.
+> + */
+> +
+> +#define _GNU_SOURCE
+> +#include <arpa/inet.h>
+> +#include <errno.h>
+> +#include <fcntl.h>
+> +#include <linux/landlock.h>
+> +#include <netinet/in.h>
+> +#include <sched.h>
+> +#include <string.h>
+> +#include <sys/prctl.h>
+> +#include <sys/socket.h>
+> +#include <sys/types.h>
+> +
+> +#include "common.h"
+> +
+> +#define MAX_SOCKET_NUM 10
+> +
+> +#define SOCK_PORT_START 3470
+> +#define SOCK_PORT_ADD 10
+> +
+> +#define IP_ADDRESS "127.0.0.1"
+> +
+> +/* Number pending connections queue to be hold */
+> +#define BACKLOG 10
+
+"Number of pending connection queues to be hold." maybe? This is not use 
+in this patch so it shouldn't be added by this patch.
+
+
+> +
+> +static int create_socket(struct __test_metadata *const _metadata,
+> +			bool ip6, bool reuse_addr)
+
+This helper is good and I think you can improve it by leveraging test 
+variants. You could even factor out all the ipv4/ipv6 tests thanks to 
+new helpers such as bind_variant() and connect_variant(). No need to add 
+_metadata to those though. This would avoid duplicating all ipv4/ipv6 
+tests and even simplifying bind() and connect() calls. Something like this:
+
+// rename "socket_test" to "socket" (no need to duplicate "test")
+FIXTURE_VARIANT(socket)
+{
+	const bool is_ipv4;
+};
+
+/* clang-format off */
+FIXTURE_VARIANT_ADD(socket, ipv4) {
+	/* clang-format on */
+	.is_ipv4 = true,
+};
+
+/* clang-format off */
+FIXTURE_VARIANT_ADD(socket, ipv6) {
+	/* clang-format on */
+	.is_ipv4 = false,
+};
+
+static int socket_variant(const FIXTURE_VARIANT(socket) *const variant, 
+const int type)
+{
+	if (variant->is_ipv4)
+		return socket(AF_INET, type | SOCK_CLOEXEC, 0);
+	else
+		return socket(AF_INET6, type | SOCK_CLOEXEC, 0);
+}
+
+socket_variant(variant, SOCK_STREAM);
+// this could be used to create UDP sockets too
+
+
+static int bind_variant(const FIXTURE_VARIANT(socket) *const variant, 
+const int sockfd, const FIXTURE_DATA(socket) *const self, const size_t 
+index)
+{
+	if (variant->is_ipv4)
+		return bind(sockfd, &self->addr4[index], sizeof(self->addr4[index]));
+	else
+		return bind(sockfd, &self->addr6[index], sizeof(self->addr6[index]));
+}
+
+bind_variant(variant, sockfd, self, 0);
+
+
+> +{
+> +		int sockfd;
+> +		int one = 1;
+> +
+> +		if (ip6)
+> +			sockfd = socket(AF_INET6, SOCK_STREAM | SOCK_CLOEXEC, 0);
+> +		else
+> +			sockfd = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
+> +
+> +		ASSERT_LE(0, sockfd);
+> +		/* Allows to reuse of local address */
+> +		if (reuse_addr)
+> +			ASSERT_EQ(0, setsockopt(sockfd, SOL_SOCKET,
+> +					SO_REUSEADDR, &one, sizeof(one)));
+
+This reuse_addr part is not used in this patch and I think it would 
+simplify this helper to not add reuse_addr but to explicitely call 
+setsockopt() when required. This also enables to get rid of _metadata in 
+this helper.
+
+
+> +		return sockfd;
+> +}
+> +
+> +FIXTURE(socket_test) {
+> +	uint port[MAX_SOCKET_NUM];
+> +	struct sockaddr_in addr4[MAX_SOCKET_NUM];
+> +	struct sockaddr_in6 addr6[MAX_SOCKET_NUM];
+> +};
+> +
+> +FIXTURE_SETUP(socket_test)
+> +{
+> +	int i;
+> +	/* Creates IP4 socket addresses */
+> +	for (i = 0; i < MAX_SOCKET_NUM; i++) {
+
+Nice!
+
+> +		self->port[i] = SOCK_PORT_START + SOCK_PORT_ADD*i;
+> +		self->addr4[i].sin_family = AF_INET;
+> +		self->addr4[i].sin_port = htons(self->port[i]);
+> +		self->addr4[i].sin_addr.s_addr = htonl(INADDR_ANY);
+
+Could you use the local addr (127.0.0.1) instead?
+
+> +		memset(&(self->addr4[i].sin_zero), '\0', 8);
+> +	}
+> +
+> +	/* Creates IP6 socket addresses */
+> +	for (i = 0; i < MAX_SOCKET_NUM; i++) {
+> +		self->port[i] = SOCK_PORT_START + SOCK_PORT_ADD*i;
+> +		self->addr6[i].sin6_family = AF_INET6;
+> +		self->addr6[i].sin6_port = htons(self->port[i]);
+> +		self->addr6[i].sin6_addr = in6addr_any;
+
+ditto
+
+> +	}
+> +
+> +	set_cap(_metadata, CAP_SYS_ADMIN);
+> +	ASSERT_EQ(0, unshare(CLONE_NEWNET));
+> +	ASSERT_EQ(0, system("ip link set dev lo up"));
+
+If this is really required, could you avoid calling system() but set up 
+the network in C? You can strace it to see what is going on underneath.
+
+
+> +	clear_cap(_metadata, CAP_SYS_ADMIN);
+> +}
+> +
+> +FIXTURE_TEARDOWN(socket_test)
+> +{ }
+> +
+> +TEST_F_FORK(socket_test, bind_no_restrictions_ip4) {
+> +
+> +	int sockfd;
+> +
+> +	sockfd = create_socket(_metadata, false, false);
+> +	ASSERT_LE(0, sockfd);
+> +
+> +	/* Binds a socket to port[0] */
+
+This comment is not very useful in this context considering the below 
+line. It will be even more clear with the bind_variant() call.
+
+
+> +	ASSERT_EQ(0, bind(sockfd, (struct sockaddr *)&self->addr4[0], sizeof(self->addr4[0])));
+> +
+> +	ASSERT_EQ(0, close(sockfd));
+> +}
+> +
+> +TEST_F_FORK(socket_test, bind_no_restrictions_ip6) {
+> +
+> +	int sockfd;
+> +
+> +	sockfd = create_socket(_metadata, true, false);
+> +	ASSERT_LE(0, sockfd);
+> +
+> +	/* Binds a socket to port[0] */
+> +	ASSERT_EQ(0, bind(sockfd, (struct sockaddr *)&self->addr6[0], sizeof(self->addr6[0])));
+> +
+> +	ASSERT_EQ(0, close(sockfd));
+> +}
+> +
+> +TEST_F_FORK(socket_test, bind_with_restrictions_ip4) {
+> +
+> +	int sockfd;
+> +
+> +	struct landlock_ruleset_attr ruleset_attr = {
+> +		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
+> +				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
+> +	};
+> +	struct landlock_net_service_attr net_service_1 = {
+> +		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
+> +				  LANDLOCK_ACCESS_NET_CONNECT_TCP,
+> +		.port = self->port[0],
+> +	};
+> +	struct landlock_net_service_attr net_service_2 = {
+> +		.allowed_access = LANDLOCK_ACCESS_NET_CONNECT_TCP,
+> +		.port = self->port[1],
+> +	};
+> +	struct landlock_net_service_attr net_service_3 = {
+> +		.allowed_access = 0,
+> +		.port = self->port[2],
+> +	};
+> +
+> +	const int ruleset_fd = landlock_create_ruleset(&ruleset_attr,
+> +			sizeof(ruleset_attr), 0);
+> +	ASSERT_LE(0, ruleset_fd);
+> +
+> +	/* Allows connect and bind operations to the port[0] socket. */
+
+This comment is useful though because the below call is more complex.
+
+
+> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
+> +				&net_service_1, 0));
+> +	/* Allows connect and deny bind operations to the port[1] socket. */
+> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
+> +				&net_service_2, 0));
+> +	/* Empty allowed_access (i.e. deny rules) are ignored in network actions
+> +	 * for port[2] socket.
+> +	 */
+> +	ASSERT_EQ(-1, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
+> +				&net_service_3, 0));
+> +	ASSERT_EQ(ENOMSG, errno);
+> +
+> +	/* Enforces the ruleset. */
+> +	enforce_ruleset(_metadata, ruleset_fd);
+> +
+> +	sockfd = create_socket(_metadata, false, false);
+> +	ASSERT_LE(0, sockfd);
+> +	/* Binds a socket to port[0] */
+> +	ASSERT_EQ(0, bind(sockfd, (struct sockaddr *)&self->addr4[0], sizeof(self->addr4[0])));
+> +
+> +	/* Close bounded socket*/
+> +	ASSERT_EQ(0, close(sockfd));
+> +
+> +	sockfd = create_socket(_metadata, false, false);
+> +	ASSERT_LE(0, sockfd);
+> +	/* Binds a socket to port[1] */
+> +	ASSERT_EQ(-1, bind(sockfd, (struct sockaddr *)&self->addr4[1], sizeof(self->addr4[1])));
+> +	ASSERT_EQ(EACCES, errno);
+> +
+> +	sockfd = create_socket(_metadata, false, false);
+> +	ASSERT_LE(0, sockfd);
+> +	/* Binds a socket to port[2] */
+> +	ASSERT_EQ(-1, bind(sockfd, (struct sockaddr *)&self->addr4[2], sizeof(self->addr4[2])));
+> +	ASSERT_EQ(EACCES, errno);
+> +}
+> +
+> +TEST_F_FORK(socket_test, bind_with_restrictions_ip6) {
+> +
+> +	int sockfd;
+> +
+> +	struct landlock_ruleset_attr ruleset_attr = {
+> +		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
+> +				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
+> +	};
+> +	struct landlock_net_service_attr net_service_1 = {
+> +		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
+> +				  LANDLOCK_ACCESS_NET_CONNECT_TCP,
+> +		.port = self->port[0],
+> +	};
+> +	struct landlock_net_service_attr net_service_2 = {
+> +		.allowed_access = LANDLOCK_ACCESS_NET_CONNECT_TCP,
+> +		.port = self->port[1],
+> +	};
+> +	struct landlock_net_service_attr net_service_3 = {
+> +		.allowed_access = 0,
+> +		.port = self->port[2],
+> +	};
+> +
+> +	const int ruleset_fd = landlock_create_ruleset(&ruleset_attr,
+> +			sizeof(ruleset_attr), 0);
+> +	ASSERT_LE(0, ruleset_fd);
+> +
+> +	/* Allows connect and bind operations to the port[0] socket. */
+> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
+> +				&net_service_1, 0));
+> +	/* Allows connect and deny bind operations to the port[1] socket. */
+> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
+> +				&net_service_2, 0));
+> +	/* Empty allowed_access (i.e. deny rules) are ignored in network actions
+> +	 * for port[2] socket.
+> +	 */
+> +	ASSERT_EQ(-1, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
+> +				&net_service_3, 0));
+> +	ASSERT_EQ(ENOMSG, errno);
+> +
+> +	/* Enforces the ruleset. */
+> +	enforce_ruleset(_metadata, ruleset_fd);
+> +
+> +	sockfd = create_socket(_metadata, true, false);
+> +	ASSERT_LE(0, sockfd);
+> +	/* Binds a socket to port[0] */
+> +	ASSERT_EQ(0, bind(sockfd, (struct sockaddr *)&self->addr6[0], sizeof(self->addr6[0])));
+> +
+> +	/* Close bounded socket*/
+> +	ASSERT_EQ(0, close(sockfd));
+> +
+> +	sockfd = create_socket(_metadata, false, false);
+> +	ASSERT_LE(0, sockfd);
+> +	/* Binds a socket to port[1] */
+> +	ASSERT_EQ(-1, bind(sockfd, (struct sockaddr *)&self->addr6[1], sizeof(self->addr6[1])));
+> +	ASSERT_EQ(EACCES, errno);
+> +
+> +	sockfd = create_socket(_metadata, false, false);
+> +	ASSERT_LE(0, sockfd);
+> +	/* Binds a socket to port[2] */
+> +	ASSERT_EQ(-1, bind(sockfd, (struct sockaddr *)&self->addr6[2], sizeof(self->addr6[2])));
+> +	ASSERT_EQ(EACCES, errno);
+> +}
+> +TEST_HARNESS_MAIN
+> --
+> 2.25.1
+> 
