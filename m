@@ -2,253 +2,145 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78C9BC433FE
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 May 2022 18:28:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DDB1C433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 May 2022 19:11:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344790AbiEPS2N (ORCPT
+        id S231552AbiEPTLR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 16 May 2022 14:28:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47212 "EHLO
+        Mon, 16 May 2022 15:11:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55608 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344811AbiEPS2H (ORCPT
+        with ESMTP id S1345370AbiEPTLB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 May 2022 14:28:07 -0400
-Received: from smtp-8fad.mail.infomaniak.ch (smtp-8fad.mail.infomaniak.ch [83.166.143.173])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8EB793E0E9
-        for <netfilter-devel@vger.kernel.org>; Mon, 16 May 2022 11:28:04 -0700 (PDT)
-Received: from smtp-2-0000.mail.infomaniak.ch (unknown [10.5.36.107])
-        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4L276B4yMlzMqDml;
-        Mon, 16 May 2022 20:28:02 +0200 (CEST)
-Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
-        by smtp-2-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4L276B1DPCzlhSMS;
-        Mon, 16 May 2022 20:28:02 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1652725682;
-        bh=grTh156LoOpwtgT4v+e7d4bjWG5VtqWp85aZTKbF2VE=;
-        h=Date:To:Cc:References:From:Subject:In-Reply-To:From;
-        b=DVYfzuNVafKNI3X0EdaV58AGGu40qBjMnjFEtWWSc2SjqUcLWcIZCoMImdhYFaH2j
-         +8nBKVAvxxhFU/GKhkMcdeRbM8b9s7kohVjKcMm8P6+L1dBcri5qsG6oWt8B09g8wz
-         IGi0isNl0+3y9IcqM56PNyn91NheqQF3w6nCrmCU=
-Message-ID: <1aaaf30d-f727-63c4-e5ee-e88ff51af300@digikod.net>
-Date:   Mon, 16 May 2022 20:28:01 +0200
+        Mon, 16 May 2022 15:11:01 -0400
+Received: from NAM11-DM6-obe.outbound.protection.outlook.com (mail-dm6nam11on2045.outbound.protection.outlook.com [40.107.223.45])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2EE5C1D320
+        for <netfilter-devel@vger.kernel.org>; Mon, 16 May 2022 12:11:00 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=XY/qlAMjbyDuXVscdC646zQPEXSfmL/owRpiVVD5c8sySYNWp66gJNRJZPmn+4beMnO4hNnxpWKPM4VCM20hNGURiLMFccPz0DeJjbqnRt08G1qFnxznoiglod/cLIfXgxO1a6LWC5y2Zt1PyE58ZdqSXggPUkRkzNusdt45VU2oTxeAXFo7BOYxw/dljrJq+o3PQunoD/Wj2ca59L3SjB4TxPll4umBkybgCJXvB6tIJSLULs9RHKXztr/KJ1pM0EyTr38WTN/FkDdqtxvfdSqkCJuA2UEi6wcVKmUBRUiZ0Gm9FPutq82EwIPLZn78zoLaOXP4RkM1jcx+HoSqOg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=uH4U+P0DCox8SDUjSLDH68SlTn73ZahIwvhwEmJSZOM=;
+ b=kx5wgsAvSgVodVIX0YoALR2hCM12JSADy+2GHYMkPd+Ja0uPQFUmzUayCZUDXvhmg6OziMLjLkXT36r3iG6JyQFX/KcZ2yU4snDKisUPCCSTcpizFlNM7A+qH5npng7CLdqKXCCiUoQ6al7j3zEfk3SuofB87Np/tB+StSbR1Ti6Np/7JmY9hjcBhlhPkSMfT0ctEByjs3g6CGUriKqkWHTV861++a9QeVt3fwyXO6lSC29lRtFe9gJEVEPH/uEA/XYRtFqUIMg/vIdCVOy4zTCafB9alnKuL7tEaXax3Dps2udWouUY0TuR/JSxAWq0xEf/m4KOID9zeINL0RrrZA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 12.22.5.236) smtp.rcpttodomain=netfilter.org smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=uH4U+P0DCox8SDUjSLDH68SlTn73ZahIwvhwEmJSZOM=;
+ b=Fw2/d8iwLXL9fENjzArFHuX9g7fffmHXNlTpC6q4sYbMtGMnPQrs+3ukm7Kn2YFBsFD6t7ADY7owGLx7Ggtyy2w42qH4/bHhv2IQH/muMEw+Txo/n6fyAf0v0AR51651JODlM+hpqFybwc64aFrEihYfVikNGPy5VCuR08F5561ZPFDrQ2pwpZpCoUYAV7Odo+kE0LIvP72JZWvv9q8enb+89kwg/m5nzS9hYrxnbcL4UDI3ueye0vm59rG/nZUh9mfSCabIIhlcweKnEfQ8WyfOcsWeQ71Leye/G6q6Wy+M//mcpa2C0tjwsVWzqK7OTRz/AEuvIgEL+bKoBZyulA==
+Received: from DM5PR07CA0119.namprd07.prod.outlook.com (2603:10b6:4:ae::48) by
+ IA1PR12MB6043.namprd12.prod.outlook.com (2603:10b6:208:3d5::20) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5250.18; Mon, 16 May
+ 2022 19:10:58 +0000
+Received: from DM6NAM11FT066.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:4:ae:cafe::25) by DM5PR07CA0119.outlook.office365.com
+ (2603:10b6:4:ae::48) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5250.15 via Frontend
+ Transport; Mon, 16 May 2022 19:10:58 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 12.22.5.236)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 12.22.5.236 as permitted sender) receiver=protection.outlook.com;
+ client-ip=12.22.5.236; helo=mail.nvidia.com;
+Received: from mail.nvidia.com (12.22.5.236) by
+ DM6NAM11FT066.mail.protection.outlook.com (10.13.173.179) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
+ 15.20.5250.13 via Frontend Transport; Mon, 16 May 2022 19:10:57 +0000
+Received: from drhqmail201.nvidia.com (10.126.190.180) by
+ DRHQMAIL109.nvidia.com (10.27.9.19) with Microsoft SMTP Server (TLS) id
+ 15.0.1497.32; Mon, 16 May 2022 19:10:51 +0000
+Received: from drhqmail201.nvidia.com (10.126.190.180) by
+ drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.986.22; Mon, 16 May 2022 12:10:50 -0700
+Received: from vdi.nvidia.com (10.127.8.14) by mail.nvidia.com
+ (10.126.190.180) with Microsoft SMTP Server id 15.2.986.22 via Frontend
+ Transport; Mon, 16 May 2022 12:10:49 -0700
+From:   Vlad Buslov <vladbu@nvidia.com>
+To:     <netfilter-devel@vger.kernel.org>
+CC:     <pablo@netfilter.org>, <kadlec@netfilter.org>, <fw@strlen.de>,
+        <ozsh@nvidia.com>, <paulb@nvidia.com>,
+        Vlad Buslov <vladbu@nvidia.com>
+Subject: [PATCH net-next v2 0/3] Conntrack offload debuggability improvements
+Date:   Mon, 16 May 2022 22:10:29 +0300
+Message-ID: <20220516191032.340243-1-vladbu@nvidia.com>
+X-Mailer: git-send-email 2.31.1
 MIME-Version: 1.0
-User-Agent: 
-Content-Language: en-US
-To:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-Cc:     willemdebruijn.kernel@gmail.com,
-        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
-        anton.sirazetdinov@huawei.com
-References: <20220516152038.39594-1-konstantin.meskhidze@huawei.com>
- <20220516152038.39594-5-konstantin.meskhidze@huawei.com>
- <ce1201e9-8493-8387-9df4-f0f8b75011c9@digikod.net>
- <8c272564-1033-f100-23b6-db6579085fd0@huawei.com>
-From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-Subject: Re: [PATCH v5 04/15] landlock: helper functions refactoring
-In-Reply-To: <8c272564-1033-f100-23b6-db6579085fd0@huawei.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: b637c34b-ffca-42e8-44a2-08da376fcf02
+X-MS-TrafficTypeDiagnostic: IA1PR12MB6043:EE_
+X-Microsoft-Antispam-PRVS: <IA1PR12MB60433C9C94965B0E623F7A43A0CF9@IA1PR12MB6043.namprd12.prod.outlook.com>
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: H9rZH82tzAZt1WE/TSZOGhm9Z+fBgHzXwxlfjDeOvGPl6d6+/COQdHnNBe9VwnQ3UqGF3KdGgQ9EeetL1FNgo+Xo31DHm2CWdfM8Td7IeRLa4e11UYvMN5VQQ7hmW7ajku2Xnd4KnYAeO4MDw2tM0UeNwEkBHfvvg+dopdwTkvLCVqhOTdIfzDU6au3Le4FHoTMQzWiOVuxfbqZaRhyld6TyInEI6AM0MHGOQfNCOtEWuB/EvhfGwKSgBhD4RE889R43iVcZfrTjDg3O2JAdEO7DbkDGUu6SsI/cjzt+Ac/yCmPUgDeUWRcDzEbeTS4VtED54waTKuxhhadXida8ImiycipGniB5loscyPOJ1YpbDGqgYte+Ie4YzTEW6SfJVVLSgNd49MAAC++zt8kXq5/eZ1o20IetSG9yddPbuCqvGBnSPBYaNXWlP0JacYDYUjRwN+p0uFnmx0ikhoKHMqsO7KTjYS0fvc+jjNtjCt+Nqw5QRazgfUTsyYpXEcsZ64m9Lj0onI34O7BB3l6eeD64HPvjLuF1uSmjRzYtFE/HxnJFUCDILfB40hjeRKARF7BDMuQUgrhEGRGjYYkwTfy+SBjS0i/nWiy+8jjeo+kLvFzg4zmlWl96EYhH+B0z7+7dW33EW6OEcBfzvDTayVzbNGFl4Ex9ZRqnhVOVDorDbik1UE9Br1JTEeV3LAgEIv2oaSSzV1tBySDM9pNTgg==
+X-Forefront-Antispam-Report: CIP:12.22.5.236;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:InfoNoRecords;CAT:NONE;SFS:(13230001)(4636009)(46966006)(40470700004)(36840700001)(4326008)(70586007)(70206006)(36860700001)(8676002)(82310400005)(81166007)(1076003)(26005)(36756003)(6916009)(54906003)(40460700003)(316002)(2906002)(47076005)(2616005)(186003)(356005)(8936002)(7696005)(83380400001)(6666004)(86362001)(5660300002)(426003)(336012)(107886003)(508600001)(36900700001);DIR:OUT;SFP:1101;
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 May 2022 19:10:57.9182
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: b637c34b-ffca-42e8-44a2-08da376fcf02
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[12.22.5.236];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource: DM6NAM11FT066.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6043
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Current conntrack offload implementation doesn't provide much visibility
+and control over offload code. The code just tries to offload new flows,
+even if current amount of flows is beyond what can be reasonably
+processed by target hardware. On top of that there is no way to
+determine current load on workqueues that process the offload tasks
+which makes it hard to debug the cases where offload is significantly
+delayed due to rate of new connections being higher than driver or
+hardware offload rate.
 
-On 16/05/2022 19:43, Konstantin Meskhidze wrote:
-> 
-> 
-> 5/16/2022 8:14 PM, Mickaël Salaün пишет:
->>
->> On 16/05/2022 17:20, Konstantin Meskhidze wrote:
->>> Unmask_layers(), init_layer_masks() and
->>> get_handled_accesses() helper functions move to
->>> ruleset.c and rule_type argument is added.
->>> This modification supports implementing new rule
->>> types into next landlock versions.
->>>
->>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+Improve the debuggability situation by implementing following new
+functionality:
 
-[...]
+- Sysctls for current total count of offloaded flow and
+  user-configurable maximum. Capping the amount of offloaded flows can
+  be useful for the allocations of hardware resources. Note that the
+  flow can still be offloaded afterwards via 'refresh' mechanism if
+  total hardware count.
 
->>> -/*
->>> - * @layer_masks is read and may be updated according to the access 
->>> request and
->>> - * the matching rule.
->>> - *
->>> - * Returns true if the request is allowed (i.e. relevant layer masks 
->>> for the
->>> - * request are empty).
->>> - */
->>> -static inline bool
->>> -unmask_layers(const struct landlock_rule *const rule,
->>> -          const access_mask_t access_request,
->>> -          layer_mask_t (*const layer_masks)[LANDLOCK_NUM_ACCESS_FS])
->>
->> Moving these entire blocks of code make the review/diff impossible. 
->> Why moving these helpers?
-> 
->    Cause these helpers are going to be used both for filesystem and 
-> network. I moved them into ruleset.c/h
+- Procfs for current total of workqueue tasks for nf_ft_offload_add,
+  nf_ft_offload_del and nf_ft_offload_stats queues. This allows
+  visibility for flow offload delay due to system scheduling offload
+  tasks faster than driver/hardware can process them.
 
-Right. Please create a commit which only moves these helpers without 
-modifying them, and explain in the commit message that this removes 
-inlined code. We'll see later if this adds a visible performance impact.
+Vlad Buslov (3):
+  net/sched: act_ct: set 'net' pointer when creating new nf_flow_table
+  netfilter: nf_flow_table: count and limit hw offloaded entries
+  netfilter: nf_flow_table: count pending offload workqueue tasks
 
-[...]
+ .../networking/nf_flowtable-sysctl.rst        |  17 ++
+ include/net/net_namespace.h                   |   6 +
+ include/net/netfilter/nf_flow_table.h         |  35 ++++
+ include/net/netns/flow_table.h                |  14 ++
+ net/netfilter/Kconfig                         |   8 +
+ net/netfilter/Makefile                        |   3 +-
+ net/netfilter/nf_flow_table_core.c            |  89 ++++++++-
+ net/netfilter/nf_flow_table_offload.c         |  53 +++++-
+ net/netfilter/nf_flow_table_sysctl.c          | 171 ++++++++++++++++++
+ net/sched/act_ct.c                            |   5 +-
+ 10 files changed, 387 insertions(+), 14 deletions(-)
+ create mode 100644 Documentation/networking/nf_flowtable-sysctl.rst
+ create mode 100644 include/net/netns/flow_table.h
+ create mode 100644 net/netfilter/nf_flow_table_sysctl.c
 
->>> @@ -519,17 +413,25 @@ static int check_access_path_dual(
->>>
->>>       if (unlikely(dentry_child1)) {
->>>           unmask_layers(find_rule(domain, dentry_child1),
->>> -                  init_layer_masks(domain, LANDLOCK_MASK_ACCESS_FS,
->>> -                           &_layer_masks_child1),
->>> -                  &_layer_masks_child1);
->>> +                init_layer_masks(domain,
->>> +                    LANDLOCK_MASK_ACCESS_FS,
->>> +                    &_layer_masks_child1,
->>> +                    sizeof(_layer_masks_child1),
->>> +                    LANDLOCK_RULE_PATH_BENEATH),
->>> +                &_layer_masks_child1,
->>> +                ARRAY_SIZE(_layer_masks_child1));
->>
->> There is a lot of formatting diff and that makes the review difficult. 
->> Please format everything with clang-format-14.
-> 
->    Ok. Do you have some tool that helps you with editing code with clang 
-> format?
+-- 
+2.31.1
 
-I just run `clang-format-14 -i` on files before each commit. Some 
-editors such as VSCode can handle the clang-format configuration (which 
-is in the Linux source tree).
-
-
->>
->>>           layer_masks_child1 = &_layer_masks_child1;
->>>           child1_is_directory = d_is_dir(dentry_child1);
->>>       }
->>>       if (unlikely(dentry_child2)) {
->>>           unmask_layers(find_rule(domain, dentry_child2),
->>> -                  init_layer_masks(domain, LANDLOCK_MASK_ACCESS_FS,
->>> -                           &_layer_masks_child2),
->>> -                  &_layer_masks_child2);
->>> +                init_layer_masks(domain,
->>> +                    LANDLOCK_MASK_ACCESS_FS,
->>> +                    &_layer_masks_child2,
->>> +                    sizeof(_layer_masks_child2),
->>> +                    LANDLOCK_RULE_PATH_BENEATH),
->>> +                &_layer_masks_child2,
->>> +                ARRAY_SIZE(_layer_masks_child2));
->>>           layer_masks_child2 = &_layer_masks_child2;
->>>           child2_is_directory = d_is_dir(dentry_child2);
->>>       }
->>> @@ -582,14 +484,15 @@ static int check_access_path_dual(
->>>
->>>           rule = find_rule(domain, walker_path.dentry);
->>>           allowed_parent1 = unmask_layers(rule, access_masked_parent1,
->>> -                        layer_masks_parent1);
->>> +                layer_masks_parent1,
->>> +                ARRAY_SIZE(*layer_masks_parent1));
->>>           allowed_parent2 = unmask_layers(rule, access_masked_parent2,
->>> -                        layer_masks_parent2);
->>> +                layer_masks_parent2,
->>> +                ARRAY_SIZE(*layer_masks_parent2));
->>>
->>>           /* Stops when a rule from each layer grants access. */
->>>           if (allowed_parent1 && allowed_parent2)
->>>               break;
->>> -
->>
->> There is no place for such formatting/whitespace patches.
->>
->    I missed that. scripts/checkpatch.pl did not show any problem here.
-
-checkpatch.pl doesn't warn about whitespace changes.
-
-
->    I will fix it. Thanks.
->>
->>>   jump_up:
->>>           if (walker_path.dentry == walker_path.mnt->mnt_root) {
->>>               if (follow_up(&walker_path)) {
->>> @@ -645,7 +548,9 @@ static inline int check_access_path(const struct 
->>> landlock_ruleset *const domain,
->>>   {
->>>       layer_mask_t layer_masks[LANDLOCK_NUM_ACCESS_FS] = {};
->>>
->>> -    access_request = init_layer_masks(domain, access_request, 
->>> &layer_masks);
->>> +    access_request = init_layer_masks(domain, access_request,
->>> +            &layer_masks, sizeof(layer_masks),
->>> +            LANDLOCK_RULE_PATH_BENEATH);
->>>       return check_access_path_dual(domain, path, access_request,
->>>                         &layer_masks, NULL, 0, NULL, NULL);
->>>   }
->>> @@ -729,7 +634,8 @@ static bool collect_domain_accesses(
->>>           return true;
->>>
->>>       access_dom = init_layer_masks(domain, LANDLOCK_MASK_ACCESS_FS,
->>> -                      layer_masks_dom);
->>> +            layer_masks_dom, sizeof(*layer_masks_dom),
->>> +            LANDLOCK_RULE_PATH_BENEATH);
->>>
->>>       dget(dir);
->>>       while (true) {
->>> @@ -737,7 +643,8 @@ static bool collect_domain_accesses(
->>>
->>>           /* Gets all layers allowing all domain accesses. */
->>>           if (unmask_layers(find_rule(domain, dir), access_dom,
->>> -                  layer_masks_dom)) {
->>> +                    layer_masks_dom,
->>> +                    ARRAY_SIZE(*layer_masks_dom))) {
->>>               /*
->>>                * Stops when all handled accesses are allowed by at
->>>                * least one rule in each layer.
->>> @@ -851,9 +758,10 @@ static int current_check_refer_path(struct 
->>> dentry *const old_dentry,
->>>            * The LANDLOCK_ACCESS_FS_REFER access right is not required
->>>            * for same-directory referer (i.e. no reparenting).
->>>            */
->>> -        access_request_parent1 = init_layer_masks(
->>> -            dom, access_request_parent1 | access_request_parent2,
->>> -            &layer_masks_parent1);
->>> +        access_request_parent1 = init_layer_masks(dom,
->>> +                access_request_parent1 | access_request_parent2,
->>> +                &layer_masks_parent1, sizeof(layer_masks_parent1),
->>> +                LANDLOCK_RULE_PATH_BENEATH);
->>>           return check_access_path_dual(dom, new_dir,
->>>                             access_request_parent1,
->>>                             &layer_masks_parent1, NULL, 0,
->>> @@ -861,7 +769,9 @@ static int current_check_refer_path(struct dentry 
->>> *const old_dentry,
->>>       }
->>>
->>>       /* Backward compatibility: no reparenting support. */
->>> -    if (!(get_handled_accesses(dom) & LANDLOCK_ACCESS_FS_REFER))
->>> +    if (!(get_handled_accesses(dom, LANDLOCK_RULE_PATH_BENEATH,
->>> +                   LANDLOCK_NUM_ACCESS_FS) &
->>> +                        LANDLOCK_ACCESS_FS_REFER))
->>>           return -EXDEV;
->>>
->>>       access_request_parent1 |= LANDLOCK_ACCESS_FS_REFER;
->>> diff --git a/security/landlock/ruleset.c b/security/landlock/ruleset.c
->>> index 4b4c9953bb32..c4ed783d655b 100644
->>> --- a/security/landlock/ruleset.c
->>> +++ b/security/landlock/ruleset.c
->>> @@ -233,7 +233,8 @@ static int insert_rule(struct landlock_ruleset 
->>> *const ruleset,
->>>                              &(*layers)[0]);
->>>               if (IS_ERR(new_rule))
->>>                   return PTR_ERR(new_rule);
->>> -            rb_replace_node(&this->node, &new_rule->node, 
->>> &ruleset->root_inode);
->>> +            rb_replace_node(&this->node, &new_rule->node,
->>> +                    &ruleset->root_inode);
->>
->> This is a pure formatting hunk. :/
->>
->    Thats strange, cause in my editor I have normal aligment of arguments.
->    Could please share clang-format-14 tab size and other format     
-> parameters?
-
-They are in the .clang-format file. It would be much easier to just run 
-clang-format-14 -i on your changed files. I guess you had different 
-changes between consecutive commits.
