@@ -2,183 +2,162 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63F19C433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 May 2022 09:44:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2830C433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 May 2022 10:04:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242937AbiEQJoe (ORCPT
+        id S245758AbiEQKEC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 May 2022 05:44:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42050 "EHLO
+        Tue, 17 May 2022 06:04:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60694 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245285AbiEQJnV (ORCPT
+        with ESMTP id S236593AbiEQKDu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 May 2022 05:43:21 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4107C49698;
-        Tue, 17 May 2022 02:42:51 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
+        Tue, 17 May 2022 06:03:50 -0400
+Received: from mail-pl1-x633.google.com (mail-pl1-x633.google.com [IPv6:2607:f8b0:4864:20::633])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 57BA531343
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 May 2022 03:03:09 -0700 (PDT)
+Received: by mail-pl1-x633.google.com with SMTP id i1so16888738plg.7
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 May 2022 03:03:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=95DxLC4mkLtWZPPHNSp67ka4g5vecCJOeLo3i9qlERI=;
+        b=akDX2n9PTgDjZN9BKotu6/Tb89RIFOBywznQWh8lDDGtx5fkbalgOEfRWRCJxe0fxR
+         rIZPJWCIbOtrkBy455VCx8E5JtDZaMbaXhq++abmShZkMOjBIWG2HlbwOhieC8pT8sQO
+         btuaopqHW44PMdfsR8IoJf5OjRU5f/UgLb5NvMHDCXN4kdmK3XejSCldyX3vWfJC+kzf
+         pwgRXlKqPcN6uESj7lOV24mqhoOtnKkwJGPc00TtDe6JukgE+RtK/kZAfTLBiHHJAOb9
+         tTbxvXemZTQsGUwNLtmcDlV8FPq8GlhpDfYKkqzb0Bguj67tBFbXDEjzr5CMx2cB+SaU
+         YNwQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=95DxLC4mkLtWZPPHNSp67ka4g5vecCJOeLo3i9qlERI=;
+        b=L6cn4FLlqk0HR3qem+gIApZeI577yigDxZ31BAdJzYKkI+7vxjmpjVU+Hu1GNnAeJD
+         o/v/eqY6AVvb1be6DCWZaV+XK7GskG1HFirKxj44dIIBzPQSAYCe2n+Bb4nHfYbsnnWK
+         GJQE3yuzLxNI2NYysqJawWG4gRxvV/LChWRqJ7c9T55AAuFyZixPrCQrNHUQA/NQZQC8
+         /UoF+Tg8jo7N/BUOW9qM82Tb5j4wTHEJsIpdWsa2DgP+Jy9Iz5KEh0HlTbw5PP70eMXX
+         +LxhDn2GzMuFY4DVgS7MqkDL23KoJ6lEhPLInZjXBf37Ae0fz+qDEnnJG60FwxzsuDQk
+         GeWQ==
+X-Gm-Message-State: AOAM53368jKt8vOZN7DmVE9ypikuCgaxPpU3LNTwmScNMkAqKcPFQ+la
+        mzXgJfn7ZXm64WeVcASIg5h4Q41V12kowyZO
+X-Google-Smtp-Source: ABdhPJy+190VDlkO7I+hDyjfn3iFdaKM9g6Z6ig4aJ0dPBE79IFsqc63i59y/B5QngXfi47yXcOJTQ==
+X-Received: by 2002:a17:903:1111:b0:15f:7f0:bbf3 with SMTP id n17-20020a170903111100b0015f07f0bbf3mr21741142plh.12.1652781787764;
+        Tue, 17 May 2022 03:03:07 -0700 (PDT)
+Received: from LE480.. (fpa446b85c.tkyc319.ap.nuro.jp. [164.70.184.92])
+        by smtp.gmail.com with ESMTPSA id cu5-20020a056a00448500b0050dc76281b2sm8714184pfb.140.2022.05.17.03.03.06
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 17 May 2022 03:03:07 -0700 (PDT)
+From:   Ritaro Takenaka <ritarot634@gmail.com>
 To:     netfilter-devel@vger.kernel.org
-Cc:     ozsh@nvidia.com, nbd@nbd.name, fw@strlen.de, paulb@nvidia.com,
-        netdev@vger.kernel.org, sven.auhagen@voleatech.de
-Subject: [PATCH nf,v2] netfilter: flowtable: fix TCP flow teardown
-Date:   Tue, 17 May 2022 11:42:35 +0200
-Message-Id: <20220517094235.10668-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+Cc:     Ritaro Takenaka <ritarot634@gmail.com>
+Subject: [PATCH v3] netfilter: nf_flowtable: move dst_check to packet path
+Date:   Tue, 17 May 2022 19:00:43 +0900
+Message-Id: <20220517100041.966527-1-ritarot634@gmail.com>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch addresses three possible problems:
+Fixes sporadic IPv6 packet loss when flow offloading is enabled.
 
-1. ct gc may race to undo the timeout adjustment of the packet path, leaving
-   the conntrack entry in place with the internal offload timeout (one day).
+IPv6 route GC and flowtable GC are not synchronized.
+When dst_cache becomes stale and a packet passes through the flow before
+the flowtable GC teardowns it, the packet can be dropped.
+So, it is necessary to check dst every time in packet path.
 
-2. ct gc removes the ct because the IPS_OFFLOAD_BIT is not set and the CLOSE
-   timeout is reached before the flow offload del.
-
-3. tcp ct is always set to ESTABLISHED with a very long timeout
-   in flow offload teardown/delete even though the state might be already
-   CLOSED. Also as a remark we cannot assume that the FIN or RST packet
-   is hitting flow table teardown as the packet might get bumped to the
-   slow path in nftables.
-
-This patch resets IPS_OFFLOAD_BIT from flow_offload_teardown(), so
-conntrack handles the tcp rst/fin packet which triggers the CLOSE/FIN
-state transition.
-
-Moreover, teturn the connection's ownership to conntrack upon teardown
-by clearing the offload flag and fixing the established timeout value.
-The flow table GC thread will asynchonrnously free the flow table and
-hardware offload entries.
-
-Before this patch, the IPS_OFFLOAD_BIT remained set for expired flows on
-which is also misleading since the flow is back to classic conntrack
-path.
-
-If nf_ct_delete() removes the entry from the conntrack table, then it
-calls nf_ct_put() which decrements the refcnt. This is not a problem
-because the flowtable holds a reference to the conntrack object from
-flow_offload_alloc() path which is released via flow_offload_free().
-
-This patch also updates nft_flow_offload to skip packets in SYN_RECV
-state. Since we might miss or bump packets to slow path, we do not know
-what will happen there while we are still in SYN_RECV, this patch
-postpones offload up to the next packet which also aligns to the
-existing behaviour in tc-ct.
-
-flow_offload_teardown() does not reset the existing tcp state from
-flow_offload_fixup_tcp() to ESTABLISHED anymore, packets bump to slow
-path might have already update the state to CLOSE/FIN.
-
-Joint work with Oz and Sven.
-
-Fixes: 1e5b2471bcc4 ("netfilter: nf_flow_table: teardown flow timeout race")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes: 227e1e4d0d6c ("netfilter: nf_flowtable: skip device lookup from interface index")
+Signed-off-by: Ritaro Takenaka <ritarot634@gmail.com>
 ---
-v2: fix nf_conntrack_tcp_established() call, reported by Oz
-
- net/netfilter/nf_flow_table_core.c | 33 +++++++-----------------------
- net/netfilter/nft_flow_offload.c   |  3 ++-
- 2 files changed, 9 insertions(+), 27 deletions(-)
+ net/netfilter/nf_flow_table_core.c | 23 +----------------------
+ net/netfilter/nf_flow_table_ip.c   | 19 +++++++++++++++++++
+ 2 files changed, 20 insertions(+), 22 deletions(-)
 
 diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 20b4a14e5d4e..ebdf5332e838 100644
+index 3db256da919b..1d99afaf22c1 100644
 --- a/net/netfilter/nf_flow_table_core.c
 +++ b/net/netfilter/nf_flow_table_core.c
-@@ -179,12 +179,11 @@ EXPORT_SYMBOL_GPL(flow_offload_route_init);
- 
- static void flow_offload_fixup_tcp(struct ip_ct_tcp *tcp)
- {
--	tcp->state = TCP_CONNTRACK_ESTABLISHED;
- 	tcp->seen[0].td_maxwin = 0;
- 	tcp->seen[1].td_maxwin = 0;
+@@ -438,32 +438,11 @@ nf_flow_table_iterate(struct nf_flowtable *flow_table,
+ 	return err;
  }
  
--static void flow_offload_fixup_ct_timeout(struct nf_conn *ct)
-+static void flow_offload_fixup_ct(struct nf_conn *ct)
- {
- 	struct net *net = nf_ct_net(ct);
- 	int l4num = nf_ct_protonum(ct);
-@@ -193,7 +192,9 @@ static void flow_offload_fixup_ct_timeout(struct nf_conn *ct)
- 	if (l4num == IPPROTO_TCP) {
- 		struct nf_tcp_net *tn = nf_tcp_pernet(net);
- 
--		timeout = tn->timeouts[TCP_CONNTRACK_ESTABLISHED];
-+		flow_offload_fixup_tcp(&ct->proto.tcp);
-+
-+		timeout = tn->timeouts[ct->proto.tcp.state];
- 		timeout -= tn->offload_timeout;
- 	} else if (l4num == IPPROTO_UDP) {
- 		struct nf_udp_net *tn = nf_udp_pernet(net);
-@@ -211,18 +212,6 @@ static void flow_offload_fixup_ct_timeout(struct nf_conn *ct)
- 		WRITE_ONCE(ct->timeout, nfct_time_stamp + timeout);
- }
- 
--static void flow_offload_fixup_ct_state(struct nf_conn *ct)
+-static bool flow_offload_stale_dst(struct flow_offload_tuple *tuple)
 -{
--	if (nf_ct_protonum(ct) == IPPROTO_TCP)
--		flow_offload_fixup_tcp(&ct->proto.tcp);
+-	struct dst_entry *dst;
+-
+-	if (tuple->xmit_type == FLOW_OFFLOAD_XMIT_NEIGH ||
+-	    tuple->xmit_type == FLOW_OFFLOAD_XMIT_XFRM) {
+-		dst = tuple->dst_cache;
+-		if (!dst_check(dst, tuple->dst_cookie))
+-			return true;
+-	}
+-
+-	return false;
 -}
 -
--static void flow_offload_fixup_ct(struct nf_conn *ct)
+-static bool nf_flow_has_stale_dst(struct flow_offload *flow)
 -{
--	flow_offload_fixup_ct_state(ct);
--	flow_offload_fixup_ct_timeout(ct);
+-	return flow_offload_stale_dst(&flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple) ||
+-	       flow_offload_stale_dst(&flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple);
 -}
 -
- static void flow_offload_route_release(struct flow_offload *flow)
+ static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
+ 				    struct flow_offload *flow, void *data)
  {
- 	nft_flow_dst_release(flow, FLOW_OFFLOAD_DIR_ORIGINAL);
-@@ -361,22 +350,14 @@ static void flow_offload_del(struct nf_flowtable *flow_table,
- 	rhashtable_remove_fast(&flow_table->rhashtable,
- 			       &flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].node,
- 			       nf_flow_offload_rhash_params);
--
--	clear_bit(IPS_OFFLOAD_BIT, &flow->ct->status);
--
--	if (nf_flow_has_expired(flow))
--		flow_offload_fixup_ct(flow->ct);
--	else
--		flow_offload_fixup_ct_timeout(flow->ct);
--
- 	flow_offload_free(flow);
- }
- 
- void flow_offload_teardown(struct flow_offload *flow)
- {
-+	clear_bit(IPS_OFFLOAD_BIT, &flow->ct->status);
- 	set_bit(NF_FLOW_TEARDOWN, &flow->flags);
--
--	flow_offload_fixup_ct_state(flow->ct);
-+	flow_offload_fixup_ct(flow->ct);
- }
- EXPORT_SYMBOL_GPL(flow_offload_teardown);
- 
-@@ -466,7 +447,7 @@ static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
  	if (nf_flow_has_expired(flow) ||
- 	    nf_ct_is_dying(flow->ct) ||
- 	    nf_flow_has_stale_dst(flow))
--		set_bit(NF_FLOW_TEARDOWN, &flow->flags);
-+		flow_offload_teardown(flow);
+-	    nf_ct_is_dying(flow->ct) ||
+-	    nf_flow_has_stale_dst(flow))
++	    nf_ct_is_dying(flow->ct))
+ 		set_bit(NF_FLOW_TEARDOWN, &flow->flags);
  
  	if (test_bit(NF_FLOW_TEARDOWN, &flow->flags)) {
- 		if (test_bit(NF_FLOW_HW, &flow->flags)) {
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index 187b8cb9a510..6f0b07fe648d 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -298,7 +298,8 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
- 	case IPPROTO_TCP:
- 		tcph = skb_header_pointer(pkt->skb, nft_thoff(pkt),
- 					  sizeof(_tcph), &_tcph);
--		if (unlikely(!tcph || tcph->fin || tcph->rst))
-+		if (unlikely(!tcph || tcph->fin || tcph->rst ||
-+			     !nf_conntrack_tcp_established(ct)))
- 			goto out;
- 		break;
- 	case IPPROTO_UDP:
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index 32c0eb1b4821..b350fe9d00b0 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -248,6 +248,15 @@ static bool nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
+ 	return true;
+ }
+ 
++static inline bool nf_flow_dst_check(struct flow_offload_tuple *tuple)
++{
++	if (tuple->xmit_type != FLOW_OFFLOAD_XMIT_NEIGH &&
++	    tuple->xmit_type != FLOW_OFFLOAD_XMIT_XFRM)
++		return true;
++
++	return dst_check(tuple->dst_cache, tuple->dst_cookie);
++}
++
+ static unsigned int nf_flow_xmit_xfrm(struct sk_buff *skb,
+ 				      const struct nf_hook_state *state,
+ 				      struct dst_entry *dst)
+@@ -367,6 +376,11 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 	if (nf_flow_state_check(flow, iph->protocol, skb, thoff))
+ 		return NF_ACCEPT;
+ 
++	if (!nf_flow_dst_check(&tuplehash->tuple)) {
++		flow_offload_teardown(flow);
++		return NF_ACCEPT;
++	}
++
+ 	if (skb_try_make_writable(skb, thoff + hdrsize))
+ 		return NF_DROP;
+ 
+@@ -624,6 +638,11 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ 	if (nf_flow_state_check(flow, ip6h->nexthdr, skb, thoff))
+ 		return NF_ACCEPT;
+ 
++	if (!nf_flow_dst_check(&tuplehash->tuple)) {
++		flow_offload_teardown(flow);
++		return NF_ACCEPT;
++	}
++
+ 	if (skb_try_make_writable(skb, thoff + hdrsize))
+ 		return NF_DROP;
+ 
 -- 
-2.30.2
+2.34.1
 
