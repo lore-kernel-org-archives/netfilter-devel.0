@@ -2,195 +2,261 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0F96C433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 May 2022 01:57:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10FAFC433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 May 2022 08:04:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233633AbiEQB5N (ORCPT
+        id S239896AbiEQIEQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 16 May 2022 21:57:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60854 "EHLO
+        Tue, 17 May 2022 04:04:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48120 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231492AbiEQB5M (ORCPT
+        with ESMTP id S238481AbiEQIEP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 May 2022 21:57:12 -0400
-Received: from chinatelecom.cn (prt-mail.chinatelecom.cn [42.123.76.228])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 90E5E13E9F
-        for <netfilter-devel@vger.kernel.org>; Mon, 16 May 2022 18:57:08 -0700 (PDT)
-HMM_SOURCE_IP: 172.18.0.218:46164.1237796334
-HMM_ATTACHE_NUM: 0000
-HMM_SOURCE_TYPE: SMTP
-Received: from clientip-101.229.165.117 (unknown [172.18.0.218])
-        by chinatelecom.cn (HERMES) with SMTP id 4A5DD280133;
-        Tue, 17 May 2022 09:57:00 +0800 (CST)
-X-189-SAVE-TO-SEND: wenxu@chinatelecom.cn
-Received: from  ([172.18.0.218])
-        by app0025 with ESMTP id a752b084050c42f689a77c0ff887f990 for pablo@netfilter.org;
-        Tue, 17 May 2022 09:57:05 CST
-X-Transaction-ID: a752b084050c42f689a77c0ff887f990
-X-Real-From: wenxu@chinatelecom.cn
-X-Receive-IP: 172.18.0.218
-X-MEDUSA-Status: 0
-Sender: wenxu@chinatelecom.cn
-Message-ID: <abf35fe1-f581-8f53-b654-c4b434d4a972@chinatelecom.cn>
-Date:   Tue, 17 May 2022 09:56:57 +0800
+        Tue, 17 May 2022 04:04:15 -0400
+Received: from smtp-42a8.mail.infomaniak.ch (smtp-42a8.mail.infomaniak.ch [IPv6:2001:1600:4:17::42a8])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC3032FFEA
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 May 2022 01:04:13 -0700 (PDT)
+Received: from smtp-2-0001.mail.infomaniak.ch (unknown [10.5.36.108])
+        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4L2TCv48yLzMpy11;
+        Tue, 17 May 2022 10:04:11 +0200 (CEST)
+Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
+        by smtp-2-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4L2TCv02mlzljsVB;
+        Tue, 17 May 2022 10:04:09 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
+        s=20191114; t=1652774651;
+        bh=hRsoGyinkEyRLFHQosTnBDkDZzQcqhABF2gRHj6UJpM=;
+        h=Date:To:Cc:References:From:Subject:In-Reply-To:From;
+        b=YFziElyHjjKGUc3Oo4eSKUWVJvrU8xfEP6nsJkznD179856w0bS388NPYLPVsXAlG
+         TP9t4gmt0E3IVHnvxXunS3ZQMentpDWDeAmEBl/z5LajekdP9wPm7+flNfGgFUF1hv
+         kxDXVG56sA+FU8Fm3cWIvz/FDcxqlSPWp3anptIg=
+Message-ID: <9456ccf3-e2b3-bb65-f24f-e6d2761120e5@digikod.net>
+Date:   Tue, 17 May 2022 10:04:09 +0200
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.8.1
-Subject: Re: [nf-next PATCH] nf_flow_table_offload: offload the PPPoE encap in
- the flowtable
+User-Agent: 
 Content-Language: en-US
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, Felix Fietkau <nbd@nbd.name>
-References: <1652189176-49750-1-git-send-email-wenxu@chinatelecom.cn>
- <YoIx8zglMHjb4Gi7@salvia>
-From:   wenxu <wenxu@chinatelecom.cn>
-In-Reply-To: <YoIx8zglMHjb4Gi7@salvia>
-Content-Type: text/plain; charset=UTF-8
+To:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+Cc:     willemdebruijn.kernel@gmail.com,
+        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
+        anton.sirazetdinov@huawei.com
+References: <20220516152038.39594-1-konstantin.meskhidze@huawei.com>
+ <20220516152038.39594-6-konstantin.meskhidze@huawei.com>
+From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+Subject: Re: [PATCH v5 05/15] landlock: landlock_add_rule syscall refactoring
+In-Reply-To: <20220516152038.39594-6-konstantin.meskhidze@huawei.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The patch “netfilter: nft_flow_offload: fix offload with pppoe + vlan”
-
-Currently the nf flow table can't offload pppoe encap. So this patch
-
-fix the pppoe + vlan  problem for no encap offload logic in the nf tree,  the
-
-outdev should be the pppoe device but not vlan device.
+You can rename the subject to "landlock: Refactor landlock_add_rule()"
 
 
-My patch provide a feature with pppoe encap offload. I think that the difference
+On 16/05/2022 17:20, Konstantin Meskhidze wrote:
+> Landlock_add_rule syscall was refactored to support new
+> rule types in future Landlock versions. Add_rule_path_beneath()
 
-and maybe I can repost the three patch rebase  to this series?
+nit: add_rule_path_beneath(), not Add_rule_path_beneath()
+
+> helper was added to support current filesystem rules. It is called
+> by the switch case.
+
+You can rephrase (all commit messages) in the present form:
+
+Refactor the landlock_add_rule() syscall with add_rule_path_beneath() 
+to support new…
+
+Refactor the landlock_add_rule() syscall to easily support for a new 
+rule type in a following commit. The new add_rule_path_beneath() helper 
+supports current filesystem rules.
 
 
-Any ideas?
+> 
+> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+> ---
+> 
+> Changes since v3:
+> * Split commit.
+> * Refactoring landlock_add_rule syscall.
+> 
+> Changes since v4:
+> * Refactoring add_rule_path_beneath() and landlock_add_rule() functions
+> to optimize code usage.
+> * Refactoring base_test.c seltest: adds LANDLOCK_RULE_PATH_BENEATH
+> rule type in landlock_add_rule() call.
+> 
+> ---
+>   security/landlock/syscalls.c                 | 105 ++++++++++---------
+>   tools/testing/selftests/landlock/base_test.c |   4 +-
+>   2 files changed, 59 insertions(+), 50 deletions(-)
+> 
+> diff --git a/security/landlock/syscalls.c b/security/landlock/syscalls.c
+> index 1db799d1a50b..412ced6c512f 100644
+> --- a/security/landlock/syscalls.c
+> +++ b/security/landlock/syscalls.c
+> @@ -274,67 +274,23 @@ static int get_path_from_fd(const s32 fd, struct path *const path)
+>   	return err;
+>   }
+> 
+> -/**
+> - * sys_landlock_add_rule - Add a new rule to a ruleset
+> - *
+> - * @ruleset_fd: File descriptor tied to the ruleset that should be extended
+> - *		with the new rule.
+> - * @rule_type: Identify the structure type pointed to by @rule_attr (only
+> - *             LANDLOCK_RULE_PATH_BENEATH for now).
+> - * @rule_attr: Pointer to a rule (only of type &struct
+> - *             landlock_path_beneath_attr for now).
+> - * @flags: Must be 0.
+> - *
+> - * This system call enables to define a new rule and add it to an existing
+> - * ruleset.
+> - *
+> - * Possible returned errors are:
+> - *
+> - * - EOPNOTSUPP: Landlock is supported by the kernel but disabled at boot time;
+> - * - EINVAL: @flags is not 0, or inconsistent access in the rule (i.e.
+> - *   &landlock_path_beneath_attr.allowed_access is not a subset of the
+> - *   ruleset handled accesses);
+> - * - ENOMSG: Empty accesses (e.g. &landlock_path_beneath_attr.allowed_access);
+> - * - EBADF: @ruleset_fd is not a file descriptor for the current thread, or a
+> - *   member of @rule_attr is not a file descriptor as expected;
+> - * - EBADFD: @ruleset_fd is not a ruleset file descriptor, or a member of
+> - *   @rule_attr is not the expected file descriptor type;
+> - * - EPERM: @ruleset_fd has no write access to the underlying ruleset;
+> - * - EFAULT: @rule_attr inconsistency.
+> - */
+> -SYSCALL_DEFINE4(landlock_add_rule, const int, ruleset_fd,
+> -		const enum landlock_rule_type, rule_type,
+> -		const void __user *const, rule_attr, const __u32, flags)
+> +static int add_rule_path_beneath(const int ruleset_fd, const void *const rule_attr)
+>   {
+>   	struct landlock_path_beneath_attr path_beneath_attr;
+>   	struct path path;
+>   	struct landlock_ruleset *ruleset;
+>   	int res, err;
+> 
+> -	if (!landlock_initialized)
+> -		return -EOPNOTSUPP;
+> -
+> -	/* No flag for now. */
+> -	if (flags)
+> -		return -EINVAL;
+> -
+>   	/* Gets and checks the ruleset. */
+
+Like I already said, this needs to stay in landlock_add_rule(). I think 
+there is some inconsistencies with other patches that rechange this 
+part. Please review your patches and make clean patches that don't 
+partially revert the previous ones.
 
 
-On 2022/5/16 19:13, Pablo Neira Ayuso wrote:
-> Hi,
->
-> This is likely clashing with Felix's fixes:
->
-> https://patchwork.ozlabs.org/project/netfilter-devel/patch/20220509122616.65449-1-nbd@nbd.name/
-> https://patchwork.ozlabs.org/project/netfilter-devel/patch/20220509122616.65449-2-nbd@nbd.name/
-> https://patchwork.ozlabs.org/project/netfilter-devel/patch/20220509122616.65449-3-nbd@nbd.name/
-> https://patchwork.ozlabs.org/project/netfilter-devel/patch/20220509122616.65449-4-nbd@nbd.name/
->
-> On Tue, May 10, 2022 at 09:26:16AM -0400, wenxu@chinatelecom.cn wrote:
->> From: wenxu <wenxu@chinatelecom.cn>
->>
->> This patch put the pppoe process in the FLOW_OFFLOAD_XMIT_DIRECT
->> mode. Xmit the packet with PPPoE can offload to the underlay device
->> directly.
->>
->> It can support all kinds of VLAN dev path:
->> pppoe-->eth
->> pppoe-->br0.100-->br0(vlan filter enable)-->eth
->> pppoe-->eth.100-->eth
->>
->> The packet xmit and recv offload to the 'eth' in both original and
->> reply direction.
->>
->> Signed-off-by: wenxu <wenxu@chinatelecom.cn>
->> ---
->> This patch based on the following one: nf_flow_table_offload: offload the vlan encap in the flowtable
->> http://patchwork.ozlabs.org/project/netfilter-devel/patch/1649169515-4337-1-git-send-email-wenx05124561@163.com/
->>
->>  include/net/netfilter/nf_flow_table.h | 34 ++++++++++++++++++++++++++++++++++
->>  net/netfilter/nf_flow_table_ip.c      |  3 +++
->>  net/netfilter/nft_flow_offload.c      | 10 +++-------
->>  3 files changed, 40 insertions(+), 7 deletions(-)
->>
->> diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
->> index 64daafd..8be369c 100644
->> --- a/include/net/netfilter/nf_flow_table.h
->> +++ b/include/net/netfilter/nf_flow_table.h
->> @@ -319,6 +319,40 @@ int nf_flow_rule_route_ipv6(struct net *net, const struct flow_offload *flow,
->>  int nf_flow_table_offload_init(void);
->>  void nf_flow_table_offload_exit(void);
->>  
->> +static inline int nf_flow_ppoe_push(struct sk_buff *skb, u16 id)
->> +{
->> +	struct ppp_hdr {
->> +		struct pppoe_hdr hdr;
->> +		__be16 proto;
->> +	} *ph;
->> +	int data_len = skb->len + 2;
->> +	__be16 proto;
->> +
->> +	if (skb_cow_head(skb, PPPOE_SES_HLEN))
->> +		return -1;
->> +
->> +	if (skb->protocol == htons(ETH_P_IP))
->> +		proto = htons(PPP_IP);
->> +	else if (skb->protocol == htons(ETH_P_IPV6))
->> +		proto = htons(PPP_IPV6);
->> +	else
->> +		return -1;
->> +
->> +	__skb_push(skb, PPPOE_SES_HLEN);
->> +	skb_reset_network_header(skb);
->> +
->> +	ph = (struct ppp_hdr *)(skb->data);
->> +	ph->hdr.ver  = 1;
->> +	ph->hdr.type = 1;
->> +	ph->hdr.code = 0;
->> +	ph->hdr.sid  = htons(id);
->> +	ph->hdr.length = htons(data_len);
->> +	ph->proto = proto;
->> +	skb->protocol = htons(ETH_P_PPP_SES);
->> +
->> +	return 0;
->> +}
->> +
->>  static inline __be16 nf_flow_pppoe_proto(const struct sk_buff *skb)
->>  {
->>  	__be16 proto;
->> diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
->> index 99ae2550..d1c0d95 100644
->> --- a/net/netfilter/nf_flow_table_ip.c
->> +++ b/net/netfilter/nf_flow_table_ip.c
->> @@ -295,6 +295,9 @@ static void nf_flow_encap_push(struct sk_buff *skb,
->>  				      tuplehash->tuple.encap[i].proto,
->>  				      tuplehash->tuple.encap[i].id);
->>  			break;
->> +		case htons(ETH_P_PPP_SES):
->> +			nf_flow_ppoe_push(skb, tuplehash->tuple.encap[i].id);
->> +			break;
->>  		}
->>  	}
->>  }
->> diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
->> index f9837c9..eea8637 100644
->> --- a/net/netfilter/nft_flow_offload.c
->> +++ b/net/netfilter/nft_flow_offload.c
->> @@ -122,12 +122,9 @@ static void nft_dev_path_info(const struct net_device_path_stack *stack,
->>  			info->encap[info->num_encaps].id = path->encap.id;
->>  			info->encap[info->num_encaps].proto = path->encap.proto;
->>  			info->num_encaps++;
->> -			if (path->type == DEV_PATH_PPPOE) {
->> -				info->outdev = path->dev;
->> +			if (path->type == DEV_PATH_PPPOE)
->>  				memcpy(info->h_dest, path->encap.h_dest, ETH_ALEN);
->> -			}
->> -			if (path->type == DEV_PATH_VLAN)
->> -				info->xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
->> +			info->xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
->>  			break;
->>  		case DEV_PATH_BRIDGE:
->>  			if (is_zero_ether_addr(info->h_source))
->> @@ -155,8 +152,7 @@ static void nft_dev_path_info(const struct net_device_path_stack *stack,
->>  			break;
->>  		}
->>  	}
->> -	if (!info->outdev)
->> -		info->outdev = info->indev;
->> +	info->outdev = info->indev;
->>  
->>  	info->hw_outdev = info->indev;
->>  
->> -- 
->> 1.8.3.1
->>
+>   	ruleset = get_ruleset_from_fd(ruleset_fd, FMODE_CAN_WRITE);
+>   	if (IS_ERR(ruleset))
+>   		return PTR_ERR(ruleset);
+> 
+> -	if (rule_type != LANDLOCK_RULE_PATH_BENEATH) {
+> -		err = -EINVAL;
+> -		goto out_put_ruleset;
+> -	}
+> -
+>   	/* Copies raw user space buffer, only one type for now. */
+>   	res = copy_from_user(&path_beneath_attr, rule_attr,
+> -			     sizeof(path_beneath_attr));
+> -	if (res) {
+> -		err = -EFAULT;
+> -		goto out_put_ruleset;
+> -	}
+> +				sizeof(path_beneath_attr));
+> +	if (res)
+> +		return -EFAULT;
+> 
+>   	/*
+>   	 * Informs about useless rule: empty allowed_access (i.e. deny rules)
+> @@ -370,6 +326,59 @@ SYSCALL_DEFINE4(landlock_add_rule, const int, ruleset_fd,
+>   	return err;
+>   }
+> 
+> +/**
+> + * sys_landlock_add_rule - Add a new rule to a ruleset
+> + *
+> + * @ruleset_fd: File descriptor tied to the ruleset that should be extended
+> + *		with the new rule.
+> + * @rule_type: Identify the structure type pointed to by @rule_attr (only
+> + *             LANDLOCK_RULE_PATH_BENEATH for now).
+> + * @rule_attr: Pointer to a rule (only of type &struct
+> + *             landlock_path_beneath_attr for now).
+> + * @flags: Must be 0.
+> + *
+> + * This system call enables to define a new rule and add it to an existing
+> + * ruleset.
+> + *
+> + * Possible returned errors are:
+> + *
+> + * - EOPNOTSUPP: Landlock is supported by the kernel but disabled at boot time;
+> + * - EINVAL: @flags is not 0, or inconsistent access in the rule (i.e.
+> + *   &landlock_path_beneath_attr.allowed_access is not a subset of the rule's
+> + *   accesses);
+> + * - ENOMSG: Empty accesses (e.g. &landlock_path_beneath_attr.allowed_access);
+> + * - EBADF: @ruleset_fd is not a file descriptor for the current thread, or a
+> + *   member of @rule_attr is not a file descriptor as expected;
+> + * - EBADFD: @ruleset_fd is not a ruleset file descriptor, or a member of
+> + *   @rule_attr is not the expected file descriptor type (e.g. file open
+> + *   without O_PATH);
+> + * - EPERM: @ruleset_fd has no write access to the underlying ruleset;
+> + * - EFAULT: @rule_attr inconsistency.
+> + */
+> +SYSCALL_DEFINE4(landlock_add_rule,
+> +		const int, ruleset_fd, const enum landlock_rule_type, rule_type,
+> +		const void __user *const, rule_attr, const __u32, flags)
+> +{
+> +	int err;
+> +
+> +	if (!landlock_initialized)
+> +		return -EOPNOTSUPP;
+> +
+> +	/* No flag for now. */
+> +	if (flags)
+> +		return -EINVAL;
+> +
+> +	switch (rule_type) {
+> +	case LANDLOCK_RULE_PATH_BENEATH:
+> +		err = add_rule_path_beneath(ruleset_fd, rule_attr);
+> +		break;
+> +	default:
+> +		err = -EINVAL;
+> +		break;
+> +	}
+> +	return err;
+> +}
+> +
+>   /* Enforcement */
+> 
+>   /**
+> diff --git a/tools/testing/selftests/landlock/base_test.c b/tools/testing/selftests/landlock/base_test.c
+> index da9290817866..0c4c3a538d54 100644
+> --- a/tools/testing/selftests/landlock/base_test.c
+> +++ b/tools/testing/selftests/landlock/base_test.c
+> @@ -156,11 +156,11 @@ TEST(add_rule_checks_ordering)
+>   	ASSERT_LE(0, ruleset_fd);
+> 
+>   	/* Checks invalid flags. */
+> -	ASSERT_EQ(-1, landlock_add_rule(-1, 0, NULL, 1));
+> +	ASSERT_EQ(-1, landlock_add_rule(-1, LANDLOCK_RULE_PATH_BENEATH, NULL, 1));
+
+This must not be changed! I specifically added these tests to make sure 
+no one change the argument ordering checks…
+
+
+>   	ASSERT_EQ(EINVAL, errno);
+> 
+>   	/* Checks invalid ruleset FD. */
+> -	ASSERT_EQ(-1, landlock_add_rule(-1, 0, NULL, 0));
+> +	ASSERT_EQ(-1, landlock_add_rule(-1, LANDLOCK_RULE_PATH_BENEATH, NULL, 0));
+>   	ASSERT_EQ(EBADF, errno);
+> 
+>   	/* Checks invalid rule type. */
+> --
+> 2.25.1
+> 
