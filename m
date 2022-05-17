@@ -2,81 +2,51 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA6A6C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 May 2022 08:17:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AEF17C433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 May 2022 08:17:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242874AbiEQIRA (ORCPT
+        id S243176AbiEQIRI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 May 2022 04:17:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43850 "EHLO
+        Tue, 17 May 2022 04:17:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41106 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243436AbiEQIQt (ORCPT
+        with ESMTP id S243174AbiEQIQp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 May 2022 04:16:49 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87E3C4B858
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 May 2022 01:14:40 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1nqsLk-0008Gn-1d; Tue, 17 May 2022 10:14:36 +0200
-Date:   Tue, 17 May 2022 10:14:36 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Maciej =?utf-8?Q?=C5=BBenczykowski?= <maze@google.com>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Nick Hainke <vincent@systemli.org>,
-        Netfilter Development Mailing List 
-        <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH iptables 1/2] xtables: fix compilation with musl
-Message-ID: <YoNZbOglBKlT8Nwl@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Maciej =?utf-8?Q?=C5=BBenczykowski?= <maze@google.com>,
-        Florian Westphal <fw@strlen.de>, Nick Hainke <vincent@systemli.org>,
-        Netfilter Development Mailing List <netfilter-devel@vger.kernel.org>
-References: <20220514163325.54266-1-vincent@systemli.org>
- <Yn/hMODAkEEbzQno@orbyte.nwl.cc>
- <CANP3RGfP4Et8PCviNLLUJNHBCbo-B53UkaZfZJyqHBu_Ccs3Ow@mail.gmail.com>
- <YoDsbC/hwY9mPLR+@orbyte.nwl.cc>
- <20220515140917.GA2812@breakpoint.cc>
- <CANP3RGfoEu5dKV83bO0LYnWYLoJMrvaMaCAx4sYaDNn6-14Z-Q@mail.gmail.com>
+        Tue, 17 May 2022 04:16:45 -0400
+Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA7554B1EB
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 May 2022 01:14:11 -0700 (PDT)
+Received: by a3.inai.de (Postfix, from userid 25121)
+        id 33C2A58909C82; Tue, 17 May 2022 10:14:10 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by a3.inai.de (Postfix) with ESMTP id 32C6060C1E82D;
+        Tue, 17 May 2022 10:14:10 +0200 (CEST)
+Date:   Tue, 17 May 2022 10:14:10 +0200 (CEST)
+From:   Jan Engelhardt <jengelh@inai.de>
+To:     Phil Sutter <phil@nwl.cc>
+cc:     vincent@systemli.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] treewide: use uint* instead of u_int*
+In-Reply-To: <YoNYjq2yDr3jbnyv@orbyte.nwl.cc>
+Message-ID: <r4s26683-61sq-8p27-o94-92rr8sqo796@vanv.qr>
+References: <9n33705n-4s4r-q4s1-q97-76n73p18s99r@vanv.qr> <20220516161641.15321-1-vincent@systemli.org> <YoNYjq2yDr3jbnyv@orbyte.nwl.cc>
+User-Agent: Alpine 2.25 (LSU 592 2021-09-18)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CANP3RGfoEu5dKV83bO0LYnWYLoJMrvaMaCAx4sYaDNn6-14Z-Q@mail.gmail.com>
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, May 15, 2022 at 07:13:27AM -0700, Maciej Żenczykowski wrote:
-> On Sun, May 15, 2022 at 7:09 AM Florian Westphal <fw@strlen.de> wrote:
-> > Phil Sutter <phil@nwl.cc> wrote:
-> > > > fix build for missing ETH_ALEN definition
-> > > > (this is needed at least with bionic)
-> > > >
-> > > > +#include <linux/if_ether.h> /* ETH_ALEN */
-> > > >
-> > > > Based on the above, clearly adding an 'if defined GLIBC' wrapper will
-> > > > break bionic...
-> > > > and presumably glibc doesn't care whether the #include is done one way
-> > > > or the other?
-> > >
-> > > With glibc, netinet/ether.h includes netinet/if_ether.h which in turn
-> > > includes linux/if_ether.h where finally ETH_ALEN is defined.
-> > >
-> > > In xtables.c we definitely need netinet/ether.h for ether_aton()
-> > > declaration.
-> >
-> > Or we hand-roll a xt_ether_aton and add XT_ETH_ALEN to avoid
-> > this include.
-> >
-> > Probably easier to maintain than to add all these ifdefs?
-> 
-> or even simply replace both the #include's with
-> #ifndef ETH_ALEN
-> #define ETH_ALEN 6
-> #endif
 
-If that's sufficient for both musl and bionic, probably the easiest
-solution with least potential for surprises.
+On Tuesday 2022-05-17 10:10, Phil Sutter wrote:
+>> +++ b/include/libipq/libipq.h
 
-Cheers, Phil
+>> -	u_int8_t blocking;
+>> +	uint8_t blocking;
+>
+>Might this break API compatibility? ABI won't change, but I suppose
+>users would have to include stdint.h prior to this header. Are we safe
+>if we change the include from sys/types.h to stdint.h in line 27 of that
+>file?
+
+Always include what you use, so yeah, libipq.h should include stdint.h.
+
