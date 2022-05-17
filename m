@@ -2,191 +2,502 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07375C433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 May 2022 08:23:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61A0EC433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 May 2022 08:28:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239063AbiEQIXG (ORCPT
+        id S243111AbiEQI2U (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 May 2022 04:23:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42614 "EHLO
+        Tue, 17 May 2022 04:28:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54618 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236514AbiEQIXF (ORCPT
+        with ESMTP id S243073AbiEQI2C (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 May 2022 04:23:05 -0400
-Received: from mail-il1-x12d.google.com (mail-il1-x12d.google.com [IPv6:2607:f8b0:4864:20::12d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1F6181AD95
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 May 2022 01:23:04 -0700 (PDT)
-Received: by mail-il1-x12d.google.com with SMTP id i15so2235989ilk.5
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 May 2022 01:23:04 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :content-transfer-encoding;
-        bh=c/W0VfDzNhKjvPU5UcsKSMI3/4ht5UuzXzCD0IZjM0E=;
-        b=awXr5B/w1NfXvGKuQSbn/Mfql8kuZL2FfyktFnRk8+BazaswqOPQyKqZjlw0v/4A8l
-         T1bZ7oJT2iuJs/EWe+GIc77PFZxmWEIi6Stf/lV/E8N/wD/nL+KTGsVNZaXF+e3XRoQA
-         vzVa6xooxwopQnmZIV/WrpmK3EgHVK26MqbaNSJYSxE0dHH9ea5OG5X3Oyv4PQ3T0Trm
-         JM65urVQNJ+xtEu4KXcKRgyaEsIERZsOBRXkvik4yKrPbC5wMgdIQAw/nVPwTLrppZx1
-         2n0iezQjoCg9vWc1/q3SthVYyKW+1NOwxiKMj0bxZV0r+bi5ws6ZXDSpee5MTEntBqaE
-         lEnQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:content-transfer-encoding;
-        bh=c/W0VfDzNhKjvPU5UcsKSMI3/4ht5UuzXzCD0IZjM0E=;
-        b=MLa9xHujzKO3corBXNeihefZZH77QMJCAT/oHKZAtDAPthTwPFSf1pmf5C7zmZPTme
-         ZM82YdId3yfTqsI5s5pLES7SsYVDVXD9M31o2V9i9iiBujNq0dfp8o568/B9i3v+1Kia
-         DZFoygUjIUv/cqCutn5iGqHVigIIKjFLiD+FS90TVTK9tYrkLZncM9okkTjcF8+VtCJf
-         bDYVH33EaH6aBRFZpcXuZUbGCE7EIKMcVSyg4myoTt11H+QyY3jGFtlulDbTRZVTBqw5
-         q5Jmvd0R8Rrso7/quVkTp3ThNkexKmhsxLqmHAfKkNo91F82N2qNDSaeJvuB6obvz/mJ
-         IojA==
-X-Gm-Message-State: AOAM5302Wdi3pbkQZYq+75+MdPV8AYutk/8AvCT1udsLlK9BTvUlQrOZ
-        K2RhvdCVCIVAEFMu7a1aDC9DaAoivpC4aKz1NRJhFw==
-X-Google-Smtp-Source: ABdhPJzNbierZZFbWiKU53s3wiQKRZP0m4uRnMTWa+2ZOo5zsIlxBD5FvNgvDkHxzSw49LsIly91qHXcSJPzZAylukw=
-X-Received: by 2002:a05:6e02:16c7:b0:2cf:610:e217 with SMTP id
- 7-20020a056e0216c700b002cf0610e217mr11540975ilx.273.1652775783312; Tue, 17
- May 2022 01:23:03 -0700 (PDT)
+        Tue, 17 May 2022 04:28:02 -0400
+Received: from smtp-8fae.mail.infomaniak.ch (smtp-8fae.mail.infomaniak.ch [IPv6:2001:1600:4:17::8fae])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F186E3465C
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 May 2022 01:27:48 -0700 (PDT)
+Received: from smtp-3-0000.mail.infomaniak.ch (unknown [10.4.36.107])
+        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4L2Tl72wK9zMqqRh;
+        Tue, 17 May 2022 10:27:47 +0200 (CEST)
+Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
+        by smtp-3-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4L2Tl65j5Kzlj4cM;
+        Tue, 17 May 2022 10:27:46 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
+        s=20191114; t=1652776067;
+        bh=afmbVEkyvcEtvwP5YaNl66s/+oCadWch65cC7X4u8YM=;
+        h=Date:To:Cc:References:From:Subject:In-Reply-To:From;
+        b=cZgC9gXhDeyXNKS7x3G8rGKK86bAqqb1TPFiNJ5IixdOSySiZG7HYd90A1nlNSj19
+         uCBmlVQO2oo7WS+MT3tDPpwddGpddXqAFPrCOmnVcOCZDxPN6QuHqLFjxcw9Txku3l
+         iLc77aYOpUR3E2JqVS3/kV5jGz8Vmho2yn6QheGA=
+Message-ID: <544f0edb-0b5a-17c3-57a1-a373723ef37f@digikod.net>
+Date:   Tue, 17 May 2022 10:27:45 +0200
 MIME-Version: 1.0
-References: <20220514163325.54266-1-vincent@systemli.org> <Yn/hMODAkEEbzQno@orbyte.nwl.cc>
- <CANP3RGfP4Et8PCviNLLUJNHBCbo-B53UkaZfZJyqHBu_Ccs3Ow@mail.gmail.com>
- <YoDsbC/hwY9mPLR+@orbyte.nwl.cc> <CANP3RGeEnEZUJtUQbjukSUC-6KBoHPF5dTD72b73Rev3hfp7MQ@mail.gmail.com>
- <YoNaMKGWLBrqIueJ@orbyte.nwl.cc>
-In-Reply-To: <YoNaMKGWLBrqIueJ@orbyte.nwl.cc>
-From:   =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <maze@google.com>
-Date:   Tue, 17 May 2022 01:22:50 -0700
-Message-ID: <CANP3RGct_j9r450-7LjMK=8=A8JzPGMnmNeH7=2WVFZm8CF+-A@mail.gmail.com>
-Subject: Re: [PATCH iptables 1/2] xtables: fix compilation with musl
-To:     Phil Sutter <phil@nwl.cc>,
-        =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <maze@google.com>,
-        Nick Hainke <vincent@systemli.org>,
-        Netfilter Development Mailing List 
-        <netfilter-devel@vger.kernel.org>,
-        =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: 
+Content-Language: en-US
+To:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+Cc:     willemdebruijn.kernel@gmail.com,
+        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
+        anton.sirazetdinov@huawei.com
+References: <20220516152038.39594-1-konstantin.meskhidze@huawei.com>
+ <20220516152038.39594-8-konstantin.meskhidze@huawei.com>
+From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+Subject: Re: [PATCH v5 07/15] landlock: add support network rules
+In-Reply-To: <20220516152038.39594-8-konstantin.meskhidze@huawei.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, May 17, 2022 at 1:17 AM Phil Sutter <phil@nwl.cc> wrote:
->
-> On Sun, May 15, 2022 at 06:40:51AM -0700, Maciej =C5=BBenczykowski wrote:
-> > On Sun, May 15, 2022 at 5:05 AM Phil Sutter <phil@nwl.cc> wrote:
-> > >
-> > > Hi Maciej,
-> > >
-> > > On Sat, May 14, 2022 at 12:14:27PM -0700, Maciej =C5=BBenczykowski wr=
-ote:
-> > > > On Sat, May 14, 2022 at 10:04 AM Phil Sutter <phil@nwl.cc> wrote:
-> > > > > On Sat, May 14, 2022 at 06:33:24PM +0200, Nick Hainke wrote:
-> > > > > > Only include <linux/if_ether.h> if glibc is used.
-> > > > >
-> > > > > This looks like a bug in musl? OTOH explicit include of linux/if_=
-ether.h
-> > > > > was added in commit c5d9a723b5159 ("fix build for missing ETH_ALE=
-N
-> > > > > definition"), despite netinet/ether.h being included in line 2248=
- of
-> > > > > libxtables/xtables.c. So maybe *also* a bug in bionic?!
-> > > >
-> > > > You stripped the email you're replying to, and while I'm on lkml an=
-d
-> > > > netdev - with my personal account - I'm not (apparently) subscribed=
- to
-> > > > netfilter-devel (or I'm not subscribed from work account).
-> > >
-> > > Oh, sorry for the caused inconvenience.
-> > >
-> > > > Either way, if my search-fu is correct you're replying to
-> > > > https://marc.info/?l=3Dnetfilter-devel&m=3D165254651011397&w=3D2
-> > > >
-> > > > +#if defined(__GLIBC__)
-> > > >  #include <linux/if_ether.h> /* ETH_ALEN */
-> > > > +#endif
-> > > >
-> > > > and you're presumably CC'ing me due to
-> > > >
-> > > > https://git.netfilter.org/iptables/commit/libxtables/xtables.c?id=
-=3Dc5d9a723b5159a28f547b577711787295a14fd84
-> > > >
-> > > > which added the include in the first place...:
-> > >
-> > > That's correct. I assumed that you added the include for a reason and
-> > > it's breaking Nick's use-case, the two of you want to have a word wit=
-h
-> > > each other. :)
-> > >
-> > > > fix build for missing ETH_ALEN definition
-> > > > (this is needed at least with bionic)
-> > > >
-> > > > +#include <linux/if_ether.h> /* ETH_ALEN */
-> > > >
-> > > > Based on the above, clearly adding an 'if defined GLIBC' wrapper wi=
-ll
-> > > > break bionic...
-> > > > and presumably glibc doesn't care whether the #include is done one =
-way
-> > > > or the other?
-> > >
-> > > With glibc, netinet/ether.h includes netinet/if_ether.h which in turn
-> > > includes linux/if_ether.h where finally ETH_ALEN is defined.
-> > >
-> > > In xtables.c we definitely need netinet/ether.h for ether_aton()
-> > > declaration.
-> > >
-> > > > Obviously it could be '#if !defined MUSL' instead...
-> > >
-> > > Could ...
-> > >
-> > > > As for the fix?  And whether glibc or musl or bionic are wrong or n=
-ot...
-> > > > Utterly uncertain...
-> > > >
-> > > > Though, I will point out #include's 2000 lines into a .c file are k=
-ind of funky.
-> > >
-> > > ACK!
-> > >
-> > > > Ultimately I find
-> > > > https://android.git.corp.google.com/platform/external/iptables/+/76=
-08e136bd495fe734ad18a6897dd4425e1a633b%5E%21/
-> > > >
-> > > > +#ifdef __BIONIC__
-> > > > +#include <linux/if_ether.h> /* ETH_ALEN */
-> > > > +#endif
-> > >
-> > > While I think musl not catching the "double" include is a bug, I'd
-> > > prefer the ifdef __BIONIC__ solution since it started the "but my lib=
-c
-> > > needs this" game.
-> > >
-> > > Nick, if the above change fixes musl builds for you, would you mind
-> > > submitting it formally along with a move of the netinet/ether.h inclu=
-de
-> > > from mid-file to top?
-> > >
-> > > Thanks, Phil
-> >
-> > Any thoughts about the rest of my email - wrt. #define __USE_BSD
-> > - do you know how that is supposed to work?
->
-> No, but isn't this a detail of bionic header layout?
->
-> Cheers, Phil
 
-No idea... is there actually a standard's document somewhere that
-actually describes which header file should declare what (and under
-what #define conditions)?
 
-Without it, I have absolutely no idea...
-glibc also has tons of headers that require #define SOMETHING before
-including them in order to get them to declare certain things.
+On 16/05/2022 17:20, Konstantin Meskhidze wrote:
+> This modification adds network rules support
+> in internal landlock functions (presented in ruleset.c)
+> and landlock_create_ruleset syscall.
+> 
+> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+> ---
+> 
+> Changes since v3:
+> * Split commit.
+> * Add network rule support for internal landlock functions.
+> * Add set_mask and get_mask for network.
+> * Add rb_root root_net_port.
+> 
+> Changes since v4:
+> * Refactoring landlock_create_ruleset() - splits ruleset and
+> masks checks.
+> * Refactoring landlock_create_ruleset() and landlock mask
+> setters/getters to support two rule types.
+> * Refactoring landlock_add_rule syscall add_rule_path_beneath
+> function by factoring out get_ruleset_from_fd() and
+> landlock_put_ruleset().
+> 
+> ---
+>   security/landlock/limits.h   |  8 +++-
+>   security/landlock/ruleset.c  | 82 +++++++++++++++++++++++++++++++-----
+>   security/landlock/ruleset.h  | 34 +++++++++++++--
+>   security/landlock/syscalls.c | 45 +++++++++++---------
+>   4 files changed, 132 insertions(+), 37 deletions(-)
+> 
+> diff --git a/security/landlock/limits.h b/security/landlock/limits.h
+> index b54184ab9439..23694bf05cb7 100644
+> --- a/security/landlock/limits.h
+> +++ b/security/landlock/limits.h
+> @@ -22,6 +22,12 @@
+>   #define LANDLOCK_MASK_ACCESS_FS		((LANDLOCK_LAST_ACCESS_FS << 1) - 1)
+>   #define LANDLOCK_NUM_ACCESS_FS		__const_hweight64(LANDLOCK_MASK_ACCESS_FS)
+> 
+> -/* clang-format on */
+> +#define LANDLOCK_LAST_ACCESS_NET	LANDLOCK_ACCESS_NET_CONNECT_TCP
+> +#define LANDLOCK_MASK_ACCESS_NET	((LANDLOCK_LAST_ACCESS_NET << 1) - 1)
+> +#define LANDLOCK_NUM_ACCESS_NET		__const_hweight64(LANDLOCK_MASK_ACCESS_NET)
+> +#define LANDLOCK_MASK_SHIFT_NET		16
+> +
+> +#define LANDLOCK_RULE_TYPE_NUM		LANDLOCK_RULE_NET_SERVICE
+> 
+> +/* clang-format on */
+>   #endif /* _SECURITY_LANDLOCK_LIMITS_H */
+> diff --git a/security/landlock/ruleset.c b/security/landlock/ruleset.c
+> index c4ed783d655b..ea9ecb3f471a 100644
+> --- a/security/landlock/ruleset.c
+> +++ b/security/landlock/ruleset.c
+> @@ -36,6 +36,7 @@ static struct landlock_ruleset *create_ruleset(const u32 num_layers)
+>   	refcount_set(&new_ruleset->usage, 1);
+>   	mutex_init(&new_ruleset->lock);
+>   	new_ruleset->root_inode = RB_ROOT;
+> +	new_ruleset->root_net_port = RB_ROOT;
+>   	new_ruleset->num_layers = num_layers;
+>   	/*
+>   	 * hierarchy = NULL
+> @@ -46,17 +47,21 @@ static struct landlock_ruleset *create_ruleset(const u32 num_layers)
+>   }
+> 
+>   struct landlock_ruleset *landlock_create_ruleset(
+> -		const access_mask_t access_mask)
+> +					const access_mask_t access_mask_fs,
+> +					const access_mask_t access_mask_net)
+>   {
+>   	struct landlock_ruleset *new_ruleset;
+> 
+>   	/* Informs about useless ruleset. */
+> -	if (!access_mask)
+> +	if (!access_mask_fs && !access_mask_net)
+>   		return ERR_PTR(-ENOMSG);
+>   	new_ruleset = create_ruleset(1);
+> -	if (!IS_ERR(new_ruleset))
+> -		landlock_set_fs_access_mask(new_ruleset, access_mask, 0);
+> -
+> +	if (IS_ERR(new_ruleset))
+> +		return new_ruleset;
+> +	if (access_mask_fs)
+> +		landlock_set_fs_access_mask(new_ruleset, access_mask_fs, 0);
+> +	if (access_mask_net)
+> +		landlock_set_net_access_mask(new_ruleset, access_mask_net, 0);
+>   	return new_ruleset;
+>   }
+> 
+> @@ -94,9 +99,11 @@ static struct landlock_rule *create_rule(
+>   		return ERR_PTR(-ENOMEM);
+>   	RB_CLEAR_NODE(&new_rule->node);
+> 
+> -	if (object_ptr) {
+> +	if (object_ptr && !object_data) {
+>   		landlock_get_object(object_ptr);
+>   		new_rule->object.ptr = object_ptr;
+> +	} else if (object_data && !object_ptr) {
+> +		new_rule->object.data = object_data;
+>   	} else if (object_ptr && object_data) {
+>   		WARN_ON_ONCE(1);
+>   		return ERR_PTR(-EINVAL);
+> @@ -132,10 +139,12 @@ static void build_check_ruleset(void)
+>   		.num_layers = ~0,
+>   	};
+>   	typeof(ruleset.access_masks[0]) fs_access_mask = ~0;
+> +	typeof(ruleset.access_masks[0]) net_access_mask = ~0;
+> 
+>   	BUILD_BUG_ON(ruleset.num_rules < LANDLOCK_MAX_NUM_RULES);
+>   	BUILD_BUG_ON(ruleset.num_layers < LANDLOCK_MAX_NUM_LAYERS);
+>   	BUILD_BUG_ON(fs_access_mask < LANDLOCK_MASK_ACCESS_FS);
+> +	BUILD_BUG_ON(net_access_mask < LANDLOCK_MASK_ACCESS_NET);
+>   }
+> 
+>   /**
+> @@ -183,6 +192,11 @@ static int insert_rule(struct landlock_ruleset *const ruleset,
+>   		object_data = (uintptr_t)object_ptr;
+>   		root = &ruleset->root_inode;
+>   		break;
+> +	case LANDLOCK_RULE_NET_SERVICE:
+> +		if (WARN_ON_ONCE(object_ptr))
+> +			return -EINVAL;
+> +		root = &ruleset->root_net_port;
+> +		break;
+>   	default:
+>   		WARN_ON_ONCE(1);
+>   		return -EINVAL;
+> @@ -237,6 +251,16 @@ static int insert_rule(struct landlock_ruleset *const ruleset,
+>   					&ruleset->root_inode);
+>   			free_rule(this, rule_type);
+>   			break;
+> +		case LANDLOCK_RULE_NET_SERVICE:
+> +			new_rule = create_rule(NULL, object_data,
+> +					       &this->layers, this->num_layers,
+> +					       &(*layers)[0]);
+> +			if (IS_ERR(new_rule))
+> +				return PTR_ERR(new_rule);
+> +			rb_replace_node(&this->node, &new_rule->node,
+> +					&ruleset->root_net_port);
+> +			free_rule(this, rule_type);
+> +			break;
+>   		}
+>   		return 0;
+>   	}
+> @@ -254,6 +278,15 @@ static int insert_rule(struct landlock_ruleset *const ruleset,
+>   		rb_link_node(&new_rule->node, parent_node, walker_node);
+>   		rb_insert_color(&new_rule->node, &ruleset->root_inode);
+>   		break;
+> +	case LANDLOCK_RULE_NET_SERVICE:
+> +		new_rule = create_rule(NULL, object_data, layers,
+> +				       num_layers, NULL);
+> +		if (IS_ERR(new_rule))
+> +			return PTR_ERR(new_rule);
+> +		rb_link_node(&new_rule->node, parent_node, walker_node);
+> +		rb_insert_color(&new_rule->node, &ruleset->root_net_port);
+> +		ruleset->num_rules++;
+> +		break;
+>   	}
+>   	return 0;
+>   }
+> @@ -315,6 +348,9 @@ static int tree_merge(struct landlock_ruleset *const src,
+>   	case LANDLOCK_RULE_PATH_BENEATH:
+>   		src_root = &src->root_inode;
+>   		break;
+> +	case LANDLOCK_RULE_NET_SERVICE:
+> +		src_root = &src->root_net_port;
+> +		break;
+>   	default:
+>   		return -EINVAL;
+>   	}
+> @@ -341,6 +377,11 @@ static int tree_merge(struct landlock_ruleset *const src,
+>   					  rule_type, &layers,
+>   					  ARRAY_SIZE(layers));
+>   			break;
+> +		case LANDLOCK_RULE_NET_SERVICE:
+> +			err = insert_rule(dst, NULL, walker_rule->object.data,
+> +					  rule_type, &layers,
+> +					  ARRAY_SIZE(layers));
+> +			break;
+>   		}
+>   		if (err)
+>   			return err;
+> @@ -376,6 +417,10 @@ static int merge_ruleset(struct landlock_ruleset *const dst,
+>   	err = tree_merge(src, dst, LANDLOCK_RULE_PATH_BENEATH);
+>   	if (err)
+>   		goto out_unlock;
+> +	/* Merges the @src network tree. */
+> +	err = tree_merge(src, dst, LANDLOCK_RULE_NET_SERVICE);
+> +	if (err)
+> +		goto out_unlock;
+> 
+>   out_unlock:
+>   	mutex_unlock(&src->lock);
+> @@ -395,6 +440,9 @@ static int tree_copy(struct landlock_ruleset *const parent,
+>   	case LANDLOCK_RULE_PATH_BENEATH:
+>   		parent_root = &parent->root_inode;
+>   		break;
+> +	case LANDLOCK_RULE_NET_SERVICE:
+> +		parent_root = &parent->root_net_port;
+> +		break;
+>   	default:
+>   		return -EINVAL;
+>   	}
+> @@ -407,6 +455,12 @@ static int tree_copy(struct landlock_ruleset *const parent,
+>   					  rule_type, &walker_rule->layers,
+>   					  walker_rule->num_layers);
+>   			break;
+> +		case LANDLOCK_RULE_NET_SERVICE:
+> +			err = insert_rule(child, NULL,
+> +					  walker_rule->object.data, rule_type,
+> +					  &walker_rule->layers,
+> +					  walker_rule->num_layers);
+> +			break;
+>   		}
+>   		if (err)
+>   			return err;
+> @@ -429,6 +483,10 @@ static int inherit_ruleset(struct landlock_ruleset *const parent,
+> 
+>   	/* Copies the @parent inode tree. */
+>   	err = tree_copy(parent, child, LANDLOCK_RULE_PATH_BENEATH);
+> +	if (err)
+> +		goto out_unlock;
+> +	/* Copies the @parent inode tree. */
 
-I have no idea why the #ifdef BSD guard is there in bionic... maybe
-it's wrong, maybe it's compatible with some other libc header files...
-It doesn't really feel like the sort of thing that would be added by
-mistake (ie. it feels very intentional)...
+Not the inode tree this time.
 
-But changing bionic (for example to remove the #ifdef), feels scarier,
-because it affects all things using bionic (including android app
-native code I think), as opposed to just a single file in iptables...
+
+> +	err = tree_copy(parent, child, LANDLOCK_RULE_NET_SERVICE);
+>   	if (err)
+>   		goto out_unlock;
+> 
+> @@ -463,9 +521,11 @@ static void free_ruleset(struct landlock_ruleset *const ruleset)
+> 
+>   	might_sleep();
+>   	rbtree_postorder_for_each_entry_safe(freeme, next,
+> -					     &ruleset->root_inode,
+> -					     node)
+> +					     &ruleset->root_inode, node)
+>   		free_rule(freeme, LANDLOCK_RULE_PATH_BENEATH);
+> +	rbtree_postorder_for_each_entry_safe(freeme, next,
+> +					     &ruleset->root_net_port, node)
+> +		free_rule(freeme, LANDLOCK_RULE_NET_SERVICE);
+>   	put_hierarchy(ruleset->hierarchy);
+>   	kfree(ruleset);
+>   }
+> @@ -560,13 +620,13 @@ const struct landlock_rule *landlock_find_rule(
+>   {
+>   	const struct rb_node *node;
+> 
+> -	if (!object_data)
+> -		return NULL;
+> -
+>   	switch (rule_type) {
+>   	case LANDLOCK_RULE_PATH_BENEATH:
+>   		node = ruleset->root_inode.rb_node;
+>   		break;
+> +	case LANDLOCK_RULE_NET_SERVICE:
+> +		node = ruleset->root_net_port.rb_node;
+> +		break;
+>   	default:
+>   		WARN_ON_ONCE(1);
+>   		return NULL;
+> diff --git a/security/landlock/ruleset.h b/security/landlock/ruleset.h
+> index f3cd890d0348..916b30b31c06 100644
+> --- a/security/landlock/ruleset.h
+> +++ b/security/landlock/ruleset.h
+> @@ -102,6 +102,12 @@ struct landlock_ruleset {
+>   	 * tree is immutable until @usage reaches zero.
+>   	 */
+>   	struct rb_root root_inode;
+> +	/**
+> +	 * @root_net_port: Root of a red-black tree containing object nodes
+> +	 * for network port. Once a ruleset is tied to a process (i.e. as a domain),
+> +	 * this tree is immutable until @usage reaches zero.
+> +	 */
+> +	struct rb_root root_net_port;
+>   	/**
+>   	 * @hierarchy: Enables hierarchy identification even when a parent
+>   	 * domain vanishes.  This is needed for the ptrace protection.
+> @@ -157,7 +163,8 @@ struct landlock_ruleset {
+>   };
+> 
+>   struct landlock_ruleset *landlock_create_ruleset(
+> -		const access_mask_t access_mask);
+> +					const access_mask_t access_mask_fs,
+> +					const access_mask_t access_mask_net);
+> 
+>   void landlock_put_ruleset(struct landlock_ruleset *const ruleset);
+>   void landlock_put_ruleset_deferred(struct landlock_ruleset *const ruleset);
+> @@ -183,11 +190,12 @@ static inline void landlock_get_ruleset(struct landlock_ruleset *const ruleset)
+>   }
+> 
+>   /* A helper function to set a filesystem mask */
+> -static inline void landlock_set_fs_access_mask(struct landlock_ruleset *ruleset,
+> -				 const access_mask_t access_maskset,
+> +static inline void landlock_set_fs_access_mask(
+> +				 struct landlock_ruleset *ruleset,
+> +				 const access_mask_t access_mask_fs,
+>   				 u16 mask_level)
+>   {
+> -	ruleset->access_masks[mask_level] = access_maskset;
+> +	ruleset->access_masks[mask_level] = access_mask_fs;
+>   }
+> 
+>   /* A helper function to get a filesystem mask */
+> @@ -198,6 +206,24 @@ static inline u32 landlock_get_fs_access_mask(
+>   	return (ruleset->access_masks[mask_level] & LANDLOCK_MASK_ACCESS_FS);
+>   }
+> 
+> +/* A helper function to set a network mask */
+> +static inline void landlock_set_net_access_mask(
+> +				  struct landlock_ruleset *ruleset,
+> +				  const access_mask_t access_mask_net,
+> +				  u16 mask_level)
+> +{
+> +	ruleset->access_masks[mask_level] |= (access_mask_net <<
+> +					      LANDLOCK_MASK_SHIFT_NET);
+> +}
+> +
+> +/* A helper function to get a network mask */
+> +static inline u32 landlock_get_net_access_mask(
+> +				const struct landlock_ruleset *ruleset,
+> +				u16 mask_level)
+> +{
+> +	return (ruleset->access_masks[mask_level] >> LANDLOCK_MASK_SHIFT_NET);
+> +}
+> +
+>   access_mask_t get_handled_accesses(
+>   		const struct landlock_ruleset *const domain,
+>   		u16 rule_type, u16 num_access);
+> diff --git a/security/landlock/syscalls.c b/security/landlock/syscalls.c
+> index 31f9facec123..812541f4e155 100644
+> --- a/security/landlock/syscalls.c
+> +++ b/security/landlock/syscalls.c
+> @@ -189,8 +189,14 @@ SYSCALL_DEFINE3(landlock_create_ruleset,
+>   	    LANDLOCK_MASK_ACCESS_FS)
+>   		return -EINVAL;
+> 
+> +	/* Checks network content (and 32-bits cast). */
+> +	if ((ruleset_attr.handled_access_net | LANDLOCK_MASK_ACCESS_NET) !=
+> +			LANDLOCK_MASK_ACCESS_NET)
+> +		return -EINVAL;
+> +
+>   	/* Checks arguments and transforms to kernel struct. */
+> -	ruleset = landlock_create_ruleset(ruleset_attr.handled_access_fs);
+> +	ruleset = landlock_create_ruleset(ruleset_attr.handled_access_fs,
+> +					  ruleset_attr.handled_access_net);
+>   	if (IS_ERR(ruleset))
+>   		return PTR_ERR(ruleset);
+> 
+> @@ -275,21 +281,17 @@ static int get_path_from_fd(const s32 fd, struct path *const path)
+>   	return err;
+>   }
+> 
+> -static int add_rule_path_beneath(const int ruleset_fd, const void *const rule_attr)
+> +static int add_rule_path_beneath(struct landlock_ruleset *const ruleset,
+> +				 const void *const rule_attr)
+>   {
+>   	struct landlock_path_beneath_attr path_beneath_attr;
+>   	struct path path;
+> -	struct landlock_ruleset *ruleset;
+>   	int res, err;
+> -
+> -	/* Gets and checks the ruleset. */
+> -	ruleset = get_ruleset_from_fd(ruleset_fd, FMODE_CAN_WRITE);
+> -	if (IS_ERR(ruleset))
+> -		return PTR_ERR(ruleset);
+> +	u32 mask;
+> 
+>   	/* Copies raw user space buffer, only one type for now. */
+>   	res = copy_from_user(&path_beneath_attr, rule_attr,
+> -				sizeof(path_beneath_attr));
+> +			sizeof(path_beneath_attr));
+>   	if (res)
+>   		return -EFAULT;
+> 
+> @@ -298,32 +300,26 @@ static int add_rule_path_beneath(const int ruleset_fd, const void *const rule_at
+>   	 * are ignored in path walks.
+>   	 */
+>   	if (!path_beneath_attr.allowed_access) {
+> -		err = -ENOMSG;
+> -		goto out_put_ruleset;
+> +		return -ENOMSG;
+>   	}
+>   	/*
+>   	 * Checks that allowed_access matches the @ruleset constraints
+>   	 * (ruleset->access_masks[0] is automatically upgraded to 64-bits).
+>   	 */
+> -	if ((path_beneath_attr.allowed_access |
+> -		landlock_get_fs_access_mask(ruleset, 0)) !=
+> -				landlock_get_fs_access_mask(ruleset, 0)) {
+> -		err = -EINVAL;
+> -		goto out_put_ruleset;
+> -	}
+> +	mask = landlock_get_fs_access_mask(ruleset, 0);
+> +	if ((path_beneath_attr.allowed_access | mask) != mask)
+> +		return -EINVAL;
+> 
+>   	/* Gets and checks the new rule. */
+>   	err = get_path_from_fd(path_beneath_attr.parent_fd, &path);
+>   	if (err)
+> -		goto out_put_ruleset;
+> +		return err;
+> 
+>   	/* Imports the new rule. */
+>   	err = landlock_append_fs_rule(ruleset, &path,
+>   				      path_beneath_attr.allowed_access);
+>   	path_put(&path);
+> 
+> -out_put_ruleset:
+> -	landlock_put_ruleset(ruleset);
+>   	return err;
+>   }
+> 
+> @@ -360,6 +356,7 @@ SYSCALL_DEFINE4(landlock_add_rule,
+>   		const int, ruleset_fd, const enum landlock_rule_type, rule_type,
+>   		const void __user *const, rule_attr, const __u32, flags)
+>   {
+> +	struct landlock_ruleset *ruleset;
+>   	int err;
+> 
+>   	if (!landlock_initialized)
+> @@ -369,14 +366,20 @@ SYSCALL_DEFINE4(landlock_add_rule,
+>   	if (flags)
+>   		return -EINVAL;
+> 
+> +	/* Gets and checks the ruleset. */
+> +	ruleset = get_ruleset_from_fd(ruleset_fd, FMODE_CAN_WRITE);
+> +	if (IS_ERR(ruleset))
+> +		return PTR_ERR(ruleset);
+
+This shouldn't be part of this patch.
+
+
+> +
+>   	switch (rule_type) {
+>   	case LANDLOCK_RULE_PATH_BENEATH:
+> -		err = add_rule_path_beneath(ruleset_fd, rule_attr);
+> +		err = add_rule_path_beneath(ruleset, rule_attr);
+>   		break;
+>   	default:
+>   		err = -EINVAL;
+>   		break;
+>   	}
+> +	landlock_put_ruleset(ruleset);
+>   	return err;
+>   }
+> 
+> --
+> 2.25.1
+> 
