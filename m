@@ -2,79 +2,81 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC262C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 May 2022 08:15:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA6A6C433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 May 2022 08:17:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242995AbiEQIPQ (ORCPT
+        id S242874AbiEQIRA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 May 2022 04:15:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44046 "EHLO
+        Tue, 17 May 2022 04:17:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43850 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243069AbiEQIN3 (ORCPT
+        with ESMTP id S243436AbiEQIQt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 May 2022 04:13:29 -0400
-Received: from smtp-42ad.mail.infomaniak.ch (smtp-42ad.mail.infomaniak.ch [IPv6:2001:1600:3:17::42ad])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6FB0449935
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 May 2022 01:12:39 -0700 (PDT)
-Received: from smtp-3-0001.mail.infomaniak.ch (unknown [10.4.36.108])
-        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4L2TPZ5H7rzMrBqC;
-        Tue, 17 May 2022 10:12:34 +0200 (CEST)
-Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
-        by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4L2TPZ1y6qzlhMC5;
-        Tue, 17 May 2022 10:12:34 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1652775154;
-        bh=Wlo13ZQ1fjXEj/AZR+D+T5bedv0V+KydvqaxiHUOJb4=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=i8mUt8stPxvNARDvMT22qV9SlqPmrMhW1geD9DVQPe805afS53dp4bBcbG6oy23Y6
-         pwK2edYJdAwdX+H8yCYlTHz+XMFzKI9W0Bv077HHH7+7jWMo8tzPpBWymBO06/rtw9
-         Ngrqtg1xJLWkJO915sPcTDAoEsLhJoO82TOPXQEk=
-Message-ID: <a6300c07-87f5-21a4-8998-facbecd63787@digikod.net>
-Date:   Tue, 17 May 2022 10:12:33 +0200
+        Tue, 17 May 2022 04:16:49 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87E3C4B858
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 May 2022 01:14:40 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1nqsLk-0008Gn-1d; Tue, 17 May 2022 10:14:36 +0200
+Date:   Tue, 17 May 2022 10:14:36 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Maciej =?utf-8?Q?=C5=BBenczykowski?= <maze@google.com>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Nick Hainke <vincent@systemli.org>,
+        Netfilter Development Mailing List 
+        <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH iptables 1/2] xtables: fix compilation with musl
+Message-ID: <YoNZbOglBKlT8Nwl@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Maciej =?utf-8?Q?=C5=BBenczykowski?= <maze@google.com>,
+        Florian Westphal <fw@strlen.de>, Nick Hainke <vincent@systemli.org>,
+        Netfilter Development Mailing List <netfilter-devel@vger.kernel.org>
+References: <20220514163325.54266-1-vincent@systemli.org>
+ <Yn/hMODAkEEbzQno@orbyte.nwl.cc>
+ <CANP3RGfP4Et8PCviNLLUJNHBCbo-B53UkaZfZJyqHBu_Ccs3Ow@mail.gmail.com>
+ <YoDsbC/hwY9mPLR+@orbyte.nwl.cc>
+ <20220515140917.GA2812@breakpoint.cc>
+ <CANP3RGfoEu5dKV83bO0LYnWYLoJMrvaMaCAx4sYaDNn6-14Z-Q@mail.gmail.com>
 MIME-Version: 1.0
-User-Agent: 
-Subject: Re: [PATCH v5 01/15] landlock: access mask renaming
-Content-Language: en-US
-To:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-Cc:     willemdebruijn.kernel@gmail.com,
-        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
-        anton.sirazetdinov@huawei.com
-References: <20220516152038.39594-1-konstantin.meskhidze@huawei.com>
- <20220516152038.39594-2-konstantin.meskhidze@huawei.com>
-From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-In-Reply-To: <20220516152038.39594-2-konstantin.meskhidze@huawei.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CANP3RGfoEu5dKV83bO0LYnWYLoJMrvaMaCAx4sYaDNn6-14Z-Q@mail.gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
-On 16/05/2022 17:20, Konstantin Meskhidze wrote:
-> Currently Landlock supports filesystem
-> restrictions. To support network type rules,
-> this modification extends and renames
-> ruleset's access masks.
-> This patch adds filesystem helper functions
-> to set and get filesystem mask. Also the modification
-> adds a helper structure landlock_access_mask to
-> support managing multiple access mask.
+On Sun, May 15, 2022 at 07:13:27AM -0700, Maciej Żenczykowski wrote:
+> On Sun, May 15, 2022 at 7:09 AM Florian Westphal <fw@strlen.de> wrote:
+> > Phil Sutter <phil@nwl.cc> wrote:
+> > > > fix build for missing ETH_ALEN definition
+> > > > (this is needed at least with bionic)
+> > > >
+> > > > +#include <linux/if_ether.h> /* ETH_ALEN */
+> > > >
+> > > > Based on the above, clearly adding an 'if defined GLIBC' wrapper will
+> > > > break bionic...
+> > > > and presumably glibc doesn't care whether the #include is done one way
+> > > > or the other?
+> > >
+> > > With glibc, netinet/ether.h includes netinet/if_ether.h which in turn
+> > > includes linux/if_ether.h where finally ETH_ALEN is defined.
+> > >
+> > > In xtables.c we definitely need netinet/ether.h for ether_aton()
+> > > declaration.
+> >
+> > Or we hand-roll a xt_ether_aton and add XT_ETH_ALEN to avoid
+> > this include.
+> >
+> > Probably easier to maintain than to add all these ifdefs?
 > 
-> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-> ---
+> or even simply replace both the #include's with
+> #ifndef ETH_ALEN
+> #define ETH_ALEN 6
+> #endif
 
-[...]
+If that's sufficient for both musl and bionic, probably the easiest
+solution with least potential for surprises.
 
-> diff --git a/security/landlock/ruleset.h b/security/landlock/ruleset.h
-> index d43231b783e4..f27a79624962 100644
-> --- a/security/landlock/ruleset.h
-> +++ b/security/landlock/ruleset.h
-> @@ -20,6 +20,7 @@
->   #include "object.h"
-> 
->   typedef u16 access_mask_t;
-> +
->   /* Makes sure all filesystem access rights can be stored. */
-
-Please don't add whitespaces.
+Cheers, Phil
