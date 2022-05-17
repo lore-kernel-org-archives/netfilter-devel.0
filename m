@@ -2,84 +2,106 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7453FC433F5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 May 2022 17:21:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58836C433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 May 2022 17:21:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351445AbiEQRVZ (ORCPT
+        id S1351474AbiEQRVw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 May 2022 13:21:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49120 "EHLO
+        Tue, 17 May 2022 13:21:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49244 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1351408AbiEQRVX (ORCPT
+        with ESMTP id S1351404AbiEQRVZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 May 2022 13:21:23 -0400
+        Tue, 17 May 2022 13:21:25 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C1B5726ACC
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 May 2022 10:21:16 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 85F2628E0A
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 May 2022 10:21:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
-        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=ofsihuGLrmTLjfHrp+OynnD6tO3VjrvNWUXx5rI+qOM=; b=U3wtZBnCXQZnYjZ0artlW5KCQL
-        vk2Jur7QckdwwrYfVrFDVTJwPm1W4lgFlgfM4tKtz6WzPc8ayx5bJfma6b0bH4kNkS7vPxHOiK+L2
-        jheNkrIl6yuMpC9DuERuIhQ5MSPoPYwoW5R2aCtp/5QUdMZ5tJxvU8lsvqG2plVS90oFxLBtXAzQN
-        OBYwC3W9QLckKwmTevG0yR3mtAhkucxptZnPkxXAAU11J9oDMCFTqV8PKHgBoZyYCn63qZJo9t1gg
-        O3KTXJ4Szl52apUu60J5VIGJ0SSL4H4o2kTBkWEg0Yn+pL4iTo9xy5Y0bD7l9tz3WIy6e1e/Tmy8V
-        iOpDVWCw==;
+        bh=r/+DCt70vAagZCQQTTSYZqJ2hMGf3yMMoPt4uokR1FI=; b=Uz0fpjd8SWN2dlQI2hdjd12DrR
+        PaIEMWKwcVfW4vBTKOEEhXZGFT9rrKz8c6D1epPTHo2yyIg0LgriK+eXSRo5+HJ0unFhezDIfJt4x
+        gOhy9fvYPqI8G/99MPTx617iNm3vr8WgwxuMXlS7lnsqc5ACW5yCQqKx7TlqJHaabtA+KcuRpZQ67
+        6KDXOwA9CaT9KEtH5lsPIFGmDQQqKLVfQ3VHKoI1KlDigQoDqr2LPqclc0s4plEudYw3jm8KXEa0h
+        lZMJw++D0SW8Ky2YB3Pkzse4H5y9/4U/GkLtlIG9KM3dMZJKtghyRUsTbfsFc+0MD/o49oIwRw6x3
+        HpdboAEQ==;
 Received: from localhost ([::1] helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1nr0sl-0005oD-6R; Tue, 17 May 2022 19:21:15 +0200
+        id 1nr0sq-0005oL-GP; Tue, 17 May 2022 19:21:20 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [nf-next PATCH v4 0/4] nf_tables: Export rule optimizer results to user space
-Date:   Tue, 17 May 2022 19:20:46 +0200
-Message-Id: <20220517172050.32653-1-phil@nwl.cc>
+Subject: [PATCH v4 3/4] netfilter: nf_tables: Introduce expression flags
+Date:   Tue, 17 May 2022 19:20:49 +0200
+Message-Id: <20220517172050.32653-4-phil@nwl.cc>
 X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20220517172050.32653-1-phil@nwl.cc>
+References: <20220517172050.32653-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Changes since v3:
-- Add missing chunks to patch 1
+Allow dumping some info bits about expressions to user space.
 
-Changes since v2:
-- New patches 1 and 2
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ include/net/netfilter/nf_tables.h        | 1 +
+ include/uapi/linux/netfilter/nf_tables.h | 1 +
+ net/netfilter/nf_tables_api.c            | 4 ++++
+ 3 files changed, 6 insertions(+)
 
-Changes since v1:
-- Fixed two bugs in patch 2.
-
-While transforming rules into binary blob, code checks if certain
-expressions may be omitted. Any bugs in this code might lead to very
-subtle breakage of firewall rulesets, so a way of asserting optimizer
-correctness is highly necessary.
-
-This series achieves this in the most minimal way by annotating omitted
-expressions with a flag. Integrated into libnftnl print output,
-testsuites in user space may verify optimizer effect and assert
-correctness.
-
-First patch prepares for a blob-specific variant of struct nft_expr
-which is smaller than the original. Second patch introduces this
-variant. Third patch extends struct nft_expr by a new field and finally
-fourth patch populates it.
-
-Phil Sutter (4):
-  netfilter: nf_tables: Store net size in nft_expr_ops::size
-  netfilter: nf_tables: Introduce struct nft_expr_dp
-  netfilter: nf_tables: Introduce expression flags
-  netfilter: nf_tables: Annotate reduced expressions
-
- include/net/netfilter/nf_tables.h        | 18 +++++++---
- include/uapi/linux/netfilter/nf_tables.h |  8 +++++
- net/netfilter/nf_tables_api.c            | 42 ++++++++++++++++--------
- 3 files changed, 51 insertions(+), 17 deletions(-)
-
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index d4da396052018..34add1acaac73 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -349,6 +349,7 @@ struct nft_set_estimate {
+  */
+ struct nft_expr {
+ 	const struct nft_expr_ops	*ops;
++	u32				flags;
+ 	unsigned char			data[]
+ 		__attribute__((aligned(__alignof__(u64))));
+ };
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 466fd3f4447c2..36bf019322a44 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -518,6 +518,7 @@ enum nft_expr_attributes {
+ 	NFTA_EXPR_UNSPEC,
+ 	NFTA_EXPR_NAME,
+ 	NFTA_EXPR_DATA,
++	NFTA_EXPR_FLAGS,
+ 	__NFTA_EXPR_MAX
+ };
+ #define NFTA_EXPR_MAX		(__NFTA_EXPR_MAX - 1)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index ba2f712823776..608c5e684dff7 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2731,6 +2731,7 @@ static const struct nft_expr_type *nft_expr_type_get(struct net *net,
+ static const struct nla_policy nft_expr_policy[NFTA_EXPR_MAX + 1] = {
+ 	[NFTA_EXPR_NAME]	= { .type = NLA_STRING,
+ 				    .len = NFT_MODULE_AUTOLOAD_LIMIT },
++	[NFTA_EXPR_FLAGS]	= { .type = NLA_U32 },
+ 	[NFTA_EXPR_DATA]	= { .type = NLA_NESTED },
+ };
+ 
+@@ -2740,6 +2741,9 @@ static int nf_tables_fill_expr_info(struct sk_buff *skb,
+ 	if (nla_put_string(skb, NFTA_EXPR_NAME, expr->ops->type->name))
+ 		goto nla_put_failure;
+ 
++	if (nla_put_u32(skb, NFTA_EXPR_FLAGS, expr->flags))
++		goto nla_put_failure;
++
+ 	if (expr->ops->dump) {
+ 		struct nlattr *data = nla_nest_start_noflag(skb,
+ 							    NFTA_EXPR_DATA);
 -- 
 2.34.1
 
