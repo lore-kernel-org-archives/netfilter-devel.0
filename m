@@ -2,490 +2,195 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A7ABAC433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 May 2022 21:15:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0F96C433F5
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 May 2022 01:57:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348512AbiEPVPr (ORCPT
+        id S233633AbiEQB5N (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 16 May 2022 17:15:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49102 "EHLO
+        Mon, 16 May 2022 21:57:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60854 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349353AbiEPVPZ (ORCPT
+        with ESMTP id S231492AbiEQB5M (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 May 2022 17:15:25 -0400
-Received: from smtp-190d.mail.infomaniak.ch (smtp-190d.mail.infomaniak.ch [185.125.25.13])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7DAC101CA;
-        Mon, 16 May 2022 14:11:19 -0700 (PDT)
-Received: from smtp-2-0000.mail.infomaniak.ch (unknown [10.5.36.107])
-        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4L2BkY5yTZzMqDV8;
-        Mon, 16 May 2022 23:11:17 +0200 (CEST)
-Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
-        by smtp-2-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4L2BkY1zfdzlhSM4;
-        Mon, 16 May 2022 23:11:17 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1652735477;
-        bh=+aizXfOogFD6GMJsxLgVAZuyJL+LhtFd42iQMnz6KS4=;
-        h=Date:To:Cc:References:From:Subject:In-Reply-To:From;
-        b=ZBe7cabD3KbMedo1wXKRX7fRpd92yNodY3j5XQtsBUzVtIhmEM0ZHvliBj/LhxIs0
-         kXpAeHxvmN6v5PfbjunNb5XpF3Qp49eJaypvBhRVJDEFGellPFdQmoEw1Skyv0Okcs
-         ZGVoEeMAhaKIJCEvbcXs8Xv0mGcky/C9Se/0nRd0=
-Message-ID: <eaa4cc8f-4c4a-350d-6b96-551f32156e3d@digikod.net>
-Date:   Mon, 16 May 2022 23:11:16 +0200
+        Mon, 16 May 2022 21:57:12 -0400
+Received: from chinatelecom.cn (prt-mail.chinatelecom.cn [42.123.76.228])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 90E5E13E9F
+        for <netfilter-devel@vger.kernel.org>; Mon, 16 May 2022 18:57:08 -0700 (PDT)
+HMM_SOURCE_IP: 172.18.0.218:46164.1237796334
+HMM_ATTACHE_NUM: 0000
+HMM_SOURCE_TYPE: SMTP
+Received: from clientip-101.229.165.117 (unknown [172.18.0.218])
+        by chinatelecom.cn (HERMES) with SMTP id 4A5DD280133;
+        Tue, 17 May 2022 09:57:00 +0800 (CST)
+X-189-SAVE-TO-SEND: wenxu@chinatelecom.cn
+Received: from  ([172.18.0.218])
+        by app0025 with ESMTP id a752b084050c42f689a77c0ff887f990 for pablo@netfilter.org;
+        Tue, 17 May 2022 09:57:05 CST
+X-Transaction-ID: a752b084050c42f689a77c0ff887f990
+X-Real-From: wenxu@chinatelecom.cn
+X-Receive-IP: 172.18.0.218
+X-MEDUSA-Status: 0
+Sender: wenxu@chinatelecom.cn
+Message-ID: <abf35fe1-f581-8f53-b654-c4b434d4a972@chinatelecom.cn>
+Date:   Tue, 17 May 2022 09:56:57 +0800
 MIME-Version: 1.0
-User-Agent: 
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.8.1
+Subject: Re: [nf-next PATCH] nf_flow_table_offload: offload the PPPoE encap in
+ the flowtable
 Content-Language: en-US
-To:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-Cc:     willemdebruijn.kernel@gmail.com,
-        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
-        anton.sirazetdinov@huawei.com
-References: <20220516152038.39594-1-konstantin.meskhidze@huawei.com>
- <20220516152038.39594-10-konstantin.meskhidze@huawei.com>
-From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-Subject: Re: [PATCH v5 09/15] seltests/landlock: add tests for bind() hooks
-In-Reply-To: <20220516152038.39594-10-konstantin.meskhidze@huawei.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, Felix Fietkau <nbd@nbd.name>
+References: <1652189176-49750-1-git-send-email-wenxu@chinatelecom.cn>
+ <YoIx8zglMHjb4Gi7@salvia>
+From:   wenxu <wenxu@chinatelecom.cn>
+In-Reply-To: <YoIx8zglMHjb4Gi7@salvia>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+The patch “netfilter: nft_flow_offload: fix offload with pppoe + vlan”
 
-On 16/05/2022 17:20, Konstantin Meskhidze wrote:
-> Adds selftests for bind socket action.
-> The first is with no landlock restrictions:
->      - bind_no_restrictions_ip4;
->      - bind_no_restrictions_ip6;
-> The second ones is with mixed landlock rules:
->      - bind_with_restrictions_ip4;
->      - bind_with_restrictions_ip6;
-> 
-> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-> ---
-> 
-> Changes since v3:
-> * Split commit.
-> * Add helper create_socket.
-> * Add FIXTURE_SETUP.
-> 
-> Changes since v4:
-> * Adds port[MAX_SOCKET_NUM], struct sockaddr_in addr4
-> and struct sockaddr_in addr6 in FIXTURE.
-> * Refactoring FIXTURE_SETUP:
->      - initializing self->port, self->addr4 and self->addr6.
->      - adding network namespace.
-> * Refactoring code with self->port, self->addr4 and
-> self->addr6 variables.
-> * Adds selftests for IP6 family:
->      - bind_no_restrictions_ip6.
->      - bind_with_restrictions_ip6.
-> * Refactoring selftests/landlock/config
-> * Moves enforce_ruleset() into common.h
-> 
-> ---
->   tools/testing/selftests/landlock/common.h   |   9 +
->   tools/testing/selftests/landlock/config     |   5 +-
->   tools/testing/selftests/landlock/fs_test.c  |  10 -
->   tools/testing/selftests/landlock/net_test.c | 237 ++++++++++++++++++++
->   4 files changed, 250 insertions(+), 11 deletions(-)
->   create mode 100644 tools/testing/selftests/landlock/net_test.c
-> 
-> diff --git a/tools/testing/selftests/landlock/common.h b/tools/testing/selftests/landlock/common.h
-> index 7ba18eb23783..c5381e641dfd 100644
-> --- a/tools/testing/selftests/landlock/common.h
-> +++ b/tools/testing/selftests/landlock/common.h
-> @@ -102,6 +102,15 @@ static inline int landlock_restrict_self(const int ruleset_fd,
->   }
->   #endif
-> 
-> +static void enforce_ruleset(struct __test_metadata *const _metadata,
-> +		const int ruleset_fd)
-> +{
-> +	ASSERT_EQ(0, prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0));
-> +	ASSERT_EQ(0, landlock_restrict_self(ruleset_fd, 0)) {
-> +		TH_LOG("Failed to enforce ruleset: %s", strerror(errno));
-> +	}
-> +}
-> +
+Currently the nf flow table can't offload pppoe encap. So this patch
 
-Please create a commit which moves all the needed code for all network 
-tests. I think there is only this helper though.
+fix the pppoe + vlan  problem for no encap offload logic in the nf tree,  the
+
+outdev should be the pppoe device but not vlan device.
 
 
->   static void _init_caps(struct __test_metadata *const _metadata, bool drop_all)
->   {
->   	cap_t cap_p;
-> diff --git a/tools/testing/selftests/landlock/config b/tools/testing/selftests/landlock/config
-> index 0f0a65287bac..b56f3274d3f5 100644
-> --- a/tools/testing/selftests/landlock/config
-> +++ b/tools/testing/selftests/landlock/config
-> @@ -1,7 +1,10 @@
-> +CONFIG_INET=y
-> +CONFIG_IPV6=y
-> +CONFIG_NET=y
->   CONFIG_OVERLAY_FS=y
->   CONFIG_SECURITY_LANDLOCK=y
->   CONFIG_SECURITY_PATH=y
->   CONFIG_SECURITY=y
->   CONFIG_SHMEM=y
->   CONFIG_TMPFS_XATTR=y
-> -CONFIG_TMPFS=y
-> +CONFIG_TMPFS=y
-> \ No newline at end of file
+My patch provide a feature with pppoe encap offload. I think that the difference
 
-You add whitespace changes.
+and maybe I can repost the three patch rebase  to this series?
 
 
-> diff --git a/tools/testing/selftests/landlock/fs_test.c b/tools/testing/selftests/landlock/fs_test.c
-> index 21a2ce8fa739..036dd6f8f9ea 100644
-> --- a/tools/testing/selftests/landlock/fs_test.c
-> +++ b/tools/testing/selftests/landlock/fs_test.c
-> @@ -551,16 +551,6 @@ static int create_ruleset(struct __test_metadata *const _metadata,
->   	return ruleset_fd;
->   }
-> 
-> -static void enforce_ruleset(struct __test_metadata *const _metadata,
-> -			    const int ruleset_fd)
-> -{
-> -	ASSERT_EQ(0, prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0));
-> -	ASSERT_EQ(0, landlock_restrict_self(ruleset_fd, 0))
-> -	{
-> -		TH_LOG("Failed to enforce ruleset: %s", strerror(errno));
-> -	}
-> -}
-> -
->   TEST_F_FORK(layout1, proc_nsfs)
->   {
->   	const struct rule rules[] = {
-> diff --git a/tools/testing/selftests/landlock/net_test.c b/tools/testing/selftests/landlock/net_test.c
-> new file mode 100644
-> index 000000000000..478ef2eff559
-> --- /dev/null
-> +++ b/tools/testing/selftests/landlock/net_test.c
-> @@ -0,0 +1,237 @@
-> +// SPDX-License-Identifier: GPL-2.0-only
-> +/*
-> + * Landlock tests - Network
-> + *
-> + * Copyright (C) 2022 Huawei Tech. Co., Ltd.
-> + */
-> +
-> +#define _GNU_SOURCE
-> +#include <arpa/inet.h>
-> +#include <errno.h>
-> +#include <fcntl.h>
-> +#include <linux/landlock.h>
-> +#include <netinet/in.h>
-> +#include <sched.h>
-> +#include <string.h>
-> +#include <sys/prctl.h>
-> +#include <sys/socket.h>
-> +#include <sys/types.h>
-> +
-> +#include "common.h"
-> +
-> +#define MAX_SOCKET_NUM 10
-> +
-> +#define SOCK_PORT_START 3470
-> +#define SOCK_PORT_ADD 10
-> +
-> +#define IP_ADDRESS "127.0.0.1"
-> +
-> +/* Number pending connections queue to be hold */
-> +#define BACKLOG 10
-
-"Number of pending connection queues to be hold." maybe? This is not use 
-in this patch so it shouldn't be added by this patch.
+Any ideas?
 
 
-> +
-> +static int create_socket(struct __test_metadata *const _metadata,
-> +			bool ip6, bool reuse_addr)
-
-This helper is good and I think you can improve it by leveraging test 
-variants. You could even factor out all the ipv4/ipv6 tests thanks to 
-new helpers such as bind_variant() and connect_variant(). No need to add 
-_metadata to those though. This would avoid duplicating all ipv4/ipv6 
-tests and even simplifying bind() and connect() calls. Something like this:
-
-// rename "socket_test" to "socket" (no need to duplicate "test")
-FIXTURE_VARIANT(socket)
-{
-	const bool is_ipv4;
-};
-
-/* clang-format off */
-FIXTURE_VARIANT_ADD(socket, ipv4) {
-	/* clang-format on */
-	.is_ipv4 = true,
-};
-
-/* clang-format off */
-FIXTURE_VARIANT_ADD(socket, ipv6) {
-	/* clang-format on */
-	.is_ipv4 = false,
-};
-
-static int socket_variant(const FIXTURE_VARIANT(socket) *const variant, 
-const int type)
-{
-	if (variant->is_ipv4)
-		return socket(AF_INET, type | SOCK_CLOEXEC, 0);
-	else
-		return socket(AF_INET6, type | SOCK_CLOEXEC, 0);
-}
-
-socket_variant(variant, SOCK_STREAM);
-// this could be used to create UDP sockets too
-
-
-static int bind_variant(const FIXTURE_VARIANT(socket) *const variant, 
-const int sockfd, const FIXTURE_DATA(socket) *const self, const size_t 
-index)
-{
-	if (variant->is_ipv4)
-		return bind(sockfd, &self->addr4[index], sizeof(self->addr4[index]));
-	else
-		return bind(sockfd, &self->addr6[index], sizeof(self->addr6[index]));
-}
-
-bind_variant(variant, sockfd, self, 0);
-
-
-> +{
-> +		int sockfd;
-> +		int one = 1;
-> +
-> +		if (ip6)
-> +			sockfd = socket(AF_INET6, SOCK_STREAM | SOCK_CLOEXEC, 0);
-> +		else
-> +			sockfd = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
-> +
-> +		ASSERT_LE(0, sockfd);
-> +		/* Allows to reuse of local address */
-> +		if (reuse_addr)
-> +			ASSERT_EQ(0, setsockopt(sockfd, SOL_SOCKET,
-> +					SO_REUSEADDR, &one, sizeof(one)));
-
-This reuse_addr part is not used in this patch and I think it would 
-simplify this helper to not add reuse_addr but to explicitely call 
-setsockopt() when required. This also enables to get rid of _metadata in 
-this helper.
-
-
-> +		return sockfd;
-> +}
-> +
-> +FIXTURE(socket_test) {
-> +	uint port[MAX_SOCKET_NUM];
-> +	struct sockaddr_in addr4[MAX_SOCKET_NUM];
-> +	struct sockaddr_in6 addr6[MAX_SOCKET_NUM];
-> +};
-> +
-> +FIXTURE_SETUP(socket_test)
-> +{
-> +	int i;
-> +	/* Creates IP4 socket addresses */
-> +	for (i = 0; i < MAX_SOCKET_NUM; i++) {
-
-Nice!
-
-> +		self->port[i] = SOCK_PORT_START + SOCK_PORT_ADD*i;
-> +		self->addr4[i].sin_family = AF_INET;
-> +		self->addr4[i].sin_port = htons(self->port[i]);
-> +		self->addr4[i].sin_addr.s_addr = htonl(INADDR_ANY);
-
-Could you use the local addr (127.0.0.1) instead?
-
-> +		memset(&(self->addr4[i].sin_zero), '\0', 8);
-> +	}
-> +
-> +	/* Creates IP6 socket addresses */
-> +	for (i = 0; i < MAX_SOCKET_NUM; i++) {
-> +		self->port[i] = SOCK_PORT_START + SOCK_PORT_ADD*i;
-> +		self->addr6[i].sin6_family = AF_INET6;
-> +		self->addr6[i].sin6_port = htons(self->port[i]);
-> +		self->addr6[i].sin6_addr = in6addr_any;
-
-ditto
-
-> +	}
-> +
-> +	set_cap(_metadata, CAP_SYS_ADMIN);
-> +	ASSERT_EQ(0, unshare(CLONE_NEWNET));
-> +	ASSERT_EQ(0, system("ip link set dev lo up"));
-
-If this is really required, could you avoid calling system() but set up 
-the network in C? You can strace it to see what is going on underneath.
-
-
-> +	clear_cap(_metadata, CAP_SYS_ADMIN);
-> +}
-> +
-> +FIXTURE_TEARDOWN(socket_test)
-> +{ }
-> +
-> +TEST_F_FORK(socket_test, bind_no_restrictions_ip4) {
-> +
-> +	int sockfd;
-> +
-> +	sockfd = create_socket(_metadata, false, false);
-> +	ASSERT_LE(0, sockfd);
-> +
-> +	/* Binds a socket to port[0] */
-
-This comment is not very useful in this context considering the below 
-line. It will be even more clear with the bind_variant() call.
-
-
-> +	ASSERT_EQ(0, bind(sockfd, (struct sockaddr *)&self->addr4[0], sizeof(self->addr4[0])));
-> +
-> +	ASSERT_EQ(0, close(sockfd));
-> +}
-> +
-> +TEST_F_FORK(socket_test, bind_no_restrictions_ip6) {
-> +
-> +	int sockfd;
-> +
-> +	sockfd = create_socket(_metadata, true, false);
-> +	ASSERT_LE(0, sockfd);
-> +
-> +	/* Binds a socket to port[0] */
-> +	ASSERT_EQ(0, bind(sockfd, (struct sockaddr *)&self->addr6[0], sizeof(self->addr6[0])));
-> +
-> +	ASSERT_EQ(0, close(sockfd));
-> +}
-> +
-> +TEST_F_FORK(socket_test, bind_with_restrictions_ip4) {
-> +
-> +	int sockfd;
-> +
-> +	struct landlock_ruleset_attr ruleset_attr = {
-> +		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
-> +				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +	};
-> +	struct landlock_net_service_attr net_service_1 = {
-> +		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
-> +				  LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +		.port = self->port[0],
-> +	};
-> +	struct landlock_net_service_attr net_service_2 = {
-> +		.allowed_access = LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +		.port = self->port[1],
-> +	};
-> +	struct landlock_net_service_attr net_service_3 = {
-> +		.allowed_access = 0,
-> +		.port = self->port[2],
-> +	};
-> +
-> +	const int ruleset_fd = landlock_create_ruleset(&ruleset_attr,
-> +			sizeof(ruleset_attr), 0);
-> +	ASSERT_LE(0, ruleset_fd);
-> +
-> +	/* Allows connect and bind operations to the port[0] socket. */
-
-This comment is useful though because the below call is more complex.
-
-
-> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
-> +				&net_service_1, 0));
-> +	/* Allows connect and deny bind operations to the port[1] socket. */
-> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
-> +				&net_service_2, 0));
-> +	/* Empty allowed_access (i.e. deny rules) are ignored in network actions
-> +	 * for port[2] socket.
-> +	 */
-> +	ASSERT_EQ(-1, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
-> +				&net_service_3, 0));
-> +	ASSERT_EQ(ENOMSG, errno);
-> +
-> +	/* Enforces the ruleset. */
-> +	enforce_ruleset(_metadata, ruleset_fd);
-> +
-> +	sockfd = create_socket(_metadata, false, false);
-> +	ASSERT_LE(0, sockfd);
-> +	/* Binds a socket to port[0] */
-> +	ASSERT_EQ(0, bind(sockfd, (struct sockaddr *)&self->addr4[0], sizeof(self->addr4[0])));
-> +
-> +	/* Close bounded socket*/
-> +	ASSERT_EQ(0, close(sockfd));
-> +
-> +	sockfd = create_socket(_metadata, false, false);
-> +	ASSERT_LE(0, sockfd);
-> +	/* Binds a socket to port[1] */
-> +	ASSERT_EQ(-1, bind(sockfd, (struct sockaddr *)&self->addr4[1], sizeof(self->addr4[1])));
-> +	ASSERT_EQ(EACCES, errno);
-> +
-> +	sockfd = create_socket(_metadata, false, false);
-> +	ASSERT_LE(0, sockfd);
-> +	/* Binds a socket to port[2] */
-> +	ASSERT_EQ(-1, bind(sockfd, (struct sockaddr *)&self->addr4[2], sizeof(self->addr4[2])));
-> +	ASSERT_EQ(EACCES, errno);
-> +}
-> +
-> +TEST_F_FORK(socket_test, bind_with_restrictions_ip6) {
-> +
-> +	int sockfd;
-> +
-> +	struct landlock_ruleset_attr ruleset_attr = {
-> +		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
-> +				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +	};
-> +	struct landlock_net_service_attr net_service_1 = {
-> +		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
-> +				  LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +		.port = self->port[0],
-> +	};
-> +	struct landlock_net_service_attr net_service_2 = {
-> +		.allowed_access = LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +		.port = self->port[1],
-> +	};
-> +	struct landlock_net_service_attr net_service_3 = {
-> +		.allowed_access = 0,
-> +		.port = self->port[2],
-> +	};
-> +
-> +	const int ruleset_fd = landlock_create_ruleset(&ruleset_attr,
-> +			sizeof(ruleset_attr), 0);
-> +	ASSERT_LE(0, ruleset_fd);
-> +
-> +	/* Allows connect and bind operations to the port[0] socket. */
-> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
-> +				&net_service_1, 0));
-> +	/* Allows connect and deny bind operations to the port[1] socket. */
-> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
-> +				&net_service_2, 0));
-> +	/* Empty allowed_access (i.e. deny rules) are ignored in network actions
-> +	 * for port[2] socket.
-> +	 */
-> +	ASSERT_EQ(-1, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
-> +				&net_service_3, 0));
-> +	ASSERT_EQ(ENOMSG, errno);
-> +
-> +	/* Enforces the ruleset. */
-> +	enforce_ruleset(_metadata, ruleset_fd);
-> +
-> +	sockfd = create_socket(_metadata, true, false);
-> +	ASSERT_LE(0, sockfd);
-> +	/* Binds a socket to port[0] */
-> +	ASSERT_EQ(0, bind(sockfd, (struct sockaddr *)&self->addr6[0], sizeof(self->addr6[0])));
-> +
-> +	/* Close bounded socket*/
-> +	ASSERT_EQ(0, close(sockfd));
-> +
-> +	sockfd = create_socket(_metadata, false, false);
-> +	ASSERT_LE(0, sockfd);
-> +	/* Binds a socket to port[1] */
-> +	ASSERT_EQ(-1, bind(sockfd, (struct sockaddr *)&self->addr6[1], sizeof(self->addr6[1])));
-> +	ASSERT_EQ(EACCES, errno);
-> +
-> +	sockfd = create_socket(_metadata, false, false);
-> +	ASSERT_LE(0, sockfd);
-> +	/* Binds a socket to port[2] */
-> +	ASSERT_EQ(-1, bind(sockfd, (struct sockaddr *)&self->addr6[2], sizeof(self->addr6[2])));
-> +	ASSERT_EQ(EACCES, errno);
-> +}
-> +TEST_HARNESS_MAIN
-> --
-> 2.25.1
-> 
+On 2022/5/16 19:13, Pablo Neira Ayuso wrote:
+> Hi,
+>
+> This is likely clashing with Felix's fixes:
+>
+> https://patchwork.ozlabs.org/project/netfilter-devel/patch/20220509122616.65449-1-nbd@nbd.name/
+> https://patchwork.ozlabs.org/project/netfilter-devel/patch/20220509122616.65449-2-nbd@nbd.name/
+> https://patchwork.ozlabs.org/project/netfilter-devel/patch/20220509122616.65449-3-nbd@nbd.name/
+> https://patchwork.ozlabs.org/project/netfilter-devel/patch/20220509122616.65449-4-nbd@nbd.name/
+>
+> On Tue, May 10, 2022 at 09:26:16AM -0400, wenxu@chinatelecom.cn wrote:
+>> From: wenxu <wenxu@chinatelecom.cn>
+>>
+>> This patch put the pppoe process in the FLOW_OFFLOAD_XMIT_DIRECT
+>> mode. Xmit the packet with PPPoE can offload to the underlay device
+>> directly.
+>>
+>> It can support all kinds of VLAN dev path:
+>> pppoe-->eth
+>> pppoe-->br0.100-->br0(vlan filter enable)-->eth
+>> pppoe-->eth.100-->eth
+>>
+>> The packet xmit and recv offload to the 'eth' in both original and
+>> reply direction.
+>>
+>> Signed-off-by: wenxu <wenxu@chinatelecom.cn>
+>> ---
+>> This patch based on the following one: nf_flow_table_offload: offload the vlan encap in the flowtable
+>> http://patchwork.ozlabs.org/project/netfilter-devel/patch/1649169515-4337-1-git-send-email-wenx05124561@163.com/
+>>
+>>  include/net/netfilter/nf_flow_table.h | 34 ++++++++++++++++++++++++++++++++++
+>>  net/netfilter/nf_flow_table_ip.c      |  3 +++
+>>  net/netfilter/nft_flow_offload.c      | 10 +++-------
+>>  3 files changed, 40 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+>> index 64daafd..8be369c 100644
+>> --- a/include/net/netfilter/nf_flow_table.h
+>> +++ b/include/net/netfilter/nf_flow_table.h
+>> @@ -319,6 +319,40 @@ int nf_flow_rule_route_ipv6(struct net *net, const struct flow_offload *flow,
+>>  int nf_flow_table_offload_init(void);
+>>  void nf_flow_table_offload_exit(void);
+>>  
+>> +static inline int nf_flow_ppoe_push(struct sk_buff *skb, u16 id)
+>> +{
+>> +	struct ppp_hdr {
+>> +		struct pppoe_hdr hdr;
+>> +		__be16 proto;
+>> +	} *ph;
+>> +	int data_len = skb->len + 2;
+>> +	__be16 proto;
+>> +
+>> +	if (skb_cow_head(skb, PPPOE_SES_HLEN))
+>> +		return -1;
+>> +
+>> +	if (skb->protocol == htons(ETH_P_IP))
+>> +		proto = htons(PPP_IP);
+>> +	else if (skb->protocol == htons(ETH_P_IPV6))
+>> +		proto = htons(PPP_IPV6);
+>> +	else
+>> +		return -1;
+>> +
+>> +	__skb_push(skb, PPPOE_SES_HLEN);
+>> +	skb_reset_network_header(skb);
+>> +
+>> +	ph = (struct ppp_hdr *)(skb->data);
+>> +	ph->hdr.ver  = 1;
+>> +	ph->hdr.type = 1;
+>> +	ph->hdr.code = 0;
+>> +	ph->hdr.sid  = htons(id);
+>> +	ph->hdr.length = htons(data_len);
+>> +	ph->proto = proto;
+>> +	skb->protocol = htons(ETH_P_PPP_SES);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>>  static inline __be16 nf_flow_pppoe_proto(const struct sk_buff *skb)
+>>  {
+>>  	__be16 proto;
+>> diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+>> index 99ae2550..d1c0d95 100644
+>> --- a/net/netfilter/nf_flow_table_ip.c
+>> +++ b/net/netfilter/nf_flow_table_ip.c
+>> @@ -295,6 +295,9 @@ static void nf_flow_encap_push(struct sk_buff *skb,
+>>  				      tuplehash->tuple.encap[i].proto,
+>>  				      tuplehash->tuple.encap[i].id);
+>>  			break;
+>> +		case htons(ETH_P_PPP_SES):
+>> +			nf_flow_ppoe_push(skb, tuplehash->tuple.encap[i].id);
+>> +			break;
+>>  		}
+>>  	}
+>>  }
+>> diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+>> index f9837c9..eea8637 100644
+>> --- a/net/netfilter/nft_flow_offload.c
+>> +++ b/net/netfilter/nft_flow_offload.c
+>> @@ -122,12 +122,9 @@ static void nft_dev_path_info(const struct net_device_path_stack *stack,
+>>  			info->encap[info->num_encaps].id = path->encap.id;
+>>  			info->encap[info->num_encaps].proto = path->encap.proto;
+>>  			info->num_encaps++;
+>> -			if (path->type == DEV_PATH_PPPOE) {
+>> -				info->outdev = path->dev;
+>> +			if (path->type == DEV_PATH_PPPOE)
+>>  				memcpy(info->h_dest, path->encap.h_dest, ETH_ALEN);
+>> -			}
+>> -			if (path->type == DEV_PATH_VLAN)
+>> -				info->xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
+>> +			info->xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
+>>  			break;
+>>  		case DEV_PATH_BRIDGE:
+>>  			if (is_zero_ether_addr(info->h_source))
+>> @@ -155,8 +152,7 @@ static void nft_dev_path_info(const struct net_device_path_stack *stack,
+>>  			break;
+>>  		}
+>>  	}
+>> -	if (!info->outdev)
+>> -		info->outdev = info->indev;
+>> +	info->outdev = info->indev;
+>>  
+>>  	info->hw_outdev = info->indev;
+>>  
+>> -- 
+>> 1.8.3.1
+>>
