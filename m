@@ -2,41 +2,47 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED84CC433FE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 May 2022 12:47:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A149C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 May 2022 12:48:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237348AbiERMr1 (ORCPT
+        id S236768AbiERMsH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 May 2022 08:47:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56528 "EHLO
+        Wed, 18 May 2022 08:48:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55874 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237295AbiERMpx (ORCPT
+        with ESMTP id S237588AbiERMqF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 May 2022 08:45:53 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3042215D31A
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 May 2022 05:42:18 -0700 (PDT)
-Date:   Wed, 18 May 2022 14:33:04 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
-        fw@strlen.de
+        Wed, 18 May 2022 08:46:05 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D0FD19FF42
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 May 2022 05:43:06 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1nrJ16-0001C4-Uq; Wed, 18 May 2022 14:43:04 +0200
+Date:   Wed, 18 May 2022 14:43:04 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, fw@strlen.de
 Subject: Re: [PATCH] netfilter: nf_tables: restrict expression reduction to
  first expression
-Message-ID: <YoTngK20lMg53JOy@salvia>
+Message-ID: <YoTp2AFR6CcmQpZF@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, fw@strlen.de
 References: <20220518100842.1950-1-pablo@netfilter.org>
  <YoTPlIBany/aRvtK@orbyte.nwl.cc>
  <YoTSHls/on1S+/4N@salvia>
  <YoTbJTDxuQ131EDG@orbyte.nwl.cc>
  <YoTk5VKX98itwUQo@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <YoTk5VKX98itwUQo@salvia>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, May 18, 2022 at 02:21:59PM +0200, Pablo Neira Ayuso wrote:
+On Wed, May 18, 2022 at 02:21:57PM +0200, Pablo Neira Ayuso wrote:
 > On Wed, May 18, 2022 at 01:40:21PM +0200, Phil Sutter wrote:
 > > On Wed, May 18, 2022 at 01:01:50PM +0200, Pablo Neira Ayuso wrote:
 > > > On Wed, May 18, 2022 at 12:51:00PM +0200, Phil Sutter wrote:
@@ -97,7 +103,21 @@ On Wed, May 18, 2022 at 02:21:59PM +0200, Pablo Neira Ayuso wrote:
 > > NULL. The optimizer must not assume later expressions are evaluated.
 > 
 > How many other expression are breaking when fetching the key?
-> 
+
+* nft_ct
+* nft_exthdr
+* nft_fib
+* nft_flow_offload
+* nft_fwd_netdev
+* nft_osf
+* nft_payload
+* nft_rt
+* nft_socket
+* nft_synproxy
+* nft_tproxy
+* nft_tunnel
+* nft_xfrm
+
 > > A first step might be said nft_expr_type field indicating a given
 > > expression might stop expression evaluation. Therefore:
 > > 
@@ -137,5 +157,26 @@ On Wed, May 18, 2022 at 02:21:59PM +0200, Pablo Neira Ayuso wrote:
 > And simply remove that NFT_BREAK and set a value that will not ever
 > match via nft_cmp?
 
-Canceling tracking of keys that might break is probably a more simple
-solution.
+If possible, yes. If given interface is not available, we store 0 or an
+empty string for ifindex or ifname for instance. There might be types
+without unreachable values, though. (ifgroup maybe?)
+
+> > Another thing about your proposed patch: Expressions may update
+> > registers even if not reduced. Could that upset later reduction
+> > decision? E.g.:
+> > 
+> > | ip saddr 1.0.0.1 ip daddr 2.0.0.2 accept
+> > | ip daddr 3.0.0.3 accept
+> > 
+> > Code no longer allows the first rule's 'ip daddr' expression to be
+> > reduced (no matter what's in registers already), but it's existence
+> > causes reduction of the second rule's 'ip daddr' expression, right?
+> 
+> We cannot make assumptions on ip daddr because there is a cmp right
+> before (to test for ip saddr 1.0.0.1), unless keys are inconditionally
+> prefetched.
+
+That's right, and I fear calling nft_expr_reduce() might cause that even
+if not evicting the expression.
+
+Cheers, Phil
