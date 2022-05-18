@@ -2,49 +2,42 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2F66C4332F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 May 2022 22:03:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95851C43217
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 May 2022 22:03:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229695AbiERWDb (ORCPT
+        id S229565AbiERWDd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 May 2022 18:03:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58938 "EHLO
+        Wed, 18 May 2022 18:03:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37874 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229612AbiERWDO (ORCPT
+        with ESMTP id S229450AbiERWDR (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 May 2022 18:03:14 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C74E8286FC2
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 May 2022 14:54:06 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH libnftnl 1/2] expr: fib: missing #include <assert.h>
-Date:   Wed, 18 May 2022 23:54:02 +0200
-Message-Id: <20220518215403.360178-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Wed, 18 May 2022 18:03:17 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1230A14CDE2
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 May 2022 14:54:20 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1nrRcY-0003zk-Am; Wed, 18 May 2022 23:54:18 +0200
+Date:   Wed, 18 May 2022 23:54:18 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: use get_random_u32 instead of prandom
+Message-ID: <20220518215418.GI4316@breakpoint.cc>
+References: <20220518181531.92593-1-fw@strlen.de>
+ <YoVjWp5NhWIyK7gu@salvia>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <YoVjWp5NhWIyK7gu@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/expr/fib.c | 1 +
- 1 file changed, 1 insertion(+)
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> spinlock ok, but disabling irq is not necessary. Also this function is
+> called from control plane path by most users?
 
-diff --git a/src/expr/fib.c b/src/expr/fib.c
-index 59b335a72546..7e6c0dc4372d 100644
---- a/src/expr/fib.c
-+++ b/src/expr/fib.c
-@@ -15,6 +15,7 @@
- #include <arpa/inet.h>
- #include <errno.h>
- #include <net/if.h>
-+#include <assert.h>
- #include <linux/netfilter/nf_tables.h>
- 
- #include "internal.h"
--- 
-2.30.2
-
+OK, I honsetly do not care.
