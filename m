@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AFDEC433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 May 2022 21:41:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50D64C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 May 2022 21:41:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230256AbiERVle (ORCPT
+        id S231721AbiERVln (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 May 2022 17:41:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41944 "EHLO
+        Wed, 18 May 2022 17:41:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36356 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243286AbiERVje (ORCPT
+        with ESMTP id S233372AbiERVjj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 May 2022 17:39:34 -0400
+        Wed, 18 May 2022 17:39:39 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6B107246DBC;
-        Wed, 18 May 2022 14:38:46 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 5730D24988C;
+        Wed, 18 May 2022 14:38:48 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com
-Subject: [PATCH net 1/7] netfilter: flowtable: fix excessive hw offload attempts after failure
-Date:   Wed, 18 May 2022 23:38:35 +0200
-Message-Id: <20220518213841.359653-2-pablo@netfilter.org>
+Subject: [PATCH net 3/7] net: fix dev_fill_forward_path with pppoe + bridge
+Date:   Wed, 18 May 2022 23:38:37 +0200
+Message-Id: <20220518213841.359653-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220518213841.359653-1-pablo@netfilter.org>
 References: <20220518213841.359653-1-pablo@netfilter.org>
@@ -34,34 +34,62 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Felix Fietkau <nbd@nbd.name>
 
-If a flow cannot be offloaded, the code currently repeatedly tries again as
-quickly as possible, which can significantly increase system load.
-Fix this by limiting flow timeout update and hardware offload retry to once
-per second.
+When calling dev_fill_forward_path on a pppoe device, the provided destination
+address is invalid. In order for the bridge fdb lookup to succeed, the pppoe
+code needs to update ctx->daddr to the correct value.
+Fix this by storing the address inside struct net_device_path_ctx
 
-Fixes: c07531c01d82 ("netfilter: flowtable: Remove redundant hw refresh bit")
+Fixes: f6efc675c9dd ("net: ppp: resolve forwarding path for bridge pppoe devices")
 Signed-off-by: Felix Fietkau <nbd@nbd.name>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_core.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/net/ppp/pppoe.c   | 1 +
+ include/linux/netdevice.h | 2 +-
+ net/core/dev.c            | 2 +-
+ 3 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 3db256da919b..20b4a14e5d4e 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -335,8 +335,10 @@ void flow_offload_refresh(struct nf_flowtable *flow_table,
- 	u32 timeout;
+diff --git a/drivers/net/ppp/pppoe.c b/drivers/net/ppp/pppoe.c
+index 3619520340b7..e172743948ed 100644
+--- a/drivers/net/ppp/pppoe.c
++++ b/drivers/net/ppp/pppoe.c
+@@ -988,6 +988,7 @@ static int pppoe_fill_forward_path(struct net_device_path_ctx *ctx,
+ 	path->encap.proto = htons(ETH_P_PPP_SES);
+ 	path->encap.id = be16_to_cpu(po->num);
+ 	memcpy(path->encap.h_dest, po->pppoe_pa.remote, ETH_ALEN);
++	memcpy(ctx->daddr, po->pppoe_pa.remote, ETH_ALEN);
+ 	path->dev = ctx->dev;
+ 	ctx->dev = dev;
  
- 	timeout = nf_flowtable_time_stamp + flow_offload_get_timeout(flow);
--	if (READ_ONCE(flow->timeout) != timeout)
-+	if (timeout - READ_ONCE(flow->timeout) > HZ)
- 		WRITE_ONCE(flow->timeout, timeout);
-+	else
-+		return;
+diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+index b1fbe21650bb..f736c020cde2 100644
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -900,7 +900,7 @@ struct net_device_path_stack {
  
- 	if (likely(!nf_flowtable_hw_offload(flow_table)))
- 		return;
+ struct net_device_path_ctx {
+ 	const struct net_device *dev;
+-	const u8		*daddr;
++	u8			daddr[ETH_ALEN];
+ 
+ 	int			num_vlans;
+ 	struct {
+diff --git a/net/core/dev.c b/net/core/dev.c
+index 1461c2d9dec8..2771fd22dc6a 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -681,11 +681,11 @@ int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
+ 	const struct net_device *last_dev;
+ 	struct net_device_path_ctx ctx = {
+ 		.dev	= dev,
+-		.daddr	= daddr,
+ 	};
+ 	struct net_device_path *path;
+ 	int ret = 0;
+ 
++	memcpy(ctx.daddr, daddr, sizeof(ctx.daddr));
+ 	stack->num_paths = 0;
+ 	while (ctx.dev && ctx.dev->netdev_ops->ndo_fill_forward_path) {
+ 		last_dev = ctx.dev;
 -- 
 2.30.2
 
