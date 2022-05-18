@@ -2,26 +2,25 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50DADC433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 May 2022 12:51:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C9D7C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 May 2022 12:52:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237017AbiERMvj (ORCPT
+        id S236836AbiERMwT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 May 2022 08:51:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40188 "EHLO
+        Wed, 18 May 2022 08:52:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44116 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236984AbiERMvi (ORCPT
+        with ESMTP id S236970AbiERMwS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 May 2022 08:51:38 -0400
+        Wed, 18 May 2022 08:52:18 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 768DF9FE4
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 May 2022 05:51:37 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E544922284
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 May 2022 05:52:17 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Cc:     fw@strlen.de, phil@nwl.cc
 Subject: [PATCH nf] netfilter: nf_tables: disable expression reduction infra
-Date:   Wed, 18 May 2022 14:51:34 +0200
-Message-Id: <20220518125134.193358-1-pablo@netfilter.org>
+Date:   Wed, 18 May 2022 14:43:37 +0200
+Message-Id: <20220518124337.193094-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
