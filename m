@@ -2,46 +2,99 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD33AC433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 May 2022 21:21:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 040F1C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 May 2022 21:40:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243133AbiERVVg (ORCPT
+        id S241497AbiERVks (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 May 2022 17:21:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34798 "EHLO
+        Wed, 18 May 2022 17:40:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36690 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243158AbiERVVg (ORCPT
+        with ESMTP id S243268AbiERVjW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 May 2022 17:21:36 -0400
+        Wed, 18 May 2022 17:39:22 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9CD17338A5
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 May 2022 14:21:34 -0700 (PDT)
-Date:   Wed, 18 May 2022 23:21:30 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 32135246DB5;
+        Wed, 18 May 2022 14:38:45 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: use get_random_u32 instead of prandom
-Message-ID: <YoVjWp5NhWIyK7gu@salvia>
-References: <20220518181531.92593-1-fw@strlen.de>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        pabeni@redhat.com
+Subject: [PATCH net 0/7] Netfilter fixes for net
+Date:   Wed, 18 May 2022 23:38:34 +0200
+Message-Id: <20220518213841.359653-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20220518181531.92593-1-fw@strlen.de>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, May 18, 2022 at 08:15:31PM +0200, Florian Westphal wrote:
-[...]
-> @@ -389,7 +381,7 @@ void nft_meta_get_eval(const struct nft_expr *expr,
->  		break;
->  #endif
->  	case NFT_META_PRANDOM:
-> -		*dest = nft_prandom_u32();
-> +		*dest = get_random_u32();
+Hi,
 
-get_random_u32() uses a spinlock and it disables irq while my patch
-uses per-cpu and bh.
+This patchset contains Netfilter fixes for net:
 
-spinlock ok, but disabling irq is not necessary. Also this function is
-called from control plane path by most users?
+1) Reduce number of hardware offload retries from flowtable datapath
+   which might hog system with retries, from Felix Fietkau.
+
+2) Skip neighbour lookup for PPPoE device, fill_forward_path() already
+   provides this and set on destination address from fill_forward_path for
+   PPPoE device, also from Felix.
+
+4) When combining PPPoE on top of a VLAN device, set info->outdev to the
+   PPPoE device so software offload works, from Felix.
+
+5) Fix TCP teardown flowtable state, races with conntrack gc might result
+   in resetting the state to ESTABLISHED and the time to one day. Joint
+   work with Oz Shlomo and Sven Auhagen.
+
+6) Call dst_check() from flowtable datapath to check if dst is stale
+   instead of doing it from garbage collector path.
+
+7) Disable register tracking infrastructure, either user-space or
+   kernel need to pre-fetch keys inconditionally, otherwise register
+   tracking assumes data is already available in register that might
+   not well be there, leading to incorrect reductions.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit f3f19f939c11925dadd3f4776f99f8c278a7017b:
+
+  Merge tag 'net-5.18-rc7' of git://git.kernel.org/pub/scm/linux/kernel/git/netdev/net (2022-05-12 11:51:45 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git HEAD
+
+for you to fetch changes up to 9e539c5b6d9c5b996e45105921ee9dd955c0f535:
+
+  netfilter: nf_tables: disable expression reduction infra (2022-05-18 17:34:26 +0200)
+
+----------------------------------------------------------------
+Felix Fietkau (4):
+      netfilter: flowtable: fix excessive hw offload attempts after failure
+      netfilter: nft_flow_offload: skip dst neigh lookup for ppp devices
+      net: fix dev_fill_forward_path with pppoe + bridge
+      netfilter: nft_flow_offload: fix offload with pppoe + vlan
+
+Pablo Neira Ayuso (2):
+      netfilter: flowtable: fix TCP flow teardown
+      netfilter: nf_tables: disable expression reduction infra
+
+Ritaro Takenaka (1):
+      netfilter: flowtable: move dst_check to packet path
+
+ drivers/net/ppp/pppoe.c            |  1 +
+ include/linux/netdevice.h          |  2 +-
+ net/core/dev.c                     |  2 +-
+ net/netfilter/nf_flow_table_core.c | 60 +++++++-------------------------------
+ net/netfilter/nf_flow_table_ip.c   | 19 ++++++++++++
+ net/netfilter/nf_tables_api.c      | 11 +------
+ net/netfilter/nft_flow_offload.c   | 28 +++++++++++-------
+ 7 files changed, 51 insertions(+), 72 deletions(-)
