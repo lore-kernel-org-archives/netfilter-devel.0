@@ -2,83 +2,83 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42B53C433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 May 2022 10:08:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0A79C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 May 2022 10:44:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234826AbiERKIt (ORCPT
+        id S235191AbiERKoP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 May 2022 06:08:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50234 "EHLO
+        Wed, 18 May 2022 06:44:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36728 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234940AbiERKIt (ORCPT
+        with ESMTP id S235187AbiERKoO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 May 2022 06:08:49 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id AF45D158949
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 May 2022 03:08:47 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     phil@nwl.cc, fw@strlen.de
-Subject: [PATCH] netfilter: nf_tables: restrict expression reduction to first expression
-Date:   Wed, 18 May 2022 12:08:42 +0200
-Message-Id: <20220518100842.1950-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Wed, 18 May 2022 06:44:14 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A7A14EDD9;
+        Wed, 18 May 2022 03:44:11 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CC0E461840;
+        Wed, 18 May 2022 10:44:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B28EC34100;
+        Wed, 18 May 2022 10:44:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1652870650;
+        bh=PLLiBbLga9wd+holCXxY7eLtpF52hoa0jep3rUn4tDc=;
+        h=From:To:Cc:Subject:Date:From;
+        b=f5/PBRxd3e+FPRdhvmsOAQ1ROfeY5af4bMGzyDL7UpVjQk5zDAgF28P9Wgt2hbnEq
+         jYTarpJL9oPuEV2360XpSrUpw/yHORQPlOcHuasMNCw6J2bcrzj+8e+cg7KXQWb5HU
+         fhavpl3fBfFRVhHXEQyGSrda7eTwY9phUnS4JM7yXKJnO3i8Pupprxk0rXcW1/T893
+         oM/SvKPRIlf5E6E2iAfNb2+hQRzkIFOhmEFPEWyS3OvuLmA4VQZKa5yEhP9wXE7mjm
+         +yfa86GlEedOKyihJnMlp1nSxLpdzZ6gVVcQvftdxypGf9maq3ibLVqeMQTYLiWSA2
+         ZOuZ/LDjosqyw==
+From:   Lorenzo Bianconi <lorenzo@kernel.org>
+To:     bpf@vger.kernel.org
+Cc:     netdev@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
+        andrii@kernel.org, davem@davemloft.net, kuba@kernel.org,
+        edumazet@google.com, pabeni@redhat.com, pablo@netfilter.org,
+        fw@strlen.de, netfilter-devel@vger.kernel.org,
+        lorenzo.bianconi@redhat.com, brouer@redhat.com, toke@redhat.com,
+        memxor@gmail.com
+Subject: [PATCH v3 bpf-next 0/5] net: netfilter: add kfunc helper to update ct timeout
+Date:   Wed, 18 May 2022 12:43:33 +0200
+Message-Id: <cover.1652870182.git.lorenzo@kernel.org>
+X-Mailer: git-send-email 2.35.3
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Either userspace or kernelspace need to pre-fetch keys inconditionally
-before comparisons for this to work. Otherwise, register tracking data
-is misleading and it might result in reducing expressions which are not
-yet registers.
+Changes since v2:
+- add bpf_xdp_ct_add and bpf_ct_refresh_timeout kfunc helpers
+- remove conntrack dependency from selftests
+- add support for forcing kfunc args to be referenced and related selftests
 
-First expression is guaranteed to be evaluated always, therefore, keep
-tracking registers and restrict reduction to first expression.
+Changes since v1:
+- add bpf_ct_refresh_timeout kfunc selftest
 
-Fixes: b2d306542ff9 ("netfilter: nf_tables: do not reduce read-only expressions")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-@Phil, you mentioned about a way to simplify this patch, I don't see how,
-just let me know.
+Kumar Kartikeya Dwivedi (2):
+  bpf: Add support for forcing kfunc args to be referenced
+  selftests/bpf: Add verifier selftests for forced kfunc ref args
 
- net/netfilter/nf_tables_api.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+Lorenzo Bianconi (3):
+  net: netfilter: add kfunc helper to update ct timeout
+  net: netfilter: add kfunc helper to add a new ct entry
+  selftests/bpf: add selftest for bpf_xdp_ct_add and
+    bpf_ct_refresh_timeout kfunc
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 16c3a39689f4..2c82fecc4094 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -8362,6 +8362,7 @@ static int nf_tables_commit_chain_prepare(struct net *net, struct nft_chain *cha
- 	void *data, *data_boundary;
- 	struct nft_rule_dp *prule;
- 	struct nft_rule *rule;
-+	bool reduce;
- 
- 	/* already handled or inactive chain? */
- 	if (chain->blob_next || !nft_is_active_next(net, chain))
-@@ -8398,12 +8399,18 @@ static int nf_tables_commit_chain_prepare(struct net *net, struct nft_chain *cha
- 
- 		size = 0;
- 		track.last = nft_expr_last(rule);
-+		reduce = true;
- 		nft_rule_for_each_expr(expr, last, rule) {
- 			track.cur = expr;
- 
- 			if (nft_expr_reduce(&track, expr)) {
--				expr = track.cur;
--				continue;
-+				if (reduce) {
-+					reduce = false;
-+					expr = track.cur;
-+					continue;
-+				}
-+			} else if (reduce) {
-+				reduce = false;
- 			}
- 
- 			if (WARN_ON_ONCE(data + expr->ops->size > data_boundary))
+ include/net/netfilter/nf_conntrack.h          |   1 +
+ kernel/bpf/btf.c                              |  40 ++-
+ net/bpf/test_run.c                            |   5 +
+ net/netfilter/nf_conntrack_bpf.c              | 232 ++++++++++++++++--
+ net/netfilter/nf_conntrack_core.c             |  21 +-
+ .../testing/selftests/bpf/prog_tests/bpf_nf.c |   4 +
+ .../testing/selftests/bpf/progs/test_bpf_nf.c |  72 +++++-
+ tools/testing/selftests/bpf/verifier/calls.c  |  53 ++++
+ 8 files changed, 375 insertions(+), 53 deletions(-)
+
 -- 
-2.30.2
+2.35.3
 
