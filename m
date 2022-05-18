@@ -2,135 +2,54 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AFF7FC433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 May 2022 21:42:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 369B7C433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 May 2022 22:03:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240961AbiERVmL (ORCPT
+        id S229591AbiERWDa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 May 2022 17:42:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43274 "EHLO
+        Wed, 18 May 2022 18:03:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44064 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243259AbiERVjs (ORCPT
+        with ESMTP id S229614AbiERWDO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 May 2022 17:39:48 -0400
+        Wed, 18 May 2022 18:03:14 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C0218249897;
-        Wed, 18 May 2022 14:38:49 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 20FC6286FD5
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 May 2022 14:54:08 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
-        pabeni@redhat.com
-Subject: [PATCH net 6/7] netfilter: flowtable: move dst_check to packet path
-Date:   Wed, 18 May 2022 23:38:40 +0200
-Message-Id: <20220518213841.359653-7-pablo@netfilter.org>
+Subject: [PATCH libnftnl 2/2] set_elem: missing export symbol
+Date:   Wed, 18 May 2022 23:54:03 +0200
+Message-Id: <20220518215403.360178-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220518213841.359653-1-pablo@netfilter.org>
-References: <20220518213841.359653-1-pablo@netfilter.org>
+In-Reply-To: <20220518215403.360178-1-pablo@netfilter.org>
+References: <20220518215403.360178-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Ritaro Takenaka <ritarot634@gmail.com>
+nftnl_set_elem_nlmsg_build_payload() is already available through .map
+file and headers, add missing EXPORT_SYMBOL.
 
-Fixes sporadic IPv6 packet loss when flow offloading is enabled.
-
-IPv6 route GC and flowtable GC are not synchronized.
-When dst_cache becomes stale and a packet passes through the flow before
-the flowtable GC teardowns it, the packet can be dropped.
-So, it is necessary to check dst every time in packet path.
-
-Fixes: 227e1e4d0d6c ("netfilter: nf_flowtable: skip device lookup from interface index")
-Signed-off-by: Ritaro Takenaka <ritarot634@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_core.c | 23 +----------------------
- net/netfilter/nf_flow_table_ip.c   | 19 +++++++++++++++++++
- 2 files changed, 20 insertions(+), 22 deletions(-)
+ src/set_elem.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index ebdf5332e838..f2def06d1070 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -421,32 +421,11 @@ nf_flow_table_iterate(struct nf_flowtable *flow_table,
- 	return err;
+diff --git a/src/set_elem.c b/src/set_elem.c
+index 12eadce1f8e0..95009acb17dc 100644
+--- a/src/set_elem.c
++++ b/src/set_elem.c
+@@ -300,6 +300,7 @@ err:
+ 	return NULL;
  }
  
--static bool flow_offload_stale_dst(struct flow_offload_tuple *tuple)
--{
--	struct dst_entry *dst;
--
--	if (tuple->xmit_type == FLOW_OFFLOAD_XMIT_NEIGH ||
--	    tuple->xmit_type == FLOW_OFFLOAD_XMIT_XFRM) {
--		dst = tuple->dst_cache;
--		if (!dst_check(dst, tuple->dst_cookie))
--			return true;
--	}
--
--	return false;
--}
--
--static bool nf_flow_has_stale_dst(struct flow_offload *flow)
--{
--	return flow_offload_stale_dst(&flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple) ||
--	       flow_offload_stale_dst(&flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple);
--}
--
- static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
- 				    struct flow_offload *flow, void *data)
++EXPORT_SYMBOL(nftnl_set_elem_nlmsg_build_payload);
+ void nftnl_set_elem_nlmsg_build_payload(struct nlmsghdr *nlh,
+ 				      struct nftnl_set_elem *e)
  {
- 	if (nf_flow_has_expired(flow) ||
--	    nf_ct_is_dying(flow->ct) ||
--	    nf_flow_has_stale_dst(flow))
-+	    nf_ct_is_dying(flow->ct))
- 		flow_offload_teardown(flow);
- 
- 	if (test_bit(NF_FLOW_TEARDOWN, &flow->flags)) {
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index 32c0eb1b4821..b350fe9d00b0 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -248,6 +248,15 @@ static bool nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
- 	return true;
- }
- 
-+static inline bool nf_flow_dst_check(struct flow_offload_tuple *tuple)
-+{
-+	if (tuple->xmit_type != FLOW_OFFLOAD_XMIT_NEIGH &&
-+	    tuple->xmit_type != FLOW_OFFLOAD_XMIT_XFRM)
-+		return true;
-+
-+	return dst_check(tuple->dst_cache, tuple->dst_cookie);
-+}
-+
- static unsigned int nf_flow_xmit_xfrm(struct sk_buff *skb,
- 				      const struct nf_hook_state *state,
- 				      struct dst_entry *dst)
-@@ -367,6 +376,11 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 	if (nf_flow_state_check(flow, iph->protocol, skb, thoff))
- 		return NF_ACCEPT;
- 
-+	if (!nf_flow_dst_check(&tuplehash->tuple)) {
-+		flow_offload_teardown(flow);
-+		return NF_ACCEPT;
-+	}
-+
- 	if (skb_try_make_writable(skb, thoff + hdrsize))
- 		return NF_DROP;
- 
-@@ -624,6 +638,11 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 	if (nf_flow_state_check(flow, ip6h->nexthdr, skb, thoff))
- 		return NF_ACCEPT;
- 
-+	if (!nf_flow_dst_check(&tuplehash->tuple)) {
-+		flow_offload_teardown(flow);
-+		return NF_ACCEPT;
-+	}
-+
- 	if (skb_try_make_writable(skb, thoff + hdrsize))
- 		return NF_DROP;
- 
 -- 
 2.30.2
 
