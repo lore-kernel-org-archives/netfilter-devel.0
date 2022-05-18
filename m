@@ -2,189 +2,152 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5277C433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 May 2022 18:05:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 650C9C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 May 2022 18:15:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229819AbiERSFj (ORCPT
+        id S237821AbiERSPn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 May 2022 14:05:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36650 "EHLO
+        Wed, 18 May 2022 14:15:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41994 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233167AbiERSFe (ORCPT
+        with ESMTP id S236269AbiERSPj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 May 2022 14:05:34 -0400
-Received: from mail-pj1-x1043.google.com (mail-pj1-x1043.google.com [IPv6:2607:f8b0:4864:20::1043])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B57A2218D1;
-        Wed, 18 May 2022 11:05:32 -0700 (PDT)
-Received: by mail-pj1-x1043.google.com with SMTP id ds11so2855650pjb.0;
-        Wed, 18 May 2022 11:05:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=u9+JPq0YWfXxjUAqZwa4MFI6EUqcPNwEYnHh7u9RESw=;
-        b=eiDox5bIriVi94aqiix+B00JOnWTV6JolirNXgznshoVG0SrhrAe3CA88vUxKVS1fe
-         WDKAvPd5qJnRY3KoAAm/9yZxu8Vh1vHXUWkNnwWNpisUjA2Wsm+XwgMnp9ejC9inCHmZ
-         /D6ozx0C7C5XyYSmY8NHrwLMq1GRelT04frhKQP0m5daa+GvyHkh9JIJuXSyMfvAPwKd
-         SzQvZxwtklsGLAPnh5yAm5uQP/sc7A7BRHhg24msdmo4h46rAy17ZAJRzjNeck5TiPoC
-         lZxNrMJ3AaOPB10gxDNLuMlX4L/Baj2Bb2sKBuHA2+m4D1Eln1dydVHi6eRYaGkaI3hw
-         P6AQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=u9+JPq0YWfXxjUAqZwa4MFI6EUqcPNwEYnHh7u9RESw=;
-        b=yiOS9pGXv/TX7wlQTxtIwkswB/++zpe8txaXR90QAUm8ExViz0PO7cRTwb3FAdwVsv
-         pRx+2BtmxH7BEEps/QZVCKgfQdVXlC+fAOsjKKlMH2Y90DeIgqWPKb+rzN/qZSU2YtPO
-         Hcv3lQdjqBFs8elJvanD6JVcOsRvP5cC+VvQSw9L4aVmmFzc4hgSRycaOa97wy0328EQ
-         fLqxqJoc4bOSGZ+yHkcFHmWpqmMNTRTuYfRdzPQnhk9QK+DSLAYDmKh+l0PIkqk9fP0v
-         jwrhXMbkGPSV+LQCf8Vqi3+Q80Z43mUGW5n3LDmKQNxesjpGdYssMBEzOuxjOa3Ebshj
-         cJow==
-X-Gm-Message-State: AOAM532EAEaL8Yl4PZKOeyJ42j1ATpNjccuQjyutRqZ15xswgh5mHCO8
-        +it/HH8tniELp3SRSM2veGF3VdX5l9Y=
-X-Google-Smtp-Source: ABdhPJxNu345qea6n5GM2ISwEI4F55ydVZzlwwLwOTyiy9Tbx8rm9+o0iIEF4FllypEUldztmrc19A==
-X-Received: by 2002:a17:90b:3142:b0:1df:77f2:e169 with SMTP id ip2-20020a17090b314200b001df77f2e169mr1179624pjb.245.1652897131441;
-        Wed, 18 May 2022 11:05:31 -0700 (PDT)
-Received: from localhost ([14.96.13.220])
-        by smtp.gmail.com with ESMTPSA id y20-20020a170902ed5400b0015ea8b4b8f3sm1963278plb.263.2022.05.18.11.05.30
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 18 May 2022 11:05:31 -0700 (PDT)
-Date:   Wed, 18 May 2022 23:36:13 +0530
-From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
-To:     Yonghong Song <yhs@fb.com>
-Cc:     Lorenzo Bianconi <lorenzo@kernel.org>, bpf@vger.kernel.org,
-        netdev@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
-        andrii@kernel.org, davem@davemloft.net, kuba@kernel.org,
-        edumazet@google.com, pabeni@redhat.com, pablo@netfilter.org,
-        fw@strlen.de, netfilter-devel@vger.kernel.org,
-        lorenzo.bianconi@redhat.com, brouer@redhat.com, toke@redhat.com
-Subject: Re: [PATCH v3 bpf-next 1/5] bpf: Add support for forcing kfunc args
- to be referenced
-Message-ID: <20220518180613.su37c23ckgc5irmu@apollo.legion>
-References: <cover.1652870182.git.lorenzo@kernel.org>
- <7addba8ead6d590c9182020c03c7696ba5512036.1652870182.git.lorenzo@kernel.org>
- <8912c7c2-9396-f7d8-74e2-a2560fbaad56@fb.com>
+        Wed, 18 May 2022 14:15:39 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E0AD175683
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 May 2022 11:15:37 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1nrOCt-0002pa-Kp; Wed, 18 May 2022 20:15:35 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: use get_random_u32 instead of prandom
+Date:   Wed, 18 May 2022 20:15:31 +0200
+Message-Id: <20220518181531.92593-1-fw@strlen.de>
+X-Mailer: git-send-email 2.35.3
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <8912c7c2-9396-f7d8-74e2-a2560fbaad56@fb.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, May 18, 2022 at 11:28:12PM IST, Yonghong Song wrote:
->
->
-> On 5/18/22 3:43 AM, Lorenzo Bianconi wrote:
-> > From: Kumar Kartikeya Dwivedi <memxor@gmail.com>
-> >
-> > Similar to how we detect mem, size pairs in kfunc, teach verifier to
-> > treat __ref suffix on argument name to imply that it must be a
-> > referenced pointer when passed to kfunc. This is required to ensure that
-> > kfunc that operate on some object only work on acquired pointers and not
-> > normal PTR_TO_BTF_ID with same type which can be obtained by pointer
-> > walking. Release functions need not specify such suffix on release
-> > arguments as they are already expected to receive one referenced
-> > argument.
-> >
-> > Signed-off-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
-> > Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
-> > ---
-> >   kernel/bpf/btf.c   | 40 ++++++++++++++++++++++++++++++----------
-> >   net/bpf/test_run.c |  5 +++++
-> >   2 files changed, 35 insertions(+), 10 deletions(-)
-> >
-> > diff --git a/kernel/bpf/btf.c b/kernel/bpf/btf.c
-> > index 2f0b0440131c..83a354732d96 100644
-> > --- a/kernel/bpf/btf.c
-> > +++ b/kernel/bpf/btf.c
-> > @@ -6021,18 +6021,13 @@ static bool __btf_type_is_scalar_struct(struct bpf_verifier_log *log,
-> >   	return true;
-> >   }
-> > -static bool is_kfunc_arg_mem_size(const struct btf *btf,
-> > -				  const struct btf_param *arg,
-> > -				  const struct bpf_reg_state *reg)
-> > +static bool btf_param_match_suffix(const struct btf *btf,
-> > +				   const struct btf_param *arg,
-> > +				   const char *suffix)
-> >   {
-> > -	int len, sfx_len = sizeof("__sz") - 1;
-> > -	const struct btf_type *t;
-> > +	int len, sfx_len = strlen(suffix);
-> >   	const char *param_name;
-> > -	t = btf_type_skip_modifiers(btf, arg->type, NULL);
-> > -	if (!btf_type_is_scalar(t) || reg->type != SCALAR_VALUE)
-> > -		return false;
-> > -
-> >   	/* In the future, this can be ported to use BTF tagging */
-> >   	param_name = btf_name_by_offset(btf, arg->name_off);
-> >   	if (str_is_empty(param_name))
-> > @@ -6041,12 +6036,31 @@ static bool is_kfunc_arg_mem_size(const struct btf *btf,
-> >   	if (len < sfx_len)
-> >   		return false;
-> >   	param_name += len - sfx_len;
-> > -	if (strncmp(param_name, "__sz", sfx_len))
-> > +	if (strncmp(param_name, suffix, sfx_len))
-> >   		return false;
-> >   	return true;
-> >   }
-> > +static bool is_kfunc_arg_ref(const struct btf *btf,
-> > +			     const struct btf_param *arg)
-> > +{
-> > +	return btf_param_match_suffix(btf, arg, "__ref");
->
-> Do we also need to do btf_type_skip_modifiers and to ensure
-> the type after skipping modifiers are a pointer type?
-> The current implementation should work for
-> bpf_kfunc_call_test_ref(), but with additional checking
-> we may avoid some accidental mistakes.
->
+bh might occur while updating per-cpu rnd_state from user context,
+ie. local_out path.
 
-The point where this check happens, arg[i].type is already known to be a pointer
-type, after skipping modifiers.
+BUG: using smp_processor_id() in preemptible [00000000] code: nginx/2725
+caller is nft_ng_random_eval+0x24/0x54 [nft_numgen]
+Call Trace:
+ check_preemption_disabled+0xde/0xe0
+ nft_ng_random_eval+0x24/0x54 [nft_numgen]
 
-> > +}
-> > +
-> > +static bool is_kfunc_arg_mem_size(const struct btf *btf,
-> > +				  const struct btf_param *arg,
-> > +				  const struct bpf_reg_state *reg)
-> > +{
-> > +	const struct btf_type *t;
-> > +
-> > +	t = btf_type_skip_modifiers(btf, arg->type, NULL);
-> > +	if (!btf_type_is_scalar(t) || reg->type != SCALAR_VALUE)
-> > +		return false;
-> > +
-> > +	return btf_param_match_suffix(btf, arg, "__sz");
-> > +}
-> > +
-> >   static int btf_check_func_arg_match(struct bpf_verifier_env *env,
-> >   				    const struct btf *btf, u32 func_id,
-> >   				    struct bpf_reg_state *regs,
-> > @@ -6115,6 +6129,12 @@ static int btf_check_func_arg_match(struct bpf_verifier_env *env,
-> >   			return -EINVAL;
-> >   		}
-> > +		/* Check if argument must be a referenced pointer */
-> > +		if (is_kfunc && is_kfunc_arg_ref(btf, args + i) && !reg->ref_obj_id) {
-> > +			bpf_log(log, "R%d must be referenced\n", regno);
-> > +			return -EINVAL;
-> > +		}
-> > +
-> >   		ref_t = btf_type_skip_modifiers(btf, t->type, &ref_id);
-> >   		ref_tname = btf_name_by_offset(btf, ref_t->name_off);
-> > diff --git a/net/bpf/test_run.c b/net/bpf/test_run.c
-> > index 4d08cca771c7..adbc7dd18511 100644
-> > --- a/net/bpf/test_run.c
-> > +++ b/net/bpf/test_run.c
-> > @@ -690,6 +690,10 @@ noinline void bpf_kfunc_call_test_mem_len_fail2(u64 *mem, int len)
-> >   {
-> >   }
-> > +noinline void bpf_kfunc_call_test_ref(struct prog_test_ref_kfunc *p__ref)
-> > +{
-> > +}
-> > +
-> >   __diag_pop();
-> [...]
+Use the random driver instead, this also avoids need for local prandom
+state.
 
---
-Kartikeya
+Based on earlier patch from Pablo Neira.
+
+Fixes: 6b2faee0ca91 ("netfilter: nft_meta: place prandom handling in a helper")
+Fixes: 978d8f9055c3 ("netfilter: nft_numgen: add map lookups for numgen random operations")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nft_meta.c   | 13 ++-----------
+ net/netfilter/nft_numgen.c | 12 +++---------
+ 2 files changed, 5 insertions(+), 20 deletions(-)
+
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index ac4859241e17..55d2d49c3425 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -14,6 +14,7 @@
+ #include <linux/in.h>
+ #include <linux/ip.h>
+ #include <linux/ipv6.h>
++#include <linux/random.h>
+ #include <linux/smp.h>
+ #include <linux/static_key.h>
+ #include <net/dst.h>
+@@ -32,8 +33,6 @@
+ #define NFT_META_SECS_PER_DAY		86400
+ #define NFT_META_DAYS_PER_WEEK		7
+ 
+-static DEFINE_PER_CPU(struct rnd_state, nft_prandom_state);
+-
+ static u8 nft_meta_weekday(void)
+ {
+ 	time64_t secs = ktime_get_real_seconds();
+@@ -271,13 +270,6 @@ static bool nft_meta_get_eval_ifname(enum nft_meta_keys key, u32 *dest,
+ 	return true;
+ }
+ 
+-static noinline u32 nft_prandom_u32(void)
+-{
+-	struct rnd_state *state = this_cpu_ptr(&nft_prandom_state);
+-
+-	return prandom_u32_state(state);
+-}
+-
+ #ifdef CONFIG_IP_ROUTE_CLASSID
+ static noinline bool
+ nft_meta_get_eval_rtclassid(const struct sk_buff *skb, u32 *dest)
+@@ -389,7 +381,7 @@ void nft_meta_get_eval(const struct nft_expr *expr,
+ 		break;
+ #endif
+ 	case NFT_META_PRANDOM:
+-		*dest = nft_prandom_u32();
++		*dest = get_random_u32();
+ 		break;
+ #ifdef CONFIG_XFRM
+ 	case NFT_META_SECPATH:
+@@ -518,7 +510,6 @@ int nft_meta_get_init(const struct nft_ctx *ctx,
+ 		len = IFNAMSIZ;
+ 		break;
+ 	case NFT_META_PRANDOM:
+-		prandom_init_once(&nft_prandom_state);
+ 		len = sizeof(u32);
+ 		break;
+ #ifdef CONFIG_XFRM
+diff --git a/net/netfilter/nft_numgen.c b/net/netfilter/nft_numgen.c
+index 81b40c663d86..45d3dc9e96f2 100644
+--- a/net/netfilter/nft_numgen.c
++++ b/net/netfilter/nft_numgen.c
+@@ -9,12 +9,11 @@
+ #include <linux/netlink.h>
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
++#include <linux/random.h>
+ #include <linux/static_key.h>
+ #include <net/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables_core.h>
+ 
+-static DEFINE_PER_CPU(struct rnd_state, nft_numgen_prandom_state);
+-
+ struct nft_ng_inc {
+ 	u8			dreg;
+ 	u32			modulus;
+@@ -135,12 +134,9 @@ struct nft_ng_random {
+ 	u32			offset;
+ };
+ 
+-static u32 nft_ng_random_gen(struct nft_ng_random *priv)
++static u32 nft_ng_random_gen(const struct nft_ng_random *priv)
+ {
+-	struct rnd_state *state = this_cpu_ptr(&nft_numgen_prandom_state);
+-
+-	return reciprocal_scale(prandom_u32_state(state), priv->modulus) +
+-	       priv->offset;
++	return reciprocal_scale(get_random_u32(), priv->modulus) + priv->offset;
+ }
+ 
+ static void nft_ng_random_eval(const struct nft_expr *expr,
+@@ -168,8 +164,6 @@ static int nft_ng_random_init(const struct nft_ctx *ctx,
+ 	if (priv->offset + priv->modulus - 1 < priv->offset)
+ 		return -EOVERFLOW;
+ 
+-	prandom_init_once(&nft_numgen_prandom_state);
+-
+ 	return nft_parse_register_store(ctx, tb[NFTA_NG_DREG], &priv->dreg,
+ 					NULL, NFT_DATA_VALUE, sizeof(u32));
+ }
+-- 
+2.35.3
+
