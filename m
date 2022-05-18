@@ -2,151 +2,83 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14766C433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 May 2022 09:18:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42B53C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 May 2022 10:08:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234010AbiERJSs (ORCPT
+        id S234826AbiERKIt (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 May 2022 05:18:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43938 "EHLO
+        Wed, 18 May 2022 06:08:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50234 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234007AbiERJSq (ORCPT
+        with ESMTP id S234940AbiERKIt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 May 2022 05:18:46 -0400
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 432AD22B1E;
-        Wed, 18 May 2022 02:18:45 -0700 (PDT)
-Received: from fraeml704-chm.china.huawei.com (unknown [172.18.147.201])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4L36l561PZz6GDHr;
-        Wed, 18 May 2022 17:14:57 +0800 (CST)
-Received: from [10.122.132.241] (10.122.132.241) by
- fraeml704-chm.china.huawei.com (10.206.15.53) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2375.24; Wed, 18 May 2022 11:18:42 +0200
-Message-ID: <10c4935d-0ed1-a355-c0e2-64abdae17afc@huawei.com>
-Date:   Wed, 18 May 2022 12:18:40 +0300
+        Wed, 18 May 2022 06:08:49 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id AF45D158949
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 May 2022 03:08:47 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     phil@nwl.cc, fw@strlen.de
+Subject: [PATCH] netfilter: nf_tables: restrict expression reduction to first expression
+Date:   Wed, 18 May 2022 12:08:42 +0200
+Message-Id: <20220518100842.1950-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.4.1
-Subject: Re: [PATCH v5 03/15] landlock: merge and inherit function refactoring
-Content-Language: ru
-To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-CC:     <willemdebruijn.kernel@gmail.com>,
-        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-        <anton.sirazetdinov@huawei.com>
-References: <20220516152038.39594-1-konstantin.meskhidze@huawei.com>
- <20220516152038.39594-4-konstantin.meskhidze@huawei.com>
- <72c37309-3535-8119-b701-193ccc75e74e@digikod.net>
-From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-In-Reply-To: <72c37309-3535-8119-b701-193ccc75e74e@digikod.net>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.122.132.241]
-X-ClientProxiedBy: lhreml752-chm.china.huawei.com (10.201.108.202) To
- fraeml704-chm.china.huawei.com (10.206.15.53)
-X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Either userspace or kernelspace need to pre-fetch keys inconditionally
+before comparisons for this to work. Otherwise, register tracking data
+is misleading and it might result in reducing expressions which are not
+yet registers.
 
+First expression is guaranteed to be evaluated always, therefore, keep
+tracking registers and restrict reduction to first expression.
 
-5/17/2022 11:14 AM, Mickaël Salaün пишет:
-> 
-> 
-> On 16/05/2022 17:20, Konstantin Meskhidze wrote:
->> Merge_ruleset() and inherit_ruleset() functions were
->> refactored to support new rule types. This patch adds
->> tree_merge() and tree_copy() helpers. Each has
->> rule_type argument to choose a particular rb_tree
->> structure in a ruleset.
->>
->> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
->> ---
->>
->> Changes since v3:
->> * Split commit.
->> * Refactoring functions:
->>     -insert_rule.
->>     -merge_ruleset.
->>     -tree_merge.
->>     -inherit_ruleset.
->>     -tree_copy.
->>     -free_rule.
->>
->> Changes since v4:
->> * None
->>
->> ---
->>   security/landlock/ruleset.c | 144 ++++++++++++++++++++++++------------
->>   1 file changed, 98 insertions(+), 46 deletions(-)
->>
->> diff --git a/security/landlock/ruleset.c b/security/landlock/ruleset.c
->> index f079a2a320f1..4b4c9953bb32 100644
->> --- a/security/landlock/ruleset.c
->> +++ b/security/landlock/ruleset.c
->> @@ -112,12 +112,16 @@ static struct landlock_rule *create_rule(
->>       return new_rule;
->>   }
->>
->> -static void free_rule(struct landlock_rule *const rule)
->> +static void free_rule(struct landlock_rule *const rule, const u16 
->> rule_type)
->>   {
->>       might_sleep();
->>       if (!rule)
->>           return;
->> -    landlock_put_object(rule->object.ptr);
->> +    switch (rule_type) {
->> +    case LANDLOCK_RULE_PATH_BENEATH:
->> +        landlock_put_object(rule->object.ptr);
->> +        break;
->> +    }
->>       kfree(rule);
->>   }
->>
->> @@ -227,12 +231,12 @@ static int insert_rule(struct landlock_ruleset 
->> *const ruleset,
->>               new_rule = create_rule(object_ptr, 0, &this->layers,
->>                              this->num_layers,
->>                              &(*layers)[0]);
->> +            if (IS_ERR(new_rule))
->> +                return PTR_ERR(new_rule);
->> +            rb_replace_node(&this->node, &new_rule->node, 
->> &ruleset->root_inode);
->> +            free_rule(this, rule_type);
->>               break;
->>           }
->> -        if (IS_ERR(new_rule))
->> -            return PTR_ERR(new_rule);
->> -        rb_replace_node(&this->node, &new_rule->node, 
->> &ruleset->root_inode);
->> -        free_rule(this);
->>           return 0;
->>       }
->>
->> @@ -243,13 +247,12 @@ static int insert_rule(struct landlock_ruleset 
->> *const ruleset,
->>       switch (rule_type) {
->>       case LANDLOCK_RULE_PATH_BENEATH:
->>           new_rule = create_rule(object_ptr, 0, layers, num_layers, 
->> NULL);
->> +        if (IS_ERR(new_rule))
->> +            return PTR_ERR(new_rule);
->> +        rb_link_node(&new_rule->node, parent_node, walker_node);
->> +        rb_insert_color(&new_rule->node, &ruleset->root_inode);
->>           break;
->>       }
->> -    if (IS_ERR(new_rule))
->> -        return PTR_ERR(new_rule);
->> -    rb_link_node(&new_rule->node, parent_node, walker_node);
->> -    rb_insert_color(&new_rule->node, &ruleset->root_inode);
->> -    ruleset->num_rules++;
-> 
-> Why removing this last line?
+Fixes: b2d306542ff9 ("netfilter: nf_tables: do not reduce read-only expressions")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+@Phil, you mentioned about a way to simplify this patch, I don't see how,
+just let me know.
 
-  Thank you for noticing that. Its my mistake during refactoring the 
-code. Selftests did not show it.
+ net/netfilter/nf_tables_api.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-> .
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 16c3a39689f4..2c82fecc4094 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -8362,6 +8362,7 @@ static int nf_tables_commit_chain_prepare(struct net *net, struct nft_chain *cha
+ 	void *data, *data_boundary;
+ 	struct nft_rule_dp *prule;
+ 	struct nft_rule *rule;
++	bool reduce;
+ 
+ 	/* already handled or inactive chain? */
+ 	if (chain->blob_next || !nft_is_active_next(net, chain))
+@@ -8398,12 +8399,18 @@ static int nf_tables_commit_chain_prepare(struct net *net, struct nft_chain *cha
+ 
+ 		size = 0;
+ 		track.last = nft_expr_last(rule);
++		reduce = true;
+ 		nft_rule_for_each_expr(expr, last, rule) {
+ 			track.cur = expr;
+ 
+ 			if (nft_expr_reduce(&track, expr)) {
+-				expr = track.cur;
+-				continue;
++				if (reduce) {
++					reduce = false;
++					expr = track.cur;
++					continue;
++				}
++			} else if (reduce) {
++				reduce = false;
+ 			}
+ 
+ 			if (WARN_ON_ONCE(data + expr->ops->size > data_boundary))
+-- 
+2.30.2
+
