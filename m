@@ -2,350 +2,276 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F981C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 May 2022 13:33:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C510BC433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 May 2022 14:30:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229586AbiESNda (ORCPT
+        id S239743AbiESOaC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 19 May 2022 09:33:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33044 "EHLO
+        Thu, 19 May 2022 10:30:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33052 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229498AbiESNd3 (ORCPT
+        with ESMTP id S239756AbiESO34 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 May 2022 09:33:29 -0400
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 167061180C;
-        Thu, 19 May 2022 06:33:25 -0700 (PDT)
-Received: from fraeml704-chm.china.huawei.com (unknown [172.18.147.200])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4L3rMH2N9yz67Ncp;
-        Thu, 19 May 2022 21:30:19 +0800 (CST)
-Received: from [10.122.132.241] (10.122.132.241) by
- fraeml704-chm.china.huawei.com (10.206.15.53) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2375.24; Thu, 19 May 2022 15:33:22 +0200
-Message-ID: <7a5671cd-6bf3-9d17-ef17-ac9129386447@huawei.com>
-Date:   Thu, 19 May 2022 16:33:20 +0300
+        Thu, 19 May 2022 10:29:56 -0400
+Received: from smtp-bc0f.mail.infomaniak.ch (smtp-bc0f.mail.infomaniak.ch [IPv6:2001:1600:3:17::bc0f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 78FF5E2792
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 May 2022 07:29:55 -0700 (PDT)
+Received: from smtp-3-0001.mail.infomaniak.ch (unknown [10.4.36.108])
+        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4L3sgy3WL4zMqwSk;
+        Thu, 19 May 2022 16:29:50 +0200 (CEST)
+Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
+        by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4L3sgy0BTwzlhZwX;
+        Thu, 19 May 2022 16:29:49 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
+        s=20191114; t=1652970590;
+        bh=PrL+sFyxtDDv5pPp5JYDv7WES+E0Ra3QU510nOg0BZs=;
+        h=Date:To:Cc:References:From:Subject:In-Reply-To:From;
+        b=psLnvf1wMaBQC1OS9cCmgLGfqD+UOdpDFf3JL+eW1O8U+56Dj7skR7rmBIpkhONmg
+         M/78RFvn81hRrXkB6gJ1VHc7I1Thwn8Tl/NZzlplLKmd9/R04H6pg5U7gF3w/ptCS8
+         s+mQKy3Mp6qNb2Fbw0dZWLXfekGWBdkrVpaxJH6E=
+Message-ID: <fd996135-1ad5-dd3c-4b42-23013cad208d@digikod.net>
+Date:   Thu, 19 May 2022 16:29:49 +0200
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.4.1
-Subject: Re: [PATCH v5 15/15] samples/landlock: adds network demo
-Content-Language: ru
-To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-CC:     <willemdebruijn.kernel@gmail.com>,
-        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-        <anton.sirazetdinov@huawei.com>
+User-Agent: 
+Content-Language: en-US
+To:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+Cc:     willemdebruijn.kernel@gmail.com,
+        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
+        anton.sirazetdinov@huawei.com
 References: <20220516152038.39594-1-konstantin.meskhidze@huawei.com>
- <20220516152038.39594-16-konstantin.meskhidze@huawei.com>
- <179ac2ee-37ff-92da-c381-c2c716725045@digikod.net>
-From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-In-Reply-To: <179ac2ee-37ff-92da-c381-c2c716725045@digikod.net>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+ <20220516152038.39594-10-konstantin.meskhidze@huawei.com>
+ <eaa4cc8f-4c4a-350d-6b96-551f32156e3d@digikod.net>
+ <5124df18-ebc0-7b9b-84d5-89e1c458bc09@huawei.com>
+From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+Subject: Re: [PATCH v5 09/15] seltests/landlock: add tests for bind() hooks
+In-Reply-To: <5124df18-ebc0-7b9b-84d5-89e1c458bc09@huawei.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.122.132.241]
-X-ClientProxiedBy: lhreml754-chm.china.huawei.com (10.201.108.204) To
- fraeml704-chm.china.huawei.com (10.206.15.53)
-X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
+On 19/05/2022 14:10, Konstantin Meskhidze wrote:
+> 
+> 
+> 5/17/2022 12:11 AM, Mickaël Salaün пишет:
+>>
+>> On 16/05/2022 17:20, Konstantin Meskhidze wrote:
+>>> Adds selftests for bind socket action.
+>>> The first is with no landlock restrictions:
+>>>      - bind_no_restrictions_ip4;
+>>>      - bind_no_restrictions_ip6;
+>>> The second ones is with mixed landlock rules:
+>>>      - bind_with_restrictions_ip4;
+>>>      - bind_with_restrictions_ip6;
+>>>
+>>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+>>> ---
+>>>
+>>> Changes since v3:
+>>> * Split commit.
+>>> * Add helper create_socket.
+>>> * Add FIXTURE_SETUP.
+>>>
+>>> Changes since v4:
+>>> * Adds port[MAX_SOCKET_NUM], struct sockaddr_in addr4
+>>> and struct sockaddr_in addr6 in FIXTURE.
+>>> * Refactoring FIXTURE_SETUP:
+>>>      - initializing self->port, self->addr4 and self->addr6.
+>>>      - adding network namespace.
+>>> * Refactoring code with self->port, self->addr4 and
+>>> self->addr6 variables.
+>>> * Adds selftests for IP6 family:
+>>>      - bind_no_restrictions_ip6.
+>>>      - bind_with_restrictions_ip6.
+>>> * Refactoring selftests/landlock/config
+>>> * Moves enforce_ruleset() into common.h
+>>>
+>>> ---
+>>>   tools/testing/selftests/landlock/common.h   |   9 +
+>>>   tools/testing/selftests/landlock/config     |   5 +-
+>>>   tools/testing/selftests/landlock/fs_test.c  |  10 -
+>>>   tools/testing/selftests/landlock/net_test.c | 237 ++++++++++++++++++++
+>>>   4 files changed, 250 insertions(+), 11 deletions(-)
+>>>   create mode 100644 tools/testing/selftests/landlock/net_test.c
+>>>
+>>> diff --git a/tools/testing/selftests/landlock/common.h 
+>>> b/tools/testing/selftests/landlock/common.h
+>>> index 7ba18eb23783..c5381e641dfd 100644
+>>> --- a/tools/testing/selftests/landlock/common.h
+>>> +++ b/tools/testing/selftests/landlock/common.h
+>>> @@ -102,6 +102,15 @@ static inline int landlock_restrict_self(const 
+>>> int ruleset_fd,
+>>>   }
+>>>   #endif
+>>>
+>>> +static void enforce_ruleset(struct __test_metadata *const _metadata,
+>>> +        const int ruleset_fd)
+>>> +{
+>>> +    ASSERT_EQ(0, prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0));
+>>> +    ASSERT_EQ(0, landlock_restrict_self(ruleset_fd, 0)) {
+>>> +        TH_LOG("Failed to enforce ruleset: %s", strerror(errno));
+>>> +    }
+>>> +}
+>>> +
+>>
+>> Please create a commit which moves all the needed code for all network 
+>> tests. I think there is only this helper though.
+> 
+>    Ok. I will create one additional commit for moving this helper.
+>    But after I have moved the helper to common.h, I got warnings while 
+> compiling seltests where I don't use the one (base_test and ptrace_test)
 
-5/17/2022 12:19 PM, Mickaël Salaün пишет:
-> 
-> 
-> On 16/05/2022 17:20, Konstantin Meskhidze wrote:
->> This commit adds network demo. It's possible to
->> allow a sandoxer to bind/connect to a list of
->> particular ports restricting networks actions to
->> the rest of ports.
->>
->> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
->> ---
->>
->> Changes since v4:
->> * Adds ENV_TCP_BIND_NAME "LL_TCP_BIND" and
->> ENV_TCP_CONNECT_NAME "LL_TCP_CONNECT" variables
->> to insert TCP ports.
->> * Renames populate_ruleset() to populate_ruleset_fs().
->> * Adds populate_ruleset_net() and parse_port_num() helpers.
->> * Refactoring main() to support network sandboxing.
->>
->> ---
->>   samples/landlock/sandboxer.c | 105 +++++++++++++++++++++++++++++++----
->>   security/landlock/ruleset.h  |   4 +-
->>   2 files changed, 95 insertions(+), 14 deletions(-)
->>
->> diff --git a/samples/landlock/sandboxer.c b/samples/landlock/sandboxer.c
->> index 3e404e51ec64..4006c42eec1c 100644
->> --- a/samples/landlock/sandboxer.c
->> +++ b/samples/landlock/sandboxer.c
->> @@ -51,6 +51,8 @@ static inline int landlock_restrict_self(const int 
->> ruleset_fd,
->>
->>   #define ENV_FS_RO_NAME "LL_FS_RO"
->>   #define ENV_FS_RW_NAME "LL_FS_RW"
->> +#define ENV_TCP_BIND_NAME "LL_TCP_BIND"
->> +#define ENV_TCP_CONNECT_NAME "LL_TCP_CONNECT"
->>   #define ENV_PATH_TOKEN ":"
->>
->>   static int parse_path(char *env_path, const char ***const path_list)
->> @@ -71,6 +73,20 @@ static int parse_path(char *env_path, const char 
->> ***const path_list)
->>       return num_paths;
->>   }
->>
->> +static int parse_port_num(char *env_port)
->> +{
->> +    int i, num_ports = 0;
->> +
->> +    if (env_port) {
->> +        num_ports++;
->> +        for (i = 0; env_port[i]; i++) {
->> +            if (env_port[i] == ENV_PATH_TOKEN[0])
->> +                num_ports++;
->> +        }
->> +    }
->> +    return num_ports;
->> +}
->> +
->>   /* clang-format off */
->>
->>   #define ACCESS_FILE ( \
->> @@ -80,7 +96,7 @@ static int parse_path(char *env_path, const char 
->> ***const path_list)
->>
->>   /* clang-format on */
->>
->> -static int populate_ruleset(const char *const env_var, const int 
->> ruleset_fd,
->> +static int populate_ruleset_fs(const char *const env_var, const int 
->> ruleset_fd,
->>                   const __u64 allowed_access)
->>   {
->>       int num_paths, i, ret = 1;
->> @@ -142,6 +158,49 @@ static int populate_ruleset(const char *const 
->> env_var, const int ruleset_fd,
->>       return ret;
->>   }
->>
->> +static int populate_ruleset_net(const char *const env_var,
->> +                const int ruleset_fd,
->> +                const __u64 allowed_access)
->> +{
->> +    int num_ports, i, ret = 1;
->> +    char *env_port_name;
->> +    struct landlock_net_service_attr net_service = {
->> +        .allowed_access = 0,
->> +        .port = 0,
->> +    };
->> +
->> +    env_port_name = getenv(env_var);
->> +    if (!env_port_name) {
->> +        /* Prevents users to forget a setting. */
->> +        fprintf(stderr, "Missing environment variable %s\n", env_var);
->> +        return 1;
-> 
-> I think network ports should be optional to be able to test without that 
-> (and not break compatibility). You can pass &ruleset_attr as argument to 
-> update it accordingly:
-> - without environment variable: no network restriction;
-> - with empty environment variable: all connect (or bind) denied;
-> - otherwise: only allow the listed ports.
-> 
-   Great. That makes sense. Cause anyway fs restrictions are major ones.
-> 
->> +    }
->> +    env_port_name = strdup(env_port_name);
->> +    unsetenv(env_var);
->> +    num_ports = parse_port_num(env_port_name);
->> +
->> +    if (num_ports == 1 && (strtok(env_port_name, ENV_PATH_TOKEN) == 
->> NULL)) {
->> +        ret = 0;
->> +        goto out_free_name;
->> +    }
->> +
->> +    for (i = 0; i < num_ports; i++) {
->> +        net_service.allowed_access = allowed_access;
->> +        net_service.port = atoi(strsep(&env_port_name, ENV_PATH_TOKEN));
->> +        if (landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
->> +                    &net_service, 0)) {
->> +            fprintf(stderr, "Failed to update the ruleset with port 
->> \"%d\": %s\n",
->> +                    net_service.port, strerror(errno));
->> +            goto out_free_name;
->> +        }
->> +    }
->> +    ret = 0;
->> +
->> +out_free_name:
->> +    free(env_port_name);
->> +    return ret;
->> +}
->> +
->>   /* clang-format off */
->>
->>   #define ACCESS_FS_ROUGHLY_READ ( \
->> @@ -173,19 +232,24 @@ int main(const int argc, char *const argv[], 
->> char *const *const envp)
->>       char *const *cmd_argv;
->>       int ruleset_fd, abi;
->>       __u64 access_fs_ro = ACCESS_FS_ROUGHLY_READ,
->> -          access_fs_rw = ACCESS_FS_ROUGHLY_READ | 
->> ACCESS_FS_ROUGHLY_WRITE;
->> +          access_fs_rw = ACCESS_FS_ROUGHLY_READ | 
->> ACCESS_FS_ROUGHLY_WRITE,
->> +          access_net_tcp = LANDLOCK_ACCESS_NET_BIND_TCP |
->> +                    LANDLOCK_ACCESS_NET_CONNECT_TCP;
->>       struct landlock_ruleset_attr ruleset_attr = {
->>           .handled_access_fs = access_fs_rw,
->> +        .handled_access_net = access_net_tcp,
->>       };
->>
->>       if (argc < 2) {
->>           fprintf(stderr,
->> -            "usage: %s=\"...\" %s=\"...\" %s <cmd> [args]...\n\n",
->> -            ENV_FS_RO_NAME, ENV_FS_RW_NAME, argv[0]);
->> +            "usage: %s=\"...\" %s=\"...\" %s=\"...\" %s=\"...\"%s "
->> +            "<cmd> [args]...\n\n", ENV_FS_RO_NAME, ENV_FS_RW_NAME,
->> +            ENV_TCP_BIND_NAME, ENV_TCP_CONNECT_NAME, argv[0]);
->>           fprintf(stderr,
->>               "Launch a command in a restricted environment.\n\n");
->> -        fprintf(stderr, "Environment variables containing paths, "
->> -                "each separated by a colon:\n");
->> +        fprintf(stderr,
->> +            "Environment variables containing paths and ports "
->> +            "each separated by a colon:\n");
->>           fprintf(stderr,
->>               "* %s: list of paths allowed to be used in a read-only 
->> way.\n",
->>               ENV_FS_RO_NAME);
->> @@ -193,11 +257,19 @@ int main(const int argc, char *const argv[], 
->> char *const *const envp)
->>               "* %s: list of paths allowed to be used in a read-write 
->> way.\n",
->>               ENV_FS_RW_NAME);
->>           fprintf(stderr,
->> -            "\nexample:\n"
->> +            "* %s: list of ports allowed to bind (server).\n",
->> +            ENV_TCP_BIND_NAME);
->> +        fprintf(stderr,
->> +            "* %s: list of ports allowed to connect (client).\n",
->> +            ENV_TCP_CONNECT_NAME);
-> 
-> This is good and will be better with clang-format. ;)
+Move it after clear_cap() and use the same attributes.
 
-   Yep. I will fix it. Thanks.
-> 
->> +        fprintf(stderr, "\nexample:\n"
->>               "%s=\"/bin:/lib:/usr:/proc:/etc:/dev/urandom\" "
->>               "%s=\"/dev/null:/dev/full:/dev/zero:/dev/pts:/tmp\" "
->> +            "%s=\"15000:16000\" "
-> 
-> Bind ports example should reference unprivileged ports such as "9418" 
-> (git, not well-known but OK).
-> 
-  Ok. I will change it
-> 
->> +            "%s=\"10000:12000\" "
-> 
-> Connect ports example should reference well-known ports such as "80:443".
-> 
-   Ditto.
->>               "%s bash -i\n",
->> -            ENV_FS_RO_NAME, ENV_FS_RW_NAME, argv[0]);
->> +            ENV_FS_RO_NAME, ENV_FS_RW_NAME, ENV_TCP_BIND_NAME,
->> +            ENV_TCP_CONNECT_NAME, argv[0]);
->>           return 1;
->>       }
->>
->> @@ -234,16 +306,25 @@ int main(const int argc, char *const argv[], 
->> char *const *const envp)
->>
->>       ruleset_fd =
->>           landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 
->> 0);
->> +
-> 
-> Why?
+[...]
 
-   Oh. Sorry. My mistake. I will fix it as it was.
-> 
-> 
->>       if (ruleset_fd < 0) {
->>           perror("Failed to create a ruleset");
->>           return 1;
->>       }
->> -    if (populate_ruleset(ENV_FS_RO_NAME, ruleset_fd, access_fs_ro)) {
->> +    if (populate_ruleset_fs(ENV_FS_RO_NAME, ruleset_fd, access_fs_ro))
->>           goto err_close_ruleset;
->> -    }
-> 
-> Why? I know that checkpatch.pl prints a warning for that but I 
-> delibirately chooe to use curly braces even for "if" statements with one 
-> line because it is safer. This code may be copied/pasted and I'd like 
-> others to avoid introducing goto-fail-like issues.
-> 
+ >>> diff --git a/tools/testing/selftests/landlock/config
+ >>> b/tools/testing/selftests/landlock/config
+ >>> index 0f0a65287bac..b56f3274d3f5 100644
+ >>> --- a/tools/testing/selftests/landlock/config
+ >>> +++ b/tools/testing/selftests/landlock/config
+ >>> @@ -1,7 +1,10 @@
+ >>> +CONFIG_INET=y
+ >>> +CONFIG_IPV6=y
+ >>> +CONFIG_NET=y
+ >>>   CONFIG_OVERLAY_FS=y
+ >>>   CONFIG_SECURITY_LANDLOCK=y
+ >>>   CONFIG_SECURITY_PATH=y
+ >>>   CONFIG_SECURITY=y
+ >>>   CONFIG_SHMEM=y
+ >>>   CONFIG_TMPFS_XATTR=y
+ >>> -CONFIG_TMPFS=y
+ >>> +CONFIG_TMPFS=y
+ >>> \ No newline at end of file
 
-  It was done just to reduce the number of checkpatch.pl warnings.
-  If you want it to be formated in your way I will fix it.
-> 
-> 
->> -    if (populate_ruleset(ENV_FS_RW_NAME, ruleset_fd, access_fs_rw)) {
->> +
->> +    if (populate_ruleset_fs(ENV_FS_RW_NAME, ruleset_fd, access_fs_rw))
->>           goto err_close_ruleset;
->> -    }
->> +
->> +    if (populate_ruleset_net(ENV_TCP_BIND_NAME, ruleset_fd,
->> +                 LANDLOCK_ACCESS_NET_BIND_TCP))
-> 
-> So please use curly braces here too.
+You also need to add CONFIG_NET_NS.
 
-   Ok. No problems.
-> 
->> +        goto err_close_ruleset;
->> +
->> +    if (populate_ruleset_net(ENV_TCP_CONNECT_NAME, ruleset_fd,
->> +                 LANDLOCK_ACCESS_NET_CONNECT_TCP))
->> +        goto err_close_ruleset;
->> +
->>       if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0)) {
->>           perror("Failed to restrict privileges");
->>           goto err_close_ruleset;
->> diff --git a/security/landlock/ruleset.h b/security/landlock/ruleset.h
->> index 916b30b31c06..e1ff40f238a6 100644
->> --- a/security/landlock/ruleset.h
->> +++ b/security/landlock/ruleset.h
->> @@ -19,7 +19,7 @@
->>   #include "limits.h"
->>   #include "object.h"
+[...]
+
 >>
->> -typedef u16 access_mask_t;
->> +typedef u32 access_mask_t;
+>>> +        self->port[i] = SOCK_PORT_START + SOCK_PORT_ADD*i;
+>>> +        self->addr4[i].sin_family = AF_INET;
+>>> +        self->addr4[i].sin_port = htons(self->port[i]);
+>>> +        self->addr4[i].sin_addr.s_addr = htonl(INADDR_ANY);
+>>
+>> Could you use the local addr (127.0.0.1) instead?
 > 
-> What‽
+>    Why cant I use INADDR_ANY here?
 
-   You are right. I will move this changes to another commit, related 
-the kernel updates. I might have forgotten to rebase this change and 
-left it in sandboxer patch. Thank you..
+You can, but it is cleaner to bind to a specified address (i.e. you 
+control where a connection come from), and I guess this variable/address 
+could be used to establish connections as well.
+
+>>
+>>> +        memset(&(self->addr4[i].sin_zero), '\0', 8);
+>>> +    }
+>>> +
+>>> +    /* Creates IP6 socket addresses */
+>>> +    for (i = 0; i < MAX_SOCKET_NUM; i++) {
+>>> +        self->port[i] = SOCK_PORT_START + SOCK_PORT_ADD*i;
+>>> +        self->addr6[i].sin6_family = AF_INET6;
+>>> +        self->addr6[i].sin6_port = htons(self->port[i]);
+>>> +        self->addr6[i].sin6_addr = in6addr_any;
+>>
+>> ditto
 > 
+>    Why cant I use in6addr_any here?
+
+Same as for IPV4.
+
 > 
 >>
->>   /* Makes sure all filesystem access rights can be stored. */
->>   static_assert(BITS_PER_TYPE(access_mask_t) >= LANDLOCK_NUM_ACCESS_FS);
->> @@ -157,7 +157,7 @@ struct landlock_ruleset {
->>                * layers are set once and never changed for the
->>                * lifetime of the ruleset.
->>                */
->> -            u32 access_masks[];
->> +            access_mask_t access_masks[];
->>           };
->>       };
->>   };
->> -- 
->> 2.25.1
+>>> +    }
+>>> +
+>>> +    set_cap(_metadata, CAP_SYS_ADMIN);
+>>> +    ASSERT_EQ(0, unshare(CLONE_NEWNET));
+>>> +    ASSERT_EQ(0, system("ip link set dev lo up"));
 >>
-> .
+>> If this is really required, could you avoid calling system() but set 
+>> up the network in C? You can strace it to see what is going on 
+>> underneath.
+>>
+>   I did check. It's a lot of code to be run under the hood (more than 
+> one line) and it will just will complicate the test so I suggest to 
+> leave just ONE line of code here.
+
+OK
+
+
+>>
+>>> +    clear_cap(_metadata, CAP_SYS_ADMIN);
+>>> +}
+>>> +
+>>> +FIXTURE_TEARDOWN(socket_test)
+>>> +{ }
+>>> +
+>>> +TEST_F_FORK(socket_test, bind_no_restrictions_ip4) {
+>>> +
+>>> +    int sockfd;
+>>> +
+>>> +    sockfd = create_socket(_metadata, false, false);
+>>> +    ASSERT_LE(0, sockfd);
+>>> +
+>>> +    /* Binds a socket to port[0] */
+>>
+>> This comment is not very useful in this context considering the below 
+>> line. It will be even more clear with the bind_variant() call.
+>>
+>   Ok. I will fix it.
+>>
+>>> +    ASSERT_EQ(0, bind(sockfd, (struct sockaddr *)&self->addr4[0], 
+>>> sizeof(self->addr4[0])));
+>>> +
+>>> +    ASSERT_EQ(0, close(sockfd));
+>>> +}
+>>> +
+>>> +TEST_F_FORK(socket_test, bind_no_restrictions_ip6) {
+>>> +
+>>> +    int sockfd;
+>>> +
+>>> +    sockfd = create_socket(_metadata, true, false);
+>>> +    ASSERT_LE(0, sockfd);
+>>> +
+>>> +    /* Binds a socket to port[0] */
+>>> +    ASSERT_EQ(0, bind(sockfd, (struct sockaddr *)&self->addr6[0], 
+>>> sizeof(self->addr6[0])));
+>>> +
+>>> +    ASSERT_EQ(0, close(sockfd));
+>>> +}
+>>> +
+>>> +TEST_F_FORK(socket_test, bind_with_restrictions_ip4) {
+>>> +
+>>> +    int sockfd;
+>>> +
+>>> +    struct landlock_ruleset_attr ruleset_attr = {
+>>> +        .handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
+>>> +                      LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>>> +    };
+>>> +    struct landlock_net_service_attr net_service_1 = {
+>>> +        .allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
+>>> +                  LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>>> +        .port = self->port[0],
+>>> +    };
+>>> +    struct landlock_net_service_attr net_service_2 = {
+>>> +        .allowed_access = LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>>> +        .port = self->port[1],
+>>> +    };
+>>> +    struct landlock_net_service_attr net_service_3 = {
+>>> +        .allowed_access = 0,
+>>> +        .port = self->port[2],
+>>> +    };
+>>> +
+>>> +    const int ruleset_fd = landlock_create_ruleset(&ruleset_attr,
+>>> +            sizeof(ruleset_attr), 0);
+>>> +    ASSERT_LE(0, ruleset_fd);
+>>> +
+>>> +    /* Allows connect and bind operations to the port[0] socket. */
+>>
+>> This comment is useful though because the below call is more complex.
+>>
+>    So I can leave it as it's, cant I?
+
+Yes, keep it, I'd just like a fair amount of useful comments. ;)
