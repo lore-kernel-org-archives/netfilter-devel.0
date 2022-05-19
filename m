@@ -2,154 +2,91 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D114BC433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 May 2022 02:07:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C991C433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 May 2022 04:40:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231757AbiESCH3 (ORCPT
+        id S233714AbiESEkR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 May 2022 22:07:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53066 "EHLO
+        Thu, 19 May 2022 00:40:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47998 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229929AbiESCH2 (ORCPT
+        with ESMTP id S231560AbiESEkQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 May 2022 22:07:28 -0400
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F58E3D48C;
-        Wed, 18 May 2022 19:07:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1652926047; x=1684462047;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=NW+eRlcG/MgejbNpwgfiiUoBffsK8joi9+Ij1lE+c0g=;
-  b=TVJVLxCh2JBXSzjW0ZI/68mgaIxlfD/t2cm4xnIqBx7GYAXxdJMsoEvQ
-   m2rqrYUpo5va5C2SY6EeXOdUn08tAeor5WlZewdwSSrbU8tXzMbG1fKlv
-   glGoCa7Mxi37BkMrUeNMjPllO5ZQK6kQvfqfUWrBiWp+iPvMMyKp4FE3I
-   r5MWwBwTqHpmM1vu5p5ei/qraVEOICvwpePF5O321NewWuILq6tddYQ1V
-   +d/fJZtaFD8VwAIyUHxq8LA5NSVOjyHr0dmYZeJwLRFD3yAnpAjAS3lKq
-   WClKUZSRw5wOYB4yHkNpsxPuBMocdNY9DXZzchdcRQc8Vivdg8VjUTrjb
-   Q==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10351"; a="252497346"
-X-IronPort-AV: E=Sophos;i="5.91,236,1647327600"; 
-   d="scan'208";a="252497346"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 May 2022 19:07:27 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.91,236,1647327600"; 
-   d="scan'208";a="523825043"
-Received: from lkp-server02.sh.intel.com (HELO 242b25809ac7) ([10.239.97.151])
-  by orsmga003.jf.intel.com with ESMTP; 18 May 2022 19:07:22 -0700
-Received: from kbuild by 242b25809ac7 with local (Exim 4.95)
-        (envelope-from <lkp@intel.com>)
-        id 1nrVZR-0002w5-Sy;
-        Thu, 19 May 2022 02:07:21 +0000
-Date:   Thu, 19 May 2022 10:06:45 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Lorenzo Bianconi <lorenzo@kernel.org>, bpf@vger.kernel.org
-Cc:     kbuild-all@lists.01.org, netdev@vger.kernel.org, ast@kernel.org,
-        daniel@iogearbox.net, andrii@kernel.org, davem@davemloft.net,
-        kuba@kernel.org, edumazet@google.com, pabeni@redhat.com,
-        pablo@netfilter.org, fw@strlen.de, netfilter-devel@vger.kernel.org,
-        lorenzo.bianconi@redhat.com, brouer@redhat.com, toke@redhat.com,
-        memxor@gmail.com
-Subject: Re: [PATCH v3 bpf-next 4/5] net: netfilter: add kfunc helper to add
- a new ct entry
-Message-ID: <202205191006.OH1ukt9R-lkp@intel.com>
-References: <40e7ce4b79c86c46e5fbf22e9cafb51b9172da19.1652870182.git.lorenzo@kernel.org>
+        Thu, 19 May 2022 00:40:16 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A4ABF5DA45;
+        Wed, 18 May 2022 21:40:15 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 684F3B8232A;
+        Thu, 19 May 2022 04:40:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 0F71CC385B8;
+        Thu, 19 May 2022 04:40:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1652935213;
+        bh=2bfPM7jf63D3vFBeStC68/NjjZm1m70e90SjaOf0eU4=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=Ac9cgyXWhW35D4Yq5ly6f1wKVjYYHMqnkDv5bnclgOM3ZUH5nJRAjDLGe21ow155B
+         IhsauMOeCUlorcOB+m0bfm9184I/bbUZEMrow7+1dxHxNnrOqde4ySW/QR4bY3G9O6
+         K62dtyrWm3HzkT8NZpawv+6NhxYyvs2h5NyPGhkNsI2qri75U26hzSGcMRrixomrUY
+         XTm7ClZ/2hTxFrnGukxJhMmADIWYaloi4o7Z8KPdQDZ9YKuZoA3x1+GrEp0ETizT+v
+         HYPWkFLjHur9NiMiX+6A09vtr1cXbQXanuqwKoAe+KOenCHs45jYxhycnkdq9FisZa
+         hLCV2Vc/onpeA==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id EA8F4E8DBDA;
+        Thu, 19 May 2022 04:40:12 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <40e7ce4b79c86c46e5fbf22e9cafb51b9172da19.1652870182.git.lorenzo@kernel.org>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/7] netfilter: flowtable: fix excessive hw offload
+ attempts after failure
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <165293521295.13143.12085724006863239596.git-patchwork-notify@kernel.org>
+Date:   Thu, 19 May 2022 04:40:12 +0000
+References: <20220518213841.359653-2-pablo@netfilter.org>
+In-Reply-To: <20220518213841.359653-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Lorenzo,
+Hello:
 
-I love your patch! Perhaps something to improve:
+This series was applied to netdev/net.git (master)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-[auto build test WARNING on bpf-next/master]
+On Wed, 18 May 2022 23:38:35 +0200 you wrote:
+> From: Felix Fietkau <nbd@nbd.name>
+> 
+> If a flow cannot be offloaded, the code currently repeatedly tries again as
+> quickly as possible, which can significantly increase system load.
+> Fix this by limiting flow timeout update and hardware offload retry to once
+> per second.
+> 
+> [...]
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Lorenzo-Bianconi/net-netfilter-add-kfunc-helper-to-update-ct-timeout/20220518-184654
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf-next.git master
-config: s390-defconfig (https://download.01.org/0day-ci/archive/20220519/202205191006.OH1ukt9R-lkp@intel.com/config)
-compiler: s390-linux-gcc (GCC) 11.3.0
-reproduce (this is a W=1 build):
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # https://github.com/intel-lab-lkp/linux/commit/7427419a3d3ae771c69eed7318a9b5f5d582b488
-        git remote add linux-review https://github.com/intel-lab-lkp/linux
-        git fetch --no-tags linux-review Lorenzo-Bianconi/net-netfilter-add-kfunc-helper-to-update-ct-timeout/20220518-184654
-        git checkout 7427419a3d3ae771c69eed7318a9b5f5d582b488
-        # save the config file
-        mkdir build_dir && cp config build_dir/.config
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-11.3.0 make.cross W=1 O=build_dir ARCH=s390 SHELL=/bin/bash net/netfilter/
+Here is the summary with links:
+  - [net,1/7] netfilter: flowtable: fix excessive hw offload attempts after failure
+    https://git.kernel.org/netdev/net/c/396ef64113a8
+  - [net,2/7] netfilter: nft_flow_offload: skip dst neigh lookup for ppp devices
+    https://git.kernel.org/netdev/net/c/45ca3e61999e
+  - [net,3/7] net: fix dev_fill_forward_path with pppoe + bridge
+    https://git.kernel.org/netdev/net/c/cf2df74e202d
+  - [net,4/7] netfilter: nft_flow_offload: fix offload with pppoe + vlan
+    https://git.kernel.org/netdev/net/c/245607493500
+  - [net,5/7] netfilter: flowtable: fix TCP flow teardown
+    https://git.kernel.org/netdev/net/c/e5eaac2beb54
+  - [net,6/7] netfilter: flowtable: move dst_check to packet path
+    https://git.kernel.org/netdev/net/c/2738d9d963bd
+  - [net,7/7] netfilter: nf_tables: disable expression reduction infra
+    https://git.kernel.org/netdev/net/c/9e539c5b6d9c
 
-If you fix the issue, kindly add following tag as appropriate
-Reported-by: kernel test robot <lkp@intel.com>
-
-All warnings (new ones prefixed by >>):
-
->> net/netfilter/nf_conntrack_bpf.c:99:1: warning: no previous prototype for '__bpf_nf_ct_alloc_entry' [-Wmissing-prototypes]
-      99 | __bpf_nf_ct_alloc_entry(struct net *net, struct bpf_sock_tuple *bpf_tuple,
-         | ^~~~~~~~~~~~~~~~~~~~~~~
-
-
-vim +/__bpf_nf_ct_alloc_entry +99 net/netfilter/nf_conntrack_bpf.c
-
-    97	
-    98	struct nf_conn *
-  > 99	__bpf_nf_ct_alloc_entry(struct net *net, struct bpf_sock_tuple *bpf_tuple,
-   100				u32 tuple_len, u8 protonum, s32 netns_id, u32 timeout)
-   101	{
-   102		struct nf_conntrack_tuple otuple, rtuple;
-   103		struct nf_conn *ct;
-   104		int err;
-   105	
-   106		if (unlikely(netns_id < BPF_F_CURRENT_NETNS))
-   107			return ERR_PTR(-EINVAL);
-   108	
-   109		err = bpf_nf_ct_tuple_parse(bpf_tuple, tuple_len, protonum,
-   110					    IP_CT_DIR_ORIGINAL, &otuple);
-   111		if (err < 0)
-   112			return ERR_PTR(err);
-   113	
-   114		err = bpf_nf_ct_tuple_parse(bpf_tuple, tuple_len, protonum,
-   115					    IP_CT_DIR_REPLY, &rtuple);
-   116		if (err < 0)
-   117			return ERR_PTR(err);
-   118	
-   119		if (netns_id >= 0) {
-   120			net = get_net_ns_by_id(net, netns_id);
-   121			if (unlikely(!net))
-   122				return ERR_PTR(-ENONET);
-   123		}
-   124	
-   125		ct = nf_conntrack_alloc(net, &nf_ct_zone_dflt, &otuple, &rtuple,
-   126					GFP_ATOMIC);
-   127		if (IS_ERR(ct))
-   128			goto out;
-   129	
-   130		ct->timeout = timeout * HZ + jiffies;
-   131		ct->status |= IPS_CONFIRMED;
-   132	
-   133		memset(&ct->proto, 0, sizeof(ct->proto));
-   134		if (protonum == IPPROTO_TCP)
-   135			ct->proto.tcp.state = TCP_CONNTRACK_ESTABLISHED;
-   136	
-   137		err = nf_conntrack_hash_check_insert(ct);
-   138		if (err < 0) {
-   139			nf_conntrack_free(ct);
-   140			ct = ERR_PTR(err);
-   141		}
-   142	out:
-   143		if (netns_id >= 0)
-   144			put_net(net);
-   145	
-   146		return ct;
-   147	}
-   148	
-
+You are awesome, thank you!
 -- 
-0-DAY CI Kernel Test Service
-https://01.org/lkp
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
