@@ -2,91 +2,298 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C991C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 May 2022 04:40:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E151C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 May 2022 09:24:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233714AbiESEkR (ORCPT
+        id S235988AbiESJYC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 19 May 2022 00:40:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47998 "EHLO
+        Thu, 19 May 2022 05:24:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60798 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231560AbiESEkQ (ORCPT
+        with ESMTP id S235439AbiESJYA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 May 2022 00:40:16 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A4ABF5DA45;
-        Wed, 18 May 2022 21:40:15 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 684F3B8232A;
-        Thu, 19 May 2022 04:40:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 0F71CC385B8;
-        Thu, 19 May 2022 04:40:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1652935213;
-        bh=2bfPM7jf63D3vFBeStC68/NjjZm1m70e90SjaOf0eU4=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=Ac9cgyXWhW35D4Yq5ly6f1wKVjYYHMqnkDv5bnclgOM3ZUH5nJRAjDLGe21ow155B
-         IhsauMOeCUlorcOB+m0bfm9184I/bbUZEMrow7+1dxHxNnrOqde4ySW/QR4bY3G9O6
-         K62dtyrWm3HzkT8NZpawv+6NhxYyvs2h5NyPGhkNsI2qri75U26hzSGcMRrixomrUY
-         XTm7ClZ/2hTxFrnGukxJhMmADIWYaloi4o7Z8KPdQDZ9YKuZoA3x1+GrEp0ETizT+v
-         HYPWkFLjHur9NiMiX+6A09vtr1cXbQXanuqwKoAe+KOenCHs45jYxhycnkdq9FisZa
-         hLCV2Vc/onpeA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id EA8F4E8DBDA;
-        Thu, 19 May 2022 04:40:12 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Thu, 19 May 2022 05:24:00 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D7225EDEE;
+        Thu, 19 May 2022 02:23:59 -0700 (PDT)
+Received: from fraeml704-chm.china.huawei.com (unknown [172.18.147.226])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4L3kqT2XqQz6H8Tt;
+        Thu, 19 May 2022 17:20:53 +0800 (CST)
+Received: from [10.122.132.241] (10.122.132.241) by
+ fraeml704-chm.china.huawei.com (10.206.15.53) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.2375.24; Thu, 19 May 2022 11:23:56 +0200
+Message-ID: <6edfec5b-1b56-17cc-7c0c-76fda1391d45@huawei.com>
+Date:   Thu, 19 May 2022 12:23:53 +0300
 MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.1
+Subject: Re: [PATCH v5 05/15] landlock: landlock_add_rule syscall refactoring
+Content-Language: ru
+To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+CC:     <willemdebruijn.kernel@gmail.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+        <anton.sirazetdinov@huawei.com>
+References: <20220516152038.39594-1-konstantin.meskhidze@huawei.com>
+ <20220516152038.39594-6-konstantin.meskhidze@huawei.com>
+ <9456ccf3-e2b3-bb65-f24f-e6d2761120e5@digikod.net>
+From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+In-Reply-To: <9456ccf3-e2b3-bb65-f24f-e6d2761120e5@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/7] netfilter: flowtable: fix excessive hw offload
- attempts after failure
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <165293521295.13143.12085724006863239596.git-patchwork-notify@kernel.org>
-Date:   Thu, 19 May 2022 04:40:12 +0000
-References: <20220518213841.359653-2-pablo@netfilter.org>
-In-Reply-To: <20220518213841.359653-2-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com
+X-Originating-IP: [10.122.132.241]
+X-ClientProxiedBy: lhreml753-chm.china.huawei.com (10.201.108.203) To
+ fraeml704-chm.china.huawei.com (10.206.15.53)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
 
-This series was applied to netdev/net.git (master)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-On Wed, 18 May 2022 23:38:35 +0200 you wrote:
-> From: Felix Fietkau <nbd@nbd.name>
+5/17/2022 11:04 AM, Mickaël Salaün пишет:
+> You can rename the subject to "landlock: Refactor landlock_add_rule()"
 > 
-> If a flow cannot be offloaded, the code currently repeatedly tries again as
-> quickly as possible, which can significantly increase system load.
-> Fix this by limiting flow timeout update and hardware offload retry to once
-> per second.
 > 
-> [...]
+> On 16/05/2022 17:20, Konstantin Meskhidze wrote:
+>> Landlock_add_rule syscall was refactored to support new
+>> rule types in future Landlock versions. Add_rule_path_beneath()
+> 
+> nit: add_rule_path_beneath(), not Add_rule_path_beneath()
+> 
+   Ok. Thanks. Will be renamed.
 
-Here is the summary with links:
-  - [net,1/7] netfilter: flowtable: fix excessive hw offload attempts after failure
-    https://git.kernel.org/netdev/net/c/396ef64113a8
-  - [net,2/7] netfilter: nft_flow_offload: skip dst neigh lookup for ppp devices
-    https://git.kernel.org/netdev/net/c/45ca3e61999e
-  - [net,3/7] net: fix dev_fill_forward_path with pppoe + bridge
-    https://git.kernel.org/netdev/net/c/cf2df74e202d
-  - [net,4/7] netfilter: nft_flow_offload: fix offload with pppoe + vlan
-    https://git.kernel.org/netdev/net/c/245607493500
-  - [net,5/7] netfilter: flowtable: fix TCP flow teardown
-    https://git.kernel.org/netdev/net/c/e5eaac2beb54
-  - [net,6/7] netfilter: flowtable: move dst_check to packet path
-    https://git.kernel.org/netdev/net/c/2738d9d963bd
-  - [net,7/7] netfilter: nf_tables: disable expression reduction infra
-    https://git.kernel.org/netdev/net/c/9e539c5b6d9c
+>> helper was added to support current filesystem rules. It is called
+>> by the switch case.
+> 
+> You can rephrase (all commit messages) in the present form:
+> 
+> Refactor the landlock_add_rule() syscall with add_rule_path_beneath() to 
+> support new…
+> 
+> Refactor the landlock_add_rule() syscall to easily support for a new 
+> rule type in a following commit. The new add_rule_path_beneath() helper 
+> supports current filesystem rules.
+> 
+   Ok. I will fix it.
+> 
+>>
+>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+>> ---
+>>
+>> Changes since v3:
+>> * Split commit.
+>> * Refactoring landlock_add_rule syscall.
+>>
+>> Changes since v4:
+>> * Refactoring add_rule_path_beneath() and landlock_add_rule() functions
+>> to optimize code usage.
+>> * Refactoring base_test.c seltest: adds LANDLOCK_RULE_PATH_BENEATH
+>> rule type in landlock_add_rule() call.
+>>
+>> ---
+>>   security/landlock/syscalls.c                 | 105 ++++++++++---------
+>>   tools/testing/selftests/landlock/base_test.c |   4 +-
+>>   2 files changed, 59 insertions(+), 50 deletions(-)
+>>
+>> diff --git a/security/landlock/syscalls.c b/security/landlock/syscalls.c
+>> index 1db799d1a50b..412ced6c512f 100644
+>> --- a/security/landlock/syscalls.c
+>> +++ b/security/landlock/syscalls.c
+>> @@ -274,67 +274,23 @@ static int get_path_from_fd(const s32 fd, struct 
+>> path *const path)
+>>       return err;
+>>   }
+>>
+>> -/**
+>> - * sys_landlock_add_rule - Add a new rule to a ruleset
+>> - *
+>> - * @ruleset_fd: File descriptor tied to the ruleset that should be 
+>> extended
+>> - *        with the new rule.
+>> - * @rule_type: Identify the structure type pointed to by @rule_attr 
+>> (only
+>> - *             LANDLOCK_RULE_PATH_BENEATH for now).
+>> - * @rule_attr: Pointer to a rule (only of type &struct
+>> - *             landlock_path_beneath_attr for now).
+>> - * @flags: Must be 0.
+>> - *
+>> - * This system call enables to define a new rule and add it to an 
+>> existing
+>> - * ruleset.
+>> - *
+>> - * Possible returned errors are:
+>> - *
+>> - * - EOPNOTSUPP: Landlock is supported by the kernel but disabled at 
+>> boot time;
+>> - * - EINVAL: @flags is not 0, or inconsistent access in the rule (i.e.
+>> - *   &landlock_path_beneath_attr.allowed_access is not a subset of the
+>> - *   ruleset handled accesses);
+>> - * - ENOMSG: Empty accesses (e.g. 
+>> &landlock_path_beneath_attr.allowed_access);
+>> - * - EBADF: @ruleset_fd is not a file descriptor for the current 
+>> thread, or a
+>> - *   member of @rule_attr is not a file descriptor as expected;
+>> - * - EBADFD: @ruleset_fd is not a ruleset file descriptor, or a 
+>> member of
+>> - *   @rule_attr is not the expected file descriptor type;
+>> - * - EPERM: @ruleset_fd has no write access to the underlying ruleset;
+>> - * - EFAULT: @rule_attr inconsistency.
+>> - */
+>> -SYSCALL_DEFINE4(landlock_add_rule, const int, ruleset_fd,
+>> -        const enum landlock_rule_type, rule_type,
+>> -        const void __user *const, rule_attr, const __u32, flags)
+>> +static int add_rule_path_beneath(const int ruleset_fd, const void 
+>> *const rule_attr)
+>>   {
+>>       struct landlock_path_beneath_attr path_beneath_attr;
+>>       struct path path;
+>>       struct landlock_ruleset *ruleset;
+>>       int res, err;
+>>
+>> -    if (!landlock_initialized)
+>> -        return -EOPNOTSUPP;
+>> -
+>> -    /* No flag for now. */
+>> -    if (flags)
+>> -        return -EINVAL;
+>> -
+>>       /* Gets and checks the ruleset. */
+> 
+> Like I already said, this needs to stay in landlock_add_rule(). I think 
+> there is some inconsistencies with other patches that rechange this 
+> part. Please review your patches and make clean patches that don't 
+> partially revert the previous ones.
+> 
+   Do you mean to leave this code as it its till adding network part
+in commit landlock: TCP network hooks implementation?
+  In this case this patch can be dropped.
+> 
+>>       ruleset = get_ruleset_from_fd(ruleset_fd, FMODE_CAN_WRITE);
+>>       if (IS_ERR(ruleset))
+>>           return PTR_ERR(ruleset);
+>>
+>> -    if (rule_type != LANDLOCK_RULE_PATH_BENEATH) {
+>> -        err = -EINVAL;
+>> -        goto out_put_ruleset;
+>> -    }
+>> -
+>>       /* Copies raw user space buffer, only one type for now. */
+>>       res = copy_from_user(&path_beneath_attr, rule_attr,
+>> -                 sizeof(path_beneath_attr));
+>> -    if (res) {
+>> -        err = -EFAULT;
+>> -        goto out_put_ruleset;
+>> -    }
+>> +                sizeof(path_beneath_attr));
+>> +    if (res)
+>> +        return -EFAULT;
+>>
+>>       /*
+>>        * Informs about useless rule: empty allowed_access (i.e. deny 
+>> rules)
+>> @@ -370,6 +326,59 @@ SYSCALL_DEFINE4(landlock_add_rule, const int, 
+>> ruleset_fd,
+>>       return err;
+>>   }
+>>
+>> +/**
+>> + * sys_landlock_add_rule - Add a new rule to a ruleset
+>> + *
+>> + * @ruleset_fd: File descriptor tied to the ruleset that should be 
+>> extended
+>> + *        with the new rule.
+>> + * @rule_type: Identify the structure type pointed to by @rule_attr 
+>> (only
+>> + *             LANDLOCK_RULE_PATH_BENEATH for now).
+>> + * @rule_attr: Pointer to a rule (only of type &struct
+>> + *             landlock_path_beneath_attr for now).
+>> + * @flags: Must be 0.
+>> + *
+>> + * This system call enables to define a new rule and add it to an 
+>> existing
+>> + * ruleset.
+>> + *
+>> + * Possible returned errors are:
+>> + *
+>> + * - EOPNOTSUPP: Landlock is supported by the kernel but disabled at 
+>> boot time;
+>> + * - EINVAL: @flags is not 0, or inconsistent access in the rule (i.e.
+>> + *   &landlock_path_beneath_attr.allowed_access is not a subset of 
+>> the rule's
+>> + *   accesses);
+>> + * - ENOMSG: Empty accesses (e.g. 
+>> &landlock_path_beneath_attr.allowed_access);
+>> + * - EBADF: @ruleset_fd is not a file descriptor for the current 
+>> thread, or a
+>> + *   member of @rule_attr is not a file descriptor as expected;
+>> + * - EBADFD: @ruleset_fd is not a ruleset file descriptor, or a 
+>> member of
+>> + *   @rule_attr is not the expected file descriptor type (e.g. file open
+>> + *   without O_PATH);
+>> + * - EPERM: @ruleset_fd has no write access to the underlying ruleset;
+>> + * - EFAULT: @rule_attr inconsistency.
+>> + */
+>> +SYSCALL_DEFINE4(landlock_add_rule,
+>> +        const int, ruleset_fd, const enum landlock_rule_type, rule_type,
+>> +        const void __user *const, rule_attr, const __u32, flags)
+>> +{
+>> +    int err;
+>> +
+>> +    if (!landlock_initialized)
+>> +        return -EOPNOTSUPP;
+>> +
+>> +    /* No flag for now. */
+>> +    if (flags)
+>> +        return -EINVAL;
+>> +
+>> +    switch (rule_type) {
+>> +    case LANDLOCK_RULE_PATH_BENEATH:
+>> +        err = add_rule_path_beneath(ruleset_fd, rule_attr);
+>> +        break;
+>> +    default:
+>> +        err = -EINVAL;
+>> +        break;
+>> +    }
+>> +    return err;
+>> +}
+>> +
+>>   /* Enforcement */
+>>
+>>   /**
+>> diff --git a/tools/testing/selftests/landlock/base_test.c 
+>> b/tools/testing/selftests/landlock/base_test.c
+>> index da9290817866..0c4c3a538d54 100644
+>> --- a/tools/testing/selftests/landlock/base_test.c
+>> +++ b/tools/testing/selftests/landlock/base_test.c
+>> @@ -156,11 +156,11 @@ TEST(add_rule_checks_ordering)
+>>       ASSERT_LE(0, ruleset_fd);
+>>
+>>       /* Checks invalid flags. */
+>> -    ASSERT_EQ(-1, landlock_add_rule(-1, 0, NULL, 1));
+>> +    ASSERT_EQ(-1, landlock_add_rule(-1, LANDLOCK_RULE_PATH_BENEATH, 
+>> NULL, 1));
+> 
+> This must not be changed! I specifically added these tests to make sure 
+> no one change the argument ordering checks…
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+   I updated this code cause I got error in base_test.
+   Ok. But in future commints I will order funtions calls in
+   landlock_add_rule() so that base_test runs smoothly (ordering checks).
 
-
+> 
+> 
+>>       ASSERT_EQ(EINVAL, errno);
+>>
+>>       /* Checks invalid ruleset FD. */
+>> -    ASSERT_EQ(-1, landlock_add_rule(-1, 0, NULL, 0));
+>> +    ASSERT_EQ(-1, landlock_add_rule(-1, LANDLOCK_RULE_PATH_BENEATH, 
+>> NULL, 0));
+>>       ASSERT_EQ(EBADF, errno);
+>>
+>>       /* Checks invalid rule type. */
+>> -- 
+>> 2.25.1
+>>
+> .
