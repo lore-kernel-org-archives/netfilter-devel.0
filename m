@@ -2,35 +2,35 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C510BC433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 May 2022 14:30:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7653BC433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 May 2022 14:37:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239743AbiESOaC (ORCPT
+        id S239917AbiESOhd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 19 May 2022 10:30:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33052 "EHLO
+        Thu, 19 May 2022 10:37:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54374 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239756AbiESO34 (ORCPT
+        with ESMTP id S239860AbiESOhb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 May 2022 10:29:56 -0400
-Received: from smtp-bc0f.mail.infomaniak.ch (smtp-bc0f.mail.infomaniak.ch [IPv6:2001:1600:3:17::bc0f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 78FF5E2792
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 May 2022 07:29:55 -0700 (PDT)
-Received: from smtp-3-0001.mail.infomaniak.ch (unknown [10.4.36.108])
-        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4L3sgy3WL4zMqwSk;
-        Thu, 19 May 2022 16:29:50 +0200 (CEST)
+        Thu, 19 May 2022 10:37:31 -0400
+Received: from smtp-8fab.mail.infomaniak.ch (smtp-8fab.mail.infomaniak.ch [83.166.143.171])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9E3EAFB08
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 May 2022 07:37:20 -0700 (PDT)
+Received: from smtp-3-0000.mail.infomaniak.ch (unknown [10.4.36.107])
+        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4L3srb0k5dzMrB6s;
+        Thu, 19 May 2022 16:37:19 +0200 (CEST)
 Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
-        by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4L3sgy0BTwzlhZwX;
-        Thu, 19 May 2022 16:29:49 +0200 (CEST)
+        by smtp-3-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4L3srZ48DrzlhRVH;
+        Thu, 19 May 2022 16:37:18 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1652970590;
-        bh=PrL+sFyxtDDv5pPp5JYDv7WES+E0Ra3QU510nOg0BZs=;
+        s=20191114; t=1652971039;
+        bh=i8dfsC9vYadjnpOI+wE6Qwms1Yeulf9OeJQBKI2qsco=;
         h=Date:To:Cc:References:From:Subject:In-Reply-To:From;
-        b=psLnvf1wMaBQC1OS9cCmgLGfqD+UOdpDFf3JL+eW1O8U+56Dj7skR7rmBIpkhONmg
-         M/78RFvn81hRrXkB6gJ1VHc7I1Thwn8Tl/NZzlplLKmd9/R04H6pg5U7gF3w/ptCS8
-         s+mQKy3Mp6qNb2Fbw0dZWLXfekGWBdkrVpaxJH6E=
-Message-ID: <fd996135-1ad5-dd3c-4b42-23013cad208d@digikod.net>
-Date:   Thu, 19 May 2022 16:29:49 +0200
+        b=kuYOZqdhAAAVZzSSIFfz8WIDv9jY5hcaXXQDpf5gToKoOBw0pw0x33Gfm/fHmGjG1
+         Yx4CezO2ed8SPwmr+ibrBA23JCIcPyDvTKXG59vQaGGwSkALr1QLhaOp9Ly0+gDGEi
+         OkKCbHRfm+sxtwGQun25wcPQLMPajZSe14fmqgDk=
+Message-ID: <8683502f-113d-fafd-be85-30cf829fb018@digikod.net>
+Date:   Thu, 19 May 2022 16:37:17 +0200
 MIME-Version: 1.0
 User-Agent: 
 Content-Language: en-US
@@ -40,12 +40,12 @@ Cc:     willemdebruijn.kernel@gmail.com,
         netfilter-devel@vger.kernel.org, yusongping@huawei.com,
         anton.sirazetdinov@huawei.com
 References: <20220516152038.39594-1-konstantin.meskhidze@huawei.com>
- <20220516152038.39594-10-konstantin.meskhidze@huawei.com>
- <eaa4cc8f-4c4a-350d-6b96-551f32156e3d@digikod.net>
- <5124df18-ebc0-7b9b-84d5-89e1c458bc09@huawei.com>
+ <20220516152038.39594-6-konstantin.meskhidze@huawei.com>
+ <9456ccf3-e2b3-bb65-f24f-e6d2761120e5@digikod.net>
+ <6edfec5b-1b56-17cc-7c0c-76fda1391d45@huawei.com>
 From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-Subject: Re: [PATCH v5 09/15] seltests/landlock: add tests for bind() hooks
-In-Reply-To: <5124df18-ebc0-7b9b-84d5-89e1c458bc09@huawei.com>
+Subject: Re: [PATCH v5 05/15] landlock: landlock_add_rule syscall refactoring
+In-Reply-To: <6edfec5b-1b56-17cc-7c0c-76fda1391d45@huawei.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -53,225 +53,265 @@ List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
-On 19/05/2022 14:10, Konstantin Meskhidze wrote:
+
+On 19/05/2022 11:23, Konstantin Meskhidze wrote:
 > 
 > 
-> 5/17/2022 12:11 AM, Mickaël Salaün пишет:
+> 5/17/2022 11:04 AM, Mickaël Salaün пишет:
+>> You can rename the subject to "landlock: Refactor landlock_add_rule()"
+>>
 >>
 >> On 16/05/2022 17:20, Konstantin Meskhidze wrote:
->>> Adds selftests for bind socket action.
->>> The first is with no landlock restrictions:
->>>      - bind_no_restrictions_ip4;
->>>      - bind_no_restrictions_ip6;
->>> The second ones is with mixed landlock rules:
->>>      - bind_with_restrictions_ip4;
->>>      - bind_with_restrictions_ip6;
+>>> Landlock_add_rule syscall was refactored to support new
+>>> rule types in future Landlock versions. Add_rule_path_beneath()
+>>
+>> nit: add_rule_path_beneath(), not Add_rule_path_beneath()
+>>
+>    Ok. Thanks. Will be renamed.
+> 
+>>> helper was added to support current filesystem rules. It is called
+>>> by the switch case.
+>>
+>> You can rephrase (all commit messages) in the present form:
+>>
+>> Refactor the landlock_add_rule() syscall with add_rule_path_beneath() 
+>> to support new…
+>>
+>> Refactor the landlock_add_rule() syscall to easily support for a new 
+>> rule type in a following commit. The new add_rule_path_beneath() 
+>> helper supports current filesystem rules.
+>>
+>    Ok. I will fix it.
+>>
 >>>
 >>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
 >>> ---
 >>>
 >>> Changes since v3:
 >>> * Split commit.
->>> * Add helper create_socket.
->>> * Add FIXTURE_SETUP.
+>>> * Refactoring landlock_add_rule syscall.
 >>>
 >>> Changes since v4:
->>> * Adds port[MAX_SOCKET_NUM], struct sockaddr_in addr4
->>> and struct sockaddr_in addr6 in FIXTURE.
->>> * Refactoring FIXTURE_SETUP:
->>>      - initializing self->port, self->addr4 and self->addr6.
->>>      - adding network namespace.
->>> * Refactoring code with self->port, self->addr4 and
->>> self->addr6 variables.
->>> * Adds selftests for IP6 family:
->>>      - bind_no_restrictions_ip6.
->>>      - bind_with_restrictions_ip6.
->>> * Refactoring selftests/landlock/config
->>> * Moves enforce_ruleset() into common.h
+>>> * Refactoring add_rule_path_beneath() and landlock_add_rule() functions
+>>> to optimize code usage.
+>>> * Refactoring base_test.c seltest: adds LANDLOCK_RULE_PATH_BENEATH
+>>> rule type in landlock_add_rule() call.
 >>>
 >>> ---
->>>   tools/testing/selftests/landlock/common.h   |   9 +
->>>   tools/testing/selftests/landlock/config     |   5 +-
->>>   tools/testing/selftests/landlock/fs_test.c  |  10 -
->>>   tools/testing/selftests/landlock/net_test.c | 237 ++++++++++++++++++++
->>>   4 files changed, 250 insertions(+), 11 deletions(-)
->>>   create mode 100644 tools/testing/selftests/landlock/net_test.c
+>>>   security/landlock/syscalls.c                 | 105 ++++++++++---------
+>>>   tools/testing/selftests/landlock/base_test.c |   4 +-
+>>>   2 files changed, 59 insertions(+), 50 deletions(-)
 >>>
->>> diff --git a/tools/testing/selftests/landlock/common.h 
->>> b/tools/testing/selftests/landlock/common.h
->>> index 7ba18eb23783..c5381e641dfd 100644
->>> --- a/tools/testing/selftests/landlock/common.h
->>> +++ b/tools/testing/selftests/landlock/common.h
->>> @@ -102,6 +102,15 @@ static inline int landlock_restrict_self(const 
->>> int ruleset_fd,
+>>> diff --git a/security/landlock/syscalls.c b/security/landlock/syscalls.c
+>>> index 1db799d1a50b..412ced6c512f 100644
+>>> --- a/security/landlock/syscalls.c
+>>> +++ b/security/landlock/syscalls.c
+>>> @@ -274,67 +274,23 @@ static int get_path_from_fd(const s32 fd, 
+>>> struct path *const path)
+>>>       return err;
 >>>   }
->>>   #endif
 >>>
->>> +static void enforce_ruleset(struct __test_metadata *const _metadata,
->>> +        const int ruleset_fd)
+>>> -/**
+>>> - * sys_landlock_add_rule - Add a new rule to a ruleset
+>>> - *
+>>> - * @ruleset_fd: File descriptor tied to the ruleset that should be 
+>>> extended
+>>> - *        with the new rule.
+>>> - * @rule_type: Identify the structure type pointed to by @rule_attr 
+>>> (only
+>>> - *             LANDLOCK_RULE_PATH_BENEATH for now).
+>>> - * @rule_attr: Pointer to a rule (only of type &struct
+>>> - *             landlock_path_beneath_attr for now).
+>>> - * @flags: Must be 0.
+>>> - *
+>>> - * This system call enables to define a new rule and add it to an 
+>>> existing
+>>> - * ruleset.
+>>> - *
+>>> - * Possible returned errors are:
+>>> - *
+>>> - * - EOPNOTSUPP: Landlock is supported by the kernel but disabled at 
+>>> boot time;
+>>> - * - EINVAL: @flags is not 0, or inconsistent access in the rule (i.e.
+>>> - *   &landlock_path_beneath_attr.allowed_access is not a subset of the
+>>> - *   ruleset handled accesses);
+>>> - * - ENOMSG: Empty accesses (e.g. 
+>>> &landlock_path_beneath_attr.allowed_access);
+>>> - * - EBADF: @ruleset_fd is not a file descriptor for the current 
+>>> thread, or a
+>>> - *   member of @rule_attr is not a file descriptor as expected;
+>>> - * - EBADFD: @ruleset_fd is not a ruleset file descriptor, or a 
+>>> member of
+>>> - *   @rule_attr is not the expected file descriptor type;
+>>> - * - EPERM: @ruleset_fd has no write access to the underlying ruleset;
+>>> - * - EFAULT: @rule_attr inconsistency.
+>>> - */
+>>> -SYSCALL_DEFINE4(landlock_add_rule, const int, ruleset_fd,
+>>> -        const enum landlock_rule_type, rule_type,
+>>> -        const void __user *const, rule_attr, const __u32, flags)
+>>> +static int add_rule_path_beneath(const int ruleset_fd, const void 
+>>> *const rule_attr)
+>>>   {
+>>>       struct landlock_path_beneath_attr path_beneath_attr;
+>>>       struct path path;
+>>>       struct landlock_ruleset *ruleset;
+>>>       int res, err;
+>>>
+>>> -    if (!landlock_initialized)
+>>> -        return -EOPNOTSUPP;
+>>> -
+>>> -    /* No flag for now. */
+>>> -    if (flags)
+>>> -        return -EINVAL;
+>>> -
+>>>       /* Gets and checks the ruleset. */
+>>
+>> Like I already said, this needs to stay in landlock_add_rule(). I 
+>> think there is some inconsistencies with other patches that rechange 
+>> this part. Please review your patches and make clean patches that 
+>> don't partially revert the previous ones.
+>>
+>    Do you mean to leave this code as it its till adding network part
+> in commit landlock: TCP network hooks implementation?
+>   In this case this patch can be dropped.
+
+The syscall argument check ordering needs to stay in the same order as 
+you can see in the add_rule_checks_ordering test. Other than that, this 
+commit looks good, it just splits the syscall in two functions, which is 
+useful.
+
+
+>>
+>>>       ruleset = get_ruleset_from_fd(ruleset_fd, FMODE_CAN_WRITE);
+>>>       if (IS_ERR(ruleset))
+>>>           return PTR_ERR(ruleset);
+>>>
+>>> -    if (rule_type != LANDLOCK_RULE_PATH_BENEATH) {
+>>> -        err = -EINVAL;
+>>> -        goto out_put_ruleset;
+>>> -    }
+>>> -
+>>>       /* Copies raw user space buffer, only one type for now. */
+>>>       res = copy_from_user(&path_beneath_attr, rule_attr,
+>>> -                 sizeof(path_beneath_attr));
+>>> -    if (res) {
+>>> -        err = -EFAULT;
+>>> -        goto out_put_ruleset;
+>>> -    }
+>>> +                sizeof(path_beneath_attr));
+>>> +    if (res)
+>>> +        return -EFAULT;
+>>>
+>>>       /*
+>>>        * Informs about useless rule: empty allowed_access (i.e. deny 
+>>> rules)
+>>> @@ -370,6 +326,59 @@ SYSCALL_DEFINE4(landlock_add_rule, const int, 
+>>> ruleset_fd,
+>>>       return err;
+>>>   }
+>>>
+>>> +/**
+>>> + * sys_landlock_add_rule - Add a new rule to a ruleset
+>>> + *
+>>> + * @ruleset_fd: File descriptor tied to the ruleset that should be 
+>>> extended
+>>> + *        with the new rule.
+>>> + * @rule_type: Identify the structure type pointed to by @rule_attr 
+>>> (only
+>>> + *             LANDLOCK_RULE_PATH_BENEATH for now).
+>>> + * @rule_attr: Pointer to a rule (only of type &struct
+>>> + *             landlock_path_beneath_attr for now).
+>>> + * @flags: Must be 0.
+>>> + *
+>>> + * This system call enables to define a new rule and add it to an 
+>>> existing
+>>> + * ruleset.
+>>> + *
+>>> + * Possible returned errors are:
+>>> + *
+>>> + * - EOPNOTSUPP: Landlock is supported by the kernel but disabled at 
+>>> boot time;
+>>> + * - EINVAL: @flags is not 0, or inconsistent access in the rule (i.e.
+>>> + *   &landlock_path_beneath_attr.allowed_access is not a subset of 
+>>> the rule's
+>>> + *   accesses);
+>>> + * - ENOMSG: Empty accesses (e.g. 
+>>> &landlock_path_beneath_attr.allowed_access);
+>>> + * - EBADF: @ruleset_fd is not a file descriptor for the current 
+>>> thread, or a
+>>> + *   member of @rule_attr is not a file descriptor as expected;
+>>> + * - EBADFD: @ruleset_fd is not a ruleset file descriptor, or a 
+>>> member of
+>>> + *   @rule_attr is not the expected file descriptor type (e.g. file 
+>>> open
+>>> + *   without O_PATH);
+>>> + * - EPERM: @ruleset_fd has no write access to the underlying ruleset;
+>>> + * - EFAULT: @rule_attr inconsistency.
+>>> + */
+>>> +SYSCALL_DEFINE4(landlock_add_rule,
+>>> +        const int, ruleset_fd, const enum landlock_rule_type, 
+>>> rule_type,
+>>> +        const void __user *const, rule_attr, const __u32, flags)
 >>> +{
->>> +    ASSERT_EQ(0, prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0));
->>> +    ASSERT_EQ(0, landlock_restrict_self(ruleset_fd, 0)) {
->>> +        TH_LOG("Failed to enforce ruleset: %s", strerror(errno));
+>>> +    int err;
+>>> +
+>>> +    if (!landlock_initialized)
+>>> +        return -EOPNOTSUPP;
+>>> +
+>>> +    /* No flag for now. */
+>>> +    if (flags)
+>>> +        return -EINVAL;
+>>> +
+>>> +    switch (rule_type) {
+>>> +    case LANDLOCK_RULE_PATH_BENEATH:
+>>> +        err = add_rule_path_beneath(ruleset_fd, rule_attr);
+>>> +        break;
+>>> +    default:
+>>> +        err = -EINVAL;
+>>> +        break;
 >>> +    }
+>>> +    return err;
 >>> +}
 >>> +
+>>>   /* Enforcement */
+>>>
+>>>   /**
+>>> diff --git a/tools/testing/selftests/landlock/base_test.c 
+>>> b/tools/testing/selftests/landlock/base_test.c
+>>> index da9290817866..0c4c3a538d54 100644
+>>> --- a/tools/testing/selftests/landlock/base_test.c
+>>> +++ b/tools/testing/selftests/landlock/base_test.c
+>>> @@ -156,11 +156,11 @@ TEST(add_rule_checks_ordering)
+>>>       ASSERT_LE(0, ruleset_fd);
+>>>
+>>>       /* Checks invalid flags. */
+>>> -    ASSERT_EQ(-1, landlock_add_rule(-1, 0, NULL, 1));
+>>> +    ASSERT_EQ(-1, landlock_add_rule(-1, LANDLOCK_RULE_PATH_BENEATH, 
+>>> NULL, 1));
 >>
->> Please create a commit which moves all the needed code for all network 
->> tests. I think there is only this helper though.
+>> This must not be changed! I specifically added these tests to make 
+>> sure no one change the argument ordering checks…
 > 
->    Ok. I will create one additional commit for moving this helper.
->    But after I have moved the helper to common.h, I got warnings while 
-> compiling seltests where I don't use the one (base_test and ptrace_test)
+>    I updated this code cause I got error in base_test.
+>    Ok. But in future commints I will order funtions calls in
+>    landlock_add_rule() so that base_test runs smoothly (ordering checks).
 
-Move it after clear_cap() and use the same attributes.
+Right, these tests are correct and they can help you.
 
-[...]
-
- >>> diff --git a/tools/testing/selftests/landlock/config
- >>> b/tools/testing/selftests/landlock/config
- >>> index 0f0a65287bac..b56f3274d3f5 100644
- >>> --- a/tools/testing/selftests/landlock/config
- >>> +++ b/tools/testing/selftests/landlock/config
- >>> @@ -1,7 +1,10 @@
- >>> +CONFIG_INET=y
- >>> +CONFIG_IPV6=y
- >>> +CONFIG_NET=y
- >>>   CONFIG_OVERLAY_FS=y
- >>>   CONFIG_SECURITY_LANDLOCK=y
- >>>   CONFIG_SECURITY_PATH=y
- >>>   CONFIG_SECURITY=y
- >>>   CONFIG_SHMEM=y
- >>>   CONFIG_TMPFS_XATTR=y
- >>> -CONFIG_TMPFS=y
- >>> +CONFIG_TMPFS=y
- >>> \ No newline at end of file
-
-You also need to add CONFIG_NET_NS.
-
-[...]
-
->>
->>> +        self->port[i] = SOCK_PORT_START + SOCK_PORT_ADD*i;
->>> +        self->addr4[i].sin_family = AF_INET;
->>> +        self->addr4[i].sin_port = htons(self->port[i]);
->>> +        self->addr4[i].sin_addr.s_addr = htonl(INADDR_ANY);
->>
->> Could you use the local addr (127.0.0.1) instead?
-> 
->    Why cant I use INADDR_ANY here?
-
-You can, but it is cleaner to bind to a specified address (i.e. you 
-control where a connection come from), and I guess this variable/address 
-could be used to establish connections as well.
-
->>
->>> +        memset(&(self->addr4[i].sin_zero), '\0', 8);
->>> +    }
->>> +
->>> +    /* Creates IP6 socket addresses */
->>> +    for (i = 0; i < MAX_SOCKET_NUM; i++) {
->>> +        self->port[i] = SOCK_PORT_START + SOCK_PORT_ADD*i;
->>> +        self->addr6[i].sin6_family = AF_INET6;
->>> +        self->addr6[i].sin6_port = htons(self->port[i]);
->>> +        self->addr6[i].sin6_addr = in6addr_any;
->>
->> ditto
-> 
->    Why cant I use in6addr_any here?
-
-Same as for IPV4.
 
 > 
 >>
->>> +    }
->>> +
->>> +    set_cap(_metadata, CAP_SYS_ADMIN);
->>> +    ASSERT_EQ(0, unshare(CLONE_NEWNET));
->>> +    ASSERT_EQ(0, system("ip link set dev lo up"));
 >>
->> If this is really required, could you avoid calling system() but set 
->> up the network in C? You can strace it to see what is going on 
->> underneath.
->>
->   I did check. It's a lot of code to be run under the hood (more than 
-> one line) and it will just will complicate the test so I suggest to 
-> leave just ONE line of code here.
-
-OK
-
-
->>
->>> +    clear_cap(_metadata, CAP_SYS_ADMIN);
->>> +}
->>> +
->>> +FIXTURE_TEARDOWN(socket_test)
->>> +{ }
->>> +
->>> +TEST_F_FORK(socket_test, bind_no_restrictions_ip4) {
->>> +
->>> +    int sockfd;
->>> +
->>> +    sockfd = create_socket(_metadata, false, false);
->>> +    ASSERT_LE(0, sockfd);
->>> +
->>> +    /* Binds a socket to port[0] */
->>
->> This comment is not very useful in this context considering the below 
->> line. It will be even more clear with the bind_variant() call.
->>
->   Ok. I will fix it.
->>
->>> +    ASSERT_EQ(0, bind(sockfd, (struct sockaddr *)&self->addr4[0], 
->>> sizeof(self->addr4[0])));
->>> +
->>> +    ASSERT_EQ(0, close(sockfd));
->>> +}
->>> +
->>> +TEST_F_FORK(socket_test, bind_no_restrictions_ip6) {
->>> +
->>> +    int sockfd;
->>> +
->>> +    sockfd = create_socket(_metadata, true, false);
->>> +    ASSERT_LE(0, sockfd);
->>> +
->>> +    /* Binds a socket to port[0] */
->>> +    ASSERT_EQ(0, bind(sockfd, (struct sockaddr *)&self->addr6[0], 
->>> sizeof(self->addr6[0])));
->>> +
->>> +    ASSERT_EQ(0, close(sockfd));
->>> +}
->>> +
->>> +TEST_F_FORK(socket_test, bind_with_restrictions_ip4) {
->>> +
->>> +    int sockfd;
->>> +
->>> +    struct landlock_ruleset_attr ruleset_attr = {
->>> +        .handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
->>> +                      LANDLOCK_ACCESS_NET_CONNECT_TCP,
->>> +    };
->>> +    struct landlock_net_service_attr net_service_1 = {
->>> +        .allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
->>> +                  LANDLOCK_ACCESS_NET_CONNECT_TCP,
->>> +        .port = self->port[0],
->>> +    };
->>> +    struct landlock_net_service_attr net_service_2 = {
->>> +        .allowed_access = LANDLOCK_ACCESS_NET_CONNECT_TCP,
->>> +        .port = self->port[1],
->>> +    };
->>> +    struct landlock_net_service_attr net_service_3 = {
->>> +        .allowed_access = 0,
->>> +        .port = self->port[2],
->>> +    };
->>> +
->>> +    const int ruleset_fd = landlock_create_ruleset(&ruleset_attr,
->>> +            sizeof(ruleset_attr), 0);
->>> +    ASSERT_LE(0, ruleset_fd);
->>> +
->>> +    /* Allows connect and bind operations to the port[0] socket. */
->>
->> This comment is useful though because the below call is more complex.
->>
->    So I can leave it as it's, cant I?
-
-Yes, keep it, I'd just like a fair amount of useful comments. ;)
+>>>       ASSERT_EQ(EINVAL, errno);
+>>>
+>>>       /* Checks invalid ruleset FD. */
+>>> -    ASSERT_EQ(-1, landlock_add_rule(-1, 0, NULL, 0));
+>>> +    ASSERT_EQ(-1, landlock_add_rule(-1, LANDLOCK_RULE_PATH_BENEATH, 
+>>> NULL, 0));
+>>>       ASSERT_EQ(EBADF, errno);
+>>>
+>>>       /* Checks invalid rule type. */
+>>> -- 
+>>> 2.25.1
+>>>
+>> .
