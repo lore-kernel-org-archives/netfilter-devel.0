@@ -2,52 +2,77 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CF4CC433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 May 2022 22:34:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7EE8C433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 May 2022 23:11:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237999AbiESWej (ORCPT
+        id S245692AbiESXLk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 19 May 2022 18:34:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39082 "EHLO
+        Thu, 19 May 2022 19:11:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50234 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230505AbiESWej (ORCPT
+        with ESMTP id S245689AbiESXLj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 May 2022 18:34:39 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7BED5BDA17
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 May 2022 15:34:37 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] netlink_delinearize: memleak when parsing concatenation data
-Date:   Fri, 20 May 2022 00:34:33 +0200
-Message-Id: <20220519223433.783136-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Thu, 19 May 2022 19:11:39 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C40D7C1EE2;
+        Thu, 19 May 2022 16:11:38 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 613DA61840;
+        Thu, 19 May 2022 23:11:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 964E7C385AA;
+        Thu, 19 May 2022 23:11:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1653001897;
+        bh=66i7A3v8jR4QcQc9yEolAe/J/XQ7Lwgg9EAGr/OKvWc=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=flGMYzGhCvpW5iLvzIGeihIrCsFMElJgNOsDAyjLnaQI1K4jGtBrvhmXzhwA2IdQK
+         QCZxiX60ju8O+EMw4s5iLaZApPQB2o+8bsvKCWzicMGsWQwQdLZ6SL5H8huI4JfYyx
+         wLLVU8HgNhQsuwFptMpGiuaHY13Ufg3g09EQtiDDtx7K9mQ67tIj1JqpY3QawoxDlH
+         OqFETp6i+WEYhfH5R2m7YCn5qoFuauxLado2fpnvHMfnf6DR9XGRBJcT76xsk9NGk5
+         zkelS20syd44nnUBc1KfY4iH/3UhxCTkXGla/R/oSsWQUi9oLPOLKwV2sg2C6OHroJ
+         a9eupqASt+Wng==
+Date:   Thu, 19 May 2022 16:11:36 -0700
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, pabeni@redhat.com,
+        Felix Fietkau <nbd@nbd.name>
+Subject: Re: [PATCH net-next 06/11] netfilter: nf_flow_table: count and
+ limit hw offloaded entries
+Message-ID: <20220519161136.32fdba19@kernel.org>
+In-Reply-To: <20220519220206.722153-7-pablo@netfilter.org>
+References: <20220519220206.722153-1-pablo@netfilter.org>
+        <20220519220206.722153-7-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-netlink_get_register() clones the expression in the register,
-release after using it.
+On Fri, 20 May 2022 00:02:01 +0200 Pablo Neira Ayuso wrote:
+> To improve hardware offload debuggability and scalability introduce
+> 'nf_flowtable_count_hw' and 'nf_flowtable_max_hw' sysctl entries in new
+> dedicated 'net/netfilter/ft' namespace. Add new pernet struct nf_ft_net in
+> order to store the counter and sysctl header of new sysctl table.
+> 
+> Count the offloaded flows in workqueue add task handler. Verify that
+> offloaded flow total is lower than allowed maximum before calling the
+> driver callbacks. To prevent spamming the 'add' workqueue with tasks when
+> flows can't be offloaded anymore also check that count is below limit
+> before queuing offload work. This doesn't prevent all redundant workqueue
+> task since counter can be taken by concurrent work handler after the check
+> had been performed but before the offload job is executed but it still
+> greatly reduces such occurrences. Note that flows that were not offloaded
+> due to counter being larger than the cap can still be offloaded via refresh
+> function.
+> 
+> Ensure that flows are accounted correctly by verifying IPS_HW_OFFLOAD_BIT
+> value before counting them. This ensures that add/refresh code path
+> increments the counter exactly once per flow when setting the bit and
+> decrements it only for accounted flows when deleting the flow with the bit
+> set.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/netlink_delinearize.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 068c3bba1159..3bdd98d47eb0 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -200,6 +200,7 @@ static struct expr *netlink_parse_concat_data(struct netlink_parse_ctx *ctx,
- 
- 		len -= netlink_padded_len(expr->len);
- 		reg += netlink_register_space(expr->len);
-+		expr_free(expr);
- 	}
- 	return concat;
- 
--- 
-2.30.2
-
+Why a sysctl and not a netlink attr per table or per device?
