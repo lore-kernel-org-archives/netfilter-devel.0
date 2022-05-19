@@ -2,35 +2,36 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40C3BC433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 May 2022 14:42:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67977C433FE
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 May 2022 15:01:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239833AbiESOmM (ORCPT
+        id S240185AbiESPB3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 19 May 2022 10:42:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36120 "EHLO
+        Thu, 19 May 2022 11:01:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42446 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232225AbiESOmM (ORCPT
+        with ESMTP id S240141AbiESPBL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 May 2022 10:42:12 -0400
-Received: from smtp-8fae.mail.infomaniak.ch (smtp-8fae.mail.infomaniak.ch [83.166.143.174])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F176D0298
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 May 2022 07:42:10 -0700 (PDT)
+        Thu, 19 May 2022 11:01:11 -0400
+X-Greylist: delayed 1826 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 19 May 2022 08:00:19 PDT
+Received: from smtp-bc0c.mail.infomaniak.ch (smtp-bc0c.mail.infomaniak.ch [45.157.188.12])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 55F89DFF4F
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 May 2022 08:00:19 -0700 (PDT)
 Received: from smtp-3-0000.mail.infomaniak.ch (unknown [10.4.36.107])
-        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4L3sy83sd2zMprpm;
-        Thu, 19 May 2022 16:42:08 +0200 (CEST)
+        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4L3tM56JqgzMqhbv;
+        Thu, 19 May 2022 17:00:17 +0200 (CEST)
 Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
-        by smtp-3-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4L3sy76ds4zlhRV4;
-        Thu, 19 May 2022 16:42:07 +0200 (CEST)
+        by smtp-3-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4L3tM520f0zlj4cC;
+        Thu, 19 May 2022 17:00:17 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1652971328;
-        bh=FN4HUykMYqUvIzTAL3TDQuNZ0PsPOKD5ezN1b94768c=;
+        s=20191114; t=1652972417;
+        bh=RrRKi8oUmt1YB3I+ph8gviDGRzqyCTf/OJOkMK4rIDo=;
         h=Date:To:Cc:References:From:Subject:In-Reply-To:From;
-        b=L6dSOC9G7rxq1YYbjiIu6nmarQWfhA3HQ1/fQwp7Zfe7SiJkq/Vadf3uQcDUg3wGf
-         TDp8b8rpPZn9lwCocoFlm5J+kMp8q8QxT+IKrFP40SzKQRc3Aq+oA8StLrG7ukkzvg
-         MdDK0I8eOeSmylQsb2g+CmplktShwrac5RfeVjKE=
-Message-ID: <2cdd23ed-6184-3264-cf1d-98930f59539d@digikod.net>
-Date:   Thu, 19 May 2022 16:42:07 +0200
+        b=QJZpPYja4fQyEaMcXUol3MtpZ+U7yE3IfeK1RsWyuyjVe/jdemwnwmGxFlMD/pzC+
+         YrdJ2x2mR02yKfVICVShSoC//hK2Se6y7TjVy0IKxAjtpTIRBMx2Ps2JoexZzpVr3T
+         IaseJaiJeDlVwUIUdchpqXy81KcxO6Cz+uV/wDVM=
+Message-ID: <acda6f05-efeb-4f44-9189-589917a45b95@digikod.net>
+Date:   Thu, 19 May 2022 17:00:16 +0200
 MIME-Version: 1.0
 User-Agent: 
 Content-Language: en-US
@@ -40,12 +41,13 @@ Cc:     willemdebruijn.kernel@gmail.com,
         netfilter-devel@vger.kernel.org, yusongping@huawei.com,
         anton.sirazetdinov@huawei.com
 References: <20220516152038.39594-1-konstantin.meskhidze@huawei.com>
- <20220516152038.39594-8-konstantin.meskhidze@huawei.com>
- <544f0edb-0b5a-17c3-57a1-a373723ef37f@digikod.net>
- <061bc23b-ecb2-1809-98a0-11f8195b3b5d@huawei.com>
+ <20220516152038.39594-12-konstantin.meskhidze@huawei.com>
+ <e2c67180-3ec5-f710-710a-0c2644bfa54e@digikod.net>
+ <1297f02f-5c2c-bebd-da58-eed9b8ee97cc@huawei.com>
 From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-Subject: Re: [PATCH v5 07/15] landlock: add support network rules
-In-Reply-To: <061bc23b-ecb2-1809-98a0-11f8195b3b5d@huawei.com>
+Subject: Re: [PATCH v5 11/15] seltests/landlock: connect() with AF_UNSPEC
+ tests
+In-Reply-To: <1297f02f-5c2c-bebd-da58-eed9b8ee97cc@huawei.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -53,104 +55,77 @@ List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
-On 19/05/2022 11:27, Konstantin Meskhidze wrote:
+On 19/05/2022 14:31, Konstantin Meskhidze wrote:
 > 
 > 
-> 5/17/2022 11:27 AM, Mickaël Salaün пишет:
-
-[...]
-
-
->>>
->>> @@ -275,21 +281,17 @@ static int get_path_from_fd(const s32 fd, 
->>> struct path *const path)
->>>       return err;
->>>   }
->>>
->>> -static int add_rule_path_beneath(const int ruleset_fd, const void 
->>> *const rule_attr)
->>> +static int add_rule_path_beneath(struct landlock_ruleset *const 
->>> ruleset,
->>> +                 const void *const rule_attr)
->>>   {
->>>       struct landlock_path_beneath_attr path_beneath_attr;
->>>       struct path path;
->>> -    struct landlock_ruleset *ruleset;
->>>       int res, err;
->>> -
->>> -    /* Gets and checks the ruleset. */
->>> -    ruleset = get_ruleset_from_fd(ruleset_fd, FMODE_CAN_WRITE);
->>> -    if (IS_ERR(ruleset))
->>> -        return PTR_ERR(ruleset);
->>> +    u32 mask;
->>>
->>>       /* Copies raw user space buffer, only one type for now. */
->>>       res = copy_from_user(&path_beneath_attr, rule_attr,
->>> -                sizeof(path_beneath_attr));
->>> +            sizeof(path_beneath_attr));
->>>       if (res)
->>>           return -EFAULT;
->>>
->>> @@ -298,32 +300,26 @@ static int add_rule_path_beneath(const int 
->>> ruleset_fd, const void *const rule_at
->>>        * are ignored in path walks.
->>>        */
->>>       if (!path_beneath_attr.allowed_access) {
->>> -        err = -ENOMSG;
->>> -        goto out_put_ruleset;
->>> +        return -ENOMSG;
->>>       }
->>>       /*
->>>        * Checks that allowed_access matches the @ruleset constraints
->>>        * (ruleset->access_masks[0] is automatically upgraded to 
->>> 64-bits).
->>>        */
->>> -    if ((path_beneath_attr.allowed_access |
->>> -        landlock_get_fs_access_mask(ruleset, 0)) !=
->>> -                landlock_get_fs_access_mask(ruleset, 0)) {
->>> -        err = -EINVAL;
->>> -        goto out_put_ruleset;
->>> -    }
->>> +    mask = landlock_get_fs_access_mask(ruleset, 0);
->>> +    if ((path_beneath_attr.allowed_access | mask) != mask)
->>> +        return -EINVAL;
->>>
->>>       /* Gets and checks the new rule. */
->>>       err = get_path_from_fd(path_beneath_attr.parent_fd, &path);
->>>       if (err)
->>> -        goto out_put_ruleset;
->>> +        return err;
->>>
->>>       /* Imports the new rule. */
->>>       err = landlock_append_fs_rule(ruleset, &path,
->>>                         path_beneath_attr.allowed_access);
->>>       path_put(&path);
->>>
->>> -out_put_ruleset:
->>> -    landlock_put_ruleset(ruleset);
->>>       return err;
->>>   }
->>>
->>> @@ -360,6 +356,7 @@ SYSCALL_DEFINE4(landlock_add_rule,
->>>           const int, ruleset_fd, const enum landlock_rule_type, 
->>> rule_type,
->>>           const void __user *const, rule_attr, const __u32, flags)
->>>   {
->>> +    struct landlock_ruleset *ruleset;
->>>       int err;
->>>
->>>       if (!landlock_initialized)
->>> @@ -369,14 +366,20 @@ SYSCALL_DEFINE4(landlock_add_rule,
->>>       if (flags)
->>>           return -EINVAL;
->>>
->>> +    /* Gets and checks the ruleset. */
->>> +    ruleset = get_ruleset_from_fd(ruleset_fd, FMODE_CAN_WRITE);
->>> +    if (IS_ERR(ruleset))
->>> +        return PTR_ERR(ruleset);
+> 5/17/2022 11:55 AM, Mickaël Salaün пишет:
+>> I guess these tests would also work with IPv6. You can then use the 
+>> "alternative" tests I explained.
 >>
->> This shouldn't be part of this patch.
+>    Do you mean adding new helpers such as bind_variant() and 
+> connect_variant()??
+>> On 16/05/2022 17:20, Konstantin Meskhidze wrote:
+>>> Adds two selftests for connect() action with
+>>> AF_UNSPEC family flag.
+>>> The one is with no landlock restrictions
+>>> allows to disconnect already conneted socket
+>>> with connect(..., AF_UNSPEC, ...):
+>>>      - connect_afunspec_no_restictions;
+>>> The second one refuses landlocked process
+>>> to disconnect already connected socket:
+>>>      - connect_afunspec_with_restictions;
+>>>
+>>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+>>> ---
+>>>
+>>> Changes since v3:
+>>> * Add connect_afunspec_no_restictions test.
+>>> * Add connect_afunspec_with_restictions test.
+>>>
+>>> Changes since v4:
+>>> * Refactoring code with self->port, self->addr4 variables.
+>>> * Adds bind() hook check for with AF_UNSPEC family.
+>>>
+>>> ---
+>>>   tools/testing/selftests/landlock/net_test.c | 121 ++++++++++++++++++++
+>>>   1 file changed, 121 insertions(+)
+>>>
+>>> diff --git a/tools/testing/selftests/landlock/net_test.c 
+>>> b/tools/testing/selftests/landlock/net_test.c
+>>> index cf914d311eb3..bf8e49466d1d 100644
+>>> --- a/tools/testing/selftests/landlock/net_test.c
+>>> +++ b/tools/testing/selftests/landlock/net_test.c
+>>> @@ -449,6 +449,7 @@ TEST_F_FORK(socket_test, 
+>>> connect_with_restrictions_ip6) {
+>>>       int new_fd;
+>>>       int sockfd_1, sockfd_2;
+>>>       pid_t child_1, child_2;
+>>> +
+>>>       int status;
+>>>
+>>>       struct landlock_ruleset_attr ruleset_attr = {
+>>> @@ -467,10 +468,12 @@ TEST_F_FORK(socket_test, 
+>>> connect_with_restrictions_ip6) {
+>>>
+>>>       const int ruleset_fd = landlock_create_ruleset(&ruleset_attr,
+>>>               sizeof(ruleset_attr), 0);
+>>> +
 >>
->    I agree. I will move it into another patch.
+>> Please no…
+>>
+>   Sorry for that. I will apply clang-format-14.
 
-To be clear, it is kind of a partial revert of patch 5/15.
+clang-format will not complain about these new lines.
+
+
+>>
+>>>       ASSERT_LE(0, ruleset_fd);
+>>>
+>>>       /* Allows connect and bind operations to the port[0] socket */
+>>>       ASSERT_EQ(0, landlock_add_rule(ruleset_fd, 
+>>> LANDLOCK_RULE_NET_SERVICE,
+>>> +
+>>
+>> ditto
+> 
+>    Ditto. Will be fixed with clang-format.
