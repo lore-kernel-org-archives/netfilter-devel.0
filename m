@@ -2,142 +2,151 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66EDBC433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 May 2022 07:50:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C2EAC433FE
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 May 2022 10:48:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244631AbiETHuW (ORCPT
+        id S1348171AbiETKsa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 20 May 2022 03:50:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43368 "EHLO
+        Fri, 20 May 2022 06:48:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37318 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346635AbiETHuV (ORCPT
+        with ESMTP id S234978AbiETKsa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 20 May 2022 03:50:21 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 2A95EEBA8A;
-        Fri, 20 May 2022 00:50:19 -0700 (PDT)
-Date:   Fri, 20 May 2022 09:50:15 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Felix Fietkau <nbd@nbd.name>
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        Jo-Philipp Wich <jo@mein.io>
-Subject: Re: [RFC] netfilter: nf_tables: ignore errors on flowtable device hw
- offload setup
-Message-ID: <YodIN0jLtAcHUq40@salvia>
-References: <20220510202739.67068-1-nbd@nbd.name>
- <Yn4NnwAkoVryQtCK@salvia>
- <b1fd2a80-f629-48a3-7466-0e04f2c531df@nbd.name>
- <Yn4TmdzQPUQ4TRUr@salvia>
- <88da25b7-0cd0-49df-c09e-8271618ba50f@nbd.name>
- <YoGhjjhsE1PcVeFC@salvia>
- <1c368b57-be21-5c37-ef38-e23fe344b70a@nbd.name>
+        Fri, 20 May 2022 06:48:30 -0400
+Received: from smtp-bc0e.mail.infomaniak.ch (smtp-bc0e.mail.infomaniak.ch [IPv6:2001:1600:4:17::bc0e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 444765AEF1
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 May 2022 03:48:26 -0700 (PDT)
+Received: from smtp-2-0000.mail.infomaniak.ch (unknown [10.5.36.107])
+        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4L4Nk11GJszMqkPY;
+        Fri, 20 May 2022 12:48:25 +0200 (CEST)
+Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
+        by smtp-2-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4L4Nk02SjgzlhSMV;
+        Fri, 20 May 2022 12:48:24 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
+        s=20191114; t=1653043705;
+        bh=4/DTGTCgp4U0kXNFebaREvz0BDD6lnA4+jHOrbX2u+Q=;
+        h=Date:To:Cc:References:From:Subject:In-Reply-To:From;
+        b=rvbEshG08kgbPp2tW/9PUxfsO9sT6rFw62n/ybnajefDszYLouuiRePzGKp7f2Djd
+         WOodqge80GqNylBp2slxcBARfF5SEmK55yo1STowGHXvCQ7cQWL9DvzMCfufpxvyJq
+         nbc1vpAF1FaaXZzV8k9x7Y0wFy5ZkAjFMHbCEcAQ=
+Message-ID: <a5ef620d-0447-3d58-d9bd-1220b8411957@digikod.net>
+Date:   Fri, 20 May 2022 12:48:23 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <1c368b57-be21-5c37-ef38-e23fe344b70a@nbd.name>
+User-Agent: 
+Content-Language: en-US
+To:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+Cc:     willemdebruijn.kernel@gmail.com,
+        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
+        anton.sirazetdinov@huawei.com, Paul Moore <paul@paul-moore.com>
+References: <20220516152038.39594-1-konstantin.meskhidze@huawei.com>
+From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+Subject: Re: [PATCH v5 00/15] Network support for Landlock - UDP discussion
+In-Reply-To: <20220516152038.39594-1-konstantin.meskhidze@huawei.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, May 19, 2022 at 05:37:12PM +0200, Felix Fietkau wrote:
+Hi,
+
+Regarding future plan to support UDP, it may not be possible to 
+efficiently restrict sending on a port or receiving on a port because of 
+the non-connnected state of UDP sockets. Indeed, when setting up a 
+socket to send a packet on a specified port, we (automatically or 
+manually) have a receiving port configured and this socket can be used 
+to receive any UDP packet. An UDP socket could be restricted to only 
+send/write or to receive/read from a specific port, but this would 
+probably not be as useful as the TCP restrictions. That could look like 
+RECEIVE_UDP and SEND_UDP access-rights but the LSM implementation would 
+be more complex because of the socket/FD tracking. Moreover, the 
+performance impact could be more important for every read and write 
+syscall (whatever the FD type).
+
+Any opinion?
+
+Regards,
+  Mickaël
+
+
+On 16/05/2022 17:20, Konstantin Meskhidze wrote:
+> Hi,
+> This is a new V5 patch related to Landlock LSM network confinement.
+> It is based on the latest landlock-wip branch on top of v5.18-rc5:
+> https://git.kernel.org/pub/scm/linux/kernel/git/mic/linux.git/log/?h=landlock-wip
 > 
-> On 16.05.22 02:57, Pablo Neira Ayuso wrote:
-> > On Fri, May 13, 2022 at 11:09:51AM +0200, Felix Fietkau wrote:
-> > > > > Assuming that is the case, wouldn't it be better if we simply have
-> > > > > an API that indicates, which flowtable members hardware offload was
-> > > > > actually enabled for?
-> > > > > What are you proposing?
-> > > > > I think it would be good to expose through netlink interface
-> > > what the
-> > > > device can actually do according to the existing supported flowtable
-> > > > software datapath features.
-> > > In addition to the NFTA_FLOWTABLE_HOOK_DEVS array, the netlink API could
-> > > also return another array, e.g. NFTA_FLOWTABLE_HOOK_OFFLOAD_DEVS which
-> > > indicates devices for which hw offload is enabled.
-> > > 
-> > > What I really don't like about the current state of the flowtable offload
-> > > API is the (in my opinion completely unnecessary) complexity that is
-> > > required for the simple use case of enabling hw/sw flow offloading on a best
-> > > effort basis for all devices.
-> > > What I like even less is the number of implementation details that it has to
-> > > consider.
-> > > 
-> > > For example: Let's assume we have a machine with several devices, some of
-> > > which support hw offload, some of which don't. We have a mix of VLANs and
-> > > bridges in there as well, maybe even PPPoE.
-> > > Now the admin of that machine wants to enable best-effort hardware +
-> > > software flow offloading for that configuration.
-> > > Now he (or a piece of user space software dealing with the config) has to do
-> > > these things:
-> > > - figure out which devices could support hw offload, create a separate flow
-> > > table for them
-> > > - be aware of which of these devices are actually used by looking at the
-> > > stack of bridges, vlans, dsa devices, etc.
-> > > - if an error occurs, test them individually just to see which one actually
-> > > failed and leave it out of the flowtable
-> > > - for sw offload be aware that there is limited support for offloading decap
-> > > of vlans/pppoe, count the number of decaps and figure out the right input
-> > > device to add based on the behavior of nft_dev_path_info, so that the
-> > > 'indev' it selects matches the device you put in the flow table.
-> > > 
-> > > So I'm asking you: Am I getting any of this completely wrong? Do you
-> > > consider it to be a reasonable trade-off to force the admin (or intermediate
-> > > user space layer) to jump through these hoops for such a simple use case,
-> > > just because somebody might want more fine grained control?
-> > > 
-> > > I consider this patch to be a first step towards making simple use cases
-> > > easier to configure. I'd also be fine with adding a flag to make the
-> > > fallback behavior opt-in, even though I think it would make a much better
-> > > default.
-> > > 
-> > > Eventually I'd also like to add a flag that makes it unnecessary to even
-> > > specify the devices in the flow table by making the code auto-create hooks
-> > > for devices with active flows, just like I did in my xtables target.
-> > > You correctly pointed out to me in the past that this comes at the cost of a
-> > > few packets delay before offloading kicks in, but I'm still wondering: who
-> > > actually cares about that?
-> > > 
-> > > If I'm completely off-base with this, please let me know. I'm simply trying
-> > > to make sense of all of this...
-> > 
-> > Maybe only fail if _none_ of the selected devices support for hardware
-> > offload, ie. instead of silently accepting all devices, count of the
-> > number of devices for which a block has been set up, if it is == 0
-> > then bail out with EOPNOTSUPP.
->
-> I've thought about this some more. The problem with that is if you start by
-> having only non-hw-offload devices in the flow table, you can't create it
-> with the offload flag.
->
-> If you then want to add another device that is capable of doing hw offload,
-> it means you have to delete the flowtable and recreate it (along with the
-> rules that depend on it), since adding the offload flag at runtime isn't
-> supported.
-
-I'm sssuming we relax the requirement as I proposed, ie. allow for not
-allow devices to support for hardware offload, but at least one.
-
-Then, it should be possible to extend the netlink interface to promote
-a flowtable to support hardware offload, e.g.
-
- add flowtable inet x y { hook ingress devices = { eth0, eth1 } priority 0; flags offload; }
-
-For an existing flowtable, that will add eth0 and eth1, and it will
-request to turn hardware offload.
-
-This is not supported, these bits are missing in the netlink interface.
-
-> I still think the best course of action is to silently accept the offload
-> flag even if none of the devices support hw offload.
-
-Silent means user is asking for something that is actually not
-supported, there will be no effective way from the control plane to
-check if what they request is actually being applied.
-
-I'd propose two changes:
-
-- relax the existing requirement, so if one device support hw offload,
-  then accept the configuration.
-
-- allow to update a flowtable to on/off hardware offload from netlink
-  interface without needing to reload your whole ruleset.
+> It brings refactoring of previous patch version V4.
+> Added additional selftests for IP6 network families and network namespace.
+> Added TCP sockets confinement support in sandboxer demo.
+> 
+> All test were run in QEMU evironment and compiled with
+>   -static flag.
+>   1. network_test: 13/13 tests passed.
+>   2. base_test: 7/7 tests passed.
+>   3. fs_test: 59/59 tests passed.
+>   4. ptrace_test: 8/8 tests passed.
+> 
+> Still have issue with base_test were compiled without -static flag
+> (landlock-wip branch without network support)
+> 1. base_test: 6/7 tests passed.
+>   Error:
+>   #  RUN           global.inconsistent_attr ...
+>   # base_test.c:54:inconsistent_attr:Expected ENOMSG (42) == errno (22)
+>   # inconsistent_attr: Test terminated by assertion
+>   #          FAIL  global.inconsistent_attr
+> not ok 1 global.inconsistent_attr
+> 
+> LCOV - code coverage report:
+>              Hit  Total  Coverage
+> Lines:      952  1010    94.3 %
+> Functions:  79   82      96.3 %
+> 
+> Previous versions:
+> v4: https://lore.kernel.org/linux-security-module/20220309134459.6448-1-konstantin.meskhidze@huawei.com/
+> v3: https://lore.kernel.org/linux-security-module/20220124080215.265538-1-konstantin.meskhidze@huawei.com/
+> v2: https://lore.kernel.org/linux-security-module/20211228115212.703084-1-konstantin.meskhidze@huawei.com/
+> v1: https://lore.kernel.org/linux-security-module/20211210072123.386713-1-konstantin.meskhidze@huawei.com/
+> 
+> Konstantin Meskhidze (15):
+>    landlock: access mask renaming
+>    landlock: landlock_find/insert_rule refactoring
+>    landlock: merge and inherit function refactoring
+>    landlock: helper functions refactoring
+>    landlock: landlock_add_rule syscall refactoring
+>    landlock: user space API network support
+>    landlock: add support network rules
+>    landlock: TCP network hooks implementation
+>    seltests/landlock: add tests for bind() hooks
+>    seltests/landlock: add tests for connect() hooks
+>    seltests/landlock: connect() with AF_UNSPEC tests
+>    seltests/landlock: rules overlapping test
+>    seltests/landlock: ruleset expanding test
+>    seltests/landlock: invalid user input data test
+>    samples/landlock: adds network demo
+> 
+>   include/uapi/linux/landlock.h                |  48 +
+>   samples/landlock/sandboxer.c                 | 105 ++-
+>   security/landlock/Kconfig                    |   1 +
+>   security/landlock/Makefile                   |   2 +
+>   security/landlock/fs.c                       | 169 +---
+>   security/landlock/limits.h                   |   8 +-
+>   security/landlock/net.c                      | 159 ++++
+>   security/landlock/net.h                      |  25 +
+>   security/landlock/ruleset.c                  | 481 ++++++++--
+>   security/landlock/ruleset.h                  | 102 +-
+>   security/landlock/setup.c                    |   2 +
+>   security/landlock/syscalls.c                 | 173 ++--
+>   tools/testing/selftests/landlock/base_test.c |   4 +-
+>   tools/testing/selftests/landlock/common.h    |   9 +
+>   tools/testing/selftests/landlock/config      |   5 +-
+>   tools/testing/selftests/landlock/fs_test.c   |  10 -
+>   tools/testing/selftests/landlock/net_test.c  | 935 +++++++++++++++++++
+>   17 files changed, 1925 insertions(+), 313 deletions(-)
+>   create mode 100644 security/landlock/net.c
+>   create mode 100644 security/landlock/net.h
+>   create mode 100644 tools/testing/selftests/landlock/net_test.c
+> 
+> --
+> 2.25.1
+> 
