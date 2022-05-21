@@ -2,92 +2,139 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65932C433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 May 2022 23:16:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33DA4C433EF
+	for <netfilter-devel@archiver.kernel.org>; Sat, 21 May 2022 09:56:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353994AbiETXQi (ORCPT
+        id S241439AbiEUJ4Y (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 20 May 2022 19:16:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43860 "EHLO
+        Sat, 21 May 2022 05:56:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43928 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231549AbiETXQf (ORCPT
+        with ESMTP id S229808AbiEUJ4X (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 20 May 2022 19:16:35 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2DF1D57138;
-        Fri, 20 May 2022 16:16:31 -0700 (PDT)
+        Sat, 21 May 2022 05:56:23 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C07235710C;
+        Sat, 21 May 2022 02:56:21 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9B185B82B7D;
-        Fri, 20 May 2022 23:16:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7A9BC385A9;
-        Fri, 20 May 2022 23:16:28 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 59FCB60FE1;
+        Sat, 21 May 2022 09:56:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 325F1C385A9;
+        Sat, 21 May 2022 09:56:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1653088589;
-        bh=OudlFS3YzZaVhYSU9lua7CNuPQ09jzvipFopxtTi9GU=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=oDmSPU4WoLPyZKbHivtGdys247jq13bb2f/D/s2pYfDwnSmP/3qNwCgYKJooj8hjk
-         6fO5FTpfLI/F7dKYLqWfc710dplNcHd1SeNFeaocNKoeCEUI+RhL1e5Q511vOPn1LI
-         gJNRbaWHXjbltj07QGOGiy/aclIw13NcwR/n+wXEZzqET6NL0YQ/ZVAepTxU/0ztZq
-         k+cAyUf5UFP5GOg7y0VqKUa1n8abd41Q9NC5fY/Y02K/XKl58KuYIdWYJXHqAH/r3l
-         ljVTEUh52viL8DCANbQYOHmde0Ah8v2iRX3gQEP3rTPLthsvHlDbTyJamz1457AyIv
-         aXl56//NHKs6Q==
-Date:   Fri, 20 May 2022 16:16:27 -0700
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, pabeni@redhat.com,
-        Felix Fietkau <nbd@nbd.name>, Oz Shlomo <ozsh@nvidia.com>,
-        paulb@nvidia.com, vladbu@nvidia.com
-Subject: Re: [PATCH net-next 06/11] netfilter: nf_flow_table: count and
- limit hw offloaded entries
-Message-ID: <20220520161627.6d587791@kernel.org>
-In-Reply-To: <YogTfOYGwY5IVhGn@salvia>
-References: <20220519220206.722153-1-pablo@netfilter.org>
-        <20220519220206.722153-7-pablo@netfilter.org>
-        <20220519161136.32fdba19@kernel.org>
-        <YodG+REOiDa2PMUl@salvia>
-        <20220520105606.15fd5133@kernel.org>
-        <YogTfOYGwY5IVhGn@salvia>
+        s=k20201202; t=1653126980;
+        bh=J8Kl5QDh8G+60wtyKm/zQ9HhPyt2i6OdeEYkmZ3BVvE=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=dAjv74qHO4EfDSQWLqA0PaKO0yJrasf+pxkt1VZWq+8RDjaA546ve+YaNo8HTkcPC
+         qR5E8alM4IIixPPC1DDHyw/cub+xov3uifJJl73it+V/WRSHXWEKHM9U7D+XyTBbyT
+         z6B6ewShVvpgtkp842ad77p/wxLJf58YaMC+Ci13J6EWyOOCqyYHN9C8Zfmh/TEv/p
+         MZLISYH9ihoKkG7XV9S4vkDEfhle9PmN0ojXP6KKkEtVQDj7zrfg0pJrFTb+4d1QG+
+         RTLzKMlyPh7ClLlv9weorocYVd6SRS20/GNW0GCOfjJSmoEPcMoa88H44kLDoDQ0Se
+         h5BnmvQgxZjag==
+Date:   Sat, 21 May 2022 11:56:16 +0200
+From:   Lorenzo Bianconi <lorenzo@kernel.org>
+To:     Andrii Nakryiko <andrii.nakryiko@gmail.com>
+Cc:     bpf <bpf@vger.kernel.org>, Networking <netdev@vger.kernel.org>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Eric Dumazet <edumazet@google.com>, pabeni@redhat.com,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org,
+        Lorenzo Bianconi <lorenzo.bianconi@redhat.com>,
+        Jesper Dangaard Brouer <brouer@redhat.com>,
+        Toke =?iso-8859-1?Q?H=F8iland-J=F8rgensen?= <toke@redhat.com>,
+        Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Subject: Re: [PATCH v3 bpf-next 5/5] selftests/bpf: add selftest for
+ bpf_xdp_ct_add and bpf_ct_refresh_timeout kfunc
+Message-ID: <Yoi3QLuCD5Q5iG46@lore-desk>
+References: <cover.1652870182.git.lorenzo@kernel.org>
+ <e95abdd9c6fa1fa97f3ca60e8eb06799784e671a.1652870182.git.lorenzo@kernel.org>
+ <CAEf4BzZuKOR2y1LOzZLWm1sMFw3psPuzFcoYJ-yj0+PgzB2C1g@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="Lh+jlsCfG/elROdQ"
+Content-Disposition: inline
+In-Reply-To: <CAEf4BzZuKOR2y1LOzZLWm1sMFw3psPuzFcoYJ-yj0+PgzB2C1g@mail.gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, 21 May 2022 00:17:32 +0200 Pablo Neira Ayuso wrote:
-> Policy can also throttle down the maximum number of entries in the
-> hardware, but policy is complementary to the hard cap.
-> 
-> Once the hw cap is reached, the implementation falls back to the
-> software flowtable datapath.
 
-Understood.
+--Lh+jlsCfG/elROdQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Regarding the "magic number", it would be good if devices can expose
-> these properties through interface, maybe FLOW_BLOCK_PROBE to fetch
-> device properties and capabilities.
+> On Wed, May 18, 2022 at 3:44 AM Lorenzo Bianconi <lorenzo@kernel.org> wro=
+te:
+> >
+> > Introduce selftests for the following kfunc helpers:
+> > - bpf_xdp_ct_add
+> > - bpf_skb_ct_add
+> > - bpf_ct_refresh_timeout
+> >
+> > Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+> > ---
+> >  .../testing/selftests/bpf/prog_tests/bpf_nf.c |  4 ++
+> >  .../testing/selftests/bpf/progs/test_bpf_nf.c | 72 +++++++++++++++----
+> >  2 files changed, 64 insertions(+), 12 deletions(-)
+> >
+> > diff --git a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c b/tools/te=
+sting/selftests/bpf/prog_tests/bpf_nf.c
+> > index dd30b1e3a67c..be6c5650892f 100644
+> > --- a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
+> > +++ b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
+> > @@ -39,6 +39,10 @@ void test_bpf_nf_ct(int mode)
+> >         ASSERT_EQ(skel->bss->test_enonet_netns_id, -ENONET, "Test ENONE=
+T for bad but valid netns_id");
+> >         ASSERT_EQ(skel->bss->test_enoent_lookup, -ENOENT, "Test ENOENT =
+for failed lookup");
+> >         ASSERT_EQ(skel->bss->test_eafnosupport, -EAFNOSUPPORT, "Test EA=
+FNOSUPPORT for invalid len__tuple");
+> > +       ASSERT_EQ(skel->bss->test_add_entry, 0, "Test for adding new en=
+try");
+> > +       ASSERT_EQ(skel->bss->test_succ_lookup, 0, "Test for successful =
+lookup");
+> > +       ASSERT_TRUE(skel->bss->test_delta_timeout > 9 && skel->bss->tes=
+t_delta_timeout <=3D 10,
+> > +                   "Test for ct timeout update");
+>=20
+> if/when this fails we'll have "true !=3D false" message not knowing what
+> was the actual value of skel->bss->test_delta_timeout.
+>=20
+> This is equivalent to a much better:
+>=20
+> ASSERT_GT(skel->bss->test_delta_timeout, 9, "ct_timeout1");
+> ASSERT_LE(skel->bss->test_delta_timeout, 10, "ct_timeout2");
 
-Fingers crossed, however, if the device is multi-user getting exact
-cap may be pretty much impossible. Then again the user is supposed
-to be able to pull the cap for sysfs out of the hat so I'm confused.
+ack, I will fix it in the next version.
 
-What I was thinking of was pausing offload requests for a jiffy if we
-get ENOSPC 3 times in a row, or some such.
+Regards,
+Lorenzo
 
-> In general, I would also prefer a netlink interface for this, but for
-> tc ct, this would need to expose the existing flowtable objects via a
-> new netlink command. Then, I assume such cap would be per ct zone
-> (there is internally one flowtable per conntrack zone).
-> 
-> BTW, Cc'ing Oz, Paul and Vlad.
+>=20
+> >  end:
+> >         test_bpf_nf__destroy(skel);
+> >  }
+>=20
+>=20
+> [...]
 
-Ah, thanks, I added Felix just in case but didn't check if authors 
-are already on CC :S
+--Lh+jlsCfG/elROdQ
+Content-Type: application/pgp-signature; name="signature.asc"
 
-> Meanwhile, what do you want me to do, toss this patchset?
+-----BEGIN PGP SIGNATURE-----
 
-Yeah, if you don't mind.. We're too close to the merge window to
-tentatively take stuff that's under discussion.
+iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCYoi3QAAKCRA6cBh0uS2t
+rFLUAP9rOXf1/ICvLv8w6S0EJMMsADYMvo0Sd9xeb08Pr0JaCgD9FNDYMzWbuZAj
+mFKaos0hE8FQfvkk6HZ1VMPy6p8VpgY=
+=02hG
+-----END PGP SIGNATURE-----
+
+--Lh+jlsCfG/elROdQ--
