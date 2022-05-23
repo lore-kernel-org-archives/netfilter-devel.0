@@ -2,139 +2,101 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33DA4C433EF
-	for <netfilter-devel@archiver.kernel.org>; Sat, 21 May 2022 09:56:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 610FAC433F5
+	for <netfilter-devel@archiver.kernel.org>; Mon, 23 May 2022 10:24:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241439AbiEUJ4Y (ORCPT
+        id S234036AbiEWKYE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 21 May 2022 05:56:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43928 "EHLO
+        Mon, 23 May 2022 06:24:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46416 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229808AbiEUJ4X (ORCPT
+        with ESMTP id S234032AbiEWKYC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 21 May 2022 05:56:23 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C07235710C;
-        Sat, 21 May 2022 02:56:21 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 59FCB60FE1;
-        Sat, 21 May 2022 09:56:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 325F1C385A9;
-        Sat, 21 May 2022 09:56:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1653126980;
-        bh=J8Kl5QDh8G+60wtyKm/zQ9HhPyt2i6OdeEYkmZ3BVvE=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=dAjv74qHO4EfDSQWLqA0PaKO0yJrasf+pxkt1VZWq+8RDjaA546ve+YaNo8HTkcPC
-         qR5E8alM4IIixPPC1DDHyw/cub+xov3uifJJl73it+V/WRSHXWEKHM9U7D+XyTBbyT
-         z6B6ewShVvpgtkp842ad77p/wxLJf58YaMC+Ci13J6EWyOOCqyYHN9C8Zfmh/TEv/p
-         MZLISYH9ihoKkG7XV9S4vkDEfhle9PmN0ojXP6KKkEtVQDj7zrfg0pJrFTb+4d1QG+
-         RTLzKMlyPh7ClLlv9weorocYVd6SRS20/GNW0GCOfjJSmoEPcMoa88H44kLDoDQ0Se
-         h5BnmvQgxZjag==
-Date:   Sat, 21 May 2022 11:56:16 +0200
-From:   Lorenzo Bianconi <lorenzo@kernel.org>
-To:     Andrii Nakryiko <andrii.nakryiko@gmail.com>
-Cc:     bpf <bpf@vger.kernel.org>, Networking <netdev@vger.kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Eric Dumazet <edumazet@google.com>, pabeni@redhat.com,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org,
-        Lorenzo Bianconi <lorenzo.bianconi@redhat.com>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        Toke =?iso-8859-1?Q?H=F8iland-J=F8rgensen?= <toke@redhat.com>,
-        Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Subject: Re: [PATCH v3 bpf-next 5/5] selftests/bpf: add selftest for
- bpf_xdp_ct_add and bpf_ct_refresh_timeout kfunc
-Message-ID: <Yoi3QLuCD5Q5iG46@lore-desk>
-References: <cover.1652870182.git.lorenzo@kernel.org>
- <e95abdd9c6fa1fa97f3ca60e8eb06799784e671a.1652870182.git.lorenzo@kernel.org>
- <CAEf4BzZuKOR2y1LOzZLWm1sMFw3psPuzFcoYJ-yj0+PgzB2C1g@mail.gmail.com>
+        Mon, 23 May 2022 06:24:02 -0400
+X-Greylist: delayed 903 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 23 May 2022 03:24:00 PDT
+Received: from sender4-op-o14.zoho.com (sender4-op-o14.zoho.com [136.143.188.14])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D68749FBE
+        for <netfilter-devel@vger.kernel.org>; Mon, 23 May 2022 03:24:00 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1653300534; cv=none; 
+        d=zohomail.com; s=zohoarc; 
+        b=EPraphr3CUAp9l2vnDs6a/hVYKgUu6KSce91HmQj5vzxz/5Tsz8Oys3mats+mz5uMTScYwzZkA7IVAuQqtakJP9OVKOXrAg/4IUYft4cb5XBkY29siUhoAiV5kNzaG6ACtJ5wNd9G8AkM+arxQ0XVfeXtVkF96rJ62pqB/H+TWo=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
+        t=1653300534; h=Content-Type:Content-Transfer-Encoding:Date:From:MIME-Version:Message-ID:Subject:To; 
+        bh=zg33PhymcMaaORDEOh1+5z0y/b785oRWdZauIHkdNyU=; 
+        b=bZDWg3uvG4fJp1muoUJn0vLa98dJaEc1fBM+m8nj8iwkCtsb5BLdveMg/hyVkQHQp+0vRX3pEdxUABCEyXQk4mS6pJQBysrsYxBy+3NknFPINwH3utUVUh1woJ69HHuI0efl1LWXd7S21QZI6KlEK2Jt9Z+oPl6d6rSfZJ+CI5g=
+ARC-Authentication-Results: i=1; mx.zohomail.com;
+        dkim=pass  header.i=chandergovind.org;
+        spf=pass  smtp.mailfrom=mail@chandergovind.org;
+        dmarc=pass header.from=<mail@chandergovind.org>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1653300534;
+        s=zoho; d=chandergovind.org; i=mail@chandergovind.org;
+        h=Message-ID:Date:Date:MIME-Version:To:To:From:From:Subject:Subject:Content-Type:Content-Transfer-Encoding:Message-Id:Reply-To:Cc;
+        bh=zg33PhymcMaaORDEOh1+5z0y/b785oRWdZauIHkdNyU=;
+        b=EyAofDqtvTnQek2TG3UUORrL20coJ/t3srb46a35nRpejCE7Tx56qxQwD++HXBgd
+        xvoKHWOLjaCIp1A1FqoDwdmGPrmQpoTKUWWF3+GXTBApF+x61CuMPCYZm56/zAf1xmH
+        891LGRDFdAMlYQXamWy07SLkPCTGHpSAJFygdGUA=
+Received: from [192.168.1.38] (103.195.203.129 [103.195.203.129]) by mx.zohomail.com
+        with SMTPS id 1653300532005258.262791295291; Mon, 23 May 2022 03:08:52 -0700 (PDT)
+Message-ID: <1dcae0aa-466d-41bf-b050-9684e4b043cc@chandergovind.org>
+Date:   Mon, 23 May 2022 15:37:11 +0530
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="Lh+jlsCfG/elROdQ"
-Content-Disposition: inline
-In-Reply-To: <CAEf4BzZuKOR2y1LOzZLWm1sMFw3psPuzFcoYJ-yj0+PgzB2C1g@mail.gmail.com>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.5.0
+Content-Language: en-US
+To:     netfilter-devel@vger.kernel.org
+From:   Chander Govindarajan <mail@chandergovind.org>
+Subject: [PATCH] nft: update json output ordering to place rules after chains
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ZohoMailClient: External
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Currently the json output of `nft -j list ruleset` interleaves rules
+with chains
 
---Lh+jlsCfG/elROdQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+As reported in this bug,
+https://bugzilla.netfilter.org/show_bug.cgi?id=1580
+the json cannot be fed into `nft -j -f <file>` since rules may
+reference chains that are created later
 
-> On Wed, May 18, 2022 at 3:44 AM Lorenzo Bianconi <lorenzo@kernel.org> wro=
-te:
-> >
-> > Introduce selftests for the following kfunc helpers:
-> > - bpf_xdp_ct_add
-> > - bpf_skb_ct_add
-> > - bpf_ct_refresh_timeout
-> >
-> > Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
-> > ---
-> >  .../testing/selftests/bpf/prog_tests/bpf_nf.c |  4 ++
-> >  .../testing/selftests/bpf/progs/test_bpf_nf.c | 72 +++++++++++++++----
-> >  2 files changed, 64 insertions(+), 12 deletions(-)
-> >
-> > diff --git a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c b/tools/te=
-sting/selftests/bpf/prog_tests/bpf_nf.c
-> > index dd30b1e3a67c..be6c5650892f 100644
-> > --- a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-> > +++ b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-> > @@ -39,6 +39,10 @@ void test_bpf_nf_ct(int mode)
-> >         ASSERT_EQ(skel->bss->test_enonet_netns_id, -ENONET, "Test ENONE=
-T for bad but valid netns_id");
-> >         ASSERT_EQ(skel->bss->test_enoent_lookup, -ENOENT, "Test ENOENT =
-for failed lookup");
-> >         ASSERT_EQ(skel->bss->test_eafnosupport, -EAFNOSUPPORT, "Test EA=
-FNOSUPPORT for invalid len__tuple");
-> > +       ASSERT_EQ(skel->bss->test_add_entry, 0, "Test for adding new en=
-try");
-> > +       ASSERT_EQ(skel->bss->test_succ_lookup, 0, "Test for successful =
-lookup");
-> > +       ASSERT_TRUE(skel->bss->test_delta_timeout > 9 && skel->bss->tes=
-t_delta_timeout <=3D 10,
-> > +                   "Test for ct timeout update");
->=20
-> if/when this fails we'll have "true !=3D false" message not knowing what
-> was the actual value of skel->bss->test_delta_timeout.
->=20
-> This is equivalent to a much better:
->=20
-> ASSERT_GT(skel->bss->test_delta_timeout, 9, "ct_timeout1");
-> ASSERT_LE(skel->bss->test_delta_timeout, 10, "ct_timeout2");
+Instead create rules after all chains are output
 
-ack, I will fix it in the next version.
+Signed-off-by: ChanderG <mail@chandergovind.org>
+---
+  src/json.c | 7 +++++--
+  1 file changed, 5 insertions(+), 2 deletions(-)
 
-Regards,
-Lorenzo
+diff --git a/src/json.c b/src/json.c
+index 0b7224c2..a525fd1b 100644
+--- a/src/json.c
++++ b/src/json.c
+@@ -1587,7 +1587,7 @@ json_t *optstrip_stmt_json(const struct stmt 
+*stmt, struct output_ctx *octx)
+  static json_t *table_print_json_full(struct netlink_ctx *ctx,
+  				     struct table *table)
+  {
+-	json_t *root = json_array(), *tmp;
++	json_t *root = json_array(), *rules = json_array(), *tmp;
+  	struct flowtable *flowtable;
+  	struct chain *chain;
+  	struct rule *rule;
+@@ -1617,10 +1617,13 @@ static json_t *table_print_json_full(struct 
+netlink_ctx *ctx,
 
->=20
-> >  end:
-> >         test_bpf_nf__destroy(skel);
-> >  }
->=20
->=20
-> [...]
+  		list_for_each_entry(rule, &chain->rules, list) {
+  			tmp = rule_print_json(&ctx->nft->output, rule);
+-			json_array_append_new(root, tmp);
++			json_array_append_new(rules, tmp);
+  		}
+  	}
 
---Lh+jlsCfG/elROdQ
-Content-Type: application/pgp-signature; name="signature.asc"
++	json_array_extend(root, rules);
++	json_decref(rules);
++
+  	return root;
+  }
 
------BEGIN PGP SIGNATURE-----
-
-iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCYoi3QAAKCRA6cBh0uS2t
-rFLUAP9rOXf1/ICvLv8w6S0EJMMsADYMvo0Sd9xeb08Pr0JaCgD9FNDYMzWbuZAj
-mFKaos0hE8FQfvkk6HZ1VMPy6p8VpgY=
-=02hG
------END PGP SIGNATURE-----
-
---Lh+jlsCfG/elROdQ--
+-- 
+2.27.0
