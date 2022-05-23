@@ -2,127 +2,120 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 500ACC433FE
-	for <netfilter-devel@archiver.kernel.org>; Mon, 23 May 2022 17:03:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B5D7C352AA
+	for <netfilter-devel@archiver.kernel.org>; Mon, 23 May 2022 17:28:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231968AbiEWRDv (ORCPT
+        id S239796AbiEWR2Y (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 23 May 2022 13:03:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44696 "EHLO
+        Mon, 23 May 2022 13:28:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43900 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236904AbiEWRDu (ORCPT
+        with ESMTP id S240691AbiEWRZ3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 23 May 2022 13:03:50 -0400
+        Mon, 23 May 2022 13:25:29 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 26E0A11C02
-        for <netfilter-devel@vger.kernel.org>; Mon, 23 May 2022 10:03:45 -0700 (PDT)
-Date:   Mon, 23 May 2022 19:03:42 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C2E778217E
+        for <netfilter-devel@vger.kernel.org>; Mon, 23 May 2022 10:20:56 -0700 (PDT)
+Date:   Mon, 23 May 2022 19:19:08 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Jeremy Sowden <jeremy@azazel.net>
 Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>,
         Kevin Darbyshire-Bryant <ldir@darbyshire-bryant.me.uk>
-Subject: Re: [nft PATCH v4 08/32] netlink: send bit-length of bitwise binops
- to kernel
-Message-ID: <You+bsAw2mbUuE6S@salvia>
+Subject: Re: [nft PATCH v4 09/32] netlink_delinearize: add postprocessing for
+ payload binops
+Message-ID: <YovCDObeM32n8uvT@salvia>
 References: <20220404121410.188509-1-jeremy@azazel.net>
- <20220404121410.188509-9-jeremy@azazel.net>
+ <20220404121410.188509-10-jeremy@azazel.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20220404121410.188509-9-jeremy@azazel.net>
+In-Reply-To: <20220404121410.188509-10-jeremy@azazel.net>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
-
-I'm sorry for taking time to get back to this, I have questions.
-
-On Mon, Apr 04, 2022 at 01:13:46PM +0100, Jeremy Sowden wrote:
-> Some bitwise operations are generated when munging paylod expressions.
-> During delinearization, we attempt to eliminate these operations.
-> However, this is done before deducing the byte-order or the correct
-> length in bits of the operands, which means that we don't always handle
-> multi-byte host-endian operations correctly.  Therefore, pass the
-> bit-length of these expressions to the kernel in order to have it
-> available during delinearization.
+On Mon, Apr 04, 2022 at 01:13:47PM +0100, Jeremy Sowden wrote:
+> If a user uses a payload expression as a statement argument:
+> 
+>   nft add rule t c meta mark set ip dscp lshift 2 or 0x10
+> 
+> we may need to undo munging during delinearization.
 > 
 > Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 > ---
->  src/netlink_delinearize.c | 14 ++++++++++++--
->  src/netlink_linearize.c   |  2 ++
->  2 files changed, 14 insertions(+), 2 deletions(-)
+>  src/netlink_delinearize.c | 39 +++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 39 insertions(+)
 > 
 > diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-> index a1b00dee209a..733977bc526d 100644
+> index 733977bc526d..12624db4c3a5 100644
 > --- a/src/netlink_delinearize.c
 > +++ b/src/netlink_delinearize.c
-> @@ -451,20 +451,28 @@ static struct expr *netlink_parse_bitwise_bool(struct netlink_parse_ctx *ctx,
->  					       const struct nftnl_expr *nle,
->  					       enum nft_registers sreg,
->  					       struct expr *left)
-> -
->  {
->  	struct nft_data_delinearize nld;
->  	struct expr *expr, *mask, *xor, *or;
-> +	unsigned int nbits;
->  	mpz_t m, x, o;
->  
->  	expr = left;
->  
-> +	nbits = nftnl_expr_get_u32(nle, NFTNL_EXPR_BITWISE_NBITS);
-> +	if (nbits > 0)
-> +		expr->len = nbits;
-
-So NFTNL_EXPR_BITWISE_NBITS is signalling that this is an implicit
-bitwise that has been generated to operate with a payload header bitfield?
-
-Could you provide an example expression tree to show how this
-simplifies delinearization?
-
-> +
->  	nld.value = nftnl_expr_get(nle, NFTNL_EXPR_BITWISE_MASK, &nld.len);
->  	mask = netlink_alloc_value(loc, &nld);
-> +	if (nbits > 0)
-> +		mpz_switch_byteorder(mask->value, div_round_up(nbits, BITS_PER_BYTE));
-
-What is the byteorder expected for the mask before this switch
-operation?
-
->  	mpz_init_set(m, mask->value);
->  
->  	nld.value = nftnl_expr_get(nle, NFTNL_EXPR_BITWISE_XOR, &nld.len);
-> -	xor  = netlink_alloc_value(loc, &nld);
-> +	xor = netlink_alloc_value(loc, &nld);
-> +	if (nbits > 0)
-> +		mpz_switch_byteorder(xor->value, div_round_up(nbits, BITS_PER_BYTE));
->  	mpz_init_set(x, xor->value);
->  
->  	mpz_init_set_ui(o, 0);
-> @@ -500,6 +508,8 @@ static struct expr *netlink_parse_bitwise_bool(struct netlink_parse_ctx *ctx,
->  
->  		or = netlink_alloc_value(loc, &nld);
->  		mpz_set(or->value, o);
-> +		if (nbits > 0)
-> +			mpz_switch_byteorder(or->value, div_round_up(nbits, BITS_PER_BYTE));
->  		expr = binop_expr_alloc(loc, OP_OR, expr, or);
->  		expr->len = left->len;
+> @@ -2454,6 +2454,42 @@ static void relational_binop_postprocess(struct rule_pp_ctx *ctx,
 >  	}
-> diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-> index c8bbcb7452b0..4793f3853bee 100644
-> --- a/src/netlink_linearize.c
-> +++ b/src/netlink_linearize.c
-> @@ -677,6 +677,8 @@ static void netlink_gen_bitwise(struct netlink_linearize_ctx *ctx,
->  	netlink_put_register(nle, NFTNL_EXPR_BITWISE_DREG, dreg);
->  	nftnl_expr_set_u32(nle, NFTNL_EXPR_BITWISE_OP, NFT_BITWISE_BOOL);
->  	nftnl_expr_set_u32(nle, NFTNL_EXPR_BITWISE_LEN, len);
-> +	if (expr->byteorder == BYTEORDER_HOST_ENDIAN)
-> +		nftnl_expr_set_u32(nle, NFTNL_EXPR_BITWISE_NBITS, expr->len);
+>  }
+>  
+> +static bool payload_binop_postprocess(struct rule_pp_ctx *ctx,
+> +				      struct expr **exprp)
+> +{
+> +	struct expr *expr = *exprp;
+> +
+> +	if (expr->op != OP_RSHIFT)
+> +		return false;
+> +
+> +	if (expr->left->etype == EXPR_UNARY) {
+> +		/*
+> +		 * If the payload value was originally in a different byte-order
+> +		 * from the payload expression, there will be a byte-order
+> +		 * conversion to remove.
+> +		 */
 
-Why is this only required for host endian expressions?
+The comment assumes this is a payload expression, the unary is
+stripped off here...
 
->  	netlink_gen_raw_data(mask, expr->byteorder, len, &nld);
->  	nftnl_expr_set(nle, NFTNL_EXPR_BITWISE_MASK, nld.value, nld.len);
+> +		struct expr *left = expr_get(expr->left->arg);
+> +		expr_free(expr->left);
+> +		expr->left = left;
+> +	}
+> +
+> +	if (expr->left->etype != EXPR_BINOP || expr->left->op != OP_AND)
+> +		return false;
+> +
+> +	if (expr->left->left->etype != EXPR_PAYLOAD)
+
+... but the check for payload is coming here.
+
+I assume this postprocessing is to undo the switch from network
+byteorder to host byteorder for the ip dscp of the example above?
+
+Could you describe an example expression tree to depict this
+delinearize scenario?
+
+> +		return false;
+> +
+> +	expr_set_type(expr->right, &integer_type,
+> +		      BYTEORDER_HOST_ENDIAN);
+> +	expr_postprocess(ctx, &expr->right);
+> +
+> +	binop_postprocess(ctx, expr, &expr->left);
+> +	*exprp = expr_get(expr->left);
+> +	expr_free(expr);
+> +
+> +	return true;
+> +}
+> +
+>  static struct expr *string_wildcard_expr_alloc(struct location *loc,
+>  					       const struct expr *mask,
+>  					       const struct expr *expr)
+> @@ -2566,6 +2602,9 @@ static void expr_postprocess(struct rule_pp_ctx *ctx, struct expr **exprp)
+>  		expr_set_type(expr, expr->arg->dtype, !expr->arg->byteorder);
+>  		break;
+>  	case EXPR_BINOP:
+> +		if (payload_binop_postprocess(ctx, exprp))
+> +			break;
+> +
+>  		expr_postprocess(ctx, &expr->left);
+>  		switch (expr->op) {
+>  		case OP_LSHIFT:
 > -- 
 > 2.35.1
 > 
