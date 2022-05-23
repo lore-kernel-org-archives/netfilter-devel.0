@@ -2,180 +2,127 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AFA2AC433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 23 May 2022 14:59:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 500ACC433FE
+	for <netfilter-devel@archiver.kernel.org>; Mon, 23 May 2022 17:03:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237417AbiEWO7g (ORCPT
+        id S231968AbiEWRDv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 23 May 2022 10:59:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36006 "EHLO
+        Mon, 23 May 2022 13:03:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44696 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237309AbiEWO7g (ORCPT
+        with ESMTP id S236904AbiEWRDu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 23 May 2022 10:59:36 -0400
+        Mon, 23 May 2022 13:03:50 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 762B25B8A0
-        for <netfilter-devel@vger.kernel.org>; Mon, 23 May 2022 07:59:34 -0700 (PDT)
-Date:   Mon, 23 May 2022 16:59:30 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 26E0A11C02
+        for <netfilter-devel@vger.kernel.org>; Mon, 23 May 2022 10:03:45 -0700 (PDT)
+Date:   Mon, 23 May 2022 19:03:42 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Stefano Brivio <sbrivio@redhat.com>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] nft_set_rbtree: Move clauses for expired nodes, last
- active node as leaf
-Message-ID: <YouhUq09zfcflOnz@salvia>
-References: <20220512183421.712556-1-sbrivio@redhat.com>
- <YoKVFRR1gggECpiZ@salvia>
- <20220517145709.08694803@elisabeth>
- <20220520174524.439b5fa2@elisabeth>
+To:     Jeremy Sowden <jeremy@azazel.net>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>,
+        Kevin Darbyshire-Bryant <ldir@darbyshire-bryant.me.uk>
+Subject: Re: [nft PATCH v4 08/32] netlink: send bit-length of bitwise binops
+ to kernel
+Message-ID: <You+bsAw2mbUuE6S@salvia>
+References: <20220404121410.188509-1-jeremy@azazel.net>
+ <20220404121410.188509-9-jeremy@azazel.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20220520174524.439b5fa2@elisabeth>
+In-Reply-To: <20220404121410.188509-9-jeremy@azazel.net>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, May 20, 2022 at 05:45:24PM +0200, Stefano Brivio wrote:
-> On Tue, 17 May 2022 14:57:09 +0200
-> Stefano Brivio <sbrivio@redhat.com> wrote:
-> 
-> > On Mon, 16 May 2022 20:16:53 +0200
-> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > 
-> > > Hi Stefano,
-> > > 
-> > > On Thu, May 12, 2022 at 08:34:21PM +0200, Stefano Brivio wrote:  
-> > > > In the overlap detection performed as part of the insertion operation,
-> > > > we have to skip nodes that are not active in the current generation or
-> > > > expired. This was done by adding several conditions in overlap decision
-> > > > clauses, which made it hard to check for correctness, and debug the
-> > > > actual issue this patch is fixing.
-> > > > 
-> > > > Consolidate these conditions into a single clause, so that we can
-> > > > proceed with debugging and fixing the following issue.
-> > > > 
-> > > > Case b3. described in comments covers the insertion of a start
-> > > > element after an existing end, as a leaf. If all the descendants of
-> > > > a given element are inactive, functionally, for the purposes of
-> > > > overlap detection, we still have to treat this as a leaf, but we don't.
-> > > > 
-> > > > If, in the same transaction, we remove a start element to the right,
-> > > > remove an end element to the left, and add a start element to the right
-> > > > of an existing, active end element, we don't hit case b3. For example:
-> > > > 
-> > > > - existing intervals: 1-2, 3-5, 6-7
-> > > > - transaction: delete 3-5, insert 4-5
-> > > > 
-> > > > node traversal might happen as follows:
-> > > > - 2 (active end)
-> > > > - 5 (inactive end)
-> > > > - 3 (inactive start)
-> > > > 
-> > > > when we add 4 as start element, we should simply consider 2 as
-> > > > preceding end, and consider it as a leaf, because interval 3-5 has been
-> > > > deleted. If we don't, we'll report an overlap because we forgot about
-> > > > this.
-> > > > 
-> > > > Add an additional flag which is set as we find an active end, and reset
-> > > > it if we find an active start (to the left). If we finish the traversal
-> > > > with this flag set, it means we need to functionally consider the
-> > > > previous active end as a leaf, and allow insertion instead of reporting
-> > > > overlap.    
-> > > 
-> > > I can still trigger EEXIST with deletion of existing interval. It
-> > > became harder to reproduce after this patch.
-> > > 
-> > > After hitting EEXIST, if I do:
-> > > 
-> > >         echo "flush ruleset" > test.nft
-> > >         nft list ruleset >> test.nft
-> > > 
-> > > to dump the existing ruleset, then I run the delete element command
-> > > again to remove the interval and it works. Before this patch I could
-> > > reproduce it by reloading an existing ruleset dump.
-> > > 
-> > > I'm running the script that I'm attaching manually, just one manual
-> > > invocation after another.  
-> > 
-> > Ouch, sorry for that.
-> > 
-> > It looks like there's another case where inactive elements still affect
-> > overlap detection in an unexpected way... at least with the structure
-> > of this patch it should be easier to find, I'm looking into that now.
-> 
-> ...what a mess. I could figure that part out (it was a case symmetric
-> to what this patch fixed, in this case resolving to case b5.) but
-> there's then another case (found by triggering a specific tree topology
-> with 0044interval_overlap_1) where we first add a start element, then
-> fail to add the end element because the start element is completely
-> "hidden" in the tree by inactive nodes.
-> 
-> I tried to solve that with some backtracking, but that looks also
-> fragile. If I clean up the tree before insertion, instead, that will
-> only deal with expired nodes, not inactive nodes -- I can't erase
-> non-expired, inactive nodes because the API expects to find them at
-> some later point and call nft_rbtree_remove() on them.
-> 
-> Now I'm trying another approach that looks more robust: instead of
-> descending the tree to find overlaps, just going through it in the same
-> way nft_rbtree_gc() does (linearly, node by node), marking the
-> value-wise closest points from left and right _valid_ nodes, and
-> applying the same reasoning. I need a bit more time for this, but it
-> looks way simpler. Insertion itself would keep working as it does now.
-> 
-> In hindsight, it looks like it was a terrible idea to try to fix this
-> implementation. I really underestimated how bad this is. Functionally
-> speaking, it's not a red-black tree because:
-> 
-> - we can't use it as a sorted binary tree, given that some elements
->   "don't matter" for some operations, or have another colour. We might
->   try to think of it as some other structure and rebuild from there
->   useful properties of sorted binary trees, but I'm not sure a
->   "red-brown-black" tree would have any other use making it worth of
->   any further research
-> 
-> - end elements being represented as their value plus one also break
->   assumptions of sorted trees (this is the issue I'm actually facing
->   with backtracking)
-> 
-> - left subtrees store keys greater than right subtrees, but this
->   looks consistent so it's just added fun and could be fixed
->   trivially (it's all reversed)
-> 
-> By the way, I think we _should_ have similar issues in the lookup
-> function. Given that it's possible to build a tree with a subtree of at
-> least three levels with entirely non-valid nodes, I guess we can hide a
-> valid interval from the lookup too. It's just harder to test.
+Hi,
 
-Thanks for the detailed report.
+I'm sorry for taking time to get back to this, I have questions.
 
-Another possibility? Maintain two trees, one for the existing
-generation (this is read-only) and another for the next generation
-(insertion/removals are performed on it), then swap them when commit
-happens? pipapo has similar requirements, currently it is relying on a
-workqueue to make some postprocess after the commit phase. At the
-expense of consuming more memory.
-
-> In the perspective of getting rid of it, I think we need:
+On Mon, Apr 04, 2022 at 01:13:46PM +0100, Jeremy Sowden wrote:
+> Some bitwise operations are generated when munging paylod expressions.
+> During delinearization, we attempt to eliminate these operations.
+> However, this is done before deducing the byte-order or the correct
+> length in bits of the operands, which means that we don't always handle
+> multi-byte host-endian operations correctly.  Therefore, pass the
+> bit-length of these expressions to the kernel in order to have it
+> available during delinearization.
 > 
-> 1. some "introductory" documentation for nft_set_pipapo -- I just
->    got back to it (drawing some diagrams first...)
+> Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+> ---
+>  src/netlink_delinearize.c | 14 ++++++++++++--
+>  src/netlink_linearize.c   |  2 ++
+>  2 files changed, 14 insertions(+), 2 deletions(-)
 > 
-> 2. to understand if the performance gap in the few (maybe not
->    reasonable) cases where nft_set_rbtree matches faster than
->    nft_set_pipapo is acceptable. Summary:
->      https://lore.kernel.org/netfilter-devel/be7d4e51603633e7b88e4b0dde54b25a3e5a018b.1583598508.git.sbrivio@redhat.com/
+> diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+> index a1b00dee209a..733977bc526d 100644
+> --- a/src/netlink_delinearize.c
+> +++ b/src/netlink_delinearize.c
+> @@ -451,20 +451,28 @@ static struct expr *netlink_parse_bitwise_bool(struct netlink_parse_ctx *ctx,
+>  					       const struct nftnl_expr *nle,
+>  					       enum nft_registers sreg,
+>  					       struct expr *left)
+> -
+>  {
+>  	struct nft_data_delinearize nld;
+>  	struct expr *expr, *mask, *xor, *or;
+> +	unsigned int nbits;
+>  	mpz_t m, x, o;
+>  
+>  	expr = left;
+>  
+> +	nbits = nftnl_expr_get_u32(nle, NFTNL_EXPR_BITWISE_NBITS);
+> +	if (nbits > 0)
+> +		expr->len = nbits;
 
-IIRC pipapo was not too far behind from rbtree for a few scenarios.
+So NFTNL_EXPR_BITWISE_NBITS is signalling that this is an implicit
+bitwise that has been generated to operate with a payload header bitfield?
 
-> 3. a solution for https://bugzilla.netfilter.org/show_bug.cgi?id=1583,
->    it's an atomicity issue which has little to do with nft_set_pipapo
->    structures themselves, but I couldn't figure out the exact issue
->    yet. I'm struggling to find the time for it, so if somebody wants to
->    give it a try, I'd be more than happy to reassign it...
+Could you provide an example expression tree to show how this
+simplifies delinearization?
 
-OK, a different problem, related to pipapo.
+> +
+>  	nld.value = nftnl_expr_get(nle, NFTNL_EXPR_BITWISE_MASK, &nld.len);
+>  	mask = netlink_alloc_value(loc, &nld);
+> +	if (nbits > 0)
+> +		mpz_switch_byteorder(mask->value, div_round_up(nbits, BITS_PER_BYTE));
 
-> Anyway, I'll post a different patch for nft_set_rbtree soon.
+What is the byteorder expected for the mask before this switch
+operation?
 
-Thanks.
+>  	mpz_init_set(m, mask->value);
+>  
+>  	nld.value = nftnl_expr_get(nle, NFTNL_EXPR_BITWISE_XOR, &nld.len);
+> -	xor  = netlink_alloc_value(loc, &nld);
+> +	xor = netlink_alloc_value(loc, &nld);
+> +	if (nbits > 0)
+> +		mpz_switch_byteorder(xor->value, div_round_up(nbits, BITS_PER_BYTE));
+>  	mpz_init_set(x, xor->value);
+>  
+>  	mpz_init_set_ui(o, 0);
+> @@ -500,6 +508,8 @@ static struct expr *netlink_parse_bitwise_bool(struct netlink_parse_ctx *ctx,
+>  
+>  		or = netlink_alloc_value(loc, &nld);
+>  		mpz_set(or->value, o);
+> +		if (nbits > 0)
+> +			mpz_switch_byteorder(or->value, div_round_up(nbits, BITS_PER_BYTE));
+>  		expr = binop_expr_alloc(loc, OP_OR, expr, or);
+>  		expr->len = left->len;
+>  	}
+> diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+> index c8bbcb7452b0..4793f3853bee 100644
+> --- a/src/netlink_linearize.c
+> +++ b/src/netlink_linearize.c
+> @@ -677,6 +677,8 @@ static void netlink_gen_bitwise(struct netlink_linearize_ctx *ctx,
+>  	netlink_put_register(nle, NFTNL_EXPR_BITWISE_DREG, dreg);
+>  	nftnl_expr_set_u32(nle, NFTNL_EXPR_BITWISE_OP, NFT_BITWISE_BOOL);
+>  	nftnl_expr_set_u32(nle, NFTNL_EXPR_BITWISE_LEN, len);
+> +	if (expr->byteorder == BYTEORDER_HOST_ENDIAN)
+> +		nftnl_expr_set_u32(nle, NFTNL_EXPR_BITWISE_NBITS, expr->len);
+
+Why is this only required for host endian expressions?
+
+>  	netlink_gen_raw_data(mask, expr->byteorder, len, &nld);
+>  	nftnl_expr_set(nle, NFTNL_EXPR_BITWISE_MASK, nld.value, nld.len);
+> -- 
+> 2.35.1
+> 
