@@ -2,121 +2,200 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DC9CC433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 May 2022 08:38:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A34EC433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 May 2022 09:41:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235099AbiEYIiq (ORCPT
+        id S237481AbiEYJlO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 25 May 2022 04:38:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58740 "EHLO
+        Wed, 25 May 2022 05:41:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48640 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234827AbiEYIip (ORCPT
+        with ESMTP id S234941AbiEYJlM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 25 May 2022 04:38:45 -0400
-Received: from chinatelecom.cn (prt-mail.chinatelecom.cn [42.123.76.226])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7486D21E1A
-        for <netfilter-devel@vger.kernel.org>; Wed, 25 May 2022 01:38:42 -0700 (PDT)
-HMM_SOURCE_IP: 172.18.0.218:60146.350594788
-HMM_ATTACHE_NUM: 0000
-HMM_SOURCE_TYPE: SMTP
-Received: from clientip-101.229.165.113 (unknown [172.18.0.218])
-        by chinatelecom.cn (HERMES) with SMTP id 208B8280105;
-        Wed, 25 May 2022 16:38:33 +0800 (CST)
-X-189-SAVE-TO-SEND: +wenxu@chinatelecom.cn
-Received: from  ([172.18.0.218])
-        by app0025 with ESMTP id 4dd6e35138ac4b65b22020db0725b86c for pablo@netfilter.org;
-        Wed, 25 May 2022 16:38:37 CST
-X-Transaction-ID: 4dd6e35138ac4b65b22020db0725b86c
-X-Real-From: wenxu@chinatelecom.cn
-X-Receive-IP: 172.18.0.218
-X-MEDUSA-Status: 0
-Sender: wenxu@chinatelecom.cn
-From:   wenxu@chinatelecom.cn
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org, wenxu@chinatelecom.cn
-Subject: [PATCH nf-next v2] selftests: netfilter: flowtable vlan filtering bridge support
-Date:   Wed, 25 May 2022 04:38:14 -0400
-Message-Id: <1653467894-5724-1-git-send-email-wenxu@chinatelecom.cn>
-X-Mailer: git-send-email 1.8.3.1
+        Wed, 25 May 2022 05:41:12 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D91B386;
+        Wed, 25 May 2022 02:41:09 -0700 (PDT)
+Received: from fraeml704-chm.china.huawei.com (unknown [172.18.147.201])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4L7QzS3MhZz67Zm0;
+        Wed, 25 May 2022 17:40:36 +0800 (CST)
+Received: from [10.122.132.241] (10.122.132.241) by
+ fraeml704-chm.china.huawei.com (10.206.15.53) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.2375.24; Wed, 25 May 2022 11:41:05 +0200
+Message-ID: <77be3dcf-cae1-f754-ac2a-f9eeab063d76@huawei.com>
+Date:   Wed, 25 May 2022 12:41:03 +0300
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.1
+Subject: Re: [PATCH v5 00/15] Network support for Landlock - UDP discussion
+Content-Language: ru
+To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+CC:     <willemdebruijn.kernel@gmail.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+        <anton.sirazetdinov@huawei.com>, Paul Moore <paul@paul-moore.com>
+References: <20220516152038.39594-1-konstantin.meskhidze@huawei.com>
+ <a5ef620d-0447-3d58-d9bd-1220b8411957@digikod.net>
+From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+In-Reply-To: <a5ef620d-0447-3d58-d9bd-1220b8411957@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.122.132.241]
+X-ClientProxiedBy: lhreml754-chm.china.huawei.com (10.201.108.204) To
+ fraeml704-chm.china.huawei.com (10.206.15.53)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: wenxu <wenxu@chinatelecom.cn>
 
-Add vlan_filtering enabled bridge and vlan case.
-Add a vlan_filtering bridge device to the Router1 (nsr1) container
-and attach the veth0 device to the bridge. Set the IP address to
-the bridge device to exercise the bridge forwarding path.
-The veth0 add in the vlan 10 domain and the br0 also add in the
-vlan 10 domain with untaged.
 
-Signed-off-by: wenxu <wenxu@chinatelecom.cn>
----
-v2: fix set up the br0
-    change iif br0 to iifname br0 for br0 destroy
-    All the test PASS
- 
- tools/testing/selftests/netfilter/nft_flowtable.sh | 28 +++++++++++++++++++---
- 1 file changed, 25 insertions(+), 3 deletions(-)
+5/20/2022 1:48 PM, Mickaël Salaün пишет:
+> Hi,
+> 
+> Regarding future plan to support UDP, it may not be possible to 
+> efficiently restrict sending on a port or receiving on a port because of 
+> the non-connnected state of UDP sockets. Indeed, when setting up a 
+> socket to send a packet on a specified port, we (automatically or 
+> manually) have a receiving port configured and this socket can be used 
+> to receive any UDP packet. An UDP socket could be restricted to only 
+> send/write or to receive/read from a specific port, but this would 
+> probably not be as useful as the TCP restrictions. That could look like 
+> RECEIVE_UDP and SEND_UDP access-rights but the LSM implementation would 
+> be more complex because of the socket/FD tracking. Moreover, the 
+> performance impact could be more important for every read and write 
+> syscall (whatever the FD type).
+> 
+> Any opinion?
+> 
 
-diff --git a/tools/testing/selftests/netfilter/nft_flowtable.sh b/tools/testing/selftests/netfilter/nft_flowtable.sh
-index d4ffebb..13e03e3 100755
---- a/tools/testing/selftests/netfilter/nft_flowtable.sh
-+++ b/tools/testing/selftests/netfilter/nft_flowtable.sh
-@@ -37,6 +37,7 @@ checktool "nft --version" "run test without nft tool"
- checktool "ip -Version" "run test without ip tool"
- checktool "which nc" "run test without nc (netcat)"
- checktool "ip netns add nsr1" "create net namespace"
-+checktool "bridge -Version" "run test without bridge tool"
- 
- ip netns add ns1
- ip netns add ns2
-@@ -388,7 +389,7 @@ flush table ip nat
- table ip nat {
-    chain prerouting {
-       type nat hook prerouting priority 0; policy accept;
--      meta iif "br0" ip daddr 10.6.6.6 tcp dport 1666 counter dnat ip to 10.0.2.99:12345
-+      meta iifname "br0" ip daddr 10.6.6.6 tcp dport 1666 counter dnat ip to 10.0.2.99:12345
-    }
- 
-    chain postrouting {
-@@ -431,12 +432,33 @@ else
- 	ret=1
- fi
- 
--# restore test topology (remove bridge and VLAN)
--ip -net nsr1 link set veth0 nomaster
-+# Another test:
-+# Add vlan filtering bridge interface br0 to Router1, with NAT and VLAN.
-+ip -net nsr1 link set veth0.10 nomaster
- ip -net nsr1 link set veth0 down
- ip -net nsr1 link set veth0.10 down
- ip -net nsr1 link delete veth0.10 type vlan
- ip -net nsr1 link delete br0 type bridge
-+ip -net nsr1 link add name br0 type bridge vlan_filtering 1
-+ip -net nsr1 link set up dev veth0
-+ip -net nsr1 link set veth0 master br0
-+ip -net nsr1 link set up dev br0
-+ip -net nsr1 addr add 10.0.1.1/24 dev br0
-+bridge -n nsr1 vlan add dev veth0 vid 10 pvid
-+bridge -n nsr1 vlan add dev br0 vid 10 pvid untagged self
-+
-+if test_tcp_forwarding_nat ns1 ns2; then
-+	echo "PASS: flow offloaded for ns1/ns2 with vlan filtering bridge NAT and VLAN"
-+else
-+	echo "FAIL: flow offload for ns1/ns2 with vlan filtering bridge NAT and VLAN" 1>&2
-+	ip netns exec nsr1 nft list ruleset
-+	ret=1
-+fi
-+
-+# restore test topology (remove bridge and VLAN)
-+ip -net nsr1 link set veth0 nomaster
-+ip -net nsr1 link set veth0 down
-+ip -net nsr1 link delete br0 type bridge
- ip -net ns1 addr flush dev eth0.10
- ip -net ns1 link set eth0.10 down
- ip -net ns1 link set eth0 down
--- 
-1.8.3.1
+   You are right about non-connected nature of UDP sockets and 
+landlocking them like TCP ones would have performance impact.
+I'm thinking about a "connected" UDP socket.
+	It's possible call connect() for a UDP socket. But this does not result 
+in anything like a TCP connection: There is no three-way handshake. 
+Instead, the kernel just checks for any immediate errors (e.g., an 
+obviously unreachable destination), records the IP address and port 
+number of the peer (from the socket address structure passed to 
+connect), and returns immediately to the calling process. In this case 
+UDP socket is pseudo-connected and stores peer IP addrsss and port from 
+connect(). The application calls connect(), specifies the IP address and 
+port number of its peer. It then uses read() and write() yo exchange 
+data with the peer. Datagrams arriving from any other IP address or port 
+are not passed to the connected socket because either the source IP 
+address or source UDP port does not match the protocol address to which 
+the socket is connected. These datagrams could be delivered to some 
+other UDP socket on the host. If there is no other matching socket for 
+the arriving datagram, UDP will discard it and generate an ICMP ‘‘port 
+unreachable’’ error. In summary, we can say that a UDP client or server 
+can call connect only if that process uses the UDP socket to communicate 
+with exactly one peer. Normally, it is a UDP client that calls connect, 
+but there are applications in which the UDP server communicates with a 
+single client for a long duration (e.g., TFTP); in this case, both the
+client and server can call connect. [1]
 
+In case if a "connected", or lets call it "pseudo-connected", UPD socket 
+there is no performance impact on write(), read() system calls, cause we 
+could use the same hooks bind() and connect() like for TCP one.
+
+What do you think? Please share your opinion?
+
+[1] "Unix Network Programming, The sockets Networling API." by W.Richard 
+Stevens.
+
+> Regards,
+>   Mickaël
+> 
+> 
+> On 16/05/2022 17:20, Konstantin Meskhidze wrote:
+>> Hi,
+>> This is a new V5 patch related to Landlock LSM network confinement.
+>> It is based on the latest landlock-wip branch on top of v5.18-rc5:
+>> https://git.kernel.org/pub/scm/linux/kernel/git/mic/linux.git/log/?h=landlock-wip 
+>>
+>>
+>> It brings refactoring of previous patch version V4.
+>> Added additional selftests for IP6 network families and network 
+>> namespace.
+>> Added TCP sockets confinement support in sandboxer demo.
+>>
+>> All test were run in QEMU evironment and compiled with
+>>   -static flag.
+>>   1. network_test: 13/13 tests passed.
+>>   2. base_test: 7/7 tests passed.
+>>   3. fs_test: 59/59 tests passed.
+>>   4. ptrace_test: 8/8 tests passed.
+>>
+>> Still have issue with base_test were compiled without -static flag
+>> (landlock-wip branch without network support)
+>> 1. base_test: 6/7 tests passed.
+>>   Error:
+>>   #  RUN           global.inconsistent_attr ...
+>>   # base_test.c:54:inconsistent_attr:Expected ENOMSG (42) == errno (22)
+>>   # inconsistent_attr: Test terminated by assertion
+>>   #          FAIL  global.inconsistent_attr
+>> not ok 1 global.inconsistent_attr
+>>
+>> LCOV - code coverage report:
+>>              Hit  Total  Coverage
+>> Lines:      952  1010    94.3 %
+>> Functions:  79   82      96.3 %
+>>
+>> Previous versions:
+>> v4: 
+>> https://lore.kernel.org/linux-security-module/20220309134459.6448-1-konstantin.meskhidze@huawei.com/ 
+>>
+>> v3: 
+>> https://lore.kernel.org/linux-security-module/20220124080215.265538-1-konstantin.meskhidze@huawei.com/ 
+>>
+>> v2: 
+>> https://lore.kernel.org/linux-security-module/20211228115212.703084-1-konstantin.meskhidze@huawei.com/ 
+>>
+>> v1: 
+>> https://lore.kernel.org/linux-security-module/20211210072123.386713-1-konstantin.meskhidze@huawei.com/ 
+>>
+>>
+>> Konstantin Meskhidze (15):
+>>    landlock: access mask renaming
+>>    landlock: landlock_find/insert_rule refactoring
+>>    landlock: merge and inherit function refactoring
+>>    landlock: helper functions refactoring
+>>    landlock: landlock_add_rule syscall refactoring
+>>    landlock: user space API network support
+>>    landlock: add support network rules
+>>    landlock: TCP network hooks implementation
+>>    seltests/landlock: add tests for bind() hooks
+>>    seltests/landlock: add tests for connect() hooks
+>>    seltests/landlock: connect() with AF_UNSPEC tests
+>>    seltests/landlock: rules overlapping test
+>>    seltests/landlock: ruleset expanding test
+>>    seltests/landlock: invalid user input data test
+>>    samples/landlock: adds network demo
+>>
+>>   include/uapi/linux/landlock.h                |  48 +
+>>   samples/landlock/sandboxer.c                 | 105 ++-
+>>   security/landlock/Kconfig                    |   1 +
+>>   security/landlock/Makefile                   |   2 +
+>>   security/landlock/fs.c                       | 169 +---
+>>   security/landlock/limits.h                   |   8 +-
+>>   security/landlock/net.c                      | 159 ++++
+>>   security/landlock/net.h                      |  25 +
+>>   security/landlock/ruleset.c                  | 481 ++++++++--
+>>   security/landlock/ruleset.h                  | 102 +-
+>>   security/landlock/setup.c                    |   2 +
+>>   security/landlock/syscalls.c                 | 173 ++--
+>>   tools/testing/selftests/landlock/base_test.c |   4 +-
+>>   tools/testing/selftests/landlock/common.h    |   9 +
+>>   tools/testing/selftests/landlock/config      |   5 +-
+>>   tools/testing/selftests/landlock/fs_test.c   |  10 -
+>>   tools/testing/selftests/landlock/net_test.c  | 935 +++++++++++++++++++
+>>   17 files changed, 1925 insertions(+), 313 deletions(-)
+>>   create mode 100644 security/landlock/net.c
+>>   create mode 100644 security/landlock/net.h
+>>   create mode 100644 tools/testing/selftests/landlock/net_test.c
+>>
+>> -- 
+>> 2.25.1
+>>
+> .
