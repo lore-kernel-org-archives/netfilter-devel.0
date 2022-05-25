@@ -2,78 +2,48 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D562CC433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 May 2022 16:24:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35B47C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 May 2022 17:11:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236108AbiEYQYU (ORCPT
+        id S240603AbiEYRLV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 25 May 2022 12:24:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41362 "EHLO
+        Wed, 25 May 2022 13:11:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57122 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233582AbiEYQYT (ORCPT
+        with ESMTP id S232788AbiEYRLT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 25 May 2022 12:24:19 -0400
-Received: from chinatelecom.cn (prt-mail.chinatelecom.cn [42.123.76.223])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 43CBD8148B
-        for <netfilter-devel@vger.kernel.org>; Wed, 25 May 2022 09:24:18 -0700 (PDT)
-HMM_SOURCE_IP: 172.18.0.218:53104.440129044
-HMM_ATTACHE_NUM: 0000
-HMM_SOURCE_TYPE: SMTP
-Received: from clientip-101.229.165.125 (unknown [172.18.0.218])
-        by chinatelecom.cn (HERMES) with SMTP id 68EA42800B5;
-        Thu, 26 May 2022 00:24:09 +0800 (CST)
-X-189-SAVE-TO-SEND: +wenxu@chinatelecom.cn
-Received: from  ([172.18.0.218])
-        by app0025 with ESMTP id 02c64cf405fa4328bb3a7333a0eadaf8 for pablo@netfilter.org;
-        Thu, 26 May 2022 00:24:10 CST
-X-Transaction-ID: 02c64cf405fa4328bb3a7333a0eadaf8
-X-Real-From: wenxu@chinatelecom.cn
-X-Receive-IP: 172.18.0.218
-X-MEDUSA-Status: 0
-Sender: wenxu@chinatelecom.cn
-From:   wenxu@chinatelecom.cn
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org, wenxu@chinatelecom.cn
-Subject: [PATCH nf-next] netfilter: flowtable: fix nft_flow_route use saddr for reverse route
-Date:   Wed, 25 May 2022 12:23:57 -0400
-Message-Id: <1653495837-75877-1-git-send-email-wenxu@chinatelecom.cn>
-X-Mailer: git-send-email 1.8.3.1
+        Wed, 25 May 2022 13:11:19 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DDD8C20C
+        for <netfilter-devel@vger.kernel.org>; Wed, 25 May 2022 10:11:17 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1ntuXT-0006BY-1T; Wed, 25 May 2022 19:11:15 +0200
+Date:   Wed, 25 May 2022 19:11:15 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Ben Brown <ben@demerara.io>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH v2] build: Fix error during out of tree build
+Message-ID: <Yo5jMz+jkBWUrSzD@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>, Ben Brown <ben@demerara.io>,
+        netfilter-devel@vger.kernel.org
+References: <20220525152613.152899-1-ben@demerara.io>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220525152613.152899-1-ben@demerara.io>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: wenxu <wenxu@chinatelecom.cn>
+On Wed, May 25, 2022 at 04:26:13PM +0100, Ben Brown wrote:
+> Fixes the following error:
+> 
+>     ../../libxtables/xtables.c:52:10: fatal error: libiptc/linux_list.h: No such file or directory
+>        52 | #include <libiptc/linux_list.h>
+> 
+> Fixes: f58b0d7406451 ("libxtables: Implement notargets hash table")
+> 
+> Signed-off-by: Ben Brown <ben@demerara.io>
 
-The nf_flow_tabel get route through ip_route_output_key which
-the saddr should be local ones. For the forward case it always
-can't get the other_dst and can't offload any flows
-
-Fixes: 3412e1641828 (netfilter: flowtable: nft_flow_route use more data for reverse route)
-Signed-off-by: wenxu <wenxu@chinatelecom.cn>
----
- net/netfilter/nft_flow_offload.c | 2 --
- 1 file changed, 2 deletions(-)
-
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index 40d18aa..742a494 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -230,7 +230,6 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
- 	switch (nft_pf(pkt)) {
- 	case NFPROTO_IPV4:
- 		fl.u.ip4.daddr = ct->tuplehash[dir].tuple.src.u3.ip;
--		fl.u.ip4.saddr = ct->tuplehash[dir].tuple.dst.u3.ip;
- 		fl.u.ip4.flowi4_oif = nft_in(pkt)->ifindex;
- 		fl.u.ip4.flowi4_iif = this_dst->dev->ifindex;
- 		fl.u.ip4.flowi4_tos = RT_TOS(ip_hdr(pkt->skb)->tos);
-@@ -238,7 +237,6 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
- 		break;
- 	case NFPROTO_IPV6:
- 		fl.u.ip6.daddr = ct->tuplehash[dir].tuple.src.u3.in6;
--		fl.u.ip6.saddr = ct->tuplehash[dir].tuple.dst.u3.in6;
- 		fl.u.ip6.flowi6_oif = nft_in(pkt)->ifindex;
- 		fl.u.ip6.flowi6_iif = this_dst->dev->ifindex;
- 		fl.u.ip6.flowlabel = ip6_flowinfo(ipv6_hdr(pkt->skb));
--- 
-1.8.3.1
-
+Applied, thanks!
