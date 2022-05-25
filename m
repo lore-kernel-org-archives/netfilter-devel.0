@@ -2,92 +2,121 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D896CC433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 May 2022 02:32:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DC9CC433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 May 2022 08:38:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238937AbiEYCcr (ORCPT
+        id S235099AbiEYIiq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 24 May 2022 22:32:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42052 "EHLO
+        Wed, 25 May 2022 04:38:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58740 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235106AbiEYCcp (ORCPT
+        with ESMTP id S234827AbiEYIip (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 May 2022 22:32:45 -0400
-Received: from out2.migadu.com (out2.migadu.com [IPv6:2001:41d0:2:aacc::])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D06254F9F
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 May 2022 19:32:44 -0700 (PDT)
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1653445962;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=VvM8I4ZAqqilkOwCZ5czqLhUXw9LWp9edURJ9I5GvHM=;
-        b=V2qpKKurXYHJtJhBscMR1518ojE8nNpCfnUbyeQ3S7BLycyWYdKxY3n/i6pfNbPb6F2PZX
-        LqddWmBAgUnoUzC6TmYGgpoydTLSsT9wAgek5tQtc/+6XF+/ZlOTtQEjpPkBsGj1CnOj4J
-        ywrH9wn0fVkJ6byS9VyI/5c1oLNiUtY=
-From:   Jackie Liu <liu.yun@linux.dev>
-To:     fw@strlen.de
-Cc:     netfilter-devel@vger.kernel.org, liu.yun@linux.dev
-Subject: [PATCH] netfilter: conntrack: use fallthrough to cleanup
-Date:   Wed, 25 May 2022 10:32:15 +0800
-Message-Id: <20220525023215.422470-1-liu.yun@linux.dev>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
-X-Migadu-Auth-User: linux.dev
+        Wed, 25 May 2022 04:38:45 -0400
+Received: from chinatelecom.cn (prt-mail.chinatelecom.cn [42.123.76.226])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7486D21E1A
+        for <netfilter-devel@vger.kernel.org>; Wed, 25 May 2022 01:38:42 -0700 (PDT)
+HMM_SOURCE_IP: 172.18.0.218:60146.350594788
+HMM_ATTACHE_NUM: 0000
+HMM_SOURCE_TYPE: SMTP
+Received: from clientip-101.229.165.113 (unknown [172.18.0.218])
+        by chinatelecom.cn (HERMES) with SMTP id 208B8280105;
+        Wed, 25 May 2022 16:38:33 +0800 (CST)
+X-189-SAVE-TO-SEND: +wenxu@chinatelecom.cn
+Received: from  ([172.18.0.218])
+        by app0025 with ESMTP id 4dd6e35138ac4b65b22020db0725b86c for pablo@netfilter.org;
+        Wed, 25 May 2022 16:38:37 CST
+X-Transaction-ID: 4dd6e35138ac4b65b22020db0725b86c
+X-Real-From: wenxu@chinatelecom.cn
+X-Receive-IP: 172.18.0.218
+X-MEDUSA-Status: 0
+Sender: wenxu@chinatelecom.cn
+From:   wenxu@chinatelecom.cn
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org, wenxu@chinatelecom.cn
+Subject: [PATCH nf-next v2] selftests: netfilter: flowtable vlan filtering bridge support
+Date:   Wed, 25 May 2022 04:38:14 -0400
+Message-Id: <1653467894-5724-1-git-send-email-wenxu@chinatelecom.cn>
+X-Mailer: git-send-email 1.8.3.1
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Jackie Liu <liuyun01@kylinos.cn>
+From: wenxu <wenxu@chinatelecom.cn>
 
-These cases all use the same function. we can simplify the code through
-fallthrough.
+Add vlan_filtering enabled bridge and vlan case.
+Add a vlan_filtering bridge device to the Router1 (nsr1) container
+and attach the veth0 device to the bridge. Set the IP address to
+the bridge device to exercise the bridge forwarding path.
+The veth0 add in the vlan 10 domain and the br0 also add in the
+vlan 10 domain with untaged.
 
-$ size net/netfilter/nf_conntrack_core.o
-
-        text	   data	    bss	    dec	    hex	filename
-before  81601	  81430	    768	 163799	  27fd7	net/netfilter/nf_conntrack_core.o
-after   80361	  81430	    768	 162559	  27aff	net/netfilter/nf_conntrack_core.o
-
-Arch: aarch64
-Gcc : gcc version 9.4.0 (Ubuntu 9.4.0-1ubuntu1~20.04.1)
-
-Reported-by: k2ci <kernel-bot@kylinos.cn>
-Signed-off-by: Jackie Liu <liuyun01@kylinos.cn>
+Signed-off-by: wenxu <wenxu@chinatelecom.cn>
 ---
- net/netfilter/nf_conntrack_core.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+v2: fix set up the br0
+    change iif br0 to iifname br0 for br0 destroy
+    All the test PASS
+ 
+ tools/testing/selftests/netfilter/nft_flowtable.sh | 28 +++++++++++++++++++---
+ 1 file changed, 25 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 0164e5f522e8..5ae64f4971d3 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -329,20 +329,18 @@ nf_ct_get_tuple(const struct sk_buff *skb,
- 		return gre_pkt_to_tuple(skb, dataoff, net, tuple);
- #endif
- 	case IPPROTO_TCP:
--	case IPPROTO_UDP: /* fallthrough */
--		return nf_ct_get_tuple_ports(skb, dataoff, tuple);
-+	case IPPROTO_UDP:
- #ifdef CONFIG_NF_CT_PROTO_UDPLITE
- 	case IPPROTO_UDPLITE:
--		return nf_ct_get_tuple_ports(skb, dataoff, tuple);
- #endif
- #ifdef CONFIG_NF_CT_PROTO_SCTP
- 	case IPPROTO_SCTP:
--		return nf_ct_get_tuple_ports(skb, dataoff, tuple);
- #endif
- #ifdef CONFIG_NF_CT_PROTO_DCCP
- 	case IPPROTO_DCCP:
--		return nf_ct_get_tuple_ports(skb, dataoff, tuple);
- #endif
-+		/* fallthrough */
-+		return nf_ct_get_tuple_ports(skb, dataoff, tuple);
- 	default:
- 		break;
- 	}
+diff --git a/tools/testing/selftests/netfilter/nft_flowtable.sh b/tools/testing/selftests/netfilter/nft_flowtable.sh
+index d4ffebb..13e03e3 100755
+--- a/tools/testing/selftests/netfilter/nft_flowtable.sh
++++ b/tools/testing/selftests/netfilter/nft_flowtable.sh
+@@ -37,6 +37,7 @@ checktool "nft --version" "run test without nft tool"
+ checktool "ip -Version" "run test without ip tool"
+ checktool "which nc" "run test without nc (netcat)"
+ checktool "ip netns add nsr1" "create net namespace"
++checktool "bridge -Version" "run test without bridge tool"
+ 
+ ip netns add ns1
+ ip netns add ns2
+@@ -388,7 +389,7 @@ flush table ip nat
+ table ip nat {
+    chain prerouting {
+       type nat hook prerouting priority 0; policy accept;
+-      meta iif "br0" ip daddr 10.6.6.6 tcp dport 1666 counter dnat ip to 10.0.2.99:12345
++      meta iifname "br0" ip daddr 10.6.6.6 tcp dport 1666 counter dnat ip to 10.0.2.99:12345
+    }
+ 
+    chain postrouting {
+@@ -431,12 +432,33 @@ else
+ 	ret=1
+ fi
+ 
+-# restore test topology (remove bridge and VLAN)
+-ip -net nsr1 link set veth0 nomaster
++# Another test:
++# Add vlan filtering bridge interface br0 to Router1, with NAT and VLAN.
++ip -net nsr1 link set veth0.10 nomaster
+ ip -net nsr1 link set veth0 down
+ ip -net nsr1 link set veth0.10 down
+ ip -net nsr1 link delete veth0.10 type vlan
+ ip -net nsr1 link delete br0 type bridge
++ip -net nsr1 link add name br0 type bridge vlan_filtering 1
++ip -net nsr1 link set up dev veth0
++ip -net nsr1 link set veth0 master br0
++ip -net nsr1 link set up dev br0
++ip -net nsr1 addr add 10.0.1.1/24 dev br0
++bridge -n nsr1 vlan add dev veth0 vid 10 pvid
++bridge -n nsr1 vlan add dev br0 vid 10 pvid untagged self
++
++if test_tcp_forwarding_nat ns1 ns2; then
++	echo "PASS: flow offloaded for ns1/ns2 with vlan filtering bridge NAT and VLAN"
++else
++	echo "FAIL: flow offload for ns1/ns2 with vlan filtering bridge NAT and VLAN" 1>&2
++	ip netns exec nsr1 nft list ruleset
++	ret=1
++fi
++
++# restore test topology (remove bridge and VLAN)
++ip -net nsr1 link set veth0 nomaster
++ip -net nsr1 link set veth0 down
++ip -net nsr1 link delete br0 type bridge
+ ip -net ns1 addr flush dev eth0.10
+ ip -net ns1 link set eth0.10 down
+ ip -net ns1 link set eth0 down
 -- 
-2.25.1
+1.8.3.1
 
