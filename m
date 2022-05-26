@@ -2,37 +2,37 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92D18C4332F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 26 May 2022 21:35:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86873C4167D
+	for <netfilter-devel@archiver.kernel.org>; Thu, 26 May 2022 21:35:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348703AbiEZVf4 (ORCPT
+        id S1348720AbiEZVf6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 26 May 2022 17:35:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53510 "EHLO
+        Thu, 26 May 2022 17:35:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53584 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349146AbiEZVfu (ORCPT
+        with ESMTP id S239426AbiEZVfz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 26 May 2022 17:35:50 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C3613E732D;
-        Thu, 26 May 2022 14:35:45 -0700 (PDT)
+        Thu, 26 May 2022 17:35:55 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70D31E64C8;
+        Thu, 26 May 2022 14:35:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E70A0B82208;
-        Thu, 26 May 2022 21:35:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A33DC34116;
-        Thu, 26 May 2022 21:35:38 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C8FCFB82208;
+        Thu, 26 May 2022 21:35:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6FF2C34116;
+        Thu, 26 May 2022 21:35:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1653600942;
-        bh=NSLGp1ZxKdaAmViK9dyj47U8pQr9uUnIw1bRYSLQZTk=;
+        s=k20201202; t=1653600950;
+        bh=mqF8jilsCws+g9Zxa8PAKLUjKcoZ29u8HpwxolUv1LM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=iPPqUAH9CVU4Glr0JjL3+gPwMIOnjViRHx0fcm/MfyqOjalWKMagAtx4rYCORcyo4
-         qMLgEuI7zXsemKgWwm40LaIrOLRZVTo4ZPntgHe/HtWDNmXp392R/My4und5Vk8dZq
-         d/gg34ICy9exaLTeVb3LiAI8bWkjYWHlSGj1++mWsD6dYx0cGpSoTcX7nD/GQUoVjr
-         IOQuh4EgXBx0feA68sH5J8ieBDlMnfKaWU5IDRZsLR4k7jVUIBOIimDwd1UC7ibzNf
-         /+Vrhq/g4SSYHKxCLV7xl753V2r5z0L4g4a9N5rysOLYYYbbv8kteRspoRVITZDRBl
-         5d5J6GqisfBMA==
+        b=Xk5p1Rx4Ia8G6b+1VoVvU88Q4hlFaq4LKttOOwhvfD15q1MsCYkwPcMcz+D/lOSqa
+         QzGOShG5QaKCMYXu5bYsIRITQACgGpukxdQ3AqEyy/MtOP6isC76vxqIRudc6MAfEl
+         kYi63413IL4yxjPbA7h3aZUpmtJSdoTwp1dcNSCxJVbUZa6XyqYmddCTROuoBTOThx
+         GYekzTP3AZVuZmsJWrHYzaoAUyKpiLrH22nuTmY3SJdFG0afbCwFyxgzzXWacvYBlA
+         EWGEv4gt+G0R541U7/keKeY/ZLxTSGl5iAEkD/C61HoRXaUz6YWo700OE7PsULSJaq
+         rvBAOh9D8gxtw==
 From:   Lorenzo Bianconi <lorenzo@kernel.org>
 To:     bpf@vger.kernel.org
 Cc:     netdev@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
@@ -41,9 +41,9 @@ Cc:     netdev@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
         fw@strlen.de, netfilter-devel@vger.kernel.org,
         lorenzo.bianconi@redhat.com, brouer@redhat.com, toke@redhat.com,
         memxor@gmail.com, yhs@fb.com
-Subject: [PATCH v4 bpf-next 04/14] bpf: Support storing rdonly PTR_TO_BTF_ID in BPF maps
-Date:   Thu, 26 May 2022 23:34:52 +0200
-Message-Id: <5dd1dc450b52966f2cdde33e70fd098249a37e58.1653600578.git.lorenzo@kernel.org>
+Subject: [PATCH v4 bpf-next 06/14] bpf: Whitelist some fields in nf_conn for BPF_WRITE
+Date:   Thu, 26 May 2022 23:34:54 +0200
+Message-Id: <2954ab26de09afeecf3a56ba93624f9629072102.1653600578.git.lorenzo@kernel.org>
 X-Mailer: git-send-email 2.35.3
 In-Reply-To: <cover.1653600577.git.lorenzo@kernel.org>
 References: <cover.1653600577.git.lorenzo@kernel.org>
@@ -55,264 +55,272 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Kumar Kartikeya Dwivedi <memxor@gmail.com>
 
-User needs to declare kptr as pointer to const struct in map to be able
-to permit store of a read only PTR_TO_BTF_ID, be it trusted or
-untrusted. It is ofcourse allowed to also store normal PTR_TO_BTF_ID to
-such fields, but the next load will mark the register as read only
-PTR_TO_BTF_ID.
+Since we want to allow user to set some fields in nf_conn after it is
+allocated but before it is inserted, we can permit BPF_WRITE for normal
+nf_conn, and then mark return value as read only on insert, preventing
+further BPF_WRITE. This way, nf_conn can be written to using normal
+BPF instructions after allocation, but not after insertion.
 
-bpf_kptr_xchg now accepts read only PTR_TO_BTF_ID in addition to normal
-ones, and changes its second parameter type from void * to const void *
-so that when it is a prototype in BPF C, users can pass const declared
-pointers into it.
-
-On load, the destination registers now gains MEM_RDONLY in addition to
-flags that were set previously. This why kptr needs to point to const
-struct, since we need to carry the MEM_RDONLY flag in the prog to map
-to prog chain.
-
-In addition to this, loads for members now also set MEM_RDONLY when it
-is for pointer to const struct.
+Note that we special nf_conn a bit here, inside the btf_struct_access
+callback for XDP and TC programs. Since this is the only struct for
+these programs requiring such adjustments, making this mechanism
+more generic has been left as an exercise for a future patch adding
+custom callbacks for more structs.
 
 Signed-off-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
 Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
 ---
- include/linux/bpf.h            |  5 +++++
- include/uapi/linux/bpf.h       |  2 +-
- kernel/bpf/btf.c               | 21 +++++++++++++++++++--
- kernel/bpf/helpers.c           |  4 ++--
- kernel/bpf/verifier.c          | 32 +++++++++++++++++++++-----------
- tools/include/uapi/linux/bpf.h |  2 +-
- 6 files changed, 49 insertions(+), 17 deletions(-)
+ include/linux/bpf.h                      | 12 ++---
+ include/linux/filter.h                   |  3 ++
+ include/net/netfilter/nf_conntrack_bpf.h |  5 +++
+ kernel/bpf/verifier.c                    |  6 ++-
+ net/core/filter.c                        | 28 ++++++++++++
+ net/netfilter/nf_conntrack_bpf.c         | 56 +++++++++++++++++++++++-
+ net/netfilter/nf_conntrack_core.c        |  2 +
+ 7 files changed, 105 insertions(+), 7 deletions(-)
 
 diff --git a/include/linux/bpf.h b/include/linux/bpf.h
-index 2b914a56a2c5..49e3e7f4b0f9 100644
+index 49e3e7f4b0f9..bc5d8d0e63d1 100644
 --- a/include/linux/bpf.h
 +++ b/include/linux/bpf.h
-@@ -169,6 +169,10 @@ enum bpf_kptr_type {
- 	BPF_KPTR_REF,
+@@ -640,6 +640,12 @@ struct bpf_prog_ops {
+ 			union bpf_attr __user *uattr);
  };
  
-+enum bpf_kptr_flags {
-+	BPF_KPTR_F_RDONLY = (1 << 0),
-+};
++typedef int (*btf_struct_access_t)(struct bpf_verifier_log *log,
++				   const struct btf *btf,
++				   const struct btf_type *t, int off, int size,
++				   enum bpf_access_type atype, u32 *next_btf_id,
++				   enum bpf_type_flag *flag);
 +
- struct bpf_map_value_off_desc {
- 	u32 offset;
- 	enum bpf_kptr_type type;
-@@ -177,6 +181,7 @@ struct bpf_map_value_off_desc {
- 		struct module *module;
- 		btf_dtor_kfunc_t dtor;
- 		u32 btf_id;
-+		int flags;
- 	} kptr;
+ struct bpf_verifier_ops {
+ 	/* return eBPF function prototype for verification */
+ 	const struct bpf_func_proto *
+@@ -660,11 +666,7 @@ struct bpf_verifier_ops {
+ 				  const struct bpf_insn *src,
+ 				  struct bpf_insn *dst,
+ 				  struct bpf_prog *prog, u32 *target_size);
+-	int (*btf_struct_access)(struct bpf_verifier_log *log,
+-				 const struct btf *btf,
+-				 const struct btf_type *t, int off, int size,
+-				 enum bpf_access_type atype,
+-				 u32 *next_btf_id, enum bpf_type_flag *flag);
++	btf_struct_access_t btf_struct_access;
  };
  
-diff --git a/include/uapi/linux/bpf.h b/include/uapi/linux/bpf.h
-index f4009dbdf62d..cd76ca331f52 100644
---- a/include/uapi/linux/bpf.h
-+++ b/include/uapi/linux/bpf.h
-@@ -5154,7 +5154,7 @@ union bpf_attr {
-  *		**-EOPNOTSUP** if the hash calculation failed or **-EINVAL** if
-  *		invalid arguments are passed.
+ struct bpf_prog_offload_ops {
+diff --git a/include/linux/filter.h b/include/linux/filter.h
+index ed0c0ff42ad5..95cbf9b28927 100644
+--- a/include/linux/filter.h
++++ b/include/linux/filter.h
+@@ -1389,6 +1389,9 @@ struct bpf_sk_lookup_kern {
+ 
+ extern struct static_key_false bpf_sk_lookup_enabled;
+ 
++extern btf_struct_access_t nf_conn_btf_struct_access;
++extern struct mutex nf_conn_btf_struct_access_mtx;
++
+ /* Runners for BPF_SK_LOOKUP programs to invoke on socket lookup.
   *
-- * void *bpf_kptr_xchg(void *map_value, void *ptr)
-+ * void *bpf_kptr_xchg(void *map_value, const void *ptr)
-  *	Description
-  *		Exchange kptr at pointer *map_value* with *ptr*, and return the
-  *		old value. *ptr* can be NULL, otherwise it must be a referenced
-diff --git a/kernel/bpf/btf.c b/kernel/bpf/btf.c
-index bcdfb8ef0481..58de6d1204ee 100644
---- a/kernel/bpf/btf.c
-+++ b/kernel/bpf/btf.c
-@@ -3174,6 +3174,7 @@ struct btf_field_info {
- 	u32 type_id;
- 	u32 off;
- 	enum bpf_kptr_type type;
-+	int flags;
- };
+  * Allowed return values for a BPF SK_LOOKUP program are SK_PASS and
+diff --git a/include/net/netfilter/nf_conntrack_bpf.h b/include/net/netfilter/nf_conntrack_bpf.h
+index a473b56842c5..15c027549250 100644
+--- a/include/net/netfilter/nf_conntrack_bpf.h
++++ b/include/net/netfilter/nf_conntrack_bpf.h
+@@ -10,6 +10,7 @@
+     (IS_MODULE(CONFIG_NF_CONNTRACK) && IS_ENABLED(CONFIG_DEBUG_INFO_BTF_MODULES))
  
- static int btf_find_struct(const struct btf *btf, const struct btf_type *t,
-@@ -3191,6 +3192,7 @@ static int btf_find_kptr(const struct btf *btf, const struct btf_type *t,
- 			 u32 off, int sz, struct btf_field_info *info)
- {
- 	enum bpf_kptr_type type;
-+	bool is_const = false;
- 	u32 res_id;
+ extern int register_nf_conntrack_bpf(void);
++extern void unregister_nf_conntrack_bpf(void);
  
- 	/* For PTR, sz is always == 8 */
-@@ -3211,7 +3213,13 @@ static int btf_find_kptr(const struct btf *btf, const struct btf_type *t,
- 		return -EINVAL;
+ #else
  
- 	/* Get the base type */
--	t = btf_type_skip_modifiers(btf, t->type, &res_id);
-+	do {
-+		res_id = t->type;
-+		t = btf_type_by_id(btf, res_id);
-+		if (btf_type_is_const(t))
-+			is_const = true;
-+	} while (btf_type_is_modifier(t));
-+
- 	/* Only pointer to struct is allowed */
- 	if (!__btf_type_is_struct(t))
- 		return -EINVAL;
-@@ -3219,6 +3227,7 @@ static int btf_find_kptr(const struct btf *btf, const struct btf_type *t,
- 	info->type_id = res_id;
- 	info->off = off;
- 	info->type = type;
-+	info->flags = is_const ? BPF_KPTR_F_RDONLY : 0;
- 	return BTF_FIELD_FOUND;
+@@ -18,6 +19,10 @@ static inline int register_nf_conntrack_bpf(void)
+ 	return 0;
  }
  
-@@ -3473,6 +3482,7 @@ struct bpf_map_value_off *btf_parse_kptrs(const struct btf *btf,
- 		tab->off[i].kptr.btf_id = id;
- 		tab->off[i].kptr.btf = kernel_btf;
- 		tab->off[i].kptr.module = mod;
-+		tab->off[i].kptr.flags = info_arr[i].flags;
- 	}
- 	tab->nr_off = nr_off;
- 	return tab;
-@@ -5597,7 +5607,14 @@ static int btf_struct_walk(struct bpf_verifier_log *log, const struct btf *btf,
- 					tmp_flag = MEM_PERCPU;
- 			}
- 
--			stype = btf_type_skip_modifiers(btf, mtype->type, &id);
-+			stype = mtype;
-+			do {
-+				id = stype->type;
-+				stype = btf_type_by_id(btf, id);
-+				if (btf_type_is_const(stype))
-+					tmp_flag |= MEM_RDONLY;
-+			} while (btf_type_is_modifier(stype));
++static inline void unregister_nf_conntrack_bpf(void)
++{
++}
 +
- 			if (btf_type_is_struct(stype)) {
- 				*next_btf_id = id;
- 				*flag = tmp_flag;
-diff --git a/kernel/bpf/helpers.c b/kernel/bpf/helpers.c
-index 225806a02efb..1aaeb6b330af 100644
---- a/kernel/bpf/helpers.c
-+++ b/kernel/bpf/helpers.c
-@@ -1390,7 +1390,7 @@ void bpf_timer_cancel_and_free(void *val)
- 	kfree(t);
- }
+ #endif
  
--BPF_CALL_2(bpf_kptr_xchg, void *, map_value, void *, ptr)
-+BPF_CALL_2(bpf_kptr_xchg, void *, map_value, const void *, ptr)
- {
- 	unsigned long *kptr = map_value;
- 
-@@ -1408,7 +1408,7 @@ const struct bpf_func_proto bpf_kptr_xchg_proto = {
- 	.ret_type     = RET_PTR_TO_BTF_ID_OR_NULL,
- 	.ret_btf_id   = BPF_PTR_POISON,
- 	.arg1_type    = ARG_PTR_TO_KPTR,
--	.arg2_type    = ARG_PTR_TO_BTF_ID_OR_NULL | OBJ_RELEASE,
-+	.arg2_type    = ARG_PTR_TO_BTF_ID_OR_NULL | MEM_RDONLY | OBJ_RELEASE,
- 	.arg2_btf_id  = BPF_PTR_POISON,
- };
- 
+ #endif /* _NF_CONNTRACK_BPF_H */
 diff --git a/kernel/bpf/verifier.c b/kernel/bpf/verifier.c
-index 27db2ef8a006..9b8962e6bc14 100644
+index 9b8962e6bc14..8cc754d83521 100644
 --- a/kernel/bpf/verifier.c
 +++ b/kernel/bpf/verifier.c
-@@ -3658,6 +3658,8 @@ static int map_kptr_match_type(struct bpf_verifier_env *env,
- 	/* Only unreferenced case accepts untrusted pointers */
- 	if (off_desc->type == BPF_KPTR_UNREF)
- 		perm_flags |= PTR_UNTRUSTED;
-+	if (off_desc->kptr.flags & BPF_KPTR_F_RDONLY)
-+		perm_flags |= MEM_RDONLY;
+@@ -13342,6 +13342,7 @@ static int convert_ctx_accesses(struct bpf_verifier_env *env)
  
- 	if (base_type(reg->type) != PTR_TO_BTF_ID || (type_flag(reg->type) & ~perm_flags))
- 		goto bad_type;
-@@ -3756,6 +3758,8 @@ static int check_map_kptr_access(struct bpf_verifier_env *env, u32 regno,
- 				off_desc->kptr.btf_id, PTR_MAYBE_NULL | PTR_UNTRUSTED);
- 		/* For mark_ptr_or_null_reg */
- 		val_reg->id = ++env->id_gen;
-+		if (off_desc->kptr.flags & BPF_KPTR_F_RDONLY)
-+			val_reg->type |= MEM_RDONLY;
- 	} else if (class == BPF_STX) {
- 		val_reg = reg_state(env, value_regno);
- 		if (!register_is_null(val_reg) &&
-@@ -5732,20 +5736,13 @@ static int check_reg_type(struct bpf_verifier_env *env, u32 regno,
- 	for (i = 0; i < ARRAY_SIZE(compatible->types); i++) {
- 		expected = compatible->types[i];
- 		if (expected == NOT_INIT)
--			break;
-+			goto error;
+ 	for (i = 0; i < insn_cnt; i++, insn++) {
+ 		bpf_convert_ctx_access_t convert_ctx_access;
++		enum bpf_prog_type prog_type;
+ 		bool ctx_access;
  
- 		if (type == expected)
--			goto found;
-+			break;
- 	}
+ 		if (insn->code == (BPF_LDX | BPF_MEM | BPF_B) ||
+@@ -13385,6 +13386,7 @@ static int convert_ctx_accesses(struct bpf_verifier_env *env)
+ 		if (!ctx_access)
+ 			continue;
  
--	verbose(env, "R%d type=%s expected=", regno, reg_type_str(env, reg->type));
--	for (j = 0; j + 1 < i; j++)
--		verbose(env, "%s, ", reg_type_str(env, compatible->types[j]));
--	verbose(env, "%s\n", reg_type_str(env, compatible->types[j]));
--	return -EACCES;
--
--found:
--	if (reg->type == PTR_TO_BTF_ID) {
-+	if (base_type(reg->type) == PTR_TO_BTF_ID) {
- 		/* For bpf_sk_release, it needs to match against first member
- 		 * 'struct sock_common', hence make an exception for it. This
- 		 * allows bpf_sk_release to work for multiple socket types.
-@@ -5753,6 +5750,10 @@ static int check_reg_type(struct bpf_verifier_env *env, u32 regno,
- 		bool strict_type_match = arg_type_is_release(arg_type) &&
- 					 meta->func_id != BPF_FUNC_sk_release;
- 
-+		if (type_flag(reg->type) & MEM_PERCPU)
-+			goto done;
-+		if (type_flag(reg->type) & ~(PTR_MAYBE_NULL | MEM_RDONLY))
-+			goto error;
- 		if (!arg_btf_id) {
- 			if (!compatible->btf_id) {
- 				verbose(env, "verifier internal error: missing arg compatible BTF ID\n");
-@@ -5773,8 +5774,14 @@ static int check_reg_type(struct bpf_verifier_env *env, u32 regno,
- 			return -EACCES;
- 		}
- 	}
--
-+done:
- 	return 0;
-+error:
-+	verbose(env, "R%d type=%s expected=", regno, reg_type_str(env, reg->type));
-+	for (j = 0; j + 1 < i; j++)
-+		verbose(env, "%s, ", reg_type_str(env, compatible->types[j]));
-+	verbose(env, "%s\n", reg_type_str(env, compatible->types[j]));
-+	return -EACCES;
- }
- 
- int check_func_arg_reg_off(struct bpf_verifier_env *env,
-@@ -7364,6 +7371,8 @@ static int check_helper_call(struct bpf_verifier_env *env, struct bpf_insn *insn
- 		mark_reg_known_zero(env, regs, BPF_REG_0);
- 		regs[BPF_REG_0].type = PTR_TO_BTF_ID | ret_flag;
- 		if (func_id == BPF_FUNC_kptr_xchg) {
-+			if (meta.kptr_off_desc->kptr.flags & BPF_KPTR_F_RDONLY)
-+				regs[BPF_REG_0].type |= MEM_RDONLY;
- 			ret_btf = meta.kptr_off_desc->kptr.btf;
- 			ret_btf_id = meta.kptr_off_desc->kptr.btf_id;
- 		} else {
-@@ -13395,6 +13404,7 @@ static int convert_ctx_accesses(struct bpf_verifier_env *env)
- 		case PTR_TO_BTF_ID:
- 		case PTR_TO_BTF_ID | PTR_UNTRUSTED:
- 		case PTR_TO_BTF_ID | MEM_RDONLY:
-+		case PTR_TO_BTF_ID | PTR_UNTRUSTED | MEM_RDONLY:
- 			if (type == BPF_READ) {
++		prog_type = resolve_prog_type(env->prog);
+ 		switch ((int)env->insn_aux_data[i + delta].ptr_type) {
+ 		case PTR_TO_CTX:
+ 			if (!ops->convert_ctx_access)
+@@ -13409,7 +13411,9 @@ static int convert_ctx_accesses(struct bpf_verifier_env *env)
  				insn->code = BPF_LDX | BPF_PROBE_MEM |
  					BPF_SIZE((insn)->code);
-diff --git a/tools/include/uapi/linux/bpf.h b/tools/include/uapi/linux/bpf.h
-index f4009dbdf62d..cd76ca331f52 100644
---- a/tools/include/uapi/linux/bpf.h
-+++ b/tools/include/uapi/linux/bpf.h
-@@ -5154,7 +5154,7 @@ union bpf_attr {
-  *		**-EOPNOTSUP** if the hash calculation failed or **-EINVAL** if
-  *		invalid arguments are passed.
-  *
-- * void *bpf_kptr_xchg(void *map_value, void *ptr)
-+ * void *bpf_kptr_xchg(void *map_value, const void *ptr)
-  *	Description
-  *		Exchange kptr at pointer *map_value* with *ptr*, and return the
-  *		old value. *ptr* can be NULL, otherwise it must be a referenced
+ 				env->prog->aux->num_exentries++;
+-			} else if (resolve_prog_type(env->prog) != BPF_PROG_TYPE_STRUCT_OPS) {
++			} else if (prog_type != BPF_PROG_TYPE_STRUCT_OPS &&
++				   prog_type != BPF_PROG_TYPE_XDP &&
++				   prog_type != BPF_PROG_TYPE_SCHED_CLS) {
+ 				verbose(env, "Writes through BTF pointers are not allowed\n");
+ 				return -EINVAL;
+ 			}
+diff --git a/net/core/filter.c b/net/core/filter.c
+index 5af58eb48587..bacc39eb9526 100644
+--- a/net/core/filter.c
++++ b/net/core/filter.c
+@@ -10453,6 +10453,32 @@ static u32 sk_msg_convert_ctx_access(enum bpf_access_type type,
+ 	return insn - insn_buf;
+ }
+ 
++btf_struct_access_t nf_conn_btf_struct_access;
++/* Protects nf_conn_btf_struct_access */
++DEFINE_MUTEX(nf_conn_btf_struct_access_mtx);
++
++static int xdp_tc_btf_struct_access(struct bpf_verifier_log *log,
++				    const struct btf *btf,
++				    const struct btf_type *t, int off, int size,
++				    enum bpf_access_type atype,
++				    u32 *next_btf_id, enum bpf_type_flag *flag)
++{
++	int ret;
++
++	if (atype == BPF_READ || !READ_ONCE(nf_conn_btf_struct_access))
++		goto end;
++	mutex_lock(&nf_conn_btf_struct_access_mtx);
++	if (!nf_conn_btf_struct_access)
++		goto end_unlock;
++	ret = nf_conn_btf_struct_access(log, btf, t, off, size, atype, next_btf_id, flag);
++	mutex_unlock(&nf_conn_btf_struct_access_mtx);
++	return ret;
++end_unlock:
++	mutex_unlock(&nf_conn_btf_struct_access_mtx);
++end:
++	return btf_struct_access(log, btf, t, off, size, atype, next_btf_id, flag);
++}
++
+ const struct bpf_verifier_ops sk_filter_verifier_ops = {
+ 	.get_func_proto		= sk_filter_func_proto,
+ 	.is_valid_access	= sk_filter_is_valid_access,
+@@ -10470,6 +10496,7 @@ const struct bpf_verifier_ops tc_cls_act_verifier_ops = {
+ 	.convert_ctx_access	= tc_cls_act_convert_ctx_access,
+ 	.gen_prologue		= tc_cls_act_prologue,
+ 	.gen_ld_abs		= bpf_gen_ld_abs,
++	.btf_struct_access	= xdp_tc_btf_struct_access,
+ };
+ 
+ const struct bpf_prog_ops tc_cls_act_prog_ops = {
+@@ -10481,6 +10508,7 @@ const struct bpf_verifier_ops xdp_verifier_ops = {
+ 	.is_valid_access	= xdp_is_valid_access,
+ 	.convert_ctx_access	= xdp_convert_ctx_access,
+ 	.gen_prologue		= bpf_noop_prologue,
++	.btf_struct_access	= xdp_tc_btf_struct_access,
+ };
+ 
+ const struct bpf_prog_ops xdp_prog_ops = {
+diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrack_bpf.c
+index 195ec68d309d..fbf58eb74c79 100644
+--- a/net/netfilter/nf_conntrack_bpf.c
++++ b/net/netfilter/nf_conntrack_bpf.c
+@@ -9,7 +9,9 @@
+ #include <linux/bpf.h>
+ #include <linux/btf.h>
+ #include <linux/types.h>
++#include <linux/filter.h>
+ #include <linux/btf_ids.h>
++#include <linux/bpf_verifier.h>
+ #include <linux/net_namespace.h>
+ #include <net/netfilter/nf_conntrack.h>
+ #include <net/netfilter/nf_conntrack_bpf.h>
+@@ -257,10 +259,62 @@ static const struct btf_kfunc_id_set nf_conntrack_tc_kfunc_set = {
+ 	.ret_null_set = &nf_ct_ret_null_kfunc_ids,
+ };
+ 
++BTF_ID_LIST_SINGLE(nf_conn_btf_id, struct, nf_conn)
++
++static int nf_conn_bpf_btf_struct_access(struct bpf_verifier_log *log,
++					 const struct btf *btf,
++					 const struct btf_type *t, int off,
++					 int size, enum bpf_access_type atype,
++					 u32 *next_btf_id,
++					 enum bpf_type_flag *flag)
++{
++	const struct btf_type *nf_conn_t;
++	size_t end;
++
++	WARN_ON_ONCE(atype != BPF_WRITE);
++
++	nf_conn_t = btf_type_by_id(btf, nf_conn_btf_id[0]);
++	if (!nf_conn_t || nf_conn_t != t) {
++		bpf_log(log, "only read is supported");
++		return -EACCES;
++	}
++
++	switch (off) {
++	case offsetof(struct nf_conn, status):
++		end = offsetofend(struct nf_conn, status);
++		break;
++	default:
++		bpf_log(log, "no write support to nf_conn at off %d\n", off);
++		return -EACCES;
++	}
++
++	if (off + size > end) {
++		bpf_log(log,
++			"write access at off %d with size %d beyond the member of nf_conn ended at %zu\n",
++			off, size, end);
++		return -EACCES;
++	}
++
++	return NOT_INIT;
++}
++
+ int register_nf_conntrack_bpf(void)
+ {
+ 	int ret;
+ 
+ 	ret = register_btf_kfunc_id_set(BPF_PROG_TYPE_XDP, &nf_conntrack_xdp_kfunc_set);
+-	return ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_SCHED_CLS, &nf_conntrack_tc_kfunc_set);
++	ret = ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_SCHED_CLS, &nf_conntrack_tc_kfunc_set);
++	if (ret < 0)
++		return ret;
++	mutex_lock(&nf_conn_btf_struct_access_mtx);
++	nf_conn_btf_struct_access = nf_conn_bpf_btf_struct_access;
++	mutex_unlock(&nf_conn_btf_struct_access_mtx);
++	return 0;
++}
++
++void unregister_nf_conntrack_bpf(void)
++{
++	mutex_lock(&nf_conn_btf_struct_access_mtx);
++	nf_conn_btf_struct_access = NULL;
++	mutex_unlock(&nf_conn_btf_struct_access_mtx);
+ }
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 082a2fd8d85b..91f890972f9e 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -2497,6 +2497,8 @@ void nf_conntrack_cleanup_start(void)
+ 
+ void nf_conntrack_cleanup_end(void)
+ {
++	unregister_nf_conntrack_bpf();
++
+ 	RCU_INIT_POINTER(nf_ct_hook, NULL);
+ 	cancel_delayed_work_sync(&conntrack_gc_work.dwork);
+ 	kvfree(nf_conntrack_hash);
 -- 
 2.35.3
 
