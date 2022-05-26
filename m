@@ -2,37 +2,37 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20EAAC433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 26 May 2022 21:35:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F7B0C43217
+	for <netfilter-devel@archiver.kernel.org>; Thu, 26 May 2022 21:35:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348937AbiEZVfm (ORCPT
+        id S1349117AbiEZVf5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 26 May 2022 17:35:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53210 "EHLO
+        Thu, 26 May 2022 17:35:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53564 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236502AbiEZVfl (ORCPT
+        with ESMTP id S1349154AbiEZVfz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 26 May 2022 17:35:41 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C7C6C5E6B;
-        Thu, 26 May 2022 14:35:40 -0700 (PDT)
+        Thu, 26 May 2022 17:35:55 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ECF0DE8B94;
+        Thu, 26 May 2022 14:35:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7976461BA6;
-        Thu, 26 May 2022 21:35:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 494D8C34119;
-        Thu, 26 May 2022 21:35:35 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A2985B8220C;
+        Thu, 26 May 2022 21:35:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D24CC385B8;
+        Thu, 26 May 2022 21:35:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1653600938;
-        bh=ASQjq4qhq/uc5gB1njKYLAspvIggQMeUtMIP6Vwh8P4=;
+        s=k20201202; t=1653600946;
+        bh=55vMxTNC78HEzajfYA0GwixGzn3CPwaM3SYJnNLVFv0=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=jw5kIIzYv3iAlE0+EAWbrKz4J60OaXUWUIfEYKVcrUMSuHpZny3EtcNdALR8/NAcJ
-         vhUUtReY+letbfyy5EfSZ+pNauVODPRWBHjCRHo0CFo1pcbeUHUVBvmbtfU2qlZha9
-         EN/z1i6swe/STh+P83j6BihhS0+wtdsC0Tr9zTCy47cHq4I7XIexVOojjCLm83Gxh1
-         /zb5vTSLqEt4NBwovTVOTiMFh3OQVYQl9dRV7ZDIawRuSF46E2kYhwkzFHfZU86YDz
-         UkG1q0LArQ6fI/QTlABi6tQ/Iwko2Bn7wwlPtZmoub57M9G3fIoWD7U6ZFLBWezxri
-         NiGmLlPphbkcg==
+        b=EHIwe1W3dYizhTDrZPaEsA13j8XXlWsR6Ul9Ay3OpjtTm86u6JUr6Yg+uPyFfXSr4
+         PlRyXOFZox1Tzd4gB4uS2eOBf8sHwQkJp3WLpPNez+lRQYFIxk/6nfENVXBeuWWAcq
+         mr1YD6/eM8Hmwx+qZqQZisfFYIKM78KbRLUogs1GUfbUSVL12e1J0Oc7eO9mqsgcFO
+         /ejzOLUOYjo+cQz5jkwHhonQdB6+llvhijcUHOt2bciK29AgfijNPfmFnMkuWFHNTy
+         c7daAETXo6i2sWEcdaOX9duDcRqvOWm2BqeCkCKL2kQ96PgUff3jWTF4EHHK1HwjVn
+         gt8auWIKwUkIA==
 From:   Lorenzo Bianconi <lorenzo@kernel.org>
 To:     bpf@vger.kernel.org
 Cc:     netdev@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
@@ -41,9 +41,9 @@ Cc:     netdev@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
         fw@strlen.de, netfilter-devel@vger.kernel.org,
         lorenzo.bianconi@redhat.com, brouer@redhat.com, toke@redhat.com,
         memxor@gmail.com, yhs@fb.com
-Subject: [PATCH v4 bpf-next 03/14] bpf: Support rdonly PTR_TO_BTF_ID for pointer to const return value
-Date:   Thu, 26 May 2022 23:34:51 +0200
-Message-Id: <b8d0b69e33a6280807e36ac92b116c61ec3fbcbd.1653600578.git.lorenzo@kernel.org>
+Subject: [PATCH v4 bpf-next 05/14] bpf: Support passing rdonly PTR_TO_BTF_ID to kfunc
+Date:   Thu, 26 May 2022 23:34:53 +0200
+Message-Id: <11db1566d1802780723a895da47d232aaebc5f5c.1653600578.git.lorenzo@kernel.org>
 X-Mailer: git-send-email 2.35.3
 In-Reply-To: <cover.1653600577.git.lorenzo@kernel.org>
 References: <cover.1653600577.git.lorenzo@kernel.org>
@@ -55,279 +55,101 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Kumar Kartikeya Dwivedi <memxor@gmail.com>
 
-Allow specifying MEM_RDONLY flag with PTR_TO_BTF_ID, which blocks write
-access to object even for cases where it is permitted using a custom
-btf_struct_access callback. This is currently set for return values from
-kfunc where it points to const struct.
+The kfunc must declare its argument as pointer to const struct, which
+will be used to allow read only PTR_TO_BTF_ID to be only passed to such
+arguments. Normal PTR_TO_BTF_ID can also be passed to functions
+expecting read only PTR_TO_BTF_ID.
 
-This is not to mean that helpers cannot modify such a 'pointer to const
-struct', it's just that any write access that is usually permitted for
-such pointers in a program won't be allowed for this instance.
-
-For RET_PTR_TO_MEM_OR_BTF_ID, MEM_RDONLY was previously folded because
-it didn't apply to PTR_TO_BTF_ID. Now, we check if variable is const
-and mark the pointer to it as MEM_RDONLY.
+The kptr_get function for now doesn't support kptr_get on such kptr to
+const, however it can be supported in the future (by indicating const
+in the prototype of kptr_get kfunc).
 
 Signed-off-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
 Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
 ---
- include/linux/btf.h              | 29 ++++++++++++++++++++++++
- kernel/bpf/btf.c                 | 24 --------------------
- kernel/bpf/verifier.c            | 39 ++++++++++++++++++++++++--------
- net/bpf/test_run.c               | 15 ++++++++++--
+ kernel/bpf/btf.c                 | 22 ++++++++++++++++++++--
  net/netfilter/nf_conntrack_bpf.c |  4 ++--
- 5 files changed, 74 insertions(+), 37 deletions(-)
+ 2 files changed, 22 insertions(+), 4 deletions(-)
 
-diff --git a/include/linux/btf.h b/include/linux/btf.h
-index 2611cea2c2b6..f8dc5f810b40 100644
---- a/include/linux/btf.h
-+++ b/include/linux/btf.h
-@@ -234,6 +234,11 @@ static inline bool btf_type_is_typedef(const struct btf_type *t)
- 	return BTF_INFO_KIND(t->info) == BTF_KIND_TYPEDEF;
- }
- 
-+static inline bool btf_type_is_const(const struct btf_type *t)
-+{
-+	return BTF_INFO_KIND(t->info) == BTF_KIND_CONST;
-+}
-+
- static inline bool btf_type_is_func(const struct btf_type *t)
- {
- 	return BTF_INFO_KIND(t->info) == BTF_KIND_FUNC;
-@@ -264,6 +269,30 @@ static inline bool btf_type_is_struct(const struct btf_type *t)
- 	return kind == BTF_KIND_STRUCT || kind == BTF_KIND_UNION;
- }
- 
-+static inline bool btf_type_is_modifier(const struct btf_type *t)
-+{
-+	/* Some of them is not strictly a C modifier
-+	 * but they are grouped into the same bucket
-+	 * for BTF concern:
-+	 *   A type (t) that refers to another
-+	 *   type through t->type AND its size cannot
-+	 *   be determined without following the t->type.
-+	 *
-+	 * ptr does not fall into this bucket
-+	 * because its size is always sizeof(void *).
-+	 */
-+	switch (BTF_INFO_KIND(t->info)) {
-+	case BTF_KIND_TYPEDEF:
-+	case BTF_KIND_VOLATILE:
-+	case BTF_KIND_CONST:
-+	case BTF_KIND_RESTRICT:
-+	case BTF_KIND_TYPE_TAG:
-+		return true;
-+	}
-+
-+	return false;
-+}
-+
- static inline u16 btf_type_vlen(const struct btf_type *t)
- {
- 	return BTF_INFO_VLEN(t->info);
 diff --git a/kernel/bpf/btf.c b/kernel/bpf/btf.c
-index 9f8dec0ab924..bcdfb8ef0481 100644
+index 58de6d1204ee..9b9fbb43c417 100644
 --- a/kernel/bpf/btf.c
 +++ b/kernel/bpf/btf.c
-@@ -431,30 +431,6 @@ static int btf_resolve(struct btf_verifier_env *env,
- static int btf_func_check(struct btf_verifier_env *env,
- 			  const struct btf_type *t);
+@@ -6109,6 +6109,7 @@ static int btf_check_func_arg_match(struct bpf_verifier_env *env,
+ 		enum bpf_arg_type arg_type = ARG_DONTCARE;
+ 		u32 regno = i + 1;
+ 		struct bpf_reg_state *reg = &regs[regno];
++		bool is_ref_t_const = false;
  
--static bool btf_type_is_modifier(const struct btf_type *t)
--{
--	/* Some of them is not strictly a C modifier
--	 * but they are grouped into the same bucket
--	 * for BTF concern:
--	 *   A type (t) that refers to another
--	 *   type through t->type AND its size cannot
--	 *   be determined without following the t->type.
--	 *
--	 * ptr does not fall into this bucket
--	 * because its size is always sizeof(void *).
--	 */
--	switch (BTF_INFO_KIND(t->info)) {
--	case BTF_KIND_TYPEDEF:
--	case BTF_KIND_VOLATILE:
--	case BTF_KIND_CONST:
--	case BTF_KIND_RESTRICT:
--	case BTF_KIND_TYPE_TAG:
--		return true;
--	}
--
--	return false;
--}
--
- bool btf_type_is_void(const struct btf_type *t)
- {
- 	return t == &btf_void;
-diff --git a/kernel/bpf/verifier.c b/kernel/bpf/verifier.c
-index e0be76861736..27db2ef8a006 100644
---- a/kernel/bpf/verifier.c
-+++ b/kernel/bpf/verifier.c
-@@ -4507,6 +4507,11 @@ static int check_ptr_to_btf_access(struct bpf_verifier_env *env,
- 	}
- 
- 	if (env->ops->btf_struct_access) {
-+		if (atype != BPF_READ && reg->type & MEM_RDONLY) {
-+			verbose(env, "pointer points to const object, only read is supported\n");
-+			return -EACCES;
-+		}
-+
- 		ret = env->ops->btf_struct_access(&env->log, reg->btf, t,
- 						  off, size, atype, &btf_id, &flag);
- 	} else {
-@@ -7316,9 +7321,15 @@ static int check_helper_call(struct bpf_verifier_env *env, struct bpf_insn *insn
- 		regs[BPF_REG_0].mem_size = meta.mem_size;
- 	} else if (base_type(ret_type) == RET_PTR_TO_MEM_OR_BTF_ID) {
- 		const struct btf_type *t;
-+		bool is_const = false;
- 
- 		mark_reg_known_zero(env, regs, BPF_REG_0);
--		t = btf_type_skip_modifiers(meta.ret_btf, meta.ret_btf_id, NULL);
-+		t = btf_type_by_id(meta.ret_btf, meta.ret_btf_id);
-+		while (btf_type_is_modifier(t)) {
-+			if (btf_type_is_const(t))
-+				is_const = true;
-+			t = btf_type_by_id(meta.ret_btf, t->type);
-+		}
- 		if (!btf_type_is_struct(t)) {
- 			u32 tsize;
- 			const struct btf_type *ret;
-@@ -7335,12 +7346,12 @@ static int check_helper_call(struct bpf_verifier_env *env, struct bpf_insn *insn
- 			regs[BPF_REG_0].type = PTR_TO_MEM | ret_flag;
- 			regs[BPF_REG_0].mem_size = tsize;
- 		} else {
--			/* MEM_RDONLY may be carried from ret_flag, but it
--			 * doesn't apply on PTR_TO_BTF_ID. Fold it, otherwise
--			 * it will confuse the check of PTR_TO_BTF_ID in
--			 * check_mem_access().
-+			/* MEM_RDONLY is carried from ret_flag. Fold it if the
-+			 * variable whose pointer is being returned is not
-+			 * const.
- 			 */
--			ret_flag &= ~MEM_RDONLY;
-+			if (!is_const)
-+				ret_flag &= ~MEM_RDONLY;
- 
- 			regs[BPF_REG_0].type = PTR_TO_BTF_ID | ret_flag;
- 			regs[BPF_REG_0].btf = meta.ret_btf;
-@@ -7535,8 +7546,17 @@ static int check_kfunc_call(struct bpf_verifier_env *env, struct bpf_insn *insn,
- 		mark_reg_unknown(env, regs, BPF_REG_0);
- 		mark_btf_func_reg_size(env, BPF_REG_0, t->size);
- 	} else if (btf_type_is_ptr(t)) {
--		ptr_type = btf_type_skip_modifiers(desc_btf, t->type,
--						   &ptr_type_id);
-+		bool is_const = false;
-+
-+		ptr_type_id = t->type;
-+		ptr_type = btf_type_by_id(desc_btf, ptr_type_id);
-+		while (btf_type_is_modifier(ptr_type)) {
-+			if (btf_type_is_const(ptr_type))
-+				is_const = true;
-+			ptr_type_id = ptr_type->type;
-+			ptr_type = btf_type_by_id(desc_btf, ptr_type_id);
-+		}
-+
- 		if (!btf_type_is_struct(ptr_type)) {
- 			ptr_type_name = btf_name_by_offset(desc_btf,
- 							   ptr_type->name_off);
-@@ -7547,7 +7567,7 @@ static int check_kfunc_call(struct bpf_verifier_env *env, struct bpf_insn *insn,
+ 		t = btf_type_skip_modifiers(btf, args[i].type, NULL);
+ 		if (btf_type_is_scalar(t)) {
+@@ -6132,7 +6133,14 @@ static int btf_check_func_arg_match(struct bpf_verifier_env *env,
+ 			return -EINVAL;
  		}
- 		mark_reg_known_zero(env, regs, BPF_REG_0);
- 		regs[BPF_REG_0].btf = desc_btf;
--		regs[BPF_REG_0].type = PTR_TO_BTF_ID;
-+		regs[BPF_REG_0].type = PTR_TO_BTF_ID | (is_const ? MEM_RDONLY : 0);
- 		regs[BPF_REG_0].btf_id = ptr_type_id;
- 		if (btf_kfunc_id_set_contains(desc_btf, resolve_prog_type(env->prog),
- 					      BTF_KFUNC_TYPE_RET_NULL, func_id)) {
-@@ -13374,6 +13394,7 @@ static int convert_ctx_accesses(struct bpf_verifier_env *env)
- 			break;
- 		case PTR_TO_BTF_ID:
- 		case PTR_TO_BTF_ID | PTR_UNTRUSTED:
-+		case PTR_TO_BTF_ID | MEM_RDONLY:
- 			if (type == BPF_READ) {
- 				insn->code = BPF_LDX | BPF_PROBE_MEM |
- 					BPF_SIZE((insn)->code);
-diff --git a/net/bpf/test_run.c b/net/bpf/test_run.c
-index 4b796e0a9667..2f381cb4acfa 100644
---- a/net/bpf/test_run.c
-+++ b/net/bpf/test_run.c
-@@ -582,6 +582,12 @@ bpf_kfunc_call_test_acquire(unsigned long *scalar_ptr)
- 	return &prog_test_struct;
- }
  
-+noinline const struct prog_test_ref_kfunc *
-+bpf_kfunc_call_test_acquire_const(void)
-+{
-+	return bpf_kfunc_call_test_acquire(NULL);
-+}
+-		ref_t = btf_type_skip_modifiers(btf, t->type, &ref_id);
++		ref_id = t->type;
++		ref_t = btf_type_by_id(btf, ref_id);
++		while (btf_type_is_modifier(ref_t)) {
++			if (btf_type_is_const(ref_t))
++				is_ref_t_const = true;
++			ref_id = ref_t->type;
++			ref_t = btf_type_by_id(btf, ref_id);
++		}
+ 		ref_tname = btf_name_by_offset(btf, ref_t->name_off);
+ 
+ 		if (rel && reg->ref_obj_id)
+@@ -6166,6 +6174,11 @@ static int btf_check_func_arg_match(struct bpf_verifier_env *env,
+ 				return -EINVAL;
+ 			}
+ 
++			if (off_desc->kptr.flags & BPF_KPTR_F_RDONLY) {
++				bpf_log(log, "arg#0 cannot raise reference for pointer to const\n");
++				return -EINVAL;
++			}
 +
- noinline struct prog_test_member *
- bpf_kfunc_call_memb_acquire(void)
- {
-@@ -589,12 +595,14 @@ bpf_kfunc_call_memb_acquire(void)
- 	return NULL;
- }
+ 			if (!btf_type_is_ptr(ref_t)) {
+ 				bpf_log(log, "arg#0 BTF type must be a double pointer\n");
+ 				return -EINVAL;
+@@ -6197,6 +6210,7 @@ static int btf_check_func_arg_match(struct bpf_verifier_env *env,
+ 				return -EINVAL;
+ 			}
+ 		} else if (is_kfunc && (reg->type == PTR_TO_BTF_ID ||
++			   reg->type == (PTR_TO_BTF_ID | MEM_RDONLY) ||
+ 			   (reg2btf_ids[base_type(reg->type)] && !type_flag(reg->type)))) {
+ 			const struct btf_type *reg_ref_t;
+ 			const struct btf *reg_btf;
+@@ -6210,7 +6224,11 @@ static int btf_check_func_arg_match(struct bpf_verifier_env *env,
+ 				return -EINVAL;
+ 			}
  
--noinline void bpf_kfunc_call_test_release(struct prog_test_ref_kfunc *p)
-+noinline void bpf_kfunc_call_test_release(const struct prog_test_ref_kfunc *p)
- {
-+	struct prog_test_ref_kfunc *pp = (void *)p;
-+
- 	if (!p)
- 		return;
- 
--	refcount_dec(&p->cnt);
-+	refcount_dec(&pp->cnt);
- }
- 
- noinline void bpf_kfunc_call_memb_release(struct prog_test_member *p)
-@@ -704,6 +712,7 @@ BTF_ID(func, bpf_kfunc_call_test1)
- BTF_ID(func, bpf_kfunc_call_test2)
- BTF_ID(func, bpf_kfunc_call_test3)
- BTF_ID(func, bpf_kfunc_call_test_acquire)
-+BTF_ID(func, bpf_kfunc_call_test_acquire_const)
- BTF_ID(func, bpf_kfunc_call_memb_acquire)
- BTF_ID(func, bpf_kfunc_call_test_release)
- BTF_ID(func, bpf_kfunc_call_memb_release)
-@@ -723,6 +732,7 @@ BTF_SET_END(test_sk_check_kfunc_ids)
- 
- BTF_SET_START(test_sk_acquire_kfunc_ids)
- BTF_ID(func, bpf_kfunc_call_test_acquire)
-+BTF_ID(func, bpf_kfunc_call_test_acquire_const)
- BTF_ID(func, bpf_kfunc_call_memb_acquire)
- BTF_ID(func, bpf_kfunc_call_test_kptr_get)
- BTF_SET_END(test_sk_acquire_kfunc_ids)
-@@ -735,6 +745,7 @@ BTF_SET_END(test_sk_release_kfunc_ids)
- 
- BTF_SET_START(test_sk_ret_null_kfunc_ids)
- BTF_ID(func, bpf_kfunc_call_test_acquire)
-+BTF_ID(func, bpf_kfunc_call_test_acquire_const)
- BTF_ID(func, bpf_kfunc_call_memb_acquire)
- BTF_ID(func, bpf_kfunc_call_test_kptr_get)
- BTF_SET_END(test_sk_ret_null_kfunc_ids)
+-			if (reg->type == PTR_TO_BTF_ID) {
++			if (base_type(reg->type) == PTR_TO_BTF_ID) {
++				if ((reg->type & MEM_RDONLY) && !is_ref_t_const) {
++					bpf_log(log, "cannot pass read only pointer to arg#%d", i);
++					return -EINVAL;
++				}
+ 				reg_btf = reg->btf;
+ 				reg_ref_id = reg->btf_id;
+ 				/* Ensure only one argument is referenced PTR_TO_BTF_ID */
 diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrack_bpf.c
-index bc4d5cd63a94..85f142739a21 100644
+index 85f142739a21..195ec68d309d 100644
 --- a/net/netfilter/nf_conntrack_bpf.c
 +++ b/net/netfilter/nf_conntrack_bpf.c
-@@ -130,7 +130,7 @@ __diag_ignore_all("-Wmissing-prototypes",
-  * @opts__sz	- Length of the bpf_ct_opts structure
-  *		    Must be NF_BPF_CT_OPTS_SZ (12)
+@@ -210,11 +210,11 @@ bpf_skb_ct_lookup(struct __sk_buff *skb_ctx, struct bpf_sock_tuple *bpf_tuple,
+  * @nf_conn	 - Pointer to referenced nf_conn object, obtained using
+  *		   bpf_xdp_ct_lookup or bpf_skb_ct_lookup.
   */
--struct nf_conn *
-+const struct nf_conn *
- bpf_xdp_ct_lookup(struct xdp_md *xdp_ctx, struct bpf_sock_tuple *bpf_tuple,
- 		  u32 tuple__sz, struct bpf_ct_opts *opts, u32 opts__sz)
+-void bpf_ct_release(struct nf_conn *nfct)
++void bpf_ct_release(const struct nf_conn *nfct)
  {
-@@ -173,7 +173,7 @@ bpf_xdp_ct_lookup(struct xdp_md *xdp_ctx, struct bpf_sock_tuple *bpf_tuple,
-  * @opts__sz	- Length of the bpf_ct_opts structure
-  *		    Must be NF_BPF_CT_OPTS_SZ (12)
-  */
--struct nf_conn *
-+const struct nf_conn *
- bpf_skb_ct_lookup(struct __sk_buff *skb_ctx, struct bpf_sock_tuple *bpf_tuple,
- 		  u32 tuple__sz, struct bpf_ct_opts *opts, u32 opts__sz)
- {
+ 	if (!nfct)
+ 		return;
+-	nf_ct_put(nfct);
++	nf_ct_put((struct nf_conn *)nfct);
+ }
+ 
+ __diag_pop()
 -- 
 2.35.3
 
