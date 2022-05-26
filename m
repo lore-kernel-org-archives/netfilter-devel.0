@@ -2,118 +2,137 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4946BC433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 26 May 2022 06:19:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C911EC433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 26 May 2022 06:33:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346137AbiEZGT0 (ORCPT
+        id S234882AbiEZGdm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 26 May 2022 02:19:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43396 "EHLO
+        Thu, 26 May 2022 02:33:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48174 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234775AbiEZGTX (ORCPT
+        with ESMTP id S231466AbiEZGdm (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 26 May 2022 02:19:23 -0400
-Received: from mail-pj1-x1035.google.com (mail-pj1-x1035.google.com [IPv6:2607:f8b0:4864:20::1035])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F491A2043;
-        Wed, 25 May 2022 23:19:21 -0700 (PDT)
-Received: by mail-pj1-x1035.google.com with SMTP id nn3-20020a17090b38c300b001e0e091cf03so332533pjb.1;
-        Wed, 25 May 2022 23:19:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=uNCmIUI6bGk9gKzc35zeftxv5C4FG/+UvyUeaZT9up8=;
-        b=Pcz9WnTUB8AMHjC8aod5dZO/O4GN7SA38WkpYBF/BhtxK17uXTqaqGOfht28BNRGa0
-         U2LNF+4UQj8eiGQRBN5E43lDiwo41tH8tycOFU/uxY0qhXy/AbWkT/NzWSM9MoHgOJmd
-         LS3E1v4FXIo+pV+WGTaYOr3O1FQ+kPwYMXwUJ7mBbKOTLt2arb45rOP87rcwtzafj4Rw
-         9GPiTGh8C+AU4r18u6hYIVQ46KNvOSx9JOcDef1JBo+H+Lb/RBRnnJEBg0CjpqK0FG60
-         V2sshlBmahkxtrFlWuKiVQtS9xiwhi2u4jiUn0fXeqXfS3xB1FRSl6CYCoZUw2RWNJJq
-         gbjQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=uNCmIUI6bGk9gKzc35zeftxv5C4FG/+UvyUeaZT9up8=;
-        b=zXCDyzv/khCBAXIitmlYAumJ0l28M4PCmJiLbfXkTCgWbhlhpar7cvju1lOTKPuFDU
-         7w3U7EpGY4BdNv2b96bgRLJbCG4I3U+c406fCOxjRyJLo9l17Zt96HGVtpCn6/fXg92Y
-         HjRiID4dxG2Eakc/GYd73K6e7hl0HkhbDbQB4+qVLEm1q5VCHQVBCyPFzvkKfJ1YyTzR
-         r7xS10VYwa8XBq6rq996iJ84NlJ11bvkjzEX/+ePrDmBvYkxYBA4jxPvNXo5za+ysr3j
-         w1XX9PNJQKniW/WzsYd0s1cK5N8kJkriQi1KChlzEiDEWpqV9ZlpCM2/imSevkEGCeh6
-         dx8A==
-X-Gm-Message-State: AOAM5317J0iXWhFwZBA39W2+rmA7CU5q9HHUElX1s1mIzCxUIds66O3A
-        uJ2a+B2GevNcjtFU2DB8Hfw=
-X-Google-Smtp-Source: ABdhPJxxZtcnVPZaeWL0GTzT1uAoBQQjBp6oZ/mi8dusNt0KQqThJ/T1u7ZiuIgiF6cVoBVCRV0ajQ==
-X-Received: by 2002:a17:90a:4a03:b0:1df:4583:cb26 with SMTP id e3-20020a17090a4a0300b001df4583cb26mr950036pjh.173.1653545960902;
-        Wed, 25 May 2022 23:19:20 -0700 (PDT)
-Received: from localhost ([2405:6580:97e0:3100:ae94:2ee7:59a:4846])
-        by smtp.gmail.com with ESMTPSA id b19-20020aa78113000000b005190ce21500sm504612pfi.110.2022.05.25.23.19.19
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 25 May 2022 23:19:20 -0700 (PDT)
-Date:   Thu, 26 May 2022 15:19:17 +0900
-From:   Benjamin Poirier <benjamin.poirier@gmail.com>
-To:     Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Cc:     bpf@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Andrii Nakryiko <andrii@kernel.org>, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, Martin KaFai Lau <kafai@fb.com>,
-        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Maxim Mikityanskiy <maximmi@nvidia.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        Toke =?iso-8859-1?Q?H=F8iland-J=F8rgensen?= <toke@redhat.com>
-Subject: Re: [PATCH bpf-next v8 09/10] selftests/bpf: Extend kfunc selftests
-Message-ID: <Yo8b5W5VdW1NpLyL@d3>
-References: <20220114163953.1455836-1-memxor@gmail.com>
- <20220114163953.1455836-10-memxor@gmail.com>
- <Yo7Wc2xGyuq/1tq1@d3>
- <20220526051227.bqoejq7kyymfxba4@apollo.legion>
+        Thu, 26 May 2022 02:33:42 -0400
+Received: from chinatelecom.cn (prt-mail.chinatelecom.cn [42.123.76.223])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id CC100BDA3B
+        for <netfilter-devel@vger.kernel.org>; Wed, 25 May 2022 23:33:36 -0700 (PDT)
+HMM_SOURCE_IP: 172.18.0.48:47760.1627341664
+HMM_ATTACHE_NUM: 0000
+HMM_SOURCE_TYPE: SMTP
+Received: from clientip-101.229.165.111 (unknown [172.18.0.48])
+        by chinatelecom.cn (HERMES) with SMTP id D408C2800C3;
+        Thu, 26 May 2022 14:33:31 +0800 (CST)
+X-189-SAVE-TO-SEND: wenxu@chinatelecom.cn
+Received: from  ([172.18.0.48])
+        by app0024 with ESMTP id 43c3a7a024ae408d8bf4de1a86b15086 for netfilter-devel@vger.kernel.org;
+        Thu, 26 May 2022 14:33:32 CST
+X-Transaction-ID: 43c3a7a024ae408d8bf4de1a86b15086
+X-Real-From: wenxu@chinatelecom.cn
+X-Receive-IP: 172.18.0.48
+X-MEDUSA-Status: 0
+Sender: wenxu@chinatelecom.cn
+Subject: Re: [PATCH nf-next v2] selftests: netfilter: flowtable vlan filtering
+ bridge support
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+References: <1653467894-5724-1-git-send-email-wenxu@chinatelecom.cn>
+From:   wenxu <wenxu@chinatelecom.cn>
+Message-ID: <f55b177c-3243-f6b4-9e37-383121cec066@chinatelecom.cn>
+Date:   Thu, 26 May 2022 14:33:29 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.14.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220526051227.bqoejq7kyymfxba4@apollo.legion>
+In-Reply-To: <1653467894-5724-1-git-send-email-wenxu@chinatelecom.cn>
+Content-Type: text/plain; charset=gbk; format=flowed
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2022-05-26 10:45 +0530, Kumar Kartikeya Dwivedi wrote:
-> On Thu, May 26, 2022 at 06:52:59AM IST, Benjamin Poirier wrote:
-> > On 2022-01-14 22:09 +0530, Kumar Kartikeya Dwivedi wrote:
-> > > Use the prog_test kfuncs to test the referenced PTR_TO_BTF_ID kfunc
-> > > support, and PTR_TO_CTX, PTR_TO_MEM argument passing support. Also
-> > > testing the various failure cases for invalid kfunc prototypes.
-> > >
-> > > Signed-off-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
-> > > ---
-> > >  net/bpf/test_run.c                            | 129 +++++++++++++++++-
-> > >  .../selftests/bpf/prog_tests/kfunc_call.c     |   6 +
-> > >  .../selftests/bpf/progs/kfunc_call_test.c     |  52 ++++++-
-> > >  tools/testing/selftests/bpf/verifier/calls.c  |  75 ++++++++++
-> > >  4 files changed, 258 insertions(+), 4 deletions(-)
-> > >
-> >
-> > It looks like this patch broke building the bpf tests:
-> >
-> > tools/testing/selftests/bpf$ make
-> >   CLNG-BPF [test_maps] kfunc_call_test.o
-> > progs/kfunc_call_test.c:13:46: error: declaration of 'struct prog_test_pass1' will not be visible outside of this function [-Werror,-Wvisibility]
-> > extern void bpf_kfunc_call_test_pass1(struct prog_test_pass1 *p) __ksym;
-> >                                              ^
-> >
-> > The only definition of struct prog_test_pass1 that I see is in
-> > net/bpf/test_run.c. How is this supposed to work?
-> >
-> >
-> > commit 87091063df5d ("selftests/bpf: Add test for unstable CT lookup
-> > API") from the same series added a similar problem in
-> > progs/test_bpf_nf.c:
-> >
-> > progs/test_bpf_nf.c:31:21: error: variable has incomplete type 'struct bpf_ct_opts'
-> >         struct bpf_ct_opts opts_def = { .l4proto = IPPROTO_TCP, .netns_id = -1 };
-> >
-> 
-> Both of them should have their definition in vmlinux.h. Can you check?
+Hi Pablo,
 
-My bad, I didn't realize it was generated from the running kernel. The
-build works after trying again while running v5.18.
+
+Please drop this first. This test case should base on the vlan encap 
+offload feature
+
+
+BR
+
+wenxu
+
+ÔÚ 2022/5/25 16:38, wenxu@chinatelecom.cn Ð´µÀ:
+> From: wenxu <wenxu@chinatelecom.cn>
+>
+> Add vlan_filtering enabled bridge and vlan case.
+> Add a vlan_filtering bridge device to the Router1 (nsr1) container
+> and attach the veth0 device to the bridge. Set the IP address to
+> the bridge device to exercise the bridge forwarding path.
+> The veth0 add in the vlan 10 domain and the br0 also add in the
+> vlan 10 domain with untaged.
+>
+> Signed-off-by: wenxu <wenxu@chinatelecom.cn>
+> ---
+> v2: fix set up the br0
+>      change iif br0 to iifname br0 for br0 destroy
+>      All the test PASS
+>   
+>   tools/testing/selftests/netfilter/nft_flowtable.sh | 28 +++++++++++++++++++---
+>   1 file changed, 25 insertions(+), 3 deletions(-)
+>
+> diff --git a/tools/testing/selftests/netfilter/nft_flowtable.sh b/tools/testing/selftests/netfilter/nft_flowtable.sh
+> index d4ffebb..13e03e3 100755
+> --- a/tools/testing/selftests/netfilter/nft_flowtable.sh
+> +++ b/tools/testing/selftests/netfilter/nft_flowtable.sh
+> @@ -37,6 +37,7 @@ checktool "nft --version" "run test without nft tool"
+>   checktool "ip -Version" "run test without ip tool"
+>   checktool "which nc" "run test without nc (netcat)"
+>   checktool "ip netns add nsr1" "create net namespace"
+> +checktool "bridge -Version" "run test without bridge tool"
+>   
+>   ip netns add ns1
+>   ip netns add ns2
+> @@ -388,7 +389,7 @@ flush table ip nat
+>   table ip nat {
+>      chain prerouting {
+>         type nat hook prerouting priority 0; policy accept;
+> -      meta iif "br0" ip daddr 10.6.6.6 tcp dport 1666 counter dnat ip to 10.0.2.99:12345
+> +      meta iifname "br0" ip daddr 10.6.6.6 tcp dport 1666 counter dnat ip to 10.0.2.99:12345
+>      }
+>   
+>      chain postrouting {
+> @@ -431,12 +432,33 @@ else
+>   	ret=1
+>   fi
+>   
+> -# restore test topology (remove bridge and VLAN)
+> -ip -net nsr1 link set veth0 nomaster
+> +# Another test:
+> +# Add vlan filtering bridge interface br0 to Router1, with NAT and VLAN.
+> +ip -net nsr1 link set veth0.10 nomaster
+>   ip -net nsr1 link set veth0 down
+>   ip -net nsr1 link set veth0.10 down
+>   ip -net nsr1 link delete veth0.10 type vlan
+>   ip -net nsr1 link delete br0 type bridge
+> +ip -net nsr1 link add name br0 type bridge vlan_filtering 1
+> +ip -net nsr1 link set up dev veth0
+> +ip -net nsr1 link set veth0 master br0
+> +ip -net nsr1 link set up dev br0
+> +ip -net nsr1 addr add 10.0.1.1/24 dev br0
+> +bridge -n nsr1 vlan add dev veth0 vid 10 pvid
+> +bridge -n nsr1 vlan add dev br0 vid 10 pvid untagged self
+> +
+> +if test_tcp_forwarding_nat ns1 ns2; then
+> +	echo "PASS: flow offloaded for ns1/ns2 with vlan filtering bridge NAT and VLAN"
+> +else
+> +	echo "FAIL: flow offload for ns1/ns2 with vlan filtering bridge NAT and VLAN" 1>&2
+> +	ip netns exec nsr1 nft list ruleset
+> +	ret=1
+> +fi
+> +
+> +# restore test topology (remove bridge and VLAN)
+> +ip -net nsr1 link set veth0 nomaster
+> +ip -net nsr1 link set veth0 down
+> +ip -net nsr1 link delete br0 type bridge
+>   ip -net ns1 addr flush dev eth0.10
+>   ip -net ns1 link set eth0.10 down
+>   ip -net ns1 link set eth0 down
