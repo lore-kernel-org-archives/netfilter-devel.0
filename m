@@ -2,37 +2,37 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AD3B4C433FE
-	for <netfilter-devel@archiver.kernel.org>; Thu, 26 May 2022 21:36:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B46A1C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 26 May 2022 21:36:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349209AbiEZVgY (ORCPT
+        id S1345055AbiEZVgk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 26 May 2022 17:36:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54230 "EHLO
+        Thu, 26 May 2022 17:36:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54220 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349203AbiEZVgN (ORCPT
+        with ESMTP id S243125AbiEZVgW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 26 May 2022 17:36:13 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC1D25EBDA;
-        Thu, 26 May 2022 14:36:11 -0700 (PDT)
+        Thu, 26 May 2022 17:36:22 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56126E7334;
+        Thu, 26 May 2022 14:36:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8D96861BC2;
-        Thu, 26 May 2022 21:36:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58650C34113;
-        Thu, 26 May 2022 21:36:06 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id DED38B82219;
+        Thu, 26 May 2022 21:36:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25138C36AE5;
+        Thu, 26 May 2022 21:36:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1653600969;
-        bh=0nxV5JIhLJ+pnLRElLxIATOfedgUhd5e1x5KgmKysGE=;
+        s=k20201202; t=1653600977;
+        bh=lGWKZyEAcHG/rHFsEc19gERB0bPYlJN8ZkjFWS2dFSE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=bvUNCmiupPfL2Khz0DGtYW7QzxRB+/M14HGoo9kryaWdjafScCxFIK/YgchZCcau0
-         G6ddN7lC8X8MO0S0vxUkhjlQoy+EDdp7hvAwiQRCVI4HLCjUI5QzrLF4DDvCLyGpti
-         FYJiKhYJl8QfJzWpqvWwMGBGvYelEy5C+VCPT1hKeZvFpIuuKCo/tzFiPsxqW7FXby
-         E0lzvhVcmWQhCVctzqvufsm/U7uzhZdEqL8UI3eloXoOz9EdSyPRAEw4aTyadpJpek
-         rrlHQdFTx4QKSLlr4V7xLZ0IhEwI7B1BcXni3vv7WMi5hh4/el/QgmqwWzITzb+4jm
-         G2f/oCzkc/vag==
+        b=MOGtWO5AwgO+tzpK4cMGLdCJqhqPr+6PQIKtansl5j5IxSwbSyU2MCjXzSWncGgEa
+         c0aotAg0Mk0z8GY1UTHySWqwXW3riJfQuhr3BvHvHMpXWsvh44rGQ3JLExFJpXtC+b
+         puyPEYoP6OReTGhS8O9SRfQdQwQ6DoIOsUfX8LBC+MZ1FQx7DkyFAmQLxAi1r1zt2s
+         TC/ANDj5g3oRrnKA5naxZ3Fg4T4F276Wc19qK8yvq58AgZhDpEhZUpwXIwZotQkVgf
+         gC6YvbCFHdPca8GD5gQM7GnyHTsdxeVZdiJVstfO5UAUlpjukVZrTGoD6TwUg/wgL2
+         6DN33UcUY6wOg==
 From:   Lorenzo Bianconi <lorenzo@kernel.org>
 To:     bpf@vger.kernel.org
 Cc:     netdev@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
@@ -41,9 +41,9 @@ Cc:     netdev@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
         fw@strlen.de, netfilter-devel@vger.kernel.org,
         lorenzo.bianconi@redhat.com, brouer@redhat.com, toke@redhat.com,
         memxor@gmail.com, yhs@fb.com
-Subject: [PATCH v4 bpf-next 11/14] net: netfilter: add kfunc helper to update ct timeout
-Date:   Thu, 26 May 2022 23:34:59 +0200
-Message-Id: <c32e587692b64d298245b52bc709209bf79b930e.1653600578.git.lorenzo@kernel.org>
+Subject: [PATCH v4 bpf-next 13/14] selftests/bpf: add selftest for bpf_xdp_ct_add and bpf_ct_refresh_timeout kfunc
+Date:   Thu, 26 May 2022 23:35:01 +0200
+Message-Id: <777f1aec6aef006604edf945cb898a0ca636fb9d.1653600578.git.lorenzo@kernel.org>
 X-Mailer: git-send-email 2.35.3
 In-Reply-To: <cover.1653600577.git.lorenzo@kernel.org>
 References: <cover.1653600577.git.lorenzo@kernel.org>
@@ -53,117 +53,215 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Introduce bpf_ct_refresh_timeout kfunc helper in order to update
-nf_conn lifetime. Move timeout update logic in nf_ct_refresh_timeout
-utility routine.
+Introduce selftests for the following kfunc helpers:
+- bpf_xdp_ct_alloc
+- bpf_skb_ct_alloc
+- bpf_ct_insert_entry
+- bpf_ct_refresh_timeout
 
-Acked-by: Toke Hoiland-Jorgensen <toke@redhat.com>
-Acked-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
 Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
 ---
- include/net/netfilter/nf_conntrack.h |  1 +
- net/netfilter/nf_conntrack_bpf.c     | 23 +++++++++++++++++++++++
- net/netfilter/nf_conntrack_core.c    | 21 +++++++++++++--------
- 3 files changed, 37 insertions(+), 8 deletions(-)
+ .../testing/selftests/bpf/prog_tests/bpf_nf.c |  6 ++
+ .../testing/selftests/bpf/progs/test_bpf_nf.c | 87 +++++++++++++++----
+ 2 files changed, 76 insertions(+), 17 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index a32be8aa7ed2..6ce4d2ecbc7b 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -205,6 +205,7 @@ bool nf_ct_get_tuplepr(const struct sk_buff *skb, unsigned int nhoff,
- 		       u_int16_t l3num, struct net *net,
- 		       struct nf_conntrack_tuple *tuple);
- 
-+void nf_ct_refresh_timeout(struct nf_conn *ct, u32 extra_jiffies);
- void __nf_ct_refresh_acct(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
- 			  const struct sk_buff *skb,
- 			  u32 extra_jiffies, bool do_acct);
-diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrack_bpf.c
-index 5169405dd9d1..c50f4c1e5b3a 100644
---- a/net/netfilter/nf_conntrack_bpf.c
-+++ b/net/netfilter/nf_conntrack_bpf.c
-@@ -219,16 +219,39 @@ void bpf_ct_release(const struct nf_conn *nfct)
- 	nf_ct_put((struct nf_conn *)nfct);
+diff --git a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
+index dd30b1e3a67c..b909928427f3 100644
+--- a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
++++ b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
+@@ -39,6 +39,12 @@ void test_bpf_nf_ct(int mode)
+ 	ASSERT_EQ(skel->bss->test_enonet_netns_id, -ENONET, "Test ENONET for bad but valid netns_id");
+ 	ASSERT_EQ(skel->bss->test_enoent_lookup, -ENOENT, "Test ENOENT for failed lookup");
+ 	ASSERT_EQ(skel->bss->test_eafnosupport, -EAFNOSUPPORT, "Test EAFNOSUPPORT for invalid len__tuple");
++	ASSERT_EQ(skel->data->test_alloc_entry, 0, "Test for alloc new entry");
++	ASSERT_EQ(skel->data->test_insert_entry, 0, "Test for insert new entry");
++	ASSERT_EQ(skel->data->test_succ_lookup, 0, "Test for successful lookup");
++	/* allow some tolerance for test_delta_timeout value to avoid races. */
++	ASSERT_GT(skel->bss->test_delta_timeout, 9, "Test for min ct timeout update");
++	ASSERT_LE(skel->bss->test_delta_timeout, 10, "Test for max ct timeout update");
+ end:
+ 	test_bpf_nf__destroy(skel);
  }
+diff --git a/tools/testing/selftests/bpf/progs/test_bpf_nf.c b/tools/testing/selftests/bpf/progs/test_bpf_nf.c
+index f00a9731930e..1e39f62f7bc8 100644
+--- a/tools/testing/selftests/bpf/progs/test_bpf_nf.c
++++ b/tools/testing/selftests/bpf/progs/test_bpf_nf.c
+@@ -8,6 +8,8 @@
+ #define EINVAL 22
+ #define ENOENT 2
  
-+/* bpf_ct_refresh_timeout - Refresh nf_conn object
-+ *
-+ * Refresh timeout associated to the provided connection tracking entry.
-+ * This must be invoked for referenced PTR_TO_BTF_ID.
-+ *
-+ * Parameters:
-+ * @nfct__ref    - Pointer to referenced nf_conn object, obtained using
-+ *		   bpf_xdp_ct_lookup or bpf_skb_ct_lookup.
-+ * @timeout      - delta time in msecs used to increase the ct entry lifetime.
-+ */
-+void bpf_ct_refresh_timeout(const struct nf_conn *nfct__ref, u32 timeout)
-+{
-+	struct nf_conn *nfct;
++extern unsigned long CONFIG_HZ __kconfig;
 +
-+	if (!nfct__ref)
-+		return;
-+
-+	nfct = (struct nf_conn *)nfct__ref;
-+	nf_ct_refresh_timeout(nfct, msecs_to_jiffies(timeout));
-+}
-+
- __diag_pop()
+ int test_einval_bpf_tuple = 0;
+ int test_einval_reserved = 0;
+ int test_einval_netns_id = 0;
+@@ -16,6 +18,10 @@ int test_eproto_l4proto = 0;
+ int test_enonet_netns_id = 0;
+ int test_enoent_lookup = 0;
+ int test_eafnosupport = 0;
++int test_alloc_entry = -EINVAL;
++int test_insert_entry = -EAFNOSUPPORT;
++int test_succ_lookup = -ENOENT;
++u32 test_delta_timeout = 0;
  
- BTF_SET_START(nf_ct_xdp_check_kfunc_ids)
- BTF_ID(func, bpf_xdp_ct_lookup)
- BTF_ID(func, bpf_ct_release)
-+BTF_ID(func, bpf_ct_refresh_timeout);
- BTF_SET_END(nf_ct_xdp_check_kfunc_ids)
+ struct nf_conn;
  
- BTF_SET_START(nf_ct_tc_check_kfunc_ids)
- BTF_ID(func, bpf_skb_ct_lookup)
- BTF_ID(func, bpf_ct_release)
-+BTF_ID(func, bpf_ct_refresh_timeout);
- BTF_SET_END(nf_ct_tc_check_kfunc_ids)
+@@ -26,31 +32,42 @@ struct bpf_ct_opts___local {
+ 	u8 reserved[3];
+ } __attribute__((preserve_access_index));
  
- BTF_SET_START(nf_ct_acquire_kfunc_ids)
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 91f890972f9e..0aafefe9014c 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -2055,16 +2055,11 @@ void nf_conntrack_alter_reply(struct nf_conn *ct,
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_alter_reply);
+-struct nf_conn *bpf_xdp_ct_lookup(struct xdp_md *, struct bpf_sock_tuple *, u32,
+-				  struct bpf_ct_opts___local *, u32) __ksym;
+-struct nf_conn *bpf_skb_ct_lookup(struct __sk_buff *, struct bpf_sock_tuple *, u32,
+-				  struct bpf_ct_opts___local *, u32) __ksym;
+-void bpf_ct_release(struct nf_conn *) __ksym;
++struct nf_conn *bpf_xdp_ct_alloc(struct xdp_md *, struct bpf_sock_tuple *, u32,
++				 struct bpf_ct_opts___local *, u32) __ksym;
++const struct nf_conn *bpf_xdp_ct_lookup(struct xdp_md *, struct bpf_sock_tuple *, u32,
++					struct bpf_ct_opts___local *, u32) __ksym;
++struct nf_conn *bpf_skb_ct_alloc(struct __sk_buff *, struct bpf_sock_tuple *, u32,
++				 struct bpf_ct_opts___local *, u32) __ksym;
++const struct nf_conn *bpf_skb_ct_lookup(struct __sk_buff *, struct bpf_sock_tuple *, u32,
++					struct bpf_ct_opts___local *, u32) __ksym;
++const struct nf_conn *
++bpf_ct_insert_entry(struct nf_conn *, struct bpf_ct_opts___local *, u32) __ksym;
++void bpf_ct_release(const struct nf_conn *) __ksym;
++void bpf_ct_refresh_timeout(const struct nf_conn *, u32) __ksym;
  
--/* Refresh conntrack for this many jiffies and do accounting if do_acct is 1 */
--void __nf_ct_refresh_acct(struct nf_conn *ct,
--			  enum ip_conntrack_info ctinfo,
--			  const struct sk_buff *skb,
--			  u32 extra_jiffies,
--			  bool do_acct)
-+void nf_ct_refresh_timeout(struct nf_conn *ct, u32 extra_jiffies)
+ static __always_inline void
+-nf_ct_test(struct nf_conn *(*func)(void *, struct bpf_sock_tuple *, u32,
+-				   struct bpf_ct_opts___local *, u32),
++nf_ct_test(struct nf_conn *(*lookup_fn)(void *, struct bpf_sock_tuple *, u32,
++					struct bpf_ct_opts___local *, u32),
++	   struct nf_conn *(*alloc_fn)(void *, struct bpf_sock_tuple *, u32,
++				       struct bpf_ct_opts___local *, u32),
+ 	   void *ctx)
  {
- 	/* Only update if this is not a fixed timeout */
- 	if (test_bit(IPS_FIXED_TIMEOUT_BIT, &ct->status))
--		goto acct;
-+		return;
+ 	struct bpf_ct_opts___local opts_def = { .l4proto = IPPROTO_TCP, .netns_id = -1 };
+ 	struct bpf_sock_tuple bpf_tuple;
+ 	struct nf_conn *ct;
++	int err;
  
- 	/* If not in hash table, timer will not be active yet */
- 	if (nf_ct_is_confirmed(ct))
-@@ -2072,7 +2067,17 @@ void __nf_ct_refresh_acct(struct nf_conn *ct,
+ 	__builtin_memset(&bpf_tuple, 0, sizeof(bpf_tuple.ipv4));
  
- 	if (READ_ONCE(ct->timeout) != extra_jiffies)
- 		WRITE_ONCE(ct->timeout, extra_jiffies);
--acct:
-+}
+-	ct = func(ctx, NULL, 0, &opts_def, sizeof(opts_def));
++	ct = lookup_fn(ctx, NULL, 0, &opts_def, sizeof(opts_def));
+ 	if (ct)
+ 		bpf_ct_release(ct);
+ 	else
+ 		test_einval_bpf_tuple = opts_def.error;
+ 
+ 	opts_def.reserved[0] = 1;
+-	ct = func(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def, sizeof(opts_def));
++	ct = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
++		       sizeof(opts_def));
+ 	opts_def.reserved[0] = 0;
+ 	opts_def.l4proto = IPPROTO_TCP;
+ 	if (ct)
+@@ -59,21 +76,24 @@ nf_ct_test(struct nf_conn *(*func)(void *, struct bpf_sock_tuple *, u32,
+ 		test_einval_reserved = opts_def.error;
+ 
+ 	opts_def.netns_id = -2;
+-	ct = func(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def, sizeof(opts_def));
++	ct = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
++		       sizeof(opts_def));
+ 	opts_def.netns_id = -1;
+ 	if (ct)
+ 		bpf_ct_release(ct);
+ 	else
+ 		test_einval_netns_id = opts_def.error;
+ 
+-	ct = func(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def, sizeof(opts_def) - 1);
++	ct = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
++		       sizeof(opts_def) - 1);
+ 	if (ct)
+ 		bpf_ct_release(ct);
+ 	else
+ 		test_einval_len_opts = opts_def.error;
+ 
+ 	opts_def.l4proto = IPPROTO_ICMP;
+-	ct = func(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def, sizeof(opts_def));
++	ct = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
++		       sizeof(opts_def));
+ 	opts_def.l4proto = IPPROTO_TCP;
+ 	if (ct)
+ 		bpf_ct_release(ct);
+@@ -81,37 +101,70 @@ nf_ct_test(struct nf_conn *(*func)(void *, struct bpf_sock_tuple *, u32,
+ 		test_eproto_l4proto = opts_def.error;
+ 
+ 	opts_def.netns_id = 0xf00f;
+-	ct = func(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def, sizeof(opts_def));
++	ct = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
++		       sizeof(opts_def));
+ 	opts_def.netns_id = -1;
+ 	if (ct)
+ 		bpf_ct_release(ct);
+ 	else
+ 		test_enonet_netns_id = opts_def.error;
+ 
+-	ct = func(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def, sizeof(opts_def));
++	ct = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
++		       sizeof(opts_def));
+ 	if (ct)
+ 		bpf_ct_release(ct);
+ 	else
+ 		test_enoent_lookup = opts_def.error;
+ 
+-	ct = func(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4) - 1, &opts_def, sizeof(opts_def));
++	ct = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4) - 1, &opts_def,
++		       sizeof(opts_def));
+ 	if (ct)
+ 		bpf_ct_release(ct);
+ 	else
+ 		test_eafnosupport = opts_def.error;
 +
-+/* Refresh conntrack for this many jiffies and do accounting if do_acct is 1 */
-+void __nf_ct_refresh_acct(struct nf_conn *ct,
-+			  enum ip_conntrack_info ctinfo,
-+			  const struct sk_buff *skb,
-+			  u32 extra_jiffies,
-+			  bool do_acct)
-+{
-+	nf_ct_refresh_timeout(ct, extra_jiffies);
++	bpf_tuple.ipv4.saddr = bpf_get_prandom_u32(); /* src IP */
++	bpf_tuple.ipv4.daddr = bpf_get_prandom_u32(); /* dst IP */
++	bpf_tuple.ipv4.sport = bpf_get_prandom_u32(); /* src port */
++	bpf_tuple.ipv4.dport = bpf_get_prandom_u32(); /* dst port */
 +
- 	if (do_acct)
- 		nf_ct_acct_update(ct, CTINFO2DIR(ctinfo), skb->len);
++	ct = alloc_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
++		      sizeof(opts_def));
++	if (ct) {
++		const struct nf_conn *ct_ins;
++
++		ct_ins = bpf_ct_insert_entry(ct, &opts_def, sizeof(opts_def));
++		if (ct_ins) {
++			struct nf_conn *ct_lk;
++
++			ct_lk = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4),
++					  &opts_def, sizeof(opts_def));
++			if (ct_lk) {
++				/* update ct entry timeout */
++				bpf_ct_refresh_timeout(ct_lk, 10000);
++				test_delta_timeout = ct_lk->timeout - bpf_jiffies64();
++				test_delta_timeout /= CONFIG_HZ;
++				bpf_ct_release(ct_lk);
++				test_succ_lookup = 0;
++			}
++			bpf_ct_release(ct_ins);
++			test_insert_entry = 0;
++		}
++		test_alloc_entry = 0;
++	}
  }
+ 
+ SEC("xdp")
+ int nf_xdp_ct_test(struct xdp_md *ctx)
+ {
+-	nf_ct_test((void *)bpf_xdp_ct_lookup, ctx);
++	nf_ct_test((void *)bpf_xdp_ct_lookup, (void *)bpf_xdp_ct_alloc, ctx);
+ 	return 0;
+ }
+ 
+ SEC("tc")
+ int nf_skb_ct_test(struct __sk_buff *ctx)
+ {
+-	nf_ct_test((void *)bpf_skb_ct_lookup, ctx);
++	nf_ct_test((void *)bpf_skb_ct_lookup, (void *)bpf_skb_ct_alloc, ctx);
+ 	return 0;
+ }
+ 
 -- 
 2.35.3
 
