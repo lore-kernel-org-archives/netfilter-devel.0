@@ -2,88 +2,101 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54FA4C433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 May 2022 10:25:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EEFF6C433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 May 2022 11:36:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350925AbiE0KZS (ORCPT
+        id S1351308AbiE0LgN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 27 May 2022 06:25:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55938 "EHLO
+        Fri, 27 May 2022 07:36:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42940 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234079AbiE0KZS (ORCPT
+        with ESMTP id S1350996AbiE0LgN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 27 May 2022 06:25:18 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id BE78461295
-        for <netfilter-devel@vger.kernel.org>; Fri, 27 May 2022 03:25:16 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     sbrivio@redhat.com, fw@strlen.de
-Subject: [PATCH nf] netfilter: nf_tables: sanitize nft_set_desc_concat_parse()
-Date:   Fri, 27 May 2022 12:25:10 +0200
-Message-Id: <20220527102510.333650-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Fri, 27 May 2022 07:36:13 -0400
+Received: from mail-pl1-x644.google.com (mail-pl1-x644.google.com [IPv6:2607:f8b0:4864:20::644])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADB4562CC8;
+        Fri, 27 May 2022 04:36:10 -0700 (PDT)
+Received: by mail-pl1-x644.google.com with SMTP id i1so3914673plg.7;
+        Fri, 27 May 2022 04:36:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=vKksjFG1JDH4G5KHVJkfgCOyerv56km+S53+dQLqcow=;
+        b=Eca3DzGY1RdUD7rSSsFCjjCkRqVrJa2xxaIKMm4YqzTlK5oCXz6ZWyt/qhob0DSjSk
+         jiQuSqqkf2bUL46wYJs5wY0MgleBa2egn5I7wx/ZyH60JnhQmzKkGPOVO66QATy4GLTT
+         GYhFPs2K+Qgnd1hewCiNQanSzzVDfk9kGVrtuz39vwDXdhKTXUkUHhJ5CLUjqh3l9PEo
+         DluJaZujn9Nr899OGBCiJKquKoEBwyzKbhuGkbcjRye6HZVcQhCTbYbRqrD+rncnDF9M
+         atpHD8PsRad2NCHfHKG0gX1q9+d+lh1jnsonTJBHJWHIMAb7gSf6jkXj/5d54j4CGCuN
+         4Xsw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=vKksjFG1JDH4G5KHVJkfgCOyerv56km+S53+dQLqcow=;
+        b=cPXJiEhwAyd6617gMlsMGBZplGS4XDksv6Gc4KIjGj1AnVl6uHP39xvOETzK1uRw57
+         McjdcIx7a4qG40uRlq3ifp2N7Xsf79PQCfgyi9xpDuo6mFxRNS+j6Gew9ERX9EK8uuEo
+         ATkuD2fh4x4NFInvZAQuy8jI753pDjfeJwDEp/rYAGjGhlBO3+9nQMfcFnoXBwH1MBeI
+         zKQ1RsAroZgYJz24g30eC9mtJ11nVVPglDRIi9otyASYpqMKVQENpprSaUep8vjbJ7W2
+         mSoChFKJFEMo8Q0GlqrLqnkCS0MQozi1LXsfIv7cGpXwUC3jpbrfIVPPUnkhtJXSJATi
+         OHlw==
+X-Gm-Message-State: AOAM533KzrA9t+QGzP+GQHrFlky/Zie2B3YnID6izRu7mqiLR6Vw6ccF
+        lkfyuO9k3Dk8/hYjor5P9yw=
+X-Google-Smtp-Source: ABdhPJxCZn8A0zHsvBdlQvXjJmskFO9NaJWbYplnZkH5Bd9eSI/BzA4WGPq1E2gSioJUsusEM+Ykhw==
+X-Received: by 2002:a17:90a:c484:b0:1e0:8e20:ff14 with SMTP id j4-20020a17090ac48400b001e08e20ff14mr7926939pjt.182.1653651370102;
+        Fri, 27 May 2022 04:36:10 -0700 (PDT)
+Received: from localhost ([157.51.122.0])
+        by smtp.gmail.com with ESMTPSA id w66-20020a626245000000b0050dc76281e1sm3221704pfb.187.2022.05.27.04.36.09
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 27 May 2022 04:36:09 -0700 (PDT)
+Date:   Fri, 27 May 2022 17:06:06 +0530
+From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Lorenzo Bianconi <lorenzo@kernel.org>, bpf@vger.kernel.org,
+        netdev@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
+        andrii@kernel.org, davem@davemloft.net, kuba@kernel.org,
+        edumazet@google.com, pabeni@redhat.com, pablo@netfilter.org,
+        netfilter-devel@vger.kernel.org, lorenzo.bianconi@redhat.com,
+        brouer@redhat.com, toke@redhat.com, yhs@fb.com
+Subject: Re: [PATCH v4 bpf-next 06/14] bpf: Whitelist some fields in nf_conn
+ for BPF_WRITE
+Message-ID: <20220527113343.h3q5zmkmqm7fev7r@apollo.legion>
+References: <cover.1653600577.git.lorenzo@kernel.org>
+ <2954ab26de09afeecf3a56ba93624f9629072102.1653600578.git.lorenzo@kernel.org>
+ <20220526214558.GA31193@breakpoint.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220526214558.GA31193@breakpoint.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add several sanity checks for nft_set_desc_concat_parse():
+On Fri, May 27, 2022 at 03:15:58AM IST, Florian Westphal wrote:
+> Lorenzo Bianconi <lorenzo@kernel.org> wrote:
+> > From: Kumar Kartikeya Dwivedi <memxor@gmail.com>
+> >
+> > Since we want to allow user to set some fields in nf_conn after it is
+> > allocated but before it is inserted, we can permit BPF_WRITE for normal
+> > nf_conn, and then mark return value as read only on insert, preventing
+> > further BPF_WRITE. This way, nf_conn can be written to using normal
+> > BPF instructions after allocation, but not after insertion.
+> >
+> > Note that we special nf_conn a bit here, inside the btf_struct_access
+> > callback for XDP and TC programs. Since this is the only struct for
+> > these programs requiring such adjustments, making this mechanism
+> > more generic has been left as an exercise for a future patch adding
+> > custom callbacks for more structs.
+>
+> Are you sure this is safe?
+> As far as I can see this allows nf_conn->status = ~0ul.
+> I'm fairly sure this isn't a good idea, see nf_ct_delete() for example.
 
-- validate desc->field_count not larger than desc->field_len array.
-- field length cannot be larger than desc->field_len (ie. U8_MAX)
-- total length of the concatenation cannot be larger than register array.
+This only allows writing to an allocated but not yet inserted nf_conn. The idea
+was that insert checks whether ct->status only has permitted bits set before
+making the entry visible, and then we make nf_conn pointer read only, however
+the runtime check seems to be missing right now in patch 12; something to fix in
+v5. With that sorted, would it be fine?
 
-Joint work with Florian Westphal.
-
-Fixes: f3a2181e16f1 ("netfilter: nf_tables: Support for sets with multiple ranged fields")
-Reported-by: <zhangziming.zzm@antgroup.com>
-Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
-Reviewed-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index f4f1d0a2da43..0c7a755dfabb 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4243,8 +4243,11 @@ static int nft_set_desc_concat_parse(const struct nlattr *attr,
- 				     struct nft_set_desc *desc)
- {
- 	struct nlattr *tb[NFTA_SET_FIELD_MAX + 1];
--	u32 len;
--	int err;
-+	u32 len, total = 0;
-+	int err, i;
-+
-+	if (desc->field_count >= ARRAY_SIZE(desc->field_len))
-+		return -E2BIG;
- 
- 	err = nla_parse_nested_deprecated(tb, NFTA_SET_FIELD_MAX, attr,
- 					  nft_concat_policy, NULL);
-@@ -4255,12 +4258,17 @@ static int nft_set_desc_concat_parse(const struct nlattr *attr,
- 		return -EINVAL;
- 
- 	len = ntohl(nla_get_be32(tb[NFTA_SET_FIELD_LEN]));
--
--	if (len * BITS_PER_BYTE / 32 > NFT_REG32_COUNT)
-+	if (len > U8_MAX)
- 		return -E2BIG;
- 
- 	desc->field_len[desc->field_count++] = len;
- 
-+	for (i = 0; i < desc->field_count; i++)
-+		total += desc->field_len[i];
-+
-+	if (total > U8_MAX || total * BITS_PER_BYTE / 32 > NFT_REG32_COUNT)
-+		return -E2BIG;
-+
- 	return 0;
- }
- 
--- 
-2.30.2
-
+--
+Kartikeya
