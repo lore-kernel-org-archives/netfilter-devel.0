@@ -2,82 +2,102 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D8D7C433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 May 2022 12:22:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E880C433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 May 2022 08:00:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243118AbiE0MWl convert rfc822-to-8bit (ORCPT
+        id S234266AbiE3IAW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 27 May 2022 08:22:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50156 "EHLO
+        Mon, 30 May 2022 04:00:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33534 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345421AbiE0MVk (ORCPT
+        with ESMTP id S234337AbiE3IAA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 27 May 2022 08:21:40 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CFB465F27B;
-        Fri, 27 May 2022 05:02:31 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1nuYfZ-0003yW-RK; Fri, 27 May 2022 14:02:17 +0200
-Date:   Fri, 27 May 2022 14:02:17 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Lorenzo Bianconi <lorenzo@kernel.org>, bpf@vger.kernel.org,
-        netdev@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
-        andrii@kernel.org, davem@davemloft.net, kuba@kernel.org,
-        edumazet@google.com, pabeni@redhat.com, pablo@netfilter.org,
-        netfilter-devel@vger.kernel.org, lorenzo.bianconi@redhat.com,
-        brouer@redhat.com, toke@redhat.com, yhs@fb.com
-Subject: Re: [PATCH v4 bpf-next 06/14] bpf: Whitelist some fields in nf_conn
- for BPF_WRITE
-Message-ID: <20220527120217.GG7680@breakpoint.cc>
-References: <cover.1653600577.git.lorenzo@kernel.org>
- <2954ab26de09afeecf3a56ba93624f9629072102.1653600578.git.lorenzo@kernel.org>
- <20220526214558.GA31193@breakpoint.cc>
- <20220527113343.h3q5zmkmqm7fev7r@apollo.legion>
+        Mon, 30 May 2022 04:00:00 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8979656432
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 May 2022 00:59:59 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     fw@strlen.de, sbrivio@redhat.com
+Subject: [PATCH nf,v2] netfilter: nf_tables: sanitize nft_set_desc_concat_parse()
+Date:   Mon, 30 May 2022 09:59:54 +0200
+Message-Id: <20220530075954.21081-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: 8BIT
-In-Reply-To: <20220527113343.h3q5zmkmqm7fev7r@apollo.legion>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Kumar Kartikeya Dwivedi <memxor@gmail.com> wrote:
-> On Fri, May 27, 2022 at 03:15:58AM IST, Florian Westphal wrote:
-> > Lorenzo Bianconi <lorenzo@kernel.org> wrote:
-> > > From: Kumar Kartikeya Dwivedi <memxor@gmail.com>
-> > >
-> > > Since we want to allow user to set some fields in nf_conn after it is
-> > > allocated but before it is inserted, we can permit BPF_WRITE for normal
-> > > nf_conn, and then mark return value as read only on insert, preventing
-> > > further BPF_WRITE. This way, nf_conn can be written to using normal
-> > > BPF instructions after allocation, but not after insertion.
-> > >
-> > > Note that we special nf_conn a bit here, inside the btf_struct_access
-> > > callback for XDP and TC programs. Since this is the only struct for
-> > > these programs requiring such adjustments, making this mechanism
-> > > more generic has been left as an exercise for a future patch adding
-> > > custom callbacks for more structs.
-> >
-> > Are you sure this is safe?
-> > As far as I can see this allows nf_conn->status = ~0ul.
-> > I'm fairly sure this isn't a good idea, see nf_ct_delete() for example.
-> 
-> This only allows writing to an allocated but not yet inserted nf_conn. The idea
-> was that insert checks whether ct->status only has permitted bits set before
-> making the entry visible, and then we make nf_conn pointer read only, however
-> the runtime check seems to be missing right now in patch 12; something to fix in
-> v5. With that sorted, would it be fine?
+Add several sanity checks for nft_set_desc_concat_parse():
 
-Its fragile, e.g. what if I set TEMPLATE bit?  If refcount goes down to
-0, object is released via kfree() instead of kmem_cache_free.
+- validate desc->field_count not larger than desc->field_len array.
+- field length cannot be larger than desc->field_len (ie. U8_MAX)
+- total length of the concatenation cannot be larger than register array.
 
-What if I clear SNAT_DONE bit?  Would it leave the (freed) entry on the
-bysource hash list (see nf_nat_core.c)?
+Joint work with Florian Westphal.
 
-Or is there some magic that prevents this from happening?  I have no
-idea how processing pipeline looks like...
+Fixes: f3a2181e16f1 ("netfilter: nf_tables: Support for sets with multiple ranged fields")
+Reported-by: <zhangziming.zzm@antgroup.com>
+Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: - use register size per field instead of bytes to calculate concat size
+    - consolidate check for too large concatenation in nft_set_desc_concat()
+
+ net/netfilter/nf_tables_api.c | 17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index f4f1d0a2da43..dcefb5f36b3a 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4246,6 +4246,9 @@ static int nft_set_desc_concat_parse(const struct nlattr *attr,
+ 	u32 len;
+ 	int err;
+ 
++	if (desc->field_count >= ARRAY_SIZE(desc->field_len))
++		return -E2BIG;
++
+ 	err = nla_parse_nested_deprecated(tb, NFTA_SET_FIELD_MAX, attr,
+ 					  nft_concat_policy, NULL);
+ 	if (err < 0)
+@@ -4255,9 +4258,8 @@ static int nft_set_desc_concat_parse(const struct nlattr *attr,
+ 		return -EINVAL;
+ 
+ 	len = ntohl(nla_get_be32(tb[NFTA_SET_FIELD_LEN]));
+-
+-	if (len * BITS_PER_BYTE / 32 > NFT_REG32_COUNT)
+-		return -E2BIG;
++	if (!len || len > U8_MAX)
++		return -EINVAL;
+ 
+ 	desc->field_len[desc->field_count++] = len;
+ 
+@@ -4268,7 +4270,8 @@ static int nft_set_desc_concat(struct nft_set_desc *desc,
+ 			       const struct nlattr *nla)
+ {
+ 	struct nlattr *attr;
+-	int rem, err;
++	u32 num_regs = 0;
++	int rem, err, i;
+ 
+ 	nla_for_each_nested(attr, nla, rem) {
+ 		if (nla_type(attr) != NFTA_LIST_ELEM)
+@@ -4279,6 +4282,12 @@ static int nft_set_desc_concat(struct nft_set_desc *desc,
+ 			return err;
+ 	}
+ 
++	for (i = 0; i < desc->field_count; i++)
++		num_regs += DIV_ROUND_UP(desc->field_len[i], sizeof(u32));
++
++	if (num_regs > NFT_REG32_COUNT)
++		return -E2BIG;
++
+ 	return 0;
+ }
+ 
+-- 
+2.30.2
+
