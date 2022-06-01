@@ -2,41 +2,54 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25C18CCA473
-	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Jun 2022 14:02:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47FFFCCA468
+	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Jun 2022 14:18:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1354215AbiFAOCT (ORCPT
+        id S1346116AbiFAOSV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 1 Jun 2022 10:02:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51754 "EHLO
+        Wed, 1 Jun 2022 10:18:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58988 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354610AbiFAOAo (ORCPT
+        with ESMTP id S1355591AbiFAOPY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 1 Jun 2022 10:00:44 -0400
+        Wed, 1 Jun 2022 10:15:24 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 420CE18E05
-        for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2022 06:57:07 -0700 (PDT)
-Date:   Wed, 1 Jun 2022 15:56:06 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id A003664D33
+        for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2022 07:03:18 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, Yi Chen <yiche@redhat.com>
-Subject: Re: [PATCH nf] netfilter: nat: really support inet nat without l3
- address
-Message-ID: <Ypdv9l4gDGQtOUGB@salvia>
-References: <20220601084735.79090-1-fw@strlen.de>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf] netfilter: nf_tables: use kfree_rcu(ptr, rcu) to release hooks in clean_net path
+Date:   Wed,  1 Jun 2022 16:03:14 +0200
+Message-Id: <20220601140314.89486-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20220601084735.79090-1-fw@strlen.de>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Jun 01, 2022 at 10:47:35AM +0200, Florian Westphal wrote:
-> When no l3 address is given, priv->family is set to NFPROTO_INET and
-> the evaluation function isn't called.
-> 
-> Call it too so l4-only rewrite can work.
-> Also add a test case for this.
+Use kfree_rcu(ptr, rcu) variant instead as described by ae089831ff28
+("netfilter: nf_tables: prefer kfree_rcu(ptr, rcu) variant").
 
-Applied to nf, thanks
+Fixes: f9a43007d3f7 ("netfilter: nf_tables: double hook unregistration in netns path")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 746be13438ef..129d3ebd6ce5 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -7332,7 +7332,7 @@ static void __nft_unregister_flowtable_net_hooks(struct net *net,
+ 		nf_unregister_net_hook(net, &hook->ops);
+ 		if (release_netdev) {
+ 			list_del(&hook->list);
+-			kfree_rcu(hook);
++			kfree_rcu(hook, rcu);
+ 		}
+ 	}
+ }
+-- 
+2.30.2
+
