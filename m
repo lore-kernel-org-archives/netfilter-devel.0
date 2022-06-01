@@ -2,89 +2,55 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87752C433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Jun 2022 04:10:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 656A6C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Jun 2022 08:16:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231546AbiFAEKU (ORCPT
+        id S244064AbiFAIQQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 1 Jun 2022 00:10:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38462 "EHLO
+        Wed, 1 Jun 2022 04:16:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48068 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229447AbiFAEKT (ORCPT
+        with ESMTP id S230302AbiFAIQP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 1 Jun 2022 00:10:19 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3EDF771DA1;
-        Tue, 31 May 2022 21:10:16 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E1683B817DF;
-        Wed,  1 Jun 2022 04:10:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 50AE3C3411A;
-        Wed,  1 Jun 2022 04:10:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1654056613;
-        bh=cudR3AmrMMpq0flpl7nw1YP9b0I8Sex8DswpaTr3OGg=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=opZ9V0C15lOrasyD/L8mV7AENsxDUBzTFHusOxs7Al8B7ddElu3YJHqmfPeVQNosr
-         PkPb1Ixwtkx5ubqvHPEPB38MXzQogyhUoJmPAhm/TOUTZM+nrV5MKfHFjg94wHaWd8
-         ujGkC34gfu7ku9bM1bOm1iN/pQW040NL1c3WoC68ALL0KA08CW7IlkU7MslSz44yF6
-         CY0V8RrGRh0MVv12yw32GvTDUXGSXqUA9dcZbdhHoBMb27Wann7TApdiJs6Ts0gtKV
-         s+3ZNLmztCQkOnFy28vXvalV1NCtRkAbVmV8G6PhuMsb499uN5LnCS/LaO3OEin7Iv
-         2sBq9VgRG4gDA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 34407F0394D;
-        Wed,  1 Jun 2022 04:10:13 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Wed, 1 Jun 2022 04:16:15 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 97B268AE74
+        for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2022 01:16:12 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] optimize: segfault when releasing unsupported statement
+Date:   Wed,  1 Jun 2022 10:16:06 +0200
+Message-Id: <20220601081606.190648-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/5] netfilter: nf_tables: sanitize
- nft_set_desc_concat_parse()
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <165405661321.30810.1706401303605363331.git-patchwork-notify@kernel.org>
-Date:   Wed, 01 Jun 2022 04:10:13 +0000
-References: <20220531215839.84765-2-pablo@netfilter.org>
-In-Reply-To: <20220531215839.84765-2-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
-        edumazet@google.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+Call xfree() instead since stmt_alloc() does not initialize the
+statement type fields.
 
-This series was applied to netdev/net.git (master)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1609
+Fixes: ea1f1c9ff608 ("optimize: memleak in statement matrix")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/optimize.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On Tue, 31 May 2022 23:58:35 +0200 you wrote:
-> Add several sanity checks for nft_set_desc_concat_parse():
-> 
-> - validate desc->field_count not larger than desc->field_len array.
-> - field length cannot be larger than desc->field_len (ie. U8_MAX)
-> - total length of the concatenation cannot be larger than register array.
-> 
-> Joint work with Florian Westphal.
-> 
-> [...]
-
-Here is the summary with links:
-  - [net,1/5] netfilter: nf_tables: sanitize nft_set_desc_concat_parse()
-    https://git.kernel.org/netdev/net/c/fecf31ee395b
-  - [net,2/5] netfilter: nf_tables: hold mutex on netns pre_exit path
-    https://git.kernel.org/netdev/net/c/3923b1e44066
-  - [net,3/5] netfilter: nf_tables: double hook unregistration in netns path
-    https://git.kernel.org/netdev/net/c/f9a43007d3f7
-  - [net,4/5] netfilter: flowtable: fix missing FLOWI_FLAG_ANYSRC flag
-    https://git.kernel.org/netdev/net/c/f1896d45fee9
-  - [net,5/5] netfilter: flowtable: fix nft_flow_route source address for nat case
-    https://git.kernel.org/netdev/net/c/97629b237a8c
-
-You are awesome, thank you!
+diff --git a/src/optimize.c b/src/optimize.c
+index d6dfffec3c86..3a3049d43690 100644
+--- a/src/optimize.c
++++ b/src/optimize.c
+@@ -304,7 +304,7 @@ static int rule_collect_stmts(struct optimize_ctx *ctx, struct rule *rule)
+ 			clone->nat.type_flags = stmt->nat.type_flags;
+ 			break;
+ 		default:
+-			stmt_free(clone);
++			xfree(clone);
+ 			continue;
+ 		}
+ 
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.30.2
 
