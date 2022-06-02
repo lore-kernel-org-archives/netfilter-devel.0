@@ -2,134 +2,66 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1235C433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Jun 2022 17:17:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3E5BC43334
+	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Jun 2022 07:44:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1356262AbiFARR2 (ORCPT
+        id S231819AbiFBHoD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 1 Jun 2022 13:17:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44132 "EHLO
+        Thu, 2 Jun 2022 03:44:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45096 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244748AbiFARR1 (ORCPT
+        with ESMTP id S231388AbiFBHoC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 1 Jun 2022 13:17:27 -0400
+        Thu, 2 Jun 2022 03:44:02 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4A53A255A6
-        for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2022 10:17:26 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8D7E7131F14
+        for <netfilter-devel@vger.kernel.org>; Thu,  2 Jun 2022 00:44:01 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Cc:     nwhisper@gmail.com
-Subject: [PATCH nft] evaluate: reset ctx->set after set interval evaluation
-Date:   Wed,  1 Jun 2022 19:17:22 +0200
-Message-Id: <20220601171722.236499-1-pablo@netfilter.org>
+Subject: [PATCH nf 2/3] netfilter: nf_tables: memleak in nft_expr_init() path
+Date:   Thu,  2 Jun 2022 09:43:56 +0200
+Message-Id: <20220602074357.332409-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20220602074357.332409-1-pablo@netfilter.org>
+References: <20220602074357.332409-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Otherwise bogus error reports on set datatype mismatch might occur, such as:
+Since ed0a0c60f0e5 ("netfilter: nft_quota: move stateful fields out of
+expression data"), stateful expressions allocate stateful area via
+kmalloc().
 
-Error: datatype mismatch, expected Internet protocol, expression has type IPv4 address
-    meta l4proto { tcp, udp } th dport 443 dnat to 10.0.0.1
-                 ^^^^^^^^^^^^
+Call ->ops->destroy() to release expression stateful information before
+releasing the expression.
 
-with an unrelated set declaration.
+->ops->deactivate() is also called for safety reasons, no stateful
+expressions support for this function.
 
-table ip test {
-       set set_with_interval {
-               type ipv4_addr
-               flags interval
-       }
-
-       chain prerouting {
-               type nat hook prerouting priority dstnat; policy accept;
-               meta l4proto { tcp, udp } th dport 443 dnat to 10.0.0.1
-       }
-}
-
-This bug has been introduced in the evaluation step.
-
-Reported-by: Roman Petrov <nwhisper@gmail.com>
-Fixes: 81e36530fcac ("src: replace interval segment tree overlap and automerge)"
+Fixes: 6cafaf4764a3 ("netfilter: nf_tables: fix memory leak if expr init fails")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/evaluate.c                                  | 10 ++++++----
- tests/shell/testcases/sets/dumps/set_eval_0.nft | 11 +++++++++++
- tests/shell/testcases/sets/set_eval_0           | 17 +++++++++++++++++
- 3 files changed, 34 insertions(+), 4 deletions(-)
- create mode 100644 tests/shell/testcases/sets/dumps/set_eval_0.nft
- create mode 100755 tests/shell/testcases/sets/set_eval_0
+ net/netfilter/nf_tables_api.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 1447a4c28aee..82bf1311fa53 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -4005,8 +4005,9 @@ static int setelem_evaluate(struct eval_ctx *ctx, struct cmd *cmd)
- 	cmd->elem.set = set_get(set);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 5ee4e7b28b61..017b77067852 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2904,6 +2904,11 @@ static struct nft_expr *nft_expr_init(const struct nft_ctx *ctx,
  
- 	if (set_is_interval(ctx->set->flags) &&
--	    !(set->flags & NFT_SET_CONCAT))
--		return interval_set_eval(ctx, ctx->set, cmd->expr);
-+	    !(set->flags & NFT_SET_CONCAT) &&
-+	    interval_set_eval(ctx, ctx->set, cmd->expr) < 0)
-+		return -1;
- 
- 	ctx->set = NULL;
- 
-@@ -4184,8 +4185,9 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
- 	}
- 
- 	if (set_is_interval(ctx->set->flags) &&
--	    !(ctx->set->flags & NFT_SET_CONCAT))
--		return interval_set_eval(ctx, ctx->set, set->init);
-+	    !(ctx->set->flags & NFT_SET_CONCAT) &&
-+	    interval_set_eval(ctx, ctx->set, set->init) < 0)
-+		return -1;
- 
- 	ctx->set = NULL;
- 
-diff --git a/tests/shell/testcases/sets/dumps/set_eval_0.nft b/tests/shell/testcases/sets/dumps/set_eval_0.nft
-new file mode 100644
-index 000000000000..a45462b8adbf
---- /dev/null
-+++ b/tests/shell/testcases/sets/dumps/set_eval_0.nft
-@@ -0,0 +1,11 @@
-+table ip nat {
-+	set set_with_interval {
-+		type ipv4_addr
-+		flags interval
-+	}
+ 	return expr;
+ err_expr_new:
++	if (expr->ops->deactivate)
++		expr->ops->deactivate(ctx, expr, NFT_TRANS_RELEASE);
++	if (expr_info.ops->destroy)
++		expr_info.ops->destroy(ctx, expr);
 +
-+	chain prerouting {
-+		type nat hook prerouting priority dstnat; policy accept;
-+		meta l4proto { tcp, udp } th dport 443 dnat to 10.0.0.1
-+	}
-+}
-diff --git a/tests/shell/testcases/sets/set_eval_0 b/tests/shell/testcases/sets/set_eval_0
-new file mode 100755
-index 000000000000..82b6d3bc69a7
---- /dev/null
-+++ b/tests/shell/testcases/sets/set_eval_0
-@@ -0,0 +1,17 @@
-+#!/bin/bash
-+
-+set -e
-+
-+RULESET="table ip nat {
-+        set set_with_interval {
-+                type ipv4_addr
-+                flags interval
-+        }
-+
-+        chain prerouting {
-+                type nat hook prerouting priority dstnat; policy accept;
-+                meta l4proto { tcp, udp } th dport 443 dnat to 10.0.0.1
-+        }
-+}"
-+
-+$NFT -f - <<< $RULESET
+ 	kfree(expr);
+ err_expr_stateful:
+ 	owner = expr_info.ops->type->owner;
 -- 
 2.30.2
 
