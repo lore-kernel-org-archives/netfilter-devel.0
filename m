@@ -2,55 +2,84 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BE6BC433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Jun 2022 13:41:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F7F6C433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Jun 2022 16:34:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235497AbiFBNlQ (ORCPT
+        id S237119AbiFBQey (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 2 Jun 2022 09:41:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45944 "EHLO
+        Thu, 2 Jun 2022 12:34:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41956 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233407AbiFBNlP (ORCPT
+        with ESMTP id S236738AbiFBQex (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 2 Jun 2022 09:41:15 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4BA921F5771
-        for <netfilter-devel@vger.kernel.org>; Thu,  2 Jun 2022 06:41:14 -0700 (PDT)
-Date:   Thu, 2 Jun 2022 15:41:11 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Sriram Yagnaraman <sriram.yagnaraman@est.tech>
-Cc:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        fw@strlen.de
-Subject: Re: Alternative SCTP l4 tracker?
-Message-ID: <Ypi998Ub9mkHP1FF@salvia>
-References: <DBBP189MB14330946CBC8D2A8E953652595DE9@DBBP189MB1433.EURP189.PROD.OUTLOOK.COM>
+        Thu, 2 Jun 2022 12:34:53 -0400
+Received: from mail-ej1-x631.google.com (mail-ej1-x631.google.com [IPv6:2a00:1450:4864:20::631])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5EDBC13CA3E
+        for <netfilter-devel@vger.kernel.org>; Thu,  2 Jun 2022 09:34:51 -0700 (PDT)
+Received: by mail-ej1-x631.google.com with SMTP id s12so3793951ejx.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 02 Jun 2022 09:34:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ionos.com; s=google;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=0B1LK0KstwgUTnMOacN6khMuZlYalZmypJA8QSYOPVg=;
+        b=iLDhRhrySWGqH61kfmIg6EWc+CiXT/RMr8hgAriE+g0x6GbqRedeoz8npdvkHzLPo0
+         9oxiSUdNG5ZP8zakgFabi6+g1yhLImehZKnzIUHpXj+96NMamVb/u2SagJXpBG4Q9O0J
+         XlvGQGpiepHT+MPxVJRtFrwWE2zxtydfmwvgv8Oz3Vu6e+G1RReospD5zldoE222I11N
+         SWStc0IqEXRd7hcVMAnXyOeWrhuuP8ARobqP8dhbj+pFxthEzBnBIaiU0NyuryCEx+J2
+         bKq7K2ll6AgcoPvfdbINDeOF//jm5AzpG7gRR6emlGsOlUTv2n2d0OxR16DOfNjoGII6
+         VS4Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=0B1LK0KstwgUTnMOacN6khMuZlYalZmypJA8QSYOPVg=;
+        b=5j7w+O7gTEIch5Xrks3JKvElagre0J0oFKZzszID37I+HA+08z2P6/qHAPg438NFyf
+         H42XRmm5R2pHZ4sHK5PeSICeDND7vnVoob4+CqTSuGbj91aAJWkHA4kEtwOwbjPEkeRc
+         uPsW1jpbbCkHqCdXNv36ADSsvjC0fqIHVqbj8PI4ItN4XiBx+ChjaGGhow9foZCEGLoJ
+         O9WYcGlZWfJVpruWJ2HmpTC5A8Wxd/AO7NShXmiQuI1KXeeyx9vK/Sm8Jnv6p695DDih
+         ennNur6GZlUIc+qbPrMPERKgTvdfNRHu+VMb4RYoSgDg6dsaMa766mNYwCHe52c1xkLF
+         GGYw==
+X-Gm-Message-State: AOAM530dq4cF8CVX0DkVGg4CFaj9AXCFyyRzIX5StlIbO+OlDC3ZErFS
+        f0kCA+vWx2KMvO0+COgtzjdxESzMfm2qIg==
+X-Google-Smtp-Source: ABdhPJxTFrsVP0f6frvA8kyby5qk/n3P4pR/9Tlor4z7JTNE82aeTLqoG191zi1NkO+hcZjN1UZQrw==
+X-Received: by 2002:a17:907:7e84:b0:6fe:cded:7d1f with SMTP id qb4-20020a1709077e8400b006fecded7d1fmr5105447ejc.35.1654187689452;
+        Thu, 02 Jun 2022 09:34:49 -0700 (PDT)
+Received: from msennikovskii4.fkb.profitbricks.net ([2a02:3032:d:38a1:cadc:e8b7:bdfd:d7d0])
+        by smtp.gmail.com with ESMTPSA id i14-20020a17090685ce00b00706287ba061sm1881833ejy.180.2022.06.02.09.34.48
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 02 Jun 2022 09:34:48 -0700 (PDT)
+From:   Mikhail Sennikovsky <mikhail.sennikovskii@ionos.com>
+To:     netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        mikhail.sennikovsky@gmail.com
+Cc:     Mikhail Sennikovsky <mikhail.sennikovskii@ionos.com>
+Subject: [PATCH 0/1] Reusing modifier socket for bulk ct loads
+Date:   Thu,  2 Jun 2022 18:34:28 +0200
+Message-Id: <20220602163429.52490-1-mikhail.sennikovskii@ionos.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <DBBP189MB14330946CBC8D2A8E953652595DE9@DBBP189MB1433.EURP189.PROD.OUTLOOK.COM>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Jun 02, 2022 at 09:47:04AM +0000, Sriram Yagnaraman wrote:
-> Hi,
-> 
-> I am building a simple conntrack module for SCTP protocol. It is specified in a draft that still under review: https://www.ietf.org/archive/id/draft-porfiri-tsvwg-sctp-natsupp-03.txt
-> The idea with the draft is to only look at SCTP INIT chunks and use timers to handle the rest of the state handling. 
-> 
-> I would like to minimize the number of changes I make inside the existing conntrack, since this is just a research project as of now.
-> The question is if it is possible to have an external conntrack module that handles SCTP instead of the built-in SCTP l4 tracker?
-> 
-> I have tried the following ideas, but am not happy with any of them
-> 1. Register a kprobe for nf_conntrack_sctp_packet() and do my tracking there, but getting the original function arguments is messy and the original nf_conntrack_sctp_packet is still called
-> 2. Change NF_CT_PROTO_SCTP to tristate and load my module at start up instead of the original SCTP l4 tracker, and use a function pointer for nf_conntrack_sctp_packet()
-> 3. Modify existing SCTP l4 tracker directly 
-> 
-> I would be happy to try any other suggestion someone here might have.
+Hi Pablo & all,
 
-Number #3, you will have to send incremental patches for review.
+As discussed, here is the follow-up patch to use the same
+mnl modifier socket for all operation in bulk ct loads
+to increase performance of such loads.
 
-I would suggest you start by adding a test to tools/testing/selftests/netfilter/
+Any feedback/suggestions are welcome.
 
-Florian has been adding most of the tests there, he can probably
-provide a few hints/ideas on what would be good to cover.
+Regards,
+Mikhail
+
+Mikhail Sennikovsky (1):
+  conntrack: use same modifier socket for bulk ops
+
+ src/conntrack.c | 31 +++++++++++++++++++++++++------
+ 1 file changed, 25 insertions(+), 6 deletions(-)
+
+-- 
+2.25.1
+
