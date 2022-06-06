@@ -2,93 +2,58 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E80A4C433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jun 2022 21:21:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC4EACCA473
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jun 2022 21:21:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234153AbiFFVVH (ORCPT
+        id S234340AbiFFVVI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 6 Jun 2022 17:21:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40886 "EHLO
+        Mon, 6 Jun 2022 17:21:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40890 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234245AbiFFVVG (ORCPT
+        with ESMTP id S233879AbiFFVVG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 6 Jun 2022 17:21:06 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 27A2BC4EBC;
-        Mon,  6 Jun 2022 14:21:00 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 32B4DC5D88;
+        Mon,  6 Jun 2022 14:21:02 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net 0/7] Netfilter fixes for net
-Date:   Mon,  6 Jun 2022 23:20:48 +0200
-Message-Id: <20220606212055.98300-1-pablo@netfilter.org>
+Subject: [PATCH net 2/7] netfilter: nf_tables: use kfree_rcu(ptr, rcu) to release hooks in clean_net path
+Date:   Mon,  6 Jun 2022 23:20:50 +0200
+Message-Id: <20220606212055.98300-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20220606212055.98300-1-pablo@netfilter.org>
+References: <20220606212055.98300-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+Use kfree_rcu(ptr, rcu) variant instead as described by ae089831ff28
+("netfilter: nf_tables: prefer kfree_rcu(ptr, rcu) variant").
 
-The following patchset contains Netfilter fixes for net:
+Fixes: f9a43007d3f7 ("netfilter: nf_tables: double hook unregistration in netns path")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-1) Fix NAT support for NFPROTO_INET without layer 3 address,
-   from Florian Westphal.
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 746be13438ef..129d3ebd6ce5 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -7332,7 +7332,7 @@ static void __nft_unregister_flowtable_net_hooks(struct net *net,
+ 		nf_unregister_net_hook(net, &hook->ops);
+ 		if (release_netdev) {
+ 			list_del(&hook->list);
+-			kfree_rcu(hook);
++			kfree_rcu(hook, rcu);
+ 		}
+ 	}
+ }
+-- 
+2.30.2
 
-2) Use kfree_rcu(ptr, rcu) variant in nf_tables clean_net path.
-
-3) Use list to collect flowtable hooks to be deleted.
-
-4) Initialize list of hook field in flowtable transaction.
-
-5) Release hooks on error for flowtable updates.
-
-6) Memleak in hardware offload rule commit and abort paths.
-
-7) Early bail out in case device does not support for hardware offload.
-   This adds a new interface to net/core/flow_offload.c to check if the
-   flow indirect block list is empty.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 0a375c822497ed6ad6b5da0792a12a6f1af10c0b:
-
-  tcp: tcp_rtx_synack() can be called from process context (2022-05-31 21:40:10 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git HEAD
-
-for you to fetch changes up to 3a41c64d9c1185a2f3a184015e2a9b78bfc99c71:
-
-  netfilter: nf_tables: bail out early if hardware offload is not supported (2022-06-06 19:19:15 +0200)
-
-----------------------------------------------------------------
-Florian Westphal (1):
-      netfilter: nat: really support inet nat without l3 address
-
-Pablo Neira Ayuso (6):
-      netfilter: nf_tables: use kfree_rcu(ptr, rcu) to release hooks in clean_net path
-      netfilter: nf_tables: delete flowtable hooks via transaction list
-      netfilter: nf_tables: always initialize flowtable hook list in transaction
-      netfilter: nf_tables: release new hooks on unsupported flowtable flags
-      netfilter: nf_tables: memleak flow rule from commit path
-      netfilter: nf_tables: bail out early if hardware offload is not supported
-
- include/net/flow_offload.h                   |  1 +
- include/net/netfilter/nf_tables.h            |  1 -
- include/net/netfilter/nf_tables_offload.h    |  2 +-
- net/core/flow_offload.c                      |  6 ++++
- net/netfilter/nf_tables_api.c                | 54 ++++++++++++----------------
- net/netfilter/nf_tables_offload.c            | 23 +++++++++++-
- net/netfilter/nft_nat.c                      |  3 +-
- tools/testing/selftests/netfilter/nft_nat.sh | 43 ++++++++++++++++++++++
- 8 files changed, 98 insertions(+), 35 deletions(-)
