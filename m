@@ -2,101 +2,138 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F12D4CCA473
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jun 2022 15:23:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88752C43334
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jun 2022 15:33:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240479AbiFFPXt (ORCPT
+        id S240835AbiFFPdb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 6 Jun 2022 11:23:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34900 "EHLO
+        Mon, 6 Jun 2022 11:33:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59134 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240469AbiFFPXt (ORCPT
+        with ESMTP id S240785AbiFFPda (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Jun 2022 11:23:49 -0400
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 08FC425D5F7;
-        Mon,  6 Jun 2022 08:23:47 -0700 (PDT)
-From:   Thomas Gleixner <tglx@linutronix.de>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1654529026;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:cc:mime-version:mime-version:content-type:content-type;
-        bh=ZNoVfDltUyVTzFGTCv9B0gHE/HH6O1A3o5xpCJOtSTE=;
-        b=z7Y0I0zv1rNtnXBORuinDZHXKfB0UET0yYzy2eXGF7OQgmQqe9bF/zuZBYv8wyP3Bfbebu
-        MSeRzx7LLnD2g103jiBcidKZH8O2HQrl7TVA18rqjvvDFu6gmN//w80lc3BYdgvnkVqRcS
-        m+Pfg3/iU5qSREXCIDoOxZi6ltbENWjnt5EUxw5tZ9DZKwpfvoEdq6ukLWdOVwEVUkEtGG
-        Kvn+8DmX8WFYGFsLZACvMnB3E7LTF4pxPjVFJTFjKjZ9a5cglydvy5opeAA5E9coFn+rjp
-        hNx0SxYpS+sNpCzddlGpAKlKNpIMWJ2KeA/OZLytYsw1oXdAPATr1uABd/+ldQ==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1654529026;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:cc:mime-version:mime-version:content-type:content-type;
-        bh=ZNoVfDltUyVTzFGTCv9B0gHE/HH6O1A3o5xpCJOtSTE=;
-        b=G6M8IG84I728clYMxKjnaJZqQln3olgdCNHg6CI3oKke7UoVZ48a79DxF8BG+L5Dze215n
-        g9jz/cJg2BnOakCg==
+        Mon, 6 Jun 2022 11:33:30 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id EF6F22F02E
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Jun 2022 08:33:21 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Cc:     linux-spdx@vger.kernel.org,
-        Manoj Basapathi <manojbm@codeaurora.org>,
-        Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: netfilter: xtables: Bring SPDX identifier back
-Date:   Mon, 06 Jun 2022 17:23:45 +0200
-Message-ID: <87ee016cji.ffs@tglx>
+Subject: [PATCH nf,v2] netfilter: nf_tables: bail out early if hardware offload is not supported
+Date:   Mon,  6 Jun 2022 17:32:45 +0200
+Message-Id: <20220606153245.89587-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Commit e2be04c7f995 ("License cleanup: add SPDX license identifier to
-uapi header files with a license") added the correct SPDX identifier to
-include/uapi/linux/netfilter/xt_IDLETIMER.h.
+If user requests for NFT_CHAIN_HW_OFFLOAD, then check if either device
+provides the .ndo_setup_tc interface or there is an indirect flow block
+that has been registered. Otherwise, bail out early from the preparation
+phase.
 
-A subsequent commit removed it for no reason and reintroduced the UAPI
-license incorrectness as the file is now missing the UAPI exception
-again.
-
-Add it back and remove the GPLv2 boilerplate while at it.
-
-Fixes: 68983a354a65 ("netfilter: xtables: Add snapshot of hardidletimer target")
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Manoj Basapathi <manojbm@codeaurora.org>
-Cc: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
+Fixes: c9626a2cbdb2 ("netfilter: nf_tables: add hardware offload support")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/xt_IDLETIMER.h |   17 +----------------
- 1 file changed, 1 insertion(+), 16 deletions(-)
+v2: move nft_chain_offload_priority() out of the loop
 
---- a/include/uapi/linux/netfilter/xt_IDLETIMER.h
-+++ b/include/uapi/linux/netfilter/xt_IDLETIMER.h
-@@ -1,6 +1,5 @@
-+/* SPDX-License-Identifier: GPL-2.0-only WITH Linux-syscall-note */
- /*
-- * linux/include/linux/netfilter/xt_IDLETIMER.h
-- *
-  * Header file for Xtables timer target module.
-  *
-  * Copyright (C) 2004, 2010 Nokia Corporation
-@@ -10,20 +9,6 @@
-  * by Luciano Coelho <luciano.coelho@nokia.com>
-  *
-  * Contact: Luciano Coelho <luciano.coelho@nokia.com>
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License
-- * version 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-- * 02110-1301 USA
-  */
+ include/net/flow_offload.h                |  1 +
+ include/net/netfilter/nf_tables_offload.h |  2 +-
+ net/core/flow_offload.c                   |  6 ++++++
+ net/netfilter/nf_tables_api.c             |  2 +-
+ net/netfilter/nf_tables_offload.c         | 20 +++++++++++++++++++-
+ 5 files changed, 28 insertions(+), 3 deletions(-)
+
+diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
+index 021778a7e1af..6484095a8c01 100644
+--- a/include/net/flow_offload.h
++++ b/include/net/flow_offload.h
+@@ -612,5 +612,6 @@ int flow_indr_dev_setup_offload(struct net_device *dev, struct Qdisc *sch,
+ 				enum tc_setup_type type, void *data,
+ 				struct flow_block_offload *bo,
+ 				void (*cleanup)(struct flow_block_cb *block_cb));
++bool flow_indr_dev_exists(void);
  
- #ifndef _XT_IDLETIMER_H
+ #endif /* _NET_FLOW_OFFLOAD_H */
+diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
+index 797147843958..3568b6a2f5f0 100644
+--- a/include/net/netfilter/nf_tables_offload.h
++++ b/include/net/netfilter/nf_tables_offload.h
+@@ -92,7 +92,7 @@ int nft_flow_rule_offload_commit(struct net *net);
+ 	NFT_OFFLOAD_MATCH(__key, __base, __field, __len, __reg)		\
+ 	memset(&(__reg)->mask, 0xff, (__reg)->len);
+ 
+-int nft_chain_offload_priority(struct nft_base_chain *basechain);
++bool nft_chain_offload_support(const struct nft_base_chain *basechain);
+ 
+ int nft_offload_init(void);
+ void nft_offload_exit(void);
+diff --git a/net/core/flow_offload.c b/net/core/flow_offload.c
+index 73f68d4625f3..929f6379a279 100644
+--- a/net/core/flow_offload.c
++++ b/net/core/flow_offload.c
+@@ -595,3 +595,9 @@ int flow_indr_dev_setup_offload(struct net_device *dev,	struct Qdisc *sch,
+ 	return (bo && list_empty(&bo->cb_list)) ? -EOPNOTSUPP : count;
+ }
+ EXPORT_SYMBOL(flow_indr_dev_setup_offload);
++
++bool flow_indr_dev_exists(void)
++{
++	return !list_empty(&flow_block_indr_dev_list);
++}
++EXPORT_SYMBOL(flow_indr_dev_exists);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 1a6a21bfb18d..51144fc66889 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2166,7 +2166,7 @@ static int nft_basechain_init(struct nft_base_chain *basechain, u8 family,
+ 	chain->flags |= NFT_CHAIN_BASE | flags;
+ 	basechain->policy = NF_ACCEPT;
+ 	if (chain->flags & NFT_CHAIN_HW_OFFLOAD &&
+-	    nft_chain_offload_priority(basechain) < 0)
++	    !nft_chain_offload_support(basechain))
+ 		return -EOPNOTSUPP;
+ 
+ 	flow_block_init(&basechain->flow_block);
+diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+index 2d36952b1392..26b901dc45b5 100644
+--- a/net/netfilter/nf_tables_offload.c
++++ b/net/netfilter/nf_tables_offload.c
+@@ -208,7 +208,7 @@ static int nft_setup_cb_call(enum tc_setup_type type, void *type_data,
+ 	return 0;
+ }
+ 
+-int nft_chain_offload_priority(struct nft_base_chain *basechain)
++static int nft_chain_offload_priority(const struct nft_base_chain *basechain)
+ {
+ 	if (basechain->ops.priority <= 0 ||
+ 	    basechain->ops.priority > USHRT_MAX)
+@@ -217,6 +217,24 @@ int nft_chain_offload_priority(struct nft_base_chain *basechain)
+ 	return 0;
+ }
+ 
++bool nft_chain_offload_support(const struct nft_base_chain *basechain)
++{
++	struct net_device *dev;
++	struct nft_hook *hook;
++
++	if (nft_chain_offload_priority(basechain) < 0)
++		return false;
++
++	list_for_each_entry(hook, &basechain->hook_list, list) {
++		dev = hook->ops.dev;
++
++		if (!dev->netdev_ops->ndo_setup_tc && !flow_indr_dev_exists())
++			return false;
++	}
++
++	return true;
++}
++
+ static void nft_flow_cls_offload_setup(struct flow_cls_offload *cls_flow,
+ 				       const struct nft_base_chain *basechain,
+ 				       const struct nft_rule *rule,
+-- 
+2.30.2
+
