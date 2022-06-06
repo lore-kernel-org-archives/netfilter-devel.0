@@ -2,82 +2,142 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B345C433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jun 2022 17:16:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69A00CCA473
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jun 2022 17:20:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229607AbiFFRQp (ORCPT
+        id S229581AbiFFRUz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 6 Jun 2022 13:16:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52280 "EHLO
+        Mon, 6 Jun 2022 13:20:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49140 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231225AbiFFRQQ (ORCPT
+        with ESMTP id S229901AbiFFRUn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Jun 2022 13:16:16 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D26841498D3;
-        Mon,  6 Jun 2022 10:10:21 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 88144B81AC2;
-        Mon,  6 Jun 2022 17:10:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9448C34115;
-        Mon,  6 Jun 2022 17:10:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1654535419;
-        bh=xX5tSqVHfGZXOwH+hax5b3LDy48lqg6Fjv/dLY4o8BA=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=rityNW8O/O6qw8Me+6IeTg83Z5fPu/wxWXWOBxxSn3D4ZSCywAtQQ4LOw0U04b5x0
-         3g/u+HuMchaaGRohYX5cxF+NlhsrCeYO4xZdNRgOycFysDZyN88EdiG+Mt3r4xWCsB
-         8WUCNxkR5Eoq7b4pcJqWOmRk1PTo9GO3r2kOzW7o=
-Date:   Mon, 6 Jun 2022 19:10:04 +0200
-From:   Greg KH <gregkh@linuxfoundation.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Thomas Gleixner <tglx@linutronix.de>,
-        netfilter-devel@vger.kernel.org, linux-spdx@vger.kernel.org,
-        Manoj Basapathi <manojbm@codeaurora.org>,
-        Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Subject: Re: netfilter: xtables: Bring SPDX identifier back
-Message-ID: <Yp407GnFxpONk18I@kroah.com>
-References: <87ee016cji.ffs@tglx>
- <Yp4eiv4xUhWc2VEx@salvia>
- <Yp4xrPVwI8g7glwr@kroah.com>
- <Yp4y19o3EnRE+f7r@salvia>
+        Mon, 6 Jun 2022 13:20:43 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 5E03A1A380
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Jun 2022 10:20:41 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf,v3] netfilter: nf_tables: bail out early if hardware offload is not supported
+Date:   Mon,  6 Jun 2022 19:20:38 +0200
+Message-Id: <20220606172038.97133-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Yp4y19o3EnRE+f7r@salvia>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jun 06, 2022 at 07:01:11PM +0200, Pablo Neira Ayuso wrote:
-> On Mon, Jun 06, 2022 at 06:56:12PM +0200, Greg KH wrote:
-> > On Mon, Jun 06, 2022 at 05:34:34PM +0200, Pablo Neira Ayuso wrote:
-> > > On Mon, Jun 06, 2022 at 05:23:45PM +0200, Thomas Gleixner wrote:
-> > > > Commit e2be04c7f995 ("License cleanup: add SPDX license identifier to
-> > > > uapi header files with a license") added the correct SPDX identifier to
-> > > > include/uapi/linux/netfilter/xt_IDLETIMER.h.
-> > > > 
-> > > > A subsequent commit removed it for no reason and reintroduced the UAPI
-> > > > license incorrectness as the file is now missing the UAPI exception
-> > > > again.
-> > > > 
-> > > > Add it back and remove the GPLv2 boilerplate while at it.
-> > > 
-> > > LGTM.
-> > > 
-> > > You handle this or I place this in the nf.git tree?
-> > 
-> > If you want to take it, that's fine with me, otherwise I can in a
-> > spdx-specific tree that I manage.
-> 
-> I did not know there is a specific tree for this.
-> 
-> > Your choice, which ever is easier for you.
-> 
-> please take it
+If user requests for NFT_CHAIN_HW_OFFLOAD, then check if either device
+provides the .ndo_setup_tc interface or there is an indirect flow block
+that has been registered. Otherwise, bail out early from the preparation
+phase. Moreover, validate that family == NFPROTO_NETDEV and hook is
+NF_NETDEV_INGRESS.
 
-Will do, thanks!
+Fixes: c9626a2cbdb2 ("netfilter: nf_tables: add hardware offload support")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v3: validate family and hook number too.
 
-greg k-h
+ include/net/flow_offload.h                |  1 +
+ include/net/netfilter/nf_tables_offload.h |  2 +-
+ net/core/flow_offload.c                   |  6 ++++++
+ net/netfilter/nf_tables_api.c             |  2 +-
+ net/netfilter/nf_tables_offload.c         | 23 ++++++++++++++++++++++-
+ 5 files changed, 31 insertions(+), 3 deletions(-)
+
+diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
+index 021778a7e1af..6484095a8c01 100644
+--- a/include/net/flow_offload.h
++++ b/include/net/flow_offload.h
+@@ -612,5 +612,6 @@ int flow_indr_dev_setup_offload(struct net_device *dev, struct Qdisc *sch,
+ 				enum tc_setup_type type, void *data,
+ 				struct flow_block_offload *bo,
+ 				void (*cleanup)(struct flow_block_cb *block_cb));
++bool flow_indr_dev_exists(void);
+ 
+ #endif /* _NET_FLOW_OFFLOAD_H */
+diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
+index 797147843958..3568b6a2f5f0 100644
+--- a/include/net/netfilter/nf_tables_offload.h
++++ b/include/net/netfilter/nf_tables_offload.h
+@@ -92,7 +92,7 @@ int nft_flow_rule_offload_commit(struct net *net);
+ 	NFT_OFFLOAD_MATCH(__key, __base, __field, __len, __reg)		\
+ 	memset(&(__reg)->mask, 0xff, (__reg)->len);
+ 
+-int nft_chain_offload_priority(struct nft_base_chain *basechain);
++bool nft_chain_offload_support(const struct nft_base_chain *basechain);
+ 
+ int nft_offload_init(void);
+ void nft_offload_exit(void);
+diff --git a/net/core/flow_offload.c b/net/core/flow_offload.c
+index 73f68d4625f3..929f6379a279 100644
+--- a/net/core/flow_offload.c
++++ b/net/core/flow_offload.c
+@@ -595,3 +595,9 @@ int flow_indr_dev_setup_offload(struct net_device *dev,	struct Qdisc *sch,
+ 	return (bo && list_empty(&bo->cb_list)) ? -EOPNOTSUPP : count;
+ }
+ EXPORT_SYMBOL(flow_indr_dev_setup_offload);
++
++bool flow_indr_dev_exists(void)
++{
++	return !list_empty(&flow_block_indr_dev_list);
++}
++EXPORT_SYMBOL(flow_indr_dev_exists);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 1a6a21bfb18d..51144fc66889 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2166,7 +2166,7 @@ static int nft_basechain_init(struct nft_base_chain *basechain, u8 family,
+ 	chain->flags |= NFT_CHAIN_BASE | flags;
+ 	basechain->policy = NF_ACCEPT;
+ 	if (chain->flags & NFT_CHAIN_HW_OFFLOAD &&
+-	    nft_chain_offload_priority(basechain) < 0)
++	    !nft_chain_offload_support(basechain))
+ 		return -EOPNOTSUPP;
+ 
+ 	flow_block_init(&basechain->flow_block);
+diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+index 2d36952b1392..910ef881c3b8 100644
+--- a/net/netfilter/nf_tables_offload.c
++++ b/net/netfilter/nf_tables_offload.c
+@@ -208,7 +208,7 @@ static int nft_setup_cb_call(enum tc_setup_type type, void *type_data,
+ 	return 0;
+ }
+ 
+-int nft_chain_offload_priority(struct nft_base_chain *basechain)
++static int nft_chain_offload_priority(const struct nft_base_chain *basechain)
+ {
+ 	if (basechain->ops.priority <= 0 ||
+ 	    basechain->ops.priority > USHRT_MAX)
+@@ -217,6 +217,27 @@ int nft_chain_offload_priority(struct nft_base_chain *basechain)
+ 	return 0;
+ }
+ 
++bool nft_chain_offload_support(const struct nft_base_chain *basechain)
++{
++	struct net_device *dev;
++	struct nft_hook *hook;
++
++	if (nft_chain_offload_priority(basechain) < 0)
++		return false;
++
++	list_for_each_entry(hook, &basechain->hook_list, list) {
++		if (hook->ops.pf != NFPROTO_NETDEV ||
++		    hook->ops.hooknum != NF_NETDEV_INGRESS)
++			return false;
++
++		dev = hook->ops.dev;
++		if (!dev->netdev_ops->ndo_setup_tc && !flow_indr_dev_exists())
++			return false;
++	}
++
++	return true;
++}
++
+ static void nft_flow_cls_offload_setup(struct flow_cls_offload *cls_flow,
+ 				       const struct nft_base_chain *basechain,
+ 				       const struct nft_rule *rule,
+-- 
+2.30.2
+
