@@ -2,138 +2,50 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88752C43334
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jun 2022 15:33:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6137C433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jun 2022 15:36:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240835AbiFFPdb (ORCPT
+        id S240912AbiFFPex (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 6 Jun 2022 11:33:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59134 "EHLO
+        Mon, 6 Jun 2022 11:34:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38194 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240785AbiFFPda (ORCPT
+        with ESMTP id S240842AbiFFPej (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Jun 2022 11:33:30 -0400
+        Mon, 6 Jun 2022 11:34:39 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id EF6F22F02E
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Jun 2022 08:33:21 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id DFFEF35AA7;
+        Mon,  6 Jun 2022 08:34:37 -0700 (PDT)
+Date:   Mon, 6 Jun 2022 17:34:34 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v2] netfilter: nf_tables: bail out early if hardware offload is not supported
-Date:   Mon,  6 Jun 2022 17:32:45 +0200
-Message-Id: <20220606153245.89587-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+To:     Thomas Gleixner <tglx@linutronix.de>
+Cc:     netfilter-devel@vger.kernel.org, linux-spdx@vger.kernel.org,
+        Manoj Basapathi <manojbm@codeaurora.org>,
+        Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+Subject: Re: netfilter: xtables: Bring SPDX identifier back
+Message-ID: <Yp4eiv4xUhWc2VEx@salvia>
+References: <87ee016cji.ffs@tglx>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <87ee016cji.ffs@tglx>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If user requests for NFT_CHAIN_HW_OFFLOAD, then check if either device
-provides the .ndo_setup_tc interface or there is an indirect flow block
-that has been registered. Otherwise, bail out early from the preparation
-phase.
+On Mon, Jun 06, 2022 at 05:23:45PM +0200, Thomas Gleixner wrote:
+> Commit e2be04c7f995 ("License cleanup: add SPDX license identifier to
+> uapi header files with a license") added the correct SPDX identifier to
+> include/uapi/linux/netfilter/xt_IDLETIMER.h.
+> 
+> A subsequent commit removed it for no reason and reintroduced the UAPI
+> license incorrectness as the file is now missing the UAPI exception
+> again.
+> 
+> Add it back and remove the GPLv2 boilerplate while at it.
 
-Fixes: c9626a2cbdb2 ("netfilter: nf_tables: add hardware offload support")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: move nft_chain_offload_priority() out of the loop
+LGTM.
 
- include/net/flow_offload.h                |  1 +
- include/net/netfilter/nf_tables_offload.h |  2 +-
- net/core/flow_offload.c                   |  6 ++++++
- net/netfilter/nf_tables_api.c             |  2 +-
- net/netfilter/nf_tables_offload.c         | 20 +++++++++++++++++++-
- 5 files changed, 28 insertions(+), 3 deletions(-)
+You handle this or I place this in the nf.git tree?
 
-diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
-index 021778a7e1af..6484095a8c01 100644
---- a/include/net/flow_offload.h
-+++ b/include/net/flow_offload.h
-@@ -612,5 +612,6 @@ int flow_indr_dev_setup_offload(struct net_device *dev, struct Qdisc *sch,
- 				enum tc_setup_type type, void *data,
- 				struct flow_block_offload *bo,
- 				void (*cleanup)(struct flow_block_cb *block_cb));
-+bool flow_indr_dev_exists(void);
- 
- #endif /* _NET_FLOW_OFFLOAD_H */
-diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
-index 797147843958..3568b6a2f5f0 100644
---- a/include/net/netfilter/nf_tables_offload.h
-+++ b/include/net/netfilter/nf_tables_offload.h
-@@ -92,7 +92,7 @@ int nft_flow_rule_offload_commit(struct net *net);
- 	NFT_OFFLOAD_MATCH(__key, __base, __field, __len, __reg)		\
- 	memset(&(__reg)->mask, 0xff, (__reg)->len);
- 
--int nft_chain_offload_priority(struct nft_base_chain *basechain);
-+bool nft_chain_offload_support(const struct nft_base_chain *basechain);
- 
- int nft_offload_init(void);
- void nft_offload_exit(void);
-diff --git a/net/core/flow_offload.c b/net/core/flow_offload.c
-index 73f68d4625f3..929f6379a279 100644
---- a/net/core/flow_offload.c
-+++ b/net/core/flow_offload.c
-@@ -595,3 +595,9 @@ int flow_indr_dev_setup_offload(struct net_device *dev,	struct Qdisc *sch,
- 	return (bo && list_empty(&bo->cb_list)) ? -EOPNOTSUPP : count;
- }
- EXPORT_SYMBOL(flow_indr_dev_setup_offload);
-+
-+bool flow_indr_dev_exists(void)
-+{
-+	return !list_empty(&flow_block_indr_dev_list);
-+}
-+EXPORT_SYMBOL(flow_indr_dev_exists);
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 1a6a21bfb18d..51144fc66889 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2166,7 +2166,7 @@ static int nft_basechain_init(struct nft_base_chain *basechain, u8 family,
- 	chain->flags |= NFT_CHAIN_BASE | flags;
- 	basechain->policy = NF_ACCEPT;
- 	if (chain->flags & NFT_CHAIN_HW_OFFLOAD &&
--	    nft_chain_offload_priority(basechain) < 0)
-+	    !nft_chain_offload_support(basechain))
- 		return -EOPNOTSUPP;
- 
- 	flow_block_init(&basechain->flow_block);
-diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-index 2d36952b1392..26b901dc45b5 100644
---- a/net/netfilter/nf_tables_offload.c
-+++ b/net/netfilter/nf_tables_offload.c
-@@ -208,7 +208,7 @@ static int nft_setup_cb_call(enum tc_setup_type type, void *type_data,
- 	return 0;
- }
- 
--int nft_chain_offload_priority(struct nft_base_chain *basechain)
-+static int nft_chain_offload_priority(const struct nft_base_chain *basechain)
- {
- 	if (basechain->ops.priority <= 0 ||
- 	    basechain->ops.priority > USHRT_MAX)
-@@ -217,6 +217,24 @@ int nft_chain_offload_priority(struct nft_base_chain *basechain)
- 	return 0;
- }
- 
-+bool nft_chain_offload_support(const struct nft_base_chain *basechain)
-+{
-+	struct net_device *dev;
-+	struct nft_hook *hook;
-+
-+	if (nft_chain_offload_priority(basechain) < 0)
-+		return false;
-+
-+	list_for_each_entry(hook, &basechain->hook_list, list) {
-+		dev = hook->ops.dev;
-+
-+		if (!dev->netdev_ops->ndo_setup_tc && !flow_indr_dev_exists())
-+			return false;
-+	}
-+
-+	return true;
-+}
-+
- static void nft_flow_cls_offload_setup(struct flow_cls_offload *cls_flow,
- 				       const struct nft_base_chain *basechain,
- 				       const struct nft_rule *rule,
--- 
-2.30.2
-
+Thanks
