@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AB21C43334
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jun 2022 21:21:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3E20C43334
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jun 2022 21:21:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233962AbiFFVVK (ORCPT
+        id S234374AbiFFVVL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 6 Jun 2022 17:21:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40890 "EHLO
+        Mon, 6 Jun 2022 17:21:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40778 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233588AbiFFVVH (ORCPT
+        with ESMTP id S233885AbiFFVVH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 6 Jun 2022 17:21:07 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 2E3FCC3D2C;
-        Mon,  6 Jun 2022 14:21:02 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 18B06A180;
+        Mon,  6 Jun 2022 14:21:05 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net 3/7] netfilter: nf_tables: delete flowtable hooks via transaction list
-Date:   Mon,  6 Jun 2022 23:20:51 +0200
-Message-Id: <20220606212055.98300-4-pablo@netfilter.org>
+Subject: [PATCH net 7/7] netfilter: nf_tables: bail out early if hardware offload is not supported
+Date:   Mon,  6 Jun 2022 23:20:55 +0200
+Message-Id: <20220606212055.98300-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220606212055.98300-1-pablo@netfilter.org>
 References: <20220606212055.98300-1-pablo@netfilter.org>
@@ -32,129 +32,114 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Remove inactive bool field in nft_hook object that was introduced in
-abadb2f865d7 ("netfilter: nf_tables: delete devices from flowtable").
-Move stale flowtable hooks to transaction list instead.
+If user requests for NFT_CHAIN_HW_OFFLOAD, then check if either device
+provides the .ndo_setup_tc interface or there is an indirect flow block
+that has been registered. Otherwise, bail out early from the preparation
+phase. Moreover, validate that family == NFPROTO_NETDEV and hook is
+NF_NETDEV_INGRESS.
 
-Deleting twice the same device does not result in ENOENT.
-
-Fixes: abadb2f865d7 ("netfilter: nf_tables: delete devices from flowtable")
+Fixes: c9626a2cbdb2 ("netfilter: nf_tables: add hardware offload support")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h |  1 -
- net/netfilter/nf_tables_api.c     | 31 ++++++-------------------------
- 2 files changed, 6 insertions(+), 26 deletions(-)
+ include/net/flow_offload.h                |  1 +
+ include/net/netfilter/nf_tables_offload.h |  2 +-
+ net/core/flow_offload.c                   |  6 ++++++
+ net/netfilter/nf_tables_api.c             |  2 +-
+ net/netfilter/nf_tables_offload.c         | 23 ++++++++++++++++++++++-
+ 5 files changed, 31 insertions(+), 3 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 20af9d3557b9..279ae0fff7ad 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1090,7 +1090,6 @@ struct nft_stats {
+diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
+index 021778a7e1af..6484095a8c01 100644
+--- a/include/net/flow_offload.h
++++ b/include/net/flow_offload.h
+@@ -612,5 +612,6 @@ int flow_indr_dev_setup_offload(struct net_device *dev, struct Qdisc *sch,
+ 				enum tc_setup_type type, void *data,
+ 				struct flow_block_offload *bo,
+ 				void (*cleanup)(struct flow_block_cb *block_cb));
++bool flow_indr_dev_exists(void);
  
- struct nft_hook {
- 	struct list_head	list;
--	bool			inactive;
- 	struct nf_hook_ops	ops;
- 	struct rcu_head		rcu;
- };
+ #endif /* _NET_FLOW_OFFLOAD_H */
+diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
+index 797147843958..3568b6a2f5f0 100644
+--- a/include/net/netfilter/nf_tables_offload.h
++++ b/include/net/netfilter/nf_tables_offload.h
+@@ -92,7 +92,7 @@ int nft_flow_rule_offload_commit(struct net *net);
+ 	NFT_OFFLOAD_MATCH(__key, __base, __field, __len, __reg)		\
+ 	memset(&(__reg)->mask, 0xff, (__reg)->len);
+ 
+-int nft_chain_offload_priority(struct nft_base_chain *basechain);
++bool nft_chain_offload_support(const struct nft_base_chain *basechain);
+ 
+ int nft_offload_init(void);
+ void nft_offload_exit(void);
+diff --git a/net/core/flow_offload.c b/net/core/flow_offload.c
+index 73f68d4625f3..929f6379a279 100644
+--- a/net/core/flow_offload.c
++++ b/net/core/flow_offload.c
+@@ -595,3 +595,9 @@ int flow_indr_dev_setup_offload(struct net_device *dev,	struct Qdisc *sch,
+ 	return (bo && list_empty(&bo->cb_list)) ? -EOPNOTSUPP : count;
+ }
+ EXPORT_SYMBOL(flow_indr_dev_setup_offload);
++
++bool flow_indr_dev_exists(void)
++{
++	return !list_empty(&flow_block_indr_dev_list);
++}
++EXPORT_SYMBOL(flow_indr_dev_exists);
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 129d3ebd6ce5..30588349f96c 100644
+index 1a6a21bfb18d..51144fc66889 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -1914,7 +1914,6 @@ static struct nft_hook *nft_netdev_hook_alloc(struct net *net,
- 		goto err_hook_dev;
- 	}
- 	hook->ops.dev = dev;
--	hook->inactive = false;
+@@ -2166,7 +2166,7 @@ static int nft_basechain_init(struct nft_base_chain *basechain, u8 family,
+ 	chain->flags |= NFT_CHAIN_BASE | flags;
+ 	basechain->policy = NF_ACCEPT;
+ 	if (chain->flags & NFT_CHAIN_HW_OFFLOAD &&
+-	    nft_chain_offload_priority(basechain) < 0)
++	    !nft_chain_offload_support(basechain))
+ 		return -EOPNOTSUPP;
  
- 	return hook;
- 
-@@ -7618,6 +7617,7 @@ static int nft_delflowtable_hook(struct nft_ctx *ctx,
- {
- 	const struct nlattr * const *nla = ctx->nla;
- 	struct nft_flowtable_hook flowtable_hook;
-+	LIST_HEAD(flowtable_del_list);
- 	struct nft_hook *this, *hook;
- 	struct nft_trans *trans;
- 	int err;
-@@ -7633,7 +7633,7 @@ static int nft_delflowtable_hook(struct nft_ctx *ctx,
- 			err = -ENOENT;
- 			goto err_flowtable_del_hook;
- 		}
--		hook->inactive = true;
-+		list_move(&hook->list, &flowtable_del_list);
- 	}
- 
- 	trans = nft_trans_alloc(ctx, NFT_MSG_DELFLOWTABLE,
-@@ -7646,6 +7646,7 @@ static int nft_delflowtable_hook(struct nft_ctx *ctx,
- 	nft_trans_flowtable(trans) = flowtable;
- 	nft_trans_flowtable_update(trans) = true;
- 	INIT_LIST_HEAD(&nft_trans_flowtable_hooks(trans));
-+	list_splice(&flowtable_del_list, &nft_trans_flowtable_hooks(trans));
- 	nft_flowtable_hook_release(&flowtable_hook);
- 
- 	nft_trans_commit_list_add_tail(ctx->net, trans);
-@@ -7653,13 +7654,7 @@ static int nft_delflowtable_hook(struct nft_ctx *ctx,
+ 	flow_block_init(&basechain->flow_block);
+diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+index 2d36952b1392..910ef881c3b8 100644
+--- a/net/netfilter/nf_tables_offload.c
++++ b/net/netfilter/nf_tables_offload.c
+@@ -208,7 +208,7 @@ static int nft_setup_cb_call(enum tc_setup_type type, void *type_data,
  	return 0;
- 
- err_flowtable_del_hook:
--	list_for_each_entry(this, &flowtable_hook.list, list) {
--		hook = nft_hook_list_find(&flowtable->hook_list, this);
--		if (!hook)
--			break;
--
--		hook->inactive = false;
--	}
-+	list_splice(&flowtable_del_list, &flowtable->hook_list);
- 	nft_flowtable_hook_release(&flowtable_hook);
- 
- 	return err;
-@@ -8563,17 +8558,6 @@ void nft_chain_del(struct nft_chain *chain)
- 	list_del_rcu(&chain->list);
  }
  
--static void nft_flowtable_hooks_del(struct nft_flowtable *flowtable,
--				    struct list_head *hook_list)
--{
--	struct nft_hook *hook, *next;
--
--	list_for_each_entry_safe(hook, next, &flowtable->hook_list, list) {
--		if (hook->inactive)
--			list_move(&hook->list, hook_list);
--	}
--}
--
- static void nf_tables_module_autoload_cleanup(struct net *net)
+-int nft_chain_offload_priority(struct nft_base_chain *basechain)
++static int nft_chain_offload_priority(const struct nft_base_chain *basechain)
  {
- 	struct nftables_pernet *nft_net = nft_pernet(net);
-@@ -8918,8 +8902,6 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 			break;
- 		case NFT_MSG_DELFLOWTABLE:
- 			if (nft_trans_flowtable_update(trans)) {
--				nft_flowtable_hooks_del(nft_trans_flowtable(trans),
--							&nft_trans_flowtable_hooks(trans));
- 				nf_tables_flowtable_notify(&trans->ctx,
- 							   nft_trans_flowtable(trans),
- 							   &nft_trans_flowtable_hooks(trans),
-@@ -9000,7 +8982,6 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 	struct nftables_pernet *nft_net = nft_pernet(net);
- 	struct nft_trans *trans, *next;
- 	struct nft_trans_elem *te;
--	struct nft_hook *hook;
+ 	if (basechain->ops.priority <= 0 ||
+ 	    basechain->ops.priority > USHRT_MAX)
+@@ -217,6 +217,27 @@ int nft_chain_offload_priority(struct nft_base_chain *basechain)
+ 	return 0;
+ }
  
- 	if (action == NFNL_ABORT_VALIDATE &&
- 	    nf_tables_validate(net) < 0)
-@@ -9131,8 +9112,8 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 			break;
- 		case NFT_MSG_DELFLOWTABLE:
- 			if (nft_trans_flowtable_update(trans)) {
--				list_for_each_entry(hook, &nft_trans_flowtable(trans)->hook_list, list)
--					hook->inactive = false;
-+				list_splice(&nft_trans_flowtable_hooks(trans),
-+					    &nft_trans_flowtable(trans)->hook_list);
- 			} else {
- 				trans->ctx.table->use++;
- 				nft_clear(trans->ctx.net, nft_trans_flowtable(trans));
++bool nft_chain_offload_support(const struct nft_base_chain *basechain)
++{
++	struct net_device *dev;
++	struct nft_hook *hook;
++
++	if (nft_chain_offload_priority(basechain) < 0)
++		return false;
++
++	list_for_each_entry(hook, &basechain->hook_list, list) {
++		if (hook->ops.pf != NFPROTO_NETDEV ||
++		    hook->ops.hooknum != NF_NETDEV_INGRESS)
++			return false;
++
++		dev = hook->ops.dev;
++		if (!dev->netdev_ops->ndo_setup_tc && !flow_indr_dev_exists())
++			return false;
++	}
++
++	return true;
++}
++
+ static void nft_flow_cls_offload_setup(struct flow_cls_offload *cls_flow,
+ 				       const struct nft_base_chain *basechain,
+ 				       const struct nft_rule *rule,
 -- 
 2.30.2
 
