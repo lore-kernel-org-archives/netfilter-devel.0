@@ -2,25 +2,27 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69A00CCA473
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jun 2022 17:20:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E80A4C433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jun 2022 21:21:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229581AbiFFRUz (ORCPT
+        id S234153AbiFFVVH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 6 Jun 2022 13:20:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49140 "EHLO
+        Mon, 6 Jun 2022 17:21:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40886 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229901AbiFFRUn (ORCPT
+        with ESMTP id S234245AbiFFVVG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Jun 2022 13:20:43 -0400
+        Mon, 6 Jun 2022 17:21:06 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 5E03A1A380
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Jun 2022 10:20:41 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 27A2BC4EBC;
+        Mon,  6 Jun 2022 14:21:00 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v3] netfilter: nf_tables: bail out early if hardware offload is not supported
-Date:   Mon,  6 Jun 2022 19:20:38 +0200
-Message-Id: <20220606172038.97133-1-pablo@netfilter.org>
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        pabeni@redhat.com, edumazet@google.com
+Subject: [PATCH net 0/7] Netfilter fixes for net
+Date:   Mon,  6 Jun 2022 23:20:48 +0200
+Message-Id: <20220606212055.98300-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -28,116 +30,65 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If user requests for NFT_CHAIN_HW_OFFLOAD, then check if either device
-provides the .ndo_setup_tc interface or there is an indirect flow block
-that has been registered. Otherwise, bail out early from the preparation
-phase. Moreover, validate that family == NFPROTO_NETDEV and hook is
-NF_NETDEV_INGRESS.
+Hi,
 
-Fixes: c9626a2cbdb2 ("netfilter: nf_tables: add hardware offload support")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v3: validate family and hook number too.
+The following patchset contains Netfilter fixes for net:
 
- include/net/flow_offload.h                |  1 +
- include/net/netfilter/nf_tables_offload.h |  2 +-
- net/core/flow_offload.c                   |  6 ++++++
- net/netfilter/nf_tables_api.c             |  2 +-
- net/netfilter/nf_tables_offload.c         | 23 ++++++++++++++++++++++-
- 5 files changed, 31 insertions(+), 3 deletions(-)
+1) Fix NAT support for NFPROTO_INET without layer 3 address,
+   from Florian Westphal.
 
-diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
-index 021778a7e1af..6484095a8c01 100644
---- a/include/net/flow_offload.h
-+++ b/include/net/flow_offload.h
-@@ -612,5 +612,6 @@ int flow_indr_dev_setup_offload(struct net_device *dev, struct Qdisc *sch,
- 				enum tc_setup_type type, void *data,
- 				struct flow_block_offload *bo,
- 				void (*cleanup)(struct flow_block_cb *block_cb));
-+bool flow_indr_dev_exists(void);
- 
- #endif /* _NET_FLOW_OFFLOAD_H */
-diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
-index 797147843958..3568b6a2f5f0 100644
---- a/include/net/netfilter/nf_tables_offload.h
-+++ b/include/net/netfilter/nf_tables_offload.h
-@@ -92,7 +92,7 @@ int nft_flow_rule_offload_commit(struct net *net);
- 	NFT_OFFLOAD_MATCH(__key, __base, __field, __len, __reg)		\
- 	memset(&(__reg)->mask, 0xff, (__reg)->len);
- 
--int nft_chain_offload_priority(struct nft_base_chain *basechain);
-+bool nft_chain_offload_support(const struct nft_base_chain *basechain);
- 
- int nft_offload_init(void);
- void nft_offload_exit(void);
-diff --git a/net/core/flow_offload.c b/net/core/flow_offload.c
-index 73f68d4625f3..929f6379a279 100644
---- a/net/core/flow_offload.c
-+++ b/net/core/flow_offload.c
-@@ -595,3 +595,9 @@ int flow_indr_dev_setup_offload(struct net_device *dev,	struct Qdisc *sch,
- 	return (bo && list_empty(&bo->cb_list)) ? -EOPNOTSUPP : count;
- }
- EXPORT_SYMBOL(flow_indr_dev_setup_offload);
-+
-+bool flow_indr_dev_exists(void)
-+{
-+	return !list_empty(&flow_block_indr_dev_list);
-+}
-+EXPORT_SYMBOL(flow_indr_dev_exists);
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 1a6a21bfb18d..51144fc66889 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2166,7 +2166,7 @@ static int nft_basechain_init(struct nft_base_chain *basechain, u8 family,
- 	chain->flags |= NFT_CHAIN_BASE | flags;
- 	basechain->policy = NF_ACCEPT;
- 	if (chain->flags & NFT_CHAIN_HW_OFFLOAD &&
--	    nft_chain_offload_priority(basechain) < 0)
-+	    !nft_chain_offload_support(basechain))
- 		return -EOPNOTSUPP;
- 
- 	flow_block_init(&basechain->flow_block);
-diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-index 2d36952b1392..910ef881c3b8 100644
---- a/net/netfilter/nf_tables_offload.c
-+++ b/net/netfilter/nf_tables_offload.c
-@@ -208,7 +208,7 @@ static int nft_setup_cb_call(enum tc_setup_type type, void *type_data,
- 	return 0;
- }
- 
--int nft_chain_offload_priority(struct nft_base_chain *basechain)
-+static int nft_chain_offload_priority(const struct nft_base_chain *basechain)
- {
- 	if (basechain->ops.priority <= 0 ||
- 	    basechain->ops.priority > USHRT_MAX)
-@@ -217,6 +217,27 @@ int nft_chain_offload_priority(struct nft_base_chain *basechain)
- 	return 0;
- }
- 
-+bool nft_chain_offload_support(const struct nft_base_chain *basechain)
-+{
-+	struct net_device *dev;
-+	struct nft_hook *hook;
-+
-+	if (nft_chain_offload_priority(basechain) < 0)
-+		return false;
-+
-+	list_for_each_entry(hook, &basechain->hook_list, list) {
-+		if (hook->ops.pf != NFPROTO_NETDEV ||
-+		    hook->ops.hooknum != NF_NETDEV_INGRESS)
-+			return false;
-+
-+		dev = hook->ops.dev;
-+		if (!dev->netdev_ops->ndo_setup_tc && !flow_indr_dev_exists())
-+			return false;
-+	}
-+
-+	return true;
-+}
-+
- static void nft_flow_cls_offload_setup(struct flow_cls_offload *cls_flow,
- 				       const struct nft_base_chain *basechain,
- 				       const struct nft_rule *rule,
--- 
-2.30.2
+2) Use kfree_rcu(ptr, rcu) variant in nf_tables clean_net path.
 
+3) Use list to collect flowtable hooks to be deleted.
+
+4) Initialize list of hook field in flowtable transaction.
+
+5) Release hooks on error for flowtable updates.
+
+6) Memleak in hardware offload rule commit and abort paths.
+
+7) Early bail out in case device does not support for hardware offload.
+   This adds a new interface to net/core/flow_offload.c to check if the
+   flow indirect block list is empty.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 0a375c822497ed6ad6b5da0792a12a6f1af10c0b:
+
+  tcp: tcp_rtx_synack() can be called from process context (2022-05-31 21:40:10 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git HEAD
+
+for you to fetch changes up to 3a41c64d9c1185a2f3a184015e2a9b78bfc99c71:
+
+  netfilter: nf_tables: bail out early if hardware offload is not supported (2022-06-06 19:19:15 +0200)
+
+----------------------------------------------------------------
+Florian Westphal (1):
+      netfilter: nat: really support inet nat without l3 address
+
+Pablo Neira Ayuso (6):
+      netfilter: nf_tables: use kfree_rcu(ptr, rcu) to release hooks in clean_net path
+      netfilter: nf_tables: delete flowtable hooks via transaction list
+      netfilter: nf_tables: always initialize flowtable hook list in transaction
+      netfilter: nf_tables: release new hooks on unsupported flowtable flags
+      netfilter: nf_tables: memleak flow rule from commit path
+      netfilter: nf_tables: bail out early if hardware offload is not supported
+
+ include/net/flow_offload.h                   |  1 +
+ include/net/netfilter/nf_tables.h            |  1 -
+ include/net/netfilter/nf_tables_offload.h    |  2 +-
+ net/core/flow_offload.c                      |  6 ++++
+ net/netfilter/nf_tables_api.c                | 54 ++++++++++++----------------
+ net/netfilter/nf_tables_offload.c            | 23 +++++++++++-
+ net/netfilter/nft_nat.c                      |  3 +-
+ tools/testing/selftests/netfilter/nft_nat.sh | 43 ++++++++++++++++++++++
+ 8 files changed, 98 insertions(+), 35 deletions(-)
