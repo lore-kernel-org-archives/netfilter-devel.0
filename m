@@ -2,79 +2,88 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45B09C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Jun 2022 16:37:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90018CCA483
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Jun 2022 21:18:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345052AbiFGQhJ (ORCPT
+        id S1377885AbiFGVSo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 7 Jun 2022 12:37:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33368 "EHLO
+        Tue, 7 Jun 2022 17:18:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47506 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345051AbiFGQhI (ORCPT
+        with ESMTP id S1380705AbiFGVQn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 7 Jun 2022 12:37:08 -0400
-Received: from mail-ot1-x32b.google.com (mail-ot1-x32b.google.com [IPv6:2607:f8b0:4864:20::32b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 249C47B9F6
-        for <netfilter-devel@vger.kernel.org>; Tue,  7 Jun 2022 09:37:07 -0700 (PDT)
-Received: by mail-ot1-x32b.google.com with SMTP id 61-20020a9d0bc3000000b0060b9bfcfe76so13256865oth.9
-        for <netfilter-devel@vger.kernel.org>; Tue, 07 Jun 2022 09:37:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=mojatatu-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:from:date:message-id:subject:to:cc;
-        bh=V2h9z/Ifbd6f4YrmaVfXNCHrvbCppjkt75BAO7WtpHM=;
-        b=Bde9pbF8/kL2J+zYmNeX1Cy7rEupQvGPik/dAD0mz6TBfvu0v/svVPKmsUiEdbZQvX
-         pEaEmtyF85i4F0GONmezo5JDuuP5wYfkFLHNE2DnVGnw6Fdion1COkG92tF17sznC31H
-         S66iE0/jHww5XBFRJyMUk0tHl+KWJReHe11jMFxKhBtpKoPvF/f5OccBGKB8qcf6U/eu
-         fjGMGw7qJcY1BXr+cYm2MmBpPoX2x8ZHkXXybXYq7JO4V2C0N/h+/GWBZNuornWxwh2M
-         y47ZBnjUitDBWdekiF4M90d7oSkNGxCRaJlDlzY9fPjIuSyqldGQw/uGr1Yu0khMxEZW
-         CcJQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
-        bh=V2h9z/Ifbd6f4YrmaVfXNCHrvbCppjkt75BAO7WtpHM=;
-        b=BMAGe8KZCTxGvCz3pWOqUd3MPuBo4qfnQHLUVKeSOpUB0zXmZTA7UAFdU817XLen+9
-         oTxjmcpLAcSHVghP7q1L5FdN6OnC1eDqUjd8s5URhflzjf3sz+SSQaublYcG90Dzbz3N
-         sK5fT6YpniVC2DbVS6644+An6PeNhTei8wzYGv4mJWakjt9smvlnOMwVru1P5seN5vbT
-         YC2WIBp59s1mGNTpkkAGwvZFV3Zwf8wJDFVIOHMLuPH+p6I6O6AL5DxZFs4OuOq7LtRY
-         BoaNoaK46FhShyjxgzKyujhOEJcJXiIfSdzC1tirZdYD2sBiLwIRwMJ6Z4rCQdexzId3
-         wkOA==
-X-Gm-Message-State: AOAM531jiCJlyz3FQP4MMxcup1pegELfdmsW14aimGwQXHYrMFXmP36u
-        k1LVt9J8RmngqBwsz5xvQKSbvpa5smThbey5XtOBIqPlmwfVQQ==
-X-Google-Smtp-Source: ABdhPJw4ZEmR71RxBkUJKriac+k6z7Gaxe2UYTNIXIQ4Ge1yRvWFkuVPXxOeKiawse/tQZlZhJY7p4uiWEb5pTFs0dM=
-X-Received: by 2002:a9d:2649:0:b0:60b:fd52:a47 with SMTP id
- a67-20020a9d2649000000b0060bfd520a47mr4497090otb.246.1654619825215; Tue, 07
- Jun 2022 09:37:05 -0700 (PDT)
+        Tue, 7 Jun 2022 17:16:43 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D66921F9B6
+        for <netfilter-devel@vger.kernel.org>; Tue,  7 Jun 2022 11:56:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=Dp/MLLNzTemjqgeR703t0nZn+N8qYsIPYocqdss17Co=; b=Ej6Fbf7x9bUx53FxMnm8QqxMqQ
+        rMUW4LcawerIcpM3KHMfmlWL+Xl2zp0jzR9jfQp6sPkk6I2ua1zYW2RkaOh9zk+3xbl554qM7Tb04
+        L5GaU4V3ywd3YoJRotwKKJivGkrSOjj/QBuKilAyXbZLtLa3A8UzlkBvkEwgy02T5PDgNNvAJN+zi
+        zIMPhIryAQ9hJy/yaH6NQF2mQGOdpNOgkaBNv5s0uql/namP8qnv0VY4/7k8ig6c3I2bMl1HFINDa
+        kcQUO5rqMtdKxONRVrS8Bk6wlTMW9skeS5DNfTGzT1cp9+cVP3pNaRv1au70kwmm5Uq+Erru/6mdo
+        W4N1Phhg==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1nyeNP-0002yi-0D
+        for netfilter-devel@vger.kernel.org; Tue, 07 Jun 2022 20:56:27 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH] arptables: Support -x/--exact flag
+Date:   Tue,  7 Jun 2022 20:56:18 +0200
+Message-Id: <20220607185618.4960-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-From:   Jamal Hadi Salim <jhs@mojatatu.com>
-Date:   Tue, 7 Jun 2022 12:36:54 -0400
-Message-ID: <CAM0EoMn_4k_w_maX=0=tmiK5k1nTEWpByGP+83qiJHdM0DbigA@mail.gmail.com>
-Subject: CFS for Netdev 0x16 open!
-To:     people <people@netdevconf.info>, netfilter-devel@vger.kernel.org,
-        linux-wireless <linux-wireless@vger.kernel.org>, lwn@lwn.net,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>
-Cc:     prog-committee-0x16@netdevconf.info,
-        "board@netdevconf.org" <board@netdevconf.info>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-We are pleased to announce the opening of Call For
-Submissions(CFS) for Netdev 0x16.
+Legacy arptables accepts but ignores the flag. Yet there are remains of
+the functionality in sources, like OPT_EXPANDED define and a print_num()
+function which acts on FMT_KILOMEGAGIGA flag being set or not. So
+instead of mimicking legacy behaviour by explicitly ignoring -x flag for
+arptables, just enable the feature for it.
 
-For overview of topics, submissions and requirements
-please visit:
-https://netdevconf.info/0x16/submit-proposal.html
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ iptables/xshared.c | 3 +++
+ iptables/xshared.h | 2 +-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-For all submitted sessions, we employ a blind
-review process carried out by the Program Committee.
-Please refer to:
-https://www.netdevconf.info/0x16/pc_review.html
+diff --git a/iptables/xshared.c b/iptables/xshared.c
+index 9b5e5b5bddc27..76001c51cbcb2 100644
+--- a/iptables/xshared.c
++++ b/iptables/xshared.c
+@@ -1685,6 +1685,9 @@ void do_parse(int argc, char *argv[],
+ 			break;
+ 
+ 		case 'x':
++			if (args->family == NFPROTO_ARP)
++				break;	/* arptables silently ignores its --exact option */
++
+ 			set_option(&cs->options, OPT_EXPANDED, &args->invflags,
+ 				   invert);
+ 			break;
+diff --git a/iptables/xshared.h b/iptables/xshared.h
+index f821298839687..2498e32d39e03 100644
+--- a/iptables/xshared.h
++++ b/iptables/xshared.h
+@@ -69,7 +69,7 @@ struct xtables_target;
+ 
+ #define OPTSTRING_COMMON "-:A:C:D:E:F::I:L::M:N:P:VX::Z::" "c:d:i:j:o:p:s:t:"
+ #define IPT_OPTSTRING	OPTSTRING_COMMON "R:S::W::" "46bfg:h::m:nvw::x"
+-#define ARPT_OPTSTRING	OPTSTRING_COMMON "R:S::" "h::l:nv" /* "m:" */
++#define ARPT_OPTSTRING	OPTSTRING_COMMON "R:S::" "h::l:nvx" /* "m:" */
+ #define EBT_OPTSTRING	OPTSTRING_COMMON "hv"
+ 
+ /* define invflags which won't collide with IPT ones */
+-- 
+2.34.1
 
-Important dates:
-Closing of CFS: Wed, Sept. 7, 2022
-Notification by: Thu, Sept. 15, 2022
-Conference dates: Oct 24th - 28th, 2022
-
-cheers,
-jamal (on behalf of the Netdev Society)
