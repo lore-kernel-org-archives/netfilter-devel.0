@@ -2,112 +2,148 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5552BC43334
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jun 2022 07:32:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29424C43334
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jun 2022 07:32:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229516AbiFHHcA (ORCPT
+        id S233573AbiFHHcC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 8 Jun 2022 03:32:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58692 "EHLO
+        Wed, 8 Jun 2022 03:32:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56032 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1353920AbiFHGSi (ORCPT
+        with ESMTP id S1354857AbiFHGTw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Jun 2022 02:18:38 -0400
+        Wed, 8 Jun 2022 02:19:52 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7CF4D132A28;
-        Tue,  7 Jun 2022 23:03:31 -0700 (PDT)
-Date:   Wed, 8 Jun 2022 08:03:00 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C1B565F80
+        for <netfilter-devel@vger.kernel.org>; Tue,  7 Jun 2022 23:18:46 -0700 (PDT)
+Date:   Wed, 8 Jun 2022 08:18:44 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com
-Subject: Re: [PATCH net 7/7] netfilter: nf_tables: bail out early if hardware
- offload is not supported
-Message-ID: <YqA7lOw8CKNMaQ28@salvia>
-References: <20220606212055.98300-1-pablo@netfilter.org>
- <20220606212055.98300-8-pablo@netfilter.org>
- <20220607180025.6bd26267@kernel.org>
+To:     Mikhail Sennikovsky <mikhail.sennikovskii@ionos.com>
+Cc:     netfilter-devel@vger.kernel.org, mikhail.sennikovsky@gmail.com
+Subject: Re: [PATCH 1/1] conntrack: use same modifier socket for bulk ops
+Message-ID: <YqA/RNP5jQzIRpon@salvia>
+References: <20220602163429.52490-1-mikhail.sennikovskii@ionos.com>
+ <20220602163429.52490-2-mikhail.sennikovskii@ionos.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20220607180025.6bd26267@kernel.org>
+In-Reply-To: <20220602163429.52490-2-mikhail.sennikovskii@ionos.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Jakub,
+Hi Mikhail,
 
-On Tue, Jun 07, 2022 at 06:00:25PM -0700, Jakub Kicinski wrote:
-> On Mon,  6 Jun 2022 23:20:55 +0200 Pablo Neira Ayuso wrote:
-> > If user requests for NFT_CHAIN_HW_OFFLOAD, then check if either device
-> > provides the .ndo_setup_tc interface or there is an indirect flow block
-> > that has been registered. Otherwise, bail out early from the preparation
-> > phase. Moreover, validate that family == NFPROTO_NETDEV and hook is
-> > NF_NETDEV_INGRESS.
+On Thu, Jun 02, 2022 at 06:34:29PM +0200, Mikhail Sennikovsky wrote:
+> For bulk ct entry loads (with -R option) reusing the same mnl
+> modifier socket for all entries results in reduction of entries
+> creation time, which becomes especially signifficant when loading
+> tens of thouthand of entries.
 > 
-> The whole series is pretty light on the "why".
+> Signed-off-by: Mikhail Sennikovsky <mikhail.sennikovskii@ionos.com>
+> ---
+>  src/conntrack.c | 31 +++++++++++++++++++++++++------
+>  1 file changed, 25 insertions(+), 6 deletions(-)
+> 
+> diff --git a/src/conntrack.c b/src/conntrack.c
+> index 27e2bea..be8690b 100644
+> --- a/src/conntrack.c
+> +++ b/src/conntrack.c
+> @@ -71,6 +71,7 @@
+>  struct nfct_mnl_socket {
+>  	struct mnl_socket	*mnl;
+>  	uint32_t		portid;
+> +	uint32_t		events;
+>  };
+>  
+>  static struct nfct_mnl_socket _sock;
+> @@ -2441,6 +2442,7 @@ static int nfct_mnl_socket_open(struct nfct_mnl_socket *socket,
+>  		return -1;
+>  	}
+>  	socket->portid = mnl_socket_get_portid(socket->mnl);
+> +	socket->events = events;
+>  
+>  	return 0;
+>  }
+> @@ -2470,6 +2472,25 @@ static void nfct_mnl_socket_close(const struct nfct_mnl_socket *sock)
+>  	mnl_socket_close(sock->mnl);
+>  }
+>  
+> +static int nfct_mnl_socket_check_open(struct nfct_mnl_socket *socket,
+> +				       unsigned int events)
+> +{
+> +	if (socket->mnl != NULL) {
+> +		assert(events == socket->events);
+> +		return 0;
+> +	}
+> +
+> +	return nfct_mnl_socket_open(socket, events);
+> +}
+> +
+> +static void nfct_mnl_socket_check_close(struct nfct_mnl_socket *sock)
+> +{
+> +	if (sock->mnl) {
+> +		nfct_mnl_socket_close(sock);
+> +		memset(sock, 0, sizeof(*sock));
+> +	}
+> +}
+> +
+>  static int __nfct_mnl_dump(struct nfct_mnl_socket *sock,
+>  			   const struct nlmsghdr *nlh, mnl_cb_t cb, void *data)
+>  {
+> @@ -3383,19 +3404,17 @@ static int do_command_ct(const char *progname, struct ct_cmd *cmd,
+>  		break;
+>  
+>  	case CT_UPDATE:
+> -		if (nfct_mnl_socket_open(modifier_sock, 0) < 0)
+> +		if (nfct_mnl_socket_check_open(modifier_sock, 0) < 0)
+>  			exit_error(OTHER_PROBLEM, "Can't open handler");
+>  
+>  		nfct_filter_init(cmd);
+>  		res = nfct_mnl_dump(sock, NFNL_SUBSYS_CTNETLINK,
+>  				    IPCTNL_MSG_CT_GET, mnl_nfct_update_cb,
+>  				    cmd, NULL);
+> -
+> -		nfct_mnl_socket_close(modifier_sock);
+>  		break;
+>  
+>  	case CT_DELETE:
+> -		if (nfct_mnl_socket_open(modifier_sock, 0) < 0)
+> +		if (nfct_mnl_socket_check_open(modifier_sock, 0) < 0)
 
-  - [net,1/7] netfilter: nat: really support inet nat without l3 address
-    https://git.kernel.org/netdev/net/c/282e5f8fe907
+No events needed anymore?
 
-  This is a fix, otherwise NAT with the inet family (which allows both
-  IPv4 and IPv6 traffic) remains broken. It's a datapath fix, the
-  control plane was accepting the rule, however NAT was not applied if
-  user specified no layer 4 address, which might happen for, eg. redirect.
+nfct_mnl_socket_check_open() is now only used by CT_UPDATE and CT_DELETE,
+right?
 
-  - [net,2/7] netfilter: nf_tables: use kfree_rcu(ptr, rcu) to release hooks in clean_net path
-    https://git.kernel.org/netdev/net/c/ab5e5c062f67
-
-  This is an incremental fix for f9a43007d3f7 ("netfilter: nf_tables:
-  double hook unregistration in netns path"), it is using kfree_rcu(ptr)
-  variant which works but it has some limitations. Use of free_rcu(ptr)
-  was not intentional, hence free_rcu(ptr, rcu)
-
-  - [net,3/7] netfilter: nf_tables: delete flowtable hooks via transaction list
-    https://git.kernel.org/netdev/net/c/b6d9014a3335
-
-  Deleting twice the same device on the flowtable might lead to ENOENT
-  since hook->inactive is not honored. Instead of honoring such flag,
-  this patch is fixing up this by using a flowtable hook list in the
-  transaction object to convey the hook that are going to be deleted
-  which looks cleaner to me.
-
-  - [net,4/7] netfilter: nf_tables: always initialize flowtable hook list in transaction
-    https://git.kernel.org/netdev/net/c/2c9e4559773c
-
-  This is a oneliner, not urgent but Florian already reported in the
-  past that the flowtable hook list in the transaction object was not
-  initialized (even if not used). This patch initializes it to
-  increase robustness, this list is going to be empty/unused for the
-  non-update path anyway. Arguably I could have postpone this
-  oneliner.
-
-  - [net,5/7] netfilter: nf_tables: release new hooks on unsupported flowtable flags
-    https://git.kernel.org/netdev/net/c/c271cc9febaa
-
-  This is a fix. nft_flowtable_parse_hook() populates the hook list,
-  but the flowtable flags update logic was not releasing these objects
-  from the error path, hence, leading to a memleak.
-
-  - [net,6/7] netfilter: nf_tables: memleak flow rule from commit path
-    https://git.kernel.org/netdev/net/c/9dd732e0bdf5
-
-  kmemleak reported this memleak while running a series of test with
-  nf_tables hardware offload support for these objects, this is a fix.
-
-> This patch is particularly bad, no idea what the user visible bug
-> was here.
-
-  Are you refering to this?
-
-  - [net,7/7] netfilter: nf_tables: bail out early if hardware offload is not supported
-    https://git.kernel.org/netdev/net/c/3a41c64d9c11
-
-  Arguably, I could have postponed this patch, but quite recently
-  there was a silly bug in the hardware offload infrastructure, see
-  b1a5983f56e3 ("netfilter: nf_tables_offload: incorrect flow offload
-  action array size. The reporter triggered the bug with the _loopback
-  interface_, he wondered why this infrastructure is exposed to all
-  devices while only a dozen of NICs support hardware offload, hence
-  this patch to disable hardware offload earlier in the control plane
-  path.
+>  			exit_error(OTHER_PROBLEM, "Can't open handler");
+>  
+>  		nfct_filter_init(cmd);
+> @@ -3418,8 +3437,6 @@ static int do_command_ct(const char *progname, struct ct_cmd *cmd,
+>  				    cmd, filter_dump);
+>  
+>  		nfct_filter_dump_destroy(filter_dump);
+> -
+> -		nfct_mnl_socket_close(modifier_sock);
+>  		break;
+>  
+>  	case EXP_DELETE:
+> @@ -3857,6 +3874,7 @@ static const char *ct_unsupp_cmd_file(const struct ct_cmd *cmd)
+>  int main(int argc, char *argv[])
+>  {
+>  	struct nfct_mnl_socket *sock = &_sock;
+> +	struct nfct_mnl_socket *modifier_sock = &_modifier_sock;
+>  	struct ct_cmd *cmd, *next;
+>  	LIST_HEAD(cmd_list);
+>  	int res = 0;
+> @@ -3900,6 +3918,7 @@ int main(int argc, char *argv[])
+>  		free(cmd);
+>  	}
+>  	nfct_mnl_socket_close(sock);
+> +	nfct_mnl_socket_check_close(modifier_sock);
+>  
+>  	return res < 0 ? EXIT_FAILURE : EXIT_SUCCESS;
+>  }
+> -- 
+> 2.25.1
+> 
