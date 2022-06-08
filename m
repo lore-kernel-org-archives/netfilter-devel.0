@@ -2,148 +2,91 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29424C43334
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jun 2022 07:32:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB981C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jun 2022 07:46:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233573AbiFHHcC (ORCPT
+        id S230258AbiFHHqQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 8 Jun 2022 03:32:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56032 "EHLO
+        Wed, 8 Jun 2022 03:46:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52196 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354857AbiFHGTw (ORCPT
+        with ESMTP id S234130AbiFHHp0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Jun 2022 02:19:52 -0400
+        Wed, 8 Jun 2022 03:45:26 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C1B565F80
-        for <netfilter-devel@vger.kernel.org>; Tue,  7 Jun 2022 23:18:46 -0700 (PDT)
-Date:   Wed, 8 Jun 2022 08:18:44 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B70CD2348CF
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jun 2022 00:09:29 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Mikhail Sennikovsky <mikhail.sennikovskii@ionos.com>
-Cc:     netfilter-devel@vger.kernel.org, mikhail.sennikovsky@gmail.com
-Subject: Re: [PATCH 1/1] conntrack: use same modifier socket for bulk ops
-Message-ID: <YqA/RNP5jQzIRpon@salvia>
-References: <20220602163429.52490-1-mikhail.sennikovskii@ionos.com>
- <20220602163429.52490-2-mikhail.sennikovskii@ionos.com>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH conntrack-tools] conntrackd: build: always add ports to sync message
+Date:   Wed,  8 Jun 2022 09:09:12 +0200
+Message-Id: <20220608070912.316768-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20220602163429.52490-2-mikhail.sennikovskii@ionos.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Mikhail,
+Ports are used to uniquely identify the flow, this information must be
+included inconditionally to sync message.
 
-On Thu, Jun 02, 2022 at 06:34:29PM +0200, Mikhail Sennikovsky wrote:
-> For bulk ct entry loads (with -R option) reusing the same mnl
-> modifier socket for all entries results in reduction of entries
-> creation time, which becomes especially signifficant when loading
-> tens of thouthand of entries.
-> 
-> Signed-off-by: Mikhail Sennikovsky <mikhail.sennikovskii@ionos.com>
-> ---
->  src/conntrack.c | 31 +++++++++++++++++++++++++------
->  1 file changed, 25 insertions(+), 6 deletions(-)
-> 
-> diff --git a/src/conntrack.c b/src/conntrack.c
-> index 27e2bea..be8690b 100644
-> --- a/src/conntrack.c
-> +++ b/src/conntrack.c
-> @@ -71,6 +71,7 @@
->  struct nfct_mnl_socket {
->  	struct mnl_socket	*mnl;
->  	uint32_t		portid;
-> +	uint32_t		events;
->  };
->  
->  static struct nfct_mnl_socket _sock;
-> @@ -2441,6 +2442,7 @@ static int nfct_mnl_socket_open(struct nfct_mnl_socket *socket,
->  		return -1;
->  	}
->  	socket->portid = mnl_socket_get_portid(socket->mnl);
-> +	socket->events = events;
->  
->  	return 0;
->  }
-> @@ -2470,6 +2472,25 @@ static void nfct_mnl_socket_close(const struct nfct_mnl_socket *sock)
->  	mnl_socket_close(sock->mnl);
->  }
->  
-> +static int nfct_mnl_socket_check_open(struct nfct_mnl_socket *socket,
-> +				       unsigned int events)
-> +{
-> +	if (socket->mnl != NULL) {
-> +		assert(events == socket->events);
-> +		return 0;
-> +	}
-> +
-> +	return nfct_mnl_socket_open(socket, events);
-> +}
-> +
-> +static void nfct_mnl_socket_check_close(struct nfct_mnl_socket *sock)
-> +{
-> +	if (sock->mnl) {
-> +		nfct_mnl_socket_close(sock);
-> +		memset(sock, 0, sizeof(*sock));
-> +	}
-> +}
-> +
->  static int __nfct_mnl_dump(struct nfct_mnl_socket *sock,
->  			   const struct nlmsghdr *nlh, mnl_cb_t cb, void *data)
->  {
-> @@ -3383,19 +3404,17 @@ static int do_command_ct(const char *progname, struct ct_cmd *cmd,
->  		break;
->  
->  	case CT_UPDATE:
-> -		if (nfct_mnl_socket_open(modifier_sock, 0) < 0)
-> +		if (nfct_mnl_socket_check_open(modifier_sock, 0) < 0)
->  			exit_error(OTHER_PROBLEM, "Can't open handler");
->  
->  		nfct_filter_init(cmd);
->  		res = nfct_mnl_dump(sock, NFNL_SUBSYS_CTNETLINK,
->  				    IPCTNL_MSG_CT_GET, mnl_nfct_update_cb,
->  				    cmd, NULL);
-> -
-> -		nfct_mnl_socket_close(modifier_sock);
->  		break;
->  
->  	case CT_DELETE:
-> -		if (nfct_mnl_socket_open(modifier_sock, 0) < 0)
-> +		if (nfct_mnl_socket_check_open(modifier_sock, 0) < 0)
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/build.c | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-No events needed anymore?
+diff --git a/src/build.c b/src/build.c
+index 63e47c796230..c234a0c34147 100644
+--- a/src/build.c
++++ b/src/build.c
+@@ -133,11 +133,12 @@ static enum nf_conntrack_attr nat_type[] =
+ /* ICMP, UDP and TCP are always loaded with nf_conntrack_ipv4 */
+ static void build_l4proto_tcp(const struct nf_conntrack *ct, struct nethdr *n)
+ {
++	ct_build_group(ct, ATTR_GRP_ORIG_PORT, n, NTA_PORT,
++		      sizeof(struct nfct_attr_grp_port));
++
+ 	if (!nfct_attr_is_set(ct, ATTR_TCP_STATE))
+ 		return;
+ 
+-	ct_build_group(ct, ATTR_GRP_ORIG_PORT, n, NTA_PORT,
+-		      sizeof(struct nfct_attr_grp_port));
+ 	ct_build_u8(ct, ATTR_TCP_STATE, n, NTA_TCP_STATE);
+ 	if (CONFIG(sync).tcp_window_tracking) {
+ 		ct_build_u8(ct, ATTR_TCP_WSCALE_ORIG, n, NTA_TCP_WSCALE_ORIG);
+@@ -147,12 +148,13 @@ static void build_l4proto_tcp(const struct nf_conntrack *ct, struct nethdr *n)
+ 
+ static void build_l4proto_sctp(const struct nf_conntrack *ct, struct nethdr *n)
+ {
++	ct_build_group(ct, ATTR_GRP_ORIG_PORT, n, NTA_PORT,
++		      sizeof(struct nfct_attr_grp_port));
++
+ 	/* SCTP is optional, make sure nf_conntrack_sctp is loaded */
+ 	if (!nfct_attr_is_set(ct, ATTR_SCTP_STATE))
+ 		return;
+ 
+-	ct_build_group(ct, ATTR_GRP_ORIG_PORT, n, NTA_PORT,
+-		      sizeof(struct nfct_attr_grp_port));
+ 	ct_build_u8(ct, ATTR_SCTP_STATE, n, NTA_SCTP_STATE);
+ 	ct_build_u32(ct, ATTR_SCTP_VTAG_ORIG, n, NTA_SCTP_VTAG_ORIG);
+ 	ct_build_u32(ct, ATTR_SCTP_VTAG_REPL, n, NTA_SCTP_VTAG_REPL);
+@@ -160,12 +162,13 @@ static void build_l4proto_sctp(const struct nf_conntrack *ct, struct nethdr *n)
+ 
+ static void build_l4proto_dccp(const struct nf_conntrack *ct, struct nethdr *n)
+ {
++	ct_build_group(ct, ATTR_GRP_ORIG_PORT, n, NTA_PORT,
++		      sizeof(struct nfct_attr_grp_port));
++
+ 	/* DCCP is optional, make sure nf_conntrack_dccp is loaded */
+ 	if (!nfct_attr_is_set(ct, ATTR_DCCP_STATE))
+ 		return;
+ 
+-	ct_build_group(ct, ATTR_GRP_ORIG_PORT, n, NTA_PORT,
+-		      sizeof(struct nfct_attr_grp_port));
+ 	ct_build_u8(ct, ATTR_DCCP_STATE, n, NTA_DCCP_STATE);
+ 	ct_build_u8(ct, ATTR_DCCP_ROLE, n, NTA_DCCP_ROLE);
+ }
+-- 
+2.30.2
 
-nfct_mnl_socket_check_open() is now only used by CT_UPDATE and CT_DELETE,
-right?
-
->  			exit_error(OTHER_PROBLEM, "Can't open handler");
->  
->  		nfct_filter_init(cmd);
-> @@ -3418,8 +3437,6 @@ static int do_command_ct(const char *progname, struct ct_cmd *cmd,
->  				    cmd, filter_dump);
->  
->  		nfct_filter_dump_destroy(filter_dump);
-> -
-> -		nfct_mnl_socket_close(modifier_sock);
->  		break;
->  
->  	case EXP_DELETE:
-> @@ -3857,6 +3874,7 @@ static const char *ct_unsupp_cmd_file(const struct ct_cmd *cmd)
->  int main(int argc, char *argv[])
->  {
->  	struct nfct_mnl_socket *sock = &_sock;
-> +	struct nfct_mnl_socket *modifier_sock = &_modifier_sock;
->  	struct ct_cmd *cmd, *next;
->  	LIST_HEAD(cmd_list);
->  	int res = 0;
-> @@ -3900,6 +3918,7 @@ int main(int argc, char *argv[])
->  		free(cmd);
->  	}
->  	nfct_mnl_socket_close(sock);
-> +	nfct_mnl_socket_check_close(modifier_sock);
->  
->  	return res < 0 ? EXIT_FAILURE : EXIT_SUCCESS;
->  }
-> -- 
-> 2.25.1
-> 
