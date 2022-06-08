@@ -2,59 +2,92 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A360C43334
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jun 2022 16:04:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C676C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jun 2022 16:27:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244740AbiFHQEb (ORCPT
+        id S245442AbiFHQ11 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 8 Jun 2022 12:04:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59468 "EHLO
+        Wed, 8 Jun 2022 12:27:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55640 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244799AbiFHQEa (ORCPT
+        with ESMTP id S245461AbiFHQ10 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Jun 2022 12:04:30 -0400
-Received: from mail1.systemli.org (mail1.systemli.org [93.190.126.36])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E15C17C695
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jun 2022 09:04:28 -0700 (PDT)
-Message-ID: <822db165-fa16-cc16-6181-556da0cbae81@systemli.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=systemli.org;
-        s=default; t=1654704266;
-        bh=j/Gi3qPrr8VLuzGPYAb7Y5yzBXc8FUljo9VYv6qUosg=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=531N7aOydFU0m+8hMXacEP2OBF6mtktaUDm8x+KQi2UFBRsPCp5fykAug6Dp82x/3
-         4ukjmYUL50kSRa7LEb3njyIzXKkyIfRxHbx6+YzLKx7vPTIbXwgTal+ILasLA19D30
-         v5OQmMMDQPw60oKSM1haBUxD3TIpGqmmfKnG5YgTdNAakUty5YO+i+d1TPSiGfeqZj
-         B9Ro2axyursujN4uDntZAKxfAOd9lVjmH1RNk2CLAstc4xwfqyh7TtO/woo3e5KHLI
-         p4wa5CZxl2QycOy8feXVid1mHQlqfWqFEzNdTZadK2xIDn9lu+h90pXD4qVmw8WhFE
-         oFP7lN+cLcgow==
-Date:   Wed, 8 Jun 2022 18:04:01 +0200
+        Wed, 8 Jun 2022 12:27:26 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DCCC94C78F
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jun 2022 09:27:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=utqkElLL8R8spj8BPzkAsuEuW07Ibsj2GRhMgYvKF9A=; b=Cq8/KN/fYEBjvx0qGP7d/D8D21
+        5wxKsQzp7yDYIDPrCNifwMJE55Ke3PL/PTXU+P0Yo9bG5U3WazsCspJLcnxtcxNReU3RBEWimSMDC
+        7PtK8fTyVpz1RQDC/VS8NYrabL4AncYg1mq2ePzDrXJPRRzAiTHlUic1odmx8PrsnDHBKCMxzj96I
+        s6xTmrh/np7awCqcL5YI0Dg1z5EoLjf6WtHN5ENAnbyVYH4TrLlOsk7TqGETP6Kcf9sHIOH/ZTHnh
+        hSXb6lo5Zfs2aW2W/zZVTbTDo7qSK0Aw/ZiuUeFZDW9d6aAefPdseyGdZCntB29/7ZhMJPoQ5DWcV
+        xw7nrDJg==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1nyyWf-00084o-EW
+        for netfilter-devel@vger.kernel.org; Wed, 08 Jun 2022 18:27:21 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH 9/9] extensions: string: Fix and enable tests
+Date:   Wed,  8 Jun 2022 18:27:12 +0200
+Message-Id: <20220608162712.31202-10-phil@nwl.cc>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20220608162712.31202-1-phil@nwl.cc>
+References: <20220608162712.31202-1-phil@nwl.cc>
 MIME-Version: 1.0
-Subject: Re: Add action to "finally" accept packets?
-Content-Language: en-US
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Netfilter Development Mailing List 
-        <netfilter-devel@vger.kernel.org>
-References: <36adbaad-20aa-2909-6ec1-caf61b0364ad@systemli.org>
- <20220608154401.GB6114@breakpoint.cc>
-From:   Nick <vincent@systemli.org>
-In-Reply-To: <20220608154401.GB6114@breakpoint.cc>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-> Why does jump/goto not help? It works just like in iptables.
-It does not help because of the way firewall4 is including custom 
-nftables chains for now. You need to add a hook yourself.
-Firewall4 has a table called fw4, there they also hook e.g. to the 
-priority filter. Basically, your custom chain needs to hook filter 
-priority - 1 to be executed and whatever you do, the fw4 hook will be 
-executed afterward. I wanted to "go" over it. As I understand the 
-current discussion, the plan is to hook "only once" and allow to jump to 
-the custom chains from there.
-Please keep in mind, that I am not the author of firewall4. I just 
-wanted to ask if something like this is or will be possible in the 
-future. I did not find any information about it on the internet. Thanks 
-for your answer.
+Some minor fixes were necessary:
+
+* --algo is printed after the pattern
+* Second long string test must fail, that string is 129 chars long
+* --from 0 and --to 65535 are not printed (default values)
+
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ extensions/libxt_string.t | 21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
+
+diff --git a/extensions/libxt_string.t b/extensions/libxt_string.t
+index d68f099d966c6..2f4b30cbc0461 100644
+--- a/extensions/libxt_string.t
++++ b/extensions/libxt_string.t
+@@ -1,18 +1,11 @@
+ :INPUT,FORWARD,OUTPUT
+-# ERROR: cannot find: iptables -I INPUT -m string --algo bm --string "test"
+-# -m string --algo bm --string "test";=;OK
+-# ERROR: cannot find: iptables -I INPUT -m string --algo kmp --string "test")
+-# -m string --algo kmp --string "test";=;OK
+-# ERROR: cannot find: iptables -I INPUT -m string --algo kmp ! --string "test"
+-# -m string --algo kmp ! --string "test";=;OK
+-# cannot find: iptables -I INPUT -m string --algo bm --string "xxxxxxxxxxx" ....]
+-# -m string --algo bm --string "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";=;OK
+-# ERROR: cannot load: iptables -A INPUT -m string --algo bm --string "xxxx"
+-# -m string --algo bm --string "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";=;OK
+-# ERROR: cannot load: iptables -A INPUT -m string --algo bm --hexstring "|0a0a0a0a|"
+-# -m string --algo bm --hexstring "|0a0a0a0a|";=;OK
+-# ERROR: cannot find: iptables -I INPUT -m string --algo bm --from 0 --to 65535 --string "test"
+-# -m string --algo bm --from 0 --to 65535 --string "test";=;OK
++-m string --algo bm --string "test";-m string --string "test" --algo bm;OK
++-m string --string "test" --algo kmp;=;OK
++-m string ! --string "test" --algo kmp;=;OK
++-m string --string "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" --algo bm;=;OK
++-m string --string "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" --algo bm;;FAIL
++-m string --hex-string "|0a0a0a0a|" --algo bm;=;OK
++-m string --algo bm --from 0 --to 65535 --string "test";-m string --string "test" --algo bm;OK
+ -m string --algo wrong;;FAIL
+ -m string --algo bm;;FAIL
+ -m string;;FAIL
+-- 
+2.34.1
 
