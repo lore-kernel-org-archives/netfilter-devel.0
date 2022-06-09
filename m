@@ -2,58 +2,58 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31DF3CCA47E
-	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Jun 2022 22:18:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F9C3C43334
+	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Jun 2022 22:18:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345628AbiFIWS3 (ORCPT
+        id S1345602AbiFIWSy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 9 Jun 2022 18:18:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46072 "EHLO
+        Thu, 9 Jun 2022 18:18:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47940 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345615AbiFIWS2 (ORCPT
+        with ESMTP id S1345591AbiFIWSx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 9 Jun 2022 18:18:28 -0400
-Received: from mail-pf1-x44a.google.com (mail-pf1-x44a.google.com [IPv6:2607:f8b0:4864:20::44a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7CC0C427DD
-        for <netfilter-devel@vger.kernel.org>; Thu,  9 Jun 2022 15:18:26 -0700 (PDT)
-Received: by mail-pf1-x44a.google.com with SMTP id x11-20020aa79acb000000b0051b9d3136fdso12985048pfp.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 09 Jun 2022 15:18:26 -0700 (PDT)
+        Thu, 9 Jun 2022 18:18:53 -0400
+Received: from mail-pj1-x1049.google.com (mail-pj1-x1049.google.com [IPv6:2607:f8b0:4864:20::1049])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADDCF51592
+        for <netfilter-devel@vger.kernel.org>; Thu,  9 Jun 2022 15:18:48 -0700 (PDT)
+Received: by mail-pj1-x1049.google.com with SMTP id q62-20020a17090a17c400b001e31a482241so266987pja.5
+        for <netfilter-devel@vger.kernel.org>; Thu, 09 Jun 2022 15:18:48 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20210112;
         h=date:in-reply-to:message-id:mime-version:references:subject:from:to
          :cc;
-        bh=zQ6igRU/lPsPPjITd4pdT0XeOfhGOx4hu6xL7AAJoM8=;
-        b=QJYSL92EGHv0Glqefsz+fZAyuHXsVDJ+MxqtY38p/rJWyzN9tqq38im0/nAHSSrAcw
-         XMQ6nAGoVVakkYRIOxtqwHJW03YmZH40gkW7E/YkdAEWc9hWN2V7ngXOGdkLxNXXFPVz
-         MM6SoDd9zGDwN7h4y2Zv5sUmYXsKm79QEart8XywqgYgGMlR5uKSmr2M8zPPYELNG0fC
-         sjbVW5cOWu2CabVPyhNOvTWLIe4OkL9eosbWQbgqXLmWmjLl4VHTPCfxGjF9R4eBYA8S
-         SWfDBEXFQ0GXfeXiQjFQ4xktd6Mieq2x7asfEjehSXBFdpIoHP2WaOku4Aej/pIaybf5
-         FCNQ==
+        bh=HlrKEzC+OauxSUT5xZtPYeK0f3N3z3B8pf9PvEyK7vc=;
+        b=qNUPK/S5iHdXgPK57Bkixsq++QOQQMHfyV6r2MtPs7v9I3SUg8azHVdlWi+Vmpdk0V
+         e9swXJWEpf/dXShWMQkD9tdieecIjQpQiuIyNIyGp6c4DhP+OHtn6lVN3Jb0aUWnt0zX
+         6WRDoSX5skQyQJy1DXGgbB1frbSREBbKFeP8ovCXNP1nwpzQihNeuZDVsxzVVQEW/FTO
+         oasKzV38q06qXK4hlfrcDIvuu6az9YMh+LOMOYwAEM/GaKPtPsyF6cfogObTYmCvxbsF
+         HDhlFK8BOzg5MG7pql3z3B69jG4uxkigcwMhH0FMhZG9+AiHWiMvxTL/b/XFzI/yrt60
+         XE4w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:date:in-reply-to:message-id:mime-version
          :references:subject:from:to:cc;
-        bh=zQ6igRU/lPsPPjITd4pdT0XeOfhGOx4hu6xL7AAJoM8=;
-        b=Xe/a8zV46h3Jb4qy5odPGyE/NjZSLyCGfRVlteOROCA/XuStQaBrd3hngVVtPHDSNG
-         rX4nUsBsn8+Y8Ps5kOTch9HotEbVUT0cgyxkbHkBZLEau5RxOiFZjMUjLH1zMsriFSCm
-         KTB3YDrlpDvUkX9DCxjV5mKd+yeEmDyWDcRfV9xqS2Fy4KkWVoagjvw2T114RepMkkI0
-         +RHxMuLBeg4nJVHMyGrT4zwLnWZ6HKitSMXdHtcgkdn/nFnAdtE/Uns6WD+XSt5aLcU/
-         WyhOg+eOb1HFCODtwoDJiQbXyBYdpJoqyQasBEAmtTYUtIfmP1KogFakZUstUMLQJbPd
-         UK5w==
-X-Gm-Message-State: AOAM533CqL6ggkZIkXvbmLUDgzEx42u9iq3t1n5oOq2Bl8Oe1hyW40Wo
-        B8n18kpPax5xmBra4POiEHQq0rnx
-X-Google-Smtp-Source: ABdhPJwaaQIFrsaGRD2eHE0bL/iy5r4Z+mF9XLusw0L85/0I2ggYu7uuJziQ3x377wlgzuNlbfNxKB4Iyw==
+        bh=HlrKEzC+OauxSUT5xZtPYeK0f3N3z3B8pf9PvEyK7vc=;
+        b=dIXpFUiiRS2T+zeF7g8nso3/x1BZI4V5wuKI7wnwOFTHJZKrYYYDm7/bK5/pSPRsWk
+         /eEdF45VIYezmAbKaqkB+BBNyUr2xpM8vR2T9PkJ3algo8Avn6DqH5aqv4uvbS5z82XD
+         RlfGEbC/kU//eUCVPEnBjRucHqwse/87menQZ8nsnWT0rEEoUyRRMDaCzx2QQA3UooXS
+         vwhQ7Y5t5DxHXX+1dzy//ls4+iKxsjinceN+3RKJLAMfWcDXsSsRHtbyOFXYIZTukOKU
+         jfw03J4UXdjyZlVWFW9+hERJBwtj1tosreObxoX+TVocsI6uyHfoNjgL2L+3e+nfb/+4
+         bQnQ==
+X-Gm-Message-State: AOAM533RV3ay8xA6kvAS3rfugsbwPb4UYJ7BPGn9Lsr+MBrJbkBrTAwy
+        Y9QVk8g00juOGFReU7RCzY4a5iT8
+X-Google-Smtp-Source: ABdhPJxktSZZjGsZMg+ncs7oCo7UsGcqz2MItXnZVpN7aAWxKCb/sSBN71lrVJLJ6nxui+334t4TDARu1w==
 X-Received: from fawn.c.googlers.com ([fda3:e722:ac3:cc00:7f:e700:c0a8:5795])
- (user=morbo job=sendgmr) by 2002:a17:90a:249:b0:1e0:a8a3:3c6c with SMTP id
- t9-20020a17090a024900b001e0a8a33c6cmr114285pje.0.1654813104885; Thu, 09 Jun
- 2022 15:18:24 -0700 (PDT)
-Date:   Thu,  9 Jun 2022 22:16:22 +0000
+ (user=morbo job=sendgmr) by 2002:a63:5924:0:b0:3fb:a75e:9e8a with SMTP id
+ n36-20020a635924000000b003fba75e9e8amr36694755pgb.394.1654813127925; Thu, 09
+ Jun 2022 15:18:47 -0700 (PDT)
+Date:   Thu,  9 Jun 2022 22:16:23 +0000
 In-Reply-To: <20220609221702.347522-1-morbo@google.com>
-Message-Id: <20220609221702.347522-4-morbo@google.com>
+Message-Id: <20220609221702.347522-5-morbo@google.com>
 Mime-Version: 1.0
 References: <20220609221702.347522-1-morbo@google.com>
 X-Mailer: git-send-email 2.36.1.476.g0c4daa206d-goog
-Subject: [PATCH 03/12] x86/e820: use correct format characters
+Subject: [PATCH 04/12] blk-cgroup: use correct format characters
 From:   Bill Wendling <morbo@google.com>
 To:     isanbard@gmail.com
 Cc:     Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>,
@@ -95,36 +95,31 @@ From: Bill Wendling <isanbard@gmail.com>
 
 When compiling with -Wformat, clang emits the following warnings:
 
-arch/x86/kernel/e820.c:877:15: error: format string is not a string literal (potentially insecure) [-Werror,-Wformat-security]
-        early_printk(msg);
-                     ^~~
-arch/x86/kernel/e820.c:878:8: error: format string is not a string literal (potentially insecure) [-Werror,-Wformat-security]
-        panic(msg);
-              ^~~
+mm/backing-dev.c:880:57: error: format string is not a string literal (potentially insecure) [-Werror,-Wformat-security]
+        dev = device_create(bdi_class, NULL, MKDEV(0, 0), bdi, bdi->dev_name);
+                                                               ^~~~~~~~~~~~~
 
 Use a string literal for the format string.
 
 Link: https://github.com/ClangBuiltLinux/linux/issues/378
 Signed-off-by: Bill Wendling <isanbard@gmail.com>
 ---
- arch/x86/kernel/e820.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/backing-dev.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
-index f267205f2d5a..ca4634a0bdb5 100644
---- a/arch/x86/kernel/e820.c
-+++ b/arch/x86/kernel/e820.c
-@@ -874,8 +874,8 @@ unsigned long __init e820__end_of_low_ram_pfn(void)
+diff --git a/mm/backing-dev.c b/mm/backing-dev.c
+index ff60bd7d74e0..7b7786dceff3 100644
+--- a/mm/backing-dev.c
++++ b/mm/backing-dev.c
+@@ -877,7 +877,7 @@ int bdi_register_va(struct backing_dev_info *bdi, const char *fmt, va_list args)
+ 		return 0;
  
- static void __init early_panic(char *msg)
- {
--	early_printk(msg);
--	panic(msg);
-+	early_printk("%s", msg);
-+	panic("%s", msg);
- }
+ 	vsnprintf(bdi->dev_name, sizeof(bdi->dev_name), fmt, args);
+-	dev = device_create(bdi_class, NULL, MKDEV(0, 0), bdi, bdi->dev_name);
++	dev = device_create(bdi_class, NULL, MKDEV(0, 0), bdi, "%s", bdi->dev_name);
+ 	if (IS_ERR(dev))
+ 		return PTR_ERR(dev);
  
- static int userdef __initdata;
 -- 
 2.36.1.255.ge46751e96f-goog
 
