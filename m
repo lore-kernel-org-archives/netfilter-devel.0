@@ -2,59 +2,60 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90CEFC43334
-	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Jun 2022 23:18:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 395A1C43334
+	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Jun 2022 00:33:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237400AbiFIXS5 (ORCPT
+        id S239616AbiFJAdD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 9 Jun 2022 19:18:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38018 "EHLO
+        Thu, 9 Jun 2022 20:33:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52818 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346127AbiFIXSr (ORCPT
+        with ESMTP id S238900AbiFJAdD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 9 Jun 2022 19:18:47 -0400
-Received: from mail-lj1-x22d.google.com (mail-lj1-x22d.google.com [IPv6:2a00:1450:4864:20::22d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B6BD3201FF2
-        for <netfilter-devel@vger.kernel.org>; Thu,  9 Jun 2022 16:18:45 -0700 (PDT)
-Received: by mail-lj1-x22d.google.com with SMTP id j20so4175331ljg.8
-        for <netfilter-devel@vger.kernel.org>; Thu, 09 Jun 2022 16:18:45 -0700 (PDT)
+        Thu, 9 Jun 2022 20:33:03 -0400
+Received: from mail-lf1-x134.google.com (mail-lf1-x134.google.com [IPv6:2a00:1450:4864:20::134])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E006366BD
+        for <netfilter-devel@vger.kernel.org>; Thu,  9 Jun 2022 17:33:00 -0700 (PDT)
+Received: by mail-lf1-x134.google.com with SMTP id be31so40480672lfb.10
+        for <netfilter-devel@vger.kernel.org>; Thu, 09 Jun 2022 17:33:00 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=af6354Q+PYtjAeTE1fHxbOWk4spb0xe2rddSt4jQNw0=;
-        b=qsw/gp8RDQr7TxcFAw67QADvplw4M8CuLpbXwYePEvTc9gyloRoNkLA0/65LPS2PHG
-         lwvUx0Vk5tnQau+/eN+yj4vNNvEwrbFYrLKwsm69bjXQ0R4nOllOmIVjbhrvEDyLI/wP
-         oUAGxwYePVYRcuzvMPpwS/H20SN6RBqtDq3M/sIFmsPVSQfFBqjqsQ4YrUJFt60H+vrG
-         /vbIkayBKj2NafmzkfPK5WFIV3Pwo6mzHcJ+8+5Fy+N2x3QXFf68sSVrj/uvcZRdIojW
-         qhr4netPBQEp3dEnvthXme6ipHwfVm1f0OwUWXWzeGYvw+rVPOiGjeTn1JUKCz0o06hy
-         xlcw==
+        bh=M1G6Hf9v6f6xyLP2a6Gh7yfuFJ+6ipgBJHHWwU80v1c=;
+        b=GzLaviOqRCp4B7LqsBfA2qFyX6V1uMUAbIpS5ZG+ymr/9aN/hsQn1QW3PtN+GmgInQ
+         He0Q1Uquu8aHzwNdzglLiDyax/ofVj35MhNvH0zBU7U/FgsC8lV4WZcV1MRSavA6givw
+         MwwoH6cUS805gA1B/kna/OiRrljxuadDNbWQe2uk3jqSGIPZTj1Nggn2aFmaJOxpn0ee
+         keyXmIa2x54GZzES+MYP7V0JK7Y0RzKUk9jyYpIawwn1bBhBPn8bT+rMBalAXRhKRGqN
+         ws66+mukc8/rRLkWY5c5tACdnnEguXj7+LFVYthISMqK0wDGsAxLLnOu3EGgFefxrZxd
+         +Qcg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=af6354Q+PYtjAeTE1fHxbOWk4spb0xe2rddSt4jQNw0=;
-        b=6aqDjiXss/EVDHnCjqI1/w5ri+02L54QGAu+m8JyWFzjq4IdfjZwBCkekIwqvIGvwx
-         zKXtt2gi+oUeMQ+4keod5+3fEDodPHWtqJ5OITo4Vkrh1SjI/eDEOsyxZ3vUhxF8weyD
-         pD2i/jlUjA+a+3+sn1hbjBCzcpkC2WJjXu22f+icTnTZ2ybLKTtabROWYxX+Ln0e05Kx
-         xhPZTl/8mPx89Fcm1pje76VAKRjbYDCqXoJniToIhvStk3dLHluL7HoaQJU/XEyr1Mj1
-         m+m78a6QwIE3EBD4CXk3hqmpkcRxZIlvf7NCgnsc+JAMV3EoAK5247QSP1bD1VqHvx3H
-         GK7A==
-X-Gm-Message-State: AOAM532131JppRjl611OxRvgVAXLsr96aeW6IuZXGwDeT8p3WXEFt03y
-        KBH/q5pgEXsHVuUIWW2fsmXRBF4vzunn40gOKu5j
-X-Google-Smtp-Source: ABdhPJzslpbBTkBZ3coZd7t5JavMPBitkHrctHqYQ1MeTY4oO+M4rEae62HvWxHeD6/VvLbJ6ql3Pgg1eI26i3ys1SY=
-X-Received: by 2002:a2e:bc0e:0:b0:255:9fa0:ed4 with SMTP id
- b14-20020a2ebc0e000000b002559fa00ed4mr10953078ljf.390.1654816723853; Thu, 09
- Jun 2022 16:18:43 -0700 (PDT)
+        bh=M1G6Hf9v6f6xyLP2a6Gh7yfuFJ+6ipgBJHHWwU80v1c=;
+        b=xXJYieUeSiRoDm1zvpqqzJLnBctdj57lTuEz6bZW3l839JcKct3VkGrtGVU/J/6BW+
+         bwXAIcLVPavRvNaFSa5Y5fp08Q6SUf/RR8n8AcFea1EN0ABmyX1QJEDioaVWtmZCufSq
+         4KEpShfUHZuhOR2gcMAKkLwKuIaZGWp9Gmb1/p9spFKvJVCwSjJNtlieQ+JcuzxqGKTQ
+         y3Cj1HsqMTcAPuUI2Gw9LyrXjfIkXkyabzeAUf1tuBMYTtnmlNk+D36QpNHhH1Z87cJ8
+         1N0z5t6SmVYq2DqpVdmxA6Ws9JYDVdSwg9Wrj+r879ZpQL4+whpjMe/n6aIZzGAFdov3
+         LTsA==
+X-Gm-Message-State: AOAM533QUreG0d2qMK8vKO3d2lWaTF9oBL/qMVPbQS5JGmJBa2qoHZK3
+        EDFUwE2SYM8hF0oQyhafMH5Ccjm/+7WMj6DLUMJT4A==
+X-Google-Smtp-Source: ABdhPJwmAai5PXOj7tGhLdM9ZQqNV5Wv1qkbCkukxf252/r1aHu4spL4q3u9asT4a5t/dEsKFtmgLChgmJAimWPi9do=
+X-Received: by 2002:a05:6512:ad6:b0:479:5599:d834 with SMTP id
+ n22-20020a0565120ad600b004795599d834mr11951775lfu.103.1654821178297; Thu, 09
+ Jun 2022 17:32:58 -0700 (PDT)
 MIME-Version: 1.0
-References: <20220609221702.347522-1-morbo@google.com> <20220609221702.347522-2-morbo@google.com>
- <3a773edf-f850-e83d-828d-19f91a373384@infradead.org>
-In-Reply-To: <3a773edf-f850-e83d-828d-19f91a373384@infradead.org>
-From:   Bill Wendling <morbo@google.com>
-Date:   Thu, 9 Jun 2022 16:18:31 -0700
-Message-ID: <CAGG=3QVkvvc+25zvrfigo5Ohx85+1FCka_VMC4pm0dWUFMOqkA@mail.gmail.com>
-Subject: Re: [PATCH 01/12] x86/mce: use correct format characters
-To:     Randy Dunlap <rdunlap@infradead.org>
+References: <20220609221702.347522-1-morbo@google.com> <20220609152527.4ad7862d4126e276e6f76315@linux-foundation.org>
+In-Reply-To: <20220609152527.4ad7862d4126e276e6f76315@linux-foundation.org>
+From:   Nick Desaulniers <ndesaulniers@google.com>
+Date:   Thu, 9 Jun 2022 17:32:46 -0700
+Message-ID: <CAKwvOdmfC3kgGuimbtG8n74f8qJ5+vd3GeHg14oOxkKOfuQfBg@mail.gmail.com>
+Subject: Re: [PATCH 00/12] Clang -Wformat warning fixes
+To:     Andrew Morton <akpm@linux-foundation.org>,
+        Bill Wendling <morbo@google.com>,
+        Randy Dunlap <rdunlap@infradead.org>
 Cc:     Bill Wendling <isanbard@gmail.com>,
         Tony Luck <tony.luck@intel.com>,
         Borislav Petkov <bp@alien8.de>,
@@ -68,7 +69,6 @@ Cc:     Bill Wendling <isanbard@gmail.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
         Jan Kara <jack@suse.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
@@ -79,61 +79,92 @@ Cc:     Bill Wendling <isanbard@gmail.com>,
         Jaroslav Kysela <perex@perex.cz>,
         Takashi Iwai <tiwai@suse.com>,
         Nathan Chancellor <nathan@kernel.org>,
-        Nick Desaulniers <ndesaulniers@google.com>,
         Tom Rix <trix@redhat.com>,
-        Daniel Kiper <daniel.kiper@oracle.com>,
         Ross Philipson <ross.philipson@oracle.com>,
+        Daniel Kiper <daniel.kiper@oracle.com>,
         linux-edac@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
         ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        linux-mm@kvack.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, Networking <netdev@vger.kernel.org>,
+        Linux Memory Management List <linux-mm@kvack.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Network Development <netdev@vger.kernel.org>,
         alsa-devel@alsa-project.org,
-        clang-built-linux <llvm@lists.linux.dev>
+        clang-built-linux <llvm@lists.linux.dev>,
+        Justin Stitt <jstitt007@gmail.com>,
+        Justin Stitt <justinstitt@google.com>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Jun 9, 2022 at 4:15 PM Randy Dunlap <rdunlap@infradead.org> wrote:
-> On 6/9/22 15:16, Bill Wendling wrote:
-> > From: Bill Wendling <isanbard@gmail.com>
-> >
-> > When compiling with -Wformat, clang emits the following warnings:
-> >
-> > arch/x86/kernel/cpu/mce/core.c:295:9: error: format string is not a string literal (potentially insecure) [-Werror,-Wformat-security]
-> >                 panic(msg);
-> >                       ^~~
-> >
-> > Use a string literal for the format string.
-> >
-> > Link: https://github.com/ClangBuiltLinux/linux/issues/378
-> > Signed-off-by: Bill Wendling <isanbard@gmail.com>
-> > ---
-> >  arch/x86/kernel/cpu/mce/core.c | 2 +-
-> >  scripts/Makefile.extrawarn     | 4 ++--
+On Thu, Jun 9, 2022 at 3:25 PM Andrew Morton <akpm@linux-foundation.org> wrote:
 >
-> Where is the scripts/ change?
+> On Thu,  9 Jun 2022 22:16:19 +0000 Bill Wendling <morbo@google.com> wrote:
 >
-I'm sorry about this. The change in that file was a mistake that I
-reverted, but I forgot to change this part.
+> > This patch set fixes some clang warnings when -Wformat is enabled.
 
--bw
+It looks like this series fixes -Wformat-security, which while being a
+member of the -Wformat group, is intentionally disabled in the kernel
+and somewhat orthogonal to enabling -Wformat with Clang.
 
-> >  2 files changed, 3 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/arch/x86/kernel/cpu/mce/core.c b/arch/x86/kernel/cpu/mce/core.c
-> > index 2c8ec5c71712..3d411b7c85ad 100644
-> > --- a/arch/x86/kernel/cpu/mce/core.c
-> > +++ b/arch/x86/kernel/cpu/mce/core.c
-> > @@ -292,7 +292,7 @@ static noinstr void mce_panic(const char *msg, struct mce *final, char *exp)
-> >       if (!fake_panic) {
-> >               if (panic_timeout == 0)
-> >                       panic_timeout = mca_cfg.panic_timeout;
-> > -             panic(msg);
-> > +             panic("%s", msg);
-> >       } else
-> >               pr_emerg(HW_ERR "Fake kernel panic: %s\n", msg);
+-Wformat is a group flag (like -Wall) that enables multiple other
+flags implicitly.  Reading through
+clang/include/clang/Basic/DiagnosticGroups.td in clang's sources, it
+looks like:
+
+1. -Wformat is a group flag.
+2. -Wformat-security is a member of the -Wformat group; enabling
+-Wformat will enable -Wformat-security.
+3. -Wformat itself is a member of -Wmost (never heard of -Wmost, but
+w/e). So -Wmost will enable -Wformat will enable -Wformat-security.
+4. -Wmost is itself a member of -Wall. -Wall enables -Wmost enables
+-Wformat enables -Wformat security.
+
+Looking now at Kbuild:
+1. Makefile:523 adds -Wall to KBUILD_CFLAGS.
+2. The same assignment expression but on line 526 immediately disables
+-Wformat-security via -Wno-format-security.
+3. scripts/Makefile.extrawarn disables -Wformat via -Wno-format only
+for clang (via guard of CONFIG_CC_IS_CLANG).
+
+We _want_ -Wformat enabled for clang so that developers aren't sending
+patches that trigger -Wformat with GCC (if they didn't happen to test
+their code with both).  It's disabled for clang until we can build the
+kernel cleanly with it enabled, which we'd like to do.
+
+I don't think that we need to enable -Wformat-security to build with
+-Wformat for clang.
+
+I suspect based on Randy's comment on patch 1/12 that perhaps -Wformat
+was _added_ to KBUILD_CFLAGS in scripts/Makefile.extrawarn rather than
+-Wno-format being _removed_.  The former would re-enable
+-Wformat-security due to the grouping logic described above.  The
+latter is probably closer to our ultimate goal of enabling -Wformat
+coverage for clang (or rather not disabling the coverage via
+-Wno-format; a double negative).
+
+I'm pretty sure the kernel doesn't support %n in format strings...see
+the comment above vsnprintf in lib/vsprintf.c.  Are there other
+attacks other than %n that -Wformat-security guards against? Maybe
+there's some context on the commit that added -Wno-format-security to
+the kernel?  Regardless, I don't think enabling -Wformat-security is a
+blocker for enabling -Wformat (or...disabling -Wno-format...two sides
+of the same coin) for clang.
+
 > >
 >
-> --
-> ~Randy
+> tldr:
+>
+> -       printk(msg);
+> +       printk("%s", msg);
+>
+> the only reason to make this change is where `msg' could contain a `%'.
+> Generally, it came from userspace.  Otherwise these changes are a
+> useless consumer of runtime resources.
+>
+> I think it would be better to quieten clang in some fashion.
+
+
+
+-- 
+Thanks,
+~Nick Desaulniers
