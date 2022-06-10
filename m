@@ -2,92 +2,118 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BA94C43334
-	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Jun 2022 08:57:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CCAFCCA47B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Jun 2022 09:15:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344098AbiFJI5R (ORCPT
+        id S1348569AbiFJJPg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 10 Jun 2022 04:57:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34614 "EHLO
+        Fri, 10 Jun 2022 05:15:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38658 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237484AbiFJI5Q (ORCPT
+        with ESMTP id S1348576AbiFJJPF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 10 Jun 2022 04:57:16 -0400
-X-Greylist: delayed 1494 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 10 Jun 2022 01:57:11 PDT
-Received: from uriel.iewc.co.za (uriel.iewc.co.za [IPv6:2c0f:f720:0:3::9a49:2248])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2757F24592
-        for <netfilter-devel@vger.kernel.org>; Fri, 10 Jun 2022 01:57:11 -0700 (PDT)
-Received: from [165.16.203.51] (helo=tauri.local.uls.co.za)
-        by uriel.iewc.co.za with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <jaco@uls.co.za>)
-        id 1nza3o-0007Od-74; Fri, 10 Jun 2022 10:32:04 +0200
-Received: from [192.168.42.201]
-        by tauri.local.uls.co.za with esmtp (Exim 4.94.2)
-        (envelope-from <jaco@uls.co.za>)
-        id 1nza3m-0003fl-CQ; Fri, 10 Jun 2022 10:32:02 +0200
-Message-ID: <05d3ee34-8ff1-4bb3-b027-9fcc1ebb3526@uls.co.za>
-Date:   Fri, 10 Jun 2022 10:32:01 +0200
+        Fri, 10 Jun 2022 05:15:05 -0400
+Received: from eu-smtp-delivery-151.mimecast.com (eu-smtp-delivery-151.mimecast.com [185.58.86.151])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E889F1D8184
+        for <netfilter-devel@vger.kernel.org>; Fri, 10 Jun 2022 02:14:50 -0700 (PDT)
+Received: from AcuMS.aculab.com (156.67.243.121 [156.67.243.121]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
+ uk-mta-285-KXkgFt7gOaSUzoJhNxSJvA-1; Fri, 10 Jun 2022 10:14:48 +0100
+X-MC-Unique: KXkgFt7gOaSUzoJhNxSJvA-1
+Received: from AcuMS.Aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) by
+ AcuMS.aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) with Microsoft SMTP
+ Server (TLS) id 15.0.1497.36; Fri, 10 Jun 2022 10:14:45 +0100
+Received: from AcuMS.Aculab.com ([fe80::994c:f5c2:35d6:9b65]) by
+ AcuMS.aculab.com ([fe80::994c:f5c2:35d6:9b65%12]) with mapi id
+ 15.00.1497.036; Fri, 10 Jun 2022 10:14:45 +0100
+From:   David Laight <David.Laight@ACULAB.COM>
+To:     'Jan Engelhardt' <jengelh@inai.de>
+CC:     'Bill Wendling' <morbo@google.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Bill Wendling <isanbard@gmail.com>,
+        Tony Luck <tony.luck@intel.com>,
+        Borislav Petkov <bp@alien8.de>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Phillip Potter <phil@philpotter.co.uk>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Jan Kara <jack@suse.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        "Florian Westphal" <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        "Eric Dumazet" <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>,
+        Nathan Chancellor <nathan@kernel.org>,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        Tom Rix <trix@redhat.com>,
+        Ross Philipson <ross.philipson@oracle.com>,
+        Daniel Kiper <daniel.kiper@oracle.com>,
+        "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        "linux-mm@kvack.org" <linux-mm@kvack.org>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "coreteam@netfilter.org" <coreteam@netfilter.org>,
+        Networking <netdev@vger.kernel.org>,
+        "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>,
+        clang-built-linux <llvm@lists.linux.dev>
+Subject: RE: [PATCH 00/12] Clang -Wformat warning fixes
+Thread-Topic: [PATCH 00/12] Clang -Wformat warning fixes
+Thread-Index: AQHYfFM1C3rJ7kSMAEGkdVTZFYHL+K1ISrPg///1DYCAABtWMA==
+Date:   Fri, 10 Jun 2022 09:14:45 +0000
+Message-ID: <724889aa6a8d4d41b8557733610c7657@AcuMS.aculab.com>
+References: <20220609221702.347522-1-morbo@google.com>
+ <20220609152527.4ad7862d4126e276e6f76315@linux-foundation.org>
+ <CAGG=3QXDt9AeCQOAp1311POFRSByJru4=Q=oFiQn3u2iZYk2_w@mail.gmail.com>
+ <01da36bfd13e421aadb2eff661e7a959@AcuMS.aculab.com>
+ <o5496n8r-451p-751-3258-97112opns7s8@vanv.qr>
+In-Reply-To: <o5496n8r-451p-751-3258-97112opns7s8@vanv.qr>
+Accept-Language: en-GB, en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-ms-exchange-transport-fromentityheader: Hosted
+x-originating-ip: [10.202.205.107]
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.6.1
-Subject: Re: [PATCH nf] netfilter: nf_conntrack_tcp: re-init for syn packets
- only
-Content-Language: en-GB
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, edumazet@google.com,
-        ncardwell@google.com, Jozsef Kadlecsik <kadlec@netfilter.org>
-References: <20220425094711.6255-1-fw@strlen.de> <YmlJzj82mBl77rCR@salvia>
-From:   Jaco Kroon <jaco@uls.co.za>
-Organization: Ultimate Linux Solutions (Pty) Ltd
-In-Reply-To: <YmlJzj82mBl77rCR@salvia>
+Authentication-Results: relay.mimecast.com;
+        auth=pass smtp.auth=C51A453 smtp.mailfrom=david.laight@aculab.com
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: aculab.com
+Content-Language: en-US
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: base64
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Thank you all.  Got entangled in other stuff again, just wanted to say I
-appreciate the effort that went into this.
+RnJvbTogSmFuIEVuZ2VsaGFyZHQNCj4gU2VudDogMTAgSnVuZSAyMDIyIDA5OjMyDQo+IA0KPiAN
+Cj4gT24gRnJpZGF5IDIwMjItMDYtMTAgMTA6MTcsIERhdmlkIExhaWdodCB3cm90ZToNCj4gPj4N
+Cj4gPj4gQ2FsbGluZyBhICJwcmludGYiIHN0eWxlIGZ1bmN0aW9uIGlzIGFscmVhZHkgaW5zYW5l
+bHkgZXhwZW5zaXZlLiA6LSkgSQ0KPiA+PiB1bmRlcnN0YW5kIHRoYXQgaXQncyBub3Qgb2theSBi
+bGl0aGVseSB0byBpbmNyZWFzZSBydW50aW1lIHJlc291cmNlcw0KPiA+PiBzaW1wbHkgYmVjYXVz
+ZSBpdCdzIGFscmVhZHkgc2xvdywgYnV0IGluIHRoaXMgY2FzZSBpdCdzIHdvcnRod2hpbGUuDQo+
+ID4NCj4gPlllcCwgSU1ITyBkZWZpbml0ZWx5IHNob3VsZCBiZSBmaXhlZC4NCj4gPkl0IGlzIGV2
+ZW4gcG9zc2libGUgdGhhdCB1c2luZyAiJXMiIGlzIGZhc3RlciBiZWNhdXNlIHRoZSBwcmludGYN
+Cj4gPmNvZGUgZG9lc24ndCBoYXZlIHRvIHNjYW4gdGhlIHN0cmluZyBmb3IgZm9ybWF0IGVmZmVj
+dG9ycy4NCj4gDQo+IEkgc2VlIG5vIHNwZWNpYWwgaGFuZGxpbmc7IHRoZSB2c25wcmludGYgZnVu
+Y3Rpb24ganVzdCBsb29wcw0KPiBvdmVyIGZtdCBhcyB1c3VhbCBhbmQgSSBzZWUgbm8gc3BlY2lh
+bCBjYXNpbmcgb2YgZm10IGJ5DQo+IGUuZy4gc3RyY21wKGZtdCwgIiVzIinCoD09IDAgdG8gdGFr
+ZSBhIHNob3J0Y3V0Lg0KDQpDb25zaWRlciB0aGUgZGlmZmVyZW5jZSBiZXR3ZWVuOg0KCXByaW50
+ZigiZnViYXIiKTsNCmFuZA0KCXByaW50ZigiJXMiLCAiZnViYXIiKTsNCkluIHRoZSBmb3JtZXIg
+YWxsIG9mICJmdWJhciIgaXMgY2hlY2tlZCBmb3IgJyUnLg0KSW4gdGhlIGxhdHRlciBvbmx5IHRo
+ZSBsZW5ndGggb2YgImZ1YmFyIiBoYXMgdG8gYmUgY291bnRlZC4NCg0KRldJVyB0aGUgcGF0Y2gg
+ZGVzY3JpcHRpb24gc2hvdWxkIHByb2JhYmx5IGJ5Og0KCXVzZSAiJXMiIHdoZW4gZm9ybWF0dGlu
+ZyBhIHNpbmdsZSBzdHJpbmcuDQoob3Igc29tZXRoaW5nIHRvIHRoYXQgZWZmZWN0KS4NCg0KCURh
+dmlkDQoNCi0NClJlZ2lzdGVyZWQgQWRkcmVzcyBMYWtlc2lkZSwgQnJhbWxleSBSb2FkLCBNb3Vu
+dCBGYXJtLCBNaWx0b24gS2V5bmVzLCBNSzEgMVBULCBVSw0KUmVnaXN0cmF0aW9uIE5vOiAxMzk3
+Mzg2IChXYWxlcykNCg==
 
-Kind Regards,
-Jaco
-
-On 2022/04/27 15:49, Pablo Neira Ayuso wrote:
-> On Mon, Apr 25, 2022 at 11:47:11AM +0200, Florian Westphal wrote:
->> Jaco Kroon reported tcp problems that Eric Dumazet and Neal Cardwell
->> pinpointed to nf_conntrack tcp_in_window() bug.
->>
->> tcp trace shows following sequence:
->>
->> I > R Flags [S], seq 3451342529, win 62580, options [.. tfo [|tcp]>
->> R > I Flags [S.], seq 2699962254, ack 3451342530, win 65535, options [..]
->> R > I Flags [P.], seq 1:89, ack 1, [..]
->>
->> Note 3rd ACK is from responder to initiator so following branch is taken:
->>     } else if (((state->state == TCP_CONNTRACK_SYN_SENT
->>                && dir == IP_CT_DIR_ORIGINAL)
->>                || (state->state == TCP_CONNTRACK_SYN_RECV
->>                && dir == IP_CT_DIR_REPLY))
->>                && after(end, sender->td_end)) {
->>
->> ... because state == TCP_CONNTRACK_SYN_RECV and dir is REPLY.
->> This causes the scaling factor to be reset to 0: window scale option
->> is only present in syn(ack) packets.  This in turn makes nf_conntrack
->> mark valid packets as out-of-window.
->>
->> This was always broken, it exists even in original commit where
->> window tracking was added to ip_conntrack (nf_conntrack predecessor)
->> in 2.6.9-rc1 kernel.
->>
->> Restrict to 'tcph->syn', just like the 3rd condtional added in
->> commit 82b72cb94666 ("netfilter: conntrack: re-init state for retransmitted syn-ack").
->>
->> Upon closer look, those conditionals/branches can be merged:
->>
->> Because earlier checks prevent syn-ack from showing up in
->> original direction, the 'dir' checks in the conditional quoted above are
->> redundant, remove them. Return early for pure syn retransmitted in reply
->> direction (simultaneous open).
-> Applied, thanks
