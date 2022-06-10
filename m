@@ -2,89 +2,92 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ADBADCCA47F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Jun 2022 08:34:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BA94C43334
+	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Jun 2022 08:57:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344221AbiFJIeo (ORCPT
+        id S1344098AbiFJI5R (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 10 Jun 2022 04:34:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46904 "EHLO
+        Fri, 10 Jun 2022 04:57:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34614 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347743AbiFJIeW (ORCPT
+        with ESMTP id S237484AbiFJI5Q (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 10 Jun 2022 04:34:22 -0400
-Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC2091EC7F;
-        Fri, 10 Jun 2022 01:32:14 -0700 (PDT)
-Received: by a3.inai.de (Postfix, from userid 25121)
-        id 43D6D5872870F; Fri, 10 Jun 2022 10:32:13 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by a3.inai.de (Postfix) with ESMTP id 4326A60C247DA;
-        Fri, 10 Jun 2022 10:32:13 +0200 (CEST)
-Date:   Fri, 10 Jun 2022 10:32:13 +0200 (CEST)
-From:   Jan Engelhardt <jengelh@inai.de>
-To:     David Laight <David.Laight@ACULAB.COM>
-cc:     'Bill Wendling' <morbo@google.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Bill Wendling <isanbard@gmail.com>,
-        Tony Luck <tony.luck@intel.com>,
-        Borislav Petkov <bp@alien8.de>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Phillip Potter <phil@philpotter.co.uk>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Jan Kara <jack@suse.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>,
-        Nathan Chancellor <nathan@kernel.org>,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Tom Rix <trix@redhat.com>,
-        Ross Philipson <ross.philipson@oracle.com>,
-        Daniel Kiper <daniel.kiper@oracle.com>,
-        "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        "linux-mm@kvack.org" <linux-mm@kvack.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "coreteam@netfilter.org" <coreteam@netfilter.org>,
-        Networking <netdev@vger.kernel.org>,
-        "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>,
-        clang-built-linux <llvm@lists.linux.dev>
-Subject: RE: [PATCH 00/12] Clang -Wformat warning fixes
-In-Reply-To: <01da36bfd13e421aadb2eff661e7a959@AcuMS.aculab.com>
-Message-ID: <o5496n8r-451p-751-3258-97112opns7s8@vanv.qr>
-References: <20220609221702.347522-1-morbo@google.com> <20220609152527.4ad7862d4126e276e6f76315@linux-foundation.org> <CAGG=3QXDt9AeCQOAp1311POFRSByJru4=Q=oFiQn3u2iZYk2_w@mail.gmail.com> <01da36bfd13e421aadb2eff661e7a959@AcuMS.aculab.com>
-User-Agent: Alpine 2.25 (LSU 592 2021-09-18)
+        Fri, 10 Jun 2022 04:57:16 -0400
+X-Greylist: delayed 1494 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 10 Jun 2022 01:57:11 PDT
+Received: from uriel.iewc.co.za (uriel.iewc.co.za [IPv6:2c0f:f720:0:3::9a49:2248])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2757F24592
+        for <netfilter-devel@vger.kernel.org>; Fri, 10 Jun 2022 01:57:11 -0700 (PDT)
+Received: from [165.16.203.51] (helo=tauri.local.uls.co.za)
+        by uriel.iewc.co.za with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <jaco@uls.co.za>)
+        id 1nza3o-0007Od-74; Fri, 10 Jun 2022 10:32:04 +0200
+Received: from [192.168.42.201]
+        by tauri.local.uls.co.za with esmtp (Exim 4.94.2)
+        (envelope-from <jaco@uls.co.za>)
+        id 1nza3m-0003fl-CQ; Fri, 10 Jun 2022 10:32:02 +0200
+Message-ID: <05d3ee34-8ff1-4bb3-b027-9fcc1ebb3526@uls.co.za>
+Date:   Fri, 10 Jun 2022 10:32:01 +0200
 MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.6.1
+Subject: Re: [PATCH nf] netfilter: nf_conntrack_tcp: re-init for syn packets
+ only
+Content-Language: en-GB
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org, edumazet@google.com,
+        ncardwell@google.com, Jozsef Kadlecsik <kadlec@netfilter.org>
+References: <20220425094711.6255-1-fw@strlen.de> <YmlJzj82mBl77rCR@salvia>
+From:   Jaco Kroon <jaco@uls.co.za>
+Organization: Ultimate Linux Solutions (Pty) Ltd
+In-Reply-To: <YmlJzj82mBl77rCR@salvia>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Thank you all.  Got entangled in other stuff again, just wanted to say I
+appreciate the effort that went into this.
 
-On Friday 2022-06-10 10:17, David Laight wrote:
->> 
->> Calling a "printf" style function is already insanely expensive. :-) I
->> understand that it's not okay blithely to increase runtime resources
->> simply because it's already slow, but in this case it's worthwhile.
->
->Yep, IMHO definitely should be fixed.
->It is even possible that using "%s" is faster because the printf
->code doesn't have to scan the string for format effectors.
+Kind Regards,
+Jaco
 
-I see no special handling; the vsnprintf function just loops
-over fmt as usual and I see no special casing of fmt by
-e.g. strcmp(fmt, "%s") == 0 to take a shortcut.
+On 2022/04/27 15:49, Pablo Neira Ayuso wrote:
+> On Mon, Apr 25, 2022 at 11:47:11AM +0200, Florian Westphal wrote:
+>> Jaco Kroon reported tcp problems that Eric Dumazet and Neal Cardwell
+>> pinpointed to nf_conntrack tcp_in_window() bug.
+>>
+>> tcp trace shows following sequence:
+>>
+>> I > R Flags [S], seq 3451342529, win 62580, options [.. tfo [|tcp]>
+>> R > I Flags [S.], seq 2699962254, ack 3451342530, win 65535, options [..]
+>> R > I Flags [P.], seq 1:89, ack 1, [..]
+>>
+>> Note 3rd ACK is from responder to initiator so following branch is taken:
+>>     } else if (((state->state == TCP_CONNTRACK_SYN_SENT
+>>                && dir == IP_CT_DIR_ORIGINAL)
+>>                || (state->state == TCP_CONNTRACK_SYN_RECV
+>>                && dir == IP_CT_DIR_REPLY))
+>>                && after(end, sender->td_end)) {
+>>
+>> ... because state == TCP_CONNTRACK_SYN_RECV and dir is REPLY.
+>> This causes the scaling factor to be reset to 0: window scale option
+>> is only present in syn(ack) packets.  This in turn makes nf_conntrack
+>> mark valid packets as out-of-window.
+>>
+>> This was always broken, it exists even in original commit where
+>> window tracking was added to ip_conntrack (nf_conntrack predecessor)
+>> in 2.6.9-rc1 kernel.
+>>
+>> Restrict to 'tcph->syn', just like the 3rd condtional added in
+>> commit 82b72cb94666 ("netfilter: conntrack: re-init state for retransmitted syn-ack").
+>>
+>> Upon closer look, those conditionals/branches can be merged:
+>>
+>> Because earlier checks prevent syn-ack from showing up in
+>> original direction, the 'dir' checks in the conditional quoted above are
+>> redundant, remove them. Return early for pure syn retransmitted in reply
+>> direction (simultaneous open).
+> Applied, thanks
