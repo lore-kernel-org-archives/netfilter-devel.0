@@ -2,140 +2,171 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FD1CC433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Jun 2022 12:52:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D04A7C433EF
+	for <netfilter-devel@archiver.kernel.org>; Sat, 11 Jun 2022 10:07:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236639AbiFJMwY convert rfc822-to-8bit (ORCPT
+        id S229668AbiFKKH4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 10 Jun 2022 08:52:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51770 "EHLO
+        Sat, 11 Jun 2022 06:07:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41888 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229571AbiFJMwV (ORCPT
+        with ESMTP id S229821AbiFKKH4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 10 Jun 2022 08:52:21 -0400
-X-Greylist: delayed 456 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 10 Jun 2022 05:52:14 PDT
-Received: from relay.hostedemail.com (smtprelay0011.hostedemail.com [216.40.44.11])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A46732ECC;
-        Fri, 10 Jun 2022 05:52:11 -0700 (PDT)
-Received: from omf09.hostedemail.com (a10.router.float.18 [10.200.18.1])
-        by unirelay12.hostedemail.com (Postfix) with ESMTP id 06E07121083;
-        Fri, 10 Jun 2022 12:44:30 +0000 (UTC)
-Received: from [HIDDEN] (Authenticated sender: joe@perches.com) by omf09.hostedemail.com (Postfix) with ESMTPA id 08E1F2002A;
-        Fri, 10 Jun 2022 12:44:18 +0000 (UTC)
-Message-ID: <cd59f3eab3d2b4f069f4ebf169b33307eaa9e50d.camel@perches.com>
-Subject: Re: [PATCH 00/12] Clang -Wformat warning fixes
-From:   Joe Perches <joe@perches.com>
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Bill Wendling <morbo@google.com>
-Cc:     Jan Engelhardt <jengelh@inai.de>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Bill Wendling <isanbard@gmail.com>,
-        Tony Luck <tony.luck@intel.com>,
-        Borislav Petkov <bp@alien8.de>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Phillip Potter <phil@philpotter.co.uk>,
-        Arnd Bergmann <arnd@arndb.de>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Jan Kara <jack@suse.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>,
-        Nathan Chancellor <nathan@kernel.org>,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Tom Rix <trix@redhat.com>,
-        Ross Philipson <ross.philipson@oracle.com>,
-        Daniel Kiper <daniel.kiper@oracle.com>,
-        linux-edac@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        linux-mm@kvack.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, Networking <netdev@vger.kernel.org>,
-        alsa-devel@alsa-project.org,
-        clang-built-linux <llvm@lists.linux.dev>
-Date:   Fri, 10 Jun 2022 05:44:18 -0700
-In-Reply-To: <YqLUn3RdZ9HAKZKu@kroah.com>
-References: <20220609221702.347522-1-morbo@google.com>
-         <20220609152527.4ad7862d4126e276e6f76315@linux-foundation.org>
-         <CAGG=3QXDt9AeCQOAp1311POFRSByJru4=Q=oFiQn3u2iZYk2_w@mail.gmail.com>
-         <nssn2ps-6n86-nqq6-9039-72847760nnq@vanv.qr>
-         <CAGG=3QU0XJhQKJXLMayOkQSiF2yjBi2p2TEZ9KNTzU5mmye-gg@mail.gmail.com>
-         <YqLUn3RdZ9HAKZKu@kroah.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 8BIT
-User-Agent: Evolution 3.44.1-0ubuntu1 
+        Sat, 11 Jun 2022 06:07:56 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D0C7C08
+        for <netfilter-devel@vger.kernel.org>; Sat, 11 Jun 2022 03:07:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=fBM9JNPyYNTfif3jYrsKEZF+KJBwn27fzoqJ/hvvz4A=; b=oIZaTblodHqY0R8AvkhKns7lA6
+        kg4C204/jaa7AE4VQWCPSKr446COELPR2qmkC4m8pCrkobIhljWCDfqskuVec5ecY41munWJmvq87
+        5AJLQxfT2ypKzPfSxm4rzIWEpoUM0nUdml6L7T05P34TE19ZbfS+Xy0mRCkIpMrp8li+XUnUCxEJU
+        SMY14YykkscZ7+muC+Jhulg7JXl31WoxKn6UntgOh1+d1kgbN3leBUiTXPVsgD+u8qGJyCDnweS9J
+        5pGM/bs/Sd9eXcWj2BGJHNn0xYK3duIS6fPJbo23u4JK4X2RWzj+mK9qS7WV6F1Uly+Dw12yC/rPC
+        hlWvFOjw==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1nzy23-00061e-46; Sat, 11 Jun 2022 12:07:51 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jan Engelhardt <jengelh@inai.de>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH 1/2] libxtables: Move struct xtables_afinfo into xtables.h
+Date:   Sat, 11 Jun 2022 12:07:41 +0200
+Message-Id: <20220611100742.4888-2-phil@nwl.cc>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20220611100742.4888-1-phil@nwl.cc>
+References: <20220611100742.4888-1-phil@nwl.cc>
 MIME-Version: 1.0
-X-Rspamd-Server: rspamout05
-X-Rspamd-Queue-Id: 08E1F2002A
-X-Stat-Signature: r8ecgxf89uwg9qffzdumnqfsj56kpo1p
-X-Session-Marker: 6A6F6540706572636865732E636F6D
-X-Session-ID: U2FsdGVkX19T013fSZHIO4BR28mlFWzRzi2PPI2hbJs=
-X-HE-Tag: 1654865058-93434
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, 2022-06-10 at 07:20 +0200, Greg Kroah-Hartman wrote:
-> On Thu, Jun 09, 2022 at 04:16:16PM -0700, Bill Wendling wrote:
-> > On Thu, Jun 9, 2022 at 4:03 PM Jan Engelhardt <jengelh@inai.de> wrote:
-> > > On Friday 2022-06-10 00:49, Bill Wendling wrote:
-> > > > On Thu, Jun 9, 2022 at 3:25 PM Andrew Morton <akpm@linux-foundation.org> wrote:
-> > > > > On Thu,  9 Jun 2022 22:16:19 +0000 Bill Wendling <morbo@google.com> wrote:
-> > > > > 
-> > > > > > This patch set fixes some clang warnings when -Wformat is enabled.
-> > > > > 
-> > > > > tldr:
-> > > > > 
-> > > > > -       printk(msg);
-> > > > > +       printk("%s", msg);
-> > > > > 
-> > > > > Otherwise these changes are a
-> > > > > useless consumer of runtime resources.
+The library "owns" this structure and maintains 'afinfo' pointer to
+instances of it. With libxt_set, there's even an extension making use of
+the data.
 
-> > > > Calling a "printf" style function is already insanely expensive.
+To avoid impact on library users, guard it by XTABLES_INTERNAL.
 
-I expect the printk code itself dominates, not the % scan cost.
+To eliminate the xshared.h include by libxt_set, DEBUGP has to be
+redefined. Other extensions have similar defines, fix this later.
 
-> > > Perhaps you can split vprintk_store in the middle (after the call to
-> > > vsnprintf), and offer the second half as a function of its own (e.g.
-> > > "puts"). Then the tldr could be
-> > > 
-> > > - printk(msg);
-> > > + puts(msg);
-> > 
-> > That might be a nice compromise. Andrew, what do you think?
-> 
-> You would need to do that for all of the dev_printk() variants, so I
-> doubt that would ever be all that useful as almost no one should be
-> using a "raw" printk() these days.
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ extensions/libxt_set.c |  6 ++++++
+ extensions/libxt_set.h |  1 -
+ include/xtables.h      | 22 ++++++++++++++++++++++
+ iptables/xshared.h     | 22 ----------------------
+ 4 files changed, 28 insertions(+), 23 deletions(-)
 
-True.  The kernel has ~20K variants like that.
-
-$ git grep -P '\b(?:(?:\w+_){1,3}(?:alert|emerg|crit|err|warn|notice|info|cont|debug|dbg)|printk)\s*\(".*"\s*\)\s*;' | wc -l
-21160
-
-That doesn't include the ~3K uses like
-
-#define foo "bar"
-	printk(foo);
-
-$ git grep -P '\b(?:(?:\w+_){1,3}(?:alert|emerg|crit|err|warn|info|notice|debug|dbg|cont)|printk)\s*\((?:\s*\w+){1,3}\s*\)\s*;'|wc -l
-2922
-
-There are apparently only a few hundred uses of variants like:
-
-	printk("%s", foo)
-
-$ git grep -P '\b(?:(?:\w+_){1,3}(?:alert|emerg|crit|err|warn|info|notice|debug|dbg|cont)|printk)\s*\(\s*"%s(?:\\n)?"\s*,\s*(?:".*"|\w+)\s*\)\s*;' | wc -l
-305
-
-unless I screwed up my greps (which of course is quite possible)
+diff --git a/extensions/libxt_set.c b/extensions/libxt_set.c
+index 16921023a22f8..a2137ab1eb180 100644
+--- a/extensions/libxt_set.c
++++ b/extensions/libxt_set.c
+@@ -22,6 +22,12 @@
+ #include <linux/netfilter/xt_set.h>
+ #include "libxt_set.h"
+ 
++#ifdef DEBUG
++#define DEBUGP(x, args...) fprintf(stderr, x, ## args)
++#else
++#define DEBUGP(x, args...)
++#endif
++
+ /* Revision 0 */
+ 
+ static void
+diff --git a/extensions/libxt_set.h b/extensions/libxt_set.h
+index ad895a7504d9d..597bf7ebe575a 100644
+--- a/extensions/libxt_set.h
++++ b/extensions/libxt_set.h
+@@ -6,7 +6,6 @@
+ #include <sys/types.h>
+ #include <sys/socket.h>
+ #include <errno.h>
+-#include "../iptables/xshared.h"
+ 
+ static int
+ get_version(unsigned *version)
+diff --git a/include/xtables.h b/include/xtables.h
+index f1937f3ea0530..b8d8372d0e498 100644
+--- a/include/xtables.h
++++ b/include/xtables.h
+@@ -665,6 +665,28 @@ void xtables_announce_chain(const char *name);
+ 
+ extern void _init(void);
+ 
++/**
++ * xtables_afinfo - protocol family dependent information
++ * @kmod:		kernel module basename (e.g. "ip_tables")
++ * @proc_exists:	file which exists in procfs when module already loaded
++ * @libprefix:		prefix of .so library name (e.g. "libipt_")
++ * @family:		nfproto family
++ * @ipproto:		used by setsockopt (e.g. IPPROTO_IP)
++ * @so_rev_match:	optname to check revision support of match
++ * @so_rev_target:	optname to check revision support of target
++ */
++struct xtables_afinfo {
++	const char *kmod;
++	const char *proc_exists;
++	const char *libprefix;
++	uint8_t family;
++	uint8_t ipproto;
++	int so_rev_match;
++	int so_rev_target;
++};
++
++extern const struct xtables_afinfo *afinfo;
++
+ #endif /* XTABLES_INTERNAL */
+ 
+ #ifdef __cplusplus
+diff --git a/iptables/xshared.h b/iptables/xshared.h
+index 1d6b9bf4ee9b7..1fdc760a32442 100644
+--- a/iptables/xshared.h
++++ b/iptables/xshared.h
+@@ -75,26 +75,6 @@ struct xtables_target;
+ #define IPT_INV_ARPOP		0x0400
+ #define IPT_INV_ARPHRD		0x0800
+ 
+-/**
+- * xtables_afinfo - protocol family dependent information
+- * @kmod:		kernel module basename (e.g. "ip_tables")
+- * @proc_exists:	file which exists in procfs when module already loaded
+- * @libprefix:		prefix of .so library name (e.g. "libipt_")
+- * @family:		nfproto family
+- * @ipproto:		used by setsockopt (e.g. IPPROTO_IP)
+- * @so_rev_match:	optname to check revision support of match
+- * @so_rev_target:	optname to check revision support of target
+- */
+-struct xtables_afinfo {
+-	const char *kmod;
+-	const char *proc_exists;
+-	const char *libprefix;
+-	uint8_t family;
+-	uint8_t ipproto;
+-	int so_rev_match;
+-	int so_rev_target;
+-};
+-
+ /* trick for ebtables-compat, since watchers are targets */
+ struct ebt_match {
+ 	struct ebt_match			*next;
+@@ -187,8 +167,6 @@ int parse_counters(const char *string, struct xt_counters *ctr);
+ bool tokenize_rule_counters(char **bufferp, char **pcnt, char **bcnt, int line);
+ bool xs_has_arg(int argc, char *argv[]);
+ 
+-extern const struct xtables_afinfo *afinfo;
+-
+ #define MAX_ARGC	255
+ struct argv_store {
+ 	int argc;
+-- 
+2.34.1
 
