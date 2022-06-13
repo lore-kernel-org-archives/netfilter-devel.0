@@ -2,146 +2,236 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF1E2CCA473
-	for <netfilter-devel@archiver.kernel.org>; Sun, 12 Jun 2022 16:23:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39F34C433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Jun 2022 14:33:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231521AbiFLQX4 (ORCPT
+        id S1384109AbiFMOc6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 12 Jun 2022 12:23:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51090 "EHLO
+        Mon, 13 Jun 2022 10:32:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58990 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229828AbiFLQXz (ORCPT
+        with ESMTP id S1384702AbiFMO36 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 12 Jun 2022 12:23:55 -0400
-Received: from mail-wm1-x329.google.com (mail-wm1-x329.google.com [IPv6:2a00:1450:4864:20::329])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD35E5E159
-        for <netfilter-devel@vger.kernel.org>; Sun, 12 Jun 2022 09:23:54 -0700 (PDT)
-Received: by mail-wm1-x329.google.com with SMTP id x6-20020a1c7c06000000b003972dfca96cso1894906wmc.4
-        for <netfilter-devel@vger.kernel.org>; Sun, 12 Jun 2022 09:23:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=philpotter-co-uk.20210112.gappssmtp.com; s=20210112;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=Bp1t0MAX0vF2MFrixDjLhlmP3KLo6hgWxyC3M+usaE8=;
-        b=R/sEjCaZtQEnfPFaK+UnnTh0wg4bRV6svzZB+oS2hfNNJzpfcRRfcZmCJOP8EySmQd
-         g+xcBgfqADhJshLEY78CKFvKjnbnDQTiZlNPaYQ4krJN4DIZr0DcF9zio2w2kHV8Sq+E
-         bLM/i/SzIos3D8gnl2FjBUdtUwk4BOXJ/p4Gz7UFvasXpv6HXMR+5PupsiPSPR0TnZya
-         F4NsEqC4DRhyBo+zGRqyKs6C3D88H2ZM6iKWsmgHMRXInXx2VY+xkqjwHyZXLhqJ9DIi
-         GLX8O48hgFb+6agiYOXIOISy12Ll9TGb3KH9UckWOW5W3iIlklqwzjxaxwQD5RPR2Sdf
-         1JcA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=Bp1t0MAX0vF2MFrixDjLhlmP3KLo6hgWxyC3M+usaE8=;
-        b=ZsBPzy+8CvgTO3/HbS+DC/jqXzEyraJeZMFfb0NwooJrfB7MUzn0ukUS+EleQVAhWR
-         4xS+LgtHLFq6LV1JR4FmPUDU40MfnEARgSMHYSAtDliPC6Z0h+Z67F0E2tUVlSQh1C4/
-         8YSRPI8o3ITby2Hn0VSkqIG5tKu2AG/V/n0r3qFMNEFo6mxOp2DGGkWjTV2L480HSSdH
-         xIxDhhy+w1OwWwT7VrdBk6FSfRkXO1AyXmI3L+PcHPD4hMNb5zQaozEyynsCEYDOl+HJ
-         Ctj77RfCupjAAX5ks0bQy63sBQSNIYWq5G2FjWZw7xBk9KuTrAqBcuCYvLfeA2IF56Pj
-         9KUg==
-X-Gm-Message-State: AOAM531Wv9ZToLDI9gPGRNsYpw9HGtMcmx2/vNu4VOhUR+1rYn9SJaMw
-        BlzYKljnnC2HRzVe0XzZb+ajsA==
-X-Google-Smtp-Source: ABdhPJyPL0K+xAMvnRb2ONEX1jWjnGDkkA7zHOBZU3POgTFS7NF7cqaibZCvN8D1E1ysUwm9U4xflg==
-X-Received: by 2002:a05:600c:2682:b0:39c:8ec6:57d9 with SMTP id 2-20020a05600c268200b0039c8ec657d9mr3559545wmt.99.1655051032703;
-        Sun, 12 Jun 2022 09:23:52 -0700 (PDT)
-Received: from equinox (2.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.a.1.e.e.d.f.d.0.b.8.0.1.0.0.2.ip6.arpa. [2001:8b0:dfde:e1a0::2])
-        by smtp.gmail.com with ESMTPSA id bh8-20020a05600c3d0800b003942a244ee6sm6005715wmb.43.2022.06.12.09.23.49
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 12 Jun 2022 09:23:51 -0700 (PDT)
-Date:   Sun, 12 Jun 2022 17:23:47 +0100
-From:   Phillip Potter <phil@philpotter.co.uk>
-To:     Bill Wendling <morbo@google.com>
-Cc:     isanbard@gmail.com, Tony Luck <tony.luck@intel.com>,
-        Borislav Petkov <bp@alien8.de>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Phillip Potter <phil@philpotter.co.uk>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Jan Kara <jack@suse.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>,
-        Nathan Chancellor <nathan@kernel.org>,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Tom Rix <trix@redhat.com>,
-        Ross Philipson <ross.philipson@oracle.com>,
-        Daniel Kiper <daniel.kiper@oracle.com>,
-        linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-mm@kvack.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, alsa-devel@alsa-project.org,
-        llvm@lists.linux.dev
-Subject: Re: [PATCH 08/12] cdrom: use correct format characters
-Message-ID: <YqYTExy0IpVbunBL@equinox>
-References: <20220609221702.347522-1-morbo@google.com>
- <20220609221702.347522-9-morbo@google.com>
+        Mon, 13 Jun 2022 10:29:58 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 25E4FA5A95
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Jun 2022 04:47:57 -0700 (PDT)
+Date:   Mon, 13 Jun 2022 13:47:24 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Chander Govindarajan <mail@chandergovind.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] nft: allow deletion of rule by full statement form
+Message-ID: <YqcjzMQ/LUf1cfSV@salvia>
+References: <c8585f82-3cec-401a-534a-ee8d1252cdfd@chandergovind.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20220609221702.347522-9-morbo@google.com>
+In-Reply-To: <c8585f82-3cec-401a-534a-ee8d1252cdfd@chandergovind.org>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Jun 09, 2022 at 10:16:27PM +0000, Bill Wendling wrote:
-> From: Bill Wendling <isanbard@gmail.com>
+Hi,
+
+On Thu, May 26, 2022 at 07:11:23PM +0530, Chander Govindarajan wrote:
+> Currently, rules can only be deleted by handle. You cannot use the
+> full rule statement to find and delete rules. This is a documented
+> limitation and a pressing one, since people are used to the iptables
+> style of deletion.
 > 
-> When compiling with -Wformat, clang emits the following warnings:
+> Allow deletion of rules by specifying the full rule
 > 
-> drivers/cdrom/cdrom.c:3454:48: error: format string is not a string literal (potentially insecure) [-Werror,-Wformat-security]
->         ret = scnprintf(info + *pos, max_size - *pos, header);
->                                                       ^~~~~~
+> The way this works is as follows:
+> 1. Add a new parser rule to match the full rule specification
+> 2. Update the cache mechanism to load the full cache when trying to
+> delete rule with the new syntax.
+> 3. When deleting, check for presence of the rule. If present, loop
+> over the existing rules in the chain looking for a match.
+> 4. A match is done using the following approach:
+>    1. First compare if the number of statments match.
+>    2. Check if the type of the statements match between the supplied
+>    rule and the present rule.
+>    3. Finally, convert the rules into the stateless string
+>    output form and compare.
+> 5. If we have a match, use the handle id from the match.
+
+I started a patchset to add this that is unfinished. First thing I
+made was to update tests/py to see how many rules failed to be deleted
+by name.
+
+The problem is that, sometimes, there are subtle differences between
+the abstract syntax tree between the linearize and the delinearize
+path that need to be normalized.
+
+Another possibility would be to translate the rule into json objects
+then compare them. The json format is actually a syntax tree
+representation. Downside is that some users compile nftables without
+json support.
+
+> Now, there are some small improvements and cleanups needed as
+> documented in line. I am sure that there are other conventions that I
+> have broken. However, the approach itself seems to work fine.
 > 
-> Use a string literal for the format string.
+> PS: This is all a single logical change, not sure if I should have
+> used a patchset here.
 > 
-> Link: https://github.com/ClangBuiltLinux/linux/issues/378
-> Signed-off-by: Bill Wendling <isanbard@gmail.com>
+> PPS: Right now, this expects comments to match if any.
+> 
+> Signed-off-by: ChanderG <mail@chandergovind.org>
 > ---
->  drivers/cdrom/cdrom.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  src/cache.c        | 15 ++++++++--
+>  src/mnl.c          | 73 ++++++++++++++++++++++++++++++++++++++++++++++
+>  src/parser_bison.y |  4 +++
+>  3 files changed, 90 insertions(+), 2 deletions(-)
 > 
-> diff --git a/drivers/cdrom/cdrom.c b/drivers/cdrom/cdrom.c
-> index 416f723a2dbb..52b40120c76e 100644
-> --- a/drivers/cdrom/cdrom.c
-> +++ b/drivers/cdrom/cdrom.c
-> @@ -3451,7 +3451,7 @@ static int cdrom_print_info(const char *header, int val, char *info,
->  	struct cdrom_device_info *cdi;
->  	int ret;
->  
-> -	ret = scnprintf(info + *pos, max_size - *pos, header);
-> +	ret = scnprintf(info + *pos, max_size - *pos, "%s", header);
->  	if (!ret)
->  		return 1;
->  
+> diff --git a/src/cache.c b/src/cache.c
+> index fd8df884..5a80b324 100644
+> --- a/src/cache.c
+> +++ b/src/cache.c
+> @@ -74,12 +74,23 @@ static unsigned int evaluate_cache_add(struct cmd *cmd,
+> unsigned int flags)
+>  	return flags;
+>  }
+> 
+> -static unsigned int evaluate_cache_del(struct cmd *cmd, unsigned int flags)
+> +static unsigned int evaluate_cache_del(struct cmd *cmd,
+> +				       unsigned int flags,
+> +				       struct nft_cache_filter *filter)
+>  {
+>  	switch (cmd->obj) {
+>  	case CMD_OBJ_ELEMENTS:
+>  		flags |= NFT_CACHE_SETELEM_MAYBE;
+>  		break;
+> +	case CMD_OBJ_RULE:
+> +		// only for delete rule with full rule specified
+> +		if (filter && cmd->handle.chain.name && cmd->rule) {
+> +			filter->list.family = cmd->handle.family;
+> +			filter->list.table = cmd->handle.table.name;
+> +			filter->list.chain = cmd->handle.chain.name;
+> +			flags |= NFT_CACHE_FULL;
+> +		}
+> +		break;
+>  	default:
+>  		break;
+>  	}
+> @@ -290,7 +301,7 @@ unsigned int nft_cache_evaluate(struct nft_ctx *nft,
+> struct list_head *cmds,
+>  				 NFT_CACHE_FLOWTABLE |
+>  				 NFT_CACHE_OBJECT;
+> 
+> -			flags = evaluate_cache_del(cmd, flags);
+> +			flags = evaluate_cache_del(cmd, flags, filter);
+>  			break;
+>  		case CMD_GET:
+>  			flags = evaluate_cache_get(cmd, flags);
+> diff --git a/src/mnl.c b/src/mnl.c
+> index 7dd77be1..c611c89f 100644
+> --- a/src/mnl.c
+> +++ b/src/mnl.c
+> @@ -590,6 +590,49 @@ int mnl_nft_rule_replace(struct netlink_ctx *ctx,
+> struct cmd *cmd)
+>  	return 0;
+>  }
+> 
+> +bool __compare_rules(struct rule *rule1, struct rule *rule2) {
+> +	if (rule1->num_stmts != rule2->num_stmts)
+> +		return false;
+> +
+> +	// check for type match for all stmts
+> +
+> +	struct stmt *stmt1, *stmt2;
+> +	stmt1 = &rule1->stmts;
+> +	stmt2 = &rule2->stmts;
+> +	int count = rule1->num_stmts;
+> +
+> +	while(count) {
+> +		stmt1 = list_entry(stmt1->list.next, typeof(*stmt1), list);
+> +		stmt2 = list_entry(stmt2->list.next, typeof(*stmt2), list);
+> +
+> +		if (stmt1->ops->type != stmt2->ops->type)
+> +			return false;
+> +
+> +		count--;
+> +	}
+> +
+> +	// now check the full string match
+> +
+> +	// TODO: convert to malloc - but how large?
+> +	char buf1[500], buf2[500];
+> +	struct output_ctx octx1, octx2;
+> +	unsigned int flags = 0;
+> +	flags |= NFT_CTX_OUTPUT_STATELESS;
+> +
+> +	octx1.output_fp = fmemopen(buf1, 500, "w");
+> +	octx1.flags = flags;
+> +	octx2.output_fp = fmemopen(buf2, 500, "w");
+> +	octx2.flags = flags;
+> +
+> +	rule_print(rule1, &octx1);
+> +	rule_print(rule2, &octx2);
+> +
+> +	if (!strcmp(buf1, buf2))
+> +		return true;
+> +
+> +	return false;
+> +}
+> +
+>  int mnl_nft_rule_del(struct netlink_ctx *ctx, struct cmd *cmd)
+>  {
+>  	struct handle *h = &cmd->handle;
+> @@ -617,6 +660,36 @@ int mnl_nft_rule_del(struct netlink_ctx *ctx, struct
+> cmd *cmd)
+>  		cmd_add_loc(cmd, nlh->nlmsg_len, &h->handle.location);
+>  		mnl_attr_put_u64(nlh, NFTA_RULE_HANDLE, htobe64(h->handle.id));
+>  	}
+> +	if (cmd->rule) {
+> +		// TODO: short-circuit if no stmts in rule
+> +		struct table *table;
+> +		struct chain *chain;
+> +		struct rule *rule;
+> +		bool matched = false;
+> +
+> +		// TODO: anything special to be done for unspecified family?
+> +		table = table_cache_find(&ctx->nft->cache.table_cache,
+> +					 h->table.name,
+> +					 cmd->handle.family);
+> +
+> +		chain = chain_cache_find(table, h->chain.name);
+> +
+> +		list_for_each_entry(rule, &chain->rules, list) {
+> +			if (__compare_rules(rule, cmd->rule)) {
+> +				cmd_add_loc(cmd, nlh->nlmsg_len, &rule->handle.handle.location);
+> +				mnl_attr_put_u64(nlh, NFTA_RULE_HANDLE,
+> htobe64(rule->handle.handle.id));
+> +				matched = true;
+> +				break;
+> +			}
+> +		}
+> +
+> +		if (!matched) {
+> +			errno = ENOENT;
+> +			nftnl_rule_free(nlr);
+> +			return -1;
+> +		}
+> +	}
+> +	// TODO: handle situation when both are not present, if needed
+> 
+>  	nftnl_rule_nlmsg_build_payload(nlh, nlr);
+>  	nftnl_rule_free(nlr);
+> diff --git a/src/parser_bison.y b/src/parser_bison.y
+> index ca5c488c..f911f7f0 100644
+> --- a/src/parser_bison.y
+> +++ b/src/parser_bison.y
+> @@ -1322,6 +1322,10 @@ delete_cmd		:	TABLE		table_or_id_spec
+>  			{
+>  				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_RULE, &$2, &@$, NULL);
+>  			}
+> +			|	RULE		rule_position   rule
+> +			{
+> +				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_RULE, &$2, &@$, $3);
+> +			}
+>  			|	SET		set_or_id_spec
+>  			{
+>  				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_SET, &$2, &@$, NULL);
 > -- 
-> 2.36.1.255.ge46751e96f-goog
-> 
-
-Hi Bill,
-
-Thank you for the patch, much appreciated.
-
-Looking at this though, all callers of cdrom_print_info() provide 'header'
-as a string literal defined within the driver, when making the call.
-Therefore, I'm not convinced this change is necessary for cdrom.c -
-that said, in this particular use case I don't think it would hurt
-either.
-
-I've followed the other responses on parts of this series, so I
-understand that a different solution is potentially in the works.
-Thought I'd respond anyway though out of courtesy.
-
-All the best,
-Phil (Uniform CDROM Maintainer)
+> 2.27.0
