@@ -2,156 +2,152 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93EDBCCA47B
-	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Jun 2022 20:12:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BEFBC433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Jun 2022 22:15:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350183AbiFMUMy (ORCPT
+        id S236481AbiFMWPQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 13 Jun 2022 16:12:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50946 "EHLO
+        Mon, 13 Jun 2022 18:15:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51558 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238489AbiFMUMo (ORCPT
+        with ESMTP id S231726AbiFMWPO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 13 Jun 2022 16:12:44 -0400
-Received: from mail-lj1-x234.google.com (mail-lj1-x234.google.com [IPv6:2a00:1450:4864:20::234])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2EF93C734
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 Jun 2022 11:47:31 -0700 (PDT)
-Received: by mail-lj1-x234.google.com with SMTP id l18so7147067lje.13
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 Jun 2022 11:47:31 -0700 (PDT)
+        Mon, 13 Jun 2022 18:15:14 -0400
+Received: from mail-ej1-x62a.google.com (mail-ej1-x62a.google.com [IPv6:2a00:1450:4864:20::62a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 95C032C67D;
+        Mon, 13 Jun 2022 15:15:13 -0700 (PDT)
+Received: by mail-ej1-x62a.google.com with SMTP id g25so13680855ejh.9;
+        Mon, 13 Jun 2022 15:15:13 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
+        d=gmail.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=gnUSbe8CiTQ19HP1QRaMovzHPwVV5AH7oRueQxzbr2w=;
-        b=psqvyg4bPOOObXvl93Zxro9XA/ODLoG6iBN8VzURq2kWrUR7F3BHDeeHNMu0CFKyIh
-         Niks5hKvSuVELNC275GXW5lNVLONvG604XONrgXtzQCBbODYI+FiNC4UHOy01ziKEw6P
-         PnJJ8X8mCYdNE116ke64zsX9sSqEcXHCfXLltO9UXIpqgB60u1m1gOJgKSvqZ2Vu7Rt3
-         Fab5Mj4u35jsb3FBf1q2tLM98qhaB60LVo3lH+ODCh+pfDogtGE59OZmPCThjZAo5F3C
-         uARnmPJ0E0/9jMWP5IEUMjK7PRjAVPO04tktB/Od36POLALwftkbezadySNHJrj1LtR7
-         bRTQ==
+        bh=B+2PglEldv0HYHksy5djPq2g3MZD4lIsMqBUNoVjzkw=;
+        b=Rce/Y7ilXJlidhIhVtwS7WAqUTuNY57Krrblz/fK0qZuLLmW/Co6Xbkh2Sr9za8ToF
+         ukK+t8dbrTn736MKYqUYCn7CDHoIVMmf69soKwthY4na99xUcyQHxcR6qk7tFUxv8Owf
+         UNqncORjMq/mZAPusiPCl7qFVwSaYB3SRVVuo3KAVZriLtMwS55hPW5rZMWMQ4ElY/1n
+         Uvs60Gxhxg4ce9u1Ed8LQ5L61AITYuijMwUzHQd2khpEUgLZGZziGA4GT3JV0sY/WoYO
+         hpJ6m/wxtD3GKTgt0ofjEWUVaIxH14WW6aRC1bi1Qwo1AitXAmYBnOg4fFPRPzL9QxOq
+         EoqQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=gnUSbe8CiTQ19HP1QRaMovzHPwVV5AH7oRueQxzbr2w=;
-        b=W2i6SzAdnW5aTNwIMMy/T9VQENoYyZU/wuzplWPQh9oThZiFECiP9Rn1KHD0gmz+mm
-         9/TzLYFfwjY06LPwrRPXAr+0dRI4zd4G00fspFRmz8dh5DP+Ehy81Fpb7bCH4zrMPgiP
-         vD/Y+lV+PNby2eXWP7yzD0R+pa9nVj1ki+lfzC6IDd+pFdvUvZMWQo/VRq0Jb5wLxIza
-         mV38nVTtdNuzpOjVoZloPFpfWK06dMG8kCtfw0qkhqQKfHxhUpl4FAJzYFvIzAasBhWJ
-         P+zNTAV5DvC5FUozFoe7+R1IuNdgDRb5p1E7I4KwKuoFPHL/+4RX6N/StS1PfPN7qZBs
-         +7EA==
-X-Gm-Message-State: AJIora+fwugKixYAqnkjL2LZ1MIMjFvIVNHtMle4kpkdSXu8g7VzLYGE
-        litKXapHmXATFs997no8LZ1Wya0aMq2RT5uga0oM
-X-Google-Smtp-Source: AGRyM1uMA1RswQj/kRbYWxpa2gpbkIqW/H3Lhp9QgKWhkKjVKtC7uz71CWdrVgWOGoL64GzPA+QRw4qUugKbzHueGjo=
-X-Received: by 2002:a05:651c:1581:b0:255:48d1:fdae with SMTP id
- h1-20020a05651c158100b0025548d1fdaemr472476ljq.286.1655146049852; Mon, 13 Jun
- 2022 11:47:29 -0700 (PDT)
+        bh=B+2PglEldv0HYHksy5djPq2g3MZD4lIsMqBUNoVjzkw=;
+        b=Nhb8atjAtD3Wa/IG445v87fDA6QNYfOfo3NxR+CZsEtbQ+8X0ypBrcKPhcfaAaKKT/
+         fnzwZL6pbY1qa31VeYQu9CsnCZfs7rM13NlOxxFCdAIgtDZLk/J7J0TqkZbEdDiQpowA
+         taD3Why28ZjuxXocawFn2GHC03R00S9UJgciBR5eqw+SHgO3dONf4ik5bS5C9v2v0FTi
+         SH2nq3Ll5IvCcIo2SLjKrkiKI1GBsa+UksOhSJIExZIutR1vLsd6XGMtmN/m6lAHvfYi
+         xW7Og/ht0LCbnH8JgDHGu7YnJG35J5JZcy+x9GrTxsRDZF2iAndGhkVaiEdpqEltJnwW
+         ssQw==
+X-Gm-Message-State: AOAM531TocahrQutNJBr9gbJvoi87lAKhyoetDmbNVXM84zn8Qkl8+1y
+        ti57/5kvFTW4ByAVN2/xUs4W+LZDGtXeaXKi+y0=
+X-Google-Smtp-Source: ABdhPJyhEOjKSdoSTzlCp0usTun9X0cG4MrMT6dkJfNubqK/TEJ2LOObaQwZUy+2st6iPeV4p2+natOk8MhtrBuyoxQ=
+X-Received: by 2002:a17:906:449:b0:711:c975:cfb8 with SMTP id
+ e9-20020a170906044900b00711c975cfb8mr1697453eja.58.1655158511985; Mon, 13 Jun
+ 2022 15:15:11 -0700 (PDT)
 MIME-Version: 1.0
-References: <20220609221702.347522-1-morbo@google.com> <20220609221702.347522-9-morbo@google.com>
- <YqYTExy0IpVbunBL@equinox>
-In-Reply-To: <YqYTExy0IpVbunBL@equinox>
-From:   Bill Wendling <morbo@google.com>
-Date:   Mon, 13 Jun 2022 11:47:18 -0700
-Message-ID: <CAGG=3QVc4STHym0hszpr1SP=RYWag5=J-MB-zhz4JzNZnRnbvg@mail.gmail.com>
-Subject: Re: [PATCH 08/12] cdrom: use correct format characters
-To:     Phillip Potter <phil@philpotter.co.uk>
-Cc:     Bill Wendling <isanbard@gmail.com>,
-        Tony Luck <tony.luck@intel.com>,
-        Borislav Petkov <bp@alien8.de>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>,
-        "H. Peter Anvin" <hpa@zytor.com>, Arnd Bergmann <arnd@arndb.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Jan Kara <jack@suse.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
+References: <cover.1653600577.git.lorenzo@kernel.org> <20220611201117.euqca7rgn5wydlwk@macbook-pro-3.dhcp.thefacebook.com>
+ <20220613161413.sowe7bv3da2nuqsg@apollo.legion>
+In-Reply-To: <20220613161413.sowe7bv3da2nuqsg@apollo.legion>
+From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Date:   Mon, 13 Jun 2022 15:15:00 -0700
+Message-ID: <CAADnVQKk9LPm=4OeosxLZCmv+_PnowPZdz9QP4f-H8Vd4HSLVw@mail.gmail.com>
+Subject: Re: [PATCH v4 bpf-next 00/14] net: netfilter: add kfunc helper to
+ update ct timeout
+To:     Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Cc:     Lorenzo Bianconi <lorenzo@kernel.org>, bpf <bpf@vger.kernel.org>,
+        Network Development <netdev@vger.kernel.org>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Andrii Nakryiko <andrii@kernel.org>,
         "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
         Jakub Kicinski <kuba@kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
         Paolo Abeni <pabeni@redhat.com>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>,
-        Nathan Chancellor <nathan@kernel.org>,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Tom Rix <trix@redhat.com>,
-        Ross Philipson <ross.philipson@oracle.com>,
-        Daniel Kiper <daniel.kiper@oracle.com>,
-        linux-edac@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        linux-mm@kvack.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, Networking <netdev@vger.kernel.org>,
-        alsa-devel@alsa-project.org,
-        clang-built-linux <llvm@lists.linux.dev>
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>,
+        Lorenzo Bianconi <lorenzo.bianconi@redhat.com>,
+        Jesper Dangaard Brouer <brouer@redhat.com>,
+        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>,
+        Yonghong Song <yhs@fb.com>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Jun 12, 2022 at 9:23 AM Phillip Potter <phil@philpotter.co.uk> wrote:
+On Mon, Jun 13, 2022 at 9:14 AM Kumar Kartikeya Dwivedi
+<memxor@gmail.com> wrote:
 >
-> On Thu, Jun 09, 2022 at 10:16:27PM +0000, Bill Wendling wrote:
-> > From: Bill Wendling <isanbard@gmail.com>
+> On Sun, Jun 12, 2022 at 01:41:17AM IST, Alexei Starovoitov wrote:
+> > On Thu, May 26, 2022 at 11:34:48PM +0200, Lorenzo Bianconi wrote:
+> > > Changes since v3:
+> > > - split bpf_xdp_ct_add in bpf_xdp_ct_alloc/bpf_skb_ct_alloc and
+> > >   bpf_ct_insert_entry
+> > > - add verifier code to properly populate/configure ct entry
+> > > - improve selftests
 > >
-> > When compiling with -Wformat, clang emits the following warnings:
+> > Kumar, Lorenzo,
 > >
-> > drivers/cdrom/cdrom.c:3454:48: error: format string is not a string literal (potentially insecure) [-Werror,-Wformat-security]
-> >         ret = scnprintf(info + *pos, max_size - *pos, header);
-> >                                                       ^~~~~~
-> >
-> > Use a string literal for the format string.
-> >
-> > Link: https://github.com/ClangBuiltLinux/linux/issues/378
-> > Signed-off-by: Bill Wendling <isanbard@gmail.com>
-> > ---
-> >  drivers/cdrom/cdrom.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/cdrom/cdrom.c b/drivers/cdrom/cdrom.c
-> > index 416f723a2dbb..52b40120c76e 100644
-> > --- a/drivers/cdrom/cdrom.c
-> > +++ b/drivers/cdrom/cdrom.c
-> > @@ -3451,7 +3451,7 @@ static int cdrom_print_info(const char *header, int val, char *info,
-> >       struct cdrom_device_info *cdi;
-> >       int ret;
-> >
-> > -     ret = scnprintf(info + *pos, max_size - *pos, header);
-> > +     ret = scnprintf(info + *pos, max_size - *pos, "%s", header);
-> >       if (!ret)
-> >               return 1;
-> >
-> > --
-> > 2.36.1.255.ge46751e96f-goog
-> >
+> > are you planning on sending v5 ?
+> > The patches 1-5 look good.
+> > Patch 6 is questionable as Florian pointed out.
 >
-> Hi Bill,
+> Yes, it is almost there.
 >
-> Thank you for the patch, much appreciated.
+> > What is the motivation to allow writes into ct->status?
 >
-> Looking at this though, all callers of cdrom_print_info() provide 'header'
-> as a string literal defined within the driver, when making the call.
-> Therefore, I'm not convinced this change is necessary for cdrom.c -
-> that said, in this particular use case I don't think it would hurt
-> either.
->
-> I've followed the other responses on parts of this series, so I
-> understand that a different solution is potentially in the works.
-> Thought I'd respond anyway though out of courtesy.
->
-Thanks, Phillip.
+> It will only be allowed for ct from alloc function, after that ct = insert(ct)
+> releases old one with new read only ct. I need to recheck once again with the
+> code what other bits would cause problems on insert before I rework and reply.
 
-I pointed out in a separate response that this specific warning is
-disabled by default, but when I ran into while hacking stuff there
-weren't a lot of places where the warning popped up (at least for x86
-builds) and thought it would be a nice cleanup. I understand if you
-don't think this patch is necessary for your code. There are some
-places where visual inspection of the code is "good enough" to ensure
-that nothing untoward will happen (Greg pointed out a similar thing in
-an mm/ file).
+I still don't understand why you want to allow writing after alloc.
 
-Cheers!
--bw
+> > The selftest doesn't do that anyway.
+>
+> Yes, it wasn't updated, we will do that in v5.
+>
+> > Patch 7 (acquire-release pairs) is too narrow.
+> > The concept of a pair will not work well. There could be two acq funcs and one release.
+>
+> That is already handled (you define two pairs: acq1, rel and acq2, rel).
+> There is also an example: bpf_ct_insert_entry -> bpf_ct_release,
+> bpf_xdp_ct_lookup -> ct_release.
+
+If we can represent that without all these additional btf_id sets
+it would be much better.
+
+> > Please think of some other mechanism. Maybe type based? BTF?
+> > Or encode that info into type name? or some other way.
+>
+> Hmm, ok. I kinda dislike this solution too. The other idea that comes to mind is
+> encapsulating nf_conn into another struct and returning pointer to that:
+>
+>         struct nf_conn_alloc {
+>                 struct nf_conn ct;
+>         };
+>
+>         struct nf_conn_alloc *bpf_xdp_ct_alloc(...);
+>         struct nf_conn *bpf_ct_insert_entry(struct nf_conn_alloc *act, ...);
+>
+> Then nf_conn_alloc gets a different BTF ID, and hence the type can be matched in
+> the prototype. Any opinions?
+
+Yes. Or maybe typedef ?
+typedef struct nf_conn nf_conn__alloc;
+typedef struct nf_conn nf_conn__ro;
+
+C will accept silent type casts from one type to another,
+but BTF type checking can be strict?
+Not sure. wrapping a struct works too, but extra '.ct' accessor
+might be annoying? Unless you only use it with container_of().
+I would prefer double or triple underscore to highlight a flavor.
+struct nf_conn___init {...}
+The main benefit, of course, is no need for extra btf_id sets.
+Different types take care of correct arg passing.
+In that sense typedef idea doesn't quite work,
+since BTF checks with typedef would be unnecessarily strict
+compared to regular C type checking rules. That difference
+in behavior might bite us later.
+So let's go with struct wrapping.
