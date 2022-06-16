@@ -2,100 +2,89 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EA89C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jun 2022 09:35:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 090ADC433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jun 2022 09:53:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230336AbiFPJfq (ORCPT
+        id S1359263AbiFPJxq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Jun 2022 05:35:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59084 "EHLO
+        Thu, 16 Jun 2022 05:53:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45810 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229588AbiFPJfq (ORCPT
+        with ESMTP id S229436AbiFPJxp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Jun 2022 05:35:46 -0400
+        Thu, 16 Jun 2022 05:53:45 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6435143EEF
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jun 2022 02:35:45 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id A3A425AEFC;
+        Thu, 16 Jun 2022 02:53:44 -0700 (PDT)
+Date:   Thu, 16 Jun 2022 11:53:41 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     phil@nwl.cc
-Subject: [PATCH nft] tests: shell: large set overlap and automerge
-Date:   Thu, 16 Jun 2022 11:35:41 +0200
-Message-Id: <20220616093541.277164-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+To:     Jie2x Zhou <jie2x.zhou@intel.com>
+Cc:     shuah@kernel.org, sbrivio@redhat.com, liuhangbin@gmail.com,
+        fw@strlen.de, linux-kselftest@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Philip Li <philip.li@intel.com>,
+        kernel test robot <lkp@intel.com>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] selftests: netfilter: correct PKTGEN_SCRIPT_PATHS in
+ nft_concat_range.sh
+Message-ID: <Yqr9pQ9QsVaGjNW/@salvia>
+References: <20220616074046.49349-1-jie2x.zhou@intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20220616074046.49349-1-jie2x.zhou@intel.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add a test to validate set overlap and automerge for large set. This
-test runs nft -f twice to cover for set reload without flush.
+Cc'ing netfilter-devel and Stefano Brivio.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- .../testcases/sets/overlap_automerge_large_0  | 52 +++++++++++++++++++
- 1 file changed, 52 insertions(+)
- create mode 100755 tests/shell/testcases/sets/overlap_automerge_large_0
-
-diff --git a/tests/shell/testcases/sets/overlap_automerge_large_0 b/tests/shell/testcases/sets/overlap_automerge_large_0
-new file mode 100755
-index 000000000000..578eeda81831
---- /dev/null
-+++ b/tests/shell/testcases/sets/overlap_automerge_large_0
-@@ -0,0 +1,52 @@
-+#!/bin/bash
-+
-+set -e
-+
-+RULESET="table inet x {
-+        set y {
-+                type ipv4_addr
-+                flags interval
-+        }
-+}"
-+
-+tmpfile=$(mktemp)
-+
-+for ((i=1;i<255;i+=2))
-+do
-+	for ((j=1;j<224;j+=2))
-+	do
-+		echo "add element inet x y { 10.100.$i.$j }" >> $tmpfile
-+	done
-+done
-+
-+$NFT -f - <<< $RULESET
-+time $NFT -f $tmpfile
-+time $NFT -f $tmpfile
-+$NFT flush ruleset
-+
-+tmpfile2=$(mktemp)
-+
-+RULESET="table inet x {
-+        set y {
-+                type ipv4_addr
-+                flags interval
-+		auto-merge
-+        }
-+}"
-+
-+for ((i=1;i<255;i+=2))
-+do
-+	for ((j=1;j<224;j+=2))
-+	do
-+		echo "add element inet x y { 10.100.$i.$j }" >> $tmpfile2
-+		j=$(($j+1))
-+		echo "add element inet x y { 10.100.$i.$j }" >> $tmpfile2
-+	done
-+done
-+
-+$NFT -f - <<< $RULESET
-+time $NFT -f $tmpfile2
-+time $NFT -f $tmpfile2
-+
-+rm -f $tmpfile
-+rm -f $tmpfile2
--- 
-2.30.2
-
+On Thu, Jun 16, 2022 at 03:40:46PM +0800, Jie2x Zhou wrote:
+> Before change:
+> make -C netfilter
+>  TEST: performance
+>    net,port                                                      [SKIP]
+>    perf not supported
+>    port,net                                                      [SKIP]
+>    perf not supported
+>    net6,port                                                     [SKIP]
+>    perf not supported
+>    port,proto                                                    [SKIP]
+>    perf not supported
+>    net6,port,mac                                                 [SKIP]
+>    perf not supported
+>    net6,port,mac,proto                                           [SKIP]
+>    perf not supported
+>    net,mac                                                       [SKIP]
+>    perf not supported
+> 
+> After change:
+>    net,mac                                                       [ OK ]
+>      baseline (drop from netdev hook):               2061098pps
+>      baseline hash (non-ranged entries):             1606741pps
+>      baseline rbtree (match on first field only):    1191607pps
+>      set with  1000 full, ranged entries:            1639119pps
+> ok 8 selftests: netfilter: nft_concat_range.sh
+> 
+> Fixes: 611973c1e06f ("selftests: netfilter: Introduce tests for sets with range concatenation")
+> Reported-by: kernel test robot <lkp@intel.com>
+> Signed-off-by: Jie2x Zhou <jie2x.zhou@intel.com>
+> ---
+>  tools/testing/selftests/netfilter/nft_concat_range.sh | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/tools/testing/selftests/netfilter/nft_concat_range.sh b/tools/testing/selftests/netfilter/nft_concat_range.sh
+> index b35010cc7f6a..a6991877e50c 100755
+> --- a/tools/testing/selftests/netfilter/nft_concat_range.sh
+> +++ b/tools/testing/selftests/netfilter/nft_concat_range.sh
+> @@ -31,7 +31,7 @@ BUGS="flush_remove_add reload"
+>  
+>  # List of possible paths to pktgen script from kernel tree for performance tests
+>  PKTGEN_SCRIPT_PATHS="
+> -	../../../samples/pktgen/pktgen_bench_xmit_mode_netif_receive.sh
+> +	../../../../samples/pktgen/pktgen_bench_xmit_mode_netif_receive.sh
+>  	pktgen/pktgen_bench_xmit_mode_netif_receive.sh"
+>  
+>  # Definition of set types:
+> -- 
+> 2.34.1
+> 
