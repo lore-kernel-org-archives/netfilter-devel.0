@@ -2,131 +2,108 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55F19C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jun 2022 13:46:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29203C43334
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jun 2022 22:48:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377227AbiFPNq2 (ORCPT
+        id S1378037AbiFPWse (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Jun 2022 09:46:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50682 "EHLO
+        Thu, 16 Jun 2022 18:48:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54912 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1376284AbiFPNq2 (ORCPT
+        with ESMTP id S1378308AbiFPWsd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Jun 2022 09:46:28 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 94B0C37A09
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jun 2022 06:46:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1655387186;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=FmNUkOO/CPYlAiNCXkHb5y6oDWLQMyJAjm4NQJecMuc=;
-        b=WFALmw9GM4+CyIOfeMgeaF/dJ9GlRfm2f9YlsqWOmc5dWrU1NY31f2LINs4WBKQbnDNalz
-        A6WacI27vys4uLQ1quAuntrGK2n3Y2iyGjAk88iljgnYpQVPnpJlCgOTfVN9rKhSSNDkR0
-        n1l28Yf8PZF2/TzKoHp0m619+92Kibg=
-Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
- [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-595-h1PLAn-NMViEKO72XyHw_w-1; Thu, 16 Jun 2022 09:46:23 -0400
-X-MC-Unique: h1PLAn-NMViEKO72XyHw_w-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.rdu2.redhat.com [10.11.54.4])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 728793C138A1;
-        Thu, 16 Jun 2022 13:46:22 +0000 (UTC)
-Received: from maya.cloud.tilaa.com (unknown [10.40.208.10])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 27A712026D2D;
-        Thu, 16 Jun 2022 13:46:22 +0000 (UTC)
-Date:   Thu, 16 Jun 2022 15:46:18 +0200
-From:   Stefano Brivio <sbrivio@redhat.com>
-To:     Jie2x Zhou <jie2x.zhou@intel.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>, shuah@kernel.org,
-        liuhangbin@gmail.com, fw@strlen.de,
-        linux-kselftest@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Philip Li <philip.li@intel.com>,
-        kernel test robot <lkp@intel.com>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] selftests: netfilter: correct PKTGEN_SCRIPT_PATHS in
- nft_concat_range.sh
-Message-ID: <20220616154618.0eb6b283@elisabeth>
-In-Reply-To: <Yqr9pQ9QsVaGjNW/@salvia>
-References: <20220616074046.49349-1-jie2x.zhou@intel.com>
-        <Yqr9pQ9QsVaGjNW/@salvia>
-Organization: Red Hat
+        Thu, 16 Jun 2022 18:48:33 -0400
+Received: from mail-pf1-x436.google.com (mail-pf1-x436.google.com [IPv6:2607:f8b0:4864:20::436])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B946262126
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jun 2022 15:48:29 -0700 (PDT)
+Received: by mail-pf1-x436.google.com with SMTP id x138so2666041pfc.12
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jun 2022 15:48:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=broadcom.com; s=google;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=DiAI8dpzUBvNwkrpWyAmurNvSNGqp25iOtpvZnIpaFE=;
+        b=Xy2IzQNT/gZvmbCWWWwPfUBL9fTEuMizyQix3no8WQRCH4wEZCy2o7u76N5DjoxPrQ
+         R4pmfQL+G6//BByHKcz1KaNmB4MHYhDbXVbkU/qYGdF/bjTuUu9L9PIR/52JICQgo+eU
+         MZrczV3ENtxwa+AzTqvluI7MJZjhc8pw15b+Q=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=DiAI8dpzUBvNwkrpWyAmurNvSNGqp25iOtpvZnIpaFE=;
+        b=TESorymu4bF3ge+Hg1pGQc9h7MbgaFmmzwgFy2HWeCanLlZ0iXzrIhbOtwC7GmrcAH
+         9xY66SMdKZOLLv1sBw9P5KwLPwGv2ZTgbcE3g/bekgLD65BwTm8+RIzxB1rv+gSkdCKO
+         jAx45mKup+BiLaWmS8U18gNpOWWeA7chVBKXTsmEAohU6VTvNB2s5neTMwkRcUNL3/Az
+         jF2RT6wTbY+TKKNzqD5D330SKDfKwfUTFSbkYWhi0yIRO8UTof63xi4ue7pDToWRFx91
+         WA41HZRRk2iz4kKTPIgZkrF/NwzXzlCKAGP/touMsrHlwnTi0XPgegWd8k3kzj7fV5vX
+         Z/wQ==
+X-Gm-Message-State: AJIora+XjAFzfvqytrigjwYSjSykCvmuqelFFJtp9nrWxbBbEazfy2Uf
+        pUKqoVY3hHkcYr20RQkAdGB8Zg9kYoACnJl7
+X-Google-Smtp-Source: AGRyM1tbgYioWsoJmf2N+JHpWQGmRF+zEBJ/Qc28B0tagaQWuFDOcEKoMkUfxHAnoXx7GgX+VfsfGQ==
+X-Received: by 2002:a05:6a00:2291:b0:51b:e4c5:627 with SMTP id f17-20020a056a00229100b0051be4c50627mr6954340pfe.20.1655419709105;
+        Thu, 16 Jun 2022 15:48:29 -0700 (PDT)
+Received: from lbrmn-mmayer.ric.broadcom.net ([192.19.161.250])
+        by smtp.gmail.com with ESMTPSA id iz20-20020a170902ef9400b001676daaf055sm2130639plb.219.2022.06.16.15.48.28
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 16 Jun 2022 15:48:28 -0700 (PDT)
+Received: by lbrmn-mmayer.ric.broadcom.net (Postfix, from userid 1000)
+        id EE93546A377B; Thu, 16 Jun 2022 15:48:26 -0700 (PDT)
+From:   Markus Mayer <mmayer@broadcom.com>
+To:     Netfilter Mailing List <netfilter-devel@vger.kernel.org>
+Cc:     Markus Mayer <mmayer@broadcom.com>
+Subject: [PATCH] netfilter: add nf_log.h
+Date:   Thu, 16 Jun 2022 15:48:18 -0700
+Message-Id: <20220616224818.2720999-1-mmayer@broadcom.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-Scanned-By: MIMEDefang 2.78 on 10.11.54.4
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Jie2x,
+Since libxt_NFLOG is now using the UAPI version of nf_log.h, it should
+be bundled alongside the other netfilter kernel headers.
 
-On Thu, 16 Jun 2022 11:53:41 +0200
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+This copy of nf_log.h was taken from Linux 5.18.
 
-> Cc'ing netfilter-devel and Stefano Brivio.
-> 
-> On Thu, Jun 16, 2022 at 03:40:46PM +0800, Jie2x Zhou wrote:
-> > Before change:
-> > make -C netfilter
-> >  TEST: performance
-> >    net,port                                                      [SKIP]
-> >    perf not supported
-> >    port,net                                                      [SKIP]
-> >    perf not supported
-> >    net6,port                                                     [SKIP]
-> >    perf not supported
-> >    port,proto                                                    [SKIP]
-> >    perf not supported
-> >    net6,port,mac                                                 [SKIP]
-> >    perf not supported
-> >    net6,port,mac,proto                                           [SKIP]
-> >    perf not supported
-> >    net,mac                                                       [SKIP]
-> >    perf not supported
-> > 
-> > After change:
-> >    net,mac                                                       [ OK ]
-> >      baseline (drop from netdev hook):               2061098pps
-> >      baseline hash (non-ranged entries):             1606741pps
-> >      baseline rbtree (match on first field only):    1191607pps
-> >      set with  1000 full, ranged entries:            1639119pps
-> > ok 8 selftests: netfilter: nft_concat_range.sh
-> > 
-> > Fixes: 611973c1e06f ("selftests: netfilter: Introduce tests for sets with range concatenation")
-> > Reported-by: kernel test robot <lkp@intel.com>
-> > Signed-off-by: Jie2x Zhou <jie2x.zhou@intel.com>
-> > ---
-> >  tools/testing/selftests/netfilter/nft_concat_range.sh | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/tools/testing/selftests/netfilter/nft_concat_range.sh b/tools/testing/selftests/netfilter/nft_concat_range.sh
-> > index b35010cc7f6a..a6991877e50c 100755
-> > --- a/tools/testing/selftests/netfilter/nft_concat_range.sh
-> > +++ b/tools/testing/selftests/netfilter/nft_concat_range.sh
-> > @@ -31,7 +31,7 @@ BUGS="flush_remove_add reload"
-> >  
-> >  # List of possible paths to pktgen script from kernel tree for performance tests
-> >  PKTGEN_SCRIPT_PATHS="
-> > -	../../../samples/pktgen/pktgen_bench_xmit_mode_netif_receive.sh
-> > +	../../../../samples/pktgen/pktgen_bench_xmit_mode_netif_receive.sh
+Signed-off-by: Markus Mayer <mmayer@broadcom.com>
+---
 
-This came from the fact that I used, for testing, to copy the
-directories 'samples' and 'selftests' to the root of a filesystem
-on a virtual machine, instead of copying the full 'tools' directory.
+Not bundling the header with iptables leads to one of two scenarios:
 
-It was a very arbitrary usage though, also given that 'selftests' is
-typically biggest directory in 'tools', so there's no need to keep the
-previous path.
+* building iptables >=1.8.8 fails due to the missing header
 
-Thanks for fixing this,
+* building iptables >=1.8.8 succeeds, but silently uses the header copy it
+  finds under /usr/include/linux/netfilter, which may not match the version
+  of the other netfilter headers, resulting in a potential "Franken-build"
+  that would be difficult to detect (unlikely for nf_log.h, since it seems
+  pretty stable, but not impossible)
 
-Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
+ include/linux/netfilter/nf_log.h | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+ create mode 100644 include/linux/netfilter/nf_log.h
 
+diff --git a/include/linux/netfilter/nf_log.h b/include/linux/netfilter/nf_log.h
+new file mode 100644
+index 000000000000..2ae00932d3d2
+--- /dev/null
++++ b/include/linux/netfilter/nf_log.h
+@@ -0,0 +1,15 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++#ifndef _NETFILTER_NF_LOG_H
++#define _NETFILTER_NF_LOG_H
++
++#define NF_LOG_TCPSEQ		0x01	/* Log TCP sequence numbers */
++#define NF_LOG_TCPOPT		0x02	/* Log TCP options */
++#define NF_LOG_IPOPT		0x04	/* Log IP options */
++#define NF_LOG_UID		0x08	/* Log UID owning local socket */
++#define NF_LOG_NFLOG		0x10	/* Unsupported, don't reuse */
++#define NF_LOG_MACDECODE	0x20	/* Decode MAC header */
++#define NF_LOG_MASK		0x2f
++
++#define NF_LOG_PREFIXLEN	128
++
++#endif /* _NETFILTER_NF_LOG_H */
 -- 
-Stefano
+2.25.1
 
