@@ -2,158 +2,89 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3117C43334
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jun 2022 09:04:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62619C433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jun 2022 09:08:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1376445AbiFPJEz (ORCPT
+        id S1376431AbiFPJIo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Jun 2022 05:04:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60452 "EHLO
+        Thu, 16 Jun 2022 05:08:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35008 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229630AbiFPJEx (ORCPT
+        with ESMTP id S1359431AbiFPJIo (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Jun 2022 05:04:53 -0400
+        Thu, 16 Jun 2022 05:08:44 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6BDF2338BF
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jun 2022 02:04:51 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9873D4AE2D
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jun 2022 02:08:43 -0700 (PDT)
+Date:   Thu, 16 Jun 2022 11:08:40 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     phil@nwl.cc
-Subject: [PATCH nft 2/2,v2] intervals: Do not sort cached set elements over and over again
-Date:   Thu, 16 Jun 2022 11:04:46 +0200
-Message-Id: <20220616090446.275985-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220616090446.275985-1-pablo@netfilter.org>
-References: <20220616090446.275985-1-pablo@netfilter.org>
+To:     Stefano Brivio <sbrivio@redhat.com>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf] nft_set_rbtree: Move clauses for expired nodes, last
+ active node as leaf
+Message-ID: <YqrzGBGCUlfd63O0@salvia>
+References: <20220512183421.712556-1-sbrivio@redhat.com>
+ <YoKVFRR1gggECpiZ@salvia>
+ <20220517145709.08694803@elisabeth>
+ <20220520174524.439b5fa2@elisabeth>
+ <YouhUq09zfcflOnz@salvia>
+ <20220525141507.69c37709@elisabeth>
+ <YpdKM/mArNz/vh/m@salvia>
+ <20220603150445.3d797c87@elisabeth>
+ <Yp3CYfbdHH1lm945@salvia>
+ <20220614115814.61f8c667@elisabeth>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20220614115814.61f8c667@elisabeth>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Phil Sutter <phil@nwl.cc>
+On Tue, Jun 14, 2022 at 11:58:14AM +0200, Stefano Brivio wrote:
+> On Mon, 6 Jun 2022 11:01:21 +0200
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+[...]
+> > That sounds an incremental fix, I prefer this too.
+> 
+> ...finally posted now.
 
-When adding element(s) to a non-empty set, code merged the two lists and
-sorted the result. With many individual 'add element' commands this
-causes substantial overhead. Make use of the fact that
-existing_set->init is sorted already, sort only the list of new elements
-and use list_splice_sorted() to merge the two sorted lists.
+Thanks.
 
-Add set_sort_splice() and use it for set element overlap detection and
-automerge.
+[...]
+> > I don't see how we can obsolete "activate" operation, though, the
+> > existing approach works at set element granularity.
+> 
+> Yes, and that's what I'm arguing against: it would be more natural, in
+> a transaction, to have a single commit operation for all the elements
+> at hand -- otherwise it's not so much of a transaction.
+> 
+> To the user it's atomic (minus bugs) because we have tricks to ensure
+> it, but to the set back-ends it's absolutely not. I think we have this
+> kind of situation:
+> 
+> 
+> nft            <->     core       <->   set back-end    <->    storage
+>                 |                  |                     |
+> 
+> hash:   transaction commit    element commit       element commit
+> 
+> rbtree: transaction commit    element commit       element commit
+>                                                    ^ problematic to the
+>                                                    point we're
+>                                                    considering a
+>                                                    transaction approach
+> 
+> pipapo: transaction commit    element commit       transaction commit
+> 
+> The single advantage I see of the current approach is that with the
+> hash back-ends we don't need two copies of the hash table, but that
+> also has the downside of the nft_set_elem_active(&he->ext, genmask)
+> check in the lookup function, which should be, in relative terms, even
+> more expensive than it is in the pipapo implementation, given that hash
+> back-ends are (in most cases) faster.
 
-A test case adding ~25k elements in individual commands completes in
-about 1/4th of the time with this patch applied.
-
-Joint work with Pablo.
-
-Fixes: 3da9643fb9ff9 ("intervals: add support to automerge with kernel elements")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: add set_sort_splice() and reuse it for the automerge case.
-
- include/expression.h |  1 +
- src/intervals.c      | 46 +++++++++++++++++++++-----------------------
- src/mergesort.c      |  2 +-
- 3 files changed, 24 insertions(+), 25 deletions(-)
-
-diff --git a/include/expression.h b/include/expression.h
-index 2c3818e89b79..0f7ffb3a0a62 100644
---- a/include/expression.h
-+++ b/include/expression.h
-@@ -480,6 +480,7 @@ extern struct expr *compound_expr_alloc(const struct location *loc,
- extern void compound_expr_add(struct expr *compound, struct expr *expr);
- extern void compound_expr_remove(struct expr *compound, struct expr *expr);
- extern void list_expr_sort(struct list_head *head);
-+extern void list_splice_sorted(struct list_head *list, struct list_head *head);
- 
- extern struct expr *concat_expr_alloc(const struct location *loc);
- 
-diff --git a/src/intervals.c b/src/intervals.c
-index e20341320da2..dcc06d18d594 100644
---- a/src/intervals.c
-+++ b/src/intervals.c
-@@ -118,6 +118,26 @@ static bool merge_ranges(struct set_automerge_ctx *ctx,
- 	return false;
- }
- 
-+static void set_sort_splice(struct expr *init, struct set *set)
-+{
-+	struct set *existing_set = set->existing_set;
-+
-+	set_to_range(init);
-+	list_expr_sort(&init->expressions);
-+
-+	if (!existing_set)
-+		return;
-+
-+	if (existing_set->init) {
-+		set_to_range(existing_set->init);
-+		list_splice_sorted(&existing_set->init->expressions,
-+				   &init->expressions);
-+		init_list_head(&existing_set->init->expressions);
-+	} else {
-+		existing_set->init = set_expr_alloc(&internal_location, set);
-+	}
-+}
-+
- static void setelem_automerge(struct set_automerge_ctx *ctx)
- {
- 	struct expr *i, *next, *prev = NULL;
-@@ -222,18 +242,7 @@ int set_automerge(struct list_head *msgs, struct cmd *cmd, struct set *set,
- 		return 0;
- 	}
- 
--	if (existing_set) {
--		if (existing_set->init) {
--			list_splice_init(&existing_set->init->expressions,
--					 &init->expressions);
--		} else {
--			existing_set->init = set_expr_alloc(&internal_location,
--							    set);
--		}
--	}
--
--	set_to_range(init);
--	list_expr_sort(&init->expressions);
-+	set_sort_splice(init, set);
- 
- 	ctx.purge = set_expr_alloc(&internal_location, set);
- 
-@@ -591,18 +600,7 @@ int set_overlap(struct list_head *msgs, struct set *set, struct expr *init)
- 	struct expr *i, *n, *clone;
- 	int err;
- 
--	if (existing_set) {
--		if (existing_set->init) {
--			list_splice_init(&existing_set->init->expressions,
--					 &init->expressions);
--		} else {
--			existing_set->init = set_expr_alloc(&internal_location,
--							    set);
--		}
--	}
--
--	set_to_range(init);
--	list_expr_sort(&init->expressions);
-+	set_sort_splice(init, set);
- 
- 	err = setelem_overlap(msgs, set, init);
- 
-diff --git a/src/mergesort.c b/src/mergesort.c
-index 8e6aac5fb24e..dca71422dd94 100644
---- a/src/mergesort.c
-+++ b/src/mergesort.c
-@@ -70,7 +70,7 @@ static int expr_msort_cmp(const struct expr *e1, const struct expr *e2)
- 	return ret;
- }
- 
--static void list_splice_sorted(struct list_head *list, struct list_head *head)
-+void list_splice_sorted(struct list_head *list, struct list_head *head)
- {
- 	struct list_head *h = head->next;
- 	struct list_head *l = list->next;
--- 
-2.30.2
-
+There is also runtime set updates from packet path. In that case, we
+cannot keep a copy of the data structure that is being updated from
+the control plane while the packet path is also adding/deleting
+entries from it.
