@@ -2,89 +2,100 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62619C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jun 2022 09:08:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EA89C433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jun 2022 09:35:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1376431AbiFPJIo (ORCPT
+        id S230336AbiFPJfq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Jun 2022 05:08:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35008 "EHLO
+        Thu, 16 Jun 2022 05:35:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59084 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1359431AbiFPJIo (ORCPT
+        with ESMTP id S229588AbiFPJfq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Jun 2022 05:08:44 -0400
+        Thu, 16 Jun 2022 05:35:46 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9873D4AE2D
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jun 2022 02:08:43 -0700 (PDT)
-Date:   Thu, 16 Jun 2022 11:08:40 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6435143EEF
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jun 2022 02:35:45 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Stefano Brivio <sbrivio@redhat.com>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] nft_set_rbtree: Move clauses for expired nodes, last
- active node as leaf
-Message-ID: <YqrzGBGCUlfd63O0@salvia>
-References: <20220512183421.712556-1-sbrivio@redhat.com>
- <YoKVFRR1gggECpiZ@salvia>
- <20220517145709.08694803@elisabeth>
- <20220520174524.439b5fa2@elisabeth>
- <YouhUq09zfcflOnz@salvia>
- <20220525141507.69c37709@elisabeth>
- <YpdKM/mArNz/vh/m@salvia>
- <20220603150445.3d797c87@elisabeth>
- <Yp3CYfbdHH1lm945@salvia>
- <20220614115814.61f8c667@elisabeth>
+To:     netfilter-devel@vger.kernel.org
+Cc:     phil@nwl.cc
+Subject: [PATCH nft] tests: shell: large set overlap and automerge
+Date:   Thu, 16 Jun 2022 11:35:41 +0200
+Message-Id: <20220616093541.277164-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20220614115814.61f8c667@elisabeth>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jun 14, 2022 at 11:58:14AM +0200, Stefano Brivio wrote:
-> On Mon, 6 Jun 2022 11:01:21 +0200
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-[...]
-> > That sounds an incremental fix, I prefer this too.
-> 
-> ...finally posted now.
+Add a test to validate set overlap and automerge for large set. This
+test runs nft -f twice to cover for set reload without flush.
 
-Thanks.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ .../testcases/sets/overlap_automerge_large_0  | 52 +++++++++++++++++++
+ 1 file changed, 52 insertions(+)
+ create mode 100755 tests/shell/testcases/sets/overlap_automerge_large_0
 
-[...]
-> > I don't see how we can obsolete "activate" operation, though, the
-> > existing approach works at set element granularity.
-> 
-> Yes, and that's what I'm arguing against: it would be more natural, in
-> a transaction, to have a single commit operation for all the elements
-> at hand -- otherwise it's not so much of a transaction.
-> 
-> To the user it's atomic (minus bugs) because we have tricks to ensure
-> it, but to the set back-ends it's absolutely not. I think we have this
-> kind of situation:
-> 
-> 
-> nft            <->     core       <->   set back-end    <->    storage
->                 |                  |                     |
-> 
-> hash:   transaction commit    element commit       element commit
-> 
-> rbtree: transaction commit    element commit       element commit
->                                                    ^ problematic to the
->                                                    point we're
->                                                    considering a
->                                                    transaction approach
-> 
-> pipapo: transaction commit    element commit       transaction commit
-> 
-> The single advantage I see of the current approach is that with the
-> hash back-ends we don't need two copies of the hash table, but that
-> also has the downside of the nft_set_elem_active(&he->ext, genmask)
-> check in the lookup function, which should be, in relative terms, even
-> more expensive than it is in the pipapo implementation, given that hash
-> back-ends are (in most cases) faster.
+diff --git a/tests/shell/testcases/sets/overlap_automerge_large_0 b/tests/shell/testcases/sets/overlap_automerge_large_0
+new file mode 100755
+index 000000000000..578eeda81831
+--- /dev/null
++++ b/tests/shell/testcases/sets/overlap_automerge_large_0
+@@ -0,0 +1,52 @@
++#!/bin/bash
++
++set -e
++
++RULESET="table inet x {
++        set y {
++                type ipv4_addr
++                flags interval
++        }
++}"
++
++tmpfile=$(mktemp)
++
++for ((i=1;i<255;i+=2))
++do
++	for ((j=1;j<224;j+=2))
++	do
++		echo "add element inet x y { 10.100.$i.$j }" >> $tmpfile
++	done
++done
++
++$NFT -f - <<< $RULESET
++time $NFT -f $tmpfile
++time $NFT -f $tmpfile
++$NFT flush ruleset
++
++tmpfile2=$(mktemp)
++
++RULESET="table inet x {
++        set y {
++                type ipv4_addr
++                flags interval
++		auto-merge
++        }
++}"
++
++for ((i=1;i<255;i+=2))
++do
++	for ((j=1;j<224;j+=2))
++	do
++		echo "add element inet x y { 10.100.$i.$j }" >> $tmpfile2
++		j=$(($j+1))
++		echo "add element inet x y { 10.100.$i.$j }" >> $tmpfile2
++	done
++done
++
++$NFT -f - <<< $RULESET
++time $NFT -f $tmpfile2
++time $NFT -f $tmpfile2
++
++rm -f $tmpfile
++rm -f $tmpfile2
+-- 
+2.30.2
 
-There is also runtime set updates from packet path. In that case, we
-cannot keep a copy of the data structure that is being updated from
-the control plane while the packet path is also adding/deleting
-entries from it.
