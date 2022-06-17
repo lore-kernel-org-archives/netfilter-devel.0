@@ -2,133 +2,219 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22995C43334
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jun 2022 13:48:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 173DCC43334
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jun 2022 20:45:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236124AbiFQNsC (ORCPT
+        id S235005AbiFQUpU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 Jun 2022 09:48:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56186 "EHLO
+        Fri, 17 Jun 2022 16:45:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52016 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233590AbiFQNsB (ORCPT
+        with ESMTP id S234032AbiFQUpU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Jun 2022 09:48:01 -0400
-X-Greylist: delayed 1647 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 17 Jun 2022 06:47:56 PDT
-Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC4E2BE16
-        for <netfilter-devel@vger.kernel.org>; Fri, 17 Jun 2022 06:47:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=tVCUVfGJFpk6JN57HVudBcDbOszKTac/J9NkbM51O6Y=; b=uEmrDTDuf5Fd6KvIoneWZjKfnC
-        EtJDsrsW7gjPbL+m8xkgFoNnzqZ/3LsYrHUymkcwloQBYHax0mq+hIrYTXoDqbDx8As76trqCDuTn
-        8rfRiaZnjjsGC3ElBJU05YEYODFBnDz831Ti8JTJmT9YHP5vIptSgjFwTgG7+bE8krZiovboHzCRN
-        tLfMHOicFhOMv/qsmHMOgmn+3QhxAC8cR/DoLzt5LXkcKTMX2eWXRsd/fmhlKW3klOB/0YRYJJ49q
-        eAWD+0cxKpqei6Cr3PQ40OQTSWdspZ8fUoF9qUzae4i4y5Ezm/NxGDyDAxuR+YxklZ1fN8UqIJqwE
-        2IvqU8eA==;
-Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] helo=ulthar.dreamlands)
-        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <jeremy@azazel.net>)
-        id 1o2Bth-0058ek-ID; Fri, 17 Jun 2022 14:20:25 +0100
-Date:   Fri, 17 Jun 2022 14:20:08 +0100
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Netfilter Mailing List <netfilter-devel@vger.kernel.org>
-Cc:     Markus Mayer <mmayer@broadcom.com>
-Subject: Re: [PATCH] netfilter: add nf_log.h
-Message-ID: <Yqx/iKXMvESE0RDt@ulthar.dreamlands>
-References: <20220616224818.2720999-1-mmayer@broadcom.com>
+        Fri, 17 Jun 2022 16:45:20 -0400
+Received: from mail-pf1-x42d.google.com (mail-pf1-x42d.google.com [IPv6:2607:f8b0:4864:20::42d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 57E39E0D4;
+        Fri, 17 Jun 2022 13:45:19 -0700 (PDT)
+Received: by mail-pf1-x42d.google.com with SMTP id c196so5109820pfb.1;
+        Fri, 17 Jun 2022 13:45:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=GJS8xGDoDp3R/vQRMKHZihZsDBrc43XyOD76C5kMQgg=;
+        b=NOrLooRyCG1f3Tyw07JbSTxhmId6Z8D/nO5tqj+aXTXSfpq9SQU66AEirMAUh+jS9N
+         Mh3qqqBVvaAoP4DBeCQYXe2jBQfw4wy4LkbB0ulsSnGM/9djxVJYy3WZwlbTYYxP2aRw
+         X60DyPapMQcH/J8Vj7dOEBaAgDgg44I401okcA9peI2n4NBGNUX2y0oQfr69I6b9n5m2
+         KsmhO0SfP227fAvoWqecn2y2kvIKS6XwAvPFB2NnCpfvcFauYjYo0ByDyUL18SveAukB
+         4fHVuvljsqILzxRzg8QzgGaCVUTdQmUf+jGGV8Tc6dlueOYzqHuPIpAcmnAZnJ/k+klh
+         bDCQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=GJS8xGDoDp3R/vQRMKHZihZsDBrc43XyOD76C5kMQgg=;
+        b=r4S1SdvT/YM24i38hdUIFlRdU5EiefDFKfWhVlIr98ANcB2ND+jfNKctiwsef/rrJW
+         rXNMThzm/THs2vTZwtcW87/VdNnW80ucSCABLVpkUC7bIlQPly5UNeFTxxVLCCTpz8t0
+         LJrhbOLx36KjfNqL0q7xA5IXh5nMQu4L3HT54PFLOU0R+Qedhuor/+k4HC3qA9WXQpZv
+         frYeKAQ9c3vTqnVa6tIOmiwoDI+74wRy27eFwbXPg5k9jX8UbvKatwNaM6m/lAhhidZj
+         fS6L4GGW3cyzNy78VwJ4p0XagCfPboawnIAyLVh/LYhIt5AHGQzhlLQ8VsPxX2xL6T5K
+         GwoQ==
+X-Gm-Message-State: AJIora+kInB8HYo/Za+zLMN60rnUhZHodEyh3MKQXNZuC/9C74xCoRXm
+        5NdZ1j5Z+5+ccITCnCx2080=
+X-Google-Smtp-Source: AGRyM1sx8tkfBNrOVWGnIiRoA81ClevBMCfaA6XRLqSGwI2G82dBly9eC19n+oRfaJZsnG2OXGWykg==
+X-Received: by 2002:a63:2482:0:b0:3fc:55e3:1410 with SMTP id k124-20020a632482000000b003fc55e31410mr10843062pgk.583.1655498718736;
+        Fri, 17 Jun 2022 13:45:18 -0700 (PDT)
+Received: from macbook-pro-3.dhcp.thefacebook.com ([2620:10d:c090:400::5:29cb])
+        by smtp.gmail.com with ESMTPSA id w188-20020a627bc5000000b00522c7cb943dsm4059858pfc.131.2022.06.17.13.45.16
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 17 Jun 2022 13:45:18 -0700 (PDT)
+Date:   Fri, 17 Jun 2022 13:45:14 -0700
+From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
+To:     Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Cc:     Lorenzo Bianconi <lorenzo@kernel.org>, bpf <bpf@vger.kernel.org>,
+        Network Development <netdev@vger.kernel.org>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>,
+        Lorenzo Bianconi <lorenzo.bianconi@redhat.com>,
+        Jesper Dangaard Brouer <brouer@redhat.com>,
+        Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>,
+        Yonghong Song <yhs@fb.com>
+Subject: Re: [PATCH v4 bpf-next 00/14] net: netfilter: add kfunc helper to
+ update ct timeout
+Message-ID: <20220617204514.3znslnrkquokvi5y@macbook-pro-3.dhcp.thefacebook.com>
+References: <cover.1653600577.git.lorenzo@kernel.org>
+ <20220611201117.euqca7rgn5wydlwk@macbook-pro-3.dhcp.thefacebook.com>
+ <20220613161413.sowe7bv3da2nuqsg@apollo.legion>
+ <CAADnVQKk9LPm=4OeosxLZCmv+_PnowPZdz9QP4f-H8Vd4HSLVw@mail.gmail.com>
+ <20220614022337.cdtulpzjyamjos5s@apollo.legion>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="QdQHmYSQYrX4l6hI"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220616224818.2720999-1-mmayer@broadcom.com>
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+In-Reply-To: <20220614022337.cdtulpzjyamjos5s@apollo.legion>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+On Tue, Jun 14, 2022 at 07:53:37AM +0530, Kumar Kartikeya Dwivedi wrote:
+> On Tue, Jun 14, 2022 at 03:45:00AM IST, Alexei Starovoitov wrote:
+> > On Mon, Jun 13, 2022 at 9:14 AM Kumar Kartikeya Dwivedi
+> > <memxor@gmail.com> wrote:
+> > >
+> > > On Sun, Jun 12, 2022 at 01:41:17AM IST, Alexei Starovoitov wrote:
+> > > > On Thu, May 26, 2022 at 11:34:48PM +0200, Lorenzo Bianconi wrote:
+> > > > > Changes since v3:
+> > > > > - split bpf_xdp_ct_add in bpf_xdp_ct_alloc/bpf_skb_ct_alloc and
+> > > > >   bpf_ct_insert_entry
+> > > > > - add verifier code to properly populate/configure ct entry
+> > > > > - improve selftests
+> > > >
+> > > > Kumar, Lorenzo,
+> > > >
+> > > > are you planning on sending v5 ?
+> > > > The patches 1-5 look good.
+> > > > Patch 6 is questionable as Florian pointed out.
+> > >
+> > > Yes, it is almost there.
+> > >
+> > > > What is the motivation to allow writes into ct->status?
+> > >
+> > > It will only be allowed for ct from alloc function, after that ct = insert(ct)
+> > > releases old one with new read only ct. I need to recheck once again with the
+> > > code what other bits would cause problems on insert before I rework and reply.
+> >
+> > I still don't understand why you want to allow writing after alloc.
+> >
+> 
+> It is just a way to set the status, instead of a helper to set it. Eventually
+> before nf_conntrack_hash_check_insert it will still be checked and error
+> returned for disallowed bits (e.g. anything in IPS_UNCHANGEABLE_MASK, etc.).
+> The current series missed that check.
+> 
+> Florian is right in that it is a can of worms, but I think we can atleast permit
+> things like confirmed, assured, etc. which can also be set when crafting a ct
+> using netlink. Both of them can share the same check so it is consistent when
+> done from kfunc or netlink side, and any changes internally wrt status bits are
+> in sync.
+> 
+> Anyway, if you don't like the direct write into ct, I can drop it, for now just
+> insert a confirmed entry (since this was just for testing). That also means
+> patch 3-6 are not strictly needed anymore, so they can be dropped, but I can
+> keep them if you want, since they might be useful.
+> 
+> Florian asked for the pipeline, it is like this:
+> 
+> ct = bpf_xdp_ct_alloc();
+> ct->a = ...; // private ct, not yet visible to anyone but us
+> ct->b = ...;
+>    or we would now set using helpers
+> alloc_ct_set_status(ct, IPS_CONFIRMED);
+> alloc_ct_set_timeout(ct, timeout);
 
---QdQHmYSQYrX4l6hI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In other cases it probably will be useful to write into allocated structs,
+but ct's timeout and status fields are a bit too special.
+It's probably cleaner to generalize ctnetlink_change_status/ctnetlink_change_timeout
+as kfuncs and let progs modify the fields through these two helpers.
+Especially since timeout and status&IPS_DYING_BIT are related.
 
-On 2022-06-16, at 15:48:18 -0700, Markus Mayer wrote:
-> Since libxt_NFLOG is now using the UAPI version of nf_log.h, it should
-> be bundled alongside the other netfilter kernel headers.
+Let's indeed drop 3-6 for now.
+Though recognizing 'const' modifier in BTF is useful it creates ambiguity.
+Unreferenced ptr_to_btf_id is readonly anyway.
+This 'const' would make it readable with normal load vs probe_load, but
+that difference is too subtle for users. It looks like normal dereference in C
+in both cases. Let's keep existing probe_load only for now.
 
-Ah, yes.  Agreed.
+> ...
+> ct = bpf_ct_insert_entry(ct); // old alloc_ct release, new inserted nf_conn returned
+> if (!ct)
+> 	return -1;
+> /* Inserted successfully */
+> In the earlier approach this ct->a could now not be written to, as it was
+> inserted, instead of allocated ct, which insert function took as arg and
+> invalidated, so BPF program held a read only pointer now. If we drop that
+> approach all pointers are read only anyway, so writing won't be allowed either.
+> 
+> > > > The selftest doesn't do that anyway.
+> > >
+> > > Yes, it wasn't updated, we will do that in v5.
+> > >
+> > > > Patch 7 (acquire-release pairs) is too narrow.
+> > > > The concept of a pair will not work well. There could be two acq funcs and one release.
+> > >
+> > > That is already handled (you define two pairs: acq1, rel and acq2, rel).
+> > > There is also an example: bpf_ct_insert_entry -> bpf_ct_release,
+> > > bpf_xdp_ct_lookup -> ct_release.
+> >
+> > If we can represent that without all these additional btf_id sets
+> > it would be much better.
+> >
+> > > > Please think of some other mechanism. Maybe type based? BTF?
+> > > > Or encode that info into type name? or some other way.
+> > >
+> > > Hmm, ok. I kinda dislike this solution too. The other idea that comes to mind is
+> > > encapsulating nf_conn into another struct and returning pointer to that:
+> > >
+> > >         struct nf_conn_alloc {
+> > >                 struct nf_conn ct;
+> > >         };
+> > >
+> > >         struct nf_conn_alloc *bpf_xdp_ct_alloc(...);
+> > >         struct nf_conn *bpf_ct_insert_entry(struct nf_conn_alloc *act, ...);
+> > >
+> > > Then nf_conn_alloc gets a different BTF ID, and hence the type can be matched in
+> > > the prototype. Any opinions?
+> >
+> > Yes. Or maybe typedef ?
+> > typedef struct nf_conn nf_conn__alloc;
+> > typedef struct nf_conn nf_conn__ro;
+> >
+> > C will accept silent type casts from one type to another,
+> > but BTF type checking can be strict?
+> > Not sure. wrapping a struct works too, but extra '.ct' accessor
+> > might be annoying? Unless you only use it with container_of().
+> > I would prefer double or triple underscore to highlight a flavor.
+> > struct nf_conn___init {...}
+> > The main benefit, of course, is no need for extra btf_id sets.
+> > Different types take care of correct arg passing.
+> > In that sense typedef idea doesn't quite work,
+> > since BTF checks with typedef would be unnecessarily strict
+> > compared to regular C type checking rules. That difference
+> > in behavior might bite us later.
+> > So let's go with struct wrapping.
+> 
+> Makes sense, I will go with this. But now if we are not even allowing write to
+> such allocated ct (probably only helpers that set some field and check value),
+> it can just be an empty opaque struct for the BPF program, while it is still
+> a nf_conn in the kernel. There doesn't seem to be much point in wrapping around
+> nf_conn when reading from allocated nf_conn isn't going to be of any use.
 
-J.
-
-> This copy of nf_log.h was taken from Linux 5.18.
->
-> Signed-off-by: Markus Mayer <mmayer@broadcom.com>
-> ---
->
-> Not bundling the header with iptables leads to one of two scenarios:
->
-> * building iptables >=1.8.8 fails due to the missing header
->
-> * building iptables >=1.8.8 succeeds, but silently uses the header copy it
->   finds under /usr/include/linux/netfilter, which may not match the version
->   of the other netfilter headers, resulting in a potential "Franken-build"
->   that would be difficult to detect (unlikely for nf_log.h, since it seems
->   pretty stable, but not impossible)
->
->  include/linux/netfilter/nf_log.h | 15 +++++++++++++++
->  1 file changed, 15 insertions(+)
->  create mode 100644 include/linux/netfilter/nf_log.h
->
-> diff --git a/include/linux/netfilter/nf_log.h b/include/linux/netfilter/nf_log.h
-> new file mode 100644
-> index 000000000000..2ae00932d3d2
-> --- /dev/null
-> +++ b/include/linux/netfilter/nf_log.h
-> @@ -0,0 +1,15 @@
-> +/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
-> +#ifndef _NETFILTER_NF_LOG_H
-> +#define _NETFILTER_NF_LOG_H
-> +
-> +#define NF_LOG_TCPSEQ		0x01	/* Log TCP sequence numbers */
-> +#define NF_LOG_TCPOPT		0x02	/* Log TCP options */
-> +#define NF_LOG_IPOPT		0x04	/* Log IP options */
-> +#define NF_LOG_UID		0x08	/* Log UID owning local socket */
-> +#define NF_LOG_NFLOG		0x10	/* Unsupported, don't reuse */
-> +#define NF_LOG_MACDECODE	0x20	/* Decode MAC header */
-> +#define NF_LOG_MASK		0x2f
-> +
-> +#define NF_LOG_PREFIXLEN	128
-> +
-> +#endif /* _NETFILTER_NF_LOG_H */
-> --
-> 2.25.1
->
->
-
---QdQHmYSQYrX4l6hI
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmKsf4IACgkQKYasCr3x
-BA3cABAAsFpj0U/and8ABGmsFeu5ccMPkuRP3QwxAlghOmKktopULeLfmpceVBAR
-z4lhUKxOx9NZM3jLgXNkd6GgREmbVYC5C1aEK4MifG2dHtlbYu2xLvNFxE7gTIED
-ryn5FXh1b0sjfiBKyE0x0rqWpSeRtT8o6e1Y1er6llI6QBe2GuAGLtGAsVH2KJgP
-GgY7HnWR0g6LQ0TEKY6rBm4dr4I23WIJ7mC+rWbp8zzJ7DdAyRbZIm0Npbi+ddcF
-COShbOcYvWsLnW73fUTqS6bBL9gl3A01My28mcge37o96WCb4iHwgUGnbCJQ/ubv
-dXN+Gcmyh4D36eJ/sf7jQmJPW1mvZ7UKjaSaVLpV0KWTODuxV44l0UvTtn6Wbm3C
-q76W9a15MJ4/+c7mGhZRm3N3b2hA7sm01ZIaZY19J4IdT2PnbUX4NlWWmG58NQm/
-c7NhHr7iZuK9V1QcIwoxZlAKQ4E4rViVyRUmGR/gwMplhTpaEN7pCY1ChJtC85Yx
-U+pSG9CzG2gMPVFXDBs/v63sdfFXYLrbcQPaaT83ww5IXhIeVV3cF6UP/0SOj6lw
-BDcfJcnHhaiqRp798Uh+r7g+9vs6Ogt5OBE058Hxn1MRNuM7ue72BElR3LkCK7Zs
-Who5pXWDB4/264zPpKyLebrR+YriR0qD1F2i4CEqL/KR8rV7v60=
-=L8Uq
------END PGP SIGNATURE-----
-
---QdQHmYSQYrX4l6hI--
+Let's not make it opaque. struct nf_conn is readonly with probe_load.
+No need to disable that access either for allocated nf_conn or inserted.
