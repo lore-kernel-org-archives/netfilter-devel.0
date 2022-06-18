@@ -2,120 +2,118 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23309C433EF
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jun 2022 01:10:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D2B9C433EF
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jun 2022 02:00:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233738AbiFRBKp (ORCPT
+        id S232653AbiFRCAv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 Jun 2022 21:10:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48642 "EHLO
+        Fri, 17 Jun 2022 22:00:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51076 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230093AbiFRBKo (ORCPT
+        with ESMTP id S238105AbiFRCAu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Jun 2022 21:10:44 -0400
-Received: from mail-pj1-x102f.google.com (mail-pj1-x102f.google.com [IPv6:2607:f8b0:4864:20::102f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93B306AA60
-        for <netfilter-devel@vger.kernel.org>; Fri, 17 Jun 2022 18:10:42 -0700 (PDT)
-Received: by mail-pj1-x102f.google.com with SMTP id d14so2079128pjs.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 17 Jun 2022 18:10:42 -0700 (PDT)
+        Fri, 17 Jun 2022 22:00:50 -0400
+Received: from mail-pj1-x1030.google.com (mail-pj1-x1030.google.com [IPv6:2607:f8b0:4864:20::1030])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 209F66B7CF
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Jun 2022 19:00:49 -0700 (PDT)
+Received: by mail-pj1-x1030.google.com with SMTP id h34-20020a17090a29a500b001eb01527d9eso4717218pjd.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Jun 2022 19:00:49 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=sender:from:date:to:cc:subject:message-id:reply-to:mail-followup-to
          :references:mime-version:content-disposition:in-reply-to;
-        bh=nQudMtFlx8pRbwNTA0WxAt/gguZbNmqcRx5kLIU4k9g=;
-        b=M9SHq2s5rdAi6Yv/oOM1j0wcR/V6Le+iwNuHdknPH6baB/ygZ5uefgssSCrHlO/6uF
-         YWR1Lj9bqajZEs0iP02xiHf/mig3qFCvh7N7CoNZ2mISRv48fdeosnI+hAFz8XqkyAgF
-         GDJhq9VIpavBB02k42mCstH6HqzoazyANERVIJnT4K1//ScRTtaQ9xdXaWYuPf45xIpw
-         8DNe/A0I/khGLrWtUpJXJT7FUoSMy21YXoWPzl6Ika+utIzB7yebcVoZolFslhSzKNNX
-         wgHGcyPdFWR6G8LwGlyCP6LF3je9EV0t1HaG9HHSI2UO/Xi4Xa5UWoimcb5x0uq8Ftx0
-         uT7g==
+        bh=Qgtj6G9oJfTjzkLDgbvMlJZMzhvJVp3tqlZJlNbzVCg=;
+        b=KkPloncU19lc586C6a4Fr8aRrS1s9N6i5HkmwXG3buXZR49D5Ej1UnUZbQUSyd+xoU
+         kWanRWUSbXISqoFysOnzHHQTKYVpeEKYREFfZiLO79LZPikongw40nTYugPdAzB1JinZ
+         0uGEAOiotZSaT9BPB2pnVBlzQz1bddPhM4fqYqQdZqmCh9ZOxh5MQLxQwMCvdjAiHOKE
+         w/vwL+o9P0kUz/RMFw3dE5rFhVw8Itz3NaW7NtIm7PrwztochqI73fKJFC+xSFb4BEga
+         41sH/d8stVi4D9bIzpivtmuTxf1pzgrhc1aKWnJP6z240R5OGeB6xFBB+6MbwEl4byJ5
+         s1Sg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:sender:from:date:to:cc:subject:message-id
          :reply-to:mail-followup-to:references:mime-version
          :content-disposition:in-reply-to;
-        bh=nQudMtFlx8pRbwNTA0WxAt/gguZbNmqcRx5kLIU4k9g=;
-        b=CzBwPHKZDlTqPHsBniGftjiXRyBlLSRCpd6IsEX+nuoow4b0rSjnDZFePi5VuBgNho
-         JH2o0vuk6YzcwKxKUFkqJtCtPO+kpyxlEmTBWkSMbMnvioh7KcAyiZ0oSP7Fb2mMYS98
-         m2BV1TSCJJna7Mc0V/C3Rq4/HL6G3JbIZso4iyqNd9d2d++8REYqqKju/rbH7vd7xU/s
-         asmZMTBC7a9SeHUbE91dY00HkVshLDjmMvmIPAHKvqR0E0kytLBFQvn5Hcq6ykB+RZ1F
-         YbL19yVZK/MGoxfJXAKzwHjm4a/xLzy91oZfLinocIk9sxNsRv0l3MWkBP6w17y6Lr+z
-         vtIQ==
-X-Gm-Message-State: AJIora90DUEM4zz6e4HIR+OgqIzV/89MGbPOhxDlZu98+dVvyczjZog5
-        BMsBsCiLufg/Q3KwGrU7gC7bCtLyz/8=
-X-Google-Smtp-Source: AGRyM1s9HHTyTGK24/PphQw6LcpsbxNPUD2VgMMV5CY0Iabj2rFaq4gJsxBf1ptwpVOQLfN00WniQw==
-X-Received: by 2002:a17:903:2585:b0:163:dc33:6b7e with SMTP id jb5-20020a170903258500b00163dc336b7emr11974159plb.172.1655514642083;
-        Fri, 17 Jun 2022 18:10:42 -0700 (PDT)
+        bh=Qgtj6G9oJfTjzkLDgbvMlJZMzhvJVp3tqlZJlNbzVCg=;
+        b=fGNcdos/IUcLFsMswIp9Ec17ugQiH9AIEEUrtWBB5eKYKwfW76mRS/XSE6ZqXdExR0
+         dWHAaB9XG2OthdAleOXZZebFOtcangN+A9GZCEs4kEllkYbGfz57SAfTy/t2S349hTFR
+         S3ZPe/vJxneNgXUnySwYVUpkmXuU9npviac7Tj/AaGgjtvP8B+sszO+Fnj6f/RQdZ8z+
+         3ldcHh9zNdypjuhfxLz1QLoK9sRD98iE5E7xehnC3pwNHBKikza/z//DhWGdhZw3uu76
+         UbdJXU4pORUHVXYGk2EYJ4igbefE+e6OlWOePkWoqOuVrtZ8Ar6ZgvaaJ/HnrCSIj+PQ
+         +cUg==
+X-Gm-Message-State: AJIora9B4coJSnYEs6vsHpwannbOAYu+BCMrq3TrQYM6Ej+DNEbfqodn
+        HN08eVP3jalPzImZkNeeNL3CKvr5VIE=
+X-Google-Smtp-Source: AGRyM1u/RvgJUwbnm9ZxnlorwvlsDaaG/7QOMqhGnIKDrnexKOZbYUtTFJp3aDY678sWSJqm8dEMzg==
+X-Received: by 2002:a17:90b:4b02:b0:1e2:ff51:272a with SMTP id lx2-20020a17090b4b0200b001e2ff51272amr13686380pjb.56.1655517648554;
+        Fri, 17 Jun 2022 19:00:48 -0700 (PDT)
 Received: from slk15.local.net (n110-23-108-30.sun3.vic.optusnet.com.au. [110.23.108.30])
-        by smtp.gmail.com with ESMTPSA id q3-20020a170902f78300b0016788487357sm4149000pln.132.2022.06.17.18.10.39
+        by smtp.gmail.com with ESMTPSA id h189-20020a62dec6000000b0050dc762813csm4376002pfg.22.2022.06.17.19.00.46
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 17 Jun 2022 18:10:41 -0700 (PDT)
+        Fri, 17 Jun 2022 19:00:47 -0700 (PDT)
 Sender: Duncan Roe <duncan.roe2@gmail.com>
 From:   Duncan Roe <duncan_roe@optusnet.com.au>
 X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
-Date:   Sat, 18 Jun 2022 11:10:37 +1000
-To:     Gmail Support <testingforadept@gmail.com>
-Cc:     Kerin Millar <kfm@plushkava.net>,
-        Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: Support for String Match Blocking in NFTables
-Message-ID: <Yq0mDdXioEEC10KN@slk15.local.net>
+Date:   Sat, 18 Jun 2022 12:00:44 +1000
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>,
+        Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH libnetfilter_queue v4] src: eliminate packet copy when
+ constructing struct pktbuff
+Message-ID: <Yq0xzEkd7SF+vUwO@slk15.local.net>
 Reply-To: duncan_roe@optusnet.com.au
-Mail-Followup-To: Gmail Support <testingforadept@gmail.com>,
-        Kerin Millar <kfm@plushkava.net>,
-        Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <CANKwiJVSW3RjhHDnziGjWenApAcvdSAqBTi7MfHqyiyHd4_F=A@mail.gmail.com>
- <20220616202014.e7ebc6df8f8f0f1fdce27e12@plushkava.net>
- <CANKwiJX5_67uPPqdwoH3-gbY11Dmj29Hjse+8m3-bsJD0hHVEg@mail.gmail.com>
+Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>,
+        Florian Westphal <fw@strlen.de>
+References: <20220328024821.9927-1-duncan_roe@optusnet.com.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CANKwiJX5_67uPPqdwoH3-gbY11Dmj29Hjse+8m3-bsJD0hHVEg@mail.gmail.com>
+In-Reply-To: <20220328024821.9927-1-duncan_roe@optusnet.com.au>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Jun 17, 2022 at 05:14:53PM +0100, Gmail Support wrote:
-> Okay thank you, is there any plans to support this extension in the future?
+Hi Pablo,
+
+On Mon, Mar 28, 2022 at 01:48:21PM +1100, Duncan Roe wrote:
+> To avoid a copy, the new code takes advantage of the fact that the netfilter
+> netlink queue never returns multipart messages.
+> This means that the buffer space following that callback data is available for
+> packet expansion when mangling.
 >
-> On Thu, Jun 16, 2022 at 8:20 PM Kerin Millar <kfm@plushkava.net> wrote:
-> >
-> > On Thu, 16 Jun 2022 10:15:55 +0100
-> > Gmail Support <testingforadept@gmail.com> wrote:
-> >
-> > > Hello,
-> > >
-> > > We recently migrated our servers from RedHat to Ubuntu based systems.
-> > > We used to have an IPtables rule that was blocking packets matching a
-> > > specific application file and below was the rule we had deployed.
-> > >
-> > > -A INPUT -p udp -m udp --dport 514 -m string --string
-> > > "someapplication.exe" --algo bm -j DROP
-> > >
-> > > In NFtables, I read in the blogs that string based blocking is not
-> > > possible. In the man page of Ubuntu, I see a note "The  string  type
-> > > is  used  to  for character strings. A string begins with an
-> > > alphabetic character (a-zA-Z) followed by zero or more alphanumeric
-> > > characters or the  characters  /, -, _ and .. In addition anything
-> > > enclosed in double quotes (") is recognized as a string."
-> > >
-> > > Can you please confirm if string based blocking is supported in Nftables.
-> >
-> > There is no equivalent to the string extension in nftables. While it
-> > is possible to match against a portion of the packet's payload using a
-> > raw payload expression, doing so requires that the offset and length
-> > of the data be specified. That is, it cannot search for a pattern and,
-> > thus, match at any potential offset.
-> >
-> > --
-> > Kerin Millar
+> nfq_cb_run() is a new nfq-specific callback runqueue for netlink messages.
+> The principal function of nfq_cb_run() is to pass to the called function what is
+> the length of free space after the packet.
+>
+> pktb_setup is a new function to initialise a new struct pkt_buff.
+>
+> pktb_head_size() is a new function to return the amount of memory to reserve
+> for a new struct pkt_buff.
+>
+> nfq_cb_t is a new typedef for the function called by nfq_cb_run()
+> [c.f. mnl_cb_t / mnl_cb_run].
+>
+> examples/nf-queue.c is updated to demonstrate the new API.
+>
+> Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+> ---
+> v4:
+> New functions have man pages / html doc
+> struct pkt_buff remains opaque
+> pktb_populate renamed pktb_setup
+[...]
 
-You can do string matching by writing a libnetfilter_queue program.
+This patch locks in that the netfilter queue will never batch multiple packets:
+is that a problem?
 
-Follow the documentation at
-https://netfilter.org/projects/libnetfilter_queue/doxygen/html/
+If you like I could send a v5 documenting that programs that hold on to multiple
+packets should [continue to] use mnl_cb_run / pktb_alloc / pktb_free.
 
-There are 2 sets of functions: the "deprecated" functions will run faster with
-your requirements. They're not deprecated at all, only the underlying library
-used by the current implementation is deprecated.
+Re documentation: of course I would like to rework it to replace "deprecated"
+with e.g. "old interface". There would be a section comparing the old and new
+interfaces. I would rather not have to write in that section that the old
+interface is faster (but can't mangle).
+
+If you apply this patch, the old interface would no longer be faster.
 
 Cheers ... Duncan.
