@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2717CC43334
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E17BCCA479
 	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jun 2022 08:32:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239820AbiFTIca (ORCPT
+        id S239850AbiFTIcb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 20 Jun 2022 04:32:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48462 "EHLO
+        Mon, 20 Jun 2022 04:32:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48526 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239605AbiFTIc0 (ORCPT
+        with ESMTP id S239634AbiFTIc2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 Jun 2022 04:32:26 -0400
+        Mon, 20 Jun 2022 04:32:28 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E9ABB12A96
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 Jun 2022 01:32:23 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7B92612A88
+        for <netfilter-devel@vger.kernel.org>; Mon, 20 Jun 2022 01:32:26 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 03/18] optimize: do not print stateful information
-Date:   Mon, 20 Jun 2022 10:32:00 +0200
-Message-Id: <20220620083215.1021238-4-pablo@netfilter.org>
+Subject: [PATCH nft 06/18] optimize: fix verdict map merging
+Date:   Mon, 20 Jun 2022 10:32:03 +0200
+Message-Id: <20220620083215.1021238-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220620083215.1021238-1-pablo@netfilter.org>
 References: <20220620083215.1021238-1-pablo@netfilter.org>
@@ -30,54 +30,53 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Do not print stateful information such as counters which are likely set
-to zero.
+Skip comparison when collecting the statement and building the rule vs
+statement matrix. Compare verdict type when merging rules.
 
-Before this patch:
+When infering rule mergers, honor the STMT_VERDICT with map (ie. vmap).
 
-  Merging:
-  packets.conf:10:3-29:                 ip protocol  4 counter drop
-  packets.conf:11:3-29:                 ip protocol 41 counter drop
-  packets.conf:12:3-29:                 ip protocol 47 counter drop
-  into:
-          ip protocol { 4, 41, 47 } counter packets 0 bytes 0 drop
-                                            ^^^^^^^^^^^^^^^^^
-After:
-
-  Merging:
-  packets.conf:10:3-29:                 ip protocol  4 counter drop
-  packets.conf:11:3-29:                 ip protocol 41 counter drop
-  packets.conf:12:3-29:                 ip protocol 47 counter drop
-  into:
-          ip protocol { 4, 41, 47 } counter drop
-
+Fixes: 561aa3cfa8da ("optimize: merge verdict maps with same lookup key")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/optimize.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ src/optimize.c | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
 diff --git a/src/optimize.c b/src/optimize.c
-index 543d3ca5a9c7..b19a8b553555 100644
+index 427625846484..747282b4d7f4 100644
 --- a/src/optimize.c
 +++ b/src/optimize.c
-@@ -873,6 +873,8 @@ static void merge_rules(const struct optimize_ctx *ctx,
- 		assert(0);
- 	}
- 
-+        octx->flags |= NFT_CTX_OUTPUT_STATELESS;
+@@ -139,6 +139,9 @@ static bool __stmt_type_eq(const struct stmt *stmt_a, const struct stmt *stmt_b,
+ 	case STMT_NOTRACK:
+ 		break;
+ 	case STMT_VERDICT:
++		if (!fully_compare)
++			break;
 +
- 	fprintf(octx->error_fp, "Merging:\n");
- 	rule_optimize_print(octx, ctx->rule[from]);
+ 		expr_a = stmt_a->expr;
+ 		expr_b = stmt_b->expr;
  
-@@ -885,6 +887,8 @@ static void merge_rules(const struct optimize_ctx *ctx,
- 	fprintf(octx->error_fp, "into:\n\t");
- 	rule_print(ctx->rule[from], octx);
- 	fprintf(octx->error_fp, "\n");
-+
-+        octx->flags &= ~NFT_CTX_OUTPUT_STATELESS;
- }
+@@ -276,10 +279,6 @@ static int rule_collect_stmts(struct optimize_ctx *ctx, struct rule *rule)
+ 		if (stmt_type_find(ctx, stmt))
+ 			continue;
  
- static bool stmt_type_eq(const struct stmt *stmt_a, const struct stmt *stmt_b)
+-		if (stmt->ops->type == STMT_VERDICT &&
+-		    stmt->expr->etype == EXPR_MAP)
+-			continue;
+-
+ 		/* No refcounter available in statement objects, clone it to
+ 		 * to store in the array of selectors.
+ 		 */
+@@ -999,6 +998,10 @@ static int chain_optimize(struct nft_ctx *nft, struct list_head *rules)
+ 			case STMT_EXPRESSION:
+ 				merge[k].stmt[merge[k].num_stmts++] = m;
+ 				break;
++			case STMT_VERDICT:
++				if (ctx->stmt_matrix[i][m]->expr->etype == EXPR_MAP)
++					merge[k].stmt[merge[k].num_stmts++] = m;
++				break;
+ 			default:
+ 				break;
+ 			}
 -- 
 2.30.2
 
