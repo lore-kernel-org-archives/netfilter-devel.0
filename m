@@ -2,48 +2,88 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70D67C433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jun 2022 15:07:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7E00C433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jun 2022 18:58:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243084AbiFTPHL (ORCPT
+        id S239909AbiFTS6S (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 20 Jun 2022 11:07:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36438 "EHLO
+        Mon, 20 Jun 2022 14:58:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60140 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231402AbiFTPGu (ORCPT
+        with ESMTP id S236360AbiFTS6R (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 Jun 2022 11:06:50 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6F81E22BF0
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 Jun 2022 07:44:30 -0700 (PDT)
-Date:   Mon, 20 Jun 2022 16:44:06 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Bill Wendling <morbo@google.com>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH 12/12] netfilter: conntrack: use correct format characters
-Message-ID: <YrCHtmZlK384yiCo@salvia>
-References: <20220609221702.347522-1-morbo@google.com>
- <20220609221702.347522-13-morbo@google.com>
+        Mon, 20 Jun 2022 14:58:17 -0400
+Received: from vulcan.natalenko.name (vulcan.natalenko.name [IPv6:2001:19f0:6c00:8846:5400:ff:fe0c:dfa0])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC9AD10DE
+        for <netfilter-devel@vger.kernel.org>; Mon, 20 Jun 2022 11:58:15 -0700 (PDT)
+Received: from localhost (unknown [83.148.33.151])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by vulcan.natalenko.name (Postfix) with ESMTPSA id 382D1F4F758;
+        Mon, 20 Jun 2022 20:58:09 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=natalenko.name;
+        s=dkim-20170712; t=1655751489;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=50KQXQrYGixw6cuzqBruy6RRnic0+aalmXbgeUxVvpw=;
+        b=KHedDCuEhV2KK70AiPrHMhudApxj4SfCUQtAl//ZYuXU2IgSP2awN0JdEh+y9Oy3b7h8GW
+        CcYLTtx/AbFukTI+43gLkV+fAA4ESEVCZLy9AZivvi8dzkQKWU87TX8GzrZHR2l44ZT8Rz
+        hD17uipMTn/Zn5/7YZf2BgiK6CT55TI=
+From:   Oleksandr Natalenko <oleksandr@natalenko.name>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Loganaden Velvindron <logan@cyberstorm.mu>
+Subject: [PATCH] src: proto: support DF, LE, VA for DSCP
+Date:   Mon, 20 Jun 2022 20:58:07 +0200
+Message-Id: <20220620185807.968658-1-oleksandr@natalenko.name>
+X-Mailer: git-send-email 2.36.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20220609221702.347522-13-morbo@google.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Jun 09, 2022 at 10:16:31PM +0000, Bill Wendling wrote:
-> From: Bill Wendling <isanbard@gmail.com>
-> 
-> When compiling with -Wformat, clang emits the following warnings:
-> 
-> net/netfilter/nf_conntrack_helper.c:168:18: error: format string is not a string literal (potentially insecure) [-Werror,-Wformat-security]
->                 request_module(mod_name);
->                                ^~~~~~~~
-> 
-> Use a string literal for the format string.
+Add a couple of aliases for well-known DSCP values.
 
-Should I handle this through the netfilter tree? Or you prefer a
-different path?
+As per RFC 4594, add "df" as an alias of "cs0" with 0x00 value.
 
-Thanks
+As per RFC 5865, add "va" for VOICE-ADMIT with 0x2c value.
+
+As per RFC 8622, add "le" for Lower-Effort with 0x01 value.
+
+tc-cake(8) in diffserv8 mode would benefit from having "le" alias since
+it corresponds to "Tin 0".
+
+Signed-off-by: Oleksandr Natalenko <oleksandr@natalenko.name>
+---
+ src/proto.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/proto.c b/src/proto.c
+index a013a00d..84555b9e 100644
+--- a/src/proto.c
++++ b/src/proto.c
+@@ -684,7 +684,9 @@ static const struct symbol_table dscp_type_tbl = {
+ 		SYMBOL("cs5",	0x28),
+ 		SYMBOL("cs6",	0x30),
+ 		SYMBOL("cs7",	0x38),
++		SYMBOL("df",	0x00),
+ 		SYMBOL("be",	0x00),
++		SYMBOL("le",	0x01),
+ 		SYMBOL("af11",	0x0a),
+ 		SYMBOL("af12",	0x0c),
+ 		SYMBOL("af13",	0x0e),
+@@ -697,6 +699,7 @@ static const struct symbol_table dscp_type_tbl = {
+ 		SYMBOL("af41",	0x22),
+ 		SYMBOL("af42",	0x24),
+ 		SYMBOL("af43",	0x26),
++		SYMBOL("va",	0x2c),
+ 		SYMBOL("ef",	0x2e),
+ 		SYMBOL_LIST_END
+ 	},
+-- 
+2.36.1
+
