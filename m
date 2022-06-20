@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DF52CCA479
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jun 2022 08:32:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05DEBCCA47E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jun 2022 08:32:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239340AbiFTIci (ORCPT
+        id S239605AbiFTIci (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Mon, 20 Jun 2022 04:32:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48552 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48548 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239605AbiFTIcb (ORCPT
+        with ESMTP id S239842AbiFTIcb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 20 Jun 2022 04:32:31 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C052912A81
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C109512A84
         for <netfilter-devel@vger.kernel.org>; Mon, 20 Jun 2022 01:32:29 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 14/18] tests: shell: run -c -o on ruleset
-Date:   Mon, 20 Jun 2022 10:32:11 +0200
-Message-Id: <20220620083215.1021238-15-pablo@netfilter.org>
+Subject: [PATCH nft 15/18] optimize: only merge OP_IMPLICIT and OP_EQ relational
+Date:   Mon, 20 Jun 2022 10:32:12 +0200
+Message-Id: <20220620083215.1021238-16-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220620083215.1021238-1-pablo@netfilter.org>
 References: <20220620083215.1021238-1-pablo@netfilter.org>
@@ -30,188 +30,75 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Just run -o/--optimize on a ruleset.
+Add test to cover this case.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- tests/shell/testcases/optimizations/ruleset | 168 ++++++++++++++++++++
- 1 file changed, 168 insertions(+)
- create mode 100755 tests/shell/testcases/optimizations/ruleset
+ src/optimize.c                                       | 10 ++++++++++
+ .../testcases/optimizations/dumps/skip_non_eq.nft    |  6 ++++++
+ tests/shell/testcases/optimizations/skip_non_eq      | 12 ++++++++++++
+ 3 files changed, 28 insertions(+)
+ create mode 100644 tests/shell/testcases/optimizations/dumps/skip_non_eq.nft
+ create mode 100755 tests/shell/testcases/optimizations/skip_non_eq
 
-diff --git a/tests/shell/testcases/optimizations/ruleset b/tests/shell/testcases/optimizations/ruleset
-new file mode 100755
-index 000000000000..ef2652dbeae8
+diff --git a/src/optimize.c b/src/optimize.c
+index e3d4bc785226..e4508fa5116a 100644
+--- a/src/optimize.c
++++ b/src/optimize.c
+@@ -164,6 +164,11 @@ static bool __stmt_type_eq(const struct stmt *stmt_a, const struct stmt *stmt_b,
+ 		expr_a = stmt_a->expr;
+ 		expr_b = stmt_b->expr;
+ 
++		if (expr_a->op != expr_b->op)
++			return false;
++		if (expr_a->op != OP_IMPLICIT && expr_a->op != OP_EQ)
++			return false;
++
+ 		if (fully_compare) {
+ 			if (!stmt_expr_supported(expr_a) ||
+ 			    !stmt_expr_supported(expr_b))
+@@ -351,6 +356,11 @@ static int rule_collect_stmts(struct optimize_ctx *ctx, struct rule *rule)
+ 		clone = stmt_alloc(&internal_location, stmt->ops);
+ 		switch (stmt->ops->type) {
+ 		case STMT_EXPRESSION:
++			if (stmt->expr->op != OP_IMPLICIT &&
++			    stmt->expr->op != OP_EQ) {
++				clone->ops = &unsupported_stmt_ops;
++				break;
++			}
+ 		case STMT_VERDICT:
+ 			clone->expr = expr_get(stmt->expr);
+ 			break;
+diff --git a/tests/shell/testcases/optimizations/dumps/skip_non_eq.nft b/tests/shell/testcases/optimizations/dumps/skip_non_eq.nft
+new file mode 100644
+index 000000000000..6df386550357
 --- /dev/null
-+++ b/tests/shell/testcases/optimizations/ruleset
-@@ -0,0 +1,168 @@
++++ b/tests/shell/testcases/optimizations/dumps/skip_non_eq.nft
+@@ -0,0 +1,6 @@
++table inet x {
++	chain y {
++		iifname "eth0" oifname != "eth0" counter packets 0 bytes 0 accept
++		iifname "eth0" oifname "eth0" counter packets 0 bytes 0 accept
++	}
++}
+diff --git a/tests/shell/testcases/optimizations/skip_non_eq b/tests/shell/testcases/optimizations/skip_non_eq
+new file mode 100755
+index 000000000000..431ed0ad05dc
+--- /dev/null
++++ b/tests/shell/testcases/optimizations/skip_non_eq
+@@ -0,0 +1,12 @@
 +#!/bin/bash
 +
-+RULESET="table inet uni {
-+	chain gtfo {
-+		reject with icmpx type host-unreachable
-+		drop
-+	}
++set -e
 +
-+	chain filter_in_tcp {
-+		tcp dport vmap {
-+			   80 : accept,
-+			   81 : accept,
-+			  443 : accept,
-+			  931 : accept,
-+			 5001 : accept,
-+			 5201 : accept,
-+		}
-+		tcp dport vmap {
-+			 6800-6999  : accept,
-+			33434-33499 : accept,
-+		}
-+
-+		drop
-+	}
-+
-+	chain filter_in_udp {
-+		udp dport vmap {
-+			   53 : accept,
-+			  123 : accept,
-+			  846 : accept,
-+			  849 : accept,
-+			 5001 : accept,
-+			 5201 : accept,
-+		}
-+		udp dport vmap {
-+			 5300-5399  : accept,
-+			 6800-6999  : accept,
-+			33434-33499 : accept,
-+		}
-+
-+		drop
-+	}
-+
-+	chain filter_in {
-+		type filter hook input priority 0; policy drop;
-+
-+		ct state vmap {
-+			invalid     : drop,
-+			established : accept,
-+			related     : accept,
-+			untracked   : accept,
-+		}
-+
-+		ct status vmap {
-+			dnat : accept,
-+			snat : accept,
-+		}
-+
-+		iif lo  accept
-+
-+		meta iifgroup {100-199}  accept
-+
-+		meta l4proto tcp  goto filter_in_tcp
-+		meta l4proto udp  goto filter_in_udp
-+
-+		icmp type vmap {
-+			echo-request : accept,
-+		}
-+		ip6 nexthdr icmpv6 icmpv6 type vmap {
-+			echo-request : accept,
-+		}
-+	}
-+
-+	chain filter_fwd_ifgroup {
-+		meta iifgroup . oifgroup vmap {
-+		          100 .  10 : accept,
-+		          100 . 100 : accept,
-+		          100 . 101 : accept,
-+		          101 . 101 : accept,
-+		}
-+		goto gtfo
-+	}
-+
-+	chain filter_fwd {
-+		type filter hook forward priority 0; policy drop;
-+
-+		fib daddr type broadcast  drop
-+
-+		ct state vmap {
-+			invalid     : drop,
-+			established : accept,
-+			related     : accept,
-+			untracked   : accept,
-+		}
-+
-+		ct status vmap {
-+			dnat : accept,
-+			snat : accept,
-+		}
-+
-+		meta iifgroup {100-199}  goto filter_fwd_ifgroup
-+	}
-+
-+	chain nat_fwd_tun {
-+		meta l4proto tcp redirect to :15
-+		udp dport 53 redirect to :13
-+		goto gtfo
-+	}
-+
-+	chain nat_dns_dnstc     { meta l4proto udp redirect to :5300 ; drop ; }
-+	chain nat_dns_this_5301 { meta l4proto udp redirect to :5301 ; drop ; }
-+	chain nat_dns_moon_5301  { meta nfproto ipv4 meta l4proto udp dnat to 240.0.1.2:5301 ; drop ; }
-+	chain nat_dns_moon_5302  { meta nfproto ipv4 meta l4proto udp dnat to 240.0.1.2:5302 ; drop ; }
-+	chain nat_dns_moon_5303  { meta nfproto ipv4 meta l4proto udp dnat to 240.0.1.2:5303 ; drop ; }
-+
-+	chain nat_dns_acme {
-+		udp length 47-63 @th,160,128 0x0e373135363130333131303735353203 \
-+			goto nat_dns_dnstc
-+
-+		udp length 62-78 @th,160,128 0x0e31393032383939353831343037320e \
-+			goto nat_dns_this_5301
-+
-+		udp length 62-78 @th,160,128 0x0e31363436323733373931323934300e \
-+			goto nat_dns_moon_5301
-+
-+		udp length 62-78 @th,160,128 0x0e32393535373539353636383732310e \
-+			goto nat_dns_moon_5302
-+
-+		udp length 62-78 @th,160,128 0x0e38353439353637323038363633390e \
-+			goto nat_dns_moon_5303
-+
-+		drop
-+	}
-+
-+	chain nat_prerouting {
-+		type nat hook prerouting priority -100; policy accept;
-+
-+		iifgroup 10 udp dport 53 goto nat_dns_acme
-+		iifgroup 10 accept
-+
-+		ip  daddr 198.19.0.0/16  goto nat_fwd_tun
-+		ip6 daddr fc00::/8       goto nat_fwd_tun
-+
-+		tcp dport 53 redirect to :25302
-+		udp dport 53 redirect to :25302
-+	}
-+
-+	chain nat_output {
-+		type nat hook output priority -100; policy accept;
-+
-+		ip  daddr 198.19.0.0/16  goto nat_fwd_tun
-+		ip6 daddr fc00::/8       goto nat_fwd_tun
-+	}
-+
-+	chain nat_postrouting {
-+		type nat hook postrouting priority 100; policy accept;
-+
-+		oif != lo masquerade
-+	}
-+
-+	chain mangle_forward {
-+		type filter hook forward priority -150; policy accept;
-+
-+		tcp flags & (syn | rst) == syn tcp option maxseg size set rt mtu
++RULESET="table inet x {
++	chain y {
++		iifname "eth0" oifname != "eth0" counter packets 0 bytes 0 accept
++		iifname "eth0" oifname "eth0" counter packets 0 bytes 0 accept
 +	}
 +}"
 +
-+$NFT -o -c -f - <<< $RULESET
++$NFT -o -f - <<< $RULESET
 -- 
 2.30.2
 
