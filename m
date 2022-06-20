@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35870C43334
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DF52CCA479
 	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jun 2022 08:32:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239769AbiFTIch (ORCPT
+        id S239340AbiFTIci (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 20 Jun 2022 04:32:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48550 "EHLO
+        Mon, 20 Jun 2022 04:32:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48552 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239340AbiFTIcb (ORCPT
+        with ESMTP id S239605AbiFTIcb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 20 Jun 2022 04:32:31 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id BD8F512A97
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C052912A81
         for <netfilter-devel@vger.kernel.org>; Mon, 20 Jun 2022 01:32:29 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 13/18] optimize: add unsupported statement
-Date:   Mon, 20 Jun 2022 10:32:10 +0200
-Message-Id: <20220620083215.1021238-14-pablo@netfilter.org>
+Subject: [PATCH nft 14/18] tests: shell: run -c -o on ruleset
+Date:   Mon, 20 Jun 2022 10:32:11 +0200
+Message-Id: <20220620083215.1021238-15-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220620083215.1021238-1-pablo@netfilter.org>
 References: <20220620083215.1021238-1-pablo@netfilter.org>
@@ -30,167 +30,188 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Do not try to merge rules with unsupported statements. This patch adds a
-dummy unsupported statement which is included in the statement
-collection and the rule vs statement matrix.
-
-When looking for possible rule mergers, rules using unsupported
-statements are discarded, otherwise bogus rule mergers might occur.
-
-Note that __stmt_type_eq() already returns false for unsupported
-statements.
-
-Add a test using meta mark statement, which is not yet supported.
+Just run -o/--optimize on a ruleset.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/optimize.c                                | 56 +++++++++++++++++--
- .../optimizations/dumps/skip_unsupported.nft  |  7 +++
- .../testcases/optimizations/skip_unsupported  | 14 +++++
- 3 files changed, 73 insertions(+), 4 deletions(-)
- create mode 100644 tests/shell/testcases/optimizations/dumps/skip_unsupported.nft
- create mode 100755 tests/shell/testcases/optimizations/skip_unsupported
+ tests/shell/testcases/optimizations/ruleset | 168 ++++++++++++++++++++
+ 1 file changed, 168 insertions(+)
+ create mode 100755 tests/shell/testcases/optimizations/ruleset
 
-diff --git a/src/optimize.c b/src/optimize.c
-index abd0b72f90d3..e3d4bc785226 100644
---- a/src/optimize.c
-+++ b/src/optimize.c
-@@ -301,16 +301,42 @@ static bool stmt_verdict_eq(const struct stmt *stmt_a, const struct stmt *stmt_b
- 
- static bool stmt_type_find(struct optimize_ctx *ctx, const struct stmt *stmt)
- {
-+	bool unsupported_exists = false;
- 	uint32_t i;
- 
- 	for (i = 0; i < ctx->num_stmts; i++) {
-+		if (ctx->stmt[i]->ops->type == STMT_INVALID)
-+			unsupported_exists = true;
-+
- 		if (__stmt_type_eq(stmt, ctx->stmt[i], false))
- 			return true;
- 	}
- 
-+	switch (stmt->ops->type) {
-+	case STMT_EXPRESSION:
-+	case STMT_VERDICT:
-+	case STMT_COUNTER:
-+	case STMT_NOTRACK:
-+	case STMT_LIMIT:
-+	case STMT_LOG:
-+	case STMT_NAT:
-+	case STMT_REJECT:
-+		break;
-+	default:
-+		/* add unsupported statement only once to statement matrix. */
-+		if (unsupported_exists)
-+			return true;
-+		break;
-+	}
-+
- 	return false;
- }
- 
-+static struct stmt_ops unsupported_stmt_ops = {
-+	.type	= STMT_INVALID,
-+	.name	= "unsupported",
-+};
-+
- static int rule_collect_stmts(struct optimize_ctx *ctx, struct rule *rule)
- {
- 	struct stmt *stmt, *clone;
-@@ -357,8 +383,8 @@ static int rule_collect_stmts(struct optimize_ctx *ctx, struct rule *rule)
- 			clone->reject.family = stmt->reject.family;
- 			break;
- 		default:
--			xfree(clone);
--			continue;
-+			clone->ops = &unsupported_stmt_ops;
-+			break;
- 		}
- 
- 		ctx->stmt[ctx->num_stmts++] = clone;
-@@ -369,6 +395,18 @@ static int rule_collect_stmts(struct optimize_ctx *ctx, struct rule *rule)
- 	return 0;
- }
- 
-+static int unsupported_in_stmt_matrix(const struct optimize_ctx *ctx)
-+{
-+	uint32_t i;
-+
-+	for (i = 0; i < ctx->num_stmts; i++) {
-+		if (ctx->stmt[i]->ops->type == STMT_INVALID)
-+			return i;
-+	}
-+	/* this should not happen. */
-+	return -1;
-+}
-+
- static int cmd_stmt_find_in_stmt_matrix(struct optimize_ctx *ctx, struct stmt *stmt)
- {
- 	uint32_t i;
-@@ -377,10 +415,14 @@ static int cmd_stmt_find_in_stmt_matrix(struct optimize_ctx *ctx, struct stmt *s
- 		if (__stmt_type_eq(stmt, ctx->stmt[i], false))
- 			return i;
- 	}
--	/* should not ever happen. */
--	return 0;
-+
-+	return -1;
- }
- 
-+static struct stmt unsupported_stmt = {
-+	.ops	= &unsupported_stmt_ops,
-+};
-+
- static void rule_build_stmt_matrix_stmts(struct optimize_ctx *ctx,
- 					 struct rule *rule, uint32_t *i)
- {
-@@ -389,6 +431,12 @@ static void rule_build_stmt_matrix_stmts(struct optimize_ctx *ctx,
- 
- 	list_for_each_entry(stmt, &rule->stmts, list) {
- 		k = cmd_stmt_find_in_stmt_matrix(ctx, stmt);
-+		if (k < 0) {
-+			k = unsupported_in_stmt_matrix(ctx);
-+			assert(k >= 0);
-+			ctx->stmt_matrix[*i][k] = &unsupported_stmt;
-+			continue;
-+		}
- 		ctx->stmt_matrix[*i][k] = stmt;
- 	}
- 	ctx->rule[(*i)++] = rule;
-diff --git a/tests/shell/testcases/optimizations/dumps/skip_unsupported.nft b/tests/shell/testcases/optimizations/dumps/skip_unsupported.nft
-new file mode 100644
-index 000000000000..43b6578dc704
---- /dev/null
-+++ b/tests/shell/testcases/optimizations/dumps/skip_unsupported.nft
-@@ -0,0 +1,7 @@
-+table inet x {
-+	chain y {
-+		ip saddr 1.2.3.4 tcp dport 80 meta mark set 0x0000000a accept
-+		ip saddr 1.2.3.4 tcp dport 81 meta mark set 0x0000000b accept
-+		ip saddr . tcp dport { 1.2.3.5 . 81, 1.2.3.5 . 82 } accept
-+	}
-+}
-diff --git a/tests/shell/testcases/optimizations/skip_unsupported b/tests/shell/testcases/optimizations/skip_unsupported
+diff --git a/tests/shell/testcases/optimizations/ruleset b/tests/shell/testcases/optimizations/ruleset
 new file mode 100755
-index 000000000000..9313c302048c
+index 000000000000..ef2652dbeae8
 --- /dev/null
-+++ b/tests/shell/testcases/optimizations/skip_unsupported
-@@ -0,0 +1,14 @@
++++ b/tests/shell/testcases/optimizations/ruleset
+@@ -0,0 +1,168 @@
 +#!/bin/bash
 +
-+set -e
++RULESET="table inet uni {
++	chain gtfo {
++		reject with icmpx type host-unreachable
++		drop
++	}
 +
-+RULESET="table inet x {
-+	chain y {
-+		ip saddr 1.2.3.4 tcp dport 80 meta mark set 10 accept
-+		ip saddr 1.2.3.4 tcp dport 81 meta mark set 11 accept
-+		ip saddr 1.2.3.5 tcp dport 81 accept comment \"test\"
-+		ip saddr 1.2.3.5 tcp dport 82 accept
++	chain filter_in_tcp {
++		tcp dport vmap {
++			   80 : accept,
++			   81 : accept,
++			  443 : accept,
++			  931 : accept,
++			 5001 : accept,
++			 5201 : accept,
++		}
++		tcp dport vmap {
++			 6800-6999  : accept,
++			33434-33499 : accept,
++		}
++
++		drop
++	}
++
++	chain filter_in_udp {
++		udp dport vmap {
++			   53 : accept,
++			  123 : accept,
++			  846 : accept,
++			  849 : accept,
++			 5001 : accept,
++			 5201 : accept,
++		}
++		udp dport vmap {
++			 5300-5399  : accept,
++			 6800-6999  : accept,
++			33434-33499 : accept,
++		}
++
++		drop
++	}
++
++	chain filter_in {
++		type filter hook input priority 0; policy drop;
++
++		ct state vmap {
++			invalid     : drop,
++			established : accept,
++			related     : accept,
++			untracked   : accept,
++		}
++
++		ct status vmap {
++			dnat : accept,
++			snat : accept,
++		}
++
++		iif lo  accept
++
++		meta iifgroup {100-199}  accept
++
++		meta l4proto tcp  goto filter_in_tcp
++		meta l4proto udp  goto filter_in_udp
++
++		icmp type vmap {
++			echo-request : accept,
++		}
++		ip6 nexthdr icmpv6 icmpv6 type vmap {
++			echo-request : accept,
++		}
++	}
++
++	chain filter_fwd_ifgroup {
++		meta iifgroup . oifgroup vmap {
++		          100 .  10 : accept,
++		          100 . 100 : accept,
++		          100 . 101 : accept,
++		          101 . 101 : accept,
++		}
++		goto gtfo
++	}
++
++	chain filter_fwd {
++		type filter hook forward priority 0; policy drop;
++
++		fib daddr type broadcast  drop
++
++		ct state vmap {
++			invalid     : drop,
++			established : accept,
++			related     : accept,
++			untracked   : accept,
++		}
++
++		ct status vmap {
++			dnat : accept,
++			snat : accept,
++		}
++
++		meta iifgroup {100-199}  goto filter_fwd_ifgroup
++	}
++
++	chain nat_fwd_tun {
++		meta l4proto tcp redirect to :15
++		udp dport 53 redirect to :13
++		goto gtfo
++	}
++
++	chain nat_dns_dnstc     { meta l4proto udp redirect to :5300 ; drop ; }
++	chain nat_dns_this_5301 { meta l4proto udp redirect to :5301 ; drop ; }
++	chain nat_dns_moon_5301  { meta nfproto ipv4 meta l4proto udp dnat to 240.0.1.2:5301 ; drop ; }
++	chain nat_dns_moon_5302  { meta nfproto ipv4 meta l4proto udp dnat to 240.0.1.2:5302 ; drop ; }
++	chain nat_dns_moon_5303  { meta nfproto ipv4 meta l4proto udp dnat to 240.0.1.2:5303 ; drop ; }
++
++	chain nat_dns_acme {
++		udp length 47-63 @th,160,128 0x0e373135363130333131303735353203 \
++			goto nat_dns_dnstc
++
++		udp length 62-78 @th,160,128 0x0e31393032383939353831343037320e \
++			goto nat_dns_this_5301
++
++		udp length 62-78 @th,160,128 0x0e31363436323733373931323934300e \
++			goto nat_dns_moon_5301
++
++		udp length 62-78 @th,160,128 0x0e32393535373539353636383732310e \
++			goto nat_dns_moon_5302
++
++		udp length 62-78 @th,160,128 0x0e38353439353637323038363633390e \
++			goto nat_dns_moon_5303
++
++		drop
++	}
++
++	chain nat_prerouting {
++		type nat hook prerouting priority -100; policy accept;
++
++		iifgroup 10 udp dport 53 goto nat_dns_acme
++		iifgroup 10 accept
++
++		ip  daddr 198.19.0.0/16  goto nat_fwd_tun
++		ip6 daddr fc00::/8       goto nat_fwd_tun
++
++		tcp dport 53 redirect to :25302
++		udp dport 53 redirect to :25302
++	}
++
++	chain nat_output {
++		type nat hook output priority -100; policy accept;
++
++		ip  daddr 198.19.0.0/16  goto nat_fwd_tun
++		ip6 daddr fc00::/8       goto nat_fwd_tun
++	}
++
++	chain nat_postrouting {
++		type nat hook postrouting priority 100; policy accept;
++
++		oif != lo masquerade
++	}
++
++	chain mangle_forward {
++		type filter hook forward priority -150; policy accept;
++
++		tcp flags & (syn | rst) == syn tcp option maxseg size set rt mtu
 +	}
 +}"
 +
-+$NFT -o -f - <<< $RULESET
++$NFT -o -c -f - <<< $RULESET
 -- 
 2.30.2
 
