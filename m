@@ -2,85 +2,63 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BCD6CCA480
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jun 2022 08:56:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DBD7C43334
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jun 2022 10:52:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348097AbiFUI4r (ORCPT
+        id S1347043AbiFUKva (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Jun 2022 04:56:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41534 "EHLO
+        Tue, 21 Jun 2022 06:51:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45184 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347849AbiFUI4l (ORCPT
+        with ESMTP id S232243AbiFUKvM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Jun 2022 04:56:41 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 57E8D240BB;
-        Tue, 21 Jun 2022 01:56:30 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
-        pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net 3/5] selftests: netfilter: correct PKTGEN_SCRIPT_PATHS in nft_concat_range.sh
-Date:   Tue, 21 Jun 2022 10:56:16 +0200
-Message-Id: <20220621085618.3975-4-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220621085618.3975-1-pablo@netfilter.org>
-References: <20220621085618.3975-1-pablo@netfilter.org>
+        Tue, 21 Jun 2022 06:51:12 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AFA62E027
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Jun 2022 03:51:10 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1o3bTP-0002bM-Ov; Tue, 21 Jun 2022 12:51:07 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next 0/3] netfilter: conntrack sparse annotations
+Date:   Tue, 21 Jun 2022 12:50:54 +0200
+Message-Id: <20220621105057.24394-1-fw@strlen.de>
+X-Mailer: git-send-email 2.35.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Jie2x Zhou <jie2x.zhou@intel.com>
+This series reduces the number of generated sparse warnings
+in the netfilter codebase.
 
-Before change:
-make -C netfilter
- TEST: performance
-   net,port                                                      [SKIP]
-   perf not supported
-   port,net                                                      [SKIP]
-   perf not supported
-   net6,port                                                     [SKIP]
-   perf not supported
-   port,proto                                                    [SKIP]
-   perf not supported
-   net6,port,mac                                                 [SKIP]
-   perf not supported
-   net6,port,mac,proto                                           [SKIP]
-   perf not supported
-   net,mac                                                       [SKIP]
-   perf not supported
+In some cases its just due to a missing '__rcu' annotation
+of the base pointer, but in some other cases there is a
+direct access to a __rcu annotated base pointer.
 
-After change:
-   net,mac                                                       [ OK ]
-     baseline (drop from netdev hook):               2061098pps
-     baseline hash (non-ranged entries):             1606741pps
-     baseline rbtree (match on first field only):    1191607pps
-     set with  1000 full, ranged entries:            1639119pps
-ok 8 selftests: netfilter: nft_concat_range.sh
+Florian Westphal (3):
+  netfilter: nf_conntrack: add missing __rcu annotations
+  netfilter: nf_conntrack: use rcu accessors where needed
+  netfilter: h323: merge nat hook pointers into one
 
-Fixes: 611973c1e06f ("selftests: netfilter: Introduce tests for sets with range concatenation")
-Reported-by: kernel test robot <lkp@intel.com>
-Signed-off-by: Jie2x Zhou <jie2x.zhou@intel.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- tools/testing/selftests/netfilter/nft_concat_range.sh | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/netfilter/nf_conntrack_h323.h  | 109 ++++----
+ include/linux/netfilter/nf_conntrack_sip.h   |   2 +-
+ include/net/netfilter/nf_conntrack_timeout.h |   2 +-
+ net/ipv4/netfilter/nf_nat_h323.c             |  42 +--
+ net/netfilter/nf_conntrack_broadcast.c       |   6 +-
+ net/netfilter/nf_conntrack_h323_main.c       | 259 +++++++------------
+ net/netfilter/nf_conntrack_helper.c          |   2 +-
+ net/netfilter/nf_conntrack_netlink.c         |   9 +-
+ net/netfilter/nf_conntrack_pptp.c            |   2 +-
+ net/netfilter/nf_conntrack_sip.c             |   9 +-
+ net/netfilter/nf_conntrack_timeout.c         |  18 +-
+ net/netfilter/nfnetlink_cthelper.c           |  10 +-
+ net/netfilter/xt_CT.c                        |  23 +-
+ 13 files changed, 230 insertions(+), 263 deletions(-)
 
-diff --git a/tools/testing/selftests/netfilter/nft_concat_range.sh b/tools/testing/selftests/netfilter/nft_concat_range.sh
-index b35010cc7f6a..a6991877e50c 100755
---- a/tools/testing/selftests/netfilter/nft_concat_range.sh
-+++ b/tools/testing/selftests/netfilter/nft_concat_range.sh
-@@ -31,7 +31,7 @@ BUGS="flush_remove_add reload"
- 
- # List of possible paths to pktgen script from kernel tree for performance tests
- PKTGEN_SCRIPT_PATHS="
--	../../../samples/pktgen/pktgen_bench_xmit_mode_netif_receive.sh
-+	../../../../samples/pktgen/pktgen_bench_xmit_mode_netif_receive.sh
- 	pktgen/pktgen_bench_xmit_mode_netif_receive.sh"
- 
- # Definition of set types:
 -- 
-2.30.2
+2.35.1
 
