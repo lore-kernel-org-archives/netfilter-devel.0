@@ -2,40 +2,40 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A6C5C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jun 2022 08:24:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51E9CC433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jun 2022 08:24:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348099AbiFUIYC (ORCPT
+        id S1348202AbiFUIYl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Jun 2022 04:24:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42116 "EHLO
+        Tue, 21 Jun 2022 04:24:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41788 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229955AbiFUIXr (ORCPT
+        with ESMTP id S1348129AbiFUIYJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Jun 2022 04:23:47 -0400
+        Tue, 21 Jun 2022 04:24:09 -0400
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 298E611A08;
-        Tue, 21 Jun 2022 01:23:34 -0700 (PDT)
-Received: from fraeml705-chm.china.huawei.com (unknown [172.18.147.206])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4LRzxs3Nxdz67ZvX;
-        Tue, 21 Jun 2022 16:21:37 +0800 (CST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92B2BBE0E;
+        Tue, 21 Jun 2022 01:23:39 -0700 (PDT)
+Received: from fraeml704-chm.china.huawei.com (unknown [172.18.147.226])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4LRzxx6k1nz6F8x6;
+        Tue, 21 Jun 2022 16:21:41 +0800 (CST)
 Received: from lhreml745-chm.china.huawei.com (10.201.108.195) by
- fraeml705-chm.china.huawei.com (10.206.15.54) with Microsoft SMTP Server
+ fraeml704-chm.china.huawei.com (10.206.15.53) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2375.24; Tue, 21 Jun 2022 10:23:31 +0200
+ 15.1.2375.24; Tue, 21 Jun 2022 10:23:36 +0200
 Received: from mscphis00759.huawei.com (10.123.66.134) by
  lhreml745-chm.china.huawei.com (10.201.108.195) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Tue, 21 Jun 2022 09:23:31 +0100
+ 15.1.2375.24; Tue, 21 Jun 2022 09:23:35 +0100
 From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
 To:     <mic@digikod.net>
 CC:     <willemdebruijn.kernel@gmail.com>,
         <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
         <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
         <anton.sirazetdinov@huawei.com>
-Subject: [PATCH v6 10/17] seltests/landlock: moves helper function
-Date:   Tue, 21 Jun 2022 16:23:06 +0800
-Message-ID: <20220621082313.3330667-11-konstantin.meskhidze@huawei.com>
+Subject: [PATCH v6 13/17] seltests/landlock: adds AF_UNSPEC family test
+Date:   Tue, 21 Jun 2022 16:23:09 +0800
+Message-ID: <20220621082313.3330667-14-konstantin.meskhidze@huawei.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20220621082313.3330667-1-konstantin.meskhidze@huawei.com>
 References: <20220621082313.3330667-1-konstantin.meskhidze@huawei.com>
@@ -50,62 +50,156 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This commit moves enforce_ruleset() helper
-function to common.h so that to be used
-both by filesystem tests and network ones.
+Adds two selftests for connect() action with
+AF_UNSPEC family flag.
+The one is with no landlock restrictions
+allows to disconnect already connected socket
+with connect(..., AF_UNSPEC, ...):
+    - connect_afunspec_no_restictions;
+The second one refuses landlocked process
+to disconnect already connected socket:
+    - connect_afunspec_with_restictions;
 
 Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
 ---
 
 Changes since v5:
-* Splits commit.
-* Moves enforce_ruleset helper into common.h
 * Formats code with clang-format-14.
 
----
- tools/testing/selftests/landlock/common.h  | 10 ++++++++++
- tools/testing/selftests/landlock/fs_test.c | 10 ----------
- 2 files changed, 10 insertions(+), 10 deletions(-)
+Changes since v4:
+* Refactors code with self->port, self->addr4 variables.
+* Adds bind() hook check for with AF_UNSPEC family.
 
-diff --git a/tools/testing/selftests/landlock/common.h b/tools/testing/selftests/landlock/common.h
-index 7ba18eb23783..48870afb054b 100644
---- a/tools/testing/selftests/landlock/common.h
-+++ b/tools/testing/selftests/landlock/common.h
-@@ -187,3 +187,13 @@ clear_cap(struct __test_metadata *const _metadata, const cap_value_t caps)
- {
- 	_effective_cap(_metadata, caps, CAP_CLEAR);
+Changes since v3:
+* Adds connect_afunspec_no_restictions test.
+* Adds connect_afunspec_with_restictions test.
+
+---
+ tools/testing/selftests/landlock/net_test.c | 113 ++++++++++++++++++++
+ 1 file changed, 113 insertions(+)
+
+diff --git a/tools/testing/selftests/landlock/net_test.c b/tools/testing/selftests/landlock/net_test.c
+index ce6fd51a922d..c5fe4284c38f 100644
+--- a/tools/testing/selftests/landlock/net_test.c
++++ b/tools/testing/selftests/landlock/net_test.c
+@@ -351,4 +351,117 @@ TEST_F(socket, connect_with_restrictions)
+ 	ASSERT_EQ(1, WIFEXITED(status));
+ 	ASSERT_EQ(EXIT_SUCCESS, WEXITSTATUS(status));
  }
 +
-+__attribute__((__unused__)) static void
-+enforce_ruleset(struct __test_metadata *const _metadata, const int ruleset_fd)
++TEST_F(socket, connect_afunspec_no_restictions)
 +{
-+	ASSERT_EQ(0, prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0));
-+	ASSERT_EQ(0, landlock_restrict_self(ruleset_fd, 0))
-+	{
-+		TH_LOG("Failed to enforce ruleset: %s", strerror(errno));
++	int sockfd;
++	pid_t child;
++	int status;
++
++	/* Creates a server socket 1. */
++	sockfd = create_socket_variant(variant, SOCK_STREAM);
++	ASSERT_LE(0, sockfd);
++
++	/* Binds the socket 1 to address with port[0]. */
++	ASSERT_EQ(0, bind_variant(variant, sockfd, self, 0));
++
++	/* Makes connection to the socket with port[0]. */
++	ASSERT_EQ(0, connect_variant(variant, sockfd, self, 0));
++
++	child = fork();
++	ASSERT_LE(0, child);
++	if (child == 0) {
++		struct sockaddr addr_unspec = { .sa_family = AF_UNSPEC };
++
++		/* Child tries to disconnect already connected socket. */
++		ASSERT_EQ(0, connect(sockfd, (struct sockaddr *)&addr_unspec,
++				     sizeof(addr_unspec)));
++		_exit(_metadata->passed ? EXIT_SUCCESS : EXIT_FAILURE);
++		return;
 +	}
++	/* Closes listening socket 1 for the parent. */
++	ASSERT_EQ(0, close(sockfd));
++
++	ASSERT_EQ(child, waitpid(child, &status, 0));
++	ASSERT_EQ(1, WIFEXITED(status));
++	ASSERT_EQ(EXIT_SUCCESS, WEXITSTATUS(status));
 +}
-diff --git a/tools/testing/selftests/landlock/fs_test.c b/tools/testing/selftests/landlock/fs_test.c
-index 21a2ce8fa739..036dd6f8f9ea 100644
---- a/tools/testing/selftests/landlock/fs_test.c
-+++ b/tools/testing/selftests/landlock/fs_test.c
-@@ -551,16 +551,6 @@ static int create_ruleset(struct __test_metadata *const _metadata,
- 	return ruleset_fd;
- }
-
--static void enforce_ruleset(struct __test_metadata *const _metadata,
--			    const int ruleset_fd)
--{
--	ASSERT_EQ(0, prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0));
--	ASSERT_EQ(0, landlock_restrict_self(ruleset_fd, 0))
--	{
--		TH_LOG("Failed to enforce ruleset: %s", strerror(errno));
--	}
--}
--
- TEST_F_FORK(layout1, proc_nsfs)
- {
- 	const struct rule rules[] = {
++
++TEST_F(socket, connect_afunspec_with_restictions)
++{
++	int sockfd;
++	pid_t child;
++	int status;
++
++	struct landlock_ruleset_attr ruleset_attr_1 = {
++		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP,
++	};
++	struct landlock_net_service_attr net_service_1 = {
++		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
++
++		.port = self->port[0],
++	};
++
++	struct landlock_ruleset_attr ruleset_attr_2 = {
++		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
++				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
++	};
++	struct landlock_net_service_attr net_service_2 = {
++		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
++				  LANDLOCK_ACCESS_NET_CONNECT_TCP,
++
++		.port = self->port[0],
++	};
++
++	const int ruleset_fd_1 = landlock_create_ruleset(
++		&ruleset_attr_1, sizeof(ruleset_attr_1), 0);
++	ASSERT_LE(0, ruleset_fd_1);
++
++	/* Allows bind operations to the port[0] socket. */
++	ASSERT_EQ(0, landlock_add_rule(ruleset_fd_1, LANDLOCK_RULE_NET_SERVICE,
++				       &net_service_1, 0));
++
++	/* Enforces the ruleset. */
++	enforce_ruleset(_metadata, ruleset_fd_1);
++
++	/* Creates a server socket 1. */
++	sockfd = create_socket_variant(variant, SOCK_STREAM);
++	ASSERT_LE(0, sockfd);
++
++	/* Binds the socket 1 to address with port[0]. */
++	ASSERT_EQ(0, bind_variant(variant, sockfd, self, 0));
++
++	/* Makes connection to socket with port[0]. */
++	ASSERT_EQ(0, connect_variant(variant, sockfd, self, 0));
++
++	const int ruleset_fd_2 = landlock_create_ruleset(
++		&ruleset_attr_2, sizeof(ruleset_attr_2), 0);
++	ASSERT_LE(0, ruleset_fd_2);
++
++	/* Allows connect and bind operations to the port[0] socket. */
++	ASSERT_EQ(0, landlock_add_rule(ruleset_fd_2, LANDLOCK_RULE_NET_SERVICE,
++				       &net_service_2, 0));
++
++	/* Enforces the ruleset. */
++	enforce_ruleset(_metadata, ruleset_fd_2);
++
++	child = fork();
++	ASSERT_LE(0, child);
++	if (child == 0) {
++		struct sockaddr addr_unspec = { .sa_family = AF_UNSPEC };
++
++		/* Child tries to disconnect already connected socket. */
++		ASSERT_EQ(-1, connect(sockfd, (struct sockaddr *)&addr_unspec,
++				      sizeof(addr_unspec)));
++		ASSERT_EQ(EACCES, errno);
++		_exit(_metadata->passed ? EXIT_SUCCESS : EXIT_FAILURE);
++		return;
++	}
++	/* Closes listening socket 1 for the parent. */
++	ASSERT_EQ(0, close(sockfd));
++
++	ASSERT_EQ(child, waitpid(child, &status, 0));
++	ASSERT_EQ(1, WIFEXITED(status));
++	ASSERT_EQ(EXIT_SUCCESS, WEXITSTATUS(status));
++}
+ TEST_HARNESS_MAIN
 --
 2.25.1
 
