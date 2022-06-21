@@ -2,127 +2,89 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABCA5CCA481
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jun 2022 16:26:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6E9CC43334
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jun 2022 22:37:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351042AbiFUQ0N (ORCPT
+        id S1354743AbiFUWhV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Jun 2022 12:26:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43672 "EHLO
+        Tue, 21 Jun 2022 18:37:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39436 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1352232AbiFUQ0M (ORCPT
+        with ESMTP id S1354561AbiFUWhU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Jun 2022 12:26:12 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC66F13F4A
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Jun 2022 09:26:11 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1o3ghe-0004i6-7D; Tue, 21 Jun 2022 18:26:10 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Radim Hrazdil <rhrazdil@redhat.com>
-Subject: [PATCH nf] netfilter: br_netfilter: do not skip all hooks with 0 priority
-Date:   Tue, 21 Jun 2022 18:26:03 +0200
-Message-Id: <20220621162603.4094-1-fw@strlen.de>
-X-Mailer: git-send-email 2.35.1
+        Tue, 21 Jun 2022 18:37:20 -0400
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 03B69326DF
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Jun 2022 15:37:18 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1655851038; x=1687387038;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=qD2U96q+G+j9whYN0j6fuwqInLH36zjhWVl011UOIV4=;
+  b=b9SGIbYB3eAmkNPoCKxaH0VvTbJQxf1dzTuglZIosfh7cg92W3tG3fBp
+   9gHOIIj4v54h//xq7AGrLExZ+T/86CdORyP+ET4TVBWFxCZ8RA5dAly9s
+   G+aiGADcInymbOCbXuVkJ8GFjVSy1GND0GDxcYz8zZm2Gt6JNXg6pi+7q
+   2UCRKbjOhUz7g4LdszRMseDSx5YhspE91lEz5he0MjhlPvN9bWGP4MHnB
+   lCgD7/bQV2Luox50F4ixKwU35rQhxYsKf3st4Gg2KNXMWVJJ1aI2hLuIy
+   cPh7N9PPmcMeWc6tzA7L/Ufj5sjvE/N//6KEufwRigkZC4dkD2d4FEK3D
+   Q==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10385"; a="263289494"
+X-IronPort-AV: E=Sophos;i="5.92,210,1650956400"; 
+   d="scan'208";a="263289494"
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jun 2022 15:37:18 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.92,210,1650956400"; 
+   d="scan'208";a="833794367"
+Received: from lkp-server02.sh.intel.com (HELO a67cc04a5eeb) ([10.239.97.151])
+  by fmsmga006.fm.intel.com with ESMTP; 21 Jun 2022 15:37:17 -0700
+Received: from kbuild by a67cc04a5eeb with local (Exim 4.95)
+        (envelope-from <lkp@intel.com>)
+        id 1o3mUm-0000VQ-N5;
+        Tue, 21 Jun 2022 22:37:16 +0000
+Date:   Wed, 22 Jun 2022 06:36:57 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Cc:     kbuild-all@lists.01.org, Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nf-next 3/3] netfilter: h323: merge nat hook pointers
+ into one
+Message-ID: <202206220643.5qOb2por-lkp@intel.com>
+References: <20220621105057.24394-4-fw@strlen.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220621105057.24394-4-fw@strlen.de>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When br_netfilter module is loaded, skbs may be diverted to the
-ipv4/ipv6 hooks, just like as if we were routing.
+Hi Florian,
 
-Unfortunately, bridge filter hooks with priority 0 may be skipped
-in this case.
+I love your patch! Yet something to improve:
 
-Example:
-1. an nftables bridge ruleset is loaded, with a prerouting
-   hook that has priority 0.
-2. interface is added to the bridge.
-3. no tcp packet is ever seen by the bridge prerouting hook.
-4. flush the ruleset
-5. load the bridge ruleset again.
-6. tcp packets are processed as expected.
+[auto build test ERROR on nf-next/master]
 
-After 1) the only registered hook is the bridge prerouting hook, but its
-not called yet because the bridge hasn't been brought up yet.
+url:    https://github.com/intel-lab-lkp/linux/commits/Florian-Westphal/netfilter-conntrack-sparse-annotations/20220621-185333
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
+config: x86_64-rhel-8.3-func (https://download.01.org/0day-ci/archive/20220622/202206220643.5qOb2por-lkp@intel.com/config)
+compiler: gcc-11 (Debian 11.3.0-3) 11.3.0
+reproduce (this is a W=1 build):
+        # https://github.com/intel-lab-lkp/linux/commit/39109262d79a0c05cd090ebd94819babdf6d39a6
+        git remote add linux-review https://github.com/intel-lab-lkp/linux
+        git fetch --no-tags linux-review Florian-Westphal/netfilter-conntrack-sparse-annotations/20220621-185333
+        git checkout 39109262d79a0c05cd090ebd94819babdf6d39a6
+        # save the config file
+        mkdir build_dir && cp config build_dir/.config
+        make W=1 O=build_dir ARCH=x86_64 SHELL=/bin/bash
 
-After 2), hook order is:
-   0 br_nf_pre_routing // br_netfilter internal hook
-   0 chain bridge f prerouting // nftables bridge ruleset
+If you fix the issue, kindly add following tag where applicable
+Reported-by: kernel test robot <lkp@intel.com>
 
-The packet is diverted to br_nf_pre_routing.
-If call-iptables is off, the nftables bridge ruleset is called as expected.
+All errors (new ones prefixed by >>, old ones prefixed by <<):
 
-But if its enabled, br_nf_hook_thresh() will skip it because it assumes
-that all 0-priority hooks had been called previously in bridge context.
+>> ERROR: modpost: "get_h225_addr" [net/ipv4/netfilter/nf_nat_h323.ko] undefined!
 
-To avoid this, check for the br_nf_pre_routing hook itself, we need to
-resume directly after it, even if this hook has a priority of 0.
-
-Unfortunately, this still results in different packet flow.
-With this fix, the eval order after in 3) is:
-1. br_nf_pre_routing
-2. ip(6)tables (if enabled)
-3. nftables bridge
-
-but after 5 its the much saner:
-1. nftables bridge
-2. br_nf_pre_routing
-3. ip(6)tables (if enabled)
-
-Unfortunately I don't see a solution here:
-It would be possible to move br_nf_pre_routing to a higher priority
-so that it will be called later in the pipeline, but this also impacts
-ebtables evaluation order, and would still result in this very ordering
-problem for all nftables-bridge hooks with the same priority as the
-br_nf_pre_routing one.
-
-Searching back through the git history I don't think this has
-ever behaved in any other way, hence, no fixes-tag.
-
-Reported-by: Radim Hrazdil <rhrazdil@redhat.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/bridge/br_netfilter_hooks.c | 21 ++++++++++++++++++---
- 1 file changed, 18 insertions(+), 3 deletions(-)
-
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index 4fd882686b04..ff4779036649 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -1012,9 +1012,24 @@ int br_nf_hook_thresh(unsigned int hook, struct net *net,
- 		return okfn(net, sk, skb);
- 
- 	ops = nf_hook_entries_get_hook_ops(e);
--	for (i = 0; i < e->num_hook_entries &&
--	      ops[i]->priority <= NF_BR_PRI_BRNF; i++)
--		;
-+	for (i = 0; i < e->num_hook_entries; i++) {
-+		/* These hooks have already been called */
-+		if (ops[i]->priority < NF_BR_PRI_BRNF)
-+			continue;
-+
-+		/* These hooks have not been called yet, run them. */
-+		if (ops[i]->priority > NF_BR_PRI_BRNF)
-+			break;
-+
-+		/* take a closer look at NF_BR_PRI_BRNF. */
-+		if (ops[i]->hook == br_nf_pre_routing) {
-+			/* This hook diverted the skb to this function,
-+			 * hooks after this have not been run yet.
-+			 */
-+			i++;
-+			break;
-+		}
-+	}
- 
- 	nf_hook_state_init(&state, hook, NFPROTO_BRIDGE, indev, outdev,
- 			   sk, net, okfn);
 -- 
-2.35.1
-
+0-DAY CI Kernel Test Service
+https://01.org/lkp
