@@ -2,42 +2,82 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 698FAC43334
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jun 2022 08:49:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 252F3C433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jun 2022 08:56:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231635AbiFUItF (ORCPT
+        id S1347159AbiFUI4b (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Jun 2022 04:49:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35708 "EHLO
+        Tue, 21 Jun 2022 04:56:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41410 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230049AbiFUItF (ORCPT
+        with ESMTP id S1346484AbiFUI41 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Jun 2022 04:49:05 -0400
+        Tue, 21 Jun 2022 04:56:27 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 73A5A26100
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Jun 2022 01:49:03 -0700 (PDT)
-Date:   Tue, 21 Jun 2022 10:48:57 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 09C8F26109;
+        Tue, 21 Jun 2022 01:56:27 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf 0/2] netfilter: fix two nf_dup bugs with egress hook
-Message-ID: <YrGF+bXbFWHVVRkI@salvia>
-References: <20220620141731.7362-1-fw@strlen.de>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        pabeni@redhat.com, edumazet@google.com
+Subject: [PATCH net 0/5] Netfilter fixes for net
+Date:   Tue, 21 Jun 2022 10:56:13 +0200
+Message-Id: <20220621085618.3975-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20220620141731.7362-1-fw@strlen.de>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jun 20, 2022 at 04:17:29PM +0200, Florian Westphal wrote:
-> We need to be more careful now that nf_dup is exposed to new
-> egress hook.
-> 
-> When called from egress hook, we need to skip push of mac header,
-> this is only ok for ingress invocation.
-> 
-> Also add a  recursion counter to prevent re-entry into the expression.
+Hi,
 
-Series applied, thanks
+The following patchset contains Netfilter fixes for net:
+
+1) Use get_random_u32() instead of prandom_u32_state() in nft_meta
+   and nft_numgen, from Florian Westphal.
+
+2) Incorrect list head in nfnetlink_cttimeout in recent update coming
+   from previous development cycle. Also from Florian.
+
+3) Incorrect path to pktgen scripts for nft_concat_range.sh selftest.
+   From Jie2x Zhou.
+
+4) Two fixes for the for nft_fwd and nft_dup egress support, from Florian.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit f5826c8c9d57210a17031af5527056eefdc2b7eb:
+
+  net/mlx4_en: Fix wrong return value on ioctl EEPROM query failure (2022-06-07 20:49:58 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git HEAD
+
+for you to fetch changes up to fcd53c51d03709bc429822086f1e9b3e88904284:
+
+  netfilter: nf_dup_netdev: add and use recursion counter (2022-06-21 10:50:41 +0200)
+
+----------------------------------------------------------------
+Florian Westphal (4):
+      netfilter: use get_random_u32 instead of prandom
+      netfilter: cttimeout: fix slab-out-of-bounds read typo in cttimeout_net_exit
+      netfilter: nf_dup_netdev: do not push mac header a second time
+      netfilter: nf_dup_netdev: add and use recursion counter
+
+Jie2x Zhou (1):
+      selftests: netfilter: correct PKTGEN_SCRIPT_PATHS in nft_concat_range.sh
+
+ net/netfilter/nf_dup_netdev.c                      | 25 ++++++++++++++++++----
+ net/netfilter/nfnetlink_cttimeout.c                |  2 +-
+ net/netfilter/nft_meta.c                           | 13 ++---------
+ net/netfilter/nft_numgen.c                         | 12 +++--------
+ .../selftests/netfilter/nft_concat_range.sh        |  2 +-
+ 5 files changed, 28 insertions(+), 26 deletions(-)
