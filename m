@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8006C43334
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jun 2022 08:56:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 519CAC433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jun 2022 08:56:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348262AbiFUI4m (ORCPT
+        id S1348455AbiFUI4o (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Jun 2022 04:56:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41546 "EHLO
+        Tue, 21 Jun 2022 04:56:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41500 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347109AbiFUI4b (ORCPT
+        with ESMTP id S1346241AbiFUI4k (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Jun 2022 04:56:31 -0400
+        Tue, 21 Jun 2022 04:56:40 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7E03E26AC0;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id DA8EA26ACB;
         Tue, 21 Jun 2022 01:56:29 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net 2/5] netfilter: cttimeout: fix slab-out-of-bounds read typo in cttimeout_net_exit
-Date:   Tue, 21 Jun 2022 10:56:15 +0200
-Message-Id: <20220621085618.3975-3-pablo@netfilter.org>
+Subject: [PATCH net 4/5] netfilter: nf_dup_netdev: do not push mac header a second time
+Date:   Tue, 21 Jun 2022 10:56:17 +0200
+Message-Id: <20220621085618.3975-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220621085618.3975-1-pablo@netfilter.org>
 References: <20220621085618.3975-1-pablo@netfilter.org>
@@ -34,34 +34,69 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-syzbot reports:
-  BUG: KASAN: slab-out-of-bounds in __list_del_entry_valid+0xcc/0xf0 lib/list_debug.c:42
-  [..]
-  list_del include/linux/list.h:148 [inline]
-  cttimeout_net_exit+0x211/0x540 net/netfilter/nfnetlink_cttimeout.c:617
+Eric reports skb_under_panic when using dup/fwd via bond+egress hook.
+Before pushing mac header, we should make sure that we're called from
+ingress to put back what was pulled earlier.
 
-Problem is the wrong name of the list member, so container_of() result is wrong.
+In egress case, the MAC header is already there; we should leave skb
+alone.
 
-Reported-by: <syzbot+92968395eedbdbd3617d@syzkaller.appspotmail.com>
-Fixes: 78222bacfca9 ("netfilter: cttimeout: decouple unlink and free on netns destruction")
+While at it be more careful here: skb might have been altered and
+headroom reduced, so add a skb_cow() before so that headroom is
+increased if necessary.
+
+nf_do_netdev_egress() assumes skb ownership (it normally ends with
+a call to dev_queue_xmit), so we must free the packet on error.
+
+Fixes: f87b9464d152 ("netfilter: nft_fwd_netdev: Support egress hook")
+Reported-by: Eric Garver <eric@garver.life>
 Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_cttimeout.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_dup_netdev.c | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-index af15102bc696..f466af4f8531 100644
---- a/net/netfilter/nfnetlink_cttimeout.c
-+++ b/net/netfilter/nfnetlink_cttimeout.c
-@@ -614,7 +614,7 @@ static void __net_exit cttimeout_net_exit(struct net *net)
+diff --git a/net/netfilter/nf_dup_netdev.c b/net/netfilter/nf_dup_netdev.c
+index 7873bd1389c3..13b7f6a66086 100644
+--- a/net/netfilter/nf_dup_netdev.c
++++ b/net/netfilter/nf_dup_netdev.c
+@@ -13,10 +13,16 @@
+ #include <net/netfilter/nf_tables_offload.h>
+ #include <net/netfilter/nf_dup_netdev.h>
  
- 	nf_ct_untimeout(net, NULL);
+-static void nf_do_netdev_egress(struct sk_buff *skb, struct net_device *dev)
++static void nf_do_netdev_egress(struct sk_buff *skb, struct net_device *dev,
++				enum nf_dev_hooks hook)
+ {
+-	if (skb_mac_header_was_set(skb))
++	if (hook == NF_NETDEV_INGRESS && skb_mac_header_was_set(skb)) {
++		if (skb_cow_head(skb, skb->mac_len)) {
++			kfree_skb(skb);
++			return;
++		}
+ 		skb_push(skb, skb->mac_len);
++	}
  
--	list_for_each_entry_safe(cur, tmp, &pernet->nfct_timeout_freelist, head) {
-+	list_for_each_entry_safe(cur, tmp, &pernet->nfct_timeout_freelist, free_head) {
- 		list_del(&cur->free_head);
+ 	skb->dev = dev;
+ 	skb_clear_tstamp(skb);
+@@ -33,7 +39,7 @@ void nf_fwd_netdev_egress(const struct nft_pktinfo *pkt, int oif)
+ 		return;
+ 	}
  
- 		if (refcount_dec_and_test(&cur->refcnt))
+-	nf_do_netdev_egress(pkt->skb, dev);
++	nf_do_netdev_egress(pkt->skb, dev, nft_hook(pkt));
+ }
+ EXPORT_SYMBOL_GPL(nf_fwd_netdev_egress);
+ 
+@@ -48,7 +54,7 @@ void nf_dup_netdev_egress(const struct nft_pktinfo *pkt, int oif)
+ 
+ 	skb = skb_clone(pkt->skb, GFP_ATOMIC);
+ 	if (skb)
+-		nf_do_netdev_egress(skb, dev);
++		nf_do_netdev_egress(skb, dev, nft_hook(pkt));
+ }
+ EXPORT_SYMBOL_GPL(nf_dup_netdev_egress);
+ 
 -- 
 2.30.2
 
