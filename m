@@ -2,60 +2,60 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21A0BCCA473
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jun 2022 22:57:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2ADB1C43334
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jun 2022 22:57:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235689AbiFUW5B (ORCPT
+        id S1353526AbiFUW5E (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Jun 2022 18:57:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50916 "EHLO
+        Tue, 21 Jun 2022 18:57:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50936 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238330AbiFUW5A (ORCPT
+        with ESMTP id S238330AbiFUW5C (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Jun 2022 18:57:00 -0400
-Received: from mail-ej1-x633.google.com (mail-ej1-x633.google.com [IPv6:2a00:1450:4864:20::633])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE48432044
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Jun 2022 15:56:59 -0700 (PDT)
-Received: by mail-ej1-x633.google.com with SMTP id g25so30461535ejh.9
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Jun 2022 15:56:59 -0700 (PDT)
+        Tue, 21 Jun 2022 18:57:02 -0400
+Received: from mail-ed1-x52a.google.com (mail-ed1-x52a.google.com [IPv6:2a00:1450:4864:20::52a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 845822E6BD
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Jun 2022 15:57:01 -0700 (PDT)
+Received: by mail-ed1-x52a.google.com with SMTP id es26so19692889edb.4
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Jun 2022 15:57:01 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ionos.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=MlfRZWb7QGLWUfuHHtkw8dNMfDhu1u3P3HhTkcoZyGs=;
-        b=Y/JyHDuWIFEj5BZGw6NpaWgmdv2gkE+cPigdC+Q/6F83CFWVPlEzWNqldMIeBUlKF6
-         C1vZaEc0jghV/Kaf0sP6ADYmcDREoZeY9mdvlzqyhFKdunCMYZHQlo8uVOqKIFvYHkAi
-         UlEoJPnP2bcKYN/oBooQyqnvLfW3mb9aTUSn6g+ElYb8WjoFa1HfE5nM8g4RvmtBWatR
-         Z2rGH65epkgcasiJR5wDCic3JhLv4/29ah8dhz2ubzZzywtEnoMsoID6RslzxKivikdc
-         7pmDi9jLl5VXwqqr6PbchbmQ6pqDSTO9yGxliNWBdK8FIw7aHI+ZHsq1KbQvF46WT5Uz
-         R4nA==
+        bh=1i3j+Af/AE+5g2ZVPWN0z/6ECtSWzAGHsfOQHvKBUdM=;
+        b=MwgKtPT2LHvCfqBaMWsaNmA/QPPGbFplHKpehshypg3MmTwICK4eGS7jphn0CioiSk
+         13fRlfEOiJnNrULgahuF1YeGi0l9aXz8MN9czeetMU+rY5lSUcKJhywHAFTiSiu5Qg1V
+         ZNjx1TpueBhEIhleO1hY1hSB6RDaAFSWArzQb2NHTKABOZJj7f1iwh6n3sPi51VsnKVi
+         vvUmbXwjUn3T+6a5V4tAoaUvegG9JjixjlZSdvLES9VgqET+0LgnJEtOeATGNC+5MRAI
+         DAT4QR/N6YRCoko58811UNLPFMQneQ1mAlIrgwhUz6qkDXfikFdQG0pzMD4mlH9UWttc
+         wF9w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=MlfRZWb7QGLWUfuHHtkw8dNMfDhu1u3P3HhTkcoZyGs=;
-        b=XdxCfGv5yq9b0bTKi3B2Ef4pai98OjuHQsk6ICQq8VIcnwmD2C6BDrf9tUy+vbe+wf
-         8ybMd2istWZ+RdfpNJhacg9/iU8al2VZ8enBT9UBeVBALWwneJmzdBqaGF7GhecUhWZ/
-         VYtk21YFugRhSKUFXbflS9DpFSd30B23afLcu2FABqMjs/qZJt2wCeyVDn1BN/4n2Byb
-         UmPpPE0/erld265L6aaMNDhO07dnzep8TN4CF+2vodcnWB2L89AGO/XwtI97ZQq0XDBY
-         VHD38apDJVgCK72+IiKdH7NftmFYe7MHrfYFGkxQ5VlvB8sfETW67NO2wdpPorPuN7bn
-         gDyQ==
-X-Gm-Message-State: AJIora9teLCpPgYlo/7jGST//Yfn0uJN/v0/Hpk4TfvfXAsOrlOOixlc
-        EDk/UVneul7+Q+1grpvEsGvAb/2U5dYIhQ==
-X-Google-Smtp-Source: AGRyM1vfQay2Llpsfl4OvQeb1ZqGrsNAZjIQJCkJ6dNlEvVivTY2Y7NXfO00N7VlnbssTi3DNUA4fQ==
-X-Received: by 2002:a17:906:ca91:b0:70d:52ca:7e7d with SMTP id js17-20020a170906ca9100b0070d52ca7e7dmr374338ejb.552.1655852217771;
-        Tue, 21 Jun 2022 15:56:57 -0700 (PDT)
+        bh=1i3j+Af/AE+5g2ZVPWN0z/6ECtSWzAGHsfOQHvKBUdM=;
+        b=Wdc3GfCQWYWqz9+px2not5F+h1Et+k6/KeH3FS6zK7rPVs8wKcRT4f0KtGEHMXQvYn
+         DbmBwyLdWbNCcpmIi1iBlac11lAjV41wsS8GOgUGhcU2xe/fBx4+WY2UMMtuP0fWfoQJ
+         DCgpNRWuPelP1sBscsCQlMEkNSqrfIS2BJZeWQ9yWifEQBQGBjUOa4X5K454U94zevUH
+         r0h7xEpajaZA0ejw5G4sOE6880Uzz1yCN4UQwIeEAfHZ7j5LTPXzHX8gLgu9LyfvtD3G
+         QRHkG7o1sGKdSLt7K5IpmhOl0qO31djuyGZp0V8eHq901HPoqyqnvx0l1NqFxWvH+6ed
+         AQCg==
+X-Gm-Message-State: AJIora9WPkxRbJNV5cMZtIFSZNfUZoT/JfdE/C7bencOb66YVi2x9ix+
+        U7P2Sdgw6rH811d9/4Mwemvfeid81DzYOQ==
+X-Google-Smtp-Source: AGRyM1uDwwPKEI99HF4vGTtbQEGNndXaDyCKyNmagB4XhnB7zB7YkaP2HDliW1Or2pDyRNrpPguNCw==
+X-Received: by 2002:a05:6402:c44:b0:431:52cc:f933 with SMTP id cs4-20020a0564020c4400b0043152ccf933mr521606edb.41.1655852219533;
+        Tue, 21 Jun 2022 15:56:59 -0700 (PDT)
 Received: from msennikovskii4.fkb.profitbricks.net (ip5f5bf48a.dynamic.kabel-deutschland.de. [95.91.244.138])
-        by smtp.gmail.com with ESMTPSA id z12-20020a50e68c000000b004358c3bfb4csm4540118edm.31.2022.06.21.15.56.56
+        by smtp.gmail.com with ESMTPSA id z12-20020a50e68c000000b004358c3bfb4csm4540118edm.31.2022.06.21.15.56.57
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 21 Jun 2022 15:56:56 -0700 (PDT)
+        Tue, 21 Jun 2022 15:56:58 -0700 (PDT)
 From:   Mikhail Sennikovsky <mikhail.sennikovskii@ionos.com>
 To:     netfilter-devel@vger.kernel.org, pablo@netfilter.org,
         mikhail.sennikovsky@gmail.com
 Cc:     Mikhail Sennikovsky <mikhail.sennikovskii@ionos.com>
-Subject: [PATCH 2/3] conntrack.8: man update for -A command support
-Date:   Wed, 22 Jun 2022 00:55:46 +0200
-Message-Id: <20220621225547.69349-3-mikhail.sennikovskii@ionos.com>
+Subject: [PATCH 3/3] tests/conntrack: -A command support
+Date:   Wed, 22 Jun 2022 00:55:47 +0200
+Message-Id: <20220621225547.69349-4-mikhail.sennikovskii@ionos.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20220621225547.69349-1-mikhail.sennikovskii@ionos.com>
 References: <20220621225547.69349-1-mikhail.sennikovskii@ionos.com>
@@ -67,65 +67,115 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 Signed-off-by: Mikhail Sennikovsky <mikhail.sennikovskii@ionos.com>
 ---
- conntrack.8     | 11 ++++++++---
- src/conntrack.c |  1 +
- 2 files changed, 9 insertions(+), 3 deletions(-)
+ tests/conntrack/testsuite/08stdin | 47 ++++++++++++++++++++++++++++++-
+ tests/conntrack/testsuite/10add   | 42 +++++++++++++++++++++++++++
+ 2 files changed, 88 insertions(+), 1 deletion(-)
+ create mode 100644 tests/conntrack/testsuite/10add
 
-diff --git a/conntrack.8 b/conntrack.8
-index 0db427b..b1d859f 100644
---- a/conntrack.8
-+++ b/conntrack.8
-@@ -14,6 +14,8 @@ conntrack \- command line interface for netfilter connection tracking
- .br
- .BR "conntrack -I [table] parameters"
- .br
-+.BR "conntrack -A [table] parameters"
-+.br
- .BR "conntrack -U [table] parameters"
- .br
- .BR "conntrack -E [table] [options]"
-@@ -90,6 +92,9 @@ Delete an entry from the given table.
- .BI "-I, --create "
- Create a new entry from the given table.
- .TP
-+.BI "-A, --add "
-+Same as -I but do not fail if entry exists.
-+.TP
- .BI "-U, --update "
- Update an entry from the given table.
- .TP
-@@ -186,8 +191,8 @@ Use multiple \-l options to specify multiple labels that need to be set.
- .TP
- .BI "--label-add " "LABEL"
- Specify the conntrack label to add to the selected conntracks.
--This option is only available in conjunction with "\-I, \-\-create" or
--"\-U, \-\-update".
-+This option is only available in conjunction with "\-I, \-\-create",
-+"\-A, \-\-add" or "\-U, \-\-update".
- .TP
- .BI "--label-del " "[LABEL]"
- Specify the conntrack label to delete from the selected conntracks.
-@@ -233,7 +238,7 @@ Specify the source address mask.
- For conntracks this option is only available in conjunction with
- "\-L, \-\-dump", "\-E, \-\-event", "\-U \-\-update" or "\-D \-\-delete".
- For expectations this option is only available in conjunction with
--"\-I, \-\-create".
-+"\-I, \-\-create" or "\-A, \-\-add".
- .TP
- .BI "--mask-dst " IP_ADDRESS
- Specify the destination address mask.
-diff --git a/src/conntrack.c b/src/conntrack.c
-index 465a4f9..eace281 100644
---- a/src/conntrack.c
-+++ b/src/conntrack.c
-@@ -359,6 +359,7 @@ static const char *optflags[NUMBER_OF_OPT] = {
- static struct option original_opts[] = {
- 	{"dump", 2, 0, 'L'},
- 	{"create", 2, 0, 'I'},
-+	{"add", 2, 0, 'A'},
- 	{"delete", 2, 0, 'D'},
- 	{"update", 2, 0, 'U'},
- 	{"get", 2, 0, 'G'},
+diff --git a/tests/conntrack/testsuite/08stdin b/tests/conntrack/testsuite/08stdin
+index 1d31176..158c4c3 100644
+--- a/tests/conntrack/testsuite/08stdin
++++ b/tests/conntrack/testsuite/08stdin
+@@ -77,4 +77,49 @@
+ -D -w 123 ;
+ -R - ; OK
+ # validate it via standard command line way
+--D -w 123 ; BAD
+\ No newline at end of file
++-D -w 123 ; BAD
++# create with -A
++# create a conntrack
++-A -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ;
++# create from reply
++-A -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 --state LISTEN -u SEEN_REPLY -t 50 ;
++# create a v6 conntrack
++-A -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ;
++# creae icmp ping request entry
++-A -t 29 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ;
++-R - ; OK
++# create again
++-I -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; BAD
++-I -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 --state LISTEN -u SEEN_REPLY -t 50 ; BAD
++-I -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; BAD
++-I -t 29 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ; BAD
++# repeat, it should succeed
++-A -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ;
++# create from reply
++-A -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 --state LISTEN -u SEEN_REPLY -t 50 ;
++# create a v6 conntrack
++-A -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ;
++# creae icmp ping request entry
++-A -t 29 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ;
++-R - ; OK
++# delete
++-D -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 ;
++# empty lines should be just ignored
++;
++;
++# delete reverse
++-D -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 ;
++# empty lines with spaces or tabs should be ignored as well
++ ;
++	;
++		;
++  ;
++	    ;
++	    	    	;
++# delete v6 conntrack
++-D -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 ;
++# delete icmp ping request entry
++-D -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ;
++;
++;
++-R - ; OK
+diff --git a/tests/conntrack/testsuite/10add b/tests/conntrack/testsuite/10add
+new file mode 100644
+index 0000000..4f9f3b9
+--- /dev/null
++++ b/tests/conntrack/testsuite/10add
+@@ -0,0 +1,42 @@
++#missing destination
++-A -s 1.1.1.1 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; BAD
++#missing source
++-A -d 2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; BAD
++#missing protocol
++-A -s 1.1.1.1 -d 2.2.2.2 --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; BAD
++#missing source port
++-A -s 1.1.1.1 -d 2.2.2.2 -p tcp --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; BAD
++#missing destination port
++-A -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 20 --state LISTEN -u SEEN_REPLY -t 50 ; BAD
++#missing timeout
++-A -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY ; BAD
++# create a conntrack
++-A -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; OK
++# create again
++-A -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; OK
++# delete
++-D -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 ; OK
++# delete again
++-D -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 ; BAD
++# create from reply
++-A -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 --state LISTEN -u SEEN_REPLY -t 50 ; OK
++# create again from reply
++-A -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 --state LISTEN -u SEEN_REPLY -t 50 ; OK
++# delete reverse
++-D -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 ; OK
++# delete reverse again
++-D -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 ; BAD
++# create a v6 conntrack
++-A -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; OK
++# create again a v6 conntrack
++-A -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; OK
++# delete v6 conntrack
++-D -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 ; OK
++# mismatched address family
++-A -s 2001:DB8::1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; BAD
++# creae icmp ping request entry
++-A -t 29 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ; OK
++# creae again icmp ping request entry
++-A -t 29 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ; OK
++# delete icmp ping request entry
++-D -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ; OK
 -- 
 2.25.1
 
