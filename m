@@ -2,117 +2,65 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BFA95CCA481
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B161ACCA47D
 	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jun 2022 09:01:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1355665AbiFVJBJ (ORCPT
+        id S1355734AbiFVJBJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Wed, 22 Jun 2022 05:01:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56754 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56822 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349264AbiFVJBA (ORCPT
+        with ESMTP id S1355761AbiFVJA7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Jun 2022 05:01:00 -0400
+        Wed, 22 Jun 2022 05:00:59 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D849B55B8
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jun 2022 02:00:59 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A79D377EB
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jun 2022 02:00:57 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1o3wEM-0001l0-E6; Wed, 22 Jun 2022 11:00:58 +0200
+        id 1o3wEI-0001kr-9N; Wed, 22 Jun 2022 11:00:54 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v2 1/3] netfilter: nf_conntrack: add missing __rcu annotations
-Date:   Wed, 22 Jun 2022 11:00:45 +0200
-Message-Id: <20220622090047.24586-2-fw@strlen.de>
+Subject: [PATCH nf-next v2 0/3] netfilter: conntrack sparse annotations
+Date:   Wed, 22 Jun 2022 11:00:44 +0200
+Message-Id: <20220622090047.24586-1-fw@strlen.de>
 X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20220622090047.24586-1-fw@strlen.de>
-References: <20220622090047.24586-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Access to the hook pointers use correct helpers but the pointers lack
-the needed __rcu annotation.
+This series reduces the number of generated sparse warnings
+in the netfilter codebase.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- no changes.
+In some cases its just due to a missing '__rcu' annotation
+of the base pointer, but in some other cases there is a
+direct access to a __rcu annotated base pointer.
 
- include/linux/netfilter/nf_conntrack_sip.h   | 2 +-
- include/net/netfilter/nf_conntrack_timeout.h | 2 +-
- net/netfilter/nf_conntrack_pptp.c            | 2 +-
- net/netfilter/nf_conntrack_sip.c             | 2 +-
- net/netfilter/nf_conntrack_timeout.c         | 2 +-
- 5 files changed, 5 insertions(+), 5 deletions(-)
+v2: keep unrelated EXPORT_SYMBOL in patch 3.
 
-diff --git a/include/linux/netfilter/nf_conntrack_sip.h b/include/linux/netfilter/nf_conntrack_sip.h
-index c620521c42bc..dbc614dfe0d5 100644
---- a/include/linux/netfilter/nf_conntrack_sip.h
-+++ b/include/linux/netfilter/nf_conntrack_sip.h
-@@ -164,7 +164,7 @@ struct nf_nat_sip_hooks {
- 				  unsigned int medialen,
- 				  union nf_inet_addr *rtp_addr);
- };
--extern const struct nf_nat_sip_hooks *nf_nat_sip_hooks;
-+extern const struct nf_nat_sip_hooks __rcu *nf_nat_sip_hooks;
- 
- int ct_sip_parse_request(const struct nf_conn *ct, const char *dptr,
- 			 unsigned int datalen, unsigned int *matchoff,
-diff --git a/include/net/netfilter/nf_conntrack_timeout.h b/include/net/netfilter/nf_conntrack_timeout.h
-index fea258983d23..9fdaba911de6 100644
---- a/include/net/netfilter/nf_conntrack_timeout.h
-+++ b/include/net/netfilter/nf_conntrack_timeout.h
-@@ -105,7 +105,7 @@ struct nf_ct_timeout_hooks {
- 	void (*timeout_put)(struct nf_ct_timeout *timeout);
- };
- 
--extern const struct nf_ct_timeout_hooks *nf_ct_timeout_hook;
-+extern const struct nf_ct_timeout_hooks __rcu *nf_ct_timeout_hook;
- #endif
- 
- #endif /* _NF_CONNTRACK_TIMEOUT_H */
-diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_conntrack_pptp.c
-index f3fa367b455f..4c679638df06 100644
---- a/net/netfilter/nf_conntrack_pptp.c
-+++ b/net/netfilter/nf_conntrack_pptp.c
-@@ -45,7 +45,7 @@ MODULE_ALIAS_NFCT_HELPER("pptp");
- 
- static DEFINE_SPINLOCK(nf_pptp_lock);
- 
--const struct nf_nat_pptp_hook *nf_nat_pptp_hook;
-+const struct nf_nat_pptp_hook __rcu *nf_nat_pptp_hook;
- EXPORT_SYMBOL_GPL(nf_nat_pptp_hook);
- 
- #if defined(DEBUG) || defined(CONFIG_DYNAMIC_DEBUG)
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index b83dc9bf0a5d..a88b43624b27 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -60,7 +60,7 @@ module_param(sip_external_media, int, 0600);
- MODULE_PARM_DESC(sip_external_media, "Expect Media streams between external "
- 				     "endpoints (default 0)");
- 
--const struct nf_nat_sip_hooks *nf_nat_sip_hooks;
-+const struct nf_nat_sip_hooks __rcu *nf_nat_sip_hooks;
- EXPORT_SYMBOL_GPL(nf_nat_sip_hooks);
- 
- static int string_len(const struct nf_conn *ct, const char *dptr,
-diff --git a/net/netfilter/nf_conntrack_timeout.c b/net/netfilter/nf_conntrack_timeout.c
-index 0f828d05ea60..821365ed5b2c 100644
---- a/net/netfilter/nf_conntrack_timeout.c
-+++ b/net/netfilter/nf_conntrack_timeout.c
-@@ -22,7 +22,7 @@
- #include <net/netfilter/nf_conntrack_l4proto.h>
- #include <net/netfilter/nf_conntrack_timeout.h>
- 
--const struct nf_ct_timeout_hooks *nf_ct_timeout_hook __read_mostly;
-+const struct nf_ct_timeout_hooks __rcu *nf_ct_timeout_hook __read_mostly;
- EXPORT_SYMBOL_GPL(nf_ct_timeout_hook);
- 
- static int untimeout(struct nf_conn *ct, void *timeout)
+Florian Westphal (3):
+  netfilter: nf_conntrack: add missing __rcu annotations
+  netfilter: nf_conntrack: use rcu accessors where needed
+  netfilter: h323: merge nat hook pointers into one
+
+ include/linux/netfilter/nf_conntrack_h323.h  | 109 ++++----
+ include/linux/netfilter/nf_conntrack_sip.h   |   2 +-
+ include/net/netfilter/nf_conntrack_timeout.h |   2 +-
+ net/ipv4/netfilter/nf_nat_h323.c             |  42 +--
+ net/netfilter/nf_conntrack_broadcast.c       |   6 +-
+ net/netfilter/nf_conntrack_h323_main.c       | 259 +++++++------------
+ net/netfilter/nf_conntrack_helper.c          |   2 +-
+ net/netfilter/nf_conntrack_netlink.c         |   9 +-
+ net/netfilter/nf_conntrack_pptp.c            |   2 +-
+ net/netfilter/nf_conntrack_sip.c             |   9 +-
+ net/netfilter/nf_conntrack_timeout.c         |  18 +-
+ net/netfilter/nfnetlink_cthelper.c           |  10 +-
+ net/netfilter/xt_CT.c                        |  23 +-
+ 13 files changed, 230 insertions(+), 263 deletions(-)
+
 -- 
 2.35.1
 
