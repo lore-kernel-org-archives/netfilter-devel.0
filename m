@@ -2,56 +2,38 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6824CCA47C
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jun 2022 17:26:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55D6DC43334
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jun 2022 18:05:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233850AbiFWR0z (ORCPT
+        id S235987AbiFWSFz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 Jun 2022 13:26:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51178 "EHLO
+        Thu, 23 Jun 2022 14:05:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49280 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232625AbiFWR00 (ORCPT
+        with ESMTP id S235923AbiFWSF2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Jun 2022 13:26:26 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1EE826E780
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2022 10:02:43 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1o4QE4-0006mx-8X; Thu, 23 Jun 2022 19:02:40 +0200
-Date:   Thu, 23 Jun 2022 19:02:40 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH v2] Revert "scanner: remove saddr/daddr from initial
- state"
-Message-ID: <20220623170240.GB21459@breakpoint.cc>
-References: <20220623155241.28859-1-phil@nwl.cc>
+        Thu, 23 Jun 2022 14:05:28 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E4963A1E10
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2022 10:17:31 -0700 (PDT)
+Date:   Thu, 23 Jun 2022 19:17:29 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft 00/18] fixes and improvements for -o/--optimize
+Message-ID: <YrSgKdXUU9Oo4Ejg@salvia>
+References: <20220620083215.1021238-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20220623155241.28859-1-phil@nwl.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20220620083215.1021238-1-pablo@netfilter.org>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Phil Sutter <phil@nwl.cc> wrote:
-> This reverts commit df4ee3171f3e3c0e85dd45d555d7d06e8c1647c5 as it
-> breaks ipsec expression if preceeded by a counter statement:
+On Mon, Jun 20, 2022 at 10:31:57AM +0200, Pablo Neira Ayuso wrote:
+> Hi,
 > 
-> | Error: syntax error, unexpected string, expecting saddr or daddr
-> | add rule ip ipsec-ip4 ipsec-forw counter ipsec out ip daddr 192.168.1.2
-> |                                                       ^^^^^
-> 
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
-> ---
-> Changes since v1:
-> - Fold the two patches into one.
+> The following patchset contains a batch with fix/improvements for
+> -o/--optimize.
 
-Please hold back a bit, I think this is a bug in the scoping code
-on nft side, not a flex or bison limitation.
-
-I've applied the test case locally and will report back on alternate
-fix for this bug.
+For the record: I have pushed out this batch.
