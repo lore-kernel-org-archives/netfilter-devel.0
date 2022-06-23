@@ -2,53 +2,53 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8563CCA47C
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jun 2022 19:38:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E5C7C43334
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jun 2022 19:39:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229447AbiFWTi5 (ORCPT
+        id S229918AbiFWTjM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 Jun 2022 15:38:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57868 "EHLO
+        Thu, 23 Jun 2022 15:39:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60260 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230168AbiFWTii (ORCPT
+        with ESMTP id S229820AbiFWTio (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Jun 2022 15:38:38 -0400
-Received: from mail-pl1-x642.google.com (mail-pl1-x642.google.com [IPv6:2607:f8b0:4864:20::642])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F28591EECF;
-        Thu, 23 Jun 2022 12:27:07 -0700 (PDT)
-Received: by mail-pl1-x642.google.com with SMTP id q18so70597pld.13;
-        Thu, 23 Jun 2022 12:27:07 -0700 (PDT)
+        Thu, 23 Jun 2022 15:38:44 -0400
+Received: from mail-pg1-x542.google.com (mail-pg1-x542.google.com [IPv6:2607:f8b0:4864:20::542])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 10470B40;
+        Thu, 23 Jun 2022 12:27:22 -0700 (PDT)
+Received: by mail-pg1-x542.google.com with SMTP id s185so361300pgs.3;
+        Thu, 23 Jun 2022 12:27:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=i/IuSNY1nTR+i2SmVAA4oqUp1JTqS3dcX7JKuVibnNI=;
-        b=OS5Y1n2KlxPV2GCSCzyO6/im/laq+l0XbrOcYiGEaGjvcB4N+Fwcd+PN3Dbs+a/URO
-         Gc7KdRvBroRDFHmV/BuxDKnVYEerV69Wq7wSYe3kib82WwLvvJ/rXxmfujDwYjTUN0yx
-         4XY/po2aThnbv+CNkV403T+sPWwLnyqJr/VRCerofB5YznNaNFEZF3SqGd/DvpBu50td
-         6IHtqHdmNXur9K0UvJzmE3mZVxoe58bvBRpKUmLkzY9xkgGFGqy31k8h2fbmOWpjUsAb
-         lhuiykwW/V6n2aavl7kyLNYIq1zZCn3chCccDNOyIbtRdY+Pfq6HP1YsWEqsu+6Fr0gD
-         n5Mg==
+        bh=LDMMB1Ic1udOjwnYTAF9EAvUIDzwYnAfTIRHXo9zgGc=;
+        b=WYOP9uI12vWvIF/VGoaDfCyjLyLrIQG3HeAQHx6AlNAO3ymev1wcPw7NPRxao1CSf4
+         6By8IHNN9wjHi2C3vcHf0Ou/+3mBlRsMCOFYOhgWK1ZQHTt3Pf8UQolLXdVAUeVfmufS
+         d0eeHFlXHVA9mPCHK8B2WfDV5C+z01xYpqXEVK2pGFIHgYaGMnhVOv9d3N/jVzzf3/35
+         pbIA6idvKhbpjBs+IWJbzpYVebj79CS2/F7Wu3d/tW3rI+gcVIyZozUV37KoPzDzPLbQ
+         qoHx0Hw5+yqN6IQQJ5Do4IdWrt305/a2k/F+aE+qKKbMZxdXELj1UvAayfLli72t5MAu
+         dzpA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=i/IuSNY1nTR+i2SmVAA4oqUp1JTqS3dcX7JKuVibnNI=;
-        b=Ir8tjwI6TRYSt2eoJ5CTdwHKNawhmQUjWF06H6WXOtFccvbgZaaKu8E6+plNPxMtXm
-         ptxaTtn1OP+7VgaAU7fOm/RRJI7kMrofYyqKXb+MfuV9riN/fDghZl+ysA3+diArrzrV
-         55gLLyS8U2cDQGm0+WvwdIC1VC0odewaSUEUDq20wp2jH+j++9OYp73/dH9EKqSljsRL
-         Cr76WUVwk3lRFaDb6eot18Pjc5TYpiOvit0L0DZYGHWzzVLB0OFRutt5uhlAqFzhwYZ6
-         rPXwXBJ8PgMm/dtE8vev6f5nF2N3IR8xTEYwJhrJkSQD5C/Uj7gdE9hPPIu1ueXG0sag
-         Xveg==
-X-Gm-Message-State: AJIora/A/RO8cYSAaMyIVDxokDkTONpbgutJmFcV1KDFF2y0v67WY+8d
-        NcpnifU1yyRmQXDmozIlJ6c0mzj34NtH7w==
-X-Google-Smtp-Source: AGRyM1tCb5EtyO0w4L+lAX/vi9CssffJ8U2CoLQ2TKrl5ySJ9rEe2tunON4aklOp4IuAqv/AstaI/A==
-X-Received: by 2002:a17:902:f787:b0:16a:1e2b:e97 with SMTP id q7-20020a170902f78700b0016a1e2b0e97mr24672383pln.27.1656012427265;
-        Thu, 23 Jun 2022 12:27:07 -0700 (PDT)
+        bh=LDMMB1Ic1udOjwnYTAF9EAvUIDzwYnAfTIRHXo9zgGc=;
+        b=cwmacTu28H/AfRSpt20Bu7pHXWCVUjmAI733qvOC4ejnmZ10ZN4GVz19plcOzrdkK/
+         lpx7vuqR+oi+v4qGSAU0dihCT2iTEcKasWNSwx6MW0knYGFskoJx7pvDCq0IyXHlWnv2
+         aXbRxMvunbdYPCLzCNYH32o0WmmGr1U6p695nlOWFKCQLU6ghg5230OLBfAJnV+p+tJY
+         A/tfIq0hkW7m69fWrw3CYJzj3rBoRbBvULksw4OoEFYhpOdfpCEhynSKbp9ZHLt4Y8Ib
+         JgC6lT4mETEUngSEYp5lvCE4Pb3ziBos1zaGBenJtZmFgnY+H2r6w8l7ihQTQOHVQB8S
+         vj/A==
+X-Gm-Message-State: AJIora8XaCpHclbB9fHYJsJFFn9g4WJ8cjJjoAGi72aDT+NWct8F2A5g
+        u8bo81xylZbaof+nqsUfbXzSp4PThNGvvw==
+X-Google-Smtp-Source: AGRyM1uIwlj8y+VCuthdxDkYDoyBb/AtuvfZbEHxND69OlSl93Kj36LqGbaKmgjCczFvZytzbAbapA==
+X-Received: by 2002:a63:9516:0:b0:40c:c3b9:f984 with SMTP id p22-20020a639516000000b0040cc3b9f984mr8801249pgd.116.1656012441571;
+        Thu, 23 Jun 2022 12:27:21 -0700 (PDT)
 Received: from localhost ([2405:201:6014:d0c0:79de:f3f4:353c:8616])
-        by smtp.gmail.com with ESMTPSA id z19-20020aa78893000000b0050dc76281e0sm786pfe.186.2022.06.23.12.27.06
+        by smtp.gmail.com with ESMTPSA id x9-20020a170902820900b0016a11e839fcsm154218pln.208.2022.06.23.12.27.19
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 23 Jun 2022 12:27:06 -0700 (PDT)
+        Thu, 23 Jun 2022 12:27:21 -0700 (PDT)
 From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
 To:     bpf@vger.kernel.org
 Cc:     Lorenzo Bianconi <lorenzo@kernel.org>,
@@ -60,14 +60,14 @@ Cc:     Lorenzo Bianconi <lorenzo@kernel.org>,
         Jesper Dangaard Brouer <brouer@redhat.com>,
         =?UTF-8?q?Toke=20H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>,
         netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: [PATCH bpf-next v5 5/8] net: netfilter: Add kfuncs to set and change CT status
-Date:   Fri, 24 Jun 2022 00:56:34 +0530
-Message-Id: <20220623192637.3866852-6-memxor@gmail.com>
+Subject: [PATCH bpf-next v5 7/8] selftests/bpf: Add tests for new nf_conntrack kfuncs
+Date:   Fri, 24 Jun 2022 00:56:36 +0530
+Message-Id: <20220623192637.3866852-8-memxor@gmail.com>
 X-Mailer: git-send-email 2.36.1
 In-Reply-To: <20220623192637.3866852-1-memxor@gmail.com>
 References: <20220623192637.3866852-1-memxor@gmail.com>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=7434; i=memxor@gmail.com; h=from:subject; bh=5vZDzfYMdwGatzyK+LNL9zGsmO8GE8lBDG0BNOIDIhU=; b=owEBbQKS/ZANAwAIAUzgyIZIvxHKAcsmYgBitL5LCo0N3KkU4qPBz5fo08oK1ygYQ6wgi4A/0kHO hm67GHWJAjMEAAEIAB0WIQRLvip+Buz51YI8YRFM4MiGSL8RygUCYrS+SwAKCRBM4MiGSL8Ryu0zEA CNlOeZlLcx9yjWSQoQMUbCFe1X6P/EDzjTY9teX9qlqXqfbuVAi4wLoEUZDiAUQmAyN5BJhWRhCmFm 8Br6PgvwPVfIiWo9e/cpqJdebMiNkQcjaMDdMEeu9TmSXVQMhLQAbN5IzKxEhb8nOuJNSxAwOK+LuB W8yQLcN61aTC8X5xciHM9kEwlPJpRIPpdSrcVQqFn6GR3Y+eLmvwbUzVMV/i9bVwP6/UWzJ+1iSuET ZL8KwS7yP48EYkfExDbvp9rhBFVuA7FTvc8pJyGFpEep6loVAI4nl2X9ioQcGg1OVNNLfJngFp/tNC zQ1KyPJW7NbfBMya1JIwP3L5oVEIiS1lM2ICwE8kr1Od9pw0SqkmDrQs1AW6dIW7ep7UA0VBIxk2Ye md6VQkApVTTBVckhCaFRFVGS8KITLm01K2bT19px0+HUDYHz9KvOSNDdedFcCF4uJiBFfn0xZBJgBp 9wwLK5ZcgtWZrZpJakrXpIsVnyYKuA8YiFLip7bCYO/ZJiOX7hhBEBXbX3ymIV5rEiFQJ2m9IxioxM S0qJiDpP4lBxL06o44xH5PlgHxg1DrqM9VwIACT5vaFUmhgXa3Rg1l3Wpa/IhWAoR0/DMBy5/kMRSl OdfUaSstDRhRFI0LhBOwhVaybYklK6Mdl9VBDXayO3nIxUgYcGItC4FDiQbQ==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=8248; i=memxor@gmail.com; h=from:subject; bh=RpoFKQKq9TIc9XqrOPJ2hB0Jl5vDHPj07vqbLlf3DWg=; b=owEBbQKS/ZANAwAIAUzgyIZIvxHKAcsmYgBitL5Mz1wl9nNkK93InlETkiO4rTzBrNyJVMNaKsz2 O8CO30WJAjMEAAEIAB0WIQRLvip+Buz51YI8YRFM4MiGSL8RygUCYrS+TAAKCRBM4MiGSL8RytsfD/ 4qy+L3ljg5vGv2kVUdOUqOQNNpTlOrGkc80d1eVedutHQvPrXBQ+ndXaBIG9CeaKdmV6lQCBwWwWG8 aDMNCGJzUvVW/UNdlNgvXJPuVjirR2lnE2WjzM04i6QZfiySLS1cMH2wOOXreO6Lrzm0YgEbpXjaVh x0f7t94qnGp2zM6ctfUTXE/wSd6kHHREJAL5frZ1n/ieZoxMqf4XpWTD0h36e6zhzrqv25vzvIHS2h jTdXD70eAIxuvdXqXw7oxGjZw4dhO9lLJ2UY7Pb91BObCOcyAlUTg9Oo3YF4h3Cmg59YLwhpPJKvno e1JHZwJqFg04eBrG0qEdI1UoPqUx/msrEpqr5cKSFtEFN2qnsQwTeLDDscm/k6Pyxz9ZtcIIbckS0D cwF0d08IWgh7ZRHvUPEIitZ79wfwjGvAZWu75DXURWOhYoPgb3DQZCanrC3bOuTyhDhc3DFSrYC/zc hhk4jCLuNvBzQ/zZ0KitccI6QD650WeoNpEiz1znu/XTa1AOhMGoV7VicRpEX6rlfsEQPH91nUJgD1 b4vzLOYw1l9+eBBbaz+JMMUvd7L8BhKZrIuj2IXNitS9itv2T2Y007LAOhvEvL3tOEnLJOC9eL4mf5 hMPLP1z2nSB4qdFprymKU2Gk8XP7f7MeYCskWnfvh24AXeVjvWGcNU7TnJ/w==
 X-Developer-Key: i=memxor@gmail.com; a=openpgp; fpr=4BBE2A7E06ECF9D5823C61114CE0C88648BF11CA
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -76,213 +76,221 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Lorenzo Bianconi <lorenzo@kernel.org>
 
-Introduce bpf_ct_set_status and bpf_ct_change_status kfunc helpers in
-order to set nf_conn field of allocated entry or update nf_conn status
-field of existing inserted entry. Use nf_ct_change_status_common to
-share the permitted status field changes between netlink and BPF side
-by refactoring ctnetlink_change_status.
-
-It is required to introduce two kfuncs taking nf_conn___init and nf_conn
-instead of sharing one because __ref suffix on the parameter name causes
-strict type checking. This would disallow passing nf_conn___init to
-kfunc taking nf_conn, and vice versa. We cannot remove the __ref suffix
-as we only want to accept refcounted pointers and not e.g. ct->master.
-
-Hence, bpf_ct_set_* kfuncs are meant to be used on allocated CT, and
-bpf_ct_change_* kfuncs are meant to be used on inserted or looked up
-CT entry.
+Introduce selftests for the following kfunc helpers:
+- bpf_xdp_ct_alloc
+- bpf_skb_ct_alloc
+- bpf_ct_insert_entry
+- bpf_ct_set_timeout
+- bpf_ct_change_timeout
+- bpf_ct_set_status
+- bpf_ct_change_status
 
 Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
-Co-developed-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
 Signed-off-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
 ---
- include/net/netfilter/nf_conntrack_core.h |  2 ++
- net/netfilter/nf_conntrack_bpf.c          | 37 +++++++++++++++++++++
- net/netfilter/nf_conntrack_core.c         | 40 +++++++++++++++++++++++
- net/netfilter/nf_conntrack_netlink.c      | 39 ++--------------------
- 4 files changed, 81 insertions(+), 37 deletions(-)
+ .../testing/selftests/bpf/prog_tests/bpf_nf.c |  8 ++
+ .../testing/selftests/bpf/progs/test_bpf_nf.c | 85 ++++++++++++++++---
+ 2 files changed, 81 insertions(+), 12 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
-index 3b0f7d0eebae..3cd3a6e631aa 100644
---- a/include/net/netfilter/nf_conntrack_core.h
-+++ b/include/net/netfilter/nf_conntrack_core.h
-@@ -98,6 +98,8 @@ static inline void __nf_ct_set_timeout(struct nf_conn *ct, u64 timeout)
+diff --git a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
+index dd30b1e3a67c..6d53686a7e46 100644
+--- a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
++++ b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
+@@ -39,6 +39,14 @@ void test_bpf_nf_ct(int mode)
+ 	ASSERT_EQ(skel->bss->test_enonet_netns_id, -ENONET, "Test ENONET for bad but valid netns_id");
+ 	ASSERT_EQ(skel->bss->test_enoent_lookup, -ENOENT, "Test ENOENT for failed lookup");
+ 	ASSERT_EQ(skel->bss->test_eafnosupport, -EAFNOSUPPORT, "Test EAFNOSUPPORT for invalid len__tuple");
++	ASSERT_EQ(skel->data->test_alloc_entry, 0, "Test for alloc new entry");
++	ASSERT_EQ(skel->data->test_insert_entry, 0, "Test for insert new entry");
++	ASSERT_EQ(skel->data->test_succ_lookup, 0, "Test for successful lookup");
++	/* allow some tolerance for test_delta_timeout value to avoid races. */
++	ASSERT_GT(skel->bss->test_delta_timeout, 9, "Test for min ct timeout update");
++	ASSERT_LE(skel->bss->test_delta_timeout, 10, "Test for max ct timeout update");
++	/* expected status is IPS_SEEN_REPLY */
++	ASSERT_EQ(skel->bss->test_status, 2, "Test for ct status update ");
+ end:
+ 	test_bpf_nf__destroy(skel);
  }
+diff --git a/tools/testing/selftests/bpf/progs/test_bpf_nf.c b/tools/testing/selftests/bpf/progs/test_bpf_nf.c
+index f00a9731930e..196cd8dfe42a 100644
+--- a/tools/testing/selftests/bpf/progs/test_bpf_nf.c
++++ b/tools/testing/selftests/bpf/progs/test_bpf_nf.c
+@@ -8,6 +8,8 @@
+ #define EINVAL 22
+ #define ENOENT 2
  
- int __nf_ct_change_timeout(struct nf_conn *ct, u64 cta_timeout);
-+void __nf_ct_change_status(struct nf_conn *ct, unsigned long on, unsigned long off);
-+int nf_ct_change_status_common(struct nf_conn *ct, unsigned int status);
++extern unsigned long CONFIG_HZ __kconfig;
++
+ int test_einval_bpf_tuple = 0;
+ int test_einval_reserved = 0;
+ int test_einval_netns_id = 0;
+@@ -16,6 +18,11 @@ int test_eproto_l4proto = 0;
+ int test_enonet_netns_id = 0;
+ int test_enoent_lookup = 0;
+ int test_eafnosupport = 0;
++int test_alloc_entry = -EINVAL;
++int test_insert_entry = -EAFNOSUPPORT;
++int test_succ_lookup = -ENOENT;
++u32 test_delta_timeout = 0;
++u32 test_status = 0;
  
- #endif
+ struct nf_conn;
  
-diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrack_bpf.c
-index db04874da950..6975dda77173 100644
---- a/net/netfilter/nf_conntrack_bpf.c
-+++ b/net/netfilter/nf_conntrack_bpf.c
-@@ -394,6 +394,39 @@ int bpf_ct_change_timeout(struct nf_conn *nfct__ref, u32 timeout)
- 	return __nf_ct_change_timeout(nfct__ref, msecs_to_jiffies(timeout));
- }
+@@ -26,31 +33,44 @@ struct bpf_ct_opts___local {
+ 	u8 reserved[3];
+ } __attribute__((preserve_access_index));
  
-+/* bpf_ct_set_status - Set status field of allocated nf_conn
-+ *
-+ * Set the status field of the newly allocated nf_conn before insertion.
-+ * This must be invoked for referenced PTR_TO_BTF_ID to nf_conn___init.
-+ *
-+ * Parameters:
-+ * @nfct__ref    - Pointer to referenced nf_conn object, obtained using
-+ *		   bpf_xdp_ct_alloc or bpf_skb_ct_alloc.
-+ * @status       - New status value.
-+ */
-+int bpf_ct_set_status(const struct nf_conn___init *nfct__ref, u32 status)
-+{
-+	return nf_ct_change_status_common((struct nf_conn *)nfct__ref, status);
-+}
-+
-+/* bpf_ct_change_status - Change status of inserted nf_conn
-+ *
-+ * Change the status field of the provided connection tracking entry.
-+ * This must be invoked for referenced PTR_TO_BTF_ID to nf_conn.
-+ *
-+ * Parameters:
-+ * @nfct__ref    - Pointer to referenced nf_conn object, obtained using
-+ *		   bpf_ct_insert_entry, bpf_xdp_ct_lookup or bpf_skb_ct_lookup.
-+ * @status       - New status value.
-+ */
-+int bpf_ct_change_status(struct nf_conn *nfct__ref, u32 status)
-+{
-+	/* We need a different kfunc because __ref suffix makes type matching
-+	 * strict, so normal nf_conn cannot be passed to bpf_ct_set_status.
-+	 */
-+	return nf_ct_change_status_common(nfct__ref, status);
-+}
-+
- __diag_pop()
++struct nf_conn *bpf_xdp_ct_alloc(struct xdp_md *, struct bpf_sock_tuple *, u32,
++				 struct bpf_ct_opts___local *, u32) __ksym;
+ struct nf_conn *bpf_xdp_ct_lookup(struct xdp_md *, struct bpf_sock_tuple *, u32,
+ 				  struct bpf_ct_opts___local *, u32) __ksym;
++struct nf_conn *bpf_skb_ct_alloc(struct __sk_buff *, struct bpf_sock_tuple *, u32,
++				 struct bpf_ct_opts___local *, u32) __ksym;
+ struct nf_conn *bpf_skb_ct_lookup(struct __sk_buff *, struct bpf_sock_tuple *, u32,
+ 				  struct bpf_ct_opts___local *, u32) __ksym;
++struct nf_conn *bpf_ct_insert_entry(struct nf_conn *) __ksym;
+ void bpf_ct_release(struct nf_conn *) __ksym;
++void bpf_ct_set_timeout(struct nf_conn *, u32) __ksym;
++int bpf_ct_change_timeout(struct nf_conn *, u32) __ksym;
++int bpf_ct_set_status(struct nf_conn *, u32) __ksym;
++int bpf_ct_change_status(struct nf_conn *, u32) __ksym;
  
- BTF_SET_START(nf_ct_xdp_check_kfunc_ids)
-@@ -403,6 +436,8 @@ BTF_ID(func, bpf_ct_insert_entry)
- BTF_ID(func, bpf_ct_release)
- BTF_ID(func, bpf_ct_set_timeout);
- BTF_ID(func, bpf_ct_change_timeout);
-+BTF_ID(func, bpf_ct_set_status);
-+BTF_ID(func, bpf_ct_change_status);
- BTF_SET_END(nf_ct_xdp_check_kfunc_ids)
- 
- BTF_SET_START(nf_ct_tc_check_kfunc_ids)
-@@ -412,6 +447,8 @@ BTF_ID(func, bpf_ct_insert_entry)
- BTF_ID(func, bpf_ct_release)
- BTF_ID(func, bpf_ct_set_timeout);
- BTF_ID(func, bpf_ct_change_timeout);
-+BTF_ID(func, bpf_ct_set_status);
-+BTF_ID(func, bpf_ct_change_status);
- BTF_SET_END(nf_ct_tc_check_kfunc_ids)
- 
- BTF_SET_START(nf_ct_acquire_kfunc_ids)
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 572f59a5e936..66a0aa8dbc3b 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -2807,4 +2807,44 @@ int __nf_ct_change_timeout(struct nf_conn *ct, u64 timeout)
- }
- EXPORT_SYMBOL_GPL(__nf_ct_change_timeout);
- 
-+void __nf_ct_change_status(struct nf_conn *ct, unsigned long on, unsigned long off)
-+{
-+	unsigned int bit;
-+
-+	/* Ignore these unchangable bits */
-+	on &= ~IPS_UNCHANGEABLE_MASK;
-+	off &= ~IPS_UNCHANGEABLE_MASK;
-+
-+	for (bit = 0; bit < __IPS_MAX_BIT; bit++) {
-+		if (on & (1 << bit))
-+			set_bit(bit, &ct->status);
-+		else if (off & (1 << bit))
-+			clear_bit(bit, &ct->status);
-+	}
-+}
-+EXPORT_SYMBOL_GPL(__nf_ct_change_status);
-+
-+int nf_ct_change_status_common(struct nf_conn *ct, unsigned int status)
-+{
-+	unsigned long d;
-+
-+	d = ct->status ^ status;
-+
-+	if (d & (IPS_EXPECTED|IPS_CONFIRMED|IPS_DYING))
-+		/* unchangeable */
-+		return -EBUSY;
-+
-+	if (d & IPS_SEEN_REPLY && !(status & IPS_SEEN_REPLY))
-+		/* SEEN_REPLY bit can only be set */
-+		return -EBUSY;
-+
-+	if (d & IPS_ASSURED && !(status & IPS_ASSURED))
-+		/* ASSURED bit can only be set */
-+		return -EBUSY;
-+
-+	__nf_ct_change_status(ct, status, 0);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(nf_ct_change_status_common);
-+
- #endif
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index b1de07c73845..e02832ef9b9f 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1890,45 +1890,10 @@ ctnetlink_parse_nat_setup(struct nf_conn *ct,
- }
- #endif
- 
--static void
--__ctnetlink_change_status(struct nf_conn *ct, unsigned long on,
--			  unsigned long off)
--{
--	unsigned int bit;
--
--	/* Ignore these unchangable bits */
--	on &= ~IPS_UNCHANGEABLE_MASK;
--	off &= ~IPS_UNCHANGEABLE_MASK;
--
--	for (bit = 0; bit < __IPS_MAX_BIT; bit++) {
--		if (on & (1 << bit))
--			set_bit(bit, &ct->status);
--		else if (off & (1 << bit))
--			clear_bit(bit, &ct->status);
--	}
--}
--
- static int
- ctnetlink_change_status(struct nf_conn *ct, const struct nlattr * const cda[])
+ static __always_inline void
+-nf_ct_test(struct nf_conn *(*func)(void *, struct bpf_sock_tuple *, u32,
+-				   struct bpf_ct_opts___local *, u32),
++nf_ct_test(struct nf_conn *(*lookup_fn)(void *, struct bpf_sock_tuple *, u32,
++					struct bpf_ct_opts___local *, u32),
++	   struct nf_conn *(*alloc_fn)(void *, struct bpf_sock_tuple *, u32,
++				       struct bpf_ct_opts___local *, u32),
+ 	   void *ctx)
  {
--	unsigned long d;
--	unsigned int status = ntohl(nla_get_be32(cda[CTA_STATUS]));
--	d = ct->status ^ status;
--
--	if (d & (IPS_EXPECTED|IPS_CONFIRMED|IPS_DYING))
--		/* unchangeable */
--		return -EBUSY;
--
--	if (d & IPS_SEEN_REPLY && !(status & IPS_SEEN_REPLY))
--		/* SEEN_REPLY bit can only be set */
--		return -EBUSY;
--
--	if (d & IPS_ASSURED && !(status & IPS_ASSURED))
--		/* ASSURED bit can only be set */
--		return -EBUSY;
--
--	__ctnetlink_change_status(ct, status, 0);
--	return 0;
-+	return nf_ct_change_status_common(ct, ntohl(nla_get_be32(cda[CTA_STATUS])));
+ 	struct bpf_ct_opts___local opts_def = { .l4proto = IPPROTO_TCP, .netns_id = -1 };
+ 	struct bpf_sock_tuple bpf_tuple;
+ 	struct nf_conn *ct;
++	int err;
+ 
+ 	__builtin_memset(&bpf_tuple, 0, sizeof(bpf_tuple.ipv4));
+ 
+-	ct = func(ctx, NULL, 0, &opts_def, sizeof(opts_def));
++	ct = lookup_fn(ctx, NULL, 0, &opts_def, sizeof(opts_def));
+ 	if (ct)
+ 		bpf_ct_release(ct);
+ 	else
+ 		test_einval_bpf_tuple = opts_def.error;
+ 
+ 	opts_def.reserved[0] = 1;
+-	ct = func(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def, sizeof(opts_def));
++	ct = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
++		       sizeof(opts_def));
+ 	opts_def.reserved[0] = 0;
+ 	opts_def.l4proto = IPPROTO_TCP;
+ 	if (ct)
+@@ -59,21 +79,24 @@ nf_ct_test(struct nf_conn *(*func)(void *, struct bpf_sock_tuple *, u32,
+ 		test_einval_reserved = opts_def.error;
+ 
+ 	opts_def.netns_id = -2;
+-	ct = func(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def, sizeof(opts_def));
++	ct = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
++		       sizeof(opts_def));
+ 	opts_def.netns_id = -1;
+ 	if (ct)
+ 		bpf_ct_release(ct);
+ 	else
+ 		test_einval_netns_id = opts_def.error;
+ 
+-	ct = func(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def, sizeof(opts_def) - 1);
++	ct = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
++		       sizeof(opts_def) - 1);
+ 	if (ct)
+ 		bpf_ct_release(ct);
+ 	else
+ 		test_einval_len_opts = opts_def.error;
+ 
+ 	opts_def.l4proto = IPPROTO_ICMP;
+-	ct = func(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def, sizeof(opts_def));
++	ct = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
++		       sizeof(opts_def));
+ 	opts_def.l4proto = IPPROTO_TCP;
+ 	if (ct)
+ 		bpf_ct_release(ct);
+@@ -81,37 +104,75 @@ nf_ct_test(struct nf_conn *(*func)(void *, struct bpf_sock_tuple *, u32,
+ 		test_eproto_l4proto = opts_def.error;
+ 
+ 	opts_def.netns_id = 0xf00f;
+-	ct = func(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def, sizeof(opts_def));
++	ct = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
++		       sizeof(opts_def));
+ 	opts_def.netns_id = -1;
+ 	if (ct)
+ 		bpf_ct_release(ct);
+ 	else
+ 		test_enonet_netns_id = opts_def.error;
+ 
+-	ct = func(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def, sizeof(opts_def));
++	ct = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
++		       sizeof(opts_def));
+ 	if (ct)
+ 		bpf_ct_release(ct);
+ 	else
+ 		test_enoent_lookup = opts_def.error;
+ 
+-	ct = func(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4) - 1, &opts_def, sizeof(opts_def));
++	ct = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4) - 1, &opts_def,
++		       sizeof(opts_def));
+ 	if (ct)
+ 		bpf_ct_release(ct);
+ 	else
+ 		test_eafnosupport = opts_def.error;
++
++	bpf_tuple.ipv4.saddr = bpf_get_prandom_u32(); /* src IP */
++	bpf_tuple.ipv4.daddr = bpf_get_prandom_u32(); /* dst IP */
++	bpf_tuple.ipv4.sport = bpf_get_prandom_u32(); /* src port */
++	bpf_tuple.ipv4.dport = bpf_get_prandom_u32(); /* dst port */
++
++	ct = alloc_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
++		      sizeof(opts_def));
++	if (ct) {
++		struct nf_conn *ct_ins;
++
++		bpf_ct_set_timeout(ct, 10000);
++		bpf_ct_set_status(ct, IPS_CONFIRMED);
++
++		ct_ins = bpf_ct_insert_entry(ct);
++		if (ct_ins) {
++			struct nf_conn *ct_lk;
++
++			ct_lk = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4),
++					  &opts_def, sizeof(opts_def));
++			if (ct_lk) {
++				/* update ct entry timeout */
++				bpf_ct_change_timeout(ct_lk, 10000);
++				test_delta_timeout = ct_lk->timeout - bpf_jiffies64();
++				test_delta_timeout /= CONFIG_HZ;
++				test_status = IPS_SEEN_REPLY;
++				bpf_ct_change_status(ct_lk, IPS_SEEN_REPLY);
++				bpf_ct_release(ct_lk);
++				test_succ_lookup = 0;
++			}
++			bpf_ct_release(ct_ins);
++			test_insert_entry = 0;
++		}
++		test_alloc_entry = 0;
++	}
  }
  
- static int
-@@ -2825,7 +2790,7 @@ ctnetlink_update_status(struct nf_conn *ct, const struct nlattr * const cda[])
- 	 * unchangeable bits but do not error out. Also user programs
- 	 * are allowed to clear the bits that they are allowed to change.
- 	 */
--	__ctnetlink_change_status(ct, status, ~status);
-+	__nf_ct_change_status(ct, status, ~status);
+ SEC("xdp")
+ int nf_xdp_ct_test(struct xdp_md *ctx)
+ {
+-	nf_ct_test((void *)bpf_xdp_ct_lookup, ctx);
++	nf_ct_test((void *)bpf_xdp_ct_lookup, (void *)bpf_xdp_ct_alloc, ctx);
+ 	return 0;
+ }
+ 
+ SEC("tc")
+ int nf_skb_ct_test(struct __sk_buff *ctx)
+ {
+-	nf_ct_test((void *)bpf_skb_ct_lookup, ctx);
++	nf_ct_test((void *)bpf_skb_ct_lookup, (void *)bpf_skb_ct_alloc, ctx);
  	return 0;
  }
  
