@@ -2,83 +2,79 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C00DCC43334
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jun 2022 20:02:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0928C43334
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jun 2022 08:01:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236417AbiFVUC4 (ORCPT
+        id S230298AbiFWIBv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 Jun 2022 16:02:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39566 "EHLO
+        Thu, 23 Jun 2022 04:01:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46538 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234514AbiFVUCz (ORCPT
+        with ESMTP id S230263AbiFWIBu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Jun 2022 16:02:55 -0400
-X-Greylist: delayed 352 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 22 Jun 2022 13:02:47 PDT
-Received: from cargova.sijanec.eu (cargova.sijanec.eu [93.103.235.126])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8731F403E3
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jun 2022 13:02:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=sijanec.eu; s=mail;
-        t=1655927809; bh=S3WryCVQLoD2Sly4OH8kyrC22P5nmXGsxsAneLHnrsw=;
-        h=Date:From:To:Subject:From;
-        b=BsxRRzoyBkrFat1QidHnmQuEr/rUde7473vX8bKLeXyiIekFb7H+nRuhdeoMklSH/
-         G297W+/SsKp7EMBCcjuY8ti+5BHLiTaKdU9OAJH17yMKFhESsMHHLEk4j8hJwDzrmU
-         IBon9peHWUTpKwbD66jUaes9OkATywxqc7uKocemdDh5TR08Lc0tmp8Kf5lD8lwEx6
-         +pY8zi1uwdn42GrWk8tC4YJXT0Cfw/aeSkAG7yuxU+bzh2ZlWw163LDGDuCQYEjvXQ
-         qtrSYgdeX72PuFMJmfQZNwPTYCkMvaUuO3MaExiLjcpDuCwd1hi/OM9nLW0lVFFPEo
-         +Z85yvGfriWgg==
-Date:   Wed, 22 Jun 2022 21:56:47 +0200
-From:   Anton Luka =?UTF-8?B?xaBpamFuZWM=?= <anton@sijanec.eu>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH] xtables-monitor: add missing spaces in printed str
-Message-ID: <20220622215647.5d996055@varovalka>
-X-Mailer: Claws Mail 3.18.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
-X-Archive: No
-X-No-Archive: Yes
-X-Face: W%?.c0z<^"^iL51:]$qinn#Qg"hoo"ls4ROyFmgZTNa,416rVqk]"&JuYi}MI0D,~{j_Zx%
- p;PV5v7tV0Bb01AxV+VeriVd=LQb$Z/N/./N2"3z3c"t'~bF:s=bdjK3?$1LLej7@0+?NfbZ!`rgz$
- yW[M,eth4!Z_5&p*)(@N67tYwd8&??n7Ck|>4
+        Thu, 23 Jun 2022 04:01:50 -0400
+Received: from mail.nfschina.com (unknown [IPv6:2400:dd01:100f:2:72e2:84ff:fe10:5f45])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6059D47389;
+        Thu, 23 Jun 2022 01:01:47 -0700 (PDT)
+Received: from localhost (unknown [127.0.0.1])
+        by mail.nfschina.com (Postfix) with ESMTP id B521E1E80CCC;
+        Thu, 23 Jun 2022 16:01:28 +0800 (CST)
+X-Virus-Scanned: amavisd-new at test.com
+Received: from mail.nfschina.com ([127.0.0.1])
+        by localhost (mail.nfschina.com [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id Pa5kxhsLTUu4; Thu, 23 Jun 2022 16:01:26 +0800 (CST)
+Received: from localhost.localdomain (unknown [112.64.61.33])
+        (Authenticated sender: jiaming@nfschina.com)
+        by mail.nfschina.com (Postfix) with ESMTPA id 5388D1E80C85;
+        Thu, 23 Jun 2022 16:01:25 +0800 (CST)
+From:   Zhang Jiaming <jiaming@nfschina.com>
+To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+        pabeni@redhat.com
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        liqiong@nfschina.com, renyu@nfschina.com,
+        Zhang Jiaming <jiaming@nfschina.com>
+Subject: [PATCH] netfilter: Fix spelling mistake
+Date:   Thu, 23 Jun 2022 16:01:41 +0800
+Message-Id: <20220623080141.7567-1-jiaming@nfschina.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-when printing the ID and OPTs in iptables/xtables-monitor.c, a space is
-missing after the string, thereby concatenating the number with the next
-item in the printed PACKET line.
+Change 'succesful' to 'successful'.
+Change 'transation' to 'transaction'.
 
-Signed-off-by: Anton Luka =C5=A0ijanec <anton@sijanec.eu>
+Signed-off-by: Zhang Jiaming <jiaming@nfschina.com>
 ---
- iptables/xtables-monitor.c | 4 ++--
+ net/netfilter/nft_set_bitmap.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/iptables/xtables-monitor.c b/iptables/xtables-monitor.c
-index 905bb7fe..a1eba2f4 100644
---- a/iptables/xtables-monitor.c
-+++ b/iptables/xtables-monitor.c
-@@ -339,7 +339,7 @@ static void trace_print_packet(const struct nftnl_trace=
- *nlt, struct cb_arg *arg
- 			inet_ntop(AF_INET, &iph->daddr, addrbuf, sizeof(addrbuf));
- 			printf("DST=3D%s ", addrbuf);
-=20
--			printf("LEN=3D%d TOS=3D0x%x TTL=3D%d ID=3D%d", ntohs(iph->tot_len), iph=
-->tos, iph->ttl, ntohs(iph->id));
-+			printf("LEN=3D%d TOS=3D0x%x TTL=3D%d ID=3D%d ", ntohs(iph->tot_len), ip=
-h->tos, iph->ttl, ntohs(iph->id));
- 			if (iph->frag_off & htons(0x8000))
- 				printf("CE ");
- 			if (iph->frag_off & htons(IP_DF))
-@@ -362,7 +362,7 @@ static void trace_print_packet(const struct nftnl_trace=
- *nlt, struct cb_arg *arg
- 				printf("OPT (");
- 				for (i =3D 0; i < optsize; i++)
- 					printf("%02X", op[i]);
--				printf(")");
-+				printf(") ");
- 			}
- 			break;
- 		}
---=20
-2.35.1
+diff --git a/net/netfilter/nft_set_bitmap.c b/net/netfilter/nft_set_bitmap.c
+index e7ae5914971e..96081ac8d2b4 100644
+--- a/net/netfilter/nft_set_bitmap.c
++++ b/net/netfilter/nft_set_bitmap.c
+@@ -21,7 +21,7 @@ struct nft_bitmap_elem {
+  * the element state in the current and the future generation.
+  *
+  * An element can be in three states. The generation cursor is represented using
+- * the ^ character, note that this cursor shifts on every succesful transaction.
++ * the ^ character, note that this cursor shifts on every successful transaction.
+  * If no transaction is going on, we observe all elements are in the following
+  * state:
+  *
+@@ -39,7 +39,7 @@ struct nft_bitmap_elem {
+  * 10 = this element is active in the current generation and it becomes inactive
+  * ^    in the next one. This happens when the element is deactivated but commit
+  *      path has not yet been executed yet, so removal is still pending. On
+- *      transation abortion, the next generation bit is reset to go back to
++ *      transaction abortion, the next generation bit is reset to go back to
+  *      restore its previous state.
+  */
+ struct nft_bitmap {
+-- 
+2.25.1
 
