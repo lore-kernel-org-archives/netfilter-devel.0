@@ -2,82 +2,101 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78919CCA47C
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jun 2022 18:08:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B4CCC43334
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jun 2022 18:56:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233882AbiFWSIt (ORCPT
+        id S229723AbiFWS4R (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 Jun 2022 14:08:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47626 "EHLO
+        Thu, 23 Jun 2022 14:56:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58210 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236665AbiFWSIO (ORCPT
+        with ESMTP id S237562AbiFWSrF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Jun 2022 14:08:14 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 2727CBB01D
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2022 10:19:41 -0700 (PDT)
-Date:   Thu, 23 Jun 2022 19:19:36 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft 2/2,v2] intervals: Do not sort cached set elements
- over and over again
-Message-ID: <YrSgqN1mkVOUZdZa@salvia>
-References: <20220616090446.275985-1-pablo@netfilter.org>
- <20220616090446.275985-2-pablo@netfilter.org>
- <YrSPQJy7+IjLeQvA@orbyte.nwl.cc>
- <YrSSDGNNSbrHCKdf@salvia>
- <YrST/2ypRG/KACfz@orbyte.nwl.cc>
+        Thu, 23 Jun 2022 14:47:05 -0400
+Received: from mail-ed1-x533.google.com (mail-ed1-x533.google.com [IPv6:2a00:1450:4864:20::533])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A3015F017B
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2022 10:50:39 -0700 (PDT)
+Received: by mail-ed1-x533.google.com with SMTP id z7so29593342edm.13
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2022 10:50:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ionos.com; s=google;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=pQW57vLVg+cIpUtXcq/2w6YWKEsidLwLEehYvvezmuI=;
+        b=ICNWm6tW/PEedlbLnX8Xg+zQDu1GI2bDhT1giaXirlPWa0lrbNnduorK0piZBJThMH
+         OuOAXfonw+HceNmd1eaigWNVhRU7cFOHqdeuVoSr4iel3wfnEsikGKYhk10pUfwTcGgZ
+         AusPi05LA/NEzuTsarxYel+L+3QKFHJzLT80QOVvkEpDnscWa/I+Xwg7FjzCKKistwrU
+         4KF+YHjxTMzQSle2UQqVVQF54IfI52Up+8snxxW11KxM+cAF6+dRUnP5gRUiHBeuj6In
+         Z44RqcVEgq17cEmDqld90Mk9Kl3RoSDRi9iS0g7MGccO0LYSY43Tg7pwM9G+G87Xen07
+         V/WQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=pQW57vLVg+cIpUtXcq/2w6YWKEsidLwLEehYvvezmuI=;
+        b=hTnKi7dvbrRT7V1HNarrP9b9iEEaON0KlHd16Cpbt2GIIH8VbdhTuXMRcGAud795vn
+         RcbShAMpBsVsmbr5AI6PzxVz5ByH3JMuPP3sUKzeEEvMiaUOiF7ar9UGE/9Urc8/1xQc
+         CbYF7/Dnz/7ujZNXINKCYhmwd++bPnMQDUzndKCtejUV2DB59xJUSURPYqo04XvFu2jQ
+         G+jiv7emocLCmSsnXepFs0npHPtIN7p88zPpYS4PG+2lK+TeH//HJLVe8XMHAzWYrtSD
+         Mwbk7Yihcj6gp7zJwjakNBG+j0b11EB50LrJXg/snM/Jdw+mBYhlVhk5NF3xnsYvfAeg
+         QAyQ==
+X-Gm-Message-State: AJIora8T9kCjeRx3FCSBq1a8hTqqTMdujwoWu3SfS/YWD3jMw1BQHTLk
+        tX7+mEyckM6lZ6VHaG1pxPBKZ61XkKBq1Q==
+X-Google-Smtp-Source: AGRyM1v3R4IartCb6weTWQHbRQvTkxBkzuREt6zCbr1ulIYsQECYzzq3sZGA/k2lRMK4ORp5LyTAGg==
+X-Received: by 2002:a05:6402:27c6:b0:435:d24a:d061 with SMTP id c6-20020a05640227c600b00435d24ad061mr5220124ede.427.1656006632105;
+        Thu, 23 Jun 2022 10:50:32 -0700 (PDT)
+Received: from msennikovskii4.fkb.profitbricks.net (ip5f5bf48a.dynamic.kabel-deutschland.de. [95.91.244.138])
+        by smtp.gmail.com with ESMTPSA id o9-20020aa7c7c9000000b004356e90d13esm119891eds.83.2022.06.23.10.50.30
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 23 Jun 2022 10:50:31 -0700 (PDT)
+From:   Mikhail Sennikovsky <mikhail.sennikovskii@ionos.com>
+To:     netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        mikhail.sennikovsky@gmail.com
+Cc:     Mikhail Sennikovsky <mikhail.sennikovskii@ionos.com>
+Subject: [PATCH 6/6] conntrack: fix -o save dump for unknown protocols
+Date:   Thu, 23 Jun 2022 19:50:00 +0200
+Message-Id: <20220623175000.49259-7-mikhail.sennikovskii@ionos.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20220623175000.49259-1-mikhail.sennikovskii@ionos.com>
+References: <20220623175000.49259-1-mikhail.sennikovskii@ionos.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <YrST/2ypRG/KACfz@orbyte.nwl.cc>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Jun 23, 2022 at 06:25:35PM +0200, Phil Sutter wrote:
-> On Thu, Jun 23, 2022 at 06:17:16PM +0200, Pablo Neira Ayuso wrote:
-> > On Thu, Jun 23, 2022 at 06:05:20PM +0200, Phil Sutter wrote:
-> > > On Thu, Jun 16, 2022 at 11:04:46AM +0200, Pablo Neira Ayuso wrote:
-> > > > From: Phil Sutter <phil@nwl.cc>
-> > > > 
-> > > > When adding element(s) to a non-empty set, code merged the two lists and
-> > > > sorted the result. With many individual 'add element' commands this
-> > > > causes substantial overhead. Make use of the fact that
-> > > > existing_set->init is sorted already, sort only the list of new elements
-> > > > and use list_splice_sorted() to merge the two sorted lists.
-> > > > 
-> > > > Add set_sort_splice() and use it for set element overlap detection and
-> > > > automerge.
-> > > > 
-> > > > A test case adding ~25k elements in individual commands completes in
-> > > > about 1/4th of the time with this patch applied.
-> > > > 
-> > > > Joint work with Pablo.
-> > > > 
-> > > > Fixes: 3da9643fb9ff9 ("intervals: add support to automerge with kernel elements")
-> > > > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> > > > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > > 
-> > > Thanks for picking it up, I missed the automerge code being very
-> > > similar.
-> > > 
-> > > I worked on a patch to move the whole set adjustment to a separate step
-> > > after evaluating commands, but it's a bit larger effort as it requires
-> > > to combine overlap detection, auto merge and element deletion. With
-> > > simple appending new elements in eval phase and reacting upon
-> > > EXPR_F_KERNEL and EXPR_F_REMOVE flags, I guess it's possible to update
-> > > the whole set in one go.
-> > 
-> > You mean, appending if they come in order as in your test ruleset? Not
-> > sure what you are suggesting.
-> 
-> It was merely loud thinking - combining repeated 'add element' commands
-> is fine with me for avoiding the problem. I have an alternative in mind
-> where added elements are appended to the set without EXPR_F_KERNEL and
-> removed ones also with EXPR_F_REMOVE. So after nft_evaluate() one could
-> do all the overlap detection / auto merging / element removing once for
-> each changed set.
+Make sure the protocol (-p) option is included in the -o save
+ct entry dumps for L4 protocols unknown to the conntrack tool
 
-I have pushed out this coalesce approach to tackle this regression.
-Feel free to revisit this approach.
+Signed-off-by: Mikhail Sennikovsky <mikhail.sennikovskii@ionos.com>
+---
+ src/conntrack.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/src/conntrack.c b/src/conntrack.c
+index dca7da6..f8a228f 100644
+--- a/src/conntrack.c
++++ b/src/conntrack.c
+@@ -870,9 +870,18 @@ static int ct_save_snprintf(char *buf, size_t len,
+ 
+ 		ret = ct_snprintf_opts(buf + offset, len, ct, cur->print_opts);
+ 		BUFFER_SIZE(ret, size, len, offset);
+-		break;
++		goto done_proto4;
+ 	}
+ 
++	/**
++	 * Do not use getprotobynumber here to ensure
++	 * "-o save" data incompatibility between hosts having
++	 * different /etc/protocols contents
++	 */
++	ret = snprintf(buf + offset, len, "-p %d ", l4proto);
++	BUFFER_SIZE(ret, size, len, offset);
++
++done_proto4:
+ 	/* skip trailing space, if any */
+ 	for (; size && buf[size-1] == ' '; --size)
+ 		buf[size-1] = '\0';
+-- 
+2.25.1
+
