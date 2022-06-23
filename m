@@ -2,231 +2,152 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0794C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jun 2022 19:38:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F0FCCCA480
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jun 2022 19:39:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229507AbiFWTiq (ORCPT
+        id S229436AbiFWTjA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 Jun 2022 15:38:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33274 "EHLO
+        Thu, 23 Jun 2022 15:39:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60190 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229946AbiFWTiW (ORCPT
+        with ESMTP id S231139AbiFWTij (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Jun 2022 15:38:22 -0400
-Received: from mail-pj1-x1041.google.com (mail-pj1-x1041.google.com [IPv6:2607:f8b0:4864:20::1041])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A8B3453A6A;
-        Thu, 23 Jun 2022 12:27:02 -0700 (PDT)
-Received: by mail-pj1-x1041.google.com with SMTP id dw10-20020a17090b094a00b001ed00a16eb4so590942pjb.2;
-        Thu, 23 Jun 2022 12:27:02 -0700 (PDT)
+        Thu, 23 Jun 2022 15:38:39 -0400
+Received: from mail-pl1-x642.google.com (mail-pl1-x642.google.com [IPv6:2607:f8b0:4864:20::642])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5675525C52;
+        Thu, 23 Jun 2022 12:27:16 -0700 (PDT)
+Received: by mail-pl1-x642.google.com with SMTP id c4so94626plc.8;
+        Thu, 23 Jun 2022 12:27:16 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=Cf9jfPE0KUQfW0TmHoXpv9qVShsG0l1SK4kcg8rsWcI=;
-        b=Ns6bi0lljbt9SC4uU1QxWHSrDKFrYslQuByco3JyEA0XsqpNywXp9TIEzfoxu1zCHm
-         YQZX72ScKdsywuDOXMEAkM5LknmhCNTowRCG7OltNzd+5VDv9bwLlomuQPnW6c/zO15r
-         1FtUJajKucZh7ia/9F27yCimNhhoXtMUqOMFebtXHXAYE9DXAf6Wv3B3Agc+mFTSCy82
-         rzJ4DIF9tloG5d10PCmLQaZCdc1cXPMiEbyhHuVGe8D7XDoAsa+bAx5mxqeZhv/eHs1t
-         vgEUrebTlfLR86kpHVntPQLfFL92qNAtRsdQDHtYTjDLspt1YoE37LxKvejsAeJvGBZ5
-         42Mw==
+        bh=rTdBog/fVFVehsGVVg5MRfeHgkRypizQwrV37IOZOC0=;
+        b=LH961ZVaZ+4TpGICrA0Ysm2sOIh2aB/w9DkZzYS3J1s1PoomPTcK/xur8rjraxeLr7
+         ip3pLJKGZv0Y7PkOINkmF9Z5JIiAX1cMrerrDYAcsJi8noEBi7RXMLNTTjSvw7qE4O7H
+         Sh1kQ2NHJYTzgRfowgjpuakl1e9rpb8hlXPRnYUZtBfFdImAgckVf/9tWVUySiy0RhmA
+         I4L5TkCEizDKvngKqAavK6hyj6tWJN5P5dOpLD4C3yaLaJaC0asDmDN3Ft856H5GuXnB
+         TDJ+bxfPilmdoq1DJr4H5hujW5BIY0XCPyM6C4kvEQGZ7ExMZMm24zIr9QL4peCTvl9f
+         DJpQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=Cf9jfPE0KUQfW0TmHoXpv9qVShsG0l1SK4kcg8rsWcI=;
-        b=OMj2PSZxi0KVhT9KBDjeBbH1FeWvVMGpHprIEkyRnS2iUqECzsGKHzxRch37qCsXjY
-         bpI2ZqPRWiFXdlJgiFd3ied8dd06k4hbzkAvIW0NEAxtv45/fsUr3x6aD5tWkxG7RYll
-         1QXSON/Ufpoaj/9KwlhazsUD+vXZAafq+jeRKdUGaMteRAbvNpOTQmEifdHNz5N/wiep
-         VBsZITLWVR39MzYLS9+8w+RM2zvY0WnM/Tg83SW5Eov9qnyhMzQASFW1nIndCASMFgH2
-         Z5KPeeMqHcMHilN1Mc96cl+lNzyK3rbWw7XzOqPTlpLJ4z94QqMQgPptkhlMuz3/K1cB
-         7mpg==
-X-Gm-Message-State: AJIora/7475+qnFEmoi5zkZeBX3mptw+iuqgiCeQi8JYUHnWODWIV3Of
-        XiSmWedPfpQ7+omV0OLVby47cuO6WC2J5g==
-X-Google-Smtp-Source: AGRyM1s/yNg01K0eZFNPqjpF1a6OaVr4gCwGNo2q5OvOMHTUodhQeVcWbC1kKA8PwiZvsNMjs4F/Cw==
-X-Received: by 2002:a17:90b:4a03:b0:1ed:2071:e8c with SMTP id kk3-20020a17090b4a0300b001ed20710e8cmr95274pjb.216.1656012421676;
-        Thu, 23 Jun 2022 12:27:01 -0700 (PDT)
+        bh=rTdBog/fVFVehsGVVg5MRfeHgkRypizQwrV37IOZOC0=;
+        b=6zBvtywxtxLdYmL7fEFVDxTAwuvv5ltjSiVAvbqyso5VGpeUsIDFuV2FJK1udkf0sT
+         NkuRF6iNumDV9R1VK35VCxBoxW456klVe1xw6CuTBDPRkYzAYxffNnM4qRFh0TQZkZ+k
+         dYsFCMVVzkBofTlWcRiR8hLjLMk0nmP5ngvkWe5ldJ+AFfwFvOPfsWgYa4sEq2mcnAPe
+         nM9JeezSvRVPGnyhqsW9krZ0WYSGzf6luBrzXvNeZI7EKyBYrbEBfifzhBR/RfpwTJak
+         TmpDeSjmyqAfzBR4EP0hQsI/ILddKQmNFG20yJ3K0E+zTu/1UEKnxzpHgzkj9InaPdi0
+         l/HA==
+X-Gm-Message-State: AJIora+uWe+uLorUZPtH+q9PraGRpfPfsQiR0R5V7VHp29boZcgUsK2N
+        0/4/eoqddPKC1uyp0OO7eVoEF/cpbmcHpw==
+X-Google-Smtp-Source: AGRyM1v9UAyXk9cXUO1Pqi1LYbOWNTg46tyFDoePSSOKj7onXnCp+gJzwXewi3pZVZdzF8gAb5d9Fw==
+X-Received: by 2002:a17:90a:5e0e:b0:1ec:aa3f:8dc1 with SMTP id w14-20020a17090a5e0e00b001ecaa3f8dc1mr5438166pjf.145.1656012435754;
+        Thu, 23 Jun 2022 12:27:15 -0700 (PDT)
 Received: from localhost ([2405:201:6014:d0c0:79de:f3f4:353c:8616])
-        by smtp.gmail.com with ESMTPSA id u2-20020a170902714200b0016a522915e5sm171626plm.83.2022.06.23.12.27.00
+        by smtp.gmail.com with ESMTPSA id a20-20020a621a14000000b005251bea0d53sm13600pfa.83.2022.06.23.12.27.14
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 23 Jun 2022 12:27:01 -0700 (PDT)
+        Thu, 23 Jun 2022 12:27:15 -0700 (PDT)
 From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
 To:     bpf@vger.kernel.org
-Cc:     Lorenzo Bianconi <lorenzo@kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
+Cc:     Yonghong Song <yhs@fb.com>, Alexei Starovoitov <ast@kernel.org>,
         Andrii Nakryiko <andrii@kernel.org>,
         Daniel Borkmann <daniel@iogearbox.net>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
         Jesper Dangaard Brouer <brouer@redhat.com>,
         =?UTF-8?q?Toke=20H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: [PATCH bpf-next v5 4/8] net: netfilter: Add kfuncs to set and change CT timeout
-Date:   Fri, 24 Jun 2022 00:56:33 +0530
-Message-Id: <20220623192637.3866852-5-memxor@gmail.com>
+        Lorenzo Bianconi <lorenzo@kernel.org>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+Subject: [PATCH bpf-next v5 6/8] selftests/bpf: Add verifier tests for forced kfunc ref args
+Date:   Fri, 24 Jun 2022 00:56:35 +0530
+Message-Id: <20220623192637.3866852-7-memxor@gmail.com>
 X-Mailer: git-send-email 2.36.1
 In-Reply-To: <20220623192637.3866852-1-memxor@gmail.com>
 References: <20220623192637.3866852-1-memxor@gmail.com>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=5949; h=from:subject; bh=ySnF+G+6LwgKSTObyB0g4BIoqOTOTtTq9uiqd3AsGhQ=; b=owEBbQKS/ZANAwAIAUzgyIZIvxHKAcsmYgBitL5Lgd3XReg7YFry+H1lUKRd3qTHybPrW/r1ZZlJ d1LzSISJAjMEAAEIAB0WIQRLvip+Buz51YI8YRFM4MiGSL8RygUCYrS+SwAKCRBM4MiGSL8RyhjsD/ 4p6xquXyds3xMMXlAdgffQmE7X99RkdPJq9dvcO0OAZThxr6cSghhjDAlp9Gb6Bqm6rwrd39/7RHrv szz/CmS2H3SR5FMhI/9ufOnhgKI0b4PT2j9AknalZycQljKIYs8op45vDxucFeEyZSKSk9urXKJmNP h8AG9/YnywNahqQiQDyAZFbnX+EoVrBZQZA/J8LVN6wgZtESxNZpU5TaOjSabJmmz7yLOp10w2xzZj q2Sr9hbAmUG6/saS8sRros9Dmp6qWA0DEZsvn1OHMxmMgDNyW9spYR5RfrqHQo9SfA9JFv/KCNZWx3 3T2zUb7yCA+XMEAd9K33OhsDj3kv11alTdPGxRNlGsxpx6kPKS80QO+dvB0GoR9AIC3o9t9wmEdULk Xifx3j6bprs4GlzTFNgYUdRAcldzpVIi0ZY97qk0T+kjDc6A6RaCBtp7ym/r4lrIpSDT/BX2eG0Pyc GRoA2vBAKPttWzC7W8g/iaI42Qw4fOn2TJA8UmghOvt37fzVsluHNU2Yvfb5U0ZGh/kX4O4Y7TV78Q aygSqOwPy7NN8a9ChbTdiY2LmhtggxIl0EFTkOKgww/NI+eCL3xCG8dzkTrmETQ/2Z6sIP7sB5mIsr oNfq7FppMjFiNnhUL//8qki66zsqKtAHPJnB3J4fkgA4HkkwPcrJxpWNvF6Q==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2710; h=from:subject; bh=KTldfN2HxtfUAqDwOHNrh3Yr2EfzeShwwjvJTjpRhqk=; b=owEBbQKS/ZANAwAIAUzgyIZIvxHKAcsmYgBitL5MjDBcoslWjE16JopPpwfWHBhS2it21L/4BeYr akvSp0OJAjMEAAEIAB0WIQRLvip+Buz51YI8YRFM4MiGSL8RygUCYrS+TAAKCRBM4MiGSL8RyvNBD/ oCfvnkB15/EP+Pgg6ojn5xklwM3LCuksnfxCU9g5cw26iOrJJRT/Smi3JOFIqlp76t6SCRwcx4h2tO QArDBNix4fSZ5/zCNDmmKZ3w/IPE/XzUxDHFKDFkBPK75gRVF9cn8tJJa+DiXqrvSwcCDJ7XWW4mNC NvD/5IrOfafdru+Jn6Bj+hvOUAADrLXRrYT9vaGZr9AapHjgC5XXHRV9gCirR4U44M6N9DbKysVIGr 3/d94dvD67WhRhicqUR0EIv3ITt44fwWOlzhumyfFLYDhIHv/knH3q6bg7AE+/HHedSXjTWT3SZfCe cKovIvMbQty/RoXMmzlefjA0jME29aYBAqlbY1xAhOGrEzsxQR8ZK7IDQwGa/ORSPIwuyBczFP9Sod B4ynm5zXnGYolYtyDXdPfFznzdafe4CcG6lq1okB+Sp7K0Xw6/fCnkpc1Ch6Rwjn39izNgfQXhvLGD dtLQvGmZg3aEklw/nwDP2qWpvxEs75P9AjSGq2lgun7Q7NfH2YcURat7/PlN82xMeMdH+UVIRc8Nmo 0zOfxynoW49TjLO2MrIJYD9kvGefwF854EQc0a9RbEZpTvOIGLkojxoGCC269wsKKROpEAVWdctE6A +S5M74D0XbH1kX6XqSQGZ489fRJS9EjBzvOsMu/xk3XUyumHZi76XdZfYcjg==
 X-Developer-Key: i=memxor@gmail.com; a=openpgp; fpr=4BBE2A7E06ECF9D5823C61114CE0C88648BF11CA
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Introduce bpf_ct_set_timeout and bpf_ct_change_timeout kfunc helpers in
-order to change nf_conn timeout. This is same as ctnetlink_change_timeout,
-hence code is shared between both by extracting it out to
-__nf_ct_change_timeout. It is also updated to return an error when it
-sees IPS_FIXED_TIMEOUT_BIT bit in ct->status, as that check was missing.
+Make sure verifier rejects the bad cases and ensure the good case keeps
+working. The selftests make use of the bpf_kfunc_call_test_ref kfunc
+added in the previous patch only for verification.
 
-It is required to introduce two kfuncs taking nf_conn___init and nf_conn
-instead of sharing one because __ref suffix on the parameter name causes
-strict type checking. This would disallow passing nf_conn___init to
-kfunc taking nf_conn, and vice versa. We cannot remove the __ref suffix
-as we only want to accept refcounted pointers and not e.g. ct->master.
-
-Apart from this, bpf_ct_set_timeout is only called for newly allocated
-CT so it doesn't need to inspect the status field just yet. Sharing the
-helpers even if it was possible would make timeout setting helper
-sensitive to order of setting status and timeout after allocation.
-
-Hence, bpf_ct_set_* kfuncs are meant to be used on allocated CT, and
-bpf_ct_change_* kfuncs are meant to be used on inserted or looked up
-CT entry.
-
-Co-developed-by: Lorenzo Bianconi <lorenzo@kernel.org>
-Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+Acked-by: Yonghong Song <yhs@fb.com>
 Signed-off-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
 ---
- include/net/netfilter/nf_conntrack_core.h |  2 ++
- net/netfilter/nf_conntrack_bpf.c          | 34 +++++++++++++++++++++++
- net/netfilter/nf_conntrack_core.c         | 22 +++++++++++++++
- net/netfilter/nf_conntrack_netlink.c      |  9 +-----
- 4 files changed, 59 insertions(+), 8 deletions(-)
+ tools/testing/selftests/bpf/verifier/calls.c | 53 ++++++++++++++++++++
+ 1 file changed, 53 insertions(+)
 
-diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
-index 83a60c684e6c..3b0f7d0eebae 100644
---- a/include/net/netfilter/nf_conntrack_core.h
-+++ b/include/net/netfilter/nf_conntrack_core.h
-@@ -97,6 +97,8 @@ static inline void __nf_ct_set_timeout(struct nf_conn *ct, u64 timeout)
- 	WRITE_ONCE(ct->timeout, nfct_time_stamp + (u32)timeout);
- }
- 
-+int __nf_ct_change_timeout(struct nf_conn *ct, u64 cta_timeout);
-+
- #endif
- 
- #endif /* _NF_CONNTRACK_CORE_H */
-diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrack_bpf.c
-index 1d3c1d1e2d8b..db04874da950 100644
---- a/net/netfilter/nf_conntrack_bpf.c
-+++ b/net/netfilter/nf_conntrack_bpf.c
-@@ -364,6 +364,36 @@ void bpf_ct_release(struct nf_conn *nfct)
- 	nf_ct_put(nfct);
- }
- 
-+/* bpf_ct_set_timeout - Set timeout of allocated nf_conn
-+ *
-+ * Sets the default timeout of newly allocated nf_conn before insertion.
-+ * This helper must be invoked for refcounted pointer to nf_conn___init.
-+ *
-+ * Parameters:
-+ * @nfct__ref    - Pointer to referenced nf_conn object, obtained using
-+ *                 bpf_xdp_ct_alloc or bpf_skb_ct_alloc.
-+ * @timeout      - Timeout in msecs.
-+ */
-+void bpf_ct_set_timeout(struct nf_conn___init *nfct__ref, u32 timeout)
+diff --git a/tools/testing/selftests/bpf/verifier/calls.c b/tools/testing/selftests/bpf/verifier/calls.c
+index 743ed34c1238..3fb4f69b1962 100644
+--- a/tools/testing/selftests/bpf/verifier/calls.c
++++ b/tools/testing/selftests/bpf/verifier/calls.c
+@@ -218,6 +218,59 @@
+ 	.result = REJECT,
+ 	.errstr = "variable ptr_ access var_off=(0x0; 0x7) disallowed",
+ },
 +{
-+	__nf_ct_set_timeout((struct nf_conn *)nfct__ref, msecs_to_jiffies(timeout));
-+}
-+
-+/* bpf_ct_change_timeout - Change timeout of inserted nf_conn
-+ *
-+ * Change timeout associated of the inserted or looked up nf_conn.
-+ * This helper must be invoked for refcounted pointer to nf_conn.
-+ *
-+ * Parameters:
-+ * @nfct__ref    - Pointer to referenced nf_conn object, obtained using
-+ *		   bpf_ct_insert_entry, bpf_xdp_ct_lookup, or bpf_skb_ct_lookup.
-+ * @timeout      - New timeout in msecs.
-+ */
-+int bpf_ct_change_timeout(struct nf_conn *nfct__ref, u32 timeout)
++	"calls: invalid kfunc call: referenced arg needs refcounted PTR_TO_BTF_ID",
++	.insns = {
++	BPF_MOV64_REG(BPF_REG_1, BPF_REG_10),
++	BPF_ALU64_IMM(BPF_ADD, BPF_REG_1, -8),
++	BPF_ST_MEM(BPF_DW, BPF_REG_1, 0, 0),
++	BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, BPF_PSEUDO_KFUNC_CALL, 0, 0),
++	BPF_JMP_IMM(BPF_JNE, BPF_REG_0, 0, 1),
++	BPF_EXIT_INSN(),
++	BPF_MOV64_REG(BPF_REG_6, BPF_REG_0),
++	BPF_MOV64_REG(BPF_REG_1, BPF_REG_0),
++	BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, BPF_PSEUDO_KFUNC_CALL, 0, 0),
++	BPF_LDX_MEM(BPF_DW, BPF_REG_1, BPF_REG_6, 16),
++	BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, BPF_PSEUDO_KFUNC_CALL, 0, 0),
++	BPF_MOV64_IMM(BPF_REG_0, 0),
++	BPF_EXIT_INSN(),
++	},
++	.prog_type = BPF_PROG_TYPE_SCHED_CLS,
++	.fixup_kfunc_btf_id = {
++		{ "bpf_kfunc_call_test_acquire", 3 },
++		{ "bpf_kfunc_call_test_ref", 8 },
++		{ "bpf_kfunc_call_test_ref", 10 },
++	},
++	.result_unpriv = REJECT,
++	.result = REJECT,
++	.errstr = "R1 must be referenced",
++},
 +{
-+	return __nf_ct_change_timeout(nfct__ref, msecs_to_jiffies(timeout));
-+}
-+
- __diag_pop()
- 
- BTF_SET_START(nf_ct_xdp_check_kfunc_ids)
-@@ -371,6 +401,8 @@ BTF_ID(func, bpf_xdp_ct_alloc)
- BTF_ID(func, bpf_xdp_ct_lookup)
- BTF_ID(func, bpf_ct_insert_entry)
- BTF_ID(func, bpf_ct_release)
-+BTF_ID(func, bpf_ct_set_timeout);
-+BTF_ID(func, bpf_ct_change_timeout);
- BTF_SET_END(nf_ct_xdp_check_kfunc_ids)
- 
- BTF_SET_START(nf_ct_tc_check_kfunc_ids)
-@@ -378,6 +410,8 @@ BTF_ID(func, bpf_skb_ct_alloc)
- BTF_ID(func, bpf_skb_ct_lookup)
- BTF_ID(func, bpf_ct_insert_entry)
- BTF_ID(func, bpf_ct_release)
-+BTF_ID(func, bpf_ct_set_timeout);
-+BTF_ID(func, bpf_ct_change_timeout);
- BTF_SET_END(nf_ct_tc_check_kfunc_ids)
- 
- BTF_SET_START(nf_ct_acquire_kfunc_ids)
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 082a2fd8d85b..572f59a5e936 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -2786,3 +2786,25 @@ int nf_conntrack_init_net(struct net *net)
- 	free_percpu(net->ct.stat);
- 	return ret;
- }
-+
-+#if (IS_BUILTIN(CONFIG_NF_CONNTRACK) && IS_ENABLED(CONFIG_DEBUG_INFO_BTF)) || \
-+    (IS_MODULE(CONFIG_NF_CONNTRACK) && IS_ENABLED(CONFIG_DEBUG_INFO_BTF_MODULES) || \
-+    IS_ENABLED(CONFIG_NF_CT_NETLINK))
-+
-+/* ctnetlink code shared by both ctnetlink and nf_conntrack_bpf */
-+
-+int __nf_ct_change_timeout(struct nf_conn *ct, u64 timeout)
-+{
-+	if (test_bit(IPS_FIXED_TIMEOUT_BIT, &ct->status))
-+		return -EPERM;
-+
-+	__nf_ct_set_timeout(ct, timeout);
-+
-+	if (test_bit(IPS_DYING_BIT, &ct->status))
-+		return -ETIME;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(__nf_ct_change_timeout);
-+
-+#endif
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 0729b2f0d44f..b1de07c73845 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -2023,14 +2023,7 @@ static int ctnetlink_change_helper(struct nf_conn *ct,
- static int ctnetlink_change_timeout(struct nf_conn *ct,
- 				    const struct nlattr * const cda[])
++	"calls: valid kfunc call: referenced arg needs refcounted PTR_TO_BTF_ID",
++	.insns = {
++	BPF_MOV64_REG(BPF_REG_1, BPF_REG_10),
++	BPF_ALU64_IMM(BPF_ADD, BPF_REG_1, -8),
++	BPF_ST_MEM(BPF_DW, BPF_REG_1, 0, 0),
++	BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, BPF_PSEUDO_KFUNC_CALL, 0, 0),
++	BPF_JMP_IMM(BPF_JNE, BPF_REG_0, 0, 1),
++	BPF_EXIT_INSN(),
++	BPF_MOV64_REG(BPF_REG_6, BPF_REG_0),
++	BPF_MOV64_REG(BPF_REG_1, BPF_REG_0),
++	BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, BPF_PSEUDO_KFUNC_CALL, 0, 0),
++	BPF_MOV64_REG(BPF_REG_1, BPF_REG_6),
++	BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, BPF_PSEUDO_KFUNC_CALL, 0, 0),
++	BPF_MOV64_IMM(BPF_REG_0, 0),
++	BPF_EXIT_INSN(),
++	},
++	.prog_type = BPF_PROG_TYPE_SCHED_CLS,
++	.fixup_kfunc_btf_id = {
++		{ "bpf_kfunc_call_test_acquire", 3 },
++		{ "bpf_kfunc_call_test_ref", 8 },
++		{ "bpf_kfunc_call_test_release", 10 },
++	},
++	.result_unpriv = REJECT,
++	.result = ACCEPT,
++},
  {
--	u64 timeout = (u64)ntohl(nla_get_be32(cda[CTA_TIMEOUT])) * HZ;
--
--	__nf_ct_set_timeout(ct, timeout);
--
--	if (test_bit(IPS_DYING_BIT, &ct->status))
--		return -ETIME;
--
--	return 0;
-+	return __nf_ct_change_timeout(ct, (u64)ntohl(nla_get_be32(cda[CTA_TIMEOUT])) * HZ);
- }
- 
- #if defined(CONFIG_NF_CONNTRACK_MARK)
+ 	"calls: basic sanity",
+ 	.insns = {
 -- 
 2.36.1
 
