@@ -2,90 +2,80 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF434C43334
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jun 2022 13:05:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05AE1C433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jun 2022 14:28:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231273AbiFWNFw (ORCPT
+        id S231625AbiFWO24 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 Jun 2022 09:05:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49630 "EHLO
+        Thu, 23 Jun 2022 10:28:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57684 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231176AbiFWNFw (ORCPT
+        with ESMTP id S231358AbiFWO2z (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Jun 2022 09:05:52 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D85B041302
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2022 06:05:50 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1o4MWr-0005Zt-Ba; Thu, 23 Jun 2022 15:05:49 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 6/6] netfilter: nf_tables: move nft_cmp_fast_mask to where its used
-Date:   Thu, 23 Jun 2022 15:05:14 +0200
-Message-Id: <20220623130514.13775-7-fw@strlen.de>
-X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20220623130514.13775-1-fw@strlen.de>
-References: <20220623130514.13775-1-fw@strlen.de>
+        Thu, 23 Jun 2022 10:28:55 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8326342ECC
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2022 07:28:54 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=taY2Alc+aiMHxLMb9HstrgTYXswM0q7Ywi4GoWkyxVM=; b=Tr3FVNt6CPgNehbYKunGdnPnAF
+        wbHd6ianiUTeAEaJaxg/Th+inyO+VO+6SPjPvI/Kkgxft7ne/fEWZVl28dN7euIBJ0w17mtQwyRV4
+        X/bSJJejVqFvv5MOewhomhwQIhyVZv0fPOEOWdUlk21gkdvksTU0cf6ACaf7+bOCBp8a+PpapbViZ
+        KzzEQEQe7MhwxE6sLqpVcWoUd5q5xOUN3Kiwb1UTy95WtNAiKlraSENyvDgeicsV4mKwZGFTxxevY
+        799fkTWpBPhFX1fx71+3n9rVcskjnNOlx9XI3Yx/2rsdv26GpD+o4Tc0HBW1OYmH5RVanxey5xosZ
+        aftIRylg==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1o4NpE-0007QC-0c; Thu, 23 Jun 2022 16:28:52 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+Subject: [nft PATCH 2/2] Revert "scanner: remove saddr/daddr from initial state"
+Date:   Thu, 23 Jun 2022 16:28:43 +0200
+Message-Id: <20220623142843.32309-3-phil@nwl.cc>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20220623142843.32309-1-phil@nwl.cc>
+References: <20220623142843.32309-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-... and cast result to u32 so sparse won't complain anymore.
+This reverts commit df4ee3171f3e3c0e85dd45d555d7d06e8c1647c5 as it
+breaks ipsec expression if preceeded by a counter statement:
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+| Error: syntax error, unexpected string, expecting saddr or daddr
+| add rule ip ipsec-ip4 ipsec-forw counter ipsec out ip daddr 192.168.1.2
+|                                                       ^^^^^
+
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- include/net/netfilter/nf_tables_core.h | 10 ----------
- net/netfilter/nft_cmp.c                | 12 ++++++++++++
- 2 files changed, 12 insertions(+), 10 deletions(-)
+ src/scanner.l | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
-index 0ea7c55cea4d..1223af68cd9a 100644
---- a/include/net/netfilter/nf_tables_core.h
-+++ b/include/net/netfilter/nf_tables_core.h
-@@ -56,16 +56,6 @@ struct nft_immediate_expr {
- 	u8			dlen;
- };
+diff --git a/src/scanner.l b/src/scanner.l
+index 7eb74020ef848..6d6396bbb7413 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -464,10 +464,8 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "bridge"		{ return BRIDGE; }
  
--/* Calculate the mask for the nft_cmp_fast expression. On big endian the
-- * mask needs to include the *upper* bytes when interpreting that data as
-- * something smaller than the full u32, therefore a cpu_to_le32 is done.
-- */
--static inline u32 nft_cmp_fast_mask(unsigned int len)
--{
--	return cpu_to_le32(~0U >> (sizeof_field(struct nft_cmp_fast_expr,
--						data) * BITS_PER_BYTE - len));
+ "ether"			{ scanner_push_start_cond(yyscanner, SCANSTATE_ETH); return ETHER; }
+-<SCANSTATE_ARP,SCANSTATE_CT,SCANSTATE_ETH,SCANSTATE_IP,SCANSTATE_IP6,SCANSTATE_EXPR_FIB,SCANSTATE_EXPR_IPSEC>{
+-	"saddr"			{ return SADDR; }
+-	"daddr"			{ return DADDR; }
 -}
--
- extern const struct nft_expr_ops nft_cmp_fast_ops;
- extern const struct nft_expr_ops nft_cmp16_fast_ops;
++"saddr"			{ return SADDR; }
++"daddr"			{ return DADDR; }
+ "type"			{ scanner_push_start_cond(yyscanner, SCANSTATE_TYPE); return TYPE; }
+ "typeof"		{ return TYPEOF; }
  
-diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
-index bec22584395f..777f09e4dc60 100644
---- a/net/netfilter/nft_cmp.c
-+++ b/net/netfilter/nft_cmp.c
-@@ -197,6 +197,18 @@ static const struct nft_expr_ops nft_cmp_ops = {
- 	.offload	= nft_cmp_offload,
- };
- 
-+/* Calculate the mask for the nft_cmp_fast expression. On big endian the
-+ * mask needs to include the *upper* bytes when interpreting that data as
-+ * something smaller than the full u32, therefore a cpu_to_le32 is done.
-+ */
-+static u32 nft_cmp_fast_mask(unsigned int len)
-+{
-+	__le32 mask = cpu_to_le32(~0U >> (sizeof_field(struct nft_cmp_fast_expr,
-+					  data) * BITS_PER_BYTE - len));
-+
-+	return (__force u32)mask;
-+}
-+
- static int nft_cmp_fast_init(const struct nft_ctx *ctx,
- 			     const struct nft_expr *expr,
- 			     const struct nlattr * const tb[])
 -- 
-2.35.1
+2.34.1
 
