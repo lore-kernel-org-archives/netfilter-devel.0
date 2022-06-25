@@ -2,155 +2,120 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88AFFCCA480
-	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jun 2022 15:01:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93A11C433EF
+	for <netfilter-devel@archiver.kernel.org>; Sat, 25 Jun 2022 08:44:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231750AbiFXPB4 (ORCPT
+        id S230203AbiFYIoH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 24 Jun 2022 11:01:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44368 "EHLO
+        Sat, 25 Jun 2022 04:44:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59622 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232403AbiFXPBs (ORCPT
+        with ESMTP id S229722AbiFYIoH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 24 Jun 2022 11:01:48 -0400
-Received: from mail-ej1-x62d.google.com (mail-ej1-x62d.google.com [IPv6:2a00:1450:4864:20::62d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6ECCE10FE1
-        for <netfilter-devel@vger.kernel.org>; Fri, 24 Jun 2022 08:01:47 -0700 (PDT)
-Received: by mail-ej1-x62d.google.com with SMTP id h23so5211171ejj.12
-        for <netfilter-devel@vger.kernel.org>; Fri, 24 Jun 2022 08:01:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ionos.com; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=MpGuYub81dWqQvj8Y8RrNNkuRjtdN16XYy/CJnnmHs0=;
-        b=hke5AzM4/sdAZyOE9GQc08/SyrPm+wleSCSbz/oKay/7wV7JIhP8hXBGWQZ/jR+bSd
-         Gjz54TXMzj7w+6W3IWug0kuprFNOLU+53u6+x1Ulebgv7LI8uPjmak/WR8WNuvlnhaxW
-         4xgwlt61Jl32tdBjKxvfr1NLMcUVy948nmSYmM/8FHGIa6AgP+CL2Cld/F944bU8LiVQ
-         9l8BtoGQLio0CXeK05WwKEtsQOgyUv9K69w92ptJ25NxI7EnYXtM2cvXXVHvXdHM/H97
-         xOV7a0jslgUAdJsPLrhD/1KXK/h63O+jrmaujfhdktC+lWoEr8HuoqRr0sVYv+KsqtA+
-         6Q6w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=MpGuYub81dWqQvj8Y8RrNNkuRjtdN16XYy/CJnnmHs0=;
-        b=F0WvltJwraIuQXV/mOQsViiYURE2L4bdQq820k2MNF8vavo91W5O6T1D3ADMaLVGqr
-         GXlU5pHLVjXTs9b/bATo6t5MTp6MnMoTWaaoOoA7PlsolSVIYi7ZctOrxhJznSHf6XAa
-         8EK+mKarNd5iJMqWBcp85YlABR3AKYEQnWCO8ulmbAn/Z36V/8eZMYIKFW4dr7H1S4aX
-         65PXAcFQKXobzRkwNei99FVPkT+fWPmNwMZGvpQ80boOBtR2zpkt3ZBPrOIHu61nwjLR
-         UVJAC8iEb/WNyAzJINGppHlAES1YvjsdDgV4PZ3O4JIz88gE6nmTaXFKZiPT1hawZ+c2
-         fNyA==
-X-Gm-Message-State: AJIora/iPOfSwF0vGoCILzFpK+Ek0La4ZzOSWRj/gAKbkuo86x6kYXJE
-        vVucaZyn4PJi8RRrZHvIe/vshVgKsJJ3Jw==
-X-Google-Smtp-Source: AGRyM1twIWrkFNQzbrfa7gfgFhIOpoDMmo6kvBZCRxSE5VSxRYahfj6Ek8epANdU4HpoiPublHOPSg==
-X-Received: by 2002:a17:907:6eab:b0:722:dbb8:8e2 with SMTP id sh43-20020a1709076eab00b00722dbb808e2mr13935964ejc.746.1656082905301;
-        Fri, 24 Jun 2022 08:01:45 -0700 (PDT)
-Received: from msennikovskii4.fkb.profitbricks.net (ip5f5bf48a.dynamic.kabel-deutschland.de. [95.91.244.138])
-        by smtp.gmail.com with ESMTPSA id r13-20020a170906a20d00b006fec9cf9237sm1246842ejy.130.2022.06.24.08.01.44
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 24 Jun 2022 08:01:44 -0700 (PDT)
-From:   Mikhail Sennikovsky <mikhail.sennikovskii@ionos.com>
-To:     netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        mikhail.sennikovsky@gmail.com
-Cc:     Mikhail Sennikovsky <mikhail.sennikovskii@ionos.com>
-Subject: [PATCH v2 3/3] conntrack: fix -o save dump for unknown protocols
-Date:   Fri, 24 Jun 2022 17:01:26 +0200
-Message-Id: <20220624150126.24916-4-mikhail.sennikovskii@ionos.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20220624150126.24916-1-mikhail.sennikovskii@ionos.com>
-References: <20220624150126.24916-1-mikhail.sennikovskii@ionos.com>
+        Sat, 25 Jun 2022 04:44:07 -0400
+X-Greylist: delayed 1723 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sat, 25 Jun 2022 01:44:01 PDT
+Received: from outgoing12.flk.host-h.net (outgoing12.flk.host-h.net [188.40.208.242])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2DE70344CE
+        for <netfilter-devel@vger.kernel.org>; Sat, 25 Jun 2022 01:44:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=risingedge.co.za; s=xneelo; h=Content-Transfer-Encoding:MIME-Version:
+        Message-Id:Date:Subject:Cc:To:From:reply-to:sender:bcc:in-reply-to:references
+        :content-type; bh=ekmduD5XCN3+EMRU/l7+JH2hEKV+6MraoviUyBEow1c=; b=sC5d893bikw
+        PrpplD1iP6U2U/Wv4W+Pdw665tzfC9UGoRMM9/qxzljU9h6GUCdcTlG2FR47QIpJFr0jh6sIv4mDs
+        5acd4wYRqRmxO/CBcZ4bfB92vcgXWaxNLMWfl71LgoGr7sBw6Qtz5aFFf/zmRrc68+h8jSUiD9zW9
+        OFvYitaTP+iUVg9O6o+Q2RgAJ37MsLbfqPI0gx3SQVk3vdaYbMz82apX2TDc7Ju+6dlKF4Vj3WdkU
+        NTFAYj9Mr+HM8HlMLKwuQjYhUhlopGmvnzKh74LF/ftTAuE/bj0Eor49x05OY3Up0gLeDdSzLUfSM
+        EQSkRhTyiCq3hSrR8AlfGHQ==;
+Received: from www31.flk1.host-h.net ([188.40.1.173])
+        by antispam3-flk1.host-h.net with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <justin.swartz@risingedge.co.za>)
+        id 1o50wj-0005zF-Jd; Sat, 25 Jun 2022 10:15:15 +0200
+Received: from 8ta-249-3-215.telkomadsl.co.za ([102.249.3.215] helo=localhost.localdomain)
+        by www31.flk1.host-h.net with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <justin.swartz@risingedge.co.za>)
+        id 1o50wh-00027M-TL; Sat, 25 Jun 2022 10:15:12 +0200
+From:   Justin Swartz <justin.swartz@risingedge.co.za>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Robert Kolchmeyer <rkolchmeyer@google.com>,
+        Justin Swartz <justin.swartz@risingedge.co.za>
+Subject: [PATCH] ebtables: extend the 'static' build target fix.
+Date:   Sat, 25 Jun 2022 10:14:41 +0200
+Message-Id: <20220625081441.13323-1-justin.swartz@risingedge.co.za>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Authenticated-Sender: justin.swartz@risingedge.co.za
+X-Virus-Scanned: Clear
+X-Originating-IP: 188.40.1.173
+X-SpamExperts-Domain: risingedge.co.za
+X-SpamExperts-Username: 
+Authentication-Results: host-h.net; auth=pass (login) smtp.auth=@risingedge.co.za
+X-SpamExperts-Outgoing-Class: ham
+X-SpamExperts-Outgoing-Evidence: SB/global_tokens (0.0041015031603)
+X-Recommended-Action: accept
+X-Filter-ID: Pt3MvcO5N4iKaDQ5O6lkdGlMVN6RH8bjRMzItlySaT/MnpNzwC0Ocb1EkB4gNASoPUtbdvnXkggZ
+ 3YnVId/Y5jcf0yeVQAvfjHznO7+bT5zN3IqzRBDvTWZfn5sEnTpZuklamWP4cukJW+3pAn2KGu1d
+ lFc2J+gRtFmyqzFFeX+3wL2Y4F0412ezGCyTUPanSFrMwbY4cRFPXLNpRfrn5Y0LEUD0Op6gC8NE
+ DuTqCz76thm+7tQQmJTezbtWAoc7xuAOHwMqYKYMr/m+HJL/xXoEa1iyKMqiSwfwghR1o23RMycf
+ SndZkVh5TefPRv0JixQxZZ+BetMBaOp+SYcmHEtNZwGZqSkZ0Sgdwq+rOeEi6kX2hWgnE6CIBz+E
+ zEKp5U90us44ThtrkdfIq2AcVy1+Itm3Zi67f33Q0vSIt5Es9EoJF76glRJeGkLNzPOkhY6U4Nwm
+ pcGPuCEf4Z43ofcLVphtCwl8mpTwF6N+yd39FigqGrU+34PbFwtmhz7kZGZwNIZ5JwD/J3XLtkTR
+ 3gPkCgeOrSVu604RiS52Hg4WqQcrkdncBVBujWllVdXQX7semJdl8Weuy8+tlMSTQ04uitUf42Cc
+ Hl6wE8LbH+hYFX5W98JZfM4UDzp+I2t3lcZkPRq7NhoxyMwqi8Q23bNHg5ts37gbRPta2ZlNINyd
+ 6+6AB9mEpRX5vy67WwDjehIqUczFWeS6sE8e1b5/UkBg4yvMn5MBAdwJubari/hPuKmOY0kqJ4NN
+ rcAziJOD+TkpKT6O5G+4aPgJrp5nml6/OzEKm9KAOvYMfigiXaYHmFDqewO9xyOqCYO8P1aHMhZZ
+ DkZ40oG2FzTfopvz9xuIxkBDGEbduOdw0uJtHguTRS8JVsgjWBjHFLRRCbQxQQQX7NPNcMSQ97p8
+ 3PUvYjrZGfrvFvNuaXph7mH0nSlgI/9ncnak3Ay6ECNGst2pXPWlFdaGOH191uXjgjQN/c+0S1IB
+ LIRSrCXgT7NEODZIQqRxd3tjCm2/vSodPNFZuh0a2rp7CqRZHeAHz/dis0M6Oo8fr3pIQE+Tur0x
+ NxA8r547VZA0UFr/akx1EQvtuD+68QGZjMkglcEG10DVahsNbqNDT4Kf8NfG1XHwpAh+vwaYt0T2
+ 8J35bZnWIbDOqza8/wd0p4lmMi3WIfAF1w==
+X-Report-Abuse-To: spam@antispammaster.host-h.net
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Make sure the protocol (-p) option is included in the -o save
-ct entry dumps for L4 protocols unknown to the conntrack tool.
+Assign "-all-static" (instead of "-static") to "static_LDFLAGS" in
+Makefile.am, as libtool will only produce a static binary if it is
+explicitly told that all of the linked libraries should be static.
 
-Do not use getprotobynumber for unknown protocols to ensure
-"-o save" data incompatibility between hosts having different
-/etc/protocols contents.
+BEFORE
 
-Include testcases covering the issue.
+$ file static
+static: ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV),
+        dynamically linked, interpreter /lib/ld-musl-i386.so.1,
+        not stripped
 
-Signed-off-by: Mikhail Sennikovsky <mikhail.sennikovskii@ionos.com>
+AFTER
+
+$ file static
+static: ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV),
+        statically linked, not stripped
+
+REFERENCE
+
+"Another common situation where static linking is desirable is in
+ creating a standalone binary. Use libtool to do the linking and
+ add the -all-static flag."  --  Libtool Manual, Section 3.7
+
+Signed-off-by: Justin Swartz <justin.swartz@risingedge.co.za>
 ---
- src/conntrack.c                     |  9 +++++++++
- tests/conntrack/testsuite/09dumpopt | 26 ++++++++++++++++++++++++++
- 2 files changed, 35 insertions(+)
+ Makefile.am | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/conntrack.c b/src/conntrack.c
-index e381543..d49ac1a 100644
---- a/src/conntrack.c
-+++ b/src/conntrack.c
-@@ -800,6 +800,7 @@ static int ct_save_snprintf(char *buf, size_t len,
- 	struct ctproto_handler *cur;
- 	uint8_t l3proto, l4proto;
- 	int tuple_attrs[4] = {};
-+	bool l4proto_set;
- 	unsigned i;
- 	int ret;
+diff --git a/Makefile.am b/Makefile.am
+index b246064..d011919 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -51,7 +51,7 @@ ebtablesd_LDADD = libebtc.la
+ ebtables_legacy_restore_SOURCES = ebtables-restore.c
+ ebtables_legacy_restore_LDADD = libebtc.la
+ static_SOURCES = ebtables-standalone.c $(libebtc_la_SOURCES)
+-static_LDFLAGS = -static
++static_LDFLAGS = -all-static
+ examples_ulog_test_ulog_SOURCES = examples/ulog/test_ulog.c getethertype.c
  
-@@ -860,6 +861,7 @@ static int ct_save_snprintf(char *buf, size_t len,
- 
- 	l4proto = nfct_get_attr_u8(ct, ATTR_L4PROTO);
- 
-+	l4proto_set = false;
- 	/* is it in the list of supported protocol? */
- 	list_for_each_entry(cur, &proto_list, head) {
- 		if (cur->protonum != l4proto)
-@@ -870,9 +872,16 @@ static int ct_save_snprintf(char *buf, size_t len,
- 
- 		ret = ct_snprintf_opts(buf + offset, len, ct, cur->print_opts);
- 		BUFFER_SIZE(ret, size, len, offset);
-+
-+		l4proto_set = true;
- 		break;
- 	}
- 
-+	if (!l4proto_set) {
-+		ret = snprintf(buf + offset, len, "-p %d ", l4proto);
-+		BUFFER_SIZE(ret, size, len, offset);
-+	}
-+
- 	/* skip trailing space, if any */
- 	for (; size && buf[size-1] == ' '; --size)
- 		buf[size-1] = '\0';
-diff --git a/tests/conntrack/testsuite/09dumpopt b/tests/conntrack/testsuite/09dumpopt
-index 447590b..c1e0e6e 100644
---- a/tests/conntrack/testsuite/09dumpopt
-+++ b/tests/conntrack/testsuite/09dumpopt
-@@ -145,3 +145,29 @@
- -D -w 11 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ; OK
- # clean up after yourself
- -D -w 10 ; OK
-+# Cover protocols unknown to the conntrack tool
-+# Create a conntrack entries
-+# IGMP
-+-I -w 10 -t 59 -s 0.0.0.0 -d 224.0.0.22 -r 224.0.0.22 -q 0.0.0.0 -p 2 ;
-+# Some fency protocol
-+-I -w 10 -t 59 -s 0.0.0.0 -d 224.0.0.22 -r 224.0.0.22 -q 0.0.0.0 -p 200 ;
-+# Some fency protocol with IPv6
-+-I -w 10 -t 59 -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p 200 ;
-+-R - ; OK
-+# copy to zone 11
-+-L -w 10 -o save ; |s/-w 10/-w 11/g
-+-R - ; OK
-+# Delete stuff in zone 10, should succeed
-+# IGMP
-+-D -w 10 -s 0.0.0.0 -d 224.0.0.22 -r 224.0.0.22 -q 0.0.0.0 -p 2 ; OK
-+# Some fency protocol
-+-D -w 10  -s 0.0.0.0 -d 224.0.0.22 -r 224.0.0.22 -q 0.0.0.0 -p 200 ; OK
-+# Some fency protocol with IPv6
-+-D -w 10 -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p 200 ; OK
-+# Delete stuff in zone 11, should succeed
-+# IGMP
-+-D -w 11 -s 0.0.0.0 -d 224.0.0.22 -r 224.0.0.22 -q 0.0.0.0 -p 2 ; OK
-+# Some fency protocol
-+-D -w 11  -s 0.0.0.0 -d 224.0.0.22 -r 224.0.0.22 -q 0.0.0.0 -p 200 ; OK
-+# Some fency protocol with IPv6
-+-D -w 11 -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p 200 ; OK
+ daemon: ebtablesd ebtablesu
 -- 
-2.25.1
 
