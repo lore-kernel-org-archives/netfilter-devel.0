@@ -2,190 +2,391 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 287A2C43334
-	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Jun 2022 15:21:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB892C433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Jun 2022 16:59:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238079AbiF0PV3 (ORCPT
+        id S235468AbiF0Q7N (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 27 Jun 2022 11:21:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33836 "EHLO
+        Mon, 27 Jun 2022 12:59:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51686 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238037AbiF0PVH (ORCPT
+        with ESMTP id S235437AbiF0Q7M (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 Jun 2022 11:21:07 -0400
-Received: from NAM04-BN8-obe.outbound.protection.outlook.com (mail-bn8nam04on2073.outbound.protection.outlook.com [40.107.100.73])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B82C118B30
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 Jun 2022 08:20:03 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=h1bb524O/ZCBPsJUO5A9WlmGmb6Y2hm5qXMRazuYt72OYSt5NEte/y1qk1raRDlFDseHFueS5St22M0Od/3LHkTTHttJXlEmSais9JxO3p+4eMTDMMAIvD3TcPVvWMET+YKkex2OECNWlFf0YZC5DmJlhyxeXmp73nct4T5Ms5dsQ076AaTpv0TVXYyFPp6ucctdLc4d37J0FFxgWsT4Wtih14WWCDdYyaOwg4taIc63bJfhv0sQDqeUhMgk1lZzAs/ZivujMpx9CynHG6vrOBOb1k2JcAv9kGRhCcbupcs5B23vXDiIIpsWtncCXoPXXUtrwUiKsY7hCt1tk1lmhA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=hYIobtpsIE+2CAd0qKVZCbUTwsGFX8dVbrOf0dENcvE=;
- b=jCvXk/VOVUFBqjNS/UQ9TaFZ0W1QNlRBysXqhR7xngtI3rBhdPrl3od0SUINsy2BezJAyH/07Jwrz7sRfJHA60MF+fC6QjqQ6e100Hjw1hamHIBI+WtLPKqHbXUWXXPtGjriGqyEEEZ6mXG+o/q8c/MkANrrxwBMbnlLDnq+P8xnO+oxxnSfaF9MHsESCSf7F+psX/xb0NxeGDpnljNHaCJaIfpf39zJ4i83FuoYm+B8kctPlbp1OocbXgqxe95I5D3Ak2PXzfbq9yqXXwDHAH5wqreVBfLWhV27EwBxVu7F8z9XOb/9DkUbGHe06cNkDep1HNHkIkFpOkAB+j24Iw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=hYIobtpsIE+2CAd0qKVZCbUTwsGFX8dVbrOf0dENcvE=;
- b=WmAv6RF38w1YLf/HGyMQQwGlq0UW9+ZLIp5oiS5lwjGnDb0tdAcz0305elWpjDRSME5TmgOtDIWRq4mqEyTpIY5UO9tk0+at2/30DKaurOKXHSDifn31pkuGaq806xxWJs+RHFhE0+VvWIfPxRpT8KT4Yp0RPbuqd7rgex5/7vbJI+9j3UiPYRn4diOTd7mKVhfaCp3uaO2U2XG/N9u9IExvgvA4EouuoO6hlRPtlCs0pEnkmU3YJN6FsBf8cExqKLXCM6qTANxVKLNvvwpMwJkUzD2DN5r5UamNwrpZLtCIqmps/zg/49ujfDpsweG+9iXqo4boHRH1jry6FHGjOw==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from DM5PR12MB1307.namprd12.prod.outlook.com (2603:10b6:3:79::21) by
- CY4PR12MB1414.namprd12.prod.outlook.com (2603:10b6:903:3a::23) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.5373.18; Mon, 27 Jun 2022 15:20:02 +0000
-Received: from DM5PR12MB1307.namprd12.prod.outlook.com
- ([fe80::1075:9d96:7eaa:3f9f]) by DM5PR12MB1307.namprd12.prod.outlook.com
- ([fe80::1075:9d96:7eaa:3f9f%4]) with mapi id 15.20.5373.018; Mon, 27 Jun 2022
- 15:20:01 +0000
-Message-ID: <c5039f5a-5295-a457-65c5-d7016d6a5034@nvidia.com>
-Date:   Mon, 27 Jun 2022 18:19:54 +0300
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.10.0
-Subject: Re: [PATCH nf-next] flow_table: do not try to add already offloaded
- entries
-Content-Language: en-US
-To:     Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
-        netfilter-devel@vger.kernel.org
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Paul Blakey <paulb@nvidia.com>
-References: <95c2aa63adea29e6008ee45af17d199492f4d14b.1656340577.git.marcelo.leitner@gmail.com>
-From:   Oz Shlomo <ozsh@nvidia.com>
-In-Reply-To: <95c2aa63adea29e6008ee45af17d199492f4d14b.1656340577.git.marcelo.leitner@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: LO4P123CA0148.GBRP123.PROD.OUTLOOK.COM
- (2603:10a6:600:188::9) To DM5PR12MB1307.namprd12.prod.outlook.com
- (2603:10b6:3:79::21)
+        Mon, 27 Jun 2022 12:59:12 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id EE967DEC6
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Jun 2022 09:59:09 -0700 (PDT)
+Date:   Mon, 27 Jun 2022 18:59:06 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Stefano Brivio <sbrivio@redhat.com>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf] nft_set_rbtree: Switch to node list walk for overlap
+ detection
+Message-ID: <Yrnh2lqhvvzrT2ii@salvia>
+References: <20220614010704.1416375-1-sbrivio@redhat.com>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: faba2350-3277-42bd-81d8-08da58508144
-X-MS-TrafficTypeDiagnostic: CY4PR12MB1414:EE_
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: NHrXbpq0bnvMe/vdJK93G5tuzMD+OeBXwIMOZMJwmBSX169Lm3wZwIEL0rzgL0lomYkN8jSbohR3vppLYQrvkjQQVEBb+6zQADFexknQWai7tPQwsgezhGt6RvkVonpJChnq80/wEY8pJeNzN/6OnWhngTJSxIKCbcm2IUTP5rQ6G0LJ7dhHUUKK6ZmgGMvufpBnQ7CaKKHlnW1EUw+q2mox5aiDI3C5P1ZCLPadJ+8IjboRsYSbkvJ5c82AvkZ2j34Y0/gTzvQ9AgCpIRaDDj4k3RKEGf1sOjoZbwgEuV2497q6znIxZesqc6Cw7egtSc+/ybPIbA3rCNAS+DMbNGFjT4RMU3/UPFu1w5pjcXi38m6E61O3IGrUkCurZgshqcIVU+hcN/d6sU+BefUSV94Z4FxFPuYqVNp7+w8y4nADYrQA3X3oVFEMHuho5b7tFeAzKy5eXHRy1lx9kng7KDG/v1EF6GpwQ1hshOl84VdsoeI8XnfXeD4CMwHEpoLfb8NwBOyKn9OMDveR7K18HrpvMuE1S8ImFtWBFfxUSYFfPgvZQl3aWQoc2LTuOkYyR5o50BDx2EYTjbgITMDPxYN8sMs+ywwsyN+BYVMSWMqxLbabKc31t0e22lJQwL2s9pjJabsu398k/tmqcKSwvPiSsoqzZr+/miWHNAm22lYfU7a8MHX/kCJt0nsrQonmbuo2TWHtNg4+zwx00Kebwf++9Fenonxv1cJnkPvFHshPKzqNOaKSLCSEIWlJYqe46R2BLaxo1Akjpfx5hBnoFGVa3+nOb/yh+NDneRncKX4U1By8g6sZgwurYYiJrBdzjFi7VJSEs6z1w2gxAjx5sw==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM5PR12MB1307.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(4636009)(346002)(366004)(376002)(39860400002)(396003)(136003)(6506007)(478600001)(5660300002)(31686004)(2616005)(107886003)(6666004)(36756003)(8936002)(6486002)(38100700002)(26005)(53546011)(6512007)(86362001)(31696002)(186003)(2906002)(83380400001)(66556008)(66476007)(41300700001)(316002)(66946007)(8676002)(4326008)(54906003)(45980500001)(43740500002);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?TnVWd01uL0pyc3Fack5zWUlqNTFjOXdJcUZIZS9WWG92YS8vVWE3anJic2lQ?=
- =?utf-8?B?dVEwT2k3RDZvVWRDdDI4aFJFTStaQWdqUmt2alNLYlIrNWpwczBNd1RCbmgw?=
- =?utf-8?B?SHBRQk9yLzU5ZTcwTkpIam92UDRaT2x3MHZQd0VoaGdWYWQ4bnVLNC9SdndK?=
- =?utf-8?B?U1lRVnU3Rzk3OSs2YStmeGo2NDV5cWkrTmxzWXJvekZuUXZEN25zUVdhYXp3?=
- =?utf-8?B?Nll4OVJMMXpwUXYvOTBMbm5qbG4xdTkyeDZNKzB2bm9PYXNqUGk5b2tLL3BT?=
- =?utf-8?B?aGo0MGJQMW1GSy81SVlJVDR3UDlLV2xhMXhFeDU2ZVNvZ0FZSmRHSFBGMHY0?=
- =?utf-8?B?NTQ0Y3I2K0R6M3VJYzBpRFVsWWxxajVHbmhtNFhXTEdYa1pGYlQ2SDdFdHpv?=
- =?utf-8?B?aHRwRytNUkttd21GcE8xUTZ3QXVlWVZ0dnE2TWNOVXBaNUZOcVhZK2diR0tq?=
- =?utf-8?B?MitTUFJ3VVgxR0kwTk40eVhRSFBpeHoxM0hkK0hYcU8wNmQvOGJLRk1iNmdu?=
- =?utf-8?B?OTF1UTNpalEvcUUwLzBBaWZxUWpVc25PNFRGb0k4MHl2ZWlUOG9xaitkVmxY?=
- =?utf-8?B?ZFRwZm00T09ISEp6MWZoY1N1N1JhV3ZuWU1MYlNkeSsreEpVbHBUeCswMXN3?=
- =?utf-8?B?MXZYSVdvZ2VERk5xeVp5SHpNRVk1dmowM0JxWmFwUkN0VTZGa3J3dmE3TzlV?=
- =?utf-8?B?L1RXODU1aWcrV0NhbzM5YTJPaEcveFpoaG9vbVZBbGtxSWxGUjR1bExNejZv?=
- =?utf-8?B?UUpHL1FDenhuNGVEZmdCZE1zeDFqMXRUdWVRcWJDSUt2SVZxd093NnNnRWov?=
- =?utf-8?B?UjA2V3BjSlZTNDI3VlZUQ3ZiaEpFcWJ2cHA5ajlORWc3RnhRbHU0My9wSG8z?=
- =?utf-8?B?TWNlUEgwUU4zR3hkYnRobCtnYnV6MnRDZGg1SmMySVlpZXdVYWtITUNyZVVE?=
- =?utf-8?B?TDJmZW9JOVhSMFdMdm1GcmhUcG91L1lBYThFRk1TUzVqcWVHYVpLV2ZHdnRY?=
- =?utf-8?B?aEhvQ0dURjI0MVZCZWxKUjdGdUpza3loVXVOR1VIZU8vNWpSM0QzODBISnk4?=
- =?utf-8?B?djVxbmlETmlCZHRPbWRnODE0cUhCSVpEMVpBeWZKSit0Ky9wRXE4d0dINHBK?=
- =?utf-8?B?SUIvL2NMU3dFWGZCWmY0dFU0V09Wa1o5RWptYXhWS3g4K1pINjhkQkZoRnBp?=
- =?utf-8?B?OFl3NWhLQ0JvNjkxSlFhRE5STGw5eHJ5cWhXZ0p1ak5TOHMyVEh1Y2lZeUVz?=
- =?utf-8?B?bkJTM2Q5U25ScXlhMHJyOVB5cG9hZVNqWWVYWmIwaGx1YUdKREptcnRXL3ph?=
- =?utf-8?B?NVRzcXZOcEI0THlOOWk1YVl4Vzg4S3JiVXBRWURMSjU2SmMyR28vcExvcGFn?=
- =?utf-8?B?MFlubExmck13MCswSUFsSUFmRlRycmJVZFlDcFVldzBHbmxKRjZGaDlnam9n?=
- =?utf-8?B?U1FCcTI1WTNPS1gyK21CLy9xbWJqUS9XWndJdnJLSk9wOUllKzNNeEk1SjQ4?=
- =?utf-8?B?TzJvRktUTVlwcGt5dEtpQUVLcmxPQnpySVd2ejZDb1EycXQvcWdwK3FsaURi?=
- =?utf-8?B?bllldG1QenlyK0w0ZHdKOFNPR3JsL0JWU3p4L3RUYkFVZnozNC9XcklUbTFR?=
- =?utf-8?B?S00vU05ueDY4N1lVWFJUN1FVNVdZekxXVVZLaUFGSXlOVzBRNnRpYXYzUmda?=
- =?utf-8?B?OTVmenZVL2UrZjVzQlljbXpxeWo4TUl5elNuUDhiWDZBbFdhY1c3RDEwMHN5?=
- =?utf-8?B?MHl1MzM2ZmZXZG8xMVlxVXlUQ0UreTJsN0pzNWpPb00xU1dEYVowb3dUNHh3?=
- =?utf-8?B?QTFmUzlzdnZWZzZja1VNQ3AySHFDeHZyWTExaStjS3huREQxS01pSDV4ZVJC?=
- =?utf-8?B?K1RTWWNEQk5WYjU4aVV5bVVveU1OUXd2Y2p2NzBpbDJSdEhGMmloTUpYSm5P?=
- =?utf-8?B?Qm1WdEJ1ZWxFTi9vWDlMZ3BHUThaVW5iVnYwc21jbktqcklhRS9XL2xCMUts?=
- =?utf-8?B?QnBFNmZkZzlyM1lZcG1MTGZyVC94Q25oOXRkV3g4VXp1TitteDBDQ0RwSUNS?=
- =?utf-8?B?dmFXbndoSm1GREN6Sm5JMUlIeEk0S0thaHRQTUFVcVc4K3pTRnFKbzJjSU9y?=
- =?utf-8?Q?aeg/wjJHKNcflo+5GwUMyM9/8?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: faba2350-3277-42bd-81d8-08da58508144
-X-MS-Exchange-CrossTenant-AuthSource: DM5PR12MB1307.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 27 Jun 2022 15:20:01.8537
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: P7tKXiRHdFw0ny38/gRiPvhPb23dbL6/Jcmlh49+Q37pMmaeez2datbJ6iYgGQ1u
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY4PR12MB1414
+Content-Type: multipart/mixed; boundary="EXi8YAorsVoAmrqd"
+Content-Disposition: inline
+In-Reply-To: <20220614010704.1416375-1-sbrivio@redhat.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Marcelo,
 
-On 6/27/2022 5:38 PM, Marcelo Ricardo Leitner wrote:
-> Currently, whenever act_ct tries to match a packet against the flow
-> table, it will also try to refresh the offload. That is, at the end
-> of tcf_ct_flow_table_lookup() it will call flow_offload_refresh().
-> 
-> The problem is that flow_offload_refresh() will try to offload entries
-> that are actually already offloaded, leading to expensive and useless
-> work. Before this patch, with a simple iperf3 test on OVS + TC
+--EXi8YAorsVoAmrqd
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-Packets of offloaded connections are expected to process in hardware.
-As such, it is not expected to receive packets in software from 
-offloaded connections.
+Hi Stefano,
 
-However, hardware offload may fail due to various reasons (e.g. size 
-limits, insertion rate throttling etc.).
-The "refresh" mechanism is the enabler for offload retries.
-
-
-> (hw_offload=true) + CT test entirely in sw, it looks like:
-> 
-> - 39,81% tcf_classify
->     - fl_classify
->        - 37,09% tcf_action_exec
->           + 33,18% tcf_mirred_act
->           - 2,69% tcf_ct_act
->              - 2,39% tcf_ct_flow_table_lookup
->                 - 1,67% queue_work_on
->                    - 1,52% __queue_work
->                         1,20% try_to_wake_up
->           + 0,80% tcf_pedit_act
->        + 2,28% fl_mask_lookup
-> 
-> The patch here aborts the add operation if the entry is already present
-> in hw. With this patch, then:
-> 
-> - 43,94% tcf_classify
->     - fl_classify
->        - 39,64% tcf_action_exec
->           + 38,00% tcf_mirred_act
->           - 1,04% tcf_ct_act
->                0,63% tcf_ct_flow_table_lookup
->        + 3,19% fl_mask_lookup
-> 
-> Signed-off-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+On Tue, Jun 14, 2022 at 03:07:04AM +0200, Stefano Brivio wrote:
+> ...instead of a tree descent, which became overly complicated in an
+> attempt to cover cases where expired or inactive elements would
+> affect comparisons with the new element being inserted.
+>
+> Further, it turned out that it's probably impossible to cover all
+> those cases, as inactive nodes might entirely hide subtrees
+> consisting of a complete interval plus a node that makes the current
+> insertion not overlap.
+>
+> For the insertion operation itself, this essentially reverts back to
+> the implementation before commit 7c84d41416d8
+> ("netfilter: nft_set_rbtree: Detect partial overlaps on insertion"),
+> except that cases of complete overlap are already handled in the
+> overlap detection phase itself, which slightly simplifies the loop to
+> find the insertion point.
+>
+> Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> Fixes: 7c84d41416d8 ("netfilter: nft_set_rbtree: Detect partial overlaps on insertion")
+> Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
 > ---
->   net/netfilter/nf_flow_table_offload.c | 3 +++
->   1 file changed, 3 insertions(+)
-> 
-> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-> index 11b6e19420920bc8efda9877af0dab5311c8a096..9a8fc61581400b4e13aa356972d366892bb71b9b 100644
-> --- a/net/netfilter/nf_flow_table_offload.c
-> +++ b/net/netfilter/nf_flow_table_offload.c
-> @@ -1026,6 +1026,9 @@ void nf_flow_offload_add(struct nf_flowtable *flowtable,
->   {
->   	struct flow_offload_work *offload;
->   
-> +	if (test_bit(NF_FLOW_HW, &flow->flags))
-> +		return;
-> +
+>  net/netfilter/nft_set_rbtree.c | 194 ++++++++++-----------------------
+>  1 file changed, 58 insertions(+), 136 deletions(-)
 
-This change will make the refresh call obsolete as the NF_FLOW_HW bit is 
-set on the first flow offload attempt.
+When running tests this is increasing the time to detect overlaps in
+my testbed, because of the linear list walk for each element.
 
->   	offload = nf_flow_offload_work_alloc(flowtable, flow, FLOW_CLS_REPLACE);
->   	if (!offload)
->   		return;
+So I have been looking at an alternative approach (see attached patch) to
+address your comments. The idea is to move out the overlapping nodes
+from the element in the tree, instead keep them in a list.
+
+                        root
+                        /  \
+                     elem   elem -> update -> update
+                            /  \
+                         elem  elem
+
+Each rbtree element in the tree .has pending_list which stores the
+element that supersede the existing (inactive) element. There is also a
+.list which is used to add the element to the .pending_list. Elements
+in the tree might have a .pending_list with one or more elements.
+
+The .deactivate path looks for the last (possibly) active element. The
+.remove path depends on the element state: a) element is singleton (no
+pending elements), then erase from tree, b) element has a pending
+list, then replace the first element in the pending_list by this node,
+and splice pending_list (there might be more elements), c) this
+element is in the pending_list, the just remove it. This handles both
+commit (walks through the list of transaction forward direction) and
+abort path (walks through the list of transactions in backward
+direction).
+
+With this approach, there is no more 'gray' nodes in the tree, as you
+describe in your problem statement.
+
+This is increasing the size of the rbtree element, probably I can
+just add a pointer to a new nft_rbtree_elem_update structure (not done
+in this patch) and allocate it dynamically on updates, so this only
+takes 8 extra bytes per rbtree element, not sure how complex that is.
+
+I'm attaching the patch I've been testing here.
+
+Let me know, thanks.
+
+--EXi8YAorsVoAmrqd
+Content-Type: text/x-diff; charset=utf-8
+Content-Disposition: attachment; filename="rbtree.patch"
+
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 7325bee7d144..14d15efbe545 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -24,9 +24,36 @@ struct nft_rbtree {
+ 
+ struct nft_rbtree_elem {
+ 	struct rb_node		node;
++	struct list_head	pending_list;
++	struct list_head	list;
+ 	struct nft_set_ext	ext;
+ };
+ 
++static struct nft_rbtree_elem *nft_rbtree_elem_leaf(const struct nft_rbtree_elem *rbe, u8 genmask)
++{
++	struct nft_rbtree_elem *elem;
++
++	if (unlikely(!list_empty(&rbe->pending_list))) {
++		elem = list_last_entry(&rbe->pending_list, struct nft_rbtree_elem, list);
++		return elem;
++	}
++
++	return (struct nft_rbtree_elem *)rbe;
++}
++
++static bool __nft_rbtree_elem_active(const struct nft_rbtree_elem *rbe, u8 genmask)
++{
++	return nft_set_elem_active(&rbe->ext, genmask) &&
++	       !nft_set_elem_expired(&rbe->ext);
++}
++
++static bool nft_rbtree_elem_active(const struct nft_rbtree_elem *rbe, u8 genmask)
++{
++	struct nft_rbtree_elem *elem = nft_rbtree_elem_leaf(rbe, genmask);
++
++	return __nft_rbtree_elem_active(elem, genmask);
++}
++
+ static bool nft_rbtree_interval_end(const struct nft_rbtree_elem *rbe)
+ {
+ 	return nft_set_ext_exists(&rbe->ext, NFT_SET_EXT_FLAGS) &&
+@@ -75,12 +102,7 @@ static bool __nft_rbtree_lookup(const struct net *net, const struct nft_set *set
+ 		} else if (d > 0)
+ 			parent = rcu_dereference_raw(parent->rb_right);
+ 		else {
+-			if (!nft_set_elem_active(&rbe->ext, genmask)) {
+-				parent = rcu_dereference_raw(parent->rb_left);
+-				continue;
+-			}
+-
+-			if (nft_set_elem_expired(&rbe->ext))
++			if (!nft_rbtree_elem_active(rbe, genmask))
+ 				return false;
+ 
+ 			if (nft_rbtree_interval_end(rbe)) {
+@@ -97,8 +119,7 @@ static bool __nft_rbtree_lookup(const struct net *net, const struct nft_set *set
+ 	}
+ 
+ 	if (set->flags & NFT_SET_INTERVAL && interval != NULL &&
+-	    nft_set_elem_active(&interval->ext, genmask) &&
+-	    !nft_set_elem_expired(&interval->ext) &&
++	    nft_rbtree_elem_active(interval, genmask) &&
+ 	    nft_rbtree_interval_start(interval)) {
+ 		*ext = &interval->ext;
+ 		return true;
+@@ -155,12 +176,7 @@ static bool __nft_rbtree_get(const struct net *net, const struct nft_set *set,
+ 			if (flags & NFT_SET_ELEM_INTERVAL_END)
+ 				interval = rbe;
+ 		} else {
+-			if (!nft_set_elem_active(&rbe->ext, genmask)) {
+-				parent = rcu_dereference_raw(parent->rb_left);
+-				continue;
+-			}
+-
+-			if (nft_set_elem_expired(&rbe->ext))
++			if (!nft_rbtree_elem_active(rbe, genmask))
+ 				return false;
+ 
+ 			if (!nft_set_ext_exists(&rbe->ext, NFT_SET_EXT_FLAGS) ||
+@@ -178,8 +194,7 @@ static bool __nft_rbtree_get(const struct net *net, const struct nft_set *set,
+ 	}
+ 
+ 	if (set->flags & NFT_SET_INTERVAL && interval != NULL &&
+-	    nft_set_elem_active(&interval->ext, genmask) &&
+-	    !nft_set_elem_expired(&interval->ext) &&
++	    nft_rbtree_elem_active(interval, genmask) &&
+ 	    ((!nft_rbtree_interval_end(interval) &&
+ 	      !(flags & NFT_SET_ELEM_INTERVAL_END)) ||
+ 	     (nft_rbtree_interval_end(interval) &&
+@@ -215,6 +230,22 @@ static void *nft_rbtree_get(const struct net *net, const struct nft_set *set,
+ 	return rbe;
+ }
+ 
++static int nft_rbtree_insert_pending(struct nft_rbtree_elem *rbe,
++				     struct nft_rbtree_elem *new, u8 genmask)
++{
++	struct nft_rbtree_elem *elem;
++
++	if (unlikely(!list_empty(&rbe->pending_list))) {
++		elem = list_last_entry(&rbe->pending_list, struct nft_rbtree_elem, list);
++		if (nft_set_elem_active(&elem->ext, genmask))
++			return -EEXIST;
++	}
++
++	list_add_tail(&new->list, &rbe->pending_list);
++
++	return 0;
++}
++
+ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 			       struct nft_rbtree_elem *new,
+ 			       struct nft_set_ext **ext)
+@@ -226,6 +257,9 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 	struct rb_node *parent, **p;
+ 	int d;
+ 
++	INIT_LIST_HEAD(&new->pending_list);
++	INIT_LIST_HEAD(&new->list);
++
+ 	/* Detect overlaps as we descend the tree. Set the flag in these cases:
+ 	 *
+ 	 * a1. _ _ __>|  ?_ _ __|  (insert end before existing end)
+@@ -292,17 +326,14 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 
+ 			if (nft_rbtree_interval_start(new)) {
+ 				if (nft_rbtree_interval_end(rbe) &&
+-				    nft_set_elem_active(&rbe->ext, genmask) &&
+-				    !nft_set_elem_expired(&rbe->ext) && !*p)
++				    nft_rbtree_elem_active(rbe, genmask) && !*p)
+ 					overlap = false;
+ 			} else {
+ 				if (dup_end_left && !*p)
+ 					return -ENOTEMPTY;
+ 
+ 				overlap = nft_rbtree_interval_end(rbe) &&
+-					  nft_set_elem_active(&rbe->ext,
+-							      genmask) &&
+-					  !nft_set_elem_expired(&rbe->ext);
++					  nft_rbtree_elem_active(rbe, genmask);
+ 
+ 				if (overlap) {
+ 					dup_end_right = true;
+@@ -317,16 +348,13 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 					return -ENOTEMPTY;
+ 
+ 				overlap = nft_rbtree_interval_end(rbe) &&
+-					  nft_set_elem_active(&rbe->ext,
+-							      genmask) &&
+-					  !nft_set_elem_expired(&rbe->ext);
++					  nft_rbtree_elem_active(rbe, genmask);
+ 
+ 				if (overlap) {
+ 					dup_end_left = true;
+ 					continue;
+ 				}
+-			} else if (nft_set_elem_active(&rbe->ext, genmask) &&
+-				   !nft_set_elem_expired(&rbe->ext)) {
++			} else if (nft_rbtree_elem_active(rbe, genmask)) {
+ 				overlap = nft_rbtree_interval_end(rbe);
+ 			}
+ 		} else {
+@@ -334,26 +362,19 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 			    nft_rbtree_interval_start(new)) {
+ 				p = &parent->rb_left;
+ 
+-				if (nft_set_elem_active(&rbe->ext, genmask) &&
+-				    !nft_set_elem_expired(&rbe->ext))
++				if (nft_rbtree_elem_active(rbe, genmask))
+ 					overlap = false;
+ 			} else if (nft_rbtree_interval_start(rbe) &&
+ 				   nft_rbtree_interval_end(new)) {
+ 				p = &parent->rb_right;
+ 
+-				if (nft_set_elem_active(&rbe->ext, genmask) &&
+-				    !nft_set_elem_expired(&rbe->ext))
++				if (nft_rbtree_elem_active(rbe, genmask))
+ 					overlap = false;
+-			} else if (nft_set_elem_active(&rbe->ext, genmask) &&
+-				   !nft_set_elem_expired(&rbe->ext)) {
++			} else if (nft_rbtree_elem_active(rbe, genmask)) {
+ 				*ext = &rbe->ext;
+ 				return -EEXIST;
+ 			} else {
+-				overlap = false;
+-				if (nft_rbtree_interval_end(rbe))
+-					p = &parent->rb_left;
+-				else
+-					p = &parent->rb_right;
++				return nft_rbtree_insert_pending(rbe, new, genmask);
+ 			}
+ 		}
+ 
+@@ -365,6 +386,7 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 
+ 	rb_link_node_rcu(&new->node, parent, p);
+ 	rb_insert_color(&new->node, &priv->root);
++
+ 	return 0;
+ }
+ 
+@@ -389,12 +411,21 @@ static void nft_rbtree_remove(const struct net *net,
+ 			      const struct nft_set *set,
+ 			      const struct nft_set_elem *elem)
+ {
++	struct nft_rbtree_elem *rbe = elem->priv, *new;
+ 	struct nft_rbtree *priv = nft_set_priv(set);
+-	struct nft_rbtree_elem *rbe = elem->priv;
+ 
+ 	write_lock_bh(&priv->lock);
+ 	write_seqcount_begin(&priv->count);
+-	rb_erase(&rbe->node, &priv->root);
++	if (!list_empty(&rbe->list)) {
++		list_del(&rbe->list);
++	} else if (!list_empty(&rbe->pending_list)) {
++		new = list_first_entry(&rbe->pending_list, struct nft_rbtree_elem, list);
++		list_del_init(&new->list);
++		list_splice(&rbe->pending_list, &new->pending_list);
++		rb_replace_node(&rbe->node, &new->node, &priv->root);
++	} else {
++		rb_erase(&rbe->node, &priv->root);
++	}
+ 	write_seqcount_end(&priv->count);
+ 	write_unlock_bh(&priv->lock);
+ }
+@@ -426,9 +457,9 @@ static void *nft_rbtree_deactivate(const struct net *net,
+ 				   const struct nft_set *set,
+ 				   const struct nft_set_elem *elem)
+ {
++	struct nft_rbtree_elem *rbe, *this = elem->priv, *leaf;
+ 	const struct nft_rbtree *priv = nft_set_priv(set);
+ 	const struct rb_node *parent = priv->root.rb_node;
+-	struct nft_rbtree_elem *rbe, *this = elem->priv;
+ 	u8 genmask = nft_genmask_next(net);
+ 	int d;
+ 
+@@ -450,12 +481,14 @@ static void *nft_rbtree_deactivate(const struct net *net,
+ 				   nft_rbtree_interval_end(this)) {
+ 				parent = parent->rb_right;
+ 				continue;
+-			} else if (!nft_set_elem_active(&rbe->ext, genmask)) {
+-				parent = parent->rb_left;
+-				continue;
++			} else if (!nft_rbtree_elem_active(rbe, genmask)) {
++				break;
+ 			}
+-			nft_rbtree_flush(net, set, rbe);
+-			return rbe;
++			leaf = nft_rbtree_elem_leaf(rbe, genmask);
++			if (!nft_rbtree_flush(net, set, leaf))
++				break;
++
++			return leaf;
+ 		}
+ 	}
+ 	return NULL;
+@@ -466,7 +499,7 @@ static void nft_rbtree_walk(const struct nft_ctx *ctx,
+ 			    struct nft_set_iter *iter)
+ {
+ 	struct nft_rbtree *priv = nft_set_priv(set);
+-	struct nft_rbtree_elem *rbe;
++	struct nft_rbtree_elem *rbe, *leaf;
+ 	struct nft_set_elem elem;
+ 	struct rb_node *node;
+ 
+@@ -476,12 +509,12 @@ static void nft_rbtree_walk(const struct nft_ctx *ctx,
+ 
+ 		if (iter->count < iter->skip)
+ 			goto cont;
+-		if (nft_set_elem_expired(&rbe->ext))
+-			goto cont;
+-		if (!nft_set_elem_active(&rbe->ext, iter->genmask))
++
++		leaf = nft_rbtree_elem_leaf(rbe, iter->genmask);
++		if (!__nft_rbtree_elem_active(leaf, iter->genmask))
+ 			goto cont;
+ 
+-		elem.priv = rbe;
++		elem.priv = leaf;
+ 
+ 		iter->err = iter->fn(ctx, set, iter, &elem);
+ 		if (iter->err < 0) {
+
+--EXi8YAorsVoAmrqd--
