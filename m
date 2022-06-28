@@ -2,196 +2,170 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA338C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Jun 2022 01:09:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4128C43334
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Jun 2022 02:23:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242934AbiF1BJB (ORCPT
+        id S244096AbiF1CXA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 27 Jun 2022 21:09:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36732 "EHLO
+        Mon, 27 Jun 2022 22:23:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60944 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241875AbiF1BJB (ORCPT
+        with ESMTP id S243804AbiF1CWB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 Jun 2022 21:09:01 -0400
-Received: from sonic304-28.consmr.mail.ne1.yahoo.com (sonic304-28.consmr.mail.ne1.yahoo.com [66.163.191.154])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1DA76220FE
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 Jun 2022 18:09:00 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1656378539; bh=WZac+aRC2uz0l+4S4NGEdN/ZurgpD1tHTTaIIPo8luY=; h=From:To:Cc:Subject:Date:In-Reply-To:References:From:Subject:Reply-To; b=MEg/maQSHSDdAcI9zGAkeKXDVjKIGt61Qd1Vic8eeD5uhfV33dNpkr1P/HByTB0zpeKi79f+rujd5kzVZDp40AebzMlOAFGaq0Fdm6aDIQ7fLUF65jjW80M6UXwl4PSYqyPIcs52P4NHWqo+vgLUJTHDPwOGAZfKxfpwcz/0y+4X7Qg+mKaxWlRNor9oemYXwx8ko0AXR3QZjPXyeLeQXAVAuVNkQZqwXz9wcbjZxam5s52WOM6KILcqcRIE1Q5zbpLf7RxA093twl+tFylgqFXekS8UekxJlndI746ZaCsw+Y3trfyzX+2COVP7XrjmYMvRPNaCHCA60bdCzAJxCA==
-X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1656378539; bh=tG6rYld6ccFoLx1nGWc2NfgcUdU9kaJjHLKNE4hYq58=; h=X-Sonic-MF:From:To:Subject:Date:From:Subject; b=h0rD2pl2xUd2jYdkli744YAHvjsUnppTWBQM7ymC6ZTtntz4v2EAobJBnF0VbIGm0IGOFSFpwdmRm0zDM114tigxM/Phe80nS07Nol1vzUL4K+IklR5WDjuBGPSq6VAMSQ+a0CssyrqqyK8aY2BNwY7dSne/wlT6FOpQb1mmRK4jAezs1pBpokpZXjRwlNoPOHjy82E3pf46xLs8Xoc7MrQsxkbtC5VscfqisY7gji7aBmeuCmuheTu49nARQgWvQ2+4+vnXi0vrfRpXV6VsPXEwwk0InUM8AYpXVDR0GQAuuVJXBuOc+lk2G86EuYkIEipjOGoMsKliNCUMGoyVHg==
-X-YMail-OSG: QRWirEgVM1l5I0DmvR10bTKnmlIF60OqpETy7C7c9cuK0C3bzInsf5agnbzChnI
- KkMPQGQltsdYQRbBU3hXqFKSI2dIG3aIKGM1y0M.Gvlajg5b0erGVqhrzz_.srypzCmoQ3F2ee7G
- WIZfF7feymV1Zn48kW0KedF1l1YBsn9pPJznY3UGLtpbAz6S0n9l9kUom2JzItAwAlWjVgawij4U
- K6LEQDW_YIcM4ECfvt6ZAhsPQGkBZmGwfbseKlfHuGPB_n8ygmmBGtAuA3qPH3wAUDXNDexCXl2l
- ck99dtg3gbFq1tmAMaTF7.ZGW9av3qacOtF.5dUY1n8Le7bBNtrn5ROE27vNxs7UnD7jNieQSgVw
- 6uY3B.M.huz6Vd._5_5FfqLljEOYtfCIuddiIJc0ueIlX9D81j8lmiXAFJCZPrc_mmkxBX.4sYoj
- Hd9VPRqLx8zzTZai_eJ5rZdV629KNRnZvNTD3OvIg9YzmiSdsSjdiXALTII2fR4a_47p.RtdFtva
- ho8DBZ3Sw8xmzyc7AUYvJma5lgz_BhuID.PPa4Lgy_2AC6jREXNoIJgTyWCxvYDGXSC3NqNKBCaq
- CFOTtUV3T4x3TtvQ537_IiW9VlPhQ81YX6m_vuch5rsThSxBKLNZ.lUP_uJhcCtQhbSa.Qj8qCVx
- .LsJjxqkmRwtWVwZXZLSy3AVHVbsmnoV3xbJArbcMWQqmvzeQX31NY0oUF3EWtz_xMhQqezxG1JB
- 8XWWUe5__rBT9R.oB9qbuPDnw6IoSwzEcRqHzElH_hPZ7JvyDOeatqtLwLI9pUDMk_C6l5wcsbT_
- iAhNcx4szGeKmLSjRoPaHg0_RRLDQ1hYu9AaF8OmTaTU0SA5Pl11_mXufLO3Lf6Za3hTYw5LzdnG
- GREmM6azOJSg3xkYnVdXYe.5ZPbepuPzye8Ao8vYDPQkfaryOke2h7DK.IBlElHvoKXRwMWt.pJF
- oBxKLhK0HvyldAGGxbssQuSUnDi0F3ZHtNX_PkciCQOT8YWkbZMdZI77vw9J0DND_r_J_jLosWAW
- ZDeg.vK2pwMmbdWHtCiivFWAWOPAY.8BSXtPqsk.gXoTQIC4tgX6kBoioFDD5Ar9ZMYXn7kC4ETK
- n8UuqxW7OAgyCw1UNC.V_Ny3DYufDzEYl9BNMC0GrCbo6SnMGU_rS_SE6F5_NdF2Xt8pJ0KUKoWl
- XCXazn.rvXpBNoLakvGBqNcwySLNQ9mW8ad9r0f7BS5B3ErMdEhiLrsIj0ep4r4OnA3nuNdkrvKR
- AP0mUvfK6Hny01jvsWMhgfmDjAzxtpHxAk2js7uVq6saEyPEYTdCKnvIBEtE3IK16uSeLBeZLca5
- y0BI_1joODZnAJGb5g.QYMRF3SiSsQ_uxXOO8ZvG22vh5B354VJC.ycyb3KUoYdyA67sQrw80Ym.
- 8QI2zHOGP87TaZUkOi8hXlQ2cfvV1m1NImxTs4silEnM9uH8eIavQZU8AV_Dh.6GjOVSV2CTJ3fE
- PElpQsjp4KhOZyfNcI7ywW1f_LPjSIx4KcJiBxrglIyxQBkdxvEA34HLi5ls2ftVtM0LMBmfgV.K
- 5Qi79FeE5Yjs.rEeS.kOSyGMVz1CXBzOsE8gh5Kv9LdSPqna90DgP4u2tqtJVoi8mJ6UBACLH0X4
- e8ARht0w9i3Xo9JtAQnvkpkpZ7faRM4gkS714uYXhOcph8I7gNe2Tw2P1zl12aPlL42pTE1iSUEX
- m15COFGqV7JTaBk9kh_3nIgj5MErrvSmaPzRGyw3dsnurlJ9r21O_yG1C3qXZbOoeMciZd4H4foe
- 6JUrHZJ5tk6Udz9ieHI0SLmL4VK0R2Zps6Q8AOoFEmOK.rXShrO9T.zVp5Wf4pZHrvJiN4kNvqL5
- gYz53lGLwgl3j14XHSV0d3WmtpV8P9Jw4cyIDqyZKicFqEV_AD0B.eVpjsi.kVWqMqBEq864GGvC
- Fj73ptuoBx2JwLmK2rmKINtGSsg107YZwpvg_yI10VzqwNzfsw1e2GSiRQp6RqZB1RoaDLLCPQR_
- 5YhZkS4y.bE73VMlgQVH3yLUvpKfFXt6Mrr4ZEiym_L3dmoM2INwFTyo.tPN0ddw41xWs0COXip0
- PF7wHhjFu3r3j9oR3X_Ox9DE7sAySPZ7GAA6zE3U8WBypjCcsnLOUUcgy3ezBlxHFVl1T12xgspQ
- iE60tQNBwAQCSZqi9Cyi_xvnrMSceufBXzU_tQzFuVgWtdRFw3yEugE_hOFPfSf2.DM6Z1N5ZIgp
- NB1uAawWQEhbnSTQWuBqvYyberh49yJh_8Yo7sqzQ2rMGybjfS5RYPconlI.1.ndi6cenMSkNFY3
- mono-
-X-Sonic-MF: <casey@schaufler-ca.com>
-Received: from sonic.gate.mail.ne1.yahoo.com by sonic304.consmr.mail.ne1.yahoo.com with HTTP; Tue, 28 Jun 2022 01:08:59 +0000
-Received: by hermes--production-bf1-7f5f59bd5b-fj9wt (Yahoo Inc. Hermes SMTP Server) with ESMTPA ID 05fbaa230dcbeea0318fe174d0a2d20b;
-          Tue, 28 Jun 2022 01:08:54 +0000 (UTC)
-From:   Casey Schaufler <casey@schaufler-ca.com>
-To:     casey.schaufler@intel.com, jmorris@namei.org,
-        linux-security-module@vger.kernel.org, selinux@vger.kernel.org
-Cc:     casey@schaufler-ca.com, linux-audit@redhat.com,
-        keescook@chromium.org, john.johansen@canonical.com,
-        penguin-kernel@i-love.sakura.ne.jp, paul@paul-moore.com,
-        stephen.smalley.work@gmail.com, linux-kernel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: [PATCH v37 19/33] LSM: security_secid_to_secctx in netlink netfilter
-Date:   Mon, 27 Jun 2022 17:55:57 -0700
-Message-Id: <20220628005611.13106-20-casey@schaufler-ca.com>
-X-Mailer: git-send-email 2.36.1
-In-Reply-To: <20220628005611.13106-1-casey@schaufler-ca.com>
-References: <20220628005611.13106-1-casey@schaufler-ca.com>
+        Mon, 27 Jun 2022 22:22:01 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B476248F4;
+        Mon, 27 Jun 2022 19:21:37 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 26F64B818E4;
+        Tue, 28 Jun 2022 02:21:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3298C341CB;
+        Tue, 28 Jun 2022 02:21:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1656382894;
+        bh=pqPD6qoEi8JT199in7jg5DAol4iF8DjKFPgIGYlvQoc=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=GyqsByaDXQg5yOq6smuSw5cw5zuxTHl+rHrYo/OlHMZ1OuAvd9ONI8/jqrzLdImbD
+         VTWK7UP5itlkHBzyKuMpIHQb6qIkgBzcX3Jxv+GaaOi42Ij7zVfd0aNVRCj/2kEQLZ
+         O6R0SdzzjedD8BThjNur1AhOSXcjIOf8wUfiJdziqd597shekW5NqBhdePKYvvXsYS
+         oJiSFkiCFnaZl7loW+605mJuFv8NTwWJO3O6z94S5MRsftmK5FPbSEThNMZ5b+uoVL
+         ifMihZ1oD6Ug5EuhwczB9HuCayJu7LpnnMklqlMLvNn/Nf3BKVwwKkKVP3/5TDDlCW
+         d3gJG/ZMvv/2g==
+Date:   Tue, 28 Jun 2022 04:21:29 +0200
+From:   "Gustavo A. R. Silva" <gustavoars@kernel.org>
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     Daniel Borkmann <daniel@iogearbox.net>,
+        Kees Cook <keescook@chromium.org>,
+        linux-kernel@vger.kernel.org, x86@kernel.org, dm-devel@redhat.com,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-s390@vger.kernel.org, kvm@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        netdev@vger.kernel.org, bpf@vger.kernel.org,
+        linux-btrfs@vger.kernel.org, linux-can@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org,
+        linux1394-devel@lists.sourceforge.net, io-uring@vger.kernel.org,
+        lvs-devel@vger.kernel.org, linux-mtd@lists.infradead.org,
+        kasan-dev@googlegroups.com, linux-mmc@vger.kernel.org,
+        nvdimm@lists.linux.dev, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, linux-perf-users@vger.kernel.org,
+        linux-raid@vger.kernel.org, linux-sctp@vger.kernel.org,
+        linux-stm32@st-md-mailman.stormreply.com,
+        linux-arm-kernel@lists.infradead.org, linux-scsi@vger.kernel.org,
+        target-devel@vger.kernel.org, linux-usb@vger.kernel.org,
+        virtualization@lists.linux-foundation.org,
+        v9fs-developer@lists.sourceforge.net, linux-rdma@vger.kernel.org,
+        alsa-devel@alsa-project.org, linux-hardening@vger.kernel.org
+Subject: Re: [PATCH][next] treewide: uapi: Replace zero-length arrays with
+ flexible-array members
+Message-ID: <20220628022129.GA8452@embeddedor>
+References: <20220627180432.GA136081@embeddedor>
+ <6bc1e94c-ce1d-a074-7d0c-8dbe6ce22637@iogearbox.net>
+ <20220628004052.GM23621@ziepe.ca>
+ <20220628005825.GA161566@embeddedor>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20220628005825.GA161566@embeddedor>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Change netlink netfilter interfaces to use lsmcontext
-pointers, and remove scaffolding.
+On Tue, Jun 28, 2022 at 02:58:25AM +0200, Gustavo A. R. Silva wrote:
+> On Mon, Jun 27, 2022 at 09:40:52PM -0300, Jason Gunthorpe wrote:
+> > On Mon, Jun 27, 2022 at 08:27:37PM +0200, Daniel Borkmann wrote:
+> > > On 6/27/22 8:04 PM, Gustavo A. R. Silva wrote:
+> > > > There is a regular need in the kernel to provide a way to declare
+> > > > having a dynamically sized set of trailing elements in a structure.
+> > > > Kernel code should always use “flexible array members”[1] for these
+> > > > cases. The older style of one-element or zero-length arrays should
+> > > > no longer be used[2].
+> > > > 
+> > > > This code was transformed with the help of Coccinelle:
+> > > > (linux-5.19-rc2$ spatch --jobs $(getconf _NPROCESSORS_ONLN) --sp-file script.cocci --include-headers --dir . > output.patch)
+> > > > 
+> > > > @@
+> > > > identifier S, member, array;
+> > > > type T1, T2;
+> > > > @@
+> > > > 
+> > > > struct S {
+> > > >    ...
+> > > >    T1 member;
+> > > >    T2 array[
+> > > > - 0
+> > > >    ];
+> > > > };
+> > > > 
+> > > > -fstrict-flex-arrays=3 is coming and we need to land these changes
+> > > > to prevent issues like these in the short future:
+> > > > 
+> > > > ../fs/minix/dir.c:337:3: warning: 'strcpy' will always overflow; destination buffer has size 0,
+> > > > but the source string has length 2 (including NUL byte) [-Wfortify-source]
+> > > > 		strcpy(de3->name, ".");
+> > > > 		^
+> > > > 
+> > > > Since these are all [0] to [] changes, the risk to UAPI is nearly zero. If
+> > > > this breaks anything, we can use a union with a new member name.
+> > > > 
+> > > > [1] https://en.wikipedia.org/wiki/Flexible_array_member
+> > > > [2] https://www.kernel.org/doc/html/v5.16/process/deprecated.html#zero-length-and-one-element-arrays
+> > > > 
+> > > > Link: https://github.com/KSPP/linux/issues/78
+> > > > Build-tested-by: https://lore.kernel.org/lkml/62b675ec.wKX6AOZ6cbE71vtF%25lkp@intel.com/
+> > > > Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+> > > > ---
+> > > > Hi all!
+> > > > 
+> > > > JFYI: I'm adding this to my -next tree. :)
+> > > 
+> > > Fyi, this breaks BPF CI:
+> > > 
+> > > https://github.com/kernel-patches/bpf/runs/7078719372?check_suite_focus=true
+> > > 
+> > >   [...]
+> > >   progs/map_ptr_kern.c:314:26: error: field 'trie_key' with variable sized type 'struct bpf_lpm_trie_key' not at the end of a struct or class is a GNU extension [-Werror,-Wgnu-variable-sized-type-not-at-end]
+> > >           struct bpf_lpm_trie_key trie_key;
+> > >                                   ^
+> > 
+> > This will break the rdma-core userspace as well, with a similar
+> > error:
+> > 
+> > /usr/bin/clang-13 -DVERBS_DEBUG -Dibverbs_EXPORTS -Iinclude -I/usr/include/libnl3 -I/usr/include/drm -g -O2 -fdebug-prefix-map=/__w/1/s=. -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -Wmissing-prototypes -Wmissing-declarations -Wwrite-strings -Wformat=2 -Wcast-function-type -Wformat-nonliteral -Wdate-time -Wnested-externs -Wshadow -Wstrict-prototypes -Wold-style-definition -Werror -Wredundant-decls -g -fPIC   -std=gnu11 -MD -MT libibverbs/CMakeFiles/ibverbs.dir/cmd_flow.c.o -MF libibverbs/CMakeFiles/ibverbs.dir/cmd_flow.c.o.d -o libibverbs/CMakeFiles/ibverbs.dir/cmd_flow.c.o   -c ../libibverbs/cmd_flow.c
+> > In file included from ../libibverbs/cmd_flow.c:33:
+> > In file included from include/infiniband/cmd_write.h:36:
+> > In file included from include/infiniband/cmd_ioctl.h:41:
+> > In file included from include/infiniband/verbs.h:48:
+> > In file included from include/infiniband/verbs_api.h:66:
+> > In file included from include/infiniband/ib_user_ioctl_verbs.h:38:
+> > include/rdma/ib_user_verbs.h:436:34: error: field 'base' with variable sized type 'struct ib_uverbs_create_cq_resp' not at the end of a struct or class is a GNU extension [-Werror,-Wgnu-variable-sized-type-not-at-end]
+> >         struct ib_uverbs_create_cq_resp base;
+> >                                         ^
+> > include/rdma/ib_user_verbs.h:644:34: error: field 'base' with variable sized type 'struct ib_uverbs_create_qp_resp' not at the end of a struct or class is a GNU extension [-Werror,-Wgnu-variable-sized-type-not-at-end]
+> >         struct ib_uverbs_create_qp_resp base;
+> > 
+> > Which is why I gave up trying to change these..
+> > 
+> > Though maybe we could just switch off -Wgnu-variable-sized-type-not-at-end  during configuration ?
+> 
+> No. I think now we can easily workaround these sorts of problems with
+> something like this:
+> 
+> 	struct flex {
+> 		any_type any_member;
+> 		union {
+> 			type array[0];
+> 			__DECLARE_FLEX_ARRAY(type, array_flex);
+> 		};
+> 	};
 
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: John Johansen <john.johansen@canonical.com>
-Acked-by: Paul Moore <paul@paul-moore.com>
-Acked-by: Stephen Smalley <stephen.smalley.work@gmail.com>
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
-Cc: netdev@vger.kernel.org
-Cc: netfilter-devel@vger.kernel.org
----
- net/netfilter/nfnetlink_queue.c | 37 +++++++++++++--------------------
- 1 file changed, 14 insertions(+), 23 deletions(-)
+Mmmh... nope; this doesn't work[1].
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 35c3cde6bacd..f60a0b6240ff 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -301,15 +301,13 @@ static int nfqnl_put_sk_uidgid(struct sk_buff *skb, struct sock *sk)
- 	return -1;
- }
- 
--static u32 nfqnl_get_sk_secctx(struct sk_buff *skb, char **secdata)
-+static void nfqnl_get_sk_secctx(struct sk_buff *skb, struct lsmcontext *context)
- {
--	u32 seclen = 0;
- #if IS_ENABLED(CONFIG_NETWORK_SECMARK)
- 	struct lsmblob blob;
--	struct lsmcontext context = { };
- 
- 	if (!skb || !sk_fullsock(skb->sk))
--		return 0;
-+		return;
- 
- 	read_lock_bh(&skb->sk->sk_callback_lock);
- 
-@@ -318,14 +316,12 @@ static u32 nfqnl_get_sk_secctx(struct sk_buff *skb, char **secdata)
- 		 * blob. security_secid_to_secctx() will know which security
- 		 * module to use to create the secctx.  */
- 		lsmblob_init(&blob, skb->secmark);
--		security_secid_to_secctx(&blob, &context);
--		*secdata = context.context;
-+		security_secid_to_secctx(&blob, context);
- 	}
- 
- 	read_unlock_bh(&skb->sk->sk_callback_lock);
--	seclen = context.len;
- #endif
--	return seclen;
-+	return;
- }
- 
- static u32 nfqnl_get_bridge_size(struct nf_queue_entry *entry)
-@@ -397,12 +393,10 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	struct net_device *indev;
- 	struct net_device *outdev;
- 	struct nf_conn *ct = NULL;
-+	struct lsmcontext context = { };
- 	enum ip_conntrack_info ctinfo = 0;
- 	const struct nfnl_ct_hook *nfnl_ct;
- 	bool csum_verify;
--	struct lsmcontext scaff; /* scaffolding */
--	char *secdata = NULL;
--	u32 seclen = 0;
- 	ktime_t tstamp;
- 
- 	size = nlmsg_total_size(sizeof(struct nfgenmsg))
-@@ -473,9 +467,9 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	}
- 
- 	if ((queue->flags & NFQA_CFG_F_SECCTX) && entskb->sk) {
--		seclen = nfqnl_get_sk_secctx(entskb, &secdata);
--		if (seclen)
--			size += nla_total_size(seclen);
-+		nfqnl_get_sk_secctx(entskb, &context);
-+		if (context.len)
-+			size += nla_total_size(context.len);
- 	}
- 
- 	skb = alloc_skb(size, GFP_ATOMIC);
-@@ -610,7 +604,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	    nfqnl_put_sk_uidgid(skb, entskb->sk) < 0)
- 		goto nla_put_failure;
- 
--	if (seclen && nla_put(skb, NFQA_SECCTX, seclen, secdata))
-+	if (context.len &&
-+	    nla_put(skb, NFQA_SECCTX, context.len, context.context))
- 		goto nla_put_failure;
- 
- 	if (ct && nfnl_ct->build(skb, ct, ctinfo, NFQA_CT, NFQA_CT_INFO) < 0)
-@@ -638,10 +633,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	}
- 
- 	nlh->nlmsg_len = skb->len;
--	if (seclen) {
--		lsmcontext_init(&scaff, secdata, seclen, 0);
--		security_release_secctx(&scaff);
--	}
-+	if (context.len)
-+		security_release_secctx(&context);
- 	return skb;
- 
- nla_put_failure:
-@@ -649,10 +642,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	kfree_skb(skb);
- 	net_err_ratelimited("nf_queue: error creating packet message\n");
- nlmsg_failure:
--	if (seclen) {
--		lsmcontext_init(&scaff, secdata, seclen, 0);
--		security_release_secctx(&scaff);
--	}
-+	if (context.len)
-+		security_release_secctx(&context);
- 	return NULL;
- }
- 
--- 
-2.36.1
+We need to think in a different strategy.
 
+--
+Gustavo
+
+[1] https://godbolt.org/z/av79Pqbfz
