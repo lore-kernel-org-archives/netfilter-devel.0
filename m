@@ -2,200 +2,147 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16CC5C433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Jun 2022 21:21:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F21A6C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Jun 2022 21:22:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230422AbiF2VVu (ORCPT
+        id S230433AbiF2VV7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 29 Jun 2022 17:21:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33620 "EHLO
+        Wed, 29 Jun 2022 17:21:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33816 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230364AbiF2VVs (ORCPT
+        with ESMTP id S230426AbiF2VV6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 29 Jun 2022 17:21:48 -0400
-X-Greylist: delayed 76 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 29 Jun 2022 14:21:47 PDT
+        Wed, 29 Jun 2022 17:21:58 -0400
 Received: from mx0a-00190b01.pphosted.com (mx0a-00190b01.pphosted.com [IPv6:2620:100:9001:583::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C0A11A064
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Jun 2022 14:21:47 -0700 (PDT)
-Received: from pps.filterd (m0050095.ppops.net [127.0.0.1])
-        by m0050095.ppops.net-00190b01. (8.17.1.5/8.17.1.5) with ESMTP id 25TKUEnS032045;
-        Wed, 29 Jun 2022 22:21:41 +0100
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2223019C11
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Jun 2022 14:21:57 -0700 (PDT)
+Received: from pps.filterd (m0050093.ppops.net [127.0.0.1])
+        by m0050093.ppops.net-00190b01. (8.17.1.5/8.17.1.5) with ESMTP id 25TIXmV8004627;
+        Wed, 29 Jun 2022 22:21:53 +0100
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=akamai.com; h=from : to : cc :
- subject : date : message-id : mime-version : content-transfer-encoding :
- content-type; s=jan2016.eng;
- bh=EEMKFfKFKc5h88yx6GJ5XjjaSLB7eJSVkypWhloPIac=;
- b=Lu9FGlrJcawjUe+0yExpLupBm4mYrZBM6fV3y0kGOGMyQjDLcoU3ETWWWxGphaQ7hy8o
- 3vLGChsLR8cYKMqwwVMYEjkgsCef5zRPKAtYkjQtIx8EkJ86sFTMoXXF5UUcxgSPsSMX
- e0SS2soApsXIk5KgT66MdlJTJ+onfhAoV5Ir19erh7G+5yPZOnMj5MIrRHUT7KtsFOSN
- Y83CpH1huVGTYQlqkoqUKAR2BQhpbJvMPo+hpNhBfp7TFPgHe5Lt12Thwx8gspveuKk5
- KO2t9f58YMfY20PaUvy4NDVjo7cuTJ2BTevGZZ0K86UDsubf3HLFoV0BH6j+NlMI4SC3 Jg== 
+ subject : date : message-id : in-reply-to : references : mime-version :
+ content-transfer-encoding : content-type; s=jan2016.eng;
+ bh=XCXJx0kaCZcqm0kLK/1WEh8MESO9F0mQDevfd/itph8=;
+ b=KFMMInLJGMqPpLUjD9dcrKfR8TEKDYfxjz11rVUjc9CTENMB3/QBJBAYFI031pMTZYOI
+ N9TF2q4sJbofI7g1Jwu2OMfkmqta9Y3A1J5nTHvEd1s3nq4hP29tfG249Tjp8Q1rEe6e
+ HULWUdWAweYayh1xzuFWMrtKNRMcYOVMBsRZQiXdok2fAGdgYdfK6ouOwDP6IyrJe8tU
+ g7+jN93Bt4nhRKx7GnTqtnSN2nzsOw15N6HSOuO6I258aekZfFyw98eFjsc8WlU4jTRb
+ bgwTUOPdZoluNoA+KUZha7Rl/jX8TIobTyCvSLpEghYvbpHGOW4Rny2o7cpD0bJJs48x 3w== 
 Received: from prod-mail-ppoint6 (prod-mail-ppoint6.akamai.com [184.51.33.61] (may be forged))
-        by m0050095.ppops.net-00190b01. (PPS) with ESMTPS id 3h035c5t5x-1
+        by m0050093.ppops.net-00190b01. (PPS) with ESMTPS id 3h0q6bu1dc-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Wed, 29 Jun 2022 22:21:41 +0100
+        Wed, 29 Jun 2022 22:21:53 +0100
 Received: from pps.filterd (prod-mail-ppoint6.akamai.com [127.0.0.1])
-        by prod-mail-ppoint6.akamai.com (8.17.1.5/8.17.1.5) with ESMTP id 25TJDFfe002929;
-        Wed, 29 Jun 2022 17:21:40 -0400
-Received: from email.msg.corp.akamai.com ([172.27.91.22])
-        by prod-mail-ppoint6.akamai.com (PPS) with ESMTPS id 3gwwpwy5r3-1
+        by prod-mail-ppoint6.akamai.com (8.17.1.5/8.17.1.5) with ESMTP id 25THFPGg014877;
+        Wed, 29 Jun 2022 17:21:52 -0400
+Received: from email.msg.corp.akamai.com ([172.27.91.23])
+        by prod-mail-ppoint6.akamai.com (PPS) with ESMTPS id 3gwwpwy5r8-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Wed, 29 Jun 2022 17:21:39 -0400
-Received: from usma1ex-dag4mb1.msg.corp.akamai.com (172.27.91.20) by
- usma1ex-dag4mb8.msg.corp.akamai.com (172.27.91.27) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.986.26; Wed, 29 Jun 2022 17:21:39 -0400
+        Wed, 29 Jun 2022 17:21:52 -0400
+Received: from usma1ex-dag3mb4.msg.corp.akamai.com (172.27.123.56) by
+ usma1ex-dag4mb4.msg.corp.akamai.com (172.27.91.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
+ 15.2.986.26; Wed, 29 Jun 2022 17:21:51 -0400
+Received: from usma1ex-dag4mb4.msg.corp.akamai.com (172.27.91.23) by
+ usma1ex-dag3mb4.msg.corp.akamai.com (172.27.123.56) with Microsoft SMTP
+ Server (TLS) id 15.0.1497.36; Wed, 29 Jun 2022 17:21:51 -0400
 Received: from bos-lhvuce.bos01.corp.akamai.com (172.28.220.70) by
- usma1ex-dag4mb1.msg.corp.akamai.com (172.27.91.20) with Microsoft SMTP Server
- id 15.2.986.26 via Frontend Transport; Wed, 29 Jun 2022 17:21:39 -0400
+ usma1ex-dag4mb4.msg.corp.akamai.com (172.27.91.23) with Microsoft SMTP Server
+ id 15.2.986.26 via Frontend Transport; Wed, 29 Jun 2022 17:21:51 -0400
 Received: by bos-lhvuce.bos01.corp.akamai.com (Postfix, from userid 35863)
-        id 7D17D15F504; Wed, 29 Jun 2022 17:21:39 -0400 (EDT)
+        id 65D8115F504; Wed, 29 Jun 2022 17:21:51 -0400 (EDT)
 From:   Vishwanath Pai <vpai@akamai.com>
 To:     <pablo@netfilter.org>, <kadlec@netfilter.org>, <fw@strlen.de>
 CC:     Vishwanath Pai <vpai@akamai.com>, <johunt@akamai.com>,
         <netfilter-devel@vger.kernel.org>
-Subject: [PATCH] netfilter: ipset: ipset list may return wrong member count on bitmap types
-Date:   Wed, 29 Jun 2022 17:21:07 -0400
-Message-ID: <20220629212109.3045794-1-vpai@akamai.com>
+Subject: [PATCH] netfilter: ipset: regression in ip_set_hash_ip.c
+Date:   Wed, 29 Jun 2022 17:21:08 -0400
+Message-ID: <20220629212109.3045794-2-vpai@akamai.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20220629212109.3045794-1-vpai@akamai.com>
+References: <20220629212109.3045794-1-vpai@akamai.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.205,Aquarius:18.0.883,Hydra:6.0.517,FMLib:17.11.122.1
  definitions=2022-06-29_22,2022-06-28_01,2022-06-22_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 malwarescore=0
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=990 malwarescore=0
  spamscore=0 mlxscore=0 adultscore=0 suspectscore=0 bulkscore=0
  phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.12.0-2204290000 definitions=main-2206290074
-X-Proofpoint-GUID: 5mdvLdJ6E9QU0vxl6Cfcs37gMhcrE2vc
-X-Proofpoint-ORIG-GUID: 5mdvLdJ6E9QU0vxl6Cfcs37gMhcrE2vc
+X-Proofpoint-ORIG-GUID: vBwOtm9Fjycxzlvwq2BZweseB9x9bGtV
+X-Proofpoint-GUID: vBwOtm9Fjycxzlvwq2BZweseB9x9bGtV
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.205,Aquarius:18.0.883,Hydra:6.0.517,FMLib:17.11.122.1
  definitions=2022-06-29_22,2022-06-28_01,2022-06-22_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 clxscore=1015 priorityscore=1501
- lowpriorityscore=0 impostorscore=0 malwarescore=0 adultscore=0 bulkscore=0
- spamscore=0 phishscore=0 mlxscore=0 mlxlogscore=999 suspectscore=0
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 lowpriorityscore=0 spamscore=0
+ clxscore=1015 bulkscore=0 malwarescore=0 adultscore=0 priorityscore=1501
+ mlxlogscore=973 phishscore=0 impostorscore=0 mlxscore=0 suspectscore=0
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2204290000
  definitions=main-2206290074
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-We fixed a similar problem before in commit 7f4f7dd4417d ("netfilter:
-ipset: ipset list may return wrong member count for set with timeout").
-The same issue exists in ip_set_bitmap_gen.h as well.
+This patch introduced a regression: commit 48596a8ddc46 ("netfilter:
+ipset: Fix adding an IPv4 range containing more than 2^31 addresses")
+
+The variable e.ip is passed to adtfn() function which finally adds the
+ip address to the set. The patch above refactored the for loop and moved
+e.ip = htonl(ip) to the end of the for loop.
+
+What this means is that if the value of "ip" changes between the first
+assignement of e.ip and the forloop, then e.ip is pointing to a
+different ip address than "ip".
 
 Test case:
+$ ipset create jdtest_tmp hash:ip family inet hashsize 2048 maxelem 100000
+$ ipset add jdtest_tmp 10.0.1.1/31
+ipset v6.21.1: Element cannot be added to the set: it's already added
 
-$ ipset create test bitmap:ip range 10.0.0.0/8 netmask 24 timeout 5
-$ ipset add test 10.0.0.0
-$ ipset add test 10.255.255.255
-$ sleep 5s
-
-$ ipset list test
-Name: test
-Type: bitmap:ip
-Revision: 3
-Header: range 10.0.0.0-10.255.255.255 netmask 24 timeout 5
-Size in memory: 532568
-References: 0
-Number of entries: 2
-Members:
-
-We return "Number of entries: 2" but no members are listed. That is
-because when we run mtype_head the garbage collector hasn't run yet, but
-mtype_list checks and cleans up members with expired timeout. To avoid
-this we can run mtype_expire before printing the number of elements in
-mytype_head().
+The value of ip gets updated inside the  "else if (tb[IPSET_ATTR_CIDR])"
+block but e.ip is still pointing to the old value.
 
 Reviewed-by: Joshua Hunt <johunt@akamai.com>
 Signed-off-by: Vishwanath Pai <vpai@akamai.com>
 ---
- net/netfilter/ipset/ip_set_bitmap_gen.h | 46 ++++++++++++++++++-------
- 1 file changed, 34 insertions(+), 12 deletions(-)
+ net/netfilter/ipset/ip_set_hash_ip.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
-index 26ab0e9612d8..dd871305bd6e 100644
---- a/net/netfilter/ipset/ip_set_bitmap_gen.h
-+++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
-@@ -28,6 +28,7 @@
- #define mtype_del		IPSET_TOKEN(MTYPE, _del)
- #define mtype_list		IPSET_TOKEN(MTYPE, _list)
- #define mtype_gc		IPSET_TOKEN(MTYPE, _gc)
-+#define mtype_expire		IPSET_TOKEN(MTYPE, _expire)
- #define mtype			MTYPE
+diff --git a/net/netfilter/ipset/ip_set_hash_ip.c b/net/netfilter/ipset/ip_set_hash_ip.c
+index dd30c03d5a23..258aeb324483 100644
+--- a/net/netfilter/ipset/ip_set_hash_ip.c
++++ b/net/netfilter/ipset/ip_set_hash_ip.c
+@@ -120,12 +120,14 @@ hash_ip4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		return ret;
  
- #define get_ext(set, map, id)	((map)->extensions + ((set)->dsize * (id)))
-@@ -88,13 +89,44 @@ mtype_memsize(const struct mtype *map, size_t dsize)
- 	       map->elements * dsize;
- }
+ 	ip &= ip_set_hostmask(h->netmask);
+-	e.ip = htonl(ip);
+-	if (e.ip == 0)
++
++	if (ip == 0)
+ 		return -IPSET_ERR_HASH_ELEM;
  
-+/* We should grab set->lock before calling this function */
-+static void
-+mtype_expire(struct ip_set *set)
-+{
-+	struct mtype *map = set->data;
-+	void *x;
-+	u32 id;
-+
-+	for (id = 0; id < map->elements; id++)
-+		if (mtype_gc_test(id, map, set->dsize)) {
-+			x = get_ext(set, map, id);
-+			if (ip_set_timeout_expired(ext_timeout(x, set))) {
-+				clear_bit(id, map->members);
-+				ip_set_ext_destroy(set, x);
-+				set->elements--;
-+			}
-+		}
-+}
-+
- static int
- mtype_head(struct ip_set *set, struct sk_buff *skb)
- {
- 	const struct mtype *map = set->data;
- 	struct nlattr *nested;
--	size_t memsize = mtype_memsize(map, set->dsize) + set->ext_size;
-+	size_t memsize;
-+
-+	/* If any members have expired, set->elements will be wrong,
-+	 * mytype_expire function will update it with the right count.
-+	 * set->elements can still be incorrect in the case of a huge set
-+	 * because elements can timeout during set->list().
-+	 */
-+	if (SET_WITH_TIMEOUT(set)) {
-+		spin_lock_bh(&set->lock);
-+		mtype_expire(set);
-+		spin_unlock_bh(&set->lock);
+-	if (adt == IPSET_TEST)
++	if (adt == IPSET_TEST) {
++		e.ip = htonl(ip);
+ 		return adtfn(set, &e, &ext, &ext, flags);
 +	}
  
-+	memsize = mtype_memsize(map, set->dsize) + set->ext_size;
- 	nested = nla_nest_start(skb, IPSET_ATTR_DATA);
- 	if (!nested)
- 		goto nla_put_failure;
-@@ -266,22 +298,12 @@ mtype_gc(struct timer_list *t)
- {
- 	struct mtype *map = from_timer(map, t, gc);
- 	struct ip_set *set = map->set;
--	void *x;
--	u32 id;
+ 	ip_to = ip;
+ 	if (tb[IPSET_ATTR_IP_TO]) {
+@@ -145,6 +147,10 @@ hash_ip4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		ip_set_mask_from_to(ip, ip_to, cidr);
+ 	}
  
- 	/* We run parallel with other readers (test element)
- 	 * but adding/deleting new entries is locked out
- 	 */
- 	spin_lock_bh(&set->lock);
--	for (id = 0; id < map->elements; id++)
--		if (mtype_gc_test(id, map, set->dsize)) {
--			x = get_ext(set, map, id);
--			if (ip_set_timeout_expired(ext_timeout(x, set))) {
--				clear_bit(id, map->members);
--				ip_set_ext_destroy(set, x);
--				set->elements--;
--			}
--		}
-+	mtype_expire(set);
- 	spin_unlock_bh(&set->lock);
++	e.ip = htonl(ip);
++	if (e.ip == 0)
++		return -IPSET_ERR_HASH_ELEM;
++
+ 	hosts = h->netmask == 32 ? 1 : 2 << (32 - h->netmask - 1);
  
- 	map->gc.expires = jiffies + IPSET_GC_PERIOD(set->timeout) * HZ;
+ 	/* 64bit division is not allowed on 32bit */
 -- 
 2.25.1
 
