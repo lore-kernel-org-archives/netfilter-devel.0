@@ -2,81 +2,83 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E2D3C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Jun 2022 01:13:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85554CCA47C
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Jun 2022 03:20:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231307AbiF3BNX (ORCPT
+        id S232050AbiF3DUl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 29 Jun 2022 21:13:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58094 "EHLO
+        Wed, 29 Jun 2022 23:20:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54786 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230382AbiF3BNW (ORCPT
+        with ESMTP id S232143AbiF3DUU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 29 Jun 2022 21:13:22 -0400
-Received: from mail-oi1-x230.google.com (mail-oi1-x230.google.com [IPv6:2607:f8b0:4864:20::230])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 137201BE80
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Jun 2022 18:13:22 -0700 (PDT)
-Received: by mail-oi1-x230.google.com with SMTP id bd16so24037199oib.6
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Jun 2022 18:13:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=lyf64hFlA6AX5XN1W/0nDjlmc0D1Wtuzet9BE/Kzetw=;
-        b=IwwgdWqXCecJv4jcRkPhGr7VMaueHSrXyNRjlYs1YeyTkPpy/T1UDwo3r3ARvFtSFV
-         nnnnuepen62G9lzXzW5c+K6oxPxEnBWJKtp6F0BrbNBoPGFaUtmCMvNjbNaqQCbwVieB
-         967IDdrcqMqsgRVF4oj+dRb3moOdN8eSCsdFi+UlkRcANPAiUfg0FfyTx0wiTVNF8Fnx
-         ULdvr72OguJSTYyquWRo10TaPn6T1W3meZs5rZ/trMi1n2BPbscBfgsu3wfnxd4lsfMv
-         G5G1s4uRDW3IsIGvr3vmcRYwHaaFw1cwe1RlRxpl4fzWCw/BiW7a4uDLHApUTifkiCRJ
-         nWTg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=lyf64hFlA6AX5XN1W/0nDjlmc0D1Wtuzet9BE/Kzetw=;
-        b=fVrgEDhGqlgujonbjpfwDAmuK+8Qv2XM+qITQQemy0CH4mdNr1T0yY36802Y7Fgglf
-         uj/QVLcWPvwQIWCVxsgvxdy9hcN7H2pE5iboYB1odBu5NBKfKjrm5CjFtx1MUj9r2Qan
-         UNgCXqgJRigKF/51GMBnaXmfD/kBfwB0fBCQVS/gf9G+ZY8TJYAEH/bXEwaM5GoLD9Hm
-         l1xLbfQrpIleTYSXiwQ5qDUaJiIpmR+I6REussT+tvvxF1DwPlk/x3DwVZdYj2GRZ4OL
-         MKNnkcFElrSvUxDKyGS7cAqi2X0okqWCa657N/+vBcMTJ82hkXVQDLYd77qPvucwO4Cm
-         44ng==
-X-Gm-Message-State: AJIora+gXGitZBPXdHvNetCbOD3okftLe9mcsqvfLCvaXcsZy2BUp+LQ
-        ushHMyw4yGkQrBVTAEMpAo71cSbG++M=
-X-Google-Smtp-Source: AGRyM1vxUHjVPGFG8YxuIUy4VbKoeiIpULYHWlBWuKMacLA1OnALYQCu7aIzg3qIutoA/dBLgc/AjQ==
-X-Received: by 2002:a05:6808:1301:b0:335:b3b2:bacb with SMTP id y1-20020a056808130100b00335b3b2bacbmr2881714oiv.152.1656551601266;
-        Wed, 29 Jun 2022 18:13:21 -0700 (PDT)
-Received: from t14s.localdomain ([2001:1284:f013:52d1:7bb1:e7db:c3dd:e1ca])
-        by smtp.gmail.com with ESMTPSA id u5-20020a544385000000b003351d035f77sm9283073oiv.47.2022.06.29.18.13.20
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 29 Jun 2022 18:13:20 -0700 (PDT)
-Received: by t14s.localdomain (Postfix, from userid 1000)
-        id 75B0732B823; Wed, 29 Jun 2022 22:13:18 -0300 (-03)
-Date:   Wed, 29 Jun 2022 22:13:18 -0300
-From:   Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-To:     Yuxuan Luo <luoyuxuan.carl@gmail.com>
-Cc:     netfilter-devel@vger.kernel.org, fw@strlen.de,
-        lucien.xin@gmail.com, Yuxuan Luo <yuluo@redhat.com>
-Subject: Re: [PATCH] xt_sctp: support a couple of new chunk types
-Message-ID: <Yrz4rnLV9LNDfmQo@t14s.localdomain>
-References: <20220629200545.75362-1-yuluo@redhat.com>
+        Wed, 29 Jun 2022 23:20:20 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ACF8140A35;
+        Wed, 29 Jun 2022 20:20:16 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5C432B827F9;
+        Thu, 30 Jun 2022 03:20:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 0E3D0C3411E;
+        Thu, 30 Jun 2022 03:20:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1656559214;
+        bh=6j3Dl7YHO3OHtYGT4aJ+6XgyCQOD/YBJJwDRSRxfaj4=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=eZbgJ4bifC8aec4Qgay1cQWcRTpzBuk32N47JVLJX6KnCxBk8ZsWnUScZIzs1KkOO
+         tT6P9POSlyjgDZxl9DrKgL3YNiFbK3+gxA7/Mnh727mju9zUrXgY6cFW9IyQQ3DwXE
+         8IPBnY2rE3Rtv1VrTyn7HgiI9vclsl/DC8iWtZLfsyuJfd5pFqICKMnblMC0LuBewQ
+         /0TKor/m+Sc5lS2jH2mg/fX+odgKoYXsrqXxsXWWVYE+602GGH+RITcPQE3MxzJ/1k
+         Qo2XYqAgGpKU5dZHageyNsDZGOL9YdwLk+WcrHVRGqxW+307jbeStgQW5r5corpqKM
+         vvraU+980ryoA==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id E10A0E49BB8;
+        Thu, 30 Jun 2022 03:20:13 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220629200545.75362-1-yuluo@redhat.com>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 0/3] Netfilter fixes for net
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <165655921391.17409.14718173715479167707.git-patchwork-notify@kernel.org>
+Date:   Thu, 30 Jun 2022 03:20:13 +0000
+References: <20220629171354.208773-1-pablo@netfilter.org>
+In-Reply-To: <20220629171354.208773-1-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+        edumazet@google.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Jun 29, 2022 at 04:05:45PM -0400, Yuxuan Luo wrote:
-> There are new chunks added in Linux SCTP not being traced by iptables.
-> 
-> This patch introduces the following chunks for tracing:
-> I_DATA, I_FORWARD_TSN (RFC8260), RE_CONFIG(RFC6525) and PAD(RFC4820)
-> 
-> Signed-off-by: Yuxuan Luo <luoyuxuan.carl@gmail.com>
+Hello:
 
-These changes make sense to me, but I don't know much the iptables
-project and I'm not sure if they are enough. I'll go with Xin's review
-on that.
+This series was applied to netdev/net.git (master)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-Reviewed-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+On Wed, 29 Jun 2022 19:13:51 +0200 you wrote:
+> Hi,
+> 
+> The following patchset contains Netfilter fixes for net:
+> 
+> 1) Restore set counter when one of the CPU loses race to add elements
+>    to sets.
+> 
+> [...]
+
+Here is the summary with links:
+  - [net,1/3] netfilter: nft_dynset: restore set element counter when failing to update
+    https://git.kernel.org/netdev/net/c/05907f10e235
+  - [net,2/3] netfilter: nf_tables: avoid skb access on nf_stolen
+    https://git.kernel.org/netdev/net/c/e34b9ed96ce3
+  - [net,3/3] netfilter: br_netfilter: do not skip all hooks with 0 priority
+    https://git.kernel.org/netdev/net/c/c2577862eeb0
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
