@@ -2,68 +2,148 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03479C433EF
-	for <netfilter-devel@archiver.kernel.org>; Sat,  2 Jul 2022 02:16:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09C06C43334
+	for <netfilter-devel@archiver.kernel.org>; Sat,  2 Jul 2022 02:16:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229496AbiGBCQn (ORCPT
+        id S229775AbiGBCQp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 1 Jul 2022 22:16:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44918 "EHLO
+        Fri, 1 Jul 2022 22:16:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44924 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229458AbiGBCQn (ORCPT
+        with ESMTP id S229458AbiGBCQo (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 1 Jul 2022 22:16:43 -0400
+        Fri, 1 Jul 2022 22:16:44 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C27C438183
-        for <netfilter-devel@vger.kernel.org>; Fri,  1 Jul 2022 19:16:41 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8086338183
+        for <netfilter-devel@vger.kernel.org>; Fri,  1 Jul 2022 19:16:43 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH] netfilter: nf_tables: stricter validation of element data
-Date:   Sat,  2 Jul 2022 04:16:30 +0200
-Message-Id: <20220702021631.796822-1-pablo@netfilter.org>
+Subject: [PATCH] netfilter: nft_set_pipapo: release elements in clone from abort path
+Date:   Sat,  2 Jul 2022 04:16:31 +0200
+Message-Id: <20220702021631.796822-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20220702021631.796822-1-pablo@netfilter.org>
+References: <20220702021631.796822-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Make sure element data type and length do not mismatch the one specified
-by the set declaration.
+New elements that reside in the clone are not released in case that the
+transaction is aborted.
 
-Reported-by: Hugues ANGUELKOV <hanguelkov@randorisec.fr>
-Fixes: 7d7402642eaf ("netfilter: nf_tables: variable sized set element keys / data")
+[16302.231754] ------------[ cut here ]------------
+[16302.231756] WARNING: CPU: 0 PID: 100509 at net/netfilter/nf_tables_api.c:1864 nf_tables_chain_destroy+0x26/0x127 [nf_tables]
+[...]
+[16302.231882] CPU: 0 PID: 100509 Comm: nft Tainted: G        W         5.19.0-rc3+ #155
+[...]
+[16302.231887] RIP: 0010:nf_tables_chain_destroy+0x26/0x127 [nf_tables]
+[16302.231899] Code: f3 fe ff ff 41 55 41 54 55 53 48 8b 6f 10 48 89 fb 48 c7 c7 82 96 d9 a0 8b 55 50 48 8b 75 58 e8 de f5 92 e0 83 7d 50 00 74 09 <0f> 0b 5b 5d 41 5c 41 5d c3 4c 8b 65 00 48 8b 7d 08 49 39 fc 74 05
+[...]
+[16302.231917] Call Trace:
+[16302.231919]  <TASK>
+[16302.231921]  __nf_tables_abort.cold+0x23/0x28 [nf_tables]
+[16302.231934]  nf_tables_abort+0x30/0x50 [nf_tables]
+[16302.231946]  nfnetlink_rcv_batch+0x41a/0x840 [nfnetlink]
+[16302.231952]  ? __nla_validate_parse+0x48/0x190
+[16302.231959]  nfnetlink_rcv+0x110/0x129 [nfnetlink]
+[16302.231963]  netlink_unicast+0x211/0x340
+[16302.231969]  netlink_sendmsg+0x21e/0x460
+
+Add nft_set_pipapo_match_destroy() helper function to release the
+elements in the lookup tables.
+
+Stefano Brivio says: "We additionally look for elements pointers in the
+cloned matching data if priv->dirty is set, because that means that
+cloned data might point to additional elements we did not commit to the
+working copy yet (such as the abort path case, but perhaps not limited
+to it)."
+
+Fixes: 3c4287f62044 ("nf_tables: Add set type for arbitrary concatenation of ranges")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ net/netfilter/nft_set_pipapo.c | 48 +++++++++++++++++++++++-----------
+ 1 file changed, 33 insertions(+), 15 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 51144fc66889..d6b59beab3a9 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5213,13 +5213,20 @@ static int nft_setelem_parse_data(struct nft_ctx *ctx, struct nft_set *set,
- 				  struct nft_data *data,
- 				  struct nlattr *attr)
- {
-+	u32 dtype;
- 	int err;
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index 2c8051d8cca6..4f9299b9dcdd 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -2124,6 +2124,32 @@ static int nft_pipapo_init(const struct nft_set *set,
+ 	return err;
+ }
  
- 	err = nft_data_init(ctx, data, NFT_DATA_VALUE_MAXLEN, desc, attr);
- 	if (err < 0)
- 		return err;
- 
--	if (desc->type != NFT_DATA_VERDICT && desc->len != set->dlen) {
-+	if (set->dtype == NFT_DATA_VERDICT)
-+		dtype = NFT_DATA_VERDICT;
-+	else
-+		dtype = NFT_DATA_VALUE;
++/**
++ * nft_set_pipapo_match_destroy() - Destroy elements from key mapping array
++ * @set:	nftables API set representation
++ * @m:		matching data pointing to key mapping array
++ */
++static void nft_set_pipapo_match_destroy(const struct nft_set *set,
++					 struct nft_pipapo_match *m)
++{
++	struct nft_pipapo_field *f;
++	int i, r;
 +
-+	if (dtype != desc->type ||
-+	    set->dlen != desc->len) {
- 		nft_data_release(data, desc->type);
- 		return -EINVAL;
++	for (i = 0, f = m->f; i < m->field_count - 1; i++, f++)
++		;
++
++	for (r = 0; r < f->rules; r++) {
++		struct nft_pipapo_elem *e;
++
++		if (r < f->rules - 1 && f->mt[r + 1].e == f->mt[r].e)
++			continue;
++
++		e = f->mt[r].e;
++
++		nft_set_elem_destroy(set, e, true);
++	}
++}
++
+ /**
+  * nft_pipapo_destroy() - Free private data for set and all committed elements
+  * @set:	nftables API set representation
+@@ -2132,26 +2158,13 @@ static void nft_pipapo_destroy(const struct nft_set *set)
+ {
+ 	struct nft_pipapo *priv = nft_set_priv(set);
+ 	struct nft_pipapo_match *m;
+-	struct nft_pipapo_field *f;
+-	int i, r, cpu;
++	int cpu;
+ 
+ 	m = rcu_dereference_protected(priv->match, true);
+ 	if (m) {
+ 		rcu_barrier();
+ 
+-		for (i = 0, f = m->f; i < m->field_count - 1; i++, f++)
+-			;
+-
+-		for (r = 0; r < f->rules; r++) {
+-			struct nft_pipapo_elem *e;
+-
+-			if (r < f->rules - 1 && f->mt[r + 1].e == f->mt[r].e)
+-				continue;
+-
+-			e = f->mt[r].e;
+-
+-			nft_set_elem_destroy(set, e, true);
+-		}
++		nft_set_pipapo_match_destroy(set, m);
+ 
+ #ifdef NFT_PIPAPO_ALIGN
+ 		free_percpu(m->scratch_aligned);
+@@ -2165,6 +2178,11 @@ static void nft_pipapo_destroy(const struct nft_set *set)
  	}
+ 
+ 	if (priv->clone) {
++		m = priv->clone;
++
++		if (priv->dirty)
++			nft_set_pipapo_match_destroy(set, m);
++
+ #ifdef NFT_PIPAPO_ALIGN
+ 		free_percpu(priv->clone->scratch_aligned);
+ #endif
 -- 
 2.30.2
 
