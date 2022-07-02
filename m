@@ -2,52 +2,75 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3922C433EF
-	for <netfilter-devel@archiver.kernel.org>; Sat,  2 Jul 2022 18:57:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A6A7C433EF
+	for <netfilter-devel@archiver.kernel.org>; Sat,  2 Jul 2022 19:10:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230076AbiGBS5R (ORCPT
+        id S232284AbiGBTKe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 2 Jul 2022 14:57:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51280 "EHLO
+        Sat, 2 Jul 2022 15:10:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33072 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229708AbiGBS5R (ORCPT
+        with ESMTP id S229476AbiGBTKe (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 2 Jul 2022 14:57:17 -0400
+        Sat, 2 Jul 2022 15:10:34 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D822CDF57;
-        Sat,  2 Jul 2022 11:57:15 -0700 (PDT)
-Date:   Sat, 2 Jul 2022 20:57:11 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6EFD1E00A;
+        Sat,  2 Jul 2022 12:10:33 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Hugues ANGUELKOV <hanguelkov@randorisec.fr>
-Cc:     netdev@vger.kernel.org, security@kernel.org, kadlec@netfilter.org,
-        fw@strlen.de, davy <davy@randorisec.fr>, amongodin@randorisec.fr,
-        kuba@kernel.org, torvalds@linuxfoundation.org,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH v1] netfilter: nf_tables: fix nft_set_elem_init heap
- buffer overflow
-Message-ID: <YsCVB2Jh8d6mM6f7@salvia>
-References: <271d4a36-2212-5bce-5efb-f5bad53fa49e@randorisec.fr>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        pabeni@redhat.com, edumazet@google.com
+Subject: [PATCH net 0/2] Netfilter fixes for net
+Date:   Sat,  2 Jul 2022 21:10:26 +0200
+Message-Id: <20220702191029.238563-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <271d4a36-2212-5bce-5efb-f5bad53fa49e@randorisec.fr>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Jul 02, 2022 at 07:59:11PM +0200, Hugues ANGUELKOV wrote:
-> From d91007a18140e02a1f12c9627058a019fe55b8e6 Mon Sep 17 00:00:00 2001
-> From: Arthur Mongodin <amongodin@randorisec.fr>
-> Date: Sat, 2 Jul 2022 17:11:48 +0200
-> Subject: [PATCH v1] netfilter: nf_tables: fix nft_set_elem_init heap buffer
->  overflow
-> 
-> The length used for the memcpy in nft_set_elem_init may exceed the bound
-> of the allocated object due to a weak check in nft_setelem_parse_data.
-> As a user can add an element with a data type NFT_DATA_VERDICT to a set
-> with a data type different of NFT_DATA_VERDICT, then the comparison on the
-> data type of the element allows to avoid the comparaison on the data length
-> This fix forces the length comparison in nft_setelem_parse_data by removing
-> the check for NFT_DATA_VERDICT type.
+Hi,
 
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20220702021631.796822-1-pablo@netfilter.org/
+The following patchset contains Netfilter fixes for net:
+
+1) Insufficient validation of element datatype and length in
+   nft_setelem_parse_data(). At least commit 7d7402642eaf updates
+   maximum element data area up to 64 bytes when only 16 bytes
+   where supported at the time. Support for larger element size
+   came later in fdb9c405e35b though. Picking this older commit
+   as Fixes: tag to be safe than sorry.
+
+2) Memleak in pipapo destroy path, reproducible when transaction
+   in aborted. This is already triggering in the existing netfilter
+   test infrastructure since more recent new tests are covering this
+   path.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit f8ebb3ac881b17712e1d5967c97ab1806b16d3d6:
+
+  net: usb: ax88179_178a: Fix packet receiving (2022-06-30 10:41:57 +0200)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git HEAD
+
+for you to fetch changes up to 9827a0e6e23bf43003cd3d5b7fb11baf59a35e1e:
+
+  netfilter: nft_set_pipapo: release elements in clone from abort path (2022-07-02 21:04:19 +0200)
+
+----------------------------------------------------------------
+Pablo Neira Ayuso (2):
+      netfilter: nf_tables: stricter validation of element data
+      netfilter: nft_set_pipapo: release elements in clone from abort path
+
+ net/netfilter/nf_tables_api.c  |  9 +++++++-
+ net/netfilter/nft_set_pipapo.c | 48 +++++++++++++++++++++++++++++-------------
+ 2 files changed, 41 insertions(+), 16 deletions(-)
