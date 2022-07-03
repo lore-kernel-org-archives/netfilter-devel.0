@@ -2,147 +2,123 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A1E9C43334
-	for <netfilter-devel@archiver.kernel.org>; Sun,  3 Jul 2022 05:35:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF812C43334
+	for <netfilter-devel@archiver.kernel.org>; Sun,  3 Jul 2022 10:31:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230388AbiGCFfE (ORCPT
+        id S231217AbiGCKb4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 3 Jul 2022 01:35:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55630 "EHLO
+        Sun, 3 Jul 2022 06:31:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46398 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229911AbiGCFfD (ORCPT
+        with ESMTP id S229993AbiGCKb4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 3 Jul 2022 01:35:03 -0400
-Received: from mail-io1-xd41.google.com (mail-io1-xd41.google.com [IPv6:2607:f8b0:4864:20::d41])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9645B6559;
-        Sat,  2 Jul 2022 22:35:02 -0700 (PDT)
-Received: by mail-io1-xd41.google.com with SMTP id p69so5892796iod.10;
-        Sat, 02 Jul 2022 22:35:02 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=GXf8SKBOuU3KwphSh6GHGhz85X2fwFD7jZBuWEYSZs8=;
-        b=fFDRsPryBlyx5HweWHW49+r6soSaP2zs54Mpt3d2EZI7EJhOPnxNnrheCZx3PZ7HM6
-         L+9UHyYZM5c0UDY+a2+cUfO6PdIQboFwlP9s6iRvrlCz6XcV8EEjv3eQiFy1kdMu905I
-         y4XyBUFLggqJ/Gxp5Dnrcv9PkLaR1IDj3FfLqx1nmeeR0mOCmHTOr5UDRI5Nj5tQO4J5
-         wIw/c8YNWf0TWkHwq1j/eb61CbYm0w1LhjQULxp/CilxHHJ67gGWJRujM109t++rbtYi
-         P36ibnSu506paRlGdxpmE4GF2pXryb3Y+sXXYwSTSXvoG7dXP5d2FJUlztjodlxeAHZV
-         Rf2w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=GXf8SKBOuU3KwphSh6GHGhz85X2fwFD7jZBuWEYSZs8=;
-        b=e8EtNpIqo3t0RikEmkR+OguGwGrJLgWbXLcJOvnZCMZVOM2uIu9c7VklBbydKcTvB4
-         Yj+U8ZY9XPxy6TkqrAp7MoYQ4WC0EKTekw2XbcB8D6vMC2CxgeE1zaJQQhQNvOynO//B
-         wYZWOMttcC3V073VIqb4Z51cHwknIk/FRAx5M73Aiz5PHPGjGQwmUrVRuuUzN6w6l92o
-         QdTHBs7B9/8lzGyzT05aiFFrkW/PK1sGcRk+MCiPw1dm6pmrKuaOTe/oacDUoHtKnLuw
-         ND0UExBu6FSonO4y72EESd+d+G9/hIhDpTNfzYPBcz8ynlWJuGy0u25MhXS//E1F2vya
-         nb2w==
-X-Gm-Message-State: AJIora86QZEwrQDj2Ke2nS7NY0K8s98EejFeXwufuNAQCN+vfMkx6nqC
-        WBfaLFePRY6XI8BtVL2wns9v4LG5CdHRFHCFDf4=
-X-Google-Smtp-Source: AGRyM1uOGLP5UYV8vtUBJ1pt1ATQYI8uGI+5cgj842Fkr4J6CeW1pe4NOGgD9pKXoy6VHLiVj/wYFma8bJlg+2Opq7U=
-X-Received: by 2002:a6b:6512:0:b0:674:ee9a:21fe with SMTP id
- z18-20020a6b6512000000b00674ee9a21femr12157626iob.168.1656826501842; Sat, 02
- Jul 2022 22:35:01 -0700 (PDT)
+        Sun, 3 Jul 2022 06:31:56 -0400
+X-Greylist: delayed 2351 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 03 Jul 2022 03:31:51 PDT
+Received: from outgoing7.flk.host-h.net (outgoing7.flk.host-h.net [188.40.212.1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D2DD6345
+        for <netfilter-devel@vger.kernel.org>; Sun,  3 Jul 2022 03:31:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=risingedge.co.za; s=xneelo; h=Message-ID:References:In-Reply-To:Subject:Cc:
+        To:From:Date:Content-Transfer-Encoding:Content-Type:MIME-Version:reply-to:
+        sender:bcc; bh=2xBFCcQ0Px55tJUZAoKyep9LgQW2tO+o4qFS3S25N0M=; b=cE7NUUuD66zihY
+        tOwlwYtFXMR3MNxZ+rovpOTLYZWUrZZIkA1CfnMzrcNyC2OXdq9JZO4leCbDOt4C2ID4HV7Q5twrc
+        4fu/ZaWKAo1oPTxwdEA/43gRcjSZQcawcXQag1sgGT4f7x9Am2BYSoSDGssaVCc1nny2wKD7rsdcY
+        T0O3I68ExzMAWukUXixdib43hIt6ZrOFocJ3Dkuu3PdwqaKQ/cWiHZTmJ1julHgAq2jMEpMu4j9cO
+        KxnNSgcbupiFH3Kj/+x8BDjdrExj4LJq7ehnIqZRJCOgSp8YVwKCWhjCBYApiolrpq+pmZ+dmYk3I
+        NofCC+oiWyah2OTrQzFA==;
+Received: from www31.flk1.host-h.net ([188.40.1.173])
+        by antispam1-flk1.host-h.net with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <justin.swartz@risingedge.co.za>)
+        id 1o7wHJ-0007nD-7O; Sun, 03 Jul 2022 11:52:35 +0200
+Received: from roundcubeweb1.flk1.host-h.net ([138.201.244.33] helo=webmail9.konsoleh.co.za)
+        by www31.flk1.host-h.net with esmtpa (Exim 4.92)
+        (envelope-from <justin.swartz@risingedge.co.za>)
+        id 1o7wHG-0008Cx-MS; Sun, 03 Jul 2022 11:52:30 +0200
 MIME-Version: 1.0
-References: <20220623192637.3866852-1-memxor@gmail.com> <20220623192637.3866852-2-memxor@gmail.com>
- <20220629032304.h5ck7tizbfehiwut@macbook-pro-3.dhcp.thefacebook.com> <CAP01T77fsU8u6GP+HXfQQ_gdu+kp3Am1+Ao-mNYULjDazHs38Q@mail.gmail.com>
-In-Reply-To: <CAP01T77fsU8u6GP+HXfQQ_gdu+kp3Am1+Ao-mNYULjDazHs38Q@mail.gmail.com>
-From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Date:   Sun, 3 Jul 2022 11:04:22 +0530
-Message-ID: <CAP01T75cVLehQbkE3LLwSG5wVecNz0FH9QZpmzoqs-e8YKpGtg@mail.gmail.com>
-Subject: Re: [PATCH bpf-next v5 1/8] bpf: Add support for forcing kfunc args
- to be referenced
-To:     Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Cc:     bpf@vger.kernel.org, Yonghong Song <yhs@fb.com>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>,
-        Lorenzo Bianconi <lorenzo@kernel.org>, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date:   Sun, 03 Jul 2022 11:52:30 +0200
+From:   Justin Swartz <justin.swartz@risingedge.co.za>
+To:     netfilter-devel@vger.kernel.org
+Cc:     justin.swartz@risingedge.co.za, rkolchmeyer@google.com,
+        fw@strlen.de, pablo@netfilter.org
+Subject: [PATCH resend] ebtables: extend the 'static' build target fix.
+In-Reply-To: <20220625081441.13323-1-justin.swartz@risingedge.co.za>
+References: <20220625081441.13323-1-justin.swartz@risingedge.co.za>
+Message-ID: <42ed3ff1408e811918f138e1f1aefec1@risingedge.co.za>
+X-Sender: justin.swartz@risingedge.co.za
+User-Agent: Roundcube Webmail/1.2.3
+X-Authenticated-Sender: justin.swartz@risingedge.co.za
+X-Virus-Scanned: Clear
+X-Originating-IP: 188.40.1.173
+X-SpamExperts-Domain: risingedge.co.za
+X-SpamExperts-Username: 
+Authentication-Results: host-h.net; auth=pass (login) smtp.auth=@risingedge.co.za
+X-SpamExperts-Outgoing-Class: ham
+X-SpamExperts-Outgoing-Evidence: SB/global_tokens (0.00456048098403)
+X-Recommended-Action: accept
+X-Filter-ID: Pt3MvcO5N4iKaDQ5O6lkdGlMVN6RH8bjRMzItlySaT9GFC4sOlVaWbJn0suSq8XFPUtbdvnXkggZ
+ 3YnVId/Y5jcf0yeVQAvfjHznO7+bT5xntEluci+0hyorrNrHYHDzyr7MsDDHqPd/CLhJt64naRdA
+ 5v8pC2VCBVt5bHO0FJZCLdtTZy6NS8co4brrOZMMIaRbzeTp3BU4MrzM0qbxqs51FfwbPW8G6lVN
+ KK4YOu2ixUAhT4FotEH/iPo957J1ZpZmyaxDI4r6A80scQc+XgTJsjWw5+0eZIpQIcK9yrTJeXoU
+ xPozdon+5NjDz4Lpjd12v0hRQV2TuWFKPYIZhdEijaOYwIo3VWtNfh+T9pFLMDgu+QDVxvufaery
+ DXAy8U54yHbe0U2Q73dIPYtLRTa3ez3cHoqTWBKuYika620V8bsd7WYc4sS5nxHe02gIZsN/DZ4i
+ BHU1jKlc4dIeTtVzfBpUNIJbCsp5zJU0MGPpxOsB8gG0slV7ra6jI4BSJGlDdAt5iE2wWUUtBv7R
+ wyGL9OyxAMsMu5TiHOeDBqW2s3BysOB3xpjrd5YzJziOi2bznHJ53CHS5fL+CC61pCZsm4iYatgr
+ Ye8fqbmOW/RWLiQnxfywIDC9lZJ3ggMIX0iUqFrXcSXq1PMB6qws/qFfbJCeQvjdrdga95yZyODo
+ E/5Q/KZPWPqZqJjO3oRhuTNa7IVsbMNf4F0zLZ5qoWiSg2N4Io7udrmMcPXxKJH6q/obeNp/dhvh
+ HGNFOg8aehn9y6na5dJ8yk+LGdDCpwEiRQv+PVjjwa+Z5RFCOMTjUmZB3byRPIA5X1eVx5QA3igk
+ FenBVf36/WXDCgxJ9Ufc+cONOZosr3fUW6KX8BrEPNbZQpCR3KegtTOX63sEnXgz5kNf6qHiP1F9
+ RDuwk6GlFBV91TZd1YlfxlEZ4KBMwntsduNBxKPaTpE5L8d4XtLSRONyf/B0O0MyJjs3E+a5snvy
+ UDKRzod43GUvzJgCpxegjDoP3kEGX61kK9szljgWI6KDH29KFP1cNjTUdIpfvHvO1CUYniP/BXuE
+ pal+pvlHhV6a5QjptwQBGybQTi2w8S0/k7XOgp7ipJmXvi2+Hs9hQLEoLrZFClclPheGH7phbOjl
+ Im7xGwbwuG222pb4i4DTkMZeMiNI9JSIyVssHYIVS/ha87SlzBqiWdduUSkw4uZmYUb1+mji+YZ6
+X-Report-Abuse-To: spam@antispammaster.host-h.net
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, 3 Jul 2022 at 10:54, Kumar Kartikeya Dwivedi <memxor@gmail.com> wrote:
->
-> On Wed, 29 Jun 2022 at 08:53, Alexei Starovoitov
-> <alexei.starovoitov@gmail.com> wrote:
-> >
-> > On Fri, Jun 24, 2022 at 12:56:30AM +0530, Kumar Kartikeya Dwivedi wrote:
-> > > Similar to how we detect mem, size pairs in kfunc, teach verifier to
-> > > treat __ref suffix on argument name to imply that it must be a
-> > > referenced pointer when passed to kfunc. This is required to ensure that
-> > > kfunc that operate on some object only work on acquired pointers and not
-> > > normal PTR_TO_BTF_ID with same type which can be obtained by pointer
-> > > walking. Release functions need not specify such suffix on release
-> > > arguments as they are already expected to receive one referenced
-> > > argument.
-> > >
-> > > Note that we use strict type matching when a __ref suffix is present on
-> > > the argument.
-> > ...
-> > > +             /* Check if argument must be a referenced pointer, args + i has
-> > > +              * been verified to be a pointer (after skipping modifiers).
-> > > +              */
-> > > +             arg_ref = is_kfunc_arg_ref(btf, args + i);
-> > > +             if (is_kfunc && arg_ref && !reg->ref_obj_id) {
-> > > +                     bpf_log(log, "R%d must be referenced\n", regno);
-> > > +                     return -EINVAL;
-> > > +             }
-> > > +
-> >
-> > imo this suffix will be confusing to use.
-> > If I understand the intent the __ref should only be used
-> > in acquire (and other) kfuncs that also do release.
-> > Adding __ref to actual release kfunc will be a nop.
-> > It will be checked, but it's not necessary.
-> >
-> > At the end
-> > +struct nf_conn *bpf_ct_insert_entry(struct nf_conn___init *nfct__ref)
-> > will behave like kptr_xchg with exception that kptr_xchg takes any btf_id
-> > while here it's fixed.
-> >
-> > The code:
-> >  if (rel && reg->ref_obj_id)
-> >         arg_type |= OBJ_RELEASE;
-> > should probably be updated with '|| arg_ref'
-> > to make sure reg->off == 0 ?
-> > That looks like a small bug.
-> >
->
-> Indeed, I missed that. Thanks for catching it.
->
-> > But stepping back... why __ref is needed ?
-> > We can add bpf_ct_insert_entry to acq and rel sets and it should work?
-> > I'm assuming you're doing the orthogonal cleanup of resolve_btfid,
-> > so we will have a single kfunc set where bpf_ct_insert_entry will
-> > have both acq and rel flags.
-> > I'm surely missing something.
->
-> It is needed to prevent the case where someone might do:
-> ct = bpf_xdp_ct_alloc(...);
-> bpf_ct_set_timeout(ct->master, ...);
->
+Assign "-all-static" (instead of "-static") to "static_LDFLAGS" in
+Makefile.am, as libtool will only produce a static binary if it is
+explicitly told that all of the linked libraries should be static.
 
-A better illustration is probably bpf_xdp_ct_lookup and
-bpf_ct_change_timeout, since here the type for ct->master won't match
-with bpf_ct_set_timeout, but the point is the same.
+BEFORE
 
-> Or just obtain PTR_TO_BTF_ID by pointer walking and try to pass it in
-> to bpf_ct_set_timeout.
->
-> __ref allows an argument on a non-release kfunc to have checks like a
-> release argument, i.e. refcounted, reg->off == 0 (var_off is already
-> checked to be 0), so use the original pointer that was obtained from
-> an acquire kfunc. As you noted, it isn't strictly needed on release
-> kfunc (like bpf_ct_insert_entry) because the same checks happen for it
-> anyway. But both timeout and status helpers should use it if they
-> "operate" on the acquired ct (from alloc, insert, or lookup).
+$ file static
+static: ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV),
+         dynamically linked, interpreter /lib/ld-musl-i386.so.1,
+         not stripped
+
+AFTER
+
+$ file static
+static: ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV),
+         statically linked, not stripped
+
+REFERENCE
+
+"Another common situation where static linking is desirable is in
+  creating a standalone binary. Use libtool to do the linking and
+  add the -all-static flag."  --  Libtool Manual, Section 3.7
+
+Signed-off-by: Justin Swartz <justin.swartz@risingedge.co.za>
+---
+  Makefile.am | 2 +-
+  1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile.am b/Makefile.am
+index b246064..d011919 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -51,7 +51,7 @@ ebtablesd_LDADD = libebtc.la
+  ebtables_legacy_restore_SOURCES = ebtables-restore.c
+  ebtables_legacy_restore_LDADD = libebtc.la
+  static_SOURCES = ebtables-standalone.c $(libebtc_la_SOURCES)
+-static_LDFLAGS = -static
++static_LDFLAGS = -all-static
+  examples_ulog_test_ulog_SOURCES = examples/ulog/test_ulog.c 
+getethertype.c
+
+  daemon: ebtablesd ebtablesu
