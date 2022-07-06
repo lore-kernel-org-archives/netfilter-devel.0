@@ -2,217 +2,157 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21651C433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Jul 2022 14:52:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AE2FC433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Jul 2022 15:31:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233167AbiGFOwj (ORCPT
+        id S233794AbiGFPbP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 6 Jul 2022 10:52:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40690 "EHLO
+        Wed, 6 Jul 2022 11:31:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44144 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233542AbiGFOw2 (ORCPT
+        with ESMTP id S233796AbiGFPbL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 Jul 2022 10:52:28 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8BA7925C7E;
-        Wed,  6 Jul 2022 07:52:26 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1o96O8-0004rG-6N; Wed, 06 Jul 2022 16:52:24 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     regressions@lists.linux.dev, <netdev@vger.kernel.org>,
-        linux-kernel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Kajetan Puchalski <kajetan.puchalski@arm.com>,
-        Will Deacon <will@kernel.org>
-Subject: [PATCH nf v3] netfilter: conntrack: fix crash due to confirmed bit load reordering
-Date:   Wed,  6 Jul 2022 16:50:04 +0200
-Message-Id: <20220706145004.22355-1-fw@strlen.de>
+        Wed, 6 Jul 2022 11:31:11 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B5B61EEE6;
+        Wed,  6 Jul 2022 08:31:10 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DA0AC61FDD;
+        Wed,  6 Jul 2022 15:31:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3270C385A5;
+        Wed,  6 Jul 2022 15:31:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1657121469;
+        bh=ZWyNL/PLV0KBvNJrAWbcNjFGF/dSsbZ4x/okfB1xgSk=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=EKR8OejCcF+4qjF7yC1r8uvZuBpI568iyRQKP3fcJcnksfQSTUO7ap52V6DnkS56a
+         rat1ijcttwnK0McpfGLmi3dCghxk61Vf6F2Be1gAmEJ4pKpl8K+Jhnj2JjX8/bPGZD
+         knurJdv3v6ZBFy3ZWTyee19XZNJ3XGl4PztrSwz7tQyjQ89m9ekhlNKehHxg5S5RSM
+         V83wB3yPshFmT0nxpXWktlsRsqLcAqzgZJsrqI31NANLu2k28x0QJHvMEtJUWuTK9a
+         CtEFa5yu910lciWuBultyvhD/uobXYisNB7PNbCFe4nVSC2c6+/fHYo4F9vrV7gnZz
+         MY7lj8HVV7yBw==
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Florian Westphal <fw@strlen.de>,
+        Radim Hrazdil <rhrazdil@redhat.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sasha Levin <sashal@kernel.org>, kadlec@netfilter.org,
+        roopa@nvidia.com, razor@blackwall.org, davem@davemloft.net,
+        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        bridge@lists.linux-foundation.org, netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.18 09/22] netfilter: br_netfilter: do not skip all hooks with 0 priority
+Date:   Wed,  6 Jul 2022 11:30:27 -0400
+Message-Id: <20220706153041.1597639-9-sashal@kernel.org>
 X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20220706124007.GB7996@breakpoint.cc>
-References: <20220706124007.GB7996@breakpoint.cc>
+In-Reply-To: <20220706153041.1597639-1-sashal@kernel.org>
+References: <20220706153041.1597639-1-sashal@kernel.org>
 MIME-Version: 1.0
+X-stable: review
+X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Kajetan Puchalski reports crash on ARM, with backtrace of:
+From: Florian Westphal <fw@strlen.de>
 
-__nf_ct_delete_from_lists
-nf_ct_delete
-early_drop
-__nf_conntrack_alloc
+[ Upstream commit c2577862eeb0be94f151f2f1fff662b028061b00 ]
 
-Unlike atomic_inc_not_zero, refcount_inc_not_zero is not a full barrier.
-conntrack uses SLAB_TYPESAFE_BY_RCU, i.e. it is possible that a 'newly'
-allocated object is still in use on another CPU:
+When br_netfilter module is loaded, skbs may be diverted to the
+ipv4/ipv6 hooks, just like as if we were routing.
 
-CPU1						CPU2
-						encounter 'ct' during hlist walk
- delete_from_lists
- refcount drops to 0
- kmem_cache_free(ct);
- __nf_conntrack_alloc() // returns same object
-						refcount_inc_not_zero(ct); /* might fail */
+Unfortunately, bridge filter hooks with priority 0 may be skipped
+in this case.
 
-						/* If set, ct is public/in the hash table */
-						test_bit(IPS_CONFIRMED_BIT, &ct->status);
+Example:
+1. an nftables bridge ruleset is loaded, with a prerouting
+   hook that has priority 0.
+2. interface is added to the bridge.
+3. no tcp packet is ever seen by the bridge prerouting hook.
+4. flush the ruleset
+5. load the bridge ruleset again.
+6. tcp packets are processed as expected.
 
-In case CPU1 already set refcount back to 1, refcount_inc_not_zero()
-will succeed.
+After 1) the only registered hook is the bridge prerouting hook, but its
+not called yet because the bridge hasn't been brought up yet.
 
-The expected possibilities for a CPU that obtained the object 'ct'
-(but no reference so far) are:
+After 2), hook order is:
+   0 br_nf_pre_routing // br_netfilter internal hook
+   0 chain bridge f prerouting // nftables bridge ruleset
 
-1. refcount_inc_not_zero() fails.  CPU2 ignores the object and moves to
-   the next entry in the list.  This happens for objects that are about
-   to be free'd, that have been free'd, or that have been reallocated
-   by __nf_conntrack_alloc(), but where the refcount has not been
-   increased back to 1 yet.
+The packet is diverted to br_nf_pre_routing.
+If call-iptables is off, the nftables bridge ruleset is called as expected.
 
-2. refcount_inc_not_zero() succeeds. CPU2 checks the CONFIRMED bit
-   in ct->status.  If set, the object is public/in the table.
+But if its enabled, br_nf_hook_thresh() will skip it because it assumes
+that all 0-priority hooks had been called previously in bridge context.
 
-   If not, the object must be skipped; CPU2 calls nf_ct_put() to
-   un-do the refcount increment and moves to the next object.
+To avoid this, check for the br_nf_pre_routing hook itself, we need to
+resume directly after it, even if this hook has a priority of 0.
 
-Parallel deletion from the hlists is prevented by a
-'test_and_set_bit(IPS_DYING_BIT, &ct->status);' check, i.e. only one
-cpu will do the unlink, the other one will only drop its reference count.
+Unfortunately, this still results in different packet flow.
+With this fix, the eval order after in 3) is:
+1. br_nf_pre_routing
+2. ip(6)tables (if enabled)
+3. nftables bridge
 
-Because refcount_inc_not_zero is not a full barrier, CPU2 may try to
-delete an object that is not on any list:
+but after 5 its the much saner:
+1. nftables bridge
+2. br_nf_pre_routing
+3. ip(6)tables (if enabled)
 
-1. refcount_inc_not_zero() successful (refcount inited to 1 on other CPU)
-2. CONFIRMED test also successful (load was reordered or zeroing
-   of ct->status not yet visible)
-3. delete_from_lists unlinks entry not on the hlist, because
-   IPS_DYING_BIT is 0 (already cleared).
+Unfortunately I don't see a solution here:
+It would be possible to move br_nf_pre_routing to a higher priority
+so that it will be called later in the pipeline, but this also impacts
+ebtables evaluation order, and would still result in this very ordering
+problem for all nftables-bridge hooks with the same priority as the
+br_nf_pre_routing one.
 
-2) is already wrong: CPU2 will handle a partially initited object
-that is supposed to be private to CPU1.
+Searching back through the git history I don't think this has
+ever behaved in any other way, hence, no fixes-tag.
 
-Add needed barriers when refcount_inc_not_zero() is successful.
-
-It also inserts a smp_wmb() before the refcount is set to 1 during
-allocation.
-
-Because other CPU might still 'see' the object, refcount_set(1)
-"resurrects" the object, so we need to make sure that other CPUs will
-also observe the right contents.  In particular, the CONFIRMED bit test
-must only pass once the object is fully initialised and either in the
-hash or about to be inserted (with locks held to delay possible unlink from
-early_drop or gc worker).
-
-I did not change flow_offload_alloc(), as far as I can see it should call
-refcount_inc(), not refcount_inc_not_zero(): the ct object is attached to
-the skb so its refcount should be >= 1 in all cases.
-
-v2: prefer smp_acquire__after_ctrl_dep to smp_rmb (Will Deacon).
-v3: keep smp_acquire__after_ctrl_dep close to refcount_inc_not_zero call
-    add comment in nf_conntrack_netlink, no control dependency there
-    due to locks.
-
-Cc: Peter Zijlstra <peterz@infradead.org>
-Reported-by: Kajetan Puchalski <kajetan.puchalski@arm.com>
-Diagnosed-by: Will Deacon <will@kernel.org>
-Fixes: 719774377622 ("netfilter: conntrack: convert to refcount_t api")
+Reported-by: Radim Hrazdil <rhrazdil@redhat.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_conntrack_core.c       | 22 ++++++++++++++++++++++
- net/netfilter/nf_conntrack_netlink.c    |  1 +
- net/netfilter/nf_conntrack_standalone.c |  3 +++
- 3 files changed, 26 insertions(+)
+ net/bridge/br_netfilter_hooks.c | 21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 082a2fd8d85b..369aeabb94fe 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -729,6 +729,9 @@ static void nf_ct_gc_expired(struct nf_conn *ct)
- 	if (!refcount_inc_not_zero(&ct->ct_general.use))
- 		return;
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index 4fd882686b04..ff4779036649 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -1012,9 +1012,24 @@ int br_nf_hook_thresh(unsigned int hook, struct net *net,
+ 		return okfn(net, sk, skb);
  
-+	/* load ->status after refcount increase */
-+	smp_acquire__after_ctrl_dep();
+ 	ops = nf_hook_entries_get_hook_ops(e);
+-	for (i = 0; i < e->num_hook_entries &&
+-	      ops[i]->priority <= NF_BR_PRI_BRNF; i++)
+-		;
++	for (i = 0; i < e->num_hook_entries; i++) {
++		/* These hooks have already been called */
++		if (ops[i]->priority < NF_BR_PRI_BRNF)
++			continue;
 +
- 	if (nf_ct_should_gc(ct))
- 		nf_ct_kill(ct);
- 
-@@ -795,6 +798,9 @@ __nf_conntrack_find_get(struct net *net, const struct nf_conntrack_zone *zone,
- 		 */
- 		ct = nf_ct_tuplehash_to_ctrack(h);
- 		if (likely(refcount_inc_not_zero(&ct->ct_general.use))) {
-+			/* re-check key after refcount */
-+			smp_acquire__after_ctrl_dep();
++		/* These hooks have not been called yet, run them. */
++		if (ops[i]->priority > NF_BR_PRI_BRNF)
++			break;
 +
- 			if (likely(nf_ct_key_equal(h, tuple, zone, net)))
- 				goto found;
++		/* take a closer look at NF_BR_PRI_BRNF. */
++		if (ops[i]->hook == br_nf_pre_routing) {
++			/* This hook diverted the skb to this function,
++			 * hooks after this have not been run yet.
++			 */
++			i++;
++			break;
++		}
++	}
  
-@@ -1387,6 +1393,9 @@ static unsigned int early_drop_list(struct net *net,
- 		if (!refcount_inc_not_zero(&tmp->ct_general.use))
- 			continue;
- 
-+		/* load ->ct_net and ->status after refcount increase */
-+		smp_acquire__after_ctrl_dep();
-+
- 		/* kill only if still in same netns -- might have moved due to
- 		 * SLAB_TYPESAFE_BY_RCU rules.
- 		 *
-@@ -1536,6 +1545,9 @@ static void gc_worker(struct work_struct *work)
- 			if (!refcount_inc_not_zero(&tmp->ct_general.use))
- 				continue;
- 
-+			/* load ->status after refcount increase */
-+			smp_acquire__after_ctrl_dep();
-+
- 			if (gc_worker_skip_ct(tmp)) {
- 				nf_ct_put(tmp);
- 				continue;
-@@ -1775,6 +1787,16 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
- 	if (!exp)
- 		__nf_ct_try_assign_helper(ct, tmpl, GFP_ATOMIC);
- 
-+	/* Other CPU might have obtained a pointer to this object before it was
-+	 * released.  Because refcount is 0, refcount_inc_not_zero() will fail.
-+	 *
-+	 * After refcount_set(1) it will succeed; ensure that zeroing of
-+	 * ct->status and the correct ct->net pointer are visible; else other
-+	 * core might observe CONFIRMED bit which means the entry is valid and
-+	 * in the hash table, but its not (anymore).
-+	 */
-+	smp_wmb();
-+
- 	/* Now it is going to be associated with an sk_buff, set refcount to 1. */
- 	refcount_set(&ct->ct_general.use, 1);
- 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 722af5e309ba..f5905b5201a7 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1203,6 +1203,7 @@ ctnetlink_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
- 					   hnnode) {
- 			ct = nf_ct_tuplehash_to_ctrack(h);
- 			if (nf_ct_is_expired(ct)) {
-+				/* need to defer nf_ct_kill() until lock is released */
- 				if (i < ARRAY_SIZE(nf_ct_evict) &&
- 				    refcount_inc_not_zero(&ct->ct_general.use))
- 					nf_ct_evict[i++] = ct;
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index 6ad7bbc90d38..05895878610c 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -306,6 +306,9 @@ static int ct_seq_show(struct seq_file *s, void *v)
- 	if (unlikely(!refcount_inc_not_zero(&ct->ct_general.use)))
- 		return 0;
- 
-+	/* load ->status after refcount increase */
-+	smp_acquire__after_ctrl_dep();
-+
- 	if (nf_ct_should_gc(ct)) {
- 		nf_ct_kill(ct);
- 		goto release;
+ 	nf_hook_state_init(&state, hook, NFPROTO_BRIDGE, indev, outdev,
+ 			   sk, net, okfn);
 -- 
 2.35.1
 
