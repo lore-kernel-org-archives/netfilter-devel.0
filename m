@@ -2,197 +2,176 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6E28CCA480
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Jul 2022 21:12:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4606FC433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Jul 2022 21:29:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234315AbiGFVM6 (ORCPT
+        id S233754AbiGFV3I (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 6 Jul 2022 17:12:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39458 "EHLO
+        Wed, 6 Jul 2022 17:29:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52306 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234279AbiGFVM4 (ORCPT
+        with ESMTP id S231384AbiGFV3H (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 Jul 2022 17:12:56 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0DFB82980A
-        for <netfilter-devel@vger.kernel.org>; Wed,  6 Jul 2022 14:12:51 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1657141970;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=Y7h7IrPbsWI8QhyG3/mzkv9LzUq+QzL6ht7oJbYSp64=;
-        b=gv4kfEwpRbsnr8Q/hE2H4fUb7CiFXspm44OfOyZ0N92D5Jl537vs6vie/BcqEBqL813QkH
-        DjPDN3htYQEDN7YzOpluCKY940fszH5fPqYxhjL4oIy17dxVY3Y6LL5/UoqFS/dE3V93sy
-        MUljE/rn5VaSDS8iVnPx/S65PDJvDDs=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-618-GTmS-XzCNBygJXTQ-Kk-Mw-1; Wed, 06 Jul 2022 17:12:46 -0400
-X-MC-Unique: GTmS-XzCNBygJXTQ-Kk-Mw-1
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.rdu2.redhat.com [10.11.54.8])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 9897F811E76;
-        Wed,  6 Jul 2022 21:12:46 +0000 (UTC)
-Received: from maya.cloud.tilaa.com (unknown [10.40.208.10])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 4B417C23DBF;
-        Wed,  6 Jul 2022 21:12:46 +0000 (UTC)
-Date:   Wed, 6 Jul 2022 23:12:42 +0200
-From:   Stefano Brivio <sbrivio@redhat.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] nft_set_rbtree: Switch to node list walk for overlap
- detection
-Message-ID: <20220706231242.492ba5d1@elisabeth>
-In-Reply-To: <YsQmS4+qdFz8s+sN@salvia>
-References: <20220614010704.1416375-1-sbrivio@redhat.com>
-        <Yrnh2lqhvvzrT2ii@salvia>
-        <20220702015510.08ee9401@elisabeth>
-        <YsQmS4+qdFz8s+sN@salvia>
-Organization: Red Hat
+        Wed, 6 Jul 2022 17:29:07 -0400
+Received: from mail-pj1-x102e.google.com (mail-pj1-x102e.google.com [IPv6:2607:f8b0:4864:20::102e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B4AA1EADA;
+        Wed,  6 Jul 2022 14:29:07 -0700 (PDT)
+Received: by mail-pj1-x102e.google.com with SMTP id o15so11864906pjh.1;
+        Wed, 06 Jul 2022 14:29:07 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=udhuCkPitOH3CHDU61QUBRRayHKW8eKwG2SoQ0+rvF0=;
+        b=QdkCLyqPAO67cOfE0yyn6qAcov18uuSq4SPI8+KW4RfTWPQwMaIpT4OfreGoVHai0N
+         KuQJc+28fsA1uU6VJyEXtEFFQiLTCefHiB5hM3FLGNOQyQiCCZI8LlGtiWRhNKbqxbBD
+         z1yonSRVS09aa5XboYP3zjeLR9BEDbRn/SnqSYMUa8YdtT6AvJ3DUW32YiUZ5VtP2p/C
+         5W2JnWnDH2+k2j0h5Vb+F/1460ZUm0BdFaFtWQ///isY74Dh8Jxm4m51mAiRTkZFuuID
+         etkr+852cBdXQ4Fd06GVOps7wP7IfFhLRfBS1QMO7rZfQelqeqsDPkZq+XFX1kxoapwP
+         T3+Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=udhuCkPitOH3CHDU61QUBRRayHKW8eKwG2SoQ0+rvF0=;
+        b=tesoK/9HjOrdFQjP2b4XduNK4EF3GfrZIAWgC/Cp6ZHF0b7Utf/K5J9o8GjPW6fkq0
+         uPBBZ6Y+khjPu0e/V+XDkXH+hzGHE7bZZ+6AWQkkeoigoPi8ImJ5GD9g2iIh6WfLvnBb
+         EWRDMsqXsP2d+5HQyin01EIpqPbS2A2s5xxi44aIKuDmy+8CV0rDOrJsq4xpo7rU6pe8
+         6LLsUQxxyKhn6byPi5hacT4gM2Ne6Zw7B1UK//gvdGJcUbNHD1EWIqT1sLJx7Pbhs3Ht
+         OemO9Ag4DlTK8sG89C2JuA1CdOWG2Fuf8ij2Ow839SsmgUC8naEqj7/Dmddr8sW6liWG
+         auIQ==
+X-Gm-Message-State: AJIora/c5vVZlrFKSkdLbqGngpSkdo25sCdK5Zai7saxijZnX9y+4oeF
+        eeLxcAzp/iMRFT+2ln02rfU=
+X-Google-Smtp-Source: AGRyM1ufykB0P1yFUIA5SiKBLy/Kp4hUKCRSzBQTMXvWjrJ4NwjJLQUKt9cbgPJAyPeQgmk/JWoLsQ==
+X-Received: by 2002:a17:90b:4fc1:b0:1ef:bd2c:696e with SMTP id qa1-20020a17090b4fc100b001efbd2c696emr830924pjb.45.1657142946503;
+        Wed, 06 Jul 2022 14:29:06 -0700 (PDT)
+Received: from MacBook-Pro-3.local ([2620:10d:c090:500::2:8597])
+        by smtp.gmail.com with ESMTPSA id n7-20020aa79847000000b00528aad783dcsm2037574pfq.15.2022.07.06.14.29.04
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 06 Jul 2022 14:29:05 -0700 (PDT)
+Date:   Wed, 6 Jul 2022 14:29:03 -0700
+From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
+To:     Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Cc:     bpf@vger.kernel.org, Yonghong Song <yhs@fb.com>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Jesper Dangaard Brouer <brouer@redhat.com>,
+        Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>,
+        Lorenzo Bianconi <lorenzo@kernel.org>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH bpf-next v5 1/8] bpf: Add support for forcing kfunc args
+ to be referenced
+Message-ID: <20220706212903.az2mtqodtzmn2gwq@MacBook-Pro-3.local>
+References: <20220623192637.3866852-1-memxor@gmail.com>
+ <20220623192637.3866852-2-memxor@gmail.com>
+ <20220629032304.h5ck7tizbfehiwut@macbook-pro-3.dhcp.thefacebook.com>
+ <CAP01T77fsU8u6GP+HXfQQ_gdu+kp3Am1+Ao-mNYULjDazHs38Q@mail.gmail.com>
+ <CAP01T75cVLehQbkE3LLwSG5wVecNz0FH9QZpmzoqs-e8YKpGtg@mail.gmail.com>
+ <20220706184436.mf7oeexxfwswgdqf@MacBook-Pro-3.local>
+ <CAP01T75-EZfdBx+W+6pV0vDDD3Qi07KVLsFTupPfptTyAFxx1Q@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-Scanned-By: MIMEDefang 2.85 on 10.11.54.8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAP01T75-EZfdBx+W+6pV0vDDD3Qi07KVLsFTupPfptTyAFxx1Q@mail.gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, 5 Jul 2022 13:53:47 +0200
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-
-> Hi Stefano,
-> 
-> On Sat, Jul 02, 2022 at 01:55:10AM +0200, Stefano Brivio wrote:
-> > On Mon, 27 Jun 2022 18:59:06 +0200
-> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> >   
-> > > Hi Stefano,
-> > > 
-> > > On Tue, Jun 14, 2022 at 03:07:04AM +0200, Stefano Brivio wrote:  
-> > > > ...instead of a tree descent, which became overly complicated in an
-> > > > attempt to cover cases where expired or inactive elements would
-> > > > affect comparisons with the new element being inserted.
-> > > >
-> > > > Further, it turned out that it's probably impossible to cover all
-> > > > those cases, as inactive nodes might entirely hide subtrees
-> > > > consisting of a complete interval plus a node that makes the current
-> > > > insertion not overlap.
-> > > >
-> > > > For the insertion operation itself, this essentially reverts back to
-> > > > the implementation before commit 7c84d41416d8
-> > > > ("netfilter: nft_set_rbtree: Detect partial overlaps on insertion"),
-> > > > except that cases of complete overlap are already handled in the
-> > > > overlap detection phase itself, which slightly simplifies the loop to
-> > > > find the insertion point.
-> > > >
-> > > > Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > > > Fixes: 7c84d41416d8 ("netfilter: nft_set_rbtree: Detect partial overlaps on insertion")
-> > > > Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
-> > > > ---
-> > > >  net/netfilter/nft_set_rbtree.c | 194 ++++++++++-----------------------
-> > > >  1 file changed, 58 insertions(+), 136 deletions(-)    
-> > > 
-> > > When running tests this is increasing the time to detect overlaps in
-> > > my testbed, because of the linear list walk for each element.  
-> > 
-> > ...by the way, I observed it as well, and I was wondering: how bad is
-> > too bad? My guess was that as long as we insert a few thousand elements
-> > (with more, I expect hash or pipapo to be used) in a few seconds, it
-> > should be good enough.  
-> 
-> From few seconds to less than 30 seconds in one testbed here.
-
-I didn't understand: so it's really bad? Because sure, I see that
-running the test scripts you shared now takes much longer, but I wonder
-how far that is from actual use cases.
-
-> > > So I have been looking at an alternative approach (see attached patch) to
-> > > address your comments. The idea is to move out the overlapping nodes
-> > > from the element in the tree, instead keep them in a list.
-> > > 
-> > >                         root
-> > >                         /  \
-> > >                      elem   elem -> update -> update
-> > >                             /  \
-> > >                          elem  elem
-> > > 
-> > > Each rbtree element in the tree .has pending_list which stores the
-> > > element that supersede the existing (inactive) element. There is also a
-> > > .list which is used to add the element to the .pending_list. Elements
-> > > in the tree might have a .pending_list with one or more elements.  
-> > 
-> > I see a problem with this, that perhaps you already solved, but I don't
-> > understand how.
-> > 
-> > The original issue here was that we have inactive elements in the tree
-> > affecting the way we descend it to look for overlaps. Those inactive
-> > elements are not necessarily overlapping with anything.
-> > 
-> > If they overlap, the issue is solved with your patch. But if they
-> > don't...?
+On Thu, Jul 07, 2022 at 12:51:15AM +0530, Kumar Kartikeya Dwivedi wrote:
+> On Thu, 7 Jul 2022 at 00:14, Alexei Starovoitov
+> <alexei.starovoitov@gmail.com> wrote:
 > >
-> > Sure, we'll grant insertion of overlapping elements in case the overlap
-> > is with an inactive one, but this solves the particular case of
-> > matching elements, not overlapping intervals.
-> > 
-> > At a first reading, I thought you found some magic way to push out all
-> > inactive elements to some parallel, linked structure, which we can
-> > ignore as we look for overlapping _intervals_. But that doesn't seem to
-> > be the case, right?  
+> > On Sun, Jul 03, 2022 at 11:04:22AM +0530, Kumar Kartikeya Dwivedi wrote:
+> > > On Sun, 3 Jul 2022 at 10:54, Kumar Kartikeya Dwivedi <memxor@gmail.com> wrote:
+> > > >
+> > > > On Wed, 29 Jun 2022 at 08:53, Alexei Starovoitov
+> > > > <alexei.starovoitov@gmail.com> wrote:
+> > > > >
+> > > > > On Fri, Jun 24, 2022 at 12:56:30AM +0530, Kumar Kartikeya Dwivedi wrote:
+> > > > > > Similar to how we detect mem, size pairs in kfunc, teach verifier to
+> > > > > > treat __ref suffix on argument name to imply that it must be a
+> > > > > > referenced pointer when passed to kfunc. This is required to ensure that
+> > > > > > kfunc that operate on some object only work on acquired pointers and not
+> > > > > > normal PTR_TO_BTF_ID with same type which can be obtained by pointer
+> > > > > > walking. Release functions need not specify such suffix on release
+> > > > > > arguments as they are already expected to receive one referenced
+> > > > > > argument.
+> > > > > >
+> > > > > > Note that we use strict type matching when a __ref suffix is present on
+> > > > > > the argument.
+> > > > > ...
+> > > > > > +             /* Check if argument must be a referenced pointer, args + i has
+> > > > > > +              * been verified to be a pointer (after skipping modifiers).
+> > > > > > +              */
+> > > > > > +             arg_ref = is_kfunc_arg_ref(btf, args + i);
+> > > > > > +             if (is_kfunc && arg_ref && !reg->ref_obj_id) {
+> > > > > > +                     bpf_log(log, "R%d must be referenced\n", regno);
+> > > > > > +                     return -EINVAL;
+> > > > > > +             }
+> > > > > > +
+> > > > >
+> > > > > imo this suffix will be confusing to use.
+> > > > > If I understand the intent the __ref should only be used
+> > > > > in acquire (and other) kfuncs that also do release.
+> > > > > Adding __ref to actual release kfunc will be a nop.
+> > > > > It will be checked, but it's not necessary.
+> > > > >
+> > > > > At the end
+> > > > > +struct nf_conn *bpf_ct_insert_entry(struct nf_conn___init *nfct__ref)
+> > > > > will behave like kptr_xchg with exception that kptr_xchg takes any btf_id
+> > > > > while here it's fixed.
+> > > > >
+> > > > > The code:
+> > > > >  if (rel && reg->ref_obj_id)
+> > > > >         arg_type |= OBJ_RELEASE;
+> > > > > should probably be updated with '|| arg_ref'
+> > > > > to make sure reg->off == 0 ?
+> > > > > That looks like a small bug.
+> > > > >
+> > > >
+> > > > Indeed, I missed that. Thanks for catching it.
+> > > >
+> > > > > But stepping back... why __ref is needed ?
+> > > > > We can add bpf_ct_insert_entry to acq and rel sets and it should work?
+> > > > > I'm assuming you're doing the orthogonal cleanup of resolve_btfid,
+> > > > > so we will have a single kfunc set where bpf_ct_insert_entry will
+> > > > > have both acq and rel flags.
+> > > > > I'm surely missing something.
+> > > >
+> > > > It is needed to prevent the case where someone might do:
+> > > > ct = bpf_xdp_ct_alloc(...);
+> > > > bpf_ct_set_timeout(ct->master, ...);
+> > > >
+> > >
+> > > A better illustration is probably bpf_xdp_ct_lookup and
+> > > bpf_ct_change_timeout, since here the type for ct->master won't match
+> > > with bpf_ct_set_timeout, but the point is the same.
+> >
+> > Sorry, I'm still not following.
+> > Didn't we make pointer walking 'untrusted' so ct->master cannot be
+> > passed into any kfunc?
+> >
 > 
-> With my patch, when descending the tree, the right or left branch is
-> selected uniquely based on the key value (regardless the element
-> state)
+> I don't believe that is the case, it is only true for kptrs loaded
+> from BPF maps (that too those with BPF_LDX, not the ones with
+> kptr_xchg). There we had a chance to do things differently. For normal
+> PTR_TO_BTF_ID obtained from kfuncs/BPF helpers, there is no untrusted
+> flag set on them, nor is it set when walking them.
+> 
+> I also think we discussed switching to this mode, by making many cases
+> untrusted by default, and using annotation to allow cases, making
+> pointers trusted at one level (like args for tracing/lsm progs, but
+> next deref becomes untrusted), but admittedly it may not cover enough
+> ground, and you didn't like it much either, so I stopped pursuing it.
 
-Hmm, but wait, that was exactly the problem I introduced (or at least
-my understanding of it): if subtrees of entirely inactive nodes hide
-(by affecting how we descend the tree) active nodes (that affect the
-overlap decision), we can't actually reach any conclusion.
+Ahh. Now I remember. Thanks for reminding :)
+Could you please summarize this thread and add all of it as a big comment
+in the source code next to __ref handling to explain the motivation
+and an example on when and how this __ref suffix should be used.
+Otherwise somebody, like me, will forget the context soon.
 
-It's fine as long as it's inactive leaves, or single nodes, but not
-more.
-
-Let's say we need to insert element with key 6, as interval start,
-given this tree, where:
-
-- (s) and (e) mark starts and ends
-- (i) and (a) mark inactive and active elements
-
-                 4 (s, i)
-                 /      \
-                /        \
-        2 (s, i)          7 (e, i)
-        /      \          /      \
-       /        \        /        \
-  1 (s, a)  3 (e, a)  5 (s, i)  8 (s, i)
-
-we visit elements with keys 4, 7, 5: we have an inactive start on the
-left (5), an inactive end to the right (7), and we don't know if it
-overlaps, because we couldn't see 1 and 3. Depending on how hard we
-tried to fix bugs we hit in the past, we'll consider that an overlap
-or not.
-
-Without inactive elements, we would have this tree:
-
-1 (s, a)
-     \
-      \
-    3 (e, a)
-
-where we visit elements with keys 1, 3: we find an active start on
-the left, and then the corresponding end, also to the left, so we
-conclude that start element with key 6 doesn't overlap.
-
-> I removed the "turn left" when node is inactive case. There
-> are also no more duplicated elements with the same value.
-
-This simplifies the handling of those cases, we wouldn't need all those
-clauses anymore, but I really think that the existing problem comes from
-the fact we can *not* descend the tree just by selecting key values.
-
--- 
-Stefano
-
+I was thinking of better name than __ref, but couldn't come up with one.
+__ref fits this use case the best.
