@@ -2,37 +2,37 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2EA0C43334
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Jul 2022 15:33:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D323C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Jul 2022 15:35:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234119AbiGFPda (ORCPT
+        id S234292AbiGFPfN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 6 Jul 2022 11:33:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44178 "EHLO
+        Wed, 6 Jul 2022 11:35:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45412 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234140AbiGFPch (ORCPT
+        with ESMTP id S233997AbiGFPe0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 Jul 2022 11:32:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1FD4A29804;
-        Wed,  6 Jul 2022 08:32:17 -0700 (PDT)
+        Wed, 6 Jul 2022 11:34:26 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 505FB2A24C;
+        Wed,  6 Jul 2022 08:33:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 15F8561FF1;
-        Wed,  6 Jul 2022 15:32:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C78CAC341CD;
-        Wed,  6 Jul 2022 15:32:14 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id BB407B81D96;
+        Wed,  6 Jul 2022 15:33:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D61F4C385A5;
+        Wed,  6 Jul 2022 15:33:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1657121536;
+        s=k20201202; t=1657121582;
         bh=GqYSiyEiYN54B9KbL1CA43tpPPB30YDlNdA9ZXdKhCM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=uPiuXQ1OciCptQAm8NurlZ6qSbq6OIbjM7n07vbeq6RAIb0WlmXf+Be8xuwXL5hx/
-         jUUBtf/dJ6LErVGST4VNWuVfaaNecJRDe381ScXi2t0kcWLRi947IRjF0Junckyi4k
-         8Cs542HP9nXu617vNAG8HU8Q62iF7S9zi2p90HEesorfj8ArCJ60nf2WRUyfj/D0Rf
-         NBsp3qTpr3cyBK846wks3WtAT0Kekw+fMFFtDwJHKiCioEcWC4uBht+G/n6cHrkMiY
-         x93nUcs52V5l9ZYwgQbnU1gG3oFZQ9lFE3n3rHmD0spHycZgOva5V65t1phVz8rwB0
-         Ewn8BAo/E1Mzw==
+        b=Dr1S0R8eaYjAjQTP7H2rcEpMqsm3H1CyuMiPgfE1X+hv5IhuE4eNgwQgMh/oc3LFc
+         oNLkJ2rj5YBU/ivazRKqR8oOuILT+EHRhPt8IKzfi1TkrL3DtTX0Z33KO2yceSDTp3
+         x+iH/Fc//tPf7bIIiPwOoj3jnk7F2c2b7AgPw6sS+BysEGcVXK1C7jpu6cuXt5HznG
+         GXDoC6J+jGJBGqy6+zzt7CQBFrafO4XYjxZyt3CcS7SaWZ1pJO70NU7g5eiSQrsy8C
+         bRdHqgacd//cWv7KaJZmHZDe3Pvz97QvjR4JIVxwWTd09+cl7IZzr70sXbi82/+DXc
+         F65+3jCcGNvEg==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Florian Westphal <fw@strlen.de>,
@@ -43,12 +43,12 @@ Cc:     Florian Westphal <fw@strlen.de>,
         edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         bridge@lists.linux-foundation.org, netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.15 07/18] netfilter: br_netfilter: do not skip all hooks with 0 priority
-Date:   Wed,  6 Jul 2022 11:31:42 -0400
-Message-Id: <20220706153153.1598076-7-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.10 03/11] netfilter: br_netfilter: do not skip all hooks with 0 priority
+Date:   Wed,  6 Jul 2022 11:32:48 -0400
+Message-Id: <20220706153256.1598411-3-sashal@kernel.org>
 X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20220706153153.1598076-1-sashal@kernel.org>
-References: <20220706153153.1598076-1-sashal@kernel.org>
+In-Reply-To: <20220706153256.1598411-1-sashal@kernel.org>
+References: <20220706153256.1598411-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
