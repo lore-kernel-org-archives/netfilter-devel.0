@@ -2,157 +2,159 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 261A4CCA482
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Jul 2022 15:38:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD873C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Jul 2022 18:44:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234303AbiGFPiS (ORCPT
+        id S233461AbiGFSom (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 6 Jul 2022 11:38:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57312 "EHLO
+        Wed, 6 Jul 2022 14:44:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56472 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234576AbiGFPhd (ORCPT
+        with ESMTP id S231715AbiGFSok (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 Jul 2022 11:37:33 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 788C52AE17;
-        Wed,  6 Jul 2022 08:33:59 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 144AAB81D98;
-        Wed,  6 Jul 2022 15:33:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48B37C341C8;
-        Wed,  6 Jul 2022 15:33:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1657121636;
-        bh=Yn/jMuAgDhaAo8EvuAzql3ECAH8cMmvlm8r3h/A/msY=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=dF17ee2iAPMSeq2S+to1TeFTSue8EJfvKgIzX0P+8q9rmuvgmZWBwKcTPPLybPH/B
-         FS7/KwpPM/65juPRpsgP40sBHkBU3J+4vf1fTwXYvWCtdmajqsB9gOQoLghQ1buKqn
-         Rjt/rRoE5xv+20/GI8wlm1CbT8BBCpJO6jPCElIqQeuHlRMvGfaFHZA/yO2HBnQw3M
-         z8KaQW0rNnjuL++gs0hjnjbMidKDVeASkP54arDKYGYNliriw0PLSbQVMUEFpn5tBk
-         7+Nk1iV9PBq2UPLCDk+ZKTj7SIEST9yP+ZnwreqQsPMlzk0RB7MvmtU9Zif1KyHBaM
-         FH72xCKU3fHjA==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Florian Westphal <fw@strlen.de>,
-        Radim Hrazdil <rhrazdil@redhat.com>,
+        Wed, 6 Jul 2022 14:44:40 -0400
+Received: from mail-pg1-x532.google.com (mail-pg1-x532.google.com [IPv6:2607:f8b0:4864:20::532])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F40DD10E9;
+        Wed,  6 Jul 2022 11:44:39 -0700 (PDT)
+Received: by mail-pg1-x532.google.com with SMTP id z14so14738892pgh.0;
+        Wed, 06 Jul 2022 11:44:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=QBWnTGtWCIRK/R2Rxz0hgC6/YznGaVDZLzOauaR/k/s=;
+        b=WOD/8yZgRdtFPzBVVcE5rYoZy5KfnhmXEnQS9Et8gKO8Zjs/YhpFh73qtgXUM5Fo0e
+         2nP6Shv/maiRuRPdGqfhf1tQWKbyOxBv13hOOzskoSviImgwzmvoLtGtDuuvj74hZRNY
+         eM3aDa/Pt38iPYHyQVAGXrlW20nwRKnCB6lXDRJuwHeYRXBe+oz1HoLOFs6Zhz00QTkl
+         TQyR0ax+kc526qC40A356K4ZO3axf6B7To/HUu8bgflGITLsDc99asZxEgT1ZV96OTM7
+         pH24yvN/IAaGgjBAg4ArBqwYhX9pUOCzk13RTMvqtAdixZq5sDT8SAAbie3GUHTYSO2P
+         DSOA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=QBWnTGtWCIRK/R2Rxz0hgC6/YznGaVDZLzOauaR/k/s=;
+        b=bhPt+2zUPm5dZvD9nlKorTKn3ux+DgIjdb4WIGuPQyIevoRMkCuIEx8Kag59V0xAxh
+         EROBzM0oKPcvCCz3xATP1ccNMPMn3PrVQ7dFbqgV2k5yD2L9ErdF5LxJt6evbKMmsXbI
+         E4gp7s2D8tgBfSbKik0oKfkyHIv9ewjf1lie2NqISV3ZWsiclZXExrkFIsSr+3LjaIAe
+         RzZilLHvoA9HHzk7GRNad86LfzeiIpHEThtKjgqNd9dTiXw2kNUvu8QRfOKM/poYzeVn
+         2aGZPZwRSet/hT4O0I4RDkPio7W+hgO7VpDaROpscBdY7nLU6ebGllT5cwuelqITdJIc
+         rGyw==
+X-Gm-Message-State: AJIora9BCt4Jj5Kq8LeDgkKhw3C0vx4cyT6sjM227TirkmFZEObbuymZ
+        QLEz3tnbQ2fUvRJneXioyGI=
+X-Google-Smtp-Source: AGRyM1v8v1EviJzZooNw3rpihssTxo2CaorRno8GIJ+dHmIaf7vPw7fxAXRcaU4DCCNya66oFF1IvQ==
+X-Received: by 2002:a65:684a:0:b0:412:78ef:7f87 with SMTP id q10-20020a65684a000000b0041278ef7f87mr7820901pgt.61.1657133079430;
+        Wed, 06 Jul 2022 11:44:39 -0700 (PDT)
+Received: from MacBook-Pro-3.local ([2620:10d:c090:500::2:8597])
+        by smtp.gmail.com with ESMTPSA id a9-20020aa78649000000b0052531985e3esm25240083pfo.22.2022.07.06.11.44.37
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 06 Jul 2022 11:44:38 -0700 (PDT)
+Date:   Wed, 6 Jul 2022 11:44:36 -0700
+From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
+To:     Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Cc:     bpf@vger.kernel.org, Yonghong Song <yhs@fb.com>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>, kadlec@netfilter.org,
-        roopa@nvidia.com, razor@blackwall.org, davem@davemloft.net,
-        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        bridge@lists.linux-foundation.org, netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 3/8] netfilter: br_netfilter: do not skip all hooks with 0 priority
-Date:   Wed,  6 Jul 2022 11:33:45 -0400
-Message-Id: <20220706153351.1598805-3-sashal@kernel.org>
-X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20220706153351.1598805-1-sashal@kernel.org>
-References: <20220706153351.1598805-1-sashal@kernel.org>
+        Florian Westphal <fw@strlen.de>,
+        Jesper Dangaard Brouer <brouer@redhat.com>,
+        Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>,
+        Lorenzo Bianconi <lorenzo@kernel.org>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH bpf-next v5 1/8] bpf: Add support for forcing kfunc args
+ to be referenced
+Message-ID: <20220706184436.mf7oeexxfwswgdqf@MacBook-Pro-3.local>
+References: <20220623192637.3866852-1-memxor@gmail.com>
+ <20220623192637.3866852-2-memxor@gmail.com>
+ <20220629032304.h5ck7tizbfehiwut@macbook-pro-3.dhcp.thefacebook.com>
+ <CAP01T77fsU8u6GP+HXfQQ_gdu+kp3Am1+Ao-mNYULjDazHs38Q@mail.gmail.com>
+ <CAP01T75cVLehQbkE3LLwSG5wVecNz0FH9QZpmzoqs-e8YKpGtg@mail.gmail.com>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAP01T75cVLehQbkE3LLwSG5wVecNz0FH9QZpmzoqs-e8YKpGtg@mail.gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+On Sun, Jul 03, 2022 at 11:04:22AM +0530, Kumar Kartikeya Dwivedi wrote:
+> On Sun, 3 Jul 2022 at 10:54, Kumar Kartikeya Dwivedi <memxor@gmail.com> wrote:
+> >
+> > On Wed, 29 Jun 2022 at 08:53, Alexei Starovoitov
+> > <alexei.starovoitov@gmail.com> wrote:
+> > >
+> > > On Fri, Jun 24, 2022 at 12:56:30AM +0530, Kumar Kartikeya Dwivedi wrote:
+> > > > Similar to how we detect mem, size pairs in kfunc, teach verifier to
+> > > > treat __ref suffix on argument name to imply that it must be a
+> > > > referenced pointer when passed to kfunc. This is required to ensure that
+> > > > kfunc that operate on some object only work on acquired pointers and not
+> > > > normal PTR_TO_BTF_ID with same type which can be obtained by pointer
+> > > > walking. Release functions need not specify such suffix on release
+> > > > arguments as they are already expected to receive one referenced
+> > > > argument.
+> > > >
+> > > > Note that we use strict type matching when a __ref suffix is present on
+> > > > the argument.
+> > > ...
+> > > > +             /* Check if argument must be a referenced pointer, args + i has
+> > > > +              * been verified to be a pointer (after skipping modifiers).
+> > > > +              */
+> > > > +             arg_ref = is_kfunc_arg_ref(btf, args + i);
+> > > > +             if (is_kfunc && arg_ref && !reg->ref_obj_id) {
+> > > > +                     bpf_log(log, "R%d must be referenced\n", regno);
+> > > > +                     return -EINVAL;
+> > > > +             }
+> > > > +
+> > >
+> > > imo this suffix will be confusing to use.
+> > > If I understand the intent the __ref should only be used
+> > > in acquire (and other) kfuncs that also do release.
+> > > Adding __ref to actual release kfunc will be a nop.
+> > > It will be checked, but it's not necessary.
+> > >
+> > > At the end
+> > > +struct nf_conn *bpf_ct_insert_entry(struct nf_conn___init *nfct__ref)
+> > > will behave like kptr_xchg with exception that kptr_xchg takes any btf_id
+> > > while here it's fixed.
+> > >
+> > > The code:
+> > >  if (rel && reg->ref_obj_id)
+> > >         arg_type |= OBJ_RELEASE;
+> > > should probably be updated with '|| arg_ref'
+> > > to make sure reg->off == 0 ?
+> > > That looks like a small bug.
+> > >
+> >
+> > Indeed, I missed that. Thanks for catching it.
+> >
+> > > But stepping back... why __ref is needed ?
+> > > We can add bpf_ct_insert_entry to acq and rel sets and it should work?
+> > > I'm assuming you're doing the orthogonal cleanup of resolve_btfid,
+> > > so we will have a single kfunc set where bpf_ct_insert_entry will
+> > > have both acq and rel flags.
+> > > I'm surely missing something.
+> >
+> > It is needed to prevent the case where someone might do:
+> > ct = bpf_xdp_ct_alloc(...);
+> > bpf_ct_set_timeout(ct->master, ...);
+> >
+> 
+> A better illustration is probably bpf_xdp_ct_lookup and
+> bpf_ct_change_timeout, since here the type for ct->master won't match
+> with bpf_ct_set_timeout, but the point is the same.
 
-[ Upstream commit c2577862eeb0be94f151f2f1fff662b028061b00 ]
+Sorry, I'm still not following.
+Didn't we make pointer walking 'untrusted' so ct->master cannot be
+passed into any kfunc?
 
-When br_netfilter module is loaded, skbs may be diverted to the
-ipv4/ipv6 hooks, just like as if we were routing.
-
-Unfortunately, bridge filter hooks with priority 0 may be skipped
-in this case.
-
-Example:
-1. an nftables bridge ruleset is loaded, with a prerouting
-   hook that has priority 0.
-2. interface is added to the bridge.
-3. no tcp packet is ever seen by the bridge prerouting hook.
-4. flush the ruleset
-5. load the bridge ruleset again.
-6. tcp packets are processed as expected.
-
-After 1) the only registered hook is the bridge prerouting hook, but its
-not called yet because the bridge hasn't been brought up yet.
-
-After 2), hook order is:
-   0 br_nf_pre_routing // br_netfilter internal hook
-   0 chain bridge f prerouting // nftables bridge ruleset
-
-The packet is diverted to br_nf_pre_routing.
-If call-iptables is off, the nftables bridge ruleset is called as expected.
-
-But if its enabled, br_nf_hook_thresh() will skip it because it assumes
-that all 0-priority hooks had been called previously in bridge context.
-
-To avoid this, check for the br_nf_pre_routing hook itself, we need to
-resume directly after it, even if this hook has a priority of 0.
-
-Unfortunately, this still results in different packet flow.
-With this fix, the eval order after in 3) is:
-1. br_nf_pre_routing
-2. ip(6)tables (if enabled)
-3. nftables bridge
-
-but after 5 its the much saner:
-1. nftables bridge
-2. br_nf_pre_routing
-3. ip(6)tables (if enabled)
-
-Unfortunately I don't see a solution here:
-It would be possible to move br_nf_pre_routing to a higher priority
-so that it will be called later in the pipeline, but this also impacts
-ebtables evaluation order, and would still result in this very ordering
-problem for all nftables-bridge hooks with the same priority as the
-br_nf_pre_routing one.
-
-Searching back through the git history I don't think this has
-ever behaved in any other way, hence, no fixes-tag.
-
-Reported-by: Radim Hrazdil <rhrazdil@redhat.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- net/bridge/br_netfilter_hooks.c | 21 ++++++++++++++++++---
- 1 file changed, 18 insertions(+), 3 deletions(-)
-
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index 7e50bd9f3611..ee7a03ff89f3 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -998,9 +998,24 @@ int br_nf_hook_thresh(unsigned int hook, struct net *net,
- 		return okfn(net, sk, skb);
- 
- 	ops = nf_hook_entries_get_hook_ops(e);
--	for (i = 0; i < e->num_hook_entries &&
--	      ops[i]->priority <= NF_BR_PRI_BRNF; i++)
--		;
-+	for (i = 0; i < e->num_hook_entries; i++) {
-+		/* These hooks have already been called */
-+		if (ops[i]->priority < NF_BR_PRI_BRNF)
-+			continue;
-+
-+		/* These hooks have not been called yet, run them. */
-+		if (ops[i]->priority > NF_BR_PRI_BRNF)
-+			break;
-+
-+		/* take a closer look at NF_BR_PRI_BRNF. */
-+		if (ops[i]->hook == br_nf_pre_routing) {
-+			/* This hook diverted the skb to this function,
-+			 * hooks after this have not been run yet.
-+			 */
-+			i++;
-+			break;
-+		}
-+	}
- 
- 	nf_hook_state_init(&state, hook, NFPROTO_BRIDGE, indev, outdev,
- 			   sk, net, okfn);
--- 
-2.35.1
-
+> > Or just obtain PTR_TO_BTF_ID by pointer walking and try to pass it in
+> > to bpf_ct_set_timeout.
+> >
+> > __ref allows an argument on a non-release kfunc to have checks like a
+> > release argument, i.e. refcounted, reg->off == 0 (var_off is already
+> > checked to be 0), so use the original pointer that was obtained from
+> > an acquire kfunc. As you noted, it isn't strictly needed on release
+> > kfunc (like bpf_ct_insert_entry) because the same checks happen for it
+> > anyway. But both timeout and status helpers should use it if they
+> > "operate" on the acquired ct (from alloc, insert, or lookup).
