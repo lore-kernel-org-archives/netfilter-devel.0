@@ -2,84 +2,56 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32994C43334
-	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Jul 2022 10:17:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AB5CC433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Jul 2022 13:18:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234788AbiGGKRj (ORCPT
+        id S235500AbiGGNSM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 7 Jul 2022 06:17:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44688 "EHLO
+        Thu, 7 Jul 2022 09:18:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40984 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235222AbiGGKRX (ORCPT
+        with ESMTP id S235185AbiGGNSL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 7 Jul 2022 06:17:23 -0400
-Received: from wp530.webpack.hosteurope.de (wp530.webpack.hosteurope.de [IPv6:2a01:488:42:1000:50ed:8234::])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 55D2450730;
-        Thu,  7 Jul 2022 03:17:22 -0700 (PDT)
-Received: from [2a02:8108:963f:de38:eca4:7d19:f9a2:22c5]; authenticated
-        by wp530.webpack.hosteurope.de running ExIM with esmtpsa (TLS1.3:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        id 1o9OZU-0008RW-7S; Thu, 07 Jul 2022 12:17:20 +0200
-Message-ID: <a93e5967-026a-186d-2bf0-5628631b9e28@leemhuis.info>
-Date:   Thu, 7 Jul 2022 12:17:16 +0200
+        Thu, 7 Jul 2022 09:18:11 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 5EF0D2FFD7
+        for <netfilter-devel@vger.kernel.org>; Thu,  7 Jul 2022 06:18:08 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] rule: crash when uncollapsing command with unexisting table or set
+Date:   Thu,  7 Jul 2022 15:18:04 +0200
+Message-Id: <20220707131804.1382046-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.10.0
-Content-Language: en-US
-To:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Cc:     regressions@lists.linux.dev, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Peter Zijlstra <peterz@infradead.org>,
-        Kajetan Puchalski <kajetan.puchalski@arm.com>,
-        Will Deacon <will@kernel.org>
-References: <20220706124007.GB7996@breakpoint.cc>
- <20220706145004.22355-1-fw@strlen.de>
-From:   Thorsten Leemhuis <regressions@leemhuis.info>
-Subject: Re: [PATCH nf v3] netfilter: conntrack: fix crash due to confirmed
- bit load reordering
-In-Reply-To: <20220706145004.22355-1-fw@strlen.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-bounce-key: webpack.hosteurope.de;regressions@leemhuis.info;1657189042;f22e09e4;
-X-HE-SMSGID: 1o9OZU-0008RW-7S
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 06.07.22 16:50, Florian Westphal wrote:
-> Kajetan Puchalski reports crash on ARM, with backtrace of:
-> 
-> [...]
-> Cc: Peter Zijlstra <peterz@infradead.org>
-> Reported-by: Kajetan Puchalski <kajetan.puchalski@arm.com>
-> Diagnosed-by: Will Deacon <will@kernel.org>
-> Fixes: 719774377622 ("netfilter: conntrack: convert to refcount_t api")
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+If ruleset update refers to an unexisting table or set, then
+cmd->elem.set is NULL.
 
-If you need to respin this patch for one reason or another, could you do
-me a favor and add proper 'Link:' tags pointing to all reports about
-this issue? e.g. like this:
+Fixes: 498a5f0c219d ("rule: collapse set element commands")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/rule.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
- Link:
-https://lore.kernel.org/all/Yr7WTfd6AVTQkLjI@e126311.manchester.arm.com/
+diff --git a/src/rule.c b/src/rule.c
+index 79d4b77756e4..9c9eaec0c77b 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1453,7 +1453,9 @@ void nft_cmd_uncollapse(struct list_head *cmds)
+ 		}
+ 
+ 		list_for_each_entry_safe(collapse_cmd, collapse_cmd_next, &cmd->collapse_list, list) {
+-			collapse_cmd->elem.set = set_get(cmd->elem.set);
++			if (cmd->elem.set)
++				collapse_cmd->elem.set = set_get(cmd->elem.set);
++
+ 			list_add(&collapse_cmd->list, &cmd->list);
+ 		}
+ 	}
+-- 
+2.30.2
 
-These tags are considered important by Linus[1] and others, as they
-allow anyone to look into the backstory weeks or years from now. That is
-why they should be placed in cases like this, as
-Documentation/process/submitting-patches.rst and
-Documentation/process/5.Posting.rst explain in more detail. I care
-personally, because these tags make my regression tracking efforts a
-whole lot easier, as they allow my tracking bot 'regzbot' to
-automatically connect reports with patches posted or committed to fix
-tracked regressions.
-
-[1] see for example:
-https://lore.kernel.org/all/CAHk-=wjMmSZzMJ3Xnskdg4+GGz=5p5p+GSYyFBTh0f-DgvdBWg@mail.gmail.com/
-https://lore.kernel.org/all/CAHk-=wgs38ZrfPvy=nOwVkVzjpM3VFU1zobP37Fwd_h9iAD5JQ@mail.gmail.com/
-https://lore.kernel.org/all/CAHk-=wjxzafG-=J8oT30s7upn4RhBs6TX-uVFZ5rME+L5_DoJA@mail.gmail.com/
-
-Ciao, Thorsten (wearing his 'the Linux kernel's regression tracker' hat)
-
-P.S.: As the Linux kernel's regression tracker I deal with a lot of
-reports and sometimes miss something important when writing mails like
-this. If that's the case here, don't hesitate to tell me in a public
-reply, it's in everyone's interest to set the public record straight.
