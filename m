@@ -2,151 +2,186 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7901CCA483
-	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Jul 2022 14:03:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A92BC43334
+	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Jul 2022 16:11:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235731AbiGGODK (ORCPT
+        id S235823AbiGGQLW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 7 Jul 2022 10:03:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59556 "EHLO
+        Thu, 7 Jul 2022 12:11:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46654 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235106AbiGGODC (ORCPT
+        with ESMTP id S235873AbiGGQLC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 7 Jul 2022 10:03:02 -0400
-Received: from mail-pf1-x42d.google.com (mail-pf1-x42d.google.com [IPv6:2607:f8b0:4864:20::42d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1DB9A2408D;
-        Thu,  7 Jul 2022 07:03:01 -0700 (PDT)
-Received: by mail-pf1-x42d.google.com with SMTP id g126so5153510pfb.3;
-        Thu, 07 Jul 2022 07:03:01 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=sender:date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=afbiyF16Fd4Ewaaf3EKKCpvpR7aHAsNAQp7K3TuQXs4=;
-        b=EzpeppBfdoHkOWruUNAYNHzOi8S5lBuVkWR/uarc/O7MDVJ2qM1NUNdy3hxzZeKinw
-         1f6tPe15AftcBiSP1Sugt5jiQpAKlLcyz+gPyHgHTvK6IkiuSg6SYHkmzqBCpGaHkm3K
-         GirawtqITR+EFkG0pF8QxPm0bxzk97EH7JYJxQXFRi4d1kRfsZVOuxKRapjByLByJ3DF
-         qAVqAZfaAfJT+F8T/W2rPtPmXy6/uaYwejGaDWQ5Frl3XCXwsQlqWF67lU3BIXdseGBS
-         CTJ5pH+oR76s++4uNTCxHCZwHNyWF4xdxY3ay2k5fQlKGRbstnEbIjnAVDZkl7wMQgN9
-         oSpA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:sender:date:from:to:cc:subject:message-id
-         :references:mime-version:content-disposition:in-reply-to;
-        bh=afbiyF16Fd4Ewaaf3EKKCpvpR7aHAsNAQp7K3TuQXs4=;
-        b=z/OhwksyOp469scWVs4PaYhNC01pXiyHvOwOAPTqy+pvH2sZnN6XRZ28vSAujPutvg
-         AQGgZhLZ6b3oc+7LSlfFt5U0/C+XJmECqeCtvLa4OnsKYoIxPft0iiHX4dtUOUVVNUB7
-         o72nh0ELJf3U9b+yyqEedzG2zEcK016yJwvgjxBOYlp6WuNXVcI+F2+gmAIiXH9GEXmI
-         e0vcR+88sWEl5sqYG3UvOQtrtLFGVXKrKxZQO0pdrK7dgKYQvLkQtqOvnIUOjXNMCnTL
-         ZOSG6KMdU1kw0QUexsBYdIFk/iqmwXqSO9SNDDktXRZnojoCdRBSKzl/F4iaHlhna0VS
-         T/iA==
-X-Gm-Message-State: AJIora+ocuIwxhLJzHhnnSu+WxjiLc3tnw/dFIKUzzDFT6j9ccAbwr5i
-        VaOjjRnKKhvxqeBmGOblA/WrVTwMxpHjaNmP
-X-Google-Smtp-Source: AGRyM1uGEg1zRLKU3mt/8yK/HfEqKFBdv1eoQpzxhqHLW6DjIp1gLh6JEsU/RWRdBfoHFypH/TfaNQ==
-X-Received: by 2002:a17:90b:4c8f:b0:1ec:cdd0:41b7 with SMTP id my15-20020a17090b4c8f00b001eccdd041b7mr5420238pjb.119.1657202580508;
-        Thu, 07 Jul 2022 07:03:00 -0700 (PDT)
-Received: from server.roeck-us.net ([2600:1700:e321:62f0:329c:23ff:fee3:9d7c])
-        by smtp.gmail.com with ESMTPSA id k127-20020a632485000000b004148cbdd4e5sm1215293pgk.57.2022.07.07.07.02.58
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 07 Jul 2022 07:02:59 -0700 (PDT)
-Sender: Guenter Roeck <groeck7@gmail.com>
-Date:   Thu, 7 Jul 2022 07:02:58 -0700
-From:   Guenter Roeck <linux@roeck-us.net>
-To:     Greg KH <gregkh@linuxfoundation.org>
-Cc:     kernel test robot <lkp@intel.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        virtualization@lists.linux-foundation.org,
-        usbb2k-api-dev@nongnu.org, tipc-discussion@lists.sourceforge.net,
-        target-devel@vger.kernel.org, sound-open-firmware@alsa-project.org,
-        samba-technical@lists.samba.org, rds-devel@oss.oracle.com,
-        patches@opensource.cirrus.com, osmocom-net-gprs@lists.osmocom.org,
-        openipmi-developer@lists.sourceforge.net, nvdimm@lists.linux.dev,
-        ntb@lists.linux.dev, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org, mjpeg-users@lists.sourceforge.net,
-        megaraidlinux.pdl@broadcom.com, linuxppc-dev@lists.ozlabs.org,
-        linux1394-devel@lists.sourceforge.net, linux-x25@vger.kernel.org,
-        linux-wpan@vger.kernel.org, linux-wireless@vger.kernel.org,
-        linux-watchdog@vger.kernel.org, linux-usb@vger.kernel.org,
-        linux-unionfs@vger.kernel.org, linux-tegra@vger.kernel.org,
-        linux-stm32@st-md-mailman.stormreply.com,
-        linux-staging@lists.linux.dev, linux-serial@vger.kernel.org,
-        linux-sctp@vger.kernel.org, linux-scsi@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org,
-        linux-rockchip@lists.infradead.org,
-        linux-renesas-soc@vger.kernel.org, linux-rdma@vger.kernel.org,
-        linux-raid@vger.kernel.org, linux-pm@vger.kernel.org,
-        linux-phy@lists.infradead.org, linux-perf-users@vger.kernel.org,
-        linux-pci@vger.kernel.org, linux-parport@lists.infradead.org,
-        linux-parisc@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-nfc@lists.01.org, linux-mtd@lists.infradead.org,
-        linux-mmc@vger.kernel.org, linux-mm@kvack.org,
-        linux-mediatek@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-leds@vger.kernel.org, linux-integrity@vger.kernel.org,
-        linux-input@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-ide@vger.kernel.org, linux-hwmon@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-fpga@vger.kernel.org,
-        linux-fbdev@vger.kernel.org, linux-ext4@vger.kernel.org,
-        linux-efi@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-cxl@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-clk@vger.kernel.org, linux-cifs@vger.kernel.org,
-        linux-btrfs@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-        linux-block@vger.kernel.org, linux-bcache@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-amlogic@lists.infradead.org, linaro-mm-sig@lists.linaro.org,
-        legousb-devel@lists.sourceforge.net, kvm@vger.kernel.org,
-        keyrings@vger.kernel.org, isdn4linux@listserv.isdn4linux.de,
-        iommu@lists.linux.dev, iommu@lists.linux-foundation.org,
-        intel-wired-lan@lists.osuosl.org, greybus-dev@lists.linaro.org,
-        dri-devel@lists.freedesktop.org, dm-devel@redhat.com,
-        devicetree@vger.kernel.org, dev@openvswitch.org,
-        dccp@vger.kernel.org, damon@lists.linux.dev,
-        coreteam@netfilter.org, cgroups@vger.kernel.org,
-        ceph-devel@vger.kernel.org, ath11k@lists.infradead.org,
-        apparmor@lists.ubuntu.com, amd-gfx@lists.freedesktop.org,
-        alsa-devel@alsa-project.org,
-        accessrunner-general@lists.sourceforge.net
-Subject: Re: [linux-next:master] BUILD REGRESSION
- 088b9c375534d905a4d337c78db3b3bfbb52c4a0
-Message-ID: <20220707140258.GA3492673@roeck-us.net>
-References: <62c683a2.g1VSVt6BrQC6ZzOz%lkp@intel.com>
- <YsaUgfPbOg7WuBuB@kroah.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YsaUgfPbOg7WuBuB@kroah.com>
+        Thu, 7 Jul 2022 12:11:02 -0400
+Received: from wood.hillside.co.uk (wood.hillside.co.uk [IPv6:2a00:1098:82:11::1:1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56ACF599F7
+        for <netfilter-devel@vger.kernel.org>; Thu,  7 Jul 2022 09:09:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=hillside.co.uk; s=wood; h=To:Message-Id:Subject:Date:Mime-Version:
+        Content-Type:From:Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
+        List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=913nZaq2hmZHeuoY08xie84mXLa0JyEF+kNaKWJhzxE=; b=eILdhOSQUp8X5/A4LVqthF984D
+        YHu8HB61cnrfUNZoCJp5Nn401TVksnmrqSgZLoW0DqqJFlBHjLWMcp+Xxd6dfJnSjtFVeDAH8oEuU
+        zyQZ8AvgKORm9XAlvRtoXddsPCXWqlReEtBP8W47QL+3O7xGWCo6IFHdvLzF3FJJK+D8ch8Evy5m/
+        hHH9oj425oM0j0dC+zbS8Q5S05x+4jU/F6Nx6hT4GcDmCQKbuy3kEOUsSSKsKpUJ1lrAHYJWHlWsk
+        ZqnPVo8ithGCwK58/2AmCgp61DytPFIl+lYUj+s1znGdg48gWa1RyS3NJzcxSVibb/WiRuQYnW16G
+        /qImt5aQ==;
+Received: from craggy.hillside.co.uk ([81.138.86.234] helo=smtpclient.apple)
+        by wood.hillside.co.uk with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <pc@hillside.co.uk>)
+        id 1o9U4O-008Pk2-D9; Thu, 07 Jul 2022 17:09:35 +0100
+From:   Peter Collinson <pc@hillside.co.uk>
+Content-Type: multipart/mixed;
+        boundary="Apple-Mail=_8F3CDE83-46C2-4E7C-B26F-40C7583C3D10"
+Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3696.100.31\))
+Date:   Thu, 7 Jul 2022 17:09:34 +0100
+Subject: [PATCH] Extends py/nftables.py
+Message-Id: <24382147-4BE6-48D1-845C-C8DB85253CE4@hillside.co.uk>
+To:     netfilter-devel@vger.kernel.org
+X-Mailer: Apple Mail (2.3696.100.31)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Jul 07, 2022 at 10:08:33AM +0200, Greg KH wrote:
 
-[ ... ]
-> > 
-> > Unverified Error/Warning (likely false positive, please contact us if interested):
-> > 
-> > arch/x86/events/core.c:2114 init_hw_perf_events() warn: missing error code 'err'
-> > drivers/android/binder.c:1481:19-23: ERROR: from is NULL but dereferenced.
-> > drivers/android/binder.c:2920:29-33: ERROR: target_thread is NULL but dereferenced.
-> > drivers/android/binder.c:353:25-35: ERROR: node -> proc is NULL but dereferenced.
-> > drivers/android/binder.c:4888:16-20: ERROR: t is NULL but dereferenced.
-> > drivers/base/regmap/regmap.c:1996:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
-> > drivers/char/random.c:869:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
-> > drivers/firmware/arm_scmi/clock.c:394:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
-> > drivers/firmware/arm_scmi/powercap.c:376:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
-> > drivers/gpu/drm/amd/amdgpu/../pm/powerplay/hwmgr/vega10_powertune.c:1214:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
-> > drivers/gpu/drm/amd/display/dc/os_types.h: drm/drm_print.h is included more than once.
-> > drivers/gpu/drm/bridge/ite-it66121.c:1398:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
-> > drivers/greybus/operation.c:617:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
-> 
-> <snip>
-> 
-> When the compiler crashes, why are you blaming all of these different
-> mailing lists?  Perhaps you need to fix your compiler :)
-> 
+--Apple-Mail=_8F3CDE83-46C2-4E7C-B26F-40C7583C3D10
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset=us-ascii
 
-To be fair, it says above "likely false positive, please contact us
-if interested". Also, the 32-bit build errors _are_ real, and the NULL
-dereferences in the binder driver are at the very least suspicious.
+Pablo Neira Ayuso has asked me to send this patch to this list. It =
+closes=20
+https://bugzilla.netfilter.org/show_bug.cgi?id=3D1591.
 
-Guenter
+I was not sure if the output from git format-patch should be emailed =
+directly, so apologies if an attachment is not what is expected.
+
+
+--Apple-Mail=_8F3CDE83-46C2-4E7C-B26F-40C7583C3D10
+Content-Disposition: attachment;
+	filename=0001-Extends-py-nftables.py.patch
+Content-Type: application/octet-stream;
+	x-unix-mode=0644;
+	name="0001-Extends-py-nftables.py.patch"
+Content-Transfer-Encoding: quoted-printable
+
+=46rom=208aa11419725b553cc5fdae0a9829c4b65d2cc246=20Mon=20Sep=2017=20=
+00:00:00=202001=0AFrom:=20Peter=20Collinson=20=
+<11645080+pcollinson@users.noreply.github.com>=0ADate:=20Thu,=207=20Jul=20=
+2022=2014:56:33=20+0100=0ASubject:=20[PATCH]=20Extends=20py/nftables.py=20=
+Allows=20py/nftables.py=20to=20support=20full=0A=20mapping=20to=20the=20=
+libnftables=20API.=20The=20changes=20allow=20python=20code=20to=20talk=20=
+in=20text=0A=20to=20the=20kernel=20rather=20than=20just=20using=20json.=20=
+The=20Python=20API=20can=20now=20also=20use=0A=20dryruns=20to=20test=20=
+changes.=0A=0AFunctions=20added=20are:=0A=0Aadd_include_path(filename)=0A=
+clear_include_paths()=0Acmd_from_file(filename)=0Aget_dry_run()=0A=
+set_dry_run(onoff)=0A=0ACloses:=20=
+https://bugzilla.netfilter.org/show_bug.cgi?id=3D1591=0ASigned-off-by:=20=
+Peter=20Collinson=20<pc@hillside.co.uk>=0A---=0A=20py/nftables.py=20|=20=
+92=20+++++++++++++++++++++++++++++++++++++++++++++++++-=0A=201=20file=20=
+changed,=2091=20insertions(+),=201=20deletion(-)=0A=0Adiff=20--git=20=
+a/py/nftables.py=20b/py/nftables.py=0Aindex=202a0a1e89..bb9d49d4=20=
+100644=0A---=20a/py/nftables.py=0A+++=20b/py/nftables.py=0A@@=20-13,13=20=
++13,21=20@@=0A=20#=20You=20should=20have=20received=20a=20copy=20of=20=
+the=20GNU=20General=20Public=20License=0A=20#=20along=20with=20this=20=
+program;=20if=20not,=20write=20to=20the=20Free=20Software=0A=20#=20=
+Foundation,=20Inc.,=2059=20Temple=20Place=20-=20Suite=20330,=20Boston,=20=
+MA=2002111-1307,=20USA.=0A+#=0A+#=20Extended=20to=20add=0A+#=20=
+add_include_path(self,=20filename)=0A+#=20clear_include_paths(self)=0A+#=20=
+cmd_from_file(self,=20filename)=0A+#=20get_dry_run(self)=0A+#=20=
+set_dry_run(self,=20onoff)=0A+#=20Peter=20Collinson=20March=202022=0A=20=0A=
+=20import=20json=0A=20from=20ctypes=20import=20*=0A=20import=20sys=0A=20=
+import=20os=0A=20=0A-NFTABLES_VERSION=20=3D=20"0.1"=0A+NFTABLES_VERSION=20=
+=3D=20"0.2"=0A=20=0A=20class=20SchemaValidator:=0A=20=20=20=20=20=
+"""Libnftables=20JSON=20validator=20using=20jsonschema"""=0A@@=20-116,6=20=
++124,24=20@@=20class=20Nftables:=0A=20=20=20=20=20=20=20=20=20=
+self.nft_run_cmd_from_buffer.restype=20=3D=20c_int=0A=20=20=20=20=20=20=20=
+=20=20self.nft_run_cmd_from_buffer.argtypes=20=3D=20[c_void_p,=20=
+c_char_p]=0A=20=0A+=20=20=20=20=20=20=20=20=
+self.nft_run_cmd_from_filename=20=3D=20lib.nft_run_cmd_from_filename=0A+=20=
+=20=20=20=20=20=20=20self.nft_run_cmd_from_filename.restype=20=3D=20=
+c_int=0A+=20=20=20=20=20=20=20=20self.nft_run_cmd_from_filename.argtypes=20=
+=3D=20[c_void_p,=20c_char_p]=0A+=0A+=20=20=20=20=20=20=20=20=
+self.nft_ctx_add_include_path=20=3D=20lib.nft_ctx_add_include_path=0A+=20=
+=20=20=20=20=20=20=20self.nft_ctx_add_include_path.restype=20=3D=20c_int=0A=
++=20=20=20=20=20=20=20=20self.nft_ctx_add_include_path.argtypes=20=3D=20=
+[c_void_p,=20c_char_p]=0A+=0A+=20=20=20=20=20=20=20=20=
+self.nft_ctx_clear_include_paths=20=3D=20lib.nft_ctx_clear_include_paths=0A=
++=20=20=20=20=20=20=20=20self.nft_ctx_clear_include_paths.argtypes=20=3D=20=
+[c_void_p]=0A+=0A+=20=20=20=20=20=20=20=20self.nft_ctx_get_dry_run=20=3D=20=
+lib.nft_ctx_get_dry_run=0A+=20=20=20=20=20=20=20=20=
+self.nft_ctx_get_dry_run.restype=20=3D=20c_bool=0A+=20=20=20=20=20=20=20=20=
+self.nft_ctx_get_dry_run.argtypes=20=3D=20[c_void_p]=0A+=0A+=20=20=20=20=20=
+=20=20=20self.nft_ctx_set_dry_run=20=3D=20lib.nft_ctx_set_dry_run=0A+=20=20=
+=20=20=20=20=20=20self.nft_ctx_set_dry_run.argtypes=20=3D=20[c_void_p,=20=
+c_bool]=0A+=0A=20=20=20=20=20=20=20=20=20self.nft_ctx_free=20=3D=20=
+lib.nft_ctx_free=0A=20=20=20=20=20=20=20=20=20lib.nft_ctx_free.argtypes=20=
+=3D=20[c_void_p]=0A=20=0A@@=20-446,3=20+472,67=20@@=20class=20Nftables:=0A=
+=20=0A=20=20=20=20=20=20=20=20=20self.validator.validate(json_root)=0A=20=
+=20=20=20=20=20=20=20=20return=20True=0A+=0A+=20=20=20=20def=20=
+cmd_from_file(self,=20filename):=0A+=20=20=20=20=20=20=20=20"""Run=20a=20=
+nftables=20command=20set=20from=20a=20file=0A+=0A+=20=20=20=20=20=20=20=20=
+filename=20can=20be=20a=20str=20or=20a=20Path=0A+=0A+=20=20=20=20=20=20=20=
+=20Returns=20a=20tuple=20(rc,=20output,=20error):=0A+=20=20=20=20=20=20=20=
+=20rc=20=20=20=20=20--=20return=20code=20as=20returned=20by=20=
+nft_run_cmd_from_buffer()=20function=0A+=20=20=20=20=20=20=20=20output=20=
+--=20a=20string=20containing=20output=20written=20to=20stdout=0A+=20=20=20=
+=20=20=20=20=20error=20=20--=20a=20string=20containing=20output=20=
+written=20to=20stderr=0A+=20=20=20=20=20=20=20=20"""=0A+=0A+=20=20=20=20=20=
+=20=20=20filename_is_unicode=20=3D=20False=0A+=20=20=20=20=20=20=20=20if=20=
+not=20isinstance(filename,=20bytes):=0A+=20=20=20=20=20=20=20=20=20=20=20=
+=20filename_is_unicode=20=3D=20True=0A+=20=20=20=20=20=20=20=20=20=20=20=20=
+#=20allow=20filename=20to=20be=20a=20Path=0A+=20=20=20=20=20=20=20=20=20=20=
+=20=20filename=20=3D=20str(filename)=0A+=20=20=20=20=20=20=20=20=20=20=20=
+=20filename=3D=20filename.encode("utf-8")=0A+=20=20=20=20=20=20=20=20rc=20=
+=3D=20self.nft_run_cmd_from_filename(self.__ctx,=20filename)=0A+=20=20=20=
+=20=20=20=20=20output=20=3D=20self.nft_ctx_get_output_buffer(self.__ctx)=0A=
++=20=20=20=20=20=20=20=20error=20=3D=20=
+self.nft_ctx_get_error_buffer(self.__ctx)=0A+=20=20=20=20=20=20=20=20if=20=
+filename_is_unicode:=0A+=20=20=20=20=20=20=20=20=20=20=20=20output=20=3D=20=
+output.decode("utf-8")=0A+=20=20=20=20=20=20=20=20=20=20=20=20error=20=3D=20=
+error.decode("utf-8")=0A+=20=20=20=20=20=20=20=20return=20(rc,=20output,=20=
+error)=0A+=0A+=20=20=20=20def=20add_include_path(self,=20filename):=0A+=20=
+=20=20=20=20=20=20=20"""Add=20a=20path=20to=20the=20include=20file=20=
+list=0A+=20=20=20=20=20=20=20=20The=20default=20list=20includes=20/etc=0A=
++=0A+=20=20=20=20=20=20=20=20Returns=20True=20on=20success=0A+=20=20=20=20=
+=20=20=20=20False=20if=20memory=20allocation=20fails=0A+=20=20=20=20=20=20=
+=20=20"""=0A+=0A+=20=20=20=20=20=20=20=20if=20not=20isinstance(filename,=20=
+bytes):=0A+=20=20=20=20=20=20=20=20=20=20=20=20#=20allow=20filename=20to=20=
+be=20a=20Path=0A+=20=20=20=20=20=20=20=20=20=20=20=20filename=20=3D=20=
+str(filename)=0A+=20=20=20=20=20=20=20=20=20=20=20=20filename=3D=20=
+filename.encode("utf-8")=0A+=20=20=20=20=20=20=20=20rc=20=3D=20=
+self.nft_ctx_add_include_path(self.__ctx,=20filename)=0A+=20=20=20=20=20=20=
+=20=20return=20rc=20=3D=3D=200=0A+=0A+=20=20=20=20def=20=
+clear_include_paths(self):=0A+=20=20=20=20=20=20=20=20"""Clear=20include=20=
+path=20list=0A+=0A+=20=20=20=20=20=20=20=20Will=20also=20remove=20/etc=0A=
++=20=20=20=20=20=20=20=20"""=0A+=0A+=20=20=20=20=20=20=20=20=
+self.nft_ctx_clear_include_paths(self.__ctx)=0A+=0A+=20=20=20=20def=20=
+get_dry_run(self):=0A+=20=20=20=20=20=20=20=20"""Get=20dry=20run=20state=0A=
++=0A+=20=20=20=20=20=20=20=20Returns=20True=20if=20set,=20False=20=
+otherwise=0A+=20=20=20=20=20=20=20=20"""=0A+=0A+=20=20=20=20=20=20=20=20=
+return=20self.nft_ctx_get_dry_run(self.__ctx)=0A+=0A+=20=20=20=20def=20=
+set_dry_run(self,=20onoff):=0A+=20=20=20=20=20=20=20=20"""=20Set=20dry=20=
+run=20state=0A+=0A+=20=20=20=20=20=20=20=20Called=20with=20True/False=0A=
++=20=20=20=20=20=20=20=20"""=0A+=0A+=20=20=20=20=20=20=20=20=
+self.nft_ctx_set_dry_run(self.__ctx,=20onoff)=0A--=20=0A2.30.2=0A=0A=
+
+--Apple-Mail=_8F3CDE83-46C2-4E7C-B26F-40C7583C3D10
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset=us-ascii
+
+
+
+
+
+
+Regards
+--------------------------------------------------
+Peter Collinson
+
+
+--Apple-Mail=_8F3CDE83-46C2-4E7C-B26F-40C7583C3D10--
