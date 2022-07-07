@@ -2,186 +2,416 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A92BC43334
-	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Jul 2022 16:11:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0853C43334
+	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Jul 2022 16:45:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235823AbiGGQLW (ORCPT
+        id S236032AbiGGQpA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 7 Jul 2022 12:11:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46654 "EHLO
+        Thu, 7 Jul 2022 12:45:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54992 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235873AbiGGQLC (ORCPT
+        with ESMTP id S235817AbiGGQo7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 7 Jul 2022 12:11:02 -0400
-Received: from wood.hillside.co.uk (wood.hillside.co.uk [IPv6:2a00:1098:82:11::1:1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56ACF599F7
-        for <netfilter-devel@vger.kernel.org>; Thu,  7 Jul 2022 09:09:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=hillside.co.uk; s=wood; h=To:Message-Id:Subject:Date:Mime-Version:
-        Content-Type:From:Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
-        List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=913nZaq2hmZHeuoY08xie84mXLa0JyEF+kNaKWJhzxE=; b=eILdhOSQUp8X5/A4LVqthF984D
-        YHu8HB61cnrfUNZoCJp5Nn401TVksnmrqSgZLoW0DqqJFlBHjLWMcp+Xxd6dfJnSjtFVeDAH8oEuU
-        zyQZ8AvgKORm9XAlvRtoXddsPCXWqlReEtBP8W47QL+3O7xGWCo6IFHdvLzF3FJJK+D8ch8Evy5m/
-        hHH9oj425oM0j0dC+zbS8Q5S05x+4jU/F6Nx6hT4GcDmCQKbuy3kEOUsSSKsKpUJ1lrAHYJWHlWsk
-        ZqnPVo8ithGCwK58/2AmCgp61DytPFIl+lYUj+s1znGdg48gWa1RyS3NJzcxSVibb/WiRuQYnW16G
-        /qImt5aQ==;
-Received: from craggy.hillside.co.uk ([81.138.86.234] helo=smtpclient.apple)
-        by wood.hillside.co.uk with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <pc@hillside.co.uk>)
-        id 1o9U4O-008Pk2-D9; Thu, 07 Jul 2022 17:09:35 +0100
-From:   Peter Collinson <pc@hillside.co.uk>
-Content-Type: multipart/mixed;
-        boundary="Apple-Mail=_8F3CDE83-46C2-4E7C-B26F-40C7583C3D10"
-Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3696.100.31\))
-Date:   Thu, 7 Jul 2022 17:09:34 +0100
-Subject: [PATCH] Extends py/nftables.py
-Message-Id: <24382147-4BE6-48D1-845C-C8DB85253CE4@hillside.co.uk>
-To:     netfilter-devel@vger.kernel.org
-X-Mailer: Apple Mail (2.3696.100.31)
+        Thu, 7 Jul 2022 12:44:59 -0400
+Received: from smtp-42af.mail.infomaniak.ch (smtp-42af.mail.infomaniak.ch [IPv6:2001:1600:3:17::42af])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2532237D2
+        for <netfilter-devel@vger.kernel.org>; Thu,  7 Jul 2022 09:44:56 -0700 (PDT)
+Received: from smtp-2-0001.mail.infomaniak.ch (unknown [10.5.36.108])
+        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4Lf2MB5PyMzMqQbd;
+        Thu,  7 Jul 2022 18:44:54 +0200 (CEST)
+Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
+        by smtp-2-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4Lf2MB1W9Rzlnbvn;
+        Thu,  7 Jul 2022 18:44:53 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
+        s=20191114; t=1657212294;
+        bh=JCk+EbedW/A6cylVE1Bzfvh+i87kz8TchYDa48/R63A=;
+        h=Date:To:Cc:References:From:Subject:In-Reply-To:From;
+        b=G3w0Zw62MR8ebUrcWZ6pHCHPL3980kGo8DlEr94kRWI4WK3YFFNSfOU08/xCsPyLz
+         a70geI8yE20ycOZADmiRcZSt4UpuW67XM6mtXf4ka8c/stk6O/m+5LYlT09D1mOsRB
+         pl8O45fVaunhKF28cvmFYU9Xt5bJjzTtviDpxKGc=
+Message-ID: <0bbbcf21-1e7d-5585-545f-bf89d8ebd527@digikod.net>
+Date:   Thu, 7 Jul 2022 18:44:53 +0200
+MIME-Version: 1.0
+User-Agent: 
+Content-Language: en-US
+To:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+Cc:     willemdebruijn.kernel@gmail.com,
+        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
+        anton.sirazetdinov@huawei.com
+References: <20220621082313.3330667-1-konstantin.meskhidze@huawei.com>
+ <20220621082313.3330667-3-konstantin.meskhidze@huawei.com>
+From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+Subject: Re: [PATCH v6 02/17] landlock: refactors landlock_find/insert_rule
+In-Reply-To: <20220621082313.3330667-3-konstantin.meskhidze@huawei.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
---Apple-Mail=_8F3CDE83-46C2-4E7C-B26F-40C7583C3D10
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain;
-	charset=us-ascii
+On 21/06/2022 10:22, Konstantin Meskhidze wrote:
+> Adds a new object union to support a socket port
+> rule type. Refactors landlock_insert_rule() and
+> landlock_find_rule() to support coming network
+> modifications. Now adding or searching a rule
+> in a ruleset depends on a rule_type argument
+> provided in refactored functions mentioned above.
+> 
+> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+> ---
+> 
+> Changes since v5:
+> * Formats code with clang-format-14.
+> 
+> Changes since v4:
+> * Refactors insert_rule() and create_rule() functions by deleting
+> rule_type from their arguments list, it helps to reduce useless code.
+> 
+> Changes since v3:
+> * Splits commit.
+> * Refactors landlock_insert_rule and landlock_find_rule functions.
+> * Rename new_ruleset->root_inode.
+> 
+> ---
+>   security/landlock/fs.c      |   7 ++-
+>   security/landlock/ruleset.c | 105 ++++++++++++++++++++++++++----------
+>   security/landlock/ruleset.h |  27 +++++-----
+>   3 files changed, 96 insertions(+), 43 deletions(-)
+> 
+> diff --git a/security/landlock/fs.c b/security/landlock/fs.c
+> index e6da08ed99d1..46aedc2a05a8 100644
+> --- a/security/landlock/fs.c
+> +++ b/security/landlock/fs.c
+> @@ -173,7 +173,8 @@ int landlock_append_fs_rule(struct landlock_ruleset *const ruleset,
+>   	if (IS_ERR(object))
+>   		return PTR_ERR(object);
+>   	mutex_lock(&ruleset->lock);
+> -	err = landlock_insert_rule(ruleset, object, access_rights);
+> +	err = landlock_insert_rule(ruleset, object, 0, access_rights,
+> +				   LANDLOCK_RULE_PATH_BENEATH);
+>   	mutex_unlock(&ruleset->lock);
+>   	/*
+>   	 * No need to check for an error because landlock_insert_rule()
+> @@ -204,7 +205,9 @@ find_rule(const struct landlock_ruleset *const domain,
+>   	inode = d_backing_inode(dentry);
+>   	rcu_read_lock();
+>   	rule = landlock_find_rule(
+> -		domain, rcu_dereference(landlock_inode(inode)->object));
+> +		domain,
+> +		(uintptr_t)rcu_dereference(landlock_inode(inode)->object),
+> +		LANDLOCK_RULE_PATH_BENEATH);
+>   	rcu_read_unlock();
+>   	return rule;
+>   }
+> diff --git a/security/landlock/ruleset.c b/security/landlock/ruleset.c
+> index a3fd58d01f09..5f13f8a12aee 100644
+> --- a/security/landlock/ruleset.c
+> +++ b/security/landlock/ruleset.c
+> @@ -35,7 +35,7 @@ static struct landlock_ruleset *create_ruleset(const u32 num_layers)
+>   		return ERR_PTR(-ENOMEM);
+>   	refcount_set(&new_ruleset->usage, 1);
+>   	mutex_init(&new_ruleset->lock);
+> -	new_ruleset->root = RB_ROOT;
+> +	new_ruleset->root_inode = RB_ROOT;
+>   	new_ruleset->num_layers = num_layers;
+>   	/*
+>   	 * hierarchy = NULL
+> @@ -69,7 +69,8 @@ static void build_check_rule(void)
+>   }
+> 
+>   static struct landlock_rule *
+> -create_rule(struct landlock_object *const object,
+> +create_rule(struct landlock_object *const object_ptr,
+> +	    const uintptr_t object_data,
+>   	    const struct landlock_layer (*const layers)[], const u32 num_layers,
+>   	    const struct landlock_layer *const new_layer)
+>   {
+> @@ -90,8 +91,15 @@ create_rule(struct landlock_object *const object,
+>   	if (!new_rule)
+>   		return ERR_PTR(-ENOMEM);
+>   	RB_CLEAR_NODE(&new_rule->node);
+> -	landlock_get_object(object);
+> -	new_rule->object = object;
+> +
+> +	if (object_ptr) {
+> +		landlock_get_object(object_ptr);
+> +		new_rule->object.ptr = object_ptr;
+> +	} else if (object_ptr && object_data) {
 
-Pablo Neira Ayuso has asked me to send this patch to this list. It =
-closes=20
-https://bugzilla.netfilter.org/show_bug.cgi?id=3D1591.
-
-I was not sure if the output from git format-patch should be emailed =
-directly, so apologies if an attachment is not what is expected.
-
-
---Apple-Mail=_8F3CDE83-46C2-4E7C-B26F-40C7583C3D10
-Content-Disposition: attachment;
-	filename=0001-Extends-py-nftables.py.patch
-Content-Type: application/octet-stream;
-	x-unix-mode=0644;
-	name="0001-Extends-py-nftables.py.patch"
-Content-Transfer-Encoding: quoted-printable
-
-=46rom=208aa11419725b553cc5fdae0a9829c4b65d2cc246=20Mon=20Sep=2017=20=
-00:00:00=202001=0AFrom:=20Peter=20Collinson=20=
-<11645080+pcollinson@users.noreply.github.com>=0ADate:=20Thu,=207=20Jul=20=
-2022=2014:56:33=20+0100=0ASubject:=20[PATCH]=20Extends=20py/nftables.py=20=
-Allows=20py/nftables.py=20to=20support=20full=0A=20mapping=20to=20the=20=
-libnftables=20API.=20The=20changes=20allow=20python=20code=20to=20talk=20=
-in=20text=0A=20to=20the=20kernel=20rather=20than=20just=20using=20json.=20=
-The=20Python=20API=20can=20now=20also=20use=0A=20dryruns=20to=20test=20=
-changes.=0A=0AFunctions=20added=20are:=0A=0Aadd_include_path(filename)=0A=
-clear_include_paths()=0Acmd_from_file(filename)=0Aget_dry_run()=0A=
-set_dry_run(onoff)=0A=0ACloses:=20=
-https://bugzilla.netfilter.org/show_bug.cgi?id=3D1591=0ASigned-off-by:=20=
-Peter=20Collinson=20<pc@hillside.co.uk>=0A---=0A=20py/nftables.py=20|=20=
-92=20+++++++++++++++++++++++++++++++++++++++++++++++++-=0A=201=20file=20=
-changed,=2091=20insertions(+),=201=20deletion(-)=0A=0Adiff=20--git=20=
-a/py/nftables.py=20b/py/nftables.py=0Aindex=202a0a1e89..bb9d49d4=20=
-100644=0A---=20a/py/nftables.py=0A+++=20b/py/nftables.py=0A@@=20-13,13=20=
-+13,21=20@@=0A=20#=20You=20should=20have=20received=20a=20copy=20of=20=
-the=20GNU=20General=20Public=20License=0A=20#=20along=20with=20this=20=
-program;=20if=20not,=20write=20to=20the=20Free=20Software=0A=20#=20=
-Foundation,=20Inc.,=2059=20Temple=20Place=20-=20Suite=20330,=20Boston,=20=
-MA=2002111-1307,=20USA.=0A+#=0A+#=20Extended=20to=20add=0A+#=20=
-add_include_path(self,=20filename)=0A+#=20clear_include_paths(self)=0A+#=20=
-cmd_from_file(self,=20filename)=0A+#=20get_dry_run(self)=0A+#=20=
-set_dry_run(self,=20onoff)=0A+#=20Peter=20Collinson=20March=202022=0A=20=0A=
-=20import=20json=0A=20from=20ctypes=20import=20*=0A=20import=20sys=0A=20=
-import=20os=0A=20=0A-NFTABLES_VERSION=20=3D=20"0.1"=0A+NFTABLES_VERSION=20=
-=3D=20"0.2"=0A=20=0A=20class=20SchemaValidator:=0A=20=20=20=20=20=
-"""Libnftables=20JSON=20validator=20using=20jsonschema"""=0A@@=20-116,6=20=
-+124,24=20@@=20class=20Nftables:=0A=20=20=20=20=20=20=20=20=20=
-self.nft_run_cmd_from_buffer.restype=20=3D=20c_int=0A=20=20=20=20=20=20=20=
-=20=20self.nft_run_cmd_from_buffer.argtypes=20=3D=20[c_void_p,=20=
-c_char_p]=0A=20=0A+=20=20=20=20=20=20=20=20=
-self.nft_run_cmd_from_filename=20=3D=20lib.nft_run_cmd_from_filename=0A+=20=
-=20=20=20=20=20=20=20self.nft_run_cmd_from_filename.restype=20=3D=20=
-c_int=0A+=20=20=20=20=20=20=20=20self.nft_run_cmd_from_filename.argtypes=20=
-=3D=20[c_void_p,=20c_char_p]=0A+=0A+=20=20=20=20=20=20=20=20=
-self.nft_ctx_add_include_path=20=3D=20lib.nft_ctx_add_include_path=0A+=20=
-=20=20=20=20=20=20=20self.nft_ctx_add_include_path.restype=20=3D=20c_int=0A=
-+=20=20=20=20=20=20=20=20self.nft_ctx_add_include_path.argtypes=20=3D=20=
-[c_void_p,=20c_char_p]=0A+=0A+=20=20=20=20=20=20=20=20=
-self.nft_ctx_clear_include_paths=20=3D=20lib.nft_ctx_clear_include_paths=0A=
-+=20=20=20=20=20=20=20=20self.nft_ctx_clear_include_paths.argtypes=20=3D=20=
-[c_void_p]=0A+=0A+=20=20=20=20=20=20=20=20self.nft_ctx_get_dry_run=20=3D=20=
-lib.nft_ctx_get_dry_run=0A+=20=20=20=20=20=20=20=20=
-self.nft_ctx_get_dry_run.restype=20=3D=20c_bool=0A+=20=20=20=20=20=20=20=20=
-self.nft_ctx_get_dry_run.argtypes=20=3D=20[c_void_p]=0A+=0A+=20=20=20=20=20=
-=20=20=20self.nft_ctx_set_dry_run=20=3D=20lib.nft_ctx_set_dry_run=0A+=20=20=
-=20=20=20=20=20=20self.nft_ctx_set_dry_run.argtypes=20=3D=20[c_void_p,=20=
-c_bool]=0A+=0A=20=20=20=20=20=20=20=20=20self.nft_ctx_free=20=3D=20=
-lib.nft_ctx_free=0A=20=20=20=20=20=20=20=20=20lib.nft_ctx_free.argtypes=20=
-=3D=20[c_void_p]=0A=20=0A@@=20-446,3=20+472,67=20@@=20class=20Nftables:=0A=
-=20=0A=20=20=20=20=20=20=20=20=20self.validator.validate(json_root)=0A=20=
-=20=20=20=20=20=20=20=20return=20True=0A+=0A+=20=20=20=20def=20=
-cmd_from_file(self,=20filename):=0A+=20=20=20=20=20=20=20=20"""Run=20a=20=
-nftables=20command=20set=20from=20a=20file=0A+=0A+=20=20=20=20=20=20=20=20=
-filename=20can=20be=20a=20str=20or=20a=20Path=0A+=0A+=20=20=20=20=20=20=20=
-=20Returns=20a=20tuple=20(rc,=20output,=20error):=0A+=20=20=20=20=20=20=20=
-=20rc=20=20=20=20=20--=20return=20code=20as=20returned=20by=20=
-nft_run_cmd_from_buffer()=20function=0A+=20=20=20=20=20=20=20=20output=20=
---=20a=20string=20containing=20output=20written=20to=20stdout=0A+=20=20=20=
-=20=20=20=20=20error=20=20--=20a=20string=20containing=20output=20=
-written=20to=20stderr=0A+=20=20=20=20=20=20=20=20"""=0A+=0A+=20=20=20=20=20=
-=20=20=20filename_is_unicode=20=3D=20False=0A+=20=20=20=20=20=20=20=20if=20=
-not=20isinstance(filename,=20bytes):=0A+=20=20=20=20=20=20=20=20=20=20=20=
-=20filename_is_unicode=20=3D=20True=0A+=20=20=20=20=20=20=20=20=20=20=20=20=
-#=20allow=20filename=20to=20be=20a=20Path=0A+=20=20=20=20=20=20=20=20=20=20=
-=20=20filename=20=3D=20str(filename)=0A+=20=20=20=20=20=20=20=20=20=20=20=
-=20filename=3D=20filename.encode("utf-8")=0A+=20=20=20=20=20=20=20=20rc=20=
-=3D=20self.nft_run_cmd_from_filename(self.__ctx,=20filename)=0A+=20=20=20=
-=20=20=20=20=20output=20=3D=20self.nft_ctx_get_output_buffer(self.__ctx)=0A=
-+=20=20=20=20=20=20=20=20error=20=3D=20=
-self.nft_ctx_get_error_buffer(self.__ctx)=0A+=20=20=20=20=20=20=20=20if=20=
-filename_is_unicode:=0A+=20=20=20=20=20=20=20=20=20=20=20=20output=20=3D=20=
-output.decode("utf-8")=0A+=20=20=20=20=20=20=20=20=20=20=20=20error=20=3D=20=
-error.decode("utf-8")=0A+=20=20=20=20=20=20=20=20return=20(rc,=20output,=20=
-error)=0A+=0A+=20=20=20=20def=20add_include_path(self,=20filename):=0A+=20=
-=20=20=20=20=20=20=20"""Add=20a=20path=20to=20the=20include=20file=20=
-list=0A+=20=20=20=20=20=20=20=20The=20default=20list=20includes=20/etc=0A=
-+=0A+=20=20=20=20=20=20=20=20Returns=20True=20on=20success=0A+=20=20=20=20=
-=20=20=20=20False=20if=20memory=20allocation=20fails=0A+=20=20=20=20=20=20=
-=20=20"""=0A+=0A+=20=20=20=20=20=20=20=20if=20not=20isinstance(filename,=20=
-bytes):=0A+=20=20=20=20=20=20=20=20=20=20=20=20#=20allow=20filename=20to=20=
-be=20a=20Path=0A+=20=20=20=20=20=20=20=20=20=20=20=20filename=20=3D=20=
-str(filename)=0A+=20=20=20=20=20=20=20=20=20=20=20=20filename=3D=20=
-filename.encode("utf-8")=0A+=20=20=20=20=20=20=20=20rc=20=3D=20=
-self.nft_ctx_add_include_path(self.__ctx,=20filename)=0A+=20=20=20=20=20=20=
-=20=20return=20rc=20=3D=3D=200=0A+=0A+=20=20=20=20def=20=
-clear_include_paths(self):=0A+=20=20=20=20=20=20=20=20"""Clear=20include=20=
-path=20list=0A+=0A+=20=20=20=20=20=20=20=20Will=20also=20remove=20/etc=0A=
-+=20=20=20=20=20=20=20=20"""=0A+=0A+=20=20=20=20=20=20=20=20=
-self.nft_ctx_clear_include_paths(self.__ctx)=0A+=0A+=20=20=20=20def=20=
-get_dry_run(self):=0A+=20=20=20=20=20=20=20=20"""Get=20dry=20run=20state=0A=
-+=0A+=20=20=20=20=20=20=20=20Returns=20True=20if=20set,=20False=20=
-otherwise=0A+=20=20=20=20=20=20=20=20"""=0A+=0A+=20=20=20=20=20=20=20=20=
-return=20self.nft_ctx_get_dry_run(self.__ctx)=0A+=0A+=20=20=20=20def=20=
-set_dry_run(self,=20onoff):=0A+=20=20=20=20=20=20=20=20"""=20Set=20dry=20=
-run=20state=0A+=0A+=20=20=20=20=20=20=20=20Called=20with=20True/False=0A=
-+=20=20=20=20=20=20=20=20"""=0A+=0A+=20=20=20=20=20=20=20=20=
-self.nft_ctx_set_dry_run(self.__ctx,=20onoff)=0A--=20=0A2.30.2=0A=0A=
-
---Apple-Mail=_8F3CDE83-46C2-4E7C-B26F-40C7583C3D10
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain;
-	charset=us-ascii
+Something is wrong with this second check: else + object_ptr?
 
 
+> +		WARN_ON_ONCE(1);
+> +		return ERR_PTR(-EINVAL);
+> +	}
+> +
+>   	new_rule->num_layers = new_num_layers;
+>   	/* Copies the original layer stack. */
+>   	memcpy(new_rule->layers, layers,
+> @@ -107,7 +115,7 @@ static void free_rule(struct landlock_rule *const rule)
+>   	might_sleep();
+>   	if (!rule)
+>   		return;
+> -	landlock_put_object(rule->object);
+> +	landlock_put_object(rule->object.ptr);
+>   	kfree(rule);
+>   }
+> 
+> @@ -143,26 +151,42 @@ static void build_check_ruleset(void)
+>    * access rights.
+>    */
+>   static int insert_rule(struct landlock_ruleset *const ruleset,
+> -		       struct landlock_object *const object,
+> +		       struct landlock_object *const object_ptr,
+> +		       uintptr_t object_data, u16 rule_type,
+
+Use landlock_rule_type instead of u16, everywhere. It was part of my 
+review/patch two versions ago (with other things), please take them into 
+account: 
+https://lore.kernel.org/r/92d498f0-c598-7413-6b7c-d19c5aec6cab@digikod.net
 
 
-
-
-Regards
---------------------------------------------------
-Peter Collinson
-
-
---Apple-Mail=_8F3CDE83-46C2-4E7C-B26F-40C7583C3D10--
+>   		       const struct landlock_layer (*const layers)[],
+>   		       size_t num_layers)
+>   {
+>   	struct rb_node **walker_node;
+>   	struct rb_node *parent_node = NULL;
+>   	struct landlock_rule *new_rule;
+> +	struct rb_root *root;
+> 
+>   	might_sleep();
+>   	lockdep_assert_held(&ruleset->lock);
+> -	if (WARN_ON_ONCE(!object || !layers))
+> +	if (WARN_ON_ONCE(!layers))
+>   		return -ENOENT;
+> -	walker_node = &(ruleset->root.rb_node);
+> +	if (WARN_ON_ONCE(object_ptr && object_data))
+> +		return -EINVAL;
+> +	/* Chooses rb_tree structure depending on a rule type. */
+> +	switch (rule_type) {
+> +	case LANDLOCK_RULE_PATH_BENEATH:
+> +		if (WARN_ON_ONCE(!object_ptr))
+> +			return -ENOENT;
+> +		object_data = (uintptr_t)object_ptr;
+> +		root = &ruleset->root_inode;
+> +		break;
+> +	default:
+> +		WARN_ON_ONCE(1);
+> +		return -EINVAL;
+> +	}
+> +	walker_node = &root->rb_node;
+>   	while (*walker_node) {
+>   		struct landlock_rule *const this =
+>   			rb_entry(*walker_node, struct landlock_rule, node);
+> 
+> -		if (this->object != object) {
+> +		if (this->object.data != object_data) {
+>   			parent_node = *walker_node;
+> -			if (this->object < object)
+> +			if (this->object.data < object_data)
+>   				walker_node = &((*walker_node)->rb_right);
+>   			else
+>   				walker_node = &((*walker_node)->rb_left);
+> @@ -194,11 +218,16 @@ static int insert_rule(struct landlock_ruleset *const ruleset,
+>   		 * Intersects access rights when it is a merge between a
+>   		 * ruleset and a domain.
+>   		 */
+> -		new_rule = create_rule(object, &this->layers, this->num_layers,
+> -				       &(*layers)[0]);
+> +		switch (rule_type) {
+> +		case LANDLOCK_RULE_PATH_BENEATH:
+> +			new_rule = create_rule(object_ptr, 0, &this->layers,
+> +					       this->num_layers, &(*layers)[0]);
+> +			break;
+> +		}
+>   		if (IS_ERR(new_rule))
+>   			return PTR_ERR(new_rule);
+> -		rb_replace_node(&this->node, &new_rule->node, &ruleset->root);
+> +		rb_replace_node(&this->node, &new_rule->node,
+> +				&ruleset->root_inode);
+>   		free_rule(this);
+>   		return 0;
+>   	}
+> @@ -207,11 +236,15 @@ static int insert_rule(struct landlock_ruleset *const ruleset,
+>   	build_check_ruleset();
+>   	if (ruleset->num_rules >= LANDLOCK_MAX_NUM_RULES)
+>   		return -E2BIG;
+> -	new_rule = create_rule(object, layers, num_layers, NULL);
+> +	switch (rule_type) {
+> +	case LANDLOCK_RULE_PATH_BENEATH:
+> +		new_rule = create_rule(object_ptr, 0, layers, num_layers, NULL);
+> +		break;
+> +	}
+>   	if (IS_ERR(new_rule))
+>   		return PTR_ERR(new_rule);
+>   	rb_link_node(&new_rule->node, parent_node, walker_node);
+> -	rb_insert_color(&new_rule->node, &ruleset->root);
+> +	rb_insert_color(&new_rule->node, &ruleset->root_inode);
+>   	ruleset->num_rules++;
+>   	return 0;
+>   }
+> @@ -229,8 +262,9 @@ static void build_check_layer(void)
+> 
+>   /* @ruleset must be locked by the caller. */
+>   int landlock_insert_rule(struct landlock_ruleset *const ruleset,
+> -			 struct landlock_object *const object,
+> -			 const access_mask_t access)
+> +			 struct landlock_object *const object_ptr,
+> +			 const uintptr_t object_data,
+> +			 const access_mask_t access, const u16 rule_type)
+>   {
+>   	struct landlock_layer layers[] = { {
+>   		.access = access,
+> @@ -239,7 +273,8 @@ int landlock_insert_rule(struct landlock_ruleset *const ruleset,
+>   	} };
+> 
+>   	build_check_layer();
+> -	return insert_rule(ruleset, object, &layers, ARRAY_SIZE(layers));
+> +	return insert_rule(ruleset, object_ptr, object_data, rule_type, &layers,
+> +			   ARRAY_SIZE(layers));
+>   }
+> 
+>   static inline void get_hierarchy(struct landlock_hierarchy *const hierarchy)
+> @@ -284,8 +319,8 @@ static int merge_ruleset(struct landlock_ruleset *const dst,
+>   	dst->access_masks[dst->num_layers - 1] = src->access_masks[0];
+> 
+>   	/* Merges the @src tree. */
+> -	rbtree_postorder_for_each_entry_safe(walker_rule, next_rule, &src->root,
+> -					     node) {
+> +	rbtree_postorder_for_each_entry_safe(walker_rule, next_rule,
+> +					     &src->root_inode, node) {
+>   		struct landlock_layer layers[] = { {
+>   			.level = dst->num_layers,
+>   		} };
+> @@ -299,7 +334,8 @@ static int merge_ruleset(struct landlock_ruleset *const dst,
+>   			goto out_unlock;
+>   		}
+>   		layers[0].access = walker_rule->layers[0].access;
+> -		err = insert_rule(dst, walker_rule->object, &layers,
+> +		err = insert_rule(dst, walker_rule->object.ptr, 0,
+> +				  LANDLOCK_RULE_PATH_BENEATH, &layers,
+>   				  ARRAY_SIZE(layers));
+>   		if (err)
+>   			goto out_unlock;
+> @@ -327,8 +363,9 @@ static int inherit_ruleset(struct landlock_ruleset *const parent,
+> 
+>   	/* Copies the @parent tree. */
+>   	rbtree_postorder_for_each_entry_safe(walker_rule, next_rule,
+> -					     &parent->root, node) {
+> -		err = insert_rule(child, walker_rule->object,
+> +					     &parent->root_inode, node) {
+> +		err = insert_rule(child, walker_rule->object.ptr, 0,
+> +				  LANDLOCK_RULE_PATH_BENEATH,
+>   				  &walker_rule->layers,
+>   				  walker_rule->num_layers);
+>   		if (err)
+> @@ -361,7 +398,8 @@ static void free_ruleset(struct landlock_ruleset *const ruleset)
+>   	struct landlock_rule *freeme, *next;
+> 
+>   	might_sleep();
+> -	rbtree_postorder_for_each_entry_safe(freeme, next, &ruleset->root, node)
+> +	rbtree_postorder_for_each_entry_safe(freeme, next, &ruleset->root_inode,
+> +					     node)
+>   		free_rule(freeme);
+>   	put_hierarchy(ruleset->hierarchy);
+>   	kfree(ruleset);
+> @@ -453,20 +491,29 @@ landlock_merge_ruleset(struct landlock_ruleset *const parent,
+>    */
+>   const struct landlock_rule *
+>   landlock_find_rule(const struct landlock_ruleset *const ruleset,
+> -		   const struct landlock_object *const object)
+> +		   const uintptr_t object_data, const u16 rule_type)
+>   {
+>   	const struct rb_node *node;
+> 
+> -	if (!object)
+> +	if (!object_data)
+>   		return NULL;
+> -	node = ruleset->root.rb_node;
+> +
+> +	switch (rule_type) {
+> +	case LANDLOCK_RULE_PATH_BENEATH:
+> +		node = ruleset->root_inode.rb_node;
+> +		break;
+> +	default:
+> +		WARN_ON_ONCE(1);
+> +		return NULL;
+> +	}
+> +
+>   	while (node) {
+>   		struct landlock_rule *this =
+>   			rb_entry(node, struct landlock_rule, node);
+> 
+> -		if (this->object == object)
+> +		if (this->object.data == object_data)
+>   			return this;
+> -		if (this->object < object)
+> +		if (this->object.data < object_data)
+>   			node = node->rb_right;
+>   		else
+>   			node = node->rb_left;
+> diff --git a/security/landlock/ruleset.h b/security/landlock/ruleset.h
+> index bd7ab39859bf..a22d132c32a7 100644
+> --- a/security/landlock/ruleset.h
+> +++ b/security/landlock/ruleset.h
+> @@ -53,15 +53,17 @@ struct landlock_rule {
+>   	 */
+>   	struct rb_node node;
+>   	/**
+> -	 * @object: Pointer to identify a kernel object (e.g. an inode).  This
+> -	 * is used as a key for this ruleset element.  This pointer is set once
+> -	 * and never modified.  It always points to an allocated object because
+> -	 * each rule increments the refcount of its object.
+> -	 */
+> -	struct landlock_object *object;
+> -	/**
+> -	 * @num_layers: Number of entries in @layers.
+> +	 * @object: A union to identify either a kernel object (e.g. an inode) or
+> +	 * a raw data value (e.g. a network socket port). This is used as a key
+> +	 * for this ruleset element. This pointer/@object.ptr/ is set once and
+> +	 * never modified. It always points to an allocated object because each
+> +	 * rule increments the refcount of its object (for inodes).;
+>   	 */
+> +	union {
+> +		struct landlock_object *ptr;
+> +		uintptr_t data;
+> +	} object;
+> +
+>   	u32 num_layers;
+>   	/**
+>   	 * @layers: Stack of layers, from the latest to the newest, implemented
+> @@ -98,7 +100,7 @@ struct landlock_ruleset {
+>   	 * nodes.  Once a ruleset is tied to a process (i.e. as a domain), this
+>   	 * tree is immutable until @usage reaches zero.
+>   	 */
+> -	struct rb_root root;
+> +	struct rb_root root_inode;
+>   	/**
+>   	 * @hierarchy: Enables hierarchy identification even when a parent
+>   	 * domain vanishes.  This is needed for the ptrace protection.
+> @@ -160,8 +162,9 @@ void landlock_put_ruleset(struct landlock_ruleset *const ruleset);
+>   void landlock_put_ruleset_deferred(struct landlock_ruleset *const ruleset);
+> 
+>   int landlock_insert_rule(struct landlock_ruleset *const ruleset,
+> -			 struct landlock_object *const object,
+> -			 const access_mask_t access);
+> +			 struct landlock_object *const object_ptr,
+> +			 const uintptr_t object_data,
+> +			 const access_mask_t access, const u16 rule_type);
+> 
+>   struct landlock_ruleset *
+>   landlock_merge_ruleset(struct landlock_ruleset *const parent,
+> @@ -169,7 +172,7 @@ landlock_merge_ruleset(struct landlock_ruleset *const parent,
+> 
+>   const struct landlock_rule *
+>   landlock_find_rule(const struct landlock_ruleset *const ruleset,
+> -		   const struct landlock_object *const object);
+> +		   const uintptr_t object_data, const u16 rule_type);
+> 
+>   static inline void landlock_get_ruleset(struct landlock_ruleset *const ruleset)
+>   {
+> --
+> 2.25.1
+> 
