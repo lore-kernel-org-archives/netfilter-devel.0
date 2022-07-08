@@ -2,84 +2,78 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C536EC433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Jul 2022 19:31:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91849C433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Jul 2022 08:45:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236063AbiGGTbD (ORCPT
+        id S237267AbiGHIo7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 7 Jul 2022 15:31:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47570 "EHLO
+        Fri, 8 Jul 2022 04:44:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44696 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235993AbiGGTbD (ORCPT
+        with ESMTP id S237239AbiGHIo7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 7 Jul 2022 15:31:03 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2424621260
-        for <netfilter-devel@vger.kernel.org>; Thu,  7 Jul 2022 12:31:02 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1o9XDI-0004FP-Kn; Thu, 07 Jul 2022 21:31:00 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: flowtable: prefer refcount_inc
-Date:   Thu,  7 Jul 2022 21:30:56 +0200
-Message-Id: <20220707193056.29833-1-fw@strlen.de>
-X-Mailer: git-send-email 2.35.1
+        Fri, 8 Jul 2022 04:44:59 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6D1F4814B6
+        for <netfilter-devel@vger.kernel.org>; Fri,  8 Jul 2022 01:44:58 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf] netfilter: nf_tables: release key if get element fails
+Date:   Fri,  8 Jul 2022 10:44:53 +0200
+Message-Id: <20220708084453.11066-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-With refcount_inc_not_zero, we'd also need a smp_rmb or similar,
-followed by a test of the CONFIRMED bit.
+Call nft_data_release() to release the element keys otherwise this
+might leak chain reference counter.
 
-However, the ct pointer is taken from skb->_nfct, its refcount must
-not be 0 (else, we'd already have a use-after-free bug).
-
-Use refcount_inc() instead to clarify the ct refcount is expected to
-be at least 1.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: ba0e4d9917b4 ("netfilter: nf_tables: get set elements via netlink")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- A followp to 'netfilter: conntrack: fix crash due to confirmed bit load reordering',
- but target next as current code works fine.
+ net/netfilter/nf_tables_api.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index f2def06d1070..cca2358c10a1 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -53,14 +53,14 @@ struct flow_offload *flow_offload_alloc(struct nf_conn *ct)
- {
- 	struct flow_offload *flow;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 25713e763689..04dc6a349759 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -5306,17 +5306,17 @@ static int nft_get_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 		err = nft_setelem_parse_key(ctx, set, &elem.key_end.val,
+ 					    nla[NFTA_SET_ELEM_KEY_END]);
+ 		if (err < 0)
+-			return err;
++			goto err_parse_key;
+ 	}
  
--	if (unlikely(nf_ct_is_dying(ct) ||
--	    !refcount_inc_not_zero(&ct->ct_general.use)))
-+	if (unlikely(nf_ct_is_dying(ct)))
- 		return NULL;
+ 	err = nft_setelem_get(ctx, set, &elem, flags);
+ 	if (err < 0)
+-		return err;
++		goto err_parse_key_end;
  
- 	flow = kzalloc(sizeof(*flow), GFP_ATOMIC);
- 	if (!flow)
--		goto err_ct_refcnt;
-+		return NULL;
+ 	err = -ENOMEM;
+ 	skb = nlmsg_new(NLMSG_GOODSIZE, GFP_ATOMIC);
+ 	if (skb == NULL)
+-		return err;
++		goto err_parse_key_end;
  
-+	refcount_inc(&ct->ct_general.use);
- 	flow->ct = ct;
+ 	err = nf_tables_fill_setelem_info(skb, ctx, ctx->seq, ctx->portid,
+ 					  NFT_MSG_NEWSETELEM, 0, set, &elem);
+@@ -5327,6 +5327,11 @@ static int nft_get_set_elem(struct nft_ctx *ctx, struct nft_set *set,
  
- 	flow_offload_fill_dir(flow, FLOW_OFFLOAD_DIR_ORIGINAL);
-@@ -72,11 +72,6 @@ struct flow_offload *flow_offload_alloc(struct nf_conn *ct)
- 		__set_bit(NF_FLOW_DNAT, &flow->flags);
- 
- 	return flow;
--
--err_ct_refcnt:
--	nf_ct_put(ct);
--
--	return NULL;
+ err_fill_setelem:
+ 	kfree_skb(skb);
++err_parse_key:
++	nft_data_release(&elem.key.val, NFT_DATA_VALUE);
++err_parse_key_end:
++	nft_data_release(&elem.key_end.val, NFT_DATA_VALUE);
++
+ 	return err;
  }
- EXPORT_SYMBOL_GPL(flow_offload_alloc);
  
 -- 
-2.35.1
+2.30.2
 
