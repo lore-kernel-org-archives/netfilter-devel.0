@@ -2,61 +2,43 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4888C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Jul 2022 11:18:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77F7BC43334
+	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Jul 2022 11:19:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237836AbiGHLSd (ORCPT
+        id S237402AbiGHLTy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 8 Jul 2022 07:18:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47504 "EHLO
+        Fri, 8 Jul 2022 07:19:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48410 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237853AbiGHLSa (ORCPT
+        with ESMTP id S237346AbiGHLTy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 8 Jul 2022 07:18:30 -0400
+        Fri, 8 Jul 2022 07:19:54 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 69B8BE0E3
-        for <netfilter-devel@vger.kernel.org>; Fri,  8 Jul 2022 04:18:29 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7B1F7904C6
+        for <netfilter-devel@vger.kernel.org>; Fri,  8 Jul 2022 04:19:53 -0700 (PDT)
+Date:   Fri, 8 Jul 2022 13:19:50 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     mikhail.sennikovskii@ionos.com
-Subject: [PATCH conntrack-tools 3/3] conntrack: slightly simplify parse_proto_num() by using strtoul()
-Date:   Fri,  8 Jul 2022 13:18:21 +0200
-Message-Id: <20220708111821.37783-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220708111821.37783-1-pablo@netfilter.org>
-References: <20220708111821.37783-1-pablo@netfilter.org>
+To:     Mikhail Sennikovsky <mikhail.sennikovskii@ionos.com>
+Cc:     netfilter-devel@vger.kernel.org, mikhail.sennikovsky@gmail.com
+Subject: Re: [PATCH v2 0/3] conntrack: -A command implementation
+Message-ID: <YsgS1igc2tqiV6Z+@salvia>
+References: <20220629170941.46219-1-mikhail.sennikovskii@ionos.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20220629170941.46219-1-mikhail.sennikovskii@ionos.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Use strtoul() instead and remove check for negative value.
+On Wed, Jun 29, 2022 at 07:09:38PM +0200, Mikhail Sennikovsky wrote:
+> Hi Pablo & all,
+> 
+> As discussed, here is an updated patch set for the -A command
+> support.
+> As you requested it introduces a separate CT_ADD command now.
+> In order to do that cleanly and error-safe I had to do two
+> preparation steps, which are included as two separate commits
+> with detailed description on each.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/conntrack.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/src/conntrack.c b/src/conntrack.c
-index 4afccde4b027..859a4835580b 100644
---- a/src/conntrack.c
-+++ b/src/conntrack.c
-@@ -836,12 +836,11 @@ extern struct ctproto_handler ct_proto_unknown;
- 
- static int parse_proto_num(const char *str)
- {
-+	unsigned long val;
- 	char *endptr;
--	long val;
- 
--	val = strtol(str, &endptr, 0);
-+	val = strtoul(str, &endptr, 0);
- 	if (val > IPPROTO_RAW ||
--	    val < 0 ||
- 	    endptr == str ||
- 	    *endptr != '\0')
- 		return -1;
--- 
-2.30.2
-
+Series applied, thanks
