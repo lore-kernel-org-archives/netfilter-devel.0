@@ -2,35 +2,35 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14D69C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Jul 2022 14:35:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E929C433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Jul 2022 16:57:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237970AbiGHOfT (ORCPT
+        id S239152AbiGHQ5r (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 8 Jul 2022 10:35:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54982 "EHLO
+        Fri, 8 Jul 2022 12:57:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43058 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232760AbiGHOfS (ORCPT
+        with ESMTP id S239534AbiGHQ5j (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 8 Jul 2022 10:35:18 -0400
-Received: from smtp-8fae.mail.infomaniak.ch (smtp-8fae.mail.infomaniak.ch [IPv6:2001:1600:4:17::8fae])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C56EF22522
-        for <netfilter-devel@vger.kernel.org>; Fri,  8 Jul 2022 07:35:15 -0700 (PDT)
-Received: from smtp-3-0000.mail.infomaniak.ch (unknown [10.4.36.107])
-        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4LfbR64W5vzMqGl5;
-        Fri,  8 Jul 2022 16:35:14 +0200 (CEST)
+        Fri, 8 Jul 2022 12:57:39 -0400
+Received: from smtp-bc09.mail.infomaniak.ch (smtp-bc09.mail.infomaniak.ch [IPv6:2001:1600:3:17::bc09])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A8082113
+        for <netfilter-devel@vger.kernel.org>; Fri,  8 Jul 2022 09:57:36 -0700 (PDT)
+Received: from smtp-3-0001.mail.infomaniak.ch (unknown [10.4.36.108])
+        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4LffbL5D3lzMqD8M;
+        Fri,  8 Jul 2022 18:57:34 +0200 (CEST)
 Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
-        by smtp-3-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4LfbR60rHQzlqQHp;
-        Fri,  8 Jul 2022 16:35:13 +0200 (CEST)
+        by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4LffbL1vMvzln2G9;
+        Fri,  8 Jul 2022 18:57:33 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1657290914;
-        bh=14Y01chD+nYI5x3F7IgyBm80hM86Uq1a4e496lKp1xg=;
+        s=20191114; t=1657299454;
+        bh=Qw59FDtqD8nojf3FMAqraBM3XJAAKEP12B6NgU6LwV0=;
         h=Date:To:Cc:References:From:Subject:In-Reply-To:From;
-        b=NZqCZiSY6JTk9RUHjIk9mjBsldOyl+u0R60qcDipVX4+1xGdqUjn0Ff+Xat6ZX+GP
-         siDNpPMPlQUK8RNDI8loVnGB2/L8u1IiTodcP4njrIhelAU9JsffKQUlDvYZqoUlEt
-         ZJbJ6yWqHT9u/5T7IwH8XChjvQ/CjAEXKKY1dZao=
-Message-ID: <582f8ace-1f95-16a6-fa9e-4014ddd8b7f2@digikod.net>
-Date:   Fri, 8 Jul 2022 16:35:12 +0200
+        b=abGlx7afXg/wnMLIZHV5t3pl7hnInDLDh4DdVRWVWDMDYmIuPtyb1vk8H7jTXVEv3
+         VYDxCTNkJNjBQ13O97YLbRpKyRI4l0mOj5CxBXc2SghLLNkCx5HLvrLT6VqXG5rrOQ
+         No9aHJq0WIln/xd3OPnSrdM47V/vgcdN5Kd0DL6s=
+Message-ID: <7d72fc3e-bdeb-14b8-1e6c-a99c2d052e3f@digikod.net>
+Date:   Fri, 8 Jul 2022 18:57:33 +0200
 MIME-Version: 1.0
 User-Agent: 
 Content-Language: en-US
@@ -42,12 +42,12 @@ Cc:     willemdebruijn.kernel@gmail.com,
 References: <20220621082313.3330667-1-konstantin.meskhidze@huawei.com>
  <20220621082313.3330667-3-konstantin.meskhidze@huawei.com>
  <0bbbcf21-1e7d-5585-545f-bf89d8ebd527@digikod.net>
- <7735ae47-9088-be29-2696-c5170031d7c2@huawei.com>
- <b08fe5cc-3be0-390b-3575-4f27f795f609@digikod.net>
- <6ee7e769-ce91-a6cc-378b-f206e04d112a@huawei.com>
+ <9d0c8780-6648-404f-7e51-b62a36617121@huawei.com>
+ <72375435-94d4-e3aa-c27b-b44382dde6ad@digikod.net>
+ <76c7c92e-3377-0bb8-14d5-e5c286c67dc3@huawei.com>
 From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
 Subject: Re: [PATCH v6 02/17] landlock: refactors landlock_find/insert_rule
-In-Reply-To: <6ee7e769-ce91-a6cc-378b-f206e04d112a@huawei.com>
+In-Reply-To: <76c7c92e-3377-0bb8-14d5-e5c286c67dc3@huawei.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -55,12 +55,12 @@ List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
-On 08/07/2022 16:14, Konstantin Meskhidze (A) wrote:
+On 08/07/2022 16:20, Konstantin Meskhidze (A) wrote:
 > 
 > 
-> 7/8/2022 4:59 PM, Mickaël Salaün пишет:
+> 7/8/2022 4:56 PM, Mickaël Salaün пишет:
 >>
->> On 08/07/2022 15:10, Konstantin Meskhidze (A) wrote:
+>> On 08/07/2022 14:53, Konstantin Meskhidze (A) wrote:
 >>>
 >>>
 >>> 7/7/2022 7:44 PM, Mickaël Salaün пишет:
@@ -161,37 +161,49 @@ On 08/07/2022 16:14, Konstantin Meskhidze (A) wrote:
 >>>>
 >>>> Something is wrong with this second check: else + object_ptr?
 >>>
->>>   Sorry. Do you mean logical error here? I got your point.
->>>   You are right!
+>>> It was your suggestion to use it like this:
+>>> " ....You can also add a WARN_ON_ONCE(object_ptr && object_data)."
 >>>
->>>   I think it must be refactored like this:
->>>
->>>      if (object_ptr && !object_data) {
->>>          landlock_get_object(object_ptr);
->>>          new_rule->object.ptr = object_ptr;
->>>      } else if (object_ptr && object_data) {
->>>          ...
->>>      }
+>>> Please check it here:
+>>> https://lore.kernel.org/linux-security-module/bc44f11f-0eaa-a5f6-c5dc-1d36570f1be1@digikod.net/ 
 >>
->> There is indeed a logical error but this doesn't fix everything. Please
->> include my previous suggestion instead.
 >>
->     By the way, in the next commits I have fixed this logic error.
-> Anyway I will refactor this one also. Thanks.
+>> Yes, but the error is in the "else", you should write:
+>> if (WARN_ON_ONCE(object_ptr && object_data))
+>>     return ERR_PTR(-EINVAL);
 >>
->>> Plus, I will add a test for this case.
->>
->> That would be great but I don't think this code is reachable from user
->> space. I think that would require kunit but I may be missing something.
->> How would you test this?
+>> …and this should be before the `if (object_ptr) {` line (to avoid
+>> erronous landlock_get_object() call), just after the `if (!new_rule)` 
+>> check.
 > 
-> You are correct. I checked it. It's impossible to reach this line from 
-> userpace (insert both object_ptr and object_data). But create_rule() 
-> must be used carefuly by other developers (if any in future). Do you 
-> think if its possible to have some internal kernel tests that could 
-> handle this issue?
+>    Maybe we could delete this check here cause we have it in the upper 
+> insert_rule() function??
+> 
+> ...
+>      if (WARN_ON_ONCE(!layers))
+>          return -ENOENT;
+> ------>    if (WARN_ON_ONCE(object_ptr && object_data))
+>          return -EINVAL;
+>      /* Chooses rb_tree structure depending on a rule type. */
+>      switch (rule_type) {
+>      case LANDLOCK_RULE_PATH_BENEATH:
+>          if (WARN_ON_ONCE(!object_ptr))
+>              return -ENOENT;
+>          object_data = (uintptr_t)object_ptr;
+>          root = &ruleset->root_inode;
+>          break;
+>      default:
+>          WARN_ON_ONCE(1);
+>          return -EINVAL;
+>      }
+> ...
+> 
+> This is double check here. What do you think?
 
-We can use kunit tests for such kernel functions, but in this case I'm 
-not sure what could be tested. I started working on bringing kunit tests 
-to Landlock but it's not ready yet. Please list all non-userspace tests 
-you can think about.
+This check is indeed done twice, and for now create_rule() is only 
+called from insert_rule(), but I prefer to keep it in both location to 
+not get bitten in the future were it could be called from other 
+locations. The compiler may be smart enough to remove the redundant 
+checks though.
+
+I'll send a patch to improve this part.
